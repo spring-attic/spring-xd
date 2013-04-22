@@ -1,3 +1,69 @@
+description = 'Spring Integration'
+
+buildscript {
+	repositories {
+		maven { url "http://repo.springsource.org/plugins-release" }
+	}
+	dependencies {
+		classpath("org.springframework.build.gradle:propdeps-plugin:0.0.3")
+		classpath("org.springframework.build.gradle:docbook-reference-plugin:0.2.6")
+	}
+}
+
+allprojects {
+	group = 'org.springframework.xd'
+
+	repositories {
+		maven { url 'http://repo.springsource.org/libs-milestone' }
+		maven { url 'http://repo.springsource.org/plugins-release' }
+	}
+}
+
+subprojects { subproject ->
+
+	apply plugin: 'java'
+	apply from:   "${rootProject.projectDir}/publish-maven.gradle"
+	apply plugin: 'eclipse'
+	apply plugin: 'idea'
+
+	sourceCompatibility=1.6
+	targetCompatibility=1.6
+
+	eclipse {
+		project {
+			natures += 'org.springframework.ide.eclipse.core.springnature'
+		}
+	}
+
+	task sourcesJar(type: Jar) {
+		classifier = 'sources'
+		from sourceSets.main.allJava
+	}
+
+	task javadocJar(type: Jar) {
+		classifier = 'javadoc'
+		from javadoc
+	}
+
+	artifacts {
+		archives sourcesJar
+		archives javadocJar
+	}
+
+}
+
+project('spring-xd-analytics') {
+	description = 'Spring XD Anaytics'
+}
+
+project('spring-xd-dirt') {
+	description = 'Spring XD DIRT'
+}
+
+project('spring-xd-tuple') {
+	description = 'Spring XD Tuple'
+}
+
 task wrapper(type: Wrapper) {
 	description = "Generates gradlew[.bat] scripts"
 	gradleVersion = "1.5"

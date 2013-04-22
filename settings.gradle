@@ -1,0 +1,6 @@
+rootProject.name = 'spring-xd'
+
+include 'spring-xd-analytics'
+include 'spring-xd-dirt'
+include 'spring-xd-tuple'
+

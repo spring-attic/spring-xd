@@ -1,17 +1,17 @@
 spring-xd
 =========
 
-*Spring XD* makes it easy to solve common big data problems such as data ingestion and export, real-time analytics, and batch workflow orchestration.  By building on mature, open source projects such as Spring Integration, Data and Batch Spring XD will simplify the process of creating real-word big data solutions.  
+*Spring XD* makes it easy to solve common big data problems such as data ingestion and export, real-time analytics, and batch workflow orchestration.  By building on mature, open source projects such as Spring Integration, Data and Batch, Spring XD will simplify the process of creating real-word big data solutions.  
 
-While it is possible today to build such solutions using Spring, see the [Spring Data Book][] for details and examples, Spring XD will move well beyond the framework API level by providing provide an out-of-the-box executable server, a pluggable module system, a high level configuration DSL, a simple model for distributing data processing instances on or off the Hadoop cluster, and more.
+While it is possible today to build such solutions using Spring (see the [Spring Data Book][] for details and examples), Spring XD will move well beyond the framework API level by providing an out-of-the-box executable server, a pluggable module system, a high level configuration DSL, a simple model for distributing data processing instances on or off the Hadoop cluster, and more.
 
-You can fork the repository and/or monitor JIRA to see what is going on. As of April it is practically a clean-slate but we wanted to make sure that our community members had a chance to get in on the ground floor.  As always, we consider the feedback from our broad and passionate community to be one of our greatest assets.  We have been doing a lot of prototyping over the past year, so you will see some code drops soon. Also, we plan to post blogs after each sprint so that you can follow along with the progress.
+You can fork the repository and/or monitor JIRA to see what is going on. As of April it is practically a clean-slate, but we wanted to make sure that our community members had a chance to get in on the ground floor.  As always, we consider the feedback from our broad and passionate community to be one of our greatest assets.  We have been doing a lot of prototyping over the past year, so you will see some code drops soon. Also, we plan to post blogs after each sprint so that you can follow along with the progress.
 
 ## Issue Tracking
 
 Report issues via the [Spring XD JIRA][].
 
-## Continuos Integration
+## Continuous Integration
 
 * **Master**: https://build.springsource.org/browse/XD-MASTER
 * **Sonar**: https://build.springsource.org/browse/XD-SONAR

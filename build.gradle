@@ -29,6 +29,14 @@ subprojects { subproject ->
 	sourceCompatibility=1.6
 	targetCompatibility=1.6
 
+	ext {
+		springVersion = '3.2.2.RELEASE'
+		springBatchVersion = '2.1.9.RELEASE'
+		springIntegrationVersion = '3.0.0.M1'
+		springDataMongoVersion = '1.1.1.RELEASE'
+		springDataHadoopVersion = '1.0.0.RELEASE'
+	}
+	
 	eclipse {
 		project {
 			natures += 'org.springframework.ide.eclipse.core.springnature'
@@ -71,6 +79,22 @@ project('spring-xd-dirt') {
 
 project('spring-xd-tuple') {
 	description = 'Spring XD Tuple'
+}
+
+project('spring-xd-hadoop') {
+	description = 'Spring XD Hadoop'
+	
+	dependencies {
+		compile "org.springframework:spring-aop:$springVersion"
+		compile "org.springframework:spring-context:$springVersion"
+		compile "org.springframework:spring-context-support:$springVersion"
+		compile "org.springframework:spring-jdbc:$springVersion"
+		compile "org.springframework:spring-tx:$springVersion"
+		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
+		compile "org.springframework.batch:spring-batch-core:$springBatchVersion"
+		compile "org.springframework.data:spring-data-mongodb:$springDataMongoVersion"
+		compile "org.springframework.data:spring-data-hadoop:$springDataHadoopVersion"
+	}
 }
 
 apply plugin: 'sonar'

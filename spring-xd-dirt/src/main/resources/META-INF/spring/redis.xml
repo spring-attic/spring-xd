@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:redis="http://www.springframework.org/schema/redis"
+	xmlns:cloud="http://schema.cloudfoundry.org/spring"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/redis http://www.springframework.org/schema/context/spring-redis.xsd
+		http://schema.cloudfoundry.org/spring http://schema.cloudfoundry.org/spring/cloudfoundry-spring-0.8.xsd">
+
+	<beans profile="default">
+		<bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+			<constructor-arg>
+				<bean class="redis.clients.jedis.JedisPoolConfig">
+					<property name="maxActive" value="100"/>
+				</bean>
+			</constructor-arg>
+		</bean>
+	</beans>
+
+	<beans profile="cloud">
+		<cloud:redis-connection-factory id="redisConnectionFactory"/>
+	</beans>
+
+</beans>

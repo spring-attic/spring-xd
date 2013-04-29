@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-event="http://www.springframework.org/schema/integration/event"
+	xmlns:redis="http://www.springframework.org/schema/redis"
+	xmlns:int-redis="http://www.springframework.org/schema/integration/redis"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/redis http://www.springframework.org/schema/redis/spring-redis.xsd
+		http://www.springframework.org/schema/integration/event http://www.springframework.org/schema/integration/event/spring-integration-event.xsd
+		http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<import resource="redis.xml"/>
+
+	<context:property-placeholder/>
+
+	<int:channel id="input"/>
+
+	<bean id="redisInboundAdapter" class="org.springframework.integration.x.redis.RedisQueueInboundChannelAdapter">
+		<constructor-arg value="queue.deployer"/>
+		<constructor-arg ref="redisConnectionFactory"/>
+		<property name="outputChannel" ref="input"/>
+		<property name="extractPayload" value="false"/>
+	</bean>
+
+	<redis:listener-container>
+		<redis:listener topic="topic.undeployer" ref="handler" method="undeploy"/>
+	</redis:listener-container>
+
+	<int:service-activator input-channel="input" ref="handler"/>
+
+	<bean id="handler" class="org.springframework.xd.dirt.module.ModuleDeployer">
+		<constructor-arg ref="moduleRegistry"/>
+	</bean>
+
+	<bean id="moduleRegistry" class="org.springframework.xd.dirt.module.FileModuleRegistry">
+		<constructor-arg value="/tmp/dirt/modules"/>
+	</bean>
+
+	<bean class="org.springframework.xd.dirt.listener.RedisContainerEventListener">
+		<constructor-arg ref="redisConnectionFactory"/>
+	</bean>
+
+	<int-event:inbound-channel-adapter channel="moduleEventsOut" event-types="org.springframework.xd.dirt.event.AbstractModuleEvent"/>
+
+	<int-event:inbound-channel-adapter channel="moduleContainerEventsOut" event-types="org.springframework.xd.dirt.event.AbstractContainerEvent"/>
+
+	<int-redis:outbound-channel-adapter id="moduleEventsOut" topic="events:modules"/>
+
+	<int-redis:outbound-channel-adapter id="moduleContainerEventsOut" topic="events:containers"/>
+
+</beans>

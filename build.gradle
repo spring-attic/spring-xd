@@ -30,10 +30,13 @@ subprojects { subproject ->
 	targetCompatibility=1.6
 
 	ext {
+		jacksonVersion = '1.9.12'
+		junitVersion = '4.8.2'
 		springVersion = '3.2.2.RELEASE'
 		springBatchVersion = '2.1.9.RELEASE'
 		springIntegrationVersion = '3.0.0.M1'
 		springDataMongoVersion = '1.1.1.RELEASE'
+		springDataRedisVersion = '1.0.4.RELEASE'
 		springDataHadoopVersion = '1.0.0.RELEASE'
 	}
 	
@@ -49,6 +52,7 @@ subprojects { subproject ->
 
 	// dependencies that are common across all java projects
 	dependencies {
+		testCompile "junit:junit-dep:$junitVersion"
 		jacoco group: "org.jacoco", name: "org.jacoco.agent", version: "0.6.2.201302030002", classifier: "runtime"
 	}
 
@@ -75,6 +79,11 @@ project('spring-xd-analytics') {
 
 project('spring-xd-dirt') {
 	description = 'Spring XD DIRT'
+	dependencies {
+		compile "org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion"
+		compile "org.springframework.integration:spring-integration-event:$springIntegrationVersion"
+		compile "org.springframework.integration:spring-integration-redis:$springIntegrationVersion"
+	}
 }
 
 project('spring-xd-tuple') {

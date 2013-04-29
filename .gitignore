@@ -1,3 +1,7 @@
 /.gradle/
 build
 /.idea/
+.settings
+.classpath
+.project
+.springBeans

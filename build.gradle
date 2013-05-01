@@ -32,6 +32,7 @@ subprojects { subproject ->
 	ext {
 		jacksonVersion = '1.9.12'
 		junitVersion = '4.8.2'
+		hamcrestVersion = '1.2.1'
 		springVersion = '3.2.2.RELEASE'
 		springBatchVersion = '2.1.9.RELEASE'
 		springIntegrationVersion = '3.0.0.M1'
@@ -53,6 +54,7 @@ subprojects { subproject ->
 	// dependencies that are common across all java projects
 	dependencies {
 		testCompile "junit:junit-dep:$junitVersion"
+		testCompile "org.hamcrest:hamcrest-library:$hamcrestVersion"
 		jacoco group: "org.jacoco", name: "org.jacoco.agent", version: "0.6.2.201302030002", classifier: "runtime"
 	}
 
@@ -88,6 +90,10 @@ project('spring-xd-dirt') {
 
 project('spring-xd-tuple') {
 	description = 'Spring XD Tuple'
+	dependencies {
+		compile "org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion"
+		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
+	}
 }
 
 project('spring-xd-hadoop') {

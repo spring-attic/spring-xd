@@ -16,21 +16,26 @@
 
 package test;
 
+import org.junit.Rule;
 import org.junit.Test;
-
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.x.redis.RedisQueueOutboundChannelAdapter;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.test.redis.RedisAvailableRule;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class ModuleDeploymentTest {
 
 	// for now copy 'test.xml' to /tmp/dirt/modules/generic
 	// then run redis-server and ContainerLauncher before this test
+
+	@Rule
+	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
 
 	@Test
 	public void test() throws Exception {

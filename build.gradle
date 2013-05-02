@@ -1,4 +1,4 @@
-description = 'Spring Integration'
+description = 'Spring XD'
 
 buildscript {
 	repositories {
@@ -85,6 +85,13 @@ project('spring-xd-dirt') {
 		compile "org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion"
 		compile "org.springframework.integration:spring-integration-event:$springIntegrationVersion"
 		compile "org.springframework.integration:spring-integration-redis:$springIntegrationVersion"
+	}
+}
+
+project('spring-xd-module') {
+	description = 'Spring XD Anaytics'
+	dependencies {
+		compile "org.springframework:spring-context:$springVersion"
 	}
 }
 

@@ -22,8 +22,8 @@ import org.springframework.xd.module.Plugin;
 public class SamplePlugin implements Plugin {
 
 	@Override
-	public void processModule(Module module) {
-		System.out.println("processing module: " + module);		
+	public void processModule(Module module, String group, int index) {
+		System.out.println("processing module '" + module + "' from group '" + group + "' with index: " + index);
 	}
 
 }

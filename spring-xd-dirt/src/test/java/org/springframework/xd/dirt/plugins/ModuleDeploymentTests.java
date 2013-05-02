@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package test;
+package org.springframework.xd.dirt.plugins;
 
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.support.MessageBuilder;
@@ -29,7 +31,7 @@ import org.springframework.xd.test.redis.RedisAvailableRule;
  * @author Mark Fisher
  * @author Gary Russell
  */
-public class ModuleDeploymentTest {
+public class ModuleDeploymentTests {
 
 	// for now copy 'test.xml' to /tmp/dirt/modules/generic
 	// then run redis-server and ContainerLauncher before this test
@@ -38,7 +40,8 @@ public class ModuleDeploymentTest {
 	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
 
 	@Test
-	public void test() throws Exception {
+	@Ignore
+	public void testGenericModule() throws Exception {
 		JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
 		connectionFactory.afterPropertiesSet();
 		RedisQueueOutboundChannelAdapter adapter = new RedisQueueOutboundChannelAdapter("queue.deployer", connectionFactory);
@@ -51,6 +54,30 @@ public class ModuleDeploymentTest {
 		request.setIndex(0);
 		Message<?> message = MessageBuilder.withPayload(request.toString()).build();
 		adapter.handleMessage(message);
+	}
+
+	@Test
+	@Ignore
+	public void testSimpleStream() throws Exception {
+		JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
+		connectionFactory.afterPropertiesSet();
+		RedisQueueOutboundChannelAdapter adapter = new RedisQueueOutboundChannelAdapter("queue.deployer", connectionFactory);
+		adapter.setExtractPayload(false);
+		adapter.afterPropertiesSet();
+		ModuleDeploymentRequest sinkRequest = new ModuleDeploymentRequest();
+		sinkRequest.setGroup("teststream");
+		sinkRequest.setType("sink");
+		sinkRequest.setModule("testsink");
+		sinkRequest.setIndex(1);
+		Message<?> sinkMessage = MessageBuilder.withPayload(sinkRequest.toString()).build();
+		adapter.handleMessage(sinkMessage);
+		ModuleDeploymentRequest sourceRequest = new ModuleDeploymentRequest();
+		sourceRequest.setGroup("teststream");
+		sourceRequest.setType("source");
+		sourceRequest.setModule("testsource");
+		sourceRequest.setIndex(0);
+		Message<?> sourceMessage = MessageBuilder.withPayload(sourceRequest.toString()).build();
+		adapter.handleMessage(sourceMessage);
 	}
 
 }

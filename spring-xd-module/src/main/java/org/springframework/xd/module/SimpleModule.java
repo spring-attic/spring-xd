@@ -16,6 +16,7 @@
 
 package org.springframework.xd.module;
 
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -61,6 +62,11 @@ public class SimpleModule extends AbstractModule {
 	}
 
 	@Override
+	public <T> Map<String, T> getComponents(Class<T> type) {
+		return context.getBeansOfType(type);
+	}
+
+	@Override
 	public void addProperties(Properties properties) {
 		this.registerPropertySource(properties);
 		this.properties.putAll(properties);
@@ -80,7 +86,7 @@ public class SimpleModule extends AbstractModule {
 		}
 		String propertySourceName = "properties-" + propertiesIndex;
 		PropertySource<?> propertySource = null;
-		propertySource = new PropertiesPropertySource(propertySourceName, (Properties) properties);
+		propertySource = new PropertiesPropertySource(propertySourceName, properties);
 		this.context.getEnvironment().getPropertySources().addLast(propertySource);
 	}
 
@@ -113,8 +119,9 @@ public class SimpleModule extends AbstractModule {
 	public boolean isRunning() {
 		return this.context.isActive() && this.context.isRunning();
 	}
-	
+
 	public ApplicationContext getApplicationContext() {
 		return this.context;
 	}
+
 }

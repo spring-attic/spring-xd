@@ -103,7 +103,7 @@ public class ModuleDeployer extends AbstractMessageHandler
 	}
 
 	private void deployModule(Module module, String group, int index) {
-		this.processModule(module);
+		this.processModule(module, group, index);
 		module.start();
 		this.fireModuleDeployedEvent(module, group, index);
 	}
@@ -124,12 +124,12 @@ public class ModuleDeployer extends AbstractMessageHandler
 
 	/**
 	 * allow plugins to contribute properties (e.g. "stream.name")
-	 * calling module.addProperties(properties), etc. 
+	 * calling module.addProperties(properties), etc.
 	 */
-	private void processModule(Module module) {
+	private void processModule(Module module, String group, int index) {
 		if (this.plugins != null) {
 			for (Plugin plugin : this.plugins.values()) {
-				plugin.processModule(module);
+				plugin.processModule(module, group, index);
 			}
 		}
 	}

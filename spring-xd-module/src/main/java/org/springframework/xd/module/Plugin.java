@@ -21,6 +21,6 @@ package org.springframework.xd.module;
  */
 public interface Plugin {
 
-	void processModule(Module module);
+	void processModule(Module module, String group, int index);
 
 }

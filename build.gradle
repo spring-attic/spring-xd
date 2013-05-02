@@ -82,6 +82,7 @@ project('spring-xd-analytics') {
 project('spring-xd-dirt') {
 	description = 'Spring XD DIRT'
 	dependencies {
+		compile project(":spring-xd-module")
 		compile "org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion"
 		compile "org.springframework.integration:spring-integration-event:$springIntegrationVersion"
 		compile "org.springframework.integration:spring-integration-redis:$springIntegrationVersion"
@@ -89,7 +90,7 @@ project('spring-xd-dirt') {
 }
 
 project('spring-xd-module') {
-	description = 'Spring XD Anaytics'
+	description = 'Spring XD Module'
 	dependencies {
 		compile "org.springframework:spring-context:$springVersion"
 	}

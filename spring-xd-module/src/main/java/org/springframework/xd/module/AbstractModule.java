@@ -27,8 +27,8 @@ public abstract class AbstractModule implements Module {
 	private final String name;
 
 	private final String type;
-	
-	private String instanceId;
+
+	private volatile String instanceId;
 
 	public AbstractModule(String name, String type) {
 		Assert.notNull(name, "name must not be null");
@@ -48,17 +48,17 @@ public abstract class AbstractModule implements Module {
 	}
 
 	@Override
-	public String toString() {
-		return "Module [name=" + name + ", type=" + type + "]";
-	}
-	
-	@Override
 	public String getInstanceId() {
 		return this.instanceId;
 	}
-	
+
 	public void setInstanceId(String instanceId) {
 		this.instanceId = instanceId;
+	}
+
+	@Override
+	public String toString() {
+		return "Module [name=" + name + ", type=" + type + "]";
 	}
 
 }

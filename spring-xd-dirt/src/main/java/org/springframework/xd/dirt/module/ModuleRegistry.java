@@ -16,7 +16,7 @@
 
 package org.springframework.xd.dirt.module;
 
-import org.springframework.xd.dirt.core.Module;
+import org.springframework.xd.module.Module;
 
 /**
  * @author Mark Fisher

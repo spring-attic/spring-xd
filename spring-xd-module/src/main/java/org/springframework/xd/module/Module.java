@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.module;
 
 import java.util.Properties;
@@ -28,16 +29,14 @@ import org.springframework.core.io.Resource;
 public interface Module extends Lifecycle {
 
 	/**
-	 * The generic module name or template name
-	 * @return
+	 * @return the generic module name or template name
 	 */
 	String getName();
 
 	String getType();
-	
+
 	/**
-	 * An id for this instance
-	 * @return
+	 * @return an id for this instance
 	 */
 	String getInstanceId();
 

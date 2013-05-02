@@ -17,7 +17,8 @@
 package org.springframework.xd.dirt.module;
 
 import org.springframework.core.io.Resource;
-import org.springframework.xd.dirt.core.Module;
+import org.springframework.xd.module.Module;
+import org.springframework.xd.module.SimpleModule;
 
 /**
  * @author Mark Fisher

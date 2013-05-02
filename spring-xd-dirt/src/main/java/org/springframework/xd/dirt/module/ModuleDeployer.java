@@ -34,10 +34,10 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.util.Assert;
-import org.springframework.xd.dirt.core.Module;
-import org.springframework.xd.dirt.core.Plugin;
 import org.springframework.xd.dirt.event.ModuleDeployedEvent;
 import org.springframework.xd.dirt.event.ModuleUndeployedEvent;
+import org.springframework.xd.module.Module;
+import org.springframework.xd.module.Plugin;
 
 /**
  * @author Mark Fisher

@@ -25,10 +25,10 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.context.ApplicationListener;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.xd.dirt.core.Module;
 import org.springframework.xd.dirt.event.AbstractModuleEvent;
 import org.springframework.xd.dirt.event.ModuleDeployedEvent;
 import org.springframework.xd.dirt.event.ModuleUndeployedEvent;
+import org.springframework.xd.module.Module;
 
 /**
  * @author Mark Fisher

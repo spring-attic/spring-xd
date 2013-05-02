@@ -16,8 +16,8 @@
 
 package tmp;
 
-import org.springframework.xd.dirt.core.Module;
-import org.springframework.xd.dirt.core.Plugin;
+import org.springframework.xd.module.Module;
+import org.springframework.xd.module.Plugin;
 
 public class SamplePlugin implements Plugin {
 

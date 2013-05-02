@@ -235,31 +235,33 @@ public class DefaultTuple implements Tuple {
 	}
 	
 	@Override
-	public Character getChar(int index) {
+	public char getChar(int index) {
 		String value = readAndTrim(index);
-
-		Assert.isTrue(value.length() == 1, "Cannot convert field value '" + value + "' to char.");
-
-		return value.charAt(0);
-	}
+		if (value != null) {
+			Assert.isTrue(value.length() == 1, "Cannot convert field value '" + value + "' to char.");
+			return value.charAt(0);
+		}
+		return '\u0000';
+		
+	}	
 	
 	@Override
-	public Character getChar(String name) {
+	public char getChar(String name) {
 		return getChar(indexOf(name));
 	}
 	
 	@Override
-	public Boolean getBoolean(int index) {
+	public boolean getBoolean(int index) {
 		return getBoolean(index, "true");
 	}
 	
 	@Override
-	public Boolean getBoolean(String name) {
+	public boolean getBoolean(String name) {
 		return getBoolean(indexOf(name));
 	}
 	
 	@Override
-	public Boolean getBoolean(int index, String trueValue) {
+	public boolean getBoolean(int index, String trueValue) {
 		Assert.notNull(trueValue, "'trueValue' cannot be null.");
 		String value = readAndTrim(index);
 		return trueValue.equals(value) ? true : false;
@@ -267,71 +269,77 @@ public class DefaultTuple implements Tuple {
 	}
 	
     @Override
-	public Boolean getBoolean(String name, String trueValue) {
+	public boolean getBoolean(String name, String trueValue) {
 		return getBoolean(indexOf(name), trueValue);
 	}
     
     @Override 
-    public Byte getByte(String name) {
+    public byte getByte(String name) {
     	return getByte(indexOf(name));
     }
     
     @Override
-    public Byte getByte(int index) {
-		return convert(values.get(index), Byte.class);
+    public byte getByte(int index) {
+		Byte b = convert(values.get(index), Byte.class);
+		return (b != null) ? b : 0;
     }
 
 	@Override
-	public Short getShort(String name) {
+	public short getShort(String name) {
 		return getShort(indexOf(name));
 	}
 	
     
 	@Override
-	public Short getShort(int index) {
-		return convert(values.get(index), Short.class);
+	public short getShort(int index) {
+		Short s = convert(values.get(index), Short.class);
+		return (s != null) ? s : 0;
 	}
 	
 	@Override
-	public Integer getInt(String name) {
+	public int getInt(String name) {
 		return getInt(indexOf(name));
 	}
     
 	@Override
-	public Integer getInt(int index) {
-		return convert(values.get(index), Integer.class);
+	public int getInt(int index) {
+		Integer candidate = convert(values.get(index), Integer.class);
+		return (candidate == null) ?  0 : candidate; 
 	}
 
 	@Override
-	public Long getLong(String name) {
+	public long getLong(String name) {
 		return getLong(indexOf(name));
 	}
 	
 	@Override
-	public Long getLong(int index) {
-		return convert(values.get(index), Long.class);
+	public long getLong(int index) {
+		Long l = convert(values.get(index), Long.class);
+		return (l != null) ? l : 0;
 	}
 
     
 	@Override
-	public Float getFloat(String name) {
+	public float getFloat(String name) {
 		return getFloat(indexOf(name));
 	}
 	
 	@Override
-	public Float getFloat(int index) {
-		return convert(values.get(index), Float.class);
+	public float getFloat(int index) {
+		Float f = convert(values.get(index), Float.class);
+		return (f != null) ? f : 0;
 	}
 	
 
 	@Override
-	public Double getDouble(String name) {
+	public double getDouble(String name) {
 		return getDouble(indexOf(name));
 	}
 	
 	@Override
-	public Double getDouble(int index) {
-		return convert(values.get(index), Double.class);
+	public double getDouble(int index) {
+		Double d = convert(values.get(index), Double.class);
+		return (d != null) ? d : 0;
 	}
 
 	@Override

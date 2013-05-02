@@ -92,9 +92,9 @@ public interface Tuple {
 	
 	String getString(int index);
 	
-	Character getChar(int index);
+	char getChar(int index);
 	
-	Character getChar(String name);
+	char getChar(String name);
 
 	/**
 	 * Read the '<code>boolean</code>' value at index '<code>index</code>'.
@@ -102,7 +102,7 @@ public interface Tuple {
 	 * @param index the field index.
 	 * @throws IndexOutOfBoundsException if the index is out of bounds.
 	 */
-	Boolean getBoolean(int index);
+	boolean getBoolean(int index);
 	
 	/**
 	 * Read the '<code>boolean</code>' value from field with given '<code>name</code>'.
@@ -111,7 +111,7 @@ public interface Tuple {
 	 * @throws IllegalArgumentException if a field with given name is not
 	 * defined.
 	 */
-	Boolean getBoolean(String name);
+	boolean getBoolean(String name);
 
 	/**
 	 * Read the '<code>boolean</code>' value at index '<code>index</code>'.
@@ -122,7 +122,7 @@ public interface Tuple {
 	 * @throws IndexOutOfBoundsException if the index is out of bounds, or if
 	 * the supplied <code>trueValue</code> is <code>null</code>.
 	 */
-	Boolean getBoolean(int index, String trueValue);
+	boolean getBoolean(int index, String trueValue);
 	
 	/**
 	 * Read the '<code>boolean</code>' value from column with given '<code>name</code>'.
@@ -133,7 +133,7 @@ public interface Tuple {
 	 * @throws IllegalArgumentException if a column with given name is not
 	 * defined, or if the supplied <code>trueValue</code> is <code>null</code>.
 	 */
-	Boolean getBoolean(String name, String trueValue);
+	boolean getBoolean(String name, String trueValue);
 	
 	/**
 	 * Read the '<code>byte</code>' value at index '<code>index</code>'.
@@ -141,14 +141,14 @@ public interface Tuple {
 	 * @param index the field index.
 	 * @throws IndexOutOfBoundsException if the index is out of bounds.
 	 */
-	Byte getByte(int index);
+	byte getByte(int index);
 	
 	/**
 	 * Read the '<code>byte</code>' value from column with given '<code>name</code>'.
 	 * 
 	 * @param name the field name.
 	 */
-	Byte getByte(String name);
+	byte getByte(String name);
 	
 
 	/**
@@ -157,14 +157,14 @@ public interface Tuple {
 	 * @param index the field index.
 	 * @throws IndexOutOfBoundsException if the index is out of bounds.
 	 */
-	Short getShort(int index);
+	short getShort(int index);
 	
 	/**
 	 * Read the '<code>short</code>' value from column with given '<code>name</code>'.
 	 * 
 	 * @param name the field name.
 	 */
-	Short getShort(String name);
+	short getShort(String name);
 	
 	/**
 	 * Read the '<code>int</code>' value at index '<code>index</code>'.
@@ -172,14 +172,14 @@ public interface Tuple {
 	 * @param index the field index.
 	 * @throws IndexOutOfBoundsException if the index is out of bounds.
 	 */
-	Integer getInt(int index);
+	int getInt(int index);
 	
 	/**
 	 * Read the '<code>int</code>' value from column with given '<code>name</code>'.
 	 * 
 	 * @param name the field name.
 	 */
-	Integer getInt(String name); 
+	int getInt(String name); 
 	
 	/**
 	 * Read the '<code>long</code>' value at index '<code>index</code>'.
@@ -187,14 +187,14 @@ public interface Tuple {
 	 * @param index the field index.
 	 * @throws IndexOutOfBoundsException if the index is out of bounds.
 	 */
-	Long getLong(int index);
+	long getLong(int index);
 	
 	/**
 	 * Read the '<code>int</code>' value from column with given '<code>name</code>'.
 	 * 
 	 * @param name the field name.
 	 */
-	Long getLong(String name); 
+	long getLong(String name); 
 	
 	/**
 	 * Read the '<code>float</code>' value at index '<code>index</code>'.
@@ -202,14 +202,14 @@ public interface Tuple {
 	 * @param index the field index.
 	 * @throws IndexOutOfBoundsException if the index is out of bounds.
 	 */
-	Float getFloat(int index);
+	float getFloat(int index);
 	
 	/**
 	 * Read the '<code>float</code>' value from column with given '<code>name</code>'.
 	 * 
 	 * @param name the field name.
 	 */
-	Float getFloat(String name);	
+	float getFloat(String name);	
 	
 	/**
 	 * Read the '<code>double</code>' value at index '<code>index</code>'.
@@ -217,14 +217,14 @@ public interface Tuple {
 	 * @param index the field index.
 	 * @throws IndexOutOfBoundsException if the index is out of bounds.
 	 */
-	Double getDouble(int index);
+	double getDouble(int index);
 	
 	/**
 	 * Read the '<code>double</code>' value from column with given '<code>name</code>'.
 	 * 
 	 * @param name the field name.
 	 */
-	Double getDouble(String name);	
+	double getDouble(String name);	
 	
 	/**
 	 * Read the '<code>BigDecimal</code>' value at index '<code>index</code>'.

@@ -252,9 +252,35 @@ public class DefaultTupleTests {
 		Tuple tuple = TupleBuilder.tuple().of("up", "down", "charm", 2, "top", 2.0f );
 		assertThat(tuple.getString("up"), equalTo("down"));
 		assertThat(tuple.getString("charm"), equalTo("2"));
-		assertThat(tuple.getString("top"), equalTo("2.0"));
+		assertThat(tuple.getString("top"), equalTo("2.0"));		
+	}
+	
+	@Test
+	public void testGetNullValue() {
+		Tuple tuple = tuple().of("foo", null);
+		//non primitive types will return null
+		assertThat(tuple.getString("foo"), nullValue());
+		assertThat(tuple.getBigDecimal("foo"), nullValue());		
+		assertThat(tuple.getDate("foo"), nullValue());
+		
+		//primitive types will return default values
+		assertThat(tuple.getChar("foo"), equalTo('\u0000'));
+		assertThat(tuple.getBoolean("foo"), equalTo(false));
+		byte b = 0;
+		assertThat(tuple.getByte("foo"), equalTo(b));
+		short s = 0;
+		assertThat(tuple.getShort("foo"), equalTo(s));
+		assertThat(tuple.getInt("foo"), equalTo(0));
+		assertThat(tuple.getLong("foo"), equalTo(0L));
+		assertThat(tuple.getFloat("foo"), equalTo(0f));
+		assertThat(tuple.getDouble("foo"), equalTo(0d));
+
+		
+
 		
 	}
+	
+
 	
 	@Test
 	public void testGetStringThatFails() {

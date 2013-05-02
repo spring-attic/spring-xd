@@ -65,10 +65,11 @@ public class DefaultTupleTests {
 	
 	@Test
 	public void accessNonExistentEntry() {
-		thrown.expect(IllegalArgumentException.class);
-		thrown.expectMessage("Cannot access field [does-not-exist] from [foo]");
+		//thrown.expect(IllegalArgumentException.class);
+		//thrown.expectMessage("Cannot access field [does-not-exist] from [foo]");
 		Tuple tuple = TupleBuilder.tuple().of("foo", "bar");
-		tuple.getValue("does-not-exist");
+		Object v = tuple.getValue("does-not-exist");
+		assertThat(v, nullValue());
 	}
 	
 	@Test
@@ -309,6 +310,114 @@ public class DefaultTupleTests {
 		
 		selectedTuple = tuple.select("?[value.length() < 4]");
 		//TODO - assertions
+		
+	}
+	
+	@Test
+	public void testReadByteWithDefault() {
+		// with a value
+		byte b = 1;
+		Tuple t = tuple().of("foo", b);
+		byte defaultByte = 2;
+		assertTrue(t.getByte(0, defaultByte) == b);	
+		assertTrue(t.getByte("foo", defaultByte) == b);		
+		assertTrue(t.getByte("bar", defaultByte) == defaultByte);	
+		
+		// with a null value
+		t = tuple().of("foo", null);
+		assertTrue(t.getByte(0, defaultByte) == defaultByte);
+		assertTrue(t.getByte("foo", defaultByte) == defaultByte);		
+		assertTrue(t.getByte("bar", defaultByte) == defaultByte);
+		
+	}
+	
+	@Test
+	public void testReadShortWithDefault() {
+		// with a value
+		short s = 1;
+		Tuple t = tuple().of("foo", s);
+		short defaultShort = 2;
+		assertTrue(t.getShort(0, defaultShort) == s);	
+		assertTrue(t.getShort("foo", defaultShort) == s);		
+		assertTrue(t.getShort("bar", defaultShort) == defaultShort);	
+		
+		// with a null value
+		t = tuple().of("foo", null);
+		assertTrue(t.getShort(0, defaultShort) == defaultShort);
+		assertTrue(t.getShort("foo", defaultShort) == defaultShort);		
+		assertTrue(t.getShort("bar", defaultShort) == defaultShort);
+		
+	}
+	
+	@Test
+	public void testReadIntWithDefault() {
+		// with a value
+		int i = 1;
+		Tuple t = tuple().of("foo", i);
+		int defaultInt = 2;
+		assertTrue(t.getInt(0, defaultInt) == i);	
+		assertTrue(t.getInt("foo", defaultInt) == i);		
+		assertTrue(t.getInt("bar", defaultInt) == defaultInt);	
+		
+		// with a null value
+		t = tuple().of("foo", null);
+		assertTrue(t.getInt(0, defaultInt) == defaultInt);
+		assertTrue(t.getInt("foo", defaultInt) == defaultInt);		
+		assertTrue(t.getInt("bar", defaultInt) == defaultInt);
+		
+	}
+	
+	@Test
+	public void testReadLongWithDefault() {
+		// with a value
+		long l = 1;
+		Tuple t = tuple().of("foo", l);
+		int defaultLong = 2;
+		assertTrue(t.getLong(0, defaultLong) == l);	
+		assertTrue(t.getLong("foo", defaultLong) == l);		
+		assertTrue(t.getLong("bar", defaultLong) == defaultLong);	
+		
+		// with a null value
+		t = tuple().of("foo", null);
+		assertTrue(t.getLong(0, defaultLong) == defaultLong);
+		assertTrue(t.getLong("foo", defaultLong) == defaultLong);		
+		assertTrue(t.getLong("bar", defaultLong) == defaultLong);
+		
+	}
+	
+	@Test
+	public void testReadFloatWithDefault() {
+		// with a value
+		float f = 1;
+		Tuple t = tuple().of("foo", f);
+		float defaultFloat = 2.0f;
+		assertTrue(t.getFloat(0, defaultFloat) == f);	
+		assertTrue(t.getFloat("foo", defaultFloat) == f);		
+		assertTrue(t.getFloat("bar", defaultFloat) == defaultFloat);	
+		
+		// with a null value
+		t = tuple().of("foo", null);
+		assertTrue(t.getFloat(0, defaultFloat) == defaultFloat);
+		assertTrue(t.getFloat("foo", defaultFloat) == defaultFloat);		
+		assertTrue(t.getFloat("bar", defaultFloat) == defaultFloat);
+		
+	}
+	
+	@Test
+	public void testReadDoubleWithDefault() {
+		// with a value
+		double d = 1;
+		Tuple t = tuple().of("foo", d);
+		double defaultDouble = 2.0d;
+		assertTrue(t.getDouble(0, defaultDouble) == d);	
+		assertTrue(t.getDouble("foo", defaultDouble) == d);		
+		assertTrue(t.getDouble("bar", defaultDouble) == defaultDouble);	
+		
+		// with a null value
+		t = tuple().of("foo", null);
+		assertTrue(t.getDouble(0, defaultDouble) == defaultDouble);
+		assertTrue(t.getDouble("foo", defaultDouble) == defaultDouble);		
+		assertTrue(t.getDouble("bar", defaultDouble) == defaultDouble);
 		
 	}
 }

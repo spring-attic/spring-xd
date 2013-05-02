@@ -15,8 +15,7 @@
  */
 package org.springframework.xd.tuple;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -163,15 +162,8 @@ public class DefaultTupleTestForBatch {
 	
 	@Test
 	public void testReadNonExistentField() {
-
-		thrown.expect(IllegalArgumentException.class);
-		// TODO current message of 
-		//
-		// Cannot access field [something] from [String, Boolean, Char, Byte, Short, Integer, Long, Float, Double, BigDecimal, Null, Date, DatePattern, BlankInput]>
-		// 
-		// is not every clear
-		//thrown.expectMessage("...");
-		tuple.getString("something");
+		String s = tuple.getString("something");
+		assertThat(s, nullValue());
 	}
 	
 	@Test

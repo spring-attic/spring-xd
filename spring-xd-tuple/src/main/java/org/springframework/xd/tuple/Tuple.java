@@ -152,6 +152,27 @@ public interface Tuple {
 	
 
 	/**
+	 * Read the '<code>byte</code>' value at index '<code>index</code>'.
+	 * using the supplied <code>defaultValue</code> if the field value is
+	 * a zero length string or null.
+	 * 
+	 * @param index the field index.
+	 * @param defaultValue the default value to return if field value is not found.
+	 * @throws IndexOutOfBoundsException if the index is out of bounds.
+	 */
+	byte getByte(int index, byte defaultValue);
+	
+	/**
+	 * Read the '<code>byte</code>' value from column with given '<code>name</code>'.
+	 * using the supplied <code>defaultValue</code> if the field value is
+	 * a zero length string or null.
+	 *  
+	 * @param name the field name.
+	 * @param defaultValue the default value to return if field value is not found.
+	 */
+	byte getByte(String name, byte defaultValue);
+	
+	/**
 	 * Read the '<code>short</code>' value at index '<code>index</code>'.
 	 * 
 	 * @param index the field index.
@@ -165,6 +186,27 @@ public interface Tuple {
 	 * @param name the field name.
 	 */
 	short getShort(String name);
+	
+	/**
+	 * Read the '<code>short</code>' value at index '<code>index</code>'.
+	 * using the supplied <code>defaultValue</code> if the field value is
+	 * a zero length string or null.
+	 * 
+	 * @param index the field index.
+	 * @param defaultValue the default value to return if field value is not found.
+	 * @throws IndexOutOfBoundsException if the index is out of bounds.
+	 */
+	short getShort(int index, short defaultValue);
+	
+	/**
+	 * Read the '<code>short</code>' value from column with given '<code>name</code>'.
+	 * using the supplied <code>defaultValue</code> if the field value is
+	 * a zero length string or null.
+	 *  
+	 * @param name the field name.
+	 * @param defaultValue the default value to return if field value is not found.
+	 */
+	short getShort(String name, short defaultValue);
 	
 	/**
 	 * Read the '<code>int</code>' value at index '<code>index</code>'.
@@ -182,6 +224,27 @@ public interface Tuple {
 	int getInt(String name); 
 	
 	/**
+	 * Read the '<code>int</code>' value at index '<code>index</code>'.
+	 * using the supplied <code>defaultValue</code> if the field value is
+	 * a zero length string or null.
+	 * 
+	 * @param index the field index.
+	 * @param defaultValue the default value to return if field value is not found.
+	 * @throws IndexOutOfBoundsException if the index is out of bounds.
+	 */
+	int getInt(int index, int defaultValue);
+	
+	/**
+	 * Read the '<code>int</code>' value from column with given '<code>name</code>'.
+	 * using the supplied <code>defaultValue</code> if the field value is
+	 * a zero length string or null.
+	 *  
+	 * @param name the field name.
+	 * @param defaultValue the default value to return if field value is not found.
+	 */
+	int getInt(String name, int defaultValue);
+	
+	/**
 	 * Read the '<code>long</code>' value at index '<code>index</code>'.
 	 * 
 	 * @param index the field index.
@@ -195,6 +258,27 @@ public interface Tuple {
 	 * @param name the field name.
 	 */
 	long getLong(String name); 
+	
+	/**
+	 * Read the '<code>long</code>' value at index '<code>index</code>'.
+	 * using the supplied <code>defaultValue</code> if the field value is
+	 * a zero length string or null.
+	 * 
+	 * @param index the field index.
+	 * @param defaultValue the default value to return if field value is not found.
+	 * @throws IndexOutOfBoundsException if the index is out of bounds.
+	 */
+	long getLong(int index, long defaultValue);
+	
+	/**
+	 * Read the '<code>long</code>' value from column with given '<code>name</code>'.
+	 * using the supplied <code>defaultValue</code> if the field value is
+	 * a zero length string or null.
+	 *  
+	 * @param name the field name.
+	 * @param defaultValue the default value to return if field value is not found.
+	 */
+	long getLong(String name, long defaultValue);
 	
 	/**
 	 * Read the '<code>float</code>' value at index '<code>index</code>'.
@@ -212,6 +296,28 @@ public interface Tuple {
 	float getFloat(String name);	
 	
 	/**
+	 * Read the '<code>float</code>' value at index '<code>index</code>'.
+	 * using the supplied <code>defaultValue</code> if the field value is
+	 * a zero length string or null.
+	 * 
+	 * @param index the field index.
+	 * @param defaultValue the default value to return if field value is not found.
+	 * @throws IndexOutOfBoundsException if the index is out of bounds.
+	 */
+	float getFloat(int index, float defaultValue);
+	
+	/**
+	 * Read the '<code>float</code>' value from column with given '<code>name</code>'.
+	 * using the supplied <code>defaultValue</code> if the field value is
+	 * a zero length string or null.
+	 *  
+	 * @param name the field name.
+	 * @param defaultValue the default value to return if field value is not found.
+	 */
+	float getFloat(String name, float defaultValue);
+	
+	
+	/**
 	 * Read the '<code>double</code>' value at index '<code>index</code>'.
 	 * 
 	 * @param index the field index.
@@ -225,6 +331,28 @@ public interface Tuple {
 	 * @param name the field name.
 	 */
 	double getDouble(String name);	
+	
+	
+	/**
+	 * Read the '<code>double</code>' value at index '<code>index</code>'.
+	 * using the supplied <code>defaultValue</code> if the field value is
+	 * a zero length string or null.
+	 * 
+	 * @param index the field index.
+	 * @param defaultValue the default value to return if field value is not found.
+	 * @throws IndexOutOfBoundsException if the index is out of bounds.
+	 */
+	double getDouble(int index, double defaultValue);
+	
+	/**
+	 * Read the '<code>double</code>' value from column with given '<code>name</code>'.
+	 * using the supplied <code>defaultValue</code> if the field value is
+	 * a zero length string or null.
+	 *  
+	 * @param name the field name.
+	 * @param defaultValue the default value to return if field value is not found.
+	 */
+	double getDouble(String name, double defaultValue);
 	
 	/**
 	 * Read the '<code>BigDecimal</code>' value at index '<code>index</code>'.

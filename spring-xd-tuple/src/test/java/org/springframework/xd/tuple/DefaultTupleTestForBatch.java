@@ -28,6 +28,7 @@ import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -49,9 +50,6 @@ public class DefaultTupleTestForBatch {
 	List<Object> values;
 	
 	List<String> names;
-	
-	@Rule
-	public ExpectedException thrown = ExpectedException.none();
 	
 	
 	@Before
@@ -363,7 +361,7 @@ public class DefaultTupleTestForBatch {
 	public void testReadDateInvalidWithPattern() throws Exception {
 
 		try {
-			tuple.getDate(0, "dd-MM-yyyy");
+			tuple.getDateWithPattern(0, "dd-MM-yyyy");
 			fail("field value is not a date, exception expected");
 		}
 		catch (IllegalArgumentException e) {
@@ -372,18 +370,18 @@ public class DefaultTupleTestForBatch {
 	}
 	
 	@Test
-	@Ignore("Ignored until determine how to handle default values")
 	public void testReadDateWithPatternAndDefault() {
-		
+		Date date = null;
+		assertEquals(date, tuple.getDateWithPattern(13, "dd-MM-yyyy", date));
+		assertEquals(date, tuple.getDateWithPattern("BlankInput", "dd-MM-yyyy", date));
 	}
 	
 	@Test
 	public void testStrictReadDateWithPattern() throws Exception {
 
 		Tuple t = tuple().of("foo", "50-2-13");
-		//fieldSet = new DefaultFieldSet(new String[] {"50-2-13"});
 		try {
-			t.getDate(0, "dd-MM-yyyy");
+			t.getDateWithPattern(0, "dd-MM-yyyy");
 			fail("field value is not a valid date for strict parser, exception expected");
 		}
 		catch (IllegalArgumentException e) {
@@ -397,7 +395,7 @@ public class DefaultTupleTestForBatch {
 
 		Tuple t = tuple().of("foo","5550212");
 		try {
-			System.err.println(t.getDate(0, "yyyyMMdd"));
+			System.err.println(t.getDateWithPattern(0, "yyyyMMdd"));
 			fail("field value is not a valid date for strict parser, exception expected");
 		}
 		catch (IllegalArgumentException e) {
@@ -410,7 +408,7 @@ public class DefaultTupleTestForBatch {
 	public void testReadDateByNameInvalidWithPattern() throws Exception {
 
 		try {
-			tuple.getDate("String", "dd-MM-yyyy");
+			tuple.getDateWithPattern("String", "dd-MM-yyyy");
 			fail("field value is not a date, exception expected");
 		}
 		catch (IllegalArgumentException e) {
@@ -419,6 +417,21 @@ public class DefaultTupleTestForBatch {
 		}
 	}
 	
-	//TODO look at differences (names with padding...) with getProperties and toMap in DefaultTuple (but not exposed on interface)
-	
+	@Test
+	public void testPaddedLong() {
+		Tuple t = tuple().of("foo", "00000009");
+		//FieldSet fs = new DefaultFieldSet(new String[] { "00000009" });
+
+		long value = t.getLong(0);
+		assertEquals(value, 9);
+	}
+	@Test
+	public void testReadRawString() {
+		String name = "fieldName";
+		String value = " string with trailing whitespace   ";
+		Tuple t = tuple().of(name, value);
+		
+		assertEquals(value, t.getRawString(0));
+		assertEquals(value, t.getRawString(name));
+	}
 }

@@ -82,18 +82,69 @@ public interface Tuple {
 	 */
 	Object getValue(int index);
 	
+	/**
+	 * Return the value of the field given the name
+	 * @param name the field name
+	 * @param valueClass Class to coerce the value into.
+	 * @return value of the field
+	 */
 	<T> T getValue(String name, Class<T> valueClass);
 	
+	/**
+	 * Return the value of the field given the index position
+	 * @param index position in the tuple
+	 * @param valueClass Class to coerce the value into
+	 * @return value of the field
+	 */
 	<T> T getValue(int index, Class<T> valueClass);
 	
-	// Various getters to match up with Spring Batch needs.
-	
+	/**
+	 * Read the {@link String} value given the field '<code>name</code>'.
+	 * 
+	 * @param name the field name.
+	 * @return value of the field
+	 */
 	String getString(String name);
 	
+	/**
+	 * Read the String value given the index position
+	 * @param index position in the tuple
+	 * @return value of the field
+	 */
 	String getString(int index);
 	
+	/**
+	 * Read the {@link String} value at index '<code>index</code>' including
+	 * trailing whitespace (don't trim).
+	 * 
+	 * @param index the field index.
+	 * @throws IndexOutOfBoundsException if the index is out of bounds.
+	 */
+	String getRawString(int index);
+	
+	/**
+	 * Read the {@link String} value from column with given '<code>name</code>'
+	 * including trailing whitespace (don't trim).
+	 * 
+	 * @param name the field name.
+	 */
+	String getRawString(String name);
+	/**
+	 * Read the '<code>char</code>' value at index '<code>index</code>'.
+	 * 
+	 * @param index the field index.
+	 * @throws IndexOutOfBoundsException if the index is out of bounds.
+	 */
 	char getChar(int index);
 	
+	
+	/**
+	 * Read the '<code>char</code>' value from field with given '<code>name</code>'.
+	 * 
+	 * @param name the field name.
+	 * @throws IllegalArgumentException if a field with given name is not
+	 * defined.
+	 */
 	char getChar(String name);
 
 	/**
@@ -370,6 +421,27 @@ public interface Tuple {
 	BigDecimal getBigDecimal(String name);
 	
 	/**
+	 * Read the '<code>BigDecimal</code>' value at index '<code>index</code>'.
+	 * using the supplied <code>defaultValue</code> if the field value is
+	 * a zero length string or null.
+	 * 
+	 * @param index the field index.
+	 * @param defaultValue the default value to return if field value is not found.
+	 * @throws IndexOutOfBoundsException if the index is out of bounds.
+	 */
+	BigDecimal getBigDecimal(int index, BigDecimal defaultValue);
+	
+	/**
+	 * Read the '<code>BigDecimal</code>' value from column with given '<code>name</code>'.
+	 * using the supplied <code>defaultValue</code> if the field value is
+	 * a zero length string or null.
+	 *  
+	 * @param name the field name.
+	 * @param defaultValue the default value to return if field value is not found.
+	 */
+	BigDecimal getBigDecimal(String name, BigDecimal defaultValue);
+	
+	/**
 	 * Read the <code>java.util.Date</code> value in default format at
 	 * designated column <code>index</code>.
 	 * 
@@ -391,6 +463,32 @@ public interface Tuple {
 	
 	/**
 	 * Read the <code>java.util.Date</code> value in default format at
+	 * designated column <code>index</code>
+	 * using the supplied <code>defaultValue</code> if the field value is
+	 * a zero length string or null.
+	 * 
+	 * @param index the field index.
+	 * @param defaultValue the default value to return if field value is not found.
+	 * @throws IndexOutOfBoundsException if the index is out of bounds.
+	 * @throws ConversionFailedException if the value is not parseable
+	 */
+	Date getDate(int index, Date defaultValue);
+	
+	/**
+	 * Read the <code>java.util.Date</code> value in default format at
+	 * designated column with given <code>name</code>.
+	 * using the supplied <code>defaultValue</code> if the field value is
+	 * a zero length string or null.
+	 * 
+	 * @param name the field name.
+	 * @param defaultValue the default value to return if field value is not found.
+	 * @throws IllegalArgumentException if a column with given name is not defined
+	 * @throws ConversionFailedException if the value is not parseable
+	 */
+	Date getDate(String name, Date defaultValue);
+	
+	/**
+	 * Read the <code>java.util.Date</code> value in default format at
 	 * designated column <code>index</code>.
 	 * 
 	 * @param index the field index.
@@ -399,7 +497,7 @@ public interface Tuple {
 	 * @throws IllegalArgumentException if the date cannot be parsed.
 	 * 
 	 */
-	Date getDate(int index, String pattern);
+	Date getDateWithPattern(int index, String pattern);
 	
 	/**
 	 * Read the <code>java.util.Date</code> value in given format from column
@@ -411,7 +509,37 @@ public interface Tuple {
 	 * defined or if the specified field cannot be parsed
 	 * 
 	 */
-	Date getDate(String name, String pattern);
+	Date getDateWithPattern(String name, String pattern);
+	
+	/**
+	 * Read the <code>java.util.Date</code> value in default format at
+	 * designated column <code>index</code>.
+	 * using the supplied <code>defaultValue</code> if the field value is
+	 * a zero length string or null.
+	 * 
+	 * @param index the field index.
+	 * @param pattern the pattern describing the date and time format
+	 * @param defaultValue the default value to return if field value is not found.
+	 * @throws IndexOutOfBoundsException if the index is out of bounds.
+	 * @throws IllegalArgumentException if the date cannot be parsed.
+	 * 
+	 */
+	Date getDateWithPattern(int index, String pattern, Date defaultValue);
+	
+	/**
+	 * Read the <code>java.util.Date</code> value in given format from column
+	 * with given <code>name</code>.
+	 * using the supplied <code>defaultValue</code> if the field value is
+	 * a zero length string or null.
+	 * 
+	 * @param name the field name.
+	 * @param pattern the pattern describing the date and time format
+	 * @param defaultValue the default value to return if field value is not found.
+	 * @throws IllegalArgumentException if a column with given name is not
+	 * defined or if the specified field cannot be parsed
+	 * 
+	 */
+	Date getDateWithPattern(String name, String pattern, Date defaultValue);
 	
 	/**
 	 * Use SpEL expression to return a subset of the tuple that matches the expression

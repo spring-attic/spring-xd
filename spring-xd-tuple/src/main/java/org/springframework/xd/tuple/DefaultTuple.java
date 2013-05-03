@@ -70,7 +70,7 @@ public class DefaultTuple implements Tuple {
 		this.values = new ArrayList<Object>(values);  // shallow copy
 		this.formattingConversionService = formattingConversionService;
 		this.id = UUID.randomUUID();
-		this.timestamp = new Long(System.currentTimeMillis());
+		this.timestamp = Long.valueOf(System.currentTimeMillis());
 	}
 	
 	/*
@@ -235,6 +235,28 @@ public class DefaultTuple implements Tuple {
 			return null;
 		}
 	}
+	
+	@Override
+	public String getRawString(String name) {
+    	int index = indexOf(name);
+    	return (index == -1) ? null : getRawString(index);
+	}
+	
+	@Override
+	public String getRawString(int index) {
+		Object rawValue = values.get(index);
+		if (rawValue != null) {
+			String value = convert(rawValue, String.class);
+			if (value != null) {
+				return value;
+			} else {
+				return null;
+			}				
+		} else {
+			return null;
+		}
+	}
+	
 	
 	@Override
 	public char getChar(int index) {
@@ -432,6 +454,18 @@ public class DefaultTuple implements Tuple {
 	public BigDecimal getBigDecimal(int index) {
 		return convert(values.get(index), BigDecimal.class);
 	}
+	
+	@Override
+	public BigDecimal getBigDecimal(String name, BigDecimal defaultValue) { 
+    	int index = indexOf(name);
+    	return (index == -1) ? defaultValue : getBigDecimal(index, defaultValue);
+	}
+	
+	@Override 
+	public BigDecimal getBigDecimal(int index, BigDecimal defaultValue) {
+		BigDecimal bd = convert(values.get(index), BigDecimal.class);
+		return (bd != null) ? bd : defaultValue;
+	}
 
 	@Override
 	public Date getDate(int index) {
@@ -444,15 +478,48 @@ public class DefaultTuple implements Tuple {
 	}
 	
 	@Override
-	public Date getDate(int index, String pattern) {
+	public Date getDate(String name, Date defaultValue) {
+		int index = indexOf(name);
+		return (index == -1) ? defaultValue : getDate(index, defaultValue);
+	}
+	
+	@Override
+	public Date getDate(int index, Date defaultValue) {
+		Date d = getDate(index);
+		return (d != null) ? d : defaultValue;
+	}
+	
+	@Override
+	public Date getDateWithPattern(int index, String pattern) {
 		StringToDateConverter converter = new StringToDateConverter(pattern);
 		return converter.convert(this.readAndTrim(index));
 	}
 	
 	@Override
-	public Date getDate(String name, String pattern) {
+	public Date getDateWithPattern(String name, String pattern) {
 		try {
-			return getDate(indexOf(name), pattern);
+			return getDateWithPattern(indexOf(name), pattern);
+		}
+		catch (IllegalArgumentException e) {
+			throw new IllegalArgumentException(e.getMessage() + ", name: [" + name + "]");
+		}
+	}
+	
+	@Override
+	public Date getDateWithPattern(int index, String pattern, Date defaultValue)  {
+		try {
+			Date d = getDateWithPattern(index, pattern);
+			return (d != null) ? d : defaultValue;
+		} catch (IllegalArgumentException e) {
+			return defaultValue;
+		}
+		
+	}
+	
+	@Override
+	public Date getDateWithPattern(String name, String pattern, Date defaultValue)  {
+		try {
+			return getDateWithPattern(indexOf(name), pattern, defaultValue);			
 		}
 		catch (IllegalArgumentException e) {
 			throw new IllegalArgumentException(e.getMessage() + ", name: [" + name + "]");

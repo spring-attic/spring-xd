@@ -20,8 +20,10 @@ import static org.springframework.xd.tuple.TupleBuilder.tuple;
 import static org.hamcrest.Matchers.*;
 
 import java.awt.Color;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import org.junit.Rule;
@@ -307,10 +309,10 @@ public class DefaultTupleTests {
 		assertThat(selectedTuple.getFieldNames().get(0), equalTo("brown"));
 		assertThat(selectedTuple.getString(0), equalTo("braun"));
 
-		
 		selectedTuple = tuple.select("?[value.length() < 4]");
-		//TODO - assertions
-		
+		assertThat(selectedTuple.size(), equalTo(1));
+		assertThat(selectedTuple.getFieldNames().get(0), equalTo("red"));
+		assertThat(selectedTuple.getString(0), equalTo("rot"));
 	}
 	
 	@Test
@@ -418,6 +420,43 @@ public class DefaultTupleTests {
 		assertTrue(t.getDouble(0, defaultDouble) == defaultDouble);
 		assertTrue(t.getDouble("foo", defaultDouble) == defaultDouble);		
 		assertTrue(t.getDouble("bar", defaultDouble) == defaultDouble);
+		
+	}
+	
+	@Test
+	public void testReadBigDecimalWithDefault() {
+		// with a value
+		BigDecimal bd = new BigDecimal(1);
+		Tuple t = tuple().of("foo", bd);
+		BigDecimal defaultBigDecimal = new BigDecimal(2);
+		assertTrue(t.getBigDecimal(0, defaultBigDecimal) == bd);	
+		assertTrue(t.getBigDecimal("foo", defaultBigDecimal) == bd);		
+		assertTrue(t.getBigDecimal("bar", defaultBigDecimal) == defaultBigDecimal);	
+		
+		// with a null value
+		t = tuple().of("foo", null);
+		assertTrue(t.getBigDecimal(0, defaultBigDecimal) == defaultBigDecimal);
+		assertTrue(t.getBigDecimal("foo", defaultBigDecimal) == defaultBigDecimal);		
+		assertTrue(t.getBigDecimal("bar", defaultBigDecimal) == defaultBigDecimal);
+		
+	}
+	
+	@Test
+	public void testReadDateWithDefault() throws InterruptedException {
+		// with a value
+		Date date = new Date();
+		Tuple t = tuple().of("foo", date);
+		Thread.sleep(1000);
+		Date defaultDate = new Date();
+		assertTrue(t.getDate(0, defaultDate) == date);	
+		assertTrue(t.getDate("foo", defaultDate) == date);		
+		assertTrue(t.getDate("bar", defaultDate) == defaultDate);	
+		
+		// with a null value
+		t = tuple().of("foo", null);
+		assertTrue(t.getDate(0, defaultDate) == defaultDate);
+		assertTrue(t.getDate("foo", defaultDate) == defaultDate);		
+		assertTrue(t.getDate("bar", defaultDate) == defaultDate);
 		
 	}
 }

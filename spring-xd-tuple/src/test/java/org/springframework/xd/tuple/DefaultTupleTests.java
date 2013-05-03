@@ -21,6 +21,8 @@ import static org.hamcrest.Matchers.*;
 
 import java.awt.Color;
 import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -457,6 +459,19 @@ public class DefaultTupleTests {
 		assertTrue(t.getDate(0, defaultDate) == defaultDate);
 		assertTrue(t.getDate("foo", defaultDate) == defaultDate);		
 		assertTrue(t.getDate("bar", defaultDate) == defaultDate);
+		
+	}
+	
+	@Test
+	public void testReadDateWithPattern() throws ParseException, InterruptedException {
+		Tuple t = tuple().of("foo", "24-12-2013");
+		Date d = t.getDateWithPattern(0, "dd-MM-yyyy");
+		SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+		assertEquals(dateFormat.parse("24-12-2013"), d);
+		Thread.sleep(1000);
+		Date defaultDate = new Date();
+		assertTrue(t.getDateWithPattern("foo", "xyz-abc", defaultDate) == defaultDate);
+		assertTrue(t.getDateWithPattern(0, "xyz-abc", defaultDate) == defaultDate);
 		
 	}
 }

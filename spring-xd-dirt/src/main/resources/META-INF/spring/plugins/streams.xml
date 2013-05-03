@@ -7,6 +7,15 @@
 		<constructor-arg ref="channelRegistry"/>
 	</bean>
 
+	<!-- local
 	<bean id="channelRegistry" class="org.springframework.integration.channel.registry.LocalChannelRegistry"/>
+	-->
+
+	<!-- redis -->
+	<import resource="../redis.xml"/>
+
+	<bean id="channelRegistry" class="org.springframework.integration.x.redis.RedisChannelRegistry">
+		<constructor-arg ref="redisConnectionFactory"/>
+	</bean>
 
 </beans>

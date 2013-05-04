@@ -103,6 +103,7 @@ project('spring-xd-dirt') {
 		compile "org.apache.tomcat.embed:tomcat-embed-core:$tomcatVersion"
 		compile "org.apache.tomcat.embed:tomcat-embed-logging-juli:$tomcatVersion"
 		compile "org.springframework.integration:spring-integration-event:$springIntegrationVersion"
+		compile "org.springframework.integration:spring-integration-file:$springIntegrationVersion"
 		compile "org.springframework.integration:spring-integration-redis:$springIntegrationVersion"
 		testCompile project(":spring-xd-test")
 	}

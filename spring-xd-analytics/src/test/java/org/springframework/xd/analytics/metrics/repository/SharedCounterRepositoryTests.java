@@ -29,26 +29,12 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.xd.analytics.metrics.core.Counter;
 
 
-public abstract class AbstractCounterRepositoryTests {
+public class SharedCounterRepositoryTests {
 
-	
-	@After
-	@Before
-	public void beforeAndAfter() {
-		JedisConnectionFactory cf = new JedisConnectionFactory();
-		cf.afterPropertiesSet();
-		StringRedisTemplate stringRedisTemplate = new StringRedisTemplate(cf);
-		Set<String> keys = stringRedisTemplate.keys("counts." + "*");
-		if (keys.size() > 0) {
-			stringRedisTemplate.delete(keys);
-		}
-	}
-	
-	@Test
-	public void testCrud() {
+
+	public void testCrud(CounterRepository repo) {
 		String myCounterName = "myCounter";
 		String yourCounterName = "yourCounter";
-		CounterRepository repo = getCounterRepositoryImplementation();
 		
 		// Create and save a Counter  named 'myCounter'
 		Counter c1 = new Counter(myCounterName);		
@@ -80,6 +66,4 @@ public abstract class AbstractCounterRepositoryTests {
 		counters = repo.findAll();
 		assertThat(counters.size(), equalTo(0));	
 	}
-
-	protected abstract CounterRepository getCounterRepositoryImplementation();
 }

@@ -15,26 +15,53 @@
  */
 package org.springframework.xd.analytics.metrics.service.redis;
 
+import java.util.Set;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.xd.analytics.metrics.repository.CounterRepository;
 import org.springframework.xd.analytics.metrics.repository.redis.RedisCounterRepository;
 import org.springframework.xd.analytics.metrics.service.AbstractCounterServiceTests;
 import org.springframework.xd.analytics.metrics.service.CounterService;
+import org.springframework.xd.analytics.metrics.util.TestUtils;
 
 
 public class RedisCounterServiceTests extends AbstractCounterServiceTests {
 
 	private RedisCounterRepository counterRepository;
 	
+	
+	@After
+	@Before
+	public void beforeAndAfter() {
+		
+		StringRedisTemplate stringRedisTemplate = TestUtils.getStringRedisTemplate();
+		Set<String> keys = stringRedisTemplate.keys("counts." + "*");
+		if (keys.size() > 0) {
+			stringRedisTemplate.delete(keys);
+		}
+		
+		CounterRepository repo = getCounterRepository();
+		//TODO delete to support wildcards
+		repo.delete("simpleCounter");
+		repo.delete("counts.simpleCounter");
+	}
+	
+	@Test
+	public void testService() {
+		super.simpleTest(getCounterServiceImplementation(), getCounterRepository());
+	}
+	
 	public CounterService getCounterServiceImplementation() {
-		return new RedisCounterService(counterRepository);
+		return new RedisCounterService(getCounterRepository());
 	}
 
-	@Override
-	public CounterRepository getCounterRepository() {
-		JedisConnectionFactory cf = new JedisConnectionFactory();
-		cf.afterPropertiesSet();
-		counterRepository = new RedisCounterRepository(cf);
+
+	public RedisCounterRepository getCounterRepository() {
+		counterRepository = new RedisCounterRepository(TestUtils.getJedisConnectionFactory());
 		return counterRepository;
 	}
 

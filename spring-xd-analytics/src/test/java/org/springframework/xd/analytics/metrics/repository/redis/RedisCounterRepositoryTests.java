@@ -15,19 +15,31 @@
  */
 package org.springframework.xd.analytics.metrics.repository.redis;
 
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
-import org.springframework.xd.analytics.metrics.repository.AbstractCounterRepositoryTests;
-import org.springframework.xd.analytics.metrics.repository.CounterRepository;
+import java.util.Set;
 
-public class RedisCounterRepositoryTests extends AbstractCounterRepositoryTests {
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.xd.analytics.metrics.repository.SharedCounterRepositoryTests;
+import org.springframework.xd.analytics.metrics.util.TestUtils;
 
-	@Override
-	protected CounterRepository getCounterRepositoryImplementation() {
-		
-		//Switch to lettuce driver for improved performance
-		JedisConnectionFactory cf = new JedisConnectionFactory();
-		cf.afterPropertiesSet();
-		return new RedisCounterRepository(cf);
+public class RedisCounterRepositoryTests extends SharedCounterRepositoryTests {
+
+	
+	@After
+	@Before
+	public void beforeAndAfter() {
+		StringRedisTemplate stringRedisTemplate = TestUtils.getStringRedisTemplate();
+		Set<String> keys = stringRedisTemplate.keys("counts." + "*");
+		if (keys.size() > 0) {
+			stringRedisTemplate.delete(keys);
+		}
+	}
+	
+	@Test
+	public void testCrud() {
+		super.testCrud(new RedisCounterRepository(TestUtils.getJedisConnectionFactory()));
 	}
 
 }

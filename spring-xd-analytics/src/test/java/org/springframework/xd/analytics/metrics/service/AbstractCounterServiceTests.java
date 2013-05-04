@@ -18,54 +18,13 @@ package org.springframework.xd.analytics.metrics.service;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-import java.util.Set;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.xd.analytics.metrics.core.Counter;
 import org.springframework.xd.analytics.metrics.repository.CounterRepository;
 
-public abstract class AbstractCounterServiceTests {
+public class AbstractCounterServiceTests {
 	
-	private volatile JedisConnectionFactory cf = new JedisConnectionFactory();
-	private volatile StringRedisTemplate stringRedisTemplate;	
-	
-	@After
-	@Before
-	public void beforeAndAfter() {
-		cf = new JedisConnectionFactory();
-		cf.afterPropertiesSet();
-		stringRedisTemplate = new StringRedisTemplate(cf);
-		stringRedisTemplate.afterPropertiesSet();
-		Set<String> keys = stringRedisTemplate.keys("counts." + "*");
-		if (keys.size() > 0) {
-			stringRedisTemplate.delete(keys);
-		}
 		
-		CounterRepository repo = getCounterRepository();
-		//TODO delete to support wildcards
-		repo.delete("simpleCounter");
-		repo.delete("counts.simpleCounter");
-	}
-
-
-	
-	public StringRedisTemplate getRedisTemplate() {
-		return this.stringRedisTemplate;
-	}
-	
-	public JedisConnectionFactory getConnectionFactory() {
-		return this.cf;
-		
-	}
-
-	@Test
-	public void simpleTest() {
-		CounterService cs = getCounterServiceImplementation();
-		CounterRepository repo =  getCounterRepository();
+	public void simpleTest(CounterService cs, CounterRepository repo) {
 		Counter counter = cs.getOrCreate("simpleCounter");
 		
 		String counterName = counter.getName();
@@ -89,7 +48,4 @@ public abstract class AbstractCounterServiceTests {
 		
 	}
 
-	public abstract CounterService getCounterServiceImplementation();
-
-	public abstract CounterRepository getCounterRepository();
 }

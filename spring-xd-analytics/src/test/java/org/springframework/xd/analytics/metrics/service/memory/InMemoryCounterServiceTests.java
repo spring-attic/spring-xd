@@ -15,7 +15,7 @@
  */
 package org.springframework.xd.analytics.metrics.service.memory;
 
-import org.springframework.xd.analytics.metrics.repository.CounterRepository;
+import org.junit.Test;
 import org.springframework.xd.analytics.metrics.repository.memory.InMemoryCounterRepository;
 import org.springframework.xd.analytics.metrics.service.AbstractCounterServiceTests;
 import org.springframework.xd.analytics.metrics.service.CounterService;
@@ -29,10 +29,10 @@ public class InMemoryCounterServiceTests extends AbstractCounterServiceTests {
 	public CounterService getCounterServiceImplementation() {
 		return new InMemoryCounterService(counterRepository);
 	}
-
-	@Override
-	public CounterRepository getCounterRepository() {
-		return counterRepository;
+	
+	@Test
+	public void testService() {
+		super.simpleTest(getCounterServiceImplementation(), counterRepository);
 	}
 
 }

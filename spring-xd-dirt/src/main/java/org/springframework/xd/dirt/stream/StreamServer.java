@@ -186,7 +186,7 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 	}
 
 	public static void main(String[] args) {
-		RedisContainerLauncher.main(new String[]{});
+		RedisContainerLauncher.main(args);
 		JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
 		connectionFactory.afterPropertiesSet();
 		RedisStreamDeployer streamDeployer = new RedisStreamDeployer(connectionFactory);

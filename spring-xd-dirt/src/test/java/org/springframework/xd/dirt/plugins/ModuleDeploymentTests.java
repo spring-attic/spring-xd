@@ -33,8 +33,7 @@ import org.springframework.xd.test.redis.RedisAvailableRule;
  */
 public class ModuleDeploymentTests {
 
-	// for now copy 'test.xml' to /tmp/dirt/modules/generic
-	// then run redis-server and ContainerLauncher before this test
+	// run redis-server and RedisContainerLauncher (or StreamServer) before this test
 
 	@Rule
 	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();

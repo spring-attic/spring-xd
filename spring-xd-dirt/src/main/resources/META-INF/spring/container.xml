@@ -37,7 +37,7 @@
 	</bean>
 
 	<bean id="moduleRegistry" class="org.springframework.xd.dirt.module.FileModuleRegistry">
-		<constructor-arg value="/tmp/dirt/modules"/>
+		<constructor-arg value="${xdhome}/modules"/>
 	</bean>
 
 	<bean class="org.springframework.xd.dirt.listener.RedisContainerEventListener">

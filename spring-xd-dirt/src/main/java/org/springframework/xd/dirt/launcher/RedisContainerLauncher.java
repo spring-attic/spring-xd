@@ -24,6 +24,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.support.atomic.RedisAtomicLong;
+import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.container.DefaultContainer;
 import org.springframework.xd.dirt.core.Container;
 import org.springframework.xd.dirt.event.ContainerStartedEvent;
@@ -60,6 +61,10 @@ public class RedisContainerLauncher implements ContainerLauncher, ApplicationEve
 	}
 
 	public static void main(String[] args) {
+		if (!StringUtils.hasText(System.getProperty("xdhome"))) {
+			String xdhome = (args.length > 0) ? args[0] : "..";
+			System.setProperty("xdhome", xdhome);
+		}
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("META-INF/spring/launcher.xml");
 		context.registerShutdownHook();
 		ContainerLauncher launcher = context.getBean(ContainerLauncher.class);

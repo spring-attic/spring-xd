@@ -23,9 +23,9 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.Container;
 import org.springframework.xd.dirt.event.ContainerStartedEvent;
-import org.springframework.util.Assert;
 
 /**
  * @author Mark Fisher
@@ -76,7 +76,7 @@ public class DefaultContainer implements Container, SmartLifecycle {
 		if (logger.isInfoEnabled()) {
 			logger.info("started container: " + context.getId());
 		}
-		context.publishEvent(new ContainerStartedEvent(this));		
+		context.publishEvent(new ContainerStartedEvent(this));
 	}
 
 	@Override

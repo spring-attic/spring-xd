@@ -19,6 +19,7 @@ import java.util.Set;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.xd.analytics.metrics.repository.SharedCounterRepositoryTests;
@@ -38,6 +39,7 @@ public class RedisCounterRepositoryTests extends SharedCounterRepositoryTests {
 	}
 	
 	@Test
+	@Ignore("Maybe issue in configuration of redis CI server environment.  Also see https://github.com/xetorthio/jedis/issues/407")	
 	public void testCrud() {
 		super.testCrud(new RedisCounterRepository(TestUtils.getJedisConnectionFactory()));
 	}

@@ -19,6 +19,7 @@ import java.util.Set;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -51,6 +52,7 @@ public class RedisCounterServiceTests extends AbstractCounterServiceTests {
 	}
 	
 	@Test
+	@Ignore("Maybe issue in configuration of redis CI server environment.  Also see https://github.com/xetorthio/jedis/issues/407")
 	public void testService() {
 		super.simpleTest(getCounterServiceImplementation(), getCounterRepository());
 	}

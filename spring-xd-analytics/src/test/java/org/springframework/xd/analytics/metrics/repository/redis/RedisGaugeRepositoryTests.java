@@ -21,20 +21,20 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.xd.analytics.metrics.repository.SharedCounterRepositoryTests;
+import org.springframework.xd.analytics.metrics.repository.SharedGaugeRepositoryTests;
 import org.springframework.xd.analytics.metrics.util.TestUtils;
 
 @Ignore("Maybe issue in configuration of redis CI server environment.  Also see https://github.com/xetorthio/jedis/issues/407")
-public class RedisCounterRepositoryTests extends SharedCounterRepositoryTests {
+public class RedisGaugeRepositoryTests extends SharedGaugeRepositoryTests {
 
 
 	@AfterClass
 	@BeforeClass
 	public static void beforeAndAfter() {
 		//TODO refactor into clean-up methods based on metric naming strategy classes.
-		counterRepository = new RedisCounterRepository(TestUtils.getJedisConnectionFactory());
+		gaugeRepository = new RedisGaugeRepository(TestUtils.getJedisConnectionFactory());
 		StringRedisTemplate stringRedisTemplate = TestUtils.getStringRedisTemplate();
-		Set<String> keys = stringRedisTemplate.keys("counts." + "*");
+		Set<String> keys = stringRedisTemplate.keys("gauge." + "*");
 		if (keys.size() > 0) {
 			stringRedisTemplate.delete(keys);
 		}

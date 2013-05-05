@@ -22,16 +22,16 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.xd.analytics.metrics.repository.CounterRepository;
-import org.springframework.xd.analytics.metrics.repository.redis.RedisCounterRepository;
-import org.springframework.xd.analytics.metrics.service.AbstractCounterServiceTests;
-import org.springframework.xd.analytics.metrics.service.CounterService;
+import org.springframework.xd.analytics.metrics.repository.GaugeRepository;
+import org.springframework.xd.analytics.metrics.repository.redis.RedisGaugeRepository;
+import org.springframework.xd.analytics.metrics.service.AbstractGaugeServiceTests;
+import org.springframework.xd.analytics.metrics.service.GaugeService;
 import org.springframework.xd.analytics.metrics.util.TestUtils;
 
 
-public class RedisCounterServiceTests extends AbstractCounterServiceTests {
+public class RedisGaugeServiceTests extends AbstractGaugeServiceTests {
 
-	private RedisCounterRepository counterRepository;
+	private RedisGaugeRepository gaugeRepository;
 	
 	
 	@After
@@ -44,7 +44,7 @@ public class RedisCounterServiceTests extends AbstractCounterServiceTests {
 			stringRedisTemplate.delete(keys);
 		}
 		
-		CounterRepository repo = getCounterRepository();
+		GaugeRepository repo = getGaugeRepository();
 		//TODO delete to support wildcards
 		repo.delete("simpleCounter");
 		repo.delete("counts.simpleCounter");
@@ -53,17 +53,17 @@ public class RedisCounterServiceTests extends AbstractCounterServiceTests {
 	@Test
 	@Ignore("Maybe issue in configuration of redis CI server environment.  Also see https://github.com/xetorthio/jedis/issues/407")
 	public void testService() {
-		super.simpleTest(getCounterServiceImplementation(), getCounterRepository());
+		super.simpleTest(getGaugeServiceImplementation(), getGaugeRepository());
 	}
 	
-	public CounterService getCounterServiceImplementation() {
-		return new RedisCounterService(getCounterRepository());
+	public GaugeService getGaugeServiceImplementation() {
+		return new RedisGaugeService(getGaugeRepository());
 	}
 
 
-	public RedisCounterRepository getCounterRepository() {
-		counterRepository = new RedisCounterRepository(TestUtils.getJedisConnectionFactory());
-		return counterRepository;
+	public RedisGaugeRepository getGaugeRepository() {
+		gaugeRepository = new RedisGaugeRepository(TestUtils.getJedisConnectionFactory());
+		return gaugeRepository;
 	}
 
 }

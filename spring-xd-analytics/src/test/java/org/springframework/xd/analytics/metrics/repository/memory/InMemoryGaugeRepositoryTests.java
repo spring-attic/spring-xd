@@ -17,14 +17,14 @@ package org.springframework.xd.analytics.metrics.repository.memory;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.springframework.xd.analytics.metrics.repository.SharedCounterRepositoryTests;
+import org.springframework.xd.analytics.metrics.repository.SharedGaugeRepositoryTests;
 
-public class InMemoryCounterRepositoryTests extends SharedCounterRepositoryTests {
+public class InMemoryGaugeRepositoryTests extends SharedGaugeRepositoryTests {
 	
 	@AfterClass
 	@BeforeClass
 	public static void beforeAndAfter() {
-		counterRepository = new InMemoryCounterRepository();
+		gaugeRepository = new InMemoryGaugeRepository();
 	}
 
 

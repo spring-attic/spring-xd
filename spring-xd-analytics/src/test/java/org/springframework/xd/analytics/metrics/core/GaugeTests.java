@@ -22,19 +22,19 @@ import nl.jqno.equalsverifier.Warning;
 
 import org.junit.Test;
 
-public class CounterTests {
+public class GaugeTests {
 
 	@Test
 	public void nameOnly() {
-		Counter c = new Counter("myCounter");
-		assertThat(c.getName(), equalTo("myCounter"));
+		Gauge g = new Gauge("myGauge");
+		assertThat(g.getName(), equalTo("myGauge"));
 	}
 	
 	@Test
-	public void nameWithCount() {
-		Counter c = new Counter("myCounter", 314);
-		assertThat(c.getName(), equalTo("myCounter"));
-		assertThat(c.getValue(), equalTo(314L));
+	public void nameWithValue() {
+		Gauge g = new Gauge("myGauge", 314);
+		assertThat(g.getName(), equalTo("myGauge"));
+		assertThat(g.getValue(), equalTo(314L));
 	}
 	
 	@Test

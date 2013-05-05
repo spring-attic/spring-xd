@@ -18,59 +18,59 @@ package org.springframework.xd.analytics.metrics.repository;
 import java.util.List;
 
 import org.springframework.data.repository.Repository;
-import org.springframework.xd.analytics.metrics.core.Counter;
+import org.springframework.xd.analytics.metrics.core.Gauge;
 
 /**
- * A repository to save, delete and find Counter instances.  Uses the Spring Data Repository 
+ * A repository to save, delete and find Gauge instances.  Uses the Spring Data Repository 
  * marker interface and conventions for method names and behavior.
  * 
  * The name is the id and should be unique.
- * 
- * Note: Will shift to inherit from CrudRepository
  *
+ * Note: Will shift to inherit from CrudRepository
+ * 
  * @author Mark Pollack
  *
  */
-public interface CounterRepository extends Repository<Counter, String> {
+public interface GaugeRepository extends Repository<Gauge, String> {
 
-	//TODO inherit from CrudRepository to share a common interface to aid in testing
+	//TODO inherit from CrudRepository to share a common interface 
 	
 	/**
 	 * Saves a given entity. Use the returned instance for further operations as the save operation might have changed 
 	 * the entity instance completely.
-	 * @param counter
+	 * @param gauge
 	 * @return the saved entity
 	 */
-	Counter save(Counter counter);
+	Gauge save(Gauge gauge);
 	
 	/**
-	 * Deletes the counter with the given name
+	 * Deletes the gauge with the given name
 	 * @param name must not be null
 	 * @throws IllegalArgumentException in case the given name is null
 	 */
 	void delete(String name);
 	
 	/**
-	 * Deletes a given Counter
-	 * @param counter
-	 * @throws IllegalArgumentException in case the given Counter is null
+	 * Deletes a given Gauge
+	 * @param gauge
+	 * @throws IllegalArgumentException in case the given Gauge is null
 	 */
-	void delete(Counter counter);
+	void delete(Gauge gauge);
 	
 	/**
-	 * Removes a counter by name
+	 * Removes a gauge by name
 	 * @param name must not null
-	 * @return the Counter with the given name or null if none found
+	 * @return the Gauge with the given name or null if none found
 	 * @throws IllegalArgumentException if name is null
 	 */
-	Counter findOne(String name);
+	Gauge findOne(String name);
 	
 	//TODO add exists
 	
 	/**
-	 * Returns all counter instances
-	 * @return all counters
+	 * Returns all gauge instances
+	 * @return all gauges
 	 */
-	List<Counter> findAll();
+	List<Gauge> findAll();
 	
 }

@@ -32,16 +32,16 @@ public class AbstractCounterServiceTests {
 		
 		cs.increment(counterName);
 		Counter c = repo.findOne(counterName);
-		assertThat(c.getCount(), equalTo(1L));
+		assertThat(c.getValue(), equalTo(1L));
 		
 		cs.increment(counterName);
-		assertThat(repo.findOne(counterName).getCount(), equalTo(2L));
+		assertThat(repo.findOne(counterName).getValue(), equalTo(2L));
 		
 		cs.decrement(counterName);
-		assertThat(repo.findOne(counterName).getCount(), equalTo(1L));
+		assertThat(repo.findOne(counterName).getValue(), equalTo(1L));
 		
 		cs.reset(counterName);
-		assertThat(repo.findOne(counterName).getCount(), equalTo(0L));
+		assertThat(repo.findOne(counterName).getValue(), equalTo(0L));
 		
 		Counter counter2 = cs.getOrCreate("simpleCounter");
 		assertThat(counter, equalTo(counter2));

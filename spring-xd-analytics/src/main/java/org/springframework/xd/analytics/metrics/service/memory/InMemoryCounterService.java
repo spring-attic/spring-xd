@@ -60,7 +60,7 @@ public class InMemoryCounterService implements CounterService {
 		synchronized (monitor) {
 			Counter counter = counterRepository.findOne(name);
 			if (counter != null) {
-				Field findField = ReflectionUtils.findField(Counter.class, "count");
+				Field findField = ReflectionUtils.findField(Counter.class, "value");
 				ReflectionUtils.makeAccessible(findField);
 				long value = (Long) ReflectionUtils.getField(findField, counter);
 				ReflectionUtils.setField(findField, counter, ++value);
@@ -74,7 +74,7 @@ public class InMemoryCounterService implements CounterService {
 		synchronized (monitor) {
 			Counter counter = counterRepository.findOne(name);
 			if (counter != null) {
-				Field findField = ReflectionUtils.findField(Counter.class,	"count");
+				Field findField = ReflectionUtils.findField(Counter.class,	"value");
 				ReflectionUtils.makeAccessible(findField);
 				long value = (Long) ReflectionUtils.getField(findField, counter);
 				ReflectionUtils.setField(findField, counter, --value);
@@ -89,7 +89,7 @@ public class InMemoryCounterService implements CounterService {
 		synchronized (monitor) {
 			Counter counter = counterRepository.findOne(name);
 			if (counter != null) {
-				Field findField = ReflectionUtils.findField(Counter.class,	"count");
+				Field findField = ReflectionUtils.findField(Counter.class,	"value");
 				ReflectionUtils.makeAccessible(findField);				
 				ReflectionUtils.setField(findField, counter, 0);
 			}

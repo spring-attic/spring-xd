@@ -15,17 +15,15 @@
  */
 package org.springframework.xd.analytics.metrics.repository;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertThat;
 
 import java.util.List;
-import java.util.Set;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.xd.analytics.metrics.core.Counter;
 
 
@@ -47,10 +45,7 @@ public abstract class SharedCounterRepositoryTests {
 	public void testFindOneNullCounter() {
 		counterRepository.findOne(null);
 	}
-	
-	
-	
-	
+
 	@Test
 	public void testCrud() {
 		CounterRepository repo = counterRepository;

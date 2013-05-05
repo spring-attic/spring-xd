@@ -20,39 +20,39 @@ import org.springframework.util.Assert;
 
 
 /**
- * Represents the data stored in a valueer of a single value.  Operations on it are expected to increment or decrement
- * the value.  The name property is a friendly user assigned name, and should be unique.
+ * Represents the data stored in a Gauge of a single value.  Operations on it expected set the value to any arbitrary
+ * value.  The name property is a friendly user assigned name, and should be unique.
  * 
- * Note: Additional metadata to help in searching for Counters, such as tags and last time updated will be coming.
+ * Note: Additional metadata to help in searching for Gauges, such as tags and last time updated will be coming.
  * 
  * @author Mark Pollack
  *
  */
-public final class Counter implements Metric {
+public final class Gauge implements Metric {
 
 	private final String name;
 	private final long value;
 	
 	/**
-	 * Construct a new Counter given a name
-	 * @param name the name of the Counter.
+	 * Construct a new Gauge given a name
+	 * @param name the name of the Gauge.
 	 */
-	public Counter(String name) {
+	public Gauge(String name) {
 		Assert.notNull(name);
 		this.name = name;
 		this.value = 0L;
 	}
 	
 	/**
-	 * Construct a new Counter given a name and a initial value of the value
-	 * @param name the name of the value
+	 * Construct a new Gauge given a name and a initial value of the value
+	 * @param name the name of the Gauge
 	 * @param value initial value.
 	 */
 	@PersistenceConstructor
-	public Counter(String name, long value) {
+	public Gauge(String name, long count) {
 		Assert.notNull(name);
 		this.name = name;
-		this.value = value;
+		this.value = count;
 	}
 
 	/**
@@ -92,10 +92,10 @@ public final class Counter implements Metric {
 		if (obj == null) {
 			return false;
 		}
-		if (!(obj instanceof Counter)) {
+		if (!(obj instanceof Gauge)) {
 			return false;
 		}
-		Counter other = (Counter) obj;
+		Gauge other = (Gauge) obj;
 		if (value != other.value) {
 			return false;
 		}
@@ -114,7 +114,7 @@ public final class Counter implements Metric {
 	 */
 	@Override
 	public String toString() {
-		return "Counter [name=" + name + ", value=" + value + "]";
+		return "Gauge [name=" + name + ", value=" + value + "]";
 	}
 
 	

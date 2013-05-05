@@ -17,20 +17,19 @@ package org.springframework.xd.analytics.metrics.repository.redis;
 
 import java.util.Set;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.xd.analytics.metrics.repository.SharedCounterRepositoryTests;
 import org.springframework.xd.analytics.metrics.util.TestUtils;
 
 public class RedisCounterRepositoryTests extends SharedCounterRepositoryTests {
 
-	
-	@After
-	@Before
-	public void beforeAndAfter() {
+
+	@AfterClass
+	@BeforeClass
+	public static void beforeAndAfter() {
+		counterRepository = new RedisCounterRepository(TestUtils.getJedisConnectionFactory());
 		StringRedisTemplate stringRedisTemplate = TestUtils.getStringRedisTemplate();
 		Set<String> keys = stringRedisTemplate.keys("counts." + "*");
 		if (keys.size() > 0) {
@@ -38,10 +37,4 @@ public class RedisCounterRepositoryTests extends SharedCounterRepositoryTests {
 		}
 	}
 	
-	@Test
-	@Ignore("Maybe issue in configuration of redis CI server environment.  Also see https://github.com/xetorthio/jedis/issues/407")	
-	public void testCrud() {
-		super.testCrud(new RedisCounterRepository(TestUtils.getJedisConnectionFactory()));
-	}
-
 }

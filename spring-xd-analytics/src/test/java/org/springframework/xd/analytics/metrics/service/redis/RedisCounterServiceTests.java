@@ -52,7 +52,7 @@ public class RedisCounterServiceTests extends AbstractCounterServiceTests {
 	}
 	
 	@Test
-	@Ignore("Maybe issue in configuration of redis CI server environment.  Also see https://github.com/xetorthio/jedis/issues/407")
+	//@Ignore("Maybe issue in configuration of redis CI server environment.  Also see https://github.com/xetorthio/jedis/issues/407")
 	public void testService() {
 		super.simpleTest(getCounterServiceImplementation(), getCounterRepository());
 	}

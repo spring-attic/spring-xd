@@ -29,10 +29,31 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.xd.analytics.metrics.core.Counter;
 
 
-public class SharedCounterRepositoryTests {
+public abstract class SharedCounterRepositoryTests {
 
-
-	public void testCrud(CounterRepository repo) {
+	protected static CounterRepository counterRepository;
+	
+	@Test(expected = IllegalArgumentException.class)
+	public void testDeleteNullString() {
+		counterRepository.delete((String)null);
+	}
+	
+	@Test(expected = IllegalArgumentException.class)
+	public void testDeleteNullCounter() {
+		counterRepository.delete((Counter)null);
+	}
+	
+	@Test(expected = IllegalArgumentException.class)
+	public void testFindOneNullCounter() {
+		counterRepository.findOne(null);
+	}
+	
+	
+	
+	
+	@Test
+	public void testCrud() {
+		CounterRepository repo = counterRepository;
 		String myCounterName = "myCounter";
 		String yourCounterName = "yourCounter";
 		
@@ -66,4 +87,5 @@ public class SharedCounterRepositoryTests {
 		counters = repo.findAll();
 		assertThat(counters.size(), equalTo(0));	
 	}
+
 }

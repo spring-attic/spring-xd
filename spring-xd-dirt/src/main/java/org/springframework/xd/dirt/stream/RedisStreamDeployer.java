@@ -16,18 +16,21 @@
 
 package org.springframework.xd.dirt.stream;
 
+import java.util.List;
+
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.x.redis.RedisQueueOutboundChannelAdapter;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 
 /**
  * @author Mark Fisher
  */
 public class RedisStreamDeployer implements StreamDeployer {
+
+	private final StreamParser streamParser = new DefaultStreamParser();
 
 	private final RedisQueueOutboundChannelAdapter adapter;
 
@@ -40,16 +43,8 @@ public class RedisStreamDeployer implements StreamDeployer {
 
 	@Override
 	public void deployStream(String name, String config) {
-		// TODO: replace with a StreamParser that returns Module instances and supports parameters
-		String[] modules = StringUtils.tokenizeToStringArray(config, "|");
-		Assert.isTrue(modules.length > 1, "at least 2 modules required");
-		for (int i = modules.length - 1; i >= 0; i--) {
-			String type = (i == 0) ? "source" : (i == modules.length - 1) ? "sink" : "processor";
-			ModuleDeploymentRequest request = new ModuleDeploymentRequest();
-			request.setGroup(name);
-			request.setType(type);
-			request.setModule(modules[i]);
-			request.setIndex(i);
+		List<ModuleDeploymentRequest> requests = this.streamParser.parse(name, config);
+		for (ModuleDeploymentRequest request : requests) {
 			Message<?> message = MessageBuilder.withPayload(request.toString()).build();
 			this.adapter.handleMessage(message);
 		}

@@ -16,6 +16,10 @@
 
 package org.springframework.xd.dirt.module;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.codehaus.jackson.map.ObjectMapper;
 
 /**
@@ -32,6 +36,8 @@ public class ModuleDeploymentRequest {
 	private volatile int index;
 
 	private volatile String type = "generic";
+
+	private final Map<String, String> parameters = new HashMap<String, String>();
 
 	public String getModule() {
 		return module;
@@ -63,6 +69,14 @@ public class ModuleDeploymentRequest {
 
 	public void setType(String type) {
 		this.type = type;
+	}
+
+	public void setParameter(String name, String value) {
+		this.parameters.put(name, value);
+	}
+
+	public Map<String, String> getParameters() {
+		return Collections.unmodifiableMap(this.parameters);
 	}
 
 	@Override

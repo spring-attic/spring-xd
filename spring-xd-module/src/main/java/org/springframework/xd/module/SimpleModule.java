@@ -79,14 +79,8 @@ public class SimpleModule extends AbstractModule {
 
 	private void registerPropertySource(Properties properties) {
 		int propertiesIndex = this.propertiesCounter.getAndIncrement();
-		if (propertiesIndex == 0) {
-			PropertySourcesPlaceholderConfigurer placecholderConfigurer = new PropertySourcesPlaceholderConfigurer();
-			placecholderConfigurer.setEnvironment(this.context.getEnvironment());
-			this.context.addBeanFactoryPostProcessor(placecholderConfigurer);
-		}
 		String propertySourceName = "properties-" + propertiesIndex;
-		PropertySource<?> propertySource = null;
-		propertySource = new PropertiesPropertySource(propertySourceName, properties);
+		PropertySource<?> propertySource = new PropertiesPropertySource(propertySourceName, properties);
 		this.context.getEnvironment().getPropertySources().addLast(propertySource);
 	}
 
@@ -97,6 +91,9 @@ public class SimpleModule extends AbstractModule {
 	@Override
 	public void start() {
 		if (!this.isRunning()) {
+			PropertySourcesPlaceholderConfigurer placecholderConfigurer = new PropertySourcesPlaceholderConfigurer();
+			placecholderConfigurer.setEnvironment(this.context.getEnvironment());
+			this.context.addBeanFactoryPostProcessor(placecholderConfigurer);
 			this.context.refresh();
 			this.context.start();
 			if (logger.isInfoEnabled()) {

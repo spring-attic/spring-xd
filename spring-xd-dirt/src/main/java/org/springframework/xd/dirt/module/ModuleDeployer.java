@@ -34,6 +34,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.xd.dirt.event.ModuleDeployedEvent;
 import org.springframework.xd.dirt.event.ModuleUndeployedEvent;
 import org.springframework.xd.module.Module;
@@ -91,6 +92,12 @@ public class ModuleDeployer extends AbstractMessageHandler
 		Object properties = message.getHeaders().get("properties");
 		if (properties instanceof Properties) {
 			module.addProperties((Properties) properties);
+		}
+		Map<String, String> parameters = request.getParameters();
+		if (!CollectionUtils.isEmpty(parameters)) {
+			Properties parametersAsProps = new Properties();
+			parametersAsProps.putAll(parameters);
+			module.addProperties(parametersAsProps);
 		}
 		module.setParentContext(this.commonContext);
 		this.deployModule(module, group, index);

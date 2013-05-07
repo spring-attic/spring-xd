@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:hdp="http://www.springframework.org/schema/hadoop"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/hadoop http://www.springframework.org/schema/hadoop/spring-hadoop.xsd">
+
+	<int:channel id="input"/>
+
+	<int:payload-type-router input-channel="input" default-output-channel="objects">
+		<int:mapping type="java.lang.String" channel="strings"/>
+	</int:payload-type-router>
+
+	<int:object-to-json-transformer input-channel="objects" output-channel="strings"/>
+
+	<int:transformer input-channel="strings" expression="${newline:true} ? payload + @newline : payload" output-channel="files"/>
+
+	<bean id="newline" class="java.lang.String">
+		<constructor-arg value="#{systemProperties['line.separator']}"/>
+	</bean>
+
+	<hdp:configuration register-url-handler="false">
+		fs.default.name=hdfs://localhost:9000
+	</hdp:configuration>
+
+	<bean id="hdfsWritingMessageHandler" class="org.springframework.xd.hadoop.fs.HdfsWritingMessageHandler">
+		<constructor-arg ref="hdfsWriterFactory"/>
+	</bean>
+
+	<bean id="hdfsWriterFactory" class="org.springframework.xd.hadoop.fs.HdfsTextFileWriterFactory">
+		<constructor-arg ref="hadoopFs"/>
+		<property name="basePath" value="${directory:/xd/${xd.stream.name}}"/>
+		<property name="baseFilename" value="${filename:${xd.stream.name}}"/>
+		<property name="fileSuffix" value="${suffix:log}"/>
+		<property name="rolloverThresholdInBytes" value="${rollover:1000000}"/>
+	</bean>
+
+	<bean id="hadoopFs" class="org.springframework.data.hadoop.fs.FileSystemFactoryBean">
+		<property name="configuration" ref="hadoopConfiguration"/>
+	</bean>
+
+	<int:channel id="files"/>
+
+	<bean class="org.springframework.integration.config.ConsumerEndpointFactoryBean">
+		<property name="inputChannel" ref="files"/>
+		<property name="handler" ref="hdfsWritingMessageHandler"/>
+	</bean>
+
+</beans>

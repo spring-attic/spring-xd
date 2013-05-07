@@ -21,6 +21,6 @@
 	<file:outbound-channel-adapter id="files"
 		mode="APPEND"
 		directory="${dir:/tmp/xd/output/}"
-		filename-generator-expression="'test'"/>
+		filename-generator-expression="'${name:${xd.stream.name}}'"/>
 
 </beans:beans>

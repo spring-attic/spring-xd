@@ -17,6 +17,7 @@
 package org.springframework.xd.dirt.plugins;
 
 import java.util.Map;
+import java.util.Properties;
 
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.registry.ChannelRegistry;
@@ -41,6 +42,7 @@ public class StreamPlugin implements Plugin {
 		String type = module.getType();
 		if (("source".equals(type) || "processor".equals(type) || "sink".equals(type)) && group != null) {
 			this.registerChannels(module.getComponents(MessageChannel.class), group, index);
+			this.configureProperties(module, group);
 		}
 	}
 
@@ -56,6 +58,12 @@ public class StreamPlugin implements Plugin {
 				channelRegistry.outbound(channelNameInRegistry, entry.getValue());
 			}
 		}
+	}
+
+	private void configureProperties(Module module, String group) {
+		Properties properties = new Properties();
+		properties.setProperty("xd.stream.name", group);
+		module.addProperties(properties);
 	}
 
 }

@@ -1,5 +1,8 @@
 description = 'Spring XD'
 
+apply plugin: 'base'
+apply plugin: 'idea'
+
 buildscript {
 	repositories {
 		maven { url "http://repo.springsource.org/plugins-release" }

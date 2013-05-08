@@ -18,21 +18,16 @@ package org.springframework.xd.analytics.metrics.redis;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.RedisOperations;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 import org.springframework.xd.analytics.metrics.core.Counter;
 import org.springframework.xd.analytics.metrics.core.CounterRepository;
 
 /**
  * Redis backed implementation that uses Redis keys to store and update the value.
- * The naming strategy for keys in Redis is "counts."  This means a counter named simpleCounter appears
- * under the name "counts.simpleCounter" in Redis.
+ * The naming strategy for keys in Redis is "counters."  This means a counter named simpleCounter appears
+ * under the name "counters.simpleCounter" in Redis.
  *
  * There is a default expiry of 60 minutes for the counters stored in redis.  This can be changed
  * using a setter method
@@ -40,34 +35,14 @@ import org.springframework.xd.analytics.metrics.core.CounterRepository;
  * @author Mark Pollack
  *
  */
-public class RedisCounterRepository implements CounterRepository {
-
-
-	//TODO refactor to encapsulate into a RedisNamingStrategy
-	private static final String DEFAULT_COUNTER_PREFIX = "counts.";
-	private volatile String counterPrefix = DEFAULT_COUNTER_PREFIX;
-
-	//TODO refactor into a base class
-	private static final int DEFAULT_EXPIRY_TIME_IN_MINUTES = 60;
-	private volatile int defaultExpiryTimeInMinutes = DEFAULT_EXPIRY_TIME_IN_MINUTES;
-
-	private final ValueOperations<String, Long> valueOperations;
-	private final RedisOperations<String, Long> redisOperations;
+public class RedisCounterRepository extends AbstractRedisMetricRepository implements CounterRepository {
 
 	public RedisCounterRepository(RedisConnectionFactory connectionFactory) {
-		this(connectionFactory, null);
+		this(connectionFactory, "counts.");
 	}
 
-	public RedisCounterRepository(RedisConnectionFactory connectionFactory, String counterPrefix) {
-		Assert.notNull(connectionFactory);
-		RedisTemplate<String, Long> redisTemplate = RedisUtils.createStringLongRedisTemplate(connectionFactory);
-		this.redisOperations = redisTemplate;
-		this.valueOperations = redisOperations.opsForValue();
-
-		if (StringUtils.hasText(counterPrefix)) {
-			this.counterPrefix = counterPrefix;
-		}
-
+	public RedisCounterRepository(RedisConnectionFactory connectionFactory, String metricPrefix) {
+		super(connectionFactory, metricPrefix);
 	}
 
 	@Override
@@ -113,19 +88,17 @@ public class RedisCounterRepository implements CounterRepository {
 		List<Counter> counters = new ArrayList<Counter>();
 		//TODO asking for keys is not recommended.  See http://redis.io/commands/keys
 		//     Need to keep track of created counters explicitly.
-		Set<String> keys = this.redisOperations.keys(this.counterPrefix + "*");
+		Set<String> keys = this.redisOperations.keys(this.metricPrefix + "*");
 		for (String key : keys) {
-			if (!key.matches(counterPrefix + ".+?_\\d{4}\\.\\d{2}\\.\\d{2}-\\d{2}:\\d{2}")) {
+			if (!key.matches(metricPrefix + ".+?_\\d{4}\\.\\d{2}\\.\\d{2}-\\d{2}:\\d{2}")) {
 				Long value = this.valueOperations.get(key);
-				String name = key.substring(counterPrefix.length());
+				String name = key.substring(metricPrefix.length());
 				Counter c = new Counter(name, value);
 				counters.add(c);
 			}
 		}
 		return counters;
-
 	}
-
 
 	public void increment(String name) {
 		valueOperations.increment(getCounterKey(name), 1);
@@ -139,26 +112,12 @@ public class RedisCounterRepository implements CounterRepository {
 		valueOperations.set(getCounterKey(name), 0L);
 	}
 
-	public void updateExpiryTimeInMinutes(String counterName, int numberOfMinutes) {
-		this.redisOperations.expire(getCounterKey(counterName), defaultExpiryTimeInMinutes, TimeUnit.MINUTES);
-	}
-
-
-	public int getDefaultExpiryTimeInMinutes() {
-		return defaultExpiryTimeInMinutes;
-	}
-
-	public void setDefaultExpiryTimeInMinutes(int defaultExpiryTimeInMinutes) {
-		this.defaultExpiryTimeInMinutes = defaultExpiryTimeInMinutes;
-	}
-
-
 	public String getCounterKey(Counter counter) {
-		return counterPrefix + counter.getName();
+		return metricPrefix + counter.getName();
 	}
 
 	public String getCounterKey(String name) {
-		return counterPrefix + name;
+		return metricPrefix + name;
 	}
 
 }

@@ -18,20 +18,16 @@ package org.springframework.xd.analytics.metrics.redis;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.RedisOperations;
-import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 import org.springframework.xd.analytics.metrics.core.Gauge;
 import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 
 /**
  * Redis backed implementation that uses Redis keys to store and update the value.
- * The naming strategy for keys in Redis is "gauge."  This means a Gauge named simpleGauge appears
- * under the name "gauge.simplegauge" in Redis.
+ * The naming strategy for keys in Redis is "gauges."  This means a Gauge named simpleGauge appears
+ * under the name "gauges.simpleGauge" in Redis.
  *
  * There is a default expiry of 60 minutes for the gauges stored in redis.  This can be changed
  * using a setter method
@@ -39,32 +35,14 @@ import org.springframework.xd.analytics.metrics.core.GaugeRepository;
  * @author Mark Pollack
  *
  */
-public class RedisGaugeRepository implements GaugeRepository {
-
-	//TODO refactor to encapsulate into a RedisNamingStrategy
-	private static final String DEFAULT_GAUGE_PREFIX = "gauge.";
-	private volatile String metricPrefix = DEFAULT_GAUGE_PREFIX;
-
-	//TODO refactor into a base class
-	private static final int DEFAULT_EXPIRY_TIME_IN_MINUTES = 60;
-	private volatile int defaultExpiryTimeInMinutes = DEFAULT_EXPIRY_TIME_IN_MINUTES;
-
-	private final ValueOperations<String, Long> valueOperations;
-	private final RedisOperations<String, Long> redisOperations;
+public class RedisGaugeRepository extends AbstractRedisMetricRepository implements GaugeRepository {
 
 	public RedisGaugeRepository(RedisConnectionFactory connectionFactory) {
-		this(connectionFactory, null);
+		this(connectionFactory, "gauges.");
 	}
 
 	public RedisGaugeRepository(RedisConnectionFactory connectionFactory, String gaugePrefix) {
-		Assert.notNull(connectionFactory);
-		this.redisOperations = RedisUtils.createStringLongRedisTemplate(connectionFactory);
-		this.valueOperations = redisOperations.opsForValue();
-
-		if (StringUtils.hasText(gaugePrefix)) {
-			this.metricPrefix = gaugePrefix;
-		}
-
+		super(connectionFactory, gaugePrefix);
 	}
 
 	@Override
@@ -90,7 +68,6 @@ public class RedisGaugeRepository implements GaugeRepository {
 		//Apply prefix for persistence purposes
 		this.redisOperations.delete(getGaugeKey(gauge));
 	}
-
 
 	@Override
 	public Gauge findOne(String name) {
@@ -129,18 +106,6 @@ public class RedisGaugeRepository implements GaugeRepository {
 
 	public void reset(String name) {
 		valueOperations.set(getGaugeKey(name), 0L);
-	}
-
-	public void updateExpiryTimeInMinutes(String gaugeName, int numberOfMinutes) {
-		this.redisOperations.expire(getGaugeKey(gaugeName), defaultExpiryTimeInMinutes, TimeUnit.MINUTES);
-	}
-
-	public int getDefaultExpiryTimeInMinutes() {
-		return defaultExpiryTimeInMinutes;
-	}
-
-	public void setDefaultExpiryTimeInMinutes(int defaultExpiryTimeInMinutes) {
-		this.defaultExpiryTimeInMinutes = defaultExpiryTimeInMinutes;
 	}
 
 	public String getGaugeKey(Gauge gauge) {

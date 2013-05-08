@@ -93,8 +93,10 @@ project('spring-xd-analytics') {
 		compile "org.springframework:spring-core:$springVersion"
 		compile "org.springframework.data:spring-data-redis:$springDataRedisVersion"
 		compile "org.springframework.data:spring-data-mongodb:$springDataMongoVersion"	
+		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
 		compile "joda-time:joda-time:$jodaTimeVersion"
 		testCompile "nl.jqno.equalsverifier:equalsverifier:1.1.3"
+		testCompile "org.springframework:spring-test:$springVersion"
 	}
 }
 

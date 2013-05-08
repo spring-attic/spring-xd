@@ -13,10 +13,12 @@
 
 package org.springframework.integration.module;
 
+import java.util.Collection;
 import java.util.Map;
 
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.AbstractEnvironment;
+import org.springframework.core.io.Resource;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.module.config.ChannelExporter;
@@ -33,17 +35,21 @@ public class IntegrationModule extends SimpleModule {
 
 	private volatile MessageChannel inputChannel;
 
-	private Map<String,SubscribableChannel> outputChannels;
+	private Map<String, SubscribableChannel> outputChannels;
 
 	private final ChannelExporter channelExporter;
-
-	private String[] activeProfiles;
+	private volatile Collection<Resource> additionalComponentLocations;
 
 	/**
 	 * @param name
 	 */
 	public IntegrationModule(String name) {
-		super(name,MODULE_TYPE);
+		super(name, MODULE_TYPE);
+		this.channelExporter = new DefaultChannelExporter();
+	}
+	
+	protected IntegrationModule(String name, String type) {
+		super(name, type);
 		this.channelExporter = new DefaultChannelExporter();
 	}
 
@@ -52,8 +58,8 @@ public class IntegrationModule extends SimpleModule {
 	 * @param channelExporter
 	 */
 	public IntegrationModule(String name, ChannelExporter channelExporter) {
-		super(name,MODULE_TYPE);
-		Assert.notNull(channelExporter,"ChannelExporter cannot be null");
+		super(name, MODULE_TYPE);
+		Assert.notNull(channelExporter, "ChannelExporter cannot be null");
 		this.channelExporter = channelExporter;
 	}
 
@@ -61,33 +67,38 @@ public class IntegrationModule extends SimpleModule {
 		return this.inputChannel;
 	}
 
-	public Map<String,SubscribableChannel> getOutputChannels() {
+	public Map<String, SubscribableChannel> getOutputChannels() {
 		return this.outputChannels;
 	}
-
+	
 	/**
-	 * @return the activeProfiles
+	 * Set additional component locations
+	 * @param additionalComponentLocations
 	 */
-	public String[] getActiveProfiles() {
-		return this.activeProfiles;
+	public void setAdditionalComponentLocations(Collection<Resource> additionalComponentLocations) {
+		this.additionalComponentLocations = additionalComponentLocations;
+	}
+	
+	/**
+	 * @return additional component locations
+	 */
+	public Collection<Resource> getAdditionalComponentLocations() {
+		return this.additionalComponentLocations;
 	}
 
-	/**
-	 * @param activeProfiles the activeProfiles to set
-	 */
-	public void setActiveProfiles(String[] activeProfiles) {
-		this.activeProfiles = activeProfiles;
-	}
-
-	protected void initializeModule() {
-		ApplicationContext context = this.getApplicationContext();
-		Map<String,MessageChannel> messageChannels = context.getBeansOfType(MessageChannel.class);
-		this.inputChannel = this.channelExporter.getInputChannel(messageChannels);
-		Assert.notNull(inputChannel,"Module must contain exactly one input channel");
-		this.outputChannels = this.channelExporter.getOutputChannels(messageChannels,SubscribableChannel.class);
-		if (this.activeProfiles != null && this.activeProfiles.length > 0) {
-			  ( (AbstractEnvironment) getApplicationContext().getEnvironment()).setActiveProfiles(activeProfiles);
+	public void initializeChannels() {
+		ConfigurableApplicationContext context = (ConfigurableApplicationContext) this.getApplicationContext();
+		if (!context.isActive()) {
+			Map<String, MessageChannel> messageChannels = context.getBeansOfType(MessageChannel.class);
+			this.inputChannel = this.channelExporter.getInputChannel(messageChannels);
+			Assert.notNull(inputChannel, "Module '" + this.getName() + "' must contain exactly one input channel");
+			this.outputChannels = this.channelExporter.getOutputChannels(messageChannels, SubscribableChannel.class);
 		}
 	}
 
+	public void activateProfiles(String[] activeProfiles)  {
+		if (activeProfiles != null && activeProfiles.length > 0) {
+			((AbstractEnvironment) this.getApplicationContext().getEnvironment()).setActiveProfiles(activeProfiles);
+		}
+	}
 }

@@ -73,7 +73,7 @@ public class DefaultChannelExporter implements ChannelExporter {
 	 * @return true if this is an outputChannel
 	 */
 	protected boolean isOutputChannel(String channelName, MessageChannel channel) {
-		return channelName.startsWith(outputChannelPrefix);
+		return channelName.equals(outputChannelPrefix) || channelName.startsWith(outputChannelPrefix+".");
 	}
 
 	/**

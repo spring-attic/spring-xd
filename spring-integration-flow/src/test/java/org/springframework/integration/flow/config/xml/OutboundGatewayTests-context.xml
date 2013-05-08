@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:int-flow="http://www.springframework.org/schema/integration/flow"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-3.0.xsd
+		http://www.springframework.org/schema/integration/flow http://www.springframework.org/schema/integration/flow/spring-integration-flow-3.0.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<int-flow:flow id="simple" />
+
+	<int-flow:outbound-gateway flow="simple"
+		request-channel="gwInput" reply-channel="gwOutput" />
+	<int:channel id="gwOutput" />
+
+	<int-flow:outbound-gateway flow="simple"
+		request-channel="anotherInput" reply-channel="anotherOutput" />
+	<int:channel id="anotherOutput" />
+
+	<int-flow:flow id="nested" />
+	<int-flow:outbound-gateway flow="nested"
+		request-channel="nestedInput" reply-channel="nestedOutput" />
+	<int:channel id="nestedOutput" />
+
+	<int-flow:flow id="exception" />
+
+	<int-flow:outbound-gateway flow="exception"
+		request-channel="exceptionInput" error-channel="errorChannel" />
+
+</beans>

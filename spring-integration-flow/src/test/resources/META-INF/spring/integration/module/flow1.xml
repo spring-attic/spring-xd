@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<!-- Need to set ignore-unresolvable true or provide defaults for required properties -->
+	<context:property-placeholder/> 
+
+	<int:channel id="output"/>
+
+	<int:header-enricher input-channel="input"
+		output-channel="output">
+		<int:header name="refbean.value" value="#{refbean.value}" />
+		<int:header name="property.value.1" value="${key1}"/>
+		<int:header name="property.value.2" value="${key2:undefined}"/>
+	</int:header-enricher>
+
+</beans>

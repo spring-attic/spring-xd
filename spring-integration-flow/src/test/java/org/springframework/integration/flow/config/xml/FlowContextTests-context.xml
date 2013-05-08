@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:int="http://www.springframework.org/schema/integration"
+    xmlns:int-flow="http://www.springframework.org/schema/integration/flow"
+    xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/flow http://www.springframework.org/schema/integration/flow/spring-integration-flow.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<int-flow:flow id="simple"/>
+	<int-flow:flow id="no-response"/>
+	<int-flow:flow id="optional-response"/>
+	<int-flow:flow id="router"/>
+	<int-flow:flow id="p1" active-profiles="p1" module-name="profiles"/>
+	<int-flow:flow id="p2" active-profiles="p2" module-name="profiles"/>
+</beans>

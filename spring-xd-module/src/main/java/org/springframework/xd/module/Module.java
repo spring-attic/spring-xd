@@ -16,6 +16,7 @@
 
 package org.springframework.xd.module;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Properties;
 
@@ -43,7 +44,9 @@ public interface Module extends Lifecycle {
 
 	void setParentContext(ApplicationContext parentContext);
 
-	void addComponents(Resource resource);
+	void addComponents(Resource... resource);
+
+	void addComponents(Collection<Resource> resources);
 
 	<T> Map<String, T> getComponents(Class<T> type);
 

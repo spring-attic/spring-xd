@@ -13,9 +13,12 @@
 
 package org.springframework.integration.module;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map.Entry;
 
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.integration.channel.registry.ChannelRegistry;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.util.Assert;
@@ -56,16 +59,25 @@ public class IntegrationPlugin implements Plugin {
 	 */
 	@Override
 	public void processModule(Module module, String group, int index) {
-		//TODO: Check if module started?
+		if (module.isRunning()) {
+			return;
+		}
 		Assert.notNull(module, "module cannot be null");
-		Assert.isAssignable(IntegrationModule.class, module.getClass());
+		Assert.isAssignable(IntegrationModule.class, module.getClass());	
 		String resourcePath = this.integrationModuleBasePath + "/" + module.getName() + ".xml";
-		module.addComponents(new ClassPathResource(resourcePath));
 		IntegrationModule integrationModule = (IntegrationModule) module;
-		integrationModule.initializeModule();
-		channelRegistry.inbound(integrationModule.getName()+".input",integrationModule.getInputChannel());
+		List<Resource> resources = new ArrayList<Resource>();
+		resources.add(new ClassPathResource(resourcePath));
+		if (integrationModule.getAdditionalComponentLocations() != null) {
+			resources.addAll(integrationModule.getAdditionalComponentLocations());
+		}
+		integrationModule.addComponents(resources);
+		integrationModule.start();
+		integrationModule.initializeChannels();
+		
+		channelRegistry.inbound(integrationModule.getInstanceId()+".input",integrationModule.getInputChannel());
 		for (Entry<String, SubscribableChannel> entry: integrationModule.getOutputChannels().entrySet()) {
-			channelRegistry.outbound(integrationModule.getName() + "." + entry.getKey(), entry.getValue());
+			channelRegistry.outbound(integrationModule.getInstanceId() + ".output", entry.getValue());
 		}
 	}
 

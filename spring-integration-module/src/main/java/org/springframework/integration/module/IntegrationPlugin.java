@@ -14,7 +14,6 @@
 package org.springframework.integration.module;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -64,7 +63,7 @@ public class IntegrationPlugin implements Plugin {
 			return;
 		}
 		Assert.notNull(module, "module cannot be null");
-		Assert.isAssignable(IntegrationModule.class, module.getClass());	
+		Assert.isAssignable(IntegrationModule.class, module.getClass());
 		String resourcePath = this.integrationModuleBasePath + "/" + module.getName() + ".xml";
 		IntegrationModule integrationModule = (IntegrationModule) module;
 		List<Resource> resources = new ArrayList<Resource>();
@@ -75,8 +74,8 @@ public class IntegrationPlugin implements Plugin {
 		integrationModule.addComponents(resources);
 		integrationModule.initializeChannels();
 		integrationModule.start();
-		channelRegistry.inbound(integrationModule.getInstanceId()+".input",integrationModule.getInputChannel());
-		for (Entry<String, SubscribableChannel> entry: integrationModule.getOutputChannels().entrySet()) {
+		channelRegistry.inbound(integrationModule.getInstanceId() + ".input", integrationModule.getInputChannel());
+		for (Entry<String, SubscribableChannel> entry : integrationModule.getOutputChannels().entrySet()) {
 			channelRegistry.outbound(integrationModule.getInstanceId() + ".output", entry.getValue());
 		}
 	}

@@ -47,7 +47,7 @@ public class IntegrationModule extends SimpleModule {
 		super(name, MODULE_TYPE);
 		this.channelExporter = new DefaultChannelExporter();
 	}
-	
+
 	protected IntegrationModule(String name, String type) {
 		super(name, type);
 		this.channelExporter = new DefaultChannelExporter();
@@ -70,7 +70,7 @@ public class IntegrationModule extends SimpleModule {
 	public Map<String, SubscribableChannel> getOutputChannels() {
 		return this.outputChannels;
 	}
-	
+
 	/**
 	 * Set additional component locations
 	 * @param additionalComponentLocations
@@ -78,7 +78,7 @@ public class IntegrationModule extends SimpleModule {
 	public void setAdditionalComponentLocations(Collection<Resource> additionalComponentLocations) {
 		this.additionalComponentLocations = additionalComponentLocations;
 	}
-	
+
 	/**
 	 * @return additional component locations
 	 */
@@ -96,7 +96,7 @@ public class IntegrationModule extends SimpleModule {
 		}
 	}
 
-	public void activateProfiles(String[] activeProfiles)  {
+	public void activateProfiles(String[] activeProfiles) {
 		if (activeProfiles != null && activeProfiles.length > 0) {
 			((AbstractEnvironment) this.getApplicationContext().getEnvironment()).setActiveProfiles(activeProfiles);
 		}

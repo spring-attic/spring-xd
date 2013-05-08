@@ -103,6 +103,7 @@ project('spring-xd-analytics') {
 project('spring-xd-dirt') {
 	description = 'Spring XD DIRT'
 	dependencies {
+		compile project(":spring-xd-analytics")
 		compile project(":spring-xd-module")
 		compile project(":spring-xd-hadoop")
 		compile "org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion"

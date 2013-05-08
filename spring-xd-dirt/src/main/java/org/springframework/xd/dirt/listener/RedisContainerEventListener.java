@@ -37,6 +37,7 @@ public class RedisContainerEventListener extends AbstractContainerEventListener 
 
 	public RedisContainerEventListener(RedisConnectionFactory redisConnectionFactory) {
 		this.redisTemplate.setConnectionFactory(redisConnectionFactory);
+		this.redisTemplate.afterPropertiesSet();
 	}
 
 	@Override

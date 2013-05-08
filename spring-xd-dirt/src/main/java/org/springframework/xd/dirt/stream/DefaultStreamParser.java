@@ -34,7 +34,13 @@ public class DefaultStreamParser implements StreamParser {
 		String[] modules = StringUtils.tokenizeToStringArray(config, "|");
 		Assert.isTrue(modules.length > 1, "at least 2 modules required");
 		for (int i = modules.length - 1; i >= 0; i--) {
-			String[] tokens = StringUtils.tokenizeToStringArray(modules[i], " ");
+			String module = modules[i];
+			if (i == 0 && module.trim().matches("^tap\\s*@.*")) {
+				String streamToTap = module.substring(module.indexOf('@') + 1).trim();
+				Assert.hasText(streamToTap, "tap requires a stream name after '@' char");
+				module = "tap --channel=" + streamToTap + ".0";
+			}
+			String[] tokens = StringUtils.tokenizeToStringArray(module, " ");
 			Assert.isTrue(tokens.length > 0, "no module name provided");
 			String moduleName = tokens[0];
 			ModuleDeploymentRequest request = new ModuleDeploymentRequest();

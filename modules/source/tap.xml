@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:redis="http://www.springframework.org/schema/integration/redis"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration
+		http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/redis
+		http://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd">
+
+	<bean id="tap" class="org.springframework.xd.dirt.stream.Tap">
+		<constructor-arg value="${channel}"/>
+		<constructor-arg ref="channelRegistry"/>
+		<property name="outputChannel" ref="output"/>
+	</bean>
+
+	<int:channel id="output"/>
+
+	<bean id="channelRegistry" class="org.springframework.integration.x.redis.RedisChannelRegistry">
+		<constructor-arg ref="redisConnectionFactory"/>
+	</bean>
+
+	<bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+		<constructor-arg>
+			<bean class="redis.clients.jedis.JedisPoolConfig">
+				<property name="maxActive" value="100"/>
+			</bean>
+		</constructor-arg>
+	</bean>
+
+</beans>

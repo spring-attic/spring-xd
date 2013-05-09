@@ -16,6 +16,7 @@ buildscript {
 allprojects {
 	group = 'org.springframework.xd'
 	repositories {
+		mavenCentral()
 		maven { url 'http://repo.springsource.org/libs-snapshot' }
 		maven { url 'http://repo.springsource.org/plugins-release' }
 	}

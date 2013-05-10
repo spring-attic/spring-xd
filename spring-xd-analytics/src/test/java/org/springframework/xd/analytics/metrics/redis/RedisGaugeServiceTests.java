@@ -19,11 +19,10 @@ import java.util.Set;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 import org.springframework.xd.analytics.metrics.AbstractGaugeServiceTests;
+import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 import org.springframework.xd.analytics.metrics.core.GaugeService;
 
 
@@ -49,7 +48,6 @@ public class RedisGaugeServiceTests extends AbstractGaugeServiceTests {
 	}
 
 	@Test
-	@Ignore("Maybe issue in configuration of redis CI server environment.  Also see https://github.com/xetorthio/jedis/issues/407")
 	public void testService() {
 		super.simpleTest(getGaugeServiceImplementation(), getGaugeRepository());
 	}

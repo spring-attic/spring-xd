@@ -19,11 +19,9 @@ import java.util.Set;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.xd.analytics.metrics.SharedGaugeRepositoryTests;
 
-@Ignore("Maybe issue in configuration of redis CI server environment.  Also see https://github.com/xetorthio/jedis/issues/407")
 public class RedisGaugeRepositoryTests extends SharedGaugeRepositoryTests {
 
 

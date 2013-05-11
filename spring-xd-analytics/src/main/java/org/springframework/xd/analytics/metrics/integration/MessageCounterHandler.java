@@ -6,7 +6,7 @@ import org.springframework.util.Assert;
 import org.springframework.xd.analytics.metrics.core.CounterService;
 
 /**
- * Counts the occurrence of a messages that are not null using an underlying CounterService
+ * Counts the number of non-null messages using an underlying CounterService.
  * 
  */
 public class MessageCounterHandler {
@@ -22,7 +22,7 @@ public class MessageCounterHandler {
 	}
 
 	@ServiceActivator
-	public Message<?> process(Message<?> message) { 			
+	public Message<?> process(Message<?> message) {
 		if (message != null) {
 			this.counterService.increment(counterName);
 		}

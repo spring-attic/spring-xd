@@ -44,7 +44,7 @@ public interface GaugeService {
 
 	/**
 	 * Reset the gauge to zero
-	 * @param name the counter name
+	 * @param name the gauge name
 	 * @throws IllegalArgumentException in case the given name is null
 	 */
 	void reset(String name);

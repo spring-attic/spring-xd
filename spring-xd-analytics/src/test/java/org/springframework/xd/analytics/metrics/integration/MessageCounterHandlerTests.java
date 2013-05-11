@@ -20,7 +20,6 @@ import org.springframework.xd.analytics.metrics.redis.RedisCounterService;
 
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-@Ignore("Maybe issue in configuration of redis CI server environment.  Also see https://github.com/xetorthio/jedis/issues/407")
 public class MessageCounterHandlerTests {
 
 	@Autowired

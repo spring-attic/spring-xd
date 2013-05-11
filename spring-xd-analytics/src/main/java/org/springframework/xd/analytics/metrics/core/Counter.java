@@ -28,7 +28,7 @@ import org.springframework.util.Assert;
  * @author Mark Pollack
  *
  */
-public final class Counter {
+public final class Counter implements Metric {
 
 	private final String name;
 	private long value;

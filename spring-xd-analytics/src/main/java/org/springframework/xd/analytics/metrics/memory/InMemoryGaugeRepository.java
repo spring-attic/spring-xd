@@ -15,55 +15,14 @@
  */
 package org.springframework.xd.analytics.metrics.memory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
-import org.springframework.util.Assert;
 import org.springframework.xd.analytics.metrics.core.Gauge;
 import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 
 /**
- * Memory backed implementation of GaugeRepository that uses a ConcurrentMap
+ * Memory backed Gauge repository that uses a ConcurrentMap
  *
  * @author Mark Pollack
  *
  */
-public class InMemoryGaugeRepository implements GaugeRepository {
-
-	//TODO consider generics to remove implementaiton dupliation with CounterRepository
-
-	//Map of id to Gauges.
-	private final ConcurrentMap<String, Gauge> map = new ConcurrentHashMap<String, Gauge>();
-
-	@Override
-	public Gauge save(Gauge Gauge) {
-		map.put(Gauge.getName(), Gauge);
-		return Gauge;
-	}
-
-	@Override
-	public void delete(String name) {
-		Assert.notNull(name, "The name of the Gauge must not be null");
-		map.remove(name);
-	}
-
-	@Override
-	public void delete(Gauge Gauge) {
-		Assert.notNull(Gauge, "The Gauge must not be null");
-		map.remove(Gauge.getName());
-	}
-
-	@Override
-	public Gauge findOne(String name) {
-		Assert.notNull(name, "The name of the Gauge must not be null");
-		return map.get(name);
-	}
-
-	@Override
-	public List<Gauge> findAll() {
-		return new ArrayList<Gauge>(map.values());
-	}
-
+public class InMemoryGaugeRepository extends InMemoryMetricRepository<Gauge> implements GaugeRepository {
 }

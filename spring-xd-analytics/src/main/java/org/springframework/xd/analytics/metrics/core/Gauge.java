@@ -20,15 +20,16 @@ import org.springframework.util.Assert;
 
 
 /**
- * Represents the data stored in a Gauge of a single value.  Operations on it expected set the value to any arbitrary
- * value.  The name property is a friendly user assigned name, and should be unique.
+ * Represents the data stored in a Gauge which can be set to any integral value.
+ *
+ * The name property is a friendly user assigned name, and should be unique.
  *
  * Note: Additional metadata to help in searching for Gauges, such as tags and last time updated will be coming.
  *
  * @author Mark Pollack
  *
  */
-public final class Gauge {
+public final class Gauge implements Metric {
 
 	private final String name;
 	private long value;

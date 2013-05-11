@@ -15,53 +15,14 @@
  */
 package org.springframework.xd.analytics.metrics.memory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
-import org.springframework.util.Assert;
 import org.springframework.xd.analytics.metrics.core.Counter;
 import org.springframework.xd.analytics.metrics.core.CounterRepository;
 
 /**
- * Memory backed implementation of CounterRepository that uses a ConcurrentMap
+ * Memory backed implementation of Counter repository that uses a ConcurrentMap.
  *
  * @author Mark Pollack
  *
  */
-public class InMemoryCounterRepository implements CounterRepository {
-
-	//Map of id to counters.
-	private final ConcurrentMap<String, Counter> map = new ConcurrentHashMap<String, Counter>();
-
-	@Override
-	public Counter save(Counter counter) {
-		map.put(counter.getName(), counter);
-		return counter;
-	}
-
-	@Override
-	public void delete(String name) {
-		Assert.notNull(name, "The name of the counter must not be null");
-		map.remove(name);
-	}
-
-	@Override
-	public void delete(Counter counter) {
-		Assert.notNull(counter, "The counter must not be null");
-		map.remove(counter.getName());
-	}
-
-	@Override
-	public Counter findOne(String name) {
-		Assert.notNull(name, "The name of the counter must not be null");
-		return map.get(name);
-	}
-
-	@Override
-	public List<Counter> findAll() {
-		return new ArrayList<Counter>(map.values());
-	}
-
+public class InMemoryCounterRepository extends InMemoryMetricRepository<Counter> implements CounterRepository {
 }

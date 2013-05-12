@@ -29,13 +29,9 @@ import org.springframework.xd.analytics.metrics.core.GaugeRepository;
  * The naming strategy for keys in Redis is "gauges."  This means a Gauge named simpleGauge appears
  * under the name "gauges.simpleGauge" in Redis.
  *
- * There is a default expiry of 60 minutes for the gauges stored in redis.  This can be changed
- * using a setter method
- *
  * @author Mark Pollack
- *
  */
-public class RedisGaugeRepository extends AbstractRedisMetricRepository implements GaugeRepository {
+public class RedisGaugeRepository extends AbstractRedisMetricRepository<Gauge, Long> implements GaugeRepository {
 
 	public RedisGaugeRepository(RedisConnectionFactory connectionFactory) {
 		this(connectionFactory, "gauges.");
@@ -46,74 +42,21 @@ public class RedisGaugeRepository extends AbstractRedisMetricRepository implemen
 	}
 
 	@Override
-	public Gauge save(Gauge gauge) {
-		//Apply prefix for persistence purposes
-		String gaugeKey = getGaugeKey(gauge);
-		if (this.valueOperations.get(gaugeKey) == null) {
-			this.valueOperations.set(gaugeKey, 0L);
-		}
-		return gauge;
+	Gauge create(String name, Long value) {
+		return new Gauge(name, value);
 	}
 
 	@Override
-	public void delete(String name) {
-		Assert.notNull(name, "The name of the gauge must not be null");
-		//Apply prefix for persistence purposes
-		this.redisOperations.delete(getGaugeKey(name));
-	}
-
-	@Override
-	public void delete(Gauge gauge) {
-		Assert.notNull(gauge, "The gauge must not be null");
-		//Apply prefix for persistence purposes
-		this.redisOperations.delete(getGaugeKey(gauge));
-	}
-
-	@Override
-	public Gauge findOne(String name) {
-		Assert.notNull(name, "The name of the gauge must not be null");
-		String gaugeKey = getGaugeKey(name);
-		if (redisOperations.hasKey(gaugeKey)) {
-			Long value = this.valueOperations.get(gaugeKey);
-			Gauge g = new Gauge(name, value);
-			return g;
-		} else {
-			return null;
-		}
-	}
-
-	@Override
-	public List<Gauge> findAll() {
-		List<Gauge> gauges = new ArrayList<Gauge>();
-		//TODO asking for keys is not recommended.  See http://redis.io/commands/keys
-		//     Need to keep track of created gauges explicitly.
-		Set<String> keys = this.redisOperations.keys(this.metricPrefix + "*");
-		for (String key : keys) {
-			if (!key.matches(metricPrefix + ".+?_\\d{4}\\.\\d{2}\\.\\d{2}-\\d{2}:\\d{2}")) {
-				Long value = this.valueOperations.get(key);
-				String name = key.substring(metricPrefix.length());
-				Gauge g = new Gauge(name, value);
-				gauges.add(g);
-			}
-		}
-		return gauges;
-
+	Long defaultValue() {
+		return 0L;
 	}
 
 	public void setValue(String name, long value) {
-		valueOperations.set(getGaugeKey(name), value);
+		valueOperations.set(getMetricKey(name), value);
 	}
 
 	public void reset(String name) {
-		valueOperations.set(getGaugeKey(name), 0L);
-	}
-
-	public String getGaugeKey(Gauge gauge) {
-		return metricPrefix + gauge.getName();
-	}
-
-	public String getGaugeKey(String name) {
-		return metricPrefix + name;
+		valueOperations.set(getMetricKey(name), 0L);
 	}
 
 }

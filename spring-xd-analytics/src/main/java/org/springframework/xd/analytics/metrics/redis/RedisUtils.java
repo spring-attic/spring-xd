@@ -5,19 +5,14 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
+@SuppressWarnings("unchecked")
 class RedisUtils {
 
-	/**
-	 *
-	 * @param connectionFactory
-	 * @return
-	 */
-	static RedisTemplate<String, Long> createStringLongRedisTemplate(
-			RedisConnectionFactory connectionFactory) {
-		RedisTemplate<String, Long> redisTemplate = new RedisTemplate<String, Long>();
+	static RedisTemplate createRedisTemplate(
+			RedisConnectionFactory connectionFactory, Class<?> valueClass) {
+		RedisTemplate redisTemplate = new RedisTemplate();
 		redisTemplate.setKeySerializer(new StringRedisSerializer());
-		redisTemplate.setValueSerializer(new GenericToStringSerializer<Long>(
-				Long.class));
+		redisTemplate.setValueSerializer(new GenericToStringSerializer(valueClass));
 
 		// avoids proxy
 		redisTemplate.setExposeConnection(true);

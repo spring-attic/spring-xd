@@ -15,12 +15,7 @@
  */
 package org.springframework.xd.analytics.metrics.redis;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.util.Assert;
 import org.springframework.xd.analytics.metrics.core.Counter;
 import org.springframework.xd.analytics.metrics.core.CounterRepository;
 
@@ -35,7 +30,7 @@ import org.springframework.xd.analytics.metrics.core.CounterRepository;
  * @author Mark Pollack
  *
  */
-public class RedisCounterRepository extends AbstractRedisMetricRepository implements CounterRepository {
+public final class RedisCounterRepository extends AbstractRedisMetricRepository<Counter, Long> implements CounterRepository {
 
 	public RedisCounterRepository(RedisConnectionFactory connectionFactory) {
 		this(connectionFactory, "counters.");
@@ -46,78 +41,25 @@ public class RedisCounterRepository extends AbstractRedisMetricRepository implem
 	}
 
 	@Override
-	public Counter save(Counter counter) {
-		//Apply prefix for persistence purposes
-		String counterKey = getCounterKey(counter);
-		if (this.valueOperations.get(counterKey) == null) {
-			this.valueOperations.set(counterKey, 0L);
-		}
-		return counter;
+	Counter create(String name, Long value) {
+		return new Counter(name, value);
 	}
 
 	@Override
-	public void delete(String name) {
-		Assert.notNull(name, "The name of the counter must not be null");
-		//Apply prefix for persistence purposes
-		this.redisOperations.delete(getCounterKey(name));
-	}
-
-	@Override
-	public void delete(Counter counter) {
-		Assert.notNull(counter, "The counter must not be null");
-		//Apply prefix for persistence purposes
-		this.redisOperations.delete(getCounterKey(counter));
-	}
-
-
-	@Override
-	public Counter findOne(String name) {
-		Assert.notNull(name, "The name of the counter must not be null");
-		String counterKey = getCounterKey(name);
-		if (redisOperations.hasKey(counterKey)) {
-			Long value = this.valueOperations.get(counterKey);
-			Counter c = new Counter(name, value);
-			return c;
-		} else {
-			return null;
-		}
-	}
-
-	@Override
-	public List<Counter> findAll() {
-		List<Counter> counters = new ArrayList<Counter>();
-		//TODO asking for keys is not recommended.  See http://redis.io/commands/keys
-		//     Need to keep track of created counters explicitly.
-		Set<String> keys = this.redisOperations.keys(this.metricPrefix + "*");
-		for (String key : keys) {
-			if (!key.matches(metricPrefix + ".+?_\\d{4}\\.\\d{2}\\.\\d{2}-\\d{2}:\\d{2}")) {
-				Long value = this.valueOperations.get(key);
-				String name = key.substring(metricPrefix.length());
-				Counter c = new Counter(name, value);
-				counters.add(c);
-			}
-		}
-		return counters;
+	Long defaultValue() {
+		return 0L;
 	}
 
 	public void increment(String name) {
-		valueOperations.increment(getCounterKey(name), 1);
+		valueOperations.increment(getMetricKey(name), 1);
 	}
 
 	public void decrement(String name) {
-		valueOperations.increment(getCounterKey(name), -1);
+		valueOperations.increment(getMetricKey(name), -1);
 	}
 
 	public void reset(String name) {
-		valueOperations.set(getCounterKey(name), 0L);
-	}
-
-	public String getCounterKey(Counter counter) {
-		return metricPrefix + counter.getName();
-	}
-
-	public String getCounterKey(String name) {
-		return metricPrefix + name;
+		valueOperations.set(getMetricKey(name), 0L);
 	}
 
 }

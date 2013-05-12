@@ -66,4 +66,8 @@ class InMemoryMetricRepository<M extends Metric> implements MetricRepository<M> 
 		return new ArrayList<M>(map.values());
 	}
 
+	@Override
+	public void deleteAll() {
+		map.clear();
+	}
 }

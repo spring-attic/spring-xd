@@ -15,28 +15,17 @@
  */
 package org.springframework.xd.analytics.metrics.redis;
 
-import java.util.Set;
-
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.xd.analytics.metrics.SharedGaugeRepositoryTests;
 
 public class RedisGaugeRepositoryTests extends SharedGaugeRepositoryTests {
 
-
 	@AfterClass
 	@BeforeClass
 	public static void beforeAndAfter() {
-		//TODO refactor into clean-up methods based on metric naming strategy classes.
 		gaugeRepository = new RedisGaugeRepository(TestUtils.getJedisConnectionFactory());
-		StringRedisTemplate stringRedisTemplate = TestUtils.getStringRedisTemplate();
-		Set<String> keys = stringRedisTemplate.keys("gauge." + "*");
-		if (keys.size() > 0) {
-			stringRedisTemplate.delete(keys);
-		}
+		gaugeRepository.deleteAll();
 	}
-
-
 
 }

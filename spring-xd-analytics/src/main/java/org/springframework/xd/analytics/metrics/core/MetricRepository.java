@@ -53,4 +53,9 @@ public interface MetricRepository<M extends Metric> extends Repository<M, String
 	 * @return all instances of this metric type.
 	 */
 	List<M> findAll();
+
+	/**
+	 * Deletes all the metrics managed by this repository.
+	 */
+	void deleteAll();
 }

@@ -1,5 +1,6 @@
 package org.springframework.xd.analytics.metrics.redis;
 
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -25,6 +26,14 @@ abstract class AbstractRedisMetricRepository {
 		this.metricPrefix = metricPrefix;
 		this.redisOperations = RedisUtils.createStringLongRedisTemplate(connectionFactory);
 		this.valueOperations = redisOperations.opsForValue();
+	}
+
+	@Override
+	public void deleteAll() {
+		Set<String> keys = redisOperations.keys(metricPrefix + "*");
+		if (keys.size() > 0) {
+			redisOperations.delete(keys);
+		}
 	}
 
 	/**

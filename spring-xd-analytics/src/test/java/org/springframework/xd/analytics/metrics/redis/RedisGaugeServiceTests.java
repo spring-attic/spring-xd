@@ -36,15 +36,15 @@ public class RedisGaugeServiceTests extends AbstractGaugeServiceTests {
 	public void beforeAndAfter() {
 
 		StringRedisTemplate stringRedisTemplate = TestUtils.getStringRedisTemplate();
-		Set<String> keys = stringRedisTemplate.keys("counts." + "*");
+		Set<String> keys = stringRedisTemplate.keys("gauges." + "*");
 		if (keys.size() > 0) {
 			stringRedisTemplate.delete(keys);
 		}
 
 		GaugeRepository repo = getGaugeRepository();
 		//TODO delete to support wildcards
-		repo.delete("simpleCounter");
-		repo.delete("counts.simpleCounter");
+		repo.delete("simpleGauge");
+		repo.delete("gauges.simpleGauge");
 	}
 
 	@Test

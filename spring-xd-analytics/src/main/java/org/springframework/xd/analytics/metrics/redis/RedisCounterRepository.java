@@ -38,7 +38,7 @@ import org.springframework.xd.analytics.metrics.core.CounterRepository;
 public class RedisCounterRepository extends AbstractRedisMetricRepository implements CounterRepository {
 
 	public RedisCounterRepository(RedisConnectionFactory connectionFactory) {
-		this(connectionFactory, "counts.");
+		this(connectionFactory, "counters.");
 	}
 
 	public RedisCounterRepository(RedisConnectionFactory connectionFactory, String metricPrefix) {

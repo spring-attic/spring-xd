@@ -17,6 +17,10 @@ package org.springframework.xd.analytics.metrics.core;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
+import java.util.HashSet;
+
 import nl.jqno.equalsverifier.EqualsVerifier;
 import nl.jqno.equalsverifier.Warning;
 
@@ -29,16 +33,25 @@ public class CounterTests {
 		Counter c = new Counter("myCounter");
 		assertThat(c.getName(), equalTo("myCounter"));
 	}
-	
+
 	@Test
 	public void nameWithCount() {
 		Counter c = new Counter("myCounter", 314);
 		assertThat(c.getName(), equalTo("myCounter"));
 		assertThat(c.getValue(), equalTo(314L));
 	}
-	
+
 	@Test
 	public void equalsContract() {
-		EqualsVerifier.forClass(Counter.class).suppress(Warning.NONFINAL_FIELDS).verify();
+		EqualsVerifier.forClass(Counter.class).suppress(Warning.NULL_FIELDS).verify();
+	}
+
+	@Test
+	public void equalsAndHashcodeWorkForSetStorage() throws Exception {
+		Counter c = new Counter("myCounter");
+		HashSet<Counter> set = new HashSet<Counter>();
+		set.add(c);
+		c.set(99);
+		assertTrue(set.contains(c));
 	}
 }

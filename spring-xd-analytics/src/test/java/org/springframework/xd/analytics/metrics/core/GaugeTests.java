@@ -17,6 +17,10 @@ package org.springframework.xd.analytics.metrics.core;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
+import java.util.HashSet;
+
 import nl.jqno.equalsverifier.EqualsVerifier;
 import nl.jqno.equalsverifier.Warning;
 
@@ -39,6 +43,15 @@ public class GaugeTests {
 	
 	@Test
 	public void equalsContract() {
-		EqualsVerifier.forClass(Counter.class).suppress(Warning.NONFINAL_FIELDS).verify();
+		EqualsVerifier.forClass(Gauge.class).suppress(Warning.NULL_FIELDS).verify();
+	}
+
+	@Test
+	public void equalsAndHashcodeWorkForSetStorage() throws Exception {
+		Gauge g = new Gauge("myGauge", 8);
+		HashSet<Gauge> set = new HashSet<Gauge>();
+		set.add(g);
+		g.set(99);
+		assertTrue(set.contains(g));
 	}
 }

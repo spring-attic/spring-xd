@@ -18,6 +18,7 @@ package org.springframework.xd.analytics.metrics.memory;
 import static org.springframework.xd.analytics.metrics.core.MetricUtils.setGaugeValue;
 
 import org.springframework.util.Assert;
+import org.springframework.xd.analytics.metrics.MetricsException;
 import org.springframework.xd.analytics.metrics.core.Gauge;
 import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 import org.springframework.xd.analytics.metrics.core.GaugeService;
@@ -54,21 +55,25 @@ public class InMemoryGaugeService implements GaugeService {
 	@Override
 	public void setValue(String name, long value) {
 		synchronized (monitor) {
-			Gauge gauge = gaugeRepository.findOne(name);
-			if (gauge != null) {
-				setGaugeValue(gauge, value);
-			}
+			Gauge gauge = findExistingGauge(name);
+			setGaugeValue(gauge, value);
 		}
 	}
 
 	@Override
 	public void reset(String name) {
 		synchronized (monitor) {
-			Gauge gauge = gaugeRepository.findOne(name);
-			if (gauge != null) {
-				setGaugeValue(gauge, 0);
-			}
+			Gauge gauge = findExistingGauge(name);
+			setGaugeValue(gauge, 0);
 		}
+	}
+
+	private Gauge findExistingGauge(String name) {
+		Gauge gauge = gaugeRepository.findOne(name);
+		if (gauge == null) {
+			throw new MetricsException("Gauge " + name + " not found");
+		}
+		return gauge;
 	}
 
 }

@@ -4,7 +4,6 @@ import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisOperations;
@@ -19,8 +18,6 @@ import org.springframework.xd.analytics.metrics.core.MetricRepository;
  * @author Luke Taylor
  */
 abstract class AbstractRedisMetricRepository<M extends Metric, V extends Number> implements MetricRepository<M> {
-	private volatile int defaultExpiryTimeInMinutes = -1;
-
 	protected final String metricPrefix;
 	protected final ValueOperations<String, V> valueOperations;
 	protected final RedisOperations<String, V> redisOperations;
@@ -42,23 +39,6 @@ abstract class AbstractRedisMetricRepository<M extends Metric, V extends Number>
 		if (keys.size() > 0) {
 			redisOperations.delete(keys);
 		}
-	}
-
-	/**
-	 *
-	 * @param metricKey the full key of the metric, including any prefix.
-	 * @param numberOfMinutes the number of minutes the expiry time should be set to.
-	 */
-	public void updateExpiryTimeInMinutes(String metricKey, int numberOfMinutes) {
-		this.redisOperations.expire(metricKey, numberOfMinutes, TimeUnit.MINUTES);
-	}
-
-	public int getDefaultExpiryTimeInMinutes() {
-		return defaultExpiryTimeInMinutes;
-	}
-
-	public void setDefaultExpiryTimeInMinutes(int defaultExpiryTimeInMinutes) {
-		this.defaultExpiryTimeInMinutes = defaultExpiryTimeInMinutes;
 	}
 
 	/**

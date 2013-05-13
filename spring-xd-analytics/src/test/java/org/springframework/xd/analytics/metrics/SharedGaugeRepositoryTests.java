@@ -76,7 +76,7 @@ public abstract class SharedGaugeRepositoryTests {
 		repo.delete(myGauge);
 		assertThat(repo.findOne(myGaugeName), is(nullValue()));
 
-		repo.delete(yourGauge.getName());
+		repo.deleteAll();
 		assertThat(repo.findOne(yourGaugeName), is(nullValue()));
 
 		gauges = repo.findAll();

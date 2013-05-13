@@ -18,6 +18,7 @@ package org.springframework.xd.analytics.metrics.memory;
 import static org.springframework.xd.analytics.metrics.core.MetricUtils.*;
 
 import org.springframework.util.Assert;
+import org.springframework.xd.analytics.metrics.MetricsException;
 import org.springframework.xd.analytics.metrics.core.Counter;
 import org.springframework.xd.analytics.metrics.core.CounterRepository;
 import org.springframework.xd.analytics.metrics.core.CounterService;
@@ -54,31 +55,33 @@ public class InMemoryCounterService implements CounterService {
 	@Override
 	public void increment(String name) {
 		synchronized (monitor) {
-			Counter counter = counterRepository.findOne(name);
-			if (counter != null) {
-				counterRepository.save(incrementCounter(counter));
-			}
+			Counter counter = findCounter(name);
+			counterRepository.save(incrementCounter(counter));
 		}
 	}
 
 	@Override
 	public void decrement(String name) {
 		synchronized (monitor) {
-			Counter counter = counterRepository.findOne(name);
-			if (counter != null) {
-				counterRepository.save(decrementCounter(counter));
-			}
+			Counter counter = findCounter(name);
+			counterRepository.save(decrementCounter(counter));
 		}
 	}
 
 	@Override
 	public void reset(String name) {
 		synchronized (monitor) {
-			Counter counter = counterRepository.findOne(name);
-			if (counter != null) {
-				counterRepository.save(resetCounter(counter));
-			}
+			Counter counter = findCounter(name);
+			counterRepository.save(resetCounter(counter));
 		}
+	}
+
+	private Counter findCounter(String name) {
+		Counter counter = counterRepository.findOne(name);
+		if (counter == null) {
+			throw new MetricsException("Counter " + name + " not found");
+		}
+		return counter;
 	}
 
 }

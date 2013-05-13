@@ -5,7 +5,7 @@ package org.springframework.xd.analytics.metrics.core;
  *
  * For internal use only.
  */
-public class MetricUtils {
+public final class MetricUtils {
 
 	public static Counter incrementCounter(Counter c) {
 		return c.set(c.getValue() + 1);
@@ -21,5 +21,13 @@ public class MetricUtils {
 
 	public static Gauge setGaugeValue(Gauge g, long value) {
 		return g.set(value);
+	}
+
+	public static RichGauge setRichGaugeValue(RichGauge g, double value) {
+		return g.set(value);
+	}
+
+	public static RichGauge resetRichGauge(RichGauge g) {
+		return g.reset();
 	}
 }

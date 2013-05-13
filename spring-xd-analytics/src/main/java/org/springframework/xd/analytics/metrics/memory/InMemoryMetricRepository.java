@@ -21,8 +21,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.springframework.util.Assert;
-import org.springframework.xd.analytics.metrics.core.Counter;
-import org.springframework.xd.analytics.metrics.core.CounterRepository;
 import org.springframework.xd.analytics.metrics.core.Metric;
 import org.springframework.xd.analytics.metrics.core.MetricRepository;
 
@@ -34,7 +32,6 @@ import org.springframework.xd.analytics.metrics.core.MetricRepository;
  */
 class InMemoryMetricRepository<M extends Metric> implements MetricRepository<M> {
 
-	//Map of id to counters.
 	private final ConcurrentMap<String, M> map = new ConcurrentHashMap<String, M>();
 
 	@Override

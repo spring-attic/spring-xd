@@ -13,18 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.springframework.xd.analytics.metrics.memory;
 
-package org.springframework.xd.analytics.metrics;
+import org.springframework.xd.analytics.metrics.AbstractRichGaugeServiceTests;
+import org.springframework.xd.analytics.metrics.core.RichGaugeService;
 
 /**
  * @author Luke Taylor
  */
-public class MetricsException extends RuntimeException {
-	public MetricsException(String message) {
-		super(message);
-	}
-
-	public MetricsException(String message, Throwable cause) {
-		super(message, cause);
+public class InMemoryRichGaugeServiceTests extends AbstractRichGaugeServiceTests {
+	@Override
+	protected RichGaugeService createService() {
+		return new InMemoryRichGaugeService(new InMemoryRichGaugeRepository());
 	}
 }

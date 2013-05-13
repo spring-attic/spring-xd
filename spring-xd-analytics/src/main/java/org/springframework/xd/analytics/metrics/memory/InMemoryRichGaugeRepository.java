@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.springframework.xd.analytics.metrics.memory;
 
-package org.springframework.xd.analytics.metrics;
+import org.springframework.xd.analytics.metrics.core.RichGauge;
 
 /**
+ * Memory backed implementation of GaugeRepository that uses a ConcurrentMap
+ *
  * @author Luke Taylor
+ *
  */
-public class MetricsException extends RuntimeException {
-	public MetricsException(String message) {
-		super(message);
-	}
-
-	public MetricsException(String message, Throwable cause) {
-		super(message, cause);
-	}
+public class InMemoryRichGaugeRepository extends InMemoryMetricRepository<RichGauge> {
 }

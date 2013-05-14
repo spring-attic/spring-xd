@@ -122,6 +122,15 @@ project('spring-xd-dirt') {
 		main = 'org.springframework.xd.dirt.stream.StreamServer'
 		classpath = sourceSets.test.runtimeClasspath
 	}
+	mainClassName = "org.springframework.xd.dirt.stream.StreamServer"
+	task moduleFiles {
+		def modules = file("$rootDir/modules")
+		outputs.dir modules
+	}
+
+	applicationDistribution.from(moduleFiles) {
+		into "modules"
+	}
 }
 
 project('spring-xd-module') {

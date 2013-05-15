@@ -47,13 +47,13 @@ public final class Gauge implements Metric {
 	/**
 	 * Construct a new Gauge given a name and a initial value of the value
 	 * @param name the name of the Gauge
-	 * @param count initial value.
+	 * @param value initial value.
 	 */
 	@PersistenceConstructor
-	public Gauge(String name, long count) {
+	public Gauge(String name, long value) {
 		Assert.notNull(name);
 		this.name = name;
-		this.value = count;
+		this.value = value;
 	}
 
 	/**

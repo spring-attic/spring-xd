@@ -2,7 +2,8 @@ package org.springframework.xd.analytics.metrics.common;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.xd.analytics.metrics.redis.RedisCounterRepository;
 import org.springframework.xd.analytics.metrics.redis.RedisCounterService;
 import org.springframework.xd.analytics.metrics.redis.RedisFieldValueCounterRepository;
@@ -18,7 +19,7 @@ public class ServicesConfig {
 	
 	@Bean
 	public RedisFieldValueCounterRepository redisFieldValueCounterRepository() {
-		return new RedisFieldValueCounterRepository(jedisConnectionFactory());
+		return new RedisFieldValueCounterRepository(redisConnectionFactory());
 	}
 	
 	@Bean
@@ -28,12 +29,15 @@ public class ServicesConfig {
 	
 	@Bean
 	public RedisCounterRepository redisCounterRepository() {	
-		return new RedisCounterRepository(jedisConnectionFactory());
+		return new RedisCounterRepository(redisConnectionFactory());
 	}
 	
 	@Bean
-	public JedisConnectionFactory jedisConnectionFactory() {
-		return new JedisConnectionFactory();
+	public RedisConnectionFactory redisConnectionFactory() {
+		LettuceConnectionFactory cf = new LettuceConnectionFactory();
+		cf.setHostName("localhost");
+		cf.setPort(6379);
+		return cf;
 	}
 	
 	

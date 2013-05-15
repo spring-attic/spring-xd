@@ -58,7 +58,7 @@ public class RedisCounterServiceTests extends AbstractCounterServiceTests {
 
 
 	public RedisCounterRepository getCounterRepository() {
-		counterRepository = new RedisCounterRepository(TestUtils.getJedisConnectionFactory());
+		counterRepository = new RedisCounterRepository(TestUtils.getRedisConnectionFactory());
 		return counterRepository;
 	}
 

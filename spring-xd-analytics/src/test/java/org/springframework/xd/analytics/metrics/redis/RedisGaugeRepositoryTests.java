@@ -24,7 +24,7 @@ public class RedisGaugeRepositoryTests extends SharedGaugeRepositoryTests {
 	@AfterClass
 	@BeforeClass
 	public static void beforeAndAfter() {
-		gaugeRepository = new RedisGaugeRepository(TestUtils.getJedisConnectionFactory());
+		gaugeRepository = new RedisGaugeRepository(TestUtils.getRedisConnectionFactory());
 		gaugeRepository.deleteAll();
 	}
 

@@ -24,7 +24,7 @@ public class RedisCounterRepositoryTests extends SharedCounterRepositoryTests {
 	@AfterClass
 	@BeforeClass
 	public static void beforeAndAfter() {
-		counterRepository = new RedisCounterRepository(TestUtils.getJedisConnectionFactory());
+		counterRepository = new RedisCounterRepository(TestUtils.getRedisConnectionFactory());
 		counterRepository.deleteAll();
 	}
 

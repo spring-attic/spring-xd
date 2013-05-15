@@ -10,7 +10,7 @@ public class RedisFieldValueCounterRepositoryTests extends SharedFieldValueCount
 	@AfterClass
 	@BeforeClass
 	public static void beforeAndAfter() {
-		fvRepository = new RedisFieldValueCounterRepository(TestUtils.getJedisConnectionFactory());
+		fvRepository = new RedisFieldValueCounterRepository(TestUtils.getRedisConnectionFactory());
 		fvRepository.deleteAll();
 	}
 	

@@ -42,6 +42,7 @@ subprojects { subproject ->
 		springIntegrationVersion = '3.0.0.BUILD-SNAPSHOT'
 		springDataMongoVersion = '1.1.1.RELEASE'
 		springDataRedisVersion = '1.0.4.RELEASE'
+		lettuceVersion = '2.2.0'
 		springDataHadoopVersion = '1.0.0.RELEASE'
 		tomcatVersion = '7.0.35'
 	}
@@ -93,6 +94,7 @@ project('spring-xd-analytics') {
 	dependencies {
 		compile "org.springframework:spring-core:$springVersion"
 		compile "org.springframework.data:spring-data-redis:$springDataRedisVersion"
+		compile "com.lambdaworks:lettuce:$lettuceVersion"
 		compile "org.springframework.data:spring-data-mongodb:$springDataMongoVersion"	
 		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
 		compile "joda-time:joda-time:$jodaTimeVersion"

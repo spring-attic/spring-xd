@@ -14,7 +14,7 @@ class TestUtils {
 	static {
 		JedisPoolConfig poolConfig = new JedisPoolConfig();
 		poolConfig.setMaxActive(100);
-		cf = new JedisConnectionFactory();
+		cf = new JedisConnectionFactory(poolConfig);
 		cf.afterPropertiesSet();
 		stringRedisTemplate = new StringRedisTemplate(cf);
 	}

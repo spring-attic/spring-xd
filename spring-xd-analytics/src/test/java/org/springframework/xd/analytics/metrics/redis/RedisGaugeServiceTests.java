@@ -29,7 +29,7 @@ public class RedisGaugeServiceTests extends AbstractGaugeServiceTests {
 	@After
 	@Before
 	public void beforeAndAfter() {
-		repo = new RedisGaugeRepository(TestUtils.getJedisConnectionFactory());
+		repo = new RedisGaugeRepository(TestUtils.getRedisConnectionFactory());
 		repo.deleteAll();
 	}
 

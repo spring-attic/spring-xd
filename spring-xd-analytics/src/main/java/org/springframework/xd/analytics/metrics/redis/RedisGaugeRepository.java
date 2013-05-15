@@ -15,12 +15,7 @@
  */
 package org.springframework.xd.analytics.metrics.redis;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.util.Assert;
 import org.springframework.xd.analytics.metrics.core.Gauge;
 import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 

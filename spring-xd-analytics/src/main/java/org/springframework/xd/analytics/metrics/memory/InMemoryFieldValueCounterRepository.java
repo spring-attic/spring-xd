@@ -13,19 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.xd.analytics.metrics.redis;
+package org.springframework.xd.analytics.metrics.memory;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.springframework.xd.analytics.metrics.SharedGaugeRepositoryTests;
+import org.springframework.xd.analytics.metrics.core.FieldValueCounter;
+import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository;
 
-public class RedisGaugeRepositoryTests extends SharedGaugeRepositoryTests {
-
-	@AfterClass
-	@BeforeClass
-	public static void beforeAndAfter() {
-		gaugeRepository = new RedisGaugeRepository(TestUtils.getRedisConnectionFactory());
-		gaugeRepository.deleteAll();
-	}
+/**
+ * Memory backed implementation of FieldValueCounterRepository that uses a ConcurrentMap
+ *
+ * @author Mark Pollack
+ *
+ */
+public class InMemoryFieldValueCounterRepository extends InMemoryMetricRepository<FieldValueCounter> implements FieldValueCounterRepository {
 
 }

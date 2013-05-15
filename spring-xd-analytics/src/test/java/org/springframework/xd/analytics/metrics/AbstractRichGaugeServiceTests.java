@@ -34,10 +34,14 @@ public abstract class AbstractRichGaugeServiceTests {
 		RichGaugeService gs = createService();
 		gs.getOrCreate("test");
 		gs.setValue("test", 9.99);
+		gs.setValue("test", 0.01);
 
 		RichGauge g = gs.getOrCreate("test");
 		assertEquals("test", g.getName());
-		assertEquals(9.99, g.getValue(), 1E-6);
+		assertEquals(0.01, g.getValue(), 1E-6);
+		assertEquals(5.0, g.getMean(), 1E-6);
+		assertEquals(9.99, g.getMax(), 1E-6);
+		assertEquals(0.01, g.getMin(), 1E-6);
 	}
 
 	@Test(expected = MetricsException.class)

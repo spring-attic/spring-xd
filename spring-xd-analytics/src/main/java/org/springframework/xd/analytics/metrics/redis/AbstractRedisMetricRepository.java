@@ -15,9 +15,11 @@ import org.springframework.xd.analytics.metrics.core.MetricRepository;
 /**
  * Common base functionality for Redis implementations.
  *
+ * Only handles single values (not lists, maps etc).
+ *
  * @author Luke Taylor
  */
-abstract class AbstractRedisMetricRepository<M extends Metric, V extends Number> implements MetricRepository<M> {
+abstract class AbstractRedisMetricRepository<M extends Metric, V> implements MetricRepository<M> {
 	protected final String metricPrefix;
 	protected final ValueOperations<String, V> valueOperations;
 	protected final RedisOperations<String, V> redisOperations;

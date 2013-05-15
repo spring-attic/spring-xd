@@ -35,6 +35,15 @@ public final class RichGauge implements Metric {
 		count = 1;
 	}
 
+	public RichGauge(String name, double value, double mean, double max, double min, long count) {
+		this.name = name;
+		this.value = value;
+		this.mean = mean;
+		this.max = max;
+		this.min = min;
+		this.count = count;
+	}
+
 	/**
 	 * @return the name of the gauge
 	 */
@@ -78,7 +87,9 @@ public final class RichGauge implements Metric {
 	}
 
 	RichGauge set(double value) {
-		if (value > max) {
+		if (count == 0) {
+			max = min = value;
+		} else if (value > max) {
 			max = value;
 		} else if (value < min) {
 			min = value;

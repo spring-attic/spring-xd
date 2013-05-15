@@ -17,9 +17,11 @@
 package org.springframework.xd.dirt.stream;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import org.junit.Test;
 
@@ -27,6 +29,7 @@ import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 
 /**
  * @author Mark Fisher
+ * @author David Turanski
  */
 public class DefaultStreamParserTests {
 
@@ -71,6 +74,52 @@ public class DefaultStreamParserTests {
 		Map<String, String> sinkParameters = sink.getParameters();
 		assertEquals(1, sinkParameters.size());
 		assertEquals("3", sinkParameters.get("z"));
+	}
+
+	@Test
+	public void testParameters() {
+		String module = "gemfire-cq --query=Select * from /Stocks where symbol='VMW' --regionName=foo --foo=bar";
+		DefaultStreamParser parser = new DefaultStreamParser();
+		Properties parameters = parser.getParameters(module);
+		assertEquals(3, parameters.size());
+		assertEquals("Select * from /Stocks where symbol='VMW'", parameters.get("query"));
+		assertEquals("foo", parameters.get("regionName"));
+		assertEquals("bar", parameters.get("foo"));
+
+		module = "test";
+		parameters = parser.getParameters(module);
+		assertEquals(0, parameters.size());
+
+		module = "foo --x=1 --y=two ";
+		parameters = parser.getParameters(module);
+		assertEquals(2, parameters.size());
+		assertEquals("1", parameters.get("x"));
+		assertEquals("two", parameters.get("y"));
+
+		module = "foo --x=2";
+		parameters = parser.getParameters(module);
+		assertEquals(1, parameters.size());
+		assertEquals("2", parameters.get("x"));
+		module = "--foo = bar";
+
+		try {
+			parser.getParameters(module);
+			fail(module + " is invalid. Should throw exception");
+		} catch (Exception e) {
+
+		}
+	}
+
+	@Test
+	public void testInvalidModules() {
+		String config = "test | foo--x=13";
+		DefaultStreamParser parser = new DefaultStreamParser();
+		try {
+			parser.parse("t", config);
+			fail(config + " is invalid. Should throw exception");
+		} catch (Exception e) {
+
+		}
 	}
 
 }

@@ -112,6 +112,7 @@ project('spring-xd-dirt') {
 		compile "org.apache.tomcat.embed:tomcat-embed-logging-juli:$tomcatVersion"
 		compile "org.springframework.integration:spring-integration-event:$springIntegrationVersion"
 		compile "org.springframework.integration:spring-integration-file:$springIntegrationVersion"
+		compile "org.springframework.integration:spring-integration-gemfire:$springIntegrationVersion"
 		compile "org.springframework.integration:spring-integration-redis:$springIntegrationVersion"
 		compile "org.springframework.integration:spring-integration-syslog:$springIntegrationVersion"
 		compile "org.springframework.integration:spring-integration-twitter:$springIntegrationVersion"

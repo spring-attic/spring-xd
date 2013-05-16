@@ -92,6 +92,7 @@ subprojects { subproject ->
 project('spring-xd-analytics') {
 	description = 'Spring XD Anaytics'
 	dependencies {
+		compile project(":spring-xd-tuple")
 		compile "org.springframework:spring-core:$springVersion"
 		compile "org.springframework.data:spring-data-redis:$springDataRedisVersion"
 		compile "com.lambdaworks:lettuce:$lettuceVersion"

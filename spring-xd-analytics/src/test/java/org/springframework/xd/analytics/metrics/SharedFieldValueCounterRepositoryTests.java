@@ -26,11 +26,13 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.xd.analytics.metrics.core.FieldValueCounter;
 import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository;
 public abstract class SharedFieldValueCounterRepositoryTests {
 
-	protected static FieldValueCounterRepository fvRepository;
+	@Autowired
+	protected FieldValueCounterRepository fvRepository;
 	
 	@Test(expected = IllegalArgumentException.class)
 	public void testDeleteNullString() {

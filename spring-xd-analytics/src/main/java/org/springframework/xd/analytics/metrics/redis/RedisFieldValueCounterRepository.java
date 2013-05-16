@@ -18,6 +18,7 @@ import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository
 public class RedisFieldValueCounterRepository implements FieldValueCounterRepository {
 	protected final String metricPrefix;
 	protected final StringRedisTemplate redisTemplate;
+	private static final String MARKER= "_marker_";
 
 	public RedisFieldValueCounterRepository(RedisConnectionFactory connectionFactory) {
 		this(connectionFactory, "fieldvaluecounters.");
@@ -42,10 +43,11 @@ public class RedisFieldValueCounterRepository implements FieldValueCounterReposi
 				for (Map.Entry<String, Double> entry : fieldValueCounter.getFieldValueCount().entrySet()) {
 					increment(fieldValueCounter.getName(), entry.getKey(), entry.getValue());
 				}					
-			} 
-			// else TODO create a zset with a dummy value or store a set of created field value counters. 
+			} else {
+				increment(fieldValueCounter.getName(), MARKER, 0);
+			}
 		}
-		// else TODO create a zset with a dummy value or store a set of created field value counters. 
+		// else TODO decide behavior
 		return fieldValueCounter;
 		
 	}
@@ -148,7 +150,9 @@ public class RedisFieldValueCounterRepository implements FieldValueCounterReposi
 		for (Iterator<TypedTuple<String>> iterator = rangeWithScore.iterator(); iterator
 				.hasNext();) {
 			TypedTuple<String> typedTuple = iterator.next();
-			values.put(typedTuple.getValue(), typedTuple.getScore());
+			if (!typedTuple.getValue().equals(MARKER)) {
+				values.put(typedTuple.getValue(), typedTuple.getScore());
+			}
 		}
 		return values;
 	}

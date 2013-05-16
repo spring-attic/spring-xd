@@ -24,13 +24,15 @@ import static org.junit.Assert.assertThat;
 import java.util.List;
 
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.xd.analytics.metrics.core.Counter;
 import org.springframework.xd.analytics.metrics.core.CounterRepository;
 
 
 public abstract class SharedCounterRepositoryTests {
 
-	protected static CounterRepository counterRepository;
+	@Autowired
+	protected CounterRepository counterRepository;
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testDeleteNullString() {

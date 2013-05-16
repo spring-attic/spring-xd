@@ -20,46 +20,46 @@ import java.util.Set;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.support.AnnotationConfigContextLoader;
 import org.springframework.xd.analytics.metrics.AbstractCounterServiceTests;
-import org.springframework.xd.analytics.metrics.core.CounterRepository;
-import org.springframework.xd.analytics.metrics.core.CounterService;
+import org.springframework.xd.analytics.metrics.common.ServicesConfig;
 
 
+@ContextConfiguration(classes=ServicesConfig.class, loader=AnnotationConfigContextLoader.class)
+@RunWith(SpringJUnit4ClassRunner.class)
 public class RedisCounterServiceTests extends AbstractCounterServiceTests {
 
+	@Autowired
 	private RedisCounterRepository counterRepository;
+	
+	@Autowired 
+	private RedisCounterService counterService;
 
+	@Autowired
+	private StringRedisTemplate stringRedisTemplate;
+	
 
 	@After
 	@Before
 	public void beforeAndAfter() {
 
-		StringRedisTemplate stringRedisTemplate = TestUtils.getStringRedisTemplate();
 		Set<String> keys = stringRedisTemplate.keys("counts." + "*");
 		if (keys.size() > 0) {
 			stringRedisTemplate.delete(keys);
 		}
-
-		CounterRepository repo = getCounterRepository();
 		//TODO delete to support wildcards
-		repo.delete("simpleCounter");
-		repo.delete("counts.simpleCounter");
+		counterRepository.delete("simpleCounter");
+		counterRepository.delete("counts.simpleCounter");
 	}
 
 	@Test
 	public void testService() {
-		super.simpleTest(getCounterServiceImplementation(), getCounterRepository());
-	}
-
-	public CounterService getCounterServiceImplementation() {
-		return new RedisCounterService(getCounterRepository());
-	}
-
-
-	public RedisCounterRepository getCounterRepository() {
-		counterRepository = new RedisCounterRepository(TestUtils.getRedisConnectionFactory());
-		return counterRepository;
+		super.simpleTest(counterService, counterRepository);
 	}
 
 }

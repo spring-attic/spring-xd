@@ -15,15 +15,15 @@
  */
 package org.springframework.xd.analytics.metrics.memory;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.After;
+import org.junit.Before;
 import org.springframework.xd.analytics.metrics.SharedCounterRepositoryTests;
 
 public class InMemoryCounterRepositoryTests extends SharedCounterRepositoryTests {
 
-	@AfterClass
-	@BeforeClass
-	public static void beforeAndAfter() {
+	@After
+	@Before
+	public void beforeAndAfter() {
 		counterRepository = new InMemoryCounterRepository();
 	}
 

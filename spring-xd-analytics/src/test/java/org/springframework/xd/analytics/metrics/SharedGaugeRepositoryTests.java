@@ -24,13 +24,15 @@ import static org.junit.Assert.assertThat;
 import java.util.List;
 
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.xd.analytics.metrics.core.Gauge;
 import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 
 
 public abstract class SharedGaugeRepositoryTests {
 
-	protected static GaugeRepository gaugeRepository;
+	@Autowired
+	protected GaugeRepository gaugeRepository;
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testDeleteNullString() {

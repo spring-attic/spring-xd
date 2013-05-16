@@ -59,7 +59,7 @@ public final class FieldValueCounter implements Metric {
 	 * @return the fieldValueCount
 	 */
 	public Map<String, Double> getFieldValueCount() {
-		return Collections.unmodifiableMap(this.fieldValueCount);
+		return this.fieldValueCount;
 	}
 	
 	/* (non-Javadoc)

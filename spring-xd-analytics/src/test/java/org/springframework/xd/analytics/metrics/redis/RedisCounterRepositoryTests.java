@@ -15,16 +15,22 @@
  */
 package org.springframework.xd.analytics.metrics.redis;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.runner.RunWith;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.support.AnnotationConfigContextLoader;
 import org.springframework.xd.analytics.metrics.SharedCounterRepositoryTests;
+import org.springframework.xd.analytics.metrics.common.ServicesConfig;
 
+@ContextConfiguration(classes=ServicesConfig.class, loader=AnnotationConfigContextLoader.class)
+@RunWith(SpringJUnit4ClassRunner.class)
 public class RedisCounterRepositoryTests extends SharedCounterRepositoryTests {
 
-	@AfterClass
-	@BeforeClass
-	public static void beforeAndAfter() {
-		counterRepository = new RedisCounterRepository(TestUtils.getRedisConnectionFactory());
+	@After
+	@Before
+	public void beforeAndAfter() {
 		counterRepository.deleteAll();
 	}
 

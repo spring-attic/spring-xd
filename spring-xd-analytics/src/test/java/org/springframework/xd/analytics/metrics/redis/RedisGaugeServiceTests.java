@@ -18,23 +18,33 @@ package org.springframework.xd.analytics.metrics.redis;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.support.AnnotationConfigContextLoader;
 import org.springframework.xd.analytics.metrics.AbstractGaugeServiceTests;
-import org.springframework.xd.analytics.metrics.core.GaugeService;
+import org.springframework.xd.analytics.metrics.common.ServicesConfig;
 
 
+@ContextConfiguration(classes=ServicesConfig.class, loader=AnnotationConfigContextLoader.class)
+@RunWith(SpringJUnit4ClassRunner.class)
 public class RedisGaugeServiceTests extends AbstractGaugeServiceTests {
 
-	private RedisGaugeRepository repo;
+	@Autowired
+	protected RedisGaugeRepository repo;
+	
+	@Autowired
+	protected RedisGaugeService service;
 
 	@After
 	@Before
 	public void beforeAndAfter() {
-		repo = new RedisGaugeRepository(TestUtils.getRedisConnectionFactory());
 		repo.deleteAll();
 	}
 
 	@Test
 	public void testService() {
-		super.simpleTest(new RedisGaugeService(repo), repo);
+		super.simpleTest(service, repo);
 	}
 }

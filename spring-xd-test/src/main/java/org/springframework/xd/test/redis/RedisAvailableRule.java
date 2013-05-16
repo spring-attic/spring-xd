@@ -22,7 +22,7 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 
 /**
  * @author Gary Russell
@@ -34,10 +34,10 @@ public class RedisAvailableRule extends TestWatcher {
 	private final static Log logger = LogFactory.getLog(RedisAvailableRule.class);
 
 	@Override
-	public Statement apply(Statement base, Description description) {
-		JedisConnectionFactory connectionFactory = null;
+	public Statement apply(Statement base, Description description) {		
+		LettuceConnectionFactory connectionFactory = null;
 		try {
-			connectionFactory = new JedisConnectionFactory();
+			connectionFactory = new LettuceConnectionFactory();
 			connectionFactory.afterPropertiesSet();
 			connectionFactory.getConnection().close();
 		}

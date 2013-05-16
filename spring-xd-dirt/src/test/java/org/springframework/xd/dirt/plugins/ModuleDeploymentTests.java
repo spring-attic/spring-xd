@@ -19,8 +19,7 @@ package org.springframework.xd.dirt.plugins;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.x.redis.RedisQueueOutboundChannelAdapter;
@@ -41,7 +40,7 @@ public class ModuleDeploymentTests {
 	@Test
 	@Ignore
 	public void testGenericModule() throws Exception {
-		JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
 		connectionFactory.afterPropertiesSet();
 		RedisQueueOutboundChannelAdapter adapter = new RedisQueueOutboundChannelAdapter("queue.deployer", connectionFactory);
 		adapter.setExtractPayload(false);
@@ -58,7 +57,7 @@ public class ModuleDeploymentTests {
 	@Test
 	@Ignore
 	public void testSimpleStream() throws Exception {
-		JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
 		connectionFactory.afterPropertiesSet();
 		RedisQueueOutboundChannelAdapter adapter = new RedisQueueOutboundChannelAdapter("queue.deployer", connectionFactory);
 		adapter.setExtractPayload(false);

@@ -32,10 +32,9 @@ import org.apache.catalina.core.AprLifecycleListener;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.integration.MessagingException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
@@ -187,7 +186,7 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 
 	public static void main(String[] args) {
 		RedisContainerLauncher.main(args);
-		JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
 		connectionFactory.afterPropertiesSet();
 		RedisStreamDeployer streamDeployer = new RedisStreamDeployer(connectionFactory);
 		StreamServer server = new StreamServer(streamDeployer);

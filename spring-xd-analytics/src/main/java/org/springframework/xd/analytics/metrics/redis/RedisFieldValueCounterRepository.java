@@ -36,13 +36,13 @@ public class RedisFieldValueCounterRepository implements FieldValueCounterReposi
 	}
 	
 	@Override
-	public FieldValueCounter save(FieldValueCounter fieldValueCounter) {
+	public <S extends FieldValueCounter> S save(S fieldValueCounter) {
 		String counterKey = getMetricKey(fieldValueCounter.getName());
 		if (this.redisTemplate.opsForValue().get(counterKey) == null) {
 			if (fieldValueCounter.getFieldValueCount().size() > 0) {
 				for (Map.Entry<String, Double> entry : fieldValueCounter.getFieldValueCount().entrySet()) {
 					increment(fieldValueCounter.getName(), entry.getKey(), entry.getValue());
-				}					
+				}
 			} else {
 				increment(fieldValueCounter.getName(), MARKER, 0);
 			}
@@ -50,6 +50,15 @@ public class RedisFieldValueCounterRepository implements FieldValueCounterReposi
 		// else TODO decide behavior
 		return fieldValueCounter;
 		
+	}
+
+	@Override
+	public <S extends FieldValueCounter> Iterable<S> save(Iterable<S> metrics) {
+		List<S> results = new ArrayList<S>();
+		for (S m: metrics) {
+			results.add(save(m));
+		}
+		return results;
 	}
 
 	@Override
@@ -66,6 +75,13 @@ public class RedisFieldValueCounterRepository implements FieldValueCounterReposi
 	}
 
 	@Override
+	public void delete(Iterable<? extends FieldValueCounter> fvcs) {
+		for (FieldValueCounter fvc: fvcs) {
+			delete(fvc);
+		}
+	}
+
+	@Override
 	public FieldValueCounter findOne(String name) {
 		Assert.notNull(name, "The name of the FieldValueCounter must not be null");
 		String metricKey = getMetricKey(name);
@@ -76,6 +92,11 @@ public class RedisFieldValueCounterRepository implements FieldValueCounterReposi
 		} else {
 			return null;
 		}
+	}
+
+	@Override
+	public boolean exists(String s) {
+		return findOne(s) != null;
 	}
 
 	@Override
@@ -98,7 +119,25 @@ public class RedisFieldValueCounterRepository implements FieldValueCounterReposi
 		}
 		return counters;
 	}
-	
+
+	@Override
+	public Iterable<FieldValueCounter> findAll(Iterable<String> keys) {
+		List<FieldValueCounter> results = new ArrayList<FieldValueCounter> ();
+
+		for (String k: keys) {
+			FieldValueCounter value = findOne(k);
+			if (value != null) {
+				results.add(value);
+			}
+		}
+		return results;
+	}
+
+	@Override
+	public long count() {
+		return findAll().size();
+	}
+
 	@Override
 	public void deleteAll() {
 		Set<String> keys = redisTemplate.keys(metricPrefix + "*");

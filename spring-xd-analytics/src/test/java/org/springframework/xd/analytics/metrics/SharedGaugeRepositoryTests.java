@@ -19,8 +19,9 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
@@ -59,10 +60,11 @@ public abstract class SharedGaugeRepositoryTests {
 		Gauge g1 = new Gauge(myGaugeName);
 		Gauge myGauge = repo.save(g1);
 		assertThat(myGauge.getName(), is(notNullValue()));
-		// Create and save a Gauge named 'yourGauger'
+		// Create and save a Gauge named 'yourGauge'
 		Gauge g2 = new Gauge(yourGaugeName);
 		Gauge yourGauge = repo.save(g2);
 		assertThat(yourGauge.getName(), is(notNullValue()));
+		assertTrue(repo.exists(yourGauge.getName()));
 
 		// Retrieve by name and compare for equality to previously saved instance.
 		Gauge result = repo.findOne(myGaugeName);
@@ -71,8 +73,7 @@ public abstract class SharedGaugeRepositoryTests {
 		result = repo.findOne(yourGauge.getName());
 		assertThat(result, equalTo(yourGauge));
 
-
-		List<Gauge> gauges = repo.findAll();
+		List<Gauge> gauges = (List<Gauge>) repo.findAll();
 		assertThat(gauges.size(), equalTo(2));
 
 		repo.delete(myGauge);
@@ -80,9 +81,13 @@ public abstract class SharedGaugeRepositoryTests {
 
 		repo.deleteAll();
 		assertThat(repo.findOne(yourGaugeName), is(nullValue()));
+		assertEquals(0, repo.count());
 
-		gauges = repo.findAll();
-		assertThat(gauges.size(), equalTo(0));
+		repo.save(Arrays.asList(g1, g2));
+		assertThat(repo.count(), equalTo(2L));
+
+		repo.delete(Arrays.asList(g1, g2));
+		assertEquals(0, repo.count());
 	}
 
 }

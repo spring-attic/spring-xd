@@ -19,8 +19,9 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
@@ -63,27 +64,37 @@ public abstract class SharedCounterRepositoryTests {
 		Counter c2 = new Counter(yourCounterName);
 		Counter yourCounter = repo.save(c2);
 		assertThat(yourCounter.getName(), is(notNullValue()));
+		assertTrue(repo.exists(yourCounterName));
 
 		// Retrieve by name and compare for equality to previously saved instance.
 		Counter result = repo.findOne(myCounterName);
 		assertThat(result, equalTo(myCounter));
 
-		//
 		result = repo.findOne(yourCounter.getName());
 		assertThat(result, equalTo(yourCounter));
 
 
-		List<Counter> counters = repo.findAll();
+		List<Counter> counters = (List<Counter>) repo.findAll();
 		assertThat(counters.size(), equalTo(2));
+		counters = (List<Counter>) repo.findAll(Arrays.asList(yourCounterName, myCounterName));
+		assertEquals(2, counters.size());
 
 		repo.delete(myCounter);
 		assertThat(repo.findOne(myCounterName), is(nullValue()));
 
 		repo.delete(yourCounter.getName());
 		assertThat(repo.findOne(yourCounterName), is(nullValue()));
+		assertThat(repo.count(), equalTo(0L));
 
-		counters = repo.findAll();
-		assertThat(counters.size(), equalTo(0));
+		repo.save(Arrays.asList(c1, c2));
+		assertThat(repo.count(), equalTo(2L));
+
+		repo.delete(Arrays.asList(c1, c2));
+		assertEquals(0, repo.count());
 	}
 
+	@Test
+	public void findNonExistentRaisesException() throws Exception {
+		counterRepository.findOne("idontexist");
+	}
 }

@@ -69,12 +69,21 @@ abstract class AbstractRedisMetricRepository<M extends Metric, V> implements Met
 	}
 
 	@Override
-	public M save(M metric) {
+	public <S extends M> S save(S metric) {
 		String counterKey = getMetricKey(metric.getName());
 		if (this.valueOperations.get(counterKey) == null) {
 			this.valueOperations.set(counterKey, defaultValue());
 		}
 		return metric;
+	}
+
+	@Override
+	public <S extends M> Iterable<S> save(Iterable<S> metrics) {
+		List<S> results = new ArrayList<S>();
+		for (S m: metrics) {
+			results.add(save(m));
+		}
+		return results;
 	}
 
 	@Override
@@ -90,6 +99,13 @@ abstract class AbstractRedisMetricRepository<M extends Metric, V> implements Met
 	}
 
 	@Override
+	public void delete(Iterable<? extends M> metrics) {
+		for (M metric: metrics) {
+			delete(metric);
+		}
+	}
+
+	@Override
 	public M findOne(String name) {
 		Assert.notNull(name, "The name of the gauge must not be null");
 		String gaugeKey = getMetricKey(name);
@@ -99,6 +115,11 @@ abstract class AbstractRedisMetricRepository<M extends Metric, V> implements Met
 		} else {
 			return null;
 		}
+	}
+
+	@Override
+	public boolean exists(String s) {
+		return findOne(s) != null;
 	}
 
 	@Override
@@ -117,5 +138,23 @@ abstract class AbstractRedisMetricRepository<M extends Metric, V> implements Met
 		}
 		return gauges;
 
+	}
+
+	@Override
+	public Iterable<M> findAll(Iterable<String> keys) {
+		List<M> results = new ArrayList<M> ();
+
+		for (String k: keys) {
+			M value = findOne(k);
+			if (value != null) {
+				results.add(value);
+			}
+		}
+		return results;
+	}
+
+	@Override
+	public long count() {
+		return findAll().size();
 	}
 }

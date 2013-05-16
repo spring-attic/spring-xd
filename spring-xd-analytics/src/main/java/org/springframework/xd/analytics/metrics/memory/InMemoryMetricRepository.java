@@ -35,9 +35,18 @@ class InMemoryMetricRepository<M extends Metric> implements MetricRepository<M> 
 	private final ConcurrentMap<String, M> map = new ConcurrentHashMap<String, M>();
 
 	@Override
-	public M save(M counter) {
-		map.put(counter.getName(), counter);
-		return counter;
+	public <S extends M> S save(S metric) {
+		map.put(metric.getName(), metric);
+		return metric;
+	}
+
+	@Override
+	public <S extends M> Iterable<S> save(Iterable<S> metrics) {
+		List<S> results = new ArrayList<S>();
+		for (S m: metrics) {
+			results.add(save(m));
+		}
+		return results;
 	}
 
 	@Override
@@ -53,14 +62,44 @@ class InMemoryMetricRepository<M extends Metric> implements MetricRepository<M> 
 	}
 
 	@Override
+	public void delete(Iterable<? extends M> metrics) {
+		for (M metric: metrics) {
+			delete(metric);
+		}
+	}
+
+	@Override
 	public M findOne(String name) {
 		Assert.notNull(name, "The name of the metric must not be null");
 		return map.get(name);
 	}
 
 	@Override
+	public boolean exists(String s) {
+		return findOne(s) != null;
+	}
+
+	@Override
 	public List<M> findAll() {
 		return new ArrayList<M>(map.values());
+	}
+
+	@Override
+	public List<M> findAll(Iterable<String> keys) {
+		List<M> results = new ArrayList<M> ();
+
+		for (String k: keys) {
+			M value = findOne(k);
+			if (value != null) {
+				results.add(value);
+			}
+		}
+		return results;
+	}
+
+	@Override
+	public long count() {
+		return map.size();
 	}
 
 	@Override

@@ -75,7 +75,7 @@ public abstract class SharedFieldValueCounterRepositoryTests {
 		// Retrieve by name 
 		FieldValueCounter result = repo.findOne(myFVCounter);
 		assertThat(result, is(notNullValue()));
-		assertThat(result.getName(), equalTo(myCounter.getName()));		
+		assertThat(result.getName(), equalTo(myCounter.getName()));
 		assertThat(result.getFieldValueCount().size(), equalTo(2));
 		fieldValueCount = result.getFieldValueCount();
 		assertThat(fieldValueCount.get("elephant"), equalTo(1.0));
@@ -90,7 +90,7 @@ public abstract class SharedFieldValueCounterRepositoryTests {
 		assertThat(fieldValueCount.get("bird"), equalTo(7.0));
 		
 		
-		List<FieldValueCounter> counters = repo.findAll();
+		List<FieldValueCounter> counters = (List<FieldValueCounter>) repo.findAll();
 		assertThat(counters.size(), equalTo(2));
 		
 		repo.delete(myCounter);
@@ -99,8 +99,8 @@ public abstract class SharedFieldValueCounterRepositoryTests {
 		repo.delete(yourCounter.getName());
 		assertThat(repo.findOne(yourFVCounter), is(nullValue()));
 		
-		counters = repo.findAll();
-		assertThat(counters.size(), equalTo(0));	
+		counters = (List<FieldValueCounter>) repo.findAll();
+		assertThat(counters.size(), equalTo(0));
 	}
 
 	

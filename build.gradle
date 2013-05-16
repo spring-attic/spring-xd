@@ -154,6 +154,22 @@ project('spring-integration-module') {
 	}
 }
 
+project('spring-integration-flow') {
+	description = 'Spring Integration Flow Support'
+	dependencies {
+		compile project(":spring-xd-module")
+		compile project(":spring-integration-module")
+		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
+		compile 'commons-lang:commons-lang:2.6'
+		runtime 'log4j:log4j:1.2.15'
+		testCompile ("org.springframework:spring-test:$springVersion")
+		testCompile ("org.springframework.integration:spring-integration-test:$springIntegrationVersion")
+		testCompile ("org.springframework.integration:spring-integration-groovy:$springIntegrationVersion")
+		testCompile ("org.springframework.integration:spring-integration-jmx:$springIntegrationVersion")
+
+	}
+}
+
 project('spring-xd-tuple') {
 	description = 'Spring XD Tuple'
 	dependencies {

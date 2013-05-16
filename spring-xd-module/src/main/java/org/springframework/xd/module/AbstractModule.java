@@ -16,7 +16,11 @@
 
 package org.springframework.xd.module;
 
+import java.util.Collection;
+
+import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 /**
  * @author Mark Fisher
@@ -60,5 +64,13 @@ public abstract class AbstractModule implements Module {
 	public String toString() {
 		return "Module [name=" + name + ", type=" + type + "]";
 	}
-
+	
+	@Override
+	public void addComponents(Collection<Resource> resources) {
+		if (CollectionUtils.isEmpty(resources)) {
+			return;
+		}
+		Resource[] array = new Resource[resources.size()];
+		addComponents(resources.toArray(array));
+	}
 }

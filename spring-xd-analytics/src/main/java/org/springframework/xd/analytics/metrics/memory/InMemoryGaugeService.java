@@ -24,7 +24,7 @@ import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 import org.springframework.xd.analytics.metrics.core.GaugeService;
 
 /**
- * An in memory based implementation.
+ * An in memory based implementation of the GaugeService
  *
  * @author Mark Pollack
  *

@@ -68,6 +68,19 @@ public class FieldValueCounterHandlerTests {
 		assertThat(counts.get("markp"), equalTo(2.0));
 		assertThat(counts.get("jon"), equalTo(1.0));
 		assertThat(counts.get("jurgen"), equalTo(2.0));
+		
+		
+		SimpleTweet tweet = new SimpleTweet("joe", "say hello to @markp and @jon and @jurgen");
+		Message<SimpleTweet> msg = MessageBuilder.withPayload(tweet).build();
+		
+		handler.process(msg);
+		counts = repo.findOne(mentionsFieldValueCounterName).getFieldValueCount();		
+		assertThat(counts.get("markp"), equalTo(3.0));
+		assertThat(counts.get("jon"), equalTo(2.0));
+		assertThat(counts.get("jurgen"), equalTo(3.0));
+		
 	}
+	
+	
 
 }

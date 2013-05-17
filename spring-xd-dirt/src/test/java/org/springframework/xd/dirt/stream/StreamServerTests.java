@@ -18,11 +18,8 @@ package org.springframework.xd.dirt.stream;
 import static org.junit.Assert.fail;
 
 import org.junit.Test;
-
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.xd.dirt.launcher.RedisContainerLauncher;
-import org.springframework.xd.dirt.stream.RedisStreamDeployer;
-import org.springframework.xd.dirt.stream.StreamServer;
 /**
  * @author Winston Koh
  * @since 1.0

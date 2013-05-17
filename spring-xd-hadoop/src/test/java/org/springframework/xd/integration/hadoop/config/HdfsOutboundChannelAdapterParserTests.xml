@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-hadoop="http://www.springframework.org/schema/integration/hadoop"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration/hadoop http://www.springframework.org/schema/integration/hadoop/spring-integration-hadoop.xsd">
+
+	<bean id="hadoopFs" class="org.springframework.xd.hadoop.fs.StubFileSystem"/>
+
+	<int-hadoop:hdfs-outbound-channel-adapter
+		id="adapter"
+		channel="hdfsOut"
+		file-system="hadoopFs"
+		base-path="/parsertestdir/"
+		base-filename="parsertestfile"
+		file-suffix="test"
+		rollover-threshold-in-bytes="12345"
+		auto-startup="false"/>
+
+	<int:channel id="hdfsOut"/>
+
+</beans>

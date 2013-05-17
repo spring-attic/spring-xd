@@ -1,0 +1,4 @@
+# Tooling related information for the integration hadoop namespace
+http\://www.springframework.org/schema/integration/hadoop@name=integration hadoop Namespace
+http\://www.springframework.org/schema/integration/hadoop@prefix=int-hadoop
+http\://www.springframework.org/schema/integration/hadoop@icon=org/springframework/xd/integration/hadoop/config/spring-integration-hadoop.gif

@@ -1,0 +1,1 @@
+http\://www.springframework.org/schema/integration/hadoop=org.springframework.xd.integration.hadoop.config.HadoopNamespaceHandler

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:gfe="http://www.springframework.org/schema/gemfire"
+	xsi:schemaLocation="http://www.springframework.org/schema/gemfire http://www.springframework.org/schema/gemfire/spring-gemfire.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<gfe:cache />
+	<gfe:replicated-region id="Stocks">
+		<gfe:cache-listener>
+			<bean class="org.springframework.xd.gemfire.LoggingCacheListener">
+				<constructor-arg name="level" value="INFO" />
+			</bean>
+		</gfe:cache-listener>
+	</gfe:replicated-region>
+
+	<gfe:cache-server port="40404" />
+</beans>

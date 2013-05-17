@@ -16,6 +16,7 @@ buildscript {
 allprojects {
 	group = 'org.springframework.xd'
 	repositories {
+		mavenLocal()
 		mavenCentral()
 		maven { url 'http://repo.springsource.org/libs-snapshot' }
 		maven { url 'http://repo.springsource.org/plugins-release' }
@@ -42,6 +43,7 @@ subprojects { subproject ->
 		springIntegrationVersion = '3.0.0.BUILD-SNAPSHOT'
 		springDataMongoVersion = '1.1.1.RELEASE'
 		springDataRedisVersion = '1.0.4.RELEASE'
+		springDataGemfireVersion = '1.3.1.RELEASE'
 		lettuceVersion = '2.2.0'
 		springDataHadoopVersion = '1.0.0.RELEASE'
 		tomcatVersion = '7.0.35'
@@ -128,6 +130,7 @@ project('spring-xd-dirt') {
 		main = 'org.springframework.xd.dirt.stream.StreamServer'
 		classpath = sourceSets.test.runtimeClasspath
 	}
+
 	mainClassName = "org.springframework.xd.dirt.stream.StreamServer"
 	task moduleFiles {
 		def modules = file("$rootDir/modules")
@@ -137,6 +140,25 @@ project('spring-xd-dirt') {
 	applicationDistribution.from(moduleFiles) {
 		into "modules"
 	}
+}
+
+project ('spring-xd-gemfire-server') {
+	description = 'Gemfire Server to support XD Development and Demos'
+	dependencies {
+		compile "org.springframework.data:spring-data-gemfire:$springDataGemfireVersion"
+		runtime "log4j:log4j:1.2.16"
+	}
+	apply plugin:'application'
+	task(launch, dependsOn: 'classes', type: JavaExec) {
+		main = 'org.springframework.xd.gemfire.CacheServer'
+		classpath = sourceSets.test.runtimeClasspath
+		if (rootProject.hasProperty('config')) {
+        	args = ["${rootProject.getProperty('config')}"]
+    	} 
+	}
+
+	mainClassName = 'org.springframework.xd.gemfire.CacheServer'
+
 }
 
 project('spring-xd-module') {

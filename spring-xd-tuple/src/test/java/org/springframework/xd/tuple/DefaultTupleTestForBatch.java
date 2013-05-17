@@ -26,7 +26,6 @@ import static org.springframework.xd.tuple.TupleBuilder.tuple;
 
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -34,9 +33,7 @@ import java.util.Locale;
 
 import org.junit.Before;
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.springframework.core.convert.ConversionFailedException;
 
 /**
@@ -55,16 +52,18 @@ public class DefaultTupleTestForBatch {
 	@Before
 	public void setUp() throws Exception {
 
-		String[] tokens = new String[] { "TestString", "true", "C", "10", "-472", "354224", "543", "124.3", "424.3", "1,3245",
+		Object[] tokens = new String[] { "TestString", "true", "C", "10", "-472", "354224", "543", "124.3", "424.3", "1,3245",
 				null, "2007-10-12", "12-10-2007", "" };
 		String[] nameArray = new String[] { "String", "Boolean", "Char", "Byte", "Short", "Integer", "Long", "Float", "Double",
 				"BigDecimal", "Null", "Date", "DatePattern", "BlankInput" };
 
 		names = Arrays.asList(nameArray);
+		values = Arrays.asList(tokens);
+		/*
 		values = new ArrayList<Object>();
 		for (String token : tokens) {
 			values.add(token);
-		}
+		}*/
 		tuple = tuple().ofNamesAndValues(names, values);
 		assertEquals(14, tuple.size());
 

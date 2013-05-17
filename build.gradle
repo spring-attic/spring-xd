@@ -25,6 +25,7 @@ ext {
 allprojects {
 	group = 'org.springframework.xd'
 	repositories {
+		mavenLocal()
 		mavenCentral()
 		maven { url 'http://repo.springsource.org/libs-release' }
 		maven { url 'http://repo.springsource.org/libs-snapshot' }
@@ -199,8 +200,8 @@ project ('spring-xd-gemfire-server') {
 		main = 'org.springframework.xd.gemfire.CacheServer'
 		classpath = sourceSets.test.runtimeClasspath
 		if (rootProject.hasProperty('config')) {
-			args = ["${rootProject.getProperty('config')}"]
-		}
+        	args = ["${rootProject.getProperty('config')}"]
+    	} 
 	}
 
 	mainClassName = 'org.springframework.xd.gemfire.CacheServer'

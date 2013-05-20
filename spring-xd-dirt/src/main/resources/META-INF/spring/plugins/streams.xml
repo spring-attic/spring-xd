@@ -14,7 +14,7 @@
 	<!-- redis -->
 	<import resource="../redis.xml"/>
 
-	<bean id="channelRegistry" class="org.springframework.integration.x.redis.RedisChannelRegistry">
+	<bean id="channelRegistry" class="org.springframework.integration.redis.channel.registry.RedisChannelRegistry">
 		<constructor-arg ref="redisConnectionFactory"/>
 	</bean>
 

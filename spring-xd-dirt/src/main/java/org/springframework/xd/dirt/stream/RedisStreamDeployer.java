@@ -21,7 +21,7 @@ import java.util.List;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.x.redis.RedisQueueOutboundChannelAdapter;
+import org.springframework.integration.redis.outbound.RedisQueueOutboundChannelAdapter;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 

@@ -1,52 +1,28 @@
 Spring Integration Flow
 ========================
 
-*NOTE: If you want to get right to the code, see the unit tests and check out (literally :) the [spring-integration-flow-samples](http:github.com/dturanski/spring-integration-flow-samples) project*
-
 #Goals
-Spring Integration components already support common enterprise integration patterns. Sometimes it is desirable to 
-create common message flows which implement higher level messaging patterns or "cross cutting concerns" for your 
-application environment. This is especially true in more complex applications.
+Spring Integration components already support common enterprise integration patterns. Sometimes it is desirable to create common message processing modules  which may be be parameterized and composed or reused in Spring Integration applications. 
 
-Out of the box, a best practice is to define a common message flow in its own bean definition
-file which may be imported into other message flows. This approach however has some limitations:
-
-* It's input and output channels are referenced in every consuming flow. Each common flow must ensure unique channel names
-* True encapsuation is impossible as any internal channels and components are exposed to the consuming flow. Note that these must have
-unique names as well
-* Since a common flow is statically bound to channels, it cannot be used in a chain without implementing some type of service-activator/
-gateway wrapper.
-* Since the common flow is part of the same application context (an imported resource), is not practical to configure multiple instances with
-different property values, bean definitions, etc. (As of Spring 3.1 it may possible to do something with environment profiles, but would be overly complex) 
-
-The spring-integration-flow module provides a way to implement and use common flows while addressing the above limitations. A flow is an 
-abstraction of a Spring Integration component which is itself implemented with Spring Integration.  In general, a flow may expose multiple inputs and multiple outputs,
-called ports. Each port binds to a channel internal to the flow. So a flow has input ports and output ports. The most common configuration is expected to define
-one input port and output port. Other likely configurations are one input and zero to a small number of outputs. 
-
-A flow may behave like a router. For example, a flow may define a primary output port for normal processing and a discard port for exceptional cases. 
-Alternately, it may act like a delayer, providing no immediate response. Or it could act as an outbound channel adapter - a strictly one way or fire-and-forget flow. 
-
-The goal is to support these, and potentially other semantics while providing better encapsulation and configuration options. Configuration is provided via properties
-and or referenced bean definitions. Each flow is initialized in a child application context. This allows you to configure multiple instances of the same flow differently. 
-The flow is not bound to input and output channels in the consumer context and may be naturally invoked via a flow outbound gateway. The outbound gateway may be used within 
-a chain. It is also possible in theory to compose flows of other flows (NOTE: This hasn't been tested yet).    
-
+The XD DIRT runtime is designed to support composition of integration modules into _streams_. Flows conform to the DIRT module architecture, but may also be used in traditional Spring Integration applications without requiring a runtime platform. 
 
 # Usage
-The flow consumer instantiates a flow and configures one or more flow outbound-gateways. 
 
-Instantiating a flow is very simple:
+The application instantiates a flow referencing an existing module:
 
 	<int-flow:flow id="subflow1"/>
 
-The above bean definition instantiates a flow defined as "subflow1". The flow id references an existing flow implementation, presumably packaged in a 
-separate jar. The flow element also provides optional 'properties' attribute and a 'referenced-bean-locations' attributes to inject properties and a list of 
-bean definition locations respectively. Note that any bean definition or property in the parent context may also be referenced (inherited) by the flow. As 
-an alternative to the properties attribute which references a util:properties bean, A properties object may be configured as an inner bean. The following are functionally equivalent:
+The above bean definition instantiates a flow defined as "subflow1". The flow id references an existing module in the application's classpath located in /META-INF/spring/integration/module/subflow1.xml
+ 
+The _flow_ element may be configured with property values required by the module, a list of active environment profiles, and additional bean definitions.
 
------------------------------------------------------------
-	
+The module must contain a channel named _input_ and optionally one or more output channels matching the name _output_ or _output.*_    
+
+##Properties
+
+The following configurations are all supported:
+
+Properties reference:	
 	
 	<util:properties id="myprops">
     	<prop key="key1>val1</prop>
@@ -54,45 +30,63 @@ an alternative to the properties attribute which references a util:properties be
 
 	<int-flow:flow id="subflow1" properties="myprops"/>
 
----------------------------------------------------------
+Nested properties:
 	
 	<int-flow:flow id="subflow1">
     	<props>
         	<prop key="key1>val1</prop>
-    </props>
+       </props>
 	</int-flow:flow>
 
-
-If there are multiple instances of the same flow, you must specify a flow-id attribute:
-
-	<int-flow:flow id="flow1" flow-id="subflow1">
-    	<props>
-        	<prop key="key1>some value</prop>
-    	</props>
-	</int-flow:flow>
-
-	<int-flow:flow id="flow2" flow-id="subflow1">
-    	<props>
-        	<prop key="key1>another value</prop>
-    	</props>
-	</int-flow:flow>
+Using Spring's p namespace:
+		
+	
+	<int-flow:flow id="subflow1" p:key1="val1"/>
 
 
-By default the id attribute is used as the flow-id. 
+It is possible to define multiple instances of the same flow with different configurations: 
 
-An optional help attribute, if set to true will output the flow's description document (if there is one) to the STDOUT.
+	<int-flow:flow id="flow1" module-name="subflow1" p:key1="val1"/>
+	<int-flow:flow id="flow2" module-name="subflow1" p:key1="val2"/>
+    
+
+By default the module name references the id attribute. 
+
+##Profiles
+
+If the module is configured for alternate profiles, you may declare a list of active profiles:
+
+    <int-flow:flow id="flow1" module-name="subflow1" p:key1="val1" active-profiles="p1"/>
+    
+## Referenced Beans
+
+The module may reference one or more beans that are defined externally. You may register such beans using the _additional_component_locations_ attribute:
+
+    <int-flow:flow id="flow1" additional_component_locations="classpath:/META-INF/spring/myBeans.xml, file:/myDir/moreBeans.xml"/>
 
 
-The flow is invoked via an outbound-gateway:
+##Invoking a Flow
 
-	<int-flow:outbound-gateway flow="flow1" input-channel="inputChannel1" output-channel="outputChannel1"/>
+When a flow is declared, the module is created in a separate application context to support encapsulation and multiple configurations of the same module definition. Spring will automatically register channels in the main application context and bind them to the module:
+
+       <int-flow:flow id="simple"/>
+
+The above configuration will create channels _simple.input_ and _simple.output_ which are used to access the module. These channels may be referenced normally in the application, for example:
+
+      <int:transformer input-channel="input" output-channel="simple.input" .../>
+      <int:transformer input-channel="simple.output" output-channel="output" .../>
+ 
+Note that the flow input channel is a DirectChannel and the output channel is a PublishSubscribe channel. 
+
+An outbound gateway is also provided:
+
+	<int-flow:outbound-gateway flow="flow1" request-channel="inputChannel1" reply-channel="outputChannel1"/>
   
-	<int-flow:outbound-gateway flow="flow2" input-channel="inputChannel2" output-channel="outputChannel2"/> 
 
-A message sent on the gateway's input-channel is delegated to the flow. The message on the output-channel is a response from one of the flows output 
-ports. The output port name is contained in the response message header 'flow.output.port' 
+A message sent on the gateway's input-channel is delegated to the flow. The message on the output-channel is a response from one of the flow's output channels. In the case of multiple output channels, the output channel name is identified in the header 
 
-*NOTE: An optional input-port attribute is available if the flow defines multiple inputs, otherwise the input port it will be automatically mapped.*
+    FlowConstants.FLOW_OUTPUT_CHANNEL_HEADER = "flow.output.channel"
+
 
 Flows may also be used in a chain just as any AbstractReplyProducingMessageHandler:
 
@@ -100,51 +94,59 @@ Flows may also be used in a chain just as any AbstractReplyProducingMessageHandl
     	<int-flow:outbound-gateway flow="flow1"/>
     	<int-flow:outbound-gateway flow="flow2"/> 
 	</chain>
-	
-## Referencing External Bean Definitions
-Sometimes you may want to reference external bean definitions that must be defined differently for each flow instance. To do this, simply provide a list of resources containing these bean definitions.
 
-	<int-flow:flow id="myflow" referenced-bean-locations=
-		"/org/springframework/integration/flow/config/xml/ref-bean-config.xml">
+You may also declare an error channel on the gateway:
+
+    <int-flow:outbound-gateway flow="flow1" request-channel="inputChannel1" reply-channel="outputChannel1" error-channel="errorChannel"/>
 
  
-# Implementing a Flow
-The flow element is used to locate the flow's spring bean definition file(s) by convention (classpath:META-INF/spring/flows/[flow-id]/*.xml). It's bean definition 
-files and any referenced-bean-locations will be used to create a child application context. The flow context must provide a FlowConfiguration bean which defines the 
-flows input and output ports and maps them to internal input and output channels.
+# Implementing a Flow Module
+The flow element is used to locate the flow's spring bean definition file(s) by convention classpath:META-INF/spring/integration/module/${module-name}/*.xml. 
 
-Namespace support is provided for FlowConfiguration. In the simplest case, a flow implementation encapsulates a Spring Integration flow with a single input-channel and 
-a single output-channel. The required configuration is simply declared:
+Along with any additional component locations, the configuration will create a separate application context. The module can be any valid Spring Integration message flow defining an _input_ channel and zero or more output channels matching the pattern _output_ or _output.*_. Here are some examples
 
- 	<int-flow:flow-configuration>
-    	<int-flow:port-mapping input-channel="inputChannel" output-channel="outputChannel"/> 
-	</int-flow:flow-configuration>
+Simple echo module:
 
-Note: The output-channel attribute is optional if the flow does not produce a response. 
+    <int:bridge input-channel="input" output-channel="output"/>
+    <int:channel id="output"/><int:bridge input-channel="input" output-channel="output"/>
+    <int:channel id="output"/>
+    
+Using environment profiles:
 
-For more complex scenarios, the flow configuration supports multiple port-mappings, each bound to a single input channel and 0 or more output channels. A configuration
-for specifying multiple outputs looks like:
+    <int:channel id="output" />
 
-	<int-flow:flow-configuration> 
-    	<int-flow:port-mapping>
-        	<int-flow:input-port name="input" channel="inputChannel"/>
-        	<int-flow:output-port name="output" channel="outputChannel"/>
-        	<int-flow:output-port name="discard" channel="discardChannel"/>
-    	</int-flow:port-mapping>
-	</int-flow:flow-configuration>
+	<beans profile="p1">
+		<int:header-enricher input-channel="input"
+			output-channel="output">
+			<int:header name="profile" value="p1"/>
+		</int:header-enricher>
+	</beans>
+	<beans profile="p2">
+		<int:header-enricher input-channel="input"
+			output-channel="output">
+			<int:header name="profile" value="p2"/>
+		</int:header-enricher>
+	</beans>
 
-If the flow defines multiple inputs, then multiple port-mapping elements must be configured. Additionally the flow client must specify the input-port in the outbound-gateway.
+Multiple outputs:
 
-Flow Description File
-----------------------
-The user-friendly flow implementer may also create a text file classpath:META-INF/spring/flows/[flow-id]/flow.doc which describes the flow. Its contents will be written to 
-STDOUT if the 'help' attribute on the client's flow declaration is set to true. 
+    <int:router input-channel="input" expression="'output.'+ payload"/>
 
-FlowMessageHandler Internals
+	<int:channel id="output.foo" />
+	<int:channel id="output.bar" />
+
+
+Nested:
+
+    <int-flow:flow id="simple" />
+
+	<int-flow:outbound-gateway flow="simple"
+		request-channel="input" reply-channel="output" />
+
+	<int:channel id="output" />
+
+
+
+Flow Outbound Gateway Internals
 ------------------------------
-Currently, all defined outputs are automatically bridged to a PublishSubscribeChannel which acts as a single output channel for the flow. Each flow outbound-gateway instance 
-is backed by a FlowMessageHandler that subscribes to the flow's common PublishSubscribeChannel. This emulates a JMS topic. Each FlowMessageHandler sends request messages to the input channel mapped to the flow's input port and forwards the response, if any to its output channel. If there are multiple FlowMessageHandlers subscribed to the flow, each receives a response from the flow. A correlation id (flow conversation id) is internally generated to correlate the response message to the request message.
-
-If the FlowMessageHandler catches an exception, it will convert it to an ErrorMessage response. Alternately, the flow can map its errorChannel to an output port
-
-Currently flow input and output channels must inherit from SubscribableChannel, e.g., DirectChannel or PublishSubscribe channel.
+The outbound gateway is backed by FlowExecutingMessageHandler used to delegate messages to the configured flow and return any response. In order to share a module instance among multiple gateways, the handler subscribes to the flow output Publish-Subscribe channel and provides a correlation ID which it verifies to provide the correct reply message (if there is a reply).

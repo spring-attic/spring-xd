@@ -126,6 +126,7 @@ project('spring-xd-dirt') {
 		compile project(":spring-xd-analytics")
 		compile project(":spring-xd-module")
 		compile project(":spring-xd-hadoop")
+		compile project(":spring-xd-http")
 		compile "org.springframework:spring-web:$springVersion"
 		compile "org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion"
 		compile "org.apache.tomcat.embed:tomcat-embed-core:$tomcatVersion"
@@ -154,6 +155,16 @@ project('spring-xd-dirt') {
 
 	applicationDistribution.from(moduleFiles) {
 		into "modules"
+	}
+}
+
+project('spring-xd-http') {
+	description = 'Spring XD HTTP'
+	dependencies {
+		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
+		compile "io.netty:netty:3.5.9.Final"
+		testCompile project(":spring-xd-test")
+		testCompile "org.springframework:spring-web:$springVersion"
 	}
 }
 

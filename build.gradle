@@ -16,7 +16,6 @@ buildscript {
 allprojects {
 	group = 'org.springframework.xd'
 	repositories {
-		mavenLocal()
 		mavenCentral()
 		maven { url 'http://repo.springsource.org/libs-snapshot' }
 		maven { url 'http://repo.springsource.org/plugins-release' }
@@ -47,6 +46,7 @@ subprojects { subproject ->
 		lettuceVersion = '2.2.0'
 		springDataHadoopVersion = '1.0.0.RELEASE'
 		tomcatVersion = '7.0.35'
+		mockitoVersion = '1.9.5'
 	}
 
 	eclipse {
@@ -181,6 +181,11 @@ project('spring-xd-tuple') {
 	dependencies {
 		compile "org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion"
 		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
+		compile "org.springframework.batch:spring-batch-infrastructure:$springBatchVersion"
+		compile "org.springframework:spring-jdbc:$springVersion"
+		testCompile ("org.mockito:mockito-core:$mockitoVersion") {
+			exclude group:'org.hamcrest' 
+		}
 	}
 }
 

@@ -16,8 +16,8 @@ buildscript {
 allprojects {
 	group = 'org.springframework.xd'
 	repositories {
-		mavenLocal()
 		mavenCentral()
+		maven { url 'http://repo.springsource.org/libs-release' }
 		maven { url 'http://repo.springsource.org/libs-snapshot' }
 		maven { url 'http://repo.springsource.org/plugins-release' }
 	}
@@ -47,6 +47,7 @@ subprojects { subproject ->
 		lettuceVersion = '2.2.0'
 		springDataHadoopVersion = '1.0.0.RELEASE'
 		tomcatVersion = '7.0.35'
+		commonsBeanUtilsVersion = '1.6'
 	}
 
 	eclipse {
@@ -112,6 +113,7 @@ project('spring-xd-dirt') {
 		compile project(":spring-xd-analytics")
 		compile project(":spring-xd-module")
 		compile project(":spring-xd-hadoop")
+		compile "org.springframework:spring-web:$springVersion"
 		compile "org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion"
 		compile "org.apache.tomcat.embed:tomcat-embed-core:$tomcatVersion"
 		compile "org.apache.tomcat.embed:tomcat-embed-logging-juli:$tomcatVersion"
@@ -145,6 +147,7 @@ project('spring-xd-dirt') {
 project ('spring-xd-gemfire-server') {
 	description = 'Gemfire Server to support XD Development and Demos'
 	dependencies {
+		compile "commons-beanutils:commons-beanutils:$commonsBeanUtilsVersion"
 		compile "org.springframework.data:spring-data-gemfire:$springDataGemfireVersion"
 		runtime "log4j:log4j:1.2.16"
 	}
@@ -180,6 +183,7 @@ project('spring-xd-tuple') {
 	description = 'Spring XD Tuple'
 	dependencies {
 		compile "org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion"
+		compile "org.springframework:spring-context:$springVersion"
 		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
 	}
 }

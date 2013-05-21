@@ -58,15 +58,20 @@ public class NettyHttpInboundChannelAdapterTests {
 		adapter.setOutputChannel(channel);
 		adapter.start();
 		RestTemplate template = new RestTemplate();
-		URI uri = new URI("http://localhost:" + port);
-		ResponseEntity<?> response1 = template.postForEntity(uri, "foo", Object.class);
-		ResponseEntity<?> response2 = template.postForEntity(uri, "bar", Object.class);
+		URI uri1 = new URI("http://localhost:" + port + "/test1");
+		URI uri2 = new URI("http://localhost:" + port + "/test2");
+		ResponseEntity<?> response1 = template.postForEntity(uri1, "foo", Object.class);
+		ResponseEntity<?> response2 = template.postForEntity(uri2, "bar", Object.class);
 		assertEquals(HttpStatus.OK, response1.getStatusCode());
 		assertEquals(HttpStatus.OK, response2.getStatusCode());
 		assertTrue(latch.await(1, TimeUnit.SECONDS));
 		assertEquals(2, messages.size());
-		assertEquals("foo", messages.get(0).getPayload());
-		assertEquals("bar", messages.get(1).getPayload());
+		Message<?> message1 = messages.get(0);
+		Message<?> message2 = messages.get(1);
+		assertEquals("foo", message1.getPayload());
+		assertEquals("bar", message2.getPayload());
+		assertEquals("/test1", message1.getHeaders().get("requestPath"));
+		assertEquals("/test2", message2.getHeaders().get("requestPath"));
 	}
 
 }

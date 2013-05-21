@@ -24,6 +24,9 @@ import static org.jboss.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.Executors;
 
 import org.jboss.netty.bootstrap.ServerBootstrap;
@@ -91,7 +94,16 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 			HttpRequest request = (HttpRequest) e.getMessage();
 			ChannelBuffer content = request.getContent();
 			if (content.readable()) {
-				sendMessage(MessageBuilder.withPayload(content.toString(Charset.forName("UTF-8"))).build());
+				Map<String, String> messageHeaders = new HashMap<String, String>();
+				for (Entry<String, String> entry : request.getHeaders()) {
+					if (!entry.getKey().toUpperCase().startsWith("ACCEPT") && !entry.getKey().toUpperCase().equals("CONNECTION")) {
+						messageHeaders.put(entry.getKey(), entry.getValue());
+					}
+				}
+				messageHeaders.put("requestPath", request.getUri());
+				messageHeaders.put("requestMethod", request.getMethod().toString());
+				sendMessage(MessageBuilder.withPayload(content.toString(Charset.forName("UTF-8")))
+						.copyHeaders(messageHeaders).build());
 			}
 			writeResponse(request, e.getChannel());
 		}

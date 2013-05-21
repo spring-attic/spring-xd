@@ -218,6 +218,17 @@ public class DefaultTuple implements Tuple {
 	public String getString(int index) {
 		return readAndTrim(index);
 	}
+	
+
+	@Override
+	public Tuple getTuple(int index) {
+		return convert(values.get(index), Tuple.class);
+	}
+	
+	@Override
+	public Tuple getTuple(String name) {
+		return getTuple(indexOf(name));
+	}
 	/**
 	 * @param index
 	 * @return

@@ -112,6 +112,21 @@ public class DefaultTupleTests {
 		Tuple tuple = TupleBuilder.tuple().of("up", "down", "charm", "strange");
 		assertTwoEntries(tuple);
 	}
+	
+	@Test 
+	public void testTupleAsValue() {
+		Tuple t1 = tuple().of("up", 1, "down", 2 );
+		Tuple t2 = tuple().of("1stgen", t1, "charm", 3, "strange", 4);
+		assertThat(t2.size(), equalTo(3));
+		Tuple t3 = t2.getTuple(0);
+		assertThat(t3.size(), equalTo(2));
+		assertThat(t3.getFieldNames().get(0), equalTo("up"));
+		assertThat(t3.getFieldNames().get(1), equalTo("down"));
+		assertThat(t3.getInt("up"), equalTo(1));
+		assertThat(t3.getInt("down"), equalTo(2));
+		Tuple t4 = t2.getTuple("1stgen");
+		assertThat(t3, equalTo(t4));
+	}
 
 	/**
 	 * @param tuple

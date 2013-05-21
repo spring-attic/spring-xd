@@ -21,7 +21,14 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Data structure that stores key-value pairs and adds several methods to access values in a type-safe manner
+ * Data structure that stores a fixed number of ordered key-value pairs and adds convenience methods to 
+ * access values in a type-safe manner. 
+ * 
+ * The structure is immutable once created and values to not need to be of the same type.
+ * When accessing values, Spring's type conversion system is used to convert the value type to the requested type.  
+ * The type conversion system is extensible.
+ * 
+ * Tuples are created using the TupleBuilder class.
  * 
  * @author Mark Pollack
  *
@@ -112,6 +119,21 @@ public interface Tuple {
 	 * @return value of the field
 	 */
 	String getString(int index);
+	
+	/**
+	 * Read the {@link Tuple} value given the field '<code>name</code>'.
+	 * 
+	 * @param name the field name.
+	 * @return value of the field
+	 */
+	Tuple getTuple(String name);
+	
+	/**
+	 * Read the Tuple value given the index position
+	 * @param index position in the tuple
+	 * @return value of the field
+	 */
+	Tuple getTuple(int index);
 	
 	/**
 	 * Read the {@link String} value at index '<code>index</code>' including

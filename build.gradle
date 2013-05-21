@@ -25,7 +25,6 @@ ext {
 allprojects {
 	group = 'org.springframework.xd'
 	repositories {
-		mavenLocal()
 		mavenCentral()
 		maven { url 'http://repo.springsource.org/libs-release' }
 		maven { url 'http://repo.springsource.org/libs-snapshot' }

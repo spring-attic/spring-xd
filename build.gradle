@@ -57,6 +57,8 @@ subprojects { subproject ->
 		springDataHadoopVersion = '1.0.0.RELEASE'
 		tomcatVersion = '7.0.35'
 		commonsBeanUtilsVersion = '1.6'
+		slf4jVersion = '1.7.5'
+		log4jVersion = '1.2.17'
 	}
 
 	eclipse {
@@ -123,22 +125,25 @@ project('spring-xd-analytics') {
 project('spring-xd-dirt') {
 	description = 'Spring XD DIRT'
 	dependencies {
-		compile project(":spring-xd-analytics")
-		compile project(":spring-xd-module")
-		compile project(":spring-xd-hadoop")
-		compile project(":spring-xd-http")
-		compile "org.springframework:spring-web:$springVersion"
-		compile "org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion"
-		compile "org.apache.tomcat.embed:tomcat-embed-core:$tomcatVersion"
-		compile "org.apache.tomcat.embed:tomcat-embed-logging-juli:$tomcatVersion"
-		compile "org.springframework.integration:spring-integration-event:$springIntegrationVersion"
-		compile "org.springframework.integration:spring-integration-file:$springIntegrationVersion"
-		compile "org.springframework.integration:spring-integration-gemfire:$springIntegrationVersion"
-		compile "org.springframework.integration:spring-integration-redis:$springIntegrationVersion"
-		compile "org.springframework.data:spring-data-redis:$springDataRedisVersion"
-		compile "com.lambdaworks:lettuce:$lettuceVersion"
-		compile "org.springframework.integration:spring-integration-syslog:$springIntegrationVersion"
-		compile "org.springframework.integration:spring-integration-twitter:$springIntegrationVersion"
+		compile project(":spring-xd-analytics"),
+				project(":spring-xd-module"),
+				project(":spring-xd-hadoop"),
+				project(":spring-xd-http"),
+				"org.springframework:spring-web:$springVersion",
+				"org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion",
+				"org.apache.tomcat.embed:tomcat-embed-core:$tomcatVersion",
+				"org.apache.tomcat.embed:tomcat-embed-logging-juli:$tomcatVersion",
+				"org.springframework.integration:spring-integration-event:$springIntegrationVersion",
+				"org.springframework.integration:spring-integration-file:$springIntegrationVersion",
+				"org.springframework.integration:spring-integration-gemfire:$springIntegrationVersion",
+				"org.springframework.integration:spring-integration-redis:$springIntegrationVersion",
+				"org.springframework.data:spring-data-redis:$springDataRedisVersion",
+				"com.lambdaworks:lettuce:$lettuceVersion",
+				"org.springframework.integration:spring-integration-syslog:$springIntegrationVersion",
+				"org.springframework.integration:spring-integration-twitter:$springIntegrationVersion"
+		runtime "log4j:log4j:$log4jVersion",
+				"org.slf4j:jcl-over-slf4j$slf4jVersion",
+				"org.slf4j:slf4j-log4j12:$slf4jVersion"
 		testCompile project(":spring-xd-test")
 	}
 	apply plugin:'application'
@@ -173,15 +178,15 @@ project ('spring-xd-gemfire-server') {
 	dependencies {
 		compile "commons-beanutils:commons-beanutils:$commonsBeanUtilsVersion"
 		compile "org.springframework.data:spring-data-gemfire:$springDataGemfireVersion"
-		runtime "log4j:log4j:1.2.16"
+		runtime "log4j:log4j:$log4jVersion"
 	}
 	apply plugin:'application'
 	task(launch, dependsOn: 'classes', type: JavaExec) {
 		main = 'org.springframework.xd.gemfire.CacheServer'
 		classpath = sourceSets.test.runtimeClasspath
 		if (rootProject.hasProperty('config')) {
-        	args = ["${rootProject.getProperty('config')}"]
-    	} 
+			args = ["${rootProject.getProperty('config')}"]
+		}
 	}
 
 	mainClassName = 'org.springframework.xd.gemfire.CacheServer'

@@ -20,11 +20,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.codehaus.jackson.map.ObjectMapper;
-
 import org.springframework.context.ApplicationEvent;
+import org.springframework.xd.module.Module;
 
 /**
  * @author Mark Fisher
@@ -32,11 +29,7 @@ import org.springframework.context.ApplicationEvent;
 @SuppressWarnings("serial")
 public abstract class AbstractEvent<S> extends ApplicationEvent {
 
-	private final ObjectMapper objectMapper = new ObjectMapper();
-
 	private final Map<String, String> attributes = new HashMap<String, String>();
-
-	private final Log logger = LogFactory.getLog(getClass());
 
 
 	public AbstractEvent(S source) {
@@ -65,15 +58,27 @@ public abstract class AbstractEvent<S> extends ApplicationEvent {
 
 	@Override
 	public String toString() {
-		try {
-			return this.objectMapper.writeValueAsString(this);
+		// TODO: customize a Jackson mapper to replace this manual serialization code
+		StringBuilder sb = new StringBuilder();
+		sb.append("{\"timestamp\":" + this.getTimestamp() + ",");
+		sb.append("\"type\":\"" + getType() + "\"");
+		if (this instanceof AbstractContainerEvent) {
+			sb.append(",");
+			AbstractContainerEvent e = (AbstractContainerEvent) this;
+			sb.append("\"id\":\"" + e.getSource().getId() + "\"");
 		}
-		catch (Exception e) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("failed to generate JSON", e);
-			}
-			return super.toString();
+		else if (this instanceof AbstractModuleEvent) {
+			sb.append(",");
+			AbstractModuleEvent e = (AbstractModuleEvent) this;
+			sb.append("\"container\":\"" + e.getContainerId() + "\",");
+			Module m = e.getSource();
+			sb.append("\"source\":{\"name\":\"" + m.getName() + "\",");
+			sb.append("\"type\":\"" + m.getType() + "\",");
+			sb.append("\"running\":" + m.isRunning());
+			sb.append("}");
 		}
+		sb.append("}");
+		return sb.toString();
 	}
 
 }

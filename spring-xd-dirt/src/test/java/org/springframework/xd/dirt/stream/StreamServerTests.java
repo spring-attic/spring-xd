@@ -44,6 +44,7 @@ public class StreamServerTests {
 			server.stop();
 		}
 		catch (Exception e) {
+			e.printStackTrace();
 			fail("STREAM SERVER IS NOT AVAILABLE");
 		}
 		finally {

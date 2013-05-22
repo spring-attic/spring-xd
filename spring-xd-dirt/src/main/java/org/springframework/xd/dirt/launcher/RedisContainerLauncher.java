@@ -61,9 +61,9 @@ public class RedisContainerLauncher implements ContainerLauncher, ApplicationEve
 	}
 
 	public static void main(String[] args) {
-		if (!StringUtils.hasText(System.getProperty("xdhome"))) {
+		if (!StringUtils.hasText(System.getProperty("xd.home"))) {
 			String xdhome = (args.length > 0) ? args[0] : "..";
-			System.setProperty("xdhome", xdhome);
+			System.setProperty("xd.home", xdhome);
 		}
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("META-INF/spring/launcher.xml");
 		context.registerShutdownHook();

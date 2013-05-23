@@ -162,7 +162,7 @@ project('spring-xd-dirt') {
 	}
 
 	task scriptFiles {
-		def scripts = file("$rootDir/scripts")
+		def scripts = file("$rootDir/scripts/xd*")
 		outputs.dir scripts
 	}
 
@@ -204,6 +204,24 @@ project ('spring-xd-gemfire-server') {
 	}
 
 	mainClassName = 'org.springframework.xd.gemfire.CacheServer'
+
+	task configFiles {
+		def configs = file("$rootDir/spring-xd-gemfire-server/config")
+		outputs.dir configs
+	}
+
+	applicationDistribution.from(configFiles) {
+		into "bin"
+	}
+
+	task scriptFiles {
+		def scripts = file("$rootDir/scripts/gemfire*")
+		outputs.dir scripts
+	}
+
+	applicationDistribution.from(scriptFiles) {
+		into "bin"
+	}
 
 }
 

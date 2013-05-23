@@ -154,7 +154,12 @@ project('spring-xd-dirt') {
 		classpath = sourceSets.test.runtimeClasspath
 	}
 
+<<<<<<< HEAD
 	mainClassName = "org.springframework.xd.ContainerMain"
+=======
+	mainClassName = "org.springframework.xd.dirt.stream.StreamServer"
+	mainClassName = "org.springframework.xd.XDContainer"
+>>>>>>> XD-102 - Create XDContainer class to start stream server
 
 	task moduleFiles {
 		def modules = file("$rootDir/modules")

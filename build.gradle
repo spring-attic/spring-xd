@@ -149,13 +149,7 @@ project('spring-xd-dirt') {
 		testCompile project(":spring-xd-test")
 	}
 	apply plugin:'application'
-	task(launch, dependsOn: 'classes', type: JavaExec) {
-		main = 'org.springframework.xd.dirt.stream.StreamServer'
-		classpath = sourceSets.test.runtimeClasspath
-	}
-
-	mainClassName = "org.springframework.xd.dirt.stream.StreamServer"
-	mainClassName = "org.springframework.xd.XDContainer"
+        mainClassName = "org.springframework.xd.dirt.stream.StreamServer"
 
 	task moduleFiles {
 		def modules = file("$rootDir/modules")
@@ -163,13 +157,26 @@ project('spring-xd-dirt') {
 	}
 
 	task scriptFiles {
-		def scripts = file("$rootDir/scripts")
+		def scripts = file("build/scripts")
 		outputs.dir scripts
 	}
-
-	applicationDistribution.from(scriptFiles) {
-		into "bin"
-	}
+        task generateContainerScript(type: CreateStartScripts) {
+                applicationName = "xd-container"
+                mainClassName = "org.springframework.xd.XDContainer"                
+                classpath = files(jar.archivePath, configurations.compile)
+                outputDir file("build/scripts")
+        }
+        task generateAdminScript(type: CreateStartScripts) {
+		applicationName = "xd-admin"
+                mainClassName = "org.springframework.xd.XDAdmin"
+                classpath = files(jar.archivePath, configurations.compile)
+                outputDir file("build/scripts")
+        }
+        startScripts {
+                dependsOn generateContainerScript, generateAdminScript
+        }
+        // skip the startScripts task to avoid default start script generation
+        startScripts.setEnabled(false)
 
 	applicationDistribution.from(moduleFiles) {
 		into "modules"

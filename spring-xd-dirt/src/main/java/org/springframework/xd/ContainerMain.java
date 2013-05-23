@@ -20,24 +20,22 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.xd.dirt.launcher.RedisContainerLauncher;
-import org.springframework.xd.dirt.stream.RedisStreamDeployer;
-import org.springframework.xd.dirt.stream.StreamServer;
 
 /**
- * The main driver class for the XDContainer
+ * The main driver class for ContainerMain 
  * @author Mark Pollack
  *
  */
-public class XDContainer {
+public class ContainerMain {
 
-	private static final Log logger = LogFactory.getLog(XDContainer.class);
+	private static final Log logger = LogFactory.getLog(ContainerMain.class);
 	/**
-	 * @param args
+	 * Start the RedisContainerLauncher
+	 * @param args command line argument
 	 */
 	public static void main(String[] args) {
-		XDContainerOptions options = new  XDContainerOptions();
+		ContainerOptions options = new  ContainerOptions();
 		CmdLineParser parser = new CmdLineParser(options);
 		try {
 			parser.parseArgument(args);
@@ -51,18 +49,14 @@ public class XDContainer {
 			parser.printUsage(System.err);
 			System.exit(0);
 		}
-		if (options.isEmbeddedAdmin() == true ) {	
-			if (StringUtils.isNotEmpty(options.getXDHomeDir())) {
-				System.setProperty("xd.home", options.getXDHomeDir());
-			}
-			RedisContainerLauncher.main(new String[]{});
+		
+		if (StringUtils.isNotEmpty(options.getXDHomeDir())) {
+			System.setProperty("xd.home", options.getXDHomeDir());
 		}
-		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(options.getRedisHost(), options.getRedisPort());
-		connectionFactory.afterPropertiesSet();
-		RedisStreamDeployer streamDeployer = new RedisStreamDeployer(connectionFactory);
-		StreamServer server = new StreamServer(streamDeployer);
-		server.afterPropertiesSet();
-		server.start();
+		
+		//Future versions to support other types of container launchers
+		
+		RedisContainerLauncher.main(new String[]{});
 	}
 
 }

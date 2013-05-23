@@ -39,7 +39,6 @@ import org.springframework.integration.MessagingException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
-import org.springframework.xd.dirt.launcher.RedisContainerLauncher;
 
 /**
  * This is a temporary "server" for the REST API. Currently it only handles simple
@@ -185,8 +184,19 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 	}
 
 	public static void main(String[] args) {
-		RedisContainerLauncher.main(args);
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
+		boostrap(connectionFactory);
+	}
+	
+	public static void launch(String host, int port) {
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(host, port);
+		boostrap(connectionFactory);
+	}
+	
+	/**
+	 * @param connectionFactory
+	 */
+	private static void boostrap(LettuceConnectionFactory connectionFactory) {
 		connectionFactory.afterPropertiesSet();
 		RedisStreamDeployer streamDeployer = new RedisStreamDeployer(connectionFactory);
 		StreamServer server = new StreamServer(streamDeployer);

@@ -23,14 +23,11 @@ import org.kohsuke.args4j.Option;
  *
  */
 public class AdminOptions {
-
-	@Option(name="--embeddedAdmin", usage="embed the XD Admin server in the XD Container")
-	private boolean embeddedAdmin = false;
 	
-	@Option(name="--redisHost", usage="the hostname of the redis sever", metaVar="<redisHost>")
+	//@Option(name="--redisHost", usage="the hostname of the redis sever", metaVar="<redisHost>")
 	private String redisHost = "localhost";
 	
-	@Option(name="--redisPort", usage="the port number of the redis sever", metaVar="<redisPort>")
+	//@Option(name="--redisPort", usage="the port number of the redis sever", metaVar="<redisPort>")
 	private int redisPort = 6379;
 	
 	@Option(name="--help", usage="Show options help", aliases={"-?", "-h"})
@@ -38,6 +35,9 @@ public class AdminOptions {
 	
 	@Option(name="--xdHomeDir", usage="The XD installation directory, use with --embeddedAdmin", metaVar="<xdHomeDir>")
 	private String xdHomeDir = "";
+	
+	@Option(name="--embeddedContainer", usage="embed the XD Container")
+	private boolean embeddedContainer = false;
 	/**
 	 * @return the showHelp
 	 */
@@ -58,16 +58,22 @@ public class AdminOptions {
 	}
 
 	/**
-	 * @return the embeddedAdmin
-	 */
-	public boolean isEmbeddedAdmin() {
-		return embeddedAdmin;
-	}
-	/**
 	 * @return the moduleDir
 	 */
 	public String getXDHomeDir() {
 		return xdHomeDir;
+	}
+	/**
+	 * @return the xdHomeDir
+	 */
+	public String getXdHomeDir() {
+		return xdHomeDir;
+	}
+	/**
+	 * @return the embeddedContainer
+	 */
+	public boolean isEmbeddedContainer() {
+		return embeddedContainer;
 	}
 	
 	

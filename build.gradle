@@ -162,7 +162,7 @@ project('spring-xd-dirt') {
 	}
 
 	task scriptFiles {
-		def scripts = file("$rootDir/scripts/xd*")
+		def scripts = file("$rootDir/scripts")
 		outputs.dir scripts
 	}
 

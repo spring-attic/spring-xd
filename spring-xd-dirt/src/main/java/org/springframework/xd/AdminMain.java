@@ -20,9 +20,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.xd.dirt.launcher.RedisContainerLauncher;
-import org.springframework.xd.dirt.stream.RedisStreamDeployer;
 import org.springframework.xd.dirt.stream.StreamServer;
 
 /**
@@ -51,18 +49,15 @@ public class AdminMain {
 			parser.printUsage(System.err);
 			System.exit(0);
 		}
-		if (options.isEmbeddedAdmin() == true ) {	
+		
+		if (options.isEmbeddedContainer()) {
 			if (StringUtils.isNotEmpty(options.getXDHomeDir())) {
 				System.setProperty("xd.home", options.getXDHomeDir());
 			}
 			RedisContainerLauncher.main(new String[]{});
 		}
-		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(options.getRedisHost(), options.getRedisPort());
-		connectionFactory.afterPropertiesSet();
-		RedisStreamDeployer streamDeployer = new RedisStreamDeployer(connectionFactory);
-		StreamServer server = new StreamServer(streamDeployer);
-		server.afterPropertiesSet();
-		server.start();
+
+		StreamServer.launch(options.getRedisHost(), options.getRedisPort());
 	}
 
 }

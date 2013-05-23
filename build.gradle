@@ -33,8 +33,8 @@ allprojects {
 }
 
 subprojects { subproject ->
-
-	apply plugin: 'java'
+     
+        apply plugin: 'java'
 	apply from:   "${rootProject.projectDir}/publish-maven.gradle"
 	apply plugin: 'eclipse'
 	apply plugin: 'idea'
@@ -65,6 +65,7 @@ subprojects { subproject ->
 
 	eclipse {
 		project {
+
 			natures += 'org.springframework.ide.eclipse.core.springnature'
 		}
 	}
@@ -106,7 +107,6 @@ subprojects { subproject ->
 		archives sourcesJar
 		archives javadocJar
 	}
-
 }
 
 project('spring-xd-analytics') {
@@ -150,7 +150,10 @@ project('spring-xd-dirt') {
 		testCompile project(":spring-xd-test")
 	}
 	apply plugin:'application'
-	task(launch, dependsOn: 'classes', type: JavaExec) {
+        // skip the startScripts task to avoid default start script generation
+        startScripts.setEnabled(false)	
+       
+        task(launch, dependsOn: 'classes', type: JavaExec) {
 		main = 'org.springframework.xd.dirt.stream.StreamServer'
 		classpath = sourceSets.test.runtimeClasspath
 	}
@@ -163,7 +166,7 @@ project('spring-xd-dirt') {
 	}
 
 	task scriptFiles {
-		def scripts = file("$rootDir/scripts")
+		def scripts = file("$rootDir/scripts/xd")
 		outputs.dir scripts
 	}
 
@@ -196,7 +199,10 @@ project ('spring-xd-gemfire-server') {
 				"org.slf4j:slf4j-log4j12:$slf4jVersion"
 	}
 	apply plugin:'application'
-	task(launch, dependsOn: 'classes', type: JavaExec) {
+	// skip the startScripts task to avoid default start script generation
+        startScripts.setEnabled(false)
+
+        task(launch, dependsOn: 'classes', type: JavaExec) {
 		main = 'org.springframework.xd.gemfire.CacheServer'
 		classpath = sourceSets.test.runtimeClasspath
 		if (rootProject.hasProperty('config')) {
@@ -216,7 +222,7 @@ project ('spring-xd-gemfire-server') {
 	}
 
 	task scriptFiles {
-		def scripts = file("$rootDir/scripts/gemfire*")
+		def scripts = file("$rootDir/scripts/gemfire")
 		outputs.dir scripts
 	}
 
@@ -226,6 +232,31 @@ project ('spring-xd-gemfire-server') {
 
 }
 
+project('redis') {
+        javaProject = false
+        description = 'Redis distribution'
+        apply plugin:'application'
+        startScripts.setEnabled(false)
+        jar.setEnabled(false) 
+        task scriptFiles {
+                def scripts = file("$rootDir/scripts/redis")
+                outputs.dir scripts
+        }
+
+        applicationDistribution.from(scriptFiles) {
+                into "bin"
+        }
+        
+        task sourceDist {
+                def distFile = file("$rootDir/redis/dist")
+                outputs.dir distFile
+        }
+
+        applicationDistribution.from(sourceDist) {
+                into "dist"
+        }
+        
+}
 project('spring-xd-module') {
 	description = 'Spring XD Module'
 	dependencies {

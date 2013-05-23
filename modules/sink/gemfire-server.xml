@@ -9,15 +9,9 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
+	<import resource="../generic/gemfire-client.xml"/>
+
 	<int:channel id="input"/>
-
-	<gfe:client-cache id="client-cache" use-bean-factory-locator="false" />
-	<gfe:pool id="client-pool">
-		<gfe:server host="${gemfireHost:localhost}" port="${gemfirePort:40404}" />
-	</gfe:pool>
-
-	<gfe:client-region id="region" cache-ref="client-cache"
-		name="${regionName:${xd.stream.name}}" data-policy="EMPTY" />
 
 	<int-gfe:outbound-channel-adapter region="region" channel="input">
 		<int-gfe:cache-entries>

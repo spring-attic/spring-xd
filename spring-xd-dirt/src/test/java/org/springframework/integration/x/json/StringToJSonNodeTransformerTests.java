@@ -10,23 +10,22 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.springframework.xd.gemfire;
+package org.springframework.integration.x.json;
 
-import org.springframework.context.support.FileSystemXmlApplicationContext;
+import static org.junit.Assert.*;
+
+import org.codehaus.jackson.JsonNode;
+import org.junit.Test;
 
 /**
  * @author David Turanski
  *
  */
-public class CacheServer {
-	public static void main(String[] args) {
- 		if (args.length != 1) {
- 			System.out.println("Usage: CacheServer <config-file-path>");
- 			System.exit(1);
- 		}
- 		String path = args[0];
- 		@SuppressWarnings("resource")
- 		FileSystemXmlApplicationContext context= new FileSystemXmlApplicationContext(path);
- 		context.registerShutdownHook();
+public class StringToJSonNodeTransformerTests {
+	@Test
+	public void testTransformer() {
+		StringToJsonNodeTransformer transformer = new StringToJsonNodeTransformer();
+		JsonNode node = transformer.transform("{\"symbol\":\"VMW\", \"price\":75}");
+		assertEquals("VMW",node.get("symbol").asText());
 	}
 }

@@ -10,23 +10,27 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.springframework.xd.gemfire;
+package org.springframework.integration.x.gemfire;
 
-import org.springframework.context.support.FileSystemXmlApplicationContext;
+import org.springframework.integration.transformer.MessageTransformationException;
+
+import com.gemstone.gemfire.pdx.JSONFormatter;
+import com.gemstone.gemfire.pdx.PdxInstance;
+import com.gemstone.org.json.JSONException;
+import com.gemstone.org.json.JSONObject;
 
 /**
  * @author David Turanski
  *
  */
-public class CacheServer {
-	public static void main(String[] args) {
- 		if (args.length != 1) {
- 			System.out.println("Usage: CacheServer <config-file-path>");
- 			System.exit(1);
- 		}
- 		String path = args[0];
- 		@SuppressWarnings("resource")
- 		FileSystemXmlApplicationContext context= new FileSystemXmlApplicationContext(path);
- 		context.registerShutdownHook();
+public class JsonStringToObjectTransformer {
+	public PdxInstance transform(String json) {
+		JSONObject jsonObject = null;
+		try {
+			jsonObject = new JSONObject(json);
+		} catch (JSONException e) {
+			throw new MessageTransformationException(e.getMessage());
+		}
+		return JSONFormatter.fromJSON(jsonObject.toString());
 	}
 }

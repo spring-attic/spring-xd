@@ -5,10 +5,8 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<channel id="output"/>
+	<channel id="input"/>
 
-	<beans:bean class="org.springframework.xd.dirt.plugins.TestProducer">
-		<beans:constructor-arg ref="output"/>
-	</beans:bean>
+	<logging-channel-adapter channel="input" level="WARN" logger-name="logger.${name:${xd.stream.name}}"/>
 
 </beans:beans>

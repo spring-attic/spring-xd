@@ -138,6 +138,7 @@ project('spring-xd-dirt') {
 				"org.springframework.integration:spring-integration-event:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-file:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-gemfire:$springIntegrationVersion",
+				"org.springframework.integration:spring-integration-groovy:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-redis:$springIntegrationVersion",
 				"org.springframework.data:spring-data-redis:$springDataRedisVersion",
 				"com.lambdaworks:lettuce:$lettuceVersion",

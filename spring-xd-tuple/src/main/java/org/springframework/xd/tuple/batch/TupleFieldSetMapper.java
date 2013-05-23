@@ -24,13 +24,12 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.validation.BindException;
 import org.springframework.xd.tuple.Tuple;
 import org.springframework.xd.tuple.TupleBuilder;
-import org.springframework.xd.tuple.TupleType;
 
 /**
  * A {@link FieldSetMapper} implementation intended to allow a user use a
  * {@link Tuple} as the item.  By default, all fields of the {@link FieldSet}
  * will be mapped as Strings.  To use type specific mapping, provide a
- * map of field names to {@link TupleType}. You are not required to map
+ * map of field names to {@link FieldSetType}. You are not required to map
  * all fields if using type specific mappings (only the ones that matter).
  * 
  * @author Michael Minella
@@ -41,7 +40,7 @@ public class TupleFieldSetMapper implements FieldSetMapper<Tuple> {
 	//TODO: Is one date format good enough or will we need to be able to map formats to fields?
 	private DateFormat dateFormat;
 	//TODO: Currently this is bound by the convenience methods on the Tuple object.  Is custom conversion necessary?
-	private Map<String, TupleType> types;
+	private Map<String, FieldSetType> types;
 
 	/*
 	 * (non-Javadoc)
@@ -66,31 +65,31 @@ public class TupleFieldSetMapper implements FieldSetMapper<Tuple> {
 
 	private Object getValue(FieldSet fs, String name) {
 		if(!CollectionUtils.isEmpty(types)) {
-			TupleType type = types.get(name);
+			FieldSetType type = types.get(name);
 
 			if(type == null) {
 				return fs.readString(name);
-			} else if(type == TupleType.BIG_DECIMAL) {
+			} else if(type == FieldSetType.BIG_DECIMAL) {
 				return fs.readBigDecimal(name);
-			} else if(type == TupleType.BOOLEAN) {
+			} else if(type == FieldSetType.BOOLEAN) {
 				return fs.readBoolean(name);
-			} else if(type == TupleType.BYTE) {
+			} else if(type == FieldSetType.BYTE) {
 				return fs.readByte(name);
-			} else if(type == TupleType.CHAR) {
+			} else if(type == FieldSetType.CHAR) {
 				return fs.readChar(name);
-			} else if(type == TupleType.DATE) {
+			} else if(type == FieldSetType.DATE) {
 				return fs.readDate(name);
-			} else if(type == TupleType.DOUBLE) {
+			} else if(type == FieldSetType.DOUBLE) {
 				return fs.readDouble(name);
-			} else if(type == TupleType.FLOAT) {
+			} else if(type == FieldSetType.FLOAT) {
 				return fs.readFloat(name);
-			} else if(type == TupleType.INT) {
+			} else if(type == FieldSetType.INT) {
 				return fs.readInt(name);
-			} else if(type == TupleType.LONG) {
+			} else if(type == FieldSetType.LONG) {
 				return fs.readLong(name);
-			} else if(type == TupleType.SHORT) {
+			} else if(type == FieldSetType.SHORT) {
 				return fs.readShort(name);
-			} else if(type == TupleType.STRING) {
+			} else if(type == FieldSetType.STRING) {
 				return fs.readString(name);
 			} else {
 				throw new UnsupportedOperationException("Unable to determine the type to retrieve for " + name);
@@ -111,11 +110,11 @@ public class TupleFieldSetMapper implements FieldSetMapper<Tuple> {
 	}
 
 	/**
-	 * A map of {@link FieldSet} field names to {@link TupleType}.
+	 * A map of {@link FieldSet} field names to {@link FieldSetType}.
 	 * 
 	 * @param types mapping of field names to data types
 	 */
-	public void setTypes(Map<String, TupleType> types) {
+	public void setTypes(Map<String, FieldSetType> types) {
 		this.types = types;
 	}
 }

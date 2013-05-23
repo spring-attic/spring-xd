@@ -12,7 +12,6 @@ import org.junit.Test;
 import org.springframework.batch.item.file.transform.DefaultFieldSet;
 import org.springframework.batch.item.file.transform.FieldSet;
 import org.springframework.xd.tuple.Tuple;
-import org.springframework.xd.tuple.TupleType;
 
 public class TupleFieldSetMapperTests {
 
@@ -36,18 +35,18 @@ public class TupleFieldSetMapperTests {
 	@Test
 	@SuppressWarnings("serial")
 	public void testValueConversionByName() throws Exception {
-		mapper.setTypes(new HashMap<String, TupleType>() {{
-			put("field1", TupleType.BIG_DECIMAL);
-			put("field2", TupleType.BOOLEAN);
-			put("field3", TupleType.BYTE);
-			put("field4", TupleType.CHAR);
-			put("field5", TupleType.DATE);
-			put("field6", TupleType.DOUBLE);
-			put("field7", TupleType.FLOAT);
-			put("field8", TupleType.INT);
-			put("field9", TupleType.LONG);
-			put("field10", TupleType.SHORT);
-			put("field11", TupleType.STRING);
+		mapper.setTypes(new HashMap<String, FieldSetType>() {{
+			put("field1", FieldSetType.BIG_DECIMAL);
+			put("field2", FieldSetType.BOOLEAN);
+			put("field3", FieldSetType.BYTE);
+			put("field4", FieldSetType.CHAR);
+			put("field5", FieldSetType.DATE);
+			put("field6", FieldSetType.DOUBLE);
+			put("field7", FieldSetType.FLOAT);
+			put("field8", FieldSetType.INT);
+			put("field9", FieldSetType.LONG);
+			put("field10", FieldSetType.SHORT);
+			put("field11", FieldSetType.STRING);
 		}});
 		FieldSet fieldSet = new DefaultFieldSet(new String[] { "19.95", "true", "1", "M", "1977-10-22", "2.22", "9.99", "5", "9", "10", "some dummy string", "2007-06-23" },
 				new String[] { "field1", "field2", "field3", "field4", "field5", "field6", "field7", "field8", "field9", "field10", "field11", "field12" });

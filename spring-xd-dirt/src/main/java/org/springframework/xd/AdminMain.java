@@ -20,22 +20,24 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.xd.dirt.launcher.RedisContainerLauncher;
+import org.springframework.xd.dirt.stream.RedisStreamDeployer;
+import org.springframework.xd.dirt.stream.StreamServer;
 
 /**
- * The main driver class for XDAdmin 
+ * The main driver class for the AdminMain
  * @author Mark Pollack
  *
  */
-public class XDAdmin {
+public class AdminMain {
 
-	private static final Log logger = LogFactory.getLog(XDAdmin.class);
+	private static final Log logger = LogFactory.getLog(AdminMain.class);
 	/**
-	 * Start the RedisContainerLauncher
-	 * @param args command line argument
+	 * @param args
 	 */
 	public static void main(String[] args) {
-		XDAdminOptions options = new  XDAdminOptions();
+		AdminOptions options = new  AdminOptions();
 		CmdLineParser parser = new CmdLineParser(options);
 		try {
 			parser.parseArgument(args);
@@ -49,14 +51,18 @@ public class XDAdmin {
 			parser.printUsage(System.err);
 			System.exit(0);
 		}
-		
-		if (StringUtils.isNotEmpty(options.getXDHomeDir())) {
-			System.setProperty("xd.home", options.getXDHomeDir());
+		if (options.isEmbeddedAdmin() == true ) {	
+			if (StringUtils.isNotEmpty(options.getXDHomeDir())) {
+				System.setProperty("xd.home", options.getXDHomeDir());
+			}
+			RedisContainerLauncher.main(new String[]{});
 		}
-		
-		//Future versions to support other types of container launchers
-		
-		RedisContainerLauncher.main(new String[]{});
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(options.getRedisHost(), options.getRedisPort());
+		connectionFactory.afterPropertiesSet();
+		RedisStreamDeployer streamDeployer = new RedisStreamDeployer(connectionFactory);
+		StreamServer server = new StreamServer(streamDeployer);
+		server.afterPropertiesSet();
+		server.start();
 	}
 
 }

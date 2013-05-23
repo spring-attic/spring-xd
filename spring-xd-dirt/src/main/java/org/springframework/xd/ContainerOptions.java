@@ -22,7 +22,7 @@ import org.kohsuke.args4j.Option;
  * @author Mark Pollack
  *
  */
-public class XDAdminOptions {
+public class ContainerOptions {
 
 	@Option(name="--xdHomeDir", usage="The XD installation directory", metaVar="<xdHomeDir>")
 	private String xdHomeDir = "";

@@ -22,7 +22,7 @@ import org.kohsuke.args4j.Option;
  * @author Mark Pollack
  *
  */
-public class XDContainerOptions {
+public class AdminOptions {
 
 	@Option(name="--embeddedAdmin", usage="embed the XD Admin server in the XD Container")
 	private boolean embeddedAdmin = false;

@@ -60,6 +60,7 @@ subprojects { subproject ->
 		slf4jVersion = '1.7.5'
 		log4jVersion = '1.2.17'
 		args4jVersion = '2.0.16'
+		mockitoVersion = '1.9.5'
 	}
 
 	eclipse {
@@ -228,6 +229,11 @@ project('spring-xd-tuple') {
 		compile "org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion"
 		compile "org.springframework:spring-context:$springVersion"
 		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
+		compile "org.springframework.batch:spring-batch-infrastructure:$springBatchVersion"
+		compile "org.springframework:spring-jdbc:$springVersion"
+		testCompile ("org.mockito:mockito-core:$mockitoVersion") {
+			exclude group:'org.hamcrest' 
+		}
 	}
 }
 

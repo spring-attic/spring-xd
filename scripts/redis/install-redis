@@ -1,0 +1,94 @@
+#! /bin/sh
+
+# install redis based on platform
+# @author Winston Koh
+# @since 1.0
+
+REDIS_VERSION=redis-2.6.13
+REDIS_ZIP_NAME="$REDIS_VERSION.tar.gz"
+REDIS_HOME=$(pwd)
+REDIS_HOME="$REDIS_HOME/.."
+REDIS_ZIP_PATH="$REDIS_HOME/dist/$REDIS_ZIP_NAME"
+
+if [[ ! -f $REDIS_ZIP_PATH ]]; then
+  echo "Corrupted redis zip. $REDIS_ZIP_PATH not found."
+  exit
+fi
+
+# find out platform info
+unameinfo=$(uname -a)
+platforminfo=""
+platformunsupported="false"
+
+if [[ $unameinfo == Darwin* ]]; then
+  platforminfo="mac64"
+  echo "$platforminfo platform detected."
+  if [[ $platformunsupported == "false" ]]; then
+    cd $REDIS_HOME && tar xzf $REDIS_ZIP_PATH
+    if [[ ! -d $REDIS_VERSION ]]; then
+      echo "Corrupted redis zip. $REDIS_VERSION not found."
+      exit
+    fi
+    cd $REDIS_VERSION
+    make
+    sudo make install
+  fi
+elif [[ $unameinfo == Linux*_64* ]]; then
+  if [[ -f /etc/redhat-release ]]; then
+    platforminfo="rh64"
+    echo "$platforminfo platform detected."
+    elif [[ -f /etc/centos-release ]]; then
+      platforminfo="cent64"
+      echo "$platforminfo platform detected."
+    elif [[ -f /etc/debian_version ]]; then
+      platforminfo="ubuntu64"
+      echo "$platforminfo platform detected."
+    else
+      echo "Unsupported Linux 64 bit platform."
+      platformunsupported="true"
+    fi
+    if [[ $platformunsupported == "false" ]]; then
+      cd $REDIS_HOME && tar xzf $REDIS_ZIPNAME
+      if [[ ! -d $REDIS_VERSION ]]; then
+        echo "Corrupted redis zip. $REDIS_VERSION not found."
+        exit
+      fi
+      cd $REDIS_VERSION
+      make
+      sudo make install
+    fi
+elif [[ $unameinfo == Linux* ]]; then
+  if [[ -f /etc/redhat-release ]]; then
+    platforminfo="rh32"
+    echo "$platforminfo platform detected."
+  elif [[ -f /etc/centos-release ]]; then
+    platforminfo="cent32"
+    echo "$platforminfo platform detected."
+  elif [[ -f /etc/debian_version ]]; then
+    platforminfo="ubuntu32"
+    echo "$platforminfo platform detected."
+  else
+    echo "Unsupported Linux 32 bit platform."
+    platformunsupported="true"
+  fi
+  if [[ $platformunsupported == "false" ]]; then
+    cd $REDIS_HOME && tar xzf $REDIS_ZIPNAME
+    if [[ ! -d $REDIS_VERSION ]]; then
+      echo "Corrupted redis zip. $REDIS_VERSION not found."
+      exit
+    fi
+    cd $REDIS_VERSION
+    make 32bit
+    sudo make 32bit install
+  fi
+else
+  echo "Unsupported platform. Curently only Apple OS X and Linux systems (RedHat, CentOS, Ubuntu) are supported."
+  platformunsupported="true"
+fi
+if [[ $platformunsupported == "false" ]]; then
+  echo "installation script completed."
+  cd $REDIS_HOME/$REDIS_VERSION
+  echo "REDIS_HOME:$(pwd)"
+  echo "to start redis server: cd $(pwd) && src/redis-server"
+fi
+

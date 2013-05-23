@@ -60,7 +60,7 @@ public class RedisContainerLauncher implements ContainerLauncher, ApplicationEve
 		return container;
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) {		
 		if (!StringUtils.hasText(System.getProperty("xd.home"))) {
 			String xdhome = (args.length > 0) ? args[0] : "..";
 			System.setProperty("xd.home", xdhome);

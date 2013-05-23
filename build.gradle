@@ -191,7 +191,9 @@ project ('spring-xd-gemfire-server') {
 	dependencies {
 		compile "commons-beanutils:commons-beanutils:$commonsBeanUtilsVersion"
 		compile "org.springframework.data:spring-data-gemfire:$springDataGemfireVersion"
-		runtime "log4j:log4j:$log4jVersion"
+		runtime "log4j:log4j:$log4jVersion",
+				"org.slf4j:jcl-over-slf4j:$slf4jVersion",
+				"org.slf4j:slf4j-log4j12:$slf4jVersion"
 	}
 	apply plugin:'application'
 	task(launch, dependsOn: 'classes', type: JavaExec) {

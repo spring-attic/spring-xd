@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:event="http://www.springframework.org/schema/integration/event"
+	xmlns:file="http://www.springframework.org/schema/integration/file"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration
+		http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/event
+		http://www.springframework.org/schema/integration/event/spring-integration-event.xsd
+		http://www.springframework.org/schema/integration/file
+		http://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
+
+	<file:tail-inbound-channel-adapter channel="output" file="${name:/tmp/xd/input/${xd.stream.name}}"
+		native-options="-F -n ${lines:0}" file-delay="${delay:5000}" />
+
+	<channel id="output"/>
+
+	<event:inbound-channel-adapter id="events"
+		event-types="org.springframework.integration.file.tail.FileTailingMessageProducerSupport$FileTailingEvent" />
+
+	<logging-channel-adapter channel="events" level="WARN" />
+
+</beans:beans>

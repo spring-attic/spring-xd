@@ -59,6 +59,7 @@ subprojects { subproject ->
 		commonsBeanUtilsVersion = '1.6'
 		slf4jVersion = '1.7.5'
 		log4jVersion = '1.2.17'
+		args4jVersion = '2.0.16'
 	}
 
 	eclipse {
@@ -140,7 +141,8 @@ project('spring-xd-dirt') {
 				"org.springframework.data:spring-data-redis:$springDataRedisVersion",
 				"com.lambdaworks:lettuce:$lettuceVersion",
 				"org.springframework.integration:spring-integration-syslog:$springIntegrationVersion",
-				"org.springframework.integration:spring-integration-twitter:$springIntegrationVersion"
+				"org.springframework.integration:spring-integration-twitter:$springIntegrationVersion",
+				"args4j:args4j:$args4jVersion"
 		runtime "log4j:log4j:$log4jVersion",
 				"org.slf4j:jcl-over-slf4j:$slf4jVersion",
 				"org.slf4j:slf4j-log4j12:$slf4jVersion"
@@ -153,9 +155,20 @@ project('spring-xd-dirt') {
 	}
 
 	mainClassName = "org.springframework.xd.dirt.stream.StreamServer"
+	mainClassName = "org.springframework.xd.XDContainer"
+
 	task moduleFiles {
 		def modules = file("$rootDir/modules")
 		outputs.dir modules
+	}
+
+	task scriptFiles {
+		def scripts = file("$rootDir/scripts")
+		outputs.dir scripts
+	}
+
+	applicationDistribution.from(scriptFiles) {
+		into "bin"
 	}
 
 	applicationDistribution.from(moduleFiles) {

@@ -9,6 +9,7 @@ REDIS_ZIP_NAME="$REDIS_VERSION.tar.gz"
 REDIS_HOME=$(pwd)
 REDIS_HOME="$REDIS_HOME/.."
 REDIS_ZIP_PATH="$REDIS_HOME/dist/$REDIS_ZIP_NAME"
+REDIS_BIN="$REDIS_HOME/bin"
 
 if [[ ! -f $REDIS_ZIP_PATH ]]; then
   echo "Corrupted redis zip. $REDIS_ZIP_PATH not found."
@@ -31,7 +32,6 @@ if [[ $unameinfo == Darwin* ]]; then
     fi
     cd $REDIS_VERSION
     make
-    sudo make install
   fi
 elif [[ $unameinfo == Linux*_64* ]]; then
   if [[ -f /etc/redhat-release ]]; then
@@ -55,7 +55,6 @@ elif [[ $unameinfo == Linux*_64* ]]; then
       fi
       cd $REDIS_VERSION
       make
-      sudo make install
     fi
 elif [[ $unameinfo == Linux* ]]; then
   if [[ -f /etc/redhat-release ]]; then
@@ -79,16 +78,18 @@ elif [[ $unameinfo == Linux* ]]; then
     fi
     cd $REDIS_VERSION
     make 32bit
-    sudo make 32bit install
   fi
 else
   echo "Unsupported platform. Curently only Apple OS X and Linux systems (RedHat, CentOS, Ubuntu) are supported."
   platformunsupported="true"
 fi
 if [[ $platformunsupported == "false" ]]; then
+  cp src/redis-server $REDIS_BIN 
+  cp src/redis-sentinel $REDIS_BIN 
+  cp src/redis-benchmark $REDIS_BIN 
+  cp src/redis-cli $REDIS_BIN 
+  cp src/redis-check-dump $REDIS_BIN 
   echo "installation script completed."
-  cd $REDIS_HOME/$REDIS_VERSION
-  echo "REDIS_HOME:$(pwd)"
-  echo "to start redis server: cd $(pwd) && src/redis-server"
+  echo "To start redis server, please run: ./redis-server"
 fi
 

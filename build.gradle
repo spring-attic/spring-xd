@@ -152,7 +152,11 @@ project('spring-xd-dirt') {
 	}
 	apply plugin:'application'
 
-	mainClassName = "org.springframework.xd.ContainerMain"
+	mainClassName = "org.springframework.xd.AdminMain"
+
+	run {
+		args = ["--embeddedContainer"]
+	}
 
 	task moduleFiles {
 		def modules = file("$rootDir/modules")

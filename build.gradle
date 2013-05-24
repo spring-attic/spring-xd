@@ -330,17 +330,17 @@ task wrapper(type: Wrapper) {
 
 task copyRedisInstall(type: Copy) {
         from "$rootDir/redis/build/install/redis"
-        into "$rootDir/dist/spring-xd/install/redis"
+        into "$rootDir/dist/spring-xd/redis"
 }
 
 task copyGemfireInstall(type: Copy) {
         from "$rootDir/spring-xd-gemfire-server/build/install/spring-xd-gemfire-server"
-        into "$rootDir/dist/spring-xd/install/gemfire"
+        into "$rootDir/dist/spring-xd/gemfire"
 }
 
 task copyXDInstall(type: Copy) {
         from "$rootDir/spring-xd-dirt/build/install/spring-xd-dirt"
-        into "$rootDir/dist/spring-xd/install/xd"
+        into "$rootDir/dist/spring-xd/xd"
 }
 
 task copyXD (dependsOn: ['copyRedisInstall', 'copyGemfireInstall', 'copyXDInstall']) {

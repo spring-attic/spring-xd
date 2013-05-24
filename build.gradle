@@ -343,8 +343,11 @@ task copyXDInstall(type: Copy) {
         into "$rootDir/dist/spring-xd/xd"
 }
 
-task copyXD (dependsOn: ['copyRedisInstall', 'copyGemfireInstall', 'copyXDInstall']) {
+task copyXD (type: Copy, dependsOn: ['copyRedisInstall', 'copyGemfireInstall', 'copyXDInstall']) {
     	description = "Copy all the required installs"
+        from "$rootDir/scripts/README"
+        from "$rootDir/scripts/LICENSE"
+        into "$rootDir/dist/spring-xd"
 }
 
 task zipXD (type: Zip, dependsOn: copyXD){

@@ -349,5 +349,6 @@ task copyXD (dependsOn: ['copyRedisInstall', 'copyGemfireInstall', 'copyXDInstal
 
 task zipXD (type: Zip, dependsOn: copyXD){
 	from file("$rootDir/dist/spring-xd").absolutePath
+        into "spring-xd"
         destinationDir file("$rootDir/dist") 
 }

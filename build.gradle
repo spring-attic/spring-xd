@@ -32,8 +32,8 @@ allprojects {
 }
 
 subprojects { subproject ->
-
-	apply plugin: 'java'
+     
+        apply plugin: 'java'
 	apply from:   "${rootProject.projectDir}/publish-maven.gradle"
 	apply plugin: 'eclipse'
 	apply plugin: 'idea'
@@ -64,6 +64,7 @@ subprojects { subproject ->
 
 	eclipse {
 		project {
+
 			natures += 'org.springframework.ide.eclipse.core.springnature'
 		}
 	}
@@ -105,7 +106,6 @@ subprojects { subproject ->
 		archives sourcesJar
 		archives javadocJar
 	}
-
 }
 
 project('spring-xd-analytics') {
@@ -150,7 +150,8 @@ project('spring-xd-dirt') {
 		testCompile project(":spring-xd-test")
 	}
 	apply plugin:'application'
-
+        // skip the startScripts task to avoid default start script generation
+        startScripts.setEnabled(false)	
 	mainClassName = "org.springframework.xd.AdminMain"
 
 	run {
@@ -163,7 +164,7 @@ project('spring-xd-dirt') {
 	}
 
 	task scriptFiles {
-		def scripts = file("$rootDir/scripts")
+		def scripts = file("$rootDir/scripts/xd")
 		outputs.dir scripts
 	}
 
@@ -196,7 +197,10 @@ project ('spring-xd-gemfire-server') {
 				"org.slf4j:slf4j-log4j12:$slf4jVersion"
 	}
 	apply plugin:'application'
-	task(launch, dependsOn: 'classes', type: JavaExec) {
+	// skip the startScripts task to avoid default start script generation
+        startScripts.setEnabled(false)
+
+        task(launch, dependsOn: 'classes', type: JavaExec) {
 		main = 'org.springframework.xd.gemfire.CacheServer'
 		classpath = sourceSets.test.runtimeClasspath
 		if (rootProject.hasProperty('config')) {
@@ -216,7 +220,7 @@ project ('spring-xd-gemfire-server') {
 	}
 
 	task scriptFiles {
-		def scripts = file("$rootDir/scripts/gemfire*")
+		def scripts = file("$rootDir/scripts/gemfire")
 		outputs.dir scripts
 	}
 
@@ -226,6 +230,29 @@ project ('spring-xd-gemfire-server') {
 
 }
 
+project('redis') {
+        description = 'Redis distribution'
+        apply plugin:'application'
+        startScripts.setEnabled(false)
+        jar.setEnabled(false) 
+        task scriptFiles {
+                def scripts = file("$rootDir/scripts/redis")
+                outputs.dir scripts
+        }
+
+        applicationDistribution.from(scriptFiles) {
+                into "bin"
+        }
+        
+        task sourceDist {
+                def distFile = file("$rootDir/redis/dist")
+                outputs.dir distFile
+        }
+
+        applicationDistribution.from(sourceDist) {
+                into "dist"
+        }
+}
 project('spring-xd-module') {
 	description = 'Spring XD Module'
 	dependencies {
@@ -300,3 +327,30 @@ task wrapper(type: Wrapper) {
 	gradleVersion = "1.6"
 }
 
+task copyRedisInstall(type: Copy) {
+        from "$rootDir/redis/build/install/redis"
+        into "$rootDir/dist/spring-xd/redis"
+}
+
+task copyGemfireInstall(type: Copy) {
+        from "$rootDir/spring-xd-gemfire-server/build/install/spring-xd-gemfire-server"
+        into "$rootDir/dist/spring-xd/gemfire"
+}
+
+task copyXDInstall(type: Copy) {
+        from "$rootDir/spring-xd-dirt/build/install/spring-xd-dirt"
+        into "$rootDir/dist/spring-xd/xd"
+}
+
+task copyXD (type: Copy, dependsOn: ['copyRedisInstall', 'copyGemfireInstall', 'copyXDInstall']) {
+    	description = "Copy all the required installs"
+        from "$rootDir/scripts/README"
+        from "$rootDir/scripts/LICENSE"
+        into "$rootDir/dist/spring-xd"
+}
+
+task zipXD (type: Zip, dependsOn: copyXD){
+	from file("$rootDir/dist/spring-xd").absolutePath
+        into "spring-xd"
+        destinationDir file("$rootDir/dist") 
+}

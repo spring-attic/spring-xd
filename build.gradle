@@ -151,10 +151,6 @@ project('spring-xd-dirt') {
 		testCompile project(":spring-xd-test")
 	}
 	apply plugin:'application'
-	task(launch, dependsOn: 'classes', type: JavaExec) {
-		main = 'org.springframework.xd.dirt.stream.StreamServer'
-		classpath = sourceSets.test.runtimeClasspath
-	}
 
 	mainClassName = "org.springframework.xd.ContainerMain"
 

@@ -185,18 +185,18 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 
 	public static void main(String[] args) {
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
-		boostrap(connectionFactory);
+		bootstrap(connectionFactory);
 	}
 	
 	public static void launch(String host, int port) {
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(host, port);
-		boostrap(connectionFactory);
+		bootstrap(connectionFactory);
 	}
 	
 	/**
 	 * @param connectionFactory
 	 */
-	private static void boostrap(LettuceConnectionFactory connectionFactory) {
+	private static void bootstrap(LettuceConnectionFactory connectionFactory) {
 		connectionFactory.afterPropertiesSet();
 		RedisStreamDeployer streamDeployer = new RedisStreamDeployer(connectionFactory);
 		StreamServer server = new StreamServer(streamDeployer);

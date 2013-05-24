@@ -347,3 +347,8 @@ task copyXDInstall(type: Copy) {
 task copyXD (dependsOn: ['copyRedisInstall', 'copyGemfireInstall', 'copyXDInstall']) {
     	description = "Copy all the required installs"
 }
+
+task zipXD (type: Zip){
+	from file("$rootDir/dist/spring-xd").absolutePath
+        destinationDir file("$rootDir/dist") 
+}

@@ -233,7 +233,6 @@ project ('spring-xd-gemfire-server') {
 }
 
 project('redis') {
-        javaProject = false
         description = 'Redis distribution'
         apply plugin:'application'
         startScripts.setEnabled(false)
@@ -255,7 +254,6 @@ project('redis') {
         applicationDistribution.from(sourceDist) {
                 into "dist"
         }
-        
 }
 project('spring-xd-module') {
 	description = 'Spring XD Module'
@@ -331,3 +329,21 @@ task wrapper(type: Wrapper) {
 	gradleVersion = "1.6"
 }
 
+task copyRedisInstall(type: Copy) {
+        from "$rootDir/redis/build/install"
+        into "$rootDir/dist/spring-xd/install/redis"
+}
+
+task copyGemfireInstall(type: Copy) {
+        from "$rootDir/spring-xd-gemfire-server/build/install"
+        into "$rootDir/dist/spring-xd/install/gemfire"
+}
+
+task copyXDInstall(type: Copy) {
+        from "$rootDir/spring-xd-dirt/build/install"
+        into "$rootDir/dist/spring-xd/install/xd"
+}
+
+task copyXD (dependsOn: ['copyRedisInstall', 'copyGemfireInstall', 'copyXDInstall']) {
+    	description = "Copy all the required installs"
+}

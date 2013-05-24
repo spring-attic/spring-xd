@@ -11,3 +11,4 @@ build
 .springBeans
 vf.gf.*
 bin
+dist

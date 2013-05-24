@@ -30,14 +30,14 @@ public class FieldValueCounterTests {
 
 	@Test
 	public void nameWithData() {
-		Map<String, Double> map = new HashMap<String,Double>();
+		Map<String, Double> map = new HashMap<String, Double>();
 		map.put("obamavotes", 100.0);
 		map.put("biebervotes", 100000.0);
 		FieldValueCounter c = new FieldValueCounter("myFieldValueCounter", map);
 		assertThat(c.getName(), equalTo("myFieldValueCounter"));
 		assertThat(c.getFieldValueCount(), equalTo(map));
 	}
-	
+
 	@Test
 	public void equalsContract() {
 		EqualsVerifier.forClass(FieldValueCounter.class).suppress(Warning.NONFINAL_FIELDS).verify();

@@ -19,6 +19,7 @@ package org.springframework.xd.dirt.plugins;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.support.MessageBuilder;
@@ -39,16 +40,16 @@ public class ModuleDeploymentTests {
 
 	@Test
 	@Ignore
-	public void testGenericModule() throws Exception {
+	public void testProcessor() throws Exception {
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
 		connectionFactory.afterPropertiesSet();
 		RedisQueueOutboundChannelAdapter adapter = new RedisQueueOutboundChannelAdapter("queue.deployer", connectionFactory);
 		adapter.setExtractPayload(false);
 		adapter.afterPropertiesSet();
 		ModuleDeploymentRequest request = new ModuleDeploymentRequest();
-		request.setGroup("");
-		request.setType("generic");
-		request.setModule("test");
+		request.setGroup("test");
+		request.setType("processor");
+		request.setModule("filter");
 		request.setIndex(0);
 		Message<?> message = MessageBuilder.withPayload(request.toString()).build();
 		adapter.handleMessage(message);
@@ -65,14 +66,14 @@ public class ModuleDeploymentTests {
 		ModuleDeploymentRequest sinkRequest = new ModuleDeploymentRequest();
 		sinkRequest.setGroup("teststream");
 		sinkRequest.setType("sink");
-		sinkRequest.setModule("testsink");
+		sinkRequest.setModule("log");
 		sinkRequest.setIndex(1);
 		Message<?> sinkMessage = MessageBuilder.withPayload(sinkRequest.toString()).build();
 		adapter.handleMessage(sinkMessage);
 		ModuleDeploymentRequest sourceRequest = new ModuleDeploymentRequest();
 		sourceRequest.setGroup("teststream");
 		sourceRequest.setType("source");
-		sourceRequest.setModule("testsource");
+		sourceRequest.setModule("time");
 		sourceRequest.setIndex(0);
 		Message<?> sourceMessage = MessageBuilder.withPayload(sourceRequest.toString()).build();
 		adapter.handleMessage(sourceMessage);

@@ -12,6 +12,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -81,6 +82,16 @@ public class FieldValueCounterHandlerTests {
 		
 	}
 	
+	@Test
+	public void acceptsJson() {
+		String json = "{\"mentions\":[\"markp\",\"markf\",\"jurgen\"]}";
+		FieldValueCounterHandler handler = new FieldValueCounterHandler(fieldValueCounterService, mentionsFieldValueCounterName, "mentions");
+		handler.process(new GenericMessage<String>(json));
+		Map<String, Double> counts = repo.findOne(mentionsFieldValueCounterName).getFieldValueCount();
+		assertThat(counts.get("markp"), equalTo(1.0));
+		assertThat(counts.get("markf"), equalTo(1.0));
+		assertThat(counts.get("jurgen"), equalTo(1.0));
+	}
 	
 
 }

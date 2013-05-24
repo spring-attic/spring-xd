@@ -138,6 +138,7 @@ project('spring-xd-dirt') {
 				"org.springframework.integration:spring-integration-event:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-file:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-gemfire:$springIntegrationVersion",
+				"org.springframework.integration:spring-integration-groovy:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-redis:$springIntegrationVersion",
 				"org.springframework.data:spring-data-redis:$springDataRedisVersion",
 				"com.lambdaworks:lettuce:$lettuceVersion",
@@ -152,13 +153,11 @@ project('spring-xd-dirt') {
 	apply plugin:'application'
         // skip the startScripts task to avoid default start script generation
         startScripts.setEnabled(false)	
-       
-        task(launch, dependsOn: 'classes', type: JavaExec) {
-		main = 'org.springframework.xd.dirt.stream.StreamServer'
-		classpath = sourceSets.test.runtimeClasspath
-	}
+	mainClassName = "org.springframework.xd.AdminMain"
 
-	mainClassName = "org.springframework.xd.ContainerMain"
+	run {
+		args = ["--embeddedContainer"]
+	}
 
 	task moduleFiles {
 		def modules = file("$rootDir/modules")

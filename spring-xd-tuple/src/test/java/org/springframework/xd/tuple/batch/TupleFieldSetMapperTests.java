@@ -3,6 +3,7 @@ package org.springframework.xd.tuple.batch;
 import static org.junit.Assert.assertEquals;
 
 import java.math.BigDecimal;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -16,6 +17,7 @@ import org.springframework.xd.tuple.Tuple;
 public class TupleFieldSetMapperTests {
 
 	private TupleFieldSetMapper mapper;
+	private static DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 
 	@Before
 	public void setUp() throws Exception {
@@ -55,7 +57,7 @@ public class TupleFieldSetMapperTests {
 		assertEquals(true, result.getValue("field2"));
 		assertEquals((byte) 1, result.getValue("field3"));
 		assertEquals('M', result.getValue("field4"));
-		assertEquals(new Date(246344400000l), result.getValue("field5"));
+		assertEquals(formatter.parse("1977-10-22"), result.getValue("field5"));
 		assertEquals(2.22, result.getValue("field6"));
 		assertEquals(9.99f, result.getValue("field7"));
 		assertEquals(5, result.getValue("field8"));
@@ -65,14 +67,16 @@ public class TupleFieldSetMapperTests {
 		assertEquals("2007-06-23", result.getValue("field12"));
 	}
 
+
 	@Test
 	public void testCustomDateFormatting() throws Exception {
-		mapper.setDateFormat(new SimpleDateFormat("MM/dd/yyyy hh:mm a"));
+		SimpleDateFormat customFormatter = new SimpleDateFormat("MM/dd/yyyy hh:mm a");
+		mapper.setDateFormat(customFormatter);
 
 		FieldSet fieldSet = new DefaultFieldSet(new String[] {"10/22/1977 01:25 AM"}, new String [] {"dateField"});
 
 		Tuple result = mapper.mapFieldSet(fieldSet);
 
-		assertEquals(new Date(246349500000l), result.getDate(0));
+		assertEquals(customFormatter.parse("10/22/1977 01:25 AM"), result.getDate(0));
 	}
 }

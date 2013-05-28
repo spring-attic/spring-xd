@@ -332,30 +332,33 @@ task wrapper(type: Wrapper) {
 	gradleVersion = "1.6"
 }
 
-task copyRedisInstall(type: Copy) {
-	from "$rootDir/redis/build/install/redis"
-	into "$rootDir/dist/spring-xd/redis"
+task copyRedisInstall(type: Copy, dependsOn: ":redis:installApp") {
+        from "$rootDir/redis/build/install/redis"
+        into "$rootDir/dist/spring-xd/redis"
 }
 
-task copyGemfireInstall(type: Copy) {
-	from "$rootDir/spring-xd-gemfire-server/build/install/spring-xd-gemfire-server"
-	into "$rootDir/dist/spring-xd/gemfire"
+task copyGemfireInstall(type: Copy, dependsOn: ":spring-xd-gemfire-server:installApp") {
+        from "$rootDir/spring-xd-gemfire-server/build/install/spring-xd-gemfire-server"
+        into "$rootDir/dist/spring-xd/gemfire"
 }
 
-task copyXDInstall(type: Copy) {
-	from "$rootDir/spring-xd-dirt/build/install/spring-xd-dirt"
-	into "$rootDir/dist/spring-xd/xd"
+task copyXDInstall(type: Copy, dependsOn: [":spring-xd-dirt:build", ":spring-xd-dirt:installApp"]) {
+        from "$rootDir/spring-xd-dirt/build/install/spring-xd-dirt"
+        into "$rootDir/dist/spring-xd/xd"
+        // Disable DIRT tests as Redis server may not be available/running at this time
+        tasks.getByPath(':spring-xd-dirt:test').setEnabled(false)
 }
 
-task copyXD(type: Copy, dependsOn: ['copyRedisInstall', 'copyGemfireInstall', 'copyXDInstall']) {
-	description = "Copy all the required installs"
-	from "$rootDir/scripts/README"
-	from "$rootDir/scripts/LICENSE"
-	into "$rootDir/dist/spring-xd"
+task distXD (type: Copy, dependsOn: ["copyRedisInstall", "copyGemfireInstall", "copyXDInstall"]) {
+    	description = "Copy all the required installs"
+        from "$rootDir/scripts/README"
+        from "$rootDir/scripts/LICENSE"
+        into "$rootDir/dist/spring-xd"
 }
 
-task zipXD(type: Zip, dependsOn: copyXD) {
-	from file("$rootDir/dist/spring-xd").absolutePath
-	into "spring-xd"
-	destinationDir file("$rootDir/dist")
+task zipXD (type: Zip, dependsOn: "distXD"){
+	description = "Bundles Spring XD into dist/"
+        from file("$rootDir/dist/spring-xd").absolutePath
+        into "spring-xd"
+        destinationDir file("$rootDir/dist")
 }

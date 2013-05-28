@@ -323,6 +323,10 @@ sonarRunner {
 	}
 }
 
+task launch {
+	dependsOn 'spring-xd-dirt:run'
+}
+
 task wrapper(type: Wrapper) {
 	description = "Generates gradlew[.bat] scripts"
 	gradleVersion = "1.6"

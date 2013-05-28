@@ -7,7 +7,9 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<int-syslog:inbound-channel-adapter id="adapter" channel="output" port="11111"/>
+	<int-syslog:inbound-channel-adapter id="adapter" channel="output"
+			protocol="udp"
+			port="${port:11111}"/>
 
 	<int:channel id="output"/>
 

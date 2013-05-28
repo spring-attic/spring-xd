@@ -1,4 +1,14 @@
-The Spring-XD distribution has the following directory structure:
+Please follow the below instructions to create Spring-XD bundle:
+
+To create a dist directory(without bundle zip), from the spring-xd root directory:
+
+./gradlew distXD
+
+To create a dist zip:
+
+./gradlew zipXD
+
+This will create a "dist" directory under spring-xd root and will have the Spring-XD distribution hwith the following directory structure:
 
 ├── spring-xd
 │   ├── gemfire
@@ -50,7 +60,8 @@ The Spring-XD distribution has the following directory structure:
 
 To install Redis:
 
-./spring-xd/redis/bin/install-redis
+cd spring-xd/redis/bin
+./install-redis
   - This will compile the redis source tar and make the executables available under redis/bin
 
 To run Spring-XD container:

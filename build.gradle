@@ -32,8 +32,8 @@ allprojects {
 }
 
 subprojects { subproject ->
-     
-        apply plugin: 'java'
+
+	apply plugin: 'java'
 	apply from:   "${rootProject.projectDir}/publish-maven.gradle"
 	apply plugin: 'eclipse'
 	apply plugin: 'idea'
@@ -109,7 +109,7 @@ subprojects { subproject ->
 }
 
 project('spring-xd-analytics') {
-	description = 'Spring XD Anaytics'
+	description = 'Spring XD Anayltics'
 	dependencies {
 		compile project(":spring-xd-tuple")
 		compile "org.springframework:spring-core:$springVersion"
@@ -150,8 +150,8 @@ project('spring-xd-dirt') {
 		testCompile project(":spring-xd-test")
 	}
 	apply plugin:'application'
-        // skip the startScripts task to avoid default start script generation
-        startScripts.setEnabled(false)	
+	// skip the startScripts task to avoid default start script generation
+	startScripts.setEnabled(false)
 	mainClassName = "org.springframework.xd.AdminMain"
 
 	run {
@@ -198,9 +198,9 @@ project ('spring-xd-gemfire-server') {
 	}
 	apply plugin:'application'
 	// skip the startScripts task to avoid default start script generation
-        startScripts.setEnabled(false)
+		startScripts.setEnabled(false)
 
-        task(launch, dependsOn: 'classes', type: JavaExec) {
+		task(launch, dependsOn: 'classes', type: JavaExec) {
 		main = 'org.springframework.xd.gemfire.CacheServer'
 		classpath = sourceSets.test.runtimeClasspath
 		if (rootProject.hasProperty('config')) {
@@ -227,32 +227,33 @@ project ('spring-xd-gemfire-server') {
 	applicationDistribution.from(scriptFiles) {
 		into "bin"
 	}
-
 }
+
 
 project('redis') {
-        description = 'Redis distribution'
-        apply plugin:'application'
-        startScripts.setEnabled(false)
-        jar.setEnabled(false) 
-        task scriptFiles {
-                def scripts = file("$rootDir/scripts/redis")
-                outputs.dir scripts
-        }
+	description = 'Redis distribution'
+	apply plugin: 'application'
+	startScripts.setEnabled(false)
+	jar.setEnabled(false)
+	task scriptFiles {
+		def scripts = file("$rootDir/scripts/redis")
+		outputs.dir scripts
+	}
 
-        applicationDistribution.from(scriptFiles) {
-                into "bin"
-        }
-        
-        task sourceDist {
-                def distFile = file("$rootDir/redis/dist")
-                outputs.dir distFile
-        }
+	applicationDistribution.from(scriptFiles) {
+		into "bin"
+	}
 
-        applicationDistribution.from(sourceDist) {
-                into "dist"
-        }
+	task sourceDist {
+		def distFile = file("$rootDir/redis/dist")
+		outputs.dir distFile
+	}
+
+	applicationDistribution.from(sourceDist) {
+		into "dist"
+	}
 }
+
 project('spring-xd-module') {
 	description = 'Spring XD Module'
 	dependencies {
@@ -322,35 +323,42 @@ sonarRunner {
 	}
 }
 
+task launch {
+	dependsOn 'spring-xd-dirt:run'
+}
+
 task wrapper(type: Wrapper) {
 	description = "Generates gradlew[.bat] scripts"
 	gradleVersion = "1.6"
 }
 
-task copyRedisInstall(type: Copy) {
+task copyRedisInstall(type: Copy, dependsOn: ":redis:installApp") {
         from "$rootDir/redis/build/install/redis"
         into "$rootDir/dist/spring-xd/redis"
 }
 
-task copyGemfireInstall(type: Copy) {
+task copyGemfireInstall(type: Copy, dependsOn: ":spring-xd-gemfire-server:installApp") {
         from "$rootDir/spring-xd-gemfire-server/build/install/spring-xd-gemfire-server"
         into "$rootDir/dist/spring-xd/gemfire"
 }
 
-task copyXDInstall(type: Copy) {
+task copyXDInstall(type: Copy, dependsOn: [":spring-xd-dirt:build", ":spring-xd-dirt:installApp"]) {
         from "$rootDir/spring-xd-dirt/build/install/spring-xd-dirt"
         into "$rootDir/dist/spring-xd/xd"
+        // Disable DIRT tests as Redis server may not be available/running at this time
+        tasks.getByPath(':spring-xd-dirt:test').setEnabled(false)
 }
 
-task copyXD (type: Copy, dependsOn: ['copyRedisInstall', 'copyGemfireInstall', 'copyXDInstall']) {
+task distXD (type: Copy, dependsOn: ["copyRedisInstall", "copyGemfireInstall", "copyXDInstall"]) {
     	description = "Copy all the required installs"
         from "$rootDir/scripts/README"
         from "$rootDir/scripts/LICENSE"
         into "$rootDir/dist/spring-xd"
 }
 
-task zipXD (type: Zip, dependsOn: copyXD){
-	from file("$rootDir/dist/spring-xd").absolutePath
+task zipXD (type: Zip, dependsOn: "distXD"){
+	description = "Bundles Spring XD into dist/"
+        from file("$rootDir/dist/spring-xd").absolutePath
         into "spring-xd"
-        destinationDir file("$rootDir/dist") 
+        destinationDir file("$rootDir/dist")
 }

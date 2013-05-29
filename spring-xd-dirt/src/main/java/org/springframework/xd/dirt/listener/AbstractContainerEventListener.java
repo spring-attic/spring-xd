@@ -19,9 +19,11 @@ package org.springframework.xd.dirt.listener;
 import org.springframework.context.ApplicationListener;
 import org.springframework.xd.dirt.event.AbstractContainerEvent;
 import org.springframework.xd.dirt.event.ContainerStartedEvent;
+import org.springframework.xd.dirt.event.ContainerStoppedEvent;
 
 /**
  * @author Mark Fisher
+ * @author Jennifer Hickey
  */
 public abstract class AbstractContainerEventListener implements ApplicationListener<AbstractContainerEvent> {
 
@@ -29,9 +31,13 @@ public abstract class AbstractContainerEventListener implements ApplicationListe
 	public void onApplicationEvent(AbstractContainerEvent event) {
 		if (event instanceof ContainerStartedEvent) {
 			onContainerStartedEvent((ContainerStartedEvent) event);
+		}else if(event instanceof ContainerStoppedEvent) {
+			onContainerStoppedEvent((ContainerStoppedEvent) event);
 		}
 	}
 
 	protected abstract void onContainerStartedEvent(ContainerStartedEvent event);
+
+	protected abstract void onContainerStoppedEvent(ContainerStoppedEvent event);
 
 }

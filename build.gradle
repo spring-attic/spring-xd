@@ -31,8 +31,11 @@ allprojects {
 	}
 }
 
-subprojects { subproject ->
+def javaProjects() {
+        subprojects.findAll { project -> project.name != 'redis' }
+}
 
+configure(javaProjects()) {
 	apply plugin: 'java'
 	apply from:   "${rootProject.projectDir}/publish-maven.gradle"
 	apply plugin: 'eclipse'
@@ -232,26 +235,24 @@ project ('spring-xd-gemfire-server') {
 
 project('redis') {
 	description = 'Redis distribution'
-	apply plugin: 'application'
-	startScripts.setEnabled(false)
-	jar.setEnabled(false)
-	task scriptFiles {
-		def scripts = file("$rootDir/scripts/redis")
-		outputs.dir scripts
-	}
+        task syncScriptFiles(type: Sync) {
+                from "$rootDir/scripts/redis"
+                into project.file("${project.buildDir}/install/redis/bin")
+        }
 
-	applicationDistribution.from(scriptFiles) {
-		into "bin"
-	}
+        task sourceDist {
+                def distFile = file("$rootDir/redis/dist")
+                outputs.dir distFile
+        }
 
-	task sourceDist {
-		def distFile = file("$rootDir/redis/dist")
-		outputs.dir distFile
-	}
+        task syncDistFile(type: Sync) {
+                from "$rootDir/redis/dist"
+                into project.file("${project.buildDir}/install/redis/dist")
+        }
 
-	applicationDistribution.from(sourceDist) {
-		into "dist"
-	}
+        task bundleRedis(dependsOn: ['syncScriptFiles', 'syncDistFile']) {
+                description = "Bundle redis source dist with install script"
+        } 
 }
 
 project('spring-xd-module') {
@@ -334,7 +335,7 @@ task wrapper(type: Wrapper) {
 	gradleVersion = "1.6"
 }
 
-task copyRedisInstall(type: Copy, dependsOn: ":redis:installApp") {
+task copyRedisInstall(type: Copy, dependsOn: ":redis:bundleRedis") {
         from "$rootDir/redis/build/install/redis"
         into "$rootDir/dist/spring-xd/redis"
 }

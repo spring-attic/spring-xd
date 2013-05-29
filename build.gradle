@@ -252,6 +252,11 @@ project('redis') {
 
         task bundleRedis(dependsOn: ['syncScriptFiles', 'syncDistFile']) {
                 description = "Bundle redis source dist with install script"
+        }
+        
+        task clean(type: Delete) {
+		description = "Wipes Redis build/install directory"
+                delete 'build'
         } 
 }
 
@@ -348,8 +353,6 @@ task copyGemfireInstall(type: Copy, dependsOn: ":spring-xd-gemfire-server:instal
 task copyXDInstall(type: Copy, dependsOn: [":spring-xd-dirt:build", ":spring-xd-dirt:installApp"]) {
         from "$rootDir/spring-xd-dirt/build/install/spring-xd-dirt"
         into "$rootDir/dist/spring-xd/xd"
-        // Disable DIRT tests as Redis server may not be available/running at this time
-        tasks.getByPath(':spring-xd-dirt:test').setEnabled(false)
 }
 
 task distXD (type: Copy, dependsOn: ["copyRedisInstall", "copyGemfireInstall", "copyXDInstall"]) {

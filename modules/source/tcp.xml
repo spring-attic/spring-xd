@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-ip="http://www.springframework.org/schema/integration/ip"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration/ip http://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+	<int-ip:tcp-connection-factory id="connectionFactory"
+		type="server"
+		port="${port:1234}"
+		lookup-host="${reverse-lookup:false}"
+		so-timeout="${socket-timeout:120000}"
+		using-nio="${nio:false}"
+		using-direct-buffers="${nio:false}"
+		deserializer="${decoder:CRLF}"/>
+
+	<int-ip:tcp-inbound-channel-adapter id="adapter" channel="toString"
+			connection-factory="connectionFactory"/>
+
+	<!-- Binary payloads are not currently supported; see XD-145 -->
+<!-- 	<int:router input-channel="toStringIfNeeded" expression="${binary:false} ? 'output' : 'toString'"/> -->
+
+	<int:transformer input-channel="toString" output-channel="output" expression="new String(payload, '${charset:UTF-8}')"/>
+
+	<int:channel id="output"/>
+
+	<bean id="CRLF" class="org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer"/>
+	<bean id="LF" class="org.springframework.integration.ip.tcp.serializer.ByteArrayLfSerializer"/>
+	<bean id="NULL" class="org.springframework.integration.ip.tcp.serializer.ByteArraySingleTerminatorSerializer">
+		<constructor-arg value="0" />
+	</bean>
+	<bean id="STXETX" class="org.springframework.integration.ip.tcp.serializer.ByteArrayStxEtxSerializer"/>
+	<bean id="RAW" class="org.springframework.integration.ip.tcp.serializer.ByteArrayRawSerializer"/>
+	<bean id="L1" class="org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSerializer">
+		<constructor-arg value="1" />
+	</bean>
+	<bean id="L2" class="org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSerializer">
+		<constructor-arg value="2" />
+	</bean>
+	<bean id="L4" class="org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSerializer">
+		<constructor-arg value="4" />
+	</bean>
+
+</beans>

@@ -115,7 +115,7 @@ project('spring-xd-analytics') {
 		compile "org.springframework:spring-core:$springVersion"
 		compile "org.springframework.data:spring-data-redis:$springDataRedisVersion"
 		compile "com.lambdaworks:lettuce:$lettuceVersion"
-		compile "org.springframework.data:spring-data-mongodb:$springDataMongoVersion"	
+		compile "org.springframework.data:spring-data-mongodb:$springDataMongoVersion"
 		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
 		compile "joda-time:joda-time:$jodaTimeVersion"
 		testCompile "nl.jqno.equalsverifier:equalsverifier:1.1.3"
@@ -278,7 +278,7 @@ project('spring-xd-tuple') {
 		compile "org.springframework.batch:spring-batch-infrastructure:$springBatchVersion"
 		compile "org.springframework:spring-jdbc:$springVersion"
 		testCompile ("org.mockito:mockito-core:$mockitoVersion") {
-			exclude group:'org.hamcrest' 
+			exclude group:'org.hamcrest'
 		}
 	}
 }
@@ -294,7 +294,9 @@ project('spring-xd-hadoop') {
 		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
 		compile "org.springframework.batch:spring-batch-core:$springBatchVersion"
 		compile "org.springframework.data:spring-data-mongodb:$springDataMongoVersion"
-		compile "org.springframework.data:spring-data-hadoop:$springDataHadoopVersion"
+		compile ("org.springframework.data:spring-data-hadoop:$springDataHadoopVersion") {
+			exclude group: 'org.mortbay.jetty'
+		}
 	}
 }
 

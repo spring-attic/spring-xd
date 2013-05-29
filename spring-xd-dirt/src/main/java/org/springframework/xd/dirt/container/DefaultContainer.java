@@ -18,7 +18,6 @@ package org.springframework.xd.dirt.container;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.context.support.AbstractApplicationContext;
@@ -26,9 +25,11 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.Container;
 import org.springframework.xd.dirt.event.ContainerStartedEvent;
+import org.springframework.xd.dirt.event.ContainerStoppedEvent;
 
 /**
  * @author Mark Fisher
+ * @author Jennifer Hickey
  */
 public class DefaultContainer implements Container, SmartLifecycle {
 
@@ -82,6 +83,7 @@ public class DefaultContainer implements Container, SmartLifecycle {
 	@Override
 	public void stop() {
 		if (this.context != null) {
+			this.context.publishEvent(new ContainerStoppedEvent(this));
 			this.context.close();
 		}
 	}
@@ -96,5 +98,4 @@ public class DefaultContainer implements Container, SmartLifecycle {
 		Assert.state(this.context != null, "context is not initialized");
 		this.context.addApplicationListener(listener);
 	}
-
 }

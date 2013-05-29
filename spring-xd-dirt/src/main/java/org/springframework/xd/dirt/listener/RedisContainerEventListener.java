@@ -25,9 +25,11 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.xd.dirt.core.Container;
 import org.springframework.xd.dirt.event.ContainerStartedEvent;
+import org.springframework.xd.dirt.event.ContainerStoppedEvent;
 
 /**
  * @author Mark Fisher
+ * @author Jennifer Hickey
  */
 public class RedisContainerEventListener extends AbstractContainerEventListener {
 
@@ -48,6 +50,13 @@ public class RedisContainerEventListener extends AbstractContainerEventListener 
 		}
 		Container container = event.getSource();
 		this.redisTemplate.boundHashOps("containers").put(container.getId(), name);
+	}
+
+	@Override
+	protected void onContainerStoppedEvent(ContainerStoppedEvent event) {
+		Container container = event.getSource();
+		this.redisTemplate.boundHashOps("containers").delete(container.getId());
+		this.redisTemplate.delete(container.getId());
 	}
 
 }

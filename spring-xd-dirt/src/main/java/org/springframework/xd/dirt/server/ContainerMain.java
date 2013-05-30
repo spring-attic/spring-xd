@@ -56,10 +56,6 @@ public class ContainerMain {
 		}
 		
 		if (options.isEmbeddedAdmin() == true ) {	
-			if (StringUtils.isNotEmpty(options.getXDHomeDir())) {
-				System.setProperty("xd.home", options.getXDHomeDir());
-			}
-
 			StreamServer.launch(options.getRedisHost(), options.getRedisPort());
 		}
 		

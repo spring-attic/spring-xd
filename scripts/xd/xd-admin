@@ -6,7 +6,7 @@
 ##
 ##############################################################################
 
-# Add default JVM options here. You can also use JAVA_OPTS and SPRING_XD_DIRT_OPTS to pass JVM options to this script.
+# Add default JVM options here. You can also use JAVA_OPTS and SPRING_XD_ADMIN_OPTS to pass JVM options to this script.
 DEFAULT_JVM_OPTS=""
 
 APP_NAME="xd-admin"
@@ -159,6 +159,13 @@ if $cygwin ; then
         (9) set -- "$args0" "$args1" "$args2" "$args3" "$args4" "$args5" "$args6" "$args7" "$args8" ;;
     esac
 fi
+
+# check if XD_HOME is already set; if it is not, then set APP_HOME as XD_HOME
+if [ x"$XD_HOME" = x ] ; then
+    XD_HOME=$APP_HOME
+fi
+# set XD_HOME as system property via SPRING_XD_CONTAINER_OPTS
+SPRING_XD_ADMIN_OPTS=-Dxd.home=$XD_HOME
 
 # Split up the JVM_OPTS And SPRING_XD_ADMIN_OPTS values into an array, following the shell quoting and substitution rules
 function splitJvmOpts() {

@@ -12,14 +12,19 @@
 
 	<channel id="input"/>
 
-	<transformer input-channel="input" expression="payload + @newline" output-channel="files"/>
+	<router input-channel="input" expression="${binary:false} ? 'files' : 'appendNewline'"/>
+
+	<transformer input-channel="appendNewline" expression="payload + @newline" output-channel="files"/>
 
 	<beans:bean id="newline" class="java.lang.String">
 		<beans:constructor-arg value="#{systemProperties['line.separator']}"/>
 	</beans:bean>
 
+	<channel id="files"/>
+
 	<file:outbound-channel-adapter id="files"
 		mode="APPEND"
+		charset="${charset:UTF-8}"
 		directory="${dir:/tmp/xd/output/}"
 		filename-generator-expression="'${name:${xd.stream.name}}'"/>
 

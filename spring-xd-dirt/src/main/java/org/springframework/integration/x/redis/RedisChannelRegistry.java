@@ -55,6 +55,7 @@ public class RedisChannelRegistry implements ChannelRegistry, DisposableBean {
 
 	private final List<Lifecycle> lifecycleBeans = Collections.synchronizedList(new ArrayList<Lifecycle>());
 
+
 	public RedisChannelRegistry(RedisConnectionFactory connectionFactory) {
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");
 		this.redisTemplate.setConnectionFactory(connectionFactory);
@@ -103,7 +104,8 @@ public class RedisChannelRegistry implements ChannelRegistry, DisposableBean {
 						&& ("outbound." + name).equals(((IntegrationObjectSupport) endpoint).getComponentName())) {
 					((EventDrivenConsumer) endpoint).stop();
 					iterator.remove();
-				} else if (endpoint instanceof RedisQueueInboundChannelAdapter
+				}
+				else if (endpoint instanceof RedisQueueInboundChannelAdapter
 						&& (("inbound." + name).equals(((IntegrationObjectSupport) endpoint).getComponentName()))) {
 					((RedisQueueInboundChannelAdapter) endpoint).stop();
 					iterator.remove();

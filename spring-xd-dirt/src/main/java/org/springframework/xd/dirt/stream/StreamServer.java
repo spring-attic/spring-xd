@@ -174,12 +174,15 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 		@Override
 		protected void service(HttpServletRequest request, HttpServletResponse response)
 				throws ServletException, IOException {
+			String streamName = request.getPathInfo();
+			Assert.hasText(streamName, "no stream name (e.g. localhost/streams/streamname");
+			streamName = streamName.replaceAll("/", "");
 			if ("POST".equalsIgnoreCase(request.getMethod())) {
 				String streamConfig = FileCopyUtils.copyToString(request.getReader());
-				String streamName = request.getPathInfo();
-				Assert.hasText(streamName, "no stream name (e.g. localhost/streams/streamname");
-				streamName = streamName.replaceAll("/", "");
 				streamDeployer.deployStream(streamName, streamConfig);
+			}
+			else if ("DELETE".equalsIgnoreCase(request.getMethod())) {
+				streamDeployer.undeployStream(streamName);
 			}
 			else {
 				response.sendError(405);

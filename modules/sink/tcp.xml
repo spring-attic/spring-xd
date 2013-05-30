@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-ip="http://www.springframework.org/schema/integration/ip"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration/ip http://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+	<int:channel id="input"/>
+
+	<int-ip:tcp-connection-factory id="connectionFactory"
+		type="client"
+		host="${host:localhost}"
+		port="${port:1234}"
+		lookup-host="${reverse-lookup:false}"
+		using-nio="${nio:false}"
+		using-direct-buffers="${nio:false}"
+		single-use="${close:false}"
+		mapper="mapper"
+		serializer="${encoder:CRLF}"/>
+
+	<!--
+		TCP Outbound adapter with retries - default is 5 attempts with exponential backoff starting at
+		2 seconds with a 2x multiplier.
+	 -->
+	<int-ip:tcp-outbound-channel-adapter id="adapter" channel="input"
+			connection-factory="connectionFactory">
+		<int-ip:request-handler-advice-chain>
+			<bean class="org.springframework.integration.handler.advice.RequestHandlerRetryAdvice">
+				<property name="retryTemplate">
+					<bean class="org.springframework.retry.support.RetryTemplate">
+						<property name="retryPolicy">
+							<bean class="org.springframework.retry.policy.SimpleRetryPolicy">
+								<property name="maxAttempts" value="${retry-max-attempts:5}"/>
+							</bean>
+						</property>
+						<property name="backOffPolicy">
+							<bean class="org.springframework.retry.backoff.ExponentialBackOffPolicy">
+								<property name="initialInterval" value="${retry-initial-interval:2000}"/>
+								<property name="multiplier" value="${retry-multiplier:2}"/>
+							</bean>
+						</property>
+					</bean>
+				</property>
+			</bean>
+		</int-ip:request-handler-advice-chain>
+	</int-ip:tcp-outbound-channel-adapter>
+
+	<bean id="mapper" class="org.springframework.integration.ip.tcp.connection.TcpMessageMapper">
+		<property name="charset" value="${charset:UTF-8}"/>
+	</bean>
+
+	<bean id="CRLF" class="org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer"/>
+	<bean id="LF" class="org.springframework.integration.ip.tcp.serializer.ByteArrayLfSerializer"/>
+	<bean id="NULL" class="org.springframework.integration.ip.tcp.serializer.ByteArraySingleTerminatorSerializer">
+		<constructor-arg value="0" />
+	</bean>
+	<bean id="STXETX" class="org.springframework.integration.ip.tcp.serializer.ByteArrayStxEtxSerializer"/>
+	<bean id="RAW" class="org.springframework.integration.ip.tcp.serializer.ByteArrayRawSerializer"/>
+	<bean id="L1" class="org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSerializer">
+		<constructor-arg value="1" />
+	</bean>
+	<bean id="L2" class="org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSerializer">
+		<constructor-arg value="2" />
+	</bean>
+	<bean id="L4" class="org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSerializer">
+		<constructor-arg value="4" />
+	</bean>
+
+</beans>

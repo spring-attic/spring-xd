@@ -19,7 +19,7 @@
 
 	<int:channel id="input"/>
 
-	<bean id="redisInboundAdapter" class="org.springframework.integration.x.redis.RedisQueueInboundChannelAdapter">
+	<bean id="redisInboundAdapter" class="org.springframework.integration.redis.inbound.RedisQueueInboundChannelAdapter">
 		<constructor-arg value="queue.deployer"/>
 		<constructor-arg ref="redisConnectionFactory"/>
 		<property name="outputChannel" ref="input"/>

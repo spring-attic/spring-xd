@@ -155,7 +155,7 @@ project('spring-xd-dirt') {
 	apply plugin:'application'
 	// skip the startScripts task to avoid default start script generation
 	startScripts.setEnabled(false)
-	mainClassName = "org.springframework.xd.AdminMain"
+	mainClassName = "org.springframework.xd.dirt.server.AdminMain"
 
 	run {
 		args = ["--embeddedContainer"]

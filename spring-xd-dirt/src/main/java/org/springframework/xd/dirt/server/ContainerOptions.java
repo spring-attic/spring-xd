@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.xd;
+package org.springframework.xd.dirt.server;
 
 import org.kohsuke.args4j.Option;
 
@@ -22,39 +22,28 @@ import org.kohsuke.args4j.Option;
  * @author Mark Pollack
  *
  */
-public class AdminOptions {
+public class ContainerOptions {
+
+	@Option(name="--embeddedAdmin", usage="embed the XD Admin server in the XD Container")
+	private boolean embeddedAdmin = false;
+	
+	@Option(name="--xdHomeDir", usage="The XD installation directory", metaVar="<xdHomeDir>")
+	private String xdHomeDir = "";
 	
 	//@Option(name="--redisHost", usage="the hostname of the redis sever", metaVar="<redisHost>")
 	private String redisHost = "localhost";
 	
 	//@Option(name="--redisPort", usage="the port number of the redis sever", metaVar="<redisPort>")
 	private int redisPort = 6379;
-	
+
 	@Option(name="--help", usage="Show options help", aliases={"-?", "-h"})
 	private boolean showHelp = false;
 	
-	@Option(name="--xdHomeDir", usage="The XD installation directory, use with --embeddedAdmin", metaVar="<xdHomeDir>")
-	private String xdHomeDir = "";
-	
-	@Option(name="--embeddedContainer", usage="embed the XD Container")
-	private boolean embeddedContainer = false;
 	/**
 	 * @return the showHelp
 	 */
 	public boolean isShowHelp() {
 		return showHelp;
-	}
-	/**
-	 * @return the redisHost
-	 */
-	public String getRedisHost() {
-		return redisHost;
-	}
-	/**
-	 * @return the redisPort
-	 */
-	public int getRedisPort() {
-		return redisPort;
 	}
 
 	/**
@@ -63,20 +52,37 @@ public class AdminOptions {
 	public String getXDHomeDir() {
 		return xdHomeDir;
 	}
+
+	/**
+	 * @return the embeddedAdmin
+	 */
+	public boolean isEmbeddedAdmin() {
+		return embeddedAdmin;
+	}
+
 	/**
 	 * @return the xdHomeDir
 	 */
 	public String getXdHomeDir() {
 		return xdHomeDir;
 	}
+
 	/**
-	 * @return the embeddedContainer
+	 * @return the redisHost
 	 */
-	public boolean isEmbeddedContainer() {
-		return embeddedContainer;
+	public String getRedisHost() {
+		return redisHost;
 	}
+
+	/**
+	 * @return the redisPort
+	 */
+	public int getRedisPort() {
+		return redisPort;
+	}
+
 	
-	
+
 	
 	
 }

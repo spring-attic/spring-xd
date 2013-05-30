@@ -17,6 +17,8 @@
 package org.springframework.integration.x.redis;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
@@ -29,6 +31,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.registry.ChannelRegistry;
+import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
@@ -41,6 +44,7 @@ import org.springframework.util.Assert;
  * A {@link ChannelRegistry} implementation backed by Redis.
  *
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class RedisChannelRegistry implements ChannelRegistry, DisposableBean {
 
@@ -48,7 +52,7 @@ public class RedisChannelRegistry implements ChannelRegistry, DisposableBean {
 
 	private final StringRedisTemplate redisTemplate = new StringRedisTemplate();
 
-	private final List<Lifecycle> lifecycleBeans = new ArrayList<Lifecycle>();
+	private final List<Lifecycle> lifecycleBeans = Collections.synchronizedList(new ArrayList<Lifecycle>());
 
 
 	public RedisChannelRegistry(RedisConnectionFactory connectionFactory) {
@@ -62,6 +66,7 @@ public class RedisChannelRegistry implements ChannelRegistry, DisposableBean {
 	public void inbound(final String name, MessageChannel channel) {
 		RedisQueueInboundChannelAdapter adapter = new RedisQueueInboundChannelAdapter("queue." + name, this.redisTemplate.getConnectionFactory());
 		adapter.setOutputChannel(channel);
+		adapter.setBeanName("inbound." + name);
 		adapter.afterPropertiesSet();
 		this.lifecycleBeans.add(adapter);
 		adapter.start();
@@ -72,6 +77,7 @@ public class RedisChannelRegistry implements ChannelRegistry, DisposableBean {
 		Assert.isInstanceOf(SubscribableChannel.class, channel);
 		MessageHandler handler = new CompositeHandler(name, this.redisTemplate.getConnectionFactory());
 		EventDrivenConsumer consumer = new EventDrivenConsumer((SubscribableChannel) channel, handler);
+		consumer.setBeanName("outbound." + name);
 		consumer.afterPropertiesSet();
 		this.lifecycleBeans.add(consumer);
 		consumer.start();
@@ -82,9 +88,30 @@ public class RedisChannelRegistry implements ChannelRegistry, DisposableBean {
 		RedisInboundChannelAdapter adapter = new RedisInboundChannelAdapter(this.redisTemplate.getConnectionFactory());
 		adapter.setTopics("topic." + name);
 		adapter.setOutputChannel(channel);
+		adapter.setBeanName("tap." + name);
 		adapter.afterPropertiesSet();
 		this.lifecycleBeans.add(adapter);
 		adapter.start();
+	}
+
+	public void stopAndRemoveAll(String name) {
+		synchronized (this.lifecycleBeans) {
+			Iterator<Lifecycle> iterator = this.lifecycleBeans.iterator();
+			while (iterator.hasNext()) {
+				Lifecycle endpoint = iterator.next();
+				if (endpoint instanceof EventDrivenConsumer &&
+						("outbound." + name).equals(((IntegrationObjectSupport) endpoint).getComponentName())) {
+					((EventDrivenConsumer) endpoint).stop();
+					iterator.remove();
+				}
+				else if (endpoint instanceof RedisQueueInboundChannelAdapter &&
+						(("inbound." + name).equals(((IntegrationObjectSupport) endpoint).getComponentName()) ||
+						 ("tap." + name).equals(((IntegrationObjectSupport) endpoint).getComponentName()))) {
+					((RedisQueueInboundChannelAdapter) endpoint).stop();
+					iterator.remove();
+				}
+			}
+		}
 	}
 
 	@Override

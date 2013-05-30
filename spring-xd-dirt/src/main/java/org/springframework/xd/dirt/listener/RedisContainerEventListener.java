@@ -30,6 +30,7 @@ import org.springframework.xd.dirt.event.ContainerStoppedEvent;
 /**
  * @author Mark Fisher
  * @author Jennifer Hickey
+ * @author Gary Russell
  */
 public class RedisContainerEventListener extends AbstractContainerEventListener {
 

@@ -42,6 +42,7 @@ import org.springframework.xd.module.Plugin;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class ModuleDeployer extends AbstractMessageHandler
 		implements ApplicationContextAware, ApplicationEventPublisherAware {
@@ -85,28 +86,33 @@ public class ModuleDeployer extends AbstractMessageHandler
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		ModuleDeploymentRequest request = this.mapper.readValue(message.getPayload().toString(), ModuleDeploymentRequest.class);
-		String group = request.getGroup();
-		int index = request.getIndex();
-		Module module = this.moduleRegistry.lookup(request.getModule(), request.getType());
-		module.setParentContext(this.commonContext);
-		Object properties = message.getHeaders().get("properties");
-		if (properties instanceof Properties) {
-			module.addProperties((Properties) properties);
+		if (request.isRemove()) {
+			this.undeploy(request);
 		}
-		Map<String, String> parameters = request.getParameters();
-		if (!CollectionUtils.isEmpty(parameters)) {
-			Properties parametersAsProps = new Properties();
-			parametersAsProps.putAll(parameters);
-			module.addProperties(parametersAsProps);
+		else {
+			String group = request.getGroup();
+			int index = request.getIndex();
+			Module module = this.moduleRegistry.lookup(request.getModule(), request.getType());
+			module.setParentContext(this.commonContext);
+			Object properties = message.getHeaders().get("properties");
+			if (properties instanceof Properties) {
+				module.addProperties((Properties) properties);
+			}
+			Map<String, String> parameters = request.getParameters();
+			if (!CollectionUtils.isEmpty(parameters)) {
+				Properties parametersAsProps = new Properties();
+				parametersAsProps.putAll(parameters);
+				module.addProperties(parametersAsProps);
+			}
+			module.setParentContext(this.commonContext);
+			this.deployModule(module, group, index);
+			String key = group + ":" + module.getName() + ":" + index;
+			if (logger.isInfoEnabled()) {
+				logger.info("launched " + module.getType() + " module: " + key);
+			}
+			this.deployedModules.putIfAbsent(group, new HashMap<Integer, Module>());
+			this.deployedModules.get(group).put(index, module);
 		}
-		module.setParentContext(this.commonContext);
-		this.deployModule(module, group, index);
-		String key = group + ":" + module.getName() + ":" + index;
-		if (logger.isInfoEnabled()) {
-			logger.info("launched " + module.getType() + " module: " + key);
-		}
-		this.deployedModules.putIfAbsent(group, new HashMap<Integer, Module>());
-		this.deployedModules.get(group).put(index, module);
 	}
 
 	private void deployModule(Module module, String group, int index) {
@@ -115,17 +121,23 @@ public class ModuleDeployer extends AbstractMessageHandler
 		this.fireModuleDeployedEvent(module, group, index);
 	}
 
-	public void undeploy(String group) {
-		Map<Integer, Module> modules = this.deployedModules.remove(group);
-		if (modules != null) {
-			for (Map.Entry<Integer, Module> entry : modules.entrySet()) {
-				Module module = entry.getValue();
-				if (module != null) {
-					// TODO: add beforeShutdown and/or afterShutdown callbacks?
-					module.stop();
-					this.fireModuleUndeployedEvent(module, group, entry.getKey());
-				}
+	public void undeploy(ModuleDeploymentRequest request) {
+		String group = request.getGroup();
+		Map<Integer, Module> modules = this.deployedModules.get(group);
+		int index = request.getIndex();
+		Module module = modules.remove(index);
+		if (modules.size() == 0) {
+			this.deployedModules.remove(group);
+		}
+		if (module != null) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("removed " + module.getType() + " module: " + group +
+						":" + module.getName() + ":" + index);
 			}
+			// TODO: add beforeShutdown and/or afterShutdown callbacks?
+			module.stop();
+			this.removeModule(module, group, index);
+			this.fireModuleUndeployedEvent(module, group, index);
 		}
 	}
 
@@ -137,6 +149,14 @@ public class ModuleDeployer extends AbstractMessageHandler
 		if (this.plugins != null) {
 			for (Plugin plugin : this.plugins.values()) {
 				plugin.processModule(module, group, index);
+			}
+		}
+	}
+
+	private void removeModule(Module module, String group, int index) {
+		if (this.plugins != null) {
+			for (Plugin plugin : this.plugins.values()) {
+				plugin.removeModule(module, group, index);
 			}
 		}
 	}

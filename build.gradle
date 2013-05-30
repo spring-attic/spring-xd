@@ -120,6 +120,9 @@ project('spring-xd-analytics') {
 		compile "joda-time:joda-time:$jodaTimeVersion"
 		testCompile "nl.jqno.equalsverifier:equalsverifier:1.1.3"
 		testCompile "org.springframework:spring-test:$springVersion"
+		testCompile ("org.mockito:mockito-core:$mockitoVersion") {
+			exclude group:'org.hamcrest' 
+		}
 	}
 }
 

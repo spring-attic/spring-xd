@@ -21,12 +21,14 @@ import java.util.Properties;
 
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.registry.ChannelRegistry;
+import org.springframework.integration.x.redis.RedisChannelRegistry;
 import org.springframework.util.Assert;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.Plugin;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class StreamPlugin implements Plugin {
 
@@ -43,6 +45,14 @@ public class StreamPlugin implements Plugin {
 		if (("source".equals(type) || "processor".equals(type) || "sink".equals(type)) && group != null) {
 			this.registerChannels(module.getComponents(MessageChannel.class), group, index);
 			this.configureProperties(module, group);
+		}
+	}
+
+	@Override
+	public void removeModule(Module module, String group, int index) {
+		if (this.channelRegistry instanceof RedisChannelRegistry) {
+			RedisChannelRegistry registry = (RedisChannelRegistry) this.channelRegistry;
+			registry.stopAndRemoveAll(group + "."  + index);
 		}
 	}
 

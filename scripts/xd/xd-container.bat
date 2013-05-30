@@ -80,8 +80,14 @@ if exist "%APP_HOME_LIB%" (
     set CLASSPATH=!CLASSPATH!
 )
 
+@rem Set XD_HOME to APP_HOME if XD_HOME is not defined yet
+if not exist "%XD_HOME%" (
+    set XD_HOME=%APP_HOME% 
+)
+set SPRING_XD_CONTAINER_OPTS=-Dxd.home=%XD_HOME%
+
 @rem Execute xd-container
-"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SPRING_XD_CONTAINER_OPTS%  -classpath "%CLASSPATH%" org.springframework.xd.XDContainer %CMD_LINE_ARGS%
+"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SPRING_XD_CONTAINER_OPTS%  -classpath "%CLASSPATH%" org.springframework.xd.dirt.server.ContainerMain %CMD_LINE_ARGS%
 
 :end
 @rem End local scope for the variables with windows NT shell

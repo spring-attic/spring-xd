@@ -22,7 +22,6 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.support.atomic.RedisAtomicLong;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.container.DefaultContainer;
@@ -31,6 +30,7 @@ import org.springframework.xd.dirt.event.ContainerStartedEvent;
 
 /**
  * @author Mark Fisher
+ * @author Jennifer Hickey
  */
 public class RedisContainerLauncher implements ContainerLauncher, ApplicationEventPublisherAware {
 
@@ -38,11 +38,9 @@ public class RedisContainerLauncher implements ContainerLauncher, ApplicationEve
 
 	private volatile ApplicationEventPublisher eventPublisher;
 
-	private final ShutdownListener shutdownListener;
 
 	public RedisContainerLauncher(RedisConnectionFactory connectionFactory) {
 		this.ids = new RedisAtomicLong("idsequence", connectionFactory);
-		this.shutdownListener = new ShutdownListener(connectionFactory);
 	}
 
 	@Override
@@ -55,7 +53,7 @@ public class RedisContainerLauncher implements ContainerLauncher, ApplicationEve
 		long id = ids.incrementAndGet();
 		DefaultContainer container = new DefaultContainer(id + "");
 		container.start();
-		container.addListener(this.shutdownListener);
+		container.addListener(new ShutdownListener(container));
 		this.eventPublisher.publishEvent(new ContainerStartedEvent(container));
 		return container;
 	}
@@ -73,18 +71,15 @@ public class RedisContainerLauncher implements ContainerLauncher, ApplicationEve
 
 	private static class ShutdownListener implements ApplicationListener<ContextClosedEvent> {
 
-		private final StringRedisTemplate redisTemplate = new StringRedisTemplate();
+		private final Container container;
 
-		ShutdownListener(RedisConnectionFactory connectionFactory) {
-			this.redisTemplate.setConnectionFactory(connectionFactory);
-			this.redisTemplate.afterPropertiesSet();
+		ShutdownListener(Container container) {
+			this.container = container;
 		}
 
 		@Override
 		public void onApplicationEvent(ContextClosedEvent event) {
-			String id = event.getApplicationContext().getId();
-			this.redisTemplate.boundHashOps("containers").delete(id);
-			this.redisTemplate.delete(id);
+			container.stop();
 		}
 	}
 

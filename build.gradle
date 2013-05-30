@@ -31,8 +31,11 @@ allprojects {
 	}
 }
 
-subprojects { subproject ->
+def javaProjects() {
+        subprojects.findAll { project -> project.name != 'redis' }
+}
 
+configure(javaProjects()) {
 	apply plugin: 'java'
 	apply from:   "${rootProject.projectDir}/publish-maven.gradle"
 	apply plugin: 'eclipse'
@@ -115,7 +118,7 @@ project('spring-xd-analytics') {
 		compile "org.springframework:spring-core:$springVersion"
 		compile "org.springframework.data:spring-data-redis:$springDataRedisVersion"
 		compile "com.lambdaworks:lettuce:$lettuceVersion"
-		compile "org.springframework.data:spring-data-mongodb:$springDataMongoVersion"	
+		compile "org.springframework.data:spring-data-mongodb:$springDataMongoVersion"
 		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
 		compile "joda-time:joda-time:$jodaTimeVersion"
 		testCompile "nl.jqno.equalsverifier:equalsverifier:1.1.3"
@@ -155,7 +158,7 @@ project('spring-xd-dirt') {
 	apply plugin:'application'
 	// skip the startScripts task to avoid default start script generation
 	startScripts.setEnabled(false)
-	mainClassName = "org.springframework.xd.AdminMain"
+	mainClassName = "org.springframework.xd.dirt.server.AdminMain"
 
 	run {
 		args = ["--embeddedContainer"]
@@ -235,26 +238,29 @@ project ('spring-xd-gemfire-server') {
 
 project('redis') {
 	description = 'Redis distribution'
-	apply plugin: 'application'
-	startScripts.setEnabled(false)
-	jar.setEnabled(false)
-	task scriptFiles {
-		def scripts = file("$rootDir/scripts/redis")
-		outputs.dir scripts
-	}
+        task syncScriptFiles(type: Sync) {
+                from "$rootDir/scripts/redis"
+                into project.file("${project.buildDir}/bin")
+        }
 
-	applicationDistribution.from(scriptFiles) {
-		into "bin"
-	}
+        task sourceDist {
+                def distFile = file("$rootDir/redis/dist")
+                outputs.dir distFile
+        }
 
-	task sourceDist {
-		def distFile = file("$rootDir/redis/dist")
-		outputs.dir distFile
-	}
+        task syncDistFile(type: Sync) {
+                from "$rootDir/redis/dist"
+                into project.file("${project.buildDir}/dist")
+        }
 
-	applicationDistribution.from(sourceDist) {
-		into "dist"
-	}
+        task bundleRedis(dependsOn: ['syncScriptFiles', 'syncDistFile']) {
+                description = "Bundle redis source dist with install script"
+        }
+        
+        task clean(type: Delete) {
+		description = "Wipes Redis build directory"
+                delete 'build'
+        } 
 }
 
 project('spring-xd-module') {
@@ -281,7 +287,7 @@ project('spring-xd-tuple') {
 		compile "org.springframework.batch:spring-batch-infrastructure:$springBatchVersion"
 		compile "org.springframework:spring-jdbc:$springVersion"
 		testCompile ("org.mockito:mockito-core:$mockitoVersion") {
-			exclude group:'org.hamcrest' 
+			exclude group:'org.hamcrest'
 		}
 	}
 }
@@ -297,7 +303,9 @@ project('spring-xd-hadoop') {
 		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
 		compile "org.springframework.batch:spring-batch-core:$springBatchVersion"
 		compile "org.springframework.data:spring-data-mongodb:$springDataMongoVersion"
-		compile "org.springframework.data:spring-data-hadoop:$springDataHadoopVersion"
+		compile ("org.springframework.data:spring-data-hadoop:$springDataHadoopVersion") {
+			exclude group: 'org.mortbay.jetty'
+		}
 	}
 }
 
@@ -335,8 +343,8 @@ task wrapper(type: Wrapper) {
 	gradleVersion = "1.6"
 }
 
-task copyRedisInstall(type: Copy, dependsOn: ":redis:installApp") {
-        from "$rootDir/redis/build/install/redis"
+task copyRedisInstall(type: Copy, dependsOn: ":redis:bundleRedis") {
+        from "$rootDir/redis/build"
         into "$rootDir/dist/spring-xd/redis"
 }
 
@@ -348,8 +356,6 @@ task copyGemfireInstall(type: Copy, dependsOn: ":spring-xd-gemfire-server:instal
 task copyXDInstall(type: Copy, dependsOn: [":spring-xd-dirt:build", ":spring-xd-dirt:installApp"]) {
         from "$rootDir/spring-xd-dirt/build/install/spring-xd-dirt"
         into "$rootDir/dist/spring-xd/xd"
-        // Disable DIRT tests as Redis server may not be available/running at this time
-        tasks.getByPath(':spring-xd-dirt:test').setEnabled(false)
 }
 
 task distXD (type: Copy, dependsOn: ["copyRedisInstall", "copyGemfireInstall", "copyXDInstall"]) {

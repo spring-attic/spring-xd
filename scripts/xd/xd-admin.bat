@@ -81,7 +81,7 @@ if exist "%APP_HOME_LIB%" (
 )
 
 @rem Execute xd-admin
-"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SPRING_XD_ADMIN_OPTS%  -classpath "%CLASSPATH%" org.springframework.xd.AdminMain %CMD_LINE_ARGS%
+"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SPRING_XD_ADMIN_OPTS%  -classpath "%CLASSPATH%" org.springframework.xd.dirt.server.AdminMain %CMD_LINE_ARGS%
 
 :end
 @rem End local scope for the variables with windows NT shell

@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.codehaus.jackson.map.ObjectMapper;
 
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.integration.Message;
@@ -93,23 +94,29 @@ public class RedisQueueInboundChannelAdapter extends MessageProducerSupport {
 
 		@Override
 		public void run() {
-			while (isRunning()) {
-				String next = redisTemplate.boundListOps(queueName).rightPop(5, TimeUnit.SECONDS);
-				if (next != null) {
-					try {
-						Message<?> message = null;
-						if (extractPayload) {
-							message = MessageBuilder.withPayload(next).build();
+			try {
+				while (isRunning()) {
+					String next = redisTemplate.boundListOps(queueName).rightPop(5, TimeUnit.SECONDS);
+					if (next != null) {
+						try {
+							Message<?> message = null;
+							if (extractPayload) {
+								message = MessageBuilder.withPayload(next).build();
+							} else {
+								MessageDeserializationWrapper wrapper = objectMapper.readValue(next,
+										MessageDeserializationWrapper.class);
+								message = wrapper.getMessage();
+							}
+							sendMessage(message);
+						} catch (Exception e) {
+							logger.error("Error sending message", e);
 						}
-						else {
-							MessageDeserializationWrapper wrapper = objectMapper.readValue(next, MessageDeserializationWrapper.class);
-							message = wrapper.getMessage();
-						}
-						sendMessage(message);
 					}
-					catch (Exception e) {
-						e.printStackTrace();
-					}
+
+				}
+			} catch (RedisSystemException e) {
+				if(isRunning()) {
+					logger.error("Error polling Redis queue", e);
 				}
 			}
 		}

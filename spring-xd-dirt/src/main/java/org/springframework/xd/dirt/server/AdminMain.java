@@ -26,6 +26,7 @@ import org.springframework.xd.dirt.stream.StreamServer;
 /**
  * The main driver class for the AdminMain
  * @author Mark Pollack
+ * @author Jennifer Hickey
  *
  */
 public class AdminMain {
@@ -57,7 +58,8 @@ public class AdminMain {
 			RedisContainerLauncher.main(new String[]{});
 		}
 
-		StreamServer.launch(options.getRedisHost(), options.getRedisPort());
+		StreamServer.main(new String[] {options.getRedisHost(), Integer.toString(options.getRedisPort())});
+
 	}
 
 }

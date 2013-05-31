@@ -1,33 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:int="http://www.springframework.org/schema/integration"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<int:channel id="input"/>
+	<int:channel id="input" />
 
-	<int:chain input-channel="input">
-		<int:transformer expression="${valueExpression:payload}"/>
-		<int:service-activator ref="handler"/>
-	</int:chain>
+	<int:service-activator input-channel="input"
+		ref="handler" />
 
-	<bean id="handler" class="org.springframework.xd.analytics.metrics.integration.RichGaugeHandler">
-		<constructor-arg ref="service"/>
-		<constructor-arg value="${name}"/>
+	<bean id="handler"
+		class="org.springframework.xd.analytics.metrics.integration.RichGaugeHandler">
+		<constructor-arg ref="service" />
+		<constructor-arg value="${name:${xd.stream.name}}" />
 	</bean>
 
-	<bean id="service" class="org.springframework.xd.analytics.metrics.redis.RedisRichGaugeService">
-		<constructor-arg ref="repository"/>
+	<bean id="service"
+		class="org.springframework.xd.analytics.metrics.redis.RedisRichGaugeService">
+		<constructor-arg ref="repository" />
 	</bean>
 
-	<bean id="repository" class="org.springframework.xd.analytics.metrics.redis.RedisRichGaugeRepository">
-		<constructor-arg ref="connectionFactory"/>
+	<bean id="repository"
+		class="org.springframework.xd.analytics.metrics.redis.RedisRichGaugeRepository">
+		<constructor-arg ref="connectionFactory" />
 	</bean>
 
-	<bean id="connectionFactory" class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory">
-		<constructor-arg index="0" value="${redis.hostname:localhost}"/>
-		<constructor-arg index="1" value="${redis.port:6379}"/>	  
+	<bean id="connectionFactory"
+		class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory">
+		<constructor-arg index="0" value="${redis.hostname:localhost}" />
+		<constructor-arg index="1" value="${redis.port:6379}" />
 	</bean>
 
 </beans>

@@ -126,6 +126,10 @@ project('spring-xd-analytics') {
 		testCompile ("org.mockito:mockito-core:$mockitoVersion") {
 			exclude group:'org.hamcrest' 
 		}
+		testCompile "org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion"
+		runtime "log4j:log4j:$log4jVersion",
+				"org.slf4j:jcl-over-slf4j:$slf4jVersion",
+				"org.slf4j:slf4j-log4j12:$slf4jVersion"
 	}
 }
 
@@ -164,6 +168,11 @@ project('spring-xd-dirt') {
 		args = ["--embeddedContainer"]
 	}
 
+        task configFiles {
+                def config = file("$rootDir/config")
+                outputs.dir config
+        }
+
 	task moduleFiles {
 		def modules = file("$rootDir/modules")
 		outputs.dir modules
@@ -173,6 +182,10 @@ project('spring-xd-dirt') {
 		def scripts = file("$rootDir/scripts/xd")
 		outputs.dir scripts
 	}
+
+        applicationDistribution.from(configFiles) {
+		into "config"
+        }
 
 	applicationDistribution.from(scriptFiles) {
 		into "bin"

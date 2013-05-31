@@ -16,11 +16,25 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Properties;
+
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.core.env.MapPropertySource;
+import org.springframework.core.env.PropertiesPropertySource;
+import org.springframework.core.env.PropertySource;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.transformer.MessageTransformationException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.xd.analytics.metrics.core.RichGauge;
@@ -77,4 +91,55 @@ public class RichGaugeHandlerTests {
 		//delete it in @After.
 		repo.delete("test");
 	}
+
+	@Test
+	public void testhandlerWithExpression() {
+
+		@SuppressWarnings("resource")
+		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext();
+
+		MapPropertySource propertiesSource = new MapPropertySource("test", Collections.singletonMap("valueExpression",
+				(Object) "payload.get('price').asDouble()"));
+
+		applicationContext.getEnvironment().getPropertySources().addLast(propertiesSource);
+
+		applicationContext
+				.setConfigLocation("/org/springframework/xd/analytics/metrics/integration/RichGaugeHandlerTests-context.xml");
+
+		applicationContext.refresh();
+		input = applicationContext.getBean("input", MessageChannel.class);
+		repo = applicationContext.getBean(RedisRichGaugeRepository.class);
+
+		String json = "{\"symbol\":\"VMW\", \"price\":73}";
+		StringToJsonNodeTransformer txf = new StringToJsonNodeTransformer();
+		JsonNode node = txf.transform(json);
+		assertEquals(73.0, node.get("price").asDouble(), 0.001);
+
+		input.send(new GenericMessage<Object>(node));
+
+		RichGauge gauge = repo.findOne("test");
+		assertNotNull(gauge);
+		assertEquals(73.0, gauge.getValue(), 0.001);
+		//assertEquals(1, gauge.getCount());
+
+		//Included here because the message handler constructor creates the gauge. Don't want to 
+		//delete it in @After.
+		repo.delete("test");
+	}
+
+	static class StringToJsonNodeTransformer {
+		private ObjectMapper mapper = new ObjectMapper();
+
+		public JsonNode transform(String json) {
+			try {
+				JsonParser parser = mapper.getJsonFactory().createJsonParser(json);
+				return parser.readValueAsTree();
+			} catch (JsonParseException e) {
+				throw new MessageTransformationException("unable to parse input: " + e.getMessage(), e);
+			} catch (IOException e) {
+				throw new MessageTransformationException("unable to create json parser: " + e.getMessage(), e);
+			}
+		}
+	}
+
 }

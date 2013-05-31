@@ -35,7 +35,8 @@ def javaProjects() {
         subprojects.findAll { project -> project.name != 'redis' }
 }
 
-configure(javaProjects()) {
+configure(javaProjects()) { subproject ->
+
 	apply plugin: 'java'
 	apply from:   "${rootProject.projectDir}/publish-maven.gradle"
 	apply plugin: 'eclipse'
@@ -100,6 +101,13 @@ configure(javaProjects()) {
 		from sourceSets.main.allJava
 	}
 
+	jar {
+		manifest.attributes["Created-By"] =
+			"${System.getProperty("java.version")} (${System.getProperty("java.specification.vendor")})"
+		manifest.attributes["Implementation-Title"] = subproject.name
+		manifest.attributes["Implementation-Version"] = subproject.version
+	}
+
 	task javadocJar(type: Jar) {
 		classifier = 'javadoc'
 		from javadoc
@@ -124,7 +132,7 @@ project('spring-xd-analytics') {
 		testCompile "nl.jqno.equalsverifier:equalsverifier:1.1.3"
 		testCompile "org.springframework:spring-test:$springVersion"
 		testCompile ("org.mockito:mockito-core:$mockitoVersion") {
-			exclude group:'org.hamcrest' 
+			exclude group:'org.hamcrest'
 		}
 		testCompile "org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion"
 		runtime "log4j:log4j:$log4jVersion",
@@ -144,6 +152,7 @@ project('spring-xd-dirt') {
 				"org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion",
 				"org.apache.tomcat.embed:tomcat-embed-core:$tomcatVersion",
 				"org.apache.tomcat.embed:tomcat-embed-logging-juli:$tomcatVersion",
+				"org.apache.tomcat:tomcat-jsp-api:$tomcatVersion",
 				"org.springframework.integration:spring-integration-event:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-file:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-gemfire:$springIntegrationVersion",
@@ -153,7 +162,9 @@ project('spring-xd-dirt') {
 				"com.lambdaworks:lettuce:$lettuceVersion",
 				"org.springframework.integration:spring-integration-syslog:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-twitter:$springIntegrationVersion",
-				"args4j:args4j:$args4jVersion"
+				"args4j:args4j:$args4jVersion",
+				"org.springframework.shell:spring-shell:1.0.0.RELEASE"
+
 		runtime "log4j:log4j:$log4jVersion",
 				"org.slf4j:jcl-over-slf4j:$slf4jVersion",
 				"org.slf4j:slf4j-log4j12:$slf4jVersion"
@@ -260,11 +271,11 @@ project('redis') {
         task bundleRedis(dependsOn: ['syncScriptFiles', 'syncDistFile']) {
                 description = "Bundle redis source dist with install script"
         }
-        
+
         task clean(type: Delete) {
 		description = "Wipes Redis build directory"
                 delete 'build'
-        } 
+        }
 }
 
 project('spring-xd-module') {

@@ -15,10 +15,6 @@
  */
 package org.springframework.xd.dirt.server;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.Properties;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.kohsuke.args4j.CmdLineException;
@@ -35,7 +31,7 @@ import org.springframework.xd.dirt.stream.StreamServer;
 public class AdminMain {
 
 	private static final Log logger = LogFactory.getLog(AdminMain.class);
-	private static final Properties redisProps = new Properties();
+	
 	/**
 	 * @param args
 	 */
@@ -55,19 +51,16 @@ public class AdminMain {
 			System.setProperty("xd.home", options.getXDHomeDir());
 		}
 		// Set xd.home system property irrespective of commandLine option is set
-		String xdhome = setXDHome();
-		loadRedisProperties(xdhome);
-		setRedisCmdLineOptions(options.getRedisHost(), options.getRedisPort());
+		String xdHome = setXDHome();
 		
 		if (options.isShowHelp()) {
 			parser.printUsage(System.err);
 			System.exit(0);
 		}
 		if (options.isEmbeddedContainer()) {
-			RedisContainerLauncher.main(new String[]{xdhome, redisProps.getProperty("redis.hostname"), 
-					redisProps.getProperty("redis.port")});
+			RedisContainerLauncher.main(new String[]{xdHome});
 		}
-		launchStreamServer();
+		launchStreamServer(xdHome);
 	}
 	
 	/**
@@ -76,52 +69,22 @@ public class AdminMain {
 	 * @return String
 	 */
 	private static String setXDHome() {
-		String xdhome = System.getProperty("xd.home");
+		String xdHome = System.getProperty("xd.home");
 		// Make sure to set xd.home system property
-		if (!StringUtils.hasText(xdhome)) {
+		if (!StringUtils.hasText(xdHome)) {
 			// if xd.home system property is not set,
 			// then set it to relative path
-			xdhome = "..";
+			xdHome = "..";
 			// Set system property for embedded container if exists
-			System.setProperty("xd.home", xdhome);
+			System.setProperty("xd.home", xdHome);
 		}
-		return xdhome;
-	}
-	
-	
-	/**
-	 * Load Redis properties file from XD_HOME/conf
-	 * @param xdhome
-	 */
-	public static void loadRedisProperties(String xdhome) {
-		try {
-			redisProps.load(new FileInputStream(xdhome+"/conf/redis.properties"));		
-		} catch(IOException e){
-			logger.error(e.getMessage());
-			System.exit(1);
-		}
-	}
-	
-	/**
-	 * Override current redis properties with the commandLine options
-	 * @param redisHost
-	 * @param redisPort
-	 */
-	public static void setRedisCmdLineOptions(String redisHost, int redisPort) {
-		// Override redis properties if commandLine options are provided
-		if (StringUtils.hasText(redisHost)){
-			redisProps.setProperty("redis.hostname", redisHost);
-		}
-		if (redisPort != 0){
-			redisProps.setProperty("redis.port", String.valueOf(redisPort));
-		}
+		return xdHome;
 	}
 	
 	/**
 	 * Launch stream server with configured redis host/port
 	 */
-	public static void launchStreamServer() {
-		StreamServer.launch(redisProps.getProperty("redis.hostname"), 
-				Integer.parseInt(redisProps.getProperty("redis.port")));
+	public static void launchStreamServer(String xdHome) {
+		StreamServer.main(new String[]{xdHome});
 	}
 }

@@ -63,24 +63,10 @@ public class RedisContainerLauncher implements ContainerLauncher, ApplicationEve
 			String xdhome = (args.length > 0) ? args[0] : "..";
 			System.setProperty("xd.home", xdhome);
 		}
-		if (args.length > 1) {
-			setRedisProperties(args[1], args[2]);
-		}
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("META-INF/spring/launcher.xml");
 		context.registerShutdownHook();
 		ContainerLauncher launcher = context.getBean(ContainerLauncher.class);
 		launcher.launch();
-	}
-	
-	/**
-	 * Set system properties to override PropertyPlaceholderConfigurer 
-	 * properties for the Container 
-	 * @param redisHost
-	 * @param redisPort
-	 */
-	private static void setRedisProperties(String redisHost, String redisPort) {
-		System.setProperty("redis.hostname", redisHost);
-		System.setProperty("redis.port", String.valueOf(redisPort));
 	}
 
 	private static class ShutdownListener implements ApplicationListener<ContextClosedEvent> {

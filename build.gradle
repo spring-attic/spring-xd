@@ -165,7 +165,7 @@ project('spring-xd-dirt') {
 	}
 
         task configFiles {
-                def config = file("$rootDir/conf")
+                def config = file("$rootDir/config")
                 outputs.dir config
         }
 
@@ -180,7 +180,7 @@ project('spring-xd-dirt') {
 	}
 
         applicationDistribution.from(configFiles) {
-		into "conf"
+		into "config"
         }
 
 	applicationDistribution.from(scriptFiles) {

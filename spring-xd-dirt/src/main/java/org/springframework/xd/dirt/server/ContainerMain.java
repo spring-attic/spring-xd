@@ -15,10 +15,6 @@
  */
 package org.springframework.xd.dirt.server;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.Properties;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.kohsuke.args4j.CmdLineException;
@@ -34,7 +30,6 @@ import org.springframework.xd.dirt.launcher.RedisContainerLauncher;
 public class ContainerMain {
 
 	private static final Log logger = LogFactory.getLog(ContainerMain.class);
-	private static final Properties redisProps = new Properties();
 	
 	/**
 	 * Start the RedisContainerLauncher
@@ -50,8 +45,6 @@ public class ContainerMain {
 			parser.printUsage(System.err);
 			System.exit(1);
 		}
-		String redisHost = options.getRedisHost();
-		int redisPort = options.getRedisPort();
 		
 		// Override xd.home system property if commandLine option is set
 		if (StringUtils.hasText(options.getXDHomeDir())) {
@@ -64,20 +57,12 @@ public class ContainerMain {
 			System.exit(0);
 		}
 		
-		loadRedisProperties(xdHome);
-		setRedisCmdLineOptions(redisHost, redisPort);
-		
 		if (options.isEmbeddedAdmin() == true ) {
-			// Load redis properties
-			AdminMain.loadRedisProperties(xdHome);
-			// Override redis properties by commandLine options if provided
-			AdminMain.setRedisCmdLineOptions(redisHost, redisPort);
-			AdminMain.launchStreamServer();
+			AdminMain.launchStreamServer(xdHome);
 		}
 		
 		//Future versions to support other types of container launchers
-		RedisContainerLauncher.main(new String[]{xdHome, redisProps.getProperty("redis.hostname"), 
-				redisProps.getProperty("redis.port")});
+		RedisContainerLauncher.main(new String[]{xdHome});
 	}
 	
 	/**
@@ -97,33 +82,4 @@ public class ContainerMain {
 		}
 		return xdhome;
 	}
-	
-	/**
-	 * Load Redis properties file from XD_HOME/conf
-	 * @param xdhome
-	 */
-	public static void loadRedisProperties(String xdhome) {
-		try {
-			redisProps.load(new FileInputStream(xdhome+"/conf/redis.properties"));		
-		} catch(IOException e){
-			logger.error(e.getMessage());
-			System.exit(1);
-		}
-	}
-	
-	/**
-	 * Set system properties to override PropertyPlaceholderConfigurer 
-	 * properties for Container
-	 * @param redisHost
-	 * @param redisPort
-	 */
-	public static void setRedisCmdLineOptions(String redisHost, int redisPort) {
-		if (StringUtils.hasText(redisHost)){
-			redisProps.setProperty("redis.hostname", redisHost);
-		}
-		if (redisPort != 0){
-			redisProps.setProperty("redis.port", String.valueOf(redisPort));
-		}
-	}
-
 }

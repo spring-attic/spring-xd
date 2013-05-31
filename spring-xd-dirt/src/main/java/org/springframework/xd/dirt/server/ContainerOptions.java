@@ -30,11 +30,11 @@ public class ContainerOptions {
 	@Option(name="--xdHomeDir", usage="The XD installation directory", metaVar="<xdHomeDir>")
 	private String xdHomeDir = "";
 	
-	//@Option(name="--redisHost", usage="the hostname of the redis sever", metaVar="<redisHost>")
-	private String redisHost = "localhost";
+	@Option(name="--redisHost", usage="the hostname of the redis sever", metaVar="<redisHost>")
+	private String redisHost = "";
 	
-	//@Option(name="--redisPort", usage="the port number of the redis sever", metaVar="<redisPort>")
-	private int redisPort = 6379;
+	@Option(name="--redisPort", usage="the port number of the redis sever", metaVar="<redisPort>")
+	private int redisPort = 0;
 
 	@Option(name="--help", usage="Show options help", aliases={"-?", "-h"})
 	private boolean showHelp = false;

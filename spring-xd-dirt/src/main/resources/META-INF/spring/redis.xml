@@ -9,7 +9,7 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<context:property-placeholder/>
+	<context:property-placeholder location="file:${xd.home}/conf/redis.properties" system-properties-mode="OVERRIDE"/>
 	
 	<beans profile="default">
 	    <bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory">	      

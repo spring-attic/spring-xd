@@ -164,6 +164,11 @@ project('spring-xd-dirt') {
 		args = ["--embeddedContainer"]
 	}
 
+        task configFiles {
+                def config = file("$rootDir/conf")
+                outputs.dir config
+        }
+
 	task moduleFiles {
 		def modules = file("$rootDir/modules")
 		outputs.dir modules
@@ -173,6 +178,10 @@ project('spring-xd-dirt') {
 		def scripts = file("$rootDir/scripts/xd")
 		outputs.dir scripts
 	}
+
+        applicationDistribution.from(configFiles) {
+		into "conf"
+        }
 
 	applicationDistribution.from(scriptFiles) {
 		into "bin"

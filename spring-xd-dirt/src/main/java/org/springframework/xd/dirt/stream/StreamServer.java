@@ -34,11 +34,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.integration.MessagingException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * This is a temporary "server" for the REST API. Currently it only handles simple
@@ -184,8 +186,11 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 	}
 
 	public static void main(String[] args) {
-		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
-		bootstrap(connectionFactory);
+		if (!StringUtils.hasText(System.getProperty("xd.home"))) {
+			String xdhome = (args.length > 0) ? args[0] : "..";
+			System.setProperty("xd.home", xdhome);
+		}
+		new ClassPathXmlApplicationContext("META-INF/spring/admin.xml");
 	}
 	
 	public static void launch(String host, int port) {

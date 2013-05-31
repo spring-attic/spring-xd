@@ -34,11 +34,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.integration.MessagingException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
+import org.springframework.xd.dirt.redis.ExceptionWrappingLettuceConnectionFactory;
 
 /**
  * This is a temporary "server" for the REST API. Currently it only handles simple
@@ -184,24 +186,32 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 	}
 
 	public static void main(String[] args) {
-		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
-		bootstrap(connectionFactory);
+		try {
+			bootstrap(args);
+		}catch(RedisConnectionFailureException e) {
+			final Log logger = LogFactory.getLog(StreamServer.class);
+			logger.fatal(e.getMessage());
+			System.err.println("Redis does not seem to be running. Did you install and start Redis? " +
+					"Please see the Getting Started section of the guide for instructions.");
+			System.exit(1);
+		}
 	}
 	
-	public static void launch(String host, int port) {
-		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(host, port);
-		bootstrap(connectionFactory);
-	}
-	
-	/**
-	 * @param connectionFactory
-	 */
-	private static void bootstrap(LettuceConnectionFactory connectionFactory) {
+	private static void bootstrap(String[] args) {
+		LettuceConnectionFactory connectionFactory = getConnectionFactory(args);
 		connectionFactory.afterPropertiesSet();
 		RedisStreamDeployer streamDeployer = new RedisStreamDeployer(connectionFactory);
 		StreamServer server = new StreamServer(streamDeployer);
 		server.afterPropertiesSet();
 		server.start();
+	}
+
+	private static LettuceConnectionFactory getConnectionFactory(String[] args) {
+		if(args.length >= 2) {
+			return new ExceptionWrappingLettuceConnectionFactory(args[0], Integer.parseInt(args[1]));
+		} else {
+			return new ExceptionWrappingLettuceConnectionFactory();
+		}
 	}
 
 }

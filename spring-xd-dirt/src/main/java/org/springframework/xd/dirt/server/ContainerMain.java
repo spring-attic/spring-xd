@@ -26,6 +26,7 @@ import org.springframework.xd.dirt.stream.StreamServer;
 /**
  * The main driver class for ContainerMain 
  * @author Mark Pollack
+ * @author Jennifer Hickey
  *
  */
 public class ContainerMain {
@@ -56,7 +57,7 @@ public class ContainerMain {
 		}
 		
 		if (options.isEmbeddedAdmin() == true ) {	
-			StreamServer.launch(options.getRedisHost(), options.getRedisPort());
+			StreamServer.main(new String[] {options.getRedisHost(), Integer.toString(options.getRedisPort())});
 		}
 		
 		//Future versions to support other types of container launchers

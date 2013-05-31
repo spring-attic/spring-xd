@@ -12,7 +12,7 @@
 	<context:property-placeholder/>
 	
 	<beans profile="default">
-	    <bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory">	      
+	    <bean id="redisConnectionFactory" class="org.springframework.xd.dirt.redis.ExceptionWrappingLettuceConnectionFactory">
 		  <constructor-arg index="0" value="${redis.hostname:localhost}"/>
 		  <constructor-arg index="1" value="${redis.port:6379}"/>
 		</bean>

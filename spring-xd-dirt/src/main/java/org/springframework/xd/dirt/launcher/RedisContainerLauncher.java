@@ -16,15 +16,18 @@
 
 package org.springframework.xd.dirt.launcher;
 
+
 import java.io.File;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.support.atomic.RedisAtomicLong;
 import org.springframework.util.StringUtils;
@@ -72,7 +75,17 @@ public class RedisContainerLauncher implements ContainerLauncher, ApplicationEve
 		}
 		logger.info("xd.home=" + new File(xdhome).getAbsolutePath());
 
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("META-INF/spring/launcher.xml");
+		ClassPathXmlApplicationContext context = null;
+		try {
+			context = new ClassPathXmlApplicationContext("META-INF/spring/launcher.xml");
+		} catch (BeanCreationException e) {
+			if(e.getCause() instanceof RedisConnectionFailureException) {
+				logger.fatal(e.getCause().getMessage());
+				System.err.println("Redis does not seem to be running. Did you install and start Redis? " +
+						"Please see the Getting Started section of the guide for instructions.");
+				System.exit(1);
+			}
+		}
 		context.registerShutdownHook();
 		ContainerLauncher launcher = context.getBean(ContainerLauncher.class);
 		launcher.launch();

@@ -23,19 +23,13 @@ import org.kohsuke.args4j.Option;
  *
  */
 public class AdminOptions {
-	
-	//@Option(name="--redisHost", usage="the hostname of the redis sever", metaVar="<redisHost>")
-	private String redisHost = "localhost";
-	
-	//@Option(name="--redisPort", usage="the port number of the redis sever", metaVar="<redisPort>")
-	private int redisPort = 6379;
-	
+
 	@Option(name="--help", usage="Show options help", aliases={"-?", "-h"})
 	private boolean showHelp = false;
-	
+
 	@Option(name="--xdHomeDir", usage="The XD installation directory, use with --embeddedAdmin", metaVar="<xdHomeDir>")
 	private String xdHomeDir = "";
-	
+
 	@Option(name="--embeddedContainer", usage="embed the XD Container")
 	private boolean embeddedContainer = false;
 	/**
@@ -44,29 +38,11 @@ public class AdminOptions {
 	public boolean isShowHelp() {
 		return showHelp;
 	}
-	/**
-	 * @return the redisHost
-	 */
-	public String getRedisHost() {
-		return redisHost;
-	}
-	/**
-	 * @return the redisPort
-	 */
-	public int getRedisPort() {
-		return redisPort;
-	}
 
-	/**
-	 * @return the moduleDir
-	 */
-	public String getXDHomeDir() {
-		return xdHomeDir;
-	}
 	/**
 	 * @return the xdHomeDir
 	 */
-	public String getXdHomeDir() {
+	public String getXDHomeDir() {
 		return xdHomeDir;
 	}
 	/**
@@ -75,8 +51,5 @@ public class AdminOptions {
 	public boolean isEmbeddedContainer() {
 		return embeddedContainer;
 	}
-	
-	
-	
-	
+
 }

@@ -24,7 +24,8 @@ import org.springframework.xd.module.Plugin;
 
 /**
  * @author David Turanski
- * @since 3.0
+ * @author Gary Russell
+ * @since 1.0
  */
 public class IntegrationPlugin implements Plugin {
 
@@ -67,6 +68,13 @@ public class IntegrationPlugin implements Plugin {
 		for (Entry<String, SubscribableChannel> entry: integrationModule.getOutputChannels().entrySet()) {
 			channelRegistry.outbound(integrationModule.getName() + "." + entry.getKey(), entry.getValue());
 		}
+	}
+
+	@Override
+	public void removeModule(Module module, String group, int index) {
+		Assert.notNull(module, "module cannot be null");
+		Assert.isAssignable(IntegrationModule.class, module.getClass());
+		// TODO:
 	}
 
 }

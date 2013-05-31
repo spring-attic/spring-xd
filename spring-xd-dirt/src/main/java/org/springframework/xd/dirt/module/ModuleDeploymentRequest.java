@@ -39,6 +39,8 @@ public class ModuleDeploymentRequest {
 
 	private final Map<String, String> parameters = new HashMap<String, String>();
 
+	private volatile boolean remove;
+
 	public String getModule() {
 		return module;
 	}
@@ -69,6 +71,14 @@ public class ModuleDeploymentRequest {
 
 	public void setType(String type) {
 		this.type = type;
+	}
+
+	public boolean isRemove() {
+		return remove;
+	}
+
+	public void setRemove(boolean remove) {
+		this.remove = remove;
 	}
 
 	public void setParameter(String name, String value) {

@@ -32,6 +32,7 @@ import org.apache.catalina.core.AprLifecycleListener;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
@@ -170,12 +171,15 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 		@Override
 		protected void service(HttpServletRequest request, HttpServletResponse response)
 				throws ServletException, IOException {
+			String streamName = request.getPathInfo();
+			Assert.hasText(streamName, "no stream name (e.g. localhost/streams/streamname");
+			streamName = streamName.replaceAll("/", "");
 			if ("POST".equalsIgnoreCase(request.getMethod())) {
 				String streamConfig = FileCopyUtils.copyToString(request.getReader());
-				String streamName = request.getPathInfo();
-				Assert.hasText(streamName, "no stream name (e.g. localhost/streams/streamname");
-				streamName = streamName.replaceAll("/", "");
 				streamDeployer.deployStream(streamName, streamConfig);
+			}
+			else if ("DELETE".equalsIgnoreCase(request.getMethod())) {
+				streamDeployer.undeployStream(streamName);
 			}
 			else {
 				response.sendError(405);
@@ -187,12 +191,12 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
 		bootstrap(connectionFactory);
 	}
-	
+
 	public static void launch(String host, int port) {
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(host, port);
 		bootstrap(connectionFactory);
 	}
-	
+
 	/**
 	 * @param connectionFactory
 	 */

@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.stream;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -27,8 +28,9 @@ import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  */
-public class RedisStreamDeployer implements StreamDeployer {
+public class RedisStreamDeployer extends StreamDeployerSupport implements StreamDeployer {
 
 	private final StreamParser streamParser = new DefaultStreamParser();
 
@@ -44,9 +46,24 @@ public class RedisStreamDeployer implements StreamDeployer {
 	@Override
 	public void deployStream(String name, String config) {
 		List<ModuleDeploymentRequest> requests = this.streamParser.parse(name, config);
+		this.addDeployment(name, requests);
 		for (ModuleDeploymentRequest request : requests) {
 			Message<?> message = MessageBuilder.withPayload(request.toString()).build();
 			this.adapter.handleMessage(message);
+		}
+	}
+
+	@Override
+	public void undeployStream(String name) {
+		List<ModuleDeploymentRequest> modules = this.removeDeployment(name);
+		if (modules != null) {
+			// undeploy in the reverse sequence (source first)
+			Collections.reverse(modules);
+			for (ModuleDeploymentRequest module : modules) {
+				module.setRemove(true);
+				Message<?> message = MessageBuilder.withPayload(module.toString()).build();
+				this.adapter.handleMessage(message);
+			}
 		}
 	}
 

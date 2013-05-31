@@ -21,14 +21,15 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.integration.transformer.MessageTransformationException;
 
 /**
+ * Transforms a String to a {@link JsonNode}
  * @author David Turanski
  *
  */
 public class StringToJsonNodeTransformer {
 	private ObjectMapper mapper = new ObjectMapper();
-	public JsonNode transform(String json) {
+	public JsonNode transform(Object json) {
 		try {
-			JsonParser parser = mapper.getJsonFactory().createJsonParser(json);
+			JsonParser parser = mapper.getJsonFactory().createJsonParser((String)json);
 			return parser.readValueAsTree();
 		} catch (JsonParseException e) {
 			throw new MessageTransformationException("unable to parse input: " + e.getMessage(),e);

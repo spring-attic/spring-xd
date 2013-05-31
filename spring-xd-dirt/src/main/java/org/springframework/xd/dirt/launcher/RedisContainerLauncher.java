@@ -16,6 +16,10 @@
 
 package org.springframework.xd.dirt.launcher;
 
+import java.io.File;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.ApplicationListener;
@@ -31,6 +35,7 @@ import org.springframework.xd.dirt.event.ContainerStartedEvent;
 /**
  * @author Mark Fisher
  * @author Jennifer Hickey
+ * @author David Turanski
  */
 public class RedisContainerLauncher implements ContainerLauncher, ApplicationEventPublisherAware {
 
@@ -38,6 +43,7 @@ public class RedisContainerLauncher implements ContainerLauncher, ApplicationEve
 
 	private volatile ApplicationEventPublisher eventPublisher;
 
+	private static Log logger = LogFactory.getLog(RedisContainerLauncher.class);
 
 	public RedisContainerLauncher(RedisConnectionFactory connectionFactory) {
 		this.ids = new RedisAtomicLong("idsequence", connectionFactory);
@@ -58,11 +64,14 @@ public class RedisContainerLauncher implements ContainerLauncher, ApplicationEve
 		return container;
 	}
 
-	public static void main(String[] args) {		
-		if (!StringUtils.hasText(System.getProperty("xd.home"))) {
-			String xdhome = (args.length > 0) ? args[0] : "..";
+	public static void main(String[] args) {
+		String xdhome = System.getProperty("xd.home");
+		if (!StringUtils.hasText(xdhome)) {
+			xdhome = (args.length > 0) ? args[0] : "..";
 			System.setProperty("xd.home", xdhome);
 		}
+		logger.info("xd.home=" + new File(xdhome).getAbsolutePath());
+
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("META-INF/spring/launcher.xml");
 		context.registerShutdownHook();
 		ContainerLauncher launcher = context.getBean(ContainerLauncher.class);

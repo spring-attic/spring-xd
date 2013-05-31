@@ -64,8 +64,8 @@ public class RichGaugeHandler {
 				}
 			}
 		}
-		throw new MessagingException("cannot convert " + payload == null ? "null" : payload.getClass().getName()
-				+ " to double");
+		throw new MessagingException("cannot convert "
+				+ (payload == null ? "null" : payload.getClass().getName() + " to double"));
 	}
 
 }

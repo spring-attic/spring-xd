@@ -12,7 +12,7 @@
 	<bean id="handler"
 		class="org.springframework.xd.analytics.metrics.integration.RichGaugeHandler">
 		<constructor-arg ref="service" />
-		<constructor-arg value="${name}" />
+		<constructor-arg value="${name:${xd.stream.name}}" />
 	</bean>
 
 	<bean id="service"

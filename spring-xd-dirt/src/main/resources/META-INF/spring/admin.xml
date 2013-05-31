@@ -9,8 +9,12 @@
     
 	<import resource="redis.xml"/>
 
-	<bean class="org.springframework.xd.dirt.launcher.RedisContainerLauncher">
+	<bean id="redisStreamDeployer" class="org.springframework.xd.dirt.stream.RedisStreamDeployer">
 		<constructor-arg ref="redisConnectionFactory"/>
+	</bean>
+	
+	<bean class="org.springframework.xd.dirt.stream.StreamServer">
+	    <constructor-arg ref="redisStreamDeployer"/>
 	</bean>
 
 </beans>

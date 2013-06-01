@@ -5,12 +5,13 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<import resource="redis.xml"/>
 
-	<context:property-placeholder/>
-
-	<bean id="moduleEventListener" class="org.springframework.xd.dirt.listener.RedisModuleEventListener">
-		<constructor-arg ref="redisConnectionFactory"/>
-	</bean>
+	<beans profile="redis">
+	    <context:property-placeholder location="file:${xd.home}/config/redis.properties"/> 
+	    <import resource="redis.xml"/>
+		<bean id="moduleEventListener" class="org.springframework.xd.dirt.listener.RedisModuleEventListener">
+			<constructor-arg ref="redisConnectionFactory"/>
+		</bean>
+	</beans>
 
 </beans>

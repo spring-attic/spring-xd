@@ -32,16 +32,16 @@ import org.apache.catalina.core.AprLifecycleListener;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.integration.MessagingException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
-import org.springframework.xd.dirt.redis.ExceptionWrappingLettuceConnectionFactory;
+import org.springframework.util.StringUtils;
+import org.springframework.xd.dirt.server.PipeProtocol;
 
 /**
  * This is a temporary "server" for the REST API. Currently it only handles simple
@@ -191,8 +191,10 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 	}
 
 	public static void main(String[] args) {
+		setXDHome(args);
+		setActiveProfile(args);
 		try {
-			bootstrap(args);
+			new ClassPathXmlApplicationContext("META-INF/spring/admin.xml");
 		}
 		catch(RedisConnectionFailureException e) {
 			final Log logger = LogFactory.getLog(StreamServer.class);
@@ -202,23 +204,30 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 			System.exit(1);
 		}
 	}
-
-	private static void bootstrap(String[] args) {
-		LettuceConnectionFactory connectionFactory = getConnectionFactory(args);
-		connectionFactory.afterPropertiesSet();
-		RedisStreamDeployer streamDeployer = new RedisStreamDeployer(connectionFactory);
-		StreamServer server = new StreamServer(streamDeployer);
-		server.afterPropertiesSet();
-		server.start();
-	}
-
-	private static LettuceConnectionFactory getConnectionFactory(String[] args) {
-		if (args.length >= 2) {
-			return new ExceptionWrappingLettuceConnectionFactory(args[0], Integer.parseInt(args[1]));
-		}
-		else {
-			return new ExceptionWrappingLettuceConnectionFactory();
+	
+	/**
+	 * Set xd.home system property
+	 * @param args
+	 */
+	private static void setXDHome(String[] args) {
+		String xdhome = System.getProperty("xd.home");
+		if (!StringUtils.hasText(xdhome)) {
+			xdhome = (args.length > 0) ? args[0] : "..";
+			System.setProperty("xd.home", xdhome);
 		}
 	}
-
+	
+	/**
+	 * Set spring.profiles.active system property
+	 * @param args
+	 */
+	private static void setActiveProfile(String[] args){
+		if (args.length > 1 && StringUtils.hasText(args[1])){
+			// Set the pipe protocol as active profile
+			System.setProperty("spring.profiles.active", args[1]);
+		} else {
+			// Set the redis profile as default profile 
+			System.setProperty("spring.profiles.active", PipeProtocol.REDIS.toString());
+		}
+	}
 }

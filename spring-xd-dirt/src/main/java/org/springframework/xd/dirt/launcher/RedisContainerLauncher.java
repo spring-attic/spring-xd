@@ -69,13 +69,8 @@ public class RedisContainerLauncher implements ContainerLauncher, ApplicationEve
 	}
 
 	public static void main(String[] args) {
-		String xdhome = System.getProperty("xd.home");
-		if (!StringUtils.hasText(xdhome)) {
-			xdhome = (args.length > 0) ? args[0] : "..";
-			System.setProperty("xd.home", xdhome);
-		}
-		logger.info("xd.home=" + new File(xdhome).getAbsolutePath());
-
+		setXDHome(args);
+		setRegistryType(args);
 		ClassPathXmlApplicationContext context = null;
 		try {
 			context = new ClassPathXmlApplicationContext("META-INF/spring/launcher.xml");
@@ -91,6 +86,35 @@ public class RedisContainerLauncher implements ContainerLauncher, ApplicationEve
 		context.registerShutdownHook();
 		ContainerLauncher launcher = context.getBean(ContainerLauncher.class);
 		launcher.launch();
+	}
+
+	/**
+	 * Set xd.home system property
+	 * @param args
+	 */
+	private static void setXDHome(String[] args) {
+		String xdhome = System.getProperty("xd.home");
+		if (!StringUtils.hasText(xdhome)) {
+			xdhome = (args.length > 0) ? args[0] : "..";
+			System.setProperty("xd.home", xdhome);
+		}
+		logger.info("xd.home=" + new File(xdhome).getAbsolutePath());
+	}
+	
+	/**
+	 * Set registry.type system property
+	 * @param args
+	 */
+	private static void setRegistryType(String[] args) {
+		String registryType = "redis";
+		if (args.length > 1) {
+			registryType = args[1];
+		}
+		// Override registry type if system property is already set
+		if (StringUtils.hasText(System.getProperty("registry.type"))){
+			registryType = System.getProperty("registry.type");
+		}
+		System.setProperty("registry.type", registryType);
 	}
 
 	private static class ShutdownListener implements ApplicationListener<ContextClosedEvent> {

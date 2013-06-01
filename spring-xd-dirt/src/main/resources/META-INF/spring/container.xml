@@ -13,9 +13,9 @@
 		http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
+    <context:property-placeholder location="file:${xd.home}/config/${registry.type}.properties"/> 
+    
 	<import resource="redis.xml"/>
-
-	<context:property-placeholder/>
 
 	<int:channel id="input"/>
 

@@ -15,11 +15,11 @@
  */
 package org.springframework.xd.dirt.server;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
+import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.launcher.RedisContainerLauncher;
 import org.springframework.xd.dirt.stream.StreamServer;
 
@@ -27,17 +27,19 @@ import org.springframework.xd.dirt.stream.StreamServer;
  * The main driver class for the AdminMain
  * @author Mark Pollack
  * @author Jennifer Hickey
- *
+ * @author Ilayaperumal Gopinathan
  */
 public class AdminMain {
 
 	private static final Log logger = LogFactory.getLog(AdminMain.class);
+
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
 		AdminOptions options = new  AdminOptions();
 		CmdLineParser parser = new CmdLineParser(options);
+		String registryType = "redis";
 		try {
 			parser.parseArgument(args);
 		} catch (CmdLineException e) {
@@ -45,21 +47,50 @@ public class AdminMain {
 			parser.printUsage(System.err);
 			System.exit(1);
 		}
-		
+
+		// Override registry.type system property if commandLine option is set
+		if (!options.getRegistryType().equals("redis")) {
+			registryType = options.getRegistryType();
+		}
+		// Override xd.home system property if commandLine option is set
+		if (StringUtils.hasText(options.getXDHomeDir())) {
+			System.setProperty("xd.home", options.getXDHomeDir());
+		}
+		// Set xd.home system property irrespective of commandLine option is set
+		String xdHome = setXDHome();
+
 		if (options.isShowHelp()) {
 			parser.printUsage(System.err);
 			System.exit(0);
 		}
-		
 		if (options.isEmbeddedContainer()) {
-			if (StringUtils.isNotEmpty(options.getXDHomeDir())) {
-				System.setProperty("xd.home", options.getXDHomeDir());
-			}
-			RedisContainerLauncher.main(new String[]{});
+			RedisContainerLauncher.main(new String[]{xdHome, registryType});
 		}
-
-		StreamServer.main(new String[] {options.getRedisHost(), Integer.toString(options.getRedisPort())});
-
+		launchStreamServer(xdHome, registryType);
 	}
 
+	/**
+	 * Set xd.home system property to relative path if it is not set already.
+	 * This could happen when the AdminMain is not launched from xd scripts.
+	 * @return String
+	 */
+	private static String setXDHome() {
+		String xdHome = System.getProperty("xd.home");
+		// Make sure to set xd.home system property
+		if (!StringUtils.hasText(xdHome)) {
+			// if xd.home system property is not set,
+			// then set it to relative path
+			xdHome = "..";
+			// Set system property for embedded container if exists
+			System.setProperty("xd.home", xdHome);
+		}
+		return xdHome;
+	}
+
+	/**
+	 * Launch stream server with configured redis host/port
+	 */
+	public static void launchStreamServer(String xdHome, String registryType) {
+		StreamServer.main(new String[]{xdHome, registryType});
+	}
 }

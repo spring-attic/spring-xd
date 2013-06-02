@@ -48,14 +48,8 @@ public class RichGaugeHandler {
 	 */
 	double convertToDouble(Object payload) {
 		if (payload != null) {
-			if (payload instanceof Integer) {
-				return ((Integer) payload).doubleValue();
-			} else if (payload instanceof Double) {
-				return ((Double) payload).doubleValue();
-			} else if (payload instanceof Float) {
-				return ((Float) payload).doubleValue();
-			} else if (payload instanceof Long) {
-				return ((Long) payload).doubleValue();
+			if (payload instanceof Number) {
+				return ((Number) payload).doubleValue();
 			} else if (payload instanceof String) {
 				try {
 					return Double.parseDouble((String) payload);

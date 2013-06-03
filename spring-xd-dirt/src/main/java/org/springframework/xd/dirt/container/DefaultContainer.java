@@ -16,6 +16,8 @@
 
 package org.springframework.xd.dirt.container;
 
+import java.util.UUID;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.context.ApplicationListener;
@@ -30,6 +32,7 @@ import org.springframework.xd.dirt.event.ContainerStoppedEvent;
 /**
  * @author Mark Fisher
  * @author Jennifer Hickey
+ * @author David Turanski
  */
 public class DefaultContainer implements Container, SmartLifecycle {
 
@@ -44,8 +47,18 @@ public class DefaultContainer implements Container, SmartLifecycle {
 
 	private final String id;
 
+	/**
+	 * Creates a container with a given id
+	 * @param id the id
+	 */
 	public DefaultContainer(String id) {
 		this.id = id;
+	}
+	/**
+	 * Default constructor generates a random id
+	 */
+	public DefaultContainer() {
+		this.id = UUID.randomUUID().toString();
 	}
 
 	@Override

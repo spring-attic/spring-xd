@@ -2,14 +2,26 @@
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:int-groovy="http://www.springframework.org/schema/integration/groovy"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 		http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration
-		http://www.springframework.org/schema/integration/spring-integration.xsd">
+		http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/groovy
+		http://www.springframework.org/schema/integration/groovy/spring-integration-groovy.xsd">
 
 	<channel id="input"/>
 
-	<filter input-channel="input" expression="${expression:true}" output-channel="output"/>
+	<filter id="invokeScript"
+	    input-channel="input" output-channel="to.script"
+	    discard-channel="to.spel"
+	    expression="'${script:null}' ne 'null'" />
+
+	<filter input-channel="to.spel" expression="${expression:true}" output-channel="output"/>
+
+	<filter input-channel="to.script" output-channel="output">
+		<int-groovy:script location="${script:file:${xd.home}/modules/processor/scripts/filter.groovy}"/>
+	</filter>
 
 	<channel id="output"/>
 

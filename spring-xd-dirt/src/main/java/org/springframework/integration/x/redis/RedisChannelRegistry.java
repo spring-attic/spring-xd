@@ -45,6 +45,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author David Turanski
  */
 public class RedisChannelRegistry implements ChannelRegistry, DisposableBean {
 
@@ -54,17 +55,16 @@ public class RedisChannelRegistry implements ChannelRegistry, DisposableBean {
 
 	private final List<Lifecycle> lifecycleBeans = Collections.synchronizedList(new ArrayList<Lifecycle>());
 
-
 	public RedisChannelRegistry(RedisConnectionFactory connectionFactory) {
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");
 		this.redisTemplate.setConnectionFactory(connectionFactory);
 		this.redisTemplate.afterPropertiesSet();
 	}
 
-
 	@Override
 	public void inbound(final String name, MessageChannel channel) {
-		RedisQueueInboundChannelAdapter adapter = new RedisQueueInboundChannelAdapter("queue." + name, this.redisTemplate.getConnectionFactory());
+		RedisQueueInboundChannelAdapter adapter = new RedisQueueInboundChannelAdapter("queue." + name,
+				this.redisTemplate.getConnectionFactory());
 		adapter.setOutputChannel(channel);
 		adapter.setBeanName("inbound." + name);
 		adapter.afterPropertiesSet();
@@ -99,14 +99,12 @@ public class RedisChannelRegistry implements ChannelRegistry, DisposableBean {
 			Iterator<Lifecycle> iterator = this.lifecycleBeans.iterator();
 			while (iterator.hasNext()) {
 				Lifecycle endpoint = iterator.next();
-				if (endpoint instanceof EventDrivenConsumer &&
-						("outbound." + name).equals(((IntegrationObjectSupport) endpoint).getComponentName())) {
+				if (endpoint instanceof EventDrivenConsumer
+						&& ("outbound." + name).equals(((IntegrationObjectSupport) endpoint).getComponentName())) {
 					((EventDrivenConsumer) endpoint).stop();
 					iterator.remove();
-				}
-				else if (endpoint instanceof RedisQueueInboundChannelAdapter &&
-						(("inbound." + name).equals(((IntegrationObjectSupport) endpoint).getComponentName()) ||
-						 ("tap." + name).equals(((IntegrationObjectSupport) endpoint).getComponentName()))) {
+				} else if (endpoint instanceof RedisQueueInboundChannelAdapter
+						&& (("inbound." + name).equals(((IntegrationObjectSupport) endpoint).getComponentName()))) {
 					((RedisQueueInboundChannelAdapter) endpoint).stop();
 					iterator.remove();
 				}
@@ -119,15 +117,13 @@ public class RedisChannelRegistry implements ChannelRegistry, DisposableBean {
 		for (Lifecycle bean : this.lifecycleBeans) {
 			try {
 				bean.stop();
-			}
-			catch (Exception e) {
+			} catch (Exception e) {
 				if (logger.isWarnEnabled()) {
 					logger.warn("failed to stop adapter", e);
 				}
 			}
 		}
 	}
-
 
 	private static class CompositeHandler extends AbstractMessageHandler {
 
@@ -141,7 +137,8 @@ public class RedisChannelRegistry implements ChannelRegistry, DisposableBean {
 			topic.setDefaultTopic("topic." + name);
 			topic.afterPropertiesSet();
 			this.topic = topic;
-			RedisQueueOutboundChannelAdapter queue = new RedisQueueOutboundChannelAdapter("queue." + name, connectionFactory);
+			RedisQueueOutboundChannelAdapter queue = new RedisQueueOutboundChannelAdapter("queue." + name,
+					connectionFactory);
 			queue.afterPropertiesSet();
 			this.queue = queue;
 		}

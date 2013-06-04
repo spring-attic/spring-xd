@@ -66,7 +66,7 @@ APP_HOME="`pwd -P`"
 cd "$SAVED" >&-
 
 APP_HOME_LIB=$APP_HOME/lib
-CLASSPATH=
+CLASSPATH=$APP_HOME/modules/processor/scripts
 if [ -d "$APP_HOME_LIB" ]; then
     for i in "$APP_HOME_LIB"/*.jar; do
         CLASSPATH="$CLASSPATH":"$i"

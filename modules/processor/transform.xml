@@ -20,7 +20,7 @@
 	<transformer input-channel="to.spel" expression="${expression:payload}" output-channel="output"/>
 
 	<transformer input-channel="to.script" output-channel="output">
-		<int-groovy:script location="${script:file:${xd.home}/modules/processor/scripts/transform.groovy}"/>
+		<int-groovy:script location="${script:transform.groovy}"/>
 	</transformer>
 
 	<channel id="output"/>

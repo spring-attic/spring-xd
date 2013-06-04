@@ -20,7 +20,7 @@
 	<filter input-channel="to.spel" expression="${expression:true}" output-channel="output"/>
 
 	<filter input-channel="to.script" output-channel="output">
-		<int-groovy:script location="${script:file:${xd.home}/modules/processor/scripts/filter.groovy}"/>
+		<int-groovy:script location="${script:filter.groovy}"/>
 	</filter>
 
 	<channel id="output"/>

@@ -73,7 +73,7 @@ set CMD_LINE_ARGS=%$
 set APP_HOME_LIB=%APP_HOME%\lib
 if exist "%APP_HOME_LIB%" (
     setLocal EnableDelayedExpansion
-    set CLASSPATH=
+    set CLASSPATH=%APP_HOME%\modules\processor\scripts
     for /R %APP_HOME_LIB% %%a in (*.jar) do (
         set CLASSPATH=!CLASSPATH!;%%a
     )

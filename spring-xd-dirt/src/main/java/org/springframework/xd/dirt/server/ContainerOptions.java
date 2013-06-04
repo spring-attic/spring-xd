@@ -20,19 +20,20 @@ import org.kohsuke.args4j.Option;
 
 /**
  * A class the defines the options that will be parsed on the command line
- *
  * @author Mark Pollack
+ * @author David Turansk
+ * @author Mark Fisher
  */
 public class ContainerOptions {
 
 	@Option(name="--xdHomeDir", usage="The XD installation directory", metaVar="<xdHomeDir>")
-	private final String xdHomeDir = "";
+	private String xdHomeDir = "";
 
 	@Option(name="--transport", usage="The transport to be used (redis, rabbit, local)")
-	private final String transport = "";
+	private String transport = "";
 
 	@Option(name="--help", usage="Show options help", aliases={"-?", "-h"})
-	private final boolean showHelp = false;
+	private boolean showHelp = false;
 
 	/**
 	 * @return the showHelp

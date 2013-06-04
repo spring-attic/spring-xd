@@ -40,4 +40,8 @@
 		<constructor-arg ref="redisConnectionFactory" />
 	</bean>
 
+	<int-event:inbound-channel-adapter id="moduleEventsOut" event-types="org.springframework.xd.dirt.event.AbstractModuleEvent"/>
+
+	<int-event:inbound-channel-adapter id="containerEventsOut" event-types="org.springframework.xd.dirt.event.AbstractContainerEvent"/>
+
 </beans>

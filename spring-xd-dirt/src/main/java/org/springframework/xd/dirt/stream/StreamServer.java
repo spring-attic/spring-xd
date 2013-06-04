@@ -1,19 +1,15 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  */
-
 package org.springframework.xd.dirt.stream;
 
 import java.io.File;
@@ -44,16 +40,14 @@ import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * This is a temporary "server" for the REST API. Currently it only handles simple
- * stream configurations (tokens separated by pipes) without any parameters. This
- * will be completely replaced by a more robust solution. Intended for demo only.
- *
  * @author Mark Fisher
  * @author Jennifer Hickey
+ * @author Gary Russell
+ * @author David Turanski
+ *
  */
 public class StreamServer implements SmartLifecycle, InitializingBean {
-
-	private final Log logger = LogFactory.getLog(getClass());
+	protected final Log logger = LogFactory.getLog(getClass());
 
 	private volatile String contextPath = "";
 
@@ -69,34 +63,33 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 
 	private volatile boolean running;
 
-	private final StreamDeployer streamDeployer;
+	protected final StreamDeployer streamDeployer;
 
 	public StreamServer(StreamDeployer streamDeployer) {
 		Assert.notNull(streamDeployer, "streamDeployer must not be null");
 		this.streamDeployer = streamDeployer;
 	}
-
 	/**
-	 * Set the port. Default is: 8080
+	 * Set the port. Default is 8080
 	 */
 	public void setPort(int port) {
 		this.port = port;
 	}
-
 	/**
-	 * Set the context path. Default is empty.
+	 * Set the contextPath
+	 * @param contextPath
 	 */
 	public void setContextPath(String contextPath) {
 		this.contextPath = contextPath;
 	}
 
 	/**
-	 * Set the servlet name. Default is: streams
+	 * Set the servletName. Default is streams
+	 * @param servletName
 	 */
 	public void setServletName(String servletName) {
 		this.servletName = servletName;
 	}
-
 	@Override
 	public void afterPropertiesSet() {
 		this.scheduler.setPoolSize(3);
@@ -213,6 +206,9 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 		if (!StringUtils.hasText(xdhome)) {
 			xdhome = (args.length > 0) ? args[0] : "..";
 			System.setProperty("xd.home", xdhome);
+		}
+		else {
+			System.setProperty("xd.home", System.getProperty("user.dir") + "/../");
 		}
 	}
 

@@ -7,6 +7,7 @@
 
 	<import resource="../transports/${xd.transport}-registry.xml"/>
 
+<!-- channelRegistry defined in transport configuration -->
 	<bean class="org.springframework.xd.dirt.plugins.StreamPlugin">
 		<constructor-arg ref="channelRegistry"/>
 	</bean>

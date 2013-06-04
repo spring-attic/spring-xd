@@ -380,9 +380,18 @@ task distXD (type: Copy, dependsOn: ["copyRedisInstall", "copyGemfireInstall", "
         into "$rootDir/dist/spring-xd"
 }
 
+configurations {
+        dist
+}
+
 task zipXD (type: Zip, dependsOn: "distXD"){
-	description = "Bundles Spring XD into dist/"
+        description = "Bundles Spring XD into dist/"
         from file("$rootDir/dist/spring-xd").absolutePath
         into "spring-xd"
         destinationDir file("$rootDir/dist")
 }
+
+artifacts {
+        dist zipXD
+}
+

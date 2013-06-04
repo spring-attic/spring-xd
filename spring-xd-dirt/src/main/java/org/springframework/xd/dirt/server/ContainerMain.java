@@ -30,6 +30,8 @@ import org.springframework.xd.dirt.launcher.RedisContainerLauncher;
  * @author Jennifer Hickey
  * @author Ilayaperumal Gopinathan
  * @author Mark Fisher
+ * @author David Turanski
+ *
  */
 public class ContainerMain extends AbstractMain {
 
@@ -40,7 +42,7 @@ public class ContainerMain extends AbstractMain {
 	 * @param args command line argument
 	 */
 	public static void main(String[] args) {
-		ContainerOptions options = new  ContainerOptions();
+		ContainerOptions options = new ContainerOptions();
 		CmdLineParser parser = new CmdLineParser(options);
 		try {
 			parser.parseArgument(args);

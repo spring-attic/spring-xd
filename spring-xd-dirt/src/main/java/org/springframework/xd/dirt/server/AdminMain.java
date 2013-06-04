@@ -23,6 +23,7 @@ import org.kohsuke.args4j.CmdLineParser;
 
 import org.springframework.xd.dirt.stream.StreamServer;
 
+
 /**
  * The main driver class for the admin
  *
@@ -57,6 +58,7 @@ public class AdminMain extends AbstractMain {
 			parser.printUsage(System.err);
 			System.exit(0);
 		}
+
 		launchStreamServer(System.getProperty(XD_HOME_KEY), System.getProperty(XD_TRANSPORT_KEY));
 	}
 

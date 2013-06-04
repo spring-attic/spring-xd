@@ -19,8 +19,7 @@ package org.springframework.xd.dirt.plugins;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
-
-import org.springframework.integration.channel.registry.LocalChannelRegistry;
+import org.springframework.integration.x.channel.registry.LocalChannelRegistry;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.SimpleModule;
 

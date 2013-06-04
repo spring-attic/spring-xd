@@ -1,21 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
-
-	<bean class="org.springframework.xd.dirt.plugins.StreamPlugin">
-		<constructor-arg ref="channelRegistry"/>
-	</bean>
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
 	<!-- local
 	<bean id="channelRegistry" class="org.springframework.integration.channel.registry.LocalChannelRegistry"/>
 	-->
 
 	<!-- redis -->
-	<import resource="../redis.xml"/>
 
-	<bean id="channelRegistry" class="org.springframework.integration.x.redis.RedisChannelRegistry">
-		<constructor-arg ref="redisConnectionFactory"/>
+	<bean class="org.springframework.xd.dirt.plugins.StreamPlugin">
+		<constructor-arg ref="channelRegistry"/>
 	</bean>
+	<beans profile="redis">
+	    <context:property-placeholder location="file:${xd.home}/config/redis.properties"/> 
+	    <import resource="../redis.xml"/>
+	    <bean id="channelRegistry" class="org.springframework.integration.x.redis.RedisChannelRegistry">
+			<constructor-arg ref="redisConnectionFactory"/>
+		</bean>
+	</beans>
 
 </beans>

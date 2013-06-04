@@ -41,6 +41,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.xd.dirt.server.PipeProtocol;
 
 /**
  * This is a temporary "server" for the REST API. Currently it only handles simple
@@ -188,7 +189,7 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 
 	public static void main(String[] args) {
 		setXDHome(args);
-		setRegistryType(args);
+		setActiveProfile(args);
 		try {
 			new ClassPathXmlApplicationContext("META-INF/spring/admin.xml");
 		}
@@ -214,18 +215,16 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 	}
 	
 	/**
-	 * Set registry.type system property
+	 * Set spring.profiles.active system property
 	 * @param args
 	 */
-	private static void setRegistryType(String[] args) {
-		String registryType = "redis";
-		if (args.length > 1) {
-			registryType = args[1];
+	private static void setActiveProfile(String[] args){
+		if (args.length > 1 && StringUtils.hasText(args[1])){
+			// Set the pipe protocol as active profile
+			System.setProperty("spring.profiles.active", args[1]);
+		} else {
+			// Set the redis profile as default profile 
+			System.setProperty("spring.profiles.active", PipeProtocol.REDIS.toString());
 		}
-		// Override registry type if system property is already set
-		if (StringUtils.hasText(System.getProperty("registry.type"))){
-			registryType = System.getProperty("registry.type");
-		}
-		System.setProperty("registry.type", registryType);
 	}
 }

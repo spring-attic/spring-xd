@@ -35,6 +35,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.container.DefaultContainer;
 import org.springframework.xd.dirt.core.Container;
 import org.springframework.xd.dirt.event.ContainerStartedEvent;
+import org.springframework.xd.dirt.server.PipeProtocol;
 
 /**
  * @author Mark Fisher
@@ -70,7 +71,7 @@ public class RedisContainerLauncher implements ContainerLauncher, ApplicationEve
 
 	public static void main(String[] args) {
 		setXDHome(args);
-		setRegistryType(args);
+		setActiveProfile();
 		ClassPathXmlApplicationContext context = null;
 		try {
 			context = new ClassPathXmlApplicationContext("META-INF/spring/launcher.xml");
@@ -102,20 +103,14 @@ public class RedisContainerLauncher implements ContainerLauncher, ApplicationEve
 	}
 	
 	/**
-	 * Set registry.type system property
+	 * Set spring.profiles.active system property
 	 * @param args
 	 */
-	private static void setRegistryType(String[] args) {
-		String registryType = "redis";
-		if (args.length > 1) {
-			registryType = args[1];
-		}
-		// Override registry type if system property is already set
-		if (StringUtils.hasText(System.getProperty("registry.type"))){
-			registryType = System.getProperty("registry.type");
-		}
-		System.setProperty("registry.type", registryType);
+	private static void setActiveProfile(){
+		// Set the redis profile as default profile 
+		System.setProperty("spring.profiles.active", PipeProtocol.REDIS.toString());
 	}
+	
 
 	private static class ShutdownListener implements ApplicationListener<ContextClosedEvent> {
 

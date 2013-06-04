@@ -24,14 +24,11 @@ import org.kohsuke.args4j.Option;
  */
 public class ContainerOptions {
 
-	@Option(name="--embeddedAdmin", usage="embed the XD Admin server in the XD Container")
-	private boolean embeddedAdmin = false;
-
 	@Option(name="--xdHomeDir", usage="The XD installation directory", metaVar="<xdHomeDir>")
 	private String xdHomeDir = "";
 	
-	@Option(name="--registryType", usage="The Channel registry type", metaVar="<registryType>")
-	private String registryType = "redis";
+	@Option(name="--pipeProtocol", usage="The pipe protocol to be used The pipe protocol to be used (redis, rabbit, local)")
+	private String pipeProtocol = "";
 
 	@Option(name="--help", usage="Show options help", aliases={"-?", "-h"})
 	private boolean showHelp = false;
@@ -44,13 +41,6 @@ public class ContainerOptions {
 	}
 
 	/**
-	 * @return the embeddedAdmin
-	 */
-	public boolean isEmbeddedAdmin() {
-		return embeddedAdmin;
-	}
-
-	/**
 	 * @return the xdHomeDir
 	 */
 	public String getXDHomeDir() {
@@ -58,10 +48,10 @@ public class ContainerOptions {
 	}
 	
 	/**
-	 * @return the registryType
+	 * @return the pipeProtocol
 	 */
-	public String getRegistryType() {
-		return registryType;
+	public String getPipeProtocol() {
+		return pipeProtocol;
 	}
 
 }

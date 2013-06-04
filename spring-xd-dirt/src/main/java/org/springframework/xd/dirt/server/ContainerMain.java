@@ -39,7 +39,6 @@ public class ContainerMain {
 	public static void main(String[] args) {
 		ContainerOptions options = new  ContainerOptions();
 		CmdLineParser parser = new CmdLineParser(options);
-		String registryType = "redis";
 		try {
 			parser.parseArgument(args);
 		} catch (CmdLineException e) {
@@ -48,9 +47,14 @@ public class ContainerMain {
 			System.exit(1);
 		}
 
-		// Override registry.type system property if commandLine option is set
-		if (!options.getRegistryType().equals("redis")) {
-			registryType = options.getRegistryType();
+		String pipeProtocol = options.getPipeProtocol();
+		if (StringUtils.hasText(pipeProtocol)){
+			if (!PipeProtocol.checkIfExists(pipeProtocol)){	
+				parser.printUsage(System.err);
+				System.exit(0);
+			} // Set default protocol if commandLine option is not provided
+		} else {
+			pipeProtocol = PipeProtocol.REDIS.toString();
 		}
 		// Override xd.home system property if commandLine option is set
 		if (StringUtils.hasText(options.getXDHomeDir())) {
@@ -63,12 +67,12 @@ public class ContainerMain {
 			System.exit(0);
 		}
 
-		if (options.isEmbeddedAdmin() == true ) {
-			AdminMain.launchStreamServer(xdHome, registryType);
-		}
-
 		//Future versions to support other types of container launchers
-		RedisContainerLauncher.main(new String[]{xdHome, registryType});
+		if (pipeProtocol.equals(PipeProtocol.REDIS.toString())){
+			RedisContainerLauncher.main(new String[]{xdHome});
+		} else {
+			logger.info("Only Redis container is supported now.");
+		}
 	}
 
 	/**

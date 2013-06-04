@@ -20,7 +20,6 @@ import org.apache.commons.logging.LogFactory;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.springframework.util.StringUtils;
-import org.springframework.xd.dirt.launcher.RedisContainerLauncher;
 import org.springframework.xd.dirt.stream.StreamServer;
 
 /**
@@ -39,7 +38,7 @@ public class AdminMain {
 	public static void main(String[] args) {
 		AdminOptions options = new  AdminOptions();
 		CmdLineParser parser = new CmdLineParser(options);
-		String registryType = "redis";
+	
 		try {
 			parser.parseArgument(args);
 		} catch (CmdLineException e) {
@@ -47,10 +46,14 @@ public class AdminMain {
 			parser.printUsage(System.err);
 			System.exit(1);
 		}
-
-		// Override registry.type system property if commandLine option is set
-		if (!options.getRegistryType().equals("redis")) {
-			registryType = options.getRegistryType();
+		String pipeProtocol = options.getPipeProtocol();
+		if (StringUtils.hasText(pipeProtocol)){
+			if (!PipeProtocol.checkIfExists(pipeProtocol)){	
+				parser.printUsage(System.err);
+				System.exit(0);
+			}// Set default protocol if commandLine option is not provided
+		} else {
+			pipeProtocol = PipeProtocol.REDIS.toString();
 		}
 		// Override xd.home system property if commandLine option is set
 		if (StringUtils.hasText(options.getXDHomeDir())) {
@@ -63,10 +66,7 @@ public class AdminMain {
 			parser.printUsage(System.err);
 			System.exit(0);
 		}
-		if (options.isEmbeddedContainer()) {
-			RedisContainerLauncher.main(new String[]{xdHome, registryType});
-		}
-		launchStreamServer(xdHome, registryType);
+		launchStreamServer(xdHome, pipeProtocol);
 	}
 
 	/**
@@ -88,9 +88,9 @@ public class AdminMain {
 	}
 
 	/**
-	 * Launch stream server with configured redis host/port
+	 * Launch stream server with the given pipeProtocol profile
 	 */
-	public static void launchStreamServer(String xdHome, String registryType) {
-		StreamServer.main(new String[]{xdHome, registryType});
+	public static void launchStreamServer(String xdHome, String pipeProtocol) {
+		StreamServer.main(new String[]{xdHome, pipeProtocol});
 	}
 }

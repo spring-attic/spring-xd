@@ -5,16 +5,17 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-    <context:property-placeholder location="file:${xd.home}/config/${registry.type}.properties"/> 
-    
-	<import resource="redis.xml"/>
-
-	<bean id="redisStreamDeployer" class="org.springframework.xd.dirt.stream.RedisStreamDeployer">
-		<constructor-arg ref="redisConnectionFactory"/>
-	</bean>
-	
+   
 	<bean class="org.springframework.xd.dirt.stream.StreamServer">
-	    <constructor-arg ref="redisStreamDeployer"/>
+		    <constructor-arg ref="streamDeployer"/>
 	</bean>
+
+	<beans profile="redis">
+	    <context:property-placeholder location="file:${xd.home}/config/redis.properties"/>
+	    <import resource="redis.xml"/>
+		<bean id="streamDeployer" class="org.springframework.xd.dirt.stream.RedisStreamDeployer">
+			<constructor-arg ref="redisConnectionFactory"/>
+		</bean>
+	</beans>
 
 </beans>

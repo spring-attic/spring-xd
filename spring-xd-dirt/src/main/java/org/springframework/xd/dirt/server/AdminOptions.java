@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.dirt.server;
 
 import org.kohsuke.args4j.Option;
@@ -25,13 +26,13 @@ import org.kohsuke.args4j.Option;
 public class AdminOptions {
 
 	@Option(name="--help", usage="Show options help", aliases={"-?", "-h"})
-	private boolean showHelp = false;
+	private final boolean showHelp = false;
 
 	@Option(name="--xdHomeDir", usage="The XD installation directory", metaVar="<xdHomeDir>")
-	private String xdHomeDir = "";
-	
-	@Option(name="--pipeProtocol", usage="The pipe protocol to be used (redis, rabbit, local)", metaVar="<pipeProtocol>")
-	private String pipeProtocol = "";
+	private final String xdHomeDir = "";
+
+	@Option(name="--transport", usage="The transport to be used (redis, rabbit, local)", metaVar="<transport>")
+	private final String transport = "";
 
 	/**
 	 * @return the showHelp
@@ -46,12 +47,12 @@ public class AdminOptions {
 	public String getXDHomeDir() {
 		return xdHomeDir;
 	}
-	
+
 	/**
-	 * @return the pipeProtocol
+	 * @return the transport
 	 */
-	public String getPipeProtocol() {
-		return pipeProtocol;
+	public String getTransport() {
+		return transport;
 	}
 
 }

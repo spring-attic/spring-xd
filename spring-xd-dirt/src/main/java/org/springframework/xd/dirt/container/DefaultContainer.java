@@ -20,6 +20,7 @@ import java.util.UUID;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.context.support.AbstractApplicationContext;
@@ -46,7 +47,7 @@ public class DefaultContainer implements Container, SmartLifecycle {
 	private volatile AbstractApplicationContext context;
 
 	private final String id;
-	
+
 	/**
 	 * Creates a container with a given id
 	 * @param id the id
@@ -54,7 +55,7 @@ public class DefaultContainer implements Container, SmartLifecycle {
 	public DefaultContainer(String id) {
 		this.id = id;
 	}
-	
+
 	/**
 	 * Default constructor generates a random id
 	 */

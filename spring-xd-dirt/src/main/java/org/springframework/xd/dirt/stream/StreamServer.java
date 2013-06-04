@@ -32,6 +32,7 @@ import org.apache.catalina.core.AprLifecycleListener;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -41,7 +42,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.xd.dirt.server.PipeProtocol;
 
 /**
  * This is a temporary "server" for the REST API. Currently it only handles simple
@@ -192,11 +192,10 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 
 	public static void main(String[] args) {
 		setXDHome(args);
-		setActiveProfile(args);
 		try {
 			new ClassPathXmlApplicationContext("META-INF/spring/admin.xml");
 		}
-		catch(RedisConnectionFailureException e) {
+		catch (RedisConnectionFailureException e) {
 			final Log logger = LogFactory.getLog(StreamServer.class);
 			logger.fatal(e.getMessage());
 			System.err.println("Redis does not seem to be running. Did you install and start Redis? " +
@@ -204,7 +203,7 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 			System.exit(1);
 		}
 	}
-	
+
 	/**
 	 * Set xd.home system property
 	 * @param args
@@ -216,18 +215,5 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 			System.setProperty("xd.home", xdhome);
 		}
 	}
-	
-	/**
-	 * Set spring.profiles.active system property
-	 * @param args
-	 */
-	private static void setActiveProfile(String[] args){
-		if (args.length > 1 && StringUtils.hasText(args[1])){
-			// Set the pipe protocol as active profile
-			System.setProperty("spring.profiles.active", args[1]);
-		} else {
-			// Set the redis profile as default profile 
-			System.setProperty("spring.profiles.active", PipeProtocol.REDIS.toString());
-		}
-	}
+
 }

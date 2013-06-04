@@ -44,6 +44,7 @@ public class RedisModuleEventListener implements ApplicationListener<AbstractMod
 
 	public RedisModuleEventListener(RedisConnectionFactory redisConnectionFactory) {
 		this.redisTemplate.setConnectionFactory(redisConnectionFactory);
+		this.redisTemplate.afterPropertiesSet();
 	}
 
 

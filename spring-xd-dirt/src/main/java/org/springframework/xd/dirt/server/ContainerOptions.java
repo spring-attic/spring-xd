@@ -13,25 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.dirt.server;
 
 import org.kohsuke.args4j.Option;
 
 /**
  * A class the defines the options that will be parsed on the command line
- * @author Mark Pollack
  *
+ * @author Mark Pollack
  */
 public class ContainerOptions {
 
 	@Option(name="--xdHomeDir", usage="The XD installation directory", metaVar="<xdHomeDir>")
-	private String xdHomeDir = "";
-	
-	@Option(name="--pipeProtocol", usage="The pipe protocol to be used The pipe protocol to be used (redis, rabbit, local)")
-	private String pipeProtocol = "";
+	private final String xdHomeDir = "";
+
+	@Option(name="--transport", usage="The transport to be used (redis, rabbit, local)")
+	private final String transport = "";
 
 	@Option(name="--help", usage="Show options help", aliases={"-?", "-h"})
-	private boolean showHelp = false;
+	private final boolean showHelp = false;
 
 	/**
 	 * @return the showHelp
@@ -46,12 +47,12 @@ public class ContainerOptions {
 	public String getXDHomeDir() {
 		return xdHomeDir;
 	}
-	
+
 	/**
-	 * @return the pipeProtocol
+	 * @return the transport
 	 */
-	public String getPipeProtocol() {
-		return pipeProtocol;
+	public String getTransport() {
+		return transport;
 	}
 
 }

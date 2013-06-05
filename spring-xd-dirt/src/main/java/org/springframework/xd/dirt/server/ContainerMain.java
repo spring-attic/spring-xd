@@ -13,25 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.dirt.server;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
+
 import org.springframework.xd.dirt.launcher.RedisContainerLauncher;
-import org.springframework.xd.dirt.stream.StreamServer;
 
 /**
- * The main driver class for ContainerMain 
+ * The main driver class for the container
+ *
  * @author Mark Pollack
  * @author Jennifer Hickey
- *
+ * @author Ilayaperumal Gopinathan
+ * @author Mark Fisher
  */
-public class ContainerMain {
+public class ContainerMain extends AbstractMain {
 
 	private static final Log logger = LogFactory.getLog(ContainerMain.class);
+
 	/**
 	 * Start the RedisContainerLauncher
 	 * @param args command line argument
@@ -41,28 +44,28 @@ public class ContainerMain {
 		CmdLineParser parser = new CmdLineParser(options);
 		try {
 			parser.parseArgument(args);
-		} catch (CmdLineException e) {
+		}
+		catch (CmdLineException e) {
 			logger.error(e.getMessage());
 			parser.printUsage(System.err);
 			System.exit(1);
 		}
-		
+
+		setXDHome(options.getXDHomeDir());
+		setXDTransport(options.getTransport());
+
 		if (options.isShowHelp()) {
 			parser.printUsage(System.err);
 			System.exit(0);
 		}
-		
-		if (StringUtils.isNotEmpty(options.getXDHomeDir())) {
-			System.setProperty("xd.home", options.getXDHomeDir());
+
+		// future versions to support other types of container launchers
+		if ("redis".equals(System.getProperty(XD_TRANSPORT_KEY))) {
+			RedisContainerLauncher.main(new String[]{System.getProperty(XD_HOME_KEY)});
 		}
-		
-		if (options.isEmbeddedAdmin() == true ) {	
-			StreamServer.main(new String[] {options.getRedisHost(), Integer.toString(options.getRedisPort())});
+		else {
+			logger.info("only redis transport is supported now");
 		}
-		
-		//Future versions to support other types of container launchers
-		
-		RedisContainerLauncher.main(new String[]{});
 	}
 
 }

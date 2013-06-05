@@ -16,7 +16,6 @@
 
 package org.springframework.xd.dirt.launcher;
 
-
 import java.io.File;
 
 import org.apache.commons.logging.Log;
@@ -69,13 +68,7 @@ public class RedisContainerLauncher implements ContainerLauncher, ApplicationEve
 	}
 
 	public static void main(String[] args) {
-		String xdhome = System.getProperty("xd.home");
-		if (!StringUtils.hasText(xdhome)) {
-			xdhome = (args.length > 0) ? args[0] : "..";
-			System.setProperty("xd.home", xdhome);
-		}
-		logger.info("xd.home=" + new File(xdhome).getAbsolutePath());
-
+		setXDProperties(args);
 		ClassPathXmlApplicationContext context = null;
 		try {
 			context = new ClassPathXmlApplicationContext("META-INF/spring/launcher.xml");
@@ -92,6 +85,26 @@ public class RedisContainerLauncher implements ContainerLauncher, ApplicationEve
 		ContainerLauncher launcher = context.getBean(ContainerLauncher.class);
 		launcher.launch();
 	}
+
+	/**
+	 * Set xd.home and xd.transport system properties
+	 * @param args
+	 */
+	private static void setXDProperties(String[] args) {
+		String xdhome = System.getProperty("xd.home");
+		if (!StringUtils.hasText(xdhome)) {
+			xdhome = (args.length > 0) ? args[0] : "..";
+			System.setProperty("xd.home", xdhome);
+		}
+		String xdtransport = System.getProperty("xd.transport");
+		if (!StringUtils.hasText(xdtransport)) {
+			xdtransport = (args.length > 1) ? args[1] : "redis";
+			System.setProperty("xd.transport", xdtransport);
+		}
+		logger.info("xd.home=" + new File(xdhome).getAbsolutePath()
+				+ ", xd.transport=" + xdtransport);
+	}
+
 
 	private static class ShutdownListener implements ApplicationListener<ContextClosedEvent> {
 

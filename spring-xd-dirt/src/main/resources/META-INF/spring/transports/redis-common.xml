@@ -7,13 +7,11 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<context:property-placeholder/>
-	
-	<beans profile="default">
-	    <bean id="redisConnectionFactory" class="org.springframework.xd.dirt.redis.ExceptionWrappingLettuceConnectionFactory">
-		  <constructor-arg index="0" value="${redis.hostname:localhost}"/>
-		  <constructor-arg index="1" value="${redis.port:6379}"/>
-		</bean>
-	</beans>
+	<context:property-placeholder location="file:${xd.home}/config/redis.properties"/>
+
+	<bean id="redisConnectionFactory" class="org.springframework.xd.dirt.redis.ExceptionWrappingLettuceConnectionFactory">
+		<constructor-arg index="0" value="${redis.hostname:localhost}" />
+		<constructor-arg index="1" value="${redis.port:6379}" />
+	</bean>
 
 </beans>

@@ -15,6 +15,16 @@
 
 	<int:channel id="output"/>
 
-	<bean id="twitterTemplate" class="org.springframework.social.twitter.api.impl.TwitterTemplate"/>
+	<bean id="twitterTemplate" class="org.springframework.social.twitter.api.impl.TwitterTemplate">
+		<constructor-arg value="#{oauth2Template.authenticateClient().getAccessToken()}" />
+	</bean>
+
+	<bean id="oauth2Template" class="org.springframework.social.oauth2.OAuth2Template">
+		<constructor-arg value="${consumerKey}" />
+		<constructor-arg value="${consumerSecret}" />
+		<constructor-arg value="" />
+ 		<constructor-arg value="https://api.twitter.com/oauth2/token" /> 
+		<property name="useParametersForClientAuthentication" value="false" />
+	</bean>
 
 </beans>

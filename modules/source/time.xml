@@ -7,7 +7,8 @@
 
 	<channel id="output"/>
 
-	<inbound-channel-adapter channel="output" expression="new java.util.Date()">
+	<inbound-channel-adapter channel="output"
+			expression="${asString:true} ? new java.util.Date().toString() : new java.util.Date()">
 		<poller fixed-delay="${interval:1}" time-unit="SECONDS"/>
 	</inbound-channel-adapter>
 

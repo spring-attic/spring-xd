@@ -13,25 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.dirt.server;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
-import org.springframework.xd.dirt.launcher.RedisContainerLauncher;
+
 import org.springframework.xd.dirt.stream.StreamServer;
 
 /**
- * The main driver class for the AdminMain
+ * The main driver class for the admin
+ *
  * @author Mark Pollack
  * @author Jennifer Hickey
- *
+ * @author Ilayaperumal Gopinathan
+ * @author Mark Fisher
  */
-public class AdminMain {
+public class AdminMain extends AbstractMain {
 
 	private static final Log logger = LogFactory.getLog(AdminMain.class);
+
 	/**
 	 * @param args
 	 */
@@ -40,26 +43,28 @@ public class AdminMain {
 		CmdLineParser parser = new CmdLineParser(options);
 		try {
 			parser.parseArgument(args);
-		} catch (CmdLineException e) {
+		}
+		catch (CmdLineException e) {
 			logger.error(e.getMessage());
 			parser.printUsage(System.err);
 			System.exit(1);
 		}
-		
+
+		setXDHome(options.getXDHomeDir());
+		setXDTransport(options.getTransport());
+
 		if (options.isShowHelp()) {
 			parser.printUsage(System.err);
 			System.exit(0);
 		}
-		
-		if (options.isEmbeddedContainer()) {
-			if (StringUtils.isNotEmpty(options.getXDHomeDir())) {
-				System.setProperty("xd.home", options.getXDHomeDir());
-			}
-			RedisContainerLauncher.main(new String[]{});
-		}
+		launchStreamServer(System.getProperty(XD_HOME_KEY), System.getProperty(XD_TRANSPORT_KEY));
+	}
 
-		StreamServer.main(new String[] {options.getRedisHost(), Integer.toString(options.getRedisPort())});
-
+	/**
+	 * Launch stream server with the given home and transport
+	 */
+	public static void launchStreamServer(String home, String transport) {
+		StreamServer.main(new String[]{home, transport});
 	}
 
 }

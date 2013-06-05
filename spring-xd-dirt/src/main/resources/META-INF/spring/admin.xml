@@ -3,12 +3,12 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:context="http://www.springframework.org/schema/context"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<import resource="../transports/${xd.transport}-registry.xml"/>
-
-	<bean class="org.springframework.xd.dirt.plugins.StreamPlugin">
-		<constructor-arg ref="channelRegistry"/>
+	<bean class="org.springframework.xd.dirt.stream.StreamServer">
+		<constructor-arg ref="streamDeployer"/>
 	</bean>
+
+	<import resource="transports/${xd.transport}-admin.xml"/>
 
 </beans>

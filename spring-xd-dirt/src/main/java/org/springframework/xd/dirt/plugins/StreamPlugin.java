@@ -20,8 +20,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.springframework.integration.MessageChannel;
-import org.springframework.integration.channel.registry.ChannelRegistry;
-import org.springframework.integration.x.redis.RedisChannelRegistry;
+import org.springframework.integration.x.channel.registry.ChannelRegistry;
 import org.springframework.util.Assert;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.Plugin;
@@ -50,10 +49,7 @@ public class StreamPlugin implements Plugin {
 
 	@Override
 	public void removeModule(Module module, String group, int index) {
-		if (this.channelRegistry instanceof RedisChannelRegistry) {
-			RedisChannelRegistry registry = (RedisChannelRegistry) this.channelRegistry;
-			registry.stopAndRemoveAll(group + "."  + index);
-		}
+		this.channelRegistry.cleanAll(group + "."  + index);
 	}
 
 	private void registerChannels(Map<String, MessageChannel> channels, String group, int index) {

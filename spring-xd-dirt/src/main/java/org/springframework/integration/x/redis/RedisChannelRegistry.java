@@ -30,7 +30,6 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
-import org.springframework.integration.channel.registry.ChannelRegistry;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.SubscribableChannel;
@@ -38,6 +37,7 @@ import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.redis.inbound.RedisInboundChannelAdapter;
 import org.springframework.integration.redis.outbound.RedisPublishingMessageHandler;
+import org.springframework.integration.x.channel.registry.ChannelRegistry;
 import org.springframework.util.Assert;
 
 /**
@@ -95,7 +95,7 @@ public class RedisChannelRegistry implements ChannelRegistry, DisposableBean {
 		adapter.start();
 	}
 
-	public void stopAndRemoveAll(String name) {
+	public void cleanAll(String name) {
 		synchronized (this.lifecycleBeans) {
 			Iterator<Lifecycle> iterator = this.lifecycleBeans.iterator();
 			while (iterator.hasNext()) {

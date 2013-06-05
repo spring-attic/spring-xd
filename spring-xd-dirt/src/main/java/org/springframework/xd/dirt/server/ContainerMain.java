@@ -15,23 +15,23 @@
  */
 package org.springframework.xd.dirt.server;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
+import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.launcher.RedisContainerLauncher;
-import org.springframework.xd.dirt.stream.StreamServer;
 
 /**
  * The main driver class for ContainerMain 
  * @author Mark Pollack
  * @author Jennifer Hickey
- *
+ * @author Ilayaperumal Gopinathan
  */
 public class ContainerMain {
 
 	private static final Log logger = LogFactory.getLog(ContainerMain.class);
+
 	/**
 	 * Start the RedisContainerLauncher
 	 * @param args command line argument
@@ -46,23 +46,50 @@ public class ContainerMain {
 			parser.printUsage(System.err);
 			System.exit(1);
 		}
-		
+
+		String pipeProtocol = options.getPipeProtocol();
+		if (StringUtils.hasText(pipeProtocol)){
+			if (!PipeProtocol.checkIfExists(pipeProtocol)){	
+				parser.printUsage(System.err);
+				System.exit(0);
+			} // Set default protocol if commandLine option is not provided
+		} else {
+			pipeProtocol = PipeProtocol.REDIS.toString();
+		}
+		// Override xd.home system property if commandLine option is set
+		if (StringUtils.hasText(options.getXDHomeDir())) {
+			System.setProperty("xd.home", options.getXDHomeDir());
+		}	
+		String xdHome = setXDHome();
+
 		if (options.isShowHelp()) {
 			parser.printUsage(System.err);
 			System.exit(0);
 		}
-		
-		if (StringUtils.isNotEmpty(options.getXDHomeDir())) {
-			System.setProperty("xd.home", options.getXDHomeDir());
-		}
-		
-		if (options.isEmbeddedAdmin() == true ) {	
-			StreamServer.main(new String[] {options.getRedisHost(), Integer.toString(options.getRedisPort())});
-		}
-		
+
 		//Future versions to support other types of container launchers
-		
-		RedisContainerLauncher.main(new String[]{});
+		if (pipeProtocol.equals(PipeProtocol.REDIS.toString())){
+			RedisContainerLauncher.main(new String[]{xdHome});
+		} else {
+			logger.info("Only Redis container is supported now.");
+		}
 	}
 
+	/**
+	 * Set xd.home system property to relative path if it is not set already.
+	 * This could happen when the AdminMain is not launched from xd scripts.
+	 * @return String
+	 */
+	private static String setXDHome() {
+		String xdhome = System.getProperty("xd.home");
+		// Make sure to set xd.home system property
+		if (!StringUtils.hasText(xdhome)) {
+			// if xd.home system property is not set,
+			// then set it to relative path
+			xdhome = "..";
+			// Set system property for embedded container if exists
+			System.setProperty("xd.home", xdhome);
+		}
+		return xdhome;
+	}
 }

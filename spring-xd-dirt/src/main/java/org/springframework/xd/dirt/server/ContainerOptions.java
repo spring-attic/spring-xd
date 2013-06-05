@@ -24,21 +24,15 @@ import org.kohsuke.args4j.Option;
  */
 public class ContainerOptions {
 
-	@Option(name="--embeddedAdmin", usage="embed the XD Admin server in the XD Container")
-	private boolean embeddedAdmin = false;
-	
 	@Option(name="--xdHomeDir", usage="The XD installation directory", metaVar="<xdHomeDir>")
 	private String xdHomeDir = "";
 	
-	//@Option(name="--redisHost", usage="the hostname of the redis sever", metaVar="<redisHost>")
-	private String redisHost = "localhost";
-	
-	//@Option(name="--redisPort", usage="the port number of the redis sever", metaVar="<redisPort>")
-	private int redisPort = 6379;
+	@Option(name="--pipeProtocol", usage="The pipe protocol to be used The pipe protocol to be used (redis, rabbit, local)")
+	private String pipeProtocol = "";
 
 	@Option(name="--help", usage="Show options help", aliases={"-?", "-h"})
 	private boolean showHelp = false;
-	
+
 	/**
 	 * @return the showHelp
 	 */
@@ -47,42 +41,17 @@ public class ContainerOptions {
 	}
 
 	/**
-	 * @return the moduleDir
+	 * @return the xdHomeDir
 	 */
 	public String getXDHomeDir() {
 		return xdHomeDir;
 	}
-
-	/**
-	 * @return the embeddedAdmin
-	 */
-	public boolean isEmbeddedAdmin() {
-		return embeddedAdmin;
-	}
-
-	/**
-	 * @return the xdHomeDir
-	 */
-	public String getXdHomeDir() {
-		return xdHomeDir;
-	}
-
-	/**
-	 * @return the redisHost
-	 */
-	public String getRedisHost() {
-		return redisHost;
-	}
-
-	/**
-	 * @return the redisPort
-	 */
-	public int getRedisPort() {
-		return redisPort;
-	}
-
 	
+	/**
+	 * @return the pipeProtocol
+	 */
+	public String getPipeProtocol() {
+		return pipeProtocol;
+	}
 
-	
-	
 }

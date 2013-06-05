@@ -175,9 +175,10 @@ project('spring-xd-dirt') {
 	startScripts.setEnabled(false)
 	mainClassName = "org.springframework.xd.dirt.server.AdminMain"
 
-	run {
-		args = ["--embeddedContainer"]
-	}
+        task configFiles {
+                def config = file("$rootDir/config")
+                outputs.dir config
+        }
 
 	task moduleFiles {
 		def modules = file("$rootDir/modules")
@@ -188,6 +189,10 @@ project('spring-xd-dirt') {
 		def scripts = file("$rootDir/scripts/xd")
 		outputs.dir scripts
 	}
+
+        applicationDistribution.from(configFiles) {
+		into "config"
+        }
 
 	applicationDistribution.from(scriptFiles) {
 		into "bin"

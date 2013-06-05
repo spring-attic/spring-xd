@@ -35,6 +35,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.container.DefaultContainer;
 import org.springframework.xd.dirt.core.Container;
 import org.springframework.xd.dirt.event.ContainerStartedEvent;
+import org.springframework.xd.dirt.server.PipeProtocol;
 
 /**
  * @author Mark Fisher
@@ -69,13 +70,8 @@ public class RedisContainerLauncher implements ContainerLauncher, ApplicationEve
 	}
 
 	public static void main(String[] args) {
-		String xdhome = System.getProperty("xd.home");
-		if (!StringUtils.hasText(xdhome)) {
-			xdhome = (args.length > 0) ? args[0] : "..";
-			System.setProperty("xd.home", xdhome);
-		}
-		logger.info("xd.home=" + new File(xdhome).getAbsolutePath());
-
+		setXDHome(args);
+		setActiveProfile();
 		ClassPathXmlApplicationContext context = null;
 		try {
 			context = new ClassPathXmlApplicationContext("META-INF/spring/launcher.xml");
@@ -92,6 +88,29 @@ public class RedisContainerLauncher implements ContainerLauncher, ApplicationEve
 		ContainerLauncher launcher = context.getBean(ContainerLauncher.class);
 		launcher.launch();
 	}
+
+	/**
+	 * Set xd.home system property
+	 * @param args
+	 */
+	private static void setXDHome(String[] args) {
+		String xdhome = System.getProperty("xd.home");
+		if (!StringUtils.hasText(xdhome)) {
+			xdhome = (args.length > 0) ? args[0] : "..";
+			System.setProperty("xd.home", xdhome);
+		}
+		logger.info("xd.home=" + new File(xdhome).getAbsolutePath());
+	}
+	
+	/**
+	 * Set spring.profiles.active system property
+	 * @param args
+	 */
+	private static void setActiveProfile(){
+		// Set the redis profile as default profile 
+		System.setProperty("spring.profiles.active", PipeProtocol.REDIS.toString());
+	}
+	
 
 	private static class ShutdownListener implements ApplicationListener<ContextClosedEvent> {
 

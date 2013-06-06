@@ -74,10 +74,7 @@ set APP_HOME_LIB=%APP_HOME%\lib
 if exist "%APP_HOME_LIB%" (
     setLocal EnableDelayedExpansion
     set CLASSPATH=%APP_HOME%\modules\processor\scripts
-    for /R %APP_HOME_LIB% %%a in (*.jar) do (
-        set CLASSPATH=!CLASSPATH!;%%a
-    )
-    set CLASSPATH=!CLASSPATH!
+    set CLASSPATH=!CLASSPATH!;%APP_HOME_LIB%\*
 )
 
 @rem Set XD_HOME to APP_HOME if XD_HOME is not defined yet

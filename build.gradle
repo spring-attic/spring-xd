@@ -5,11 +5,16 @@ apply plugin: 'idea'
 
 buildscript {
 	repositories {
-		maven { url "http://repo.springsource.org/plugins-release" }
+		maven { url 'https://repo.springsource.org/libs-release' }
+		maven { url "http://repo.springsource.org/plugins-snapshot" }
+		mavenRepo name: 'Bintray Asciidoctor repo', url: 'http://dl.bintray.com/content/aalmiray/asciidoctor'
+		mavenRepo name: 'Bintray JCenter', url: 'http://jcenter.bintray.com'
 	}
 	dependencies {
 		classpath("org.springframework.build.gradle:propdeps-plugin:0.0.3")
-		classpath("org.springframework.build.gradle:docbook-reference-plugin:0.2.6")
+		classpath("org.springframework.build.gradle:docbook-reference-plugin:0.2.7-SNAPSHOT")
+		classpath 'org.asciidoctor:asciidoctor-gradle-plugin:0.4.1'
+		classpath 'org.ajoberstar:gradle-git:0.4.0'
 	}
 }
 
@@ -399,4 +404,96 @@ task zipXD (type: Zip, dependsOn: "distXD"){
 artifacts {
         dist zipXD
 }
+
+import org.ajoberstar.gradle.git.tasks.*
+
+task pullDocs(type: GitClone) {
+	if (project.gradle.startParameter.offline) {
+		enabled = false
+	}
+
+	def destination = file("$buildDir/asciidoc")
+
+	uri = "git://github.com/SpringSource/spring-xd.wiki.git"
+	destinationPath = destination
+	bare = false
+
+	doFirst {
+		if (destination.exists()) {
+			destination.deleteDir()
+		}
+	}
+}
+
+import org.asciidoctor.gradle.*
+
+task asciidoctorDocbook(type: AsciidoctorTask, dependsOn: [pullDocs]) {
+	sourceDocumentName = file("$buildDir/asciidoc/guide/FullGuide.adoc")
+	sourceDir = file("$buildDir/asciidoc/guide")
+	outputDir = file("$buildDir/docbook")
+	backend = "docbook"
+	options = [
+		attributes: [
+			docinfo: ''
+		]
+	]
+
+	doLast {
+		copy {
+			from "$buildDir/asciidoc/guide/images"
+			into "$buildDir/docbook/images"
+		}
+		copy {
+			from "$buildDir/asciidoc/images"
+			into "$buildDir/docbook/images"
+		}
+	}
+}
+
+task asciidoctorHtml(type: AsciidoctorTask, dependsOn: [pullDocs]) {
+	sourceDocumentName = file("$buildDir/asciidoc/guide/FullGuide.adoc")
+	sourceDir = file("$buildDir/asciidoc/guide")
+	outputDir = file("$buildDir/html")
+	backend = "html5"
+	options = [
+		attributes: [
+			docinfo: '',
+			toc2: '',
+			imagesdir: 'images',
+			stylesdir: 'stylesheets',
+			stylesheet: 'golo.css',
+			appversion: "$version",
+			'source-highlighter': 'highlightjs'
+		]
+	]
+
+	doLast {
+		copy {
+			from "$buildDir/asciidoc/guide/images"
+			into "$buildDir/html/images"
+		}
+		copy {
+			from "$buildDir/asciidoc/images"
+			into "$buildDir/html/images/images"
+		}
+		copy {
+			from "$buildDir/asciidoc/guide/stylesheets"
+			into "$buildDir/html/stylesheets"
+		}
+	}
+}
+
+apply plugin: 'docbook-reference'
+
+ext {
+	expandPlaceholders = ""; //For Gradle Reference Plugin
+}
+
+reference {
+	sourceFileName = 'FullGuide.xml'
+	sourceDir = file("$buildDir/docbook")
+	pdfFilename = 'spring-xd-reference.pdf'
+}
+
+reference.dependsOn asciidoctorDocbook
 

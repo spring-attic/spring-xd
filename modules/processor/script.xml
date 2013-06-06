@@ -10,21 +10,14 @@
 		http://www.springframework.org/schema/integration/groovy
 		http://www.springframework.org/schema/integration/groovy/spring-integration-groovy.xsd">
 
-	<beans:import resource="../generic/script-variable-generator.xml"/>
+    <beans:import resource="../generic/script-variable-generator.xml"/>
 
-	<channel id="input"/>
+	<channel id="input" />
 
-	<filter id="invokeScript"
-	    input-channel="input" output-channel="to.script"
-	    discard-channel="to.spel"
-	    expression="'${script:null}' ne 'null'" />
+	<service-activator output-channel="output" input-channel="input">
+		<int-groovy:script location="${location}" script-variable-generator="variableGenerator" refresh-check-delay="60"/>
+	</service-activator>
 
-	<filter input-channel="to.spel" expression="${expression:true}" output-channel="output"/>
-
-	<filter input-channel="to.script" output-channel="output">
-		<int-groovy:script location="${script:filter.groovy}" script-variable-generator="variableGenerator" refresh-check-delay="60"/>
-	</filter>
-
-	<channel id="output"/>
+	<channel id="output" />
 
 </beans:beans>

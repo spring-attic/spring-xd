@@ -10,6 +10,8 @@
 		http://www.springframework.org/schema/integration/groovy
 		http://www.springframework.org/schema/integration/groovy/spring-integration-groovy.xsd">
 
+	<beans:import resource="../generic/script-variable-generator.xml"/>
+
 	<channel id="input"/>
 
 	<filter id="invokeScript"
@@ -20,7 +22,7 @@
 	<transformer input-channel="to.spel" expression="${expression:payload}" output-channel="output"/>
 
 	<transformer input-channel="to.script" output-channel="output">
-		<int-groovy:script location="${script:transform.groovy}"/>
+		<int-groovy:script location="${script:transform.groovy}" script-variable-generator="variableGenerator" refresh-check-delay="60"/>
 	</transformer>
 
 	<channel id="output"/>

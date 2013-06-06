@@ -26,13 +26,13 @@ import org.kohsuke.args4j.Option;
 public class AdminOptions {
 
 	@Option(name="--help", usage="Show options help", aliases={"-?", "-h"})
-	private final boolean showHelp = false;
+	private boolean showHelp = false;
 
 	@Option(name="--xdHomeDir", usage="The XD installation directory", metaVar="<xdHomeDir>")
-	private final String xdHomeDir = "";
+	private String xdHomeDir = "";
 
 	@Option(name="--transport", usage="The transport to be used (redis, rabbit, local)", metaVar="<transport>")
-	private final String transport = "";
+	private String transport = "";
 
 	/**
 	 * @return the showHelp

@@ -18,11 +18,12 @@ package org.springframework.xd.dirt.stream;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.x.redis.RedisQueueOutboundChannelAdapter;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 
@@ -30,17 +31,17 @@ import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
  * @author Mark Fisher
  * @author Gary Russell
  */
-public class RedisStreamDeployer extends StreamDeployerSupport implements StreamDeployer {
+public class DefaultStreamDeployer implements StreamDeployer {
 
 	private final StreamParser streamParser = new DefaultStreamParser();
 
-	private final RedisQueueOutboundChannelAdapter adapter;
+	private final MessageChannel outputChannel;
 
-	public RedisStreamDeployer(RedisConnectionFactory connectionFactory) {
-		Assert.notNull(connectionFactory, "connectionFactory must not be null");
-		this.adapter = new RedisQueueOutboundChannelAdapter("queue.deployer", connectionFactory);
-		this.adapter.setExtractPayload(false);
-		this.adapter.afterPropertiesSet();
+	private final Map<String, List<ModuleDeploymentRequest>> deployments = new ConcurrentHashMap<String, List<ModuleDeploymentRequest>>();
+
+	public DefaultStreamDeployer(MessageChannel outputChannel) {
+		Assert.notNull(outputChannel, "outputChannel must not be null");
+		this.outputChannel = outputChannel;
 	}
 
 	@Override
@@ -49,7 +50,7 @@ public class RedisStreamDeployer extends StreamDeployerSupport implements Stream
 		this.addDeployment(name, requests);
 		for (ModuleDeploymentRequest request : requests) {
 			Message<?> message = MessageBuilder.withPayload(request.toString()).build();
-			this.adapter.handleMessage(message);
+			this.outputChannel.send(message);
 		}
 	}
 
@@ -62,9 +63,17 @@ public class RedisStreamDeployer extends StreamDeployerSupport implements Stream
 			for (ModuleDeploymentRequest module : modules) {
 				module.setRemove(true);
 				Message<?> message = MessageBuilder.withPayload(module.toString()).build();
-				this.adapter.handleMessage(message);
+				this.outputChannel.send(message);
 			}
 		}
+	}
+
+	protected final void addDeployment(String name, List<ModuleDeploymentRequest> modules) {
+		this.deployments.put(name, modules);
+	}
+
+	protected List<ModuleDeploymentRequest> removeDeployment(String name) {
+		return this.deployments.remove(name);
 	}
 
 }

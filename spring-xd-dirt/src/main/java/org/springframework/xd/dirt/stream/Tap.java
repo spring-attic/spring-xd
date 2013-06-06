@@ -18,7 +18,7 @@ package org.springframework.xd.dirt.stream;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.MessageChannel;
-import org.springframework.integration.channel.registry.ChannelRegistry;
+import org.springframework.integration.x.channel.registry.ChannelRegistry;
 import org.springframework.util.Assert;
 
 /**

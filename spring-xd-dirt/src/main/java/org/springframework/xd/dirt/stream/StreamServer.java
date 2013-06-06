@@ -207,9 +207,6 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 			xdhome = (args.length > 0) ? args[0] : "..";
 			System.setProperty("xd.home", xdhome);
 		}
-		else {
-			System.setProperty("xd.home", System.getProperty("user.dir") + "/../");
-		}
 	}
 
 }

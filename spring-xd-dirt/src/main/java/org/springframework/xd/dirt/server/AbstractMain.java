@@ -16,10 +16,15 @@ abstract class AbstractMain {
 	 * Set xd.home system property. If not a valid String, fallback to default.
 	 */
 	static void setXDHome(String home) {
-		if (!StringUtils.hasText(home)) {
-			home = DEFAULT_HOME;
+		String xdHome = DEFAULT_HOME;
+		if (StringUtils.hasText(home)) {
+			xdHome = home;
 		}
-		System.setProperty(XD_HOME_KEY, home);
+		// Check if xd.home system property already exists
+		else if (System.getProperty(XD_HOME_KEY) != null) {
+			xdHome = System.getProperty(XD_HOME_KEY);
+		}
+		System.setProperty(XD_HOME_KEY, xdHome);
 	}
 
 	/**

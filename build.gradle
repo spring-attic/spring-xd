@@ -161,7 +161,7 @@ project('spring-xd-dirt') {
 				"org.springframework.data:spring-data-redis:$springDataRedisVersion",
 				"com.lambdaworks:lettuce:$lettuceVersion",
 				"org.springframework.integration:spring-integration-syslog:$springIntegrationVersion",
-				"org.springframework.integration:spring-integration-twitter:$springIntegrationVersion",
+				"org.springframework.social:spring-social-twitter:1.0.4.RELEASE",
 				"args4j:args4j:$args4jVersion",
 				"org.springframework.shell:spring-shell:1.0.0.RELEASE"
 

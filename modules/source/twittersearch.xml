@@ -7,14 +7,34 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/integration/twitter http://www.springframework.org/schema/integration/twitter/spring-integration-twitter.xsd">
 
+<!-- this can be re-added once Spring Integration is updated to support the latest spring-social-twitter version
 	<twitter:search-inbound-channel-adapter id="tweets" query="${query}" twitter-template="twitterTemplate">
 		<int:poller fixed-rate="5000"/>
 	</twitter:search-inbound-channel-adapter>
+-->
+
+<!-- begin temporary config (see note above on commented out adapter) -->
+	<int:inbound-channel-adapter id="results" ref="twitterSearchMessageSource" method="getTweets">
+		<int:poller fixed-rate="5000"/>
+	</int:inbound-channel-adapter>
+
+	<bean id="twitterSearchMessageSource" class="org.springframework.integration.x.twitter.TwitterSearchMessageSource">
+		<constructor-arg ref="twitterTemplate"/>
+		<constructor-arg value="${query}"/>
+	</bean>
+
+	<bean id="twitterTemplate" class="org.springframework.social.twitter.api.impl.TwitterTemplate">
+		<constructor-arg index="0" value="${consumerKey}"/>
+		<constructor-arg index="1" value="${consumerSecret}"/>
+		<constructor-arg index="2" value="${accessToken}"/>
+		<constructor-arg index="3" value="${accessTokenSecret}"/>
+	</bean>
+
+	<int:splitter input-channel="results" output-channel="tweets"/>
+<!-- end temporary config-->
 
 	<int:object-to-json-transformer input-channel="tweets" output-channel="output"/>
 
 	<int:channel id="output"/>
-
-	<bean id="twitterTemplate" class="org.springframework.social.twitter.api.impl.TwitterTemplate"/>
 
 </beans>

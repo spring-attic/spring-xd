@@ -11,8 +11,8 @@
 		http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis-3.0.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<import resource="../container.xml"/>
-	<import resource="../plugins/*.xml"/>
+	<import resource="classpath:/META-INF/spring/container.xml"/>
+	<import resource="classpath*:/META-INF/spring/plugins/*.xml"/>
 
 	<!-- Pipe the deployment messages directly to the container input -->
 

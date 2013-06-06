@@ -9,6 +9,6 @@
 		<constructor-arg ref="streamDeployer"/>
 	</bean>
 
-	<import resource="transports/${xd.transport}-admin.xml"/>
+	<import resource="classpath*:/META-INF/spring/transports/${xd.transport}-admin.xml"/>
 
 </beans>

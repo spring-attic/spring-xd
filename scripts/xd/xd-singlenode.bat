@@ -1,7 +1,7 @@
 @if "%DEBUG%" == "" @echo off
 @rem ##########################################################################
 @rem
-@rem  xd-admin startup script for Windows
+@rem  xd-singlenode startup script for Windows
 @rem
 @rem ##########################################################################
 
@@ -83,10 +83,8 @@ if not exist "%XD_HOME%" (
 )
 set SPRING_XD_ADMIN_OPTS=-Dxd.home=%XD_HOME%
 
-set CMD_LINE_ARGS="--transport local %CMD_LINE_ARGS%"
-
 @rem Execute xd-admin
-"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SPRING_XD_ADMIN_OPTS%  -classpath "%CLASSPATH%" org.springframework.xd.dirt.server.AdminMain %CMD_LINE_ARGS%
+"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SPRING_XD_ADMIN_OPTS%  -classpath "%CLASSPATH%" org.springframework.xd.dirt.server.AdminMain --transport local %CMD_LINE_ARGS%
 
 :end
 @rem End local scope for the variables with windows NT shell
@@ -102,3 +100,4 @@ exit /b 1
 if "%OS%"=="Windows_NT" endlocal
 
 :omega
+

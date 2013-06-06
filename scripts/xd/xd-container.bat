@@ -81,7 +81,7 @@ if exist "%APP_HOME_LIB%" (
 if not exist "%XD_HOME%" (
     set XD_HOME=%APP_HOME% 
 )
-set SPRING_XD_CONTAINER_OPTS=-Dxd.home=%XD_HOME%
+set SPRING_XD_CONTAINER_OPTS="-Dxd.container=container -Dxd.home=%XD_HOME% -Dlog4j.configuration=file:///$XD_HOME/config/xd-container-logger.properties"
 
 @rem Execute xd-container
 "%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SPRING_XD_CONTAINER_OPTS%  -classpath "%CLASSPATH%" org.springframework.xd.dirt.server.ContainerMain %CMD_LINE_ARGS%

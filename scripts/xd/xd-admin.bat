@@ -81,7 +81,7 @@ if exist "%APP_HOME_LIB%" (
 if not exist "%XD_HOME%" (
     set XD_HOME=%APP_HOME%
 )
-set SPRING_XD_ADMIN_OPTS=-Dxd.home=%XD_HOME%
+set SPRING_XD_ADMIN_OPTS="-Dxd.home=%XD_HOME% -Dlog4j.configuration=file:///$XD_HOME/config/xd-admin-logger.properties"
 
 @rem Execute xd-admin
 "%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SPRING_XD_ADMIN_OPTS%  -classpath "%CLASSPATH%" org.springframework.xd.dirt.server.AdminMain %CMD_LINE_ARGS%

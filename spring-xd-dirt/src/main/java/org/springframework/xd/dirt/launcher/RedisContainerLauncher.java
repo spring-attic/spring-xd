@@ -78,7 +78,7 @@ public class RedisContainerLauncher implements ContainerLauncher, ApplicationEve
 
 		ClassPathXmlApplicationContext context = null;
 		try {
-			context = new ClassPathXmlApplicationContext("META-INF/spring/launcher.xml");
+			context = new ClassPathXmlApplicationContext(DefaultContainer.XD_INTERNAL_CONFIG_ROOT + "launcher.xml");
 		}
 		catch (BeanCreationException e) {
 			if (e.getCause() instanceof RedisConnectionFailureException) {

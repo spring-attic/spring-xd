@@ -25,7 +25,6 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.codehaus.jackson.map.ObjectMapper;
-
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationEventPublisher;
@@ -35,6 +34,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+import org.springframework.xd.dirt.container.DefaultContainer;
 import org.springframework.xd.dirt.event.ModuleDeployedEvent;
 import org.springframework.xd.dirt.event.ModuleUndeployedEvent;
 import org.springframework.xd.module.Module;
@@ -46,6 +46,8 @@ import org.springframework.xd.module.Plugin;
  */
 public class ModuleDeployer extends AbstractMessageHandler
 		implements ApplicationContextAware, ApplicationEventPublisherAware {
+
+	private static final String COMMON_CONFIG = DefaultContainer.XD_INTERNAL_CONFIG_ROOT + "common.xml";
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -72,7 +74,7 @@ public class ModuleDeployer extends AbstractMessageHandler
 	public void setApplicationContext(ApplicationContext context) {
 		this.deployerContext = context;
 		this.plugins = context.getBeansOfType(Plugin.class);
-		ClassPathXmlApplicationContext commonContext = new ClassPathXmlApplicationContext(new String[] {"META-INF/spring/common.xml"}, false);
+		ClassPathXmlApplicationContext commonContext = new ClassPathXmlApplicationContext(new String[] {COMMON_CONFIG}, false);
 		// TODO: extend Plugin to enable modifying the common context?
 		commonContext.refresh();
 		this.commonContext = commonContext;

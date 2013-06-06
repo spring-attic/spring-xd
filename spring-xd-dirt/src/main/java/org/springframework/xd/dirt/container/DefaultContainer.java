@@ -38,10 +38,21 @@ public class DefaultContainer implements Container, SmartLifecycle {
 
 	private static final Log logger = LogFactory.getLog(DefaultContainer.class);
 
-	private static final String CORE_CONFIG = "classpath:META-INF/spring/container.xml";
+	/**
+	 * Base location for XD related config files. Chosen so as not to collide
+	 * with user provided content.
+	 */
+	private static final String XD_CONFIG_ROOT = "META-INF/spring-xd/";
+
+	/**
+	 * Where container related config files reside.
+	 */
+	public static final String XD_INTERNAL_CONFIG_ROOT = "classpath:" + XD_CONFIG_ROOT + "internal/"; 
+	
+	private static final String CORE_CONFIG = XD_INTERNAL_CONFIG_ROOT + "container.xml";
 
 	// TODO: consider moving to a file: location pattern within $XD_HOME
-	private static final String PLUGIN_CONFIGS = "classpath*:META-INF/spring/plugins/*.xml";
+	private static final String PLUGIN_CONFIGS = "classpath*:" + XD_CONFIG_ROOT + "plugins/*.xml";
 
 	private volatile AbstractApplicationContext context;
 
@@ -49,11 +60,14 @@ public class DefaultContainer implements Container, SmartLifecycle {
 
 	/**
 	 * Creates a container with a given id
-	 * @param id the id
+	 * 
+	 * @param id
+	 *            the id
 	 */
 	public DefaultContainer(String id) {
 		this.id = id;
 	}
+
 	/**
 	 * Default constructor generates a random id
 	 */
@@ -83,7 +97,8 @@ public class DefaultContainer implements Container, SmartLifecycle {
 
 	@Override
 	public void start() {
-		this.context = new ClassPathXmlApplicationContext(new String[]{CORE_CONFIG, PLUGIN_CONFIGS}, false);
+		this.context = new ClassPathXmlApplicationContext(new String[] {
+				CORE_CONFIG, PLUGIN_CONFIGS }, false);
 		context.setId(this.id);
 		context.registerShutdownHook();
 		context.refresh();

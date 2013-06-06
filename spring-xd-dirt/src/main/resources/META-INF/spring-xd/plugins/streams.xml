@@ -12,7 +12,7 @@
 	-->
 
 	<!-- redis -->
-	<import resource="../redis.xml"/>
+	<import resource="classpath:/META-INF/spring-xd/internal/redis.xml"/>
 
 	<bean id="channelRegistry" class="org.springframework.integration.x.redis.RedisChannelRegistry">
 		<constructor-arg ref="redisConnectionFactory"/>

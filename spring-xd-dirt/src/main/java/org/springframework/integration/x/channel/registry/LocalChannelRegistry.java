@@ -101,7 +101,7 @@ public class LocalChannelRegistry implements ChannelRegistry, ApplicationContext
 	 * Will throw an Exception if no such wiretap exists.
 	 */
 	@Override
-	public void tap(String name, MessageChannel channel) {
+	public void tap(String tapModule, String name, MessageChannel channel) {
 		Assert.hasText(name, "a valid name is required to register a tap channel");
 		Assert.notNull(channel, "channel must not be null");
 		SubscribableChannel tapChannel = null;
@@ -113,7 +113,7 @@ public class LocalChannelRegistry implements ChannelRegistry, ApplicationContext
 			throw new IllegalArgumentException("No tap channel exists for '" + name
 					+ "'. A tap is only valid for a registered inbound channel.");
 		}
-		bridge(tapChannel, channel, tapName + ".bridge");
+		bridge(tapChannel, channel, tapName + ".bridge", tapModule);
 	}
 
 
@@ -124,7 +124,8 @@ public class LocalChannelRegistry implements ChannelRegistry, ApplicationContext
 			Iterator<BridgeMetadata> iterator = this.bridges.iterator();
 			while (iterator.hasNext()) {
 				BridgeMetadata bridge = iterator.next();
-				if (bridge.handler.getComponentName().startsWith(name)) {
+				if (bridge.handler.getComponentName().startsWith(name) ||
+						name.equals(bridge.tapModule)) {
 					bridge.channel.unsubscribe(bridge.handler);
 					iterator.remove();
 				}
@@ -189,6 +190,10 @@ public class LocalChannelRegistry implements ChannelRegistry, ApplicationContext
 	}
 
 	protected BridgeHandler bridge(SubscribableChannel from, MessageChannel to, String bridgeName) {
+		return bridge(from, to, bridgeName, null);
+	}
+
+	protected BridgeHandler bridge(SubscribableChannel from, MessageChannel to, String bridgeName, String tapModule) {
 		// Temporarily perform string conversion for compatibility with Redis Registry
 		BridgeHandler handler = new BridgeHandler() {
 
@@ -210,17 +215,24 @@ public class LocalChannelRegistry implements ChannelRegistry, ApplicationContext
 		handler.setBeanName(bridgeName);
 		handler.afterPropertiesSet();
 		from.subscribe(handler);
-		this.bridges.add(new BridgeMetadata(handler, from));
+		this.bridges.add(new BridgeMetadata(handler, from, tapModule));
 		return handler;
 	}
 
 	private class BridgeMetadata {
 		private final BridgeHandler handler;
 		private final SubscribableChannel channel;
+		private final String tapModule;
 
-		public BridgeMetadata(BridgeHandler handler, SubscribableChannel channel) {
+		public BridgeMetadata(BridgeHandler handler, SubscribableChannel channel, String tapModule) {
 			this.handler = handler;
 			this.channel = channel;
+			this.tapModule = tapModule;
+		}
+
+		@Override
+		public String toString() {
+			return "BridgeMetadata [handler=" + handler + ", channel=" + channel + ", tapModule=" + tapModule + "]";
 		}
 
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,36 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.x.channel.registry;
 
-
-
+package org.springframework.integration.x.redis;
 
 import java.util.Collection;
 import java.util.List;
 
+import org.junit.Rule;
+
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.integration.x.channel.registry.AbstractChannelRegistryTests;
+import org.springframework.integration.x.channel.registry.ChannelRegistry;
+import org.springframework.xd.test.redis.RedisAvailableRule;
 
 /**
  * @author Gary Russell
- * @since 1.0
- *
  */
-public class LocalChannelRegistryTests extends AbstractChannelRegistryTests {
+public class RedisChannelRegistryTests extends AbstractChannelRegistryTests {
+
+	@Rule
+	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
 
 	@Override
 	protected ChannelRegistry getRegistry() throws Exception {
-		LocalChannelRegistry registry = new LocalChannelRegistry();
-		registry.setApplicationContext(new GenericApplicationContext());
-		registry.afterPropertiesSet();
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
+		connectionFactory.afterPropertiesSet();
+		RedisChannelRegistry registry = new RedisChannelRegistry(connectionFactory);
 		return registry;
 	}
 
 	@Override
 	protected Collection<?> getBridges(ChannelRegistry registry) {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(registry);
-		List<?> bridges = (List<?>) accessor.getPropertyValue("bridges");
+		List<?> bridges = (List<?>) accessor.getPropertyValue("lifecycleBeans");
 		return bridges;
 	}
 

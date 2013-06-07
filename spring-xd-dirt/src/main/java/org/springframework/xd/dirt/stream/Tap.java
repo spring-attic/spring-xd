@@ -28,14 +28,18 @@ public class Tap implements InitializingBean {
 
 	private final String tapPoint;
 
+	private final String tapModule;
+
 	private volatile MessageChannel outputChannel;
 
 	private final ChannelRegistry channelRegistry;
 
-	public Tap(String tapPoint, ChannelRegistry channelRegistry) {
+	public Tap(String tapPoint, String tapModule, ChannelRegistry channelRegistry) {
 		Assert.hasText(tapPoint, "tapPoint must not be empty or null");
+		Assert.hasText(tapModule, "tapModule must not be empty or null");
 		Assert.notNull(channelRegistry, "channelRegistry must not be null");
 		this.tapPoint = (tapPoint.matches("^.*\\.\\d+$") ? tapPoint : tapPoint + ".0");
+		this.tapModule = tapModule;
 		this.channelRegistry = channelRegistry;
 	}
 
@@ -46,7 +50,7 @@ public class Tap implements InitializingBean {
 	@Override
 	public void afterPropertiesSet() {
 		Assert.notNull(this.outputChannel, "outputChannel must not be null");
-		this.channelRegistry.tap(this.tapPoint, this.outputChannel);
+		this.channelRegistry.tap(this.tapModule, this.tapPoint, this.outputChannel);
 	}
 
 }

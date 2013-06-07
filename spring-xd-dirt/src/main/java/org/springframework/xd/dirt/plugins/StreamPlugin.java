@@ -29,6 +29,7 @@ import org.springframework.xd.module.Plugin;
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author David Turanski
  */
 public class StreamPlugin implements Plugin {
 
@@ -47,15 +48,15 @@ public class StreamPlugin implements Plugin {
 			this.configureProperties(module, group);
 		}
 		if ("tap".equals(module.getName()) && "source".equals(type)){
-			createTap(module);
+			createTap(module, group + "." + index);
 		}
 	}
 
 	/**
 	 * @param module
 	 */
-	private void createTap(Module module) {
-		Tap tap = new Tap((String)module.getProperties().get("channel"),this.channelRegistry);
+	private void createTap(Module module, String tapModule) {
+		Tap tap = new Tap((String)module.getProperties().get("channel"), tapModule, this.channelRegistry);
 		Map<String,MessageChannel> channels = module.getComponents(MessageChannel.class);
 		tap.setOutputChannel(channels.get("output"));
 		tap.afterPropertiesSet();

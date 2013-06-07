@@ -85,16 +85,18 @@ public class RedisChannelRegistry implements ChannelRegistry, DisposableBean {
 	}
 
 	@Override
-	public void tap(final String name, MessageChannel channel) {
+	public void tap(String tapModule, final String name, MessageChannel channel) {
 		RedisInboundChannelAdapter adapter = new RedisInboundChannelAdapter(this.redisTemplate.getConnectionFactory());
 		adapter.setTopics("topic." + name);
 		adapter.setOutputChannel(channel);
 		adapter.setBeanName("tap." + name);
+		adapter.setComponentName(tapModule + "." + "tapAdapter");
 		adapter.afterPropertiesSet();
 		this.lifecycleBeans.add(adapter);
 		adapter.start();
 	}
 
+	@Override
 	public void cleanAll(String name) {
 		synchronized (this.lifecycleBeans) {
 			Iterator<Lifecycle> iterator = this.lifecycleBeans.iterator();
@@ -105,9 +107,14 @@ public class RedisChannelRegistry implements ChannelRegistry, DisposableBean {
 					((EventDrivenConsumer) endpoint).stop();
 					iterator.remove();
 				}
-				else if (endpoint instanceof RedisQueueInboundChannelAdapter
-						&& (("inbound." + name).equals(((IntegrationObjectSupport) endpoint).getComponentName()))) {
+				else if (endpoint instanceof RedisQueueInboundChannelAdapter &&
+						("inbound." + name).equals(((IntegrationObjectSupport) endpoint).getComponentName())) {
 					((RedisQueueInboundChannelAdapter) endpoint).stop();
+					iterator.remove();
+				}
+				else if (endpoint instanceof RedisInboundChannelAdapter &&
+						(name + ".tapAdapter").equals(((IntegrationObjectSupport) endpoint).getComponentName())) {
+					((RedisInboundChannelAdapter) endpoint).stop();
 					iterator.remove();
 				}
 			}

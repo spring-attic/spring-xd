@@ -22,6 +22,7 @@ import java.util.Properties;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.x.channel.registry.ChannelRegistry;
 import org.springframework.util.Assert;
+import org.springframework.xd.dirt.stream.Tap;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.Plugin;
 
@@ -45,11 +46,26 @@ public class StreamPlugin implements Plugin {
 			this.registerChannels(module.getComponents(MessageChannel.class), group, index);
 			this.configureProperties(module, group);
 		}
+		if ("tap".equals(module.getName()) && "source".equals(type)){
+			createTap(module);
+			
+		}
+	}
+
+	/**
+	 * @param module
+	 */
+	private void createTap(Module module) {
+		Tap tap = new Tap((String)module.getProperties().get("channel"),this.channelRegistry);
+		Map<String,MessageChannel> channels = module.getComponents(MessageChannel.class);
+		channels.get("output");
+		tap.setOutputChannel(channels.get("output"));
+		tap.afterPropertiesSet();
 	}
 
 	@Override
 	public void removeModule(Module module, String group, int index) {
-		this.channelRegistry.cleanAll(group + "."  + index);
+		this.channelRegistry.cleanAll(group + "." + index);
 	}
 
 	private void registerChannels(Map<String, MessageChannel> channels, String group, int index) {
@@ -58,8 +74,7 @@ public class StreamPlugin implements Plugin {
 				Assert.isTrue(index > 0, "a module with an input channel must have an index greater than 0");
 				String channelNameInRegistry = group + "." + (index - 1);
 				channelRegistry.inbound(channelNameInRegistry, entry.getValue());
-			}
-			else if ("output".equals(entry.getKey())) {
+			} else if ("output".equals(entry.getKey())) {
 				String channelNameInRegistry = group + "." + index;
 				channelRegistry.outbound(channelNameInRegistry, entry.getValue());
 			}

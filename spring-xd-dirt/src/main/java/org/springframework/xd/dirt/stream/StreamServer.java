@@ -72,7 +72,7 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 	/**
 	 * Set the port. Default is 8080
 	 */
-	public void setPort(int port) {
+	private void setPort(int port) {
 		this.port = port;
 	}
 	/**
@@ -94,6 +94,7 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 	public void afterPropertiesSet() {
 		this.scheduler.setPoolSize(3);
 		this.scheduler.initialize();
+		this.setHttpPort();
 		this.tomcat.setPort(this.port);
 		String path = (this.contextPath.startsWith("/")) ? this.contextPath : "/" + this.contextPath;
 		Context context = this.tomcat.addContext(path, new File(".").getAbsolutePath());
@@ -210,6 +211,18 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 		else {
 			System.setProperty("xd.home", System.getProperty("user.dir") + "/../");
 		}
+	}
+	
+	/**
+	 * Set http port for the stream server
+	 * if there a xd.admin.httpPort system property exists
+	 * @param args
+	 */
+	private void setHttpPort() {
+		String httpPort = System.getProperty("xd.admin.httpPort");
+		if (StringUtils.hasText(httpPort)) {
+			this.setPort(Integer.parseInt(httpPort));
+		}		
 	}
 
 }

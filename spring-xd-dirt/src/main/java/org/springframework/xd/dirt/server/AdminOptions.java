@@ -33,6 +33,9 @@ public class AdminOptions {
 
 	@Option(name="--transport", usage="The transport to be used (redis, rabbit, local)", metaVar="<transport>")
 	private String transport = "";
+	
+	@Option(name="--httpPort", usage="Http port for the stream server(default: 8080)", metaVar="<httpPort>")
+	private String httpPort = "8080";
 
 	/**
 	 * @return the showHelp
@@ -53,6 +56,13 @@ public class AdminOptions {
 	 */
 	public String getTransport() {
 		return transport;
+	}
+	
+	/**
+	 * @return http port
+	 */
+	public String getHttpPort() {
+		return httpPort;
 	}
 
 }

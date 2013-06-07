@@ -7,6 +7,8 @@ abstract class AbstractMain {
 	static final String XD_HOME_KEY = "xd.home";
 
 	static final String XD_TRANSPORT_KEY = "xd.transport";
+	
+	static final String XD_ADMIN_HTTP_PORT_KEY = "xd.admin.httpPort";
 
 	static final String DEFAULT_HOME = "..";
 

@@ -21,6 +21,7 @@ import org.apache.commons.logging.LogFactory;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 
+import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.stream.StreamServer;
 
 
@@ -53,20 +54,31 @@ public class AdminMain extends AbstractMain {
 
 		setXDHome(options.getXDHomeDir());
 		setXDTransport(options.getTransport());
+		setHttpPort(options.getHttpPort());
 
 		if (options.isShowHelp()) {
 			parser.printUsage(System.err);
 			System.exit(0);
 		}
 
-		launchStreamServer(System.getProperty(XD_HOME_KEY), System.getProperty(XD_TRANSPORT_KEY));
+		launchStreamServer(System.getProperty(XD_HOME_KEY));
+	}
+	
+	/**
+	 * Set http port for the admin server from command line option
+	 * @param httpPort
+	 */
+	private static void setHttpPort(String httpPort) {
+		if(StringUtils.hasText(httpPort)) {
+			System.setProperty(XD_ADMIN_HTTP_PORT_KEY, httpPort);
+		}
 	}
 
 	/**
 	 * Launch stream server with the given home and transport
 	 */
-	public static void launchStreamServer(String home, String transport) {
-		StreamServer.main(new String[]{home, transport});
+	public static void launchStreamServer(String home) {
+		StreamServer.main(new String[]{home});
 	}
 
 }

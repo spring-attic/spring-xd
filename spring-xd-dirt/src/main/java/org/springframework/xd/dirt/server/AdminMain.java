@@ -21,7 +21,12 @@ import org.apache.commons.logging.LogFactory;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextClosedEvent;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.util.StringUtils;
+import org.springframework.xd.dirt.stream.StreamDeployer;
 import org.springframework.xd.dirt.stream.StreamServer;
 
 
@@ -54,31 +59,43 @@ public class AdminMain extends AbstractMain {
 
 		setXDHome(options.getXDHomeDir());
 		setXDTransport(options.getTransport());
-		setHttpPort(options.getHttpPort());
 
 		if (options.isShowHelp()) {
 			parser.printUsage(System.err);
 			System.exit(0);
 		}
 
-		launchStreamServer(System.getProperty(XD_HOME_KEY));
-	}
-	
-	/**
-	 * Set http port for the admin server from command line option
-	 * @param httpPort
-	 */
-	private static void setHttpPort(String httpPort) {
-		if(StringUtils.hasText(httpPort)) {
-			System.setProperty(XD_ADMIN_HTTP_PORT_KEY, httpPort);
-		}
+		launchStreamServer(options.getHttpPort());
 	}
 
 	/**
 	 * Launch stream server with the given home and transport
 	 */
-	public static void launchStreamServer(String home) {
-		StreamServer.main(new String[]{home});
+	public static void launchStreamServer(String port) {
+		try {
+			ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+					"classpath*:/META-INF/spring/transports/${xd.transport}-admin.xml");
+			StreamDeployer streamDeployer = context.getBean(StreamDeployer.class);
+			final StreamServer server = (StringUtils.hasText(port))
+					? new StreamServer(streamDeployer, Integer.parseInt(port))
+					: new StreamServer(streamDeployer);
+			server.afterPropertiesSet();
+			server.start();
+			context.addApplicationListener(new ApplicationListener<ContextClosedEvent>() {
+				@Override
+				public void onApplicationEvent(ContextClosedEvent event) {
+					server.stop();
+				}
+			});
+			context.registerShutdownHook();
+		}
+		catch (RedisConnectionFailureException e) {
+			final Log logger = LogFactory.getLog(StreamServer.class);
+			logger.fatal(e.getMessage());
+			System.err.println("Redis does not seem to be running. Did you install and start Redis? " +
+					"Please see the Getting Started section of the guide for instructions.");
+			System.exit(1);
+		}
 	}
 
 }

@@ -31,13 +31,10 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.integration.MessagingException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * @author Mark Fisher
@@ -47,13 +44,14 @@ import org.springframework.util.StringUtils;
  *
  */
 public class StreamServer implements SmartLifecycle, InitializingBean {
+
 	protected final Log logger = LogFactory.getLog(getClass());
 
 	private volatile String contextPath = "";
 
 	private volatile String servletName = "streams";
 
-	private volatile int port = 8080;
+	private final int port;
 
 	private volatile Tomcat tomcat = new Tomcat();
 
@@ -66,15 +64,15 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 	protected final StreamDeployer streamDeployer;
 
 	public StreamServer(StreamDeployer streamDeployer) {
+		this(streamDeployer, 8080);
+	}
+
+	public StreamServer(StreamDeployer streamDeployer, int port) {
 		Assert.notNull(streamDeployer, "streamDeployer must not be null");
 		this.streamDeployer = streamDeployer;
-	}
-	/**
-	 * Set the port. Default is 8080
-	 */
-	private void setPort(int port) {
 		this.port = port;
 	}
+
 	/**
 	 * Set the contextPath
 	 * @param contextPath
@@ -90,11 +88,11 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 	public void setServletName(String servletName) {
 		this.servletName = servletName;
 	}
+
 	@Override
 	public void afterPropertiesSet() {
 		this.scheduler.setPoolSize(3);
 		this.scheduler.initialize();
-		this.setHttpPort();
 		this.tomcat.setPort(this.port);
 		String path = (this.contextPath.startsWith("/")) ? this.contextPath : "/" + this.contextPath;
 		Context context = this.tomcat.addContext(path, new File(".").getAbsolutePath());
@@ -182,47 +180,6 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 				response.sendError(405);
 			}
 		}
-	}
-
-	public static void main(String[] args) {
-		setXDHome(args);
-		try {
-			new ClassPathXmlApplicationContext("META-INF/spring/admin.xml");
-		}
-		catch (RedisConnectionFailureException e) {
-			final Log logger = LogFactory.getLog(StreamServer.class);
-			logger.fatal(e.getMessage());
-			System.err.println("Redis does not seem to be running. Did you install and start Redis? " +
-					"Please see the Getting Started section of the guide for instructions.");
-			System.exit(1);
-		}
-	}
-
-	/**
-	 * Set xd.home system property
-	 * @param args
-	 */
-	private static void setXDHome(String[] args) {
-		String xdhome = System.getProperty("xd.home");
-		if (!StringUtils.hasText(xdhome)) {
-			xdhome = (args.length > 0) ? args[0] : "..";
-			System.setProperty("xd.home", xdhome);
-		}
-		else {
-			System.setProperty("xd.home", System.getProperty("user.dir") + "/../");
-		}
-	}
-	
-	/**
-	 * Set http port for the stream server
-	 * if there a xd.admin.httpPort system property exists
-	 * @param args
-	 */
-	private void setHttpPort() {
-		String httpPort = System.getProperty("xd.admin.httpPort");
-		if (StringUtils.hasText(httpPort)) {
-			this.setPort(Integer.parseInt(httpPort));
-		}		
 	}
 
 }

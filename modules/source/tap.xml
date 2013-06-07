@@ -10,21 +10,5 @@
 		http://www.springframework.org/schema/integration/redis
 		http://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd">
 
-	<bean id="tap" class="org.springframework.xd.dirt.stream.Tap">
-		<constructor-arg value="${channel}"/>
-		<constructor-arg ref="channelRegistry"/>
-		<property name="outputChannel" ref="output"/>
-	</bean>
-
 	<int:channel id="output"/>
-
-	<bean id="channelRegistry" class="org.springframework.integration.x.redis.RedisChannelRegistry">
-		<constructor-arg ref="redisConnectionFactory"/>
-	</bean>
-
-	<bean id="connectionFactory" class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory">
-		<constructor-arg index="0" value="${redis.hostname:localhost}"/>
-		<constructor-arg index="1" value="${redis.port:6379}"/>	  
-	</bean>
-
 </beans>

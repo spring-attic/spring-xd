@@ -1,13 +1,36 @@
-#! /bin/sh
+#!/usr/bin/env bash
 
-# install redis based on platform
 # @author Winston Koh
+# @author Ilayaperumal Gopinathan
 # @since 1.0
+
+##############################################################################
+##
+##  install-redis script based on the platform
+##
+##############################################################################
+
+# Attempt to set APP_HOME
+# Resolve links: $0 may be a link
+PRG="$0"
+# Need this for relative symlinks.
+while [ -h "$PRG" ] ; do
+    ls=`ls -ld "$PRG"`
+    link=`expr "$ls" : '.*-> \(.*\)$'`
+    if expr "$link" : '/.*' > /dev/null; then
+        PRG="$link"
+    else
+        PRG=`dirname "$PRG"`"/$link"
+    fi
+done
+SAVED="`pwd`"
+cd "`dirname \"$PRG\"`/.." >&-
+APP_HOME="`pwd -P`"
+cd "$SAVED" >&-
 
 REDIS_VERSION=redis-2.6.13
 REDIS_ZIP_NAME="$REDIS_VERSION.tar.gz"
-REDIS_HOME=$(pwd)
-REDIS_HOME="$REDIS_HOME/.."
+REDIS_HOME=$APP_HOME
 REDIS_ZIP_PATH="$REDIS_HOME/dist/$REDIS_ZIP_NAME"
 REDIS_BIN="$REDIS_HOME/bin"
 
@@ -90,6 +113,6 @@ if [[ $platformunsupported == "false" ]]; then
   cp src/redis-cli $REDIS_BIN 
   cp src/redis-check-dump $REDIS_BIN 
   echo "installation script completed."
-  echo "To start redis server, please run: ./redis-server"
+  echo "To start redis server, please run: $REDIS_BIN/redis-server"
 fi
 

@@ -497,3 +497,22 @@ reference {
 
 reference.dependsOn asciidoctorDocbook
 
+task docsZip(type: Zip) {
+		group = 'Distribution'
+		classifier = 'docs'
+		description = "Builds -${classifier} archive containing api and reference " +
+			"for deployment at static.springframework.org/spring-integration/docs."
+
+		from (reference) {
+			into 'reference'
+		}
+}
+
+artifacts {
+	archives docsZip
+}
+
+task dist(dependsOn: assemble) {
+	group = 'Distribution'
+	description = 'Builds -dist, -docs and -schema distribution archives.'
+}

@@ -16,10 +16,13 @@
 
 package org.springframework.xd.dirt.container;
 
+import java.io.File;
 import java.util.UUID;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Logger;
+import org.apache.log4j.RollingFileAppender;
 
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.SmartLifecycle;
@@ -43,6 +46,8 @@ public class DefaultContainer implements Container, SmartLifecycle {
 
 	// TODO: consider moving to a file: location pattern within $XD_HOME
 	private static final String PLUGIN_CONFIGS = "classpath*:META-INF/spring/plugins/*.xml";
+	
+	private static final String LOG4J_FILE_APPENDER = "file";
 
 	private volatile AbstractApplicationContext context;
 
@@ -87,6 +92,7 @@ public class DefaultContainer implements Container, SmartLifecycle {
 	public void start() {
 		this.context = new ClassPathXmlApplicationContext(new String[]{CORE_CONFIG, PLUGIN_CONFIGS}, false);
 		context.setId(this.id);
+		setContainerLoggerFile();
 		context.registerShutdownHook();
 		context.refresh();
 		if (logger.isInfoEnabled()) {
@@ -112,5 +118,17 @@ public class DefaultContainer implements Container, SmartLifecycle {
 	public void addListener(ApplicationListener<?> listener) {
 		Assert.state(this.context != null, "context is not initialized");
 		this.context.addApplicationListener(listener);
+	}
+	
+	/**
+	 * Set container log appender file name with container id
+	 */
+	private void setContainerLoggerFile() {
+		// Update container log file name to use the current container id
+		if (Logger.getRootLogger().getAppender(LOG4J_FILE_APPENDER) != null) {
+			RollingFileAppender fileAppender = (RollingFileAppender)Logger.getRootLogger().getAppender(LOG4J_FILE_APPENDER);
+			// the xd.home system property is always set at this point
+			fileAppender.setFile(new File(System.getProperty("xd.home")).getAbsolutePath()+"/logs/container-"+this.getId()+".log");
+		}
 	}
 }

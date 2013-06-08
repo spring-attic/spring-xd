@@ -43,10 +43,11 @@ public interface ChannelRegistry {
 
 	/**
 	 * Create a tap on an already registered inbound channel
+	 * @param tapModule the name of the tap module
 	 * @param name the registered name
 	 * @param channel the channel that will receive messages from the tap
 	 */
-	void tap(String name, MessageChannel channel);
+	void tap(String tapModule, String name, MessageChannel channel);
 
 	/**
 	 * Remove all subscriptions to inter-module channels for this module

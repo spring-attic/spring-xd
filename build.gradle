@@ -421,12 +421,19 @@ task pullDocs(type: GitClone) {
 			destination.deleteDir()
 		}
 	}
+
+	doLast {
+		new File("$buildDir/asciidoc/guide/FullGuide.adoc")
+			.renameTo(new File("$buildDir/asciidoc/guide/index.adoc"))
+		new File("$buildDir/asciidoc/guide/FullGuide-docinfo.xml")
+			.renameTo(new File("$buildDir/asciidoc/guide/index-docinfo.xml"))
+	}
 }
 
 import org.asciidoctor.gradle.*
 
 task asciidoctorDocbook(type: AsciidoctorTask, dependsOn: [pullDocs]) {
-	sourceDocumentName = file("$buildDir/asciidoc/guide/FullGuide.adoc")
+	sourceDocumentName = file("$buildDir/asciidoc/guide/index.adoc")
 	sourceDir = file("$buildDir/asciidoc/guide")
 	outputDir = file("$buildDir/docbook")
 	backend = "docbook"
@@ -449,7 +456,7 @@ task asciidoctorDocbook(type: AsciidoctorTask, dependsOn: [pullDocs]) {
 }
 
 task asciidoctorHtml(type: AsciidoctorTask, dependsOn: [pullDocs]) {
-	sourceDocumentName = file("$buildDir/asciidoc/guide/FullGuide.adoc")
+	sourceDocumentName = file("$buildDir/asciidoc/guide/index.adoc")
 	sourceDir = file("$buildDir/asciidoc/guide")
 	outputDir = file("$buildDir/html")
 	backend = "html5"
@@ -488,7 +495,7 @@ ext {
 }
 
 reference {
-	sourceFileName = 'FullGuide.xml'
+	sourceFileName = 'index.xml'
 	sourceDir = file("$buildDir/docbook")
 	pdfFilename = 'spring-xd-reference.pdf'
 }

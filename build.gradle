@@ -178,10 +178,14 @@ project('spring-xd-dirt') {
 	startScripts.setEnabled(false)
 	mainClassName = "org.springframework.xd.dirt.server.AdminMain"
 
-        task configFiles {
-                def config = file("$rootDir/config")
-                outputs.dir config
-        }
+	run {
+		args = ['--transport', 'local']
+	}
+
+	task configFiles {
+		def config = file("$rootDir/config")
+		outputs.dir config
+	}
 
 	task moduleFiles {
 		def modules = file("$rootDir/modules")
@@ -193,9 +197,9 @@ project('spring-xd-dirt') {
 		outputs.dir scripts
 	}
 
-        applicationDistribution.from(configFiles) {
+	applicationDistribution.from(configFiles) {
 		into "config"
-        }
+	}
 
 	applicationDistribution.from(scriptFiles) {
 		into "bin"
@@ -261,29 +265,29 @@ project ('spring-xd-gemfire-server') {
 
 project('redis') {
 	description = 'Redis distribution'
-        task syncScriptFiles(type: Sync) {
-                from "$rootDir/scripts/redis"
-                into project.file("${project.buildDir}/bin")
-        }
+	task syncScriptFiles(type: Sync) {
+		from "$rootDir/scripts/redis"
+		into project.file("${project.buildDir}/bin")
+	}
 
-        task sourceDist {
-                def distFile = file("$rootDir/redis/dist")
-                outputs.dir distFile
-        }
+	task sourceDist {
+		def distFile = file("$rootDir/redis/dist")
+		outputs.dir distFile
+	}
 
-        task syncDistFile(type: Sync) {
-                from "$rootDir/redis/dist"
-                into project.file("${project.buildDir}/dist")
-        }
+	task syncDistFile(type: Sync) {
+		from "$rootDir/redis/dist"
+		into project.file("${project.buildDir}/dist")
+	}
 
-        task bundleRedis(dependsOn: ['syncScriptFiles', 'syncDistFile']) {
-                description = "Bundle redis source dist with install script"
-        }
+	task bundleRedis(dependsOn: ['syncScriptFiles', 'syncDistFile']) {
+		description = "Bundle redis source dist with install script"
+	}
 
-        task clean(type: Delete) {
+	task clean(type: Delete) {
 		description = "Wipes Redis build directory"
-                delete 'build'
-        }
+		delete 'build'
+	}
 }
 
 project('spring-xd-module') {

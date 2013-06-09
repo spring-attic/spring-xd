@@ -130,6 +130,7 @@ public class DefaultContainer implements Container, SmartLifecycle {
 			// the xd.home system property is always set at this point
 			((RollingFileAppender) appender).setFile(
 					new File(System.getProperty("xd.home")).getAbsolutePath() + "/logs/container-" + this.getId() + ".log");
+			((RollingFileAppender) appender).activateOptions();
 		}
 	}
 

@@ -21,6 +21,8 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.social.oauth2.AccessGrant;
+import org.springframework.social.oauth2.OAuth2Template;
 import org.springframework.social.twitter.api.SearchResults;
 import org.springframework.social.twitter.api.Tweet;
 import org.springframework.social.twitter.api.impl.SearchParameters;
@@ -34,6 +36,7 @@ import org.springframework.util.CollectionUtils;
  * replaced as soon as we update the Spring Integration Twitter module accordingly.
  *
  * @author Mark Fisher
+ * @author Luke Taylor
  */
 public class TwitterSearchMessageSource {
 
@@ -44,6 +47,14 @@ public class TwitterSearchMessageSource {
 	private volatile Long sinceId;
 
 	private final Log logger = LogFactory.getLog(getClass());
+
+	public TwitterSearchMessageSource(String query, OAuth2Template oauthTemplate) {
+		Assert.hasText(query, "query is required");
+		Assert.notNull(oauthTemplate, "OAuth2Template must not be null");
+		this.query = query;
+		AccessGrant grant = oauthTemplate.authenticateClient();
+		template = new TwitterTemplate(grant.getAccessToken());
+	}
 
 	public TwitterSearchMessageSource(String query, TwitterTemplate template) {
 		Assert.hasText(query, "query is required");

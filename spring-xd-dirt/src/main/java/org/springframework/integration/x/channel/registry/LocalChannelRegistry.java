@@ -218,7 +218,9 @@ public class LocalChannelRegistry implements ChannelRegistry, ApplicationContext
 		handler.setBeanName(bridgeName);
 		handler.afterPropertiesSet();
 		from.subscribe(handler);
-		this.bridges.add(new BridgeMetadata(handler, from, tapModule));
+		if (!(to instanceof NullChannel)) {
+			this.bridges.add(new BridgeMetadata(handler, from, tapModule));
+		}
 		return handler;
 	}
 

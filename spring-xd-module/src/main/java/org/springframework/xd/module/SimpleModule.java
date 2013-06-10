@@ -99,9 +99,9 @@ public class SimpleModule extends AbstractModule {
 				}
 			}
 			if (!propertyConfigurerPresent) {
-				PropertySourcesPlaceholderConfigurer placecholderConfigurer = new PropertySourcesPlaceholderConfigurer();
-				placecholderConfigurer.setEnvironment(this.context.getEnvironment());
-				this.context.addBeanFactoryPostProcessor(placecholderConfigurer);
+				PropertySourcesPlaceholderConfigurer placeholderConfigurer = new PropertySourcesPlaceholderConfigurer();
+				placeholderConfigurer.setEnvironment(this.context.getEnvironment());
+				this.context.addBeanFactoryPostProcessor(placeholderConfigurer);
 			}
 			this.context.refresh();
 			this.context.start();

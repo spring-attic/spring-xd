@@ -10,10 +10,12 @@
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
 	<!-- Parent context for all modules -->
-	
+
 	<bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean">
 		<property name="locateExistingServerIfPossible" value="true" />
 	</bean>
+
+	<bean id="reactorEnv" class="reactor.core.Environment"/>
 
 	<task:scheduler id="scheduler" pool-size="10"/>
 

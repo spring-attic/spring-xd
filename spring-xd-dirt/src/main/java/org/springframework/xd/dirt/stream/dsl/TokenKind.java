@@ -27,7 +27,8 @@ enum TokenKind {
 	NEWLINE("\n"),
 	SEMICOLON(";"),
 	REFERENCE("@"),
-	LITERAL_STRING
+	DOT("."),
+	LITERAL_STRING,
 	;
 
 	char[] tokenChars;

@@ -34,7 +34,7 @@ public class EnhancedStreamParser implements StreamParser {
 	public List<ModuleDeploymentRequest> parse(String name, String config) {
 
 		StreamConfigParser parser = new StreamConfigParser();
-		StreamsNode ast = parser.parse(config);
+		StreamsNode ast = parser.parse(name, config);
 		List<ModuleDeploymentRequest> requests = new ArrayList<ModuleDeploymentRequest>();
 
 		List<ModuleNode> moduleNodes = ast.getModuleNodes();

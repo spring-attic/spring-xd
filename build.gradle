@@ -385,7 +385,12 @@ task copyXDInstall(type: Copy, dependsOn: [":spring-xd-dirt:build", ":spring-xd-
         into "$rootDir/dist/spring-xd/xd"
 }
 
-task distXD (type: Copy, dependsOn: ["copyRedisInstall", "copyGemfireInstall", "copyXDInstall"]) {
+task cleanDist(type: Delete) {
+        description = "cleans $rootDir/dist directory"
+        delete "$rootDir/dist"
+}
+
+task distXD (type: Copy, dependsOn: ["cleanDist", "copyRedisInstall", "copyGemfireInstall", "copyXDInstall"]) {
     	description = "Copy all the required installs"
         from "$rootDir/scripts/README"
         from "$rootDir/scripts/LICENSE"

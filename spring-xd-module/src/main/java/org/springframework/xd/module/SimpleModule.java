@@ -91,13 +91,22 @@ public class SimpleModule extends AbstractModule {
 	@Override
 	public void start() {
 		if (!this.isRunning()) {
-			PropertySourcesPlaceholderConfigurer placecholderConfigurer = new PropertySourcesPlaceholderConfigurer();
-			placecholderConfigurer.setEnvironment(this.context.getEnvironment());
-			this.context.addBeanFactoryPostProcessor(placecholderConfigurer);
+			boolean propertyConfigurerPresent = false;
+			for (String name : this.context.getBeanDefinitionNames()) {
+				if (name.startsWith("org.springframework.context.support.PropertySourcesPlaceholderConfigurer")) {
+					propertyConfigurerPresent = true;
+					break;
+				}
+			}
+			if (!propertyConfigurerPresent) {
+				PropertySourcesPlaceholderConfigurer placecholderConfigurer = new PropertySourcesPlaceholderConfigurer();
+				placecholderConfigurer.setEnvironment(this.context.getEnvironment());
+				this.context.addBeanFactoryPostProcessor(placecholderConfigurer);
+			}
 			this.context.refresh();
 			this.context.start();
 			if (logger.isInfoEnabled()) {
-				logger.info("started mod: " + this.toString());
+				logger.info("started module: " + this.toString());
 			}
 		}
 	}

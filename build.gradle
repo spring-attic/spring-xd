@@ -166,7 +166,8 @@ project('spring-xd-dirt') {
 				"org.springframework.integration:spring-integration-syslog:$springIntegrationVersion",
 				"org.springframework.social:spring-social-twitter:1.0.5.RELEASE",
 				"args4j:args4j:$args4jVersion",
-				"org.springframework.shell:spring-shell:1.0.0.RELEASE"
+				"org.springframework.shell:spring-shell:1.0.0.RELEASE",
+				"com.eaio.uuid:uuid:3.2"
 
 		runtime "log4j:log4j:$log4jVersion",
 				"org.slf4j:jcl-over-slf4j:$slf4jVersion",

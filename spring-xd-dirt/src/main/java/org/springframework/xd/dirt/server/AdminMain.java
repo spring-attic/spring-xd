@@ -20,18 +20,18 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
-
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.util.StringUtils;
+import org.springframework.xd.dirt.container.DefaultContainer;
 import org.springframework.xd.dirt.stream.StreamDeployer;
 import org.springframework.xd.dirt.stream.StreamServer;
 
 
 /**
- * The main driver class for the admin
+ * The main driver class for the admin.
  *
  * @author Mark Pollack
  * @author Jennifer Hickey
@@ -74,7 +74,7 @@ public class AdminMain extends AbstractMain {
 	public static void launchStreamServer(String port) {
 		try {
 			ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-					"classpath*:/META-INF/spring/transports/${xd.transport}-admin.xml");
+					"classpath*:" + DefaultContainer.XD_CONFIG_ROOT + "transports/${xd.transport}-admin.xml");
 			StreamDeployer streamDeployer = context.getBean(StreamDeployer.class);
 			final StreamServer server = (StringUtils.hasText(port))
 					? new StreamServer(streamDeployer, Integer.parseInt(port))

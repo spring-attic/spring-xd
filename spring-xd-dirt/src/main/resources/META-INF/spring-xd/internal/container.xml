@@ -11,7 +11,7 @@
 
 	<context:property-placeholder/>
 
-	<import resource="classpath*:/META-INF/spring/transports/${xd.transport}-container.xml"/>
+	<import resource="classpath*:/META-INF/spring-xd/transports/${xd.transport}-container.xml"/>
 
 	<int:channel id="input"/>
 

@@ -30,7 +30,7 @@ public abstract class AbstractStreamTests {
 		System.setProperty("xd.transport", "local");
 		System.setProperty("xd.home", "..");
 		try {
-			ApplicationContext ctx = new ClassPathXmlApplicationContext("/META-INF/spring/transports/local-admin.xml");
+			ApplicationContext ctx = new ClassPathXmlApplicationContext("/META-INF/spring-xd/transports/local-admin.xml");
 			streamDeployer = ctx.getBean(StreamDeployer.class);
 		}
 		catch (Exception e) {

@@ -73,9 +73,11 @@ public class DefaultContainerLauncher implements ContainerLauncher, ApplicationE
 		logger.info("xd.home=" + new File(xdhome).getAbsolutePath());
 		logger.info("xd.transport=" + transportType);
 
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("META-INF/spring/launcher.xml");
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(LAUNCHER_CONFIG_LOCATION);
 
 		context.registerShutdownHook();
+		
+		// TODO: The following line will fail atm.
 		ContainerLauncher launcher = context.getBean(ContainerLauncher.class);
 		launcher.launch();
 	}

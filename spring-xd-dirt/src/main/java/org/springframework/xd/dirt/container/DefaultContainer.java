@@ -42,11 +42,21 @@ import org.springframework.xd.dirt.event.ContainerStoppedEvent;
 public class DefaultContainer implements Container, SmartLifecycle {
 
 	private static final Log logger = LogFactory.getLog(DefaultContainer.class);
-
-	private static final String CORE_CONFIG = "classpath:META-INF/spring/container.xml";
+	
+	/**
+	 * Base location for XD config files. Chosen so as not to collide with user provided content.
+	 */
+	public static final String XD_CONFIG_ROOT = "META-INF/spring-xd/";
+	
+	/**
+	 * Where container related config files reside.
+	 */
+	public static final String XD_INTERNAL_CONFIG_ROOT = XD_CONFIG_ROOT + "internal/"; 
+	  
+	private static final String CORE_CONFIG = XD_INTERNAL_CONFIG_ROOT + "container.xml";
 
 	// TODO: consider moving to a file: location pattern within $XD_HOME
-	private static final String PLUGIN_CONFIGS = "classpath*:META-INF/spring/plugins/*.xml";
+	private static final String PLUGIN_CONFIGS = "classpath*:" + XD_CONFIG_ROOT + "plugins/*.xml";
 
 	private static final String LOG4J_FILE_APPENDER = "file";
 

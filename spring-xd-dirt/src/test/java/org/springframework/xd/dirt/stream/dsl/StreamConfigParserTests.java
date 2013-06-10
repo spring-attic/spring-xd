@@ -170,6 +170,16 @@ public class StreamConfigParserTests {
 			// success
 		}
 	}
+	
+	@Test
+	public void testDirtyTapSupport() {
+//		StreamsNode ast = 
+		new StreamConfigParser().parse("one", "foo | transform --expression=--payload | bar");
+		StreamsNode ast2 = new StreamConfigParser().parse("two", "tap one.foo");
+		assertEquals("Streams[tap one.foo][(ModuleNode:tap --channel=one.0:0>11)]",ast2.stringify());
+		StreamsNode ast3 = new StreamConfigParser().parse("two", "tap one.transform");
+		assertEquals("Streams[tap one.transform][(ModuleNode:tap --channel=one.1:0>17)]",ast3.stringify());
+	}
 
 	@Test
 	public void expressions_xd159() {

@@ -49,6 +49,8 @@ public enum XDDSLMessages {
 	OOD(Kind.ERROR,112,"Unexpectedly ran out of input"), //
 	UNEXPECTED_ESCAPE_CHAR(Kind.ERROR,114,"unexpected escape character."), //
 	UNEXPECTED_DATA(Kind.ERROR,115,"unexpected data in stream configuration ''{0}''"), //
+	UNRECOGNIZED_STREAM_REFERENCE(Kind.ERROR,116,"unrecognized stream reference ''{0}''"), //
+	UNRECOGNIZED_MODULE_REFERENCE(Kind.ERROR,117,"unrecognized module reference ''{0}''"), //
 	;
 
 	private Kind kind;

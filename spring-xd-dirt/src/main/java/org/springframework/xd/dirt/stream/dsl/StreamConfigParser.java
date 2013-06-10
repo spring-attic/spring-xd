@@ -17,7 +17,9 @@
 package org.springframework.xd.dirt.stream.dsl;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.xd.dirt.stream.dsl.ast.ArgumentNode;
 import org.springframework.xd.dirt.stream.dsl.ast.ModuleNode;
@@ -34,8 +36,14 @@ public class StreamConfigParser {
 	private List<Token> tokenStream;
 	private int tokenStreamLength;
 	private int tokenStreamPointer; // Current location in the token stream when processing tokens
-
+		
+	private static Map<String,StreamsNode> knownExpressions = new HashMap<String,StreamsNode>();
+	
 	public StreamsNode parse(String stream) {
+		return parse(null, stream);
+	}
+
+	public StreamsNode parse(String name, String stream) {
 		try {
 			this.expressionString = stream;
 			Tokenizer tokenizer = new Tokenizer(expressionString);
@@ -45,6 +53,9 @@ public class StreamConfigParser {
 			StreamsNode ast = eatStreams();
 			if (moreTokens()) {
 				throw new DSLParseException(peekToken().startpos,XDDSLMessages.MORE_INPUT,toString(nextToken()));
+			}
+			if (name != null) {
+				knownExpressions.put(name,ast);
 			}
 			return ast;
 		} catch (InternalParseException ipe) {
@@ -107,17 +118,61 @@ public class StreamConfigParser {
 	// moduleArguments : DOUBLE_MINUS identifier(name) EQUALS identifier(value)
 	private ArgumentNode[] maybeEatModuleArgs() {
 		List<ArgumentNode> args = null;
+		if (isTap && !peekToken(TokenKind.REFERENCE)) {
+			Token streamtoken = eatToken(TokenKind.IDENTIFIER);
+			String streamname = streamtoken.data;
+			// The syntax 'tap streamname.module'
+			// optionQualifier is probably the streamname
+			eatToken(TokenKind.DOT);
+			Token moduletoken = eatToken(TokenKind.IDENTIFIER);
+			String modulename = moduletoken.data;
+			
+			// Let's map the modulename
+			StreamsNode existingAst = knownExpressions.get(streamname);
+			if (existingAst == null) {
+				raiseInternalException(streamtoken.startpos, XDDSLMessages.UNRECOGNIZED_STREAM_REFERENCE,streamname);
+			}
+			List<ModuleNode> modules = existingAst.getModuleNodes();
+			boolean mappedToPipe = false;
+			for (int m=0;m<modules.size();m++) {
+				if (modules.get(m).getName().equals(modulename)) {
+					modulename = Integer.toString(m);
+					mappedToPipe = true;
+				}
+			}
+			if (mappedToPipe) {
+				args = new ArrayList<ArgumentNode>();
+				args.add(new ArgumentNode("channel", streamname+"."+modulename, streamtoken.startpos, moduletoken.endpos));
+			} else {
+				raiseInternalException(moduletoken.startpos,  XDDSLMessages.UNRECOGNIZED_MODULE_REFERENCE, modulename);
+			}
+			return args==null?null:args.toArray(new ArgumentNode[args.size()]);
+		}
+		
 		while (peekToken(TokenKind.DOUBLE_MINUS,TokenKind.REFERENCE)) {
 			Token optionQualifier = nextToken(); // skip the '--' (or '@' at the moment...)
+			
+			// This is dirty, temporary, until we nail the tap syntax
 			if (isTap) {
-				Token t = peekToken();
-				String argValue = eatArgValue(t);
-				nextToken();
-				if (args == null) {
-					args = new ArrayList<ArgumentNode>();
+				if (optionQualifier.getKind()==TokenKind.REFERENCE) {
+					Token t = peekToken();
+					String argValue = eatArgValue(t);
+					if (peekToken(TokenKind.DOT)) {
+						// tap @foo.NNN
+						nextToken();
+						String channelNumber = eatToken(TokenKind.IDENTIFIER).data;
+						argValue = argValue+"."+channelNumber;
+					} else {
+						// no channel number specified
+						argValue = argValue+".0";
+					}
+					
+					if (args == null) {
+						args = new ArrayList<ArgumentNode>();
+					}
+					args.add(new ArgumentNode("channel", argValue, optionQualifier.startpos, t.endpos));
+					continue;
 				}
-				args.add(new ArgumentNode("channel", argValue+".0", optionQualifier.startpos, t.endpos));
-				continue;
 			}
 			if (peekToken(TokenKind.IDENTIFIER) && !isNextTokenAdjacent()) {
 				raiseInternalException(peekToken().startpos, XDDSLMessages.NO_WHITESPACE_BEFORE_ARG_NAME);
@@ -133,7 +188,7 @@ public class StreamConfigParser {
 			// Process argument value:
 			Token t = peekToken();
 			String argValue = eatArgValue(t);
-			nextToken();
+			
 			if (args == null) {
 				args = new ArrayList<ArgumentNode>();
 			}
@@ -152,6 +207,7 @@ public class StreamConfigParser {
 		} else {
 			raiseInternalException(t.startpos,XDDSLMessages.EXPECTED_ARGUMENT_VALUE,t.data);
 		}
+		nextToken();
 		return argValue;
 	}
 

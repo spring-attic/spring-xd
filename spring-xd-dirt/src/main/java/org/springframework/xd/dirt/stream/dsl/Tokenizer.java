@@ -94,6 +94,9 @@ class Tokenizer {
 				case '\n':
 					pushCharToken(TokenKind.NEWLINE);
 					break;
+				case '.':
+					pushCharToken(TokenKind.DOT);
+					break;
 				case ';':
 					pushCharToken(TokenKind.SEMICOLON);
 					break;

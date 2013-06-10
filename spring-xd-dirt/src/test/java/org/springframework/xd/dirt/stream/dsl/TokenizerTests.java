@@ -40,6 +40,12 @@ public class TokenizerTests {
 	}
 
 	@Test
+	public void dirtyTap() {
+		Tokenizer t = new Tokenizer("tap one.foo");
+		checkTokens(t,token_identifier("tap",0,3),token_identifier("one",4,7),token(TokenKind.DOT,7,8),token_identifier("foo",8,11));
+	}
+
+	@Test
 	public void moduleAliasingWithOptions() {
 		Tokenizer t = new Tokenizer("myhttp = http --port=9090");
 		checkTokens(t,token_identifier("myhttp",0,6),token(TokenKind.EQUALS,7,8),token_identifier("http",9,13),

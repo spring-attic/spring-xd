@@ -73,13 +73,13 @@ set CMD_LINE_ARGS=%$
 set APP_HOME_LIB=%APP_HOME%\lib
 if exist "%APP_HOME_LIB%" (
     setLocal EnableDelayedExpansion
-    set CLASSPATH=%APP_HOME%\modules\processor\scripts
+    set CLASSPATH=%APP_HOME%\modules\processor\scripts;%APP_HOME%\config
     set CLASSPATH=!CLASSPATH!;%APP_HOME_LIB%\*
 )
 
 @rem Set XD_HOME to APP_HOME if XD_HOME is not defined yet
 if not exist "%XD_HOME%" (
-    set XD_HOME=%APP_HOME% 
+    set XD_HOME=%APP_HOME%
 )
 set SPRING_XD_CONTAINER_OPTS="-Dxd.container=container -Dxd.home=%XD_HOME% -Dlog4j.configuration=file:///$XD_HOME/config/xd-container-logger.properties"
 

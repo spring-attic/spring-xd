@@ -30,6 +30,7 @@ allprojects {
 	repositories {
 		mavenCentral()
 		maven { url 'http://repo.springsource.org/libs-milestone' }
+		maven { url 'http://repo.springsource.org/libs-snapshot' }
 		maven { url 'http://repo.springsource.org/plugins-release' }
 	}
 }
@@ -166,7 +167,8 @@ project('spring-xd-dirt') {
 				"org.springframework.integration:spring-integration-syslog:$springIntegrationVersion",
 				"org.springframework.social:spring-social-twitter:1.0.5.RELEASE",
 				"args4j:args4j:$args4jVersion",
-				"org.springframework.shell:spring-shell:1.0.0.RELEASE"
+				"org.springframework.shell:spring-shell:1.0.0.RELEASE",
+				"reactor:reactor-spring:1.0.0.BUILD-SNAPSHOT"
 
 		runtime "log4j:log4j:$log4jVersion",
 				"org.slf4j:jcl-over-slf4j:$slf4jVersion",
@@ -506,11 +508,33 @@ reference {
 
 reference.dependsOn asciidoctorDocbook
 
+task api(type: Javadoc) {
+	group = 'Documentation'
+	description = 'Generates aggregated Javadoc API documentation.'
+	title = "${rootProject.description} ${version} API"
+	options.memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PROTECTED
+	options.author = true
+	options.header = rootProject.description
+	options.overview = 'src/api/overview.html'
+
+	source rootProject.javaProjects().collect { project ->
+		project.sourceSets.main.allJava
+	}
+	destinationDir = new File(buildDir, "api")
+	classpath = files(rootProject.javaProjects().collect { project ->
+		project.sourceSets.main.compileClasspath
+	})
+}
+
 task docsZip(type: Zip) {
 		group = 'Distribution'
 		classifier = 'docs'
 		description = "Builds -${classifier} archive containing api and reference " +
 			"for deployment at static.springframework.org/spring-integration/docs."
+
+		from (api) {
+			into 'api'
+		}
 
 		from (reference) {
 			into 'reference'

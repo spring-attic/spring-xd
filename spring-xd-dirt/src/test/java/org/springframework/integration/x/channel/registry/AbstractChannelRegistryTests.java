@@ -48,9 +48,10 @@ public abstract class AbstractChannelRegistryTests {
 		registry.outbound("foo.2", new DirectChannel());
 		registry.tap("bar", "foo.0", new DirectChannel());
 		Collection<?> bridges = getBridges(registry);
-		assertEquals(6, bridges.size());
+		// + 2 for bridges to null
+		assertEquals(8, bridges.size());
 		registry.cleanAll("foo.0");
-		assertEquals(4, bridges.size());
+		assertEquals(5, bridges.size());
 		registry.cleanAll("foo.1");
 		assertEquals(2, bridges.size());
 		registry.cleanAll("foo.2");
@@ -74,9 +75,9 @@ public abstract class AbstractChannelRegistryTests {
 		plugin.processModule(module, "bar", 0);
 		registry.inbound("bar.0", new DirectChannel());
 		Collection<?> bridges = getBridges(registry);
-		assertEquals(5, bridges.size()); // 2 each stream + tap
+		assertEquals(7, bridges.size()); // 2 each stream + tap + 1 null bridge per stream
 		registry.cleanAll("bar.0");
-		assertEquals(2, bridges.size()); // tap completely gone
+		assertEquals(3, bridges.size()); // tap completely gone
 		registry.cleanAll("foo.0");
 		assertEquals(0, bridges.size());
 	}

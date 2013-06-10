@@ -27,6 +27,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.core.SubscribableChannel;
@@ -124,6 +125,7 @@ public class LocalChannelRegistry implements ChannelRegistry, ApplicationContext
 			Iterator<BridgeMetadata> iterator = this.bridges.iterator();
 			while (iterator.hasNext()) {
 				BridgeMetadata bridge = iterator.next();
+				System.out.println(bridge);
 				if (bridge.handler.getComponentName().startsWith(name) ||
 						name.equals(bridge.tapModule)) {
 					bridge.channel.unsubscribe(bridge.handler);
@@ -177,6 +179,7 @@ public class LocalChannelRegistry implements ChannelRegistry, ApplicationContext
 			tapChannel = createSharedChannel(tapName, PublishSubscribeChannel.class);
 			WireTap wireTap = new WireTap(tapChannel);
 			channel.addInterceptor(wireTap);
+			bridge(tapChannel,new NullChannel(),channel.getComponentName()+".to.null");
 		}
 		else {
 			try {

@@ -5,15 +5,15 @@ spring-xd
 
 While it is possible today to build such solutions using Spring (see the [Spring Data Book][] for details and examples), Spring XD will move well beyond the framework API level by providing an out-of-the-box executable server, a pluggable module system, a high level configuration DSL, a simple model for distributing data processing instances on or off the Hadoop cluster, and more.
 
-You can fork the repository and/or monitor JIRA to see what is going on. As always, we consider the feedback from our broad and passionate community to be one of our greatest assets.  We have been doing a lot of prototyping over the past year, so you will see some code drops soon. Also, we plan to post blogs after each sprint so that you can follow along with the progress.
+You can fork the repository and/or monitor JIRA to see what is going on. As always, we consider the feedback from our broad and passionate community to be one of our greatest assets.
 
 ## Documentation
 
-We are just getting underway with documentation.  Look for it on the [XD wiki](https://github.com/springsource/spring-xd/wiki)
+Look for it on the [XD wiki](https://github.com/springsource/spring-xd/wiki).
 
 ## Getting Help
 
-* Get involved with the community on StackOverflow using the tag spring-xd.  
+* Get involved with the community on StackOverflow using the tag spring-xd.
 
 ## License
 

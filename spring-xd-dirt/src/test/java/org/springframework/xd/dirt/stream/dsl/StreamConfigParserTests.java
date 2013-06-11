@@ -104,7 +104,6 @@ public class StreamConfigParserTests {
 		StreamsNode ast = parser.parse(stream);
 		List<StreamNode> streams = ast.getStreams();
 		assertEquals(2,streams.size());
-		System.out.println(ast.stringify());
 	}
 
 	@Test
@@ -114,7 +113,6 @@ public class StreamConfigParserTests {
 		StreamsNode ast = parser.parse(stream);
 		List<StreamNode> streams = ast.getStreams();
 		assertEquals(2,streams.size());
-		System.out.println(ast.stringify());
 	}
 
 	@Test
@@ -231,7 +229,6 @@ public class StreamConfigParserTests {
 		Properties props = mn.getArgumentsAsProperties();
 		assertEquals("new Foo()",props.get("expression"));
 	}
-
 
 	// ---
 

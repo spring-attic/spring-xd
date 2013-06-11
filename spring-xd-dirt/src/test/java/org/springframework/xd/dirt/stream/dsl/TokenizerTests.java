@@ -69,6 +69,48 @@ public class TokenizerTests {
 		Tokenizer t = new Tokenizer("foo --name=value");
 		checkTokens(t,token_identifier("foo",0,3),token(TokenKind.DOUBLE_MINUS,4,6),token_identifier("name",6,10),token(TokenKind.EQUALS,10,11),token_identifier("value",11,16));
 	}
+	
+	@Test
+	public void quotesInParam1() {
+		Tokenizer t = new Tokenizer("foo --bar='payload.matches(''hello'')'");
+		checkTokens(t,token_identifier("foo",0,3),token(TokenKind.DOUBLE_MINUS,4,6), token_identifier("bar",6,9),token(TokenKind.EQUALS,9,10), token(TokenKind.LITERAL_STRING,"'payload.matches(''hello'')'",10,38));
+	}
+
+	@Test
+	public void quotesInParam2() {
+		Tokenizer t = new Tokenizer("foo --bar=payload.matches('hello')");
+		checkTokens(t,token_identifier("foo",0,3),token(TokenKind.DOUBLE_MINUS,4,6), token_identifier("bar",6,9),token(TokenKind.EQUALS,9,10), token_identifier("payload.matches('hello')",10,34));
+	}
+
+	@Test
+	public void quotesInParam3() {
+		Tokenizer t = new Tokenizer("foo --bar=payload.matches('hello world')");
+		checkTokens(t,token_identifier("foo",0,3),token(TokenKind.DOUBLE_MINUS,4,6), token_identifier("bar",6,9),token(TokenKind.EQUALS,9,10), token_identifier("payload.matches('hello world')",10,40));
+	}
+
+	@Test
+	public void quotesInParam4() {
+		Tokenizer t = new Tokenizer("foo --bar=payload.matches('helloworld')");
+		checkTokens(t,token_identifier("foo",0,3),token(TokenKind.DOUBLE_MINUS,4,6), token_identifier("bar",6,9),token(TokenKind.EQUALS,9,10), token_identifier("payload.matches('helloworld')",10,39));
+	}
+
+	@Test
+	public void quotesInParam5() {
+		Tokenizer t = new Tokenizer("foo --bar=payload.matches('hello\tworld')");
+		checkTokens(t,token_identifier("foo",0,3),token(TokenKind.DOUBLE_MINUS,4,6), token_identifier("bar",6,9),token(TokenKind.EQUALS,9,10), token_identifier("payload.matches('hello\tworld')",10,40));
+	}
+	
+	@Test
+	public void quotesInParam7() {
+		Tokenizer t = new Tokenizer("foo --bar=payload.matches(\"'\")");
+		checkTokens(t,token_identifier("foo",0,3),token(TokenKind.DOUBLE_MINUS,4,6), token_identifier("bar",6,9),token(TokenKind.EQUALS,9,10), token_identifier("payload.matches(\"'\")",10,30));
+	}
+	
+	@Test
+	public void quotesInParam6() {
+		Tokenizer t = new Tokenizer("foo --bar=payload.matches(\"hello\t  world\")");
+		checkTokens(t,token_identifier("foo",0,3),token(TokenKind.DOUBLE_MINUS,4,6), token_identifier("bar",6,9),token(TokenKind.EQUALS,9,10), token_identifier("payload.matches(\"hello\t  world\")",10,42));
+	}
 
 	@Test
 	public void oneModuleWithTwoParam() {

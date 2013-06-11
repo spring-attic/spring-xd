@@ -440,7 +440,7 @@ task pullDocs(type: GitClone) {
 				include  "**/*.asciidoc"
 				filter { line -> 
 						// TODO: refine regex to only match local documents
-						def match = (line =~ /link:(.*)#(.*)\[(.*)\]/) 
+						def match = (line =~ /link:(.*?)#(.*?)\[(.*?)\]/) 
 						if (match) match.replaceAll('xref:$2[$3]') else line
 				}
 			}

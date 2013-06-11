@@ -18,6 +18,7 @@ package org.springframework.xd.analytics.metrics.integration;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.BeanWrapper;
@@ -27,6 +28,7 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.transformer.MessageTransformationException;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.xd.analytics.metrics.core.FieldValueCounterService;
 import org.springframework.xd.tuple.Tuple;
 import org.springframework.xd.tuple.integration.JsonToTupleTransformer;
@@ -34,11 +36,10 @@ import org.springframework.xd.tuple.integration.JsonToTupleTransformer;
 /**
  * Counts the occurrence of values for a set of JavaBean properties or Tuple fields using a FieldValueCounterService.
  * Assumes a String payload is JSON and will convert it to a Tuple.
- * 
- * 
+ *
  * @author Mark Pollack
  * @author David Turanski
- *
+ * @author Mark Fisher
  */
 public class FieldValueCounterHandler {
 
@@ -94,9 +95,35 @@ public class FieldValueCounterHandler {
 		for (Map.Entry<String, String> entry : this.fieldNameToCounterNameMap.entrySet()) {
 			String fieldName = entry.getKey();
 			String counterName = entry.getValue();
-			if (tuple.hasFieldName(fieldName)) {
-				Object value = tuple.getValue(fieldName);
-				processValue(counterName, value);
+			String[] path = StringUtils.tokenizeToStringArray(fieldName, ".");
+			processValueForCounter(counterName, tuple, path);
+		}
+	}
+
+	private void processValueForCounter(String counterName, Object value, String[] path) {
+		String key = path[0];
+		Object result = null;
+		if (value instanceof List) {
+			for (Object item : (List<?>) value) {
+				processValueForCounter(counterName, item, path);
+			}
+		}
+		else if (value instanceof Tuple) {
+			Tuple t = (Tuple) value;
+			if (t.hasFieldName(key)) {
+				result = t.getValue(key);
+			}
+		}
+		else if (value instanceof Map) {
+			result = ((Map<?,?>) value).get(key);
+		}
+		if (result != null) {
+			if (path.length == 1) {
+				processValue(counterName, result);
+			}
+			else {
+				path = Arrays.copyOfRange(path, 1, path.length);
+				processValueForCounter(counterName, result, path);
 			}
 		}
 	}

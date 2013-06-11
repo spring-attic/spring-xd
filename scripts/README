@@ -1,61 +1,26 @@
-Please follow the below instructions to create Spring-XD bundle:
+Spring XD 1.0.0.M1
+==================
 
-To create a dist directory(without bundle zip), from the spring-xd root directory:
+Please refer to the Reference Guide for more information on Getting Started with Spring XD
 
-./gradlew distXD
-
-To create a dist zip:
-
-./gradlew zipXD
-
-This will create a "dist" directory under spring-xd root and will have the Spring-XD distribution hwith the following directory structure:
+The Spring XD distribution has the following directory structure
 
 ├── spring-xd
 │   ├── gemfire
 │   │   ├── bin
-│   │   │   ├── cq-demo.xml
-│   │   │   ├── gemfire-server
-│   │   │   └── gemfire-server.bat
 │   │   └── lib
-│   │       └── spring-xd-gemfire-server-0.1.0.BUILD-SNAPSHOT.jar etc.,
 │   ├── redis
 │   │   ├── bin
-│   │   │   └── install-redis
 │   │   └── dist
-│   │       └── redis-2.6.13.tar.gz
 │   └── xd
 │       ├── bin
-│       │   ├── xd-admin
-│       │   ├── xd-admin.bat
-│       │   ├── xd-container
-│       │   └── xd-container.bat
 │       ├── lib
-│       │   └── xstream-1.3.jar etc.,
 │       └── modules
 │           ├── generic
-│           │   └── gemfire-client.xml
 │           ├── processor
-│           │   ├── filter.xml
-│           │   ├── string2json.xml
-│           │   └── transform.xml
 │           ├── sink
-│           │   ├── counter.xml
-│           │   ├── field-value-counter.xml
-│           │   ├── file.xml
-│           │   ├── gemfire-json-server.xml
-│           │   ├── gemfire-server.xml
-│           │   ├── hdfs.xml
-│           │   └── log.xml
 │           └── source
-│               ├── file.xml
-│               ├── gemfire-cq.xml
-│               ├── gemfire.xml
-│               ├── http.xml
-│               ├── syslog.xml
-│               ├── tail.xml
-│               ├── tap.xml
-│               ├── time.xml
-│               └── twittersearch.xml
+
 
 
 To install Redis:

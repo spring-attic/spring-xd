@@ -168,7 +168,7 @@ project('spring-xd-dirt') {
 				"org.springframework.social:spring-social-twitter:1.0.5.RELEASE",
 				"args4j:args4j:$args4jVersion",
 				"org.springframework.shell:spring-shell:1.0.0.RELEASE",
-				"reactor:reactor-spring:1.0.0.BUILD-SNAPSHOT"
+				"com.eaio.uuid:uuid:3.2"
 
 		runtime "log4j:log4j:$log4jVersion",
 				"org.slf4j:jcl-over-slf4j:$slf4jVersion",
@@ -387,7 +387,12 @@ task copyXDInstall(type: Copy, dependsOn: [":spring-xd-dirt:build", ":spring-xd-
         into "$rootDir/dist/spring-xd/xd"
 }
 
-task distXD (type: Copy, dependsOn: ["copyRedisInstall", "copyGemfireInstall", "copyXDInstall"]) {
+task cleanDist(type: Delete) {
+        description = "cleans $rootDir/dist directory"
+        delete "$rootDir/dist"
+}
+
+task distXD (type: Copy, dependsOn: ["cleanDist", "copyRedisInstall", "copyGemfireInstall", "copyXDInstall"]) {
     	description = "Copy all the required installs"
         from "$rootDir/scripts/README"
         from "$rootDir/scripts/LICENSE"
@@ -410,13 +415,14 @@ artifacts {
 }
 
 import org.ajoberstar.gradle.git.tasks.*
+import org.apache.tools.ant.filters.TokenFilter
 
 task pullDocs(type: GitClone) {
 	if (project.gradle.startParameter.offline) {
 		enabled = false
 	}
 
-	def destination = file("$buildDir/asciidoc")
+	def destination = file("$buildDir/asciidoc-raw")
 
 	uri = "git://github.com/SpringSource/spring-xd.wiki.git"
 	destinationPath = destination
@@ -425,14 +431,32 @@ task pullDocs(type: GitClone) {
 	doFirst {
 		if (destination.exists()) {
 			destination.deleteDir()
+			file("$buildDir/asciidoc").deleteDir()
 		}
 	}
 
 	doLast {
+		copy {
+			from("$buildDir/asciidoc-raw") {
+				include  "**/*.asciidoc"
+				filter { line -> 
+						// TODO: refine regex to only match local documents
+						def match = (line =~ /link:(.*?)#(.*?)\[(.*?)\]/) 
+						if (match) match.replaceAll('xref:$2[$3]') else line
+				}
+			}
+			from("$buildDir/asciidoc-raw") {
+				exclude "**/*.asciidoc"
+			}
+			into("$buildDir/asciidoc")
+
+		}
+
 		new File("$buildDir/asciidoc/guide/FullGuide.adoc")
 			.renameTo(new File("$buildDir/asciidoc/guide/index.adoc"))
 		new File("$buildDir/asciidoc/guide/FullGuide-docinfo.xml")
 			.renameTo(new File("$buildDir/asciidoc/guide/index-docinfo.xml"))
+
 	}
 }
 
@@ -450,10 +474,10 @@ task asciidoctorDocbook(type: AsciidoctorTask, dependsOn: [pullDocs]) {
 	]
 
 	doLast {
-		copy {
-			from "$buildDir/asciidoc/guide/images"
-			into "$buildDir/docbook/images"
-		}
+//		copy {
+//			from "$buildDir/asciidoc/guide/images"
+//			into "$buildDir/docbook/images"
+//		}
 		copy {
 			from "$buildDir/asciidoc/images"
 			into "$buildDir/docbook/images"

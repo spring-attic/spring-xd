@@ -5,7 +5,8 @@ Please refer to the Reference Guide for more information on Getting Started with
 
 The Spring XD distribution has the following directory structure
 
-├── spring-xd
+├── spring-xd-1.0.0.M1
+|   ├── docs
 │   ├── gemfire
 │   │   ├── bin
 │   │   └── lib

@@ -438,9 +438,9 @@ task pullDocs(type: GitClone) {
 		copy {
 			from("$buildDir/asciidoc-raw") {
 				include  "**/*.asciidoc"
-				filter { line -> 
+				filter { line ->
 						// TODO: refine regex to only match local documents
-						def match = (line =~ /link:(.*?)#(.*?)\[(.*?)\]/) 
+						def match = (line =~ /link:(.*?)#(.*?)\[(.*?)\]/)
 						if (match) match.replaceAll('xref:$2[$3]') else line
 				}
 			}
@@ -564,7 +564,26 @@ task docsZip(type: Zip) {
 		}
 }
 
+task distZip(type: Zip, dependsOn: [asciidoctorHtml, distXD]) {
+	group = 'Distribution'
+	classifier = 'dist'
+	description = "Builds -${classifier} archive, containing all jars and docs, " +
+		"suitable for community download page."
+
+	ext.baseDir = "${project.name}-${project.version}";
+
+	from('dist/spring-xd') {
+		into "${baseDir}"
+	}
+
+	from ("$buildDir/html") {
+		into "${baseDir}/docs"
+	}
+
+}
+
 artifacts {
+	archives distZip
 	archives docsZip
 }
 

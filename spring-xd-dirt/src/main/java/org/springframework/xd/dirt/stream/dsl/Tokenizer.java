@@ -126,7 +126,7 @@ class Tokenizer {
 	public List<Token> getTokens() {
 		return tokens;
 	}
-
+	
 	// STRING_LITERAL: '\''! (APOS|~'\'')* '\''!;
 	private void lexQuotedStringLiteral() {
 		int start = pos;
@@ -195,15 +195,31 @@ class Tokenizer {
 		tokens.add(new Token(TokenKind.IDENTIFIER,subarray,start,pos));
 	}
 
-	private boolean isArgValueIdentifierTerminator(char ch) {
-		return ch=='|' || ch==';' || ch=='\0' || isWhitespace(ch);
+	/**
+	 * For the variant tokenizer (used following an '=' to parse an argument value) we only terminate that 
+	 * identifier if encountering a small set of characters.  If the argument has included a ' to put
+	 * something in quotes, we remember that and don't allow ' ' (space) and '\t' (tab) to terminate the
+	 * value.
+	 */
+	private boolean isArgValueIdentifierTerminator(char ch, boolean quoteOpen) {
+		return ch=='|' || ch==';' || ch=='\0' || (ch==' ' && !quoteOpen) || (ch=='\t' && !quoteOpen) || ch=='\r' || ch=='\n';
 	}
 
+	/**
+	 * To prevent the need to quote all argument values, this identifier lexing function is used just after an '='
+	 * when we are about to digest an arg value.  It is much more relaxed about what it will include in the identifier.
+	 */
 	private void lexArgValueIdentifier() {
 		int start = pos;
+		boolean quoteOpen=false;
 		do {
+			char ch = toProcess[pos];
+			// TODO [Andy] doesn't differentiate by quote kind
+			if (ch=='\'' || ch=='\"') {
+				quoteOpen = !quoteOpen;
+			}
 			pos++;
-		} while (!isArgValueIdentifierTerminator(toProcess[pos]));
+		} while (!isArgValueIdentifierTerminator(toProcess[pos],quoteOpen));
 		char[] subarray = subarray(start,pos);
 		tokens.add(new Token(TokenKind.IDENTIFIER,subarray,start,pos));
 	}

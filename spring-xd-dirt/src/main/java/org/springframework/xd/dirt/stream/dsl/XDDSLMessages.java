@@ -43,7 +43,7 @@ public enum XDDSLMessages {
 	MORE_INPUT(Kind.ERROR,104, "After parsing a valid stream, there is still more data: ''{0}''"),
 	EXPECTED_ARGUMENT_VALUE(Kind.ERROR,105,"Expected an argument value but was ''{0}''"),
 	NON_TERMINATING_DOUBLE_QUOTED_STRING(Kind.ERROR,106,"Cannot find terminating \" for string"),//
-	NON_TERMINATING_QUOTED_STRING(Kind.ERROR,107,"Cannot find terminating ' for string"), //
+	NON_TERMINATING_QUOTED_STRING(Kind.ERROR,107,"Cannot find terminating '' for string"), //
 	MISSING_CHARACTER(Kind.ERROR,108,"missing expected character ''{0}''"),
 	NOT_EXPECTED_TOKEN(Kind.ERROR,111,"Unexpected token.  Expected ''{0}'' but was ''{1}''"),
 	OOD(Kind.ERROR,112,"Unexpectedly ran out of input"), //

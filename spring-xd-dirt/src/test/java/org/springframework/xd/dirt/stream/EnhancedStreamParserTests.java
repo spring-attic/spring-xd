@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
-
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 
 /**
@@ -49,7 +48,38 @@ public class EnhancedStreamParserTests {
 		assertEquals("sink", sink.getType());
 		assertEquals(0, sink.getParameters().size());
 	}
-
+	
+	@Test
+	public void quotesInParams() {
+		EnhancedStreamParser parser = new EnhancedStreamParser();
+		List<ModuleDeploymentRequest> requests = parser.parse("test", "foo --bar='payload.matches(''hello'')' | file");
+		assertEquals(2, requests.size());
+//		ModuleDeploymentRequest sink = requests.get(0);
+		ModuleDeploymentRequest source = requests.get(1);
+		assertEquals("foo", source.getModule());
+		assertEquals("test", source.getGroup());
+		assertEquals(0, source.getIndex());
+		assertEquals("source", source.getType());
+		Map<String, String> sourceParameters = source.getParameters();
+		assertEquals(1, sourceParameters.size());
+		assertEquals("payload.matches('hello')", sourceParameters.get("bar"));
+	}
+	
+	@Test
+	public void quotesInParams2() {
+		EnhancedStreamParser parser = new EnhancedStreamParser();
+		List<ModuleDeploymentRequest> requests = parser.parse("test", "http --port=9700 | filter --expression=payload.matches('hello world') | file");
+		assertEquals(3, requests.size());
+		ModuleDeploymentRequest filter = requests.get(1);
+		assertEquals("filter", filter.getModule());
+		assertEquals("test", filter.getGroup());
+		assertEquals(1, filter.getIndex());
+		assertEquals("processor", filter.getType());
+		Map<String, String> sourceParameters = filter.getParameters();
+		assertEquals(1, sourceParameters.size());
+		assertEquals("payload.matches('hello world')", sourceParameters.get("expression"));
+	}
+	
 	@Test
 	public void parameterizedModules() {
 		EnhancedStreamParser parser = new EnhancedStreamParser();

@@ -50,7 +50,7 @@ public class DefaultStreamParserTests {
 		assertEquals(1, sink.getIndex());
 		assertEquals("sink", sink.getType());
 		assertEquals(0, sink.getParameters().size());
-	}
+	}	
 
 	@Test
 	public void parameterizedModules() {

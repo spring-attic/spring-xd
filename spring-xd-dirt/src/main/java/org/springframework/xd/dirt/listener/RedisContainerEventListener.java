@@ -36,6 +36,7 @@ import org.springframework.xd.dirt.listener.util.BannerUtils;
  * @author Jennifer Hickey
  * @author Gary Russell
  * @author Gunnar Hillert
+ * @author David Turanski
  */
 public class RedisContainerEventListener extends AbstractContainerEventListener {
 
@@ -55,19 +56,12 @@ public class RedisContainerEventListener extends AbstractContainerEventListener 
 		this.redisTemplate.boundHashOps("containers").put(container.getId(), name);
 		if (logger.isInfoEnabled()) {
 			final Properties redisInfo = this.redisTemplate.getConnectionFactory().getConnection().info();
-			final StringBuilder sb = new StringBuilder(OsUtils.LINE_SEPARATOR);
-			sb.append(BannerUtils.getBanner())
-				.append(String.format("Using Redis v%s (Mode: %s) on Port %s ",
+			final StringBuilder sb = new StringBuilder();
+			sb.append(String.format("Using Redis v%s (Mode: %s) on Port %s ",
 						redisInfo.getProperty("redis_version"),
 						redisInfo.getProperty("redis_mode"),
-						redisInfo.getProperty("tcp_port")))
-				.append(OsUtils.LINE_SEPARATOR)
-				.append("Started container: " + name)
-				.append(OsUtils.LINE_SEPARATOR)
-				.append(OsUtils.LINE_SEPARATOR)
-				.append("Documentation: https://github.com/SpringSource/spring-xd/wiki")
-				.append(OsUtils.LINE_SEPARATOR);
-			logger.info(sb.toString());
+						redisInfo.getProperty("tcp_port")));
+			logger.info(BannerUtils.displayBanner(name, sb.toString()));
 		}
 	}
 

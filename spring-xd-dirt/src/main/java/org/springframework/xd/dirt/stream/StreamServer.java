@@ -154,6 +154,14 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 		callback.run();
 	}
 
+	/**
+	 *
+	 * @return the HTTP port
+	 */
+	public int getPort() {
+		return this.port;
+	}
+
 	private class Handler implements Runnable {
 		@Override
 		public void run() {

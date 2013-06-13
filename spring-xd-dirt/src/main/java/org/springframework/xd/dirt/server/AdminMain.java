@@ -26,9 +26,9 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.container.DefaultContainer;
+import org.springframework.xd.dirt.listener.util.BannerUtils;
 import org.springframework.xd.dirt.stream.StreamDeployer;
 import org.springframework.xd.dirt.stream.StreamServer;
-
 
 /**
  * The main driver class for the admin.
@@ -46,12 +46,11 @@ public class AdminMain extends AbstractMain {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		AdminOptions options = new  AdminOptions();
+		AdminOptions options = new AdminOptions();
 		CmdLineParser parser = new CmdLineParser(options);
 		try {
 			parser.parseArgument(args);
-		}
-		catch (CmdLineException e) {
+		} catch (CmdLineException e) {
 			logger.error(e.getMessage());
 			parser.printUsage(System.err);
 			System.exit(1);
@@ -65,22 +64,25 @@ public class AdminMain extends AbstractMain {
 			System.exit(0);
 		}
 
-		launchStreamServer(options.getHttpPort());
+		launchStreamServer(options);
 	}
 
 	/**
 	 * Launch stream server with the given home and transport
 	 */
-	public static void launchStreamServer(String port) {
+	public static void launchStreamServer(final AdminOptions options) {
 		try {
-			ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-					"classpath*:" + DefaultContainer.XD_CONFIG_ROOT + "transports/${xd.transport}-admin.xml");
+			ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("classpath*:"
+					+ DefaultContainer.XD_CONFIG_ROOT + "transports/${xd.transport}-admin.xml");
 			StreamDeployer streamDeployer = context.getBean(StreamDeployer.class);
-			final StreamServer server = (StringUtils.hasText(port))
-					? new StreamServer(streamDeployer, Integer.parseInt(port))
-					: new StreamServer(streamDeployer);
+			final StreamServer server = (StringUtils.hasText(options.getHttpPort())) ? new StreamServer(streamDeployer,
+					Integer.parseInt(options.getHttpPort())) : new StreamServer(streamDeployer);
 			server.afterPropertiesSet();
 			server.start();
+			if ("local".equals(options.getTransport())) {
+			System.out.println(BannerUtils.displayBanner(null,
+					String.format("Running in Local Mode on Port %s ", server.getPort())));
+			}
 			context.addApplicationListener(new ApplicationListener<ContextClosedEvent>() {
 				@Override
 				public void onApplicationEvent(ContextClosedEvent event) {
@@ -88,12 +90,11 @@ public class AdminMain extends AbstractMain {
 				}
 			});
 			context.registerShutdownHook();
-		}
-		catch (RedisConnectionFailureException e) {
+		} catch (RedisConnectionFailureException e) {
 			final Log logger = LogFactory.getLog(StreamServer.class);
 			logger.fatal(e.getMessage());
-			System.err.println("Redis does not seem to be running. Did you install and start Redis? " +
-					"Please see the Getting Started section of the guide for instructions.");
+			System.err.println("Redis does not seem to be running. Did you install and start Redis? "
+					+ "Please see the Getting Started section of the guide for instructions.");
 			System.exit(1);
 		}
 	}

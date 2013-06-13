@@ -17,7 +17,6 @@
 package org.springframework.xd.dirt.listener.util;
 
 import org.apache.commons.lang.StringUtils;
-
 import org.springframework.shell.support.util.FileUtils;
 import org.springframework.shell.support.util.OsUtils;
 
@@ -25,6 +24,7 @@ import org.springframework.shell.support.util.OsUtils;
  * Provides utilities for rendering graphical console output.
  *
  * @author Gunnar Hillert
+ * @author David Turanski
  * @since 1.0
  */
 public final class BannerUtils {
@@ -59,6 +59,16 @@ public final class BannerUtils {
 			version = pkg.getImplementationVersion();
 		}
 		return (version != null ? version : "Unknown Version");
+	}
+
+	public static String displayBanner(String containerName, String additionalMessage) {
+		StringBuffer sb = new StringBuffer(OsUtils.LINE_SEPARATOR);
+		sb.append(getBanner()).append(StringUtils.isEmpty(additionalMessage) ? "" : additionalMessage)
+				.append(OsUtils.LINE_SEPARATOR)
+				.append(StringUtils.isEmpty(containerName) ? "" : "started container : " + containerName)
+				.append(OsUtils.LINE_SEPARATOR).append("Documentation: https://github.com/SpringSource/spring-xd/wiki")
+				.append(OsUtils.LINE_SEPARATOR);
+		return sb.toString();
 	}
 
 }

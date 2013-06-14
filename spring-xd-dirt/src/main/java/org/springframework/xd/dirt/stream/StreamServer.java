@@ -14,6 +14,7 @@ package org.springframework.xd.dirt.stream;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Date;
 import java.util.concurrent.ScheduledFuture;
 
@@ -26,9 +27,9 @@ import org.apache.catalina.Context;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.core.AprLifecycleListener;
 import org.apache.catalina.startup.Tomcat;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.MessagingException;
@@ -41,7 +42,7 @@ import org.springframework.util.FileCopyUtils;
  * @author Jennifer Hickey
  * @author Gary Russell
  * @author David Turanski
- *
+ * 
  */
 public class StreamServer implements SmartLifecycle, InitializingBean {
 
@@ -75,6 +76,7 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 
 	/**
 	 * Set the contextPath
+	 * 
 	 * @param contextPath
 	 */
 	public void setContextPath(String contextPath) {
@@ -83,6 +85,7 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 
 	/**
 	 * Set the servletName. Default is streams
+	 * 
 	 * @param servletName
 	 */
 	public void setServletName(String servletName) {
@@ -94,12 +97,16 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 		this.scheduler.setPoolSize(3);
 		this.scheduler.initialize();
 		this.tomcat.setPort(this.port);
-		String path = (this.contextPath.startsWith("/")) ? this.contextPath : "/" + this.contextPath;
-		Context context = this.tomcat.addContext(path, new File(".").getAbsolutePath());
+		String path = (this.contextPath.startsWith("/")) ? this.contextPath
+				: "/" + this.contextPath;
+		Context context = this.tomcat.addContext(path,
+				new File(".").getAbsolutePath());
 		Tomcat.addServlet(context, this.servletName, new XdServlet());
-		context.addServletMapping("/" + this.servletName + "/*", this.servletName);
+		context.addServletMapping("/" + this.servletName + "/*",
+				this.servletName);
 		if (logger.isInfoEnabled()) {
-			logger.info("initialized server: context=" + this.contextPath + ", servlet=" + this.servletName);
+			logger.info("initialized server: context=" + this.contextPath
+					+ ", servlet=" + this.servletName);
 		}
 	}
 
@@ -120,16 +127,17 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 
 	@Override
 	public void start() {
-		this.tomcat.getServer().addLifecycleListener(new AprLifecycleListener());
+		this.tomcat.getServer()
+				.addLifecycleListener(new AprLifecycleListener());
 		try {
 			this.tomcat.start();
-			this.handlerTask = this.scheduler.schedule(new Handler(), new Date());
+			this.handlerTask = this.scheduler.schedule(new Handler(),
+					new Date());
 			if (logger.isInfoEnabled()) {
 				logger.info("started embedded tomcat adapter");
 			}
 			this.running = true;
-		}
-		catch (LifecycleException e) {
+		} catch (LifecycleException e) {
 			throw new MessagingException("failed to start server", e);
 		}
 	}
@@ -142,8 +150,7 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 			}
 			this.tomcat.stop();
 			this.running = false;
-		}
-		catch (LifecycleException e) {
+		} catch (LifecycleException e) {
 			throw new MessagingException("failed to stop server", e);
 		}
 	}
@@ -155,7 +162,7 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 	}
 
 	/**
-	 *
+	 * 
 	 * @return the HTTP port
 	 */
 	public int getPort() {
@@ -172,20 +179,46 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 	@SuppressWarnings("serial")
 	private class XdServlet extends HttpServlet {
 		@Override
-		protected void service(HttpServletRequest request, HttpServletResponse response)
-				throws ServletException, IOException {
+		protected void service(HttpServletRequest request,
+				HttpServletResponse response) throws ServletException,
+				IOException {
 			String streamName = request.getPathInfo();
-			Assert.hasText(streamName, "no stream name (e.g. localhost/streams/streamname");
-			streamName = streamName.replaceAll("/", "");
-			if ("POST".equalsIgnoreCase(request.getMethod())) {
-				String streamConfig = FileCopyUtils.copyToString(request.getReader());
-				streamDeployer.deployStream(streamName, streamConfig);
-			}
-			else if ("DELETE".equalsIgnoreCase(request.getMethod())) {
-				streamDeployer.undeployStream(streamName);
-			}
-			else {
-				response.sendError(405);
+
+			if (StringUtils.isBlank(streamName)
+					&& "GET".equals(request.getMethod())) {
+				String url = request.getRequestURL().append("/%s").toString();
+				response.setContentType("application/json");
+				PrintWriter out = response.getWriter();
+
+				out.write("[");
+				boolean first = true;
+				for (String stream : streamDeployer.getDeployedStreams()) {
+					// Perhaps use Spring HATEOAS here?
+					if (!first) {
+						out.write(", ");
+					} else {
+						first = false;
+					}
+					out.write("{ rel='");
+					out.write(stream);
+					out.write("', href='");
+					out.write(String.format(url, stream));
+					out.write("' }");
+				}
+				out.write("]");
+			} else {
+				Assert.hasText(streamName,
+						"no stream name (e.g. localhost/streams/streamname)");
+				streamName = streamName.replaceAll("/", "");
+				if ("POST".equalsIgnoreCase(request.getMethod())) {
+					String streamConfig = FileCopyUtils.copyToString(request
+							.getReader());
+					streamDeployer.deployStream(streamName, streamConfig);
+				} else if ("DELETE".equalsIgnoreCase(request.getMethod())) {
+					streamDeployer.undeployStream(streamName);
+				} else {
+					response.sendError(405);
+				}
 			}
 		}
 	}

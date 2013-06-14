@@ -16,6 +16,8 @@
 
 package org.springframework.xd.dirt.stream;
 
+import java.util.Set;
+
 /**
  * @author Mark Fisher
  * @author Gary Russell
@@ -25,4 +27,7 @@ public interface StreamDeployer {
 	void deployStream(String name, String config);
 
 	void undeployStream(String name);
+
+	Set<String> getDeployedStreams();
+
 }

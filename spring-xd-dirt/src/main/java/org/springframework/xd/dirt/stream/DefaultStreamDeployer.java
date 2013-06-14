@@ -17,8 +17,10 @@
 package org.springframework.xd.dirt.stream;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.integration.Message;
@@ -77,4 +79,9 @@ public class DefaultStreamDeployer implements StreamDeployer {
 		return this.deployments.remove(name);
 	}
 
+	@Override
+	public Set<String> getDeployedStreams() {
+		Set<String> streams = new HashSet<String>(deployments.keySet());
+		return streams;
+	}
 }

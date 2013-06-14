@@ -13,6 +13,13 @@
 
 package org.springframework.xd.dirt.stream;
 
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertThat;
+
+import java.util.Set;
+
 import org.junit.Test;
 
 /**
@@ -26,4 +33,29 @@ public class StreamTests extends AbstractStreamTests {
 		this.deployStream("tap","tap @ test1 | file");
 	}
 
+	@Test
+	public void testStreamList() throws InterruptedException {
+		String streamName = "listTest1";
+		this.deployStream(streamName, "time | log");
+		Set<String> streams = streamDeployer.getDeployedStreams();
+		assertThat(streams, hasSize(1));
+		assertThat(streams, contains(streamName));
+	}
+
+	@Test
+	public void testStreamListMultiple() throws InterruptedException {
+		String streamName1 = "listTest1";
+		this.deployStream(streamName1, "time | log");
+		String streamName2 = "listTest2";
+		this.deployStream(streamName2, "time | log");
+		Set<String> streams = streamDeployer.getDeployedStreams();
+		assertThat(streams, hasSize(2));
+		assertThat(streams, containsInAnyOrder(streamName1, streamName2));
+	}
+
+	@Test
+	public void testStreamListEmpty() throws InterruptedException {
+		Set<String> streams = streamDeployer.getDeployedStreams();
+		assertThat(streams, hasSize(0));
+	}
 }

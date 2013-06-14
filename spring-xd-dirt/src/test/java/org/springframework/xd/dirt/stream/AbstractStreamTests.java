@@ -13,8 +13,8 @@
 
 package org.springframework.xd.dirt.stream;
 
+import org.junit.After;
 import org.junit.BeforeClass;
-
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -38,6 +38,13 @@ public abstract class AbstractStreamTests {
 		}
 	}
 
+	@After
+	public void cleanUpStreams() {
+		for(String stream : streamDeployer.getDeployedStreams() ) {
+			streamDeployer.undeployStream(stream);
+		}
+	}
+	
 	protected void deployStream(String name, String config) {
 		streamDeployer.deployStream(name, config);
 	}

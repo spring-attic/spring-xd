@@ -156,6 +156,7 @@ project('spring-xd-dirt') {
 				"org.apache.tomcat.embed:tomcat-embed-core:$tomcatVersion",
 				"org.apache.tomcat.embed:tomcat-embed-logging-juli:$tomcatVersion",
 				"org.apache.tomcat:tomcat-jsp-api:$tomcatVersion",
+				"org.springframework.integration:spring-integration-amqp:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-event:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-file:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-gemfire:$springIntegrationVersion",

@@ -20,17 +20,17 @@ public class RichGaugeTests {
 		assertEquals(1.0, g.getValue(), D);
 		assertEquals(1.0, g.getMax(), D);
 		assertEquals(1.0, g.getMin(), D);
-		assertEquals(1.0, g.getMean(), D);
+		assertEquals(1.0, g.getAverage(), D);
 
 		g.set(1.5);
-		assertEquals(1.25, g.getMean(), D);
+		assertEquals(1.25, g.getAverage(), D);
 		g.set(0.5);
 
 		assertEquals(3, g.getCount());
 		assertEquals(0.5, g.getValue(), D);
 		assertEquals(1.5, g.getMax(), D);
 		assertEquals(0.5, g.getMin(), D);
-		assertEquals(1.0, g.getMean(), D);
+		assertEquals(1.0, g.getAverage(), D);
 	}
 
 	@Test
@@ -41,9 +41,25 @@ public class RichGaugeTests {
 		g.reset();
 		assertEquals(0.0, g.getMax(), D);
 		assertEquals(0.0, g.getMin(), D);
-		assertEquals(0.0, g.getMean(), D);
+		assertEquals(0.0, g.getAverage(), D);
 		assertEquals(0.0, g.getValue(), D);
 		assertEquals(0, g.getCount());
+	}
+
+	// Data from http://www.itl.nist.gov/div898/handbook/pmc/section4/pmc431.htm
+	@Test
+	public void testExponentialMovingAverage() throws Exception {
+		RichGauge g = new RichGauge("blah");
+		g.setAlpha(0.1);
+		g.set(71.0);
+		assertEquals(71.0, g.getAverage(), D);
+		g.set(70.0);
+		assertEquals(71.0, g.getAverage(), D);
+		g.set(69.0);
+		assertEquals(70.9, g.getAverage(), D);
+		g.set(68.0);
+		assertEquals(70.71, g.getAverage(), D);
+
 	}
 
 	@Test

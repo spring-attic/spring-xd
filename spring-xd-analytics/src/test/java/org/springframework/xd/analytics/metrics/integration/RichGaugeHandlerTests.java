@@ -18,7 +18,6 @@ import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.Properties;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParseException;
@@ -27,11 +26,8 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.env.MapPropertySource;
-import org.springframework.core.env.PropertiesPropertySource;
-import org.springframework.core.env.PropertySource;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.transformer.MessageTransformationException;
@@ -86,7 +82,7 @@ public class RichGaugeHandlerTests {
 		assertEquals(3, gauge.getCount());
 		assertEquals(24.0, gauge.getMax(), 0.001);
 		assertEquals(10.0, gauge.getMin(), 0.001);
-		assertEquals(18.0, gauge.getMean(), 0.001);
+		assertEquals(18.0, gauge.getAverage(), 0.001);
 		//Included here because the message handler constructor creates the gauge. Don't want to 
 		//delete it in @After.
 		repo.delete("test");

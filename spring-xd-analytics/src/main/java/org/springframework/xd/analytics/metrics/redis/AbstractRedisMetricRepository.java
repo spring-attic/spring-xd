@@ -70,9 +70,9 @@ abstract class AbstractRedisMetricRepository<M extends Metric, V> implements Met
 
 	@Override
 	public <S extends M> S save(S metric) {
-		String counterKey = getMetricKey(metric.getName());
-		if (this.valueOperations.get(counterKey) == null) {
-			this.valueOperations.set(counterKey, defaultValue());
+		String metricKey = getMetricKey(metric.getName());
+		if (this.valueOperations.get(metricKey) == null) {
+			this.valueOperations.set(metricKey, defaultValue());
 		}
 		return metric;
 	}

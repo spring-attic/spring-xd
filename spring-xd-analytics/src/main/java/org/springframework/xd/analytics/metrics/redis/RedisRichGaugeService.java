@@ -16,10 +16,7 @@
 package org.springframework.xd.analytics.metrics.redis;
 
 import org.springframework.util.Assert;
-import org.springframework.xd.analytics.metrics.core.Gauge;
-import org.springframework.xd.analytics.metrics.core.GaugeService;
-import org.springframework.xd.analytics.metrics.core.RichGauge;
-import org.springframework.xd.analytics.metrics.core.RichGaugeService;
+import org.springframework.xd.analytics.metrics.core.*;
 
 /**
  * A Redis backed implementation.
@@ -60,4 +57,12 @@ public class RedisRichGaugeService implements RichGaugeService {
 		gaugeRepository.setValue(name, value);
 	}
 
+	@Override
+	public void setAlpha(String name, double value) {
+		synchronized (this.monitor) {
+			RichGauge gauge = gaugeRepository.findOne(name);
+			MetricUtils.setRichGaugeAlpha(gauge, value);
+			this.gaugeRepository.save(gauge);
+		}
+	}
 }

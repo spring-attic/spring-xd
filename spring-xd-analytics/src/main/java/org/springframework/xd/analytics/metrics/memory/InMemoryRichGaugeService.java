@@ -65,6 +65,14 @@ public class InMemoryRichGaugeService implements RichGaugeService {
 		}
 	}
 
+	@Override
+	public void setAlpha(String name, double value) {
+		synchronized (this.monitor) {
+			RichGauge gauge = findExistingGauge(name);
+			this.gaugeRepository.save(setRichGaugeAlpha(gauge, value));
+		}
+	}
+
 	private RichGauge findExistingGauge(String name) {
 		RichGauge gauge = gaugeRepository.findOne(name);
 		if (gauge == null) {

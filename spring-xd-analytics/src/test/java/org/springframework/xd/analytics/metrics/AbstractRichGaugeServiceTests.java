@@ -39,7 +39,7 @@ public abstract class AbstractRichGaugeServiceTests {
 		RichGauge g = gs.getOrCreate("test");
 		assertEquals("test", g.getName());
 		assertEquals(0.01, g.getValue(), 1E-6);
-		assertEquals(5.0, g.getMean(), 1E-6);
+		assertEquals(5.0, g.getAverage(), 1E-6);
 		assertEquals(9.99, g.getMax(), 1E-6);
 		assertEquals(0.01, g.getMin(), 1E-6);
 	}
@@ -58,6 +58,26 @@ public abstract class AbstractRichGaugeServiceTests {
 		gs.reset("test");
 		RichGauge g = gs.getOrCreate("test");
 		assertEquals(0.0, g.getValue(), 1E-6);
+	}
+
+	@Test
+	public void testExponentialMovingAverage() throws Exception {
+		RichGaugeService gs = createService();
+		gs.getOrCreate("test");
+		gs.setAlpha("test", 0.1);
+		RichGauge g = gs.getOrCreate("test");
+		gs.setValue("test", 71.0);
+		g = gs.getOrCreate("test");
+		assertEquals(71.0, g.getAverage(), 1E-6);
+		gs.setValue("test", 70.0);
+		g = gs.getOrCreate("test");
+		assertEquals(71.0, g.getAverage(), 1E-6);
+		gs.setValue("test", 69.0);
+		g = gs.getOrCreate("test");
+		assertEquals(70.9, g.getAverage(), 1E-6);
+		gs.setValue("test", 68.0);
+		g = gs.getOrCreate("test");
+		assertEquals(70.71, g.getAverage(), 1E-6);
 	}
 }
 

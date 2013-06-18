@@ -42,8 +42,16 @@ public final class RedisRichGaugeRepository extends AbstractRedisMetricRepositor
 				Double.valueOf(parts[1]),
 				Double.valueOf(parts[2]),
 				Double.valueOf(parts[3]),
-				Long.valueOf(parts[4])
+				Double.valueOf(parts[4]),
+				Long.valueOf(parts[5])
 		);
+	}
+
+	@Override
+	public <S extends RichGauge> S save(S gauge) {
+		String key = getMetricKey(gauge.getName());
+		valueOperations.set(key, serialize(gauge));
+		return gauge;
 	}
 
 	@Override
@@ -64,7 +72,8 @@ public final class RedisRichGaugeRepository extends AbstractRedisMetricRepositor
 	private static String serialize(RichGauge g) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(Double.toString(g.getValue())).append(" ");
-		sb.append(Double.toString(g.getMean())).append(" ");
+		sb.append(Double.toString(g.getAlpha())).append(" ");
+		sb.append(Double.toString(g.getAverage())).append(" ");
 		sb.append(Double.toString(g.getMax())).append(" ");
 		sb.append(Double.toString(g.getMin())).append(" ");
 		sb.append(Long.toString(g.getCount()));

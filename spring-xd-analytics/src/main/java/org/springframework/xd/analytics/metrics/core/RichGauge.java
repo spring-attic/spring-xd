@@ -160,7 +160,7 @@ public final class RichGauge implements Metric {
 
 	@Override
 	public String toString() {
-		return "Gauge [name=" + name + ", value=" + value + ", average = " + average +
+		return "Gauge [name = " + name + ", value = " + value + ", alpha = " + alpha + ", average = " + average +
 				", max = " + max + ", min = " + min + ", count = " + count + "]";
 	}
 

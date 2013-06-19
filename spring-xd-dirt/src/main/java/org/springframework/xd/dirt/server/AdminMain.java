@@ -76,11 +76,13 @@ public class AdminMain {
 			ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("classpath*:"
 					+ DefaultContainer.XD_CONFIG_ROOT + "transports/${xd.transport}-admin.xml");
 			StreamDeployer streamDeployer = context.getBean(StreamDeployer.class);
+			
+			// Not making StreamServer a spring bean eases move to .war file if needed
 			final StreamServer server = new StreamServer(streamDeployer, options.getHttpPort());
 			server.afterPropertiesSet();
 			server.start();
-			if ("local".equals(options.getTransport())) {
-			System.out.println(BannerUtils.displayBanner(null,
+			if (Transport.local == options.getTransport()) {
+				System.out.println(BannerUtils.displayBanner(null,
 					String.format("Running in Local Mode on Port %s ", server.getPort())));
 			}
 			context.addApplicationListener(new ApplicationListener<ContextClosedEvent>() {

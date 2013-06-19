@@ -63,10 +63,6 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 
 	protected final StreamDeployer streamDeployer;
 
-	public StreamServer(StreamDeployer streamDeployer) {
-		this(streamDeployer, 8080);
-	}
-
 	public StreamServer(StreamDeployer streamDeployer, int port) {
 		Assert.notNull(streamDeployer, "streamDeployer must not be null");
 		this.streamDeployer = streamDeployer;

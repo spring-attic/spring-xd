@@ -38,7 +38,7 @@ import org.springframework.xd.dirt.stream.StreamServer;
  * @author Ilayaperumal Gopinathan
  * @author Mark Fisher
  */
-public class AdminMain extends AbstractMain {
+public class AdminMain {
 
 	private static final Log logger = LogFactory.getLog(AdminMain.class);
 
@@ -56,8 +56,8 @@ public class AdminMain extends AbstractMain {
 			System.exit(1);
 		}
 
-		setXDHome(options.getXDHomeDir());
-		setXDTransport(options.getTransport());
+		AbstractOptions.setXDHome(options.getXDHomeDir());
+		AbstractOptions.setXDTransport(options.getTransport());
 
 		if (options.isShowHelp()) {
 			parser.printUsage(System.err);
@@ -72,11 +72,11 @@ public class AdminMain extends AbstractMain {
 	 */
 	public static void launchStreamServer(final AdminOptions options) {
 		try {
+			@SuppressWarnings("resource") // Covered by shutdown hook
 			ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("classpath*:"
 					+ DefaultContainer.XD_CONFIG_ROOT + "transports/${xd.transport}-admin.xml");
 			StreamDeployer streamDeployer = context.getBean(StreamDeployer.class);
-			final StreamServer server = (StringUtils.hasText(options.getHttpPort())) ? new StreamServer(streamDeployer,
-					Integer.parseInt(options.getHttpPort())) : new StreamServer(streamDeployer);
+			final StreamServer server = new StreamServer(streamDeployer, options.getHttpPort());
 			server.afterPropertiesSet();
 			server.start();
 			if ("local".equals(options.getTransport())) {

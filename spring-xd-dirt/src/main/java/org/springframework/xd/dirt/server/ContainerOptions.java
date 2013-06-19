@@ -16,44 +16,10 @@
 
 package org.springframework.xd.dirt.server;
 
-import org.kohsuke.args4j.Option;
 
 /**
- * A class the defines the options that will be parsed on the command line
- * @author Mark Pollack
- * @author David Turansk
- * @author Mark Fisher
+ * A class the defines the options that will be parsed on the container command line.
  */
-public class ContainerOptions {
-
-	@Option(name="--xdHomeDir", usage="The XD installation directory", metaVar="<xdHomeDir>")
-	private String xdHomeDir = "";
-
-	@Option(name="--transport", usage="The transport to be used (redis, rabbit, local)")
-	private String transport = "";
-
-	@Option(name="--help", usage="Show options help", aliases={"-?", "-h"})
-	private boolean showHelp = false;
-
-	/**
-	 * @return the showHelp
-	 */
-	public boolean isShowHelp() {
-		return showHelp;
-	}
-
-	/**
-	 * @return the xdHomeDir
-	 */
-	public String getXDHomeDir() {
-		return xdHomeDir;
-	}
-
-	/**
-	 * @return the transport
-	 */
-	public String getTransport() {
-		return transport;
-	}
+public class ContainerOptions extends AbstractOptions {
 
 }

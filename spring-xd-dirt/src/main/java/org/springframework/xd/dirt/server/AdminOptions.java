@@ -19,49 +19,19 @@ package org.springframework.xd.dirt.server;
 import org.kohsuke.args4j.Option;
 
 /**
- * A class the defines the options that will be parsed on the command line
+ * A class the defines the options that will be parsed on the admin command line
  * @author Mark Pollack
  *
  */
-public class AdminOptions {
-
-	@Option(name="--help", usage="Show options help", aliases={"-?", "-h"})
-	private boolean showHelp = false;
-
-	@Option(name="--xdHomeDir", usage="The XD installation directory", metaVar="<xdHomeDir>")
-	private String xdHomeDir = "";
-
-	@Option(name="--transport", usage="The transport to be used (redis, rabbit, local)", metaVar="<transport>")
-	private String transport = "";
+public class AdminOptions extends AbstractOptions {
 
 	@Option(name="--httpPort", usage="Http port for the stream server (default: 8080)", metaVar="<httpPort>")
-	private String httpPort = "";
-
-	/**
-	 * @return the showHelp
-	 */
-	public boolean isShowHelp() {
-		return showHelp;
-	}
-
-	/**
-	 * @return the xdHomeDir
-	 */
-	public String getXDHomeDir() {
-		return xdHomeDir;
-	}
-
-	/**
-	 * @return the transport
-	 */
-	public String getTransport() {
-		return transport;
-	}
+	private int httpPort = 8080;
 
 	/**
 	 * @return http port
 	 */
-	public String getHttpPort() {
+	public int getHttpPort() {
 		return httpPort;
 	}
 

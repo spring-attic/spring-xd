@@ -151,7 +151,7 @@ project('spring-xd-dirt') {
 				project(":spring-xd-module"),
 				project(":spring-xd-hadoop"),
 				project(":spring-xd-http"),
-				"org.springframework:spring-web:$springVersion",
+				"org.springframework:spring-webmvc:$springVersion",
 				"org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion",
 				"org.apache.tomcat.embed:tomcat-embed-core:$tomcatVersion",
 				"org.apache.tomcat.embed:tomcat-embed-logging-juli:$tomcatVersion",

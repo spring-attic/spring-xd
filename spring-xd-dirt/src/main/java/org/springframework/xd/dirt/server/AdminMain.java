@@ -25,6 +25,8 @@ import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.util.StringUtils;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.XmlWebApplicationContext;
 import org.springframework.xd.dirt.container.DefaultContainer;
 import org.springframework.xd.dirt.listener.util.BannerUtils;
 import org.springframework.xd.dirt.stream.StreamDeployer;
@@ -72,13 +74,13 @@ public class AdminMain {
 	 */
 	public static void launchStreamServer(final AdminOptions options) {
 		try {
-			@SuppressWarnings("resource") // Covered by shutdown hook
-			ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("classpath*:"
-					+ DefaultContainer.XD_CONFIG_ROOT + "transports/${xd.transport}-admin.xml");
-			StreamDeployer streamDeployer = context.getBean(StreamDeployer.class);
+			XmlWebApplicationContext context = new XmlWebApplicationContext();
+			context.setConfigLocation("classpath:"
+					+ DefaultContainer.XD_INTERNAL_CONFIG_ROOT + "admin-server.xml");
+			context.refresh();
 			
 			// Not making StreamServer a spring bean eases move to .war file if needed
-			final StreamServer server = new StreamServer(streamDeployer, options.getHttpPort());
+			final StreamServer server = new StreamServer(context, options.getHttpPort());
 			server.afterPropertiesSet();
 			server.start();
 			if (Transport.local == options.getTransport()) {

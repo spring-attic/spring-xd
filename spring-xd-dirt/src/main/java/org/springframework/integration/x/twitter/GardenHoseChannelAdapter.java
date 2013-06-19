@@ -28,6 +28,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.integration.endpoint.MessageProducerSupport;
@@ -37,14 +38,15 @@ import org.springframework.social.support.URIBuilder;
 import org.springframework.social.twitter.api.impl.TwitterTemplate;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.StringUtils;
-import org.springframework.web.client.RequestCallback;
-import org.springframework.web.client.ResponseExtractor;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.*;
 
 /**
  * Message producer for Twitter "Gardenhose" source.
  *
- * Invokes the Twitter streaming API
+ * Invokes the Twitter streaming API.
+ *
+ * @author Mark Fisher
+ * @author Luke Taylor
  */
 public class GardenHoseChannelAdapter extends MessageProducerSupport {
 
@@ -62,6 +64,8 @@ public class GardenHoseChannelAdapter extends MessageProducerSupport {
 
 	public GardenHoseChannelAdapter(TwitterTemplate twitter) {
 		this.twitter = twitter;
+		// Fix to get round TwitterErrorHandler not handling 401s etc.
+		twitter.getRestTemplate().setErrorHandler(new DefaultResponseErrorHandler());
 		this.setPhase(Integer.MAX_VALUE);
 	}
 
@@ -108,6 +112,12 @@ public class GardenHoseChannelAdapter extends MessageProducerSupport {
 			while (running.get()) {
 				try {
 					readStream(twitter.getRestTemplate());
+				}
+				catch (HttpClientErrorException ec) {
+					if (ec.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+						logger.error("Twitter authentication failed: " + ec.getMessage());
+						running.set(false);
+					}
 				}
 				catch (Exception e) {
 					logger.warn("Exception while reading stream; restarting. Add debug logging for exception trace.");

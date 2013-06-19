@@ -10,17 +10,12 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.xd.dirt.stream;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Date;
 import java.util.concurrent.ScheduledFuture;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.catalina.Context;
 import org.apache.catalina.LifecycleException;
@@ -34,14 +29,15 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.MessagingException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
-import org.springframework.util.FileCopyUtils;
+import org.springframework.util.StringUtils;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.servlet.DispatcherServlet;
 
 /**
  * @author Mark Fisher
  * @author Jennifer Hickey
  * @author Gary Russell
  * @author David Turanski
- *
  */
 public class StreamServer implements SmartLifecycle, InitializingBean {
 
@@ -49,7 +45,7 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 
 	private volatile String contextPath = "";
 
-	private volatile String servletName = "streams";
+	private volatile String servletName = "xd";
 
 	private final int port;
 
@@ -61,32 +57,37 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 
 	private volatile boolean running;
 
-	protected final StreamDeployer streamDeployer;
+	private final WebApplicationContext context;
 
-	public StreamServer(StreamDeployer streamDeployer) {
-		this(streamDeployer, 8080);
-	}
-
-	public StreamServer(StreamDeployer streamDeployer, int port) {
-		Assert.notNull(streamDeployer, "streamDeployer must not be null");
-		this.streamDeployer = streamDeployer;
+	public StreamServer(WebApplicationContext context, int port) {
+		Assert.notNull(context, "context must not be null");
+		this.context = context;
 		this.port = port;
 	}
 
 	/**
-	 * Set the contextPath
-	 * @param contextPath
+	 * Set the contextPath to serve requests on. Empty string for root.
 	 */
 	public void setContextPath(String contextPath) {
+		if (StringUtils.hasLength(contextPath) && !contextPath.startsWith("/")) {
+			contextPath = "/" + contextPath;
+		}
 		this.contextPath = contextPath;
 	}
 
 	/**
-	 * Set the servletName. Default is streams
+	 * Set the servletName. Default is 'xd'.
 	 * @param servletName
 	 */
 	public void setServletName(String servletName) {
 		this.servletName = servletName;
+	}
+
+	/**
+	 * @return the HTTP port
+	 */
+	public int getPort() {
+		return this.port;
 	}
 
 	@Override
@@ -94,10 +95,9 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 		this.scheduler.setPoolSize(3);
 		this.scheduler.initialize();
 		this.tomcat.setPort(this.port);
-		String path = (this.contextPath.startsWith("/")) ? this.contextPath : "/" + this.contextPath;
-		Context context = this.tomcat.addContext(path, new File(".").getAbsolutePath());
-		Tomcat.addServlet(context, this.servletName, new XdServlet());
-		context.addServletMapping("/" + this.servletName + "/*", this.servletName);
+		Context context = this.tomcat.addContext(this.contextPath, new File(".").getAbsolutePath());
+		Tomcat.addServlet(context, this.servletName, new DispatcherServlet(this.context));
+		context.addServletMapping("/" , this.servletName);
 		if (logger.isInfoEnabled()) {
 			logger.info("initialized server: context=" + this.contextPath + ", servlet=" + this.servletName);
 		}
@@ -154,39 +154,10 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 		callback.run();
 	}
 
-	/**
-	 *
-	 * @return the HTTP port
-	 */
-	public int getPort() {
-		return this.port;
-	}
-
 	private class Handler implements Runnable {
 		@Override
 		public void run() {
 			tomcat.getServer().await();
-		}
-	}
-
-	@SuppressWarnings("serial")
-	private class XdServlet extends HttpServlet {
-		@Override
-		protected void service(HttpServletRequest request, HttpServletResponse response)
-				throws ServletException, IOException {
-			String streamName = request.getPathInfo();
-			Assert.hasText(streamName, "no stream name (e.g. localhost/streams/streamname");
-			streamName = streamName.replaceAll("/", "");
-			if ("POST".equalsIgnoreCase(request.getMethod())) {
-				String streamConfig = FileCopyUtils.copyToString(request.getReader());
-				streamDeployer.deployStream(streamName, streamConfig);
-			}
-			else if ("DELETE".equalsIgnoreCase(request.getMethod())) {
-				streamDeployer.undeployStream(streamName);
-			}
-			else {
-				response.sendError(405);
-			}
 		}
 	}
 

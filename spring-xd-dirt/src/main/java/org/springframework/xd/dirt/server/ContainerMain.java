@@ -31,30 +31,30 @@ import org.springframework.xd.dirt.launcher.RedisContainerLauncher;
  * @author Ilayaperumal Gopinathan
  * @author Mark Fisher
  * @author David Turanski
- *
  */
-public class ContainerMain extends AbstractMain {
+public class ContainerMain  {
 
 	private static final Log logger = LogFactory.getLog(ContainerMain.class);
 
 	/**
 	 * Start the RedisContainerLauncher
-	 * @param args command line argument
+	 *
+	 * @param args
+	 *            command line argument
 	 */
 	public static void main(String[] args) {
-		ContainerOptions options = new ContainerOptions();
+		AbstractOptions options = new ContainerOptions();
 		CmdLineParser parser = new CmdLineParser(options);
 		try {
 			parser.parseArgument(args);
-		}
-		catch (CmdLineException e) {
+		} catch (CmdLineException e) {
 			logger.error(e.getMessage());
 			parser.printUsage(System.err);
 			System.exit(1);
 		}
 
-		setXDHome(options.getXDHomeDir());
-		setXDTransport(options.getTransport());
+		AbstractOptions.setXDHome(options.getXDHomeDir());
+		AbstractOptions.setXDTransport(options.getTransport());
 
 		if (options.isShowHelp()) {
 			parser.printUsage(System.err);
@@ -62,10 +62,10 @@ public class ContainerMain extends AbstractMain {
 		}
 
 		// future versions to support other types of container launchers
-		if ("redis".equals(System.getProperty(XD_TRANSPORT_KEY))) {
-			RedisContainerLauncher.main(new String[]{System.getProperty(XD_HOME_KEY)});
-		}
-		else {
+		switch (options.getTransport()) {
+		case redis:
+			RedisContainerLauncher.main();
+		default:
 			logger.info("only redis transport is supported now");
 		}
 	}

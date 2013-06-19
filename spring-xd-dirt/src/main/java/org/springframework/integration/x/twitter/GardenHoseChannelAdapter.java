@@ -26,6 +26,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -59,6 +60,11 @@ public class GardenHoseChannelAdapter extends MessageProducerSupport {
 	private ScheduledFuture<?> task;
 
 	private final AtomicBoolean running = new AtomicBoolean(false);
+
+	// Backoff values, as per https://dev.twitter.com/docs/streaming-apis/connecting#Reconnecting
+	private final AtomicInteger linearBackOff = new AtomicInteger(250);
+	private final AtomicInteger httpErrorBackOff = new AtomicInteger(5000);
+	private final AtomicInteger rateLimitBackOff = new AtomicInteger(60000);
 
 	private final Object monitor = new Object();
 
@@ -107,23 +113,66 @@ public class GardenHoseChannelAdapter extends MessageProducerSupport {
 		return URIBuilder.fromUri(API_URL_BASE + path).queryParams(EMPTY_PARAMETERS).build();
 	}
 
+	private void resetBackOffs() {
+		linearBackOff.set(250);
+		rateLimitBackOff.set(60000);
+		httpErrorBackOff.set(5000);
+	}
+
+	private void waitLinearBackoff() {
+		int millis = linearBackOff.get();
+		logger.warn("Exception while reading stream, waiting for " + millis + " ms before restarting");
+		wait(millis);
+		if (millis < 16000) // 16 seconds max
+			linearBackOff.set(millis + 250);
+	}
+
+	private void waitRateLimitBackoff() {
+		int millis = rateLimitBackOff.get();
+		logger.warn("Rate limit error, waiting for " + millis / 1000 + " seconds before restarting");
+		wait(millis);
+		rateLimitBackOff.set(millis*2);
+	}
+
+	private void waitHttpErrorBackoff() {
+		int millis = httpErrorBackOff.get();
+		logger.warn("Http error, waiting for " + millis / 1000 + " seconds before restarting");
+		wait(millis);
+		if (millis < 320000) // 320 seconds max
+			httpErrorBackOff.set(millis*2);
+	}
+
+	private void wait(int millis) {
+		try {
+			Thread.sleep(millis);
+		}
+		catch (InterruptedException e) {
+		}
+	}
+
+	@SuppressWarnings("deprecation")
 	private class StreamReadingTask implements Runnable {
 		public void run() {
 			while (running.get()) {
 				try {
 					readStream(twitter.getRestTemplate());
 				}
-				catch (HttpClientErrorException ec) {
-					if (ec.getStatusCode() == HttpStatus.UNAUTHORIZED) {
-						logger.error("Twitter authentication failed: " + ec.getMessage());
+				catch (HttpStatusCodeException sce) {
+					if (sce.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+						logger.error("Twitter authentication failed: " + sce.getMessage());
 						running.set(false);
+					} else if (sce.getStatusCode() == HttpStatus.METHOD_FAILURE) {
+						waitRateLimitBackoff();
+					} else {
+						waitHttpErrorBackoff();
 					}
 				}
 				catch (Exception e) {
-					logger.warn("Exception while reading stream; restarting. Add debug logging for exception trace.");
+					logger.warn("Exception while reading stream; Add debug logging for exception trace.");
 					if (logger.isDebugEnabled()) {
 						logger.debug("Exception while reading stream.", e);
 					}
+					waitLinearBackoff();
 				}
 			}
 		}
@@ -137,6 +186,7 @@ public class GardenHoseChannelAdapter extends MessageProducerSupport {
 						public String extractData(ClientHttpResponse response) throws IOException {
 							InputStream inputStream = response.getBody();
 							LineNumberReader reader = new LineNumberReader(new InputStreamReader(inputStream));
+							resetBackOffs();
 							while (running.get()) {
 								String line = reader.readLine();
 								if (!StringUtils.hasText(line)) {
@@ -146,7 +196,8 @@ public class GardenHoseChannelAdapter extends MessageProducerSupport {
 							}
 							return null;
 						}
-					});
+					}
+			);
 		}
 	}
 

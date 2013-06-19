@@ -63,7 +63,7 @@ public class RedisContainerLauncher implements ContainerLauncher, ApplicationEve
 		return container;
 	}
 
-	public static void main(String[] args) {
+	public static void main(String... args) {
 		ClassPathXmlApplicationContext context = null;
 		try {
 			context = new ClassPathXmlApplicationContext(LAUNCHER_CONFIG_LOCATION);

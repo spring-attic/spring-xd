@@ -65,8 +65,7 @@ public class ContainerMain  {
 		// future versions to support other types of container launchers
 		switch (options.getTransport()) {
 		case redis:
-			RedisContainerLauncher.main(new String[] { System
-					.getProperty(AbstractOptions.XD_HOME_KEY) });
+			RedisContainerLauncher.main();
 		default:
 			logger.info("only redis transport is supported now");
 		}

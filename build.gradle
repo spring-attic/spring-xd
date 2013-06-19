@@ -555,18 +555,24 @@ task api(type: Javadoc) {
 }
 
 task docsZip(type: Zip) {
-		group = 'Distribution'
-		classifier = 'docs'
-		description = "Builds -${classifier} archive containing api and reference " +
-			"for deployment at static.springframework.org/spring-integration/docs."
+	group = 'Distribution'
+	classifier = 'docs'
+	description = "Builds -${classifier} archive containing api and reference " +
+		"for deployment at static.springframework.org/spring-integration/docs."
 
-		from (api) {
-			into 'api'
-		}
+	from (api) {
+		into 'api'
+	}
 
-		from (reference) {
-			into 'reference'
-		}
+	from (reference) {
+		exclude 'htmlsingle'
+		exclude 'html'
+		into 'reference'
+	}
+
+	from ("$buildDir/html") {
+		into "reference/html"
+	}
 }
 
 task distZip(type: Zip, dependsOn: [asciidoctorHtml, distXD]) {

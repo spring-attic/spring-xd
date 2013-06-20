@@ -1,4 +1,4 @@
-spring-xd
+Spring XD
 =========
 
 *Spring XD* makes it easy to solve common big data problems such as data ingestion and export, real-time analytics, and batch workflow orchestration.  By building on mature, open source projects such as Spring Integration, Data and Batch, Spring XD will simplify the process of creating real-word big data solutions.  XD stands for 'eXtreme Data' or 'x' as in y=mx+b :)
@@ -9,7 +9,7 @@ You can fork the repository and/or monitor JIRA to see what is going on. As alwa
 
 ## Documentation
 
-Look for it on the [XD wiki](https://github.com/springsource/spring-xd/wiki).
+Look for it on the [XD wiki](https://github.com/springsource/spring-xd/wiki). [API Documentation](http://static.springsource.org/spring-xd/docs/current-SNAPSHOT/api/) (JavaDoc) is available as well. Please also visit the SprinSource.org [project website](http://www.springsource.org/spring-xd) for more information.
 
 ## Getting Help
 

@@ -25,6 +25,8 @@ import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.util.StringUtils;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.XmlWebApplicationContext;
 import org.springframework.xd.dirt.container.DefaultContainer;
 import org.springframework.xd.dirt.listener.util.BannerUtils;
 import org.springframework.xd.dirt.stream.StreamDeployer;
@@ -38,7 +40,7 @@ import org.springframework.xd.dirt.stream.StreamServer;
  * @author Ilayaperumal Gopinathan
  * @author Mark Fisher
  */
-public class AdminMain extends AbstractMain {
+public class AdminMain {
 
 	private static final Log logger = LogFactory.getLog(AdminMain.class);
 
@@ -56,8 +58,8 @@ public class AdminMain extends AbstractMain {
 			System.exit(1);
 		}
 
-		setXDHome(options.getXDHomeDir());
-		setXDTransport(options.getTransport());
+		AbstractOptions.setXDHome(options.getXDHomeDir());
+		AbstractOptions.setXDTransport(options.getTransport());
 
 		if (options.isShowHelp()) {
 			parser.printUsage(System.err);
@@ -72,15 +74,17 @@ public class AdminMain extends AbstractMain {
 	 */
 	public static void launchStreamServer(final AdminOptions options) {
 		try {
-			ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("classpath*:"
-					+ DefaultContainer.XD_CONFIG_ROOT + "transports/${xd.transport}-admin.xml");
-			StreamDeployer streamDeployer = context.getBean(StreamDeployer.class);
-			final StreamServer server = (StringUtils.hasText(options.getHttpPort())) ? new StreamServer(streamDeployer,
-					Integer.parseInt(options.getHttpPort())) : new StreamServer(streamDeployer);
+			XmlWebApplicationContext context = new XmlWebApplicationContext();
+			context.setConfigLocation("classpath:"
+					+ DefaultContainer.XD_INTERNAL_CONFIG_ROOT + "admin-server.xml");
+			context.refresh();
+			
+			// Not making StreamServer a spring bean eases move to .war file if needed
+			final StreamServer server = new StreamServer(context, options.getHttpPort());
 			server.afterPropertiesSet();
 			server.start();
-			if ("local".equals(options.getTransport())) {
-			System.out.println(BannerUtils.displayBanner(null,
+			if (Transport.local == options.getTransport()) {
+				System.out.println(BannerUtils.displayBanner(null,
 					String.format("Running in Local Mode on Port %s ", server.getPort())));
 			}
 			context.addApplicationListener(new ApplicationListener<ContextClosedEvent>() {

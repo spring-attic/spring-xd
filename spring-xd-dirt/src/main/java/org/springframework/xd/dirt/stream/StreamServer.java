@@ -28,13 +28,16 @@ import org.apache.catalina.core.AprLifecycleListener;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.MessagingException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
+import org.springframework.util.StringUtils;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.servlet.DispatcherServlet;
 
 /**
  * @author Mark Fisher
@@ -49,7 +52,7 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 
 	private volatile String contextPath = "";
 
-	private volatile String servletName = "streams";
+	private volatile String servletName = "rest";
 
 	private final int port;
 
@@ -60,24 +63,22 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 	private volatile ScheduledFuture<?> handlerTask = null;
 
 	private volatile boolean running;
+	
+	private WebApplicationContext context;
 
-	protected final StreamDeployer streamDeployer;
-
-	public StreamServer(StreamDeployer streamDeployer) {
-		this(streamDeployer, 8080);
-	}
-
-	public StreamServer(StreamDeployer streamDeployer, int port) {
-		Assert.notNull(streamDeployer, "streamDeployer must not be null");
-		this.streamDeployer = streamDeployer;
+	public StreamServer(WebApplicationContext context, int port) {
+		Assert.notNull(context, "context must not be null");
+		this.context = context;
 		this.port = port;
 	}
 
 	/**
-	 * Set the contextPath
-	 * @param contextPath
+	 * Set the contextPath to serve requests on. Empty string for root.
 	 */
 	public void setContextPath(String contextPath) {
+		if (StringUtils.hasLength(contextPath) && !contextPath.startsWith("/")) {
+			contextPath = "/" + contextPath;
+		}
 		this.contextPath = contextPath;
 	}
 
@@ -94,10 +95,9 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 		this.scheduler.setPoolSize(3);
 		this.scheduler.initialize();
 		this.tomcat.setPort(this.port);
-		String path = (this.contextPath.startsWith("/")) ? this.contextPath : "/" + this.contextPath;
-		Context context = this.tomcat.addContext(path, new File(".").getAbsolutePath());
-		Tomcat.addServlet(context, this.servletName, new XdServlet());
-		context.addServletMapping("/" + this.servletName + "/*", this.servletName);
+		Context context = this.tomcat.addContext(this.contextPath, new File(".").getAbsolutePath());
+		Tomcat.addServlet(context, this.servletName, new DispatcherServlet(this.context));
+		context.addServletMapping("/" , this.servletName);
 		if (logger.isInfoEnabled()) {
 			logger.info("initialized server: context=" + this.contextPath + ", servlet=" + this.servletName);
 		}
@@ -169,25 +169,25 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 		}
 	}
 
-	@SuppressWarnings("serial")
-	private class XdServlet extends HttpServlet {
-		@Override
-		protected void service(HttpServletRequest request, HttpServletResponse response)
-				throws ServletException, IOException {
-			String streamName = request.getPathInfo();
-			Assert.hasText(streamName, "no stream name (e.g. localhost/streams/streamname");
-			streamName = streamName.replaceAll("/", "");
-			if ("POST".equalsIgnoreCase(request.getMethod())) {
-				String streamConfig = FileCopyUtils.copyToString(request.getReader());
-				streamDeployer.deployStream(streamName, streamConfig);
-			}
-			else if ("DELETE".equalsIgnoreCase(request.getMethod())) {
-				streamDeployer.undeployStream(streamName);
-			}
-			else {
-				response.sendError(405);
-			}
-		}
-	}
+//	@SuppressWarnings("serial")
+//	private class XdServlet extends HttpServlet {
+//		@Override
+//		protected void service(HttpServletRequest request, HttpServletResponse response)
+//				throws ServletException, IOException {
+//			String streamName = request.getPathInfo();
+//			Assert.hasText(streamName, "no stream name (e.g. localhost/streams/streamname");
+//			streamName = streamName.replaceAll("/", "");
+//			if ("POST".equalsIgnoreCase(request.getMethod())) {
+//				String streamConfig = FileCopyUtils.copyToString(request.getReader());
+//				streamDeployer.deployStream(streamName, streamConfig);
+//			}
+//			else if ("DELETE".equalsIgnoreCase(request.getMethod())) {
+//				streamDeployer.undeployStream(streamName);
+//			}
+//			else {
+//				response.sendError(405);
+//			}
+//		}
+//	}
 
 }

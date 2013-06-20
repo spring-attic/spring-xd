@@ -16,11 +16,8 @@
 
 package org.springframework.xd.dirt.launcher;
 
-import java.io.File;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
@@ -30,7 +27,6 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.support.atomic.RedisAtomicLong;
-import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.container.DefaultContainer;
 import org.springframework.xd.dirt.core.Container;
 import org.springframework.xd.dirt.event.ContainerStartedEvent;
@@ -67,8 +63,7 @@ public class RedisContainerLauncher implements ContainerLauncher, ApplicationEve
 		return container;
 	}
 
-	public static void main(String[] args) {
-		setXDProperties(args);
+	public static void main(String... args) {
 		ClassPathXmlApplicationContext context = null;
 		try {
 			context = new ClassPathXmlApplicationContext(LAUNCHER_CONFIG_LOCATION);
@@ -85,26 +80,6 @@ public class RedisContainerLauncher implements ContainerLauncher, ApplicationEve
 		ContainerLauncher launcher = context.getBean(ContainerLauncher.class);
 		launcher.launch();
 	}
-
-	/**
-	 * Set xd.home and xd.transport system properties
-	 * @param args
-	 */
-	private static void setXDProperties(String[] args) {
-		String xdhome = System.getProperty("xd.home");
-		if (!StringUtils.hasText(xdhome)) {
-			xdhome = (args.length > 0) ? args[0] : "..";
-			System.setProperty("xd.home", xdhome);
-		}
-		String xdtransport = System.getProperty("xd.transport");
-		if (!StringUtils.hasText(xdtransport)) {
-			xdtransport = (args.length > 1) ? args[1] : "redis";
-			System.setProperty("xd.transport", xdtransport);
-		}
-		logger.info("xd.home=" + new File(xdhome).getAbsolutePath()
-				+ ", xd.transport=" + xdtransport);
-	}
-
 
 	private static class ShutdownListener implements ApplicationListener<ContextClosedEvent> {
 

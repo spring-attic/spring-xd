@@ -36,6 +36,7 @@ allprojects {
 	repositories {
 		maven { url 'http://repo.springsource.org/libs-milestone' }
 		maven { url 'http://repo.springsource.org/plugins-release' }
+		maven { url 'http://repo.springsource.org/plugins-snapshot' }
 	}
 	apply plugin: 'javadocHotfix'
 }
@@ -60,13 +61,13 @@ configure(javaProjects()) { subproject ->
 		hamcrestVersion = '1.3'
 		jodaTimeVersion = '1.6'
 		springVersion = '3.2.2.RELEASE'
-		springBatchVersion = '2.1.9.RELEASE'
+		springBatchVersion = '2.2.0.RELEASE'
 		springIntegrationVersion = '3.0.0.M2'
 		springDataMongoVersion = '1.1.1.RELEASE'
 		springDataRedisVersion = '1.0.4.RELEASE'
 		springDataGemfireVersion = '1.3.1.RELEASE'
 		lettuceVersion = '2.3.2'
-		springDataHadoopVersion = '1.0.0.RELEASE'
+		springDataHadoopVersion = '1.0.1.BUILD-SNAPSHOT'
 		springHATEOASVersion = '0.6.0.RELEASE'
 		tomcatVersion = '7.0.35'
 		commonsBeanUtilsVersion = '1.6'

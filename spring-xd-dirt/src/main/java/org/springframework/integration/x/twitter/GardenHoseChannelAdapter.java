@@ -28,10 +28,13 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpRequest;
+import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.scheduling.TaskScheduler;
@@ -73,6 +76,17 @@ public class GardenHoseChannelAdapter extends MessageProducerSupport {
 		// Fix to get round TwitterErrorHandler not handling 401s etc.
 		twitter.getRestTemplate().setErrorHandler(new DefaultResponseErrorHandler());
 		this.setPhase(Integer.MAX_VALUE);
+	}
+
+	public void setReadTimeout(int millis) {
+		// InterceptingClientHttpRequestFactory doesn't let us access the underlying object
+		DirectFieldAccessor f = new DirectFieldAccessor(twitter.getRestTemplate().getRequestFactory());
+		((SimpleClientHttpRequestFactory) f.getPropertyValue("requestFactory")).setReadTimeout(millis);
+	}
+
+	public void setConnectTimeout(int millis) {
+		DirectFieldAccessor f = new DirectFieldAccessor(twitter.getRestTemplate().getRequestFactory());
+		((SimpleClientHttpRequestFactory) f.getPropertyValue("requestFactory")).setConnectTimeout(millis);
 	}
 
 	@Override

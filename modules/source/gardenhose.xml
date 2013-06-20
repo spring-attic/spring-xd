@@ -13,6 +13,9 @@
 	<bean class="org.springframework.integration.x.twitter.GardenHoseChannelAdapter">
 		<constructor-arg ref="twitterTemplate"/>
 		<property name="outputChannel" ref="output"/>
+	<!-- 90sec timeout, as recommended in https://dev.twitter.com/docs/streaming-apis/connecting#Stalls -->
+		<property name="readTimeout" value="${readTimeout:90000}"/>
+		<property name="connectTimeout" value="${connectTimeout:5000}"/>
 	</bean>
 
 	<int:channel id="output"/>

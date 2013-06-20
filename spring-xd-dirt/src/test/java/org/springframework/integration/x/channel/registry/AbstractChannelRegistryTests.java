@@ -17,21 +17,13 @@
 package org.springframework.integration.x.channel.registry;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Properties;
 
 import org.junit.Test;
-
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.xd.dirt.plugins.StreamPlugin;
-import org.springframework.xd.module.Module;
-import org.springframework.xd.module.Plugin;
-import org.springframework.xd.module.SimpleModule;
+import org.springframework.xd.dirt.stream.Tap;
 
 /**
  * @author Gary Russell
@@ -62,17 +54,15 @@ public abstract class AbstractChannelRegistryTests {
 		ChannelRegistry registry = getRegistry();
 		registry.outbound("foo.0", new DirectChannel());
 		registry.inbound("foo.0", new DirectChannel());
-		Module module = new SimpleModule("tap", "source");
-		Properties properties = new Properties();
-		properties.put("channel", "foo.0");
-		module.addProperties(properties);
-		module = spy(module);
+
 		MessageChannel output = new DirectChannel();
-		when(module.getComponents(MessageChannel.class)).thenReturn(
-				Collections.singletonMap("output", output));
-		Plugin plugin = new StreamPlugin(registry);
-		plugin.processModule(module, "bar", 0);
+
+		Tap tap = new Tap("foo.0", "bar.0", registry);
+		tap.setOutputChannel(output);
+		tap.afterPropertiesSet();
+
 		registry.inbound("bar.0", new DirectChannel());
+		registry.outbound("bar.0", output);
 		Collection<?> bridges = getBridges(registry);
 		assertEquals(5, bridges.size()); // 2 each stream + tap
 		registry.cleanAll("bar.0");

@@ -125,7 +125,6 @@ public class LocalChannelRegistry implements ChannelRegistry, ApplicationContext
 			Iterator<BridgeMetadata> iterator = this.bridges.iterator();
 			while (iterator.hasNext()) {
 				BridgeMetadata bridge = iterator.next();
-				System.out.println(bridge);
 				if (bridge.handler.getComponentName().startsWith(name) ||
 						name.equals(bridge.tapModule)) {
 					bridge.channel.unsubscribe(bridge.handler);

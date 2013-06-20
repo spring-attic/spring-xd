@@ -16,13 +16,11 @@
 
 package org.springframework.xd.module;
 
-import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
@@ -59,11 +57,6 @@ public class SimpleModule extends AbstractModule {
 	public void addComponents(Resource resource) {
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(this.context);
 		reader.loadBeanDefinitions(resource);
-	}
-
-	@Override
-	public <T> Map<String, T> getComponents(Class<T> type) {
-		return context.getBeansOfType(type);
 	}
 
 	@Override
@@ -115,6 +108,7 @@ public class SimpleModule extends AbstractModule {
 	public void stop() {
 		if (this.isRunning()) {
 			this.context.stop();
+			this.context.destroy();
 			if (logger.isInfoEnabled()) {
 				logger.info("stopped mod: " + this.toString());
 			}

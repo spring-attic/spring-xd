@@ -14,29 +14,64 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.plugins;
+package org.springframework.xd.dirt.plugins.stream;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.List;
 
 import org.junit.Test;
-import org.springframework.integration.x.channel.registry.LocalChannelRegistry;
+import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
+import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.xd.dirt.plugins.BeanDefinitionAddingPostProcessor;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.SimpleModule;
 
 /**
  * @author Mark Fisher
+ * @author Jennifer Hickey
  */
 public class StreamPluginTests {
 
+	private StreamPlugin plugin = new StreamPlugin();
+
 	@Test
-	public void streamNamePropertyAdded() {
-		LocalChannelRegistry channelRegistry = new LocalChannelRegistry();
-		StreamPlugin plugin = new StreamPlugin(channelRegistry);
+	public void streamPropertiesAdded() {
 		Module module = new SimpleModule("testsource", "source");
 		assertEquals(0, module.getProperties().size());
 		plugin.processModule(module, "foo", 0);
-		assertEquals(1, module.getProperties().size());
+		assertEquals(2, module.getProperties().size());
 		assertEquals("foo", module.getProperties().getProperty("xd.stream.name"));
+		assertEquals("0", module.getProperties().getProperty("xd.module.index"));
+	}
+
+	@Test
+	public void streamComponentsAdded() {
+		SimpleModule module = new SimpleModule("testsource", "source");
+		plugin.processModule(module, "mystream", 1);
+		String[] moduleBeans = module.getApplicationContext().getBeanDefinitionNames();
+		assertEquals(1, moduleBeans.length);
+		assertTrue(moduleBeans[0].contains("ChannelRegistrar#"));
+	}
+
+	@Test
+	public void tapComponentsAdded() {
+		SimpleModule module = new SimpleModule("tap", "source");
+		plugin.processModule(module, "mystream", 1);
+		String[] moduleBeans = module.getApplicationContext().getBeanDefinitionNames();
+		assertEquals(2, moduleBeans.length);
+		assertTrue(moduleBeans[0].contains("ChannelRegistrar#"));
+		assertTrue(moduleBeans[1].contains("Tap#"));
+	}
+
+	@Test
+	public void sharedComponentsAdded() {
+		GenericApplicationContext context = new GenericApplicationContext();
+		plugin.postProcessSharedContext(context);
+		List<BeanFactoryPostProcessor> sharedBeans = context.getBeanFactoryPostProcessors();
+		assertEquals(1, sharedBeans.size());
+		assertTrue(sharedBeans.get(0) instanceof BeanDefinitionAddingPostProcessor);
 	}
 
 }

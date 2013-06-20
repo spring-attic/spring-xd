@@ -15,6 +15,7 @@ package org.springframework.integration.module;
 
 import java.util.Map.Entry;
 
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.channel.registry.ChannelRegistry;
 import org.springframework.integration.core.SubscribableChannel;
@@ -68,6 +69,10 @@ public class IntegrationPlugin implements Plugin {
 		for (Entry<String, SubscribableChannel> entry: integrationModule.getOutputChannels().entrySet()) {
 			channelRegistry.outbound(integrationModule.getName() + "." + entry.getKey(), entry.getValue());
 		}
+	}
+
+	@Override
+	public void postProcessSharedContext(ConfigurableApplicationContext commonContext) {
 	}
 
 	@Override

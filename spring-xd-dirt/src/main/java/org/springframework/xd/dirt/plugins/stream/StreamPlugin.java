@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.plugins;
+package org.springframework.xd.dirt.plugins.stream;
 
-import java.util.Map;
 import java.util.Properties;
 
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.x.channel.registry.ChannelRegistry;
-import org.springframework.util.Assert;
-import org.springframework.xd.dirt.stream.Tap;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.xd.dirt.container.DefaultContainer;
+import org.springframework.xd.dirt.plugins.BeanDefinitionAddingPostProcessor;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.Plugin;
 
@@ -30,60 +29,39 @@ import org.springframework.xd.module.Plugin;
  * @author Mark Fisher
  * @author Gary Russell
  * @author David Turanski
+ * @author Jennifer Hickey
  */
 public class StreamPlugin implements Plugin {
 
-	private final ChannelRegistry channelRegistry;
-
-	public StreamPlugin(ChannelRegistry channelRegistry) {
-		Assert.notNull(channelRegistry, "channelRegistry must not be null");
-		this.channelRegistry = channelRegistry;
-	}
+	private static final String CONTEXT_CONFIG_ROOT = DefaultContainer.XD_CONFIG_ROOT
+			+ "plugins/stream/";
 
 	@Override
 	public void processModule(Module module, String group, int index) {
 		String type = module.getType();
 		if (("source".equals(type) || "processor".equals(type) || "sink".equals(type)) && group != null) {
-			this.registerChannels(module.getComponents(MessageChannel.class), group, index);
-			this.configureProperties(module, group);
+			module.addComponents(new ClassPathResource(CONTEXT_CONFIG_ROOT + "channel-registrar.xml"));
+			this.configureProperties(module, group, String.valueOf(index));
 		}
-		if ("tap".equals(module.getName()) && "source".equals(type)){
-			createTap(module, group + "." + index);
+		if ("tap".equals(module.getName()) && "source".equals(type)) {
+			module.addComponents(new ClassPathResource(CONTEXT_CONFIG_ROOT + "tap.xml"));
 		}
 	}
 
-	/**
-	 * @param module
-	 */
-	private void createTap(Module module, String tapModule) {
-		Tap tap = new Tap((String)module.getProperties().get("channel"), tapModule, this.channelRegistry);
-		Map<String,MessageChannel> channels = module.getComponents(MessageChannel.class);
-		tap.setOutputChannel(channels.get("output"));
-		tap.afterPropertiesSet();
+	@Override
+	public void postProcessSharedContext(ConfigurableApplicationContext context) {
+		context.addBeanFactoryPostProcessor(new BeanDefinitionAddingPostProcessor(new ClassPathResource(
+				CONTEXT_CONFIG_ROOT + "channel-registry.xml")));
 	}
 
 	@Override
 	public void removeModule(Module module, String group, int index) {
-		this.channelRegistry.cleanAll(group + "." + index);
 	}
 
-	private void registerChannels(Map<String, MessageChannel> channels, String group, int index) {
-		for (Map.Entry<String, MessageChannel> entry : channels.entrySet()) {
-			if ("input".equals(entry.getKey())) {
-				Assert.isTrue(index > 0, "a module with an input channel must have an index greater than 0");
-				String channelNameInRegistry = group + "." + (index - 1);
-				channelRegistry.inbound(channelNameInRegistry, entry.getValue());
-			}
-			else if ("output".equals(entry.getKey())) {
-				String channelNameInRegistry = group + "." + index;
-				channelRegistry.outbound(channelNameInRegistry, entry.getValue());
-			}
-		}
-	}
-
-	private void configureProperties(Module module, String group) {
+	private void configureProperties(Module module, String group, String index) {
 		Properties properties = new Properties();
 		properties.setProperty("xd.stream.name", group);
+		properties.setProperty("xd.module.index", index);
 		module.addProperties(properties);
 	}
 

@@ -13,39 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.springframework.xd.dirt.module;
 
-package org.springframework.xd.module;
-
-import java.util.Properties;
-
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.Lifecycle;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
 /**
- * @author Mark Fisher
- * @author David Turanski
+ * Simple {@link ModuleRegistry} that loads modules from the testmodules
+ * location
+ *
+ * @author Jennifer Hickey
  */
-public interface Module extends Lifecycle {
+public class ClasspathTestModuleRegistry extends AbstractModuleRegistry {
 
-	/**
-	 * @return the generic module name or template name
-	 */
-	String getName();
-
-	String getType();
-
-	/**
-	 * @return an id for this instance
-	 */
-	String getInstanceId();
-
-	void setParentContext(ApplicationContext parentContext);
-
-	void addComponents(Resource resource);
-
-	void addProperties(Properties properties);
-
-	Properties getProperties();
+	@Override
+	protected Resource loadResource(String name, String type) {
+		return new ClassPathResource("testmodules/" + name + ".xml");
+	}
 
 }

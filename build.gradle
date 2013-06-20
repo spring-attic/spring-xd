@@ -156,6 +156,7 @@ project('spring-xd-dirt') {
 				"org.apache.tomcat.embed:tomcat-embed-core:$tomcatVersion",
 				"org.apache.tomcat.embed:tomcat-embed-logging-juli:$tomcatVersion",
 				"org.apache.tomcat:tomcat-jsp-api:$tomcatVersion",
+				"log4j:log4j:$log4jVersion",
 				"org.springframework.integration:spring-integration-amqp:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-event:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-file:$springIntegrationVersion",
@@ -169,9 +170,7 @@ project('spring-xd-dirt') {
 				"args4j:args4j:$args4jVersion",
 				"org.springframework.shell:spring-shell:1.0.0.RELEASE",
 				"com.eaio.uuid:uuid:3.2"
-
-		runtime "log4j:log4j:$log4jVersion",
-				"org.slf4j:jcl-over-slf4j:$slf4jVersion",
+		runtime "org.slf4j:jcl-over-slf4j:$slf4jVersion",
 				"org.slf4j:slf4j-log4j12:$slf4jVersion"
 		testCompile project(":spring-xd-test")
 	}

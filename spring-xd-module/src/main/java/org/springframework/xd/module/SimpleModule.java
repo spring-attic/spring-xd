@@ -33,10 +33,11 @@ import org.springframework.core.io.Resource;
 
 /**
  * @author Mark Fisher
+ * @author David Turanski
  */
 public class SimpleModule extends AbstractModule {
 
-	private final Log logger = LogFactory.getLog(this.getClass());
+	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	private final GenericApplicationContext context = new GenericApplicationContext();
 
@@ -56,7 +57,7 @@ public class SimpleModule extends AbstractModule {
 	}
 
 	@Override
-	public void addComponents(Resource resource) {
+	public void addComponents(Resource... resource) {
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(this.context);
 		reader.loadBeanDefinitions(resource);
 	}

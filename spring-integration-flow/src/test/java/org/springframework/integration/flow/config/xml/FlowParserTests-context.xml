@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:int-flow="http://www.springframework.org/schema/integration/flow"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration/flow http://www.springframework.org/schema/integration/flow/spring-integration-flow-3.0.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.2.xsd">
+
+	<int-flow:flow id="simple"/>
+	<int-flow:flow id="basic1" module-name="simple"/>
+	<int-flow:flow id="basic2" module-name="simple">
+		<props>
+			<prop key="foo">bar</prop>
+		</props>
+	</int-flow:flow>
+	
+	<int-flow:flow id="basic3" module-name="simple" p:foo="bar" p:baz="car"/>
+	
+	<int-flow:flow id="basic4" module-name="simple" active-profiles="foo,bar"/>
+	
+	<int-flow:flow id="basic5" module-name="simple" additional-component-locations="classpath:additional-components1.xml,classpath:additional-components2.xml"/>
+
+	<util:properties id="props">
+		<prop key="foo">bar</prop>
+	</util:properties>
+	<int-flow:flow id="basic6" module-name="simple" properties="props"/>
+</beans>

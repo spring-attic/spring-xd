@@ -5,12 +5,6 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<int:channel id="input"/>
-
-	<int:channel id="output.1"/>
-
-	<int:channel id="output.2"/>
-
-	<int:channel id="output"/>
+	<int:bridge input-channel="input" output-channel="nullChannel"/>
 
 </beans>

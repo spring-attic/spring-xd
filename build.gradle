@@ -5,7 +5,6 @@ apply plugin: 'idea'
 
 buildscript {
 	repositories {
-		maven { url 'https://repo.springsource.org/libs-release' }
 		maven { url "http://repo.springsource.org/plugins-snapshot" }
 	}
 	dependencies {
@@ -24,12 +23,17 @@ ext {
 	linkScmUrl           = 'https://github.com/SpringSource/spring-xd'
 	linkScmConnection    = 'https://github.com/SpringSource/spring-xd.git'
 	linkScmDevConnection = 'git@github.com:SpringSource/spring-xd.git'
+
+	javadocLinks = [
+		"http://static.springsource.org/spring-shell/docs/current/api/"
+	] as String[]
+
 }
 
 allprojects {
 	group = 'org.springframework.xd'
+
 	repositories {
-		mavenCentral()
 		maven { url 'http://repo.springsource.org/libs-milestone' }
 		maven { url 'http://repo.springsource.org/plugins-release' }
 	}
@@ -74,7 +78,6 @@ configure(javaProjects()) { subproject ->
 
 	eclipse {
 		project {
-
 			natures += 'org.springframework.ide.eclipse.core.springnature'
 		}
 	}
@@ -93,13 +96,32 @@ configure(javaProjects()) { subproject ->
 
 	// dependencies that are common across all java projects
 	dependencies {
-		testCompile "junit:junit-dep:$junitVersion"
+		testCompile "junit:junit:$junitVersion"
 		testCompile "org.hamcrest:hamcrest-library:$hamcrestVersion"
 		jacoco group: "org.jacoco", name: "org.jacoco.agent", version: "0.6.2.201302030002", classifier: "runtime"
 	}
 
+	// enable all compiler warnings; individual projects may customize further
+	[compileJava, compileTestJava]*.options*.compilerArgs = ["-Xlint:all"]
+
 	test {
+		// suppress all console output during testing unless running `gradle -i`
+		logging.captureStandardOutput(LogLevel.INFO)
 		jvmArgs "-javaagent:${configurations.jacoco.asPath}=destfile=${buildDir}/jacoco.exec,includes=org.springframework.xd.*"
+	}
+
+	javadoc {
+		description = "Generates project-level javadoc for use in -javadoc jar"
+
+		options.memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PROTECTED
+		options.author = true
+		options.header = project.name
+		options.links(javadocLinks)
+
+		// suppress warnings due to cross-module @see and @link references;
+		// note that global 'api' task does display all warnings.
+		logging.captureStandardError LogLevel.INFO
+		logging.captureStandardOutput LogLevel.INFO // suppress "## warnings" message
 	}
 
 	task sourcesJar(type: Jar) {
@@ -183,6 +205,7 @@ project('spring-xd-dirt') {
 		}
 
 	}
+
 	apply plugin:'application'
 	// skip the startScripts task to avoid default start script generation
 	startScripts.setEnabled(false)
@@ -357,7 +380,7 @@ project('spring-xd-test') {
 		compile "org.springframework:spring-tx:$springVersion"
 		compile "org.springframework:spring-test:$springVersion"
 		compile "com.lambdaworks:lettuce:$lettuceVersion"
-		compile "junit:junit-dep:$junitVersion"
+		compile "junit:junit:$junitVersion"
 	}
 }
 
@@ -379,47 +402,42 @@ task launch {
 	dependsOn 'spring-xd-dirt:run'
 }
 
-task wrapper(type: Wrapper) {
-	description = "Generates gradlew[.bat] scripts"
-	gradleVersion = "1.6"
-}
-
 task copyRedisInstall(type: Copy, dependsOn: ":redis:bundleRedis") {
 	from "$rootDir/redis/build"
-	into "$rootDir/dist/spring-xd/redis"
+	into "$buildDir/dist/spring-xd/redis"
 }
 
 task copyGemfireInstall(type: Copy, dependsOn: ":spring-xd-gemfire-server:installApp") {
 	from "$rootDir/spring-xd-gemfire-server/build/install/spring-xd-gemfire-server"
-	into "$rootDir/dist/spring-xd/gemfire"
+	into "$buildDir/dist/spring-xd/gemfire"
 }
 
 task copyXDInstall(type: Copy, dependsOn: [":spring-xd-dirt:build", ":spring-xd-dirt:installApp"]) {
 	from "$rootDir/spring-xd-dirt/build/install/spring-xd-dirt"
-	into "$rootDir/dist/spring-xd/xd"
+	into "$buildDir/dist/spring-xd/xd"
 }
 
 task cleanDist(type: Delete) {
 	description = "cleans $rootDir/dist directory"
-	delete "$rootDir/dist"
+	delete "$buildDir/dist"
 }
 
-task distXD(type: Copy, dependsOn: ["cleanDist", "copyRedisInstall", "copyGemfireInstall", "copyXDInstall"]) {
+task distXD (type: Copy, dependsOn: ["cleanDist", "copyRedisInstall", "copyGemfireInstall", "copyXDInstall"]) {
 	description = "Copy all the required installs"
 	from "$rootDir/scripts/README"
 	from "$rootDir/scripts/LICENSE"
-	into "$rootDir/dist/spring-xd"
+	into "$buildDir/dist/spring-xd"
 }
 
 configurations {
 	dist
 }
 
-task zipXD(type: Zip, dependsOn: "distXD") {
+task zipXD (type: Zip, dependsOn: "distXD"){
 	description = "Bundles Spring XD into dist/"
-	from file("$rootDir/dist/spring-xd").absolutePath
+	from file("$buildDir/dist/spring-xd").absolutePath
 	into "spring-xd"
-	destinationDir file("$rootDir/dist")
+	destinationDir file("$buildDir/dist")
 }
 
 artifacts {
@@ -486,10 +504,6 @@ task asciidoctorDocbook(type: AsciidoctorTask, dependsOn: [pullDocs]) {
 	]
 
 	doLast {
-//		copy {
-//			from "$buildDir/asciidoc/guide/images"
-//			into "$buildDir/docbook/images"
-//		}
 		copy {
 			from "$buildDir/asciidoc/images"
 			into "$buildDir/docbook/images"
@@ -551,6 +565,7 @@ task api(type: Javadoc) {
 	options.memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PROTECTED
 	options.author = true
 	options.header = rootProject.description
+	options.links(javadocLinks)
 	options.overview = 'src/api/overview.html'
 
 	source rootProject.javaProjects().collect { project ->
@@ -609,4 +624,9 @@ artifacts {
 task dist(dependsOn: assemble) {
 	group = 'Distribution'
 	description = 'Builds -dist, -docs and -schema distribution archives.'
+}
+
+task wrapper(type: Wrapper) {
+	description = "Generates gradlew[.bat] scripts"
+	gradleVersion = "1.6"
 }

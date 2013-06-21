@@ -40,7 +40,7 @@ public final class BannerUtils {
 	 * use the version number from "MANIFEST.MF".
 	 *
 	 * Similar to
-	 * {@link org.springframework.shell.plugin.support.DefaultBannerProvider}.
+	 * {@code org.springframework.shell.plugin.support.DefaultBannerProvider}.
 	 *
 	 * @return String representing the Banner.
 	 */

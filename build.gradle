@@ -61,6 +61,7 @@ configure(javaProjects()) { subproject ->
 		springDataGemfireVersion = '1.3.1.RELEASE'
 		lettuceVersion = '2.3.2'
 		springDataHadoopVersion = '1.0.0.RELEASE'
+		springHATEOASVersion = '0.6.0.RELEASE'
 		tomcatVersion = '7.0.35'
 		commonsBeanUtilsVersion = '1.6'
 		slf4jVersion = '1.7.5'
@@ -152,6 +153,7 @@ project('spring-xd-dirt') {
 				project(":spring-xd-hadoop"),
 				project(":spring-xd-http"),
 				"org.springframework:spring-webmvc:$springVersion",
+				"org.springframework.hateoas:spring-hateoas:$springHATEOASVersion",
 				"org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion",
 				"org.apache.tomcat.embed:tomcat-embed-core:$tomcatVersion",
 				"org.apache.tomcat.embed:tomcat-embed-logging-juli:$tomcatVersion",
@@ -173,6 +175,10 @@ project('spring-xd-dirt') {
 		runtime "org.slf4j:jcl-over-slf4j:$slf4jVersion",
 				"org.slf4j:slf4j-log4j12:$slf4jVersion"
 		testCompile project(":spring-xd-test")
+		testCompile ("org.mockito:mockito-core:$mockitoVersion") {
+			exclude group:'org.hamcrest'
+		}
+
 	}
 	apply plugin:'application'
 	// skip the startScripts task to avoid default start script generation

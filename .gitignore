@@ -14,3 +14,4 @@ bin
 dist
 dump.rdb
 .DS_Store
+tomcat.*

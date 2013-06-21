@@ -13,6 +13,7 @@ buildscript {
 		classpath("org.springframework.build.gradle:docbook-reference-plugin:0.2.7-SNAPSHOT")
 		classpath 'org.asciidoctor:asciidoctor-gradle-plugin:0.4.1'
 		classpath 'org.ajoberstar:gradle-git:0.4.0'
+		classpath 'me.champeau.gradle:gradle-javadoc-hotfix-plugin:0.1'
 	}
 }
 
@@ -32,6 +33,7 @@ allprojects {
 		maven { url 'http://repo.springsource.org/libs-milestone' }
 		maven { url 'http://repo.springsource.org/plugins-release' }
 	}
+	apply plugin: 'javadocHotfix'
 }
 
 def javaProjects() {

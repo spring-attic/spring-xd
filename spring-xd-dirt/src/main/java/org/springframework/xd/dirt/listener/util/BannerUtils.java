@@ -17,6 +17,7 @@
 package org.springframework.xd.dirt.listener.util;
 
 import org.apache.commons.lang.StringUtils;
+
 import org.springframework.shell.support.util.FileUtils;
 import org.springframework.shell.support.util.OsUtils;
 
@@ -39,7 +40,7 @@ public final class BannerUtils {
 	 * use the version number from "MANIFEST.MF".
 	 *
 	 * Similar to
-	 * {@link org.springframework.shell.plugin.support.DefaultBannerProvider}.
+	 * {@code org.springframework.shell.plugin.support.DefaultBannerProvider}.
 	 *
 	 * @return String representing the Banner.
 	 */

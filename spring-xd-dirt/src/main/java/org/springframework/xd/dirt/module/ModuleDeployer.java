@@ -73,7 +73,9 @@ public class ModuleDeployer extends AbstractMessageHandler
 		this.deployerContext = context;
 		this.plugins = context.getBeansOfType(Plugin.class);
 		ClassPathXmlApplicationContext commonContext = new ClassPathXmlApplicationContext(new String[] {DefaultContainer.XD_INTERNAL_CONFIG_ROOT + "common.xml"}, false);
-		// TODO: extend Plugin to enable modifying the common context?
+		for(Plugin plugin: plugins.values()) {
+			plugin.postProcessSharedContext(commonContext);
+		}
 		commonContext.refresh();
 		this.commonContext = commonContext;
 	}

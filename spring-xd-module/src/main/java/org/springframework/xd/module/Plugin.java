@@ -16,6 +16,8 @@
 
 package org.springframework.xd.module;
 
+import org.springframework.context.ConfigurableApplicationContext;
+
 /**
  * @author Mark Fisher
  * @author Gary Russell
@@ -25,4 +27,7 @@ public interface Plugin {
 	void processModule(Module module, String group, int index);
 
 	void removeModule(Module module, String group, int index);
+
+	void postProcessSharedContext(ConfigurableApplicationContext context);
+
 }

@@ -31,6 +31,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -95,6 +96,11 @@ public class ModuleDeployer extends AbstractMessageHandler
 			String group = request.getGroup();
 			int index = request.getIndex();
 			Module module = this.moduleRegistry.lookup(request.getModule(), request.getType());
+			if(!validateModulesInStream(module)){
+				throw new IllegalArgumentException(
+						"Missing input or output channel for "
+						+module.getName()+" processor module");
+			}
 			module.setParentContext(this.commonContext);
 			Object properties = message.getHeaders().get("properties");
 			if (properties instanceof Properties) {
@@ -142,7 +148,15 @@ public class ModuleDeployer extends AbstractMessageHandler
 			this.fireModuleUndeployedEvent(module, group, index);
 		}
 	}
+	private boolean validateModulesInStream(Module module){
 
+		if(module.getType().equals("processor") && (
+			!module.getComponents(MessageChannel.class).containsKey("input") ||
+			!module.getComponents(MessageChannel.class).containsKey("output"))){
+				return false;
+		}
+		return true;
+	}
 	/**
 	 * allow plugins to contribute properties (e.g. "stream.name")
 	 * calling module.addProperties(properties), etc.

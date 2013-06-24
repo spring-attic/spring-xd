@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,8 @@ import org.springframework.util.Assert;
  * <p>Requires a parameter containing the location of the XD
  * home directory to find the configuration for the source
  * module in the config direcrtory.
+ * <p>A second parameter is used to specify the stream name (source
+ * queue). If omitted, defaults to 'jmsTest'.
  * @author Gary Russell
  * @since 1.0
  *
@@ -45,14 +47,15 @@ import org.springframework.util.Assert;
 public class AmqBrokerAndTest {
 
 	public static void main(String[] args) throws Exception {
-		String xdHome;
-		if (args.length == 0) {
-			xdHome = System.getProperty("xd_home");
-		}
-		else {
+		String xdHome = null;
+		if (args.length > 0) {
 			xdHome = args[0];
 		}
-		Assert.notNull(xdHome, "need an xd_home argument or system property");
+		Assert.notNull(xdHome, "need an xd_home argument");
+		String queueName = "jmsTest";
+		if (args.length > 1) {
+			queueName = args[1];
+		}
 		BrokerService broker = new BrokerService();
 		Properties props = new Properties();
 		PropertiesLoaderUtils.fillProperties(props,
@@ -64,12 +67,13 @@ public class AmqBrokerAndTest {
 		ConnectionFactory cf = new ActiveMQConnectionFactory(brokerURL);
 		CachingConnectionFactory ccf = new CachingConnectionFactory(cf);
 
-		ActiveMQQueue queue = new ActiveMQQueue(props.getProperty("amq.source.queue"));
+		ActiveMQQueue queue = new ActiveMQQueue(queueName);
 
 		JmsTemplate template = new JmsTemplate(ccf);
 		template.setDefaultDestination(queue);
 
-		System.out.println("Enter test messages, 'quit' to end");
+		System.out.println("Enter test messages for destination " +
+				queueName + ", 'quit' to end");
 		Scanner scanner = new Scanner(System.in);
 		while (scanner.hasNextLine()) {
 			String line = scanner.nextLine();

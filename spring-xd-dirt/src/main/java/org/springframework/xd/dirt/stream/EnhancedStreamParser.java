@@ -42,7 +42,7 @@ public class EnhancedStreamParser implements StreamParser {
 			ModuleNode moduleNode = moduleNodes.get(m);
 			ModuleDeploymentRequest request = new ModuleDeploymentRequest();
 			request.setGroup(name);
-			request.setType((m == 0) ? "source" : (m == moduleNodes.size() - 1) ? "sink" : "processor");
+			request.setType((m == 0) ? ((moduleNodes.size() == 1) ? "job" : "source") : (m == moduleNodes.size() - 1) ? "sink" : "processor");
 			request.setModule(moduleNode.getName());
 			request.setIndex(m);
 			if (moduleNode.hasArguments()) {

@@ -26,7 +26,14 @@ import org.springframework.hateoas.ResourceSupport;
  */
 public class Stream extends ResourceSupport {
 
-	private final String name;
+	private String name;
+
+	/**
+	 * Default constructor for serialization frameworks.
+	 */
+	private Stream() {
+
+	}
 
 	public Stream(String name) {
 		this.name = name;

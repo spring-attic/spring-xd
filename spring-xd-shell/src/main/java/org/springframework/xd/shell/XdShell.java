@@ -16,35 +16,45 @@
 
 package org.springframework.xd.shell;
 
+import java.net.URI;
+
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
+import org.springframework.xd.rest.client.SpringXDClient;
+import org.springframework.xd.rest.client.SpringXDOperations;
 
 @Component
 public class XdShell implements CommandMarker {
 
-	private String target = "http://localhost:8080";
+	private String target;
+
+	private SpringXDOperations springXDOperations;
 
 	public String getTarget() {
 		return target;
 	}
 
+	public XdShell() {
+		target("http://localhost:8080");
+	}
+
 	@CliCommand(value = { "target" }, help = "Select the XD admin server to use")
 	public String target(@CliOption(mandatory = true, key = "") String target) {
-		this.target = target;
-		return String.format("Successfully targeted %s", target);
+		try {
+			springXDOperations = new SpringXDClient(URI.create(target));
+			this.target = target;
+			return String.format("Successfully targeted %s", target);
+		} catch (Exception e) {
+			this.target = "unknown";
+			springXDOperations = null;
+			return String.format("Unable to contact XD Admin at %s", target);
+		}
 	}
 
-	@CliCommand(value = "deploy stream", help = "Deploy a new stream definition")
-	public String deployStream(@CliOption(mandatory = true, key = { "",
-			"definition" }) String dsl, @CliOption(key = "name") String name) {
-		return String.format("Deployed new stream '%s'", name);
+	public SpringXDOperations getSpringXDOperations() {
+		return springXDOperations;
 	}
 
-	@CliCommand(value = "undeploy stream", help = "Undeploy a stream from the running XD container(s)")
-	public String undeployStream(@CliOption(mandatory = true, key = { "",
-			"name" }) String name) {
-		return String.format("Undeployed stream '%s'", name);
-	}
 }

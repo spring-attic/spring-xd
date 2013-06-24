@@ -16,13 +16,15 @@
 
 package org.springframework.xd.rest.client.domain;
 
+import org.springframework.hateoas.ResourceSupport;
+
 /**
- * Represents
+ * Represents a stream, <i>i.e.</i> a flow of data in the system.
  * 
  * @author Eric Bottard
  * 
  */
-public class Stream {
+public class Stream extends ResourceSupport {
 
 	private final String name;
 

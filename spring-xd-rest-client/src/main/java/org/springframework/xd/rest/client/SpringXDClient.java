@@ -20,9 +20,11 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.xd.rest.client.domain.Stream;
+import org.springframework.xd.rest.client.domain.XDRuntime;
 
 /**
  * Implementation of the SpringXD remote interaction API.
@@ -36,16 +38,22 @@ public class SpringXDClient implements SpringXDOperations {
 	private Map<String, URI> resources = new HashMap<String, URI>();
 
 	public SpringXDClient(URI baseURI) {
+		XDRuntime xdRuntime = restTemplate.getForObject(baseURI,
+				XDRuntime.class);
+		resources.put("streams",
+				URI.create(xdRuntime.getLink("streams").getHref()));
 
 	}
 
 	@Override
 	public Stream deployStream(String name, String defintion) {
-		UriComponentsBuilder builder = UriComponentsBuilder.fromUri(resources
-				.get("streams/deploy"));
+		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
+		values.add("name", name);
+		values.add("definition", defintion);
 
-		restTemplate.put(builder.buildAndExpand(name).toUriString(), defintion);
-		return null;
+		Stream stream = restTemplate.postForObject(resources.get("streams"),
+				values, Stream.class);
+		return stream;
 	}
 
 }

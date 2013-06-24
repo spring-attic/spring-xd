@@ -17,6 +17,7 @@
 package org.springframework.xd.rest.client;
 
 import java.net.URI;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -54,6 +55,15 @@ public class SpringXDClient implements SpringXDOperations {
 		Stream stream = restTemplate.postForObject(resources.get("streams"),
 				values, Stream.class);
 		return stream;
+	}
+
+	@Override
+	public void undeployStream(String name) {
+		// TODO: discover link by some other means (search by exact name on
+		// /streams??)
+		String uriTemplate = resources.get("streams").toString() + "/{name}";
+		restTemplate
+				.delete(uriTemplate, Collections.singletonMap("name", name));
 	}
 
 }

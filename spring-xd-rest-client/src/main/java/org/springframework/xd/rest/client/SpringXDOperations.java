@@ -27,4 +27,6 @@ public interface SpringXDOperations {
 
 	public Stream deployStream(String name, String defintion);
 
+	public void undeployStream(String name);
+
 }

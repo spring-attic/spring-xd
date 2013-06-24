@@ -362,6 +362,7 @@ project('spring-xd-rest-client') {
 	dependencies {
 		compile "org.springframework:spring-web:$springVersion"
 		compile project(':spring-xd-rest-domain')
+		runtime "org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion"
 	}
 }
 

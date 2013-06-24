@@ -27,6 +27,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -38,9 +39,9 @@ import org.springframework.xd.dirt.event.ContainerStoppedEvent;
 
 /**
  * Integration test of {@link RedisContainerEventListener}
- * 
+ *
  * @author Jennifer Hickey
- * 
+ *
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -70,6 +71,7 @@ public class RedisContainerEventListenerTest {
 	@Test
 	public void testContainerStarted() {
 		when(container.getId()).thenReturn(containerId);
+		when(container.getJvmName()).thenReturn("123@test");
 		context.publishEvent(new ContainerStartedEvent(container));
 		assertNotNull(redisTemplate.boundHashOps("containers").get(containerId));
 	}

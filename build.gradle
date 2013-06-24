@@ -189,6 +189,7 @@ project('spring-xd-dirt') {
 				"org.springframework.integration:spring-integration-file:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-gemfire:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-groovy:$springIntegrationVersion",
+				"org.springframework.integration:spring-integration-jms:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-redis:$springIntegrationVersion",
 				"org.springframework.data:spring-data-redis:$springDataRedisVersion",
 				"com.lambdaworks:lettuce:$lettuceVersion",
@@ -196,7 +197,8 @@ project('spring-xd-dirt') {
 				"org.springframework.social:spring-social-twitter:1.0.5.RELEASE",
 				"args4j:args4j:$args4jVersion",
 				"org.springframework.shell:spring-shell:1.0.0.RELEASE",
-				"com.eaio.uuid:uuid:3.2"
+				"com.eaio.uuid:uuid:3.2",
+				"org.apache.activemq:activemq-core:5.6.0"
 		runtime "org.slf4j:jcl-over-slf4j:$slf4jVersion",
 				"org.slf4j:slf4j-log4j12:$slf4jVersion"
 		testCompile project(":spring-xd-test")

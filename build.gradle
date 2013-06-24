@@ -414,6 +414,7 @@ project('spring-xd-shell') {
 	
 	dependencies {
 		compile "org.springframework.shell:spring-shell:$springShellVersion"
+		compile project(":spring-xd-rest-client")
 	}
 }
 

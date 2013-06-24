@@ -71,7 +71,7 @@ elif [[ $unameinfo == Linux*_64* ]]; then
       platformunsupported="true"
     fi
     if [[ $platformunsupported == "false" ]]; then
-      cd $REDIS_HOME && tar xzf $REDIS_ZIPNAME
+      cd $REDIS_HOME && tar xzf $REDIS_ZIP_PATH
       if [[ ! -d $REDIS_VERSION ]]; then
         echo "Corrupted redis zip. $REDIS_VERSION not found."
         exit
@@ -94,13 +94,15 @@ elif [[ $unameinfo == Linux* ]]; then
     platformunsupported="true"
   fi
   if [[ $platformunsupported == "false" ]]; then
-    cd $REDIS_HOME && tar xzf $REDIS_ZIPNAME
+    cd $REDIS_HOME && tar xzf $REDIS_ZIP_PATH
     if [[ ! -d $REDIS_VERSION ]]; then
       echo "Corrupted redis zip. $REDIS_VERSION not found."
       exit
     fi
     cd $REDIS_VERSION
-    make 32bit
+    #make 32bit
+    #https://github.com/antirez/redis/issues/736 
+    make CFLAGS="-march=i686"
   fi
 else
   echo "Unsupported platform. Curently only Apple OS X and Linux systems (RedHat, CentOS, Ubuntu) are supported."
@@ -113,6 +115,8 @@ if [[ $platformunsupported == "false" ]]; then
   cp src/redis-cli $REDIS_BIN 
   cp src/redis-check-dump $REDIS_BIN 
   echo "installation script completed."
+  echo "Selecting a non-default memory allocator when building Redis is done by setting 
+the MALLOC environment variable. Please refer to $REDIS_HOME/$REDIS_VERSION/README."
   echo "To start redis server, please run: $REDIS_BIN/redis-server"
 fi
 

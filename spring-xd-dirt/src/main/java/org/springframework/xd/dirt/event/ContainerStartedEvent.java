@@ -27,5 +27,4 @@ public class ContainerStartedEvent extends AbstractContainerEvent {
 	public ContainerStartedEvent(Container container) {
 		super(container);
 	}
-
 }

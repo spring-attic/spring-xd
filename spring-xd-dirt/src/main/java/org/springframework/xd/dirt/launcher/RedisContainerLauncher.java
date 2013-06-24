@@ -16,8 +16,11 @@
 
 package org.springframework.xd.dirt.launcher;
 
+import java.util.Properties;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
@@ -27,9 +30,11 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.support.atomic.RedisAtomicLong;
+import org.springframework.util.Assert;
 import org.springframework.xd.dirt.container.DefaultContainer;
 import org.springframework.xd.dirt.core.Container;
 import org.springframework.xd.dirt.event.ContainerStartedEvent;
+import org.springframework.xd.dirt.listener.util.BannerUtils;
 
 /**
  * @author Mark Fisher
@@ -38,14 +43,17 @@ import org.springframework.xd.dirt.event.ContainerStartedEvent;
  */
 public class RedisContainerLauncher implements ContainerLauncher, ApplicationEventPublisherAware {
 
-	private final RedisAtomicLong ids;
+	private final RedisConnectionFactory connectionFactory;
+
+	private volatile RedisAtomicLong ids;
 
 	private volatile ApplicationEventPublisher eventPublisher;
 
 	private static Log logger = LogFactory.getLog(RedisContainerLauncher.class);
 
 	public RedisContainerLauncher(RedisConnectionFactory connectionFactory) {
-		this.ids = new RedisAtomicLong("idsequence", connectionFactory);
+		Assert.notNull(connectionFactory, "connectionFactory must not be null");
+		this.connectionFactory = connectionFactory;
 	}
 
 	@Override
@@ -55,12 +63,30 @@ public class RedisContainerLauncher implements ContainerLauncher, ApplicationEve
 
 	@Override
 	public Container launch() {
+		synchronized (this) {
+			if (this.ids == null) {
+				this.ids = new RedisAtomicLong("idsequence", this.connectionFactory);
+			}
+		}
 		long id = ids.incrementAndGet();
 		DefaultContainer container = new DefaultContainer(id + "");
 		container.start();
+		logRedisInfo(container);
 		container.addListener(new ShutdownListener(container));
 		this.eventPublisher.publishEvent(new ContainerStartedEvent(container));
 		return container;
+	}
+
+	private void logRedisInfo(Container container) {
+		if (logger.isInfoEnabled()) {
+			final Properties redisInfo = this.connectionFactory.getConnection().info();
+			final StringBuilder sb = new StringBuilder();
+			sb.append(String.format("Using Redis v%s (Mode: %s) on Port %s ",
+						redisInfo.getProperty("redis_version"),
+						redisInfo.getProperty("redis_mode"),
+						redisInfo.getProperty("tcp_port")));
+			logger.info(BannerUtils.displayBanner(container.getJvmName(), sb.toString()));
+		}
 	}
 
 	public static void main(String... args) {

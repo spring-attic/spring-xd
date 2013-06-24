@@ -17,8 +17,10 @@
 package org.springframework.xd.dirt.container;
 
 import java.io.File;
+import java.lang.management.ManagementFactory;
 import java.util.UUID;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.log4j.Appender;
@@ -29,6 +31,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.shell.support.util.OsUtils;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.Container;
 import org.springframework.xd.dirt.event.ContainerStartedEvent;
@@ -42,17 +45,17 @@ import org.springframework.xd.dirt.event.ContainerStoppedEvent;
 public class DefaultContainer implements Container, SmartLifecycle {
 
 	private static final Log logger = LogFactory.getLog(DefaultContainer.class);
-	
+
 	/**
 	 * Base location for XD config files. Chosen so as not to collide with user provided content.
 	 */
 	public static final String XD_CONFIG_ROOT = "META-INF/spring-xd/";
-	
+
 	/**
 	 * Where container related config files reside.
 	 */
-	public static final String XD_INTERNAL_CONFIG_ROOT = XD_CONFIG_ROOT + "internal/"; 
-	  
+	public static final String XD_INTERNAL_CONFIG_ROOT = XD_CONFIG_ROOT + "internal/";
+
 	private static final String CORE_CONFIG = XD_INTERNAL_CONFIG_ROOT + "container.xml";
 
 	// TODO: consider moving to a file: location pattern within $XD_HOME
@@ -63,6 +66,8 @@ public class DefaultContainer implements Container, SmartLifecycle {
 	private volatile AbstractApplicationContext context;
 
 	private final String id;
+
+	private volatile String jvmName;
 
 	/**
 	 * Creates a container with a given id
@@ -82,6 +87,16 @@ public class DefaultContainer implements Container, SmartLifecycle {
 	@Override
 	public String getId() {
 		return (this.context != null) ? this.context.getId() : "";
+	}
+
+	@Override
+	public String getJvmName() {
+		synchronized (this) {
+			if (this.jvmName == null) {
+				this.jvmName = ManagementFactory.getRuntimeMXBean().getName();
+			}
+		}
+		return this.jvmName;
 	}
 
 	@Override
@@ -117,6 +132,17 @@ public class DefaultContainer implements Container, SmartLifecycle {
 		if (this.context != null) {
 			this.context.publishEvent(new ContainerStoppedEvent(this));
 			this.context.close();
+			if (logger.isInfoEnabled()) {
+				final String message = "Stopped container: " + this.jvmName;
+				final StringBuilder sb = new StringBuilder(OsUtils.LINE_SEPARATOR);
+				sb.append(StringUtils.rightPad("", message.length(), "-"))
+					.append(OsUtils.LINE_SEPARATOR)
+					.append(message)
+					.append(OsUtils.LINE_SEPARATOR)
+					.append(StringUtils.rightPad("", message.length(), "-"))
+					.append(OsUtils.LINE_SEPARATOR);
+				logger.info(sb.toString());
+			}
 		}
 	}
 

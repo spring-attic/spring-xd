@@ -23,6 +23,8 @@ import org.springframework.context.Lifecycle;
  */
 public interface Container extends Lifecycle {
 
-	public abstract String getId();
+	String getId();
+
+	String getJvmName();
 
 }

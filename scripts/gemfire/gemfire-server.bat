@@ -14,6 +14,7 @@ set DEFAULT_JVM_OPTS=
 set DIRNAME=%~dp0
 if "%DIRNAME%" == "" set DIRNAME=.
 set APP_BASE_NAME=%~n0
+
 set APP_HOME=%DIRNAME%..
 
 @rem Find java.exe
@@ -69,10 +70,15 @@ set CMD_LINE_ARGS=%$
 :execute
 @rem Setup the command line
 
-set CLASSPATH=%APP_HOME%\conf;%APP_HOME%\lib\spring-xd-gemfire-server-0.1.0.BUILD-SNAPSHOT.jar;%APP_HOME%\lib\commons-beanutils-1.6.jar;%APP_HOME%\lib\spring-data-gemfire-1.3.1.RELEASE.jar;%APP_HOME%\lib\log4j-1.2.17.jar;%APP_HOME%\lib\jcl-over-slf4j-1.7.5.jar;%APP_HOME%\lib\slf4j-log4j12-1.7.5.jar;%APP_HOME%\lib\commons-logging-1.1.1.jar;%APP_HOME%\lib\commons-collections-2.1.jar;%APP_HOME%\lib\slf4j-api-1.7.5.jar;%APP_HOME%\lib\antlr-2.7.7.jar;%APP_HOME%\lib\aspectjweaver-1.7.2.jar;%APP_HOME%\lib\spring-core-3.2.2.RELEASE.jar;%APP_HOME%\lib\gemfire-7.0.1.jar;%APP_HOME%\lib\spring-beans-3.2.2.RELEASE.jar;%APP_HOME%\lib\spring-data-commons-1.5.1.RELEASE.jar;%APP_HOME%\lib\aopalliance-1.0.jar;%APP_HOME%\lib\spring-aop-3.2.2.RELEASE.jar;%APP_HOME%\lib\spring-expression-3.2.2.RELEASE.jar;%APP_HOME%\lib\spring-context-3.2.2.RELEASE.jar;%APP_HOME%\lib\spring-context-support-3.2.2.RELEASE.jar;%APP_HOME%\lib\spring-tx-3.2.2.RELEASE.jar;%APP_HOME%\lib\commons-digester-1.4.1.jar;%APP_HOME%\lib\commons-logging-api-1.0.4.jar;%APP_HOME%\lib\commons-modeler-2.0.1.jar;%APP_HOME%\lib\jackson-core-asl-1.9.12.jar;%APP_HOME%\lib\jackson-mapper-asl-1.9.12.jar;%APP_HOME%\lib\aspectjrt-1.7.2.jar
+set CLASSPATH=!CLASSPATH!;%APP_HOME%\lib\*
+
+@rem Set GEMFIRE_HOME to APP_HOME if GEMFIRE_HOME is not defined yet
+if not exist "%GEMFIRE_HOME%" (
+    set GEMFIRE_HOME=%APP_HOME%
+)
 
 @rem Execute gemfire-server
-"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SPRING_GEMFIRE_SERVER_OPTS%  -classpath "%CLASSPATH%" org.springframework.xd.gemfire.CacheServer %CMD_LINE_ARGS%
+"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% -Dgemfire.home=%GEMFIRE_HOME% -Dlog4j.configuration=file:///%GEMFIRE_HOME%/config/gemfire-cacheserver-logger.properties -classpath "%CLASSPATH%" org.springframework.xd.gemfire.CacheServer %CMD_LINE_ARGS%
 
 :end
 @rem End local scope for the variables with windows NT shell

@@ -65,8 +65,7 @@ cd "`dirname \"$PRG\"`/.." >&-
 APP_HOME="`pwd -P`"
 cd "$SAVED" >&-
 
-CLASSPATH=$APP_HOME/conf:$APP_HOME/lib/spring-xd-gemfire-server-0.1.0.BUILD-SNAPSHOT.jar:$APP_HOME/lib/commons-beanutils-1.6.jar:$APP_HOME/lib/spring-data-gemfire-1.3.1.RELEASE.jar:$APP_HOME/lib/log4j-1.2.17.jar:$APP_HOME/lib/jcl-over-slf4j-1.7.5.jar:$APP_HOME/lib/slf4j-log4j12-1.7.5.jar:$APP_HOME/lib/commons-logging-1.1.1.jar:$APP_HOME/lib/commons-collections-2.1.jar:$APP_HOME/lib/slf4j-api-1.7.5.jar:$APP_HOME/lib/antlr-2.7.7.jar:$APP_HOME/lib/aspectjweaver-1.7.2.jar:$APP_HOME/lib/spring-core-3.2.2.RELEASE.jar:$APP_HOME/lib/gemfire-7.0.1.jar:$APP_HOME/lib/spring-beans-3.2.2.RELEASE.jar:$APP_HOME/lib/spring-data-commons-1.5.1.RELEASE.jar:$APP_HOME/lib/aopalliance-1.0.jar:$APP_HOME/lib/spring-aop-3.2.2.RELEASE.jar:$APP_HOME/lib/spring-expression-3.2.2.RELEASE.jar:$APP_HOME/lib/spring-context-3.2.2.RELEASE.jar:$APP_HOME/lib/spring-context-support-3.2.2.RELEASE.jar:$APP_HOME/lib/spring-tx-3.2.2.RELEASE.jar:$APP_HOME/lib/commons-digester-1.4.1.jar:$APP_HOME/lib/commons-logging-api-1.0.4.jar:$APP_HOME/lib/commons-modeler-2.0.1.jar:$APP_HOME/lib/jackson-core-asl-1.9.12.jar:$APP_HOME/lib/jackson-mapper-asl-1.9.12.jar:$APP_HOME/lib/aspectjrt-1.7.2.jar
-
+CLASSPATH=$CLASSPATH:$APP_HOME/lib/*
 # Determine the Java command to use to start the JVM.
 if [ -n "$JAVA_HOME" ] ; then
     if [ -x "$JAVA_HOME/jre/sh/java" ] ; then
@@ -153,6 +152,13 @@ if $cygwin ; then
         (9) set -- "$args0" "$args1" "$args2" "$args3" "$args4" "$args5" "$args6" "$args7" "$args8" ;;
     esac
 fi
+
+# check if GEMFIRE_HOME is already set; if it is not, then set APP_HOME as GEMFIRE_HOME
+if [ x"$GEMFIRE_HOME" = x ] ; then
+    GEMFIRE_HOME=$APP_HOME
+fi
+# set GEMFIRE_HOME as system property via SPRING_GEMFIRE_SERVER_OPTS
+SPRING_GEMFIRE_SERVER_OPTS="-Dgemfire.home=$GEMFIRE_HOME -Dlog4j.configuration=file:///$GEMFIRE_HOME/config/gemfire-cacheserver-logger.properties"
 
 # Split up the JVM_OPTS And SPRING_GEMFIRE_SERVER_OPTS values into an array, following the shell quoting and substitution rules
 function splitJvmOpts() {

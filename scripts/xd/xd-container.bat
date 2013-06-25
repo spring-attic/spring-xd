@@ -14,6 +14,7 @@ set DEFAULT_JVM_OPTS=
 set DIRNAME=%~dp0
 if "%DIRNAME%" == "" set DIRNAME=.
 set APP_BASE_NAME=%~n0
+
 set APP_HOME=%DIRNAME%..
 
 @rem Find java.exe
@@ -81,10 +82,9 @@ if exist "%APP_HOME_LIB%" (
 if not exist "%XD_HOME%" (
     set XD_HOME=%APP_HOME%
 )
-set SPRING_XD_CONTAINER_OPTS="-Dxd.container=container -Dxd.home=%XD_HOME% -Dlog4j.configuration=file:///$XD_HOME/config/xd-container-logger.properties"
 
 @rem Execute xd-container
-"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SPRING_XD_CONTAINER_OPTS%  -classpath "%CLASSPATH%" org.springframework.xd.dirt.server.ContainerMain %CMD_LINE_ARGS%
+"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% -Dxd.container=container -Dxd.home=%XD_HOME% -Dlog4j.configuration=file:///%XD_HOME%/config/xd-container-logger.properties -classpath "%CLASSPATH%" org.springframework.xd.dirt.server.ContainerMain %CMD_LINE_ARGS%
 
 :end
 @rem End local scope for the variables with windows NT shell

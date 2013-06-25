@@ -12,6 +12,8 @@
  */
 package org.springframework.xd.gemfire;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 /**
@@ -19,12 +21,16 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
  *
  */
 public class CacheServer {
+	
+	private static final Log logger = LogFactory.getLog(CacheServer.class);
+	
 	public static void main(String[] args) {
  		if (args.length != 1) {
  			System.out.println("Usage: CacheServer <config-file-path>");
  			System.exit(1);
  		}
  		String path = args[0];
+		logger.info("Starting Cache Server");
  		@SuppressWarnings("resource")
  		FileSystemXmlApplicationContext context= new FileSystemXmlApplicationContext(path);
  		context.registerShutdownHook();

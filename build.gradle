@@ -284,7 +284,7 @@ project ('spring-xd-gemfire-server') {
 	}
 
 	applicationDistribution.from(configFiles) {
-		into "bin"
+		into "config"
 	}
 
 	task scriptFiles {

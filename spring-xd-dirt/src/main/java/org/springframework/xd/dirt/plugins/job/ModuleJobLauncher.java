@@ -31,6 +31,7 @@ import org.springframework.util.Assert;
  * triggers built in.
  * 
  * @author Michael Minella
+ * @since 1.0
  *
  */
 public class ModuleJobLauncher implements Lifecycle {

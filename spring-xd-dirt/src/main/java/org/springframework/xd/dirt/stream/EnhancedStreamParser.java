@@ -27,6 +27,7 @@ import org.springframework.xd.dirt.stream.dsl.ast.StreamsNode;
 
 /**
  * @author Andy Clement
+ * @since 1.0
  */
 public class EnhancedStreamParser implements StreamParser {
 

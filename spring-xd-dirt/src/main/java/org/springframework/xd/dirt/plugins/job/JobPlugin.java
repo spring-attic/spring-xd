@@ -26,8 +26,9 @@ import org.springframework.xd.module.Plugin;
 
 /**
  * Plugin to enable the registration of jobs in a central registry
- * 
+ *
  * @author Michael Minella
+ * @since 1.0
  *
  */
 public class JobPlugin implements Plugin {

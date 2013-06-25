@@ -411,6 +411,9 @@ project('spring-xd-shell') {
 	description = 'Spring XD Shell'
 	apply plugin: "application"
 	mainClassName = "org.springframework.shell.Bootstrap"
+	run {
+		standardInput = System.in
+	}
 	
 	dependencies {
 		compile "org.springframework.shell:spring-shell:$springShellVersion"

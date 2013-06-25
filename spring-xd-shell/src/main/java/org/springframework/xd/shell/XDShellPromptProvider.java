@@ -17,16 +17,14 @@
 package org.springframework.xd.shell;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.annotation.Order;
 import org.springframework.shell.plugin.PromptProvider;
 import org.springframework.stereotype.Component;
 
 @Component
-@Order(Integer.MIN_VALUE)
-public class RestShellPromptProvider implements PromptProvider {
+public class XDShellPromptProvider implements PromptProvider {
 
 	@Autowired
-	private XdShell xdShell;
+	private XDShell xdShell;
 
 	@Override
 	public String name() {

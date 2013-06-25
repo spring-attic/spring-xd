@@ -26,7 +26,7 @@ import org.springframework.xd.rest.client.SpringXDClient;
 import org.springframework.xd.rest.client.SpringXDOperations;
 
 @Component
-public class XdShell implements CommandMarker {
+public class XDShell implements CommandMarker {
 
 	private String target;
 
@@ -36,7 +36,7 @@ public class XdShell implements CommandMarker {
 		return target;
 	}
 
-	public XdShell() {
+	public XDShell() {
 		target("http://localhost:8080");
 	}
 

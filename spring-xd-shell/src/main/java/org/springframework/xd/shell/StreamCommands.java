@@ -27,7 +27,7 @@ import org.springframework.stereotype.Component;
 public class StreamCommands implements CommandMarker {
 
 	@Autowired
-	private XdShell xdShell;
+	private XDShell xdShell;
 
 	@CliAvailabilityIndicator({ "deploy stream", "undeploy stream" })
 	public boolean available() {
@@ -35,15 +35,17 @@ public class StreamCommands implements CommandMarker {
 	}
 
 	@CliCommand(value = "deploy stream", help = "Deploy a new stream definition")
-	public String deployStream(@CliOption(mandatory = true, key = { "",
-			"definition" }) String dsl, @CliOption(key = "name") String name) {
+	public String deployStream(
+			//
+			@CliOption(mandatory = true, key = { "", "definition" }, help = "a stream definition, using XD DSL (e.g. \"http --port=9000 | hdfs\")") String dsl,//
+			@CliOption(mandatory = true, key = "name", help = "the name to give to the stream") String name) {
 		xdShell.getSpringXDOperations().deployStream(name, dsl);
 		return String.format("Deployed new stream '%s'", name);
 	}
 
 	@CliCommand(value = "undeploy stream", help = "Undeploy a stream from the running XD container(s)")
-	public String undeployStream(@CliOption(mandatory = true, key = { "",
-			"name" }) String name) {
+	public String undeployStream(//
+			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the stream to delete") String name) {
 		return String.format("Undeployed stream '%s'", name);
 	}
 

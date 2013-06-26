@@ -72,16 +72,19 @@ public class AdminMain {
 		try {
 			XmlWebApplicationContext context = new XmlWebApplicationContext();
 			context.setConfigLocation("classpath:"
-					+ DefaultContainer.XD_INTERNAL_CONFIG_ROOT + "admin-server.xml");
-			context.refresh();
+					+ DefaultContainer.XD_INTERNAL_CONFIG_ROOT
+					+ "admin-server.xml");
 
-			// Not making StreamServer a spring bean eases move to .war file if needed
-			final StreamServer server = new StreamServer(context, options.getHttpPort());
+			// Not making StreamServer a spring bean eases move to .war file if
+			// needed
+			final StreamServer server = new StreamServer(context,
+					options.getHttpPort());
 			server.afterPropertiesSet();
 			server.start();
 			if (Transport.local == options.getTransport()) {
-				System.out.println(BannerUtils.displayBanner(null,
-					String.format("Running in Local Mode on Port %s ", server.getPort())));
+				System.out.println(BannerUtils.displayBanner(null, String
+						.format("Running in Local Mode on Port %s ",
+								server.getPort())));
 			}
 			context.addApplicationListener(new ApplicationListener<ContextClosedEvent>() {
 				@Override

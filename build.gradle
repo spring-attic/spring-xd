@@ -66,6 +66,7 @@ configure(javaProjects()) { subproject ->
 		springDataMongoVersion = '1.1.1.RELEASE'
 		springDataRedisVersion = '1.0.4.RELEASE'
 		springDataGemfireVersion = '1.3.1.RELEASE'
+		springPluginVersion = '0.8.0.RELEASE'
 		lettuceVersion = '2.3.2'
 		springDataHadoopVersion = '1.0.1.BUILD-SNAPSHOT'
 		springHATEOASVersion = '0.6.0.RELEASE'
@@ -178,8 +179,10 @@ project('spring-xd-dirt') {
 				project(":spring-xd-module"),
 				project(":spring-xd-hadoop"),
 				project(":spring-xd-http"),
+				project(':spring-xd-rest-domain'),
 				"org.springframework:spring-webmvc:$springVersion",
 				"org.springframework.hateoas:spring-hateoas:$springHATEOASVersion",
+				"org.springframework.plugin:spring-plugin-core:$springPluginVersion",	
 				"org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion",
 				"org.apache.tomcat.embed:tomcat-embed-core:$tomcatVersion",
 				"org.apache.tomcat.embed:tomcat-embed-logging-juli:$tomcatVersion",
@@ -353,6 +356,22 @@ project('spring-xd-tuple') {
 		}
 	}
 }
+
+project('spring-xd-rest-client') {
+	description = 'Spring XD REST Client'
+	dependencies {
+		compile "org.springframework:spring-web:$springVersion"
+		compile project(':spring-xd-rest-domain')
+	}
+}
+
+project('spring-xd-rest-domain') {
+	description = 'Spring XD REST Domain'
+			dependencies {
+		compile "org.springframework.hateoas:spring-hateoas:$springHATEOASVersion"
+	}
+}
+
 
 project('spring-xd-hadoop') {
 	description = 'Spring XD Hadoop'

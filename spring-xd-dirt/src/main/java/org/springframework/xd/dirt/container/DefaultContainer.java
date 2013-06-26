@@ -26,12 +26,10 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.log4j.Appender;
 import org.apache.log4j.Logger;
 import org.apache.log4j.RollingFileAppender;
-
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.shell.support.util.OsUtils;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.Container;
 import org.springframework.xd.dirt.event.ContainerStartedEvent;
@@ -43,6 +41,9 @@ import org.springframework.xd.dirt.event.ContainerStoppedEvent;
  * @author David Turanski
  */
 public class DefaultContainer implements Container, SmartLifecycle {
+
+	private static final String LINE_SEPARATOR = System
+			.getProperty("line.separator");
 
 	private static final Log logger = LogFactory.getLog(DefaultContainer.class);
 
@@ -134,13 +135,13 @@ public class DefaultContainer implements Container, SmartLifecycle {
 			this.context.close();
 			if (logger.isInfoEnabled()) {
 				final String message = "Stopped container: " + this.jvmName;
-				final StringBuilder sb = new StringBuilder(OsUtils.LINE_SEPARATOR);
+				final StringBuilder sb = new StringBuilder(LINE_SEPARATOR);
 				sb.append(StringUtils.rightPad("", message.length(), "-"))
-					.append(OsUtils.LINE_SEPARATOR)
-					.append(message)
-					.append(OsUtils.LINE_SEPARATOR)
-					.append(StringUtils.rightPad("", message.length(), "-"))
-					.append(OsUtils.LINE_SEPARATOR);
+						.append(LINE_SEPARATOR)
+						.append(message)
+						.append(LINE_SEPARATOR)
+						.append(StringUtils.rightPad("", message.length(), "-"))
+						.append(LINE_SEPARATOR);
 				logger.info(sb.toString());
 			}
 		}

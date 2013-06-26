@@ -16,19 +16,23 @@
 
 package org.springframework.xd.dirt.listener.util;
 
-import org.apache.commons.lang.StringUtils;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
-import org.springframework.shell.support.util.FileUtils;
-import org.springframework.shell.support.util.OsUtils;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.util.FileCopyUtils;
 
 /**
  * Provides utilities for rendering graphical console output.
- *
+ * 
  * @author Gunnar Hillert
  * @author David Turanski
  * @since 1.0
  */
 public final class BannerUtils {
+
+	private static final String LINE_SEPARATOR = System
+			.getProperty("line.separator");
 
 	/** Prevent instantiation. */
 	private BannerUtils() {
@@ -38,19 +42,31 @@ public final class BannerUtils {
 	/**
 	 * Retrieves the ASCII resource "banner.txt" from the classpath. Will also
 	 * use the version number from "MANIFEST.MF".
-	 *
+	 * 
 	 * Similar to
 	 * {@link org.springframework.shell.plugin.support.DefaultBannerProvider}.
-	 *
+	 * 
 	 * @return String representing the Banner.
 	 */
-	public static String getBanner() {
-		final String banner = FileUtils.readBanner(BannerUtils.class, "banner.txt");
-		final String version = StringUtils.rightPad(BannerUtils.getVersion(), 33);
+	private static String getBanner() {
+		final String banner = readBanner();
+		final String version = StringUtils.rightPad(BannerUtils.getVersion(),
+				33);
 		final StringBuilder sb = new StringBuilder();
 		sb.append(String.format(banner, version));
-		sb.append(OsUtils.LINE_SEPARATOR);
+		sb.append(LINE_SEPARATOR);
 		return sb.toString();
+	}
+
+	private static String readBanner() {
+		try {
+			return FileCopyUtils.copyToString(
+					new InputStreamReader(BannerUtils.class
+							.getResourceAsStream("banner.txt"))).replaceAll(
+					"(\\r|\\n)+", LINE_SEPARATOR);
+		} catch (IOException e) {
+			throw new IllegalStateException("Could not read banner.txt");
+		}
 	}
 
 	public static String getVersion() {
@@ -62,13 +78,18 @@ public final class BannerUtils {
 		return (version != null ? version : "Unknown Version");
 	}
 
-	public static String displayBanner(String containerName, String additionalMessage) {
-		StringBuffer sb = new StringBuffer(OsUtils.LINE_SEPARATOR);
-		sb.append(getBanner()).append(StringUtils.isEmpty(additionalMessage) ? "" : additionalMessage)
-				.append(OsUtils.LINE_SEPARATOR)
-				.append(StringUtils.isEmpty(containerName) ? "" : "started container : " + containerName)
-				.append(OsUtils.LINE_SEPARATOR).append("Documentation: https://github.com/SpringSource/spring-xd/wiki")
-				.append(OsUtils.LINE_SEPARATOR);
+	public static String displayBanner(String containerName,
+			String additionalMessage) {
+		StringBuffer sb = new StringBuffer(LINE_SEPARATOR);
+		sb.append(getBanner())
+				.append(StringUtils.isEmpty(additionalMessage) ? ""
+						: additionalMessage)
+				.append(LINE_SEPARATOR)
+				.append(StringUtils.isEmpty(containerName) ? ""
+						: "started container : " + containerName)
+				.append(LINE_SEPARATOR)
+				.append("Documentation: https://github.com/SpringSource/spring-xd/wiki")
+				.append(LINE_SEPARATOR);
 		return sb.toString();
 	}
 

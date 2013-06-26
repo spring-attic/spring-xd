@@ -16,7 +16,13 @@
 
 package org.springframework.xd.dirt.server;
 
+import org.kohsuke.args4j.CmdLineException;
+import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
+import org.kohsuke.args4j.OptionDef;
+import org.kohsuke.args4j.spi.OptionHandler;
+import org.kohsuke.args4j.spi.Parameters;
+import org.kohsuke.args4j.spi.Setter;
 
 import org.springframework.util.StringUtils;
 
@@ -36,6 +42,8 @@ public class AbstractOptions {
 
 	static final String XD_TRANSPORT_KEY = "xd.transport";
 
+	static final String XD_DISABLE_JMX_KEY = "xd.jmx.disabled";
+
 	/**
 	 * Set xd.home system property. If not a valid String, fallback to default.
 	 */
@@ -53,7 +61,7 @@ public class AbstractOptions {
 		System.setProperty(XD_TRANSPORT_KEY, transport.name());
 	}
 
-	@Option(name = "--help", usage = "Show options help", aliases = { "-?",	"-h" })
+	@Option(name = "--help", usage = "Show options help", aliases = { "-?", "-h" })
 	private boolean showHelp = false;
 
 	@Option(name = "--transport", usage = "The transport to be used (default: redis)")
@@ -61,6 +69,9 @@ public class AbstractOptions {
 
 	@Option(name = "--xdHomeDir", usage = "The XD installation directory", metaVar = "<xdHomeDir>")
 	private String xdHomeDir = ""; // Can't set default here as it may have been set via -Dxd.home=foo
+
+	@Option(name = "--disableJmx", usage = "Disable JMX in the XD container", handler = JmxDisabledHandler.class)
+	private boolean jmxDisabled = false;
 
 	/**
 	 * @return the transport
@@ -76,11 +87,44 @@ public class AbstractOptions {
 		return xdHomeDir;
 	}
 
+	public boolean isJmxDisabled() {
+		return System.getProperty(XD_DISABLE_JMX_KEY) == null ? false : true;
+	}
+
 	/**
 	 * @return the showHelp
 	 */
 	public boolean isShowHelp() {
 		return showHelp;
+	}
+
+	public static class JmxDisabledHandler extends OptionHandler<Boolean> {
+		/**
+		 * @param parser
+		 * @param option
+		 * @param setter
+		 */
+		public JmxDisabledHandler(CmdLineParser parser, OptionDef option, Setter<Boolean> setter) {
+			super(parser, option, setter);
+		}
+
+		/* (non-Javadoc)
+		 * @see org.kohsuke.args4j.spi.OptionHandler#parseArguments(org.kohsuke.args4j.spi.Parameters)
+		 */
+		@Override
+		public int parseArguments(Parameters params) throws CmdLineException {
+			System.setProperty(XD_DISABLE_JMX_KEY, "true");
+			return 1;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.kohsuke.args4j.spi.OptionHandler#getDefaultMetaVariable()
+		 */
+		@Override
+		public String getDefaultMetaVariable() {
+			return null;
+		}
+
 	}
 
 }

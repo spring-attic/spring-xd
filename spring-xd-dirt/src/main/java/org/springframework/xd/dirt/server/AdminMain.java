@@ -73,6 +73,9 @@ public class AdminMain {
 			XmlWebApplicationContext context = new XmlWebApplicationContext();
 			context.setConfigLocation("classpath:"
 					+ DefaultContainer.XD_INTERNAL_CONFIG_ROOT + "admin-server.xml");
+			if (!options.isJmxDisabled()) {
+				context.getEnvironment().addActiveProfile("xd.jmx.enabled");
+			}
 			context.refresh();
 
 			// Not making StreamServer a spring bean eases move to .war file if needed

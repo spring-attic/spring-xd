@@ -92,7 +92,13 @@ public class RedisContainerLauncher implements ContainerLauncher, ApplicationEve
 	public static void main(String... args) {
 		ClassPathXmlApplicationContext context = null;
 		try {
-			context = new ClassPathXmlApplicationContext(LAUNCHER_CONFIG_LOCATION);
+			context = new ClassPathXmlApplicationContext();
+			context.setConfigLocation(LAUNCHER_CONFIG_LOCATION);
+			//TODO: Need to sort out how this will be handled consistently among launchers
+			if (System.getProperty("xd.jmx.disabled") == null) {
+				context.getEnvironment().addActiveProfile("xd.jmx.enabled");
+			}
+			context.refresh();
 		}
 		catch (BeanCreationException e) {
 			if (e.getCause() instanceof RedisConnectionFailureException) {

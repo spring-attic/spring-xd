@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.listener.util;
+package org.springframework.xd.dirt.server.util;
 
 import java.io.IOException;
 import java.io.InputStreamReader;

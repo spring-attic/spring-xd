@@ -55,6 +55,11 @@ public class SimpleModule extends AbstractModule {
 
 	@Override
 	public void addComponents(Resource resource) {
+		//TODO: This shouldn't be here. Need to refactor
+		if (System.getProperty("xd.jmx.disabled") == null) {
+			context.getEnvironment().addActiveProfile("xd.jmx.enabled");
+		}
+
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(this.context);
 		reader.loadBeanDefinitions(resource);
 	}
@@ -96,6 +101,7 @@ public class SimpleModule extends AbstractModule {
 				placeholderConfigurer.setEnvironment(this.context.getEnvironment());
 				this.context.addBeanFactoryPostProcessor(placeholderConfigurer);
 			}
+
 			this.context.refresh();
 			this.context.start();
 			if (logger.isInfoEnabled()) {

@@ -14,13 +14,11 @@ import org.springframework.integration.splunk.event.SplunkEvent;
  * @author Glenn Renfro
  */
 public class SplunkTransformer {
-	private static String EVENT_NAME = "XD-Message";
-	private static String EVENT_ID = "XD";
 	private static String DATA_KEY = "data";
 
 	@Transformer
 		public SplunkEvent generateSplunkEvent(Object s) {
-			SplunkEvent data = new SplunkEvent(EVENT_NAME, EVENT_ID);
+			SplunkEvent data = new SplunkEvent();
 			data.addPair(DATA_KEY, s.toString());
 
 			return data;

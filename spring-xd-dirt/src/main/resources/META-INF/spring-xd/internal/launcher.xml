@@ -5,6 +5,11 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<import resource="classpath*:/META-INF/spring-xd/transports/${xd.transport}-launcher.xml"/>
+	<beans profile="xd.jmx.enabled">
+		<import resource="jolokia.xml" />
+	</beans>
 
+	<beans>
+		<import resource="classpath*:/META-INF/spring-xd/transports/${xd.transport}-launcher.xml"/>
+	</beans>
 </beans>

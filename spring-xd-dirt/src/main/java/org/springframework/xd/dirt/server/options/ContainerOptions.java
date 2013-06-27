@@ -14,29 +14,11 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.server;
+package org.springframework.xd.dirt.server.options;
 
 /**
- * The kind of transport used for communication between the admin server and container(s).
- *
- * @author Eric Bottard
+ * A class the defines the options that will be parsed on the container command line.
  */
-public enum Transport {
-
-	/**
-	 * Use same-process communication, using an in memory queue.
-	 */
-	local,
-
-	/**
-	 * Use redis (http://redis.io) as the communication middleware.
-	 */
-	redis,
-
-//	/**
-//	 * Use RabbitMQ (http://www.rabbitmq.com/) as the communication middleware.
-//	 */
-//	rabbitmq
-	;
+public class ContainerOptions extends AbstractOptions {
 
 }

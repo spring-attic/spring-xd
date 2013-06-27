@@ -14,33 +14,26 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.rest.client.domain;
+package org.springframework.xd.shell;
 
-import org.springframework.hateoas.ResourceSupport;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.shell.plugin.PromptProvider;
+import org.springframework.stereotype.Component;
 
-/**
- * Represents a stream, <i>i.e.</i> a flow of data in the system.
- * 
- * @author Eric Bottard
- * 
- */
-public class Stream extends ResourceSupport {
+@Component
+public class XDShellPromptProvider implements PromptProvider {
 
-	private String name;
+	@Autowired
+	private XDShell xdShell;
 
-	/**
-	 * Default constructor for serialization frameworks.
-	 */
-	private Stream() {
-
+	@Override
+	public String name() {
+		return "prompt";
 	}
 
-	public Stream(String name) {
-		this.name = name;
-	}
-
-	public String getName() {
-		return name;
+	@Override
+	public String getPrompt() {
+		return xdShell.getTarget() + ":>";
 	}
 
 }

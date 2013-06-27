@@ -201,8 +201,10 @@ project('spring-xd-dirt') {
 				"org.springframework.integration:spring-integration-syslog:$springIntegrationVersion",
 				"org.springframework.social:spring-social-twitter:1.0.5.RELEASE",
 				"args4j:args4j:$args4jVersion",
-				"com.eaio.uuid:uuid:3.2",
-				"org.apache.activemq:activemq-core:5.6.0"
+				"com.eaio.uuid:uuid:3.2"
+		compile ("org.apache.activemq:activemq-core:5.6.0") {
+			exclude group: 'org.mortbay.jetty'
+		}
 		runtime "org.slf4j:jcl-over-slf4j:$slf4jVersion",
 				"org.slf4j:slf4j-log4j12:$slf4jVersion"
 		testCompile project(":spring-xd-test")

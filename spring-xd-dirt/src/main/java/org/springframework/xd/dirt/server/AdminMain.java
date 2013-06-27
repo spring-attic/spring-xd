@@ -81,7 +81,6 @@ public class AdminMain {
 				context.getEnvironment().addActiveProfile("xd.jmx.enabled");
 				OptionUtils.setJmxProperties(options, context.getEnvironment());
 			}
-			context.refresh();
 
 			// Not making StreamServer a spring bean eases move to .war file if
 			// needed

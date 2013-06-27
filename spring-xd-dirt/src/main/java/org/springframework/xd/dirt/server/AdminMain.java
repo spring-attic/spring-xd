@@ -20,13 +20,16 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
-
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.web.context.support.XmlWebApplicationContext;
 import org.springframework.xd.dirt.container.DefaultContainer;
-import org.springframework.xd.dirt.listener.util.BannerUtils;
+import org.springframework.xd.dirt.server.options.AbstractOptions;
+import org.springframework.xd.dirt.server.options.AdminOptions;
+import org.springframework.xd.dirt.server.options.OptionUtils;
+import org.springframework.xd.dirt.server.options.Transport;
+import org.springframework.xd.dirt.server.util.BannerUtils;
 import org.springframework.xd.dirt.stream.StreamServer;
 
 /**
@@ -37,6 +40,7 @@ import org.springframework.xd.dirt.stream.StreamServer;
  * @author Ilayaperumal Gopinathan
  * @author Mark Fisher
  * @author Eric Bottard
+ * @author David Turanski
  */
 public class AdminMain {
 
@@ -75,6 +79,7 @@ public class AdminMain {
 					+ DefaultContainer.XD_INTERNAL_CONFIG_ROOT + "admin-server.xml");
 			if (!options.isJmxDisabled()) {
 				context.getEnvironment().addActiveProfile("xd.jmx.enabled");
+				OptionUtils.setJmxProperties(options, context.getEnvironment());
 			}
 			context.refresh();
 
@@ -83,8 +88,15 @@ public class AdminMain {
 			server.afterPropertiesSet();
 			server.start();
 			if (Transport.local == options.getTransport()) {
+				StringBuilder runtimeInfo = new StringBuilder(
+						String.format("Running in Local Mode on port: %s ", server.getPort()));
+				if (options.isJmxDisabled()) {
+					runtimeInfo.append(" JMX is disabled for XD components");
+				} else {
+					runtimeInfo.append(String.format(" JMX port: %d", options.getJmxPort()));
+				}
 				System.out.println(BannerUtils.displayBanner(null,
-					String.format("Running in Local Mode on Port %s ", server.getPort())));
+					runtimeInfo.toString()));
 			}
 			context.addApplicationListener(new ApplicationListener<ContextClosedEvent>() {
 				@Override
@@ -102,5 +114,4 @@ public class AdminMain {
 			System.exit(1);
 		}
 	}
-
 }

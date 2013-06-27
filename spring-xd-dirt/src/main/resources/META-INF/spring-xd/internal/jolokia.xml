@@ -7,6 +7,6 @@
 >
 
 	<jolokia:agent lookupConfig="false" systemPropertiesMode="never">
-		<jolokia:config autoStart="true" host="0.0.0.0" port="8778"/>
+		<jolokia:config autoStart="true" host="0.0.0.0" port="${xd.jmx.port}"/>
 	</jolokia:agent>
 </beans>

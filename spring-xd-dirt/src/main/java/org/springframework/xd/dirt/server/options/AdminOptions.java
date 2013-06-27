@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.server;
+package org.springframework.xd.dirt.server.options;
 
 import org.kohsuke.args4j.Option;
 

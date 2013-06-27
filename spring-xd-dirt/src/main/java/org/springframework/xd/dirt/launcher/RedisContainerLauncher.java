@@ -34,7 +34,9 @@ import org.springframework.util.Assert;
 import org.springframework.xd.dirt.container.DefaultContainer;
 import org.springframework.xd.dirt.core.Container;
 import org.springframework.xd.dirt.event.ContainerStartedEvent;
-import org.springframework.xd.dirt.listener.util.BannerUtils;
+import org.springframework.xd.dirt.server.options.ContainerOptions;
+import org.springframework.xd.dirt.server.options.OptionUtils;
+import org.springframework.xd.dirt.server.util.BannerUtils;
 
 /**
  * @author Mark Fisher
@@ -62,7 +64,7 @@ public class RedisContainerLauncher implements ContainerLauncher, ApplicationEve
 	}
 
 	@Override
-	public Container launch() {
+	public Container launch(ContainerOptions options) {
 		synchronized (this) {
 			if (this.ids == null) {
 				this.ids = new RedisAtomicLong("idsequence", this.connectionFactory);
@@ -71,32 +73,43 @@ public class RedisContainerLauncher implements ContainerLauncher, ApplicationEve
 		long id = ids.incrementAndGet();
 		DefaultContainer container = new DefaultContainer(id + "");
 		container.start();
-		logRedisInfo(container);
+		logRedisInfo(container, options);
 		container.addListener(new ShutdownListener(container));
 		this.eventPublisher.publishEvent(new ContainerStartedEvent(container));
 		return container;
 	}
 
-	private void logRedisInfo(Container container) {
+	private void logRedisInfo(Container container, ContainerOptions options) {
 		if (logger.isInfoEnabled()) {
 			final Properties redisInfo = this.connectionFactory.getConnection().info();
-			final StringBuilder sb = new StringBuilder();
-			sb.append(String.format("Using Redis v%s (Mode: %s) on Port %s ",
+			final StringBuilder runtimeInfo = new StringBuilder();
+			runtimeInfo.append(String.format("Using Redis v%s (Mode: %s) on port: %s ",
 						redisInfo.getProperty("redis_version"),
 						redisInfo.getProperty("redis_mode"),
 						redisInfo.getProperty("tcp_port")));
-			logger.info(BannerUtils.displayBanner(container.getJvmName(), sb.toString()));
+			if (options.isJmxDisabled()) {
+				runtimeInfo.append(" JMX is disabled for XD components");
+			} else {
+				runtimeInfo.append(String.format(" JMX port: %d", options.getJmxPort()));
+			}
+			logger.info(BannerUtils.displayBanner(container.getJvmName(), runtimeInfo.toString()));
 		}
 	}
 
-	public static void main(String... args) {
+	/**
+	 * Create a container instance
+	 * @param options
+	 */
+	@SuppressWarnings("resource")
+	public static Container create(ContainerOptions options) {
 		ClassPathXmlApplicationContext context = null;
 		try {
 			context = new ClassPathXmlApplicationContext();
 			context.setConfigLocation(LAUNCHER_CONFIG_LOCATION);
 			//TODO: Need to sort out how this will be handled consistently among launchers
-			if (System.getProperty("xd.jmx.disabled") == null) {
+			if (!options.isJmxDisabled()) {
 				context.getEnvironment().addActiveProfile("xd.jmx.enabled");
+				OptionUtils.setJmxProperties(options, context.getEnvironment());
 			}
 			context.refresh();
 		}
@@ -110,7 +123,8 @@ public class RedisContainerLauncher implements ContainerLauncher, ApplicationEve
 		}
 		context.registerShutdownHook();
 		ContainerLauncher launcher = context.getBean(ContainerLauncher.class);
-		launcher.launch();
+		Container container = launcher.launch(options);
+		return container;
 	}
 
 	private static class ShutdownListener implements ApplicationListener<ContextClosedEvent> {
@@ -126,5 +140,4 @@ public class RedisContainerLauncher implements ContainerLauncher, ApplicationEve
 			container.stop();
 		}
 	}
-
 }

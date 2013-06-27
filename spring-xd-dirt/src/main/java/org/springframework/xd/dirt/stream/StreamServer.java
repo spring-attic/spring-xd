@@ -23,14 +23,13 @@ import org.apache.catalina.core.AprLifecycleListener;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.MessagingException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.ConfigurableWebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
 
 /**
@@ -57,11 +56,14 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 
 	private volatile boolean running;
 
-	private final WebApplicationContext context;
+	private final ConfigurableWebApplicationContext webApplicationContext;
 
-	public StreamServer(WebApplicationContext context, int port) {
-		Assert.notNull(context, "context must not be null");
-		this.context = context;
+	public StreamServer(
+			ConfigurableWebApplicationContext webApplicationContext, int port) {
+		Assert.notNull(webApplicationContext, "context must not be null");
+		Assert.isTrue(!webApplicationContext.isActive(),
+				"context must not have been started");
+		this.webApplicationContext = webApplicationContext;
 		this.port = port;
 	}
 
@@ -95,11 +97,17 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 		this.scheduler.setPoolSize(3);
 		this.scheduler.initialize();
 		this.tomcat.setPort(this.port);
-		Context context = this.tomcat.addContext(this.contextPath, new File(".").getAbsolutePath());
-		Tomcat.addServlet(context, this.servletName, new DispatcherServlet(this.context));
-		context.addServletMapping("/" , this.servletName);
+		Context tomcatContext = this.tomcat.addContext(this.contextPath,
+				new File(".").getAbsolutePath());
+		this.webApplicationContext.setServletContext(tomcatContext
+				.getServletContext());
+		this.webApplicationContext.refresh();
+		Tomcat.addServlet(tomcatContext, this.servletName,
+				new DispatcherServlet(this.webApplicationContext));
+		tomcatContext.addServletMapping("/", this.servletName);
 		if (logger.isInfoEnabled()) {
-			logger.info("initialized server: context=" + this.contextPath + ", servlet=" + this.servletName);
+			logger.info("initialized server: context=" + this.contextPath
+					+ ", servlet=" + this.servletName);
 		}
 	}
 

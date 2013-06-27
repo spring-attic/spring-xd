@@ -35,7 +35,7 @@ public class MBeanExportingPlugin implements Plugin {
 	public void processModule(Module module, String group, int index) {
 		module.addComponents(new ClassPathResource(CONTEXT_CONFIG_ROOT + "mbean-exporters.xml"));
 		Properties jmxProperties = new Properties();
-		jmxProperties.put("xd.module.domain", "xd." + group + "." + module.getName());
+		jmxProperties.put("xd.module.domain", "xd." + group + "." + module.getName() + "." + index);
 		module.addProperties(jmxProperties);
 	}
 

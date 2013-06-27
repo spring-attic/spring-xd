@@ -5,14 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.xd.analytics.metrics.redis.RedisCounterRepository;
-import org.springframework.xd.analytics.metrics.redis.RedisCounterService;
-import org.springframework.xd.analytics.metrics.redis.RedisFieldValueCounterRepository;
-import org.springframework.xd.analytics.metrics.redis.RedisFieldValueCounterService;
-import org.springframework.xd.analytics.metrics.redis.RedisGaugeRepository;
-import org.springframework.xd.analytics.metrics.redis.RedisGaugeService;
-import org.springframework.xd.analytics.metrics.redis.RedisRichGaugeRepository;
-import org.springframework.xd.analytics.metrics.redis.RedisRichGaugeService;
+import org.springframework.xd.analytics.metrics.redis.*;
 
 @Configuration
 public class ServicesConfig {
@@ -56,7 +49,12 @@ public class ServicesConfig {
 	public RedisCounterRepository redisCounterRepository() {	
 		return new RedisCounterRepository(redisConnectionFactory());
 	}
-	
+
+	@Bean
+	public RedisAggregateCounterService redisAggregateCounterAggregate() {
+		return new RedisAggregateCounterService(redisConnectionFactory());
+	}
+
 	@Bean
 	public StringRedisTemplate stringRedisTemplate() {
 		return new StringRedisTemplate(redisConnectionFactory());

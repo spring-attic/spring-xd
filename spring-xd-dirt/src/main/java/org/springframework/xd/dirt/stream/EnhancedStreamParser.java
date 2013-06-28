@@ -27,6 +27,7 @@ import org.springframework.xd.dirt.stream.dsl.ast.StreamsNode;
 
 /**
  * @author Andy Clement
+ * @author Gunnar Hillert
  * @since 1.0
  */
 public class EnhancedStreamParser implements StreamParser {
@@ -43,7 +44,7 @@ public class EnhancedStreamParser implements StreamParser {
 			ModuleNode moduleNode = moduleNodes.get(m);
 			ModuleDeploymentRequest request = new ModuleDeploymentRequest();
 			request.setGroup(name);
-			request.setType((m == 0) ? ((moduleNodes.size() == 1) ? "job" : "source") : (m == moduleNodes.size() - 1) ? "sink" : "processor");
+			request.setType(determineType(m, moduleNodes.size(), moduleNode.getName()));
 			request.setModule(moduleNode.getName());
 			request.setIndex(m);
 			if (moduleNode.hasArguments()) {
@@ -55,6 +56,25 @@ public class EnhancedStreamParser implements StreamParser {
 			requests.add(request);
 		}
 		return requests;
+	}
+
+	private String determineType(int m, int moduleNodesSize, String moduleName) {
+
+		final String type;
+
+		if (moduleNodesSize == 1) {
+			if ("trigger".equalsIgnoreCase(moduleName)) {
+				type = "trigger";
+			}
+			else {
+				type = "job";
+			}
+		}
+		else {
+			type = "source";
+		}
+
+		return (m == 0) ? type : (m == moduleNodesSize - 1) ? "sink" : "processor";
 	}
 
 }

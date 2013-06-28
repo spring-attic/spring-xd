@@ -22,6 +22,8 @@ import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 
 import org.springframework.xd.dirt.launcher.RedisContainerLauncher;
+import org.springframework.xd.dirt.server.options.AbstractOptions;
+import org.springframework.xd.dirt.server.options.ContainerOptions;
 
 /**
  * The main driver class for the container
@@ -43,7 +45,7 @@ public class ContainerMain  {
 	 *            command line argument
 	 */
 	public static void main(String[] args) {
-		AbstractOptions options = new ContainerOptions();
+		ContainerOptions options = new ContainerOptions();
 		CmdLineParser parser = new CmdLineParser(options);
 		try {
 			parser.parseArgument(args);
@@ -64,7 +66,7 @@ public class ContainerMain  {
 		// future versions to support other types of container launchers
 		switch (options.getTransport()) {
 		case redis:
-			RedisContainerLauncher.main();
+			RedisContainerLauncher.create(options);
 		default:
 			logger.info("only redis transport is supported now");
 		}

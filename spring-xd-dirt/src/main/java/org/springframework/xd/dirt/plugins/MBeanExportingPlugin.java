@@ -17,6 +17,7 @@ import java.util.Properties;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.xd.dirt.container.DefaultContainer;
+import org.springframework.xd.dirt.server.options.AbstractOptions;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.Plugin;
 
@@ -33,10 +34,14 @@ public class MBeanExportingPlugin implements Plugin {
 	 */
 	@Override
 	public void processModule(Module module, String group, int index) {
-		module.addComponents(new ClassPathResource(CONTEXT_CONFIG_ROOT + "mbean-exporters.xml"));
-		Properties jmxProperties = new Properties();
-		jmxProperties.put("xd.module.domain", "xd." + group + "." + module.getName() + "." + index);
-		module.addProperties(jmxProperties);
+		if (System.getProperty(AbstractOptions.XD_DISABLE_JMX_KEY) == null) {
+			module.addComponents(new ClassPathResource(CONTEXT_CONFIG_ROOT + "mbean-exporters.xml"));
+			Properties objectNameProperties = new Properties();
+			objectNameProperties.put("xd.module.name", module.getName());
+			objectNameProperties.put("xd.module.index", index);
+
+			module.addProperties(objectNameProperties);
+		}
 	}
 
 	/* (non-Javadoc)

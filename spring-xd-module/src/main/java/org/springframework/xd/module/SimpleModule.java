@@ -55,11 +55,6 @@ public class SimpleModule extends AbstractModule {
 
 	@Override
 	public void addComponents(Resource resource) {
-		//TODO: This shouldn't be here. Need to refactor
-		if (System.getProperty("xd.jmx.disabled") == null) {
-			context.getEnvironment().addActiveProfile("xd.jmx.enabled");
-		}
-
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(this.context);
 		reader.loadBeanDefinitions(resource);
 	}

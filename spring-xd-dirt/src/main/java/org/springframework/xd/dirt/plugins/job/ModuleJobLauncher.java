@@ -16,9 +16,12 @@
 package org.springframework.xd.dirt.plugins.job;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.launch.JobLauncher;
@@ -27,9 +30,9 @@ import org.springframework.util.Assert;
 
 /**
  * Executes all jobs defined within a given stream once the context has been
- * started.  This really should be replaced once we have the concept of
+ * started. This really should be replaced once we have the concept of
  * triggers built in.
- * 
+ *
  * @author Michael Minella
  * @since 1.0
  *
@@ -43,29 +46,46 @@ public class ModuleJobLauncher implements Lifecycle {
 	private JobRegistry registry;
 
 	private boolean isRunning = false;
+	private final boolean executeBatchJobOnStartup;
 
-	public ModuleJobLauncher(JobLauncher launcher, JobRegistry registry) {
+	public ModuleJobLauncher(JobLauncher launcher, JobRegistry registry, boolean executeBatchJobOnStartup) {
 		Assert.notNull(launcher, "A JobLauncher is required");
 
 		this.launcher = launcher;
 		this.registry = registry;
+		this.executeBatchJobOnStartup = executeBatchJobOnStartup;
 	}
 
 	@Override
 	public void start() {
 		isRunning = true;
 
+		if (executeBatchJobOnStartup) {
+			executeBatchJob();
+		}
+
+	}
+
+	public void executeBatchJob() {
 		Collection<String> names = registry.getJobNames();
 
 		for (String curName : names) {
 			if(curName.startsWith(groupName)) {
 				try {
-					launcher.run(registry.getJob(curName), new JobParameters());
+					launcher.run(registry.getJob(curName), getUniqueJobParameters());
 				} catch (Exception e) {
 					logger.error("An error occured while starting job " + curName, e);
 				}
 			}
 		}
+
+	}
+
+	private JobParameters getUniqueJobParameters() {
+		Map<String, JobParameter>
+		parameters = new HashMap<String, JobParameter>();
+		parameters.put("random", new JobParameter(Math.random()));
+		return new JobParameters(parameters);
 	}
 
 	@Override

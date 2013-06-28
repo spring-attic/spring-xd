@@ -15,25 +15,44 @@
  */
 package org.springframework.xd.dirt.plugins;
 
+import java.util.Map.Entry;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.core.io.Resource;
+import org.springframework.util.Assert;
 /**
  * Implementation of {@link BeanDefinitionRegistryPostProcessor} that adds
- * all beans defined in the specified {@link Resource}s.  Used by plugins
+ * all beans defined in the specified {@link Resource}s. Used by plugins
  * to hook into the shared application context.
  *
+ * Alternatively, allows for adding {@link BeanDefinition}s programmatically as
+ * well.
+ *
  * @author Jennifer Hickey
+ * @author Gunnar Hillert
+ *
+ * @since 1.0
+ *
  */
 public class BeanDefinitionAddingPostProcessor implements BeanDefinitionRegistryPostProcessor{
 
-	private Resource[] resources;
+	private final Resource[] resources;
+
+	private final SortedMap<String, BeanDefinition> beanDefinitions = new TreeMap<String, BeanDefinition>();
 
 	public BeanDefinitionAddingPostProcessor(Resource... resources) {
 		this.resources = resources;
+	}
+
+	public BeanDefinitionAddingPostProcessor() {
+		this.resources = new Resource[] {};
 	}
 
 	@Override
@@ -44,5 +63,28 @@ public class BeanDefinitionAddingPostProcessor implements BeanDefinitionRegistry
 	public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
 		reader.loadBeanDefinitions(resources);
+
+		for(Entry<String, BeanDefinition> entry : beanDefinitions.entrySet()) {
+			registry.registerBeanDefinition(entry.getKey(), entry.getValue());
+		}
+
 	}
+
+	/**
+	 * Allows you to add custom {@link BeanDefinition}s.
+	 *
+	 * @param name The name of the bean instance to register
+	 * @param beanDefinition Definition of the bean instance to register
+	 * @return The BeanDefinitionAddingPostProcessor
+	 */
+	public BeanDefinitionAddingPostProcessor addBeanDefinition(String beanName, BeanDefinition beanDefinition) {
+
+		Assert.hasText(beanName, "Bean name must not be empty");
+		Assert.notNull(beanDefinition, "BeanDefinition must not be null");
+
+		this.beanDefinitions.put(beanName, beanDefinition);
+		return this;
+
+	}
+
 }

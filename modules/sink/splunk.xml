@@ -12,7 +12,7 @@
 	<int:channel id="input" />
 	<int:channel id="splunkOutput" />
 
-	<int:service-activator input-channel="input" output-channel="splunkOutput"
+	<int:transformer input-channel="input" output-channel="splunkOutput"
 		ref="handler" />
 
 	<bean id="handler"

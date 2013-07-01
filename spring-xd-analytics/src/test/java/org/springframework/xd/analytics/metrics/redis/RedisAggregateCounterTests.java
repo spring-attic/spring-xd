@@ -22,9 +22,7 @@ import static org.hamcrest.Matchers.*;
 import java.util.Map;
 import java.util.Set;
 
-import org.joda.time.Chronology;
-import org.joda.time.DateTime;
-import org.joda.time.Interval;
+import org.joda.time.*;
 import org.joda.time.chrono.ISOChronology;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -46,8 +44,6 @@ import org.springframework.xd.analytics.metrics.core.AggregateCounter;
 public class RedisAggregateCounterTests {
 	private final String counterName = "test";
 
-	private static DateTimeFormatter formatter = AggregateKeyGenerator.dateTimeFormatter;
-
 	@Autowired
 	private RedisAggregateCounterService counterService;
 
@@ -64,60 +60,53 @@ public class RedisAggregateCounterTests {
 		stringRedisTemplate.delete(counterService.getKeyForAllCounterNames());
 		stringRedisTemplate.delete(counterService.getKeyForAllRootCounterNames());
 	}
+
 	@Test
-	public void play() {
-		// February 28, 2013 at 23:27
-		counterService.increment(counterName, 1, formatter.parseDateTime("201302282327"));
-		DateTime firstDateTime = new DateTime(2013, 2, 28, 23, 27, 0, 0);
+	public void testTwoDaysDataSimulation() throws Exception {
+		final DateTime start = new DateTime(2013, 6, 28, 23, 27, 0, 0);
+		final DateTime end   = start.plusDays(2);
+		DateTime now   = start;
 
-		assertThat(counterService.getTotalCounts(counterName), equalTo(1));
+		int total = 0;
+		while (now.isBefore(end)) {
+			int minute = now.getMinuteOfHour();
+			counterService.increment(counterName, minute, now);
+			now = now.plusMinutes(1);
+			total += minute;
+		}
 
-		Map<Integer, Integer> yearlyCounts = counterService.getYearlyCounts(counterName);
-		assertThat(yearlyCounts.size(), equalTo(1));
-		assertThat(yearlyCounts, hasEntry(2013, 1));
+		// Check the total
+		assertEquals(total, counterService.getTotalCounts(counterName));
 
-		Map<Integer, Integer> monthlyCounterForYear = counterService.getMonthlyCountsForYear(counterName, 2013);
-		assertThat(monthlyCounterForYear.size(), equalTo(1));
-		assertThat(monthlyCounterForYear, hasEntry(2, 1));
+		DateTimeField resolution = ISOChronology.getInstanceUTC().minuteOfHour();
 
-		Map<Integer, Integer> dayCountsForMonth = counterService.getDayCountsForMonth(counterName, 2013, 2);
-		assertThat(dayCountsForMonth.size(), equalTo(1));
-		assertThat(dayCountsForMonth, hasEntry(28, 1));
+		// Query the entire period
+		Interval queryInterval = new Interval(start, end);
+		AggregateCount aggregateCount = counterService.getCounts(counterName, queryInterval, resolution);
+		assertEquals(counterName, aggregateCount.name);
+		assertEquals(queryInterval, aggregateCount.interval);
+		int[] counts = aggregateCount.counts;
+		assertEquals(2*24*60, counts.length);
+		assertEquals(27, counts[0]);
+		assertEquals(28,counts[1]);
+		assertEquals(59, counts[32]);
+		for (int i = 33; i < counts.length; i++) {
+			int expect = (i - 33) % 60;
+			assertEquals("Count at index " + i + " should be " + expect, expect, counts[i]);
+		}
 
-		Map<Integer, Integer> hourCountsForDay = counterService.getHourCountsForDay(counterName, 2013, 2, 28);
-		assertThat(hourCountsForDay.size(), equalTo(1));
-		assertThat(hourCountsForDay, hasEntry(23, 1));
+		// Query a 24 hour period
+		now = start.plusHours(5).withMinuteOfHour(0);
+		queryInterval = new Interval(now, now.plusHours(24));
 
-		int[] minCountsForHour = counterService.getMinCountsForHour(counterName, 2013, 2, 28, 23);
-		assertEquals(1, minCountsForHour[27]);
-
-		AggregateCount ac = counterService.getCounts(counterName, new Interval(firstDateTime, firstDateTime.withMinuteOfHour(59)), ISOChronology.getInstance().minuteOfDay());
-
-		// For this interval, 27th minute is at offset 0
-		assertEquals(1, ac.counts[0]);
-
-		// February 28, 2013 at 22:56
-		counterService.increment(counterName, 1, formatter.parseDateTime("201302282256"));
-		DateTime secondDateTime = new DateTime(2013, 2, 28, 22, 56, 0, 0);
-
-/*
-		DateTimeFormatter originalFormatter = DateTimeFormat.forPattern("yyyy.MM.dd-HH:mm");
-		String firstDateString = firstDateTime.toString(originalFormatter);
-		String secondDateString = secondDateTime.toString(originalFormatter);
-
-		// February 28, 2013 at 23:28 - one minute higher than other event, use as upper bound for search over past hour.
-		DateTime thirdDateTime = new DateTime(2013, 2, 28, 23, 28, 0, 0);
-		Map<String, String> originalRepresentation = counterService.getMinForLastHourInOriginalFormat(counterName, thirdDateTime);
-
-		//{2013.02.28-22:56=1, 2013.02.28-23:27=1}
-		assertTrue(originalRepresentation.containsKey(firstDateString));
-		assertTrue(originalRepresentation.containsKey(secondDateString));
-		assertEquals(originalRepresentation.get(firstDateString), "1");
-		assertEquals(originalRepresentation.get(secondDateString), "1");
-  */
-
-		//TODO test counter list.
-
-		//TODO range queries
+		aggregateCount = counterService.getCounts(counterName, queryInterval, resolution);
+		counts = aggregateCount.counts;
+		assertEquals(24*60, counts.length);
+		assertEquals(0, counts[0]); // on an hour boundary
+		for (int i = 1; i < counts.length; i++) {
+			int expect = i % 60;
+			assertEquals("Count at index " + i + " should be " + expect, expect, counts[i]);
+		}
 	}
+
 }

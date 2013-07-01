@@ -106,7 +106,7 @@ public class RedisAggregateCounterService implements AggregateCounterService {
 	}
 
 	/**
-	 * Return the counts at the specified resolution over a time interval.
+	 * Return the counts at the specified resolution over a given time interval.
 	 */
 	@Override
 	public AggregateCount getCounts(String name, Interval interval, DateTimeField resolution) {
@@ -117,7 +117,7 @@ public class RedisAggregateCounterService implements AggregateCounterService {
 		Chronology c = interval.getChronology();
 		DurationField resolutionDuration = resolution.getDurationField();
 
-		if (resolutionDuration.equals(c.minutes())) {
+		if (resolutionDuration.getUnitMillis() == 60000) {
 			// Iterate through each hour in the interval and load the minutes for it
 			dt.setRounding(c.hourOfDay());
 			Duration step = Duration.standardHours(1);
@@ -151,27 +151,27 @@ public class RedisAggregateCounterService implements AggregateCounterService {
 		}
 	}
 
-	public Map<Integer, Integer> getYearlyCounts(String name) {
+	private Map<Integer, Integer> getYearlyCounts(String name) {
 		String counterName = getMetricKey(name);
 		AggregateKeyGenerator akg = new AggregateKeyGenerator(counterName);
 		return convertMap(getEntries(akg.getYearsKey()));
 	}
 
-	public Map<Integer, Integer> getMonthlyCountsForYear(String name, Integer year) {
+	private Map<Integer, Integer> getMonthlyCountsForYear(String name, Integer year) {
 		String counterName = getMetricKey(name);
 		DateTime dt = new DateTime().withYear(year);
 		AggregateKeyGenerator akg = new AggregateKeyGenerator(counterName, dt);
 		return convertMap(getEntries(akg.getYearKey()));
 	}
 
-	public Map<Integer, Integer> getDayCountsForMonth(String name, int year, int month) {
+	private Map<Integer, Integer> getDayCountsForMonth(String name, int year, int month) {
 		String counterName = getMetricKey(name);
 		DateTime dt = new DateTime().withYear(year).withMonthOfYear(month);
 		AggregateKeyGenerator akg = new AggregateKeyGenerator(counterName, dt);
 		return convertMap(getEntries(akg.getMonthKey()));
 	}
 
-	public Map<Integer, Integer> getHourCountsForDay(String name, int year, int month, int day) {
+	private Map<Integer, Integer> getHourCountsForDay(String name, int year, int month, int day) {
 		String counterName = getMetricKey(name);
 		DateTime dt = new DateTime().withYear(year).withMonthOfYear(month).withDayOfMonth(day);
 		AggregateKeyGenerator akg = new AggregateKeyGenerator(counterName, dt);

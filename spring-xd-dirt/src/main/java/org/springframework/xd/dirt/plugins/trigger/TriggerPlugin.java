@@ -15,6 +15,8 @@
  */
 package org.springframework.xd.dirt.plugins.trigger;
 
+import java.util.Properties;
+
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.scheduling.Trigger;
@@ -50,16 +52,24 @@ public class TriggerPlugin implements Plugin {
 		builder.addConstructorArgValue(module.getProperties().get("cron"));
 
 		final BeanDefinitionAddingPostProcessor postProcessor = new BeanDefinitionAddingPostProcessor();
-		postProcessor.addBeanDefinition(group, builder.getBeanDefinition());
+		postProcessor.addBeanDefinition("trigger." + group, builder.getBeanDefinition());
 
 		Assert.notNull(commonApplicationContext, "The 'commonApplicationContext' property must not be null.");
 		this.commonApplicationContext.addBeanFactoryPostProcessor(postProcessor);
+
+		configureProperties(module, group);
 		this.commonApplicationContext.refresh();
 
 	}
 
 	@Override
 	public void removeModule(Module module, String group, int index) {
+	}
+
+	private void configureProperties(Module module, String group) {
+		Properties properties = new Properties();
+		properties.setProperty("xd.stream.name", group);
+		module.addProperties(properties);
 	}
 
 	/**

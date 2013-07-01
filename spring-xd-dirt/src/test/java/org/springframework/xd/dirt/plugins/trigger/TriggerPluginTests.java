@@ -85,7 +85,7 @@ public class TriggerPluginTests {
 		assertEquals(1, module.getProperties().size());
 		plugin.processModule(module, "newTrigger", 0);
 
-		CronTrigger cronTrigger = commonContext.getBean("newTrigger", CronTrigger.class);
+		CronTrigger cronTrigger = commonContext.getBean("trigger.newTrigger", CronTrigger.class);
 		assertEquals("*/15 * * * * *", cronTrigger.getExpression());
 	}
 }

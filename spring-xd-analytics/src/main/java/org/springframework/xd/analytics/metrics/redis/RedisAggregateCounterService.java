@@ -15,7 +15,6 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.Assert;
 import org.springframework.xd.analytics.metrics.core.AggregateCount;
 import org.springframework.xd.analytics.metrics.core.AggregateCounterService;
-import org.springframework.xd.analytics.metrics.core.DayCounts;
 
 /**
  * @author Mark Pollack
@@ -95,14 +94,6 @@ public class RedisAggregateCounterService implements AggregateCounterService {
 			logger.trace("TotalCounts - val is null");
 			return -1;
 		}
-	}
-
-	/**
-	 * Get the counts for the current day, at a specific resolution.
-	 */
-	@Override
-	public DayCounts getDayCounts(String name, DateTimeField resolution) {
-		throw new UnsupportedOperationException();
 	}
 
 	/**

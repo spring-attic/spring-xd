@@ -25,6 +25,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.scheduling.config.CronTask;
 import org.springframework.xd.dirt.plugins.BeanDefinitionAddingPostProcessor;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.SimpleModule;
@@ -32,6 +33,7 @@ import org.springframework.xd.module.SimpleModule;
 /**
  *
  * @author Michael Minella
+ * @author Gunnar Hillert
  *
  */
 public class JobPluginTests {
@@ -72,4 +74,15 @@ public class JobPluginTests {
 		assertEquals(1, sharedBeans.size());
 		assertTrue(sharedBeans.get(0) instanceof BeanDefinitionAddingPostProcessor);
 	}
+
+	@Test
+	public void testThatLocalCronTaskIsAdded() {
+		SimpleModule module = new SimpleModule("testJob", "job");
+		module.getProperties().put("cron", "*/15 * * * * *");
+		plugin.processModule(module, "foo", 0);
+		String[] moduleBeans = module.getApplicationContext().getBeanNamesForType(CronTask.class);
+		assertEquals(1, moduleBeans.length);
+		assertTrue(moduleBeans[0].contains("org.springframework.scheduling.config.CronTask"));
+	}
+
 }

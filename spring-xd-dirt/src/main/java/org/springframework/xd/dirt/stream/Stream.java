@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.rest.client;
-
-import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
+package org.springframework.xd.dirt.stream;
 
 /**
- * The interface defining operations available against a Spring XD runtime.
- *
+ * An actual runtime execution of a {@link StreamDefinition}.
+ * 
  * @author Eric Bottard
  */
-public interface SpringXDOperations {
+// TODO placeholder class for future concept. Difference between Stream and StreamDefinition include e.g. actual
+// location of executing code. Note that relation between the two is still 1-1
+public class Stream {
 
-	public StreamDefinitionResource deployStream(String name, String defintion);
-
-	public void undeployStream(String name);
+	/**
+	 * The definition this execution embodies.
+	 */
+	private StreamDefinition definition;
 
 }

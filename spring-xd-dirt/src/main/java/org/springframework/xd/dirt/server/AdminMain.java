@@ -34,7 +34,7 @@ import org.springframework.xd.dirt.stream.StreamServer;
 
 /**
  * The main driver class for the admin.
- *
+ * 
  * @author Mark Pollack
  * @author Jennifer Hickey
  * @author Ilayaperumal Gopinathan
@@ -62,6 +62,7 @@ public class AdminMain {
 		}
 		AbstractOptions.setXDHome(options.getXDHomeDir());
 		AbstractOptions.setXDTransport(options.getTransport());
+		AdminOptions.setXDStore(options.getStore());
 		if (options.isShowHelp()) {
 			parser.printUsage(System.err);
 			System.exit(0);
@@ -75,8 +76,7 @@ public class AdminMain {
 	public static void launchStreamServer(final AdminOptions options) {
 		try {
 			XmlWebApplicationContext context = new XmlWebApplicationContext();
-			context.setConfigLocation("classpath:"
-					+ DefaultContainer.XD_INTERNAL_CONFIG_ROOT + "admin-server.xml");
+			context.setConfigLocation("classpath:" + DefaultContainer.XD_INTERNAL_CONFIG_ROOT + "admin-server.xml");
 			if (!options.isJmxDisabled()) {
 				context.getEnvironment().addActiveProfile("xd.jmx.enabled");
 				OptionUtils.setJmxProperties(options, context.getEnvironment());
@@ -84,20 +84,19 @@ public class AdminMain {
 
 			// Not making StreamServer a spring bean eases move to .war file if
 			// needed
-			final StreamServer server = new StreamServer(context,
-					options.getHttpPort());
+			final StreamServer server = new StreamServer(context, options.getHttpPort());
 			server.afterPropertiesSet();
 			server.start();
 			if (Transport.local == options.getTransport()) {
-				StringBuilder runtimeInfo = new StringBuilder(
-						String.format("Running in Local Mode on port: %s ", server.getPort()));
+				StringBuilder runtimeInfo = new StringBuilder(String.format("Running in Local Mode on port: %s ",
+						server.getPort()));
 				if (options.isJmxDisabled()) {
 					runtimeInfo.append(" JMX is disabled for XD components");
-				} else {
+				}
+				else {
 					runtimeInfo.append(String.format(" JMX port: %d", options.getJmxPort()));
 				}
-				System.out.println(BannerUtils.displayBanner(null,
-					runtimeInfo.toString()));
+				System.out.println(BannerUtils.displayBanner(null, runtimeInfo.toString()));
 			}
 			context.addApplicationListener(new ApplicationListener<ContextClosedEvent>() {
 				@Override

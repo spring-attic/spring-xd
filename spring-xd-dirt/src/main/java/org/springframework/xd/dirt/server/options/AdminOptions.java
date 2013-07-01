@@ -24,14 +24,25 @@ import org.kohsuke.args4j.Option;
  */
 public class AdminOptions extends AbstractOptions {
 
-	@Option(name="--httpPort", usage="Http port for the stream server (default: 8080)", metaVar="<httpPort>")
+	@Option(name = "--httpPort", usage = "Http port for the stream server (default: 8080)", metaVar = "<httpPort>")
 	private int httpPort = 8080;
+
+	@Option(name = "--store", usage = "How to persist admin data (default: redis)")
+	private Store store = Store.redis;
 
 	/**
 	 * @return http port
 	 */
 	public int getHttpPort() {
 		return httpPort;
+	}
+
+	public Store getStore() {
+		return store;
+	}
+
+	public static void setXDStore(Store store) {
+		System.setProperty("xd.store", store.name());
 	}
 
 }

@@ -19,17 +19,19 @@ package org.springframework.xd.dirt.rest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.hateoas.config.EnableHypermediaSupport;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 /**
  * Takes care of infrastructure setup for the web/rest layer.
- *
+ * 
  * @author Eric Bottard
  */
 @Configuration
 @EnableWebMvc
 @EnableHypermediaSupport
+@EnableSpringDataWebSupport
 @ComponentScan(basePackageClasses = StreamsController.class, excludeFilters = @Filter(Configuration.class))
 public class RestConfiguration {
 

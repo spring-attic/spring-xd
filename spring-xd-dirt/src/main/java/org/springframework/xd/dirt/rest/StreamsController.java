@@ -17,7 +17,11 @@
 package org.springframework.xd.dirt.rest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.ExposesResourceFor;
+import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.VndErrors.VndError;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -30,82 +34,96 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.xd.dirt.stream.StreamDefinition;
+import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDeployer;
-import org.springframework.xd.rest.client.domain.Stream;
+import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
 
 /**
  * @author Eric Bottard
  */
 @Controller
 @RequestMapping("/streams")
-@ExposesResourceFor(Stream.class)
+@ExposesResourceFor(StreamDefinitionResource.class)
 public class StreamsController {
 
-	private StreamDeployer streamDeployer;
+	private final StreamDeployer streamDeployer;
+
+	private final StreamDefinitionRepository streamDefinitionRepository;
 
 	@Autowired
-	public StreamsController(StreamDeployer streamDeployer) {
+	public StreamsController(StreamDeployer streamDeployer, StreamDefinitionRepository streamDefinitionRepository) {
 		this.streamDeployer = streamDeployer;
+		this.streamDefinitionRepository = streamDefinitionRepository;
 	}
 
 	/**
 	 * Create a new Stream / Tap.
-	 *
-	 * @param name
-	 *            the name of the stream to create (required)
-	 * @param dsl
-	 *            some representation of the stream behavior (required)
+	 * 
+	 * @param name the name of the stream to create (required)
+	 * @param dsl some representation of the stream behavior (required)
 	 * @deprecated use POST on /streams instead
 	 */
 	@Deprecated
 	@RequestMapping(value = "/{name}", method = { RequestMethod.PUT })
 	@ResponseStatus(HttpStatus.CREATED)
-	public void olddeploy(@PathVariable("name") String name,
-			@RequestBody String dsl) {
+	public void olddeploy(@PathVariable("name")
+	String name, @RequestBody
+	String dsl) {
 		deploy(name, dsl);
 	}
 
 	/**
 	 * Create a new Stream / Tap.
-	 *
-	 * @param name
-	 *            the name of the stream to create (required)
-	 * @param definition
-	 *            some representation of the stream behavior, expressed in the
-	 *            XD DSL (required)
+	 * 
+	 * @param name the name of the stream to create (required)
+	 * @param definition some representation of the stream behavior, expressed in the XD DSL (required)
 	 */
 	@RequestMapping(value = "", method = RequestMethod.POST)
 	@ResponseStatus(HttpStatus.CREATED)
 	@ResponseBody
-	public Stream deploy(@RequestParam("name") String name,
-			@RequestParam("definition") String definition) {
+	public StreamDefinitionResource deploy(@RequestParam("name")
+	String name, @RequestParam("definition")
+	String definition) {
 		streamDeployer.deployStream(name, definition);
-		Stream result = new Stream(name);
+		StreamDefinitionResource result = new StreamDefinitionResource(name, definition);
 		return result;
 	}
 
 	/**
 	 * Request removal of an existing stream.
-	 *
-	 * @param name
-	 *            the name of an existing stream (required)
+	 * 
+	 * @param name the name of an existing stream (required)
 	 */
 	@RequestMapping(value = "/{name}", method = RequestMethod.DELETE)
 	@ResponseStatus(HttpStatus.OK)
-	public void undeploy(@PathVariable("name") String name) {
+	public void undeploy(@PathVariable("name")
+	String name) {
 		streamDeployer.undeployStream(name);
 	}
 
 	/**
-	 * Handles the case where client submitted an ill valued request (most
-	 * likely empty request body).
+	 * List stream definitions.
+	 */
+	@ResponseBody
+	@RequestMapping(value = "", method = RequestMethod.GET)
+	@ResponseStatus(HttpStatus.OK)
+	public PagedResources<StreamDefinitionResource> list(Pageable pageable,
+			PagedResourcesAssembler<StreamDefinition> assembler) {
+		Page<StreamDefinition> page = streamDefinitionRepository.findAll(pageable);
+		return assembler.toResource(page, new StreamDefinitionResourceAssembler());
+	}
+
+	// ---------------- Exception Handlers ------------------------
+
+	/**
+	 * Handles the case where client submitted an ill valued request (most likely empty request body).
 	 */
 	@ExceptionHandler(IllegalArgumentException.class)
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	@ResponseBody
 	public VndError onIllegalArgumentException(IllegalArgumentException iae) {
-		String msg = StringUtils.hasText(iae.getMessage()) ? iae.getMessage()
-				: "IllegalArgumentException";
+		String msg = StringUtils.hasText(iae.getMessage()) ? iae.getMessage() : "IllegalArgumentException";
 		return new VndError("IllegalArgumentException", msg);
 	}
 
@@ -116,8 +134,7 @@ public class StreamsController {
 	@ExceptionHandler(Exception.class)
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 	public VndError onException(Exception e) {
-		String msg = StringUtils.hasText(e.getMessage()) ? e.getMessage() : e
-				.getClass().getSimpleName();
+		String msg = StringUtils.hasText(e.getMessage()) ? e.getMessage() : e.getClass().getSimpleName();
 		return new VndError(e.getClass().getSimpleName(), msg);
 	}
 

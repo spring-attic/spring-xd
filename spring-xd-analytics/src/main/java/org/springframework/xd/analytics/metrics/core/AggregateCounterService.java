@@ -14,8 +14,6 @@ public interface AggregateCounterService {
 
 	int getTotalCounts(String name);
 
-	DayCounts getDayCounts(String name, DateTimeField resolution);
-
 	AggregateCount getCounts(String name, Interval interval, DateTimeField resolution);
 }
 

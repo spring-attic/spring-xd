@@ -67,6 +67,7 @@ public class ContainerMain  {
 		switch (options.getTransport()) {
 		case redis:
 			RedisContainerLauncher.create(options);
+			break;
 		default:
 			logger.info("only redis transport is supported now");
 		}

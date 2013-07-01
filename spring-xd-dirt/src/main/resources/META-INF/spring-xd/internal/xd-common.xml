@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+<!-- This should be imported by container and admin components which require a property placeholder. The raw bean config 
+allows an 'id' attribute, ensuring this is a single bean instance and may be imported multiple times -->
+
+	<bean id="xd.property.placeholder" class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
+		<property name="locations" value="file:${xd.home}/config/redis.properties"/>
+	</bean>
+</beans>

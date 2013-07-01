@@ -19,8 +19,6 @@
 
 	<int-redis:outbound-channel-adapter channel="containerEventsOut" topic="events:containers" />
 
-	<context:property-placeholder location="file:${xd.home}/config/redis.properties" />
-
 	<bean id="redisInboundAdapter" class="org.springframework.integration.x.redis.RedisQueueInboundChannelAdapter">
 		<constructor-arg value="queue.deployer" />
 		<constructor-arg ref="redisConnectionFactory" />

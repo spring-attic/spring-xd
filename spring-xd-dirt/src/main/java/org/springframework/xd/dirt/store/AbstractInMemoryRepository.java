@@ -18,9 +18,10 @@ package org.springframework.xd.dirt.store;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -30,7 +31,10 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.util.Assert;
 
 /**
- * Base implementation for an in-memory store, using a {@link ConcurrentHashMap} internally.
+ * Base implementation for an in-memory store, using a {@link Map} internally.
+ * 
+ * Default behaviour is to retain sort order on the keys. Hence, this is by default the only sort supported when
+ * querying with a {@link Pageable}.
  * 
  * @param <T> the type of things to store
  * @param <ID> a "primary key" to the things
@@ -39,10 +43,20 @@ import org.springframework.util.Assert;
 public abstract class AbstractInMemoryRepository<T, ID extends Serializable> implements
 		PagingAndSortingRepository<T, ID> {
 
-	private final ConcurrentMap<ID, T> map = new ConcurrentHashMap<ID, T>();
+	private final Map<ID, T> map;
+
+	protected AbstractInMemoryRepository() {
+		map = buildMap();
+	}
+
+	protected Map<ID, T> buildMap() {
+		Map<ID, T> map = new TreeMap<ID, T>();
+		return Collections.synchronizedMap(map);
+	}
 
 	@Override
 	public <S extends T> S save(S entity) {
+		Assert.notNull(entity);
 		map.put(keyFor(entity), entity);
 		return entity;
 	}

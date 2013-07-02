@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.xd.dirt.plugins.job;
+package org.springframework.xd.dirt.plugins.trigger;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Arrays;
 import java.util.List;
@@ -25,34 +25,37 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.scheduling.config.CronTask;
-import org.springframework.xd.dirt.plugins.BeanDefinitionAddingPostProcessor;
+import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.SimpleModule;
 
 /**
  *
- * @author Michael Minella
  * @author Gunnar Hillert
  *
  */
-public class JobPluginTests {
+public class TriggerPluginTests {
 
-	private JobPlugin plugin;
+	private TriggerPlugin plugin;
 
 	@Before
 	public void setUp() throws Exception {
-		plugin = new JobPlugin();
+		plugin = new TriggerPlugin();
 	}
 
 	@Test
 	public void streamPropertiesAdded() {
-		Module module = new SimpleModule("testJob", "job");
+		Module module = new SimpleModule("testTrigger", "trigger");
 		assertEquals(0, module.getProperties().size());
-		plugin.processModule(module, "foo", 0);
-		assertEquals(2, module.getProperties().size());
-		assertEquals("foo", module.getProperties().getProperty("xd.stream.name"));
-		assertEquals("true", module.getProperties().getProperty("xd.trigger.execute_on_startup"));
+
+		try {
+			plugin.processModule(module, "newTrigger", 0);
+		} catch (IllegalArgumentException e) {
+			assertEquals("The 'commonApplicationContext' property must not be null.",
+				e.getMessage());
+			return;
+		}
+		fail("Expected an IllegalArgumentException to be thrown.");
 	}
 
 	@Test
@@ -61,9 +64,7 @@ public class JobPluginTests {
 		plugin.processModule(module, "foo", 0);
 		String[] moduleBeans = module.getApplicationContext().getBeanDefinitionNames();
 		Arrays.sort(moduleBeans);
-		assertEquals(2, moduleBeans.length);
-		assertTrue(moduleBeans[0].contains("registrar"));
-		assertTrue(moduleBeans[1].contains("startupJobLauncher"));
+		assertEquals(0, moduleBeans.length);
 	}
 
 	@Test
@@ -71,18 +72,20 @@ public class JobPluginTests {
 		GenericApplicationContext context = new GenericApplicationContext();
 		plugin.postProcessSharedContext(context);
 		List<BeanFactoryPostProcessor> sharedBeans = context.getBeanFactoryPostProcessors();
-		assertEquals(1, sharedBeans.size());
-		assertTrue(sharedBeans.get(0) instanceof BeanDefinitionAddingPostProcessor);
+		assertEquals(0, sharedBeans.size());
 	}
 
 	@Test
-	public void testThatLocalCronTaskIsAdded() {
-		SimpleModule module = new SimpleModule("testJob", "job");
-		module.getProperties().put("cron", "*/15 * * * * *");
-		plugin.processModule(module, "foo", 0);
-		String[] moduleBeans = module.getApplicationContext().getBeanNamesForType(CronTask.class);
-		assertEquals(1, moduleBeans.length);
-		assertTrue(moduleBeans[0].contains("org.springframework.scheduling.config.CronTask"));
-	}
+	public void testTriggerAddedToSharedContext() {
+		GenericApplicationContext commonContext = new GenericApplicationContext();
+		plugin.postProcessSharedContext(commonContext);
 
+		Module module = new SimpleModule("testTrigger", "trigger");
+		module.getProperties().put("cron", "*/15 * * * * *");
+		assertEquals(1, module.getProperties().size());
+		plugin.processModule(module, "newTrigger", 0);
+
+		CronTrigger cronTrigger = commonContext.getBean(TriggerPlugin.BEAN_NAME_PREFIX + "newTrigger", CronTrigger.class);
+		assertEquals("*/15 * * * * *", cronTrigger.getExpression());
+	}
 }

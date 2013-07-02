@@ -51,6 +51,8 @@ public class StreamsController {
 
 	private final StreamDefinitionRepository streamDefinitionRepository;
 
+	private final StreamDefinitionResourceAssembler definitionResourceAssembler = new StreamDefinitionResourceAssembler();
+
 	@Autowired
 	public StreamsController(StreamDeployer streamDeployer, StreamDefinitionRepository streamDefinitionRepository) {
 		this.streamDeployer = streamDeployer;
@@ -91,6 +93,20 @@ public class StreamsController {
 	}
 
 	/**
+	 * Retrieve information about a single {@link StreamDefinition}.
+	 * 
+	 * @param name the name of an existing stream (required)
+	 */
+	@ResponseBody
+	@RequestMapping(value = "/{name}", method = RequestMethod.GET)
+	@ResponseStatus(HttpStatus.OK)
+	public StreamDefinitionResource display(@PathVariable("name")
+	String name) {
+		StreamDefinition def = streamDefinitionRepository.findOne(name);
+		return definitionResourceAssembler.toResource(def);
+	}
+
+	/**
 	 * Request removal of an existing stream.
 	 * 
 	 * @param name the name of an existing stream (required)
@@ -111,7 +127,7 @@ public class StreamsController {
 	public PagedResources<StreamDefinitionResource> list(Pageable pageable,
 			PagedResourcesAssembler<StreamDefinition> assembler) {
 		Page<StreamDefinition> page = streamDefinitionRepository.findAll(pageable);
-		return assembler.toResource(page, new StreamDefinitionResourceAssembler());
+		return assembler.toResource(page, definitionResourceAssembler);
 	}
 
 	// ---------------- Exception Handlers ------------------------

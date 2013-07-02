@@ -26,16 +26,13 @@ public abstract class AbstractStreamTests {
 	static StreamDeployer streamDeployer;
 
 	@BeforeClass
-	public static void startXDSingleNode() {
+	public static void startXDSingleNode() throws Exception {
 		System.setProperty("xd.transport", "local");
 		System.setProperty("xd.home", "..");
-		try {
-			ApplicationContext ctx = new ClassPathXmlApplicationContext("/META-INF/spring-xd/transports/local-admin.xml");
-			streamDeployer = ctx.getBean(StreamDeployer.class);
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
+
+		ApplicationContext ctx = new ClassPathXmlApplicationContext("/META-INF/spring-xd/transports/local-admin.xml");
+		streamDeployer = ctx.getBean(StreamDeployer.class);
+
 	}
 
 	protected void deployStream(String name, String config) {

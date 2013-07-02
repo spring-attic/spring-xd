@@ -296,7 +296,7 @@ project ('spring-xd-gemfire-server') {
 	}
 
 	applicationDistribution.from(configFiles) {
-		into "bin"
+		into "config"
 	}
 
 	task scriptFiles {
@@ -378,7 +378,9 @@ project('spring-xd-rest-client') {
 project('spring-xd-rest-domain') {
 	description = 'Spring XD REST Domain'
 			dependencies {
-		compile "org.springframework.hateoas:spring-hateoas:$springHATEOASVersion"
+		compile ("org.springframework.hateoas:spring-hateoas:$springHATEOASVersion") {
+			exclude module: "spring-asm"
+		}
 	}
 }
 
@@ -422,11 +424,36 @@ project('spring-xd-shell') {
 	run {
 		standardInput = System.in
 	}
-	
+
 	dependencies {
 		compile "org.springframework.shell:spring-shell:$springShellVersion"
 		compile project(":spring-xd-rest-client")
+		runtime "org.slf4j:jcl-over-slf4j:$slf4jVersion",
+			"org.slf4j:slf4j-log4j12:$slf4jVersion",
+			"log4j:log4j:$log4jVersion"
+
 	}
+
+	// skip the startScripts task to avoid default start script generation
+	startScripts.setEnabled(false)
+	
+	task scriptFiles {
+		def scripts = file("$rootDir/scripts/shell")
+		outputs.dir scripts
+	}
+	applicationDistribution.from(scriptFiles) {
+		into "bin"
+	}
+
+	task configFiles {
+		def configs = file("$rootDir/spring-xd-shell/config")
+		outputs.dir configs
+	}
+
+	applicationDistribution.from(configFiles) {
+		into "config"
+	}
+
 }
 
 apply plugin: 'sonar-runner'
@@ -462,12 +489,17 @@ task copyXDInstall(type: Copy, dependsOn: [":spring-xd-dirt:build", ":spring-xd-
 	into "$buildDir/dist/spring-xd/xd"
 }
 
+task copyXDShellInstall(type: Copy, dependsOn: [":spring-xd-shell:installApp"]) {
+	from "$rootDir/spring-xd-shell/build/install/spring-xd-shell"
+	into "$buildDir/dist/spring-xd/shell"
+}
+
 task cleanDist(type: Delete) {
 	description = "cleans $rootDir/dist directory"
 	delete "$buildDir/dist"
 }
 
-task distXD (type: Copy, dependsOn: ["cleanDist", "copyRedisInstall", "copyGemfireInstall", "copyXDInstall"]) {
+task distXD (type: Copy, dependsOn: ["cleanDist", "copyRedisInstall", "copyGemfireInstall", "copyXDInstall", "copyXDShellInstall"]) {
 	description = "Copy all the required installs"
 	from "$rootDir/scripts/README"
 	from "$rootDir/scripts/LICENSE"

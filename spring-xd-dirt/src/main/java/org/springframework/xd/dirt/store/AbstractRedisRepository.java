@@ -18,6 +18,7 @@ package org.springframework.xd.dirt.store;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -118,8 +119,12 @@ public abstract class AbstractRedisRepository<T, ID extends Serializable> implem
 	public Page<T> findAll(Pageable pageable) {
 		Assert.isNull(pageable.getSort(), "Arbitrary sorting is not implemented");
 		long count = zSetOperations.size();
-		long to = Math.min(count, pageable.getOffset() + pageable.getPageSize());
-		Set<String> redisKeys = zSetOperations.range(pageable.getOffset(), to);
+		// redis in inclusive on right side, hence -1
+		long to = Math.min(count, pageable.getOffset() + pageable.getPageSize()) - 1;
+
+		// But -1 means start from end, so cater for that
+		Set<String> redisKeys = (to == -1) ? Collections.<String> emptySet() : zSetOperations.range(
+				pageable.getOffset(), to);
 
 		List<T> result = new ArrayList<T>(redisKeys.size());
 		List<String> values = redisOperations.opsForValue().multiGet(redisKeys);

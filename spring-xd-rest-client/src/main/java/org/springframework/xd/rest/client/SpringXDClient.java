@@ -24,13 +24,14 @@ import java.util.Map;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
 import org.springframework.xd.rest.client.domain.XDRuntime;
+import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
 
 /**
  * Implementation of the SpringXD remote interaction API.
  *
  * @author Eric Bottard
+ * @author Ilayaperumal Gopinathan
  */
 public class SpringXDClient implements SpringXDOperations {
 
@@ -43,14 +44,13 @@ public class SpringXDClient implements SpringXDOperations {
 				XDRuntime.class);
 		resources.put("streams",
 				URI.create(xdRuntime.getLink("streams").getHref()));
-
 	}
 
 	@Override
-	public StreamDefinitionResource deployStream(String name, String defintion) {
+	public StreamDefinitionResource deployStream(String name, String definition) {
 		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
 		values.add("name", name);
-		values.add("definition", defintion);
+		values.add("definition", definition);
 
 		StreamDefinitionResource stream = restTemplate.postForObject(resources.get("streams"),
 				values, StreamDefinitionResource.class);
@@ -64,6 +64,16 @@ public class SpringXDClient implements SpringXDOperations {
 		String uriTemplate = resources.get("streams").toString() + "/{name}";
 		restTemplate
 				.delete(uriTemplate, Collections.singletonMap("name", name));
+	}
+	
+	@Override
+	public StreamDefinitionResource createTrigger(String name, String definition) {
+		return this.deployStream(name, definition);
+	}
+	
+	@Override
+	public void deleteTrigger(String name) {
+		this.undeployStream(name);
 	}
 
 }

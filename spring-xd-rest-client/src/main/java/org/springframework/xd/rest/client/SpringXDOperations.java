@@ -28,5 +28,9 @@ public interface SpringXDOperations {
 	public StreamDefinitionResource deployStream(String name, String defintion);
 
 	public void undeployStream(String name);
+	
+	public StreamDefinitionResource createTrigger(String name, String definition);
+	
+	public void deleteTrigger(String name);
 
 }

@@ -29,28 +29,46 @@ public class StreamCommands implements CommandMarker {
 	@Autowired
 	private XDShell xdShell;
 
-	@CliAvailabilityIndicator({ "deploy stream", "undeploy stream" })
+	@CliAvailabilityIndicator({ "deploy stream", "undeploy stream", "create trigger" , "delete trigger"})
 	public boolean available() {
 		return xdShell.getSpringXDOperations() != null;
 	}
 
 	@CliCommand(value = "deploy stream", help = "Deploy a new stream definition")
 	public String deployStream(
-	//
 			@CliOption(mandatory = true, key = { "", "definition" }, help = "a stream definition, using XD DSL (e.g. \"http --port=9000 | hdfs\")")
-			String dsl,//
+			String dsl,
 			@CliOption(mandatory = true, key = "name", help = "the name to give to the stream")
 			String name) {
 		xdShell.getSpringXDOperations().deployStream(name, dsl);
-		return String.format("Deployed new stream '%s'", name);
+		return String.format("POST request is sent to deploy new stream '%s'", name);
 	}
 
 	@CliCommand(value = "undeploy stream", help = "Undeploy a stream from the running XD container(s)")
-	public String undeployStream(//
+	public String undeployStream(
 			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the stream to delete")
 			String name) {
 		xdShell.getSpringXDOperations().undeployStream(name);
-		return String.format("Undeployed stream '%s'", name);
+		return String.format("DELETE request is sent to undeploy stream '%s'", name);
+	}
+	
+	@CliCommand(value = "create trigger", help = "Create a trigger with the specified type")
+	public String createCronTrigger(
+			@CliOption(mandatory = true, key = { "", "definition" }, help = "trigger definition " +
+					"(e.g. \"trigger --cron='<cron-expression>'\")")
+			String dsl,
+			@CliOption(mandatory = true, key = "name" , help = "name of the trigger")
+			String name) {
+		xdShell.getSpringXDOperations().createTrigger(name, dsl);
+		return String.format("POST request is sent to create trigger '%s'", name);
+	}
+	
+	@CliCommand(value = "delete trigger", help = "Delete the trigger")
+	public String deleteTrigger(
+			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the trigger to delete")
+			String name) {
+		xdShell.getSpringXDOperations().deleteTrigger(name);
+		return String.format("DELETE request is sent to delete the trigger '%s'", name);
 	}
 
 }

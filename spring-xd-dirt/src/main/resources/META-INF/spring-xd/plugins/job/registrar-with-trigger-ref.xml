@@ -8,7 +8,7 @@
 	<import resource="classpath:META-INF/spring-xd/plugins/job/registrar.xml"/>
 
 	<task:scheduled-tasks scheduler="scheduler">
-		<task:scheduled ref="startupJobLauncher" method="executeBatchJob" trigger="trigger.${trigger}" />
+		<task:scheduled ref="startupJobLauncher" method="executeBatchJob" trigger="#{T(org.springframework.xd.dirt.plugins.trigger.TriggerPlugin).BEAN_NAME_PREFIX}${trigger}" />
 	</task:scheduled-tasks>
 
 </beans>

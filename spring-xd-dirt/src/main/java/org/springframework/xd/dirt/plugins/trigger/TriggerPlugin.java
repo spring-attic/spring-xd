@@ -35,6 +35,8 @@ import org.springframework.xd.module.Plugin;
  */
 public class TriggerPlugin implements Plugin {
 
+	public static final String BEAN_NAME_PREFIX = "trigger.";
+
 	private ConfigurableApplicationContext commonApplicationContext;
 
 	/**
@@ -52,7 +54,7 @@ public class TriggerPlugin implements Plugin {
 		builder.addConstructorArgValue(module.getProperties().get("cron"));
 
 		final BeanDefinitionAddingPostProcessor postProcessor = new BeanDefinitionAddingPostProcessor();
-		postProcessor.addBeanDefinition("trigger." + group, builder.getBeanDefinition());
+		postProcessor.addBeanDefinition(BEAN_NAME_PREFIX + group, builder.getBeanDefinition());
 
 		Assert.notNull(commonApplicationContext, "The 'commonApplicationContext' property must not be null.");
 		this.commonApplicationContext.addBeanFactoryPostProcessor(postProcessor);

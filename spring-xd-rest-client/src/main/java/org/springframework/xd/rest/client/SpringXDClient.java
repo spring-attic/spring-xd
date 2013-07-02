@@ -24,7 +24,7 @@ import java.util.Map;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.xd.rest.client.domain.Stream;
+import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
 import org.springframework.xd.rest.client.domain.XDRuntime;
 
 /**
@@ -47,13 +47,13 @@ public class SpringXDClient implements SpringXDOperations {
 	}
 
 	@Override
-	public Stream deployStream(String name, String defintion) {
+	public StreamDefinitionResource deployStream(String name, String defintion) {
 		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
 		values.add("name", name);
 		values.add("definition", defintion);
 
-		Stream stream = restTemplate.postForObject(resources.get("streams"),
-				values, Stream.class);
+		StreamDefinitionResource stream = restTemplate.postForObject(resources.get("streams"),
+				values, StreamDefinitionResource.class);
 		return stream;
 	}
 

@@ -14,19 +14,24 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.rest.client;
+package org.springframework.xd.dirt.stream.memory;
 
-import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
+import org.springframework.xd.dirt.store.AbstractInMemoryRepository;
+import org.springframework.xd.dirt.stream.StreamDefinition;
+import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 
 /**
- * The interface defining operations available against a Spring XD runtime.
- *
+ * An in memory store of {@link StreamDefinition}s.
+ * 
  * @author Eric Bottard
+ * 
  */
-public interface SpringXDOperations {
+public class InMemoryStreamDefinitionRepository extends AbstractInMemoryRepository<StreamDefinition, String> implements
+		StreamDefinitionRepository {
 
-	public StreamDefinitionResource deployStream(String name, String defintion);
-
-	public void undeployStream(String name);
+	@Override
+	protected String keyFor(StreamDefinition entity) {
+		return entity.getName();
+	}
 
 }

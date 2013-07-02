@@ -14,19 +14,26 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.rest.client;
-
-import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
+package org.springframework.xd.dirt.server.options;
 
 /**
- * The interface defining operations available against a Spring XD runtime.
- *
+ * The kind of persistence mechanism to use for storing stream definitions, etc.
+ * 
  * @author Eric Bottard
+ * 
  */
-public interface SpringXDOperations {
+public enum Store {
 
-	public StreamDefinitionResource deployStream(String name, String defintion);
+	/**
+	 * Use an in-memory Map.
+	 */
+	memory,
 
-	public void undeployStream(String name);
+	/**
+	 * Use Redis to persist domain objects.
+	 */
+	redis,
+
+	;
 
 }

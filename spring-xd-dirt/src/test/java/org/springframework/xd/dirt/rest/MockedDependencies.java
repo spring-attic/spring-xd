@@ -20,6 +20,7 @@ import static org.mockito.Mockito.mock;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDeployer;
 
 @Configuration
@@ -28,6 +29,11 @@ public class MockedDependencies {
 	@Bean
 	public StreamDeployer streamDeployer() {
 		return mock(StreamDeployer.class);
+	}
+
+	@Bean
+	public StreamDefinitionRepository streamDefinitionRepository() {
+		return mock(StreamDefinitionRepository.class);
 	}
 
 }

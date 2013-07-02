@@ -14,33 +14,15 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.rest.client.domain;
+package org.springframework.xd.dirt.stream;
 
-import org.springframework.hateoas.ResourceSupport;
+import org.springframework.data.repository.PagingAndSortingRepository;
 
 /**
- * Represents a stream, <i>i.e.</i> a flow of data in the system.
+ * A repository for peristing {@link StreamDefinition}s.
  * 
  * @author Eric Bottard
- * 
  */
-public class Stream extends ResourceSupport {
-
-	private String name;
-
-	/**
-	 * Default constructor for serialization frameworks.
-	 */
-	private Stream() {
-
-	}
-
-	public Stream(String name) {
-		this.name = name;
-	}
-
-	public String getName() {
-		return name;
-	}
+public interface StreamDefinitionRepository extends PagingAndSortingRepository<StreamDefinition, String> {
 
 }

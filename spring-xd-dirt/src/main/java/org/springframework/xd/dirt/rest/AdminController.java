@@ -21,7 +21,7 @@ import org.springframework.hateoas.EntityLinks;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.xd.rest.client.domain.Stream;
+import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
 import org.springframework.xd.rest.client.domain.XDRuntime;
 
 /**
@@ -42,7 +42,7 @@ public class AdminController {
 	@RequestMapping()
 	public XDRuntime info() {
 		XDRuntime xdRuntime = new XDRuntime();
-		xdRuntime.add(entityLinks.linkFor(Stream.class).withRel("streams"));
+		xdRuntime.add(entityLinks.linkFor(StreamDefinitionResource.class).withRel("streams"));
 		return xdRuntime;
 	}
 }

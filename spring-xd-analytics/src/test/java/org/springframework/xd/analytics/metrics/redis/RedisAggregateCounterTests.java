@@ -16,36 +16,22 @@
 
 package org.springframework.xd.analytics.metrics.redis;
 
-import static org.junit.Assert.*;
-import static org.hamcrest.Matchers.*;
-
-import java.util.Map;
 import java.util.Set;
 
-import org.joda.time.*;
-import org.joda.time.chrono.ISOChronology;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
+import org.springframework.xd.analytics.metrics.AbstractAggregateCounterTests;
 import org.springframework.xd.analytics.metrics.common.ServicesConfig;
-import org.springframework.xd.analytics.metrics.core.AggregateCount;
-import org.springframework.xd.analytics.metrics.core.AggregateCounter;
 
 @ContextConfiguration(classes=ServicesConfig.class, loader=AnnotationConfigContextLoader.class)
 @RunWith(SpringJUnit4ClassRunner.class)
-public class RedisAggregateCounterTests {
-	private final String counterName = "test";
-
-	@Autowired
-	private RedisAggregateCounterService counterService;
+public class RedisAggregateCounterTests extends AbstractAggregateCounterTests {
 
 	@Autowired
 	private StringRedisTemplate stringRedisTemplate;
@@ -53,71 +39,13 @@ public class RedisAggregateCounterTests {
 	@Before
 	@After
 	public void beforeAndAfter() {
-		Set<String> keys = stringRedisTemplate.opsForSet().members(counterService.getKeyForAllCounterNames());
+		RedisAggregateCounterService redisService = (RedisAggregateCounterService)counterService;
+		Set<String> keys = stringRedisTemplate.opsForSet().members(redisService.getKeyForAllCounterNames());
 		if (keys.size() > 0) {
 			stringRedisTemplate.delete(keys);
 		}
-		stringRedisTemplate.delete(counterService.getKeyForAllCounterNames());
-		stringRedisTemplate.delete(counterService.getKeyForAllRootCounterNames());
-	}
-
-	@Test
-	public void testTwoDaysDataSimulation() throws Exception {
-		final DateTime start = new DateTime(2013, 6, 28, 23, 27, 0, 0);
-		final DateTime end   = start.plusDays(2);
-		DateTime now   = start;
-
-		int total = 0;
-		while (now.isBefore(end)) {
-			int minute = now.getMinuteOfHour();
-			counterService.increment(counterName, minute, now);
-			now = now.plusMinutes(1);
-			total += minute;
-		}
-
-		// Check the total
-		assertEquals(total, counterService.getTotalCounts(counterName));
-
-		DateTimeField resolution = ISOChronology.getInstanceUTC().minuteOfHour();
-
-		// Query the entire period
-		Interval queryInterval = new Interval(start, end);
-		AggregateCount aggregateCount = counterService.getCounts(counterName, queryInterval, resolution);
-		assertEquals(counterName, aggregateCount.name);
-		assertEquals(queryInterval, aggregateCount.interval);
-		int[] counts = aggregateCount.counts;
-		assertEquals(2*24*60, counts.length);
-		assertEquals(27, counts[0]);
-		assertEquals(28,counts[1]);
-		assertEquals(59, counts[32]);
-		for (int i = 33; i < counts.length; i++) {
-			int expect = (i - 33) % 60;
-			assertEquals("Count at index " + i + " should be " + expect, expect, counts[i]);
-		}
-
-		// Query a 24 hour period in minutes
-		now = start.plusHours(5).withMinuteOfHour(0);
-		queryInterval = new Interval(now, now.plusHours(24));
-
-		aggregateCount = counterService.getCounts(counterName, queryInterval, resolution);
-		counts = aggregateCount.counts;
-		assertEquals(24*60, counts.length);
-		assertEquals(0, counts[0]); // on an hour boundary
-		for (int i = 1; i < counts.length; i++) {
-			int expect = i % 60;
-			assertEquals("Count at index " + i + " should be " + expect, expect, counts[i]);
-		}
-
-		// Query the entire period in hours
-		resolution = ISOChronology.getInstanceUTC().hourOfDay();
-		queryInterval = new Interval(start, end);
-		aggregateCount = counterService.getCounts(counterName, queryInterval, resolution);
-		counts = aggregateCount.counts;
-		assertEquals(48, counts.length);
-		// The first hour starts before the first counts are added
-		assertEquals(1419, counts[0]); // sum [27..59]
-		for (int i = 1; i < counts.length; i++)
-			assertEquals(1770, counts[i]); // sum [0..59]
+		stringRedisTemplate.delete(redisService.getKeyForAllCounterNames());
+		stringRedisTemplate.delete(redisService.getKeyForAllRootCounterNames());
 	}
 
 }

@@ -15,6 +15,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.Assert;
 import org.springframework.xd.analytics.metrics.core.AggregateCount;
 import org.springframework.xd.analytics.metrics.core.AggregateCounterService;
+import org.springframework.xd.analytics.metrics.core.MetricUtils;
 
 /**
  * @author Mark Pollack
@@ -102,45 +103,47 @@ public class RedisAggregateCounterService implements AggregateCounterService {
 	@Override
 	public AggregateCount getCounts(String name, Interval interval, DateTimeField resolution) {
 		MutableDateTime dt = new MutableDateTime(interval.getStart());
-		dt.setRounding(resolution);
 
 		DateTime end = interval.getEnd();
 		Chronology c = interval.getChronology();
 		DurationField resolutionDuration = resolution.getDurationField();
 
-		if (resolutionDuration.getUnitMillis() == 60000) {
+		int[] counts;
+
+		if (resolutionDuration.getUnitMillis() == DateTimeConstants.MILLIS_PER_MINUTE) {
 			// Iterate through each hour in the interval and load the minutes for it
 			dt.setRounding(c.hourOfDay());
 			Duration step = Duration.standardHours(1);
 			List<int[]> hours = new ArrayList<int[]>();
 			while (dt.isBefore(end)) {
-				logger.debug("Getting data for " + AggregateKeyGenerator.dateTimeFormatter.print(dt));
 				hours.add(getMinCountsForHour(name, dt));
 				dt.add(step);
 			}
-			int[] counts = new int[interval.toPeriod().toStandardMinutes().getMinutes()];
+			counts = MetricUtils.concatArrays(hours,
+					interval.getStart().getMinuteOfHour(),
+					interval.toPeriod().toStandardMinutes().getMinutes(),
+					60);
 
-			int startMinute = interval.getStart().getMinuteOfHour();
-
-			for (int i=0; i < hours.size(); i++) {
-				int[] hour = hours.get(i);
-				for (int j=0; j < 60; j++) {
-					int minute = i*60 + j - startMinute; // minute in the complete interval
-
-					if (minute >= counts.length) {
-						break;
-					}
-
-					if (minute >= 0) {
-						counts[minute] = hour[j];
-					}
-				}
+		} else if (resolutionDuration.getUnitMillis() == DateTimeConstants.MILLIS_PER_HOUR) {
+			DateTime cursor = new DateTime(c.dayOfMonth().roundFloor(interval.getStart().getMillis()));
+			List<int[]> days = new ArrayList<int[]>();
+			Duration step = Duration.standardHours(24);
+			while (cursor.isBefore(end)) {
+				days.add(getHourCountsForDay(name, cursor));
+				cursor = cursor.plus(step);
 			}
-			return new AggregateCount(name, interval, counts, resolution);
+
+			counts = MetricUtils.concatArrays(days,
+					interval.getStart().getHourOfDay(),
+					interval.toPeriod().toStandardHours().getHours(),
+					24);
+
 		} else {
-			throw new IllegalArgumentException("Only minute resolution is currently supported");
+			throw new IllegalArgumentException("Only minute or hour resolution is currently supported");
 		}
+		return new AggregateCount(name, interval, counts, resolution);
 	}
+
 
 	private Map<Integer, Integer> getYearlyCounts(String name) {
 		String counterName = getMetricKey(name);
@@ -162,24 +165,22 @@ public class RedisAggregateCounterService implements AggregateCounterService {
 		return convertMap(getEntries(akg.getMonthKey()));
 	}
 
-	private Map<Integer, Integer> getHourCountsForDay(String name, int year, int month, int day) {
+	private int[] getHourCountsForDay(String name, DateTime day) {
 		String counterName = getMetricKey(name);
-		DateTime dt = new DateTime().withYear(year).withMonthOfYear(month).withDayOfMonth(day);
-		AggregateKeyGenerator akg = new AggregateKeyGenerator(counterName, dt);
-		return convertMap(getEntries(akg.getDayKey()));
+		AggregateKeyGenerator akg = new AggregateKeyGenerator(counterName, day.toDateMidnight());
+		return convertToArray(getEntries(akg.getDayKey()), 24);
 	}
 
-	int[] getMinCountsForHour(String name, ReadableDateTime dateTime) {
+	private int[] getMinCountsForHour(String name, ReadableDateTime dateTime) {
 		return getMinCountsForHour(name, dateTime.getYear(), dateTime.getMonthOfYear(), dateTime.getDayOfMonth(), dateTime.getHourOfDay());
 	}
 
-	int[] getMinCountsForHour(String name, int year, int month, int day, int hour) {
+	private int[] getMinCountsForHour(String name, int year, int month, int day, int hour) {
 		String counterName = getMetricKey(name);
 		DateTime dt = new DateTime().withYear(year).withMonthOfYear(month).withDayOfMonth(day).withHourOfDay(hour);
 		AggregateKeyGenerator akg = new AggregateKeyGenerator(counterName, dt);
-		return convertToMinuteArray(getEntries(akg.getHourKey()));
+		return convertToArray(getEntries(akg.getHourKey()), 60);
 	}
-
 
 	String getKeyForAllCounterNames() {
 		return "meta.counters.allCounterNames";
@@ -202,8 +203,8 @@ public class RedisAggregateCounterService implements AggregateCounterService {
 		return stringRedisTemplate.opsForHash().entries(key);
 	}
 
-	private int[] convertToMinuteArray(Map<Object, Object> map) {
-		int[] minutes = new int[60];
+	private int[] convertToArray(Map<Object, Object> map, int size) {
+		int[] minutes = new int[size];
 		for (Map.Entry<Object, Object> cursor : map.entrySet()) {
 			Integer minute = Integer.valueOf(cursor.getKey().toString());
 			Integer count = Integer.valueOf(cursor.getValue().toString());

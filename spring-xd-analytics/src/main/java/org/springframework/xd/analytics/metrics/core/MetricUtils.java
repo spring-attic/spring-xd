@@ -1,7 +1,9 @@
 package org.springframework.xd.analytics.metrics.core;
 
+import java.util.List;
+
 /**
- * Utility class to avoid exposing mutable Counters beyond the core package.
+ * Utility class, primarily to avoid exposing mutable objects beyond the core package.
  *
  * For internal use only.
  */
@@ -34,4 +36,26 @@ public final class MetricUtils {
 	public static RichGauge resetRichGauge(RichGauge g) {
 		return g.reset();
 	}
+
+	public static int[] concatArrays(List<int[]> arrays, int start, int size, int subSize) {
+		int[] counts = new int[size];
+
+		for (int i=0; i < arrays.size(); i++) {
+			int[] sub = arrays.get(i);
+			for (int j=0; j < subSize; j++) {
+				int index = i*subSize + j - start; // index in the complete interval
+
+				if (index >= counts.length) {
+					break;
+				}
+
+				if (index >= 0) {
+					counts[index] = sub[j];
+				}
+			}
+		}
+
+		return counts;
+	}
+
 }

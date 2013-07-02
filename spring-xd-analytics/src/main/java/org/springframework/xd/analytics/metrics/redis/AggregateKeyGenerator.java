@@ -1,6 +1,7 @@
 package org.springframework.xd.analytics.metrics.redis;
 
 import org.joda.time.DateTime;
+import org.joda.time.ReadableDateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.util.Assert;
@@ -36,7 +37,7 @@ class AggregateKeyGenerator {
 		this(counterName, new DateTime());
 	}
 
-	public AggregateKeyGenerator(String counterName, DateTime dateTime) {
+	public AggregateKeyGenerator(String counterName, ReadableDateTime dateTime) {
 		Assert.notNull(counterName, "Counter name name can not be null");
 		Assert.notNull(dateTime, "DateTime can not be null");
 		this.rootKey = "counters";

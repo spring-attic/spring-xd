@@ -95,7 +95,7 @@ public class RedisAggregateCounterTests {
 			assertEquals("Count at index " + i + " should be " + expect, expect, counts[i]);
 		}
 
-		// Query a 24 hour period
+		// Query a 24 hour period in minutes
 		now = start.plusHours(5).withMinuteOfHour(0);
 		queryInterval = new Interval(now, now.plusHours(24));
 
@@ -107,6 +107,17 @@ public class RedisAggregateCounterTests {
 			int expect = i % 60;
 			assertEquals("Count at index " + i + " should be " + expect, expect, counts[i]);
 		}
+
+		// Query the entire period in hours
+		resolution = ISOChronology.getInstanceUTC().hourOfDay();
+		queryInterval = new Interval(start, end);
+		aggregateCount = counterService.getCounts(counterName, queryInterval, resolution);
+		counts = aggregateCount.counts;
+		assertEquals(48, counts.length);
+		// The first hour starts before the first counts are added
+		assertEquals(1419, counts[0]); // sum [27..59]
+		for (int i = 1; i < counts.length; i++)
+			assertEquals(1770, counts[i]); // sum [0..59]
 	}
 
 }

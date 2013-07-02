@@ -40,14 +40,18 @@ public class DefaultStreamDeployer implements StreamDeployer {
 
 	private final Map<String, List<ModuleDeploymentRequest>> deployments = new ConcurrentHashMap<String, List<ModuleDeploymentRequest>>();
 
-	public DefaultStreamDeployer(MessageChannel outputChannel) {
+	private final StreamDefinitionRepository streamDefinitionRepository;
+
+	public DefaultStreamDeployer(MessageChannel outputChannel, StreamDefinitionRepository streamDefinitionRepository) {
 		Assert.notNull(outputChannel, "outputChannel must not be null");
 		this.outputChannel = outputChannel;
+		this.streamDefinitionRepository = streamDefinitionRepository;
 	}
 
 	@Override
 	public void deployStream(String name, String config) {
 		List<ModuleDeploymentRequest> requests = this.streamParser.parse(name, config);
+		streamDefinitionRepository.save(new StreamDefinition(name, config));
 		this.addDeployment(name, requests);
 		for (ModuleDeploymentRequest request : requests) {
 			Message<?> message = MessageBuilder.withPayload(request.toString()).build();
@@ -57,6 +61,7 @@ public class DefaultStreamDeployer implements StreamDeployer {
 
 	@Override
 	public void undeployStream(String name) {
+		streamDefinitionRepository.delete(name);
 		List<ModuleDeploymentRequest> modules = this.removeDeployment(name);
 		if (modules != null) {
 			// undeploy in the reverse sequence (source first)

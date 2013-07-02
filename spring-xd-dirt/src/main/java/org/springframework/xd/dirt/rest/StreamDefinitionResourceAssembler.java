@@ -14,19 +14,22 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.rest.client;
+package org.springframework.xd.dirt.rest;
 
+import org.springframework.hateoas.ResourceAssembler;
+import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
 
 /**
- * The interface defining operations available against a Spring XD runtime.
- *
+ * Knows how to build a REST resource out of our domain model {@link StreamDefinition}.
+ * 
  * @author Eric Bottard
  */
-public interface SpringXDOperations {
+public class StreamDefinitionResourceAssembler implements ResourceAssembler<StreamDefinition, StreamDefinitionResource> {
 
-	public StreamDefinitionResource deployStream(String name, String defintion);
-
-	public void undeployStream(String name);
+	@Override
+	public StreamDefinitionResource toResource(StreamDefinition entity) {
+		return new StreamDefinitionResource(entity.getName(), entity.getDefinition());
+	}
 
 }

@@ -14,7 +14,6 @@
 package org.springframework.xd.dirt.stream;
 
 import org.junit.BeforeClass;
-
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -29,8 +28,10 @@ public abstract class AbstractStreamTests {
 	public static void startXDSingleNode() throws Exception {
 		System.setProperty("xd.transport", "local");
 		System.setProperty("xd.home", "..");
+		System.setProperty("xd.store", "memory");
 
-		ApplicationContext ctx = new ClassPathXmlApplicationContext("/META-INF/spring-xd/transports/local-admin.xml");
+		ApplicationContext ctx = new ClassPathXmlApplicationContext("/META-INF/spring-xd/transports/local-admin.xml",
+				"/META-INF/spring-xd/store/memory-admin.xml");
 		streamDeployer = ctx.getBean(StreamDeployer.class);
 
 	}

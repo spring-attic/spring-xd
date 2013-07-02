@@ -165,7 +165,7 @@ if [ x"$XD_HOME" = x ] ; then
     XD_HOME=$APP_HOME
 fi
 # set XD_HOME as system property via SPRING_XD_CONTAINER_OPTS
-SPRING_XD_ADMIN_OPTS="-Dxd.home=$XD_HOME -Dlog4j.configuration=file:///$XD_HOME/config/xd-admin-logger.properties"
+SPRING_XD_ADMIN_OPTS="-Dxd.home=$XD_HOME -Dxd.store=memory -Dlog4j.configuration=file:///$XD_HOME/config/xd-admin-logger.properties"
 
 # Split up the JVM_OPTS And SPRING_XD_ADMIN_OPTS values into an array, following the shell quoting and substitution rules
 function splitJvmOpts() {

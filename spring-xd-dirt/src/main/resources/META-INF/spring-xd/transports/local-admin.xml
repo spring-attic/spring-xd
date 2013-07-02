@@ -18,6 +18,7 @@
 
 	<bean id="streamDeployer" class="org.springframework.xd.dirt.stream.DefaultStreamDeployer">
 		<constructor-arg ref="input" />
+		<constructor-arg ref="streamRepository" />
 	</bean>
 
 </beans>

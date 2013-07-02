@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<import resource="../transports/redis-common.xml" />
+
+	<bean id="streamRepository" class="org.springframework.xd.dirt.stream.redis.RedisStreamDefinitionRepository">
+		<constructor-arg>
+			<bean class="org.springframework.data.redis.core.RedisTemplate">
+				<property name="connectionFactory" ref="redisConnectionFactory" />
+			</bean>
+		</constructor-arg>
+	</bean>
+
+</beans>

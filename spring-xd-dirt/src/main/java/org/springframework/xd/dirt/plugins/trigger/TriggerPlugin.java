@@ -15,6 +15,8 @@
  */
 package org.springframework.xd.dirt.plugins.trigger;
 
+import static org.springframework.xd.module.ModuleType.TRIGGER;
+
 import java.util.Properties;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -22,9 +24,9 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.util.Assert;
-import org.springframework.xd.dirt.plugins.BeanDefinitionAddingPostProcessor;
 import org.springframework.xd.module.Module;
-import org.springframework.xd.module.Plugin;
+import org.springframework.xd.plugin.BeanDefinitionAddingPostProcessor;
+import org.springframework.xd.plugin.Plugin;
 
 /**
  * {@link Plugin} to enable the registration of triggers.
@@ -46,7 +48,7 @@ public class TriggerPlugin implements Plugin {
 	 */
 	@Override
 	public void processModule(Module module, String group, int index) {
-		if (!"trigger".equalsIgnoreCase(module.getType())) {
+		if (!TRIGGER.equals(module.getType())) {
 			return;
 		}
 

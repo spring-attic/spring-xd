@@ -1,9 +1,6 @@
 package org.springframework.xd.analytics.metrics.redis;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -24,13 +21,11 @@ import org.springframework.xd.analytics.metrics.core.MetricUtils;
 public class RedisAggregateCounterService implements AggregateCounterService {
 	protected final Log logger = LogFactory.getLog(this.getClass());
 	private final StringRedisTemplate stringRedisTemplate;
-	private final String metricPrefix;
 
 	public RedisAggregateCounterService(RedisConnectionFactory connectionFactory) {
 		Assert.notNull(connectionFactory);
 		this.stringRedisTemplate = new StringRedisTemplate(connectionFactory);
 		this.stringRedisTemplate.afterPropertiesSet();
-		this.metricPrefix = "aggregatecounters.";
 	}
 
 	@Override
@@ -40,19 +35,18 @@ public class RedisAggregateCounterService implements AggregateCounterService {
 
 	@Override
 	public void increment(String name, int amount, DateTime dateTime) {
-		String key = getMetricKey(name);
-		AggregateKeyGenerator akg = new AggregateKeyGenerator(key, dateTime);
+		AggregateKeyGenerator akg = new AggregateKeyGenerator(name, dateTime);
 		
 		//Keep track of all the hashes created in a set, enables easy deletion of hashes.
 		SetOperations<String, String> setOps = stringRedisTemplate.opsForSet();
-		String metaKey = getKeyForAllCounterNames();
+		String metaKey = getKeyForCounterKeys(name);
 
 		//Increment total count.
 		Long returnVal = stringRedisTemplate.opsForValue().increment(akg.getTotalKey(), amount);
 		if (returnVal == amount) {
 			// Add new counters to bookkeeping set of keys
 			setOps.add(metaKey, akg.getTotalKey());
-			setOps.add(getKeyForAllRootCounterNames(), key);
+			setOps.add(getKeyForAllRootCounterNames(), name);
 		}
 		HashOperations<String, String, String> hashOps = stringRedisTemplate.opsForHash();
 		returnVal = hashOps.increment(akg.getYearsKey(), akg.getYear(), amount);
@@ -79,7 +73,7 @@ public class RedisAggregateCounterService implements AggregateCounterService {
 
 	@Override
 	public int getTotalCounts(String name) {
-		AggregateKeyGenerator akg = new AggregateKeyGenerator(getMetricKey(name));
+		AggregateKeyGenerator akg = new AggregateKeyGenerator(name);
 		logger.trace("TotalCounts - TotalKey = " + akg.getTotalKey());
 		Object val = stringRedisTemplate.opsForValue().get(akg.getTotalKey());
 		if (val != null) {
@@ -95,6 +89,17 @@ public class RedisAggregateCounterService implements AggregateCounterService {
 			logger.trace("TotalCounts - val is null");
 			return -1;
 		}
+	}
+
+	@Override
+	public void deleteCounter(String name) {
+		String keySet = getKeyForCounterKeys(name);
+		SetOperations<String, String> setOps = stringRedisTemplate.opsForSet();
+		Set<String> keys = setOps.members(keySet);
+		stringRedisTemplate.delete(keys);
+		setOps.remove(getKeyForAllRootCounterNames(), name);
+		AggregateKeyGenerator akg = new AggregateKeyGenerator(name);
+		stringRedisTemplate.delete(akg.getTotalKey());
 	}
 
 	/**
@@ -144,30 +149,25 @@ public class RedisAggregateCounterService implements AggregateCounterService {
 		return new AggregateCount(name, interval, counts, resolution);
 	}
 
-
 	private Map<Integer, Integer> getYearlyCounts(String name) {
-		String counterName = getMetricKey(name);
-		AggregateKeyGenerator akg = new AggregateKeyGenerator(counterName);
+		AggregateKeyGenerator akg = new AggregateKeyGenerator(name);
 		return convertMap(getEntries(akg.getYearsKey()));
 	}
 
 	private Map<Integer, Integer> getMonthlyCountsForYear(String name, Integer year) {
-		String counterName = getMetricKey(name);
 		DateTime dt = new DateTime().withYear(year);
-		AggregateKeyGenerator akg = new AggregateKeyGenerator(counterName, dt);
+		AggregateKeyGenerator akg = new AggregateKeyGenerator(name, dt);
 		return convertMap(getEntries(akg.getYearKey()));
 	}
 
 	private Map<Integer, Integer> getDayCountsForMonth(String name, int year, int month) {
-		String counterName = getMetricKey(name);
 		DateTime dt = new DateTime().withYear(year).withMonthOfYear(month);
-		AggregateKeyGenerator akg = new AggregateKeyGenerator(counterName, dt);
+		AggregateKeyGenerator akg = new AggregateKeyGenerator(name, dt);
 		return convertMap(getEntries(akg.getMonthKey()));
 	}
 
 	private int[] getHourCountsForDay(String name, DateTime day) {
-		String counterName = getMetricKey(name);
-		AggregateKeyGenerator akg = new AggregateKeyGenerator(counterName, day.toDateMidnight());
+		AggregateKeyGenerator akg = new AggregateKeyGenerator(name, day.toDateMidnight());
 		return convertToArray(getEntries(akg.getDayKey()), 24);
 	}
 
@@ -176,26 +176,28 @@ public class RedisAggregateCounterService implements AggregateCounterService {
 	}
 
 	private int[] getMinCountsForHour(String name, int year, int month, int day, int hour) {
-		String counterName = getMetricKey(name);
 		DateTime dt = new DateTime().withYear(year).withMonthOfYear(month).withDayOfMonth(day).withHourOfDay(hour);
-		AggregateKeyGenerator akg = new AggregateKeyGenerator(counterName, dt);
+		AggregateKeyGenerator akg = new AggregateKeyGenerator(name, dt);
 		return convertToArray(getEntries(akg.getHourKey()), 60);
 	}
 
-	String getKeyForAllCounterNames() {
-		return "meta.counters.allCounterNames";
+	/**
+	 * The key containing the set under which all the keys for a counter are stored.
+	 */
+	String getKeyForCounterKeys(String counterName) {
+		return "metric_meta.aggregatecounters." + counterName;
 	}
 
+	/**
+	 * Meta-key under which the names of all counters are stored.
+	 */
 	String getKeyForAllRootCounterNames() {
-		return "meta.counters.allRootCounterNames";
+		return "metric_meta.aggregatecounters.allRootCounterNames";
 	}
 
-//	Set<String> getAllRootCounterNames() {
-//		return stringRedisTemplate.opsForSet().members(getKeyForAllRootCounterNames());
-//	}
-
-	protected String getMetricKey(String metricName) {
-		return metricPrefix + metricName;
+	@Override
+	public Set<String> getAll() {
+		return stringRedisTemplate.opsForSet().members(getKeyForAllRootCounterNames());
 	}
 
 	private Map<Object, Object> getEntries(String key) {

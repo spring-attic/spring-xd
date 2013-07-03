@@ -16,10 +16,7 @@
 
 package org.springframework.xd.analytics.metrics.memory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.joda.time.*;
 import org.springframework.xd.analytics.metrics.core.AggregateCount;
@@ -27,6 +24,10 @@ import org.springframework.xd.analytics.metrics.core.AggregateCounterService;
 import org.springframework.xd.analytics.metrics.core.MetricUtils;
 
 /**
+ * In-memory aggregate counter with minute resolution.
+ *
+ * Note that the data is permanently accumulated, so will grow steadily in size until the host process is restarted.
+ *
  * @author Luke Taylor
  */
 public class InMemoryAggregateCounterService implements AggregateCounterService {
@@ -43,6 +44,13 @@ public class InMemoryAggregateCounterService implements AggregateCounterService 
 	}
 
 	@Override
+	public void deleteCounter(String name) {
+		synchronized (counters) {
+			counters.remove(name);
+		}
+	}
+
+	@Override
 	public int getTotalCounts(String name) {
 		return getCounter(name).getTotal();
 	}
@@ -52,6 +60,11 @@ public class InMemoryAggregateCounterService implements AggregateCounterService 
 		int[] counts = getCounter(name).getCounts(interval, resolution);
 
 		return new AggregateCount(name, interval, counts, resolution);
+	}
+
+	@Override
+	public Set<String> getAll() {
+		return counters.keySet();
 	}
 
 	private Counter getCounter(String name) {

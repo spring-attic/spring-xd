@@ -34,4 +34,15 @@ public class AggregateCount {
 		this.counts = counts;
 		this.resolution = resolution;
 	}
+
+	/**
+	 * @return the total number of counts in the interval.
+	 */
+	public int getTotal() {
+		int total = 0;
+		for (int i = 0; i < counts.length; i++) {
+			total += counts[i];
+		}
+		return total;
+	}
 }

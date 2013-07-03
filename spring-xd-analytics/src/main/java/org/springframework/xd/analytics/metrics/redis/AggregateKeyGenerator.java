@@ -14,7 +14,7 @@ class AggregateKeyGenerator {
 
 	final static DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyyMMddHHmm");
 
-	public final static String SEPARATOR = ":";
+	public final static String SEPARATOR = ".";
 
 	//keys
 	private final String hourKey;
@@ -40,7 +40,7 @@ class AggregateKeyGenerator {
 	public AggregateKeyGenerator(String counterName, ReadableDateTime dateTime) {
 		Assert.notNull(counterName, "Counter name name can not be null");
 		Assert.notNull(dateTime, "DateTime can not be null");
-		this.rootKey = "counters";
+		this.rootKey = "aggregatecounters";
 		this.counterName = counterName;
 		String timeStamp = dateTimeFormatter.print(dateTime);
 		totalKey = key("total");

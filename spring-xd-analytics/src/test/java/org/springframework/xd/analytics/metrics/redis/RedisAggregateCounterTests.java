@@ -16,13 +16,9 @@
 
 package org.springframework.xd.analytics.metrics.redis;
 
-import java.util.Set;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
@@ -33,19 +29,10 @@ import org.springframework.xd.analytics.metrics.common.ServicesConfig;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class RedisAggregateCounterTests extends AbstractAggregateCounterTests {
 
-	@Autowired
-	private StringRedisTemplate stringRedisTemplate;
-
 	@Before
 	@After
 	public void beforeAndAfter() {
-		RedisAggregateCounterService redisService = (RedisAggregateCounterService)counterService;
-		Set<String> keys = stringRedisTemplate.opsForSet().members(redisService.getKeyForAllCounterNames());
-		if (keys.size() > 0) {
-			stringRedisTemplate.delete(keys);
-		}
-		stringRedisTemplate.delete(redisService.getKeyForAllCounterNames());
-		stringRedisTemplate.delete(redisService.getKeyForAllRootCounterNames());
+		counterService.deleteCounter(counterName);
 	}
 
 }

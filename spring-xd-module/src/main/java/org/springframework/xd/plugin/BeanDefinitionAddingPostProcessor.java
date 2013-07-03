@@ -73,7 +73,7 @@ public class BeanDefinitionAddingPostProcessor implements BeanDefinitionRegistry
 	/**
 	 * Allows you to add custom {@link BeanDefinition}s.
 	 *
-	 * @param name The name of the bean instance to register
+	 * @param beanName The name of the bean instance to register
 	 * @param beanDefinition Definition of the bean instance to register
 	 * @return The BeanDefinitionAddingPostProcessor
 	 */

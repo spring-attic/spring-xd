@@ -16,14 +16,16 @@
 
 package org.springframework.xd.dirt.plugins.stream;
 
+import static org.springframework.xd.module.ModuleType.PROCESSOR;
+import static org.springframework.xd.module.ModuleType.SINK;
+import static org.springframework.xd.module.ModuleType.SOURCE;
+
 import java.util.Properties;
 
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.xd.dirt.container.DefaultContainer;
-import org.springframework.xd.dirt.plugins.BeanDefinitionAddingPostProcessor;
 import org.springframework.xd.module.Module;
-import org.springframework.xd.module.Plugin;
+import org.springframework.xd.plugin.AbstractPlugin;
 
 /**
  * @author Mark Fisher
@@ -31,27 +33,31 @@ import org.springframework.xd.module.Plugin;
  * @author David Turanski
  * @author Jennifer Hickey
  */
-public class StreamPlugin implements Plugin {
+public class StreamPlugin extends AbstractPlugin {
 
 	private static final String CONTEXT_CONFIG_ROOT = DefaultContainer.XD_CONFIG_ROOT
 			+ "plugins/stream/";
+	private static final String TAP_XML = CONTEXT_CONFIG_ROOT + "tap.xml";
+	private static final String CHANNEL_REGISTRAR = CONTEXT_CONFIG_ROOT + "channel-registrar.xml";
+	private static final String CHANNEL_REGISTRY = CONTEXT_CONFIG_ROOT + "channel-registry.xml";
+
+	private static final String TAP = "tap";
 
 	@Override
 	public void processModule(Module module, String group, int index) {
 		String type = module.getType();
-		if (("source".equals(type) || "processor".equals(type) || "sink".equals(type)) && group != null) {
-			module.addComponents(new ClassPathResource(CONTEXT_CONFIG_ROOT + "channel-registrar.xml"));
+		if ((SOURCE.equals(type) || PROCESSOR.equals(type) || SINK.equals(type)) && group != null) {
+			addComponents(module, CHANNEL_REGISTRAR);
 			this.configureProperties(module, group, String.valueOf(index));
 		}
-		if ("tap".equals(module.getName()) && "source".equals(type)) {
-			module.addComponents(new ClassPathResource(CONTEXT_CONFIG_ROOT + "tap.xml"));
+		if (TAP.equals(module.getName()) && SOURCE.equals(type)) {
+			addComponents(module, TAP_XML);
 		}
 	}
 
 	@Override
 	public void postProcessSharedContext(ConfigurableApplicationContext context) {
-		context.addBeanFactoryPostProcessor(new BeanDefinitionAddingPostProcessor(new ClassPathResource(
-				CONTEXT_CONFIG_ROOT + "channel-registry.xml")));
+		addBeanFactoryPostProcessor(context, CHANNEL_REGISTRY);
 	}
 
 	@Override

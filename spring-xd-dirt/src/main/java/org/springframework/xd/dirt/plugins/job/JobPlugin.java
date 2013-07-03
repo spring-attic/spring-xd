@@ -15,16 +15,16 @@
  */
 package org.springframework.xd.dirt.plugins.job;
 
+import static org.springframework.xd.module.ModuleType.JOB;
+
 import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.xd.dirt.container.DefaultContainer;
-import org.springframework.xd.dirt.plugins.BeanDefinitionAddingPostProcessor;
 import org.springframework.xd.module.Module;
-import org.springframework.xd.module.Plugin;
+import org.springframework.xd.plugin.AbstractPlugin;
 
 /**
  * Plugin to enable the registration of jobs in a central registry.
@@ -34,12 +34,20 @@ import org.springframework.xd.module.Plugin;
  * @since 1.0
  *
  */
-public class JobPlugin implements Plugin {
+public class JobPlugin extends AbstractPlugin  {
 
 	private final Log logger = LogFactory.getLog(getClass());
 
 	private static final String CONTEXT_CONFIG_ROOT = DefaultContainer.XD_CONFIG_ROOT
 			+ "plugins/job/";
+	private static final String REGISTRAR_WITH_TRIGGER_REF =
+			CONTEXT_CONFIG_ROOT + "registrar-with-trigger-ref.xml";
+	private static final String REGISTRAR_WITH_CRON =
+			CONTEXT_CONFIG_ROOT + "registrar-with-cron.xml";
+	private static final String REGISTRAR = CONTEXT_CONFIG_ROOT + "registrar.xml";
+	private static final String COMMON_XML = CONTEXT_CONFIG_ROOT + "common.xml";
+	private static final String TRIGGER = "trigger";
+	private static final String CRON = "cron";
 
 	/**
 	 * Process the {@link Module} and add the Application Context resources
@@ -47,19 +55,18 @@ public class JobPlugin implements Plugin {
 	 */
 	@Override
 	public void processModule(Module module, String group, int index) {
-
-		if (!"job".equalsIgnoreCase(module.getType())) {
+		if (!JOB.equals(module.getType())) {
 			return;
 		}
 
-		if (module.getProperties().containsKey("trigger")) {
-			module.addComponents(new ClassPathResource(CONTEXT_CONFIG_ROOT + "registrar-with-trigger-ref.xml"));
+		if (module.getProperties().containsKey(TRIGGER)) {
+			addComponents(module, REGISTRAR_WITH_TRIGGER_REF);
 		}
 		else if (module.getProperties().containsKey("cron")) {
-			module.addComponents(new ClassPathResource(CONTEXT_CONFIG_ROOT + "registrar-with-cron.xml"));
+			addComponents(module, REGISTRAR_WITH_CRON);
 		}
 		else {
-			module.addComponents(new ClassPathResource(CONTEXT_CONFIG_ROOT + "registrar.xml"));
+			addComponents(module, REGISTRAR);
 		}
 
 		configureProperties(module, group);
@@ -71,14 +78,14 @@ public class JobPlugin implements Plugin {
 
 	@Override
 	public void postProcessSharedContext(ConfigurableApplicationContext context) {
-		context.addBeanFactoryPostProcessor(new BeanDefinitionAddingPostProcessor(new ClassPathResource(CONTEXT_CONFIG_ROOT + "common.xml")));
+		addBeanFactoryPostProcessor(context, COMMON_XML);
 	}
 
 	private void configureProperties(Module module, String group) {
 		final Properties properties = new Properties();
 		properties.setProperty("xd.stream.name", group);
 
-		if (module.getProperties().containsKey("trigger") || module.getProperties().containsKey("cron")) {
+		if (module.getProperties().containsKey(TRIGGER) || module.getProperties().containsKey(CRON)) {
 			properties.setProperty("xd.trigger.execute_on_startup", "false");
 		}
 		else {

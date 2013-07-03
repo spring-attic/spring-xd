@@ -16,18 +16,28 @@
 
 package org.springframework.xd.module;
 
-import org.springframework.context.ConfigurableApplicationContext;
-
 /**
- * @author Mark Fisher
- * @author Gary Russell
+ * @author Glenn Renfro
  */
-public interface Plugin {
+public enum ModuleType {
+	SOURCE ("source"),
+	PROCESSOR ("processor"),
+	SINK("sink"),
+	TRIGGER("trigger"),
+	JOB("job");
 
-	void processModule(Module module, String group, int index);
 
-	void removeModule(Module module, String group, int index);
-
-	void postProcessSharedContext(ConfigurableApplicationContext context);
-
+	String typeName;
+	ModuleType(String typeName){
+		this.typeName = typeName;
+	}
+	public String toString(){
+		return this.typeName;
+	}
+	public boolean equals(String s){
+		if(valueOf(s.toUpperCase()).equals(this)){
+			return true;
+		}
+		return false;
+	}
 }

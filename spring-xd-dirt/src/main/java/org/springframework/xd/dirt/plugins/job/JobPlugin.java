@@ -23,6 +23,7 @@ import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.xd.dirt.container.DefaultContainer;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.plugin.AbstractPlugin;

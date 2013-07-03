@@ -17,7 +17,6 @@
 package org.springframework.xd.plugin;
 
 
-
 import java.util.List;
 
 import org.springframework.context.ConfigurableApplicationContext;

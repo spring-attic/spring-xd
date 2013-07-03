@@ -58,6 +58,9 @@ public class JobPlugin implements Plugin {
 		else if (module.getProperties().containsKey("cron")) {
 			module.addComponents(new ClassPathResource(CONTEXT_CONFIG_ROOT + "registrar-with-cron.xml"));
 		}
+		else if (module.getProperties().containsKey("fixed-delay")) {
+			module.addComponents(new ClassPathResource(CONTEXT_CONFIG_ROOT + "registrar-with-fixed-delay.xml"));
+		}
 		else {
 			module.addComponents(new ClassPathResource(CONTEXT_CONFIG_ROOT + "registrar.xml"));
 		}

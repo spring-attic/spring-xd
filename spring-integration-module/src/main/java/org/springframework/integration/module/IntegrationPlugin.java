@@ -21,14 +21,14 @@ import org.springframework.integration.channel.registry.ChannelRegistry;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.util.Assert;
 import org.springframework.xd.module.Module;
-import org.springframework.xd.module.Plugin;
+import org.springframework.xd.plugin.AbstractPlugin;
 
 /**
  * @author David Turanski
  * @author Gary Russell
  * @since 1.0
  */
-public class IntegrationPlugin implements Plugin {
+public class IntegrationPlugin extends AbstractPlugin {
 
 	private volatile String integrationModuleBasePath = "/META-INF/spring/integration/module";
 

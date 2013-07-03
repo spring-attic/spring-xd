@@ -17,9 +17,14 @@
 package org.springframework.xd.analytics.metrics;
 
 /**
+ * May be thrown when something goes wrong with the metrics facility.
+ * 
  * @author Luke Taylor
  */
 public class MetricsException extends RuntimeException {
+
+	private static final long serialVersionUID = 8549760462311130051L;
+
 	public MetricsException(String message) {
 		super(message);
 	}

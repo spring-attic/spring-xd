@@ -27,19 +27,18 @@ import org.springframework.xd.tuple.Tuple;
 public class MapToTupleTransformerTests {
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void testTranformer() {
 		MapToTupleTransformer transformer = new MapToTupleTransformer();
-		Map map = new HashMap();
+		Map<Object, Object> map = new HashMap<Object, Object>();
 		map.put("one", 1);
 		map.put("two", 2);
 		map.put("three", "tres");
-		
+
 		Tuple tuple = transformer.transformPayload(map);
 		assertThat(tuple.size(), equalTo(3));
 		assertThat(tuple.getValue("one", Integer.class), equalTo(1));
 		assertThat(tuple.getValue("two", Integer.class), equalTo(2));
 		assertThat(tuple.getString("three"), equalTo("tres"));
-		
+
 	}
 }

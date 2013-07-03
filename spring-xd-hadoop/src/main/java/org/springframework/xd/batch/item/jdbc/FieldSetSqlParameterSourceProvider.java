@@ -25,22 +25,22 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 
 /**
- *
+ * An {@link ItemSqlParameterSourceProvider} that will derive parameters from a {@link FieldSet}.
+ * 
  * @author Mark Pollack
  */
-public class FieldSetSqlParameterSourceProvider implements
-		ItemSqlParameterSourceProvider<FieldSet> {
+public class FieldSetSqlParameterSourceProvider implements ItemSqlParameterSourceProvider<FieldSet> {
 
 	@Override
 	public SqlParameterSource createSqlParameterSource(FieldSet item) {
 		MapSqlParameterSource source = new MapSqlParameterSource();
 
 		Properties props = item.getProperties();
-		Set<String> keys = new HashSet(props.keySet());
+		Set<String> keys = new HashSet<String>(props.stringPropertyNames());
 		for (String key : keys) {
 			source.addValue(key, props.get(key));
 		}
-		
+
 		return source;
 	}
 

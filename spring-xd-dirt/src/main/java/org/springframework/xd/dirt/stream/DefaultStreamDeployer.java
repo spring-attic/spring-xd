@@ -28,9 +28,13 @@ import org.springframework.util.Assert;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 
 /**
+ * Default implementation of {@link StreamDeployer} that emits deployment request messages on a bus and relies on a
+ * {@link StreamDefinitionRepository} for persistence.
+ * 
  * @author Mark Fisher
  * @author Gary Russell
  * @author Andy Clement
+ * @author Eric Bottard
  */
 public class DefaultStreamDeployer implements StreamDeployer {
 
@@ -49,18 +53,26 @@ public class DefaultStreamDeployer implements StreamDeployer {
 	}
 
 	@Override
-	public void deployStream(String name, String config) {
+	public StreamDefinition deployStream(String name, String config) {
+		if (streamDefinitionRepository.exists(name)) {
+			throw new StreamAlreadyExistsException(name);
+		}
 		List<ModuleDeploymentRequest> requests = this.streamParser.parse(name, config);
-		streamDefinitionRepository.save(new StreamDefinition(name, config));
+		StreamDefinition def = streamDefinitionRepository.save(new StreamDefinition(name, config));
 		this.addDeployment(name, requests);
 		for (ModuleDeploymentRequest request : requests) {
 			Message<?> message = MessageBuilder.withPayload(request.toString()).build();
 			this.outputChannel.send(message);
 		}
+		return def;
 	}
 
 	@Override
-	public void undeployStream(String name) {
+	public StreamDefinition undeployStream(String name) {
+		StreamDefinition def = streamDefinitionRepository.findOne(name);
+		if (def == null) {
+			throw new NoSuchStreamException(name);
+		}
 		streamDefinitionRepository.delete(name);
 		List<ModuleDeploymentRequest> modules = this.removeDeployment(name);
 		if (modules != null) {
@@ -72,6 +84,7 @@ public class DefaultStreamDeployer implements StreamDeployer {
 				this.outputChannel.send(message);
 			}
 		}
+		return def;
 	}
 
 	protected final void addDeployment(String name, List<ModuleDeploymentRequest> modules) {

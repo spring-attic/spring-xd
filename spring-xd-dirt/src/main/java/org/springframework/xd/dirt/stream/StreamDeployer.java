@@ -17,12 +17,29 @@
 package org.springframework.xd.dirt.stream;
 
 /**
+ * Central service for dealing with streams in the system.
+ * 
  * @author Mark Fisher
  * @author Gary Russell
  */
 public interface StreamDeployer {
 
-	void deployStream(String name, String config);
+	/**
+	 * Deploy a new stream in the system.
+	 * 
+	 * @param name a key under which the stream will be known from now on
+	 * @param config a DSL representation of what the stream does
+	 * @return a runtime representation of the stream definition
+	 * @throws StreamAlreadyExistsException if a stream already exists with the given name
+	 */
+	StreamDefinition deployStream(String name, String config);
 
-	void undeployStream(String name);
+	/**
+	 * Undeploy an already existing stream from the system.
+	 * 
+	 * @param name the key under which the stream had previously been deployed
+	 * @return a runtime representation of the (now to be considered gone) stream definition
+	 * @throws NoSuchStreamException if no stream exists with that name
+	 */
+	StreamDefinition undeployStream(String name);
 }

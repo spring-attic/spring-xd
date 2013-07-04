@@ -16,7 +16,7 @@
 
 package org.springframework.xd.dirt.rest;
 
-import org.springframework.hateoas.ResourceAssembler;
+import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
 
@@ -25,10 +25,20 @@ import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
  * 
  * @author Eric Bottard
  */
-public class StreamDefinitionResourceAssembler implements ResourceAssembler<StreamDefinition, StreamDefinitionResource> {
+public class StreamDefinitionResourceAssembler extends
+		ResourceAssemblerSupport<StreamDefinition, StreamDefinitionResource> {
+
+	public StreamDefinitionResourceAssembler() {
+		super(StreamsController.class, StreamDefinitionResource.class);
+	}
 
 	@Override
 	public StreamDefinitionResource toResource(StreamDefinition entity) {
+		return createResourceWithId(entity.getName(), entity);
+	}
+
+	@Override
+	protected StreamDefinitionResource instantiateResource(StreamDefinition entity) {
 		return new StreamDefinitionResource(entity.getName(), entity.getDefinition());
 	}
 

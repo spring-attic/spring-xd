@@ -23,7 +23,6 @@ import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.xd.dirt.container.DefaultContainer;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.plugin.AbstractPlugin;
@@ -46,11 +45,12 @@ public class JobPlugin extends AbstractPlugin  {
 			CONTEXT_CONFIG_ROOT + "registrar-with-trigger-ref.xml";
 	private static final String REGISTRAR_WITH_CRON =
 			CONTEXT_CONFIG_ROOT + "registrar-with-cron.xml";
+	private static final String REGISTRAR_WITH_FIXED_DELAY =
+			CONTEXT_CONFIG_ROOT + "registrar-with-fixed-delay.xml";
 	private static final String REGISTRAR = CONTEXT_CONFIG_ROOT + "registrar.xml";
 	private static final String COMMON_XML = CONTEXT_CONFIG_ROOT + "common.xml";
 	private static final String TRIGGER = "trigger";
 	private static final String CRON = "cron";
-
 
 
 	public JobPlugin(){
@@ -83,6 +83,9 @@ public class JobPlugin extends AbstractPlugin  {
 		}
 		else if (module.getProperties().containsKey("cron")) {
 			result.add(REGISTRAR_WITH_CRON);
+		}
+		else if (module.getProperties().containsKey("fixed-delay")) {
+			result.add(REGISTRAR_WITH_FIXED_DELAY);
 		}
 		else {
 			result.add(REGISTRAR);

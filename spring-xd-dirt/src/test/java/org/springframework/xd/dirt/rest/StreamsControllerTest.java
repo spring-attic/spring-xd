@@ -22,6 +22,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -98,7 +99,7 @@ public class StreamsControllerTest {
 	@Before
 	public void setupMockMVC() {
 		reset(mockStreamDeployer);
-		this.mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
+		this.mockMvc = MockMvcBuilders.webAppContextSetup(wac)
+				.defaultRequest(get("/").accept(MediaType.APPLICATION_JSON)).build();
 	}
-
 }

@@ -25,8 +25,6 @@ import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.VndErrors.VndError;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.StringUtils;
-import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -137,17 +135,6 @@ public class StreamsController {
 	// ---------------- Exception Handlers ------------------------
 
 	/**
-	 * Handles the case where client submitted an ill valued request (missing parameter).
-	 */
-	@ResponseBody
-	@ExceptionHandler
-	@ResponseStatus(HttpStatus.BAD_REQUEST)
-	public VndError onMissingServletRequestParameterException(MissingServletRequestParameterException e) {
-		String msg = e.getMessage();
-		return new VndError("MissingServletRequestParameterException", msg);
-	}
-
-	/**
 	 * Handles the case where client referenced an unknown entity.
 	 */
 	@ResponseBody
@@ -155,17 +142,6 @@ public class StreamsController {
 	@ResponseStatus(HttpStatus.NOT_FOUND)
 	public VndError onNoSuchStreamException(NoSuchStreamException e) {
 		return new VndError("NoSuchStreamException", e.getMessage());
-	}
-
-	/**
-	 * Handles the general error case. Report server-side error.
-	 */
-	@ResponseBody
-	@ExceptionHandler(Exception.class)
-	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-	public VndError onException(Exception e) {
-		String msg = StringUtils.hasText(e.getMessage()) ? e.getMessage() : e.getClass().getSimpleName();
-		return new VndError(e.getClass().getSimpleName(), msg);
 	}
 
 }

@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.stream;
+package org.springframework.xd.dirt.core;
 
 /**
- * Thrown when a problem is detected with the (DSL) definition of a stream.
+ * Base class for all XD-related exceptions.
  * 
  * @author Eric Bottard
  */
 @SuppressWarnings("serial")
-public class StreamDefinitionException extends StreamDeploymentException {
+public abstract class XDRuntimeException extends RuntimeException {
 
-	public StreamDefinitionException() {
+	public XDRuntimeException() {
 		super();
 	}
 
-	public StreamDefinitionException(String message, Throwable cause) {
+	public XDRuntimeException(String message, Throwable cause) {
 		super(message, cause);
 	}
 
-	public StreamDefinitionException(String message) {
+	public XDRuntimeException(String message) {
 		super(message);
 	}
 

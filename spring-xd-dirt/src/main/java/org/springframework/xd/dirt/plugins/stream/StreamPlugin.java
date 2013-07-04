@@ -20,9 +20,10 @@ import static org.springframework.xd.module.ModuleType.PROCESSOR;
 import static org.springframework.xd.module.ModuleType.SINK;
 import static org.springframework.xd.module.ModuleType.SOURCE;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.xd.dirt.container.DefaultContainer;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.plugin.AbstractPlugin;
@@ -32,6 +33,7 @@ import org.springframework.xd.plugin.AbstractPlugin;
  * @author Gary Russell
  * @author David Turanski
  * @author Jennifer Hickey
+ * @author Glenn Renfro
  */
 public class StreamPlugin extends AbstractPlugin {
 
@@ -41,34 +43,32 @@ public class StreamPlugin extends AbstractPlugin {
 	private static final String CHANNEL_REGISTRAR = CONTEXT_CONFIG_ROOT + "channel-registrar.xml";
 	private static final String CHANNEL_REGISTRY = CONTEXT_CONFIG_ROOT + "channel-registry.xml";
 
+	public StreamPlugin(){
+		postProcessContextPath = CHANNEL_REGISTRY;
+	}
 	private static final String TAP = "tap";
 
-	@Override
-	public void processModule(Module module, String group, int index) {
+	public List<String>  componentPathsSelector(Module module, String group, int index ){
+		ArrayList<String> result = new ArrayList<String>();
 		String type = module.getType();
 		if ((SOURCE.equals(type) || PROCESSOR.equals(type) || SINK.equals(type)) && group != null) {
-			addComponents(module, CHANNEL_REGISTRAR);
-			this.configureProperties(module, group, String.valueOf(index));
+			result.add(CHANNEL_REGISTRAR);
 		}
 		if (TAP.equals(module.getName()) && SOURCE.equals(type)) {
-			addComponents(module, TAP_XML);
+			result.add(TAP_XML);
 		}
+		return result;
 	}
 
-	@Override
-	public void postProcessSharedContext(ConfigurableApplicationContext context) {
-		addBeanFactoryPostProcessor(context, CHANNEL_REGISTRY);
-	}
-
-	@Override
-	public void removeModule(Module module, String group, int index) {
-	}
-
-	private void configureProperties(Module module, String group, String index) {
-		Properties properties = new Properties();
-		properties.setProperty("xd.stream.name", group);
-		properties.setProperty("xd.module.index", index);
-		module.addProperties(properties);
+	public void configureProperties(Module module, String group, int index) {
+		String type = module.getType();
+		if ((SOURCE.equals(type) || PROCESSOR.equals(type) || SINK.equals(type))
+				&& group != null) {
+			Properties properties = new Properties();
+			properties.setProperty("xd.stream.name", group);
+			properties.setProperty("xd.module.index", String.valueOf(index));
+			module.addProperties(properties);
+		}
 	}
 
 }

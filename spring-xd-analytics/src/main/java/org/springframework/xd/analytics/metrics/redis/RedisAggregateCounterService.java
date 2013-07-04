@@ -149,23 +149,6 @@ public class RedisAggregateCounterService implements AggregateCounterService {
 		return new AggregateCount(name, interval, counts, resolution);
 	}
 
-	private Map<Integer, Integer> getYearlyCounts(String name) {
-		AggregateKeyGenerator akg = new AggregateKeyGenerator(name);
-		return convertMap(getEntries(akg.getYearsKey()));
-	}
-
-	private Map<Integer, Integer> getMonthlyCountsForYear(String name, Integer year) {
-		DateTime dt = new DateTime().withYear(year);
-		AggregateKeyGenerator akg = new AggregateKeyGenerator(name, dt);
-		return convertMap(getEntries(akg.getYearKey()));
-	}
-
-	private Map<Integer, Integer> getDayCountsForMonth(String name, int year, int month) {
-		DateTime dt = new DateTime().withYear(year).withMonthOfYear(month);
-		AggregateKeyGenerator akg = new AggregateKeyGenerator(name, dt);
-		return convertMap(getEntries(akg.getMonthKey()));
-	}
-
 	private int[] getHourCountsForDay(String name, DateTime day) {
 		AggregateKeyGenerator akg = new AggregateKeyGenerator(name, day.toDateMidnight());
 		return convertToArray(getEntries(akg.getDayKey()), 24);
@@ -213,22 +196,6 @@ public class RedisAggregateCounterService implements AggregateCounterService {
 			minutes[minute] = count;
 		}
 		return minutes;
-	}
-
-	/**
-	 *
-	 * @param map returned data from redis
-	 *
-	 * @return parsed data, stripped key prefixes.
-	 */
-	private Map<Integer, Integer> convertMap(Map<Object, Object> map) {
-		Map<Integer, Integer> countMap = new TreeMap<Integer,Integer>();
-		for (Map.Entry<Object, Object> cursor : map.entrySet()) {
-			String key = cursor.getKey().toString();
-			Integer value = Integer.valueOf(cursor.getValue().toString());
-			countMap.put(Integer.valueOf(key), value);
-		}
-		return countMap;
 	}
 
 }

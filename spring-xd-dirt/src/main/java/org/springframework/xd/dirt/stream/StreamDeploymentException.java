@@ -16,13 +16,15 @@
 
 package org.springframework.xd.dirt.stream;
 
+import org.springframework.xd.dirt.core.XDRuntimeException;
+
 /**
  * Thrown when something goes wrong with deployment/undeployment of a Stream.
  * 
  * @author Eric Bottard
  */
 @SuppressWarnings("serial")
-public class StreamDeploymentException extends RuntimeException {
+public class StreamDeploymentException extends XDRuntimeException {
 
 	public StreamDeploymentException() {
 		super();
@@ -34,10 +36,6 @@ public class StreamDeploymentException extends RuntimeException {
 
 	public StreamDeploymentException(String message) {
 		super(message);
-	}
-
-	public StreamDeploymentException(Throwable cause) {
-		super(cause);
 	}
 
 }

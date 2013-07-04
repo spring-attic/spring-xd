@@ -17,11 +17,12 @@ package org.springframework.xd.dirt.plugins.job;
 
 import static org.springframework.xd.module.ModuleType.JOB;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.xd.dirt.container.DefaultContainer;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.plugin.AbstractPlugin;
@@ -49,42 +50,13 @@ public class JobPlugin extends AbstractPlugin  {
 	private static final String TRIGGER = "trigger";
 	private static final String CRON = "cron";
 
-	/**
-	 * Process the {@link Module} and add the Application Context resources
-	 * necessary to setup the Batch Job.
-	 */
-	@Override
-	public void processModule(Module module, String group, int index) {
-		if (!JOB.equals(module.getType())) {
-			return;
-		}
 
-		if (module.getProperties().containsKey(TRIGGER)) {
-			addComponents(module, REGISTRAR_WITH_TRIGGER_REF);
-		}
-		else if (module.getProperties().containsKey("cron")) {
-			addComponents(module, REGISTRAR_WITH_CRON);
-		}
-		else if (module.getProperties().containsKey("fixed-delay")) {
-			module.addComponents(new ClassPathResource(CONTEXT_CONFIG_ROOT + "registrar-with-fixed-delay.xml"));
-		}
-		else {
-			addComponents(module, REGISTRAR);
-		}
 
-		configureProperties(module, group);
+	public JobPlugin(){
+		postProcessContextPath = COMMON_XML;
 	}
 
-	@Override
-	public void removeModule(Module module, String group, int index) {
-	}
-
-	@Override
-	public void postProcessSharedContext(ConfigurableApplicationContext context) {
-		addBeanFactoryPostProcessor(context, COMMON_XML);
-	}
-
-	private void configureProperties(Module module, String group) {
+	public void configureProperties(Module module, String group, int index) {
 		final Properties properties = new Properties();
 		properties.setProperty("xd.stream.name", group);
 
@@ -94,12 +66,27 @@ public class JobPlugin extends AbstractPlugin  {
 		else {
 			properties.setProperty("xd.trigger.execute_on_startup", "true");
 		}
-
 		module.addProperties(properties);
-
 		if (logger.isInfoEnabled()) {
 			logger.info("Configuring module with the following properties: " + properties.toString());
 		}
 
 	}
+	public List<String> componentPathsSelector(Module module, String group, int index ){
+		List<String> result = new ArrayList<String>();
+		if (!JOB.equals(module.getType())) {
+			return result;
+		}
+		if (module.getProperties().containsKey(TRIGGER)) {
+			result.add(REGISTRAR_WITH_TRIGGER_REF);
+		}
+		else if (module.getProperties().containsKey("cron")) {
+			result.add(REGISTRAR_WITH_CRON);
+		}
+		else {
+			result.add(REGISTRAR);
+		}
+		return result;
+	}
+
 }

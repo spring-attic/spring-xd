@@ -20,8 +20,9 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.Before;
@@ -35,6 +36,8 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+import org.springframework.xd.dirt.stream.NoSuchStreamException;
+import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.StreamDeployer;
 
 /**
@@ -44,8 +47,7 @@ import org.springframework.xd.dirt.stream.StreamDeployer;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = { RestConfiguration.class,
-		MockedDependencies.class })
+@ContextConfiguration(classes = { RestConfiguration.class, MockedDependencies.class })
 public class StreamsControllerTest {
 
 	@Autowired
@@ -58,37 +60,39 @@ public class StreamsControllerTest {
 
 	@Test
 	public void testSuccessfulStreamCreation() throws Exception {
+		when(mockStreamDeployer.deployStream("mystream", "http | hdfs")).thenReturn(
+				new StreamDefinition("mystream", "http | hdfs"));
+
 		mockMvc.perform(
-				put("/streams/{name}", "mystream").content("http | hdfs")
-						.contentType(MediaType.TEXT_PLAIN)).andExpect(
-				status().isCreated());
-		verify(mockStreamDeployer).deployStream("mystream", "http | hdfs");
+				post("/streams").param("name", "mystream").param("definition", "http | hdfs")
+						.accept(MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 	}
 
 	@Test
-	public void testStreamCreationEmptyBody() throws Exception {
-		mockMvc.perform(
-				put("/streams/{name}", "mystream").contentType(
-						MediaType.TEXT_PLAIN)).andExpect(
+	public void testStreamCreationNoDefinition() throws Exception {
+		mockMvc.perform(post("/streams").param("name", "mystream").accept(MediaType.APPLICATION_JSON)).andExpect(
 				status().isBadRequest());
 	}
 
 	@Test
 	public void testStreamCreationAnyError() throws Exception {
-		doThrow(NullPointerException.class).when(mockStreamDeployer)
-				.deployStream(anyString(), anyString());
+		doThrow(NullPointerException.class).when(mockStreamDeployer).deployStream(anyString(), anyString());
 
 		mockMvc.perform(
-				put("/streams/{name}", "mystream").content("doesn't matter")
-						.contentType(MediaType.TEXT_PLAIN)).andExpect(
-				status().isInternalServerError());
+				post("/streams").param("name", "mystream").param("definition", "file|http")
+						.accept(MediaType.APPLICATION_JSON)).andExpect(status().isInternalServerError());
 	}
 
 	@Test
 	public void testSuccessfulStreamDeletion() throws Exception {
-		mockMvc.perform(delete("/streams/{name}", "mystream")).andExpect(
-				status().isOk());
+		mockMvc.perform(delete("/streams/{name}", "mystream")).andExpect(status().isOk());
 		verify(mockStreamDeployer).undeployStream("mystream");
+	}
+
+	@Test
+	public void testDeleteUnknownStream() throws Exception {
+		when(mockStreamDeployer.undeployStream("mystream")).thenThrow(new NoSuchStreamException("mystream"));
+		mockMvc.perform(delete("/streams/{name}", "mystream")).andExpect(status().isNotFound());
 	}
 
 	@Before

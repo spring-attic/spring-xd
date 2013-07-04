@@ -26,6 +26,7 @@ import org.springframework.hateoas.VndErrors.VndError;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -34,12 +35,15 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.xd.dirt.stream.NoSuchStreamException;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDeployer;
 import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
 
 /**
+ * Handles all Stream related interaction.
+ * 
  * @author Eric Bottard
  */
 @Controller
@@ -87,8 +91,8 @@ public class StreamsController {
 	public StreamDefinitionResource deploy(@RequestParam("name")
 	String name, @RequestParam("definition")
 	String definition) {
-		streamDeployer.deployStream(name, definition);
-		StreamDefinitionResource result = new StreamDefinitionResource(name, definition);
+		StreamDefinition streamDefinition = streamDeployer.deployStream(name, definition);
+		StreamDefinitionResource result = definitionResourceAssembler.toResource(streamDefinition);
 		return result;
 	}
 
@@ -133,14 +137,24 @@ public class StreamsController {
 	// ---------------- Exception Handlers ------------------------
 
 	/**
-	 * Handles the case where client submitted an ill valued request (most likely empty request body).
+	 * Handles the case where client submitted an ill valued request (missing parameter).
 	 */
-	@ExceptionHandler(IllegalArgumentException.class)
-	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	@ResponseBody
-	public VndError onIllegalArgumentException(IllegalArgumentException iae) {
-		String msg = StringUtils.hasText(iae.getMessage()) ? iae.getMessage() : "IllegalArgumentException";
-		return new VndError("IllegalArgumentException", msg);
+	@ExceptionHandler
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	public VndError onMissingServletRequestParameterException(MissingServletRequestParameterException e) {
+		String msg = e.getMessage();
+		return new VndError("MissingServletRequestParameterException", msg);
+	}
+
+	/**
+	 * Handles the case where client referenced an unknown entity.
+	 */
+	@ResponseBody
+	@ExceptionHandler
+	@ResponseStatus(HttpStatus.NOT_FOUND)
+	public VndError onNoSuchStreamException(NoSuchStreamException e) {
+		return new VndError("NoSuchStreamException", e.getMessage());
 	}
 
 	/**

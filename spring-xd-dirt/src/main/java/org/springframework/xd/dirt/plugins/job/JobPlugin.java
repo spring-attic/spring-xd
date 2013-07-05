@@ -51,6 +51,7 @@ public class JobPlugin extends AbstractPlugin  {
 	private static final String COMMON_XML = CONTEXT_CONFIG_ROOT + "common.xml";
 	private static final String TRIGGER = "trigger";
 	private static final String CRON = "cron";
+	private static final String FIXED_DELAY= "fixed-delay";
 
 
 	public JobPlugin(){
@@ -81,10 +82,10 @@ public class JobPlugin extends AbstractPlugin  {
 		if (module.getProperties().containsKey(TRIGGER)) {
 			result.add(REGISTRAR_WITH_TRIGGER_REF);
 		}
-		else if (module.getProperties().containsKey("cron")) {
+		else if (module.getProperties().containsKey(CRON)) {
 			result.add(REGISTRAR_WITH_CRON);
 		}
-		else if (module.getProperties().containsKey("fixed-delay")) {
+		else if (module.getProperties().containsKey(FIXED_DELAY)) {
 			result.add(REGISTRAR_WITH_FIXED_DELAY);
 		}
 		else {

@@ -16,24 +16,20 @@
 
 package org.springframework.xd.dirt.rest;
 
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.ComponentScan.Filter;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.data.web.config.EnableSpringDataWebSupport;
-import org.springframework.hateoas.config.EnableHypermediaSupport;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.hateoas.ResourceAssembler;
+import org.springframework.xd.dirt.stream.TapDefinition;
+import org.springframework.xd.rest.client.domain.TapDefinitionResource;
 
 /**
- * Takes care of infrastructure setup for the web/rest layer.
+ * Knows how to build a REST resource out of our domain model {@link TapDefinition}.
  * 
- * @author Eric Bottard
  * @author David Turanski
  */
-@Configuration
-@EnableWebMvc
-@EnableHypermediaSupport
-@EnableSpringDataWebSupport
-@ComponentScan(excludeFilters = @Filter(Configuration.class))
-public class RestConfiguration {
+public class TapDefinitionResourceAssembler implements ResourceAssembler<TapDefinition, TapDefinitionResource> {
+
+	@Override
+	public TapDefinitionResource toResource(TapDefinition entity) {
+		return new TapDefinitionResource(entity.getName(), entity.getStreamName(), entity.getDefinition());
+	}
 
 }

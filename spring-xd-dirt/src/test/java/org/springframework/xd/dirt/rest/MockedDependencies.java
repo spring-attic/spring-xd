@@ -22,6 +22,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDeployer;
+import org.springframework.xd.dirt.stream.TapDefinitionRepository;
+import org.springframework.xd.dirt.stream.TapDeployer;
 
 @Configuration
 public class MockedDependencies {
@@ -34,6 +36,16 @@ public class MockedDependencies {
 	@Bean
 	public StreamDefinitionRepository streamDefinitionRepository() {
 		return mock(StreamDefinitionRepository.class);
+	}
+
+	@Bean
+	public TapDefinitionRepository tapDefinitionRepository() {
+		return mock(TapDefinitionRepository.class);
+	}
+
+	@Bean
+	public TapDeployer tapDeployer() {
+		return mock(TapDeployer.class);
 	}
 
 }

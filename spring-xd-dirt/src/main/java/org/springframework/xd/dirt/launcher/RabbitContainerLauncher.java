@@ -16,13 +16,12 @@
 
 package org.springframework.xd.dirt.launcher;
 
-import java.util.Properties;
+import java.util.UUID;
 
 import org.apache.commons.logging.Log;
 
-import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.support.atomic.RedisAtomicLong;
+import org.springframework.amqp.AmqpConnectException;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.Container;
 import org.springframework.xd.dirt.server.options.ContainerOptions;
@@ -30,41 +29,30 @@ import org.springframework.xd.dirt.server.util.BannerUtils;
 
 /**
  * @author Mark Fisher
- * @author Jennifer Hickey
- * @author David Turanski
  */
-public class RedisContainerLauncher extends AbstractContainerLauncher {
+public class RabbitContainerLauncher extends AbstractContainerLauncher {
 
-	private final RedisConnectionFactory connectionFactory;
-
-	private volatile RedisAtomicLong ids;
+	private final ConnectionFactory connectionFactory;
 
 
-	public RedisContainerLauncher(RedisConnectionFactory connectionFactory) {
+	public RabbitContainerLauncher(ConnectionFactory connectionFactory) {
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");
 		this.connectionFactory = connectionFactory;
 	}
 
-
 	@Override
 	protected String generateId() {
-		synchronized (this) {
-			if (this.ids == null) {
-				this.ids = new RedisAtomicLong("idsequence", this.connectionFactory);
-			}
-		}
-		return ids.incrementAndGet() + "";
+		return UUID.randomUUID().toString();
 	}
 
 	@Override
-	protected void logContainerInfo(Log logger, Container container, ContainerOptions options) {
+	public void logContainerInfo(Log logger, Container container, ContainerOptions options) {
 		if (logger.isInfoEnabled()) {
-			final Properties redisInfo = this.connectionFactory.getConnection().info();
 			final StringBuilder runtimeInfo = new StringBuilder();
-			runtimeInfo.append(String.format("Using Redis v%s (Mode: %s) on port: %s ",
-						redisInfo.getProperty("redis_version"),
-						redisInfo.getProperty("redis_mode"),
-						redisInfo.getProperty("tcp_port")));
+			runtimeInfo.append(String.format("Using RabbitMQ at %s (virtual host: %s) on port: %d ",
+						this.connectionFactory.getHost(),
+						this.connectionFactory.getVirtualHost(),
+						this.connectionFactory.getPort()));
 			if (options.isJmxDisabled()) {
 				runtimeInfo.append(" JMX is disabled for XD components");
 			}
@@ -77,10 +65,11 @@ public class RedisContainerLauncher extends AbstractContainerLauncher {
 
 	@Override
 	protected void logErrorInfo(Exception exception) {
-		if (exception instanceof RedisConnectionFailureException) {
-			System.err.println("Redis does not seem to be running. " +
-					"Did you install and start Redis?" +
+		if (exception instanceof AmqpConnectException) {
+			System.err.println("RabbitMQ does not seem to be running. " +
+					"Did you install and start RabbitMQ? " +
 					"Please see the Getting Started section of the guide for instructions.");
 		}
 	}
+
 }

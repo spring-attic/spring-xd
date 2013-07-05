@@ -5,10 +5,14 @@ import java.util.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.joda.time.*;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.HashOperations;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.SetOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.util.Assert;
 import org.springframework.xd.analytics.metrics.core.AggregateCount;
 import org.springframework.xd.analytics.metrics.core.AggregateCounterService;
@@ -20,12 +24,12 @@ import org.springframework.xd.analytics.metrics.core.MetricUtils;
  */
 public class RedisAggregateCounterService implements AggregateCounterService {
 	protected final Log logger = LogFactory.getLog(this.getClass());
-	private final StringRedisTemplate stringRedisTemplate;
+	private final StringRedisTemplate redisTemplate;
 
 	public RedisAggregateCounterService(RedisConnectionFactory connectionFactory) {
 		Assert.notNull(connectionFactory);
-		this.stringRedisTemplate = new StringRedisTemplate(connectionFactory);
-		this.stringRedisTemplate.afterPropertiesSet();
+		this.redisTemplate = new StringRedisTemplate(connectionFactory);
+		this.redisTemplate.afterPropertiesSet();
 	}
 
 	@Override
@@ -34,48 +38,60 @@ public class RedisAggregateCounterService implements AggregateCounterService {
 	}
 
 	@Override
-	public void increment(String name, int amount, DateTime dateTime) {
-		AggregateKeyGenerator akg = new AggregateKeyGenerator(name, dateTime);
-		
-		//Keep track of all the hashes created in a set, enables easy deletion of hashes.
-		SetOperations<String, String> setOps = stringRedisTemplate.opsForSet();
-		String metaKey = getKeyForCounterKeys(name);
+	@SuppressWarnings("unchecked")
+	public void increment(final String name, final int amount, DateTime dateTime) {
+		final AggregateKeyGenerator akg = new AggregateKeyGenerator(name, dateTime);
+		final String metaKey = getKeyForCounterKeys(name);
 
-		//Increment total count.
-		Long returnVal = stringRedisTemplate.opsForValue().increment(akg.getTotalKey(), amount);
-		if (returnVal == amount) {
-			// Add new counters to bookkeeping set of keys
-			setOps.add(metaKey, akg.getTotalKey());
-			setOps.add(getKeyForAllRootCounterNames(), name);
-		}
-		HashOperations<String, String, String> hashOps = stringRedisTemplate.opsForHash();
-		returnVal = hashOps.increment(akg.getYearsKey(), akg.getYear(), amount);
-		if (returnVal == amount) {
-			setOps.add(metaKey, akg.getYearsKey());
-		}
-		returnVal = hashOps.increment(akg.getYearKey(), akg.getMonth(), amount);
-		if (returnVal == amount) {
-			setOps.add(metaKey, akg.getYearKey());
-		}
-		returnVal = hashOps.increment(akg.getMonthKey(), akg.getDay(), amount);
-		if (returnVal == amount) {
-			setOps.add(metaKey, akg.getMonthKey());
-		}
-		returnVal = hashOps.increment(akg.getDayKey(), akg.getHour(), amount);
-		if (returnVal == amount) {
-			setOps.add(metaKey, akg.getDayKey());
-		}
-		returnVal = hashOps.increment(akg.getHourKey(), akg.getMinute(), amount);
-		if (returnVal == amount) {
-			setOps.add(metaKey, akg.getHourKey());
-		}
+		RedisCallback<Void> incrementAction = new RedisCallback<Void>() {
+			RedisSerializer keySerializer = redisTemplate.getKeySerializer();
+			RedisSerializer valueSerializer = redisTemplate.getValueSerializer();
+			RedisSerializer hks = redisTemplate.getHashKeySerializer();
+
+			@Override
+			public Void doInRedis(RedisConnection connection) throws DataAccessException {
+				final long value = (long)amount;
+
+				byte[] totalKey = keySerializer.serialize(akg.getTotalKey());
+				long returnVal = connection.incrBy(totalKey, value);
+
+				byte[] meta = keySerializer.serialize(metaKey);
+				if (returnVal == value) {
+					connection.sAdd(meta, totalKey);
+					connection.sAdd(keySerializer.serialize(getKeyForAllRootCounterNames()), valueSerializer.serialize(name));
+				}
+
+				doIncrement(connection, meta,  akg.getYearsKey(), akg.getYear(), amount);
+				doIncrement(connection, meta,  akg.getYearKey(), akg.getMonth(), amount);
+				doIncrement(connection, meta,  akg.getMonthKey(), akg.getDay(), amount);
+				doIncrement(connection, meta,  akg.getDayKey(), akg.getHour(), amount);
+				doIncrement(connection, meta,  akg.getHourKey(), akg.getMinute(), amount);
+
+				return null;
+			}
+
+			private void doIncrement(RedisConnection connection, byte[] meta, String key, String hkey, long amount) {
+				byte[] keyBytes = keySerializer.serialize(key);
+				byte[] hKeyBytes = hks.serialize(hkey);
+				long returnVal = connection.hIncrBy(keyBytes, hKeyBytes, amount);
+
+				if (returnVal == amount) {
+					// Add new counters to bookkeeping set of keys
+					// TODO: This currently involves unnecessary operations since the return value
+					// is that of the individual hash key and does not indicate that the hash is new
+					connection.sAdd(meta, valueSerializer.serialize(key));
+				}
+			}
+		};
+
+		redisTemplate.execute(incrementAction);
 	}
 
 	@Override
 	public int getTotalCounts(String name) {
 		AggregateKeyGenerator akg = new AggregateKeyGenerator(name);
 		logger.trace("TotalCounts - TotalKey = " + akg.getTotalKey());
-		Object val = stringRedisTemplate.opsForValue().get(akg.getTotalKey());
+		Object val = redisTemplate.opsForValue().get(akg.getTotalKey());
 		if (val != null) {
 			try {
 				logger.trace("TotalCounts - Total Value Type = " + val.getClass());
@@ -94,12 +110,12 @@ public class RedisAggregateCounterService implements AggregateCounterService {
 	@Override
 	public void deleteCounter(String name) {
 		String keySet = getKeyForCounterKeys(name);
-		SetOperations<String, String> setOps = stringRedisTemplate.opsForSet();
+		SetOperations<String, String> setOps = redisTemplate.opsForSet();
 		Set<String> keys = setOps.members(keySet);
-		stringRedisTemplate.delete(keys);
+		redisTemplate.delete(keys);
 		setOps.remove(getKeyForAllRootCounterNames(), name);
 		AggregateKeyGenerator akg = new AggregateKeyGenerator(name);
-		stringRedisTemplate.delete(akg.getTotalKey());
+		redisTemplate.delete(akg.getTotalKey());
 	}
 
 	/**
@@ -180,12 +196,12 @@ public class RedisAggregateCounterService implements AggregateCounterService {
 
 	@Override
 	public Set<String> getAll() {
-		return stringRedisTemplate.opsForSet().members(getKeyForAllRootCounterNames());
+		return redisTemplate.opsForSet().members(getKeyForAllRootCounterNames());
 	}
 
 	private Map<Object, Object> getEntries(String key) {
 		//TODO cleanup with more type specific template data types
-		return stringRedisTemplate.opsForHash().entries(key);
+		return redisTemplate.opsForHash().entries(key);
 	}
 
 	private int[] convertToArray(Map<Object, Object> map, int size) {

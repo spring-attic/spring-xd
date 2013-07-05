@@ -12,8 +12,15 @@
  */
 package org.springframework.xd.dirt.stream;
 
+import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.integration.Message;
@@ -21,63 +28,67 @@ import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.SubscribableChannel;
-import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
-
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import org.springframework.xd.dirt.stream.memory.InMemoryStreamDefinitionRepository;
+import org.springframework.xd.dirt.stream.memory.InMemoryTapDefinitionRepository;
 
 /**
  * @author David Turanski
  *
  */
 public class TapDeployerTests {
-	TapDefinitionRepository repository; 
-	StreamDefinitionRepository streamRepository; 
-	SubscribableChannel outputChannel; 
+	TapDefinitionRepository repository;
+	StreamDefinitionRepository streamRepository;
+	SubscribableChannel outputChannel;
 	TapDeploymentMessageSender sender;
 	TapDeployer tapDeployer;
+
 	@Before
 	public void setUp() {
-		repository = mock(TapDefinitionRepository.class);
-		streamRepository = mock(StreamDefinitionRepository.class);
+		repository = new InMemoryTapDefinitionRepository();
+		streamRepository = new InMemoryStreamDefinitionRepository();
 		outputChannel = new DirectChannel();
 		sender = new TapDeploymentMessageSender(outputChannel);
-		tapDeployer = new TapDeployer(repository,streamRepository, sender);
+		tapDeployer = new TapDeployer(repository, streamRepository, sender);
 	}
+
 	@Test
 	public void testCreateSucceeds() {
 		TapDefinition tapDefinition = new TapDefinition("tap1", "test", "tap @test | file");
-		when(repository.save(tapDefinition)).thenReturn(tapDefinition);
-		when(streamRepository.exists("test")).thenReturn(true);
+		streamRepository.save(new StreamDefinition("test", "time | log"));
 		tapDeployer.create(tapDefinition);
-		verify(repository).save(tapDefinition);
+		assertTrue(repository.exists("tap1"));
 	}
 
-	@Test(expected=IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void testCreateFailsIfSourceStreamDoesNotExist() {
 		TapDefinition tapDefinition = new TapDefinition("tap1", "test", "tap @test | file");
-		when(repository.save(tapDefinition)).thenReturn(tapDefinition);
-		when(streamRepository.exists("test")).thenReturn(false);
 		tapDeployer.create(tapDefinition);
 	}
 
 	@Test
 	public void testDeploySucceeds() {
 		TapDefinition tapDefinition = new TapDefinition("tap1", "test", "tap @test | file");
-		when(repository.findOne("tap1")).thenReturn(tapDefinition);
+		repository.save(tapDefinition);
 		final AtomicInteger messageCount = new AtomicInteger();
-		outputChannel.subscribe(new MessageHandler(){
+		outputChannel.subscribe(new MessageHandler() {
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
 				messageCount.getAndIncrement();
-			}});
+			}
+		});
 
 		tapDeployer.deploy("tap1");
-		assertEquals(2,messageCount.get());
+		assertEquals(2, messageCount.get());
 	}
 
-	@Test(expected=IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void testDeployFails() {
 		tapDeployer.deploy("tap1");
+	}
+
+	@After
+	public void clearRepos() {
+		repository.deleteAll();
+		streamRepository.deleteAll();
 	}
 }

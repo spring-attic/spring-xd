@@ -33,10 +33,9 @@ public enum Transport {
 	 */
 	redis,
 
-//	/**
-//	 * Use RabbitMQ (http://www.rabbitmq.com/) as the communication middleware.
-//	 */
-//	rabbitmq
-	;
+	/**
+	 * Use RabbitMQ (http://www.rabbitmq.com/) as the communication middleware.
+	 */
+	rabbit;
 
 }

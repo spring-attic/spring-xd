@@ -21,6 +21,7 @@ import org.apache.commons.logging.LogFactory;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 
+import org.springframework.xd.dirt.launcher.RabbitContainerLauncher;
 import org.springframework.xd.dirt.launcher.RedisContainerLauncher;
 import org.springframework.xd.dirt.server.options.AbstractOptions;
 import org.springframework.xd.dirt.server.options.ContainerOptions;
@@ -68,8 +69,11 @@ public class ContainerMain  {
 		case redis:
 			RedisContainerLauncher.create(options);
 			break;
+		case rabbit:
+			RabbitContainerLauncher.create(options);
+			break;
 		default:
-			logger.info("only redis transport is supported now");
+			logger.info("only redis and rabbit transports are currently supported");
 		}
 	}
 

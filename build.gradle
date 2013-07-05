@@ -199,7 +199,6 @@ project('spring-xd-dirt') {
 				"org.springframework:spring-webmvc:$springVersion",
 				"org.springframework.data:spring-data-commons:$springDataCommonsVersion",
 				"org.springframework.hateoas:spring-hateoas:$springHATEOASVersion",
-				"org.springframework.plugin:spring-plugin-core:$springPluginVersion",
 				"org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion",
 				"org.apache.tomcat.embed:tomcat-embed-core:$tomcatVersion",
 				"org.apache.tomcat.embed:tomcat-embed-logging-juli:$tomcatVersion",

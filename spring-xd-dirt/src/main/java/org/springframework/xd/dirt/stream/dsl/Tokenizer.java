@@ -13,35 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.xd.dirt.stream.dsl;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.util.Assert;
 
-// TODO [Andy] more general than SpringXD requires, trim it down once the spec is more well defined
 /**
- * Lex some input data into a stream of tokens that can then be parsed.
- *
+ * Lex some input data into a stream of tokens that can then then be parsed.
+ * 
  * @author Andy Clement
  */
 class Tokenizer {
 
-	// The string to be tokenized
-	String expressionString;
-	char[] toProcess;
-
-	// Length of input data
-	int max;
-
-	// Current lexing position in the input data
-	int pos;
-
-	// Output stream of tokens
-	List<Token> tokens = new ArrayList<Token>();
+	String expressionString; // The string to be tokenized
+	char[] toProcess;        // The expressionString as a char array
+	int max;	             // Length of input data
+	int pos;	             // Current lexing position in the input data
+	List<Token> tokens = new ArrayList<Token>();	// Output stream of tokens
 
 	public Tokenizer(String inputdata) {
 		this.expressionString = inputdata;
@@ -57,9 +47,11 @@ class Tokenizer {
 			char ch = toProcess[pos];
 
 			if (justProcessedEquals) {
-				if (!isWhitespace(ch) && !isQuote(ch)) {
-					// following an '=' we commence a variant of regular tokenization, here we consume
-					// everything up to the next pipe/whitespace
+				if (!isWhitespace(ch) && !isQuote(ch) && ch!=0) {
+					// following an '=' we commence a variant of regular tokenization, 
+					// here we consume everything up to the next special char.
+					// This allows SpEL expressions to be used without quoting in many
+					// situations.
 					lexArgValueIdentifier();
 				}
 				justProcessedEquals=false;
@@ -72,15 +64,18 @@ class Tokenizer {
 				switch (ch) {
 				case '-':
 					if (!isTwoCharToken(TokenKind.DOUBLE_MINUS)) {
-						throw new InternalParseException(new DSLParseException(
+						throw new DSLException(
 								expressionString, pos,
-								XDDSLMessages.MISSING_CHARACTER, "-"));
+								XDDSLMessages.MISSING_CHARACTER, "-");
 					}
 					pushPairToken(TokenKind.DOUBLE_MINUS);
 					break;
 				case '=':
 					justProcessedEquals=true;
 					pushCharToken(TokenKind.EQUALS);
+					break;
+				case '&':
+					pushCharToken(TokenKind.AND);
 					break;
 				case '|':
 					pushCharToken(TokenKind.PIPE);
@@ -97,6 +92,12 @@ class Tokenizer {
 				case '.':
 					pushCharToken(TokenKind.DOT);
 					break;
+				case '>':
+					pushCharToken(TokenKind.GT);
+					break;
+				case ':':
+					pushCharToken(TokenKind.COLON);
+					break;
 				case ';':
 					pushCharToken(TokenKind.SEMICOLON);
 					break;
@@ -110,14 +111,16 @@ class Tokenizer {
 					pushCharToken(TokenKind.REFERENCE);
 					break;
 				case 0:
-					// hit sentinel at end of value
+					// hit sentinel at end of char data
 					pos++; // will take us to the end
 					break;
 				case '\\':
-					throw new InternalParseException(new DSLParseException(expressionString,pos,XDDSLMessages.UNEXPECTED_ESCAPE_CHAR));
+					throw new DSLException(
+						expressionString,pos,XDDSLMessages.UNEXPECTED_ESCAPE_CHAR);
 				default:
-					throw new InternalParseException(new DSLParseException(expressionString,pos,XDDSLMessages.UNEXPECTED_DATA,ch));
-//					throw new IllegalStateException("Cannot handle ("+Integer.valueOf(ch)+") '"+ch+"'");
+					throw new DSLException(
+						expressionString,pos,XDDSLMessages.UNEXPECTED_DATA,
+						new Character(ch).toString());
 				}
 			}
 		}
@@ -127,7 +130,10 @@ class Tokenizer {
 		return tokens;
 	}
 	
-	// STRING_LITERAL: '\''! (APOS|~'\'')* '\''!;
+	/**
+	 * Lex a string literal which uses single quotes as delimiters.
+	 * To include a single quote within the literal, use a pair ''
+	 */
 	private void lexQuotedStringLiteral() {
 		int start = pos;
 		boolean terminated = false;
@@ -143,14 +149,19 @@ class Tokenizer {
 				}
 			}
 			if (ch==0) {
-				throw new InternalParseException(new DSLParseException(expressionString,start,XDDSLMessages.NON_TERMINATING_QUOTED_STRING));
+				throw new DSLException(
+						expressionString,start,XDDSLMessages.NON_TERMINATING_QUOTED_STRING);
 			}
 		}
 		pos++;
-		tokens.add(new Token(TokenKind.LITERAL_STRING, subarray(start,pos), start, pos));
+		tokens.add(new Token(TokenKind.LITERAL_STRING, 
+				subarray(start,pos), start, pos));
 	}
 
-	// DQ_STRING_LITERAL:	'"'! (~'"')* '"'!;
+	/**
+	 * Lex a string literal which uses double quotes as delimiters.
+	 * To include a single quote within the literal, use a pair ""
+	 */
 	private void lexDoubleQuotedStringLiteral() {
 		int start = pos;
 		boolean terminated = false;
@@ -166,15 +177,14 @@ class Tokenizer {
 				}
 			}
 			if (ch==0) {
-				throw new InternalParseException(new DSLParseException(expressionString,start,XDDSLMessages.NON_TERMINATING_DOUBLE_QUOTED_STRING));
+				throw new DSLException(
+						expressionString,start,XDDSLMessages.NON_TERMINATING_DOUBLE_QUOTED_STRING);
 			}
 		}
 		pos++;
-		tokens.add(new Token(TokenKind.LITERAL_STRING, subarray(start,pos), start, pos));
+		tokens.add(new Token(TokenKind.LITERAL_STRING, 
+				subarray(start,pos), start, pos));
 	}
-
-	// if this is changed, it must remain sorted
-	private static final String[] alternativeOperatorNames = { "DIV","EQ","GE","GT","LE","LT","MOD","NE","NOT"};
 
 	private void lexIdentifier() {
 		int start = pos;
@@ -182,16 +192,6 @@ class Tokenizer {
 			pos++;
 		} while (isIdentifier(toProcess[pos]));
 		char[] subarray = subarray(start,pos);
-
-		// Check if this is the alternative (textual) representation of an operator (see alternativeOperatorNames)
-		if ((pos-start)==2 || (pos-start)==3) {
-			String asString = new String(subarray).toUpperCase();
-			int idx = Arrays.binarySearch(alternativeOperatorNames,asString);
-			if (idx>=0) {
-				pushOneCharOrTwoCharToken(TokenKind.valueOf(asString),start,subarray);
-				return;
-			}
-		}
 		tokens.add(new Token(TokenKind.IDENTIFIER,subarray,start,pos));
 	}
 
@@ -255,13 +255,9 @@ class Tokenizer {
 		pos+=2;
 	}
 
-	private void pushOneCharOrTwoCharToken(TokenKind kind, int pos, char[] data) {
-		tokens.add(new Token(kind,data,pos,pos+kind.getLength()));
-	}
-
-	//	ID:	('a'..'z'|'A'..'Z'|'_'|'$') ('a'..'z'|'A'..'Z'|'_'|'$'|'0'..'9'|DOT_ESCAPED|-)*;
+	//	ID:	('a'..'z'|'A'..'Z'|'_'|'$') ('a'..'z'|'A'..'Z'|'_'|'$'|'0'..'9'|DOT_ESCAPED)*;
 	private boolean isIdentifier(char ch) {
-		return isAlphabetic(ch) || isDigit(ch) || ch=='_' || ch=='$' || ch=='-';
+		return isAlphabetic(ch) || isDigit(ch) || ch=='_' || ch=='$';
 	}
 
 	private boolean isQuote(char ch) {

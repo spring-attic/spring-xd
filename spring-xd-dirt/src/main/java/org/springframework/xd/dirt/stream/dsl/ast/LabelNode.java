@@ -16,34 +16,40 @@
 package org.springframework.xd.dirt.stream.dsl.ast;
 
 /**
- * Common supertype for the ast nodes built during stream parsing.
+ * Represents a label attached to a module.
  * 
  * @author Andy Clement
  */
-public abstract class AstNode {
+public class LabelNode extends AstNode {
 
-	protected int startpos;
-	protected int endpos;
+	private final String label;
 
-	public AstNode(int startpos, int endpos) {
-		this.startpos = startpos;
-		this.endpos = endpos;
+	public LabelNode(String label, int startpos, int endpos) {
+		super(startpos,endpos);
+		this.label = label;
 	}
 
-	public int getStartPos() {
-		return startpos;
+	@Override
+	public String stringify(boolean includePositionalInfo) {
+		StringBuilder s = new StringBuilder();
+		s.append("(").append("Label:").append(label);
+		if (includePositionalInfo) {
+			s.append(":");
+			s.append(getStartPos()).append(">").append(getEndPos());
+		}
+		s.append(")");
+		return s.toString();
+	}
+	
+	public String toString() {
+		StringBuilder s = new StringBuilder();
+		s.append(label);
+		s.append(":");
+		return s.toString();
 	}
 
-	public int getEndPos() {
-		return endpos;
+	public String getLabelName() {
+		return label;
 	}
 
-	/**
-	 * @return a string representation of the AST. Useful for debugging/testing.
-	 */
-	public abstract String stringify(boolean includePositionInfo);
-
-	public String stringify() {
-		return stringify(false);
-	}
 }

@@ -16,34 +16,35 @@
 package org.springframework.xd.dirt.stream.dsl.ast;
 
 /**
- * Common supertype for the ast nodes built during stream parsing.
- * 
  * @author Andy Clement
  */
-public abstract class AstNode {
+public class SinkChannelNode extends AstNode {
 
-	protected int startpos;
-	protected int endpos;
+	private final ChannelNode channelNode;
 
-	public AstNode(int startpos, int endpos) {
-		this.startpos = startpos;
-		this.endpos = endpos;
+	public SinkChannelNode(ChannelNode channelNode, int startpos) {
+		super(startpos,channelNode.endpos);
+		this.channelNode = channelNode;
 	}
 
-	public int getStartPos() {
-		return startpos;
+	/** @inheritDoc */
+	@Override
+	public String stringify(boolean includePositionalInfo) {
+		StringBuilder s = new StringBuilder();
+		s.append(">");
+		s.append(channelNode.stringify(includePositionalInfo));
+		return s.toString();
 	}
 
-	public int getEndPos() {
-		return endpos;
+	public String toString() {
+		StringBuilder s = new StringBuilder();
+		s.append(" > ");
+		s.append(channelNode.toString());
+		return s.toString();
+	}
+	
+	public ChannelNode getChannelNode() {
+		return channelNode;
 	}
 
-	/**
-	 * @return a string representation of the AST. Useful for debugging/testing.
-	 */
-	public abstract String stringify(boolean includePositionInfo);
-
-	public String stringify() {
-		return stringify(false);
-	}
 }

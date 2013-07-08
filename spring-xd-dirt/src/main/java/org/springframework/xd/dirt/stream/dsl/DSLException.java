@@ -13,10 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.xd.dirt.stream.dsl;
-
-import org.springframework.expression.ParseException;
 
 /**
  * Root exception for DSL parsing related exceptions. Rather than holding a hard coded string indicating the problem, it
@@ -26,30 +23,19 @@ import org.springframework.expression.ParseException;
  * @author Andy Clement
  */
 @SuppressWarnings("serial")
-public class DSLParseException extends ParseException {
+public class DSLException extends RuntimeException { 
 
+	protected String expressionString;
+	protected int position; // -1 if not known - but should be known in all reasonable cases
 	private XDDSLMessages message;
 	private Object[] inserts;
 
-	public DSLParseException(String expressionString, int position, XDDSLMessages message, Object... inserts) {
-		super(expressionString, position, message.formatMessage(position,inserts));
+	public DSLException(String expressionString, int position, XDDSLMessages message, Object... inserts) {
+		super(message.formatMessage(position,inserts));
 		this.position = position;
 		this.message = message;
 		this.inserts = inserts;
-	}
-
-	public DSLParseException(int position, XDDSLMessages message, Object... inserts) {
-		super(position, message.formatMessage(position,inserts));
-		this.position = position;
-		this.message = message;
-		this.inserts = inserts;
-	}
-
-	public DSLParseException(int position, Throwable cause, XDDSLMessages message, Object... inserts) {
-		super(position, message.formatMessage(position,inserts), cause);
-		this.position = position;
-		this.message = message;
-		this.inserts = inserts;
+		this.expressionString = expressionString;
 	}
 
 	/**
@@ -57,10 +43,22 @@ public class DSLParseException extends ParseException {
 	 */
 	@Override
 	public String getMessage() {
-		if (message != null)
-			return message.formatMessage(position, inserts);
-		else
-			return super.getMessage();
+		StringBuilder s = new StringBuilder();
+		if (message != null) {
+			s.append(message.formatMessage(position, inserts));
+		} else {
+			s.append(super.getMessage());
+		}
+		if (expressionString!=null && expressionString.length()>0) {
+			s.append("\n").append(expressionString).append("\n");
+		}
+		if (position>=0) {
+			for (int i=0;i<position;i++) {
+				s.append(' ');
+			}
+			s.append("^\n");
+		}
+		return s.toString();
 	}
 
 	/**
@@ -75,6 +73,21 @@ public class DSLParseException extends ParseException {
 	 */
 	public Object[] getInserts() {
 		return inserts;
+	}
+	
+	/**
+	 * @return the dsl expression text
+	 */
+	public final String getExpressionString() {
+		return this.expressionString;
+	}
+
+	/**
+	 * @return location of the error in the expression text
+	 * @return
+	 */
+	public final int getPosition() {
+		return position;
 	}
 
 }

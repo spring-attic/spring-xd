@@ -17,7 +17,8 @@ package org.springframework.xd.dirt.stream.dsl.ast;
 
 import java.util.List;
 
-// TODO [Andy] not sure this ast node is necessary if we never parse multiple stream definitions in one go
+import org.springframework.xd.dirt.stream.dsl.StreamLookupEnvironment;
+
 /**
  * @author Andy Clement
  */
@@ -33,7 +34,7 @@ public class StreamsNode extends AstNode {
 	}
 
 	@Override
-	public String stringify() {
+	public String stringify(boolean includePositionalInfo) {
 		StringBuilder s = new StringBuilder();
 		s.append("Streams[").append(streamsText).append("]");
 		if (streamNodes.size()>1) {
@@ -43,9 +44,15 @@ public class StreamsNode extends AstNode {
 			if (str>0) {
 				s.append("\n");
 			}
-			s.append(streamNodes.get(str).stringify());
+			s.append(streamNodes.get(str).stringify(includePositionalInfo));
 		}
 		return s.toString();
+	}
+	
+	public void resolve(StreamLookupEnvironment env) {
+		for (StreamNode streamNode: streamNodes) {
+			streamNode.resolve(env);
+		}
 	}
 
 	public List<StreamNode> getStreamNodes() {

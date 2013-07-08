@@ -21,8 +21,11 @@ import static org.junit.Assert.fail;
 import java.util.List;
 
 import org.junit.Test;
+import static org.springframework.xd.dirt.stream.dsl.TokenKind.*;
 
 /**
+ * Check the tokenizer breaks strings up into correct token streams.
+ * 
  * @author Andy Clement
  */
 public class TokenizerTests {
@@ -30,133 +33,141 @@ public class TokenizerTests {
 	@Test
 	public void oneModule() {
 		Tokenizer t = new Tokenizer("foo");
-		checkTokens(t,token_identifier("foo",0,3));
+		checkTokens(t,token_id("foo",0,3));
 	}
 
 	@Test
 	public void moduleAliasing() {
 		Tokenizer t = new Tokenizer("mystream = foo");
-		checkTokens(t,token_identifier("mystream",0,8),token(TokenKind.EQUALS,9,10),token_identifier("foo",11,14));
+		checkTokens(t,token_id("mystream",0,8),token(EQUALS,9,10),token_id("foo",11,14));
 	}
 
 	@Test
 	public void dirtyTap() {
 		Tokenizer t = new Tokenizer("tap one.foo");
-		checkTokens(t,token_identifier("tap",0,3),token_identifier("one",4,7),token(TokenKind.DOT,7,8),token_identifier("foo",8,11));
+		checkTokens(t,token_id("tap",0,3),token_id("one",4,7),token(DOT,7,8),token_id("foo",8,11));
 	}
 
 	@Test
 	public void moduleAliasingWithOptions() {
 		Tokenizer t = new Tokenizer("myhttp = http --port=9090");
-		checkTokens(t,token_identifier("myhttp",0,6),token(TokenKind.EQUALS,7,8),token_identifier("http",9,13),
-				token(TokenKind.DOUBLE_MINUS,14,16),token_identifier("port",16,20),token(TokenKind.EQUALS,20,21),token_identifier("9090",21,25));
+		checkTokens(t,token_id("myhttp",0,6),token(EQUALS,7,8),token_id("http",9,13),
+				token(DOUBLE_MINUS,14,16),token_id("port",16,20),token(EQUALS,20,21),token_id("9090",21,25));
 	}
 
 	@Test
 	public void twoModules() {
 		Tokenizer t = new Tokenizer("foo | bar");
-		checkTokens(t,token_identifier("foo",0,3),token(TokenKind.PIPE,4,5),token_identifier("bar",6,9));
+		checkTokens(t,token_id("foo",0,3),token(PIPE,4,5),token_id("bar",6,9));
 	}
 
 	@Test
 	public void threeModules() {
 		Tokenizer t = new Tokenizer("foo | bar | goo");
-		checkTokens(t,token_identifier("foo",0,3),token(TokenKind.PIPE,4,5),token_identifier("bar",6,9),token(TokenKind.PIPE,10,11),token_identifier("goo",12,15));
+		checkTokens(t,token_id("foo",0,3),token(PIPE,4,5),token_id("bar",6,9),token(PIPE,10,11),token_id("goo",12,15));
 	}
 
 	@Test
 	public void oneModuleWithParam() {
 		Tokenizer t = new Tokenizer("foo --name=value");
-		checkTokens(t,token_identifier("foo",0,3),token(TokenKind.DOUBLE_MINUS,4,6),token_identifier("name",6,10),token(TokenKind.EQUALS,10,11),token_identifier("value",11,16));
+		checkTokens(t,token_id("foo",0,3),token(DOUBLE_MINUS,4,6),token_id("name",6,10),token(EQUALS,10,11),token_id("value",11,16));
 	}
 	
 	@Test
 	public void quotesInParam1() {
 		Tokenizer t = new Tokenizer("foo --bar='payload.matches(''hello'')'");
-		checkTokens(t,token_identifier("foo",0,3),token(TokenKind.DOUBLE_MINUS,4,6), token_identifier("bar",6,9),token(TokenKind.EQUALS,9,10), token(TokenKind.LITERAL_STRING,"'payload.matches(''hello'')'",10,38));
+		checkTokens(t,token_id("foo",0,3),token(DOUBLE_MINUS,4,6), token_id("bar",6,9),token(EQUALS,9,10), token(LITERAL_STRING,"'payload.matches(''hello'')'",10,38));
 	}
 
 	@Test
 	public void quotesInParam2() {
 		Tokenizer t = new Tokenizer("foo --bar=payload.matches('hello')");
-		checkTokens(t,token_identifier("foo",0,3),token(TokenKind.DOUBLE_MINUS,4,6), token_identifier("bar",6,9),token(TokenKind.EQUALS,9,10), token_identifier("payload.matches('hello')",10,34));
+		checkTokens(t,token_id("foo",0,3),token(DOUBLE_MINUS,4,6), token_id("bar",6,9),token(EQUALS,9,10), token_id("payload.matches('hello')",10,34));
 	}
 
 	@Test
 	public void quotesInParam3() {
 		Tokenizer t = new Tokenizer("foo --bar=payload.matches('hello world')");
-		checkTokens(t,token_identifier("foo",0,3),token(TokenKind.DOUBLE_MINUS,4,6), token_identifier("bar",6,9),token(TokenKind.EQUALS,9,10), token_identifier("payload.matches('hello world')",10,40));
+		checkTokens(t,token_id("foo",0,3),token(DOUBLE_MINUS,4,6), token_id("bar",6,9),token(EQUALS,9,10), token_id("payload.matches('hello world')",10,40));
 	}
 
 	@Test
 	public void quotesInParam4() {
 		Tokenizer t = new Tokenizer("foo --bar=payload.matches('helloworld')");
-		checkTokens(t,token_identifier("foo",0,3),token(TokenKind.DOUBLE_MINUS,4,6), token_identifier("bar",6,9),token(TokenKind.EQUALS,9,10), token_identifier("payload.matches('helloworld')",10,39));
+		checkTokens(t,token_id("foo",0,3),token(DOUBLE_MINUS,4,6), token_id("bar",6,9),token(EQUALS,9,10), token_id("payload.matches('helloworld')",10,39));
 	}
 
 	@Test
 	public void quotesInParam5() {
 		Tokenizer t = new Tokenizer("foo --bar=payload.matches('hello\tworld')");
-		checkTokens(t,token_identifier("foo",0,3),token(TokenKind.DOUBLE_MINUS,4,6), token_identifier("bar",6,9),token(TokenKind.EQUALS,9,10), token_identifier("payload.matches('hello\tworld')",10,40));
+		checkTokens(t,token_id("foo",0,3),token(DOUBLE_MINUS,4,6), token_id("bar",6,9),token(EQUALS,9,10), token_id("payload.matches('hello\tworld')",10,40));
 	}
 	
 	@Test
 	public void quotesInParam7() {
 		Tokenizer t = new Tokenizer("foo --bar=payload.matches(\"'\")");
-		checkTokens(t,token_identifier("foo",0,3),token(TokenKind.DOUBLE_MINUS,4,6), token_identifier("bar",6,9),token(TokenKind.EQUALS,9,10), token_identifier("payload.matches(\"'\")",10,30));
+		checkTokens(t,token_id("foo",0,3),token(DOUBLE_MINUS,4,6), token_id("bar",6,9),token(EQUALS,9,10), token_id("payload.matches(\"'\")",10,30));
 	}
 	
 	@Test
 	public void quotesInParam6() {
 		Tokenizer t = new Tokenizer("foo --bar=payload.matches(\"hello\t  world\")");
-		checkTokens(t,token_identifier("foo",0,3),token(TokenKind.DOUBLE_MINUS,4,6), token_identifier("bar",6,9),token(TokenKind.EQUALS,9,10), token_identifier("payload.matches(\"hello\t  world\")",10,42));
+		checkTokens(t,token_id("foo",0,3),token(DOUBLE_MINUS,4,6), token_id("bar",6,9),token(EQUALS,9,10), token_id("payload.matches(\"hello\t  world\")",10,42));
 	}
 
 	@Test
 	public void oneModuleWithTwoParam() {
 		Tokenizer t = new Tokenizer("foo --name=value --xx=yy");
-		checkTokens(t,token_identifier("foo",0,3),
-				token(TokenKind.DOUBLE_MINUS,4,6),token_identifier("name",6,10),token(TokenKind.EQUALS,10,11),token_identifier("value",11,16),
-				token(TokenKind.DOUBLE_MINUS,17,19),token_identifier("xx",19,21),token(TokenKind.EQUALS,21,22),token_identifier("yy",22,24));
+		checkTokens(t,token_id("foo",0,3),
+				token(DOUBLE_MINUS,4,6),token_id("name",6,10),token(EQUALS,10,11),token_id("value",11,16),
+				token(DOUBLE_MINUS,17,19),token_id("xx",19,21),token(EQUALS,21,22),token_id("yy",22,24));
 	}
 
 	@Test
 	public void messyArgumentValues() {
 		Tokenizer t = new Tokenizer("foo --name=4:5abcdef --xx=(aaa)bbc%32");
-		checkTokens(t,token_identifier("foo",0,3),
-				token(TokenKind.DOUBLE_MINUS,4,6),token_identifier("name",6,10),token(TokenKind.EQUALS,10,11),token_identifier("4:5abcdef",11,20),
-				token(TokenKind.DOUBLE_MINUS,21,23),token_identifier("xx",23,25),token(TokenKind.EQUALS,25,26),token_identifier("(aaa)bbc%32",26,37));
+		checkTokens(t,token_id("foo",0,3),
+				token(DOUBLE_MINUS,4,6),token_id("name",6,10),token(EQUALS,10,11),token_id("4:5abcdef",11,20),
+				token(DOUBLE_MINUS,21,23),token_id("xx",23,25),token(EQUALS,25,26),token_id("(aaa)bbc%32",26,37));
 	}
 
 	@Test
 	public void newlines() {
 		Tokenizer t = new Tokenizer("foo\nbar");
-		checkTokens(t,token_identifier("foo",0,3),token(TokenKind.NEWLINE,3,4),token_identifier("bar",4,7));
+		checkTokens(t,token_id("foo",0,3),token(NEWLINE,3,4),token_id("bar",4,7));
 	}
 
 	@Test
 	public void semicolons() {
 		Tokenizer t = new Tokenizer("foo;bar");
-		checkTokens(t,token_identifier("foo",0,3),token(TokenKind.SEMICOLON,3,4),token_identifier("bar",4,7));
+		checkTokens(t,token_id("foo",0,3),token(SEMICOLON,3,4),token_id("bar",4,7));
+	}
+	
+	@Test
+	public void channels() {
+		Tokenizer t = new Tokenizer(":a.b > c | d > :e");
+		checkTokens(t,token(COLON,0,1),token_id("a",1,2),token(DOT,2,3),token_id("b",3,4),token(GT,5,6),
+				token_id("c",7,8),token(PIPE,9,10),token_id("d",11,12),token(GT,13,14),
+				token(COLON,15,16),token_id("e",16,17));
 	}
 
 	@Test
 	public void oneModuleWithSpacedValues() {
 		Tokenizer t = new Tokenizer("foo --name='i am a foo'");
-		checkTokens(t,token_identifier("foo",0,3),token(TokenKind.DOUBLE_MINUS,4,6),token_identifier("name",6,10),
-				token(TokenKind.EQUALS,10,11),token(TokenKind.LITERAL_STRING,"'i am a foo'",11,23));
+		checkTokens(t,token_id("foo",0,3),token(DOUBLE_MINUS,4,6),token_id("name",6,10),
+				token(EQUALS,10,11),token(LITERAL_STRING,"'i am a foo'",11,23));
 
 		t = new Tokenizer("foo --name='i have a ''string'' inside'");
-		checkTokens(t,token_identifier("foo",0,3),token(TokenKind.DOUBLE_MINUS,4,6),token_identifier("name",6,10),
-				token(TokenKind.EQUALS,10,11),token(TokenKind.LITERAL_STRING,"'i have a ''string'' inside'",11,39));
+		checkTokens(t,token_id("foo",0,3),token(DOUBLE_MINUS,4,6),token_id("name",6,10),
+				token(EQUALS,10,11),token(LITERAL_STRING,"'i have a ''string'' inside'",11,39));
 
 		t = new Tokenizer("foo --name=\"i have a 'string' inside\"");
-		checkTokens(t,token_identifier("foo",0,3),token(TokenKind.DOUBLE_MINUS,4,6),token_identifier("name",6,10),
-				token(TokenKind.EQUALS,10,11),token(TokenKind.LITERAL_STRING,"\"i have a 'string' inside\"",11,37));
+		checkTokens(t,token_id("foo",0,3),token(DOUBLE_MINUS,4,6),token_id("name",6,10),
+				token(EQUALS,10,11),token(LITERAL_STRING,"\"i have a 'string' inside\"",11,37));
 
 		t = new Tokenizer("foo --name='i have a \"string\" inside'");
-		checkTokens(t,token_identifier("foo",0,3),token(TokenKind.DOUBLE_MINUS,4,6),token_identifier("name",6,10),
-				token(TokenKind.EQUALS,10,11),token(TokenKind.LITERAL_STRING,"'i have a \"string\" inside'",11,37));
+		checkTokens(t,token_id("foo",0,3),token(DOUBLE_MINUS,4,6),token_id("name",6,10),
+				token(EQUALS,10,11),token(LITERAL_STRING,"'i have a \"string\" inside'",11,37));
 	}
 
 	// ---
@@ -181,8 +192,8 @@ public class TokenizerTests {
 		return new Token(tokenkind, start, end);
 	}
 
-	private Token token_identifier(String identifier, int start, int end) {
-		return new Token(TokenKind.IDENTIFIER, identifier.toCharArray(), start, end);
+	private Token token_id(String identifier, int start, int end) {
+		return new Token(IDENTIFIER, identifier.toCharArray(), start, end);
 	}
 
 	private String stringify(Token[] tokens) {

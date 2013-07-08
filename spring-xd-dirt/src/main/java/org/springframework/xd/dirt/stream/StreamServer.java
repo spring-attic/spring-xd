@@ -20,6 +20,8 @@ import java.util.concurrent.ScheduledFuture;
 import org.apache.catalina.Context;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.core.AprLifecycleListener;
+import org.apache.catalina.deploy.FilterDef;
+import org.apache.catalina.deploy.FilterMap;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -30,6 +32,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.ConfigurableWebApplicationContext;
+import org.springframework.web.filter.HttpPutFormContentFilter;
 import org.springframework.web.servlet.DispatcherServlet;
 
 /**
@@ -58,11 +61,9 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 
 	private final ConfigurableWebApplicationContext webApplicationContext;
 
-	public StreamServer(
-			ConfigurableWebApplicationContext webApplicationContext, int port) {
+	public StreamServer(ConfigurableWebApplicationContext webApplicationContext, int port) {
 		Assert.notNull(webApplicationContext, "context must not be null");
-		Assert.isTrue(!webApplicationContext.isActive(),
-				"context must not have been started");
+		Assert.isTrue(!webApplicationContext.isActive(), "context must not have been started");
 		this.webApplicationContext = webApplicationContext;
 		this.port = port;
 	}
@@ -97,17 +98,23 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 		this.scheduler.setPoolSize(3);
 		this.scheduler.initialize();
 		this.tomcat.setPort(this.port);
-		Context tomcatContext = this.tomcat.addContext(this.contextPath,
-				new File(".").getAbsolutePath());
-		this.webApplicationContext.setServletContext(tomcatContext
-				.getServletContext());
+		Context tomcatContext = this.tomcat.addContext(this.contextPath, new File(".").getAbsolutePath());
+		this.webApplicationContext.setServletContext(tomcatContext.getServletContext());
 		this.webApplicationContext.refresh();
-		Tomcat.addServlet(tomcatContext, this.servletName,
-				new DispatcherServlet(this.webApplicationContext));
+		Tomcat.addServlet(tomcatContext, this.servletName, new DispatcherServlet(this.webApplicationContext));
 		tomcatContext.addServletMapping("/", this.servletName);
+
+		FilterDef filterDef = new FilterDef();
+		filterDef.setFilterClass(HttpPutFormContentFilter.class.getName());
+		filterDef.setFilterName("httpPut");
+		FilterMap filterMap = new FilterMap();
+		filterMap.setFilterName("httpPut");
+		filterMap.addServletName(servletName);
+		tomcatContext.addFilterDef(filterDef);
+		tomcatContext.addFilterMap(filterMap);
+
 		if (logger.isInfoEnabled()) {
-			logger.info("initialized server: context=" + this.contextPath
-					+ ", servlet=" + this.servletName);
+			logger.info("initialized server: context=" + this.contextPath + ", servlet=" + this.servletName);
 		}
 	}
 

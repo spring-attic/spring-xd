@@ -16,24 +16,13 @@
 
 package org.springframework.xd.dirt.stream;
 
+import org.springframework.data.repository.PagingAndSortingRepository;
+
 /**
- * Thrown when a problem is detected with the (DSL) definition of a stream.
+ * A repository for persisting {@link Stream}s.
  * 
  * @author Eric Bottard
  */
-@SuppressWarnings("serial")
-public class StreamDefinitionException extends StreamDeploymentException {
-
-	public StreamDefinitionException() {
-		super();
-	}
-
-	public StreamDefinitionException(String message, Throwable cause) {
-		super(message, cause);
-	}
-
-	public StreamDefinitionException(String message) {
-		super(message);
-	}
+public interface StreamRepository extends PagingAndSortingRepository<Stream, String> {
 
 }

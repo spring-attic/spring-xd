@@ -22,7 +22,7 @@ package org.springframework.xd.dirt.stream;
  * @author Eric Bottard
  */
 @SuppressWarnings("serial")
-public class NoSuchStreamException extends StreamDeploymentException {
+public class NoSuchStreamException extends StreamException {
 
 	/**
 	 * Create a new exception.

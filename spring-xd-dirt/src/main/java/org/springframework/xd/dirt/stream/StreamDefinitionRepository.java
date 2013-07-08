@@ -19,7 +19,7 @@ package org.springframework.xd.dirt.stream;
 import org.springframework.data.repository.PagingAndSortingRepository;
 
 /**
- * A repository for peristing {@link StreamDefinition}s.
+ * A repository for persisting {@link StreamDefinition}s.
  * 
  * @author Eric Bottard
  */

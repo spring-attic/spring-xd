@@ -26,31 +26,57 @@ import org.springframework.stereotype.Component;
 @Component
 public class StreamCommands implements CommandMarker {
 
+	private static final String DEPLOY_STREAM = "deploy stream";
+
+	private static final String UNDEPLOY_STREAM = "undeploy stream";
+
+	private static final String CREATE_STREAM = "create stream";
+
+	private static final String DESTROY_STREAM = "destroy stream";
+
 	@Autowired
 	private XDShell xdShell;
 
-	@CliAvailabilityIndicator({ "deploy stream", "undeploy stream" })
+	@CliAvailabilityIndicator({ DEPLOY_STREAM, UNDEPLOY_STREAM, CREATE_STREAM, DESTROY_STREAM })
 	public boolean available() {
 		return xdShell.getSpringXDOperations() != null;
 	}
 
-	@CliCommand(value = "deploy stream", help = "Deploy a new stream definition")
-	public String deployStream(
-	//
-			@CliOption(mandatory = true, key = { "", "definition" }, help = "a stream definition, using XD DSL (e.g. \"http --port=9000 | hdfs\")")
+	@CliCommand(value = CREATE_STREAM, help = "Create a new stream definition")
+	public String createStream(
+			//
+			@CliOption(mandatory = true, key = { "definition" }, help = "a stream definition, using XD DSL (e.g. \"http --port=9000 | hdfs\")")
 			String dsl,//
-			@CliOption(mandatory = true, key = "name", help = "the name to give to the stream")
-			String name) {
-		xdShell.getSpringXDOperations().deployStream(name, dsl);
-		return String.format("Deployed new stream '%s'", name);
+			@CliOption(mandatory = true, key = { "", "name" }, help = "the name to give to the stream")
+			String name, //
+			@CliOption(key = "deploy", help = "whether to deploy the stream immediately", unspecifiedDefaultValue = "true")
+			boolean deploy) {
+		xdShell.getSpringXDOperations().createStream(name, dsl, deploy);
+		return String.format("Created new stream '%s'", name);
 	}
 
-	@CliCommand(value = "undeploy stream", help = "Undeploy a stream from the running XD container(s)")
-	public String undeployStream(//
-			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the stream to delete")
+	@CliCommand(value = DESTROY_STREAM, help = "Destroy an existing stream")
+	public String destroyStream(//
+			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the stream to destroy")
+			String name) {
+		xdShell.getSpringXDOperations().destroyStream(name);
+		return String.format("Destroyed stream '%s'", name);
+	}
+
+	@CliCommand(value = DEPLOY_STREAM, help = "Deploy a previously created stream")
+	public String deployStream(
+			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the stream to deploy")
+			String name) {
+		xdShell.getSpringXDOperations().deployStream(name);
+		return String.format("Deployed stream '%s'", name);
+	}
+
+	@CliCommand(value = UNDEPLOY_STREAM, help = "Un-deploy a previously deployed stream")
+	public String undeployStream(
+			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the stream to un-deploy")
 			String name) {
 		xdShell.getSpringXDOperations().undeployStream(name);
-		return String.format("Undeployed stream '%s'", name);
+		return String.format("Un-deployed stream '%s'", name);
 	}
 
 }

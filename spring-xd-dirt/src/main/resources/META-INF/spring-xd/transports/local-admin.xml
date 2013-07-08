@@ -16,8 +16,17 @@
 <!-- Pipe the deployment messages directly to the container input -->
 
 	<bean id="streamDeployer" class="org.springframework.xd.dirt.stream.DefaultStreamDeployer">
-		<constructor-arg ref="input" />
-		<constructor-arg ref="streamRepository" />
+		<constructor-arg name="outputChannel"              ref="input" />
+		<constructor-arg name="streamDefinitionRepository" ref="streamRepository" />
+	</bean>
+
+	<bean id="triggerDeploymentMessageSender" class="org.springframework.xd.dirt.stream.TriggerDeploymentMessageSender">
+		<constructor-arg name="outputChannel" ref="input" />
+	</bean>
+
+	<bean id="triggerDeployer" class="org.springframework.xd.dirt.stream.TriggerDeployer">
+		<constructor-arg name="messageSender" ref="triggerDeploymentMessageSender" />
+		<constructor-arg name="repository"    ref="triggerRepository" />
 	</bean>
 	
 	<bean id="tapDeployer" class="org.springframework.xd.dirt.stream.TapDeployer">

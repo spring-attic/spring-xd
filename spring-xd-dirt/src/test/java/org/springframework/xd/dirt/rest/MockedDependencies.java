@@ -24,6 +24,8 @@ import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDeployer;
 import org.springframework.xd.dirt.stream.TapDefinitionRepository;
 import org.springframework.xd.dirt.stream.TapDeployer;
+import org.springframework.xd.dirt.stream.TriggerDefinitionRepository;
+import org.springframework.xd.dirt.stream.TriggerDeployer;
 
 @Configuration
 public class MockedDependencies {
@@ -31,6 +33,16 @@ public class MockedDependencies {
 	@Bean
 	public StreamDeployer streamDeployer() {
 		return mock(StreamDeployer.class);
+	}
+
+	@Bean
+	public TapDeployer tapDeployer() {
+		return mock(TapDeployer.class);
+	}
+
+	@Bean
+	public TriggerDeployer triggerDeployer() {
+		return mock(TriggerDeployer.class);
 	}
 
 	@Bean
@@ -44,8 +56,8 @@ public class MockedDependencies {
 	}
 
 	@Bean
-	public TapDeployer tapDeployer() {
-		return mock(TapDeployer.class);
+	public TriggerDefinitionRepository triggerDefinitionRepository() {
+		return mock(TriggerDefinitionRepository.class);
 	}
 
 }

@@ -39,4 +39,6 @@
 			<property name="extractPayload" value="false" />
 		</bean>
 	</int:chain>
+	
+		
 </beans>

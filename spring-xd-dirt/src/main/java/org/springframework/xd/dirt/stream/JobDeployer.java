@@ -25,16 +25,13 @@ import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 public class JobDeployer implements ResourceDeployer<JobDefinition> {
 	private final JobDefinitionRepository repository;
 	private final JobDeploymentMessageSender messageSender;
-	private final StreamDefinitionRepository streamRepository;
 	private final StreamParser streamParser = new EnhancedStreamParser();
 
-	public JobDeployer(JobDefinitionRepository repository, StreamDefinitionRepository streamRepository, JobDeploymentMessageSender messageSender) {
+	public JobDeployer(JobDefinitionRepository repository, JobDeploymentMessageSender messageSender) {
 		Assert.notNull(repository, "repository cannot be null");
-		Assert.notNull(streamRepository, "stream repository cannot be null");
 		Assert.notNull(messageSender, "message sender cannot be null");
 		this.repository = repository;
 		this.messageSender = messageSender;
-		this.streamRepository = streamRepository;
 
 	}
 

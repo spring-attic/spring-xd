@@ -38,7 +38,7 @@ import org.springframework.xd.dirt.container.DefaultContainer;
 import org.springframework.xd.dirt.event.ModuleDeployedEvent;
 import org.springframework.xd.dirt.event.ModuleUndeployedEvent;
 import org.springframework.xd.module.Module;
-import org.springframework.xd.plugin.Plugin;
+import org.springframework.xd.module.Plugin;
 
 /**
  * @author Mark Fisher

@@ -21,7 +21,7 @@ import org.springframework.integration.channel.registry.ChannelRegistry;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.util.Assert;
 import org.springframework.xd.module.Module;
-import org.springframework.xd.plugin.Plugin;
+import org.springframework.xd.module.Plugin;
 
 /**
  * @author David Turanski

@@ -22,5 +22,11 @@
 			</bean>
 		</constructor-arg>
 	</bean>
-
+  <bean id="jobRepository" class="org.springframework.xd.dirt.stream.redis.RedisJobDefinitionRepository">
+    <constructor-arg>
+      <bean class="org.springframework.data.redis.core.RedisTemplate">
+        <property name="connectionFactory" ref="redisConnectionFactory" />
+      </bean>
+    </constructor-arg>
+  </bean>
 </beans>

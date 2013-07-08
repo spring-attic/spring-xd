@@ -17,14 +17,19 @@
 package org.springframework.xd.dirt.stream.dsl;
 
 /**
+ * Enumeration of all the token types that may be found in a DSL definition stream.
+ * 
  * @author Andy Clement
  */
 enum TokenKind {
 	IDENTIFIER,
 	DOUBLE_MINUS("--"),
 	EQUALS("="),
+	AND("&"),
 	PIPE("|"),
 	NEWLINE("\n"),
+	COLON(":"),
+	GT(">"),
 	SEMICOLON(";"),
 	REFERENCE("@"),
 	DOT("."),
@@ -43,7 +48,6 @@ enum TokenKind {
 		this("");
 	}
 
-	@Override
 	public String toString() {
 		return this.name()+(tokenChars.length!=0?"("+new String(tokenChars)+")":"");
 	}
@@ -54,5 +58,12 @@ enum TokenKind {
 
 	public int getLength() {
 		return tokenChars.length;
+	}
+	
+	/**
+	 * @return the chars representing simple fixed token (eg. : > --)
+	 */
+	public char[] getTokenChars() {
+		return tokenChars;
 	}
 }

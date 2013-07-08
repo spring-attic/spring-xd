@@ -5,7 +5,17 @@
 
 	<import resource="../transports/redis-common.xml" />
 
-	<bean id="streamRepository" class="org.springframework.xd.dirt.stream.redis.RedisStreamDefinitionRepository">
+	<bean id="streamRepository"
+		class="org.springframework.xd.dirt.stream.redis.RedisStreamDefinitionRepository">
+		<constructor-arg>
+			<bean class="org.springframework.data.redis.core.RedisTemplate">
+				<property name="connectionFactory" ref="redisConnectionFactory" />
+			</bean>
+		</constructor-arg>
+	</bean>
+
+	<bean id="tapRepository"
+		class="org.springframework.xd.dirt.stream.redis.RedisTapDefinitionRepository">
 		<constructor-arg>
 			<bean class="org.springframework.data.redis.core.RedisTemplate">
 				<property name="connectionFactory" ref="redisConnectionFactory" />

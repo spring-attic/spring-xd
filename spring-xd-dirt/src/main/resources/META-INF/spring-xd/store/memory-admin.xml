@@ -4,5 +4,6 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<bean id="streamRepository" class="org.springframework.xd.dirt.stream.memory.InMemoryStreamDefinitionRepository"/>
+	<bean id="tapRepository" class="org.springframework.xd.dirt.stream.memory.InMemoryTapDefinitionRepository"/>
 
 </beans>

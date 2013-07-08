@@ -13,12 +13,21 @@
 
 	<import resource="classpath:/META-INF/spring-xd/internal/container.xml"/>
 	<import resource="classpath*:/META-INF/spring-xd/plugins/*.xml"/>
-
-	<!-- Pipe the deployment messages directly to the container input -->
+<!-- Pipe the deployment messages directly to the container input -->
 
 	<bean id="streamDeployer" class="org.springframework.xd.dirt.stream.DefaultStreamDeployer">
 		<constructor-arg ref="input" />
 		<constructor-arg ref="streamRepository" />
+	</bean>
+	
+	<bean id="tapDeployer" class="org.springframework.xd.dirt.stream.TapDeployer">
+		<constructor-arg ref="tapRepository" />
+		<constructor-arg ref="streamRepository" />
+		<constructor-arg>
+			<bean class="org.springframework.xd.dirt.stream.TapDeploymentMessageSender">
+				<constructor-arg ref="input"/>
+			</bean>
+		</constructor-arg>
 	</bean>
 
 </beans>

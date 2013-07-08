@@ -19,7 +19,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.xd.dirt.container.DefaultContainer;
 import org.springframework.xd.dirt.server.options.AbstractOptions;
 import org.springframework.xd.module.Module;
-import org.springframework.xd.plugin.Plugin;
+import org.springframework.xd.module.Plugin;
 
 /**
  * Exports MBeans from a module using a unique domain name xd.[group].[module]

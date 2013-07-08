@@ -24,8 +24,8 @@ import java.util.Properties;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.xd.dirt.container.DefaultContainer;
+import org.springframework.xd.module.AbstractPlugin;
 import org.springframework.xd.module.Module;
-import org.springframework.xd.plugin.AbstractPlugin;
 
 /**
  * Plugin to enable the registration of jobs in a central registry.

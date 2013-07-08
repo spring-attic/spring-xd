@@ -27,9 +27,9 @@ import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.scheduling.config.CronTask;
 import org.springframework.scheduling.config.IntervalTask;
+import org.springframework.xd.module.BeanDefinitionAddingPostProcessor;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.SimpleModule;
-import org.springframework.xd.plugin.BeanDefinitionAddingPostProcessor;
 
 /**
  *

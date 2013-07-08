@@ -25,8 +25,8 @@ import java.util.List;
 import java.util.Properties;
 
 import org.springframework.xd.dirt.container.DefaultContainer;
+import org.springframework.xd.module.AbstractPlugin;
 import org.springframework.xd.module.Module;
-import org.springframework.xd.plugin.AbstractPlugin;
 
 /**
  * @author Mark Fisher

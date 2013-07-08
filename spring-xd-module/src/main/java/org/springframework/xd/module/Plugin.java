@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.plugin;
+package org.springframework.xd.module;
 
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.xd.module.Module;
 
 /**
  * @author Mark Fisher

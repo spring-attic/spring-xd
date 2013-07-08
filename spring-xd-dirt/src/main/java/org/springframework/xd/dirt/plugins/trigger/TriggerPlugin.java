@@ -24,9 +24,9 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.util.Assert;
+import org.springframework.xd.module.BeanDefinitionAddingPostProcessor;
 import org.springframework.xd.module.Module;
-import org.springframework.xd.plugin.BeanDefinitionAddingPostProcessor;
-import org.springframework.xd.plugin.Plugin;
+import org.springframework.xd.module.Plugin;
 
 /**
  * {@link Plugin} to enable the registration of triggers.

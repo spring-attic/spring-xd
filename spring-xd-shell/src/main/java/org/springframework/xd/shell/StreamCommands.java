@@ -26,13 +26,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class StreamCommands implements CommandMarker {
 
-	private static final String DEPLOY_STREAM = "deploy stream";
+	private static final String DEPLOY_STREAM = "stream deploy";
 
-	private static final String UNDEPLOY_STREAM = "undeploy stream";
+	private static final String UNDEPLOY_STREAM = "stream undeploy";
 
-	private static final String CREATE_STREAM = "create stream";
+	private static final String CREATE_STREAM = "stream create";
 
-	private static final String DESTROY_STREAM = "destroy stream";
+	private static final String DESTROY_STREAM = "stream destroy";
 
 	@Autowired
 	private XDShell xdShell;

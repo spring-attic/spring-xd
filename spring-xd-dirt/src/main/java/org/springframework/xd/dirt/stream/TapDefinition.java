@@ -16,9 +16,12 @@ import org.springframework.util.Assert;
 
 /**
  * @author David Turanski
+ * @author Gunnnar Hillert
+ *
+ * @since 1.0
  *
  */
-public class TapDefinition extends StreamDefinition {
+public class TapDefinition extends BaseDefinition {
 
 	private String streamName;
 
@@ -26,9 +29,9 @@ public class TapDefinition extends StreamDefinition {
 	 * @param name - the tap name
 	 * @param streamName - the tapped stream
 	 * @param definition - the tap definition
-	 * 
+	 *
 	 */
-	public TapDefinition(String name, String streamName,String definition) {
+	public TapDefinition(String name, String streamName, String definition) {
 		super(name, definition);
 		Assert.hasText(streamName,"streamName cannot be empty or null");
 		this.streamName = streamName;
@@ -39,6 +42,38 @@ public class TapDefinition extends StreamDefinition {
 	 */
 	public String getStreamName() {
 		return streamName;
+	}
+
+	@Override
+	public String toString() {
+		return "TapDefinition [streamName=" + streamName + ", getDefinition()="
+				+ getDefinition() + ", getName()=" + getName() + "]";
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result
+				+ ((streamName == null) ? 0 : streamName.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		TapDefinition other = (TapDefinition) obj;
+		if (streamName == null) {
+			if (other.streamName != null)
+				return false;
+		} else if (!streamName.equals(other.streamName))
+			return false;
+		return true;
 	}
 
 }

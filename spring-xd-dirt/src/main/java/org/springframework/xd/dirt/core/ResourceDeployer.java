@@ -12,12 +12,25 @@
  */
 package org.springframework.xd.dirt.core;
 
+import org.springframework.xd.dirt.stream.BaseDefinition;
+
 /**
  * Interface for XD Resource Services
+ *
  * @author David Turanski
+ * @author Gunnar Hillert
+ *
+ * @since 1.0
  *
  */
-public interface ResourceDeployer<R> {
+public interface ResourceDeployer<R extends BaseDefinition> {
+
 	public void deploy(String name);
+
+	/**
+	 * Return all definitions ordered by {@link BaseDefinition#getName()} ascending.
+	 */
+	public Iterable<R> findAll();
+
 	public R create(R resource);
 }

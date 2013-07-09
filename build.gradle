@@ -51,7 +51,7 @@ configure(javaProjects()) { subproject ->
 	apply from:   "${rootProject.projectDir}/publish-maven.gradle"
 	apply plugin: 'eclipse'
 	apply plugin: 'idea'
-	
+
 	configurations.all {
 		resolutionStrategy {
 			eachDependency { DependencyResolveDetails details ->
@@ -199,7 +199,7 @@ project('spring-xd-dirt') {
 				"org.springframework:spring-webmvc:$springVersion",
 				"org.springframework.data:spring-data-commons:$springDataCommonsVersion",
 				"org.springframework.hateoas:spring-hateoas:$springHATEOASVersion",
-				"org.springframework.plugin:spring-plugin-core:$springPluginVersion",	
+				"org.springframework.plugin:spring-plugin-core:$springPluginVersion",
 				"org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion",
 				"org.apache.tomcat.embed:tomcat-embed-core:$tomcatVersion",
 				"org.apache.tomcat.embed:tomcat-embed-logging-juli:$tomcatVersion",
@@ -227,6 +227,7 @@ project('spring-xd-dirt') {
 		runtime "org.slf4j:jcl-over-slf4j:$slf4jVersion",
 				"org.slf4j:slf4j-log4j12:$slf4jVersion"
 		testCompile project(":spring-xd-test")
+		testCompile "com.jayway.jsonpath:json-path:0.8.1"
 		testCompile ("org.mockito:mockito-core:$mockitoVersion") {
 			exclude group:'org.hamcrest'
 		}
@@ -450,7 +451,7 @@ project('spring-xd-shell') {
 
 	// skip the startScripts task to avoid default start script generation
 	startScripts.setEnabled(false)
-	
+
 	task scriptFiles {
 		def scripts = file("$rootDir/scripts/shell")
 		outputs.dir scripts

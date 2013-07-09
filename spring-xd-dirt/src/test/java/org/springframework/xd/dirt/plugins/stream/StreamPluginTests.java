@@ -24,7 +24,7 @@ import java.util.List;
 import org.junit.Test;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.xd.dirt.plugins.BeanDefinitionAddingPostProcessor;
+import org.springframework.xd.module.BeanDefinitionAddingPostProcessor;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.SimpleModule;
 

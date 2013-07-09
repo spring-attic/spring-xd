@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.xd.dirt.plugins;
+package org.springframework.xd.module;
 
 import java.util.Map.Entry;
 import java.util.SortedMap;
@@ -73,7 +73,7 @@ public class BeanDefinitionAddingPostProcessor implements BeanDefinitionRegistry
 	/**
 	 * Allows you to add custom {@link BeanDefinition}s.
 	 *
-	 * @param name The name of the bean instance to register
+	 * @param beanName The name of the bean instance to register
 	 * @param beanDefinition Definition of the bean instance to register
 	 * @return The BeanDefinitionAddingPostProcessor
 	 */

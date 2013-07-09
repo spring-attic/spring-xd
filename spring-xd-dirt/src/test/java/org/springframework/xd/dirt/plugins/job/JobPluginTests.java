@@ -27,7 +27,7 @@ import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.scheduling.config.CronTask;
 import org.springframework.scheduling.config.IntervalTask;
-import org.springframework.xd.dirt.plugins.BeanDefinitionAddingPostProcessor;
+import org.springframework.xd.module.BeanDefinitionAddingPostProcessor;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.SimpleModule;
 
@@ -85,7 +85,7 @@ public class JobPluginTests {
 		assertEquals(1, moduleBeans.length);
 		assertTrue(moduleBeans[0].contains("org.springframework.scheduling.config.CronTask"));
 	}
-	
+
 	@Test
 	public void testThatLocalFixedDelayTaskIsAdded() {
 		SimpleModule module = new SimpleModule("testFixedDelayJob", "job");

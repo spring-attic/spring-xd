@@ -51,7 +51,7 @@ configure(javaProjects()) { subproject ->
 	apply from:   "${rootProject.projectDir}/publish-maven.gradle"
 	apply plugin: 'eclipse'
 	apply plugin: 'idea'
-	
+
 	configurations.all {
 		resolutionStrategy {
 			eachDependency { DependencyResolveDetails details ->
@@ -199,7 +199,6 @@ project('spring-xd-dirt') {
 				"org.springframework:spring-webmvc:$springVersion",
 				"org.springframework.data:spring-data-commons:$springDataCommonsVersion",
 				"org.springframework.hateoas:spring-hateoas:$springHATEOASVersion",
-				"org.springframework.plugin:spring-plugin-core:$springPluginVersion",	
 				"org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion",
 				"org.apache.tomcat.embed:tomcat-embed-core:$tomcatVersion",
 				"org.apache.tomcat.embed:tomcat-embed-logging-juli:$tomcatVersion",
@@ -353,7 +352,9 @@ project('redis') {
 project('spring-xd-module') {
 	description = 'Spring XD Module'
 	dependencies {
+		compile "org.springframework:spring-core:$springVersion"
 		compile "org.springframework:spring-context:$springVersion"
+		compile "org.springframework.plugin:spring-plugin-core:$springPluginVersion"
 	}
 }
 
@@ -450,7 +451,7 @@ project('spring-xd-shell') {
 
 	// skip the startScripts task to avoid default start script generation
 	startScripts.setEnabled(false)
-	
+
 	task scriptFiles {
 		def scripts = file("$rootDir/scripts/shell")
 		outputs.dir scripts

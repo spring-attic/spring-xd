@@ -28,7 +28,7 @@ import org.springframework.xd.module.Plugin;
  * @author Gary Russell
  * @since 1.0
  */
-public class IntegrationPlugin implements Plugin {
+public class IntegrationPlugin  implements Plugin {
 
 	private volatile String integrationModuleBasePath = "/META-INF/spring/integration/module";
 

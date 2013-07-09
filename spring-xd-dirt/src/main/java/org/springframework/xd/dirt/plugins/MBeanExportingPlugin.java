@@ -23,7 +23,7 @@ import org.springframework.xd.module.Plugin;
 
 /**
  * Exports MBeans from a module using a unique domain name xd.[group].[module]
- * 
+ *
  * @author David Turanski
  */
 public class MBeanExportingPlugin implements Plugin {

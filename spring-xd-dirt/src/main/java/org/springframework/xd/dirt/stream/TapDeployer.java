@@ -13,6 +13,8 @@
 package org.springframework.xd.dirt.stream;
 
 import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.ResourceDeployer;
@@ -60,6 +62,15 @@ public class TapDeployer implements ResourceDeployer<TapDefinition> {
 		Assert.isTrue(streamRepository.exists(tapDefinition.getStreamName()),
 				"source stream '" + tapDefinition.getStreamName()+"' does not exist for tap '" + tapDefinition.getName());
 		return repository.save(tapDefinition);
+	}
+
+	@Override
+	public Iterable<TapDefinition> findAll() {
+		final SortedSet<TapDefinition> sortedTapDefinitions = new TreeSet<TapDefinition>();
+		for (TapDefinition tapDefinition : repository.findAll()) {
+			sortedTapDefinitions.add(tapDefinition);
+		}
+		return sortedTapDefinitions;
 	}
 
 }

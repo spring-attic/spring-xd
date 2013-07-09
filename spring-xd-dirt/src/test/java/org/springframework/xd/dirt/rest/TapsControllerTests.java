@@ -17,11 +17,18 @@
 package org.springframework.xd.dirt.rest;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.anyListOf;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,13 +49,15 @@ import org.springframework.xd.dirt.stream.TapDefinitionRepository;
 import org.springframework.xd.dirt.stream.TapDeployer;
 import org.springframework.xd.dirt.stream.TapDeploymentMessageSender;
 
-import static org.mockito.Mockito.*;
-
 /**
  * Tests REST compliance of taps-related endpoints.
- * 
+ *
  * @author Eric Bottard
  * @author David Turanski
+ * @author Gunnar Hillert
+ *
+ * @since 1.0
+ *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
@@ -88,6 +97,24 @@ public class TapsControllerTests {
 
 		streamName = tapsController.getStreamName("test1", "tap test1.foo | log");
 		assertEquals("test1", streamName);
+	}
+
+	@Test
+	public void testListAllTaps() throws Exception {
+		streamRepository.save(new StreamDefinition("test", "time | log"));
+
+		mockMvc.perform(
+				post("/taps").param("name", "taplast").param("definition", "tap@ test | log")
+						.accept(MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
+		mockMvc.perform(
+				post("/taps").param("name", "tapfirst").param("definition", "tap@ test | log")
+						.accept(MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
+
+		mockMvc.perform(get("/taps").accept(MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$", Matchers.hasSize(2)))
+				.andExpect(jsonPath("$.[0].name").value("tapfirst"))
+				.andExpect(jsonPath("$.[1].name").value("taplast"));
 	}
 
 	@Test

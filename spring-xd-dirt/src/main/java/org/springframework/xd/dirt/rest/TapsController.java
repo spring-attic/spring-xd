@@ -35,6 +35,9 @@ import org.springframework.xd.rest.client.domain.TapDefinitionResource;
 
 /**
  * @author David Turanski
+ * @author Gunnar Hillert
+ *
+ * @since 1.0
  */
 @Controller
 @RequestMapping("/taps")
@@ -43,8 +46,6 @@ public class TapsController {
 
 	private final TapDeployer tapDeployer;
 
-	private final TapDefinitionResourceAssembler definitionResourceAssembler = new TapDefinitionResourceAssembler();
-
 	@Autowired
 	public TapsController(TapDeployer tapDeployer) {
 		this.tapDeployer = tapDeployer;
@@ -52,7 +53,7 @@ public class TapsController {
 
 	/**
 	 * Create a new Tap.
-	 * 
+	 *
 	 * @param name the name of the tap to create (required)
 	 * @param definition the tap definition expressed in the XD DSL (required)
 	 */
@@ -79,16 +80,16 @@ public class TapsController {
 	String getStreamName(String name, String definition) {
 		Pattern pattern = Pattern.compile("^\\s*tap\\s*@{0,1}\\s*(\\w+).*");
 		Matcher matcher = pattern.matcher(definition);
-		if (matcher.matches()) {		
+		if (matcher.matches()) {
 			return matcher.group(1);
 		}
 		return null;
-		
+
 	}
 
 	/**
 	 * Deploy an existing Tap.
-	 * 
+	 *
 	 * @param name the name of the tap to create (required)
 	 * @param definition the tap definition expressed in the XD DSL (required)
 	 */
@@ -98,4 +99,16 @@ public class TapsController {
 	public void deploy(@PathVariable("name") String name) {
 		tapDeployer.deploy(name);
 	}
+
+	/**
+	 * List Tap definitions.
+	 */
+	@ResponseBody
+	@RequestMapping(value = "", method = RequestMethod.GET)
+	@ResponseStatus(HttpStatus.OK)
+	public Iterable<TapDefinition> list() {
+		final Iterable<TapDefinition> taps = tapDeployer.findAll();
+		return taps;
+	}
+
 }

@@ -40,5 +40,13 @@
 		</bean>
 	</int:chain>
 	
+	<bean id="jobDeploymentMessageSender" class="org.springframework.xd.dirt.stream.JobDeploymentMessageSender">
+		<constructor-arg name="outputChannel" ref="deployChannel" />
+	</bean>
+	
+	<bean id="jobDeployer" class="org.springframework.xd.dirt.stream.JobDeployer">
+		<constructor-arg name="repository" ref="jobRepository" />
+		<constructor-arg name="messageSender" ref="jobDeploymentMessageSender" />
+	</bean>
 		
 </beans>

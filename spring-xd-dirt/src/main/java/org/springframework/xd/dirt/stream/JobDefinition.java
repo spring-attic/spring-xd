@@ -20,7 +20,6 @@ package org.springframework.xd.dirt.stream;
 public class JobDefinition extends StreamDefinition {
 	/**
 	 * @param name - the tap name
-	 * @param streamName - the tapped stream
 	 * @param definition - the tap definition
 	 * 
 	 */

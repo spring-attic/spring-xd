@@ -22,16 +22,13 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 
 /**
- * @author David Turanski
+ * @author Glenn Renfro
  *
  */
 public class JobDeploymentMessageSender {
  	private final MessageChannel outputChannel;
 	private final Map<String, List<ModuleDeploymentRequest>> deployments = new ConcurrentHashMap<String, List<ModuleDeploymentRequest>>();
 
-	/**
-	 * @param definition
-	 */
 	public JobDeploymentMessageSender(MessageChannel outputChannel) {
 		this.outputChannel = outputChannel;
 	}

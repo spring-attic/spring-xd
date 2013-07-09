@@ -5,5 +5,5 @@
 
 	<bean id="streamRepository" class="org.springframework.xd.dirt.stream.memory.InMemoryStreamDefinitionRepository"/>
 	<bean id="tapRepository" class="org.springframework.xd.dirt.stream.memory.InMemoryTapDefinitionRepository"/>
-
+	<bean id="jobRepository" class="org.springframework.xd.dirt.stream.memory.InMemoryJobDefinitionRepository"/>
 </beans>

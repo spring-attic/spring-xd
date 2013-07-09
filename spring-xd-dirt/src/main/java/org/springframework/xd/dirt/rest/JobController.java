@@ -16,7 +16,6 @@
 
 package org.springframework.xd.dirt.rest;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.VndErrors.VndError;
@@ -29,16 +28,16 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.xd.dirt.stream.NoSuchStreamException;
 import org.springframework.xd.dirt.stream.JobDefinition;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobDeployer;
+import org.springframework.xd.dirt.stream.NoSuchStreamException;
 import org.springframework.xd.rest.client.domain.JobDefinitionResource;
 
 /**
  * Handles all Job related interactions.
  * 
- * @author Gunnar Hillert
+ * @author Glenn Renfro
  * @since 1.0
  */
 @Controller
@@ -54,9 +53,9 @@ public class JobController {
 
 	@Autowired
 	public JobController(JobDeployer streamDeployer,
-			JobDefinitionRepository streamDefinitionRepository) {
+			JobDefinitionRepository jobDefinitionRepository) {
 		this.jobDeployer = streamDeployer;
-		this.jobDefinitionRepository = streamDefinitionRepository;
+		this.jobDefinitionRepository = jobDefinitionRepository;
 	}
 
 	/**
@@ -80,43 +79,5 @@ public class JobController {
 		return result;
 	}
 
-	/**
-	 * Retrieve information about a single {@link JobDefinition}.
-	 * 
-	 * @param name
-	 *            the name of an existing job (required)
-	 */
-	@ResponseBody
-	@RequestMapping(value = "/{name}", method = RequestMethod.GET)
-	@ResponseStatus(HttpStatus.OK)
-	public JobDefinitionResource display(@PathVariable("name") String name) {
-		JobDefinition def = jobDefinitionRepository.findOne(name);
-		return definitionResourceAssembler.toResource(def);
-	}
-
-	/**
-	 * Request removal of an existing job.
-	 * 
-	 * @param name
-	 *            the name of an existing job (required)
-	 */
-	@RequestMapping(value = "/{name}", method = RequestMethod.DELETE)
-	@ResponseStatus(HttpStatus.OK)
-	public void undeploy(@PathVariable("name") String name) {
-		throw new NotImplementedException(
-				"Removal of Jobs is not Implemented, yet.");
-	}
-
-	// ---------------- Exception Handlers ------------------------
-
-	/**
-	 * Handles the case where client referenced an unknown entity.
-	 */
-	@ResponseBody
-	@ExceptionHandler
-	@ResponseStatus(HttpStatus.NOT_FOUND)
-	public VndError onNoSuchStreamException(NoSuchStreamException e) {
-		return new VndError("NoSuchStreamException", e.getMessage());
-	}
 
 }

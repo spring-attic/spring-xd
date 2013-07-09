@@ -113,24 +113,21 @@ public class LocalChannelRegistry extends AbstractChannelRegistry implements App
 		String tapName = "tap." + name;
 		try {
 			tapChannel = applicationContext.getBean(tapName, SubscribableChannel.class);
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			throw new IllegalArgumentException("No tap channel exists for '" + name
 					+ "'. A tap is only valid for a registered inbound channel.");
 		}
 		bridge(tapChannel, channel, tapName + ".bridge", tapModule);
 	}
 
-
 	@Override
 	public void cleanAll(String name) {
 		Assert.hasText(name, "a valid name is required to clean a module");
-		synchronized(this.bridges) {
+		synchronized (this.bridges) {
 			Iterator<BridgeMetadata> iterator = this.bridges.iterator();
 			while (iterator.hasNext()) {
 				BridgeMetadata bridge = iterator.next();
-				if (bridge.handler.getComponentName().startsWith(name) ||
-						name.equals(bridge.tapModule)) {
+				if (bridge.handler.getComponentName().startsWith(name) || name.equals(bridge.tapModule)) {
 					bridge.channel.unsubscribe(bridge.handler);
 					iterator.remove();
 				}
@@ -138,7 +135,8 @@ public class LocalChannelRegistry extends AbstractChannelRegistry implements App
 		}
 	}
 
-	protected synchronized <T extends AbstractMessageChannel> T lookupOrCreateSharedChannel(String name, Class<T> requiredType) {
+	protected synchronized <T extends AbstractMessageChannel> T lookupOrCreateSharedChannel(String name,
+			Class<T> requiredType) {
 		T channel = lookupSharedChannel(name, requiredType);
 		if (channel == null) {
 			channel = createSharedChannel(name, requiredType);
@@ -151,8 +149,7 @@ public class LocalChannelRegistry extends AbstractChannelRegistry implements App
 		if (applicationContext.containsBean(name)) {
 			try {
 				channel = applicationContext.getBean(name, requiredType);
-			}
-			catch (Exception e) {
+			} catch (Exception e) {
 				throw new IllegalArgumentException("bean '" + name
 						+ "' is already registered but does not match the required type");
 			}
@@ -169,8 +166,7 @@ public class LocalChannelRegistry extends AbstractChannelRegistry implements App
 			channel.afterPropertiesSet();
 			applicationContext.getBeanFactory().registerSingleton(name, channel);
 			return channel;
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			throw new IllegalArgumentException("failed to create channel: " + name, e);
 		}
 	}
@@ -182,13 +178,11 @@ public class LocalChannelRegistry extends AbstractChannelRegistry implements App
 			tapChannel = createSharedChannel(tapName, PublishSubscribeChannel.class);
 			WireTap wireTap = new WireTap(tapChannel);
 			channel.addInterceptor(wireTap);
-			bridge(tapChannel,new NullChannel(),channel.getComponentName()+".to.null");
-		}
-		else {
+			bridge(tapChannel, new NullChannel(), channel.getComponentName() + ".to.null");
+		} else {
 			try {
 				tapChannel = applicationContext.getBean(tapName, PublishSubscribeChannel.class);
-			}
-			catch (Exception e) {
+			} catch (Exception e) {
 				throw new IllegalArgumentException("bean '" + tapName
 						+ "' is already registered but does not match the required type");
 			}
@@ -202,10 +196,31 @@ public class LocalChannelRegistry extends AbstractChannelRegistry implements App
 	protected BridgeHandler bridge(SubscribableChannel from, MessageChannel to, String bridgeName, String tapModule) {
 
 		BridgeHandler handler = new BridgeHandler() {
+			private boolean transformerAvailable;
+			private AbstractPayloadTransformer<?, ?> defaultTransformer;
+
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
-				AbstractPayloadTransformer<?, ?> payloadTransformer = resolvePayloadTransformerForMessage(requestMessage);
-				return payloadTransformer == null? requestMessage: payloadTransformer.transform(requestMessage);
+				if (transformerAvailable) {
+					if (defaultTransformer != null) {
+						return defaultTransformer.transform(requestMessage);
+					} else {
+						AbstractPayloadTransformer<?, ?> payloadTransformer = resolvePayloadTransformerForMessage(requestMessage);
+						return payloadTransformer == null ? requestMessage : payloadTransformer
+								.transform(requestMessage);
+					}
+				}
+				return requestMessage;
+			}
+
+			@Override
+			protected void onInit() {
+				super.onInit();
+				transformerAvailable = getDefaultPayloadTransformer() != null || getPayloadTransformers() != null;
+				//No possibility of an override
+				if (getDefaultPayloadTransformer() != null || getPayloadTransformers() == null) {
+					defaultTransformer = getDefaultPayloadTransformer();
+				}
 			}
 		};
 

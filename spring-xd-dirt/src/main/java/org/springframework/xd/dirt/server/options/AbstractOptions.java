@@ -24,6 +24,7 @@ import org.kohsuke.args4j.spi.OptionHandler;
 import org.kohsuke.args4j.spi.Parameters;
 import org.kohsuke.args4j.spi.Setter;
 
+import org.springframework.integration.transformer.ObjectToStringTransformer;
 import org.springframework.util.StringUtils;
 
 /**
@@ -35,6 +36,11 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  */
 public class AbstractOptions {
+
+	/**
+	 * 
+	 */
+	private static final String XD_PAYLOAD_TRANSFORMER = "xd.payload.transformer";
 
 	public static final String DEFAULT_HOME = "..";
 
@@ -78,6 +84,9 @@ public class AbstractOptions {
 
 	@Option(name = "--jmxPort", usage = "The JMX port for the container", metaVar = "<jmxPort>")
 	private int jmxPort = 8778;
+	
+	@Option(name = "--transformer", usage = "The default payload transformer class name", handler = PayloadTransformerHandler.class)
+	private String transformer;
 
 	/**
 	 * @return the transport
@@ -101,11 +110,34 @@ public class AbstractOptions {
 	public int getJmxPort() {
 		return jmxPort;
 	}
+
+	public String getTransformer() {
+		return transformer;
+	}
+
 	/**
 	 * @return the showHelp
 	 */
 	public boolean isShowHelp() {
 		return showHelp;
+	}
+
+	public static class PayloadTransformerHandler extends OptionHandler<String> {
+		public PayloadTransformerHandler(CmdLineParser parser, OptionDef option, Setter<String> setter) {
+			super(parser, option, setter);
+		}
+
+		@Override
+		public int parseArguments(Parameters params) throws CmdLineException {
+			System.setProperty(XD_PAYLOAD_TRANSFORMER,params.getParameter(0));
+			return 1;
+		}
+
+		@Override
+		public String getDefaultMetaVariable() {
+			return "<transformer>";
+		}
+		
 	}
 
 	public static class JmxDisabledHandler extends OptionHandler<Boolean> {

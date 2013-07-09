@@ -17,14 +17,17 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.http.MediaType;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.NullChannel;
@@ -32,6 +35,7 @@ import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.handler.BridgeHandler;
+import org.springframework.integration.transformer.AbstractPayloadTransformer;
 import org.springframework.integration.transformer.ObjectToStringTransformer;
 import org.springframework.util.Assert;
 
@@ -50,7 +54,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @since 1.0
  */
-public class LocalChannelRegistry implements ChannelRegistry, ApplicationContextAware, InitializingBean {
+public class LocalChannelRegistry extends AbstractChannelRegistry implements ApplicationContextAware, InitializingBean {
 
 	private volatile AbstractApplicationContext applicationContext;
 
@@ -196,23 +200,15 @@ public class LocalChannelRegistry implements ChannelRegistry, ApplicationContext
 	}
 
 	protected BridgeHandler bridge(SubscribableChannel from, MessageChannel to, String bridgeName, String tapModule) {
-		// Temporarily perform string conversion for compatibility with Redis Registry
+
 		BridgeHandler handler = new BridgeHandler() {
-
-			private final ObjectToStringTransformer objectToStringTransformer =
-					new ObjectToStringTransformer();
-
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
-				if (requestMessage.getPayload() instanceof String) {
-					return requestMessage;
-				}
-				else {
-					return this.objectToStringTransformer.transform(requestMessage);
-				}
+				AbstractPayloadTransformer<?, ?> payloadTransformer = resolvePayloadTransformerForMessage(requestMessage);
+				return payloadTransformer == null? requestMessage: payloadTransformer.transform(requestMessage);
 			}
-
 		};
+
 		handler.setOutputChannel(to);
 		handler.setBeanName(bridgeName);
 		handler.afterPropertiesSet();

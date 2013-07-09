@@ -16,26 +16,42 @@
 
 package org.springframework.xd.dirt.stream;
 
-import org.springframework.xd.dirt.core.XDRuntimeException;
+import java.util.Date;
 
 /**
- * Thrown when something goes wrong with deployment/undeployment of a Stream.
+ * A runtime representation of a running stream.
  * 
  * @author Eric Bottard
  */
-@SuppressWarnings("serial")
-public class StreamDeploymentException extends XDRuntimeException {
+public class Stream {
 
-	public StreamDeploymentException() {
-		super();
+	/**
+	 * The {@link StreamDefinition} this running instance embodies.
+	 */
+	private StreamDefinition definition;
+
+	/**
+	 * When was this stream started.
+	 */
+	private Date startedAt = new Date();
+
+	/**
+	 * Create a new stream out of the given {@link StreamDefinition}.
+	 */
+	public Stream(StreamDefinition definition) {
+		this.definition = definition;
 	}
 
-	public StreamDeploymentException(String message, Throwable cause) {
-		super(message, cause);
+	public StreamDefinition getStreamDefinition() {
+		return definition;
 	}
 
-	public StreamDeploymentException(String message) {
-		super(message);
+	public Date getStartedAt() {
+		return startedAt;
+	}
+
+	public void setStartedAt(Date startedAt) {
+		this.startedAt = startedAt;
 	}
 
 }

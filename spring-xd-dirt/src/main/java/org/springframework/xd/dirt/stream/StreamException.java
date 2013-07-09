@@ -14,22 +14,28 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.module;
+package org.springframework.xd.dirt.stream;
+
+import org.springframework.xd.dirt.core.XDRuntimeException;
 
 /**
- * Thrown when attempting to refer to a module that does not exist.
+ * Thrown when something goes wrong when interacting with Streams.
  * 
  * @author Eric Bottard
  */
 @SuppressWarnings("serial")
-public class NoSuchModuleException extends ResourceDefinitionException {
+public class StreamException extends XDRuntimeException {
 
-	/**
-	 * Create a new exception.
-	 * @param name the module name that was referenced, but could not be found
-	 */
-	public NoSuchModuleException(String name) {
-		super("Could not find module with name '" + name + "'");
+	public StreamException() {
+		super();
+	}
+
+	public StreamException(String message, Throwable cause) {
+		super(message, cause);
+	}
+
+	public StreamException(String message) {
+		super(message);
 	}
 
 }

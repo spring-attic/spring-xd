@@ -13,11 +13,15 @@
 package org.springframework.xd.dirt.core;
 
 /**
- * Interface for XD Resource Services
+ * Interface for XD Resource Services.
+ * 
+ * @param <R> the kind of resource to deploy (<i>e.g.</i> Stream)
  * @author David Turanski
- *
+ * @author Eric Bottard
+ * 
  */
 public interface ResourceDeployer<R> {
 	public void deploy(String name);
+
 	public R create(R resource);
 }

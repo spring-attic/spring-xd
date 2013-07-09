@@ -27,7 +27,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -62,34 +61,36 @@ public class StreamsController {
 	}
 
 	/**
-	 * Create a new Stream / Tap.
+	 * Create a new Stream.
 	 * 
 	 * @param name the name of the stream to create (required)
 	 * @param dsl some representation of the stream behavior (required)
 	 * @deprecated use POST on /streams instead
 	 */
-	@Deprecated
-	@RequestMapping(value = "/{name}", method = { RequestMethod.PUT })
-	@ResponseStatus(HttpStatus.CREATED)
-	public void olddeploy(@PathVariable("name")
-	String name, @RequestBody
-	String dsl) {
-		deploy(name, dsl);
-	}
+	// @Deprecated
+	// @RequestMapping(value = "/{name}", method = { RequestMethod.PUT })
+	// @ResponseStatus(HttpStatus.CREATED)
+	// public void olddeploy(@PathVariable("name")
+	// String name, @RequestBody
+	// String dsl) {
+	// create(name, dsl, true);
+	// }
 
 	/**
-	 * Create a new Stream / Tap.
+	 * Create a new Stream, optionally deploying it.
 	 * 
 	 * @param name the name of the stream to create (required)
 	 * @param definition some representation of the stream behavior, expressed in the XD DSL (required)
+	 * @param deploy whether to also immediately deploy the stream (default true)
 	 */
 	@RequestMapping(value = "", method = RequestMethod.POST)
 	@ResponseStatus(HttpStatus.CREATED)
 	@ResponseBody
-	public StreamDefinitionResource deploy(@RequestParam("name")
+	public StreamDefinitionResource create(@RequestParam("name")
 	String name, @RequestParam("definition")
-	String definition) {
-		StreamDefinition streamDefinition = streamDeployer.deployStream(name, definition);
+	String definition, @RequestParam(value = "deploy", defaultValue = "true")
+	boolean deploy) {
+		StreamDefinition streamDefinition = streamDeployer.createStream(name, definition, deploy);
 		StreamDefinitionResource result = definitionResourceAssembler.toResource(streamDefinition);
 		return result;
 	}
@@ -114,6 +115,30 @@ public class StreamsController {
 	 * @param name the name of an existing stream (required)
 	 */
 	@RequestMapping(value = "/{name}", method = RequestMethod.DELETE)
+	@ResponseStatus(HttpStatus.OK)
+	public void destroy(@PathVariable("name")
+	String name) {
+		streamDeployer.destroyStream(name);
+	}
+
+	/**
+	 * Request deployment of an existing named stream.
+	 * 
+	 * @param name the name of an existing stream (required)
+	 */
+	@RequestMapping(value = "/{name}", method = RequestMethod.PUT, params = "deploy=true")
+	@ResponseStatus(HttpStatus.OK)
+	public void deploy(@PathVariable("name")
+	String name) {
+		streamDeployer.deployStream(name);
+	}
+
+	/**
+	 * Request un-deployment of an existing named stream.
+	 * 
+	 * @param name the name of an existing stream (required)
+	 */
+	@RequestMapping(value = "/{name}", method = RequestMethod.PUT, params = "deploy=false")
 	@ResponseStatus(HttpStatus.OK)
 	public void undeploy(@PathVariable("name")
 	String name) {

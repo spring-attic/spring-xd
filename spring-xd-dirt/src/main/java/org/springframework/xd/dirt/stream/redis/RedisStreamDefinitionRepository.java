@@ -30,7 +30,7 @@ public class RedisStreamDefinitionRepository extends AbstractRedisRepository<Str
 		StreamDefinitionRepository {
 
 	public RedisStreamDefinitionRepository(RedisOperations<String, String> redisOperations) {
-		super("streams.", redisOperations);
+		super("stream.definitions.", redisOperations);
 	}
 
 	@Override

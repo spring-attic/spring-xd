@@ -20,13 +20,29 @@ import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
 
 /**
  * The interface defining operations available against a Spring XD runtime.
- *
+ * 
  * @author Eric Bottard
  */
 public interface SpringXDOperations {
 
-	public StreamDefinitionResource deployStream(String name, String defintion);
+	/**
+	 * Create a new Stream, optionally deploying it.
+	 */
+	public StreamDefinitionResource createStream(String name, String defintion, boolean deploy);
 
+	/**
+	 * Destroy an existing stream.
+	 */
+	public void destroyStream(String name);
+
+	/**
+	 * Deploy an already created stream.
+	 */
+	public void deployStream(String name);
+
+	/**
+	 * Undeploy a deployed stream, retaining its definition.
+	 */
 	public void undeployStream(String name);
 
 }

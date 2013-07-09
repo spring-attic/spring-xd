@@ -41,7 +41,7 @@ public abstract class AbstractChannelRegistry implements ChannelRegistry {
 	/**
 	 * @return the payloadTransformers
 	 */
-	protected AbstractPayloadTransformer<?,?> getPayloadTransformer(MediaType mediaType) {
+	protected AbstractPayloadTransformer<?, ?> getPayloadTransformer(MediaType mediaType) {
 		return payloadTransformers == null ? null : payloadTransformers.get(mediaType);
 	}
 
@@ -50,6 +50,10 @@ public abstract class AbstractChannelRegistry implements ChannelRegistry {
 	 */
 	protected AbstractPayloadTransformer<?, ?> getDefaultPayloadTransformer() {
 		return defaultPayloadTransformer;
+	}
+
+	protected Map<MediaType, AbstractPayloadTransformer<?, ?>> getPayloadTransformers() {
+		return payloadTransformers;
 	}
 
 	/**
@@ -62,20 +66,21 @@ public abstract class AbstractChannelRegistry implements ChannelRegistry {
 
 	protected AbstractPayloadTransformer<?, ?> resolvePayloadTransformerForMessage(Message<?> message) {
 		AbstractPayloadTransformer<?, ?> payloadTransformer = getDefaultPayloadTransformer();
-		String contentType = (String) message.getHeaders().get(MessageHeaders.CONTENT_TYPE);
-		if (contentType != null) {
-			MediaType mediaType = MediaType.parseMediaType(contentType);
-			if (getPayloadTransformer(mediaType) != null) {
-				payloadTransformer = getPayloadTransformer(mediaType);
-			} else if (getPayloadTransformer(MediaType.ALL) != null) {
-				payloadTransformer = getPayloadTransformer(MediaType.ALL);
+		if (this.payloadTransformers != null) {
+			String contentType = (String) message.getHeaders().get(MessageHeaders.CONTENT_TYPE);
+			if (contentType != null) {
+				MediaType mediaType = MediaType.parseMediaType(contentType);
+				if (getPayloadTransformer(mediaType) != null) {
+					payloadTransformer = getPayloadTransformer(mediaType);
+				} else if (getPayloadTransformer(MediaType.ALL) != null) {
+					payloadTransformer = getPayloadTransformer(MediaType.ALL);
+				}
 			}
 		}
-		
 		if (logger.isDebugEnabled()) {
-			logger.debug("Using payload transformer [" + (payloadTransformer == null? "none" : payloadTransformer.getClass().getName()) + "]" );
+			logger.debug("Using payload transformer ["
+					+ (payloadTransformer == null ? "none" : payloadTransformer.getClass().getName()) + "]");
 		}
 		return payloadTransformer;
 	}
-
 }

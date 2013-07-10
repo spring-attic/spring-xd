@@ -51,13 +51,13 @@ import org.springframework.xd.dirt.stream.TapDeploymentMessageSender;
 
 /**
  * Tests REST compliance of taps-related endpoints.
- *
+ * 
  * @author Eric Bottard
  * @author David Turanski
  * @author Gunnar Hillert
- *
+ * 
  * @since 1.0
- *
+ * 
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
@@ -110,10 +110,8 @@ public class TapsControllerTests {
 				post("/taps").param("name", "tapfirst").param("definition", "tap@ test | log")
 						.accept(MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 
-		mockMvc.perform(get("/taps").accept(MediaType.APPLICATION_JSON))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$", Matchers.hasSize(2)))
-				.andExpect(jsonPath("$.[0].name").value("tapfirst"))
+		mockMvc.perform(get("/taps").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
+				.andExpect(jsonPath("$", Matchers.hasSize(2))).andExpect(jsonPath("$.[0].name").value("tapfirst"))
 				.andExpect(jsonPath("$.[1].name").value("taplast"));
 	}
 
@@ -129,7 +127,7 @@ public class TapsControllerTests {
 	public void testSuccessfulTapCreateAndDeploy() throws Exception {
 		streamRepository.save(new StreamDefinition("test", "time | log"));
 		mockMvc.perform(
-				post("/taps?control=start").param("name", "tap1").param("definition", "tap@ test | log")
+				post("/taps").param("name", "tap1").param("definition", "tap@ test | log")
 						.accept(MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 		verify(sender, times(1)).sendDeploymentRequests(eq("tap1"), anyListOf(ModuleDeploymentRequest.class));
 	}

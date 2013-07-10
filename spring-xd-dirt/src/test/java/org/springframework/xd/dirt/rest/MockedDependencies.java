@@ -20,6 +20,8 @@ import static org.mockito.Mockito.mock;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.xd.dirt.stream.JobDefinitionRepository;
+import org.springframework.xd.dirt.stream.JobDeployer;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDeployer;
 import org.springframework.xd.dirt.stream.TapDefinitionRepository;
@@ -59,5 +61,12 @@ public class MockedDependencies {
 	public TriggerDefinitionRepository triggerDefinitionRepository() {
 		return mock(TriggerDefinitionRepository.class);
 	}
-
+	@Bean
+	public JobDeployer jobDeployer() {
+		return mock(JobDeployer.class);
+	}
+	@Bean
+	public JobDefinitionRepository jobDefinitionRepository() {
+		return mock(JobDefinitionRepository.class);
+	}
 }

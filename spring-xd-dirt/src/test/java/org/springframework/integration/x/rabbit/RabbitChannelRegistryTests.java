@@ -37,7 +37,7 @@ public class RabbitChannelRegistryTests extends AbstractChannelRegistryTests {
 
 	@Override
 	protected ChannelRegistry getRegistry() throws Exception {
-		CachingConnectionFactory connectionFactory = new CachingConnectionFactory();
+		CachingConnectionFactory connectionFactory = new CachingConnectionFactory("localhost");
 		RabbitChannelRegistry registry = new RabbitChannelRegistry(connectionFactory);
 		return registry;
 	}

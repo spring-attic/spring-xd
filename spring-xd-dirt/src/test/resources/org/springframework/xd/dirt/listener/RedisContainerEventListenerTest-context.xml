@@ -13,11 +13,6 @@
 		http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory">	      
-		  <constructor-arg index="0" value="localhost"/>
-		  <constructor-arg index="1" value="6379"/>
-		</bean>
-	
 	<bean class="org.springframework.xd.dirt.listener.RedisContainerEventListener">
 		<constructor-arg ref="redisConnectionFactory"/>
 	</bean>

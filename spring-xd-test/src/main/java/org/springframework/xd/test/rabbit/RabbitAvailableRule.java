@@ -16,35 +16,30 @@
 
 package org.springframework.xd.test.rabbit;
 
-import static org.junit.Assert.fail;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.Connection;
+import org.springframework.xd.test.AbstractExternalServerAvailableRule;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  */
-public class RabbitAvailableRule extends TestWatcher {
-
-	private final static Log logger = LogFactory.getLog(RabbitAvailableRule.class);
+public class RabbitAvailableRule extends AbstractExternalServerAvailableRule {
 
 	@Override
 	public Statement apply(Statement base, Description description) {
 		CachingConnectionFactory connectionFactory = null;
 		try {
-			connectionFactory = new CachingConnectionFactory();
+			connectionFactory = new CachingConnectionFactory("localhost");
 			Connection connection = connectionFactory.createConnection();
 			connection.close();
 		}
 		catch (Exception e) {
-			logger.error("RABBIT IS NOT AVAILABLE", e);
-			fail("RABBIT IS NOT AVAILABLE");
+			return super.failOrSkipTests("RABBIT", e);
 		}
 		finally {
 			if (connectionFactory != null) {

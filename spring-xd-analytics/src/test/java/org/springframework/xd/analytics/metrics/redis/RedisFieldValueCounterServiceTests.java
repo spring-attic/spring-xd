@@ -17,22 +17,34 @@ package org.springframework.xd.analytics.metrics.redis;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.runner.RunWith;
+
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 import org.springframework.xd.analytics.metrics.AbstractRedisFieldValueCounterServiceTests;
 import org.springframework.xd.analytics.metrics.common.ServicesConfig;
+import org.springframework.xd.test.redis.RedisAvailableRule;
 
 
+/**
+ * @author Mark Pollack
+ * @author Gary Russell
+ * @since 1.0
+ *
+ */
 @ContextConfiguration(classes=ServicesConfig.class, loader=AnnotationConfigContextLoader.class)
 @RunWith(SpringJUnit4ClassRunner.class)
 public class RedisFieldValueCounterServiceTests extends AbstractRedisFieldValueCounterServiceTests {
+
+	@Rule
+	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
 
 	@After
 	@Before
 	public void beforeAndAfter() {
 		fieldValueCounterRepository.deleteAll();
-	}	
-	
+	}
+
 }

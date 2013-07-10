@@ -15,26 +15,21 @@
  */
 package org.springframework.xd.test.redis;
 
-import static org.junit.Assert.fail;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
+
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.xd.test.AbstractExternalServerAvailableRule;
 
 /**
  * @author Gary Russell
  * @since 1.0
  *
  */
-public class RedisAvailableRule extends TestWatcher {
-
-	private final static Log logger = LogFactory.getLog(RedisAvailableRule.class);
+public class RedisAvailableRule extends AbstractExternalServerAvailableRule {
 
 	@Override
-	public Statement apply(Statement base, Description description) {		
+	public Statement apply(Statement base, Description description) {
 		LettuceConnectionFactory connectionFactory = null;
 		try {
 			connectionFactory = new LettuceConnectionFactory();
@@ -42,8 +37,7 @@ public class RedisAvailableRule extends TestWatcher {
 			connectionFactory.getConnection().close();
 		}
 		catch (Exception e) {
-			logger.error("REDIS IS NOT AVAILABLE", e);
-			fail("REDIS IS NOT AVAILABLE");
+			return super.failOrSkipTests("REDIS", e);
 		}
 		finally {
 			if (connectionFactory != null) {

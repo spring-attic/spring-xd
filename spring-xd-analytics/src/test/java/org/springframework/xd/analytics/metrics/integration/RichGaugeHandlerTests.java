@@ -1,11 +1,11 @@
 /*
  * Copyright 2002-2013 the original author or authors.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -15,6 +15,7 @@ package org.springframework.xd.analytics.metrics.integration;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -23,11 +24,20 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportResource;
 import org.springframework.core.env.MapPropertySource;
+import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.transformer.MessageTransformationException;
@@ -36,14 +46,20 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.xd.analytics.metrics.core.RichGauge;
 import org.springframework.xd.analytics.metrics.core.RichGaugeService;
 import org.springframework.xd.analytics.metrics.redis.RedisRichGaugeRepository;
+import org.springframework.xd.test.redis.RedisAvailableRule;
 
 /**
  * @author David Turanski
+ * @author Gary Russell
  *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
+@ContextConfiguration(classes=RichGaugeHandlerTestsConfig.class)
 public class RichGaugeHandlerTests {
+
+	@Rule
+	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
+
 	@Autowired
 	RedisRichGaugeRepository repo;
 
@@ -83,7 +99,7 @@ public class RichGaugeHandlerTests {
 		assertEquals(24.0, gauge.getMax(), 0.001);
 		assertEquals(10.0, gauge.getMin(), 0.001);
 		assertEquals(18.0, gauge.getAverage(), 0.001);
-		//Included here because the message handler constructor creates the gauge. Don't want to 
+		//Included here because the message handler constructor creates the gauge. Don't want to
 		//delete it in @After.
 		repo.delete("test");
 	}
@@ -92,15 +108,14 @@ public class RichGaugeHandlerTests {
 	public void testhandlerWithExpression() {
 
 		@SuppressWarnings("resource")
-		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext();
+		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext();
 
 		MapPropertySource propertiesSource = new MapPropertySource("test", Collections.singletonMap("valueExpression",
 				(Object) "payload.get('price').asDouble()"));
 
 		applicationContext.getEnvironment().getPropertySources().addLast(propertiesSource);
 
-		applicationContext
-				.setConfigLocation("/org/springframework/xd/analytics/metrics/integration/RichGaugeHandlerTests-context.xml");
+		applicationContext.register(RichGaugeHandlerTestsConfig.class);
 
 		applicationContext.refresh();
 		input = applicationContext.getBean("input", MessageChannel.class);
@@ -118,7 +133,7 @@ public class RichGaugeHandlerTests {
 		assertEquals(73.0, gauge.getValue(), 0.001);
 		//assertEquals(1, gauge.getCount());
 
-		//Included here because the message handler constructor creates the gauge. Don't want to 
+		//Included here because the message handler constructor creates the gauge. Don't want to
 		//delete it in @After.
 		repo.delete("test");
 	}
@@ -139,3 +154,25 @@ public class RichGaugeHandlerTests {
 	}
 
 }
+
+@Configuration
+@ImportResource("org/springframework/xd/analytics/metrics/integration/RichGaugeHandlerTests-context.xml")
+class RichGaugeHandlerTestsConfig {
+
+	@Bean
+	public RedisConnectionFactory connectionFactory() {
+		try {
+			LettuceConnectionFactory cf = new LettuceConnectionFactory();
+			cf.setHostName("localhost");
+			cf.setPort(6379);
+			cf.afterPropertiesSet();
+			return cf;
+		}
+		catch (RedisConnectionFailureException e) {
+			RedisConnectionFactory mockCF = mock(RedisConnectionFactory.class);
+			when(mockCF.getConnection()).thenReturn(mock(RedisConnection.class));
+			return mockCF;
+		}
+	}
+}
+

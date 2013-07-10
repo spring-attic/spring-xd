@@ -24,12 +24,14 @@ import org.joda.time.Duration;
 import org.joda.time.Interval;
 import org.joda.time.chrono.ISOChronology;
 import org.junit.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.xd.analytics.metrics.core.AggregateCount;
 import org.springframework.xd.analytics.metrics.core.AggregateCounterService;
 
 /**
  * @author Luke Taylor
+ * @author Gary Russell
  */
 public abstract class AbstractAggregateCounterTests {
 	protected final String counterName = "test";
@@ -109,7 +111,8 @@ public abstract class AbstractAggregateCounterTests {
 		assertEquals(48, counts.length);
 		// The first hour starts before the first counts are added
 		assertEquals(1419, counts[0]); // sum [27..59]
-		for (int i = 1; i < counts.length; i++)
+		for (int i = 1; i < counts.length; i++) {
 			assertEquals(1770, counts[i]); // sum [0..59]
+		}
 	}
 }

@@ -19,16 +19,23 @@ import java.util.Iterator;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.xd.dirt.stream.TapDefinition;
+import org.springframework.xd.test.redis.RedisAvailableRule;
 
 /**
  * @author David Turanski
+ * @author Gary Russell
  *
  */
 public class RedisTapDefinitionRepositoryTests {
+
+	@Rule
+	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
 
 	RedisTapDefinitionRepository repository;
 

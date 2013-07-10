@@ -17,14 +17,17 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.http.MediaType;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.NullChannel;
@@ -32,6 +35,7 @@ import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.handler.BridgeHandler;
+import org.springframework.integration.transformer.AbstractPayloadTransformer;
 import org.springframework.integration.transformer.ObjectToStringTransformer;
 import org.springframework.util.Assert;
 
@@ -50,7 +54,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @since 1.0
  */
-public class LocalChannelRegistry implements ChannelRegistry, ApplicationContextAware, InitializingBean {
+public class LocalChannelRegistry extends AbstractChannelRegistry implements ApplicationContextAware, InitializingBean {
 
 	private volatile AbstractApplicationContext applicationContext;
 
@@ -109,24 +113,21 @@ public class LocalChannelRegistry implements ChannelRegistry, ApplicationContext
 		String tapName = "tap." + name;
 		try {
 			tapChannel = applicationContext.getBean(tapName, SubscribableChannel.class);
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			throw new IllegalArgumentException("No tap channel exists for '" + name
 					+ "'. A tap is only valid for a registered inbound channel.");
 		}
 		bridge(tapChannel, channel, tapName + ".bridge", tapModule);
 	}
 
-
 	@Override
 	public void cleanAll(String name) {
 		Assert.hasText(name, "a valid name is required to clean a module");
-		synchronized(this.bridges) {
+		synchronized (this.bridges) {
 			Iterator<BridgeMetadata> iterator = this.bridges.iterator();
 			while (iterator.hasNext()) {
 				BridgeMetadata bridge = iterator.next();
-				if (bridge.handler.getComponentName().startsWith(name) ||
-						name.equals(bridge.tapModule)) {
+				if (bridge.handler.getComponentName().startsWith(name) || name.equals(bridge.tapModule)) {
 					bridge.channel.unsubscribe(bridge.handler);
 					iterator.remove();
 				}
@@ -134,7 +135,8 @@ public class LocalChannelRegistry implements ChannelRegistry, ApplicationContext
 		}
 	}
 
-	protected synchronized <T extends AbstractMessageChannel> T lookupOrCreateSharedChannel(String name, Class<T> requiredType) {
+	protected synchronized <T extends AbstractMessageChannel> T lookupOrCreateSharedChannel(String name,
+			Class<T> requiredType) {
 		T channel = lookupSharedChannel(name, requiredType);
 		if (channel == null) {
 			channel = createSharedChannel(name, requiredType);
@@ -147,8 +149,7 @@ public class LocalChannelRegistry implements ChannelRegistry, ApplicationContext
 		if (applicationContext.containsBean(name)) {
 			try {
 				channel = applicationContext.getBean(name, requiredType);
-			}
-			catch (Exception e) {
+			} catch (Exception e) {
 				throw new IllegalArgumentException("bean '" + name
 						+ "' is already registered but does not match the required type");
 			}
@@ -165,8 +166,7 @@ public class LocalChannelRegistry implements ChannelRegistry, ApplicationContext
 			channel.afterPropertiesSet();
 			applicationContext.getBeanFactory().registerSingleton(name, channel);
 			return channel;
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			throw new IllegalArgumentException("failed to create channel: " + name, e);
 		}
 	}
@@ -178,13 +178,11 @@ public class LocalChannelRegistry implements ChannelRegistry, ApplicationContext
 			tapChannel = createSharedChannel(tapName, PublishSubscribeChannel.class);
 			WireTap wireTap = new WireTap(tapChannel);
 			channel.addInterceptor(wireTap);
-			bridge(tapChannel,new NullChannel(),channel.getComponentName()+".to.null");
-		}
-		else {
+			bridge(tapChannel, new NullChannel(), channel.getComponentName() + ".to.null");
+		} else {
 			try {
 				tapChannel = applicationContext.getBean(tapName, PublishSubscribeChannel.class);
-			}
-			catch (Exception e) {
+			} catch (Exception e) {
 				throw new IllegalArgumentException("bean '" + tapName
 						+ "' is already registered but does not match the required type");
 			}
@@ -196,23 +194,36 @@ public class LocalChannelRegistry implements ChannelRegistry, ApplicationContext
 	}
 
 	protected BridgeHandler bridge(SubscribableChannel from, MessageChannel to, String bridgeName, String tapModule) {
-		// Temporarily perform string conversion for compatibility with Redis Registry
-		BridgeHandler handler = new BridgeHandler() {
 
-			private final ObjectToStringTransformer objectToStringTransformer =
-					new ObjectToStringTransformer();
+		BridgeHandler handler = new BridgeHandler() {
+			private boolean transformerAvailable;
+			private AbstractPayloadTransformer<?, ?> defaultTransformer;
 
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
-				if (requestMessage.getPayload() instanceof String) {
-					return requestMessage;
+				if (transformerAvailable) {
+					if (defaultTransformer != null) {
+						return defaultTransformer.transform(requestMessage);
+					} else {
+						AbstractPayloadTransformer<?, ?> payloadTransformer = resolvePayloadTransformerForMessage(requestMessage);
+						return payloadTransformer == null ? requestMessage : payloadTransformer
+								.transform(requestMessage);
+					}
 				}
-				else {
-					return this.objectToStringTransformer.transform(requestMessage);
-				}
+				return requestMessage;
 			}
 
+			@Override
+			protected void onInit() {
+				super.onInit();
+				transformerAvailable = getDefaultPayloadTransformer() != null || getPayloadTransformers() != null;
+				//No possibility of an override
+				if (getDefaultPayloadTransformer() != null || getPayloadTransformers() == null) {
+					defaultTransformer = getDefaultPayloadTransformer();
+				}
+			}
 		};
+
 		handler.setOutputChannel(to);
 		handler.setBeanName(bridgeName);
 		handler.afterPropertiesSet();

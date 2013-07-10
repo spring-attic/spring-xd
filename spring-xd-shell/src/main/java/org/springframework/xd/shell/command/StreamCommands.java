@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.shell;
+package org.springframework.xd.shell.command;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.shell.core.CommandMarker;
@@ -22,6 +22,7 @@ import org.springframework.shell.core.annotation.CliAvailabilityIndicator;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
+import org.springframework.xd.shell.XDShell;
 
 @Component
 public class StreamCommands implements CommandMarker {

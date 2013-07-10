@@ -25,12 +25,14 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
+import org.springframework.xd.rest.client.domain.TapDefinitionResource;
 import org.springframework.xd.rest.client.domain.XDRuntime;
 
 /**
  * Implementation of the SpringXD remote interaction API.
  *
  * @author Eric Bottard
+ * @author Ilayaperumal Gopinathan
  */
 public class SpringXDClient implements SpringXDOperations {
 
@@ -43,6 +45,8 @@ public class SpringXDClient implements SpringXDOperations {
 				XDRuntime.class);
 		resources.put("streams",
 				URI.create(xdRuntime.getLink("streams").getHref()));
+		resources.put("taps",
+				URI.create(xdRuntime.getLink("taps").getHref()));
 
 	}
 
@@ -64,6 +68,19 @@ public class SpringXDClient implements SpringXDOperations {
 		String uriTemplate = resources.get("streams").toString() + "/{name}";
 		restTemplate
 				.delete(uriTemplate, Collections.singletonMap("name", name));
+	}
+	
+	@Override
+	public TapDefinitionResource createTap(String name, String definition, Boolean autoStart) {
+		String control = ((autoStart != null && autoStart.booleanValue()) ? "start" : "");
+		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
+		values.add("name", name);
+		values.add("definition", definition);
+		values.add("control", control);
+
+		TapDefinitionResource tap = restTemplate.postForObject(resources.get("taps"),
+				values, TapDefinitionResource.class);
+		return tap;
 	}
 
 }

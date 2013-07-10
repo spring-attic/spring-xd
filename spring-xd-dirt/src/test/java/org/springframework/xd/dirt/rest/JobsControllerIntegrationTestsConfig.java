@@ -22,22 +22,23 @@ import org.springframework.xd.dirt.stream.JobDeploymentMessageSender;
 import org.springframework.xd.dirt.stream.memory.InMemoryJobDefinitionRepository;
 
 /**
+ * Override some dependencies to use actual in-memory implementations.
+ * 
  * @author Glenn Renfro
- *
  */
 @Configuration
-public class JobsControllerTestsConfig {
-
+public class JobsControllerIntegrationTestsConfig {
 
 	@Bean
 	public JobDefinitionRepository jobDefinitionRepository() {
 		return new InMemoryJobDefinitionRepository();
 	}
+
 	@Bean
 	public JobDeployer jobDeployer() {
 		return new JobDeployer(jobDefinitionRepository(), deploymentMessageSender());
 	}
-	
+
 	@Bean
 	public JobDeploymentMessageSender deploymentMessageSender() {
 		return mock(JobDeploymentMessageSender.class);

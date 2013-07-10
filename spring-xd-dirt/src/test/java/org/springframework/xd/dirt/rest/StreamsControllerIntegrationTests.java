@@ -19,50 +19,34 @@ package org.springframework.xd.dirt.rest;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
 import org.springframework.xd.dirt.stream.NoSuchStreamException;
 import org.springframework.xd.dirt.stream.StreamDefinition;
-import org.springframework.xd.dirt.stream.StreamDeployer;
 
 /**
- * Tests REST compliance of streams-related endpoints.
+ * Tests REST compliance of streams-related end-points.
  * 
  * @author Eric Bottard
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = { RestConfiguration.class, MockedDependencies.class })
-public class StreamsControllerTest {
-
-	@Autowired
-	private StreamDeployer mockStreamDeployer;
-
-	private MockMvc mockMvc;
-
-	@Autowired
-	private WebApplicationContext wac;
+public class StreamsControllerIntegrationTests extends AbstractControllerIntegrationTest {
 
 	@Test
 	public void testSuccessfulStreamCreation() throws Exception {
-		when(mockStreamDeployer.createStream("mystream", "http | hdfs", true)).thenReturn(
+		when(streamDeployer.createStream("mystream", "http | hdfs", true)).thenReturn(
 				new StreamDefinition("mystream", "http | hdfs"));
 
 		mockMvc.perform(
@@ -78,8 +62,7 @@ public class StreamsControllerTest {
 
 	@Test
 	public void testStreamCreationAnyError() throws Exception {
-		doThrow(NullPointerException.class).when(mockStreamDeployer).createStream(anyString(), anyString(),
-				anyBoolean());
+		doThrow(NullPointerException.class).when(streamDeployer).createStream(anyString(), anyString(), anyBoolean());
 
 		mockMvc.perform(
 				post("/streams").param("name", "mystream").param("definition", "file|http")
@@ -89,19 +72,12 @@ public class StreamsControllerTest {
 	@Test
 	public void testSuccessfulStreamDeletion() throws Exception {
 		mockMvc.perform(delete("/streams/{name}", "mystream")).andExpect(status().isOk());
-		verify(mockStreamDeployer).destroyStream("mystream");
+		verify(streamDeployer).destroyStream("mystream");
 	}
 
 	@Test
 	public void testDeleteUnknownStream() throws Exception {
-		when(mockStreamDeployer.destroyStream("mystream")).thenThrow(new NoSuchStreamException("mystream"));
+		when(streamDeployer.destroyStream("mystream")).thenThrow(new NoSuchStreamException("mystream"));
 		mockMvc.perform(delete("/streams/{name}", "mystream")).andExpect(status().isNotFound());
-	}
-
-	@Before
-	public void setupMockMVC() {
-		reset(mockStreamDeployer);
-		this.mockMvc = MockMvcBuilders.webAppContextSetup(wac)
-				.defaultRequest(get("/").accept(MediaType.APPLICATION_JSON)).build();
 	}
 }

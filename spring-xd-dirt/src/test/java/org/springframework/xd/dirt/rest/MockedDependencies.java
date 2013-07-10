@@ -29,6 +29,13 @@ import org.springframework.xd.dirt.stream.TapDeployer;
 import org.springframework.xd.dirt.stream.TriggerDefinitionRepository;
 import org.springframework.xd.dirt.stream.TriggerDeployer;
 
+/**
+ * Provide a mockito mock for any of the business layer dependencies. Adding yet another configuration class on top, one
+ * can selectively override those mocks (with <i>e.g.</i> in memory implementations).
+ * 
+ * @author Eric Bottard
+ * 
+ */
 @Configuration
 public class MockedDependencies {
 
@@ -61,10 +68,12 @@ public class MockedDependencies {
 	public TriggerDefinitionRepository triggerDefinitionRepository() {
 		return mock(TriggerDefinitionRepository.class);
 	}
+
 	@Bean
 	public JobDeployer jobDeployer() {
 		return mock(JobDeployer.class);
 	}
+
 	@Bean
 	public JobDefinitionRepository jobDefinitionRepository() {
 		return mock(JobDefinitionRepository.class);

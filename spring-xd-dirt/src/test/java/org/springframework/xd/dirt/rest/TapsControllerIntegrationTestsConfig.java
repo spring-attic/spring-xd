@@ -28,7 +28,7 @@ import org.springframework.xd.dirt.stream.memory.InMemoryTapDefinitionRepository
  *
  */
 @Configuration
-public class TapsControllerTestsConfig {
+public class TapsControllerIntegrationTestsConfig {
 
 	@Bean
 	public StreamDefinitionRepository streamDefinitionRepository() {

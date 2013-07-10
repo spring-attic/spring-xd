@@ -29,7 +29,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.hamcrest.Matchers;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,15 +37,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.dirt.stream.StreamDefinition;
-import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.TapDefinition;
-import org.springframework.xd.dirt.stream.TapDefinitionRepository;
-import org.springframework.xd.dirt.stream.TapDeployer;
 import org.springframework.xd.dirt.stream.TapDeploymentMessageSender;
 
 /**
@@ -61,34 +54,15 @@ import org.springframework.xd.dirt.stream.TapDeploymentMessageSender;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = { RestConfiguration.class, MockedDependencies.class, TapsControllerTestsConfig.class })
-public class TapsControllerTests {
-
-	@Autowired
-	private TapDefinitionRepository repository;
-
-	@Autowired
-	private StreamDefinitionRepository streamRepository;
+@ContextConfiguration(classes = { RestConfiguration.class, MockedDependencies.class,
+		TapsControllerIntegrationTestsConfig.class })
+public class TapsControllerIntegrationTests extends AbstractControllerIntegrationTest {
 
 	@Autowired
 	private TapDeploymentMessageSender sender;
 
 	@Autowired
-	private TapDeployer tapDeployer;
-
-	@Autowired
 	private TapsController tapsController;
-
-	private MockMvc mockMvc;
-
-	@Autowired
-	private WebApplicationContext wac;
-
-	@Before
-	public void setupMockMVC() {
-		this.mockMvc = MockMvcBuilders.webAppContextSetup(wac)
-				.defaultRequest(get("/").accept(MediaType.APPLICATION_JSON)).build();
-	}
 
 	@Test
 	public void testGetStreamName() {
@@ -101,7 +75,7 @@ public class TapsControllerTests {
 
 	@Test
 	public void testListAllTaps() throws Exception {
-		streamRepository.save(new StreamDefinition("test", "time | log"));
+		streamDefinitionRepository.save(new StreamDefinition("test", "time | log"));
 
 		mockMvc.perform(
 				post("/taps").param("name", "taplast").param("definition", "tap@ test | log")
@@ -117,7 +91,7 @@ public class TapsControllerTests {
 
 	@Test
 	public void testSuccessfulTapCreation() throws Exception {
-		streamRepository.save(new StreamDefinition("test", "time | log"));
+		streamDefinitionRepository.save(new StreamDefinition("test", "time | log"));
 		mockMvc.perform(
 				post("/taps").param("name", "tap1").param("definition", "tap@ test | log")
 						.accept(MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
@@ -125,7 +99,7 @@ public class TapsControllerTests {
 
 	@Test
 	public void testSuccessfulTapCreateAndDeploy() throws Exception {
-		streamRepository.save(new StreamDefinition("test", "time | log"));
+		streamDefinitionRepository.save(new StreamDefinition("test", "time | log"));
 		mockMvc.perform(
 				post("/taps").param("name", "tap1").param("definition", "tap@ test | log")
 						.accept(MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
@@ -134,9 +108,8 @@ public class TapsControllerTests {
 
 	@Test
 	public void testSuccessfulTapDeploy() throws Exception {
-		reset(sender);
-		streamRepository.save(new StreamDefinition("test", "time | log"));
-		repository.save(new TapDefinition("tap1", "test", "tap@test | log"));
+		streamDefinitionRepository.save(new StreamDefinition("test", "time | log"));
+		tapDefinitionRepository.save(new TapDefinition("tap1", "test", "tap@test | log"));
 		mockMvc.perform(put("/taps/tap1").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
 		verify(sender, times(1)).sendDeploymentRequests(eq("tap1"), anyListOf(ModuleDeploymentRequest.class));
 	}
@@ -147,9 +120,8 @@ public class TapsControllerTests {
 				status().isBadRequest());
 	}
 
-	@After
-	public void clearRepos() {
-		repository.deleteAll();
-		streamRepository.deleteAll();
+	@Before
+	public void resetAdditionalMocks() {
+		reset(sender);
 	}
 }

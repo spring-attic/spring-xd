@@ -18,16 +18,11 @@ package org.springframework.xd.dirt.rest;
 
 import static org.mockito.Matchers.anyListOf;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,13 +30,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
-import org.springframework.xd.dirt.stream.JobDefinition;
-import org.springframework.xd.dirt.stream.JobDefinitionRepository;
-import org.springframework.xd.dirt.stream.JobDeployer;
 import org.springframework.xd.dirt.stream.JobDeploymentMessageSender;
 
 /**
@@ -51,32 +40,11 @@ import org.springframework.xd.dirt.stream.JobDeploymentMessageSender;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = { RestConfiguration.class, MockedDependencies.class, JobsControllerTestsConfig.class })
-public class JobsControllerTests {
-
-	@Autowired
-	private JobDefinitionRepository repository;
+@ContextConfiguration(classes = { RestConfiguration.class, MockedDependencies.class, JobsControllerIntegrationTestsConfig.class })
+public class JobsControllerIntegrationTests extends AbstractControllerIntegrationTest {
 
 	@Autowired
 	private JobDeploymentMessageSender sender;
-
-	@Autowired
-	private JobDeployer jobDeployer;
-
-	@Autowired
-	private JobController jobsController;
-
-	private MockMvc mockMvc;
-
-	@Autowired
-	private WebApplicationContext wac;
-
-	@Before
-	public void setupMockMVC() {
-		this.mockMvc = MockMvcBuilders.webAppContextSetup(wac)
-				.defaultRequest(get("/").accept(MediaType.APPLICATION_JSON)).build();
-	}
-
 
 	@Test
 	public void testSuccessfulJobCreation() throws Exception {
@@ -88,16 +56,9 @@ public class JobsControllerTests {
 	@Test
 	public void testSuccessfulJobCreateAndDeploy() throws Exception {
 		mockMvc.perform(
-				post("/jobs").param("name", "job2").param("definition","Job --cron='*/10 * * * * *'")
+				post("/jobs").param("name", "job2").param("definition", "Job --cron='*/10 * * * * *'")
 						.accept(MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 		verify(sender, times(1)).sendDeploymentRequests(eq("job2"), anyListOf(ModuleDeploymentRequest.class));
 	}
 
-
-
-	@After
-	public void clearRepos() {
-		repository.deleteAll();
-
-	}
 }

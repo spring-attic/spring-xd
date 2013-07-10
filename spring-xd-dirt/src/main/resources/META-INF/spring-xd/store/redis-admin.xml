@@ -23,4 +23,12 @@
 		</constructor-arg>
 	</bean>
 
+	<bean id="triggerRepository" class="org.springframework.xd.dirt.stream.redis.RedisTriggerDefinitionRepository">
+		<constructor-arg>
+			<bean class="org.springframework.data.redis.core.RedisTemplate">
+				<property name="connectionFactory" ref="redisConnectionFactory" />
+			</bean>
+		</constructor-arg>
+	</bean>
+
 </beans>

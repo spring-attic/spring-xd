@@ -43,6 +43,7 @@ public class AdminController {
 	public XDRuntime info() {
 		XDRuntime xdRuntime = new XDRuntime();
 		xdRuntime.add(entityLinks.linkFor(StreamDefinitionResource.class).withRel("streams"));
+		xdRuntime.add(entityLinks.linkFor(StreamDefinitionResource.class).withRel("triggers"));
 		return xdRuntime;
 	}
 }

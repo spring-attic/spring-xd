@@ -60,17 +60,26 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 
 	private final int port;
 
+	private volatile ServerBootstrap bootstrap;
+
 	public NettyHttpInboundChannelAdapter(int port) {
 		this.port = port;
 	}
 
 	@Override
 	protected void doStart() {
-		ServerBootstrap bootstrap = new ServerBootstrap(new NioServerSocketChannelFactory(
+		bootstrap = new ServerBootstrap(new NioServerSocketChannelFactory(
 				Executors.newCachedThreadPool(), Executors.newCachedThreadPool()));
 		bootstrap.setOption("child.tcpNoDelay", true);
 		bootstrap.setPipelineFactory(new PipelineFactory());
 		bootstrap.bind(new InetSocketAddress(this.port));
+	}
+
+	@Override
+	protected void doStop() {
+		if (bootstrap != null) {
+			bootstrap.shutdown();
+		}
 	}
 
 	private class PipelineFactory implements ChannelPipelineFactory {

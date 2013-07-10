@@ -86,17 +86,16 @@ public class SpringXDClient implements SpringXDOperations {
 		restTemplate.put(uriTemplate, values, name);
 
 	}
-	
+
 	@Override
-	public TapDefinitionResource createTap(String name, String definition, Boolean autoStart) {
-		String control = ((autoStart != null && autoStart.booleanValue()) ? "start" : "");
+	public TapDefinitionResource createTap(String name, String definition, boolean deploy) {
 		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
 		values.add("name", name);
 		values.add("definition", definition);
-		values.add("control", control);
+		values.add("deploy", Boolean.toString(deploy));
 
-		TapDefinitionResource tap = restTemplate.postForObject(resources.get("taps"),
-				values, TapDefinitionResource.class);
+		TapDefinitionResource tap = restTemplate.postForObject(resources.get("taps"), values,
+				TapDefinitionResource.class);
 		return tap;
 	}
 

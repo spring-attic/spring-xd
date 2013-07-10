@@ -46,7 +46,7 @@ public interface SpringXDOperations {
 	 * Undeploy a deployed stream, retaining its definition.
 	 */
 	public void undeployStream(String name);
-	
-	public TapDefinitionResource createTap(String name, String definition, Boolean control);
+
+	public TapDefinitionResource createTap(String name, String definition, boolean deploy);
 
 }

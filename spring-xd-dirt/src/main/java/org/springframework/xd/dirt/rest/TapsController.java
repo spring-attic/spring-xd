@@ -36,7 +36,7 @@ import org.springframework.xd.rest.client.domain.TapDefinitionResource;
 /**
  * @author David Turanski
  * @author Gunnar Hillert
- *
+ * 
  * @since 1.0
  */
 @Controller
@@ -53,20 +53,21 @@ public class TapsController {
 
 	/**
 	 * Create a new Tap.
-	 *
+	 * 
 	 * @param name the name of the tap to create (required)
 	 * @param definition the tap definition expressed in the XD DSL (required)
 	 */
 	@RequestMapping(value = "", method = RequestMethod.POST)
 	@ResponseStatus(HttpStatus.CREATED)
 	@ResponseBody
-	public TapDefinitionResource create(@RequestParam("name") String name, @RequestParam("definition") String definition,
-			@RequestParam(value = "control", defaultValue = "") String control) {
+	public TapDefinitionResource create(@RequestParam("name")
+	String name, @RequestParam("definition")
+	String definition, @RequestParam(value = "deploy", defaultValue = "true")
+	boolean deploy) {
 		String streamName = getStreamName(name, definition);
 		tapDeployer.create(new TapDefinition(name, streamName, definition));
-		//TODO: Optional deploy
 		TapDefinitionResource result = new TapDefinitionResource(name, streamName, definition);
-		if ("start".equalsIgnoreCase(control)) {
+		if (deploy) {
 			tapDeployer.deploy(name);
 		}
 		return result;
@@ -89,14 +90,15 @@ public class TapsController {
 
 	/**
 	 * Deploy an existing Tap.
-	 *
+	 * 
 	 * @param name the name of the tap to create (required)
 	 * @param definition the tap definition expressed in the XD DSL (required)
 	 */
 	@RequestMapping(value = "/{name}", method = RequestMethod.PUT)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public void deploy(@PathVariable("name") String name) {
+	public void deploy(@PathVariable("name")
+	String name) {
 		tapDeployer.deploy(name);
 	}
 

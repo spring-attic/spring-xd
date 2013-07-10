@@ -59,6 +59,7 @@ import org.springframework.integration.support.MessageBuilder;
 public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 
 	private final int port;
+	private ServerBootstrap bootstrap;
 
 	public NettyHttpInboundChannelAdapter(int port) {
 		this.port = port;
@@ -66,11 +67,16 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 
 	@Override
 	protected void doStart() {
-		ServerBootstrap bootstrap = new ServerBootstrap(new NioServerSocketChannelFactory(
+		bootstrap = new ServerBootstrap(new NioServerSocketChannelFactory(
 				Executors.newCachedThreadPool(), Executors.newCachedThreadPool()));
 		bootstrap.setOption("child.tcpNoDelay", true);
 		bootstrap.setPipelineFactory(new PipelineFactory());
 		bootstrap.bind(new InetSocketAddress(this.port));
+	}
+	
+	@Override
+	protected void doStop(){
+		bootstrap.shutdown();
 	}
 
 	private class PipelineFactory implements ChannelPipelineFactory {

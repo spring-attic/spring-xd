@@ -15,13 +15,12 @@ package org.springframework.xd.dirt.core;
 import org.springframework.xd.dirt.stream.BaseDefinition;
 
 /**
- * Interface for XD Resource Services
- *
+ * Interface for XD Resource Services.
+ * 
+ * @param <R> the kind of resource to deploy (<i>e.g.</i> Stream)
  * @author David Turanski
  * @author Gunnar Hillert
- *
- * @since 1.0
- *
+ * 
  */
 public interface ResourceDeployer<R extends BaseDefinition> {
 

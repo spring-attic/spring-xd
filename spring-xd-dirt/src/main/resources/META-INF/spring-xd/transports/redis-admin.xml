@@ -17,6 +17,7 @@
 
 	<bean id="streamDeployer" class="org.springframework.xd.dirt.stream.DefaultStreamDeployer">
 		<constructor-arg ref="deployChannel" />
+		<constructor-arg ref="streamDefinitionRepository" />
 		<constructor-arg ref="streamRepository" />
 	</bean>
 	

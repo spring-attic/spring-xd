@@ -18,6 +18,7 @@
 	<bean id="streamDeployer" class="org.springframework.xd.dirt.stream.DefaultStreamDeployer">
 		<constructor-arg name="outputChannel"              ref="input" />
 		<constructor-arg name="streamDefinitionRepository" ref="streamRepository" />
+		<constructor-arg name="streamRepository"           ref="streamRepository" /> 
 	</bean>
 
 	<bean id="triggerDeploymentMessageSender" class="org.springframework.xd.dirt.stream.TriggerDeploymentMessageSender">

@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.rest;
 
+import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
@@ -61,7 +62,7 @@ public class StreamsControllerTest {
 
 	@Test
 	public void testSuccessfulStreamCreation() throws Exception {
-		when(mockStreamDeployer.deployStream("mystream", "http | hdfs")).thenReturn(
+		when(mockStreamDeployer.createStream("mystream", "http | hdfs", true)).thenReturn(
 				new StreamDefinition("mystream", "http | hdfs"));
 
 		mockMvc.perform(
@@ -77,7 +78,8 @@ public class StreamsControllerTest {
 
 	@Test
 	public void testStreamCreationAnyError() throws Exception {
-		doThrow(NullPointerException.class).when(mockStreamDeployer).deployStream(anyString(), anyString());
+		doThrow(NullPointerException.class).when(mockStreamDeployer).createStream(anyString(), anyString(),
+				anyBoolean());
 
 		mockMvc.perform(
 				post("/streams").param("name", "mystream").param("definition", "file|http")
@@ -87,12 +89,12 @@ public class StreamsControllerTest {
 	@Test
 	public void testSuccessfulStreamDeletion() throws Exception {
 		mockMvc.perform(delete("/streams/{name}", "mystream")).andExpect(status().isOk());
-		verify(mockStreamDeployer).undeployStream("mystream");
+		verify(mockStreamDeployer).destroyStream("mystream");
 	}
 
 	@Test
 	public void testDeleteUnknownStream() throws Exception {
-		when(mockStreamDeployer.undeployStream("mystream")).thenThrow(new NoSuchStreamException("mystream"));
+		when(mockStreamDeployer.destroyStream("mystream")).thenThrow(new NoSuchStreamException("mystream"));
 		mockMvc.perform(delete("/streams/{name}", "mystream")).andExpect(status().isNotFound());
 	}
 

@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.module;
+package org.springframework.xd.dirt.stream.memory;
+
+import org.springframework.xd.dirt.store.AbstractInMemoryRepository;
+import org.springframework.xd.dirt.stream.Stream;
+import org.springframework.xd.dirt.stream.StreamRepository;
 
 /**
- * Thrown when attempting to refer to a module that does not exist.
+ * In memory implementation of {@link StreamRepository}.
  * 
  * @author Eric Bottard
  */
-@SuppressWarnings("serial")
-public class NoSuchModuleException extends ResourceDefinitionException {
+public class InMemoryStreamRepository extends AbstractInMemoryRepository<Stream, String> implements StreamRepository {
 
-	/**
-	 * Create a new exception.
-	 * @param name the module name that was referenced, but could not be found
-	 */
-	public NoSuchModuleException(String name) {
-		super("Could not find module with name '" + name + "'");
+	@Override
+	protected String keyFor(Stream entity) {
+		return entity.getStreamDefinition().getName();
 	}
 
 }

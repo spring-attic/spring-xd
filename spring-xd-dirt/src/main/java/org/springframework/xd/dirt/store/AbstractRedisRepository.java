@@ -32,7 +32,13 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.util.Assert;
 
 /**
- * Base implementation for a store, using Redis behind the scenes.
+ * Base implementation for a store, using Redis behind the scenes. This implementation requires a {@code repoPrefix},
+ * that is used in two ways:
+ * <ul>
+ * <li>a sorted set is stored under that exact key that tracks the entity ids this repository is responsible for,
+ * <li>
+ * <li>each entity is stored serialized under key {@code repoPrefix<id>}</li>
+ * </ul>
  * 
  * @param <T> the type of things to store
  * @param <ID> a "primary key" to the things
@@ -47,8 +53,8 @@ public abstract class AbstractRedisRepository<T, ID extends Serializable> implem
 	private RedisOperations<String, String> redisOperations;
 
 	public AbstractRedisRepository(String repoPrefix, RedisOperations<String, String> redisOperations) {
-		Assert.hasText(repoPrefix,"repoPrefix must not be empty or null");
-		Assert.notNull(redisOperations,"redisOperations must not be null");
+		Assert.hasText(repoPrefix, "repoPrefix must not be empty or null");
+		Assert.notNull(redisOperations, "redisOperations must not be null");
 		this.repoPrefix = repoPrefix;
 		this.redisOperations = redisOperations;
 		this.zSetOperations = redisOperations.boundZSetOps(repoPrefix);

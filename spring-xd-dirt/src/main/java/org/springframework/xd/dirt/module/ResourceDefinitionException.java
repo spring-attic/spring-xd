@@ -16,20 +16,26 @@
 
 package org.springframework.xd.dirt.module;
 
+import org.springframework.xd.dirt.core.XDRuntimeException;
+
 /**
- * Thrown when attempting to refer to a module that does not exist.
+ * Thrown when a problem is detected with the (DSL) definition of an XD resource.
  * 
  * @author Eric Bottard
  */
 @SuppressWarnings("serial")
-public class NoSuchModuleException extends ResourceDefinitionException {
+public class ResourceDefinitionException extends XDRuntimeException {
 
-	/**
-	 * Create a new exception.
-	 * @param name the module name that was referenced, but could not be found
-	 */
-	public NoSuchModuleException(String name) {
-		super("Could not find module with name '" + name + "'");
+	public ResourceDefinitionException() {
+		super();
+	}
+
+	public ResourceDefinitionException(String message, Throwable cause) {
+		super(message, cause);
+	}
+
+	public ResourceDefinitionException(String message) {
+		super(message);
 	}
 
 }

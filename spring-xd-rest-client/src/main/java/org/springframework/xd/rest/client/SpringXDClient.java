@@ -30,7 +30,7 @@ import org.springframework.xd.rest.client.domain.XDRuntime;
 
 /**
  * Implementation of the SpringXD remote interaction API.
- *
+ * 
  * @author Eric Bottard
  * @author Ilayaperumal Gopinathan
  */
@@ -41,24 +41,39 @@ public class SpringXDClient implements SpringXDOperations {
 	private Map<String, URI> resources = new HashMap<String, URI>();
 
 	public SpringXDClient(URI baseURI) {
-		XDRuntime xdRuntime = restTemplate.getForObject(baseURI,
-				XDRuntime.class);
-		resources.put("streams",
-				URI.create(xdRuntime.getLink("streams").getHref()));
-		resources.put("taps",
-				URI.create(xdRuntime.getLink("taps").getHref()));
-
+		XDRuntime xdRuntime = restTemplate.getForObject(baseURI, XDRuntime.class);
+		resources.put("streams", URI.create(xdRuntime.getLink("streams").getHref()));
+		resources.put("taps", URI.create(xdRuntime.getLink("taps").getHref()));
 	}
 
 	@Override
-	public StreamDefinitionResource deployStream(String name, String defintion) {
+	public StreamDefinitionResource createStream(String name, String defintion, boolean deploy) {
 		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
 		values.add("name", name);
 		values.add("definition", defintion);
+		values.add("deploy", Boolean.toString(deploy));
 
-		StreamDefinitionResource stream = restTemplate.postForObject(resources.get("streams"),
-				values, StreamDefinitionResource.class);
+		StreamDefinitionResource stream = restTemplate.postForObject(resources.get("streams"), values,
+				StreamDefinitionResource.class);
 		return stream;
+	}
+
+	@Override
+	public void destroyStream(String name) {
+		// TODO: discover link by some other means (search by exact name on
+		// /streams??)
+		String uriTemplate = resources.get("streams").toString() + "/{name}";
+		restTemplate.delete(uriTemplate, Collections.singletonMap("name", name));
+	}
+
+	@Override
+	public void deployStream(String name) {
+		// TODO: discover link by some other means (search by exact name on
+		// /streams??)
+		String uriTemplate = resources.get("streams").toString() + "/{name}";
+		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
+		values.add("deploy", "true");
+		restTemplate.put(uriTemplate, values, name);
 	}
 
 	@Override
@@ -66,8 +81,10 @@ public class SpringXDClient implements SpringXDOperations {
 		// TODO: discover link by some other means (search by exact name on
 		// /streams??)
 		String uriTemplate = resources.get("streams").toString() + "/{name}";
-		restTemplate
-				.delete(uriTemplate, Collections.singletonMap("name", name));
+		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
+		values.add("deploy", "false");
+		restTemplate.put(uriTemplate, values, name);
+
 	}
 	
 	@Override

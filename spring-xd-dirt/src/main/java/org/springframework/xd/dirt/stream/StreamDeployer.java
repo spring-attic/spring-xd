@@ -25,21 +25,39 @@ package org.springframework.xd.dirt.stream;
 public interface StreamDeployer {
 
 	/**
-	 * Deploy a new stream in the system.
+	 * Create a new stream in the system, without actually deploying it.
 	 * 
 	 * @param name a key under which the stream will be known from now on
 	 * @param config a DSL representation of what the stream does
+	 * @param deploy whether to also immediately deploy the stream
 	 * @return a runtime representation of the stream definition
 	 * @throws StreamAlreadyExistsException if a stream already exists with the given name
 	 */
-	StreamDefinition deployStream(String name, String config);
+	StreamDefinition createStream(String name, String config, boolean deploy);
 
 	/**
-	 * Undeploy an already existing stream from the system.
+	 * Destroy an existing stream, un-deploying it if it was previously depployed.
 	 * 
-	 * @param name the key under which the stream had previously been deployed
+	 * @param name the key under which the stream had previously been created
 	 * @return a runtime representation of the (now to be considered gone) stream definition
 	 * @throws NoSuchStreamException if no stream exists with that name
 	 */
-	StreamDefinition undeployStream(String name);
+	StreamDefinition destroyStream(String name);
+
+	/**
+	 * Deploy a stream using an already created stream definition.
+	 * 
+	 * @param name the name of an already created stream
+	 * @return a runtime representation of the stream definition
+	 */
+	Stream deployStream(String name);
+
+	/**
+	 * Un-deploy (stop) an already existing stream from the system.
+	 * 
+	 * @param name the key under which the stream had previously been deployed
+	 * @return a runtime representation of the (now to be considered un-deployed) stream definition
+	 * @throws NoSuchStreamException if no stream exists with that name
+	 */
+	Stream undeployStream(String name);
 }

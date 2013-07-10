@@ -14,22 +14,17 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.module;
+package org.springframework.xd.dirt.stream;
 
 /**
- * Thrown when attempting to refer to a module that does not exist.
+ * Thrown when one tries to deploy a named stream that is already deployed.
  * 
  * @author Eric Bottard
  */
 @SuppressWarnings("serial")
-public class NoSuchModuleException extends ResourceDefinitionException {
+public class StreamAlreadyDeployedException extends StreamException {
 
-	/**
-	 * Create a new exception.
-	 * @param name the module name that was referenced, but could not be found
-	 */
-	public NoSuchModuleException(String name) {
-		super("Could not find module with name '" + name + "'");
+	public StreamAlreadyDeployedException(String name) {
+		super("Stream with name '" + name + "' is already deployed");
 	}
-
 }

@@ -421,6 +421,7 @@ project('spring-xd-test') {
 	description = 'Spring XD Test'
 	dependencies {
 		compile "org.springframework.integration:spring-integration-test:$springIntegrationVersion"
+		compile "org.springframework.integration:spring-integration-amqp:$springIntegrationVersion"
 		compile "org.springframework.integration:spring-integration-redis:$springIntegrationVersion"
 		compile "org.springframework.data:spring-data-redis:$springDataRedisVersion"
 		compile "org.springframework:spring-context:$springVersion"

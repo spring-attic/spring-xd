@@ -21,9 +21,13 @@ import org.apache.commons.logging.LogFactory;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 
-import org.springframework.xd.dirt.launcher.RedisContainerLauncher;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.xd.dirt.container.DefaultContainer;
+import org.springframework.xd.dirt.core.Container;
+import org.springframework.xd.dirt.launcher.ContainerLauncher;
 import org.springframework.xd.dirt.server.options.AbstractOptions;
 import org.springframework.xd.dirt.server.options.ContainerOptions;
+import org.springframework.xd.dirt.server.options.OptionUtils;
 
 /**
  * The main driver class for the container
@@ -38,6 +42,8 @@ public class ContainerMain  {
 
 	private static final Log logger = LogFactory.getLog(ContainerMain.class);
 
+	private static final String LAUNCHER_CONFIG_LOCATION = DefaultContainer.XD_INTERNAL_CONFIG_ROOT + "launcher.xml";
+
 	/**
 	 * Start the RedisContainerLauncher
 	 *
@@ -49,7 +55,8 @@ public class ContainerMain  {
 		CmdLineParser parser = new CmdLineParser(options);
 		try {
 			parser.parseArgument(args);
-		} catch (CmdLineException e) {
+		}
+		catch (CmdLineException e) {
 			logger.error(e.getMessage());
 			parser.printUsage(System.err);
 			System.exit(1);
@@ -62,15 +69,27 @@ public class ContainerMain  {
 			parser.printUsage(System.err);
 			System.exit(0);
 		}
+		launch(options);
+	}
 
-		// future versions to support other types of container launchers
-		switch (options.getTransport()) {
-		case redis:
-			RedisContainerLauncher.create(options);
-			break;
-		default:
-			logger.info("only redis transport is supported now");
+	/**
+	 * Create a container instance
+	 * @param options
+	 */
+	@SuppressWarnings("resource")
+	public static Container launch(ContainerOptions options) {
+		ClassPathXmlApplicationContext context = null;
+		context = new ClassPathXmlApplicationContext();
+		context.setConfigLocation(LAUNCHER_CONFIG_LOCATION);
+		if (!options.isJmxDisabled()) {
+			context.getEnvironment().addActiveProfile("xd.jmx.enabled");
+			OptionUtils.setJmxProperties(options, context.getEnvironment());
 		}
+		context.refresh();
+		context.registerShutdownHook();
+		ContainerLauncher launcher = context.getBean(ContainerLauncher.class);
+		Container container = launcher.launch(options);
+		return container;
 	}
 
 }

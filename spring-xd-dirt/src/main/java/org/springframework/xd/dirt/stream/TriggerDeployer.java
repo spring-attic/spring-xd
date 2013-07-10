@@ -13,6 +13,8 @@
 package org.springframework.xd.dirt.stream;
 
 import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.ResourceDeployer;
@@ -60,6 +62,15 @@ public class TriggerDeployer implements ResourceDeployer<TriggerDefinition> {
 	public TriggerDefinition create(TriggerDefinition triggerDefinition) {
 		Assert.notNull(triggerDefinition, "trigger definition may not be null");
 		return repository.save(triggerDefinition);
+	}
+	
+	@Override
+	public Iterable<TriggerDefinition> findAll() {
+		final SortedSet<TriggerDefinition> sortedTriggerDefinitions = new TreeSet<TriggerDefinition>();
+		for (TriggerDefinition triggerDefinition : repository.findAll()) {
+			sortedTriggerDefinitions.add(triggerDefinition);
+		}
+		return sortedTriggerDefinitions;
 	}
 
 }

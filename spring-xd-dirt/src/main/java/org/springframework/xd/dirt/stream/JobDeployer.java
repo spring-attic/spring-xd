@@ -13,6 +13,8 @@
 package org.springframework.xd.dirt.stream;
 
 import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.ResourceDeployer;
@@ -55,6 +57,15 @@ public class JobDeployer implements ResourceDeployer<JobDefinition> {
 	public JobDefinition create(JobDefinition jobDefinition) {
 		Assert.notNull(jobDefinition, "Job definition may not be null");
 		return repository.save(jobDefinition);
+	}
+	
+	@Override
+	public Iterable<JobDefinition> findAll() {
+		final SortedSet<JobDefinition> sortedJobDefinitions = new TreeSet<JobDefinition>();
+		for (JobDefinition jobDefinition : repository.findAll()) {
+			sortedJobDefinitions.add(jobDefinition);
+		}
+		return sortedJobDefinitions;
 	}
 
 }

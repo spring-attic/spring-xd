@@ -31,7 +31,7 @@ public abstract class AbstractExternalServerAvailableRule extends TestWatcher {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	protected Statement failOrSkipTests(String server, Exception e) {
+	protected final Statement failOrSkipTests(String server, Exception e) {
 		String serversRequired = System.getenv("XD_EXTERNAL_SERVERS_REQUIRED");
 		if (serversRequired != null && "true".equalsIgnoreCase(serversRequired)) {
 			logger.error(server + " IS REQUIRED BUT NOT AVAILABLE", e);

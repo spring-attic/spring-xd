@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,35 +16,27 @@
 
 package org.springframework.xd.dirt.server;
 
+import org.junit.Rule;
 import org.junit.Test;
-import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.web.context.support.XmlWebApplicationContext;
+
 import org.springframework.xd.dirt.server.options.AdminOptions;
 import org.springframework.xd.dirt.stream.StreamServer;
+import org.springframework.xd.test.redis.RedisAvailableRule;
 
 /**
  * @author Luke Taylor
+ * @author Gary Russell
  */
-public class AdminMainIntegrationTests {
+public class AdminMainRedisStoreIntegrationTests extends AbstractAdminMainIntegrationTests {
+
+	@Rule
+	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
 
 	@Test
 	public void redisStoreWithLocalTransportConfigurationLoadsSuccessfully() throws Exception {
 		AdminOptions opts = AdminMain.parseOptions(new String[] {"--httpPort", "0", "--transport", "local", "--store", "redis", "--disableJmx", "true"});
 		StreamServer s = AdminMain.launchStreamServer(opts);
-		shutdown(s);
-	}
-
-	@Test
-	public void inMemoryStoreWithLocalTransportConfigurationLoadsSuccessfully() throws Exception {
-		AdminOptions opts = AdminMain.parseOptions(new String[] {"--httpPort", "0", "--transport", "local", "--store", "memory", "--disableJmx", "true"});
-		StreamServer s = AdminMain.launchStreamServer(opts);
-		shutdown(s);
-	}
-
-	private void shutdown(StreamServer s) {
-		s.stop();
-		DirectFieldAccessor dfa = new DirectFieldAccessor(s);
-		((XmlWebApplicationContext)dfa.getPropertyValue("webApplicationContext")).destroy();
+		super.shutdown(s);
 	}
 
 }

@@ -17,7 +17,7 @@
 
 	<bean id="streamDeployer" class="org.springframework.xd.dirt.stream.DefaultStreamDeployer">
 		<constructor-arg name="outputChannel"              ref="input" />
-		<constructor-arg name="streamDefinitionRepository" ref="streamRepository" />
+		<constructor-arg name="streamDefinitionRepository" ref="streamDefinitionRepository" />
 		<constructor-arg name="streamRepository"           ref="streamRepository" /> 
 	</bean>
 
@@ -32,7 +32,7 @@
 	
 	<bean id="tapDeployer" class="org.springframework.xd.dirt.stream.TapDeployer">
 		<constructor-arg ref="tapRepository" />
-		<constructor-arg ref="streamRepository" />
+		<constructor-arg ref="streamDefinitionRepository" />
 		<constructor-arg>
 			<bean class="org.springframework.xd.dirt.stream.TapDeploymentMessageSender">
 				<constructor-arg ref="input"/>

@@ -38,8 +38,7 @@ public class StreamDefinitionResource extends ResourceSupport {
 	/**
 	 * Default constructor for serialization frameworks.
 	 */
-	@SuppressWarnings("unused")
-	private StreamDefinitionResource() {
+	protected StreamDefinitionResource() {
 
 	}
 

@@ -26,7 +26,15 @@ import org.springframework.util.Assert;
  */
 public class TapDefinitionResource extends StreamDefinitionResource {
 
-	private final String streamName;
+	private String streamName;
+	
+	/**
+	 * Default constructor for serialization frameworks.
+	 */
+	@SuppressWarnings("unused")
+	private TapDefinitionResource() {
+		super();
+	}
 
 	/**
 	 * @param name

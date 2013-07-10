@@ -50,6 +50,10 @@ public class AdminMain {
 	 * @param args
 	 */
 	public static void main(String[] args) {
+		launchStreamServer(parseOptions(args));
+	}
+
+	static AdminOptions parseOptions(String[] args) {
 		AdminOptions options = new AdminOptions();
 		CmdLineParser parser = new CmdLineParser(options);
 		try {
@@ -60,20 +64,21 @@ public class AdminMain {
 			parser.printUsage(System.err);
 			System.exit(1);
 		}
-		AbstractOptions.setXDHome(options.getXDHomeDir());
-		AbstractOptions.setXDTransport(options.getTransport());
-		AdminOptions.setXDStore(options.getStore());
 		if (options.isShowHelp()) {
 			parser.printUsage(System.err);
 			System.exit(0);
 		}
-		launchStreamServer(options);
+		AbstractOptions.setXDHome(options.getXDHomeDir());
+		AbstractOptions.setXDTransport(options.getTransport());
+		AdminOptions.setXDStore(options.getStore());
+
+		return options;
 	}
 
 	/**
 	 * Launch stream server with the given home and transport
 	 */
-	public static void launchStreamServer(final AdminOptions options) {
+	static StreamServer launchStreamServer(final AdminOptions options) {
 		try {
 			XmlWebApplicationContext context = new XmlWebApplicationContext();
 			context.setConfigLocation("classpath:" + DefaultContainer.XD_INTERNAL_CONFIG_ROOT + "admin-server.xml");
@@ -105,6 +110,7 @@ public class AdminMain {
 				}
 			});
 			context.registerShutdownHook();
+			return server;
 		}
 		catch (RedisConnectionFailureException e) {
 			final Log logger = LogFactory.getLog(StreamServer.class);
@@ -113,5 +119,6 @@ public class AdminMain {
 					+ "Please see the Getting Started section of the guide for instructions.");
 			System.exit(1);
 		}
+		return null;
 	}
 }

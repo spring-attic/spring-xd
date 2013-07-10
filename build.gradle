@@ -243,6 +243,10 @@ project('spring-xd-dirt') {
 		args = ['--transport', 'local']
 	}
 
+	test {
+		systemProperties["xd.home"] = "${rootProject.projectDir}"
+	}
+
 	task configFiles {
 		def config = file("$rootDir/config")
 		outputs.dir config

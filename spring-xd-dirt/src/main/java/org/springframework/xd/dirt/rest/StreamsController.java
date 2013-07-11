@@ -61,22 +61,6 @@ public class StreamsController {
 	}
 
 	/**
-	 * Create a new Stream.
-	 * 
-	 * @param name the name of the stream to create (required)
-	 * @param dsl some representation of the stream behavior (required)
-	 * @deprecated use POST on /streams instead
-	 */
-	// @Deprecated
-	// @RequestMapping(value = "/{name}", method = { RequestMethod.PUT })
-	// @ResponseStatus(HttpStatus.CREATED)
-	// public void olddeploy(@PathVariable("name")
-	// String name, @RequestBody
-	// String dsl) {
-	// create(name, dsl, true);
-	// }
-
-	/**
 	 * Create a new Stream, optionally deploying it.
 	 * 
 	 * @param name the name of the stream to create (required)

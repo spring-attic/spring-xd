@@ -22,41 +22,48 @@ import org.springframework.shell.core.annotation.CliAvailabilityIndicator;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
+import org.springframework.xd.rest.client.TapOperations;
 import org.springframework.xd.shell.XDShell;
 
 /**
  * Tap commands.
- *
+ * 
  * @author Ilayaperumal Gopinathan
  */
 
 @Component
 public class TapCommands implements CommandMarker {
 
+	private final static String CREATE_TAP = "tap create";
+
 	@Autowired
 	private XDShell xdShell;
 
-	@CliAvailabilityIndicator({ "create tap" })
+	@CliAvailabilityIndicator({ CREATE_TAP })
 	public boolean available() {
 		return xdShell.getSpringXDOperations() != null;
 	}
 
-	@CliCommand(value = "create tap", help = "Create a tap")
+	@CliCommand(value = CREATE_TAP, help = "Create a tap")
 	public String createTap(
 			@CliOption(mandatory = true, key = "name", help = "the name to give to the tap")
 			String name,
 			@CliOption(mandatory = true, key = { "", "definition" }, help = "Tap definition, using XD DSL (e.g. \"tap@mystream.filter | sink1\")")
 			String dsl,
-			@CliOption(key = "autostart", help = "flag to set true to autostart after creation")
-			Boolean autoStart) {
+			@CliOption(key = "deploy", help = "whether to deploy the tap immediately", unspecifiedDefaultValue = "true")
+			boolean autoStart) {
 		try {
-			xdShell.getSpringXDOperations().createTap(name, dsl, autoStart);
-		} 
+			tapOperations().createTap(name, dsl, autoStart);
+		}
 		catch (Exception e) {
 			return String.format("Error creating tap '%s'", name);
 		}
-		return String.format(((autoStart != null && autoStart.booleanValue()) ? 
-				"Successfully created and deployed tap '%s'" : "Successfully created tap '%s'"), name);
+		return String.format((autoStart ? "Successfully created and deployed tap '%s'"
+				: "Successfully created tap '%s'"), name);
+	}
+
+	private TapOperations tapOperations() {
+		return xdShell.getSpringXDOperations().tapOperations();
 	}
 
 }

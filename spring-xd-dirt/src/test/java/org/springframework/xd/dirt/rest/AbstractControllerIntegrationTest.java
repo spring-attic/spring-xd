@@ -104,7 +104,7 @@ public class AbstractControllerIntegrationTest {
 
 	private void resetOrDelete(CrudRepository<?, ?> repo) {
 		if (mockUtil.isMock(repo)) {
-			Mockito.reset(repo);
+			Mockito.reset(new Object[] { repo });
 		}
 		else {
 			repo.deleteAll();

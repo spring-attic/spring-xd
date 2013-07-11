@@ -22,8 +22,8 @@ import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
-import org.springframework.xd.rest.client.SpringXDClient;
 import org.springframework.xd.rest.client.SpringXDOperations;
+import org.springframework.xd.rest.client.impl.SpringXDTemplate;
 
 @Component
 public class XDShell implements CommandMarker {
@@ -41,12 +41,14 @@ public class XDShell implements CommandMarker {
 	}
 
 	@CliCommand(value = { "target" }, help = "Select the XD admin server to use")
-	public String target(@CliOption(mandatory = true, key = "") String target) {
+	public String target(@CliOption(mandatory = true, key = "")
+	String target) {
 		try {
-			springXDOperations = new SpringXDClient(URI.create(target));
+			springXDOperations = new SpringXDTemplate(URI.create(target));
 			this.target = target;
 			return String.format("Successfully targeted %s", target);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			this.target = "unknown";
 			springXDOperations = null;
 			return String.format("Unable to contact XD Admin at %s", target);

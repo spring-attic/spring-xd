@@ -22,6 +22,7 @@ import org.springframework.shell.core.annotation.CliAvailabilityIndicator;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
+import org.springframework.xd.rest.client.StreamOperations;
 import org.springframework.xd.shell.XDShell;
 
 @Component
@@ -52,7 +53,7 @@ public class StreamCommands implements CommandMarker {
 			String name, //
 			@CliOption(key = "deploy", help = "whether to deploy the stream immediately", unspecifiedDefaultValue = "true")
 			boolean deploy) {
-		xdShell.getSpringXDOperations().createStream(name, dsl, deploy);
+		streamOperations().createStream(name, dsl, deploy);
 		return String.format("Created new stream '%s'", name);
 	}
 
@@ -60,7 +61,7 @@ public class StreamCommands implements CommandMarker {
 	public String destroyStream(//
 			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the stream to destroy")
 			String name) {
-		xdShell.getSpringXDOperations().destroyStream(name);
+		streamOperations().destroyStream(name);
 		return String.format("Destroyed stream '%s'", name);
 	}
 
@@ -68,7 +69,7 @@ public class StreamCommands implements CommandMarker {
 	public String deployStream(
 			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the stream to deploy")
 			String name) {
-		xdShell.getSpringXDOperations().deployStream(name);
+		streamOperations().deployStream(name);
 		return String.format("Deployed stream '%s'", name);
 	}
 
@@ -76,8 +77,11 @@ public class StreamCommands implements CommandMarker {
 	public String undeployStream(
 			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the stream to un-deploy")
 			String name) {
-		xdShell.getSpringXDOperations().undeployStream(name);
+		streamOperations().undeployStream(name);
 		return String.format("Un-deployed stream '%s'", name);
 	}
 
+	private StreamOperations streamOperations() {
+		return xdShell.getSpringXDOperations().streamOperations();
+	}
 }

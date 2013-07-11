@@ -16,37 +16,20 @@
 
 package org.springframework.xd.rest.client;
 
-import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
-import org.springframework.xd.rest.client.domain.TapDefinitionResource;
-
 /**
- * The interface defining operations available against a Spring XD runtime.
+ * Main entry point for interacting with a running XD system.
  * 
  * @author Eric Bottard
- * @author Ilayaperumal Gopinathan
  */
 public interface SpringXDOperations {
 
 	/**
-	 * Create a new Stream, optionally deploying it.
+	 * Returns the portion of the API for interacting with Streams.
 	 */
-	public StreamDefinitionResource createStream(String name, String defintion, boolean deploy);
+	public StreamOperations streamOperations();
 
 	/**
-	 * Destroy an existing stream.
+	 * Returns the portion of the API for interaction with Taps.
 	 */
-	public void destroyStream(String name);
-
-	/**
-	 * Deploy an already created stream.
-	 */
-	public void deployStream(String name);
-
-	/**
-	 * Undeploy a deployed stream, retaining its definition.
-	 */
-	public void undeployStream(String name);
-
-	public TapDefinitionResource createTap(String name, String definition, boolean deploy);
-
+	public TapOperations tapOperations();
 }

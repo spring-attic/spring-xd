@@ -23,6 +23,8 @@
 		url="${mqtt.url:tcp://localhost:1883}"
 		default-topic="${topic:${mqtt.default.topic}}"
 		client-factory="clientFactory"
+		default-qos="${qos:1}"
+		default-retained="${retained:false}"
 		channel="input"/>
 
 </beans>

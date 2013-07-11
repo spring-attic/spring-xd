@@ -16,13 +16,15 @@
 		<property name="password" value="${mqtt.password:guest}"/>
 	</bean>
 
-	<int-mqtt:message-driven-channel-adapter id="mqttInbound"
-		client-id="${clientId:${mqtt.default.client.id}.src}"
-		url="${mqtt.url:tcp://localhost:1883}"
-		topics="${topics:${mqtt.default.topic}}"
-		client-factory="clientFactory"
-		channel="output"/>
+	<int:channel id="input"/>
 
-	<int:channel id="output"/>
+	<int-mqtt:outbound-channel-adapter id="mqttOutbound"
+		client-id="${clientId:${mqtt.default.client.id}.snk}"
+		url="${mqtt.url:tcp://localhost:1883}"
+		default-topic="${topic:${mqtt.default.topic}}"
+		client-factory="clientFactory"
+		default-qos="${qos:1}"
+		default-retained="${retained:false}"
+		channel="input"/>
 
 </beans>

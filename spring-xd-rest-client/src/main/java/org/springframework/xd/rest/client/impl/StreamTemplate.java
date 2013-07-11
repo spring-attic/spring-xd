@@ -18,6 +18,7 @@ package org.springframework.xd.rest.client.impl;
 
 import java.util.Collections;
 
+import org.springframework.hateoas.PagedResources;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.xd.rest.client.StreamOperations;
@@ -73,6 +74,15 @@ public class StreamTemplate extends AbstractTemplate implements StreamOperations
 		values.add("deploy", "false");
 		restTemplate.put(uriTemplate, values, name);
 
+	}
+
+	@Override
+	public PagedResources<StreamDefinitionResource> list() {
+		String uriTemplate = resources.get("streams").toString();
+		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
+		values.add("size", "10000");
+		PagedResources<StreamDefinitionResource> result = restTemplate.getForObject(uriTemplate, PagedResources.class);
+		return result;
 	}
 
 }

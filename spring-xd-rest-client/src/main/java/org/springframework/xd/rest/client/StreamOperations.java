@@ -16,6 +16,7 @@
 
 package org.springframework.xd.rest.client;
 
+import org.springframework.hateoas.PagedResources;
 import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
 
 /**
@@ -45,4 +46,8 @@ public interface StreamOperations {
 	 */
 	public void undeployStream(String name);
 
+	/**
+	 * List streams known to the system.
+	 */
+	public PagedResources<StreamDefinitionResource> list(/* TODO */);
 }

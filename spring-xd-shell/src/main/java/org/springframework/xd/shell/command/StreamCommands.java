@@ -36,10 +36,12 @@ public class StreamCommands implements CommandMarker {
 
 	private static final String DESTROY_STREAM = "stream destroy";
 
+	private static final String LIST_STREAM = "stream list";
+
 	@Autowired
 	private XDShell xdShell;
 
-	@CliAvailabilityIndicator({ DEPLOY_STREAM, UNDEPLOY_STREAM, CREATE_STREAM, DESTROY_STREAM })
+	@CliAvailabilityIndicator({ DEPLOY_STREAM, UNDEPLOY_STREAM, CREATE_STREAM, DESTROY_STREAM, LIST_STREAM })
 	public boolean available() {
 		return xdShell.getSpringXDOperations() != null;
 	}
@@ -79,6 +81,11 @@ public class StreamCommands implements CommandMarker {
 			String name) {
 		streamOperations().undeployStream(name);
 		return String.format("Un-deployed stream '%s'", name);
+	}
+
+	@CliCommand(value = LIST_STREAM, help = "List created streams")
+	public Iterable<?> listStreams() {
+		return streamOperations().list();
 	}
 
 	private StreamOperations streamOperations() {

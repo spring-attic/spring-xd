@@ -22,7 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.PagedResources;
-import org.springframework.hateoas.VndErrors.VndError;
+import org.springframework.hateoas.VndErrors;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -33,6 +33,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.dirt.stream.NoSuchStreamException;
+import org.springframework.xd.dirt.stream.StreamAlreadyDeployedException;
+import org.springframework.xd.dirt.stream.StreamAlreadyExistsException;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDeployer;
@@ -149,8 +151,28 @@ public class StreamsController {
 	@ResponseBody
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.NOT_FOUND)
-	public VndError onNoSuchStreamException(NoSuchStreamException e) {
-		return new VndError("NoSuchStreamException", e.getMessage());
+	public VndErrors onNoSuchStreamException(NoSuchStreamException e) {
+		return new VndErrors("NoSuchStreamException", e.getMessage());
+	}
+
+	/**
+	 * Handles the case where client referenced a Stream that already exists.
+	 */
+	@ResponseBody
+	@ExceptionHandler
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	public VndErrors onStreamAlreadyExistsException(StreamAlreadyExistsException e) {
+		return new VndErrors("StreamAlreadyExistsException", e.getMessage());
+	}
+
+	/**
+	 * Handles the case where client referenced a Stream that is already deployed.
+	 */
+	@ResponseBody
+	@ExceptionHandler
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	public VndErrors onStreamAlreadyDeployedException(StreamAlreadyDeployedException e) {
+		return new VndErrors("StreamAlreadyDeployedException", e.getMessage());
 	}
 
 }

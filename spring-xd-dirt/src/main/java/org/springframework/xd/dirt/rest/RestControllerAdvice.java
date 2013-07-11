@@ -16,7 +16,7 @@
 
 package org.springframework.xd.dirt.rest;
 
-import org.springframework.hateoas.VndErrors.VndError;
+import org.springframework.hateoas.VndErrors;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -44,9 +44,9 @@ public class RestControllerAdvice {
 	@ResponseBody
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
-	public VndError onMissingServletRequestParameterException(MissingServletRequestParameterException e) {
+	public VndErrors onMissingServletRequestParameterException(MissingServletRequestParameterException e) {
 		String msg = e.getMessage();
-		return new VndError("MissingServletRequestParameterException", msg);
+		return new VndErrors("MissingServletRequestParameterException", msg);
 	}
 
 	/**
@@ -55,9 +55,9 @@ public class RestControllerAdvice {
 	@ResponseBody
 	@ExceptionHandler(Exception.class)
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-	public VndError onException(Exception e) {
+	public VndErrors onException(Exception e) {
 		String msg = StringUtils.hasText(e.getMessage()) ? e.getMessage() : e.getClass().getSimpleName();
-		return new VndError(e.getClass().getSimpleName(), msg);
+		return new VndErrors(e.getClass().getSimpleName(), msg);
 	}
 
 }

@@ -53,6 +53,7 @@ import org.springframework.web.client.RestTemplate;
 	 */
 	AbstractTemplate() {
 		restTemplate = new RestTemplate();
+		restTemplate.setErrorHandler(new VndErrorResponseErrorHandler(restTemplate.getMessageConverters()));
 	}
 
 }

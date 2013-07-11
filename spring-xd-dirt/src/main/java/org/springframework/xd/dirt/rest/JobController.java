@@ -18,11 +18,8 @@ package org.springframework.xd.dirt.rest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
-import org.springframework.hateoas.VndErrors.VndError;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -31,12 +28,11 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.dirt.stream.JobDefinition;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobDeployer;
-import org.springframework.xd.dirt.stream.NoSuchStreamException;
 import org.springframework.xd.rest.client.domain.JobDefinitionResource;
 
 /**
  * Handles all Job related interactions.
- * 
+ *
  * @author Glenn Renfro
  * @since 1.0
  */
@@ -47,20 +43,17 @@ public class JobController {
 
 	private final JobDeployer jobDeployer;
 
-	private final JobDefinitionRepository jobDefinitionRepository;
-
 	private final JobDefinitionResourceAssembler definitionResourceAssembler = new JobDefinitionResourceAssembler();
 
 	@Autowired
 	public JobController(JobDeployer streamDeployer,
 			JobDefinitionRepository jobDefinitionRepository) {
 		this.jobDeployer = streamDeployer;
-		this.jobDefinitionRepository = jobDefinitionRepository;
 	}
 
 	/**
 	 * Create a new Job.
-	 * 
+	 *
 	 * @param name
 	 *            The name of the job to create (required)
 	 * @param definition
@@ -78,6 +71,5 @@ public class JobController {
 				.toResource(streamDefinition);
 		return result;
 	}
-
 
 }

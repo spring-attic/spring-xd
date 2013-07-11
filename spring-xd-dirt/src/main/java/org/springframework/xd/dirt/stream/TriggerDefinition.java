@@ -20,7 +20,7 @@ package org.springframework.xd.dirt.stream;
  * @since 1.0
  *
  */
-public class TriggerDefinition extends StreamDefinition {
+public class TriggerDefinition extends BaseDefinition {
 
 	/**
 	 * @param name The trigger name
@@ -29,6 +29,12 @@ public class TriggerDefinition extends StreamDefinition {
 	 */
 	public TriggerDefinition(String name, String definition) {
 		super(name, definition);
+	}
+
+	@Override
+	public String toString() {
+		return "TriggerDefinition [name=" + getName()
+				+ ", definition=" + getDefinition()  + "]";
 	}
 
 }

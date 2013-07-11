@@ -15,6 +15,7 @@ package org.springframework.xd.dirt.stream;
 
 import static org.junit.Assert.*;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -32,7 +33,8 @@ public class TapDefinitionTests {
 	@Test
 	public void testToString() {
 		final TapDefinition tapDefinition = getTapDefinition();
-		System.out.print(tapDefinition);
+		assertEquals("TapDefinition [name=mytapname, definition=mydef]",
+				tapDefinition.toString());
 	}
 
 	@Test
@@ -70,6 +72,21 @@ public class TapDefinitionTests {
 		assertEquals("aaa", iterator.next().getName());
 		assertEquals("bbb", iterator.next().getName());
 		assertEquals("ccc", iterator.next().getName());
+
+	}
+
+	@Test
+	public void testAddToHashSet() {
+
+		final TapDefinition tapDefinition1 = getTapDefinition();
+		final TapDefinition tapDefinition2 = getTapDefinition();
+
+		final HashSet<TapDefinition> definitions = new HashSet<TapDefinition>();
+
+		definitions.add(tapDefinition1);
+		definitions.add(tapDefinition2);
+
+		assertTrue(definitions.size() == 1);
 
 	}
 

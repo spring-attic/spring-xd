@@ -31,7 +31,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.dirt.stream.NoSuchStreamException;
 import org.springframework.xd.dirt.stream.TriggerDefinition;
-import org.springframework.xd.dirt.stream.TriggerDefinitionRepository;
 import org.springframework.xd.dirt.stream.TriggerDeployer;
 import org.springframework.xd.rest.client.domain.TriggerDefinitionResource;
 
@@ -48,14 +47,11 @@ public class TriggerController {
 
 	private final TriggerDeployer triggerDeployer;
 
-	private final TriggerDefinitionRepository triggerDefinitionRepository;
-
 	private final TriggerDefinitionResourceAssembler definitionResourceAssembler = new TriggerDefinitionResourceAssembler();
 
 	@Autowired
-	public TriggerController(TriggerDeployer streamDeployer, TriggerDefinitionRepository streamDefinitionRepository) {
+	public TriggerController(TriggerDeployer streamDeployer) {
 		this.triggerDeployer = streamDeployer;
-		this.triggerDefinitionRepository = streamDefinitionRepository;
 	}
 
 	/**
@@ -70,7 +66,7 @@ public class TriggerController {
 	public TriggerDefinitionResource deploy(@RequestParam("name")
 	String name, @RequestParam("definition")
 	String definition) {
-		TriggerDefinition triggerDefinition = new TriggerDefinition(name, definition);
+		final TriggerDefinition triggerDefinition = new TriggerDefinition(name, definition);
 		TriggerDefinition streamDefinition = triggerDeployer.create(triggerDefinition);
 		triggerDeployer.deploy(name);
 		TriggerDefinitionResource result = definitionResourceAssembler.toResource(streamDefinition);
@@ -85,10 +81,15 @@ public class TriggerController {
 	@ResponseBody
 	@RequestMapping(value = "/{name}", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
-	public TriggerDefinitionResource display(@PathVariable("name")
-	String name) {
-		TriggerDefinition def = triggerDefinitionRepository.findOne(name);
-		return definitionResourceAssembler.toResource(def);
+	public TriggerDefinitionResource display(@PathVariable("name") String name) {
+
+		final TriggerDefinition triggerDefinition = triggerDeployer.findOne(name);
+
+		if (triggerDefinition == null) {
+			throw new NoSuchStreamException(name);
+		}
+
+		return definitionResourceAssembler.toResource(triggerDefinition);
 	}
 
 	/**
@@ -101,6 +102,31 @@ public class TriggerController {
 	public void undeploy(@PathVariable("name")
 	String name) {
 		throw new NotImplementedException("Removal of Triggers is not Implemented, yet.");
+	}
+
+	/**
+	 * Deploy an existing Trigger.
+	 *
+	 * @param name the name of the tap to create (required)
+	 * @param definition the tap definition expressed in the XD DSL (required)
+	 */
+	@RequestMapping(value = "/{name}", method = RequestMethod.PUT)
+	@ResponseStatus(HttpStatus.OK)
+	@ResponseBody
+	public void deploy(@PathVariable("name")
+	String name) {
+		triggerDeployer.deploy(name);
+	}
+
+	/**
+	 * List Trigger definitions.
+	 */
+	@ResponseBody
+	@RequestMapping(value = "", method = RequestMethod.GET)
+	@ResponseStatus(HttpStatus.OK)
+	public Iterable<TriggerDefinition> list() {
+		final Iterable<TriggerDefinition> taps = triggerDeployer.findAll();
+		return taps;
 	}
 
 	// ---------------- Exception Handlers ------------------------

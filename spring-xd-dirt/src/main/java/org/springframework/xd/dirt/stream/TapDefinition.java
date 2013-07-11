@@ -46,8 +46,8 @@ public class TapDefinition extends BaseDefinition {
 
 	@Override
 	public String toString() {
-		return "TapDefinition [streamName=" + streamName + ", getDefinition()="
-				+ getDefinition() + ", getName()=" + getName() + "]";
+		return "TapDefinition [name=" + getName()
+				+ ", definition=" + getDefinition()  + "]";
 	}
 
 	@Override

@@ -58,7 +58,7 @@ public class JobDeployer implements ResourceDeployer<JobDefinition> {
 		Assert.notNull(jobDefinition, "Job definition may not be null");
 		return repository.save(jobDefinition);
 	}
-	
+
 	@Override
 	public Iterable<JobDefinition> findAll() {
 		final SortedSet<JobDefinition> sortedJobDefinitions = new TreeSet<JobDefinition>();
@@ -66,6 +66,11 @@ public class JobDeployer implements ResourceDeployer<JobDefinition> {
 			sortedJobDefinitions.add(jobDefinition);
 		}
 		return sortedJobDefinitions;
+	}
+
+	@Override
+	public JobDefinition findOne(String name) {
+		return repository.findOne(name);
 	}
 
 }

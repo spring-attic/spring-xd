@@ -63,7 +63,7 @@ public class TriggerDeployer implements ResourceDeployer<TriggerDefinition> {
 		Assert.notNull(triggerDefinition, "trigger definition may not be null");
 		return repository.save(triggerDefinition);
 	}
-	
+
 	@Override
 	public Iterable<TriggerDefinition> findAll() {
 		final SortedSet<TriggerDefinition> sortedTriggerDefinitions = new TreeSet<TriggerDefinition>();
@@ -71,6 +71,11 @@ public class TriggerDeployer implements ResourceDeployer<TriggerDefinition> {
 			sortedTriggerDefinitions.add(triggerDefinition);
 		}
 		return sortedTriggerDefinitions;
+	}
+
+	@Override
+	public TriggerDefinition findOne(String name) {
+		return repository.findOne(name);
 	}
 
 }

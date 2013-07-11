@@ -15,13 +15,17 @@ package org.springframework.xd.dirt.stream;
 
 /**
  * @author David Turanski
+ * @author Gunnar Hillert
+ *
+ * @since 1.0
  *
  */
-public class JobDefinition extends StreamDefinition {
+public class JobDefinition extends BaseDefinition {
+
 	/**
 	 * @param name - the tap name
 	 * @param definition - the tap definition
-	 * 
+	 *
 	 */
 	public JobDefinition(String name, String definition) {
 		super(name, definition);

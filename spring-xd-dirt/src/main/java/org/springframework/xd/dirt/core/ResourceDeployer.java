@@ -16,20 +16,28 @@ import org.springframework.xd.dirt.stream.BaseDefinition;
 
 /**
  * Interface for XD Resource Services.
- * 
+ *
  * @param <R> the kind of resource to deploy (<i>e.g.</i> Stream)
  * @author David Turanski
  * @author Gunnar Hillert
- * 
+ *
  */
 public interface ResourceDeployer<R extends BaseDefinition> {
 
-	public void deploy(String name);
+	void deploy(String name);
 
 	/**
 	 * Return all definitions ordered by {@link BaseDefinition#getName()} ascending.
 	 */
-	public Iterable<R> findAll();
+	Iterable<R> findAll();
 
-	public R create(R resource);
+	R create(R resource);
+
+	/**
+	 * Retrieves a single Definition or null if none is found.
+	 *
+	 * @param Must not be null.
+	 */
+	R findOne(String name);
+
 }

@@ -73,4 +73,8 @@ public class TapDeployer implements ResourceDeployer<TapDefinition> {
 		return sortedTapDefinitions;
 	}
 
+	@Override
+	public TapDefinition findOne(String name) {
+		return repository.findOne(name);
+	}
 }

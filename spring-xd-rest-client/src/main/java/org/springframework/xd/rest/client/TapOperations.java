@@ -16,23 +16,35 @@
 
 package org.springframework.xd.rest.client;
 
+import java.util.List;
+
 import org.springframework.xd.rest.client.domain.TapDefinitionResource;
 
 /**
  * Interface defining operations against taps.
- * 
+ *
  * @author Ilayaperumal Gopinathan
+ * @author Gunnar Hillert
+ *
+ * @since 1.0
  */
 public interface TapOperations {
 
 	/**
 	 * Create a new Tap.
-	 * 
+	 *
 	 * @param name the name to give to the tap
 	 * @param definition the tap definition, expressed in XD DSL
 	 * @param control whether to deploy the tap immediately
 	 * @return a runtime representation of the created tap
 	 */
 	public TapDefinitionResource createTap(String name, String definition, boolean deploy);
+
+	/**
+	 * Retrieve a list of taps.
+	 *
+	 * @return A list of taps
+	 */
+	List<TapDefinitionResource> listTaps();
 
 }

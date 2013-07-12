@@ -18,16 +18,17 @@ package org.springframework.xd.rest.client.domain;
 
 import org.springframework.util.Assert;
 
-
 /**
  * Represents a tap definition
- * 
+ *
  * @author David Turanski
+ * @author Gunnar Hillert
+ *
  */
 public class TapDefinitionResource extends StreamDefinitionResource {
 
 	private String streamName;
-	
+
 	/**
 	 * Default constructor for serialization frameworks.
 	 */
@@ -51,6 +52,13 @@ public class TapDefinitionResource extends StreamDefinitionResource {
 	 */
 	public String getStreamName() {
 		return streamName;
+	}
+
+	@Override
+	public String toString() {
+		return "TapDefinitionResource [name=" + getName()
+				+ ", streamName=" + streamName
+				+ ", definition=" + getDefinition() + "]";
 	}
 
 }

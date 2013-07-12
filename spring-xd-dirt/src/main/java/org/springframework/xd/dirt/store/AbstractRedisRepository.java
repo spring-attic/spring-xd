@@ -197,4 +197,11 @@ public abstract class AbstractRedisRepository<T, ID extends Serializable> implem
 		return repoPrefix + serializeId(id);
 	}
 
+	/**
+	 * Change the prefix after creation. Mainly intented for testing.
+	 */
+	public void setPrefix(String string) {
+		this.repoPrefix = string;
+	}
+
 }

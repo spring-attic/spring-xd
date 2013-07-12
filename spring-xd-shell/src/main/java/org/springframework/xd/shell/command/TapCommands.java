@@ -16,6 +16,8 @@
 
 package org.springframework.xd.shell.command;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliAvailabilityIndicator;
@@ -23,23 +25,32 @@ import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
 import org.springframework.xd.rest.client.TapOperations;
+import org.springframework.xd.rest.client.domain.TapDefinitionResource;
 import org.springframework.xd.shell.XDShell;
+import org.springframework.xd.shell.util.Table;
+import org.springframework.xd.shell.util.TableHeader;
+import org.springframework.xd.shell.util.TableRow;
+import org.springframework.xd.shell.util.UiUtils;
 
 /**
  * Tap commands.
- * 
+ *
  * @author Ilayaperumal Gopinathan
+ * @author Gunnar Hillert
+ *
+ * @since 1.0
  */
 
 @Component
 public class TapCommands implements CommandMarker {
 
 	private final static String CREATE_TAP = "tap create";
+	private final static String LIST_TAPS = "tap list";
 
 	@Autowired
 	private XDShell xdShell;
 
-	@CliAvailabilityIndicator({ CREATE_TAP })
+	@CliAvailabilityIndicator({ CREATE_TAP, LIST_TAPS })
 	public boolean available() {
 		return xdShell.getSpringXDOperations() != null;
 	}
@@ -60,6 +71,34 @@ public class TapCommands implements CommandMarker {
 		}
 		return String.format((autoStart ? "Successfully created and deployed tap '%s'"
 				: "Successfully created tap '%s'"), name);
+	}
+
+	@CliCommand(value = LIST_TAPS, help = "List all taps")
+	public String listTaps() {
+
+		final List<TapDefinitionResource> taps;
+
+		try {
+			taps = tapOperations().listTaps();
+		}
+		catch (Exception e) {
+			return String.format("Error listing taps");
+		}
+
+		final Table table = new Table();
+		table.addHeader(1, new TableHeader("Tap Name"))
+		     .addHeader(2, new TableHeader("Stream Name"))
+		     .addHeader(3, new TableHeader("Tap Definition"));
+
+		for (TapDefinitionResource tapDefinitionResource : taps) {
+			final TableRow row = new TableRow();
+			row.addValue(1, tapDefinitionResource.getName())
+			   .addValue(2, tapDefinitionResource.getStreamName())
+			   .addValue(3, tapDefinitionResource.getDefinition());
+			table.getRows().add(row);
+		}
+
+		return UiUtils.renderTextTable(table);
 	}
 
 	private TapOperations tapOperations() {

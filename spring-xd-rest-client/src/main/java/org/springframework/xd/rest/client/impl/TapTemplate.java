@@ -16,6 +16,9 @@
 
 package org.springframework.xd.rest.client.impl;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.xd.rest.client.TapOperations;
@@ -23,9 +26,12 @@ import org.springframework.xd.rest.client.domain.TapDefinitionResource;
 
 /**
  * Implementation of the Tap related part of the API.
- * 
+ *
  * @author Eric Bottard
  * @author Ilayaperumal Gopinathan
+ * @author Gunnar Hillert
+ *
+ * @since 1.0
  */
 public class TapTemplate extends AbstractTemplate implements TapOperations {
 
@@ -43,6 +49,15 @@ public class TapTemplate extends AbstractTemplate implements TapOperations {
 		TapDefinitionResource tap = restTemplate.postForObject(resources.get("taps"), values,
 				TapDefinitionResource.class);
 		return tap;
+	}
+
+	/**
+	 * Returns a {@link List} of {@link TapDefinitionResource}s.
+	 */
+	@Override
+	public List<TapDefinitionResource> listTaps() {
+		final TapDefinitionResource[] taps = restTemplate.getForObject(resources.get("taps"), TapDefinitionResource[].class);
+		return Arrays.asList(taps);
 	}
 
 }

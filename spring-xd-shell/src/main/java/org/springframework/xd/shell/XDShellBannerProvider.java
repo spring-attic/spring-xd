@@ -20,8 +20,16 @@ import org.springframework.shell.plugin.BannerProvider;
 import org.springframework.shell.support.util.FileUtils;
 import org.springframework.stereotype.Component;
 
+/**
+ * Provides the Spring XD specific {@link BannerProvider}.
+ *
+ * @author Gunnar Hillert
+ * @since 1.0
+ */
 @Component
 public class XDShellBannerProvider implements BannerProvider {
+
+	private static final String WELCOME = "Welcome to the Spring XD shell. For assistance hit TAB or type \"help\".";
 
 	@Override
 	public String name() {
@@ -30,7 +38,8 @@ public class XDShellBannerProvider implements BannerProvider {
 
 	@Override
 	public String getBanner() {
-		return FileUtils.readBanner(XDShellBannerProvider.class, "/banner.txt");
+		final String banner = FileUtils.readBanner(XDShellBannerProvider.class, "/banner.txt");
+		return banner + getVersion() + "\n";
 	}
 
 	/**
@@ -49,7 +58,7 @@ public class XDShellBannerProvider implements BannerProvider {
 
 	@Override
 	public String getWelcomeMessage() {
-		return "Welcome to Spring XD Shell";
+		return WELCOME;
 	}
 
 }

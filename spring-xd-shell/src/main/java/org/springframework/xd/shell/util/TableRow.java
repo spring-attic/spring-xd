@@ -21,7 +21,7 @@ import java.util.Map;
 /**
  * Holds the table rows used by {@link Table}.
  *
- * {@link UiUtils}
+ * @see UiUtils
  *
  * @author Gunnar Hillert
  * @since 1.0

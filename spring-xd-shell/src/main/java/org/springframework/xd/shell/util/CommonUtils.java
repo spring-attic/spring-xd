@@ -18,10 +18,11 @@ package org.springframework.xd.shell.util;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Collection;
-import java.util.Iterator;
+
+import org.springframework.util.StringUtils;
 
 /**
- * Contains common non-ui related helper methods for redering text to the console.
+ * Contains common non-ui related helper methods for rendering text to the console.
  *
  * @author Gunnar Hillert
  * @author Stephan Oudmaijer
@@ -29,6 +30,8 @@ import java.util.Iterator;
  * @since 1.0
  */
 public final class CommonUtils {
+
+	private static final String EMAIL_VALIDATION_REGEX = "^[_A-Za-z0-9-+]+(\\.[_A-Za-z0-9-+]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$";
 
 	/**
 	 * Prevent instantiation.
@@ -40,18 +43,23 @@ public final class CommonUtils {
 	/**
 	 * Right-pad a String with a configurable padding character.
 	 *
-	 * @param string      The String to pad
+	 * @param inputString The String to pad. A {@code null} String will be treated like an empty String.
 	 * @param size        Pad String by the number of characters.
 	 * @param paddingChar The character to pad the String with.
 	 * @return The padded String. If the provided String is null, an empty String is returned.
 	 */
-	public static String padRight(String string, int size, char paddingChar) {
+	public static String padRight(String inputString, int size, char paddingChar) {
 
-		if (string == null) {
-			return "";
+		final String stringToPad;
+
+		if (inputString == null) {
+			stringToPad = "";
+		}
+		else {
+			stringToPad = inputString;
 		}
 
-		StringBuilder padded = new StringBuilder(string);
+		StringBuilder padded = new StringBuilder(stringToPad);
 		while (padded.length() < size) {
 			padded.append(paddingChar);
 		}
@@ -77,22 +85,7 @@ public final class CommonUtils {
 	 *         String for a Null or empty list.
 	 */
 	public static String collectionToCommaDelimitedString(Collection<String> list) {
-		if (list == null || list.isEmpty()) {
-			return "";
-		}
-
-		StringBuilder sb = new StringBuilder();
-		final Iterator<String> it = list.iterator();
-
-		while (it.hasNext()) {
-
-			sb.append(it.next());
-
-			if (it.hasNext()) {
-				sb.append(", ");
-			}
-		}
-		return sb.toString();
+		return StringUtils.collectionToCommaDelimitedString(list);
 	}
 
 	/**
@@ -102,23 +95,23 @@ public final class CommonUtils {
 		if (reader != null) {
 			try {
 				reader.close();
-			} catch (IOException e) {
+			}
+			catch (IOException e) {
 				throw new IllegalStateException("Encountered problem closing Reader.", e);
 			}
 		}
 	}
 
 	/**
-	 * @param emailAddress
-	 * @return
+	 * @param emailAddress The email address to validate
+	 * @return {@code true} if the provided email address is valid; {@code false} otherwise
 	 */
 	public static boolean isValidEmail(String emailAddress) {
-		final String regex = "^[_A-Za-z0-9-+]+(\\.[_A-Za-z0-9-+]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$";
-		return emailAddress.matches(regex);
+		return emailAddress.matches(EMAIL_VALIDATION_REGEX);
 	}
 
 	/**
-	 * Simple method to replace characters in a String with Stars to mask the
+	 * Simple method to replace characters in a String with asterisks to mask the
 	 * password.
 	 *
 	 * @param password The password to mask

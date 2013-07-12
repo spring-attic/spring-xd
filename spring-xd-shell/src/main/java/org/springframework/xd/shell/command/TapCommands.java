@@ -86,9 +86,9 @@ public class TapCommands implements CommandMarker {
 		}
 
 		final Table table = new Table();
-		table.addHeader(1,new TableHeader("Tap Name"))
-		     .addHeader(2,new TableHeader("Stream Name"))
-		     .addHeader(3,new TableHeader("Tap Definition"));
+		table.addHeader(1, new TableHeader("Tap Name"))
+		     .addHeader(2, new TableHeader("Stream Name"))
+		     .addHeader(3, new TableHeader("Tap Definition"));
 
 		for (TapDefinitionResource tapDefinitionResource : taps) {
 			final TableRow row = new TableRow();

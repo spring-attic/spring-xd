@@ -59,7 +59,6 @@ public class XDShellBannerProvider implements BannerProvider {
 	@Override
 	public String getWelcomeMessage() {
 		return WELCOME;
-
 	}
 
 }

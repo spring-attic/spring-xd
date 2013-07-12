@@ -21,6 +21,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
+import org.springframework.util.Assert;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -32,21 +33,30 @@ import java.util.Map;
  * Some JSON helper utilities.
  *
  * @author Thomas Risberg
+ * @author Gunnar Hillert
  * @since 1.0
  *
  */
-public class JsonUtil {
+public final class JsonUtil {
 
-	protected static final Log logger = LogFactory.getLog(JsonUtil.class);
+	private static final Log logger = LogFactory.getLog(JsonUtil.class);
 
 	private final static ObjectMapper mapper = new ObjectMapper();
+
+	/**
+	 * Prevent instantiation.
+	 */
+	private JsonUtil() {
+		throw new AssertionError();
+	}
 
 	public static Map<String, Object> convertJsonToMap(String json) {
 		Map<String, Object> retMap = new HashMap<String, Object>();
 		if (json != null) {
 			try {
 				retMap = mapper.readValue(json, new TypeReference<Map<String, Object>>() {});
-			} catch (IOException e) {
+			}
+			catch (IOException e) {
 				logger.warn("Error while reading Java Map from JSON response: " + json, e);
 			}
 		}
@@ -58,7 +68,8 @@ public class JsonUtil {
 		if (json != null) {
 			try {
 				retList = mapper.readValue(json, new TypeReference<List<String>>() {});
-			} catch (IOException e) {
+			}
+			catch (IOException e) {
 				logger.warn("Error while reading Java List from JSON response: " + json, e);
 			}
 		}
@@ -66,10 +77,14 @@ public class JsonUtil {
 	}
 
 	public static String convertToJson(Object value) {
+
+		Assert.notNull(value, "The object to convert must not be null.");
+
 		if (mapper.canSerialize(value.getClass())) {
 			try {
 				return mapper.writeValueAsString(value);
-			} catch (IOException e) {
+			}
+			catch (IOException e) {
 				logger.warn("Error while serializing " + value + " to JSON", e);
 				return null;
 			}

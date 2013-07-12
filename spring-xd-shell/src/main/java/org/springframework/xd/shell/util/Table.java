@@ -24,7 +24,7 @@ import java.util.TreeMap;
  * Provide a basic concept of a table structure containing a map of column headers
  * and a collection of rows. Used to render text-based tables (console output).
  *
- * {@link UiUtils}
+ * @see UiUtils
  *
  * @author Gunnar Hillert
  * @since 1.0
@@ -32,8 +32,8 @@ import java.util.TreeMap;
  */
 public class Table {
 
-	private Map<Integer, TableHeader> headers = new TreeMap<Integer, TableHeader>();
-	private List<TableRow> rows = new ArrayList<TableRow>(0);
+	private final Map<Integer, TableHeader> headers = new TreeMap<Integer, TableHeader>();
+	private volatile List<TableRow> rows = new ArrayList<TableRow>(0);
 
 	public List<TableRow> getRows() {
 		return rows;

@@ -18,7 +18,7 @@ package org.springframework.xd.shell.util;
 /**
  * Defines table column headers used by {@link Table}.
  *
- * {@link UiUtils}
+ * @see UiUtils
  *
  * @author Gunnar Hillert
  * @since 1.0

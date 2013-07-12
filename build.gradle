@@ -91,6 +91,7 @@ configure(javaProjects()) { subproject ->
 		log4jVersion = '1.2.17'
 		args4jVersion = '2.0.16'
 		mockitoVersion = '1.9.5'
+		// msgpackVersion = "0.6.7"
 	}
 
 	eclipse {
@@ -221,6 +222,7 @@ project('spring-xd-dirt') {
 				"args4j:args4j:$args4jVersion",
 				"com.eaio.uuid:uuid:3.2",
 				"org.jolokia:jolokia-spring:$jolokiaVersion"
+				// "org.msgpack:msgpack:$msgpackVersion"
 		compile ("org.apache.activemq:activemq-core:5.6.0") {
 			exclude group: 'org.mortbay.jetty'
 		}
@@ -381,6 +383,7 @@ project('spring-xd-tuple') {
 		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
 		compile "org.springframework.batch:spring-batch-infrastructure:$springBatchVersion"
 		compile "org.springframework:spring-jdbc:$springVersion"
+		//compile "org.msgpack:msgpack:$msgpackVersion"
 		testCompile ("org.mockito:mockito-core:$mockitoVersion") {
 			exclude group:'org.hamcrest'
 		}

@@ -18,16 +18,22 @@ package org.springframework.xd.dirt.rest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
+import org.springframework.hateoas.VndErrors;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.xd.dirt.stream.JobAlreadyDeployedException;
+import org.springframework.xd.dirt.stream.JobAlreadyExistsException;
 import org.springframework.xd.dirt.stream.JobDefinition;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobDeployer;
+import org.springframework.xd.dirt.stream.NoSuchJobException;
 import org.springframework.xd.rest.client.domain.JobDefinitionResource;
 
 /**
@@ -62,14 +68,97 @@ public class JobsController {
 	@RequestMapping(value = "", method = RequestMethod.POST)
 	@ResponseStatus(HttpStatus.CREATED)
 	@ResponseBody
-	public JobDefinitionResource deploy(@RequestParam("name") String name,
-			@RequestParam("definition") String definition) {
+	public JobDefinitionResource create(@RequestParam("name") String name,
+			@RequestParam("definition") String definition,
+			@RequestParam(value = "deploy", defaultValue = "true")
+			boolean deploy) {
+		JobDefinitionResource result=null;
 		JobDefinition jobDefinition = new JobDefinition(name, definition);
 		JobDefinition streamDefinition = jobDeployer.create(jobDefinition);
-		jobDeployer.deploy(name);
-		JobDefinitionResource result = definitionResourceAssembler
+		if(deploy)
+		{
+			jobDeployer.deploy(name);
+		}
+		result = definitionResourceAssembler
 				.toResource(streamDefinition);
 		return result;
 	}
 
+	/**
+	 * Request deployment of an existing named stream.
+	 * 
+	 * @param name the name of an existing stream (required)
+	 */
+	@RequestMapping(value = "/{name}", method = RequestMethod.PUT, params = "deploy=true")
+	@ResponseStatus(HttpStatus.OK)
+	public void deploy(@PathVariable("name")
+	String name) {
+		jobDeployer.deploy(name);
+	}
+
+	/**
+	 * Request un-deployment of an existing named job.
+	 * 
+	 * @param name the name of an existing job (required)
+	 */
+	@RequestMapping(value = "/{name}", method = RequestMethod.PUT, params = "deploy=false")
+	@ResponseStatus(HttpStatus.OK)
+	public void undeploy(@PathVariable("name")
+	String name) {
+		jobDeployer.undeployJob(name);
+	}
+	
+	/**
+	 * Request removal of an existing stream.
+	 * 
+	 * @param name the name of an existing stream (required)
+	 */
+	@RequestMapping(value = "/{name}", method = RequestMethod.DELETE)
+	@ResponseStatus(HttpStatus.OK)
+	public void destroy(@PathVariable("name")
+	String name) {
+		jobDeployer.destroyJob(name);
+	}
+	
+	/**
+	 * List job definitions.
+	 */
+	@ResponseBody
+	@RequestMapping(value = "", method = RequestMethod.GET)
+	@ResponseStatus(HttpStatus.OK)
+	public Iterable<JobDefinition> list() {
+		return  jobDeployer.findAll();
+	}
+	
+	// ---------------- Exception Handlers ------------------------
+
+	/**
+	 * Handles the case where client referenced an unknown entity.
+	 */
+	@ResponseBody
+	@ExceptionHandler
+	@ResponseStatus(HttpStatus.NOT_FOUND)
+	public VndErrors onNoSuchJobException(NoSuchJobException e) {
+		return new VndErrors("NoSuchJobException", e.getMessage());
+	}
+
+	/**
+	 * Handles the case where client referenced a Job that already exists.
+	 */
+	@ResponseBody
+	@ExceptionHandler
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	public VndErrors onJobAlreadyExistsException(JobAlreadyExistsException e) {
+		return new VndErrors("JobAlreadyExistsException", e.getMessage());
+	}
+
+	/**
+	 * Handles the case where client referenced a Job that is already deployed.
+	 */
+	@ResponseBody
+	@ExceptionHandler
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	public VndErrors onJobAlreadyDeployedException(JobAlreadyDeployedException e) {
+		return new VndErrors("JobAlreadyDeployedException", e.getMessage());
+	}
 }

@@ -14,28 +14,17 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.rest.client;
+package org.springframework.xd.dirt.stream;
 
 /**
- * Main entry point for interacting with a running XD system.
+ * Thrown when one tries to deploy a named Job that is already deployed.
  * 
- * @author Eric Bottard
  * @author Glenn Renfro
  */
-public interface SpringXDOperations {
+@SuppressWarnings("serial")
+public class JobAlreadyDeployedException extends JobException {
 
-	/**
-	 * Returns the portion of the API for interacting with Streams.
-	 */
-	public StreamOperations streamOperations();
-
-	/**
-	 * Returns the portion of the API for interaction with Taps.
-	 */
-	public TapOperations tapOperations();
-	
-	/**
-	 * Returns the portion of the API for interaction with Jobs.
-	 */
-	public JobOperations jobOperations();
+	public JobAlreadyDeployedException(String name) {
+		super("Job with name '" + name + "' is already deployed");
+	}
 }

@@ -41,8 +41,10 @@ import org.springframework.util.ReflectionUtils.MethodCallback;
 import org.springframework.util.ReflectionUtils.MethodFilter;
 import org.springframework.xd.shell.XDShell;
 import org.springframework.xd.shell.command.HttpCommands;
+import org.springframework.xd.shell.command.JobCommands;
 import org.springframework.xd.shell.command.StreamCommands;
 import org.springframework.xd.shell.command.TapCommands;
+import org.springframework.xd.shell.command.JobCommands;
 import org.springframework.xd.shell.hadoop.ConfigurationCommands;
 import org.springframework.xd.shell.hadoop.FsShellCommands;
 
@@ -89,6 +91,8 @@ public class ReferenceDoc {
 		titles.put(ConfigurationCommands.class, "Hadoop Configuration Commands");
 		titles.put(FsShellCommands.class, "Hadoop FileSystem Commands");
 		titles.put(HttpCommands.class, "Http Commands");
+		titles.put(JobCommands.class, "Job Commands");
+
 	}
 
 	private static final class CommandsCollector implements MethodCallback {

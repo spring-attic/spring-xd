@@ -14,28 +14,23 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.rest.client;
+package org.springframework.xd.dirt.stream;
 
 /**
- * Main entry point for interacting with a running XD system.
+ * Thrown when trying to reference a job that does not exist.
  *
- * @author Eric Bottard
  * @author Glenn Renfro
  */
-public interface SpringXDOperations {
+@SuppressWarnings("serial")
+public class NoSuchJobException extends JobException {
 
 	/**
-	 * Returns the portion of the API for interacting with Streams.
+	 * Create a new exception.
+	 *
+	 * @param name the name of the job that wasn't found
 	 */
-	public StreamOperations streamOperations();
+	public NoSuchJobException(String name) {
+		super("The job '" + name + "' does not exist");
+	}
 
-	/**
-	 * Returns the portion of the API for interaction with Taps.
-	 */
-	public TapOperations tapOperations();
-
-	/**
-	 * Returns the portion of the API for interaction with Jobs.
-	 */
-	public JobOperations jobOperations();
 }

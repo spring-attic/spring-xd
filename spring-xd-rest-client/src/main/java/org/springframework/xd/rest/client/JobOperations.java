@@ -16,26 +16,38 @@
 
 package org.springframework.xd.rest.client;
 
+import java.util.List;
+
+import org.springframework.xd.rest.client.domain.JobDefinitionResource;
+
 /**
- * Main entry point for interacting with a running XD system.
+ * Interface defining operations available against streams.
  *
- * @author Eric Bottard
  * @author Glenn Renfro
  */
-public interface SpringXDOperations {
+public interface JobOperations {
 
 	/**
-	 * Returns the portion of the API for interacting with Streams.
+	 * Create a new Job, optionally deploying it.
 	 */
-	public StreamOperations streamOperations();
+	public JobDefinitionResource createJob(String name, String defintion, Boolean deploy);
+	/**
+	 * Destroy an existing stream.
+	 */
+	public void destroyJob(String name);
 
 	/**
-	 * Returns the portion of the API for interaction with Taps.
+	 * Deploy an already created stream.
 	 */
-	public TapOperations tapOperations();
+	public void deployJob(String name);
 
 	/**
-	 * Returns the portion of the API for interaction with Jobs.
+	 * Undeploy a deployed stream, retaining its definition.
 	 */
-	public JobOperations jobOperations();
+	public void undeployJob(String name);
+
+	/**
+	 * List streams known to the system.
+	 */
+	public List<JobDefinitionResource> list();
 }

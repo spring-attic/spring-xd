@@ -14,28 +14,28 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.rest.client;
+package org.springframework.xd.dirt.stream;
+
+import org.springframework.xd.dirt.core.XDRuntimeException;
 
 /**
- * Main entry point for interacting with a running XD system.
+ * Thrown when something goes wrong when interacting with Jobs.
  *
- * @author Eric Bottard
  * @author Glenn Renfro
  */
-public interface SpringXDOperations {
+@SuppressWarnings("serial")
+public class JobException extends XDRuntimeException {
 
-	/**
-	 * Returns the portion of the API for interacting with Streams.
-	 */
-	public StreamOperations streamOperations();
+	public JobException() {
+		super();
+	}
 
-	/**
-	 * Returns the portion of the API for interaction with Taps.
-	 */
-	public TapOperations tapOperations();
+	public JobException(String message, Throwable cause) {
+		super(message, cause);
+	}
 
-	/**
-	 * Returns the portion of the API for interaction with Jobs.
-	 */
-	public JobOperations jobOperations();
+	public JobException(String message) {
+		super(message);
+	}
+
 }

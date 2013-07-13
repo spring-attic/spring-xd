@@ -17,14 +17,14 @@ package org.springframework.xd.tuple;
  * @author David Turanski
  *
  */
-public class TupleJSonMarshaller extends TupleStringMarshaller {
+public class TupleJsonMarshaller extends TupleStringMarshaller {
 
 	/**
 	 * @param tupleToStringConverter
 	 * @param stringToTupleConverter
 	 */
-	public TupleJSonMarshaller() {
-		super(new TupleToJSonStringConverter(), new JSonStringToTupleConverter());
+	public TupleJsonMarshaller() {
+		super(new TupleToJsonStringConverter(), new JsonStringToTupleConverter());
 	}
 
 }

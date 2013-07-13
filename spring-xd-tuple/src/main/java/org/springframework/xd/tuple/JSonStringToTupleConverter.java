@@ -25,7 +25,7 @@ import org.springframework.core.convert.converter.Converter;
  * @author David Turanski
  *
  */
-public class JSonStringToTupleConverter implements Converter<String, Tuple> {
+public class JsonStringToTupleConverter implements Converter<String, Tuple> {
 	private final ObjectMapper mapper = new ObjectMapper();
 
 	@Override
@@ -64,7 +64,7 @@ public class JSonStringToTupleConverter implements Converter<String, Tuple> {
 		for (int i = 0; i < node.size(); i++) {
 			JsonNode item = node.get(i);
 			if (item.isObject()) {
-				//TODO
+				list.add(convert(item.toString()));
 			} else if (item.isArray()) {
 				list.add(nodeToList(item));
 			} else {

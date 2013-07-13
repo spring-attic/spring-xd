@@ -14,13 +14,14 @@ package org.springframework.xd.tuple;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.ObjectNode;
+import org.springframework.core.convert.ConversionException;
 import org.springframework.core.convert.converter.Converter;
 
 /**
  * @author David Turanski
  *
  */
-public class TupleToJSonStringConverter implements Converter<Tuple, String> {
+public class TupleToJsonStringConverter implements Converter<Tuple, String> {
 
 	private final ObjectMapper mapper = new ObjectMapper();
 
@@ -31,7 +32,7 @@ public class TupleToJSonStringConverter implements Converter<Tuple, String> {
 		try {
 			json = mapper.writeValueAsString(root);
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			throw new IllegalArgumentException("Tuple to string conversion failed", e);
 		}
 		return json;
 	}

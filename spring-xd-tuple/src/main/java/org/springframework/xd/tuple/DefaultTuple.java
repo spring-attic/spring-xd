@@ -613,6 +613,7 @@ public class DefaultTuple implements Tuple {
 	 * @param tupleToStringConverter
 	 */
 	protected void setTupleToStringConverter(Converter<Tuple, String> tupleToStringConverter) {
+		Assert.notNull(tupleToStringConverter,"tupleToStringConverter cannot be null");
 		this.tupleToStringConverter = tupleToStringConverter;
 	}
 

@@ -45,8 +45,8 @@ public class TupleBuilder {
 	private final static String DEFAULT_DATE_PATTERN = "yyyy-MM-dd";
 	private final static Locale DEFAULT_LOCALE = Locale.US;
 
-	private static Converter<Tuple, String> tupleToStringConverter = new TupleToJSonStringConverter();
-	private static Converter<String, Tuple> stringToTupleConverter = new JSonStringToTupleConverter();
+	private static Converter<Tuple, String> tupleToStringConverter = new TupleToJsonStringConverter();
+	private static Converter<String, Tuple> stringToTupleConverter = new JsonStringToTupleConverter();
 
 	private DateFormat dateFormat = new SimpleDateFormat(DEFAULT_DATE_PATTERN);
 	{

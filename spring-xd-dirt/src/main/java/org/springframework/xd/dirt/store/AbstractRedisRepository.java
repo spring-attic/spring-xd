@@ -67,7 +67,7 @@ public abstract class AbstractRedisRepository<T, ID extends Serializable> implem
 
 	@Override
 	public void delete(ID id) {
-		if (zSetOperations.remove(serializeId(id))) {
+		if (zSetOperations.remove(redisKeyFromId(id))) {
 			redisOperations.delete(redisKeyFromId(id));
 		}
 	}

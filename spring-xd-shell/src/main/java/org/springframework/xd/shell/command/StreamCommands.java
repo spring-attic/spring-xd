@@ -16,6 +16,8 @@
 
 package org.springframework.xd.shell.command;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliAvailabilityIndicator;
@@ -23,7 +25,12 @@ import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
 import org.springframework.xd.rest.client.StreamOperations;
+import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
 import org.springframework.xd.shell.XDShell;
+import org.springframework.xd.shell.util.Table;
+import org.springframework.xd.shell.util.TableHeader;
+import org.springframework.xd.shell.util.TableRow;
+import org.springframework.xd.shell.util.UiUtils;
 
 @Component
 public class StreamCommands implements CommandMarker {
@@ -84,8 +91,21 @@ public class StreamCommands implements CommandMarker {
 	}
 
 	@CliCommand(value = LIST_STREAM, help = "List created streams")
-	public Iterable<?> listStreams() {
-		return streamOperations().list();
+	public String listStreams() {
+
+		final List<StreamDefinitionResource> streams = streamOperations().list();
+
+		final Table table = new Table();
+		table.addHeader(1, new TableHeader("Stream Name")).addHeader(2, new TableHeader("Stream Definition"));
+
+		for (StreamDefinitionResource stream : streams) {
+			final TableRow row = new TableRow();
+			row.addValue(1, stream.getName()).addValue(2, stream.getDefinition());
+			table.getRows().add(row);
+		}
+
+		return UiUtils.renderTextTable(table);
+
 	}
 
 	private StreamOperations streamOperations() {

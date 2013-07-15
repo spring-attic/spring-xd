@@ -16,12 +16,13 @@
 
 package org.springframework.xd.dirt.rest;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.ExposesResourceFor;
-import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.VndErrors;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -137,10 +138,11 @@ public class StreamsController {
 	@ResponseBody
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
-	public PagedResources<StreamDefinitionResource> list(Pageable pageable,
+	public/* PagedResources */List<StreamDefinitionResource> list(Pageable pageable,
 			PagedResourcesAssembler<StreamDefinition> assembler) {
 		Page<StreamDefinition> page = streamDefinitionRepository.findAll(pageable);
-		return assembler.toResource(page, definitionResourceAssembler);
+		return definitionResourceAssembler.toResources(page.getContent());
+		// return assembler.toResource(page, definitionResourceAssembler);
 	}
 
 	// ---------------- Exception Handlers ------------------------

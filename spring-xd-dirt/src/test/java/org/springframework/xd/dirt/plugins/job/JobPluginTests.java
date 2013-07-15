@@ -89,7 +89,7 @@ public class JobPluginTests {
 	@Test
 	public void testThatLocalFixedDelayTaskIsAdded() {
 		SimpleModule module = new SimpleModule("testFixedDelayJob", "job");
-		module.getProperties().put("fixed_delay", "60000");
+		module.getProperties().put("fixedDelay", "60000");
 		plugin.processModule(module, "foo", 0);
 		String[] moduleBeans = module.getApplicationContext().getBeanNamesForType(IntervalTask.class);
 		assertEquals(1, moduleBeans.length);

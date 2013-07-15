@@ -46,6 +46,8 @@ public class TapsController {
 
 	private final TapDeployer tapDeployer;
 
+	private final TapDefinitionResourceAssembler definitionResourceAssembler = new TapDefinitionResourceAssembler();
+
 	@Autowired
 	public TapsController(TapDeployer tapDeployer) {
 		this.tapDeployer = tapDeployer;
@@ -65,8 +67,8 @@ public class TapsController {
 	String definition, @RequestParam(value = "deploy", defaultValue = "true")
 	boolean deploy) {
 		String streamName = getStreamName(name, definition);
-		tapDeployer.create(new TapDefinition(name, streamName, definition));
-		TapDefinitionResource result = new TapDefinitionResource(name, streamName, definition);
+		TapDefinition def = tapDeployer.create(new TapDefinition(name, streamName, definition));
+		TapDefinitionResource result = definitionResourceAssembler.toResource(def);
 		if (deploy) {
 			tapDeployer.deploy(name);
 		}
@@ -108,9 +110,9 @@ public class TapsController {
 	@ResponseBody
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
-	public Iterable<TapDefinition> list() {
+	public Iterable<TapDefinitionResource> list() {
 		final Iterable<TapDefinition> taps = tapDeployer.findAll();
-		return taps;
+		return definitionResourceAssembler.toResources(taps);
 	}
 
 }

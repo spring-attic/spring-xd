@@ -16,7 +16,7 @@
 
 package org.springframework.xd.dirt.rest;
 
-import org.springframework.hateoas.ResourceAssembler;
+import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.xd.dirt.stream.TapDefinition;
 import org.springframework.xd.rest.client.domain.TapDefinitionResource;
 
@@ -25,10 +25,19 @@ import org.springframework.xd.rest.client.domain.TapDefinitionResource;
  * 
  * @author David Turanski
  */
-public class TapDefinitionResourceAssembler implements ResourceAssembler<TapDefinition, TapDefinitionResource> {
+public class TapDefinitionResourceAssembler extends ResourceAssemblerSupport<TapDefinition, TapDefinitionResource> {
+
+	public TapDefinitionResourceAssembler() {
+		super(TapsController.class, TapDefinitionResource.class);
+	}
 
 	@Override
 	public TapDefinitionResource toResource(TapDefinition entity) {
+		return createResourceWithId(entity.getName(), entity);
+	}
+
+	@Override
+	protected TapDefinitionResource instantiateResource(TapDefinition entity) {
 		return new TapDefinitionResource(entity.getName(), entity.getStreamName(), entity.getDefinition());
 	}
 

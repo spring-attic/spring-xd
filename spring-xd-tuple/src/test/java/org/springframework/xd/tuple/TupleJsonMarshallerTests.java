@@ -12,11 +12,24 @@
  */
 package org.springframework.xd.tuple;
 
+import static org.junit.Assert.*;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.List;
+
+import org.junit.Test;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+
 /**
  * @author David Turanski
  *
  */
-public class TupleJsonMarshallerTests  extends AbstractTupleMarshallerTests {
+public class TupleJsonMarshallerTests extends AbstractTupleMarshallerTests {
 
 	/* (non-Javadoc)
 	 * @see org.springframework.xd.tuple.AbstractTupleMarshallerTests#getMarshaller()
@@ -25,5 +38,31 @@ public class TupleJsonMarshallerTests  extends AbstractTupleMarshallerTests {
 	protected TupleStringMarshaller getMarshaller() {
 		return new TupleJsonMarshaller();
 	}
-	
+
+	@Test
+	public void testComplexJson() throws IOException {
+		Resource jsonFile = new ClassPathResource("/tweet.json");
+		assertTrue(jsonFile.exists());
+
+		BufferedReader reader = new BufferedReader(new InputStreamReader(jsonFile.getInputStream()));
+		String line = null;
+		StringBuilder stringBuilder = new StringBuilder();
+		String ls = System.getProperty("line.separator");
+
+		while ((line = reader.readLine()) != null) {
+			stringBuilder.append(line);
+			stringBuilder.append(ls);
+		}
+		reader.close();
+
+		String source = stringBuilder.toString();
+		TupleStringMarshaller marshaller = getMarshaller();
+		Tuple tuple = marshaller.toTuple(source);
+		assertEquals("Gabriel", tuple.getTuple("user").getString("name"));
+		List<?> mentions = (List<?>) tuple.getTuple("entities").getValue("user_mentions");
+		assertEquals(2, mentions.size());
+		assertTrue(mentions.get(0) instanceof Tuple);
+		Tuple t = (Tuple) mentions.get(0);
+		assertEquals("someoneFollowed", t.getString("screen_name"));
+	}
 }

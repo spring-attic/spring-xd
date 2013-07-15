@@ -62,7 +62,7 @@ public class JobPlugin extends AbstractPlugin  {
 		final Properties properties = new Properties();
 		properties.setProperty("xd.stream.name", group);
 
-		if (module.getProperties().containsKey(TRIGGER) || module.getProperties().containsKey(CRON)) {
+		if (module.getProperties().containsKey(TRIGGER) || module.getProperties().containsKey(CRON)|| module.getProperties().containsKey(FIXED_DELAY)) {
 			properties.setProperty("xd.trigger.execute_on_startup", "false");
 		}
 		else {

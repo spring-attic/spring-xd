@@ -14,6 +14,7 @@ package org.springframework.xd.dirt.stream.redis;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNull;
 
 import java.util.Iterator;
 
@@ -83,6 +84,15 @@ public class RedisStreamDefinitionRepositoryTests {
 		assertTrue(repository.exists("test3"));
 		assertTrue(!repository.exists("test4"));
 	}
+	
+	@Test
+	public void testDelete() {
+		StreamDefinition streamDefinition = new StreamDefinition("test", "time | log");
+		repository.save(streamDefinition);
+		StreamDefinition saved = repository.findOne("test");
+		repository.delete(saved);
+		assertNull(repository.findOne("test"));
+	}	
 
 	@After
 	public void clearRepo() {

@@ -51,7 +51,7 @@ public class JobPlugin extends AbstractPlugin  {
 	private static final String COMMON_XML = CONTEXT_CONFIG_ROOT + "common.xml";
 	private static final String TRIGGER = "trigger";
 	private static final String CRON = "cron";
-	private static final String FIXED_DELAY= "fixed-delay";
+	private static final String FIXED_DELAY= "fixedDelay";
 
 
 	public JobPlugin(){
@@ -62,7 +62,7 @@ public class JobPlugin extends AbstractPlugin  {
 		final Properties properties = new Properties();
 		properties.setProperty("xd.stream.name", group);
 
-		if (module.getProperties().containsKey(TRIGGER) || module.getProperties().containsKey(CRON)) {
+		if (module.getProperties().containsKey(TRIGGER) || module.getProperties().containsKey(CRON)|| module.getProperties().containsKey(FIXED_DELAY)) {
 			properties.setProperty("xd.trigger.execute_on_startup", "false");
 		}
 		else {

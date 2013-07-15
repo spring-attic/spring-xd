@@ -16,11 +16,13 @@
 
 package org.springframework.xd.module;
 
+import java.util.List;
 import java.util.Properties;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
 
 /**
  * @author Mark Fisher
@@ -45,6 +47,8 @@ public interface Module extends Lifecycle {
 	void addComponents(Resource resource);
 
 	void addProperties(Properties properties);
+
+	List<MediaType> getAcceptedMediaTypes();
 
 	Properties getProperties();
 

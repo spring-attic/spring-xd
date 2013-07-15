@@ -18,11 +18,12 @@ package org.springframework.xd.rest.client.domain;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.ResourceSupport;
 
 /**
  * Represents a stream definition, <i>i.e.</i> a flow of data in the system.
- * 
+ *
  * @author Eric Bottard
  */
 @XmlRootElement
@@ -56,6 +57,15 @@ public class StreamDefinitionResource extends ResourceSupport {
 
 	public String getDefinition() {
 		return definition;
+	}
+
+	/**
+	 * Dedicated subclass to workaround type erasure.
+	 *
+	 * @author Eric Bottard
+	 */
+	public static class Page extends PagedResources<StreamDefinitionResource> {
+
 	}
 
 }

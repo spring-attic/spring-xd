@@ -16,13 +16,14 @@
 
 package org.springframework.xd.dirt.rest;
 
-import java.util.List;
+import java.util.ArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.ExposesResourceFor;
+import org.springframework.hateoas.PagedResources;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -103,14 +104,19 @@ public class StreamsController {
 	/**
 	 * List stream definitions.
 	 */
+	@ResponseBody
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
-	@ResponseBody
-	public/* PagedResources */List<StreamDefinitionResource> list(Pageable pageable,
+	public PagedResources<StreamDefinitionResource> list(Pageable pageable,
 			PagedResourcesAssembler<StreamDefinition> assembler) {
 		Page<StreamDefinition> page = streamDefinitionRepository.findAll(pageable);
-		return definitionResourceAssembler.toResources(page.getContent());
-		// return assembler.toResource(page, definitionResourceAssembler);
+		// Workaround https://github.com/SpringSource/spring-hateoas/issues/89
+		if (page.hasContent()) {
+			return assembler.toResource(page, definitionResourceAssembler);
+		}
+		else {
+			return new PagedResources<StreamDefinitionResource>(new ArrayList<StreamDefinitionResource>(), null);
+		}
 	}
 
 	/**
@@ -138,8 +144,8 @@ public class StreamsController {
 	 */
 	@RequestMapping(value = "/{name}", method = RequestMethod.PUT, params = "deploy=false")
 	@ResponseStatus(HttpStatus.OK)
-	public void undeploy(@PathVariable("name")
-	String name) {
+	public void undeploy(@PathVariable("name") String name) {
 		streamDeployer.undeployStream(name);
 	}
 }
+

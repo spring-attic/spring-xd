@@ -454,9 +454,12 @@ project('spring-xd-shell') {
 	dependencies {
 		compile "org.springframework.shell:spring-shell:$springShellVersion"
 		compile project(":spring-xd-rest-client")
+		compile ("org.springframework.data:spring-data-hadoop:$springDataHadoopVersion") {
+			exclude group: 'org.mortbay.jetty'
+		}
 		runtime "org.slf4j:jcl-over-slf4j:$slf4jVersion",
-			"org.slf4j:slf4j-log4j12:$slf4jVersion",
-			"log4j:log4j:$log4jVersion"
+				"org.slf4j:slf4j-log4j12:$slf4jVersion",
+				"log4j:log4j:$log4jVersion"
 
 	}
 

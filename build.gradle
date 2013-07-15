@@ -421,6 +421,9 @@ project('spring-xd-hadoop') {
 		compile ("org.springframework.data:spring-data-hadoop:$springDataHadoopVersion") {
 			exclude group: 'org.mortbay.jetty'
 		}
+		// Needed for webhdfs sink
+		runtime ("org.mortbay.jetty:jetty-util:6.1.26")
+		runtime("javax.ws.rs:jsr311-api:1.1.1")
 	}
 }
 

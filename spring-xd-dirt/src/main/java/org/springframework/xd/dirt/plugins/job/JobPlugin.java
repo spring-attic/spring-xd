@@ -51,7 +51,7 @@ public class JobPlugin extends AbstractPlugin  {
 	private static final String COMMON_XML = CONTEXT_CONFIG_ROOT + "common.xml";
 	private static final String TRIGGER = "trigger";
 	private static final String CRON = "cron";
-	private static final String FIXED_DELAY= "fixed-delay";
+	private static final String FIXED_DELAY= "fixed_delay";
 
 
 	public JobPlugin(){

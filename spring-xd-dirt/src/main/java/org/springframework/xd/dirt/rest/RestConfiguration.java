@@ -16,12 +16,21 @@
 
 package org.springframework.xd.dirt.rest;
 
+import java.util.List;
+
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.hateoas.config.EnableHypermediaSupport;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.MappingJacksonHttpMessageConverter;
+import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConverter;
+import org.springframework.util.ClassUtils;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.xd.rest.client.domain.AbstractJaxb2HttpMessageConverterHack;
 
 /**
  * Takes care of infrastructure setup for the web/rest layer.
@@ -34,6 +43,22 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @EnableHypermediaSupport
 @EnableSpringDataWebSupport
 @ComponentScan(excludeFilters = @Filter(Configuration.class))
-public class RestConfiguration {
+public class RestConfiguration extends WebMvcConfigurerAdapter {
+
+	@Override
+	public void configureMessageConverters(List<HttpMessageConverter<?>> messageConverters) {
+		ClassLoader classLoader = getClass().getClassLoader();
+		if (ClassUtils.isPresent("javax.xml.bind.Binder", classLoader)) {
+			messageConverters.add(new Jaxb2RootElementHttpMessageConverter());
+		}
+		if (ClassUtils.isPresent("com.fasterxml.jackson.databind.ObjectMapper", classLoader)) {
+			messageConverters.add(new MappingJackson2HttpMessageConverter());
+		}
+		else if (ClassUtils.isPresent("org.codehaus.jackson.map.ObjectMapper", classLoader)) {
+			messageConverters.add(new MappingJacksonHttpMessageConverter());
+		}
+
+		AbstractJaxb2HttpMessageConverterHack.populateJAXBContext(messageConverters);
+	}
 
 }

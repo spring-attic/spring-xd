@@ -16,9 +16,8 @@
 
 package org.springframework.xd.shell.command;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.PagedResources;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliAvailabilityIndicator;
 import org.springframework.shell.core.annotation.CliCommand;
@@ -92,7 +91,7 @@ public class StreamCommands implements CommandMarker {
 	@CliCommand(value = LIST_STREAM, help = "List created streams")
 	public String listStreams() {
 
-		final List<StreamDefinitionResource> streams = streamOperations().list();
+		final PagedResources<StreamDefinitionResource> streams = streamOperations().list();
 
 		final Table table = new Table();
 		table.addHeader(1, new TableHeader("Stream Name")).addHeader(2, new TableHeader("Stream Definition"));

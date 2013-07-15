@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.core.convert.TypeDescriptor;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
@@ -38,6 +39,7 @@ import org.springframework.util.ClassUtils;
  * Default implementation of Tuple interface
  *
  * @author Mark Pollack
+ * @author David Turanski
  *
  */
 public class DefaultTuple implements Tuple {
@@ -49,10 +51,10 @@ public class DefaultTuple implements Tuple {
 	private List<String> names;
 	private List<Object> values;
 	private FormattingConversionService formattingConversionService;
+	private Converter<Tuple, String> tupleToStringConverter = new DefaultTupleToStringConverter();
 
 	private UUID id;
 	private Long timestamp;
-
 
 	//TODO consider making final and package protect ctor so as to always use TupleBuilder
 
@@ -61,13 +63,13 @@ public class DefaultTuple implements Tuple {
 		Assert.notNull(values);
 		Assert.notNull(formattingConversionService);
 		if (values.size() != names.size()) {
-			throw new IllegalArgumentException("Field names must be same length as values: names="
-					+ names + ", values=" + values);
+			throw new IllegalArgumentException("Field names must be same length as values: names=" + names
+					+ ", values=" + values);
 		}
 		//TODO check for no duplicate names.
 		//TODO check for no null values.
 		this.names = new ArrayList<String>(names);
-		this.values = new ArrayList<Object>(values);  // shallow copy
+		this.values = new ArrayList<Object>(values); // shallow copy
 		this.formattingConversionService = formattingConversionService;
 		this.id = UUID.randomUUID();
 		this.timestamp = Long.valueOf(System.currentTimeMillis());
@@ -123,7 +125,6 @@ public class DefaultTuple implements Tuple {
 		return this.names.size();
 	}
 
-
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.xd.tuple.Tuple#hasName(java.lang.String)
@@ -139,20 +140,18 @@ public class DefaultTuple implements Tuple {
 	 */
 	@Override
 	public Object getValue(String name) {
-    	int index = indexOf(name);
-    	return (index == -1) ? null : getValue(index);
+		int index = indexOf(name);
+		return (index == -1) ? null : getValue(index);
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.xd.tuple.Tuple#getValue(int)
 	 */
-    @Override
+	@Override
 	public Object getValue(int index) {
 		return values.get(index);
 	}
-
-
 
 	@SuppressWarnings("rawtypes")
 	@Override
@@ -210,15 +209,14 @@ public class DefaultTuple implements Tuple {
 
 	@Override
 	public String getString(String name) {
-    	int index = indexOf(name);
-    	return (index == -1) ? null : getString(index);
+		int index = indexOf(name);
+		return (index == -1) ? null : getString(index);
 	}
 
 	@Override
 	public String getString(int index) {
 		return readAndTrim(index);
 	}
-
 
 	@Override
 	public Tuple getTuple(int index) {
@@ -229,6 +227,7 @@ public class DefaultTuple implements Tuple {
 	public Tuple getTuple(String name) {
 		return getTuple(indexOf(name));
 	}
+
 	/**
 	 * @param index the index of the value
 	 * @return the converted raw value, trimmed
@@ -249,8 +248,8 @@ public class DefaultTuple implements Tuple {
 
 	@Override
 	public String getRawString(String name) {
-    	int index = indexOf(name);
-    	return (index == -1) ? null : getRawString(index);
+		int index = indexOf(name);
+		return (index == -1) ? null : getRawString(index);
 	}
 
 	@Override
@@ -267,7 +266,6 @@ public class DefaultTuple implements Tuple {
 			return null;
 		}
 	}
-
 
 	@Override
 	public char getChar(int index) {
@@ -303,42 +301,40 @@ public class DefaultTuple implements Tuple {
 
 	}
 
-    @Override
+	@Override
 	public boolean getBoolean(String name, String trueValue) {
 		return getBoolean(indexOf(name), trueValue);
 	}
 
-    @Override
-    public byte getByte(String name) {
-    	int index = indexOf(name);
-    	return (index == -1) ? 0 : getByte(index);
-    }
+	@Override
+	public byte getByte(String name) {
+		int index = indexOf(name);
+		return (index == -1) ? 0 : getByte(index);
+	}
 
-    @Override
-    public byte getByte(int index) {
+	@Override
+	public byte getByte(int index) {
 		Byte b = convert(values.get(index), Byte.class);
 		return (b != null) ? b : 0;
-    }
+	}
 
-    @Override
+	@Override
 	public byte getByte(String name, byte defaultValue) {
-    	int index = indexOf(name);
-    	return (index == -1) ? defaultValue : getByte(index, defaultValue);
-    }
+		int index = indexOf(name);
+		return (index == -1) ? defaultValue : getByte(index, defaultValue);
+	}
 
-    @Override
+	@Override
 	public byte getByte(int index, byte defaultValue) {
 		Byte b = convert(values.get(index), Byte.class);
 		return (b != null) ? b : defaultValue;
-    }
-
+	}
 
 	@Override
 	public short getShort(String name) {
-    	int index = indexOf(name);
-    	return (index == -1) ? 0 : getShort(index);
+		int index = indexOf(name);
+		return (index == -1) ? 0 : getShort(index);
 	}
-
 
 	@Override
 	public short getShort(int index) {
@@ -348,8 +344,8 @@ public class DefaultTuple implements Tuple {
 
 	@Override
 	public short getShort(String name, short defaultValue) {
-    	int index = indexOf(name);
-    	return (index == -1) ? defaultValue : getShort(index, defaultValue);
+		int index = indexOf(name);
+		return (index == -1) ? defaultValue : getShort(index, defaultValue);
 	}
 
 	@Override
@@ -360,20 +356,20 @@ public class DefaultTuple implements Tuple {
 
 	@Override
 	public int getInt(String name) {
-    	int index = indexOf(name);
-    	return (index == -1) ? 0 : getInt(index);
+		int index = indexOf(name);
+		return (index == -1) ? 0 : getInt(index);
 	}
 
 	@Override
 	public int getInt(int index) {
 		Integer i = convert(values.get(index), Integer.class);
-		return (i != null) ?  i : 0;
+		return (i != null) ? i : 0;
 	}
 
 	@Override
 	public int getInt(String name, int defaultValue) {
-    	int index = indexOf(name);
-    	return (index == -1) ? defaultValue : getInt(index, defaultValue);
+		int index = indexOf(name);
+		return (index == -1) ? defaultValue : getInt(index, defaultValue);
 	}
 
 	@Override
@@ -384,8 +380,8 @@ public class DefaultTuple implements Tuple {
 
 	@Override
 	public long getLong(String name) {
-    	int index = indexOf(name);
-    	return (index == -1) ? 0 : getLong(index);
+		int index = indexOf(name);
+		return (index == -1) ? 0 : getLong(index);
 	}
 
 	@Override
@@ -396,8 +392,8 @@ public class DefaultTuple implements Tuple {
 
 	@Override
 	public long getLong(String name, long defaultValue) {
-    	int index = indexOf(name);
-    	return (index == -1) ? defaultValue : getLong(index, defaultValue);
+		int index = indexOf(name);
+		return (index == -1) ? defaultValue : getLong(index, defaultValue);
 	}
 
 	@Override
@@ -408,8 +404,8 @@ public class DefaultTuple implements Tuple {
 
 	@Override
 	public float getFloat(String name) {
-    	int index = indexOf(name);
-    	return (index == -1) ? 0 : getFloat(index);
+		int index = indexOf(name);
+		return (index == -1) ? 0 : getFloat(index);
 	}
 
 	@Override
@@ -420,8 +416,8 @@ public class DefaultTuple implements Tuple {
 
 	@Override
 	public float getFloat(String name, float defaultValue) {
-    	int index = indexOf(name);
-    	return (index == -1) ? defaultValue : getFloat(index, defaultValue);
+		int index = indexOf(name);
+		return (index == -1) ? defaultValue : getFloat(index, defaultValue);
 	}
 
 	@Override
@@ -430,11 +426,10 @@ public class DefaultTuple implements Tuple {
 		return (f != null) ? f : defaultValue;
 	}
 
-
 	@Override
 	public double getDouble(String name) {
-    	int index = indexOf(name);
-    	return (index == -1) ? 0 : getDouble(index);
+		int index = indexOf(name);
+		return (index == -1) ? 0 : getDouble(index);
 	}
 
 	@Override
@@ -443,11 +438,10 @@ public class DefaultTuple implements Tuple {
 		return (d != null) ? d : 0;
 	}
 
-
 	@Override
 	public double getDouble(String name, double defaultValue) {
-    	int index = indexOf(name);
-    	return (index == -1) ? defaultValue : getDouble(index, defaultValue);
+		int index = indexOf(name);
+		return (index == -1) ? defaultValue : getDouble(index, defaultValue);
 	}
 
 	@Override
@@ -468,8 +462,8 @@ public class DefaultTuple implements Tuple {
 
 	@Override
 	public BigDecimal getBigDecimal(String name, BigDecimal defaultValue) {
-    	int index = indexOf(name);
-    	return (index == -1) ? defaultValue : getBigDecimal(index, defaultValue);
+		int index = indexOf(name);
+		return (index == -1) ? defaultValue : getBigDecimal(index, defaultValue);
 	}
 
 	@Override
@@ -510,14 +504,13 @@ public class DefaultTuple implements Tuple {
 	public Date getDateWithPattern(String name, String pattern) {
 		try {
 			return getDateWithPattern(indexOf(name), pattern);
-		}
-		catch (IllegalArgumentException e) {
+		} catch (IllegalArgumentException e) {
 			throw new IllegalArgumentException(e.getMessage() + ", name: [" + name + "]");
 		}
 	}
 
 	@Override
-	public Date getDateWithPattern(int index, String pattern, Date defaultValue)  {
+	public Date getDateWithPattern(int index, String pattern, Date defaultValue) {
 		try {
 			Date d = getDateWithPattern(index, pattern);
 			return (d != null) ? d : defaultValue;
@@ -528,11 +521,10 @@ public class DefaultTuple implements Tuple {
 	}
 
 	@Override
-	public Date getDateWithPattern(String name, String pattern, Date defaultValue)  {
+	public Date getDateWithPattern(String name, String pattern, Date defaultValue) {
 		try {
 			return getDateWithPattern(indexOf(name), pattern, defaultValue);
-		}
-		catch (IllegalArgumentException e) {
+		} catch (IllegalArgumentException e) {
 			throw new IllegalArgumentException(e.getMessage() + ", name: [" + name + "]");
 		}
 	}
@@ -545,6 +537,7 @@ public class DefaultTuple implements Tuple {
 		Object value = values.get(indexOf(name));
 		return convert(value, valueClass);
 	}
+
 	/* (non-Javadoc)
 	 * @see org.springframework.xd.tuple.Tuple#getValue(int, java.lang.Class)
 	 */
@@ -552,6 +545,7 @@ public class DefaultTuple implements Tuple {
 	public <T> T getValue(int index, Class<T> valueClass) {
 		return convert(values.get(index), valueClass);
 	}
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public Tuple select(String expression) {
@@ -562,20 +556,21 @@ public class DefaultTuple implements Tuple {
 		//TODO test instance is a map
 		Object result = exp.getValue(context);
 		Map<String, Object> resultMap = null;
-		if (ClassUtils.isAssignableValue(Map.class, result))
-		{
-			resultMap = (Map<String, Object>)result;
+		if (ClassUtils.isAssignableValue(Map.class, result)) {
+			resultMap = (Map<String, Object>) result;
 		}
 		if (resultMap != null) {
 			return toTuple(resultMap);
 		} else {
-			return new DefaultTuple(new ArrayList<String>(0), new ArrayList<Object>(0), this.formattingConversionService);
+			return new DefaultTuple(new ArrayList<String>(0), new ArrayList<Object>(0),
+					this.formattingConversionService);
 		}
 	}
+
 	/**
 	 * @return names and values as a {@code Map<String, Object>}
 	 */
-	private Map<String, Object> toMap() {
+	Map<String, Object> toMap() {
 		Map<String, Object> map = new LinkedHashMap<String, Object>(values.size());
 		for (int i = 0; i < values.size(); i++) {
 			map.put(names.get(i), values.get(i));
@@ -583,7 +578,7 @@ public class DefaultTuple implements Tuple {
 		return map;
 	}
 
-	private Tuple toTuple(Map<String, Object> resultMap) {
+	Tuple toTuple(Map<String, Object> resultMap) {
 
 		List<String> newNames = new ArrayList<String>();
 		List<Object> newValues = new ArrayList<Object>();
@@ -597,17 +592,12 @@ public class DefaultTuple implements Tuple {
 
 	}
 
-
-
-
 	@SuppressWarnings("unchecked")
 	<T> T convert(Object value, Class<T> targetType) {
 		//TODO wrap ConversionFailedException in IllegalArgumentException... may need to pass in index/field name for good error reporting.
-		return (T) formattingConversionService.convert(value, TypeDescriptor.forObject(value), TypeDescriptor.valueOf(targetType));
+		return (T) formattingConversionService.convert(value, TypeDescriptor.forObject(value),
+				TypeDescriptor.valueOf(targetType));
 	}
-
-
-
 
 	/**
 	 * Find the index in the names collection for the given name.
@@ -617,14 +607,31 @@ public class DefaultTuple implements Tuple {
 	protected int indexOf(String name) {
 		return names.indexOf(name);
 	}
+
+	/**
+	 *
+	 * @param tupleToStringConverter
+	 */
+	protected void setTupleToStringConverter(Converter<Tuple, String> tupleToStringConverter) {
+		Assert.notNull(tupleToStringConverter,"tupleToStringConverter cannot be null");
+		this.tupleToStringConverter = tupleToStringConverter;
+	}
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
-		return "DefaultTuple [names=" + names + ", values=" + values + ", id="
-				+ id + ", timestamp=" + timestamp + "]";
+		return tupleToStringConverter.convert(this);
 	}
 
+	class DefaultTupleToStringConverter implements Converter<Tuple, String> {
+		@Override
+		public String convert(Tuple source) {
+			return "DefaultTuple [names=" + names + ", values=" + values + ", id=" + id + ", timestamp=" + timestamp
+					+ "]";
+		}
+
+	}
 
 }

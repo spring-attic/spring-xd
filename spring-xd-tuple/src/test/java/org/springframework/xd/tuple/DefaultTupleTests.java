@@ -480,4 +480,15 @@ public class DefaultTupleTests {
 		assertTrue(t.getDateWithPattern(0, "xyz-abc", defaultDate) == defaultDate);
 
 	}
+
+	@Test
+	public void testCollectionToTupleConversionFails() {
+		thrown.expect(ConverterNotFoundException.class);
+		Tuple t1 = tuple().of("hello","world");
+		Tuple t2 = tuple().of("foo","bar");
+		List<Tuple> list = Arrays.asList(t1,t2);
+		Tuple t = tuple().of("list", list);
+		t.getTuple("list");
+	}
+
 }

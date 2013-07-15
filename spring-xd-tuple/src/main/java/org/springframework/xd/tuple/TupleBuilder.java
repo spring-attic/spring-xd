@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Locale;
 
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.format.support.DefaultFormattingConversionService;
 import org.springframework.format.support.FormattingConversionService;
 import org.springframework.util.Assert;
 
@@ -40,7 +39,7 @@ public class TupleBuilder {
 
 	private List<String> names = new ArrayList<String>();
 	private List<Object> values = new ArrayList<Object>();
-	private FormattingConversionService formattingConversionService = new DefaultFormattingConversionService();
+	private FormattingConversionService formattingConversionService = new DefaultTupleConversionService();
 
 	private final static String DEFAULT_DATE_PATTERN = "yyyy-MM-dd";
 	private final static Locale DEFAULT_LOCALE = Locale.US;

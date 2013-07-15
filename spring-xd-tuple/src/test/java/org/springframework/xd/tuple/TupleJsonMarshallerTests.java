@@ -16,7 +16,7 @@ package org.springframework.xd.tuple;
  * @author David Turanski
  *
  */
-public class TupleJsonMarshallerTests extends AbstractTupleMarshallerTests {
+public class TupleJsonMarshallerTests  extends AbstractTupleMarshallerTests {
 
 	/* (non-Javadoc)
 	 * @see org.springframework.xd.tuple.AbstractTupleMarshallerTests#getMarshaller()

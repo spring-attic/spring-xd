@@ -34,10 +34,10 @@ import org.springframework.xd.shell.util.UiUtils;
 
 /**
  * Tap commands.
- *
+ * 
  * @author Ilayaperumal Gopinathan
  * @author Gunnar Hillert
- *
+ * 
  * @since 1.0
  */
 
@@ -45,6 +45,7 @@ import org.springframework.xd.shell.util.UiUtils;
 public class TapCommands implements CommandMarker {
 
 	private final static String CREATE_TAP = "tap create";
+
 	private final static String LIST_TAPS = "tap list";
 
 	@Autowired
@@ -59,7 +60,7 @@ public class TapCommands implements CommandMarker {
 	public String createTap(
 			@CliOption(mandatory = true, key = "name", help = "the name to give to the tap")
 			String name,
-			@CliOption(mandatory = true, key = { "", "definition" }, help = "Tap definition, using XD DSL (e.g. \"tap@mystream.filter | sink1\")")
+			@CliOption(mandatory = true, key = { "", "definition" }, help = "tap definition, using XD DSL (e.g. \"tap@mystream.filter | sink1\")")
 			String dsl,
 			@CliOption(key = "deploy", help = "whether to deploy the tap immediately", unspecifiedDefaultValue = "true")
 			boolean autoStart) {
@@ -86,15 +87,13 @@ public class TapCommands implements CommandMarker {
 		}
 
 		final Table table = new Table();
-		table.addHeader(1, new TableHeader("Tap Name"))
-		     .addHeader(2, new TableHeader("Stream Name"))
-		     .addHeader(3, new TableHeader("Tap Definition"));
+		table.addHeader(1, new TableHeader("Tap Name")).addHeader(2, new TableHeader("Stream Name"))
+				.addHeader(3, new TableHeader("Tap Definition"));
 
 		for (TapDefinitionResource tapDefinitionResource : taps) {
 			final TableRow row = new TableRow();
-			row.addValue(1, tapDefinitionResource.getName())
-			   .addValue(2, tapDefinitionResource.getStreamName())
-			   .addValue(3, tapDefinitionResource.getDefinition());
+			row.addValue(1, tapDefinitionResource.getName()).addValue(2, tapDefinitionResource.getStreamName())
+					.addValue(3, tapDefinitionResource.getDefinition());
 			table.getRows().add(row);
 		}
 

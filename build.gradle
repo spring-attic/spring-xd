@@ -479,6 +479,13 @@ project('spring-xd-shell') {
 	applicationDistribution.from(configFiles) {
 		into "config"
 	}
+	
+	// Will be run as a side effect of 
+	task referenceDoc(type: JavaExec, dependsOn: compileTestJava) {
+		classpath = sourceSets.test.runtimeClasspath //configurations.testCompile
+		main = 'org.springframework.xd.shell.util.ReferenceDoc'
+		args = ["$rootDir/build/asciidoc/guide/ShellReference.asciidoc"]
+	}
 
 }
 
@@ -589,13 +596,13 @@ task pullDocs(type: GitClone) {
 			.renameTo(new File("$buildDir/asciidoc/guide/index.adoc"))
 		new File("$buildDir/asciidoc/guide/FullGuide-docinfo.xml")
 			.renameTo(new File("$buildDir/asciidoc/guide/index-docinfo.xml"))
-
+			
 	}
 }
 
 import org.asciidoctor.gradle.*
 
-task asciidoctorDocbook(type: AsciidoctorTask, dependsOn: [pullDocs]) {
+task asciidoctorDocbook(type: AsciidoctorTask, dependsOn: [pullDocs, ':spring-xd-shell:referenceDoc']) {
 	sourceDocumentName = file("$buildDir/asciidoc/guide/index.adoc")
 	sourceDir = file("$buildDir/asciidoc/guide")
 	outputDir = file("$buildDir/docbook")
@@ -614,7 +621,7 @@ task asciidoctorDocbook(type: AsciidoctorTask, dependsOn: [pullDocs]) {
 	}
 }
 
-task asciidoctorHtml(type: AsciidoctorTask, dependsOn: [pullDocs]) {
+task asciidoctorHtml(type: AsciidoctorTask, dependsOn: [pullDocs, ':spring-xd-shell:referenceDoc']) {
 	sourceDocumentName = file("$buildDir/asciidoc/guide/index.adoc")
 	sourceDir = file("$buildDir/asciidoc/guide")
 	outputDir = file("$buildDir/html")

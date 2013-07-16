@@ -47,7 +47,7 @@ import org.springframework.xd.shell.XDShell;
 public class HttpCommands implements CommandMarker {
 
 	private static final String POST_HTTPSOURCE = "post httpsource";
-	
+
 	@Autowired
 	private XDShell xdShell;
 
@@ -58,8 +58,9 @@ public class HttpCommands implements CommandMarker {
 
 	@CliCommand(value = { POST_HTTPSOURCE }, help = "POST data to http endpoint")
 	public String postHttp(
-			@CliOption(mandatory = true, key = "target") String target,
-			@CliOption(mandatory = true, key = "data") String data) {
+			@CliOption(mandatory = true, key = { "", "target" }, help = "the location to post to", unspecifiedDefaultValue = "http://localhost:9000")
+			String target, @CliOption(mandatory = true, key = "data", help = "the payload to post")
+			String data) {
 		final StringBuilder buffer = new StringBuilder();
 		URI requestURI = URI.create(target);
 		RestTemplate restTemplate = new RestTemplate();
@@ -67,64 +68,46 @@ public class HttpCommands implements CommandMarker {
 			restTemplate.setErrorHandler(new ResponseErrorHandler() {
 
 				@Override
-				public boolean hasError(ClientHttpResponse response)
-						throws IOException {
+				public boolean hasError(ClientHttpResponse response) throws IOException {
 					HttpStatus status = response.getStatusCode();
-					return (status == HttpStatus.BAD_GATEWAY
-							|| status == HttpStatus.GATEWAY_TIMEOUT || status == HttpStatus.INTERNAL_SERVER_ERROR);
+					return (status == HttpStatus.BAD_GATEWAY || status == HttpStatus.GATEWAY_TIMEOUT || status == HttpStatus.INTERNAL_SERVER_ERROR);
 				}
 
 				@Override
-				public void handleError(ClientHttpResponse response)
-						throws IOException {
+				public void handleError(ClientHttpResponse response) throws IOException {
 					outputError(response.getStatusCode(), buffer);
 				}
 			});
 			outputRequest("POST", requestURI, data, buffer);
-			ResponseEntity<String> response = restTemplate.postForEntity(
-					requestURI, data, String.class);
+			ResponseEntity<String> response = restTemplate.postForEntity(requestURI, data, String.class);
 			outputResponse(response, buffer);
-			String status = (response.getStatusCode().equals(HttpStatus.OK) ? "Success"
-					: "Error");
-			return String.format(buffer.toString() + status
-					+ " sending data '%s' to target '%s'", data, target);
-		} 
+			String status = (response.getStatusCode().equals(HttpStatus.OK) ? "Success" : "Error");
+			return String.format(buffer.toString() + status + " sending data '%s' to target '%s'", data, target);
+		}
 		catch (ResourceAccessException e) {
-			return String.format(buffer.toString()
-					+ "Failed to access http endpoint %s", target);
-		} 
+			return String.format(buffer.toString() + "Failed to access http endpoint %s", target);
+		}
 		catch (Exception e) {
-			return String.format(buffer.toString()
-					+ "Failed to send data to http endpoint %s", target);
+			return String.format(buffer.toString() + "Failed to send data to http endpoint %s", target);
 		}
 	}
-	
-	private void outputRequest(String method, URI requestUri,
-			String requestData, StringBuilder buffer) {
-		buffer.append("> ")
-			  .append(method)
-			  .append(" ")
-			  .append(requestUri.toString())
-			  .append(" ")
-			  .append(requestData)
-			  .append(OsUtils.LINE_SEPARATOR);
+
+	private void outputRequest(String method, URI requestUri, String requestData, StringBuilder buffer) {
+		buffer.append("> ").append(method).append(" ").append(requestUri.toString()).append(" ").append(requestData)
+				.append(OsUtils.LINE_SEPARATOR);
 	}
 
-	private void outputResponse(ResponseEntity<String> response,
-			StringBuilder buffer) {
-		buffer.append("> ")
-		      .append(response.getStatusCode().value())
-		      .append(" ")
-		      .append(response.getStatusCode().name())
-			  .append(OsUtils.LINE_SEPARATOR);
-		for (Map.Entry<String, List<String>> entry : response.getHeaders()
-				.entrySet()) {
+	private void outputResponse(ResponseEntity<String> response, StringBuilder buffer) {
+		buffer.append("> ").append(response.getStatusCode().value()).append(" ")
+				.append(response.getStatusCode().name()).append(OsUtils.LINE_SEPARATOR);
+		for (Map.Entry<String, List<String>> entry : response.getHeaders().entrySet()) {
 			buffer.append("> ").append(entry.getKey()).append(": ");
 			boolean first = true;
 			for (String s : entry.getValue()) {
 				if (!first) {
 					buffer.append(",");
-				} else {
+				}
+				else {
 					first = false;
 				}
 				buffer.append(s);
@@ -138,11 +121,7 @@ public class HttpCommands implements CommandMarker {
 	}
 
 	private void outputError(HttpStatus status, StringBuilder buffer) {
-		buffer.append("> ")
-		      .append(status.value())
-		      .append(" ")
-			  .append(status.name())
-			  .append(OsUtils.LINE_SEPARATOR);
+		buffer.append("> ").append(status.value()).append(" ").append(status.name()).append(OsUtils.LINE_SEPARATOR);
 	}
 
 }

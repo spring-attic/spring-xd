@@ -41,8 +41,9 @@ public class XDShell implements CommandMarker {
 	}
 
 	@CliCommand(value = { "target" }, help = "Select the XD admin server to use")
-	public String target(@CliOption(mandatory = true, key = "")
-	String target) {
+	public String target(
+			@CliOption(mandatory = false, key = { "", "uri" }, help = "the location of the XD Admin REST endpoint", unspecifiedDefaultValue = "http://localhost:8080/")
+			String target) {
 		try {
 			springXDOperations = new SpringXDTemplate(URI.create(target));
 			this.target = target;

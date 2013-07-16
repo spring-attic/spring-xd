@@ -39,14 +39,14 @@ import org.springframework.xd.rest.client.domain.JobDefinitionResource;
 @Controller
 @RequestMapping("/jobs")
 @ExposesResourceFor(JobDefinitionResource.class)
-public class JobController {
+public class JobsController {
 
 	private final JobDeployer jobDeployer;
 
 	private final JobDefinitionResourceAssembler definitionResourceAssembler = new JobDefinitionResourceAssembler();
 
 	@Autowired
-	public JobController(JobDeployer streamDeployer,
+	public JobsController(JobDeployer streamDeployer,
 			JobDefinitionRepository jobDefinitionRepository) {
 		this.jobDeployer = streamDeployer;
 	}

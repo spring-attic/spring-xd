@@ -27,7 +27,7 @@ import org.springframework.xd.dirt.stream.memory.InMemoryTriggerDefinitionReposi
  *
  */
 @Configuration
-public class TriggerControllerIntegrationTestsConfig {
+public class TriggersControllerIntegrationTestsConfig {
 
 	@Bean
 	public TriggerDefinitionRepository triggerDefinitionRepository() {

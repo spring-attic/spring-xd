@@ -30,7 +30,7 @@ public class JobDefinitionResourceAssembler extends
 		ResourceAssemblerSupport<JobDefinition, JobDefinitionResource> {
 
 	public JobDefinitionResourceAssembler() {
-		super(JobController.class, JobDefinitionResource.class);
+		super(JobsController.class, JobDefinitionResource.class);
 	}
 
 	@Override

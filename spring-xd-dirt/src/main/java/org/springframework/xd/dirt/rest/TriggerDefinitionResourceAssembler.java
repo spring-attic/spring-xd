@@ -31,7 +31,7 @@ public class TriggerDefinitionResourceAssembler extends
 		ResourceAssemblerSupport<TriggerDefinition, TriggerDefinitionResource> {
 
 	public TriggerDefinitionResourceAssembler() {
-		super(TriggerController.class, TriggerDefinitionResource.class);
+		super(TriggersController.class, TriggerDefinitionResource.class);
 	}
 
 	@Override

@@ -43,14 +43,14 @@ import org.springframework.xd.rest.client.domain.TriggerDefinitionResource;
 @Controller
 @RequestMapping("/triggers")
 @ExposesResourceFor(TriggerDefinitionResource.class)
-public class TriggerController {
+public class TriggersController {
 
 	private final TriggerDeployer triggerDeployer;
 
 	private final TriggerDefinitionResourceAssembler definitionResourceAssembler = new TriggerDefinitionResourceAssembler();
 
 	@Autowired
-	public TriggerController(TriggerDeployer streamDeployer) {
+	public TriggersController(TriggerDeployer streamDeployer) {
 		this.triggerDeployer = streamDeployer;
 	}
 

@@ -53,14 +53,14 @@ import org.springframework.xd.dirt.stream.TriggerDeploymentMessageSender;
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = { RestConfiguration.class, MockedDependencies.class,
-		TriggerControllerIntegrationTestsConfig.class })
-public class TriggerControllerIntegrationTests extends AbstractControllerIntegrationTest {
+		TriggersControllerIntegrationTestsConfig.class })
+public class TriggersControllerIntegrationTests extends AbstractControllerIntegrationTest {
 
 	@Autowired
 	private TriggerDeploymentMessageSender sender;
 
 	@Autowired
-	private TriggerController triggerController;
+	private TriggersController triggerController;
 
 	private final String TRIGGER_DEFINITION = "trigger --cron='*/10 * * * * *'";
 

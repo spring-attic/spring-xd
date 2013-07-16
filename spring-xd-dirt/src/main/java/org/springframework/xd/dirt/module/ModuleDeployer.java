@@ -77,6 +77,7 @@ public class ModuleDeployer extends AbstractMessageHandler
 		for(Plugin plugin: plugins.values()) {
 			plugin.postProcessSharedContext(commonContext);
 		}
+		//TODO: Do we need this? 
 		commonContext.refresh();
 		this.commonContext = commonContext;
 	}

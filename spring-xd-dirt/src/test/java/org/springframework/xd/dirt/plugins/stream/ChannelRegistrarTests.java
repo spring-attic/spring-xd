@@ -27,6 +27,8 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.x.channel.registry.ChannelRegistry;
+import org.springframework.xd.module.Module;
+
 /**
  * Unit test of {@link ChannelRegistrar}
  *
@@ -37,12 +39,15 @@ public class ChannelRegistrarTests {
 	@Mock
 	private ChannelRegistry registry;
 
+	@Mock
+	private Module module;
+
 	private ChannelRegistrar channelRegistrar;
 
 	@Before
 	public void setUp() {
 		MockitoAnnotations.initMocks(this);
-		this.channelRegistrar = new ChannelRegistrar(registry, "mystream", 1);
+		this.channelRegistrar = new ChannelRegistrar(registry, module, "mystream", 1);
 	}
 
 	@Test

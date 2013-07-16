@@ -27,6 +27,7 @@ import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.context.Lifecycle;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Executes all jobs defined within a given stream once the context has been
@@ -44,6 +45,9 @@ public class ModuleJobLauncher implements Lifecycle {
 	private JobLauncher launcher;
 	private String groupName;
 	private JobRegistry registry;
+	
+	private static String JOB_NAME_DELIMITER = ".";
+	private static int NAME_INDEX = 0;
 
 	private boolean isRunning = false;
 	private final boolean executeBatchJobOnStartup;
@@ -70,7 +74,8 @@ public class ModuleJobLauncher implements Lifecycle {
 		Collection<String> names = registry.getJobNames();
 
 		for (String curName : names) {
-			if(curName.startsWith(groupName)) {
+			String[] jobNames = StringUtils.split(curName, JOB_NAME_DELIMITER);
+			if(jobNames[NAME_INDEX].equals(groupName)) {
 				try {
 					launcher.run(registry.getJob(curName), getUniqueJobParameters());
 				} catch (Exception e) {

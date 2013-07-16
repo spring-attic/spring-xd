@@ -37,8 +37,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.dirt.stream.DeploymentMessageSender;
 import org.springframework.xd.dirt.stream.TriggerDefinition;
-import org.springframework.xd.dirt.stream.TriggerDeploymentMessageSender;
 
 /**
  * Tests REST compliance of taps-related endpoints.
@@ -57,7 +57,7 @@ import org.springframework.xd.dirt.stream.TriggerDeploymentMessageSender;
 public class TriggerControllerIntegrationTests extends AbstractControllerIntegrationTest {
 
 	@Autowired
-	private TriggerDeploymentMessageSender sender;
+	private DeploymentMessageSender sender;
 
 	@Autowired
 	private TriggerController triggerController;

@@ -12,65 +12,16 @@
  */
 package org.springframework.xd.dirt.stream;
 
-import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
-
-import org.springframework.util.Assert;
-import org.springframework.xd.dirt.core.ResourceDeployer;
-import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.dirt.core.AbstractDeployer;
 
 /**
  * @author Glenn Renfro
+ * @author Luke Taylor
  *
  */
-public class JobDeployer implements ResourceDeployer<JobDefinition> {
-	private final JobDefinitionRepository repository;
-	private final JobDeploymentMessageSender messageSender;
-	private final StreamParser streamParser = new EnhancedStreamParser();
+public class JobDeployer extends AbstractDeployer<JobDefinition> {
 
-	public JobDeployer(JobDefinitionRepository repository, JobDeploymentMessageSender messageSender) {
-		Assert.notNull(repository, "repository cannot be null");
-		Assert.notNull(messageSender, "message sender cannot be null");
-		this.repository = repository;
-		this.messageSender = messageSender;
-
+	public JobDeployer(JobDefinitionRepository repository, DeploymentMessageSender messageSender) {
+		super(repository, messageSender);
 	}
-
-	/* (non-Javadoc)
-	 * @see org.springframework.xd.dirt.core.ResourceDeployer#deploy(java.lang.String)
-	 */
-	@Override
-	public void deploy(String name) {
-		Assert.hasText(name, "name cannot be blank or null");
-
-		JobDefinition jobDefinition = repository.findOne(name);
-		Assert.notNull(jobDefinition, "job '" + name+ " not found");
-		List<ModuleDeploymentRequest> requests = streamParser.parse(name, jobDefinition.getDefinition());
-		messageSender.sendDeploymentRequests(name, requests);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.springframework.xd.dirt.core.ResourceDeployer#create(java.lang.Object)
-	 */
-	@Override
-	public JobDefinition create(JobDefinition jobDefinition) {
-		Assert.notNull(jobDefinition, "Job definition may not be null");
-		return repository.save(jobDefinition);
-	}
-
-	@Override
-	public Iterable<JobDefinition> findAll() {
-		final SortedSet<JobDefinition> sortedJobDefinitions = new TreeSet<JobDefinition>();
-		for (JobDefinition jobDefinition : repository.findAll()) {
-			sortedJobDefinitions.add(jobDefinition);
-		}
-		return sortedJobDefinitions;
-	}
-
-	@Override
-	public JobDefinition findOne(String name) {
-		return repository.findOne(name);
-	}
-
 }

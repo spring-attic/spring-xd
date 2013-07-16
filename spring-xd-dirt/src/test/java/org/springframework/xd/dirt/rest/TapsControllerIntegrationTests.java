@@ -38,9 +38,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.dirt.stream.DeploymentMessageSender;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.TapDefinition;
-import org.springframework.xd.dirt.stream.TapDeploymentMessageSender;
 
 /**
  * Tests REST compliance of taps-related endpoints.
@@ -59,7 +59,7 @@ import org.springframework.xd.dirt.stream.TapDeploymentMessageSender;
 public class TapsControllerIntegrationTests extends AbstractControllerIntegrationTest {
 
 	@Autowired
-	private TapDeploymentMessageSender sender;
+	private DeploymentMessageSender sender;
 
 	@Autowired
 	private TapsController tapsController;

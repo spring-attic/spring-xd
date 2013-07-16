@@ -16,9 +16,9 @@ import static org.mockito.Mockito.mock;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.xd.dirt.stream.DeploymentMessageSender;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobDeployer;
-import org.springframework.xd.dirt.stream.JobDeploymentMessageSender;
 import org.springframework.xd.dirt.stream.memory.InMemoryJobDefinitionRepository;
 
 /**
@@ -40,7 +40,7 @@ public class JobsControllerIntegrationTestsConfig {
 	}
 
 	@Bean
-	public JobDeploymentMessageSender deploymentMessageSender() {
-		return mock(JobDeploymentMessageSender.class);
+	public DeploymentMessageSender deploymentMessageSender() {
+		return mock(DeploymentMessageSender.class);
 	}
 }

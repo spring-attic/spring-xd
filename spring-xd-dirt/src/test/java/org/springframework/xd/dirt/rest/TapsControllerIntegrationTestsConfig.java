@@ -16,10 +16,7 @@ import static org.mockito.Mockito.mock;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
-import org.springframework.xd.dirt.stream.TapDefinitionRepository;
-import org.springframework.xd.dirt.stream.TapDeployer;
-import org.springframework.xd.dirt.stream.TapDeploymentMessageSender;
+import org.springframework.xd.dirt.stream.*;
 import org.springframework.xd.dirt.stream.memory.InMemoryStreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.memory.InMemoryTapDefinitionRepository;
 
@@ -44,7 +41,7 @@ public class TapsControllerIntegrationTestsConfig {
 	}
 	
 	@Bean
-	public TapDeploymentMessageSender deploymentMessageSender() {
-		return mock(TapDeploymentMessageSender.class);
+	public DeploymentMessageSender deploymentMessageSender() {
+		return mock(DeploymentMessageSender.class);
 	}
 }

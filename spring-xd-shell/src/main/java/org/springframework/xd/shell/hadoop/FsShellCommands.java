@@ -80,7 +80,7 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 
 	@CliCommand(value = PREFIX + "ls", help = "List files in the directory")
 	public void ls(
-			@CliOption(key = { "" }, mandatory = false, specifiedDefaultValue = ".", unspecifiedDefaultValue = ".", help = "directory to be listed")
+			@CliOption(key = { "", "dir" }, mandatory = false, unspecifiedDefaultValue = ".", help = "directory to be listed")
 			final String path,
 			@CliOption(key = { "recursive" }, mandatory = false, specifiedDefaultValue = "true", unspecifiedDefaultValue = "false", help = "whether with recursion")
 			final boolean recursive) {
@@ -94,7 +94,7 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 
 	@CliCommand(value = PREFIX + "cat", help = "Copy source paths to stdout")
 	public void cat(
-			@CliOption(key = { "" }, mandatory = true, specifiedDefaultValue = ".", unspecifiedDefaultValue = ".", help = "file name to be showed")
+			@CliOption(key = { "", "path" }, mandatory = true, specifiedDefaultValue = ".", unspecifiedDefaultValue = ".", help = "file name to be shown")
 			final String path) {
 		runCommand("-cat", path);
 	}
@@ -103,7 +103,8 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 	public void chgrp(
 			@CliOption(key = { "recursive" }, mandatory = false, specifiedDefaultValue = "true", unspecifiedDefaultValue = "false", help = "whether with recursion")
 			final boolean recursive, @CliOption(key = { "group" }, mandatory = true, help = "group name")
-			final String group, @CliOption(key = { "" }, mandatory = true, help = "file name to be changed group")
+			final String group,
+			@CliOption(key = { "", "path" }, mandatory = true, help = "path of the file whose group will be changed")
 			final String path) {
 		List<String> argv = new ArrayList<String>();
 		argv.add("-chgrp");
@@ -119,8 +120,10 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 	@CliCommand(value = PREFIX + "chown", help = "Change the owner of files")
 	public void chown(
 			@CliOption(key = { "recursive" }, mandatory = false, specifiedDefaultValue = "true", unspecifiedDefaultValue = "false", help = "whether with recursion")
-			final boolean recursive, @CliOption(key = { "owner" }, mandatory = true, help = "owner name")
-			final String owner, @CliOption(key = { "" }, mandatory = true, help = "file name to be changed group")
+			final boolean recursive,
+			@CliOption(key = { "owner" }, mandatory = true, help = "owner name")
+			final String owner,
+			@CliOption(key = { "", "path" }, mandatory = true, help = "path of the file whose ownership will be changed")
 			final String path) {
 		List<String> argv = new ArrayList<String>();
 		argv.add("-chown");
@@ -136,8 +139,10 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 	@CliCommand(value = PREFIX + "chmod", help = "Change the permissions of files")
 	public void chmod(
 			@CliOption(key = { "recursive" }, mandatory = false, specifiedDefaultValue = "true", unspecifiedDefaultValue = "false", help = "whether with recursion")
-			final boolean recursive, @CliOption(key = { "mode" }, mandatory = true, help = "permission mode")
-			final String mode, @CliOption(key = { "" }, mandatory = true, help = "file name to be changed permissions")
+			final boolean recursive,
+			@CliOption(key = { "mode" }, mandatory = true, help = "permission mode")
+			final String mode,
+			@CliOption(key = { "", "path" }, mandatory = true, help = "path of the file whose permissions will be changed")
 			final String path) {
 		List<String> argv = new ArrayList<String>();
 		argv.add("-chmod");
@@ -291,7 +296,7 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 
 	@CliCommand(value = PREFIX + "du", help = "Displays sizes of files and directories contained in the given directory or the length of a file in case its just a file")
 	public void du(
-			@CliOption(key = { "" }, mandatory = false, specifiedDefaultValue = ".", unspecifiedDefaultValue = ".", help = "directory to be listed")
+			@CliOption(key = { "", "dir" }, mandatory = false, unspecifiedDefaultValue = ".", help = "directory to be listed")
 			final String path,
 			@CliOption(key = { "summary" }, mandatory = false, specifiedDefaultValue = "true", unspecifiedDefaultValue = "false", help = "whether with summary")
 			final boolean summary) {
@@ -314,7 +319,7 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 	}
 
 	@CliCommand(value = PREFIX + "mkdir", help = "Create a new directory")
-	public void mkdir(@CliOption(key = { "" }, mandatory = true, help = "directory name")
+	public void mkdir(@CliOption(key = { "", "dir" }, mandatory = true, help = "directory name")
 	final String dir) {
 		List<String> argv = new ArrayList<String>();
 		argv.add("-mkdir");
@@ -324,11 +329,11 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 
 	@CliCommand(value = PREFIX + "rm", help = "Remove files in the HDFS")
 	public void rm(
-			@CliOption(key = { "" }, mandatory = false, specifiedDefaultValue = ".", unspecifiedDefaultValue = ".", help = "directory to be listed")
+			@CliOption(key = { "", "path" }, mandatory = false, unspecifiedDefaultValue = ".", help = "path to be deleted")
 			final String path,
-			@CliOption(key = { "skipTrash" }, mandatory = false, specifiedDefaultValue = "true", unspecifiedDefaultValue = "false", help = "whether skip trash")
+			@CliOption(key = { "skipTrash" }, mandatory = false, specifiedDefaultValue = "true", unspecifiedDefaultValue = "false", help = "whether to skip trash")
 			final boolean skipTrash,
-			@CliOption(key = { "recursive" }, mandatory = false, specifiedDefaultValue = "true", unspecifiedDefaultValue = "false", help = "whether with recursion")
+			@CliOption(key = { "recursive" }, mandatory = false, specifiedDefaultValue = "true", unspecifiedDefaultValue = "false", help = "whether to recurse")
 			final boolean recursive) {
 		try {
 			Path file = new Path(path);
@@ -354,7 +359,7 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 
 	@CliCommand(value = PREFIX + "setrep", help = "Change the replication factor of a file")
 	public void setrep(
-			@CliOption(key = { "path" }, mandatory = true, help = " path name")
+			@CliOption(key = { "path" }, mandatory = true, help = "path name")
 			final String path,
 			@CliOption(key = { "replica" }, mandatory = true, help = "source file names")
 			final int replica,
@@ -377,9 +382,9 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 
 	@CliCommand(value = PREFIX + "tail", help = "Display last kilobyte of the file to stdout")
 	public void tail(
-			@CliOption(key = { "" }, mandatory = true, help = "file to be tailed")
+			@CliOption(key = { "", "file" }, mandatory = true, help = "file to be tailed")
 			final String path,
-			@CliOption(key = { "file" }, mandatory = false, specifiedDefaultValue = "true", unspecifiedDefaultValue = "false", help = "whether show content while file grow")
+			@CliOption(key = { "follow" }, mandatory = false, specifiedDefaultValue = "true", unspecifiedDefaultValue = "false", help = "whether show content while file grow")
 			final boolean file) {
 		List<String> argv = new ArrayList<String>();
 		argv.add("-tail");
@@ -391,7 +396,7 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 	}
 
 	@CliCommand(value = PREFIX + "text", help = "Take a source file and output the file in text format")
-	public void text(@CliOption(key = { "" }, mandatory = true, help = "file to be showed")
+	public void text(@CliOption(key = { "", "file" }, mandatory = true, help = "file to be shown")
 	final String path) {
 		List<String> argv = new ArrayList<String>();
 		argv.add("-text");
@@ -400,7 +405,7 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 	}
 
 	@CliCommand(value = PREFIX + "touchz", help = "Create a file of zero length")
-	public void touchz(@CliOption(key = { "" }, mandatory = true, help = "file to be touched")
+	public void touchz(@CliOption(key = { "", "file" }, mandatory = true, help = "file to be touched")
 	final String path) {
 		List<String> argv = new ArrayList<String>();
 		argv.add("-touchz");

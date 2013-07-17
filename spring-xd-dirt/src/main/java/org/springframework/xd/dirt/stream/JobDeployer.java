@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.springframework.integration.MessageHandlingException;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.ResourceDeployer;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
@@ -45,7 +46,9 @@ public class JobDeployer implements ResourceDeployer<JobDefinition> {
 		Assert.hasText(name, "name cannot be blank or null");
 
 		JobDefinition jobDefinition = repository.findOne(name);
-		Assert.notNull(jobDefinition, "job '" + name+ " not found");
+		if(jobDefinition==null){
+			throw new NoSuchJobException(name);
+		}
 		List<ModuleDeploymentRequest> requests = streamParser.parse(name, jobDefinition.getDefinition());
 		messageSender.sendDeploymentRequests(name, requests);
 	}
@@ -55,8 +58,13 @@ public class JobDeployer implements ResourceDeployer<JobDefinition> {
 	 */
 	@Override
 	public JobDefinition create(JobDefinition jobDefinition) {
+		JobDefinition result = null;
 		Assert.notNull(jobDefinition, "Job definition may not be null");
-		return repository.save(jobDefinition);
+		if(repository.findOne(jobDefinition.getName())!=null){
+			throw new JobAlreadyExistsException(jobDefinition.getName());
+		}
+		result = repository.save(jobDefinition);
+		return result;
 	}
 
 	@Override
@@ -73,4 +81,32 @@ public class JobDeployer implements ResourceDeployer<JobDefinition> {
 		return repository.findOne(name);
 	}
 
+	public JobDefinition destroyJob(String name) {
+		JobDefinition def = repository.findOne(name);
+		if (def == null) {
+			throw new NoSuchJobException(name);
+		}
+		if (repository.exists(name)) {
+			undeployJob(name);
+		}
+		repository.delete(name);
+		return def;
+	}
+
+	public void undeployJob(String name){
+		JobDefinition job = repository.findOne(name);
+		if (job == null) {
+			throw new NoSuchJobException(name);
+		}
+		List<ModuleDeploymentRequest> requests = streamParser.parse(name, job.getDefinition());
+		for(ModuleDeploymentRequest request:requests){
+			request.setRemove(true);
+		}
+		try{
+			messageSender.sendDeploymentRequests(name, requests);
+		}catch(MessageHandlingException ex){
+			//Job is not deployed.
+		}
+
+	}
 }

@@ -18,6 +18,7 @@ package org.springframework.xd.rest.client.impl;
 
 import java.net.URI;
 
+import org.springframework.xd.rest.client.JobOperations;
 import org.springframework.xd.rest.client.SpringXDOperations;
 import org.springframework.xd.rest.client.StreamOperations;
 import org.springframework.xd.rest.client.TapOperations;
@@ -25,7 +26,7 @@ import org.springframework.xd.rest.client.domain.XDRuntime;
 
 /**
  * Implementation of the entry point to the API.
- * 
+ *
  * @author Eric Bottard
  */
 public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperations {
@@ -40,12 +41,20 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 	 */
 	private TapOperations tapOperations;
 
+	/**
+	 * Holds the Job-related part of the API.
+	 */
+	private JobOperations jobOperations;
+
 	public SpringXDTemplate(URI baseURI) {
 		XDRuntime xdRuntime = restTemplate.getForObject(baseURI, XDRuntime.class);
 		resources.put("streams", URI.create(xdRuntime.getLink("streams").getHref()));
 		resources.put("taps", URI.create(xdRuntime.getLink("taps").getHref()));
+		resources.put("jobs", URI.create(xdRuntime.getLink("jobs").getHref()));
+
 		streamOperations = new StreamTemplate(this);
 		tapOperations = new TapTemplate(this);
+		jobOperations = new JobTemplate(this);
 	}
 
 	@Override
@@ -58,4 +67,8 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 		return tapOperations;
 	}
 
+	@Override
+	public JobOperations jobOperations() {
+		return jobOperations;
+	}
 }

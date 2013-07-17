@@ -22,6 +22,7 @@ import org.springframework.xd.rest.client.JobOperations;
 import org.springframework.xd.rest.client.SpringXDOperations;
 import org.springframework.xd.rest.client.StreamOperations;
 import org.springframework.xd.rest.client.TapOperations;
+import org.springframework.xd.rest.client.TriggerOperations;
 import org.springframework.xd.rest.client.domain.XDRuntime;
 
 /**
@@ -40,6 +41,11 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 	 * Holds the Tap-related part of the API.
 	 */
 	private TapOperations tapOperations;
+	
+	/**
+	 * Holds the Trigger-related part of the API.
+	 */
+	private TriggerOperations triggerOperations;
 
 	/**
 	 * Holds the Job-related part of the API.
@@ -50,11 +56,13 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 		XDRuntime xdRuntime = restTemplate.getForObject(baseURI, XDRuntime.class);
 		resources.put("streams", URI.create(xdRuntime.getLink("streams").getHref()));
 		resources.put("taps", URI.create(xdRuntime.getLink("taps").getHref()));
+		resources.put("triggers", URI.create(xdRuntime.getLink("triggers").getHref()));
 		resources.put("jobs", URI.create(xdRuntime.getLink("jobs").getHref()));
 
 		streamOperations = new StreamTemplate(this);
 		tapOperations = new TapTemplate(this);
 		jobOperations = new JobTemplate(this);
+		triggerOperations = new TriggerTemplate(this);
 	}
 
 	@Override
@@ -65,6 +73,11 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 	@Override
 	public TapOperations tapOperations() {
 		return tapOperations;
+	}
+	
+	@Override
+	public TriggerOperations triggerOperations() {
+		return triggerOperations;
 	}
 
 	@Override

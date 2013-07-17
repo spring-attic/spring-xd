@@ -16,30 +16,23 @@
 
 package org.springframework.xd.rest.client;
 
+import org.springframework.xd.rest.client.domain.TriggerDefinitionResource;
+
 /**
- * Main entry point for interacting with a running XD system.
+ * Interface defining operations against triggers.
  *
- * @author Eric Bottard
- * @author Glenn Renfro
+ * @author Ilayaperumal Gopinathan
+ *
  */
-public interface SpringXDOperations {
+public interface TriggerOperations {
 
 	/**
-	 * Returns the portion of the API for interacting with Streams.
+	 * Create a new Trigger.
+	 *
+	 * @param name the name to give to the trigger
+	 * @param definition the trigger definition
+	 * @return representation of the created trigger definition
 	 */
-	public StreamOperations streamOperations();
+	public TriggerDefinitionResource createTrigger(String name, String definition);
 
-	/**
-	 * Returns the portion of the API for interaction with Taps.
-	 */
-	public TapOperations tapOperations();
-	/**
-	 * Returns the portion of the API for interaction with Jobs.
-	 */
-	public JobOperations jobOperations();
-	
-	/**
-	 * Returns the portion of the API for interaction with Triggers.
-	 */
-	public TriggerOperations triggerOperations();
 }

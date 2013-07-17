@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.xd.rest.client.domain.JobDefinitionResource;
 import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
 import org.springframework.xd.rest.client.domain.TapDefinitionResource;
+import org.springframework.xd.rest.client.domain.TriggerDefinitionResource;
 import org.springframework.xd.rest.client.domain.XDRuntime;
 
 /**
@@ -45,7 +46,7 @@ public class AdminController {
 	public XDRuntime info() {
 		XDRuntime xdRuntime = new XDRuntime();
 		xdRuntime.add(entityLinks.linkFor(StreamDefinitionResource.class).withRel("streams"));
-		xdRuntime.add(entityLinks.linkFor(StreamDefinitionResource.class).withRel("triggers"));
+		xdRuntime.add(entityLinks.linkFor(TriggerDefinitionResource.class).withRel("triggers"));
 		xdRuntime.add(entityLinks.linkFor(JobDefinitionResource.class).withRel("jobs"));
 		xdRuntime.add(entityLinks.linkFor(TapDefinitionResource.class).withRel("taps"));
 		return xdRuntime;

@@ -16,6 +16,8 @@
 
 package org.springframework.xd.dirt.rest;
 
+import java.util.ArrayList;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.VndErrors;
@@ -126,8 +128,8 @@ public class JobsController {
 	@ResponseBody
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
-	public Iterable<JobDefinition> list() {
-		return  jobDeployer.findAll();
+	public Iterable<JobDefinitionResource> list() {
+		return  definitionResourceAssembler.toResources(jobDeployer.findAll());
 	}
 	
 	// ---------------- Exception Handlers ------------------------

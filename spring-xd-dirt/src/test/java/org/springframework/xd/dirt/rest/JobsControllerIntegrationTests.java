@@ -74,7 +74,7 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 		mockMvc.perform(delete("/jobs/{name}", "job1")).andExpect(status().isOk());
 	}
 	@Test
-	public void testListAllTaps() throws Exception {
+	public void testListAllJobs() throws Exception {
 		mockMvc.perform(
 				post("/jobs").param("name", "job1").param("definition", "Job --cron='*/10 * * * * *'")
 						.accept(MediaType.APPLICATION_JSON)).andExpect(status().isCreated());

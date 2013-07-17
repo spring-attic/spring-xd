@@ -43,6 +43,8 @@ import org.springframework.xd.shell.XDShell;
 import org.springframework.xd.shell.command.HttpCommands;
 import org.springframework.xd.shell.command.StreamCommands;
 import org.springframework.xd.shell.command.TapCommands;
+import org.springframework.xd.shell.hadoop.ConfigurationCommands;
+import org.springframework.xd.shell.hadoop.FsShellCommands;
 
 /**
  * A quick and dirty tool to collect command help() text and generate an asciidoc page. Also enforces some constraints
@@ -84,8 +86,8 @@ public class ReferenceDoc {
 		titles.put(StreamCommands.class, "Stream Commands");
 		titles.put(TapCommands.class, "Tap Commands");
 		titles.put(HttpCommands.class, "Http Commands");
-		// titles.put(ConfigurationCommands.class, "Hadoop Configuration Commands");
-		// titles.put(FsShellCommands.class, "Hadoop FileSystem Commands");
+		titles.put(ConfigurationCommands.class, "Hadoop Configuration Commands");
+		titles.put(FsShellCommands.class, "Hadoop FileSystem Commands");
 		titles.put(HttpCommands.class, "Http Commands");
 	}
 
@@ -166,20 +168,21 @@ public class ReferenceDoc {
 				for (CliOption option : commands.get(command)) {
 					String paramName = check(paramName(option), OPTION_FORMAT);
 					String optionText = String.format("<%s>", paramName);
-					if (/* keyOptional(option) && */valueOptional(option)) {
-						optionText = String.format("--%s[=%s]", paramName, optionText);
+					if (valueOptional(option)) {
+						optionText = String.format("--%s [%s]", paramName, optionText);
 					}
 					else if (keyOptional(option)) {
-						optionText = String.format("[--%s=]%s", paramName, optionText);
-					}
-					else if (valueOptional(option)) {
-						optionText = String.format("--%s[=%s]", paramName, optionText);
+						optionText = String.format("[--%s] %s", paramName, optionText);
 					}
 					else {
-						optionText = String.format("--%s=%s", paramName, optionText);
+						optionText = String.format("--%s %s", paramName, optionText);
 					}
 					if (!option.mandatory()) {
 						optionText = String.format("[%s]", optionText);
+					}
+					if (option.mandatory() && valueOptional(option)) {
+						// This combination does not make sense. Or does it?
+						throw new IllegalStateException("" + command + " " + option);
 					}
 					out.printf(" %s", optionText);
 				}
@@ -196,10 +199,13 @@ public class ReferenceDoc {
 								throw new IllegalStateException("" + option);
 							}
 
-							out.printf(", or `%s` if +--%s+ is specified withour a value",
+							out.printf(", or `%s` if +--%s+ is specified without a value",
 									option.specifiedDefaultValue(), paramName(option));
 						}
 						out.printf(")*");
+					}
+					else {
+						out.printf(" *(required)*");
 					}
 					out.printf("%n");
 				}
@@ -215,6 +221,9 @@ public class ReferenceDoc {
 	}
 
 	private String titleFor(Class<? extends CommandMarker> plugin) {
+		if (!titles.containsKey(plugin)) {
+			throw new IllegalArgumentException("Missing title for " + plugin);
+		}
 		return titles.get(plugin);
 	}
 

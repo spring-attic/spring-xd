@@ -94,7 +94,7 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 
 	@CliCommand(value = PREFIX + "cat", help = "Copy source paths to stdout")
 	public void cat(
-			@CliOption(key = { "", "path" }, mandatory = true, specifiedDefaultValue = ".", unspecifiedDefaultValue = ".", help = "file name to be shown")
+			@CliOption(key = { "", "path" }, mandatory = true, unspecifiedDefaultValue = ".", help = "file name to be shown")
 			final String path) {
 		runCommand("-cat", path);
 	}

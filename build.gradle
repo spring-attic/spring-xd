@@ -195,6 +195,7 @@ project('spring-xd-dirt') {
 		compile project(":spring-xd-analytics"),
 				project(":spring-xd-module"),
 				project(":spring-xd-hadoop"),
+				project(":spring-xd-jdbc"),
 				project(":spring-xd-http"),
 				project(':spring-xd-rest-domain'),
 				"org.springframework:spring-webmvc:$springVersion",
@@ -426,6 +427,20 @@ project('spring-xd-hadoop') {
 		// Needed for webhdfs sink
 		runtime ("org.mortbay.jetty:jetty-util:6.1.26")
 		runtime("javax.ws.rs:jsr311-api:1.1.1")
+	}
+}
+
+project('spring-xd-jdbc') {
+	description = 'Spring XD JDBC'
+	dependencies {
+		compile "org.springframework:spring-jdbc:$springVersion"
+		compile "org.springframework:spring-tx:$springVersion"
+		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
+		runtime "org.springframework.integration:spring-integration-jdbc:$springIntegrationVersion"
+		runtime "org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion"
+		runtime "hsqldb:hsqldb:1.8.0.10"
+		runtime "mysql:mysql-connector-java:5.1.23"
+		runtime "postgresql:postgresql:9.1-901-1.jdbc4"
 	}
 }
 

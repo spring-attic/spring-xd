@@ -16,8 +16,6 @@
 
 package org.springframework.xd.dirt.rest;
 
-import java.util.ArrayList;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.VndErrors;

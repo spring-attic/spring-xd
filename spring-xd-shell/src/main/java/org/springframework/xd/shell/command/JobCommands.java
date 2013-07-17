@@ -58,7 +58,7 @@ public class JobCommands implements CommandMarker {
 	public String createJob(
 			@CliOption(mandatory = true, key = "name", help = "the name to give to the job")
 			String name,
-			@CliOption(mandatory = true, key = { "", "definition" }, help = "Job definition, using XD DSL (e.g. \"job --cron='*/10 * * * * *'\")")
+			@CliOption(mandatory = true, key = { "", "definition" }, help = "job definition using xd dsl ")
 			String dsl,
 			@CliOption(key = "deploy", help = "whether to deploy the stream immediately", unspecifiedDefaultValue = "true")
 			Boolean deploy) {

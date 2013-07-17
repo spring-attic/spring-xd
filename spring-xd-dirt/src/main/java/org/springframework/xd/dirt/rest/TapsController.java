@@ -17,6 +17,8 @@
 package org.springframework.xd.dirt.rest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -34,7 +36,7 @@ import org.springframework.xd.rest.client.domain.TapDefinitionResource;
 /**
  * @author David Turanski
  * @author Gunnar Hillert
- *
+ * 
  * @since 1.0
  */
 @Controller
@@ -53,36 +55,39 @@ public class TapsController {
 
 	/**
 	 * Request removal of an existing tap.
-	 *
+	 * 
 	 * @param name the name of an existing tap (required)
 	 */
 	@RequestMapping(value = "/{name}", method = RequestMethod.DELETE)
 	@ResponseStatus(HttpStatus.OK)
-	public void delete(@PathVariable("name") String name) {
+	public void delete(@PathVariable("name")
+	String name) {
 		tapDeployer.delete(name);
 	}
 
 	/**
 	 * Deploy an existing Tap.
-	 *
+	 * 
 	 * @param name the name of the tap to deploy (required)
 	 */
 	@RequestMapping(value = "/{name}", method = RequestMethod.PUT, params = "deploy=true")
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public void deploy(@PathVariable("name") String name) {
+	public void deploy(@PathVariable("name")
+	String name) {
 		tapDeployer.deploy(name);
 	}
 
 	/**
 	 * Retrieve information about a single {@link TapDefinition}.
-	 *
+	 * 
 	 * @param name the name of an existing tap (required)
 	 */
 	@RequestMapping(value = "/{name}", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public TapDefinitionResource display(@PathVariable("name") String name) {
+	public TapDefinitionResource display(@PathVariable("name")
+	String name) {
 		final TapDefinition tapDefinition = tapDeployer.findOne(name);
 
 		if (tapDefinition == null) {
@@ -97,24 +102,24 @@ public class TapsController {
 	 */
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
-	@ResponseBody
-	public Iterable<TapDefinitionResource> list() {
-		final Iterable<TapDefinition> taps = tapDeployer.findAll();
+	public Iterable<TapDefinitionResource> list(Pageable pageable, PagedResourcesAssembler<TapDefinition> assembler) {
+		final Iterable<TapDefinition> taps = tapDeployer.findAll(/* pageable */);
 		return definitionResourceAssembler.toResources(taps);
 	}
 
 	/**
 	 * Create a new Tap.
-	 *
+	 * 
 	 * @param name the name of the tap to create (required)
 	 * @param definition the tap definition expressed in the XD DSL (required)
 	 */
 	@RequestMapping(value = "", method = RequestMethod.POST)
 	@ResponseStatus(HttpStatus.CREATED)
 	@ResponseBody
-	public TapDefinitionResource save(@RequestParam("name") String name,
-			@RequestParam("definition") String definition,
-			@RequestParam(value = "deploy", defaultValue = "true") boolean deploy) {
+	public TapDefinitionResource save(@RequestParam("name")
+	String name, @RequestParam("definition")
+	String definition, @RequestParam(value = "deploy", defaultValue = "true")
+	boolean deploy) {
 		final TapDefinition tapDefinition = new TapDefinition(name, definition);
 		final TapDefinition savedTapDefinition = tapDeployer.create(tapDefinition);
 		final TapDefinitionResource result = definitionResourceAssembler.toResource(savedTapDefinition);
@@ -126,12 +131,13 @@ public class TapsController {
 
 	/**
 	 * Request un-deployment of an existing named tap.
-	 *
+	 * 
 	 * @param name the name of an existing tap (required)
 	 */
 	@RequestMapping(value = "/{name}", method = RequestMethod.PUT, params = "deploy=false")
 	@ResponseStatus(HttpStatus.OK)
-	public void undeploy(@PathVariable("name") String name) {
+	public void undeploy(@PathVariable("name")
+	String name) {
 		tapDeployer.undeploy(name);
 	}
 

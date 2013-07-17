@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.web.client.RestTemplate;
-import org.springframework.xd.rest.client.domain.AbstractJaxb2HttpMessageConverterHack;
 
 /**
  * Base class for sub-parts of the API, allows sharing configured objects like the {@link RestTemplate}.
@@ -55,7 +54,6 @@ import org.springframework.xd.rest.client.domain.AbstractJaxb2HttpMessageConvert
 	AbstractTemplate() {
 		restTemplate = new RestTemplate();
 		restTemplate.setErrorHandler(new VndErrorResponseErrorHandler(restTemplate.getMessageConverters()));
-		AbstractJaxb2HttpMessageConverterHack.populateJAXBContext(restTemplate.getMessageConverters());
 	}
 
 }

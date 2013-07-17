@@ -16,13 +16,14 @@
 
 package org.springframework.xd.dirt.rest;
 
-import java.util.List;
+import java.util.ArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.ExposesResourceFor;
+import org.springframework.hateoas.PagedResources;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -39,10 +40,10 @@ import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
 
 /**
  * Handles all Stream related interaction.
- *
+ * 
  * @author Eric Bottard
  * @author Gunnar Hillert
- *
+ * 
  * @since 1.0
  */
 @Controller
@@ -64,35 +65,38 @@ public class StreamsController {
 
 	/**
 	 * Request removal of an existing stream.
-	 *
+	 * 
 	 * @param name the name of an existing stream (required)
 	 */
 	@RequestMapping(value = "/{name}", method = RequestMethod.DELETE)
 	@ResponseStatus(HttpStatus.OK)
-	public void delete(@PathVariable("name") String name) {
+	public void delete(@PathVariable("name")
+	String name) {
 		streamDeployer.destroyStream(name);
 	}
 
 	/**
 	 * Request deployment of an existing named stream.
-	 *
+	 * 
 	 * @param name the name of an existing stream (required)
 	 */
 	@RequestMapping(value = "/{name}", method = RequestMethod.PUT, params = "deploy=true")
 	@ResponseStatus(HttpStatus.OK)
-	public void deploy(@PathVariable("name") String name) {
+	public void deploy(@PathVariable("name")
+	String name) {
 		streamDeployer.deployStream(name);
 	}
 
 	/**
 	 * Retrieve information about a single {@link StreamDefinition}.
-	 *
+	 * 
 	 * @param name the name of an existing stream (required)
 	 */
 	@RequestMapping(value = "/{name}", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public StreamDefinitionResource display(@PathVariable("name") String name) {
+	public StreamDefinitionResource display(@PathVariable("name")
+	String name) {
 		StreamDefinition streamDefinition = streamDefinitionRepository.findOne(name);
 		if (streamDefinition == null) {
 			throw new NoSuchDefinitionException(name, "There is no stream definition named '%s'");
@@ -105,17 +109,21 @@ public class StreamsController {
 	 */
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
-	@ResponseBody
-	public/* PagedResources */List<StreamDefinitionResource> list(Pageable pageable,
+	public PagedResources<StreamDefinitionResource> list(Pageable pageable,
 			PagedResourcesAssembler<StreamDefinition> assembler) {
 		Page<StreamDefinition> page = streamDefinitionRepository.findAll(pageable);
-		return definitionResourceAssembler.toResources(page.getContent());
-		// return assembler.toResource(page, definitionResourceAssembler);
+		// Workaround https://github.com/SpringSource/spring-hateoas/issues/89
+		if (page.hasContent()) {
+			return assembler.toResource(page, definitionResourceAssembler);
+		}
+		else {
+			return new PagedResources<StreamDefinitionResource>(new ArrayList<StreamDefinitionResource>(), null);
+		}
 	}
 
 	/**
 	 * Create a new Stream, optionally deploying it.
-	 *
+	 * 
 	 * @param name the name of the stream to create (required)
 	 * @param definition some representation of the stream behavior, expressed in the XD DSL (required)
 	 * @param deploy whether to also immediately deploy the stream (default true)
@@ -123,9 +131,10 @@ public class StreamsController {
 	@RequestMapping(value = "", method = RequestMethod.POST)
 	@ResponseStatus(HttpStatus.CREATED)
 	@ResponseBody
-	public StreamDefinitionResource save(@RequestParam("name") String name,
-			@RequestParam("definition") String definition,
-			@RequestParam(value = "deploy", defaultValue = "true") boolean deploy) {
+	public StreamDefinitionResource save(@RequestParam("name")
+	String name, @RequestParam("definition")
+	String definition, @RequestParam(value = "deploy", defaultValue = "true")
+	boolean deploy) {
 		StreamDefinition streamDefinition = streamDeployer.createStream(name, definition, deploy);
 		StreamDefinitionResource result = definitionResourceAssembler.toResource(streamDefinition);
 		return result;
@@ -133,7 +142,7 @@ public class StreamsController {
 
 	/**
 	 * Request un-deployment of an existing named stream.
-	 *
+	 * 
 	 * @param name the name of an existing stream (required)
 	 */
 	@RequestMapping(value = "/{name}", method = RequestMethod.PUT, params = "deploy=false")

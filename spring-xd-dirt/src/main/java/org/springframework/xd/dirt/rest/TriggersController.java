@@ -36,7 +36,7 @@ import org.springframework.xd.rest.client.domain.TriggerDefinitionResource;
 
 /**
  * Handles all Trigger related interactions.
- *
+ * 
  * @author Gunnar Hillert
  * @since 1.0
  */
@@ -56,7 +56,7 @@ public class TriggersController {
 
 	/**
 	 * Create a new Trigger.
-	 *
+	 * 
 	 * @param name The name of the trigger to create (required)
 	 * @param definition The Trigger definition, expressed in the XD DSL (required)
 	 */
@@ -75,13 +75,14 @@ public class TriggersController {
 
 	/**
 	 * Retrieve information about a single {@link TriggerDefinition}.
-	 *
+	 * 
 	 * @param name the name of an existing trigger (required)
 	 */
 	@ResponseBody
 	@RequestMapping(value = "/{name}", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
-	public TriggerDefinitionResource display(@PathVariable("name") String name) {
+	public TriggerDefinitionResource display(@PathVariable("name")
+	String name) {
 
 		final TriggerDefinition triggerDefinition = triggerDeployer.findOne(name);
 
@@ -94,7 +95,7 @@ public class TriggersController {
 
 	/**
 	 * Request removal of an existing trigger.
-	 *
+	 * 
 	 * @param name the name of an existing trigger (required)
 	 */
 	@RequestMapping(value = "/{name}", method = RequestMethod.DELETE)
@@ -106,7 +107,7 @@ public class TriggersController {
 
 	/**
 	 * Deploy an existing Trigger.
-	 *
+	 * 
 	 * @param name the name of the tap to create (required)
 	 * @param definition the tap definition expressed in the XD DSL (required)
 	 */
@@ -124,9 +125,9 @@ public class TriggersController {
 	@ResponseBody
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
-	public Iterable<TriggerDefinition> list() {
+	public Iterable<TriggerDefinitionResource> list() {
 		final Iterable<TriggerDefinition> taps = triggerDeployer.findAll();
-		return taps;
+		return definitionResourceAssembler.toResources(taps);
 	}
 
 	// ---------------- Exception Handlers ------------------------

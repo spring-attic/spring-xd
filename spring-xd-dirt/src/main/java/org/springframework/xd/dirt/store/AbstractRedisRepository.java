@@ -55,9 +55,8 @@ public abstract class AbstractRedisRepository<T, ID extends Serializable> implem
 	public AbstractRedisRepository(String repoPrefix, RedisOperations<String, String> redisOperations) {
 		Assert.hasText(repoPrefix, "repoPrefix must not be empty or null");
 		Assert.notNull(redisOperations, "redisOperations must not be null");
-		this.repoPrefix = repoPrefix;
 		this.redisOperations = redisOperations;
-		this.zSetOperations = redisOperations.boundZSetOps(repoPrefix);
+		setPrefix(repoPrefix);
 	}
 
 	@Override
@@ -202,6 +201,7 @@ public abstract class AbstractRedisRepository<T, ID extends Serializable> implem
 	 */
 	public void setPrefix(String string) {
 		this.repoPrefix = string;
+		this.zSetOperations = redisOperations.boundZSetOps(repoPrefix);
 	}
 
 }

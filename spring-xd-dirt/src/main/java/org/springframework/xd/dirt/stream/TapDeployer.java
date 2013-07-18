@@ -12,45 +12,20 @@
  */
 package org.springframework.xd.dirt.stream;
 
-import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
-
 import org.springframework.util.Assert;
-import org.springframework.xd.dirt.core.ResourceDeployer;
-import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.dirt.core.AbstractDeployer;
 
 /**
  * @author David Turanski
- *
+ * @author Luke Taylor
  */
-public class TapDeployer implements ResourceDeployer<TapDefinition> {
-	private final TapDefinitionRepository repository;
-	private final TapDeploymentMessageSender messageSender;
+public class TapDeployer extends AbstractDeployer<TapDefinition> {
 	private final StreamDefinitionRepository streamRepository;
-	private final StreamParser streamParser = new EnhancedStreamParser();
 
-	public TapDeployer(TapDefinitionRepository repository, StreamDefinitionRepository streamRepository, TapDeploymentMessageSender messageSender) {
-		Assert.notNull(repository, "repository cannot be null");
+	public TapDeployer(TapDefinitionRepository repository, StreamDefinitionRepository streamRepository, DeploymentMessageSender messageSender) {
+		super(repository, messageSender);
 		Assert.notNull(streamRepository, "stream repository cannot be null");
-		Assert.notNull(messageSender, "message sender cannot be null");
-		this.repository = repository;
-		this.messageSender = messageSender;
 		this.streamRepository = streamRepository;
-
-	}
-
-	/* (non-Javadoc)
-	 * @see org.springframework.xd.dirt.core.ResourceDeployer#deploy(java.lang.String)
-	 */
-	@Override
-	public void deploy(String name) {
-		Assert.hasText(name, "name cannot be blank or null");
-
-		TapDefinition tapDefinition = repository.findOne(name);
-		Assert.notNull(tapDefinition, "tap '" + name+ " not found");
-		List<ModuleDeploymentRequest> requests = streamParser.parse(name, tapDefinition.getDefinition());
-		messageSender.sendDeploymentRequests(name, requests);
 	}
 
 	/* (non-Javadoc)
@@ -59,22 +34,10 @@ public class TapDeployer implements ResourceDeployer<TapDefinition> {
 	@Override
 	public TapDefinition create(TapDefinition tapDefinition) {
 		Assert.notNull(tapDefinition, "tap definition may not be null");
-		Assert.isTrue(streamRepository.exists(tapDefinition.getStreamName()),
-				"source stream '" + tapDefinition.getStreamName()+"' does not exist for tap '" + tapDefinition.getName());
-		return repository.save(tapDefinition);
-	}
-
-	@Override
-	public Iterable<TapDefinition> findAll() {
-		final SortedSet<TapDefinition> sortedTapDefinitions = new TreeSet<TapDefinition>();
-		for (TapDefinition tapDefinition : repository.findAll()) {
-			sortedTapDefinitions.add(tapDefinition);
+		if (!streamRepository.exists(tapDefinition.getStreamName())) {
+			throw new NoSuchStreamException("source stream '" + tapDefinition.getStreamName()
+					+ "' does not exist for tap '" + tapDefinition.getName());
 		}
-		return sortedTapDefinitions;
-	}
-
-	@Override
-	public TapDefinition findOne(String name) {
-		return repository.findOne(name);
+		return super.create(tapDefinition);
 	}
 }

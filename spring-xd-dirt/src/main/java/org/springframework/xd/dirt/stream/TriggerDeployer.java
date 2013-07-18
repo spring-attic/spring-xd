@@ -12,70 +12,19 @@
  */
 package org.springframework.xd.dirt.stream;
 
-import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
-
-import org.springframework.util.Assert;
-import org.springframework.xd.dirt.core.ResourceDeployer;
-import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.dirt.core.AbstractDeployer;
 
 /**
  * Responsible for deploying {@link TriggerDefinition}s.
  *
  * @author Gunnar Hillert
+ * @author Luke Taylor
  * @since 1.0
  *
  */
-public class TriggerDeployer implements ResourceDeployer<TriggerDefinition> {
+public class TriggerDeployer extends AbstractDeployer<TriggerDefinition> {
 
-	private final TriggerDefinitionRepository repository;
-	private final TriggerDeploymentMessageSender messageSender;
-
-	//TODO This should possibly be handled by a dedicated TriggerStreamParser
-	private final StreamParser streamParser = new EnhancedStreamParser();
-
-	public TriggerDeployer(TriggerDefinitionRepository repository, TriggerDeploymentMessageSender messageSender) {
-		Assert.notNull(repository, "repository cannot be null");
-		Assert.notNull(messageSender, "message sender cannot be null");
-		this.repository = repository;
-		this.messageSender = messageSender;
+	public TriggerDeployer(TriggerDefinitionRepository repository, DeploymentMessageSender messageSender) {
+		super (repository, messageSender);
 	}
-
-	/* (non-Javadoc)
-	 * @see org.springframework.xd.dirt.core.ResourceDeployer#deploy(java.lang.String)
-	 */
-	@Override
-	public void deploy(String name) {
-		Assert.hasText(name, "name cannot be blank or null");
-
-		TriggerDefinition triggerDefinition = repository.findOne(name);
-		Assert.notNull(triggerDefinition, "tap '" + name+ " not found");
-		List<ModuleDeploymentRequest> requests = streamParser.parse(name, triggerDefinition.getDefinition());
-		messageSender.sendDeploymentRequests(name, requests);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.springframework.xd.dirt.core.ResourceDeployer#create(java.lang.Object)
-	 */
-	@Override
-	public TriggerDefinition create(TriggerDefinition triggerDefinition) {
-		Assert.notNull(triggerDefinition, "trigger definition may not be null");
-		return repository.save(triggerDefinition);
-	}
-
-	@Override
-	public Iterable<TriggerDefinition> findAll() {
-		final SortedSet<TriggerDefinition> sortedTriggerDefinitions = new TreeSet<TriggerDefinition>();
-		for (TriggerDefinition triggerDefinition : repository.findAll()) {
-			sortedTriggerDefinitions.add(triggerDefinition);
-		}
-		return sortedTriggerDefinitions;
-	}
-
-	@Override
-	public TriggerDefinition findOne(String name) {
-		return repository.findOne(name);
-	}
-
 }

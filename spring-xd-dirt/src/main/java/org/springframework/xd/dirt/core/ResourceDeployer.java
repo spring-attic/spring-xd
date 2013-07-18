@@ -36,7 +36,7 @@ public interface ResourceDeployer<R extends BaseDefinition> {
 	/**
 	 * Retrieves a single Definition or null if none is found.
 	 *
-	 * @param Must not be null.
+	 * @param name of the definition to find. Must not be null.
 	 */
 	R findOne(String name);
 

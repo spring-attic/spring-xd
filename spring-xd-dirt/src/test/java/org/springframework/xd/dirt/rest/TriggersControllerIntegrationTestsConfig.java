@@ -16,9 +16,9 @@ import static org.mockito.Mockito.mock;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.xd.dirt.stream.DeploymentMessageSender;
 import org.springframework.xd.dirt.stream.TriggerDefinitionRepository;
 import org.springframework.xd.dirt.stream.TriggerDeployer;
-import org.springframework.xd.dirt.stream.TriggerDeploymentMessageSender;
 import org.springframework.xd.dirt.stream.memory.InMemoryTriggerDefinitionRepository;
 
 /**
@@ -40,7 +40,7 @@ public class TriggersControllerIntegrationTestsConfig {
 	}
 
 	@Bean
-	public TriggerDeploymentMessageSender deploymentMessageSender() {
-		return mock(TriggerDeploymentMessageSender.class);
+	public DeploymentMessageSender deploymentMessageSender() {
+		return mock(DeploymentMessageSender.class);
 	}
 }

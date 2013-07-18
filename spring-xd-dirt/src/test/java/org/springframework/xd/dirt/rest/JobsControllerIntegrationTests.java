@@ -36,7 +36,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
-import org.springframework.xd.dirt.stream.JobDeploymentMessageSender;
+import org.springframework.xd.dirt.stream.DeploymentMessageSender;
 
 /**
  * Tests REST compliance of jobs-related endpoints.
@@ -49,7 +49,7 @@ import org.springframework.xd.dirt.stream.JobDeploymentMessageSender;
 public class JobsControllerIntegrationTests extends AbstractControllerIntegrationTest {
 
 	@Autowired
-	private JobDeploymentMessageSender sender;
+	private DeploymentMessageSender sender;
 
 	@Test
 	public void testSuccessfulJobCreation() throws Exception {

@@ -36,7 +36,7 @@ public class TapDeployerTests {
 	TapDefinitionRepository repository;
 	StreamDefinitionRepository streamRepository;
 	SubscribableChannel outputChannel;
-	TapDeploymentMessageSender sender;
+	DeploymentMessageSender sender;
 	TapDeployer tapDeployer;
 
 	@Before
@@ -44,7 +44,7 @@ public class TapDeployerTests {
 		repository = new InMemoryTapDefinitionRepository();
 		streamRepository = new InMemoryStreamDefinitionRepository();
 		outputChannel = new DirectChannel();
-		sender = new TapDeploymentMessageSender(outputChannel);
+		sender = new DeploymentMessageSender(outputChannel);
 		tapDeployer = new TapDeployer(repository, streamRepository, sender);
 	}
 
@@ -56,7 +56,7 @@ public class TapDeployerTests {
 		assertTrue(repository.exists("tap1"));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = NoSuchStreamException.class)
 	public void testCreateFailsIfSourceStreamDoesNotExist() {
 		TapDefinition tapDefinition = new TapDefinition("tap1", "test", "tap @test | file");
 		tapDeployer.create(tapDefinition);
@@ -78,8 +78,8 @@ public class TapDeployerTests {
 		assertEquals(2, messageCount.get());
 	}
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testDeployFails() {
+	@Test(expected = NoSuchDefinitionException.class)
+	public void testDeployFailsForMissingDefinition() {
 		tapDeployer.deploy("tap1");
 	}
 

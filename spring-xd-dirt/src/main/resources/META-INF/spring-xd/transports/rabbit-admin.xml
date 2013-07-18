@@ -13,8 +13,16 @@
 
 	<bean id="streamDeployer" class="org.springframework.xd.dirt.stream.DefaultStreamDeployer">
 		<constructor-arg ref="deployChannel" />
+		<constructor-arg ref="streamDefinitionRepository" />
 		<constructor-arg ref="streamRepository" />
 	</bean>
+
+	<bean id="tapDeployer" class="org.springframework.xd.dirt.stream.TapDeployer">
+		<constructor-arg ref="tapRepository" />
+		<constructor-arg ref="streamDefinitionRepository" />
+		<constructor-arg ref="deploymentMessageSender" />
+	</bean>
+
 
 	<int:channel id="deployChannel" />
 

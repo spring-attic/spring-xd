@@ -34,7 +34,7 @@ import org.springframework.xd.rest.client.domain.TriggerDefinitionResource;
 
 /**
  * Handles all Trigger related interactions.
- * 
+ *
  * @author Gunnar Hillert
  * @since 1.0
  */
@@ -53,79 +53,86 @@ public class TriggersController {
 	}
 
 	/**
-	 * Create a new Trigger.
-	 * 
-	 * @param name The name of the trigger to create (required)
-	 * @param definition The Trigger definition, expressed in the XD DSL (required)
+	 * Request removal of an existing {@link TriggerDefinition}.
+	 *
+	 * @param name the name of an existing trigger (required)
 	 */
-	@RequestMapping(value = "", method = RequestMethod.POST)
-	@ResponseStatus(HttpStatus.CREATED)
+	@RequestMapping(value = "/{name}", method = RequestMethod.DELETE)
+	@ResponseStatus(HttpStatus.OK)
+	public void delete(@PathVariable("name") String name) {
+		triggerDeployer.delete(name);
+	}
+
+	/**
+	 * Deploy an existing Trigger.
+	 *
+	 * @param name the name of the tap to create (required)
+	 * @param definition the tap definition expressed in the XD DSL (required)
+	 */
+	@RequestMapping(value = "/{name}", method = RequestMethod.PUT, params = "deploy=true")
+	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public TriggerDefinitionResource deploy(@RequestParam("name")
-	String name, @RequestParam("definition")
-	String definition) {
-		final TriggerDefinition triggerDefinition = new TriggerDefinition(name, definition);
-		TriggerDefinition streamDefinition = triggerDeployer.create(triggerDefinition);
+	public void deploy(@PathVariable("name") String name) {
 		triggerDeployer.deploy(name);
-		TriggerDefinitionResource result = definitionResourceAssembler.toResource(streamDefinition);
-		return result;
 	}
 
 	/**
 	 * Retrieve information about a single {@link TriggerDefinition}.
-	 * 
+	 *
 	 * @param name the name of an existing trigger (required)
 	 */
-	@ResponseBody
 	@RequestMapping(value = "/{name}", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
-	public TriggerDefinitionResource display(@PathVariable("name")
-	String name) {
-
+	@ResponseBody
+	public TriggerDefinitionResource display(@PathVariable("name") String name) {
 		final TriggerDefinition triggerDefinition = triggerDeployer.findOne(name);
 
 		if (triggerDefinition == null) {
 			throw new NoSuchDefinitionException(name, "There is no trigger definition named '%s'");
 		}
-
 		return definitionResourceAssembler.toResource(triggerDefinition);
-	}
-
-	/**
-	 * Request removal of an existing trigger.
-	 * 
-	 * @param name the name of an existing trigger (required)
-	 */
-	@RequestMapping(value = "/{name}", method = RequestMethod.DELETE)
-	@ResponseStatus(HttpStatus.OK)
-	public void undeploy(@PathVariable("name")
-	String name) {
-		throw new NotImplementedException("Removal of Triggers is not Implemented, yet.");
-	}
-
-	/**
-	 * Deploy an existing Trigger.
-	 * 
-	 * @param name the name of the tap to create (required)
-	 * @param definition the tap definition expressed in the XD DSL (required)
-	 */
-	@RequestMapping(value = "/{name}", method = RequestMethod.PUT)
-	@ResponseStatus(HttpStatus.OK)
-	@ResponseBody
-	public void deploy(@PathVariable("name")
-	String name) {
-		triggerDeployer.deploy(name);
 	}
 
 	/**
 	 * List Trigger definitions.
 	 */
-	@ResponseBody
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
+	@ResponseBody
 	public Iterable<TriggerDefinitionResource> list() {
 		final Iterable<TriggerDefinition> taps = triggerDeployer.findAll();
 		return definitionResourceAssembler.toResources(taps);
 	}
 
+	/**
+	 * Create a new Trigger.
+	 *
+	 * @param name the name of the trigger to create (required)
+	 * @param definition the {@link TriggerDefinition} expressed in the XD DSL (required)
+	 */
+	@RequestMapping(value = "", method = RequestMethod.POST)
+	@ResponseStatus(HttpStatus.CREATED)
+	@ResponseBody
+	public TriggerDefinitionResource save(@RequestParam("name") String name,
+			@RequestParam("definition") String definition,
+			@RequestParam(value = "deploy", defaultValue = "true") boolean deploy) {
+		final TriggerDefinition triggerDefinition = new TriggerDefinition(name, definition);
+		final TriggerDefinition savedTriggerDefinition = triggerDeployer.create(triggerDefinition);
+		final TriggerDefinitionResource result = definitionResourceAssembler.toResource(savedTriggerDefinition);
+		if (deploy) {
+			triggerDeployer.deploy(name);
+		}
+		return result;
+	}
+
+	/**
+	 * Request removal of an existing trigger.
+	 *
+	 * @param name the name of an existing trigger (required)
+	 */
+	@RequestMapping(value = "/{name}", method = RequestMethod.PUT, params = "deploy=false")
+	@ResponseStatus(HttpStatus.OK)
+	public void undeploy(@PathVariable("name") String name) {
+		throw new NotImplementedException("Removal of Triggers is not Implemented, yet.");
+	}
 }

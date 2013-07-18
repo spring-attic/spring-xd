@@ -16,7 +16,6 @@
 
 package org.springframework.xd.dirt.rest;
 
-import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyListOf;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.reset;
@@ -44,13 +43,13 @@ import org.springframework.xd.dirt.stream.TapDefinition;
 
 /**
  * Tests REST compliance of taps-related endpoints.
- * 
+ *
  * @author Eric Bottard
  * @author David Turanski
  * @author Gunnar Hillert
- * 
+ *
  * @since 1.0
- * 
+ *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
@@ -63,15 +62,6 @@ public class TapsControllerIntegrationTests extends AbstractControllerIntegratio
 
 	@Autowired
 	private TapsController tapsController;
-
-	@Test
-	public void testGetStreamName() {
-		String streamName = tapsController.getStreamName("test1", "tap@test1 | log");
-		assertEquals("test1", streamName);
-
-		streamName = tapsController.getStreamName("test1", "tap test1.foo | log");
-		assertEquals("test1", streamName);
-	}
 
 	@Test
 	public void testListAllTaps() throws Exception {
@@ -110,7 +100,7 @@ public class TapsControllerIntegrationTests extends AbstractControllerIntegratio
 	public void testSuccessfulTapDeploy() throws Exception {
 		streamDefinitionRepository.save(new StreamDefinition("test", "time | log"));
 		tapDefinitionRepository.save(new TapDefinition("tap1", "test", "tap@test | log"));
-		mockMvc.perform(put("/taps/tap1").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
+		mockMvc.perform(put("/taps/tap1").param("deploy", "true").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
 		verify(sender, times(1)).sendDeploymentRequests(eq("tap1"), anyListOf(ModuleDeploymentRequest.class));
 	}
 

@@ -41,8 +41,8 @@ public class AdminController {
 
 	private final EntityLinks entityLinks;
 
-	@ResponseBody
 	@RequestMapping()
+	@ResponseBody
 	public XDRuntime info() {
 		XDRuntime xdRuntime = new XDRuntime();
 		xdRuntime.add(entityLinks.linkFor(StreamDefinitionResource.class).withRel("streams"));

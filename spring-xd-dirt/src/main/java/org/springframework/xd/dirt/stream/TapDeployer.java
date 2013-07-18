@@ -31,7 +31,7 @@ public class TapDeployer extends AbstractDeployer<TapDefinition> {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.springframework.xd.dirt.core.ResourceDeployer#create(java.lang.Object)
 	 */
 	@Override
@@ -42,5 +42,20 @@ public class TapDeployer extends AbstractDeployer<TapDefinition> {
 					"Can't tap into stream '%s' because it does not exist");
 		}
 		return super.create(tapDefinition);
+	}
+
+	@Override
+	public void delete(String name) {
+		TapDefinition def = getRepository().findOne(name);
+		if (def == null) {
+			throw new NoSuchDefinitionException(name,
+				"Can't delete tap '%s' because it does not exist");
+		}
+		getRepository().delete(name);
+	}
+
+	public void undeploy(String name) {
+		Assert.hasText(name, "name cannot be blank or null");
+		getMessageSender().removeDeployment(name);
 	}
 }

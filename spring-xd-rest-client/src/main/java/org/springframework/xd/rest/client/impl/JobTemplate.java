@@ -45,7 +45,7 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 		JobDefinitionResource job = restTemplate.postForObject(resources.get("jobs"), values,
 				JobDefinitionResource.class);
 		return job;
-}
+	}
 
 	@Override
 	public void destroyJob(String name) {

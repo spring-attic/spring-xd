@@ -29,12 +29,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.dirt.stream.JobDefinition;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobDeployer;
+import org.springframework.xd.dirt.stream.NoSuchDefinitionException;
 import org.springframework.xd.rest.client.domain.JobDefinitionResource;
 
 /**
  * Handles all Job related interactions.
- * 
+ *
  * @author Glenn Renfro
+ * @author Gunnar Hillert
  * @since 1.0
  */
 @Controller
@@ -52,72 +54,84 @@ public class JobsController {
 	}
 
 	/**
+	 * Request removal of an existing job.
+	 *
+	 * @param name the name of an existing job (required)
+	 */
+	@RequestMapping(value = "/{name}", method = RequestMethod.DELETE)
+	@ResponseStatus(HttpStatus.OK)
+	public void delete(@PathVariable("name") String name) {
+		jobDeployer.delete(name);
+	}
+
+	/**
+	 * Request deployment of an existing named job.
+	 *
+	 * @param name the name of an existing job (required)
+	 */
+	@RequestMapping(value = "/{name}", method = RequestMethod.PUT, params = "deploy=true")
+	@ResponseStatus(HttpStatus.OK)
+	@ResponseBody
+	public void deploy(@PathVariable("name") String name) {
+		jobDeployer.deploy(name);
+	}
+
+	/**
+	 * Retrieve information about a single {@link JobDefinition}.
+	 *
+	 * @param name the name of an existing tap (required)
+	 */
+	@RequestMapping(value = "/{name}", method = RequestMethod.GET)
+	@ResponseStatus(HttpStatus.OK)
+	@ResponseBody
+	public JobDefinitionResource display(@PathVariable("name") String name) {
+		final JobDefinition jobDefinition = jobDeployer.findOne(name);
+		if (jobDefinition == null) {
+			throw new NoSuchDefinitionException(name, "There is no job definition named '%s'");
+		}
+		return definitionResourceAssembler.toResource(jobDefinition);
+	}
+
+	/**
+	 * List job definitions.
+	 */
+	@RequestMapping(value = "", method = RequestMethod.GET)
+	@ResponseStatus(HttpStatus.OK)
+	@ResponseBody
+	public Iterable<JobDefinitionResource> list() {
+		return  definitionResourceAssembler.toResources(jobDeployer.findAll());
+	}
+
+	/**
 	 * Create a new Job.
-	 * 
+	 *
 	 * @param name The name of the job to create (required)
 	 * @param definition The Job definition, expressed in the XD DSL (required)
 	 */
 	@RequestMapping(value = "", method = RequestMethod.POST)
 	@ResponseStatus(HttpStatus.CREATED)
 	@ResponseBody
-	public JobDefinitionResource create(@RequestParam("name")
-	String name, @RequestParam("definition")
-	String definition, @RequestParam(value = "deploy", defaultValue = "true")
-	boolean deploy) {
-		JobDefinitionResource result = null;
-		JobDefinition jobDefinition = new JobDefinition(name, definition);
-		JobDefinition streamDefinition = jobDeployer.create(jobDefinition);
-		if (deploy) {
+	public JobDefinitionResource save(@RequestParam("name") String name,
+			@RequestParam("definition") String definition,
+			@RequestParam(value = "deploy", defaultValue = "true") boolean deploy) {
+		final JobDefinition jobDefinition = new JobDefinition(name, definition);
+		final JobDefinition savedJobDefinition = jobDeployer.create(jobDefinition);
+		if(deploy) {
 			jobDeployer.deploy(name);
 		}
-		result = definitionResourceAssembler.toResource(streamDefinition);
+		final JobDefinitionResource result = definitionResourceAssembler.toResource(savedJobDefinition);
 		return result;
 	}
 
 	/**
-	 * Request deployment of an existing named stream.
-	 * 
-	 * @param name the name of an existing stream (required)
-	 */
-	@RequestMapping(value = "/{name}", method = RequestMethod.PUT, params = "deploy=true")
-	@ResponseStatus(HttpStatus.OK)
-	public void deploy(@PathVariable("name")
-	String name) {
-		jobDeployer.deploy(name);
-	}
-
-	/**
 	 * Request un-deployment of an existing named job.
-	 * 
+	 *
 	 * @param name the name of an existing job (required)
 	 */
 	@RequestMapping(value = "/{name}", method = RequestMethod.PUT, params = "deploy=false")
 	@ResponseStatus(HttpStatus.OK)
-	public void undeploy(@PathVariable("name")
-	String name) {
+	public void undeploy(@PathVariable("name") String name) {
 		jobDeployer.undeployJob(name);
-	}
-
-	/**
-	 * Request removal of an existing stream.
-	 * 
-	 * @param name the name of an existing stream (required)
-	 */
-	@RequestMapping(value = "/{name}", method = RequestMethod.DELETE)
-	@ResponseStatus(HttpStatus.OK)
-	public void destroy(@PathVariable("name")
-	String name) {
-		jobDeployer.destroyJob(name);
-	}
-
-	/**
-	 * List job definitions.
-	 */
-	@ResponseBody
-	@RequestMapping(value = "", method = RequestMethod.GET)
-	@ResponseStatus(HttpStatus.OK)
-	public Iterable<JobDefinitionResource> list() {
-		return definitionResourceAssembler.toResources(jobDeployer.findAll());
 	}
 
 }

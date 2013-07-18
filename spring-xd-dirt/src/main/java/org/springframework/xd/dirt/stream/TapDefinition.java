@@ -12,6 +12,9 @@
  */
 package org.springframework.xd.dirt.stream;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.springframework.util.Assert;
 
 /**
@@ -35,6 +38,28 @@ public class TapDefinition extends BaseDefinition {
 		super(name, definition);
 		Assert.hasText(streamName,"streamName cannot be empty or null");
 		this.streamName = streamName;
+	}
+
+	/**
+	 * @param name - the tap name
+	 * @param definition - the tap definition
+	 *
+	 */
+	public TapDefinition(String name, String definition) {
+		this(name, getStreamName(name, definition), definition);
+	}
+
+	/**
+	 * @param definition
+	 * @return
+	 */
+	public static String getStreamName(String name, String definition) {
+		Pattern pattern = Pattern.compile("^\\s*tap\\s*@{0,1}\\s*(\\w+).*");
+		Matcher matcher = pattern.matcher(definition);
+		if (matcher.matches()) {
+			return matcher.group(1);
+		}
+		return null;
 	}
 
 	/**

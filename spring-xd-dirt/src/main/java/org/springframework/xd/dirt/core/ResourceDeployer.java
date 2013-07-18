@@ -40,4 +40,12 @@ public interface ResourceDeployer<R extends BaseDefinition> {
 	 */
 	R findOne(String name);
 
+
+	/**
+	 * Delete the Definition using the provided name.
+	 *
+	 * @param name Must not be null.
+	 */
+	void delete(String name);
+
 }

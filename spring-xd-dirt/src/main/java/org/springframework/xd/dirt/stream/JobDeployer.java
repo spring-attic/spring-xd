@@ -21,7 +21,7 @@ import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 /**
  * @author Glenn Renfro
  * @author Luke Taylor
- * 
+ *
  */
 public class JobDeployer extends AbstractDeployer<JobDefinition> {
 
@@ -29,7 +29,8 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 		super(repository, messageSender, "job");
 	}
 
-	public JobDefinition destroyJob(String name) {
+	@Override
+	public void delete(String name) {
 		JobDefinition def = getRepository().findOne(name);
 		if (def == null) {
 			throwNoSuchDefinitionException(name);
@@ -37,8 +38,8 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 		if (getRepository().exists(name)) {
 			undeployJob(name);
 		}
+
 		getRepository().delete(name);
-		return def;
 	}
 
 	public void undeployJob(String name) {
@@ -59,5 +60,4 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 		}
 
 	}
-
 }

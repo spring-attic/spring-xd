@@ -16,15 +16,25 @@ import org.springframework.xd.dirt.core.AbstractDeployer;
 
 /**
  * Responsible for deploying {@link TriggerDefinition}s.
- * 
+ *
  * @author Gunnar Hillert
  * @author Luke Taylor
  * @since 1.0
- * 
+ *
  */
 public class TriggerDeployer extends AbstractDeployer<TriggerDefinition> {
 
 	public TriggerDeployer(TriggerDefinitionRepository repository, DeploymentMessageSender messageSender) {
 		super(repository, messageSender, "trigger");
+	}
+
+	@Override
+	public void delete(String name) {
+		TriggerDefinition def = getRepository().findOne(name);
+		if (def == null) {
+			throw new NoSuchDefinitionException(name,
+					"Can't delete trigger '%s' because it does not exist");
+		}
+		getRepository().delete(name);
 	}
 }

@@ -27,7 +27,7 @@ import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
 
 /**
  * Implementation of the Stream-related part of the API.
- * 
+ *
  * @author Eric Bottard
  */
 public class StreamTemplate extends AbstractTemplate implements StreamOperations {

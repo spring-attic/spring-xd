@@ -30,7 +30,7 @@ import org.springframework.xd.dirt.stream.NoSuchDefinitionException;
 
 /**
  * Central class for behavior common to all REST controllers.
- * 
+ *
  * @author Eric Bottard
  */
 @ControllerAdvice
@@ -44,9 +44,9 @@ public class RestControllerAdvice {
 	/**
 	 * Handles the case where client submitted an ill valued request (missing parameter).
 	 */
-	@ResponseBody
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	@ResponseBody
 	public VndErrors onMissingServletRequestParameterException(MissingServletRequestParameterException e) {
 		String msg = e.getMessage();
 		return new VndErrors("MissingServletRequestParameterException", msg);
@@ -55,9 +55,9 @@ public class RestControllerAdvice {
 	/**
 	 * Handles the general error case. Report server-side error.
 	 */
-	@ResponseBody
 	@ExceptionHandler(Exception.class)
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+	@ResponseBody
 	public VndErrors onException(Exception e) {
 		String msg = StringUtils.hasText(e.getMessage()) ? e.getMessage() : e.getClass().getSimpleName();
 		return new VndErrors(e.getClass().getSimpleName(), msg);

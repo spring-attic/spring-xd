@@ -40,7 +40,7 @@ import org.springframework.xd.dirt.stream.DeploymentMessageSender;
 
 /**
  * Tests REST compliance of jobs-related endpoints.
- * 
+ *
  * @author Glenn Renfro
  */
 @RunWith(SpringJUnit4ClassRunner.class)

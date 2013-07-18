@@ -36,7 +36,7 @@ import org.springframework.xd.dirt.stream.StreamDefinition;
 
 /**
  * Tests REST compliance of streams-related end-points.
- * 
+ *
  * @author Eric Bottard
  */
 @RunWith(SpringJUnit4ClassRunner.class)

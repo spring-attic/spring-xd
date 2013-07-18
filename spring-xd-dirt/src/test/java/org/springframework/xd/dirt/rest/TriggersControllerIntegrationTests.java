@@ -117,7 +117,7 @@ public class TriggersControllerIntegrationTests extends AbstractControllerIntegr
 	@Test
 	public void testSuccessfulTriggerDeploy() throws Exception {
 		triggerDefinitionRepository.save(new TriggerDefinition("trigger1", TRIGGER_DEFINITION));
-		mockMvc.perform(put("/triggers/trigger1").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
+		mockMvc.perform(put("/triggers/trigger1").param("deploy", "true").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
 		verify(sender, times(1)).sendDeploymentRequests(eq("trigger1"), anyListOf(ModuleDeploymentRequest.class));
 	}
 

@@ -90,6 +90,15 @@ public class TapDefinitionTests {
 
 	}
 
+	@Test
+	public void testGetStreamName() {
+		String streamName = TapDefinition.getStreamName("test1", "tap@test1 | log");
+		assertEquals("test1", streamName);
+
+		streamName = TapDefinition.getStreamName("test1", "tap test1.foo | log");
+		assertEquals("test1", streamName);
+	}
+
 	private TapDefinition getTapDefinition() {
 		return new TapDefinition("mytapname", "mystreamname", "mydef");
 	}

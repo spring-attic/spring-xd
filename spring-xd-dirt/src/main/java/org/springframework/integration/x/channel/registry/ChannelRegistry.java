@@ -14,6 +14,7 @@
 package org.springframework.integration.x.channel.registry;
 
 import org.springframework.integration.MessageChannel;
+import org.springframework.xd.module.Module;
 
 /**
  * A strategy interface used to bind a {@link MessageChannel} to a logical name. The name
@@ -31,15 +32,17 @@ public interface ChannelRegistry {
 	 * Register a message consumer
 	 * @param name the logical identity of the message source
 	 * @param channel the channel bound as a consumer
+	 * @param module the source module
 	 */
-	void inbound(String name, MessageChannel channel);
+	void inbound(String name, MessageChannel channel, Module module);
 
 	/**
 	 * Register a message producer
 	 * @param name the logical identity of the message target
 	 * @param channel the channel bound as a producer
+	 * @param module the destination module
 	 */
-	void outbound(String name, MessageChannel channel);
+	void outbound(String name, MessageChannel channel, Module module);
 
 	/**
 	 * Create a tap on an already registered inbound channel
@@ -47,6 +50,7 @@ public interface ChannelRegistry {
 	 * @param name the registered name
 	 * @param channel the channel that will receive messages from the tap
 	 */
+	// TODO: Add complete tapModule so the registry can find its supported media types
 	void tap(String tapModule, String name, MessageChannel channel);
 
 	/**

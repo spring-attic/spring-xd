@@ -55,7 +55,7 @@ public class ChannelRegistrarTests {
 		MessageChannel output = new DirectChannel();
 		Object processedOutput = channelRegistrar.postProcessAfterInitialization(output, "output");
 		assertSame(output, processedOutput);
-		verify(registry).outbound("mystream.1", output);
+		verify(registry).outbound("mystream.1", output, module);
 	}
 
 	@Test
@@ -63,7 +63,7 @@ public class ChannelRegistrarTests {
 		MessageChannel input = new DirectChannel();
 		Object processedInput = channelRegistrar.postProcessAfterInitialization(input, "input");
 		assertSame(input, processedInput);
-		verify(registry).inbound("mystream.0", input);
+		verify(registry).inbound("mystream.0", input, module);
 	}
 
 	@Test

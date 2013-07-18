@@ -21,6 +21,7 @@ import static org.junit.Assert.assertEquals;
 import java.util.Collection;
 
 import org.junit.Test;
+
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.xd.dirt.stream.Tap;
@@ -33,11 +34,11 @@ public abstract class AbstractChannelRegistryTests {
 	@Test
 	public void testClean() throws Exception {
 		ChannelRegistry registry = getRegistry();
-		registry.outbound("foo.0", new DirectChannel());
-		registry.inbound("foo.0", new DirectChannel());
-		registry.outbound("foo.1", new DirectChannel());
-		registry.inbound("foo.1", new DirectChannel());
-		registry.outbound("foo.2", new DirectChannel());
+		registry.outbound("foo.0", new DirectChannel(), null);
+		registry.inbound("foo.0", new DirectChannel(), null);
+		registry.outbound("foo.1", new DirectChannel(), null);
+		registry.inbound("foo.1", new DirectChannel(), null);
+		registry.outbound("foo.2", new DirectChannel(), null);
 		registry.tap("bar", "foo.0", new DirectChannel());
 		Collection<?> bridges = getBridges(registry);
 		assertEquals(6, bridges.size());
@@ -52,8 +53,8 @@ public abstract class AbstractChannelRegistryTests {
 	@Test
 	public void testCleanTap() throws Exception {
 		ChannelRegistry registry = getRegistry();
-		registry.outbound("foo.0", new DirectChannel());
-		registry.inbound("foo.0", new DirectChannel());
+		registry.outbound("foo.0", new DirectChannel(), null);
+		registry.inbound("foo.0", new DirectChannel(), null);
 
 		MessageChannel output = new DirectChannel();
 
@@ -61,8 +62,8 @@ public abstract class AbstractChannelRegistryTests {
 		tap.setOutputChannel(output);
 		tap.afterPropertiesSet();
 
-		registry.inbound("bar.0", new DirectChannel());
-		registry.outbound("bar.0", output);
+		registry.inbound("bar.0", new DirectChannel(), null);
+		registry.outbound("bar.0", output, null);
 		Collection<?> bridges = getBridges(registry);
 		assertEquals(5, bridges.size()); // 2 each stream + tap
 		registry.cleanAll("bar.0");

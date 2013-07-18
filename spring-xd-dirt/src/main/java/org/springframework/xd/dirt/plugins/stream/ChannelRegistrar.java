@@ -76,11 +76,11 @@ public class ChannelRegistrar implements BeanPostProcessor, DisposableBean {
 	private void registerInputChannel(MessageChannel channel) {
 		Assert.isTrue(moduleIndex > 0, "a module with an input channel must have an index greater than 0");
 		String channelNameInRegistry = moduleGroup + "." + (moduleIndex - 1);
-		channelRegistry.inbound(channelNameInRegistry, channel);
+		channelRegistry.inbound(channelNameInRegistry, channel, this.module);
 	}
 
 	private void registerOutputChannel(MessageChannel channel) {
 		String channelNameInRegistry = moduleGroup + "." + moduleIndex;
-		channelRegistry.outbound(channelNameInRegistry, channel);
+		channelRegistry.outbound(channelNameInRegistry, channel, this.module);
 	}
 }

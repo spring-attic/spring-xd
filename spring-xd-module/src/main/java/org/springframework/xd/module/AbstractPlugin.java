@@ -51,7 +51,7 @@ public abstract class AbstractPlugin implements Plugin{
 			addComponents(module, path);
 		}
 		configureProperties(module, group, index);
-		postProcessModule(module, group, index);
+		processModuleInternal(module, group, index);
 	}
 
 	/**
@@ -61,7 +61,7 @@ public abstract class AbstractPlugin implements Plugin{
 	 * @param group The group the module belongs
 	 * @param index The offset of the module in the stream
 	 */
-	protected abstract void postProcessModule(Module module, String group, int index);
+	protected abstract void processModuleInternal(Module module, String group, int index);
 
 	/**
 	 * Establish the configuration file path and names required to setup the context for the

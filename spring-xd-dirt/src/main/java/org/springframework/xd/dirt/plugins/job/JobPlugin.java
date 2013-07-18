@@ -96,7 +96,7 @@ public class JobPlugin extends AbstractPlugin  {
 	}
 
 	@Override
-	protected void postProcessModule(Module module, String group, int index) {
+	protected void processModuleInternal(Module module, String group, int index) {
 	}
 
 }

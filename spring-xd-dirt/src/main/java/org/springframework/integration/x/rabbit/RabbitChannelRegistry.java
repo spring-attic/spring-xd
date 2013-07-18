@@ -34,6 +34,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.Lifecycle;
+import org.springframework.http.MediaType;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter;
@@ -44,14 +45,17 @@ import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.x.channel.registry.ChannelRegistry;
+import org.springframework.integration.x.channel.registry.ChannelRegistrySupport;
 import org.springframework.util.Assert;
+import org.springframework.xd.module.Module;
 
 /**
  * A {@link ChannelRegistry} implementation backed by RabbitMQ.
  *
  * @author Mark Fisher
+ * @author Gary Russell
  */
-public class RabbitChannelRegistry implements ChannelRegistry, DisposableBean {
+public class RabbitChannelRegistry extends ChannelRegistrySupport implements DisposableBean {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -76,7 +80,7 @@ public class RabbitChannelRegistry implements ChannelRegistry, DisposableBean {
 	}
 
 	@Override
-	public void inbound(final String name, MessageChannel channel) {
+	public void inbound(final String name, MessageChannel channel, Module module) {
 		if (logger.isInfoEnabled()) {
 			logger.info("declaring queue for inbound: " + name);
 		}
@@ -93,10 +97,11 @@ public class RabbitChannelRegistry implements ChannelRegistry, DisposableBean {
 		adapter.afterPropertiesSet();
 		this.lifecycleBeans.add(adapter);
 		adapter.start();
+		//TODO: add conversion, similar to Redis
 	}
 
 	@Override
-	public void outbound(final String name, MessageChannel channel) {
+	public void outbound(final String name, MessageChannel channel, Module module) {
 		Assert.isInstanceOf(SubscribableChannel.class, channel);
 		MessageHandler handler = new CompositeHandler(name);
 		EventDrivenConsumer consumer = new EventDrivenConsumer((SubscribableChannel) channel, handler);
@@ -185,8 +190,10 @@ public class RabbitChannelRegistry implements ChannelRegistry, DisposableBean {
 
 		@Override
 		protected void handleMessageInternal(Message<?> message) throws Exception {
-			this.tap.handleMessage(message);
-			this.queue.handleMessage(message);
+			// TODO: rabbit wire data pluggable format?
+			Message<?> messageToSend = transformOutboundIfNecessary(message, MediaType.APPLICATION_JSON);
+			this.tap.handleMessage(messageToSend);
+			this.queue.handleMessage(messageToSend);
 		}
 	}
 

@@ -101,9 +101,7 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 		Context tomcatContext = this.tomcat.addContext(this.contextPath, new File(".").getAbsolutePath());
 		this.webApplicationContext.setServletContext(tomcatContext.getServletContext());
 		this.webApplicationContext.refresh();
-		Tomcat.addServlet(tomcatContext, this.servletName, new DispatcherServlet(this.webApplicationContext))
-				.setLoadOnStartup(1);
-		;
+		Tomcat.addServlet(tomcatContext, this.servletName, new DispatcherServlet(this.webApplicationContext));
 		tomcatContext.addServletMapping("/", this.servletName);
 
 		FilterDef filterDef = new FilterDef();

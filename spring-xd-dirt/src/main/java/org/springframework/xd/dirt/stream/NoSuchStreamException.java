@@ -22,7 +22,7 @@ package org.springframework.xd.dirt.stream;
  * @author Eric Bottard
  */
 @SuppressWarnings("serial")
-public class NoSuchStreamException extends StreamException {
+public class NoSuchStreamException extends NoSuchDefinitionException {
 
 	/**
 	 * Create a new exception.
@@ -30,7 +30,7 @@ public class NoSuchStreamException extends StreamException {
 	 * @param name the name of the stream that wasn't found
 	 */
 	public NoSuchStreamException(String name) {
-		super("The stream '" + name + "' does not exist");
+		super(name, "The stream '" + name + "' does not exist");
 	}
 
 }

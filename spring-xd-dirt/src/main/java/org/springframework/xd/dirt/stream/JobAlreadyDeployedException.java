@@ -16,15 +16,16 @@
 
 package org.springframework.xd.dirt.stream;
 
+
 /**
  * Thrown when one tries to deploy a named Job that is already deployed.
- *
+ * 
  * @author Glenn Renfro
  */
 @SuppressWarnings("serial")
-public class JobAlreadyDeployedException extends JobException {
+public class JobAlreadyDeployedException extends AlreadyDeployedException {
 
 	public JobAlreadyDeployedException(String name) {
-		super("Job with name '" + name + "' is already deployed");
+		super(name, "Job with name '" + name + "' is already deployed");
 	}
 }

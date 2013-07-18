@@ -18,19 +18,19 @@ package org.springframework.xd.dirt.stream;
 
 /**
  * Thrown when trying to deploy a stream that is already known to the system.
- *
+ * 
  * @author Glenn Renfro
  */
 @SuppressWarnings("serial")
-public class JobAlreadyExistsException extends JobException {
+public class JobAlreadyExistsException extends DefinitionAlreadyExistsException {
 
 	/**
 	 * Create a new exception.
-	 *
+	 * 
 	 * @param name the name of the job that already exists
 	 */
 	public JobAlreadyExistsException(String name) {
-		super("There is already a job with name '" + name + "'");
+		super(name, "There is already a job with name '" + name + "'");
 	}
 
 }

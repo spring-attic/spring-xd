@@ -26,10 +26,6 @@ import org.springframework.xd.dirt.core.XDRuntimeException;
 @SuppressWarnings("serial")
 public class ResourceDefinitionException extends XDRuntimeException {
 
-	public ResourceDefinitionException() {
-		super();
-	}
-
 	public ResourceDefinitionException(String message, Throwable cause) {
 		super(message, cause);
 	}

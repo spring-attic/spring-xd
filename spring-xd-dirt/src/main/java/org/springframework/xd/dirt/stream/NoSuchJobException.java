@@ -18,19 +18,19 @@ package org.springframework.xd.dirt.stream;
 
 /**
  * Thrown when trying to reference a job that does not exist.
- *
+ * 
  * @author Glenn Renfro
  */
 @SuppressWarnings("serial")
-public class NoSuchJobException extends JobException {
+public class NoSuchJobException extends NoSuchDefinitionException {
 
 	/**
 	 * Create a new exception.
-	 *
+	 * 
 	 * @param name the name of the job that wasn't found
 	 */
 	public NoSuchJobException(String name) {
-		super("The job '" + name + "' does not exist");
+		super(name, "The job '" + name + "' does not exist");
 	}
 
 }

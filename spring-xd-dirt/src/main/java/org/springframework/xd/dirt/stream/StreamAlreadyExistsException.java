@@ -16,13 +16,14 @@
 
 package org.springframework.xd.dirt.stream;
 
+
 /**
  * Thrown when trying to deploy a stream that is already known to the system.
  * 
  * @author Eric Bottard
  */
 @SuppressWarnings("serial")
-public class StreamAlreadyExistsException extends StreamException {
+public class StreamAlreadyExistsException extends DefinitionAlreadyExistsException {
 
 	/**
 	 * Create a new exception.
@@ -30,7 +31,7 @@ public class StreamAlreadyExistsException extends StreamException {
 	 * @param name the name of the stream that already exists
 	 */
 	public StreamAlreadyExistsException(String name) {
-		super("There is already a stream with name '" + name + "'");
+		super(name, "There is already a stream with name '" + name + "'");
 	}
 
 }

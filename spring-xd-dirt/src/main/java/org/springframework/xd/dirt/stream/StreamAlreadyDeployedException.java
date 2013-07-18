@@ -16,15 +16,16 @@
 
 package org.springframework.xd.dirt.stream;
 
+
 /**
  * Thrown when one tries to deploy a named stream that is already deployed.
  * 
  * @author Eric Bottard
  */
 @SuppressWarnings("serial")
-public class StreamAlreadyDeployedException extends StreamException {
+public class StreamAlreadyDeployedException extends AlreadyDeployedException {
 
 	public StreamAlreadyDeployedException(String name) {
-		super("Stream with name '" + name + "' is already deployed");
+		super(name, "Stream with name '" + name + "' is already deployed");
 	}
 }

@@ -58,18 +58,13 @@ public class TapCommands implements CommandMarker {
 
 	@CliCommand(value = CREATE_TAP, help = "Create a tap")
 	public String createTap(
-			@CliOption(mandatory = true, key = "name", help = "the name to give to the tap")
+			@CliOption(mandatory = true, key = { "", "name" }, help = "the name to give to the tap")
 			String name,
-			@CliOption(mandatory = true, key = { "", "definition" }, help = "tap definition, using XD DSL (e.g. \"tap@mystream.filter | sink1\")")
+			@CliOption(mandatory = true, key = "definition", help = "tap definition, using XD DSL (e.g. \"tap@mystream.filter | sink1\")")
 			String dsl,
 			@CliOption(key = "deploy", help = "whether to deploy the tap immediately", unspecifiedDefaultValue = "true")
 			boolean autoStart) {
-		try {
-			tapOperations().createTap(name, dsl, autoStart);
-		}
-		catch (Exception e) {
-			return String.format("Error creating tap '%s'", name);
-		}
+		tapOperations().createTap(name, dsl, autoStart);
 		return String.format((autoStart ? "Successfully created and deployed tap '%s'"
 				: "Successfully created tap '%s'"), name);
 	}
@@ -79,12 +74,7 @@ public class TapCommands implements CommandMarker {
 
 		final List<TapDefinitionResource> taps;
 
-		try {
-			taps = tapOperations().listTaps();
-		}
-		catch (Exception e) {
-			return String.format("Error listing taps");
-		}
+		taps = tapOperations().listTaps();
 
 		final Table table = new Table();
 		table.addHeader(1, new TableHeader("Tap Name")).addHeader(2, new TableHeader("Stream Name"))

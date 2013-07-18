@@ -19,23 +19,31 @@ package org.springframework.xd.dirt.stream;
 import org.springframework.xd.dirt.core.XDRuntimeException;
 
 /**
- * Thrown when something goes wrong when interacting with Jobs.
- *
- * @author Glenn Renfro
+ * Thrown when an attempt is made to deploy a definition that is already deployed.
+ * 
+ * @author Eric Bottard
+ * 
  */
 @SuppressWarnings("serial")
-public class JobException extends XDRuntimeException {
+public class AlreadyDeployedException extends XDRuntimeException {
 
-	public JobException() {
-		super();
-	}
-
-	public JobException(String message, Throwable cause) {
-		super(message, cause);
-	}
-
-	public JobException(String message) {
+	public AlreadyDeployedException(String offendingName, String message) {
 		super(message);
+		this.offendingName = offendingName;
+	}
+
+	public AlreadyDeployedException(String offendingName, String message, Throwable cause) {
+		super(message, cause);
+		this.offendingName = offendingName;
+	}
+
+	private final String offendingName;
+
+	/**
+	 * Return the name of the already deployed definition.
+	 */
+	public String getOffendingName() {
+		return offendingName;
 	}
 
 }

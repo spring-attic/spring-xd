@@ -23,19 +23,25 @@ import java.util.TreeSet;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
-import org.springframework.xd.dirt.stream.*;
+import org.springframework.xd.dirt.stream.BaseDefinition;
+import org.springframework.xd.dirt.stream.DefinitionAlreadyExistsException;
+import org.springframework.xd.dirt.stream.DeploymentMessageSender;
+import org.springframework.xd.dirt.stream.EnhancedStreamParser;
+import org.springframework.xd.dirt.stream.NoSuchDefinitionException;
+import org.springframework.xd.dirt.stream.StreamParser;
 
 /**
- * Abstract implementation of the @link {@link ResourceDeployer} interface.  It provides the basic support for calling CrudRepository
- * methods and sending deployment messages. 
+ * Abstract implementation of the @link {@link ResourceDeployer} interface. It provides the basic support for calling
+ * CrudRepository methods and sending deployment messages.
  * 
  * @author Luke Taylor
  * @author Mark Pollack
  */
 public abstract class AbstractDeployer<D extends BaseDefinition> implements ResourceDeployer<D> {
-	private CrudRepository<D,String> repository;
+	private CrudRepository<D, String> repository;
 
 	private final StreamParser streamParser = new EnhancedStreamParser();
+
 	private final DeploymentMessageSender messageSender;
 
 	protected AbstractDeployer(CrudRepository<D, String> repository, DeploymentMessageSender messageSender) {
@@ -55,13 +61,14 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	}
 
 	/**
-	 * Intented to be overridden by subclasses that want to throw a more specific exception when a Definition already exists, e.g. 
-	 * JobAlreadyExistsException.
-	 * @param resourceDefinition the class taht defines the 
+	 * Intented to be overridden by subclasses that want to throw a more specific exception when a Definition already
+	 * exists, e.g. JobAlreadyExistsException.
+	 * @param resourceDefinition the class taht defines the
 	 * @return
 	 */
 	protected XDRuntimeException createDefinitionAlreadyExistsException(D definition) {
-		return new DefinitionAlreadyExistsException("Definition " + definition.getName() + " already exists");
+		return new DefinitionAlreadyExistsException(definition.getName(), "Definition " + definition.getName()
+				+ " already exists");
 	}
 
 	@Override
@@ -77,11 +84,10 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		messageSender.sendDeploymentRequests(name, requests);
 	}
 
-	
 	protected XDRuntimeException createNoSuchDefinitionException(String name) {
-		return new NoSuchDefinitionException("Resource definition " + name  + " not found.");
+		return new NoSuchDefinitionException(name, "Resource definition " + name + " not found.");
 	}
-	
+
 	@Override
 	public D findOne(String name) {
 		return repository.findOne(name);
@@ -95,11 +101,11 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		}
 		return definitions;
 	}
-	
+
 	protected CrudRepository<D, String> getRepository() {
 		return repository;
 	}
-	
+
 	public DeploymentMessageSender getMessageSender() {
 		return messageSender;
 	}

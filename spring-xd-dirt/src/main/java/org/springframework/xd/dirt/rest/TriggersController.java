@@ -19,10 +19,8 @@ package org.springframework.xd.dirt.rest;
 import org.apache.commons.lang.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
-import org.springframework.hateoas.VndErrors.VndError;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -128,18 +126,6 @@ public class TriggersController {
 	public Iterable<TriggerDefinitionResource> list() {
 		final Iterable<TriggerDefinition> taps = triggerDeployer.findAll();
 		return definitionResourceAssembler.toResources(taps);
-	}
-
-	// ---------------- Exception Handlers ------------------------
-
-	/**
-	 * Handles the case where client referenced an unknown entity.
-	 */
-	@ResponseBody
-	@ExceptionHandler
-	@ResponseStatus(HttpStatus.NOT_FOUND)
-	public VndError onNoSuchStreamException(NoSuchStreamException e) {
-		return new VndError("NoSuchStreamException", e.getMessage());
 	}
 
 }

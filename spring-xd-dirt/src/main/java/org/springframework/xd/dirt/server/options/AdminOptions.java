@@ -24,7 +24,7 @@ import org.kohsuke.args4j.Option;
  */
 public class AdminOptions extends AbstractOptions {
 
-	@Option(name = "--httpPort", usage = "Http port for the stream server (default: 8080)", metaVar = "<httpPort>")
+	@Option(name = "--httpPort", usage = "Http port for the REST API server (default: 8080)", metaVar = "<httpPort>")
 	private int httpPort = 8080;
 
 	@Option(name = "--store", usage = "How to persist admin data (default: redis)")

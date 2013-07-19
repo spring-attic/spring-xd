@@ -22,21 +22,24 @@ import org.springframework.xd.dirt.core.AbstractDeployer;
 public class TapDeployer extends AbstractDeployer<TapDefinition> {
 	private final StreamDefinitionRepository streamRepository;
 
-	public TapDeployer(TapDefinitionRepository repository, StreamDefinitionRepository streamRepository, DeploymentMessageSender messageSender) {
-		super(repository, messageSender);
+	public TapDeployer(TapDefinitionRepository repository, StreamDefinitionRepository streamRepository,
+			DeploymentMessageSender messageSender) {
+		super(repository, messageSender, "tap");
 		Assert.notNull(streamRepository, "stream repository cannot be null");
 		this.streamRepository = streamRepository;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.springframework.xd.dirt.core.ResourceDeployer#create(java.lang.Object)
 	 */
 	@Override
 	public TapDefinition create(TapDefinition tapDefinition) {
 		Assert.notNull(tapDefinition, "tap definition may not be null");
 		if (!streamRepository.exists(tapDefinition.getStreamName())) {
-			throw new NoSuchStreamException("source stream '" + tapDefinition.getStreamName()
-					+ "' does not exist for tap '" + tapDefinition.getName());
+			throw new NoSuchDefinitionException(tapDefinition.getStreamName(),
+					"Can't tap into stream '%s' because it does not exist");
 		}
 		return super.create(tapDefinition);
 	}

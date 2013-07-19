@@ -69,7 +69,7 @@ public class DefaultStreamDeployer implements StreamDeployer {
 	@Override
 	public StreamDefinition createStream(String name, String config, boolean deploy) {
 		if (streamDefinitionRepository.exists(name)) {
-			throw new StreamAlreadyExistsException(name);
+			throw new DefinitionAlreadyExistsException(name, "There is already a stream named '%s'");
 		}
 		// Parse here once for early failure
 		this.streamParser.parse(name, config);
@@ -84,7 +84,7 @@ public class DefaultStreamDeployer implements StreamDeployer {
 	public StreamDefinition destroyStream(String name) {
 		StreamDefinition def = streamDefinitionRepository.findOne(name);
 		if (def == null) {
-			throw new NoSuchStreamException(name);
+			throw new NoSuchDefinitionException(name, "There is no stream named '%s'");
 		}
 		if (streamRepository.exists(name)) {
 			undeployStream(name);
@@ -96,11 +96,11 @@ public class DefaultStreamDeployer implements StreamDeployer {
 	@Override
 	public Stream deployStream(String name) {
 		if (streamRepository.exists(name)) {
-			throw new StreamAlreadyDeployedException(name);
+			throw new AlreadyDeployedException(name, "The stream named '%s' is already deployed");
 		}
 		StreamDefinition def = streamDefinitionRepository.findOne(name);
 		if (def == null) {
-			throw new NoSuchStreamException(name);
+			throw new NoSuchDefinitionException(name, "There is no stream definition named '%s'");
 		}
 		List<ModuleDeploymentRequest> requests = this.streamParser.parse(name, def.getDefinition());
 		for (ModuleDeploymentRequest request : requests) {
@@ -116,7 +116,7 @@ public class DefaultStreamDeployer implements StreamDeployer {
 	public Stream undeployStream(String name) {
 		Stream stream = streamRepository.findOne(name);
 		if (stream == null) {
-			throw new NoSuchStreamException(name);
+			throw new NoSuchDefinitionException(name, "There is no stream definition named '%s'");
 		}
 		List<ModuleDeploymentRequest> modules = streamParser.parse(name, stream.getStreamDefinition().getDefinition());
 		// undeploy in the reverse sequence (source first)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,28 +19,41 @@ package org.springframework.xd.dirt.stream;
 import org.springframework.xd.dirt.core.XDRuntimeException;
 
 /**
- * Exception which is raised when a named resource definition cannot be found.
+ * Thrown when an attempt is made to deploy a definition that is already deployed.
  * 
- * @author Luke Taylor
+ * @author Eric Bottard
+ * 
  */
 @SuppressWarnings("serial")
-public class NoSuchDefinitionException extends XDRuntimeException {
-
-	private final String offendingName;
+public class AlreadyDeployedException extends XDRuntimeException {
 
 	/**
 	 * Create a new exception.
-	 * @param offendingName name of the definition that wasn't found
+	 * @param offendingName name of the definition that conflicts
 	 * @param message Exception message. Can use {@link String#format(String, Object...)} syntax to include the
 	 * offendingName
 	 */
-	public NoSuchDefinitionException(String offendingName, String message) {
+	public AlreadyDeployedException(String offendingName, String message) {
 		super(String.format(message, offendingName));
 		this.offendingName = offendingName;
 	}
 
 	/**
-	 * Return the name of the definition that could not be found.
+	 * Create a new exception.
+	 * @param offendingName name of the definition that conflicts
+	 * @param message Exception message. Can use {@link String#format(String, Object...)} syntax to include the
+	 * offendingName
+	 * @param cause root exception cause
+	 */
+	public AlreadyDeployedException(String offendingName, String message, Throwable cause) {
+		super(String.format(message, offendingName), cause);
+		this.offendingName = offendingName;
+	}
+
+	private final String offendingName;
+
+	/**
+	 * Return the name of the already deployed definition.
 	 */
 	public String getOffendingName() {
 		return offendingName;

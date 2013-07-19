@@ -19,13 +19,31 @@ package org.springframework.xd.dirt.stream;
 import org.springframework.xd.dirt.core.XDRuntimeException;
 
 /**
- * Exception which is raised when a resource definition cannot be found.
- *
+ * Exception which is raised when a resource definition with the same name already exists.
+ * 
  * @author Luke Taylor
  */
 @SuppressWarnings("serial")
 public class DefinitionAlreadyExistsException extends XDRuntimeException {
-	public DefinitionAlreadyExistsException(String message) {
-		super(message);
+
+	private final String offendingName;
+
+	/**
+	 * Create a new exception.
+	 * @param offendingName name of the definition that conflicts
+	 * @param message Exception message. Can use {@link String#format(String, Object...)} syntax to include the
+	 * offendingName
+	 */
+	public DefinitionAlreadyExistsException(String offendingName, String message) {
+		super(String.format(message, offendingName));
+		this.offendingName = offendingName;
 	}
+
+	/**
+	 * Return the definition name that was in conflict.
+	 */
+	public String getOffendingName() {
+		return offendingName;
+	}
+
 }

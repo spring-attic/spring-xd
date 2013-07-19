@@ -24,6 +24,9 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.xd.dirt.stream.AlreadyDeployedException;
+import org.springframework.xd.dirt.stream.DefinitionAlreadyExistsException;
+import org.springframework.xd.dirt.stream.NoSuchDefinitionException;
 
 /**
  * Central class for behavior common to all REST controllers.
@@ -58,6 +61,36 @@ public class RestControllerAdvice {
 	public VndErrors onException(Exception e) {
 		String msg = StringUtils.hasText(e.getMessage()) ? e.getMessage() : e.getClass().getSimpleName();
 		return new VndErrors(e.getClass().getSimpleName(), msg);
+	}
+
+	/**
+	 * Handles the case where client referenced an unknown entity.
+	 */
+	@ResponseBody
+	@ExceptionHandler
+	@ResponseStatus(HttpStatus.NOT_FOUND)
+	public VndErrors onNoSuchStreamException(NoSuchDefinitionException e) {
+		return new VndErrors(e.getClass().getSimpleName(), e.getMessage());
+	}
+
+	/**
+	 * Handles the case where client referenced an entity that already exists.
+	 */
+	@ResponseBody
+	@ExceptionHandler
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	public VndErrors onStreamAlreadyExistsException(DefinitionAlreadyExistsException e) {
+		return new VndErrors(e.getClass().getSimpleName(), e.getMessage());
+	}
+
+	/**
+	 * Handles the case where client tried to deploy something that is already deployed.
+	 */
+	@ResponseBody
+	@ExceptionHandler
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	public VndErrors onStreamAlreadyDeployedException(AlreadyDeployedException e) {
+		return new VndErrors(e.getClass().getSimpleName(), e.getMessage());
 	}
 
 }

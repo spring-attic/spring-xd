@@ -24,10 +24,6 @@ package org.springframework.xd.dirt.core;
 @SuppressWarnings("serial")
 public abstract class XDRuntimeException extends RuntimeException {
 
-	public XDRuntimeException() {
-		super();
-	}
-
 	public XDRuntimeException(String message, Throwable cause) {
 		super(message, cause);
 	}

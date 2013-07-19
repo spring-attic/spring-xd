@@ -16,6 +16,7 @@
 package org.springframework.xd.dirt.plugins.trigger;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 import java.util.Arrays;
@@ -26,12 +27,15 @@ import org.junit.Test;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.scheduling.support.CronTrigger;
+import org.springframework.scheduling.support.PeriodicTrigger;
+import org.springframework.xd.dirt.module.ResourceDefinitionException;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.SimpleModule;
 
 /**
  *
  * @author Gunnar Hillert
+ * @author Ilayaperumal Gopinathan
  *
  */
 public class TriggerPluginTests {
@@ -47,7 +51,8 @@ public class TriggerPluginTests {
 	public void streamPropertiesAdded() {
 		Module module = new SimpleModule("testTrigger", "trigger");
 		assertEquals(0, module.getProperties().size());
-
+		module.getProperties().put("cron", "*/15 * * * * *");
+		
 		try {
 			plugin.processModule(module, "newTrigger", 0);
 		} catch (IllegalArgumentException e) {
@@ -76,7 +81,7 @@ public class TriggerPluginTests {
 	}
 
 	@Test
-	public void testTriggerAddedToSharedContext() {
+	public void testCronTriggerAddedToSharedContext() {
 		GenericApplicationContext commonContext = new GenericApplicationContext();
 		plugin.postProcessSharedContext(commonContext);
 
@@ -87,5 +92,50 @@ public class TriggerPluginTests {
 
 		CronTrigger cronTrigger = commonContext.getBean(TriggerPlugin.BEAN_NAME_PREFIX + "newTrigger", CronTrigger.class);
 		assertEquals("*/15 * * * * *", cronTrigger.getExpression());
+	}
+	
+	@Test
+	public void testFixedDelayTriggerAddedToSharedContext() {
+		GenericApplicationContext commonContext = new GenericApplicationContext();
+		plugin.postProcessSharedContext(commonContext);
+
+		Module module = new SimpleModule("testTrigger", "trigger");
+		module.getProperties().put("fixedDelay", "60000");
+		assertEquals(1, module.getProperties().size());
+		plugin.processModule(module, "newTrigger", 0);
+
+		PeriodicTrigger fixedDelayTrigger = commonContext.getBean(TriggerPlugin.BEAN_NAME_PREFIX + "newTrigger", PeriodicTrigger.class);
+		assertNotNull(fixedDelayTrigger);
+	}
+	
+	@Test
+	public void testFixedRateTriggerAddedToSharedContext() {
+		GenericApplicationContext commonContext = new GenericApplicationContext();
+		plugin.postProcessSharedContext(commonContext);
+
+		Module module = new SimpleModule("testTrigger", "trigger");
+		module.getProperties().put("fixedRate", "6000");
+		assertEquals(1, module.getProperties().size());
+		plugin.processModule(module, "newTrigger", 0);
+
+		PeriodicTrigger fixedDelayTrigger = commonContext.getBean(TriggerPlugin.BEAN_NAME_PREFIX + "newTrigger", PeriodicTrigger.class);
+		assertNotNull(fixedDelayTrigger);
+	}
+	
+	@Test
+	public void testInvalidTriggerType() {
+		Module module = new SimpleModule("testTrigger", "trigger");
+		assertEquals(0, module.getProperties().size());
+		module.getProperties().put("invalidtrigger", "*/15 * * * * *");
+		
+		try {
+			plugin.processModule(module, "newTrigger", 0);
+		} catch (ResourceDefinitionException e) {
+			assertEquals("Trigger type is not valid. Supported triggers are: " +
+					"cron, fixedDelay & fixedRate",
+				e.getMessage());
+			return;
+		}
+		fail("Expected an ResourceDefinitionException to be thrown.");
 	}
 }

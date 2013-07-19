@@ -20,7 +20,6 @@ import java.util.Collections;
 import java.util.List;
 
 import org.springframework.util.Assert;
-import org.springframework.xd.dirt.stream.AbstractDeployer;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 
 /**
@@ -77,8 +76,9 @@ public class StreamDeployer extends AbstractDeployer<StreamDefinition> {
 			throwNoSuchDefinitionException(name);
 		}
 
-		final List<ModuleDeploymentRequest> requests = getStreamParser().parse(name, definition.getDefinition());
-		getMessageSender().sendDeploymentRequests(name, requests);
+		final List<ModuleDeploymentRequest> requests = parse(name,
+				definition.getDefinition());
+		sendDeploymentRequests(name, requests);
 
 		final Stream stream = new Stream(definition);
 		streamRepository.save(stream);
@@ -92,14 +92,15 @@ public class StreamDeployer extends AbstractDeployer<StreamDefinition> {
 			throwNoSuchDefinitionException(name);
 		}
 
-		final List<ModuleDeploymentRequest> requests = getStreamParser().parse(name, stream.getStreamDefinition().getDefinition());
+		final List<ModuleDeploymentRequest> requests = parse(name, stream
+				.getStreamDefinition().getDefinition());
 		Collections.reverse(requests);
 
 		for (ModuleDeploymentRequest request : requests) {
 			request.setRemove(true);
 		}
 
-		getMessageSender().sendDeploymentRequests(name, requests);
+		sendDeploymentRequests(name, requests);
 
 		streamRepository.delete(stream);
 	}

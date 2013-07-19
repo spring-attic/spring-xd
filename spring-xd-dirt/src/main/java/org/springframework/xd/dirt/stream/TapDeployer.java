@@ -71,6 +71,6 @@ public class TapDeployer extends AbstractDeployer<TapDefinition> {
 		for (ModuleDeploymentRequest request : requests) {
 			request.setRemove(true);
 		}
-		getMessageSender().sendDeploymentRequests(name, requests);
+		sendDeploymentRequests(name, requests);
 	}
 }

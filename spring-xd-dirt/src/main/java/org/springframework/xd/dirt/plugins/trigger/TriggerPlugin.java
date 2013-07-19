@@ -17,6 +17,8 @@ package org.springframework.xd.dirt.plugins.trigger;
 
 import static org.springframework.xd.module.ModuleType.TRIGGER;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -25,6 +27,7 @@ import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.module.ResourceDefinitionException;
 import org.springframework.xd.module.BeanDefinitionAddingPostProcessor;
 import org.springframework.xd.module.Module;
@@ -54,20 +57,28 @@ public class TriggerPlugin implements Plugin {
 		if (!TRIGGER.equals(module.getType())) {
 			return;
 		}
-		
+
 		final BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition();
+		List<String> triggersAdded = new ArrayList<String>();
 		if (module.getProperties().containsKey(TriggerType.cron.name())) {
 			TriggerType.cron.addTrigger(builder, module.getProperties().getProperty(TriggerType.cron.name()));
+			triggersAdded.add(TriggerType.cron.name());
 		}
-		else if (module.getProperties().containsKey(TriggerType.fixedDelay.name())) {
+		if (module.getProperties().containsKey(TriggerType.fixedDelay.name())) {
 			TriggerType.fixedDelay.addTrigger(builder, module.getProperties().getProperty(TriggerType.fixedDelay.name()));
+			triggersAdded.add(TriggerType.fixedDelay.name());
 		}
-		else if (module.getProperties().containsKey(TriggerType.fixedRate.name())) {
+		if (module.getProperties().containsKey(TriggerType.fixedRate.name())) {
 			TriggerType.fixedRate.addTrigger(builder, module.getProperties().getProperty(TriggerType.fixedRate.name()));
+			triggersAdded.add(TriggerType.fixedRate.name());
 		}
-		else {
-			throw new ResourceDefinitionException("Trigger type is not valid. Supported triggers are: " +
-					"cron, fixedDelay & fixedRate");
+		if (triggersAdded.size() == 0) {
+			throw new ResourceDefinitionException("No valid trigger property. Expected one of: " +
+					"cron, fixedDelay or fixedRate");
+		}
+		else if (triggersAdded.size() > 1) {
+			throw new ResourceDefinitionException("Only one trigger property allowed, but received: " +
+					StringUtils.collectionToCommaDelimitedString(triggersAdded));
 		}
 		final BeanDefinitionAddingPostProcessor postProcessor = new BeanDefinitionAddingPostProcessor();
 		postProcessor.addBeanDefinition(BEAN_NAME_PREFIX + group, builder.getBeanDefinition());
@@ -98,7 +109,7 @@ public class TriggerPlugin implements Plugin {
 	public void postProcessSharedContext(ConfigurableApplicationContext context) {
 		this.commonApplicationContext = context;
 	}
-	
+
 	/**
 	 * Trigger type enum
 	 */

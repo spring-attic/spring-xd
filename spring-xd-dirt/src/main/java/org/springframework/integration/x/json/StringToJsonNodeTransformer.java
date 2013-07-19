@@ -14,11 +14,11 @@ package org.springframework.integration.x.json;
 
 import java.io.IOException;
 
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.integration.transformer.MessageTransformationException;
+
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Transforms a String to a {@link JsonNode}
@@ -29,8 +29,7 @@ public class StringToJsonNodeTransformer {
 	private ObjectMapper mapper = new ObjectMapper();
 	public JsonNode transform(Object json) {
 		try {
-			JsonParser parser = mapper.getJsonFactory().createJsonParser((String)json);
-			return parser.readValueAsTree();
+			return mapper.readTree((String)json);
 		} catch (JsonParseException e) {
 			throw new MessageTransformationException("unable to parse input: " + e.getMessage(),e);
 		} catch (IOException e) {

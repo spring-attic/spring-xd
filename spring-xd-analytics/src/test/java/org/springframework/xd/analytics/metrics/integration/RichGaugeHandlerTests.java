@@ -20,10 +20,6 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.util.Collections;
 
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,6 +43,10 @@ import org.springframework.xd.analytics.metrics.core.RichGauge;
 import org.springframework.xd.analytics.metrics.core.RichGaugeService;
 import org.springframework.xd.analytics.metrics.redis.RedisRichGaugeRepository;
 import org.springframework.xd.test.redis.RedisAvailableRule;
+
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author David Turanski
@@ -143,8 +143,7 @@ public class RichGaugeHandlerTests {
 
 		public JsonNode transform(String json) {
 			try {
-				JsonParser parser = mapper.getJsonFactory().createJsonParser(json);
-				return parser.readValueAsTree();
+				return mapper.readTree(json);
 			} catch (JsonParseException e) {
 				throw new MessageTransformationException("unable to parse input: " + e.getMessage(), e);
 			} catch (IOException e) {

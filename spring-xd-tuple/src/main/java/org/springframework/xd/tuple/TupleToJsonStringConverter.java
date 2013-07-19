@@ -12,10 +12,9 @@
  */
 package org.springframework.xd.tuple;
 
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.node.ObjectNode;
-import org.springframework.core.convert.ConversionException;
 import org.springframework.core.convert.converter.Converter;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * @author David Turanski
@@ -51,7 +50,7 @@ public class TupleToJsonStringConverter implements Converter<Tuple, String> {
 			}
 			else if (!value.getClass().isPrimitive()) {
 //				System.out.println("pojo " + value.getClass().getName() );
-				root.put(name,root.POJONode(value));
+				root.put(name,root.pojoNode(value));
 			}
 			else {
 //				System.out.println("primitive");

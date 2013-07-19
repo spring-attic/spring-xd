@@ -12,7 +12,7 @@
  */
 package org.springframework.integration.x.json;
 
-import org.codehaus.jackson.JsonNode;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * Extract a field value from a {@link JsonNode}

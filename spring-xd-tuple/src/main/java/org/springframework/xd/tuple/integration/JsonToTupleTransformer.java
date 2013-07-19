@@ -19,11 +19,12 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.integration.transformer.AbstractPayloadTransformer;
 import org.springframework.xd.tuple.Tuple;
 import org.springframework.xd.tuple.TupleBuilder;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Converts from a json string into a tuple data structure.
@@ -37,11 +38,11 @@ public class JsonToTupleTransformer extends AbstractPayloadTransformer<String, T
 		List<String> names = new ArrayList<String>();
 		List<Object> values = new ArrayList<Object>();
 		JsonNode node = this.mapper.readTree(json);
-		Iterator<String> fieldNames = node.getFieldNames();
+		Iterator<String> fieldNames = node.fieldNames();
 		while (fieldNames.hasNext()) {
 			String name = fieldNames.next();
 			JsonNode valueNode = node.get(name);
-			Object value = mapper.readValue(valueNode, Object.class);
+			Object value = mapper.treeToValue(valueNode, Object.class);
 			names.add(name);
 			values.add(value);
 		}

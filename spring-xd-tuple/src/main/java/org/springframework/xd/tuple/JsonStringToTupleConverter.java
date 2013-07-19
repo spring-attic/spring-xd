@@ -17,9 +17,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.core.convert.converter.Converter;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author David Turanski
@@ -34,7 +35,7 @@ public class JsonStringToTupleConverter implements Converter<String, Tuple> {
 		try {
 
 			JsonNode root = mapper.readTree(source);
-			for (Iterator<Entry<String, JsonNode>> it = root.getFields(); it.hasNext();) {
+			for (Iterator<Entry<String, JsonNode>> it = root.fields(); it.hasNext();) {
 				Entry<String, JsonNode> entry = it.next();
 				String name = entry.getKey();
 				JsonNode node = entry.getValue();

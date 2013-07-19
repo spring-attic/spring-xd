@@ -67,7 +67,7 @@ configure(javaProjects()) { subproject ->
 	targetCompatibility=1.6
 
 	ext {
-		jacksonVersion = '1.9.12'
+		jacksonVersion = '2.2.2'
 		junitVersion = '4.11'
 		hamcrestVersion = '1.3'
 		jodaTimeVersion = '1.6'
@@ -182,7 +182,7 @@ project('spring-xd-analytics') {
 		testCompile ("org.mockito:mockito-core:$mockitoVersion") {
 			exclude group:'org.hamcrest'
 		}
-		testCompile "org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion"
+		testCompile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
 		runtime "log4j:log4j:$log4jVersion",
 				"org.slf4j:jcl-over-slf4j:$slf4jVersion",
 				"org.slf4j:slf4j-log4j12:$slf4jVersion"
@@ -191,7 +191,11 @@ project('spring-xd-analytics') {
 
 project('spring-xd-dirt') {
 	description = 'Spring XD DIRT'
+	configurations {
+		[runtime,testRuntime]*.exclude group: 'org.codehaus.jackson'
+	}
 	dependencies {
+
 		compile project(":spring-xd-analytics"),
 				project(":spring-xd-module"),
 				project(":spring-xd-hadoop"),
@@ -200,8 +204,7 @@ project('spring-xd-dirt') {
 				project(':spring-xd-rest-domain'),
 				"org.springframework:spring-webmvc:$springVersion",
 				"org.springframework.data:spring-data-commons:$springDataCommonsVersion",
-				"org.springframework.hateoas:spring-hateoas:$springHATEOASVersion",
-				"org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion",
+				"com.fasterxml.jackson.core:jackson-databind:$jacksonVersion",
 				"org.apache.tomcat.embed:tomcat-embed-core:$tomcatVersion",
 				"org.apache.tomcat.embed:tomcat-embed-logging-juli:$tomcatVersion",
 				"org.apache.tomcat:tomcat-jsp-api:$tomcatVersion",
@@ -223,10 +226,10 @@ project('spring-xd-dirt') {
 				"com.eaio.uuid:uuid:3.2",
 				"org.jolokia:jolokia-spring:$jolokiaVersion",
 				"org.springframework.plugin:spring-plugin-core:$springPluginVersion"
+
 		compile ("org.apache.activemq:activemq-core:5.6.0") {
 			exclude group: 'org.mortbay.jetty'
 		}
-
 		runtime "org.slf4j:jcl-over-slf4j:$slf4jVersion",
 				"org.slf4j:slf4j-log4j12:$slf4jVersion"
 
@@ -379,7 +382,7 @@ project('spring-integration-module') {
 project('spring-xd-tuple') {
 	description = 'Spring XD Tuple'
 	dependencies {
-		compile "org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion"
+	    compile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
 		compile "org.springframework:spring-context:$springVersion"
 		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
 		compile "org.springframework.batch:spring-batch-infrastructure:$springBatchVersion"
@@ -395,7 +398,8 @@ project('spring-xd-rest-client') {
 	dependencies {
 		compile "org.springframework:spring-web:$springVersion"
 		compile project(':spring-xd-rest-domain')
-		runtime "org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion"
+		compile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
+		compile 'org.codehaus.jackson:jackson-core-asl:1.9.13'
 	}
 }
 
@@ -405,7 +409,8 @@ project('spring-xd-rest-domain') {
 		compile ("org.springframework.hateoas:spring-hateoas:$springHATEOASVersion") {
 			exclude module: "spring-asm"
 		}
-		runtime "org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion"
+		compile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
+		compile 'org.codehaus.jackson:jackson-core-asl:1.9.13'
 	}
 }
 
@@ -437,7 +442,7 @@ project('spring-xd-jdbc') {
 		compile "org.springframework:spring-tx:$springVersion"
 		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
 		runtime "org.springframework.integration:spring-integration-jdbc:$springIntegrationVersion"
-		runtime "org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion"
+		runtime "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
 		runtime "hsqldb:hsqldb:1.8.0.10"
 		runtime "mysql:mysql-connector-java:5.1.23"
 		runtime "postgresql:postgresql:9.1-901-1.jdbc4"

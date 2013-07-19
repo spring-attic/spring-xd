@@ -24,7 +24,7 @@ public class TapDeployer extends AbstractDeployer<TapDefinition> {
 
 	public TapDeployer(TapDefinitionRepository repository, StreamDefinitionRepository streamRepository,
 			DeploymentMessageSender messageSender) {
-		super(repository, messageSender);
+		super(repository, messageSender, "tap");
 		Assert.notNull(streamRepository, "stream repository cannot be null");
 		this.streamRepository = streamRepository;
 	}
@@ -38,7 +38,8 @@ public class TapDeployer extends AbstractDeployer<TapDefinition> {
 	public TapDefinition create(TapDefinition tapDefinition) {
 		Assert.notNull(tapDefinition, "tap definition may not be null");
 		if (!streamRepository.exists(tapDefinition.getStreamName())) {
-			throw new NoSuchStreamException(tapDefinition.getStreamName());
+			throw new NoSuchDefinitionException(tapDefinition.getStreamName(),
+					"Can't tap into stream '%s' because it does not exist");
 		}
 		return super.create(tapDefinition);
 	}

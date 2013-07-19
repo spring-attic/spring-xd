@@ -16,15 +16,15 @@ import org.springframework.xd.dirt.core.AbstractDeployer;
 
 /**
  * Responsible for deploying {@link TriggerDefinition}s.
- *
+ * 
  * @author Gunnar Hillert
  * @author Luke Taylor
  * @since 1.0
- *
+ * 
  */
 public class TriggerDeployer extends AbstractDeployer<TriggerDefinition> {
 
 	public TriggerDeployer(TriggerDefinitionRepository repository, DeploymentMessageSender messageSender) {
-		super (repository, messageSender);
+		super(repository, messageSender, "trigger");
 	}
 }

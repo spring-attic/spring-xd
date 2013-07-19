@@ -23,6 +23,7 @@ import java.util.TreeSet;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.dirt.stream.AlreadyDeployedException;
 import org.springframework.xd.dirt.stream.BaseDefinition;
 import org.springframework.xd.dirt.stream.DefinitionAlreadyExistsException;
 import org.springframework.xd.dirt.stream.DeploymentMessageSender;
@@ -36,6 +37,7 @@ import org.springframework.xd.dirt.stream.StreamParser;
  * 
  * @author Luke Taylor
  * @author Mark Pollack
+ * @author Eric Bottard
  */
 public abstract class AbstractDeployer<D extends BaseDefinition> implements ResourceDeployer<D> {
 	private CrudRepository<D, String> repository;
@@ -44,31 +46,41 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 
 	private final DeploymentMessageSender messageSender;
 
-	protected AbstractDeployer(CrudRepository<D, String> repository, DeploymentMessageSender messageSender) {
+	/**
+	 * Lower-case, singular name of the kind of definition we're deploying. Used in exception messages.
+	 */
+	private final String definitionKind;
+
+	protected AbstractDeployer(CrudRepository<D, String> repository, DeploymentMessageSender messageSender,
+			String definitionKind) {
 		Assert.notNull(repository, "repository cannot be null");
 		Assert.notNull(messageSender, "message sender cannot be null");
+		Assert.hasText(definitionKind, "definitionKind cannot be blank");
 		this.repository = repository;
 		this.messageSender = messageSender;
+		this.definitionKind = definitionKind;
 	}
 
 	@Override
 	public D create(D definition) {
 		Assert.notNull(definition, "Definition may not be null");
 		if (repository.findOne(definition.getName()) != null) {
-			throw createDefinitionAlreadyExistsException(definition);
+			throwDefinitionAlreadyExistsException(definition);
 		}
 		return repository.save(definition);
 	}
 
-	/**
-	 * Intented to be overridden by subclasses that want to throw a more specific exception when a Definition already
-	 * exists, e.g. JobAlreadyExistsException.
-	 * @param resourceDefinition the class taht defines the
-	 * @return
-	 */
-	protected XDRuntimeException createDefinitionAlreadyExistsException(D definition) {
-		return new DefinitionAlreadyExistsException(definition.getName(), "Definition " + definition.getName()
-				+ " already exists");
+	protected void throwDefinitionAlreadyExistsException(D definition) {
+		throw new DefinitionAlreadyExistsException(definition.getName(), "There is already a " + definitionKind
+				+ " named '%s'");
+	}
+
+	protected void throwNoSuchDefinitionException(String name) {
+		throw new NoSuchDefinitionException(name, "There is no " + definitionKind + " definition named '%s'");
+	}
+
+	protected void throwAlreadyDeployedException(String name) {
+		throw new AlreadyDeployedException(name, "The " + definitionKind + " named '%s' is already deployed");
 	}
 
 	@Override
@@ -78,14 +90,10 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		D definition = repository.findOne(name);
 
 		if (definition == null) {
-			throw createNoSuchDefinitionException(name);
+			throwNoSuchDefinitionException(name);
 		}
 		List<ModuleDeploymentRequest> requests = streamParser.parse(name, definition.getDefinition());
 		messageSender.sendDeploymentRequests(name, requests);
-	}
-
-	protected XDRuntimeException createNoSuchDefinitionException(String name) {
-		return new NoSuchDefinitionException(name, "Resource definition " + name + " not found.");
 	}
 
 	@Override

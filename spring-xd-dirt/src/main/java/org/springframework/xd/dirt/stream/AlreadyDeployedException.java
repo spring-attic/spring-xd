@@ -27,13 +27,26 @@ import org.springframework.xd.dirt.core.XDRuntimeException;
 @SuppressWarnings("serial")
 public class AlreadyDeployedException extends XDRuntimeException {
 
+	/**
+	 * Create a new exception.
+	 * @param offendingName name of the definition that conflicts
+	 * @param message Exception message. Can use {@link String#format(String, Object...)} syntax to include the
+	 * offendingName
+	 */
 	public AlreadyDeployedException(String offendingName, String message) {
-		super(message);
+		super(String.format(message, offendingName));
 		this.offendingName = offendingName;
 	}
 
+	/**
+	 * Create a new exception.
+	 * @param offendingName name of the definition that conflicts
+	 * @param message Exception message. Can use {@link String#format(String, Object...)} syntax to include the
+	 * offendingName
+	 * @param cause root exception cause
+	 */
 	public AlreadyDeployedException(String offendingName, String message, Throwable cause) {
-		super(message, cause);
+		super(String.format(message, offendingName), cause);
 		this.offendingName = offendingName;
 	}
 

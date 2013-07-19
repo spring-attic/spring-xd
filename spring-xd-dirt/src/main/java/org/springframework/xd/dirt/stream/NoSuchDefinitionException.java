@@ -28,8 +28,14 @@ public class NoSuchDefinitionException extends XDRuntimeException {
 
 	private final String offendingName;
 
+	/**
+	 * Create a new exception.
+	 * @param offendingName name of the definition that wasn't found
+	 * @param message Exception message. Can use {@link String#format(String, Object...)} syntax to include the
+	 * offendingName
+	 */
 	public NoSuchDefinitionException(String offendingName, String message) {
-		super(message);
+		super(String.format(message, offendingName));
 		this.offendingName = offendingName;
 	}
 

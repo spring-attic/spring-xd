@@ -30,13 +30,17 @@ import org.springframework.xd.dirt.stream.memory.InMemoryTapDefinitionRepository
 
 /**
  * @author David Turanski
- *
+ * 
  */
 public class TapDeployerTests {
 	TapDefinitionRepository repository;
+
 	StreamDefinitionRepository streamRepository;
+
 	SubscribableChannel outputChannel;
+
 	DeploymentMessageSender sender;
+
 	TapDeployer tapDeployer;
 
 	@Before
@@ -56,7 +60,7 @@ public class TapDeployerTests {
 		assertTrue(repository.exists("tap1"));
 	}
 
-	@Test(expected = NoSuchStreamException.class)
+	@Test(expected = NoSuchDefinitionException.class)
 	public void testCreateFailsIfSourceStreamDoesNotExist() {
 		TapDefinition tapDefinition = new TapDefinition("tap1", "test", "tap @test | file");
 		tapDeployer.create(tapDefinition);

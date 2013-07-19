@@ -16,24 +16,23 @@ import java.util.List;
 
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.xd.dirt.core.AbstractDeployer;
-import org.springframework.xd.dirt.core.XDRuntimeException;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 
 /**
  * @author Glenn Renfro
  * @author Luke Taylor
- *
+ * 
  */
 public class JobDeployer extends AbstractDeployer<JobDefinition> {
 
 	public JobDeployer(JobDefinitionRepository repository, DeploymentMessageSender messageSender) {
-		super(repository, messageSender);
+		super(repository, messageSender, "job");
 	}
 
 	public JobDefinition destroyJob(String name) {
 		JobDefinition def = getRepository().findOne(name);
 		if (def == null) {
-			throw new NoSuchJobException(name);
+			throwNoSuchDefinitionException(name);
 		}
 		if (getRepository().exists(name)) {
 			undeployJob(name);
@@ -42,34 +41,23 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 		return def;
 	}
 
-	public void undeployJob(String name){
+	public void undeployJob(String name) {
 		JobDefinition job = getRepository().findOne(name);
 		if (job == null) {
-			throw new NoSuchJobException(name);
+			throwNoSuchDefinitionException(name);
 		}
 		StreamParser streamParser = new EnhancedStreamParser();
 		List<ModuleDeploymentRequest> requests = streamParser.parse(name, job.getDefinition());
-		for(ModuleDeploymentRequest request:requests){
+		for (ModuleDeploymentRequest request : requests) {
 			request.setRemove(true);
 		}
-		try{
+		try {
 			getMessageSender().sendDeploymentRequests(name, requests);
-		}catch(MessageHandlingException ex){
-			//Job is not deployed.
+		}
+		catch (MessageHandlingException ex) {
+			// Job is not deployed.
 		}
 
 	}
 
-	@Override
-	protected XDRuntimeException createDefinitionAlreadyExistsException(JobDefinition definition) {
-		return new JobAlreadyExistsException(definition.getName());
-	}
-
-	@Override
-	protected XDRuntimeException createNoSuchDefinitionException(String name) {
-		return new NoSuchJobException(name);
-	}
-
-	
-	
 }

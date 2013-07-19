@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.xd.dirt.stream.NoSuchStreamException;
+import org.springframework.xd.dirt.stream.NoSuchDefinitionException;
 import org.springframework.xd.dirt.stream.TriggerDefinition;
 import org.springframework.xd.dirt.stream.TriggerDeployer;
 import org.springframework.xd.rest.client.domain.TriggerDefinitionResource;
@@ -85,7 +85,7 @@ public class TriggersController {
 		final TriggerDefinition triggerDefinition = triggerDeployer.findOne(name);
 
 		if (triggerDefinition == null) {
-			throw new NoSuchStreamException(name);
+			throw new NoSuchDefinitionException(name, "There is no trigger definition named '%s'");
 		}
 
 		return definitionResourceAssembler.toResource(triggerDefinition);

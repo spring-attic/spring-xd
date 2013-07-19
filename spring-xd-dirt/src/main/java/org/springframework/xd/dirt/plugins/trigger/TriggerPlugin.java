@@ -23,7 +23,9 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.support.CronTrigger;
+import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.util.Assert;
+import org.springframework.xd.dirt.module.ResourceDefinitionException;
 import org.springframework.xd.module.BeanDefinitionAddingPostProcessor;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.Plugin;
@@ -32,6 +34,7 @@ import org.springframework.xd.module.Plugin;
  * {@link Plugin} to enable the registration of triggers.
  *
  * @author Gunnar Hillert
+ * @author Ilayaperumal Gopinathan
  * @since 1.0
  *
  */
@@ -51,10 +54,21 @@ public class TriggerPlugin implements Plugin {
 		if (!TRIGGER.equals(module.getType())) {
 			return;
 		}
-
-		final BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(CronTrigger.class);
-		builder.addConstructorArgValue(module.getProperties().get("cron"));
-
+		
+		final BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition();
+		if (module.getProperties().containsKey(TriggerType.cron.name())) {
+			TriggerType.cron.addTrigger(builder, module.getProperties().getProperty(TriggerType.cron.name()));
+		}
+		else if (module.getProperties().containsKey(TriggerType.fixedDelay.name())) {
+			TriggerType.fixedDelay.addTrigger(builder, module.getProperties().getProperty(TriggerType.fixedDelay.name()));
+		}
+		else if (module.getProperties().containsKey(TriggerType.fixedRate.name())) {
+			TriggerType.fixedRate.addTrigger(builder, module.getProperties().getProperty(TriggerType.fixedRate.name()));
+		}
+		else {
+			throw new ResourceDefinitionException("Trigger type is not valid. Supported triggers are: " +
+					"cron, fixedDelay & fixedRate");
+		}
 		final BeanDefinitionAddingPostProcessor postProcessor = new BeanDefinitionAddingPostProcessor();
 		postProcessor.addBeanDefinition(BEAN_NAME_PREFIX + group, builder.getBeanDefinition());
 
@@ -83,6 +97,36 @@ public class TriggerPlugin implements Plugin {
 	@Override
 	public void postProcessSharedContext(ConfigurableApplicationContext context) {
 		this.commonApplicationContext = context;
+	}
+	
+	/**
+	 * Trigger type enum
+	 */
+	private enum TriggerType {
+		cron {
+			@Override
+			void addTrigger(BeanDefinitionBuilder builder, String expression) {
+				builder.getBeanDefinition().setBeanClass(CronTrigger.class);
+				builder.addConstructorArgValue(expression);
+			}
+		},
+		fixedDelay {
+			@Override
+			void addTrigger(BeanDefinitionBuilder builder, String fixedDelay) {
+				builder.getBeanDefinition().setBeanClass(PeriodicTrigger.class);
+				builder.addConstructorArgValue(Long.parseLong(fixedDelay));
+			}
+		},
+		fixedRate {
+			@Override
+			void addTrigger(BeanDefinitionBuilder builder, String fixedRate) {
+				builder.getBeanDefinition().setBeanClass(PeriodicTrigger.class);
+				builder.addConstructorArgValue(Long.parseLong(fixedRate));
+				builder.addPropertyValue("fixedRate", true);
+			}
+		};
+
+		abstract void addTrigger(BeanDefinitionBuilder builder, String definition);
 	}
 
 }

@@ -15,6 +15,7 @@ package org.springframework.xd.dirt.stream;
 import java.util.List;
 
 import org.springframework.integration.MessageHandlingException;
+import org.springframework.util.Assert;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 
 /**
@@ -24,10 +25,11 @@ import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
  */
 public class JobDeployer extends AbstractDeployer<JobDefinition> {
 
+	private static String BEAN_CREATION_EXCEPTION = "org.springframework.beans.factory.BeanCreationException";
+	private static String DEPLOYER_TYPE = "job";
 	public JobDeployer(JobDefinitionRepository repository, DeploymentMessageSender messageSender) {
-		super(repository, messageSender, "job");
+		super(repository, messageSender, DEPLOYER_TYPE);
 	}
-
 	@Override
 	public void delete(String name) {
 		JobDefinition def = getRepository().findOne(name);
@@ -39,6 +41,31 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 		}
 
 		getRepository().delete(name);
+	}
+
+	@Override
+	public void deploy(String name) {
+		Assert.hasText(name, NAME_EMPTY_ERROR);
+		JobDefinition definition = getRepository().findOne(name);
+		if (definition == null) {
+			throwNoSuchDefinitionException(name);
+		}
+		List<ModuleDeploymentRequest> requests = getStreamParser().parse(name,
+				definition.getDefinition());
+		try {
+			getMessageSender().sendDeploymentRequests(name, requests);
+		} catch (MessageHandlingException mhe) {
+			Throwable cause = mhe.getCause();
+			if (cause != null
+					&& cause.getClass().getName()
+							.equals(BEAN_CREATION_EXCEPTION)) {
+				throw new NoSuchDefinitionException(definition.getName(),
+						cause.getMessage());
+			} else {
+				throw mhe;
+			}
+		}
+
 	}
 
 	public void undeployJob(String name) {

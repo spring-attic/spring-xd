@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-3.0.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<int:channel id="deployChannel" />
+
+	<bean id="deploymentMessageSender" class="org.springframework.xd.dirt.stream.DeploymentMessageSender">
+		<constructor-arg name="outputChannel" ref="deployChannel" />
+	</bean>
+
+	<bean id="streamDeployer" class="org.springframework.xd.dirt.stream.DefaultStreamDeployer">
+		<constructor-arg ref="deployChannel" />
+		<constructor-arg ref="streamDefinitionRepository" />
+		<constructor-arg ref="streamRepository" />
+	</bean>
+	
+	<bean id="tapDeployer" class="org.springframework.xd.dirt.stream.TapDeployer">
+		<constructor-arg ref="tapRepository" />
+		<constructor-arg ref="streamDefinitionRepository" />
+		<constructor-arg ref="deploymentMessageSender" />
+	</bean>
+	
+	<bean id="jobDeployer" class="org.springframework.xd.dirt.stream.JobDeployer">
+		<constructor-arg name="repository" ref="jobRepository" />
+		<constructor-arg name="messageSender" ref="deploymentMessageSender" />
+	</bean>
+	
+	<bean id="triggerDeployer" class="org.springframework.xd.dirt.stream.TriggerDeployer">
+		<constructor-arg ref="triggerRepository"/>
+		<constructor-arg ref="deploymentMessageSender" />
+	</bean>
+
+</beans>

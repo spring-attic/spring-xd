@@ -17,6 +17,7 @@
 package org.springframework.xd.rest.client.impl;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.util.LinkedMultiValueMap;
@@ -58,6 +59,15 @@ public class TapTemplate extends AbstractTemplate implements TapOperations {
 	public List<TapDefinitionResource> listTaps() {
 		final TapDefinitionResource[] taps = restTemplate.getForObject(resources.get("taps"), TapDefinitionResource[].class);
 		return Arrays.asList(taps);
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.springframework.xd.rest.client.TapOperations#destroyTap(java.lang.String)
+	 */
+	@Override
+	public void destroyTap(String name) {
+		String uriTemplate = resources.get("taps").toString() + "/{name}";
+		restTemplate.delete(uriTemplate, Collections.singletonMap("name", name));
 	}
 
 }

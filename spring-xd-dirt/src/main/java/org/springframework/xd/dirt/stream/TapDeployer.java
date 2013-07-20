@@ -12,8 +12,11 @@
  */
 package org.springframework.xd.dirt.stream;
 
+import java.util.List;
+
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.AbstractDeployer;
+import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 
 /**
  * @author David Turanski
@@ -50,12 +53,25 @@ public class TapDeployer extends AbstractDeployer<TapDefinition> {
 		if (def == null) {
 			throw new NoSuchDefinitionException(name,
 				"Can't delete tap '%s' because it does not exist");
+		} 
+		else {
+			// Undeploy the tap before delete it from repository
+			undeploy(name);
+			getRepository().delete(name);
 		}
-		getRepository().delete(name);
 	}
 
 	public void undeploy(String name) {
 		Assert.hasText(name, "name cannot be blank or null");
-		getMessageSender().removeDeployment(name);
+		TapDefinition def = getRepository().findOne(name);
+		if (def == null) {
+			throwNoSuchDefinitionException(name);
+		}
+		StreamParser streamParser = new EnhancedStreamParser();
+		List<ModuleDeploymentRequest> requests = streamParser.parse(name, def.getDefinition());
+		for (ModuleDeploymentRequest request : requests) {
+			request.setRemove(true);
+		}
+		getMessageSender().sendDeploymentRequests(name, requests);
 	}
 }

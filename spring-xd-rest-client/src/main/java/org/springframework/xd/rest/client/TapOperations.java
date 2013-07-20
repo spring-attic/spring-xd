@@ -46,5 +46,12 @@ public interface TapOperations {
 	 * @return A list of taps
 	 */
 	List<TapDefinitionResource> listTaps();
+	
+	
+	/**
+	 * Destroy an existing tap
+	 * @param name
+	 */
+	public void destroyTap(String name);
 
 }

@@ -49,7 +49,7 @@ public interface TapOperations {
 	
 	
 	/**
-	 * Destroy an existing stream
+	 * Destroy an existing tap
 	 * @param name
 	 */
 	public void destroyTap(String name);

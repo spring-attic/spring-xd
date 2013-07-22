@@ -16,6 +16,8 @@
 
 package org.springframework.xd.dirt.rest;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.hateoas.VndErrors;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.StringUtils;
@@ -30,11 +32,13 @@ import org.springframework.xd.dirt.stream.NoSuchDefinitionException;
 
 /**
  * Central class for behavior common to all REST controllers.
- *
+ * 
  * @author Eric Bottard
  */
 @ControllerAdvice
 public class RestControllerAdvice {
+
+	private final Log logger = LogFactory.getLog(this.getClass());
 
 	/*
 	 * Note that any controller-specific exception handler is resolved first. So for example, having a
@@ -48,8 +52,8 @@ public class RestControllerAdvice {
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	@ResponseBody
 	public VndErrors onMissingServletRequestParameterException(MissingServletRequestParameterException e) {
-		String msg = e.getMessage();
-		return new VndErrors("MissingServletRequestParameterException", msg);
+		String logref = log(e);
+		return new VndErrors(logref, e.getMessage());
 	}
 
 	/**
@@ -59,8 +63,9 @@ public class RestControllerAdvice {
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 	@ResponseBody
 	public VndErrors onException(Exception e) {
+		String logref = log(e);
 		String msg = StringUtils.hasText(e.getMessage()) ? e.getMessage() : e.getClass().getSimpleName();
-		return new VndErrors(e.getClass().getSimpleName(), msg);
+		return new VndErrors(logref, msg);
 	}
 
 	/**
@@ -70,7 +75,8 @@ public class RestControllerAdvice {
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.NOT_FOUND)
 	public VndErrors onNoSuchStreamException(NoSuchDefinitionException e) {
-		return new VndErrors(e.getClass().getSimpleName(), e.getMessage());
+		String logref = log(e);
+		return new VndErrors(logref, e.getMessage());
 	}
 
 	/**
@@ -80,7 +86,8 @@ public class RestControllerAdvice {
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	public VndErrors onStreamAlreadyExistsException(DefinitionAlreadyExistsException e) {
-		return new VndErrors(e.getClass().getSimpleName(), e.getMessage());
+		String logref = log(e);
+		return new VndErrors(logref, e.getMessage());
 	}
 
 	/**
@@ -90,7 +97,13 @@ public class RestControllerAdvice {
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	public VndErrors onStreamAlreadyDeployedException(AlreadyDeployedException e) {
-		return new VndErrors(e.getClass().getSimpleName(), e.getMessage());
+		String logref = log(e);
+		return new VndErrors(logref, e.getMessage());
 	}
 
+	private String log(Throwable t) {
+		logger.error("Caught excpetion while handling a request", t);
+		// TODO: use a more semantically correct VndError 'logref'
+		return t.getClass().getSimpleName();
+	}
 }

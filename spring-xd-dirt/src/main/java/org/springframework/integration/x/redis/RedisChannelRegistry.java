@@ -37,11 +37,11 @@ import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.AbstractMessageHandler;
-import org.springframework.integration.handler.BridgeHandler;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.redis.inbound.RedisInboundChannelAdapter;
-import org.springframework.integration.redis.outbound.RedisPublishingMessageHandler;
 import org.springframework.integration.x.channel.registry.ChannelRegistry;
 import org.springframework.integration.x.channel.registry.ChannelRegistrySupport;
+import org.springframework.redis.x.NoOpRedisSerializer;
 import org.springframework.util.Assert;
 import org.springframework.xd.module.Module;
 
@@ -64,19 +64,20 @@ public class RedisChannelRegistry extends ChannelRegistrySupport implements Disp
 	public RedisChannelRegistry(RedisConnectionFactory connectionFactory) {
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");
 		this.redisTemplate.setConnectionFactory(connectionFactory);
+		this.redisTemplate.setValueSerializer(new NoOpRedisSerializer());
 		this.redisTemplate.afterPropertiesSet();
 	}
 
 	@Override
 	public void inbound(final String name, MessageChannel channel, final Module module) {
 		RedisQueueInboundChannelAdapter adapter = new RedisQueueInboundChannelAdapter("queue." + name,
-				this.redisTemplate.getConnectionFactory());
+				this.redisTemplate.getConnectionFactory(), new NoOpRedisSerializer());
 		SubscribableChannel toModule = new DirectChannel();
 		adapter.setOutputChannel(toModule);
 		adapter.setBeanName("inbound." + name);
 		adapter.afterPropertiesSet();
 		this.lifecycleBeans.add(adapter);
-		BridgeHandler bridge = new BridgeHandler() {
+		AbstractReplyProducingMessageHandler bridge = new AbstractReplyProducingMessageHandler() {
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
 				if (module != null) {
@@ -165,11 +166,13 @@ public class RedisChannelRegistry extends ChannelRegistrySupport implements Disp
 		private CompositeHandler(String name, RedisConnectionFactory connectionFactory) {
 			// TODO: replace with a multiexec that does both publish and lpush
 			RedisPublishingMessageHandler topic = new RedisPublishingMessageHandler(connectionFactory);
+			NoOpRedisSerializer serializer = new NoOpRedisSerializer();
+			topic.setSerializer(serializer);
 			topic.setDefaultTopic("topic." + name);
 			topic.afterPropertiesSet();
 			this.topic = topic;
 			RedisQueueOutboundChannelAdapter queue = new RedisQueueOutboundChannelAdapter("queue." + name,
-					connectionFactory);
+					connectionFactory, serializer);
 			queue.afterPropertiesSet();
 			this.queue = queue;
 		}

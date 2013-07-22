@@ -56,6 +56,10 @@ public abstract class ChannelRegistrySupport implements ChannelRegistry {
 	}
 
 	protected Object transformPayload(Object payload, MediaType from, MediaType to) {
+		// TODO temp
+		if (payload instanceof String) {
+			return ((String) payload).getBytes();
+		}
 		if (to == MediaType.ALL) {
 			return payload;
 		}
@@ -70,6 +74,10 @@ public abstract class ChannelRegistrySupport implements ChannelRegistry {
 	 * @return null if payload can't be transformed
 	 */
 	protected Object transformPayload(Object payload, MediaType from, Collection<MediaType> to) {
+		// TODO temp
+		if (payload instanceof byte[]) {
+			return new String((byte[]) payload);
+		}
 		if (to.contains(MediaType.ALL)) {
 			return payload;
 		}

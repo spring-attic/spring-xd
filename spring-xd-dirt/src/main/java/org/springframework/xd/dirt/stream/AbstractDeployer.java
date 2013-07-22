@@ -124,11 +124,14 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		return repository;
 	}
 
-	public DeploymentMessageSender getMessageSender() {
-		return messageSender;
+	protected void sendDeploymentRequests(String name,
+			List<ModuleDeploymentRequest> requests) {
+		messageSender.sendDeploymentRequests(name, requests);
 	}
 	
-	public StreamParser getStreamParser(){
-		return streamParser;
+	protected List<ModuleDeploymentRequest> parse(String name, String config) {
+		return streamParser.parse(name, config);
 	}
+
+
 }

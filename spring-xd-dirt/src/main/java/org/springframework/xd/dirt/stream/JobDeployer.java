@@ -50,10 +50,10 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 		if (definition == null) {
 			throwNoSuchDefinitionException(name);
 		}
-		List<ModuleDeploymentRequest> requests = getStreamParser().parse(name,
+		List<ModuleDeploymentRequest> requests = parse(name,
 				definition.getDefinition());
 		try {
-			getMessageSender().sendDeploymentRequests(name, requests);
+			sendDeploymentRequests(name, requests);
 		} catch (MessageHandlingException mhe) {
 			Throwable cause = mhe.getCause();
 			if (cause != null
@@ -79,7 +79,7 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 			request.setRemove(true);
 		}
 		try {
-			getMessageSender().sendDeploymentRequests(name, requests);
+			sendDeploymentRequests(name, requests);
 		}
 		catch (MessageHandlingException ex) {
 			// Job is not deployed.

@@ -34,7 +34,7 @@ import org.springframework.xd.shell.util.UiUtils;
 
 /**
  * Job commands.
- *
+ * 
  * @author Glenn Renfro
  */
 
@@ -42,10 +42,15 @@ import org.springframework.xd.shell.util.UiUtils;
 public class JobCommands implements CommandMarker {
 
 	private final static String CREATE_JOB = "job create";
+
 	private final static String DEPLOY_JOB = "job deploy";
+
 	private final static String UNDEPLOY_JOB = "job undeploy";
+
 	private final static String DESTROY_JOB = "job destroy";
+
 	private final static String LIST_JOBS = "job list";
+
 	@Autowired
 	private XDShell xdShell;
 
@@ -56,26 +61,20 @@ public class JobCommands implements CommandMarker {
 
 	@CliCommand(value = CREATE_JOB, help = "Create a job")
 	public String createJob(
-			@CliOption(mandatory = true, key = "name", help = "the name to give to the job")
+			@CliOption(mandatory = true, key = { "name", "" }, help = "the name to give to the job")
 			String name,
-			@CliOption(mandatory = true, key = { "", "definition" }, help = "job definition using xd dsl ")
+			@CliOption(mandatory = true, key = "definition", help = "job definition using xd dsl ")
 			String dsl,
 			@CliOption(key = "deploy", help = "whether to deploy the stream immediately", unspecifiedDefaultValue = "true")
 			Boolean deploy) {
-		try {
-			jobOperations().createJob(name,dsl,deploy);
-		}
-		catch (Exception e) {
-			return String.format("Error creating job '%s' \n %s", name,e.getMessage());
-		}
-		return String.format(((deploy != null && deploy.booleanValue()) ?
-			"Successfully created and deployed job '%s'" : "Successfully created job '%s'"), name);
+		jobOperations().createJob(name, dsl, deploy);
+		return String.format(((deploy != null && deploy.booleanValue()) ? "Successfully created and deployed job '%s'"
+				: "Successfully created job '%s'"), name);
 	}
 
 	@CliCommand(value = DEPLOY_JOB, help = "Deploy a previously created job")
-	public String deployJob(
-			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the job to deploy")
-			String name) {
+	public String deployJob(@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the job to deploy")
+	String name) {
 		jobOperations().deployJob(name);
 		return String.format("Deployed job '%s'", name);
 	}
@@ -83,30 +82,21 @@ public class JobCommands implements CommandMarker {
 	@CliCommand(value = LIST_JOBS, help = "List all jobs")
 	public String listJobs() {
 
-		final List<JobDefinitionResource> jobs;
-
-		try {
-			jobs = jobOperations().list();
-		}
-		catch (Exception e) {
-			return String.format("Error listing jobs");
-		}
+		final List<JobDefinitionResource> jobs = jobOperations().list();
 
 		final Table table = new Table();
-		table.addHeader(1, new TableHeader("Job Name"))
-		     .addHeader(2, new TableHeader("Job Definition"));
+		table.addHeader(1, new TableHeader("Job Name")).addHeader(2, new TableHeader("Job Definition"));
 
 		for (JobDefinitionResource jobDefinitionResource : jobs) {
 			final TableRow row = new TableRow();
-			row.addValue(1, jobDefinitionResource.getName())
-			   .addValue(2, jobDefinitionResource.getDefinition());
+			row.addValue(1, jobDefinitionResource.getName()).addValue(2, jobDefinitionResource.getDefinition());
 			table.getRows().add(row);
 		}
 		return UiUtils.renderTextTable(table);
-}
+	}
 
 	@CliCommand(value = UNDEPLOY_JOB, help = "Un-deploy a previously deployed job")
-	public String undeployStream(
+	public String undeployJob(
 			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the job to un-deploy")
 			String name) {
 		jobOperations().undeployJob(name);
@@ -120,6 +110,7 @@ public class JobCommands implements CommandMarker {
 		jobOperations().destroyJob(name);
 		return String.format("Destroyed job '%s'", name);
 	}
+
 	private JobOperations jobOperations() {
 		return xdShell.getSpringXDOperations().jobOperations();
 	}

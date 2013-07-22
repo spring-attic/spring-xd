@@ -449,6 +449,13 @@ project('spring-xd-jdbc') {
 	}
 }
 
+project('modules') {
+	description = 'Spring XD Modules'
+	dependencies {
+		compile project(':spring-xd-dirt')
+	}
+}
+
 project('spring-xd-test') {
 	description = 'Spring XD Test'
 	dependencies {

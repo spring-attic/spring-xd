@@ -87,7 +87,11 @@ public class TriggerPlugin implements Plugin {
 		this.commonApplicationContext.addBeanFactoryPostProcessor(postProcessor);
 
 		configureProperties(module, group);
-		this.commonApplicationContext.refresh();
+		commonApplicationContext.getBeanFactory().registerSingleton(
+				BEAN_NAME_PREFIX + group,
+				new CronTrigger(module.getProperties().getProperty(
+						TriggerType.cron.name())));
+		// this.commonApplicationContext.refresh();
 
 	}
 

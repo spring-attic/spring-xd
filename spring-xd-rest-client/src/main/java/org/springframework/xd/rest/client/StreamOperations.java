@@ -16,8 +16,7 @@
 
 package org.springframework.xd.rest.client;
 
-import java.util.List;
-
+import org.springframework.hateoas.PagedResources;
 import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
 
 /**
@@ -50,5 +49,5 @@ public interface StreamOperations {
 	/**
 	 * List streams known to the system.
 	 */
-	public/* PagedResources */List<StreamDefinitionResource> list(/* TODO */);
+	public PagedResources<StreamDefinitionResource> list(/* TODO */);
 }

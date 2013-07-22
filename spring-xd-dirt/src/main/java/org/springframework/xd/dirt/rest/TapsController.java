@@ -116,7 +116,7 @@ public class TapsController {
 			@RequestParam("definition") String definition,
 			@RequestParam(value = "deploy", defaultValue = "true") boolean deploy) {
 		final TapDefinition tapDefinition = new TapDefinition(name, definition);
-		final TapDefinition savedTapDefinition = tapDeployer.create(tapDefinition);
+		final TapDefinition savedTapDefinition = tapDeployer.save(tapDefinition);
 		final TapDefinitionResource result = definitionResourceAssembler.toResource(savedTapDefinition);
 		if (deploy) {
 			tapDeployer.deploy(name);

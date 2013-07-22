@@ -31,7 +31,7 @@ public interface ResourceDeployer<R extends BaseDefinition> {
 	 */
 	Iterable<R> findAll();
 
-	R create(R resource);
+	R save(R resource);
 
 	/**
 	 * Retrieves a single Definition or null if none is found.

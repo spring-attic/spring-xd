@@ -117,7 +117,7 @@ public class TriggersController {
 			@RequestParam("definition") String definition,
 			@RequestParam(value = "deploy", defaultValue = "true") boolean deploy) {
 		final TriggerDefinition triggerDefinition = new TriggerDefinition(name, definition);
-		final TriggerDefinition savedTriggerDefinition = triggerDeployer.create(triggerDefinition);
+		final TriggerDefinition savedTriggerDefinition = triggerDeployer.save(triggerDefinition);
 		final TriggerDefinitionResource result = definitionResourceAssembler.toResource(savedTriggerDefinition);
 		if (deploy) {
 			triggerDeployer.deploy(name);

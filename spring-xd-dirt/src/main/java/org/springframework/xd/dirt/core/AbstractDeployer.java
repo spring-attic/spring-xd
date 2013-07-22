@@ -62,7 +62,7 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	}
 
 	@Override
-	public D create(D definition) {
+	public D save(D definition) {
 		Assert.notNull(definition, "Definition may not be null");
 		if (repository.findOne(definition.getName()) != null) {
 			throwDefinitionAlreadyExistsException(definition);

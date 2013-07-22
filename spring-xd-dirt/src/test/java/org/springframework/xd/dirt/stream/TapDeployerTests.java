@@ -56,14 +56,14 @@ public class TapDeployerTests {
 	public void testCreateSucceeds() {
 		TapDefinition tapDefinition = new TapDefinition("tap1", "test", "tap @test | file");
 		streamRepository.save(new StreamDefinition("test", "time | log"));
-		tapDeployer.create(tapDefinition);
+		tapDeployer.save(tapDefinition);
 		assertTrue(repository.exists("tap1"));
 	}
 
 	@Test(expected = NoSuchDefinitionException.class)
 	public void testCreateFailsIfSourceStreamDoesNotExist() {
 		TapDefinition tapDefinition = new TapDefinition("tap1", "test", "tap @test | file");
-		tapDeployer.create(tapDefinition);
+		tapDeployer.save(tapDefinition);
 	}
 
 	@Test

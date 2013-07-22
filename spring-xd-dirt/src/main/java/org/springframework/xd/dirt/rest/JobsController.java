@@ -115,7 +115,7 @@ public class JobsController {
 			@RequestParam("definition") String definition,
 			@RequestParam(value = "deploy", defaultValue = "true") boolean deploy) {
 		final JobDefinition jobDefinition = new JobDefinition(name, definition);
-		final JobDefinition savedJobDefinition = jobDeployer.create(jobDefinition);
+		final JobDefinition savedJobDefinition = jobDeployer.save(jobDefinition);
 		if(deploy) {
 			jobDeployer.deploy(name);
 		}

@@ -33,7 +33,7 @@ public class StringToJsonNodeTransformer {
 		} catch (JsonParseException e) {
 			throw new MessageTransformationException("unable to parse input: " + e.getMessage(),e);
 		} catch (IOException e) {
-			throw new MessageTransformationException("unable to create json parser: " + e.getMessage(),e);
+			throw new MessageTransformationException("unable to save json parser: " + e.getMessage(),e);
 		}
 	}
 }

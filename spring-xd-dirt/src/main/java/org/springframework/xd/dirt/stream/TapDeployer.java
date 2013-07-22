@@ -38,13 +38,13 @@ public class TapDeployer extends AbstractDeployer<TapDefinition> {
 	 * @see org.springframework.xd.dirt.core.ResourceDeployer#create(java.lang.Object)
 	 */
 	@Override
-	public TapDefinition create(TapDefinition tapDefinition) {
+	public TapDefinition save(TapDefinition tapDefinition) {
 		Assert.notNull(tapDefinition, "tap definition may not be null");
 		if (!streamRepository.exists(tapDefinition.getStreamName())) {
 			throw new NoSuchDefinitionException(tapDefinition.getStreamName(),
 					"Can't tap into stream '%s' because it does not exist");
 		}
-		return super.create(tapDefinition);
+		return super.save(tapDefinition);
 	}
 
 	@Override

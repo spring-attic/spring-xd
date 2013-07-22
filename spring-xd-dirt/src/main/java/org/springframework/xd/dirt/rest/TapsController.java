@@ -100,6 +100,7 @@ public class TapsController {
 	/**
 	 * List Tap definitions.
 	 */
+	@ResponseBody
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
 	public Iterable<TapDefinitionResource> list(Pageable pageable, PagedResourcesAssembler<TapDefinition> assembler) {

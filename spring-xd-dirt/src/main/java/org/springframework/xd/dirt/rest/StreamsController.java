@@ -107,6 +107,7 @@ public class StreamsController {
 	/**
 	 * List stream definitions.
 	 */
+	@ResponseBody
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
 	public PagedResources<StreamDefinitionResource> list(Pageable pageable,

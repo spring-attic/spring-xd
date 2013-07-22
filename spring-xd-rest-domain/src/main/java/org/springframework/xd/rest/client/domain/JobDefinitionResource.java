@@ -16,6 +16,7 @@
 
 package org.springframework.xd.rest.client.domain;
 
+import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.ResourceSupport;
 
 /**
@@ -55,6 +56,15 @@ public class JobDefinitionResource extends ResourceSupport {
 
 	public String getDefinition() {
 		return definition;
+	}
+
+	/**
+	 * Dedicated subclass to workaround type erasure.
+	 *
+	 * @author Eric Bottard
+	 */
+	public static class Page extends PagedResources<JobDefinitionResource> {
+
 	}
 
 }

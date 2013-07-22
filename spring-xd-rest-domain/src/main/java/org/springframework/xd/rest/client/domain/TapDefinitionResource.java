@@ -16,6 +16,7 @@
 
 package org.springframework.xd.rest.client.domain;
 
+import org.springframework.hateoas.PagedResources;
 import org.springframework.util.Assert;
 
 /**
@@ -56,9 +57,17 @@ public class TapDefinitionResource extends StreamDefinitionResource {
 
 	@Override
 	public String toString() {
-		return "TapDefinitionResource [name=" + getName()
-				+ ", streamName=" + streamName
-				+ ", definition=" + getDefinition() + "]";
+		return "TapDefinitionResource [name=" + getName() + ", streamName=" + streamName + ", definition="
+				+ getDefinition() + "]";
+	}
+
+	/**
+	 * Dedicated subclass to workaround type erasure.
+	 *
+	 * @author Eric Bottard
+	 */
+	public static class Page extends PagedResources<TapDefinitionResource> {
+
 	}
 
 }

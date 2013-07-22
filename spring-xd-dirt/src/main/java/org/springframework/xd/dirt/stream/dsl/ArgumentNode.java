@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.xd.dirt.stream.dsl.ast;
+package org.springframework.xd.dirt.stream.dsl;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.xd.dirt.stream.dsl.DSLException;
-import org.springframework.xd.dirt.stream.dsl.XDDSLMessages;
-import org.springframework.xd.dirt.stream.dsl.ast.ModuleNode.ConsumedArgumentNode;
+import org.springframework.xd.dirt.stream.dsl.ModuleNode.ConsumedArgumentNode;
 
 /**
  * Represents an argument like "--name=value".

@@ -22,9 +22,9 @@ import java.util.TreeSet;
 
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.util.Assert;
+import org.springframework.xd.dirt.core.BaseDefinition;
 import org.springframework.xd.dirt.core.ResourceDeployer;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
-import org.springframework.xd.dirt.core.BaseDefinition;
 
 /**
  * Abstract implementation of the @link {@link org.springframework.xd.dirt.core.ResourceDeployer} interface. It provides the basic support for calling

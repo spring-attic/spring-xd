@@ -20,15 +20,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.xd.dirt.stream.dsl.ast.ArgumentNode;
-import org.springframework.xd.dirt.stream.dsl.ast.ChannelNode;
-import org.springframework.xd.dirt.stream.dsl.ast.LabelNode;
-import org.springframework.xd.dirt.stream.dsl.ast.ModuleNode;
-import org.springframework.xd.dirt.stream.dsl.ast.ModuleReferenceNode;
-import org.springframework.xd.dirt.stream.dsl.ast.SinkChannelNode;
-import org.springframework.xd.dirt.stream.dsl.ast.SourceChannelNode;
-import org.springframework.xd.dirt.stream.dsl.ast.StreamNode;
-import org.springframework.xd.dirt.stream.dsl.ast.StreamsNode;
 
 /**
  * @author Andy Clement

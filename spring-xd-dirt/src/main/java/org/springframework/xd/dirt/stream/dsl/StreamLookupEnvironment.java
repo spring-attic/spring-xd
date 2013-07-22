@@ -15,7 +15,6 @@
  */
 package org.springframework.xd.dirt.stream.dsl;
 
-import org.springframework.xd.dirt.stream.dsl.ast.StreamNode;
 
 /**
  * A lookup environment is used to resolve a stream. Stream resolution chases

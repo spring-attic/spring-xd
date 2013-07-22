@@ -20,10 +20,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.dirt.stream.dsl.ArgumentNode;
+import org.springframework.xd.dirt.stream.dsl.ModuleNode;
 import org.springframework.xd.dirt.stream.dsl.StreamConfigParser;
-import org.springframework.xd.dirt.stream.dsl.ast.ArgumentNode;
-import org.springframework.xd.dirt.stream.dsl.ast.ModuleNode;
-import org.springframework.xd.dirt.stream.dsl.ast.StreamsNode;
+import org.springframework.xd.dirt.stream.dsl.StreamsNode;
 
 /**
  * @author Andy Clement

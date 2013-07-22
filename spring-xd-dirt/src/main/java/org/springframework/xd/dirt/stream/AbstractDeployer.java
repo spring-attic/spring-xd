@@ -29,7 +29,7 @@ import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 /**
  * Abstract implementation of the @link {@link org.springframework.xd.dirt.core.ResourceDeployer} interface. It provides the basic support for calling
  * CrudRepository methods and sending deployment messages.
- * 
+ *
  * @author Luke Taylor
  * @author Mark Pollack
  * @author Eric Bottard
@@ -112,4 +112,9 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	public DeploymentMessageSender getMessageSender() {
 		return messageSender;
 	}
+
+	public StreamParser getStreamParser() {
+		return streamParser;
+	}
+
 }

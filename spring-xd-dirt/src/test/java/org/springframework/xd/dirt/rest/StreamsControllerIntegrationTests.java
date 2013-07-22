@@ -16,8 +16,7 @@
 
 package org.springframework.xd.dirt.rest;
 
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -38,6 +37,7 @@ import org.springframework.xd.dirt.stream.StreamDefinition;
  * Tests REST compliance of streams-related end-points.
  *
  * @author Eric Bottard
+ * @author Gunnar Hillert
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
@@ -46,7 +46,7 @@ public class StreamsControllerIntegrationTests extends AbstractControllerIntegra
 
 	@Test
 	public void testSuccessfulStreamCreation() throws Exception {
-		when(streamDeployer.createStream("mystream", "http | hdfs", true)).thenReturn(
+		when(streamDeployer.save(new StreamDefinition("mystream", "http | hdfs"))).thenReturn(
 				new StreamDefinition("mystream", "http | hdfs"));
 
 		mockMvc.perform(
@@ -62,7 +62,7 @@ public class StreamsControllerIntegrationTests extends AbstractControllerIntegra
 
 	@Test
 	public void testStreamCreationAnyError() throws Exception {
-		doThrow(NullPointerException.class).when(streamDeployer).createStream(anyString(), anyString(), anyBoolean());
+		doThrow(NullPointerException.class).when(streamDeployer).save(any(StreamDefinition.class));
 
 		mockMvc.perform(
 				post("/streams").param("name", "mystream").param("definition", "file|http")
@@ -72,12 +72,12 @@ public class StreamsControllerIntegrationTests extends AbstractControllerIntegra
 	@Test
 	public void testSuccessfulStreamDeletion() throws Exception {
 		mockMvc.perform(delete("/streams/{name}", "mystream")).andExpect(status().isOk());
-		verify(streamDeployer).destroyStream("mystream");
+		verify(streamDeployer).delete("mystream");
 	}
 
 	@Test
 	public void testDeleteUnknownStream() throws Exception {
-		when(streamDeployer.destroyStream("mystream")).thenThrow(new NoSuchDefinitionException("mystream", "whatever"));
+		doThrow(new NoSuchDefinitionException("mystream", "whatever")).when(streamDeployer).delete("mystream");
 		mockMvc.perform(delete("/streams/{name}", "mystream")).andExpect(status().isNotFound());
 	}
 }

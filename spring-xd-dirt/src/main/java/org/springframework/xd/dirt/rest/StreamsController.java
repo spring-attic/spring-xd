@@ -32,10 +32,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.xd.dirt.stream.StreamDeployer;
 import org.springframework.xd.dirt.stream.NoSuchDefinitionException;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
-import org.springframework.xd.dirt.stream.StreamDeployer;
 import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
 
 /**
@@ -71,7 +71,7 @@ public class StreamsController {
 	@RequestMapping(value = "/{name}", method = RequestMethod.DELETE)
 	@ResponseStatus(HttpStatus.OK)
 	public void delete(@PathVariable("name") String name) {
-		streamDeployer.destroyStream(name);
+		streamDeployer.delete(name);
 	}
 
 	/**
@@ -82,7 +82,7 @@ public class StreamsController {
 	@RequestMapping(value = "/{name}", method = RequestMethod.PUT, params = "deploy=true")
 	@ResponseStatus(HttpStatus.OK)
 	public void deploy(@PathVariable("name") String name) {
-		streamDeployer.deployStream(name);
+		streamDeployer.deploy(name);
 	}
 
 	/**
@@ -132,8 +132,13 @@ public class StreamsController {
 	public StreamDefinitionResource save(@RequestParam("name") String name,
 			@RequestParam("definition") String definition,
 			@RequestParam(value = "deploy", defaultValue = "true") boolean deploy) {
-		StreamDefinition streamDefinition = streamDeployer.createStream(name, definition, deploy);
-		StreamDefinitionResource result = definitionResourceAssembler.toResource(streamDefinition);
+
+		final StreamDefinition streamDefinition = new StreamDefinition(name, definition);
+		final StreamDefinition savedStreamDefinition = streamDeployer.save(streamDefinition);
+		final StreamDefinitionResource result = definitionResourceAssembler.toResource(savedStreamDefinition);
+		if (deploy) {
+			streamDeployer.deploy(name);
+		}
 		return result;
 	}
 
@@ -145,7 +150,7 @@ public class StreamsController {
 	@RequestMapping(value = "/{name}", method = RequestMethod.PUT, params = "deploy=false")
 	@ResponseStatus(HttpStatus.OK)
 	public void undeploy(@PathVariable("name") String name) {
-		streamDeployer.undeployStream(name);
+		streamDeployer.undeploy(name);
 	}
 }
 

@@ -15,7 +15,6 @@ package org.springframework.xd.dirt.stream;
 import java.util.List;
 
 import org.springframework.util.Assert;
-import org.springframework.xd.dirt.core.AbstractDeployer;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 
 /**

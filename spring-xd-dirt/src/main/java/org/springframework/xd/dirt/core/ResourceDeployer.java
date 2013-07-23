@@ -12,8 +12,6 @@
  */
 package org.springframework.xd.dirt.core;
 
-import org.springframework.xd.dirt.stream.BaseDefinition;
-
 /**
  * Interface for XD Resource Services.
  *

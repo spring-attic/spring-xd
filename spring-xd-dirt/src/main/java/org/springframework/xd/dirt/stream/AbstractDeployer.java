@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.core;
+package org.springframework.xd.dirt.stream;
 
 import java.util.List;
 import java.util.SortedSet;
@@ -22,17 +22,12 @@ import java.util.TreeSet;
 
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.util.Assert;
+import org.springframework.xd.dirt.core.ResourceDeployer;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
-import org.springframework.xd.dirt.stream.AlreadyDeployedException;
-import org.springframework.xd.dirt.stream.BaseDefinition;
-import org.springframework.xd.dirt.stream.DefinitionAlreadyExistsException;
-import org.springframework.xd.dirt.stream.DeploymentMessageSender;
-import org.springframework.xd.dirt.stream.EnhancedStreamParser;
-import org.springframework.xd.dirt.stream.NoSuchDefinitionException;
-import org.springframework.xd.dirt.stream.StreamParser;
+import org.springframework.xd.dirt.core.BaseDefinition;
 
 /**
- * Abstract implementation of the @link {@link ResourceDeployer} interface. It provides the basic support for calling
+ * Abstract implementation of the @link {@link org.springframework.xd.dirt.core.ResourceDeployer} interface. It provides the basic support for calling
  * CrudRepository methods and sending deployment messages.
  * 
  * @author Luke Taylor

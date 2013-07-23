@@ -13,6 +13,8 @@
 package org.springframework.xd.dirt.stream;
 
 
+import org.springframework.xd.dirt.core.BaseDefinition;
+
 /**
  * Represents the model for defining Triggers.
  *

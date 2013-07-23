@@ -12,8 +12,6 @@
  */
 package org.springframework.xd.dirt.stream;
 
-import org.springframework.xd.dirt.core.AbstractDeployer;
-
 /**
  * Responsible for deploying {@link TriggerDefinition}s.
  *

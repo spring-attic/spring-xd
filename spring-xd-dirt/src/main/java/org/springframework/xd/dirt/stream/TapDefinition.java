@@ -16,6 +16,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.springframework.util.Assert;
+import org.springframework.xd.dirt.core.BaseDefinition;
 
 /**
  * @author David Turanski

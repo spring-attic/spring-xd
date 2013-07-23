@@ -13,6 +13,8 @@
 package org.springframework.xd.dirt.stream;
 
 
+import org.springframework.xd.dirt.core.BaseDefinition;
+
 /**
  * @author David Turanski
  * @author Gunnar Hillert

@@ -13,14 +13,17 @@
 package org.springframework.integration.x.channel.registry;
 
 import java.util.Collection;
+import java.util.Collections;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.core.convert.ConversionException;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.http.MediaType;
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.x.json.TypedJsonMapper;
 import org.springframework.xd.module.Module;
 
 /**
@@ -30,64 +33,127 @@ import org.springframework.xd.module.Module;
  */
 public abstract class ChannelRegistrySupport implements ChannelRegistry {
 
-	protected Log logger = LogFactory.getLog(getClass());
+	protected final Log logger = LogFactory.getLog(getClass());
 
-	protected final Message<?> transformInboundIfNecessary(Message<?> message, Module module) {
-		Message<?> messageToSend = message;
-		MediaType from = headerToMediaType(message.getHeaders().get(MessageHeaders.CONTENT_TYPE));
-		Object originalPayload = message.getPayload();
-		Object payload = transformPayload(originalPayload, from, module.getAcceptedMediaTypes());
-		if (payload != null && payload != originalPayload) {
-			messageToSend = MessageBuilder.withPayload(payload).copyHeaders(message.getHeaders()).build();
-		}
-		return messageToSend;
+	private volatile ConversionService conversionService;
+
+	private final TypedJsonMapper jsonMapper = new TypedJsonMapper();
+
+	private final MediaType javaObjectType = new MediaType("application", "x-java-object");
+
+	public void setConversionService(ConversionService conversionService) {
+		this.conversionService = conversionService;
 	}
 
 	protected final Message<?> transformOutboundIfNecessary(Message<?> message, MediaType to) {
-		// TODO: should Modules also support "produces" (like "accepts") so we don't need a header.
 		Message<?> messageToSend = message;
-		MediaType from = headerToMediaType(message.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 		Object originalPayload = message.getPayload();
-		Object payload = transformPayload(originalPayload, from, to);
+		Object payload = transformPayloadFromOutputChannel(originalPayload, to);
 		if (payload != null && payload != originalPayload) {
 			messageToSend = MessageBuilder.withPayload(payload).copyHeaders(message.getHeaders()).build();
 		}
 		return messageToSend;
 	}
 
-	protected Object transformPayload(Object payload, MediaType from, MediaType to) {
-		// TODO temp
-		if (payload instanceof String) {
-			return ((String) payload).getBytes();
-		}
-		if (to == MediaType.ALL) {
+	private Object transformPayloadFromOutputChannel(Object payload, MediaType to) {
+		if (to.equals(MediaType.ALL)) {
 			return payload;
 		}
-		// TODO
-		return null;
+		else if (to.equals(MediaType.APPLICATION_OCTET_STREAM)) {
+			if (payload instanceof byte[]) {
+				return payload;
+			}
+			else {
+				return this.jsonMapper.toBytes(payload);
+			}
+		}
+		else {
+			throw new IllegalArgumentException("'to' can only be 'ALL' or 'APPLICATION_OCTET_STREAM'");
+		}
 	}
 
-	/**
-	 * @param payload
-	 * @param from
-	 * @param to
-	 * @return null if payload can't be transformed
-	 */
-	protected Object transformPayload(Object payload, MediaType from, Collection<MediaType> to) {
-		// TODO temp
+	protected final Message<?> transformInboundIfNecessary(Message<?> message, Module module) {
+		Message<?> messageToSend = message;
+		Object originalPayload = message.getPayload();
+		Object payload = transformPayloadForInputChannel(originalPayload, module.getAcceptedMediaTypes());
+		if (payload != null && payload != originalPayload) {
+			messageToSend = MessageBuilder.withPayload(payload).copyHeaders(message.getHeaders()).build();
+		}
+		return messageToSend;
+	}
+
+	private Object transformPayloadForInputChannel(Object payload, Collection<MediaType> to) {
+		// TODO need a way to short circuit the JSON decode attempt when it's a straight byte[] pass thru
 		if (payload instanceof byte[]) {
-			return new String((byte[]) payload);
+			Object result = null;
+			try {
+				result = this.jsonMapper.fromBytes((byte[]) payload);
+			}
+			catch (ConversionException e) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("JSON decode failed, raw byte[]?");
+				}
+			}
+			if (result != null) {
+				if (to.contains(MediaType.ALL)) {
+					return result;
+				}
+				// TODO: currently only tries the first application/x-java-object;type=foo.Foo
+				MediaType toObjectType = findJavaObjectType(to);
+				if (toObjectType != null) {
+					if (toObjectType.getParameter("type") == null) {
+						return result;
+					}
+					String resultClass = result.getClass().getName();
+					if (resultClass.equals(toObjectType.getParameter("type"))) {
+						return result;
+					}
+					// recursive call
+					return transformPayloadForInputChannel(result, Collections.singletonList(toObjectType));
+				}
+			}
 		}
 		if (to.contains(MediaType.ALL)) {
 			return payload;
 		}
-		// TODO
+		return convert(payload, to);
+	}
+
+	private Object convert(Object payload, Collection<MediaType> to) {
+		if (this.conversionService != null) {
+			MediaType requiredMediaType = findJavaObjectType(to);
+			if (requiredMediaType != null) {
+				String requiredType = requiredMediaType.getParameter("type");
+				if (requiredType == null) {
+					return payload;
+				}
+				Class<?> clazz = null;
+				try {
+					clazz = Class.forName(requiredType);
+				}
+				catch (ClassNotFoundException e) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("Class not found", e);
+					}
+				}
+				if (clazz != null) {
+					if (this.conversionService.canConvert(payload.getClass(), clazz)) {
+						return this.conversionService.convert(payload, clazz);
+					}
+				}
+			}
+		}
 		return null;
 	}
 
-	protected MediaType headerToMediaType(Object header) {
-		// TODO
-		return MediaType.ALL;
+	private MediaType findJavaObjectType(Collection<MediaType> to) {
+		MediaType toObjectType = null;
+		for (MediaType mediaType : to) {
+			if (mediaType.includes(this.javaObjectType)) {
+				toObjectType = mediaType;
+			}
+		}
+		return toObjectType;
 	}
 
 }

@@ -74,11 +74,23 @@ public class RedisQueueOutboundChannelAdapter extends AbstractMessageHandler {
 			this.redisTemplate.boundListOps(this.queueName).leftPush(payload);
 		}
 		else {
-			String s = (this.extractPayload) ? payload.toString() : this.objectMapper.writeValueAsString(message);
+			String s = (this.extractPayload) ? payloadAsString(payload) : this.objectMapper.writeValueAsString(message);
 			if (logger.isDebugEnabled()) {
 				logger.debug("sending to redis queue '" + this.queueName + "': " + s);
 			}
 			this.redisTemplate.boundListOps(this.queueName).leftPush(s);
+		}
+	}
+
+	private String payloadAsString(Object payload) throws Exception {
+		if (payload instanceof byte[]) {
+			return new String((byte[]) payload, "UTF-8");
+		}
+		else if (payload instanceof char[]) {
+			return new String((char[]) payload);
+		}
+		else {
+			return payload.toString();
 		}
 	}
 

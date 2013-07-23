@@ -180,7 +180,7 @@ public class RedisChannelRegistry extends ChannelRegistrySupport implements Disp
 		@Override
 		protected void handleMessageInternal(Message<?> message) throws Exception {
 			// TODO: redis wire data pluggable format?
-			Message<?> messageToSend = transformOutboundIfNecessary(message, MediaType.APPLICATION_JSON);
+			Message<?> messageToSend = transformOutboundIfNecessary(message, MediaType.APPLICATION_OCTET_STREAM);
 			topic.handleMessage(messageToSend);
 			queue.handleMessage(messageToSend);
 		}

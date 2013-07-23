@@ -107,9 +107,7 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 		// Anything else is unexpected data
 		if (moreTokens()) {
 			Token t = peekToken();
-			if (t.kind == TokenKind.NEWLINE || t.kind == TokenKind.SEMICOLON) {
-				// end of this stream
-			} else {
+			if (!(t.kind == TokenKind.NEWLINE || t.kind == TokenKind.SEMICOLON)) {
 				raiseException(peekToken().startpos,XDDSLMessages.UNEXPECTED_DATA_AFTER_STREAMDEF,toString(peekToken()));
 			}
 		}
@@ -147,28 +145,30 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 				break;
 			}
 		}
-		if (looksLikeOldTap) return null;
+		if (looksLikeOldTap) {
+			return null;
+		}
 		
 		// The first module encountered might be a source channel module
 		// eg. ":foo >"
 		SourceChannelNode sourceChannelNode = null;
-		boolean isTap = false;
+		boolean isTapToken = false;
 		Token t = peekToken();
 		if (t.getKind()==TokenKind.IDENTIFIER && t.data.equals("tap")) {
 			// tapping source channel
 			nextToken();
-			isTap = true;
+			isTapToken = true;
 			// TODO assert that it is followed by channel reference
 		}
 		if (peekToken(TokenKind.COLON)) { 
 			ChannelNode channelNode = eatChannelReference(true);
 			Token gt = eatToken(TokenKind.GT);
-			sourceChannelNode = new SourceChannelNode(channelNode,gt.endpos,isTap);
-		} else if (isTap) {
+			sourceChannelNode = new SourceChannelNode(channelNode,gt.endpos,isTapToken);
+		} else if (isTapToken) {
 			// A tap can be followed with an optionally stream qualified label or module reference
 			ModuleReferenceNode moduleReferenceNode = eatPossiblyQualifiedLabelOrModuleReference();
 			Token gt = eatToken(TokenKind.GT);
-			sourceChannelNode = new SourceChannelNode(moduleReferenceNode,gt.endpos,isTap);
+			sourceChannelNode = new SourceChannelNode(moduleReferenceNode,gt.endpos,isTapToken);
 		}
 		return sourceChannelNode;
 	}
@@ -304,7 +304,7 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 			} else {
 				raiseException(moduletoken.startpos,  XDDSLMessages.UNRECOGNIZED_MODULE_REFERENCE, modulename);
 			}
-			return args==null?null:args.toArray(new ArgumentNode[args.size()]);
+			return args.toArray(new ArgumentNode[args.size()]);
 		}
 		
 		if (peekToken(TokenKind.DOUBLE_MINUS) && isNextTokenAdjacent()) {
@@ -317,7 +317,7 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 			if (isTap) {
 				if (optionQualifier.getKind()==TokenKind.REFERENCE) {
 					Token t = peekToken();
-					String argValue = eatArgValue(t);
+					String argValue = eatArgValue();
 					if (peekToken(TokenKind.DOT)) {
 						// tap @foo.NNN
 						nextToken();
@@ -351,7 +351,7 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 //			if (t==null) {
 //				raiseException(this.expressionString.length()-1,XDDSLMessages.OOD));
 //			}
-			String argValue = eatArgValue(t);
+			String argValue = eatArgValue();
 			
 			if (args == null) {
 				args = new ArrayList<ArgumentNode>();
@@ -362,8 +362,8 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 	}
 
 	// argValue: identifier | literal_string
-	private String eatArgValue(Token t) {
-		t = nextToken();
+	private String eatArgValue() {
+		Token t = nextToken();
 		String argValue = null;
 		if (t.getKind()==TokenKind.IDENTIFIER) {
 			argValue = t.data;

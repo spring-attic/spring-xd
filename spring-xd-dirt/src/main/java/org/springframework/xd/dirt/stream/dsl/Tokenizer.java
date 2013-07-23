@@ -26,7 +26,7 @@ import org.springframework.util.Assert;
  * @author Andy Clement
  */
 class Tokenizer {
-
+	
 	String expressionString; // The string to be tokenized
 	char[] toProcess;        // The expressionString as a char array
 	int max;	             // Length of input data
@@ -120,7 +120,7 @@ class Tokenizer {
 				default:
 					throw new DSLException(
 						expressionString,pos,XDDSLMessages.UNEXPECTED_DATA,
-						new Character(ch).toString());
+						Character.valueOf(ch).toString());
 				}
 			}
 		}
@@ -255,9 +255,9 @@ class Tokenizer {
 		pos+=2;
 	}
 
-	//	ID:	('a'..'z'|'A'..'Z'|'_'|'$') ('a'..'z'|'A'..'Z'|'_'|'$'|'0'..'9'|DOT_ESCAPED)*;
+	//	ID:	('a'..'z'|'A'..'Z'|'_'|'$') ('a'..'z'|'A'..'Z'|'_'|'$'|'0'..'9'|DOT_ESCAPED|'-')*;
 	private boolean isIdentifier(char ch) {
-		return isAlphabetic(ch) || isDigit(ch) || ch=='_' || ch=='$';
+		return isAlphabetic(ch) || isDigit(ch) || ch=='_' || ch=='$' || ch=='-';
 	}
 
 	private boolean isQuote(char ch) {

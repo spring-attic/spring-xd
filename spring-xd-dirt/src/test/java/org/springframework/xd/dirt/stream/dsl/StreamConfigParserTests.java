@@ -26,10 +26,6 @@ import java.util.Properties;
 import org.junit.After;
 import org.junit.Test;
 import org.springframework.xd.dirt.stream.EnhancedStreamParser;
-import org.springframework.xd.dirt.stream.dsl.ast.ArgumentNode;
-import org.springframework.xd.dirt.stream.dsl.ast.ModuleNode;
-import org.springframework.xd.dirt.stream.dsl.ast.StreamNode;
-import org.springframework.xd.dirt.stream.dsl.ast.StreamsNode;
 
 /**
  * Parse streams and verify either the correct abstract syntax tree is 

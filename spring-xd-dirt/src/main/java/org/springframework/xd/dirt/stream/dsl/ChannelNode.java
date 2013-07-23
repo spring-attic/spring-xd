@@ -13,37 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.xd.dirt.stream.dsl.ast;
-
-import org.springframework.xd.dirt.stream.dsl.StreamLookupEnvironment;
+package org.springframework.xd.dirt.stream.dsl;
 
 /**
  * @author Andy Clement
  */
-public class ModuleReferenceNode extends AstNode {
+public class ChannelNode extends AstNode {
 
 	private final String streamName;
-	private final String labelOrModuleName;
-	
-	private String resolvedChannel;
+	private final String channelName;
 
-	public ModuleReferenceNode(String streamName, String moduleName, int startpos, int endpos) {
+	public ChannelNode(String streamName, String channelName, int startpos, int endpos) {
 		super(startpos,endpos);
 		this.streamName = streamName;
-		this.labelOrModuleName = moduleName;
+		this.channelName = channelName;
 	}
 
 	@Override
 	public String stringify(boolean includePositionalInfo) {
 		StringBuilder s = new StringBuilder();
 		s.append("(");
+		s.append(":");
 		if (streamName != null) {
 			s.append(streamName).append(".");
 		}
-		s.append(labelOrModuleName);
-		if (resolvedChannel!=null) {
-			s.append("[[channel:").append(resolvedChannel).append("]]");
-		}
+		s.append(channelName);
 		if (includePositionalInfo) {
 			s.append(":");
 			s.append(getStartPos()).append(">").append(getEndPos());
@@ -51,13 +45,14 @@ public class ModuleReferenceNode extends AstNode {
 		s.append(")");
 		return s.toString();
 	}
-	
+
 	public String toString() {
 		StringBuilder s = new StringBuilder();
+		s.append(":");
 		if (streamName != null) {
 			s.append(streamName).append(".");
 		}
-		s.append(labelOrModuleName);
+		s.append(channelName);
 		return s.toString();
 	}
 
@@ -68,27 +63,12 @@ public class ModuleReferenceNode extends AstNode {
 		return streamName;
 	}
 	
-	public String getModuleName() {
-		return labelOrModuleName;
+	public String getChannelName() {
+		return channelName;
 	}
 
-	public void resolve(StreamLookupEnvironment env) {
-		resolvedChannel = env.lookupChannelForLabelOrModule(streamName, labelOrModuleName);
-		if (streamName==null && resolvedChannel == null) {
-			// it is possible the singular name in labelOrModuleName is actually
-			// a stream reference
-			StreamNode sn = env.lookupStream(labelOrModuleName);
-			if (sn!=null) {
-				resolvedChannel = sn.getStreamName()+".0";
-			}
-		}
-	}
-
-	public ModuleReferenceNode copyOf() {
-		ModuleReferenceNode moduleReferenceNode =
-			new ModuleReferenceNode(streamName, labelOrModuleName, startpos, endpos);
-		moduleReferenceNode.resolvedChannel = resolvedChannel;
-		return moduleReferenceNode;
+	public ChannelNode copyOf() {
+		return new ChannelNode(streamName,channelName,startpos,endpos);
 	}
 
 }

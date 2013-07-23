@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.xd.dirt.stream.dsl.ast;
+package org.springframework.xd.dirt.stream.dsl;
 
 import java.util.ArrayList;
 import java.util.Collections;

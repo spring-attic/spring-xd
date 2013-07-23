@@ -41,6 +41,12 @@ public class StreamConfigParserTests {
 		StreamsNode ast = parse("foo");
 		assertEquals("Streams[foo][(ModuleNode:foo:0>3)]",ast.stringify(true));
 	}
+	
+	@Test
+	public void moduleNames() {
+		StreamsNode ast = parse("gemfire-cq");
+		assertEquals("Streams[gemfire-cq][(ModuleNode:gemfire-cq:0>10)]",ast.stringify(true));
+	}
 
 	// Naming a stream is done via <name>=<something> where <something> might be 0 or more modules/channels
 	@Test
@@ -134,10 +140,10 @@ public class StreamConfigParserTests {
 
 	@Test
 	public void testParameters() {
-		String module = "gemfire_cq --query='Select * from /Stocks where symbol=''VMW''' --regionName=foo --foo=bar";
+		String module = "gemfire-cq --query='Select * from /Stocks where symbol=''VMW''' --regionName=foo --foo=bar";
 		StreamConfigParser parser = new StreamConfigParser();
 		StreamsNode ast = parser.parse(module);
-		ModuleNode gemfireModule = ast.getModule("gemfire_cq");
+		ModuleNode gemfireModule = ast.getModule("gemfire-cq");
 		Properties parameters = gemfireModule.getArgumentsAsProperties();
 		assertEquals(3, parameters.size());
 		assertEquals("Select * from /Stocks where symbol='VMW'", parameters.get("query"));
@@ -452,12 +458,18 @@ public class StreamConfigParserTests {
 	
 	@Test
 	public void errorCases02() {
-		checkForParseError("foo--bar=yyy",XDDSLMessages.EXPECTED_WHITESPACE_AFTER_MODULE_BEFORE_ARGUMENT,3);
+		// If we allow hyphens in identifiers (stream names) then this is not invalid, it is a stream called 'foo--bar'
+		// checkForParseError("foo--bar=yyy",XDDSLMessages.EXPECTED_WHITESPACE_AFTER_MODULE_BEFORE_ARGUMENT,3);
+		StreamsNode ast = parse("foo--bar=yyy");
+		assertEquals("Streams[foo--bar=yyy][foo--bar = (ModuleNode:yyy)]",ast.stringify());
 	}
 
 	@Test
 	public void errorCases03() {
-		checkForParseError("foo-bar=yyy",XDDSLMessages.MISSING_CHARACTER,3,"-");
+		// If we allow hyphens in identifiers (stream names) then this is not invalid, it is a stream called 'foo--bar'
+		// checkForParseError("foo-bar=yyy",XDDSLMessages.MISSING_CHARACTER,3,"-");
+		StreamsNode ast = parse("foo-bar=yyy");
+		assertEquals("Streams[foo-bar=yyy][foo-bar = (ModuleNode:yyy)]",ast.stringify());
 	}
 
 	@Test

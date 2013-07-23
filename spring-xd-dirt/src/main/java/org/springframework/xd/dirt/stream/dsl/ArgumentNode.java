@@ -67,7 +67,7 @@ public class ArgumentNode extends AstNode {
 			ConsumedArgumentNode replacement = argumentMap.get(variable.name);
 			String newValue = null;
 			if (replacement!=null) {
-				replacement.consumed=true;
+				replacement.setConsumed(true);
 				newValue = replacement.argumentNode.getValue();
 			} else {
 				newValue = variable.defaultValue;

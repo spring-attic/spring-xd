@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.dirt.stream.AlreadyDeployedException;
 import org.springframework.xd.dirt.stream.DefinitionAlreadyExistsException;
+import org.springframework.xd.dirt.stream.MissingRequiredDefinitionException;
 import org.springframework.xd.dirt.stream.NoSuchDefinitionException;
 
 /**
@@ -89,9 +90,22 @@ public class RestControllerAdvice {
 		String logref = log(e);
 		return new VndErrors(logref, e.getMessage());
 	}
+	
+	/**
+	 * Handles the case where client referenced an entity that already exists.
+	 */
+	@ResponseBody
+	@ExceptionHandler
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	public VndErrors onMissingRequiredDefinitionException(
+			MissingRequiredDefinitionException e) {
+		String logref = log(e);
+		return new VndErrors(logref, e.getMessage());
+	}
 
 	/**
-	 * Handles the case where client tried to deploy something that is already deployed.
+	 * Handles the case where client tried to deploy something that is already
+	 * deployed.
 	 */
 	@ResponseBody
 	@ExceptionHandler

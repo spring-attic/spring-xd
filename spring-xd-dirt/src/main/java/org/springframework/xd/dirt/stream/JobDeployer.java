@@ -30,6 +30,7 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 	public JobDeployer(JobDefinitionRepository repository, DeploymentMessageSender messageSender) {
 		super(repository, messageSender, DEPLOYER_TYPE);
 	}
+
 	@Override
 	public void delete(String name) {
 		JobDefinition def = getRepository().findOne(name);
@@ -45,7 +46,7 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 
 	@Override
 	public void deploy(String name) {
-		Assert.hasText(name, NAME_EMPTY_ERROR);
+		Assert.hasText(name, ErrorMessage.nameEmptyError.getMessage());
 		JobDefinition definition = getRepository().findOne(name);
 		if (definition == null) {
 			throwNoSuchDefinitionException(name);
@@ -59,7 +60,8 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 			if (cause != null
 					&& cause.getClass().getName()
 							.equals(BEAN_CREATION_EXCEPTION)) {
-				throw new NoSuchDefinitionException(definition.getName(),
+				throw new MissingRequiredDefinitionException(
+						definition.getName(),
 						cause.getMessage());
 			} else {
 				throw mhe;

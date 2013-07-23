@@ -57,18 +57,31 @@ public class TriggerPlugin implements Plugin {
 		if (!TRIGGER.equals(module.getType())) {
 			return;
 		}
+		Assert.notNull(commonApplicationContext,
+				"The 'commonApplicationContext' property must not be null.");
 
 		final BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition();
 		List<String> triggersAdded = new ArrayList<String>();
 		if (module.getProperties().containsKey(TriggerType.cron.name())) {
-			TriggerType.cron.addTrigger(builder, module.getProperties().getProperty(TriggerType.cron.name()));
-			triggersAdded.add(TriggerType.cron.name());
+			commonApplicationContext.getBeanFactory().registerSingleton(
+					BEAN_NAME_PREFIX + group,
+					new CronTrigger(module.getProperties().getProperty(
+							TriggerType.cron.name())));
+				triggersAdded.add(TriggerType.cron.name());
 		}
 		if (module.getProperties().containsKey(TriggerType.fixedDelay.name())) {
-			TriggerType.fixedDelay.addTrigger(builder, module.getProperties().getProperty(TriggerType.fixedDelay.name()));
+			commonApplicationContext.getBeanFactory().registerSingleton(
+					BEAN_NAME_PREFIX + group,
+					new PeriodicTrigger(Long.parseLong(module.getProperties()
+							.getProperty(TriggerType.fixedDelay.name()))));
 			triggersAdded.add(TriggerType.fixedDelay.name());
 		}
 		if (module.getProperties().containsKey(TriggerType.fixedRate.name())) {
+			PeriodicTrigger fixedRateTrigger = new PeriodicTrigger(Long.parseLong(module.getProperties()
+					.getProperty(TriggerType.fixedRate.name())));
+			fixedRateTrigger.setFixedRate(true);
+			commonApplicationContext.getBeanFactory().registerSingleton(
+					BEAN_NAME_PREFIX + group, fixedRateTrigger);
 			TriggerType.fixedRate.addTrigger(builder, module.getProperties().getProperty(TriggerType.fixedRate.name()));
 			triggersAdded.add(TriggerType.fixedRate.name());
 		}
@@ -83,14 +96,10 @@ public class TriggerPlugin implements Plugin {
 		final BeanDefinitionAddingPostProcessor postProcessor = new BeanDefinitionAddingPostProcessor();
 		postProcessor.addBeanDefinition(BEAN_NAME_PREFIX + group, builder.getBeanDefinition());
 
-		Assert.notNull(commonApplicationContext, "The 'commonApplicationContext' property must not be null.");
 		this.commonApplicationContext.addBeanFactoryPostProcessor(postProcessor);
 
 		configureProperties(module, group);
-		commonApplicationContext.getBeanFactory().registerSingleton(
-				BEAN_NAME_PREFIX + group,
-				new CronTrigger(module.getProperties().getProperty(
-						TriggerType.cron.name())));
+
 		// this.commonApplicationContext.refresh();
 
 	}

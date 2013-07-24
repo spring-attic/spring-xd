@@ -13,16 +13,53 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.analytics.metrics.memory;
 
 import org.springframework.xd.analytics.metrics.core.Counter;
 import org.springframework.xd.analytics.metrics.core.CounterRepository;
+import org.springframework.xd.analytics.metrics.core.MetricUtils;
+import org.springframework.xd.store.AbstractInMemoryRepository;
 
 /**
  * Memory backed implementation of Counter repository that uses a ConcurrentMap.
- *
+ * 
  * @author Mark Pollack
- *
+ * @author Eric Bottard
+ * 
  */
-public class InMemoryCounterRepository extends InMemoryMetricRepository<Counter> implements CounterRepository {
+public class InMemoryCounterRepository extends
+		AbstractInMemoryRepository<Counter, String> implements CounterRepository {
+
+	@Override
+	public synchronized long increment(String name) {
+		Counter c = getOrCreate(name);
+		return save(MetricUtils.incrementCounter(c)).getValue();
+	}
+
+	@Override
+	public synchronized long decrement(String name) {
+		Counter c = getOrCreate(name);
+		return save(MetricUtils.decrementCounter(c)).getValue();
+	}
+
+	@Override
+	public synchronized void reset(String name) {
+		save(new Counter(name));
+	}
+
+	private synchronized Counter getOrCreate(String name) {
+		Counter result = findOne(name);
+		if (result == null) {
+			result = new Counter(name);
+			result = save(result);
+		}
+		return result;
+	}
+
+	@Override
+	protected String keyFor(Counter entity) {
+		return entity.getName();
+	}
+
 }

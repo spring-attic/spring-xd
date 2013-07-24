@@ -27,7 +27,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * Options shared by both the admin and the container server.
- *
+ * 
  * @author Eric Bottard
  * @author Mark Pollack
  * @author David Turanski
@@ -35,20 +35,20 @@ import org.springframework.util.StringUtils;
  */
 public class AbstractOptions {
 
-	/**
-	 * 
-	 */
-	private static final String XD_PAYLOAD_TRANSFORMER = "xd.payload.transformer";
-
 	public static final String DEFAULT_HOME = "..";
+
+	private static final String XD_PAYLOAD_TRANSFORMER_KEY = "xd.payload.transformer";
 
 	public static final String XD_HOME_KEY = "xd.home";
 
 	public static final String XD_TRANSPORT_KEY = "xd.transport";
 
 	public static final String XD_DISABLE_JMX_KEY = "xd.jmx.disabled";
-	
-	//TODO: Technically it's a REST port for MBEAN resources rather than a JSR-160 port. Is the name misleading?
+
+	private static final String XD_ANALYTICS_KEY = "xd.analytics";
+
+	// TODO: Technically it's a REST port for MBEAN resources rather than a JSR-160 port.
+	// Is the name misleading?
 	public static final String XD_JMX_PORT_KEY = "xd.jmx.port";
 
 	/**
@@ -68,6 +68,13 @@ public class AbstractOptions {
 		System.setProperty(XD_TRANSPORT_KEY, transport.name());
 	}
 
+	/**
+	 * Set xd.analytics system property.
+	 */
+	public static void setXDAnalytics(Analytics analytics) {
+		System.setProperty(XD_ANALYTICS_KEY, analytics.name());
+	}
+
 	@Option(name = "--help", usage = "Show options help", aliases = { "-?", "-h" })
 	private boolean showHelp = false;
 
@@ -75,16 +82,24 @@ public class AbstractOptions {
 	private Transport transport = Transport.redis;
 
 	@Option(name = "--xdHomeDir", usage = "The XD installation directory", metaVar = "<xdHomeDir>")
-	private String xdHomeDir = ""; // Can't set default here as it may have been set via -Dxd.home=foo
+	private String xdHomeDir = ""; // Can't set default here as it may have been set via
+									// -Dxd.home=foo
 
 	@Option(name = "--disableJmx", usage = "Disable JMX in the XD container", handler = JmxDisabledHandler.class)
 	private boolean jmxDisabled = false;
 
 	@Option(name = "--jmxPort", usage = "The JMX port for the container", metaVar = "<jmxPort>")
 	private int jmxPort = 8778;
-	
+
 	@Option(name = "--transformer", usage = "The default payload transformer class name", handler = PayloadTransformerHandler.class)
 	private String transformer;
+
+	@Option(name = "--analytics", usage = "How to persist analytics such as counters and gauges (default: redis)")
+	private Analytics analytics = Analytics.redis;
+
+	public Analytics getAnalytics() {
+		return analytics;
+	}
 
 	/**
 	 * @return the transport
@@ -99,12 +114,14 @@ public class AbstractOptions {
 	public String getXDHomeDir() {
 		return xdHomeDir;
 	}
+
 	/**
 	 * @return jmxDisabled
 	 */
 	public boolean isJmxDisabled() {
 		return System.getProperty(XD_DISABLE_JMX_KEY) == null ? false : true;
 	}
+
 	public int getJmxPort() {
 		return jmxPort;
 	}
@@ -121,13 +138,15 @@ public class AbstractOptions {
 	}
 
 	public static class PayloadTransformerHandler extends OptionHandler<String> {
-		public PayloadTransformerHandler(CmdLineParser parser, OptionDef option, Setter<String> setter) {
+
+		public PayloadTransformerHandler(CmdLineParser parser, OptionDef option,
+				Setter<String> setter) {
 			super(parser, option, setter);
 		}
 
 		@Override
 		public int parseArguments(Parameters params) throws CmdLineException {
-			System.setProperty(XD_PAYLOAD_TRANSFORMER,params.getParameter(0));
+			System.setProperty(XD_PAYLOAD_TRANSFORMER_KEY, params.getParameter(0));
 			return 1;
 		}
 
@@ -135,21 +154,27 @@ public class AbstractOptions {
 		public String getDefaultMetaVariable() {
 			return "<transformer>";
 		}
-		
+
 	}
 
 	public static class JmxDisabledHandler extends OptionHandler<Boolean> {
+
 		/**
 		 * @param parser
 		 * @param option
 		 * @param setter
 		 */
-		public JmxDisabledHandler(CmdLineParser parser, OptionDef option, Setter<Boolean> setter) {
+		public JmxDisabledHandler(CmdLineParser parser, OptionDef option,
+				Setter<Boolean> setter) {
 			super(parser, option, setter);
 		}
 
-		/* (non-Javadoc)
-		 * @see org.kohsuke.args4j.spi.OptionHandler#parseArguments(org.kohsuke.args4j.spi.Parameters)
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see
+		 * org.kohsuke.args4j.spi.OptionHandler#parseArguments(org.kohsuke.args4j.spi.
+		 * Parameters)
 		 */
 		@Override
 		public int parseArguments(Parameters params) throws CmdLineException {
@@ -157,7 +182,9 @@ public class AbstractOptions {
 			return 1;
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
+		 * 
 		 * @see org.kohsuke.args4j.spi.OptionHandler#getDefaultMetaVariable()
 		 */
 		@Override
@@ -165,4 +192,5 @@ public class AbstractOptions {
 			return null;
 		}
 	}
+
 }

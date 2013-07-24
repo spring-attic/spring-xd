@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.analytics.metrics.memory;
 
 import org.springframework.xd.analytics.metrics.core.Gauge;
@@ -20,9 +21,15 @@ import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 
 /**
  * Memory backed Gauge repository that uses a ConcurrentMap
- *
+ * 
  * @author Mark Pollack
- *
+ * 
  */
-public class InMemoryGaugeRepository extends InMemoryMetricRepository<Gauge> implements GaugeRepository {
+public class InMemoryGaugeRepository extends InMemoryMetricRepository<Gauge> implements
+		GaugeRepository {
+
+	@Override
+	protected Gauge create(String name) {
+		return new Gauge(name);
+	}
 }

@@ -12,9 +12,9 @@
  */
 package org.springframework.xd.dirt.stream.memory;
 
-import org.springframework.xd.dirt.store.AbstractInMemoryRepository;
 import org.springframework.xd.dirt.stream.TapDefinition;
 import org.springframework.xd.dirt.stream.TapDefinitionRepository;
+import org.springframework.xd.store.AbstractInMemoryRepository;
 
 /**
  * @author David Turanski

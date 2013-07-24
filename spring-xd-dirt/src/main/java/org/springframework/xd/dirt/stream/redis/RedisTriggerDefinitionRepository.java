@@ -17,9 +17,9 @@
 package org.springframework.xd.dirt.stream.redis;
 
 import org.springframework.data.redis.core.RedisOperations;
-import org.springframework.xd.dirt.store.AbstractRedisRepository;
 import org.springframework.xd.dirt.stream.TriggerDefinition;
 import org.springframework.xd.dirt.stream.TriggerDefinitionRepository;
+import org.springframework.xd.store.AbstractRedisRepository;
 
 /**
  * An implementation of {@link TriggerDefinitionRepository} that persists

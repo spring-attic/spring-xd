@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.store;
+package org.springframework.xd.store;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -32,10 +32,11 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.util.Assert;
 
 /**
- * Base implementation for a store, using Redis behind the scenes. This implementation requires a {@code repoPrefix},
- * that is used in two ways:
+ * Base implementation for a store, using Redis behind the scenes. This implementation
+ * requires a {@code repoPrefix}, that is used in two ways:
  * <ul>
- * <li>a sorted set is stored under that exact key that tracks the entity ids this repository is responsible for,
+ * <li>a sorted set is stored under that exact key that tracks the entity ids this
+ * repository is responsible for,
  * <li>
  * <li>each entity is stored serialized under key {@code repoPrefix<id>}</li>
  * </ul>
@@ -44,7 +45,8 @@ import org.springframework.util.Assert;
  * @param <ID> a "primary key" to the things
  * @author Eric Bottard
  */
-public abstract class AbstractRedisRepository<T, ID extends Serializable> implements PagingAndSortingRepository<T, ID> {
+public abstract class AbstractRedisRepository<T, ID extends Serializable> implements
+		PagingAndSortingRepository<T, ID> {
 
 	private String repoPrefix;
 
@@ -52,7 +54,8 @@ public abstract class AbstractRedisRepository<T, ID extends Serializable> implem
 
 	private RedisOperations<String, String> redisOperations;
 
-	public AbstractRedisRepository(String repoPrefix, RedisOperations<String, String> redisOperations) {
+	public AbstractRedisRepository(String repoPrefix,
+			RedisOperations<String, String> redisOperations) {
 		Assert.hasText(repoPrefix, "repoPrefix must not be empty or null");
 		Assert.notNull(redisOperations, "redisOperations must not be null");
 		this.redisOperations = redisOperations;
@@ -97,6 +100,7 @@ public abstract class AbstractRedisRepository<T, ID extends Serializable> implem
 
 	@Override
 	public Iterable<T> findAll() {
+		// This set is sorted
 		Set<String> keys = zSetOperations.range(0, -1);
 		List<T> result = new ArrayList<T>(keys.size());
 		List<String> values = redisOperations.opsForValue().multiGet(keys);
@@ -128,8 +132,8 @@ public abstract class AbstractRedisRepository<T, ID extends Serializable> implem
 		long to = Math.min(count, pageable.getOffset() + pageable.getPageSize()) - 1;
 
 		// But -1 means start from end, so cater for that
-		Set<String> redisKeys = (to == -1) ? Collections.<String> emptySet() : zSetOperations.range(
-				pageable.getOffset(), to);
+		Set<String> redisKeys = (to == -1) ? Collections.<String> emptySet()
+				: zSetOperations.range(pageable.getOffset(), to);
 
 		List<T> result = new ArrayList<T>(redisKeys.size());
 		List<String> values = redisOperations.opsForValue().multiGet(redisKeys);

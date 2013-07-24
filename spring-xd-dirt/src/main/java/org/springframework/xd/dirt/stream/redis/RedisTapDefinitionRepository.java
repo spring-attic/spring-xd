@@ -17,9 +17,9 @@
 package org.springframework.xd.dirt.stream.redis;
 
 import org.springframework.data.redis.core.RedisOperations;
-import org.springframework.xd.dirt.store.AbstractRedisRepository;
 import org.springframework.xd.dirt.stream.TapDefinition;
 import org.springframework.xd.dirt.stream.TapDefinitionRepository;
+import org.springframework.xd.store.AbstractRedisRepository;
 
 /**
  * An implementation of {@link TapDefinitionRepository} that persists @{link TapDefinition} in Redis.

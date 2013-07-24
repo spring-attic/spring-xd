@@ -21,7 +21,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.DefaultSingletonBeanRegistry;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.support.CronTrigger;
@@ -104,8 +106,11 @@ public class TriggerPlugin implements Plugin {
 
 	@Override
 	public void removeModule(Module module) {
+		String beanName = BEAN_NAME_PREFIX + module.getGroup();
+		ConfigurableListableBeanFactory b = commonApplicationContext
+				.getBeanFactory();
+			((DefaultSingletonBeanRegistry) b).destroySingleton(beanName);
 	}
-
 	private void configureProperties(Module module) {
 		Properties properties = new Properties();
 		properties.setProperty("xd.stream.name", module.getDeploymentMetadata().getGroup());

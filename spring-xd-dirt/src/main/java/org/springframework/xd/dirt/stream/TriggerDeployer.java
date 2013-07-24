@@ -12,6 +12,11 @@
  */
 package org.springframework.xd.dirt.stream;
 
+import java.util.List;
+
+import org.springframework.integration.MessageHandlingException;
+import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+
 /**
  * Responsible for deploying {@link TriggerDefinition}s.
  *
@@ -33,6 +38,27 @@ public class TriggerDeployer extends AbstractDeployer<TriggerDefinition> {
 			throw new NoSuchDefinitionException(name,
 					"Can't delete trigger '%s' because it does not exist");
 		}
+		undeploy(name);
 		getRepository().delete(name);
 	}
+
+	public void undeploy(String name) {
+
+		TriggerDefinition trigger = getRepository().findOne(name);
+		if (trigger == null) {
+			throwNoSuchDefinitionException(name);
+		}
+		StreamParser streamParser = new EnhancedStreamParser();
+		List<ModuleDeploymentRequest> requests = streamParser.parse(name,
+				trigger.getDefinition());
+		for (ModuleDeploymentRequest request : requests) {
+			request.setRemove(true);
+		}
+		try {
+			sendDeploymentRequests(name, requests);
+		} catch (MessageHandlingException ex) {
+			// Trigger is not deployed.
+		}
+	}
+
 }

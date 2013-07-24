@@ -10,8 +10,6 @@
 
 	<!-- Parent context for all modules -->
 	
-	<import resource="../analytics/${xd.analytics}-analytics.xml" />
-
 	<bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean">
 		<property name="locateExistingServerIfPossible" value="true" />
 	</bean>

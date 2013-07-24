@@ -22,11 +22,13 @@ import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.xd.analytics.metrics.core.Counter;
 import org.springframework.xd.analytics.metrics.core.CounterRepository;
+import org.springframework.xd.dirt.analytics.NoSuchMetricException;
 import org.springframework.xd.rest.client.domain.metrics.CounterResource;
 import org.springframework.xd.rest.client.domain.metrics.MetricResource;
 
@@ -41,6 +43,8 @@ import org.springframework.xd.rest.client.domain.metrics.MetricResource;
 public class CountersController extends
 		AbstractMetricsController<CounterRepository, Counter> {
 
+	private final DeepCounterResourceAssembler counterResourceAssembler = new DeepCounterResourceAssembler();
+
 	@Autowired
 	public CountersController(CounterRepository repository) {
 		super(repository);
@@ -52,5 +56,15 @@ public class CountersController extends
 	public PagedResources<MetricResource> list(Pageable pageable,
 			PagedResourcesAssembler<Counter> pagedAssembler) {
 		return super.list(pageable, pagedAssembler);
+	}
+
+	@ResponseBody
+	@RequestMapping(value = "/{name}", method = RequestMethod.GET)
+	public CounterResource display(@PathVariable("name") String name) {
+		Counter c = repository.findOne(name);
+		if (c == null) {
+			throw new NoSuchMetricException(name, "There is no counter named '%s'");
+		}
+		return counterResourceAssembler.toResource(c);
 	}
 }

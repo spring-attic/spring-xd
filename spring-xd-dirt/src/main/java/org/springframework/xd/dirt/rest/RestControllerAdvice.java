@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.xd.dirt.analytics.NoSuchMetricException;
 import org.springframework.xd.dirt.stream.AlreadyDeployedException;
 import org.springframework.xd.dirt.stream.DefinitionAlreadyExistsException;
 import org.springframework.xd.dirt.stream.NoSuchDefinitionException;
@@ -41,8 +42,9 @@ public class RestControllerAdvice {
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	/*
-	 * Note that any controller-specific exception handler is resolved first. So for example, having a
-	 * onException(Exception e) resolver at a controller level will prevent the one from this class to be triggered.
+	 * Note that any controller-specific exception handler is resolved first. So for
+	 * example, having a onException(Exception e) resolver at a controller level will
+	 * prevent the one from this class to be triggered.
 	 */
 
 	/**
@@ -51,7 +53,8 @@ public class RestControllerAdvice {
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	@ResponseBody
-	public VndErrors onMissingServletRequestParameterException(MissingServletRequestParameterException e) {
+	public VndErrors onMissingServletRequestParameterException(
+			MissingServletRequestParameterException e) {
 		String logref = log(e);
 		return new VndErrors(logref, e.getMessage());
 	}
@@ -64,7 +67,8 @@ public class RestControllerAdvice {
 	@ResponseBody
 	public VndErrors onException(Exception e) {
 		String logref = log(e);
-		String msg = StringUtils.hasText(e.getMessage()) ? e.getMessage() : e.getClass().getSimpleName();
+		String msg = StringUtils.hasText(e.getMessage()) ? e.getMessage()
+				: e.getClass().getSimpleName();
 		return new VndErrors(logref, msg);
 	}
 
@@ -97,6 +101,14 @@ public class RestControllerAdvice {
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	public VndErrors onStreamAlreadyDeployedException(AlreadyDeployedException e) {
+		String logref = log(e);
+		return new VndErrors(logref, e.getMessage());
+	}
+
+	@ResponseBody
+	@ExceptionHandler
+	@ResponseStatus(HttpStatus.NOT_FOUND)
+	public VndErrors onNoSuchMetricException(NoSuchMetricException e) {
 		String logref = log(e);
 		return new VndErrors(logref, e.getMessage());
 	}

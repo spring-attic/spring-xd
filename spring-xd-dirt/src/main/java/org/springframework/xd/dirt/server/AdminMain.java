@@ -95,8 +95,8 @@ public class AdminMain {
 			server.afterPropertiesSet();
 			server.start();
 			if (Transport.local == options.getTransport()) {
-				StringBuilder runtimeInfo = new StringBuilder(String.format(
-						"Running in Local Mode on port: %s ", server.getPort()));
+				StringBuilder runtimeInfo = new StringBuilder(String.format("Running in Local Mode on port: %s ",
+						server.getLocalPort()));
 				if (options.isJmxDisabled()) {
 					runtimeInfo.append(" JMX is disabled for XD components");
 				}

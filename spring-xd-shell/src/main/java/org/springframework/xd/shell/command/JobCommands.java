@@ -80,7 +80,7 @@ public class JobCommands implements CommandMarker {
 	}
 
 	@CliCommand(value = LIST_JOBS, help = "List all jobs")
-	public String listJobs() {
+	public Table listJobs() {
 
 		final List<JobDefinitionResource> jobs = jobOperations().list();
 
@@ -92,7 +92,7 @@ public class JobCommands implements CommandMarker {
 			row.addValue(1, jobDefinitionResource.getName()).addValue(2, jobDefinitionResource.getDefinition());
 			table.getRows().add(row);
 		}
-		return UiUtils.renderTextTable(table);
+		return table;
 	}
 
 	@CliCommand(value = UNDEPLOY_JOB, help = "Un-deploy a previously deployed job")

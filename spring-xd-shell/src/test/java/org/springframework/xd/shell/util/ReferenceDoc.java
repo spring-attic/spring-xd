@@ -31,8 +31,14 @@ import java.util.TreeMap;
 import java.util.regex.Pattern;
 
 import org.junit.Test;
+import org.springframework.beans.factory.BeanFactoryUtils;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.shell.Bootstrap;
+import org.springframework.shell.CommandLine;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
@@ -129,9 +135,14 @@ public class ReferenceDoc {
 
 	@Test
 	public void doIt() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"classpath*:META-INF/spring/spring-shell-plugin.xml");
-
+		GenericApplicationContext ctx = new GenericApplicationContext();
+		ctx.getBeanFactory().registerSingleton("commandLine", new CommandLine(null,100,null));
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader((BeanDefinitionRegistry) ctx);
+		reader.loadBeanDefinitions("classpath*:META-INF/spring/spring-shell-plugin.xml");
+		//ApplicationContext context = new ClassPathXmlApplicationContext(
+		//		"classpath*:META-INF/spring/spring-shell-plugin.xml");
+		ctx.refresh();
+		
 		Comparator<Class<? extends CommandMarker>> comparator = new Comparator<Class<? extends CommandMarker>>() {
 			@Override
 			public int compare(Class<? extends CommandMarker> arg0, Class<? extends CommandMarker> arg1) {
@@ -145,7 +156,7 @@ public class ReferenceDoc {
 		final Map<Class<? extends CommandMarker>, Map<CliCommand, List<CliOption>>> plugins = new TreeMap<Class<? extends CommandMarker>, Map<CliCommand, List<CliOption>>>(
 				comparator);
 
-		Map<String, CommandMarker> beans = context.getBeansOfType(CommandMarker.class);
+		Map<String, CommandMarker> beans = BeanFactoryUtils.beansOfTypeIncludingAncestors(ctx, CommandMarker.class);
 		final MethodFilter filter = new MethodFilter() {
 			@Override
 			public boolean matches(Method method) {

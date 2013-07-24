@@ -26,13 +26,13 @@ public interface CounterRepository extends MetricRepository<Counter> {
 
 	/**
 	 * Increment the given counter, creating it if it did not exist. Implementations which
-	 * can do this atomicly are encouraged to do so.
+	 * can do this atomically in one operation are encouraged to do so.
 	 */
 	public long increment(String name);
 
 	/**
 	 * Decrement the given counter, creating it if it did not exist. Implementations which
-	 * can do this atomicly are encouraged to do so.
+	 * can do this atomically in one operation are encouraged to do so.
 	 */
 	public long decrement(String name);
 

@@ -51,4 +51,9 @@ public class Table {
 		this.headers.put(columnIndex, tableHeader);
 		return this;
 	}
+	
+	@Override
+	public String toString() {
+		return UiUtils.renderTextTable(this);
+	}
 }

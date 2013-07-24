@@ -89,7 +89,7 @@ public class StreamCommands implements CommandMarker {
 	}
 
 	@CliCommand(value = LIST_STREAM, help = "List created streams")
-	public String listStreams() {
+	public Table listStreams() {
 
 		final PagedResources<StreamDefinitionResource> streams = streamOperations().list();
 
@@ -102,7 +102,7 @@ public class StreamCommands implements CommandMarker {
 			table.getRows().add(row);
 		}
 
-		return UiUtils.renderTextTable(table);
+		return table;
 
 	}
 

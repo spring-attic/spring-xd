@@ -15,41 +15,37 @@
  */
 package org.springframework.xd.shell.command;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.util.Date;
-import java.util.Locale;
-import java.util.concurrent.TimeUnit;
-
-import org.hamcrest.MatcherAssert;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.xd.shell.AbstractShellIntegrationTest;
 
-import uk.co.it.modular.hamcrest.date.DateMatchers;
-
-/**
- * A sanity check to test the built in shell's Date command
- * 
- * @author Mark Pollack
- *
- */
 @Ignore("Not able to stop embedded tomcat container")
-public class DateCommandTest extends AbstractShellIntegrationTest {
+public class StreamCommandTests extends AbstractShellIntegrationTest {
+
+
+	private static final Log logger = LogFactory.getLog(StreamCommandTests.class);
 
 	@Test
-	public void testDate() throws ParseException {
-
-		CommandResult cr = getShell().executeCommand("date");
+	@Ignore("Not able to stop embedded tomcat container")
+	public void testStreamLifecycleForTickTock() throws InterruptedException {
+		logger.info("Starting Stream Test for TickTock");
+		System.out.println("Starting Stream Test for TickTock");
 		
-		assertTrue("Date command completed correctly", cr.isSuccess());
-		DateFormat df = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL,Locale.US);
-		Date result = df.parse(cr.getResult().toString());
-		Date now = new Date();
-		MatcherAssert.assertThat(now, DateMatchers.within(5, TimeUnit.SECONDS, result));	
+		CommandResult cr = getShell().executeCommand("stream create --definition \"time | log\" --name ticktock");
+		assertTrue(cr.isSuccess());
+		assertEquals("Created new stream 'ticktock'", cr.getResult());
+		
+		
+		Thread.sleep(2000);
+		cr = getShell().executeCommand("stream destroy --name ticktock");
+		System.out.println(cr);
+		assertTrue(cr.isSuccess());
+		
 	}
-
 }

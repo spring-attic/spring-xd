@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -17,17 +17,19 @@ import static org.junit.Assert.assertEquals;
 import java.util.List;
 
 import org.junit.Test;
+
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 
 /**
  * @author David Turanski
+ * @author Gary Russell
  *
  */
 public class SimpleModuleTests {
 	@Test
 	public void testGetAcceptedMediaTypes() {
-		SimpleModule transformer = new SimpleModule("transformer", "processor");
+		SimpleModule transformer = new SimpleModule("transformer", "processor", "foo", 0);
 		transformer.addComponents(new ClassPathResource("/org/springframework/xd/module/accepts-json.xml"));
 		List<MediaType> mediaTypes = transformer.getAcceptedMediaTypes();
 		assertEquals(1, mediaTypes.size());
@@ -35,7 +37,7 @@ public class SimpleModuleTests {
 	}
 
 	public void testAcceptsAllMediaTypesByDefault() {
-		SimpleModule transformer = new SimpleModule("transformer", "processor");
+		SimpleModule transformer = new SimpleModule("transformer", "processor", "foo", 0);
 		transformer.addComponents(new ClassPathResource("/org/springframework/xd/module/default-accepts-all.xml"));
 		List<MediaType> mediaTypes = transformer.getAcceptedMediaTypes();
 		assertEquals(1, mediaTypes.size());
@@ -43,7 +45,7 @@ public class SimpleModuleTests {
 	}
 
 	public void testEmptyMediaTypesAcceptsAll() {
-		SimpleModule transformer = new SimpleModule("transformer", "processor");
+		SimpleModule transformer = new SimpleModule("transformer", "processor", "foo", 0);
 		transformer.addComponents(new ClassPathResource("/org/springframework/xd/module/empty-accepts-all.xml"));
 		List<MediaType> mediaTypes = transformer.getAcceptedMediaTypes();
 		assertEquals(1, mediaTypes.size());

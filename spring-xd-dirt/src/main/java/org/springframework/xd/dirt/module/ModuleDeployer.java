@@ -24,6 +24,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationEventPublisher;
@@ -37,7 +38,9 @@ import org.springframework.xd.dirt.container.DefaultContainer;
 import org.springframework.xd.dirt.event.ModuleDeployedEvent;
 import org.springframework.xd.dirt.event.ModuleUndeployedEvent;
 import org.springframework.xd.module.Module;
+import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.Plugin;
+import org.springframework.xd.module.SimpleModule;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -95,7 +98,11 @@ public class ModuleDeployer extends AbstractMessageHandler
 		else {
 			String group = request.getGroup();
 			int index = request.getIndex();
-			Module module = this.moduleRegistry.lookup(request.getModule(), request.getType());
+			String name = request.getModule();
+			String type = request.getType();
+			ModuleDefinition definition = this.moduleRegistry.lookup(name, type);
+			Assert.notNull(definition, "No moduleDefinition for " + name + ":" + type);
+			Module module = new SimpleModule(name, type, group, index, definition);
 			module.setParentContext(this.commonContext);
 			Object properties = message.getHeaders().get("properties");
 			if (properties instanceof Properties) {
@@ -108,7 +115,7 @@ public class ModuleDeployer extends AbstractMessageHandler
 				module.addProperties(parametersAsProps);
 			}
 			module.setParentContext(this.commonContext);
-			this.deployModule(module, group, index);
+			this.deployModule(module);
 			String key = group + ":" + module.getName() + ":" + index;
 			if (logger.isInfoEnabled()) {
 				logger.info("launched " + module.getType() + " module: " + key);
@@ -118,10 +125,10 @@ public class ModuleDeployer extends AbstractMessageHandler
 		}
 	}
 
-	private void deployModule(Module module, String group, int index) {
-		this.processModule(module, group, index);
+	private void deployModule(Module module) {
+		this.processModule(module);
 		module.start();
-		this.fireModuleDeployedEvent(module, group, index);
+		this.fireModuleDeployedEvent(module);
 	}
 
 	public void undeploy(ModuleDeploymentRequest request) {
@@ -139,8 +146,8 @@ public class ModuleDeployer extends AbstractMessageHandler
 			}
 			// TODO: add beforeShutdown and/or afterShutdown callbacks?
 			module.stop();
-			this.removeModule(module, group, index);
-			this.fireModuleUndeployedEvent(module, group, index);
+			this.removeModule(module);
+			this.fireModuleUndeployedEvent(module);
 		}
 	}
 
@@ -148,37 +155,37 @@ public class ModuleDeployer extends AbstractMessageHandler
 	 * allow plugins to contribute properties (e.g. "stream.name")
 	 * calling module.addProperties(properties), etc.
 	 */
-	private void processModule(Module module, String group, int index) {
+	private void processModule(Module module) {
 		if (this.plugins != null) {
 			for (Plugin plugin : this.plugins.values()) {
-				plugin.processModule(module, group, index);
+				plugin.processModule(module);
 			}
 		}
 	}
 
-	private void removeModule(Module module, String group, int index) {
+	private void removeModule(Module module) {
 		if (this.plugins != null) {
 			for (Plugin plugin : this.plugins.values()) {
-				plugin.removeModule(module, group, index);
+				plugin.removeModule(module);
 			}
 		}
 	}
 
-	private void fireModuleDeployedEvent(Module module, String group, int index) {
+	private void fireModuleDeployedEvent(Module module) {
 		if (this.eventPublisher != null) {
 			ModuleDeployedEvent event = new ModuleDeployedEvent(module, this.deployerContext.getId());
-			event.setAttribute("group", group);
-			event.setAttribute("index", "" + index);
+			event.setAttribute("group", module.getGroup());
+			event.setAttribute("index", "" + module.getIndex());
 			this.eventPublisher.publishEvent(event);
 			// TODO: in a listener publish info to redis so we know this module is running on this container
 		}
 	}
 
-	private void fireModuleUndeployedEvent(Module module, String group, int index) {
+	private void fireModuleUndeployedEvent(Module module) {
 		if (this.eventPublisher != null) {
 			ModuleUndeployedEvent event = new ModuleUndeployedEvent(module, this.deployerContext.getId());
-			event.setAttribute("group", group);
-			event.setAttribute("index", "" + index);
+			event.setAttribute("group", module.getGroup());
+			event.setAttribute("index", "" + module.getIndex());
 			this.eventPublisher.publishEvent(event);
 			// TODO: in a listener update info in redis so we know this module was undeployed
 		}

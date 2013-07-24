@@ -40,8 +40,10 @@ import org.springframework.util.CollectionUtils;
 /**
  * @author Mark Fisher
  * @author David Turanski
+ * @author Gary Russell
  */
 public class SimpleModule extends AbstractModule {
+
 	private final static String MEDIA_TYPE_BEAN_NAME = "accepted-media-types";
 
 	private final Log logger = LogFactory.getLog(this.getClass());
@@ -53,8 +55,20 @@ public class SimpleModule extends AbstractModule {
 	private final Properties properties = new Properties();
 
 
-	public SimpleModule(String name, String type) {
-		super(name, type);
+	public SimpleModule(String name, String type, String group, int index) {
+		this(name, type, group, index, null);
+	}
+
+	public SimpleModule(String name, String type, String group, int index, ModuleDefinition definition) {
+		super(name, type, group, index);
+		if (definition != null) {
+			if (definition.getResource() != null) {
+				this.addComponents(definition.getResource());
+			}
+			if (definition.getProperties() != null) {
+				this.addProperties(definition.getProperties());
+			}
+		}
 	}
 
 
@@ -136,9 +150,6 @@ public class SimpleModule extends AbstractModule {
 	}
 
 
-	/* (non-Javadoc)
-	 * @see org.springframework.xd.module.Module#getAcceptedMediaTypes()
-	 */
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<MediaType> getAcceptedMediaTypes() {

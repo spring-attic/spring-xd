@@ -24,9 +24,9 @@ import org.springframework.context.ConfigurableApplicationContext;
  */
 public interface Plugin {
 
-	void processModule(Module module, String group, int index);
+	void processModule(Module module);
 
-	void removeModule(Module module, String group, int index);
+	void removeModule(Module module);
 
 	void postProcessSharedContext(ConfigurableApplicationContext context);
 

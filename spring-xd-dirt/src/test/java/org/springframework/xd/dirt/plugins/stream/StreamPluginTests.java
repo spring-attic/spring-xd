@@ -22,6 +22,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.List;
 
 import org.junit.Test;
+
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.xd.module.BeanDefinitionAddingPostProcessor;
@@ -31,6 +32,7 @@ import org.springframework.xd.module.SimpleModule;
 /**
  * @author Mark Fisher
  * @author Jennifer Hickey
+ * @author Gary Russell
  */
 public class StreamPluginTests {
 
@@ -38,9 +40,9 @@ public class StreamPluginTests {
 
 	@Test
 	public void streamPropertiesAdded() {
-		Module module = new SimpleModule("testsource", "source");
+		Module module = new SimpleModule("testsource", "source", "foo", 0);
 		assertEquals(0, module.getProperties().size());
-		plugin.processModule(module, "foo", 0);
+		plugin.processModule(module);
 		assertEquals(2, module.getProperties().size());
 		assertEquals("foo", module.getProperties().getProperty("xd.stream.name"));
 		assertEquals("0", module.getProperties().getProperty("xd.module.index"));
@@ -48,8 +50,8 @@ public class StreamPluginTests {
 
 	@Test
 	public void streamComponentsAdded() {
-		SimpleModule module = new SimpleModule("testsource", "source");
-		plugin.processModule(module, "mystream", 1);
+		SimpleModule module = new SimpleModule("testsource", "source", "mystream", 1);
+		plugin.processModule(module);
 		String[] moduleBeans = module.getApplicationContext().getBeanDefinitionNames();
 		assertEquals(1, moduleBeans.length);
 		assertTrue(moduleBeans[0].contains("ChannelRegistrar#"));
@@ -57,8 +59,8 @@ public class StreamPluginTests {
 
 	@Test
 	public void tapComponentsAdded() {
-		SimpleModule module = new SimpleModule("tap", "source");
-		plugin.processModule(module, "mystream", 1);
+		SimpleModule module = new SimpleModule("tap", "source", "mystream", 1);
+		plugin.processModule(module);
 		String[] moduleBeans = module.getApplicationContext().getBeanDefinitionNames();
 		assertEquals(2, moduleBeans.length);
 		assertTrue(moduleBeans[0].contains("ChannelRegistrar#"));

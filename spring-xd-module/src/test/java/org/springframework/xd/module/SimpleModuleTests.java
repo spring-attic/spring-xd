@@ -34,6 +34,7 @@ public class SimpleModuleTests {
 		assertEquals(MediaType.APPLICATION_JSON, mediaTypes.get(0));
 	}
 
+	@Test
 	public void testAcceptsAllMediaTypesByDefault() {
 		SimpleModule transformer = new SimpleModule("transformer", "processor");
 		transformer.addComponents(new ClassPathResource("/org/springframework/xd/module/default-accepts-all.xml"));
@@ -42,12 +43,23 @@ public class SimpleModuleTests {
 		assertEquals(MediaType.ALL, mediaTypes.get(0));
 	}
 
+	@Test
 	public void testEmptyMediaTypesAcceptsAll() {
 		SimpleModule transformer = new SimpleModule("transformer", "processor");
 		transformer.addComponents(new ClassPathResource("/org/springframework/xd/module/empty-accepts-all.xml"));
 		List<MediaType> mediaTypes = transformer.getAcceptedMediaTypes();
 		assertEquals(1, mediaTypes.size());
 		assertEquals(MediaType.ALL, mediaTypes.get(0));
+	}
+
+	@Test
+	public void testAcceptsJavaObject() {
+		SimpleModule transformer = new SimpleModule("transformer", "processor");
+		transformer.addComponents(new ClassPathResource("/org/springframework/xd/module/accepts-java-object.xml"));
+		List<MediaType> mediaTypes = transformer.getAcceptedMediaTypes();
+		assertEquals(1, mediaTypes.size());
+		assertEquals("x-java-object", mediaTypes.get(0).getSubtype());
+		assertEquals("foo.Bar",mediaTypes.get(0).getParameter("type"));
 	}
 
 }

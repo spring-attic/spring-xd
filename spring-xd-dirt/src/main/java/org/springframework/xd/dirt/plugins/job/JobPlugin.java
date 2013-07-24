@@ -32,6 +32,7 @@ import org.springframework.xd.module.Module;
  *
  * @author Michael Minella
  * @author Gunnar Hillert
+ * @author David Turanski
  * @since 1.0
  *
  */
@@ -92,6 +93,10 @@ public class JobPlugin extends AbstractPlugin  {
 			result.add(REGISTRAR);
 		}
 		return result;
+	}
+
+	@Override
+	protected void processModuleInternal(Module module, String group, int index) {
 	}
 
 }

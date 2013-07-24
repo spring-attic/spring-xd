@@ -28,7 +28,6 @@ import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
@@ -66,6 +65,7 @@ public class StreamPluginModuleDeploymentTests {
 	@BeforeClass
 	public static void setContextProperties() {
 		System.setProperty("xd.transport", "local");
+		System.setProperty("xd.home", "..");
 	}
 
 	@After

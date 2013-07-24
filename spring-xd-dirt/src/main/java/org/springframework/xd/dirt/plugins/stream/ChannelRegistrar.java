@@ -21,6 +21,7 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.x.channel.registry.ChannelRegistry;
 import org.springframework.util.Assert;
+import org.springframework.xd.module.Module;
 
 /**
  * Implementation of {@link BeanPostProcessor} that registers all channels with
@@ -28,6 +29,7 @@ import org.springframework.util.Assert;
  * component also removes those channels from the registry on destroy.
  *
  * @author Jennifer Hickey
+ * @author David Turanski
  */
 public class ChannelRegistrar implements BeanPostProcessor, DisposableBean {
 
@@ -37,8 +39,14 @@ public class ChannelRegistrar implements BeanPostProcessor, DisposableBean {
 
 	private int moduleIndex;
 
-	public ChannelRegistrar(ChannelRegistry channelRegistry, String moduleGroup, int moduleIndex) {
+	private Module module;
+
+	public ChannelRegistrar(ChannelRegistry channelRegistry, Module module, String moduleGroup, int moduleIndex) {
+		Assert.notNull(channelRegistry);
+		Assert.notNull(module);
+		Assert.hasText(moduleGroup);
 		this.channelRegistry = channelRegistry;
+		this.module = module;
 		this.moduleGroup = moduleGroup;
 		this.moduleIndex = moduleIndex;
 	}
@@ -68,11 +76,11 @@ public class ChannelRegistrar implements BeanPostProcessor, DisposableBean {
 	private void registerInputChannel(MessageChannel channel) {
 		Assert.isTrue(moduleIndex > 0, "a module with an input channel must have an index greater than 0");
 		String channelNameInRegistry = moduleGroup + "." + (moduleIndex - 1);
-		channelRegistry.inbound(channelNameInRegistry, channel);
+		channelRegistry.inbound(channelNameInRegistry, channel, this.module);
 	}
 
 	private void registerOutputChannel(MessageChannel channel) {
 		String channelNameInRegistry = moduleGroup + "." + moduleIndex;
-		channelRegistry.outbound(channelNameInRegistry, channel);
+		channelRegistry.outbound(channelNameInRegistry, channel, this.module);
 	}
 }

@@ -46,6 +46,8 @@ public interface Module extends Lifecycle {
 
 	void addComponents(Resource resource);
 
+	ApplicationContext getApplicationContext();
+
 	void addProperties(Properties properties);
 
 	List<MediaType> getAcceptedMediaTypes();

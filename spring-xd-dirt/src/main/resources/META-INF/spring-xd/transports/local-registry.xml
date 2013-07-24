@@ -10,7 +10,7 @@
 
 	<bean id="channelRegistry"
 		class="org.springframework.integration.x.channel.registry.LocalChannelRegistry">
-		<property name="defaultPayloadTransformer" value="#{transformers['${xd.payload.transformer:none}']}"/>
+<!-- 		<property name="defaultPayloadTransformer" value="#{transformers['${xd.payload.transformer:none}']}"/> -->
 	</bean>
 
 	<util:map id="transformers">

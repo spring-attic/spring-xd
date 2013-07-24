@@ -31,6 +31,7 @@ import org.springframework.xd.module.SimpleModule;
 /**
  * @author Mark Fisher
  * @author Jennifer Hickey
+ * @author David Turanski
  */
 public class StreamPluginTests {
 
@@ -61,8 +62,8 @@ public class StreamPluginTests {
 		plugin.processModule(module, "mystream", 1);
 		String[] moduleBeans = module.getApplicationContext().getBeanDefinitionNames();
 		assertEquals(2, moduleBeans.length);
-		assertTrue(moduleBeans[0].contains("ChannelRegistrar#"));
-		assertTrue(moduleBeans[1].contains("Tap#"));
+		assertTrue(moduleBeans[0].contains("Tap#"));
+		assertTrue(moduleBeans[1].contains("ChannelRegistrar#"));
 	}
 
 	@Test

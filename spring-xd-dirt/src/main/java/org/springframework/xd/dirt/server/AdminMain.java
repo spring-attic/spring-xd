@@ -53,7 +53,7 @@ public class AdminMain {
 		launchStreamServer(parseOptions(args));
 	}
 
-	static AdminOptions parseOptions(String[] args) {
+	public static AdminOptions parseOptions(String[] args) {
 		AdminOptions options = new AdminOptions();
 		CmdLineParser parser = new CmdLineParser(options);
 		try {
@@ -78,7 +78,7 @@ public class AdminMain {
 	/**
 	 * Launch stream server with the given home and transport
 	 */
-	static StreamServer launchStreamServer(final AdminOptions options) {
+	public static StreamServer launchStreamServer(final AdminOptions options) {
 		try {
 			XmlWebApplicationContext context = new XmlWebApplicationContext();
 			context.setConfigLocation("classpath:" + DefaultContainer.XD_INTERNAL_CONFIG_ROOT + "admin-server.xml");

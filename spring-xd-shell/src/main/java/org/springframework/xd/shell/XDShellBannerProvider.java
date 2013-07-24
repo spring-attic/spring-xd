@@ -16,9 +16,12 @@
 
 package org.springframework.xd.shell;
 
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.shell.plugin.BannerProvider;
 import org.springframework.shell.support.util.FileUtils;
 import org.springframework.stereotype.Component;
+
 
 /**
  * Provides the Spring XD specific {@link BannerProvider}.
@@ -27,12 +30,13 @@ import org.springframework.stereotype.Component;
  * @since 1.0
  */
 @Component
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class XDShellBannerProvider implements BannerProvider {
 
 	private static final String WELCOME = "Welcome to the Spring XD shell. For assistance hit TAB or type \"help\".";
 
 	@Override
-	public String name() {
+	public String getProviderName() {
 		return "XD Shell";
 	}
 

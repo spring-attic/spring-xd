@@ -17,17 +17,20 @@
 package org.springframework.xd.shell;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.shell.plugin.PromptProvider;
 import org.springframework.stereotype.Component;
 
 @Component
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class XDShellPromptProvider implements PromptProvider {
 
 	@Autowired
 	private XDShell xdShell;
 
 	@Override
-	public String name() {
+	public String getProviderName() {
 		return "prompt";
 	}
 

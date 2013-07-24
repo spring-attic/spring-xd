@@ -34,7 +34,9 @@ allprojects {
 	group = 'org.springframework.xd'
 
 	repositories {
+		mavenCentral()
 		maven { url 'http://repo.springsource.org/libs-milestone' }
+		maven { url 'http://repo.springsource.org/libs-snapshot' }
 		maven { url 'http://repo.springsource.org/plugins-release' }
 		maven { url 'http://repo.springsource.org/plugins-snapshot' }
 	}
@@ -70,12 +72,13 @@ configure(javaProjects()) { subproject ->
 		jacksonVersion = '2.2.2'
 		junitVersion = '4.11'
 		hamcrestVersion = '1.3'
+		hamcrestDateVersion = '0.9.3'
 		jodaTimeVersion = '1.6'
 		jolokiaVersion = '1.1.2'
 		springVersion = '3.2.2.RELEASE'
 		springBatchVersion = '2.2.0.RELEASE'
 		springIntegrationVersion = '3.0.0.M2'
-		springShellVersion = '1.0.0.RELEASE'
+		springShellVersion = '1.1.0.BUILD-SNAPSHOT'
 		springIntegrationSplunkVersion = '1.0.0.M1'
 		springDataMongoVersion = '1.1.1.RELEASE'
 		springDataRedisVersion = '1.1.0.M1'
@@ -486,6 +489,8 @@ project('spring-xd-shell') {
 		compile ("org.springframework.data:spring-data-hadoop:$springDataHadoopVersion") {
 			exclude group: 'org.mortbay.jetty'
 		}
+		testCompile project(":spring-xd-dirt")
+		testCompile "uk.co.modular-it:hamcrest-date:$hamcrestDateVersion"
 		runtime "org.slf4j:jcl-over-slf4j:$slf4jVersion",
 				"org.slf4j:slf4j-log4j12:$slf4jVersion",
 				"log4j:log4j:$log4jVersion"

@@ -122,6 +122,9 @@ public class TriggerPluginTests {
 	public void failIfNoValidTriggerProperty() {
 		Module module = new SimpleModule("testTrigger", "trigger");
 		assertEquals(0, module.getProperties().size());
+		GenericApplicationContext commonContext = new GenericApplicationContext();
+		plugin.postProcessSharedContext(commonContext);
+
 		try {
 			plugin.processModule(module, "newTrigger", 0);
 		}
@@ -136,6 +139,9 @@ public class TriggerPluginTests {
 	@Test
 	public void failIfMultipleTriggerProperties() {
 		Module module = new SimpleModule("testTrigger", "trigger");
+		GenericApplicationContext commonContext = new GenericApplicationContext();
+		plugin.postProcessSharedContext(commonContext);
+
 		module.getProperties().put("cron", "*/15 * * * * *");
 		module.getProperties().put("fixedRate", "6000");
 		assertEquals(2, module.getProperties().size());
@@ -143,8 +149,8 @@ public class TriggerPluginTests {
 			plugin.processModule(module, "newTrigger", 0);
 		}
 		catch (ResourceDefinitionException e) {
-			assertEquals("Only one trigger property allowed, but received: " +
-					"cron,fixedRate", e.getMessage());
+			assertEquals("Only one trigger property allowed, but received: "
+					+ "cron,fixedRate", e.getMessage());
 			return;
 		}
 		fail("Expected an ResourceDefinitionException to be thrown.");

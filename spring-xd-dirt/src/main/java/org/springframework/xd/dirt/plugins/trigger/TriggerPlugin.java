@@ -17,8 +17,8 @@ package org.springframework.xd.dirt.plugins.trigger;
 
 import static org.springframework.xd.module.ModuleType.TRIGGER;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -45,6 +45,16 @@ public class TriggerPlugin implements Plugin {
 
 	public static final String BEAN_NAME_PREFIX = "trigger.";
 
+	/**
+	 * Trigger type enum
+	 */
+	private static enum TriggerType {
+		cron,
+		fixedDelay,
+		fixedRate
+	};
+
+
 	private ConfigurableApplicationContext commonApplicationContext;
 
 	/**
@@ -57,38 +67,37 @@ public class TriggerPlugin implements Plugin {
 		if (!TRIGGER.equals(module.getType())) {
 			return;
 		}
+		Assert.notNull(commonApplicationContext,
+				"The 'commonApplicationContext' property must not be null.");
 
 		final BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition();
-		List<String> triggersAdded = new ArrayList<String>();
+		Map<String, Trigger> triggers = new HashMap<String, Trigger>();
 		if (module.getProperties().containsKey(TriggerType.cron.name())) {
-			TriggerType.cron.addTrigger(builder, module.getProperties().getProperty(TriggerType.cron.name()));
-			triggersAdded.add(TriggerType.cron.name());
+			Trigger trigger = new CronTrigger(module.getProperties().getProperty(TriggerType.cron.name()));
+			triggers.put(TriggerType.cron.name(), trigger);
 		}
 		if (module.getProperties().containsKey(TriggerType.fixedDelay.name())) {
-			TriggerType.fixedDelay.addTrigger(builder, module.getProperties().getProperty(TriggerType.fixedDelay.name()));
-			triggersAdded.add(TriggerType.fixedDelay.name());
+			Trigger trigger = new PeriodicTrigger(Long.parseLong(module.getProperties().getProperty(TriggerType.fixedDelay.name())));
+			triggers.put(TriggerType.fixedDelay.name(), trigger);
 		}
 		if (module.getProperties().containsKey(TriggerType.fixedRate.name())) {
-			TriggerType.fixedRate.addTrigger(builder, module.getProperties().getProperty(TriggerType.fixedRate.name()));
-			triggersAdded.add(TriggerType.fixedRate.name());
+			PeriodicTrigger trigger = new PeriodicTrigger(Long.parseLong(module.getProperties().getProperty(TriggerType.fixedRate.name())));
+			trigger.setFixedRate(true);
+			triggers.put(TriggerType.fixedRate.name(), trigger);
 		}
-		if (triggersAdded.size() == 0) {
-			throw new ResourceDefinitionException("No valid trigger property. Expected one of: " +
-					"cron, fixedDelay or fixedRate");
+		if (triggers.size() == 0) {
+			throw new ResourceDefinitionException(
+					"No valid trigger property. Expected one of: cron, fixedDelay or fixedRate");
 		}
-		else if (triggersAdded.size() > 1) {
-			throw new ResourceDefinitionException("Only one trigger property allowed, but received: " +
-					StringUtils.collectionToCommaDelimitedString(triggersAdded));
+		else if (triggers.size() > 1) {
+			throw new ResourceDefinitionException("Only one trigger property allowed, but received: "
+					+ StringUtils.collectionToCommaDelimitedString(triggers.keySet()));
 		}
+		commonApplicationContext.getBeanFactory().registerSingleton(BEAN_NAME_PREFIX + group, triggers.values().iterator().next());
 		final BeanDefinitionAddingPostProcessor postProcessor = new BeanDefinitionAddingPostProcessor();
 		postProcessor.addBeanDefinition(BEAN_NAME_PREFIX + group, builder.getBeanDefinition());
-
-		Assert.notNull(commonApplicationContext, "The 'commonApplicationContext' property must not be null.");
 		this.commonApplicationContext.addBeanFactoryPostProcessor(postProcessor);
-
 		configureProperties(module, group);
-		this.commonApplicationContext.refresh();
-
 	}
 
 	@Override
@@ -108,36 +117,6 @@ public class TriggerPlugin implements Plugin {
 	@Override
 	public void postProcessSharedContext(ConfigurableApplicationContext context) {
 		this.commonApplicationContext = context;
-	}
-
-	/**
-	 * Trigger type enum
-	 */
-	private enum TriggerType {
-		cron {
-			@Override
-			void addTrigger(BeanDefinitionBuilder builder, String expression) {
-				builder.getBeanDefinition().setBeanClass(CronTrigger.class);
-				builder.addConstructorArgValue(expression);
-			}
-		},
-		fixedDelay {
-			@Override
-			void addTrigger(BeanDefinitionBuilder builder, String fixedDelay) {
-				builder.getBeanDefinition().setBeanClass(PeriodicTrigger.class);
-				builder.addConstructorArgValue(Long.parseLong(fixedDelay));
-			}
-		},
-		fixedRate {
-			@Override
-			void addTrigger(BeanDefinitionBuilder builder, String fixedRate) {
-				builder.getBeanDefinition().setBeanClass(PeriodicTrigger.class);
-				builder.addConstructorArgValue(Long.parseLong(fixedRate));
-				builder.addPropertyValue("fixedRate", true);
-			}
-		};
-
-		abstract void addTrigger(BeanDefinitionBuilder builder, String definition);
 	}
 
 }

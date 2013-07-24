@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.xd.analytics.metrics.common;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+package org.springframework.xd.analytics.metrics.common;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,7 +25,6 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.xd.analytics.metrics.redis.RedisAggregateCounterService;
 import org.springframework.xd.analytics.metrics.redis.RedisCounterRepository;
-import org.springframework.xd.analytics.metrics.redis.RedisCounterService;
 import org.springframework.xd.analytics.metrics.redis.RedisFieldValueCounterRepository;
 import org.springframework.xd.analytics.metrics.redis.RedisFieldValueCounterService;
 import org.springframework.xd.analytics.metrics.redis.RedisGaugeRepository;
@@ -35,13 +32,15 @@ import org.springframework.xd.analytics.metrics.redis.RedisGaugeService;
 import org.springframework.xd.analytics.metrics.redis.RedisRichGaugeRepository;
 import org.springframework.xd.analytics.metrics.redis.RedisRichGaugeService;
 
+import static org.mockito.Mockito.*;
+
 /**
- *
+ * 
  * @author Mark Pollack
  * @author Luke Taylor
  * @author Gary Russell
  * @since 1.0
- *
+ * 
  */
 @Configuration
 public class ServicesConfig {
@@ -77,11 +76,6 @@ public class ServicesConfig {
 	}
 
 	@Bean
-	public RedisCounterService redisCounterService() {
-		return new RedisCounterService(redisCounterRepository());
-	}
-
-	@Bean
 	public RedisCounterRepository redisCounterRepository() {
 		return new RedisCounterRepository(redisConnectionFactory());
 	}
@@ -111,6 +105,5 @@ public class ServicesConfig {
 			return mockCF;
 		}
 	}
-
 
 }

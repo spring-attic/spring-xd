@@ -19,10 +19,10 @@ package org.springframework.xd.dirt.stream.redis;
 import java.util.Date;
 
 import org.springframework.data.redis.core.RedisOperations;
-import org.springframework.xd.dirt.store.AbstractRedisRepository;
 import org.springframework.xd.dirt.stream.Stream;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.StreamRepository;
+import org.springframework.xd.store.AbstractRedisRepository;
 
 /**
  * Redis implementation of {@link StreamRepository}, uses a {@link RedisStreamDefinitionRepository} in turn.

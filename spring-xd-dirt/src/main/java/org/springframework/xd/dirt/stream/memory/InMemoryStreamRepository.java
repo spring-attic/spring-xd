@@ -16,9 +16,9 @@
 
 package org.springframework.xd.dirt.stream.memory;
 
-import org.springframework.xd.dirt.store.AbstractInMemoryRepository;
 import org.springframework.xd.dirt.stream.Stream;
 import org.springframework.xd.dirt.stream.StreamRepository;
+import org.springframework.xd.store.AbstractInMemoryRepository;
 
 /**
  * In memory implementation of {@link StreamRepository}.

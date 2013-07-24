@@ -1,3 +1,4 @@
+
 package org.springframework.xd.analytics.metrics.redis;
 
 import java.lang.reflect.ParameterizedType;
@@ -19,7 +20,9 @@ import org.springframework.xd.analytics.metrics.core.MetricRepository;
  * 
  * @author Luke Taylor
  */
-abstract class AbstractRedisMetricRepository<M extends Metric, V> implements MetricRepository<M> {
+abstract class AbstractRedisMetricRepository<M extends Metric, V> implements
+		MetricRepository<M> {
+
 	protected final String metricPrefix;
 
 	protected final ValueOperations<String, V> valueOperations;
@@ -27,13 +30,15 @@ abstract class AbstractRedisMetricRepository<M extends Metric, V> implements Met
 	protected final RedisOperations<String, V> redisOperations;
 
 	@SuppressWarnings("unchecked")
-	AbstractRedisMetricRepository(RedisConnectionFactory connectionFactory, String metricPrefix) {
+	AbstractRedisMetricRepository(RedisConnectionFactory connectionFactory,
+			String metricPrefix) {
 		Assert.notNull(connectionFactory);
 		Assert.hasText(metricPrefix, "metric prefix cannot be empty");
 		this.metricPrefix = metricPrefix;
 		ParameterizedType parameterizedType = (ParameterizedType) getClass().getGenericSuperclass();
 		Class<V> valueClass = (Class<V>) parameterizedType.getActualTypeArguments()[1];
-		this.redisOperations = RedisUtils.createRedisTemplate(connectionFactory, valueClass);
+		this.redisOperations = RedisUtils.createRedisTemplate(connectionFactory,
+				valueClass);
 		this.valueOperations = redisOperations.opsForValue();
 	}
 
@@ -60,7 +65,13 @@ abstract class AbstractRedisMetricRepository<M extends Metric, V> implements Met
 	abstract V defaultValue();
 
 	/**
-	 * Provides the key for a named metric. By default this appends the name to the metricPrefix value.
+	 * @return the value carried by the given metric
+	 */
+	abstract V value(M metric);
+
+	/**
+	 * Provides the key for a named metric. By default this appends the name to the
+	 * metricPrefix value.
 	 * 
 	 * @param metricName the name of the metric
 	 * @return the redis key under which the metric is stored
@@ -72,9 +83,7 @@ abstract class AbstractRedisMetricRepository<M extends Metric, V> implements Met
 	@Override
 	public <S extends M> S save(S metric) {
 		String metricKey = getMetricKey(metric.getName());
-		if (this.valueOperations.get(metricKey) == null) {
-			this.valueOperations.set(metricKey, defaultValue());
-		}
+		valueOperations.set(metricKey, value(metric));
 		return metric;
 	}
 

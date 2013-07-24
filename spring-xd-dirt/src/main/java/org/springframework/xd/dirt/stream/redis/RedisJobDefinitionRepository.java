@@ -17,9 +17,9 @@
 package org.springframework.xd.dirt.stream.redis;
 
 import org.springframework.data.redis.core.RedisOperations;
-import org.springframework.xd.dirt.store.AbstractRedisRepository;
 import org.springframework.xd.dirt.stream.JobDefinition;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
+import org.springframework.xd.store.AbstractRedisRepository;
 
 /**
  * An implementation of {@link JobDefinitionRepository} that persists @{link JobDefinition} in Redis.

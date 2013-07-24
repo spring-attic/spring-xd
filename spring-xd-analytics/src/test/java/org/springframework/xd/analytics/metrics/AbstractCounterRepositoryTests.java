@@ -13,38 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.analytics.metrics;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertThat;
-
 import org.springframework.xd.analytics.metrics.core.Counter;
-import org.springframework.xd.analytics.metrics.core.CounterService;
 import org.springframework.xd.analytics.metrics.core.CounterRepository;
 
-public class AbstractCounterServiceTests {
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
+public class AbstractCounterRepositoryTests {
 
-	public void simpleTest(CounterService cs, CounterRepository repo) {
-		Counter counter = cs.getOrCreate("simpleCounter");
+	public void simpleTest(CounterRepository repo) {
+		Counter counter = new Counter("simpleCounter");
 
 		String counterName = counter.getName();
 		assertThat(counterName, equalTo("simpleCounter"));
 
-		cs.increment(counterName);
+		repo.increment(counterName);
 		Counter c = repo.findOne(counterName);
 		assertThat(c.getValue(), equalTo(1L));
 
-		cs.increment(counterName);
+		repo.increment(counterName);
 		assertThat(repo.findOne(counterName).getValue(), equalTo(2L));
 
-		cs.decrement(counterName);
+		repo.decrement(counterName);
 		assertThat(repo.findOne(counterName).getValue(), equalTo(1L));
 
-		cs.reset(counterName);
+		repo.reset(counterName);
 		assertThat(repo.findOne(counterName).getValue(), equalTo(0L));
 
-		Counter counter2 = cs.getOrCreate("simpleCounter");
+		Counter counter2 = repo.findOne("simpleCounter");
 		assertThat(counter, equalTo(counter2));
 
 	}

@@ -15,4 +15,9 @@
 		<property name="password" value="${redis.password:#{null}}" />
 	</bean>
 
+	<bean id="humanFriendlyRedisTemplate" class="org.springframework.data.redis.core.StringRedisTemplate">
+		<property name="connectionFactory" ref="redisConnectionFactory" />
+	</bean>
+	
+
 </beans>

@@ -17,9 +17,9 @@
 package org.springframework.xd.dirt.stream.redis;
 
 import org.springframework.data.redis.core.RedisOperations;
-import org.springframework.xd.dirt.store.AbstractRedisRepository;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
+import org.springframework.xd.store.AbstractRedisRepository;
 
 /**
  * An implementation of {@link StreamDefinitionRepository} that persists StreamDefinition in Redis.

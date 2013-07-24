@@ -24,8 +24,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.xd.dirt.store.AbstractRedisRepository;
 import org.springframework.xd.dirt.stream.StreamDefinition;
+import org.springframework.xd.store.AbstractRedisRepository;
 import org.springframework.xd.test.redis.RedisAvailableRule;
 
 /**

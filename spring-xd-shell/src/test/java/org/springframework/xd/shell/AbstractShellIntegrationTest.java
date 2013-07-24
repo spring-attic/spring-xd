@@ -16,18 +16,17 @@
 
 package org.springframework.xd.shell;
 
+import java.io.IOException;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.JLineShellComponent;
-import org.springframework.web.context.support.XmlWebApplicationContext;
 import org.springframework.xd.dirt.server.AdminMain;
 import org.springframework.xd.dirt.server.options.AdminOptions;
 import org.springframework.xd.dirt.stream.StreamServer;
-import org.springframework.xd.shell.command.StreamCommandTests;
 
 /**
  * Superclass for performing integration tests of spring-xd shell commands.
@@ -37,8 +36,6 @@ import org.springframework.xd.shell.command.StreamCommandTests;
  * 
  * Note: This isn't ideal as it takes significant time to startup the embedded XDContainer/tomcat and we should do this
  * once across all tests.
- * 
- * Note: The shutdown method is not successfully shutting down the embedded tomcat server..
  * 
  * @author Mark Pollack
  *
@@ -51,29 +48,19 @@ public abstract class AbstractShellIntegrationTest {
 	private static JLineShellComponent shell;
 	
 	@BeforeClass
-	public static void startUp() throws InterruptedException {
-		AdminOptions opts = AdminMain.parseOptions(new String[] {"--httpPort", "8080", "--transport", "local", "--store", "memory", "--disableJmx", "true"});
+	public static void startUp() throws InterruptedException, IOException {
+		AdminOptions opts = AdminMain.parseOptions(new String[] {"--httpPort", "0", "--transport", "local", "--store", "memory", "--disableJmx", "true"});
 		server = AdminMain.launchStreamServer(opts);
-		
-		//Start up the shell
-		Bootstrap bootstrap = new Bootstrap();		
+		Bootstrap bootstrap = new Bootstrap(new String[] { "--port", Integer.toString(server.getLocalPort()) });		
 		shell = bootstrap.getJLineShellComponent();
 	}
 	
 	@AfterClass
 	public static void shutdown() {
-		logger.info("Stopping StreamServer");
-		System.out.println("Stopping StreamServer");
-		
-		//Note: This hangs on tomcat's stopInternal method waiting on a future for a child container to be destroyed.... 
-		//      Not clear how to correctly stop the container.
-		//      Maybe use cargo to start/stop the container- http://cargo.codehaus.org/Functional+testing
+		logger.info("Stopping StreamServer");		
 		server.stop();
-		DirectFieldAccessor dfa = new DirectFieldAccessor(server);
-		((XmlWebApplicationContext)dfa.getPropertyValue("webApplicationContext")).destroy();
-		
+
 		logger.info("Stopping XD Shell");
-		System.out.println("Stopping XD Shell");
 		shell.stop();
 	}
 

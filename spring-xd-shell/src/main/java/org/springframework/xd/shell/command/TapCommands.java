@@ -72,7 +72,7 @@ public class TapCommands implements CommandMarker {
 	}
 
 	@CliCommand(value = LIST_TAPS, help = "List all taps")
-	public String listTaps() {
+	public Table listTaps() {
 
 		final List<TapDefinitionResource> taps;
 
@@ -89,7 +89,7 @@ public class TapCommands implements CommandMarker {
 			table.getRows().add(row);
 		}
 
-		return UiUtils.renderTextTable(table);
+		return table;
 	}
 	
 	@CliCommand(value = DESTROY_TAP, help = "Destroy an existing tap")

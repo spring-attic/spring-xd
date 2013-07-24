@@ -19,6 +19,7 @@ import java.util.concurrent.ScheduledFuture;
 
 import org.apache.catalina.Context;
 import org.apache.catalina.LifecycleException;
+import org.apache.catalina.LifecycleState;
 import org.apache.catalina.core.AprLifecycleListener;
 import org.apache.catalina.deploy.FilterDef;
 import org.apache.catalina.deploy.FilterMap;
@@ -32,6 +33,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.ConfigurableWebApplicationContext;
+import org.springframework.web.context.support.XmlWebApplicationContext;
 import org.springframework.web.filter.HttpPutFormContentFilter;
 import org.springframework.web.servlet.DispatcherServlet;
 
@@ -59,9 +61,9 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 
 	private volatile boolean running;
 
-	private final ConfigurableWebApplicationContext webApplicationContext;
+	private final XmlWebApplicationContext webApplicationContext;
 
-	public StreamServer(ConfigurableWebApplicationContext webApplicationContext, int port) {
+	public StreamServer(XmlWebApplicationContext webApplicationContext, int port) {
 		Assert.notNull(webApplicationContext, "context must not be null");
 		Assert.isTrue(!webApplicationContext.isActive(), "context must not have been started");
 		this.webApplicationContext = webApplicationContext;
@@ -91,6 +93,11 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 	 */
 	public int getPort() {
 		return this.port;
+	}
+	
+	public int getLocalPort() {
+		int localPort = this.tomcat.getConnector().getLocalPort();
+		return localPort;
 	}
 
 	@Override
@@ -155,11 +162,31 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 			if (this.handlerTask != null) {
 				this.handlerTask.cancel(true);
 			}
-			this.tomcat.stop();
+			//This will likely trigger an exception, but the 'clean' shutdown code is hanging.
+            tomcat.destroy();
 			this.running = false;
 		}
 		catch (LifecycleException e) {
-			throw new MessagingException("failed to stop server", e);
+			logger.warn("Did not stop tomcat cleanly - " + e.getMessage());
+		}
+		this.webApplicationContext.destroy();
+	}
+
+	
+	/**
+	 * This was taken from the tomcat unit tests but it hangs on stop.
+	 * Leave it here for some further investigation.
+	 * @throws LifecycleException
+	 */
+	private void shutdownCleanly() throws LifecycleException {
+		// This is taken from the Tomcat unit tests.
+		// Make sure that stop() & destroy() are called as necessary.
+		if (tomcat.getServer() != null
+		        && tomcat.getServer().getState() != LifecycleState.DESTROYED) {
+		    if (tomcat.getServer().getState() != LifecycleState.STOPPED) {
+		        tomcat.stop();
+		    }
+		    tomcat.destroy();
 		}
 	}
 

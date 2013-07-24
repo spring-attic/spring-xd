@@ -24,7 +24,6 @@ import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import org.hamcrest.MatcherAssert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.xd.shell.AbstractShellIntegrationTest;
@@ -37,7 +36,6 @@ import uk.co.it.modular.hamcrest.date.DateMatchers;
  * @author Mark Pollack
  *
  */
-@Ignore("Not able to stop embedded tomcat container")
 public class DateCommandTest extends AbstractShellIntegrationTest {
 
 	@Test

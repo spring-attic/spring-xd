@@ -20,10 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
-import org.springframework.xd.dirt.stream.dsl.ArgumentNode;
-import org.springframework.xd.dirt.stream.dsl.ModuleNode;
-import org.springframework.xd.dirt.stream.dsl.StreamConfigParser;
-import org.springframework.xd.dirt.stream.dsl.StreamsNode;
+import org.springframework.xd.dirt.stream.dsl.*;
 
 /**
  * @author Andy Clement
@@ -44,7 +41,6 @@ public class EnhancedStreamParser implements StreamParser {
 			ModuleNode moduleNode = moduleNodes.get(m);
 			ModuleDeploymentRequest request = new ModuleDeploymentRequest();
 			request.setGroup(name);
-			request.setType(determineType(m, moduleNodes.size(), moduleNode.getName()));
 			request.setModule(moduleNode.getName());
 			request.setIndex(m);
 			if (moduleNode.hasArguments()) {
@@ -55,26 +51,58 @@ public class EnhancedStreamParser implements StreamParser {
 			}
 			requests.add(request);
 		}
+		StreamNode stream = ast.getStreams().get(0);
+		SourceChannelNode sourceChannel = stream.getSourceChannelNode();
+		SinkChannelNode sinkChannel = stream.getSinkChannelNode();
+
+		if (sourceChannel != null) {
+			requests.get(requests.size() - 1).setSourceChannelName(sourceChannel.getChannelNode().getChannelName());
+		}
+
+		if (sinkChannel != null) {
+			requests.get(0).setSinkChannelName(sinkChannel.getChannelNode().getChannelName());
+		}
+
+		for (int m = 0; m < moduleNodes.size(); m++) {
+			ModuleDeploymentRequest request =  requests.get(m);
+			request.setType(determineType(request, requests.size() - 1));
+		}
+
 		return requests;
 	}
 
-	private String determineType(int m, int moduleNodesSize, String moduleName) {
-
-		final String type;
-
-		if (moduleNodesSize == 1) {
-			if ("trigger".equalsIgnoreCase(moduleName)) {
-				type = "trigger";
+	private String determineType(ModuleDeploymentRequest request, int lastIndex) {
+		int index = request.getIndex();
+		if (request.getSourceChannelName() != null) {
+			if (index == lastIndex) {
+				return "sink";
+			} else {
+				return "processor";
+			}
+		}
+		else if (request.getSinkChannelName() != null) {
+			if (index == 0) {
+				return "source";
+			} else {
+				return "processor";
+			}
+		}
+		else if (lastIndex == 0) {
+			// Only one module and no source or sink channels
+			if ("trigger".equalsIgnoreCase(request.getModule())) {
+				return "trigger";
 			}
 			else {
-				type = "job";
+				return "job";
 			}
 		}
-		else {
-			type = "source";
+		else if (index == 0) {
+			return "source";
 		}
-
-		return (m == 0) ? type : (m == moduleNodesSize - 1) ? "sink" : "processor";
+		else if (index == lastIndex) {
+			return "sink";
+		}
+		return "processor";
 	}
-
 }
+

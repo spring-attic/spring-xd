@@ -133,4 +133,23 @@ public class EnhancedStreamParserTests {
 		assertEquals("3", sinkParameters.get("z"));
 	}
 
+	@Test
+	public void sourceChannelNameIsAppliedToSourceModule() throws Exception {
+		List<ModuleDeploymentRequest> requests = parser.parse("test", ":foo > boo | blah | file");
+		assertEquals(3, requests.size());
+		assertEquals("foo", requests.get(2).getSourceChannelName());
+		assertEquals("processor", requests.get(2).getType());
+		assertEquals("processor", requests.get(1).getType());
+		assertEquals("sink", requests.get(0).getType());
+	}
+
+	@Test
+	public void sinkChannelNameIsAppliedToSinkModule() throws Exception {
+		List<ModuleDeploymentRequest> requests = parser.parse("test", "boo | blah | aaak > :foo");
+		assertEquals(3, requests.size());
+		assertEquals("foo", requests.get(0).getSinkChannelName());
+		assertEquals("processor", requests.get(0).getType());
+		assertEquals("processor", requests.get(1).getType());
+		assertEquals("source", requests.get(2).getType());
+	}
 }

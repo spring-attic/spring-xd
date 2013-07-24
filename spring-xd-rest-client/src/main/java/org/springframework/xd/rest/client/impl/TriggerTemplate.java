@@ -16,6 +16,7 @@
 
 package org.springframework.xd.rest.client.impl;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.util.LinkedMultiValueMap;
@@ -56,4 +57,11 @@ public class TriggerTemplate extends AbstractTemplate implements TriggerOperatio
 		uriTemplate = uriTemplate + "?size=10000";
 		return restTemplate.getForObject(uriTemplate, TriggerDefinitionResource.Page.class);
 	}
+	@Override
+	public void deleteTrigger(String name) {
+		String uriTemplate = resources.get("triggers").toString() + "/{name}";
+		restTemplate
+				.delete(uriTemplate, Collections.singletonMap("name", name));
+	}
+
 }

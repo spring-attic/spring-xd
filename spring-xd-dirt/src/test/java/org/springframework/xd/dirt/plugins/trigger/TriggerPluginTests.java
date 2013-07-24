@@ -23,7 +23,6 @@ import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
-
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.scheduling.support.CronTrigger;
@@ -93,6 +92,26 @@ public class TriggerPluginTests {
 		assertEquals("*/15 * * * * *", cronTrigger.getExpression());
 	}
 
+	@Test
+	public void testCronTriggerDelete() {
+		GenericApplicationContext commonContext = new GenericApplicationContext();
+		plugin.postProcessSharedContext(commonContext);
+
+		Module module = new SimpleModule(new ModuleDefinition("testTrigger",
+				"trigger"), new DeploymentMetadata("newTrigger", 0));
+		module.getProperties().put("cron", "*/15 * * * * *");
+		assertEquals(1, module.getProperties().size());
+		plugin.preProcessModule(module);
+
+		CronTrigger cronTrigger = commonContext.getBean(
+				TriggerPlugin.BEAN_NAME_PREFIX + "newTrigger",
+				CronTrigger.class);
+		assertEquals("*/15 * * * * *", cronTrigger.getExpression());
+		assertEquals(1, commonContext.getBeanFactory().getSingletonCount());
+		plugin.removeModule(module);
+		assertEquals(0, commonContext.getBeanFactory().getSingletonCount());
+
+	}
 	@Test
 	public void testFixedDelayTriggerAddedToSharedContext() {
 		GenericApplicationContext commonContext = new GenericApplicationContext();

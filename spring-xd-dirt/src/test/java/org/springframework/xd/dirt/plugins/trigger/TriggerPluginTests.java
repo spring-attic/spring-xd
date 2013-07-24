@@ -23,6 +23,7 @@ import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.scheduling.support.CronTrigger;
@@ -146,7 +147,8 @@ public class TriggerPluginTests {
 		assertEquals(2, module.getProperties().size());
 		try {
 			plugin.processModule(module, "newTrigger", 0);
-		} catch (ResourceDefinitionException e) {
+		}
+		catch (ResourceDefinitionException e) {
 			assertEquals("Only one trigger property allowed, but received: "
 					+ "cron,fixedRate", e.getMessage());
 			return;

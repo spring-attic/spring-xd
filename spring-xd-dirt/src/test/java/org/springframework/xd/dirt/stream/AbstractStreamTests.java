@@ -37,11 +37,12 @@ public abstract class AbstractStreamTests {
 	}
 
 	protected void deployStream(String name, String config) {
-		streamDeployer.createStream(name, config, true);
+		streamDeployer.save(new StreamDefinition(name, config));
+		streamDeployer.deploy(name);
 	}
 
 	protected void undeployStream(String name) {
-		streamDeployer.undeployStream(name);
+		streamDeployer.undeploy(name);
 	}
 
 }

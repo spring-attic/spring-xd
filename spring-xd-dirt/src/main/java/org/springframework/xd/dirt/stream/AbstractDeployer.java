@@ -29,7 +29,7 @@ import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 /**
  * Abstract implementation of the @link {@link org.springframework.xd.dirt.core.ResourceDeployer} interface. It provides the basic support for calling
  * CrudRepository methods and sending deployment messages.
- * 
+ *
  * @author Luke Taylor
  * @author Mark Pollack
  * @author Eric Bottard
@@ -41,6 +41,8 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 
 	private final DeploymentMessageSender messageSender;
 
+	
+	
 	/**
 	 * Lower-case, singular name of the kind of definition we're deploying. Used in exception messages.
 	 */
@@ -48,15 +50,15 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 
 	protected AbstractDeployer(CrudRepository<D, String> repository, DeploymentMessageSender messageSender,
 			String definitionKind) {
-		Assert.notNull(repository, "repository cannot be null");
-		Assert.notNull(messageSender, "message sender cannot be null");
-		Assert.hasText(definitionKind, "definitionKind cannot be blank");
+		Assert.notNull(repository, ErrorMessage.repositoryNameNullError.getMessage());
+		Assert.notNull(messageSender, ErrorMessage.messageSenderNameNullError.getMessage());
+		Assert.hasText(definitionKind,
+				ErrorMessage.definitionKindEmptyError.getMessage());
 		this.repository = repository;
 		this.messageSender = messageSender;
 		this.definitionKind = definitionKind;
 	}
 
-	@Override
 	public D save(D definition) {
 		Assert.notNull(definition, "Definition may not be null");
 		if (repository.findOne(definition.getName()) != null) {
@@ -66,21 +68,29 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	}
 
 	protected void throwDefinitionAlreadyExistsException(D definition) {
-		throw new DefinitionAlreadyExistsException(definition.getName(), "There is already a " + definitionKind
-				+ " named '%s'");
+		throw new DefinitionAlreadyExistsException(definition.getName(),
+				String.format("%s %s %s",
+						ErrorMessage.definitionErrorPrefix.getMessage(),
+						definitionKind,
+						ErrorMessage.definitionErrorSuffix.getMessage()));
 	}
 
 	protected void throwNoSuchDefinitionException(String name) {
-		throw new NoSuchDefinitionException(name, "There is no " + definitionKind + " definition named '%s'");
+		throw new NoSuchDefinitionException(name, String.format("%s %s %s",
+				ErrorMessage.noDefinitionPrefix.getMessage(), definitionKind,
+				ErrorMessage.noDefinitionSuffix.getMessage()));
 	}
 
 	protected void throwAlreadyDeployedException(String name) {
-		throw new AlreadyDeployedException(name, "The " + definitionKind + " named '%s' is already deployed");
+		throw new AlreadyDeployedException(name, String.format("%s %s %s",
+				ErrorMessage.alreadyDeployedExceptionPrefix.getMessage(),
+				definitionKind,
+				ErrorMessage.alreadyDeployedExceptionSuffix.getMessage()));
 	}
 
 	@Override
 	public void deploy(String name) {
-		Assert.hasText(name, "name cannot be blank or null");
+		Assert.hasText(name, ErrorMessage.nameEmptyError.getMessage());
 
 		D definition = repository.findOne(name);
 
@@ -109,7 +119,71 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		return repository;
 	}
 
-	public DeploymentMessageSender getMessageSender() {
-		return messageSender;
+	protected void sendDeploymentRequests(String name,
+			List<ModuleDeploymentRequest> requests) {
+		messageSender.sendDeploymentRequests(name, requests);
+	}
+	protected List<ModuleDeploymentRequest> parse(String name, String config) {
+		return streamParser.parse(name, config);
+	}
+
+	protected enum ErrorMessage{
+		nameEmptyError {
+			String getMessage(){
+				return "name cannot be blank or null";
+			}
+		},
+		messageSenderNameNullError{
+			String getMessage(){
+				return "message sender cannot be null";
+			}
+		},
+		definitionKindEmptyError{
+			String getMessage(){
+				return "definitionKind cannot be blank";
+			}
+		},
+		definitionNullError{
+			String getMessage(){
+				return "Definition cannot be null";
+			}
+		},
+		repositoryNameNullError {
+			String getMessage(){
+				return "repository cannot be null";
+			}
+		},
+		definitionErrorSuffix {
+			String getMessage() {
+				return "named '%s'";
+			}
+		},
+		noDefinitionPrefix {
+			String getMessage() {
+				return "There is no ";
+			}
+		},
+		noDefinitionSuffix {
+			String getMessage() {
+				return " definition named '%s'";
+			}
+		},
+		alreadyDeployedExceptionPrefix {
+			String getMessage() {
+				return "The ";
+			}
+		},
+		alreadyDeployedExceptionSuffix {
+			String getMessage() {
+				return " named '%s' is already deployed";
+			}
+		},
+		definitionErrorPrefix {
+			String getMessage() {
+				return "There is already a";
+			}
+		};
+
+		abstract String getMessage();
 	}
 }

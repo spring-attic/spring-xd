@@ -39,7 +39,7 @@ import org.springframework.xd.dirt.stream.TriggerDeployer;
 /**
  * Base class for Controller layer tests. Takes care of resetting the mocked (be them mockito mocks or <i>e.g.</i> in
  * memory) dependencies before each test.
- * 
+ *
  * @author Eric Bottard
  */
 public class AbstractControllerIntegrationTest {

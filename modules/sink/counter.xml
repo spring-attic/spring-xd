@@ -10,19 +10,15 @@
 	<int:service-activator input-channel="input" ref="handler" output-channel="nullChannel"/>
 
 	<bean id="handler" class="org.springframework.xd.analytics.metrics.integration.MessageCounterHandler">
-		<constructor-arg ref="service"/>
+		<constructor-arg ref="counterRepository"/>
 		<constructor-arg value="${name}"/>
 	</bean>
-
-	<bean id="service" class="org.springframework.xd.analytics.metrics.redis.RedisCounterService">
-		<constructor-arg ref="repository"/>
+	
+	<!-- To be pulled up and shared by admin and container -->
+	<bean id="counterRepository" class="org.springframework.xd.analytics.metrics.redis.RedisCounterRepository">
+		<constructor-arg ref="redisConnectionFactory"/>
 	</bean>
-
-	<bean id="repository" class="org.springframework.xd.analytics.metrics.redis.RedisCounterRepository">
-		<constructor-arg ref="connectionFactory"/>
-	</bean>
-
-	<bean id="connectionFactory" class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory">
+	<bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory">
 		<constructor-arg index="0" value="${redis.hostname:localhost}"/>
 		<constructor-arg index="1" value="${redis.port:6379}"/>	  
 	</bean>

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.store;
+package org.springframework.xd.store;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -33,8 +33,8 @@ import org.springframework.util.Assert;
 /**
  * Base implementation for an in-memory store, using a {@link Map} internally.
  * 
- * Default behaviour is to retain sort order on the keys. Hence, this is by default the only sort supported when
- * querying with a {@link Pageable}.
+ * Default behaviour is to retain sort order on the keys. Hence, this is by default the
+ * only sort supported when querying with a {@link Pageable}.
  * 
  * @param <T> the type of things to store
  * @param <ID> a "primary key" to the things
@@ -57,8 +57,14 @@ public abstract class AbstractInMemoryRepository<T, ID extends Serializable> imp
 	@Override
 	public <S extends T> S save(S entity) {
 		Assert.notNull(entity);
-		map.put(keyFor(entity), entity);
+		map.put(safeKeyFor(entity), entity);
 		return entity;
+	}
+
+	private final ID safeKeyFor(T entity) {
+		ID k = keyFor(entity);
+		Assert.notNull(k);
+		return k;
 	}
 
 	protected abstract ID keyFor(T entity);
@@ -74,11 +80,13 @@ public abstract class AbstractInMemoryRepository<T, ID extends Serializable> imp
 
 	@Override
 	public T findOne(ID id) {
+		Assert.notNull(id);
 		return map.get(id);
 	}
 
 	@Override
 	public boolean exists(ID id) {
+		Assert.notNull(id);
 		return map.containsKey(id);
 	}
 
@@ -106,12 +114,14 @@ public abstract class AbstractInMemoryRepository<T, ID extends Serializable> imp
 
 	@Override
 	public void delete(ID id) {
+		Assert.notNull(id);
 		map.remove(id);
 	}
 
 	@Override
 	public void delete(T entity) {
-		map.remove(keyFor(entity));
+		Assert.notNull(entity);
+		map.remove(safeKeyFor(entity));
 	}
 
 	@Override

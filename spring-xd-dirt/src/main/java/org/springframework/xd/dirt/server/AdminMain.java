@@ -70,6 +70,7 @@ public class AdminMain {
 		}
 		AbstractOptions.setXDHome(options.getXDHomeDir());
 		AbstractOptions.setXDTransport(options.getTransport());
+		AbstractOptions.setXDAnalytics(options.getAnalytics());
 		AdminOptions.setXDStore(options.getStore());
 
 		return options;
@@ -81,7 +82,8 @@ public class AdminMain {
 	public static StreamServer launchStreamServer(final AdminOptions options) {
 		try {
 			XmlWebApplicationContext context = new XmlWebApplicationContext();
-			context.setConfigLocation("classpath:" + DefaultContainer.XD_INTERNAL_CONFIG_ROOT + "admin-server.xml");
+			context.setConfigLocation("classpath:"
+					+ DefaultContainer.XD_INTERNAL_CONFIG_ROOT + "admin-server.xml");
 			if (!options.isJmxDisabled()) {
 				context.getEnvironment().addActiveProfile("xd.jmx.enabled");
 				OptionUtils.setJmxProperties(options, context.getEnvironment());
@@ -99,11 +101,13 @@ public class AdminMain {
 					runtimeInfo.append(" JMX is disabled for XD components");
 				}
 				else {
-					runtimeInfo.append(String.format(" JMX port: %d", options.getJmxPort()));
+					runtimeInfo.append(String.format(" JMX port: %d",
+							options.getJmxPort()));
 				}
 				System.out.println(BannerUtils.displayBanner(null, runtimeInfo.toString()));
 			}
 			context.addApplicationListener(new ApplicationListener<ContextClosedEvent>() {
+
 				@Override
 				public void onApplicationEvent(ContextClosedEvent event) {
 					server.stop();

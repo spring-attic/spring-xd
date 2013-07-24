@@ -16,6 +16,7 @@
 package org.springframework.xd.dirt.stream.dsl;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -37,7 +38,7 @@ public class ModuleNode extends AstNode {
 		this.labels = labels;
 		this.moduleName = moduleName;
 		if (arguments != null) {
-			this.arguments = arguments;
+			this.arguments = Arrays.copyOf(arguments,arguments.length);
 			// adjust end pos for module node to end of final argument
 			this.endpos = this.arguments[this.arguments.length-1].endpos;
 		}
@@ -137,12 +138,20 @@ public class ModuleNode extends AstNode {
 	 * satisfy a variable in a parameterized stream (e.g. ${NAME}).
 	 */
 	static class ConsumedArgumentNode {
-		boolean consumed;
+		private boolean consumed;
 		ArgumentNode argumentNode;
 		
 		ConsumedArgumentNode(ArgumentNode argumentNode) {
 			this.consumed = false;
 			this.argumentNode = argumentNode;
+		}
+		
+		public void setConsumed(boolean consumed) {
+			this.consumed = consumed;
+		}
+		
+		public boolean isConsumed() {
+			return this.consumed;
 		}
 	}
 
@@ -174,7 +183,7 @@ public class ModuleNode extends AstNode {
 		
 		if (argumentOverriding) {
 			for (ConsumedArgumentNode can: extraArgumentsMap.values()) {
-				if (!can.consumed) {
+				if (!can.isConsumed()) {
 					newModuleArguments.put(can.argumentNode.getName(), can.argumentNode);
 				}
 			}

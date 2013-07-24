@@ -12,9 +12,9 @@
  */
 package org.springframework.xd.dirt.stream.memory;
 
-import org.springframework.xd.dirt.store.AbstractInMemoryRepository;
 import org.springframework.xd.dirt.stream.JobDefinition;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
+import org.springframework.xd.store.AbstractInMemoryRepository;
 
 /**
  * @author Glenn Renfro

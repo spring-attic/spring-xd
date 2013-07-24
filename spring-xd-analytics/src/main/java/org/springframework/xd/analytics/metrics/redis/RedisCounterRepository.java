@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.analytics.metrics.redis;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -20,23 +21,25 @@ import org.springframework.xd.analytics.metrics.core.Counter;
 import org.springframework.xd.analytics.metrics.core.CounterRepository;
 
 /**
- * Redis backed implementation that uses Redis keys to store and update the value.
- * The naming strategy for keys in Redis is "counters."  This means a counter named simpleCounter appears
- * under the name "counters.simpleCounter" in Redis.
- *
- * There is a default expiry of 60 minutes for the counters stored in redis.  This can be changed
- * using a setter method
- *
+ * Redis backed implementation that uses Redis keys to store and update the value. The
+ * naming strategy for keys in Redis is "counters." This means a counter named
+ * simpleCounter appears under the name "counters.simpleCounter" in Redis.
+ * 
+ * There is a default expiry of 60 minutes for the counters stored in redis. This can be
+ * changed using a setter method
+ * 
  * @author Mark Pollack
- *
+ * 
  */
-public final class RedisCounterRepository extends AbstractRedisMetricRepository<Counter, Long> implements CounterRepository {
+public final class RedisCounterRepository extends
+		AbstractRedisMetricRepository<Counter, Long> implements CounterRepository {
 
 	public RedisCounterRepository(RedisConnectionFactory connectionFactory) {
 		this(connectionFactory, "counters.");
 	}
 
-	public RedisCounterRepository(RedisConnectionFactory connectionFactory, String metricPrefix) {
+	public RedisCounterRepository(RedisConnectionFactory connectionFactory,
+			String metricPrefix) {
 		super(connectionFactory, metricPrefix);
 	}
 
@@ -50,14 +53,22 @@ public final class RedisCounterRepository extends AbstractRedisMetricRepository<
 		return 0L;
 	}
 
-	public void increment(String name) {
-		valueOperations.increment(getMetricKey(name), 1);
+	@Override
+	Long value(Counter metric) {
+		return metric.getValue();
 	}
 
-	public void decrement(String name) {
-		valueOperations.increment(getMetricKey(name), -1);
+	@Override
+	public long increment(String name) {
+		return valueOperations.increment(getMetricKey(name), 1);
 	}
 
+	@Override
+	public long decrement(String name) {
+		return valueOperations.increment(getMetricKey(name), -1);
+	}
+
+	@Override
 	public void reset(String name) {
 		valueOperations.set(getMetricKey(name), 0L);
 	}

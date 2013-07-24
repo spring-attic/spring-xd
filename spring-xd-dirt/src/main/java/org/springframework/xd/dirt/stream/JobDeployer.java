@@ -15,6 +15,7 @@ package org.springframework.xd.dirt.stream;
 import java.util.List;
 
 import org.springframework.integration.MessageHandlingException;
+import org.springframework.util.Assert;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 
 /**
@@ -24,8 +25,10 @@ import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
  */
 public class JobDeployer extends AbstractDeployer<JobDefinition> {
 
+	private static String BEAN_CREATION_EXCEPTION = "org.springframework.beans.factory.BeanCreationException";
+	private static String DEPLOYER_TYPE = "job";
 	public JobDeployer(JobDefinitionRepository repository, DeploymentMessageSender messageSender) {
-		super(repository, messageSender, "job");
+		super(repository, messageSender, DEPLOYER_TYPE);
 	}
 
 	@Override
@@ -41,6 +44,32 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 		getRepository().delete(name);
 	}
 
+	@Override
+	public void deploy(String name) {
+		Assert.hasText(name, ErrorMessage.nameEmptyError.getMessage());
+		JobDefinition definition = getRepository().findOne(name);
+		if (definition == null) {
+			throwNoSuchDefinitionException(name);
+		}
+		List<ModuleDeploymentRequest> requests = parse(name,
+				definition.getDefinition());
+		try {
+			sendDeploymentRequests(name, requests);
+		} catch (MessageHandlingException mhe) {
+			Throwable cause = mhe.getCause();
+			if (cause != null
+					&& cause.getClass().getName()
+							.equals(BEAN_CREATION_EXCEPTION)) {
+				throw new MissingRequiredDefinitionException(
+						definition.getName(),
+						cause.getMessage());
+			} else {
+				throw mhe;
+			}
+		}
+
+	}
+
 	public void undeployJob(String name) {
 		JobDefinition job = getRepository().findOne(name);
 		if (job == null) {
@@ -52,7 +81,7 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 			request.setRemove(true);
 		}
 		try {
-			getMessageSender().sendDeploymentRequests(name, requests);
+			sendDeploymentRequests(name, requests);
 		}
 		catch (MessageHandlingException ex) {
 			// Job is not deployed.

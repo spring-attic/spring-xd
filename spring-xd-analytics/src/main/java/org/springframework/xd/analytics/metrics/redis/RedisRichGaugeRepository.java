@@ -25,7 +25,9 @@ import org.springframework.xd.analytics.metrics.core.RichGauge;
 /**
  * @author Luke Taylor
  */
-public final class RedisRichGaugeRepository extends AbstractRedisMetricRepository <RichGauge, String> {
+public final class RedisRichGaugeRepository extends
+		AbstractRedisMetricRepository<RichGauge, String> {
+
 	private static final String ZERO = serialize(new RichGauge("zero"));
 
 	public RedisRichGaugeRepository(RedisConnectionFactory connectionFactory) {
@@ -36,27 +38,19 @@ public final class RedisRichGaugeRepository extends AbstractRedisMetricRepositor
 	RichGauge create(String name, String value) {
 		String[] parts = StringUtils.delimitedListToStringArray(value, " ");
 
-		return new RichGauge(
-				name,
-				Double.valueOf(parts[0]),
-				Double.valueOf(parts[1]),
-				Double.valueOf(parts[2]),
-				Double.valueOf(parts[3]),
-				Double.valueOf(parts[4]),
-				Long.valueOf(parts[5])
-		);
-	}
-
-	@Override
-	public <S extends RichGauge> S save(S gauge) {
-		String key = getMetricKey(gauge.getName());
-		valueOperations.set(key, serialize(gauge));
-		return gauge;
+		return new RichGauge(name, Double.valueOf(parts[0]), Double.valueOf(parts[1]),
+				Double.valueOf(parts[2]), Double.valueOf(parts[3]),
+				Double.valueOf(parts[4]), Long.valueOf(parts[5]));
 	}
 
 	@Override
 	String defaultValue() {
 		return ZERO;
+	}
+
+	@Override
+	String value(RichGauge metric) {
+		return serialize(metric);
 	}
 
 	public void setValue(String name, double value) {

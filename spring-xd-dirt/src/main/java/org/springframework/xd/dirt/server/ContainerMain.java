@@ -20,7 +20,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
-
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.xd.dirt.container.DefaultContainer;
 import org.springframework.xd.dirt.core.Container;
@@ -31,24 +30,24 @@ import org.springframework.xd.dirt.server.options.OptionUtils;
 
 /**
  * The main driver class for the container
- *
+ * 
  * @author Mark Pollack
  * @author Jennifer Hickey
  * @author Ilayaperumal Gopinathan
  * @author Mark Fisher
  * @author David Turanski
  */
-public class ContainerMain  {
+public class ContainerMain {
 
 	private static final Log logger = LogFactory.getLog(ContainerMain.class);
 
-	private static final String LAUNCHER_CONFIG_LOCATION = DefaultContainer.XD_INTERNAL_CONFIG_ROOT + "launcher.xml";
+	private static final String LAUNCHER_CONFIG_LOCATION = DefaultContainer.XD_INTERNAL_CONFIG_ROOT
+			+ "launcher.xml";
 
 	/**
 	 * Start the RedisContainerLauncher
-	 *
-	 * @param args
-	 *            command line argument
+	 * 
+	 * @param args command line argument
 	 */
 	public static void main(String[] args) {
 		ContainerOptions options = new ContainerOptions();
@@ -64,6 +63,7 @@ public class ContainerMain  {
 
 		AbstractOptions.setXDHome(options.getXDHomeDir());
 		AbstractOptions.setXDTransport(options.getTransport());
+		AbstractOptions.setXDAnalytics(options.getAnalytics());
 
 		if (options.isShowHelp()) {
 			parser.printUsage(System.err);
@@ -74,6 +74,7 @@ public class ContainerMain  {
 
 	/**
 	 * Create a container instance
+	 * 
 	 * @param options
 	 */
 	@SuppressWarnings("resource")

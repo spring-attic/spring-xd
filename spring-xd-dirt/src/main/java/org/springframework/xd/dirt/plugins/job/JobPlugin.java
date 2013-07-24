@@ -23,6 +23,7 @@ import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.xd.dirt.container.DefaultContainer;
 import org.springframework.xd.module.AbstractPlugin;
 import org.springframework.xd.module.Module;
@@ -32,6 +33,7 @@ import org.springframework.xd.module.Module;
  *
  * @author Michael Minella
  * @author Gunnar Hillert
+ * @author Gary Russell
  * @since 1.0
  *
  */
@@ -58,9 +60,10 @@ public class JobPlugin extends AbstractPlugin  {
 		postProcessContextPath = COMMON_XML;
 	}
 
-	public void configureProperties(Module module, String group, int index) {
+	@Override
+	public void configureProperties(Module module) {
 		final Properties properties = new Properties();
-		properties.setProperty("xd.stream.name", group);
+		properties.setProperty("xd.stream.name", module.getGroup());
 
 		if (module.getProperties().containsKey(TRIGGER) || module.getProperties().containsKey(CRON)|| module.getProperties().containsKey(FIXED_DELAY)) {
 			properties.setProperty("xd.trigger.execute_on_startup", "false");
@@ -74,7 +77,8 @@ public class JobPlugin extends AbstractPlugin  {
 		}
 
 	}
-	public List<String> componentPathsSelector(Module module, String group, int index ){
+	@Override
+	public List<String> componentPathsSelector(Module module) {
 		List<String> result = new ArrayList<String>();
 		if (!JOB.equals(module.getType())) {
 			return result;

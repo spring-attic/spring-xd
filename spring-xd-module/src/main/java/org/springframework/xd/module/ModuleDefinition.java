@@ -13,17 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.springframework.xd.module;
 
-package org.springframework.xd.dirt.module;
+import java.util.Properties;
 
-import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.core.io.Resource;
 
 /**
- * @author Mark Fisher
+ * Defines a module.
  * @author Gary Russell
+ *
  */
-public interface ModuleRegistry {
+public class ModuleDefinition {
 
-	ModuleDefinition lookup(String name, String type);
+	private final Resource resource;
+
+	private volatile Properties properties;
+
+	public ModuleDefinition(Resource resource) {
+		this.resource = resource;
+	}
+
+	public Resource getResource() {
+		return resource;
+	}
+
+	public Properties getProperties() {
+		return properties;
+	}
+
+	public void setProperties(Properties properties) {
+		this.properties = properties;
+	}
 
 }

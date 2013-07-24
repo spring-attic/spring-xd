@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -26,6 +26,7 @@ import org.springframework.xd.module.SimpleModule;
 
 /**
  * @author David Turanski
+ * @author Gary Russell
  */
 public class IntegrationModule extends SimpleModule {
 
@@ -43,7 +44,7 @@ public class IntegrationModule extends SimpleModule {
 	 * @param name
 	 */
 	public IntegrationModule(String name) {
-		super(name,MODULE_TYPE);
+		super(name, MODULE_TYPE, "", 0);
 		this.channelExporter = new DefaultChannelExporter();
 	}
 
@@ -52,7 +53,7 @@ public class IntegrationModule extends SimpleModule {
 	 * @param channelExporter
 	 */
 	public IntegrationModule(String name, ChannelExporter channelExporter) {
-		super(name,MODULE_TYPE);
+		super(name,MODULE_TYPE, "", 0);
 		Assert.notNull(channelExporter,"ChannelExporter cannot be null");
 		this.channelExporter = channelExporter;
 	}

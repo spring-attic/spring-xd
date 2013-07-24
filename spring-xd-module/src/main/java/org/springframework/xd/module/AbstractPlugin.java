@@ -23,8 +23,9 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.Assert;
 
-/*
+/**
  * @author Glenn Renfro
+ * @author Gary Russell
  */
 public abstract class AbstractPlugin implements Plugin{
 
@@ -41,12 +42,12 @@ public abstract class AbstractPlugin implements Plugin{
 	 * necessary to setup the Batch Job.
 	 **/
 	@Override
-	public void processModule(Module module, String group, int index) {
+	public void processModule(Module module) {
 		Assert.notNull(module, "module cannot be null");
-		List<String> componentPaths = componentPathsSelector(module, group, index );
+		List<String> componentPaths = componentPathsSelector(module);
 		for(String path: componentPaths) {
 			addComponents(module, path);
-			configureProperties(module, group, index);
+			configureProperties(module);
 		}
 	}
 	/**
@@ -57,7 +58,7 @@ public abstract class AbstractPlugin implements Plugin{
 	 * @param index The offset of the module in the stream
 	 * @return
 	 */
-	protected abstract List<String> componentPathsSelector(Module module, String group, int index );
+	protected abstract List<String> componentPathsSelector(Module module);
 
 	/**
 	 * set the properties required for the module based on its type.
@@ -65,25 +66,25 @@ public abstract class AbstractPlugin implements Plugin{
 	 * @param group The group the module belongs
 	 * @param index The offset of the module in the stream
 	 */
-	protected abstract void configureProperties(Module module, String group, int index);
+	protected abstract void configureProperties(Module module);
 
+	@Override
 	public void postProcessSharedContext(ConfigurableApplicationContext context){
 		if(postProcessContextPath != null){
 			addBeanFactoryPostProcessor(context, postProcessContextPath);
 		}
 	}
+
 	@Override
-	public void removeModule(Module module, String group, int index) {
+	public void removeModule(Module module) {
 	}
 
 	private void addComponents(Module module, String path){
 		module.addComponents(new ClassPathResource(path));
 	}
+
 	private void addBeanFactoryPostProcessor(ConfigurableApplicationContext context, String path) {
 		context.addBeanFactoryPostProcessor(new BeanDefinitionAddingPostProcessor(new ClassPathResource(path)));
 	}
-
-
-
 
 }

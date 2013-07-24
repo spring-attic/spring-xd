@@ -38,6 +38,7 @@ import org.springframework.xd.module.Plugin;
  *
  * @author Gunnar Hillert
  * @author Ilayaperumal Gopinathan
+ * @author Gary Russell
  * @since 1.0
  *
  */
@@ -63,7 +64,7 @@ public class TriggerPlugin implements Plugin {
 	 * {@link ConfigurableApplicationContext}.
 	 */
 	@Override
-	public void processModule(Module module, String group, int index) {
+	public void processModule(Module module) {
 		if (!TRIGGER.equals(module.getType())) {
 			return;
 		}
@@ -93,20 +94,21 @@ public class TriggerPlugin implements Plugin {
 			throw new ResourceDefinitionException("Only one trigger property allowed, but received: "
 					+ StringUtils.collectionToCommaDelimitedString(triggers.keySet()));
 		}
+		String group = module.getGroup();
 		commonApplicationContext.getBeanFactory().registerSingleton(BEAN_NAME_PREFIX + group, triggers.values().iterator().next());
 		final BeanDefinitionAddingPostProcessor postProcessor = new BeanDefinitionAddingPostProcessor();
 		postProcessor.addBeanDefinition(BEAN_NAME_PREFIX + group, builder.getBeanDefinition());
 		this.commonApplicationContext.addBeanFactoryPostProcessor(postProcessor);
-		configureProperties(module, group);
+		configureProperties(module);
 	}
 
 	@Override
-	public void removeModule(Module module, String group, int index) {
+	public void removeModule(Module module) {
 	}
 
-	private void configureProperties(Module module, String group) {
+	private void configureProperties(Module module) {
 		Properties properties = new Properties();
-		properties.setProperty("xd.stream.name", group);
+		properties.setProperty("xd.stream.name", module.getGroup());
 		module.addProperties(properties);
 	}
 

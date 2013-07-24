@@ -21,6 +21,7 @@ import org.springframework.util.Assert;
 /**
  * @author Mark Fisher
  * @author David Turanski
+ * @author Gary Russell
  */
 public abstract class AbstractModule implements Module {
 
@@ -28,13 +29,21 @@ public abstract class AbstractModule implements Module {
 
 	private final String type;
 
+	private final String group;
+
+	private final int index;
+
 	private volatile String instanceId;
 
-	public AbstractModule(String name, String type) {
+	public AbstractModule(String name, String type, String group, int index) {
 		Assert.notNull(name, "name must not be null");
 		Assert.notNull(type, "type must not be null");
+		Assert.notNull(group, "group must not be null");
 		this.name = name;
 		this.type = type;
+		this.group = group;
+		this.index = index;
+		this.instanceId = group + "." + index;
 	}
 
 	@Override
@@ -48,17 +57,23 @@ public abstract class AbstractModule implements Module {
 	}
 
 	@Override
+	public String getGroup() {
+		return group;
+	}
+
+	@Override
+	public int getIndex() {
+		return index;
+	}
+
+	@Override
 	public String getInstanceId() {
 		return this.instanceId;
 	}
 
-	public void setInstanceId(String instanceId) {
-		this.instanceId = instanceId;
-	}
-
 	@Override
 	public String toString() {
-		return "Module [name=" + name + ", type=" + type + "]";
+		return "AbstractModule [name=" + name + ", type=" + type + ", group=" + group + ", index=" + index + "]";
 	}
 
 }

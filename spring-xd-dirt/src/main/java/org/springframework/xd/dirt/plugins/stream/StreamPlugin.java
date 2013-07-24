@@ -23,6 +23,7 @@ import static org.springframework.xd.module.ModuleType.SOURCE;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+
 import org.springframework.xd.dirt.container.DefaultContainer;
 import org.springframework.xd.module.AbstractPlugin;
 import org.springframework.xd.module.Module;
@@ -47,10 +48,10 @@ public class StreamPlugin extends AbstractPlugin {
 	}
 	private static final String TAP = "tap";
 
-	public List<String>  componentPathsSelector(Module module, String group, int index ){
+	public List<String>  componentPathsSelector(Module module) {
 		ArrayList<String> result = new ArrayList<String>();
 		String type = module.getType();
-		if ((SOURCE.equals(type) || PROCESSOR.equals(type) || SINK.equals(type)) && group != null) {
+		if ((SOURCE.equals(type) || PROCESSOR.equals(type) || SINK.equals(type)) && module.getGroup() != null) {
 			result.add(CHANNEL_REGISTRAR);
 		}
 		if (TAP.equals(module.getName()) && SOURCE.equals(type)) {
@@ -59,13 +60,14 @@ public class StreamPlugin extends AbstractPlugin {
 		return result;
 	}
 
-	public void configureProperties(Module module, String group, int index) {
+	public void configureProperties(Module module) {
 		String type = module.getType();
+		String group = module.getGroup();
 		if ((SOURCE.equals(type) || PROCESSOR.equals(type) || SINK.equals(type))
 				&& group != null) {
 			Properties properties = new Properties();
 			properties.setProperty("xd.stream.name", group);
-			properties.setProperty("xd.module.index", String.valueOf(index));
+			properties.setProperty("xd.module.index", String.valueOf(module.getIndex()));
 			module.addProperties(properties);
 		}
 	}

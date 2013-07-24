@@ -35,6 +35,7 @@ import org.springframework.xd.module.SimpleModule;
 /**
  * @author Gunnar Hillert
  * @author Ilayaperumal Gopinathan
+ * @author Gary Russell
  * @author Mark Fisher
  */
 public class TriggerPluginTests {
@@ -48,8 +49,8 @@ public class TriggerPluginTests {
 
 	@Test
 	public void nonTriggerModuleNotProcessed() {
-		SimpleModule module = new SimpleModule("testJob", "job");
-		plugin.processModule(module, "foo", 0);
+		SimpleModule module = new SimpleModule("testJob", "job", "foo", 0);
+		plugin.processModule(module);
 		String[] moduleBeans = module.getApplicationContext().getBeanDefinitionNames();
 		assertEquals(0, moduleBeans.length);
 	}
@@ -64,10 +65,10 @@ public class TriggerPluginTests {
 
 	@Test
 	public void failWhenNoCommonContextProvided() {
-		Module module = new SimpleModule("testTrigger", "trigger");
+		Module module = new SimpleModule("testTrigger", "trigger", "newTrigger", 0);
 		module.getProperties().put("cron", "*/15 * * * * *");
 		try {
-			plugin.processModule(module, "newTrigger", 0);
+			plugin.processModule(module);
 		}
 		catch (IllegalArgumentException e) {
 			assertEquals("The 'commonApplicationContext' property must not be null.", e.getMessage());
@@ -81,10 +82,10 @@ public class TriggerPluginTests {
 		GenericApplicationContext commonContext = new GenericApplicationContext();
 		plugin.postProcessSharedContext(commonContext);
 
-		Module module = new SimpleModule("testTrigger", "trigger");
+		Module module = new SimpleModule("testTrigger", "trigger", "newTrigger", 0);
 		module.getProperties().put("cron", "*/15 * * * * *");
 		assertEquals(1, module.getProperties().size());
-		plugin.processModule(module, "newTrigger", 0);
+		plugin.processModule(module);
 
 		CronTrigger cronTrigger = commonContext.getBean(TriggerPlugin.BEAN_NAME_PREFIX + "newTrigger", CronTrigger.class);
 		assertEquals("*/15 * * * * *", cronTrigger.getExpression());
@@ -95,10 +96,10 @@ public class TriggerPluginTests {
 		GenericApplicationContext commonContext = new GenericApplicationContext();
 		plugin.postProcessSharedContext(commonContext);
 
-		Module module = new SimpleModule("testTrigger", "trigger");
+		Module module = new SimpleModule("testTrigger", "trigger", "newTrigger", 0);
 		module.getProperties().put("fixedDelay", "60000");
 		assertEquals(1, module.getProperties().size());
-		plugin.processModule(module, "newTrigger", 0);
+		plugin.processModule(module);
 
 		PeriodicTrigger fixedDelayTrigger = commonContext.getBean(TriggerPlugin.BEAN_NAME_PREFIX + "newTrigger", PeriodicTrigger.class);
 		assertNotNull(fixedDelayTrigger);
@@ -109,10 +110,10 @@ public class TriggerPluginTests {
 		GenericApplicationContext commonContext = new GenericApplicationContext();
 		plugin.postProcessSharedContext(commonContext);
 
-		Module module = new SimpleModule("testTrigger", "trigger");
+		Module module = new SimpleModule("testTrigger", "trigger", "newTrigger", 0);
 		module.getProperties().put("fixedRate", "6000");
 		assertEquals(1, module.getProperties().size());
-		plugin.processModule(module, "newTrigger", 0);
+		plugin.processModule(module);
 
 		PeriodicTrigger fixedDelayTrigger = commonContext.getBean(TriggerPlugin.BEAN_NAME_PREFIX + "newTrigger", PeriodicTrigger.class);
 		assertNotNull(fixedDelayTrigger);
@@ -120,13 +121,13 @@ public class TriggerPluginTests {
 
 	@Test
 	public void failIfNoValidTriggerProperty() {
-		Module module = new SimpleModule("testTrigger", "trigger");
+		Module module = new SimpleModule("testTrigger", "trigger", "newTrigger", 0);
 		assertEquals(0, module.getProperties().size());
 		GenericApplicationContext commonContext = new GenericApplicationContext();
 		plugin.postProcessSharedContext(commonContext);
 
 		try {
-			plugin.processModule(module, "newTrigger", 0);
+			plugin.processModule(module);
 		}
 		catch (ResourceDefinitionException e) {
 			assertEquals("No valid trigger property. Expected one of: " +
@@ -138,15 +139,14 @@ public class TriggerPluginTests {
 
 	@Test
 	public void failIfMultipleTriggerProperties() {
-		Module module = new SimpleModule("testTrigger", "trigger");
+		Module module = new SimpleModule("testTrigger", "trigger", "newTrigger", 0);
 		GenericApplicationContext commonContext = new GenericApplicationContext();
 		plugin.postProcessSharedContext(commonContext);
-
 		module.getProperties().put("cron", "*/15 * * * * *");
 		module.getProperties().put("fixedRate", "6000");
 		assertEquals(2, module.getProperties().size());
 		try {
-			plugin.processModule(module, "newTrigger", 0);
+			plugin.processModule(module);
 		}
 		catch (ResourceDefinitionException e) {
 			assertEquals("Only one trigger property allowed, but received: "

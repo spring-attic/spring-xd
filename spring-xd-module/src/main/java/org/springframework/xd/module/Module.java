@@ -27,6 +27,7 @@ import org.springframework.http.MediaType;
 /**
  * @author Mark Fisher
  * @author David Turanski
+ * @author Gary Russell
  */
 public interface Module extends Lifecycle {
 
@@ -37,6 +38,9 @@ public interface Module extends Lifecycle {
 
 	String getType();
 
+	String getGroup();
+
+	int getIndex();
 	/**
 	 * @return an id for this instance
 	 */

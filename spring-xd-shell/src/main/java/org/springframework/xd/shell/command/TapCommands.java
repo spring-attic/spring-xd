@@ -29,7 +29,6 @@ import org.springframework.xd.shell.XDShell;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableHeader;
 import org.springframework.xd.shell.util.TableRow;
-import org.springframework.xd.shell.util.UiUtils;
 
 /**
  * Tap commands.

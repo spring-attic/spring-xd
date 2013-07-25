@@ -16,9 +16,15 @@
 
 package org.springframework.xd.dirt.rest;
 
+import java.util.ArrayList;
+
 import org.apache.commons.lang.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.ExposesResourceFor;
+import org.springframework.hateoas.PagedResources;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -99,9 +105,16 @@ public class TriggersController {
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public Iterable<TriggerDefinitionResource> list() {
-		final Iterable<TriggerDefinition> taps = triggerDeployer.findAll();
-		return definitionResourceAssembler.toResources(taps);
+	public PagedResources<TriggerDefinitionResource> list(Pageable pageable, PagedResourcesAssembler<TriggerDefinition> assembler) {
+
+		final Page<TriggerDefinition> page = triggerDeployer.findAll(pageable);
+
+		if (page.hasContent()) {
+			return assembler.toResource(page, definitionResourceAssembler);
+		}
+		else {
+			return new PagedResources<TriggerDefinitionResource>(new ArrayList<TriggerDefinitionResource>(), null);
+		}
 	}
 
 	/**

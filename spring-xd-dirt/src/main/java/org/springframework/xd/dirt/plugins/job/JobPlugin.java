@@ -63,7 +63,7 @@ public class JobPlugin extends AbstractPlugin  {
 	@Override
 	public void configureProperties(Module module) {
 		final Properties properties = new Properties();
-		properties.setProperty("xd.stream.name", module.getGroup());
+		properties.setProperty("xd.stream.name", module.getDeploymentMetadata().getGroup());
 
 		if (module.getProperties().containsKey(TRIGGER) || module.getProperties().containsKey(CRON)|| module.getProperties().containsKey(FIXED_DELAY)) {
 			properties.setProperty("xd.trigger.execute_on_startup", "false");

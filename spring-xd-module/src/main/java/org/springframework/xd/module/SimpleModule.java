@@ -55,12 +55,8 @@ public class SimpleModule extends AbstractModule {
 	private final Properties properties = new Properties();
 
 
-	public SimpleModule(String name, String type, String group, int index) {
-		this(name, type, group, index, null);
-	}
-
-	public SimpleModule(String name, String type, String group, int index, ModuleDefinition definition) {
-		super(name, type, group, index);
+	public SimpleModule(ModuleDefinition definition, DeploymentMetadata metadata) {
+		super(definition, metadata);
 		if (definition != null) {
 			if (definition.getResource() != null) {
 				this.addComponents(definition.getResource());

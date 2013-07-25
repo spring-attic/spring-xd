@@ -94,7 +94,7 @@ public class TriggerPlugin implements Plugin {
 			throw new ResourceDefinitionException("Only one trigger property allowed, but received: "
 					+ StringUtils.collectionToCommaDelimitedString(triggers.keySet()));
 		}
-		String group = module.getGroup();
+		String group = module.getDeploymentMetadata().getGroup();
 		commonApplicationContext.getBeanFactory().registerSingleton(BEAN_NAME_PREFIX + group, triggers.values().iterator().next());
 		final BeanDefinitionAddingPostProcessor postProcessor = new BeanDefinitionAddingPostProcessor();
 		postProcessor.addBeanDefinition(BEAN_NAME_PREFIX + group, builder.getBeanDefinition());
@@ -108,7 +108,7 @@ public class TriggerPlugin implements Plugin {
 
 	private void configureProperties(Module module) {
 		Properties properties = new Properties();
-		properties.setProperty("xd.stream.name", module.getGroup());
+		properties.setProperty("xd.stream.name", module.getDeploymentMetadata().getGroup());
 		module.addProperties(properties);
 	}
 

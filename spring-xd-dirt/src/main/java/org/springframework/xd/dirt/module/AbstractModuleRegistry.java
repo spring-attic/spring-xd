@@ -28,7 +28,7 @@ public abstract class AbstractModuleRegistry implements ModuleRegistry {
 	@Override
 	public ModuleDefinition lookup(String name, String type) {
 		Resource resource = this.loadResource(name, type);
-		ModuleDefinition module = new ModuleDefinition(resource);
+		ModuleDefinition module = new ModuleDefinition(name, type, resource);
 		// TODO: add properties from a property registry
 		return module;
 	}

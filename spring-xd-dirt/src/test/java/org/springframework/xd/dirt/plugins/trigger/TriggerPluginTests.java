@@ -29,7 +29,9 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.xd.dirt.module.ResourceDefinitionException;
+import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.Module;
+import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.SimpleModule;
 
 /**
@@ -49,7 +51,7 @@ public class TriggerPluginTests {
 
 	@Test
 	public void nonTriggerModuleNotProcessed() {
-		SimpleModule module = new SimpleModule("testJob", "job", "foo", 0);
+		SimpleModule module = new SimpleModule(new ModuleDefinition("testJob", "job"), new DeploymentMetadata("foo", 0));
 		plugin.processModule(module);
 		String[] moduleBeans = module.getApplicationContext().getBeanDefinitionNames();
 		assertEquals(0, moduleBeans.length);
@@ -65,7 +67,7 @@ public class TriggerPluginTests {
 
 	@Test
 	public void failWhenNoCommonContextProvided() {
-		Module module = new SimpleModule("testTrigger", "trigger", "newTrigger", 0);
+		SimpleModule module = new SimpleModule(new ModuleDefinition("testTrigger", "trigger"), new DeploymentMetadata("newTrigger", 0));
 		module.getProperties().put("cron", "*/15 * * * * *");
 		try {
 			plugin.processModule(module);
@@ -82,7 +84,7 @@ public class TriggerPluginTests {
 		GenericApplicationContext commonContext = new GenericApplicationContext();
 		plugin.postProcessSharedContext(commonContext);
 
-		Module module = new SimpleModule("testTrigger", "trigger", "newTrigger", 0);
+		Module module = new SimpleModule(new ModuleDefinition("testTrigger", "trigger"), new DeploymentMetadata("newTrigger", 0));
 		module.getProperties().put("cron", "*/15 * * * * *");
 		assertEquals(1, module.getProperties().size());
 		plugin.processModule(module);
@@ -96,7 +98,7 @@ public class TriggerPluginTests {
 		GenericApplicationContext commonContext = new GenericApplicationContext();
 		plugin.postProcessSharedContext(commonContext);
 
-		Module module = new SimpleModule("testTrigger", "trigger", "newTrigger", 0);
+		Module module = new SimpleModule(new ModuleDefinition("testTrigger", "trigger"), new DeploymentMetadata("newTrigger", 0));
 		module.getProperties().put("fixedDelay", "60000");
 		assertEquals(1, module.getProperties().size());
 		plugin.processModule(module);
@@ -110,7 +112,7 @@ public class TriggerPluginTests {
 		GenericApplicationContext commonContext = new GenericApplicationContext();
 		plugin.postProcessSharedContext(commonContext);
 
-		Module module = new SimpleModule("testTrigger", "trigger", "newTrigger", 0);
+		Module module = new SimpleModule(new ModuleDefinition("testTrigger", "trigger"), new DeploymentMetadata("newTrigger", 0));
 		module.getProperties().put("fixedRate", "6000");
 		assertEquals(1, module.getProperties().size());
 		plugin.processModule(module);
@@ -121,7 +123,7 @@ public class TriggerPluginTests {
 
 	@Test
 	public void failIfNoValidTriggerProperty() {
-		Module module = new SimpleModule("testTrigger", "trigger", "newTrigger", 0);
+		Module module = new SimpleModule(new ModuleDefinition("testTrigger", "trigger"), new DeploymentMetadata("newTrigger", 0));
 		assertEquals(0, module.getProperties().size());
 		GenericApplicationContext commonContext = new GenericApplicationContext();
 		plugin.postProcessSharedContext(commonContext);
@@ -139,7 +141,7 @@ public class TriggerPluginTests {
 
 	@Test
 	public void failIfMultipleTriggerProperties() {
-		Module module = new SimpleModule("testTrigger", "trigger", "newTrigger", 0);
+		Module module = new SimpleModule(new ModuleDefinition("testTrigger", "trigger"), new DeploymentMetadata("newTrigger", 0));
 		GenericApplicationContext commonContext = new GenericApplicationContext();
 		plugin.postProcessSharedContext(commonContext);
 		module.getProperties().put("cron", "*/15 * * * * *");

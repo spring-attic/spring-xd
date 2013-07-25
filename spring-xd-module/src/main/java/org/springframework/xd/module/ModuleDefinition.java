@@ -26,12 +26,30 @@ import org.springframework.core.io.Resource;
  */
 public class ModuleDefinition {
 
+	private final String name;
+
+	private final String type;
+
 	private final Resource resource;
 
 	private volatile Properties properties;
 
-	public ModuleDefinition(Resource resource) {
+	public ModuleDefinition(String name, String moduleType) {
+		this(name, moduleType, null);
+	}
+
+	public ModuleDefinition(String name, String type, Resource resource) {
 		this.resource = resource;
+		this.name = name;
+		this.type = type;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public String getType() {
+		return type;
 	}
 
 	public Resource getResource() {

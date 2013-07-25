@@ -26,7 +26,9 @@ import org.junit.Test;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.xd.module.BeanDefinitionAddingPostProcessor;
+import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.Module;
+import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.SimpleModule;
 
 /**
@@ -40,7 +42,7 @@ public class StreamPluginTests {
 
 	@Test
 	public void streamPropertiesAdded() {
-		Module module = new SimpleModule("testsource", "source", "foo", 0);
+		Module module = new SimpleModule(new ModuleDefinition("testsource", "source"), new DeploymentMetadata("foo", 0));
 		assertEquals(0, module.getProperties().size());
 		plugin.processModule(module);
 		assertEquals(2, module.getProperties().size());
@@ -50,7 +52,7 @@ public class StreamPluginTests {
 
 	@Test
 	public void streamComponentsAdded() {
-		SimpleModule module = new SimpleModule("testsource", "source", "mystream", 1);
+		SimpleModule module = new SimpleModule(new ModuleDefinition("testsource", "source"), new DeploymentMetadata("mystream", 1));
 		plugin.processModule(module);
 		String[] moduleBeans = module.getApplicationContext().getBeanDefinitionNames();
 		assertEquals(1, moduleBeans.length);
@@ -59,7 +61,7 @@ public class StreamPluginTests {
 
 	@Test
 	public void tapComponentsAdded() {
-		SimpleModule module = new SimpleModule("tap", "source", "mystream", 1);
+		SimpleModule module = new SimpleModule(new ModuleDefinition("tap", "source"), new DeploymentMetadata("mystream", 1));
 		plugin.processModule(module);
 		String[] moduleBeans = module.getApplicationContext().getBeanDefinitionNames();
 		assertEquals(2, moduleBeans.length);

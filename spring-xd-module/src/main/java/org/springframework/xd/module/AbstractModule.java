@@ -25,55 +25,37 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractModule implements Module {
 
-	private final String name;
+	private final ModuleDefinition definition;
 
-	private final String type;
+	private final DeploymentMetadata metadata;
 
-	private final String group;
-
-	private final int index;
-
-	private volatile String instanceId;
-
-	public AbstractModule(String name, String type, String group, int index) {
-		Assert.notNull(name, "name must not be null");
-		Assert.notNull(type, "type must not be null");
-		Assert.notNull(group, "group must not be null");
-		this.name = name;
-		this.type = type;
-		this.group = group;
-		this.index = index;
-		this.instanceId = group + "." + index;
+	public AbstractModule(ModuleDefinition definition, DeploymentMetadata metadata) {
+		Assert.notNull(definition, "definition must not be null");
+		Assert.notNull(metadata, "metadata must not be null");
+		this.definition = definition;
+		this.metadata = metadata;
 	}
 
 	@Override
 	public String getName() {
-		return this.name;
+		return this.definition.getName();
 	}
 
 	@Override
 	public String getType() {
-		return this.type;
+		return this.definition.getType();
 	}
 
-	@Override
-	public String getGroup() {
-		return group;
-	}
 
 	@Override
-	public int getIndex() {
-		return index;
-	}
-
-	@Override
-	public String getInstanceId() {
-		return this.instanceId;
+	public DeploymentMetadata getDeploymentMetadata() {
+		return this.metadata;
 	}
 
 	@Override
 	public String toString() {
-		return "AbstractModule [name=" + name + ", type=" + type + ", group=" + group + ", index=" + index + "]";
+		return this.getClass().getSimpleName() + " [name=" + this.getName() + ", type=" + this.getType() + ", group="
+				+ this.metadata.getGroup() + ", index=" + this.metadata.getIndex() + "]";
 	}
 
 }

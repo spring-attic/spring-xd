@@ -18,7 +18,7 @@ package org.springframework.xd.rest.client;
 
 /**
  * Main entry point for interacting with a running XD system.
- *
+ * 
  * @author Eric Bottard
  * @author Glenn Renfro
  */
@@ -33,13 +33,19 @@ public interface SpringXDOperations {
 	 * Returns the portion of the API for interaction with Taps.
 	 */
 	public TapOperations tapOperations();
+
 	/**
 	 * Returns the portion of the API for interaction with Jobs.
 	 */
 	public JobOperations jobOperations();
-	
+
 	/**
 	 * Returns the portion of the API for interaction with Triggers.
 	 */
 	public TriggerOperations triggerOperations();
+
+	/**
+	 * Returns the portion of the API for interaction with Counters.
+	 */
+	public CounterOperations counterOperations();
 }

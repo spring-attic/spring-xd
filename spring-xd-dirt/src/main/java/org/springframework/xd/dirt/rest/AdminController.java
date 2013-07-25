@@ -26,6 +26,7 @@ import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
 import org.springframework.xd.rest.client.domain.TapDefinitionResource;
 import org.springframework.xd.rest.client.domain.TriggerDefinitionResource;
 import org.springframework.xd.rest.client.domain.XDRuntime;
+import org.springframework.xd.rest.client.domain.metrics.CounterResource;
 
 /**
  * @author Eric Bottard
@@ -49,6 +50,8 @@ public class AdminController {
 		xdRuntime.add(entityLinks.linkFor(TriggerDefinitionResource.class).withRel("triggers"));
 		xdRuntime.add(entityLinks.linkFor(JobDefinitionResource.class).withRel("jobs"));
 		xdRuntime.add(entityLinks.linkFor(TapDefinitionResource.class).withRel("taps"));
+
+		xdRuntime.add(entityLinks.linkFor(CounterResource.class).withRel("counters"));
 		return xdRuntime;
 	}
 }

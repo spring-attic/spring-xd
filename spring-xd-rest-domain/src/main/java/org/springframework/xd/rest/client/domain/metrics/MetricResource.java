@@ -18,6 +18,7 @@ package org.springframework.xd.rest.client.domain.metrics;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.ResourceSupport;
 
 /**
@@ -43,8 +44,7 @@ public class MetricResource extends ResourceSupport {
 	/**
 	 * No arg constructor for serialization frameworks.
 	 */
-	@SuppressWarnings("unused")
-	private MetricResource() {
+	protected MetricResource() {
 
 	}
 
@@ -53,6 +53,15 @@ public class MetricResource extends ResourceSupport {
 	 */
 	public String getName() {
 		return name;
+	}
+
+	/**
+	 * Dedicated subclass to workaround type erasure.
+	 * 
+	 * @author Eric Bottard
+	 */
+	public static class Page extends PagedResources<MetricResource> {
+
 	}
 
 }

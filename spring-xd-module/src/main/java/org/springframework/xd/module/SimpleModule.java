@@ -172,4 +172,18 @@ public class SimpleModule extends AbstractModule {
 		return Collections.unmodifiableList(acceptedMediaTypes);
 	}
 
+
+	@Override
+	public <T> T getComponent(Class<T> requiredType) {
+		return this.context.getBean(requiredType);
+	}
+
+	@Override
+	public <T> T getComponent(String componentName, Class<T> requiredType) {
+		if (this.context.containsBean(componentName)) {
+			return context.getBean(componentName, requiredType);
+		}
+		return null;
+	}
+
 }

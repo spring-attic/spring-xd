@@ -21,6 +21,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
@@ -40,33 +41,30 @@ public class StreamPluginTests {
 
 	private StreamPlugin plugin = new StreamPlugin();
 
+	@Before
+	public void setup() {
+		System.setProperty("xd.transport", "local");
+	}
+
 	@Test
 	public void streamPropertiesAdded() {
 		Module module = new SimpleModule(new ModuleDefinition("testsource", "source"), new DeploymentMetadata("foo", 0));
 		assertEquals(0, module.getProperties().size());
 		plugin.preProcessModule(module);
+		plugin.postProcessModule(module);
 		assertEquals(2, module.getProperties().size());
 		assertEquals("foo", module.getProperties().getProperty("xd.stream.name"));
 		assertEquals("0", module.getProperties().getProperty("xd.module.index"));
 	}
 
 	@Test
-	public void streamComponentsAdded() {
-		SimpleModule module = new SimpleModule(new ModuleDefinition("testsource", "source"), new DeploymentMetadata("mystream", 1));
-		plugin.preProcessModule(module);
-		String[] moduleBeans = module.getApplicationContext().getBeanDefinitionNames();
-		assertEquals(1, moduleBeans.length);
-		assertTrue(moduleBeans[0].contains("ChannelRegistrar#"));
-	}
-
-	@Test
 	public void tapComponentsAdded() {
 		SimpleModule module = new SimpleModule(new ModuleDefinition("tap", "source"), new DeploymentMetadata("mystream", 1));
 		plugin.preProcessModule(module);
+		plugin.postProcessModule(module);
 		String[] moduleBeans = module.getApplicationContext().getBeanDefinitionNames();
-		assertEquals(2, moduleBeans.length);
-		assertTrue(moduleBeans[0].contains("ChannelRegistrar#"));
-		assertTrue(moduleBeans[1].contains("Tap#"));
+		assertEquals(1, moduleBeans.length);
+		assertTrue(moduleBeans[0].contains("Tap#"));
 	}
 
 	@Test

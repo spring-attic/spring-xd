@@ -51,4 +51,8 @@ public interface Module extends Lifecycle {
 
 	Properties getProperties();
 
+	<T> T getComponent(Class<T> requiredType);
+
+	<T> T getComponent(String componentName, Class<T> requiredType);
+
 }

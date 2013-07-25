@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import org.springframework.integration.MessageChannel;
+import org.springframework.integration.x.channel.registry.ChannelRegistry;
 import org.springframework.xd.dirt.container.DefaultContainer;
 import org.springframework.xd.module.AbstractPlugin;
 import org.springframework.xd.module.Module;
@@ -39,12 +41,13 @@ public class StreamPlugin extends AbstractPlugin {
 
 	private static final String CONTEXT_CONFIG_ROOT = DefaultContainer.XD_CONFIG_ROOT
 			+ "plugins/stream/";
+
 	private static final String TAP_XML = CONTEXT_CONFIG_ROOT + "tap.xml";
-	private static final String CHANNEL_REGISTRAR = CONTEXT_CONFIG_ROOT + "channel-registrar.xml";
+
 	private static final String CHANNEL_REGISTRY = CONTEXT_CONFIG_ROOT + "channel-registry.xml";
 
 	public StreamPlugin(){
-		postProcessContextPath = CHANNEL_REGISTRY;
+		super.setPostProcessContextPath(CHANNEL_REGISTRY);
 	}
 	private static final String TAP = "tap";
 
@@ -52,9 +55,6 @@ public class StreamPlugin extends AbstractPlugin {
 	public List<String>  componentPathsSelector(Module module) {
 		ArrayList<String> result = new ArrayList<String>();
 		String type = module.getType();
-		if ((SOURCE.equals(type) || PROCESSOR.equals(type) || SINK.equals(type)) && module.getDeploymentMetadata().getGroup() != null) {
-			result.add(CHANNEL_REGISTRAR);
-		}
 		if (TAP.equals(module.getName()) && SOURCE.equals(type)) {
 			result.add(TAP_XML);
 		}
@@ -76,7 +76,39 @@ public class StreamPlugin extends AbstractPlugin {
 
 	@Override
 	protected void postProcessModuleInternal(Module module) {
-		//TODO register channels
+		ChannelRegistry registry = findRegistry(module);
+		if (registry != null) {
+			MessageChannel channel = module.getComponent("input", MessageChannel.class);
+			if (channel != null) {
+				registry.inbound(module.getDeploymentMetadata().getGroup() + "."
+						+ (module.getDeploymentMetadata().getIndex() - 1), channel);
+			}
+			channel = module.getComponent("output", MessageChannel.class);
+			if (channel != null) {
+				registry.inbound(module.getDeploymentMetadata().getGroup() + "."
+						+ module.getDeploymentMetadata().getIndex(), channel);
+			}
+		}
 	}
+
+	private ChannelRegistry findRegistry(Module module) {
+		ChannelRegistry registry = null;
+		try {
+			registry = module.getComponent(ChannelRegistry.class);
+		}
+		catch (Exception e) {
+			logger.error("No registry in context, cannot wire channels");
+		}
+		return registry;
+	}
+
+	@Override
+	public void removeModule(Module module) {
+		ChannelRegistry registry = findRegistry(module);
+		if (registry != null) {
+			registry.cleanAll(module.getDeploymentMetadata().getGroup());
+		}
+	}
+
 
 }

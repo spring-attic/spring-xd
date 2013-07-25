@@ -12,7 +12,7 @@
  */
 package org.springframework.xd.dirt.stream;
 
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.PagingAndSortingRepository;
 
 /**
  * Data Repository for {@link TriggerDefinition}s.
@@ -21,6 +21,6 @@ import org.springframework.data.repository.CrudRepository;
  * @since 1.0
  *
  */
-public interface TriggerDefinitionRepository extends CrudRepository<TriggerDefinition,String> {
+public interface TriggerDefinitionRepository extends PagingAndSortingRepository<TriggerDefinition,String> {
 
 }

@@ -16,7 +16,6 @@
 
 package org.springframework.xd.rest.client.impl;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -56,11 +55,13 @@ public class TapTemplate extends AbstractTemplate implements TapOperations {
 	 * Returns a {@link List} of {@link TapDefinitionResource}s.
 	 */
 	@Override
-	public List<TapDefinitionResource> listTaps() {
-		final TapDefinitionResource[] taps = restTemplate.getForObject(resources.get("taps"), TapDefinitionResource[].class);
-		return Arrays.asList(taps);
+	public TapDefinitionResource.Page listTaps() {
+		String uriTemplate = resources.get("taps").toString();
+		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
+		values.add("size", "10000");
+		return restTemplate.getForObject(uriTemplate, TapDefinitionResource.Page.class, values);
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see org.springframework.xd.rest.client.TapOperations#destroyTap(java.lang.String)
 	 */

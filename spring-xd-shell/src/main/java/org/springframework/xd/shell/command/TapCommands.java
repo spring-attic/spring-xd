@@ -16,9 +16,8 @@
 
 package org.springframework.xd.shell.command;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.PagedResources;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliAvailabilityIndicator;
 import org.springframework.shell.core.annotation.CliCommand;
@@ -34,10 +33,10 @@ import org.springframework.xd.shell.util.UiUtils;
 
 /**
  * Tap commands.
- * 
+ *
  * @author Ilayaperumal Gopinathan
  * @author Gunnar Hillert
- * 
+ *
  * @since 1.0
  */
 
@@ -47,7 +46,7 @@ public class TapCommands implements CommandMarker {
 	private final static String CREATE_TAP = "tap create";
 
 	private final static String LIST_TAPS = "tap list";
-	
+
 	private final static String DESTROY_TAP = "tap destroy";
 
 	@Autowired
@@ -74,15 +73,13 @@ public class TapCommands implements CommandMarker {
 	@CliCommand(value = LIST_TAPS, help = "List all taps")
 	public Table listTaps() {
 
-		final List<TapDefinitionResource> taps;
-
-		taps = tapOperations().listTaps();
+		final PagedResources<TapDefinitionResource> taps = tapOperations().listTaps();
 
 		final Table table = new Table();
 		table.addHeader(1, new TableHeader("Tap Name")).addHeader(2, new TableHeader("Stream Name"))
 				.addHeader(3, new TableHeader("Tap Definition"));
 
-		for (TapDefinitionResource tapDefinitionResource : taps) {
+		for (TapDefinitionResource tapDefinitionResource : taps.getContent()) {
 			final TableRow row = new TableRow();
 			row.addValue(1, tapDefinitionResource.getName()).addValue(2, tapDefinitionResource.getStreamName())
 					.addValue(3, tapDefinitionResource.getDefinition());
@@ -91,7 +88,7 @@ public class TapCommands implements CommandMarker {
 
 		return table;
 	}
-	
+
 	@CliCommand(value = DESTROY_TAP, help = "Destroy an existing tap")
 	public String destroyTap(
 			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the tap to destroy")

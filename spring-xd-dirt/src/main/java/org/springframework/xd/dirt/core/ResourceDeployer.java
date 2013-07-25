@@ -12,6 +12,7 @@
  */
 package org.springframework.xd.dirt.core;
 
+
 /**
  * Interface for XD Resource Services.
  *

@@ -16,19 +16,16 @@
 
 package org.springframework.xd.dirt.plugins.stream;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-
+import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
@@ -40,14 +37,18 @@ import org.springframework.xd.dirt.event.AbstractModuleEvent;
 import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.dirt.module.ModuleEventListener;
+import org.springframework.xd.dirt.server.options.AbstractOptions;
+import org.springframework.xd.dirt.server.options.Transport;
 import org.springframework.xd.module.SimpleModule;
+
+import static org.junit.Assert.*;
 
 /**
  * Integration test that deploys a few simple test modules to verify the full
  * functionality of {@link StreamPlugin}
- *
+ * 
  * @author Jennifer Hickey
- *
+ * 
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -65,7 +66,14 @@ public class StreamPluginModuleDeploymentTests {
 
 	@BeforeClass
 	public static void setContextProperties() {
-		System.setProperty("xd.transport", "local");
+		AbstractOptions.setXDTransport(Transport.local);
+		System.setProperty("xd.home", new File("..").getAbsolutePath());
+	}
+
+	@AfterClass
+	public static void clearContextProperties() {
+		System.clearProperty("xd.transport");
+		System.clearProperty("xd.home");
 	}
 
 	@After
@@ -81,7 +89,7 @@ public class StreamPluginModuleDeploymentTests {
 	/**
 	 * Validates that channels defined in the modules end up in the shared
 	 * {@link ChannelRegistry}
-	 *
+	 * 
 	 * @throws InterruptedException
 	 */
 	@Test

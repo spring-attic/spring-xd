@@ -13,9 +13,14 @@
 
 package org.springframework.xd.dirt.stream;
 
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.xd.dirt.server.options.AbstractOptions;
+import org.springframework.xd.dirt.server.options.AdminOptions;
+import org.springframework.xd.dirt.server.options.Store;
+import org.springframework.xd.dirt.server.options.Transport;
 
 /**
  * @author David Turanski
@@ -26,14 +31,21 @@ public abstract class AbstractStreamTests {
 
 	@BeforeClass
 	public static void startXDSingleNode() throws Exception {
-		System.setProperty("xd.transport", "local");
 		System.setProperty("xd.home", "..");
-		System.setProperty("xd.store", "memory");
+		AbstractOptions.setXDTransport(Transport.local);
+		AdminOptions.setXDStore(Store.memory);
 
 		ApplicationContext ctx = new ClassPathXmlApplicationContext("/META-INF/spring-xd/transports/local-admin.xml",
 				"/META-INF/spring-xd/store/memory-admin.xml");
 		streamDeployer = ctx.getBean(StreamDeployer.class);
 
+	}
+
+	@AfterClass
+	public static void resetSystemProperties() {
+		System.clearProperty("xd.transport");
+		System.clearProperty("xd.home");
+		System.clearProperty("xd.store");
 	}
 
 	protected void deployStream(String name, String config) {

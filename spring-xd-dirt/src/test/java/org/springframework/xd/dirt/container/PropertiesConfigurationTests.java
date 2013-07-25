@@ -10,12 +10,13 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.springframework.xd.dirt.container;
 
-import static org.junit.Assert.assertEquals;
+package org.springframework.xd.dirt.container;
 
 import java.io.File;
 
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,22 +24,36 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.xd.dirt.server.options.AbstractOptions;
+import org.springframework.xd.dirt.server.options.Transport;
+
+import static org.junit.Assert.*;
 
 /**
  * @author David Turanski
- *
+ * 
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 public class PropertiesConfigurationTests {
+
 	@Autowired
 	ApplicationContext ctx;
-	static {
-		System.setProperty("xd.transport","redis");
-		System.setProperty("xd.home",new File("..").getAbsolutePath());
-	}
+
 	@Test
 	public void testSingletonPPC() {
-		assertEquals(1,ctx.getBeansOfType(PropertySourcesPlaceholderConfigurer.class).size());
+		assertEquals(1, ctx.getBeansOfType(PropertySourcesPlaceholderConfigurer.class).size());
+	}
+
+	@BeforeClass
+	public static void setup() {
+		AbstractOptions.setXDTransport(Transport.redis);
+		System.setProperty("xd.home", new File("..").getAbsolutePath());
+	}
+
+	@AfterClass
+	public static void tearDown() {
+		System.clearProperty("xd.transport");
+		System.clearProperty("xd.home");
 	}
 }

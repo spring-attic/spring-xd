@@ -44,8 +44,7 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 
 	private final DeploymentMessageSender messageSender;
 
-	
-	
+
 	/**
 	 * Lower-case, singular name of the kind of definition we're deploying. Used in exception messages.
 	 */

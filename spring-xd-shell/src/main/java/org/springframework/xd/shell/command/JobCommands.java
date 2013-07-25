@@ -16,9 +16,8 @@
 
 package org.springframework.xd.shell.command;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.PagedResources;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliAvailabilityIndicator;
 import org.springframework.shell.core.annotation.CliCommand;
@@ -30,7 +29,6 @@ import org.springframework.xd.shell.XDShell;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableHeader;
 import org.springframework.xd.shell.util.TableRow;
-import org.springframework.xd.shell.util.UiUtils;
 
 /**
  * Job commands.
@@ -82,8 +80,8 @@ public class JobCommands implements CommandMarker {
 	@CliCommand(value = LIST_JOBS, help = "List all jobs")
 	public Table listJobs() {
 
-		final List<JobDefinitionResource> jobs = jobOperations().list();
-
+		final PagedResources<JobDefinitionResource> jobs = jobOperations()
+				.list();
 		final Table table = new Table();
 		table.addHeader(1, new TableHeader("Job Name")).addHeader(2, new TableHeader("Job Definition"));
 

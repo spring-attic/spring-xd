@@ -16,8 +16,14 @@
 
 package org.springframework.xd.dirt.rest;
 
+import java.util.ArrayList;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.ExposesResourceFor;
+import org.springframework.hateoas.PagedResources;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -98,8 +104,15 @@ public class JobsController {
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public Iterable<JobDefinitionResource> list() {
-		return  definitionResourceAssembler.toResources(jobDeployer.findAll());
+	public PagedResources<JobDefinitionResource> list(Pageable pageable,
+			PagedResourcesAssembler<JobDefinition> assembler) {
+		Page<JobDefinition> page = jobDeployer.findAll(pageable);
+		if (page.hasContent()) {
+			return assembler.toResource(page, definitionResourceAssembler);
+		} else {
+			return new PagedResources<JobDefinitionResource>(
+					new ArrayList<JobDefinitionResource>(), null);
+		}
 	}
 
 	/**

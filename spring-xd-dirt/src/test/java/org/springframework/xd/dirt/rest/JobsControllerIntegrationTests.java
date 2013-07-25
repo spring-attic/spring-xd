@@ -83,8 +83,9 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 						.accept(MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 
 		mockMvc.perform(get("/jobs").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
-				.andExpect(jsonPath("$", Matchers.hasSize(2))).andExpect(jsonPath("$.[0].name").value("job1"))
-				.andExpect(jsonPath("$.[1].name").value("job2"));
+				.andExpect(jsonPath("$.content", Matchers.hasSize(2)))
+				.andExpect(jsonPath("$.content[0].name").value("job1"))
+				.andExpect(jsonPath("$.content[1].name").value("job2"));
 	}
 
 	@Test

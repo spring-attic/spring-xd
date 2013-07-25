@@ -17,18 +17,25 @@
 package org.springframework.xd.shell.command;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.PagedResources;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliAvailabilityIndicator;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
 import org.springframework.xd.rest.client.TriggerOperations;
+import org.springframework.xd.rest.client.domain.TriggerDefinitionResource;
 import org.springframework.xd.shell.XDShell;
+import org.springframework.xd.shell.util.Table;
+import org.springframework.xd.shell.util.TableHeader;
+import org.springframework.xd.shell.util.TableRow;
 
 /**
- * Trigger commands. 
+ * Trigger commands.
+ *
  * @author Ilayaperumal Gopinathan
- * 
+ * @author Gunnar Hillert
+ *
  * @since 1.0
  */
 
@@ -36,24 +43,41 @@ import org.springframework.xd.shell.XDShell;
 public class TriggerCommands implements CommandMarker {
 
 	private static final String CREATE_TRIGGER = "trigger create";
-
+	private final static String LIST_TRIGGERS  = "trigger list";
 
 	@Autowired
 	private XDShell xdShell;
 
-	@CliAvailabilityIndicator({ CREATE_TRIGGER })
+	@CliAvailabilityIndicator({ CREATE_TRIGGER, LIST_TRIGGERS })
 	public boolean available() {
 		return xdShell.getSpringXDOperations() != null;
 	}
 
 	@CliCommand(value = CREATE_TRIGGER, help = "Create a new trigger with a given cron expression")
 	public String createTrigger(
-			@CliOption(mandatory = true, key = { "", "name" }, help = "the name to give to the stream")
+			@CliOption(mandatory = true, key = { "", "name" }, help = "the name to give to the trigger")
 			String name,
 			@CliOption(mandatory = true, key = { "definition" }, help = "definition for the trigger")
 			String definition) {
 		triggerOperations().createTrigger(name, definition);
 		return String.format("Created new trigger '%s'", name);
+	}
+
+	@CliCommand(value = LIST_TRIGGERS, help = "List all triggers")
+	public Table listTriggers() {
+
+		final PagedResources<TriggerDefinitionResource> triggers = triggerOperations().listTriggers();
+
+		final Table table = new Table();
+		table.addHeader(1, new TableHeader("Trigger Name")).addHeader(2, new TableHeader("Trigger Definition"));
+
+		for (TriggerDefinitionResource triggerDefinitionResource : triggers.getContent()) {
+			final TableRow row = new TableRow();
+			row.addValue(1, triggerDefinitionResource.getName()).addValue(2, triggerDefinitionResource.getDefinition());
+			table.getRows().add(row);
+		}
+
+		return table;
 	}
 
 	private TriggerOperations triggerOperations() {

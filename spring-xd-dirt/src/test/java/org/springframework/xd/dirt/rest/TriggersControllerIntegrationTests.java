@@ -94,9 +94,11 @@ public class TriggersControllerIntegrationTests extends AbstractControllerIntegr
 				post("/triggers").param("name", "triggerfirst").param("definition", TRIGGER_DEFINITION)
 						.accept(MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 
-		mockMvc.perform(get("/triggers").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
-				.andExpect(jsonPath("$", Matchers.hasSize(2))).andExpect(jsonPath("$.[0].name").value("triggerfirst"))
-				.andExpect(jsonPath("$.[1].name").value("triggerlast"));
+		mockMvc.perform(get("/triggers").accept(MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.content", Matchers.hasSize(2)))
+				.andExpect(jsonPath("$.content[0].name").value("triggerfirst"))
+				.andExpect(jsonPath("$.content[1].name").value("triggerlast"));
 	}
 
 	@Test

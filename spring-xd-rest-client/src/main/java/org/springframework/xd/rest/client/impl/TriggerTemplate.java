@@ -16,6 +16,8 @@
 
 package org.springframework.xd.rest.client.impl;
 
+import java.util.List;
+
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.xd.rest.client.TriggerOperations;
@@ -44,4 +46,14 @@ public class TriggerTemplate extends AbstractTemplate implements TriggerOperatio
 		return trigger;
 	}
 
+	/**
+	 * Returns a {@link List} of {@link TriggerDefinitionResource}s.
+	 */
+	@Override
+	public TriggerDefinitionResource.Page listTriggers() {
+		String uriTemplate = resources.get("triggers").toString();
+		// TODO handle pagination at the client side
+		uriTemplate = uriTemplate + "?size=10000";
+		return restTemplate.getForObject(uriTemplate, TriggerDefinitionResource.Page.class);
+	}
 }

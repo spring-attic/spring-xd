@@ -16,12 +16,16 @@
 
 package org.springframework.xd.rest.client;
 
+import org.springframework.hateoas.PagedResources;
 import org.springframework.xd.rest.client.domain.TriggerDefinitionResource;
 
 /**
  * Interface defining operations against triggers.
  *
  * @author Ilayaperumal Gopinathan
+ * @author Gunnar Hillert
+ *
+ * @since 1.0
  *
  */
 public interface TriggerOperations {
@@ -34,5 +38,12 @@ public interface TriggerOperations {
 	 * @return representation of the created trigger definition
 	 */
 	public TriggerDefinitionResource createTrigger(String name, String definition);
+
+	/**
+	 * Retrieve a list of triggers.
+	 *
+	 * @return A list of triggers
+	 */
+	public PagedResources<TriggerDefinitionResource> listTriggers();
 
 }

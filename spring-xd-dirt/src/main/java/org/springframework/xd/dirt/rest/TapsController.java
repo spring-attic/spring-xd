@@ -16,10 +16,14 @@
 
 package org.springframework.xd.dirt.rest;
 
+import java.util.ArrayList;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.ExposesResourceFor;
+import org.springframework.hateoas.PagedResources;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -100,9 +104,16 @@ public class TapsController {
 	@ResponseBody
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
-	public Iterable<TapDefinitionResource> list(Pageable pageable, PagedResourcesAssembler<TapDefinition> assembler) {
-		final Iterable<TapDefinition> taps = tapDeployer.findAll(/* pageable */);
-		return definitionResourceAssembler.toResources(taps);
+	public PagedResources<TapDefinitionResource> list(Pageable pageable, PagedResourcesAssembler<TapDefinition> assembler) {
+
+		final Page<TapDefinition> page = tapDeployer.findAll(pageable);
+
+		if (page.hasContent()) {
+			return assembler.toResource(page, definitionResourceAssembler);
+		}
+		else {
+			return new PagedResources<TapDefinitionResource>(new ArrayList<TapDefinitionResource>(), null);
+		}
 	}
 
 	/**

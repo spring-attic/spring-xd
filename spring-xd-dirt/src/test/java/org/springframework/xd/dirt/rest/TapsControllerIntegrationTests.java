@@ -74,9 +74,11 @@ public class TapsControllerIntegrationTests extends AbstractControllerIntegratio
 				post("/taps").param("name", "tapfirst").param("definition", "tap@ test | log")
 						.accept(MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 
-		mockMvc.perform(get("/taps").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
-				.andExpect(jsonPath("$", Matchers.hasSize(2))).andExpect(jsonPath("$.[0].name").value("tapfirst"))
-				.andExpect(jsonPath("$.[1].name").value("taplast"));
+		mockMvc.perform(get("/taps").accept(MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.content", Matchers.hasSize(2)))
+				.andExpect(jsonPath("$.content[0].name").value("tapfirst"))
+				.andExpect(jsonPath("$.content[1].name").value("taplast"));
 	}
 
 	@Test

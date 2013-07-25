@@ -12,12 +12,15 @@
  */
 package org.springframework.xd.dirt.stream;
 
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.PagingAndSortingRepository;
 
 /**
  * @author David Turanski
+ * @author Gunnar Hillert
+ *
+ * @since 1.0
  *
  */
-public interface JobDefinitionRepository extends CrudRepository<JobDefinition,String> {
+public interface JobDefinitionRepository extends PagingAndSortingRepository<JobDefinition,String> {
 
 }

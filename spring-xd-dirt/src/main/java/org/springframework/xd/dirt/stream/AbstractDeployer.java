@@ -20,7 +20,10 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.BaseDefinition;
 import org.springframework.xd.dirt.core.ResourceDeployer;
@@ -35,7 +38,7 @@ import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
  * @author Eric Bottard
  */
 public abstract class AbstractDeployer<D extends BaseDefinition> implements ResourceDeployer<D> {
-	private CrudRepository<D, String> repository;
+	private PagingAndSortingRepository<D, String> repository;
 
 	private final StreamParser streamParser = new EnhancedStreamParser();
 
@@ -48,7 +51,7 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	 */
 	private final String definitionKind;
 
-	protected AbstractDeployer(CrudRepository<D, String> repository, DeploymentMessageSender messageSender,
+	protected AbstractDeployer(PagingAndSortingRepository<D, String> repository, DeploymentMessageSender messageSender,
 			String definitionKind) {
 		Assert.notNull(repository, ErrorMessage.repositoryNameNullError.getMessage());
 		Assert.notNull(messageSender, ErrorMessage.messageSenderNameNullError.getMessage());
@@ -113,6 +116,10 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 			definitions.add(definition);
 		}
 		return definitions;
+	}
+
+	public Page<D> findAll(Pageable pageable) {
+		return repository.findAll(pageable);
 	}
 
 	protected CrudRepository<D, String> getRepository() {

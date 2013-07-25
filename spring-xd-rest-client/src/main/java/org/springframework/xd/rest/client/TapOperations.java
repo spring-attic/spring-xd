@@ -16,8 +16,7 @@
 
 package org.springframework.xd.rest.client;
 
-import java.util.List;
-
+import org.springframework.hateoas.PagedResources;
 import org.springframework.xd.rest.client.domain.TapDefinitionResource;
 
 /**
@@ -45,9 +44,8 @@ public interface TapOperations {
 	 *
 	 * @return A list of taps
 	 */
-	List<TapDefinitionResource> listTaps();
-	
-	
+	PagedResources<TapDefinitionResource> listTaps(/* TODO */);
+
 	/**
 	 * Destroy an existing tap
 	 * @param name

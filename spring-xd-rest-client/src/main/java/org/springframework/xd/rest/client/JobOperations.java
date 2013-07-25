@@ -16,8 +16,7 @@
 
 package org.springframework.xd.rest.client;
 
-import java.util.List;
-
+import org.springframework.hateoas.PagedResources;
 import org.springframework.xd.rest.client.domain.JobDefinitionResource;
 
 /**
@@ -49,5 +48,5 @@ public interface JobOperations {
 	/**
 	 * List streams known to the system.
 	 */
-	public List<JobDefinitionResource> list();
+	public PagedResources<JobDefinitionResource> list();
 }

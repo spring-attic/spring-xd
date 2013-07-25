@@ -16,9 +16,7 @@
 
 package org.springframework.xd.rest.client.impl;
 
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -72,9 +70,12 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 	}
 
 	@Override
-	public List<JobDefinitionResource> list() {
-		final JobDefinitionResource[] jobs = restTemplate.getForObject(resources.get("jobs"), JobDefinitionResource[].class);
-		return Arrays.asList(jobs);
+	public JobDefinitionResource.Page list() {
+		String uriTemplate = resources.get("jobs").toString();
+		// TODO handle pagination at the client side
+		uriTemplate = uriTemplate + "?size=10000";
+		return restTemplate.getForObject(uriTemplate,
+				JobDefinitionResource.Page.class);
 	}
 
 	@Override

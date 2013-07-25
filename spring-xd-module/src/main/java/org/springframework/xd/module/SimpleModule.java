@@ -97,6 +97,27 @@ public class SimpleModule extends AbstractModule {
 		this.context.getEnvironment().getPropertySources().addLast(propertySource);
 	}
 
+	@Override
+	public void initialize() {
+		Assert.state(this.context != null, "An ApplicationContext is required");
+		boolean propertyConfigurerPresent = false;
+		for (String name : this.context.getBeanDefinitionNames()) {
+			if (name.startsWith("org.springframework.context.support.PropertySourcesPlaceholderConfigurer")) {
+				propertyConfigurerPresent = true;
+				break;
+			}
+		}
+		if (!propertyConfigurerPresent) {
+			PropertySourcesPlaceholderConfigurer placeholderConfigurer = new PropertySourcesPlaceholderConfigurer();
+			placeholderConfigurer.setEnvironment(this.context.getEnvironment());
+			this.context.addBeanFactoryPostProcessor(placeholderConfigurer);
+		}
+		this.context.refresh();
+		if (logger.isInfoEnabled()) {
+			logger.info("initialized module: " + this.toString());
+		}
+	}
+
 	/*
 	 * Lifecycle implementation
 	 */
@@ -105,19 +126,6 @@ public class SimpleModule extends AbstractModule {
 	public void start() {
 		Assert.state(this.context != null, "An ApplicationContext is required");
 		if (!this.isRunning()) {
-			boolean propertyConfigurerPresent = false;
-			for (String name : this.context.getBeanDefinitionNames()) {
-				if (name.startsWith("org.springframework.context.support.PropertySourcesPlaceholderConfigurer")) {
-					propertyConfigurerPresent = true;
-					break;
-				}
-			}
-			if (!propertyConfigurerPresent) {
-				PropertySourcesPlaceholderConfigurer placeholderConfigurer = new PropertySourcesPlaceholderConfigurer();
-				placeholderConfigurer.setEnvironment(this.context.getEnvironment());
-				this.context.addBeanFactoryPostProcessor(placeholderConfigurer);
-			}
-			this.context.refresh();
 			this.context.start();
 			if (logger.isInfoEnabled()) {
 				logger.info("started module: " + this.toString());
@@ -162,6 +170,20 @@ public class SimpleModule extends AbstractModule {
 			acceptedMediaTypes.add(MediaType.parseMediaType(acceptedType));
 		}
 		return Collections.unmodifiableList(acceptedMediaTypes);
+	}
+
+
+	@Override
+	public <T> T getComponent(Class<T> requiredType) {
+		return this.context.getBean(requiredType);
+	}
+
+	@Override
+	public <T> T getComponent(String componentName, Class<T> requiredType) {
+		if (this.context.containsBean(componentName)) {
+			return context.getBean(componentName, requiredType);
+		}
+		return null;
 	}
 
 }

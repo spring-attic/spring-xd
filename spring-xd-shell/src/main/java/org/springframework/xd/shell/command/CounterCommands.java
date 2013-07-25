@@ -34,7 +34,7 @@ import org.springframework.xd.shell.util.Table;
 
 /**
  * Commands for interacting with Counter analytics.
- * 
+ *
  * @author Eric Bottard
  */
 @Component
@@ -53,7 +53,7 @@ public class CounterCommands extends AbstractMetricsCommands implements CommandM
 	@Autowired
 	private XDShell xdShell;
 
-	@CliAvailabilityIndicator({ LIST_COUNTERS, DISPLAY_COUNTER, /* RESET_COUNTER */})
+	@CliAvailabilityIndicator({ LIST_COUNTERS, DISPLAY_COUNTER /*, RESET_COUNTER */})
 	public boolean available() {
 		return xdShell.getSpringXDOperations() != null;
 	}

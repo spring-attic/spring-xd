@@ -31,6 +31,7 @@ import org.springframework.http.MediaType;
  */
 public interface Module extends Lifecycle {
 
+	void initialize();
 	/**
 	 * @return the generic module name or template name
 	 */
@@ -49,5 +50,9 @@ public interface Module extends Lifecycle {
 	List<MediaType> getAcceptedMediaTypes();
 
 	Properties getProperties();
+
+	<T> T getComponent(Class<T> requiredType);
+
+	<T> T getComponent(String componentName, Class<T> requiredType);
 
 }

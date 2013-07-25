@@ -54,7 +54,7 @@ public class JobPluginTests {
 	public void streamPropertiesAdded() {
 		Module module = new SimpleModule(new ModuleDefinition("testJob", "job"), new DeploymentMetadata("foo", 0));
 		assertEquals(0, module.getProperties().size());
-		plugin.processModule(module);
+		plugin.preProcessModule(module);
 		assertEquals(2, module.getProperties().size());
 		assertEquals("foo", module.getProperties().getProperty("xd.stream.name"));
 		assertEquals("true", module.getProperties().getProperty("xd.trigger.execute_on_startup"));
@@ -63,7 +63,7 @@ public class JobPluginTests {
 	@Test
 	public void streamComponentsAdded() {
 		SimpleModule module = new SimpleModule(new ModuleDefinition("testJob", "job"), new DeploymentMetadata("foo", 0));
-		plugin.processModule(module);
+		plugin.preProcessModule(module);
 		String[] moduleBeans = module.getApplicationContext().getBeanDefinitionNames();
 		Arrays.sort(moduleBeans);
 		assertEquals(2, moduleBeans.length);
@@ -84,7 +84,7 @@ public class JobPluginTests {
 	public void testThatLocalCronTaskIsAdded() {
 		SimpleModule module = new SimpleModule(new ModuleDefinition("testJob", "job"), new DeploymentMetadata("foo", 0));
 		module.getProperties().put("cron", "*/15 * * * * *");
-		plugin.processModule(module);
+		plugin.preProcessModule(module);
 		String[] moduleBeans = module.getApplicationContext().getBeanNamesForType(CronTask.class);
 		assertEquals(1, moduleBeans.length);
 		assertTrue(moduleBeans[0].contains("org.springframework.scheduling.config.CronTask"));
@@ -94,7 +94,7 @@ public class JobPluginTests {
 	public void testThatLocalFixedDelayTaskIsAdded() {
 		SimpleModule module = new SimpleModule(new ModuleDefinition("testFixedDelayJob", "job"), new DeploymentMetadata("foo", 0));
 		module.getProperties().put("fixedDelay", "60000");
-		plugin.processModule(module);
+		plugin.preProcessModule(module);
 		String[] moduleBeans = module.getApplicationContext().getBeanNamesForType(IntervalTask.class);
 		assertEquals(1, moduleBeans.length);
 		assertTrue(moduleBeans[0].contains("org.springframework.scheduling.config.IntervalTask"));

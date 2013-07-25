@@ -19,6 +19,9 @@ package org.springframework.xd.module;
 
 import java.util.List;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.Assert;
@@ -29,27 +32,56 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractPlugin implements Plugin{
 
+	protected final Log logger = LogFactory.getLog(this.getClass());
+
 	/**
 	 * Represents the path and file name of the context to be used in post
 	 * processing of the module. If not set the postProcessContext will use
-	 * defaults.
+	 * defaults. Beans willl be added to the shared context.
 	 *
 	 */
-	protected String postProcessContextPath;
+	private String[] postProcessContextPaths;
+
+	protected void setPostProcessContextPaths(String... postProcessContextPaths) {
+		this.postProcessContextPaths = postProcessContextPaths;
+	}
 
 	/**
 	 * Process the {@link Module} and add the Application Context resources
 	 * necessary to setup the Batch Job.
 	 **/
 	@Override
-	public void processModule(Module module) {
+	public final void preProcessModule(Module module) {
 		Assert.notNull(module, "module cannot be null");
 		List<String> componentPaths = componentPathsSelector(module);
 		for(String path: componentPaths) {
 			addComponents(module, path);
-			configureProperties(module);
 		}
+		configureProperties(module);
+		this.preProcessModuleInternal(module);
 	}
+
+	/**
+	 * Perform any plugin-specific pre-refresh initialization.
+	 * @param module
+	 */
+	protected void preProcessModuleInternal(Module module) {
+	}
+
+
+
+	@Override
+	public final void postProcessModule(Module module) {
+		this.postProcessModuleInternal(module);
+	}
+
+	/**
+	 * Perform any plugin-specific post-refresh initialization.
+	 * @param module
+	 */
+	protected void postProcessModuleInternal(Module module) {
+	}
+
 	/**
 	 * Establish the configuration file path and names required to setup the context for the
 	 * type of module you are deploying.
@@ -70,8 +102,8 @@ public abstract class AbstractPlugin implements Plugin{
 
 	@Override
 	public void postProcessSharedContext(ConfigurableApplicationContext context){
-		if(postProcessContextPath != null){
-			addBeanFactoryPostProcessor(context, postProcessContextPath);
+		if (postProcessContextPaths != null) {
+			addBeanFactoryPostProcessors(context, postProcessContextPaths);
 		}
 	}
 
@@ -83,8 +115,10 @@ public abstract class AbstractPlugin implements Plugin{
 		module.addComponents(new ClassPathResource(path));
 	}
 
-	private void addBeanFactoryPostProcessor(ConfigurableApplicationContext context, String path) {
-		context.addBeanFactoryPostProcessor(new BeanDefinitionAddingPostProcessor(new ClassPathResource(path)));
+	private void addBeanFactoryPostProcessors(ConfigurableApplicationContext context, String... paths) {
+		for (String path : paths) {
+			context.addBeanFactoryPostProcessor(new BeanDefinitionAddingPostProcessor(new ClassPathResource(path)));
+		}
 	}
 
 }

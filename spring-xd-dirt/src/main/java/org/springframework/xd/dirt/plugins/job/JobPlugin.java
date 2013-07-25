@@ -57,7 +57,7 @@ public class JobPlugin extends AbstractPlugin  {
 
 
 	public JobPlugin(){
-		postProcessContextPath = COMMON_XML;
+		super.setPostProcessContextPaths(COMMON_XML);
 	}
 
 	@Override

@@ -31,7 +31,7 @@ public class MBeanExportingPlugin implements Plugin {
 	private static final String CONTEXT_CONFIG_ROOT = DefaultContainer.XD_CONFIG_ROOT + "plugins/jmx/";
 
 	@Override
-	public void processModule(Module module) {
+	public void preProcessModule(Module module) {
 		if (System.getProperty(AbstractOptions.XD_DISABLE_JMX_KEY) == null) {
 			module.addComponents(new ClassPathResource(CONTEXT_CONFIG_ROOT + "mbean-exporters.xml"));
 			Properties objectNameProperties = new Properties();
@@ -40,6 +40,10 @@ public class MBeanExportingPlugin implements Plugin {
 
 			module.addProperties(objectNameProperties);
 		}
+	}
+
+	@Override
+	public void postProcessModule(Module module) {
 	}
 
 	@Override

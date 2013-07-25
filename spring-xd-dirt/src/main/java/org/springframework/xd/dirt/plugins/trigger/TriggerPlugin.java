@@ -64,7 +64,7 @@ public class TriggerPlugin implements Plugin {
 	 * {@link ConfigurableApplicationContext}.
 	 */
 	@Override
-	public void processModule(Module module) {
+	public void preProcessModule(Module module) {
 		if (!TRIGGER.equals(module.getType())) {
 			return;
 		}
@@ -100,6 +100,10 @@ public class TriggerPlugin implements Plugin {
 		postProcessor.addBeanDefinition(BEAN_NAME_PREFIX + group, builder.getBeanDefinition());
 		this.commonApplicationContext.addBeanFactoryPostProcessor(postProcessor);
 		configureProperties(module);
+	}
+
+	@Override
+	public void postProcessModule(Module module) {
 	}
 
 	@Override

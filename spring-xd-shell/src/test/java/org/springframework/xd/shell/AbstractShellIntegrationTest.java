@@ -27,6 +27,10 @@ import org.springframework.shell.core.JLineShellComponent;
 import org.springframework.xd.dirt.server.AdminMain;
 import org.springframework.xd.dirt.server.options.AdminOptions;
 import org.springframework.xd.dirt.stream.StreamServer;
+import org.springframework.xd.shell.util.Table;
+import org.springframework.xd.shell.util.TableHeader;
+import org.springframework.xd.shell.util.TableRow;
+import org.springframework.xd.shell.util.UiUtils;
 
 /**
  * Superclass for performing integration tests of spring-xd shell commands.

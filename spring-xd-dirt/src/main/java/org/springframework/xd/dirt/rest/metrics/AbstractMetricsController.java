@@ -56,8 +56,7 @@ public abstract class AbstractMetricsController<R extends MetricRepository<M>, M
 		/* Page */Iterable<M> metrics = repository.findAll(/* pageable */);
 
 		// Ok for now until we use PagingAndSortingRepo as we know we have lists
-		@SuppressWarnings("unchecked")
-		Page<M> page = new PageImpl((List<M>) metrics);
+		Page<M> page = new PageImpl<M>((List<M>) metrics);
 		return pagedAssembler.toResource(page, shallowResourceAssembler);
 	}
 

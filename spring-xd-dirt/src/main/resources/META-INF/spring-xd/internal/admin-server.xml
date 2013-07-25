@@ -10,8 +10,7 @@
 	<import resource="classpath*:/META-INF/spring-xd/transports/${xd.transport}-admin.xml"/>
 	<import resource="classpath*:/META-INF/spring-xd/store/${xd.store}-admin.xml"/>
 	
-<!-- 	<import resource="../analytics/${xd.analytics}-analytics.xml" /> -->
-	<import resource="../analytics/redis-analytics.xml" />
+	<import resource="../analytics/${xd.analytics}-analytics.xml" />
 	
 	<context:component-scan base-package="org.springframework.xd.dirt.rest">
 		<context:include-filter type="annotation" expression="org.springframework.context.annotation.Configuration"/>

@@ -52,13 +52,15 @@ public abstract class AbstractMetricsController<R extends MetricRepository<M>, M
 	 * overridden (and annotated) in subclasses because of the way
 	 * {@link PagedResourcesAssemblerArgumentResolver} works.
 	 */
-	protected PagedResources<MetricResource> list(Pageable pageable,
-			PagedResourcesAssembler<M> pagedAssembler) {
+	protected PagedResources<MetricResource> list(Pageable pageable, PagedResourcesAssembler<M> pagedAssembler) {
 		/* Page */Iterable<M> metrics = repository.findAll(/* pageable */);
+
+		// Ok for now until we use PagingAndSortingRepo as we know we have lists
+		@SuppressWarnings("unchecked")
 		Page<M> page = new PageImpl((List<M>) metrics);
 		return pagedAssembler.toResource(page, shallowResourceAssembler);
 	}
 
-	// helper code for delete, reset, etc. can go here
+	// helper code for reset, etc. can go here
 
 }

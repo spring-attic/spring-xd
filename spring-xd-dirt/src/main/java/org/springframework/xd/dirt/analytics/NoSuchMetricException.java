@@ -23,6 +23,7 @@ import org.springframework.xd.dirt.core.XDRuntimeException;
  * 
  * @author Eric Bottard
  */
+@SuppressWarnings("serial")
 public class NoSuchMetricException extends XDRuntimeException {
 
 	private final String offendingName;

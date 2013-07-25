@@ -25,7 +25,7 @@ import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
 
 /**
  * Implementation of the Stream-related part of the API.
- *
+ * 
  * @author Eric Bottard
  */
 public class StreamTemplate extends AbstractTemplate implements StreamOperations {
@@ -78,9 +78,8 @@ public class StreamTemplate extends AbstractTemplate implements StreamOperations
 	@Override
 	public StreamDefinitionResource.Page list() {
 		String uriTemplate = resources.get("streams").toString();
-		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
-		values.add("size", "10000");
-		return restTemplate.getForObject(uriTemplate, StreamDefinitionResource.Page.class, values);
+		uriTemplate = uriTemplate + "?size=10000";
+		return restTemplate.getForObject(uriTemplate, StreamDefinitionResource.Page.class);
 	}
 
 }

@@ -48,10 +48,11 @@ public class StreamPlugin extends AbstractPlugin {
 	}
 	private static final String TAP = "tap";
 
+	@Override
 	public List<String>  componentPathsSelector(Module module) {
 		ArrayList<String> result = new ArrayList<String>();
 		String type = module.getType();
-		if ((SOURCE.equals(type) || PROCESSOR.equals(type) || SINK.equals(type)) && module.getGroup() != null) {
+		if ((SOURCE.equals(type) || PROCESSOR.equals(type) || SINK.equals(type)) && module.getDeploymentMetadata().getGroup() != null) {
 			result.add(CHANNEL_REGISTRAR);
 		}
 		if (TAP.equals(module.getName()) && SOURCE.equals(type)) {
@@ -60,14 +61,15 @@ public class StreamPlugin extends AbstractPlugin {
 		return result;
 	}
 
+	@Override
 	public void configureProperties(Module module) {
 		String type = module.getType();
-		String group = module.getGroup();
+		String group = module.getDeploymentMetadata().getGroup();
 		if ((SOURCE.equals(type) || PROCESSOR.equals(type) || SINK.equals(type))
 				&& group != null) {
 			Properties properties = new Properties();
 			properties.setProperty("xd.stream.name", group);
-			properties.setProperty("xd.module.index", String.valueOf(module.getIndex()));
+			properties.setProperty("xd.module.index", String.valueOf(module.getDeploymentMetadata().getIndex()));
 			module.addProperties(properties);
 		}
 	}

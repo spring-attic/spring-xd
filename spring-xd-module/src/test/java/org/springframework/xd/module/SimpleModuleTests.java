@@ -29,7 +29,7 @@ import org.springframework.http.MediaType;
 public class SimpleModuleTests {
 	@Test
 	public void testGetAcceptedMediaTypes() {
-		SimpleModule transformer = new SimpleModule("transformer", "processor", "foo", 0);
+		SimpleModule transformer = new SimpleModule(new ModuleDefinition("transformer", "processor"), new DeploymentMetadata("foo", 0));
 		transformer.addComponents(new ClassPathResource("/org/springframework/xd/module/accepts-json.xml"));
 		List<MediaType> mediaTypes = transformer.getAcceptedMediaTypes();
 		assertEquals(1, mediaTypes.size());
@@ -37,7 +37,7 @@ public class SimpleModuleTests {
 	}
 
 	public void testAcceptsAllMediaTypesByDefault() {
-		SimpleModule transformer = new SimpleModule("transformer", "processor", "foo", 0);
+		SimpleModule transformer = new SimpleModule(new ModuleDefinition("transformer", "processor"), new DeploymentMetadata("foo", 0));
 		transformer.addComponents(new ClassPathResource("/org/springframework/xd/module/default-accepts-all.xml"));
 		List<MediaType> mediaTypes = transformer.getAcceptedMediaTypes();
 		assertEquals(1, mediaTypes.size());
@@ -45,7 +45,7 @@ public class SimpleModuleTests {
 	}
 
 	public void testEmptyMediaTypesAcceptsAll() {
-		SimpleModule transformer = new SimpleModule("transformer", "processor", "foo", 0);
+		SimpleModule transformer = new SimpleModule(new ModuleDefinition("transformer", "processor"), new DeploymentMetadata("foo", 0));
 		transformer.addComponents(new ClassPathResource("/org/springframework/xd/module/empty-accepts-all.xml"));
 		List<MediaType> mediaTypes = transformer.getAcceptedMediaTypes();
 		assertEquals(1, mediaTypes.size());

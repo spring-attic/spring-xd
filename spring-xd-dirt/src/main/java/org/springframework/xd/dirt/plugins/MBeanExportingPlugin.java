@@ -36,7 +36,7 @@ public class MBeanExportingPlugin implements Plugin {
 			module.addComponents(new ClassPathResource(CONTEXT_CONFIG_ROOT + "mbean-exporters.xml"));
 			Properties objectNameProperties = new Properties();
 			objectNameProperties.put("xd.module.name", module.getName());
-			objectNameProperties.put("xd.module.index", module.getIndex());
+			objectNameProperties.put("xd.module.index", module.getDeploymentMetadata().getIndex());
 
 			module.addProperties(objectNameProperties);
 		}

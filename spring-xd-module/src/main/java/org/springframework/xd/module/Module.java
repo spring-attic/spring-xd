@@ -38,13 +38,7 @@ public interface Module extends Lifecycle {
 
 	String getType();
 
-	String getGroup();
-
-	int getIndex();
-	/**
-	 * @return an id for this instance
-	 */
-	String getInstanceId();
+	DeploymentMetadata getDeploymentMetadata();
 
 	void setParentContext(ApplicationContext parentContext);
 

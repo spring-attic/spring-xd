@@ -29,7 +29,9 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.scheduling.config.CronTask;
 import org.springframework.scheduling.config.IntervalTask;
 import org.springframework.xd.module.BeanDefinitionAddingPostProcessor;
+import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.Module;
+import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.SimpleModule;
 
 /**
@@ -50,7 +52,7 @@ public class JobPluginTests {
 
 	@Test
 	public void streamPropertiesAdded() {
-		Module module = new SimpleModule("testJob", "job", "foo", 0);
+		Module module = new SimpleModule(new ModuleDefinition("testJob", "job"), new DeploymentMetadata("foo", 0));
 		assertEquals(0, module.getProperties().size());
 		plugin.processModule(module);
 		assertEquals(2, module.getProperties().size());
@@ -60,7 +62,7 @@ public class JobPluginTests {
 
 	@Test
 	public void streamComponentsAdded() {
-		SimpleModule module = new SimpleModule("testJob", "job", "foo", 0);
+		SimpleModule module = new SimpleModule(new ModuleDefinition("testJob", "job"), new DeploymentMetadata("foo", 0));
 		plugin.processModule(module);
 		String[] moduleBeans = module.getApplicationContext().getBeanDefinitionNames();
 		Arrays.sort(moduleBeans);
@@ -80,7 +82,7 @@ public class JobPluginTests {
 
 	@Test
 	public void testThatLocalCronTaskIsAdded() {
-		SimpleModule module = new SimpleModule("testJob", "job", "foo", 0);
+		SimpleModule module = new SimpleModule(new ModuleDefinition("testJob", "job"), new DeploymentMetadata("foo", 0));
 		module.getProperties().put("cron", "*/15 * * * * *");
 		plugin.processModule(module);
 		String[] moduleBeans = module.getApplicationContext().getBeanNamesForType(CronTask.class);
@@ -90,7 +92,7 @@ public class JobPluginTests {
 
 	@Test
 	public void testThatLocalFixedDelayTaskIsAdded() {
-		SimpleModule module = new SimpleModule("testFixedDelayJob", "job", "foo", 0);
+		SimpleModule module = new SimpleModule(new ModuleDefinition("testFixedDelayJob", "job"), new DeploymentMetadata("foo", 0));
 		module.getProperties().put("fixedDelay", "60000");
 		plugin.processModule(module);
 		String[] moduleBeans = module.getApplicationContext().getBeanNamesForType(IntervalTask.class);

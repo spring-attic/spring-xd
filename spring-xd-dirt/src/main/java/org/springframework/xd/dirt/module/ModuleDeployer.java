@@ -37,6 +37,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.xd.dirt.container.DefaultContainer;
 import org.springframework.xd.dirt.event.ModuleDeployedEvent;
 import org.springframework.xd.dirt.event.ModuleUndeployedEvent;
+import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.Plugin;
@@ -102,7 +103,9 @@ public class ModuleDeployer extends AbstractMessageHandler
 			String type = request.getType();
 			ModuleDefinition definition = this.moduleRegistry.lookup(name, type);
 			Assert.notNull(definition, "No moduleDefinition for " + name + ":" + type);
-			Module module = new SimpleModule(name, type, group, index, definition);
+			DeploymentMetadata metadata = new DeploymentMetadata(group, index,
+					request.getSourceChannelName(), request.getSinkChannelName());
+			Module module = new SimpleModule(definition, metadata);
 			module.setParentContext(this.commonContext);
 			Object properties = message.getHeaders().get("properties");
 			if (properties instanceof Properties) {
@@ -174,8 +177,8 @@ public class ModuleDeployer extends AbstractMessageHandler
 	private void fireModuleDeployedEvent(Module module) {
 		if (this.eventPublisher != null) {
 			ModuleDeployedEvent event = new ModuleDeployedEvent(module, this.deployerContext.getId());
-			event.setAttribute("group", module.getGroup());
-			event.setAttribute("index", "" + module.getIndex());
+			event.setAttribute("group", module.getDeploymentMetadata().getGroup());
+			event.setAttribute("index", "" + module.getDeploymentMetadata().getIndex());
 			this.eventPublisher.publishEvent(event);
 			// TODO: in a listener publish info to redis so we know this module is running on this container
 		}
@@ -184,8 +187,8 @@ public class ModuleDeployer extends AbstractMessageHandler
 	private void fireModuleUndeployedEvent(Module module) {
 		if (this.eventPublisher != null) {
 			ModuleUndeployedEvent event = new ModuleUndeployedEvent(module, this.deployerContext.getId());
-			event.setAttribute("group", module.getGroup());
-			event.setAttribute("index", "" + module.getIndex());
+			event.setAttribute("group", module.getDeploymentMetadata().getGroup());
+			event.setAttribute("index", "" + module.getDeploymentMetadata().getIndex());
 			this.eventPublisher.publishEvent(event);
 			// TODO: in a listener update info in redis so we know this module was undeployed
 		}

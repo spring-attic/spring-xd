@@ -22,6 +22,8 @@ import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.module.config.ChannelExporter;
 import org.springframework.integration.module.config.DefaultChannelExporter;
 import org.springframework.util.Assert;
+import org.springframework.xd.module.DeploymentMetadata;
+import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.SimpleModule;
 
 /**
@@ -44,7 +46,7 @@ public class IntegrationModule extends SimpleModule {
 	 * @param name
 	 */
 	public IntegrationModule(String name) {
-		super(name, MODULE_TYPE, "", 0);
+		super(new ModuleDefinition(name, MODULE_TYPE), new DeploymentMetadata("", 0));
 		this.channelExporter = new DefaultChannelExporter();
 	}
 
@@ -53,7 +55,7 @@ public class IntegrationModule extends SimpleModule {
 	 * @param channelExporter
 	 */
 	public IntegrationModule(String name, ChannelExporter channelExporter) {
-		super(name,MODULE_TYPE, "", 0);
+		super(new ModuleDefinition(name, MODULE_TYPE), new DeploymentMetadata("", 0));
 		Assert.notNull(channelExporter,"ChannelExporter cannot be null");
 		this.channelExporter = channelExporter;
 	}

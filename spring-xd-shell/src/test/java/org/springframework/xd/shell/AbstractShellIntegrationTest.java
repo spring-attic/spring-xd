@@ -27,6 +27,10 @@ import org.springframework.shell.core.JLineShellComponent;
 import org.springframework.xd.dirt.server.AdminMain;
 import org.springframework.xd.dirt.server.options.AdminOptions;
 import org.springframework.xd.dirt.stream.StreamServer;
+import org.springframework.xd.shell.util.Table;
+import org.springframework.xd.shell.util.TableHeader;
+import org.springframework.xd.shell.util.TableRow;
+import org.springframework.xd.shell.util.UiUtils;
 
 /**
  * Superclass for performing integration tests of spring-xd shell commands.
@@ -66,6 +70,15 @@ public abstract class AbstractShellIntegrationTest {
 
 	public static JLineShellComponent getShell() {
 		return shell;
+	}
+	
+	public static String getTicktockTable() {
+		TableRow row =  new TableRow().addValue(0, "ticktock").addValue(1, "time | log");
+		Table table = new Table().addHeader(0, new TableHeader("Stream Name")).addHeader(1, new TableHeader("Stream Definition"));
+		table.getRows().add(row);
+		return UiUtils.renderTextTable(table);
+
+
 	}
 
 	

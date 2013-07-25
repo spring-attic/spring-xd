@@ -129,7 +129,9 @@ public class ModuleDeployer extends AbstractMessageHandler
 	}
 
 	private void deployModule(Module module) {
-		this.processModule(module);
+		this.preProcessModule(module);
+		module.initialize();
+		this.postProcessModule(module);
 		module.start();
 		this.fireModuleDeployedEvent(module);
 	}
@@ -158,10 +160,22 @@ public class ModuleDeployer extends AbstractMessageHandler
 	 * allow plugins to contribute properties (e.g. "stream.name")
 	 * calling module.addProperties(properties), etc.
 	 */
-	private void processModule(Module module) {
+	private void preProcessModule(Module module) {
 		if (this.plugins != null) {
 			for (Plugin plugin : this.plugins.values()) {
-				plugin.processModule(module);
+				plugin.preProcessModule(module);
+			}
+		}
+	}
+
+	/**
+	 * allow plugins to perform other configuration after
+	 * the module is initialized but before it is started.
+	 */
+	private void postProcessModule(Module module) {
+		if (this.plugins != null) {
+			for (Plugin plugin : this.plugins.values()) {
+				plugin.postProcessModule(module);
 			}
 		}
 	}

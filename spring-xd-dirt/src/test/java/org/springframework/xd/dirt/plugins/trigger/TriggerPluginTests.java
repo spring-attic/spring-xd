@@ -52,7 +52,7 @@ public class TriggerPluginTests {
 	@Test
 	public void nonTriggerModuleNotProcessed() {
 		SimpleModule module = new SimpleModule(new ModuleDefinition("testJob", "job"), new DeploymentMetadata("foo", 0));
-		plugin.processModule(module);
+		plugin.preProcessModule(module);
 		String[] moduleBeans = module.getApplicationContext().getBeanDefinitionNames();
 		assertEquals(0, moduleBeans.length);
 	}
@@ -70,7 +70,7 @@ public class TriggerPluginTests {
 		SimpleModule module = new SimpleModule(new ModuleDefinition("testTrigger", "trigger"), new DeploymentMetadata("newTrigger", 0));
 		module.getProperties().put("cron", "*/15 * * * * *");
 		try {
-			plugin.processModule(module);
+			plugin.preProcessModule(module);
 		}
 		catch (IllegalArgumentException e) {
 			assertEquals("The 'commonApplicationContext' property must not be null.", e.getMessage());
@@ -87,7 +87,7 @@ public class TriggerPluginTests {
 		Module module = new SimpleModule(new ModuleDefinition("testTrigger", "trigger"), new DeploymentMetadata("newTrigger", 0));
 		module.getProperties().put("cron", "*/15 * * * * *");
 		assertEquals(1, module.getProperties().size());
-		plugin.processModule(module);
+		plugin.preProcessModule(module);
 
 		CronTrigger cronTrigger = commonContext.getBean(TriggerPlugin.BEAN_NAME_PREFIX + "newTrigger", CronTrigger.class);
 		assertEquals("*/15 * * * * *", cronTrigger.getExpression());
@@ -101,7 +101,7 @@ public class TriggerPluginTests {
 		Module module = new SimpleModule(new ModuleDefinition("testTrigger", "trigger"), new DeploymentMetadata("newTrigger", 0));
 		module.getProperties().put("fixedDelay", "60000");
 		assertEquals(1, module.getProperties().size());
-		plugin.processModule(module);
+		plugin.preProcessModule(module);
 
 		PeriodicTrigger fixedDelayTrigger = commonContext.getBean(TriggerPlugin.BEAN_NAME_PREFIX + "newTrigger", PeriodicTrigger.class);
 		assertNotNull(fixedDelayTrigger);
@@ -115,7 +115,7 @@ public class TriggerPluginTests {
 		Module module = new SimpleModule(new ModuleDefinition("testTrigger", "trigger"), new DeploymentMetadata("newTrigger", 0));
 		module.getProperties().put("fixedRate", "6000");
 		assertEquals(1, module.getProperties().size());
-		plugin.processModule(module);
+		plugin.preProcessModule(module);
 
 		PeriodicTrigger fixedDelayTrigger = commonContext.getBean(TriggerPlugin.BEAN_NAME_PREFIX + "newTrigger", PeriodicTrigger.class);
 		assertNotNull(fixedDelayTrigger);
@@ -129,7 +129,7 @@ public class TriggerPluginTests {
 		plugin.postProcessSharedContext(commonContext);
 
 		try {
-			plugin.processModule(module);
+			plugin.preProcessModule(module);
 		}
 		catch (ResourceDefinitionException e) {
 			assertEquals("No valid trigger property. Expected one of: " +
@@ -148,7 +148,7 @@ public class TriggerPluginTests {
 		module.getProperties().put("fixedRate", "6000");
 		assertEquals(2, module.getProperties().size());
 		try {
-			plugin.processModule(module);
+			plugin.preProcessModule(module);
 		}
 		catch (ResourceDefinitionException e) {
 			assertEquals("Only one trigger property allowed, but received: "

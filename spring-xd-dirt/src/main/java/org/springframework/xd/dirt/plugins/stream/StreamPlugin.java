@@ -74,4 +74,9 @@ public class StreamPlugin extends AbstractPlugin {
 		}
 	}
 
+	@Override
+	protected void postProcessModuleInternal(Module module) {
+		//TODO register channels
+	}
+
 }

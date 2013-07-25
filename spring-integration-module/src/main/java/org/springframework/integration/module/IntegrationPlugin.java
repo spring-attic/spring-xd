@@ -54,7 +54,7 @@ public class IntegrationPlugin  implements Plugin {
 	}
 
 	@Override
-	public void processModule(Module module) {
+	public void preProcessModule(Module module) {
 		//TODO: Check if module started?
 		Assert.notNull(module, "module cannot be null");
 		Assert.isAssignable(IntegrationModule.class, module.getClass());
@@ -66,6 +66,10 @@ public class IntegrationPlugin  implements Plugin {
 		for (Entry<String, SubscribableChannel> entry: integrationModule.getOutputChannels().entrySet()) {
 			channelRegistry.outbound(integrationModule.getName() + "." + entry.getKey(), entry.getValue());
 		}
+	}
+
+	@Override
+	public void postProcessModule(Module module) {
 	}
 
 	@Override

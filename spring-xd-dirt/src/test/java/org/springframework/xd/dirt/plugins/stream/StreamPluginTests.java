@@ -44,7 +44,7 @@ public class StreamPluginTests {
 	public void streamPropertiesAdded() {
 		Module module = new SimpleModule(new ModuleDefinition("testsource", "source"), new DeploymentMetadata("foo", 0));
 		assertEquals(0, module.getProperties().size());
-		plugin.processModule(module);
+		plugin.preProcessModule(module);
 		assertEquals(2, module.getProperties().size());
 		assertEquals("foo", module.getProperties().getProperty("xd.stream.name"));
 		assertEquals("0", module.getProperties().getProperty("xd.module.index"));
@@ -53,7 +53,7 @@ public class StreamPluginTests {
 	@Test
 	public void streamComponentsAdded() {
 		SimpleModule module = new SimpleModule(new ModuleDefinition("testsource", "source"), new DeploymentMetadata("mystream", 1));
-		plugin.processModule(module);
+		plugin.preProcessModule(module);
 		String[] moduleBeans = module.getApplicationContext().getBeanDefinitionNames();
 		assertEquals(1, moduleBeans.length);
 		assertTrue(moduleBeans[0].contains("ChannelRegistrar#"));
@@ -62,7 +62,7 @@ public class StreamPluginTests {
 	@Test
 	public void tapComponentsAdded() {
 		SimpleModule module = new SimpleModule(new ModuleDefinition("tap", "source"), new DeploymentMetadata("mystream", 1));
-		plugin.processModule(module);
+		plugin.preProcessModule(module);
 		String[] moduleBeans = module.getApplicationContext().getBeanDefinitionNames();
 		assertEquals(2, moduleBeans.length);
 		assertTrue(moduleBeans[0].contains("ChannelRegistrar#"));

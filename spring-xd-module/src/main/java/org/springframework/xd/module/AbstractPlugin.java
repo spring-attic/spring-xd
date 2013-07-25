@@ -42,14 +42,37 @@ public abstract class AbstractPlugin implements Plugin{
 	 * necessary to setup the Batch Job.
 	 **/
 	@Override
-	public void processModule(Module module) {
+	public final void preProcessModule(Module module) {
 		Assert.notNull(module, "module cannot be null");
 		List<String> componentPaths = componentPathsSelector(module);
 		for(String path: componentPaths) {
 			addComponents(module, path);
 			configureProperties(module);
 		}
+		this.preProcessModuleInternal(module);
 	}
+
+	/**
+	 * Perform any plugin-specific pre-refresh initialization.
+	 * @param module
+	 */
+	protected void preProcessModuleInternal(Module module) {
+	}
+
+
+
+	@Override
+	public final void postProcessModule(Module module) {
+		this.postProcessModuleInternal(module);
+	}
+
+	/**
+	 * Perform any plugin-specific post-refresh initialization.
+	 * @param module
+	 */
+	protected void postProcessModuleInternal(Module module) {
+	}
+
 	/**
 	 * Establish the configuration file path and names required to setup the context for the
 	 * type of module you are deploying.

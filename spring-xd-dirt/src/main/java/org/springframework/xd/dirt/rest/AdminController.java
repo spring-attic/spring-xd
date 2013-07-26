@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.EntityLinks;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.xd.rest.client.domain.JobDefinitionResource;
 import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
@@ -56,4 +57,15 @@ public class AdminController {
 		xdRuntime.add(entityLinks.linkFor(FieldValueCounterResource.class).withRel("field-value-counters"));
 		return xdRuntime;
 	}
+
+	/**
+	 * This RequestMapping exists to handle CORS requests only
+	 * Ensures that our custom HandlerInterceptor is called
+ 	 */
+	@ResponseBody
+    @RequestMapping(value="**", method=RequestMethod.OPTIONS)
+    public String options() {
+       return "OK";
+   }
+
 }

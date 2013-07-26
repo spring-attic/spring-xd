@@ -108,7 +108,12 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 		Context tomcatContext = this.tomcat.addContext(this.contextPath, new File(".").getAbsolutePath());
 		this.webApplicationContext.setServletContext(tomcatContext.getServletContext());
 		this.webApplicationContext.refresh();
-		Tomcat.addServlet(tomcatContext, this.servletName, new DispatcherServlet(this.webApplicationContext));
+		
+		// Options requests should be handled by StreamServer, not Tomcat
+		// in order to handle CORS requests
+		DispatcherServlet servlet = new DispatcherServlet(this.webApplicationContext);
+		servlet.setDispatchOptionsRequest(true);
+        Tomcat.addServlet(tomcatContext, this.servletName, servlet);
 		tomcatContext.addServletMapping("/", this.servletName);
 
 		FilterDef filterDef = new FilterDef();

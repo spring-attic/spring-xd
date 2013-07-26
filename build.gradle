@@ -86,6 +86,10 @@ configure(javaProjects()) { subproject ->
 		springDataGemfireVersion = '1.3.1.RELEASE'
 		lettuceVersion = '2.3.2'
 		springDataHadoopVersion = '1.0.1.RC1'
+		hadoop10Version = '1.0.4'
+		hadoop11Version = '1.1.2'
+		hadoop20Version = '2.0.5-alpha'
+		phd1Version = '2.0.2-alpha-gphd-2.0.1.0'
 		springHATEOASVersion = '0.7.0.RELEASE'
 		springPluginVersion = '0.8.0.RELEASE'
 		tomcatVersion = '7.0.35'
@@ -222,9 +226,11 @@ project('spring-xd-dirt') {
 				"org.springframework.integration:spring-integration-redis:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-syslog:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-mqtt:1.0.0.M1",
+				"org.springframework.batch:spring-batch-core:$springBatchVersion",
 				"org.springframework.data:spring-data-redis:$springDataRedisVersion",
-				"com.lambdaworks:lettuce:$lettuceVersion",
 				"org.springframework.social:spring-social-twitter:1.0.5.RELEASE",
+				"commons-lang:commons-lang:2.4",
+				"com.lambdaworks:lettuce:$lettuceVersion",
 				"args4j:args4j:$args4jVersion",
 				"com.eaio.uuid:uuid:3.2",
 				"org.jolokia:jolokia-spring:$jolokiaVersion",
@@ -438,6 +444,72 @@ project('spring-xd-hadoop') {
 	}
 }
 
+project('spring-xd-hadoop:hadoop10') {
+	description = 'Hadoop 1.0 dependencies'
+	dependencies {
+		runtime ("org.apache.hadoop:hadoop-core:$hadoop10Version")
+		runtime ("org.apache.hadoop:hadoop-streaming:$hadoop10Version")
+		runtime ("org.apache.hadoop:hadoop-tools:$hadoop10Version")
+	}
+	task copyToLib(dependsOn: build, type: Copy) {
+		into "$buildDir/lib"
+		from configurations.default
+		include 'hadoop-*'
+	}
+}
+
+project('spring-xd-hadoop:hadoop11') {
+	description = 'Hadoop 1.1 dependencies'
+	dependencies {
+		runtime ("org.apache.hadoop:hadoop-core:$hadoop11Version")
+		runtime ("org.apache.hadoop:hadoop-streaming:$hadoop11Version")
+		runtime ("org.apache.hadoop:hadoop-tools:$hadoop11Version")
+	}
+	task copyToLib(dependsOn: build, type: Copy) {
+		into "$buildDir/lib"
+		from configurations.default
+		include 'hadoop-*'
+	}
+}
+
+project('spring-xd-hadoop:hadoop20') {
+	description = 'Hadoop 2.0 dependencies'
+	dependencies {
+		runtime ("org.apache.hadoop:hadoop-common:$hadoop20Version")
+		runtime ("org.apache.hadoop:hadoop-distcp:$hadoop20Version")
+		runtime ("org.apache.hadoop:hadoop-hdfs:$hadoop20Version")
+		runtime ("org.apache.hadoop:hadoop-mapreduce-client-core:$hadoop20Version")
+		runtime ("org.apache.hadoop:hadoop-streaming:$hadoop20Version")
+		runtime ("org.apache.hadoop:hadoop-yarn-common:$hadoop20Version")
+	}
+	task copyToLib(dependsOn: build, type: Copy) {
+		into "$buildDir/lib"
+		from configurations.default
+		include 'hadoop-*'
+		include 'guava-*'
+		include 'protobuf-java-*'
+	}
+}
+
+project('spring-xd-hadoop:phd1') {
+	description = 'Pivotal HD 1.0 dependencies'
+	dependencies {
+		runtime ("org.apache.hadoop:hadoop-common:$phd1Version")
+		runtime ("org.apache.hadoop:hadoop-distcp:$phd1Version")
+		runtime ("org.apache.hadoop:hadoop-hdfs:$phd1Version")
+		runtime ("org.apache.hadoop:hadoop-mapreduce-client-core:$phd1Version")
+		runtime ("org.apache.hadoop:hadoop-streaming:$phd1Version")
+		runtime ("org.apache.hadoop:hadoop-yarn-common:$phd1Version")
+	}
+	task copyToLib(dependsOn: build, type: Copy) {
+		into "$buildDir/lib"
+		from configurations.default
+		include 'hadoop-*'
+		include 'guava-*'
+		include 'protobuf-java-*'
+	}
+}
+
 project('spring-xd-jdbc') {
 	description = 'Spring XD JDBC'
 	dependencies {
@@ -557,6 +629,16 @@ task copyGemfireInstall(type: Copy, dependsOn: ":spring-xd-gemfire-server:instal
 task copyXDInstall(type: Copy, dependsOn: [":spring-xd-dirt:build", ":spring-xd-dirt:installApp"]) {
 	from "$rootDir/spring-xd-dirt/build/install/spring-xd-dirt"
 	into "$buildDir/dist/spring-xd/xd"
+	exclude "**/lib/hadoop-*.jar"
+}
+
+task copyHadoopLibs(dependsOn: [":spring-xd-hadoop:hadoop10:copyToLib", ":spring-xd-hadoop:hadoop11:copyToLib", ":spring-xd-hadoop:hadoop20:copyToLib", ":spring-xd-hadoop:phd1:copyToLib"]) << {
+	['hadoop10', 'hadoop11', 'hadoop20', 'phd1'].each { distro ->
+		copy {
+			from "$rootDir/spring-xd-hadoop/$distro/build/lib"
+			into "$buildDir/dist/spring-xd/xd/lib/$distro"
+		}
+	}
 }
 
 task copyXDShellInstall(type: Copy, dependsOn: [":spring-xd-shell:installApp"]) {
@@ -569,7 +651,7 @@ task cleanDist(type: Delete) {
 	delete "$buildDir/dist"
 }
 
-task distXD (type: Copy, dependsOn: ["cleanDist", "copyRedisInstall", "copyGemfireInstall", "copyXDInstall", "copyXDShellInstall"]) {
+task distXD (type: Copy, dependsOn: ["cleanDist", "copyRedisInstall", "copyGemfireInstall", "copyXDInstall", "copyHadoopLibs", "copyXDShellInstall"]) {
 	description = "Copy all the required installs"
 	from "$rootDir/scripts/README"
 	from "$rootDir/scripts/LICENSE"

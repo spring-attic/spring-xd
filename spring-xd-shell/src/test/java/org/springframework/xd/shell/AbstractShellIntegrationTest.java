@@ -30,29 +30,34 @@ import org.springframework.xd.dirt.stream.StreamServer;
 
 /**
  * Superclass for performing integration tests of spring-xd shell commands.
- *
- * JUnit's BeforeClass and AfterClass annotations are used to start and stop the XDAdminServer
- * in local mode with the default store configured to use in-memory storage.
- *
- * Note: This isn't ideal as it takes significant time to startup the embedded XDContainer/tomcat and we should do this
- * once across all tests.
- *
+ * 
+ * JUnit's BeforeClass and AfterClass annotations are used to start and stop the
+ * XDAdminServer in local mode with the default store configured to use
+ * in-memory storage.
+ * 
+ * Note: This isn't ideal as it takes significant time to startup the embedded
+ * XDContainer/tomcat and we should do this once across all tests.
+ * 
  * @author Mark Pollack
  * @author Kashyap Parikh
- *
+ * 
  */
 public abstract class AbstractShellIntegrationTest {
 
-	private static final Log logger = LogFactory.getLog(AbstractShellIntegrationTest.class);
+	private static final Log logger = LogFactory
+			.getLog(AbstractShellIntegrationTest.class);
 
 	private static StreamServer server;
 	private static JLineShellComponent shell;
 
 	@BeforeClass
 	public static void startUp() throws InterruptedException, IOException {
-		AdminOptions opts = AdminMain.parseOptions(new String[] {"--httpPort", "0", "--transport", "local", "--store", "memory", "--disableJmx", "true", "--analytics", "memory"});
+		AdminOptions opts = AdminMain.parseOptions(new String[] { "--httpPort",
+				"0", "--transport", "local", "--store", "memory",
+				"--disableJmx", "true", "--analytics", "memory" });
 		server = AdminMain.launchStreamServer(opts);
-		Bootstrap bootstrap = new Bootstrap(new String[] { "--port", Integer.toString(server.getLocalPort()) });
+		Bootstrap bootstrap = new Bootstrap(new String[] { "--port",
+				Integer.toString(server.getLocalPort()) });
 		shell = bootstrap.getJLineShellComponent();
 	}
 

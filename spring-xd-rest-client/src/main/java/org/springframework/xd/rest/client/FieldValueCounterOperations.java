@@ -14,40 +14,27 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.rest.client.domain.metrics;
+package org.springframework.xd.rest.client;
 
-import javax.xml.bind.annotation.XmlRootElement;
+import org.springframework.hateoas.PagedResources;
+import org.springframework.xd.rest.client.domain.metrics.FieldValueCounterResource;
+import org.springframework.xd.rest.client.domain.metrics.MetricResource;
 
 /**
- * The REST representation of a Counter.
+ * Interface defining operations available when dealing with Field Value Counters.
  * 
  * @author Eric Bottard
  */
-@XmlRootElement
-public class CounterResource extends MetricResource {
+public interface FieldValueCounterOperations {
 
 	/**
-	 * The value for the counter.
+	 * Retrieve information about the given named field value counter.
 	 */
-	private long value;
+	FieldValueCounterResource retrieve(String name);
 
 	/**
-	 * No-arg constructor for serialization frameworks.
+	 * Retrieve basic information (i.e. names) for existing field value counters.
 	 */
-	protected CounterResource() {
-
-	}
-
-	public CounterResource(String name, long value) {
-		super(name);
-		this.value = value;
-	}
-
-	/**
-	 * Return the value for the counter.
-	 */
-	public long getValue() {
-		return value;
-	}
+	PagedResources<MetricResource> list(/* TODO */);
 
 }

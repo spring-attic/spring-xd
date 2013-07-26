@@ -5,4 +5,5 @@
 
 	<bean id="counterRepository" class="org.springframework.xd.analytics.metrics.memory.InMemoryCounterRepository" />
 
+	<bean id="fieldValueCounterRepository" class="org.springframework.xd.analytics.metrics.memory.InMemoryFieldValueCounterRepository" />
 </beans>

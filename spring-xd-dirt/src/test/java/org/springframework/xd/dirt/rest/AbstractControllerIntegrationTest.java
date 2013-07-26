@@ -16,8 +16,6 @@
 
 package org.springframework.xd.dirt.rest;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-
 import org.junit.Before;
 import org.mockito.Mockito;
 import org.mockito.internal.util.MockUtil;
@@ -27,6 +25,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+import org.springframework.xd.analytics.metrics.core.CounterRepository;
+import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobDeployer;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
@@ -36,10 +36,12 @@ import org.springframework.xd.dirt.stream.TapDeployer;
 import org.springframework.xd.dirt.stream.TriggerDefinitionRepository;
 import org.springframework.xd.dirt.stream.TriggerDeployer;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+
 /**
- * Base class for Controller layer tests. Takes care of resetting the mocked (be them mockito mocks or <i>e.g.</i> in
- * memory) dependencies before each test.
- *
+ * Base class for Controller layer tests. Takes care of resetting the mocked (be them
+ * mockito mocks or <i>e.g.</i> in memory) dependencies before each test.
+ * 
  * @author Eric Bottard
  */
 public class AbstractControllerIntegrationTest {
@@ -53,10 +55,11 @@ public class AbstractControllerIntegrationTest {
 
 	@Before
 	public void setupMockMVC() {
-		this.mockMvc = MockMvcBuilders.webAppContextSetup(wac)
-				.defaultRequest(get("/").accept(MediaType.APPLICATION_JSON)).build();
+		this.mockMvc = MockMvcBuilders.webAppContextSetup(wac).defaultRequest(
+				get("/").accept(MediaType.APPLICATION_JSON)).build();
 	}
 
+	// Deployers
 	@Autowired
 	protected StreamDeployer streamDeployer;
 
@@ -69,6 +72,7 @@ public class AbstractControllerIntegrationTest {
 	@Autowired
 	protected JobDeployer jobDeployer;
 
+	// Definition Repositories
 	@Autowired
 	protected StreamDefinitionRepository streamDefinitionRepository;
 
@@ -81,20 +85,32 @@ public class AbstractControllerIntegrationTest {
 	@Autowired
 	protected JobDefinitionRepository jobDefinitionRepository;
 
+	// Analytics repositories
+	@Autowired
+	protected CounterRepository counterRepository;
+
+	@Autowired
+	protected FieldValueCounterRepository fieldValueCounterRepository;
+
 	@Before
 	public void resetDependencies() {
 		maybeReset(streamDeployer);
 		maybeReset(tapDeployer);
 		maybeReset(triggerDeployer);
 		maybeReset(jobDeployer);
+
 		resetOrDelete(streamDefinitionRepository);
 		resetOrDelete(tapDefinitionRepository);
 		resetOrDelete(triggerDefinitionRepository);
 		resetOrDelete(jobDefinitionRepository);
+
+		resetOrDelete(counterRepository);
+		resetOrDelete(fieldValueCounterRepository);
 	}
 
 	/**
-	 * Conditional resetting in case the dependency has been overridden and is not actually a mock.
+	 * Conditional resetting in case the dependency has been overridden and is not
+	 * actually a mock.
 	 */
 	private void maybeReset(Object o) {
 		if (mockUtil.isMock(o)) {

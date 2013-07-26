@@ -37,11 +37,7 @@
 
 	<int-rabbit:outbound-channel-adapter channel="containerEventsOut" exchange-name="xd.events.containers" amqp-template="rabbitTemplate"/>
 
-	<int-rabbit:inbound-channel-adapter channel="input" queue-names="xd.deployer" connection-factory="rabbitConnectionFactory"/>
-
-	<rabbit:listener-container>
-		<rabbit:listener queues="undeployerQueue" ref="handler" method="undeploy" />
-	</rabbit:listener-container>
+	<int-rabbit:inbound-channel-adapter channel="input" queue-names="xd.deployer,#{undeployerQueue.name}" connection-factory="rabbitConnectionFactory"/>
 
 	<bean class="org.springframework.xd.dirt.listener.RabbitContainerEventListener">
 		<constructor-arg ref="rabbitConnectionFactory" />

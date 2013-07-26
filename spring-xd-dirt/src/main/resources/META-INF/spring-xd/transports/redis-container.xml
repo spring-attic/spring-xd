@@ -26,9 +26,7 @@
 		<property name="extractPayload" value="false" />
 	</bean>
 
-	<redis:listener-container>
-		<redis:listener topic="topic.undeployer" ref="handler" method="undeploy" />
-	</redis:listener-container>
+	<int-redis:inbound-channel-adapter topics="topic.undeployer" channel="input"/>
 
 	<bean class="org.springframework.xd.dirt.listener.RedisContainerEventListener">
 		<constructor-arg ref="redisConnectionFactory" />

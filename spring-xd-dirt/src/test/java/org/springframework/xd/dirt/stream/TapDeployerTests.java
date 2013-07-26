@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -20,9 +20,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.xd.dirt.stream.memory.InMemoryStreamDefinitionRepository;
@@ -32,7 +34,6 @@ import org.springframework.xd.dirt.stream.memory.InMemoryTapInstanceRepository;
 /**
  * @author David Turanski
  * @author Gunnar Hillert
- *
  */
 public class TapDeployerTests {
 
@@ -42,7 +43,9 @@ public class TapDeployerTests {
 
 	private StreamDefinitionRepository streamRepository;
 
-	private SubscribableChannel outputChannel;
+	private SubscribableChannel deployChannel;
+
+	private SubscribableChannel undeployChannel;
 
 	private DeploymentMessageSender sender;
 
@@ -53,8 +56,9 @@ public class TapDeployerTests {
 		repository = new InMemoryTapDefinitionRepository();
 		tapInstanceRepository = new InMemoryTapInstanceRepository();
 		streamRepository = new InMemoryStreamDefinitionRepository();
-		outputChannel = new DirectChannel();
-		sender = new DeploymentMessageSender(outputChannel);
+		deployChannel = new DirectChannel();
+		undeployChannel = new PublishSubscribeChannel();
+		sender = new DeploymentMessageSender(deployChannel, undeployChannel);
 		tapDeployer = new TapDeployer(repository, streamRepository, sender, tapInstanceRepository);
 	}
 
@@ -77,15 +81,38 @@ public class TapDeployerTests {
 		TapDefinition tapDefinition = new TapDefinition("tap1", "test", "tap @test | file");
 		repository.save(tapDefinition);
 		final AtomicInteger messageCount = new AtomicInteger();
-		outputChannel.subscribe(new MessageHandler() {
+		deployChannel.subscribe(new MessageHandler() {
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
 				messageCount.getAndIncrement();
 			}
 		});
-
 		tapDeployer.deploy("tap1");
 		assertEquals(2, messageCount.get());
+	}
+
+	@Test
+	public void testUndeploySucceeds() {
+		TapDefinition tapDefinition = new TapDefinition("tap1", "test", "tap @test | file");
+		repository.save(tapDefinition);
+		final AtomicInteger deployCount = new AtomicInteger();
+		final AtomicInteger undeployCount = new AtomicInteger();
+		deployChannel.subscribe(new MessageHandler() {
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				deployCount.getAndIncrement();
+			}
+		});
+		undeployChannel.subscribe(new MessageHandler() {
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				undeployCount.getAndIncrement();
+			}
+		});
+		tapDeployer.deploy("tap1");
+		tapDeployer.undeploy("tap1");
+		assertEquals(2, deployCount.get());
+		assertEquals(2, undeployCount.get());
 	}
 
 	@Test(expected = NoSuchDefinitionException.class)

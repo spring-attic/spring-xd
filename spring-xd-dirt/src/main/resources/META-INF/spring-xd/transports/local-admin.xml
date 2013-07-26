@@ -13,4 +13,7 @@
 	<!-- Pipe the deployment messages directly to the container input -->
 
 	<int:bridge input-channel="deployChannel" output-channel="input"/>
+
+	<int:bridge input-channel="undeployChannel" output-channel="input"/>
+
 </beans>

@@ -21,7 +21,6 @@ import java.text.NumberFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.shell.core.CommandMarker;
-import org.springframework.shell.core.Shell;
 import org.springframework.shell.core.annotation.CliAvailabilityIndicator;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
@@ -50,9 +49,6 @@ public class CounterCommands extends AbstractMetricsCommands implements CommandM
 	private static final String LIST_COUNTERS = "counter list";
 
 	private static final String RESET_COUNTER = "counter reset";
-
-	@Autowired
-	private Shell shell;
 
 	@Autowired
 	private XDShell xdShell;

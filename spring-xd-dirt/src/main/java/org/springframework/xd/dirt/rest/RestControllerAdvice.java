@@ -54,8 +54,7 @@ public class RestControllerAdvice {
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	@ResponseBody
-	public VndErrors onMissingServletRequestParameterException(
-			MissingServletRequestParameterException e) {
+	public VndErrors onMissingServletRequestParameterException(MissingServletRequestParameterException e) {
 		String logref = log(e);
 		return new VndErrors(logref, e.getMessage());
 	}
@@ -68,8 +67,7 @@ public class RestControllerAdvice {
 	@ResponseBody
 	public VndErrors onException(Exception e) {
 		String logref = log(e);
-		String msg = StringUtils.hasText(e.getMessage()) ? e.getMessage()
-				: e.getClass().getSimpleName();
+		String msg = StringUtils.hasText(e.getMessage()) ? e.getMessage() : e.getClass().getSimpleName();
 		return new VndErrors(logref, msg);
 	}
 
@@ -94,22 +92,20 @@ public class RestControllerAdvice {
 		String logref = log(e);
 		return new VndErrors(logref, e.getMessage());
 	}
-	
+
 	/**
 	 * Handles the case where client referenced an entity that already exists.
 	 */
 	@ResponseBody
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
-	public VndErrors onMissingRequiredDefinitionException(
-			MissingRequiredDefinitionException e) {
+	public VndErrors onMissingRequiredDefinitionException(MissingRequiredDefinitionException e) {
 		String logref = log(e);
 		return new VndErrors(logref, e.getMessage());
 	}
 
 	/**
-	 * Handles the case where client tried to deploy something that is already
-	 * deployed.
+	 * Handles the case where client tried to deploy something that is already deployed.
 	 */
 	@ResponseBody
 	@ExceptionHandler
@@ -128,7 +124,7 @@ public class RestControllerAdvice {
 	}
 
 	private String log(Throwable t) {
-		logger.error("Caught excpetion while handling a request", t);
+		logger.error("Caught exception while handling a request", t);
 		// TODO: use a more semantically correct VndError 'logref'
 		return t.getClass().getSimpleName();
 	}

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.analytics.metrics.integration;
 
 import java.util.Arrays;
@@ -29,32 +30,33 @@ import org.springframework.integration.transformer.MessageTransformationExceptio
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.xd.analytics.metrics.core.FieldValueCounterService;
+import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository;
 import org.springframework.xd.tuple.Tuple;
 import org.springframework.xd.tuple.integration.JsonToTupleTransformer;
 
 /**
- * Counts the occurrence of values for a set of JavaBean properties or Tuple fields using a FieldValueCounterService.
- * Assumes a String payload is JSON and will convert it to a Tuple.
- *
+ * Counts the occurrence of values for a set of JavaBean properties or Tuple fields using
+ * a FieldValueCounterService. Assumes a String payload is JSON and will convert it to a
+ * Tuple.
+ * 
  * @author Mark Pollack
  * @author David Turanski
  * @author Mark Fisher
  */
 public class FieldValueCounterHandler {
 
-	private final FieldValueCounterService fieldValueCounterService;
+	private final FieldValueCounterRepository fieldValueCounterRepository;
 
 	private final Map<String, String> fieldNameToCounterNameMap;
 
 	private final JsonToTupleTransformer jsonToTupleTransformer;
 
-	public FieldValueCounterHandler(FieldValueCounterService fieldValueCounterService, String counterName,
+	public FieldValueCounterHandler(FieldValueCounterRepository fieldValueCounterRepository, String counterName,
 			String fieldName) {
-		Assert.notNull(fieldValueCounterService, "FieldValueCounterService can not be null");
+		Assert.notNull(fieldValueCounterRepository, "FieldValueCounterRepository can not be null");
 		Assert.notNull(counterName, "counter Name can not be null");
 		Assert.hasText(fieldName, "Field name can not be null or empty string");
-		this.fieldValueCounterService = fieldValueCounterService;
+		this.fieldValueCounterRepository = fieldValueCounterRepository;
 		this.fieldNameToCounterNameMap = new HashMap<String, String>();
 		fieldNameToCounterNameMap.put(fieldName, counterName);
 		this.jsonToTupleTransformer = new JsonToTupleTransformer();
@@ -67,13 +69,15 @@ public class FieldValueCounterHandler {
 		if (payload instanceof String) {
 			try {
 				payload = jsonToTupleTransformer.transformPayload(payload.toString());
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				throw new MessageTransformationException(message, e);
 			}
 		}
 		if (payload instanceof Tuple) {
 			processTuple((Tuple) payload);
-		} else {
+		}
+		else {
 			processPojo(payload);
 		}
 		return message;
@@ -115,7 +119,7 @@ public class FieldValueCounterHandler {
 			}
 		}
 		else if (value instanceof Map) {
-			result = ((Map<?,?>) value).get(key);
+			result = ((Map<?, ?>) value).get(key);
 		}
 		if (result != null) {
 			if (path.length == 1) {
@@ -130,14 +134,15 @@ public class FieldValueCounterHandler {
 
 	protected void processValue(String counterName, Object value) {
 		if ((value instanceof Collection) || ObjectUtils.isArray(value)) {
-			Collection<?> c = (value instanceof Collection) ? (Collection<?>) value : Arrays.asList(ObjectUtils
-					.toObjectArray(value));
+			Collection<?> c = (value instanceof Collection) ? (Collection<?>) value
+					: Arrays.asList(ObjectUtils.toObjectArray(value));
 			for (Object val : c) {
-				//TODO better conversion to a string
-				fieldValueCounterService.increment(counterName, val.toString());
+				// TODO better conversion to a string
+				fieldValueCounterRepository.increment(counterName, val.toString());
 			}
-		} else {
-			fieldValueCounterService.increment(counterName, value.toString());
+		}
+		else {
+			fieldValueCounterRepository.increment(counterName, value.toString());
 		}
 	}
 }

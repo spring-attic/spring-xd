@@ -19,6 +19,7 @@ package org.springframework.xd.rest.client.impl;
 import java.net.URI;
 
 import org.springframework.xd.rest.client.CounterOperations;
+import org.springframework.xd.rest.client.FieldValueCounterOperations;
 import org.springframework.xd.rest.client.JobOperations;
 import org.springframework.xd.rest.client.SpringXDOperations;
 import org.springframework.xd.rest.client.StreamOperations;
@@ -58,6 +59,11 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 	 */
 	private CounterOperations counterOperations;
 
+	/**
+	 * Holds the Field Valie Counter related part of the API.
+	 */
+	private FieldValueCounterOperations fvcOperations;
+
 	public SpringXDTemplate(URI baseURI) {
 		XDRuntime xdRuntime = restTemplate.getForObject(baseURI, XDRuntime.class);
 		resources.put("streams", URI.create(xdRuntime.getLink("streams").getHref()));
@@ -66,12 +72,14 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 		resources.put("jobs", URI.create(xdRuntime.getLink("jobs").getHref()));
 
 		resources.put("counters", URI.create(xdRuntime.getLink("counters").getHref()));
+		resources.put("field-value-counters", URI.create(xdRuntime.getLink("field-value-counters").getHref()));
 
 		streamOperations = new StreamTemplate(this);
 		tapOperations = new TapTemplate(this);
 		jobOperations = new JobTemplate(this);
 		triggerOperations = new TriggerTemplate(this);
 		counterOperations = new CounterTemplate(this);
+		fvcOperations = new FieldValueCounterTemplate(this);
 	}
 
 	@Override
@@ -97,5 +105,10 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 	@Override
 	public CounterOperations counterOperations() {
 		return counterOperations;
+	}
+
+	@Override
+	public FieldValueCounterOperations fvcOperations() {
+		return fvcOperations;
 	}
 }

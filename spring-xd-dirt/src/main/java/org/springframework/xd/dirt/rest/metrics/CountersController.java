@@ -40,8 +40,7 @@ import org.springframework.xd.rest.client.domain.metrics.MetricResource;
 @Controller
 @RequestMapping("/metrics/counters")
 @ExposesResourceFor(CounterResource.class)
-public class CountersController extends
-		AbstractMetricsController<CounterRepository, Counter> {
+public class CountersController extends AbstractMetricsController<CounterRepository, Counter> {
 
 	private final DeepCounterResourceAssembler counterResourceAssembler = new DeepCounterResourceAssembler();
 
@@ -50,14 +49,19 @@ public class CountersController extends
 		super(repository);
 	}
 
+	/**
+	 * List Counters that match the given criteria.
+	 */
 	@Override
 	@ResponseBody
 	@RequestMapping(value = "", method = RequestMethod.GET)
-	public PagedResources<MetricResource> list(Pageable pageable,
-			PagedResourcesAssembler<Counter> pagedAssembler) {
+	public PagedResources<MetricResource> list(Pageable pageable, PagedResourcesAssembler<Counter> pagedAssembler) {
 		return super.list(pageable, pagedAssembler);
 	}
 
+	/**
+	 * Retrieve information about a specific counter.
+	 */
 	@ResponseBody
 	@RequestMapping(value = "/{name}", method = RequestMethod.GET)
 	public CounterResource display(@PathVariable("name") String name) {

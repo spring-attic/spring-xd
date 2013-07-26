@@ -30,7 +30,6 @@ import org.springframework.xd.shell.util.Table;
  * 
  * @author Mark Pollack
  * @author Kashyap Parikh
- * 
  */
 public class StreamCommandTests extends AbstractShellIntegrationTest {
 

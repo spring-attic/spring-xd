@@ -16,9 +16,19 @@
 
 package org.springframework.xd.dirt.server.options;
 
+import org.kohsuke.args4j.Option;
+
 /**
  * A class the defines the options that will be parsed on the container command line.
  */
 public class ContainerOptions extends AbstractOptions {
+
+	@Option(name = "--jmxPort", usage = "The JMX port for the container", metaVar = "<jmxPort>")
+	private int jmxPort = 8779;
+
+	@Override
+	public int getJmxPort() {
+		return this.jmxPort;
+	}
 
 }

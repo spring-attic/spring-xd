@@ -30,6 +30,9 @@ public class AdminOptions extends AbstractOptions {
 	@Option(name = "--store", usage = "How to persist admin data (default: redis)")
 	private Store store = Store.redis;
 
+	@Option(name = "--jmxPort", usage = "The JMX port for the admin", metaVar = "<jmxPort>")
+	private int jmxPort = 8778;
+
 	/**
 	 * @return http port
 	 */
@@ -43,6 +46,11 @@ public class AdminOptions extends AbstractOptions {
 
 	public static void setXDStore(Store store) {
 		System.setProperty("xd.store", store.name());
+	}
+
+	@Override
+	public int getJmxPort() {
+		return this.jmxPort;
 	}
 
 }

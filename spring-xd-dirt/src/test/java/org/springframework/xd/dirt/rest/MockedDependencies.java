@@ -20,6 +20,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.xd.analytics.metrics.core.CounterRepository;
 import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository;
+import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobDeployer;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
@@ -90,5 +91,9 @@ public class MockedDependencies {
 	@Bean
 	public FieldValueCounterRepository fieldValueCounterRepository() {
 		return mock(FieldValueCounterRepository.class);
+	}
+
+	@Bean GaugeRepository gaugeRepository() {
+		return mock(GaugeRepository.class);
 	}
 }

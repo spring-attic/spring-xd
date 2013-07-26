@@ -27,7 +27,6 @@ import org.springframework.xd.analytics.metrics.redis.RedisAggregateCounterServi
 import org.springframework.xd.analytics.metrics.redis.RedisCounterRepository;
 import org.springframework.xd.analytics.metrics.redis.RedisFieldValueCounterRepository;
 import org.springframework.xd.analytics.metrics.redis.RedisGaugeRepository;
-import org.springframework.xd.analytics.metrics.redis.RedisGaugeService;
 import org.springframework.xd.analytics.metrics.redis.RedisRichGaugeRepository;
 import org.springframework.xd.analytics.metrics.redis.RedisRichGaugeService;
 
@@ -67,11 +66,6 @@ public class RedisRepositoriesConfig {
 	 * @deprecated to be removed as part of XD-330,XD-331,XD-332
 	 */
 	@Deprecated
-	@Bean
-	public RedisGaugeService redisGaugeService() {
-		return new RedisGaugeService(redisGaugeRepository());
-	}
-
 	@Bean
 	public RedisGaugeRepository redisGaugeRepository() {
 		return new RedisGaugeRepository(redisConnectionFactory());

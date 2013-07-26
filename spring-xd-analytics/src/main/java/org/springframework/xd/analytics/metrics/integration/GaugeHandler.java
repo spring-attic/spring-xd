@@ -19,7 +19,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.util.Assert;
-import org.springframework.xd.analytics.metrics.core.GaugeService;
+import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 
 /**
  * @author David Turanski
@@ -27,22 +27,21 @@ import org.springframework.xd.analytics.metrics.core.GaugeService;
  *
  */
 public class GaugeHandler {
-	private final GaugeService gaugeService;
+	private final GaugeRepository gaugeRepository;
 	private final String name;
 
-	public GaugeHandler(GaugeService gaugeService, String name) {
-		Assert.notNull(gaugeService, "Gauge Service can not be null");
+	public GaugeHandler(GaugeRepository gaugeRepository, String name) {
+		Assert.notNull(gaugeRepository, "Gauge Repository can not be null");
 		Assert.notNull(name, "Gauge Name can not be null");
-		this.gaugeService = gaugeService;
+		this.gaugeRepository = gaugeRepository;
 		this.name = name;
-		this.gaugeService.getOrCreate(name);
 	}
 
 	@ServiceActivator
 	public void process(Message<?> message) {
 		if (message != null) {
 			long value = convertToLong(message.getPayload());
-			this.gaugeService.setValue(name, value);
+			this.gaugeRepository.setValue(name, value);
 		}
 	}
 

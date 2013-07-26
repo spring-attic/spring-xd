@@ -76,6 +76,10 @@ if exist "%APP_HOME_LIB%" (
     setLocal EnableDelayedExpansion
     set CLASSPATH=%APP_HOME%\modules\processor\scripts;%APP_HOME%\config
     set CLASSPATH=!CLASSPATH!;%APP_HOME_LIB%\*
+    set HADOOP_LIB=%APP_HOME%\lib\hadoop10
+    if exist "%HADOOP_LIB%" (
+        set CLASSPATH=!CLASSPATH!;%HADOOP_LIB%\*
+    )
 )
 
 @rem Set XD_HOME to APP_HOME if XD_HOME is not defined yet

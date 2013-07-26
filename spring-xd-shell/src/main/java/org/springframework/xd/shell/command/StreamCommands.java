@@ -29,7 +29,6 @@ import org.springframework.xd.shell.XDShell;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableHeader;
 import org.springframework.xd.shell.util.TableRow;
-import org.springframework.xd.shell.util.UiUtils;
 
 @Component
 public class StreamCommands implements CommandMarker {
@@ -54,36 +53,30 @@ public class StreamCommands implements CommandMarker {
 
 	@CliCommand(value = CREATE_STREAM, help = "Create a new stream definition")
 	public String createStream(
-			@CliOption(mandatory = true, key = { "", "name" }, help = "the name to give to the stream")
-			String name,
-			@CliOption(mandatory = true, key = { "definition" }, help = "a stream definition, using XD DSL (e.g. \"http --port=9000 | hdfs\")")
-			String dsl,
-			@CliOption(key = "deploy", help = "whether to deploy the stream immediately", unspecifiedDefaultValue = "true")
-			boolean deploy) {
+			@CliOption(mandatory = true, key = { "", "name" }, help = "the name to give to the stream") String name,
+			@CliOption(mandatory = true, key = { "definition" }, help = "a stream definition, using XD DSL (e.g. \"http --port=9000 | hdfs\")") String dsl,
+			@CliOption(key = "deploy", help = "whether to deploy the stream immediately", unspecifiedDefaultValue = "true") boolean deploy) {
 		streamOperations().createStream(name, dsl, deploy);
 		return String.format("Created new stream '%s'", name);
 	}
 
 	@CliCommand(value = DESTROY_STREAM, help = "Destroy an existing stream")
 	public String destroyStream(//
-			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the stream to destroy")
-			String name) {
+			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the stream to destroy") String name) {
 		streamOperations().destroyStream(name);
 		return String.format("Destroyed stream '%s'", name);
 	}
 
 	@CliCommand(value = DEPLOY_STREAM, help = "Deploy a previously created stream")
 	public String deployStream(
-			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the stream to deploy")
-			String name) {
+			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the stream to deploy") String name) {
 		streamOperations().deployStream(name);
 		return String.format("Deployed stream '%s'", name);
 	}
 
 	@CliCommand(value = UNDEPLOY_STREAM, help = "Un-deploy a previously deployed stream")
 	public String undeployStream(
-			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the stream to un-deploy")
-			String name) {
+			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the stream to un-deploy") String name) {
 		streamOperations().undeployStream(name);
 		return String.format("Un-deployed stream '%s'", name);
 	}
@@ -97,9 +90,8 @@ public class StreamCommands implements CommandMarker {
 		table.addHeader(1, new TableHeader("Stream Name")).addHeader(2, new TableHeader("Stream Definition"));
 
 		for (StreamDefinitionResource stream : streams) {
-			final TableRow row = new TableRow();
+			final TableRow row = table.newRow();
 			row.addValue(1, stream.getName()).addValue(2, stream.getDefinition());
-			table.getRows().add(row);
 		}
 
 		return table;

@@ -14,37 +14,27 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.rest.client.domain.metrics;
+package org.springframework.xd.rest.client;
+
+import org.springframework.hateoas.PagedResources;
+import org.springframework.xd.rest.client.domain.metrics.CounterResource;
+import org.springframework.xd.rest.client.domain.metrics.MetricResource;
 
 /**
- * The REST representation of a Counter.
+ * Interface defining operations available when dealing with Counters.
  * 
  * @author Eric Bottard
  */
-public class CounterResource extends MetricResource {
+public interface CounterOperations {
 
 	/**
-	 * The value for the counter.
+	 * Retrieve information about the given named counter.
 	 */
-	private long value;
+	CounterResource retrieve(String name);
 
 	/**
-	 * No-arg constructor for serialization frameworks.
+	 * Retrieve basic information (i.e. names) for existing counters.
 	 */
-	protected CounterResource() {
-
-	}
-
-	public CounterResource(String name, long value) {
-		super(name);
-		this.value = value;
-	}
-
-	/**
-	 * Return the value for the counter.
-	 */
-	public long getValue() {
-		return value;
-	}
+	PagedResources<MetricResource> list(/* TODO */);
 
 }

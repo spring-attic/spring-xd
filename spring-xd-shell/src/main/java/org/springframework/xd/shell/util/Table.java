@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.shell.util;
 
 import java.util.ArrayList;
@@ -21,18 +22,19 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * Provide a basic concept of a table structure containing a map of column headers
- * and a collection of rows. Used to render text-based tables (console output).
- *
+ * Provide a basic concept of a table structure containing a map of column headers and a
+ * collection of rows. Used to render text-based tables (console output).
+ * 
  * @see UiUtils
- *
+ * 
  * @author Gunnar Hillert
  * @since 1.0
- *
+ * 
  */
 public class Table {
 
 	private final Map<Integer, TableHeader> headers = new TreeMap<Integer, TableHeader>();
+
 	private volatile List<TableRow> rows = new ArrayList<TableRow>(0);
 
 	public List<TableRow> getRows() {
@@ -51,7 +53,18 @@ public class Table {
 		this.headers.put(columnIndex, tableHeader);
 		return this;
 	}
-	
+
+	/**
+	 * Add a new empty row to the table.
+	 * 
+	 * @return the newly created row, which can be then be populated
+	 */
+	public TableRow newRow() {
+		TableRow row = new TableRow();
+		rows.add(row);
+		return row;
+	}
+
 	@Override
 	public String toString() {
 		return UiUtils.renderTextTable(this);

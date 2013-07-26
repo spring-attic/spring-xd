@@ -32,12 +32,8 @@ import java.util.regex.Pattern;
 
 import org.junit.Test;
 import org.springframework.beans.factory.BeanFactoryUtils;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.shell.Bootstrap;
 import org.springframework.shell.CommandLine;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliCommand;
@@ -46,6 +42,7 @@ import org.springframework.util.ReflectionUtils;
 import org.springframework.util.ReflectionUtils.MethodCallback;
 import org.springframework.util.ReflectionUtils.MethodFilter;
 import org.springframework.xd.shell.XDShell;
+import org.springframework.xd.shell.command.CounterCommands;
 import org.springframework.xd.shell.command.HttpCommands;
 import org.springframework.xd.shell.command.JobCommands;
 import org.springframework.xd.shell.command.StreamCommands;
@@ -55,8 +52,9 @@ import org.springframework.xd.shell.hadoop.ConfigurationCommands;
 import org.springframework.xd.shell.hadoop.FsShellCommands;
 
 /**
- * A quick and dirty tool to collect command help() text and generate an asciidoc page. Also enforces some constraints
- * on commands. Can be run as a unit test to enforce constraints only.
+ * A quick and dirty tool to collect command help() text and generate an asciidoc page.
+ * Also enforces some constraints on commands. Can be run as a unit test to enforce
+ * constraints only.
  * 
  * @author Eric Bottard
  * 
@@ -72,13 +70,15 @@ public class ReferenceDoc {
 	private final static Pattern OPTION_HELP = Pattern.compile("[a-z].+");
 
 	/**
-	 * A mapping from class to Title in the doc. Insertion order will become rendering order.
+	 * A mapping from class to Title in the doc. Insertion order will become rendering
+	 * order.
 	 */
 	private Map<Class<? extends CommandMarker>, String> titles = new LinkedHashMap<Class<? extends CommandMarker>, String>();
 
 	private PrintStream out = new PrintStream(new NullOutputStream());
 
 	private static class NullOutputStream extends OutputStream {
+
 		@Override
 		public void write(int b) throws IOException {
 		}
@@ -98,12 +98,16 @@ public class ReferenceDoc {
 		titles.put(TapCommands.class, "Tap Commands");
 		titles.put(JobCommands.class, "Job Commands");
 		titles.put(TriggerCommands.class, "Trigger Commands");
+		titles.put(CounterCommands.class, "Metrics Commands");
+		// Use of repeated title here on purpose
+		// titles.put(FieldValueCounterCommands.class, "Metrics Commands");
 		titles.put(HttpCommands.class, "Http Commands");
 		titles.put(ConfigurationCommands.class, "Hadoop Configuration Commands");
 		titles.put(FsShellCommands.class, "Hadoop FileSystem Commands");
 	}
 
 	private static final class CommandsCollector implements MethodCallback {
+
 		private final Map<CliCommand, List<CliOption>> commands;
 
 		private CommandsCollector(Map<CliCommand, List<CliOption>> commands) {
@@ -136,14 +140,15 @@ public class ReferenceDoc {
 	@Test
 	public void doIt() {
 		GenericApplicationContext ctx = new GenericApplicationContext();
-		ctx.getBeanFactory().registerSingleton("commandLine", new CommandLine(null,100,null));
-		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader((BeanDefinitionRegistry) ctx);
+		ctx.getBeanFactory().registerSingleton("commandLine", new CommandLine(null, 100, null));
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(ctx);
 		reader.loadBeanDefinitions("classpath*:META-INF/spring/spring-shell-plugin.xml");
-		//ApplicationContext context = new ClassPathXmlApplicationContext(
-		//		"classpath*:META-INF/spring/spring-shell-plugin.xml");
+		// ApplicationContext context = new ClassPathXmlApplicationContext(
+		// "classpath*:META-INF/spring/spring-shell-plugin.xml");
 		ctx.refresh();
-		
+
 		Comparator<Class<? extends CommandMarker>> comparator = new Comparator<Class<? extends CommandMarker>>() {
+
 			@Override
 			public int compare(Class<? extends CommandMarker> arg0, Class<? extends CommandMarker> arg1) {
 				List<Class<? extends CommandMarker>> sorted = new ArrayList<Class<? extends CommandMarker>>(
@@ -158,6 +163,7 @@ public class ReferenceDoc {
 
 		Map<String, CommandMarker> beans = BeanFactoryUtils.beansOfTypeIncludingAncestors(ctx, CommandMarker.class);
 		final MethodFilter filter = new MethodFilter() {
+
 			@Override
 			public boolean matches(Method method) {
 				return method.getAnnotation(CliCommand.class) != null;
@@ -170,9 +176,14 @@ public class ReferenceDoc {
 			ReflectionUtils.doWithMethods(plugin.getClass(), new CommandsCollector(commands), filter);
 		}
 
+		String lastTitleUsed = null;
 		for (Class<? extends CommandMarker> plugin : plugins.keySet()) {
 			// == Stream Commands
-			out.printf("=== %s%n", titleFor(plugin));
+			String title = titleFor(plugin);
+			if (lastTitleUsed == null || !lastTitleUsed.equals(title)) {
+				out.printf("=== %s%n", title);
+				lastTitleUsed = title;
+			}
 			Map<CliCommand, List<CliOption>> commands = plugins.get(plugin);
 
 			for (CliCommand command : commands.keySet()) {

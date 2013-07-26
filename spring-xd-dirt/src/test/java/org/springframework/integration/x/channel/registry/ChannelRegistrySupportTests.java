@@ -69,6 +69,25 @@ public class ChannelRegistrySupportTests {
 	}
 
 	@Test
+	public void testJsonPojoWithXJavaObjectMediaTypeNoType() {
+		Object converted = channelRegistry.transformPayloadFromOutputChannel(new Foo("bar"), MediaType.APPLICATION_OCTET_STREAM);
+		assertEquals("{\"Foo\":{\"@class\":\"org.springframework.integration.x.channel.registry.ChannelRegistrySupportTests$Foo\",\"bar\":\"bar\"}}", new String((byte[]) converted));
+		Foo payload = (Foo) channelRegistry.transformPayloadFporInputChannel(converted, Collections.singletonList(
+				new MediaType("application", "x-java-object")));
+		assertEquals("bar", payload.getBar());
+	}
+
+	@Test
+	public void testJsonPojoWithXJavaObjectMediaTypeExplicitType() {
+		Object converted = channelRegistry.transformPayloadFromOutputChannel(new Foo("bar"), MediaType.APPLICATION_OCTET_STREAM);
+		assertEquals("{\"Foo\":{\"@class\":\"org.springframework.integration.x.channel.registry.ChannelRegistrySupportTests$Foo\",\"bar\":\"bar\"}}", new String((byte[]) converted));
+		MediaType type = new MediaType("application", "x-java-object", Collections.singletonMap("type",
+				"org.springframework.integration.x.channel.registry.ChannelRegistrySupportTests$Foo"));
+		Foo payload = (Foo) channelRegistry.transformPayloadFporInputChannel(converted, Collections.singletonList(type));
+		assertEquals("bar", payload.getBar());
+	}
+
+	@Test
 	public void testJsonTuple() {
 		Tuple payload = TupleBuilder.tuple().of("foo", "bar");
 		Object converted = channelRegistry.transformPayloadFromOutputChannel(payload, MediaType.APPLICATION_OCTET_STREAM);

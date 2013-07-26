@@ -23,16 +23,19 @@ import static org.springframework.xd.module.ModuleType.SOURCE;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Properties;
 
 import org.springframework.http.MediaType;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.x.channel.registry.ChannelRegistry;
 import org.springframework.util.CollectionUtils;
 import org.springframework.xd.dirt.container.DefaultContainer;
-import org.springframework.xd.module.AbstractPlugin;
-import org.springframework.xd.module.Module;
+import org.springframework.xd.module.*;
 
 /**
  * @author Mark Fisher
@@ -41,7 +44,8 @@ import org.springframework.xd.module.Module;
  * @author Jennifer Hickey
  * @author Glenn Renfro
  */
-public class StreamPlugin extends AbstractPlugin {
+public class StreamPlugin implements Plugin {
+	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	private static final String CONTEXT_CONFIG_ROOT = DefaultContainer.XD_CONFIG_ROOT
 			+ "plugins/stream/";
@@ -54,48 +58,36 @@ public class StreamPlugin extends AbstractPlugin {
 
 	private final static Collection<MediaType> DEFAULT_ACCEPTED_MEDIA_TYPES = Collections.singletonList(MediaType.ALL);
 
-	public StreamPlugin(){
-		super.setPostProcessContextPaths(CHANNEL_REGISTRY);
-	}
-	private static final String TAP = "tap";
-
 	@Override
-	public List<String>  componentPathsSelector(Module module) {
-		ArrayList<String> result = new ArrayList<String>();
+	public void preProcessModule(Module module) {
 		String type = module.getType();
-		if (TAP.equals(module.getName()) && SOURCE.equals(type)) {
-			result.add(TAP_XML);
-		}
-		return result;
-	}
+		DeploymentMetadata md = module.getDeploymentMetadata();
 
-	@Override
-	public void configureProperties(Module module) {
-		String type = module.getType();
-		String group = module.getDeploymentMetadata().getGroup();
-		if ((SOURCE.equals(type) || PROCESSOR.equals(type) || SINK.equals(type))
-				&& group != null) {
+		if ((SOURCE.equals(type) || PROCESSOR.equals(type) || SINK.equals(type))) {
 			Properties properties = new Properties();
-			properties.setProperty("xd.stream.name", group);
-			properties.setProperty("xd.module.index", String.valueOf(module.getDeploymentMetadata().getIndex()));
+			properties.setProperty("xd.stream.name", md.getGroup());
+			properties.setProperty("xd.module.index", String.valueOf(md.getIndex()));
 			module.addProperties(properties);
 		}
+
+		if ("tap".equals(module.getName()) && SOURCE.equals(type)) {
+			module.addComponents(new ClassPathResource(TAP_XML));
+		}
 	}
 
 	@Override
-	protected void postProcessModuleInternal(Module module) {
+	public void postProcessModule(Module module) {
 		ChannelRegistry registry = findRegistry(module);
+		DeploymentMetadata md = module.getDeploymentMetadata();
+
 		if (registry != null) {
 			MessageChannel channel = module.getComponent("input", MessageChannel.class);
 			if (channel != null) {
-				registry.inbound(module.getDeploymentMetadata().getGroup() + "."
-							+ (module.getDeploymentMetadata().getIndex() - 1), channel,
-						this.getAcceptedMediaTypes(module));
+				registry.inbound(md.getInputChannelName(), channel, getAcceptedMediaTypes(module));
 			}
 			channel = module.getComponent("output", MessageChannel.class);
 			if (channel != null) {
-				registry.outbound(module.getDeploymentMetadata().getGroup() + "."
-							+ module.getDeploymentMetadata().getIndex(), channel);
+				registry.outbound(md.getOutputChannelName(), channel);
 			}
 		}
 	}
@@ -121,6 +113,7 @@ public class StreamPlugin extends AbstractPlugin {
 
 	private Collection<MediaType> getAcceptedMediaTypes(Module module) {
 		Collection<?> acceptedTypes = module.getComponent(MEDIA_TYPE_BEAN_NAME, Collection.class);
+
 		if (CollectionUtils.isEmpty(acceptedTypes)) {
 			return DEFAULT_ACCEPTED_MEDIA_TYPES;
 		}
@@ -136,6 +129,12 @@ public class StreamPlugin extends AbstractPlugin {
 			}
 			return Collections.unmodifiableCollection(acceptedMediaTypes);
 		}
+	}
+
+	@Override
+	public void postProcessSharedContext(ConfigurableApplicationContext context) {
+		context.addBeanFactoryPostProcessor(new BeanDefinitionAddingPostProcessor(
+			new ClassPathResource(CHANNEL_REGISTRY)));
 	}
 
 }

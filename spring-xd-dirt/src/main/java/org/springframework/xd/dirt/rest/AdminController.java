@@ -27,6 +27,7 @@ import org.springframework.xd.rest.client.domain.TapDefinitionResource;
 import org.springframework.xd.rest.client.domain.TriggerDefinitionResource;
 import org.springframework.xd.rest.client.domain.XDRuntime;
 import org.springframework.xd.rest.client.domain.metrics.CounterResource;
+import org.springframework.xd.rest.client.domain.metrics.FieldValueCounterResource;
 
 /**
  * @author Eric Bottard
@@ -52,6 +53,7 @@ public class AdminController {
 		xdRuntime.add(entityLinks.linkFor(TapDefinitionResource.class).withRel("taps"));
 
 		xdRuntime.add(entityLinks.linkFor(CounterResource.class).withRel("counters"));
+		xdRuntime.add(entityLinks.linkFor(FieldValueCounterResource.class).withRel("field-value-counters"));
 		return xdRuntime;
 	}
 }

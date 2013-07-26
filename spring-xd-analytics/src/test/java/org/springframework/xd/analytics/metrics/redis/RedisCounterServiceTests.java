@@ -29,7 +29,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 import org.springframework.xd.analytics.metrics.AbstractCounterRepositoryTests;
-import org.springframework.xd.analytics.metrics.common.ServicesConfig;
+import org.springframework.xd.analytics.metrics.common.RedisRepositoriesConfig;
 import org.springframework.xd.test.redis.RedisAvailableRule;
 
 /**
@@ -39,7 +39,7 @@ import org.springframework.xd.test.redis.RedisAvailableRule;
  * @since 1.0
  * 
  */
-@ContextConfiguration(classes = ServicesConfig.class, loader = AnnotationConfigContextLoader.class)
+@ContextConfiguration(classes = RedisRepositoriesConfig.class, loader = AnnotationConfigContextLoader.class)
 @RunWith(SpringJUnit4ClassRunner.class)
 public class RedisCounterServiceTests extends AbstractCounterRepositoryTests {
 

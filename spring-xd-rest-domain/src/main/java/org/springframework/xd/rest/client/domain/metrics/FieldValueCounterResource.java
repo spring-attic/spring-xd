@@ -18,17 +18,31 @@ package org.springframework.xd.rest.client.domain.metrics;
 
 import java.util.Map;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * A deep representation of a FieldValueCounter
  * 
  * @author Eric Bottard
  */
+@XmlRootElement
 public class FieldValueCounterResource extends MetricResource {
 
+	@JsonProperty("counts")
 	private Map<String, Double> fieldValueCounts;
+
+	/**
+	 * No arg constructor for serialization frameworks.
+	 */
+	protected FieldValueCounterResource() {
+
+	}
 
 	public FieldValueCounterResource(String name, Map<String, Double> fieldValueCounts) {
 		super(name);
+		this.fieldValueCounts = fieldValueCounts;
 	}
 
 }

@@ -26,7 +26,6 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.xd.analytics.metrics.redis.RedisAggregateCounterService;
 import org.springframework.xd.analytics.metrics.redis.RedisCounterRepository;
 import org.springframework.xd.analytics.metrics.redis.RedisFieldValueCounterRepository;
-import org.springframework.xd.analytics.metrics.redis.RedisFieldValueCounterService;
 import org.springframework.xd.analytics.metrics.redis.RedisGaugeRepository;
 import org.springframework.xd.analytics.metrics.redis.RedisGaugeService;
 import org.springframework.xd.analytics.metrics.redis.RedisRichGaugeRepository;
@@ -35,26 +34,25 @@ import org.springframework.xd.analytics.metrics.redis.RedisRichGaugeService;
 import static org.mockito.Mockito.*;
 
 /**
+ * Provides Redis backed repositories, to be tested one by one in Redis variant of tests.
  * 
  * @author Mark Pollack
  * @author Luke Taylor
  * @author Gary Russell
- * @since 1.0
  * 
  */
 @Configuration
-public class ServicesConfig {
-
-	@Bean
-	public RedisFieldValueCounterService fieldValueCounterService() {
-		return new RedisFieldValueCounterService(redisFieldValueCounterRepository());
-	}
+public class RedisRepositoriesConfig {
 
 	@Bean
 	public RedisFieldValueCounterRepository redisFieldValueCounterRepository() {
 		return new RedisFieldValueCounterRepository(redisConnectionFactory());
 	}
 
+	/**
+	 * @deprecated to be removed as part of XD-330,XD-331,XD-332
+	 */
+	@Deprecated
 	@Bean
 	public RedisRichGaugeService redisRichGaugeService() {
 		return new RedisRichGaugeService(redisRichGaugeRepository());
@@ -65,6 +63,10 @@ public class ServicesConfig {
 		return new RedisRichGaugeRepository(redisConnectionFactory());
 	}
 
+	/**
+	 * @deprecated to be removed as part of XD-330,XD-331,XD-332
+	 */
+	@Deprecated
 	@Bean
 	public RedisGaugeService redisGaugeService() {
 		return new RedisGaugeService(redisGaugeRepository());
@@ -80,6 +82,10 @@ public class ServicesConfig {
 		return new RedisCounterRepository(redisConnectionFactory());
 	}
 
+	/**
+	 * @deprecated to be removed as part of XD-330,XD-331,XD-332
+	 */
+	@Deprecated
 	@Bean
 	public RedisAggregateCounterService redisAggregateCounterAggregate() {
 		return new RedisAggregateCounterService(redisConnectionFactory());

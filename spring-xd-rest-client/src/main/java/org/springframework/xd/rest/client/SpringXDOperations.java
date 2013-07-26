@@ -48,4 +48,9 @@ public interface SpringXDOperations {
 	 * Returns the portion of the API for interaction with Counters.
 	 */
 	public CounterOperations counterOperations();
+
+	/**
+	 * Returns the portion of the API for interaction with Field Value Counters.
+	 */
+	public FieldValueCounterOperations fvcOperations();
 }

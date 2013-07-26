@@ -20,15 +20,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.xd.analytics.metrics.common.ServicesConfig;
 import org.springframework.xd.analytics.metrics.core.Counter;
 import org.springframework.xd.analytics.metrics.core.CounterRepository;
+import org.springframework.xd.analytics.metrics.memory.InMemoryCounterRepository;
 import org.springframework.xd.test.redis.RedisAvailableRule;
 
 import static org.hamcrest.Matchers.*;
@@ -40,15 +36,12 @@ import static org.junit.Assert.*;
  * @since 1.0
  * 
  */
-@ContextConfiguration(classes = ServicesConfig.class)
-@RunWith(SpringJUnit4ClassRunner.class)
 public class MessageCounterHandlerTests {
 
 	@Rule
 	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
 
-	@Autowired
-	private CounterRepository repo;
+	private CounterRepository repo = new InMemoryCounterRepository();
 
 	@Before
 	@After

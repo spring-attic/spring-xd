@@ -23,17 +23,18 @@ import org.kohsuke.args4j.OptionDef;
 import org.kohsuke.args4j.spi.OptionHandler;
 import org.kohsuke.args4j.spi.Parameters;
 import org.kohsuke.args4j.spi.Setter;
+
 import org.springframework.util.StringUtils;
 
 /**
  * Options shared by both the admin and the container server.
- * 
+ *
  * @author Eric Bottard
  * @author Mark Pollack
  * @author David Turanski
  * @author Mark Fisher
  */
-public class AbstractOptions {
+public abstract class AbstractOptions {
 
 	public static final String DEFAULT_HOME = "..";
 
@@ -88,9 +89,6 @@ public class AbstractOptions {
 	@Option(name = "--disableJmx", usage = "Disable JMX in the XD container", handler = JmxDisabledHandler.class)
 	private boolean jmxDisabled = false;
 
-	@Option(name = "--jmxPort", usage = "The JMX port for the container", metaVar = "<jmxPort>")
-	private int jmxPort = 8778;
-
 	@Option(name = "--transformer", usage = "The default payload transformer class name", handler = PayloadTransformerHandler.class)
 	private String transformer;
 
@@ -122,9 +120,7 @@ public class AbstractOptions {
 		return System.getProperty(XD_DISABLE_JMX_KEY) == null ? false : true;
 	}
 
-	public int getJmxPort() {
-		return jmxPort;
-	}
+	public abstract int getJmxPort();
 
 	public String getTransformer() {
 		return transformer;
@@ -171,7 +167,7 @@ public class AbstractOptions {
 
 		/*
 		 * (non-Javadoc)
-		 * 
+		 *
 		 * @see
 		 * org.kohsuke.args4j.spi.OptionHandler#parseArguments(org.kohsuke.args4j.spi.
 		 * Parameters)
@@ -184,7 +180,7 @@ public class AbstractOptions {
 
 		/*
 		 * (non-Javadoc)
-		 * 
+		 *
 		 * @see org.kohsuke.args4j.spi.OptionHandler#getDefaultMetaVariable()
 		 */
 		@Override

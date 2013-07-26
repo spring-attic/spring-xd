@@ -18,6 +18,7 @@ package org.springframework.xd.rest.client.impl;
 
 import java.net.URI;
 
+import org.springframework.xd.rest.client.CounterOperations;
 import org.springframework.xd.rest.client.JobOperations;
 import org.springframework.xd.rest.client.SpringXDOperations;
 import org.springframework.xd.rest.client.StreamOperations;
@@ -27,7 +28,7 @@ import org.springframework.xd.rest.client.domain.XDRuntime;
 
 /**
  * Implementation of the entry point to the API.
- *
+ * 
  * @author Eric Bottard
  */
 public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperations {
@@ -41,7 +42,7 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 	 * Holds the Tap-related part of the API.
 	 */
 	private TapOperations tapOperations;
-	
+
 	/**
 	 * Holds the Trigger-related part of the API.
 	 */
@@ -52,6 +53,11 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 	 */
 	private JobOperations jobOperations;
 
+	/**
+	 * Holds the Counter-related part of the API.
+	 */
+	private CounterOperations counterOperations;
+
 	public SpringXDTemplate(URI baseURI) {
 		XDRuntime xdRuntime = restTemplate.getForObject(baseURI, XDRuntime.class);
 		resources.put("streams", URI.create(xdRuntime.getLink("streams").getHref()));
@@ -59,10 +65,13 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 		resources.put("triggers", URI.create(xdRuntime.getLink("triggers").getHref()));
 		resources.put("jobs", URI.create(xdRuntime.getLink("jobs").getHref()));
 
+		resources.put("counters", URI.create(xdRuntime.getLink("counters").getHref()));
+
 		streamOperations = new StreamTemplate(this);
 		tapOperations = new TapTemplate(this);
 		jobOperations = new JobTemplate(this);
 		triggerOperations = new TriggerTemplate(this);
+		counterOperations = new CounterTemplate(this);
 	}
 
 	@Override
@@ -74,7 +83,7 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 	public TapOperations tapOperations() {
 		return tapOperations;
 	}
-	
+
 	@Override
 	public TriggerOperations triggerOperations() {
 		return triggerOperations;
@@ -83,5 +92,10 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 	@Override
 	public JobOperations jobOperations() {
 		return jobOperations;
+	}
+
+	@Override
+	public CounterOperations counterOperations() {
+		return counterOperations;
 	}
 }

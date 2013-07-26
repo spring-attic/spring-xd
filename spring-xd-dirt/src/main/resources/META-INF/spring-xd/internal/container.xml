@@ -19,8 +19,7 @@
 
 		<int:channel id="input" />
 
-		<int:service-activator input-channel="input"
-			ref="handler" />
+		<int:service-activator input-channel="input" ref="handler" />
 
 		<bean id="handler" class="org.springframework.xd.dirt.module.ModuleDeployer">
 			<constructor-arg ref="moduleRegistry" />

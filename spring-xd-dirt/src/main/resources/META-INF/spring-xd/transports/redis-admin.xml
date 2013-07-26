@@ -22,5 +22,7 @@
 			<property name="extractPayload" value="false" />
 		</bean>
 	</int:chain>
+
+	<int-redis:outbound-channel-adapter channel="undeployChannel" topic="topic.undeployer" connection-factory="redisConnectionFactory" />
 	
 </beans>

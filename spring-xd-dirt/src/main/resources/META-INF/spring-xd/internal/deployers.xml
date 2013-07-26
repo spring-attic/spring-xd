@@ -7,8 +7,11 @@
 
 	<int:channel id="deployChannel" />
 
+	<int:channel id="undeployChannel" />
+
 	<bean id="deploymentMessageSender" class="org.springframework.xd.dirt.stream.DeploymentMessageSender">
-		<constructor-arg name="outputChannel" ref="deployChannel" />
+		<constructor-arg name="deployChannel" ref="deployChannel" />
+		<constructor-arg name="undeployChannel" ref="undeployChannel" />
 	</bean>
 
 	<bean id="streamDeployer" class="org.springframework.xd.dirt.stream.StreamDeployer">

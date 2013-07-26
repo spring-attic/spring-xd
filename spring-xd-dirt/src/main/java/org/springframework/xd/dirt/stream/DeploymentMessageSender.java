@@ -29,20 +29,31 @@ import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
  * @author Luke Taylor
  */
 public class DeploymentMessageSender {
-	private final MessageChannel outputChannel;
+
+	private final MessageChannel deployChannel;
+
+	private final MessageChannel undeployChannel;
+
 	private final Map<String, List<ModuleDeploymentRequest>> deployments = new ConcurrentHashMap<String, List<ModuleDeploymentRequest>>();
 
-	public DeploymentMessageSender(MessageChannel outputChannel) {
-		this.outputChannel = outputChannel;
+	public DeploymentMessageSender(MessageChannel deployChannel, MessageChannel undeployChannel) {
+		this.deployChannel = deployChannel;
+		this.undeployChannel = undeployChannel;
 	}
+
 	public void sendDeploymentRequests(String name, List<ModuleDeploymentRequest> requests) {
 		this.addDeployment(name, requests);
 		for (ModuleDeploymentRequest request : requests) {
 			Message<?> message = MessageBuilder.withPayload(request.toString()).build();
-			this.outputChannel.send(message);
+			if (request.isRemove()) {
+				this.undeployChannel.send(message);
+			}
+			else {
+				this.deployChannel.send(message);
+			}
 		};
-
 	}
+
 	protected final void addDeployment(String name, List<ModuleDeploymentRequest> modules) {
 		this.deployments.put(name, modules);
 	}
@@ -50,4 +61,5 @@ public class DeploymentMessageSender {
 	protected List<ModuleDeploymentRequest> removeDeployment(String name) {
 		return this.deployments.remove(name);
 	}
+
 }

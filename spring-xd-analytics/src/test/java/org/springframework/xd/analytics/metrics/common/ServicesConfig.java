@@ -28,7 +28,6 @@ import org.springframework.xd.analytics.metrics.redis.RedisCounterRepository;
 import org.springframework.xd.analytics.metrics.redis.RedisFieldValueCounterRepository;
 import org.springframework.xd.analytics.metrics.redis.RedisFieldValueCounterService;
 import org.springframework.xd.analytics.metrics.redis.RedisGaugeRepository;
-import org.springframework.xd.analytics.metrics.redis.RedisGaugeService;
 import org.springframework.xd.analytics.metrics.redis.RedisRichGaugeRepository;
 import org.springframework.xd.analytics.metrics.redis.RedisRichGaugeService;
 
@@ -63,11 +62,6 @@ public class ServicesConfig {
 	@Bean
 	public RedisRichGaugeRepository redisRichGaugeRepository() {
 		return new RedisRichGaugeRepository(redisConnectionFactory());
-	}
-
-	@Bean
-	public RedisGaugeService redisGaugeService() {
-		return new RedisGaugeService(redisGaugeRepository());
 	}
 
 	@Bean

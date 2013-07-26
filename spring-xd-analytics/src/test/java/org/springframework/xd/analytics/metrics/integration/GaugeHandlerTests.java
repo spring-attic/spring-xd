@@ -42,7 +42,7 @@ import org.springframework.integration.transformer.MessageTransformationExceptio
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.xd.analytics.metrics.core.Gauge;
-import org.springframework.xd.analytics.metrics.core.GaugeService;
+import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 import org.springframework.xd.analytics.metrics.redis.RedisGaugeRepository;
 import org.springframework.xd.test.redis.RedisAvailableRule;
 
@@ -68,8 +68,8 @@ public class GaugeHandlerTests {
 
 	@Test
 	public void testConvertToDouble() {
-		GaugeService gaugeService = mock(GaugeService.class);
-		GaugeHandler handler = new GaugeHandler(gaugeService, "test");
+		GaugeRepository gaugeRepo = mock(GaugeRepository.class);
+		GaugeHandler handler = new GaugeHandler(gaugeRepo, "test");
 		int i = 4;
 		long val = handler.convertToLong(i);
 		assertEquals(4, val, 0.001);

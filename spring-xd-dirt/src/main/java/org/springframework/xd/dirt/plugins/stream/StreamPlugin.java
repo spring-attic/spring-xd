@@ -85,7 +85,7 @@ public class StreamPlugin extends AbstractPlugin {
 			}
 			channel = module.getComponent("output", MessageChannel.class);
 			if (channel != null) {
-				registry.inbound(module.getDeploymentMetadata().getGroup() + "."
+				registry.outbound(module.getDeploymentMetadata().getGroup() + "."
 						+ module.getDeploymentMetadata().getIndex(), channel);
 			}
 		}

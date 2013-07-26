@@ -26,14 +26,14 @@ public interface Plugin {
 
 	/**
 	 * Apply changes to the module before it is initialized (generally,
-	 * this means before it's context is refreshed).
+	 * this means before its context is refreshed).
 	 * @param module
 	 */
 	void preProcessModule(Module module);
 
 	/**
 	 * Apply changes to the module after it is initialized (generally,
-	 * this means after it's context is refreshed), but before it is
+	 * this means after its context is refreshed), but before it is
 	 * started.
 	 * @param module
 	 */

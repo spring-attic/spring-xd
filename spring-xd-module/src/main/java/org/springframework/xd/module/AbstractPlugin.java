@@ -40,10 +40,10 @@ public abstract class AbstractPlugin implements Plugin{
 	 * defaults. Beans willl be added to the shared context.
 	 *
 	 */
-	private String[] postProcessContextPath;
+	private String[] postProcessContextPaths;
 
-	protected void setPostProcessContextPath(String... postProcessContextPath) {
-		this.postProcessContextPath = postProcessContextPath;
+	protected void setPostProcessContextPaths(String... postProcessContextPaths) {
+		this.postProcessContextPaths = postProcessContextPaths;
 	}
 
 	/**
@@ -102,8 +102,8 @@ public abstract class AbstractPlugin implements Plugin{
 
 	@Override
 	public void postProcessSharedContext(ConfigurableApplicationContext context){
-		if(postProcessContextPath != null){
-			addBeanFactoryPostProcessors(context, postProcessContextPath);
+		if (postProcessContextPaths != null) {
+			addBeanFactoryPostProcessors(context, postProcessContextPaths);
 		}
 	}
 

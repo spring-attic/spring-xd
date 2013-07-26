@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.rest;
+package org.springframework.xd.dirt.rest.metrics;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -22,49 +25,54 @@ import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.xd.analytics.metrics.core.Counter;
-import org.springframework.xd.dirt.rest.metrics.CountersController;
+import org.springframework.xd.analytics.metrics.core.FieldValueCounter;
+import org.springframework.xd.dirt.rest.AbstractControllerIntegrationTest;
+import org.springframework.xd.dirt.rest.MockedDependencies;
+import org.springframework.xd.dirt.rest.RestConfiguration;
+import org.springframework.xd.dirt.rest.metrics.FieldValueCountersController;
 
 import scala.actors.threadpool.Arrays;
-
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * Tests proper behavior of {@link CountersController}.
+ * Tests proper behavior of {@link FieldValueCountersController}.
  * 
  * @author Eric Bottard
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = { RestConfiguration.class, MockedDependencies.class })
-public class CountersControllerIntegrationTests extends AbstractControllerIntegrationTest {
+public class FieldValueCountersControllerIntegrationTests extends AbstractControllerIntegrationTest {
 
 	@Test
 	public void testInexistantCounterRetrieval() throws Exception {
-		mockMvc.perform(get("/metrics/counters/notthere")).andExpect(status().isNotFound());
+		mockMvc.perform(get("/metrics/field-value-counters/notthere")).andExpect(status().isNotFound());
 	}
 
 	@Test
 	public void testExistingCounterRetrieval() throws Exception {
-		when(counterRepository.findOne("iamthere")).thenReturn(new Counter("iamthere", 12L));
+		Map<String, Double> values = new HashMap<String, Double>();
+		values.put("VMW", 13.0);
+		values.put("GOOG", 23.0);
+		when(fieldValueCounterRepository.findOne("iamthere")).thenReturn(new FieldValueCounter("iamthere", values));
 
-		mockMvc.perform(get("/metrics/counters/iamthere"))//
+		mockMvc.perform(get("/metrics/field-value-counters/iamthere"))//
 		.andExpect(status().isOk())//
 		.andExpect(jsonPath("$.name").value("iamthere"))//
-		.andExpect(jsonPath("$.value").value(12));
+		.andExpect(jsonPath("$.counts['VMW']").value(13.0));
 	}
 
 	@Test
 	public void testCounterListing() throws Exception {
-		Counter[] counters = new Counter[10];
+		FieldValueCounter[] counters = new FieldValueCounter[10];
 		for (int i = 0; i < counters.length; i++) {
-			counters[i] = new Counter("c" + i, i);
+			counters[i] = new FieldValueCounter("c" + i);
 		}
-		when(counterRepository.findAll()).thenReturn(Arrays.asList(counters));
+		when(fieldValueCounterRepository.findAll()).thenReturn(Arrays.asList(counters));
 
-		mockMvc.perform(get("/metrics/counters")).andExpect(status().isOk())//
+		mockMvc.perform(get("/metrics/field-value-counters")).andExpect(status().isOk())//
 		.andExpect(jsonPath("$.content", Matchers.hasSize(10)));
 	}
 }

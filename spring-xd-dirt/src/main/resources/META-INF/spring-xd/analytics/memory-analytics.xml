@@ -5,4 +5,5 @@
 
 	<bean id="counterRepository" class="org.springframework.xd.analytics.metrics.memory.InMemoryCounterRepository" />
 
+	<bean id="gaugeRepository" class="org.springframework.xd.analytics.metrics.memory.InMemoryGaugeRepository" />
 </beans>

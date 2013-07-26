@@ -36,9 +36,9 @@ import org.springframework.xd.rest.client.domain.metrics.MetricResource;
  * 
  * @author Eric Bottard
  */
-public abstract class AbstractMetricsController<R extends MetricRepository<M>, M extends Metric> {
+abstract class AbstractMetricsController<R extends MetricRepository<M>, M extends Metric> {
 
-	protected R repository;
+	protected final R repository;
 
 	public AbstractMetricsController(R repository) {
 		this.repository = repository;

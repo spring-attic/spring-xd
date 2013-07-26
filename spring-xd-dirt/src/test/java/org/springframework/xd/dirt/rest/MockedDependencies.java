@@ -21,6 +21,7 @@ import static org.mockito.Mockito.mock;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.xd.analytics.metrics.core.CounterRepository;
+import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobDeployer;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
@@ -83,5 +84,9 @@ public class MockedDependencies {
 	@Bean
 	public CounterRepository counterRepository() {
 		return mock(CounterRepository.class);
+	}
+
+	@Bean GaugeRepository gaugeRepository() {
+		return mock(GaugeRepository.class);
 	}
 }

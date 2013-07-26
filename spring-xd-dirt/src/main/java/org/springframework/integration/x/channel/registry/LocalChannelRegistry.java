@@ -14,10 +14,10 @@
 package org.springframework.integration.x.channel.registry;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
@@ -27,7 +27,6 @@ import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.http.MediaType;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
-import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.NullChannel;
@@ -35,8 +34,6 @@ import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.handler.BridgeHandler;
-import org.springframework.integration.transformer.AbstractPayloadTransformer;
-import org.springframework.integration.transformer.ObjectToStringTransformer;
 import org.springframework.util.Assert;
 
 /**
@@ -54,17 +51,28 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @since 1.0
  */
-public class LocalChannelRegistry extends AbstractChannelRegistry implements ApplicationContextAware, InitializingBean {
+public class LocalChannelRegistry extends ChannelRegistrySupport implements ApplicationContextAware, InitializingBean {
 
 	private volatile AbstractApplicationContext applicationContext;
 
 	private final List<BridgeMetadata> bridges = Collections.synchronizedList(new ArrayList<BridgeMetadata>());
+
+	private volatile boolean convertWithinTransport = true;
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		Assert.isInstanceOf(AbstractApplicationContext.class, applicationContext);
 		this.applicationContext = (AbstractApplicationContext) applicationContext;
 	}
+
+	/**
+	 * Determines whether any conversion logic is applied within the local transport.
+	 * When false, objects pass through without any modification; default true.
+	 */
+	public void setConvertWithinTransport(boolean convertWithinTransport) {
+		this.convertWithinTransport = convertWithinTransport;
+	}
+
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
@@ -78,11 +86,11 @@ public class LocalChannelRegistry extends AbstractChannelRegistry implements App
 	 * publish-subscribe channel.
 	 */
 	@Override
-	public void inbound(String name, MessageChannel channel) {
+	public void inbound(String name, MessageChannel moduleInputChannel, Collection<MediaType> acceptedMediaTypes) {
 		Assert.hasText(name, "a valid name is required to register an inbound channel");
-		Assert.notNull(channel, "channel must not be null");
+		Assert.notNull(moduleInputChannel, "channel must not be null");
 		DirectChannel registeredChannel = lookupOrCreateSharedChannel(name, DirectChannel.class);
-		bridge(registeredChannel, channel, registeredChannel.getComponentName() + ".in.bridge");
+		bridge(registeredChannel, moduleInputChannel, registeredChannel.getComponentName() + ".in.bridge", acceptedMediaTypes);
 		createSharedTapChannelIfNecessary(registeredChannel);
 	}
 
@@ -91,13 +99,13 @@ public class LocalChannelRegistry extends AbstractChannelRegistry implements App
 	 * that channel from the provided channel instance.
 	 */
 	@Override
-	public void outbound(String name, MessageChannel channel) {
+	public void outbound(String name, MessageChannel moduleOutputChannel) {
 		Assert.hasText(name, "a valid name is required to register an outbound channel");
-		Assert.notNull(channel, "channel must not be null");
-		Assert.isTrue(channel instanceof SubscribableChannel,
+		Assert.notNull(moduleOutputChannel, "channel must not be null");
+		Assert.isTrue(moduleOutputChannel instanceof SubscribableChannel,
 				"channel must be of type " + SubscribableChannel.class.getName());
 		DirectChannel registeredChannel = lookupOrCreateSharedChannel(name, DirectChannel.class);
-		bridge((SubscribableChannel) channel, registeredChannel, registeredChannel.getComponentName() + ".out.bridge");
+		bridge((SubscribableChannel) moduleOutputChannel, registeredChannel, registeredChannel.getComponentName() + ".out.bridge");
 	}
 
 	/**
@@ -190,38 +198,38 @@ public class LocalChannelRegistry extends AbstractChannelRegistry implements App
 	}
 
 	protected BridgeHandler bridge(SubscribableChannel from, MessageChannel to, String bridgeName) {
-		return bridge(from, to, bridgeName, null);
+		return bridge(from, to, bridgeName, null, null);
 	}
 
 	protected BridgeHandler bridge(SubscribableChannel from, MessageChannel to, String bridgeName, String tapModule) {
+		return bridge(from, to, bridgeName, tapModule, null);
+	}
+
+	protected BridgeHandler bridge(SubscribableChannel from, MessageChannel to, String bridgeName, Collection<MediaType> acceptedMediaTypes) {
+		return bridge(from, to, bridgeName, null, acceptedMediaTypes);
+	}
+
+	protected BridgeHandler bridge(SubscribableChannel from, MessageChannel to, String bridgeName, String tapModule, final Collection<MediaType> acceptedMediaTypes) {
+
+		final boolean isInbound = bridgeName.endsWith("in.bridge");
 
 		BridgeHandler handler = new BridgeHandler() {
-			private boolean transformerAvailable;
-			private AbstractPayloadTransformer<?, ?> defaultTransformer;
 
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
-				if (transformerAvailable) {
-					if (defaultTransformer != null) {
-						return defaultTransformer.transform(requestMessage);
-					} else {
-						AbstractPayloadTransformer<?, ?> payloadTransformer = resolvePayloadTransformerForMessage(requestMessage);
-						return payloadTransformer == null ? requestMessage : payloadTransformer
-								.transform(requestMessage);
+				/*
+				 * optimization for local transport, just pass through if false
+				 */
+				if (convertWithinTransport) {
+					if (acceptedMediaTypes != null) {
+						if (isInbound) {
+							return transformInboundIfNecessary(requestMessage, acceptedMediaTypes);
+						}
 					}
 				}
 				return requestMessage;
 			}
 
-			@Override
-			protected void onInit() {
-				super.onInit();
-				transformerAvailable = getDefaultPayloadTransformer() != null || getPayloadTransformers() != null;
-				//No possibility of an override
-				if (getDefaultPayloadTransformer() != null || getPayloadTransformers() == null) {
-					defaultTransformer = getDefaultPayloadTransformer();
-				}
-			}
 		};
 
 		handler.setOutputChannel(to);

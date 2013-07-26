@@ -23,7 +23,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.Message;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
@@ -35,6 +37,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class RedisQueueInboundChannelAdapter extends MessageProducerSupport {
 
@@ -42,7 +45,7 @@ public class RedisQueueInboundChannelAdapter extends MessageProducerSupport {
 
 	private volatile boolean extractPayload = true;
 
-	private final StringRedisTemplate redisTemplate = new StringRedisTemplate();
+	private final RedisTemplate<String, Object> redisTemplate = new RedisTemplate<String, Object>();
 
 	private volatile TaskScheduler taskScheduler;
 
@@ -50,12 +53,21 @@ public class RedisQueueInboundChannelAdapter extends MessageProducerSupport {
 
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
-
 	public RedisQueueInboundChannelAdapter(String queueName, RedisConnectionFactory connectionFactory) {
+		this(queueName, connectionFactory, new StringRedisSerializer());
+	}
+
+	public RedisQueueInboundChannelAdapter(String queueName, RedisConnectionFactory connectionFactory,
+			RedisSerializer<?> valueSerializer) {
 		Assert.hasText(queueName, "queueName is required");
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");
 		this.queueName = queueName;
 		this.redisTemplate.setConnectionFactory(connectionFactory);
+		StringRedisSerializer stringSerializer = new StringRedisSerializer();
+		this.redisTemplate.setKeySerializer(stringSerializer);
+		this.redisTemplate.setValueSerializer(valueSerializer);
+		this.redisTemplate.setHashKeySerializer(stringSerializer);
+		this.redisTemplate.setHashValueSerializer(stringSerializer);
 		this.redisTemplate.afterPropertiesSet();
 	}
 
@@ -96,14 +108,16 @@ public class RedisQueueInboundChannelAdapter extends MessageProducerSupport {
 		public void run() {
 			try {
 				while (isRunning()) {
-					String next = redisTemplate.boundListOps(queueName).rightPop(5, TimeUnit.SECONDS);
+					Object next = redisTemplate.boundListOps(queueName).rightPop(5, TimeUnit.SECONDS);
 					if (next != null) {
 						try {
 							Message<?> message = null;
 							if (extractPayload) {
 								message = MessageBuilder.withPayload(next).build();
-							} else {
-								MessageDeserializationWrapper wrapper = objectMapper.readValue(next,
+							}
+							else {
+								Assert.isInstanceOf(String.class, next);
+								MessageDeserializationWrapper wrapper = objectMapper.readValue((String) next,
 										MessageDeserializationWrapper.class);
 								message = wrapper.getMessage();
 							}

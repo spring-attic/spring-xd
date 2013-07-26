@@ -27,10 +27,6 @@ import org.springframework.shell.core.JLineShellComponent;
 import org.springframework.xd.dirt.server.AdminMain;
 import org.springframework.xd.dirt.server.options.AdminOptions;
 import org.springframework.xd.dirt.stream.StreamServer;
-import org.springframework.xd.shell.util.Table;
-import org.springframework.xd.shell.util.TableHeader;
-import org.springframework.xd.shell.util.TableRow;
-import org.springframework.xd.shell.util.UiUtils;
 
 /**
  * Superclass for performing integration tests of spring-xd shell commands.
@@ -42,6 +38,7 @@ import org.springframework.xd.shell.util.UiUtils;
  * once across all tests.
  *
  * @author Mark Pollack
+ * @author Kashyap Parikh
  *
  */
 public abstract class AbstractShellIntegrationTest {
@@ -53,7 +50,7 @@ public abstract class AbstractShellIntegrationTest {
 
 	@BeforeClass
 	public static void startUp() throws InterruptedException, IOException {
-		AdminOptions opts = AdminMain.parseOptions(new String[] {"--httpPort", "0", "--transport", "local", "--store", "memory", "--disableJmx", "true"});
+		AdminOptions opts = AdminMain.parseOptions(new String[] {"--httpPort", "0", "--transport", "local", "--store", "memory", "--disableJmx", "true", "--analytics", "memory"});
 		server = AdminMain.launchStreamServer(opts);
 		Bootstrap bootstrap = new Bootstrap(new String[] { "--port", Integer.toString(server.getLocalPort()) });
 		shell = bootstrap.getJLineShellComponent();

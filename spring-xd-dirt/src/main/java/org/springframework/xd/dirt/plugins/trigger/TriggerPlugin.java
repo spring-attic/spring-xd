@@ -106,10 +106,11 @@ public class TriggerPlugin implements Plugin {
 
 	@Override
 	public void removeModule(Module module) {
-		String beanName = BEAN_NAME_PREFIX + module.getGroup();
-		ConfigurableListableBeanFactory b = commonApplicationContext
+		String beanName = BEAN_NAME_PREFIX
+				+ module.getDeploymentMetadata().getGroup();
+		ConfigurableListableBeanFactory beanFactory = commonApplicationContext
 				.getBeanFactory();
-			((DefaultSingletonBeanRegistry) b).destroySingleton(beanName);
+		((DefaultSingletonBeanRegistry) beanFactory).destroySingleton(beanName);
 	}
 	private void configureProperties(Module module) {
 		Properties properties = new Properties();

@@ -97,8 +97,8 @@ public class TriggerPluginTests {
 		GenericApplicationContext commonContext = new GenericApplicationContext();
 		plugin.postProcessSharedContext(commonContext);
 
-		Module module = new SimpleModule("testTrigger", "trigger",
-				"newTrigger", 0);
+		Module module = new SimpleModule(new ModuleDefinition("testTrigger",
+				"trigger"), new DeploymentMetadata("newTrigger", 0));
 		module.getProperties().put("cron", "*/15 * * * * *");
 		assertEquals(1, module.getProperties().size());
 		plugin.processModule(module);

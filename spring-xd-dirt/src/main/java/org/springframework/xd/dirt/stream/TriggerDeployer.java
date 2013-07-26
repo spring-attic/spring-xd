@@ -14,7 +14,6 @@ package org.springframework.xd.dirt.stream;
 
 import java.util.List;
 
-import org.springframework.integration.MessageHandlingException;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 
 /**
@@ -43,7 +42,6 @@ public class TriggerDeployer extends AbstractDeployer<TriggerDefinition> {
 	}
 
 	public void undeploy(String name) {
-
 		TriggerDefinition trigger = getRepository().findOne(name);
 		if (trigger == null) {
 			throwNoSuchDefinitionException(name);
@@ -54,11 +52,7 @@ public class TriggerDeployer extends AbstractDeployer<TriggerDefinition> {
 		for (ModuleDeploymentRequest request : requests) {
 			request.setRemove(true);
 		}
-		try {
-			sendDeploymentRequests(name, requests);
-		} catch (MessageHandlingException ex) {
-			// Trigger is not deployed.
-		}
+		sendDeploymentRequests(name, requests);
 	}
 
 }

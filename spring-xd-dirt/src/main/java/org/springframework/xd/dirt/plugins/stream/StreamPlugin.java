@@ -47,7 +47,7 @@ public class StreamPlugin extends AbstractPlugin {
 	private static final String CHANNEL_REGISTRY = CONTEXT_CONFIG_ROOT + "channel-registry.xml";
 
 	public StreamPlugin(){
-		super.setPostProcessContextPath(CHANNEL_REGISTRY);
+		super.setPostProcessContextPaths(CHANNEL_REGISTRY);
 	}
 	private static final String TAP = "tap";
 

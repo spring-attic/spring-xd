@@ -17,6 +17,7 @@ import java.util.List;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.dirt.stream.dsl.DSLException;
 
 /**
  * @author Glenn Renfro
@@ -25,8 +26,9 @@ import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
  */
 public class JobDeployer extends AbstractDeployer<JobDefinition> {
 
-	private static String BEAN_CREATION_EXCEPTION = "org.springframework.beans.factory.BeanCreationException";
-	private static String DEPLOYER_TYPE = "job";
+	private static final String BEAN_CREATION_EXCEPTION = "org.springframework.beans.factory.BeanCreationException";
+	private static final String BEAN_DEFINITION_EXEPTION = "org.springframework.beans.factory.BeanDefinitionStoreException";
+	private static final String DEPLOYER_TYPE = "job";
 	public JobDeployer(JobDefinitionRepository repository, DeploymentMessageSender messageSender) {
 		super(repository, messageSender, DEPLOYER_TYPE);
 	}
@@ -37,11 +39,16 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 		if (def == null) {
 			throwNoSuchDefinitionException(name);
 		}
+		try {
 		if (getRepository().exists(name)) {
 			undeployJob(name);
 		}
-
 		getRepository().delete(name);
+		} catch (DSLException dslException) {
+			getRepository().delete(name);// if it is a DSL exception (meaning
+											// bad definition) go ahead a delete
+											// the module.
+		}
 	}
 
 	@Override
@@ -57,9 +64,12 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 			sendDeploymentRequests(name, requests);
 		} catch (MessageHandlingException mhe) {
 			Throwable cause = mhe.getCause();
-			if (cause != null
-					&& cause.getClass().getName()
-							.equals(BEAN_CREATION_EXCEPTION)) {
+			if (cause == null) {
+				throw mhe;
+			}
+			String exceptionClassName = cause.getClass().getName();
+			if (exceptionClassName.equals(BEAN_CREATION_EXCEPTION)
+					|| exceptionClassName.equals(BEAN_DEFINITION_EXEPTION)) {
 				throw new MissingRequiredDefinitionException(
 						definition.getName(),
 						cause.getMessage());
@@ -67,7 +77,6 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 				throw mhe;
 			}
 		}
-
 	}
 
 	public void undeployJob(String name) {
@@ -87,5 +96,16 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 			// Job is not deployed.
 		}
 
+	}
+
+	/*
+	 * Removes the module from the repository without doing an undeploy.
+	 */
+	public void remove(String name) {
+		JobDefinition def = getRepository().findOne(name);
+		if (def == null) {
+			throwNoSuchDefinitionException(name);
+		}
+		getRepository().delete(name);
 	}
 }

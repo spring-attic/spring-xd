@@ -116,4 +116,28 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 	public void testFailedJobDeletion() throws Exception {
 		mockMvc.perform(delete("/jobs/{name}", "job1")).andExpect(status().isNotFound());
 	}
+
+	@Test
+	public void testInvalidDefinitionCreate() throws Exception {
+		mockMvc.perform(
+				post("/jobs").param("name", "job1")
+						.param("definition", "Job adsfa")
+						.accept(MediaType.APPLICATION_JSON)).andExpect(
+				status().isBadRequest());
+		
+		mockMvc.perform(get("/jobs").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
+					.andExpect(jsonPath("$.content", Matchers.hasSize(0)));
+	}
+
+	@Test
+	public void testInvalidDefinitionDelete() throws Exception {
+		mockMvc.perform(
+				post("/jobs").param("name", "job1")
+						.param("definition", "Job adsfa")
+						.param("deploy", "false")
+						.accept(MediaType.APPLICATION_JSON)).andExpect(
+				status().isCreated());
+		mockMvc.perform(delete("/jobs/{name}", "job1")).andExpect(
+				status().isOk());
+	}
 }

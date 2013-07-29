@@ -130,7 +130,13 @@ public class JobsController {
 		final JobDefinition jobDefinition = new JobDefinition(name, definition);
 		final JobDefinition savedJobDefinition = jobDeployer.save(jobDefinition);
 		if(deploy) {
-			jobDeployer.deploy(name);
+			try {
+				jobDeployer.deploy(name);
+			} catch (RuntimeException dslException) {
+				jobDeployer.remove(name); // don't allow the creation of a job
+											// if it failed to deploy
+				throw dslException;
+			}
 		}
 		final JobDefinitionResource result = definitionResourceAssembler.toResource(savedJobDefinition);
 		return result;

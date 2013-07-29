@@ -93,7 +93,7 @@ public class StreamDeployer extends AbstractDeployer<StreamDefinition> {
 		}
 
 		final List<ModuleDeploymentRequest> requests = parse(name, stream
-				.getStreamDefinition().getDefinition());
+				.getDefinition().getDefinition());
 		Collections.reverse(requests);
 
 		for (ModuleDeploymentRequest request : requests) {

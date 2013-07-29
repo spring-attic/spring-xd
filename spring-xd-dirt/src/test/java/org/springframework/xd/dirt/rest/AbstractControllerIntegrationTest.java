@@ -33,6 +33,7 @@ import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDeployer;
 import org.springframework.xd.dirt.stream.TapDefinitionRepository;
 import org.springframework.xd.dirt.stream.TapDeployer;
+import org.springframework.xd.dirt.stream.TapInstanceRepository;
 import org.springframework.xd.dirt.stream.TriggerDefinitionRepository;
 import org.springframework.xd.dirt.stream.TriggerDeployer;
 
@@ -80,6 +81,9 @@ public class AbstractControllerIntegrationTest {
 	protected TapDefinitionRepository tapDefinitionRepository;
 
 	@Autowired
+	protected TapInstanceRepository tapInstanceRepository;
+
+	@Autowired
 	protected TriggerDefinitionRepository triggerDefinitionRepository;
 
 	@Autowired
@@ -101,6 +105,7 @@ public class AbstractControllerIntegrationTest {
 
 		resetOrDelete(streamDefinitionRepository);
 		resetOrDelete(tapDefinitionRepository);
+		resetOrDelete(tapInstanceRepository);
 		resetOrDelete(triggerDefinitionRepository);
 		resetOrDelete(jobDefinitionRepository);
 

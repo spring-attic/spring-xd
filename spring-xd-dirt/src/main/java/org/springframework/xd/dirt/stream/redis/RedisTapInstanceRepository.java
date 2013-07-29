@@ -19,45 +19,46 @@ package org.springframework.xd.dirt.stream.redis;
 import java.util.Date;
 
 import org.springframework.data.redis.core.RedisOperations;
-import org.springframework.xd.dirt.stream.Stream;
-import org.springframework.xd.dirt.stream.StreamDefinition;
-import org.springframework.xd.dirt.stream.StreamRepository;
+import org.springframework.xd.dirt.stream.TapDefinition;
+import org.springframework.xd.dirt.stream.TapInstance;
+import org.springframework.xd.dirt.stream.TapInstanceRepository;
 import org.springframework.xd.store.AbstractRedisRepository;
 
 /**
- * Redis implementation of {@link StreamRepository}, uses a {@link RedisStreamDefinitionRepository} in turn.
+ * Redis implementation of {@link TapInstanceRepository}, uses a {@link RedisTapDefinitionRepository} in turn.
  *
- * @author Eric Bottard
+ * @author Gunnar Hillert
+ * @since 1.0
  *
  */
-public class RedisStreamRepository extends AbstractRedisRepository<Stream, String> implements StreamRepository {
+public class RedisTapInstanceRepository extends AbstractRedisRepository<TapInstance, String> implements TapInstanceRepository {
 
-	private final RedisStreamDefinitionRepository redisStreamDefinitionRepository;
+	private final RedisTapDefinitionRepository redisTapDefinitionRepository;
 
-	public RedisStreamRepository(RedisOperations<String, String> redisOperations,
-			RedisStreamDefinitionRepository redisStreamDefinitionRepository) {
-		super("streams.", redisOperations);
-		this.redisStreamDefinitionRepository = redisStreamDefinitionRepository;
+	public RedisTapInstanceRepository(RedisOperations<String, String> redisOperations,
+			RedisTapDefinitionRepository redisTapDefinitionRepository) {
+		super("taps.", redisOperations);
+		this.redisTapDefinitionRepository = redisTapDefinitionRepository;
 	}
 
 	@Override
-	protected Stream deserialize(String v) {
+	protected TapInstance deserialize(String v) {
 		String[] parts = v.split("\n");
-		StreamDefinition def = redisStreamDefinitionRepository.findOne(parts[0]);
+		TapDefinition def = redisTapDefinitionRepository.findOne(parts[0]);
 		Date startedAt = new Date(Long.parseLong(parts[1]));
-		Stream stream = new Stream(def);
-		stream.setStartedAt(startedAt);
-		return stream;
+		TapInstance tapInstance = new TapInstance(def);
+		tapInstance.setStartedAt(startedAt);
+		return tapInstance;
 	}
 
 	@Override
-	protected String serialize(Stream entity) {
+	protected String serialize(TapInstance entity) {
 		// Store def name (which happens to be stream name, and properties)
 		return entity.getDefinition().getName() + "\n" + entity.getStartedAt().getTime();
 	}
 
 	@Override
-	protected String keyFor(Stream entity) {
+	protected String keyFor(TapInstance entity) {
 		return entity.getDefinition().getName();
 	}
 

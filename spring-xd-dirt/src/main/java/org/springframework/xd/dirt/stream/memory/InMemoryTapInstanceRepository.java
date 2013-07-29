@@ -14,24 +14,22 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.stream;
+package org.springframework.xd.dirt.stream.memory;
 
+import org.springframework.xd.dirt.stream.TapInstance;
+import org.springframework.xd.dirt.stream.TapInstanceRepository;
+import org.springframework.xd.store.AbstractInMemoryRepository;
 
 /**
- * A runtime representation of a running stream.
+ * In memory implementation of {@link TapInstanceRepository}.
  *
- * @author Eric Bottard
  * @author Gunnar Hillert
- *
  * @since 1.0
- *
  */
-public class Stream extends BaseInstance<StreamDefinition> {
+public class InMemoryTapInstanceRepository extends AbstractInMemoryRepository<TapInstance, String> implements TapInstanceRepository {
 
-	/**
-	 * Create a new stream out of the given {@link StreamDefinition}.
-	 */
-	public Stream(StreamDefinition definition) {
-		super(definition);
+	@Override
+	protected String keyFor(TapInstance entity) {
+		return entity.getDefinition().getName();
 	}
 }

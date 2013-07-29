@@ -16,22 +16,18 @@
 
 package org.springframework.xd.dirt.stream;
 
-
 /**
- * A runtime representation of a running stream.
+ * A runtime representation of a deployed {@link TapDefinition}.
  *
- * @author Eric Bottard
  * @author Gunnar Hillert
- *
  * @since 1.0
- *
  */
-public class Stream extends BaseInstance<StreamDefinition> {
+public class TapInstance extends BaseInstance<TapDefinition> {
 
 	/**
-	 * Create a new stream out of the given {@link StreamDefinition}.
+	 * Create a new Tap instance out of the given {@link StreamDefinition}.
 	 */
-	public Stream(StreamDefinition definition) {
+	public TapInstance(TapDefinition definition) {
 		super(definition);
 	}
 }

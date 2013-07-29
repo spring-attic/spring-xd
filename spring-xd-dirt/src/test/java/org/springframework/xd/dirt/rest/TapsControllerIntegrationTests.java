@@ -16,11 +16,14 @@
 
 package org.springframework.xd.dirt.rest;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.anyListOf;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -110,6 +113,47 @@ public class TapsControllerIntegrationTests extends AbstractControllerIntegratio
 	public void testStreamCreationNoDefinition() throws Exception {
 		mockMvc.perform(post("/taps").param("name", "mystream").accept(MediaType.APPLICATION_JSON)).andExpect(
 				status().isBadRequest());
+	}
+
+	@Test
+	public void testCreateUndeployAndDeleteOfTap() throws Exception {
+
+		assertNull(tapInstanceRepository.findOne("myawesometap"));
+		streamDefinitionRepository.save(new StreamDefinition("test", "time | log"));
+		mockMvc.perform(
+				post("/taps").param("name", "myawesometap").param("definition", "tap@test | log")
+						.accept(MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
+
+		verify(sender, times(1)).sendDeploymentRequests(eq("myawesometap"), anyListOf(ModuleDeploymentRequest.class));
+
+		assertNotNull(tapDefinitionRepository.findOne("myawesometap"));
+		assertNotNull(tapInstanceRepository.findOne("myawesometap"));
+
+		mockMvc.perform(put("/taps/myawesometap")
+				.param("deploy", "false")
+				.accept(MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk());
+
+		verify(sender, times(2)).sendDeploymentRequests(eq("myawesometap"), anyListOf(ModuleDeploymentRequest.class));
+
+		assertNotNull(tapDefinitionRepository.findOne("myawesometap"));
+		assertNull(tapInstanceRepository.findOne("myawesometap"));
+
+		mockMvc.perform(delete("/taps/myawesometap")
+				.accept(MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk());
+
+		//As already undeployed, no new ModuleDeploymentRequest expected
+		verify(sender, times(2)).sendDeploymentRequests(eq("myawesometap"), anyListOf(ModuleDeploymentRequest.class));
+		assertNull(tapDefinitionRepository.findOne("myawesometap"));
+		assertNull(tapInstanceRepository.findOne("myawesometap"));
+
+		mockMvc.perform(delete("/taps/myawesometap")
+				.accept(MediaType.APPLICATION_JSON))
+				.andExpect(status().isNotFound());
+
+		//As already undeployed, no new ModuleDeploymentRequest expected
+		verify(sender, times(2)).sendDeploymentRequests(eq("myawesometap"), anyListOf(ModuleDeploymentRequest.class));
 	}
 
 	@Before

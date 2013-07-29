@@ -16,12 +16,20 @@ import static org.mockito.Mockito.mock;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.xd.dirt.stream.*;
+import org.springframework.xd.dirt.stream.DeploymentMessageSender;
+import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
+import org.springframework.xd.dirt.stream.TapDefinitionRepository;
+import org.springframework.xd.dirt.stream.TapDeployer;
+import org.springframework.xd.dirt.stream.TapInstanceRepository;
 import org.springframework.xd.dirt.stream.memory.InMemoryStreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.memory.InMemoryTapDefinitionRepository;
+import org.springframework.xd.dirt.stream.memory.InMemoryTapInstanceRepository;
 
 /**
  * @author David Turanski
+ * @author Gunnar Hillert
+ *
+ * @since 1.0
  *
  */
 @Configuration
@@ -35,11 +43,17 @@ public class TapsControllerIntegrationTestsConfig {
 	public TapDefinitionRepository tapDefinitionRepository() {
 		return new InMemoryTapDefinitionRepository();
 	}
+
+	@Bean
+	public TapInstanceRepository tapInstanceRepository() {
+		return new InMemoryTapInstanceRepository();
+	}
+
 	@Bean
 	public TapDeployer tapDeployer() {
-		return new TapDeployer(tapDefinitionRepository(), streamDefinitionRepository(), deploymentMessageSender());
+		return new TapDeployer(tapDefinitionRepository(), streamDefinitionRepository(), deploymentMessageSender(), tapInstanceRepository());
 	}
-	
+
 	@Bean
 	public DeploymentMessageSender deploymentMessageSender() {
 		return mock(DeploymentMessageSender.class);

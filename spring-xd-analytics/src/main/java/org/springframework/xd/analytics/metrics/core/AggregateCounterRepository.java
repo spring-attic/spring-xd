@@ -8,7 +8,7 @@ import org.joda.time.DateTimeField;
 import org.joda.time.Interval;
 
 /**
- * A repository to interact with {@link AggregateCounter}s.
+ * A repository to interact with Aggregate Counters.
  * 
  * @author Luke Taylor
  */
@@ -30,9 +30,9 @@ public interface AggregateCounterRepository {
 	void deleteCounter(String name);
 
 	/**
-	 * Returns the total number of counts for the entire lifespan of the named counter.
+	 * Returns the total value for the entire life-span of the named counter.
 	 */
-	int getTotalCounts(String name);
+	int getTotal(String name);
 
 	/**
 	 * Query function to allow the counts for a specific interval to be retrieved.

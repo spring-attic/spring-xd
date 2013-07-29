@@ -51,7 +51,7 @@ public class InMemoryAggregateCounterRepository implements AggregateCounterRepos
 	}
 
 	@Override
-	public int getTotalCounts(String name) {
+	public int getTotal(String name) {
 		return getCounter(name).getTotal();
 	}
 

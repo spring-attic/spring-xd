@@ -88,7 +88,7 @@ public class RedisAggregateCounterRepository implements AggregateCounterReposito
 	}
 
 	@Override
-	public int getTotalCounts(String name) {
+	public int getTotal(String name) {
 		AggregateKeyGenerator akg = new AggregateKeyGenerator(name);
 		logger.trace("TotalCounts - TotalKey = " + akg.getTotalKey());
 		Object val = redisTemplate.opsForValue().get(akg.getTotalKey());

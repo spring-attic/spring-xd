@@ -74,7 +74,7 @@ public abstract class AbstractAggregateCounterTests {
 		}
 
 		// Check the total
-		assertEquals(total, aggregateCounterRepository.getTotalCounts(counterName));
+		assertEquals(total, aggregateCounterRepository.getTotal(counterName));
 
 		// Query the entire period
 		Interval queryInterval = new Interval(start, end);

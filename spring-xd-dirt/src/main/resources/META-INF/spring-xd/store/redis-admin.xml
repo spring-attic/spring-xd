@@ -4,7 +4,6 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<import resource="../transports/redis-common.xml" />
-	
 
 	<bean id="jobRepository"
 		class="org.springframework.xd.dirt.stream.redis.RedisJobDefinitionRepository">
@@ -23,6 +22,11 @@
 	<bean id="streamRepository" class="org.springframework.xd.dirt.stream.redis.RedisStreamRepository">
 		<constructor-arg ref="humanFriendlyRedisTemplate" />
 		<constructor-arg ref="streamDefinitionRepository" />
+	</bean>
+
+	<bean id="tapInstanceRepository" class="org.springframework.xd.dirt.stream.redis.RedisTapInstanceRepository">
+		<constructor-arg name="redisOperations" ref="humanFriendlyRedisTemplate" />
+		<constructor-arg name="redisTapDefinitionRepository" ref="tapRepository" />
 	</bean>
 
 	<bean id="triggerRepository" class="org.springframework.xd.dirt.stream.redis.RedisTriggerDefinitionRepository">

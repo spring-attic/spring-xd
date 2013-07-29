@@ -27,29 +27,35 @@ import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.xd.dirt.stream.memory.InMemoryStreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.memory.InMemoryTapDefinitionRepository;
+import org.springframework.xd.dirt.stream.memory.InMemoryTapInstanceRepository;
 
 /**
  * @author David Turanski
- * 
+ * @author Gunnar Hillert
+ *
  */
 public class TapDeployerTests {
-	TapDefinitionRepository repository;
 
-	StreamDefinitionRepository streamRepository;
+	private TapDefinitionRepository repository;
 
-	SubscribableChannel outputChannel;
+	private TapInstanceRepository tapInstanceRepository;
 
-	DeploymentMessageSender sender;
+	private StreamDefinitionRepository streamRepository;
 
-	TapDeployer tapDeployer;
+	private SubscribableChannel outputChannel;
+
+	private DeploymentMessageSender sender;
+
+	private TapDeployer tapDeployer;
 
 	@Before
 	public void setUp() {
 		repository = new InMemoryTapDefinitionRepository();
+		tapInstanceRepository = new InMemoryTapInstanceRepository();
 		streamRepository = new InMemoryStreamDefinitionRepository();
 		outputChannel = new DirectChannel();
 		sender = new DeploymentMessageSender(outputChannel);
-		tapDeployer = new TapDeployer(repository, streamRepository, sender);
+		tapDeployer = new TapDeployer(repository, streamRepository, sender, tapInstanceRepository);
 	}
 
 	@Test

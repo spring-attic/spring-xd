@@ -16,22 +16,13 @@
 
 package org.springframework.xd.dirt.stream;
 
+import org.springframework.data.repository.PagingAndSortingRepository;
 
 /**
- * A runtime representation of a running stream.
+ * A repository for persisting {@link TapInstance}s.
  *
  * @author Eric Bottard
- * @author Gunnar Hillert
- *
- * @since 1.0
- *
  */
-public class Stream extends BaseInstance<StreamDefinition> {
+public interface TapInstanceRepository extends PagingAndSortingRepository<TapInstance, String> {
 
-	/**
-	 * Create a new stream out of the given {@link StreamDefinition}.
-	 */
-	public Stream(StreamDefinition definition) {
-		super(definition);
-	}
 }

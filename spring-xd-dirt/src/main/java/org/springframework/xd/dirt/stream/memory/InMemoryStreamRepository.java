@@ -22,14 +22,15 @@ import org.springframework.xd.store.AbstractInMemoryRepository;
 
 /**
  * In memory implementation of {@link StreamRepository}.
- * 
+ *
  * @author Eric Bottard
+ * @author Gunnar Hillert
  */
 public class InMemoryStreamRepository extends AbstractInMemoryRepository<Stream, String> implements StreamRepository {
 
 	@Override
 	protected String keyFor(Stream entity) {
-		return entity.getStreamDefinition().getName();
+		return entity.getDefinition().getName();
 	}
 
 }

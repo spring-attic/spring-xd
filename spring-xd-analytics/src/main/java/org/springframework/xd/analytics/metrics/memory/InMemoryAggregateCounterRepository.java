@@ -20,7 +20,7 @@ import java.util.*;
 
 import org.joda.time.*;
 import org.springframework.xd.analytics.metrics.core.AggregateCount;
-import org.springframework.xd.analytics.metrics.core.AggregateCounterService;
+import org.springframework.xd.analytics.metrics.core.AggregateCounterRepository;
 import org.springframework.xd.analytics.metrics.core.MetricUtils;
 
 /**
@@ -30,7 +30,7 @@ import org.springframework.xd.analytics.metrics.core.MetricUtils;
  *
  * @author Luke Taylor
  */
-public class InMemoryAggregateCounterService implements AggregateCounterService {
+public class InMemoryAggregateCounterRepository implements AggregateCounterRepository {
 	private final Map<String, Counter> counters = new HashMap<String, Counter>();
 
 	@Override

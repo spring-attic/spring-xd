@@ -20,10 +20,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.runner.RunWith;
-
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.support.AnnotationConfigContextLoader;
 import org.springframework.xd.analytics.metrics.AbstractAggregateCounterTests;
 import org.springframework.xd.analytics.metrics.common.RedisRepositoriesConfig;
 import org.springframework.xd.test.redis.RedisAvailableRule;
@@ -32,9 +30,9 @@ import org.springframework.xd.test.redis.RedisAvailableRule;
  * @author Luke Taylor
  * @author Gary Russell
  * @since 1.0
- *
+ * 
  */
-@ContextConfiguration(classes=RedisRepositoriesConfig.class, loader=AnnotationConfigContextLoader.class)
+@ContextConfiguration(classes = RedisRepositoriesConfig.class)
 @RunWith(SpringJUnit4ClassRunner.class)
 public class RedisAggregateCounterTests extends AbstractAggregateCounterTests {
 
@@ -44,7 +42,7 @@ public class RedisAggregateCounterTests extends AbstractAggregateCounterTests {
 	@Before
 	@After
 	public void beforeAndAfter() {
-		counterService.deleteCounter(counterName);
+		aggregateCounterRepository.deleteCounter(counterName);
 	}
 
 }

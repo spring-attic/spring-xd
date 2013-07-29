@@ -15,18 +15,18 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.util.Assert;
 import org.springframework.xd.analytics.metrics.core.AggregateCount;
-import org.springframework.xd.analytics.metrics.core.AggregateCounterService;
+import org.springframework.xd.analytics.metrics.core.AggregateCounterRepository;
 import org.springframework.xd.analytics.metrics.core.MetricUtils;
 
 /**
  * @author Mark Pollack
  * @author Luke Taylor
  */
-public class RedisAggregateCounterService implements AggregateCounterService {
+public class RedisAggregateCounterRepository implements AggregateCounterRepository {
 	protected final Log logger = LogFactory.getLog(this.getClass());
 	private final StringRedisTemplate redisTemplate;
 
-	public RedisAggregateCounterService(RedisConnectionFactory connectionFactory) {
+	public RedisAggregateCounterRepository(RedisConnectionFactory connectionFactory) {
 		Assert.notNull(connectionFactory);
 		this.redisTemplate = new StringRedisTemplate(connectionFactory);
 		this.redisTemplate.afterPropertiesSet();

@@ -27,7 +27,7 @@ import org.junit.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.xd.analytics.metrics.core.AggregateCount;
-import org.springframework.xd.analytics.metrics.core.AggregateCounterService;
+import org.springframework.xd.analytics.metrics.core.AggregateCounterRepository;
 
 /**
  * @author Luke Taylor
@@ -37,7 +37,7 @@ public abstract class AbstractAggregateCounterTests {
 	protected final String counterName = "test";
 
 	@Autowired
-	protected AggregateCounterService counterService;
+	protected AggregateCounterRepository aggregateCounterRepository;
 
 	private final DateTimeField MINUTE_RESOLUTION = ISOChronology.getInstanceUTC().minuteOfHour();
 	private final DateTimeField HOUR_RESOLUTION = ISOChronology.getInstanceUTC().hourOfDay();
@@ -49,10 +49,10 @@ public abstract class AbstractAggregateCounterTests {
 		DateTime now = start;
 		int val = 1;
 		while (now.isBefore(end)) {
-			counterService.increment(counterName, val++, now);
+			aggregateCounterRepository.increment(counterName, val++, now);
 			now = now.plus(Duration.standardMinutes(1));
 		}
-		int[] counts = counterService.getCounts(counterName, new Interval(start, end), MINUTE_RESOLUTION).counts;
+		int[] counts = aggregateCounterRepository.getCounts(counterName, new Interval(start, end), MINUTE_RESOLUTION).counts;
 		assertEquals(66, counts.length);
 		assertEquals(1, counts[0]);
 		assertEquals(65, counts[64]);
@@ -68,17 +68,17 @@ public abstract class AbstractAggregateCounterTests {
 		int total = 0;
 		while (now.isBefore(end)) {
 			int minute = now.getMinuteOfHour();
-			counterService.increment(counterName, minute, now);
+			aggregateCounterRepository.increment(counterName, minute, now);
 			now = now.plusMinutes(1);
 			total += minute;
 		}
 
 		// Check the total
-		assertEquals(total, counterService.getTotalCounts(counterName));
+		assertEquals(total, aggregateCounterRepository.getTotalCounts(counterName));
 
 		// Query the entire period
 		Interval queryInterval = new Interval(start, end);
-		AggregateCount aggregateCount = counterService.getCounts(counterName, queryInterval, MINUTE_RESOLUTION);
+		AggregateCount aggregateCount = aggregateCounterRepository.getCounts(counterName, queryInterval, MINUTE_RESOLUTION);
 		assertEquals(counterName, aggregateCount.name);
 		assertEquals(queryInterval, aggregateCount.interval);
 		int[] counts = aggregateCount.counts;
@@ -95,7 +95,7 @@ public abstract class AbstractAggregateCounterTests {
 		now = start.plusHours(5).withMinuteOfHour(0);
 		queryInterval = new Interval(now, now.plusHours(24));
 
-		aggregateCount = counterService.getCounts(counterName, queryInterval, MINUTE_RESOLUTION);
+		aggregateCount = aggregateCounterRepository.getCounts(counterName, queryInterval, MINUTE_RESOLUTION);
 		counts = aggregateCount.counts;
 		assertEquals(24*60, counts.length);
 		assertEquals(0, counts[0]); // on an hour boundary
@@ -106,7 +106,7 @@ public abstract class AbstractAggregateCounterTests {
 
 		// Query the entire period in hours
 		queryInterval = new Interval(start, end);
-		aggregateCount = counterService.getCounts(counterName, queryInterval, HOUR_RESOLUTION);
+		aggregateCount = aggregateCounterRepository.getCounts(counterName, queryInterval, HOUR_RESOLUTION);
 		counts = aggregateCount.counts;
 		assertEquals(48, counts.length);
 		// The first hour starts before the first counts are added

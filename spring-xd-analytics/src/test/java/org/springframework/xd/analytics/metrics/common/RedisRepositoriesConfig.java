@@ -23,7 +23,7 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.xd.analytics.metrics.redis.RedisAggregateCounterService;
+import org.springframework.xd.analytics.metrics.redis.RedisAggregateCounterRepository;
 import org.springframework.xd.analytics.metrics.redis.RedisCounterRepository;
 import org.springframework.xd.analytics.metrics.redis.RedisFieldValueCounterRepository;
 import org.springframework.xd.analytics.metrics.redis.RedisGaugeRepository;
@@ -52,7 +52,6 @@ public class RedisRepositoriesConfig {
 		return new RedisRichGaugeRepository(redisConnectionFactory());
 	}
 
-	@Deprecated
 	@Bean
 	public RedisGaugeRepository redisGaugeRepository() {
 		return new RedisGaugeRepository(redisConnectionFactory());
@@ -63,13 +62,9 @@ public class RedisRepositoriesConfig {
 		return new RedisCounterRepository(redisConnectionFactory());
 	}
 
-	/**
-	 * @deprecated to be removed as part of XD-330,XD-331,XD-332
-	 */
-	@Deprecated
 	@Bean
-	public RedisAggregateCounterService redisAggregateCounterAggregate() {
-		return new RedisAggregateCounterService(redisConnectionFactory());
+	public RedisAggregateCounterRepository redisAggregateCounterRepository() {
+		return new RedisAggregateCounterRepository(redisConnectionFactory());
 	}
 
 	@Bean

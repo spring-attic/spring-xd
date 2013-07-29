@@ -19,26 +19,28 @@ package org.springframework.xd.analytics.metrics.integration;
 import org.springframework.integration.Message;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.util.Assert;
-import org.springframework.xd.analytics.metrics.core.AggregateCounterService;
+import org.springframework.xd.analytics.metrics.core.AggregateCounterRepository;
 
 /**
  * @author Luke Taylor
  */
 public class AggregateCounterHandler {
-	private final AggregateCounterService counterService;
+
+	private final AggregateCounterRepository aggregateCounterRepository;
+
 	private final String counterName;
 
-	public AggregateCounterHandler(AggregateCounterService counterService, String counterName) {
-		Assert.notNull(counterService, "Counter Service can not be null");
+	public AggregateCounterHandler(AggregateCounterRepository aggregateCounterRepository, String counterName) {
+		Assert.notNull(aggregateCounterRepository, "Aggregate Counter Repository can not be null");
 		Assert.notNull(counterName, "Counter Name can not be null");
-		this.counterService = counterService;
+		this.aggregateCounterRepository = aggregateCounterRepository;
 		this.counterName = counterName;
 	}
 
 	@ServiceActivator
 	public Message<?> process(Message<?> message) {
 		if (message != null) {
-			this.counterService.increment(counterName);
+			this.aggregateCounterRepository.increment(counterName);
 		}
 		return message;
 	}

@@ -43,7 +43,8 @@ import org.springframework.xd.shell.util.TableRow;
 public class TriggerCommands implements CommandMarker {
 
 	private static final String CREATE_TRIGGER = "trigger create";
-	private final static String LIST_TRIGGERS  = "trigger list";
+	private static final String LIST_TRIGGERS = "trigger list";
+	private static final String DESTROY_TRIGGER = "trigger destroy";
 
 	@Autowired
 	private XDShell xdShell;
@@ -78,6 +79,13 @@ public class TriggerCommands implements CommandMarker {
 		}
 
 		return table;
+	}
+
+	@CliCommand(value = DESTROY_TRIGGER, help = "Destroy an existing trigger")
+	public String destroyTrigger(
+			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the trigger to be destroyed") String name) {
+		triggerOperations().deleteTrigger(name);
+		return String.format("Created new trigger '%s'", name);
 	}
 
 	private TriggerOperations triggerOperations() {

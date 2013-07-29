@@ -46,4 +46,10 @@ public interface TriggerOperations {
 	 */
 	public PagedResources<TriggerDefinitionResource> listTriggers();
 
+	/*
+	 * Delete an existing Trigger.
+	 * 
+	 * @param name of the trigger
+	 */
+	public void deleteTrigger(String name);
 }

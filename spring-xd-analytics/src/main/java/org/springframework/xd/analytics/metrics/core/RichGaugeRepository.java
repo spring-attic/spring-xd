@@ -27,15 +27,7 @@ package org.springframework.xd.analytics.metrics.core;
  * @author Luke Taylor
  *
  */
-public interface RichGaugeService {
-
-	/**
-	 * Returns an existing gauge for the given name or creates a new gauge set to zero
-	 * @param name name of the gauge
-	 * @return existing or new gauge.
-	 * @throws IllegalArgumentException in case the given name is null
-	 */
-	RichGauge getOrCreate(String name);
+public interface RichGaugeRepository extends MetricRepository<RichGauge>  {
 
 	/**
 	 * Sets the current value of the gauge.

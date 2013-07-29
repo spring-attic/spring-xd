@@ -19,7 +19,6 @@ package org.springframework.xd.analytics.metrics.memory;
 import static org.springframework.xd.analytics.metrics.core.MetricUtils.setGaugeValue;
 
 import org.springframework.util.Assert;
-import org.springframework.xd.analytics.metrics.MetricsException;
 import org.springframework.xd.analytics.metrics.core.Gauge;
 import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 

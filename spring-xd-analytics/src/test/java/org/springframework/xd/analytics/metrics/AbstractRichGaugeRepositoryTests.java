@@ -20,23 +20,22 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 import org.springframework.xd.analytics.metrics.core.RichGauge;
-import org.springframework.xd.analytics.metrics.core.RichGaugeService;
+import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
 
 /**
  * @author Luke Taylor
  */
-public abstract class AbstractRichGaugeServiceTests {
+public abstract class AbstractRichGaugeRepositoryTests {
 
-	protected abstract RichGaugeService createService();
+	protected abstract RichGaugeRepository createService();
 
 	@Test
 	public void getOrCreateReturnsCorrectInstance() throws Exception {
-		RichGaugeService gs = createService();
-		gs.getOrCreate("test");
+		RichGaugeRepository gs = createService();
 		gs.setValue("test", 9.99);
 		gs.setValue("test", 0.01);
 
-		RichGauge g = gs.getOrCreate("test");
+		RichGauge g = gs.findOne("test");
 		assertEquals("test", g.getName());
 		assertEquals(0.01, g.getValue(), 1E-6);
 		assertEquals(5.0, g.getAverage(), 1E-6);
@@ -44,39 +43,30 @@ public abstract class AbstractRichGaugeServiceTests {
 		assertEquals(0.01, g.getMin(), 1E-6);
 	}
 
-	@Test(expected = MetricsException.class)
-	public void setValueOnMissingGaugeRaisesException() {
-		RichGaugeService gs = createService();
-		gs.setValue("test", 9.99);
-	}
-
 	@Test
 	public void resetExistingGaugeCausesReset() throws Exception {
-		RichGaugeService gs = createService();
-		gs.getOrCreate("test");
+		RichGaugeRepository gs = createService();
 		gs.setValue("test", 9.99);
 		gs.reset("test");
-		RichGauge g = gs.getOrCreate("test");
+		RichGauge g = gs.findOne("test");
 		assertEquals(0.0, g.getValue(), 1E-6);
 	}
 
 	@Test
 	public void testExponentialMovingAverage() throws Exception {
-		RichGaugeService gs = createService();
-		gs.getOrCreate("test");
+		RichGaugeRepository gs = createService();
 		gs.setAlpha("test", 0.1);
-		RichGauge g = gs.getOrCreate("test");
 		gs.setValue("test", 71.0);
-		g = gs.getOrCreate("test");
+		RichGauge g = gs.findOne("test");
 		assertEquals(71.0, g.getAverage(), 1E-6);
 		gs.setValue("test", 70.0);
-		g = gs.getOrCreate("test");
+		g = gs.findOne("test");
 		assertEquals(71.0, g.getAverage(), 1E-6);
 		gs.setValue("test", 69.0);
-		g = gs.getOrCreate("test");
+		g = gs.findOne("test");
 		assertEquals(70.9, g.getAverage(), 1E-6);
 		gs.setValue("test", 68.0);
-		g = gs.getOrCreate("test");
+		g = gs.findOne("test");
 		assertEquals(70.71, g.getAverage(), 1E-6);
 	}
 }

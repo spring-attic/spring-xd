@@ -40,7 +40,7 @@ import org.springframework.integration.transformer.MessageTransformationExceptio
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.xd.analytics.metrics.core.RichGauge;
-import org.springframework.xd.analytics.metrics.core.RichGaugeService;
+import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
 import org.springframework.xd.analytics.metrics.redis.RedisRichGaugeRepository;
 import org.springframework.xd.test.redis.RedisAvailableRule;
 
@@ -65,8 +65,8 @@ public class RichGaugeHandlerTests {
 
 	@Test
 	public void testParseDouble() {
-		RichGaugeService richGaugeService = mock(RichGaugeService.class);
-		RichGaugeHandler handler = new RichGaugeHandler(richGaugeService, "test");
+		RichGaugeRepository richGaugeRepository = mock(RichGaugeRepository.class);
+		RichGaugeHandler handler = new RichGaugeHandler(richGaugeRepository, "test");
 		int i = 4;
 		double val = handler.convertToDouble(i);
 		assertEquals(4.0, val, 0.001);

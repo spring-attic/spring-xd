@@ -15,15 +15,15 @@
  */
 package org.springframework.xd.analytics.metrics.memory;
 
-import org.springframework.xd.analytics.metrics.AbstractRichGaugeServiceTests;
-import org.springframework.xd.analytics.metrics.core.RichGaugeService;
+import org.springframework.xd.analytics.metrics.AbstractRichGaugeRepositoryTests;
+import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
 
 /**
  * @author Luke Taylor
  */
-public class InMemoryRichGaugeServiceTests extends AbstractRichGaugeServiceTests {
+public class InMemoryRichGaugeRepositoryTests extends AbstractRichGaugeRepositoryTests {
 	@Override
-	protected RichGaugeService createService() {
-		return new InMemoryRichGaugeService(new InMemoryRichGaugeRepository());
+	protected RichGaugeRepository createService() {
+		return new InMemoryRichGaugeRepository();
 	}
 }

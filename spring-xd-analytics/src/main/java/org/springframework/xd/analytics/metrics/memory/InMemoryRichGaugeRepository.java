@@ -16,7 +16,12 @@
 
 package org.springframework.xd.analytics.metrics.memory;
 
+import static org.springframework.xd.analytics.metrics.core.MetricUtils.setRichGaugeAlpha;
+import static org.springframework.xd.analytics.metrics.core.MetricUtils.setRichGaugeValue;
+
+import org.springframework.util.Assert;
 import org.springframework.xd.analytics.metrics.core.RichGauge;
+import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
 
 /**
  * Memory backed implementation of GaugeRepository that uses a ConcurrentMap
@@ -24,10 +29,40 @@ import org.springframework.xd.analytics.metrics.core.RichGauge;
  * @author Luke Taylor
  * 
  */
-public class InMemoryRichGaugeRepository extends InMemoryMetricRepository<RichGauge> {
+public class InMemoryRichGaugeRepository extends InMemoryMetricRepository<RichGauge>
+		implements RichGaugeRepository {
 
 	@Override
 	protected RichGauge create(String name) {
 		return new RichGauge(name);
+	}
+
+	@Override
+	protected RichGauge getOrCreate(String name) {
+		Assert.notNull(name, "Gauge name can not be null");
+		RichGauge gauge = findOne(name);
+		if (gauge == null) {
+			gauge = new RichGauge(name);
+			save(gauge);
+		}
+		return gauge;
+	}
+
+	@Override
+	public void setValue(String name, double value) {
+		RichGauge gauge = getOrCreate(name);
+		setRichGaugeValue(gauge, value);
+	}
+
+	@Override
+	public void setAlpha(String name, double value) {
+		RichGauge gauge = getOrCreate(name);
+		save(setRichGaugeAlpha(gauge, value));
+	}
+
+	@Override
+	public void reset(String name) {
+		RichGauge gauge = getOrCreate(name);
+		setRichGaugeValue(gauge, 0);
 	}
 }

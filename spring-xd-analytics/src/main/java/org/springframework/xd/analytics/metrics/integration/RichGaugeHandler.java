@@ -16,29 +16,30 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.util.Assert;
-import org.springframework.xd.analytics.metrics.core.RichGaugeService;
+import org.springframework.xd.analytics.metrics.core.RichGauge;
+import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
 
 /**
  * @author David Turanski
  *
  */
 public class RichGaugeHandler {
-	private final RichGaugeService richGaugeService;
+	private final RichGaugeRepository richGaugeRepository;
 	private final String name;
 
-	public RichGaugeHandler(RichGaugeService richGaugeService, String name) {
-		Assert.notNull(richGaugeService, "Rich Gauge Service can not be null");
+	public RichGaugeHandler(RichGaugeRepository richGaugeRepository, String name) {
+		Assert.notNull(richGaugeRepository, "Rich Gauge Service can not be null");
 		Assert.notNull(name, "Rich Gauge Name can not be null");
-		this.richGaugeService = richGaugeService;
+		this.richGaugeRepository = richGaugeRepository;
 		this.name = name;
-		this.richGaugeService.getOrCreate(name);
+		this.richGaugeRepository.save(new RichGauge(name));
 	}
 
 	@ServiceActivator
 	public void process(Message<?> message) {
 		if (message != null) {
 			double value = convertToDouble(message.getPayload());
-			this.richGaugeService.setValue(name, value);
+			this.richGaugeRepository.setValue(name, value);
 		}
 	}
 

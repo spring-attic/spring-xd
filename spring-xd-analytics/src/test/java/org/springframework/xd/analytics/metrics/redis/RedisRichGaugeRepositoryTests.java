@@ -9,9 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
-import org.springframework.xd.analytics.metrics.AbstractRichGaugeServiceTests;
+import org.springframework.xd.analytics.metrics.AbstractRichGaugeRepositoryTests;
 import org.springframework.xd.analytics.metrics.common.RedisRepositoriesConfig;
-import org.springframework.xd.analytics.metrics.core.RichGaugeService;
+import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
 import org.springframework.xd.test.redis.RedisAvailableRule;
 
 /**
@@ -20,16 +20,13 @@ import org.springframework.xd.test.redis.RedisAvailableRule;
  */
 @ContextConfiguration(classes=RedisRepositoriesConfig.class, loader=AnnotationConfigContextLoader.class)
 @RunWith(SpringJUnit4ClassRunner.class)
-public class RedisRichGaugeServiceTests extends AbstractRichGaugeServiceTests {
+public class RedisRichGaugeRepositoryTests extends AbstractRichGaugeRepositoryTests {
 
 	@Rule
 	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
 
 	@Autowired
 	private RedisRichGaugeRepository repo;
-
-	@Autowired
-	private RedisRichGaugeService service;
 
 	@After
 	@Before
@@ -38,7 +35,7 @@ public class RedisRichGaugeServiceTests extends AbstractRichGaugeServiceTests {
 	}
 
 	@Override
-	protected RichGaugeService createService() {
-		return service;
+	protected RichGaugeRepository createService() {
+		return repo;
 	}
 }

@@ -18,19 +18,21 @@ import java.util.Collections;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.core.convert.ConversionException;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.http.MediaType;
 import org.springframework.integration.Message;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.x.json.TypedJsonMapper;
+import org.springframework.util.ClassUtils;
 
 /**
  * @author David Turanski
  * @author Gary Russell
  *
  */
-public abstract class ChannelRegistrySupport implements ChannelRegistry {
+public abstract class ChannelRegistrySupport implements ChannelRegistry, BeanClassLoaderAware {
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
@@ -38,10 +40,17 @@ public abstract class ChannelRegistrySupport implements ChannelRegistry {
 
 	private final TypedJsonMapper jsonMapper = new TypedJsonMapper();
 
+	private volatile ClassLoader beanClassloader = ClassUtils.getDefaultClassLoader();
+
 	private static final MediaType JAVA_OBJECT_TYPE = new MediaType("application", "x-java-object");
 
 	public void setConversionService(ConversionService conversionService) {
 		this.conversionService = conversionService;
+	}
+
+	@Override
+	public void setBeanClassLoader(ClassLoader classLoader) {
+		this.beanClassloader = classLoader;
 	}
 
 	protected final Message<?> transformOutboundIfNecessary(Message<?> message, MediaType to) {
@@ -130,7 +139,7 @@ public abstract class ChannelRegistrySupport implements ChannelRegistry {
 				}
 				Class<?> clazz = null;
 				try {
-					clazz = Class.forName(requiredType);
+					clazz = this.beanClassloader.loadClass(requiredType);
 				}
 				catch (ClassNotFoundException e) {
 					if (logger.isDebugEnabled()) {

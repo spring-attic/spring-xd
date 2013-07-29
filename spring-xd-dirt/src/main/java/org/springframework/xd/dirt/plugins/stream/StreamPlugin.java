@@ -130,12 +130,12 @@ public class StreamPlugin extends AbstractPlugin {
 				if (acceptedType instanceof String) {
 					acceptedMediaTypes.add(MediaType.parseMediaType((String) acceptedType));
 				}
+				else if (acceptedType instanceof MediaType) {
+					acceptedMediaTypes.add((MediaType) acceptedType);
+				}
 			}
 			return Collections.unmodifiableCollection(acceptedMediaTypes);
 		}
 	}
-
-
-
 
 }

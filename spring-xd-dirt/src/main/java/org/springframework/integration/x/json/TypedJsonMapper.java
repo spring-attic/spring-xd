@@ -14,7 +14,9 @@ package org.springframework.integration.x.json;
 
 import org.joda.time.DateTime;
 
+import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.core.convert.ConversionException;
+import org.springframework.util.ClassUtils;
 import org.springframework.xd.tuple.DefaultTuple;
 import org.springframework.xd.tuple.JsonBytesToTupleConverter;
 import org.springframework.xd.tuple.Tuple;
@@ -36,7 +38,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
  * @author Gary Russell
  *
  */
-public class TypedJsonMapper {
+public class TypedJsonMapper implements BeanClassLoaderAware {
 
 	private final ObjectMapper mapper = new ObjectMapper();
 	/*
@@ -47,10 +49,17 @@ public class TypedJsonMapper {
 
 	private final JsonBytesToTupleConverter jsonBytesToTupleConverter = new JsonBytesToTupleConverter();
 
+	private volatile ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
+
 	public TypedJsonMapper() {
 		//include type information
 		this.mapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
 		mapper.configure(SerializationFeature.WRAP_ROOT_VALUE, true);
+	}
+
+	@Override
+	public void setBeanClassLoader(ClassLoader classLoader) {
+		this.beanClassLoader = classLoader;
 	}
 
 	public byte[] toBytes(Object t) throws ConversionException {
@@ -83,7 +92,7 @@ public class TypedJsonMapper {
 			 */
 			if (value.isArray()) {
 				String className = value.get(0).asText();
-				return mapper.treeToValue(value,Class.forName(className));
+				return mapper.treeToValue(value, this.beanClassLoader.loadClass(className));
 			}
 			if (typeName.equals("String")) {
 				return value.asText();

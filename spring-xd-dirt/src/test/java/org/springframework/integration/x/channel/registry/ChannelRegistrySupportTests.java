@@ -48,7 +48,7 @@ public class ChannelRegistrySupportTests {
 		byte[] payload = "foo".getBytes();
 		Object converted = channelRegistry.transformPayloadFromOutputChannel(payload, MediaType.APPLICATION_OCTET_STREAM);
 		assertEquals(payload, converted);
-		payload = (byte[]) channelRegistry.transformPayloadFporInputChannel(converted, Collections.singletonList(MediaType.ALL));
+		payload = (byte[]) channelRegistry.transformPayloadForInputChannel(converted, Collections.singletonList(MediaType.ALL));
 		assertEquals(converted, payload);
 	}
 
@@ -56,7 +56,7 @@ public class ChannelRegistrySupportTests {
 	public void testJsonString() {
 		Object converted = channelRegistry.transformPayloadFromOutputChannel("foo", MediaType.APPLICATION_OCTET_STREAM);
 		assertEquals("{\"String\":\"foo\"}", new String((byte[]) converted));
-		Object payload = channelRegistry.transformPayloadFporInputChannel(converted, Collections.singletonList(MediaType.ALL));
+		Object payload = channelRegistry.transformPayloadForInputChannel(converted, Collections.singletonList(MediaType.ALL));
 		assertEquals("foo", payload);
 	}
 
@@ -64,7 +64,7 @@ public class ChannelRegistrySupportTests {
 	public void testJsonPojo() {
 		Object converted = channelRegistry.transformPayloadFromOutputChannel(new Foo("bar"), MediaType.APPLICATION_OCTET_STREAM);
 		assertEquals("{\"Foo\":{\"@class\":\"org.springframework.integration.x.channel.registry.ChannelRegistrySupportTests$Foo\",\"bar\":\"bar\"}}", new String((byte[]) converted));
-		Foo payload = (Foo) channelRegistry.transformPayloadFporInputChannel(converted, Collections.singletonList(MediaType.ALL));
+		Foo payload = (Foo) channelRegistry.transformPayloadForInputChannel(converted, Collections.singletonList(MediaType.ALL));
 		assertEquals("bar", payload.getBar());
 	}
 
@@ -72,7 +72,7 @@ public class ChannelRegistrySupportTests {
 	public void testJsonPojoWithXJavaObjectMediaTypeNoType() {
 		Object converted = channelRegistry.transformPayloadFromOutputChannel(new Foo("bar"), MediaType.APPLICATION_OCTET_STREAM);
 		assertEquals("{\"Foo\":{\"@class\":\"org.springframework.integration.x.channel.registry.ChannelRegistrySupportTests$Foo\",\"bar\":\"bar\"}}", new String((byte[]) converted));
-		Foo payload = (Foo) channelRegistry.transformPayloadFporInputChannel(converted, Collections.singletonList(
+		Foo payload = (Foo) channelRegistry.transformPayloadForInputChannel(converted, Collections.singletonList(
 				new MediaType("application", "x-java-object")));
 		assertEquals("bar", payload.getBar());
 	}
@@ -83,7 +83,7 @@ public class ChannelRegistrySupportTests {
 		assertEquals("{\"Foo\":{\"@class\":\"org.springframework.integration.x.channel.registry.ChannelRegistrySupportTests$Foo\",\"bar\":\"bar\"}}", new String((byte[]) converted));
 		MediaType type = new MediaType("application", "x-java-object", Collections.singletonMap("type",
 				"org.springframework.integration.x.channel.registry.ChannelRegistrySupportTests$Foo"));
-		Foo payload = (Foo) channelRegistry.transformPayloadFporInputChannel(converted, Collections.singletonList(type));
+		Foo payload = (Foo) channelRegistry.transformPayloadForInputChannel(converted, Collections.singletonList(type));
 		assertEquals("bar", payload.getBar());
 	}
 
@@ -91,7 +91,7 @@ public class ChannelRegistrySupportTests {
 	public void testJsonTuple() {
 		Tuple payload = TupleBuilder.tuple().of("foo", "bar");
 		Object converted = channelRegistry.transformPayloadFromOutputChannel(payload, MediaType.APPLICATION_OCTET_STREAM);
-		payload = (Tuple) channelRegistry.transformPayloadFporInputChannel(converted, Collections.singletonList(MediaType.ALL));
+		payload = (Tuple) channelRegistry.transformPayloadForInputChannel(converted, Collections.singletonList(MediaType.ALL));
 		assertEquals("bar", payload.getString("foo"));
 	}
 
@@ -115,7 +115,7 @@ public class ChannelRegistrySupportTests {
 
 		MediaType type = new MediaType("application", "x-java-object", Collections.singletonMap("type",
 				"org.springframework.integration.x.channel.registry.ChannelRegistrySupportTests$Bar"));
-		Bar payload = (Bar) channelRegistry.transformPayloadFporInputChannel(converted, Collections.singletonList(type));
+		Bar payload = (Bar) channelRegistry.transformPayloadForInputChannel(converted, Collections.singletonList(type));
 		assertEquals("bar", payload.getFoo());
 	}
 
@@ -239,7 +239,7 @@ public class ChannelRegistrySupportTests {
 			return null;
 		}
 
-		public Object transformPayloadFporInputChannel(Object payload, Collection<MediaType> to) {
+		public Object transformPayloadForInputChannel(Object payload, Collection<MediaType> to) {
 			try {
 				return this.transformPayloadForInputChannel.invoke(this, payload, to);
 			}

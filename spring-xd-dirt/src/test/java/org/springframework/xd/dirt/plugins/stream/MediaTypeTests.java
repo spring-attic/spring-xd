@@ -16,13 +16,20 @@
 package org.springframework.xd.dirt.plugins.stream;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -37,8 +44,6 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.x.channel.registry.ChannelRegistry;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.Module;
-
-import scala.actors.threadpool.Arrays;
 
 /**
  * @author David Turanski
@@ -60,20 +65,18 @@ public class MediaTypeTests {
 
 	private MessageChannel input = new DirectChannel();
 
-	private MessageChannel output = new DirectChannel();
-
-	private static final Collection<MediaType> ALL = Collections.singletonList(MediaType.ALL);
-
 	@Before
 	public void setUp() {
 		MockitoAnnotations.initMocks(this);
+		when(module.getComponent(ChannelRegistry.class)).thenReturn(registry);
+		when(module.getDeploymentMetadata()).thenReturn(deploymentMetadata);
+		when(module.getComponent("input", MessageChannel.class)).thenReturn(input);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testGetAcceptedMediaTypes() {
 		when(module.getComponent("accepted-media-types", Collection.class)).thenReturn(Collections.singletonList("application/json"));
-		streamPlugin.postProcessModule(module);
 		doAnswer(new Answer<Object>() {
 
 			@Override
@@ -82,12 +85,39 @@ public class MediaTypeTests {
 				return null;
 			}
 		}).when(registry).inbound(anyString(), any(MessageChannel.class), any(Collection.class));
+		streamPlugin.postProcessModule(module);
+		verify(registry).inbound(anyString(), any(MessageChannel.class), any(Collection.class));
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testGetAcceptedMediaTypesMixed() {
+		List<Object> types = new ArrayList<Object>();
+		types.add("application/json");
+		types.add(MediaType.APPLICATION_XML);
+		when(module.getComponent("accepted-media-types", Collection.class)).thenReturn(types);
+		doAnswer(new Answer<Object>() {
+
+			@Override
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				Collection<MediaType> types = (Collection<MediaType>) invocation.getArguments()[2];
+				assertEquals(2, types.size());
+				Iterator<MediaType> iterator = types.iterator();
+				MediaType first = iterator.next();
+				assertTrue(first.equals(MediaType.APPLICATION_JSON) || first.equals(MediaType.APPLICATION_XML));
+				MediaType second = iterator.next();
+				assertTrue(second.equals(MediaType.APPLICATION_JSON) || second.equals(MediaType.APPLICATION_XML));
+				assertFalse(first.equals(second));
+				return null;
+			}
+		}).when(registry).inbound(anyString(), any(MessageChannel.class), any(Collection.class));
+		streamPlugin.postProcessModule(module);
+		verify(registry).inbound(anyString(), any(MessageChannel.class), any(Collection.class));
 	}
 
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testAcceptsAllMediaTypesByDefault() {
-		streamPlugin.postProcessModule(module);
 		doAnswer(new Answer<Object>() {
 
 			@Override
@@ -96,13 +126,14 @@ public class MediaTypeTests {
 				return null;
 			}
 		}).when(registry).inbound(anyString(), any(MessageChannel.class), any(Collection.class));
+		streamPlugin.postProcessModule(module);
+		verify(registry).inbound(anyString(), any(MessageChannel.class), any(Collection.class));
 	}
 
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testEmptyMediaTypesAcceptsAll() {
 		when(module.getComponent("accepted-media-types", Collection.class)).thenReturn(Arrays.asList(new String[0]));
-		streamPlugin.postProcessModule(module);
 		doAnswer(new Answer<Object>() {
 
 			@Override
@@ -111,6 +142,8 @@ public class MediaTypeTests {
 				return null;
 			}
 		}).when(registry).inbound(anyString(), any(MessageChannel.class), any(Collection.class));
+		streamPlugin.postProcessModule(module);
+		verify(registry).inbound(anyString(), any(MessageChannel.class), any(Collection.class));
 	}
 
 }

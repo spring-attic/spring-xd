@@ -12,22 +12,17 @@ import org.joda.time.Interval;
  * 
  * @author Luke Taylor
  */
-public interface AggregateCounterRepository {
+public interface AggregateCounterRepository extends MetricRepository<AggregateCounter> {
 
 	/**
 	 * Increments the named counter using the current time.
 	 */
-	void increment(String name);
+	long increment(String name);
 
 	/**
 	 * Increments the named counter by a specific amount for the given instant.
 	 */
-	void increment(String name, int amount, DateTime dateTime);
-
-	/**
-	 * Removes all the data for the named counter.
-	 */
-	void deleteCounter(String name);
+	long increment(String name, int amount, DateTime dateTime);
 
 	/**
 	 * Returns the total value for the entire life-span of the named counter.

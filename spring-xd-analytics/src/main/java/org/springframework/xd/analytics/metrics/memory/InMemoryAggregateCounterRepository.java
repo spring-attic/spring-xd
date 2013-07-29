@@ -16,164 +16,68 @@
 
 package org.springframework.xd.analytics.metrics.memory;
 
-import java.util.*;
+import java.util.Set;
 
-import org.joda.time.*;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeField;
+import org.joda.time.Interval;
 import org.springframework.xd.analytics.metrics.core.AggregateCount;
+import org.springframework.xd.analytics.metrics.core.AggregateCounter;
 import org.springframework.xd.analytics.metrics.core.AggregateCounterRepository;
-import org.springframework.xd.analytics.metrics.core.MetricUtils;
+import org.springframework.xd.store.AbstractInMemoryRepository;
 
 /**
  * In-memory aggregate counter with minute resolution.
- *
- * Note that the data is permanently accumulated, so will grow steadily in size until the host process is restarted.
- *
+ * 
+ * Note that the data is permanently accumulated, so will grow steadily in size until the
+ * host process is restarted.
+ * 
  * @author Luke Taylor
  */
-public class InMemoryAggregateCounterRepository implements AggregateCounterRepository {
-	private final Map<String, Counter> counters = new HashMap<String, Counter>();
+public class InMemoryAggregateCounterRepository extends AbstractInMemoryRepository<AggregateCounter, String> implements
+		AggregateCounterRepository {
 
 	@Override
-	public void increment(String name) {
-		increment(name, 1, DateTime.now());
+	public long increment(String name) {
+		return increment(name, 1, DateTime.now());
 	}
 
 	@Override
-	public void increment(String name, int amount, DateTime dateTime) {
-		getCounter(name).increment(amount, dateTime);
-	}
-
-	@Override
-	public void deleteCounter(String name) {
-		synchronized (counters) {
-			counters.remove(name);
-		}
+	public long increment(String name, int amount, DateTime dateTime) {
+		InMemoryAggregateCounter counter = getOrCreate(name);
+		return counter.increment(amount, dateTime);
 	}
 
 	@Override
 	public int getTotal(String name) {
-		return getCounter(name).getTotal();
+		return getOrCreate(name).getTotal();
 	}
 
 	@Override
 	public AggregateCount getCounts(String name, Interval interval, DateTimeField resolution) {
-		int[] counts = getCounter(name).getCounts(interval, resolution);
+		return getOrCreate(name).getCounts(interval, resolution);
+	}
 
-		return new AggregateCount(name, interval, counts, resolution);
+	private synchronized InMemoryAggregateCounter getOrCreate(String name) {
+		AggregateCounter c = findOne(name);
+		if (c == null) {
+			c = new InMemoryAggregateCounter(name);
+			save(c);
+		}
+		else if (!(c instanceof InMemoryAggregateCounter)) {
+			c = new InMemoryAggregateCounter(c);
+		}
+		return (InMemoryAggregateCounter) c;
 	}
 
 	@Override
 	public Set<String> getAll() {
-		return counters.keySet();
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Auto-generated method stub");
 	}
 
-	private Counter getCounter(String name) {
-		synchronized (counters) {
-			Counter c = counters.get(name);
-			if (c == null) {
-				c = new Counter();
-				counters.put(name, c);
-			}
-			return c;
-		}
-	}
-
-	private final static class Counter {
-		private int total;
-		private final Map<Integer,int[]> monthCountsByYear = new HashMap<Integer, int[]> ();
-		private final Map<Integer,int[]> dayCountsByYear = new HashMap<Integer, int[]> ();
-		private final Map<Integer,int[]> hourCountsByDay = new HashMap<Integer, int[]> ();
-		private final Map<Integer,int[]> minuteCountsByDay = new HashMap<Integer, int[]> ();
-
-		synchronized void increment(int amount, DateTime dateTime) {
-			int year = dateTime.getYear();
-			int month = dateTime.getMonthOfYear();
-			int day = dateTime.getDayOfYear();
-			int hour = dateTime.getHourOfDay();
-			int minute = dateTime.getMinuteOfDay();
-
-			int[] monthCounts = monthCountsByYear.get(year);
-			int[] dayCounts = dayCountsByYear.get(year);
-
-			if (monthCounts == null) {
-				monthCounts = new int[12];
-				monthCountsByYear.put(year, monthCounts);
-				Duration d = new Duration(new DateTime(year,1,1,0,0,0), new DateTime(year+1,1,1,0,0,0));
-				dayCounts = new int[(int)d.toDuration().getStandardDays()];
-				dayCountsByYear.put(year, dayCounts);
-			}
-
-			int countsByDayKey = year * 1000 + day;
-			int[] hourCounts = hourCountsByDay.get(countsByDayKey);
-
-			if (hourCounts == null) {
-				hourCounts = new int[24];
-				hourCountsByDay.put(countsByDayKey, hourCounts);
-			}
-
-			int[] minuteCounts = minuteCountsByDay.get(countsByDayKey);
-
-			if (minuteCounts == null) {
-				minuteCounts = new int[60*24];
-				minuteCountsByDay.put(countsByDayKey, minuteCounts);
-			}
-
-			minuteCounts[minute] += amount;
-			monthCounts[month] += amount;
-			dayCounts[day] += amount;
-			hourCounts[hour] += amount;
-			total += amount;
-		}
-
-		int[] getCounts(Interval interval, DateTimeField resolution) {
-			DurationField resolutionDuration = resolution.getDurationField();
-			DateTime start = interval.getStart();
-			DateTime end = interval.getEnd();
-
-			int[] counts;
-			if (resolutionDuration.getUnitMillis() == DateTimeConstants.MILLIS_PER_MINUTE) {
-				DateTime now = start;
-				List<int[]> days = accumulateDayCounts(minuteCountsByDay, start, end, 60*24);
-
-				counts = MetricUtils.concatArrays(days,
-						interval.getStart().getMinuteOfDay(),
-						interval.toPeriod().toStandardMinutes().getMinutes(),
-						24*60);
-			} else if (resolutionDuration.getUnitMillis() == DateTimeConstants.MILLIS_PER_HOUR) {
-				DateTime now = start;
-				List<int[]> days = accumulateDayCounts(hourCountsByDay, start, end, 24);
-
-				counts = MetricUtils.concatArrays(days,
-						interval.getStart().getHourOfDay(),
-						interval.toPeriod().toStandardHours().getHours(),
-						24);
-			} else {
-				throw new IllegalArgumentException("Only minute or hour resolution is currently supported");
-			}
-			return counts;
-		}
-
-		private static List<int[]> accumulateDayCounts(Map<Integer,int[]> fromDayCounts, DateTime start, DateTime end, int subSize) {
-			List<int[]> days = new ArrayList<int[]>();
-			Duration step = Duration.standardDays(1);
-			int[] emptySubArray = new int[subSize];
-			end = end.plusDays(1); // Need to account for an interval which crosses days
-
-			for (DateTime now = start; now.isBefore(end); now = now.plus(step)) {
-				int countsByDayKey = now.getYear() * 1000 + now.getDayOfYear();
-				int[] dayCounts = fromDayCounts.get(countsByDayKey);
-
-				if (dayCounts == null) {
-					// Use an empty array if we don't have data
-					dayCounts = emptySubArray;
-				}
-				days.add(dayCounts);
-			}
-			return days;
-		}
-
-		int getTotal() {
-			return total;
-		}
+	@Override
+	protected String keyFor(AggregateCounter entity) {
+		return entity.getName();
 	}
 }

@@ -1,29 +1,49 @@
+
 package org.springframework.xd.analytics.metrics.redis;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.joda.time.*;
+import org.joda.time.Chronology;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeConstants;
+import org.joda.time.DateTimeField;
+import org.joda.time.Duration;
+import org.joda.time.DurationField;
+import org.joda.time.Interval;
+import org.joda.time.MutableDateTime;
+import org.joda.time.ReadableDateTime;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.SetOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.util.Assert;
 import org.springframework.xd.analytics.metrics.core.AggregateCount;
+import org.springframework.xd.analytics.metrics.core.AggregateCounter;
 import org.springframework.xd.analytics.metrics.core.AggregateCounterRepository;
 import org.springframework.xd.analytics.metrics.core.MetricUtils;
 
 /**
+ * Redis implementation for {@link AggregateCounterRepository}. Uses several Redis hashes
+ * under specific keys to store values.
+ * 
+ * @see AggregateKeyGenerator
+ * 
+ * @author Eric Bottard
  * @author Mark Pollack
  * @author Luke Taylor
  */
 public class RedisAggregateCounterRepository implements AggregateCounterRepository {
+
 	protected final Log logger = LogFactory.getLog(this.getClass());
+
 	private final StringRedisTemplate redisTemplate;
 
 	public RedisAggregateCounterRepository(RedisConnectionFactory connectionFactory) {
@@ -33,24 +53,27 @@ public class RedisAggregateCounterRepository implements AggregateCounterReposito
 	}
 
 	@Override
-	public void increment(String name) {
-		increment(name, 1, new DateTime());
+	public long increment(String name) {
+		return increment(name, 1, new DateTime());
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public void increment(final String name, final int amount, DateTime dateTime) {
+	public long increment(final String name, final int amount, DateTime dateTime) {
 		final AggregateKeyGenerator akg = new AggregateKeyGenerator(name, dateTime);
 		final String metaKey = getKeyForCounterKeys(name);
 
-		RedisCallback<Void> incrementAction = new RedisCallback<Void>() {
+		RedisCallback<Long> incrementAction = new RedisCallback<Long>() {
+
 			RedisSerializer keySerializer = redisTemplate.getKeySerializer();
+
 			RedisSerializer valueSerializer = redisTemplate.getValueSerializer();
+
 			RedisSerializer hks = redisTemplate.getHashKeySerializer();
 
 			@Override
-			public Void doInRedis(RedisConnection connection) throws DataAccessException {
-				final long value = (long)amount;
+			public Long doInRedis(RedisConnection connection) throws DataAccessException {
+				final long value = amount;
 
 				byte[] totalKey = keySerializer.serialize(akg.getTotalKey());
 				long returnVal = connection.incrBy(totalKey, value);
@@ -58,18 +81,28 @@ public class RedisAggregateCounterRepository implements AggregateCounterReposito
 				byte[] meta = keySerializer.serialize(metaKey);
 				if (returnVal == value) {
 					connection.sAdd(meta, totalKey);
-					connection.sAdd(keySerializer.serialize(getKeyForAllRootCounterNames()), valueSerializer.serialize(name));
+					connection.sAdd(keySerializer.serialize(getKeyForAllRootCounterNames()),
+							valueSerializer.serialize(name));
 				}
 
-				doIncrement(connection, meta,  akg.getYearsKey(), akg.getYear(), amount);
-				doIncrement(connection, meta,  akg.getYearKey(), akg.getMonth(), amount);
-				doIncrement(connection, meta,  akg.getMonthKey(), akg.getDay(), amount);
-				doIncrement(connection, meta,  akg.getDayKey(), akg.getHour(), amount);
-				doIncrement(connection, meta,  akg.getHourKey(), akg.getMinute(), amount);
+				doIncrement(connection, meta, akg.getYearsKey(), akg.getYear(), amount);
+				doIncrement(connection, meta, akg.getYearKey(), akg.getMonth(), amount);
+				doIncrement(connection, meta, akg.getMonthKey(), akg.getDay(), amount);
+				doIncrement(connection, meta, akg.getDayKey(), akg.getHour(), amount);
+				doIncrement(connection, meta, akg.getHourKey(), akg.getMinute(), amount);
 
-				return null;
+				return returnVal;
 			}
 
+			/**
+			 * Increment value inside a specific hash, making sure the bookkeeping meta
+			 * set is up to date.
+			 * 
+			 * @param meta the key used for overall tracking of aggregate counters
+			 * @param key the name of the hash to act on
+			 * @param hkey the key inside the hash to increment
+			 * @param amount the quantity to increment by
+			 */
 			private void doIncrement(RedisConnection connection, byte[] meta, String key, String hkey, long amount) {
 				byte[] keyBytes = keySerializer.serialize(key);
 				byte[] hKeyBytes = hks.serialize(hkey);
@@ -77,14 +110,16 @@ public class RedisAggregateCounterRepository implements AggregateCounterReposito
 
 				if (returnVal == amount) {
 					// Add new counters to bookkeeping set of keys
-					// TODO: This currently involves unnecessary operations since the return value
-					// is that of the individual hash key and does not indicate that the hash is new
+					// TODO: This currently involves unnecessary operations since the
+					// return value
+					// is that of the individual hash key and does not indicate that the
+					// hash is new
 					connection.sAdd(meta, valueSerializer.serialize(key));
 				}
 			}
 		};
 
-		redisTemplate.execute(incrementAction);
+		return redisTemplate.execute(incrementAction);
 	}
 
 	@Override
@@ -97,18 +132,20 @@ public class RedisAggregateCounterRepository implements AggregateCounterReposito
 				logger.trace("TotalCounts - Total Value Type = " + val.getClass());
 				logger.trace("TotalCounts - Total Value = " + val);
 				return Integer.parseInt(val.toString());
-			} catch (NumberFormatException e) {
+			}
+			catch (NumberFormatException e) {
 				logger.error("Could not parse total count value returned from redis key [" + akg.getTotalKey() + "]", e);
 				return -1;
 			}
-		} else {
+		}
+		else {
 			logger.trace("TotalCounts - val is null");
 			return -1;
 		}
 	}
 
 	@Override
-	public void deleteCounter(String name) {
+	public void delete(String name) {
 		String keySet = getKeyForCounterKeys(name);
 		SetOperations<String, String> setOps = redisTemplate.opsForSet();
 		Set<String> keys = setOps.members(keySet);
@@ -140,12 +177,11 @@ public class RedisAggregateCounterRepository implements AggregateCounterReposito
 				hours.add(getMinCountsForHour(name, dt));
 				dt.add(step);
 			}
-			counts = MetricUtils.concatArrays(hours,
-					interval.getStart().getMinuteOfHour(),
-					interval.toPeriod().toStandardMinutes().getMinutes(),
-					60);
+			counts = MetricUtils.concatArrays(hours, interval.getStart().getMinuteOfHour(),
+					interval.toPeriod().toStandardMinutes().getMinutes(), 60);
 
-		} else if (resolutionDuration.getUnitMillis() == DateTimeConstants.MILLIS_PER_HOUR) {
+		}
+		else if (resolutionDuration.getUnitMillis() == DateTimeConstants.MILLIS_PER_HOUR) {
 			DateTime cursor = new DateTime(c.dayOfMonth().roundFloor(interval.getStart().getMillis()));
 			List<int[]> days = new ArrayList<int[]>();
 			Duration step = Duration.standardHours(24);
@@ -154,12 +190,11 @@ public class RedisAggregateCounterRepository implements AggregateCounterReposito
 				cursor = cursor.plus(step);
 			}
 
-			counts = MetricUtils.concatArrays(days,
-					interval.getStart().getHourOfDay(),
-					interval.toPeriod().toStandardHours().getHours(),
-					24);
+			counts = MetricUtils.concatArrays(days, interval.getStart().getHourOfDay(),
+					interval.toPeriod().toStandardHours().getHours(), 24);
 
-		} else {
+		}
+		else {
 			throw new IllegalArgumentException("Only minute or hour resolution is currently supported");
 		}
 		return new AggregateCount(name, interval, counts, resolution);
@@ -171,7 +206,8 @@ public class RedisAggregateCounterRepository implements AggregateCounterReposito
 	}
 
 	private int[] getMinCountsForHour(String name, ReadableDateTime dateTime) {
-		return getMinCountsForHour(name, dateTime.getYear(), dateTime.getMonthOfYear(), dateTime.getDayOfMonth(), dateTime.getHourOfDay());
+		return getMinCountsForHour(name, dateTime.getYear(), dateTime.getMonthOfYear(), dateTime.getDayOfMonth(),
+				dateTime.getHourOfDay());
 	}
 
 	private int[] getMinCountsForHour(String name, int year, int month, int day, int hour) {
@@ -200,7 +236,7 @@ public class RedisAggregateCounterRepository implements AggregateCounterReposito
 	}
 
 	private Map<Object, Object> getEntries(String key) {
-		//TODO cleanup with more type specific template data types
+		// TODO cleanup with more type specific template data types
 		return redisTemplate.opsForHash().entries(key);
 	}
 
@@ -212,6 +248,66 @@ public class RedisAggregateCounterRepository implements AggregateCounterReposito
 			minutes[minute] = count;
 		}
 		return minutes;
+	}
+
+	@Override
+	public <S extends AggregateCounter> S save(S entity) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Auto-generated method stub");
+	}
+
+	@Override
+	public <S extends AggregateCounter> Iterable<S> save(Iterable<S> entities) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Auto-generated method stub");
+	}
+
+	@Override
+	public AggregateCounter findOne(String id) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Auto-generated method stub");
+	}
+
+	@Override
+	public boolean exists(String id) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Auto-generated method stub");
+	}
+
+	@Override
+	public Iterable<AggregateCounter> findAll() {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Auto-generated method stub");
+	}
+
+	@Override
+	public Iterable<AggregateCounter> findAll(Iterable<String> ids) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Auto-generated method stub");
+	}
+
+	@Override
+	public long count() {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Auto-generated method stub");
+	}
+
+	@Override
+	public void delete(AggregateCounter entity) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Auto-generated method stub");
+	}
+
+	@Override
+	public void delete(Iterable<? extends AggregateCounter> entities) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Auto-generated method stub");
+	}
+
+	@Override
+	public void deleteAll() {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Auto-generated method stub");
 	}
 
 }

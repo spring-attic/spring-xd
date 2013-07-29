@@ -42,7 +42,7 @@ public class RedisAggregateCounterTests extends AbstractAggregateCounterTests {
 	@Before
 	@After
 	public void beforeAndAfter() {
-		aggregateCounterRepository.deleteCounter(counterName);
+		aggregateCounterRepository.delete(counterName);
 	}
 
 }

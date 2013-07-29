@@ -26,6 +26,6 @@ public class InMemoryAggregateCounterTests extends AbstractAggregateCounterTests
 
 	@Before
 	public void createService() {
-		counterService = new InMemoryAggregateCounterService();
+		aggregateCounterRepository = new InMemoryAggregateCounterRepository();
 	}
 }

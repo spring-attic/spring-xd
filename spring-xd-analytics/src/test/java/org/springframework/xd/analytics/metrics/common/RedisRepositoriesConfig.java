@@ -16,14 +16,16 @@
 
 package org.springframework.xd.analytics.metrics.common;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.xd.analytics.metrics.redis.RedisAggregateCounterService;
+import org.springframework.xd.analytics.metrics.redis.RedisAggregateCounterRepository;
 import org.springframework.xd.analytics.metrics.redis.RedisCounterRepository;
 import org.springframework.xd.analytics.metrics.redis.RedisFieldValueCounterRepository;
 import org.springframework.xd.analytics.metrics.redis.RedisGaugeRepository;
@@ -52,29 +54,32 @@ public class RedisRepositoriesConfig {
 		return new RedisRichGaugeRepository(redisConnectionFactory());
 	}
 
-	@Deprecated
 	@Bean
 	public RedisGaugeRepository redisGaugeRepository() {
 		return new RedisGaugeRepository(redisConnectionFactory());
 	}
 
 	@Bean
+	@Qualifier("simple")
 	public RedisCounterRepository redisCounterRepository() {
 		return new RedisCounterRepository(redisConnectionFactory());
 	}
 
-	/**
-	 * @deprecated to be removed as part of XD-330,XD-331,XD-332
-	 */
-	@Deprecated
 	@Bean
-	public RedisAggregateCounterService redisAggregateCounterAggregate() {
-		return new RedisAggregateCounterService(redisConnectionFactory());
+	public RedisAggregateCounterRepository redisAggregateCounterRepository() {
+		return new RedisAggregateCounterRepository(redisConnectionFactory());
 	}
 
 	@Bean
 	public StringRedisTemplate stringRedisTemplate() {
 		return new StringRedisTemplate(redisConnectionFactory());
+	}
+
+	@Bean
+	public RedisTemplate<String, Long> longRedisTemplate() {
+		RedisTemplate<String, Long> result = new RedisTemplate<String, Long>();
+		result.setConnectionFactory(redisConnectionFactory());
+		return result;
 	}
 
 	@Bean

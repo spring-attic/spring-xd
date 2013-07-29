@@ -1,38 +1,24 @@
 package org.springframework.xd.analytics.metrics.core;
 
-import java.util.Set;
-
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeField;
 import org.joda.time.Interval;
 
 /**
+ * A repository to interact with Aggregate Counters.
+ * 
  * @author Luke Taylor
  */
-public interface AggregateCounterService {
-	/**
-	 * Increments the named counter using the current time.
-	 */
-	void increment(String name);
+public interface AggregateCounterRepository extends CounterRepository {
 
 	/**
 	 * Increments the named counter by a specific amount for the given instant.
 	 */
-	void increment(String name, int amount, DateTime dateTime);
-
-	/**
-	 * Removes all the data for the named counter.
-	 */
-	void deleteCounter(String name);
-
-	/**
-	 * Returns the total number of counts for the entire lifespan of the named counter.
-	 */
-	int getTotalCounts(String name);
+	long increment(String name, long amount, DateTime dateTime);
 
 	/**
 	 * Query function to allow the counts for a specific interval to be retrieved.
-	 *
+	 * 
 	 * @param name the counter to query
 	 * @param interval the time interval to return data for. Includes start, excludes end.
 	 * @param resolution the resolution at which the data should be returned (minutes or hours)
@@ -40,9 +26,4 @@ public interface AggregateCounterService {
 	 */
 	AggregateCount getCounts(String name, Interval interval, DateTimeField resolution);
 
-	/**
-	 * Returns the names of all available aggregate counters.
-	 */
-	Set<String> getAll();
 }
-

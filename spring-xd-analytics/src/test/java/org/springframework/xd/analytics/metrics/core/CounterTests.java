@@ -15,16 +15,15 @@
  */
 package org.springframework.xd.analytics.metrics.core;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-
 import java.util.HashSet;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 import nl.jqno.equalsverifier.Warning;
 
 import org.junit.Test;
+
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 public class CounterTests {
 
@@ -51,7 +50,7 @@ public class CounterTests {
 		Counter c = new Counter("myCounter");
 		HashSet<Counter> set = new HashSet<Counter>();
 		set.add(c);
-		c.set(99);
+		c.increment(99L);
 		assertTrue(set.contains(c));
 	}
 }

@@ -25,14 +25,20 @@ package org.springframework.xd.analytics.metrics.core;
 public interface CounterRepository extends MetricRepository<Counter> {
 
 	/**
-	 * Increment the given counter, creating it if it did not exist. Implementations which
-	 * can do this atomically in one operation are encouraged to do so.
+	 * Increment the given counter by one, creating it if it did not exist. Implementations which can do this atomically
+	 * in one operation are encouraged to do so.
 	 */
 	public long increment(String name);
 
 	/**
-	 * Decrement the given counter, creating it if it did not exist. Implementations which
-	 * can do this atomically in one operation are encouraged to do so.
+	 * Increment the given counter by the specified amount, creating it if it did not exist. Implementations which can
+	 * do this atomically in one operation are encouraged to do so.
+	 */
+	public long increment(String name, long amount);
+
+	/**
+	 * Decrement the given counter, creating it if it did not exist. Implementations which can do this atomically in one
+	 * operation are encouraged to do so.
 	 */
 	public long decrement(String name);
 

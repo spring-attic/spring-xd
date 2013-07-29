@@ -33,15 +33,15 @@ import org.springframework.util.Assert;
 /**
  * Base implementation for an in-memory store, using a {@link Map} internally.
  * 
- * Default behaviour is to retain sort order on the keys. Hence, this is by default the
- * only sort supported when querying with a {@link Pageable}.
+ * Default behaviour is to retain sort order on the keys. Hence, this is by default the only sort supported when
+ * querying with a {@link Pageable}.
  * 
  * @param <T> the type of things to store
  * @param <ID> a "primary key" to the things
  * @author Eric Bottard
  */
-public abstract class AbstractInMemoryRepository<T, ID extends Serializable> implements
-		PagingAndSortingRepository<T, ID> {
+public abstract class AbstractInMemoryRepository<T, ID extends Serializable> extends AbstractRepository<T, ID>
+		implements PagingAndSortingRepository<T, ID> {
 
 	private final Map<ID, T> map;
 
@@ -70,41 +70,14 @@ public abstract class AbstractInMemoryRepository<T, ID extends Serializable> imp
 	protected abstract ID keyFor(T entity);
 
 	@Override
-	public <S extends T> Iterable<S> save(Iterable<S> entities) {
-		List<S> result = new ArrayList<S>();
-		for (S entity : entities) {
-			result.add(save(entity));
-		}
-		return result;
-	}
-
-	@Override
 	public T findOne(ID id) {
 		Assert.notNull(id);
 		return map.get(id);
 	}
 
 	@Override
-	public boolean exists(ID id) {
-		Assert.notNull(id);
-		return map.containsKey(id);
-	}
-
-	@Override
 	public Iterable<T> findAll() {
 		return new ArrayList<T>(map.values());
-	}
-
-	@Override
-	public Iterable<T> findAll(Iterable<ID> ids) {
-		List<T> result = new ArrayList<T>();
-		for (ID id : ids) {
-			T one = findOne(id);
-			if (one != null) {
-				result.add(one);
-			}
-		}
-		return result;
 	}
 
 	@Override
@@ -122,13 +95,6 @@ public abstract class AbstractInMemoryRepository<T, ID extends Serializable> imp
 	public void delete(T entity) {
 		Assert.notNull(entity);
 		map.remove(safeKeyFor(entity));
-	}
-
-	@Override
-	public void delete(Iterable<? extends T> entities) {
-		for (T entity : entities) {
-			delete(entity);
-		}
 	}
 
 	@Override

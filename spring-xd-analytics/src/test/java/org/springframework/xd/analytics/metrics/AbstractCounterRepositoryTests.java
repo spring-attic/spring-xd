@@ -13,39 +13,85 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.xd.analytics.metrics;
 
+import java.util.Arrays;
+import java.util.List;
+
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.xd.analytics.metrics.core.Counter;
 import org.springframework.xd.analytics.metrics.core.CounterRepository;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
-public class AbstractCounterRepositoryTests {
+public abstract class AbstractCounterRepositoryTests {
 
-	public void simpleTest(CounterRepository repo) {
-		Counter counter = new Counter("simpleCounter");
+	@Autowired
+	@Qualifier("simple")
+	protected CounterRepository counterRepository;
 
-		String counterName = counter.getName();
-		assertThat(counterName, equalTo("simpleCounter"));
-
-		repo.increment(counterName);
-		Counter c = repo.findOne(counterName);
-		assertThat(c.getValue(), equalTo(1L));
-
-		repo.increment(counterName);
-		assertThat(repo.findOne(counterName).getValue(), equalTo(2L));
-
-		repo.decrement(counterName);
-		assertThat(repo.findOne(counterName).getValue(), equalTo(1L));
-
-		repo.reset(counterName);
-		assertThat(repo.findOne(counterName).getValue(), equalTo(0L));
-
-		Counter counter2 = repo.findOne("simpleCounter");
-		assertThat(counter, equalTo(counter2));
-
+	@Test(expected = IllegalArgumentException.class)
+	public void testDeleteNullString() {
+		counterRepository.delete((String) null);
 	}
 
+	@Test(expected = IllegalArgumentException.class)
+	public void testDeleteNullCounter() {
+		counterRepository.delete((Counter) null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testFindOneNullCounter() {
+		counterRepository.findOne(null);
+	}
+
+	@Test
+	public void testCrud() {
+		CounterRepository repo = counterRepository;
+		String myCounterName = "myCounter";
+		String yourCounterName = "yourCounter";
+
+		// Create and save a Counter named 'myCounter'
+		Counter c1 = new Counter(myCounterName);
+		Counter myCounter = repo.save(c1);
+		assertThat(myCounter.getName(), is(notNullValue()));
+		// Create and save a Counter named 'yourCounter'
+		Counter c2 = new Counter(yourCounterName);
+		Counter yourCounter = repo.save(c2);
+		assertThat(yourCounter.getName(), is(notNullValue()));
+		assertTrue(repo.exists(yourCounterName));
+
+		// Retrieve by name and compare for equality to previously saved instance.
+		Counter result = repo.findOne(myCounterName);
+		assertThat(result, equalTo(myCounter));
+
+		result = repo.findOne(yourCounter.getName());
+		assertThat(result, equalTo(yourCounter));
+
+		List<Counter> counters = (List<Counter>) repo.findAll();
+		assertThat(counters.size(), equalTo(2));
+		counters = (List<Counter>) repo.findAll(Arrays.asList(yourCounterName, myCounterName));
+		assertEquals(2, counters.size());
+
+		repo.delete(myCounter);
+		assertThat(repo.findOne(myCounterName), is(nullValue()));
+
+		repo.delete(yourCounter.getName());
+		assertThat(repo.findOne(yourCounterName), is(nullValue()));
+		assertThat(repo.count(), equalTo(0L));
+
+		repo.save(Arrays.asList(c1, c2));
+		assertThat(repo.count(), equalTo(2L));
+
+		repo.delete(Arrays.asList(c1, c2));
+		assertEquals(0, repo.count());
+	}
+
+	@Test
+	public void findNonExistentRaisesException() throws Exception {
+		counterRepository.findOne("idontexist");
+	}
 }

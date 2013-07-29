@@ -16,10 +16,6 @@
 
 package org.springframework.xd.module;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -33,9 +29,7 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.io.Resource;
-import org.springframework.http.MediaType;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
 
 /**
  * @author Mark Fisher
@@ -152,26 +146,6 @@ public class SimpleModule extends AbstractModule {
 	public ApplicationContext getApplicationContext() {
 		return this.context;
 	}
-
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public List<MediaType> getAcceptedMediaTypes() {
-		//TODO: This should only apply to processors and sinks
-		if (!this.context.containsBean(MEDIA_TYPE_BEAN_NAME)) {
-			return Arrays.asList(MediaType.ALL);
-		}
-		List<String> acceptedTypes =  this.context.getBean(MEDIA_TYPE_BEAN_NAME,List.class);
-		if (CollectionUtils.isEmpty(acceptedTypes)) {
-			return Arrays.asList(MediaType.ALL);
-		}
-		List<MediaType> acceptedMediaTypes = new ArrayList<MediaType>(acceptedTypes.size());
-		for (String acceptedType: acceptedTypes) {
-			acceptedMediaTypes.add(MediaType.parseMediaType(acceptedType));
-		}
-		return Collections.unmodifiableList(acceptedMediaTypes);
-	}
-
 
 	@Override
 	public <T> T getComponent(Class<T> requiredType) {

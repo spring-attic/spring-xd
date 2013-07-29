@@ -17,6 +17,7 @@
 package org.springframework.integration.x.redis;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -28,16 +29,20 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.http.MediaType;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.AbstractMessageHandler;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.redis.inbound.RedisInboundChannelAdapter;
-import org.springframework.integration.redis.outbound.RedisPublishingMessageHandler;
 import org.springframework.integration.x.channel.registry.ChannelRegistry;
+import org.springframework.integration.x.channel.registry.ChannelRegistrySupport;
+import org.springframework.redis.x.NoOpRedisSerializer;
 import org.springframework.util.Assert;
 
 /**
@@ -47,7 +52,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @author David Turanski
  */
-public class RedisChannelRegistry implements ChannelRegistry, DisposableBean {
+public class RedisChannelRegistry extends ChannelRegistrySupport implements DisposableBean {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -59,25 +64,38 @@ public class RedisChannelRegistry implements ChannelRegistry, DisposableBean {
 	public RedisChannelRegistry(RedisConnectionFactory connectionFactory) {
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");
 		this.redisTemplate.setConnectionFactory(connectionFactory);
+		this.redisTemplate.setValueSerializer(new NoOpRedisSerializer());
 		this.redisTemplate.afterPropertiesSet();
 	}
 
 	@Override
-	public void inbound(final String name, MessageChannel channel) {
+	public void inbound(final String name, MessageChannel moduleInputChannel, final Collection<MediaType> acceptedMediaTypes) {
 		RedisQueueInboundChannelAdapter adapter = new RedisQueueInboundChannelAdapter("queue." + name,
-				this.redisTemplate.getConnectionFactory());
-		adapter.setOutputChannel(channel);
+				this.redisTemplate.getConnectionFactory(), new NoOpRedisSerializer());
+		SubscribableChannel bridgeToModuleChannel = new DirectChannel();
+		adapter.setOutputChannel(bridgeToModuleChannel);
 		adapter.setBeanName("inbound." + name);
 		adapter.afterPropertiesSet();
 		this.lifecycleBeans.add(adapter);
+		AbstractReplyProducingMessageHandler convertingBridge = new AbstractReplyProducingMessageHandler() {
+			@Override
+			protected Object handleRequestMessage(Message<?> requestMessage) {
+				return transformInboundIfNecessary(requestMessage, acceptedMediaTypes);
+			}
+
+		};
+		convertingBridge.setOutputChannel(moduleInputChannel);
+		convertingBridge.setBeanName(name + ".convert.bridge");
+		convertingBridge.afterPropertiesSet();
+		bridgeToModuleChannel.subscribe(convertingBridge);
 		adapter.start();
 	}
 
 	@Override
-	public void outbound(final String name, MessageChannel channel) {
-		Assert.isInstanceOf(SubscribableChannel.class, channel);
+	public void outbound(final String name, MessageChannel moduleOutputChannel) {
+		Assert.isInstanceOf(SubscribableChannel.class, moduleOutputChannel);
 		MessageHandler handler = new CompositeHandler(name, this.redisTemplate.getConnectionFactory());
-		EventDrivenConsumer consumer = new EventDrivenConsumer((SubscribableChannel) channel, handler);
+		EventDrivenConsumer consumer = new EventDrivenConsumer((SubscribableChannel) moduleOutputChannel, handler);
 		consumer.setBeanName("outbound." + name);
 		consumer.afterPropertiesSet();
 		this.lifecycleBeans.add(consumer);
@@ -134,7 +152,7 @@ public class RedisChannelRegistry implements ChannelRegistry, DisposableBean {
 		}
 	}
 
-	private static class CompositeHandler extends AbstractMessageHandler {
+	private class CompositeHandler extends AbstractMessageHandler {
 
 		private final RedisPublishingMessageHandler topic;
 
@@ -143,20 +161,25 @@ public class RedisChannelRegistry implements ChannelRegistry, DisposableBean {
 		private CompositeHandler(String name, RedisConnectionFactory connectionFactory) {
 			// TODO: replace with a multiexec that does both publish and lpush
 			RedisPublishingMessageHandler topic = new RedisPublishingMessageHandler(connectionFactory);
+			NoOpRedisSerializer serializer = new NoOpRedisSerializer();
+			topic.setSerializer(serializer);
 			topic.setDefaultTopic("topic." + name);
 			topic.afterPropertiesSet();
 			this.topic = topic;
 			RedisQueueOutboundChannelAdapter queue = new RedisQueueOutboundChannelAdapter("queue." + name,
-					connectionFactory);
+					connectionFactory, serializer);
 			queue.afterPropertiesSet();
 			this.queue = queue;
 		}
 
 		@Override
 		protected void handleMessageInternal(Message<?> message) throws Exception {
-			topic.handleMessage(message);
-			queue.handleMessage(message);
+			// TODO: redis wire data pluggable format?
+			Message<?> messageToSend = transformOutboundIfNecessary(message, MediaType.APPLICATION_OCTET_STREAM);
+			topic.handleMessage(messageToSend);
+			queue.handleMessage(messageToSend);
 		}
+
 	}
 
 }

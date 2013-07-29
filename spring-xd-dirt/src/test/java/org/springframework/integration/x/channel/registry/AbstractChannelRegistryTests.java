@@ -17,12 +17,19 @@
 package org.springframework.integration.x.channel.registry;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.util.Collection;
+import java.util.Collections;
 
 import org.junit.Test;
+
+import org.springframework.http.MediaType;
+import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.xd.dirt.stream.Tap;
 
 /**
@@ -30,13 +37,15 @@ import org.springframework.xd.dirt.stream.Tap;
  */
 public abstract class AbstractChannelRegistryTests {
 
+	private static final Collection<MediaType> ALL = Collections.singletonList(MediaType.ALL);
+
 	@Test
 	public void testClean() throws Exception {
 		ChannelRegistry registry = getRegistry();
 		registry.outbound("foo.0", new DirectChannel());
-		registry.inbound("foo.0", new DirectChannel());
+		registry.inbound("foo.0", new DirectChannel(), ALL);
 		registry.outbound("foo.1", new DirectChannel());
-		registry.inbound("foo.1", new DirectChannel());
+		registry.inbound("foo.1", new DirectChannel(), ALL);
 		registry.outbound("foo.2", new DirectChannel());
 		registry.tap("bar", "foo.0", new DirectChannel());
 		Collection<?> bridges = getBridges(registry);
@@ -53,7 +62,7 @@ public abstract class AbstractChannelRegistryTests {
 	public void testCleanTap() throws Exception {
 		ChannelRegistry registry = getRegistry();
 		registry.outbound("foo.0", new DirectChannel());
-		registry.inbound("foo.0", new DirectChannel());
+		registry.inbound("foo.0", new DirectChannel(), ALL);
 
 		MessageChannel output = new DirectChannel();
 
@@ -61,7 +70,7 @@ public abstract class AbstractChannelRegistryTests {
 		tap.setOutputChannel(output);
 		tap.afterPropertiesSet();
 
-		registry.inbound("bar.0", new DirectChannel());
+		registry.inbound("bar.0", new DirectChannel(), ALL);
 		registry.outbound("bar.0", output);
 		Collection<?> bridges = getBridges(registry);
 		assertEquals(5, bridges.size()); // 2 each stream + tap
@@ -69,6 +78,19 @@ public abstract class AbstractChannelRegistryTests {
 		assertEquals(2, bridges.size()); // tap completely gone
 		registry.cleanAll("foo.0");
 		assertEquals(0, bridges.size());
+	}
+
+	@Test
+	public void testSendAndReceive() throws Exception {
+		ChannelRegistry registry = getRegistry();
+		DirectChannel moduleOutputChannel = new DirectChannel();
+		QueueChannel moduleInputChannel = new QueueChannel();
+		registry.outbound("foo.0", moduleOutputChannel);
+		registry.inbound("foo.0", moduleInputChannel, ALL);
+		moduleOutputChannel.send(new GenericMessage<String>("foo"));
+		Message<?> inbound = moduleInputChannel.receive(5000);
+		assertNotNull(inbound);
+		assertEquals("foo", inbound.getPayload());
 	}
 
 	protected abstract Collection<?> getBridges(ChannelRegistry registry);

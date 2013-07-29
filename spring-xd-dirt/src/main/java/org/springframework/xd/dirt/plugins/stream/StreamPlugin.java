@@ -21,11 +21,15 @@ import static org.springframework.xd.module.ModuleType.SINK;
 import static org.springframework.xd.module.ModuleType.SOURCE;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
+import org.springframework.http.MediaType;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.x.channel.registry.ChannelRegistry;
+import org.springframework.util.CollectionUtils;
 import org.springframework.xd.dirt.container.DefaultContainer;
 import org.springframework.xd.module.AbstractPlugin;
 import org.springframework.xd.module.Module;
@@ -45,6 +49,10 @@ public class StreamPlugin extends AbstractPlugin {
 	private static final String TAP_XML = CONTEXT_CONFIG_ROOT + "tap.xml";
 
 	private static final String CHANNEL_REGISTRY = CONTEXT_CONFIG_ROOT + "channel-registry.xml";
+
+	private final static String MEDIA_TYPE_BEAN_NAME = "accepted-media-types";
+
+	private final static Collection<MediaType> DEFAULT_ACCEPTED_MEDIA_TYPES = Collections.singletonList(MediaType.ALL);
 
 	public StreamPlugin(){
 		super.setPostProcessContextPaths(CHANNEL_REGISTRY);
@@ -81,12 +89,13 @@ public class StreamPlugin extends AbstractPlugin {
 			MessageChannel channel = module.getComponent("input", MessageChannel.class);
 			if (channel != null) {
 				registry.inbound(module.getDeploymentMetadata().getGroup() + "."
-						+ (module.getDeploymentMetadata().getIndex() - 1), channel);
+							+ (module.getDeploymentMetadata().getIndex() - 1), channel,
+						this.getAcceptedMediaTypes(module));
 			}
 			channel = module.getComponent("output", MessageChannel.class);
 			if (channel != null) {
 				registry.outbound(module.getDeploymentMetadata().getGroup() + "."
-						+ module.getDeploymentMetadata().getIndex(), channel);
+							+ module.getDeploymentMetadata().getIndex(), channel);
 			}
 		}
 	}
@@ -110,5 +119,23 @@ public class StreamPlugin extends AbstractPlugin {
 		}
 	}
 
+	private Collection<MediaType> getAcceptedMediaTypes(Module module) {
+		Collection<?> acceptedTypes = module.getComponent(MEDIA_TYPE_BEAN_NAME, Collection.class);
+		if (CollectionUtils.isEmpty(acceptedTypes)) {
+			return DEFAULT_ACCEPTED_MEDIA_TYPES;
+		}
+		else {
+			Collection<MediaType> acceptedMediaTypes = new ArrayList<MediaType>(acceptedTypes.size());
+			for (Object acceptedType: acceptedTypes) {
+				if (acceptedType instanceof String) {
+					acceptedMediaTypes.add(MediaType.parseMediaType((String) acceptedType));
+				}
+				else if (acceptedType instanceof MediaType) {
+					acceptedMediaTypes.add((MediaType) acceptedType);
+				}
+			}
+			return Collections.unmodifiableCollection(acceptedMediaTypes);
+		}
+	}
 
 }

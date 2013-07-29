@@ -617,9 +617,6 @@ public class DefaultTuple implements Tuple {
 		this.tupleToStringConverter = tupleToStringConverter;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public String toString() {
 		return tupleToStringConverter.convert(this);

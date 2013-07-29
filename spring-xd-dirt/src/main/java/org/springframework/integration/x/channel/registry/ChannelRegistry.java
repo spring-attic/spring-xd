@@ -13,6 +13,9 @@
 
 package org.springframework.integration.x.channel.registry;
 
+import java.util.Collection;
+
+import org.springframework.http.MediaType;
 import org.springframework.integration.MessageChannel;
 
 /**
@@ -30,16 +33,17 @@ public interface ChannelRegistry {
 	/**
 	 * Register a message consumer
 	 * @param name the logical identity of the message source
-	 * @param channel the channel bound as a consumer
+	 * @param moduleInputChannel the channel bound as a consumer
+	 * @param acceptedMediaTypes the media types supported by the channel
 	 */
-	void inbound(String name, MessageChannel channel);
+	void inbound(String name, MessageChannel moduleInputChannel, Collection<MediaType> acceptedMediaTypes);
 
 	/**
 	 * Register a message producer
 	 * @param name the logical identity of the message target
-	 * @param channel the channel bound as a producer
+	 * @param moduleOutputChannel the channel bound as a producer
 	 */
-	void outbound(String name, MessageChannel channel);
+	void outbound(String name, MessageChannel moduleOutputChannel);
 
 	/**
 	 * Create a tap on an already registered inbound channel

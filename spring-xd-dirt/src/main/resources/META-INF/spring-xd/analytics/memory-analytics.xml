@@ -10,4 +10,6 @@
 	<bean id="gaugeRepository" class="org.springframework.xd.analytics.metrics.memory.InMemoryGaugeRepository" />
 
 	<bean id="richGaugeRepository" class="org.springframework.xd.analytics.metrics.memory.InMemoryRichGaugeRepository" />
+
+	<bean id="aggregateCounterRepository" class="org.springframework.xd.analytics.metrics.memory.InMemoryAggregateCounterRepository" />
 </beans>

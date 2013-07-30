@@ -15,11 +15,18 @@
 		<constructor-arg ref="redisConnectionFactory" />
 	</bean>
 
-	<bean id="gaugeRepository" class="org.springframework.xd.analytics.metrics.redis.RedisGaugeRepository">
+	<bean id="gaugeRepository"
+		class="org.springframework.xd.analytics.metrics.redis.RedisGaugeRepository">
 		<constructor-arg ref="redisConnectionFactory" />
 	</bean>
 
-	<bean id="richGaugeRepository" class="org.springframework.xd.analytics.metrics.redis.RedisRichGaugeRepository">
+	<bean id="richGaugeRepository"
+		class="org.springframework.xd.analytics.metrics.redis.RedisRichGaugeRepository">
+		<constructor-arg ref="redisConnectionFactory" />
+	</bean>
+
+	<bean id="aggregateCounterRepository"
+		class="org.springframework.xd.analytics.metrics.redis.RedisAggregateCounterRepository">
 		<constructor-arg ref="redisConnectionFactory" />
 	</bean>
 </beans>

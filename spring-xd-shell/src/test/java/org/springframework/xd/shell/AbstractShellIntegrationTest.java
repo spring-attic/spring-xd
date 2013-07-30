@@ -22,11 +22,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.JLineShellComponent;
 import org.springframework.xd.dirt.server.AdminMain;
 import org.springframework.xd.dirt.server.options.AdminOptions;
 import org.springframework.xd.dirt.stream.StreamServer;
+import org.springframework.xd.test.redis.RedisAvailableRule;
 
 /**
  * Superclass for performing integration tests of spring-xd shell commands.
@@ -44,6 +46,9 @@ import org.springframework.xd.dirt.stream.StreamServer;
  */
 public abstract class AbstractShellIntegrationTest {
 
+	@Rule
+	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
+	
 	private static final Log logger = LogFactory
 			.getLog(AbstractShellIntegrationTest.class);
 
@@ -54,7 +59,7 @@ public abstract class AbstractShellIntegrationTest {
 	public static void startUp() throws InterruptedException, IOException {
 		AdminOptions opts = AdminMain.parseOptions(new String[] { "--httpPort",
 				"0", "--transport", "local", "--store", "memory",
-				"--disableJmx", "true", "--analytics", "memory" });
+				"--disableJmx", "true", "--analytics", "redis" });
 		server = AdminMain.launchStreamServer(opts);
 		Bootstrap bootstrap = new Bootstrap(new String[] { "--port",
 				Integer.toString(server.getLocalPort()) });

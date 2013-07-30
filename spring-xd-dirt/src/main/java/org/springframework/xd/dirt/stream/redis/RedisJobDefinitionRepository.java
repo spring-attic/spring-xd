@@ -19,14 +19,13 @@ package org.springframework.xd.dirt.stream.redis;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.xd.dirt.stream.JobDefinition;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
-import org.springframework.xd.store.AbstractRedisRepository;
 
 /**
  * An implementation of {@link JobDefinitionRepository} that persists @{link JobDefinition} in Redis.
  * 
  * @author Glenn Renfro
  */
-public class RedisJobDefinitionRepository extends AbstractRedisRepository<JobDefinition, String> implements
+public class RedisJobDefinitionRepository extends AbstractRedisDefinitionRepository<JobDefinition> implements
 		JobDefinitionRepository {
 
 	public RedisJobDefinitionRepository(RedisOperations<String, String> redisOperations) {
@@ -44,13 +43,4 @@ public class RedisJobDefinitionRepository extends AbstractRedisRepository<JobDef
 		return entity.getName() + "\n" + entity.getDefinition();
 	}
 
-	@Override
-	protected String keyFor(JobDefinition entity) {
-		return entity.getName();
-	}
-
-	@Override
-	protected String serializeId(String id) {
-		return id;
-	}
 }

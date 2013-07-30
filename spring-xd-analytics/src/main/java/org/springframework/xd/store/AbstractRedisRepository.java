@@ -49,9 +49,9 @@ public abstract class AbstractRedisRepository<T, ID extends Serializable> implem
 
 	private String repoPrefix;
 
-	private BoundZSetOperations<String, String> zSetOperations;
+	protected BoundZSetOperations<String, String> zSetOperations;
 
-	private RedisOperations<String, String> redisOperations;
+	protected RedisOperations<String, String> redisOperations;
 
 	public AbstractRedisRepository(String repoPrefix, RedisOperations<String, String> redisOperations) {
 		Assert.hasText(repoPrefix, "repoPrefix must not be empty or null");
@@ -105,7 +105,7 @@ public abstract class AbstractRedisRepository<T, ID extends Serializable> implem
 		List<T> result = new ArrayList<T>(keys.size());
 		List<String> values = redisOperations.opsForValue().multiGet(keys);
 		for (String v : values) {
-			result.add(deserialize(keysIt.next(), v));
+			result.add(deserialize(idFromRedisKey(keysIt.next()), v));
 		}
 		return result;
 	}
@@ -121,7 +121,7 @@ public abstract class AbstractRedisRepository<T, ID extends Serializable> implem
 		List<T> result = new ArrayList<T>(redisKeys.size());
 		List<String> values = redisOperations.opsForValue().multiGet(redisKeys);
 		for (String v : values) {
-			result.add(deserialize(keysIt.next(), v));
+			result.add(deserialize(idFromRedisKey(keysIt.next()), v));
 		}
 		return result;
 	}
@@ -141,7 +141,7 @@ public abstract class AbstractRedisRepository<T, ID extends Serializable> implem
 		List<T> result = new ArrayList<T>(redisKeys.size());
 		List<String> values = redisOperations.opsForValue().multiGet(redisKeys);
 		for (String v : values) {
-			result.add(deserialize(keysIt.next(), v));
+			result.add(deserialize(idFromRedisKey(keysIt.next()), v));
 		}
 		return new PageImpl<T>(result, pageable, count);
 	}
@@ -156,7 +156,7 @@ public abstract class AbstractRedisRepository<T, ID extends Serializable> implem
 		String redisKey = redisKeyFromId(id);
 		String raw = redisOperations.opsForValue().get(redisKey);
 		if (raw != null) {
-			return deserialize(redisKey, raw);
+			return deserialize(idFromRedisKey(redisKey), raw);
 		}
 		else {
 			return null;
@@ -167,9 +167,17 @@ public abstract class AbstractRedisRepository<T, ID extends Serializable> implem
 	public <S extends T> S save(S entity) {
 		String raw = serialize(entity);
 		String redisKey = redisKeyFromId(keyFor(entity));
-		zSetOperations.add(redisKey, 0.0D);
+		trackMembership(redisKey);
 		redisOperations.opsForValue().set(redisKey, raw);
 		return entity;
+	}
+
+	/**
+	 * Perform bookkeeping of entities managed by this repository. Uses a redis sorted set with a dummy value, which
+	 * happens to guarantee that keys for a given score are in sorted order.
+	 */
+	protected void trackMembership(String redisKey) {
+		zSetOperations.add(redisKey, 0.0D);
 	}
 
 	@Override
@@ -182,10 +190,10 @@ public abstract class AbstractRedisRepository<T, ID extends Serializable> implem
 
 	/**
 	 * Deserialize from the String representation to the domain object.
-	 * @param redisId the string representation (used as redis key) of the entity id
+	 * @param the entity id
 	 * @param v the serialized representation of the domain object
 	 */
-	protected abstract T deserialize(String redisId, String v);
+	protected abstract T deserialize(ID id, String v);
 
 	/**
 	 * Provide a String representation of the domain entity.
@@ -202,8 +210,19 @@ public abstract class AbstractRedisRepository<T, ID extends Serializable> implem
 	 */
 	protected abstract String serializeId(ID id);
 
-	private String redisKeyFromId(ID id) {
+	/**
+	 * Deserialize an entity id from its String representation.
+	 */
+	protected abstract ID deserializeId(String string);
+
+	protected String redisKeyFromId(ID id) {
+		Assert.notNull(id);
 		return repoPrefix + serializeId(id);
+	}
+
+	protected ID idFromRedisKey(String redisKey) {
+		String serialized = redisKey.substring(repoPrefix.length());
+		return deserializeId(serialized);
 	}
 
 	/**

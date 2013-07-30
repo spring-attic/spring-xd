@@ -22,7 +22,6 @@ import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.xd.dirt.stream.Stream;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.StreamRepository;
-import org.springframework.xd.store.AbstractRedisRepository;
 
 /**
  * Redis implementation of {@link StreamRepository}, uses a {@link RedisStreamDefinitionRepository} in turn.
@@ -30,7 +29,7 @@ import org.springframework.xd.store.AbstractRedisRepository;
  * @author Eric Bottard
  * 
  */
-public class RedisStreamRepository extends AbstractRedisRepository<Stream, String> implements StreamRepository {
+public class RedisStreamRepository extends AbstractRedisInstanceRepository<Stream> implements StreamRepository {
 
 	private final RedisStreamDefinitionRepository redisStreamDefinitionRepository;
 
@@ -54,16 +53,6 @@ public class RedisStreamRepository extends AbstractRedisRepository<Stream, Strin
 	protected String serialize(Stream entity) {
 		// Store def name (which happens to be stream name, and properties)
 		return entity.getDefinition().getName() + "\n" + entity.getStartedAt().getTime();
-	}
-
-	@Override
-	protected String keyFor(Stream entity) {
-		return entity.getDefinition().getName();
-	}
-
-	@Override
-	protected String serializeId(String id) {
-		return id;
 	}
 
 }

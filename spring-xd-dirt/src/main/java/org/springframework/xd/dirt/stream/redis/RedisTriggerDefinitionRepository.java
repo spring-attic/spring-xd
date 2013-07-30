@@ -19,7 +19,6 @@ package org.springframework.xd.dirt.stream.redis;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.xd.dirt.stream.TriggerDefinition;
 import org.springframework.xd.dirt.stream.TriggerDefinitionRepository;
-import org.springframework.xd.store.AbstractRedisRepository;
 
 /**
  * An implementation of {@link TriggerDefinitionRepository} that persists {@link TriggerDefinition}s to Redis.
@@ -28,7 +27,7 @@ import org.springframework.xd.store.AbstractRedisRepository;
  * @since 1.0
  * 
  */
-public class RedisTriggerDefinitionRepository extends AbstractRedisRepository<TriggerDefinition, String> implements
+public class RedisTriggerDefinitionRepository extends AbstractRedisDefinitionRepository<TriggerDefinition> implements
 		TriggerDefinitionRepository {
 
 	public RedisTriggerDefinitionRepository(RedisOperations<String, String> redisOperations) {
@@ -44,16 +43,6 @@ public class RedisTriggerDefinitionRepository extends AbstractRedisRepository<Tr
 	@Override
 	protected String serialize(TriggerDefinition entity) {
 		return entity.getName() + "\n" + entity.getDefinition();
-	}
-
-	@Override
-	protected String keyFor(TriggerDefinition entity) {
-		return entity.getName();
-	}
-
-	@Override
-	protected String serializeId(String id) {
-		return id;
 	}
 
 }

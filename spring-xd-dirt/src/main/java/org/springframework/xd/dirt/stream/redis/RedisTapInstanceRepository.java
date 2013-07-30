@@ -22,7 +22,6 @@ import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.xd.dirt.stream.TapDefinition;
 import org.springframework.xd.dirt.stream.TapInstance;
 import org.springframework.xd.dirt.stream.TapInstanceRepository;
-import org.springframework.xd.store.AbstractRedisRepository;
 
 /**
  * Redis implementation of {@link TapInstanceRepository}, uses a {@link RedisTapDefinitionRepository} in turn.
@@ -31,7 +30,7 @@ import org.springframework.xd.store.AbstractRedisRepository;
  * @since 1.0
  * 
  */
-public class RedisTapInstanceRepository extends AbstractRedisRepository<TapInstance, String> implements
+public class RedisTapInstanceRepository extends AbstractRedisInstanceRepository<TapInstance> implements
 		TapInstanceRepository {
 
 	private final RedisTapDefinitionRepository redisTapDefinitionRepository;
@@ -56,16 +55,6 @@ public class RedisTapInstanceRepository extends AbstractRedisRepository<TapInsta
 	protected String serialize(TapInstance entity) {
 		// Store def name (which happens to be stream name, and properties)
 		return entity.getDefinition().getName() + "\n" + entity.getStartedAt().getTime();
-	}
-
-	@Override
-	protected String keyFor(TapInstance entity) {
-		return entity.getDefinition().getName();
-	}
-
-	@Override
-	protected String serializeId(String id) {
-		return id;
 	}
 
 }

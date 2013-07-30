@@ -22,12 +22,11 @@ import org.springframework.xd.dirt.stream.TriggerDefinitionRepository;
 import org.springframework.xd.store.AbstractRedisRepository;
 
 /**
- * An implementation of {@link TriggerDefinitionRepository} that persists
- * {@link TriggerDefinition}s to Redis.
- *
+ * An implementation of {@link TriggerDefinitionRepository} that persists {@link TriggerDefinition}s to Redis.
+ * 
  * @author Gunnar Hillert
  * @since 1.0
- *
+ * 
  */
 public class RedisTriggerDefinitionRepository extends AbstractRedisRepository<TriggerDefinition, String> implements
 		TriggerDefinitionRepository {
@@ -37,7 +36,7 @@ public class RedisTriggerDefinitionRepository extends AbstractRedisRepository<Tr
 	}
 
 	@Override
-	protected TriggerDefinition deserialize(String v) {
+	protected TriggerDefinition deserialize(String redisKey, String v) {
 		String[] parts = v.split("\n");
 		return new TriggerDefinition(parts[0], parts[1]);
 	}

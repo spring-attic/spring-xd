@@ -26,12 +26,13 @@ import org.springframework.xd.store.AbstractRedisRepository;
 
 /**
  * Redis implementation of {@link TapInstanceRepository}, uses a {@link RedisTapDefinitionRepository} in turn.
- *
+ * 
  * @author Gunnar Hillert
  * @since 1.0
- *
+ * 
  */
-public class RedisTapInstanceRepository extends AbstractRedisRepository<TapInstance, String> implements TapInstanceRepository {
+public class RedisTapInstanceRepository extends AbstractRedisRepository<TapInstance, String> implements
+		TapInstanceRepository {
 
 	private final RedisTapDefinitionRepository redisTapDefinitionRepository;
 
@@ -42,7 +43,7 @@ public class RedisTapInstanceRepository extends AbstractRedisRepository<TapInsta
 	}
 
 	@Override
-	protected TapInstance deserialize(String v) {
+	protected TapInstance deserialize(String redisKey, String v) {
 		String[] parts = v.split("\n");
 		TapDefinition def = redisTapDefinitionRepository.findOne(parts[0]);
 		Date startedAt = new Date(Long.parseLong(parts[1]));

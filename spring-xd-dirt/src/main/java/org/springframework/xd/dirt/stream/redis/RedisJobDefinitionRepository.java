@@ -34,16 +34,17 @@ public class RedisJobDefinitionRepository extends AbstractRedisRepository<JobDef
 	}
 
 	@Override
-	protected JobDefinition deserialize(String v) {
+	protected JobDefinition deserialize(String redisKey, String v) {
 		String[] parts = v.split("\n");
 		return new JobDefinition(parts[0], parts[1]);
 	}
 
 	@Override
 	protected String serialize(JobDefinition entity) {
-		return entity.getName() + "\n" +  entity.getDefinition();
+		return entity.getName() + "\n" + entity.getDefinition();
 	}
 
+	@Override
 	protected String keyFor(JobDefinition entity) {
 		return entity.getName();
 	}

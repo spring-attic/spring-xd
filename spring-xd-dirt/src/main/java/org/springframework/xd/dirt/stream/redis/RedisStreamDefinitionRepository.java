@@ -34,7 +34,7 @@ public class RedisStreamDefinitionRepository extends AbstractRedisRepository<Str
 	}
 
 	@Override
-	protected StreamDefinition deserialize(String v) {
+	protected StreamDefinition deserialize(String redisKey, String v) {
 		String[] parts = v.split("\n");
 		return new StreamDefinition(parts[0], parts[1]);
 	}

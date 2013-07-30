@@ -35,7 +35,7 @@ public class RedisTapDefinitionRepository extends AbstractRedisRepository<TapDef
 	}
 
 	@Override
-	protected TapDefinition deserialize(String v) {
+	protected TapDefinition deserialize(String redisKey, String v) {
 		String[] parts = v.split("\n");
 		return new TapDefinition(parts[0], parts[1], parts[2]);
 	}

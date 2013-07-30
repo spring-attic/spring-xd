@@ -26,9 +26,9 @@ import org.springframework.xd.store.AbstractRedisRepository;
 
 /**
  * Redis implementation of {@link StreamRepository}, uses a {@link RedisStreamDefinitionRepository} in turn.
- *
+ * 
  * @author Eric Bottard
- *
+ * 
  */
 public class RedisStreamRepository extends AbstractRedisRepository<Stream, String> implements StreamRepository {
 
@@ -41,7 +41,7 @@ public class RedisStreamRepository extends AbstractRedisRepository<Stream, Strin
 	}
 
 	@Override
-	protected Stream deserialize(String v) {
+	protected Stream deserialize(String redisKey, String v) {
 		String[] parts = v.split("\n");
 		StreamDefinition def = redisStreamDefinitionRepository.findOne(parts[0]);
 		Date startedAt = new Date(Long.parseLong(parts[1]));

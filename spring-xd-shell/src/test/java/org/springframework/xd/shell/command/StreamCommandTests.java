@@ -23,28 +23,150 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.xd.shell.AbstractShellIntegrationTest;
+import org.springframework.xd.shell.util.Table;
 
 /**
  * Test stream commands
+ * 
  * @author Mark Pollack
- *
+ * @author Kashyap Parikh
  */
 public class StreamCommandTests extends AbstractShellIntegrationTest {
 
-
-	private static final Log logger = LogFactory.getLog(StreamCommandTests.class);
+	private static final Log logger = LogFactory
+			.getLog(StreamCommandTests.class);
 
 	@Test
 	public void testStreamLifecycleForTickTock() throws InterruptedException {
-		logger.info("Starting Stream Test for TickTock");	
-		CommandResult cr = getShell().executeCommand("stream create --definition \"time | log\" --name ticktock");
+		logger.info("Starting Stream Test for TickTock");
+		CommandResult cr = getShell().executeCommand(
+				"stream create --definition \"time | log\" --name ticktock");
 		assertTrue("Failure.  CommandResult = " + cr.toString(), cr.isSuccess());
 		assertEquals("Created new stream 'ticktock'", cr.getResult());
-		
-		//Let two ticks pass...
-		Thread.sleep(2000);
+
+		cr = getShell().executeCommand("stream list");
+		assertTrue("Failure.  CommandResult = " + cr.toString(), cr.isSuccess());
+
+		Table t = (Table) cr.getResult();
+		assertEquals("ticktock", t.getRows().get(0).getValue(1));
+		assertEquals("time | log", t.getRows().get(0).getValue(2));
+
+		cr = getShell().executeCommand("stream undeploy --name ticktock");
+		assertTrue(cr.isSuccess());
+		assertEquals("Un-deployed stream 'ticktock'", cr.getResult());
+
 		cr = getShell().executeCommand("stream destroy --name ticktock");
 		assertTrue(cr.isSuccess());
-		
 	}
+
+	@Test
+	public void testStreamCreateDuplicate() throws InterruptedException {
+		logger.info("Create tictok stream");
+		CommandResult cr = getShell().executeCommand(
+				"stream create --definition \"time | log\" --name ticktock");
+		assertTrue("Failure.  CommandResult = " + cr.toString(), cr.isSuccess());
+		assertEquals("Created new stream 'ticktock'", cr.getResult());
+
+		Table t = (Table) getShell().executeCommand("stream list").getResult();
+		assertEquals("ticktock", t.getRows().get(0).getValue(1));
+		assertEquals("time | log", t.getRows().get(0).getValue(2));
+
+		cr = getShell().executeCommand(
+				"stream create --definition \"time | log\" --name ticktock");
+		assertTrue("Failure.  CommandResult = " + cr.toString(),
+				!cr.isSuccess());
+		assertTrue(
+				"Failure.  CommandResult = " + cr.toString(),
+				cr.getException().getMessage()
+						.contains("There is already a stream named 'ticktock'"));
+
+		cr = getShell().executeCommand("stream destroy --name ticktock");
+		assertTrue(cr.isSuccess());
+	}
+
+	@Test
+	public void testStreamDestroyMissing() {
+		logger.info("Destroy a stream that doesn't exist");
+		CommandResult cr = getShell().executeCommand(
+				"stream destroy --name ticktock");
+		assertTrue("Failure.  CommandResult = " + cr.toString(),
+				!cr.isSuccess());
+		assertTrue(
+				"Failure.  CommandResult = " + cr.toString(),
+				cr.getException()
+						.getMessage()
+						.contains(
+								"Can't delete stream 'ticktock' because it does not exist"));
+	}
+
+	@Test
+	public void testStreamCreateDuplicateWithDeployFalse() {
+		logger.info("Create 2 tictok streams with --deploy = false");
+		CommandResult cr = getShell()
+				.executeCommand(
+						"stream create --definition \"time | log\" --name ticktock --deploy false");
+		assertTrue("Failure.  CommandResult = " + cr.toString(), cr.isSuccess());
+		assertEquals("Created new stream 'ticktock'", cr.getResult());
+
+		Table t = (Table) getShell().executeCommand("stream list").getResult();
+		assertEquals("ticktock", t.getRows().get(0).getValue(1));
+		assertEquals("time | log", t.getRows().get(0).getValue(2));
+
+		cr = getShell()
+				.executeCommand(
+						"stream create --definition \"time | log\" --name ticktock --deploy false");
+		assertTrue("Failure.  CommandResult = " + cr.toString(),
+				!cr.isSuccess());
+		assertTrue(
+				"Failure.  CommandResult = " + cr.toString(),
+				cr.getException().getMessage()
+						.contains("There is already a stream named 'ticktock'"));
+
+		t = (Table) getShell().executeCommand("stream list").getResult();
+		assertEquals("ticktock", t.getRows().get(0).getValue(1));
+		assertEquals("time | log", t.getRows().get(0).getValue(2));
+
+		cr = getShell().executeCommand("stream destroy --name ticktock");
+		assertTrue(cr.isSuccess());
+	}
+
+	@Test
+	public void testStreamDeployUndeployFlow() {
+		logger.info("Create tictok stream");
+		CommandResult cr = getShell()
+				.executeCommand(
+						"stream create --definition \"time | log\" --name ticktock --deploy false");
+		assertTrue("Failure.  CommandResult = " + cr.toString(), cr.isSuccess());
+		assertEquals("Created new stream 'ticktock'", cr.getResult());
+
+		Table t = (Table) getShell().executeCommand("stream list").getResult();
+		assertEquals("ticktock", t.getRows().get(0).getValue(1));
+		assertEquals("time | log", t.getRows().get(0).getValue(2));
+
+		cr = getShell().executeCommand("stream deploy --name ticktock");
+		assertTrue("Failure.  CommandResult = " + cr.toString(), cr.isSuccess());
+		assertEquals("Deployed stream 'ticktock'", cr.getResult());
+
+		t = (Table) getShell().executeCommand("stream list").getResult();
+		assertEquals("ticktock", t.getRows().get(0).getValue(1));
+		assertEquals("time | log", t.getRows().get(0).getValue(2));
+
+		cr = getShell().executeCommand("stream undeploy --name ticktock");
+		assertTrue(cr.isSuccess());
+		assertEquals("Un-deployed stream 'ticktock'", cr.getResult());
+		assertEquals("ticktock", t.getRows().get(0).getValue(1));
+		assertEquals("time | log", t.getRows().get(0).getValue(2));
+
+		cr = getShell().executeCommand("stream deploy --name ticktock");
+		assertTrue("Failure.  CommandResult = " + cr.toString(), cr.isSuccess());
+		assertEquals("Deployed stream 'ticktock'", cr.getResult());
+
+		t = (Table) getShell().executeCommand("stream list").getResult();
+		assertEquals("ticktock", t.getRows().get(0).getValue(1));
+		assertEquals("time | log", t.getRows().get(0).getValue(2));
+
+		cr = getShell().executeCommand("stream destroy --name ticktock");
+		assertTrue(cr.isSuccess());
+	}
+
 }

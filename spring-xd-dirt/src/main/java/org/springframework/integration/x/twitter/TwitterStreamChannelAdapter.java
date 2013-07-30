@@ -39,9 +39,12 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.social.support.URIBuilder;
 import org.springframework.social.twitter.api.impl.TwitterTemplate;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.StringUtils;
-import org.springframework.web.client.*;
+import org.springframework.web.client.DefaultResponseErrorHandler;
+import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.RequestCallback;
+import org.springframework.web.client.ResponseExtractor;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * Message producer which reads form Twitter's public stream endpoints.

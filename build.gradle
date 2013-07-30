@@ -78,6 +78,7 @@ configure(javaProjects()) { subproject ->
 		springVersion = '3.2.2.RELEASE'
 		springBatchVersion = '2.2.0.RELEASE'
 		springIntegrationVersion = '3.0.0.M2'
+		springSocialVersion = '1.1.0.M3'
 		springShellVersion = '1.1.0.BUILD-SNAPSHOT'
 		springIntegrationSplunkVersion = '1.0.0.M1'
 		springDataMongoVersion = '1.1.1.RELEASE'
@@ -228,7 +229,7 @@ project('spring-xd-dirt') {
 				"org.springframework.integration:spring-integration-mqtt:1.0.0.M1",
 				"org.springframework.batch:spring-batch-core:$springBatchVersion",
 				"org.springframework.data:spring-data-redis:$springDataRedisVersion",
-				"org.springframework.social:spring-social-twitter:1.0.5.RELEASE",
+				"org.springframework.social:spring-social-twitter:$springSocialVersion",
 				"commons-lang:commons-lang:2.4",
 				"com.lambdaworks:lettuce:$lettuceVersion",
 				"args4j:args4j:$args4jVersion",

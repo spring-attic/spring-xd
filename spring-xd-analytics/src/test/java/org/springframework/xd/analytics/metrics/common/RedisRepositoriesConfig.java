@@ -60,7 +60,7 @@ public class RedisRepositoriesConfig {
 
 	@Bean
 	public RedisCounterRepository redisCounterRepository() {
-		return new RedisCounterRepository(stringRedisTemplate(), longRedisTemplate().opsForValue());
+		return new RedisCounterRepository(redisConnectionFactory());
 	}
 
 	@Bean

@@ -33,20 +33,20 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.xd.analytics.metrics.core.AggregateCount;
-import org.springframework.xd.analytics.metrics.core.AggregateCounter;
 import org.springframework.xd.analytics.metrics.core.AggregateCounterRepository;
+import org.springframework.xd.analytics.metrics.core.Counter;
+import org.springframework.xd.analytics.metrics.memory.InMemoryAggregateCounter;
 import org.springframework.xd.rest.client.domain.metrics.AggregateCountsResource;
 
 /**
- * Exposes representations of {@link AggregateCounter}s.
+ * Exposes representations of {@link InMemoryAggregateCounter}s.
  * 
  * @author Eric Bottard
  */
 @Controller
 @RequestMapping("/metrics/aggregate-counters")
 @ExposesResourceFor(AggregateCountsResource.class)
-public class AggregateCountersController extends
-		AbstractMetricsController<AggregateCounterRepository, AggregateCounter> {
+public class AggregateCountersController extends AbstractMetricsController<AggregateCounterRepository, Counter> {
 
 	private final DeepAggregateCountResourceAssembler aggregateCountResourceAssembler = new DeepAggregateCountResourceAssembler();
 
@@ -59,18 +59,23 @@ public class AggregateCountersController extends
 	 * Retrieve counts for a given time interval, using some precision.
 	 * 
 	 * @param name the name of the aggregate counter we want to retrieve data from
-	 * @param from the start-time for the interval, default depends on the resolution
-	 *        (e.g. go back 1 day for hourly buckets)
+	 * @param from the start-time for the interval, default depends on the resolution (e.g. go back 1 day for hourly
+	 * buckets)
 	 * @param to the end-time for the interval, default "now"
-	 * @param resolution the size of buckets to aggregate, <i>e.g.</i> hourly, daily,
-	 *        <i>etc.</i> (default "hour")
+	 * @param resolution the size of buckets to aggregate, <i>e.g.</i> hourly, daily, <i>etc.</i> (default "hour")
 	 */
 	@ResponseBody
 	@RequestMapping(value = "/{name}", method = RequestMethod.GET)
-	public AggregateCountsResource display(@PathVariable("name") String name,//
-			@RequestParam(value = "from", required = false) @DateTimeFormat(iso = ISO.DATE_TIME) DateTime from,//
-			@RequestParam(value = "to", required = false) @DateTimeFormat(iso = ISO.DATE_TIME) DateTime to, //
-			@RequestParam(value = "resolution", defaultValue = "hour") Resolution resolution) {
+	public AggregateCountsResource display(@PathVariable("name")
+	String name,//
+			@RequestParam(value = "from", required = false)
+			@DateTimeFormat(iso = ISO.DATE_TIME)
+			DateTime from,//
+			@RequestParam(value = "to", required = false)
+			@DateTimeFormat(iso = ISO.DATE_TIME)
+			DateTime to, //
+			@RequestParam(value = "resolution", defaultValue = "hour")
+			Resolution resolution) {
 
 		if (to == null) {
 			to = new DateTime();

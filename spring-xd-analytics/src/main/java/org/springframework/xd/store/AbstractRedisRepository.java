@@ -233,4 +233,8 @@ public abstract class AbstractRedisRepository<T, ID extends Serializable> implem
 		this.zSetOperations = redisOperations.boundZSetOps(repoPrefix);
 	}
 
+	protected String getPrefix() {
+		return repoPrefix;
+	}
+
 }

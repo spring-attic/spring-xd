@@ -1,4 +1,3 @@
-
 package org.springframework.xd.analytics.metrics.redis;
 
 import java.lang.reflect.ParameterizedType;
@@ -20,8 +19,7 @@ import org.springframework.xd.analytics.metrics.core.MetricRepository;
  * 
  * @author Luke Taylor
  */
-abstract class AbstractRedisMetricRepository<M extends Metric, V> implements
-		MetricRepository<M> {
+abstract class AbstractRedisMetricRepository<M extends Metric, V> implements MetricRepository<M> {
 
 	protected final String metricPrefix;
 
@@ -30,15 +28,13 @@ abstract class AbstractRedisMetricRepository<M extends Metric, V> implements
 	protected final RedisOperations<String, V> redisOperations;
 
 	@SuppressWarnings("unchecked")
-	AbstractRedisMetricRepository(RedisConnectionFactory connectionFactory,
-			String metricPrefix) {
+	AbstractRedisMetricRepository(RedisConnectionFactory connectionFactory, String metricPrefix) {
 		Assert.notNull(connectionFactory);
 		Assert.hasText(metricPrefix, "metric prefix cannot be empty");
 		this.metricPrefix = metricPrefix;
 		ParameterizedType parameterizedType = (ParameterizedType) getClass().getGenericSuperclass();
 		Class<V> valueClass = (Class<V>) parameterizedType.getActualTypeArguments()[1];
-		this.redisOperations = RedisUtils.createRedisTemplate(connectionFactory,
-				valueClass);
+		this.redisOperations = RedisUtils.createRedisTemplate(connectionFactory, valueClass);
 		this.valueOperations = redisOperations.opsForValue();
 	}
 
@@ -70,8 +66,7 @@ abstract class AbstractRedisMetricRepository<M extends Metric, V> implements
 	abstract V value(M metric);
 
 	/**
-	 * Provides the key for a named metric. By default this appends the name to the
-	 * metricPrefix value.
+	 * Provides the key for a named metric. By default this appends the name to the metricPrefix value.
 	 * 
 	 * @param metricName the name of the metric
 	 * @return the redis key under which the metric is stored
@@ -117,7 +112,7 @@ abstract class AbstractRedisMetricRepository<M extends Metric, V> implements
 
 	@Override
 	public M findOne(String name) {
-		Assert.notNull(name, "The name of the gauge must not be null");
+		Assert.notNull(name, "The name of the metric must not be null");
 		String gaugeKey = getMetricKey(name);
 		if (redisOperations.hasKey(gaugeKey)) {
 			V value = this.valueOperations.get(gaugeKey);

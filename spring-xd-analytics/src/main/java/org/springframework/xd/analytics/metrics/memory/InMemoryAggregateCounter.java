@@ -17,6 +17,7 @@
 package org.springframework.xd.analytics.metrics.memory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -27,30 +28,34 @@ import org.joda.time.Duration;
 import org.joda.time.DurationField;
 import org.joda.time.Interval;
 import org.springframework.xd.analytics.metrics.core.AggregateCount;
-import org.springframework.xd.analytics.metrics.core.AggregateCounter;
+import org.springframework.xd.analytics.metrics.core.Counter;
 import org.springframework.xd.analytics.metrics.core.MetricUtils;
 
 /**
- * In-Memory implementation of {@link AggregateCounter} that adds logic for computing the
- * different aggregates. Extracted in a specific sub-class so as to not force a contract
- * on other implementations that may wish to leverage a datastore to keep track of the
- * aggregates.
+ * A counter that tracks integral values but also remembers how its value was distributed over time.
  * 
+ * <p>
+ * This core class only holds data structures. Depending on backing stores, logic for computing totals may be
+ * implemented in a specialization of this class or at the repository level.
+ * </p>
+ * 
+ * @author Luke Taylor
  * @author Eric Bottard
  */
-public class InMemoryAggregateCounter extends AggregateCounter {
+public class InMemoryAggregateCounter extends Counter {
 
-	/**
-	 * Copy constructor, may be used to convert from a plain {@link AggregateCounter} to
-	 * an in memory-one.
-	 */
-	public InMemoryAggregateCounter(AggregateCounter c) {
-		super(c);
+	protected Map<Integer, long[]> monthCountsByYear = new HashMap<Integer, long[]>();
+
+	protected Map<Integer, long[]> dayCountsByYear = new HashMap<Integer, long[]>();
+
+	protected Map<Integer, long[]> hourCountsByDay = new HashMap<Integer, long[]>();
+
+	protected Map<Integer, long[]> minuteCountsByDay = new HashMap<Integer, long[]>();
+
+	public InMemoryAggregateCounter(String name, long value) {
+		super(name, value);
 	}
 
-	/**
-	 * Create a new named {@link AggregateCounter}.
-	 */
 	public InMemoryAggregateCounter(String name) {
 		super(name);
 	}
@@ -60,37 +65,37 @@ public class InMemoryAggregateCounter extends AggregateCounter {
 		DateTime start = interval.getStart();
 		DateTime end = interval.getEnd();
 
-		int[] counts;
+		long[] counts;
 		if (resolutionDuration.getUnitMillis() == DateTimeConstants.MILLIS_PER_MINUTE) {
 			DateTime now = start;
-			List<int[]> days = accumulateDayCounts(minuteCountsByDay, start, end, 60 * 24);
+			List<long[]> days = accumulateDayCounts(minuteCountsByDay, start, end, 60 * 24);
 
-			counts = MetricUtils.concatArrays(days, interval.getStart().getMinuteOfDay(),
-					interval.toPeriod().toStandardMinutes().getMinutes(), 24 * 60);
+			counts = MetricUtils.concatArrays(days, interval.getStart().getMinuteOfDay(), interval.toPeriod()
+					.toStandardMinutes().getMinutes(), 24 * 60);
 		}
 		else if (resolutionDuration.getUnitMillis() == DateTimeConstants.MILLIS_PER_HOUR) {
 			DateTime now = start;
-			List<int[]> days = accumulateDayCounts(hourCountsByDay, start, end, 24);
+			List<long[]> days = accumulateDayCounts(hourCountsByDay, start, end, 24);
 
-			counts = MetricUtils.concatArrays(days, interval.getStart().getHourOfDay(),
-					interval.toPeriod().toStandardHours().getHours(), 24);
+			counts = MetricUtils.concatArrays(days, interval.getStart().getHourOfDay(), interval.toPeriod()
+					.toStandardHours().getHours(), 24);
 		}
 		else {
 			throw new IllegalArgumentException("Only minute or hour resolution is currently supported");
 		}
-		return new AggregateCount(name, interval, counts, resolution);
+		return new AggregateCount(getName(), interval, counts, resolution);
 	}
 
-	private static List<int[]> accumulateDayCounts(Map<Integer, int[]> fromDayCounts, DateTime start, DateTime end,
+	private static List<long[]> accumulateDayCounts(Map<Integer, long[]> fromDayCounts, DateTime start, DateTime end,
 			int subSize) {
-		List<int[]> days = new ArrayList<int[]>();
+		List<long[]> days = new ArrayList<long[]>();
 		Duration step = Duration.standardDays(1);
-		int[] emptySubArray = new int[subSize];
+		long[] emptySubArray = new long[subSize];
 		end = end.plusDays(1); // Need to account for an interval which crosses days
 
 		for (DateTime now = start; now.isBefore(end); now = now.plus(step)) {
 			int countsByDayKey = now.getYear() * 1000 + now.getDayOfYear();
-			int[] dayCounts = fromDayCounts.get(countsByDayKey);
+			long[] dayCounts = fromDayCounts.get(countsByDayKey);
 
 			if (dayCounts == null) {
 				// Use an empty array if we don't have data
@@ -108,29 +113,29 @@ public class InMemoryAggregateCounter extends AggregateCounter {
 		int hour = dateTime.getHourOfDay();
 		int minute = dateTime.getMinuteOfDay();
 
-		int[] monthCounts = monthCountsByYear.get(year);
-		int[] dayCounts = dayCountsByYear.get(year);
+		long[] monthCounts = monthCountsByYear.get(year);
+		long[] dayCounts = dayCountsByYear.get(year);
 
 		if (monthCounts == null) {
-			monthCounts = new int[12];
+			monthCounts = new long[12];
 			monthCountsByYear.put(year, monthCounts);
 			Duration d = new Duration(new DateTime(year, 1, 1, 0, 0, 0), new DateTime(year + 1, 1, 1, 0, 0, 0));
-			dayCounts = new int[(int) d.toDuration().getStandardDays()];
+			dayCounts = new long[(int) d.toDuration().getStandardDays()];
 			dayCountsByYear.put(year, dayCounts);
 		}
 
 		int countsByDayKey = year * 1000 + day;
-		int[] hourCounts = hourCountsByDay.get(countsByDayKey);
+		long[] hourCounts = hourCountsByDay.get(countsByDayKey);
 
 		if (hourCounts == null) {
-			hourCounts = new int[24];
+			hourCounts = new long[24];
 			hourCountsByDay.put(countsByDayKey, hourCounts);
 		}
 
-		int[] minuteCounts = minuteCountsByDay.get(countsByDayKey);
+		long[] minuteCounts = minuteCountsByDay.get(countsByDayKey);
 
 		if (minuteCounts == null) {
-			minuteCounts = new int[60 * 24];
+			minuteCounts = new long[60 * 24];
 			minuteCountsByDay.put(countsByDayKey, minuteCounts);
 		}
 
@@ -138,8 +143,8 @@ public class InMemoryAggregateCounter extends AggregateCounter {
 		monthCounts[month] += amount;
 		dayCounts[day] += amount;
 		hourCounts[hour] += amount;
-		total += amount;
-		return total;
+
+		return set(getValue() + amount).getValue();
 	}
 
 }

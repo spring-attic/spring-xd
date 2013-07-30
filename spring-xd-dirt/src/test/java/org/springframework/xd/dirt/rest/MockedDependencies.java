@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.rest;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.xd.analytics.metrics.core.AggregateCounterRepository;
@@ -91,6 +92,7 @@ public class MockedDependencies {
 	}
 
 	@Bean
+	@Qualifier("simple")
 	public CounterRepository counterRepository() {
 		return mock(CounterRepository.class);
 	}

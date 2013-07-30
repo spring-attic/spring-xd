@@ -1,3 +1,18 @@
+/*
+ * Copyright 2002-2013 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.springframework.xd.analytics.metrics.redis;
 
@@ -6,8 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.joda.time.Chronology;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
@@ -17,39 +30,45 @@ import org.joda.time.DurationField;
 import org.joda.time.Interval;
 import org.joda.time.MutableDateTime;
 import org.joda.time.ReadableDateTime;
-import org.springframework.dao.DataAccessException;
-import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.RedisCallback;
+import org.springframework.data.redis.core.HashOperations;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SetOperations;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.util.Assert;
+import org.springframework.data.redis.serializer.GenericToStringSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.xd.analytics.metrics.core.AggregateCount;
-import org.springframework.xd.analytics.metrics.core.AggregateCounter;
 import org.springframework.xd.analytics.metrics.core.AggregateCounterRepository;
 import org.springframework.xd.analytics.metrics.core.MetricUtils;
 
 /**
- * Redis implementation for {@link AggregateCounterRepository}. Uses several Redis hashes
- * under specific keys to store values.
- * 
- * @see AggregateKeyGenerator
+ * Redis implementation of {@link AggregateCounterRepository}. Subclasses and intercepts calls to
+ * {@link RedisCounterRepository} to also track counts in various redis hashes.
  * 
  * @author Eric Bottard
- * @author Mark Pollack
  * @author Luke Taylor
  */
-public class RedisAggregateCounterRepository implements AggregateCounterRepository {
+@Qualifier("aggregate")
+public class RedisAggregateCounterRepository extends RedisCounterRepository implements AggregateCounterRepository {
 
-	protected final Log logger = LogFactory.getLog(this.getClass());
+	protected HashOperations<String, String, Long> hashOperations;
 
-	private final StringRedisTemplate redisTemplate;
+	protected SetOperations<String, String> setOperations;
 
-	public RedisAggregateCounterRepository(RedisConnectionFactory connectionFactory) {
-		Assert.notNull(connectionFactory);
-		this.redisTemplate = new StringRedisTemplate(connectionFactory);
-		this.redisTemplate.afterPropertiesSet();
+	/**
+	 * @param redisConnectionFactory
+	 */
+	public RedisAggregateCounterRepository(RedisConnectionFactory redisConnectionFactory) {
+		super("aggregatecounters.", redisConnectionFactory);
+		RedisTemplate<String, String> redisTemplate = new RedisTemplate<String, String>();
+		redisTemplate.setConnectionFactory(redisConnectionFactory);
+		redisTemplate.setKeySerializer(new StringRedisSerializer());
+		redisTemplate.setValueSerializer(new StringRedisSerializer());
+		redisTemplate.setHashKeySerializer(new StringRedisSerializer());
+		redisTemplate.setHashValueSerializer(new GenericToStringSerializer<Long>(Long.class));
+		redisTemplate.afterPropertiesSet();
+		hashOperations = redisTemplate.opsForHash();
+		setOperations = redisTemplate.opsForSet();
 	}
 
 	@Override
@@ -58,140 +77,75 @@ public class RedisAggregateCounterRepository implements AggregateCounterReposito
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
-	public long increment(final String name, final int amount, DateTime dateTime) {
-		final AggregateKeyGenerator akg = new AggregateKeyGenerator(name, dateTime);
-		final String metaKey = getKeyForCounterKeys(name);
+	public long increment(String name, int amount, DateTime dateTime) {
+		final AggregateKeyGenerator akg = new AggregateKeyGenerator(getPrefix(), name, dateTime);
 
-		RedisCallback<Long> incrementAction = new RedisCallback<Long>() {
+		String bookkeepingKey = bookkeepingKeyFor(name);
 
-			RedisSerializer keySerializer = redisTemplate.getKeySerializer();
+		doIncrementHash(akg.getYearsKey(), akg.getYear(), amount, bookkeepingKey);
+		doIncrementHash(akg.getYearKey(), akg.getMonth(), amount, bookkeepingKey);
+		doIncrementHash(akg.getMonthKey(), akg.getDay(), amount, bookkeepingKey);
+		doIncrementHash(akg.getDayKey(), akg.getHour(), amount, bookkeepingKey);
+		doIncrementHash(akg.getHourKey(), akg.getMinute(), amount, bookkeepingKey);
 
-			RedisSerializer valueSerializer = redisTemplate.getValueSerializer();
-
-			RedisSerializer hks = redisTemplate.getHashKeySerializer();
-
-			@Override
-			public Long doInRedis(RedisConnection connection) throws DataAccessException {
-				final long value = amount;
-
-				byte[] totalKey = keySerializer.serialize(akg.getTotalKey());
-				long returnVal = connection.incrBy(totalKey, value);
-
-				byte[] meta = keySerializer.serialize(metaKey);
-				if (returnVal == value) {
-					connection.sAdd(meta, totalKey);
-					connection.sAdd(keySerializer.serialize(getKeyForAllRootCounterNames()),
-							valueSerializer.serialize(name));
-				}
-
-				doIncrement(connection, meta, akg.getYearsKey(), akg.getYear(), amount);
-				doIncrement(connection, meta, akg.getYearKey(), akg.getMonth(), amount);
-				doIncrement(connection, meta, akg.getMonthKey(), akg.getDay(), amount);
-				doIncrement(connection, meta, akg.getDayKey(), akg.getHour(), amount);
-				doIncrement(connection, meta, akg.getHourKey(), akg.getMinute(), amount);
-
-				return returnVal;
-			}
-
-			/**
-			 * Increment value inside a specific hash, making sure the bookkeeping meta
-			 * set is up to date.
-			 * 
-			 * @param meta the key used for overall tracking of aggregate counters
-			 * @param key the name of the hash to act on
-			 * @param hkey the key inside the hash to increment
-			 * @param amount the quantity to increment by
-			 */
-			private void doIncrement(RedisConnection connection, byte[] meta, String key, String hkey, long amount) {
-				byte[] keyBytes = keySerializer.serialize(key);
-				byte[] hKeyBytes = hks.serialize(hkey);
-				long returnVal = connection.hIncrBy(keyBytes, hKeyBytes, amount);
-
-				if (returnVal == amount) {
-					// Add new counters to bookkeeping set of keys
-					// TODO: This currently involves unnecessary operations since the
-					// return value
-					// is that of the individual hash key and does not indicate that the
-					// hash is new
-					connection.sAdd(meta, valueSerializer.serialize(key));
-				}
-			}
-		};
-
-		return redisTemplate.execute(incrementAction);
-	}
-
-	@Override
-	public int getTotal(String name) {
-		AggregateKeyGenerator akg = new AggregateKeyGenerator(name);
-		logger.trace("TotalCounts - TotalKey = " + akg.getTotalKey());
-		Object val = redisTemplate.opsForValue().get(akg.getTotalKey());
-		if (val != null) {
-			try {
-				logger.trace("TotalCounts - Total Value Type = " + val.getClass());
-				logger.trace("TotalCounts - Total Value = " + val);
-				return Integer.parseInt(val.toString());
-			}
-			catch (NumberFormatException e) {
-				logger.error("Could not parse total count value returned from redis key [" + akg.getTotalKey() + "]", e);
-				return -1;
-			}
-		}
-		else {
-			logger.trace("TotalCounts - val is null");
-			return -1;
-		}
-	}
-
-	@Override
-	public void delete(String name) {
-		String keySet = getKeyForCounterKeys(name);
-		SetOperations<String, String> setOps = redisTemplate.opsForSet();
-		Set<String> keys = setOps.members(keySet);
-		redisTemplate.delete(keys);
-		setOps.remove(getKeyForAllRootCounterNames(), name);
-		AggregateKeyGenerator akg = new AggregateKeyGenerator(name);
-		redisTemplate.delete(akg.getTotalKey());
+		return super.increment(name);
 	}
 
 	/**
-	 * Return the counts at the specified resolution over a given time interval.
+	 * Return the key under which are stored the names of the other keys used for the given counter.
 	 */
+	private String bookkeepingKeyFor(String counterName) {
+		return "metric_meta.aggregatecounters." + counterName;
+	}
+
+	/**
+	 * Internally increments the given hash key, keeping track of created hash for a given counter, so they can be
+	 * cleaned up when needed.
+	 */
+	private void doIncrementHash(String key, String hashKey, long amount, String bookkeepingKey) {
+		long newValue = hashOperations.increment(key, hashKey, amount);
+		// TODO: the following test does not necessarily mean that the hash
+		// is new, just that the key inside that hash is new. So we end up
+		// calling add more than needed
+		if (newValue == amount) {
+			setOperations.add(bookkeepingKey, key);
+		}
+	}
+
 	@Override
 	public AggregateCount getCounts(String name, Interval interval, DateTimeField resolution) {
-		MutableDateTime dt = new MutableDateTime(interval.getStart());
 
 		DateTime end = interval.getEnd();
 		Chronology c = interval.getChronology();
 		DurationField resolutionDuration = resolution.getDurationField();
 
-		int[] counts;
+		long[] counts;
 
 		if (resolutionDuration.getUnitMillis() == DateTimeConstants.MILLIS_PER_MINUTE) {
 			// Iterate through each hour in the interval and load the minutes for it
+			MutableDateTime dt = new MutableDateTime(interval.getStart());
 			dt.setRounding(c.hourOfDay());
 			Duration step = Duration.standardHours(1);
-			List<int[]> hours = new ArrayList<int[]>();
+			List<long[]> hours = new ArrayList<long[]>();
 			while (dt.isBefore(end)) {
 				hours.add(getMinCountsForHour(name, dt));
 				dt.add(step);
 			}
-			counts = MetricUtils.concatArrays(hours, interval.getStart().getMinuteOfHour(),
-					interval.toPeriod().toStandardMinutes().getMinutes(), 60);
+			counts = MetricUtils.concatArrays(hours, interval.getStart().getMinuteOfHour(), interval.toPeriod()
+					.toStandardMinutes().getMinutes(), 60);
 
 		}
 		else if (resolutionDuration.getUnitMillis() == DateTimeConstants.MILLIS_PER_HOUR) {
 			DateTime cursor = new DateTime(c.dayOfMonth().roundFloor(interval.getStart().getMillis()));
-			List<int[]> days = new ArrayList<int[]>();
+			List<long[]> days = new ArrayList<long[]>();
 			Duration step = Duration.standardHours(24);
 			while (cursor.isBefore(end)) {
 				days.add(getHourCountsForDay(name, cursor));
 				cursor = cursor.plus(step);
 			}
 
-			counts = MetricUtils.concatArrays(days, interval.getStart().getHourOfDay(),
-					interval.toPeriod().toStandardHours().getHours(), 24);
+			counts = MetricUtils.concatArrays(days, interval.getStart().getHourOfDay(), interval.toPeriod()
+					.toStandardHours().getHours(), 24);
 
 		}
 		else {
@@ -200,114 +154,42 @@ public class RedisAggregateCounterRepository implements AggregateCounterReposito
 		return new AggregateCount(name, interval, counts, resolution);
 	}
 
-	private int[] getHourCountsForDay(String name, DateTime day) {
-		AggregateKeyGenerator akg = new AggregateKeyGenerator(name, day.toDateMidnight());
+	private long[] getHourCountsForDay(String name, DateTime day) {
+		AggregateKeyGenerator akg = new AggregateKeyGenerator(getPrefix(), name, day.toDateMidnight());
 		return convertToArray(getEntries(akg.getDayKey()), 24);
 	}
 
-	private int[] getMinCountsForHour(String name, ReadableDateTime dateTime) {
+	private long[] getMinCountsForHour(String name, ReadableDateTime dateTime) {
 		return getMinCountsForHour(name, dateTime.getYear(), dateTime.getMonthOfYear(), dateTime.getDayOfMonth(),
 				dateTime.getHourOfDay());
 	}
 
-	private int[] getMinCountsForHour(String name, int year, int month, int day, int hour) {
+	private long[] getMinCountsForHour(String name, int year, int month, int day, int hour) {
 		DateTime dt = new DateTime().withYear(year).withMonthOfYear(month).withDayOfMonth(day).withHourOfDay(hour);
-		AggregateKeyGenerator akg = new AggregateKeyGenerator(name, dt);
+		AggregateKeyGenerator akg = new AggregateKeyGenerator(getPrefix(), name, dt);
 		return convertToArray(getEntries(akg.getHourKey()), 60);
 	}
 
-	/**
-	 * The key containing the set under which all the keys for a counter are stored.
-	 */
-	String getKeyForCounterKeys(String counterName) {
-		return "metric_meta.aggregatecounters." + counterName;
+	private Map<String, Long> getEntries(String key) {
+		return hashOperations.entries(key);
 	}
 
 	/**
-	 * Meta-key under which the names of all counters are stored.
+	 * Will convert a (possibly sparse) map whose keys are String versions of numbers between 0 and size, to an array.
 	 */
-	String getKeyForAllRootCounterNames() {
-		return "metric_meta.aggregatecounters.allRootCounterNames";
-	}
-
-	@Override
-	public Set<String> getAll() {
-		return redisTemplate.opsForSet().members(getKeyForAllRootCounterNames());
-	}
-
-	private Map<Object, Object> getEntries(String key) {
-		// TODO cleanup with more type specific template data types
-		return redisTemplate.opsForHash().entries(key);
-	}
-
-	private int[] convertToArray(Map<Object, Object> map, int size) {
-		int[] minutes = new int[size];
-		for (Map.Entry<Object, Object> cursor : map.entrySet()) {
-			Integer minute = Integer.valueOf(cursor.getKey().toString());
-			Integer count = Integer.valueOf(cursor.getValue().toString());
-			minutes[minute] = count;
+	private long[] convertToArray(Map<String, Long> map, int size) {
+		long[] values = new long[size];
+		for (Map.Entry<String, Long> cursor : map.entrySet()) {
+			int offset = Integer.parseInt(cursor.getKey());
+			values[offset] = cursor.getValue();
 		}
-		return minutes;
+		return values;
 	}
 
 	@Override
-	public <S extends AggregateCounter> S save(S entity) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Auto-generated method stub");
+	public void delete(String id) {
+		super.delete(id);
+		Set<String> otherKeys = setOperations.members(bookkeepingKeyFor(id));
+		redisOperations.delete(otherKeys);
 	}
-
-	@Override
-	public <S extends AggregateCounter> Iterable<S> save(Iterable<S> entities) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Auto-generated method stub");
-	}
-
-	@Override
-	public AggregateCounter findOne(String id) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Auto-generated method stub");
-	}
-
-	@Override
-	public boolean exists(String id) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Auto-generated method stub");
-	}
-
-	@Override
-	public Iterable<AggregateCounter> findAll() {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Auto-generated method stub");
-	}
-
-	@Override
-	public Iterable<AggregateCounter> findAll(Iterable<String> ids) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Auto-generated method stub");
-	}
-
-	@Override
-	public long count() {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Auto-generated method stub");
-	}
-
-	@Override
-	public void delete(AggregateCounter entity) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Auto-generated method stub");
-	}
-
-	@Override
-	public void delete(Iterable<? extends AggregateCounter> entities) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Auto-generated method stub");
-	}
-
-	@Override
-	public void deleteAll() {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Auto-generated method stub");
-	}
-
 }

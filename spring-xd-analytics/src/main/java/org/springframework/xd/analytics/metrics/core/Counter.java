@@ -18,19 +18,19 @@ package org.springframework.xd.analytics.metrics.core;
 import org.springframework.data.annotation.PersistenceConstructor;
 import org.springframework.util.Assert;
 
-
 /**
- * Represents the data stored in a valueer of a single value.  Operations on it are expected to increment or decrement
- * the value.  The name property is a friendly user assigned name, and should be unique.
- *
+ * Represents the data stored in a valueer of a single value. Operations on it are expected to increment or decrement
+ * the value. The name property is a friendly user assigned name, and should be unique.
+ * 
  * Note: Additional metadata to help in searching for Counters, such as tags and last time updated will be coming.
- *
+ * 
  * @author Mark Pollack
- *
+ * 
  */
-public final class Counter implements Metric {
+public class Counter implements Metric {
 
 	private final String name;
+
 	private long value;
 
 	/**
@@ -62,7 +62,7 @@ public final class Counter implements Metric {
 		return value;
 	}
 
-	Counter set(long value) {
+	protected Counter set(long value) {
 		this.value = value;
 		return this;
 	}
@@ -70,6 +70,7 @@ public final class Counter implements Metric {
 	/**
 	 * @return the name
 	 */
+	@Override
 	public String getName() {
 		return name;
 	}
@@ -81,12 +82,15 @@ public final class Counter implements Metric {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
 
 		Counter counter = (Counter) o;
 
-		if (!name.equals(counter.name)) return false;
+		if (!name.equals(counter.name))
+			return false;
 
 		return true;
 	}

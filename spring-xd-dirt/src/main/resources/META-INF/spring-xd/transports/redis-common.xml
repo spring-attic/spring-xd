@@ -19,5 +19,9 @@
 		<property name="connectionFactory" ref="redisConnectionFactory" />
 	</bean>
 	
+	<bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
+		<property name="connectionFactory" ref="redisConnectionFactory" />
+	</bean>
+	
 
 </beans>

@@ -1,4 +1,3 @@
-
 package org.springframework.xd.analytics.metrics.redis;
 
 import org.joda.time.DateTime;
@@ -52,18 +51,18 @@ import org.springframework.util.Assert;
 
 	private final String month;
 
-	private final String rootKey;
+	private final String repoPrefix;
 
 	private final String counterName;
 
-	public AggregateKeyGenerator(String counterName) {
-		this(counterName, new DateTime());
+	public AggregateKeyGenerator(String repoPrefix, String counterName) {
+		this(repoPrefix, counterName, new DateTime());
 	}
 
-	public AggregateKeyGenerator(String counterName, ReadableDateTime dateTime) {
+	public AggregateKeyGenerator(String repoPrefix, String counterName, ReadableDateTime dateTime) {
 		Assert.notNull(counterName, "Counter name name can not be null");
 		Assert.notNull(dateTime, "DateTime can not be null");
-		this.rootKey = "aggregatecounters";
+		this.repoPrefix = repoPrefix;
 		this.counterName = counterName;
 		String timeStamp = dateTimeFormatter.print(dateTime);
 		totalKey = key("total");
@@ -89,7 +88,7 @@ import org.springframework.util.Assert;
 	}
 
 	private String key(String suffix) {
-		return rootKey + SEPARATOR + counterName + SEPARATOR + suffix;
+		return repoPrefix + counterName + SEPARATOR + suffix;
 	}
 
 	public String getHourKey() {

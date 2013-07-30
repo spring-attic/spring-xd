@@ -32,7 +32,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @XmlRootElement
 public class AggregateCountsResource extends MetricResource {
 
-	private SortedMap<Date, Integer> values = new TreeMap<Date, Integer>();
+	private SortedMap<Date, Long> values = new TreeMap<Date, Long>();
 
 	/**
 	 * No-arg constructor for serialization frameworks.
@@ -47,7 +47,7 @@ public class AggregateCountsResource extends MetricResource {
 	/**
 	 * Add a data point to the set.
 	 */
-	public void addValue(Date when, int value) {
+	public void addValue(Date when, long value) {
 		values.put(when, value);
 	}
 
@@ -55,7 +55,7 @@ public class AggregateCountsResource extends MetricResource {
 	 * Returns a date-sorted view of counts.
 	 */
 	@JsonProperty("counts")
-	public SortedMap<Date, Integer> getValues() {
+	public SortedMap<Date, Long> getValues() {
 		return values;
 	}
 

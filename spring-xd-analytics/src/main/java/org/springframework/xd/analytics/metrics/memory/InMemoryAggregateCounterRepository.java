@@ -16,26 +16,32 @@
 
 package org.springframework.xd.analytics.metrics.memory;
 
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeField;
 import org.joda.time.Interval;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.xd.analytics.metrics.core.AggregateCount;
-import org.springframework.xd.analytics.metrics.core.AggregateCounter;
 import org.springframework.xd.analytics.metrics.core.AggregateCounterRepository;
-import org.springframework.xd.store.AbstractInMemoryRepository;
+import org.springframework.xd.analytics.metrics.core.Counter;
+import org.springframework.xd.store.AbstractRepository;
 
 /**
  * In-memory aggregate counter with minute resolution.
  * 
- * Note that the data is permanently accumulated, so will grow steadily in size until the
- * host process is restarted.
+ * Note that the data is permanently accumulated, so will grow steadily in size until the host process is restarted.
  * 
  * @author Luke Taylor
+ * @author Eric Bottard
  */
-public class InMemoryAggregateCounterRepository extends AbstractInMemoryRepository<AggregateCounter, String> implements
+@Qualifier("aggregate")
+public class InMemoryAggregateCounterRepository extends AbstractRepository<Counter, String> implements
 		AggregateCounterRepository {
+
+	private Map<String, InMemoryAggregateCounter> aggregates = new HashMap<String, InMemoryAggregateCounter>();
 
 	@Override
 	public long increment(String name) {
@@ -49,35 +55,65 @@ public class InMemoryAggregateCounterRepository extends AbstractInMemoryReposito
 	}
 
 	@Override
-	public int getTotal(String name) {
-		return getOrCreate(name).getTotal();
-	}
-
-	@Override
 	public AggregateCount getCounts(String name, Interval interval, DateTimeField resolution) {
 		return getOrCreate(name).getCounts(interval, resolution);
 	}
 
 	private synchronized InMemoryAggregateCounter getOrCreate(String name) {
-		AggregateCounter c = findOne(name);
+		InMemoryAggregateCounter c = aggregates.get(name);
 		if (c == null) {
 			c = new InMemoryAggregateCounter(name);
-			save(c);
+			aggregates.put(name, c);
 		}
-		else if (!(c instanceof InMemoryAggregateCounter)) {
-			c = new InMemoryAggregateCounter(c);
-		}
-		return (InMemoryAggregateCounter) c;
+		return c;
 	}
 
 	@Override
-	public Set<String> getAll() {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Auto-generated method stub");
+	public long decrement(String name) {
+		throw new UnsupportedOperationException("Can't decrement an AggregateCounter");
 	}
 
 	@Override
-	protected String keyFor(AggregateCounter entity) {
-		return entity.getName();
+	public void reset(String name) {
+		delete(name);
 	}
+
+	@Override
+	public <S extends Counter> S save(S entity) {
+		aggregates.remove(entity.getName());
+		increment(entity.getName(), (int) entity.getValue(), DateTime.now());
+		return entity;
+	}
+
+	@Override
+	public Counter findOne(String id) {
+		InMemoryAggregateCounter aggregate = getOrCreate(id);
+		return aggregate;
+	}
+
+	@Override
+	public Iterable<Counter> findAll() {
+		return new ArrayList<Counter>(aggregates.values());
+	}
+
+	@Override
+	public long count() {
+		return aggregates.size();
+	}
+
+	@Override
+	public void delete(String id) {
+		aggregates.remove(id);
+	}
+
+	@Override
+	public void delete(Counter entity) {
+		delete(entity.getName());
+	}
+
+	@Override
+	public void deleteAll() {
+		aggregates.clear();
+	}
+
 }

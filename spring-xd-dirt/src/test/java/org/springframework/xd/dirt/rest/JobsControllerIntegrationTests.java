@@ -30,6 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
@@ -82,7 +83,8 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 				post("/jobs").param("name", "job2").param("definition", "Job --cron='*/10 * * * * *'")
 						.accept(MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 
-		mockMvc.perform(get("/jobs").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
+		mockMvc.perform(get("/jobs").accept(MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.content", Matchers.hasSize(2)))
 				.andExpect(jsonPath("$.content[0].name").value("job1"))
 				.andExpect(jsonPath("$.content[1].name").value("job2"));
@@ -124,20 +126,9 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 						.param("definition", "Job adsfa")
 						.accept(MediaType.APPLICATION_JSON)).andExpect(
 				status().isBadRequest());
-		
-		mockMvc.perform(get("/jobs").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
-					.andExpect(jsonPath("$.content", Matchers.hasSize(0)));
-	}
 
-	@Test
-	public void testInvalidDefinitionDelete() throws Exception {
-		mockMvc.perform(
-				post("/jobs").param("name", "job1")
-						.param("definition", "Job adsfa")
-						.param("deploy", "false")
-						.accept(MediaType.APPLICATION_JSON)).andExpect(
-				status().isCreated());
-		mockMvc.perform(delete("/jobs/{name}", "job1")).andExpect(
-				status().isOk());
+		mockMvc.perform(get("/jobs").accept(MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.content", Matchers.hasSize(0)));
 	}
 }

@@ -16,26 +16,20 @@
 
 package org.springframework.xd.dirt.rest;
 
-import java.util.ArrayList;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.dirt.stream.JobDefinition;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobDeployer;
-import org.springframework.xd.dirt.stream.NoSuchDefinitionException;
 import org.springframework.xd.rest.client.domain.JobDefinitionResource;
 
 /**
@@ -48,54 +42,13 @@ import org.springframework.xd.rest.client.domain.JobDefinitionResource;
 @Controller
 @RequestMapping("/jobs")
 @ExposesResourceFor(JobDefinitionResource.class)
-public class JobsController {
-
-	private final JobDeployer jobDeployer;
-
-	private final JobDefinitionResourceAssembler definitionResourceAssembler = new JobDefinitionResourceAssembler();
+public class JobsController extends
+		XDController<JobDefinition, JobDefinitionResourceAssembler, JobDefinitionResource> {
 
 	@Autowired
-	public JobsController(JobDeployer streamDeployer, JobDefinitionRepository jobDefinitionRepository) {
-		this.jobDeployer = streamDeployer;
-	}
-
-	/**
-	 * Request removal of an existing job.
-	 *
-	 * @param name the name of an existing job (required)
-	 */
-	@RequestMapping(value = "/{name}", method = RequestMethod.DELETE)
-	@ResponseStatus(HttpStatus.OK)
-	public void delete(@PathVariable("name") String name) {
-		jobDeployer.delete(name);
-	}
-
-	/**
-	 * Request deployment of an existing named job.
-	 *
-	 * @param name the name of an existing job (required)
-	 */
-	@RequestMapping(value = "/{name}", method = RequestMethod.PUT, params = "deploy=true")
-	@ResponseStatus(HttpStatus.OK)
-	@ResponseBody
-	public void deploy(@PathVariable("name") String name) {
-		jobDeployer.deploy(name);
-	}
-
-	/**
-	 * Retrieve information about a single {@link JobDefinition}.
-	 *
-	 * @param name the name of an existing tap (required)
-	 */
-	@RequestMapping(value = "/{name}", method = RequestMethod.GET)
-	@ResponseStatus(HttpStatus.OK)
-	@ResponseBody
-	public JobDefinitionResource display(@PathVariable("name") String name) {
-		final JobDefinition jobDefinition = jobDeployer.findOne(name);
-		if (jobDefinition == null) {
-			throw new NoSuchDefinitionException(name, "There is no job definition named '%s'");
-		}
-		return definitionResourceAssembler.toResource(jobDefinition);
+	public JobsController(JobDeployer jobDeployer,
+			JobDefinitionRepository jobDefinitionRepository) {
+		super(jobDeployer, new JobDefinitionResourceAssembler());
 	}
 
 	/**
@@ -106,51 +59,13 @@ public class JobsController {
 	@ResponseBody
 	public PagedResources<JobDefinitionResource> list(Pageable pageable,
 			PagedResourcesAssembler<JobDefinition> assembler) {
-		Page<JobDefinition> page = jobDeployer.findAll(pageable);
-		if (page.hasContent()) {
-			return assembler.toResource(page, definitionResourceAssembler);
-		} else {
-			return new PagedResources<JobDefinitionResource>(
-					new ArrayList<JobDefinitionResource>(), null);
-		}
+		return listValues(pageable, assembler);
 	}
 
-	/**
-	 * Create a new Job.
-	 *
-	 * @param name The name of the job to create (required)
-	 * @param definition The Job definition, expressed in the XD DSL (required)
-	 */
-	@RequestMapping(value = "", method = RequestMethod.POST)
-	@ResponseStatus(HttpStatus.CREATED)
-	@ResponseBody
-	public JobDefinitionResource save(@RequestParam("name") String name,
-			@RequestParam("definition") String definition,
-			@RequestParam(value = "deploy", defaultValue = "true") boolean deploy) {
-		final JobDefinition jobDefinition = new JobDefinition(name, definition);
-		final JobDefinition savedJobDefinition = jobDeployer.save(jobDefinition);
-		if(deploy) {
-			try {
-				jobDeployer.deploy(name);
-			} catch (RuntimeException dslException) {
-				jobDeployer.remove(name); // don't allow the creation of a job
-											// if it failed to deploy
-				throw dslException;
-			}
-		}
-		final JobDefinitionResource result = definitionResourceAssembler.toResource(savedJobDefinition);
-		return result;
+
+	protected JobDefinition definitionFactory(String name, String definition) {
+		return new JobDefinition(name, definition);
 	}
 
-	/**
-	 * Request un-deployment of an existing named job.
-	 *
-	 * @param name the name of an existing job (required)
-	 */
-	@RequestMapping(value = "/{name}", method = RequestMethod.PUT, params = "deploy=false")
-	@ResponseStatus(HttpStatus.OK)
-	public void undeploy(@PathVariable("name") String name) {
-		jobDeployer.undeployJob(name);
-	}
 
 }

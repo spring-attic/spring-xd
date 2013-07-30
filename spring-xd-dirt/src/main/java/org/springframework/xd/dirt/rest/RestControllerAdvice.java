@@ -31,6 +31,7 @@ import org.springframework.xd.dirt.stream.AlreadyDeployedException;
 import org.springframework.xd.dirt.stream.DefinitionAlreadyExistsException;
 import org.springframework.xd.dirt.stream.MissingRequiredDefinitionException;
 import org.springframework.xd.dirt.stream.NoSuchDefinitionException;
+import org.springframework.xd.dirt.stream.dsl.DSLException;
 
 /**
  * Central class for behavior common to all REST controllers.
@@ -111,6 +112,18 @@ public class RestControllerAdvice {
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	public VndErrors onStreamAlreadyDeployedException(AlreadyDeployedException e) {
+		String logref = log(e);
+		return new VndErrors(logref, e.getMessage());
+	}
+
+	/**
+	 * Handles the case where client tried to deploy something that is has an
+	 * invalid definition.
+	 */
+	@ResponseBody
+	@ExceptionHandler
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	public VndErrors onInvalidDefintion(DSLException e) {
 		String logref = log(e);
 		return new VndErrors(logref, e.getMessage());
 	}

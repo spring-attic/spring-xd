@@ -41,7 +41,7 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 		}
 		try {
 		if (getRepository().exists(name)) {
-			undeployJob(name);
+			undeploy(name);
 		}
 		getRepository().delete(name);
 		} catch (DSLException dslException) {
@@ -79,7 +79,7 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 		}
 	}
 
-	public void undeployJob(String name) {
+	public void undeploy(String name) {
 		JobDefinition job = getRepository().findOne(name);
 		if (job == null) {
 			throwNoSuchDefinitionException(name);
@@ -95,17 +95,5 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 		catch (MessageHandlingException ex) {
 			// Job is not deployed.
 		}
-
-	}
-
-	/*
-	 * Removes the module from the repository without doing an undeploy.
-	 */
-	public void remove(String name) {
-		JobDefinition def = getRepository().findOne(name);
-		if (def == null) {
-			throwNoSuchDefinitionException(name);
-		}
-		getRepository().delete(name);
 	}
 }

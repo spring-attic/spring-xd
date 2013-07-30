@@ -68,6 +68,7 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		if (repository.findOne(definition.getName()) != null) {
 			throwDefinitionAlreadyExistsException(definition);
 		}
+		streamParser.parse(definition.getName(), definition.getDefinition());
 		return repository.save(definition);
 	}
 
@@ -135,6 +136,11 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		return streamParser.parse(name, config);
 	}
 
+	@Override
+	public void undeploy(String name) {
+
+	}
+
 	protected enum ErrorMessage{
 		nameEmptyError {
 			String getMessage(){
@@ -193,5 +199,16 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		};
 
 		abstract String getMessage();
+	}
+
+	/*
+	 * Removes the module from the repository without doing an undeploy.
+	 */
+	public void remove(String name) {
+		D def = repository.findOne(name);
+		if (def == null) {
+			throwNoSuchDefinitionException(name);
+		}
+		repository.delete(name);
 	}
 }

@@ -47,4 +47,5 @@ public interface ResourceDeployer<R extends BaseDefinition> {
 	 */
 	void delete(String name);
 
+	void undeploy(String name);
 }

@@ -18,4 +18,8 @@
 	<bean id="gaugeRepository" class="org.springframework.xd.analytics.metrics.redis.RedisGaugeRepository">
 		<constructor-arg ref="redisConnectionFactory" />
 	</bean>
+
+	<bean id="richgaugeRepository" class="org.springframework.xd.analytics.metrics.redis.RedisRichGaugeRepository">
+		<constructor-arg ref="redisConnectionFactory" />
+	</bean>
 </beans>

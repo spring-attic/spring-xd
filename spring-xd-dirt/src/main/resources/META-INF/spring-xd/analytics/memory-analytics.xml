@@ -8,4 +8,6 @@
 	<bean id="fieldValueCounterRepository" class="org.springframework.xd.analytics.metrics.memory.InMemoryFieldValueCounterRepository" />
 
 	<bean id="gaugeRepository" class="org.springframework.xd.analytics.metrics.memory.InMemoryGaugeRepository" />
+
+	<bean id="richGaugeRepository" class="org.springframework.xd.analytics.metrics.memory.InMemoryRichGaugeRepository" />
 </beans>

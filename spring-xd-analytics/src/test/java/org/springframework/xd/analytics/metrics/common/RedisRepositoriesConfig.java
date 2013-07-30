@@ -28,7 +28,6 @@ import org.springframework.xd.analytics.metrics.redis.RedisCounterRepository;
 import org.springframework.xd.analytics.metrics.redis.RedisFieldValueCounterRepository;
 import org.springframework.xd.analytics.metrics.redis.RedisGaugeRepository;
 import org.springframework.xd.analytics.metrics.redis.RedisRichGaugeRepository;
-import org.springframework.xd.analytics.metrics.redis.RedisRichGaugeService;
 
 import static org.mockito.Mockito.*;
 
@@ -48,23 +47,11 @@ public class RedisRepositoriesConfig {
 		return new RedisFieldValueCounterRepository(redisConnectionFactory());
 	}
 
-	/**
-	 * @deprecated to be removed as part of XD-330,XD-331,XD-332
-	 */
-	@Deprecated
-	@Bean
-	public RedisRichGaugeService redisRichGaugeService() {
-		return new RedisRichGaugeService(redisRichGaugeRepository());
-	}
-
 	@Bean
 	public RedisRichGaugeRepository redisRichGaugeRepository() {
 		return new RedisRichGaugeRepository(redisConnectionFactory());
 	}
 
-	/**
-	 * @deprecated to be removed as part of XD-330,XD-331,XD-332
-	 */
 	@Deprecated
 	@Bean
 	public RedisGaugeRepository redisGaugeRepository() {

@@ -18,15 +18,15 @@ package org.springframework.xd.analytics.metrics.redis;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.util.StringUtils;
-import org.springframework.xd.analytics.metrics.MetricsException;
 import org.springframework.xd.analytics.metrics.core.MetricUtils;
 import org.springframework.xd.analytics.metrics.core.RichGauge;
+import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
 
 /**
  * @author Luke Taylor
  */
 public final class RedisRichGaugeRepository extends
-		AbstractRedisMetricRepository<RichGauge, String> {
+		AbstractRedisMetricRepository<RichGauge, String> implements RichGaugeRepository {
 
 	private static final String ZERO = serialize(new RichGauge("zero"));
 
@@ -44,6 +44,17 @@ public final class RedisRichGaugeRepository extends
 	}
 
 	@Override
+	public void setValue(String name, double value) {
+		String key = getMetricKey(name);
+		RichGauge g = findOne(name);
+		if (g == null) {
+			g = new RichGauge(name);
+		}
+		MetricUtils.setRichGaugeValue(g, value);
+		valueOperations.set(key, serialize(g));
+	}
+
+	@Override
 	String defaultValue() {
 		return ZERO;
 	}
@@ -53,14 +64,14 @@ public final class RedisRichGaugeRepository extends
 		return serialize(metric);
 	}
 
-	public void setValue(String name, double value) {
-		String key = getMetricKey(name);
+	@Override
+	public void setAlpha(String name, double value) {
 		RichGauge g = findOne(name);
 		if (g == null) {
-			throw new MetricsException("Gauge " + name + " not found");
+			g = new RichGauge(name);
 		}
-		MetricUtils.setRichGaugeValue(g, value);
-		valueOperations.set(key, serialize(g));
+		MetricUtils.setRichGaugeAlpha(g, value);
+		save(g);
 	}
 
 	private static String serialize(RichGauge g) {

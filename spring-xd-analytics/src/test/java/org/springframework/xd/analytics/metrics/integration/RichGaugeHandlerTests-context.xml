@@ -16,13 +16,8 @@
 
 	<bean id="handler"
 		class="org.springframework.xd.analytics.metrics.integration.RichGaugeHandler">
-		<constructor-arg ref="service" />
-		<constructor-arg value="test" />
-	</bean>
-
-	<bean id="service"
-		class="org.springframework.xd.analytics.metrics.redis.RedisRichGaugeService">
 		<constructor-arg ref="repository" />
+		<constructor-arg value="test" />
 	</bean>
 
 	<bean id="repository"

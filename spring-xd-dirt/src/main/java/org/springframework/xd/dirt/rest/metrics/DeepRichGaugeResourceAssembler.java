@@ -18,28 +18,30 @@ package org.springframework.xd.dirt.rest.metrics;
 
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.xd.analytics.metrics.core.Gauge;
+import org.springframework.xd.analytics.metrics.core.RichGauge;
 import org.springframework.xd.rest.client.domain.metrics.GaugeResource;
+import org.springframework.xd.rest.client.domain.metrics.RichGaugeResource;
 
 /**
- * Knows how to assemble {@link GaugeResource}s out of {@link Gauge}s.
+ * Knows how to assemble {@link RichGaugeResource}s out of {@link RichGauge}s.
  *
  * @author Luke Taylor
  */
-class DeepGaugeResourceAssembler extends
-		ResourceAssemblerSupport<Gauge, GaugeResource> {
+class DeepRichGaugeResourceAssembler extends
+		ResourceAssemblerSupport<RichGauge, RichGaugeResource> {
 
-	public DeepGaugeResourceAssembler() {
-		super(GaugesController.class, GaugeResource.class);
+	public DeepRichGaugeResourceAssembler() {
+		super(RichGaugesController.class, RichGaugeResource.class);
 	}
 
 	@Override
-	public GaugeResource toResource(Gauge entity) {
+	public RichGaugeResource toResource(RichGauge entity) {
 		return createResourceWithId(entity.getName(), entity);
 	}
 
 	@Override
-	protected GaugeResource instantiateResource(Gauge entity) {
-		return new GaugeResource(entity.getName(), entity.getValue());
+	protected RichGaugeResource instantiateResource(RichGauge entity) {
+		return new RichGaugeResource(entity.getName(), entity.getValue(), entity.getAverage(), entity.getMax(), entity.getMin());
 	}
 
 }

@@ -22,6 +22,7 @@ import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.xd.analytics.metrics.redis.RedisAggregateCounterRepository;
 import org.springframework.xd.analytics.metrics.redis.RedisCounterRepository;
@@ -59,7 +60,7 @@ public class RedisRepositoriesConfig {
 
 	@Bean
 	public RedisCounterRepository redisCounterRepository() {
-		return new RedisCounterRepository(redisConnectionFactory());
+		return new RedisCounterRepository(stringRedisTemplate(), longRedisTemplate().opsForValue());
 	}
 
 	@Bean
@@ -70,6 +71,13 @@ public class RedisRepositoriesConfig {
 	@Bean
 	public StringRedisTemplate stringRedisTemplate() {
 		return new StringRedisTemplate(redisConnectionFactory());
+	}
+
+	@Bean
+	public RedisTemplate<String, Long> longRedisTemplate() {
+		RedisTemplate<String, Long> result = new RedisTemplate<String, Long>();
+		result.setConnectionFactory(redisConnectionFactory());
+		return result;
 	}
 
 	@Bean

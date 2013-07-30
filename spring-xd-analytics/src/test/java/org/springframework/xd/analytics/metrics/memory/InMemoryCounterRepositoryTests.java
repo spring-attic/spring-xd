@@ -17,9 +17,9 @@ package org.springframework.xd.analytics.metrics.memory;
 
 import org.junit.After;
 import org.junit.Before;
-import org.springframework.xd.analytics.metrics.SharedCounterRepositoryTests;
+import org.springframework.xd.analytics.metrics.AbstractCounterRepositoryTests;
 
-public class InMemoryCounterRepositoryTests extends SharedCounterRepositoryTests {
+public class InMemoryCounterRepositoryTests extends AbstractCounterRepositoryTests {
 
 	@After
 	@Before

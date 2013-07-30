@@ -1,11 +1,11 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,61 +16,72 @@
 
 package org.springframework.xd.analytics.metrics.redis;
 
-import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.RedisOperations;
+import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.util.Assert;
 import org.springframework.xd.analytics.metrics.core.Counter;
 import org.springframework.xd.analytics.metrics.core.CounterRepository;
+import org.springframework.xd.store.AbstractRedisRepository;
 
 /**
- * Redis backed implementation that uses Redis keys to store and update the value. The
- * naming strategy for keys in Redis is "counters." This means a counter named
- * simpleCounter appears under the name "counters.simpleCounter" in Redis.
  * 
- * There is a default expiry of 60 minutes for the counters stored in redis. This can be
- * changed using a setter method
- * 
- * @author Mark Pollack
- * 
+ * @author Eric Bottard
  */
-public final class RedisCounterRepository extends
-		AbstractRedisMetricRepository<Counter, Long> implements CounterRepository {
+public class RedisCounterRepository extends AbstractRedisRepository<Counter, String> implements CounterRepository {
 
-	public RedisCounterRepository(RedisConnectionFactory connectionFactory) {
-		this(connectionFactory, "counters.");
-	}
+	protected ValueOperations<String, Long> longOperations;
 
-	public RedisCounterRepository(RedisConnectionFactory connectionFactory,
-			String metricPrefix) {
-		super(connectionFactory, metricPrefix);
-	}
-
-	@Override
-	Counter create(String name, Long value) {
-		return new Counter(name, value);
+	public RedisCounterRepository(RedisOperations<String, String> stringOperations,
+			ValueOperations<String, Long> longOperations) {
+		super("counters.", stringOperations);
+		this.longOperations = longOperations;
 	}
 
 	@Override
-	Long defaultValue() {
-		return 0L;
+	protected Counter deserialize(String redisKey, String v) {
+		return new Counter(redisKey, Long.valueOf(v));
 	}
 
 	@Override
-	Long value(Counter metric) {
-		return metric.getValue();
+	protected String serialize(Counter entity) {
+		return String.valueOf(entity.getValue());
+	}
+
+	@Override
+	protected String keyFor(Counter entity) {
+		Assert.notNull(entity);
+		return entity.getName();
+	}
+
+	@Override
+	protected String serializeId(String id) {
+		return id;
+	}
+
+	@Override
+	protected String deserializeId(String string) {
+		return string;
 	}
 
 	@Override
 	public long increment(String name) {
-		return valueOperations.increment(getMetricKey(name), 1);
+		String redisKeyFromId = redisKeyFromId(name);
+		trackMembership(redisKeyFromId);
+		return longOperations.increment(redisKeyFromId, 1);
 	}
 
 	@Override
 	public long decrement(String name) {
-		return valueOperations.increment(getMetricKey(name), -1);
+		String redisKeyFromId = redisKeyFromId(name);
+		trackMembership(redisKeyFromId);
+		return longOperations.increment(redisKeyFromId, -1);
 	}
 
 	@Override
 	public void reset(String name) {
-		valueOperations.set(getMetricKey(name), 0L);
+		String redisKeyFromId = redisKeyFromId(name);
+		trackMembership(redisKeyFromId);
+		longOperations.set(redisKeyFromId, 0L);
 	}
 
 }

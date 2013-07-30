@@ -18,6 +18,7 @@ package org.springframework.xd.dirt.rest;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.xd.analytics.metrics.core.AggregateCounterRepository;
 import org.springframework.xd.analytics.metrics.core.CounterRepository;
 import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository;
 import org.springframework.xd.analytics.metrics.core.GaugeRepository;
@@ -35,9 +36,8 @@ import org.springframework.xd.dirt.stream.TriggerDeployer;
 import static org.mockito.Mockito.*;
 
 /**
- * Provide a mockito mock for any of the business layer dependencies. Adding yet another
- * configuration class on top, one can selectively override those mocks (with <i>e.g.</i>
- * in memory implementations).
+ * Provide a mockito mock for any of the business layer dependencies. Adding yet another configuration class on top, one
+ * can selectively override those mocks (with <i>e.g.</i> in memory implementations).
  * 
  * @author Eric Bottard
  * 
@@ -108,5 +108,10 @@ public class MockedDependencies {
 	@Bean
 	public RichGaugeRepository richGaugeRepository() {
 		return mock(RichGaugeRepository.class);
+	}
+
+	@Bean
+	public AggregateCounterRepository aggregateCounterRepository() {
+		return mock(AggregateCounterRepository.class);
 	}
 }

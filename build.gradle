@@ -562,6 +562,7 @@ project('spring-xd-shell') {
 			exclude group: 'org.mortbay.jetty'
 		}
 		testCompile project(":spring-xd-dirt")
+		testCompile project(":spring-xd-test")
 		testCompile "uk.co.modular-it:hamcrest-date:$hamcrestDateVersion"
 		runtime "org.slf4j:jcl-over-slf4j:$slf4jVersion",
 				"org.slf4j:slf4j-log4j12:$slf4jVersion",

@@ -58,7 +58,7 @@ public abstract class AbstractShellIntegrationTest {
 	@BeforeClass
 	public static void startUp() throws InterruptedException, IOException {
 		AdminOptions opts = AdminMain.parseOptions(new String[] { "--httpPort",
-				"0", "--transport", "local", "--store", "memory",
+				"0", "--transport", "local", "--store", "redis",
 				"--disableJmx", "true", "--analytics", "redis" });
 		server = AdminMain.launchStreamServer(opts);
 		Bootstrap bootstrap = new Bootstrap(new String[] { "--port",

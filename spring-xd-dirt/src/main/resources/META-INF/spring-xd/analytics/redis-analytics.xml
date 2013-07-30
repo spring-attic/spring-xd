@@ -19,7 +19,7 @@
 		<constructor-arg ref="redisConnectionFactory" />
 	</bean>
 
-	<bean id="richgaugeRepository" class="org.springframework.xd.analytics.metrics.redis.RedisRichGaugeRepository">
+	<bean id="richGaugeRepository" class="org.springframework.xd.analytics.metrics.redis.RedisRichGaugeRepository">
 		<constructor-arg ref="redisConnectionFactory" />
 	</bean>
 </beans>

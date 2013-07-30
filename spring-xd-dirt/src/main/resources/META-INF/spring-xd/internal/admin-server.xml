@@ -12,9 +12,8 @@
 	
 	<import resource="../analytics/${xd.analytics}-analytics.xml" />
 	
-	<context:component-scan base-package="org.springframework.xd.dirt.rest">
-		<context:include-filter type="annotation" expression="org.springframework.context.annotation.Configuration"/>
-		<!-- Prevent inclusion of test-related config when running in IDE -->
-		<context:exclude-filter type="regex" expression=".*Mock.*"/>
+	<context:component-scan base-package="org.springframework.xd.dirt.rest" use-default-filters="false">
+		<!-- Include only this @Configuration classes, which will in turn include others -->
+		<context:include-filter type="regex" expression="org.springframework.xd.dirt.rest.RestConfiguration"/>
 	</context:component-scan>
 </beans>

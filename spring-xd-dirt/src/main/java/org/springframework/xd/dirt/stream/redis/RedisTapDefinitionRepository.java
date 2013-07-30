@@ -31,20 +31,21 @@ public class RedisTapDefinitionRepository extends AbstractRedisRepository<TapDef
 		TapDefinitionRepository {
 
 	public RedisTapDefinitionRepository(RedisOperations<String, String> redisOperations) {
-		super("taps.", redisOperations);
+		super("tap.definitions.", redisOperations);
 	}
 
 	@Override
 	protected TapDefinition deserialize(String v) {
 		String[] parts = v.split("\n");
-		return new TapDefinition(parts[0], parts[1],parts[2]);
+		return new TapDefinition(parts[0], parts[1], parts[2]);
 	}
 
 	@Override
 	protected String serialize(TapDefinition entity) {
-		return entity.getName() + "\n" + entity.getStreamName() + "\n" +  entity.getDefinition();
+		return entity.getName() + "\n" + entity.getStreamName() + "\n" + entity.getDefinition();
 	}
 
+	@Override
 	protected String keyFor(TapDefinition entity) {
 		return entity.getName();
 	}

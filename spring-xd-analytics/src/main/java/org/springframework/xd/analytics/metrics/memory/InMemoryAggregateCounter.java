@@ -42,7 +42,7 @@ import org.springframework.xd.analytics.metrics.core.MetricUtils;
  * @author Luke Taylor
  * @author Eric Bottard
  */
-/* default */class InMemoryAggregateCounter extends Counter {
+class InMemoryAggregateCounter extends Counter {
 
 	protected Map<Integer, long[]> monthCountsByYear = new HashMap<Integer, long[]>();
 

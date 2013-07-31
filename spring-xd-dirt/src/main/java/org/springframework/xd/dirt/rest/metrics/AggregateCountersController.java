@@ -35,11 +35,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.xd.analytics.metrics.core.AggregateCount;
 import org.springframework.xd.analytics.metrics.core.AggregateCounterRepository;
 import org.springframework.xd.analytics.metrics.core.Counter;
-import org.springframework.xd.analytics.metrics.memory.InMemoryAggregateCounter;
 import org.springframework.xd.rest.client.domain.metrics.AggregateCountsResource;
 
 /**
- * Exposes representations of {@link InMemoryAggregateCounter}s.
+ * Exposes representations of {@link AggregateCount}s.
  * 
  * @author Eric Bottard
  */

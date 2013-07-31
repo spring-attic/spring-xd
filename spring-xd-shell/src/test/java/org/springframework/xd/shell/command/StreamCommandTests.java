@@ -183,7 +183,7 @@ public class StreamCommandTests extends AbstractShellIntegrationTest {
 		executeStreamCreate("ticktock-in", "http > :foox", true);
 		executeStreamCreate("ticktock-out", ":foo > log", true);
 		
-		executeCommand("post httpsource --data blahblah --target http://localhost:9000");
+		executeCommand("post httpsource --data blahblah --target http://localhost:9314");
 		executeStreamDestroy("ticktock-in","ticktock-out");
 	}
 	
@@ -192,7 +192,7 @@ public class StreamCommandTests extends AbstractShellIntegrationTest {
 		executeStreamCreate("ticktock-in", "http > :foo", true);
 		executeStreamCreate("ticktock-out",
 				":foo > transform --expression=payload.toUpperCase() | log", true);
-		executeCommand("post httpsource --data blahblah --target http://localhost:9000");
+		executeCommand("post httpsource --data blahblah --target http://localhost:9314");
 		executeStreamDestroy("ticktock-in","ticktock-out");
 	}
 	
@@ -207,7 +207,7 @@ public class StreamCommandTests extends AbstractShellIntegrationTest {
 		executeStreamCreate("s1","transform --expression=payload.replace('Andy','zzz')",false);
 		executeStreamCreate("s2","http | s1 | log",true);
 		
-		executeCommand("post httpsource --data fooAndyfoo --target http://localhost:9000");
+		executeCommand("post httpsource --data fooAndyfoo --target http://localhost:9314");
 		executeStreamDestroy("s1","s2");
 	}
 	
@@ -234,7 +234,7 @@ public class StreamCommandTests extends AbstractShellIntegrationTest {
 		executeStreamCreate("swap","transform --expression=payload.replaceAll('${from}','${to}')",false);
 		executeStreamCreate("abyz","swap --from=a --to=z | swap --from=b --to=y",false);
 		executeStreamCreate("foo","http | abyz | log",true);
-		executeCommand("post httpsource --data aabbccxxyyzz --target http://localhost:9000");
+		executeCommand("post httpsource --data aabbccxxyyzz --target http://localhost:9314");
 		// TODO verify log outputs zzyyccxxbbaa
 		executeStreamDestroy("swap","abyz","foo");
 	}
@@ -248,7 +248,7 @@ public class StreamCommandTests extends AbstractShellIntegrationTest {
 		executeStreamCreate("wiretap","tap myhttp.transform > transform --expression=payload.replaceAll('a','.') | log",true);
 		executeStreamCreate("wiretap","tap myhttp.flibble > transform --expression=payload.replaceAll('a','.') | log",true);
 		
-		executeCommand("post httpsource --data Dracarys! --target http://localhost:9000");
+		executeCommand("post httpsource --data Dracarys! --target http://localhost:9314");
 		// TODO verify both logs output DRACARYS!
 		executeStreamDestroy("myhttp","wiretap");
 	}

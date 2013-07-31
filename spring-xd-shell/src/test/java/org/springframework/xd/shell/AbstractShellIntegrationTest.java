@@ -31,6 +31,8 @@ import org.springframework.shell.core.JLineShellComponent;
 import org.springframework.xd.dirt.server.AdminMain;
 import org.springframework.xd.dirt.server.options.AdminOptions;
 import org.springframework.xd.dirt.stream.StreamServer;
+import org.springframework.xd.shell.util.Table;
+import org.springframework.xd.shell.util.TableRow;
 import org.springframework.xd.test.redis.RedisAvailableRule;
 
 /**
@@ -93,5 +95,27 @@ public abstract class AbstractShellIntegrationTest {
 		CommandResult cr = getShell().executeCommand(command);
 		assertTrue("Failure.  CommandResult = " + cr.toString(), cr.isSuccess());
 		return cr;
+	}
+	
+	/**
+	 * Post data to http target
+	 * @param target the http target
+	 * @param data the data to send
+	 */
+	protected void httpPostData(String target, String data){
+		executeCommand("http post --target "+target+" --data "+data);
+	}
+	
+	/**
+	 * Check if the counter exists 
+	 * This method is temporary to verify if the counter is created when it received message
+	 * @param counterName the counter name to check
+	 */
+	protected void checkIfCounterExists(String counterName) {
+		Table t = (Table) getShell().executeCommand("counter list").getResult();
+		assertTrue("Failure. Counter doesn't exist", 
+				t.getRows().contains(new TableRow().addValue(1, counterName)));
+
+		// TODO: we should get the counter value and delete the counter
 	}
 }

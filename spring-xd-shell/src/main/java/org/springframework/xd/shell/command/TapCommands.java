@@ -65,8 +65,8 @@ public class TapCommands implements CommandMarker {
 			@CliOption(key = "deploy", help = "whether to deploy the tap immediately", unspecifiedDefaultValue = "true")
 			boolean autoStart) {
 		tapOperations().createTap(name, dsl, autoStart);
-		return String.format((autoStart ? "Successfully created and deployed tap '%s'"
-				: "Successfully created tap '%s'"), name);
+		return String.format((autoStart ? "Created and deployed new tap '%s'"
+				: "Created new tap '%s'"), name);
 	}
 
 	@CliCommand(value = LIST_TAPS, help = "List all taps")
@@ -93,7 +93,7 @@ public class TapCommands implements CommandMarker {
 			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the tap to destroy")
 			String name) {
 		tapOperations().destroyTap(name);
-		return String.format("Destroyed tap %s", name);
+		return String.format("Destroyed tap '%s'", name);
 	}
 
 	private TapOperations tapOperations() {

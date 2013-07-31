@@ -77,10 +77,12 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 	 * Execute stream create for the supplied stream name/definition, and verify the command result.
 	 */
 	protected void executeStreamCreate(String streamname, String streamdefinition, boolean deploy) {
-		CommandResult cr = executeCommand("stream create --definition \"" + streamdefinition + "\" --name "
-				+ streamname + (deploy ? "" : " --deploy false"));
-		assertEquals("Created new stream '" + streamname + "'", cr.getResult());
+		CommandResult cr = executeCommand("stream create --definition \""+
+			streamdefinition+"\" --name "+streamname+
+				(deploy?"":" --deploy false"));
+		// add the stream name to the streams list before assertion
 		streams.add(streamname);
+		assertEquals("Created new stream '"+streamname+"'",cr.getResult());
 	}
 
 	/**

@@ -74,4 +74,13 @@ public class CountersController extends AbstractMetricsController<CounterReposit
 		}
 		return counterResourceAssembler.toResource(c);
 	}
+	
+	/**
+	 * Delete counter
+	 */
+	@ResponseBody
+	@RequestMapping(value = "/{name}", method = RequestMethod.DELETE)
+	public void delete(@PathVariable("name") String name) {
+		repository.delete(name);
+	}
 }

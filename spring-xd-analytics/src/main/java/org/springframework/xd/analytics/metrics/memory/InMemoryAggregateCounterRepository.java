@@ -45,11 +45,16 @@ public class InMemoryAggregateCounterRepository extends AbstractRepository<Count
 
 	@Override
 	public long increment(String name) {
-		return increment(name, 1, DateTime.now());
+		return increment(name, 1L);
 	}
 
 	@Override
-	public long increment(String name, int amount, DateTime dateTime) {
+	public long increment(String name, long amount) {
+		return increment(name, 1L, DateTime.now());
+	}
+
+	@Override
+	public long increment(String name, long amount, DateTime dateTime) {
 		InMemoryAggregateCounter counter = getOrCreate(name);
 		return counter.increment(amount, dateTime);
 	}

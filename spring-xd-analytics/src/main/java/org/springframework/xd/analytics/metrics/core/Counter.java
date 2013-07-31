@@ -62,9 +62,18 @@ public class Counter implements Metric {
 		return value;
 	}
 
-	protected Counter set(long value) {
-		this.value = value;
-		return this;
+	/**
+	 * Increment this counter by a given amount. Stores that manage their own value bookkeepingmay not use this method.
+	 */
+	public long increment(long amount) {
+		return value += amount;
+	}
+
+	/**
+	 * Decrement this counter by a given amount. Stores that manage their own value bookkeepingmay not use this method.
+	 */
+	public long decrement(long amount) {
+		return value -= amount;
 	}
 
 	/**
@@ -76,16 +85,17 @@ public class Counter implements Metric {
 	}
 
 	@Override
-	public int hashCode() {
+	public final int hashCode() {
 		return name.hashCode();
 	}
 
 	@Override
-	public boolean equals(Object o) {
+	public final boolean equals(Object o) {
 		if (this == o)
 			return true;
-		if (o == null || getClass() != o.getClass())
+		if (!(o instanceof Counter)) {
 			return false;
+		}
 
 		Counter counter = (Counter) o;
 

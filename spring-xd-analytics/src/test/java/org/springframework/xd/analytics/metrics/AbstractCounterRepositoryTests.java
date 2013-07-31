@@ -15,34 +15,32 @@
  */
 package org.springframework.xd.analytics.metrics;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.*;
-
 import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.xd.analytics.metrics.core.Counter;
 import org.springframework.xd.analytics.metrics.core.CounterRepository;
 
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 public abstract class AbstractCounterRepositoryTests {
 
 	@Autowired
+	@Qualifier("simple")
 	protected CounterRepository counterRepository;
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testDeleteNullString() {
-		counterRepository.delete((String)null);
+		counterRepository.delete((String) null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testDeleteNullCounter() {
-		counterRepository.delete((Counter)null);
+		counterRepository.delete((Counter) null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -56,7 +54,7 @@ public abstract class AbstractCounterRepositoryTests {
 		String myCounterName = "myCounter";
 		String yourCounterName = "yourCounter";
 
-		// Create and save a Counter  named 'myCounter'
+		// Create and save a Counter named 'myCounter'
 		Counter c1 = new Counter(myCounterName);
 		Counter myCounter = repo.save(c1);
 		assertThat(myCounter.getName(), is(notNullValue()));
@@ -72,7 +70,6 @@ public abstract class AbstractCounterRepositoryTests {
 
 		result = repo.findOne(yourCounter.getName());
 		assertThat(result, equalTo(yourCounter));
-
 
 		List<Counter> counters = (List<Counter>) repo.findAll();
 		assertThat(counters.size(), equalTo(2));

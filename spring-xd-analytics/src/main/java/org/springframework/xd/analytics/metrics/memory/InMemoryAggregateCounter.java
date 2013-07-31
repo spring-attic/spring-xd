@@ -42,7 +42,7 @@ import org.springframework.xd.analytics.metrics.core.MetricUtils;
  * @author Luke Taylor
  * @author Eric Bottard
  */
-public class InMemoryAggregateCounter extends Counter {
+/* default */class InMemoryAggregateCounter extends Counter {
 
 	protected Map<Integer, long[]> monthCountsByYear = new HashMap<Integer, long[]>();
 
@@ -106,7 +106,7 @@ public class InMemoryAggregateCounter extends Counter {
 		return days;
 	}
 
-	synchronized long increment(int amount, DateTime dateTime) {
+	synchronized long increment(long amount, DateTime dateTime) {
 		int year = dateTime.getYear();
 		int month = dateTime.getMonthOfYear();
 		int day = dateTime.getDayOfYear();
@@ -144,7 +144,7 @@ public class InMemoryAggregateCounter extends Counter {
 		dayCounts[day] += amount;
 		hourCounts[hour] += amount;
 
-		return set(getValue() + amount).getValue();
+		return increment(amount);
 	}
 
 }

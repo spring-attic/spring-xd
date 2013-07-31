@@ -16,6 +16,7 @@
 
 package org.springframework.xd.analytics.metrics.common;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.RedisConnectionFailureException;
@@ -59,6 +60,7 @@ public class RedisRepositoriesConfig {
 	}
 
 	@Bean
+	@Qualifier("simple")
 	public RedisCounterRepository redisCounterRepository() {
 		return new RedisCounterRepository(redisConnectionFactory());
 	}

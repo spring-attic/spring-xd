@@ -14,7 +14,7 @@ public interface AggregateCounterRepository extends CounterRepository {
 	/**
 	 * Increments the named counter by a specific amount for the given instant.
 	 */
-	long increment(String name, int amount, DateTime dateTime);
+	long increment(String name, long amount, DateTime dateTime);
 
 	/**
 	 * Query function to allow the counts for a specific interval to be retrieved.

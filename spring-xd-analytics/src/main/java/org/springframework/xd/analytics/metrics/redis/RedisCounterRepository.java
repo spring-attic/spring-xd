@@ -79,9 +79,14 @@ public class RedisCounterRepository extends AbstractRedisRepository<Counter, Str
 
 	@Override
 	public long increment(String name) {
+		return increment(name, 1L);
+	}
+
+	@Override
+	public long increment(String name, long amount) {
 		String redisKeyFromId = redisKeyFromId(name);
 		trackMembership(redisKeyFromId);
-		return longOperations.increment(redisKeyFromId, 1);
+		return longOperations.increment(redisKeyFromId, amount);
 	}
 
 	@Override

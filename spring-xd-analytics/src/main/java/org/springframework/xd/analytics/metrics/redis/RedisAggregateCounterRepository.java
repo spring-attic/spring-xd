@@ -77,7 +77,7 @@ public class RedisAggregateCounterRepository extends RedisCounterRepository impl
 	}
 
 	@Override
-	public long increment(String name, int amount, DateTime dateTime) {
+	public long increment(String name, long amount, DateTime dateTime) {
 		final AggregateKeyGenerator akg = new AggregateKeyGenerator(getPrefix(), name, dateTime);
 
 		String bookkeepingKey = bookkeepingKeyFor(name);
@@ -88,7 +88,7 @@ public class RedisAggregateCounterRepository extends RedisCounterRepository impl
 		doIncrementHash(akg.getDayKey(), akg.getHour(), amount, bookkeepingKey);
 		doIncrementHash(akg.getHourKey(), akg.getMinute(), amount, bookkeepingKey);
 
-		return super.increment(name);
+		return super.increment(name, amount);
 	}
 
 	/**

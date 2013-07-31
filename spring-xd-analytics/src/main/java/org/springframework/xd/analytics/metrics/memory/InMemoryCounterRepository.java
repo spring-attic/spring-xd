@@ -19,7 +19,6 @@ package org.springframework.xd.analytics.metrics.memory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.xd.analytics.metrics.core.Counter;
 import org.springframework.xd.analytics.metrics.core.CounterRepository;
-import org.springframework.xd.analytics.metrics.core.MetricUtils;
 import org.springframework.xd.store.AbstractInMemoryRepository;
 
 /**
@@ -33,15 +32,20 @@ import org.springframework.xd.store.AbstractInMemoryRepository;
 public class InMemoryCounterRepository extends AbstractInMemoryRepository<Counter, String> implements CounterRepository {
 
 	@Override
-	public synchronized long increment(String name) {
+	public long increment(String name) {
+		return increment(name, 1L);
+	}
+
+	@Override
+	public long increment(String name, long amount) {
 		Counter c = getOrCreate(name);
-		return save(MetricUtils.incrementCounter(c)).getValue();
+		return c.increment(amount);
 	}
 
 	@Override
 	public synchronized long decrement(String name) {
 		Counter c = getOrCreate(name);
-		return save(MetricUtils.decrementCounter(c)).getValue();
+		return c.decrement(1L);
 	}
 
 	@Override

@@ -21,7 +21,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
@@ -48,6 +47,7 @@ public class SimpleModule extends AbstractModule {
 
 	private final Properties properties = new Properties();
 
+	private boolean isRunning = false;
 
 	public SimpleModule(ModuleDefinition definition, DeploymentMetadata metadata) {
 		super(definition, metadata);
@@ -121,6 +121,7 @@ public class SimpleModule extends AbstractModule {
 		Assert.state(this.context != null, "An ApplicationContext is required");
 		if (!this.isRunning()) {
 			this.context.start();
+			isRunning = true;
 			if (logger.isInfoEnabled()) {
 				logger.info("started module: " + this.toString());
 			}
@@ -140,7 +141,7 @@ public class SimpleModule extends AbstractModule {
 
 	@Override
 	public boolean isRunning() {
-		return this.context.isActive() && this.context.isRunning();
+		return isRunning;
 	}
 
 	public ApplicationContext getApplicationContext() {

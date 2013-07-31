@@ -16,6 +16,8 @@
 
 package org.springframework.xd.shell;
 
+import static org.junit.Assert.assertTrue;
+
 import java.io.IOException;
 
 import org.apache.commons.logging.Log;
@@ -24,6 +26,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.springframework.shell.Bootstrap;
+import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
 import org.springframework.xd.dirt.server.AdminMain;
 import org.springframework.xd.dirt.server.options.AdminOptions;
@@ -77,5 +80,18 @@ public abstract class AbstractShellIntegrationTest {
 
 	public static JLineShellComponent getShell() {
 		return shell;
+	}
+	
+	public static StreamServer getStreamServer() {
+		return server;
+	}
+
+	/**
+	 * Execute a command and verify the command result.
+	 */
+	protected CommandResult executeCommand(String command) {
+		CommandResult cr = getShell().executeCommand(command);
+		assertTrue("Failure.  CommandResult = " + cr.toString(), cr.isSuccess());
+		return cr;
 	}
 }

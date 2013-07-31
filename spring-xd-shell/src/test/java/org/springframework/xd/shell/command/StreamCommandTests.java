@@ -20,9 +20,13 @@ import static org.junit.Assert.assertTrue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.shell.core.CommandResult;
+import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
+import org.springframework.xd.dirt.stream.StreamRepository;
 import org.springframework.xd.shell.AbstractShellIntegrationTest;
 import org.springframework.xd.shell.util.Table;
 
@@ -248,6 +252,18 @@ public class StreamCommandTests extends AbstractShellIntegrationTest {
 		// TODO verify both logs output DRACARYS!
 		executeStreamDestroy("myhttp","wiretap");
 	}
+
+	//TODO - the methods below should go into an AbstractStreamCommandTest base class.
+	
+	@Before
+	@After
+	public void after() {
+		//TODO see if DI can be used instead of lookup
+		StreamDefinitionRepository streamDefRepo = getStreamServer().getXmlWebApplicationContext().getBean(StreamDefinitionRepository.class);
+		streamDefRepo.deleteAll();
+		StreamRepository streamRepo = getStreamServer().getXmlWebApplicationContext().getBean(StreamRepository.class);
+		streamRepo.deleteAll();
+	}
 	
 	// ---
 	
@@ -272,15 +288,6 @@ public class StreamCommandTests extends AbstractShellIntegrationTest {
 			streamdefinition+"\" --name "+streamname+
 				(deploy?"":" --deploy false"));
 		assertEquals("Created new stream '"+streamname+"'",cr.getResult());
-	}
-
-	/**
-	 * Execute a command and verify the command result.
-	 */
-	private CommandResult executeCommand(String command) {
-		CommandResult cr = getShell().executeCommand(command);
-		assertTrue("Failure.  CommandResult = " + cr.toString(), cr.isSuccess());
-		return cr;
 	}
 
 }

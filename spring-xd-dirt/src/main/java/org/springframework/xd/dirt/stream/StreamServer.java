@@ -89,15 +89,23 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 	}
 
 	/**
-	 * @return the HTTP port
+	 * @return the HTTP port as requested from the user
 	 */
 	public int getPort() {
 		return this.port;
 	}
 	
+	/**
+	 * Get the underlying HTTP port if a random port was requested, user port = 0.
+	 * @return
+	 */
 	public int getLocalPort() {
 		int localPort = this.tomcat.getConnector().getLocalPort();
 		return localPort;
+	}
+	
+	public XmlWebApplicationContext getXmlWebApplicationContext() {
+		return this.webApplicationContext;
 	}
 
 	@Override

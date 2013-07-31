@@ -26,6 +26,7 @@ package org.springframework.xd.shell.util;
  */
 public class TableHeader {
 
+	private int maxWidth = -1;
 	private int width = 0;
 	private String name;
 
@@ -79,7 +80,12 @@ public class TableHeader {
 	 */
 	public void updateWidth(int width) {
 		if (this.width < width) {
-			this.width = width;
+			if (this.maxWidth > 0 && this.maxWidth < width) {
+				this.width = this.maxWidth;
+			}
+			else {
+				this.width = width;
+			}
 		}
 	}
 
@@ -89,6 +95,19 @@ public class TableHeader {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public int getMaxWidth() {
+		return maxWidth;
+	}
+
+	/**
+	 * Defaults to -1 indicating to ignore the property.
+	 *
+	 * @param maxWidth If negative or zero this property will be ignored.
+	 */
+	public void setMaxWidth(int maxWidth) {
+		this.maxWidth = maxWidth;
 	}
 
 }

@@ -24,8 +24,10 @@ import org.springframework.stereotype.Component;
 
 /**
  * A provider that sets the shell prompt to xd:>
- * 
+ *
  * @author Mark Pollack
+ * @author Gunnar Hillert
+ * @since 1.0
  *
  */
 @Component
@@ -48,5 +50,4 @@ public class XDShellPromptProvider implements PromptProvider {
 			return "xd:>";
 		}
 	}
-
 }

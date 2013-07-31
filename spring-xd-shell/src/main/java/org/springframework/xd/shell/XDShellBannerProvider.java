@@ -16,11 +16,14 @@
 
 package org.springframework.xd.shell;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.shell.plugin.BannerProvider;
 import org.springframework.shell.support.util.FileUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.xd.shell.Target.TargetStatus;
+import org.springframework.xd.shell.util.UiUtils;
 
 
 /**
@@ -33,6 +36,9 @@ import org.springframework.stereotype.Component;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class XDShellBannerProvider implements BannerProvider {
 
+	@Autowired
+	private XDShell xdShell;
+
 	private static final String WELCOME = "Welcome to the Spring XD shell. For assistance hit TAB or type \"help\".";
 
 	@Override
@@ -42,8 +48,21 @@ public class XDShellBannerProvider implements BannerProvider {
 
 	@Override
 	public String getBanner() {
-		final String banner = FileUtils.readBanner(XDShellBannerProvider.class, "/banner.txt");
-		return banner + getVersion() + "\n";
+
+		final Target target = this.xdShell.getTarget();
+
+		StringBuilder banner = new StringBuilder();
+		banner.append(FileUtils.readBanner(XDShellBannerProvider.class, "/banner.txt"));
+		banner.append(getVersion() + " | Admin Server Target: " + target.getTargetUriAsString());
+
+		if (TargetStatus.ERROR.equals(target.getStatus())) {
+			banner.append("\n" + UiUtils.HORIZONTAL_LINE)
+				.append("Error: " + target.getTargetResultMessage())
+				.append("\nPlease execute 'admin config info' for more details.")
+				.append("\n" + UiUtils.HORIZONTAL_LINE);
+		}
+
+		return banner.toString();
 	}
 
 	/**

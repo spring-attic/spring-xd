@@ -19,6 +19,8 @@ package org.springframework.xd.dirt.stream;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.data.repository.CrudRepository;
+import org.springframework.xd.dirt.core.BaseDefinition;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.dirt.stream.dsl.*;
 
@@ -29,10 +31,20 @@ import org.springframework.xd.dirt.stream.dsl.*;
  */
 public class EnhancedStreamParser implements StreamParser {
 
+	private CrudRepository<? extends BaseDefinition, String> repository;
+
+	public EnhancedStreamParser(CrudRepository<? extends BaseDefinition, String> repository) {
+		this.repository = repository;
+	}
+	
+	public EnhancedStreamParser() {
+		// no repository, will not be able to resolve substream/label references
+	}
+
 	@Override
 	public List<ModuleDeploymentRequest> parse(String name, String config) {
 
-		StreamConfigParser parser = new StreamConfigParser();
+		StreamConfigParser parser = new StreamConfigParser(repository);
 		StreamsNode ast = parser.parse(name, config);
 		List<ModuleDeploymentRequest> requests = new ArrayList<ModuleDeploymentRequest>();
 
@@ -56,11 +68,11 @@ public class EnhancedStreamParser implements StreamParser {
 		SinkChannelNode sinkChannel = stream.getSinkChannelNode();
 
 		if (sourceChannel != null) {
-			requests.get(requests.size() - 1).setSourceChannelName(sourceChannel.getChannelNode().getChannelName());
+			requests.get(requests.size() - 1).setSourceChannelName(sourceChannel.getChannelName());
 		}
 
 		if (sinkChannel != null) {
-			requests.get(0).setSinkChannelName(sinkChannel.getChannelNode().getChannelName());
+			requests.get(0).setSinkChannelName(sinkChannel.getChannelName());
 		}
 
 		for (int m = 0; m < moduleNodes.size(); m++) {

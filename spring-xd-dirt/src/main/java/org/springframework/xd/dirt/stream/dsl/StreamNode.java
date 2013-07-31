@@ -193,4 +193,8 @@ public class StreamNode extends AstNode {
 		return -1;
 	}
 
+	public String getStreamData() {
+		return toString(); // TODO is toString always ok? currently only used in testing...
+	}
+
 }

@@ -46,5 +46,9 @@ public class SinkChannelNode extends AstNode {
 	public ChannelNode getChannelNode() {
 		return channelNode;
 	}
+	
+	public String getChannelName() {
+		return channelNode.getChannelName();
+	}
 
 }

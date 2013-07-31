@@ -97,4 +97,12 @@ public class SourceChannelNode extends AstNode {
 		}
 	}
 
+	public String getChannelName() {
+		if (channelNode != null) {
+			return channelNode.getChannelName();
+		} else {
+			return moduleReferenceNode.getChannelName();
+		}
+	}
+
 }

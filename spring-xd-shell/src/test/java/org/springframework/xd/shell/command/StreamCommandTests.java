@@ -20,6 +20,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.xd.shell.AbstractShellIntegrationTest;
@@ -30,7 +31,7 @@ import org.springframework.xd.shell.util.Table;
  * 
  * @author Mark Pollack
  * @author Kashyap Parikh
- * 
+ * @author Andy Clement
  */
 public class StreamCommandTests extends AbstractShellIntegrationTest {
 
@@ -168,6 +169,118 @@ public class StreamCommandTests extends AbstractShellIntegrationTest {
 
 		cr = getShell().executeCommand("stream destroy --name ticktock");
 		assertTrue(cr.isSuccess());
+	}
+
+	// This test hangs the server (produces error: dispatcher has no subscribers for channel 'foox')
+	@Ignore
+	@Test
+	public void testNamedChannelSyntax() {
+		logger.info("Create ticktock stream");
+		executeStreamCreate("ticktock-in", "http > :foox", true);
+		executeStreamCreate("ticktock-out", ":foo > log", true);
+		
+		executeCommand("post httpsource --data blahblah --target http://localhost:9000");
+		executeStreamDestroy("ticktock-in","ticktock-out");
+	}
+	
+	@Test
+	public void testNamedChannelsLinkingSourceAndSink() {
+		executeStreamCreate("ticktock-in", "http > :foo", true);
+		executeStreamCreate("ticktock-out",
+				":foo > transform --expression=payload.toUpperCase() | log", true);
+		executeCommand("post httpsource --data blahblah --target http://localhost:9000");
+		executeStreamDestroy("ticktock-in","ticktock-out");
+	}
+	
+	@Test
+	public void testDefiningSubstream() {
+		executeStreamCreate("s1","transform --expression=payload.replace('Andy','zzz')",false);
+		executeStreamDestroy("s1");
+	}
+	
+	@Test
+	public void testUsingSubstream() {
+		executeStreamCreate("s1","transform --expression=payload.replace('Andy','zzz')",false);
+		executeStreamCreate("s2","http | s1 | log",true);
+		
+		executeCommand("post httpsource --data fooAndyfoo --target http://localhost:9000");
+		executeStreamDestroy("s1","s2");
+	}
+	
+	@Test
+	public void testUsingSubstreamWithParameterizationAndDefaultValue() {
+		executeStreamCreate("obfuscate","transform --expression=payload.replace('${text:rys}','.')",false);
+		executeStreamCreate("s2","http | obfuscate | log",true);
+		executeCommand("post httpsource --data Dracarys! --target http://localhost:9000");
+		// TODO verify the output of the 'log' sink is 'Draca.!'
+		executeStreamDestroy("obfuscate","s2");
+	}
+	
+	@Test
+	public void testUsingSubstreamWithParameterization() {
+		executeStreamCreate("obfuscate","transform --expression=payload.replace('${text}','.')",false);
+		executeStreamCreate("s2","http | obfuscate --text=aca | log",true);
+		executeCommand("post httpsource --data Dracarys! --target http://localhost:9000");
+		// TODO verify the output of the 'log' sink is 'Dr.rys!'
+		executeStreamDestroy("obfuscate","s2");
+	}
+
+	@Test
+	public void testSubSubstreams() {
+		executeStreamCreate("swap","transform --expression=payload.replaceAll('${from}','${to}')",false);
+		executeStreamCreate("abyz","swap --from=a --to=z | swap --from=b --to=y",false);
+		executeStreamCreate("foo","http | abyz | log",true);
+		executeCommand("post httpsource --data aabbccxxyyzz --target http://localhost:9000");
+		// TODO verify log outputs zzyyccxxbbaa
+		executeStreamDestroy("swap","abyz","foo");
+	}
+	
+	@Ignore
+	@Test
+	public void testUsingLabels() {
+		executeStreamCreate("myhttp","http | flibble: transform --expression=payload.toUpperCase() | log",true);
+//		executeStreamCreate("wiretap","tap @myhttp.1 | transform --expression=payload.replaceAll('a','.') | log",true);
+		// These variants of the above (which does work) don't appear to work although they do refer to the same source channel:
+		executeStreamCreate("wiretap","tap myhttp.transform > transform --expression=payload.replaceAll('a','.') | log",true);
+		executeStreamCreate("wiretap","tap myhttp.flibble > transform --expression=payload.replaceAll('a','.') | log",true);
+		
+		executeCommand("post httpsource --data Dracarys! --target http://localhost:9000");
+		// TODO verify both logs output DRACARYS!
+		executeStreamDestroy("myhttp","wiretap");
+	}
+	
+	// ---
+	
+	/**
+	 * Execute 'stream destroy' for the supplied stream names
+	 */
+	private void executeStreamDestroy(String... streamnames) {
+		for (String streamname: streamnames) {
+			executeCommand("stream destroy --name "+streamname);
+		}
+	}
+
+	/**
+	 * Execute stream create for the supplied stream name/definition, and verify
+	 * the command result.
+	 */
+	private void executeStreamCreate(
+			String streamname,
+			String streamdefinition,
+			boolean deploy) {
+		CommandResult cr = executeCommand("stream create --definition \""+
+			streamdefinition+"\" --name "+streamname+
+				(deploy?"":" --deploy false"));
+		assertEquals("Created new stream '"+streamname+"'",cr.getResult());
+	}
+
+	/**
+	 * Execute a command and verify the command result.
+	 */
+	private CommandResult executeCommand(String command) {
+		CommandResult cr = getShell().executeCommand(command);
+		assertTrue("Failure.  CommandResult = " + cr.toString(), cr.isSuccess());
+		return cr;
 	}
 
 }

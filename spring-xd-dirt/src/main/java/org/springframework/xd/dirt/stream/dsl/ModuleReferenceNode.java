@@ -89,5 +89,9 @@ public class ModuleReferenceNode extends AstNode {
 		moduleReferenceNode.resolvedChannel = resolvedChannel;
 		return moduleReferenceNode;
 	}
+	
+	public String getChannelName() {
+		return resolvedChannel;
+	}
 
 }

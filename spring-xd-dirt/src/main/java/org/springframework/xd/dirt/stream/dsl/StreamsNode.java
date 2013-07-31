@@ -83,5 +83,9 @@ public class StreamsNode extends AstNode {
 	public List<StreamNode> getStreams() {
 		return streamNodes;
 	}
+	
+	public int getSize() {
+		return streamNodes.size();
+	}
 
 }

@@ -16,9 +16,11 @@
 package org.springframework.xd.dirt.stream.dsl;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
+
+import org.springframework.data.repository.CrudRepository;
+import org.springframework.util.Assert;
+import org.springframework.xd.dirt.core.BaseDefinition;
 
 
 /**
@@ -30,12 +32,15 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 	private List<Token> tokenStream;
 	private int tokenStreamLength;
 	private int tokenStreamPointer; // Current location in the token stream when processing tokens
-		
-	// A cache used to implement StreamLookupEnviroment. See notes on
-	// that interface about the eventual removal of this map.
-	private static Map<String,StreamNode> knownExpressions 
-		= new LinkedHashMap<String,StreamNode>();
 	
+	/** The repository (if supplied) is used to chase down substream/label references */
+	private CrudRepository<? extends BaseDefinition, String> repository;
+	
+	public StreamConfigParser(
+			CrudRepository<? extends BaseDefinition, String> repository) {
+		this.repository = repository;
+	}
+
 	/**
 	 * Parse a stream definition without supplying the stream name up front.
 	 * The stream name may be embedded in the definition. For example:
@@ -47,7 +52,6 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 		return parse(null, stream);
 	}
 	
-
 	/**
 	 * Parse a stream definition. Can throw a DSLException.
 	 *
@@ -64,10 +68,7 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 			throw new DSLException(this.expressionString, 
 					peekToken().startpos,XDDSLMessages.MORE_INPUT,toString(nextToken()));
 		}
-		if (name != null) {
-			knownExpressions.put(name,ast.getStreamNodes().get(ast.getStreamNodes().size()-1));
-		}
-		ast.resolve(this); // TODO [Andy] will probably need to move when 'real' lookup environment is plugged in
+		ast.resolve(this);
 		return ast;
 	}
 
@@ -113,9 +114,6 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 		}
 		
 		StreamNode streamNode= new StreamNode(streamName, moduleNodes, sourceChannelNode, sinkChannelNode);
-		if (streamName != null) {
-			knownExpressions.put(streamName,streamNode);
-		}
 		return streamNode;
 	}
 	
@@ -286,7 +284,7 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 			String modulename = moduletoken.data;
 			
 			// Let's map the modulename
-			StreamNode existingAst = knownExpressions.get(streamname);
+			StreamNode existingAst = lookupStream(streamname);
 			if (existingAst == null) {
 				raiseException(streamtoken.startpos, XDDSLMessages.UNRECOGNIZED_STREAM_REFERENCE,streamname);
 			}
@@ -372,7 +370,6 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 		} else {
 			raiseException(t.startpos,XDDSLMessages.EXPECTED_ARGUMENT_VALUE,t.data);
 		}
-//		nextToken();
 		return argValue;
 	}
 
@@ -433,7 +430,6 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 	private Token nextToken() {
 		if (tokenStreamPointer>=tokenStreamLength) {
 			raiseException( expressionString.length(), XDDSLMessages.OOD);
-//			return null;
 		}
 		return tokenStream.get(tokenStreamPointer++);
 	}
@@ -477,39 +473,51 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 	// LookupEnvironment implementation
 	
 	public StreamNode lookupStream(String name) {
-		return knownExpressions.get(name);
-	}
-
-	// Expects channel naming scheme of stream.NNN where NNN is the module index in the stream
-	public String lookupChannelForLabelOrModule(String streamName, String labelOrModuleName) {
-		if (streamName!=null) {
-			StreamNode streamNode = knownExpressions.get(streamName);
-			if (streamNode == null) {
-				// TODO error/warning?
-				return null;
-			}
-			int index = streamNode.getIndexOfLabelOrModuleName(labelOrModuleName);
-			if (index==-1) {
-				// TODO could be an error
-				return streamName+"."+0;
-			} else {
-				return streamName+"."+index;
-			}
-		} else {
-			// look through all streams...
-			for (String sname: knownExpressions.keySet()) {
-				// TODO this will likely breakdown if you are using substreams, really the stream name qualifier needs to be supplied
-				StreamNode streamNode = knownExpressions.get(sname);
-				int index = streamNode.getIndexOfLabelOrModuleName(labelOrModuleName);
-				if (index!=-1) {
-					return sname+"."+index;
-				}
+		if (this.repository != null) {
+			BaseDefinition baseDefinition = repository.findOne(name);
+			if (baseDefinition != null) {
+				StreamsNode streamsNode = new StreamConfigParser(repository).parse(baseDefinition.getDefinition());
+				Assert.isTrue(streamsNode.getSize()==1);
+				return streamsNode.getStreamNodes().get(0);
 			}
 		}
 		return null;
 	}
-	
-	public static void reset() {
-		knownExpressions.clear();
+
+	// Expects channel naming scheme of stream.NNN where NNN is the module index in the stream
+	public String lookupChannelForLabelOrModule(String streamName, String streamOrLabelOrModuleName) {
+		if (streamName!=null) {
+			BaseDefinition basedef = repository.findOne(streamName);
+			if (basedef == null) {
+				// TODO error/warning?
+				return null;
+			}
+			StreamsNode streamsNode = new StreamConfigParser(repository).parse(basedef.getDefinition());
+			if (streamsNode!=null && streamsNode.getSize()==1) {
+				int index = streamsNode.getStreamNodes().get(0).getIndexOfLabelOrModuleName(streamOrLabelOrModuleName);
+				if (index==-1) {
+					// TODO could be an error
+					return streamName+"."+0;
+				} else {
+					return streamName+"."+index;
+				}
+			}
+		} else {
+			// Is it a stream?
+			BaseDefinition basedef = repository.findOne(streamOrLabelOrModuleName);
+			if (basedef != null) {
+				return streamOrLabelOrModuleName+".0";
+			}
+			// look through all streams...
+			for (BaseDefinition bd: repository.findAll()) {
+				StreamsNode streamsNode = new StreamConfigParser(repository).parse(bd.getDefinition());	
+				StreamNode sn = streamsNode.getStreamNodes().get(0);
+				int index = sn.getIndexOfLabelOrModuleName(streamOrLabelOrModuleName);
+				if (index!=-1) {
+					return sn.getStreamName()+"."+index;
+				}
+			}
+		}
+		return null;
 	}
 }

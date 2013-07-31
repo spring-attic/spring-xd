@@ -36,11 +36,12 @@ import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
  * @author Luke Taylor
  * @author Mark Pollack
  * @author Eric Bottard
+ * @author Andy Clement
  */
 public abstract class AbstractDeployer<D extends BaseDefinition> implements ResourceDeployer<D> {
 	private PagingAndSortingRepository<D, String> repository;
 
-	private final StreamParser streamParser = new EnhancedStreamParser();
+	private final StreamParser streamParser;
 
 	private final DeploymentMessageSender messageSender;
 
@@ -59,6 +60,7 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		this.repository = repository;
 		this.messageSender = messageSender;
 		this.definitionKind = definitionKind;
+		this.streamParser = new EnhancedStreamParser(repository);
 	}
 
 	public D save(D definition) {

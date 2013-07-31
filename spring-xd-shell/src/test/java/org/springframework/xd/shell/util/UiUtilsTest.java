@@ -22,6 +22,8 @@ import static org.junit.Assert.fail;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.junit.Test;
 import org.springframework.util.FileCopyUtils;
@@ -48,6 +50,8 @@ public class UiUtilsTest {
 			table.getRows().add(row);
 		}
 
+		table.calculateColumnWidths();
+
 		String expectedTableAsString = null;
 
 		final InputStream inputStream = getClass()
@@ -68,4 +72,31 @@ public class UiUtilsTest {
 		assertEquals(expectedTableAsString, tableRenderedAsString);
 	}
 
+	@Test
+	public void testRenderParameterInfoDataAsTableWithMaxWidth() {
+
+		final Map<String, String> values = new TreeMap<String, String>();
+
+		values.put("Key1", "Lorem ipsum dolor sit posuere.");
+		values.put("My super key 2", "Lorem ipsum");
+
+		String expectedTableAsString = null;
+
+		final InputStream inputStream = getClass()
+				.getClassLoader()
+				.getResourceAsStream("testRenderParameterInfoDataAsTableWithMaxWidth.txt");
+
+		assertNotNull("The inputstream is null.", inputStream);
+
+		try {
+			expectedTableAsString = FileCopyUtils.copyToString(new InputStreamReader(inputStream));
+		} catch (IOException e) {
+			e.printStackTrace();
+			fail();
+		}
+
+		final String tableRenderedAsString = UiUtils.renderParameterInfoDataAsTable(values, false, 20);
+
+		assertEquals(expectedTableAsString, tableRenderedAsString);
+	}
 }

@@ -24,12 +24,12 @@ import java.util.TreeMap;
 /**
  * Provide a basic concept of a table structure containing a map of column headers and a
  * collection of rows. Used to render text-based tables (console output).
- * 
+ *
  * @see UiUtils
- * 
+ *
  * @author Gunnar Hillert
  * @since 1.0
- * 
+ *
  */
 public class Table {
 
@@ -56,7 +56,7 @@ public class Table {
 
 	/**
 	 * Add a new empty row to the table.
-	 * 
+	 *
 	 * @return the newly created row, which can be then be populated
 	 */
 	public TableRow newRow() {
@@ -69,4 +69,13 @@ public class Table {
 	public String toString() {
 		return UiUtils.renderTextTable(this);
 	}
+
+	public void calculateColumnWidths() {
+		for (java.util.Map.Entry<Integer, TableHeader> entry : headers.entrySet()) {
+			for (TableRow tableRow : rows) {
+				entry.getValue().updateWidth(tableRow.getValue(entry.getKey()).length());
+			}
+		}
+	}
+
 }

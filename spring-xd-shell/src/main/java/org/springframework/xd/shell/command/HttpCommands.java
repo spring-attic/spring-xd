@@ -21,12 +21,10 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.shell.core.CommandMarker;
-import org.springframework.shell.core.annotation.CliAvailabilityIndicator;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.shell.support.util.OsUtils;
@@ -34,7 +32,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.xd.shell.XDShell;
 
 /**
  * Http commands.
@@ -46,15 +43,7 @@ import org.springframework.xd.shell.XDShell;
 @Component
 public class HttpCommands implements CommandMarker {
 
-	private static final String POST_HTTPSOURCE = "post httpsource";
-
-	@Autowired
-	private XDShell xdShell;
-
-	@CliAvailabilityIndicator({ POST_HTTPSOURCE })
-	public boolean available() {
-		return xdShell.getSpringXDOperations() != null;
-	}
+	private static final String POST_HTTPSOURCE = "http post";
 
 	@CliCommand(value = { POST_HTTPSOURCE }, help = "POST data to http endpoint")
 	public String postHttp(

@@ -62,7 +62,7 @@ public class NamedChannelTests extends AbstractStreamIntegrationTest {
 		executeStreamCreate(stream2, ":foo > counter --name=" + counterName);
 
 		CommandResult cr = getShell().executeCommand(
-				"post httpsource --target \"http://localhost:" + httpPort
+				"http post --target \"http://localhost:" + httpPort
 						+ "\" --data test");
 		assertTrue("Failure.  CommandResult = " + cr.toString(), cr.isSuccess());
 		Table t = (Table) getShell().executeCommand("counter list").getResult();

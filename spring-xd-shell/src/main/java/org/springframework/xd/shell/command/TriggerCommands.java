@@ -32,10 +32,10 @@ import org.springframework.xd.shell.util.TableRow;
 
 /**
  * Trigger commands.
- *
+ * 
  * @author Ilayaperumal Gopinathan
  * @author Gunnar Hillert
- *
+ * 
  * @since 1.0
  */
 
@@ -43,13 +43,15 @@ import org.springframework.xd.shell.util.TableRow;
 public class TriggerCommands implements CommandMarker {
 
 	private static final String CREATE_TRIGGER = "trigger create";
+
 	private static final String LIST_TRIGGERS = "trigger list";
+
 	private static final String DESTROY_TRIGGER = "trigger destroy";
 
 	@Autowired
 	private XDShell xdShell;
 
-	@CliAvailabilityIndicator({ CREATE_TRIGGER, LIST_TRIGGERS })
+	@CliAvailabilityIndicator({ CREATE_TRIGGER, LIST_TRIGGERS, DESTROY_TRIGGER })
 	public boolean available() {
 		return xdShell.getSpringXDOperations() != null;
 	}
@@ -57,8 +59,7 @@ public class TriggerCommands implements CommandMarker {
 	@CliCommand(value = CREATE_TRIGGER, help = "Create a new trigger with a given cron expression")
 	public String createTrigger(
 			@CliOption(mandatory = true, key = { "", "name" }, help = "the name to give to the trigger")
-			String name,
-			@CliOption(mandatory = true, key = { "definition" }, help = "definition for the trigger")
+			String name, @CliOption(mandatory = true, key = { "definition" }, help = "definition for the trigger")
 			String definition) {
 		triggerOperations().createTrigger(name, definition);
 		return String.format("Created new trigger '%s'", name);
@@ -83,7 +84,8 @@ public class TriggerCommands implements CommandMarker {
 
 	@CliCommand(value = DESTROY_TRIGGER, help = "Destroy an existing trigger")
 	public String destroyTrigger(
-			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the trigger to be destroyed") String name) {
+			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the trigger to be destroyed")
+			String name) {
 		triggerOperations().deleteTrigger(name);
 		return String.format("Created new trigger '%s'", name);
 	}

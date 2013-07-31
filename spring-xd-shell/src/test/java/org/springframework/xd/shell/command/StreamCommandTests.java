@@ -215,7 +215,7 @@ public class StreamCommandTests extends AbstractShellIntegrationTest {
 	public void testUsingSubstreamWithParameterizationAndDefaultValue() {
 		executeStreamCreate("obfuscate","transform --expression=payload.replace('${text:rys}','.')",false);
 		executeStreamCreate("s2","http | obfuscate | log",true);
-		executeCommand("post httpsource --data Dracarys! --target http://localhost:9000");
+		executeCommand("post httpsource --data Dracarys! --target http://localhost:9314");
 		// TODO verify the output of the 'log' sink is 'Draca.!'
 		executeStreamDestroy("obfuscate","s2");
 	}
@@ -224,7 +224,7 @@ public class StreamCommandTests extends AbstractShellIntegrationTest {
 	public void testUsingSubstreamWithParameterization() {
 		executeStreamCreate("obfuscate","transform --expression=payload.replace('${text}','.')",false);
 		executeStreamCreate("s2","http | obfuscate --text=aca | log",true);
-		executeCommand("post httpsource --data Dracarys! --target http://localhost:9000");
+		executeCommand("post httpsource --data Dracarys! --target http://localhost:9314");
 		// TODO verify the output of the 'log' sink is 'Dr.rys!'
 		executeStreamDestroy("obfuscate","s2");
 	}

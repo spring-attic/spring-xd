@@ -17,10 +17,12 @@
 package org.springframework.xd.module;
 
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
@@ -37,8 +39,6 @@ import org.springframework.util.Assert;
  */
 public class SimpleModule extends AbstractModule {
 
-	private final static String MEDIA_TYPE_BEAN_NAME = "accepted-media-types";
-
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private final GenericApplicationContext context = new GenericApplicationContext();
@@ -47,7 +47,8 @@ public class SimpleModule extends AbstractModule {
 
 	private final Properties properties = new Properties();
 
-	private boolean isRunning = false;
+	private final AtomicBoolean isRunning = new AtomicBoolean();
+
 
 	public SimpleModule(ModuleDefinition definition, DeploymentMetadata metadata) {
 		super(definition, metadata);
@@ -82,6 +83,23 @@ public class SimpleModule extends AbstractModule {
 	@Override
 	public Properties getProperties() {
 		return this.properties;
+	}
+
+	public ApplicationContext getApplicationContext() {
+		return this.context;
+	}
+
+	@Override
+	public <T> T getComponent(Class<T> requiredType) {
+		return this.context.getBean(requiredType);
+	}
+
+	@Override
+	public <T> T getComponent(String componentName, Class<T> requiredType) {
+		if (this.context.containsBean(componentName)) {
+			return context.getBean(componentName, requiredType);
+		}
+		return null;
 	}
 
 	private void registerPropertySource(Properties properties) {
@@ -119,9 +137,8 @@ public class SimpleModule extends AbstractModule {
 	@Override
 	public void start() {
 		Assert.state(this.context != null, "An ApplicationContext is required");
-		if (!this.isRunning()) {
+		if (this.isRunning.compareAndSet(false, true)) {
 			this.context.start();
-			isRunning = true;
 			if (logger.isInfoEnabled()) {
 				logger.info("started module: " + this.toString());
 			}
@@ -130,35 +147,17 @@ public class SimpleModule extends AbstractModule {
 
 	@Override
 	public void stop() {
-		if (this.isRunning()) {
+		if (this.isRunning.compareAndSet(true, false)) {
 			this.context.stop();
 			this.context.destroy();
 			if (logger.isInfoEnabled()) {
-				logger.info("stopped mod: " + this.toString());
+				logger.info("stopped module: " + this.toString());
 			}
 		}
 	}
 
 	@Override
 	public boolean isRunning() {
-		return isRunning;
+		return isRunning.get();
 	}
-
-	public ApplicationContext getApplicationContext() {
-		return this.context;
-	}
-
-	@Override
-	public <T> T getComponent(Class<T> requiredType) {
-		return this.context.getBean(requiredType);
-	}
-
-	@Override
-	public <T> T getComponent(String componentName, Class<T> requiredType) {
-		if (this.context.containsBean(componentName)) {
-			return context.getBean(componentName, requiredType);
-		}
-		return null;
-	}
-
 }

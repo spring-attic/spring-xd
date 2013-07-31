@@ -65,8 +65,9 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 		CommandResult cr = executeCommand("stream create --definition \""+
 			streamdefinition+"\" --name "+streamname+
 				(deploy?"":" --deploy false"));
-		assertEquals("Created new stream '"+streamname+"'",cr.getResult());
+		// add the stream name to the streams list before assertion
 		streams.add(streamname);
+		assertEquals("Created new stream '"+streamname+"'",cr.getResult());
 	}
 
 }

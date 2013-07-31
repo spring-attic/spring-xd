@@ -15,17 +15,9 @@
  */
 package org.springframework.xd.shell.command;
 
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
-import org.springframework.shell.core.CommandResult;
-import org.springframework.xd.shell.util.Table;
-import org.springframework.xd.shell.util.TableRow;
 
 /**
  * Tests for named channels
@@ -53,24 +45,15 @@ public class NamedChannelTests extends AbstractStreamIntegrationTest {
 		String stream1 = "namedchanneltest-ticktock";
 		String stream2 = "namedchanneltest-ticktock-counter";
 		String httpPort = "9193";
-		
+
 		String counterName = "namedchanneltest-counter" + Math.random();
 		executeStreamCreate(stream1, "http --port=" + httpPort
 				+ " | transform --expression=payload.toUpperCase() > :foo");
 		// Create stream with named channel as source
 
 		executeStreamCreate(stream2, ":foo > counter --name=" + counterName);
-
-		CommandResult cr = getShell().executeCommand(
-				"http post --target \"http://localhost:" + httpPort
-						+ "\" --data test");
-		assertTrue("Failure.  CommandResult = " + cr.toString(), cr.isSuccess());
-		Table t = (Table) getShell().executeCommand("counter list").getResult();
-		assertTrue("Failure running named channel as source", t.getRows()
-				.contains(new TableRow().addValue(1, counterName)));
-		
-		// TODO: we should get the counter value and delete the counter
-
+		httpPostData("http://localhost:" + httpPort, "test");
+		checkIfCounterExists(counterName);
 	}
 
 }

@@ -11,6 +11,7 @@
 	<bean id="channelRegistry"
 		class="org.springframework.integration.x.channel.registry.LocalChannelRegistry">
 		<property name="convertWithinTransport" value="${xd.local.transport.conversion:false}"/>
+		<property name="channelType" value="org.springframework.integration.channel.QueueChannel" />
 	</bean>
 
 	<util:map id="transformers">

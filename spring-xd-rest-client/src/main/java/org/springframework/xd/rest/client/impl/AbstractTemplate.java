@@ -17,10 +17,14 @@
 package org.springframework.xd.rest.client.impl;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.xd.rest.client.util.RestTemplateMessageConverterUtil;
 
 /**
  * Base class for sub-parts of the API, allows sharing configured objects like the {@link RestTemplate}.
@@ -53,6 +57,9 @@ import org.springframework.web.client.RestTemplate;
 	 */
 	AbstractTemplate() {
 		restTemplate = new RestTemplate();
+		List<HttpMessageConverter<?>> converters = RestTemplateMessageConverterUtil
+				.installMessageConverters(new ArrayList<HttpMessageConverter<?>>());
+		restTemplate.setMessageConverters(converters);
 		restTemplate.setErrorHandler(new VndErrorResponseErrorHandler(restTemplate.getMessageConverters()));
 	}
 

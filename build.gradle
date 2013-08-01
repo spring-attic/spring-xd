@@ -615,6 +615,8 @@ sonarRunner {
 }
 
 task launch {
+	group = 'Application'
+	description = 'Launches the XD server for testing purposes'
 	dependsOn 'spring-xd-dirt:run'
 }
 
@@ -648,13 +650,9 @@ task copyXDShellInstall(type: Copy, dependsOn: [":spring-xd-shell:installApp"]) 
 	into "$buildDir/dist/spring-xd/shell"
 }
 
-task cleanDist(type: Delete) {
-	description = "cleans $rootDir/dist directory"
-	delete "$buildDir/dist"
-}
-
-task distXD (type: Copy, dependsOn: ["cleanDist", "copyRedisInstall", "copyGemfireInstall", "copyXDInstall", "copyHadoopLibs", "copyXDShellInstall"]) {
-	description = "Copy all the required installs"
+task copyInstall (type: Copy, dependsOn: ["copyRedisInstall", "copyGemfireInstall", "copyXDInstall", "copyHadoopLibs", "copyXDShellInstall"]) {
+	group = 'Application'
+	description = "Build and copy all the required installs to build/dist directory"
 	from "$rootDir/scripts/README"
 	from "$rootDir/scripts/LICENSE"
 	into "$buildDir/dist/spring-xd"
@@ -662,17 +660,6 @@ task distXD (type: Copy, dependsOn: ["cleanDist", "copyRedisInstall", "copyGemfi
 
 configurations {
 	dist
-}
-
-task zipXD (type: Zip, dependsOn: "distXD"){
-	description = "Bundles Spring XD into dist/"
-	from file("$buildDir/dist/spring-xd").absolutePath
-	into "spring-xd"
-	destinationDir file("$buildDir/dist")
-}
-
-artifacts {
-	dist zipXD
 }
 
 import org.ajoberstar.gradle.git.tasks.*
@@ -811,8 +798,7 @@ task api(type: Javadoc) {
 task docsZip(type: Zip) {
 	group = 'Distribution'
 	classifier = 'docs'
-	description = "Builds -${classifier} archive containing api and reference " +
-		"for deployment at static.springframework.org/spring-integration/docs."
+	description = "Builds -${classifier} archive containing api and reference docs."
 
 	from (api) {
 		into 'api'
@@ -829,22 +815,36 @@ task docsZip(type: Zip) {
 	}
 }
 
-task distZip(type: Zip, dependsOn: [asciidoctorHtml, distXD]) {
-	group = 'Distribution'
-	classifier = 'dist'
-	description = "Builds -${classifier} archive, containing all jars and docs, " +
-		"suitable for community download page."
+task distZip(type: Zip, dependsOn: [asciidoctorHtml, copyInstall], overwrite: true) {
+	group = 'Application'
+	classifier = ''
+	description = "Bundles the XD project and associated installs with libs and OS specific scripts as a zip file."
 
 	ext.baseDir = "${project.name}-${project.version}";
 
-	from('dist/spring-xd') {
+	from("$buildDir/dist/spring-xd") {
 		into "${baseDir}"
 	}
 
 	from ("$buildDir/html") {
-		into "${baseDir}/docs"
+		into "${baseDir}/reference"
+	}
+}
+
+task distTar(type: Tar, dependsOn: [asciidoctorHtml, copyInstall], overwrite: true) {
+	group = 'Application'
+	classifier = ''
+	description = "Bundles the XD project and associated installs with libs and OS specific scripts as a tar file."
+
+	ext.baseDir = "${project.name}-${project.version}";
+
+	from("$buildDir/dist/spring-xd") {
+		into "${baseDir}"
 	}
 
+	from ("$buildDir/html") {
+		into "${baseDir}/reference"
+	}
 }
 
 artifacts {
@@ -854,7 +854,7 @@ artifacts {
 
 task dist(dependsOn: assemble) {
 	group = 'Distribution'
-	description = 'Builds -dist, -docs and -schema distribution archives.'
+	description = 'Builds XD binary and reference docs distribution archives.'
 }
 
 task wrapper(type: Wrapper) {

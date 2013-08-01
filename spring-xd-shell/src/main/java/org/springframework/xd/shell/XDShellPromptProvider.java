@@ -22,6 +22,12 @@ import org.springframework.core.annotation.Order;
 import org.springframework.shell.plugin.PromptProvider;
 import org.springframework.stereotype.Component;
 
+/**
+ * A provider that sets the shell prompt to xd:>
+ * 
+ * @author Mark Pollack
+ *
+ */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class XDShellPromptProvider implements PromptProvider {
@@ -31,12 +37,16 @@ public class XDShellPromptProvider implements PromptProvider {
 
 	@Override
 	public String getProviderName() {
-		return "prompt";
+		return "xd-prompt";
 	}
 
 	@Override
 	public String getPrompt() {
-		return xdShell.getTarget() + ":>";
+		if (xdShell.getSpringXDOperations() == null) {
+			return "server-unknown:>";
+		} else {
+			return "xd:>";
+		}
 	}
 
 }

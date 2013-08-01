@@ -34,48 +34,53 @@ import org.springframework.xd.rest.client.impl.SpringXDTemplate;
 public class XDShell implements CommandMarker, InitializingBean {
 
 	private static final Log logger = LogFactory.getLog(XDShell.class);
-	
+
 	private String target;
 
 	private SpringXDOperations springXDOperations;
 
 	@Autowired
 	private CommandLine commandLine;
-	
+
 	private String host = "localhost";
-	
+
 	private String port = "8080";
-	
-	public XDShell() {		
+
+	public XDShell() {
 
 	}
-	
-	public String getTarget() {
-		return target;
-	}
 
-	@CliCommand(value = { "target" }, help = "Select the XD admin server to use")
+	@CliCommand(value = { "admin config server" }, help = "Configure the XD admin server to use")
 	public String target(
-			@CliOption(mandatory = false, key = { "", "uri" }, help = "the location of the XD Admin REST endpoint", unspecifiedDefaultValue = "http://localhost:8080/")
-			String target) {
-		
+			@CliOption(mandatory = false, key = { "", "uri" }, help = "the location of the XD Admin REST endpoint", unspecifiedDefaultValue = "http://localhost:8080/") String target) {
+
 		try {
-			springXDOperations = new SpringXDTemplate(URI.create(target));
 			this.target = target;
+			springXDOperations = new SpringXDTemplate(URI.create(target));
 			return String.format("Successfully targeted %s", target);
-		}
-		catch (Exception e) {
-			this.target = "unknown";
+		} catch (Exception e) {
 			springXDOperations = null;
-			logger.warn("Unable to contact XD Admin - " + e.getMessage());
-			return String.format("Unable to contact XD Admin at %s", target);			
+			return String.format("Unable to contact XD Admin at %s", target);
+		}
+	}
+
+	@CliCommand(value = { "admin config info" }, help = "Show the XD admin server being used")
+	public String info() {
+		try {
+			new SpringXDTemplate(URI.create(target));
+			return "Admin server location = " + target;
+		} catch (Exception e) {
+			logger.warn(
+					String.format("Unable to contact XD Admin at %s", target),
+					e);
+			return String.format("Unable to contact XD Admin at %s", target);
 		}
 	}
 
 	public SpringXDOperations getSpringXDOperations() {
 		return springXDOperations;
 	}
-	
+
 	private String getDefaultUri() {
 		if (commandLine.getArgs() != null) {
 			String[] args = commandLine.getArgs();

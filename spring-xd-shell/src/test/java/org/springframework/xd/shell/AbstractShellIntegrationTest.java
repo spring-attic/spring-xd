@@ -17,6 +17,7 @@
 package org.springframework.xd.shell;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 
@@ -53,7 +54,7 @@ public abstract class AbstractShellIntegrationTest {
 
 	@Rule
 	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
-	
+
 	private static final Log logger = LogFactory
 			.getLog(AbstractShellIntegrationTest.class);
 
@@ -83,7 +84,7 @@ public abstract class AbstractShellIntegrationTest {
 	public static JLineShellComponent getShell() {
 		return shell;
 	}
-	
+
 	public static StreamServer getStreamServer() {
 		return server;
 	}
@@ -96,26 +97,54 @@ public abstract class AbstractShellIntegrationTest {
 		assertTrue("Failure.  CommandResult = " + cr.toString(), cr.isSuccess());
 		return cr;
 	}
-	
+
 	/**
 	 * Post data to http target
-	 * @param target the http target
-	 * @param data the data to send
+	 * 
+	 * @param target
+	 *            the http target
+	 * @param data
+	 *            the data to send
 	 */
-	protected void httpPostData(String target, String data){
-		executeCommand("http post --target "+target+" --data "+data);
+	protected void httpPostData(String target, String data) {
+		executeCommand("http post --target " + target + " --data " + data);
 	}
-	
+
 	/**
-	 * Check if the counter exists 
-	 * This method is temporary to verify if the counter is created when it received message
-	 * @param counterName the counter name to check
+	 * Check if the counter exists This method is temporary to verify if the
+	 * counter is created when it received message
+	 * 
+	 * @param counterName
+	 *            the counter name to check
 	 */
 	protected void checkIfCounterExists(String counterName) {
 		Table t = (Table) getShell().executeCommand("counter list").getResult();
-		assertTrue("Failure. Counter doesn't exist", 
+		assertTrue("Failure. Counter doesn't exist",
 				t.getRows().contains(new TableRow().addValue(1, counterName)));
 
 		// TODO: we should get the counter value and delete the counter
+	}
+
+	/**
+	 * Check the counter value using "counter display" shell command
+	 * 
+	 * @param counterName
+	 * @param expectedCount
+	 */
+	protected void checkCounterValue(String counterName, String expectedCount) {
+		CommandResult cr = executeCommand("counter display --name "
+				+ counterName);
+		assertEquals(expectedCount, cr.getResult());
+	}
+
+	/**
+	 * Delete the counter with the given name
+	 * 
+	 * @param counterName
+	 */
+	protected void deleteCounter(String counterName) {
+		CommandResult cr = executeCommand("counter delete --name "
+				+ counterName);
+		assertEquals("Deleted counter '" + counterName + "'", cr.getResult());
 	}
 }

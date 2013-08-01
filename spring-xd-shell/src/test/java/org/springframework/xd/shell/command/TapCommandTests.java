@@ -17,6 +17,8 @@ package org.springframework.xd.shell.command;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.Random;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
@@ -42,13 +44,15 @@ public class TapCommandTests extends AbstractTapIntegrationTest {
 	public void testCreateAndDeployTap() {
 		logger.info("Create and deploy a tap");
 		String streamName = "taptestticktock";
-		String counterName = "taptest-counter" + Math.random();
+		String counterName = "taptest-counter" + new Random().nextInt();
 		String httpPort = "9193";
 		executeStreamCreate(streamName, "http --port=" + httpPort + " | log");
 		executeTapCreate("taptest-tap", "tap@ " + streamName
 				+ " | counter --name=" + counterName);
 		httpPostData("http://localhost:" + httpPort, "test");
 		checkIfCounterExists(counterName);
+		checkCounterValue(counterName, "1");
+		deleteCounter(counterName);
 	}
 
 	@Test

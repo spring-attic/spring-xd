@@ -76,7 +76,7 @@ set HADOOP_DISTRO=hadoop10
 if exist "%APP_HOME_LIB%" (
     setLocal EnableDelayedExpansion
     set found=0
-    for %%a in (%*) do (
+    for %%a in (%CMD_LINE_ARGS%) do (
         if !found!==1 set HADOOP_DISTRO=%%a
         if "%%a"=="--hadoopDistro" (
             set found=1

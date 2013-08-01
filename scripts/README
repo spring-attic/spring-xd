@@ -9,18 +9,26 @@ The Spring XD distribution has the following directory structure
 |   ├── docs
 │   ├── gemfire
 │   │   ├── bin
+│   │   ├── config
 │   │   └── lib
 │   ├── redis
 │   │   ├── bin
 │   │   └── dist
+│   ├── shell
+│   │   ├── bin
+│   │   ├── config
+│   │   └── lib
 │   └── xd
 │       ├── bin
+│       ├── config
 │       ├── lib
 │       └── modules
 │           ├── common
+│           ├── job
 │           ├── processor
 │           ├── sink
-│           └── source
+│           ├── source
+│           └── trigger
 
 
 
@@ -35,4 +43,7 @@ To run Spring-XD container:
 
 To run Spring-XD admin server:
 ./spring-xd/xd/bin/xd-admin[*.bat] [options] 
+
+To run Spring-XD shell:
+./spring-xd/shell/bin/spring-xd-shell[*.bat] [options] 
 

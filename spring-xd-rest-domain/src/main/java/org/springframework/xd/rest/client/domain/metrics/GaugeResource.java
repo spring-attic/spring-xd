@@ -16,16 +16,21 @@
 
 package org.springframework.xd.rest.client.domain.metrics;
 
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlRootElement;
+
 /**
  * The REST representation of a Gauge.
- *
+ * 
  * @author Luke Taylor
  */
+@XmlRootElement(name = "gauge")
 public class GaugeResource extends MetricResource {
-// TODO: This is identical to CounterResource. Perhaps we can have an "IntegralResource" instead.
+	// TODO: This is identical to CounterResource. Perhaps we can have an "IntegralResource" instead.
 	/**
 	 * The value for the gauge.
 	 */
+	@XmlAttribute(name = "value")
 	private long value;
 
 	/**

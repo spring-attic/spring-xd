@@ -16,6 +16,7 @@
 
 package org.springframework.xd.rest.client.domain.metrics;
 
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.springframework.hateoas.PagedResources;
@@ -26,12 +27,13 @@ import org.springframework.hateoas.ResourceSupport;
  * 
  * @author Eric Bottard
  */
-@XmlRootElement
+@XmlRootElement(name = "metric")
 public class MetricResource extends ResourceSupport {
 
 	/**
 	 * The name of the represented metric.
 	 */
+	@XmlAttribute(name = "name")
 	private String name;
 
 	/**
@@ -60,6 +62,7 @@ public class MetricResource extends ResourceSupport {
 	 * 
 	 * @author Eric Bottard
 	 */
+	@XmlRootElement(name = "metrics")
 	public static class Page extends PagedResources<MetricResource> {
 
 	}

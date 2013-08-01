@@ -18,6 +18,7 @@ package org.springframework.xd.rest.client.domain.metrics;
 
 import java.util.Map;
 
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -27,10 +28,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * 
  * @author Eric Bottard
  */
-@XmlRootElement
+@XmlRootElement(name = "field-value-counter")
 public class FieldValueCounterResource extends MetricResource {
 
 	@JsonProperty("counts")
+	@XmlElement(name = "counts")
 	private Map<String, Double> fieldValueCounts;
 
 	/**

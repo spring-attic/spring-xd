@@ -16,18 +16,29 @@
 
 package org.springframework.xd.rest.client.domain.metrics;
 
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlRootElement;
+
 /**
  * The REST representation of a RichGauge.
- *
+ * 
  * @author Luke Taylor
  */
+@XmlRootElement(name = "rich-gauge")
 public class RichGaugeResource extends MetricResource {
 	/**
 	 * The value for the gauge.
 	 */
+	@XmlAttribute(name = "value")
 	private double value;
+
+	@XmlAttribute(name = "average")
 	private double average;
+
+	@XmlAttribute(name = "max")
 	private double max;
+
+	@XmlAttribute(name = "min")
 	private double min;
 
 	/**
@@ -52,8 +63,8 @@ public class RichGaugeResource extends MetricResource {
 	}
 
 	/**
-	 * Return the average value for the gauge. This will be the arithmetic
-	 * mean unless an 'alpha' value has been set for the gauge.
+	 * Return the average value for the gauge. This will be the arithmetic mean unless an 'alpha' value has been set for
+	 * the gauge.
 	 */
 	public double getAverage() {
 		return average;

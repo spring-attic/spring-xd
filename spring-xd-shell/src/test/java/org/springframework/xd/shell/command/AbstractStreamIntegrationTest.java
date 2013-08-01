@@ -15,9 +15,6 @@
  */
 package org.springframework.xd.shell.command;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,31 +22,46 @@ import org.junit.After;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.xd.shell.AbstractShellIntegrationTest;
 
+import static org.junit.Assert.*;
+
 /**
- * Provides an @After JUnit lifecycle method that will destroy the streams that were 
- * created by calling executeStreamCreate
+ * Provides an @After JUnit lifecycle method that will destroy the definitions that were created by calling
+ * executeXXXCreate methods.
  * 
  * @author Andy Clement
  * @author Mark Pollack
- *
+ * 
  */
 public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegrationTest {
 
-	
 	private List<String> streams = new ArrayList<String>();
-	
+
+	private List<String> taps = new ArrayList<String>();
+
 	@After
 	public void after() {
 		executeStreamDestroy(streams.toArray(new String[streams.size()]));
+		executeTapDestroy(taps.toArray(new String[taps.size()]));
 	}
 
 	/**
-	 * Execute 'stream destroy' for the supplied stream names
+	 * Execute 'tap destroy' for the supplied tap names.
+	 */
+	private void executeTapDestroy(String[] tapnames) {
+		for (String tapname : tapnames) {
+			CommandResult cr = executeCommand("tap destroy --name " + tapname);
+			assertTrue("Failure to destory tap " + tapname + ".  CommandResult = " + cr.toString(), cr.isSuccess());
+		}
+	}
+
+	/**
+	 * Execute 'stream destroy' for the supplied stream names.
 	 */
 	private void executeStreamDestroy(String... streamnames) {
-		for (String streamname: streamnames) {
-			CommandResult cr = executeCommand("stream destroy --name "+streamname);
-			assertTrue("Failure to destory stream " + streamname + ".  CommandResult = " + cr.toString(), cr.isSuccess());
+		for (String streamname : streamnames) {
+			CommandResult cr = executeCommand("stream destroy --name " + streamname);
+			assertTrue("Failure to destory stream " + streamname + ".  CommandResult = " + cr.toString(),
+					cr.isSuccess());
 		}
 	}
 
@@ -57,16 +69,28 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 		executeStreamCreate(streamname, streamdefinition, true);
 	}
 
+	protected void executeTapCreate(String tapname, String tapdefinition) {
+		executeTapCreate(tapname, tapdefinition, true);
+	}
+
 	/**
-	 * Execute stream create for the supplied stream name/definition, and verify
-	 * the command result.
+	 * Execute stream create for the supplied stream name/definition, and verify the command result.
 	 */
 	protected void executeStreamCreate(String streamname, String streamdefinition, boolean deploy) {
-		CommandResult cr = executeCommand("stream create --definition \""+
-			streamdefinition+"\" --name "+streamname+
-				(deploy?"":" --deploy false"));
-		assertEquals("Created new stream '"+streamname+"'",cr.getResult());
+		CommandResult cr = executeCommand("stream create --definition \"" + streamdefinition + "\" --name "
+				+ streamname + (deploy ? "" : " --deploy false"));
+		assertEquals("Created new stream '" + streamname + "'", cr.getResult());
 		streams.add(streamname);
+	}
+
+	/**
+	 * Execute tap create for the supplied tap name/definition, and verify the command result.
+	 */
+	protected void executeTapCreate(String tapname, String tapdefinition, boolean deploy) {
+		CommandResult cr = executeCommand("tap create --definition \"" + tapdefinition + "\" --name " + tapname
+				+ (deploy ? "" : " --deploy false"));
+		assertEquals("Created new tap '" + tapname + "'", cr.getResult());
+		taps.add(tapname);
 	}
 
 }

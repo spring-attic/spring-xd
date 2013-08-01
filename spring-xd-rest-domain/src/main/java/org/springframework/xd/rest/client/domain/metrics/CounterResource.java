@@ -16,6 +16,7 @@
 
 package org.springframework.xd.rest.client.domain.metrics;
 
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -29,6 +30,7 @@ public class CounterResource extends MetricResource {
 	/**
 	 * The value for the counter.
 	 */
+	@XmlAttribute
 	private long value;
 
 	/**

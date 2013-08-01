@@ -20,6 +20,7 @@ import java.util.Date;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -29,9 +30,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * 
  * @author Eric Bottard
  */
-@XmlRootElement
+@XmlRootElement(name = "aggregate-counts")
 public class AggregateCountsResource extends MetricResource {
 
+	@JsonProperty("counts")
+	@XmlElement(name = "counts")
 	private SortedMap<Date, Long> values = new TreeMap<Date, Long>();
 
 	/**
@@ -54,7 +57,6 @@ public class AggregateCountsResource extends MetricResource {
 	/**
 	 * Returns a date-sorted view of counts.
 	 */
-	@JsonProperty("counts")
 	public SortedMap<Date, Long> getValues() {
 		return values;
 	}

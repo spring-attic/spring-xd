@@ -1,4 +1,3 @@
-
 package org.springframework.xd.analytics.metrics.integration;
 
 import org.springframework.integration.Message;
@@ -21,10 +20,14 @@ public class MessageCounterHandler {
 		Assert.notNull(counterName, "Counter Name can not be null");
 		this.counterRepository = counterRepository;
 		this.counterName = counterName;
+
+		System.out.println("************" + counterName);
 	}
 
 	@ServiceActivator
 	public Message<?> process(Message<?> message) {
+		System.out.format("Received for %s, m = %s", counterName, message);
+
 		if (message != null) {
 			this.counterRepository.increment(counterName);
 		}

@@ -97,7 +97,7 @@ public class LocalChannelRegistry extends ChannelRegistrySupport implements Appl
 	public void inbound(String name, MessageChannel moduleInputChannel, Collection<MediaType> acceptedMediaTypes) {
 		Assert.hasText(name, "a valid name is required to register an inbound channel");
 		Assert.notNull(moduleInputChannel, "channel must not be null");
-		AbstractMessageChannel registeredChannel = lookupOrCreateSharedChannel(name, DirectChannel.class);
+		AbstractMessageChannel registeredChannel = lookupOrCreateSharedChannel(name, channelType);
 		bridge(registeredChannel, moduleInputChannel, registeredChannel.getComponentName() + ".in.bridge",
 				acceptedMediaTypes);
 		createSharedTapChannelIfNecessary(registeredChannel);
@@ -113,7 +113,7 @@ public class LocalChannelRegistry extends ChannelRegistrySupport implements Appl
 		Assert.notNull(moduleOutputChannel, "channel must not be null");
 		// Assert.isTrue(moduleOutputChannel instanceof SubscribableChannel,
 		// "channel must be of type " + SubscribableChannel.class.getName());
-		AbstractMessageChannel registeredChannel = lookupOrCreateSharedChannel(name, DirectChannel.class);
+		AbstractMessageChannel registeredChannel = lookupOrCreateSharedChannel(name, channelType);
 		bridge(moduleOutputChannel, registeredChannel, registeredChannel.getComponentName() + ".out.bridge");
 	}
 
@@ -145,7 +145,8 @@ public class LocalChannelRegistry extends ChannelRegistrySupport implements Appl
 			while (iterator.hasNext()) {
 				BridgeMetadata bridge = iterator.next();
 				if (bridge.handler.getComponentName().startsWith(name) || name.equals(bridge.tapModule)) {
-					bridge.channel.unsubscribe(bridge.handler);
+					// TODO: Don't know what to do here.
+					// bridge.channel.unsubscribe(bridge.handler);
 					iterator.remove();
 				}
 			}
@@ -250,7 +251,6 @@ public class LocalChannelRegistry extends ChannelRegistrySupport implements Appl
 		handler.setOutputChannel(to);
 		handler.setBeanName(bridgeName);
 		handler.afterPropertiesSet();
-		// from.subscribe(handler);
 		if (!(to instanceof NullChannel)) {
 			this.bridges.add(new BridgeMetadata(handler, from, tapModule));
 		}
@@ -259,7 +259,14 @@ public class LocalChannelRegistry extends ChannelRegistrySupport implements Appl
 		ConsumerEndpointFactoryBean cefb = new ConsumerEndpointFactoryBean();
 		cefb.setInputChannel(from);
 		cefb.setHandler(handler);
-		// cefb.setInputChannelName(??);
+		cefb.setBeanFactory(applicationContext.getBeanFactory());
+		try {
+			cefb.afterPropertiesSet();
+		}
+		catch (Exception e) {
+			throw new IllegalStateException(e);
+		}
+		cefb.start();
 		return handler;
 	}
 

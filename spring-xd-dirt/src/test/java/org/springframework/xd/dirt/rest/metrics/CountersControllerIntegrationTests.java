@@ -70,4 +70,10 @@ public class CountersControllerIntegrationTests extends AbstractControllerIntegr
 		mockMvc.perform(get("/metrics/counters")).andExpect(status().isOk())//
 		.andExpect(jsonPath("$.content", Matchers.hasSize(10)));
 	}
+	
+	@Test
+	public void testCounterDeletion() throws Exception {
+		mockMvc.perform(delete("/metrics/counters/{name}", "deleteme")).andExpect(status().isOk());
+		verify(counterRepository).delete("deleteme");
+	}
 }

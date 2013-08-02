@@ -119,8 +119,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		logger.info("Create ticktock stream");
 		executeStreamCreate("ticktock-in", "http --port=9314 > :foox", true);
 		executeStreamCreate("ticktock-out", ":foo > log", true);
-
-		executeCommand("http post --data blahblah --target http://localhost:9314");
+		httpPostData("http://localhost:9314", "blahblah");
 	}
 
 	@Test
@@ -128,7 +127,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		executeStreamCreate("ticktock-in", "http --port=9314 > :foo", true);
 		executeStreamCreate("ticktock-out",
 				":foo > transform --expression=payload.toUpperCase() | log", true);
-		executeCommand("http post --data blahblah --target http://localhost:9314");
+		httpPostData("http://localhost:9314", "blahblah");
 	}
 
 	@Test
@@ -140,15 +139,14 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	public void testUsingSubstream() {
 		executeStreamCreate("s1","transform --expression=payload.replace('Andy','zzz')",false);
 		executeStreamCreate("s2","http --port=9314 | s1 | log",true);
-
-		executeCommand("http post --data fooAndyfoo --target http://localhost:9314");
+		httpPostData("http://localhost:9314", "fooAndyfoo");
 	}
 
 	@Test
 	public void testUsingSubstreamWithParameterizationAndDefaultValue() {
 		executeStreamCreate("obfuscate","transform --expression=payload.replace('${text:rys}','.')",false);
 		executeStreamCreate("s2","http --port=9314 | obfuscate | log",true);
-		executeCommand("http post --data Dracarys! --target http://localhost:9314");
+		httpPostData("http://localhost:9314", "Dracarys!");
 		// TODO verify the output of the 'log' sink is 'Draca.!'
 	}
 
@@ -156,7 +154,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	public void testUsingSubstreamWithParameterization() {
 		executeStreamCreate("obfuscate","transform --expression=payload.replace('${text}','.')",false);
 		executeStreamCreate("s2","http --port=9314 | obfuscate --text=aca | log",true);
-		executeCommand("http post --data Dracarys! --target http://localhost:9314");
+		httpPostData("http://localhost:9314", "Dracarys!");
 		// TODO verify the output of the 'log' sink is 'Dr.rys!'
 	}
 
@@ -165,7 +163,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		executeStreamCreate("swap","transform --expression=payload.replaceAll('${from}','${to}')",false);
 		executeStreamCreate("abyz","swap --from=a --to=z | swap --from=b --to=y",false);
 		executeStreamCreate("foo","http --port=9314 | abyz | log",true);
-		executeCommand("http post --data aabbccxxyyzz --target http://localhost:9314");
+		httpPostData("http://localhost:9314", "aabbccxxyyzz");
 		// TODO verify log outputs zzyyccxxbbaa
 	}
 
@@ -177,8 +175,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		// These variants of the above (which does work) don't appear to work although they do refer to the same source channel:
 		executeStreamCreate("wiretap","tap myhttp.transform > transform --expression=payload.replaceAll('a','.') | log",true);
 		executeStreamCreate("wiretap","tap myhttp.flibble > transform --expression=payload.replaceAll('a','.') | log",true);
-
-		executeCommand("http post --data Dracarys! --target http://localhost:9314");
+		httpPostData("http://localhost:9314", "Dracarys!");
 		// TODO verify both logs output DRACARYS!
 	}
 

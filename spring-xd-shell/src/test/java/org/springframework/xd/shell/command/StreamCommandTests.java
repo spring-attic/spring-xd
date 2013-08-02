@@ -15,7 +15,6 @@
  */
 package org.springframework.xd.shell.command;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import org.apache.commons.logging.Log;
@@ -23,11 +22,10 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.shell.core.CommandResult;
-import org.springframework.xd.shell.util.Table;
 
 /**
  * Test stream commands
- * 
+ *
  * @author Mark Pollack
  * @author Kashyap Parikh
  * @author Andy Clement
@@ -40,32 +38,20 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	@Test
 	public void testStreamLifecycleForTickTock() throws InterruptedException {
 		logger.info("Starting Stream Test for TickTock");
-		executeStreamCreate("ticktock", "time | log");
-
-		CommandResult cr = getShell().executeCommand("stream list");
-		assertTrue("Failure.  CommandResult = " + cr.toString(), cr.isSuccess());
-
-		Table t = (Table) cr.getResult();
-		assertEquals("ticktock", t.getRows().get(0).getValue(1));
-		assertEquals("time | log", t.getRows().get(0).getValue(2));
-
-		cr = getShell().executeCommand("stream undeploy --name ticktock");
-		assertTrue(cr.isSuccess());
-		assertEquals("Un-deployed stream 'ticktock'", cr.getResult());
-
+		String streamName = "ticktock";
+		executeStreamCreate(streamName, "time | log");
+		executeStreamUndeploy(streamName);
 	}
 
 	@Test
 	public void testStreamCreateDuplicate() throws InterruptedException {
 		logger.info("Create tictock stream");
-		executeStreamCreate("ticktock", "time | log");
-
-		Table t = (Table) getShell().executeCommand("stream list").getResult();
-		assertEquals("ticktock", t.getRows().get(0).getValue(1));
-		assertEquals("time | log", t.getRows().get(0).getValue(2));
+		String streamName = "ticktock";
+		String streamDefinition = "time | log";
+		executeStreamCreate(streamName, streamDefinition);
 
 		CommandResult cr = getShell().executeCommand(
-				"stream create --definition \"time | log\" --name ticktock");
+				"stream create --definition \""+streamDefinition+"\" --name ticktock");
 		assertTrue("Failure.  CommandResult = " + cr.toString(),
 				!cr.isSuccess());
 		assertTrue(
@@ -92,14 +78,12 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	@Test
 	public void testStreamCreateDuplicateWithDeployFalse() {
 		logger.info("Create 2 tictok streams with --deploy = false");
-		executeStreamCreate("ticktock", "time | log", false);
-
-		Table t = (Table) getShell().executeCommand("stream list").getResult();
-		assertEquals("ticktock", t.getRows().get(0).getValue(1));
-		assertEquals("time | log", t.getRows().get(0).getValue(2));
+		String streamName = "ticktock";
+		String streamDefinition = "time | log";
+		executeStreamCreate(streamName, streamDefinition, false);
 
 		CommandResult cr = getShell().executeCommand(
-						"stream create --definition \"time | log\" --name ticktock --deploy false");
+						"stream create --definition \""+streamDefinition+"\" --name "+streamName+" --deploy false");
 		assertTrue("Failure.  CommandResult = " + cr.toString(),
 				!cr.isSuccess());
 		assertTrue(
@@ -107,41 +91,24 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 				cr.getException().getMessage()
 						.contains("There is already a stream named 'ticktock'"));
 
-		t = (Table) getShell().executeCommand("stream list").getResult();
-		assertEquals("ticktock", t.getRows().get(0).getValue(1));
-		assertEquals("time | log", t.getRows().get(0).getValue(2));
+		verifyStreamExists(streamName, streamDefinition);
 	}
 
 	@Test
 	public void testStreamDeployUndeployFlow() {
 		logger.info("Create tictok stream");
-		executeStreamCreate("ticktock", "time | log", false);
+		String streamName = "ticktock";
+		String streamDefinition = "time | log";
+		executeStreamCreate(streamName, streamDefinition, false);
 
-		Table t = (Table) getShell().executeCommand("stream list").getResult();
-		assertEquals("ticktock", t.getRows().get(0).getValue(1));
-		assertEquals("time | log", t.getRows().get(0).getValue(2));
+		executeStreamDeploy(streamName);
+		verifyStreamExists(streamName, streamDefinition);
 
-		CommandResult cr = getShell().executeCommand("stream deploy --name ticktock");
-		assertTrue("Failure.  CommandResult = " + cr.toString(), cr.isSuccess());
-		assertEquals("Deployed stream 'ticktock'", cr.getResult());
+		executeStreamUndeploy(streamName);
+		verifyStreamExists(streamName, streamDefinition);
 
-		t = (Table) getShell().executeCommand("stream list").getResult();
-		assertEquals("ticktock", t.getRows().get(0).getValue(1));
-		assertEquals("time | log", t.getRows().get(0).getValue(2));
-
-		cr = getShell().executeCommand("stream undeploy --name ticktock");
-		assertTrue(cr.isSuccess());
-		assertEquals("Un-deployed stream 'ticktock'", cr.getResult());
-		assertEquals("ticktock", t.getRows().get(0).getValue(1));
-		assertEquals("time | log", t.getRows().get(0).getValue(2));
-
-		cr = getShell().executeCommand("stream deploy --name ticktock");
-		assertTrue("Failure.  CommandResult = " + cr.toString(), cr.isSuccess());
-		assertEquals("Deployed stream 'ticktock'", cr.getResult());
-
-		t = (Table) getShell().executeCommand("stream list").getResult();
-		assertEquals("ticktock", t.getRows().get(0).getValue(1));
-		assertEquals("time | log", t.getRows().get(0).getValue(2));
+		executeStreamDeploy(streamName);
+		verifyStreamExists(streamName, streamDefinition);
 
 	}
 
@@ -152,10 +119,10 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		logger.info("Create ticktock stream");
 		executeStreamCreate("ticktock-in", "http --port=9314 > :foox", true);
 		executeStreamCreate("ticktock-out", ":foo > log", true);
-		
+
 		executeCommand("http post --data blahblah --target http://localhost:9314");
 	}
-	
+
 	@Test
 	public void testNamedChannelsLinkingSourceAndSink() {
 		executeStreamCreate("ticktock-in", "http --port=9314 > :foo", true);
@@ -163,20 +130,20 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 				":foo > transform --expression=payload.toUpperCase() | log", true);
 		executeCommand("http post --data blahblah --target http://localhost:9314");
 	}
-	
+
 	@Test
 	public void testDefiningSubstream() {
 		executeStreamCreate("s1","transform --expression=payload.replace('Andy','zzz')",false);
 	}
-	
+
 	@Test
 	public void testUsingSubstream() {
 		executeStreamCreate("s1","transform --expression=payload.replace('Andy','zzz')",false);
 		executeStreamCreate("s2","http --port=9314 | s1 | log",true);
-		
+
 		executeCommand("http post --data fooAndyfoo --target http://localhost:9314");
 	}
-	
+
 	@Test
 	public void testUsingSubstreamWithParameterizationAndDefaultValue() {
 		executeStreamCreate("obfuscate","transform --expression=payload.replace('${text:rys}','.')",false);
@@ -184,7 +151,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		executeCommand("http post --data Dracarys! --target http://localhost:9314");
 		// TODO verify the output of the 'log' sink is 'Draca.!'
 	}
-	
+
 	@Test
 	public void testUsingSubstreamWithParameterization() {
 		executeStreamCreate("obfuscate","transform --expression=payload.replace('${text}','.')",false);
@@ -201,7 +168,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		executeCommand("http post --data aabbccxxyyzz --target http://localhost:9314");
 		// TODO verify log outputs zzyyccxxbbaa
 	}
-	
+
 	@Ignore
 	@Test
 	public void testUsingLabels() {
@@ -210,7 +177,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		// These variants of the above (which does work) don't appear to work although they do refer to the same source channel:
 		executeStreamCreate("wiretap","tap myhttp.transform > transform --expression=payload.replaceAll('a','.') | log",true);
 		executeStreamCreate("wiretap","tap myhttp.flibble > transform --expression=payload.replaceAll('a','.') | log",true);
-		
+
 		executeCommand("http post --data Dracarys! --target http://localhost:9314");
 		// TODO verify both logs output DRACARYS!
 	}

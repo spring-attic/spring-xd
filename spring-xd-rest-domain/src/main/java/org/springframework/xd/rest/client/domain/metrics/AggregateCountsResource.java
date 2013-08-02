@@ -34,7 +34,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class AggregateCountsResource extends MetricResource {
 
 	@JsonProperty("counts")
-	@XmlElement(name = "counts")
+	@XmlElement(name = "counts", type = TreeMap.class)
 	private SortedMap<Date, Long> values = new TreeMap<Date, Long>();
 
 	/**

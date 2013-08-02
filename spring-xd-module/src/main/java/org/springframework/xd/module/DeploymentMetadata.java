@@ -6,8 +6,7 @@ import java.util.Map;
 import org.springframework.util.Assert;
 
 /**
- * Represents information about a particular module deployment.
- * Extensible using {@link #addAttribute(String, Object)}.
+ * Represents information about a particular module deployment. Extensible using {@link #addAttribute(String, Object)}.
  * @author Luke Taylor
  * @author Gary Russell
  */
@@ -15,7 +14,7 @@ public class DeploymentMetadata {
 
 	private final String group;
 
-	private final int    index;
+	private final int index;
 
 	private final String sourceChannelName;
 
@@ -43,12 +42,26 @@ public class DeploymentMetadata {
 		return index;
 	}
 
+	/**
+	 * Return whether the source end is using an aliased name.
+	 */
+	public boolean isAliasedInput() {
+		return sourceChannelName != null;
+	}
+
 	public String getInputChannelName() {
-		return sourceChannelName == null ? group + "." + (index - 1) : sourceChannelName;
+		return isAliasedInput() ? sourceChannelName : group + "." + (index - 1);
+	}
+
+	/**
+	 * Return whether the output end is using an aliased name.
+	 */
+	public boolean isAliasedOutput() {
+		return sinkChannelName != null;
 	}
 
 	public String getOutputChannelName() {
-		return sinkChannelName == null ? group + "." + index : sinkChannelName;
+		return isAliasedOutput() ? sinkChannelName : group + "." + index;
 	}
 
 	public synchronized void addAttribute(String key, Object value) {

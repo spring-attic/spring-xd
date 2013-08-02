@@ -15,6 +15,8 @@
  */
 package org.springframework.xd.shell.command;
 
+import java.util.Random;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
@@ -46,7 +48,7 @@ public class NamedChannelTests extends AbstractStreamIntegrationTest {
 		String stream2 = "namedchanneltest-ticktock-counter";
 		String httpPort = "9193";
 
-		String counterName = "namedchanneltest-counter" + Math.random();
+		String counterName = "namedchanneltest-counter" + new Random().nextInt();
 		executeStreamCreate(stream1, "http --port=" + httpPort
 				+ " | transform --expression=payload.toUpperCase() > :foo");
 		// Create stream with named channel as source
@@ -54,6 +56,8 @@ public class NamedChannelTests extends AbstractStreamIntegrationTest {
 		executeStreamCreate(stream2, ":foo > counter --name=" + counterName);
 		httpPostData("http://localhost:" + httpPort, "test");
 		checkIfCounterExists(counterName);
+		checkCounterValue(counterName, "1");
+		deleteCounter(counterName);
 	}
 
 }

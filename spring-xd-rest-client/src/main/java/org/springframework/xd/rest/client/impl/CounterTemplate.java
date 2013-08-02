@@ -43,5 +43,11 @@ public class CounterTemplate extends AbstractTemplate implements CounterOperatio
 		String url = resources.get("counters").toString() + "?size=10000";
 		return restTemplate.getForObject(url, MetricResource.Page.class);
 	}
+	
+	@Override
+	public void delete(String name){
+		String url = resources.get("counters").toString() + "/{name}";
+		restTemplate.delete(url, name);
+	}
 
 }

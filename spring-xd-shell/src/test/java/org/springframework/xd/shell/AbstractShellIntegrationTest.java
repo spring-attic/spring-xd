@@ -17,6 +17,7 @@
 package org.springframework.xd.shell;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 
@@ -115,7 +116,28 @@ public abstract class AbstractShellIntegrationTest {
 		Table t = (Table) getShell().executeCommand("counter list").getResult();
 		assertTrue("Failure. Counter doesn't exist", 
 				t.getRows().contains(new TableRow().addValue(1, counterName)));
+	}
+	
+	/**
+	 * Check the counter value using "counter display" shell command
+	 * 
+	 * @param counterName
+	 * @param expectedCount
+	 */
+	protected void checkCounterValue(String counterName, String expectedCount) {
+		CommandResult cr = executeCommand("counter display --name "
+				+ counterName);
+		assertEquals(expectedCount, cr.getResult());
+	}
 
-		// TODO: we should get the counter value and delete the counter
+	/**
+	 * Delete the counter with the given name
+	 * 
+	 * @param counterName
+	 */
+	protected void deleteCounter(String counterName) {
+		CommandResult cr = executeCommand("counter delete --name "
+				+ counterName);
+		assertEquals("Deleted counter '" + counterName + "'", cr.getResult());
 	}
 }

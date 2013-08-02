@@ -11,7 +11,7 @@
 
 	<import resource="../common/gemfire-client.xml"/>
 
-	<int:transformer input-channel="input" output-channel="to.gemfire">
+	<int:transformer input-channel="input" output-channel="to.gemfire" method="toObject">
 		<bean class="org.springframework.integration.x.gemfire.JsonStringToObjectTransformer"/>
 	</int:transformer>
 

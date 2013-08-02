@@ -25,8 +25,7 @@ import java.util.TreeSet;
 
 import org.joda.time.DateTime;
 import org.junit.Test;
-
-import org.springframework.integration.x.json.TypedJsonMapper;
+import org.springframework.xd.tuple.DefaultTuple;
 import org.springframework.xd.tuple.Tuple;
 import org.springframework.xd.tuple.TupleBuilder;
 
@@ -98,11 +97,11 @@ public class TypedJsonMapperTests {
 
 	@Test
 	public void testMapSerialization() {
-		Map<String,String> map = new HashMap<String,String>();
-		map.put("foo","bar");
+		Map<String, String> map = new HashMap<String, String>();
+		map.put("foo", "bar");
 		byte[] bytes = mapper.toBytes(map);
-		Map<?,?> obj = (Map<?,?>)mapper.fromBytes(bytes);
-		assertEquals("bar",obj.get("foo"));
+		Map<?, ?> obj = (Map<?, ?>) mapper.fromBytes(bytes);
+		assertEquals("bar", obj.get("foo"));
 	}
 
 	@Test
@@ -110,8 +109,8 @@ public class TypedJsonMapperTests {
 		List<String> list = new LinkedList<String>();
 		list.add("foo");
 		byte[] bytes = mapper.toBytes(list);
-		List<?> obj = (List<?>)mapper.fromBytes(bytes);
-		assertEquals("foo",obj.get(0));
+		List<?> obj = (List<?>) mapper.fromBytes(bytes);
+		assertEquals("foo", obj.get(0));
 	}
 
 	@Test
@@ -119,8 +118,8 @@ public class TypedJsonMapperTests {
 		Set<String> set = new TreeSet<String>();
 		set.add("foo");
 		byte[] bytes = mapper.toBytes(set);
-		Set<?> obj = (Set<?>)mapper.fromBytes(bytes);
-		assertEquals("foo",obj.iterator().next());
+		Set<?> obj = (Set<?>) mapper.fromBytes(bytes);
+		assertEquals("foo", obj.iterator().next());
 	}
 
 	@Test
@@ -132,6 +131,38 @@ public class TypedJsonMapperTests {
 		assertEquals("bar", obj.getString("foo"));
 	}
 
+	@Test
+	public void testConvertSerializedStringToRequestedType() {
+		String json = "{\"symbol\":\"VMW\",\"price\":73}";
+		byte[] bytes = mapper.toBytes(json);
+		Object obj = mapper.fromBytes(bytes, DefaultTuple.class.getName());
+		assertTrue(obj instanceof Tuple);
+		Tuple t = (Tuple) obj;
+		assertEquals("VMW", t.getValue("symbol"));
+		assertEquals(73, t.getInt("price"));
+	}
+
+	@Test
+	public void testConvertSerializedObjectToRequestedType() {
+		Foo foo = new Foo("hello");
+		byte[] bytes = mapper.toBytes(foo);
+		Object obj = mapper.fromBytes(bytes, DefaultTuple.class.getName());
+		assertTrue(obj instanceof Tuple);
+		Tuple t = (Tuple) obj;
+		assertEquals("hello", t.getValue("bar"));
+	}
+
+	@Test
+	public void testConvertRawStringToRequestedType() {
+		String json = "{\"symbol\":\"VMW\",\"price\":73}";
+		byte[] bytes = json.getBytes();
+		Object obj = mapper.fromBytes(bytes, DefaultTuple.class.getName());
+		assertTrue(obj instanceof Tuple);
+		Tuple t = (Tuple) obj;
+		assertEquals("VMW", t.getValue("symbol"));
+		assertEquals(73, t.getInt("price"));
+	}
+
 	public static class Foo {
 		@JsonCreator
 		public Foo(@JsonProperty("bar") String val) {
@@ -140,5 +171,4 @@ public class TypedJsonMapperTests {
 
 		public String bar;
 	}
-
 }

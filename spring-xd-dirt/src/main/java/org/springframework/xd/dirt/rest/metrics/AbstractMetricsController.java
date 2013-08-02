@@ -25,7 +25,11 @@ import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.data.web.PagedResourcesAssemblerArgumentResolver;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.ResourceAssembler;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.analytics.metrics.core.Metric;
 import org.springframework.xd.analytics.metrics.core.MetricRepository;
 import org.springframework.xd.rest.client.domain.metrics.MetricResource;
@@ -59,15 +63,16 @@ abstract class AbstractMetricsController<R extends MetricRepository<M>, M extend
 		Page<M> page = new PageImpl<M>((List<M>) metrics);
 		return pagedAssembler.toResource(page, shallowResourceAssembler);
 	}
-
-	// helper code for reset, etc. can go here
 	
 	/**
-	 * Deletes the metric with the given name from the repository
-	 * @param name the name of the metric to delete
+	 * Deletes the metric from the repository
+     * @param name the name of the metric to delete
 	 */
-	protected void delete(String name){
+	@RequestMapping(value = "/{name}", method = RequestMethod.DELETE)
+	@ResponseStatus(HttpStatus.OK)
+	protected void delete(@PathVariable("name") String name) {
 		repository.delete(name);
 	}
 
+	// helper code for reset, etc. can go here
 }

@@ -21,6 +21,8 @@ import java.util.List;
 import org.junit.After;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.xd.shell.AbstractShellIntegrationTest;
+import org.springframework.xd.shell.util.Table;
+import org.springframework.xd.shell.util.TableRow;
 
 import static org.junit.Assert.*;
 
@@ -81,6 +83,19 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 				+ streamname + (deploy ? "" : " --deploy false"));
 		assertEquals("Created new stream '" + streamname + "'", cr.getResult());
 		streams.add(streamname);
+		verifyStreamExists(streamname, streamdefinition);
+	}
+	
+	protected void executeStreamDeploy(String streamname) {
+		CommandResult cr = getShell().executeCommand("stream deploy --name "+streamname);
+		assertTrue("Failure.  CommandResult = " + cr.toString(), cr.isSuccess());
+		assertEquals("Deployed stream 'ticktock'", cr.getResult());
+	}
+	
+	protected void executeStreamUndeploy(String streamname) {
+		CommandResult cr = getShell().executeCommand("stream undeploy --name ticktock");
+		assertTrue(cr.isSuccess());
+		assertEquals("Un-deployed stream 'ticktock'", cr.getResult());
 	}
 
 	/**
@@ -91,6 +106,18 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 				+ (deploy ? "" : " --deploy false"));
 		assertEquals("Created new tap '" + tapname + "'", cr.getResult());
 		taps.add(tapname);
+	}
+	
+	/**
+	 * Verify the stream is listed in stream list
+	 * @param streamName the name of the stream
+	 * @param definition definition of the stream
+	 */
+	protected void verifyStreamExists(String streamName, String definition){
+		CommandResult cr = getShell().executeCommand("stream list");
+		assertTrue("Failure.  CommandResult = " + cr.toString(), cr.isSuccess());
+		Table t = (Table) cr.getResult();
+		assertTrue(t.getRows().contains(new TableRow().addValue(1, streamName).addValue(2, definition)));
 	}
 
 }

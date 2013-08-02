@@ -97,7 +97,7 @@ public class LocalChannelRegistryTests extends AbstractChannelRegistryTests {
 			Collection<MediaType> acceptedMediaTypes) {
 		DirectChannel myChannel = new DirectChannel();
 		registry.inbound("in", myChannel, acceptedMediaTypes, false);
-		DirectChannel input = registry.lookupSharedChannel("in", DirectChannel.class);
+		DirectChannel input = registry.getBean("in", DirectChannel.class);
 		assertNotNull(input);
 
 		final AtomicBoolean msgSent = new AtomicBoolean(false);

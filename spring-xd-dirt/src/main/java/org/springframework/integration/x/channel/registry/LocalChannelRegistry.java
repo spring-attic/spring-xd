@@ -288,6 +288,10 @@ public class LocalChannelRegistry extends ChannelRegistrySupport implements Appl
 		cefb.start();
 		return handler;
 	}
+	
+	protected <T> T getBean(String name, Class<T> requiredType) {
+		return this.applicationContext.getBean(name, requiredType);
+	}
 
 	/**
 	 * Used to remember the bridging that was done, so it can be undone in {@link LocalChannelRegistry#cleanAll(String)}
@@ -343,7 +347,7 @@ public class LocalChannelRegistry extends ChannelRegistrySupport implements Appl
 
 		protected abstract T createSharedChannel(String name);
 
-		protected T lookupSharedChannel(String name) {
+		protected T lookupSharedChannel(String name) {			
 			T channel = null;
 			if (applicationContext.containsBean(name)) {
 				try {

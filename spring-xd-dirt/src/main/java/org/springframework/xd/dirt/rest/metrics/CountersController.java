@@ -81,6 +81,6 @@ public class CountersController extends AbstractMetricsController<CounterReposit
 	@ResponseBody
 	@RequestMapping(value = "/{name}", method = RequestMethod.DELETE)
 	public void delete(@PathVariable("name") String name) {
-		repository.delete(name);
+		super.delete(name);
 	}
 }

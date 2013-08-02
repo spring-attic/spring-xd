@@ -61,5 +61,13 @@ abstract class AbstractMetricsController<R extends MetricRepository<M>, M extend
 	}
 
 	// helper code for reset, etc. can go here
+	
+	/**
+	 * Deletes the metric with the given name from the repository
+	 * @param name the name of the metric to delete
+	 */
+	protected void delete(String name){
+		repository.delete(name);
+	}
 
 }

@@ -50,7 +50,6 @@ public class Target {
 	 * @throws IllegalArgumentException if the given string violates RFC 2396
 	 */
 	public Target(String targetUriAsString) {
-		super();
 		Assert.hasText(targetUriAsString, "The provided targetUriAsString must neither be null nor empty.");
 		this.targetUri = URI.create(targetUriAsString);
 	}

@@ -24,7 +24,6 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.FanoutExchange;
@@ -53,7 +52,7 @@ import org.springframework.util.Assert;
 
 /**
  * A {@link ChannelRegistry} implementation backed by RabbitMQ.
- *
+ * 
  * @author Mark Fisher
  * @author Gary Russell
  */
@@ -71,7 +70,6 @@ public class RabbitChannelRegistry extends ChannelRegistrySupport implements Dis
 
 	private final List<Lifecycle> lifecycleBeans = Collections.synchronizedList(new ArrayList<Lifecycle>());
 
-
 	public RabbitChannelRegistry(ConnectionFactory connectionFactory) {
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");
 		this.connectionFactory = connectionFactory;
@@ -82,7 +80,8 @@ public class RabbitChannelRegistry extends ChannelRegistrySupport implements Dis
 	}
 
 	@Override
-	public void inbound(final String name, MessageChannel moduleInputChannel, final Collection<MediaType> acceptedMediaTypes) {
+	public void inbound(final String name, MessageChannel moduleInputChannel,
+			final Collection<MediaType> acceptedMediaTypes, boolean aliasHint) {
 		if (logger.isInfoEnabled()) {
 			logger.info("declaring queue for inbound: " + name);
 		}
@@ -114,7 +113,7 @@ public class RabbitChannelRegistry extends ChannelRegistrySupport implements Dis
 	}
 
 	@Override
-	public void outbound(final String name, MessageChannel moduleOutputChannel) {
+	public void outbound(final String name, MessageChannel moduleOutputChannel, boolean aliasHint) {
 		Assert.isInstanceOf(SubscribableChannel.class, moduleOutputChannel);
 		MessageHandler handler = new CompositeHandler(name);
 		EventDrivenConsumer consumer = new EventDrivenConsumer((SubscribableChannel) moduleOutputChannel, handler);
@@ -157,8 +156,7 @@ public class RabbitChannelRegistry extends ChannelRegistrySupport implements Dis
 				}
 				else if (endpoint instanceof AmqpInboundChannelAdapter) {
 					String componentName = ((IntegrationObjectSupport) endpoint).getComponentName();
-					if (("inbound." + name).equals(componentName) ||
-							(name + ".tapAdapter").equals(componentName)) {
+					if (("inbound." + name).equals(componentName) || (name + ".tapAdapter").equals(componentName)) {
 						((AmqpInboundChannelAdapter) endpoint).stop();
 						iterator.remove();
 					}

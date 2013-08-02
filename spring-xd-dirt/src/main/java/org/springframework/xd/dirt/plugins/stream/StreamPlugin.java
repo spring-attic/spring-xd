@@ -16,26 +16,26 @@
 
 package org.springframework.xd.dirt.plugins.stream;
 
-import static org.springframework.xd.module.ModuleType.PROCESSOR;
-import static org.springframework.xd.module.ModuleType.SINK;
-import static org.springframework.xd.module.ModuleType.SOURCE;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Properties;
 
-import org.springframework.http.MediaType;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.MediaType;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.x.channel.registry.ChannelRegistry;
 import org.springframework.util.CollectionUtils;
 import org.springframework.xd.dirt.container.DefaultContainer;
-import org.springframework.xd.module.*;
+import org.springframework.xd.module.BeanDefinitionAddingPostProcessor;
+import org.springframework.xd.module.DeploymentMetadata;
+import org.springframework.xd.module.Module;
+import org.springframework.xd.module.Plugin;
+
+import static org.springframework.xd.module.ModuleType.*;
 
 /**
  * @author Mark Fisher
@@ -47,8 +47,7 @@ import org.springframework.xd.module.*;
 public class StreamPlugin implements Plugin {
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	private static final String CONTEXT_CONFIG_ROOT = DefaultContainer.XD_CONFIG_ROOT
-			+ "plugins/stream/";
+	private static final String CONTEXT_CONFIG_ROOT = DefaultContainer.XD_CONFIG_ROOT + "plugins/stream/";
 
 	private static final String TAP_XML = CONTEXT_CONFIG_ROOT + "tap.xml";
 
@@ -83,11 +82,11 @@ public class StreamPlugin implements Plugin {
 		if (registry != null) {
 			MessageChannel channel = module.getComponent("input", MessageChannel.class);
 			if (channel != null) {
-				registry.inbound(md.getInputChannelName(), channel, getAcceptedMediaTypes(module));
+				registry.inbound(md.getInputChannelName(), channel, getAcceptedMediaTypes(module), md.isAliasedInput());
 			}
 			channel = module.getComponent("output", MessageChannel.class);
 			if (channel != null) {
-				registry.outbound(md.getOutputChannelName(), channel);
+				registry.outbound(md.getOutputChannelName(), channel, md.isAliasedOutput());
 			}
 		}
 	}
@@ -119,7 +118,7 @@ public class StreamPlugin implements Plugin {
 		}
 		else {
 			Collection<MediaType> acceptedMediaTypes = new ArrayList<MediaType>(acceptedTypes.size());
-			for (Object acceptedType: acceptedTypes) {
+			for (Object acceptedType : acceptedTypes) {
 				if (acceptedType instanceof String) {
 					acceptedMediaTypes.add(MediaType.parseMediaType((String) acceptedType));
 				}
@@ -133,8 +132,8 @@ public class StreamPlugin implements Plugin {
 
 	@Override
 	public void postProcessSharedContext(ConfigurableApplicationContext context) {
-		context.addBeanFactoryPostProcessor(new BeanDefinitionAddingPostProcessor(
-			new ClassPathResource(CHANNEL_REGISTRY)));
+		context.addBeanFactoryPostProcessor(new BeanDefinitionAddingPostProcessor(new ClassPathResource(
+				CHANNEL_REGISTRY)));
 	}
 
 }

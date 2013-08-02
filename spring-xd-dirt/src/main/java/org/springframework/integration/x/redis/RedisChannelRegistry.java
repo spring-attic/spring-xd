@@ -24,7 +24,6 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -47,7 +46,7 @@ import org.springframework.util.Assert;
 
 /**
  * A {@link ChannelRegistry} implementation backed by Redis.
- *
+ * 
  * @author Mark Fisher
  * @author Gary Russell
  * @author David Turanski
@@ -60,7 +59,6 @@ public class RedisChannelRegistry extends ChannelRegistrySupport implements Disp
 
 	private final List<Lifecycle> lifecycleBeans = Collections.synchronizedList(new ArrayList<Lifecycle>());
 
-
 	public RedisChannelRegistry(RedisConnectionFactory connectionFactory) {
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");
 		this.redisTemplate.setConnectionFactory(connectionFactory);
@@ -69,7 +67,8 @@ public class RedisChannelRegistry extends ChannelRegistrySupport implements Disp
 	}
 
 	@Override
-	public void inbound(final String name, MessageChannel moduleInputChannel, final Collection<MediaType> acceptedMediaTypes) {
+	public void inbound(final String name, MessageChannel moduleInputChannel,
+			final Collection<MediaType> acceptedMediaTypes, boolean aliasHint) {
 		RedisQueueInboundChannelAdapter adapter = new RedisQueueInboundChannelAdapter("queue." + name,
 				this.redisTemplate.getConnectionFactory(), new NoOpRedisSerializer());
 		SubscribableChannel bridgeToModuleChannel = new DirectChannel();
@@ -92,7 +91,7 @@ public class RedisChannelRegistry extends ChannelRegistrySupport implements Disp
 	}
 
 	@Override
-	public void outbound(final String name, MessageChannel moduleOutputChannel) {
+	public void outbound(final String name, MessageChannel moduleOutputChannel, boolean aliasHint) {
 		Assert.isInstanceOf(SubscribableChannel.class, moduleOutputChannel);
 		MessageHandler handler = new CompositeHandler(name, this.redisTemplate.getConnectionFactory());
 		EventDrivenConsumer consumer = new EventDrivenConsumer((SubscribableChannel) moduleOutputChannel, handler);
@@ -125,13 +124,13 @@ public class RedisChannelRegistry extends ChannelRegistrySupport implements Disp
 					((EventDrivenConsumer) endpoint).stop();
 					iterator.remove();
 				}
-				else if (endpoint instanceof RedisQueueInboundChannelAdapter &&
-						("inbound." + name).equals(((IntegrationObjectSupport) endpoint).getComponentName())) {
+				else if (endpoint instanceof RedisQueueInboundChannelAdapter
+						&& ("inbound." + name).equals(((IntegrationObjectSupport) endpoint).getComponentName())) {
 					((RedisQueueInboundChannelAdapter) endpoint).stop();
 					iterator.remove();
 				}
-				else if (endpoint instanceof RedisInboundChannelAdapter &&
-						(name + ".tapAdapter").equals(((IntegrationObjectSupport) endpoint).getComponentName())) {
+				else if (endpoint instanceof RedisInboundChannelAdapter
+						&& (name + ".tapAdapter").equals(((IntegrationObjectSupport) endpoint).getComponentName())) {
 					((RedisInboundChannelAdapter) endpoint).stop();
 					iterator.remove();
 				}
@@ -144,7 +143,8 @@ public class RedisChannelRegistry extends ChannelRegistrySupport implements Disp
 		for (Lifecycle bean : this.lifecycleBeans) {
 			try {
 				bean.stop();
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				if (logger.isWarnEnabled()) {
 					logger.warn("failed to stop adapter", e);
 				}

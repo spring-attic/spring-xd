@@ -11,7 +11,6 @@
 
 	<!-- Parent context for all modules -->
 	
-	<int:poller fixed-rate="1000" default="true"></int:poller>	
 	<!-- The following actually doesn't work for in-memory yet as this is a separate context. -->
 	<!-- Still, this encourages externalization of repositories declarations. See  -->
 	

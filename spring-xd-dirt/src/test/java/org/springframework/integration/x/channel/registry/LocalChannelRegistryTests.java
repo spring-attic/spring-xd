@@ -15,17 +15,12 @@
  */
 package org.springframework.integration.x.channel.registry;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.convert.converter.Converter;
@@ -38,11 +33,13 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.support.MessageBuilder;
 
+import static org.junit.Assert.*;
+
 /**
  * @author Gary Russell
  * @author David Turanski
  * @since 1.0
- *
+ * 
  */
 public class LocalChannelRegistryTests extends AbstractChannelRegistryTests {
 
@@ -67,7 +64,7 @@ public class LocalChannelRegistryTests extends AbstractChannelRegistryTests {
 	public void testPayloadConversionToString() throws Exception {
 		LocalChannelRegistry registry = (LocalChannelRegistry) getRegistry();
 		DefaultConversionService conversionService = new DefaultConversionService();
-		conversionService.addConverter(new Converter<Foo, String>(){
+		conversionService.addConverter(new Converter<Foo, String>() {
 
 			@Override
 			public String convert(Foo source) {
@@ -81,10 +78,9 @@ public class LocalChannelRegistryTests extends AbstractChannelRegistryTests {
 	@Test
 	public void testPayloadConversionNotNeededExplicitType() throws Exception {
 		LocalChannelRegistry registry = (LocalChannelRegistry) getRegistry();
-		verifyPayloadConversion(new Foo(), registry, Collections.singletonList(
-				new MediaType("application", "x-java-object",
-					Collections.singletonMap("type",
-							"org.springframework.integration.x.channel.registry.LocalChannelRegistryTests$Foo"))));
+		verifyPayloadConversion(new Foo(), registry, Collections.singletonList(new MediaType("application",
+				"x-java-object", Collections.singletonMap("type",
+						"org.springframework.integration.x.channel.registry.LocalChannelRegistryTests$Foo"))));
 	}
 
 	@Test
@@ -100,7 +96,7 @@ public class LocalChannelRegistryTests extends AbstractChannelRegistryTests {
 	private void verifyPayloadConversion(final Object expectedValue, final LocalChannelRegistry registry,
 			Collection<MediaType> acceptedMediaTypes) {
 		DirectChannel myChannel = new DirectChannel();
-		registry.inbound("in", myChannel, acceptedMediaTypes);
+		registry.inbound("in", myChannel, acceptedMediaTypes, false);
 		DirectChannel input = registry.lookupSharedChannel("in", DirectChannel.class);
 		assertNotNull(input);
 
@@ -116,8 +112,7 @@ public class LocalChannelRegistryTests extends AbstractChannelRegistryTests {
 		});
 
 		Message<Foo> msg = MessageBuilder.withPayload(new Foo())
-				.setHeader(MessageHeaders.CONTENT_TYPE, MediaType.ALL_VALUE)
-				.build();
+				.setHeader(MessageHeaders.CONTENT_TYPE, MediaType.ALL_VALUE).build();
 
 		input.send(msg);
 		assertTrue(msgSent.get());
@@ -128,12 +123,13 @@ public class LocalChannelRegistryTests extends AbstractChannelRegistryTests {
 		public String toString() {
 			return "foo";
 		}
+
 		@Override
 		public boolean equals(Object other) {
 			if (!(other instanceof Foo)) {
 				return false;
 			}
 			return this.toString().equals(other.toString());
- 		}
+		}
 	}
 }

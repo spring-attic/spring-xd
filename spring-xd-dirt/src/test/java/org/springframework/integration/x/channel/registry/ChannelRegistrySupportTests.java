@@ -15,15 +15,11 @@
  */
 package org.springframework.integration.x.channel.registry;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Collections;
 
 import org.junit.Test;
-
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.http.MediaType;
@@ -35,9 +31,11 @@ import org.springframework.util.ReflectionUtils.MethodCallback;
 import org.springframework.xd.tuple.Tuple;
 import org.springframework.xd.tuple.TupleBuilder;
 
+import static org.junit.Assert.*;
+
 /**
  * @author Gary Russell
- *
+ * 
  */
 public class ChannelRegistrySupportTests {
 
@@ -46,9 +44,11 @@ public class ChannelRegistrySupportTests {
 	@Test
 	public void testBytesPassThru() {
 		byte[] payload = "foo".getBytes();
-		Object converted = channelRegistry.transformPayloadFromOutputChannel(payload, MediaType.APPLICATION_OCTET_STREAM);
+		Object converted = channelRegistry.transformPayloadFromOutputChannel(payload,
+				MediaType.APPLICATION_OCTET_STREAM);
 		assertEquals(payload, converted);
-		payload = (byte[]) channelRegistry.transformPayloadForInputChannel(converted, Collections.singletonList(MediaType.ALL));
+		payload = (byte[]) channelRegistry.transformPayloadForInputChannel(converted,
+				Collections.singletonList(MediaType.ALL));
 		assertEquals(converted, payload);
 	}
 
@@ -56,31 +56,42 @@ public class ChannelRegistrySupportTests {
 	public void testJsonString() {
 		Object converted = channelRegistry.transformPayloadFromOutputChannel("foo", MediaType.APPLICATION_OCTET_STREAM);
 		assertEquals("{\"String\":\"foo\"}", new String((byte[]) converted));
-		Object payload = channelRegistry.transformPayloadForInputChannel(converted, Collections.singletonList(MediaType.ALL));
+		Object payload = channelRegistry.transformPayloadForInputChannel(converted,
+				Collections.singletonList(MediaType.ALL));
 		assertEquals("foo", payload);
 	}
 
 	@Test
 	public void testJsonPojo() {
-		Object converted = channelRegistry.transformPayloadFromOutputChannel(new Foo("bar"), MediaType.APPLICATION_OCTET_STREAM);
-		assertEquals("{\"Foo\":{\"@class\":\"org.springframework.integration.x.channel.registry.ChannelRegistrySupportTests$Foo\",\"bar\":\"bar\"}}", new String((byte[]) converted));
-		Foo payload = (Foo) channelRegistry.transformPayloadForInputChannel(converted, Collections.singletonList(MediaType.ALL));
+		Object converted = channelRegistry.transformPayloadFromOutputChannel(new Foo("bar"),
+				MediaType.APPLICATION_OCTET_STREAM);
+		assertEquals(
+				"{\"Foo\":{\"@class\":\"org.springframework.integration.x.channel.registry.ChannelRegistrySupportTests$Foo\",\"bar\":\"bar\"}}",
+				new String((byte[]) converted));
+		Foo payload = (Foo) channelRegistry.transformPayloadForInputChannel(converted,
+				Collections.singletonList(MediaType.ALL));
 		assertEquals("bar", payload.getBar());
 	}
 
 	@Test
 	public void testJsonPojoWithXJavaObjectMediaTypeNoType() {
-		Object converted = channelRegistry.transformPayloadFromOutputChannel(new Foo("bar"), MediaType.APPLICATION_OCTET_STREAM);
-		assertEquals("{\"Foo\":{\"@class\":\"org.springframework.integration.x.channel.registry.ChannelRegistrySupportTests$Foo\",\"bar\":\"bar\"}}", new String((byte[]) converted));
-		Foo payload = (Foo) channelRegistry.transformPayloadForInputChannel(converted, Collections.singletonList(
-				new MediaType("application", "x-java-object")));
+		Object converted = channelRegistry.transformPayloadFromOutputChannel(new Foo("bar"),
+				MediaType.APPLICATION_OCTET_STREAM);
+		assertEquals(
+				"{\"Foo\":{\"@class\":\"org.springframework.integration.x.channel.registry.ChannelRegistrySupportTests$Foo\",\"bar\":\"bar\"}}",
+				new String((byte[]) converted));
+		Foo payload = (Foo) channelRegistry.transformPayloadForInputChannel(converted,
+				Collections.singletonList(new MediaType("application", "x-java-object")));
 		assertEquals("bar", payload.getBar());
 	}
 
 	@Test
 	public void testJsonPojoWithXJavaObjectMediaTypeExplicitType() {
-		Object converted = channelRegistry.transformPayloadFromOutputChannel(new Foo("bar"), MediaType.APPLICATION_OCTET_STREAM);
-		assertEquals("{\"Foo\":{\"@class\":\"org.springframework.integration.x.channel.registry.ChannelRegistrySupportTests$Foo\",\"bar\":\"bar\"}}", new String((byte[]) converted));
+		Object converted = channelRegistry.transformPayloadFromOutputChannel(new Foo("bar"),
+				MediaType.APPLICATION_OCTET_STREAM);
+		assertEquals(
+				"{\"Foo\":{\"@class\":\"org.springframework.integration.x.channel.registry.ChannelRegistrySupportTests$Foo\",\"bar\":\"bar\"}}",
+				new String((byte[]) converted));
 		MediaType type = new MediaType("application", "x-java-object", Collections.singletonMap("type",
 				"org.springframework.integration.x.channel.registry.ChannelRegistrySupportTests$Foo"));
 		Foo payload = (Foo) channelRegistry.transformPayloadForInputChannel(converted, Collections.singletonList(type));
@@ -90,8 +101,10 @@ public class ChannelRegistrySupportTests {
 	@Test
 	public void testJsonTuple() {
 		Tuple payload = TupleBuilder.tuple().of("foo", "bar");
-		Object converted = channelRegistry.transformPayloadFromOutputChannel(payload, MediaType.APPLICATION_OCTET_STREAM);
-		payload = (Tuple) channelRegistry.transformPayloadForInputChannel(converted, Collections.singletonList(MediaType.ALL));
+		Object converted = channelRegistry.transformPayloadFromOutputChannel(payload,
+				MediaType.APPLICATION_OCTET_STREAM);
+		payload = (Tuple) channelRegistry.transformPayloadForInputChannel(converted,
+				Collections.singletonList(MediaType.ALL));
 		assertEquals("bar", payload.getString("foo"));
 	}
 
@@ -101,7 +114,7 @@ public class ChannelRegistrySupportTests {
 	@Test
 	public void testJsonPojoConvert() {
 		DefaultConversionService conversionService = new DefaultConversionService();
-		conversionService.addConverter(new Converter<Foo, Bar>(){
+		conversionService.addConverter(new Converter<Foo, Bar>() {
 
 			@Override
 			public Bar convert(Foo source) {
@@ -110,8 +123,11 @@ public class ChannelRegistrySupportTests {
 		});
 		channelRegistry.setConversionService(conversionService);
 
-		Object converted = channelRegistry.transformPayloadFromOutputChannel(new Foo("bar"), MediaType.APPLICATION_OCTET_STREAM);
-		assertEquals("{\"Foo\":{\"@class\":\"org.springframework.integration.x.channel.registry.ChannelRegistrySupportTests$Foo\",\"bar\":\"bar\"}}", new String((byte[]) converted));
+		Object converted = channelRegistry.transformPayloadFromOutputChannel(new Foo("bar"),
+				MediaType.APPLICATION_OCTET_STREAM);
+		assertEquals(
+				"{\"Foo\":{\"@class\":\"org.springframework.integration.x.channel.registry.ChannelRegistrySupportTests$Foo\",\"bar\":\"bar\"}}",
+				new String((byte[]) converted));
 
 		MediaType type = new MediaType("application", "x-java-object", Collections.singletonMap("type",
 				"org.springframework.integration.x.channel.registry.ChannelRegistrySupportTests$Bar"));
@@ -125,7 +141,7 @@ public class ChannelRegistrySupportTests {
 	@Test
 	public void testJsonPojoConvertMessage() {
 		DefaultConversionService conversionService = new DefaultConversionService();
-		conversionService.addConverter(new Converter<Foo, Bar>(){
+		conversionService.addConverter(new Converter<Foo, Bar>() {
 
 			@Override
 			public Bar convert(Foo source) {
@@ -135,13 +151,16 @@ public class ChannelRegistrySupportTests {
 		channelRegistry.setConversionService(conversionService);
 
 		Message<?> message = new GenericMessage<Foo>(new Foo("bar"));
-		Message<?> messageToSend = channelRegistry.transformOutboundIfNecessary(message, MediaType.APPLICATION_OCTET_STREAM);
-		assertEquals("{\"Foo\":{\"@class\":\"org.springframework.integration.x.channel.registry.ChannelRegistrySupportTests$Foo\",\"bar\":\"bar\"}}",
+		Message<?> messageToSend = channelRegistry.transformOutboundIfNecessary(message,
+				MediaType.APPLICATION_OCTET_STREAM);
+		assertEquals(
+				"{\"Foo\":{\"@class\":\"org.springframework.integration.x.channel.registry.ChannelRegistrySupportTests$Foo\",\"bar\":\"bar\"}}",
 				new String((byte[]) messageToSend.getPayload()));
 
 		MediaType type = new MediaType("application", "x-java-object", Collections.singletonMap("type",
 				"org.springframework.integration.x.channel.registry.ChannelRegistrySupportTests$Bar"));
-		Message<?> messageToSink = channelRegistry.transformInboundIfNecessary(messageToSend, Collections.singletonList(type));
+		Message<?> messageToSink = channelRegistry.transformInboundIfNecessary(messageToSend,
+				Collections.singletonList(type));
 		assertEquals("bar", ((Bar) messageToSink.getPayload()).getFoo());
 	}
 
@@ -149,7 +168,8 @@ public class ChannelRegistrySupportTests {
 
 		private String bar;
 
-		public Foo() {}
+		public Foo() {
+		}
 
 		public Foo(String bar) {
 			this.bar = bar;
@@ -169,7 +189,8 @@ public class ChannelRegistrySupportTests {
 
 		private String foo;
 
-		public Bar() {}
+		public Bar() {
+		}
 
 		public Bar(String foo) {
 			this.foo = foo;
@@ -187,7 +208,7 @@ public class ChannelRegistrySupportTests {
 
 	/**
 	 * Device to increase visibility of private methods.
-	 *
+	 * 
 	 */
 	public class TestChannelRegistry extends ChannelRegistrySupport {
 
@@ -218,11 +239,12 @@ public class ChannelRegistrySupportTests {
 		}
 
 		@Override
-		public void inbound(String name, MessageChannel channel, Collection<MediaType> acceptedMediaTypes) {
+		public void inbound(String name, MessageChannel channel, Collection<MediaType> acceptedMediaTypes,
+				boolean aliasHint) {
 		}
 
 		@Override
-		public void outbound(String name, MessageChannel channel) {
+		public void outbound(String name, MessageChannel channel, boolean aliasHint) {
 		}
 
 		@Override

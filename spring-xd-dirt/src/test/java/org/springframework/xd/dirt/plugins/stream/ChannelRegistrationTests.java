@@ -16,9 +16,6 @@
 
 package org.springframework.xd.dirt.plugins.stream;
 
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import java.util.Collection;
 import java.util.Collections;
 
@@ -26,15 +23,17 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
 import org.springframework.http.MediaType;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.x.channel.registry.ChannelRegistry;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.Module;
+
+import static org.mockito.Mockito.*;
+
 /**
- *
+ * 
  * @author Jennifer Hickey
  * @author Gary Russell
  */
@@ -68,8 +67,8 @@ public class ChannelRegistrationTests {
 	@Test
 	public void testRegistration() throws Exception {
 		streamPlugin.postProcessModule(module);
-		verify(registry).inbound("mystream.0", input, ALL);
-		verify(registry).outbound("mystream.1", output);
+		verify(registry).inbound("mystream.0", input, ALL, false);
+		verify(registry).outbound("mystream.1", output, false);
 	}
 
 }

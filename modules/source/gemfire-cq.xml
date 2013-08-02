@@ -23,5 +23,9 @@
 
 	<int:channel id="output"/>
 
-	<int-gfe:cq-inbound-channel-adapter channel="output" cq-listener-container="cqContainer" query="${query}" durable="false"/>
+	<int-gfe:cq-inbound-channel-adapter channel="to.transformer" 
+	cq-listener-container="cqContainer" query="${query}" durable="false" expression="newValue"/>
+	<int:transformer input-channel="to.transformer" output-channel="output" method="toString">
+		<bean class="org.springframework.integration.x.gemfire.JsonStringToObjectTransformer"/>
+	</int:transformer>
 </beans>

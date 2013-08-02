@@ -200,7 +200,7 @@ project('spring-xd-analytics') {
 project('spring-xd-dirt') {
 	description = 'Spring XD DIRT'
 	configurations {
-		[runtime,testRuntime]*.exclude group: 'org.codehaus.jackson'
+		//[runtime,testRuntime]*.exclude group: 'org.codehaus.jackson'
 	}
 	dependencies {
 
@@ -307,6 +307,7 @@ project ('spring-xd-gemfire-server') {
 	dependencies {
 		compile "commons-beanutils:commons-beanutils:$commonsBeanUtilsVersion"
 		compile "org.springframework.data:spring-data-gemfire:$springDataGemfireVersion"
+		compile project(':spring-xd-tuple')
 		runtime "log4j:log4j:$log4jVersion",
 				"org.slf4j:jcl-over-slf4j:$slf4jVersion",
 				"org.slf4j:slf4j-log4j12:$slf4jVersion"
@@ -438,6 +439,7 @@ project('spring-xd-hadoop') {
 		compile "org.springframework.data:spring-data-mongodb:$springDataMongoVersion"
 		compile ("org.springframework.data:spring-data-hadoop:$springDataHadoopVersion") {
 			exclude group: 'org.mortbay.jetty'
+			exclude group: 'org.codehaus.jackson'
 		}
 		// Needed for webhdfs sink
 		runtime ("org.mortbay.jetty:jetty-util:6.1.26")

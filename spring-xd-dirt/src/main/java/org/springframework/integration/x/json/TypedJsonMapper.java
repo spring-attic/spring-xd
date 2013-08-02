@@ -12,8 +12,9 @@
  */
 package org.springframework.integration.x.json;
 
-import org.joda.time.DateTime;
+import java.math.BigDecimal;
 
+import org.joda.time.DateTime;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.core.convert.ConversionException;
 import org.springframework.util.ClassUtils;
@@ -73,8 +74,7 @@ public class TypedJsonMapper implements BeanClassLoaderAware {
 
 		try {
 			return mapper.writeValueAsBytes(t);
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			throw new SmartJsonConversionException(e.getMessage(), e);
 		}
 	}
@@ -85,57 +85,77 @@ public class TypedJsonMapper implements BeanClassLoaderAware {
 		}
 		try {
 			JsonNode root = unmarshallingMapper.readTree(bytes);
+			Class<?> type = getWrappedType(root);
+			if (type == null) {
+				return jsonBytesToTupleConverter.convert(bytes);
+			}
+
 			String typeName = root.fieldNames().next();
 			JsonNode value = root.get(typeName);
-			/*
-			 * Collections, java.util.Date are serialized as arrays
-			 */
-			if (value.isArray()) {
-				String className = value.get(0).asText();
-				return mapper.treeToValue(value, this.beanClassLoader.loadClass(className));
-			}
-			if (typeName.equals("String")) {
+			root.get(typeName);
+
+			if (String.class.equals(type)) {
 				return value.asText();
-			}
-			else if (typeName.equals("Long")) {
+			} else if (Long.class.equals(type)) {
 				return value.asLong();
-			}
-			else if (typeName.equals("Integer")) {
+			} else if (Integer.class.equals(type)) {
 				return value.asInt();
-			}
-			else if (typeName.equals("BigDecimal")) {
+			} else if (BigDecimal.class.equals(type)) {
 				return value.decimalValue();
-			}
-			else if (typeName.equals("Double")) {
+			} else if (Double.class.equals(type)) {
 				return value.doubleValue();
-			}
-			else if (typeName.equals("Float")) {
+			} else if (Float.class.equals(type)) {
 				return value.doubleValue();
-			}
-			else if (typeName.equals("Boolean")) {
+			} else if (Boolean.class.equals(type)) {
 				return value.asBoolean();
-			}
-			else if (typeName.equals("byte[]")) {
+			} else if (byte[].class.equals(type)) {
 				return value.binaryValue();
-			}
-			else if (typeName.equals("char[]")) {
+			} else if (char[].class.equals(type)) {
 				return value.asText().toCharArray();
-			}
-			else if (typeName.equals("DateTime")) {
+			} else if (DateTime.class.equals(type)) {
 				return new DateTime(value.get("millis").asLong());
-			}
-			else if (typeName.equals("DefaultTuple")) {
+			} else if (DefaultTuple.class.equals(type)) {
 				return jsonBytesToTupleConverter.convert(value.binaryValue());
 			}
-			String className = value.get("@class") == null ? null : value.get("@class").asText();
-			if (className != null) {
-				return mapper.treeToValue(value, Class.forName(className));
-			}
-			return jsonBytesToTupleConverter.convert(bytes);
-		}
-		catch (Exception e) {
+			return mapper.treeToValue(value, type);
+
+		} catch (Exception e) {
 			throw new SmartJsonConversionException(e.getMessage(), e);
 		}
+	}
+
+	/**
+	 * UnMarshall to a requested class
+	 * @param bytes
+	 * @param className
+	 * @return
+	 */
+	public Object fromBytes(byte[] bytes, String className) {
+		Object obj = null;
+		try {
+			JsonNode root = unmarshallingMapper.readTree(bytes);
+			JsonNode value = root;
+			Class<?> wrappedType = getWrappedType(root);
+			if (wrappedType != null) {
+				String typeName = root.fieldNames().next();
+				value = root.get(typeName);
+			}
+
+			Class<?> type = this.beanClassLoader.loadClass(className);
+			if (Tuple.class.isAssignableFrom(type)) {
+				byte[] from = bytes;
+				if (String.class.equals(wrappedType)) {
+					from = value.asText().getBytes();
+				} else if (wrappedType != null) {
+					from = value.toString().getBytes();
+				}
+				return jsonBytesToTupleConverter.convert(from);
+			}
+			obj = mapper.treeToValue(value, type);
+		} catch (Exception e) {
+			throw new SmartJsonConversionException(e.getMessage(), e);
+		}
+		return obj;
 	}
 
 	@SuppressWarnings("serial")
@@ -148,6 +168,56 @@ public class TypedJsonMapper implements BeanClassLoaderAware {
 		public SmartJsonConversionException(String message) {
 			super(message);
 		}
+	}
 
+	/*
+	 * Determine if serialized content is wrapped with type information. In the case of a raw JSON string, 
+	 * should return null. 
+	 */
+	private Class<?> getWrappedType(JsonNode root) {
+		String typeName = root.fieldNames().next();
+		JsonNode value = root.get(typeName);
+		/*
+		 * Collections, java.util.Date are serialized as arrays
+		 */
+		if (value.isArray()) {
+			String className = value.get(0).asText();
+			try {
+				return this.beanClassLoader.loadClass(className);
+			} catch (ClassNotFoundException e) {
+				//In this case, interpret as a raw JSON string containing an array
+				return null;
+			}
+		}
+		if (typeName.equals("String")) {
+			return String.class;
+		} else if (typeName.equals("Long")) {
+			return Long.class;
+		} else if (typeName.equals("Integer")) {
+			return Integer.class;
+		} else if (typeName.equals("BigDecimal")) {
+			return BigDecimal.class;
+		} else if (typeName.equals("Double")) {
+			return Double.class;
+		} else if (typeName.equals("Float")) {
+			return Float.class;
+		} else if (typeName.equals("Boolean")) {
+			return Boolean.class;
+		} else if (typeName.equals("byte[]")) {
+			return byte[].class;
+		} else if (typeName.equals("char[]")) {
+			return char[].class;
+		} else if (typeName.equals("DateTime")) {
+			return DateTime.class;
+		}
+		String className = value.get("@class") == null ? null : value.get("@class").asText();
+		if (className != null) {
+			try {
+				return this.beanClassLoader.loadClass(className);
+			} catch (ClassNotFoundException e) {
+				throw new SmartJsonConversionException(e.getMessage(), e);
+			}
+		}
+		return null;
 	}
 }

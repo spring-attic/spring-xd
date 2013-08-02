@@ -66,16 +66,13 @@ public abstract class ChannelRegistrySupport implements ChannelRegistry, BeanCla
 	private Object transformPayloadFromOutputChannel(Object payload, MediaType to) {
 		if (to.equals(MediaType.ALL)) {
 			return payload;
-		}
-		else if (to.equals(MediaType.APPLICATION_OCTET_STREAM)) {
+		} else if (to.equals(MediaType.APPLICATION_OCTET_STREAM)) {
 			if (payload instanceof byte[]) {
 				return payload;
-			}
-			else {
+			} else {
 				return this.jsonMapper.toBytes(payload);
 			}
-		}
-		else {
+		} else {
 			throw new IllegalArgumentException("'to' can only be 'ALL' or 'APPLICATION_OCTET_STREAM'");
 		}
 	}
@@ -96,20 +93,41 @@ public abstract class ChannelRegistrySupport implements ChannelRegistry, BeanCla
 		// Perhaps a 'Special' MediaType "application/x-xd-raw"  ??
 		if (payload instanceof byte[]) {
 			Object result = null;
-			try {
-				result = this.jsonMapper.fromBytes((byte[]) payload);
-			}
-			catch (ConversionException e) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("JSON decode failed, raw byte[]?");
+			// Get the preferred java type, if any, and first try to decode directly from JSON.
+			MediaType toObjectType = findJavaObjectType(to);
+			if (toObjectType == null || toObjectType.getParameter("type") == null) {
+				try {
+					result = this.jsonMapper.fromBytes((byte[]) payload);
+				} catch (ConversionException e) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("JSON decode failed, raw byte[]?");
+					}
+				}
+			} else {
+				String preferredClass = toObjectType.getParameter("type");
+				try {
+					//If this fails, fall back to generic decoding and delegate object conversion to the conversionService
+					result = this.jsonMapper.fromBytes((byte[]) payload, preferredClass);
+				} catch (ConversionException e) {
+					try {
+						if (logger.isDebugEnabled()) {
+							logger.debug("JSON decode failed to convert to requested type: " + preferredClass+ " - will try to decode to original type");
+						}
+						result = this.jsonMapper.fromBytes((byte[]) payload);
+					} catch (ConversionException ce) {
+						if (logger.isDebugEnabled()) {
+							logger.debug("JSON decode failed, raw byte[]?");
+						}
+					}
 				}
 			}
+
 			if (result != null) {
 				if (to.contains(MediaType.ALL)) {
 					return result;
 				}
 				// TODO: currently only tries the first application/x-java-object;type=foo.Foo
-				MediaType toObjectType = findJavaObjectType(to);
+				toObjectType = findJavaObjectType(to);
 				if (toObjectType != null) {
 					if (toObjectType.getParameter("type") == null) {
 						return result;
@@ -140,8 +158,7 @@ public abstract class ChannelRegistrySupport implements ChannelRegistry, BeanCla
 				Class<?> clazz = null;
 				try {
 					clazz = this.beanClassloader.loadClass(requiredType);
-				}
-				catch (ClassNotFoundException e) {
+				} catch (ClassNotFoundException e) {
 					if (logger.isDebugEnabled()) {
 						logger.debug("Class not found", e);
 					}
@@ -151,8 +168,7 @@ public abstract class ChannelRegistrySupport implements ChannelRegistry, BeanCla
 						return this.conversionService.convert(payload, clazz);
 					}
 				}
-			}
-			else {
+			} else {
 				if (this.acceptsString(to)) {
 					if (this.conversionService.canConvert(payload.getClass(), String.class)) {
 						return this.conversionService.convert(payload, String.class);
@@ -166,8 +182,8 @@ public abstract class ChannelRegistrySupport implements ChannelRegistry, BeanCla
 	private MediaType findJavaObjectType(Collection<MediaType> to) {
 		MediaType toObjectType = null;
 		for (MediaType mediaType : to) {
-			if (mediaType.includes(JAVA_OBJECT_TYPE)) {
-				toObjectType = mediaType;
+			if (JAVA_OBJECT_TYPE.includes(mediaType)) {
+				return mediaType;
 			}
 		}
 		return toObjectType;

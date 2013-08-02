@@ -78,7 +78,7 @@ if not exist "%GEMFIRE_HOME%" (
 )
 
 @rem Execute gemfire-server
-"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% -Dgemfire.home=%GEMFIRE_HOME% -Dlog4j.configuration=file:///%GEMFIRE_HOME%/config/gemfire-cacheserver-logger.properties -classpath "%CLASSPATH%" org.springframework.xd.gemfire.CacheServer %CMD_LINE_ARGS%
+"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% -Dgemfire.home=%GEMFIRE_HOME% -Dlog4j.configuration=file:///%APP_HOME%/config/gemfire-cacheserver-logger.properties -classpath "%CLASSPATH%" org.springframework.xd.gemfire.CacheServer %CMD_LINE_ARGS%
 
 :end
 @rem End local scope for the variables with windows NT shell

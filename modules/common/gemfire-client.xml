@@ -6,7 +6,7 @@
 		http://www.springframework.org/schema/gemfire http://www.springframework.org/schema/gemfire/spring-gemfire.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<gfe:client-cache id="client-cache" use-bean-factory-locator="false" />
+	<gfe:client-cache id="client-cache" use-bean-factory-locator="false" close="false"/>
 	<gfe:pool id="client-pool">
 		<gfe:server host="${gemfireHost:localhost}" port="${gemfirePort:40404}" />
 	</gfe:pool>

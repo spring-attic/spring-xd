@@ -43,7 +43,7 @@ _you should see only 'origin' - which is the fork you created for your own githu
 _you should now see 'upstream' in addition to 'origin' where 'upstream' is the SpringSource repository from which releases are built_
 6. `git fetch --all`
 7. `git branch -a`
-_you should see branches on origin as well as upstream, including 'master' and 'maint'_
+_you should see branches on `origin` as well as `upstream`, including `master` (`remotes/upstream/master`)_
 
 ## A Day in the Life of a Contributor
 
@@ -97,12 +97,12 @@ Here is an example of commit history that is not perfectly linear:
 ````
 * | f34ac6bf714b85ad8a6cca308465dbfaef871702 XD-439 Add deletion of stream and stream defintions before and after each test method i
 * |   148dfb52d781da31de70ce006268667d39ef1972 Merge branch 'xd439' of https://github.com/aclement/spring-xd into aclement-xd439
-|\ \  
-| |/  
-|/|   
+|\ \
+| |/
+|/|
 | * aa44779bf5251bd62e03349c1bed2ffeb8c0948a XD-439: stream directory hooked up to parser
 * | efbe517e74db2e89d5a3c779b40e8053f038e729 XD-585 - upgrade to spring social 1.1.0.M3
-|/  
+|/
 * 2815df8ccf3e8f9d6a632741aa70aa543999513d XD-438: Use channel names in stream plugin.
 ````
 If you see intersecting lines, that usually means that you forgot to rebase you branch. As mentioned earlier, **please rebase against master** before issuing a pull request. The result should be a commit history that looks more like this:

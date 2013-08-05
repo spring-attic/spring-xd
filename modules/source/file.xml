@@ -10,7 +10,9 @@
 		http://www.springframework.org/schema/integration/file
 		http://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
 
-	<file:inbound-channel-adapter channel="transform" directory="/tmp/xd/input/${name:${xd.stream.name}}">
+	<file:inbound-channel-adapter
+			auto-startup="false"
+			channel="transform" directory="/tmp/xd/input/${name:${xd.stream.name}}">
 		<poller fixed-rate="5000"/>
 	</file:inbound-channel-adapter>
 

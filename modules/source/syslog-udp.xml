@@ -8,6 +8,7 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<int-syslog:inbound-channel-adapter id="adapter" channel="output"
+			auto-startup="false"
 			protocol="udp"
 			port="${port:11111}"/>
 

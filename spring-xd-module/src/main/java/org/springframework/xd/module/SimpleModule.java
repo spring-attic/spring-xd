@@ -124,6 +124,7 @@ public class SimpleModule extends AbstractModule {
 			placeholderConfigurer.setEnvironment(this.context.getEnvironment());
 			this.context.addBeanFactoryPostProcessor(placeholderConfigurer);
 		}
+		this.context.setId(this.toString());
 		this.context.refresh();
 		if (logger.isInfoEnabled()) {
 			logger.info("initialized module: " + this.toString());

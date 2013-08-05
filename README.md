@@ -9,7 +9,7 @@ You can fork the repository and/or monitor JIRA to see what is going on. As alwa
 
 ## Documentation
 
-Look for it on the [XD wiki](https://github.com/springsource/spring-xd/wiki). [API Documentation](http://static.springsource.org/spring-xd/docs/current-SNAPSHOT/api/) (JavaDoc) is available as well. Please also visit the SprinSource.org [project website](http://www.springsource.org/spring-xd) for more information.
+Look for it on the [XD wiki](https://github.com/springsource/spring-xd/wiki). [API Documentation](http://static.springsource.org/spring-xd/docs/current-SNAPSHOT/api/) (JavaDoc) is available as well. Please also visit the SpringSource.org [project website](http://www.springsource.org/spring-xd) for more information.
 
 ## How to build 
 

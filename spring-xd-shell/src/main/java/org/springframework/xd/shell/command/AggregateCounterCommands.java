@@ -17,13 +17,16 @@
 package org.springframework.xd.shell.command;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.PagedResources;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliAvailabilityIndicator;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
 import org.springframework.xd.rest.client.AggregateCounterOperations;
+import org.springframework.xd.rest.client.domain.metrics.MetricResource;
 import org.springframework.xd.shell.XDShell;
+import org.springframework.xd.shell.util.Table;
 
 /**
  * Commands for interacting with aggregate counter analytics.
@@ -45,6 +48,12 @@ public class AggregateCounterCommands extends AbstractMetricsCommands implements
 
 	@Autowired
 	private XDShell xdShell;
+	
+	@CliCommand(value = LIST_AGGR_COUNTERS, help = "List all available aggregate counter names")
+	public Table list(/* TODO */) {
+		PagedResources<MetricResource> list = aggrCounterOperations().list(/* TODO */);
+		return displayMetrics(list);
+	}
 
 	@CliAvailabilityIndicator({ DELETE_AGGR_COUNTER })
 	public boolean available() {

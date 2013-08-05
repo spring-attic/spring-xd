@@ -28,6 +28,13 @@ import org.springframework.xd.rest.client.domain.metrics.MetricResource;
 public interface RichGaugeOperations {
 	
 	/**
+	 * Display the value of the named Rich Gauge
+	 * @param name the name of the rich gauge
+	 * @return the string representation of rich gauge metric value
+	 */
+	String display(String name);
+	
+	/**
 	 * List the names of the available richgauges
 	 */
 	PagedResources<MetricResource> list();

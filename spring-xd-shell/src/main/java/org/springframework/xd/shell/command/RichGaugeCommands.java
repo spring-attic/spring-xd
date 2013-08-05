@@ -60,11 +60,17 @@ public class RichGaugeCommands extends AbstractMetricsCommands implements Comman
 		return displayMetrics(list);
 	}
 	
+	@CliCommand(value = DISPLAY_RICH_GAUGE, help = "Display Rich Gauge value")
+	public String display(
+			@CliOption(key = {"", "name"}, help = "the name of the richgauge to display value", mandatory = true) String name) {
+		return richGaugeOperations().display(name);
+	}
+	
 	@CliCommand(value = DELETE_RICH_GAUGE, help= "Delete the richgauge")
 	public String delete(
 			@CliOption(key = {"", "name"}, help = "the name of the richgauge to delete", mandatory = true) String name) {
 		richGaugeOperations().delete(name);
-		return String.format("Deleted gauge '%s'", name);
+		return String.format("Deleted richgauge '%s'", name);
 	}
 
 	private RichGaugeOperations richGaugeOperations() {

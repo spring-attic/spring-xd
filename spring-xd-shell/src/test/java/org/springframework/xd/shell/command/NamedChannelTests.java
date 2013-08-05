@@ -42,7 +42,7 @@ public class NamedChannelTests extends AbstractStreamIntegrationTest {
 	}
 
 	@Test
-	public void testCreateNamedChannelAsSource() {
+	public void testCreateNamedChannelAsSource() throws InterruptedException {
 		logger.info("Creating stream with named channel 'foo' as source");
 		String stream1 = "namedchanneltest-ticktock";
 		String stream2 = "namedchanneltest-ticktock-counter";
@@ -52,7 +52,7 @@ public class NamedChannelTests extends AbstractStreamIntegrationTest {
 		executeStreamCreate(stream1, "http --port=" + httpPort
 				+ " | transform --expression=payload.toUpperCase() > :foo");
 		// Create stream with named channel as source
-
+		Thread.sleep(4000);
 		executeStreamCreate(stream2, ":foo > counter --name=" + counterName);
 		httpPostData("http://localhost:" + httpPort, "test");
 		checkIfCounterExists(counterName);

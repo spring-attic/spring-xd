@@ -14,33 +14,33 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.rest.client;
+package org.springframework.xd.rest.client.impl;
 
 import org.springframework.hateoas.PagedResources;
-import org.springframework.xd.rest.client.domain.metrics.FieldValueCounterResource;
+import org.springframework.xd.rest.client.RichGaugeOperations;
 import org.springframework.xd.rest.client.domain.metrics.MetricResource;
 
 /**
- * Interface defining operations available when dealing with Field Value Counters.
+ * Implementation of the RichGauge part of the metrics API.
  * 
- * @author Eric Bottard
+ * @author Ilayaperumal Gopinathan
  */
-public interface FieldValueCounterOperations {
+public class RichGaugeTemplate extends AbstractTemplate implements RichGaugeOperations {
 
-	/**
-	 * Retrieve information about the given named field value counter.
-	 */
-	FieldValueCounterResource retrieve(String name);
+	public RichGaugeTemplate(AbstractTemplate abstractTemplate) {
+		super(abstractTemplate);
+	}
 
-	/**
-	 * Retrieve basic information (i.e. names) for existing field value counters.
-	 */
-	PagedResources<MetricResource> list(/* TODO */);
+	@Override
+	public PagedResources<MetricResource> list() {
+		String url = resources.get("richgauges").toString() + "?page=10000";
+		return restTemplate.getForObject(url, MetricResource.Page.class);
+	}
 	
-	/**
-	 * Delete the given named field value counter
-	 * @param name the name of the field value counter to delete
-	 */
-	void delete(String name);
+	@Override
+	public void delete(String name) {
+		String url = resources.get("richgauges").toString() + "/{name}";
+		restTemplate.delete(url, name);
+	}
 
 }

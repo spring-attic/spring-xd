@@ -16,6 +16,8 @@
 
 package org.springframework.xd.dirt.rest;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+
 import org.junit.Before;
 import org.mockito.Mockito;
 import org.mockito.internal.util.MockUtil;
@@ -27,6 +29,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.xd.analytics.metrics.core.CounterRepository;
 import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository;
+import org.springframework.xd.analytics.metrics.core.GaugeRepository;
+import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobDeployer;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
@@ -37,13 +41,12 @@ import org.springframework.xd.dirt.stream.TapInstanceRepository;
 import org.springframework.xd.dirt.stream.TriggerDefinitionRepository;
 import org.springframework.xd.dirt.stream.TriggerDeployer;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-
 /**
  * Base class for Controller layer tests. Takes care of resetting the mocked (be them
  * mockito mocks or <i>e.g.</i> in memory) dependencies before each test.
  * 
  * @author Eric Bottard
+ * @author Ilayaperumal Gopinathan
  */
 public class AbstractControllerIntegrationTest {
 
@@ -95,6 +98,12 @@ public class AbstractControllerIntegrationTest {
 
 	@Autowired
 	protected FieldValueCounterRepository fieldValueCounterRepository;
+	
+	@Autowired
+	protected GaugeRepository gaugeRepository;
+	
+	@Autowired
+	protected RichGaugeRepository richGaugeRepository;
 
 	@Before
 	public void resetDependencies() {
@@ -111,6 +120,8 @@ public class AbstractControllerIntegrationTest {
 
 		resetOrDelete(counterRepository);
 		resetOrDelete(fieldValueCounterRepository);
+		resetOrDelete(gaugeRepository);
+		resetOrDelete(richGaugeRepository);
 	}
 
 	/**

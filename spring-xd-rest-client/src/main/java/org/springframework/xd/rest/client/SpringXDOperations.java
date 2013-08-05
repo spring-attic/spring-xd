@@ -21,6 +21,7 @@ package org.springframework.xd.rest.client;
  * 
  * @author Eric Bottard
  * @author Glenn Renfro
+ * @author Ilayaperumal Gopinathan
  */
 public interface SpringXDOperations {
 
@@ -53,4 +54,19 @@ public interface SpringXDOperations {
 	 * Returns the portion of the API for interaction with Field Value Counters.
 	 */
 	public FieldValueCounterOperations fvcOperations();
+	
+	/**
+	 * Returns the portion of the API for interaction with Aggregate Counters.
+	 */
+	public AggregateCounterOperations aggrCounterOperations();
+	
+	/**
+	 * Returns the portion of the API for interaction with Gauge.
+	 */
+	public GaugeOperations gaugeOperations();
+	
+	/**
+	 * Returns the portion of the API for interaction with RichGauge.
+	 */
+	public RichGaugeOperations richGaugeOperations();
 }

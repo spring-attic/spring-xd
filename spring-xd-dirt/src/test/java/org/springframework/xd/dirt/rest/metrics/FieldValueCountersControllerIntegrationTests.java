@@ -40,6 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Tests proper behavior of {@link FieldValueCountersController}.
  * 
  * @author Eric Bottard
+ * @author Ilayaperumal Gopinathan
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
@@ -75,5 +76,18 @@ public class FieldValueCountersControllerIntegrationTests extends AbstractContro
 
 		mockMvc.perform(get("/metrics/field-value-counters")).andExpect(status().isOk())//
 		.andExpect(jsonPath("$.content", Matchers.hasSize(10)));
+	}
+	
+	@Test
+	public void testDeleteFieldValueCounter() throws Exception {
+		when(fieldValueCounterRepository.exists("deleteme")).thenReturn(true);
+		mockMvc.perform(delete("/metrics/field-value-counters/{name}", "deleteme")).andExpect(status().isOk());
+		verify(fieldValueCounterRepository).delete("deleteme");
+	}
+	
+	@Test
+	public void testDeleteUnknownFieldValueCounter() throws Exception {
+		when(fieldValueCounterRepository.exists("deleteme")).thenReturn(false);
+		mockMvc.perform(delete("/metrics/field-value-counters/{name}", "deleteme")).andExpect(status().isNotFound());
 	}
 }

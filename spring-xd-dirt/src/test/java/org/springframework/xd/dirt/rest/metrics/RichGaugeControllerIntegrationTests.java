@@ -12,38 +12,38 @@
  */
 package org.springframework.xd.dirt.rest.metrics;
 
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.xd.analytics.metrics.core.GaugeRepository;
-import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
+import org.springframework.xd.analytics.metrics.core.RichGauge;
 import org.springframework.xd.dirt.rest.AbstractControllerIntegrationTest;
 import org.springframework.xd.dirt.rest.MockedDependencies;
 import org.springframework.xd.dirt.rest.RestConfiguration;
 
 /**
  * @author Luke Taylor
+ * @author Ilayaperumal Gopinathan
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = { RestConfiguration.class, MockedDependencies.class, InMemoryMetricReposConfig.class })
+@ContextConfiguration(classes = { RestConfiguration.class, MockedDependencies.class })
 public class RichGaugeControllerIntegrationTests extends AbstractControllerIntegrationTest {
-
-	@Autowired
-	private RichGaugeRepository gaugeRepository;
 
 	@Test
 	public void gaugeRetrievalSucceedsWithCorrectValues() throws Exception {
-		gaugeRepository.setValue("mygauge", 55.0);
-		gaugeRepository.setValue("mygauge", 57.0);
+		
+		when(richGaugeRepository.findOne("mygauge"))
+		.thenReturn(new RichGauge("mygauge", 57.0, -1.0, 56.0, 57.0, 55.0, 2));
 
 		mockMvc.perform(get("/metrics/richgauges/mygauge").accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
@@ -52,6 +52,18 @@ public class RichGaugeControllerIntegrationTests extends AbstractControllerInteg
 				.andExpect(jsonPath("$.average").value(56.0))
 				.andExpect(jsonPath("$.max").value(57.0))
 				.andExpect(jsonPath("$.min").value(55.0));
-
+	}
+	
+	@Test
+	public void testDeleteRichGauge() throws Exception {
+		when(richGaugeRepository.exists("deleteme")).thenReturn(true);
+		mockMvc.perform(delete("/metrics/richgauges/{name}", "deleteme")).andExpect(status().isOk());
+		verify(richGaugeRepository).delete("deleteme");
+	}
+	
+	@Test
+	public void testDeleteUnknownGauge() throws Exception {
+		when(richGaugeRepository.exists("deleteme")).thenReturn(false);
+		mockMvc.perform(delete("/metrics/richgauges/{name}", "deleteme")).andExpect(status().isNotFound());
 	}
 }

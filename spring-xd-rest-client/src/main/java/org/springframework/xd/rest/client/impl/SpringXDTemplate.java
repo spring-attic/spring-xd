@@ -18,9 +18,12 @@ package org.springframework.xd.rest.client.impl;
 
 import java.net.URI;
 
+import org.springframework.xd.rest.client.AggregateCounterOperations;
 import org.springframework.xd.rest.client.CounterOperations;
 import org.springframework.xd.rest.client.FieldValueCounterOperations;
+import org.springframework.xd.rest.client.GaugeOperations;
 import org.springframework.xd.rest.client.JobOperations;
+import org.springframework.xd.rest.client.RichGaugeOperations;
 import org.springframework.xd.rest.client.SpringXDOperations;
 import org.springframework.xd.rest.client.StreamOperations;
 import org.springframework.xd.rest.client.TapOperations;
@@ -60,9 +63,24 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 	private CounterOperations counterOperations;
 
 	/**
-	 * Holds the Field Valie Counter related part of the API.
+	 * Holds the Field Value Counter related part of the API.
 	 */
 	private FieldValueCounterOperations fvcOperations;
+	
+	/**
+	 * Holds the Aggregate counter related part of the API
+	 */
+	private AggregateCounterOperations aggrCounterOperations;
+	
+	/**
+	 * Holds the Gauge related part of the API
+	 */
+	private GaugeOperations gaugeOperations;
+	
+	/**
+	 * Holds the RichGauge related part of the API
+	 */
+	private RichGaugeOperations richGaugeOperations;
 
 	public SpringXDTemplate(URI baseURI) {
 		XDRuntime xdRuntime = restTemplate.getForObject(baseURI, XDRuntime.class);
@@ -73,13 +91,19 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 
 		resources.put("counters", URI.create(xdRuntime.getLink("counters").getHref()));
 		resources.put("field-value-counters", URI.create(xdRuntime.getLink("field-value-counters").getHref()));
-
+		resources.put("aggregate-counters", URI.create(xdRuntime.getLink("aggregate-counters").getHref()));
+		resources.put("gauges", URI.create(xdRuntime.getLink("gauges").getHref()));
+		resources.put("richgauges", URI.create(xdRuntime.getLink("richgauges").getHref()));
+		
 		streamOperations = new StreamTemplate(this);
 		tapOperations = new TapTemplate(this);
 		jobOperations = new JobTemplate(this);
 		triggerOperations = new TriggerTemplate(this);
 		counterOperations = new CounterTemplate(this);
 		fvcOperations = new FieldValueCounterTemplate(this);
+		aggrCounterOperations  = new AggregateCounterTemplate(this);
+		gaugeOperations = new GaugeTemplate(this);
+		richGaugeOperations = new RichGaugeTemplate(this);
 	}
 
 	@Override
@@ -110,5 +134,20 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 	@Override
 	public FieldValueCounterOperations fvcOperations() {
 		return fvcOperations;
+	}
+	
+	@Override
+	public AggregateCounterOperations aggrCounterOperations() {
+		return aggrCounterOperations;
+	}
+	
+	@Override
+	public GaugeOperations gaugeOperations() {
+		return gaugeOperations;
+	}
+	
+	@Override
+	public RichGaugeOperations richGaugeOperations() {
+		return richGaugeOperations;
 	}
 }

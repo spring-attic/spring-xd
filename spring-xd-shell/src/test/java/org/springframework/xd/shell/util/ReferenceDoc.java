@@ -42,9 +42,13 @@ import org.springframework.util.ReflectionUtils;
 import org.springframework.util.ReflectionUtils.MethodCallback;
 import org.springframework.util.ReflectionUtils.MethodFilter;
 import org.springframework.xd.shell.XDShell;
+import org.springframework.xd.shell.command.AggregateCounterCommands;
 import org.springframework.xd.shell.command.CounterCommands;
+import org.springframework.xd.shell.command.FieldValueCounterCommands;
+import org.springframework.xd.shell.command.GaugeCommands;
 import org.springframework.xd.shell.command.HttpCommands;
 import org.springframework.xd.shell.command.JobCommands;
+import org.springframework.xd.shell.command.RichGaugeCommands;
 import org.springframework.xd.shell.command.StreamCommands;
 import org.springframework.xd.shell.command.TapCommands;
 import org.springframework.xd.shell.command.TriggerCommands;
@@ -100,7 +104,10 @@ public class ReferenceDoc {
 		titles.put(TriggerCommands.class, "Trigger Commands");
 		titles.put(CounterCommands.class, "Metrics Commands");
 		// Use of repeated title here on purpose
-		// titles.put(FieldValueCounterCommands.class, "Metrics Commands");
+		titles.put(FieldValueCounterCommands.class, "Metrics Commands");
+		titles.put(AggregateCounterCommands.class, "Metrics Commands");
+		titles.put(GaugeCommands.class, "Metrics Commands");
+		titles.put(RichGaugeCommands.class, "Metrics Commands");
 		titles.put(HttpCommands.class, "Http Commands");
 		titles.put(ConfigurationCommands.class, "Hadoop Configuration Commands");
 		titles.put(FsShellCommands.class, "Hadoop FileSystem Commands");

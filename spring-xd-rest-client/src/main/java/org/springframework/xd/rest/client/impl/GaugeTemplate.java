@@ -17,36 +17,36 @@
 package org.springframework.xd.rest.client.impl;
 
 import org.springframework.hateoas.PagedResources;
-import org.springframework.xd.rest.client.FieldValueCounterOperations;
-import org.springframework.xd.rest.client.domain.metrics.FieldValueCounterResource;
+import org.springframework.xd.rest.client.GaugeOperations;
+import org.springframework.xd.rest.client.domain.metrics.GaugeResource;
 import org.springframework.xd.rest.client.domain.metrics.MetricResource;
 
 /**
- * Implementation of the Field Value Counter part of the metrics API.
+ * Implementation of the Gauge part of the metrics API.
  * 
- * @author Eric Bottard
+ * @author Ilayaperumal Gopinathan
  */
-public class FieldValueCounterTemplate extends AbstractTemplate implements FieldValueCounterOperations {
+public class GaugeTemplate extends AbstractTemplate implements GaugeOperations {
 
-	public FieldValueCounterTemplate(AbstractTemplate abstractTemplate) {
+	public GaugeTemplate(AbstractTemplate abstractTemplate) {
 		super(abstractTemplate);
 	}
 
 	@Override
-	public FieldValueCounterResource retrieve(String name) {
-		String url = resources.get("field-value-counters").toString() + "/{name}";
-		return restTemplate.getForObject(url, FieldValueCounterResource.class, name);
+	public GaugeResource retrieve(String name) {
+		String url = resources.get("gauges").toString() + "/{name}";
+		return restTemplate.getForObject(url, GaugeResource.class, name);
 	}
 
 	@Override
 	public PagedResources<MetricResource> list() {
-		String url = resources.get("field-value-counters").toString() + "?page=10000";
+		String url = resources.get("gauges").toString() + "?page=10000";
 		return restTemplate.getForObject(url, MetricResource.Page.class);
 	}
 	
 	@Override
 	public void delete(String name) {
-		String url = resources.get("field-value-counters").toString() + "/{name}";
+		String url = resources.get("gauges").toString() + "/{name}";
 		restTemplate.delete(url, name);
 	}
 

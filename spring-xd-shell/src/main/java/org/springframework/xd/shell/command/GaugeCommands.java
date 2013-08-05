@@ -24,6 +24,7 @@ import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
 import org.springframework.xd.rest.client.GaugeOperations;
+import org.springframework.xd.rest.client.domain.metrics.GaugeResource;
 import org.springframework.xd.rest.client.domain.metrics.MetricResource;
 import org.springframework.xd.shell.XDShell;
 import org.springframework.xd.shell.util.Table;
@@ -49,7 +50,7 @@ public class GaugeCommands extends AbstractMetricsCommands implements CommandMar
 	@Autowired
 	private XDShell xdShell;
 
-	@CliAvailabilityIndicator({ LIST_GAUGES, DELETE_GAUGE})
+	@CliAvailabilityIndicator({ LIST_GAUGES, DISPLAY_GAUGE, DELETE_GAUGE})
 	public boolean available() {
 		return xdShell.getSpringXDOperations() != null;
 	}
@@ -58,6 +59,13 @@ public class GaugeCommands extends AbstractMetricsCommands implements CommandMar
 	public Table list(/* TODO */) {
 		PagedResources<MetricResource> list = gaugeOperations().list(/* TODO */);
 		return displayMetrics(list);
+	}
+	
+	@CliCommand(value = DISPLAY_GAUGE, help="Display the gauge value")
+	public long display(
+			@CliOption(key = {"", "name"}, help = "the name of the gauge to display value", mandatory = true) String name){
+		GaugeResource gauge = gaugeOperations().retrieve(name);
+		return gauge.getValue();
 	}
 	
 	@CliCommand(value = DELETE_GAUGE, help= "Delete the gauge")

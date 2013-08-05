@@ -12,39 +12,52 @@
  */
 package org.springframework.xd.dirt.rest.metrics;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.xd.analytics.metrics.core.GaugeRepository;
+import org.springframework.xd.analytics.metrics.core.Gauge;
 import org.springframework.xd.dirt.rest.AbstractControllerIntegrationTest;
 import org.springframework.xd.dirt.rest.MockedDependencies;
 import org.springframework.xd.dirt.rest.RestConfiguration;
 
 /**
  * @author Luke Taylor
+ * @author Ilayaperumal Gopinathan
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = { RestConfiguration.class, MockedDependencies.class, InMemoryMetricReposConfig.class })
+@ContextConfiguration(classes = { RestConfiguration.class, MockedDependencies.class })
 public class GaugeControllerIntegrationTests extends AbstractControllerIntegrationTest {
-
-	@Autowired
-	private GaugeRepository gaugeRepository;
 
 	@Test
 	public void gaugeRetrievalSucceeds() throws Exception {
-		gaugeRepository.setValue("mygauge", 55);
-
+		when(gaugeRepository.findOne("mygauge")).thenReturn(new Gauge("mygauge", 55));
 		mockMvc.perform(get("/metrics/gauges/mygauge").accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.name").value("mygauge"))
 				.andExpect(jsonPath("$.value").value(55));
+	}
+	
+	@Test
+	public void testDeleteGauge() throws Exception {
+		when(gaugeRepository.exists("deleteme")).thenReturn(true);
+		mockMvc.perform(delete("/metrics/gauges/{name}", "deleteme")).andExpect(status().isOk());
+		verify(gaugeRepository).delete("deleteme");
+	}
+	
+	@Test
+	public void testDeleteUnknownGauge() throws Exception {
+		when(gaugeRepository.exists("deleteme")).thenReturn(false);
+		mockMvc.perform(delete("/metrics/gauges/{name}", "deleteme")).andExpect(status().isNotFound());
 	}
 }

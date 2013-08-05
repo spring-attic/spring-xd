@@ -27,8 +27,11 @@ import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
 import org.springframework.xd.rest.client.domain.TapDefinitionResource;
 import org.springframework.xd.rest.client.domain.TriggerDefinitionResource;
 import org.springframework.xd.rest.client.domain.XDRuntime;
+import org.springframework.xd.rest.client.domain.metrics.AggregateCountsResource;
 import org.springframework.xd.rest.client.domain.metrics.CounterResource;
 import org.springframework.xd.rest.client.domain.metrics.FieldValueCounterResource;
+import org.springframework.xd.rest.client.domain.metrics.GaugeResource;
+import org.springframework.xd.rest.client.domain.metrics.RichGaugeResource;
 
 /**
  * @author Eric Bottard
@@ -55,6 +58,9 @@ public class AdminController {
 
 		xdRuntime.add(entityLinks.linkFor(CounterResource.class).withRel("counters"));
 		xdRuntime.add(entityLinks.linkFor(FieldValueCounterResource.class).withRel("field-value-counters"));
+		xdRuntime.add(entityLinks.linkFor(AggregateCountsResource.class).withRel("aggregate-counters"));
+		xdRuntime.add(entityLinks.linkFor(GaugeResource.class).withRel("gauges"));
+		xdRuntime.add(entityLinks.linkFor(RichGaugeResource.class).withRel("richgauges"));
 		return xdRuntime;
 	}
 

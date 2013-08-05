@@ -25,12 +25,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.xd.analytics.metrics.core.Gauge;
-import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 import org.springframework.xd.analytics.metrics.core.RichGauge;
 import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
 import org.springframework.xd.dirt.analytics.NoSuchMetricException;
-import org.springframework.xd.rest.client.domain.metrics.GaugeResource;
 import org.springframework.xd.rest.client.domain.metrics.MetricResource;
 import org.springframework.xd.rest.client.domain.metrics.RichGaugeResource;
 

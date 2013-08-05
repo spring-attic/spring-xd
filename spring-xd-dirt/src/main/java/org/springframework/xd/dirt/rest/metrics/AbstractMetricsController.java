@@ -25,9 +25,14 @@ import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.data.web.PagedResourcesAssemblerArgumentResolver;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.ResourceAssembler;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.analytics.metrics.core.Metric;
 import org.springframework.xd.analytics.metrics.core.MetricRepository;
+import org.springframework.xd.dirt.stream.NoSuchDefinitionException;
 import org.springframework.xd.rest.client.domain.metrics.MetricResource;
 
 /**
@@ -35,6 +40,7 @@ import org.springframework.xd.rest.client.domain.metrics.MetricResource;
  * to provide the root {@link RequestMapping} uri.
  * 
  * @author Eric Bottard
+ * @author Ilayaperumal Gopinathan
  */
 abstract class AbstractMetricsController<R extends MetricRepository<M>, M extends Metric> {
 
@@ -58,6 +64,20 @@ abstract class AbstractMetricsController<R extends MetricRepository<M>, M extend
 		// Ok for now until we use PagingAndSortingRepo as we know we have lists
 		Page<M> page = new PageImpl<M>((List<M>) metrics);
 		return pagedAssembler.toResource(page, shallowResourceAssembler);
+	}
+	
+	/**
+	 * Deletes the metric from the repository
+	 * @param name the name of the metric to delete
+	 */
+	@RequestMapping(value = "/{name}", method = RequestMethod.DELETE)
+	@ResponseStatus(HttpStatus.OK)
+	protected void delete(@PathVariable("name") String name) {
+		if (!repository.exists(name)) {
+			throw new NoSuchDefinitionException(name,
+				"Can't delete metric '%s' because it does not exist");
+		}
+		repository.delete(name);
 	}
 
 	// helper code for reset, etc. can go here

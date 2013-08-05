@@ -17,29 +17,24 @@
 package org.springframework.xd.rest.client;
 
 import org.springframework.hateoas.PagedResources;
-import org.springframework.xd.rest.client.domain.metrics.FieldValueCounterResource;
 import org.springframework.xd.rest.client.domain.metrics.MetricResource;
 
+
 /**
- * Interface defining operations available when dealing with Field Value Counters.
+ * Interface defining operations available when dealing with Rich Gauge.
  * 
- * @author Eric Bottard
+ * @author Ilayaperumal Gopinathan
  */
-public interface FieldValueCounterOperations {
-
-	/**
-	 * Retrieve information about the given named field value counter.
-	 */
-	FieldValueCounterResource retrieve(String name);
-
-	/**
-	 * Retrieve basic information (i.e. names) for existing field value counters.
-	 */
-	PagedResources<MetricResource> list(/* TODO */);
+public interface RichGaugeOperations {
 	
 	/**
-	 * Delete the given named field value counter
-	 * @param name the name of the field value counter to delete
+	 * List the names of the available richgauges
+	 */
+	PagedResources<MetricResource> list();
+	
+	/**
+	 * Delete the given named rich gauge
+	 * @param name the name of the rich gauge to delete
 	 */
 	void delete(String name);
 

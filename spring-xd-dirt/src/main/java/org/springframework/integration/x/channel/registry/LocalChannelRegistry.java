@@ -42,11 +42,11 @@ import org.springframework.util.Assert;
 
 /**
  * A simple implementation of {@link ChannelRegistry} for in-process use. For inbound and outbound, creates a
- * {@link DirectChannel} and bridges the passed {@link MessageChannel} to the channel which is registered in the given
- * application context. If that channel does not yet exist, it will be created. For tap, it adds a {@link WireTap} for
- * an inbound channel whose name matches the one provided. If no such inbound channel exists at the time of the method
- * invocation, it will throw an Exception. Otherwise the provided channel instance will receive messages from the wire
- * tap on that inbound channel.
+ * {@link DirectChannel} or a {@link QueueChannel} depending on whether the binding is aliased or not then bridges the
+ * passed {@link MessageChannel} to the channel which is registered in the given application context. If that channel
+ * does not yet exist, it will be created. For tap, it adds a {@link WireTap} for an inbound channel whose name matches
+ * the one provided. If no such inbound channel exists at the time of the method invocation, it will throw an Exception.
+ * Otherwise the provided channel instance will receive messages from the wire tap on that inbound channel.
  * 
  * @author David Turanski
  * @author Mark Fisher
@@ -150,8 +150,6 @@ public class LocalChannelRegistry extends ChannelRegistrySupport implements Appl
 	public void outbound(String name, MessageChannel moduleOutputChannel, boolean aliasHint) {
 		Assert.hasText(name, "a valid name is required to register an outbound channel");
 		Assert.notNull(moduleOutputChannel, "channel must not be null");
-		// Assert.isTrue(moduleOutputChannel instanceof SubscribableChannel,
-		// "channel must be of type " + SubscribableChannel.class.getName());
 		AbstractMessageChannel registeredChannel = lookupOrCreateSharedChannel(name, aliasHint);
 		bridge(moduleOutputChannel, registeredChannel, registeredChannel.getComponentName() + ".out.bridge");
 	}
@@ -288,7 +286,7 @@ public class LocalChannelRegistry extends ChannelRegistrySupport implements Appl
 		cefb.start();
 		return handler;
 	}
-	
+
 	protected <T> T getBean(String name, Class<T> requiredType) {
 		return this.applicationContext.getBean(name, requiredType);
 	}
@@ -347,7 +345,7 @@ public class LocalChannelRegistry extends ChannelRegistrySupport implements Appl
 
 		protected abstract T createSharedChannel(String name);
 
-		protected T lookupSharedChannel(String name) {			
+		protected T lookupSharedChannel(String name) {
 			T channel = null;
 			if (applicationContext.containsBean(name)) {
 				try {

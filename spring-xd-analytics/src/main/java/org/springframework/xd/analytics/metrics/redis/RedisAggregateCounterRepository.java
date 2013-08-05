@@ -188,8 +188,11 @@ public class RedisAggregateCounterRepository extends RedisCounterRepository impl
 
 	@Override
 	public void delete(String id) {
+		String metricMetaKey = bookkeepingKeyFor(id);
 		super.delete(id);
-		Set<String> otherKeys = setOperations.members(bookkeepingKeyFor(id));
+		Set<String> otherKeys = setOperations.members(metricMetaKey);
+		// Add metric-meta SET's key
+		otherKeys.add(metricMetaKey);
 		redisOperations.delete(otherKeys);
 	}
 }

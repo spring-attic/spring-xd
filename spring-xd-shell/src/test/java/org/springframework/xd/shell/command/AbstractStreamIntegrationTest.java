@@ -29,10 +29,10 @@ import static org.junit.Assert.*;
 /**
  * Provides an @After JUnit lifecycle method that will destroy the definitions that were created by calling
  * executeXXXCreate methods.
- *
+ * 
  * @author Andy Clement
  * @author Mark Pollack
- *
+ * 
  */
 public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegrationTest {
 
@@ -79,25 +79,24 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 	 * Execute stream create for the supplied stream name/definition, and verify the command result.
 	 */
 	protected void executeStreamCreate(String streamname, String streamdefinition, boolean deploy) {
-		CommandResult cr = executeCommand("stream create --definition \""+
-			streamdefinition+"\" --name "+streamname+
-				(deploy?"":" --deploy false"));
+		CommandResult cr = executeCommand("stream create --definition \"" + streamdefinition + "\" --name "
+				+ streamname + (deploy ? "" : " --deploy false"));
 		// add the stream name to the streams list before assertion
 		streams.add(streamname);
-		assertEquals("Created new stream '"+streamname+"'",cr.getResult());
+		assertEquals("Created new stream '" + streamname + "'", cr.getResult());
 		verifyStreamExists(streamname, streamdefinition);
 	}
 
 	protected void executeStreamDeploy(String streamname) {
-		CommandResult cr = getShell().executeCommand("stream deploy --name "+streamname);
+		CommandResult cr = getShell().executeCommand("stream deploy --name " + streamname);
 		assertTrue("Failure.  CommandResult = " + cr.toString(), cr.isSuccess());
 		assertEquals("Deployed stream 'ticktock'", cr.getResult());
 	}
 
 	protected void executeStreamUndeploy(String streamname) {
-		CommandResult cr = getShell().executeCommand("stream undeploy --name ticktock");
+		CommandResult cr = getShell().executeCommand("stream undeploy --name " + streamname);
 		assertTrue(cr.isSuccess());
-		assertEquals("Un-deployed stream 'ticktock'", cr.getResult());
+		assertEquals("Un-deployed stream '" + streamname + "'", cr.getResult());
 	}
 
 	/**
@@ -107,15 +106,17 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 		CommandResult cr = executeCommand("tap create --definition \"" + tapdefinition + "\" --name " + tapname
 				+ (deploy ? "" : " --deploy false"));
 		taps.add(tapname);
-		assertEquals("Created new tap '" + tapname + "'", cr.getResult());
+		String expectedResult = String.format("Created %snew tap '%s'", deploy ? "and deployed " : "", tapname);
+		assertEquals(expectedResult, cr.getResult());
 	}
 
 	/**
-	 * Verify the stream is listed in stream list
+	 * Verify the stream is listed in stream list.
+	 * 
 	 * @param streamName the name of the stream
 	 * @param definition definition of the stream
 	 */
-	protected void verifyStreamExists(String streamName, String definition){
+	protected void verifyStreamExists(String streamName, String definition) {
 		CommandResult cr = getShell().executeCommand("stream list");
 		assertTrue("Failure.  CommandResult = " + cr.toString(), cr.isSuccess());
 		Table t = (Table) cr.getResult();

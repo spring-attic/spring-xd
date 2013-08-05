@@ -25,11 +25,12 @@ import org.springframework.shell.core.CommandResult;
 import static org.junit.Assert.*;
 
 /**
- * Tap commands test
+ * Tap commands tests.
+ * 
  * @author Ilayaperumal Gopinathan
  * 
  */
-public class TapCommandTests extends AbstractTapIntegrationTest {
+public class TapCommandTests extends AbstractStreamIntegrationTest {
 
 	private static final Log logger = LogFactory.getLog(TapCommandTests.class);
 
@@ -50,6 +51,10 @@ public class TapCommandTests extends AbstractTapIntegrationTest {
 		executeStreamCreate(streamName, "http --port=" + httpPort + " | log");
 		executeTapCreate("taptest-tap", "tap@ " + streamName + " | counter --name=" + counterName);
 		// Verify tap by checking counter value after posting http data
+		// Adding a small delay here to make sure the http source
+		// is actually started.
+		Thread.sleep(5000);
+
 		httpPostData("http://localhost:" + httpPort, "test");
 		checkIfCounterExists(counterName);
 		checkCounterValue(counterName, "1");

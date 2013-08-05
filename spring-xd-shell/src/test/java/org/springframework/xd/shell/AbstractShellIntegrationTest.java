@@ -99,6 +99,7 @@ public abstract class AbstractShellIntegrationTest {
 	 * 
 	 * @param target the http target
 	 * @param data the data to send
+	 * @throws
 	 */
 	protected void httpPostData(String target, String data) {
 		executeCommand("http post --target " + target + " --data " + data);

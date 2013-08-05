@@ -16,10 +16,14 @@
 
 package org.springframework.integration.x.channel.registry;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import java.util.Collection;
 import java.util.Collections;
 
 import org.junit.Test;
+
 import org.springframework.http.MediaType;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
@@ -27,8 +31,6 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.xd.dirt.stream.Tap;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Gary Russell
@@ -48,11 +50,13 @@ public abstract class AbstractChannelRegistryTests {
 		registry.tap("bar", "foo.0", new DirectChannel());
 		Collection<?> bridges = getBridges(registry);
 		assertEquals(6, bridges.size());
-		registry.cleanAll("foo.0");
-		assertEquals(4, bridges.size());
-		registry.cleanAll("foo.1");
-		assertEquals(2, bridges.size());
-		registry.cleanAll("foo.2");
+		registry.deleteOutbound("foo.0");
+		assertEquals(5, bridges.size());
+		registry.deleteInbound("foo.0");
+		registry.deleteOutbound("foo.1");
+		assertEquals(3, bridges.size());
+		registry.deleteInbound("foo.1");
+		registry.deleteOutbound("foo.2");
 		assertEquals(1, bridges.size()); // tap remains
 	}
 
@@ -72,9 +76,11 @@ public abstract class AbstractChannelRegistryTests {
 		registry.outbound("bar.0", output, false);
 		Collection<?> bridges = getBridges(registry);
 		assertEquals(5, bridges.size()); // 2 each stream + tap
-		registry.cleanAll("bar.0");
+		registry.deleteOutbound("bar.0");
+		registry.deleteInbound("bar.0");
 		assertEquals(2, bridges.size()); // tap completely gone
-		registry.cleanAll("foo.0");
+		registry.deleteOutbound("foo.0");
+		registry.deleteInbound("foo.0");
 		assertEquals(0, bridges.size());
 	}
 

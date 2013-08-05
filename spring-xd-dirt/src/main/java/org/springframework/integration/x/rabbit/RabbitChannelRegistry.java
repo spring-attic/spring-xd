@@ -24,6 +24,7 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.FanoutExchange;
@@ -52,7 +53,7 @@ import org.springframework.util.Assert;
 
 /**
  * A {@link ChannelRegistry} implementation backed by RabbitMQ.
- * 
+ *
  * @author Mark Fisher
  * @author Gary Russell
  */
@@ -144,7 +145,24 @@ public class RabbitChannelRegistry extends ChannelRegistrySupport implements Dis
 	}
 
 	@Override
-	public void cleanAll(String name) {
+	public void deleteInbound(String name) {
+		synchronized (this.lifecycleBeans) {
+			Iterator<Lifecycle> iterator = this.lifecycleBeans.iterator();
+			while (iterator.hasNext()) {
+				Lifecycle endpoint = iterator.next();
+				if (endpoint instanceof AmqpInboundChannelAdapter) {
+					String componentName = ((IntegrationObjectSupport) endpoint).getComponentName();
+					if (("inbound." + name).equals(componentName) || (name + ".tapAdapter").equals(componentName)) {
+						((AmqpInboundChannelAdapter) endpoint).stop();
+						iterator.remove();
+					}
+				}
+			}
+		}
+	}
+
+	@Override
+	public void deleteOutbound(String name) {
 		synchronized (this.lifecycleBeans) {
 			Iterator<Lifecycle> iterator = this.lifecycleBeans.iterator();
 			while (iterator.hasNext()) {
@@ -153,13 +171,7 @@ public class RabbitChannelRegistry extends ChannelRegistrySupport implements Dis
 						&& ("outbound." + name).equals(((IntegrationObjectSupport) endpoint).getComponentName())) {
 					((EventDrivenConsumer) endpoint).stop();
 					iterator.remove();
-				}
-				else if (endpoint instanceof AmqpInboundChannelAdapter) {
-					String componentName = ((IntegrationObjectSupport) endpoint).getComponentName();
-					if (("inbound." + name).equals(componentName) || (name + ".tapAdapter").equals(componentName)) {
-						((AmqpInboundChannelAdapter) endpoint).stop();
-						iterator.remove();
-					}
+					return;
 				}
 			}
 		}

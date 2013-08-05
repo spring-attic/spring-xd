@@ -24,6 +24,7 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -46,7 +47,7 @@ import org.springframework.util.Assert;
 
 /**
  * A {@link ChannelRegistry} implementation backed by Redis.
- * 
+ *
  * @author Mark Fisher
  * @author Gary Russell
  * @author David Turanski
@@ -114,17 +115,12 @@ public class RedisChannelRegistry extends ChannelRegistrySupport implements Disp
 	}
 
 	@Override
-	public void cleanAll(String name) {
+	public void deleteInbound(String name) {
 		synchronized (this.lifecycleBeans) {
 			Iterator<Lifecycle> iterator = this.lifecycleBeans.iterator();
 			while (iterator.hasNext()) {
 				Lifecycle endpoint = iterator.next();
-				if (endpoint instanceof EventDrivenConsumer
-						&& ("outbound." + name).equals(((IntegrationObjectSupport) endpoint).getComponentName())) {
-					((EventDrivenConsumer) endpoint).stop();
-					iterator.remove();
-				}
-				else if (endpoint instanceof RedisQueueInboundChannelAdapter
+				if (endpoint instanceof RedisQueueInboundChannelAdapter
 						&& ("inbound." + name).equals(((IntegrationObjectSupport) endpoint).getComponentName())) {
 					((RedisQueueInboundChannelAdapter) endpoint).stop();
 					iterator.remove();
@@ -133,6 +129,22 @@ public class RedisChannelRegistry extends ChannelRegistrySupport implements Disp
 						&& (name + ".tapAdapter").equals(((IntegrationObjectSupport) endpoint).getComponentName())) {
 					((RedisInboundChannelAdapter) endpoint).stop();
 					iterator.remove();
+				}
+			}
+		}
+	}
+
+	@Override
+	public void deleteOutbound(String name) {
+		synchronized (this.lifecycleBeans) {
+			Iterator<Lifecycle> iterator = this.lifecycleBeans.iterator();
+			while (iterator.hasNext()) {
+				Lifecycle endpoint = iterator.next();
+				if (endpoint instanceof EventDrivenConsumer
+						&& ("outbound." + name).equals(((IntegrationObjectSupport) endpoint).getComponentName())) {
+					((EventDrivenConsumer) endpoint).stop();
+					iterator.remove();
+					return;
 				}
 			}
 		}

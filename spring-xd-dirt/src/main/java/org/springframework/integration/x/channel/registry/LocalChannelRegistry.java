@@ -47,7 +47,7 @@ import org.springframework.util.Assert;
  * does not yet exist, it will be created. For tap, it adds a {@link WireTap} for an inbound channel whose name matches
  * the one provided. If no such inbound channel exists at the time of the method invocation, it will throw an Exception.
  * Otherwise the provided channel instance will receive messages from the wire tap on that inbound channel.
- * 
+ *
  * @author David Turanski
  * @author Mark Fisher
  * @author Gary Russell
@@ -175,13 +175,23 @@ public class LocalChannelRegistry extends ChannelRegistrySupport implements Appl
 	}
 
 	@Override
-	public void cleanAll(String name) {
-		Assert.hasText(name, "a valid name is required to clean a module");
+	public void deleteInbound(String name) {
+		doDelete(name, ".in.bridge");
+	}
+
+	@Override
+	public void deleteOutbound(String name) {
+		doDelete(name, ".out.bridge");
+	}
+
+	private void doDelete(String name, String suffix) {
+		Assert.hasText(name, "a valid name is required to remove a channel");
+		String bridgeName = name + suffix;
 		synchronized (this.bridges) {
 			Iterator<BridgeMetadata> iterator = this.bridges.iterator();
 			while (iterator.hasNext()) {
 				BridgeMetadata bridge = iterator.next();
-				if (bridge.handler.getComponentName().startsWith(name) || name.equals(bridge.tapModule)) {
+				if (bridge.handler.getComponentName().equals(bridgeName) || name.equals(bridge.tapModule)) {
 					// bridge.channel.unsubscribe(bridge.handler);
 					bridge.cefb.stop();
 					iterator.remove();
@@ -292,9 +302,9 @@ public class LocalChannelRegistry extends ChannelRegistrySupport implements Appl
 	}
 
 	/**
-	 * Used to remember the bridging that was done, so it can be undone in {@link LocalChannelRegistry#cleanAll(String)}
+	 * Used to remember the bridging that was done, so it can be undone in {@link LocalChannelRegistry#deleteOutbound(String)}
 	 * .
-	 * 
+	 *
 	 * @author Eric Bottard
 	 */
 	private static class BridgeMetadata {
@@ -319,7 +329,7 @@ public class LocalChannelRegistry extends ChannelRegistrySupport implements Appl
 
 	/**
 	 * Looks up or optionally creates a new channel to use.
-	 * 
+	 *
 	 * @author Eric Bottard
 	 */
 	private abstract class SharedChannelProvider<T extends AbstractMessageChannel> {

@@ -16,6 +16,10 @@
 
 package org.springframework.xd.dirt.plugins.stream;
 
+import static org.springframework.xd.module.ModuleType.PROCESSOR;
+import static org.springframework.xd.module.ModuleType.SINK;
+import static org.springframework.xd.module.ModuleType.SOURCE;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -23,6 +27,7 @@ import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
@@ -35,8 +40,6 @@ import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.Plugin;
 
-import static org.springframework.xd.module.ModuleType.*;
-
 /**
  * @author Mark Fisher
  * @author Gary Russell
@@ -45,6 +48,7 @@ import static org.springframework.xd.module.ModuleType.*;
  * @author Glenn Renfro
  */
 public class StreamPlugin implements Plugin {
+
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	private static final String CONTEXT_CONFIG_ROOT = DefaultContainer.XD_CONFIG_ROOT + "plugins/stream/";
@@ -106,7 +110,8 @@ public class StreamPlugin implements Plugin {
 	public void removeModule(Module module) {
 		ChannelRegistry registry = findRegistry(module);
 		if (registry != null) {
-			registry.cleanAll(module.getDeploymentMetadata().getGroup());
+			registry.deleteInbound(module.getDeploymentMetadata().getInputChannelName());
+			registry.deleteOutbound(module.getDeploymentMetadata().getOutputChannelName());
 		}
 	}
 

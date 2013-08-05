@@ -19,6 +19,7 @@ package org.springframework.xd.rest.client.impl;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.xd.rest.client.RichGaugeOperations;
 import org.springframework.xd.rest.client.domain.metrics.MetricResource;
+import org.springframework.xd.rest.client.domain.metrics.RichGaugeResource;
 
 /**
  * Implementation of the RichGauge part of the metrics API.
@@ -31,6 +32,17 @@ public class RichGaugeTemplate extends AbstractTemplate implements RichGaugeOper
 		super(abstractTemplate);
 	}
 
+	@Override
+	public String display(String name){
+		String url = resources.get("richgauges").toString() + "/{name}";
+		RichGaugeResource resource = restTemplate.getForObject(url, RichGaugeResource.class, name);
+		return "name: "+ resource.getName() + ", " + 
+	    			"value: "+ resource.getValue() + ", " +
+	    			"avg: "+ resource.getAverage() + ", " +
+	    			"max: "+ resource.getMax() + ", " +
+	    			"min: "+ resource.getMin() ;
+	}
+	
 	@Override
 	public PagedResources<MetricResource> list() {
 		String url = resources.get("richgauges").toString() + "?page=10000";

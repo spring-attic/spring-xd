@@ -53,9 +53,9 @@ public class CountersControllerIntegrationTests extends AbstractControllerIntegr
 		when(counterRepository.findOne("iamthere")).thenReturn(new Counter("iamthere", 12L));
 
 		mockMvc.perform(get("/metrics/counters/iamthere"))//
-		.andExpect(status().isOk())//
-		.andExpect(jsonPath("$.name").value("iamthere"))//
-		.andExpect(jsonPath("$.value").value(12));
+				.andExpect(status().isOk())//
+				.andExpect(jsonPath("$.name").value("iamthere"))//
+				.andExpect(jsonPath("$.value").value(12));
 	}
 
 	@Test
@@ -68,6 +68,19 @@ public class CountersControllerIntegrationTests extends AbstractControllerIntegr
 		when(counterRepository.findAll()).thenReturn(Arrays.asList(counters));
 
 		mockMvc.perform(get("/metrics/counters")).andExpect(status().isOk())//
-		.andExpect(jsonPath("$.content", Matchers.hasSize(10)));
+				.andExpect(jsonPath("$.content", Matchers.hasSize(10)));
+	}
+
+	@Test
+	public void testInexistantCounterDeletion() throws Exception {
+		mockMvc.perform(delete("/metrics/counters/{name}", "deleteme")).andExpect(status().isNotFound());
+	}
+
+	@Test
+	public void testCounterDeletion() throws Exception {
+		when(counterRepository.exists("deleteme")).thenReturn(true);
+
+		mockMvc.perform(delete("/metrics/counters/{name}", "deleteme")).andExpect(status().isOk());
+		verify(counterRepository).delete("deleteme");
 	}
 }

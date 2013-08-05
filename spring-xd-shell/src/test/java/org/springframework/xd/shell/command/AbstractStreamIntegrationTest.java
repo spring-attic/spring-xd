@@ -79,10 +79,12 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 	 * Execute stream create for the supplied stream name/definition, and verify the command result.
 	 */
 	protected void executeStreamCreate(String streamname, String streamdefinition, boolean deploy) {
-		CommandResult cr = executeCommand("stream create --definition \"" + streamdefinition + "\" --name "
-				+ streamname + (deploy ? "" : " --deploy false"));
-		assertEquals("Created new stream '" + streamname + "'", cr.getResult());
+		CommandResult cr = executeCommand("stream create --definition \""+
+			streamdefinition+"\" --name "+streamname+
+				(deploy?"":" --deploy false"));
+		// add the stream name to the streams list before assertion
 		streams.add(streamname);
+		assertEquals("Created new stream '"+streamname+"'",cr.getResult());
 		verifyStreamExists(streamname, streamdefinition);
 	}
 
@@ -104,8 +106,8 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 	protected void executeTapCreate(String tapname, String tapdefinition, boolean deploy) {
 		CommandResult cr = executeCommand("tap create --definition \"" + tapdefinition + "\" --name " + tapname
 				+ (deploy ? "" : " --deploy false"));
-		assertEquals("Created new tap '" + tapname + "'", cr.getResult());
 		taps.add(tapname);
+		assertEquals("Created new tap '" + tapname + "'", cr.getResult());
 	}
 
 	/**

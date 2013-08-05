@@ -32,12 +32,12 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.analytics.metrics.core.Metric;
 import org.springframework.xd.analytics.metrics.core.MetricRepository;
-import org.springframework.xd.dirt.stream.NoSuchDefinitionException;
+import org.springframework.xd.dirt.analytics.NoSuchMetricException;
 import org.springframework.xd.rest.client.domain.metrics.MetricResource;
 
 /**
- * Base class for controllers that expose metrics related resources. Subclasses are meant
- * to provide the root {@link RequestMapping} uri.
+ * Base class for controllers that expose metrics related resources. Subclasses are meant to provide the root
+ * {@link RequestMapping} uri.
  * 
  * @author Eric Bottard
  * @author Ilayaperumal Gopinathan
@@ -54,9 +54,8 @@ abstract class AbstractMetricsController<R extends MetricRepository<M>, M extend
 			this.getClass());
 
 	/**
-	 * Handles listing of shallow metric representations. Method still has to be
-	 * overridden (and annotated) in subclasses because of the way
-	 * {@link PagedResourcesAssemblerArgumentResolver} works.
+	 * Handles listing of shallow metric representations. Method still has to be overridden (and annotated) in
+	 * subclasses because of the way {@link PagedResourcesAssemblerArgumentResolver} works.
 	 */
 	protected PagedResources<MetricResource> list(Pageable pageable, PagedResourcesAssembler<M> pagedAssembler) {
 		/* Page */Iterable<M> metrics = repository.findAll(/* pageable */);
@@ -65,21 +64,19 @@ abstract class AbstractMetricsController<R extends MetricRepository<M>, M extend
 		Page<M> page = new PageImpl<M>((List<M>) metrics);
 		return pagedAssembler.toResource(page, shallowResourceAssembler);
 	}
-	
+
 	/**
 	 * Deletes the metric from the repository
 	 * @param name the name of the metric to delete
 	 */
 	@RequestMapping(value = "/{name}", method = RequestMethod.DELETE)
 	@ResponseStatus(HttpStatus.OK)
-	protected void delete(@PathVariable("name") String name) {
+	protected void delete(@PathVariable("name")
+	String name) {
 		if (!repository.exists(name)) {
-			throw new NoSuchDefinitionException(name,
-				"Can't delete metric '%s' because it does not exist");
+			throw new NoSuchMetricException(name, "Can't delete metric '%s' because it does not exist");
 		}
 		repository.delete(name);
 	}
-
 	// helper code for reset, etc. can go here
-
 }

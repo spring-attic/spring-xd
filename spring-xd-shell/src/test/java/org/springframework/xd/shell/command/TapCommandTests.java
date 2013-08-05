@@ -15,14 +15,14 @@
  */
 package org.springframework.xd.shell.command;
 
-import static org.junit.Assert.assertEquals;
-
 import java.util.Random;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 import org.springframework.shell.core.CommandResult;
+
+import static org.junit.Assert.*;
 
 /**
  * Tap commands test
@@ -42,14 +42,13 @@ public class TapCommandTests extends AbstractTapIntegrationTest {
 	}
 
 	@Test
-	public void testCreateAndDeployTap() {
+	public void testCreateAndDeployTap() throws Exception {
 		logger.info("Create and deploy a tap");
 		String streamName = "taptestticktock";
 		String counterName = "taptest-counter" + new Random().nextInt();
 		String httpPort = "9193";
 		executeStreamCreate(streamName, "http --port=" + httpPort + " | log");
-		executeTapCreate("taptest-tap", "tap@ " + streamName
-				+ " | counter --name=" + counterName);
+		executeTapCreate("taptest-tap", "tap@ " + streamName + " | counter --name=" + counterName);
 		// Verify tap by checking counter value after posting http data
 		httpPostData("http://localhost:" + httpPort, "test");
 		checkIfCounterExists(counterName);
@@ -65,12 +64,10 @@ public class TapCommandTests extends AbstractTapIntegrationTest {
 		String httpPort = "9193";
 		String tapName = "tapdestroytest";
 		executeStreamCreate(streamName, "http --port=" + httpPort + " | log");
-		String tapDefinition = "tap@ " + streamName + " | counter --name="
-				+ counterName;
-		CommandResult cr = executeCommand("tap create --definition \""
-				+ tapDefinition + "\" --name " + tapName + " --deploy true");
-		assertEquals("Created and deployed new tap " + "'" + tapName + "'",
-				cr.getResult());
+		String tapDefinition = "tap@ " + streamName + " | counter --name=" + counterName;
+		CommandResult cr = executeCommand("tap create --definition \"" + tapDefinition + "\" --name " + tapName
+				+ " --deploy true");
+		assertEquals("Created and deployed new tap " + "'" + tapName + "'", cr.getResult());
 		cr = executeCommand("tap destroy --name " + tapName);
 		assertEquals("Destroyed tap " + "'" + tapName + "'", cr.getResult());
 	}

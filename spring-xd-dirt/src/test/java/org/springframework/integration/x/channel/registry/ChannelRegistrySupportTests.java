@@ -15,11 +15,15 @@
  */
 package org.springframework.integration.x.channel.registry;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Collections;
 
 import org.junit.Test;
+
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.http.MediaType;
@@ -31,11 +35,9 @@ import org.springframework.util.ReflectionUtils.MethodCallback;
 import org.springframework.xd.tuple.Tuple;
 import org.springframework.xd.tuple.TupleBuilder;
 
-import static org.junit.Assert.*;
-
 /**
  * @author Gary Russell
- * 
+ *
  */
 public class ChannelRegistrySupportTests {
 
@@ -208,7 +210,7 @@ public class ChannelRegistrySupportTests {
 
 	/**
 	 * Device to increase visibility of private methods.
-	 * 
+	 *
 	 */
 	public class TestChannelRegistry extends ChannelRegistrySupport {
 
@@ -239,16 +241,20 @@ public class ChannelRegistrySupportTests {
 		}
 
 		@Override
-		public void inbound(String name, MessageChannel channel, Collection<MediaType> acceptedMediaTypes,
+		public void createInbound(String name, MessageChannel channel, Collection<MediaType> acceptedMediaTypes,
 				boolean aliasHint) {
 		}
 
 		@Override
-		public void outbound(String name, MessageChannel channel, boolean aliasHint) {
+		public void createOutbound(String name, MessageChannel channel, boolean aliasHint) {
 		}
 
 		@Override
-		public void cleanAll(String name) {
+		public void deleteInbound(String name) {
+		}
+
+		@Override
+		public void deleteOutbound(String name) {
 		}
 
 		public Object transformPayloadFromOutputChannel(Object payload, MediaType to) {

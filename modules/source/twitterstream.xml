@@ -12,6 +12,7 @@
 
 	<bean class="org.springframework.integration.x.twitter.TwitterStreamChannelAdapter">
 		<constructor-arg ref="twitterTemplate"/>
+		<property name="autoStartup" value="false"/>
 		<property name="outputChannel" ref="output"/>
 		<!-- 90sec timeout, as recommended in https://dev.twitter.com/docs/streaming-apis/connecting#Stalls -->
 		<property name="readTimeout" value="${readTimeout:90000}"/>

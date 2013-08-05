@@ -16,10 +16,14 @@
 
 package org.springframework.integration.x.channel.registry;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import java.util.Collection;
 import java.util.Collections;
 
 import org.junit.Test;
+
 import org.springframework.http.MediaType;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
@@ -27,8 +31,6 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.xd.dirt.stream.Tap;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Gary Russell
@@ -40,27 +42,29 @@ public abstract class AbstractChannelRegistryTests {
 	@Test
 	public void testClean() throws Exception {
 		ChannelRegistry registry = getRegistry();
-		registry.outbound("foo.0", new DirectChannel(), false);
-		registry.inbound("foo.0", new DirectChannel(), ALL, false);
-		registry.outbound("foo.1", new DirectChannel(), false);
-		registry.inbound("foo.1", new DirectChannel(), ALL, false);
-		registry.outbound("foo.2", new DirectChannel(), false);
+		registry.createOutbound("foo.0", new DirectChannel(), false);
+		registry.createInbound("foo.0", new DirectChannel(), ALL, false);
+		registry.createOutbound("foo.1", new DirectChannel(), false);
+		registry.createInbound("foo.1", new DirectChannel(), ALL, false);
+		registry.createOutbound("foo.2", new DirectChannel(), false);
 		registry.tap("bar", "foo.0", new DirectChannel());
 		Collection<?> bridges = getBridges(registry);
 		assertEquals(6, bridges.size());
-		registry.cleanAll("foo.0");
-		assertEquals(4, bridges.size());
-		registry.cleanAll("foo.1");
-		assertEquals(2, bridges.size());
-		registry.cleanAll("foo.2");
+		registry.deleteOutbound("foo.0");
+		assertEquals(5, bridges.size());
+		registry.deleteInbound("foo.0");
+		registry.deleteOutbound("foo.1");
+		assertEquals(3, bridges.size());
+		registry.deleteInbound("foo.1");
+		registry.deleteOutbound("foo.2");
 		assertEquals(1, bridges.size()); // tap remains
 	}
 
 	@Test
 	public void testCleanTap() throws Exception {
 		ChannelRegistry registry = getRegistry();
-		registry.outbound("foo.0", new DirectChannel(), false);
-		registry.inbound("foo.0", new DirectChannel(), ALL, false);
+		registry.createOutbound("foo.0", new DirectChannel(), false);
+		registry.createInbound("foo.0", new DirectChannel(), ALL, false);
 
 		MessageChannel output = new DirectChannel();
 
@@ -68,13 +72,15 @@ public abstract class AbstractChannelRegistryTests {
 		tap.setOutputChannel(output);
 		tap.afterPropertiesSet();
 
-		registry.inbound("bar.0", new DirectChannel(), ALL, false);
-		registry.outbound("bar.0", output, false);
+		registry.createInbound("bar.0", new DirectChannel(), ALL, false);
+		registry.createOutbound("bar.0", output, false);
 		Collection<?> bridges = getBridges(registry);
 		assertEquals(5, bridges.size()); // 2 each stream + tap
-		registry.cleanAll("bar.0");
+		registry.deleteOutbound("bar.0");
+		registry.deleteInbound("bar.0");
 		assertEquals(2, bridges.size()); // tap completely gone
-		registry.cleanAll("foo.0");
+		registry.deleteOutbound("foo.0");
+		registry.deleteInbound("foo.0");
 		assertEquals(0, bridges.size());
 	}
 
@@ -83,8 +89,8 @@ public abstract class AbstractChannelRegistryTests {
 		ChannelRegistry registry = getRegistry();
 		DirectChannel moduleOutputChannel = new DirectChannel();
 		QueueChannel moduleInputChannel = new QueueChannel();
-		registry.outbound("foo.0", moduleOutputChannel, false);
-		registry.inbound("foo.0", moduleInputChannel, ALL, false);
+		registry.createOutbound("foo.0", moduleOutputChannel, false);
+		registry.createInbound("foo.0", moduleInputChannel, ALL, false);
 		moduleOutputChannel.send(new GenericMessage<String>("foo"));
 		Message<?> inbound = moduleInputChannel.receive(5000);
 		assertNotNull(inbound);

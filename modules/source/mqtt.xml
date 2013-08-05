@@ -17,6 +17,7 @@
 	</bean>
 
 	<int-mqtt:message-driven-channel-adapter id="mqttInbound"
+		auto-startup="false"
 		client-id="${clientId:${mqtt.default.client.id}.src}"
 		url="${mqtt.url:tcp://localhost:1883}"
 		topics="${topics:${mqtt.default.topic}}"

@@ -67,8 +67,8 @@ public class ChannelRegistrationTests {
 	@Test
 	public void testRegistration() throws Exception {
 		streamPlugin.postProcessModule(module);
-		verify(registry).inbound("mystream.0", input, ALL, false);
-		verify(registry).outbound("mystream.1", output, false);
+		verify(registry).createInbound("mystream.0", input, ALL, false);
+		verify(registry).createOutbound("mystream.1", output, false);
 	}
 
 }

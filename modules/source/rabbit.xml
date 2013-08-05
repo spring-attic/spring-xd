@@ -13,7 +13,9 @@
 
 	<context:property-placeholder location="file:${xd.home}/config/rabbit.properties" ignore-resource-not-found="true"/>
 
-	<int-amqp:inbound-channel-adapter queue-names="${queue}" channel="output" connection-factory="connectionFactory"/>
+	<int-amqp:inbound-channel-adapter
+			auto-startup="false"
+			queue-names="${queue}" channel="output" connection-factory="connectionFactory"/>
 
 	<rabbit:connection-factory id="connectionFactory" host="${rabbit.host:localhost}" port="${rabbit.port:5672}"/>
 

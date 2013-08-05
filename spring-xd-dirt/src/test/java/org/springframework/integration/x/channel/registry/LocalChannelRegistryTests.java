@@ -96,7 +96,7 @@ public class LocalChannelRegistryTests extends AbstractChannelRegistryTests {
 	private void verifyPayloadConversion(final Object expectedValue, final LocalChannelRegistry registry,
 			Collection<MediaType> acceptedMediaTypes) {
 		DirectChannel myChannel = new DirectChannel();
-		registry.inbound("in", myChannel, acceptedMediaTypes, false);
+		registry.createInbound("in", myChannel, acceptedMediaTypes, false);
 		DirectChannel input = registry.getBean("in", DirectChannel.class);
 		assertNotNull(input);
 

@@ -19,6 +19,7 @@
 		deserializer="${decoder:CRLF}"/>
 
 	<int-ip:tcp-inbound-channel-adapter id="adapter" channel="toString"
+			auto-startup="false"
 			connection-factory="connectionFactory"/>
 
 	<!-- Binary payloads are not currently supported; see XD-145 -->

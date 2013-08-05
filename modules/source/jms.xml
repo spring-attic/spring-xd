@@ -12,6 +12,7 @@
 	<import resource="../common/jms-${provider:activemq}-infrastructure-context.xml"/>
 
 	<int-jms:message-driven-channel-adapter id="jmsSource"
+		auto-startup="false"
 		destination-name="${queue:${xd.stream.name}}"
 		channel="output"
 		connection-factory="connectionFactory"/>

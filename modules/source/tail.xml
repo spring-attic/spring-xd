@@ -13,7 +13,9 @@
 		http://www.springframework.org/schema/integration/file
 		http://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
 
-	<file:tail-inbound-channel-adapter channel="output" file="${name:/tmp/xd/input/${xd.stream.name}}"
+	<file:tail-inbound-channel-adapter channel="output"
+		auto-startup="false"
+		file="${name:/tmp/xd/input/${xd.stream.name}}"
 		native-options="-F -n ${lines:0}" file-delay="${delay:5000}" />
 
 	<channel id="output"/>

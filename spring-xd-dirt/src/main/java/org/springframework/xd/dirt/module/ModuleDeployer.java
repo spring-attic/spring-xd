@@ -91,7 +91,7 @@ public class ModuleDeployer extends AbstractMessageHandler
 	}
 
 	@Override
-	protected void handleMessageInternal(Message<?> message) throws Exception {
+	protected synchronized void handleMessageInternal(Message<?> message) throws Exception {
 		ModuleDeploymentRequest request = this.mapper.readValue(message.getPayload().toString(), ModuleDeploymentRequest.class);
 		if (request.isRemove()) {
 			this.undeploy(request);
@@ -139,20 +139,27 @@ public class ModuleDeployer extends AbstractMessageHandler
 	public void undeploy(ModuleDeploymentRequest request) {
 		String group = request.getGroup();
 		Map<Integer, Module> modules = this.deployedModules.get(group);
-		int index = request.getIndex();
-		Module module = modules.remove(index);
-		if (modules.size() == 0) {
-			this.deployedModules.remove(group);
-		}
-		if (module != null) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("removed " + module.getType() + " module: " + group +
-						":" + module.getName() + ":" + index);
+		if (modules != null) {
+			int index = request.getIndex();
+			Module module = modules.remove(index);
+			if (modules.size() == 0) {
+				this.deployedModules.remove(group);
 			}
-			// TODO: add beforeShutdown and/or afterShutdown callbacks?
-			module.stop();
-			this.removeModule(module);
-			this.fireModuleUndeployedEvent(module);
+			if (module != null) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("removed " + module.getType() + " module: " + group +
+							":" + module.getName() + ":" + index);
+				}
+				// TODO: add beforeShutdown and/or afterShutdown callbacks?
+				module.stop();
+				this.removeModule(module);
+				this.fireModuleUndeployedEvent(module);
+			}
+		}
+		else {
+			if (logger.isTraceEnabled()) {
+				logger.trace("Ignoring undeploy - module not deployed here: " + request);
+			}
 		}
 	}
 

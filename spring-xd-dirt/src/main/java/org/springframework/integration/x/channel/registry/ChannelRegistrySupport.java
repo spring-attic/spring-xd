@@ -12,6 +12,8 @@
  */
 package org.springframework.integration.x.channel.registry;
 
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -23,6 +25,7 @@ import org.springframework.core.convert.ConversionException;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.http.MediaType;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.x.json.TypedJsonMapper;
 import org.springframework.util.ClassUtils;
@@ -44,6 +47,17 @@ public abstract class ChannelRegistrySupport implements ChannelRegistry, BeanCla
 
 	private static final MediaType JAVA_OBJECT_TYPE = new MediaType("application", "x-java-object");
 
+	protected static final String XD_JSON_OCTET_STREAM_VALUE =
+			new MediaType("application", "x-xd-json-octet-stream").toString();
+
+	protected static final String XD_TEXT_PLAIN_UTF8_VALUE =
+			new MediaType("text", "x-xd-plain", Charset.forName("UTF-8")).toString();
+
+	protected static final String XD_OCTET_STREAM_VALUE =
+			new MediaType("application", "x-xd-octet-stream").toString();
+
+	protected static final String ORIGINAL_CONTENT_TYPE_HEADER = "originalContentType";
+
 	public void setConversionService(ConversionService conversionService) {
 		this.conversionService = conversionService;
 	}
@@ -56,89 +70,141 @@ public abstract class ChannelRegistrySupport implements ChannelRegistry, BeanCla
 	protected final Message<?> transformOutboundIfNecessary(Message<?> message, MediaType to) {
 		Message<?> messageToSend = message;
 		Object originalPayload = message.getPayload();
-		Object payload = transformPayloadFromOutputChannel(originalPayload, to);
-		if (payload != null && payload != originalPayload) {
-			messageToSend = MessageBuilder.withPayload(payload).copyHeaders(message.getHeaders()).build();
+		Object payload = null;
+		Object originalContentType = message.getHeaders().get(MessageHeaders.CONTENT_TYPE);
+		String originalContentTypeString = null;
+		if (originalContentType instanceof MediaType) {
+			originalContentTypeString = originalContentType.toString();
 		}
-		return messageToSend;
-	}
-
-	private Object transformPayloadFromOutputChannel(Object payload, MediaType to) {
+		else if (originalContentType instanceof String) {
+			originalContentTypeString = (String) originalContentType;
+		}
+		String contentType = originalContentTypeString;
 		if (to.equals(MediaType.ALL)) {
-			return payload;
-		} else if (to.equals(MediaType.APPLICATION_OCTET_STREAM)) {
-			if (payload instanceof byte[]) {
-				return payload;
-			} else {
-				return this.jsonMapper.toBytes(payload);
+			return message;
+		}
+		else if (to.equals(MediaType.APPLICATION_OCTET_STREAM)) {
+			if (originalPayload instanceof byte[]) {
+				payload = originalPayload;
+				contentType = XD_OCTET_STREAM_VALUE;
 			}
-		} else {
+			else if (originalPayload instanceof String) {
+				try {
+					payload = ((String) originalPayload).getBytes("UTF-8");
+					contentType = XD_TEXT_PLAIN_UTF8_VALUE;
+				}
+				catch (UnsupportedEncodingException e) {
+					logger.error("Could not convert String to bytes", e);
+				}
+			}
+			else {
+				payload = this.jsonMapper.toBytes(originalPayload);
+				contentType = XD_JSON_OCTET_STREAM_VALUE;
+			}
+		}
+		else {
 			throw new IllegalArgumentException("'to' can only be 'ALL' or 'APPLICATION_OCTET_STREAM'");
 		}
+		if (payload != null) {
+			MessageBuilder<Object> messageBuilder = MessageBuilder.withPayload(payload)
+					.copyHeaders(message.getHeaders())
+					.setHeader(MessageHeaders.CONTENT_TYPE, contentType);
+			if (originalContentTypeString != null) {
+				messageBuilder.setHeader(ORIGINAL_CONTENT_TYPE_HEADER, originalContentTypeString);
+			}
+			messageToSend = messageBuilder.build();
+		}
+		return messageToSend;
 	}
 
 	protected final Message<?> transformInboundIfNecessary(Message<?> message, Collection<MediaType> acceptedMediaTypes) {
 		Message<?> messageToSend = message;
 		Object originalPayload = message.getPayload();
-		Object payload = transformPayloadForInputChannel(originalPayload, acceptedMediaTypes);
-		if (payload != null && payload != originalPayload) {
-			messageToSend = MessageBuilder.withPayload(payload).copyHeaders(message.getHeaders()).build();
+		String contentType = message.getHeaders().get(MessageHeaders.CONTENT_TYPE, String.class);
+		Object payload = transformPayloadForInputChannel(originalPayload,
+				contentType,
+				acceptedMediaTypes);
+		if (payload != null) {
+			MessageBuilder<Object> transformed = MessageBuilder.withPayload(payload).copyHeaders(message.getHeaders());
+			Object originalContentType = message.getHeaders().get(ORIGINAL_CONTENT_TYPE_HEADER);
+			if (originalContentType != null) {
+				transformed.setHeader(MessageHeaders.CONTENT_TYPE, originalContentType);
+				transformed.setHeader(ORIGINAL_CONTENT_TYPE_HEADER, null);
+			}
+			else if (contentType != null && contentType.contains("/x-xd-")) {
+				transformed.setHeader(MessageHeaders.CONTENT_TYPE, null);
+			}
+			messageToSend = transformed.build();
 		}
 		return messageToSend;
 	}
 
-	private Object transformPayloadForInputChannel(Object payload, Collection<MediaType> to) {
-		// TODO need a way to short circuit the JSON decode attempt when it's a straight byte[] pass thru
-		// Perhaps a module property (that we'd have to pass in somehow).
-		// Perhaps a 'Special' MediaType "application/x-xd-raw"  ??
+	private Object transformPayloadForInputChannel(Object payload, String contentType, Collection<MediaType> to) {
 		if (payload instanceof byte[]) {
 			Object result = null;
 			// Get the preferred java type, if any, and first try to decode directly from JSON.
 			MediaType toObjectType = findJavaObjectType(to);
-			if (toObjectType == null || toObjectType.getParameter("type") == null) {
-				try {
-					result = this.jsonMapper.fromBytes((byte[]) payload);
-				} catch (ConversionException e) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("JSON decode failed, raw byte[]?");
-					}
-				}
-			} else {
-				String preferredClass = toObjectType.getParameter("type");
-				try {
-					//If this fails, fall back to generic decoding and delegate object conversion to the conversionService
-					result = this.jsonMapper.fromBytes((byte[]) payload, preferredClass);
-				} catch (ConversionException e) {
+			if (XD_JSON_OCTET_STREAM_VALUE.equals(contentType)) {
+				if (toObjectType == null || toObjectType.getParameter("type") == null) {
 					try {
-						if (logger.isDebugEnabled()) {
-							logger.debug("JSON decode failed to convert to requested type: " + preferredClass+ " - will try to decode to original type");
-						}
 						result = this.jsonMapper.fromBytes((byte[]) payload);
-					} catch (ConversionException ce) {
+					}
+					catch (ConversionException e) {
 						if (logger.isDebugEnabled()) {
 							logger.debug("JSON decode failed, raw byte[]?");
 						}
 					}
 				}
+				else {
+					String preferredClass = toObjectType.getParameter("type");
+					try {
+						// If this fails, fall back to generic decoding and delegate object conversion to the conversionService
+						result = this.jsonMapper.fromBytes((byte[]) payload, preferredClass);
+					}
+					catch (ConversionException e) {
+						try {
+							if (logger.isDebugEnabled()) {
+								logger.debug("JSON decode failed to convert to requested type: " + preferredClass
+										+ " - will try to decode to original type");
+							}
+							result = this.jsonMapper.fromBytes((byte[]) payload);
+						}
+						catch (ConversionException ce) {
+							if (logger.isDebugEnabled()) {
+								logger.debug("JSON decode failed, raw byte[]?");
+							}
+						}
+					}
+				}
+				if (result != null) {
+					if (to.contains(MediaType.ALL)) {
+						return result;
+					}
+					// TODO: currently only tries the first application/x-java-object;type=foo.Foo
+					toObjectType = findJavaObjectType(to);
+					if (toObjectType != null) {
+						if (toObjectType.getParameter("type") == null) {
+							return result;
+						}
+						String resultClass = result.getClass().getName();
+						if (resultClass.equals(toObjectType.getParameter("type"))) {
+							return result;
+						}
+						// recursive call
+						return transformPayloadForInputChannel(result, contentType, Collections.singletonList(toObjectType));
+					}
+				}
 			}
-
-			if (result != null) {
-				if (to.contains(MediaType.ALL)) {
-					return result;
+			else if (XD_TEXT_PLAIN_UTF8_VALUE.equals(contentType)) {
+				try {
+					return new String((byte[]) payload, "UTF-8");
 				}
-				// TODO: currently only tries the first application/x-java-object;type=foo.Foo
-				toObjectType = findJavaObjectType(to);
-				if (toObjectType != null) {
-					if (toObjectType.getParameter("type") == null) {
-						return result;
-					}
-					String resultClass = result.getClass().getName();
-					if (resultClass.equals(toObjectType.getParameter("type"))) {
-						return result;
-					}
-					// recursive call
-					return transformPayloadForInputChannel(result, Collections.singletonList(toObjectType));
+				catch (UnsupportedEncodingException e) {
+					logger.error("Could not convert bytes to String", e);
 				}
+			}
+			else if(XD_OCTET_STREAM_VALUE.equals(contentType)) {
+				return payload;
 			}
 		}
 		if (to.contains(MediaType.ALL)) {
@@ -158,7 +224,8 @@ public abstract class ChannelRegistrySupport implements ChannelRegistry, BeanCla
 				Class<?> clazz = null;
 				try {
 					clazz = this.beanClassloader.loadClass(requiredType);
-				} catch (ClassNotFoundException e) {
+				}
+				catch (ClassNotFoundException e) {
 					if (logger.isDebugEnabled()) {
 						logger.debug("Class not found", e);
 					}
@@ -168,7 +235,8 @@ public abstract class ChannelRegistrySupport implements ChannelRegistry, BeanCla
 						return this.conversionService.convert(payload, clazz);
 					}
 				}
-			} else {
+			}
+			else {
 				if (this.acceptsString(to)) {
 					if (this.conversionService.canConvert(payload.getClass(), String.class)) {
 						return this.conversionService.convert(payload, String.class);

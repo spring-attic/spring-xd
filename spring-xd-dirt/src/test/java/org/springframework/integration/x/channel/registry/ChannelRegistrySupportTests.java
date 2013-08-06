@@ -16,9 +16,9 @@
 package org.springframework.integration.x.channel.registry;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 
-import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -29,9 +29,9 @@ import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.http.MediaType;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.util.ReflectionUtils;
-import org.springframework.util.ReflectionUtils.MethodCallback;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.xd.tuple.Tuple;
 import org.springframework.xd.tuple.TupleBuilder;
 
@@ -46,95 +46,102 @@ public class ChannelRegistrySupportTests {
 	@Test
 	public void testBytesPassThru() {
 		byte[] payload = "foo".getBytes();
-		Object converted = channelRegistry.transformPayloadFromOutputChannel(payload,
+		Message<byte[]> message = MessageBuilder.withPayload(payload).build();
+		Message<?> converted = channelRegistry.transformOutboundIfNecessary(message,
 				MediaType.APPLICATION_OCTET_STREAM);
-		assertEquals(payload, converted);
-		payload = (byte[]) channelRegistry.transformPayloadForInputChannel(converted,
+		assertSame(payload, converted.getPayload());
+		assertEquals(ChannelRegistrySupport.XD_OCTET_STREAM_VALUE, converted.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		Message<?> reconstructed = channelRegistry.transformInboundIfNecessary(converted,
 				Collections.singletonList(MediaType.ALL));
-		assertEquals(converted, payload);
+		payload = (byte[]) reconstructed.getPayload();
+		assertSame(converted.getPayload(), payload);
+		assertNull(reconstructed.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
 
 	@Test
-	public void testJsonString() {
-		Object converted = channelRegistry.transformPayloadFromOutputChannel("foo", MediaType.APPLICATION_OCTET_STREAM);
-		assertEquals("{\"String\":\"foo\"}", new String((byte[]) converted));
-		Object payload = channelRegistry.transformPayloadForInputChannel(converted,
+	public void testBytesPassThruContentType() {
+		byte[] payload = "foo".getBytes();
+		Message<byte[]> message = MessageBuilder.withPayload(payload)
+				.setHeader(MessageHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE)
+				.build();
+		Message<?> converted = channelRegistry.transformOutboundIfNecessary(message,
+				MediaType.APPLICATION_OCTET_STREAM);
+		assertSame(payload, converted.getPayload());
+		assertEquals(ChannelRegistrySupport.XD_OCTET_STREAM_VALUE, converted.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		Message<?> reconstructed = channelRegistry.transformInboundIfNecessary(converted,
 				Collections.singletonList(MediaType.ALL));
-		assertEquals("foo", payload);
+		payload = (byte[]) reconstructed.getPayload();
+		assertSame(converted.getPayload(), payload);
+		assertEquals(MediaType.APPLICATION_OCTET_STREAM_VALUE, reconstructed.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		assertNull(reconstructed.getHeaders().get(ChannelRegistrySupport.ORIGINAL_CONTENT_TYPE_HEADER));
+	}
+
+	@Test
+	public void testString() {
+		Message<?> converted = channelRegistry.transformOutboundIfNecessary(
+				new GenericMessage<String>("foo"), MediaType.APPLICATION_OCTET_STREAM);
+		assertEquals("foo", new String((byte[]) converted.getPayload()));
+		assertEquals(ChannelRegistrySupport.XD_TEXT_PLAIN_UTF8_VALUE, converted.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		Message<?> reconstructed = channelRegistry.transformInboundIfNecessary(converted,
+				Collections.singletonList(MediaType.ALL));
+		assertEquals("foo", reconstructed.getPayload());
+		assertNull(reconstructed.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
 
 	@Test
 	public void testJsonPojo() {
-		Object converted = channelRegistry.transformPayloadFromOutputChannel(new Foo("bar"),
+		Message<?> converted = channelRegistry.transformOutboundIfNecessary(new GenericMessage<Foo>(new Foo("bar")),
 				MediaType.APPLICATION_OCTET_STREAM);
 		assertEquals(
 				"{\"Foo\":{\"@class\":\"org.springframework.integration.x.channel.registry.ChannelRegistrySupportTests$Foo\",\"bar\":\"bar\"}}",
-				new String((byte[]) converted));
-		Foo payload = (Foo) channelRegistry.transformPayloadForInputChannel(converted,
+				new String((byte[]) converted.getPayload()));
+		assertEquals(ChannelRegistrySupport.XD_JSON_OCTET_STREAM_VALUE, converted.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		Message<?> reconstructed = channelRegistry.transformInboundIfNecessary(converted,
 				Collections.singletonList(MediaType.ALL));
-		assertEquals("bar", payload.getBar());
+		assertEquals("bar", ((Foo) reconstructed.getPayload()).getBar());
+		assertNull(reconstructed.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
 
 	@Test
 	public void testJsonPojoWithXJavaObjectMediaTypeNoType() {
-		Object converted = channelRegistry.transformPayloadFromOutputChannel(new Foo("bar"),
+		Message<?> converted = channelRegistry.transformOutboundIfNecessary(new GenericMessage<Foo>(new Foo("bar")),
 				MediaType.APPLICATION_OCTET_STREAM);
 		assertEquals(
 				"{\"Foo\":{\"@class\":\"org.springframework.integration.x.channel.registry.ChannelRegistrySupportTests$Foo\",\"bar\":\"bar\"}}",
-				new String((byte[]) converted));
-		Foo payload = (Foo) channelRegistry.transformPayloadForInputChannel(converted,
+				new String((byte[]) converted.getPayload()));
+		assertEquals(ChannelRegistrySupport.XD_JSON_OCTET_STREAM_VALUE, converted.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		Message<?> reconstructed = channelRegistry.transformInboundIfNecessary(converted,
 				Collections.singletonList(new MediaType("application", "x-java-object")));
-		assertEquals("bar", payload.getBar());
+		assertEquals("bar", ((Foo) reconstructed.getPayload()).getBar());
+		assertNull(reconstructed.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
 
 	@Test
 	public void testJsonPojoWithXJavaObjectMediaTypeExplicitType() {
-		Object converted = channelRegistry.transformPayloadFromOutputChannel(new Foo("bar"),
+		Message<?> converted = channelRegistry.transformOutboundIfNecessary(new GenericMessage<Foo>(new Foo("bar")),
 				MediaType.APPLICATION_OCTET_STREAM);
 		assertEquals(
 				"{\"Foo\":{\"@class\":\"org.springframework.integration.x.channel.registry.ChannelRegistrySupportTests$Foo\",\"bar\":\"bar\"}}",
-				new String((byte[]) converted));
+				new String((byte[]) converted.getPayload()));
+		assertEquals(ChannelRegistrySupport.XD_JSON_OCTET_STREAM_VALUE, converted.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 		MediaType type = new MediaType("application", "x-java-object", Collections.singletonMap("type",
 				"org.springframework.integration.x.channel.registry.ChannelRegistrySupportTests$Foo"));
-		Foo payload = (Foo) channelRegistry.transformPayloadForInputChannel(converted, Collections.singletonList(type));
-		assertEquals("bar", payload.getBar());
+		Message<?> reconstructed = channelRegistry.transformInboundIfNecessary(converted,
+				Collections.singletonList(type));
+		assertEquals("bar", ((Foo) reconstructed.getPayload()).getBar());
+		assertNull(reconstructed.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
 
 	@Test
 	public void testJsonTuple() {
 		Tuple payload = TupleBuilder.tuple().of("foo", "bar");
-		Object converted = channelRegistry.transformPayloadFromOutputChannel(payload,
+		Message<?> converted = channelRegistry.transformOutboundIfNecessary(new GenericMessage<Tuple>(payload),
 				MediaType.APPLICATION_OCTET_STREAM);
-		payload = (Tuple) channelRegistry.transformPayloadForInputChannel(converted,
+		assertEquals(ChannelRegistrySupport.XD_JSON_OCTET_STREAM_VALUE, converted.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		Message<?> reconstructed = channelRegistry.transformInboundIfNecessary(converted,
 				Collections.singletonList(MediaType.ALL));
-		assertEquals("bar", payload.getString("foo"));
-	}
-
-	/*
-	 * Foo transported as JSON, decoded and then converted to Bar
-	 */
-	@Test
-	public void testJsonPojoConvert() {
-		DefaultConversionService conversionService = new DefaultConversionService();
-		conversionService.addConverter(new Converter<Foo, Bar>() {
-
-			@Override
-			public Bar convert(Foo source) {
-				return new Bar(source.getBar());
-			}
-		});
-		channelRegistry.setConversionService(conversionService);
-
-		Object converted = channelRegistry.transformPayloadFromOutputChannel(new Foo("bar"),
-				MediaType.APPLICATION_OCTET_STREAM);
-		assertEquals(
-				"{\"Foo\":{\"@class\":\"org.springframework.integration.x.channel.registry.ChannelRegistrySupportTests$Foo\",\"bar\":\"bar\"}}",
-				new String((byte[]) converted));
-
-		MediaType type = new MediaType("application", "x-java-object", Collections.singletonMap("type",
-				"org.springframework.integration.x.channel.registry.ChannelRegistrySupportTests$Bar"));
-		Bar payload = (Bar) channelRegistry.transformPayloadForInputChannel(converted, Collections.singletonList(type));
-		assertEquals("bar", payload.getFoo());
+		assertEquals("bar", ((Tuple) reconstructed.getPayload()).getString("foo"));
+		assertNull(reconstructed.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
 
 	/*
@@ -208,33 +215,7 @@ public class ChannelRegistrySupportTests {
 
 	}
 
-	/**
-	 * Device to increase visibility of private methods.
-	 *
-	 */
 	public class TestChannelRegistry extends ChannelRegistrySupport {
-
-		private Method transformPayloadFromOutputChannel;
-
-		private Method transformPayloadForInputChannel;
-
-		public TestChannelRegistry() {
-			ReflectionUtils.doWithMethods(ChannelRegistrySupport.class, new MethodCallback() {
-
-				@Override
-				public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
-					if (method.getName().equals("transformPayloadFromOutputChannel")) {
-						transformPayloadFromOutputChannel = method;
-						method.setAccessible(true);
-					}
-					else if (method.getName().equals("transformPayloadForInputChannel")) {
-						transformPayloadForInputChannel = method;
-						method.setAccessible(true);
-					}
-
-				}
-			});
-		}
 
 		@Override
 		public void tap(String tapModule, String name, MessageChannel channel) {
@@ -255,26 +236,6 @@ public class ChannelRegistrySupportTests {
 
 		@Override
 		public void deleteOutbound(String name) {
-		}
-
-		public Object transformPayloadFromOutputChannel(Object payload, MediaType to) {
-			try {
-				return this.transformPayloadFromOutputChannel.invoke(this, payload, to);
-			}
-			catch (Exception e) {
-				fail(e.getMessage());
-			}
-			return null;
-		}
-
-		public Object transformPayloadForInputChannel(Object payload, Collection<MediaType> to) {
-			try {
-				return this.transformPayloadForInputChannel.invoke(this, payload, to);
-			}
-			catch (Exception e) {
-				fail(e.getMessage());
-			}
-			return null;
 		}
 
 	}

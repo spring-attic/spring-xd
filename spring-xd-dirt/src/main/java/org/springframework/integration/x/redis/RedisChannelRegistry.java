@@ -16,11 +16,15 @@
 
 package org.springframework.integration.x.redis;
 
+import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -32,6 +36,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageHandler;
@@ -40,6 +45,7 @@ import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.redis.inbound.RedisInboundChannelAdapter;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.x.channel.registry.ChannelRegistry;
 import org.springframework.integration.x.channel.registry.ChannelRegistrySupport;
 import org.springframework.redis.x.NoOpRedisSerializer;
@@ -60,6 +66,8 @@ public class RedisChannelRegistry extends ChannelRegistrySupport implements Disp
 
 	private final List<Lifecycle> lifecycleBeans = Collections.synchronizedList(new ArrayList<Lifecycle>());
 
+	private final EmbeddedHeadersMessageConverter embeddedHeadersMessageConverter = new EmbeddedHeadersMessageConverter();
+
 	public RedisChannelRegistry(RedisConnectionFactory connectionFactory) {
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");
 		this.redisTemplate.setConnectionFactory(connectionFactory);
@@ -78,9 +86,17 @@ public class RedisChannelRegistry extends ChannelRegistrySupport implements Disp
 		adapter.afterPropertiesSet();
 		this.lifecycleBeans.add(adapter);
 		AbstractReplyProducingMessageHandler convertingBridge = new AbstractReplyProducingMessageHandler() {
+			@SuppressWarnings("unchecked")
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
-				return transformInboundIfNecessary(requestMessage, acceptedMediaTypes);
+				Message<?> theRequestMessage = requestMessage;
+				try {
+					theRequestMessage = embeddedHeadersMessageConverter.extractHeaders((Message<byte[]>) requestMessage);
+				}
+				catch (UnsupportedEncodingException e) {
+					logger.error("Could not convert message", e);
+				}
+				return transformInboundIfNecessary(theRequestMessage, acceptedMediaTypes);
 			}
 
 		};
@@ -186,10 +202,73 @@ public class RedisChannelRegistry extends ChannelRegistrySupport implements Disp
 
 		@Override
 		protected void handleMessageInternal(Message<?> message) throws Exception {
-			// TODO: redis wire data pluggable format?
-			Message<?> messageToSend = transformOutboundIfNecessary(message, MediaType.APPLICATION_OCTET_STREAM);
+			@SuppressWarnings("unchecked")
+			Message<byte[]> transformed =
+					(Message<byte[]>) transformOutboundIfNecessary(message, MediaType.APPLICATION_OCTET_STREAM);
+			Message<?> messageToSend =
+					embeddedHeadersMessageConverter.embedHeaders(
+							transformed,
+							MessageHeaders.CONTENT_TYPE,
+							ORIGINAL_CONTENT_TYPE_HEADER);
+			Assert.isInstanceOf(byte[].class, messageToSend.getPayload());
 			topic.handleMessage(messageToSend);
 			queue.handleMessage(messageToSend);
+		}
+
+	}
+
+	static class EmbeddedHeadersMessageConverter {
+
+		/**
+		 * Encodes requested headers into payload; max headers = 255; max header name
+		 * length = 255; max header value length = 255.
+		 * @throws UnsupportedEncodingException
+		 */
+		Message<byte[]> embedHeaders(Message<byte[]> message, String... headers) throws UnsupportedEncodingException {
+			String[] headerValues = new String[headers.length];
+			int n = 0;
+			int headerCount = 0;
+			int headersLength = 0;
+			for (String header : headers) {
+				String value = (String) message.getHeaders().get(header);
+				headerValues[n++] = value;
+				if (value != null) {
+					headerCount++;
+					headersLength += header.length() + value.length();
+				}
+			}
+			byte[] newPayload = new byte[message.getPayload().length + headersLength + headerCount*2 + 1];
+			ByteBuffer byteBuffer = ByteBuffer.wrap(newPayload);
+			byteBuffer.put((byte) headerCount);
+			for (int i = 0; i < headers.length; i++) {
+				if (headerValues[i] != null) {
+					byteBuffer.put((byte) headers[i].length());
+					byteBuffer.put(headers[i].getBytes("UTF-8"));
+					byteBuffer.put((byte) headerValues[i].length());
+					byteBuffer.put(headerValues[i].getBytes("UTF-8"));
+				}
+			}
+			byteBuffer.put(message.getPayload());
+			return MessageBuilder.withPayload(newPayload).copyHeaders(message.getHeaders()).build();
+		}
+
+		Message<byte[]> extractHeaders(Message<byte[]> message) throws UnsupportedEncodingException {
+			byte[] bytes = message.getPayload();
+			ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
+			int headerCount = byteBuffer.get();
+			Map<String, String> headers = new HashMap<String, String>();
+			for (int i = 0; i < headerCount; i++) {
+				int len = byteBuffer.get();
+				String headerName = new String(bytes, byteBuffer.position(), len, "UTF-8");
+				byteBuffer.position(byteBuffer.position() + len);
+				len = byteBuffer.get();
+				String headerValue = new String(bytes, byteBuffer.position(), len, "UTF-8");
+				byteBuffer.position(byteBuffer.position() + len);
+				headers.put(headerName, headerValue);
+			}
+			byte[] newPayload = new byte[byteBuffer.remaining()];
+			byteBuffer.get(newPayload);
+			return MessageBuilder.withPayload(newPayload).copyHeaders(headers).build();
 		}
 
 	}

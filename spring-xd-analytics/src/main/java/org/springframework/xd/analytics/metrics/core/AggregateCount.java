@@ -22,7 +22,8 @@ import org.joda.time.Interval;
 /**
  * @author Luke Taylor
  */
-public class AggregateCount implements Metric {
+public class AggregateCount {
+
 	public final String name;
 
 	public final Interval interval;
@@ -48,12 +49,4 @@ public class AggregateCount implements Metric {
 		}
 		return total;
 	}
-	
-	/**
-	 * @return the name
-	 */
-	public String getName() {
-		return name;
-	}
-	
 }

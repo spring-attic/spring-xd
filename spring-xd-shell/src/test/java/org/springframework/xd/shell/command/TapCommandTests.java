@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.xd.shell.command;
 
-import java.util.Random;
+package org.springframework.xd.shell.command;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -46,19 +45,16 @@ public class TapCommandTests extends AbstractStreamIntegrationTest {
 	public void testCreateAndDeployTap() throws Exception {
 		logger.info("Create and deploy a tap");
 		String streamName = "taptestticktock";
-		String counterName = "taptest-counter" + new Random().nextInt();
 		String httpPort = "9193";
 		executeStreamCreate(streamName, "http --port=" + httpPort + " | log");
-		executeTapCreate("taptest-tap", "tap@ " + streamName + " | counter --name=" + counterName);
+		executeTapCreate("taptest-tap", "tap@ " + streamName + " | counter --name=" + DEFAULT_METRIC_NAME);
 		// Verify tap by checking counter value after posting http data
 		// Adding a small delay here to make sure the http source
 		// is actually started.
 		Thread.sleep(5000);
 
 		httpPostData("http://localhost:" + httpPort, "test");
-		checkIfCounterExists(counterName);
-		checkCounterValue(counterName, "1");
-		deleteCounter(counterName);
+		verifyCounter("1");
 	}
 
 	@Test

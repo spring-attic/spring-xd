@@ -137,6 +137,9 @@ public final class UiUtils {
 	 * @return The rendered table representation as String
 	 */
 	public static String renderTextTable(Table table, boolean withHeader) {
+
+		table.calculateColumnWidths();
+
 		final String padding = "  ";
 		final String headerBorder = getHeaderBorder(table.getHeaders());
 		final StringBuilder textTable = new StringBuilder();
@@ -144,7 +147,29 @@ public final class UiUtils {
 		if (withHeader) {
 			final StringBuilder headerline = new StringBuilder();
 			for (TableHeader header : table.getHeaders().values()) {
-				headerline.append(padding + CommonUtils.padRight(header.getName(), header.getWidth()));
+
+				if (header.getName().length() > header.getWidth()) {
+					Iterable<String> chunks = Splitter.fixedLength(header.getWidth()).split(header.getName());
+					int length = headerline.length();
+					boolean first = true;
+					for (String chunk : chunks) {
+						final String lineToAppend;
+						if (first) {
+							lineToAppend = padding + CommonUtils.padRight(chunk, header.getWidth());
+						}
+						else {
+							lineToAppend = StringUtils.leftPad("", length) + padding + CommonUtils.padRight(chunk, header.getWidth());
+						}
+						first = false;
+						headerline.append(lineToAppend);
+						headerline.append("\n");
+					}
+					headerline.deleteCharAt(headerline.lastIndexOf("\n"));
+				}
+				else {
+					String lineToAppend = padding + CommonUtils.padRight(header.getName(), header.getWidth());
+					headerline.append(lineToAppend);
+				}
 			}
 			textTable.append(org.springframework.util.StringUtils.trimTrailingWhitespace(headerline.toString()));
 			textTable.append("\n");

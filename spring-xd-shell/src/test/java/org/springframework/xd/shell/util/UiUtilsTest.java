@@ -50,8 +50,6 @@ public class UiUtilsTest {
 			table.getRows().add(row);
 		}
 
-		table.calculateColumnWidths();
-
 		String expectedTableAsString = null;
 
 		final InputStream inputStream = getClass()
@@ -69,6 +67,66 @@ public class UiUtilsTest {
 
 		final String tableRenderedAsString = UiUtils.renderTextTable(table);
 
+		assertEquals(expectedTableAsString, tableRenderedAsString);
+	}
+
+	@Test
+	public void testRenderTextTableWithSingleColumn() {
+
+		final Table table = new Table();
+		table.addHeader(1, new TableHeader("Gauge name"));
+
+		final TableRow row = new TableRow();
+		row.addValue(1, "simplegauge");
+		table.getRows().add(row);
+
+		String expectedTableAsString = null;
+
+		final InputStream inputStream = getClass()
+				.getClassLoader()
+				.getResourceAsStream("testRenderTextTable-single-column-expected-output.txt");
+
+		assertNotNull("The inputstream is null.", inputStream);
+
+		try {
+			expectedTableAsString = FileCopyUtils.copyToString(new InputStreamReader(inputStream));
+		} catch (IOException e) {
+			e.printStackTrace();
+			fail();
+		}
+
+		final String tableRenderedAsString = UiUtils.renderTextTable(table);
+		assertEquals(expectedTableAsString, tableRenderedAsString);
+	}
+
+	@Test
+	public void testRenderTextTableWithSingleColumnAndWidthOf4() {
+
+		final Table table = new Table();
+		final TableHeader tableHeader = new TableHeader("Gauge name");
+		tableHeader.setMaxWidth(4);
+		table.addHeader(1, tableHeader);
+
+		final TableRow row = new TableRow();
+		row.addValue(1, "simplegauge");
+		table.getRows().add(row);
+
+		String expectedTableAsString = null;
+
+		final InputStream inputStream = getClass()
+				.getClassLoader()
+				.getResourceAsStream("testRenderTextTable-single-column-width4-expected-output.txt");
+
+		assertNotNull("The inputstream is null.", inputStream);
+
+		try {
+			expectedTableAsString = FileCopyUtils.copyToString(new InputStreamReader(inputStream));
+		} catch (IOException e) {
+			e.printStackTrace();
+			fail();
+		}
+
+		final String tableRenderedAsString = UiUtils.renderTextTable(table);
 		assertEquals(expectedTableAsString, tableRenderedAsString);
 	}
 
@@ -96,7 +154,6 @@ public class UiUtilsTest {
 		}
 
 		final String tableRenderedAsString = UiUtils.renderParameterInfoDataAsTable(values, false, 20);
-
 		assertEquals(expectedTableAsString, tableRenderedAsString);
 	}
 }

@@ -40,6 +40,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter;
 import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
+import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageHandler;
@@ -71,6 +72,8 @@ public class RabbitChannelRegistry extends ChannelRegistrySupport implements Dis
 
 	private final List<Lifecycle> lifecycleBeans = Collections.synchronizedList(new ArrayList<Lifecycle>());
 
+	private final DefaultAmqpHeaderMapper mapper;
+
 	public RabbitChannelRegistry(ConnectionFactory connectionFactory) {
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");
 		this.connectionFactory = connectionFactory;
@@ -78,6 +81,9 @@ public class RabbitChannelRegistry extends ChannelRegistrySupport implements Dis
 		this.rabbitTemplate.afterPropertiesSet();
 		this.rabbitAdmin = new RabbitAdmin(connectionFactory);
 		this.rabbitAdmin.afterPropertiesSet();
+		this.mapper = new DefaultAmqpHeaderMapper();
+		this.mapper.setRequestHeaderNames(new String[]
+				{DefaultAmqpHeaderMapper.STANDARD_REQUEST_HEADER_NAME_PATTERN, ORIGINAL_CONTENT_TYPE_HEADER});
 	}
 
 	@Override
@@ -96,6 +102,7 @@ public class RabbitChannelRegistry extends ChannelRegistrySupport implements Dis
 		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(listenerContainer);
 		SubscribableChannel bridgeToModuleChannel = new DirectChannel();
 		adapter.setOutputChannel(bridgeToModuleChannel);
+		adapter.setHeaderMapper(this.mapper);
 		adapter.setBeanName("inbound." + name);
 		adapter.afterPropertiesSet();
 		this.lifecycleBeans.add(adapter);
@@ -205,9 +212,11 @@ public class RabbitChannelRegistry extends ChannelRegistrySupport implements Dis
 			rabbitAdmin.declareExchange(new FanoutExchange("tap." + name));
 			this.queue = new AmqpOutboundEndpoint(rabbitTemplate);
 			queue.setRoutingKey(name); // uses default exchange
+			queue.setHeaderMapper(mapper);
 			queue.afterPropertiesSet();
 			this.tap = new AmqpOutboundEndpoint(rabbitTemplate);
 			tap.setExchangeName("tap." + name);
+			tap.setHeaderMapper(mapper);
 			tap.afterPropertiesSet();
 		}
 

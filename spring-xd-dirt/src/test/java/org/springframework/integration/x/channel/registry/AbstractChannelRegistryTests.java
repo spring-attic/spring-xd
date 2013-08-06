@@ -27,9 +27,10 @@ import org.junit.Test;
 import org.springframework.http.MediaType;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.xd.dirt.stream.Tap;
 
 /**
@@ -91,10 +92,14 @@ public abstract class AbstractChannelRegistryTests {
 		QueueChannel moduleInputChannel = new QueueChannel();
 		registry.createOutbound("foo.0", moduleOutputChannel, false);
 		registry.createInbound("foo.0", moduleInputChannel, ALL, false);
-		moduleOutputChannel.send(new GenericMessage<String>("foo"));
+		Message<?> message = MessageBuilder.withPayload("foo")
+				.setHeader(MessageHeaders.CONTENT_TYPE, "foo/bar")
+				.build();
+		moduleOutputChannel.send(message);
 		Message<?> inbound = moduleInputChannel.receive(5000);
 		assertNotNull(inbound);
 		assertEquals("foo", inbound.getPayload());
+		assertEquals("foo/bar", inbound.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
 
 	protected abstract Collection<?> getBridges(ChannelRegistry registry);

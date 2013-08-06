@@ -56,9 +56,8 @@ import org.springframework.xd.shell.hadoop.ConfigurationCommands;
 import org.springframework.xd.shell.hadoop.FsShellCommands;
 
 /**
- * A quick and dirty tool to collect command help() text and generate an asciidoc page.
- * Also enforces some constraints on commands. Can be run as a unit test to enforce
- * constraints only.
+ * A quick and dirty tool to collect command help() text and generate an asciidoc page. Also enforces some constraints
+ * on commands. Can be run as a unit test to enforce constraints only.
  * 
  * @author Eric Bottard
  * 
@@ -74,8 +73,7 @@ public class ReferenceDoc {
 	private final static Pattern OPTION_HELP = Pattern.compile("[a-z].+");
 
 	/**
-	 * A mapping from class to Title in the doc. Insertion order will become rendering
-	 * order.
+	 * A mapping from class to Title in the doc. Insertion order will become rendering order.
 	 */
 	private Map<Class<? extends CommandMarker>, String> titles = new LinkedHashMap<Class<? extends CommandMarker>, String>();
 
@@ -98,17 +96,24 @@ public class ReferenceDoc {
 		 * Set titles for commands. Please note that insertion order matters!
 		 */
 		titles.put(XDShell.class, "Base Commands");
+		// ===== Streams etc. ======
 		titles.put(StreamCommands.class, "Stream Commands");
 		titles.put(TapCommands.class, "Tap Commands");
 		titles.put(JobCommands.class, "Job Commands");
 		titles.put(TriggerCommands.class, "Trigger Commands");
-		titles.put(CounterCommands.class, "Metrics Commands");
+
+		// ======= Analytics =======
 		// Use of repeated title here on purpose
+		titles.put(CounterCommands.class, "Metrics Commands");
 		titles.put(FieldValueCounterCommands.class, "Metrics Commands");
 		titles.put(AggregateCounterCommands.class, "Metrics Commands");
 		titles.put(GaugeCommands.class, "Metrics Commands");
 		titles.put(RichGaugeCommands.class, "Metrics Commands");
+
+		// ======= Http Post =======
 		titles.put(HttpCommands.class, "Http Commands");
+
+		// ======== Hadoop =========
 		titles.put(ConfigurationCommands.class, "Hadoop Configuration Commands");
 		titles.put(FsShellCommands.class, "Hadoop FileSystem Commands");
 	}

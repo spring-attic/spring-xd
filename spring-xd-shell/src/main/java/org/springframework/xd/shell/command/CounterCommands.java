@@ -34,7 +34,7 @@ import org.springframework.xd.shell.util.Table;
 
 /**
  * Commands for interacting with Counter analytics.
- *
+ * 
  * @author Eric Bottard
  * @author Ilayaperumal Gopinathan
  */
@@ -49,22 +49,22 @@ public class CounterCommands extends AbstractMetricsCommands implements CommandM
 
 	private static final String LIST_COUNTERS = "counter list";
 
-	private static final String RESET_COUNTER = "counter reset";
-
 	private static final String DELETE_COUNTER = "counter delete";
 
 	@Autowired
 	private XDShell xdShell;
 
-	@CliAvailabilityIndicator({ LIST_COUNTERS, DISPLAY_COUNTER /*, RESET_COUNTER */})
+	@CliAvailabilityIndicator({ LIST_COUNTERS, DISPLAY_COUNTER, DELETE_COUNTER })
 	public boolean available() {
 		return xdShell.getSpringXDOperations() != null;
 	}
 
 	@CliCommand(value = DISPLAY_COUNTER, help = "Display the value of a counter")
 	public String display(
-			@CliOption(key = { "", "name" }, help = "the name of the counter to display", mandatory = true) String name,
-			@CliOption(key = "pattern", help = "the pattern used to format the counter value (see DecimalFormat)", mandatory = false, unspecifiedDefaultValue = NumberFormatConverter.DEFAULT) NumberFormat pattern) {
+			@CliOption(key = { "", "name" }, help = "the name of the counter to display", mandatory = true)
+			String name,
+			@CliOption(key = "pattern", help = "the pattern used to format the value (see DecimalFormat)", mandatory = false, unspecifiedDefaultValue = NumberFormatConverter.DEFAULT)
+			NumberFormat pattern) {
 		CounterResource counter = counterOperations().retrieve(name);
 
 		return pattern.format(counter.getValue());
@@ -76,9 +76,9 @@ public class CounterCommands extends AbstractMetricsCommands implements CommandM
 		return displayMetrics(list);
 	}
 
-	@CliCommand(value = DELETE_COUNTER, help="Delete the counter with the given name")
-	public String delete(
-			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the stream to destroy") String name) {
+	@CliCommand(value = DELETE_COUNTER, help = "Delete the counter with the given name")
+	public String delete(@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the counter to delete")
+	String name) {
 		counterOperations().delete(name);
 		return String.format("Deleted counter '%s'", name);
 	}

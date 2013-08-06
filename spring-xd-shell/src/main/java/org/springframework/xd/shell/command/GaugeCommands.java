@@ -16,6 +16,8 @@
 
 package org.springframework.xd.shell.command;
 
+import java.text.NumberFormat;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.shell.core.CommandMarker;
@@ -27,11 +29,12 @@ import org.springframework.xd.rest.client.GaugeOperations;
 import org.springframework.xd.rest.client.domain.metrics.GaugeResource;
 import org.springframework.xd.rest.client.domain.metrics.MetricResource;
 import org.springframework.xd.shell.XDShell;
+import org.springframework.xd.shell.converter.NumberFormatConverter;
 import org.springframework.xd.shell.util.Table;
 
 /**
  * Commands for interacting with Gauge analytics.
- *
+ * 
  * @author Ilayaperumal Gopinathan
  */
 @Component
@@ -50,7 +53,7 @@ public class GaugeCommands extends AbstractMetricsCommands implements CommandMar
 	@Autowired
 	private XDShell xdShell;
 
-	@CliAvailabilityIndicator({ LIST_GAUGES, DISPLAY_GAUGE, DELETE_GAUGE})
+	@CliAvailabilityIndicator({ LIST_GAUGES, DISPLAY_GAUGE, DELETE_GAUGE })
 	public boolean available() {
 		return xdShell.getSpringXDOperations() != null;
 	}
@@ -60,17 +63,20 @@ public class GaugeCommands extends AbstractMetricsCommands implements CommandMar
 		PagedResources<MetricResource> list = gaugeOperations().list(/* TODO */);
 		return displayMetrics(list);
 	}
-	
-	@CliCommand(value = DISPLAY_GAUGE, help="Display the gauge value")
-	public long display(
-			@CliOption(key = {"", "name"}, help = "the name of the gauge to display value", mandatory = true) String name){
+
+	@CliCommand(value = DISPLAY_GAUGE, help = "Display the value of a gauge")
+	public String display(
+			@CliOption(key = { "", "name" }, help = "the name of the gauge to display", mandatory = true)
+			String name,
+			@CliOption(key = "pattern", help = "the pattern used to format the value (see DecimalFormat)", mandatory = false, unspecifiedDefaultValue = NumberFormatConverter.DEFAULT)
+			NumberFormat pattern) {
 		GaugeResource gauge = gaugeOperations().retrieve(name);
-		return gauge.getValue();
+		return pattern.format(gauge.getValue());
 	}
-	
-	@CliCommand(value = DELETE_GAUGE, help= "Delete the gauge")
-	public String delete(
-			@CliOption(key = {"", "name"}, help = "the name of the gauge to delete", mandatory = true) String name) {
+
+	@CliCommand(value = DELETE_GAUGE, help = "Delete the gauge")
+	public String delete(@CliOption(key = { "", "name" }, help = "the name of the gauge to delete", mandatory = true)
+	String name) {
 		gaugeOperations().delete(name);
 		return String.format("Deleted gauge '%s'", name);
 	}

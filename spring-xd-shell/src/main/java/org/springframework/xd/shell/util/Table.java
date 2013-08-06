@@ -22,8 +22,8 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * Provide a basic concept of a table structure containing a map of column headers and a collection of rows. Used to
- * render text-based tables (console output).
+ * Provide a basic concept of a table structure containing a map of column headers and a
+ * collection of rows. Used to render text-based tables (console output).
  * 
  * @see UiUtils
  * 
@@ -67,7 +67,6 @@ public class Table {
 
 	@Override
 	public String toString() {
-		calculateColumnWidths();
 		return UiUtils.renderTextTable(this);
 	}
 

@@ -30,7 +30,7 @@ import org.springframework.xd.shell.util.Table;
 
 /**
  * Commands for interacting with aggregate counter analytics.
- *
+ * 
  * @author Ilayaperumal Gopinathan
  */
 @Component
@@ -48,7 +48,7 @@ public class AggregateCounterCommands extends AbstractMetricsCommands implements
 
 	@Autowired
 	private XDShell xdShell;
-	
+
 	@CliCommand(value = LIST_AGGR_COUNTERS, help = "List all available aggregate counter names")
 	public Table list(/* TODO */) {
 		PagedResources<MetricResource> list = aggrCounterOperations().list(/* TODO */);
@@ -59,12 +59,12 @@ public class AggregateCounterCommands extends AbstractMetricsCommands implements
 	public boolean available() {
 		return xdShell.getSpringXDOperations() != null;
 	}
-	
-	@CliCommand(value = DELETE_AGGR_COUNTER, help= "Delete the aggregate counter")
+
+	@CliCommand(value = DELETE_AGGR_COUNTER, help = "Delete the aggregate counter")
 	public String delete(
-			@CliOption(key = {"", "name"}, help = "the name of the aggregate counter to delete", mandatory = true) String name) {
+			@CliOption(key = { "", "name" }, help = "the name of the aggregate counter to delete", mandatory = true) String name) {
 		aggrCounterOperations().delete(name);
-		return String.format("Deleted aggregate counter '%s'", name);
+		return String.format("Deleted aggregatecounter '%s'", name);
 	}
 
 	private AggregateCounterOperations aggrCounterOperations() {

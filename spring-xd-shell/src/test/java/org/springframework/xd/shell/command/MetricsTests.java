@@ -16,42 +16,62 @@
 
 package org.springframework.xd.shell.command;
 
-import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * Tests various metrics related sinks.
  * 
  * @author Eric Bottard
+ * @author Ilayaperumal Gopinathan
  */
 public class MetricsTests extends AbstractStreamIntegrationTest {
 
+	private static final String TEST_STREAM_NAME = "foo";
+
 	@Test
-	// pending a way to reset counters
-	@Ignore
 	public void testSimpleCounter() throws Exception {
-		executeStreamCreate("foo", "http --port=9193 | counter --name=bar");
-
-		executeCommand("http post http://localhost:9193 --data one");
-		executeCommand("http post http://localhost:9193 --data one");
-		executeCommand("http post http://localhost:9193 --data two");
-
-		String result = (String) executeCommand("counter display bar").getResult();
-		Assert.assertEquals("3", result);
-
+		createTestStream(TestMetricType.COUNTER.getName());
+		httpPostData("http://localhost:9193", "one");
+		httpPostData("http://localhost:9193", "one");
+		httpPostData("http://localhost:9193", "two");
+		verifyCounter("3");
 	}
 
 	@Test
-	// pending a way to reset counters
-	@Ignore
 	public void testSimpleCounterImplicitName() throws Exception {
-		executeStreamCreate("foo", "http --port=9193 | counter");
+		String streamName = "foo";
+		executeStreamCreate(streamName, "http --port=9193 | counter");
+		Thread.sleep(5000);
+		httpPostData("http://localhost:9193", "one");
+		verifyCounter(streamName, "1");
+		// Explicitly delete the counter
+		executeMetricDelete(streamName, TestMetricType.COUNTER.getName());
+	}
 
-		executeCommand("http post http://localhost:9193 --data one");
+	@Test
+	public void testCounterDeletion() throws Exception {
+		createTestStream(TestMetricType.COUNTER.getName());
+		httpPostData("http://localhost:9193", "one");
+		executeMetricDelete(DEFAULT_METRIC_NAME, TestMetricType.COUNTER.getName());
+	}
 
-		String result = (String) executeCommand("counter display foo").getResult();
-		Assert.assertEquals("1", result);
+	@Test
+	public void testAggregateCounterList() throws Exception {
+		createTestStream(TestMetricType.AGGR_COUNTER.getName());
+		httpPostData("http://localhost:9193", "one");
+		checkIfMetricExists(DEFAULT_METRIC_NAME, TestMetricType.AGGR_COUNTER.getName());
+	}
+
+	@Test
+	public void testAggregateCounterDelete() throws Exception {
+		createTestStream(TestMetricType.AGGR_COUNTER.getName());
+		httpPostData("http://localhost:9193", "one");
+		executeMetricDelete(DEFAULT_METRIC_NAME, TestMetricType.AGGR_COUNTER.getName());
+	}
+
+	private void createTestStream(String metricType) throws Exception {
+		executeStreamCreate(TEST_STREAM_NAME, "http --port=9193 | " + metricType + " --name=" + DEFAULT_METRIC_NAME);
+		Thread.sleep(5000);
 	}
 
 }

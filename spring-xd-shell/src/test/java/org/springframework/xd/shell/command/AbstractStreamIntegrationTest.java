@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.shell.command;
 
 import java.util.ArrayList;
@@ -20,21 +21,20 @@ import java.util.List;
 
 import org.junit.After;
 import org.springframework.shell.core.CommandResult;
-import org.springframework.xd.shell.AbstractShellIntegrationTest;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableRow;
 
 import static org.junit.Assert.*;
 
 /**
- * Provides an @After JUnit lifecycle method that will destroy the definitions that were created by calling
- * executeXXXCreate methods.
+ * Provides an @After JUnit lifecycle method that will destroy the definitions that were
+ * created by calling executeXXXCreate methods.
  * 
  * @author Andy Clement
  * @author Mark Pollack
  * 
  */
-public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegrationTest {
+public abstract class AbstractStreamIntegrationTest extends AbstractMetricIntegrationTest {
 
 	private List<String> streams = new ArrayList<String>();
 
@@ -76,7 +76,8 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 	}
 
 	/**
-	 * Execute stream create for the supplied stream name/definition, and verify the command result.
+	 * Execute stream create for the supplied stream name/definition, and verify the
+	 * command result.
 	 */
 	protected void executeStreamCreate(String streamname, String streamdefinition, boolean deploy) {
 		CommandResult cr = executeCommand("stream create --definition \"" + streamdefinition + "\" --name "
@@ -100,7 +101,8 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 	}
 
 	/**
-	 * Execute tap create for the supplied tap name/definition, and verify the command result.
+	 * Execute tap create for the supplied tap name/definition, and verify the command
+	 * result.
 	 */
 	protected void executeTapCreate(String tapname, String tapdefinition, boolean deploy) {
 		CommandResult cr = executeCommand("tap create --definition \"" + tapdefinition + "\" --name " + tapname

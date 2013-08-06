@@ -127,7 +127,7 @@ public class LocalChannelRegistry extends ChannelRegistrySupport implements Appl
 	 * wire tap is a publish-subscribe channel.
 	 */
 	@Override
-	public void inbound(String name, MessageChannel moduleInputChannel, Collection<MediaType> acceptedMediaTypes,
+	public void createInbound(String name, MessageChannel moduleInputChannel, Collection<MediaType> acceptedMediaTypes,
 			boolean aliasHint) {
 		Assert.hasText(name, "a valid name is required to register an inbound channel");
 		Assert.notNull(moduleInputChannel, "channel must not be null");
@@ -147,7 +147,7 @@ public class LocalChannelRegistry extends ChannelRegistrySupport implements Appl
 	 * channel instance.
 	 */
 	@Override
-	public void outbound(String name, MessageChannel moduleOutputChannel, boolean aliasHint) {
+	public void createOutbound(String name, MessageChannel moduleOutputChannel, boolean aliasHint) {
 		Assert.hasText(name, "a valid name is required to register an outbound channel");
 		Assert.notNull(moduleOutputChannel, "channel must not be null");
 		AbstractMessageChannel registeredChannel = lookupOrCreateSharedChannel(name, aliasHint);

@@ -86,11 +86,11 @@ public class StreamPlugin implements Plugin {
 		if (registry != null) {
 			MessageChannel channel = module.getComponent("input", MessageChannel.class);
 			if (channel != null) {
-				registry.inbound(md.getInputChannelName(), channel, getAcceptedMediaTypes(module), md.isAliasedInput());
+				registry.createInbound(md.getInputChannelName(), channel, getAcceptedMediaTypes(module), md.isAliasedInput());
 			}
 			channel = module.getComponent("output", MessageChannel.class);
 			if (channel != null) {
-				registry.outbound(md.getOutputChannelName(), channel, md.isAliasedOutput());
+				registry.createOutbound(md.getOutputChannelName(), channel, md.isAliasedOutput());
 			}
 		}
 	}

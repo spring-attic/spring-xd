@@ -38,7 +38,7 @@ public interface ChannelRegistry {
 	 * @param acceptedMediaTypes the media types supported by the channel
 	 * @param aliasHint whether the provided name represents an alias and thus should support late binding
 	 */
-	void inbound(String name, MessageChannel moduleInputChannel, Collection<MediaType> acceptedMediaTypes,
+	void createInbound(String name, MessageChannel moduleInputChannel, Collection<MediaType> acceptedMediaTypes,
 			boolean aliasHint);
 
 	/**
@@ -48,7 +48,7 @@ public interface ChannelRegistry {
 	 * @param moduleOutputChannel the channel bound as a producer
 	 * @param aliasHint whether the provided name represents an alias and thus should support late binding
 	 */
-	void outbound(String name, MessageChannel moduleOutputChannel, boolean aliasHint);
+	void createOutbound(String name, MessageChannel moduleOutputChannel, boolean aliasHint);
 
 	/**
 	 * Create a tap on an already registered inbound channel.

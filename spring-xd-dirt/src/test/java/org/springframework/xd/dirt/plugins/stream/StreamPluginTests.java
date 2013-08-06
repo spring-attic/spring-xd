@@ -81,8 +81,8 @@ public class StreamPluginTests {
 		when(module.getComponent("output", MessageChannel.class)).thenReturn(output);
 		plugin.preProcessModule(module);
 		plugin.postProcessModule(module);
-		verify(registry).inbound("foo.0", input, Collections.singletonList(MediaType.ALL), false);
-		verify(registry).outbound("foo.1", output, false);
+		verify(registry).createInbound("foo.0", input, Collections.singletonList(MediaType.ALL), false);
+		verify(registry).createOutbound("foo.1", output, false);
 		plugin.removeModule(module);
 		verify(registry).deleteInbound("foo.0");
 		verify(registry).deleteOutbound("foo.1");

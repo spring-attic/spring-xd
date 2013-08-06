@@ -80,9 +80,9 @@ public class MediaTypeTests {
 						.next());
 				return null;
 			}
-		}).when(registry).inbound(anyString(), any(MessageChannel.class), any(Collection.class), anyBoolean());
+		}).when(registry).createInbound(anyString(), any(MessageChannel.class), any(Collection.class), anyBoolean());
 		streamPlugin.postProcessModule(module);
-		verify(registry).inbound(anyString(), any(MessageChannel.class), any(Collection.class), anyBoolean());
+		verify(registry).createInbound(anyString(), any(MessageChannel.class), any(Collection.class), anyBoolean());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -106,9 +106,9 @@ public class MediaTypeTests {
 				assertFalse(first.equals(second));
 				return null;
 			}
-		}).when(registry).inbound(anyString(), any(MessageChannel.class), any(Collection.class), anyBoolean());
+		}).when(registry).createInbound(anyString(), any(MessageChannel.class), any(Collection.class), anyBoolean());
 		streamPlugin.postProcessModule(module);
-		verify(registry).inbound(anyString(), any(MessageChannel.class), any(Collection.class), anyBoolean());
+		verify(registry).createInbound(anyString(), any(MessageChannel.class), any(Collection.class), anyBoolean());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -121,9 +121,9 @@ public class MediaTypeTests {
 				assertEquals(MediaType.ALL, ((Collection<?>) invocation.getArguments()[2]).iterator().next());
 				return null;
 			}
-		}).when(registry).inbound(anyString(), any(MessageChannel.class), any(Collection.class), anyBoolean());
+		}).when(registry).createInbound(anyString(), any(MessageChannel.class), any(Collection.class), anyBoolean());
 		streamPlugin.postProcessModule(module);
-		verify(registry).inbound(anyString(), any(MessageChannel.class), any(Collection.class), anyBoolean());
+		verify(registry).createInbound(anyString(), any(MessageChannel.class), any(Collection.class), anyBoolean());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -137,9 +137,9 @@ public class MediaTypeTests {
 				assertEquals(MediaType.ALL, ((Collection<?>) invocation.getArguments()[2]).iterator().next());
 				return null;
 			}
-		}).when(registry).inbound(anyString(), any(MessageChannel.class), any(Collection.class), anyBoolean());
+		}).when(registry).createInbound(anyString(), any(MessageChannel.class), any(Collection.class), anyBoolean());
 		streamPlugin.postProcessModule(module);
-		verify(registry).inbound(anyString(), any(MessageChannel.class), any(Collection.class), anyBoolean());
+		verify(registry).createInbound(anyString(), any(MessageChannel.class), any(Collection.class), anyBoolean());
 	}
 
 }

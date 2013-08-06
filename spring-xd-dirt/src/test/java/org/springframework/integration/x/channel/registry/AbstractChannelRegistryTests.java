@@ -42,11 +42,11 @@ public abstract class AbstractChannelRegistryTests {
 	@Test
 	public void testClean() throws Exception {
 		ChannelRegistry registry = getRegistry();
-		registry.outbound("foo.0", new DirectChannel(), false);
-		registry.inbound("foo.0", new DirectChannel(), ALL, false);
-		registry.outbound("foo.1", new DirectChannel(), false);
-		registry.inbound("foo.1", new DirectChannel(), ALL, false);
-		registry.outbound("foo.2", new DirectChannel(), false);
+		registry.createOutbound("foo.0", new DirectChannel(), false);
+		registry.createInbound("foo.0", new DirectChannel(), ALL, false);
+		registry.createOutbound("foo.1", new DirectChannel(), false);
+		registry.createInbound("foo.1", new DirectChannel(), ALL, false);
+		registry.createOutbound("foo.2", new DirectChannel(), false);
 		registry.tap("bar", "foo.0", new DirectChannel());
 		Collection<?> bridges = getBridges(registry);
 		assertEquals(6, bridges.size());
@@ -63,8 +63,8 @@ public abstract class AbstractChannelRegistryTests {
 	@Test
 	public void testCleanTap() throws Exception {
 		ChannelRegistry registry = getRegistry();
-		registry.outbound("foo.0", new DirectChannel(), false);
-		registry.inbound("foo.0", new DirectChannel(), ALL, false);
+		registry.createOutbound("foo.0", new DirectChannel(), false);
+		registry.createInbound("foo.0", new DirectChannel(), ALL, false);
 
 		MessageChannel output = new DirectChannel();
 
@@ -72,8 +72,8 @@ public abstract class AbstractChannelRegistryTests {
 		tap.setOutputChannel(output);
 		tap.afterPropertiesSet();
 
-		registry.inbound("bar.0", new DirectChannel(), ALL, false);
-		registry.outbound("bar.0", output, false);
+		registry.createInbound("bar.0", new DirectChannel(), ALL, false);
+		registry.createOutbound("bar.0", output, false);
 		Collection<?> bridges = getBridges(registry);
 		assertEquals(5, bridges.size()); // 2 each stream + tap
 		registry.deleteOutbound("bar.0");
@@ -89,8 +89,8 @@ public abstract class AbstractChannelRegistryTests {
 		ChannelRegistry registry = getRegistry();
 		DirectChannel moduleOutputChannel = new DirectChannel();
 		QueueChannel moduleInputChannel = new QueueChannel();
-		registry.outbound("foo.0", moduleOutputChannel, false);
-		registry.inbound("foo.0", moduleInputChannel, ALL, false);
+		registry.createOutbound("foo.0", moduleOutputChannel, false);
+		registry.createInbound("foo.0", moduleInputChannel, ALL, false);
 		moduleOutputChannel.send(new GenericMessage<String>("foo"));
 		Message<?> inbound = moduleInputChannel.receive(5000);
 		assertNotNull(inbound);

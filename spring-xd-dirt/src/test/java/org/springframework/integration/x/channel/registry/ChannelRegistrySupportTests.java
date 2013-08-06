@@ -241,12 +241,12 @@ public class ChannelRegistrySupportTests {
 		}
 
 		@Override
-		public void inbound(String name, MessageChannel channel, Collection<MediaType> acceptedMediaTypes,
+		public void createInbound(String name, MessageChannel channel, Collection<MediaType> acceptedMediaTypes,
 				boolean aliasHint) {
 		}
 
 		@Override
-		public void outbound(String name, MessageChannel channel, boolean aliasHint) {
+		public void createOutbound(String name, MessageChannel channel, boolean aliasHint) {
 		}
 
 		@Override

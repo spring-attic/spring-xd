@@ -68,7 +68,7 @@ public class RedisChannelRegistry extends ChannelRegistrySupport implements Disp
 	}
 
 	@Override
-	public void inbound(final String name, MessageChannel moduleInputChannel,
+	public void createInbound(final String name, MessageChannel moduleInputChannel,
 			final Collection<MediaType> acceptedMediaTypes, boolean aliasHint) {
 		RedisQueueInboundChannelAdapter adapter = new RedisQueueInboundChannelAdapter("queue." + name,
 				this.redisTemplate.getConnectionFactory(), new NoOpRedisSerializer());
@@ -92,7 +92,7 @@ public class RedisChannelRegistry extends ChannelRegistrySupport implements Disp
 	}
 
 	@Override
-	public void outbound(final String name, MessageChannel moduleOutputChannel, boolean aliasHint) {
+	public void createOutbound(final String name, MessageChannel moduleOutputChannel, boolean aliasHint) {
 		Assert.isInstanceOf(SubscribableChannel.class, moduleOutputChannel);
 		MessageHandler handler = new CompositeHandler(name, this.redisTemplate.getConnectionFactory());
 		EventDrivenConsumer consumer = new EventDrivenConsumer((SubscribableChannel) moduleOutputChannel, handler);

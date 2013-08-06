@@ -13,12 +13,13 @@
 
 	<context:property-placeholder location="file:${xd.home}/config/rabbit.properties" ignore-resource-not-found="true"/>
 
-	<int-amqp:inbound-channel-adapter
-			auto-startup="false"
-			queue-names="${queue}" channel="output" connection-factory="connectionFactory"/>
+	<int-amqp:outbound-channel-adapter id="input"
+			amqp-template="rabbitTemplate"
+			exchange-name="${exchange:}"
+			routing-key="${routingKey:${xd.stream.name}}"/>
+
+	<rabbit:template id="rabbitTemplate" connection-factory="connectionFactory"/>
 
 	<rabbit:connection-factory id="connectionFactory" host="${host:${rabbit.hostname}}" port="${port:${rabbit.port}}"/>
-
-	<int:channel id="output"/>
 
 </beans>

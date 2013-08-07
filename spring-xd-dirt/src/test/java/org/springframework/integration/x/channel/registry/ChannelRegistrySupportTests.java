@@ -73,6 +73,7 @@ public class ChannelRegistrySupportTests {
 		payload = (byte[]) reconstructed.getPayload();
 		assertSame(converted.getPayload(), payload);
 		assertEquals(MediaType.APPLICATION_OCTET_STREAM_VALUE, reconstructed.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		assertNull(reconstructed.getHeaders().get(ChannelRegistrySupport.ORIGINAL_CONTENT_TYPE_HEADER));
 	}
 
 	@Test

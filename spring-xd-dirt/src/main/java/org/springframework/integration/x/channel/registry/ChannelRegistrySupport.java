@@ -120,7 +120,7 @@ public abstract class ChannelRegistrySupport implements ChannelRegistry, BeanCla
 	protected final Message<?> transformInboundIfNecessary(Message<?> message, Collection<MediaType> acceptedMediaTypes) {
 		Message<?> messageToSend = message;
 		Object originalPayload = message.getPayload();
-		String contentType = (String) message.getHeaders().get(MessageHeaders.CONTENT_TYPE);
+		String contentType = message.getHeaders().get(MessageHeaders.CONTENT_TYPE, String.class);
 		Object payload = transformPayloadForInputChannel(originalPayload,
 				contentType,
 				acceptedMediaTypes);
@@ -129,6 +129,7 @@ public abstract class ChannelRegistrySupport implements ChannelRegistry, BeanCla
 			Object originalContentType = message.getHeaders().get(ORIGINAL_CONTENT_TYPE_HEADER);
 			if (originalContentType != null) {
 				transformed.setHeader(MessageHeaders.CONTENT_TYPE, originalContentType);
+				transformed.setHeader(ORIGINAL_CONTENT_TYPE_HEADER, null);
 			}
 			else if (contentType != null && contentType.contains("/x-xd-")) {
 				transformed.setHeader(MessageHeaders.CONTENT_TYPE, null);

@@ -18,10 +18,14 @@ package org.springframework.xd.shell.command;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.shell.core.CommandMarker;
@@ -35,9 +39,10 @@ import org.springframework.web.client.RestTemplate;
 
 /**
  * Http commands.
- * 
+ *
  * @author Jon Brisbin
  * @author Ilayaperumal Gopinathan
+ * @author Gunnar Hillert
  */
 
 @Component
@@ -53,6 +58,13 @@ public class HttpCommands implements CommandMarker {
 		final StringBuilder buffer = new StringBuilder();
 		URI requestURI = URI.create(target);
 		RestTemplate restTemplate = new RestTemplate();
+
+		final HttpHeaders headers = new HttpHeaders();
+		final MediaType mediaType = new MediaType(MediaType.TEXT_PLAIN.getType(),
+				MediaType.TEXT_PLAIN.getSubtype(), Charset.forName("UTF-8"));
+		headers.setContentType(mediaType);
+		final HttpEntity<String> request = new HttpEntity<String>(data, headers);
+
 		try {
 			restTemplate.setErrorHandler(new ResponseErrorHandler() {
 
@@ -67,8 +79,8 @@ public class HttpCommands implements CommandMarker {
 					outputError(response.getStatusCode(), buffer);
 				}
 			});
-			outputRequest("POST", requestURI, data, buffer);
-			ResponseEntity<String> response = restTemplate.postForEntity(requestURI, data, String.class);
+			outputRequest("POST", requestURI, mediaType, data, buffer);
+			ResponseEntity<String> response = restTemplate.postForEntity(requestURI, request, String.class);
 			outputResponse(response, buffer);
 			String status = (response.getStatusCode().equals(HttpStatus.OK) ? "Success" : "Error");
 			return String.format(buffer.toString() + status + " sending data '%s' to target '%s'", data, target);
@@ -81,8 +93,11 @@ public class HttpCommands implements CommandMarker {
 		}
 	}
 
-	private void outputRequest(String method, URI requestUri, String requestData, StringBuilder buffer) {
-		buffer.append("> ").append(method).append(" ").append(requestUri.toString()).append(" ").append(requestData)
+	private void outputRequest(String method, URI requestUri, MediaType mediaType, String requestData, StringBuilder buffer) {
+		buffer.append("> ").append(method)
+			.append(" (").append(mediaType.toString()).append(") ")
+			.append(requestUri.toString())
+			.append(" ").append(requestData)
 				.append(OsUtils.LINE_SEPARATOR);
 	}
 

@@ -78,8 +78,8 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 
 	@After
 	public void after() {
-		stream().destroyCreatedStreams();
 		tap().destroyCreatedTaps();
+		stream().destroyCreatedStreams();
 		counter().deleteDefaultCounter();
 		aggCounter().deleteDefaultCounter();
 		richGauge().deleteDefaultRichGauge();

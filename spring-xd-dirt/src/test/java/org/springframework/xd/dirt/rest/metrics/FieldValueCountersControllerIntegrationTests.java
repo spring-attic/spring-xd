@@ -27,7 +27,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.xd.analytics.metrics.core.FieldValueCounter;
 import org.springframework.xd.dirt.rest.AbstractControllerIntegrationTest;
-import org.springframework.xd.dirt.rest.MockedDependencies;
+import org.springframework.xd.dirt.rest.Dependencies;
 import org.springframework.xd.dirt.rest.RestConfiguration;
 import org.springframework.xd.dirt.rest.metrics.FieldValueCountersController;
 
@@ -44,7 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = { RestConfiguration.class, MockedDependencies.class })
+@ContextConfiguration(classes = { RestConfiguration.class, Dependencies.class })
 public class FieldValueCountersControllerIntegrationTests extends AbstractControllerIntegrationTest {
 
 	@Test

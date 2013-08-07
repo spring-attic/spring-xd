@@ -12,15 +12,11 @@
  */
 package org.springframework.xd.dirt.stream;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.DirectChannel;
@@ -30,6 +26,8 @@ import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.xd.dirt.stream.memory.InMemoryStreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.memory.InMemoryTapDefinitionRepository;
 import org.springframework.xd.dirt.stream.memory.InMemoryTapInstanceRepository;
+
+import static org.junit.Assert.*;
 
 /**
  * @author David Turanski
@@ -41,7 +39,7 @@ public class TapDeployerTests {
 
 	private TapInstanceRepository tapInstanceRepository;
 
-	private StreamDefinitionRepository streamRepository;
+	private StreamDefinitionRepository streamDefinitionRepository;
 
 	private SubscribableChannel deployChannel;
 
@@ -55,17 +53,18 @@ public class TapDeployerTests {
 	public void setUp() {
 		repository = new InMemoryTapDefinitionRepository();
 		tapInstanceRepository = new InMemoryTapInstanceRepository();
-		streamRepository = new InMemoryStreamDefinitionRepository();
+		streamDefinitionRepository = new InMemoryStreamDefinitionRepository();
 		deployChannel = new DirectChannel();
 		undeployChannel = new PublishSubscribeChannel();
 		sender = new DeploymentMessageSender(deployChannel, undeployChannel);
-		tapDeployer = new TapDeployer(repository, streamRepository, sender, tapInstanceRepository);
+		StreamParser parser = new EnhancedStreamParser(streamDefinitionRepository);
+		tapDeployer = new TapDeployer(repository, streamDefinitionRepository, sender, parser, tapInstanceRepository);
 	}
 
 	@Test
 	public void testCreateSucceeds() {
 		TapDefinition tapDefinition = new TapDefinition("tap1", "test", "tap @test | file");
-		streamRepository.save(new StreamDefinition("test", "time | log"));
+		streamDefinitionRepository.save(new StreamDefinition("test", "time | log"));
 		tapDeployer.save(tapDefinition);
 		assertTrue(repository.exists("tap1"));
 	}
@@ -123,6 +122,6 @@ public class TapDeployerTests {
 	@After
 	public void clearRepos() {
 		repository.deleteAll();
-		streamRepository.deleteAll();
+		streamDefinitionRepository.deleteAll();
 	}
 }

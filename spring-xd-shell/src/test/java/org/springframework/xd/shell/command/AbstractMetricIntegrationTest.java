@@ -32,13 +32,19 @@ import static org.junit.Assert.*;
  */
 public abstract class AbstractMetricIntegrationTest extends AbstractShellIntegrationTest {
 
+	// These two are used across the tests, hopefully 9193 is free on most dev boxes and
+	// CI servers
+	public static final String DEFAULT_HTTP_PORT = "9193";
+
+	public static final String DEFAULT_HTTP_URL = "http://localhost:" + DEFAULT_HTTP_PORT;
+
 	protected static final String DEFAULT_METRIC_NAME = "bar";
 
 	@After
 	public void deleteMetrics() {
-		for (TestMetricType metric : TestMetricType.values()) {
-			if (IsMetricAvailable(DEFAULT_METRIC_NAME, metric.getName()))
-				executeMetricDelete(DEFAULT_METRIC_NAME, metric.getName());
+		for (TestMetricType metricType : TestMetricType.values()) {
+			if (isMetricAvailable(DEFAULT_METRIC_NAME, metricType))
+				executeMetricDelete(DEFAULT_METRIC_NAME, metricType);
 		}
 	}
 
@@ -49,8 +55,8 @@ public abstract class AbstractMetricIntegrationTest extends AbstractShellIntegra
 	 * @param metricType
 	 * @return boolean
 	 */
-	private boolean IsMetricAvailable(String metricName, String metricType) {
-		Table t = (Table) getShell().executeCommand(metricType + " list").getResult();
+	private boolean isMetricAvailable(String metricName, TestMetricType metricType) {
+		Table t = (Table) getShell().executeCommand(metricType.getName() + " list").getResult();
 		return t.getRows().contains(new TableRow().addValue(1, metricName));
 	}
 
@@ -59,26 +65,26 @@ public abstract class AbstractMetricIntegrationTest extends AbstractShellIntegra
 	 * 
 	 * @param metricName the metric name to check
 	 */
-	protected void checkIfMetricExists(String metricName, String metricType) {
-		Table t = (Table) getShell().executeCommand(metricType + " list").getResult();
-		assertTrue("Failure. " + metricType + " '" + metricName + "' doesn't exist",
+	protected void checkIfMetricExists(String metricName, TestMetricType metricType) {
+		Table t = (Table) getShell().executeCommand(metricType.getName() + " list").getResult();
+		assertTrue("Failure. " + metricType.getName() + " '" + metricName + "' doesn't exist",
 				t.getRows().contains(new TableRow().addValue(1, metricName)));
 	}
 
 	/**
 	 * Check the metric value using "display" shell command.
 	 */
-	protected void checkMetricValue(String metricName, String metricType, String expectedValue) {
-		CommandResult cr = executeCommand(metricType + " display --name " + metricName);
+	protected void checkMetricValue(String metricName, TestMetricType metricType, String expectedValue) {
+		CommandResult cr = executeCommand(metricType.getName() + " display --name " + metricName);
 		assertEquals(expectedValue, cr.getResult());
 	}
 
 	/**
 	 * Delete the metric with the given name.
 	 */
-	protected void executeMetricDelete(String metricName, String metricType) {
-		CommandResult cr = executeCommand(metricType + " delete --name " + metricName);
-		assertEquals("Deleted " + metricType + " '" + metricName + "'", cr.getResult());
+	protected void executeMetricDelete(String metricName, TestMetricType metricType) {
+		CommandResult cr = executeCommand(metricType.getName() + " delete --name " + metricName);
+		assertEquals("Deleted " + metricType.getName() + " '" + metricName + "'", cr.getResult());
 	}
 
 	protected void verifyCounter(String expectedValue) {
@@ -86,8 +92,8 @@ public abstract class AbstractMetricIntegrationTest extends AbstractShellIntegra
 	}
 
 	protected void verifyCounter(String counterName, String expectedValue) {
-		checkIfMetricExists(counterName, TestMetricType.COUNTER.getName());
-		checkMetricValue(counterName, TestMetricType.COUNTER.getName(), expectedValue);
+		checkIfMetricExists(counterName, TestMetricType.COUNTER);
+		checkMetricValue(counterName, TestMetricType.COUNTER, expectedValue);
 	}
 
 	/**
@@ -96,7 +102,7 @@ public abstract class AbstractMetricIntegrationTest extends AbstractShellIntegra
 	 * @param counterName
 	 */
 	protected void deleteCounter(String counterName) {
-		executeMetricDelete(counterName, TestMetricType.COUNTER.getName());
+		executeMetricDelete(counterName, TestMetricType.COUNTER);
 	}
 
 	protected enum TestMetricType {

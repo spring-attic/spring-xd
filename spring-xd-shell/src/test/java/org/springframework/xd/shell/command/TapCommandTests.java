@@ -37,7 +37,7 @@ public class TapCommandTests extends AbstractStreamIntegrationTest {
 	public void testCreateTap() {
 		logger.info("Create a tap");
 		String streamName = "taptestticktock";
-		executeStreamCreate(streamName, "http --port=9193 | log");
+		executeStreamCreate(streamName, "http --port=" + DEFAULT_HTTP_PORT + " | log");
 		executeTapCreate("taptest-tap", "tap@ " + streamName + " | file", false);
 	}
 
@@ -45,7 +45,7 @@ public class TapCommandTests extends AbstractStreamIntegrationTest {
 	public void testCreateAndDeployTap() throws Exception {
 		logger.info("Create and deploy a tap");
 		String streamName = "taptestticktock";
-		String httpPort = "9193";
+		String httpPort = DEFAULT_HTTP_PORT;
 		executeStreamCreate(streamName, "http --port=" + httpPort + " | log");
 		executeTapCreate("taptest-tap", "tap@ " + streamName + " | counter --name=" + DEFAULT_METRIC_NAME);
 		// Verify tap by checking counter value after posting http data
@@ -62,7 +62,7 @@ public class TapCommandTests extends AbstractStreamIntegrationTest {
 		logger.info("Destroy a tap");
 		String streamName = "taptestticktock";
 		String counterName = "taptest-counter" + Math.random();
-		String httpPort = "9193";
+		String httpPort = DEFAULT_HTTP_PORT;
 		String tapName = "tapdestroytest";
 		executeStreamCreate(streamName, "http --port=" + httpPort + " | log");
 		String tapDefinition = "tap@ " + streamName + " | counter --name=" + counterName;

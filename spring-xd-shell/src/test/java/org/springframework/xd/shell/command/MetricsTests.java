@@ -31,46 +31,47 @@ public class MetricsTests extends AbstractStreamIntegrationTest {
 	@Test
 	public void testSimpleCounter() throws Exception {
 		createTestStream(TestMetricType.COUNTER.getName());
-		httpPostData("http://localhost:9193", "one");
-		httpPostData("http://localhost:9193", "one");
-		httpPostData("http://localhost:9193", "two");
+		httpPostData(DEFAULT_HTTP_URL, "one");
+		httpPostData(DEFAULT_HTTP_URL, "one");
+		httpPostData(DEFAULT_HTTP_URL, "two");
 		verifyCounter("3");
 	}
 
 	@Test
 	public void testSimpleCounterImplicitName() throws Exception {
 		String streamName = "foo";
-		executeStreamCreate(streamName, "http --port=9193 | counter");
+		executeStreamCreate(streamName, "http --port=" + DEFAULT_HTTP_PORT + " | counter");
 		Thread.sleep(5000);
-		httpPostData("http://localhost:9193", "one");
+		httpPostData(DEFAULT_HTTP_URL, "one");
 		verifyCounter(streamName, "1");
 		// Explicitly delete the counter
-		executeMetricDelete(streamName, TestMetricType.COUNTER.getName());
+		executeMetricDelete(streamName, TestMetricType.COUNTER);
 	}
 
 	@Test
 	public void testCounterDeletion() throws Exception {
 		createTestStream(TestMetricType.COUNTER.getName());
-		httpPostData("http://localhost:9193", "one");
-		executeMetricDelete(DEFAULT_METRIC_NAME, TestMetricType.COUNTER.getName());
+		httpPostData(DEFAULT_HTTP_URL, "one");
+		executeMetricDelete(DEFAULT_METRIC_NAME, TestMetricType.COUNTER);
 	}
 
 	@Test
 	public void testAggregateCounterList() throws Exception {
 		createTestStream(TestMetricType.AGGR_COUNTER.getName());
-		httpPostData("http://localhost:9193", "one");
-		checkIfMetricExists(DEFAULT_METRIC_NAME, TestMetricType.AGGR_COUNTER.getName());
+		httpPostData(DEFAULT_HTTP_URL, "one");
+		checkIfMetricExists(DEFAULT_METRIC_NAME, TestMetricType.AGGR_COUNTER);
 	}
 
 	@Test
 	public void testAggregateCounterDelete() throws Exception {
 		createTestStream(TestMetricType.AGGR_COUNTER.getName());
-		httpPostData("http://localhost:9193", "one");
-		executeMetricDelete(DEFAULT_METRIC_NAME, TestMetricType.AGGR_COUNTER.getName());
+		httpPostData(DEFAULT_HTTP_URL, "one");
+		executeMetricDelete(DEFAULT_METRIC_NAME, TestMetricType.AGGR_COUNTER);
 	}
 
 	private void createTestStream(String metricType) throws Exception {
-		executeStreamCreate(TEST_STREAM_NAME, "http --port=9193 | " + metricType + " --name=" + DEFAULT_METRIC_NAME);
+		executeStreamCreate(TEST_STREAM_NAME, "http --port=" + DEFAULT_HTTP_PORT + " | " + metricType + " --name="
+				+ DEFAULT_METRIC_NAME);
 		Thread.sleep(5000);
 	}
 

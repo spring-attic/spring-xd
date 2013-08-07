@@ -23,6 +23,7 @@ import org.joda.time.Interval;
  * @author Luke Taylor
  */
 public class AggregateCount {
+
 	public final String name;
 
 	public final Interval interval;

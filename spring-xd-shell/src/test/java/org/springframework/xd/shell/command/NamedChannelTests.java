@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.xd.shell.command;
 
-import java.util.Random;
+package org.springframework.xd.shell.command;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -29,8 +28,7 @@ import org.junit.Test;
  */
 public class NamedChannelTests extends AbstractStreamIntegrationTest {
 
-	private static final Log logger = LogFactory
-			.getLog(StreamCommandTests.class);
+	private static final Log logger = LogFactory.getLog(StreamCommandTests.class);
 
 	@Test
 	public void testCreateNamedChannelAsSink() {
@@ -48,16 +46,13 @@ public class NamedChannelTests extends AbstractStreamIntegrationTest {
 		String stream2 = "namedchanneltest-ticktock-counter";
 		String httpPort = "9193";
 
-		String counterName = "namedchanneltest-counter" + new Random().nextInt();
 		executeStreamCreate(stream1, "http --port=" + httpPort
 				+ " | transform --expression=payload.toUpperCase() > :foo");
 		// Create stream with named channel as source
 		Thread.sleep(4000);
-		executeStreamCreate(stream2, ":foo > counter --name=" + counterName);
+		executeStreamCreate(stream2, ":foo > counter --name=" + DEFAULT_METRIC_NAME);
 		httpPostData("http://localhost:" + httpPort, "test");
-		checkIfCounterExists(counterName);
-		checkCounterValue(counterName, "1");
-		deleteCounter(counterName);
+		verifyCounter("1");
 	}
 
 }

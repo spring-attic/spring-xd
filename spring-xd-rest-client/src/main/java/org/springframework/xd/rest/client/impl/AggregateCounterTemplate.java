@@ -33,7 +33,7 @@ public class AggregateCounterTemplate extends AbstractTemplate implements Aggreg
 
 	@Override
 	public PagedResources<MetricResource> list() {
-		String url = resources.get("aggreate-counters").toString() + "?size=10000";
+		String url = resources.get("aggregate-counters").toString() + "?size=10000";
 		return restTemplate.getForObject(url, MetricResource.Page.class);
 	}
 	

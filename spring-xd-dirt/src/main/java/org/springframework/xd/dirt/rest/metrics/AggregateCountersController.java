@@ -23,9 +23,12 @@ import org.joda.time.ReadablePeriod;
 import org.joda.time.chrono.ISOChronology;
 import org.joda.time.format.ISOPeriodFormat;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.hateoas.ExposesResourceFor;
+import org.springframework.hateoas.PagedResources;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,11 +39,13 @@ import org.springframework.xd.analytics.metrics.core.AggregateCount;
 import org.springframework.xd.analytics.metrics.core.AggregateCounterRepository;
 import org.springframework.xd.analytics.metrics.core.Counter;
 import org.springframework.xd.rest.client.domain.metrics.AggregateCountsResource;
+import org.springframework.xd.rest.client.domain.metrics.MetricResource;
 
 /**
  * Exposes representations of {@link AggregateCount}s.
  * 
  * @author Eric Bottard
+ * @author Ilayaperumal Gopinathan
  */
 @Controller
 @RequestMapping("/metrics/aggregate-counters")
@@ -52,6 +57,16 @@ public class AggregateCountersController extends AbstractMetricsController<Aggre
 	@Autowired
 	public AggregateCountersController(AggregateCounterRepository repository) {
 		super(repository);
+	}
+	
+	/**
+	 * List {@link AggregateCount}s that match the given criteria.
+	 */
+	@Override
+	@ResponseBody
+	@RequestMapping(value = "", method = RequestMethod.GET)
+	public PagedResources<MetricResource> list(Pageable pageable, PagedResourcesAssembler<Counter> pagedAssembler) {
+		return super.list(pageable, pagedAssembler);
 	}
 
 	/**

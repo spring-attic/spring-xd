@@ -16,10 +16,14 @@
 
 package org.springframework.xd.shell.command;
 
+import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.junit.Test;
+import org.springframework.util.StreamUtils;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableHeader;
 
@@ -98,6 +102,36 @@ public class MetricsTests extends AbstractStreamIntegrationTest {
 		richGauge().deleteDefaultRichGauge();
 	}
 
+	@Test
+	public void testFieldValueCounterList() throws Exception {
+		TailSource tailSource = newTailSource();
+		tailTweets(tailSource);
+		createTailSourceFVCStream(tailSource, "fromUser");
+		Thread.sleep(3000);
+		fvc().verifyDefaultExists();
+	}
+
+	@Test
+	public void testFieldValueCounterDisplay() throws Exception {
+		TreeMap<String, Double> fvcMap = new TreeMap<String, Double>();
+		fvcMap.put("BestNoSQL", 1d);
+		fvcMap.put("SpringSource", 2d);
+		TailSource tailSource = newTailSource();
+		tailTweets(tailSource);
+		createTailSourceFVCStream(tailSource, "fromUser");
+		Thread.sleep(2000);
+		Table t = constructFVCDisplay(fvcMap);
+		fvc().verifyFVCounter(t.toString());
+	}
+
+	@Test
+	public void testFieldValueCounterDelete() throws Exception {
+		TailSource tailSource = newTailSource();
+		createTailSourceFVCStream(tailSource, "fromUser");
+		tailTweets(tailSource);
+		fvc().deleteDefaultFVCounter();
+	}
+
 	private Table constructRichGaugeDisplay(double value, double alpha, double average, double max, double min,
 			long count) {
 		Table t = new Table();
@@ -112,10 +146,34 @@ public class MetricsTests extends AbstractStreamIntegrationTest {
 		return t;
 	}
 
+	private Table constructFVCDisplay(TreeMap<String, Double> fvcMap) {
+		Table t = new Table();
+		NumberFormat pattern = new DecimalFormat();
+		t.addHeader(1, new TableHeader("FieldName=" + DEFAULT_METRIC_NAME)).addHeader(2, new TableHeader("")).addHeader(
+				3, new TableHeader(""));
+		t.newRow().addValue(1, "VALUE").addValue(2, "-").addValue(3, "COUNT");
+		for (Map.Entry<String, Double> entry : fvcMap.descendingMap().entrySet()) {
+			t.newRow().addValue(1, entry.getKey()).addValue(2, "|").addValue(3, pattern.format(entry.getValue()));
+		}
+		return t;
+	}
+
 	private void createTestStream(MetricType metricType) throws Exception {
 		stream().create(TEST_STREAM_NAME, "http --port=%s | %s --name=%s", DEFAULT_HTTP_PORT, metricType.getName(),
 				DEFAULT_METRIC_NAME);
 		Thread.sleep(5000);
 	}
 
+	private void createTailSourceFVCStream(TailSource tailSource, String fieldName) throws Exception {
+		stream().create(TEST_STREAM_NAME, tailSource + " | field-value-counter --fieldName=%s --counterName=%s",
+				fieldName, DEFAULT_METRIC_NAME);
+	}
+
+	private void tailTweets(TailSource tailSource) throws Exception {
+		for (int i = 1; i <= 3; i++) {
+			String tweet = StreamUtils.copyToString(getClass().getResourceAsStream("/tweet" + i + ".txt"),
+					Charset.forName("UTF-8"));
+			tailSource.appendToFile(tweet);
+		}
+	}
 }

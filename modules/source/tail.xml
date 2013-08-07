@@ -16,7 +16,7 @@
 	<file:tail-inbound-channel-adapter channel="output"
 		auto-startup="false"
 		file="${name:/tmp/xd/input/${xd.stream.name}}"
-		native-options="-F -n ${lines:0}" file-delay="${delay:5000}" />
+		native-options="-F -n ${lines:0}" file-delay="${delay:5000}" end="${fromEnd:true}"/>
 
 	<channel id="output"/>
 

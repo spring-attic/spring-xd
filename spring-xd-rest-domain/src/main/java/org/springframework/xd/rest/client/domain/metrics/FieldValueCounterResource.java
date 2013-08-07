@@ -48,4 +48,8 @@ public class FieldValueCounterResource extends MetricResource {
 		this.fieldValueCounts = fieldValueCounts;
 	}
 
+	public Map<String, Double> getFieldValueCounts() {
+		return fieldValueCounts;
+	}
+
 }

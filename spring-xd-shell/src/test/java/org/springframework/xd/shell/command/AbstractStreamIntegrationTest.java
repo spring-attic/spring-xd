@@ -16,8 +16,10 @@
 
 package org.springframework.xd.shell.command;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
@@ -27,8 +29,8 @@ import org.springframework.util.FileCopyUtils;
 import org.springframework.xd.shell.AbstractShellIntegrationTest;
 
 /**
- * Provides an @After JUnit lifecycle method that will destroy the definitions that were created by calling
- * executeXXXCreate methods.
+ * Provides an @After JUnit lifecycle method that will destroy the definitions that were
+ * created by calling executeXXXCreate methods.
  * 
  * @author Andy Clement
  * @author Mark Pollack
@@ -44,15 +46,20 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 
 	private AggregateCounterCommandTemplate aggOps;
 
+	private FieldValueCounterCommandTemplate fvcOps;
+
 	private RichGaugeCommandTemplate richGaugeOps;
 
 	private Set<FileSink> fileSinks = new HashSet<AbstractStreamIntegrationTest.FileSink>();
+
+	private Set<TailSource> tailSources = new HashSet<AbstractStreamIntegrationTest.TailSource>();
 
 	public AbstractStreamIntegrationTest() {
 		streamOps = new StreamCommandTemplate(getShell());
 		tapOps = new TapCommandTemplate(getShell());
 		counterOps = new CounterCommandTemplate(getShell());
 		aggOps = new AggregateCounterCommandTemplate(getShell());
+		fvcOps = new FieldValueCounterCommandTemplate(getShell());
 		richGaugeOps = new RichGaugeCommandTemplate(getShell());
 	}
 
@@ -72,6 +79,10 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 		return aggOps;
 	}
 
+	protected FieldValueCounterCommandTemplate fvc() {
+		return fvcOps;
+	}
+
 	protected RichGaugeCommandTemplate richGauge() {
 		return richGaugeOps;
 	}
@@ -82,13 +93,21 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 		stream().destroyCreatedStreams();
 		counter().deleteDefaultCounter();
 		aggCounter().deleteDefaultCounter();
+		fvc().deleteDefaultFVCounter();
 		richGauge().deleteDefaultRichGauge();
 		cleanFileSinks();
+		cleanTailSources();
 	}
 
 	private void cleanFileSinks() {
 		for (FileSink fileSink : fileSinks) {
 			fileSink.cleanup();
+		}
+	}
+
+	private void cleanTailSources() {
+		for (TailSource tailSource : tailSources) {
+			tailSource.cleanup();
 		}
 	}
 
@@ -98,39 +117,83 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 		return fileSink;
 	}
 
-	protected static class FileSink {
+	protected TailSource newTailSource() {
+		TailSource tailSource = new TailSource();
+		tailSources.add(tailSource);
+		return tailSource;
+	}
 
-		private File file;
+	/**
+	 * Support class to capture output of a sink in a File.
+	 * 
+	 * @author Eric Bottard
+	 */
+	protected static class FileSink extends DisposableFileSupport {
 
-		/**
-		 * Constructs a new File Sink with a generated temp file.
-		 */
-		public FileSink() {
+		public String getContents() throws IOException {
+			FileReader fileReader = new FileReader(file);
+			return FileCopyUtils.copyToString(fileReader);
+		}
+
+		@Override
+		protected String toDSL() {
+			return String.format("file --dir=%s --name=%s", file.getParent(), file.getName());
+		}
+
+	}
+
+	/**
+	 * Support class to inject data as a sink into a stream.
+	 * 
+	 * @author Ilayaperumal Gopinathan
+	 */
+	protected static class TailSource extends DisposableFileSupport {
+
+		@Override
+		public String toDSL() {
+			return String.format("tail --fromEnd=%s --name=%s", "false", file.getAbsolutePath());
+		}
+
+		public void appendToFile(String contents) throws IOException {
+			FileWriter fileWritter = new FileWriter(file, true);
+			BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
+			bufferWritter.write(contents);
+			bufferWritter.close();
+		}
+	}
+
+	protected abstract static class DisposableFileSupport {
+
+		protected File file;
+
+		protected DisposableFileSupport() {
+			this(null);
+		}
+
+		protected DisposableFileSupport(File where) {
 			try {
-				file = File.createTempFile("xd-test", "txt");
+				file = File.createTempFile(getClass().getSimpleName(), ".txt", where);
 			}
 			catch (IOException e) {
 				throw new IllegalStateException(e);
 			}
 		}
 
-		/**
-		 * Returns a representation of the sink suitable for inclusion in a stream definition, <i>e.g.</i> @code{file
-		 * --dir=xxxx --name=yyyy}
-		 */
 		@Override
-		public String toString() {
-			return String.format("file --dir=%s --name=%s", file.getParent(), file.getName());
+		public final String toString() {
+			return toDSL();
 		}
+
+		/**
+		 * Returns a representation of the source/sink suitable for inclusion in a stream
+		 * definition, <i>e.g.</i> {@code file --dir=xxxx --name=yyyy}
+		 */
+		protected abstract String toDSL();
 
 		public void cleanup() {
 			file.delete();
 		}
 
-		public String getContents() throws IOException {
-			FileReader fileReader = new FileReader(file);
-			return FileCopyUtils.copyToString(fileReader);
-		}
 	}
 
 }

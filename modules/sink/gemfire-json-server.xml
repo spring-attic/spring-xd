@@ -17,7 +17,7 @@
 
 	<int-gfe:outbound-channel-adapter  region="region" id="to.gemfire">
 		<int-gfe:cache-entries>
-			<entry key="${keyExpression:${xd.stream.name}}" value="payload"/>
+			<entry key="${keyExpression:'${xd.stream.name}'}" value="payload"/>
 		</int-gfe:cache-entries>
 	</int-gfe:outbound-channel-adapter>
 

@@ -40,7 +40,7 @@ public class MetricsTests extends AbstractStreamIntegrationTest {
 	@Test
 	public void testSimpleCounterImplicitName() throws Exception {
 		String streamName = "foo";
-		stream().create(streamName, "http --port=" + DEFAULT_HTTP_PORT + " | counter");
+		stream().create(streamName, "http --port=%s | counter", DEFAULT_HTTP_PORT);
 		Thread.sleep(5000);
 		httpPostData(DEFAULT_HTTP_URL, "one");
 		counter().verifyCounter(streamName, "1");
@@ -70,8 +70,8 @@ public class MetricsTests extends AbstractStreamIntegrationTest {
 	}
 
 	private void createTestStream(MetricType metricType) throws Exception {
-		stream().create(TEST_STREAM_NAME,
-				"http --port=" + DEFAULT_HTTP_PORT + " | " + metricType.getName() + " --name=" + DEFAULT_METRIC_NAME);
+		stream().create(TEST_STREAM_NAME, "http --port=%s | %s --name=%s", DEFAULT_HTTP_PORT, metricType.getName(),
+				DEFAULT_METRIC_NAME);
 		Thread.sleep(5000);
 	}
 

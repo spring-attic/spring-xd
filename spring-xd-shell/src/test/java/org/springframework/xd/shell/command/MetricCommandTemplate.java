@@ -29,7 +29,7 @@ import static org.junit.Assert.*;
  */
 public class MetricCommandTemplate extends AbstractCommandTemplate {
 
-	public MetricCommandTemplate(JLineShellComponent shell) {
+	/* default */MetricCommandTemplate(JLineShellComponent shell) {
 		super(shell);
 	}
 

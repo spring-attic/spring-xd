@@ -37,8 +37,8 @@ public class TapCommandTests extends AbstractStreamIntegrationTest {
 	public void testCreateTap() {
 		logger.info("Create a tap");
 		String streamName = "taptestticktock";
-		stream().create(streamName, "http --port=" + DEFAULT_HTTP_PORT + " | log");
-		tap().create("taptest-tap", "tap@ " + streamName + " | file", false);
+		stream().create(streamName, "http --port=%s | log", DEFAULT_HTTP_PORT);
+		tap().createDontDeploy("taptest-tap", "tap @ %s | file", streamName);
 	}
 
 	@Test
@@ -46,8 +46,8 @@ public class TapCommandTests extends AbstractStreamIntegrationTest {
 		logger.info("Create and deploy a tap");
 		String streamName = "taptestticktock";
 		String httpPort = DEFAULT_HTTP_PORT;
-		stream().create(streamName, "http --port=" + httpPort + " | log");
-		tap().create("taptest-tap", "tap@ " + streamName + " | counter --name=" + DEFAULT_METRIC_NAME);
+		stream().create(streamName, "http --port=%s | log", httpPort);
+		tap().create("taptest-tap", "tap@%s | counter --name=%s", streamName, DEFAULT_METRIC_NAME);
 		// Verify tap by checking counter value after posting http data
 		// Adding a small delay here to make sure the http source
 		// is actually started.
@@ -64,7 +64,11 @@ public class TapCommandTests extends AbstractStreamIntegrationTest {
 		String counterName = "taptest-counter" + Math.random();
 		String httpPort = DEFAULT_HTTP_PORT;
 		String tapName = "tapdestroytest";
-		stream().create(streamName, "http --port=" + httpPort + " | log");
+
+		stream().create(streamName, "http --port=%s | log", httpPort);
+
+		// Using raw commands here or else @After method will try to
+		// delete a tap that is already gone
 		String tapDefinition = "tap@ " + streamName + " | counter --name=" + counterName;
 		CommandResult cr = executeCommand("tap create --definition \"" + tapDefinition + "\" --name " + tapName
 				+ " --deploy true");

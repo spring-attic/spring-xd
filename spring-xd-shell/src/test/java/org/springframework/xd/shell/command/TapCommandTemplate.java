@@ -38,49 +38,60 @@ public class TapCommandTemplate extends AbstractCommandTemplate {
 	 * 
 	 * @param shell the spring shell to execute commands against
 	 */
-	public TapCommandTemplate(JLineShellComponent shell) {
+	/* default */TapCommandTemplate(JLineShellComponent shell) {
 		super(shell);
 	}
 
 	/**
-	 * Destroy all taps that were created using the 'create' method. Commonly called in a @After
-	 * annotated method.
+	 * Destroy all taps that were created using the 'create' method. Commonly called in a @After annotated method.
 	 */
 	public void destroyCreatedTaps() {
 		for (String tapname : taps) {
-			CommandResult cr = executeCommand("tap destroy --name " + tapname);
-			assertTrue("Failure to destory tap " + tapname + ".  CommandResult = " + cr.toString(), cr.isSuccess());
+			destroy(tapname);
 		}
 	}
 
-	/**
-	 * Create and deploy a tap
-	 * 
-	 * Note the name of the tap will be stored so that when the method destroyCreatedTaps
-	 * is called, the stream will be destroyed.
-	 * 
-	 * @param tapname the name of the tap
-	 * @param tapdefinition the tap definition DSL
-	 */
-	public void create(String tapname, String tapdefinition) {
-		create(tapname, tapdefinition, true);
+	public void destroy(String tapname) {
+		CommandResult cr = executeCommand("tap destroy --name " + tapname);
+		assertTrue("Failure to destory tap " + tapname + ".  CommandResult = " + cr.toString(), cr.isSuccess());
+		assertEquals("Destroyed tap " + "'" + tapname + "'", cr.getResult());
 	}
 
 	/**
-	 * Execute tap create for the supplied tap name/definition, and verify the command
-	 * result.
+	 * Create and deploy a tap.
 	 * 
-	 * Note the name of the stream will be stored so that when the method
-	 * destroyCreateStreams is called, the stream will be destroyed.
+	 * Note the name of the tap will be stored so that when the method destroyCreatedTaps is called, the stream will be
+	 * destroyed.
 	 * 
 	 * @param tapname the name of the tap
 	 * @param tapdefinition the tap definition DSL
-	 * @param deploy deploy the stream if true, otherwise just create the definition
+	 * @param values will be injected in tapdefinition, using {@link String#format(String, Object...)} syntax
 	 */
-	public void create(String tapname, String tapdefinition, boolean deploy) {
-		CommandResult cr = executeCommand("tap create --definition \"" + tapdefinition + "\" --name " + tapname
-				+ (deploy ? "" : " --deploy false"));
+	public void create(String tapname, String tapdefinition, Object... values) {
+		doCreate(tapname, tapdefinition, true, values);
+	}
+
+	/**
+	 * Execute tap create (but don't deploy) for the supplied tap name/definition, and verify the command result.
+	 * 
+	 * Note the name of the stream will be stored so that when the method destroyCreateStreams is called, the stream
+	 * will be destroyed.
+	 * 
+	 * @param tapname the name of the tap
+	 * @param tapdefinition the tap definition DSL
+	 * @param values will be injected in tapdefinition, using {@link String#format(String, Object...)} syntax
+	 */
+	public void createDontDeploy(String tapname, String tapdefinition, Object... values) {
+		doCreate(tapname, tapdefinition, false, values);
+	}
+
+	private void doCreate(String tapname, String tapdefinition, boolean deploy, Object... values) {
+		String actualDefinition = String.format(tapdefinition, values);
+		String wholeCommand = String.format("tap create %s --definition \"%s\" --deploy %s", tapname, actualDefinition,
+				deploy);
+		// Save name before executing if something goes wrong
 		taps.add(tapname);
+		CommandResult cr = executeCommand(wholeCommand);
 		String expectedResult = String.format("Created %snew tap '%s'", deploy ? "and deployed " : "", tapname);
 		assertEquals(expectedResult, cr.getResult());
 	}

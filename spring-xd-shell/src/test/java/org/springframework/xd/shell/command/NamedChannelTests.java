@@ -21,7 +21,7 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 
 /**
- * Tests for named channels
+ * Tests for named channels.
  * 
  * @author Ilayaperumal Gopinathan
  * 
@@ -34,7 +34,7 @@ public class NamedChannelTests extends AbstractStreamIntegrationTest {
 	public void testCreateNamedChannelAsSink() {
 		logger.info("Creating stream with named channel 'foo' as sink");
 		stream().create("namedchanneltest-ticktock",
-				"http --port=" + DEFAULT_HTTP_PORT + " | transform --expression=payload.toUpperCase() > :foo");
+				"http --port=%s | transform --expression=payload.toUpperCase() > :foo", DEFAULT_HTTP_PORT);
 	}
 
 	@Test
@@ -43,11 +43,11 @@ public class NamedChannelTests extends AbstractStreamIntegrationTest {
 		String stream1 = "namedchanneltest-ticktock";
 		String stream2 = "namedchanneltest-ticktock-counter";
 
-		stream().create(stream1,
-				"http --port=" + DEFAULT_HTTP_PORT + " | transform --expression=payload.toUpperCase() > :foo");
+		stream().create(stream1, "http --port=%s | transform --expression=payload.toUpperCase() > :foo",
+				DEFAULT_HTTP_PORT);
 		// Create stream with named channel as source
 		Thread.sleep(4000);
-		stream().create(stream2, ":foo > counter --name=" + DEFAULT_METRIC_NAME);
+		stream().create(stream2, ":foo > counter --name=%s", DEFAULT_METRIC_NAME);
 		httpPostData("http://localhost:" + DEFAULT_HTTP_PORT, "test");
 		counter().verifyCounter("1");
 	}

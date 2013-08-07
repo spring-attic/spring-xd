@@ -31,7 +31,7 @@ public class CounterCommandTemplate extends AbstractCommandTemplate {
 	 * 
 	 * @param shell the spring shell to execute commands against
 	 */
-	public CounterCommandTemplate(JLineShellComponent shell) {
+	/* default */CounterCommandTemplate(JLineShellComponent shell) {
 		super(shell);
 		metricCommandTemplate = new MetricCommandTemplate(shell);
 	}

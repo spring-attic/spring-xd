@@ -29,7 +29,7 @@ import static org.junit.Assert.*;
 /**
  * Helper methods for stream commands to execute in the shell.
  * 
- * It should minimc the client side API of StreamOperations as much as possible.
+ * It should mimic the client side API of StreamOperations as much as possible.
  * 
  * @author Mark Pollack
  */
@@ -42,37 +42,45 @@ public class StreamCommandTemplate extends AbstractCommandTemplate {
 	 * 
 	 * @param shell the spring shell to execute commands against
 	 */
-	public StreamCommandTemplate(JLineShellComponent shell) {
+	/* default */StreamCommandTemplate(JLineShellComponent shell) {
 		super(shell);
 	}
 
 	/**
-	 * Create and deploy a stream
+	 * Create and deploy a stream.
 	 * 
-	 * Note the name of the stream will be stored so that when the method
-	 * destroyCreatedStreams is called, the stream will be destroyed.
+	 * Note the name of the stream will be stored so that when the method destroyCreatedStreams is called, the stream
+	 * will be destroyed.
 	 * 
 	 * @param streamname the name of the stream
 	 * @param streamdefinition the stream definition DSL
+	 * @param values will be injected into streamdefinition according to {@link String#format(String, Object...)} syntax
 	 */
-	public void create(String streamname, String streamdefinition) {
-		create(streamname, streamdefinition, true);
+	public void create(String streamname, String streamdefinition, Object... values) {
+		doCreate(streamname, streamdefinition, true, values);
 	}
 
 	/**
-	 * Execute stream create for the supplied stream name/definition, and verify the
-	 * command result.
+	 * Execute stream create (but don't deploy) for the supplied stream name/definition, and verify the command result.
 	 * 
-	 * Note the name of the stream will be stored so that when the method
-	 * destroyCreatedStreams is called, the stream will be destroyed.
+	 * Note the name of the stream will be stored so that when the method destroyCreatedStreams is called, the stream
+	 * will be destroyed.
+	 * 
+	 * @param values will be injected into streamdefinition according to {@link String#format(String, Object...)} syntax
 	 */
-	public void create(String streamname, String streamdefinition, boolean deploy) {
-		CommandResult cr = executeCommand("stream create --definition \"" + streamdefinition + "\" --name "
-				+ streamname + (deploy ? "" : " --deploy false"));
+	public void createDontDeploy(String streamname, String streamdefinition, Object... values) {
+		doCreate(streamname, streamdefinition, false, values);
+	}
+
+	private void doCreate(String streamname, String streamdefinition, boolean deploy, Object... values) {
+		String actualDefinition = String.format(streamdefinition, values);
+		String wholeCommand = String.format("stream create %s --definition \"%s\" --deploy %s", streamname,
+				actualDefinition, deploy);
+		CommandResult cr = executeCommand(wholeCommand);
 		// add the stream name to the streams list before assertion
 		streams.add(streamname);
 		assertEquals("Created new stream '" + streamname + "'", cr.getResult());
-		verifyExists(streamname, streamdefinition);
+		verifyExists(streamname, actualDefinition);
 	}
 
 	/**
@@ -87,8 +95,7 @@ public class StreamCommandTemplate extends AbstractCommandTemplate {
 	}
 
 	/**
-	 * Destroy all streams that were created using the 'create' method. Commonly called in
-	 * a @After annotated method
+	 * Destroy all streams that were created using the 'create' method. Commonly called in a @After annotated method
 	 */
 	public void destroyCreatedStreams() {
 		for (String streamname : streams) {

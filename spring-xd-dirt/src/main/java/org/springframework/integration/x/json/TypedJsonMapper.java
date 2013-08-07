@@ -15,6 +15,7 @@ package org.springframework.integration.x.json;
 import java.math.BigDecimal;
 
 import org.joda.time.DateTime;
+
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.core.convert.ConversionException;
 import org.springframework.util.ClassUtils;
@@ -128,7 +129,7 @@ public class TypedJsonMapper implements BeanClassLoaderAware {
 	 * UnMarshall to a requested class
 	 * @param bytes
 	 * @param className
-	 * @return
+	 * @return the object
 	 */
 	public Object fromBytes(byte[] bytes, String className) {
 		Object obj = null;
@@ -171,8 +172,8 @@ public class TypedJsonMapper implements BeanClassLoaderAware {
 	}
 
 	/*
-	 * Determine if serialized content is wrapped with type information. In the case of a raw JSON string, 
-	 * should return null. 
+	 * Determine if serialized content is wrapped with type information. In the case of a raw JSON string,
+	 * should return null.
 	 */
 	private Class<?> getWrappedType(JsonNode root) {
 		String typeName = root.fieldNames().next();

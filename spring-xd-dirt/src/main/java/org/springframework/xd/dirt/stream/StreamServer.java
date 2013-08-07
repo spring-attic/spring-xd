@@ -26,13 +26,13 @@ import org.apache.catalina.deploy.FilterMap;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.MessagingException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import org.springframework.web.context.ConfigurableWebApplicationContext;
 import org.springframework.web.context.support.XmlWebApplicationContext;
 import org.springframework.web.filter.HttpPutFormContentFilter;
 import org.springframework.web.servlet.DispatcherServlet;
@@ -94,16 +94,16 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 	public int getPort() {
 		return this.port;
 	}
-	
+
 	/**
 	 * Get the underlying HTTP port if a random port was requested, user port = 0.
-	 * @return
+	 * @return the port
 	 */
 	public int getLocalPort() {
 		int localPort = this.tomcat.getConnector().getLocalPort();
 		return localPort;
 	}
-	
+
 	public XmlWebApplicationContext getXmlWebApplicationContext() {
 		return this.webApplicationContext;
 	}
@@ -116,7 +116,7 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 		Context tomcatContext = this.tomcat.addContext(this.contextPath, new File(".").getAbsolutePath());
 		this.webApplicationContext.setServletContext(tomcatContext.getServletContext());
 		this.webApplicationContext.refresh();
-		
+
 		// Options requests should be handled by StreamServer, not Tomcat
 		// in order to handle CORS requests
 		DispatcherServlet servlet = new DispatcherServlet(this.webApplicationContext);
@@ -185,7 +185,7 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 		this.webApplicationContext.destroy();
 	}
 
-	
+
 	/**
 	 * This was taken from the tomcat unit tests but it hangs on stop.
 	 * Leave it here for some further investigation.

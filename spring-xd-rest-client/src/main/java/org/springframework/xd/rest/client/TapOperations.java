@@ -34,7 +34,7 @@ public interface TapOperations {
 	 *
 	 * @param name the name to give to the tap
 	 * @param definition the tap definition, expressed in XD DSL
-	 * @param control whether to deploy the tap immediately
+	 * @param deploy whether to deploy the tap immediately
 	 * @return a runtime representation of the created tap
 	 */
 	public TapDefinitionResource createTap(String name, String definition, boolean deploy);

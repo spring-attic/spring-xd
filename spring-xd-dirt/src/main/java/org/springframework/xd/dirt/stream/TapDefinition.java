@@ -52,7 +52,7 @@ public class TapDefinition extends BaseDefinition {
 
 	/**
 	 * @param definition
-	 * @return
+	 * @return the stream name
 	 */
 	public static String getStreamName(String name, String definition) {
 		Pattern pattern = Pattern.compile("^\\s*tap\\s*@{0,1}\\s*(\\w+).*");
@@ -87,18 +87,23 @@ public class TapDefinition extends BaseDefinition {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (!super.equals(obj))
+		}
+		if (!super.equals(obj)) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
+		}
 		TapDefinition other = (TapDefinition) obj;
 		if (streamName == null) {
-			if (other.streamName != null)
+			if (other.streamName != null) {
 				return false;
-		} else if (!streamName.equals(other.streamName))
+			}
+		} else if (!streamName.equals(other.streamName)) {
 			return false;
+		}
 		return true;
 	}
 

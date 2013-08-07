@@ -53,7 +53,7 @@ public final class UiUtils {
 	/**
 	 * Renders a textual representation of the list of provided Map data
 	 *
-	 * @param columns List of {@CloudApplication}
+	 * @param columns List of Maps
 	 * @return The rendered table representation as String
 	 *
 	 */

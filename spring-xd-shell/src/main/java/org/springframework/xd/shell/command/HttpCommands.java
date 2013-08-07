@@ -18,10 +18,14 @@ package org.springframework.xd.shell.command;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.shell.core.CommandMarker;
@@ -35,9 +39,10 @@ import org.springframework.web.client.RestTemplate;
 
 /**
  * Http commands.
- * 
+ *
  * @author Jon Brisbin
  * @author Ilayaperumal Gopinathan
+ * @author Gunnar Hillert
  */
 
 @Component
@@ -53,6 +58,12 @@ public class HttpCommands implements CommandMarker {
 		final StringBuilder buffer = new StringBuilder();
 		URI requestURI = URI.create(target);
 		RestTemplate restTemplate = new RestTemplate();
+
+		final HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(new MediaType(MediaType.TEXT_PLAIN.getType(),
+				MediaType.TEXT_PLAIN.getSubtype(), Charset.forName("UTF-8")));
+		final HttpEntity<String> request= new HttpEntity<String>(data, headers);
+
 		try {
 			restTemplate.setErrorHandler(new ResponseErrorHandler() {
 
@@ -68,7 +79,7 @@ public class HttpCommands implements CommandMarker {
 				}
 			});
 			outputRequest("POST", requestURI, data, buffer);
-			ResponseEntity<String> response = restTemplate.postForEntity(requestURI, data, String.class);
+			ResponseEntity<String> response = restTemplate.postForEntity(requestURI, request, String.class);
 			outputResponse(response, buffer);
 			String status = (response.getStatusCode().equals(HttpStatus.OK) ? "Success" : "Error");
 			return String.format(buffer.toString() + status + " sending data '%s' to target '%s'", data, target);

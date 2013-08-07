@@ -16,15 +16,8 @@
 
 package org.springframework.xd.shell.command;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.junit.After;
-import org.springframework.shell.core.CommandResult;
-import org.springframework.xd.shell.util.Table;
-import org.springframework.xd.shell.util.TableRow;
-
-import static org.junit.Assert.*;
+import org.springframework.xd.shell.AbstractShellIntegrationTest;
 
 /**
  * Provides an @After JUnit lifecycle method that will destroy the definitions that were
@@ -34,95 +27,45 @@ import static org.junit.Assert.*;
  * @author Mark Pollack
  * 
  */
-public abstract class AbstractStreamIntegrationTest extends AbstractMetricIntegrationTest {
+public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegrationTest {
 
-	private List<String> streams = new ArrayList<String>();
+	private StreamCommandTemplate streamOps;
 
-	private List<String> taps = new ArrayList<String>();
+	private TapCommandTemplate tapOps;
+
+	private CounterCommandTemplate counterOps;
+
+	private AggregateCounterCommandTemplate aggOps;
+
+	public AbstractStreamIntegrationTest() {
+		streamOps = new StreamCommandTemplate(getShell());
+		tapOps = new TapCommandTemplate(getShell());
+		counterOps = new CounterCommandTemplate(getShell());
+		aggOps = new AggregateCounterCommandTemplate(getShell());
+	}
+
+	public StreamCommandTemplate stream() {
+		return streamOps;
+	}
+
+	public TapCommandTemplate tap() {
+		return tapOps;
+	}
+
+	public CounterCommandTemplate counter() {
+		return counterOps;
+	}
+
+	public AggregateCounterCommandTemplate aggCounter() {
+		return aggOps;
+	}
 
 	@After
 	public void after() {
-		executeStreamDestroy(streams.toArray(new String[streams.size()]));
-		executeTapDestroy(taps.toArray(new String[taps.size()]));
-	}
-
-	/**
-	 * Execute 'tap destroy' for the supplied tap names.
-	 */
-	private void executeTapDestroy(String[] tapnames) {
-		for (String tapname : tapnames) {
-			CommandResult cr = executeCommand("tap destroy --name " + tapname);
-			assertTrue("Failure to destory tap " + tapname + ".  CommandResult = " + cr.toString(), cr.isSuccess());
-		}
-	}
-
-	/**
-	 * Execute 'stream destroy' for the supplied stream names.
-	 */
-	private void executeStreamDestroy(String... streamnames) {
-		for (String streamname : streamnames) {
-			CommandResult cr = executeCommand("stream destroy --name " + streamname);
-			assertTrue("Failure to destory stream " + streamname + ".  CommandResult = " + cr.toString(),
-					cr.isSuccess());
-		}
-	}
-
-	protected void executeStreamCreate(String streamname, String streamdefinition) {
-		executeStreamCreate(streamname, streamdefinition, true);
-	}
-
-	protected void executeTapCreate(String tapname, String tapdefinition) {
-		executeTapCreate(tapname, tapdefinition, true);
-	}
-
-	/**
-	 * Execute stream create for the supplied stream name/definition, and verify the
-	 * command result.
-	 */
-	protected void executeStreamCreate(String streamname, String streamdefinition, boolean deploy) {
-		CommandResult cr = executeCommand("stream create --definition \"" + streamdefinition + "\" --name "
-				+ streamname + (deploy ? "" : " --deploy false"));
-		// add the stream name to the streams list before assertion
-		streams.add(streamname);
-		assertEquals("Created new stream '" + streamname + "'", cr.getResult());
-		verifyStreamExists(streamname, streamdefinition);
-	}
-
-	protected void executeStreamDeploy(String streamname) {
-		CommandResult cr = getShell().executeCommand("stream deploy --name " + streamname);
-		assertTrue("Failure.  CommandResult = " + cr.toString(), cr.isSuccess());
-		assertEquals("Deployed stream 'ticktock'", cr.getResult());
-	}
-
-	protected void executeStreamUndeploy(String streamname) {
-		CommandResult cr = getShell().executeCommand("stream undeploy --name " + streamname);
-		assertTrue(cr.isSuccess());
-		assertEquals("Un-deployed stream '" + streamname + "'", cr.getResult());
-	}
-
-	/**
-	 * Execute tap create for the supplied tap name/definition, and verify the command
-	 * result.
-	 */
-	protected void executeTapCreate(String tapname, String tapdefinition, boolean deploy) {
-		CommandResult cr = executeCommand("tap create --definition \"" + tapdefinition + "\" --name " + tapname
-				+ (deploy ? "" : " --deploy false"));
-		taps.add(tapname);
-		String expectedResult = String.format("Created %snew tap '%s'", deploy ? "and deployed " : "", tapname);
-		assertEquals(expectedResult, cr.getResult());
-	}
-
-	/**
-	 * Verify the stream is listed in stream list.
-	 * 
-	 * @param streamName the name of the stream
-	 * @param definition definition of the stream
-	 */
-	protected void verifyStreamExists(String streamName, String definition) {
-		CommandResult cr = getShell().executeCommand("stream list");
-		assertTrue("Failure.  CommandResult = " + cr.toString(), cr.isSuccess());
-		Table t = (Table) cr.getResult();
-		assertTrue(t.getRows().contains(new TableRow().addValue(1, streamName).addValue(2, definition)));
+		stream().destroyCreatedStreams();
+		tap().destroyCreatedTaps();
+		counter().deleteDefaultCounter();
+		aggCounter().deleteDefaultCounter();
 	}
 
 }

@@ -39,8 +39,8 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	public void testStreamLifecycleForTickTock() throws InterruptedException {
 		logger.info("Starting Stream Test for TickTock");
 		String streamName = "ticktock";
-		executeStreamCreate(streamName, "time | log");
-		executeStreamUndeploy(streamName);
+		stream().create(streamName, "time | log");
+		stream().undeploy(streamName);
 	}
 
 	@Test
@@ -48,7 +48,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		logger.info("Create tictock stream");
 		String streamName = "ticktock";
 		String streamDefinition = "time | log";
-		executeStreamCreate(streamName, streamDefinition);
+		stream().create(streamName, streamDefinition);
 
 		CommandResult cr = getShell().executeCommand(
 				"stream create --definition \"" + streamDefinition + "\" --name ticktock");
@@ -71,7 +71,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		logger.info("Create 2 tictok streams with --deploy = false");
 		String streamName = "ticktock";
 		String streamDefinition = "time | log";
-		executeStreamCreate(streamName, streamDefinition, false);
+		stream().create(streamName, streamDefinition, false);
 
 		CommandResult cr = getShell().executeCommand(
 				"stream create --definition \"" + streamDefinition + "\" --name " + streamName + " --deploy false");
@@ -79,7 +79,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		assertTrue("Failure.  CommandResult = " + cr.toString(),
 				cr.getException().getMessage().contains("There is already a stream named 'ticktock'"));
 
-		verifyStreamExists(streamName, streamDefinition);
+		stream().verifyExists(streamName, streamDefinition);
 	}
 
 	@Test
@@ -87,16 +87,16 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		logger.info("Create tictok stream");
 		String streamName = "ticktock";
 		String streamDefinition = "time | log";
-		executeStreamCreate(streamName, streamDefinition, false);
+		stream().create(streamName, streamDefinition, false);
 
-		executeStreamDeploy(streamName);
-		verifyStreamExists(streamName, streamDefinition);
+		stream().deploy(streamName);
+		stream().verifyExists(streamName, streamDefinition);
 
-		executeStreamUndeploy(streamName);
-		verifyStreamExists(streamName, streamDefinition);
+		stream().undeploy(streamName);
+		stream().verifyExists(streamName, streamDefinition);
 
-		executeStreamDeploy(streamName);
-		verifyStreamExists(streamName, streamDefinition);
+		stream().deploy(streamName);
+		stream().verifyExists(streamName, streamDefinition);
 
 	}
 
@@ -118,51 +118,51 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	@Test
 	public void testNamedChannelSyntax() {
 		logger.info("Create ticktock stream");
-		executeStreamCreate("ticktock-in", "http --port=9314 > :foox", true);
-		executeStreamCreate("ticktock-out", ":foo > log", true);
+		stream().create("ticktock-in", "http --port=9314 > :foox", true);
+		stream().create("ticktock-out", ":foo > log", true);
 		httpPostData("http://localhost:9314", "blahblah");
 	}
 
 	@Test
 	public void testNamedChannelsLinkingSourceAndSink() {
-		executeStreamCreate("ticktock-in", "http --port=9314 > :foo", true);
-		executeStreamCreate("ticktock-out", ":foo > transform --expression=payload.toUpperCase() | log", true);
+		stream().create("ticktock-in", "http --port=9314 > :foo", true);
+		stream().create("ticktock-out", ":foo > transform --expression=payload.toUpperCase() | log", true);
 		httpPostData("http://localhost:9314", "blahblah");
 	}
 
 	@Test
 	public void testDefiningSubstream() {
-		executeStreamCreate("s1", "transform --expression=payload.replace('Andy','zzz')", false);
+		stream().create("s1", "transform --expression=payload.replace('Andy','zzz')", false);
 	}
 
 	@Test
 	public void testUsingSubstream() {
-		executeStreamCreate("s1", "transform --expression=payload.replace('Andy','zzz')", false);
-		executeStreamCreate("s2", "http --port=9314 | s1 | log", true);
+		stream().create("s1", "transform --expression=payload.replace('Andy','zzz')", false);
+		stream().create("s2", "http --port=9314 | s1 | log", true);
 		httpPostData("http://localhost:9314", "fooAndyfoo");
 	}
 
 	@Test
 	public void testUsingSubstreamWithParameterizationAndDefaultValue() {
-		executeStreamCreate("obfuscate", "transform --expression=payload.replace('${text:rys}','.')", false);
-		executeStreamCreate("s2", "http --port=9314 | obfuscate | log", true);
+		stream().create("obfuscate", "transform --expression=payload.replace('${text:rys}','.')", false);
+		stream().create("s2", "http --port=9314 | obfuscate | log", true);
 		httpPostData("http://localhost:9314", "Dracarys!");
 		// TODO verify the output of the 'log' sink is 'Draca.!'
 	}
 
 	@Test
 	public void testUsingSubstreamWithParameterization() {
-		executeStreamCreate("obfuscate", "transform --expression=payload.replace('${text}','.')", false);
-		executeStreamCreate("s2", "http --port=9314 | obfuscate --text=aca | log", true);
+		stream().create("obfuscate", "transform --expression=payload.replace('${text}','.')", false);
+		stream().create("s2", "http --port=9314 | obfuscate --text=aca | log", true);
 		httpPostData("http://localhost:9314", "Dracarys!");
 		// TODO verify the output of the 'log' sink is 'Dr.rys!'
 	}
 
 	@Test
 	public void testSubSubstreams() {
-		executeStreamCreate("swap", "transform --expression=payload.replaceAll('${from}','${to}')", false);
-		executeStreamCreate("abyz", "swap --from=a --to=z | swap --from=b --to=y", false);
-		executeStreamCreate("foo", "http --port=9314 | abyz | log", true);
+		stream().create("swap", "transform --expression=payload.replaceAll('${from}','${to}')", false);
+		stream().create("abyz", "swap --from=a --to=z | swap --from=b --to=y", false);
+		stream().create("foo", "http --port=9314 | abyz | log", true);
 		httpPostData("http://localhost:9314", "aabbccxxyyzz");
 		// TODO verify log outputs zzyyccxxbbaa
 	}
@@ -170,14 +170,14 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	@Ignore
 	@Test
 	public void testUsingLabels() {
-		executeStreamCreate("myhttp", "http --port=9314 | flibble: transform --expression=payload.toUpperCase() | log",
+		stream().create("myhttp", "http --port=9314 | flibble: transform --expression=payload.toUpperCase() | log",
 				true);
 		// executeStreamCreate("wiretap","tap @myhttp.1 | transform --expression=payload.replaceAll('a','.') | log",true);
 		// These variants of the above (which does work) don't appear to work although
 		// they do refer to the same source channel:
-		executeStreamCreate("wiretap",
-				"tap myhttp.transform > transform --expression=payload.replaceAll('a','.') | log", true);
-		executeStreamCreate("wiretap", "tap myhttp.flibble > transform --expression=payload.replaceAll('a','.') | log",
+		stream().create("wiretap", "tap myhttp.transform > transform --expression=payload.replaceAll('a','.') | log",
+				true);
+		stream().create("wiretap", "tap myhttp.flibble > transform --expression=payload.replaceAll('a','.') | log",
 				true);
 		httpPostData("http://localhost:9314", "Dracarys!");
 		// TODO verify both logs output DRACARYS!

@@ -48,6 +48,14 @@ import static org.junit.Assert.*;
  */
 public abstract class AbstractShellIntegrationTest {
 
+	// These two are used across the tests, hopefully 9193 is free on most dev boxes and
+	// CI servers
+	public static final String DEFAULT_HTTP_PORT = "9193";
+
+	public static final String DEFAULT_HTTP_URL = "http://localhost:" + DEFAULT_HTTP_PORT;
+
+	protected static final String DEFAULT_METRIC_NAME = "bar";
+
 	@Rule
 	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
 

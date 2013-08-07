@@ -23,12 +23,12 @@ import org.springframework.core.env.PropertiesPropertySource;
  */
 public class OptionUtils {
 	/**
-	 * @parame options
+	 * @param options
 	 * @param environment
 	 */
 	public static void setJmxProperties(AbstractOptions options, ConfigurableEnvironment environment) {
 		Properties jmxProperties = new Properties();
-		jmxProperties.put(AbstractOptions.XD_JMX_PORT_KEY, options.getJmxPort());	
+		jmxProperties.put(AbstractOptions.XD_JMX_PORT_KEY, options.getJmxPort());
 		environment.getPropertySources().addFirst(new PropertiesPropertySource("jmxProperties",jmxProperties));
 	}
 

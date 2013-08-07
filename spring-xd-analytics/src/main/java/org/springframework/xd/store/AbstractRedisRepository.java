@@ -40,7 +40,7 @@ import org.springframework.util.Assert;
  * <li>
  * <li>each entity is stored serialized under key {@code repoPrefix<id>}</li>
  * </ul>
- * 
+ *
  * @param <T> the type of things to store
  * @param <ID> a "primary key" to the things
  * @author Eric Bottard
@@ -190,7 +190,7 @@ public abstract class AbstractRedisRepository<T, ID extends Serializable> implem
 
 	/**
 	 * Deserialize from the String representation to the domain object.
-	 * @param the entity id
+	 * @param id the entity id
 	 * @param v the serialized representation of the domain object
 	 */
 	protected abstract T deserialize(ID id, String v);

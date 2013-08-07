@@ -19,13 +19,13 @@ package org.springframework.xd.dirt.stream.dsl;
 /**
  * A lookup environment is used to resolve a stream. Stream resolution chases
  * down references to substreams or referenced labels/modules.
- * 
+ *
  * Note:
  * For the initial implementation we use the stream parser class itself but
  * that means when xd-admin is restarted it will not be able to resolve
  * streams. The stream parser also does not know when streams are deleted.
  * Eventually the proper implementation will be based on the stream directory.
- * 
+ *
  * @author Andy Clement
  */
 public interface StreamLookupEnvironment {
@@ -33,7 +33,7 @@ public interface StreamLookupEnvironment {
 	/**
 	 * Look up a previously defined stream by name, returns the parsed
 	 * AST for it.
-	 * 
+	 *
 	 * @param name name of the stream
 	 * @return AST for the stream
 	 */
@@ -49,13 +49,13 @@ public interface StreamLookupEnvironment {
 	 * tap mystream.foo > count
 	 * </code></pre>
 	 * will cause a lookup for stream 'mystream' module 'foo' when the
-	 * tap is being resolved.  The return value would be 'mystream.1' (The 
-	 * output channel for a module is based on the index of the module within 
+	 * tap is being resolved.  The return value would be 'mystream.1' (The
+	 * output channel for a module is based on the index of the module within
 	 * the stream, starting at 0).
-	 * 
+	 *
 	 * @param streamName the name of the stream
 	 * @param labelOrModuleName a label or name of a module
-	 * @return
+	 * @return the label or module name
 	 */
 	String lookupChannelForLabelOrModule(String streamName, String labelOrModuleName);
 

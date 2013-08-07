@@ -23,7 +23,7 @@ package org.springframework.xd.dirt.stream.dsl;
  * @author Andy Clement
  */
 @SuppressWarnings("serial")
-public class DSLException extends RuntimeException { 
+public class DSLException extends RuntimeException {
 
 	protected String expressionString;
 	protected int position; // -1 if not known - but should be known in all reasonable cases
@@ -74,7 +74,7 @@ public class DSLException extends RuntimeException {
 	public Object[] getInserts() {
 		return inserts;
 	}
-	
+
 	/**
 	 * @return the dsl expression text
 	 */
@@ -84,7 +84,6 @@ public class DSLException extends RuntimeException {
 
 	/**
 	 * @return location of the error in the expression text
-	 * @return
 	 */
 	public final int getPosition() {
 		return position;

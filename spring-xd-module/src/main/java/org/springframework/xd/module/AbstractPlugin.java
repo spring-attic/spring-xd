@@ -86,17 +86,13 @@ public abstract class AbstractPlugin implements Plugin{
 	 * Establish the configuration file path and names required to setup the context for the
 	 * type of module you are deploying.
 	 * @param module The module that is being initialized
-	 * @param group The group the module belongs
-	 * @param index The offset of the module in the stream
-	 * @return
+	 * @return The list of paths
 	 */
 	protected abstract List<String> componentPathsSelector(Module module);
 
 	/**
 	 * set the properties required for the module based on its type.
 	 * @param module The module that is being initialized
-	 * @param group The group the module belongs
-	 * @param index The offset of the module in the stream
 	 */
 	protected abstract void configureProperties(Module module);
 

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.dirt.stream.dsl;
 
 import java.util.HashMap;
@@ -29,7 +30,8 @@ import org.springframework.xd.dirt.stream.StreamDefinition;
 import static org.junit.Assert.*;
 
 /**
- * Parse streams and verify either the correct abstract syntax tree is produced or the current exception comes out.
+ * Parse streams and verify either the correct abstract syntax tree is produced or the
+ * current exception comes out.
  * 
  * @author Andy Clement
  */
@@ -48,7 +50,8 @@ public class StreamConfigParserTests {
 		assertEquals("Streams[gemfire-cq][(ModuleNode:gemfire-cq:0>10)]", ast.stringify(true));
 	}
 
-	// Naming a stream is done via <name>=<something> where <something> might be 0 or more modules/channels
+	// Naming a stream is done via <name>=<something> where <something> might be 0 or more
+	// modules/channels
 	@Test
 	public void streamNaming() {
 		StreamsNode ast = parse("mystream = foo");
@@ -223,6 +226,9 @@ public class StreamConfigParserTests {
 		assertEquals("Streams[tap one.foo][(ModuleNode:tap --channel=one.0:0>11)]", ast2.stringify(true));
 		StreamsNode ast3 = parse("two", "tap one.transform");
 		assertEquals("Streams[tap one.transform][(ModuleNode:tap --channel=one.1:0>17)]", ast3.stringify(true));
+		StreamsNode ast4 = parse("two", "tap one | log");
+		assertEquals("Streams[tap one | log][(ModuleNode:tap --channel=one.0:0>7)(ModuleNode:log:10>13)]",
+				ast4.stringify(true));
 	}
 
 	@Test
@@ -352,7 +358,8 @@ public class StreamConfigParserTests {
 
 	@Test
 	public void qualifiedSinkChannelError() {
-		// Only the source channel can be explicitly qualified the sink channel stream qualifier is implied
+		// Only the source channel can be explicitly qualified the sink channel stream
+		// qualifier is implied
 		checkForParseError("http > :mystream.foo", XDDSLMessages.UNEXPECTED_DATA_AFTER_STREAMDEF, 16, ".");
 		// StreamsNode ast = parse("http > :mystream.foo");
 		// assertEquals("Streams[http > :mystream.foo][(ModuleNode:http:0>4)>(:mystream.foo:7>20)]",ast.stringify(true));
@@ -407,7 +414,8 @@ public class StreamConfigParserTests {
 		parse("foo = transform --expression='abc' | transform --expression='def'");
 		StreamsNode ast = parse("http | foo | file");
 		StreamNode stream2 = ast.getStreamNodes().get(0);
-		// TODO after macro insertion the source locations for the inserted modules are kind of meaningless, reset them?
+		// TODO after macro insertion the source locations for the inserted modules are
+		// kind of meaningless, reset them?
 		assertEquals(
 				"[(ModuleNode:http:0>4)(ModuleNode:transform --expression=abc:6>32)(ModuleNode:transform --expression=def:35>61)(ModuleNode:file:13>17)]",
 				stream2.stringify(true));
@@ -502,7 +510,8 @@ public class StreamConfigParserTests {
 				stream2.stringify());
 	}
 
-	// TODO namespaces? StreamsNode ast =parse("mystreams.foo.bar = label.doo: step1 & label.bar: step2");
+	// TODO namespaces? StreamsNode ast
+	// =parse("mystreams.foo.bar = label.doo: step1 & label.bar: step2");
 
 	// TODO Topology parsing?
 	// @Test
@@ -522,7 +531,8 @@ public class StreamConfigParserTests {
 
 	@Test
 	public void errorCases02() {
-		// If we allow hyphens in identifiers (stream names) then this is not invalid, it is a stream called 'foo--bar'
+		// If we allow hyphens in identifiers (stream names) then this is not invalid, it
+		// is a stream called 'foo--bar'
 		// checkForParseError("foo--bar=yyy",XDDSLMessages.EXPECTED_WHITESPACE_AFTER_MODULE_BEFORE_ARGUMENT,3);
 		StreamsNode ast = parse("foo--bar=yyy");
 		assertEquals("Streams[foo--bar=yyy][foo--bar = (ModuleNode:yyy)]", ast.stringify());
@@ -530,7 +540,8 @@ public class StreamConfigParserTests {
 
 	@Test
 	public void errorCases03() {
-		// If we allow hyphens in identifiers (stream names) then this is not invalid, it is a stream called 'foo--bar'
+		// If we allow hyphens in identifiers (stream names) then this is not invalid, it
+		// is a stream called 'foo--bar'
 		// checkForParseError("foo-bar=yyy",XDDSLMessages.MISSING_CHARACTER,3,"-");
 		StreamsNode ast = parse("foo-bar=yyy");
 		assertEquals("Streams[foo-bar=yyy][foo-bar = (ModuleNode:yyy)]", ast.stringify());

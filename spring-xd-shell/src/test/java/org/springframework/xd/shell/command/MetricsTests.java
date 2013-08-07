@@ -16,10 +16,15 @@
 
 package org.springframework.xd.shell.command;
 
+import java.io.File;
+import java.net.URL;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.junit.Test;
+import org.springframework.shell.support.util.FileUtils;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableHeader;
 
@@ -98,6 +103,36 @@ public class MetricsTests extends AbstractStreamIntegrationTest {
 		richGauge().deleteDefaultRichGauge();
 	}
 
+	@Test
+	public void testFieldValueCounterList() throws Exception {
+		FileSource fileSource = newFileSource(new File(FILE_SOURCE_INPUT_DIR + TEST_STREAM_NAME));
+		createFileSourceFVCStream(fileSource, "fromUser");
+		copyTweetFiles(fileSource);
+		fvc().verifyDefaultExists();
+	}
+
+	@Test
+	public void testFieldValueCounterDisplay() throws Exception {
+		TreeMap<String, Double> fvcMap = new TreeMap<String, Double>();
+		fvcMap.put("BestNoSQL", 1d);
+		fvcMap.put("SpringSource", 2d);
+		FileSource fileSource = newFileSource(new File(FILE_SOURCE_INPUT_DIR + TEST_STREAM_NAME));
+		createFileSourceFVCStream(fileSource, "fromUser");
+		copyTweetFiles(fileSource);
+		// Wait for some more time to allow the tweets get processed.
+		Thread.sleep(10000);
+		Table t = constructFVCDisplay(fvcMap);
+		fvc().verifyFVCounter(t.toString());
+	}
+
+	@Test
+	public void testFieldValueCounterDelete() throws Exception {
+		FileSource fileSource = newFileSource(new File(FILE_SOURCE_INPUT_DIR + TEST_STREAM_NAME));
+		createFileSourceFVCStream(fileSource, "fromUser");
+		copyTweetFiles(fileSource);
+		fvc().deleteDefaultFVCounter();
+	}
+
 	private Table constructRichGaugeDisplay(double value, double alpha, double average, double max, double min,
 			long count) {
 		Table t = new Table();
@@ -112,10 +147,34 @@ public class MetricsTests extends AbstractStreamIntegrationTest {
 		return t;
 	}
 
+	private Table constructFVCDisplay(TreeMap<String, Double> fvcMap) {
+		Table t = new Table();
+		NumberFormat pattern = new DecimalFormat();
+		t.addHeader(1, new TableHeader("FieldName=" + DEFAULT_METRIC_NAME)).addHeader(2, new TableHeader("")).addHeader(
+				3, new TableHeader(""));
+		t.newRow().addValue(1, "VALUE").addValue(2, "-").addValue(3, "COUNT");
+		for (Map.Entry<String, Double> entry : fvcMap.descendingMap().entrySet()) {
+			t.newRow().addValue(1, entry.getKey()).addValue(2, "|").addValue(3, pattern.format(entry.getValue()));
+		}
+		return t;
+	}
+
 	private void createTestStream(MetricType metricType) throws Exception {
 		stream().create(TEST_STREAM_NAME, "http --port=%s | %s --name=%s", DEFAULT_HTTP_PORT, metricType.getName(),
 				DEFAULT_METRIC_NAME);
 		Thread.sleep(5000);
 	}
 
+	private void createFileSourceFVCStream(FileSource fileSource, String fieldName) throws Exception {
+		stream().create(TEST_STREAM_NAME, fileSource + " | field-value-counter --fieldName=%s --counterName=%s",
+				fieldName, DEFAULT_METRIC_NAME);
+		Thread.sleep(5000);
+	}
+
+	private void copyTweetFiles(FileSource fileSource) throws Exception {
+		URL url = this.getClass().getClassLoader().getResource(TWEETS_DIR);
+		File file = new File(url.toURI());
+		FileUtils.copyRecursively(file, fileSource.getFile(), false);
+		Thread.sleep(5000);
+	}
 }

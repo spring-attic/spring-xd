@@ -56,6 +56,10 @@ public abstract class AbstractShellIntegrationTest {
 
 	protected static final String DEFAULT_METRIC_NAME = "bar";
 
+	protected static final String TWEETS_DIR = "tweets";
+
+	protected static final String FILE_SOURCE_INPUT_DIR = "/tmp/xd/input/";
+
 	@Rule
 	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
 

@@ -17,7 +17,7 @@
 package org.springframework.xd.shell.command;
 
 enum MetricType {
-	COUNTER("counter"), AGGR_COUNTER("aggregatecounter"), GAUGE("gauge"), RICH_GAUGE("richgauge");
+	COUNTER("counter"), FIELD_VALUE_COUNTER("fieldvaluecounter"), AGGR_COUNTER("aggregatecounter"), GAUGE("gauge"), RICH_GAUGE("richgauge");
 
 	private String name;
 

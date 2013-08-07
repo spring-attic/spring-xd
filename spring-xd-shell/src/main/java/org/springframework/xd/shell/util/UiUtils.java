@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.shell.util;
 
 import java.util.List;
@@ -24,27 +25,33 @@ import org.apache.commons.lang.StringUtils;
 import com.google.common.base.Splitter;
 
 /**
- * Contains utility methods for rendering data to a formatted console output.
- * E.g. it provides helper methods for rendering ASCII-based data tables.
- *
+ * Contains utility methods for rendering data to a formatted console output. E.g. it
+ * provides helper methods for rendering ASCII-based data tables.
+ * 
  * @author Gunnar Hillert
  * @author Thomas Risberg
  * @since 1.0
- *
+ * 
  */
 public final class UiUtils {
+
 	public static final String HORIZONTAL_LINE = "-------------------------------------------------------------------------------\n";
 
 	public static final int COLUMN_1 = 1;
+
 	public static final int COLUMN_2 = 2;
+
 	public static final int COLUMN_3 = 3;
+
 	public static final int COLUMN_4 = 4;
+
 	public static final int COLUMN_5 = 5;
+
 	public static final int COLUMN_6 = 6;
 
 	/**
 	 * Prevent instantiation.
-	 *
+	 * 
 	 */
 	private UiUtils() {
 		throw new AssertionError();
@@ -52,10 +59,10 @@ public final class UiUtils {
 
 	/**
 	 * Renders a textual representation of the list of provided Map data
-	 *
+	 * 
 	 * @param columns List of Maps
 	 * @return The rendered table representation as String
-	 *
+	 * 
 	 */
 	public static String renderMapDataAsTable(List<Map<String, Object>> data, List<String> columns) {
 
@@ -86,8 +93,8 @@ public final class UiUtils {
 		return renderTextTable(table);
 	}
 
-	public static String renderParameterInfoDataAsTable(Map<String, String> parameters,
-			boolean withHeader, int lastColumnMaxWidth) {
+	public static String renderParameterInfoDataAsTable(Map<String, String> parameters, boolean withHeader,
+			int lastColumnMaxWidth) {
 		final Table table = new Table();
 
 		table.getHeaders().put(COLUMN_1, new TableHeader("Parameter"));
@@ -111,15 +118,15 @@ public final class UiUtils {
 			table.getRows().add(tableRow);
 		}
 
-		return renderTextTable(table,withHeader);
+		return renderTextTable(table, withHeader);
 	}
 
 	/**
 	 * Renders a textual representation of provided parameter map.
-	 *
+	 * 
 	 * @param parameters Map of parameters (key, value)
 	 * @return The rendered table representation as String
-	 *
+	 * 
 	 */
 	public static String renderParameterInfoDataAsTable(Map<String, String> parameters) {
 		return renderParameterInfoDataAsTable(parameters, true, -1);
@@ -129,10 +136,9 @@ public final class UiUtils {
 		return renderTextTable(table, true);
 	}
 
-
 	/**
 	 * Renders a textual representation of the provided {@link Table}
-	 *
+	 * 
 	 * @param table Table data {@link Table}
 	 * @return The rendered table representation as String
 	 */
@@ -158,7 +164,8 @@ public final class UiUtils {
 							lineToAppend = padding + CommonUtils.padRight(chunk, header.getWidth());
 						}
 						else {
-							lineToAppend = StringUtils.leftPad("", length) + padding + CommonUtils.padRight(chunk, header.getWidth());
+							lineToAppend = StringUtils.leftPad("", length) + padding
+									+ CommonUtils.padRight(chunk, header.getWidth());
 						}
 						first = false;
 						headerline.append(lineToAppend);
@@ -191,7 +198,8 @@ public final class UiUtils {
 							lineToAppend = padding + CommonUtils.padRight(chunk, entry.getValue().getWidth());
 						}
 						else {
-							lineToAppend = StringUtils.leftPad("", length) + padding + CommonUtils.padRight(chunk, entry.getValue().getWidth());
+							lineToAppend = StringUtils.leftPad("", length) + padding
+									+ CommonUtils.padRight(chunk, entry.getValue().getWidth());
 						}
 						first = false;
 						rowLine.append(lineToAppend);
@@ -217,7 +225,7 @@ public final class UiUtils {
 
 	/**
 	 * Renders the Table header border, based on the map of provided headers.
-	 *
+	 * 
 	 * @param headers Map of headers containing meta information e.g. name+width of header
 	 * @return Returns the rendered header border as String
 	 */

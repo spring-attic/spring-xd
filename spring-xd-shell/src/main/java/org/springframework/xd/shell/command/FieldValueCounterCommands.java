@@ -16,6 +16,11 @@
 
 package org.springframework.xd.shell.command;
 
+import java.text.NumberFormat;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.TreeMap;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.shell.core.CommandMarker;
@@ -24,13 +29,16 @@ import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
 import org.springframework.xd.rest.client.FieldValueCounterOperations;
+import org.springframework.xd.rest.client.domain.metrics.FieldValueCounterResource;
 import org.springframework.xd.rest.client.domain.metrics.MetricResource;
 import org.springframework.xd.shell.XDShell;
+import org.springframework.xd.shell.converter.NumberFormatConverter;
 import org.springframework.xd.shell.util.Table;
+import org.springframework.xd.shell.util.TableHeader;
 
 /**
  * Commands for interacting with field value counter analytics.
- *
+ * 
  * @author Ilayaperumal Gopinathan
  */
 @Component
@@ -49,9 +57,18 @@ public class FieldValueCounterCommands extends AbstractMetricsCommands implement
 	@Autowired
 	private XDShell xdShell;
 
-	@CliAvailabilityIndicator({ LIST_FV_COUNTERS, DELETE_FV_COUNTER })
+	@CliAvailabilityIndicator({ DISPLAY_FV_COUNTER, LIST_FV_COUNTERS, DELETE_FV_COUNTER })
 	public boolean available() {
 		return xdShell.getSpringXDOperations() != null;
+	}
+
+	@CliCommand(value = DISPLAY_FV_COUNTER, help = "Display the field-value-counter value")
+	public Table display(
+			@CliOption(key = { "", "name" }, help = "the name of the field-value-counter to display", mandatory = true) String name,
+			@CliOption(key = "pattern", help = "the pattern used to format the field-value-counter's field count (see DecimalFormat)", mandatory = false, unspecifiedDefaultValue = NumberFormatConverter.DEFAULT) NumberFormat pattern,
+			@CliOption(key = { "size" }, help = "the number of values to display", mandatory = false, unspecifiedDefaultValue = "25") int size) {
+		FieldValueCounterResource fvcResource = fvcOperations().retrieve(name);
+		return displayFVCvalue(fvcResource, pattern, size);
 	}
 
 	@CliCommand(value = LIST_FV_COUNTERS, help = "List all available field-value-counter names")
@@ -59,16 +76,55 @@ public class FieldValueCounterCommands extends AbstractMetricsCommands implement
 		PagedResources<MetricResource> list = fvcOperations().list(/* TODO */);
 		return displayMetrics(list);
 	}
-	
-	@CliCommand(value = DELETE_FV_COUNTER, help= "Delete the field-value-counter")
+
+	@CliCommand(value = DELETE_FV_COUNTER, help = "Delete the field-value-counter")
 	public String delete(
-			@CliOption(key = {"", "name"}, help = "the name of the field-value-counter to delete", mandatory = true) String name) {
+			@CliOption(key = { "", "name" }, help = "the name of the field-value-counter to delete", mandatory = true) String name) {
 		fvcOperations().delete(name);
-		return String.format("Deleted field-value-counter '%s'", name);
+		return String.format("Deleted fieldvaluecounter '%s'", name);
 	}
 
 	private FieldValueCounterOperations fvcOperations() {
 		return xdShell.getSpringXDOperations().fvcOperations();
 	}
 
+	private Table displayFVCvalue(FieldValueCounterResource fvcResource, NumberFormat pattern, final int size) {
+		final Map<String, Double> fieldValueCounts = fvcResource.getFieldValueCounts();
+		FieldValueComparator fvc = new FieldValueComparator(fieldValueCounts);
+		TreeMap<String, Double> sortedFvc = new TreeMap<String, Double>(fvc);
+		sortedFvc.putAll(fieldValueCounts);
+		Table t = new Table();
+		t.addHeader(1, new TableHeader("FieldName=" + fvcResource.getName())).addHeader(2, new TableHeader("")).addHeader(
+				3, new TableHeader(""));
+		t.newRow().addValue(1, "VALUE").addValue(2, "-").addValue(3, "COUNT");
+		int rowSize = 1;
+		for (Map.Entry<String, Double> entry : sortedFvc.entrySet()) {
+			t.newRow().addValue(1, entry.getKey()).addValue(2, "|").addValue(3, pattern.format(entry.getValue()));
+			if (rowSize >= size) {
+				break;
+			}
+			rowSize++;
+		}
+		return t;
+	}
+
+	private class FieldValueComparator implements Comparator<String> {
+
+		Map<String, Double> fieldValueCounts;
+
+		public FieldValueComparator(Map<String, Double> fieldValueCounts) {
+			this.fieldValueCounts = fieldValueCounts;
+		}
+
+		@Override
+		public int compare(String a, String b) {
+			if (fieldValueCounts.get(a) >= fieldValueCounts.get(b)) {
+				return -1;
+			}
+			else {
+				return 1;
+			}
+		}
+
+	}
 }

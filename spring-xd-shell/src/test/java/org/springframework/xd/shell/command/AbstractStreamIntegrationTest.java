@@ -27,8 +27,8 @@ import org.springframework.util.FileCopyUtils;
 import org.springframework.xd.shell.AbstractShellIntegrationTest;
 
 /**
- * Provides an @After JUnit lifecycle method that will destroy the definitions that were created by calling
- * executeXXXCreate methods.
+ * Provides an @After JUnit lifecycle method that will destroy the definitions that were
+ * created by calling executeXXXCreate methods.
  * 
  * @author Andy Clement
  * @author Mark Pollack
@@ -44,15 +44,20 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 
 	private AggregateCounterCommandTemplate aggOps;
 
+	private FieldValueCounterCommandTemplate fvcOps;
+
 	private RichGaugeCommandTemplate richGaugeOps;
 
 	private Set<FileSink> fileSinks = new HashSet<AbstractStreamIntegrationTest.FileSink>();
+
+	private Set<FileSource> fileSources = new HashSet<AbstractStreamIntegrationTest.FileSource>();
 
 	public AbstractStreamIntegrationTest() {
 		streamOps = new StreamCommandTemplate(getShell());
 		tapOps = new TapCommandTemplate(getShell());
 		counterOps = new CounterCommandTemplate(getShell());
 		aggOps = new AggregateCounterCommandTemplate(getShell());
+		fvcOps = new FieldValueCounterCommandTemplate(getShell());
 		richGaugeOps = new RichGaugeCommandTemplate(getShell());
 	}
 
@@ -72,6 +77,10 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 		return aggOps;
 	}
 
+	protected FieldValueCounterCommandTemplate fvc() {
+		return fvcOps;
+	}
+
 	protected RichGaugeCommandTemplate richGauge() {
 		return richGaugeOps;
 	}
@@ -82,13 +91,21 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 		stream().destroyCreatedStreams();
 		counter().deleteDefaultCounter();
 		aggCounter().deleteDefaultCounter();
+		fvc().deleteDefaultFVCounter();
 		richGauge().deleteDefaultRichGauge();
 		cleanFileSinks();
+		cleanFileSources();
 	}
 
 	private void cleanFileSinks() {
 		for (FileSink fileSink : fileSinks) {
 			fileSink.cleanup();
+		}
+	}
+
+	private void cleanFileSources() {
+		for (FileSource fileSource : fileSources) {
+			fileSource.cleanup();
 		}
 	}
 
@@ -98,9 +115,13 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 		return fileSink;
 	}
 
-	protected static class FileSink {
+	protected FileSource newFileSource(File file) {
+		FileSource fileSource = new FileSource(file);
+		fileSources.add(fileSource);
+		return fileSource;
+	}
 
-		private File file;
+	protected static class FileSink extends FileModule {
 
 		/**
 		 * Constructs a new File Sink with a generated temp file.
@@ -114,9 +135,23 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 			}
 		}
 
+	}
+
+	protected static class FileSource extends FileModule {
+
+		public FileSource(File file) {
+			this.file = file;
+		}
+
+	}
+
+	private abstract static class FileModule {
+
+		protected File file;
+
 		/**
-		 * Returns a representation of the sink suitable for inclusion in a stream definition, <i>e.g.</i> @code{file
-		 * --dir=xxxx --name=yyyy}
+		 * Returns a representation of the sink suitable for inclusion in a stream
+		 * definition, <i>e.g.</i> @code{file --dir=xxxx --name=yyyy}
 		 */
 		@Override
 		public String toString() {
@@ -124,13 +159,25 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 		}
 
 		public void cleanup() {
-			file.delete();
+			if (file.isDirectory()) {
+				for (File fileToDelete : file.listFiles()) {
+					fileToDelete.delete();
+				}
+			}
+			else {
+				file.delete();
+			}
+		}
+
+		public File getFile() {
+			return file;
 		}
 
 		public String getContents() throws IOException {
 			FileReader fileReader = new FileReader(file);
 			return FileCopyUtils.copyToString(fileReader);
 		}
+
 	}
 
 }

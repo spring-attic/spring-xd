@@ -22,39 +22,39 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.BaseDefinition;
 
-
 /**
  * @author Andy Clement
  */
 public class StreamConfigParser implements StreamLookupEnvironment {
 
 	private String expressionString;
+
 	private List<Token> tokenStream;
+
 	private int tokenStreamLength;
+
 	private int tokenStreamPointer; // Current location in the token stream when processing tokens
-	
+
 	/** The repository (if supplied) is used to chase down substream/label references */
 	private CrudRepository<? extends BaseDefinition, String> repository;
-	
-	public StreamConfigParser(
-			CrudRepository<? extends BaseDefinition, String> repository) {
+
+	public StreamConfigParser(CrudRepository<? extends BaseDefinition, String> repository) {
 		this.repository = repository;
 	}
 
 	/**
-	 * Parse a stream definition without supplying the stream name up front.
-	 * The stream name may be embedded in the definition. For example:
-	 * <code>mystream = http | file</code>
+	 * Parse a stream definition without supplying the stream name up front. The stream name may be embedded in the
+	 * definition. For example: <code>mystream = http | file</code>
 	 * 
 	 * @return the AST for the parsed stream
 	 */
 	public StreamsNode parse(String stream) {
 		return parse(null, stream);
 	}
-	
+
 	/**
 	 * Parse a stream definition. Can throw a DSLException.
-	 *
+	 * 
 	 * @return the AST for the parsed stream
 	 */
 	public StreamsNode parse(String name, String stream) {
@@ -65,8 +65,8 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 		tokenStreamPointer = 0;
 		StreamsNode ast = eatStreams();
 		if (moreTokens()) {
-			throw new DSLException(this.expressionString, 
-					peekToken().startpos,XDDSLMessages.MORE_INPUT,toString(nextToken()));
+			throw new DSLException(this.expressionString, peekToken().startpos, XDDSLMessages.MORE_INPUT,
+					toString(nextToken()));
 		}
 		ast.resolve(this);
 		return ast;
@@ -76,22 +76,22 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 	private StreamsNode eatStreams() {
 		List<StreamNode> streamNodes = new ArrayList<StreamNode>();
 		streamNodes.add(eatStream());
-		while (peekTokenAndConsume(TokenKind.NEWLINE,TokenKind.SEMICOLON)) {
+		while (peekTokenAndConsume(TokenKind.NEWLINE, TokenKind.SEMICOLON)) {
 			streamNodes.add(eatStream());
 		}
 		return new StreamsNode(this.expressionString, streamNodes);
 	}
-	
+
 	// (name =)
 	public String maybeEatStreamName() {
 		String streamName = null;
-		if (lookAhead(1,TokenKind.EQUALS)) {
+		if (lookAhead(1, TokenKind.EQUALS)) {
 			if (peekToken(TokenKind.IDENTIFIER)) {
 				streamName = eatToken(TokenKind.IDENTIFIER).data;
 				nextToken(); // skip '='
-			} else {
-				raiseException(peekToken().startpos,
-					XDDSLMessages.ILLEGAL_STREAM_NAME,toString(peekToken()));
+			}
+			else {
+				raiseException(peekToken().startpos, XDDSLMessages.ILLEGAL_STREAM_NAME, toString(peekToken()));
 			}
 		}
 		return streamName;
@@ -109,68 +109,72 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 		if (moreTokens()) {
 			Token t = peekToken();
 			if (!(t.kind == TokenKind.NEWLINE || t.kind == TokenKind.SEMICOLON)) {
-				raiseException(peekToken().startpos,XDDSLMessages.UNEXPECTED_DATA_AFTER_STREAMDEF,toString(peekToken()));
+				raiseException(peekToken().startpos, XDDSLMessages.UNEXPECTED_DATA_AFTER_STREAMDEF,
+						toString(peekToken()));
 			}
 		}
-		
-		StreamNode streamNode= new StreamNode(streamName, moduleNodes, sourceChannelNode, sinkChannelNode);
+
+		StreamNode streamNode = new StreamNode(streamName, moduleNodes, sourceChannelNode, sinkChannelNode);
 		return streamNode;
 	}
-	
+
 	// moduleReference: (streamName '.')labelOrModuleName
 	public ModuleReferenceNode eatPossiblyQualifiedLabelOrModuleReference() {
 		Token firstToken = eatToken(TokenKind.IDENTIFIER);
-		if (peekToken(TokenKind.DOT,true)) {
+		if (peekToken(TokenKind.DOT, true)) {
 			// firstToken is the qualifying stream name
 			Token labelOrModuleToken = eatToken(TokenKind.IDENTIFIER);
-			return new ModuleReferenceNode(firstToken.data, 
-					labelOrModuleToken.data,firstToken.startpos,labelOrModuleToken.endpos);
-		} else {
-			return new ModuleReferenceNode(null,firstToken.data,firstToken.startpos,firstToken.endpos);
+			return new ModuleReferenceNode(firstToken.data, labelOrModuleToken.data, firstToken.startpos,
+					labelOrModuleToken.endpos);
+		}
+		else {
+			return new ModuleReferenceNode(null, firstToken.data, firstToken.startpos, firstToken.endpos);
 		}
 	}
-	
+
 	private SourceChannelNode maybeEatSourceChannel() {
 		// In order to continue to support the old original style tap, let's do this:
 		// TODO remove this block when we don't need the old taps
 		boolean looksLikeOldTap = true;
 		// Seek for a GT before a PIPE
-		for (int tp=tokenStreamPointer;tp<tokenStreamLength;tp++) {
+		for (int tp = tokenStreamPointer; tp < tokenStreamLength; tp++) {
 			if (tokenStream.get(tp).getKind() == TokenKind.GT) {
-				looksLikeOldTap=false;
+				looksLikeOldTap = false;
 				break;
-			} else if (tokenStream.get(tp).getKind() == TokenKind.PIPE) {
+			}
+			else if (tokenStream.get(tp).getKind() == TokenKind.PIPE) {
 				break;
 			}
 		}
 		if (looksLikeOldTap) {
 			return null;
 		}
-		
+
 		// The first module encountered might be a source channel module
 		// eg. ":foo >"
 		SourceChannelNode sourceChannelNode = null;
 		boolean isTapToken = false;
 		Token t = peekToken();
-		if (t.getKind()==TokenKind.IDENTIFIER && t.data.equals("tap")) {
+		if (t.getKind() == TokenKind.IDENTIFIER && t.data.equals("tap")) {
 			// tapping source channel
 			nextToken();
 			isTapToken = true;
 			// TODO assert that it is followed by channel reference
 		}
-		if (peekToken(TokenKind.COLON)) { 
+		if (peekToken(TokenKind.COLON)) {
 			ChannelNode channelNode = eatChannelReference(true);
 			Token gt = eatToken(TokenKind.GT);
-			sourceChannelNode = new SourceChannelNode(channelNode,gt.endpos,isTapToken);
-		} else if (isTapToken) {
+			sourceChannelNode = new SourceChannelNode(channelNode, gt.endpos, isTapToken);
+		}
+		else if (isTapToken) {
 			// A tap can be followed with an optionally stream qualified label or module reference
 			ModuleReferenceNode moduleReferenceNode = eatPossiblyQualifiedLabelOrModuleReference();
 			Token gt = eatToken(TokenKind.GT);
-			sourceChannelNode = new SourceChannelNode(moduleReferenceNode,gt.endpos,isTapToken);
+			sourceChannelNode = new SourceChannelNode(moduleReferenceNode, gt.endpos, isTapToken);
 		}
 		return sourceChannelNode;
 	}
-	
+
 	private SinkChannelNode maybeEatSinkChannel() {
 		// The last part of the stream might be a sink channel
 		// eg. "> :foo"
@@ -178,14 +182,13 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 		if (peekToken(TokenKind.GT)) {
 			Token gt = eatToken(TokenKind.GT);
 			ChannelNode channelNode = eatChannelReference(false);
-			sinkChannelNode = new SinkChannelNode(channelNode,gt.startpos);
+			sinkChannelNode = new SinkChannelNode(channelNode, gt.startpos);
 		}
 		return sinkChannelNode;
 	}
-	
-	
-	// if allowQualifiedChannel expects   :(streamName '.')channelName
-	// else expects                       :channelName
+
+	// if allowQualifiedChannel expects :(streamName '.')channelName
+	// else expects :channelName
 	private ChannelNode eatChannelReference(boolean allowQualifiedChannel) {
 		Token colon = nextToken();
 		if (!colon.isKind(TokenKind.COLON)) {
@@ -193,39 +196,42 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 		}
 		Token firstToken = nextToken();
 		if (!firstToken.isIdentifier()) {
-			raiseException(firstToken.startpos,XDDSLMessages.EXPECTED_CHANNEL_NAME, toString(firstToken));
+			raiseException(firstToken.startpos, XDDSLMessages.EXPECTED_CHANNEL_NAME, toString(firstToken));
 		}
-		if (allowQualifiedChannel && peekToken(TokenKind.DOT,true)) {
+		if (allowQualifiedChannel && peekToken(TokenKind.DOT, true)) {
 			// firstToken is actually a stream name
 			Token channelToken = eatToken(TokenKind.IDENTIFIER);
-			return new ChannelNode(firstToken.data, channelToken.data,colon.startpos,channelToken.endpos);
-		} else {
-			return new ChannelNode(null,firstToken.data,colon.startpos,firstToken.endpos);
+			return new ChannelNode(firstToken.data, channelToken.data, colon.startpos, channelToken.endpos);
+		}
+		else {
+			return new ChannelNode(null, firstToken.data, colon.startpos, firstToken.endpos);
 		}
 	}
-	
+
 	// moduleList: module (| module)*
 	private List<ModuleNode> eatModuleList() {
-		List<ModuleNode> moduleNodes= new ArrayList<ModuleNode>();
-		
+		List<ModuleNode> moduleNodes = new ArrayList<ModuleNode>();
+
 		moduleNodes.add(eatModule());
 		while (moreTokens()) {
 			Token t = peekToken();
 			if (t.kind == TokenKind.PIPE) {
 				nextToken();
 				moduleNodes.add(eatModule());
-			} else if (t.kind == TokenKind.AND) {
+			}
+			else if (t.kind == TokenKind.AND) {
 				// Defining a sequence of job steps
 				nextToken();
 				// tag previous node
-				ModuleNode lastModule = moduleNodes.get(moduleNodes.size()-1);
+				ModuleNode lastModule = moduleNodes.get(moduleNodes.size() - 1);
 				lastModule.setIsJobStep(true);
-				
+
 				// tag next node
 				ModuleNode nextModule = eatModule();
 				nextModule.setIsJobStep(true);
 				moduleNodes.add(nextModule);
-			} else {
+			}
+			else {
 				// might be followed by sink channel or newline/semicolon to end this stream
 				break;
 			}
@@ -241,9 +247,10 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 		List<Token> labels = null;
 		Token name = nextToken();
 		if (!name.isKind(TokenKind.IDENTIFIER)) {
-			raiseException(name.startpos, XDDSLMessages.EXPECTED_MODULENAME, name.data!=null?name.data:new String(name.getKind().tokenChars));
+			raiseException(name.startpos, XDDSLMessages.EXPECTED_MODULENAME, name.data != null ? name.data
+					: new String(name.getKind().tokenChars));
 		}
-		while (peekToken(TokenKind.COLON,true)) {
+		while (peekToken(TokenKind.COLON, true)) {
 			if (labels == null) {
 				labels = new ArrayList<Token>();
 			}
@@ -254,19 +261,19 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 		isTap = (moduleName.data.equals("tap"));
 		ArgumentNode[] args = maybeEatModuleArgs();
 		int startpos = moduleName.startpos;
-		if (labels!=null) {
+		if (labels != null) {
 			startpos = labels.get(0).startpos;
 		}
 		return new ModuleNode(toLabelNodes(labels), moduleName.data, startpos, moduleName.endpos, args);
 	}
-	
+
 	private List<LabelNode> toLabelNodes(List<Token> labels) {
 		if (labels == null) {
 			return null;
 		}
 		List<LabelNode> labelNodes = new ArrayList<LabelNode>();
-		for (Token label: labels) {
-			labelNodes.add(new LabelNode(label.data,label.startpos,label.endpos));
+		for (Token label : labels) {
+			labelNodes.add(new LabelNode(label.data, label.startpos, label.endpos));
 		}
 		return labelNodes;
 	}
@@ -282,50 +289,58 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 			eatToken(TokenKind.DOT);
 			Token moduletoken = eatToken(TokenKind.IDENTIFIER);
 			String modulename = moduletoken.data;
-			
+
 			// Let's map the modulename
 			StreamNode existingAst = lookupStream(streamname);
 			if (existingAst == null) {
-				raiseException(streamtoken.startpos, XDDSLMessages.UNRECOGNIZED_STREAM_REFERENCE,streamname);
+				raiseException(streamtoken.startpos, XDDSLMessages.UNRECOGNIZED_STREAM_REFERENCE, streamname);
 			}
 			List<ModuleNode> modules = existingAst.getModuleNodes();
-			boolean mappedToPipe = false;
-			for (int m=0;m<modules.size();m++) {
+
+			int indexedModule = -1;
+			// Must be a module name, find its index
+			for (int m = 0; m < modules.size(); m++) {
 				if (modules.get(m).getName().equals(modulename)) {
-					modulename = Integer.toString(m);
-					mappedToPipe = true;
+					if (indexedModule != -1) {
+						raiseException(moduletoken.startpos, XDDSLMessages.AMBIGUOUS_MODULE_NAME, modules.get(m)
+								.getName(), streamname, indexedModule, m);
+					}
+					indexedModule = m;
 				}
 			}
-			if (mappedToPipe) {
+			if (indexedModule != -1) {
 				args = new ArrayList<ArgumentNode>();
-				args.add(new ArgumentNode("channel", streamname+"."+modulename, streamtoken.startpos, moduletoken.endpos));
-			} else {
-				raiseException(moduletoken.startpos,  XDDSLMessages.UNRECOGNIZED_MODULE_REFERENCE, modulename);
+				args.add(new ArgumentNode("channel", streamname + "." + indexedModule, streamtoken.startpos,
+						moduletoken.endpos));
+			}
+			else {
+				raiseException(moduletoken.startpos, XDDSLMessages.UNRECOGNIZED_MODULE_REFERENCE, modulename);
 			}
 			return args.toArray(new ArgumentNode[args.size()]);
 		}
-		
+
 		if (peekToken(TokenKind.DOUBLE_MINUS) && isNextTokenAdjacent()) {
-			raiseException(peekToken().startpos,XDDSLMessages.EXPECTED_WHITESPACE_AFTER_MODULE_BEFORE_ARGUMENT);
+			raiseException(peekToken().startpos, XDDSLMessages.EXPECTED_WHITESPACE_AFTER_MODULE_BEFORE_ARGUMENT);
 		}
-		while (peekToken(TokenKind.DOUBLE_MINUS,TokenKind.REFERENCE)) {
+		while (peekToken(TokenKind.DOUBLE_MINUS, TokenKind.REFERENCE)) {
 			Token optionQualifier = nextToken(); // skip the '--' (or '@' at the moment...)
-			
+
 			// This is dirty, temporary, until we nail the tap syntax
 			if (isTap) {
-				if (optionQualifier.getKind()==TokenKind.REFERENCE) {
+				if (optionQualifier.getKind() == TokenKind.REFERENCE) {
 					Token t = peekToken();
 					String argValue = eatArgValue();
 					if (peekToken(TokenKind.DOT)) {
 						// tap @foo.NNN
 						nextToken();
 						String channelNumber = eatToken(TokenKind.IDENTIFIER).data;
-						argValue = argValue+"."+channelNumber;
-					} else {
-						// no channel number specified
-						argValue = argValue+".0";
+						argValue = argValue + "." + channelNumber;
 					}
-					
+					else {
+						// no channel number specified
+						argValue = argValue + ".0";
+					}
+
 					if (args == null) {
 						args = new ArrayList<ArgumentNode>();
 					}
@@ -346,65 +361,69 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 			}
 			// Process argument value:
 			Token t = peekToken();
-//			if (t==null) {
-//				raiseException(this.expressionString.length()-1,XDDSLMessages.OOD));
-//			}
+			// if (t==null) {
+			// raiseException(this.expressionString.length()-1,XDDSLMessages.OOD));
+			// }
 			String argValue = eatArgValue();
-			
+
 			if (args == null) {
 				args = new ArrayList<ArgumentNode>();
 			}
-			args.add(new ArgumentNode(argName.data, argValue, argName.startpos-2, t.endpos));
+			args.add(new ArgumentNode(argName.data, argValue, argName.startpos - 2, t.endpos));
 		}
-		return args==null?null:args.toArray(new ArgumentNode[args.size()]);
+		return args == null ? null : args.toArray(new ArgumentNode[args.size()]);
 	}
 
 	// argValue: identifier | literal_string
 	private String eatArgValue() {
 		Token t = nextToken();
 		String argValue = null;
-		if (t.getKind()==TokenKind.IDENTIFIER) {
+		if (t.getKind() == TokenKind.IDENTIFIER) {
 			argValue = t.data;
-		} else if (t.getKind() == TokenKind.LITERAL_STRING) {
-			argValue = t.data.substring(1,t.data.length()-1).replaceAll("''", "'").replaceAll("\"\"", "\"");
-		} else {
-			raiseException(t.startpos,XDDSLMessages.EXPECTED_ARGUMENT_VALUE,t.data);
+		}
+		else if (t.getKind() == TokenKind.LITERAL_STRING) {
+			argValue = t.data.substring(1, t.data.length() - 1).replaceAll("''", "'").replaceAll("\"\"", "\"");
+		}
+		else {
+			raiseException(t.startpos, XDDSLMessages.EXPECTED_ARGUMENT_VALUE, t.data);
 		}
 		return argValue;
 	}
 
 	private Token eatToken(TokenKind expectedKind) {
 		Token t = nextToken();
-		if (t==null) {
-			raiseException( expressionString.length(), XDDSLMessages.OOD);
+		if (t == null) {
+			raiseException(expressionString.length(), XDDSLMessages.OOD);
 		}
-		if (t.kind!=expectedKind) {
-			raiseException(t.startpos,XDDSLMessages.NOT_EXPECTED_TOKEN, expectedKind.toString().toLowerCase(),t.getKind().toString().toLowerCase()+(t.data==null?"":"("+t.data+")"));
+		if (t.kind != expectedKind) {
+			raiseException(t.startpos, XDDSLMessages.NOT_EXPECTED_TOKEN, expectedKind.toString().toLowerCase(), t
+					.getKind().toString().toLowerCase()
+					+ (t.data == null ? "" : "(" + t.data + ")"));
 		}
 		return t;
 	}
 
 	private boolean peekToken(TokenKind desiredTokenKind) {
-		return peekToken(desiredTokenKind,false);
+		return peekToken(desiredTokenKind, false);
 	}
 
-	private boolean lookAhead(int distance,TokenKind desiredTokenKind) {
-		if ((tokenStreamPointer+distance)>=tokenStream.size()) {
+	private boolean lookAhead(int distance, TokenKind desiredTokenKind) {
+		if ((tokenStreamPointer + distance) >= tokenStream.size()) {
 			return false;
 		}
-		Token t = tokenStream.get(tokenStreamPointer+distance);
-		if (t.kind==desiredTokenKind) {
+		Token t = tokenStream.get(tokenStreamPointer + distance);
+		if (t.kind == desiredTokenKind) {
 			return true;
 		}
 		return false;
 	}
 
-	private boolean peekToken(TokenKind desiredTokenKind1,TokenKind desiredTokenKind2) {
-		return peekToken(desiredTokenKind1,false) || peekToken(desiredTokenKind2,false);
+	private boolean peekToken(TokenKind desiredTokenKind1, TokenKind desiredTokenKind2) {
+		return peekToken(desiredTokenKind1, false) || peekToken(desiredTokenKind2, false);
 	}
-	
-	private boolean peekTokenAndConsume(TokenKind desiredTokenKind1,TokenKind desiredTokenKind2) {
-		return peekToken(desiredTokenKind1,true) || peekToken(desiredTokenKind2,true);
+
+	private boolean peekTokenAndConsume(TokenKind desiredTokenKind1, TokenKind desiredTokenKind2) {
+		return peekToken(desiredTokenKind1, true) || peekToken(desiredTokenKind2, true);
 	}
 
 	private boolean peekToken(TokenKind desiredTokenKind, boolean consumeIfMatched) {
@@ -412,72 +431,74 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 			return false;
 		}
 		Token t = peekToken();
-		if (t.kind==desiredTokenKind) {
+		if (t.kind == desiredTokenKind) {
 			if (consumeIfMatched) {
 				tokenStreamPointer++;
 			}
 			return true;
-		} else {
+		}
+		else {
 			return false;
 		}
 	}
 
-
 	private boolean moreTokens() {
-		return tokenStreamPointer<tokenStream.size();
+		return tokenStreamPointer < tokenStream.size();
 	}
 
 	private Token nextToken() {
-		if (tokenStreamPointer>=tokenStreamLength) {
-			raiseException( expressionString.length(), XDDSLMessages.OOD);
+		if (tokenStreamPointer >= tokenStreamLength) {
+			raiseException(expressionString.length(), XDDSLMessages.OOD);
 		}
 		return tokenStream.get(tokenStreamPointer++);
 	}
 
 	private boolean isNextTokenAdjacent() {
-		if (tokenStreamPointer>=tokenStreamLength) {
+		if (tokenStreamPointer >= tokenStreamLength) {
 			return false;
 		}
-		Token last = tokenStream.get(tokenStreamPointer-1);
+		Token last = tokenStream.get(tokenStreamPointer - 1);
 		Token next = tokenStream.get(tokenStreamPointer);
-		return next.startpos==last.endpos;
+		return next.startpos == last.endpos;
 	}
 
 	private Token peekToken() {
-		if (tokenStreamPointer>=tokenStreamLength) {
+		if (tokenStreamPointer >= tokenStreamLength) {
 			return null;
 		}
 		return tokenStream.get(tokenStreamPointer);
 	}
 
-	private void raiseException(int pos, XDDSLMessages message,Object... inserts) {
-		throw new DSLException(expressionString,pos,message,inserts);
+	private void raiseException(int pos, XDDSLMessages message, Object... inserts) {
+		throw new DSLException(expressionString, pos, message, inserts);
 	}
 
 	public String toString(Token t) {
 		if (t.getKind().hasPayload()) {
 			return t.stringValue();
-		} else {
+		}
+		else {
 			return new String(t.kind.getTokenChars());
 		}
 	}
-	
+
+	@Override
 	public String toString() {
 		StringBuilder s = new StringBuilder();
 		s.append(tokenStream).append("\n");
-		s.append("tokenStreamPointer="+tokenStreamPointer).append("\n");
+		s.append("tokenStreamPointer=" + tokenStreamPointer).append("\n");
 		return s.toString();
 	}
 
-	
 	// LookupEnvironment implementation
-	
+
+	@Override
 	public StreamNode lookupStream(String name) {
 		if (this.repository != null) {
 			BaseDefinition baseDefinition = repository.findOne(name);
 			if (baseDefinition != null) {
 				StreamsNode streamsNode = new StreamConfigParser(repository).parse(baseDefinition.getDefinition());
-				Assert.isTrue(streamsNode.getSize()==1);
+				Assert.isTrue(streamsNode.getSize() == 1);
 				return streamsNode.getStreamNodes().get(0);
 			}
 		}
@@ -485,36 +506,39 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 	}
 
 	// Expects channel naming scheme of stream.NNN where NNN is the module index in the stream
+	@Override
 	public String lookupChannelForLabelOrModule(String streamName, String streamOrLabelOrModuleName) {
-		if (streamName!=null) {
+		if (streamName != null) {
 			BaseDefinition basedef = repository.findOne(streamName);
 			if (basedef == null) {
 				// TODO error/warning?
 				return null;
 			}
 			StreamsNode streamsNode = new StreamConfigParser(repository).parse(basedef.getDefinition());
-			if (streamsNode!=null && streamsNode.getSize()==1) {
+			if (streamsNode != null && streamsNode.getSize() == 1) {
 				int index = streamsNode.getStreamNodes().get(0).getIndexOfLabelOrModuleName(streamOrLabelOrModuleName);
-				if (index==-1) {
+				if (index == -1) {
 					// TODO could be an error
-					return streamName+"."+0;
-				} else {
-					return streamName+"."+index;
+					return streamName + "." + 0;
+				}
+				else {
+					return streamName + "." + index;
 				}
 			}
-		} else {
+		}
+		else {
 			// Is it a stream?
 			BaseDefinition basedef = repository.findOne(streamOrLabelOrModuleName);
 			if (basedef != null) {
-				return streamOrLabelOrModuleName+".0";
+				return streamOrLabelOrModuleName + ".0";
 			}
 			// look through all streams...
-			for (BaseDefinition bd: repository.findAll()) {
-				StreamsNode streamsNode = new StreamConfigParser(repository).parse(bd.getDefinition());	
+			for (BaseDefinition bd : repository.findAll()) {
+				StreamsNode streamsNode = new StreamConfigParser(repository).parse(bd.getDefinition());
 				StreamNode sn = streamsNode.getStreamNodes().get(0);
 				int index = sn.getIndexOfLabelOrModuleName(streamOrLabelOrModuleName);
-				if (index!=-1) {
-					return sn.getStreamName()+"."+index;
+				if (index != -1) {
+					return sn.getStreamName() + "." + index;
 				}
 			}
 		}

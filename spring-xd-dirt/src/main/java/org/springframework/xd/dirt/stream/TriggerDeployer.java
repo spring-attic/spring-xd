@@ -18,37 +18,37 @@ import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 
 /**
  * Responsible for deploying {@link TriggerDefinition}s.
- *
+ * 
  * @author Gunnar Hillert
  * @author Luke Taylor
  * @since 1.0
- *
+ * 
  */
 public class TriggerDeployer extends AbstractDeployer<TriggerDefinition> {
 
-	public TriggerDeployer(TriggerDefinitionRepository repository, DeploymentMessageSender messageSender) {
-		super(repository, messageSender, "trigger");
+	public TriggerDeployer(TriggerDefinitionRepository repository, DeploymentMessageSender messageSender,
+			StreamParser streamParser) {
+		super(repository, messageSender, streamParser, "trigger");
 	}
 
 	@Override
 	public void delete(String name) {
 		TriggerDefinition def = getRepository().findOne(name);
 		if (def == null) {
-			throw new NoSuchDefinitionException(name,
-					"Can't delete trigger '%s' because it does not exist");
+			throw new NoSuchDefinitionException(name, "Can't delete trigger '%s' because it does not exist");
 		}
 		undeploy(name);
 		getRepository().delete(name);
 	}
 
+	@Override
 	public void undeploy(String name) {
 		TriggerDefinition trigger = getRepository().findOne(name);
 		if (trigger == null) {
 			throwNoSuchDefinitionException(name);
 		}
 		StreamParser streamParser = new EnhancedStreamParser();
-		List<ModuleDeploymentRequest> requests = streamParser.parse(name,
-				trigger.getDefinition());
+		List<ModuleDeploymentRequest> requests = streamParser.parse(name, trigger.getDefinition());
 		for (ModuleDeploymentRequest request : requests) {
 			request.setRemove(true);
 		}

@@ -3,13 +3,20 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:int="http://www.springframework.org/schema/integration"
 	xmlns:int-syslog="http://www.springframework.org/schema/integration/syslog"
+	xmlns:int-ip="http://www.springframework.org/schema/integration/ip"
 	xsi:schemaLocation="http://www.springframework.org/schema/integration/syslog http://www.springframework.org/schema/integration/syslog/spring-integration-syslog.xsd
+		http://www.springframework.org/schema/integration/ip http://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<int-syslog:inbound-channel-adapter id="adapter" channel="output"
 			auto-startup="false"
 			protocol="tcp"
+			connection-factory="server"/>
+
+	<!-- Temporary work-around for INT-3107; revert when SI 3.0.0.M3 is available -->
+	<int-ip:tcp-connection-factory id="server"
+			type="server"
 			port="${port:11111}"/>
 
 	<int:channel id="output"/>

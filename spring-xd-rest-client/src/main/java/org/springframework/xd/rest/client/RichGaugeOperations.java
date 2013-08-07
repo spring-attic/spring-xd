@@ -18,7 +18,7 @@ package org.springframework.xd.rest.client;
 
 import org.springframework.hateoas.PagedResources;
 import org.springframework.xd.rest.client.domain.metrics.MetricResource;
-
+import org.springframework.xd.rest.client.domain.metrics.RichGaugeResource;
 
 /**
  * Interface defining operations available when dealing with Rich Gauge.
@@ -26,21 +26,23 @@ import org.springframework.xd.rest.client.domain.metrics.MetricResource;
  * @author Ilayaperumal Gopinathan
  */
 public interface RichGaugeOperations {
-	
+
 	/**
 	 * Display the value of the named Rich Gauge
+	 * 
 	 * @param name the name of the rich gauge
-	 * @return the string representation of rich gauge metric value
+	 * @return the richgauge resource
 	 */
-	String display(String name);
-	
+	RichGaugeResource retrieve(String name);
+
 	/**
 	 * List the names of the available richgauges
 	 */
 	PagedResources<MetricResource> list();
-	
+
 	/**
 	 * Delete the given named rich gauge
+	 * 
 	 * @param name the name of the rich gauge to delete
 	 */
 	void delete(String name);

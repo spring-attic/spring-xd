@@ -37,27 +37,34 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 
 	private AggregateCounterCommandTemplate aggOps;
 
+	private RichGaugeCommandTemplate richGaugeOps;
+
 	public AbstractStreamIntegrationTest() {
 		streamOps = new StreamCommandTemplate(getShell());
 		tapOps = new TapCommandTemplate(getShell());
 		counterOps = new CounterCommandTemplate(getShell());
 		aggOps = new AggregateCounterCommandTemplate(getShell());
+		richGaugeOps = new RichGaugeCommandTemplate(getShell());
 	}
 
-	public StreamCommandTemplate stream() {
+	protected StreamCommandTemplate stream() {
 		return streamOps;
 	}
 
-	public TapCommandTemplate tap() {
+	protected TapCommandTemplate tap() {
 		return tapOps;
 	}
 
-	public CounterCommandTemplate counter() {
+	protected CounterCommandTemplate counter() {
 		return counterOps;
 	}
 
-	public AggregateCounterCommandTemplate aggCounter() {
+	protected AggregateCounterCommandTemplate aggCounter() {
 		return aggOps;
+	}
+
+	protected RichGaugeCommandTemplate richGauge() {
+		return richGaugeOps;
 	}
 
 	@After
@@ -66,6 +73,7 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 		tap().destroyCreatedTaps();
 		counter().deleteDefaultCounter();
 		aggCounter().deleteDefaultCounter();
+		richGauge().deleteDefaultRichGauge();
 	}
 
 }

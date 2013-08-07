@@ -16,7 +16,12 @@
 
 package org.springframework.xd.shell.command;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+
 import org.junit.Test;
+import org.springframework.xd.shell.util.Table;
+import org.springframework.xd.shell.util.TableHeader;
 
 /**
  * Tests various metrics related sinks.
@@ -67,6 +72,44 @@ public class MetricsTests extends AbstractStreamIntegrationTest {
 		createTestStream(MetricType.AGGR_COUNTER);
 		httpPostData(DEFAULT_HTTP_URL, "one");
 		aggCounter().deleteDefaultCounter();
+	}
+
+	@Test
+	public void testRichGaugeList() throws Exception {
+		createTestStream(MetricType.RICH_GAUGE);
+		httpPostData(DEFAULT_HTTP_URL, "15");
+		richGauge().verifyDefaultExists();
+	}
+
+	@Test
+	public void testRichGaugeDisplay() throws Exception {
+		createTestStream(MetricType.RICH_GAUGE);
+		httpPostData(DEFAULT_HTTP_URL, "5");
+		httpPostData(DEFAULT_HTTP_URL, "10");
+		httpPostData(DEFAULT_HTTP_URL, "15");
+		Table t = constructRichGaugeDisplay(15d, -1d, 10d, 15d, 5d, 3l);
+		richGauge().verifyRichGauge(t.toString());
+	}
+
+	@Test
+	public void testRichGaugeDelete() throws Exception {
+		createTestStream(MetricType.RICH_GAUGE);
+		httpPostData(DEFAULT_HTTP_URL, "10");
+		richGauge().deleteDefaultRichGauge();
+	}
+
+	private Table constructRichGaugeDisplay(double value, double alpha, double average, double max, double min,
+			long count) {
+		Table t = new Table();
+		NumberFormat pattern = new DecimalFormat();
+		t.addHeader(1, new TableHeader(String.format("Name"))).addHeader(2, new TableHeader(DEFAULT_METRIC_NAME));
+		t.newRow().addValue(1, "value").addValue(2, pattern.format(value));
+		t.newRow().addValue(1, "alpha").addValue(2, pattern.format(alpha));
+		t.newRow().addValue(1, "average").addValue(2, pattern.format(average));
+		t.newRow().addValue(1, "max").addValue(2, pattern.format(max));
+		t.newRow().addValue(1, "min").addValue(2, pattern.format(min));
+		t.newRow().addValue(1, "count").addValue(2, pattern.format(count));
+		return t;
 	}
 
 	private void createTestStream(MetricType metricType) throws Exception {

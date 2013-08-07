@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.dirt.stream.dsl;
 
 import java.util.ArrayList;
@@ -33,7 +34,8 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 
 	private int tokenStreamLength;
 
-	private int tokenStreamPointer; // Current location in the token stream when processing tokens
+	private int tokenStreamPointer; // Current location in the token stream when
+									// processing tokens
 
 	/** The repository (if supplied) is used to chase down substream/label references */
 	private CrudRepository<? extends BaseDefinition, String> repository;
@@ -43,8 +45,9 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 	}
 
 	/**
-	 * Parse a stream definition without supplying the stream name up front. The stream name may be embedded in the
-	 * definition. For example: <code>mystream = http | file</code>
+	 * Parse a stream definition without supplying the stream name up front. The stream
+	 * name may be embedded in the definition. For example:
+	 * <code>mystream = http | file</code>
 	 * 
 	 * @return the AST for the parsed stream
 	 */
@@ -167,7 +170,8 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 			sourceChannelNode = new SourceChannelNode(channelNode, gt.endpos, isTapToken);
 		}
 		else if (isTapToken) {
-			// A tap can be followed with an optionally stream qualified label or module reference
+			// A tap can be followed with an optionally stream qualified label or module
+			// reference
 			ModuleReferenceNode moduleReferenceNode = eatPossiblyQualifiedLabelOrModuleReference();
 			Token gt = eatToken(TokenKind.GT);
 			sourceChannelNode = new SourceChannelNode(moduleReferenceNode, gt.endpos, isTapToken);
@@ -232,7 +236,8 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 				moduleNodes.add(nextModule);
 			}
 			else {
-				// might be followed by sink channel or newline/semicolon to end this stream
+				// might be followed by sink channel or newline/semicolon to end this
+				// stream
 				break;
 			}
 		}
@@ -284,34 +289,74 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 		if (isTap && !peekToken(TokenKind.REFERENCE)) {
 			Token streamtoken = eatToken(TokenKind.IDENTIFIER);
 			String streamname = streamtoken.data;
-			// The syntax 'tap streamname.module'
-			// optionQualifier is probably the streamname
-			eatToken(TokenKind.DOT);
-			Token moduletoken = eatToken(TokenKind.IDENTIFIER);
-			String modulename = moduletoken.data;
+			String modulename = null;
+			Token moduletoken = null;
+			// There may be a module name specified, otherwise the source
+			// of the target stream is implied
+			if (peekToken(TokenKind.DOT)) {
+				eatToken(TokenKind.DOT);
+				moduletoken = eatToken(TokenKind.IDENTIFIER);
+				modulename = moduletoken.data;
+			}
 
 			// Let's map the modulename
 			StreamNode existingAst = lookupStream(streamname);
 			if (existingAst == null) {
 				raiseException(streamtoken.startpos, XDDSLMessages.UNRECOGNIZED_STREAM_REFERENCE, streamname);
 			}
-			List<ModuleNode> modules = existingAst.getModuleNodes();
 
 			int indexedModule = -1;
-			// Must be a module name, find its index
-			for (int m = 0; m < modules.size(); m++) {
-				if (modules.get(m).getName().equals(modulename)) {
-					if (indexedModule != -1) {
-						raiseException(moduletoken.startpos, XDDSLMessages.AMBIGUOUS_MODULE_NAME, modules.get(m)
-								.getName(), streamname, indexedModule, m);
+			if (modulename == null) {
+				indexedModule = 0;
+			}
+			else {
+				List<ModuleNode> modules = existingAst.getModuleNodes();
+
+				// Must be a module name, find its index
+				for (int m = 0; m < modules.size(); m++) {
+					if (modules.get(m).getName().equals(modulename)) {
+						if (indexedModule != -1) {
+							raiseException(moduletoken.startpos, XDDSLMessages.AMBIGUOUS_MODULE_NAME,
+									modules.get(m).getName(), streamname, indexedModule, m);
+						}
+						indexedModule = m;
 					}
-					indexedModule = m;
+					List<String> labels = modules.get(m).getLabelNames();
+					for (String label : labels) {
+						if (label.equals(modulename)) {
+							if (indexedModule != -1) {
+								raiseException(moduletoken.startpos, XDDSLMessages.AMBIGUOUS_MODULE_NAME, label,
+										streamname, indexedModule, m);
+							}
+							indexedModule = m;
+						}
+					}
+				}
+				if (indexedModule == -1) {
+					try {
+						indexedModule = Integer.parseInt(modulename);
+					}
+					catch (NumberFormatException nfe) {
+						// let us fail later with the unrecognized reference message
+					}
 				}
 			}
 			if (indexedModule != -1) {
 				args = new ArrayList<ArgumentNode>();
-				args.add(new ArgumentNode("channel", streamname + "." + indexedModule, streamtoken.startpos,
-						moduletoken.endpos));
+				String argValue = null;
+				if (modulename != null && indexedModule == existingAst.getModuleNodes().size() - 1) {
+					// If the selected stream is using a sink channel the tap needs to
+					// be on the named channel, we cannot assume stream.NNN
+					SinkChannelNode sinkChannelNode = existingAst.getSinkChannelNode();
+					if (sinkChannelNode != null) {
+						argValue = sinkChannelNode.getChannelName();
+					}
+				}
+				else {
+					argValue = streamname + "." + indexedModule;
+				}
+				args.add(new ArgumentNode("channel", argValue, streamtoken.startpos,
+						(moduletoken == null ? streamtoken.endpos : moduletoken.endpos)));
 			}
 			else {
 				raiseException(moduletoken.startpos, XDDSLMessages.UNRECOGNIZED_MODULE_REFERENCE, modulename);
@@ -323,7 +368,8 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 			raiseException(peekToken().startpos, XDDSLMessages.EXPECTED_WHITESPACE_AFTER_MODULE_BEFORE_ARGUMENT);
 		}
 		while (peekToken(TokenKind.DOUBLE_MINUS, TokenKind.REFERENCE)) {
-			Token optionQualifier = nextToken(); // skip the '--' (or '@' at the moment...)
+			Token optionQualifier = nextToken(); // skip the '--' (or '@' at the
+													// moment...)
 
 			// This is dirty, temporary, until we nail the tap syntax
 			if (isTap) {
@@ -396,9 +442,8 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 			raiseException(expressionString.length(), XDDSLMessages.OOD);
 		}
 		if (t.kind != expectedKind) {
-			raiseException(t.startpos, XDDSLMessages.NOT_EXPECTED_TOKEN, expectedKind.toString().toLowerCase(), t
-					.getKind().toString().toLowerCase()
-					+ (t.data == null ? "" : "(" + t.data + ")"));
+			raiseException(t.startpos, XDDSLMessages.NOT_EXPECTED_TOKEN, expectedKind.toString().toLowerCase(),
+					t.getKind().toString().toLowerCase() + (t.data == null ? "" : "(" + t.data + ")"));
 		}
 		return t;
 	}
@@ -505,7 +550,8 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 		return null;
 	}
 
-	// Expects channel naming scheme of stream.NNN where NNN is the module index in the stream
+	// Expects channel naming scheme of stream.NNN where NNN is the module index in the
+	// stream
 	@Override
 	public String lookupChannelForLabelOrModule(String streamName, String streamOrLabelOrModuleName) {
 		if (streamName != null) {

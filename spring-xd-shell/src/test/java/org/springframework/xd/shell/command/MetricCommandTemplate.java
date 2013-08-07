@@ -61,7 +61,7 @@ public class MetricCommandTemplate extends AbstractCommandTemplate {
 	 */
 	protected void checkMetricValue(String metricName, MetricType metricType, String expectedValue) {
 		CommandResult cr = executeCommand(metricType.getName() + " display --name " + metricName);
-		assertEquals(expectedValue, cr.getResult());
+		assertEquals(expectedValue, cr.getResult().toString());
 	}
 
 	/**

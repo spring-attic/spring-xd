@@ -16,6 +16,8 @@
 
 package org.springframework.xd.shell.command;
 
+import java.text.NumberFormat;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.shell.core.CommandMarker;
@@ -25,12 +27,15 @@ import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
 import org.springframework.xd.rest.client.RichGaugeOperations;
 import org.springframework.xd.rest.client.domain.metrics.MetricResource;
+import org.springframework.xd.rest.client.domain.metrics.RichGaugeResource;
 import org.springframework.xd.shell.XDShell;
+import org.springframework.xd.shell.converter.NumberFormatConverter;
 import org.springframework.xd.shell.util.Table;
+import org.springframework.xd.shell.util.TableHeader;
 
 /**
  * Commands for interacting with RichGauge analytics.
- *
+ * 
  * @author Ilayaperumal Gopinathan
  */
 @Component
@@ -49,7 +54,7 @@ public class RichGaugeCommands extends AbstractMetricsCommands implements Comman
 	@Autowired
 	private XDShell xdShell;
 
-	@CliAvailabilityIndicator({ LIST_RICH_GAUGES, DELETE_RICH_GAUGE})
+	@CliAvailabilityIndicator({ LIST_RICH_GAUGES, DELETE_RICH_GAUGE })
 	public boolean available() {
 		return xdShell.getSpringXDOperations() != null;
 	}
@@ -59,16 +64,18 @@ public class RichGaugeCommands extends AbstractMetricsCommands implements Comman
 		PagedResources<MetricResource> list = richGaugeOperations().list(/* TODO */);
 		return displayMetrics(list);
 	}
-	
+
 	@CliCommand(value = DISPLAY_RICH_GAUGE, help = "Display Rich Gauge value")
-	public String display(
-			@CliOption(key = {"", "name"}, help = "the name of the richgauge to display value", mandatory = true) String name) {
-		return richGaugeOperations().display(name);
+	public Table display(
+			@CliOption(key = { "", "name" }, help = "the name of the richgauge to display value", mandatory = true) String name,
+			@CliOption(key = "pattern", help = "the pattern used to format the richgauge value (see DecimalFormat)", mandatory = false, unspecifiedDefaultValue = NumberFormatConverter.DEFAULT) NumberFormat pattern) {
+		RichGaugeResource resource = richGaugeOperations().retrieve(name);
+		return displayRichGauge(resource, pattern);
 	}
-	
-	@CliCommand(value = DELETE_RICH_GAUGE, help= "Delete the richgauge")
+
+	@CliCommand(value = DELETE_RICH_GAUGE, help = "Delete the richgauge")
 	public String delete(
-			@CliOption(key = {"", "name"}, help = "the name of the richgauge to delete", mandatory = true) String name) {
+			@CliOption(key = { "", "name" }, help = "the name of the richgauge to delete", mandatory = true) String name) {
 		richGaugeOperations().delete(name);
 		return String.format("Deleted richgauge '%s'", name);
 	}
@@ -77,4 +84,15 @@ public class RichGaugeCommands extends AbstractMetricsCommands implements Comman
 		return xdShell.getSpringXDOperations().richGaugeOperations();
 	}
 
+	private Table displayRichGauge(RichGaugeResource r, NumberFormat pattern) {
+		Table t = new Table();
+		t.addHeader(1, new TableHeader(String.format("Name"))).addHeader(2, new TableHeader(r.getName()));
+		t.newRow().addValue(1, "value").addValue(2, pattern.format(r.getValue()));
+		t.newRow().addValue(1, "alpha").addValue(2, pattern.format(r.getAlpha()));
+		t.newRow().addValue(1, "average").addValue(2, pattern.format(r.getAverage()));
+		t.newRow().addValue(1, "max").addValue(2, pattern.format(r.getMax()));
+		t.newRow().addValue(1, "min").addValue(2, pattern.format(r.getMin()));
+		t.newRow().addValue(1, "count").addValue(2, pattern.format(r.getCount()));
+		return t;
+	}
 }

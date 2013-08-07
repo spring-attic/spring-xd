@@ -165,14 +165,13 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	}
 
 	// See https://jira.springsource.org/browse/XD-592
-	@Ignore
 	@Test
 	public void testTappingAndChannels() {
 		stream().create("myhttp", "http --port=9314 | transform --expression=payload.toUpperCase() | log");
 
-		// Cureently fails with an infinite recursion loop in parser on the following line
-		stream().create("tap", "tap @myhttp.1 | log");
-		stream().create("tap_new", "tap myhttp.1 > log");
+		// Currently fails with an infinite recursion loop in parser on the following line
+		tap().create("mytap", "tap myhttp.transform | log");
+		// tap().create("tap_new", "tap myhttp.1 > log");
 		executeCommand("http post --data Dracarys! --target http://localhost:9314");
 		// TODO verify both logs output DRACARYS!
 	}

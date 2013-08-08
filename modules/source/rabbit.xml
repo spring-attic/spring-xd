@@ -15,7 +15,8 @@
 
 	<int-amqp:inbound-channel-adapter
 			auto-startup="false"
-			queue-names="${queue}" channel="output" connection-factory="connectionFactory"/>
+			queue-names="${queues:${xd.stream.name}}"
+			channel="output" connection-factory="connectionFactory"/>
 
 	<rabbit:connection-factory id="connectionFactory" host="${host:${rabbit.hostname}}" port="${port:${rabbit.port}}"/>
 

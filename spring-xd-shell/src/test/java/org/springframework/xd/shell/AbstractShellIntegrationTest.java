@@ -17,6 +17,7 @@
 package org.springframework.xd.shell;
 
 import java.io.IOException;
+import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -29,6 +30,7 @@ import org.springframework.shell.core.JLineShellComponent;
 import org.springframework.xd.dirt.server.AdminMain;
 import org.springframework.xd.dirt.server.options.AdminOptions;
 import org.springframework.xd.dirt.stream.StreamServer;
+import org.springframework.xd.test.rabbit.RabbitAvailableRule;
 import org.springframework.xd.test.redis.RedisAvailableRule;
 
 import static org.junit.Assert.*;
@@ -59,6 +61,9 @@ public abstract class AbstractShellIntegrationTest {
 	@Rule
 	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
 
+	@Rule
+	public RabbitAvailableRule rabbitAvailableRule = new RabbitAvailableRule();
+
 	private static final Log logger = LogFactory.getLog(AbstractShellIntegrationTest.class);
 
 	private static StreamServer server;
@@ -67,8 +72,20 @@ public abstract class AbstractShellIntegrationTest {
 
 	@BeforeClass
 	public static void startUp() throws InterruptedException, IOException {
-		AdminOptions opts = AdminMain.parseOptions(new String[] { "--httpPort", "0", "--transport", "local", "--store",
-			"redis", "--disableJmx", "true", "--analytics", "redis" });
+		Map<String, String> env = System.getenv();
+		String transportMode = env.get("TRANSPORT_MODE");
+		if (transportMode != null) {
+			if (!transportMode.equalsIgnoreCase("rabbit") && !transportMode.equalsIgnoreCase("redis")
+					&& !transportMode.equalsIgnoreCase("local")) {
+				transportMode = "local";
+			}
+		}
+		else {
+			transportMode = "local";
+		}
+		logger.info("running using transport mode:" + transportMode);
+		AdminOptions opts = AdminMain.parseOptions(new String[] { "--httpPort", "0", "--transport", transportMode,
+			"--store", "redis", "--disableJmx", "true", "--analytics", "redis" });
 		server = AdminMain.launchStreamServer(opts);
 		Bootstrap bootstrap = new Bootstrap(new String[] { "--port", Integer.toString(server.getLocalPort()) });
 		shell = bootstrap.getJLineShellComponent();

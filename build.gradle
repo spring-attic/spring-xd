@@ -510,7 +510,6 @@ project('spring-xd-hadoop:hadoop20') {
 		into "$buildDir/lib"
 		from configurations.default
 		include 'hadoop-*'
-		include 'guava-*'
 		include 'protobuf-java-*'
 	}
 }
@@ -529,7 +528,6 @@ project('spring-xd-hadoop:phd1') {
 		into "$buildDir/lib"
 		from configurations.default
 		include 'hadoop-*'
-		include 'guava-*'
 		include 'protobuf-java-*'
 	}
 }

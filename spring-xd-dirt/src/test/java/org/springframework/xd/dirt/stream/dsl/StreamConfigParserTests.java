@@ -16,6 +16,16 @@
 
 package org.springframework.xd.dirt.stream.dsl;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,16 +33,19 @@ import java.util.Properties;
 
 import org.junit.After;
 import org.junit.Test;
+
+import org.springframework.core.io.Resource;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.stream.EnhancedStreamParser;
 import org.springframework.xd.dirt.stream.StreamDefinition;
-
-import static org.junit.Assert.*;
+import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleType;
 
 /**
  * Parse streams and verify either the correct abstract syntax tree is produced or the
  * current exception comes out.
- * 
+ *
  * @author Andy Clement
  */
 public class StreamConfigParserTests {
@@ -193,7 +206,7 @@ public class StreamConfigParserTests {
 	@Test
 	public void testInvalidModules() {
 		String config = "test | foo--x=13";
-		EnhancedStreamParser parser = new EnhancedStreamParser(testRepository);
+		EnhancedStreamParser parser = new EnhancedStreamParser(testRepository,moduleRegistry());
 		try {
 			parser.parse("t", config);
 			fail(config + " is invalid. Should throw exception");
@@ -202,7 +215,35 @@ public class StreamConfigParserTests {
 			// success
 		}
 	}
+	public ModuleRegistry moduleRegistry() {
+		ModuleRegistry registry = mock(ModuleRegistry.class);
+		Resource resource = mock(Resource.class);
+		File file = mock(File.class);
+		when(file.exists()).thenReturn(true);
+		try {
+			when(resource.getFile()).thenReturn(file);
+		} catch (IOException ioe) {
+			throw new RuntimeException(ioe);
+		}
+		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
+		definitions.add(new ModuleDefinition(ModuleType.SOURCE.name(),
+				ModuleType.SOURCE.name(), resource));
+		when(registry.findDefinitions(ModuleType.SOURCE.name())).thenReturn(
+				definitions);
 
+		definitions = new ArrayList<ModuleDefinition>();
+		definitions.add(new ModuleDefinition(ModuleType.SINK.name(),
+				ModuleType.SINK.name(), resource));
+		when(registry.findDefinitions(ModuleType.SINK.name())).thenReturn(
+				definitions);
+
+		definitions = new ArrayList<ModuleDefinition>();
+		definitions.add(new ModuleDefinition(ModuleType.PROCESSOR.name(),
+				ModuleType.PROCESSOR.name(), resource));
+		when(registry.findDefinitions(ModuleType.PROCESSOR.name())).thenReturn(
+				definitions);
+		return registry;
+}
 	@Test
 	public void testDirtyTapSupport() {
 		parse("one", "foo | transform --expression=--payload | bar");

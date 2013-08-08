@@ -17,13 +17,22 @@
 package org.springframework.xd.dirt.stream;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.core.io.Resource;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.dirt.module.ModuleRegistry;
+import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleType;
 
 /**
  * @author Mark Fisher
@@ -35,7 +44,7 @@ public class EnhancedStreamParserTests {
 
 	@Before
 	public void setup() {
-		parser = new EnhancedStreamParser();
+		parser = new EnhancedStreamParser(moduleRegistry());
 	}
 
 	@Test
@@ -135,7 +144,8 @@ public class EnhancedStreamParserTests {
 
 	@Test
 	public void sourceChannelNameIsAppliedToSourceModule() throws Exception {
-		List<ModuleDeploymentRequest> requests = parser.parse("test", ":foo > boo | blah | file");
+		List<ModuleDeploymentRequest> requests = parser.parse("test",
+				":foo > goo | blah | file");
 		assertEquals(3, requests.size());
 		assertEquals("foo", requests.get(2).getSourceChannelName());
 		assertEquals("processor", requests.get(2).getType());
@@ -145,11 +155,56 @@ public class EnhancedStreamParserTests {
 
 	@Test
 	public void sinkChannelNameIsAppliedToSinkModule() throws Exception {
-		List<ModuleDeploymentRequest> requests = parser.parse("test", "boo | blah | aaak > :foo");
+		List<ModuleDeploymentRequest> requests = parser.parse("test",
+				"boo | blah | aaak > :foo");
 		assertEquals(3, requests.size());
 		assertEquals("foo", requests.get(0).getSinkChannelName());
 		assertEquals("processor", requests.get(0).getType());
 		assertEquals("processor", requests.get(1).getType());
 		assertEquals("source", requests.get(2).getType());
 	}
+
+	@Bean
+	public ModuleRegistry moduleRegistry() {
+		ModuleRegistry registry = mock(ModuleRegistry.class);
+		Resource resource = mock(Resource.class);
+		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
+		definitions.add(new ModuleDefinition(ModuleType.SOURCE.name(),
+				ModuleType.SOURCE.getTypeName(), resource));
+		when(registry.findDefinitions(ModuleType.SOURCE.getTypeName()))
+				.thenReturn(definitions);
+		when(registry.findDefinitions("foo")).thenReturn(definitions);
+		when(registry.findDefinitions("boo")).thenReturn(definitions);
+		when(registry.findDefinitions("http")).thenReturn(definitions);
+
+		definitions = new ArrayList<ModuleDefinition>();
+		definitions.add(new ModuleDefinition(ModuleType.SINK.getTypeName(),
+				ModuleType.SINK.getTypeName(), resource));
+		when(registry.findDefinitions(ModuleType.SINK.getTypeName()))
+				.thenReturn(definitions);
+		when(registry.findDefinitions("file")).thenReturn(definitions);
+		when(registry.findDefinitions("bar")).thenReturn(definitions);
+
+
+		definitions = new ArrayList<ModuleDefinition>();
+		definitions.add(new ModuleDefinition(
+				ModuleType.PROCESSOR.getTypeName(), ModuleType.PROCESSOR
+						.getTypeName(), resource));
+		when(registry.findDefinitions(ModuleType.PROCESSOR.getTypeName()))
+				.thenReturn(definitions);
+		when(registry.findDefinitions("blah")).thenReturn(definitions);
+		when(registry.findDefinitions("filter")).thenReturn(definitions);
+		when(registry.findDefinitions("goo")).thenReturn(definitions);
+		when(registry.findDefinitions("aaak")).thenReturn(definitions);
+
+
+		definitions = new ArrayList<ModuleDefinition>();
+		definitions.add(new ModuleDefinition(ModuleType.JOB.getTypeName(),
+				ModuleType.JOB.getTypeName(), resource));
+		when(registry.findDefinitions(ModuleType.JOB.getTypeName()))
+				.thenReturn(definitions);
+
+		return registry;
+	}
+
 }

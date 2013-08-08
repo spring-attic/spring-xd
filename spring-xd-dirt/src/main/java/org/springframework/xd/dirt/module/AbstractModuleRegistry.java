@@ -34,5 +34,4 @@ public abstract class AbstractModuleRegistry implements ModuleRegistry {
 	}
 
 	protected abstract Resource loadResource(String name, String type);
-
 }

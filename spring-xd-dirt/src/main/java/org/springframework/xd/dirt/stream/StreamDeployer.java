@@ -23,8 +23,9 @@ import org.springframework.util.Assert;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 
 /**
- * Default implementation of {@link StreamDeployer} that emits deployment request messages on a bus and relies on
- * {@link StreamDefinitionRepository} and {@link StreamRepository} for persistence.
+ * Default implementation of {@link StreamDeployer} that emits deployment
+ * request messages on a bus and relies on {@link StreamDefinitionRepository}
+ * and {@link StreamRepository} for persistence.
  * 
  * @author Mark Fisher
  * @author Gary Russell
@@ -40,8 +41,8 @@ public class StreamDeployer extends AbstractDeployer<StreamDefinition> {
 	private final StreamRepository streamRepository;
 
 	public StreamDeployer(StreamDefinitionRepository repository, DeploymentMessageSender messageSender,
-			StreamRepository streamRepository, StreamParser streamParser) {
-		super(repository, messageSender, streamParser, "stream");
+			StreamRepository streamRepository, XDParser parser) {
+		super(repository, messageSender, parser, "stream");
 
 		Assert.notNull(streamRepository, "streamRepository must not be null");
 		this.streamRepository = streamRepository;

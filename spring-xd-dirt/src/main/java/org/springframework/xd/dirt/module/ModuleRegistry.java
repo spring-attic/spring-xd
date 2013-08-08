@@ -16,14 +16,19 @@
 
 package org.springframework.xd.dirt.module;
 
+import java.util.List;
+
 import org.springframework.xd.module.ModuleDefinition;
 
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Glenn Renfro
  */
 public interface ModuleRegistry {
 
 	ModuleDefinition lookup(String name, String type);
+
+	List<ModuleDefinition> findDefinitions(String name);
 
 }

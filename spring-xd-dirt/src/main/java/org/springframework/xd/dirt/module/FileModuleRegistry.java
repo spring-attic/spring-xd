@@ -17,13 +17,18 @@
 package org.springframework.xd.dirt.module;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
+import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleType;
 
 /**
  * @author Mark Fisher
+ * @author Glenn Renfro
  */
 public class FileModuleRegistry extends AbstractModuleRegistry {
 
@@ -41,4 +46,17 @@ public class FileModuleRegistry extends AbstractModuleRegistry {
 		return new FileSystemResource(file);
 	}
 
+	@Override
+	public List<ModuleDefinition> findDefinitions(String name) {
+		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
+		for (ModuleType type : ModuleType.values()) {
+			Resource resource = loadResource(name, type.name());
+			if (resource.exists()) {
+				ModuleDefinition moduleDef = new ModuleDefinition(name,
+						type.getTypeName(), resource);
+				definitions.add(moduleDef);
+			}
+		}
+		return (definitions.size() != 0) ? definitions : null;
+	}
 }

@@ -22,7 +22,7 @@ import org.springframework.xd.dirt.core.BaseDefinition;
  * Represents a model for a data flow in the system. This is typically described with a DSL expression of the form
  * {@code source | [processor | ]* sink}.
  *
- * @see StreamParser
+ * @see XDParser
  *
  * @author Eric Bottard
  */

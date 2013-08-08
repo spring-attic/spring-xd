@@ -33,9 +33,9 @@ public class TapDeployer extends AbstractDeployer<TapDefinition> {
 	private final TapInstanceRepository tapInstanceRepository;
 
 	public TapDeployer(TapDefinitionRepository repository, StreamDefinitionRepository streamDefinitionRepository,
-			DeploymentMessageSender messageSender, StreamParser streamParser,
+			DeploymentMessageSender messageSender, XDParser parser,
 			TapInstanceRepository tapInstanceRepository) {
-		super(repository, messageSender, streamParser, "tap");
+		super(repository, messageSender, parser, "tap");
 		Assert.notNull(streamDefinitionRepository, "stream definition repository cannot be null");
 		this.streamDefinitionRepository = streamDefinitionRepository;
 		this.tapInstanceRepository = tapInstanceRepository;
@@ -44,7 +44,9 @@ public class TapDeployer extends AbstractDeployer<TapDefinition> {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see org.springframework.xd.dirt.core.ResourceDeployer#create(java.lang.Object)
+	 * @see
+	 * org.springframework.xd.dirt.core.ResourceDeployer#create(java.lang.Object
+	 * )
 	 */
 	@Override
 	public TapDefinition save(TapDefinition tapDefinition) {

@@ -30,8 +30,10 @@ import org.springframework.xd.dirt.core.ResourceDeployer;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 
 /**
- * Abstract implementation of the @link {@link org.springframework.xd.dirt.core.ResourceDeployer} interface. It provides
- * the basic support for calling CrudRepository methods and sending deployment messages.
+ * Abstract implementation of the @link
+ * {@link org.springframework.xd.dirt.core.ResourceDeployer} interface. It
+ * provides the basic support for calling CrudRepository methods and sending
+ * deployment messages.
  * 
  * @author Luke Taylor
  * @author Mark Pollack
@@ -41,7 +43,7 @@ import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 public abstract class AbstractDeployer<D extends BaseDefinition> implements ResourceDeployer<D> {
 	private PagingAndSortingRepository<D, String> repository;
 
-	private final StreamParser streamParser;
+	private final XDParser streamParser;
 
 	private final DeploymentMessageSender messageSender;
 
@@ -50,15 +52,17 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	 */
 	private final String definitionKind;
 
-	protected AbstractDeployer(PagingAndSortingRepository<D, String> repository, DeploymentMessageSender messageSender,
-			StreamParser streamParser, String definitionKind) {
+	protected AbstractDeployer(
+			PagingAndSortingRepository<D, String> repository,
+			DeploymentMessageSender messageSender, XDParser parser,
+			String definitionKind) {
 		Assert.notNull(repository, ErrorMessage.repositoryNameNullError.getMessage());
 		Assert.notNull(messageSender, ErrorMessage.messageSenderNameNullError.getMessage());
 		Assert.hasText(definitionKind, ErrorMessage.definitionKindEmptyError.getMessage());
 		this.repository = repository;
 		this.messageSender = messageSender;
 		this.definitionKind = definitionKind;
-		this.streamParser = streamParser;
+		this.streamParser = parser;
 	}
 
 	@Override

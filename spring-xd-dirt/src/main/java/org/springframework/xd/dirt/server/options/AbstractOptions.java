@@ -95,6 +95,9 @@ public abstract class AbstractOptions {
 	@Option(name = "--analytics", usage = "How to persist analytics such as counters and gauges (default: redis)")
 	private Analytics analytics = Analytics.redis;
 
+	@Option(name = "--hadoopDistro", usage = "The Hadoop distro to use (default: hadoop10)")
+	private HadoopDistro hadoopDistro = HadoopDistro.hadoop10;
+
 	public Analytics getAnalytics() {
 		return analytics;
 	}

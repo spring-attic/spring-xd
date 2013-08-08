@@ -25,7 +25,7 @@ import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 /**
  * Default implementation of {@link StreamDeployer} that emits deployment request messages on a bus and relies on
  * {@link StreamDefinitionRepository} and {@link StreamRepository} for persistence.
- *
+ * 
  * @author Mark Fisher
  * @author Gary Russell
  * @author Andy Clement
@@ -39,9 +39,9 @@ public class StreamDeployer extends AbstractDeployer<StreamDefinition> {
 	 */
 	private final StreamRepository streamRepository;
 
-	public StreamDeployer(StreamDefinitionRepository repository,
-			DeploymentMessageSender messageSender, StreamRepository streamRepository) {
-		super(repository, messageSender, "stream");
+	public StreamDeployer(StreamDefinitionRepository repository, DeploymentMessageSender messageSender,
+			StreamRepository streamRepository, StreamParser streamParser) {
+		super(repository, messageSender, streamParser, "stream");
 
 		Assert.notNull(streamRepository, "streamRepository must not be null");
 		this.streamRepository = streamRepository;
@@ -51,8 +51,7 @@ public class StreamDeployer extends AbstractDeployer<StreamDefinition> {
 	public void delete(String name) {
 		StreamDefinition def = getRepository().findOne(name);
 		if (def == null) {
-			throw new NoSuchDefinitionException(name,
-				"Can't delete stream '%s' because it does not exist");
+			throw new NoSuchDefinitionException(name, "Can't delete stream '%s' because it does not exist");
 		}
 		if (streamRepository.exists(name)) {
 			undeploy(name);
@@ -76,14 +75,14 @@ public class StreamDeployer extends AbstractDeployer<StreamDefinition> {
 			throwNoSuchDefinitionException(name);
 		}
 
-		final List<ModuleDeploymentRequest> requests = parse(name,
-				definition.getDefinition());
+		final List<ModuleDeploymentRequest> requests = parse(name, definition.getDefinition());
 		sendDeploymentRequests(name, requests);
 
 		final Stream stream = new Stream(definition);
 		streamRepository.save(stream);
 	}
 
+	@Override
 	public void undeploy(String name) {
 		Assert.hasText(name, "name cannot be blank or null");
 
@@ -92,8 +91,7 @@ public class StreamDeployer extends AbstractDeployer<StreamDefinition> {
 			throwNoSuchDefinitionException(name);
 		}
 
-		final List<ModuleDeploymentRequest> requests = parse(name, stream
-				.getDefinition().getDefinition());
+		final List<ModuleDeploymentRequest> requests = parse(name, stream.getDefinition().getDefinition());
 		Collections.reverse(requests);
 
 		for (ModuleDeploymentRequest request : requests) {

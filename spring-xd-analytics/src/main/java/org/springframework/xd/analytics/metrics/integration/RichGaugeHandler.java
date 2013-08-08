@@ -21,18 +21,19 @@ import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
 
 /**
  * @author David Turanski
- *
+ * 
  */
 public class RichGaugeHandler {
 	private final RichGaugeRepository richGaugeRepository;
+
 	private final String name;
 
-	public RichGaugeHandler(RichGaugeRepository richGaugeRepository, String name) {
+	public RichGaugeHandler(RichGaugeRepository richGaugeRepository, String name, double alpha) {
 		Assert.notNull(richGaugeRepository, "Rich Gauge Service can not be null");
 		Assert.notNull(name, "Rich Gauge Name can not be null");
 		this.richGaugeRepository = richGaugeRepository;
 		this.name = name;
-		this.richGaugeRepository.save(new RichGauge(name));
+		this.richGaugeRepository.save(new RichGauge(name).setAlpha(alpha));
 	}
 
 	@ServiceActivator
@@ -51,10 +52,12 @@ public class RichGaugeHandler {
 		if (payload != null) {
 			if (payload instanceof Number) {
 				return ((Number) payload).doubleValue();
-			} else if (payload instanceof String) {
+			}
+			else if (payload instanceof String) {
 				try {
 					return Double.parseDouble((String) payload);
-				} catch (Exception e) {
+				}
+				catch (Exception e) {
 					throw new MessagingException("cannot convert payload to double", e);
 				}
 			}

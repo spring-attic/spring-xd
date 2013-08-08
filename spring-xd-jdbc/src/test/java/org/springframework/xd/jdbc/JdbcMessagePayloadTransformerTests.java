@@ -21,6 +21,7 @@ import org.junit.Test;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 public class JdbcMessagePayloadTransformerTests {
 
@@ -69,4 +70,22 @@ public class JdbcMessagePayloadTransformerTests {
         assertEquals("name, age", transformer.getColumns());
         assertEquals(":payload[name], :payload[age]", transformer.getValues());
     }
+
+    @Test
+    public void testTransformWithColumnsUsingUnderscore() throws Exception {
+        String payload = "{\"id\": 123, \"userName\":\"Sven\", \"lastName\":\"Jansson\", \"theUserAge\":22}";
+        transformer.setColumnNames("user_name, lastName, the_user_age");
+        Map<String, Object> results = transformer.transformPayload(payload);
+        assertEquals(6, results.size());
+        assertEquals(123, results.get("id"));
+        assertEquals("Sven", results.get("user_name"));
+        assertEquals("Sven", results.get("userName"));
+        assertEquals("Jansson", results.get("lastName"));
+        assertNull(results.get("last_name"));
+        assertEquals(22, results.get("the_user_age"));
+        assertEquals(22, results.get("theUserAge"));
+        assertEquals("user_name, lastName, the_user_age", transformer.getColumns());
+        assertEquals(":payload[user_name], :payload[lastName], :payload[the_user_age]", transformer.getValues());
+    }
+
 }

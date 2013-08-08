@@ -16,17 +16,6 @@
 
 package org.springframework.xd.dirt.rest;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.mockito.Matchers.anyListOf;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,18 +29,22 @@ import org.springframework.xd.dirt.stream.StreamRepository;
 import org.springframework.xd.dirt.stream.memory.InMemoryStreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.memory.InMemoryStreamRepository;
 
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 /**
- * Tests REST compliance of streams-related end-points. Contrary to
- * {@link StreamsControllerIntegrationTests}, instead of mocks, this class
- * provides access to an actual repository: {@link InMemoryStreamRepository}
- * and {@link InMemoryStreamDefinitionRepository}.
- *
+ * Tests REST compliance of streams-related end-points. Contrary to {@link StreamsControllerIntegrationTests}, instead
+ * of mocks, this class provides access to an actual repository: {@link InMemoryStreamRepository} and
+ * {@link InMemoryStreamDefinitionRepository}.
+ * 
  * @author Gunnar Hillert
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = { RestConfiguration.class, MockedDependencies.class,
-		StreamsControllerIntegrationWithRepositoryTestsConfig.class})
+@ContextConfiguration(classes = { RestConfiguration.class, Dependencies.class })
 public class StreamsControllerIntegrationWithRepositoryTests extends AbstractControllerIntegrationTest {
 
 	@Autowired
@@ -62,20 +55,16 @@ public class StreamsControllerIntegrationWithRepositoryTests extends AbstractCon
 
 	@Test
 	public void testCreateUndeployAndDeleteOfStream() throws Exception {
-		mockMvc.perform(post("/streams")
-				.param("name", "mystream")
-				.param("definition", "time | log")
-				.accept(MediaType.APPLICATION_JSON))
-				.andExpect(status().isCreated());
+		mockMvc.perform(
+				post("/streams").param("name", "mystream").param("definition", "time | log")
+						.accept(MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 
 		verify(sender, times(1)).sendDeploymentRequests(eq("mystream"), anyListOf(ModuleDeploymentRequest.class));
 
 		assertNotNull(streamDefinitionRepository.findOne("mystream"));
 		assertNotNull(streamRepository.findOne("mystream"));
 
-		mockMvc.perform(put("/streams/mystream")
-				.param("deploy", "false")
-				.accept(MediaType.APPLICATION_JSON))
+		mockMvc.perform(put("/streams/mystream").param("deploy", "false").accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk());
 
 		verify(sender, times(2)).sendDeploymentRequests(eq("mystream"), anyListOf(ModuleDeploymentRequest.class));
@@ -83,20 +72,17 @@ public class StreamsControllerIntegrationWithRepositoryTests extends AbstractCon
 		assertNotNull(streamDefinitionRepository.findOne("mystream"));
 		assertNull(streamRepository.findOne("mystream"));
 
-		mockMvc.perform(delete("/streams/mystream")
-				.accept(MediaType.APPLICATION_JSON))
-				.andExpect(status().isOk());
+		mockMvc.perform(delete("/streams/mystream").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
 
-		//As already undeployed, no new ModuleDeploymentRequest expected
+		// As already undeployed, no new ModuleDeploymentRequest expected
 		verify(sender, times(2)).sendDeploymentRequests(eq("mystream"), anyListOf(ModuleDeploymentRequest.class));
 		assertNull(streamDefinitionRepository.findOne("mystream"));
 		assertNull(streamRepository.findOne("mystream"));
 
-		mockMvc.perform(delete("/streams/mystream")
-				.accept(MediaType.APPLICATION_JSON))
+		mockMvc.perform(delete("/streams/mystream").accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isNotFound());
 
-		//As already undeployed, no new ModuleDeploymentRequest expected
+		// As already undeployed, no new ModuleDeploymentRequest expected
 		verify(sender, times(2)).sendDeploymentRequests(eq("mystream"), anyListOf(ModuleDeploymentRequest.class));
 	}
 }

@@ -16,20 +16,6 @@
 
 package org.springframework.xd.dirt.rest;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.mockito.Matchers.anyListOf;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
@@ -44,20 +30,25 @@ import org.springframework.xd.dirt.stream.DeploymentMessageSender;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.TapDefinition;
 
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 /**
  * Tests REST compliance of taps-related endpoints.
- *
+ * 
  * @author Eric Bottard
  * @author David Turanski
  * @author Gunnar Hillert
- *
+ * 
  * @since 1.0
- *
+ * 
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = { RestConfiguration.class, MockedDependencies.class,
-		TapsControllerIntegrationTestsConfig.class })
+@ContextConfiguration(classes = { RestConfiguration.class, Dependencies.class })
 public class TapsControllerIntegrationTests extends AbstractControllerIntegrationTest {
 
 	@Autowired
@@ -77,8 +68,7 @@ public class TapsControllerIntegrationTests extends AbstractControllerIntegratio
 				post("/taps").param("name", "tapfirst").param("definition", "tap@ test | log")
 						.accept(MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 
-		mockMvc.perform(get("/taps").accept(MediaType.APPLICATION_JSON))
-				.andExpect(status().isOk())
+		mockMvc.perform(get("/taps").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
 				.andExpect(jsonPath("$.content", Matchers.hasSize(2)))
 				.andExpect(jsonPath("$.content[0].name").value("tapfirst"))
 				.andExpect(jsonPath("$.content[1].name").value("taplast"));
@@ -105,7 +95,8 @@ public class TapsControllerIntegrationTests extends AbstractControllerIntegratio
 	public void testSuccessfulTapDeploy() throws Exception {
 		streamDefinitionRepository.save(new StreamDefinition("test", "time | log"));
 		tapDefinitionRepository.save(new TapDefinition("tap1", "test", "tap@test | log"));
-		mockMvc.perform(put("/taps/tap1").param("deploy", "true").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
+		mockMvc.perform(put("/taps/tap1").param("deploy", "true").accept(MediaType.APPLICATION_JSON)).andExpect(
+				status().isOk());
 		verify(sender, times(1)).sendDeploymentRequests(eq("tap1"), anyListOf(ModuleDeploymentRequest.class));
 	}
 
@@ -129,9 +120,7 @@ public class TapsControllerIntegrationTests extends AbstractControllerIntegratio
 		assertNotNull(tapDefinitionRepository.findOne("myawesometap"));
 		assertNotNull(tapInstanceRepository.findOne("myawesometap"));
 
-		mockMvc.perform(put("/taps/myawesometap")
-				.param("deploy", "false")
-				.accept(MediaType.APPLICATION_JSON))
+		mockMvc.perform(put("/taps/myawesometap").param("deploy", "false").accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk());
 
 		verify(sender, times(2)).sendDeploymentRequests(eq("myawesometap"), anyListOf(ModuleDeploymentRequest.class));
@@ -139,20 +128,17 @@ public class TapsControllerIntegrationTests extends AbstractControllerIntegratio
 		assertNotNull(tapDefinitionRepository.findOne("myawesometap"));
 		assertNull(tapInstanceRepository.findOne("myawesometap"));
 
-		mockMvc.perform(delete("/taps/myawesometap")
-				.accept(MediaType.APPLICATION_JSON))
-				.andExpect(status().isOk());
+		mockMvc.perform(delete("/taps/myawesometap").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
 
-		//As already undeployed, no new ModuleDeploymentRequest expected
+		// As already undeployed, no new ModuleDeploymentRequest expected
 		verify(sender, times(2)).sendDeploymentRequests(eq("myawesometap"), anyListOf(ModuleDeploymentRequest.class));
 		assertNull(tapDefinitionRepository.findOne("myawesometap"));
 		assertNull(tapInstanceRepository.findOne("myawesometap"));
 
-		mockMvc.perform(delete("/taps/myawesometap")
-				.accept(MediaType.APPLICATION_JSON))
-				.andExpect(status().isNotFound());
+		mockMvc.perform(delete("/taps/myawesometap").accept(MediaType.APPLICATION_JSON)).andExpect(
+				status().isNotFound());
 
-		//As already undeployed, no new ModuleDeploymentRequest expected
+		// As already undeployed, no new ModuleDeploymentRequest expected
 		verify(sender, times(2)).sendDeploymentRequests(eq("myawesometap"), anyListOf(ModuleDeploymentRequest.class));
 	}
 

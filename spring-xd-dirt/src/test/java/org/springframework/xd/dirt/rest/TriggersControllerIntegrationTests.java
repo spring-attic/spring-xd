@@ -16,17 +16,6 @@
 
 package org.springframework.xd.dirt.rest;
 
-import static org.mockito.Matchers.anyListOf;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,20 +29,24 @@ import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.dirt.stream.DeploymentMessageSender;
 import org.springframework.xd.dirt.stream.TriggerDefinition;
 
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 /**
  * Tests REST compliance of taps-related endpoints.
- *
+ * 
  * @author Eric Bottard
  * @author David Turanski
  * @author Gunnar Hillert
- *
+ * 
  * @since 1.0
- *
+ * 
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = { RestConfiguration.class, MockedDependencies.class,
-		TriggersControllerIntegrationTestsConfig.class })
+@ContextConfiguration(classes = { RestConfiguration.class, Dependencies.class })
 public class TriggersControllerIntegrationTests extends AbstractControllerIntegrationTest {
 
 	@Autowired
@@ -64,24 +57,19 @@ public class TriggersControllerIntegrationTests extends AbstractControllerIntegr
 
 	private final String TRIGGER_DEFINITION = "trigger --cron='*/10 * * * * *'";
 
-
 	@Test
 	public void testGetTrigger() throws Exception {
 
 		triggerDefinitionRepository.save(new TriggerDefinition("trigger1", TRIGGER_DEFINITION));
 
-		mockMvc.perform(get("/triggers/trigger1")
-			.accept(MediaType.APPLICATION_JSON))
-			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.name").value("trigger1"));
+		mockMvc.perform(get("/triggers/trigger1").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
+				.andExpect(jsonPath("$.name").value("trigger1"));
 	}
 
 	@Test
 	public void testGetNonExistingTrigger() throws Exception {
 
-		mockMvc.perform(get("/triggers/trigger1")
-			.accept(MediaType.APPLICATION_JSON))
-			.andExpect(status().isNotFound());
+		mockMvc.perform(get("/triggers/trigger1").accept(MediaType.APPLICATION_JSON)).andExpect(status().isNotFound());
 	}
 
 	@Test
@@ -94,8 +82,7 @@ public class TriggersControllerIntegrationTests extends AbstractControllerIntegr
 				post("/triggers").param("name", "triggerfirst").param("definition", TRIGGER_DEFINITION)
 						.accept(MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 
-		mockMvc.perform(get("/triggers").accept(MediaType.APPLICATION_JSON))
-				.andExpect(status().isOk())
+		mockMvc.perform(get("/triggers").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
 				.andExpect(jsonPath("$.content", Matchers.hasSize(2)))
 				.andExpect(jsonPath("$.content[0].name").value("triggerfirst"))
 				.andExpect(jsonPath("$.content[1].name").value("triggerlast"));
@@ -119,7 +106,8 @@ public class TriggersControllerIntegrationTests extends AbstractControllerIntegr
 	@Test
 	public void testSuccessfulTriggerDeploy() throws Exception {
 		triggerDefinitionRepository.save(new TriggerDefinition("trigger1", TRIGGER_DEFINITION));
-		mockMvc.perform(put("/triggers/trigger1").param("deploy", "true").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
+		mockMvc.perform(put("/triggers/trigger1").param("deploy", "true").accept(MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk());
 		verify(sender, times(1)).sendDeploymentRequests(eq("trigger1"), anyListOf(ModuleDeploymentRequest.class));
 	}
 

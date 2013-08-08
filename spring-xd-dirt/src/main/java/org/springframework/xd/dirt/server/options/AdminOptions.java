@@ -33,9 +33,6 @@ public class AdminOptions extends AbstractOptions {
 	@Option(name = "--jmxPort", usage = "The JMX port for the admin", metaVar = "<jmxPort>")
 	private int jmxPort = 8778;
 
-	@Option(name = "--hadoopDistro", usage = "The Hadoop distro to use (default: hadoop10)")
-	private HadoopDistro hadoopDistro = HadoopDistro.hadoop10;
-
 	/**
 	 * @return http port
 	 */

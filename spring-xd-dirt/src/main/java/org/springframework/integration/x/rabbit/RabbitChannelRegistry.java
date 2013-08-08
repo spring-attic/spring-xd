@@ -112,6 +112,15 @@ public class RabbitChannelRegistry extends ChannelRegistrySupport implements Dis
 				return transformInboundIfNecessary(requestMessage, acceptedMediaTypes);
 			}
 
+			@Override
+			protected boolean shouldCopyRequestHeaders() {
+				/*
+				 *  we've already copied the headers so no need for the ARPMH to do
+				 *  it, and we don't want the content-type restored if absent.
+				 */
+				return false;
+			}
+
 		};
 		convertingBridge.setOutputChannel(moduleInputChannel);
 		convertingBridge.setBeanName(name + ".convert.bridge");

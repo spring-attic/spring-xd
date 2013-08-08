@@ -18,6 +18,7 @@ package org.springframework.integration.x.channel.registry;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -99,7 +100,25 @@ public abstract class AbstractChannelRegistryTests {
 		Message<?> inbound = moduleInputChannel.receive(5000);
 		assertNotNull(inbound);
 		assertEquals("foo", inbound.getPayload());
+		assertNull(inbound.getHeaders().get(ChannelRegistrySupport.ORIGINAL_CONTENT_TYPE_HEADER));
 		assertEquals("foo/bar", inbound.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+	}
+
+	@Test
+	public void testSendAndReceiveNoOriginalContentType() throws Exception {
+		ChannelRegistry registry = getRegistry();
+		DirectChannel moduleOutputChannel = new DirectChannel();
+		QueueChannel moduleInputChannel = new QueueChannel();
+		registry.createOutbound("bar.0", moduleOutputChannel, false);
+		registry.createInbound("bar.0", moduleInputChannel, ALL, false);
+		Message<?> message = MessageBuilder.withPayload("foo")
+				.build();
+		moduleOutputChannel.send(message);
+		Message<?> inbound = moduleInputChannel.receive(5000);
+		assertNotNull(inbound);
+		assertEquals("foo", inbound.getPayload());
+		assertNull(inbound.getHeaders().get(ChannelRegistrySupport.ORIGINAL_CONTENT_TYPE_HEADER));
+		assertNull(inbound.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
 
 	protected abstract Collection<?> getBridges(ChannelRegistry registry);

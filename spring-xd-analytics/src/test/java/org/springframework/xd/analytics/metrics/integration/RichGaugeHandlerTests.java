@@ -12,18 +12,12 @@
  */
 package org.springframework.xd.analytics.metrics.integration;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import java.io.IOException;
 import java.util.Collections;
 
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -48,13 +42,16 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
+
 /**
  * @author David Turanski
  * @author Gary Russell
- *
+ * 
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes=RichGaugeHandlerTestsConfig.class)
+@ContextConfiguration(classes = RichGaugeHandlerTestsConfig.class)
 public class RichGaugeHandlerTests {
 
 	@Rule
@@ -66,7 +63,7 @@ public class RichGaugeHandlerTests {
 	@Test
 	public void testParseDouble() {
 		RichGaugeRepository richGaugeRepository = mock(RichGaugeRepository.class);
-		RichGaugeHandler handler = new RichGaugeHandler(richGaugeRepository, "test");
+		RichGaugeHandler handler = new RichGaugeHandler(richGaugeRepository, "test", -1);
 		int i = 4;
 		double val = handler.convertToDouble(i);
 		assertEquals(4.0, val, 0.001);
@@ -99,8 +96,8 @@ public class RichGaugeHandlerTests {
 		assertEquals(24.0, gauge.getMax(), 0.001);
 		assertEquals(10.0, gauge.getMin(), 0.001);
 		assertEquals(18.0, gauge.getAverage(), 0.001);
-		//Included here because the message handler constructor creates the gauge. Don't want to
-		//delete it in @After.
+		// Included here because the message handler constructor creates the gauge. Don't want to
+		// delete it in @After.
 		repo.delete("test");
 	}
 
@@ -131,10 +128,10 @@ public class RichGaugeHandlerTests {
 		RichGauge gauge = repo.findOne("test");
 		assertNotNull(gauge);
 		assertEquals(73.0, gauge.getValue(), 0.001);
-		//assertEquals(1, gauge.getCount());
+		// assertEquals(1, gauge.getCount());
 
-		//Included here because the message handler constructor creates the gauge. Don't want to
-		//delete it in @After.
+		// Included here because the message handler constructor creates the gauge. Don't want to
+		// delete it in @After.
 		repo.delete("test");
 	}
 
@@ -144,9 +141,11 @@ public class RichGaugeHandlerTests {
 		public JsonNode transform(String json) {
 			try {
 				return mapper.readTree(json);
-			} catch (JsonParseException e) {
+			}
+			catch (JsonParseException e) {
 				throw new MessageTransformationException("unable to parse input: " + e.getMessage(), e);
-			} catch (IOException e) {
+			}
+			catch (IOException e) {
 				throw new MessageTransformationException("unable to create json parser: " + e.getMessage(), e);
 			}
 		}
@@ -174,4 +173,3 @@ class RichGaugeHandlerTestsConfig {
 		}
 	}
 }
-

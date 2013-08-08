@@ -72,6 +72,11 @@ public class MetricCommandTemplate extends AbstractCommandTemplate {
 		assertEquals("Deleted " + metricType.getName() + " '" + metricName + "'", cr.getResult());
 	}
 
+	protected void executeMetricDelete(String metricName, MetricType metricType, String metricTypeName) {
+		CommandResult cr = executeCommand(metricType.getName() + " delete --name " + metricName);
+		assertEquals("Deleted " + metricTypeName + " '" + metricName + "'", cr.getResult());
+	}
+
 	public void destroyDefaultNamedMetrics() {
 		for (MetricType metricType : MetricType.values()) {
 			if (isMetricAvailable(DEFAULT_METRIC_NAME, metricType))

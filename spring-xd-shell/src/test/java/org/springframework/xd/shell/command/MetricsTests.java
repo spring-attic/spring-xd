@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.junit.Test;
-import org.springframework.shell.support.util.FileUtils;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableHeader;
 
@@ -105,9 +104,9 @@ public class MetricsTests extends AbstractStreamIntegrationTest {
 
 	@Test
 	public void testFieldValueCounterList() throws Exception {
-		FileSource fileSource = newFileSource(new File(FILE_SOURCE_INPUT_DIR + TEST_STREAM_NAME));
-		createFileSourceFVCStream(fileSource, "fromUser");
-		copyTweetFiles(fileSource);
+		TailSource tailSource = newTailSource();
+		createTailSourceFVCStream(tailSource, "fromUser");
+		tailTweets(tailSource);
 		fvc().verifyDefaultExists();
 	}
 
@@ -116,20 +115,18 @@ public class MetricsTests extends AbstractStreamIntegrationTest {
 		TreeMap<String, Double> fvcMap = new TreeMap<String, Double>();
 		fvcMap.put("BestNoSQL", 1d);
 		fvcMap.put("SpringSource", 2d);
-		FileSource fileSource = newFileSource(new File(FILE_SOURCE_INPUT_DIR + TEST_STREAM_NAME));
-		createFileSourceFVCStream(fileSource, "fromUser");
-		copyTweetFiles(fileSource);
-		// Wait for some more time to allow the tweets get processed.
-		Thread.sleep(10000);
+		TailSource tailSource = newTailSource();
+		createTailSourceFVCStream(tailSource, "fromUser");
+		tailTweets(tailSource);
 		Table t = constructFVCDisplay(fvcMap);
 		fvc().verifyFVCounter(t.toString());
 	}
 
 	@Test
 	public void testFieldValueCounterDelete() throws Exception {
-		FileSource fileSource = newFileSource(new File(FILE_SOURCE_INPUT_DIR + TEST_STREAM_NAME));
-		createFileSourceFVCStream(fileSource, "fromUser");
-		copyTweetFiles(fileSource);
+		TailSource tailSource = newTailSource();
+		createTailSourceFVCStream(tailSource, "fromUser");
+		tailTweets(tailSource);
 		fvc().deleteDefaultFVCounter();
 	}
 
@@ -165,16 +162,16 @@ public class MetricsTests extends AbstractStreamIntegrationTest {
 		Thread.sleep(5000);
 	}
 
-	private void createFileSourceFVCStream(FileSource fileSource, String fieldName) throws Exception {
-		stream().create(TEST_STREAM_NAME, fileSource + " | field-value-counter --fieldName=%s --counterName=%s",
+	private void createTailSourceFVCStream(TailSource tailSource, String fieldName) throws Exception {
+		stream().create(TEST_STREAM_NAME, tailSource + " | field-value-counter --fieldName=%s --counterName=%s",
 				fieldName, DEFAULT_METRIC_NAME);
 		Thread.sleep(5000);
 	}
 
-	private void copyTweetFiles(FileSource fileSource) throws Exception {
-		URL url = this.getClass().getClassLoader().getResource(TWEETS_DIR);
-		File file = new File(url.toURI());
-		FileUtils.copyRecursively(file, fileSource.getFile(), false);
-		Thread.sleep(5000);
+	private void tailTweets(TailSource tailSource) throws Exception {
+		for (int i = 1; i <= 3; i++) {
+			URL testFileUrl = this.getClass().getClassLoader().getResource("tweet" + i + ".txt");
+			tailSource.appendToFile(new File(testFileUrl.toURI()));
+		}
 	}
 }

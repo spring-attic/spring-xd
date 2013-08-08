@@ -16,8 +16,10 @@
 
 package org.springframework.xd.shell.command;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
@@ -51,6 +53,8 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 	private Set<FileSink> fileSinks = new HashSet<AbstractStreamIntegrationTest.FileSink>();
 
 	private Set<FileSource> fileSources = new HashSet<AbstractStreamIntegrationTest.FileSource>();
+
+	private Set<TailSource> tailSources = new HashSet<AbstractStreamIntegrationTest.TailSource>();
 
 	public AbstractStreamIntegrationTest() {
 		streamOps = new StreamCommandTemplate(getShell());
@@ -95,6 +99,7 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 		richGauge().deleteDefaultRichGauge();
 		cleanFileSinks();
 		cleanFileSources();
+		cleanTailSources();
 	}
 
 	private void cleanFileSinks() {
@@ -109,6 +114,12 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 		}
 	}
 
+	private void cleanTailSources() {
+		for (TailSource tailSource : tailSources) {
+			tailSource.cleanup();
+		}
+	}
+
 	protected FileSink newFileSink() {
 		FileSink fileSink = new FileSink();
 		fileSinks.add(fileSink);
@@ -119,6 +130,12 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 		FileSource fileSource = new FileSource(file);
 		fileSources.add(fileSource);
 		return fileSource;
+	}
+
+	protected TailSource newTailSource() {
+		TailSource tailSource = new TailSource();
+		tailSources.add(tailSource);
+		return tailSource;
 	}
 
 	protected static class FileSink extends FileModule {
@@ -145,12 +162,37 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 
 	}
 
+	protected static class TailSource extends FileModule {
+
+		public TailSource() {
+			try {
+				file = File.createTempFile("xd-test-tail-source", "txt");
+			}
+			catch (IOException e) {
+				throw new IllegalStateException(e);
+			}
+		}
+
+		@Override
+		public String toString() {
+			return String.format("tail --name=%s", file.getAbsolutePath());
+		}
+
+		public void appendToFile(File file) throws IOException {
+			String contents = this.getContents(file);
+			FileWriter fileWritter = new FileWriter(this.getFile(), true);
+			BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
+			bufferWritter.write(contents + "\n");
+			bufferWritter.close();
+		}
+	}
+
 	private abstract static class FileModule {
 
 		protected File file;
 
 		/**
-		 * Returns a representation of the sink suitable for inclusion in a stream
+		 * Returns a representation of the source/sink suitable for inclusion in a stream
 		 * definition, <i>e.g.</i> @code{file --dir=xxxx --name=yyyy}
 		 */
 		@Override
@@ -174,6 +216,11 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 		}
 
 		public String getContents() throws IOException {
+			FileReader fileReader = new FileReader(file);
+			return FileCopyUtils.copyToString(fileReader);
+		}
+
+		public String getContents(File file) throws IOException {
 			FileReader fileReader = new FileReader(file);
 			return FileCopyUtils.copyToString(fileReader);
 		}

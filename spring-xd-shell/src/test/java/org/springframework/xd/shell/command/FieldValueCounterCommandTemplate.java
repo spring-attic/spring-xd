@@ -24,6 +24,8 @@ import org.springframework.shell.core.JLineShellComponent;
  */
 public class FieldValueCounterCommandTemplate extends AbstractCommandTemplate {
 
+	private static final String METRIC_TYPE_NAME = "field-value-counter";
+
 	private MetricCommandTemplate metricCommandTemplate;
 
 	/**
@@ -51,12 +53,13 @@ public class FieldValueCounterCommandTemplate extends AbstractCommandTemplate {
 	 * @param counterName
 	 */
 	public void deleteFVCounter(String counterName) {
-		metricCommandTemplate.executeMetricDelete(counterName, MetricType.FIELD_VALUE_COUNTER);
+		metricCommandTemplate.executeMetricDelete(counterName, MetricType.FIELD_VALUE_COUNTER, METRIC_TYPE_NAME);
 	};
 
 	public void deleteDefaultFVCounter() {
 		if (metricCommandTemplate.isMetricAvailable(DEFAULT_METRIC_NAME, MetricType.FIELD_VALUE_COUNTER)) {
-			metricCommandTemplate.executeMetricDelete(DEFAULT_METRIC_NAME, MetricType.FIELD_VALUE_COUNTER);
+			metricCommandTemplate.executeMetricDelete(DEFAULT_METRIC_NAME, MetricType.FIELD_VALUE_COUNTER,
+					METRIC_TYPE_NAME);
 		}
 	}
 

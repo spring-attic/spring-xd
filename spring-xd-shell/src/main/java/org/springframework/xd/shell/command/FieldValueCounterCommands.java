@@ -81,7 +81,7 @@ public class FieldValueCounterCommands extends AbstractMetricsCommands implement
 	public String delete(
 			@CliOption(key = { "", "name" }, help = "the name of the field-value-counter to delete", mandatory = true) String name) {
 		fvcOperations().delete(name);
-		return String.format("Deleted fieldvaluecounter '%s'", name);
+		return String.format("Deleted field-value-counter '%s'", name);
 	}
 
 	private FieldValueCounterOperations fvcOperations() {
@@ -118,8 +118,11 @@ public class FieldValueCounterCommands extends AbstractMetricsCommands implement
 
 		@Override
 		public int compare(String a, String b) {
-			if (fieldValueCounts.get(a) >= fieldValueCounts.get(b)) {
+			if (fieldValueCounts.get(a) > fieldValueCounts.get(b)) {
 				return -1;
+			}
+			if (fieldValueCounts.get(a) == fieldValueCounts.get(b)) {
+				return 0;
 			}
 			else {
 				return 1;

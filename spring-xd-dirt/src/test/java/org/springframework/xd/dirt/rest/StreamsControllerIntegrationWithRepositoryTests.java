@@ -54,6 +54,11 @@ public class StreamsControllerIntegrationWithRepositoryTests extends AbstractCon
 	protected StreamRepository streamRepository;
 
 	@Test
+	public void testDeleteUnknownStream() throws Exception {
+		mockMvc.perform(delete("/streams/not-there")).andExpect(status().isNotFound());
+	}
+
+	@Test
 	public void testCreateUndeployAndDeleteOfStream() throws Exception {
 		mockMvc.perform(
 				post("/streams").param("name", "mystream").param("definition", "time | log")

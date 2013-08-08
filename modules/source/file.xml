@@ -11,12 +11,12 @@
 		http://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
 
 	<file:inbound-channel-adapter
-			auto-startup="false"
-			channel="transform" directory="/tmp/xd/input/${name:${xd.stream.name}}">
-		<poller fixed-rate="5000"/>
+			auto-startup="false" 
+			channel="transform" directory="${dir:/tmp/xd/input/${xd.stream.name}}">
+		<poller fixed-rate="${rate:5000}" />
 	</file:inbound-channel-adapter>
 
-	<file:file-to-string-transformer input-channel="transform" output-channel="output"/>
+	<file:file-to-string-transformer input-channel="transform" output-channel="output" />
 
 	<channel id="output"/>
 

@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.integration.json.JsonToObjectTransformer;
+import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.util.StringUtils;
 
 
@@ -92,6 +93,11 @@ public class JdbcMessagePayloadTransformer extends JsonToObjectTransformer<Map> 
 				payloadMap.put(key, o.toString());
 			}
 		}
+        for (String column : this.columnNames) {
+            if (column.contains("_")) {
+                payloadMap.put(column, payloadMap.get(JdbcUtils.convertUnderscoreNameToPropertyName(column)));
+            }
+        }
 		return payloadMap;
 	}
 

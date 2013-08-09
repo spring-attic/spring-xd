@@ -23,8 +23,6 @@ import java.io.InputStreamReader;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -50,6 +48,7 @@ import org.springframework.web.client.RestTemplate;
  * @author Ilayaperumal Gopinathan
  * @author Gunnar Hillert
  * @author Eric Bottard
+ * @author David Turanski
  */
 
 @Component
@@ -61,19 +60,16 @@ public class HttpCommands implements CommandMarker {
 
 	@CliCommand(value = { POST_HTTPSOURCE }, help = "POST data to http endpoint")
 	public String postHttp(
-			@CliOption(mandatory = true, key = { "", "target" }, help = "the location to post to", unspecifiedDefaultValue = "http://localhost:9000")
-			String target,
-			@CliOption(mandatory = false, key = "data", help = "the text payload to post. exclusive with file. embedded double quotes are not supported if next to a space character")
-			String data,
-			@CliOption(mandatory = false, key = "file", help = "filename to read data from. exclusive with data")
-			File file,
-			@CliOption(mandatory = false, key = "contentType", help = "the content-type to use. file is also read using the specified charset", unspecifiedDefaultValue = DEFAULT_MEDIA_TYPE)
-			MediaType mediaType) throws IOException {
+			@CliOption(mandatory = true, key = { "", "target" }, help = "the location to post to", unspecifiedDefaultValue = "http://localhost:9000") String target,
+			@CliOption(mandatory = false, key = "data", help = "the text payload to post. exclusive with file. embedded double quotes are not supported if next to a space character") String data,
+			@CliOption(mandatory = false, key = "file", help = "filename to read data from. exclusive with data") File file,
+			@CliOption(mandatory = false, key = "contentType", help = "the content-type to use. file is also read using the specified charset", unspecifiedDefaultValue = DEFAULT_MEDIA_TYPE) MediaType mediaType)
+			throws IOException {
 		Assert.isTrue(file != null || data != null, "One of 'file' or 'data' must be set");
 		Assert.isTrue(file == null || data == null, "Only one of 'file' or 'data' must be set");
 		if (mediaType.getCharSet() == null) {
-			mediaType = new MediaType(mediaType, Collections.singletonMap("charset", Charset.defaultCharset()
-					.toString()));
+			mediaType = new MediaType(mediaType, Collections.singletonMap("charset",
+					Charset.defaultCharset().toString()));
 		}
 
 		if (file != null) {
@@ -106,8 +102,11 @@ public class HttpCommands implements CommandMarker {
 			outputRequest("POST", requestURI, mediaType, data, buffer);
 			ResponseEntity<String> response = restTemplate.postForEntity(requestURI, request, String.class);
 			outputResponse(response, buffer);
-			String status = (response.getStatusCode().equals(HttpStatus.OK) ? "Success" : "Error");
-			return String.format(buffer.toString() + status + " sending data '%s' to target '%s'", data, target);
+			if (!response.getStatusCode().equals(HttpStatus.OK)) {
+				buffer.append(OsUtils.LINE_SEPARATOR).append(
+						String.format("Error sending data '%s' to '%s'", data, target));
+			}
+			return buffer.toString();
 		}
 		catch (ResourceAccessException e) {
 			return String.format(buffer.toString() + "Failed to access http endpoint %s", target);
@@ -119,28 +118,13 @@ public class HttpCommands implements CommandMarker {
 
 	private void outputRequest(String method, URI requestUri, MediaType mediaType, String requestData,
 			StringBuilder buffer) {
-		buffer.append("> ").append(method).append(" (").append(mediaType.toString()).append(") ")
-				.append(requestUri.toString()).append(" ").append(requestData).append(OsUtils.LINE_SEPARATOR);
+		buffer.append("> ").append(method).append(" (").append(mediaType.toString()).append(") ").append(
+				requestUri.toString()).append(" ").append(requestData).append(OsUtils.LINE_SEPARATOR);
 	}
 
 	private void outputResponse(ResponseEntity<String> response, StringBuilder buffer) {
-		buffer.append("> ").append(response.getStatusCode().value()).append(" ")
-				.append(response.getStatusCode().name()).append(OsUtils.LINE_SEPARATOR);
-		for (Map.Entry<String, List<String>> entry : response.getHeaders().entrySet()) {
-			buffer.append("> ").append(entry.getKey()).append(": ");
-			boolean first = true;
-			for (String s : entry.getValue()) {
-				if (!first) {
-					buffer.append(",");
-				}
-				else {
-					first = false;
-				}
-				buffer.append(s);
-			}
-			buffer.append(OsUtils.LINE_SEPARATOR);
-		}
-		buffer.append("> ").append(OsUtils.LINE_SEPARATOR);
+		buffer.append("> ").append(response.getStatusCode().value()).append(" ").append(response.getStatusCode().name()).append(
+				OsUtils.LINE_SEPARATOR);
 		if (null != response.getBody()) {
 			buffer.append(response.getBody());
 		}

@@ -106,24 +106,24 @@ configure(javaProjects()) { subproject ->
 			natures += 'org.springframework.ide.eclipse.core.springnature'
 		}
 	}
-	
+
 	// Include project specific settings
 	task eclipseSettings(type: Copy) {
 		from rootProject.files(
 			"src/eclipse/org.eclipse.jdt.ui.prefs")
 		into project.file('.settings/')
 	}
-	
+
 	task eclipseJdtPrepare(type: Copy) {
 		from rootProject.file("src/eclipse/org.eclipse.jdt.core.prefs")
 		into project.file(".settings/")
 	}
-	
+
 	task cleanEclipseJdtUi(type: Delete) {
 		delete project.file(".settings/org.eclipse.jdt.ui.prefs")
 		delete project.file(".settings/org.eclipse.jdt.core.prefs")
 	}
-	
+
 	tasks["eclipseJdt"].dependsOn(eclipseJdtPrepare)
 	tasks["cleanEclipse"].dependsOn(cleanEclipseJdtUi)
 	tasks["eclipse"].dependsOn(eclipseSettings)
@@ -318,8 +318,8 @@ project('spring-xd-http') {
 	dependencies {
 		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
 		compile "io.netty:netty:3.6.5.Final"
+		compile "org.springframework:spring-web:$springVersion"
 		testCompile project(":spring-xd-test")
-		testCompile "org.springframework:spring-web:$springVersion"
 	}
 }
 

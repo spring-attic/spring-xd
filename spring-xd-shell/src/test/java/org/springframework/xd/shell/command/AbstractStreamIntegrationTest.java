@@ -29,8 +29,8 @@ import org.springframework.util.FileCopyUtils;
 import org.springframework.xd.shell.AbstractShellIntegrationTest;
 
 /**
- * Provides an @After JUnit lifecycle method that will destroy the definitions that were created by calling
- * executeXXXCreate methods.
+ * Provides an @After JUnit lifecycle method that will destroy the definitions that were
+ * created by calling executeXXXCreate methods.
  * 
  * @author Andy Clement
  * @author Mark Pollack
@@ -151,7 +151,7 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 
 		@Override
 		public String toDSL() {
-			return String.format("tail --name=%s", file.getAbsolutePath());
+			return String.format("tail --fromEnd=%s --name=%s", "false", file.getAbsolutePath());
 		}
 
 		public void appendToFile(String contents) throws IOException {
@@ -163,6 +163,7 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 	}
 
 	protected abstract static class DisposableFileSupport {
+
 		protected File file;
 
 		protected DisposableFileSupport() {
@@ -184,8 +185,8 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 		}
 
 		/**
-		 * Returns a representation of the source/sink suitable for inclusion in a stream definition, <i>e.g.</i>
-		 * {@code file --dir=xxxx --name=yyyy}
+		 * Returns a representation of the source/sink suitable for inclusion in a stream
+		 * definition, <i>e.g.</i> {@code file --dir=xxxx --name=yyyy}
 		 */
 		protected abstract String toDSL();
 

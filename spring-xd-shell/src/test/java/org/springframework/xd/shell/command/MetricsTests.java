@@ -105,8 +105,9 @@ public class MetricsTests extends AbstractStreamIntegrationTest {
 	@Test
 	public void testFieldValueCounterList() throws Exception {
 		TailSource tailSource = newTailSource();
-		createTailSourceFVCStream(tailSource, "fromUser");
 		tailTweets(tailSource);
+		createTailSourceFVCStream(tailSource, "fromUser");
+		Thread.sleep(3000);
 		fvc().verifyDefaultExists();
 	}
 
@@ -118,6 +119,7 @@ public class MetricsTests extends AbstractStreamIntegrationTest {
 		TailSource tailSource = newTailSource();
 		tailTweets(tailSource);
 		createTailSourceFVCStream(tailSource, "fromUser");
+		Thread.sleep(2000);
 		Table t = constructFVCDisplay(fvcMap);
 		fvc().verifyFVCounter(t.toString());
 	}
@@ -147,8 +149,8 @@ public class MetricsTests extends AbstractStreamIntegrationTest {
 	private Table constructFVCDisplay(TreeMap<String, Double> fvcMap) {
 		Table t = new Table();
 		NumberFormat pattern = new DecimalFormat();
-		t.addHeader(1, new TableHeader("FieldName=" + DEFAULT_METRIC_NAME)).addHeader(2, new TableHeader(""))
-				.addHeader(3, new TableHeader(""));
+		t.addHeader(1, new TableHeader("FieldName=" + DEFAULT_METRIC_NAME)).addHeader(2, new TableHeader("")).addHeader(
+				3, new TableHeader(""));
 		t.newRow().addValue(1, "VALUE").addValue(2, "-").addValue(3, "COUNT");
 		for (Map.Entry<String, Double> entry : fvcMap.descendingMap().entrySet()) {
 			t.newRow().addValue(1, entry.getKey()).addValue(2, "|").addValue(3, pattern.format(entry.getValue()));

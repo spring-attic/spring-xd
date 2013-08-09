@@ -12,8 +12,8 @@
 
 	<file:inbound-channel-adapter
 			auto-startup="false"
-			channel="transform" directory="/tmp/xd/input/${name:${xd.stream.name}}"
-			prevent-duplicates="${duplicates:true}"
+			channel="transform" directory="${dir:/tmp/xd/input/${xd.stream.name}}"
+			prevent-duplicates="${preventDuplicates:true}"
 			filename-pattern="${pattern:*}">
 		<poller fixed-delay="${interval:5}" time-unit="SECONDS"/>
 	</file:inbound-channel-adapter>

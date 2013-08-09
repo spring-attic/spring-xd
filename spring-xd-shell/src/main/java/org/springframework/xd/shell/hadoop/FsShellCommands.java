@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2012 the original author or authors.
+ * Copyright 2011-2013 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.shell.event.ParseResult;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * HDFS shell commands
@@ -68,13 +69,15 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 	@Override
 	public ParseResult beforeInvocation(ParseResult invocationContext) {
 		invocationContext = super.beforeInvocation(invocationContext);
-		String fs = getHadoopConfiguration().get("fs.default.name");
+		String defaultNameKey = (String) ReflectionUtils.getField(
+				ReflectionUtils.findField(FileSystem.class, "FS_DEFAULT_NAME_KEY"), null);
+		String fs = getHadoopConfiguration().get(defaultNameKey);
 		if (fs != null && fs.length() > 0) {
 			return invocationContext;
 		}
 		else {
-			LOG.severe("You must set fs URL before run fs commands");
-			throw new RuntimeException("You must set fs URL before run fs commands");
+			LOG.severe("You must set fs URL before running fs commands");
+			throw new RuntimeException("You must set fs URL before running fs commands");
 		}
 	}
 

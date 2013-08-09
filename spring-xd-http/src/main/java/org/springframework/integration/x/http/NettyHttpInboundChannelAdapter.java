@@ -16,12 +16,6 @@
 
 package org.springframework.integration.x.http;
 
-import static org.jboss.netty.handler.codec.http.HttpHeaders.isKeepAlive;
-import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.CONNECTION;
-import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.CONTENT_LENGTH;
-import static org.jboss.netty.handler.codec.http.HttpResponseStatus.OK;
-import static org.jboss.netty.handler.codec.http.HttpVersion.HTTP_1_1;
-
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 import java.util.HashMap;
@@ -49,9 +43,14 @@ import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
-
+import org.springframework.http.MediaType;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
+
+import static org.jboss.netty.handler.codec.http.HttpHeaders.*;
+import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.*;
+import static org.jboss.netty.handler.codec.http.HttpResponseStatus.*;
+import static org.jboss.netty.handler.codec.http.HttpVersion.*;
 
 /**
  * @author Mark Fisher
@@ -68,8 +67,8 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 
 	@Override
 	protected void doStart() {
-		bootstrap = new ServerBootstrap(new NioServerSocketChannelFactory(
-				Executors.newCachedThreadPool(), Executors.newCachedThreadPool()));
+		bootstrap = new ServerBootstrap(new NioServerSocketChannelFactory(Executors.newCachedThreadPool(),
+				Executors.newCachedThreadPool()));
 		bootstrap.setOption("child.tcpNoDelay", true);
 		bootstrap.setPipelineFactory(new PipelineFactory());
 		bootstrap.bind(new InetSocketAddress(this.port));
@@ -88,7 +87,7 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 		public ChannelPipeline getPipeline() throws Exception {
 			ChannelPipeline pipeline = new DefaultChannelPipeline();
 			pipeline.addLast("decoder", new HttpRequestDecoder());
-			pipeline.addLast("aggregator", new HttpChunkAggregator(1024*1024));
+			pipeline.addLast("aggregator", new HttpChunkAggregator(1024 * 1024));
 			pipeline.addLast("encoder", new HttpResponseEncoder());
 			pipeline.addLast("compressor", new HttpContentCompressor());
 			pipeline.addLast("handler", new Handler());
@@ -102,17 +101,23 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 		public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
 			HttpRequest request = (HttpRequest) e.getMessage();
 			ChannelBuffer content = request.getContent();
+			Charset charsetToUse = null;
 			if (content.readable()) {
 				Map<String, String> messageHeaders = new HashMap<String, String>();
 				for (Entry<String, String> entry : request.getHeaders()) {
-					if (!entry.getKey().toUpperCase().startsWith("ACCEPT") && !entry.getKey().toUpperCase().equals("CONNECTION")) {
+					if (!entry.getKey().toUpperCase().startsWith("ACCEPT")
+							&& !entry.getKey().toUpperCase().equals("CONNECTION")) {
 						messageHeaders.put(entry.getKey(), entry.getValue());
 					}
+					if (entry.getKey().equalsIgnoreCase("Content-Type")) {
+						charsetToUse = MediaType.parseMediaType(entry.getValue()).getCharSet();
+					}
 				}
+				charsetToUse = charsetToUse == null ? Charset.forName("UTF-8") : charsetToUse;
 				messageHeaders.put("requestPath", request.getUri());
 				messageHeaders.put("requestMethod", request.getMethod().toString());
-				sendMessage(MessageBuilder.withPayload(content.toString(Charset.forName("UTF-8")))
-						.copyHeaders(messageHeaders).build());
+				sendMessage(MessageBuilder.withPayload(content.toString(charsetToUse)).copyHeaders(messageHeaders)
+						.build());
 			}
 			writeResponse(request, e.getChannel());
 		}

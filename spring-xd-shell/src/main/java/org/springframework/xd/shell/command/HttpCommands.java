@@ -16,9 +16,13 @@
 
 package org.springframework.xd.shell.command;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.nio.charset.Charset;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -33,6 +37,8 @@ import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.shell.support.util.OsUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
@@ -43,24 +49,43 @@ import org.springframework.web.client.RestTemplate;
  * @author Jon Brisbin
  * @author Ilayaperumal Gopinathan
  * @author Gunnar Hillert
+ * @author Eric Bottard
  */
 
 @Component
 public class HttpCommands implements CommandMarker {
 
+	private static final String DEFAULT_MEDIA_TYPE = MediaType.TEXT_PLAIN_VALUE + "; Charset=UTF-8";
+
 	private static final String POST_HTTPSOURCE = "http post";
 
 	@CliCommand(value = { POST_HTTPSOURCE }, help = "POST data to http endpoint")
 	public String postHttp(
-			@CliOption(mandatory = true, key = { "", "target" }, help = "the location to post to.  Note JSON fields should be separated by a comma without any spaces.", unspecifiedDefaultValue = "http://localhost:9000") String target,
-			@CliOption(mandatory = true, key = "data", help = "the payload to post") String data) {
+			@CliOption(mandatory = true, key = { "", "target" }, help = "the location to post to.", unspecifiedDefaultValue = "http://localhost:9000")
+			String target,
+			@CliOption(mandatory = false, key = "data", help = "the text payload to post. exclusive with file")
+			String data,
+			@CliOption(mandatory = false, key = "file", help = "filename to read data from. exclusive with data")
+			File file,
+			@CliOption(mandatory = false, key = "contentType", help = "the content-type to use. file is also read using the specified charset", unspecifiedDefaultValue = DEFAULT_MEDIA_TYPE)
+			MediaType mediaType) throws IOException {
+		Assert.isTrue(file != null || data != null, "One of 'file' or 'data' must be set");
+		Assert.isTrue(file == null || data == null, "Only one of 'file' or 'data' must be set");
+		if (mediaType.getCharSet() == null) {
+			mediaType = new MediaType(mediaType, Collections.singletonMap("charset", Charset.defaultCharset()
+					.toString()));
+		}
+
+		if (file != null) {
+			InputStreamReader isr = new InputStreamReader(new FileInputStream(file), mediaType.getCharSet());
+			data = FileCopyUtils.copyToString(isr);
+		}
+
 		final StringBuilder buffer = new StringBuilder();
 		URI requestURI = URI.create(target);
 		RestTemplate restTemplate = new RestTemplate();
 
 		final HttpHeaders headers = new HttpHeaders();
-		final MediaType mediaType = new MediaType(MediaType.TEXT_PLAIN.getType(), MediaType.TEXT_PLAIN.getSubtype(),
-				Charset.forName("UTF-8"));
 		headers.setContentType(mediaType);
 		final HttpEntity<String> request = new HttpEntity<String>(data, headers);
 
@@ -94,13 +119,13 @@ public class HttpCommands implements CommandMarker {
 
 	private void outputRequest(String method, URI requestUri, MediaType mediaType, String requestData,
 			StringBuilder buffer) {
-		buffer.append("> ").append(method).append(" (").append(mediaType.toString()).append(") ").append(
-				requestUri.toString()).append(" ").append(requestData).append(OsUtils.LINE_SEPARATOR);
+		buffer.append("> ").append(method).append(" (").append(mediaType.toString()).append(") ")
+				.append(requestUri.toString()).append(" ").append(requestData).append(OsUtils.LINE_SEPARATOR);
 	}
 
 	private void outputResponse(ResponseEntity<String> response, StringBuilder buffer) {
-		buffer.append("> ").append(response.getStatusCode().value()).append(" ").append(response.getStatusCode().name()).append(
-				OsUtils.LINE_SEPARATOR);
+		buffer.append("> ").append(response.getStatusCode().value()).append(" ")
+				.append(response.getStatusCode().name()).append(OsUtils.LINE_SEPARATOR);
 		for (Map.Entry<String, List<String>> entry : response.getHeaders().entrySet()) {
 			buffer.append("> ").append(entry.getKey()).append(": ");
 			boolean first = true;

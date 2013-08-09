@@ -15,7 +15,7 @@
 			channel="transform" directory="${dir:/tmp/xd/input/${xd.stream.name}}"
 			prevent-duplicates="${preventDuplicates:true}"
 			filename-pattern="${pattern:*}">
-		<poller fixed-delay="${interval:5}" time-unit="SECONDS"/>
+		<poller fixed-delay="${fixedDelay:5}" time-unit="SECONDS"/>
 	</file:inbound-channel-adapter>
 
 	<file:file-to-string-transformer input-channel="transform" output-channel="output" />

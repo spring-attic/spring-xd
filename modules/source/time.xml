@@ -10,7 +10,7 @@
 	<inbound-channel-adapter channel="output"
 			auto-startup="false"
 			expression="new java.text.SimpleDateFormat(${format:'yyyy-MM-dd HH:mm:ss'}).format(new java.util.Date())">
-		<poller fixed-delay="${interval:1}" time-unit="SECONDS"/>
+		<poller fixed-delay="${fixedDelay:1}" time-unit="SECONDS"/>
 	</inbound-channel-adapter>
 
 </beans:beans>

@@ -113,7 +113,8 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 						charsetToUse = MediaType.parseMediaType(entry.getValue()).getCharSet();
 					}
 				}
-				charsetToUse = charsetToUse == null ? Charset.forName("UTF-8") : charsetToUse;
+				// ISO-8859-1 is the default http charset when not set
+				charsetToUse = charsetToUse == null ? Charset.forName("ISO-8859-1") : charsetToUse;
 				messageHeaders.put("requestPath", request.getUri());
 				messageHeaders.put("requestMethod", request.getMethod().toString());
 				sendMessage(MessageBuilder.withPayload(content.toString(charsetToUse)).copyHeaders(messageHeaders)

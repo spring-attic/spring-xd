@@ -45,7 +45,7 @@ public class DeepAggregateCountResourceAssembler extends
 		long increment = entity.resolution.getDurationField().getUnitMillis();
 		long end = entity.interval.getEndMillis();
 		int i = 0;
-		for (long when = entity.interval.getStartMillis(); when < end; when += increment) {
+		for (long when = entity.interval.getStartMillis(); when <= end; when += increment) {
 			result.addValue(new Date(when), entity.counts[i++]);
 		}
 		return result;

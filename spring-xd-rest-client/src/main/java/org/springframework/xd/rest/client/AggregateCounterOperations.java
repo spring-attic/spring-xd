@@ -16,9 +16,12 @@
 
 package org.springframework.xd.rest.client;
 
-import org.springframework.hateoas.PagedResources;
-import org.springframework.xd.rest.client.domain.metrics.MetricResource;
+import java.text.ParseException;
+import java.util.Date;
 
+import org.springframework.hateoas.PagedResources;
+import org.springframework.xd.rest.client.domain.metrics.AggregateCountsResource;
+import org.springframework.xd.rest.client.domain.metrics.MetricResource;
 
 /**
  * Interface defining operations available when dealing with Aggregate Counters.
@@ -27,14 +30,21 @@ import org.springframework.xd.rest.client.domain.metrics.MetricResource;
  */
 public interface AggregateCounterOperations {
 
-	
+	/**
+	 * Retrieve the information for the given named AggregateCounter
+	 * 
+	 * @param name the name of the aggregate counter to retrieve information for
+	 */
+	AggregateCountsResource retrieve(String name, Date from, Date to, String resolution) throws ParseException;
+
 	/**
 	 * List the names of the available aggregate counters
 	 */
 	PagedResources<MetricResource> list();
-	
+
 	/**
 	 * Delete the given named aggregate counter
+	 * 
 	 * @param name the name of the aggregate counter to delete
 	 */
 	void delete(String name);

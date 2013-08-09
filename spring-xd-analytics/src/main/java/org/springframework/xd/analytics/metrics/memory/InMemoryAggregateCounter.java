@@ -32,11 +32,13 @@ import org.springframework.xd.analytics.metrics.core.Counter;
 import org.springframework.xd.analytics.metrics.core.MetricUtils;
 
 /**
- * A counter that tracks integral values but also remembers how its value was distributed over time.
+ * A counter that tracks integral values but also remembers how its value was distributed
+ * over time.
  * 
  * <p>
- * This core class only holds data structures. Depending on backing stores, logic for computing totals may be
- * implemented in a specialization of this class or at the repository level.
+ * This core class only holds data structures. Depending on backing stores, logic for
+ * computing totals may be implemented in a specialization of this class or at the
+ * repository level.
  * </p>
  * 
  * @author Luke Taylor
@@ -70,15 +72,15 @@ class InMemoryAggregateCounter extends Counter {
 			DateTime now = start;
 			List<long[]> days = accumulateDayCounts(minuteCountsByDay, start, end, 60 * 24);
 
-			counts = MetricUtils.concatArrays(days, interval.getStart().getMinuteOfDay(), interval.toPeriod()
-					.toStandardMinutes().getMinutes(), 24 * 60);
+			counts = MetricUtils.concatArrays(days, interval.getStart().getMinuteOfDay(),
+					interval.toPeriod().toStandardMinutes().getMinutes() + 1, 24 * 60);
 		}
 		else if (resolutionDuration.getUnitMillis() == DateTimeConstants.MILLIS_PER_HOUR) {
 			DateTime now = start;
 			List<long[]> days = accumulateDayCounts(hourCountsByDay, start, end, 24);
 
-			counts = MetricUtils.concatArrays(days, interval.getStart().getHourOfDay(), interval.toPeriod()
-					.toStandardHours().getHours(), 24);
+			counts = MetricUtils.concatArrays(days, interval.getStart().getHourOfDay(),
+					interval.toPeriod().toStandardHours().getHours() + 1, 24);
 		}
 		else {
 			throw new IllegalArgumentException("Only minute or hour resolution is currently supported");

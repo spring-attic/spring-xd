@@ -16,8 +16,13 @@
 
 package org.springframework.xd.rest.client.impl;
 
+import java.util.Date;
+
+import org.joda.time.DateTime;
 import org.springframework.hateoas.PagedResources;
+import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.xd.rest.client.AggregateCounterOperations;
+import org.springframework.xd.rest.client.domain.metrics.AggregateCountsResource;
 import org.springframework.xd.rest.client.domain.metrics.MetricResource;
 
 /**
@@ -32,11 +37,22 @@ public class AggregateCounterTemplate extends AbstractTemplate implements Aggreg
 	}
 
 	@Override
+	public AggregateCountsResource retrieve(String name, Date from, Date to, String resolution) {
+		DateTime fromParam = (from == null) ? null : new DateTime(from.getTime());
+		DateTime toParam = (to == null) ? null : new DateTime(to.getTime());
+
+		String url = resources.get("aggregate-counters").toString() + "/{name}";
+		String uriString = UriComponentsBuilder.fromUriString(url).queryParam("resolution", resolution).queryParam(
+				"from", fromParam).queryParam("to", toParam).build().toUriString();
+		return restTemplate.getForObject(uriString, AggregateCountsResource.class, name);
+	}
+
+	@Override
 	public PagedResources<MetricResource> list() {
 		String url = resources.get("aggregate-counters").toString() + "?size=10000";
 		return restTemplate.getForObject(url, MetricResource.Page.class);
 	}
-	
+
 	@Override
 	public void delete(String name) {
 		String url = resources.get("aggregate-counters").toString() + "/{name}";

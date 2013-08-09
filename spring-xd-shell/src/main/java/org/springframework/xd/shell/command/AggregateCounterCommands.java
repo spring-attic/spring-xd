@@ -16,6 +16,14 @@
 
 package org.springframework.xd.shell.command;
 
+import java.text.NumberFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Map;
+import java.util.SortedMap;
+
+import org.joda.time.DateTimeConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.shell.core.CommandMarker;
@@ -23,10 +31,14 @@ import org.springframework.shell.core.annotation.CliAvailabilityIndicator;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 import org.springframework.xd.rest.client.AggregateCounterOperations;
+import org.springframework.xd.rest.client.domain.metrics.AggregateCountsResource;
 import org.springframework.xd.rest.client.domain.metrics.MetricResource;
 import org.springframework.xd.shell.XDShell;
+import org.springframework.xd.shell.converter.NumberFormatConverter;
 import org.springframework.xd.shell.util.Table;
+import org.springframework.xd.shell.util.TableHeader;
 
 /**
  * Commands for interacting with aggregate counter analytics.
@@ -46,18 +58,54 @@ public class AggregateCounterCommands extends AbstractMetricsCommands implements
 
 	private static final String DELETE_AGGR_COUNTER = "aggregatecounter delete";
 
+	private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
 	@Autowired
 	private XDShell xdShell;
+
+	@CliAvailabilityIndicator({ DISPLAY_AGGR_COUNTER, LIST_AGGR_COUNTERS, DELETE_AGGR_COUNTER })
+	public boolean available() {
+		return xdShell.getSpringXDOperations() != null;
+	}
+
+	@CliCommand(value = DISPLAY_AGGR_COUNTER, help = "Display aggregate counter values by chosen interval and resolution(minute, hour)")
+	public Table display(
+			@CliOption(key = { "", "name" }, help = "the name of the aggregate counter to display", mandatory = true) String name,
+			@CliOption(key = "from", help = "start-time for the interval. format: 'yyyy-MM-dd HH:mm:ss'.", mandatory = false) String from,
+			@CliOption(key = "to", help = "end-time for the interval. format: 'yyyy-MM-dd HH:mm:ss'. default to now.", mandatory = false) String to,
+			@CliOption(key = "lastHours", help = "set the interval to last 'n' hours.", mandatory = false) Integer lastHours,
+			@CliOption(key = "lastDays", help = "set the interval to last 'n' days.", mandatory = false) Integer lastDays,
+			@CliOption(key = "resolution", help = "the size of the bucket to aggregate (minute, hour)", mandatory = false, unspecifiedDefaultValue = "hour") String resolution,
+			@CliOption(key = "pattern", help = "the pattern used to format the count values (see DecimalFormat)", mandatory = false, unspecifiedDefaultValue = NumberFormatConverter.DEFAULT) NumberFormat pattern) {
+
+		Assert.isTrue(Resolution.contains(resolution), "Supported resolution options are 'hour' and 'minute'");
+		if (from != null) {
+			Assert.isTrue((lastHours == null && lastDays == null), "Either specify 'from' or 'lastHours' or 'lastDays'");
+		}
+		AggregateCountsResource aggResource;
+		try {
+			Date nowDate = new Date();
+			Date fromDate = (from == null) ? null : dateFormat.parse(from);
+			if (lastHours != null) {
+				fromDate = new Date(nowDate.getTime() - (lastHours * DateTimeConstants.MILLIS_PER_HOUR));
+			}
+			if (lastDays != null) {
+				fromDate = new Date(nowDate.getTime() - (lastDays * DateTimeConstants.MILLIS_PER_DAY));
+			}
+			Date toDate = (to == null) ? null : dateFormat.parse(to);
+			aggResource = aggrCounterOperations().retrieve(name, fromDate, toDate, resolution);
+		}
+		catch (ParseException pe) {
+			return displayErrorTable("Parse exception ocurred while parsing the 'from/to' options. The accepted date format is "
+					+ dateFormat.toPattern());
+		}
+		return displayAggrCounter(aggResource, pattern);
+	}
 
 	@CliCommand(value = LIST_AGGR_COUNTERS, help = "List all available aggregate counter names")
 	public Table list(/* TODO */) {
 		PagedResources<MetricResource> list = aggrCounterOperations().list(/* TODO */);
 		return displayMetrics(list);
-	}
-
-	@CliAvailabilityIndicator({ DELETE_AGGR_COUNTER })
-	public boolean available() {
-		return xdShell.getSpringXDOperations() != null;
 	}
 
 	@CliCommand(value = DELETE_AGGR_COUNTER, help = "Delete the aggregate counter")
@@ -70,5 +118,47 @@ public class AggregateCounterCommands extends AbstractMetricsCommands implements
 	private AggregateCounterOperations aggrCounterOperations() {
 		return xdShell.getSpringXDOperations().aggrCounterOperations();
 	}
+
+	private Table displayAggrCounter(AggregateCountsResource aggResource, NumberFormat pattern) {
+		final SortedMap<Date, Long> values = aggResource.getValues();
+		Table t = new Table();
+		t.addHeader(1, new TableHeader("AggregateCounter=" + aggResource.getName())).addHeader(2, new TableHeader("")).addHeader(
+				3, new TableHeader(""));
+		t.newRow().addValue(1, "TIME").addValue(2, "-").addValue(3, "COUNT");
+		for (Map.Entry<Date, Long> entry : values.entrySet()) {
+			t.newRow().addValue(1, entry.getKey().toString()).addValue(2, "|").addValue(3,
+					pattern.format(entry.getValue()));
+		}
+		return t;
+	}
+
+	private Table displayErrorTable(String errorMessage) {
+		Table t = new Table().addHeader(1, new TableHeader("Error"));
+		t.newRow().addValue(1, errorMessage);
+		return t;
+	}
+
+	private static enum Resolution {
+		minute("minute"), hour("hour");
+
+		private String resolution;
+
+		private Resolution(String resolution) {
+			this.resolution = resolution;
+		}
+
+		public String getResolution() {
+			return resolution;
+		}
+
+		public static boolean contains(String resolution) {
+			for (Resolution value : Resolution.values()) {
+				if (value.getResolution().equals(resolution)) {
+					return true;
+				}
+			}
+			return false;
+		}
+	};
 
 }

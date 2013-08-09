@@ -31,8 +31,10 @@ import static org.junit.Assert.*;
 /**
  * @author Luke Taylor
  * @author Gary Russell
+ * @author Ilayaperumal Gopinathan
  */
 public abstract class AbstractAggregateCounterTests {
+
 	protected final String counterName = "test";
 
 	@Autowired
@@ -52,11 +54,14 @@ public abstract class AbstractAggregateCounterTests {
 			aggregateCounterRepository.increment(counterName, val++, now);
 			now = now.plus(Duration.standardMinutes(1));
 		}
+		// Include 66th minute's value
+		aggregateCounterRepository.increment(counterName, val++, now);
 		long[] counts = aggregateCounterRepository.getCounts(counterName, new Interval(start, end), MINUTE_RESOLUTION).counts;
-		assertEquals(66, counts.length);
+		// the counts.length should be 66 + 1 to include the 66th minute's count
+		assertEquals(67, counts.length);
 		assertEquals(1, counts[0]);
-		assertEquals(65, counts[64]);
 		assertEquals(66, counts[65]);
+		assertEquals(67, counts[66]);
 	}
 
 	@Test
@@ -66,12 +71,17 @@ public abstract class AbstractAggregateCounterTests {
 		DateTime now = start;
 
 		int total = 0;
+
 		while (now.isBefore(end)) {
 			int minute = now.getMinuteOfHour();
 			aggregateCounterRepository.increment(counterName, minute, now);
 			now = now.plusMinutes(1);
 			total += minute;
 		}
+		// Include end time's metric
+		int endMinute = end.getMinuteOfHour();
+		aggregateCounterRepository.increment(counterName, endMinute, now);
+		total += endMinute;
 
 		// Check the total
 		assertEquals(total, aggregateCounterRepository.findOne(counterName).getValue());
@@ -83,7 +93,8 @@ public abstract class AbstractAggregateCounterTests {
 		assertEquals(counterName, aggregateCount.name);
 		assertEquals(queryInterval, aggregateCount.interval);
 		long[] counts = aggregateCount.counts;
-		assertEquals(2 * 24 * 60, counts.length);
+		// counts.length should include the end time's minute
+		assertEquals((2 * 24 * 60) + 1, counts.length);
 		assertEquals(27, counts[0]);
 		assertEquals(28, counts[1]);
 		assertEquals(59, counts[32]);
@@ -98,7 +109,8 @@ public abstract class AbstractAggregateCounterTests {
 
 		aggregateCount = aggregateCounterRepository.getCounts(counterName, queryInterval, MINUTE_RESOLUTION);
 		counts = aggregateCount.counts;
-		assertEquals(24 * 60, counts.length);
+		// Add 'now.plusHours(24)' minute time to the count
+		assertEquals((24 * 60) + 1, counts.length);
 		assertEquals(0, counts[0]); // on an hour boundary
 		for (int i = 1; i < counts.length; i++) {
 			int expect = i % 60;
@@ -109,11 +121,14 @@ public abstract class AbstractAggregateCounterTests {
 		queryInterval = new Interval(start, end);
 		aggregateCount = aggregateCounterRepository.getCounts(counterName, queryInterval, HOUR_RESOLUTION);
 		counts = aggregateCount.counts;
-		assertEquals(48, counts.length);
+		// counts.length should include end time's hour; hence 48+1
+		assertEquals(49, counts.length);
 		// The first hour starts before the first counts are added
 		assertEquals(1419, counts[0]); // sum [27..59]
-		for (int i = 1; i < counts.length; i++) {
+		for (int i = 1; i < (counts.length - 1); i++) {
 			assertEquals(1770, counts[i]); // sum [0..59]
 		}
+		// The last hour ends at 27th minute
+		assertEquals(378, counts[counts.length - 1]); // sum [0..27]
 	}
 }

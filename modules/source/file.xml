@@ -11,9 +11,11 @@
 		http://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
 
 	<file:inbound-channel-adapter
-			auto-startup="false" 
-			channel="transform" directory="${dir:/tmp/xd/input/${xd.stream.name}}">
-		<poller fixed-rate="${rate:5000}" />
+			auto-startup="false"
+			channel="transform" directory="/tmp/xd/input/${name:${xd.stream.name}}"
+			prevent-duplicates="${duplicates:true}"
+			filename-pattern="${pattern:*}">
+		<poller fixed-delay="${interval:5}" time-unit="SECONDS"/>
 	</file:inbound-channel-adapter>
 
 	<file:file-to-string-transformer input-channel="transform" output-channel="output" />

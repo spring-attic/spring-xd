@@ -29,8 +29,8 @@ import org.springframework.util.FileCopyUtils;
 import org.springframework.xd.shell.AbstractShellIntegrationTest;
 
 /**
- * Provides an @After JUnit lifecycle method that will destroy the definitions that were
- * created by calling executeXXXCreate methods.
+ * Provides an @After JUnit lifecycle method that will destroy the definitions that were created by calling
+ * executeXXXCreate methods.
  * 
  * @author Andy Clement
  * @author Mark Pollack
@@ -53,6 +53,8 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 	private Set<FileSink> fileSinks = new HashSet<AbstractStreamIntegrationTest.FileSink>();
 
 	private Set<TailSource> tailSources = new HashSet<AbstractStreamIntegrationTest.TailSource>();
+
+	private Set<FileSource> fileSources = new HashSet<AbstractStreamIntegrationTest.FileSource>();
 
 	public AbstractStreamIntegrationTest() {
 		streamOps = new StreamCommandTemplate(getShell());
@@ -88,6 +90,7 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 	}
 
 	@After
+	@SuppressWarnings("unchecked")
 	public void after() {
 		tap().destroyCreatedTaps();
 		stream().destroyCreatedStreams();
@@ -95,19 +98,14 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 		aggCounter().deleteDefaultCounter();
 		fvc().deleteDefaultFVCounter();
 		richGauge().deleteDefaultRichGauge();
-		cleanFileSinks();
-		cleanTailSources();
+		cleanFiles(fileSinks, fileSources, tailSources);
 	}
 
-	private void cleanFileSinks() {
-		for (FileSink fileSink : fileSinks) {
-			fileSink.cleanup();
-		}
-	}
-
-	private void cleanTailSources() {
-		for (TailSource tailSource : tailSources) {
-			tailSource.cleanup();
+	private void cleanFiles(Iterable<? extends DisposableFileSupport>... sets) {
+		for (Iterable<? extends DisposableFileSupport> set : sets) {
+			for (DisposableFileSupport toDelete : set) {
+				toDelete.cleanup();
+			}
 		}
 	}
 
@@ -115,6 +113,12 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 		FileSink fileSink = new FileSink();
 		fileSinks.add(fileSink);
 		return fileSink;
+	}
+
+	protected FileSource newFileSource() {
+		FileSource fileSource = new FileSource();
+		fileSources.add(fileSource);
+		return fileSource;
 	}
 
 	protected TailSource newTailSource() {
@@ -142,6 +146,49 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 
 	}
 
+	protected static class FileSource extends DisposableFileSupport {
+
+		protected FileSource() {
+			super(makeDir());
+		}
+
+		/**
+		 * First make a temporary directory where our file will live.
+		 */
+		private static File makeDir() {
+			try {
+				File dir = File.createTempFile("FileSource", "");
+				dir.delete();
+				dir.mkdirs();
+				return dir;
+			}
+			catch (IOException e) {
+				throw new IllegalStateException(e);
+			}
+		}
+
+		@Override
+		protected String toDSL() {
+			return String.format("file --dir=%s", file.getParent());
+		}
+
+		public void appendToFile(String contents) throws IOException {
+			FileWriter fileWritter = new FileWriter(file, true);
+			BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
+			bufferWritter.write(contents);
+			bufferWritter.close();
+		}
+
+		@Override
+		public void cleanup() {
+			// first delete file inside dir
+			super.cleanup();
+			// then dir itself
+			file.getParentFile().delete();
+		}
+
+	}
+
 	/**
 	 * Support class to inject data as a sink into a stream.
 	 * 
@@ -151,7 +198,7 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 
 		@Override
 		public String toDSL() {
-			return String.format("tail --fromEnd=%s --name=%s", "false", file.getAbsolutePath());
+			return String.format("tail --fromEnd=false --name=%s", file.getAbsolutePath());
 		}
 
 		public void appendToFile(String contents) throws IOException {
@@ -185,8 +232,8 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 		}
 
 		/**
-		 * Returns a representation of the source/sink suitable for inclusion in a stream
-		 * definition, <i>e.g.</i> {@code file --dir=xxxx --name=yyyy}
+		 * Returns a representation of the source/sink suitable for inclusion in a stream definition, <i>e.g.</i>
+		 * {@code file --dir=xxxx --name=yyyy}
 		 */
 		protected abstract String toDSL();
 

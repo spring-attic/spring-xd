@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.tuple.integration;
 
 import java.util.ArrayList;
@@ -23,17 +24,24 @@ import org.springframework.integration.transformer.AbstractPayloadTransformer;
 import org.springframework.xd.tuple.Tuple;
 import org.springframework.xd.tuple.TupleBuilder;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Converts from a json string into a tuple data structure.
+ * 
  * @author Mark Fisher
  */
 public class JsonToTupleTransformer extends AbstractPayloadTransformer<String, Tuple> {
 
 	private final ObjectMapper mapper = new ObjectMapper();
 
+	public JsonToTupleTransformer() {
+		mapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
+	}
+
+	@Override
 	public Tuple transformPayload(String json) throws Exception {
 		List<String> names = new ArrayList<String>();
 		List<Object> values = new ArrayList<Object>();

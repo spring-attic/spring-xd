@@ -10,10 +10,8 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.springframework.integration.x.json;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+package org.springframework.integration.x.json;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -32,10 +30,12 @@ import org.springframework.xd.tuple.TupleBuilder;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import static org.junit.Assert.*;
+
 /**
  * @author David Turanski
  * @author Gary Russell
- *
+ * 
  */
 public class TypedJsonMapperTests {
 
@@ -153,6 +153,12 @@ public class TypedJsonMapperTests {
 	}
 
 	@Test
+	public void testConvertSingleQuotedJson() {
+		String json = "{'symbol':'VMW','price':73}";
+		Tuple t = (Tuple) mapper.fromBytes(json.getBytes(), DefaultTuple.class.getName());
+	}
+
+	@Test
 	public void testConvertRawStringToRequestedType() {
 		String json = "{\"symbol\":\"VMW\",\"price\":73}";
 		byte[] bytes = json.getBytes();
@@ -164,6 +170,7 @@ public class TypedJsonMapperTests {
 	}
 
 	public static class Foo {
+
 		@JsonCreator
 		public Foo(@JsonProperty("bar") String val) {
 			bar = val;

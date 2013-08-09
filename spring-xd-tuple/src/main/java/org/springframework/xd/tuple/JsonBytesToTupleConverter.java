@@ -10,21 +10,27 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.xd.tuple;
 
 import org.springframework.core.convert.converter.Converter;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author David Turanski
- *
+ * 
  */
 public class JsonBytesToTupleConverter implements Converter<byte[], Tuple> {
 
 	private final ObjectMapper mapper = new ObjectMapper();
 
 	private final JsonNodeToTupleConverter jsonNodeToTupleConverter = new JsonNodeToTupleConverter();
+
+	public JsonBytesToTupleConverter() {
+		mapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
+	}
 
 	@Override
 	public Tuple convert(byte[] source) {

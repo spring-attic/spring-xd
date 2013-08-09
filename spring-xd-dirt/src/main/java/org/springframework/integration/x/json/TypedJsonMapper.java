@@ -10,12 +10,12 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.integration.x.json;
 
 import java.math.BigDecimal;
 
 import org.joda.time.DateTime;
-
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.core.convert.ConversionException;
 import org.springframework.util.ClassUtils;
@@ -24,25 +24,27 @@ import org.springframework.xd.tuple.JsonBytesToTupleConverter;
 import org.springframework.xd.tuple.Tuple;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
 /**
- * A class that maps objects to JSON. The result includes type information used
- * to recreate the original object. If type information is not included, JSON
- * will be unmarshalled as a {@link DefaultTuple}.
- *
- * Custom types must either be compatible with {@link ObjectMapper} or include the appropriate Jackson
- * annotations
- *
+ * A class that maps objects to JSON. The result includes type information used to
+ * recreate the original object. If type information is not included, JSON will be
+ * unmarshalled as a {@link DefaultTuple}.
+ * 
+ * Custom types must either be compatible with {@link ObjectMapper} or include the
+ * appropriate Jackson annotations
+ * 
  * @author David Turanski
  * @author Gary Russell
- *
+ * 
  */
 public class TypedJsonMapper implements BeanClassLoaderAware {
 
 	private final ObjectMapper mapper = new ObjectMapper();
+
 	/*
 	 * separate mapper required as a work around for
 	 * https://github.com/FasterXML/jackson-databind/issues/88
@@ -54,9 +56,11 @@ public class TypedJsonMapper implements BeanClassLoaderAware {
 	private volatile ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
 
 	public TypedJsonMapper() {
-		//include type information
+		// include type information
 		this.mapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
 		mapper.configure(SerializationFeature.WRAP_ROOT_VALUE, true);
+		mapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
+		unmarshallingMapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
 	}
 
 	@Override
@@ -75,7 +79,8 @@ public class TypedJsonMapper implements BeanClassLoaderAware {
 
 		try {
 			return mapper.writeValueAsBytes(t);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			throw new SmartJsonConversionException(e.getMessage(), e);
 		}
 	}
@@ -97,36 +102,48 @@ public class TypedJsonMapper implements BeanClassLoaderAware {
 
 			if (String.class.equals(type)) {
 				return value.asText();
-			} else if (Long.class.equals(type)) {
+			}
+			else if (Long.class.equals(type)) {
 				return value.asLong();
-			} else if (Integer.class.equals(type)) {
+			}
+			else if (Integer.class.equals(type)) {
 				return value.asInt();
-			} else if (BigDecimal.class.equals(type)) {
+			}
+			else if (BigDecimal.class.equals(type)) {
 				return value.decimalValue();
-			} else if (Double.class.equals(type)) {
+			}
+			else if (Double.class.equals(type)) {
 				return value.doubleValue();
-			} else if (Float.class.equals(type)) {
+			}
+			else if (Float.class.equals(type)) {
 				return value.doubleValue();
-			} else if (Boolean.class.equals(type)) {
+			}
+			else if (Boolean.class.equals(type)) {
 				return value.asBoolean();
-			} else if (byte[].class.equals(type)) {
+			}
+			else if (byte[].class.equals(type)) {
 				return value.binaryValue();
-			} else if (char[].class.equals(type)) {
+			}
+			else if (char[].class.equals(type)) {
 				return value.asText().toCharArray();
-			} else if (DateTime.class.equals(type)) {
+			}
+			else if (DateTime.class.equals(type)) {
 				return new DateTime(value.get("millis").asLong());
-			} else if (DefaultTuple.class.equals(type)) {
+			}
+			else if (DefaultTuple.class.equals(type)) {
 				return jsonBytesToTupleConverter.convert(value.binaryValue());
 			}
 			return mapper.treeToValue(value, type);
 
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			throw new SmartJsonConversionException(e.getMessage(), e);
 		}
 	}
 
 	/**
 	 * UnMarshall to a requested class
+	 * 
 	 * @param bytes
 	 * @param className
 	 * @return the object
@@ -147,13 +164,15 @@ public class TypedJsonMapper implements BeanClassLoaderAware {
 				byte[] from = bytes;
 				if (String.class.equals(wrappedType)) {
 					from = value.asText().getBytes();
-				} else if (wrappedType != null) {
+				}
+				else if (wrappedType != null) {
 					from = value.toString().getBytes();
 				}
 				return jsonBytesToTupleConverter.convert(from);
 			}
 			obj = mapper.treeToValue(value, type);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			throw new SmartJsonConversionException(e.getMessage(), e);
 		}
 		return obj;
@@ -172,8 +191,8 @@ public class TypedJsonMapper implements BeanClassLoaderAware {
 	}
 
 	/*
-	 * Determine if serialized content is wrapped with type information. In the case of a raw JSON string,
-	 * should return null.
+	 * Determine if serialized content is wrapped with type information. In the case of a
+	 * raw JSON string, should return null.
 	 */
 	private Class<?> getWrappedType(JsonNode root) {
 		String typeName = root.fieldNames().next();
@@ -185,37 +204,48 @@ public class TypedJsonMapper implements BeanClassLoaderAware {
 			String className = value.get(0).asText();
 			try {
 				return this.beanClassLoader.loadClass(className);
-			} catch (ClassNotFoundException e) {
-				//In this case, interpret as a raw JSON string containing an array
+			}
+			catch (ClassNotFoundException e) {
+				// In this case, interpret as a raw JSON string containing an array
 				return null;
 			}
 		}
 		if (typeName.equals("String")) {
 			return String.class;
-		} else if (typeName.equals("Long")) {
+		}
+		else if (typeName.equals("Long")) {
 			return Long.class;
-		} else if (typeName.equals("Integer")) {
+		}
+		else if (typeName.equals("Integer")) {
 			return Integer.class;
-		} else if (typeName.equals("BigDecimal")) {
+		}
+		else if (typeName.equals("BigDecimal")) {
 			return BigDecimal.class;
-		} else if (typeName.equals("Double")) {
+		}
+		else if (typeName.equals("Double")) {
 			return Double.class;
-		} else if (typeName.equals("Float")) {
+		}
+		else if (typeName.equals("Float")) {
 			return Float.class;
-		} else if (typeName.equals("Boolean")) {
+		}
+		else if (typeName.equals("Boolean")) {
 			return Boolean.class;
-		} else if (typeName.equals("byte[]")) {
+		}
+		else if (typeName.equals("byte[]")) {
 			return byte[].class;
-		} else if (typeName.equals("char[]")) {
+		}
+		else if (typeName.equals("char[]")) {
 			return char[].class;
-		} else if (typeName.equals("DateTime")) {
+		}
+		else if (typeName.equals("DateTime")) {
 			return DateTime.class;
 		}
 		String className = value.get("@class") == null ? null : value.get("@class").asText();
 		if (className != null) {
 			try {
 				return this.beanClassLoader.loadClass(className);
-			} catch (ClassNotFoundException e) {
+			}
+			catch (ClassNotFoundException e) {
 				throw new SmartJsonConversionException(e.getMessage(), e);
 			}
 		}

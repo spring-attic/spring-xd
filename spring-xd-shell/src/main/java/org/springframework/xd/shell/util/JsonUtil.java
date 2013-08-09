@@ -16,34 +16,36 @@
 
 package org.springframework.xd.shell.util;
 
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.springframework.util.Assert;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.util.Assert;
+
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 /**
  * Some JSON helper utilities.
- *
+ * 
  * @author Thomas Risberg
  * @author Gunnar Hillert
  * @since 1.0
- *
+ * 
  */
 public final class JsonUtil {
 
 	private static final Log logger = LogFactory.getLog(JsonUtil.class);
 
 	private final static ObjectMapper mapper = new ObjectMapper();
+	static {
+		mapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
+	}
 
 	/**
 	 * Prevent instantiation.
@@ -56,7 +58,8 @@ public final class JsonUtil {
 		Map<String, Object> retMap = new HashMap<String, Object>();
 		if (json != null) {
 			try {
-				retMap = mapper.readValue(json, new TypeReference<Map<String, Object>>() {});
+				retMap = mapper.readValue(json, new TypeReference<Map<String, Object>>() {
+				});
 			}
 			catch (IOException e) {
 				logger.warn("Error while reading Java Map from JSON response: " + json, e);
@@ -69,7 +72,8 @@ public final class JsonUtil {
 		List<String> retList = new ArrayList<String>();
 		if (json != null) {
 			try {
-				retList = mapper.readValue(json, new TypeReference<List<String>>() {});
+				retList = mapper.readValue(json, new TypeReference<List<String>>() {
+				});
 			}
 			catch (IOException e) {
 				logger.warn("Error while reading Java List from JSON response: " + json, e);
@@ -92,8 +96,8 @@ public final class JsonUtil {
 			}
 		}
 		else {
-			throw new IllegalArgumentException("Value of type " + value.getClass().getName() +
-					" can not be serialized to JSON.");
+			throw new IllegalArgumentException("Value of type " + value.getClass().getName()
+					+ " can not be serialized to JSON.");
 		}
 	}
 

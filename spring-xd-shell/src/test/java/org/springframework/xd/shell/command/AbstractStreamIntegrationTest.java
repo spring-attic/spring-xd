@@ -29,8 +29,8 @@ import org.springframework.util.FileCopyUtils;
 import org.springframework.xd.shell.AbstractShellIntegrationTest;
 
 /**
- * Provides an @After JUnit lifecycle method that will destroy the definitions that were
- * created by calling executeXXXCreate methods.
+ * Provides an @After JUnit lifecycle method that will destroy the definitions that were created by calling
+ * executeXXXCreate methods.
  * 
  * @author Andy Clement
  * @author Mark Pollack
@@ -51,8 +51,6 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 	private RichGaugeCommandTemplate richGaugeOps;
 
 	private Set<FileSink> fileSinks = new HashSet<AbstractStreamIntegrationTest.FileSink>();
-
-	private Set<FileSource> fileSources = new HashSet<AbstractStreamIntegrationTest.FileSource>();
 
 	private Set<TailSource> tailSources = new HashSet<AbstractStreamIntegrationTest.TailSource>();
 
@@ -98,19 +96,12 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 		fvc().deleteDefaultFVCounter();
 		richGauge().deleteDefaultRichGauge();
 		cleanFileSinks();
-		cleanFileSources();
 		cleanTailSources();
 	}
 
 	private void cleanFileSinks() {
 		for (FileSink fileSink : fileSinks) {
 			fileSink.cleanup();
-		}
-	}
-
-	private void cleanFileSources() {
-		for (FileSource fileSource : fileSources) {
-			fileSource.cleanup();
 		}
 	}
 
@@ -126,103 +117,80 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 		return fileSink;
 	}
 
-	protected FileSource newFileSource(File file) {
-		FileSource fileSource = new FileSource(file);
-		fileSources.add(fileSource);
-		return fileSource;
-	}
-
 	protected TailSource newTailSource() {
 		TailSource tailSource = new TailSource();
 		tailSources.add(tailSource);
 		return tailSource;
 	}
 
-	protected static class FileSink extends FileModule {
-
-		/**
-		 * Constructs a new File Sink with a generated temp file.
-		 */
-		public FileSink() {
-			try {
-				file = File.createTempFile("xd-test", "txt");
-			}
-			catch (IOException e) {
-				throw new IllegalStateException(e);
-			}
-		}
-
-	}
-
-	protected static class FileSource extends FileModule {
-
-		public FileSource(File file) {
-			this.file = file;
-		}
-
-	}
-
-	protected static class TailSource extends FileModule {
-
-		public TailSource() {
-			try {
-				file = File.createTempFile("xd-test-tail-source", "txt");
-			}
-			catch (IOException e) {
-				throw new IllegalStateException(e);
-			}
-		}
-
-		@Override
-		public String toString() {
-			return String.format("tail --name=%s", file.getAbsolutePath());
-		}
-
-		public void appendToFile(File file) throws IOException {
-			String contents = this.getContents(file);
-			FileWriter fileWritter = new FileWriter(this.getFile(), true);
-			BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
-			bufferWritter.write(contents + "\n");
-			bufferWritter.close();
-		}
-	}
-
-	private abstract static class FileModule {
-
-		protected File file;
-
-		/**
-		 * Returns a representation of the source/sink suitable for inclusion in a stream
-		 * definition, <i>e.g.</i> @code{file --dir=xxxx --name=yyyy}
-		 */
-		@Override
-		public String toString() {
-			return String.format("file --dir=%s --name=%s", file.getParent(), file.getName());
-		}
-
-		public void cleanup() {
-			if (file.isDirectory()) {
-				for (File fileToDelete : file.listFiles()) {
-					fileToDelete.delete();
-				}
-			}
-			else {
-				file.delete();
-			}
-		}
-
-		public File getFile() {
-			return file;
-		}
+	/**
+	 * Support class to capture output of a sink in a File.
+	 * 
+	 * @author Eric Bottard
+	 */
+	protected static class FileSink extends DisposableFileSupport {
 
 		public String getContents() throws IOException {
 			FileReader fileReader = new FileReader(file);
 			return FileCopyUtils.copyToString(fileReader);
 		}
 
-		public String getContents(File file) throws IOException {
-			FileReader fileReader = new FileReader(file);
-			return FileCopyUtils.copyToString(fileReader);
+		@Override
+		protected String toDSL() {
+			return String.format("file --dir=%s --name=%s", file.getParent(), file.getName());
+		}
+
+	}
+
+	/**
+	 * Support class to inject data as a sink into a stream.
+	 * 
+	 * @author Ilayaperumal Gopinathan
+	 */
+	protected static class TailSource extends DisposableFileSupport {
+
+		@Override
+		public String toDSL() {
+			return String.format("tail --name=%s", file.getAbsolutePath());
+		}
+
+		public void appendToFile(String contents) throws IOException {
+			FileWriter fileWritter = new FileWriter(file, true);
+			BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
+			bufferWritter.write(contents);
+			bufferWritter.close();
+		}
+	}
+
+	protected abstract static class DisposableFileSupport {
+		protected File file;
+
+		protected DisposableFileSupport() {
+			this(null);
+		}
+
+		protected DisposableFileSupport(File where) {
+			try {
+				file = File.createTempFile(getClass().getSimpleName(), ".txt", where);
+			}
+			catch (IOException e) {
+				throw new IllegalStateException(e);
+			}
+		}
+
+		@Override
+		public final String toString() {
+			return toDSL();
+		}
+
+		/**
+		 * Returns a representation of the source/sink suitable for inclusion in a stream definition, <i>e.g.</i>
+		 * {@code file --dir=xxxx --name=yyyy}
+		 */
+		protected abstract String toDSL();
+
+		public void cleanup() {
+			file.delete();
 		}
 
 	}

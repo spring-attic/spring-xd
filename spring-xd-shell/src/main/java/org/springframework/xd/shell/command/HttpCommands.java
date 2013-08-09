@@ -63,7 +63,7 @@ public class HttpCommands implements CommandMarker {
 	public String postHttp(
 			@CliOption(mandatory = true, key = { "", "target" }, help = "the location to post to", unspecifiedDefaultValue = "http://localhost:9000")
 			String target,
-			@CliOption(mandatory = false, key = "data", help = "the text payload to post. exclusive with file. Note JSON fields should be separated by a comma without any spaces")
+			@CliOption(mandatory = false, key = "data", help = "the text payload to post. exclusive with file. embedded double quotes are not supported if next to a space character")
 			String data,
 			@CliOption(mandatory = false, key = "file", help = "filename to read data from. exclusive with data")
 			File file,

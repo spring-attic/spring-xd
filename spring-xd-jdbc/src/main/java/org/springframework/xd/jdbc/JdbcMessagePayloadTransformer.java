@@ -25,13 +25,13 @@ import org.springframework.integration.json.JsonToObjectTransformer;
 import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.util.StringUtils;
 
-
 /**
  * Transforms a payload to a Map representation based on provided column names.
- *
- * TODO: Right now it simply supports full payload under a 'payload' key or a JSON string with values stored with keys
- * corresponding to the column names specified. This could be expanded for additional payload types
- *
+ * 
+ * TODO: Right now it simply supports full payload under a 'payload' key or a JSON string
+ * with values stored with keys corresponding to the column names specified. This could be
+ * expanded for additional payload types
+ * 
  * @author Thomas Risberg
  * @since 1.0
  */
@@ -79,8 +79,7 @@ public class JdbcMessagePayloadTransformer extends JsonToObjectTransformer<Map> 
 
 	@SuppressWarnings("unchecked")
 	@Override
-	protected Map<String, Object> transformPayload(String payload)
-			throws Exception {
+	protected Map<String, Object> transformPayload(String payload) throws Exception {
 		if (columnNames.size() == 1 && "payload".equals(columnNames.get(0))) {
 			Map<String, Object> fullPayload = new HashMap<String, Object>();
 			fullPayload.put("payload", payload);
@@ -93,11 +92,11 @@ public class JdbcMessagePayloadTransformer extends JsonToObjectTransformer<Map> 
 				payloadMap.put(key, o.toString());
 			}
 		}
-        for (String column : this.columnNames) {
-            if (column.contains("_")) {
-                payloadMap.put(column, payloadMap.get(JdbcUtils.convertUnderscoreNameToPropertyName(column)));
-            }
-        }
+		for (String column : this.columnNames) {
+			if (column.contains("_")) {
+				payloadMap.put(column, payloadMap.get(JdbcUtils.convertUnderscoreNameToPropertyName(column)));
+			}
+		}
 		return payloadMap;
 	}
 

@@ -21,6 +21,7 @@ import org.apache.commons.logging.LogFactory;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.web.context.support.XmlWebApplicationContext;
 import org.springframework.xd.dirt.container.DefaultContainer;
 import org.springframework.xd.dirt.core.Container;
 import org.springframework.xd.dirt.launcher.ContainerLauncher;
@@ -41,8 +42,7 @@ public class ContainerMain {
 
 	private static final Log logger = LogFactory.getLog(ContainerMain.class);
 
-	private static final String LAUNCHER_CONFIG_LOCATION = DefaultContainer.XD_INTERNAL_CONFIG_ROOT
-			+ "launcher.xml";
+	private static final String LAUNCHER_CONFIG_LOCATION = DefaultContainer.XD_INTERNAL_CONFIG_ROOT + "launcher.xml";
 
 	/**
 	 * Start the RedisContainerLauncher
@@ -80,8 +80,13 @@ public class ContainerMain {
 	@SuppressWarnings("resource")
 	public static Container launch(ContainerOptions options) {
 		ClassPathXmlApplicationContext context = null;
+		XmlWebApplicationContext analyticsContext = new XmlWebApplicationContext();
+		analyticsContext.setConfigLocation("classpath:" + DefaultContainer.XD_ANALYTICS_CONFIG_ROOT + options.getAnalytics()
+				+ "-analytics.xml");
+		analyticsContext.refresh();
 		context = new ClassPathXmlApplicationContext();
 		context.setConfigLocation(LAUNCHER_CONFIG_LOCATION);
+		context.setParent(analyticsContext);
 		if (!options.isJmxDisabled()) {
 			context.getEnvironment().addActiveProfile("xd.jmx.enabled");
 			OptionUtils.setJmxProperties(options, context.getEnvironment());

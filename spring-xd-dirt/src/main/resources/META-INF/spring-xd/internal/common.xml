@@ -11,11 +11,6 @@
 
 	<!-- Parent context for all modules -->
 	
-	<!-- The following actually doesn't work for in-memory yet as this is a separate context. -->
-	<!-- Still, this encourages externalization of repositories declarations. See  -->
-	
-	<import resource="../analytics/${xd.analytics}-analytics.xml" />
-	
 	<bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean">
 		<property name="locateExistingServerIfPossible" value="true" />
 	</bean>

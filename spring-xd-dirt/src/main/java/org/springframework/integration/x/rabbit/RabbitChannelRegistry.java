@@ -24,7 +24,6 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.FanoutExchange;
@@ -48,13 +47,14 @@ import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.mapping.AbstractHeaderMapper;
 import org.springframework.integration.x.channel.registry.ChannelRegistry;
 import org.springframework.integration.x.channel.registry.ChannelRegistrySupport;
 import org.springframework.util.Assert;
 
 /**
  * A {@link ChannelRegistry} implementation backed by RabbitMQ.
- *
+ * 
  * @author Mark Fisher
  * @author Gary Russell
  */
@@ -82,8 +82,8 @@ public class RabbitChannelRegistry extends ChannelRegistrySupport implements Dis
 		this.rabbitAdmin = new RabbitAdmin(connectionFactory);
 		this.rabbitAdmin.afterPropertiesSet();
 		this.mapper = new DefaultAmqpHeaderMapper();
-		this.mapper.setRequestHeaderNames(new String[]
-				{DefaultAmqpHeaderMapper.STANDARD_REQUEST_HEADER_NAME_PATTERN, ORIGINAL_CONTENT_TYPE_HEADER});
+		this.mapper.setRequestHeaderNames(new String[] { AbstractHeaderMapper.STANDARD_REQUEST_HEADER_NAME_PATTERN,
+			ORIGINAL_CONTENT_TYPE_HEADER });
 	}
 
 	@Override
@@ -100,28 +100,14 @@ public class RabbitChannelRegistry extends ChannelRegistrySupport implements Dis
 		listenerContainer.setQueueNames(name);
 		listenerContainer.afterPropertiesSet();
 		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(listenerContainer);
-		SubscribableChannel bridgeToModuleChannel = new DirectChannel();
+		DirectChannel bridgeToModuleChannel = new DirectChannel();
+		bridgeToModuleChannel.setBeanName(name + ".bridge");
 		adapter.setOutputChannel(bridgeToModuleChannel);
 		adapter.setHeaderMapper(this.mapper);
 		adapter.setBeanName("inbound." + name);
 		adapter.afterPropertiesSet();
 		this.lifecycleBeans.add(adapter);
-		AbstractReplyProducingMessageHandler convertingBridge = new AbstractReplyProducingMessageHandler() {
-			@Override
-			protected Object handleRequestMessage(Message<?> requestMessage) {
-				return transformInboundIfNecessary(requestMessage, acceptedMediaTypes);
-			}
-
-			@Override
-			protected boolean shouldCopyRequestHeaders() {
-				/*
-				 *  we've already copied the headers so no need for the ARPMH to do
-				 *  it, and we don't want the content-type restored if absent.
-				 */
-				return false;
-			}
-
-		};
+		ReceivingHandler convertingBridge = new ReceivingHandler(acceptedMediaTypes);
 		convertingBridge.setOutputChannel(moduleInputChannel);
 		convertingBridge.setBeanName(name + ".convert.bridge");
 		convertingBridge.afterPropertiesSet();
@@ -141,7 +127,7 @@ public class RabbitChannelRegistry extends ChannelRegistrySupport implements Dis
 	}
 
 	@Override
-	public void tap(String tapModule, final String name, MessageChannel channel) {
+	public void tap(String tapModule, final String name, MessageChannel tapModuleInputChannel) {
 		SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer(this.connectionFactory);
 		if (this.concurrentConsumers != null) {
 			listenerContainer.setConcurrentConsumers(this.concurrentConsumers);
@@ -152,11 +138,21 @@ public class RabbitChannelRegistry extends ChannelRegistrySupport implements Dis
 		listenerContainer.setQueues(queue);
 		listenerContainer.afterPropertiesSet();
 		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(listenerContainer);
-		adapter.setOutputChannel(channel);
+		DirectChannel bridgeToTapChannel = new DirectChannel();
+		bridgeToTapChannel.setBeanName(tapModule + ".bridge");
+		adapter.setOutputChannel(bridgeToTapChannel);
+		adapter.setHeaderMapper(this.mapper);
 		adapter.setBeanName("tap." + name);
 		adapter.setComponentName(tapModule + "." + "tapAdapter");
 		adapter.afterPropertiesSet();
 		this.lifecycleBeans.add(adapter);
+		// TODO: media types need to be passed in by Tap.
+		Collection<MediaType> acceptedMediaTypes = Collections.singletonList(MediaType.ALL);
+		ReceivingHandler convertingBridge = new ReceivingHandler(acceptedMediaTypes);
+		convertingBridge.setOutputChannel(tapModuleInputChannel);
+		convertingBridge.setBeanName(name + ".convert.bridge");
+		convertingBridge.afterPropertiesSet();
+		bridgeToTapChannel.subscribe(convertingBridge);
 		adapter.start();
 	}
 
@@ -237,5 +233,29 @@ public class RabbitChannelRegistry extends ChannelRegistrySupport implements Dis
 			this.queue.handleMessage(messageToSend);
 		}
 	}
+
+	private class ReceivingHandler extends AbstractReplyProducingMessageHandler {
+
+		private final Collection<MediaType> acceptedMediaTypes;
+
+		public ReceivingHandler(Collection<MediaType> acceptedMediaTypes) {
+			this.acceptedMediaTypes = acceptedMediaTypes;
+		}
+
+		@Override
+		protected Object handleRequestMessage(Message<?> requestMessage) {
+			return transformInboundIfNecessary(requestMessage, acceptedMediaTypes);
+		}
+
+		@Override
+		protected boolean shouldCopyRequestHeaders() {
+			/*
+			 * we've already copied the headers so no need for the ARPMH to do it, and we
+			 * don't want the content-type restored if absent.
+			 */
+			return false;
+		}
+
+	};
 
 }

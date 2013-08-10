@@ -10,8 +10,6 @@
 	<import resource="classpath*:/META-INF/spring-xd/transports/${xd.transport}-admin.xml"/>
 	<import resource="classpath*:/META-INF/spring-xd/store/${xd.store}-admin.xml"/>
 	
-	<import resource="../analytics/${xd.analytics}-analytics.xml" />
-	
 	<context:component-scan base-package="org.springframework.xd.dirt.rest" use-default-filters="false">
 		<!-- Include only this @Configuration classes, which will in turn include others -->
 		<context:include-filter type="regex" expression="org.springframework.xd.dirt.rest.RestConfiguration"/>

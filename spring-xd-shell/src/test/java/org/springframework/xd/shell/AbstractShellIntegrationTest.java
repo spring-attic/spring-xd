@@ -76,9 +76,10 @@ public abstract class AbstractShellIntegrationTest {
 
 	@AfterClass
 	public static void shutdown() {
-		logger.info("Stopping StreamServer");
-		server.stop();
-
+		if (server != null) {
+			logger.info("Stopping StreamServer");
+			server.stop();
+		}
 		logger.info("Stopping XD Shell");
 		shell.stop();
 	}

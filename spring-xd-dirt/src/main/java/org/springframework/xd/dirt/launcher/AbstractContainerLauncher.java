@@ -18,7 +18,8 @@ package org.springframework.xd.dirt.launcher;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.ApplicationListener;
@@ -31,12 +32,14 @@ import org.springframework.xd.dirt.server.options.ContainerOptions;
 /**
  * @author Mark Fisher
  */
-public abstract class AbstractContainerLauncher implements ContainerLauncher, ApplicationEventPublisherAware {
+public abstract class AbstractContainerLauncher implements ContainerLauncher, ApplicationEventPublisherAware,
+		ApplicationContextAware {
 
 	private volatile ApplicationEventPublisher eventPublisher;
 
-	private final Log logger = LogFactory.getLog(this.getClass());
+	private volatile ApplicationContext deployerContext;
 
+	private final Log logger = LogFactory.getLog(this.getClass());
 
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher eventPublisher) {
@@ -44,10 +47,16 @@ public abstract class AbstractContainerLauncher implements ContainerLauncher, Ap
 	}
 
 	@Override
+	public void setApplicationContext(ApplicationContext context) {
+		this.deployerContext = context;
+	}
+
+	@Override
 	public Container launch(ContainerOptions options) {
 		try {
 			String id = this.generateId();
 			DefaultContainer container = new DefaultContainer(id);
+			container.setApplicationContext(deployerContext);
 			container.start();
 			this.logContainerInfo(logger, container, options);
 			container.addListener(new ShutdownListener(container));
@@ -67,7 +76,6 @@ public abstract class AbstractContainerLauncher implements ContainerLauncher, Ap
 	protected abstract void logContainerInfo(Log logger, Container container, ContainerOptions options);
 
 	protected abstract void logErrorInfo(Exception exception);
-
 
 	private static class ShutdownListener implements ApplicationListener<ContextClosedEvent> {
 

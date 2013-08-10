@@ -24,7 +24,6 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationEventPublisher;
@@ -49,8 +48,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Mark Fisher
  * @author Gary Russell
  */
-public class ModuleDeployer extends AbstractMessageHandler
-		implements ApplicationContextAware, ApplicationEventPublisherAware {
+public class ModuleDeployer extends AbstractMessageHandler implements ApplicationContextAware,
+		ApplicationEventPublisherAware {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -77,8 +76,11 @@ public class ModuleDeployer extends AbstractMessageHandler
 	public void setApplicationContext(ApplicationContext context) {
 		this.deployerContext = context;
 		this.plugins = context.getBeansOfType(Plugin.class);
-		ClassPathXmlApplicationContext commonContext = new ClassPathXmlApplicationContext(new String[] {DefaultContainer.XD_INTERNAL_CONFIG_ROOT + "common.xml"}, false);
-		for(Plugin plugin: plugins.values()) {
+		ClassPathXmlApplicationContext commonContext = new ClassPathXmlApplicationContext(
+				new String[] { DefaultContainer.XD_INTERNAL_CONFIG_ROOT + "common.xml" }, false);
+		ApplicationContext analytics = context.getParent();
+		commonContext.setParent(analytics);
+		for (Plugin plugin : plugins.values()) {
 			plugin.postProcessSharedContext(commonContext);
 		}
 		commonContext.refresh();
@@ -92,7 +94,8 @@ public class ModuleDeployer extends AbstractMessageHandler
 
 	@Override
 	protected synchronized void handleMessageInternal(Message<?> message) throws Exception {
-		ModuleDeploymentRequest request = this.mapper.readValue(message.getPayload().toString(), ModuleDeploymentRequest.class);
+		ModuleDeploymentRequest request = this.mapper.readValue(message.getPayload().toString(),
+				ModuleDeploymentRequest.class);
 		if (request.isRemove()) {
 			this.undeploy(request);
 		}
@@ -103,8 +106,8 @@ public class ModuleDeployer extends AbstractMessageHandler
 			String type = request.getType();
 			ModuleDefinition definition = this.moduleRegistry.lookup(name, type);
 			Assert.notNull(definition, "No moduleDefinition for " + name + ":" + type);
-			DeploymentMetadata metadata = new DeploymentMetadata(group, index,
-					request.getSourceChannelName(), request.getSinkChannelName());
+			DeploymentMetadata metadata = new DeploymentMetadata(group, index, request.getSourceChannelName(),
+					request.getSinkChannelName());
 			Module module = new SimpleModule(definition, metadata);
 			module.setParentContext(this.commonContext);
 			Object properties = message.getHeaders().get("properties");
@@ -147,8 +150,8 @@ public class ModuleDeployer extends AbstractMessageHandler
 			}
 			if (module != null) {
 				if (logger.isDebugEnabled()) {
-					logger.debug("removed " + module.getType() + " module: " + group +
-							":" + module.getName() + ":" + index);
+					logger.debug("removed " + module.getType() + " module: " + group + ":" + module.getName() + ":"
+							+ index);
 				}
 				// TODO: add beforeShutdown and/or afterShutdown callbacks?
 				module.stop();
@@ -164,8 +167,8 @@ public class ModuleDeployer extends AbstractMessageHandler
 	}
 
 	/**
-	 * allow plugins to contribute properties (e.g. "stream.name")
-	 * calling module.addProperties(properties), etc.
+	 * allow plugins to contribute properties (e.g. "stream.name") calling
+	 * module.addProperties(properties), etc.
 	 */
 	private void preProcessModule(Module module) {
 		if (this.plugins != null) {
@@ -176,8 +179,8 @@ public class ModuleDeployer extends AbstractMessageHandler
 	}
 
 	/**
-	 * allow plugins to perform other configuration after
-	 * the module is initialized but before it is started.
+	 * allow plugins to perform other configuration after the module is initialized but
+	 * before it is started.
 	 */
 	private void postProcessModule(Module module) {
 		if (this.plugins != null) {
@@ -201,7 +204,8 @@ public class ModuleDeployer extends AbstractMessageHandler
 			event.setAttribute("group", module.getDeploymentMetadata().getGroup());
 			event.setAttribute("index", "" + module.getDeploymentMetadata().getIndex());
 			this.eventPublisher.publishEvent(event);
-			// TODO: in a listener publish info to redis so we know this module is running on this container
+			// TODO: in a listener publish info to redis so we know this module is running
+			// on this container
 		}
 	}
 
@@ -211,7 +215,8 @@ public class ModuleDeployer extends AbstractMessageHandler
 			event.setAttribute("group", module.getDeploymentMetadata().getGroup());
 			event.setAttribute("index", "" + module.getDeploymentMetadata().getIndex());
 			this.eventPublisher.publishEvent(event);
-			// TODO: in a listener update info in redis so we know this module was undeployed
+			// TODO: in a listener update info in redis so we know this module was
+			// undeployed
 		}
 	}
 }

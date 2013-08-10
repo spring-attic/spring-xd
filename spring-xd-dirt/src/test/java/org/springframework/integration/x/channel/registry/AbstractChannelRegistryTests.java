@@ -16,15 +16,10 @@
 
 package org.springframework.integration.x.channel.registry;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
 import java.util.Collection;
 import java.util.Collections;
 
 import org.junit.Test;
-
 import org.springframework.http.MediaType;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
@@ -33,6 +28,8 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.xd.dirt.stream.Tap;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Gary Russell
@@ -91,17 +88,32 @@ public abstract class AbstractChannelRegistryTests {
 		ChannelRegistry registry = getRegistry();
 		DirectChannel moduleOutputChannel = new DirectChannel();
 		QueueChannel moduleInputChannel = new QueueChannel();
+		QueueChannel tapChannel = new QueueChannel();
 		registry.createOutbound("foo.0", moduleOutputChannel, false);
 		registry.createInbound("foo.0", moduleInputChannel, ALL, false);
-		Message<?> message = MessageBuilder.withPayload("foo")
-				.setHeader(MessageHeaders.CONTENT_TYPE, "foo/bar")
-				.build();
-		moduleOutputChannel.send(message);
-		Message<?> inbound = moduleInputChannel.receive(5000);
-		assertNotNull(inbound);
-		assertEquals("foo", inbound.getPayload());
-		assertNull(inbound.getHeaders().get(ChannelRegistrySupport.ORIGINAL_CONTENT_TYPE_HEADER));
-		assertEquals("foo/bar", inbound.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		registry.tap("tapper", "foo.0", tapChannel);
+		Message<?> message = MessageBuilder.withPayload("foo").setHeader(MessageHeaders.CONTENT_TYPE, "foo/bar").build();
+		boolean tapSuccess = false;
+		boolean retried = false;
+		while (!tapSuccess) {
+			moduleOutputChannel.send(message);
+			Message<?> inbound = moduleInputChannel.receive(5000);
+			assertNotNull(inbound);
+			assertEquals("foo", inbound.getPayload());
+			assertNull(inbound.getHeaders().get(ChannelRegistrySupport.ORIGINAL_CONTENT_TYPE_HEADER));
+			assertEquals("foo/bar", inbound.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+			Message<?> tapped = tapChannel.receive(5000);
+			if (tapped == null) {
+				// tap listener might not have started
+				assertFalse("Failed to receive tap after retry", retried);
+				retried = true;
+				continue;
+			}
+			tapSuccess = true;
+			assertEquals("foo", tapped.getPayload());
+			assertNull(tapped.getHeaders().get(ChannelRegistrySupport.ORIGINAL_CONTENT_TYPE_HEADER));
+			assertEquals("foo/bar", tapped.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		}
 	}
 
 	@Test
@@ -109,16 +121,32 @@ public abstract class AbstractChannelRegistryTests {
 		ChannelRegistry registry = getRegistry();
 		DirectChannel moduleOutputChannel = new DirectChannel();
 		QueueChannel moduleInputChannel = new QueueChannel();
+		QueueChannel tapChannel = new QueueChannel();
 		registry.createOutbound("bar.0", moduleOutputChannel, false);
 		registry.createInbound("bar.0", moduleInputChannel, ALL, false);
-		Message<?> message = MessageBuilder.withPayload("foo")
-				.build();
-		moduleOutputChannel.send(message);
-		Message<?> inbound = moduleInputChannel.receive(5000);
-		assertNotNull(inbound);
-		assertEquals("foo", inbound.getPayload());
-		assertNull(inbound.getHeaders().get(ChannelRegistrySupport.ORIGINAL_CONTENT_TYPE_HEADER));
-		assertNull(inbound.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		registry.tap("tapper", "bar.0", tapChannel);
+		boolean tapSuccess = false;
+		boolean retried = false;
+		while (!tapSuccess) {
+			Message<?> message = MessageBuilder.withPayload("foo").build();
+			moduleOutputChannel.send(message);
+			Message<?> inbound = moduleInputChannel.receive(5000);
+			assertNotNull(inbound);
+			assertEquals("foo", inbound.getPayload());
+			assertNull(inbound.getHeaders().get(ChannelRegistrySupport.ORIGINAL_CONTENT_TYPE_HEADER));
+			assertNull(inbound.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+			Message<?> tapped = tapChannel.receive(5000);
+			if (tapped == null) {
+				// tap listener might not have started
+				assertFalse("Failed to receive tap after retry", retried);
+				retried = true;
+				continue;
+			}
+			tapSuccess = true;
+			assertEquals("foo", tapped.getPayload());
+			assertNull(tapped.getHeaders().get(ChannelRegistrySupport.ORIGINAL_CONTENT_TYPE_HEADER));
+			assertNull(tapped.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		}
 	}
 
 	protected abstract Collection<?> getBridges(ChannelRegistry registry);

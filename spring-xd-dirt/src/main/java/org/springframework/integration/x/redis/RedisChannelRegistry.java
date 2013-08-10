@@ -28,7 +28,6 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -44,7 +43,6 @@ import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.redis.inbound.RedisInboundChannelAdapter;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.x.channel.registry.ChannelRegistry;
 import org.springframework.integration.x.channel.registry.ChannelRegistrySupport;
@@ -53,7 +51,7 @@ import org.springframework.util.Assert;
 
 /**
  * A {@link ChannelRegistry} implementation backed by Redis.
- *
+ * 
  * @author Mark Fisher
  * @author Gary Russell
  * @author David Turanski
@@ -80,26 +78,13 @@ public class RedisChannelRegistry extends ChannelRegistrySupport implements Disp
 			final Collection<MediaType> acceptedMediaTypes, boolean aliasHint) {
 		RedisQueueInboundChannelAdapter adapter = new RedisQueueInboundChannelAdapter("queue." + name,
 				this.redisTemplate.getConnectionFactory(), new NoOpRedisSerializer());
-		SubscribableChannel bridgeToModuleChannel = new DirectChannel();
+		DirectChannel bridgeToModuleChannel = new DirectChannel();
+		bridgeToModuleChannel.setBeanName(name + ".bridge");
 		adapter.setOutputChannel(bridgeToModuleChannel);
 		adapter.setBeanName("inbound." + name);
 		adapter.afterPropertiesSet();
 		this.lifecycleBeans.add(adapter);
-		AbstractReplyProducingMessageHandler convertingBridge = new AbstractReplyProducingMessageHandler() {
-			@SuppressWarnings("unchecked")
-			@Override
-			protected Object handleRequestMessage(Message<?> requestMessage) {
-				Message<?> theRequestMessage = requestMessage;
-				try {
-					theRequestMessage = embeddedHeadersMessageConverter.extractHeaders((Message<byte[]>) requestMessage);
-				}
-				catch (UnsupportedEncodingException e) {
-					logger.error("Could not convert message", e);
-				}
-				return transformInboundIfNecessary(theRequestMessage, acceptedMediaTypes);
-			}
-
-		};
+		ReceivingHandler convertingBridge = new ReceivingHandler(acceptedMediaTypes);
 		convertingBridge.setOutputChannel(moduleInputChannel);
 		convertingBridge.setBeanName(name + ".convert.bridge");
 		convertingBridge.afterPropertiesSet();
@@ -119,14 +104,24 @@ public class RedisChannelRegistry extends ChannelRegistrySupport implements Disp
 	}
 
 	@Override
-	public void tap(String tapModule, final String name, MessageChannel channel) {
+	public void tap(String tapModule, final String name, MessageChannel tapModuleInputChannel) {
 		RedisInboundChannelAdapter adapter = new RedisInboundChannelAdapter(this.redisTemplate.getConnectionFactory());
+		adapter.setSerializer(new NoOpRedisSerializer());
 		adapter.setTopics("topic." + name);
-		adapter.setOutputChannel(channel);
+		DirectChannel bridgeToTapChannel = new DirectChannel();
+		bridgeToTapChannel.setBeanName(tapModule + ".bridge");
+		adapter.setOutputChannel(bridgeToTapChannel);
 		adapter.setBeanName("tap." + name);
 		adapter.setComponentName(tapModule + "." + "tapAdapter");
 		adapter.afterPropertiesSet();
 		this.lifecycleBeans.add(adapter);
+		// TODO: media types need to be passed in by Tap.
+		Collection<MediaType> acceptedMediaTypes = Collections.singletonList(MediaType.ALL);
+		ReceivingHandler convertingBridge = new ReceivingHandler(acceptedMediaTypes);
+		convertingBridge.setOutputChannel(tapModuleInputChannel);
+		convertingBridge.setBeanName(tapModule + ".convert.bridge");
+		convertingBridge.afterPropertiesSet();
+		bridgeToTapChannel.subscribe(convertingBridge);
 		adapter.start();
 	}
 
@@ -203,13 +198,10 @@ public class RedisChannelRegistry extends ChannelRegistrySupport implements Disp
 		@Override
 		protected void handleMessageInternal(Message<?> message) throws Exception {
 			@SuppressWarnings("unchecked")
-			Message<byte[]> transformed =
-					(Message<byte[]>) transformOutboundIfNecessary(message, MediaType.APPLICATION_OCTET_STREAM);
-			Message<?> messageToSend =
-					embeddedHeadersMessageConverter.embedHeaders(
-							transformed,
-							MessageHeaders.CONTENT_TYPE,
-							ORIGINAL_CONTENT_TYPE_HEADER);
+			Message<byte[]> transformed = (Message<byte[]>) transformOutboundIfNecessary(message,
+					MediaType.APPLICATION_OCTET_STREAM);
+			Message<?> messageToSend = embeddedHeadersMessageConverter.embedHeaders(transformed,
+					MessageHeaders.CONTENT_TYPE, ORIGINAL_CONTENT_TYPE_HEADER);
 			Assert.isInstanceOf(byte[].class, messageToSend.getPayload());
 			topic.handleMessage(messageToSend);
 			queue.handleMessage(messageToSend);
@@ -217,11 +209,35 @@ public class RedisChannelRegistry extends ChannelRegistrySupport implements Disp
 
 	}
 
+	private class ReceivingHandler extends AbstractReplyProducingMessageHandler {
+
+		private final Collection<MediaType> acceptedMediaTypes;
+
+		public ReceivingHandler(Collection<MediaType> acceptedMediaTypes) {
+			this.acceptedMediaTypes = acceptedMediaTypes;
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		protected Object handleRequestMessage(Message<?> requestMessage) {
+			Message<?> theRequestMessage = requestMessage;
+			try {
+				theRequestMessage = embeddedHeadersMessageConverter.extractHeaders((Message<byte[]>) requestMessage);
+			}
+			catch (UnsupportedEncodingException e) {
+				logger.error("Could not convert message", e);
+			}
+			return transformInboundIfNecessary(theRequestMessage, acceptedMediaTypes);
+		}
+
+	};
+
 	static class EmbeddedHeadersMessageConverter {
 
 		/**
 		 * Encodes requested headers into payload; max headers = 255; max header name
 		 * length = 255; max header value length = 255.
+		 * 
 		 * @throws UnsupportedEncodingException
 		 */
 		Message<byte[]> embedHeaders(Message<byte[]> message, String... headers) throws UnsupportedEncodingException {
@@ -237,7 +253,7 @@ public class RedisChannelRegistry extends ChannelRegistrySupport implements Disp
 					headersLength += header.length() + value.length();
 				}
 			}
-			byte[] newPayload = new byte[message.getPayload().length + headersLength + headerCount*2 + 1];
+			byte[] newPayload = new byte[message.getPayload().length + headersLength + headerCount * 2 + 1];
 			ByteBuffer byteBuffer = ByteBuffer.wrap(newPayload);
 			byteBuffer.put((byte) headerCount);
 			for (int i = 0; i < headers.length; i++) {

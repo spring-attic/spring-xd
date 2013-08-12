@@ -25,10 +25,6 @@
 			<constructor-arg ref="moduleRegistry" />
 		</bean>
 
-		<bean id="moduleRegistry" class="org.springframework.xd.dirt.module.FileModuleRegistry">
-			<constructor-arg value="${xd.home}/modules" />
-		</bean>
-
 		<bean id="idGenerator" class="org.springframework.xd.dirt.container.UUIDGenerator" />
 	</beans>
 </beans>

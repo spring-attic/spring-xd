@@ -14,4 +14,8 @@ allows an 'id' attribute, ensuring this is a single bean instance and may be imp
 			</list>
 		</property>
 	</bean>
+
+	<bean id="moduleRegistry" class="org.springframework.xd.dirt.module.FileModuleRegistry">
+		<constructor-arg value="${xd.home}/modules" />
+	</bean>
 </beans>

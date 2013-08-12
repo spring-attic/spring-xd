@@ -53,7 +53,7 @@ public class FileModuleRegistry extends AbstractModuleRegistry {
 	public List<ModuleDefinition> findDefinitions(String name) {
 		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
 		for (ModuleType type : ModuleType.values()) {
-			Resource resource = loadResource(name, type.name());
+			Resource resource = loadResource(name, type.getTypeName());
 			if (resource != null) {
 				ModuleDefinition moduleDef = new ModuleDefinition(name, type.getTypeName(), resource);
 				definitions.add(moduleDef);

@@ -37,6 +37,8 @@ public class FileSourceAndFileSinkTests extends AbstractStreamIntegrationTest {
 
 	private static final File DEFAULT_OUT = new File("/tmp/xd/output");
 
+	private static final String DEFAULT_SINKFILE_SUFFIX = ".out";
+
 	@Test
 	public void testDefaultFileLocations() throws Exception {
 
@@ -53,7 +55,7 @@ public class FileSourceAndFileSinkTests extends AbstractStreamIntegrationTest {
 		DEFAULT_OUT.mkdirs();
 
 		File in = new File(inDir, "one.txt");
-		File out = new File(DEFAULT_OUT, streamName);
+		File out = new File(DEFAULT_OUT, streamName + DEFAULT_SINKFILE_SUFFIX);
 
 		try {
 			FileCopyUtils.copy("hello", new FileWriter(in));

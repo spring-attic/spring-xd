@@ -43,10 +43,10 @@ import org.springframework.xd.module.ModuleType;
 public class EnhancedStreamParser implements XDParser {
 
 	private CrudRepository<? extends BaseDefinition, String> repository;
+
 	private ModuleRegistry moduleRegistry;
 
-	public EnhancedStreamParser(
-			CrudRepository<? extends BaseDefinition, String> repository,
+	public EnhancedStreamParser(CrudRepository<? extends BaseDefinition, String> repository,
 			ModuleRegistry moduleRegistry) {
 		Assert.notNull(repository, "repository can not be null");
 		Assert.notNull(moduleRegistry, "moduleRegistry can not be null");
@@ -70,7 +70,7 @@ public class EnhancedStreamParser implements XDParser {
 		List<ModuleDeploymentRequest> requests = new ArrayList<ModuleDeploymentRequest>();
 
 		List<ModuleNode> moduleNodes = ast.getModuleNodes();
-		for (int m=moduleNodes.size()-1;m>=0;m--) {
+		for (int m = moduleNodes.size() - 1; m >= 0; m--) {
 			ModuleNode moduleNode = moduleNodes.get(m);
 			ModuleDeploymentRequest request = new ModuleDeploymentRequest();
 			request.setGroup(name);
@@ -78,8 +78,8 @@ public class EnhancedStreamParser implements XDParser {
 			request.setIndex(m);
 			if (moduleNode.hasArguments()) {
 				ArgumentNode[] arguments = moduleNode.getArguments();
-				for (int a=0;a<arguments.length;a++) {
-					request.setParameter(arguments[a].getName(),arguments[a].getValue());
+				for (int a = 0; a < arguments.length; a++) {
+					request.setParameter(arguments[a].getName(), arguments[a].getValue());
 				}
 			}
 			requests.add(request);
@@ -97,7 +97,7 @@ public class EnhancedStreamParser implements XDParser {
 		}
 
 		for (int m = 0; m < moduleNodes.size(); m++) {
-			ModuleDeploymentRequest request =  requests.get(m);
+			ModuleDeploymentRequest request = requests.get(m);
 			request.setType(determineType(request, requests.size() - 1));
 		}
 
@@ -107,27 +107,31 @@ public class EnhancedStreamParser implements XDParser {
 	private String determineType(ModuleDeploymentRequest request, int lastIndex) {
 		String name = request.getModule();
 		int index = request.getIndex();
-		List<ModuleDefinition> defs = moduleRegistry.findDefinitions(name
-				.toLowerCase());
+		List<ModuleDefinition> defs = moduleRegistry.findDefinitions(name);
 
-		if (defs == null) {
-			throw new RuntimeException("Module definition is missing for "
-					+ name);
+		if (defs.size() == 0) {
+			throw new RuntimeException("Module definition is missing for " + name);
 		}
 		if (defs.size() == 1) {
 			return defs.get(0).getType();
 		}
-
 		// now if you receive more than one response lets use some position
 		// logic to figure this thing out.
 		if (index == 0) {
 			for (ModuleDefinition def : defs) {// this should be a trigger or a
 												// job so let's check there.
 				if (def.getType().equals(ModuleType.JOB.getTypeName())
-						|| def.getType().equals(
-								ModuleType.TRIGGER.getTypeName())
-						|| def.getType()
-								.equals(ModuleType.SOURCE.getTypeName())) {
+						|| def.getType().equals(ModuleType.TRIGGER.getTypeName())
+						|| def.getType().equals(ModuleType.SOURCE.getTypeName())) {
+					return def.getType();
+				}
+			}
+		}
+		else if (index == lastIndex) {// sometimes a module can be both a source and a
+										// sink
+			for (ModuleDefinition def : defs) {// this should be a trigger or a
+				// job so let's check there.
+				if (def.getType().equals(ModuleType.SINK.getTypeName())) {
 					return def.getType();
 				}
 			}
@@ -137,4 +141,3 @@ public class EnhancedStreamParser implements XDParser {
 
 	}
 }
-

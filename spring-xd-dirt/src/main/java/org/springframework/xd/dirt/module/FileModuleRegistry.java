@@ -52,11 +52,10 @@ public class FileModuleRegistry extends AbstractModuleRegistry {
 		for (ModuleType type : ModuleType.values()) {
 			Resource resource = loadResource(name, type.name());
 			if (resource.exists()) {
-				ModuleDefinition moduleDef = new ModuleDefinition(name,
-						type.getTypeName(), resource);
+				ModuleDefinition moduleDef = new ModuleDefinition(name, type.getTypeName(), resource);
 				definitions.add(moduleDef);
 			}
 		}
-		return (definitions.size() != 0) ? definitions : null;
+		return definitions;
 	}
 }

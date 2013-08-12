@@ -29,6 +29,15 @@ public interface ModuleRegistry {
 
 	ModuleDefinition lookup(String name, String type);
 
+	/**
+	 * Searches the registry for the name specified and returns all module definitions
+	 * that match the name regardless of module type.
+	 * 
+	 * @param name The module definition name to be searched.
+	 * @return A list of the module definitions that have the name specified by the input
+	 *         parameter. If no module definition is found with the name a null will be
+	 *         returned.
+	 */
 	List<ModuleDefinition> findDefinitions(String name);
 
 }

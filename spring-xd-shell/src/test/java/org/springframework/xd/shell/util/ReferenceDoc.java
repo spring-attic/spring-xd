@@ -68,9 +68,11 @@ public class ReferenceDoc {
 
 	private final static Pattern OPTION_FORMAT = Pattern.compile("[a-z][a-zA-Z ]+");
 
-	private final static Pattern COMMAND_HELP = Pattern.compile("[A-Z].+");
+	/* Enforce uppercase first, prevent final dot. */
+	private final static Pattern COMMAND_HELP = Pattern.compile("[A-Z].+[^\\.]$");
 
-	private final static Pattern OPTION_HELP = Pattern.compile("[a-z].+");
+	/* Enforce lowercase first, prevent final dot. */
+	private final static Pattern OPTION_HELP = Pattern.compile("[a-z].+[^\\.]$");
 
 	/**
 	 * A mapping from class to Title in the doc. Insertion order will become rendering order.
@@ -233,16 +235,20 @@ public class ReferenceDoc {
 				for (CliOption option : commands.get(command)) {
 					out.printf("*%s*:: %s.", paramName(option), check(option.help(), OPTION_HELP));
 					if (!option.mandatory()) {
-						out.printf(" *(default: `%s`", option.unspecifiedDefaultValue());
-						if (valueOptional(option)) {
-							if (option.specifiedDefaultValue().equals(option.unspecifiedDefaultValue())) {
-								throw new IllegalStateException("" + option);
-							}
+						// There can be non-mandatory, w/o default options (e.g. mutually exclusive, with 1 required,
+						// options)
+						if (!"__NULL__".equals(option.unspecifiedDefaultValue())) {
+							out.printf(" *(default: `%s`", option.unspecifiedDefaultValue());
+							if (valueOptional(option)) {
+								if (option.specifiedDefaultValue().equals(option.unspecifiedDefaultValue())) {
+									throw new IllegalStateException("" + option);
+								}
 
-							out.printf(", or `%s` if +--%s+ is specified without a value",
-									option.specifiedDefaultValue(), paramName(option));
+								out.printf(", or `%s` if +--%s+ is specified without a value",
+										option.specifiedDefaultValue(), paramName(option));
+							}
+							out.printf(")*");
 						}
-						out.printf(")*");
 					}
 					else {
 						out.printf(" *(required)*");

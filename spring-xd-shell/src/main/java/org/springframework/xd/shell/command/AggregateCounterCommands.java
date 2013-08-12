@@ -70,13 +70,20 @@ public class AggregateCounterCommands extends AbstractMetricsCommands implements
 
 	@CliCommand(value = DISPLAY_AGGR_COUNTER, help = "Display aggregate counter values by chosen interval and resolution(minute, hour)")
 	public Table display(
-			@CliOption(key = { "", "name" }, help = "the name of the aggregate counter to display", mandatory = true) String name,
-			@CliOption(key = "from", help = "start-time for the interval. format: 'yyyy-MM-dd HH:mm:ss'.", mandatory = false) String from,
-			@CliOption(key = "to", help = "end-time for the interval. format: 'yyyy-MM-dd HH:mm:ss'. default to now.", mandatory = false) String to,
-			@CliOption(key = "lastHours", help = "set the interval to last 'n' hours.", mandatory = false) Integer lastHours,
-			@CliOption(key = "lastDays", help = "set the interval to last 'n' days.", mandatory = false) Integer lastDays,
-			@CliOption(key = "resolution", help = "the size of the bucket to aggregate (minute, hour)", mandatory = false, unspecifiedDefaultValue = "hour") String resolution,
-			@CliOption(key = "pattern", help = "the pattern used to format the count values (see DecimalFormat)", mandatory = false, unspecifiedDefaultValue = NumberFormatConverter.DEFAULT) NumberFormat pattern) {
+			@CliOption(key = { "", "name" }, help = "the name of the aggregate counter to display", mandatory = true)
+			String name,
+			@CliOption(key = "from", help = "start-time for the interval. format: 'yyyy-MM-dd HH:mm:ss'", mandatory = false)
+			String from,
+			@CliOption(key = "to", help = "end-time for the interval. format: 'yyyy-MM-dd HH:mm:ss'. default to now", mandatory = false)
+			String to,
+			@CliOption(key = "lastHours", help = "set the interval to last 'n' hours", mandatory = false)
+			Integer lastHours,
+			@CliOption(key = "lastDays", help = "set the interval to last 'n' days", mandatory = false)
+			Integer lastDays,
+			@CliOption(key = "resolution", help = "the size of the bucket to aggregate (minute, hour)", mandatory = false, unspecifiedDefaultValue = "hour")
+			String resolution,
+			@CliOption(key = "pattern", help = "the pattern used to format the count values (see DecimalFormat)", mandatory = false, unspecifiedDefaultValue = NumberFormatConverter.DEFAULT)
+			NumberFormat pattern) {
 
 		Assert.isTrue(Resolution.contains(resolution), "Supported resolution options are 'hour' and 'minute'");
 		if (from != null) {
@@ -110,7 +117,8 @@ public class AggregateCounterCommands extends AbstractMetricsCommands implements
 
 	@CliCommand(value = DELETE_AGGR_COUNTER, help = "Delete the aggregate counter")
 	public String delete(
-			@CliOption(key = { "", "name" }, help = "the name of the aggregate counter to delete", mandatory = true) String name) {
+			@CliOption(key = { "", "name" }, help = "the name of the aggregate counter to delete", mandatory = true)
+			String name) {
 		aggrCounterOperations().delete(name);
 		return String.format("Deleted aggregatecounter '%s'", name);
 	}
@@ -122,12 +130,12 @@ public class AggregateCounterCommands extends AbstractMetricsCommands implements
 	private Table displayAggrCounter(AggregateCountsResource aggResource, NumberFormat pattern) {
 		final SortedMap<Date, Long> values = aggResource.getValues();
 		Table t = new Table();
-		t.addHeader(1, new TableHeader("AggregateCounter=" + aggResource.getName())).addHeader(2, new TableHeader("")).addHeader(
-				3, new TableHeader(""));
+		t.addHeader(1, new TableHeader("AggregateCounter=" + aggResource.getName())).addHeader(2, new TableHeader(""))
+				.addHeader(3, new TableHeader(""));
 		t.newRow().addValue(1, "TIME").addValue(2, "-").addValue(3, "COUNT");
 		for (Map.Entry<Date, Long> entry : values.entrySet()) {
-			t.newRow().addValue(1, entry.getKey().toString()).addValue(2, "|").addValue(3,
-					pattern.format(entry.getValue()));
+			t.newRow().addValue(1, entry.getKey().toString()).addValue(2, "|")
+					.addValue(3, pattern.format(entry.getValue()));
 		}
 		return t;
 	}

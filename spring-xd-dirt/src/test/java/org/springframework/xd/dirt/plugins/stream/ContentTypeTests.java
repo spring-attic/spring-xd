@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.dirt.plugins.stream;
 
 import java.util.ArrayList;
@@ -45,7 +46,7 @@ import static org.mockito.Mockito.*;
  * @since 1.0
  * 
  */
-public class MediaTypeTests {
+public class ContentTypeTests {
 
 	@Mock
 	private ChannelRegistry registry;
@@ -70,14 +71,14 @@ public class MediaTypeTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testGetAcceptedMediaTypes() {
-		when(module.getComponent("accepted-media-types", Collection.class)).thenReturn(
+		when(module.getComponent("accepted-content-types", Collection.class)).thenReturn(
 				Collections.singletonList("application/json"));
 		doAnswer(new Answer<Object>() {
 
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
-				assertEquals(MediaType.APPLICATION_JSON, ((Collection<?>) invocation.getArguments()[2]).iterator()
-						.next());
+				assertEquals(MediaType.APPLICATION_JSON,
+						((Collection<?>) invocation.getArguments()[2]).iterator().next());
 				return null;
 			}
 		}).when(registry).createInbound(anyString(), any(MessageChannel.class), any(Collection.class), anyBoolean());
@@ -91,7 +92,7 @@ public class MediaTypeTests {
 		List<Object> types = new ArrayList<Object>();
 		types.add("application/json");
 		types.add(MediaType.APPLICATION_XML);
-		when(module.getComponent("accepted-media-types", Collection.class)).thenReturn(types);
+		when(module.getComponent("accepted-content-types", Collection.class)).thenReturn(types);
 		doAnswer(new Answer<Object>() {
 
 			@Override

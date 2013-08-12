@@ -16,10 +16,6 @@
 
 package org.springframework.xd.dirt.plugins.stream;
 
-import static org.springframework.xd.module.ModuleType.PROCESSOR;
-import static org.springframework.xd.module.ModuleType.SINK;
-import static org.springframework.xd.module.ModuleType.SOURCE;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -27,7 +23,6 @@ import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
@@ -39,6 +34,8 @@ import org.springframework.xd.module.BeanDefinitionAddingPostProcessor;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.Plugin;
+
+import static org.springframework.xd.module.ModuleType.*;
 
 /**
  * @author Mark Fisher
@@ -57,9 +54,9 @@ public class StreamPlugin implements Plugin {
 
 	private static final String CHANNEL_REGISTRY = CONTEXT_CONFIG_ROOT + "channel-registry.xml";
 
-	private final static String MEDIA_TYPE_BEAN_NAME = "accepted-media-types";
+	private final static String CONTENT_TYPE_BEAN_NAME = "accepted-content-types";
 
-	private final static Collection<MediaType> DEFAULT_ACCEPTED_MEDIA_TYPES = Collections.singletonList(MediaType.ALL);
+	private final static Collection<MediaType> DEFAULT_ACCEPTED_CONTENT_TYPES = Collections.singletonList(MediaType.ALL);
 
 	@Override
 	public void preProcessModule(Module module) {
@@ -86,7 +83,8 @@ public class StreamPlugin implements Plugin {
 		if (registry != null) {
 			MessageChannel channel = module.getComponent("input", MessageChannel.class);
 			if (channel != null) {
-				registry.createInbound(md.getInputChannelName(), channel, getAcceptedMediaTypes(module), md.isAliasedInput());
+				registry.createInbound(md.getInputChannelName(), channel, getAcceptedMediaTypes(module),
+						md.isAliasedInput());
 			}
 			channel = module.getComponent("output", MessageChannel.class);
 			if (channel != null) {
@@ -116,10 +114,10 @@ public class StreamPlugin implements Plugin {
 	}
 
 	private Collection<MediaType> getAcceptedMediaTypes(Module module) {
-		Collection<?> acceptedTypes = module.getComponent(MEDIA_TYPE_BEAN_NAME, Collection.class);
+		Collection<?> acceptedTypes = module.getComponent(CONTENT_TYPE_BEAN_NAME, Collection.class);
 
 		if (CollectionUtils.isEmpty(acceptedTypes)) {
-			return DEFAULT_ACCEPTED_MEDIA_TYPES;
+			return DEFAULT_ACCEPTED_CONTENT_TYPES;
 		}
 		else {
 			Collection<MediaType> acceptedMediaTypes = new ArrayList<MediaType>(acceptedTypes.size());

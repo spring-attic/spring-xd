@@ -14,43 +14,35 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.rest.client.domain.metrics;
+package org.springframework.xd.rest.client.domain;
 
-import javax.xml.bind.annotation.XmlRootElement;
-
-import org.springframework.hateoas.PagedResources;
-import org.springframework.xd.rest.client.domain.NamedResource;
+import org.springframework.hateoas.ResourceSupport;
 
 /**
- * Base class for resources that adhere to the Metric interface.
+ * Abstract base class for all resources that have a name.
  * 
  * @author Eric Bottard
  */
-@XmlRootElement(name = "metric")
-public class MetricResource extends NamedResource {
+public abstract class NamedResource extends ResourceSupport {
 
-	/**
-	 * Construct a new resource.
-	 */
-	public MetricResource(String name) {
-		super(name);
-	}
+	private String name;
 
 	/**
 	 * No arg constructor for serialization frameworks.
 	 */
-	protected MetricResource() {
+	protected NamedResource() {
 
 	}
 
-	/**
-	 * Dedicated subclass to workaround type erasure.
-	 * 
-	 * @author Eric Bottard
-	 */
-	@XmlRootElement(name = "metrics")
-	public static class Page extends PagedResources<MetricResource> {
+	public NamedResource(String name) {
+		this.name = name;
+	}
 
+	/**
+	 * Return the name of the represented entity.
+	 */
+	public String getName() {
+		return name;
 	}
 
 }

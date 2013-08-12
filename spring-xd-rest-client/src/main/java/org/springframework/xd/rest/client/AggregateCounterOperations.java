@@ -34,7 +34,7 @@ public interface AggregateCounterOperations {
 	 * 
 	 * @param name the name of the aggregate counter to retrieve information for
 	 */
-	AggregateCountsResource retrieve(String name, Date from, Date to, String resolution);
+	AggregateCountsResource retrieve(String name, Date from, Date to, Resolution resolution);
 
 	/**
 	 * List the names of the available aggregate counters
@@ -47,5 +47,10 @@ public interface AggregateCounterOperations {
 	 * @param name the name of the aggregate counter to delete
 	 */
 	void delete(String name);
+
+	public static enum Resolution {
+		minute, hour;
+
+	};
 
 }

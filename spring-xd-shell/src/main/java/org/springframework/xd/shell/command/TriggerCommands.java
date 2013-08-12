@@ -68,7 +68,7 @@ public class TriggerCommands implements CommandMarker {
 	@CliCommand(value = LIST_TRIGGERS, help = "List all triggers")
 	public Table listTriggers() {
 
-		final PagedResources<TriggerDefinitionResource> triggers = triggerOperations().listTriggers();
+		final PagedResources<TriggerDefinitionResource> triggers = triggerOperations().list();
 
 		final Table table = new Table();
 		table.addHeader(1, new TableHeader("Trigger Name")).addHeader(2, new TableHeader("Trigger Definition"));
@@ -84,7 +84,7 @@ public class TriggerCommands implements CommandMarker {
 
 	@CliCommand(value = DESTROY_TRIGGER, help = "Destroy an existing trigger")
 	public String destroyTrigger(
-			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the trigger to be destroyed")
+			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the trigger to be destroyed", optionContext = "existing-trigger disable-string-converter")
 			String name) {
 		triggerOperations().deleteTrigger(name);
 		return String.format("Created new trigger '%s'", name);

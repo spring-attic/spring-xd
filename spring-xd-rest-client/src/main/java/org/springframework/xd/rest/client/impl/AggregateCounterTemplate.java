@@ -37,13 +37,13 @@ public class AggregateCounterTemplate extends AbstractTemplate implements Aggreg
 	}
 
 	@Override
-	public AggregateCountsResource retrieve(String name, Date from, Date to, String resolution) {
+	public AggregateCountsResource retrieve(String name, Date from, Date to, Resolution resolution) {
 		DateTime fromParam = (from == null) ? null : new DateTime(from.getTime());
 		DateTime toParam = (to == null) ? null : new DateTime(to.getTime());
 
 		String url = resources.get("aggregate-counters").toString() + "/{name}";
-		String uriString = UriComponentsBuilder.fromUriString(url).queryParam("resolution", resolution).queryParam(
-				"from", fromParam).queryParam("to", toParam).build().toUriString();
+		String uriString = UriComponentsBuilder.fromUriString(url).queryParam("resolution", resolution.toString())
+				.queryParam("from", fromParam).queryParam("to", toParam).build().toUriString();
 		return restTemplate.getForObject(uriString, AggregateCountsResource.class, name);
 	}
 

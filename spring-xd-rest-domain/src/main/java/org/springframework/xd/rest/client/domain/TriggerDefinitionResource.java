@@ -17,20 +17,14 @@
 package org.springframework.xd.rest.client.domain;
 
 import org.springframework.hateoas.PagedResources;
-import org.springframework.hateoas.ResourceSupport;
 
 /**
  * Represents a Trigger Definition.
- *
+ * 
  * @author Gunnar Hillert
  * @since 1.0
  */
-public class TriggerDefinitionResource extends ResourceSupport {
-
-	/**
-	 * The name of the trigger definition.
-	 */
-	private String name;
+public class TriggerDefinitionResource extends NamedResource {
 
 	/**
 	 * The DSL representation of this trigger definition.
@@ -46,12 +40,8 @@ public class TriggerDefinitionResource extends ResourceSupport {
 	}
 
 	public TriggerDefinitionResource(String name, String definition) {
-		this.name = name;
+		super(name);
 		this.definition = definition;
-	}
-
-	public String getName() {
-		return name;
 	}
 
 	public String getDefinition() {
@@ -60,7 +50,7 @@ public class TriggerDefinitionResource extends ResourceSupport {
 
 	/**
 	 * Dedicated subclass to workaround type erasure.
-	 *
+	 * 
 	 * @author Eric Bottard
 	 */
 	public static class Page extends PagedResources<TriggerDefinitionResource> {

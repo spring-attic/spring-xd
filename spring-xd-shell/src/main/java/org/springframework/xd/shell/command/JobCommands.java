@@ -71,8 +71,9 @@ public class JobCommands implements CommandMarker {
 	}
 
 	@CliCommand(value = DEPLOY_JOB, help = "Deploy a previously created job")
-	public String deployJob(@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the job to deploy")
-	String name) {
+	public String deployJob(
+			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the job to deploy", optionContext = "existing-job disable-string-converter")
+			String name) {
 		jobOperations().deployJob(name);
 		return String.format("Deployed job '%s'", name);
 	}
@@ -80,8 +81,7 @@ public class JobCommands implements CommandMarker {
 	@CliCommand(value = LIST_JOBS, help = "List all jobs")
 	public Table listJobs() {
 
-		final PagedResources<JobDefinitionResource> jobs = jobOperations()
-				.list();
+		final PagedResources<JobDefinitionResource> jobs = jobOperations().list();
 		final Table table = new Table();
 		table.addHeader(1, new TableHeader("Job Name")).addHeader(2, new TableHeader("Job Definition"));
 
@@ -95,7 +95,7 @@ public class JobCommands implements CommandMarker {
 
 	@CliCommand(value = UNDEPLOY_JOB, help = "Un-deploy a previously deployed job")
 	public String undeployJob(
-			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the job to un-deploy")
+			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the job to un-deploy", optionContext = "existing-job disable-string-converter")
 			String name) {
 		jobOperations().undeployJob(name);
 		return String.format("Un-deployed Job '%s'", name);
@@ -103,7 +103,7 @@ public class JobCommands implements CommandMarker {
 
 	@CliCommand(value = DESTROY_JOB, help = "Destroy an existing job")
 	public String destroyJob(
-			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the job to destroy")
+			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the job to destroy", optionContext = "existing-job disable-string-converter")
 			String name) {
 		jobOperations().destroyJob(name);
 		return String.format("Destroyed job '%s'", name);

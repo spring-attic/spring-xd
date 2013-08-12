@@ -44,7 +44,7 @@ public interface TriggerOperations {
 	 *
 	 * @return A list of triggers
 	 */
-	public PagedResources<TriggerDefinitionResource> listTriggers();
+	public PagedResources<TriggerDefinitionResource> list();
 
 	/*
 	 * Delete an existing Trigger.

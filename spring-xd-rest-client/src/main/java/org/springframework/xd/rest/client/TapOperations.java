@@ -44,7 +44,7 @@ public interface TapOperations {
 	 *
 	 * @return A list of taps
 	 */
-	PagedResources<TapDefinitionResource> listTaps(/* TODO */);
+	PagedResources<TapDefinitionResource> list(/* TODO */);
 
 	/**
 	 * Destroy an existing tap

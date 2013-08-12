@@ -61,7 +61,7 @@ public class CounterCommands extends AbstractMetricsCommands implements CommandM
 
 	@CliCommand(value = DISPLAY_COUNTER, help = "Display the value of a counter")
 	public String display(
-			@CliOption(key = { "", "name" }, help = "the name of the counter to display", mandatory = true)
+			@CliOption(key = { "", "name" }, help = "the name of the counter to display", mandatory = true, optionContext = "existing-counter disable-string-converter")
 			String name,
 			@CliOption(key = "pattern", help = "the pattern used to format the value (see DecimalFormat)", mandatory = false, unspecifiedDefaultValue = NumberFormatConverter.DEFAULT)
 			NumberFormat pattern) {
@@ -77,8 +77,9 @@ public class CounterCommands extends AbstractMetricsCommands implements CommandM
 	}
 
 	@CliCommand(value = DELETE_COUNTER, help = "Delete the counter with the given name")
-	public String delete(@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the counter to delete")
-	String name) {
+	public String delete(
+			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the counter to delete", optionContext = "existing-counter disable-string-converter")
+			String name) {
 		counterOperations().delete(name);
 		return String.format("Deleted counter '%s'", name);
 	}

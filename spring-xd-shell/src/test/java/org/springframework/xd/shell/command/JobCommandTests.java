@@ -119,7 +119,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		CommandResult cr = getShell().executeCommand(
 				"job create --definition \"barsdaf\" --name myJob ");
 		checkForFail(cr);
-		checkErrorMessages(cr, "IOException parsing XML document from file");
+		checkErrorMessages(cr, "Module definition is missing");
 		assertFalse(fileExists(TMP_FILE));
 	}
 

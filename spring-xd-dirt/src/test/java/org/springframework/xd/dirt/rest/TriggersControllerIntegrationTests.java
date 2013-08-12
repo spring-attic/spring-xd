@@ -16,23 +16,38 @@
 
 package org.springframework.xd.dirt.rest;
 
+import static org.mockito.Matchers.anyListOf;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.ArrayList;
+
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.stream.DeploymentMessageSender;
 import org.springframework.xd.dirt.stream.TriggerDefinition;
-
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleType;
 
 /**
  * Tests REST compliance of taps-related endpoints.
@@ -54,6 +69,24 @@ public class TriggersControllerIntegrationTests extends AbstractControllerIntegr
 
 	@Autowired
 	private TriggersController triggerController;
+
+	@Autowired
+	private ModuleRegistry moduleRegistry;
+
+	@Before
+	public void before() {
+		Resource resource = mock(Resource.class);
+		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
+		definitions.add(new ModuleDefinition(ModuleType.TRIGGER.getTypeName(),
+				ModuleType.TRIGGER.getTypeName(), resource));
+		when(moduleRegistry.findDefinitions("trigger1"))
+				.thenReturn(definitions);
+		when(moduleRegistry.findDefinitions("triggerLast")).thenReturn(
+				definitions);
+		when(moduleRegistry.findDefinitions("triggerFirst")).thenReturn(
+				definitions);
+		when(moduleRegistry.findDefinitions("trigger")).thenReturn(definitions);
+	}
 
 	private final String TRIGGER_DEFINITION = "trigger --cron='*/10 * * * * *'";
 

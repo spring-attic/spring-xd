@@ -14,21 +14,27 @@ package org.springframework.xd.dirt.stream;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.dirt.module.ModuleRegistry;
 
 /**
  * Responsible for deploying {@link TriggerDefinition}s.
  * 
  * @author Gunnar Hillert
  * @author Luke Taylor
+ * @author Glenn Renfro
  * @since 1.0
  * 
  */
 public class TriggerDeployer extends AbstractDeployer<TriggerDefinition> {
 
+	@Autowired
+	private ModuleRegistry moduleRegistry;
+
 	public TriggerDeployer(TriggerDefinitionRepository repository, DeploymentMessageSender messageSender,
-			StreamParser streamParser) {
-		super(repository, messageSender, streamParser, "trigger");
+			XDParser parser) {
+		super(repository, messageSender, parser, "trigger");
 	}
 
 	@Override
@@ -47,8 +53,8 @@ public class TriggerDeployer extends AbstractDeployer<TriggerDefinition> {
 		if (trigger == null) {
 			throwNoSuchDefinitionException(name);
 		}
-		StreamParser streamParser = new EnhancedStreamParser();
-		List<ModuleDeploymentRequest> requests = streamParser.parse(name, trigger.getDefinition());
+		List<ModuleDeploymentRequest> requests = parse(name,
+				trigger.getDefinition());
 		for (ModuleDeploymentRequest request : requests) {
 			request.setRemove(true);
 		}

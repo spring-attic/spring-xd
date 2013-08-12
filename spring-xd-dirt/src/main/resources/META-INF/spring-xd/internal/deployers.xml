@@ -8,9 +8,10 @@
 	<int:channel id="deployChannel" />
 
 	<int:channel id="undeployChannel" />
-	
+
 	<bean id="parser" class="org.springframework.xd.dirt.stream.EnhancedStreamParser">
 		<constructor-arg ref="streamDefinitionRepository"/>
+		<constructor-arg name="moduleRegistry" ref="moduleRegistry"/>
 	</bean>
 
 	<bean id="deploymentMessageSender" class="org.springframework.xd.dirt.stream.DeploymentMessageSender">
@@ -22,27 +23,27 @@
 		<constructor-arg name="messageSender" ref="deploymentMessageSender" />
 		<constructor-arg name="repository" ref="streamDefinitionRepository" />
 		<constructor-arg name="streamRepository" ref="streamRepository"/>
-		<constructor-arg ref="parser" />
+		<constructor-arg name="parser" ref="parser" />
 	</bean>
 
 	<bean id="tapDeployer" class="org.springframework.xd.dirt.stream.TapDeployer">
 		<constructor-arg name="repository" ref="tapRepository" />
 		<constructor-arg name="streamDefinitionRepository" ref="streamDefinitionRepository" />
 		<constructor-arg name="messageSender" ref="deploymentMessageSender" />
-		<constructor-arg ref="parser" />
+		<constructor-arg name="parser" ref="parser" />
 		<constructor-arg name="tapInstanceRepository" ref="tapInstanceRepository" />
 	</bean>
 
 	<bean id="jobDeployer" class="org.springframework.xd.dirt.stream.JobDeployer">
 		<constructor-arg name="repository" ref="jobRepository" />
 		<constructor-arg name="messageSender" ref="deploymentMessageSender" />
-		<constructor-arg ref="parser" />
+		<constructor-arg name="parser" ref="parser" />
 	</bean>
 
 	<bean id="triggerDeployer" class="org.springframework.xd.dirt.stream.TriggerDeployer">
 		<constructor-arg ref="triggerRepository"/>
 		<constructor-arg ref="deploymentMessageSender" />
-		<constructor-arg ref="parser" />
+		<constructor-arg name="parser" ref="parser" />
 	</bean>
 
 </beans>

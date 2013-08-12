@@ -12,26 +12,38 @@
  */
 package org.springframework.xd.dirt.stream;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import org.springframework.core.io.Resource;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.SubscribableChannel;
+import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.stream.memory.InMemoryStreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.memory.InMemoryTapDefinitionRepository;
 import org.springframework.xd.dirt.stream.memory.InMemoryTapInstanceRepository;
-
-import static org.junit.Assert.*;
+import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleType;
 
 /**
  * @author David Turanski
  * @author Gunnar Hillert
+ * @author Glenn Renfro
  */
 public class TapDeployerTests {
 
@@ -57,7 +69,7 @@ public class TapDeployerTests {
 		deployChannel = new DirectChannel();
 		undeployChannel = new PublishSubscribeChannel();
 		sender = new DeploymentMessageSender(deployChannel, undeployChannel);
-		StreamParser parser = new EnhancedStreamParser(streamDefinitionRepository);
+		XDParser parser = new EnhancedStreamParser(streamDefinitionRepository,moduleRegistry());
 		tapDeployer = new TapDeployer(repository, streamDefinitionRepository, sender, parser, tapInstanceRepository);
 	}
 
@@ -123,5 +135,29 @@ public class TapDeployerTests {
 	public void clearRepos() {
 		repository.deleteAll();
 		streamDefinitionRepository.deleteAll();
+	}
+
+	public ModuleRegistry moduleRegistry() {
+		ModuleRegistry registry = mock(ModuleRegistry.class);
+		Resource resource = mock(Resource.class);
+		File file = mock(File.class);
+		when(file.exists()).thenReturn(true);
+		try {
+			when(resource.getFile()).thenReturn(file);
+		} catch (IOException ioe) {
+			throw new RuntimeException(ioe);
+		}
+		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
+		definitions.add(new ModuleDefinition(ModuleType.TAP.getTypeName(),
+				ModuleType.TAP.name(), resource));
+		when(registry.findDefinitions(ModuleType.TAP.getTypeName()))
+				.thenReturn(definitions);
+
+		definitions = new ArrayList<ModuleDefinition>();
+		definitions.add(new ModuleDefinition(ModuleType.SINK.getTypeName(),
+				ModuleType.SINK.name(), resource));
+		when(registry.findDefinitions("file")).thenReturn(definitions);
+
+		return registry;
 	}
 }

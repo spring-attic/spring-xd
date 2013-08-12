@@ -33,9 +33,9 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 
 	private static final String DEPLOYER_TYPE = "job";
 
-	public JobDeployer(JobDefinitionRepository repository, DeploymentMessageSender messageSender,
-			StreamParser streamParser) {
-		super(repository, messageSender, streamParser, DEPLOYER_TYPE);
+	public JobDeployer(JobDefinitionRepository repository,
+			DeploymentMessageSender messageSender, XDParser parser) {
+		super(repository, messageSender, parser, DEPLOYER_TYPE);
 	}
 
 	@Override
@@ -90,8 +90,8 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 		if (job == null) {
 			throwNoSuchDefinitionException(name);
 		}
-		StreamParser streamParser = new EnhancedStreamParser();
-		List<ModuleDeploymentRequest> requests = streamParser.parse(name, job.getDefinition());
+		List<ModuleDeploymentRequest> requests = parse(name,
+				job.getDefinition());
 		for (ModuleDeploymentRequest request : requests) {
 			request.setRemove(true);
 		}

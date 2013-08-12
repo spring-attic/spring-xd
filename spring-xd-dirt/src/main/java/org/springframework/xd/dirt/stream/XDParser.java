@@ -23,7 +23,7 @@ import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 /**
  * @author Mark Fisher
  */
-public interface StreamParser {
+public interface XDParser {
 
 	List<ModuleDeploymentRequest> parse(String name, String config);
 

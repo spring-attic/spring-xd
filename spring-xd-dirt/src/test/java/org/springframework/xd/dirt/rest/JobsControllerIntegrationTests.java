@@ -16,54 +16,91 @@
 
 package org.springframework.xd.dirt.rest;
 
+import static org.mockito.Matchers.anyListOf;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.ArrayList;
+
 import org.hamcrest.Matchers;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.stream.DeploymentMessageSender;
-
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleType;
 
 /**
  * Tests REST compliance of jobs-related endpoints.
- * 
+ *
  * @author Glenn Renfro
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = { RestConfiguration.class, Dependencies.class })
-public class JobsControllerIntegrationTests extends AbstractControllerIntegrationTest {
+public class JobsControllerIntegrationTests extends
+		AbstractControllerIntegrationTest {
 
 	@Autowired
 	private DeploymentMessageSender sender;
 
+	@Autowired
+	private ModuleRegistry moduleRegistry;
+
+	@Before
+	public void before() {
+		Resource resource = mock(Resource.class);
+		when(resource.exists()).thenReturn(true);
+		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
+		definitions.add(new ModuleDefinition(ModuleType.JOB.getTypeName(),
+				ModuleType.JOB.getTypeName(), resource));
+		when(moduleRegistry.findDefinitions(ModuleType.JOB.getTypeName()))
+				.thenReturn(definitions);
+		when(moduleRegistry.findDefinitions("job1")).thenReturn(definitions);
+		when(moduleRegistry.findDefinitions("job2")).thenReturn(definitions);
+	}
+
 	@Test
 	public void testSuccessfulJobCreation() throws Exception {
 		mockMvc.perform(
-				post("/jobs").param("name", "job1").param("definition", "Job --cron='*/10 * * * * *'")
+				post("/jobs").param("name", "job1")
+						.param("definition", "job --cron='*/10 * * * * *'")
 						.accept(MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 	}
 
 	@Test
 	public void testSuccessfulJobCreateAndDeploy() throws Exception {
 		mockMvc.perform(
-				post("/jobs").param("name", "job5").param("definition", "Job --cron='*/10 * * * * *'")
+				post("/jobs").param("name", "job5")
+						.param("definition", "job --cron='*/10 * * * * *'")
 						.accept(MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 		verify(sender, times(1)).sendDeploymentRequests(eq("job5"), anyListOf(ModuleDeploymentRequest.class));
 	}
 
 	@Test
 	public void testSuccessfulJobDeletion() throws Exception {
+		mockMvc.perform(delete("/jobs/{name}", "job1"));
 		mockMvc.perform(
-				post("/jobs").param("name", "job1").param("definition", "Job --cron='*/10 * * * * *'")
+				post("/jobs").param("name", "job1")
+						.param("definition", "job --cron='*/10 * * * * *'")
 						.accept(MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 
 		mockMvc.perform(delete("/jobs/{name}", "job1")).andExpect(status().isOk());
@@ -72,10 +109,12 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 	@Test
 	public void testListAllJobs() throws Exception {
 		mockMvc.perform(
-				post("/jobs").param("name", "job1").param("definition", "Job --cron='*/10 * * * * *'")
+				post("/jobs").param("name", "job1")
+						.param("definition", "job --cron='*/10 * * * * *'")
 						.accept(MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 		mockMvc.perform(
-				post("/jobs").param("name", "job2").param("definition", "Job --cron='*/10 * * * * *'")
+				post("/jobs").param("name", "job2")
+						.param("definition", "job --cron='*/10 * * * * *'")
 						.accept(MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 
 		mockMvc.perform(get("/jobs").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
@@ -105,10 +144,12 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 	@Test
 	public void testCreateOnAlreadyCreatedJob() throws Exception {
 		mockMvc.perform(
-				post("/jobs").param("name", "job1").param("definition", "Job --cron='*/10 * * * * *'")
+				post("/jobs").param("name", "job1")
+						.param("definition", "job --cron='*/10 * * * * *'")
 						.accept(MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 		mockMvc.perform(
-				post("/jobs").param("name", "job1").param("definition", "Job --cron='*/10 * * * * *'")
+				post("/jobs").param("name", "job1")
+						.param("definition", "job --cron='*/10 * * * * *'")
 						.accept(MediaType.APPLICATION_JSON)).andExpect(status().isBadRequest());
 	}
 
@@ -120,7 +161,9 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 	@Test
 	public void testInvalidDefinitionCreate() throws Exception {
 		mockMvc.perform(
-				post("/jobs").param("name", "job1").param("definition", "Job adsfa").accept(MediaType.APPLICATION_JSON))
+				post("/jobs").param("name", "job1")
+						.param("definition", "job adsfa")
+						.accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isBadRequest());
 
 		mockMvc.perform(get("/jobs").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk())

@@ -20,11 +20,8 @@ package org.springframework.xd.module;
  * @author Glenn Renfro
  */
 public enum ModuleType {
-	SOURCE ("source"),
-	PROCESSOR ("processor"),
-	SINK("sink"),
-	TRIGGER("trigger"),
-	JOB("job");
+	SOURCE("source"), PROCESSOR("processor"), SINK("sink"), TRIGGER("trigger"), TAP(
+			"tap"), JOB("job");
 
 
 	String typeName;
@@ -33,6 +30,10 @@ public enum ModuleType {
 	}
 	public String toString(){
 		return this.typeName;
+	}
+
+	public String getTypeName() {
+		return typeName;
 	}
 	public boolean equals(String s){
 		if(valueOf(s.toUpperCase()).equals(this)){

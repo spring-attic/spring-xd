@@ -16,25 +16,42 @@
 
 package org.springframework.xd.dirt.rest;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Matchers.anyListOf;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.ArrayList;
+
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.stream.DeploymentMessageSender;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.TapDefinition;
-
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleType;
 
 /**
  * Tests REST compliance of taps-related endpoints.
@@ -42,6 +59,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author Eric Bottard
  * @author David Turanski
  * @author Gunnar Hillert
+ * @author Glenn Renfro
  * 
  * @since 1.0
  * 
@@ -56,6 +74,43 @@ public class TapsControllerIntegrationTests extends AbstractControllerIntegratio
 
 	@Autowired
 	private TapsController tapsController;
+
+	@Autowired
+	private ModuleRegistry moduleRegistry;
+
+	@Before
+	public void before() {
+		Resource resource = mock(Resource.class);
+		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
+		definitions.add(new ModuleDefinition(ModuleType.TAP.getTypeName(),
+				ModuleType.TAP.getTypeName(), resource));
+		when(moduleRegistry.findDefinitions(ModuleType.TAP.getTypeName()))
+				.thenReturn(definitions);
+
+		definitions.add(new ModuleDefinition(ModuleType.SOURCE.getTypeName(),
+				ModuleType.SOURCE.getTypeName(), resource));
+		when(moduleRegistry.findDefinitions(ModuleType.SOURCE.getTypeName()))
+				.thenReturn(definitions);
+
+		definitions = new ArrayList<ModuleDefinition>();
+		definitions.add(new ModuleDefinition(ModuleType.SINK.getTypeName(),
+				ModuleType.SINK.getTypeName(), resource));
+		when(moduleRegistry.findDefinitions(ModuleType.SINK.getTypeName()))
+				.thenReturn(definitions);
+
+		definitions = new ArrayList<ModuleDefinition>();
+		definitions.add(new ModuleDefinition(
+				ModuleType.PROCESSOR.getTypeName(), ModuleType.PROCESSOR
+						.getTypeName(), resource));
+		when(moduleRegistry.findDefinitions(ModuleType.PROCESSOR.getTypeName()))
+				.thenReturn(definitions);
+
+		definitions = new ArrayList<ModuleDefinition>();
+		definitions.add(new ModuleDefinition(ModuleType.SINK.getTypeName(),
+				ModuleType.SINK.getTypeName(), resource));
+		when(moduleRegistry.findDefinitions("log")).thenReturn(definitions);
+
+	}
 
 	@Test
 	public void testListAllTaps() throws Exception {

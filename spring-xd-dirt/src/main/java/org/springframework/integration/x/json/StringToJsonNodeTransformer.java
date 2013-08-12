@@ -21,19 +21,25 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Transforms a String to a {@link JsonNode}
+ * Transforms a String to a {@link JsonNode}.
+ * 
  * @author David Turanski
- *
  */
 public class StringToJsonNodeTransformer {
 	private ObjectMapper mapper = new ObjectMapper();
+
 	public JsonNode transform(Object json) {
+		if (json instanceof JsonNode) {
+			return (JsonNode) json;
+		}
 		try {
-			return mapper.readTree((String)json);
-		} catch (JsonParseException e) {
-			throw new MessageTransformationException("unable to parse input: " + e.getMessage(),e);
-		} catch (IOException e) {
-			throw new MessageTransformationException("unable to save json parser: " + e.getMessage(),e);
+			return mapper.readTree((String) json);
+		}
+		catch (JsonParseException e) {
+			throw new MessageTransformationException("unable to parse input: " + e.getMessage(), e);
+		}
+		catch (IOException e) {
+			throw new MessageTransformationException("unable to save json parser: " + e.getMessage(), e);
 		}
 	}
 }

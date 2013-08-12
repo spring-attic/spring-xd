@@ -33,6 +33,7 @@ import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.xd.rest.client.AggregateCounterOperations;
+import org.springframework.xd.rest.client.AggregateCounterOperations.Resolution;
 import org.springframework.xd.rest.client.domain.metrics.AggregateCountsResource;
 import org.springframework.xd.rest.client.domain.metrics.MetricResource;
 import org.springframework.xd.shell.XDShell;
@@ -58,8 +59,6 @@ public class AggregateCounterCommands extends AbstractMetricsCommands implements
 
 	private static final String DELETE_AGGR_COUNTER = "aggregatecounter delete";
 
-	private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
 	@Autowired
 	private XDShell xdShell;
 
@@ -70,26 +69,26 @@ public class AggregateCounterCommands extends AbstractMetricsCommands implements
 
 	@CliCommand(value = DISPLAY_AGGR_COUNTER, help = "Display aggregate counter values by chosen interval and resolution(minute, hour)")
 	public Table display(
-			@CliOption(key = { "", "name" }, help = "the name of the aggregate counter to display", mandatory = true)
+			@CliOption(key = { "", "name" }, help = "the name of the aggregate counter to display", mandatory = true, optionContext = "existing-aggregate-counter disable-string-converter")
 			String name,
 			@CliOption(key = "from", help = "start-time for the interval. format: 'yyyy-MM-dd HH:mm:ss'", mandatory = false)
 			String from,
-			@CliOption(key = "to", help = "end-time for the interval. format: 'yyyy-MM-dd HH:mm:ss'. default to now", mandatory = false)
+			@CliOption(key = "to", help = "end-time for the interval. format: 'yyyy-MM-dd HH:mm:ss'. defaults to now", mandatory = false)
 			String to,
 			@CliOption(key = "lastHours", help = "set the interval to last 'n' hours", mandatory = false)
 			Integer lastHours,
 			@CliOption(key = "lastDays", help = "set the interval to last 'n' days", mandatory = false)
 			Integer lastDays,
 			@CliOption(key = "resolution", help = "the size of the bucket to aggregate (minute, hour)", mandatory = false, unspecifiedDefaultValue = "hour")
-			String resolution,
+			Resolution resolution,
 			@CliOption(key = "pattern", help = "the pattern used to format the count values (see DecimalFormat)", mandatory = false, unspecifiedDefaultValue = NumberFormatConverter.DEFAULT)
 			NumberFormat pattern) {
 
-		Assert.isTrue(Resolution.contains(resolution), "Supported resolution options are 'hour' and 'minute'");
 		if (from != null) {
 			Assert.isTrue((lastHours == null && lastDays == null), "Either specify 'from' or 'lastHours' or 'lastDays'");
 		}
 		AggregateCountsResource aggResource;
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		try {
 			Date nowDate = new Date();
 			Date fromDate = (from == null) ? null : dateFormat.parse(from);
@@ -115,9 +114,9 @@ public class AggregateCounterCommands extends AbstractMetricsCommands implements
 		return displayMetrics(list);
 	}
 
-	@CliCommand(value = DELETE_AGGR_COUNTER, help = "Delete the aggregate counter")
+	@CliCommand(value = DELETE_AGGR_COUNTER, help = "Delete an aggregate counter")
 	public String delete(
-			@CliOption(key = { "", "name" }, help = "the name of the aggregate counter to delete", mandatory = true)
+			@CliOption(key = { "", "name" }, help = "the name of the aggregate counter to delete", mandatory = true, optionContext = "existing-aggregate-counter disable-string-converter")
 			String name) {
 		aggrCounterOperations().delete(name);
 		return String.format("Deleted aggregatecounter '%s'", name);
@@ -145,28 +144,5 @@ public class AggregateCounterCommands extends AbstractMetricsCommands implements
 		t.newRow().addValue(1, errorMessage);
 		return t;
 	}
-
-	private static enum Resolution {
-		minute("minute"), hour("hour");
-
-		private String resolution;
-
-		private Resolution(String resolution) {
-			this.resolution = resolution;
-		}
-
-		public String getResolution() {
-			return resolution;
-		}
-
-		public static boolean contains(String resolution) {
-			for (Resolution value : Resolution.values()) {
-				if (value.getResolution().equals(resolution)) {
-					return true;
-				}
-			}
-			return false;
-		}
-	};
 
 }

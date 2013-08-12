@@ -51,7 +51,7 @@ public class TriggerTemplate extends AbstractTemplate implements TriggerOperatio
 	 * Returns a {@link List} of {@link TriggerDefinitionResource}s.
 	 */
 	@Override
-	public TriggerDefinitionResource.Page listTriggers() {
+	public TriggerDefinitionResource.Page list() {
 		String uriTemplate = resources.get("triggers").toString();
 		// TODO handle pagination at the client side
 		uriTemplate = uriTemplate + "?size=10000";

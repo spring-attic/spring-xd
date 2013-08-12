@@ -55,7 +55,7 @@ public class TapTemplate extends AbstractTemplate implements TapOperations {
 	 * Returns a {@link List} of {@link TapDefinitionResource}s.
 	 */
 	@Override
-	public TapDefinitionResource.Page listTaps() {
+	public TapDefinitionResource.Page list() {
 		String uriTemplate = resources.get("taps").toString();
 		// TODO handle pagination at the client side
 		uriTemplate = uriTemplate + "?size=10000";

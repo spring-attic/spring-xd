@@ -62,11 +62,14 @@ public class FieldValueCounterCommands extends AbstractMetricsCommands implement
 		return xdShell.getSpringXDOperations() != null;
 	}
 
-	@CliCommand(value = DISPLAY_FV_COUNTER, help = "Display the field-value-counter value")
+	@CliCommand(value = DISPLAY_FV_COUNTER, help = "Display the value of a field-value-counter")
 	public Table display(
-			@CliOption(key = { "", "name" }, help = "the name of the field-value-counter to display", mandatory = true) String name,
-			@CliOption(key = "pattern", help = "the pattern used to format the field-value-counter's field count (see DecimalFormat)", mandatory = false, unspecifiedDefaultValue = NumberFormatConverter.DEFAULT) NumberFormat pattern,
-			@CliOption(key = { "size" }, help = "the number of values to display", mandatory = false, unspecifiedDefaultValue = "25") int size) {
+			@CliOption(key = { "", "name" }, help = "the name of the field-value-counter to display", mandatory = true, optionContext = "existing-fvc disable-string-converter")
+			String name,
+			@CliOption(key = "pattern", help = "the pattern used to format the field-value-counter's field count (see DecimalFormat)", mandatory = false, unspecifiedDefaultValue = NumberFormatConverter.DEFAULT)
+			NumberFormat pattern,
+			@CliOption(key = { "size" }, help = "the number of values to display", mandatory = false, unspecifiedDefaultValue = "25")
+			int size) {
 		FieldValueCounterResource fvcResource = fvcOperations().retrieve(name);
 		return displayFVCvalue(fvcResource, pattern, size);
 	}
@@ -77,9 +80,10 @@ public class FieldValueCounterCommands extends AbstractMetricsCommands implement
 		return displayMetrics(list);
 	}
 
-	@CliCommand(value = DELETE_FV_COUNTER, help = "Delete the field-value-counter")
+	@CliCommand(value = DELETE_FV_COUNTER, help = "Delete the field-value-counter with the given name")
 	public String delete(
-			@CliOption(key = { "", "name" }, help = "the name of the field-value-counter to delete", mandatory = true) String name) {
+			@CliOption(key = { "", "name" }, help = "the name of the field-value-counter to delete", mandatory = true, optionContext = "existing-fvc disable-string-converter")
+			String name) {
 		fvcOperations().delete(name);
 		return String.format("Deleted field-value-counter '%s'", name);
 	}
@@ -94,8 +98,8 @@ public class FieldValueCounterCommands extends AbstractMetricsCommands implement
 		TreeMap<String, Double> sortedFvc = new TreeMap<String, Double>(fvc);
 		sortedFvc.putAll(fieldValueCounts);
 		Table t = new Table();
-		t.addHeader(1, new TableHeader("FieldName=" + fvcResource.getName())).addHeader(2, new TableHeader("")).addHeader(
-				3, new TableHeader(""));
+		t.addHeader(1, new TableHeader("FieldName=" + fvcResource.getName())).addHeader(2, new TableHeader(""))
+				.addHeader(3, new TableHeader(""));
 		t.newRow().addValue(1, "VALUE").addValue(2, "-").addValue(3, "COUNT");
 		int rowSize = 1;
 		for (Map.Entry<String, Double> entry : sortedFvc.entrySet()) {

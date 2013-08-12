@@ -19,20 +19,14 @@ package org.springframework.xd.rest.client.domain;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.springframework.hateoas.PagedResources;
-import org.springframework.hateoas.ResourceSupport;
 
 /**
  * Represents a stream definition, <i>i.e.</i> a flow of data in the system.
- *
+ * 
  * @author Eric Bottard
  */
 @XmlRootElement
-public class StreamDefinitionResource extends ResourceSupport {
-
-	/**
-	 * The name of the stream definition.
-	 */
-	private String name;
+public class StreamDefinitionResource extends NamedResource {
 
 	/**
 	 * The DSL representation of this stream definition.
@@ -47,12 +41,8 @@ public class StreamDefinitionResource extends ResourceSupport {
 	}
 
 	public StreamDefinitionResource(String name, String definition) {
-		this.name = name;
+		super(name);
 		this.definition = definition;
-	}
-
-	public String getName() {
-		return name;
 	}
 
 	public String getDefinition() {
@@ -61,7 +51,7 @@ public class StreamDefinitionResource extends ResourceSupport {
 
 	/**
 	 * Dedicated subclass to workaround type erasure.
-	 *
+	 * 
 	 * @author Eric Bottard
 	 */
 	public static class Page extends PagedResources<StreamDefinitionResource> {

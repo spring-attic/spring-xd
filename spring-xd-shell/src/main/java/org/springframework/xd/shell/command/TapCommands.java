@@ -32,10 +32,10 @@ import org.springframework.xd.shell.util.TableRow;
 
 /**
  * Tap commands.
- *
+ * 
  * @author Ilayaperumal Gopinathan
  * @author Gunnar Hillert
- *
+ * 
  * @since 1.0
  */
 
@@ -65,14 +65,13 @@ public class TapCommands implements CommandMarker {
 			@CliOption(key = "deploy", help = "whether to deploy the tap immediately", unspecifiedDefaultValue = "true")
 			boolean autoStart) {
 		tapOperations().createTap(name, dsl, autoStart);
-		return String.format((autoStart ? "Created and deployed new tap '%s'"
-				: "Created new tap '%s'"), name);
+		return String.format((autoStart ? "Created and deployed new tap '%s'" : "Created new tap '%s'"), name);
 	}
 
 	@CliCommand(value = LIST_TAPS, help = "List all taps")
 	public Table listTaps() {
 
-		final PagedResources<TapDefinitionResource> taps = tapOperations().listTaps();
+		final PagedResources<TapDefinitionResource> taps = tapOperations().list();
 
 		final Table table = new Table();
 		table.addHeader(1, new TableHeader("Tap Name")).addHeader(2, new TableHeader("Stream Name"))
@@ -90,7 +89,7 @@ public class TapCommands implements CommandMarker {
 
 	@CliCommand(value = DESTROY_TAP, help = "Destroy an existing tap")
 	public String destroyTap(
-			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the tap to destroy")
+			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the tap to destroy", optionContext = "existing-tap disable-string-converter")
 			String name) {
 		tapOperations().destroyTap(name);
 		return String.format("Destroyed tap '%s'", name);

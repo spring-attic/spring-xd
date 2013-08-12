@@ -16,7 +16,6 @@
 
 package org.springframework.xd.rest.client;
 
-import java.text.ParseException;
 import java.util.Date;
 
 import org.springframework.hateoas.PagedResources;
@@ -35,7 +34,7 @@ public interface AggregateCounterOperations {
 	 * 
 	 * @param name the name of the aggregate counter to retrieve information for
 	 */
-	AggregateCountsResource retrieve(String name, Date from, Date to, String resolution) throws ParseException;
+	AggregateCountsResource retrieve(String name, Date from, Date to, String resolution);
 
 	/**
 	 * List the names of the available aggregate counters

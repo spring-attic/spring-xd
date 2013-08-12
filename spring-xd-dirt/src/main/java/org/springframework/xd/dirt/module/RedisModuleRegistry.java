@@ -51,7 +51,7 @@ public class RedisModuleRegistry extends AbstractModuleRegistry {
 		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
 		for (ModuleType type : ModuleType.values()) {
 			Resource resource = loadResource(name, type.name());
-			if (resource.exists()) {
+			if (resource != null) {
 				ModuleDefinition moduleDef = new ModuleDefinition(name, type.getTypeName(), resource);
 				definitions.add(moduleDef);
 			}

@@ -43,7 +43,10 @@ public class FileModuleRegistry extends AbstractModuleRegistry {
 	@Override
 	protected Resource loadResource(String name, String type) {
 		File file = new File(directory, type + File.separator + name + ".xml");
-		return new FileSystemResource(file);
+		if (file.exists()) {
+			return new FileSystemResource(file);
+		}
+		return null;
 	}
 
 	@Override
@@ -51,7 +54,7 @@ public class FileModuleRegistry extends AbstractModuleRegistry {
 		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
 		for (ModuleType type : ModuleType.values()) {
 			Resource resource = loadResource(name, type.name());
-			if (resource.exists()) {
+			if (resource != null) {
 				ModuleDefinition moduleDef = new ModuleDefinition(name, type.getTypeName(), resource);
 				definitions.add(moduleDef);
 			}

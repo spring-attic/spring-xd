@@ -105,6 +105,11 @@ public class EnhancedStreamParser implements XDParser {
 	}
 
 	private String determineType(ModuleDeploymentRequest request, int lastIndex) {
+		String type = getNamedChannelModuleType(request, lastIndex);
+		if (type != null) {
+			return type;
+		}
+		// if not a named channel use the registry to determine type.
 		String name = request.getModule();
 		int index = request.getIndex();
 		List<ModuleDefinition> defs = moduleRegistry.findDefinitions(name);
@@ -118,26 +123,52 @@ public class EnhancedStreamParser implements XDParser {
 		// now if you receive more than one response lets use some position
 		// logic to figure this thing out.
 		if (index == 0) {
-			for (ModuleDefinition def : defs) {// this should be a trigger or a
-												// job so let's check there.
+			for (ModuleDefinition def : defs) {
 				if (def.getType().equals(ModuleType.JOB.getTypeName())
 						|| def.getType().equals(ModuleType.TRIGGER.getTypeName())
 						|| def.getType().equals(ModuleType.SOURCE.getTypeName())) {
-					return def.getType();
+					type = def.getType();
 				}
 			}
 		}
-		else if (index == lastIndex) {// sometimes a module can be both a source and a
-										// sink
-			for (ModuleDefinition def : defs) {// this should be a trigger or a
-				// job so let's check there.
+		else if (index == lastIndex) {// a module can be both a source and a sink
+			for (ModuleDefinition def : defs) {
 				if (def.getType().equals(ModuleType.SINK.getTypeName())) {
-					return def.getType();
+					type = def.getType();
 				}
 			}
 		}
-		// if all else fails return the first type in the list.
-		return defs.get(0).getType();
+		if (type == null) {
+			throw new RuntimeException("Module definition is missing for " + name);
+		}
+		return type;
+	}
 
+	private String getNamedChannelModuleType(ModuleDeploymentRequest request, int lastIndex) {
+		String type = null;
+		String moduleName = request.getModule();
+		int index = request.getIndex();
+		if (request.getSourceChannelName() != null) {
+			if (index == lastIndex) {
+				type = ModuleType.SINK.getTypeName();
+			}
+			else {
+				type = ModuleType.PROCESSOR.getTypeName();
+			}
+		}
+		else if (request.getSinkChannelName() != null) {
+			if (index == 0) {
+				type = ModuleType.SOURCE.getTypeName();
+			}
+			else {
+				type = ModuleType.PROCESSOR.getTypeName();
+			}
+		}
+		return (type == null) ? null : verifyModuleOfTypeExists(moduleName, type);
+	}
+
+	private String verifyModuleOfTypeExists(String moduleName, String type) {
+		ModuleDefinition def = moduleRegistry.lookup(moduleName, type);
+		return (def == null) ? null : def.getType();
 	}
 }

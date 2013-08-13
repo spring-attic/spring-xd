@@ -16,23 +16,21 @@
 
 package org.springframework.xd.dirt.stream;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.Resource;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
+
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Mark Fisher
@@ -94,7 +92,7 @@ public class EnhancedStreamParserTests {
 	public void quotesInParams() {
 		List<ModuleDeploymentRequest> requests = parser.parse("test", "foo --bar='payload.matches(''hello'')' | file");
 		assertEquals(2, requests.size());
-		//		ModuleDeploymentRequest sink = requests.get(0);
+		// ModuleDeploymentRequest sink = requests.get(0);
 		ModuleDeploymentRequest source = requests.get(1);
 		assertEquals("foo", source.getModule());
 		assertEquals("test", source.getGroup());
@@ -107,7 +105,8 @@ public class EnhancedStreamParserTests {
 
 	@Test
 	public void quotesInParams2() {
-		List<ModuleDeploymentRequest> requests = parser.parse("test", "http --port=9700 | filter --expression=payload.matches('hello world') | file");
+		List<ModuleDeploymentRequest> requests = parser.parse("test",
+				"http --port=9700 | filter --expression=payload.matches('hello world') | file");
 		assertEquals(3, requests.size());
 		ModuleDeploymentRequest filter = requests.get(1);
 		assertEquals("filter", filter.getModule());
@@ -144,8 +143,7 @@ public class EnhancedStreamParserTests {
 
 	@Test
 	public void sourceChannelNameIsAppliedToSourceModule() throws Exception {
-		List<ModuleDeploymentRequest> requests = parser.parse("test",
-				":foo > goo | blah | file");
+		List<ModuleDeploymentRequest> requests = parser.parse("test", ":foo > goo | blah | file");
 		assertEquals(3, requests.size());
 		assertEquals("foo", requests.get(2).getSourceChannelName());
 		assertEquals("processor", requests.get(2).getType());
@@ -155,8 +153,7 @@ public class EnhancedStreamParserTests {
 
 	@Test
 	public void sinkChannelNameIsAppliedToSinkModule() throws Exception {
-		List<ModuleDeploymentRequest> requests = parser.parse("test",
-				"boo | blah | aaak > :foo");
+		List<ModuleDeploymentRequest> requests = parser.parse("test", "boo | blah | aaak > :foo");
 		assertEquals(3, requests.size());
 		assertEquals("foo", requests.get(0).getSinkChannelName());
 		assertEquals("processor", requests.get(0).getType());
@@ -164,45 +161,51 @@ public class EnhancedStreamParserTests {
 		assertEquals("source", requests.get(2).getType());
 	}
 
+	@Test
+	public void simpleSinkNamedChannel() throws Exception {
+		List<ModuleDeploymentRequest> requests = parser.parse("test", "bar > :foo");
+		assertEquals(1, requests.size());
+		assertEquals("foo", requests.get(0).getSinkChannelName());
+		assertEquals("sink", requests.get(0).getType());
+	}
+
+	@Test
+	public void simpleSourceNamedChannel() throws Exception {
+		List<ModuleDeploymentRequest> requests = parser.parse("test", ":foo > boo");
+		assertEquals(1, requests.size());
+		assertEquals("foo", requests.get(0).getSourceChannelName());
+		assertEquals("source", requests.get(0).getType());
+	}
+
 	@Bean
 	public ModuleRegistry moduleRegistry() {
 		ModuleRegistry registry = mock(ModuleRegistry.class);
 		Resource resource = mock(Resource.class);
 		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(new ModuleDefinition(ModuleType.SOURCE.name(),
-				ModuleType.SOURCE.getTypeName(), resource));
-		when(registry.findDefinitions(ModuleType.SOURCE.getTypeName()))
-				.thenReturn(definitions);
+		definitions.add(new ModuleDefinition(ModuleType.SOURCE.name(), ModuleType.SOURCE.getTypeName(), resource));
+		when(registry.findDefinitions(ModuleType.SOURCE.getTypeName())).thenReturn(definitions);
 		when(registry.findDefinitions("foo")).thenReturn(definitions);
 		when(registry.findDefinitions("boo")).thenReturn(definitions);
 		when(registry.findDefinitions("http")).thenReturn(definitions);
 
 		definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(new ModuleDefinition(ModuleType.SINK.getTypeName(),
-				ModuleType.SINK.getTypeName(), resource));
-		when(registry.findDefinitions(ModuleType.SINK.getTypeName()))
-				.thenReturn(definitions);
+		definitions.add(new ModuleDefinition(ModuleType.SINK.getTypeName(), ModuleType.SINK.getTypeName(), resource));
+		when(registry.findDefinitions(ModuleType.SINK.getTypeName())).thenReturn(definitions);
 		when(registry.findDefinitions("file")).thenReturn(definitions);
 		when(registry.findDefinitions("bar")).thenReturn(definitions);
 
-
 		definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(new ModuleDefinition(
-				ModuleType.PROCESSOR.getTypeName(), ModuleType.PROCESSOR
-						.getTypeName(), resource));
-		when(registry.findDefinitions(ModuleType.PROCESSOR.getTypeName()))
-				.thenReturn(definitions);
+		definitions.add(new ModuleDefinition(ModuleType.PROCESSOR.getTypeName(), ModuleType.PROCESSOR.getTypeName(),
+				resource));
+		when(registry.findDefinitions(ModuleType.PROCESSOR.getTypeName())).thenReturn(definitions);
 		when(registry.findDefinitions("blah")).thenReturn(definitions);
 		when(registry.findDefinitions("filter")).thenReturn(definitions);
 		when(registry.findDefinitions("goo")).thenReturn(definitions);
 		when(registry.findDefinitions("aaak")).thenReturn(definitions);
 
-
 		definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(new ModuleDefinition(ModuleType.JOB.getTypeName(),
-				ModuleType.JOB.getTypeName(), resource));
-		when(registry.findDefinitions(ModuleType.JOB.getTypeName()))
-				.thenReturn(definitions);
+		definitions.add(new ModuleDefinition(ModuleType.JOB.getTypeName(), ModuleType.JOB.getTypeName(), resource));
+		when(registry.findDefinitions(ModuleType.JOB.getTypeName())).thenReturn(definitions);
 
 		return registry;
 	}

@@ -16,29 +16,12 @@
 
 package org.springframework.xd.dirt.rest;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.mockito.Matchers.anyListOf;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import java.util.ArrayList;
 
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
@@ -52,6 +35,12 @@ import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.TapDefinition;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
+
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
  * Tests REST compliance of taps-related endpoints.
@@ -81,34 +70,33 @@ public class TapsControllerIntegrationTests extends AbstractControllerIntegratio
 	@Before
 	public void before() {
 		Resource resource = mock(Resource.class);
+		ModuleDefinition sinkDefinition = new ModuleDefinition(ModuleType.SINK.getTypeName(),
+				ModuleType.SINK.getTypeName(), resource);
+		ModuleDefinition sourceDefinition = new ModuleDefinition(ModuleType.SOURCE.getTypeName(),
+				ModuleType.SOURCE.getTypeName(), resource);
+
 		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(new ModuleDefinition(ModuleType.TAP.getTypeName(),
-				ModuleType.TAP.getTypeName(), resource));
-		when(moduleRegistry.findDefinitions(ModuleType.TAP.getTypeName()))
-				.thenReturn(definitions);
+		definitions.add(new ModuleDefinition(ModuleType.TAP.getTypeName(), ModuleType.TAP.getTypeName(), resource));
+		when(moduleRegistry.findDefinitions(ModuleType.TAP.getTypeName())).thenReturn(definitions);
 
-		definitions.add(new ModuleDefinition(ModuleType.SOURCE.getTypeName(),
-				ModuleType.SOURCE.getTypeName(), resource));
-		when(moduleRegistry.findDefinitions(ModuleType.SOURCE.getTypeName()))
-				.thenReturn(definitions);
+		definitions.add(sourceDefinition);
+		when(moduleRegistry.findDefinitions(ModuleType.SOURCE.getTypeName())).thenReturn(definitions);
 
 		definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(new ModuleDefinition(ModuleType.SINK.getTypeName(),
-				ModuleType.SINK.getTypeName(), resource));
-		when(moduleRegistry.findDefinitions(ModuleType.SINK.getTypeName()))
-				.thenReturn(definitions);
+		definitions.add(sinkDefinition);
+		when(moduleRegistry.findDefinitions(ModuleType.SINK.getTypeName())).thenReturn(definitions);
 
 		definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(new ModuleDefinition(
-				ModuleType.PROCESSOR.getTypeName(), ModuleType.PROCESSOR
-						.getTypeName(), resource));
-		when(moduleRegistry.findDefinitions(ModuleType.PROCESSOR.getTypeName()))
-				.thenReturn(definitions);
+		definitions.add(new ModuleDefinition(ModuleType.PROCESSOR.getTypeName(), ModuleType.PROCESSOR.getTypeName(),
+				resource));
+		when(moduleRegistry.findDefinitions(ModuleType.PROCESSOR.getTypeName())).thenReturn(definitions);
 
 		definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(new ModuleDefinition(ModuleType.SINK.getTypeName(),
-				ModuleType.SINK.getTypeName(), resource));
+		definitions.add(new ModuleDefinition(ModuleType.SINK.getTypeName(), ModuleType.SINK.getTypeName(), resource));
 		when(moduleRegistry.findDefinitions("log")).thenReturn(definitions);
+		when(moduleRegistry.lookup("log", "sink")).thenReturn(sinkDefinition);
+		when(moduleRegistry.lookup("time", "source")).thenReturn(sourceDefinition);
+		when(moduleRegistry.lookup("tap", "source")).thenReturn(sourceDefinition);
 
 	}
 
@@ -117,32 +105,31 @@ public class TapsControllerIntegrationTests extends AbstractControllerIntegratio
 		streamDefinitionRepository.save(new StreamDefinition("test", "time | log"));
 
 		mockMvc.perform(
-				post("/taps").param("name", "taplast").param("definition", "tap@ test | log")
-						.accept(MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
+				post("/taps").param("name", "taplast").param("definition", "tap@ test | log").accept(
+						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 		mockMvc.perform(
-				post("/taps").param("name", "tapfirst").param("definition", "tap@ test | log")
-						.accept(MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
+				post("/taps").param("name", "tapfirst").param("definition", "tap@ test | log").accept(
+						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 
-		mockMvc.perform(get("/taps").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
-				.andExpect(jsonPath("$.content", Matchers.hasSize(2)))
-				.andExpect(jsonPath("$.content[0].name").value("tapfirst"))
-				.andExpect(jsonPath("$.content[1].name").value("taplast"));
+		mockMvc.perform(get("/taps").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
+				jsonPath("$.content", Matchers.hasSize(2))).andExpect(jsonPath("$.content[0].name").value("tapfirst")).andExpect(
+				jsonPath("$.content[1].name").value("taplast"));
 	}
 
 	@Test
 	public void testSuccessfulTapCreation() throws Exception {
 		streamDefinitionRepository.save(new StreamDefinition("test", "time | log"));
 		mockMvc.perform(
-				post("/taps").param("name", "tap1").param("definition", "tap@ test | log")
-						.accept(MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
+				post("/taps").param("name", "tap1").param("definition", "tap@ test | log").accept(
+						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 	}
 
 	@Test
 	public void testSuccessfulTapCreateAndDeploy() throws Exception {
 		streamDefinitionRepository.save(new StreamDefinition("test", "time | log"));
 		mockMvc.perform(
-				post("/taps").param("name", "tap1").param("definition", "tap@ test | log")
-						.accept(MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
+				post("/taps").param("name", "tap1").param("definition", "tap@ test | log").accept(
+						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 		verify(sender, times(1)).sendDeploymentRequests(eq("tap1"), anyListOf(ModuleDeploymentRequest.class));
 	}
 
@@ -167,16 +154,16 @@ public class TapsControllerIntegrationTests extends AbstractControllerIntegratio
 		assertNull(tapInstanceRepository.findOne("myawesometap"));
 		streamDefinitionRepository.save(new StreamDefinition("test", "time | log"));
 		mockMvc.perform(
-				post("/taps").param("name", "myawesometap").param("definition", "tap@test | log")
-						.accept(MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
+				post("/taps").param("name", "myawesometap").param("definition", "tap@test | log").accept(
+						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 
 		verify(sender, times(1)).sendDeploymentRequests(eq("myawesometap"), anyListOf(ModuleDeploymentRequest.class));
 
 		assertNotNull(tapDefinitionRepository.findOne("myawesometap"));
 		assertNotNull(tapInstanceRepository.findOne("myawesometap"));
 
-		mockMvc.perform(put("/taps/myawesometap").param("deploy", "false").accept(MediaType.APPLICATION_JSON))
-				.andExpect(status().isOk());
+		mockMvc.perform(put("/taps/myawesometap").param("deploy", "false").accept(MediaType.APPLICATION_JSON)).andExpect(
+				status().isOk());
 
 		verify(sender, times(2)).sendDeploymentRequests(eq("myawesometap"), anyListOf(ModuleDeploymentRequest.class));
 

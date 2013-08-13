@@ -16,26 +16,12 @@
 
 package org.springframework.xd.dirt.rest;
 
-import static org.mockito.Matchers.anyListOf;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import java.util.ArrayList;
 
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
@@ -48,6 +34,11 @@ import org.springframework.xd.dirt.stream.DeploymentMessageSender;
 import org.springframework.xd.dirt.stream.TriggerDefinition;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
+
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
  * Tests REST compliance of taps-related endpoints.
@@ -76,16 +67,20 @@ public class TriggersControllerIntegrationTests extends AbstractControllerIntegr
 	@Before
 	public void before() {
 		Resource resource = mock(Resource.class);
+		ModuleDefinition triggerDefinition = new ModuleDefinition(ModuleType.TRIGGER.getTypeName(),
+				ModuleType.TRIGGER.getTypeName(), resource);
 		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(new ModuleDefinition(ModuleType.TRIGGER.getTypeName(),
-				ModuleType.TRIGGER.getTypeName(), resource));
-		when(moduleRegistry.findDefinitions("trigger1"))
-				.thenReturn(definitions);
-		when(moduleRegistry.findDefinitions("triggerLast")).thenReturn(
-				definitions);
-		when(moduleRegistry.findDefinitions("triggerFirst")).thenReturn(
-				definitions);
+		definitions.add(triggerDefinition);
+		when(moduleRegistry.findDefinitions("trigger1")).thenReturn(definitions);
+		when(moduleRegistry.findDefinitions("triggerLast")).thenReturn(definitions);
+		when(moduleRegistry.findDefinitions("triggerFirst")).thenReturn(definitions);
 		when(moduleRegistry.findDefinitions("trigger")).thenReturn(definitions);
+
+		when(moduleRegistry.lookup("trigger1", "trigger")).thenReturn(triggerDefinition);
+		when(moduleRegistry.lookup("triggerLast", "trigger")).thenReturn(triggerDefinition);
+		when(moduleRegistry.lookup("triggerFirst", "trigger")).thenReturn(triggerDefinition);
+		when(moduleRegistry.lookup("trigger", "trigger")).thenReturn(triggerDefinition);
+
 	}
 
 	private final String TRIGGER_DEFINITION = "trigger --cron='*/10 * * * * *'";
@@ -95,8 +90,8 @@ public class TriggersControllerIntegrationTests extends AbstractControllerIntegr
 
 		triggerDefinitionRepository.save(new TriggerDefinition("trigger1", TRIGGER_DEFINITION));
 
-		mockMvc.perform(get("/triggers/trigger1").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
-				.andExpect(jsonPath("$.name").value("trigger1"));
+		mockMvc.perform(get("/triggers/trigger1").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
+				jsonPath("$.name").value("trigger1"));
 	}
 
 	@Test
@@ -109,38 +104,38 @@ public class TriggersControllerIntegrationTests extends AbstractControllerIntegr
 	public void testListAllTriggers() throws Exception {
 
 		mockMvc.perform(
-				post("/triggers").param("name", "triggerlast").param("definition", TRIGGER_DEFINITION)
-						.accept(MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
+				post("/triggers").param("name", "triggerlast").param("definition", TRIGGER_DEFINITION).accept(
+						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 		mockMvc.perform(
-				post("/triggers").param("name", "triggerfirst").param("definition", TRIGGER_DEFINITION)
-						.accept(MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
+				post("/triggers").param("name", "triggerfirst").param("definition", TRIGGER_DEFINITION).accept(
+						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 
-		mockMvc.perform(get("/triggers").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
-				.andExpect(jsonPath("$.content", Matchers.hasSize(2)))
-				.andExpect(jsonPath("$.content[0].name").value("triggerfirst"))
-				.andExpect(jsonPath("$.content[1].name").value("triggerlast"));
+		mockMvc.perform(get("/triggers").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
+				jsonPath("$.content", Matchers.hasSize(2))).andExpect(
+				jsonPath("$.content[0].name").value("triggerfirst")).andExpect(
+				jsonPath("$.content[1].name").value("triggerlast"));
 	}
 
 	@Test
 	public void testSuccessfulTriggerCreation() throws Exception {
 		mockMvc.perform(
-				post("/triggers").param("name", "trigger1").param("definition", TRIGGER_DEFINITION)
-						.accept(MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
+				post("/triggers").param("name", "trigger1").param("definition", TRIGGER_DEFINITION).accept(
+						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 	}
 
 	@Test
 	public void testSuccessfulTriggerCreateAndDeploy() throws Exception {
 		mockMvc.perform(
-				post("/triggers").param("name", "trigger1").param("definition", TRIGGER_DEFINITION)
-						.accept(MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
+				post("/triggers").param("name", "trigger1").param("definition", TRIGGER_DEFINITION).accept(
+						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 		verify(sender, times(1)).sendDeploymentRequests(eq("trigger1"), anyListOf(ModuleDeploymentRequest.class));
 	}
 
 	@Test
 	public void testSuccessfulTriggerDeploy() throws Exception {
 		triggerDefinitionRepository.save(new TriggerDefinition("trigger1", TRIGGER_DEFINITION));
-		mockMvc.perform(put("/triggers/trigger1").param("deploy", "true").accept(MediaType.APPLICATION_JSON))
-				.andExpect(status().isOk());
+		mockMvc.perform(put("/triggers/trigger1").param("deploy", "true").accept(MediaType.APPLICATION_JSON)).andExpect(
+				status().isOk());
 		verify(sender, times(1)).sendDeploymentRequests(eq("trigger1"), anyListOf(ModuleDeploymentRequest.class));
 	}
 

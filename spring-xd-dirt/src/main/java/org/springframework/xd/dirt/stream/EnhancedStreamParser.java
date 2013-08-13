@@ -109,7 +109,6 @@ public class EnhancedStreamParser implements XDParser {
 		if (type != null) {
 			return type;
 		}
-		// if not a named channel use the registry to determine type.
 		String name = request.getModule();
 		int index = request.getIndex();
 		List<ModuleDefinition> defs = moduleRegistry.findDefinitions(name);
@@ -118,30 +117,26 @@ public class EnhancedStreamParser implements XDParser {
 			throw new RuntimeException("Module definition is missing for " + name);
 		}
 		if (defs.size() == 1) {
-			return defs.get(0).getType();
+			type = defs.get(0).getType();
 		}
-		// now if you receive more than one response lets use some position
-		// logic to figure this thing out.
-		if (index == 0) {
+		if (lastIndex == 0) {
 			for (ModuleDefinition def : defs) {
 				if (def.getType().equals(ModuleType.JOB.getTypeName())
-						|| def.getType().equals(ModuleType.TRIGGER.getTypeName())
-						|| def.getType().equals(ModuleType.SOURCE.getTypeName())) {
+						|| def.getType().equals(ModuleType.TRIGGER.getTypeName())) {
 					type = def.getType();
 				}
 			}
 		}
-		else if (index == lastIndex) {// a module can be both a source and a sink
-			for (ModuleDefinition def : defs) {
-				if (def.getType().equals(ModuleType.SINK.getTypeName())) {
-					type = def.getType();
-				}
-			}
+		else if (index == 0) {
+			type = "source";
+		}
+		else if (index == lastIndex) {
+			type = "sink";
 		}
 		if (type == null) {
 			throw new RuntimeException("Module definition is missing for " + name);
 		}
-		return type;
+		return verifyModuleOfTypeExists(name, type);
 	}
 
 	private String getNamedChannelModuleType(ModuleDeploymentRequest request, int lastIndex) {
@@ -169,6 +164,12 @@ public class EnhancedStreamParser implements XDParser {
 
 	private String verifyModuleOfTypeExists(String moduleName, String type) {
 		ModuleDefinition def = moduleRegistry.lookup(moduleName, type);
-		return (def == null) ? null : def.getType();
+		if (def == null || def.getResource() == null) {
+			throw new RuntimeException("Module definition is missing for " + moduleName + " with module type " + type
+					+ ".  Or the module is acting in a role in the "
+					+ "stream that it is not correct.  An example of this " + "is a log being used as a source.");
+		}
+		return def.getType();
 	}
+
 }

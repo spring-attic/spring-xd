@@ -163,51 +163,113 @@ public class EnhancedStreamParserTests {
 
 	@Test
 	public void simpleSinkNamedChannel() throws Exception {
-		List<ModuleDeploymentRequest> requests = parser.parse("test", "bar > :foo");
+		List<ModuleDeploymentRequest> requests = parser.parse("test", "bart > :foo");
 		assertEquals(1, requests.size());
 		assertEquals("foo", requests.get(0).getSinkChannelName());
-		assertEquals("sink", requests.get(0).getType());
+		assertEquals("source", requests.get(0).getType());
+	}
+
+	@Test
+	public void simpleSinkNamedChannelBadType() throws Exception {
+		// The parser will identify this as a Named channel sink and thus badLog will be
+		// labeled a source.
+		// But badLog is a sink and there should be an exception thrown by the parser.
+		boolean isException = false;
+		try {
+			parser.parse("test", "badLog > :foo");
+		}
+		catch (Exception e) {
+			isException = true;
+		}
+		assertTrue(isException);
 	}
 
 	@Test
 	public void simpleSourceNamedChannel() throws Exception {
-		List<ModuleDeploymentRequest> requests = parser.parse("test", ":foo > boo");
+		List<ModuleDeploymentRequest> requests = parser.parse("test", ":foo > boot");
 		assertEquals(1, requests.size());
 		assertEquals("foo", requests.get(0).getSourceChannelName());
-		assertEquals("source", requests.get(0).getType());
+		assertEquals("sink", requests.get(0).getType());
 	}
 
 	@Bean
 	public ModuleRegistry moduleRegistry() {
 		ModuleRegistry registry = mock(ModuleRegistry.class);
 		Resource resource = mock(Resource.class);
+		setupMockFindsForSource(registry, resource);
+		setupMockFindsForSink(registry, resource);
+		setupMockFindsForProcessor(registry, resource);
+		setupMockFindsForJobs(registry, resource);
+
+		ModuleDefinition sourceDefinition = new ModuleDefinition(ModuleType.SOURCE.name(),
+				ModuleType.SOURCE.getTypeName(), resource);
+		ModuleDefinition sinkDefinition = new ModuleDefinition(ModuleType.SINK.name(), ModuleType.SINK.getTypeName(),
+				resource);
+		ModuleDefinition processorDefinition = new ModuleDefinition(ModuleType.PROCESSOR.getTypeName(),
+				ModuleType.PROCESSOR.getTypeName(), resource);
+		ModuleDefinition jobDefinition = new ModuleDefinition(ModuleType.JOB.getTypeName(),
+				ModuleType.JOB.getTypeName(), resource);
+
+		when(registry.lookup("bart", "source")).thenReturn(sourceDefinition);
+		when(registry.lookup("foo", "source")).thenReturn(sourceDefinition);
+		when(registry.lookup("boo", "source")).thenReturn(sourceDefinition);
+		when(registry.lookup("http", "source")).thenReturn(sourceDefinition);
+
+		when(registry.lookup("boot", "sink")).thenReturn(sinkDefinition);
+		when(registry.lookup("bar", "sink")).thenReturn(sinkDefinition);
+		when(registry.lookup("badLog", "sink")).thenReturn(sinkDefinition);
+		when(registry.lookup("file", "sink")).thenReturn(sinkDefinition);
+
+		when(registry.lookup("job", "job")).thenReturn(jobDefinition);
+
+		when(registry.lookup("aaak", "processor")).thenReturn(processorDefinition);
+		when(registry.lookup("goo", "processor")).thenReturn(processorDefinition);
+		when(registry.lookup("blah", "processor")).thenReturn(processorDefinition);
+		when(registry.lookup("filter", "processor")).thenReturn(processorDefinition);
+
+		return registry;
+	}
+
+	private void setupMockFindsForSource(ModuleRegistry registry, Resource resource) {
 		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(new ModuleDefinition(ModuleType.SOURCE.name(), ModuleType.SOURCE.getTypeName(), resource));
+		ModuleDefinition sourceDefinition = new ModuleDefinition(ModuleType.SOURCE.name(),
+				ModuleType.SOURCE.getTypeName(), resource);
+		definitions.add(sourceDefinition);
+
 		when(registry.findDefinitions(ModuleType.SOURCE.getTypeName())).thenReturn(definitions);
 		when(registry.findDefinitions("foo")).thenReturn(definitions);
 		when(registry.findDefinitions("boo")).thenReturn(definitions);
 		when(registry.findDefinitions("http")).thenReturn(definitions);
+	}
 
-		definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(new ModuleDefinition(ModuleType.SINK.getTypeName(), ModuleType.SINK.getTypeName(), resource));
+	private void setupMockFindsForSink(ModuleRegistry registry, Resource resource) {
+		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
+		ModuleDefinition sinkDefinition = new ModuleDefinition(ModuleType.SINK.name(), ModuleType.SINK.getTypeName(),
+				resource);
+		definitions.add(sinkDefinition);
 		when(registry.findDefinitions(ModuleType.SINK.getTypeName())).thenReturn(definitions);
 		when(registry.findDefinitions("file")).thenReturn(definitions);
+		when(registry.findDefinitions("boot")).thenReturn(definitions);
 		when(registry.findDefinitions("bar")).thenReturn(definitions);
+	}
 
-		definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(new ModuleDefinition(ModuleType.PROCESSOR.getTypeName(), ModuleType.PROCESSOR.getTypeName(),
-				resource));
+	private void setupMockFindsForProcessor(ModuleRegistry registry, Resource resource) {
+		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
+		ModuleDefinition processorDefinition = new ModuleDefinition(ModuleType.PROCESSOR.getTypeName(),
+				ModuleType.PROCESSOR.getTypeName(), resource);
+		definitions.add(processorDefinition);
 		when(registry.findDefinitions(ModuleType.PROCESSOR.getTypeName())).thenReturn(definitions);
 		when(registry.findDefinitions("blah")).thenReturn(definitions);
 		when(registry.findDefinitions("filter")).thenReturn(definitions);
 		when(registry.findDefinitions("goo")).thenReturn(definitions);
 		when(registry.findDefinitions("aaak")).thenReturn(definitions);
+	}
 
-		definitions = new ArrayList<ModuleDefinition>();
+	private void setupMockFindsForJobs(ModuleRegistry registry, Resource resource) {
+		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
 		definitions.add(new ModuleDefinition(ModuleType.JOB.getTypeName(), ModuleType.JOB.getTypeName(), resource));
 		when(registry.findDefinitions(ModuleType.JOB.getTypeName())).thenReturn(definitions);
 
-		return registry;
 	}
 
 }

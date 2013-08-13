@@ -140,17 +140,17 @@ public class TapDeployerTests {
 		ModuleRegistry registry = mock(ModuleRegistry.class);
 		Resource resource = mock(Resource.class);
 		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(new ModuleDefinition(ModuleType.TAP.getTypeName(), ModuleType.TAP.name(), resource));
+		definitions.add(new ModuleDefinition(ModuleType.TAP.getTypeName(), ModuleType.TAP.getTypeName(), resource));
 		when(registry.findDefinitions(ModuleType.TAP.getTypeName())).thenReturn(definitions);
 
 		definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(new ModuleDefinition(ModuleType.SINK.getTypeName(), ModuleType.SINK.name(), resource));
+		definitions.add(new ModuleDefinition(ModuleType.SINK.getTypeName(), ModuleType.SINK.getTypeName(), resource));
 		when(registry.findDefinitions("file")).thenReturn(definitions);
 
 		when(registry.lookup("file", ModuleType.SINK.getTypeName())).thenReturn(
-				new ModuleDefinition(ModuleType.SINK.getTypeName(), ModuleType.SINK.name(), resource));
+				new ModuleDefinition(ModuleType.SINK.getTypeName(), ModuleType.SINK.getTypeName(), resource));
 		when(registry.lookup("tap", ModuleType.SOURCE.getTypeName())).thenReturn(
-				new ModuleDefinition(ModuleType.SOURCE.getTypeName(), ModuleType.SOURCE.name(), resource));
+				new ModuleDefinition(ModuleType.SOURCE.getTypeName(), ModuleType.SOURCE.getTypeName(), resource));
 
 		return registry;
 	}

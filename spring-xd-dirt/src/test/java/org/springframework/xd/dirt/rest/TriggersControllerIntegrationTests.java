@@ -77,9 +77,9 @@ public class TriggersControllerIntegrationTests extends AbstractControllerIntegr
 		when(moduleRegistry.findDefinitions("trigger")).thenReturn(definitions);
 
 		when(moduleRegistry.lookup("trigger1", "trigger")).thenReturn(triggerDefinition);
-		when(moduleRegistry.lookup("triggerLast", "trigger")).thenReturn(triggerDefinition);
-		when(moduleRegistry.lookup("triggerFirst", "trigger")).thenReturn(triggerDefinition);
-		when(moduleRegistry.lookup("trigger", "trigger")).thenReturn(triggerDefinition);
+		when(moduleRegistry.lookup("triggerLast", ModuleType.TRIGGER.getTypeName())).thenReturn(triggerDefinition);
+		when(moduleRegistry.lookup("triggerFirst", ModuleType.TRIGGER.getTypeName())).thenReturn(triggerDefinition);
+		when(moduleRegistry.lookup("trigger", ModuleType.TRIGGER.getTypeName())).thenReturn(triggerDefinition);
 
 	}
 

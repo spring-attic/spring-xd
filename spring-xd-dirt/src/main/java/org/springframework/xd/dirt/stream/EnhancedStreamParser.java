@@ -24,6 +24,7 @@ import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.BaseDefinition;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.dirt.module.ModuleRegistry;
+import org.springframework.xd.dirt.module.NoSuchModuleException;
 import org.springframework.xd.dirt.stream.dsl.ArgumentNode;
 import org.springframework.xd.dirt.stream.dsl.ModuleNode;
 import org.springframework.xd.dirt.stream.dsl.SinkChannelNode;
@@ -98,17 +99,18 @@ public class EnhancedStreamParser implements XDParser {
 
 		for (int m = 0; m < moduleNodes.size(); m++) {
 			ModuleDeploymentRequest request = requests.get(m);
-			request.setType(determineType(request, requests.size() - 1));
+			request.setType(determineType(request, requests.size() - 1).getTypeName());
 		}
 
 		return requests;
 	}
 
-	private String determineType(ModuleDeploymentRequest request, int lastIndex) {
-		String type = getNamedChannelModuleType(request, lastIndex);
-		if (type != null) {
-			return type;
+	private ModuleType determineType(ModuleDeploymentRequest request, int lastIndex) {
+		ModuleType moduleType = getNamedChannelModuleType(request, lastIndex);
+		if (moduleType != null) {
+			return moduleType;
 		}
+		String type = null;
 		String name = request.getModule();
 		int index = request.getIndex();
 		List<ModuleDefinition> defs = moduleRegistry.findDefinitions(name);
@@ -128,18 +130,18 @@ public class EnhancedStreamParser implements XDParser {
 			}
 		}
 		else if (index == 0) {
-			type = "source";
+			type = ModuleType.SOURCE.getTypeName();
 		}
 		else if (index == lastIndex) {
-			type = "sink";
+			type = ModuleType.SINK.getTypeName();
 		}
 		if (type == null) {
-			throw new RuntimeException("Module definition is missing for " + name);
+			throw new NoSuchModuleException("Module definition is missing for " + name);
 		}
 		return verifyModuleOfTypeExists(name, type);
 	}
 
-	private String getNamedChannelModuleType(ModuleDeploymentRequest request, int lastIndex) {
+	private ModuleType getNamedChannelModuleType(ModuleDeploymentRequest request, int lastIndex) {
 		String type = null;
 		String moduleName = request.getModule();
 		int index = request.getIndex();
@@ -162,14 +164,15 @@ public class EnhancedStreamParser implements XDParser {
 		return (type == null) ? null : verifyModuleOfTypeExists(moduleName, type);
 	}
 
-	private String verifyModuleOfTypeExists(String moduleName, String type) {
+	private ModuleType verifyModuleOfTypeExists(String moduleName, String type) {
 		ModuleDefinition def = moduleRegistry.lookup(moduleName, type);
 		if (def == null || def.getResource() == null) {
-			throw new RuntimeException("Module definition is missing for " + moduleName + " with module type " + type
-					+ ".  Or the module is acting in a role in the "
+			throw new NoSuchModuleException("Module definition is missing for " + moduleName + " with module type "
+					+ type + ".  Or the module is acting in a role in the "
 					+ "stream that it is not correct.  An example of this " + "is a log being used as a source.");
 		}
-		return def.getType();
+		System.out.println("*******************" + def.getType());
+		return ModuleType.getModuleTypeByTypeName(def.getType());
 	}
 
 }

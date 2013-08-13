@@ -67,9 +67,9 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 		when(moduleRegistry.findDefinitions(ModuleType.JOB.getTypeName())).thenReturn(definitions);
 		when(moduleRegistry.findDefinitions("job1")).thenReturn(definitions);
 		when(moduleRegistry.findDefinitions("job2")).thenReturn(definitions);
-		when(moduleRegistry.lookup("job1", "job")).thenReturn(jobDefinition);
-		when(moduleRegistry.lookup("job2", "job")).thenReturn(jobDefinition);
-		when(moduleRegistry.lookup("job", "job")).thenReturn(jobDefinition);
+		when(moduleRegistry.lookup("job1", ModuleType.JOB.getTypeName())).thenReturn(jobDefinition);
+		when(moduleRegistry.lookup("job2", ModuleType.JOB.getTypeName())).thenReturn(jobDefinition);
+		when(moduleRegistry.lookup("job", ModuleType.JOB.getTypeName())).thenReturn(jobDefinition);
 
 	}
 

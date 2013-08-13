@@ -94,9 +94,9 @@ public class TapsControllerIntegrationTests extends AbstractControllerIntegratio
 		definitions = new ArrayList<ModuleDefinition>();
 		definitions.add(new ModuleDefinition(ModuleType.SINK.getTypeName(), ModuleType.SINK.getTypeName(), resource));
 		when(moduleRegistry.findDefinitions("log")).thenReturn(definitions);
-		when(moduleRegistry.lookup("log", "sink")).thenReturn(sinkDefinition);
-		when(moduleRegistry.lookup("time", "source")).thenReturn(sourceDefinition);
-		when(moduleRegistry.lookup("tap", "source")).thenReturn(sourceDefinition);
+		when(moduleRegistry.lookup("log", ModuleType.SINK.getTypeName())).thenReturn(sinkDefinition);
+		when(moduleRegistry.lookup("time", ModuleType.SOURCE.getTypeName())).thenReturn(sourceDefinition);
+		when(moduleRegistry.lookup("tap", ModuleType.SOURCE.getTypeName())).thenReturn(sourceDefinition);
 
 	}
 

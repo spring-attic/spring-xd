@@ -53,7 +53,7 @@ public class EnhancedStreamParserTests {
 		assertEquals("job", job.getModule());
 		assertEquals("myJob", job.getGroup());
 		assertEquals(0, job.getIndex());
-		assertEquals("job", job.getType());
+		assertEquals(ModuleType.JOB.getTypeName(), job.getType());
 		assertEquals(0, job.getParameters().size());
 	}
 
@@ -65,7 +65,7 @@ public class EnhancedStreamParserTests {
 		assertEquals("job", job.getModule());
 		assertEquals("myJob", job.getGroup());
 		assertEquals(0, job.getIndex());
-		assertEquals("job", job.getType());
+		assertEquals(ModuleType.JOB.getTypeName(), job.getType());
 		assertEquals(1, job.getParameters().size());
 		assertEquals("bar", job.getParameters().get("foo"));
 	}
@@ -79,12 +79,12 @@ public class EnhancedStreamParserTests {
 		assertEquals("foo", source.getModule());
 		assertEquals("test", source.getGroup());
 		assertEquals(0, source.getIndex());
-		assertEquals("source", source.getType());
+		assertEquals(ModuleType.SOURCE.getTypeName(), source.getType());
 		assertEquals(0, source.getParameters().size());
 		assertEquals("bar", sink.getModule());
 		assertEquals("test", sink.getGroup());
 		assertEquals(1, sink.getIndex());
-		assertEquals("sink", sink.getType());
+		assertEquals(ModuleType.SINK.getTypeName(), sink.getType());
 		assertEquals(0, sink.getParameters().size());
 	}
 
@@ -97,7 +97,7 @@ public class EnhancedStreamParserTests {
 		assertEquals("foo", source.getModule());
 		assertEquals("test", source.getGroup());
 		assertEquals(0, source.getIndex());
-		assertEquals("source", source.getType());
+		assertEquals(ModuleType.SOURCE.getTypeName(), source.getType());
 		Map<String, String> sourceParameters = source.getParameters();
 		assertEquals(1, sourceParameters.size());
 		assertEquals("payload.matches('hello')", sourceParameters.get("bar"));
@@ -112,7 +112,7 @@ public class EnhancedStreamParserTests {
 		assertEquals("filter", filter.getModule());
 		assertEquals("test", filter.getGroup());
 		assertEquals(1, filter.getIndex());
-		assertEquals("processor", filter.getType());
+		assertEquals(ModuleType.PROCESSOR.getTypeName(), filter.getType());
 		Map<String, String> sourceParameters = filter.getParameters();
 		assertEquals(1, sourceParameters.size());
 		assertEquals("payload.matches('hello world')", sourceParameters.get("expression"));
@@ -127,7 +127,7 @@ public class EnhancedStreamParserTests {
 		assertEquals("foo", source.getModule());
 		assertEquals("test", source.getGroup());
 		assertEquals(0, source.getIndex());
-		assertEquals("source", source.getType());
+		assertEquals(ModuleType.SOURCE.getTypeName(), source.getType());
 		Map<String, String> sourceParameters = source.getParameters();
 		assertEquals(2, sourceParameters.size());
 		assertEquals("1", sourceParameters.get("x"));
@@ -135,7 +135,7 @@ public class EnhancedStreamParserTests {
 		assertEquals("bar", sink.getModule());
 		assertEquals("test", sink.getGroup());
 		assertEquals(1, sink.getIndex());
-		assertEquals("sink", sink.getType());
+		assertEquals(ModuleType.SINK.getTypeName(), sink.getType());
 		Map<String, String> sinkParameters = sink.getParameters();
 		assertEquals(1, sinkParameters.size());
 		assertEquals("3", sinkParameters.get("z"));
@@ -146,9 +146,9 @@ public class EnhancedStreamParserTests {
 		List<ModuleDeploymentRequest> requests = parser.parse("test", ":foo > goo | blah | file");
 		assertEquals(3, requests.size());
 		assertEquals("foo", requests.get(2).getSourceChannelName());
-		assertEquals("processor", requests.get(2).getType());
-		assertEquals("processor", requests.get(1).getType());
-		assertEquals("sink", requests.get(0).getType());
+		assertEquals(ModuleType.PROCESSOR.getTypeName(), requests.get(2).getType());
+		assertEquals(ModuleType.PROCESSOR.getTypeName(), requests.get(1).getType());
+		assertEquals(ModuleType.SINK.getTypeName(), requests.get(0).getType());
 	}
 
 	@Test
@@ -156,9 +156,9 @@ public class EnhancedStreamParserTests {
 		List<ModuleDeploymentRequest> requests = parser.parse("test", "boo | blah | aaak > :foo");
 		assertEquals(3, requests.size());
 		assertEquals("foo", requests.get(0).getSinkChannelName());
-		assertEquals("processor", requests.get(0).getType());
-		assertEquals("processor", requests.get(1).getType());
-		assertEquals("source", requests.get(2).getType());
+		assertEquals(ModuleType.PROCESSOR.getTypeName(), requests.get(0).getType());
+		assertEquals(ModuleType.PROCESSOR.getTypeName(), requests.get(1).getType());
+		assertEquals(ModuleType.SOURCE.getTypeName(), requests.get(2).getType());
 	}
 
 	@Test
@@ -166,7 +166,7 @@ public class EnhancedStreamParserTests {
 		List<ModuleDeploymentRequest> requests = parser.parse("test", "bart > :foo");
 		assertEquals(1, requests.size());
 		assertEquals("foo", requests.get(0).getSinkChannelName());
-		assertEquals("source", requests.get(0).getType());
+		assertEquals(ModuleType.SOURCE.getTypeName(), requests.get(0).getType());
 	}
 
 	@Test
@@ -189,7 +189,7 @@ public class EnhancedStreamParserTests {
 		List<ModuleDeploymentRequest> requests = parser.parse("test", ":foo > boot");
 		assertEquals(1, requests.size());
 		assertEquals("foo", requests.get(0).getSourceChannelName());
-		assertEquals("sink", requests.get(0).getType());
+		assertEquals(ModuleType.SINK.getTypeName(), requests.get(0).getType());
 	}
 
 	@Bean
@@ -210,22 +210,22 @@ public class EnhancedStreamParserTests {
 		ModuleDefinition jobDefinition = new ModuleDefinition(ModuleType.JOB.getTypeName(),
 				ModuleType.JOB.getTypeName(), resource);
 
-		when(registry.lookup("bart", "source")).thenReturn(sourceDefinition);
-		when(registry.lookup("foo", "source")).thenReturn(sourceDefinition);
-		when(registry.lookup("boo", "source")).thenReturn(sourceDefinition);
-		when(registry.lookup("http", "source")).thenReturn(sourceDefinition);
+		when(registry.lookup("bart", ModuleType.SOURCE.getTypeName())).thenReturn(sourceDefinition);
+		when(registry.lookup("foo", ModuleType.SOURCE.getTypeName())).thenReturn(sourceDefinition);
+		when(registry.lookup("boo", ModuleType.SOURCE.getTypeName())).thenReturn(sourceDefinition);
+		when(registry.lookup("http", ModuleType.SOURCE.getTypeName())).thenReturn(sourceDefinition);
 
-		when(registry.lookup("boot", "sink")).thenReturn(sinkDefinition);
-		when(registry.lookup("bar", "sink")).thenReturn(sinkDefinition);
-		when(registry.lookup("badLog", "sink")).thenReturn(sinkDefinition);
-		when(registry.lookup("file", "sink")).thenReturn(sinkDefinition);
+		when(registry.lookup("boot", ModuleType.SINK.getTypeName())).thenReturn(sinkDefinition);
+		when(registry.lookup("bar", ModuleType.SINK.getTypeName())).thenReturn(sinkDefinition);
+		when(registry.lookup("badLog", ModuleType.SINK.getTypeName())).thenReturn(sinkDefinition);
+		when(registry.lookup("file", ModuleType.SINK.getTypeName())).thenReturn(sinkDefinition);
 
-		when(registry.lookup("job", "job")).thenReturn(jobDefinition);
+		when(registry.lookup("job", ModuleType.JOB.getTypeName())).thenReturn(jobDefinition);
 
-		when(registry.lookup("aaak", "processor")).thenReturn(processorDefinition);
-		when(registry.lookup("goo", "processor")).thenReturn(processorDefinition);
-		when(registry.lookup("blah", "processor")).thenReturn(processorDefinition);
-		when(registry.lookup("filter", "processor")).thenReturn(processorDefinition);
+		when(registry.lookup("aaak", ModuleType.PROCESSOR.getTypeName())).thenReturn(processorDefinition);
+		when(registry.lookup("goo", ModuleType.PROCESSOR.getTypeName())).thenReturn(processorDefinition);
+		when(registry.lookup("blah", ModuleType.PROCESSOR.getTypeName())).thenReturn(processorDefinition);
+		when(registry.lookup("filter", ModuleType.PROCESSOR.getTypeName())).thenReturn(processorDefinition);
 
 		return registry;
 	}

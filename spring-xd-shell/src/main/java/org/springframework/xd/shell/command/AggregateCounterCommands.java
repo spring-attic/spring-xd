@@ -31,13 +31,13 @@ import org.springframework.shell.core.annotation.CliAvailabilityIndicator;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
 import org.springframework.xd.rest.client.AggregateCounterOperations;
 import org.springframework.xd.rest.client.AggregateCounterOperations.Resolution;
 import org.springframework.xd.rest.client.domain.metrics.AggregateCountsResource;
 import org.springframework.xd.rest.client.domain.metrics.MetricResource;
 import org.springframework.xd.shell.XDShell;
 import org.springframework.xd.shell.converter.NumberFormatConverter;
+import org.springframework.xd.shell.util.Assertions;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableHeader;
 
@@ -84,28 +84,33 @@ public class AggregateCounterCommands extends AbstractMetricsCommands implements
 			@CliOption(key = "pattern", help = "the pattern used to format the count values (see DecimalFormat)", mandatory = false, unspecifiedDefaultValue = NumberFormatConverter.DEFAULT)
 			NumberFormat pattern) {
 
-		if (from != null) {
-			Assert.isTrue((lastHours == null && lastDays == null), "Either specify 'from' or 'lastHours' or 'lastDays'");
-		}
-		AggregateCountsResource aggResource;
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		try {
-			Date nowDate = new Date();
-			Date fromDate = (from == null) ? null : dateFormat.parse(from);
-			if (lastHours != null) {
-				fromDate = new Date(nowDate.getTime() - (lastHours * DateTimeConstants.MILLIS_PER_HOUR));
+			Date fromDate;
+			switch (Assertions.atMostOneOf("from", from, "lastHours", lastHours, "lastDays", lastDays)) {
+			case 0:
+				fromDate = dateFormat.parse(from);
+				break;
+			case 1:
+				fromDate = new Date(System.currentTimeMillis() - lastHours * DateTimeConstants.MILLIS_PER_HOUR);
+				break;
+			case 2:
+				fromDate = new Date(System.currentTimeMillis() - lastDays * DateTimeConstants.MILLIS_PER_DAY);
+				break;
+			default:
+				fromDate = null;
+				break;
 			}
-			if (lastDays != null) {
-				fromDate = new Date(nowDate.getTime() - (lastDays * DateTimeConstants.MILLIS_PER_DAY));
-			}
+
 			Date toDate = (to == null) ? null : dateFormat.parse(to);
-			aggResource = aggrCounterOperations().retrieve(name, fromDate, toDate, resolution);
+			AggregateCountsResource aggResource = aggrCounterOperations().retrieve(name, fromDate, toDate, resolution);
+			return displayAggrCounter(aggResource, pattern);
 		}
 		catch (ParseException pe) {
-			return displayErrorTable("Parse exception ocurred while parsing the 'from/to' options. The accepted date format is "
-					+ dateFormat.toPattern());
+			throw new IllegalArgumentException(
+					"Parse exception ocurred while parsing the 'from/to' options. The accepted date format is "
+							+ dateFormat.toPattern());
 		}
-		return displayAggrCounter(aggResource, pattern);
 	}
 
 	@CliCommand(value = LIST_AGGR_COUNTERS, help = "List all available aggregate counter names")

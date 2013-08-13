@@ -20,6 +20,7 @@ import java.util.Date;
 
 import org.joda.time.DateTime;
 import org.springframework.hateoas.PagedResources;
+import org.springframework.util.Assert;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.xd.rest.client.AggregateCounterOperations;
 import org.springframework.xd.rest.client.domain.metrics.AggregateCountsResource;
@@ -38,6 +39,7 @@ public class AggregateCounterTemplate extends AbstractTemplate implements Aggreg
 
 	@Override
 	public AggregateCountsResource retrieve(String name, Date from, Date to, Resolution resolution) {
+		Assert.notNull(resolution, "Resolution must not be null");
 		DateTime fromParam = (from == null) ? null : new DateTime(from.getTime());
 		DateTime toParam = (to == null) ? null : new DateTime(to.getTime());
 

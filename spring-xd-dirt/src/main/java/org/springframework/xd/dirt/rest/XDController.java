@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.dirt.core.BaseDefinition;
+import org.springframework.xd.dirt.core.ResourceDeployer;
 import org.springframework.xd.dirt.stream.AbstractDeployer;
 import org.springframework.xd.dirt.stream.NoSuchDefinitionException;
 
@@ -47,7 +48,7 @@ import org.springframework.xd.dirt.stream.NoSuchDefinitionException;
 
 public abstract class XDController<D extends BaseDefinition, V extends ResourceAssemblerSupport<D, T>, T extends ResourceSupport> {
 
-	private AbstractDeployer<D> deployer;
+	private ResourceDeployer<D> deployer;
 
 	private V resourceAssemblerSupport;
 

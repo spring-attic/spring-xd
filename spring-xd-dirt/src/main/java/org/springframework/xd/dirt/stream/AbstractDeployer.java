@@ -16,9 +16,8 @@
 
 package org.springframework.xd.dirt.stream;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -48,13 +47,13 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	/**
 	 * Lower-case, singular name of the kind of definition we're deploying. Used in exception messages.
 	 */
-	private final String definitionKind;
+	protected final String definitionKind;
 
 	protected AbstractDeployer(PagingAndSortingRepository<D, String> repository, DeploymentMessageSender messageSender,
 			XDParser parser, String definitionKind) {
-		Assert.notNull(repository, ErrorMessage.repositoryNameNullError.getMessage());
-		Assert.notNull(messageSender, ErrorMessage.messageSenderNameNullError.getMessage());
-		Assert.hasText(definitionKind, ErrorMessage.definitionKindEmptyError.getMessage());
+		Assert.notNull(repository, "Repository cannot be null");
+		Assert.notNull(messageSender, "Message sender cannot be null");
+		Assert.hasText(definitionKind, "Definition kind cannot be blank");
 		this.repository = repository;
 		this.messageSender = messageSender;
 		this.definitionKind = definitionKind;
@@ -72,21 +71,22 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	}
 
 	protected void throwDefinitionAlreadyExistsException(D definition) {
-		throw new DefinitionAlreadyExistsException(definition.getName(), String.format("%s %s %s",
-				ErrorMessage.definitionErrorPrefix.getMessage(), definitionKind,
-				ErrorMessage.definitionErrorSuffix.getMessage()));
+		throw new DefinitionAlreadyExistsException(definition.getName(), String.format(
+				"There is already a %s named '%%s'", definitionKind));
 	}
 
 	protected void throwNoSuchDefinitionException(String name) {
-		throw new NoSuchDefinitionException(name, String.format("%s %s %s",
-				ErrorMessage.noDefinitionPrefix.getMessage(), definitionKind,
-				ErrorMessage.noDefinitionSuffix.getMessage()));
+		throw new NoSuchDefinitionException(name,
+				String.format("There is no %s definition named '%%s'", definitionKind));
 	}
 
 	protected void throwAlreadyDeployedException(String name) {
-		throw new AlreadyDeployedException(name, String.format("%s %s %s",
-				ErrorMessage.alreadyDeployedExceptionPrefix.getMessage(), definitionKind,
-				ErrorMessage.alreadyDeployedExceptionSuffix.getMessage()));
+		throw new AlreadyDeployedException(name,
+				String.format("The %s named '%%s' is already deployed", definitionKind));
+	}
+
+	protected void throwNotDeployedException(String name) {
+		throw new NotDeployedException(name, String.format("The %s named '%%s' is not currently deployed"));
 	}
 
 	@Override
@@ -95,19 +95,11 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	}
 
 	@Override
-	public Iterable<D> findAll() {
-		final SortedSet<D> definitions = new TreeSet<D>();
-		for (D definition : repository.findAll()) {
-			definitions.add(definition);
-		}
-		return definitions;
-	}
-
 	public Page<D> findAll(Pageable pageable) {
 		return repository.findAll(pageable);
 	}
 
-	protected CrudRepository<D, String> getRepository() {
+	protected CrudRepository<D, String> getDefinitionRepository() {
 		return repository;
 	}
 
@@ -119,88 +111,40 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		return streamParser.parse(name, config);
 	}
 
-	@Override
-	public void deploy(String name) {
-		Assert.hasText(name, ErrorMessage.nameEmptyError.getMessage());
-
-		D definition = repository.findOne(name);
+	/**
+	 * Provides basic deployment behavior, whereby running state of deployed definitions is not persisted.
+	 * 
+	 * @return the definition object for the given name
+	 * @throws NoSuchDefinitionException if there is no definition by the given name
+	 */
+	protected D basicDeploy(String name) {
+		Assert.hasText(name, "name cannot be blank or null");
+		final D definition = getDefinitionRepository().findOne(name);
 
 		if (definition == null) {
 			throwNoSuchDefinitionException(name);
 		}
-		List<ModuleDeploymentRequest> requests = streamParser.parse(name, definition.getDefinition());
-		messageSender.sendDeploymentRequests(name, requests);
+
+		final List<ModuleDeploymentRequest> requests = parse(name, definition.getDefinition());
+		sendDeploymentRequests(name, requests);
+		return definition;
 	}
 
-	protected enum ErrorMessage {
-		nameEmptyError {
-			@Override
-			String getMessage() {
-				return "name cannot be blank or null";
-			}
-		},
-		messageSenderNameNullError {
-			@Override
-			String getMessage() {
-				return "message sender cannot be null";
-			}
-		},
-		definitionKindEmptyError {
-			@Override
-			String getMessage() {
-				return "definitionKind cannot be blank";
-			}
-		},
-		definitionNullError {
-			@Override
-			String getMessage() {
-				return "Definition cannot be null";
-			}
-		},
-		repositoryNameNullError {
-			@Override
-			String getMessage() {
-				return "repository cannot be null";
-			}
-		},
-		definitionErrorSuffix {
-			@Override
-			String getMessage() {
-				return "named '%s'";
-			}
-		},
-		noDefinitionPrefix {
-			@Override
-			String getMessage() {
-				return "There is no ";
-			}
-		},
-		noDefinitionSuffix {
-			@Override
-			String getMessage() {
-				return " definition named '%s'";
-			}
-		},
-		alreadyDeployedExceptionPrefix {
-			@Override
-			String getMessage() {
-				return "The ";
-			}
-		},
-		alreadyDeployedExceptionSuffix {
-			@Override
-			String getMessage() {
-				return " named '%s' is already deployed";
-			}
-		},
-		definitionErrorPrefix {
-			@Override
-			String getMessage() {
-				return "There is already a";
-			}
-		};
+	/**
+	 * Provides basic un-deployment behavior, whereby state of deployed definitions is not dealt with.
+	 */
+	protected void basicUndeploy(String name) {
+		D definition = getDefinitionRepository().findOne(name);
+		if (definition == null) {
+			throwNoSuchDefinitionException(name);
+		}
+		List<ModuleDeploymentRequest> requests = parse(name, definition.getDefinition());
+		for (ModuleDeploymentRequest request : requests) {
+			request.setRemove(true);
+		}
+		Collections.reverse(requests);
+		sendDeploymentRequests(name, requests);
 
-		abstract String getMessage();
 	}
 
 }

@@ -12,6 +12,8 @@
  */
 package org.springframework.xd.dirt.core;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 
 /**
@@ -28,9 +30,9 @@ public interface ResourceDeployer<R extends BaseDefinition> {
 	void deploy(String name);
 
 	/**
-	 * Return all definitions ordered by {@link BaseDefinition#getName()} ascending.
+	 * Return a slice of all definitions.
 	 */
-	Iterable<R> findAll();
+	Page<R> findAll(Pageable pageable);
 
 	R save(R resource);
 
@@ -42,9 +44,10 @@ public interface ResourceDeployer<R extends BaseDefinition> {
 	R findOne(String name);
 
 	/**
-	 * Delete the Definition using the provided name.
+	 * Delete the Definition using the provided name. The definition may also be {@link #undeploy(String) undeployed} as
+	 * part of that process.
 	 * 
-	 * @param name Must not be null.
+	 * @param name the name of the definition to delete
 	 */
 	void delete(String name);
 

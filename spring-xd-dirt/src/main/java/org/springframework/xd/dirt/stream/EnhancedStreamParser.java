@@ -136,7 +136,7 @@ public class EnhancedStreamParser implements XDParser {
 			type = ModuleType.SINK.getTypeName();
 		}
 		if (type == null) {
-			throw new NoSuchModuleException("Module definition is missing for " + name);
+			throw new NoSuchModuleException(name);
 		}
 		return verifyModuleOfTypeExists(name, type);
 	}
@@ -167,11 +167,8 @@ public class EnhancedStreamParser implements XDParser {
 	private ModuleType verifyModuleOfTypeExists(String moduleName, String type) {
 		ModuleDefinition def = moduleRegistry.lookup(moduleName, type);
 		if (def == null || def.getResource() == null) {
-			throw new NoSuchModuleException("Module definition is missing for " + moduleName + " with module type "
-					+ type + ".  Or the module is acting in a role in the "
-					+ "stream that it is not correct.  An example of this " + "is a log being used as a source.");
+			throw new NoSuchModuleException(moduleName);
 		}
-		System.out.println("*******************" + def.getType());
 		return ModuleType.getModuleTypeByTypeName(def.getType());
 	}
 

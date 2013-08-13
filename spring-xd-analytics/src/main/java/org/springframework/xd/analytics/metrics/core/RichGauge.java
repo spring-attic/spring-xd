@@ -113,7 +113,6 @@ public final class RichGauge implements Metric {
 	public RichGauge setAlpha(double alpha) {
 		Assert.isTrue(alpha == -1 || (alpha > 0.0 && alpha < 1.0),
 				"Smoothing constant must be between 0 and 1, or -1 to use arithmetic mean");
-		Assert.isTrue(alpha == this.alpha || count == 0, "Can't change alpha once gauge has been used");
 		this.alpha = alpha;
 		return this;
 	}

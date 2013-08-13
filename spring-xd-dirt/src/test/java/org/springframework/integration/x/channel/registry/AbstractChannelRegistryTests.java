@@ -100,7 +100,7 @@ public abstract class AbstractChannelRegistryTests {
 			moduleOutputChannel.send(message);
 			Message<?> inbound = moduleInputChannel.receive(5000);
 			assertNotNull(inbound);
-			assertEquals("foo", new String((byte[]) inbound.getPayload()));
+			assertEquals("foo", inbound.getPayload());
 			assertNull(inbound.getHeaders().get(ChannelRegistrySupport.ORIGINAL_CONTENT_TYPE_HEADER));
 			assertEquals("foo/bar", inbound.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 			Message<?> tapped = tapChannel.receive(5000);
@@ -111,12 +111,13 @@ public abstract class AbstractChannelRegistryTests {
 				continue;
 			}
 			tapSuccess = true;
-			assertEquals("foo", new String((byte[]) tapped.getPayload()));
+			assertEquals("foo", tapped.getPayload());
 			assertNull(tapped.getHeaders().get(ChannelRegistrySupport.ORIGINAL_CONTENT_TYPE_HEADER));
 			assertEquals("foo/bar", tapped.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 		}
 		registry.deleteInbound("foo.0");
 		registry.deleteOutbound("foo.0");
+		registry.deleteInbound("tapper");
 	}
 
 	@Test
@@ -153,6 +154,7 @@ public abstract class AbstractChannelRegistryTests {
 
 		registry.deleteInbound("bar.0");
 		registry.deleteOutbound("bar.0");
+		registry.deleteInbound("tapper");
 	}
 
 	@Test
@@ -160,18 +162,73 @@ public abstract class AbstractChannelRegistryTests {
 		ChannelRegistry registry = getRegistry();
 		DirectChannel moduleOutputChannel = new DirectChannel();
 		QueueChannel moduleInputChannel = new QueueChannel();
+		QueueChannel tapChannel = new QueueChannel();
+
 		registry.createOutbound("baz.0", moduleOutputChannel, false);
 		registry.createInbound("baz.0", moduleInputChannel,
 				Collections.singletonList(new MediaType("application", "x-java-object")), false);
-		Message<?> message = MessageBuilder.withPayload("{'foo':'bar'}").copyHeaders(
-				Collections.singletonMap("content-type", MediaType.APPLICATION_JSON_VALUE)).build();
-		moduleOutputChannel.send(message);
-		Message<?> inbound = moduleInputChannel.receive(5000);
-		assertNotNull(inbound);
-		Tuple t = (Tuple) inbound.getPayload();
-		assertEquals("bar", t.getValue("foo"));
+		registry.tap("tapper", "baz.0", tapChannel);
+
+		boolean tapSuccess = false;
+		boolean retried = false;
+		while (!tapSuccess) {
+
+			Message<?> message = MessageBuilder.withPayload("{'foo':'bar'}").copyHeaders(
+					Collections.singletonMap("content-type", MediaType.APPLICATION_JSON_VALUE)).build();
+			moduleOutputChannel.send(message);
+			Message<?> inbound = moduleInputChannel.receive(5000);
+			assertNotNull(inbound);
+			Message<?> tapped = tapChannel.receive(5000);
+			if (tapped == null) {
+				// tap listener might not have started
+				assertFalse("Failed to receive tap after retry", retried);
+				retried = true;
+				continue;
+			}
+			tapSuccess = true;
+			assertEquals("{'foo':'bar'}", tapped.getPayload());
+			Tuple t = (Tuple) inbound.getPayload();
+			assertEquals("bar", t.getValue("foo"));
+		}
 		registry.deleteInbound("baz.0");
 		registry.deleteOutbound("baz.0");
+		registry.deleteInbound("tapper");
+	}
+
+	@Test
+	public void testJsonDoesNotConvert() throws Exception {
+		ChannelRegistry registry = getRegistry();
+		DirectChannel moduleOutputChannel = new DirectChannel();
+		QueueChannel moduleInputChannel = new QueueChannel();
+		QueueChannel tapChannel = new QueueChannel();
+
+		registry.createOutbound("baz.0", moduleOutputChannel, false);
+		registry.createInbound("baz.0", moduleInputChannel, Collections.singletonList(MediaType.ALL), false);
+		registry.tap("tapper", "baz.0", tapChannel);
+
+		boolean tapSuccess = false;
+		boolean retried = false;
+		while (!tapSuccess) {
+
+			Message<?> message = MessageBuilder.withPayload("{'foo':'bar'}").copyHeaders(
+					Collections.singletonMap("content-type", MediaType.APPLICATION_JSON_VALUE)).build();
+			moduleOutputChannel.send(message);
+			Message<?> inbound = moduleInputChannel.receive(5000);
+			assertNotNull(inbound);
+			Message<?> tapped = tapChannel.receive(5000);
+			if (tapped == null) {
+				// tap listener might not have started
+				assertFalse("Failed to receive tap after retry", retried);
+				retried = true;
+				continue;
+			}
+			tapSuccess = true;
+			assertEquals("{'foo':'bar'}", tapped.getPayload());
+			assertEquals("{'foo':'bar'}", inbound.getPayload());
+		}
+		registry.deleteInbound("baz.0");
+		registry.deleteOutbound("baz.0");
+		registry.deleteInbound("tapper");
 	}
 
 	protected abstract Collection<?> getBridges(ChannelRegistry registry);

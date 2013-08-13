@@ -52,6 +52,9 @@ public abstract class ChannelRegistrySupport implements ChannelRegistry, BeanCla
 	protected static final String XD_TEXT_PLAIN_UTF8_VALUE = new MediaType("text", "x-xd-plain",
 			Charset.forName("UTF-8")).toString();
 
+	protected static final String XD_JSON_TEXT_VALUE = new MediaType("application", "x-xd-json-string",
+			Charset.forName("UTF-8")).toString();
+
 	protected static final String XD_OCTET_STREAM_VALUE = new MediaType("application", "x-xd-octet-stream").toString();
 
 	protected static final String ORIGINAL_CONTENT_TYPE_HEADER = "originalContentType";
@@ -89,7 +92,10 @@ public abstract class ChannelRegistrySupport implements ChannelRegistry, BeanCla
 			else if (originalPayload instanceof String) {
 				try {
 					payload = ((String) originalPayload).getBytes("UTF-8");
-					if (contentType == null) {
+					if (MediaType.APPLICATION_JSON_VALUE.equals(contentType)) {
+						contentType = XD_JSON_TEXT_VALUE;
+					}
+					else {
 						contentType = XD_TEXT_PLAIN_UTF8_VALUE;
 					}
 				}
@@ -138,9 +144,17 @@ public abstract class ChannelRegistrySupport implements ChannelRegistry, BeanCla
 
 	private Object transformPayloadForInputChannel(Object payload, String contentType, Collection<MediaType> to) {
 		Object result = null;
-		if (MediaType.APPLICATION_JSON_VALUE.equals(contentType) || XD_JSON_OCTET_STREAM_VALUE.equals(contentType)) {
-			result = transformInputWithTypedJsonMapper(payload, contentType, to);
+
+		if (MediaType.APPLICATION_JSON_VALUE.equals(contentType) || XD_JSON_OCTET_STREAM_VALUE.equals(contentType)
+				|| XD_JSON_TEXT_VALUE.equals(contentType)) {
+			if (!to.contains(MediaType.ALL) || XD_JSON_OCTET_STREAM_VALUE.equals(contentType)) {
+				result = transformInputWithTypedJsonMapper(payload, contentType, to);
+			}
+			else if (XD_JSON_TEXT_VALUE.equals(contentType)) {
+				result = convertBytesToUTF8String((byte[]) payload);
+			}
 		}
+
 		if (payload instanceof byte[])
 			if (result != null) {
 				if (to.contains(MediaType.ALL)) {
@@ -175,12 +189,7 @@ public abstract class ChannelRegistrySupport implements ChannelRegistry, BeanCla
 			}
 		if (to.contains(MediaType.ALL)) {
 			if (XD_TEXT_PLAIN_UTF8_VALUE.equals(contentType) && payload instanceof byte[]) {
-				try {
-					return new String((byte[]) payload, "UTF-8");
-				}
-				catch (UnsupportedEncodingException e) {
-					logger.error("Could not convert String to bytes", e);
-				}
+				return convertBytesToUTF8String((byte[]) payload);
 			}
 			return payload;
 		}
@@ -289,5 +298,16 @@ public abstract class ChannelRegistrySupport implements ChannelRegistry, BeanCla
 			}
 		}
 		return false;
+	}
+
+	private String convertBytesToUTF8String(byte[] bytes) {
+		String result = null;
+		try {
+			result = new String(bytes, "UTF-8");
+		}
+		catch (UnsupportedEncodingException e) {
+			logger.error("Could not convert bytes to String", e);
+		}
+		return result;
 	}
 }

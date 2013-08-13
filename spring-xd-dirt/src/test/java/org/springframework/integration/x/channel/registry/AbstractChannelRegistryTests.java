@@ -28,6 +28,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.xd.dirt.stream.Tap;
+import org.springframework.xd.tuple.Tuple;
 
 import static org.junit.Assert.*;
 
@@ -99,7 +100,7 @@ public abstract class AbstractChannelRegistryTests {
 			moduleOutputChannel.send(message);
 			Message<?> inbound = moduleInputChannel.receive(5000);
 			assertNotNull(inbound);
-			assertEquals("foo", inbound.getPayload());
+			assertEquals("foo", new String((byte[]) inbound.getPayload()));
 			assertNull(inbound.getHeaders().get(ChannelRegistrySupport.ORIGINAL_CONTENT_TYPE_HEADER));
 			assertEquals("foo/bar", inbound.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 			Message<?> tapped = tapChannel.receive(5000);
@@ -110,10 +111,12 @@ public abstract class AbstractChannelRegistryTests {
 				continue;
 			}
 			tapSuccess = true;
-			assertEquals("foo", tapped.getPayload());
+			assertEquals("foo", new String((byte[]) tapped.getPayload()));
 			assertNull(tapped.getHeaders().get(ChannelRegistrySupport.ORIGINAL_CONTENT_TYPE_HEADER));
 			assertEquals("foo/bar", tapped.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 		}
+		registry.deleteInbound("foo.0");
+		registry.deleteOutbound("foo.0");
 	}
 
 	@Test
@@ -147,6 +150,28 @@ public abstract class AbstractChannelRegistryTests {
 			assertNull(tapped.getHeaders().get(ChannelRegistrySupport.ORIGINAL_CONTENT_TYPE_HEADER));
 			assertNull(tapped.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 		}
+
+		registry.deleteInbound("bar.0");
+		registry.deleteOutbound("bar.0");
+	}
+
+	@Test
+	public void testConvertJsonToTuple() throws Exception {
+		ChannelRegistry registry = getRegistry();
+		DirectChannel moduleOutputChannel = new DirectChannel();
+		QueueChannel moduleInputChannel = new QueueChannel();
+		registry.createOutbound("baz.0", moduleOutputChannel, false);
+		registry.createInbound("baz.0", moduleInputChannel,
+				Collections.singletonList(new MediaType("application", "x-java-object")), false);
+		Message<?> message = MessageBuilder.withPayload("{'foo':'bar'}").copyHeaders(
+				Collections.singletonMap("content-type", MediaType.APPLICATION_JSON_VALUE)).build();
+		moduleOutputChannel.send(message);
+		Message<?> inbound = moduleInputChannel.receive(5000);
+		assertNotNull(inbound);
+		Tuple t = (Tuple) inbound.getPayload();
+		assertEquals("bar", t.getValue("foo"));
+		registry.deleteInbound("baz.0");
+		registry.deleteOutbound("baz.0");
 	}
 
 	protected abstract Collection<?> getBridges(ChannelRegistry registry);

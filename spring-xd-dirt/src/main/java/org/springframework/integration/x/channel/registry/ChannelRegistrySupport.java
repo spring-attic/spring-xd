@@ -10,6 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.integration.x.channel.registry;
 
 import java.io.UnsupportedEncodingException;
@@ -19,7 +20,6 @@ import java.util.Collections;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.core.convert.ConversionException;
 import org.springframework.core.convert.ConversionService;
@@ -33,7 +33,7 @@ import org.springframework.util.ClassUtils;
 /**
  * @author David Turanski
  * @author Gary Russell
- *
+ * 
  */
 public abstract class ChannelRegistrySupport implements ChannelRegistry, BeanClassLoaderAware {
 
@@ -47,14 +47,12 @@ public abstract class ChannelRegistrySupport implements ChannelRegistry, BeanCla
 
 	private static final MediaType JAVA_OBJECT_TYPE = new MediaType("application", "x-java-object");
 
-	protected static final String XD_JSON_OCTET_STREAM_VALUE =
-			new MediaType("application", "x-xd-json-octet-stream").toString();
+	protected static final String XD_JSON_OCTET_STREAM_VALUE = new MediaType("application", "x-xd-json-octet-stream").toString();
 
-	protected static final String XD_TEXT_PLAIN_UTF8_VALUE =
-			new MediaType("text", "x-xd-plain", Charset.forName("UTF-8")).toString();
+	protected static final String XD_TEXT_PLAIN_UTF8_VALUE = new MediaType("text", "x-xd-plain",
+			Charset.forName("UTF-8")).toString();
 
-	protected static final String XD_OCTET_STREAM_VALUE =
-			new MediaType("application", "x-xd-octet-stream").toString();
+	protected static final String XD_OCTET_STREAM_VALUE = new MediaType("application", "x-xd-octet-stream").toString();
 
 	protected static final String ORIGINAL_CONTENT_TYPE_HEADER = "originalContentType";
 
@@ -91,7 +89,9 @@ public abstract class ChannelRegistrySupport implements ChannelRegistry, BeanCla
 			else if (originalPayload instanceof String) {
 				try {
 					payload = ((String) originalPayload).getBytes("UTF-8");
-					contentType = XD_TEXT_PLAIN_UTF8_VALUE;
+					if (contentType == null) {
+						contentType = XD_TEXT_PLAIN_UTF8_VALUE;
+					}
 				}
 				catch (UnsupportedEncodingException e) {
 					logger.error("Could not convert String to bytes", e);
@@ -106,9 +106,8 @@ public abstract class ChannelRegistrySupport implements ChannelRegistry, BeanCla
 			throw new IllegalArgumentException("'to' can only be 'ALL' or 'APPLICATION_OCTET_STREAM'");
 		}
 		if (payload != null) {
-			MessageBuilder<Object> messageBuilder = MessageBuilder.withPayload(payload)
-					.copyHeaders(message.getHeaders())
-					.setHeader(MessageHeaders.CONTENT_TYPE, contentType);
+			MessageBuilder<Object> messageBuilder = MessageBuilder.withPayload(payload).copyHeaders(
+					message.getHeaders()).setHeader(MessageHeaders.CONTENT_TYPE, contentType);
 			if (originalContentTypeString != null) {
 				messageBuilder.setHeader(ORIGINAL_CONTENT_TYPE_HEADER, originalContentTypeString);
 			}
@@ -121,9 +120,7 @@ public abstract class ChannelRegistrySupport implements ChannelRegistry, BeanCla
 		Message<?> messageToSend = message;
 		Object originalPayload = message.getPayload();
 		String contentType = message.getHeaders().get(MessageHeaders.CONTENT_TYPE, String.class);
-		Object payload = transformPayloadForInputChannel(originalPayload,
-				contentType,
-				acceptedMediaTypes);
+		Object payload = transformPayloadForInputChannel(originalPayload, contentType, acceptedMediaTypes);
 		if (payload != null) {
 			MessageBuilder<Object> transformed = MessageBuilder.withPayload(payload).copyHeaders(message.getHeaders());
 			Object originalContentType = message.getHeaders().get(ORIGINAL_CONTENT_TYPE_HEADER);
@@ -140,77 +137,105 @@ public abstract class ChannelRegistrySupport implements ChannelRegistry, BeanCla
 	}
 
 	private Object transformPayloadForInputChannel(Object payload, String contentType, Collection<MediaType> to) {
-		if (payload instanceof byte[]) {
-			Object result = null;
-			// Get the preferred java type, if any, and first try to decode directly from JSON.
-			MediaType toObjectType = findJavaObjectType(to);
-			if (XD_JSON_OCTET_STREAM_VALUE.equals(contentType)) {
-				if (toObjectType == null || toObjectType.getParameter("type") == null) {
+		Object result = null;
+		if (MediaType.APPLICATION_JSON_VALUE.equals(contentType) || XD_JSON_OCTET_STREAM_VALUE.equals(contentType)) {
+			result = transformInputWithTypedJsonMapper(payload, contentType, to);
+		}
+		if (payload instanceof byte[])
+			if (result != null) {
+				if (to.contains(MediaType.ALL)) {
+					return result;
+				}
+				// TODO: currently only tries the first
+				// application/x-java-object;type=foo.Foo
+				MediaType toObjectType = findJavaObjectType(to);
+				if (toObjectType != null) {
+					if (toObjectType.getParameter("type") == null) {
+						return result;
+					}
+					String resultClass = result.getClass().getName();
+					if (resultClass.equals(toObjectType.getParameter("type"))) {
+						return result;
+					}
+					// recursive call
+					return transformPayloadForInputChannel(result, contentType, Collections.singletonList(toObjectType));
+				}
+
+				else if (XD_OCTET_STREAM_VALUE.equals(contentType)) {
 					try {
+						return new String((byte[]) payload, "UTF-8");
+					}
+					catch (UnsupportedEncodingException e) {
+						logger.error("Could not convert bytes to String", e);
+					}
+				}
+				else if (XD_OCTET_STREAM_VALUE.equals(contentType)) {
+					return payload;
+				}
+			}
+		if (to.contains(MediaType.ALL)) {
+			if (XD_TEXT_PLAIN_UTF8_VALUE.equals(contentType) && payload instanceof byte[]) {
+				try {
+					return new String((byte[]) payload, "UTF-8");
+				}
+				catch (UnsupportedEncodingException e) {
+					logger.error("Could not convert String to bytes", e);
+				}
+			}
+			return payload;
+		}
+		return convert(payload, to);
+	}
+
+	/**
+	 * @param payload
+	 * @param contentType
+	 * @param to
+	 */
+	private Object transformInputWithTypedJsonMapper(Object payload, String contentType, Collection<MediaType> to) {
+		MediaType toObjectType = findJavaObjectType(to);
+		Object result = null;
+		Object source = payload instanceof String ? ((String) payload).getBytes() : payload;
+
+		if (source instanceof byte[]) {
+
+			// Get the preferred java type, if any, and first try to decode directly
+			// from
+			// JSON.
+			if (toObjectType == null || toObjectType.getParameter("type") == null) {
+				try {
+					result = this.jsonMapper.fromBytes((byte[]) payload);
+				}
+				catch (ConversionException e) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("JSON decode failed, raw byte[]?");
+					}
+				}
+			}
+			else {
+				String preferredClass = toObjectType.getParameter("type");
+				try {
+					// If this fails, fall back to generic decoding and delegate
+					// object conversion to the conversionService
+					result = this.jsonMapper.fromBytes((byte[]) payload, preferredClass);
+				}
+				catch (ConversionException e) {
+					try {
+						if (logger.isDebugEnabled()) {
+							logger.debug("JSON decode failed to convert to requested type: " + preferredClass
+									+ " - will try to decode to original type");
+						}
 						result = this.jsonMapper.fromBytes((byte[]) payload);
 					}
-					catch (ConversionException e) {
+					catch (ConversionException ce) {
 						if (logger.isDebugEnabled()) {
 							logger.debug("JSON decode failed, raw byte[]?");
 						}
 					}
 				}
-				else {
-					String preferredClass = toObjectType.getParameter("type");
-					try {
-						// If this fails, fall back to generic decoding and delegate object conversion to the conversionService
-						result = this.jsonMapper.fromBytes((byte[]) payload, preferredClass);
-					}
-					catch (ConversionException e) {
-						try {
-							if (logger.isDebugEnabled()) {
-								logger.debug("JSON decode failed to convert to requested type: " + preferredClass
-										+ " - will try to decode to original type");
-							}
-							result = this.jsonMapper.fromBytes((byte[]) payload);
-						}
-						catch (ConversionException ce) {
-							if (logger.isDebugEnabled()) {
-								logger.debug("JSON decode failed, raw byte[]?");
-							}
-						}
-					}
-				}
-				if (result != null) {
-					if (to.contains(MediaType.ALL)) {
-						return result;
-					}
-					// TODO: currently only tries the first application/x-java-object;type=foo.Foo
-					toObjectType = findJavaObjectType(to);
-					if (toObjectType != null) {
-						if (toObjectType.getParameter("type") == null) {
-							return result;
-						}
-						String resultClass = result.getClass().getName();
-						if (resultClass.equals(toObjectType.getParameter("type"))) {
-							return result;
-						}
-						// recursive call
-						return transformPayloadForInputChannel(result, contentType, Collections.singletonList(toObjectType));
-					}
-				}
-			}
-			else if (XD_TEXT_PLAIN_UTF8_VALUE.equals(contentType)) {
-				try {
-					return new String((byte[]) payload, "UTF-8");
-				}
-				catch (UnsupportedEncodingException e) {
-					logger.error("Could not convert bytes to String", e);
-				}
-			}
-			else if(XD_OCTET_STREAM_VALUE.equals(contentType)) {
-				return payload;
 			}
 		}
-		if (to.contains(MediaType.ALL)) {
-			return payload;
-		}
-		return convert(payload, to);
+		return result;
 	}
 
 	private Object convert(Object payload, Collection<MediaType> to) {

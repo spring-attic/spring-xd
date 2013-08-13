@@ -217,6 +217,15 @@ public class RedisChannelRegistry extends ChannelRegistrySupport implements Disp
 			this.acceptedMediaTypes = acceptedMediaTypes;
 		}
 
+		@Override
+		protected boolean shouldCopyRequestHeaders() {
+			/*
+			 * we've already copied the headers so no need for the ARPMH to do it, and we
+			 * don't want the content-type restored if absent.
+			 */
+			return false;
+		}
+
 		@SuppressWarnings("unchecked")
 		@Override
 		protected Object handleRequestMessage(Message<?> requestMessage) {

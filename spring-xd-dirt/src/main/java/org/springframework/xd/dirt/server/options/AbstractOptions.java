@@ -23,12 +23,11 @@ import org.kohsuke.args4j.OptionDef;
 import org.kohsuke.args4j.spi.OptionHandler;
 import org.kohsuke.args4j.spi.Parameters;
 import org.kohsuke.args4j.spi.Setter;
-
 import org.springframework.util.StringUtils;
 
 /**
  * Options shared by both the admin and the container server.
- *
+ * 
  * @author Eric Bottard
  * @author Mark Pollack
  * @author David Turanski
@@ -37,8 +36,6 @@ import org.springframework.util.StringUtils;
 public abstract class AbstractOptions {
 
 	public static final String DEFAULT_HOME = "..";
-
-	private static final String XD_PAYLOAD_TRANSFORMER_KEY = "xd.payload.transformer";
 
 	public static final String XD_HOME_KEY = "xd.home";
 
@@ -89,9 +86,6 @@ public abstract class AbstractOptions {
 	@Option(name = "--disableJmx", usage = "Disable JMX in the XD container", handler = JmxDisabledHandler.class)
 	private boolean jmxDisabled = false;
 
-	@Option(name = "--transformer", usage = "The default payload transformer class name", handler = PayloadTransformerHandler.class)
-	private String transformer;
-
 	@Option(name = "--analytics", usage = "How to persist analytics such as counters and gauges (default: redis)")
 	private Analytics analytics = Analytics.redis;
 
@@ -125,35 +119,11 @@ public abstract class AbstractOptions {
 
 	public abstract int getJmxPort();
 
-	public String getTransformer() {
-		return transformer;
-	}
-
 	/**
 	 * @return the showHelp
 	 */
 	public boolean isShowHelp() {
 		return showHelp;
-	}
-
-	public static class PayloadTransformerHandler extends OptionHandler<String> {
-
-		public PayloadTransformerHandler(CmdLineParser parser, OptionDef option,
-				Setter<String> setter) {
-			super(parser, option, setter);
-		}
-
-		@Override
-		public int parseArguments(Parameters params) throws CmdLineException {
-			System.setProperty(XD_PAYLOAD_TRANSFORMER_KEY, params.getParameter(0));
-			return 1;
-		}
-
-		@Override
-		public String getDefaultMetaVariable() {
-			return "<transformer>";
-		}
-
 	}
 
 	public static class JmxDisabledHandler extends OptionHandler<Boolean> {
@@ -163,14 +133,13 @@ public abstract class AbstractOptions {
 		 * @param option
 		 * @param setter
 		 */
-		public JmxDisabledHandler(CmdLineParser parser, OptionDef option,
-				Setter<Boolean> setter) {
+		public JmxDisabledHandler(CmdLineParser parser, OptionDef option, Setter<Boolean> setter) {
 			super(parser, option, setter);
 		}
 
 		/*
 		 * (non-Javadoc)
-		 *
+		 * 
 		 * @see
 		 * org.kohsuke.args4j.spi.OptionHandler#parseArguments(org.kohsuke.args4j.spi.
 		 * Parameters)
@@ -183,7 +152,7 @@ public abstract class AbstractOptions {
 
 		/*
 		 * (non-Javadoc)
-		 *
+		 * 
 		 * @see org.kohsuke.args4j.spi.OptionHandler#getDefaultMetaVariable()
 		 */
 		@Override

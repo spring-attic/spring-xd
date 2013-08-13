@@ -2,11 +2,9 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:util="http://www.springframework.org/schema/util"
 	xmlns:int="http://www.springframework.org/schema/integration"
 	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-3.0.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.2.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
 	<import resource="../internal/xd-common.xml"/>
@@ -19,14 +17,5 @@
 			<int:poller fixed-rate="${xd.local.transport.named.polling:1000}" />
 		</property>
 	</bean>
-	
-	<util:map id="transformers">
-		<entry
-			key="${xd.payload.transformer:undefined}">
-			<bean
-				class="${xd.payload.transformer:java.lang.Void}" />
-		</entry>
-		<entry key="none"><null/></entry>
-	</util:map>
 
 </beans>

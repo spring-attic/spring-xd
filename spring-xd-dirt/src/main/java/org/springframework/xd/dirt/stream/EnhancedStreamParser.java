@@ -24,6 +24,7 @@ import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.BaseDefinition;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.dirt.module.ModuleRegistry;
+import org.springframework.xd.dirt.module.NoSuchModuleException;
 import org.springframework.xd.dirt.stream.dsl.ArgumentNode;
 import org.springframework.xd.dirt.stream.dsl.ModuleNode;
 import org.springframework.xd.dirt.stream.dsl.SinkChannelNode;
@@ -98,13 +99,18 @@ public class EnhancedStreamParser implements XDParser {
 
 		for (int m = 0; m < moduleNodes.size(); m++) {
 			ModuleDeploymentRequest request = requests.get(m);
-			request.setType(determineType(request, requests.size() - 1));
+			request.setType(determineType(request, requests.size() - 1).getTypeName());
 		}
 
 		return requests;
 	}
 
-	private String determineType(ModuleDeploymentRequest request, int lastIndex) {
+	private ModuleType determineType(ModuleDeploymentRequest request, int lastIndex) {
+		ModuleType moduleType = getNamedChannelModuleType(request, lastIndex);
+		if (moduleType != null) {
+			return moduleType;
+		}
+		String type = null;
 		String name = request.getModule();
 		int index = request.getIndex();
 		List<ModuleDefinition> defs = moduleRegistry.findDefinitions(name);
@@ -113,31 +119,57 @@ public class EnhancedStreamParser implements XDParser {
 			throw new RuntimeException("Module definition is missing for " + name);
 		}
 		if (defs.size() == 1) {
-			return defs.get(0).getType();
+			type = defs.get(0).getType();
 		}
-		// now if you receive more than one response lets use some position
-		// logic to figure this thing out.
-		if (index == 0) {
-			for (ModuleDefinition def : defs) {// this should be a trigger or a
-												// job so let's check there.
+		if (lastIndex == 0) {
+			for (ModuleDefinition def : defs) {
 				if (def.getType().equals(ModuleType.JOB.getTypeName())
-						|| def.getType().equals(ModuleType.TRIGGER.getTypeName())
-						|| def.getType().equals(ModuleType.SOURCE.getTypeName())) {
-					return def.getType();
+						|| def.getType().equals(ModuleType.TRIGGER.getTypeName())) {
+					type = def.getType();
 				}
 			}
 		}
-		else if (index == lastIndex) {// sometimes a module can be both a source and a
-										// sink
-			for (ModuleDefinition def : defs) {// this should be a trigger or a
-				// job so let's check there.
-				if (def.getType().equals(ModuleType.SINK.getTypeName())) {
-					return def.getType();
-				}
-			}
+		else if (index == 0) {
+			type = ModuleType.SOURCE.getTypeName();
 		}
-		// if all else fails return the first type in the list.
-		return defs.get(0).getType();
-
+		else if (index == lastIndex) {
+			type = ModuleType.SINK.getTypeName();
+		}
+		if (type == null) {
+			throw new NoSuchModuleException(name);
+		}
+		return verifyModuleOfTypeExists(name, type);
 	}
+
+	private ModuleType getNamedChannelModuleType(ModuleDeploymentRequest request, int lastIndex) {
+		String type = null;
+		String moduleName = request.getModule();
+		int index = request.getIndex();
+		if (request.getSourceChannelName() != null) {
+			if (index == lastIndex) {
+				type = ModuleType.SINK.getTypeName();
+			}
+			else {
+				type = ModuleType.PROCESSOR.getTypeName();
+			}
+		}
+		else if (request.getSinkChannelName() != null) {
+			if (index == 0) {
+				type = ModuleType.SOURCE.getTypeName();
+			}
+			else {
+				type = ModuleType.PROCESSOR.getTypeName();
+			}
+		}
+		return (type == null) ? null : verifyModuleOfTypeExists(moduleName, type);
+	}
+
+	private ModuleType verifyModuleOfTypeExists(String moduleName, String type) {
+		ModuleDefinition def = moduleRegistry.lookup(moduleName, type);
+		if (def == null || def.getResource() == null) {
+			throw new NoSuchModuleException(moduleName);
+		}
+		return ModuleType.getModuleTypeByTypeName(def.getType());
+	}
+
 }

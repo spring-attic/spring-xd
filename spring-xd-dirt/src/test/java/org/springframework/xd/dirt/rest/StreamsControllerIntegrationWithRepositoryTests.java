@@ -16,27 +16,11 @@
 
 package org.springframework.xd.dirt.rest;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.mockito.Matchers.anyListOf;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
@@ -52,10 +36,16 @@ import org.springframework.xd.dirt.stream.memory.InMemoryStreamRepository;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 /**
  * Tests REST compliance of streams-related end-points. Contrary to
- * {@link StreamsControllerIntegrationTests}, instead of mocks, this class
- * provides access to an actual repository: {@link InMemoryStreamRepository} and
+ * {@link StreamsControllerIntegrationTests}, instead of mocks, this class provides access
+ * to an actual repository: {@link InMemoryStreamRepository} and
  * {@link InMemoryStreamDefinitionRepository}.
  * 
  * @author Gunnar Hillert
@@ -78,33 +68,27 @@ public class StreamsControllerIntegrationWithRepositoryTests extends AbstractCon
 	@Before
 	public void before() {
 		Resource resource = mock(Resource.class);
-		File file = mock(File.class);
-		when(file.exists()).thenReturn(true);
-		try {
-			when(resource.getFile()).thenReturn(file);
-		} catch (IOException ioe) {
-			throw new RuntimeException(ioe);
-		}
+		ModuleDefinition sinkDefinition = new ModuleDefinition(ModuleType.SINK.getTypeName(),
+				ModuleType.SINK.getTypeName(), resource);
+		ModuleDefinition sourceDefinition = new ModuleDefinition(ModuleType.SOURCE.getTypeName(),
+				ModuleType.SOURCE.getTypeName(), resource);
+
 		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(new ModuleDefinition(ModuleType.SOURCE.getTypeName(),
-				ModuleType.SOURCE.getTypeName(), resource));
-		when(moduleRegistry.findDefinitions(ModuleType.SOURCE.getTypeName()))
-				.thenReturn(definitions);
+		definitions.add(new ModuleDefinition(ModuleType.SOURCE.getTypeName(), ModuleType.SOURCE.getTypeName(), resource));
+		when(moduleRegistry.findDefinitions(ModuleType.SOURCE.getTypeName())).thenReturn(definitions);
 		when(moduleRegistry.findDefinitions("time")).thenReturn(definitions);
+		when(moduleRegistry.lookup("time", "source")).thenReturn(sourceDefinition);
 
 		definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(new ModuleDefinition(ModuleType.SINK.getTypeName(),
-				ModuleType.SINK.getTypeName(), resource));
-		when(moduleRegistry.findDefinitions(ModuleType.SINK.getTypeName()))
-				.thenReturn(definitions);
+		definitions.add(new ModuleDefinition(ModuleType.SINK.getTypeName(), ModuleType.SINK.getTypeName(), resource));
+		when(moduleRegistry.findDefinitions(ModuleType.SINK.getTypeName())).thenReturn(definitions);
 		when(moduleRegistry.findDefinitions("log")).thenReturn(definitions);
+		when(moduleRegistry.lookup("log", "sink")).thenReturn(sinkDefinition);
 
 		definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(new ModuleDefinition(
-				ModuleType.PROCESSOR.getTypeName(), ModuleType.PROCESSOR
-						.getTypeName(), resource));
-		when(moduleRegistry.findDefinitions(ModuleType.PROCESSOR.getTypeName()))
-				.thenReturn(definitions);
+		definitions.add(new ModuleDefinition(ModuleType.PROCESSOR.getTypeName(), ModuleType.PROCESSOR.getTypeName(),
+				resource));
+		when(moduleRegistry.findDefinitions(ModuleType.PROCESSOR.getTypeName())).thenReturn(definitions);
 
 	}
 
@@ -116,16 +100,16 @@ public class StreamsControllerIntegrationWithRepositoryTests extends AbstractCon
 	@Test
 	public void testCreateUndeployAndDeleteOfStream() throws Exception {
 		mockMvc.perform(
-				post("/streams").param("name", "mystream").param("definition", "time | log")
-						.accept(MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
+				post("/streams").param("name", "mystream").param("definition", "time | log").accept(
+						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 
 		verify(sender, times(1)).sendDeploymentRequests(eq("mystream"), anyListOf(ModuleDeploymentRequest.class));
 
 		assertNotNull(streamDefinitionRepository.findOne("mystream"));
 		assertNotNull(streamRepository.findOne("mystream"));
 
-		mockMvc.perform(put("/streams/mystream").param("deploy", "false").accept(MediaType.APPLICATION_JSON))
-				.andExpect(status().isOk());
+		mockMvc.perform(put("/streams/mystream").param("deploy", "false").accept(MediaType.APPLICATION_JSON)).andExpect(
+				status().isOk());
 
 		verify(sender, times(2)).sendDeploymentRequests(eq("mystream"), anyListOf(ModuleDeploymentRequest.class));
 
@@ -139,8 +123,7 @@ public class StreamsControllerIntegrationWithRepositoryTests extends AbstractCon
 		assertNull(streamDefinitionRepository.findOne("mystream"));
 		assertNull(streamRepository.findOne("mystream"));
 
-		mockMvc.perform(delete("/streams/mystream").accept(MediaType.APPLICATION_JSON))
-				.andExpect(status().isNotFound());
+		mockMvc.perform(delete("/streams/mystream").accept(MediaType.APPLICATION_JSON)).andExpect(status().isNotFound());
 
 		// As already undeployed, no new ModuleDeploymentRequest expected
 		verify(sender, times(2)).sendDeploymentRequests(eq("mystream"), anyListOf(ModuleDeploymentRequest.class));

@@ -21,10 +21,11 @@ import org.junit.Test;
  */
 @Ignore
 public class StreamTests extends AbstractStreamTests {
+
 	@Test
 	public void testTap() throws InterruptedException {
-		this.deployStream("test1","time | log");
-		this.deployStream("tap","tap @ test1 | file");
+		this.deployStream("test1", "time | log");
+		this.deployStream("tap", "tap @ test1 | file");
 	}
 
 }

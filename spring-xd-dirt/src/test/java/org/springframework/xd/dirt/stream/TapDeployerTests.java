@@ -10,22 +10,15 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.xd.dirt.stream;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
 import org.springframework.core.io.Resource;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
@@ -39,6 +32,9 @@ import org.springframework.xd.dirt.stream.memory.InMemoryTapDefinitionRepository
 import org.springframework.xd.dirt.stream.memory.InMemoryTapInstanceRepository;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
+
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 /**
  * @author David Turanski
@@ -69,7 +65,7 @@ public class TapDeployerTests {
 		deployChannel = new DirectChannel();
 		undeployChannel = new PublishSubscribeChannel();
 		sender = new DeploymentMessageSender(deployChannel, undeployChannel);
-		XDParser parser = new EnhancedStreamParser(streamDefinitionRepository,moduleRegistry());
+		XDParser parser = new EnhancedStreamParser(streamDefinitionRepository, moduleRegistry());
 		tapDeployer = new TapDeployer(repository, streamDefinitionRepository, sender, parser, tapInstanceRepository);
 	}
 
@@ -93,6 +89,7 @@ public class TapDeployerTests {
 		repository.save(tapDefinition);
 		final AtomicInteger messageCount = new AtomicInteger();
 		deployChannel.subscribe(new MessageHandler() {
+
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
 				messageCount.getAndIncrement();
@@ -109,12 +106,14 @@ public class TapDeployerTests {
 		final AtomicInteger deployCount = new AtomicInteger();
 		final AtomicInteger undeployCount = new AtomicInteger();
 		deployChannel.subscribe(new MessageHandler() {
+
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
 				deployCount.getAndIncrement();
 			}
 		});
 		undeployChannel.subscribe(new MessageHandler() {
+
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
 				undeployCount.getAndIncrement();
@@ -140,23 +139,18 @@ public class TapDeployerTests {
 	public ModuleRegistry moduleRegistry() {
 		ModuleRegistry registry = mock(ModuleRegistry.class);
 		Resource resource = mock(Resource.class);
-		File file = mock(File.class);
-		when(file.exists()).thenReturn(true);
-		try {
-			when(resource.getFile()).thenReturn(file);
-		} catch (IOException ioe) {
-			throw new RuntimeException(ioe);
-		}
 		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(new ModuleDefinition(ModuleType.TAP.getTypeName(),
-				ModuleType.TAP.name(), resource));
-		when(registry.findDefinitions(ModuleType.TAP.getTypeName()))
-				.thenReturn(definitions);
+		definitions.add(new ModuleDefinition(ModuleType.TAP.getTypeName(), ModuleType.TAP.getTypeName(), resource));
+		when(registry.findDefinitions(ModuleType.TAP.getTypeName())).thenReturn(definitions);
 
 		definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(new ModuleDefinition(ModuleType.SINK.getTypeName(),
-				ModuleType.SINK.name(), resource));
+		definitions.add(new ModuleDefinition(ModuleType.SINK.getTypeName(), ModuleType.SINK.getTypeName(), resource));
 		when(registry.findDefinitions("file")).thenReturn(definitions);
+
+		when(registry.lookup("file", ModuleType.SINK.getTypeName())).thenReturn(
+				new ModuleDefinition(ModuleType.SINK.getTypeName(), ModuleType.SINK.getTypeName(), resource));
+		when(registry.lookup("tap", ModuleType.SOURCE.getTypeName())).thenReturn(
+				new ModuleDefinition(ModuleType.SOURCE.getTypeName(), ModuleType.SOURCE.getTypeName(), resource));
 
 		return registry;
 	}

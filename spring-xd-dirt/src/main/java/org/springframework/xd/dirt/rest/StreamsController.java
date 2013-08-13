@@ -62,7 +62,7 @@ public class StreamsController extends
 		return listValues(pageable, assembler);
 	}
 
-	protected StreamDefinition definitionFactory(String name, String definition) {
+	protected StreamDefinition createDefinition(String name, String definition) {
 		return new StreamDefinition(name, definition);
 	}
 }

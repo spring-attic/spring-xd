@@ -77,7 +77,7 @@ public class TriggersController
 				"Removal of Triggers is not Implemented, yet.");
 	}
 
-	protected TriggerDefinition definitionFactory(String name, String definition) {
+	protected TriggerDefinition createDefinition(String name, String definition) {
 		return new TriggerDefinition(name, definition);
 	}
 }

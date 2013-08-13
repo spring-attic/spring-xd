@@ -33,25 +33,24 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 
 	private static final String DEPLOYER_TYPE = "job";
 
-	public JobDeployer(JobDefinitionRepository repository,
-			DeploymentMessageSender messageSender, XDParser parser) {
+	public JobDeployer(JobDefinitionRepository repository, DeploymentMessageSender messageSender, XDParser parser) {
 		super(repository, messageSender, parser, DEPLOYER_TYPE);
 	}
 
 	@Override
 	public void delete(String name) {
-		JobDefinition def = getRepository().findOne(name);
+		JobDefinition def = getDefinitionRepository().findOne(name);
 		if (def == null) {
 			throwNoSuchDefinitionException(name);
 		}
 		try {
-			if (getRepository().exists(name)) {
+			if (getDefinitionRepository().exists(name)) {
 				undeploy(name);
 			}
-			getRepository().delete(name);
+			getDefinitionRepository().delete(name);
 		}
 		catch (DSLException dslException) {
-			getRepository().delete(name);// if it is a DSL exception (meaning
+			getDefinitionRepository().delete(name);// if it is a DSL exception (meaning
 											// bad definition) go ahead a delete
 											// the module.
 		}
@@ -59,8 +58,8 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 
 	@Override
 	public void deploy(String name) {
-		Assert.hasText(name, ErrorMessage.nameEmptyError.getMessage());
-		JobDefinition definition = getRepository().findOne(name);
+		Assert.hasText(name, "name cannot be blank or null");
+		JobDefinition definition = getDefinitionRepository().findOne(name);
 		if (definition == null) {
 			throwNoSuchDefinitionException(name);
 		}
@@ -86,12 +85,11 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 
 	@Override
 	public void undeploy(String name) {
-		JobDefinition job = getRepository().findOne(name);
+		JobDefinition job = getDefinitionRepository().findOne(name);
 		if (job == null) {
 			throwNoSuchDefinitionException(name);
 		}
-		List<ModuleDeploymentRequest> requests = parse(name,
-				job.getDefinition());
+		List<ModuleDeploymentRequest> requests = parse(name, job.getDefinition());
 		for (ModuleDeploymentRequest request : requests) {
 			request.setRemove(true);
 		}

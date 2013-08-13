@@ -12,42 +12,27 @@
  */
 package org.springframework.xd.dirt.stream;
 
-import java.util.Collections;
-import java.util.List;
-
 import org.springframework.util.Assert;
-import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.dirt.core.ResourceDeployer;
 
 /**
+ * Specialization of {@link ResourceDeployer} that deals with taps.
+ * 
  * @author David Turanski
  * @author Luke Taylor
  * @author Gunnar Hillert
  */
-public class TapDeployer extends AbstractDeployer<TapDefinition> {
+public class TapDeployer extends AbstractInstancePersistingDeployer<TapDefinition, TapInstance> {
 
 	private final StreamDefinitionRepository streamDefinitionRepository;
 
-	/**
-	 * Stores runtime information about a deployed tap.
-	 */
-	private final TapInstanceRepository tapInstanceRepository;
-
 	public TapDeployer(TapDefinitionRepository repository, StreamDefinitionRepository streamDefinitionRepository,
-			DeploymentMessageSender messageSender, XDParser parser,
-			TapInstanceRepository tapInstanceRepository) {
-		super(repository, messageSender, parser, "tap");
+			DeploymentMessageSender messageSender, XDParser parser, TapInstanceRepository tapInstanceRepository) {
+		super(repository, tapInstanceRepository, messageSender, parser, "tap");
 		Assert.notNull(streamDefinitionRepository, "stream definition repository cannot be null");
 		this.streamDefinitionRepository = streamDefinitionRepository;
-		this.tapInstanceRepository = tapInstanceRepository;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.xd.dirt.core.ResourceDeployer#create(java.lang.Object
-	 * )
-	 */
 	@Override
 	public TapDefinition save(TapDefinition tapDefinition) {
 		Assert.notNull(tapDefinition, "tap definition may not be null");
@@ -59,61 +44,7 @@ public class TapDeployer extends AbstractDeployer<TapDefinition> {
 	}
 
 	@Override
-	public void delete(String name) {
-		final TapDefinition tapDefinition = getRepository().findOne(name);
-		if (tapDefinition == null) {
-			throw new NoSuchDefinitionException(name, "Can't delete tap '%s' because it does not exist");
-		}
-		if (tapInstanceRepository.exists(name)) {
-			// Undeploy the tap before delete it from repository
-			undeploy(name);
-		}
-
-		getRepository().delete(name);
+	protected TapInstance makeInstance(TapDefinition definition) {
+		return new TapInstance(definition);
 	}
-
-	@Override
-	public void deploy(String name) {
-
-		Assert.hasText(name, "name cannot be blank or null");
-
-		if (tapInstanceRepository.exists(name)) {
-			throw new AlreadyDeployedException(name, "The tap named '%s' is already deployed");
-		}
-
-		final TapDefinition tapDefinition = getRepository().findOne(name);
-
-		if (tapDefinition == null) {
-			throwNoSuchDefinitionException(name);
-		}
-
-		final List<ModuleDeploymentRequest> requests = parse(name, tapDefinition.getDefinition());
-		sendDeploymentRequests(name, requests);
-
-		final TapInstance tapInstance = new TapInstance(tapDefinition);
-		tapInstanceRepository.save(tapInstance);
-	}
-
-	@Override
-	public void undeploy(String name) {
-		Assert.hasText(name, "name cannot be blank or null");
-
-		final TapInstance tapInstance = tapInstanceRepository.findOne(name);
-		if (tapInstance == null) {
-			throwNoSuchDefinitionException(name);
-		}
-
-		final List<ModuleDeploymentRequest> requests = parse(name, tapInstance.getDefinition().getDefinition());
-
-		Collections.reverse(requests);
-
-		for (ModuleDeploymentRequest request : requests) {
-			request.setRemove(true);
-		}
-
-		sendDeploymentRequests(name, requests);
-
-		tapInstanceRepository.delete(tapInstance);
-	}
-
 }

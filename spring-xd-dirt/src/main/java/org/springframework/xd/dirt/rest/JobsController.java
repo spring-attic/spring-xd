@@ -63,7 +63,7 @@ public class JobsController extends
 	}
 
 
-	protected JobDefinition definitionFactory(String name, String definition) {
+	protected JobDefinition createDefinition(String name, String definition) {
 		return new JobDefinition(name, definition);
 	}
 

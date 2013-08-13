@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.dirt.core.BaseDefinition;
+import org.springframework.xd.dirt.core.ResourceDeployer;
 import org.springframework.xd.dirt.stream.AbstractDeployer;
 import org.springframework.xd.dirt.stream.NoSuchDefinitionException;
 
@@ -47,7 +48,7 @@ import org.springframework.xd.dirt.stream.NoSuchDefinitionException;
 
 public abstract class XDController<D extends BaseDefinition, V extends ResourceAssemblerSupport<D, T>, T extends ResourceSupport> {
 
-	private AbstractDeployer<D> deployer;
+	private ResourceDeployer<D> deployer;
 
 	private V resourceAssemblerSupport;
 
@@ -77,7 +78,7 @@ public abstract class XDController<D extends BaseDefinition, V extends ResourceA
 	@ResponseStatus(HttpStatus.OK)
 	public void undeploy(@PathVariable("name")
 	String name) {
-		getDeployer().undeploy(name);
+		deployer.undeploy(name);
 	}
 
 	/**
@@ -90,7 +91,7 @@ public abstract class XDController<D extends BaseDefinition, V extends ResourceA
 	@ResponseBody
 	public void deploy(@PathVariable("name")
 	String name) {
-		getDeployer().deploy(name);
+		deployer.deploy(name);
 	}
 
 	/**
@@ -103,20 +104,22 @@ public abstract class XDController<D extends BaseDefinition, V extends ResourceA
 	@ResponseBody
 	public ResourceSupport display(@PathVariable("name")
 	String name) {
-		final D definition = getDeployer().findOne(name);
+		final D definition = deployer.findOne(name);
 		if (definition == null) {
 			throw new NoSuchDefinitionException(name, "There is no definition named '%s'");
 		}
-		return getResourceAssemblerSupport().toResource(definition);
+		return resourceAssemblerSupport.toResource(definition);
 	}
 
 	/**
 	 * List module definitions.
 	 */
-	public PagedResources<T> listValues(Pageable pageable, PagedResourcesAssembler<D> assembler) {
-		Page<D> page = getDeployer().findAll(pageable);
+	// protected and not annotated with @RequestMapping due to the way PagedResourcesAssemblerArgumentResolver works
+	// subclasses should override and make public (or delegate)
+	protected PagedResources<T> listValues(Pageable pageable, PagedResourcesAssembler<D> assembler) {
+		Page<D> page = deployer.findAll(pageable);
 		if (page.hasContent()) {
-			return assembler.toResource(page, getResourceAssemblerSupport());
+			return assembler.toResource(page, resourceAssemblerSupport);
 		}
 		else {
 			return new PagedResources<T>(new ArrayList<T>(), null);
@@ -136,23 +139,15 @@ public abstract class XDController<D extends BaseDefinition, V extends ResourceA
 	String name, @RequestParam("definition")
 	String definition, @RequestParam(value = "deploy", defaultValue = "true")
 	boolean deploy) {
-		final D moduleDefinition = definitionFactory(name, definition);
-		final D savedModuleDefinition = getDeployer().save(moduleDefinition);
+		final D moduleDefinition = createDefinition(name, definition);
+		final D savedModuleDefinition = deployer.save(moduleDefinition);
 		if (deploy) {
-			getDeployer().deploy(name);
+			deployer.deploy(name);
 		}
-		final T result = getResourceAssemblerSupport().toResource(savedModuleDefinition);
+		final T result = resourceAssemblerSupport.toResource(savedModuleDefinition);
 		return result;
 	}
 
-	public AbstractDeployer<D> getDeployer() {
-		return deployer;
-	}
-
-	public V getResourceAssemblerSupport() {
-		return resourceAssemblerSupport;
-	}
-
-	protected abstract D definitionFactory(String name, String Definition);
+	protected abstract D createDefinition(String name, String definition);
 
 }

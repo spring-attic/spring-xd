@@ -39,26 +39,30 @@ public class TriggerDeployer extends AbstractDeployer<TriggerDefinition> {
 
 	@Override
 	public void delete(String name) {
-		TriggerDefinition def = getRepository().findOne(name);
+		TriggerDefinition def = getDefinitionRepository().findOne(name);
 		if (def == null) {
 			throw new NoSuchDefinitionException(name, "Can't delete trigger '%s' because it does not exist");
 		}
 		undeploy(name);
-		getRepository().delete(name);
+		getDefinitionRepository().delete(name);
 	}
 
 	@Override
 	public void undeploy(String name) {
-		TriggerDefinition trigger = getRepository().findOne(name);
+		TriggerDefinition trigger = getDefinitionRepository().findOne(name);
 		if (trigger == null) {
 			throwNoSuchDefinitionException(name);
 		}
-		List<ModuleDeploymentRequest> requests = parse(name,
-				trigger.getDefinition());
+		List<ModuleDeploymentRequest> requests = parse(name, trigger.getDefinition());
 		for (ModuleDeploymentRequest request : requests) {
 			request.setRemove(true);
 		}
 		sendDeploymentRequests(name, requests);
+	}
+
+	@Override
+	public void deploy(String name) {
+		basicDeploy(name);
 	}
 
 }

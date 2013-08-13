@@ -38,74 +38,74 @@ import org.springframework.xd.dirt.stream.NoSuchDefinitionException;
 /**
  * Base Class for XD Controllers.
  * 
+ * @param <D> the kind of definition entity this controller deals with
+ * @param <V> a resource assembler that knows how to build Ts out of Ds
+ * @param <T> the resource class for D
+ * 
  * @author Glenn Renfro
- * @since 1.0
  */
 
-@SuppressWarnings("rawtypes")
-public abstract class XDController<D extends BaseDefinition, V extends ResourceAssemblerSupport, T extends ResourceSupport> {
+public abstract class XDController<D extends BaseDefinition, V extends ResourceAssemblerSupport<D, T>, T extends ResourceSupport> {
 
 	private AbstractDeployer<D> deployer;
+
 	private V resourceAssemblerSupport;
 
-
-	protected XDController(AbstractDeployer<D> deployer,
-			V resourceAssemblerSupport) {
+	protected XDController(AbstractDeployer<D> deployer, V resourceAssemblerSupport) {
 		this.deployer = deployer;
 		this.resourceAssemblerSupport = resourceAssemblerSupport;
 	}
 
-	/*
+	/**
 	 * Request removal of an existing module.
-	 *
+	 * 
 	 * @param name the name of an existing module (required)
 	 */
 	@RequestMapping(value = "/{name}", method = RequestMethod.DELETE)
 	@ResponseStatus(HttpStatus.OK)
-	public void delete(@PathVariable("name") String name) {
+	public void delete(@PathVariable("name")
+	String name) {
 		deployer.delete(name);
 	}
 
 	/**
 	 * Request un-deployment of an existing named module.
-	 *
-	 * @param name
-	 *            the name of an existing module (required)
+	 * 
+	 * @param name the name of an existing module (required)
 	 */
 	@RequestMapping(value = "/{name}", method = RequestMethod.PUT, params = "deploy=false")
 	@ResponseStatus(HttpStatus.OK)
-	public void undeploy(@PathVariable("name") String name) {
+	public void undeploy(@PathVariable("name")
+	String name) {
 		getDeployer().undeploy(name);
 	}
 
 	/**
 	 * Request deployment of an existing named module.
 	 * 
-	 * @param name
-	 *            the name of an existing module (required)
+	 * @param name the name of an existing module (required)
 	 */
 	@RequestMapping(value = "/{name}", method = RequestMethod.PUT, params = "deploy=true")
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public void deploy(@PathVariable("name") String name) {
+	public void deploy(@PathVariable("name")
+	String name) {
 		getDeployer().deploy(name);
 	}
 
 	/**
 	 * Retrieve information about a single {@link ResourceSupport}.
 	 * 
-	 * @param name
-	 *            the name of an existing tap (required)
+	 * @param name the name of an existing tap (required)
 	 */
-	@SuppressWarnings("unchecked")
 	@RequestMapping(value = "/{name}", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public ResourceSupport display(@PathVariable("name") String name) {
+	public ResourceSupport display(@PathVariable("name")
+	String name) {
 		final D definition = getDeployer().findOne(name);
 		if (definition == null) {
-			throw new NoSuchDefinitionException(name,
-					"There is no definition named '%s'");
+			throw new NoSuchDefinitionException(name, "There is no definition named '%s'");
 		}
 		return getResourceAssemblerSupport().toResource(definition);
 	}
@@ -113,13 +113,12 @@ public abstract class XDController<D extends BaseDefinition, V extends ResourceA
 	/**
 	 * List module definitions.
 	 */
-	@SuppressWarnings("unchecked")
-	public PagedResources<T> listValues(Pageable pageable,
-			PagedResourcesAssembler<D> assembler) {
+	public PagedResources<T> listValues(Pageable pageable, PagedResourcesAssembler<D> assembler) {
 		Page<D> page = getDeployer().findAll(pageable);
 		if (page.hasContent()) {
 			return assembler.toResource(page, getResourceAssemblerSupport());
-		} else {
+		}
+		else {
 			return new PagedResources<T>(new ArrayList<T>(), null);
 		}
 	}
@@ -127,27 +126,22 @@ public abstract class XDController<D extends BaseDefinition, V extends ResourceA
 	/**
 	 * Create a new Module.
 	 * 
-	 * @param name
-	 *            The name of the module to create (required)
-	 * @param definition
-	 *            The module definition, expressed in the XD DSL (required)
+	 * @param name The name of the module to create (required)
+	 * @param definition The module definition, expressed in the XD DSL (required)
 	 */
 	@RequestMapping(value = "", method = RequestMethod.POST)
 	@ResponseStatus(HttpStatus.CREATED)
 	@ResponseBody
-	public T save(
-			@RequestParam("name") String name,
-			@RequestParam("definition") String definition,
-			@RequestParam(value = "deploy", defaultValue = "true") boolean deploy) {
-		final D moduleDefinition = definitionFactory(
-				name, definition);
+	public T save(@RequestParam("name")
+	String name, @RequestParam("definition")
+	String definition, @RequestParam(value = "deploy", defaultValue = "true")
+	boolean deploy) {
+		final D moduleDefinition = definitionFactory(name, definition);
 		final D savedModuleDefinition = getDeployer().save(moduleDefinition);
 		if (deploy) {
-				getDeployer().deploy(name);
+			getDeployer().deploy(name);
 		}
-		@SuppressWarnings("unchecked")
-		final T result = (T) getResourceAssemblerSupport().toResource(
-				savedModuleDefinition);
+		final T result = getResourceAssemblerSupport().toResource(savedModuleDefinition);
 		return result;
 	}
 
@@ -159,7 +153,6 @@ public abstract class XDController<D extends BaseDefinition, V extends ResourceA
 		return resourceAssemblerSupport;
 	}
 
-	protected abstract D definitionFactory(String name,
-			String Definition);
+	protected abstract D definitionFactory(String name, String Definition);
 
 }

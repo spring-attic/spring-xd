@@ -59,7 +59,7 @@ public class TapsController
 		return this.listValues(pageable, assembler);
 	}
 
-	protected TapDefinition definitionFactory(String name, String definition) {
+	protected TapDefinition createDefinition(String name, String definition) {
 		return new TapDefinition(name, definition);
 	}
 

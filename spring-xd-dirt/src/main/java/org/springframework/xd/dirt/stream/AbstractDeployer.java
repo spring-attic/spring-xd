@@ -30,10 +30,8 @@ import org.springframework.xd.dirt.core.ResourceDeployer;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 
 /**
- * Abstract implementation of the @link
- * {@link org.springframework.xd.dirt.core.ResourceDeployer} interface. It
- * provides the basic support for calling CrudRepository methods and sending
- * deployment messages.
+ * Abstract implementation of the @link {@link org.springframework.xd.dirt.core.ResourceDeployer} interface. It provides
+ * the basic support for calling CrudRepository methods and sending deployment messages.
  * 
  * @author Luke Taylor
  * @author Mark Pollack
@@ -52,10 +50,8 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	 */
 	private final String definitionKind;
 
-	protected AbstractDeployer(
-			PagingAndSortingRepository<D, String> repository,
-			DeploymentMessageSender messageSender, XDParser parser,
-			String definitionKind) {
+	protected AbstractDeployer(PagingAndSortingRepository<D, String> repository, DeploymentMessageSender messageSender,
+			XDParser parser, String definitionKind) {
 		Assert.notNull(repository, ErrorMessage.repositoryNameNullError.getMessage());
 		Assert.notNull(messageSender, ErrorMessage.messageSenderNameNullError.getMessage());
 		Assert.hasText(definitionKind, ErrorMessage.definitionKindEmptyError.getMessage());
@@ -94,19 +90,6 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	}
 
 	@Override
-	public void deploy(String name) {
-		Assert.hasText(name, ErrorMessage.nameEmptyError.getMessage());
-
-		D definition = repository.findOne(name);
-
-		if (definition == null) {
-			throwNoSuchDefinitionException(name);
-		}
-		List<ModuleDeploymentRequest> requests = streamParser.parse(name, definition.getDefinition());
-		messageSender.sendDeploymentRequests(name, requests);
-	}
-
-	@Override
 	public D findOne(String name) {
 		return repository.findOne(name);
 	}
@@ -137,8 +120,16 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	}
 
 	@Override
-	public void undeploy(String name) {
+	public void deploy(String name) {
+		Assert.hasText(name, ErrorMessage.nameEmptyError.getMessage());
 
+		D definition = repository.findOne(name);
+
+		if (definition == null) {
+			throwNoSuchDefinitionException(name);
+		}
+		List<ModuleDeploymentRequest> requests = streamParser.parse(name, definition.getDefinition());
+		messageSender.sendDeploymentRequests(name, requests);
 	}
 
 	protected enum ErrorMessage {
@@ -212,14 +203,4 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		abstract String getMessage();
 	}
 
-	/*
-	 * Removes the module from the repository without doing an undeploy.
-	 */
-	public void remove(String name) {
-		D def = repository.findOne(name);
-		if (def == null) {
-			throwNoSuchDefinitionException(name);
-		}
-		repository.delete(name);
-	}
 }

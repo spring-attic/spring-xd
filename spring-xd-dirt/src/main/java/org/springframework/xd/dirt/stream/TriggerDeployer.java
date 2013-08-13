@@ -53,8 +53,7 @@ public class TriggerDeployer extends AbstractDeployer<TriggerDefinition> {
 		if (trigger == null) {
 			throwNoSuchDefinitionException(name);
 		}
-		List<ModuleDeploymentRequest> requests = parse(name,
-				trigger.getDefinition());
+		List<ModuleDeploymentRequest> requests = parse(name, trigger.getDefinition());
 		for (ModuleDeploymentRequest request : requests) {
 			request.setRemove(true);
 		}

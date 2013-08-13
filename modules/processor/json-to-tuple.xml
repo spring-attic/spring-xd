@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<int:channel id="input"/>
+
+	<bean class="org.springframework.integration.config.ConsumerEndpointFactoryBean">
+		<property name="inputChannel" ref="input"/>
+		<property name="handler" ref="transformer"/>
+	</bean>
+
+	<bean id="transformer" class="org.springframework.integration.transformer.MessageTransformingHandler">
+		<constructor-arg>
+			<bean class="org.springframework.xd.tuple.integration.JsonToTupleTransformer"/>
+		</constructor-arg>
+		<property name="outputChannel" ref="output"/>
+	</bean>	
+
+	<int:channel id="output"/>
+
+</beans>

@@ -97,7 +97,7 @@ public class TapCommands implements CommandMarker {
 	@CliCommand(value = DESTROY_TAP, help = "Destroy existing tap(s)")
 	public String destroyTap(
 			@CliOption(key = { "", "name" }, help = "the name of the tap to destroy", optionContext = "existing-tap disable-string-converter") String name,
-			@CliOption(key = { "all" }, help = "destroy all the existing taps", specifiedDefaultValue = "true") String all) {
+			@CliOption(key = { "all" }, help = "destroy all the existing taps", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean all) {
 		String message = "";
 		switch (Assertions.exactlyOneOf("name", name, "all", all)) {
 			case 0:
@@ -117,7 +117,7 @@ public class TapCommands implements CommandMarker {
 	@CliCommand(value = DEPLOY_TAP, help = "Deploy previously created tap(s)")
 	public String deployTap(
 			@CliOption(key = { "", "name" }, help = "the name of the tap to deploy", optionContext = "existing-tap disable-string-converter") String name,
-			@CliOption(key = { "all" }, help = "deploy all the un-deployed taps", specifiedDefaultValue = "true") String all) {
+			@CliOption(key = { "all" }, help = "deploy all the un-deployed taps", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean all) {
 		String message = "";
 		switch (Assertions.exactlyOneOf("name", name, "all", all)) {
 			case 0:
@@ -137,7 +137,7 @@ public class TapCommands implements CommandMarker {
 	@CliCommand(value = UNDEPLOY_TAP, help = "Un-deploy previously deployed tap(s)")
 	public String undeployTap(
 			@CliOption(key = { "", "name" }, help = "the name of the tap to un-deploy", optionContext = "existing-tap disable-string-converter") String name,
-			@CliOption(key = { "all" }, help = "undeploy all the deployed taps", specifiedDefaultValue = "true") String all) {
+			@CliOption(key = { "all" }, help = "undeploy all the deployed taps", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean all) {
 		String message = "";
 		switch (Assertions.exactlyOneOf("name", name, "all", all)) {
 			case 0:

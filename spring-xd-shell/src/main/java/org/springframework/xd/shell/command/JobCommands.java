@@ -33,7 +33,7 @@ import org.springframework.xd.shell.util.TableRow;
 
 /**
  * Job commands.
- * 
+ *
  * @author Glenn Renfro
  * @author Ilayaperumal Gopinathan
  */
@@ -87,7 +87,7 @@ public class JobCommands implements CommandMarker {
 	@CliCommand(value = DEPLOY_JOB, help = "Deploy previously created job(s)")
 	public String deployJob(
 			@CliOption(key = { "", "name" }, help = "the name of the job to deploy", optionContext = "existing-job disable-string-converter") String name,
-			@CliOption(key = { "all" }, help = "deploy all the existing jobs", specifiedDefaultValue = "true") String all) {
+			@CliOption(key = { "all" }, help = "deploy all the existing jobs", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean all) {
 		String message = "";
 		switch (Assertions.exactlyOneOf("name", name, "all", all)) {
 			case 0:
@@ -107,7 +107,7 @@ public class JobCommands implements CommandMarker {
 	@CliCommand(value = UNDEPLOY_JOB, help = "Un-deploy existing job(s)")
 	public String undeployJob(
 			@CliOption(key = { "", "name" }, help = "the name of the job to un-deploy", optionContext = "existing-job disable-string-converter") String name,
-			@CliOption(key = { "all" }, help = "undeploy all the existing jobs", specifiedDefaultValue = "true") String all) {
+			@CliOption(key = { "all" }, help = "undeploy all the existing jobs", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean all) {
 		String message = "";
 		switch (Assertions.exactlyOneOf("name", name, "all", all)) {
 			case 0:
@@ -127,7 +127,7 @@ public class JobCommands implements CommandMarker {
 	@CliCommand(value = DESTROY_JOB, help = "Destroy existing job(s)")
 	public String destroyJob(
 			@CliOption(key = { "", "name" }, help = "the name of the job to destroy", optionContext = "existing-job disable-string-converter") String name,
-			@CliOption(key = { "all" }, help = "destroy all the existing jobs", specifiedDefaultValue = "true") String all) {
+			@CliOption(key = { "all" }, help = "destroy all the existing jobs", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean all) {
 		String message = "";
 		switch (Assertions.exactlyOneOf("name", name, "all", all)) {
 			case 0:

@@ -28,7 +28,7 @@ import static org.junit.Assert.*;
 
 /**
  * Test stream commands
- * 
+ *
  * @author Mark Pollack
  * @author Kashyap Parikh
  * @author Andy Clement
@@ -81,7 +81,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		assertTrue("Failure.  CommandResult = " + cr.toString(),
 				cr.getException().getMessage().contains("There is already a stream named 'ticktock'"));
 
-		stream().verifyExists(streamName, streamDefinition);
+		stream().verifyExists(streamName, streamDefinition, false);
 	}
 
 	@Test
@@ -92,22 +92,22 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		stream().createDontDeploy(streamName, streamDefinition);
 
 		stream().deploy(streamName);
-		stream().verifyExists(streamName, streamDefinition);
+		stream().verifyExists(streamName, streamDefinition, true);
 
 		stream().undeploy(streamName);
-		stream().verifyExists(streamName, streamDefinition);
+		stream().verifyExists(streamName, streamDefinition, false);
 
 		stream().deploy(streamName);
-		stream().verifyExists(streamName, streamDefinition);
+		stream().verifyExists(streamName, streamDefinition, true);
 
 	}
 
 	/*
 	 * TODO for test that post data to be verified, use a file sink and verify contents using guava helper method, shell
 	 * pulls in guava now.
-	 * 
+	 *
 	 * import com.google.common.base.Charsets; import com.google.common.io.Files;
-	 * 
+	 *
 	 * String content = Files.toString(new File("/home/x1/text.log"), Charsets.UTF_8); or List<String> lines =
 	 * Files.readLines(new File("/file/path/input.txt"), Charsets.UTF_8); and use hamcrest matcher for collections.
 	 * assertThat("List equality", list1, equalTo(list2));

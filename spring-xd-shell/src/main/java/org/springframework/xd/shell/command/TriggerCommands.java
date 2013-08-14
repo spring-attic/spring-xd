@@ -33,10 +33,10 @@ import org.springframework.xd.shell.util.TableRow;
 
 /**
  * Trigger commands.
- * 
+ *
  * @author Ilayaperumal Gopinathan
  * @author Gunnar Hillert
- * 
+ *
  * @since 1.0
  */
 
@@ -89,7 +89,7 @@ public class TriggerCommands implements CommandMarker {
 	@CliCommand(value = DESTROY_TRIGGER, help = "Destroy existing trigger(s)")
 	public String destroyTrigger(
 			@CliOption(key = { "", "name" }, help = "the name of the trigger to destroy", optionContext = "existing-trigger disable-string-converter") String name,
-			@CliOption(key = { "all" }, help = "destroy all the existing triggers", specifiedDefaultValue = "true") String all) {
+			@CliOption(key = { "all" }, help = "destroy all the existing triggers", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean all) {
 		String message = "";
 		switch (Assertions.exactlyOneOf("name", name, "all", all)) {
 			case 0:
@@ -109,7 +109,7 @@ public class TriggerCommands implements CommandMarker {
 	@CliCommand(value = DEPLOY_TRIGGER, help = "Deploy existing trigger(s)")
 	public String deployTrigger(
 			@CliOption(key = { "", "name" }, help = "the name of the trigger to deploy", optionContext = "existing-trigger disable-string-converter") String name,
-			@CliOption(key = { "all" }, help = "deploy all the existing triggers", specifiedDefaultValue = "true") String all) {
+			@CliOption(key = { "all" }, help = "deploy all the existing triggers", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean all) {
 		String message = "";
 		switch (Assertions.exactlyOneOf("name", name, "all", all)) {
 			case 0:
@@ -129,7 +129,7 @@ public class TriggerCommands implements CommandMarker {
 	@CliCommand(value = UNDEPLOY_TRIGGER, help = "Un-deploy existing trigger(s)")
 	public String undeployTrigger(
 			@CliOption(key = { "", "name" }, help = "the name of the trigger to un-deploy", optionContext = "existing-trigger disable-string-converter") String name,
-			@CliOption(key = { "all" }, help = "undeploy all the existing triggers", specifiedDefaultValue = "true") String all) {
+			@CliOption(key = { "all" }, help = "undeploy all the existing triggers", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean all) {
 		String message = "";
 		switch (Assertions.exactlyOneOf("name", name, "all", all)) {
 			case 0:

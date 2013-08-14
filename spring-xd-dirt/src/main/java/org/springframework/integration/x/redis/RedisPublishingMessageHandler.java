@@ -13,31 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.x.redis;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.Message;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.support.converter.MessageConverter;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
-import org.springframework.redis.x.NoOpRedisSerializer;
 import org.springframework.util.Assert;
 
-
 /**
- * Temporary - clone of SI, but understands the NoOpRedisSerializer.
+ * Temporary - clone of SI that allows publishing of message types other than String
  *
  * @author Gary Russell
+ * @author Jennifer Hickey
  *
  */
 public class RedisPublishingMessageHandler extends AbstractMessageHandler {
 
-	private volatile boolean expectBytes;
-
-	private final StringRedisTemplate template;
+	private final RedisTemplate<?, ?> template;
 
 	private volatile MessageConverter messageConverter = new SimpleMessageConverter();
 
@@ -45,15 +43,16 @@ public class RedisPublishingMessageHandler extends AbstractMessageHandler {
 
 	private volatile RedisSerializer<?> serializer = new StringRedisSerializer();
 
+	@SuppressWarnings("rawtypes")
 	public RedisPublishingMessageHandler(RedisConnectionFactory connectionFactory) {
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");
-		this.template = new StringRedisTemplate(connectionFactory);
+		this.template = new RedisTemplate();
+		this.template.setConnectionFactory(connectionFactory);
+		this.template.setEnableDefaultSerializer(false);
 	}
 
 	public void setSerializer(RedisSerializer<?> serializer) {
-		Assert.notNull(serializer, "'serializer' must not be null");
 		this.serializer = serializer;
-		this.expectBytes = serializer instanceof NoOpRedisSerializer;
 	}
 
 	public void setMessageConverter(MessageConverter messageConverter) {
@@ -76,13 +75,7 @@ public class RedisPublishingMessageHandler extends AbstractMessageHandler {
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		String topic = this.determineTopic(message);
 		Object value = this.messageConverter.fromMessage(message);
-		if (this.expectBytes) {
-			Assert.isInstanceOf(byte[].class, value);
-			this.template.convertAndSend(topic, value);
-		}
-		else {
-			this.template.convertAndSend(topic, value.toString());
-		}
+		this.template.convertAndSend(topic, value);
 	}
 
 	@Override

@@ -36,7 +36,7 @@ import org.springframework.xd.rest.client.domain.TriggerDefinitionResource;
 
 /**
  * Handles all Trigger related interactions.
- * 
+ *
  * @author Gunnar Hillert
  * @since 1.0
  */
@@ -61,7 +61,7 @@ public class TriggersController
 	public PagedResources<TriggerDefinitionResource> list(Pageable pageable,
 			PagedResourcesAssembler<TriggerDefinition> assembler) {
 
-		return listValues(pageable, assembler);
+		return listValues(pageable, QueryOptions.NONE, assembler);
 	}
 
 	/**

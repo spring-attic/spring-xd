@@ -44,6 +44,7 @@ import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
 import org.springframework.http.MediaType;
+import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
 
@@ -105,20 +106,20 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 			if (content.readable()) {
 				Map<String, String> messageHeaders = new HashMap<String, String>();
 				for (Entry<String, String> entry : request.getHeaders()) {
-					if (!entry.getKey().toUpperCase().startsWith("ACCEPT")
-							&& !entry.getKey().toUpperCase().equals("CONNECTION")) {
-						messageHeaders.put(entry.getKey(), entry.getValue());
-					}
 					if (entry.getKey().equalsIgnoreCase("Content-Type")) {
 						charsetToUse = MediaType.parseMediaType(entry.getValue()).getCharSet();
+						messageHeaders.put(MessageHeaders.CONTENT_TYPE, entry.getValue());
+					}
+					else if (!entry.getKey().toUpperCase().startsWith("ACCEPT")
+							&& !entry.getKey().toUpperCase().equals("CONNECTION")) {
+						messageHeaders.put(entry.getKey(), entry.getValue());
 					}
 				}
 				// ISO-8859-1 is the default http charset when not set
 				charsetToUse = charsetToUse == null ? Charset.forName("ISO-8859-1") : charsetToUse;
 				messageHeaders.put("requestPath", request.getUri());
 				messageHeaders.put("requestMethod", request.getMethod().toString());
-				sendMessage(MessageBuilder.withPayload(content.toString(charsetToUse)).copyHeaders(messageHeaders)
-						.build());
+				sendMessage(MessageBuilder.withPayload(content.toString(charsetToUse)).copyHeaders(messageHeaders).build());
 			}
 			writeResponse(request, e.getChannel());
 		}

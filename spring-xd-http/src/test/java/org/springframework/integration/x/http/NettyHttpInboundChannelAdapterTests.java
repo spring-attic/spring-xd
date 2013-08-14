@@ -16,9 +16,6 @@
 
 package org.springframework.integration.x.http;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,18 +23,24 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
-
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.web.client.RestTemplate;
 
+import static org.junit.Assert.*;
+
 /**
  * @author Mark Fisher
+ * @author David Turanski
  */
 public class NettyHttpInboundChannelAdapterTests {
 
@@ -47,6 +50,7 @@ public class NettyHttpInboundChannelAdapterTests {
 		final CountDownLatch latch = new CountDownLatch(2);
 		DirectChannel channel = new DirectChannel();
 		channel.subscribe(new MessageHandler() {
+
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
 				messages.add(message);
@@ -72,6 +76,40 @@ public class NettyHttpInboundChannelAdapterTests {
 		assertEquals("bar", message2.getPayload());
 		assertEquals("/test1", message1.getHeaders().get("requestPath"));
 		assertEquals("/test2", message2.getHeaders().get("requestPath"));
+	}
+
+	@Test
+	public void testContentTypeHeaderMapsToSiContentTypeHeader() throws Exception {
+		final List<Message<?>> messages = new ArrayList<Message<?>>();
+		final CountDownLatch latch = new CountDownLatch(1);
+		DirectChannel channel = new DirectChannel();
+		channel.subscribe(new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				messages.add(message);
+				latch.countDown();
+			}
+		});
+		int port = SocketUtils.findAvailableServerSocket();
+		NettyHttpInboundChannelAdapter adapter = new NettyHttpInboundChannelAdapter(port);
+		adapter.setOutputChannel(channel);
+		adapter.start();
+		RestTemplate template = new RestTemplate();
+		URI uri1 = new URI("http://localhost:" + port + "/test1");
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.TEXT_PLAIN);
+
+		HttpEntity<String> entity = new HttpEntity<String>("foo", headers);
+
+		ResponseEntity<?> response = template.postForEntity(uri1, entity, HttpEntity.class);
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+
+		assertTrue(latch.await(1, TimeUnit.SECONDS));
+		assertEquals(1, messages.size());
+		Message<?> message = messages.get(0);
+
+		assertEquals(MediaType.TEXT_PLAIN_VALUE, message.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
 
 }

@@ -7,6 +7,7 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
+	<import resource="local-common.xml" />
 	<import resource="classpath:/META-INF/spring-xd/internal/container.xml"/>
 	<import resource="classpath*:/META-INF/spring-xd/plugins/*.xml"/>
 

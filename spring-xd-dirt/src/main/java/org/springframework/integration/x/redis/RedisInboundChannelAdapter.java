@@ -55,7 +55,6 @@ public class RedisInboundChannelAdapter extends MessageProducerSupport {
 	}
 
 	public void setSerializer(RedisSerializer<?> serializer) {
-		Assert.notNull(serializer, "'serializer' must not be null");
 		this.serializer = serializer;
 	}
 
@@ -76,7 +75,7 @@ public class RedisInboundChannelAdapter extends MessageProducerSupport {
 	@Override
 	protected void onInit() {
 		super.onInit();
-		Assert.notEmpty(this.topics, "at least one topis is required for subscription");
+		Assert.notEmpty(this.topics, "at least one topic is required for subscription");
 		MessageListenerDelegate delegate = new MessageListenerDelegate();
 		MessageListenerAdapter adapter = new MessageListenerAdapter(delegate);
 		adapter.setSerializer(this.serializer);

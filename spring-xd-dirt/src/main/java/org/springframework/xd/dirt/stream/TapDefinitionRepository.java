@@ -12,15 +12,12 @@
  */
 package org.springframework.xd.dirt.stream;
 
-import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.xd.store.DomainRepository;
+
 
 /**
- * @author David Turanski
- * @author Gunnar Hillert
- *
- * @since 1.0
- *
+ * A repository for persisting {@link TapDefinition}s.
  */
-public interface TapDefinitionRepository extends PagingAndSortingRepository<TapDefinition,String> {
+public interface TapDefinitionRepository extends DomainRepository<TapDefinition,String> {
 
 }

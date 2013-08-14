@@ -1,11 +1,11 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2002-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.stream;
+package org.springframework.xd.store;
 
-import org.springframework.xd.store.DomainRepository;
+import java.io.Serializable;
+
+import org.springframework.data.repository.PagingAndSortingRepository;
 
 
 /**
- * A repository for persisting {@link Stream}s.
+ * Implemented by XD repositories, exists mainly as a mean to capture several interfaces into one.
  *
  * @author Eric Bottard
  */
-public interface StreamRepository extends DomainRepository<Stream, String> {
+public interface DomainRepository<T, ID extends Serializable & Comparable<ID>> extends
+		PagingAndSortingRepository<T, ID>, RangeCapableRepository<T, ID>{
 
 }

@@ -16,13 +16,15 @@
 
 package org.springframework.xd.analytics.metrics.core;
 
+import org.springframework.xd.store.DomainRepository;
+
 /**
- * A marker interface for Counter repositories.
- * 
+ * Interface for repositories that now how to deal with {@link Counter}s.
+ *
  * @author Mark Pollack
- * 
+ *
  */
-public interface CounterRepository extends MetricRepository<Counter> {
+public interface CounterRepository extends MetricRepository<Counter>, DomainRepository<Counter, String> {
 
 	/**
 	 * Increment the given counter by one, creating it if it did not exist. Implementations which can do this atomically

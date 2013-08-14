@@ -12,7 +12,8 @@
  */
 package org.springframework.xd.dirt.stream;
 
-import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.xd.store.DomainRepository;
+
 
 /**
  * Data Repository for {@link TriggerDefinition}s.
@@ -21,6 +22,6 @@ import org.springframework.data.repository.PagingAndSortingRepository;
  * @since 1.0
  *
  */
-public interface TriggerDefinitionRepository extends PagingAndSortingRepository<TriggerDefinition,String> {
+public interface TriggerDefinitionRepository extends DomainRepository<TriggerDefinition,String> {
 
 }

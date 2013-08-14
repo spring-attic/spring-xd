@@ -16,13 +16,14 @@
 
 package org.springframework.xd.dirt.stream;
 
-import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.xd.store.DomainRepository;
+
 
 /**
  * A repository for persisting {@link TapInstance}s.
  *
  * @author Eric Bottard
  */
-public interface TapInstanceRepository extends PagingAndSortingRepository<TapInstance, String> {
+public interface TapInstanceRepository extends DomainRepository<TapInstance, String> {
 
 }

@@ -33,10 +33,10 @@ import org.springframework.xd.shell.util.TableRow;
 
 /**
  * Tap commands.
- * 
+ *
  * @author Ilayaperumal Gopinathan
  * @author Gunnar Hillert
- * 
+ *
  * @since 1.0
  */
 
@@ -76,13 +76,18 @@ public class TapCommands implements CommandMarker {
 		final PagedResources<TapDefinitionResource> taps = tapOperations().list();
 
 		final Table table = new Table();
-		table.addHeader(1, new TableHeader("Tap Name")).addHeader(2, new TableHeader("Stream Name")).addHeader(3,
-				new TableHeader("Tap Definition"));
+		table.addHeader(1, new TableHeader("Tap Name")).addHeader(2, new TableHeader("Stream Name"))
+				.addHeader(3, new TableHeader("Tap Definition")).addHeader(4, new TableHeader("Status"));
 
 		for (TapDefinitionResource tapDefinitionResource : taps.getContent()) {
 			final TableRow row = new TableRow();
-			row.addValue(1, tapDefinitionResource.getName()).addValue(2, tapDefinitionResource.getStreamName()).addValue(
-					3, tapDefinitionResource.getDefinition());
+			row.addValue(1, tapDefinitionResource.getName()).addValue(2, tapDefinitionResource.getStreamName())
+					.addValue(3, tapDefinitionResource.getDefinition());
+			if (Boolean.TRUE.equals(tapDefinitionResource.isDeployed())) {
+				row.addValue(4, "deployed");
+			} else {
+				row.addValue(4, "");
+			}
 			table.getRows().add(row);
 		}
 

@@ -25,7 +25,7 @@ import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
 
 /**
  * Implementation of the Stream-related part of the API.
- * 
+ *
  * @author Eric Bottard
  * @author Ilayaperumal Gopinathan
  */
@@ -79,7 +79,7 @@ public class StreamTemplate extends AbstractTemplate implements StreamOperations
 	@Override
 	public StreamDefinitionResource.Page list() {
 		String uriTemplate = resources.get("streams").toString();
-		uriTemplate = uriTemplate + "?size=10000";
+		uriTemplate = uriTemplate + "?size=10000&deployments=true";
 		return restTemplate.getForObject(uriTemplate, StreamDefinitionResource.Page.class);
 	}
 

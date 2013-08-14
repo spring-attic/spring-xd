@@ -7,5 +7,5 @@
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.2.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd">
 
-	<import resource="classpath:/META-INF/spring-xd/internal/xd-common.xml"/>
+	<import resource="classpath:/META-INF/spring-xd/transports/local-common.xml"/>
 </beans>

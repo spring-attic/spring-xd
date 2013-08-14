@@ -13,7 +13,6 @@
 	</beans>
 
 	<beans>
-		<import resource="classpath:/META-INF/spring-xd/internal/xd-common.xml"/>
 		<import
 			resource="classpath*:/META-INF/spring-xd/transports/${xd.transport}-container.xml" />
 

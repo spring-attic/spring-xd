@@ -229,7 +229,8 @@ public abstract class AbstractRedisRepository<T, ID extends Serializable & Compa
 	protected abstract ID keyFor(T entity);
 
 	/**
-	 * Return a String representation of the domain ID.
+	 * Return a String representation of the domain ID. Note that order should be
+	 * preserved between ID domain and String representation.
 	 */
 	protected abstract String serializeId(ID id);
 

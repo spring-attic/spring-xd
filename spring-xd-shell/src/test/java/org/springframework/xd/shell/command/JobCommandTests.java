@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.shell.command;
 
 import static org.junit.Assert.assertEquals;
@@ -32,12 +33,13 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
+
 import org.springframework.batch.core.JobParameter;
 import org.springframework.shell.core.CommandResult;
 
 /**
  * Test stream commands
- *
+ * 
  * @author Glenn Renfro
  * @author Gunnar Hillert
  */
@@ -56,6 +58,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		CommandResult cr = getShell().executeCommand("job undeploy --name myTest");
 		checkForSuccess(cr);
 		assertEquals("Un-deployed Job 'myTest'", cr.getResult());
+		waitForResult(200);
 		assertTrue("Batch Script did not complete successfully", fileExists(TEST_FILE));
 	}
 
@@ -65,6 +68,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		executeJobCreate(MY_JOB, JOB_DESCRIPTOR);
 
 		checkForJobInList(MY_JOB, JOB_DESCRIPTOR);
+		waitForResult();
 		assertTrue(fileExists(TMP_FILE));
 
 		CommandResult cr = getShell().executeCommand("job create --definition \"job\" --name myJob");
@@ -104,6 +108,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		CommandResult cr = getShell().executeCommand("job deploy --name myJob");
 		checkForSuccess(cr);
 		assertEquals("Deployed job 'myJob'", cr.getResult());
+		waitForResult();
 		assertTrue(fileExists(TMP_FILE));
 
 		checkForJobInList(MY_JOB, JOB_DESCRIPTOR);
@@ -149,12 +154,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 				"trigger create --name mytriggertest --definition \"trigger --fixedRate='100'\"");
 		checkForSuccess(cr);
 		executeJobCreate(MY_JOB, "job --trigger=mytriggertest");
-		try {
-			Thread.sleep(300);// Have to give time for the Trigger to fire.
-		}
-		catch (Exception sleepException) {
-			assertTrue(sleepException.getMessage(), true);
-		}
+		waitForResult(300);// Have to give time for the Trigger to fire.
 		cr = getShell().executeCommand("trigger destroy mytriggertest");
 		checkForSuccess(cr);
 		assertTrue(fileExists(TMP_FILE));
@@ -163,24 +163,14 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 	@Test
 	public void testAdHocCron() {
 		executeJobCreate(MY_JOB, "job --cron='*/1 * * * * *'");
-		try {
-			Thread.sleep(1500);// Have to give time for the Trigger to fire.
-		}
-		catch (Exception sleepException) {
-			assertTrue(sleepException.getMessage(), true);
-		}
+		waitForResult(1500);// Have to give time for the Trigger to fire.
 		assertTrue(fileExists(TMP_FILE));
 	}
 
 	@Test
 	public void testAdHocFixedRate() {
 		executeJobCreate(MY_JOB, "job --fixedRate=100");
-		try {
-			Thread.sleep(200);// Have to give time for the Trigger to fire.
-		}
-		catch (Exception sleepException) {
-			assertTrue(sleepException.getMessage(), true);
-		}
+		waitForResult(200);// Have to give time for the Trigger to fire.
 		assertTrue(fileExists(TMP_FILE));
 	}
 
@@ -214,7 +204,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		final JobParameter parameter1 = JobParametersHolder.getJobParameters().get("param1");
 
 		assertNotNull(parameter1);
-		assertEquals("spring rocks!", (String) parameter1.getValue());
+		assertEquals("spring rocks!", parameter1.getValue());
 	}
 
 	@Test
@@ -245,7 +235,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		final JobParameter parameter1 = JobParametersHolder.getJobParameters().get("param1");
 
 		assertNotNull(parameter1);
-		assertEquals("spring rocks!", (String) parameter1.getValue());
+		assertEquals("spring rocks!", parameter1.getValue());
 	}
 
 	@Test
@@ -284,8 +274,8 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
 		final Date expectedDate = dateFormat.parse("1990/10/03");
 
-		assertEquals("Was expecting the Long value 12345", Long.valueOf(12345), (Long) parameter1.getValue());
-		assertEquals("Should be the same dates", expectedDate, (Date) parameter2.getValue());
+		assertEquals("Was expecting the Long value 12345", Long.valueOf(12345), parameter1.getValue());
+		assertEquals("Should be the same dates", expectedDate, parameter2.getValue());
 
 		assertFalse("parameter1 should be non-identifying", parameter1.isIdentifying());
 		assertTrue("parameter2 should be identifying", parameter2.isIdentifying());
@@ -303,7 +293,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		}
 
 		public void countDown() throws InterruptedException {
-			countDownLatch.countDown();;
+			countDownLatch.countDown();
 		}
 
 		public void addParameter(String parameterName, JobParameter jobParameter) {

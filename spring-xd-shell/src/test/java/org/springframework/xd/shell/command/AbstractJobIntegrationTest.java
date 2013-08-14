@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.shell.command;
 
 import static org.junit.Assert.assertEquals;
@@ -33,55 +34,66 @@ import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableRow;
 
 /**
- * Provides an @After JUnit lifecycle method that will destroy the jobs that
- * were created by calling executeJobCreate
- *
+ * Provides an @After JUnit lifecycle method that will destroy the jobs that were created
+ * by calling executeJobCreate
+ * 
  * @author Glenn Renfro
  * @author Gunnar Hillert
- *
+ * 
  */
 public abstract class AbstractJobIntegrationTest extends AbstractShellIntegrationTest {
 
 	private static final String MODULE_RESOURCE_DIR = "../spring-xd-shell/src/test/resources/spring-xd/xd/modules/job/";
+
 	private static final String MODULE_TARGET_DIR = "../modules/job/";
+
 	private static final String TEST_TASKLET = "test.xml";
+
 	private static final String JOB_TASKLET = "job.xml";
+
 	private static final String JOB_WITH_PARAMETERS_TASKLET = "jobWithParameters.xml";
 
 	public static final String TMP_FILE = "./src/test/resources/TMPTESTFILE.txt";
+
 	public static final String TEST_FILE = "./src/test/resources/client1.txt";
+
 	public static final String MY_JOB = "myJob";
+
 	public static final String JOB_DESCRIPTOR = "job";
+
 	public static final String MY_TEST = "myTest";
+
 	public static final String TEST_DESCRIPTOR = "test";
 
 	public static final String MY_JOB_WITH_PARAMETERS = "myJobWithParameters";
+
 	public static final String JOB_WITH_PARAMETERS_DESCRIPTOR = "jobWithParameters";
 
 	private List<String> jobs = new ArrayList<String>();
 
 	@Before
 	public void before() {
-		copyTaskletDescriptorsToServer(MODULE_RESOURCE_DIR + JOB_TASKLET,
-				MODULE_TARGET_DIR + JOB_TASKLET);
-		copyTaskletDescriptorsToServer(MODULE_RESOURCE_DIR + TEST_TASKLET,
-				MODULE_TARGET_DIR + TEST_TASKLET);
-		copyTaskletDescriptorsToServer(MODULE_RESOURCE_DIR + JOB_WITH_PARAMETERS_TASKLET,
-				MODULE_TARGET_DIR + JOB_WITH_PARAMETERS_TASKLET);
+		copyTaskletDescriptorsToServer(MODULE_RESOURCE_DIR + JOB_TASKLET, MODULE_TARGET_DIR + JOB_TASKLET);
+		copyTaskletDescriptorsToServer(MODULE_RESOURCE_DIR + TEST_TASKLET, MODULE_TARGET_DIR + TEST_TASKLET);
+		copyTaskletDescriptorsToServer(MODULE_RESOURCE_DIR + JOB_WITH_PARAMETERS_TASKLET, MODULE_TARGET_DIR
+				+ JOB_WITH_PARAMETERS_TASKLET);
 		// clear any test jobs that may still exist
 		try {
 			executeJobDestroy(MY_JOB);
-		} catch (Throwable t) {
+		}
+		catch (Throwable t) {
 			// don't worry if it is thrown
 		}
 		try {
 			executeJobDestroy(MY_TEST);
-		} catch (Throwable t) {
+		}
+		catch (Throwable t) {
 			// don't worry if it is thrown
 		}
 		try {
 			executeJobDestroy(MY_JOB_WITH_PARAMETERS);
-		} catch (Throwable t) {
+		}
+		catch (Throwable t) {
 			// don't worry if it is thrown
 		}
 	}
@@ -104,8 +116,7 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 	protected void executeJobDestroy(String... jobNames) {
 		for (String jobName : jobNames) {
 			CommandResult cr = executeCommand("job destroy --name " + jobName);
-			assertTrue("Failure to destory job " + jobName
-					+ ".  CommandResult = " + cr.toString(), cr.isSuccess());
+			assertTrue("Failure to destroy job " + jobName + ".  CommandResult = " + cr.toString(), cr.isSuccess());
 		}
 	}
 
@@ -114,30 +125,24 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 	}
 
 	/**
-	 * Execute job create for the supplied job name/definition, and verify the
-	 * command result.
+	 * Execute job create for the supplied job name/definition, and verify the command
+	 * result.
 	 */
-	protected void executeJobCreate(String jobName, String jobDefinition,
-			boolean deploy) {
-		CommandResult cr = executeCommand("job create --definition \""
-				+ jobDefinition + "\" --name " + jobName
+	protected void executeJobCreate(String jobName, String jobDefinition, boolean deploy) {
+		CommandResult cr = executeCommand("job create --definition \"" + jobDefinition + "\" --name " + jobName
 				+ (deploy ? "" : " --deploy false"));
-		String prefix = (deploy) ? "Successfully created and deployed job '"
-				: "Successfully created job '";
-		assertEquals(prefix + jobName + "'",
-				cr.getResult());
+		String prefix = (deploy) ? "Successfully created and deployed job '" : "Successfully created job '";
+		assertEquals(prefix + jobName + "'", cr.getResult());
 		jobs.add(jobName);
 	}
 
-	protected void checkForJobInList(String jobName,
-			String jobDescriptor) {
+	protected void checkForJobInList(String jobName, String jobDescriptor) {
 		Table t = listJobs();
 		assertTrue(t.getRows().contains(new TableRow().addValue(1, jobName).addValue(2, jobDescriptor)));
 	}
 
 	protected void checkForFail(CommandResult cr) {
-		assertTrue("Failure.  CommandResult = " + cr.toString(),
-				!cr.isSuccess());
+		assertTrue("Failure.  CommandResult = " + cr.toString(), !cr.isSuccess());
 	}
 
 	protected void checkForSuccess(CommandResult cr) {
@@ -145,8 +150,22 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 	}
 
 	protected void checkErrorMessages(CommandResult cr, String expectedMessage) {
-		assertTrue("Failure.  CommandResult = " + cr.toString(), cr
-				.getException().getMessage().contains(expectedMessage));
+		assertTrue("Failure.  CommandResult = " + cr.toString(),
+				cr.getException().getMessage().contains(expectedMessage));
+	}
+
+	protected void waitForResult(int milliseconds) {
+		try {
+			Thread.sleep(milliseconds);
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
+
+	}
+
+	protected void waitForResult() {
+		waitForResult(1000);
 	}
 
 	private Table listJobs() {
@@ -158,9 +177,9 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 		File in = new File(inFile);
 		try {
 			FileCopyUtils.copy(in, out);
-		} catch (IOException ioe) {
-			assertTrue("Unable to deploy Job descriptor to server directory",
-					out.isFile());
+		}
+		catch (IOException ioe) {
+			assertTrue("Unable to deploy Job descriptor to server directory", out.isFile());
 		}
 		out.deleteOnExit();
 	}
@@ -172,5 +191,4 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 			file.deleteOnExit();
 		}
 	}
-
 }

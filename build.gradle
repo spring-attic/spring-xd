@@ -110,7 +110,8 @@ configure(javaProjects()) { subproject ->
 	// Include project specific settings
 	task eclipseSettings(type: Copy) {
 		from rootProject.files(
-			"src/eclipse/org.eclipse.jdt.ui.prefs")
+			"src/eclipse/org.eclipse.jdt.ui.prefs",
+			"src/eclipse/de.loskutov.anyedit.AnyEditTools.prefs")
 		into project.file('.settings/')
 	}
 

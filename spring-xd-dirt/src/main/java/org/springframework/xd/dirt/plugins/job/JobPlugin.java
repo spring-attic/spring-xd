@@ -54,7 +54,10 @@ public class JobPlugin extends AbstractPlugin  {
 	private static final String TRIGGER = "trigger";
 	private static final String CRON = "cron";
 	private static final String FIXED_DELAY= "fixedDelay";
-
+	private static final String JOB_PARAMETERS = "jobParameters";
+	private static final String DATE_FORMAT = "dateFormat";
+	private static final String NUMBER_FORMAT = "numberFormat";
+	private static final String MAKE_UNIQUE = "makeUnique";
 
 	public JobPlugin(){
 		super.setPostProcessContextPaths(COMMON_XML);
@@ -72,6 +75,20 @@ public class JobPlugin extends AbstractPlugin  {
 			properties.setProperty("xd.trigger.execute_on_startup", "true");
 		}
 		module.addProperties(properties);
+
+		if (!module.getProperties().contains(JOB_PARAMETERS)) {
+			properties.setProperty(JOB_PARAMETERS, "");
+		}
+		if (!module.getProperties().contains(DATE_FORMAT)) {
+			properties.setProperty(DATE_FORMAT, "");
+		}
+		if (!module.getProperties().contains(NUMBER_FORMAT)) {
+			properties.setProperty(NUMBER_FORMAT, "");
+		}
+		if (!module.getProperties().contains(MAKE_UNIQUE)) {
+			properties.setProperty(MAKE_UNIQUE, String.valueOf(Boolean.TRUE));
+		}
+
 		if (logger.isInfoEnabled()) {
 			logger.info("Configuring module with the following properties: " + properties.toString());
 		}

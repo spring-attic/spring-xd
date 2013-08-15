@@ -25,7 +25,8 @@ import org.springframework.xd.module.ModuleType;
  * @author Glenn Renfro
  * @author Luke Taylor
  * @author Ilayaperumal Gopinathan
- * 
+ * @author Gunnar Hillert
+ *
  */
 public class JobDeployer extends AbstractDeployer<JobDefinition> {
 
@@ -34,7 +35,7 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 	private static final String BEAN_DEFINITION_EXEPTION = "org.springframework.beans.factory.BeanDefinitionStoreException";
 
 	private static final String DEPLOYER_TYPE = "job";
-	
+
 	private final TriggerDefinitionRepository triggerDefinitionRepository;
 
 	public JobDeployer(JobDefinitionRepository repository, TriggerDefinitionRepository triggerDefinitionRepository, DeploymentMessageSender messageSender,
@@ -64,6 +65,10 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 
 	@Override
 	public void deploy(String name) {
+		deploy(name, null, null, null, null);
+	}
+
+	public void deploy(String name, String jobParameters, String dateFormat, String numberFormat, Boolean makeUnique) {
 		Assert.hasText(name, "name cannot be blank or null");
 		JobDefinition definition = getDefinitionRepository().findOne(name);
 		if (definition == null) {
@@ -71,7 +76,7 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 		}
 		List<ModuleDeploymentRequest> requests = parse(name, definition.getDefinition());
 		// If the job definition has trigger then, check if the trigger exists
-		// TODO: should we do this at the parser? 
+		// TODO: should we do this at the parser?
 		// but currently the parser has reference to StreamDefinitionRepository only.
 		if (requests != null && requests.get(0).getParameters().containsKey(ModuleType.TRIGGER.getTypeName())) {
 			String triggerName = requests.get(0).getParameters().get(ModuleType.TRIGGER.getTypeName());
@@ -79,6 +84,24 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 				throwNoSuchDefinitionException(triggerName, ModuleType.TRIGGER.getTypeName());
 			}
 		}
+
+		for (ModuleDeploymentRequest request : requests) {
+			if ("job".equals(request.getType())) {
+				if (jobParameters != null) {
+					request.setParameter("jobParameters", jobParameters);
+				}
+				if (dateFormat != null) {
+					request.setParameter("dateFormat", dateFormat);
+				}
+				if (numberFormat != null) {
+					request.setParameter("numberFormat", numberFormat);
+				}
+				if (makeUnique != null) {
+					request.setParameter("makeUnique", String.valueOf(makeUnique));
+				}
+			}
+		}
+
 		try {
 			sendDeploymentRequests(name, requests);
 		}

@@ -74,7 +74,6 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 		when(moduleRegistry.lookup("job1", ModuleType.JOB.getTypeName())).thenReturn(jobDefinition);
 		when(moduleRegistry.lookup("job2", ModuleType.JOB.getTypeName())).thenReturn(jobDefinition);
 		when(moduleRegistry.lookup("job", ModuleType.JOB.getTypeName())).thenReturn(jobDefinition);
-
 	}
 
 	@Test
@@ -175,6 +174,22 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 		
 		assertNull(jobDefinitionRepository.findOne("job1"));
 		assertNull(jobDefinitionRepository.findOne("job2"));
-		
+	}	
+
+	public void testJobWithNonexistentTrigger() throws Exception {
+		mockMvc.perform(
+				post("/jobs").param("name", "job1").param("definition", "job --trigger=trigger1").accept(MediaType.APPLICATION_JSON)).andExpect(
+						status().isNotFound());
+	}
+	
+	@Test
+	public void testJobWithExistingTrigger() throws Exception {
+		mockMvc.perform(
+				post("/triggers").param("name", "trigger1").param("definition", "job --trigger=trigger1").accept(MediaType.APPLICATION_JSON)).andExpect(
+						status().isCreated());
+	    assertNotNull(triggerDefinitionRepository.findOne("trigger1"));
+		mockMvc.perform(
+				post("/jobs").param("name", "job1").param("definition", "job --trigger=trigger1").accept(MediaType.APPLICATION_JSON)).andExpect(
+						status().isCreated());
 	}
 }

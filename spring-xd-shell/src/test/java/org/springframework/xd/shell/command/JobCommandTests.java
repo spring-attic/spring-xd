@@ -125,7 +125,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		CommandResult cr = getShell().executeCommand(
 				"job create --definition \"job --trigger=yourTrigger\" --name myJob ");
 		checkForFail(cr);
-		checkErrorMessages(cr, "Error creating bean with name 'org.springframework.scheduling.config.TriggerTask#0'");
+		checkErrorMessages(cr, "There is no trigger definition named 'yourTrigger'");
 		assertFalse(fileExists(TMP_FILE));
 	}
 

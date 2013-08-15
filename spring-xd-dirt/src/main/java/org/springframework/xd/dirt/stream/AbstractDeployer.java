@@ -82,6 +82,11 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		throw new NoSuchDefinitionException(name,
 				String.format("There is no %s definition named '%%s'", definitionKind));
 	}
+	
+	protected void throwNoSuchDefinitionException(String name, String definitionKind) {
+		throw new NoSuchDefinitionException(name,
+				String.format("There is no %s definition named '%%s'", definitionKind));
+	}
 
 	protected void throwAlreadyDeployedException(String name) {
 		throw new AlreadyDeployedException(name,

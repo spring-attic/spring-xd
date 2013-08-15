@@ -30,6 +30,7 @@ import org.springframework.shell.core.CommandResult;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.xd.shell.AbstractShellIntegrationTest;
 import org.springframework.xd.shell.util.Table;
+import org.springframework.xd.shell.util.TableRow;
 
 /**
  * Provides an @After JUnit lifecycle method that will destroy the jobs that
@@ -119,8 +120,7 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 	protected void checkForJobInList(String jobName,
 			String jobDescriptor) {
 		Table t = listJobs();
-		assertEquals(jobName, t.getRows().get(0).getValue(1));
-		assertEquals(jobDescriptor, t.getRows().get(0).getValue(2));
+		assertTrue(t.getRows().contains(new TableRow().addValue(1, jobName).addValue(2, jobDescriptor)));
 	}
 
 	protected void checkForFail(CommandResult cr) {

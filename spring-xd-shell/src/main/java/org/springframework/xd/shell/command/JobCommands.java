@@ -26,6 +26,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.xd.rest.client.JobOperations;
 import org.springframework.xd.rest.client.domain.JobDefinitionResource;
 import org.springframework.xd.shell.XDShell;
+import org.springframework.xd.shell.util.Assertions;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableHeader;
 import org.springframework.xd.shell.util.TableRow;
@@ -34,6 +35,7 @@ import org.springframework.xd.shell.util.TableRow;
  * Job commands.
  * 
  * @author Glenn Renfro
+ * @author Ilayaperumal Gopinathan
  */
 
 @Component
@@ -41,13 +43,13 @@ public class JobCommands implements CommandMarker {
 
 	private final static String CREATE_JOB = "job create";
 
+	private final static String LIST_JOBS = "job list";
+
 	private final static String DEPLOY_JOB = "job deploy";
 
 	private final static String UNDEPLOY_JOB = "job undeploy";
 
 	private final static String DESTROY_JOB = "job destroy";
-
-	private final static String LIST_JOBS = "job list";
 
 	@Autowired
 	private XDShell xdShell;
@@ -59,23 +61,12 @@ public class JobCommands implements CommandMarker {
 
 	@CliCommand(value = CREATE_JOB, help = "Create a job")
 	public String createJob(
-			@CliOption(mandatory = true, key = { "name", "" }, help = "the name to give to the job")
-			String name,
-			@CliOption(mandatory = true, key = "definition", help = "job definition using xd dsl ")
-			String dsl,
-			@CliOption(key = "deploy", help = "whether to deploy the stream immediately", unspecifiedDefaultValue = "true")
-			Boolean deploy) {
+			@CliOption(mandatory = true, key = { "name", "" }, help = "the name to give to the job") String name,
+			@CliOption(mandatory = true, key = "definition", help = "job definition using xd dsl ") String dsl,
+			@CliOption(key = "deploy", help = "whether to deploy the stream immediately", unspecifiedDefaultValue = "true") Boolean deploy) {
 		jobOperations().createJob(name, dsl, deploy);
 		return String.format(((deploy != null && deploy.booleanValue()) ? "Successfully created and deployed job '%s'"
 				: "Successfully created job '%s'"), name);
-	}
-
-	@CliCommand(value = DEPLOY_JOB, help = "Deploy a previously created job")
-	public String deployJob(
-			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the job to deploy", optionContext = "existing-job disable-string-converter")
-			String name) {
-		jobOperations().deployJob(name);
-		return String.format("Deployed job '%s'", name);
 	}
 
 	@CliCommand(value = LIST_JOBS, help = "List all jobs")
@@ -93,20 +84,64 @@ public class JobCommands implements CommandMarker {
 		return table;
 	}
 
-	@CliCommand(value = UNDEPLOY_JOB, help = "Un-deploy a previously deployed job")
-	public String undeployJob(
-			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the job to un-deploy", optionContext = "existing-job disable-string-converter")
-			String name) {
-		jobOperations().undeployJob(name);
-		return String.format("Un-deployed Job '%s'", name);
+	@CliCommand(value = DEPLOY_JOB, help = "Deploy previously created job(s)")
+	public String deployJob(
+			@CliOption(key = { "", "name" }, help = "the name of the job to deploy", optionContext = "existing-job disable-string-converter") String name,
+			@CliOption(key = { "all" }, help = "deploy all the existing jobs", specifiedDefaultValue = "true") String all) {
+		String message = "";
+		switch (Assertions.exactlyOneOf("name", name, "all", all)) {
+			case 0:
+				jobOperations().deploy(name);
+				message = String.format("Deployed job '%s'", name);
+				break;
+			case 1:
+				jobOperations().deployAll();
+				message = String.format("Deployed all the jobs");
+				break;
+			default:
+				throw new IllegalArgumentException("You must specify exactly one of 'name', 'all'");
+		}
+		return message;
 	}
 
-	@CliCommand(value = DESTROY_JOB, help = "Destroy an existing job")
+	@CliCommand(value = UNDEPLOY_JOB, help = "Un-deploy existing job(s)")
+	public String undeployJob(
+			@CliOption(key = { "", "name" }, help = "the name of the job to un-deploy", optionContext = "existing-job disable-string-converter") String name,
+			@CliOption(key = { "all" }, help = "undeploy all the existing jobs", specifiedDefaultValue = "true") String all) {
+		String message = "";
+		switch (Assertions.exactlyOneOf("name", name, "all", all)) {
+			case 0:
+				jobOperations().undeploy(name);
+				message = String.format("Un-deployed Job '%s'", name);
+				break;
+			case 1:
+				jobOperations().undeployAll();
+				message = String.format("Un-deployed all the jobs");
+				break;
+			default:
+				throw new IllegalArgumentException("You must specify exactly one of 'name', 'all'");
+		}
+		return message;
+	}
+
+	@CliCommand(value = DESTROY_JOB, help = "Destroy existing job(s)")
 	public String destroyJob(
-			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the job to destroy", optionContext = "existing-job disable-string-converter")
-			String name) {
-		jobOperations().destroyJob(name);
-		return String.format("Destroyed job '%s'", name);
+			@CliOption(key = { "", "name" }, help = "the name of the job to destroy", optionContext = "existing-job disable-string-converter") String name,
+			@CliOption(key = { "all" }, help = "destroy all the existing jobs", specifiedDefaultValue = "true") String all) {
+		String message = "";
+		switch (Assertions.exactlyOneOf("name", name, "all", all)) {
+			case 0:
+				jobOperations().destroy(name);
+				message = String.format("Destroyed job '%s'", name);
+				break;
+			case 1:
+				jobOperations().destroyAll();
+				message = String.format("Destroyed all the jobs");
+				break;
+			default:
+				throw new IllegalArgumentException("You must specify exactly one of 'name', 'all'");
+		}
+		return message;
 	}
 
 	private JobOperations jobOperations() {

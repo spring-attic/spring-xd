@@ -35,6 +35,7 @@ import org.springframework.xd.dirt.stream.TriggerDefinition;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -46,6 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author Eric Bottard
  * @author David Turanski
  * @author Gunnar Hillert
+ * @author Ilayaperumal Gopinathan
  * 
  * @since 1.0
  * 
@@ -137,6 +139,25 @@ public class TriggersControllerIntegrationTests extends AbstractControllerIntegr
 		mockMvc.perform(put("/triggers/trigger1").param("deploy", "true").accept(MediaType.APPLICATION_JSON)).andExpect(
 				status().isOk());
 		verify(sender, times(1)).sendDeploymentRequests(eq("trigger1"), anyListOf(ModuleDeploymentRequest.class));
+	}
+	
+	@Test
+	public void testTriggerDestroyAll() throws Exception{
+		mockMvc.perform(
+				post("/triggers").param("name", "trigger1").param("definition", TRIGGER_DEFINITION).accept(
+						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
+		mockMvc.perform(
+				post("/triggers").param("name", "trigger2").param("definition", TRIGGER_DEFINITION).accept(
+						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
+		assertNotNull(triggerDefinitionRepository.findOne("trigger1"));
+		assertNotNull(triggerDefinitionRepository.findOne("trigger2"));
+		
+		// Perform destroy all
+		mockMvc.perform(delete("/triggers").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
+		
+		assertNull(triggerDefinitionRepository.findOne("trigger1"));
+		assertNull(triggerDefinitionRepository.findOne("trigger2"));
+		
 	}
 
 	@Before

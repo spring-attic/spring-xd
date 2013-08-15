@@ -44,6 +44,7 @@ import org.springframework.xd.dirt.stream.NoSuchDefinitionException;
  * @param <T> the resource class for D
  * 
  * @author Glenn Renfro
+ * @author Ilayaperumal Gopinathan
  */
 
 public abstract class XDController<D extends BaseDefinition, V extends ResourceAssemblerSupport<D, T>, T extends ResourceSupport> {
@@ -64,9 +65,17 @@ public abstract class XDController<D extends BaseDefinition, V extends ResourceA
 	 */
 	@RequestMapping(value = "/{name}", method = RequestMethod.DELETE)
 	@ResponseStatus(HttpStatus.OK)
-	public void delete(@PathVariable("name")
-	String name) {
+	public void delete(@PathVariable("name") String name) {
 		deployer.delete(name);
+	}
+
+	/**
+	 * Request removal of all modules.
+	 */
+	@RequestMapping(value = "", method = RequestMethod.DELETE)
+	@ResponseStatus(HttpStatus.OK)
+	public void deleteAll() {
+		deployer.deleteAll();
 	}
 
 	/**
@@ -76,9 +85,17 @@ public abstract class XDController<D extends BaseDefinition, V extends ResourceA
 	 */
 	@RequestMapping(value = "/{name}", method = RequestMethod.PUT, params = "deploy=false")
 	@ResponseStatus(HttpStatus.OK)
-	public void undeploy(@PathVariable("name")
-	String name) {
+	public void undeploy(@PathVariable("name") String name) {
 		deployer.undeploy(name);
+	}
+
+	/**
+	 * Request un-deployment of all modules.
+	 */
+	@RequestMapping(value = "_deployments", method = RequestMethod.PUT, params = "deploy=false")
+	@ResponseStatus(HttpStatus.OK)
+	public void undeployAll() {
+		deployer.undeployAll();
 	}
 
 	/**
@@ -89,9 +106,17 @@ public abstract class XDController<D extends BaseDefinition, V extends ResourceA
 	@RequestMapping(value = "/{name}", method = RequestMethod.PUT, params = "deploy=true")
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public void deploy(@PathVariable("name")
-	String name) {
+	public void deploy(@PathVariable("name") String name) {
 		deployer.deploy(name);
+	}
+
+	/**
+	 * Request deployment of all modules.
+	 */
+	@RequestMapping(value = "_deployments", method = RequestMethod.PUT, params = "deploy=true")
+	@ResponseStatus(HttpStatus.OK)
+	public void deployAll() {
+		deployer.deployAll();
 	}
 
 	/**
@@ -102,8 +127,7 @@ public abstract class XDController<D extends BaseDefinition, V extends ResourceA
 	@RequestMapping(value = "/{name}", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public ResourceSupport display(@PathVariable("name")
-	String name) {
+	public ResourceSupport display(@PathVariable("name") String name) {
 		final D definition = deployer.findOne(name);
 		if (definition == null) {
 			throw new NoSuchDefinitionException(name, "There is no definition named '%s'");
@@ -114,7 +138,8 @@ public abstract class XDController<D extends BaseDefinition, V extends ResourceA
 	/**
 	 * List module definitions.
 	 */
-	// protected and not annotated with @RequestMapping due to the way PagedResourcesAssemblerArgumentResolver works
+	// protected and not annotated with @RequestMapping due to the way
+	// PagedResourcesAssemblerArgumentResolver works
 	// subclasses should override and make public (or delegate)
 	protected PagedResources<T> listValues(Pageable pageable, PagedResourcesAssembler<D> assembler) {
 		Page<D> page = deployer.findAll(pageable);
@@ -135,10 +160,8 @@ public abstract class XDController<D extends BaseDefinition, V extends ResourceA
 	@RequestMapping(value = "", method = RequestMethod.POST)
 	@ResponseStatus(HttpStatus.CREATED)
 	@ResponseBody
-	public T save(@RequestParam("name")
-	String name, @RequestParam("definition")
-	String definition, @RequestParam(value = "deploy", defaultValue = "true")
-	boolean deploy) {
+	public T save(@RequestParam("name") String name, @RequestParam("definition") String definition,
+			@RequestParam(value = "deploy", defaultValue = "true") boolean deploy) {
 		final D moduleDefinition = createDefinition(name, definition);
 		final D savedModuleDefinition = deployer.save(moduleDefinition);
 		if (deploy) {

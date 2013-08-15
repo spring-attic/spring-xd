@@ -32,26 +32,30 @@ public class Assertions {
 	}
 
 	/**
-	 * Accepts 2*N arguments, even ones being names and odd ones being values for those names. Asserts that exactly only
-	 * one value is non null, or throws an exception with a descriptive message otherwise.
+	 * Accepts 2*N arguments, even ones being names and odd ones being values for those
+	 * names. Asserts that exactly only one value is non null, or throws an exception with
+	 * a descriptive message otherwise.
 	 * 
 	 * @return the index of the "pair" that was not {@code null}
 	 * @throws IllegalArgumentException if more than one argument is non null
-	 * @throws IllegalStateException if the method is called with wrong values (e.g. non even number of args)
+	 * @throws IllegalStateException if the method is called with wrong values (e.g. non
+	 *         even number of args)
 	 */
 	public static int exactlyOneOf(Object... namesAndValues) {
 		int index = atMostOneOf(namesAndValues);
-		Assert.isTrue(index > 0, "You must specify exactly one of " + collectNames(namesAndValues));
+		Assert.isTrue(index >= 0, "You must specify exactly one of " + collectNames(namesAndValues));
 		return index;
 	}
 
 	/**
-	 * Accepts 2*N arguments, even ones being names and odd ones being values for those names. Asserts that at most one
-	 * value is non null, or throws an exception with a descriptive message otherwise.
+	 * Accepts 2*N arguments, even ones being names and odd ones being values for those
+	 * names. Asserts that at most one value is non null, or throws an exception with a
+	 * descriptive message otherwise.
 	 * 
 	 * @return the index of the "pair" that was not {@code null}, or -1 if none was set
 	 * @throws IllegalArgumentException if more than one argument is non null
-	 * @throws IllegalStateException if the method is called with wrong values (e.g. non even number of args)
+	 * @throws IllegalStateException if the method is called with wrong values (e.g. non
+	 *         even number of args)
 	 */
 	public static int atMostOneOf(Object... namesAndValues) {
 		int index = -1;

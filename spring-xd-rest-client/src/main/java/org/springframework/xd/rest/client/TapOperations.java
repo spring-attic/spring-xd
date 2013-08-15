@@ -21,17 +21,17 @@ import org.springframework.xd.rest.client.domain.TapDefinitionResource;
 
 /**
  * Interface defining operations against taps.
- *
+ * 
  * @author Ilayaperumal Gopinathan
  * @author Gunnar Hillert
- *
+ * 
  * @since 1.0
  */
-public interface TapOperations {
+public interface TapOperations extends ResourceOperations {
 
 	/**
 	 * Create a new Tap.
-	 *
+	 * 
 	 * @param name the name to give to the tap
 	 * @param definition the tap definition, expressed in XD DSL
 	 * @param deploy whether to deploy the tap immediately
@@ -41,15 +41,8 @@ public interface TapOperations {
 
 	/**
 	 * Retrieve a list of taps.
-	 *
+	 * 
 	 * @return A list of taps
 	 */
 	PagedResources<TapDefinitionResource> list(/* TODO */);
-
-	/**
-	 * Destroy an existing tap
-	 * @param name
-	 */
-	public void destroyTap(String name);
-
 }

@@ -21,13 +21,14 @@ import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.BaseDefinition;
 
 /**
- * Base support class for deployers that know how to deal with {@link BaseInstance instances} of a
- * {@link BaseDefinition definition}.
+ * Base support class for deployers that know how to deal with {@link BaseInstance
+ * instances} of a {@link BaseDefinition definition}.
  * 
  * @param D the kind of definition this deployer deals with
  * @param I the corresponding instance type
  * 
  * @author Eric Bottard
+ * @author Ilayaperumal Gopinathan
  */
 public abstract class AbstractInstancePersistingDeployer<D extends BaseDefinition, I extends BaseInstance<D>> extends
 		AbstractDeployer<D> {
@@ -82,6 +83,35 @@ public abstract class AbstractInstancePersistingDeployer<D extends BaseDefinitio
 
 		final I instance = makeInstance(definition);
 		instanceRepository.save(instance);
+	}
+
+	@Override
+	public void undeployAll() {
+		for (D definition : findAll()) {
+			String name = definition.getName();
+			// Make sure we un-deploy only the resources that are already deployed.
+			if (instanceRepository.exists(name)) {
+				undeploy(name);
+			}
+		}
+	}
+
+	@Override
+	public void deployAll() {
+		for (D definition : findAll()) {
+			String name = definition.getName();
+			// Make sure we deploy only the resources that are not already deployed.
+			if (!instanceRepository.exists(name)) {
+				deploy(name);
+			}
+		}
+	}
+
+	@Override
+	public void deleteAll() {
+		// Make sure to un-deploy before delete.
+		undeployAll();
+		super.deleteAll();
 	}
 
 	/**

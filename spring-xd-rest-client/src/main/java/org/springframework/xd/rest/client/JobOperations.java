@@ -20,33 +20,20 @@ import org.springframework.hateoas.PagedResources;
 import org.springframework.xd.rest.client.domain.JobDefinitionResource;
 
 /**
- * Interface defining operations available against streams.
- *
+ * Interface defining operations available against jobs.
+ * 
  * @author Glenn Renfro
+ * @author Ilayaperumal Gopinathan
  */
-public interface JobOperations {
+public interface JobOperations extends ResourceOperations {
 
 	/**
 	 * Create a new Job, optionally deploying it.
 	 */
 	public JobDefinitionResource createJob(String name, String defintion, Boolean deploy);
-	/**
-	 * Destroy an existing stream.
-	 */
-	public void destroyJob(String name);
 
 	/**
-	 * Deploy an already created stream.
-	 */
-	public void deployJob(String name);
-
-	/**
-	 * Undeploy a deployed stream, retaining its definition.
-	 */
-	public void undeployJob(String name);
-
-	/**
-	 * List streams known to the system.
+	 * List jobs known to the system.
 	 */
 	public PagedResources<JobDefinitionResource> list();
 }

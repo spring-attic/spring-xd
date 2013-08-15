@@ -107,7 +107,7 @@ public class Dependencies {
 
 	@Bean
 	public JobDeployer jobDeployer() {
-		return new JobDeployer(jobDefinitionRepository(),
+		return new JobDeployer(jobDefinitionRepository(), triggerDefinitionRepository(),
 				deploymentMessageSender(), parser());
 	}
 

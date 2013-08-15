@@ -15,17 +15,31 @@
  */
 package org.springframework.xd.shell.command;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
+import org.springframework.batch.core.JobParameter;
 import org.springframework.shell.core.CommandResult;
-
-import static org.junit.Assert.*;
 
 /**
  * Test stream commands
- * 
+ *
  * @author Glenn Renfro
+ * @author Gunnar Hillert
  */
 public class JobCommandTests extends AbstractJobIntegrationTest {
 
@@ -168,5 +182,141 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 			assertTrue(sleepException.getMessage(), true);
 		}
 		assertTrue(fileExists(TMP_FILE));
+	}
+
+	@Test
+	public void testJobDeployWithParameters() throws InterruptedException {
+		logger.info("Create batch job with parameters");
+
+		JobParametersHolder.reset();
+		executeJobCreate(MY_JOB_WITH_PARAMETERS, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
+		checkForJobInList(MY_JOB_WITH_PARAMETERS, JOB_WITH_PARAMETERS_DESCRIPTOR);
+
+		final JobParametersHolder jobParametersHolder = new JobParametersHolder();
+
+		final String commandString = "job deploy --name myJobWithParameters --jobParameters \"{\"param1\":\"spring rocks!\"}\"";
+		System.out.println(commandString);
+
+		CommandResult cr = getShell().executeCommand(commandString);
+
+		checkForSuccess(cr);
+		assertEquals("Deployed job 'myJobWithParameters'", cr.getResult());
+
+		boolean done = jobParametersHolder.isDone();
+
+		assertTrue("The countdown latch expired and did not count down.", done);
+
+		int numberOfJobParameters = JobParametersHolder.getJobParameters().size();
+		assertTrue("Expecting 2 parameters but got " + numberOfJobParameters, numberOfJobParameters == 2);
+
+		assertNotNull(JobParametersHolder.getJobParameters().get("random"));
+
+		final JobParameter parameter1 = JobParametersHolder.getJobParameters().get("param1");
+
+		assertNotNull(parameter1);
+		assertEquals("spring rocks!", (String) parameter1.getValue());
+	}
+
+	@Test
+	public void testJobDeployWithParametersAndMakeUniqueIsFalse() throws InterruptedException {
+		logger.info("Create batch job with parameters");
+
+		JobParametersHolder.reset();
+		executeJobCreate(MY_JOB_WITH_PARAMETERS, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
+		checkForJobInList(MY_JOB_WITH_PARAMETERS, JOB_WITH_PARAMETERS_DESCRIPTOR);
+
+		final JobParametersHolder jobParametersHolder = new JobParametersHolder();
+
+		final String commandString = "job deploy --name myJobWithParameters --makeUnique \"false\" --jobParameters \"{\"param1\":\"spring rocks!\"}\"";
+		System.out.println(commandString);
+
+		CommandResult cr = getShell().executeCommand(commandString);
+
+		checkForSuccess(cr);
+		assertEquals("Deployed job 'myJobWithParameters'", cr.getResult());
+
+		boolean done = jobParametersHolder.isDone();
+
+		assertTrue("The countdown latch expired and did not count down.", done);
+
+		assertTrue("Expecting 1 parameters.", JobParametersHolder.getJobParameters().size() == 1);
+		assertNull(JobParametersHolder.getJobParameters().get("random"));
+
+		final JobParameter parameter1 = JobParametersHolder.getJobParameters().get("param1");
+
+		assertNotNull(parameter1);
+		assertEquals("spring rocks!", (String) parameter1.getValue());
+	}
+
+	@Test
+	public void testJobDeployWithTypedParameters() throws InterruptedException, ParseException {
+		logger.info("Create batch job with typed parameters");
+		JobParametersHolder.reset();
+		executeJobCreate(MY_JOB_WITH_PARAMETERS, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
+		checkForJobInList(MY_JOB_WITH_PARAMETERS, JOB_WITH_PARAMETERS_DESCRIPTOR);
+
+		final JobParametersHolder jobParametersHolder = new JobParametersHolder();
+
+		final String commandString = "job deploy --name myJobWithParameters --jobParameters "
+				+ "\"{\"-param1(long)\":\"12345\",\"param2(date)\":\"1990/10/03\"}\"";
+
+		System.out.println(commandString);
+
+		final CommandResult cr = getShell().executeCommand(commandString);
+
+		checkForSuccess(cr);
+		assertEquals("Deployed job 'myJobWithParameters'", cr.getResult());
+
+		boolean done = jobParametersHolder.isDone();
+
+		assertTrue("The countdown latch expired and did not count down.", done);
+		assertTrue("Expecting 3 parameters.", JobParametersHolder.getJobParameters().size() == 3);
+		assertNotNull(JobParametersHolder.getJobParameters().get("random"));
+
+		final JobParameter parameter1 = JobParametersHolder.getJobParameters().get("param1");
+		final JobParameter parameter2 = JobParametersHolder.getJobParameters().get("param2");
+
+		assertNotNull(parameter1);
+		assertNotNull(parameter2);
+		assertTrue("parameter1 should be a Long", parameter1.getValue() instanceof Long);
+		assertTrue("parameter2 should be a java.util.Date", parameter2.getValue() instanceof Date);
+
+		final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
+		final Date expectedDate = dateFormat.parse("1990/10/03");
+
+		assertEquals("Was expecting the Long value 12345", Long.valueOf(12345), (Long) parameter1.getValue());
+		assertEquals("Should be the same dates", expectedDate, (Date) parameter2.getValue());
+
+		assertFalse("parameter1 should be non-identifying", parameter1.isIdentifying());
+		assertTrue("parameter2 should be identifying", parameter2.isIdentifying());
+
+	}
+
+	public static class JobParametersHolder {
+
+		private static Map<String, JobParameter> jobParameters = new ConcurrentHashMap<String, JobParameter>();
+
+		private static CountDownLatch countDownLatch = new CountDownLatch(1);
+
+		public boolean isDone() throws InterruptedException {
+			return countDownLatch.await(10, TimeUnit.SECONDS);
+		}
+
+		public void countDown() throws InterruptedException {
+			countDownLatch.countDown();;
+		}
+
+		public void addParameter(String parameterName, JobParameter jobParameter) {
+			jobParameters.put(parameterName, jobParameter);
+		}
+
+		protected static Map<String, JobParameter> getJobParameters() {
+			return jobParameters;
+		}
+
+		public static void reset() {
+			jobParameters.clear();
+			countDownLatch = new CountDownLatch(1);
+		}
 	}
 }

@@ -37,6 +37,7 @@ import org.springframework.xd.shell.util.TableRow;
  * were created by calling executeJobCreate
  *
  * @author Glenn Renfro
+ * @author Gunnar Hillert
  *
  */
 public abstract class AbstractJobIntegrationTest extends AbstractShellIntegrationTest {
@@ -45,6 +46,7 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 	private static final String MODULE_TARGET_DIR = "../modules/job/";
 	private static final String TEST_TASKLET = "test.xml";
 	private static final String JOB_TASKLET = "job.xml";
+	private static final String JOB_WITH_PARAMETERS_TASKLET = "jobWithParameters.xml";
 
 	public static final String TMP_FILE = "./src/test/resources/TMPTESTFILE.txt";
 	public static final String TEST_FILE = "./src/test/resources/client1.txt";
@@ -52,6 +54,9 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 	public static final String JOB_DESCRIPTOR = "job";
 	public static final String MY_TEST = "myTest";
 	public static final String TEST_DESCRIPTOR = "test";
+
+	public static final String MY_JOB_WITH_PARAMETERS = "myJobWithParameters";
+	public static final String JOB_WITH_PARAMETERS_DESCRIPTOR = "jobWithParameters";
 
 	private List<String> jobs = new ArrayList<String>();
 
@@ -61,6 +66,8 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 				MODULE_TARGET_DIR + JOB_TASKLET);
 		copyTaskletDescriptorsToServer(MODULE_RESOURCE_DIR + TEST_TASKLET,
 				MODULE_TARGET_DIR + TEST_TASKLET);
+		copyTaskletDescriptorsToServer(MODULE_RESOURCE_DIR + JOB_WITH_PARAMETERS_TASKLET,
+				MODULE_TARGET_DIR + JOB_WITH_PARAMETERS_TASKLET);
 		// clear any test jobs that may still exist
 		try {
 			executeJobDestroy(MY_JOB);
@@ -69,6 +76,11 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 		}
 		try {
 			executeJobDestroy(MY_TEST);
+		} catch (Throwable t) {
+			// don't worry if it is thrown
+		}
+		try {
+			executeJobDestroy(MY_JOB_WITH_PARAMETERS);
 		} catch (Throwable t) {
 			// don't worry if it is thrown
 		}

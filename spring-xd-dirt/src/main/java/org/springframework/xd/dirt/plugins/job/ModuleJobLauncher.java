@@ -16,12 +16,9 @@
 package org.springframework.xd.dirt.plugins.job;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.launch.JobLauncher;
@@ -35,6 +32,7 @@ import org.springframework.util.StringUtils;
  * triggers built in.
  *
  * @author Michael Minella
+ * @author Gunnar Hillert
  * @since 1.0
  *
  */
@@ -45,19 +43,22 @@ public class ModuleJobLauncher implements Lifecycle {
 	private JobLauncher launcher;
 	private String groupName;
 	private JobRegistry registry;
-	
+
 	private static String JOB_NAME_DELIMITER = ".";
 	private static int NAME_INDEX = 0;
 
 	private boolean isRunning = false;
 	private final boolean executeBatchJobOnStartup;
+	private final JobParameters jobParameters;
 
-	public ModuleJobLauncher(JobLauncher launcher, JobRegistry registry, boolean executeBatchJobOnStartup) {
+	public ModuleJobLauncher(JobLauncher launcher, JobRegistry registry, boolean executeBatchJobOnStartup,
+			JobParametersBean jobParametersBean) {
 		Assert.notNull(launcher, "A JobLauncher is required");
 
 		this.launcher = launcher;
 		this.registry = registry;
 		this.executeBatchJobOnStartup = executeBatchJobOnStartup;
+		this.jobParameters = jobParametersBean.getJobParameters();
 	}
 
 	@Override
@@ -75,22 +76,15 @@ public class ModuleJobLauncher implements Lifecycle {
 
 		for (String curName : names) {
 			String[] jobNames = StringUtils.split(curName, JOB_NAME_DELIMITER);
-			if(jobNames[NAME_INDEX].equals(groupName)) {
+			if (jobNames[NAME_INDEX].equals(groupName)) {
 				try {
-					launcher.run(registry.getJob(curName), getUniqueJobParameters());
-				} catch (Exception e) {
+					launcher.run(registry.getJob(curName), jobParameters);
+				}
+				catch (Exception e) {
 					logger.error("An error occured while starting job " + curName, e);
 				}
 			}
 		}
-
-	}
-
-	private JobParameters getUniqueJobParameters() {
-		Map<String, JobParameter>
-		parameters = new HashMap<String, JobParameter>();
-		parameters.put("random", new JobParameter(Math.random()));
-		return new JobParameters(parameters);
 	}
 
 	@Override

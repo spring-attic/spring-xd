@@ -10,10 +10,18 @@
 		<property name="groupName" value="${xd.stream.name}"/>
 	</bean>
 
+	<bean id="jobParametersBean" class="org.springframework.xd.dirt.plugins.job.JobParametersBean">
+		<constructor-arg name="jobParametersAsJsonMap" value="${jobParameters}"/>
+		<property name="dateFormatAsString" value="${dateFormat}"/>
+		<property name="numberFormatAsString" value="${numberFormat}"/>
+		<property name="makeParametersUnique" value="${makeUnique}"/>
+	</bean>
+
 	<bean id="startupJobLauncher" class="org.springframework.xd.dirt.plugins.job.ModuleJobLauncher">
-		<constructor-arg ref="jobLauncher"/>
-		<constructor-arg ref="jobRegistry"/>
+		<constructor-arg name="launcher" ref="jobLauncher"/>
+		<constructor-arg name="registry" ref="jobRegistry"/>
 		<constructor-arg name="executeBatchJobOnStartup" value="${xd.trigger.execute_on_startup}"/>
+		<constructor-arg name="jobParametersBean" ref="jobParametersBean"/>
 		<property name="groupName" value="${xd.stream.name}"/>
 	</bean>
 

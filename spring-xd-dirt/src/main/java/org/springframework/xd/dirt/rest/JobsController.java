@@ -23,8 +23,10 @@ import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.dirt.stream.JobDefinition;
@@ -51,6 +53,26 @@ public class JobsController extends
 		super(jobDeployer, new JobDefinitionResourceAssembler());
 	}
 
+	@Override
+	@RequestMapping(value = "/unused/{name}", method = RequestMethod.PUT, params = "deploy=true")
+	@ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
+	@ResponseBody
+	public void deploy(String name) {
+		//not used
+	}
+
+	@RequestMapping(value = "/{name}", method = RequestMethod.PUT, params = "deploy=true")
+	@ResponseStatus(HttpStatus.OK)
+	@ResponseBody
+	public void deployJob(@PathVariable("name") String name,
+			@RequestParam(required=false) String jobParameters,
+			@RequestParam(required=false) String dateFormat,
+			@RequestParam(required=false) String numberFormat,
+			@RequestParam(required=false) Boolean makeUnique) {
+		final JobDeployer jobDeployer = (JobDeployer) getDeployer();
+		jobDeployer.deploy(name, jobParameters, dateFormat, numberFormat, makeUnique);
+	}
+
 	/**
 	 * List job definitions.
 	 */
@@ -62,10 +84,8 @@ public class JobsController extends
 		return listValues(pageable, assembler);
 	}
 
-
 	protected JobDefinition createDefinition(String name, String definition) {
 		return new JobDefinition(name, definition);
 	}
-
-
 }
+

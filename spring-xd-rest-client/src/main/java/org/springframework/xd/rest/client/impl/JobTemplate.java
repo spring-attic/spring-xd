@@ -28,6 +28,7 @@ import org.springframework.xd.rest.client.domain.JobDefinitionResource;
  * 
  * @author Glenn Renfro
  * @author Ilayaperumal Gopinathan
+ * @author Gunnar Hillert
  */
 public class JobTemplate extends AbstractTemplate implements JobOperations {
 
@@ -53,11 +54,31 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 	}
 
 	@Override
-	public void deploy(String name) {
+	public void deployJob(String name, String jobParameters, String dateFormat, String numberFormat, Boolean makeUnique) {
+
 		String uriTemplate = resources.get("jobs").toString() + "/{name}";
 		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
 		values.add("deploy", "true");
+
+		if (jobParameters != null) {
+			values.add("jobParameters", jobParameters);
+		}
+		if (dateFormat != null) {
+			values.add("dateFormat", dateFormat);
+		}
+		if (numberFormat != null) {
+			values.add("numberFormat", numberFormat);
+		}
+		if (makeUnique != null) {
+			values.add("makeUnique", String.valueOf(makeUnique));
+		}
+
 		restTemplate.put(uriTemplate, values, name);
+	}
+
+	@Override
+	public void deploy(String name) {
+		deployJob(name, null, null, null, null);
 	}
 
 	@Override

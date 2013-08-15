@@ -33,9 +33,11 @@ import org.springframework.xd.shell.util.TableRow;
 
 /**
  * Job commands.
- * 
+ *
  * @author Glenn Renfro
  * @author Ilayaperumal Gopinathan
+ * @author Gunnar Hillert
+ *
  */
 
 @Component
@@ -87,11 +89,15 @@ public class JobCommands implements CommandMarker {
 	@CliCommand(value = DEPLOY_JOB, help = "Deploy previously created job(s)")
 	public String deployJob(
 			@CliOption(key = { "", "name" }, help = "the name of the job to deploy", optionContext = "existing-job disable-string-converter") String name,
-			@CliOption(key = { "all" }, help = "deploy all the existing jobs", specifiedDefaultValue = "true") String all) {
+			@CliOption(key = { "all" }, help = "deploy all the existing jobs", specifiedDefaultValue = "true") String all,
+			@CliOption(key = "jobParameters", help = "the optional job parameters") String jobParameters,
+			@CliOption(key = "dateFormat", help = "the optional date format for job parameters") String dateFormat,
+			@CliOption(key = "numberFormat", help = "the optional number format for job parameters") String numberFormat,
+			@CliOption(key = "makeUnique", help = "shall job parameters be made unique?") Boolean makeUnique) {
 		String message = "";
 		switch (Assertions.exactlyOneOf("name", name, "all", all)) {
 			case 0:
-				jobOperations().deploy(name);
+				jobOperations().deployJob(name, jobParameters, dateFormat, numberFormat, makeUnique);
 				message = String.format("Deployed job '%s'", name);
 				break;
 			case 1:

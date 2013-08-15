@@ -38,11 +38,11 @@ import org.springframework.xd.dirt.stream.NoSuchDefinitionException;
 
 /**
  * Base Class for XD Controllers.
- * 
+ *
  * @param <D> the kind of definition entity this controller deals with
  * @param <V> a resource assembler that knows how to build Ts out of Ds
  * @param <T> the resource class for D
- * 
+ *
  * @author Glenn Renfro
  * @author Ilayaperumal Gopinathan
  */
@@ -58,9 +58,13 @@ public abstract class XDController<D extends BaseDefinition, V extends ResourceA
 		this.resourceAssemblerSupport = resourceAssemblerSupport;
 	}
 
+	protected ResourceDeployer<D> getDeployer() {
+		return deployer;
+	}
+
 	/**
 	 * Request removal of an existing module.
-	 * 
+	 *
 	 * @param name the name of an existing module (required)
 	 */
 	@RequestMapping(value = "/{name}", method = RequestMethod.DELETE)
@@ -80,7 +84,7 @@ public abstract class XDController<D extends BaseDefinition, V extends ResourceA
 
 	/**
 	 * Request un-deployment of an existing named module.
-	 * 
+	 *
 	 * @param name the name of an existing module (required)
 	 */
 	@RequestMapping(value = "/{name}", method = RequestMethod.PUT, params = "deploy=false")
@@ -100,7 +104,7 @@ public abstract class XDController<D extends BaseDefinition, V extends ResourceA
 
 	/**
 	 * Request deployment of an existing named module.
-	 * 
+	 *
 	 * @param name the name of an existing module (required)
 	 */
 	@RequestMapping(value = "/{name}", method = RequestMethod.PUT, params = "deploy=true")
@@ -121,7 +125,7 @@ public abstract class XDController<D extends BaseDefinition, V extends ResourceA
 
 	/**
 	 * Retrieve information about a single {@link ResourceSupport}.
-	 * 
+	 *
 	 * @param name the name of an existing tap (required)
 	 */
 	@RequestMapping(value = "/{name}", method = RequestMethod.GET)
@@ -153,7 +157,7 @@ public abstract class XDController<D extends BaseDefinition, V extends ResourceA
 
 	/**
 	 * Create a new Module.
-	 * 
+	 *
 	 * @param name The name of the module to create (required)
 	 * @param definition The module definition, expressed in the XD DSL (required)
 	 */

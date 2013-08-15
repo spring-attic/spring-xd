@@ -21,6 +21,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.Random;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.util.FileCopyUtils;
 
@@ -37,29 +38,63 @@ public class FileSourceAndFileSinkTests extends AbstractStreamIntegrationTest {
 
 	private static final File DEFAULT_OUT = new File("/tmp/xd/output");
 
-	private static final String DEFAULT_SINKFILE_SUFFIX = ".out";
+	private static final String DEFAULT_SINKFILE_SUFFIX = "out";
+
+	private static final String TEXT_SINKFILE_SUFFIX = "txt";
+
+	@Before
+	public void before() {
+		DEFAULT_OUT.mkdirs();
+	}
 
 	@Test
 	public void testDefaultFileLocations() throws Exception {
+		testFileSinkSource("." + DEFAULT_SINKFILE_SUFFIX, "");
+	}
 
+	@Test
+	public void testBlankSuffix() throws Exception {
+		testFileSinkSource("", "--suffix=' '");
+	}
+
+	@Test
+	public void testCustomSuffix() throws Exception {
+		testFileSinkSource("." + TEXT_SINKFILE_SUFFIX, "--suffix='" + TEXT_SINKFILE_SUFFIX + "'");
+	}
+
+	@Test
+	public void testCustomFileLocations() throws Exception {
 		// Are we on *nix at least?
 		if (!new File("/tmp/").exists()) {
 			return;
 		}
 
-		String streamName = String.format("foobar-%s", new Random().nextInt());
+		FileSource source = newFileSource();
+		FileSink sink = newFileSink();
+
+		source.appendToFile("Hi there!");
+		stream().create("foobar", "%s | %s", source, sink);
+		assertEquals("Hi there!\n", sink.getContents());
+
+	}
+
+	private void testFileSinkSource(String sinkSuffix, String sinkParam) throws Exception {
+		// Are we on *nix at least?
+		if (!new File("/tmp/").exists()) {
+			return;
+		}
 
 		// Both use stream name
+		String streamName = String.format("foobar-%s", new Random().nextInt());
+
 		File inDir = new File(DEFAULT_IN, streamName);
 		inDir.mkdirs();
-		DEFAULT_OUT.mkdirs();
-
 		File in = new File(inDir, "one.txt");
-		File out = new File(DEFAULT_OUT, streamName + DEFAULT_SINKFILE_SUFFIX);
+		File out = new File(DEFAULT_OUT, streamName + sinkSuffix);
 
 		try {
 			FileCopyUtils.copy("hello", new FileWriter(in));
-			stream().create(streamName, "file | file");
+			stream().create(streamName, "file | file " + sinkParam);
 			String actual = FileCopyUtils.copyToString(new FileReader(out));
 			assertEquals("hello\n", actual);
 		}
@@ -68,16 +103,5 @@ public class FileSourceAndFileSinkTests extends AbstractStreamIntegrationTest {
 			in.getParentFile().delete();
 			out.delete();
 		}
-	}
-
-	@Test
-	public void testCustomFileLocations() throws Exception {
-		FileSource source = newFileSource();
-		FileSink sink = newFileSink();
-
-		source.appendToFile("Hi there!");
-		stream().create("foobar", "%s | %s", source, sink);
-		assertEquals("Hi there!\n", sink.getContents());
-
 	}
 }

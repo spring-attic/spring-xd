@@ -26,6 +26,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.xd.rest.client.StreamOperations;
 import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
 import org.springframework.xd.shell.XDShell;
+import org.springframework.xd.shell.util.Assertions;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableHeader;
 import org.springframework.xd.shell.util.TableRow;
@@ -33,58 +34,92 @@ import org.springframework.xd.shell.util.TableRow;
 @Component
 public class StreamCommands implements CommandMarker {
 
+	private static final String CREATE_STREAM = "stream create";
+
+	private static final String LIST_STREAM = "stream list";
+
 	private static final String DEPLOY_STREAM = "stream deploy";
 
 	private static final String UNDEPLOY_STREAM = "stream undeploy";
 
-	private static final String CREATE_STREAM = "stream create";
-
 	private static final String DESTROY_STREAM = "stream destroy";
-
-	private static final String LIST_STREAM = "stream list";
 
 	@Autowired
 	private XDShell xdShell;
 
-	@CliAvailabilityIndicator({ DEPLOY_STREAM, UNDEPLOY_STREAM, CREATE_STREAM, DESTROY_STREAM, LIST_STREAM })
+	@CliAvailabilityIndicator({ CREATE_STREAM, LIST_STREAM, DEPLOY_STREAM, UNDEPLOY_STREAM, DESTROY_STREAM })
 	public boolean available() {
 		return xdShell.getSpringXDOperations() != null;
 	}
 
 	@CliCommand(value = CREATE_STREAM, help = "Create a new stream definition")
 	public String createStream(
-			@CliOption(mandatory = true, key = { "", "name" }, help = "the name to give to the stream")
-			String name,
-			@CliOption(mandatory = true, key = { "definition" }, help = "a stream definition, using XD DSL (e.g. \"http --port=9000 | hdfs\")")
-			String dsl,
-			@CliOption(key = "deploy", help = "whether to deploy the stream immediately", unspecifiedDefaultValue = "true")
-			boolean deploy) {
+			@CliOption(mandatory = true, key = { "", "name" }, help = "the name to give to the stream") String name,
+			@CliOption(mandatory = true, key = { "definition" }, help = "a stream definition, using XD DSL (e.g. \"http --port=9000 | hdfs\")") String dsl,
+			@CliOption(key = "deploy", help = "whether to deploy the stream immediately", unspecifiedDefaultValue = "true") boolean deploy) {
 		streamOperations().createStream(name, dsl, deploy);
 		return String.format("Created new stream '%s'", name);
 	}
 
-	@CliCommand(value = DESTROY_STREAM, help = "Destroy an existing stream")
-	public String destroyStream(//
-			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the stream to destroy", optionContext = "existing-stream disable-string-converter")
-			String name) {
-		streamOperations().destroyStream(name);
-		return String.format("Destroyed stream '%s'", name);
+	@CliCommand(value = DESTROY_STREAM, help = "Destroy existing stream(s)")
+	public String destroyStream(
+			//
+			@CliOption(key = { "", "name" }, help = "the name of the stream to destroy", optionContext = "existing-stream disable-string-converter") String name,
+			@CliOption(key = { "all" }, help = "destroy all the existing streams", specifiedDefaultValue = "true") String all) {
+		String message = "";
+		switch (Assertions.exactlyOneOf("name", name, "all", all)) {
+			case 0:
+				streamOperations().destroy(name);
+				message = String.format("Destroyed stream '%s'", name);
+				break;
+			case 1:
+				streamOperations().destroyAll();
+				message = String.format("Destroyed all the streams");
+				break;
+			default:
+				throw new IllegalArgumentException("You must specify exactly one of 'name', 'all'");
+		}
+		return message;
 	}
 
-	@CliCommand(value = DEPLOY_STREAM, help = "Deploy a previously created stream")
+	@CliCommand(value = DEPLOY_STREAM, help = "Deploy previously created stream(s)")
 	public String deployStream(
-			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the stream to deploy", optionContext = "existing-stream disable-string-converter")
-			String name) {
-		streamOperations().deployStream(name);
-		return String.format("Deployed stream '%s'", name);
+			@CliOption(key = { "", "name" }, help = "the name of the stream to deploy", optionContext = "existing-stream disable-string-converter") String name,
+			@CliOption(key = { "all" }, help = "deploy all un-deployed streams", specifiedDefaultValue = "true") String all) {
+		String message = "";
+		switch (Assertions.exactlyOneOf("name", name, "all", all)) {
+			case 0:
+				streamOperations().deploy(name);
+				message = String.format("Deployed stream '%s'", name);
+				break;
+			case 1:
+				streamOperations().deployAll();
+				message = String.format("Deployed all the streams");
+				break;
+			default:
+				throw new IllegalArgumentException("You must specify exactly one of 'name', 'all'");
+		}
+		return message;
 	}
 
-	@CliCommand(value = UNDEPLOY_STREAM, help = "Un-deploy a previously deployed stream")
+	@CliCommand(value = UNDEPLOY_STREAM, help = "Un-deploy previously deployed stream(s)")
 	public String undeployStream(
-			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the stream to un-deploy", optionContext = "existing-stream disable-string-converter")
-			String name) {
-		streamOperations().undeployStream(name);
-		return String.format("Un-deployed stream '%s'", name);
+			@CliOption(key = { "", "name" }, help = "the name of the stream to un-deploy", optionContext = "existing-stream disable-string-converter") String name,
+			@CliOption(key = { "all" }, help = "undeploy all the deployed streams", specifiedDefaultValue = "true") String all) {
+		String message = "";
+		switch (Assertions.exactlyOneOf("name", name, "all", all)) {
+			case 0:
+				streamOperations().undeploy(name);
+				message = String.format("Un-deployed stream '%s'", name);
+				break;
+			case 1:
+				streamOperations().undeployAll();
+				message = String.format("Un-deployed all the streams");
+				break;
+			default:
+				throw new IllegalArgumentException("You must specify exactly one of 'name', 'all'");
+		}
+		return message;
 	}
 
 	@CliCommand(value = LIST_STREAM, help = "List created streams")

@@ -21,18 +21,18 @@ import org.springframework.xd.rest.client.domain.TriggerDefinitionResource;
 
 /**
  * Interface defining operations against triggers.
- *
+ * 
  * @author Ilayaperumal Gopinathan
  * @author Gunnar Hillert
- *
+ * 
  * @since 1.0
- *
+ * 
  */
-public interface TriggerOperations {
+public interface TriggerOperations extends ResourceOperations {
 
 	/**
 	 * Create a new Trigger.
-	 *
+	 * 
 	 * @param name the name to give to the trigger
 	 * @param definition the trigger definition
 	 * @return representation of the created trigger definition
@@ -41,15 +41,8 @@ public interface TriggerOperations {
 
 	/**
 	 * Retrieve a list of triggers.
-	 *
+	 * 
 	 * @return A list of triggers
 	 */
 	public PagedResources<TriggerDefinitionResource> list();
-
-	/*
-	 * Delete an existing Trigger.
-	 *
-	 * @param name of the trigger
-	 */
-	public void deleteTrigger(String name);
 }

@@ -23,6 +23,7 @@ import org.springframework.xd.dirt.stream.dsl.DSLException;
 /**
  * @author Glenn Renfro
  * @author Luke Taylor
+ * @author Ilayaperumal Gopinathan
  * 
  */
 public class JobDeployer extends AbstractDeployer<JobDefinition> {
@@ -51,8 +52,8 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 		}
 		catch (DSLException dslException) {
 			getDefinitionRepository().delete(name);// if it is a DSL exception (meaning
-											// bad definition) go ahead a delete
-											// the module.
+			// bad definition) go ahead a delete
+			// the module.
 		}
 	}
 
@@ -99,5 +100,27 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 		catch (MessageHandlingException ex) {
 			// Job is not deployed.
 		}
+	}
+
+	@Override
+	public void deployAll() {
+		// TODO: we should revisit here to check on instance repository
+		for (JobDefinition definition : getDefinitionRepository().findAll()) {
+			deploy(definition.getName());
+		}
+	}
+
+	@Override
+	public void undeployAll() {
+		// TODO: we should revisit here to check on instance repository
+		for (JobDefinition definition : getDefinitionRepository().findAll()) {
+			undeploy(definition.getName());
+		}
+	}
+
+	@Override
+	public void deleteAll() {
+		undeployAll();
+		super.deleteAll();
 	}
 }

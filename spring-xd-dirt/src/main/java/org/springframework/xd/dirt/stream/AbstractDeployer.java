@@ -29,8 +29,9 @@ import org.springframework.xd.dirt.core.ResourceDeployer;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 
 /**
- * Abstract implementation of the @link {@link org.springframework.xd.dirt.core.ResourceDeployer} interface. It provides
- * the basic support for calling CrudRepository methods and sending deployment messages.
+ * Abstract implementation of the @link
+ * {@link org.springframework.xd.dirt.core.ResourceDeployer} interface. It provides the
+ * basic support for calling CrudRepository methods and sending deployment messages.
  * 
  * @author Luke Taylor
  * @author Mark Pollack
@@ -38,6 +39,7 @@ import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
  * @author Andy Clement
  */
 public abstract class AbstractDeployer<D extends BaseDefinition> implements ResourceDeployer<D> {
+
 	private PagingAndSortingRepository<D, String> repository;
 
 	private final XDParser streamParser;
@@ -45,7 +47,8 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	private final DeploymentMessageSender messageSender;
 
 	/**
-	 * Lower-case, singular name of the kind of definition we're deploying. Used in exception messages.
+	 * Lower-case, singular name of the kind of definition we're deploying. Used in
+	 * exception messages.
 	 */
 	protected final String definitionKind;
 
@@ -86,7 +89,8 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	}
 
 	protected void throwNotDeployedException(String name) {
-		throw new NotDeployedException(name, String.format("The %s named '%%s' is not currently deployed"));
+		throw new NotDeployedException(name, String.format("The %s named '%%s' is not currently deployed",
+				definitionKind));
 	}
 
 	@Override
@@ -95,8 +99,18 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	}
 
 	@Override
+	public Iterable<D> findAll() {
+		return repository.findAll();
+	}
+
+	@Override
 	public Page<D> findAll(Pageable pageable) {
 		return repository.findAll(pageable);
+	}
+
+	@Override
+	public void deleteAll() {
+		repository.deleteAll();
 	}
 
 	protected CrudRepository<D, String> getDefinitionRepository() {
@@ -112,7 +126,8 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	}
 
 	/**
-	 * Provides basic deployment behavior, whereby running state of deployed definitions is not persisted.
+	 * Provides basic deployment behavior, whereby running state of deployed definitions
+	 * is not persisted.
 	 * 
 	 * @return the definition object for the given name
 	 * @throws NoSuchDefinitionException if there is no definition by the given name
@@ -131,7 +146,8 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	}
 
 	/**
-	 * Provides basic un-deployment behavior, whereby state of deployed definitions is not dealt with.
+	 * Provides basic un-deployment behavior, whereby state of deployed definitions is not
+	 * dealt with.
 	 */
 	protected void basicUndeploy(String name) {
 		D definition = getDefinitionRepository().findOne(name);

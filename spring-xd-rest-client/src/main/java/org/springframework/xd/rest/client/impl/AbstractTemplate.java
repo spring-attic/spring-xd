@@ -27,12 +27,15 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.xd.rest.client.util.RestTemplateMessageConverterUtil;
 
 /**
- * Base class for sub-parts of the API, allows sharing configured objects like the {@link RestTemplate}.
+ * Base class for sub-parts of the API, allows sharing configured objects like the
+ * {@link RestTemplate}.
  * 
  * @author Eric Bottard
  * 
  */
 /* default */class AbstractTemplate {
+
+	protected static final String DEPLOYMENTS_URI = "/_deployments";
 
 	/**
 	 * A template used for http interaction.
@@ -53,12 +56,12 @@ import org.springframework.xd.rest.client.util.RestTemplateMessageConverterUtil;
 	}
 
 	/**
-	 * No arg constructor, used solely by entry point to the API, namely {@link SpringXDTemplate}.
+	 * No arg constructor, used solely by entry point to the API, namely
+	 * {@link SpringXDTemplate}.
 	 */
 	AbstractTemplate() {
 		restTemplate = new RestTemplate();
-		List<HttpMessageConverter<?>> converters = RestTemplateMessageConverterUtil
-				.installMessageConverters(new ArrayList<HttpMessageConverter<?>>());
+		List<HttpMessageConverter<?>> converters = RestTemplateMessageConverterUtil.installMessageConverters(new ArrayList<HttpMessageConverter<?>>());
 		restTemplate.setMessageConverters(converters);
 		restTemplate.setErrorHandler(new VndErrorResponseErrorHandler(restTemplate.getMessageConverters()));
 	}

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
+
+	<bean id="registrar" class="org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor">
+		<property name="jobRegistry" ref="jobRegistry"/>
+		<property name="groupName" value="${xd.stream.name}"/>
+	</bean>
+
+	<bean id="startupJobLauncher" class="org.springframework.xd.dirt.plugins.job.ModuleJobLauncher">
+		<constructor-arg ref="jobLauncher"/>
+		<constructor-arg ref="jobRegistry"/>
+		<constructor-arg name="executeBatchJobOnStartup" value="${xd.trigger.execute_on_startup}"/>
+		<property name="groupName" value="${xd.stream.name}"/>
+	</bean>
+
+</beans>

@@ -10,21 +10,19 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.xd.dirt.stream;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Date;
 import java.util.concurrent.ScheduledFuture;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.catalina.Context;
 import org.apache.catalina.LifecycleException;
+import org.apache.catalina.LifecycleState;
 import org.apache.catalina.core.AprLifecycleListener;
+import org.apache.catalina.deploy.FilterDef;
+import org.apache.catalina.deploy.FilterMap;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -34,14 +32,16 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.MessagingException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
-import org.springframework.util.FileCopyUtils;
+import org.springframework.util.StringUtils;
+import org.springframework.web.context.support.XmlWebApplicationContext;
+import org.springframework.web.filter.HttpPutFormContentFilter;
+import org.springframework.web.servlet.DispatcherServlet;
 
 /**
  * @author Mark Fisher
  * @author Jennifer Hickey
  * @author Gary Russell
  * @author David Turanski
- *
  */
 public class StreamServer implements SmartLifecycle, InitializingBean {
 
@@ -49,7 +49,7 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 
 	private volatile String contextPath = "";
 
-	private volatile String servletName = "streams";
+	private volatile String servletName = "xd";
 
 	private final int port;
 
@@ -61,32 +61,51 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 
 	private volatile boolean running;
 
-	protected final StreamDeployer streamDeployer;
+	private final XmlWebApplicationContext webApplicationContext;
 
-	public StreamServer(StreamDeployer streamDeployer) {
-		this(streamDeployer, 8080);
-	}
-
-	public StreamServer(StreamDeployer streamDeployer, int port) {
-		Assert.notNull(streamDeployer, "streamDeployer must not be null");
-		this.streamDeployer = streamDeployer;
+	public StreamServer(XmlWebApplicationContext webApplicationContext, int port) {
+		Assert.notNull(webApplicationContext, "context must not be null");
+		Assert.isTrue(!webApplicationContext.isActive(), "context must not have been started");
+		this.webApplicationContext = webApplicationContext;
 		this.port = port;
 	}
 
 	/**
-	 * Set the contextPath
-	 * @param contextPath
+	 * Set the contextPath to serve requests on. Empty string for root.
 	 */
 	public void setContextPath(String contextPath) {
+		if (StringUtils.hasLength(contextPath) && !contextPath.startsWith("/")) {
+			contextPath = "/" + contextPath;
+		}
 		this.contextPath = contextPath;
 	}
 
 	/**
-	 * Set the servletName. Default is streams
+	 * Set the servletName. Default is 'xd'.
 	 * @param servletName
 	 */
 	public void setServletName(String servletName) {
 		this.servletName = servletName;
+	}
+
+	/**
+	 * @return the HTTP port as requested from the user
+	 */
+	public int getPort() {
+		return this.port;
+	}
+
+	/**
+	 * Get the underlying HTTP port if a random port was requested, user port = 0.
+	 * @return the port
+	 */
+	public int getLocalPort() {
+		int localPort = this.tomcat.getConnector().getLocalPort();
+		return localPort;
+	}
+
+	public XmlWebApplicationContext getXmlWebApplicationContext() {
+		return this.webApplicationContext;
 	}
 
 	@Override
@@ -94,10 +113,26 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 		this.scheduler.setPoolSize(3);
 		this.scheduler.initialize();
 		this.tomcat.setPort(this.port);
-		String path = (this.contextPath.startsWith("/")) ? this.contextPath : "/" + this.contextPath;
-		Context context = this.tomcat.addContext(path, new File(".").getAbsolutePath());
-		Tomcat.addServlet(context, this.servletName, new XdServlet());
-		context.addServletMapping("/" + this.servletName + "/*", this.servletName);
+		Context tomcatContext = this.tomcat.addContext(this.contextPath, new File(".").getAbsolutePath());
+		this.webApplicationContext.setServletContext(tomcatContext.getServletContext());
+		this.webApplicationContext.refresh();
+
+		// Options requests should be handled by StreamServer, not Tomcat
+		// in order to handle CORS requests
+		DispatcherServlet servlet = new DispatcherServlet(this.webApplicationContext);
+		servlet.setDispatchOptionsRequest(true);
+        Tomcat.addServlet(tomcatContext, this.servletName, servlet);
+		tomcatContext.addServletMapping("/", this.servletName);
+
+		FilterDef filterDef = new FilterDef();
+		filterDef.setFilterClass(HttpPutFormContentFilter.class.getName());
+		filterDef.setFilterName("httpPut");
+		FilterMap filterMap = new FilterMap();
+		filterMap.setFilterName("httpPut");
+		filterMap.addServletName(servletName);
+		tomcatContext.addFilterDef(filterDef);
+		tomcatContext.addFilterMap(filterMap);
+
 		if (logger.isInfoEnabled()) {
 			logger.info("initialized server: context=" + this.contextPath + ", servlet=" + this.servletName);
 		}
@@ -140,11 +175,31 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 			if (this.handlerTask != null) {
 				this.handlerTask.cancel(true);
 			}
-			this.tomcat.stop();
+			//This will likely trigger an exception, but the 'clean' shutdown code is hanging.
+            tomcat.destroy();
 			this.running = false;
 		}
 		catch (LifecycleException e) {
-			throw new MessagingException("failed to stop server", e);
+			logger.warn("Did not stop tomcat cleanly - " + e.getMessage());
+		}
+		this.webApplicationContext.destroy();
+	}
+
+
+	/**
+	 * This was taken from the tomcat unit tests but it hangs on stop.
+	 * Leave it here for some further investigation.
+	 * @throws LifecycleException
+	 */
+	private void shutdownCleanly() throws LifecycleException {
+		// This is taken from the Tomcat unit tests.
+		// Make sure that stop() & destroy() are called as necessary.
+		if (tomcat.getServer() != null
+		        && tomcat.getServer().getState() != LifecycleState.DESTROYED) {
+		    if (tomcat.getServer().getState() != LifecycleState.STOPPED) {
+		        tomcat.stop();
+		    }
+		    tomcat.destroy();
 		}
 	}
 
@@ -158,27 +213,6 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 		@Override
 		public void run() {
 			tomcat.getServer().await();
-		}
-	}
-
-	@SuppressWarnings("serial")
-	private class XdServlet extends HttpServlet {
-		@Override
-		protected void service(HttpServletRequest request, HttpServletResponse response)
-				throws ServletException, IOException {
-			String streamName = request.getPathInfo();
-			Assert.hasText(streamName, "no stream name (e.g. localhost/streams/streamname");
-			streamName = streamName.replaceAll("/", "");
-			if ("POST".equalsIgnoreCase(request.getMethod())) {
-				String streamConfig = FileCopyUtils.copyToString(request.getReader());
-				streamDeployer.deployStream(streamName, streamConfig);
-			}
-			else if ("DELETE".equalsIgnoreCase(request.getMethod())) {
-				streamDeployer.undeployStream(streamName);
-			}
-			else {
-				response.sendError(405);
-			}
 		}
 	}
 

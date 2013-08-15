@@ -9,15 +9,15 @@
 
 	<int:channel id="input"/>
 
-	<import resource="../generic/gemfire-client.xml"/>
+	<import resource="../common/gemfire-client.xml"/>
 
-	<int:transformer input-channel="input" output-channel="to.gemfire">
+	<int:transformer input-channel="input" output-channel="to.gemfire" method="toObject">
 		<bean class="org.springframework.integration.x.gemfire.JsonStringToObjectTransformer"/>
 	</int:transformer>
 
 	<int-gfe:outbound-channel-adapter  region="region" id="to.gemfire">
 		<int-gfe:cache-entries>
-			<entry key="${keyExpression:${xd.stream.name}}" value="payload"/>
+			<entry key="${keyExpression:'${xd.stream.name}'}" value="payload"/>
 		</int-gfe:cache-entries>
 	</int-gfe:outbound-channel-adapter>
 

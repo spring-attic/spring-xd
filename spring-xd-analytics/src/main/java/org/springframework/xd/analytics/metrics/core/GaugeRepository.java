@@ -22,4 +22,18 @@ package org.springframework.xd.analytics.metrics.core;
  *
  */
 public interface GaugeRepository extends MetricRepository<Gauge> {
+	/**
+	 * Set the value of the gauge
+	 * @param name the gauge name
+	 * @param value the value of the gauge
+	 * @throws IllegalArgumentException in case the given name is null
+	 */
+	void setValue(String name, long value);
+
+	/**
+	 * Reset the gauge to zero
+	 * @param name the gauge name
+	 * @throws IllegalArgumentException in case the given name is null
+	 */
+	void reset(String name);
 }

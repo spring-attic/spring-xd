@@ -24,4 +24,4 @@ cd "`dirname \"$PRG\"`/.." >&-
 APP_HOME="`pwd -P`"
 cd "$SAVED" >&-
 
-$APP_HOME/bin/xd-admin --transport local $@
+$APP_HOME/bin/xd-admin --transport local --store memory --analytics memory $@

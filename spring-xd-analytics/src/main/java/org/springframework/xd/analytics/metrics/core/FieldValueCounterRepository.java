@@ -13,16 +13,47 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.analytics.metrics.core;
 
 /**
- * A repository to save, delete and find FieldValueCounter instances.  Uses the Spring Data Repository
- * marker interface and conventions for method names and behavior.
- *
+ * A repository to save, delete and find FieldValueCounter instances. Uses the Spring Data
+ * Repository marker interface and conventions for method names and behavior.
+ * 
  * The name is the id and should be unique.
- *
+ * 
  * @author Mark Pollack
- *
+ * 
  */
 public interface FieldValueCounterRepository extends MetricRepository<FieldValueCounter> {
+
+	/**
+	 * Increment the FieldValueCounter for a given field name by one, creating missing
+	 * counters.
+	 * 
+	 * @param name the FieldValueCounter name
+	 * @param fieldName the name of the field
+	 * @throws IllegalArgumentException in case the given name is null
+	 */
+	void increment(String name, String fieldName);
+
+	/**
+	 * Decrement the FieldValueCounter for a given field name by one, creating missing
+	 * counters.
+	 * 
+	 * @param name the FieldValueCounter name
+	 * @param fieldName the name of the field
+	 * @throws IllegalArgumentException in case the given name is null
+	 */
+	void decrement(String name, String fieldName);
+
+	/**
+	 * Reset the FieldValueCounter to zero for the given field name, creating missing
+	 * counters.
+	 * 
+	 * @param name the FieldValueCounter name
+	 * @param fieldName the name of the field
+	 * @throws IllegalArgumentException in case the given name is null
+	 */
+	void reset(String name, String fieldName);
 }

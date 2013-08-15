@@ -13,14 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.xd.analytics.metrics.core;
 
+package org.springframework.xd.analytics.metrics.core;
 
 /**
  * A marker interface for Counter repositories.
- *
+ * 
  * @author Mark Pollack
- *
+ * 
  */
 public interface CounterRepository extends MetricRepository<Counter> {
+
+	/**
+	 * Increment the given counter by one, creating it if it did not exist. Implementations which can do this atomically
+	 * in one operation are encouraged to do so.
+	 */
+	public long increment(String name);
+
+	/**
+	 * Increment the given counter by the specified amount, creating it if it did not exist. Implementations which can
+	 * do this atomically in one operation are encouraged to do so.
+	 */
+	public long increment(String name, long amount);
+
+	/**
+	 * Decrement the given counter, creating it if it did not exist. Implementations which can do this atomically in one
+	 * operation are encouraged to do so.
+	 */
+	public long decrement(String name);
+
+	/**
+	 * Reset the given counter to zero.
+	 */
+	public void reset(String name);
+
 }

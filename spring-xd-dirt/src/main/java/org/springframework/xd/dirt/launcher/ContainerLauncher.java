@@ -16,16 +16,13 @@
 
 package org.springframework.xd.dirt.launcher;
 
-import org.springframework.xd.dirt.container.DefaultContainer;
 import org.springframework.xd.dirt.core.Container;
+import org.springframework.xd.dirt.server.options.ContainerOptions;
 
 /**
  * @author Mark Fisher
  */
 public interface ContainerLauncher {
 
-	static final String LAUNCHER_CONFIG_LOCATION = DefaultContainer.XD_INTERNAL_CONFIG_ROOT + "launcher.xml";
-
-	Container launch();
-
+	Container launch(ContainerOptions options);
 }

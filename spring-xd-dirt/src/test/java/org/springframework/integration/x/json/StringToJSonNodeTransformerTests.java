@@ -13,9 +13,9 @@
 package org.springframework.integration.x.json;
 
 import static org.junit.Assert.*;
-
-import org.codehaus.jackson.JsonNode;
 import org.junit.Test;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * @author David Turanski

@@ -16,13 +16,39 @@
 
 package org.springframework.xd.module;
 
+import org.springframework.context.ConfigurableApplicationContext;
+
 /**
  * @author Mark Fisher
  * @author Gary Russell
  */
 public interface Plugin {
 
-	void processModule(Module module, String group, int index);
+	/**
+	 * Apply changes to the module before it is initialized (generally,
+	 * this means before its context is refreshed).
+	 * @param module
+	 */
+	void preProcessModule(Module module);
 
-	void removeModule(Module module, String group, int index);
+	/**
+	 * Apply changes to the module after it is initialized (generally,
+	 * this means after its context is refreshed), but before it is
+	 * started.
+	 * @param module
+	 */
+	void postProcessModule(Module module);
+
+	/**
+	 * Take any actions necessary to remove a module from the system.
+	 * @param module
+	 */
+	void removeModule(Module module);
+
+	/**
+	 * Make any necessary changes to the shared context.
+	 * @param context
+	 */
+	void postProcessSharedContext(ConfigurableApplicationContext context);
+
 }

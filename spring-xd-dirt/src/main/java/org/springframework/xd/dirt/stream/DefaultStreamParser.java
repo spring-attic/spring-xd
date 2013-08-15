@@ -30,7 +30,7 @@ import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
  * @author Mark Fisher
  * @author David Turanski
  */
-public class DefaultStreamParser implements StreamParser {
+public class DefaultStreamParser implements XDParser {
 
 	@Override
 	public List<ModuleDeploymentRequest> parse(String name, String config) {

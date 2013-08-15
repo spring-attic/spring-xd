@@ -73,7 +73,8 @@ class Token {
 
 	@Override
 	public int hashCode() {
-		return this.kind.ordinal()*37+(this.startpos+this.endpos)*37+(this.kind.hasPayload()?this.data.hashCode():0);
+		return this.kind.ordinal()*37+(this.startpos+this.endpos)*37+
+				(this.kind.hasPayload()?this.data.hashCode():0);
 	}
 
 	@Override
@@ -82,7 +83,8 @@ class Token {
 			return false;
 		}
 		Token token = (Token)o;
-		boolean basicmatch = this.kind == token.kind && this.startpos == token.startpos && this.endpos == token.endpos;
+		boolean basicmatch = this.kind == token.kind && 
+				this.startpos == token.startpos && this.endpos == token.endpos;
 		if (!basicmatch) return false;
 		if (this.kind.hasPayload()) {
 			if (!this.data.equals(token.data)) {
@@ -90,5 +92,9 @@ class Token {
 			}
 		}
 		return true;
+	}
+
+	public boolean isKind(TokenKind desiredKind) {
+		return kind==desiredKind;
 	}
 }

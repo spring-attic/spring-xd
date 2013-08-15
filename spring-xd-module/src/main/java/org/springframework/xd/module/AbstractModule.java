@@ -21,44 +21,41 @@ import org.springframework.util.Assert;
 /**
  * @author Mark Fisher
  * @author David Turanski
+ * @author Gary Russell
  */
 public abstract class AbstractModule implements Module {
 
-	private final String name;
+	private final ModuleDefinition definition;
 
-	private final String type;
+	private final DeploymentMetadata metadata;
 
-	private volatile String instanceId;
-
-	public AbstractModule(String name, String type) {
-		Assert.notNull(name, "name must not be null");
-		Assert.notNull(type, "type must not be null");
-		this.name = name;
-		this.type = type;
+	public AbstractModule(ModuleDefinition definition, DeploymentMetadata metadata) {
+		Assert.notNull(definition, "definition must not be null");
+		Assert.notNull(metadata, "metadata must not be null");
+		this.definition = definition;
+		this.metadata = metadata;
 	}
 
 	@Override
 	public String getName() {
-		return this.name;
+		return this.definition.getName();
 	}
 
 	@Override
 	public String getType() {
-		return this.type;
+		return this.definition.getType();
 	}
+
 
 	@Override
-	public String getInstanceId() {
-		return this.instanceId;
-	}
-
-	public void setInstanceId(String instanceId) {
-		this.instanceId = instanceId;
+	public DeploymentMetadata getDeploymentMetadata() {
+		return this.metadata;
 	}
 
 	@Override
 	public String toString() {
-		return "Module [name=" + name + ", type=" + type + "]";
+		return this.getClass().getSimpleName() + " [name=" + this.getName() + ", type=" + this.getType() + ", group="
+				+ this.metadata.getGroup() + ", index=" + this.metadata.getIndex() + "]";
 	}
 
 }

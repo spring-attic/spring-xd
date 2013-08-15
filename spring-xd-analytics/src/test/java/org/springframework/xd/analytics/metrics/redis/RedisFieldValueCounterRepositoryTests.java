@@ -13,26 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.analytics.metrics.redis;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.support.AnnotationConfigContextLoader;
-import org.springframework.xd.analytics.metrics.SharedFieldValueCounterRepositoryTests;
-import org.springframework.xd.analytics.metrics.common.ServicesConfig;
+import org.springframework.xd.analytics.metrics.AbstractFieldValueCounterRepositoryTests;
+import org.springframework.xd.analytics.metrics.common.RedisRepositoriesConfig;
+import org.springframework.xd.test.redis.RedisAvailableRule;
 
-@ContextConfiguration(classes=ServicesConfig.class, loader=AnnotationConfigContextLoader.class)
+/**
+ * @author Mark Pollack
+ * @author Gary Russell
+ * @since 1.0
+ * 
+ */
+@ContextConfiguration(classes = RedisRepositoriesConfig.class)
 @RunWith(SpringJUnit4ClassRunner.class)
-public class RedisFieldValueCounterRepositoryTests extends SharedFieldValueCounterRepositoryTests {
+public class RedisFieldValueCounterRepositoryTests extends AbstractFieldValueCounterRepositoryTests {
+
+	@Rule
+	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
 
 	@After
 	@Before
 	public void beforeAndAfter() {
-		fvRepository.deleteAll();
+		fieldValueCounterRepository.deleteAll();
 	}
-	
 
 }

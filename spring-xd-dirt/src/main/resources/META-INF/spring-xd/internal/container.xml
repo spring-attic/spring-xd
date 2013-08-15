@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:int="http://www.springframework.org/schema/integration"
 	xmlns:int-event="http://www.springframework.org/schema/integration/event"
 	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
@@ -9,21 +8,23 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<context:property-placeholder/>
+	<beans profile="xd.jmx.enabled">
+		<import resource="jolokia.xml" />
+	</beans>
 
-	<import resource="classpath*:/META-INF/spring-xd/transports/${xd.transport}-container.xml"/>
+	<beans>
+		<import resource="classpath:/META-INF/spring-xd/internal/xd-common.xml"/>
+		<import
+			resource="classpath*:/META-INF/spring-xd/transports/${xd.transport}-container.xml" />
 
-	<int:channel id="input"/>
+		<int:channel id="input" />
 
-	<int:service-activator input-channel="input" ref="handler"/>
+		<int:service-activator input-channel="input" ref="handler" />
 
-	<bean id="handler" class="org.springframework.xd.dirt.module.ModuleDeployer">
-		<constructor-arg ref="moduleRegistry"/>
-	</bean>
+		<bean id="handler" class="org.springframework.xd.dirt.module.ModuleDeployer">
+			<constructor-arg ref="moduleRegistry" />
+		</bean>
 
-	<bean id="moduleRegistry" class="org.springframework.xd.dirt.module.FileModuleRegistry">
-		<constructor-arg value="${xd.home}/modules"/>
-	</bean>
-
-	<bean id="idGenerator" class="org.springframework.xd.dirt.container.UUIDGenerator"/>
+		<bean id="idGenerator" class="org.springframework.xd.dirt.container.UUIDGenerator" />
+	</beans>
 </beans>

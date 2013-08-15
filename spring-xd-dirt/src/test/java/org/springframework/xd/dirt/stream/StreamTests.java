@@ -13,17 +13,19 @@
 
 package org.springframework.xd.dirt.stream;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * @author David Turanski
  */
+@Ignore
 public class StreamTests extends AbstractStreamTests {
 
 	@Test
 	public void testTap() throws InterruptedException {
-		this.deployStream("test1","time | log");
-		this.deployStream("tap","tap @ test1 | file");
+		this.deployStream("test1", "time | log");
+		this.deployStream("tap", "tap @ test1 | file");
 	}
 
 }

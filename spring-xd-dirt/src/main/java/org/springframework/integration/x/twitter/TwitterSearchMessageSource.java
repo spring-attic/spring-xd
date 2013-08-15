@@ -23,9 +23,9 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.social.oauth2.AccessGrant;
 import org.springframework.social.oauth2.OAuth2Template;
+import org.springframework.social.twitter.api.SearchParameters;
 import org.springframework.social.twitter.api.SearchResults;
 import org.springframework.social.twitter.api.Tweet;
-import org.springframework.social.twitter.api.impl.SearchParameters;
 import org.springframework.social.twitter.api.impl.TwitterTemplate;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;

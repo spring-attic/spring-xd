@@ -50,6 +50,19 @@ public abstract class SharedGaugeRepositoryTests {
 		gaugeRepository.findOne(null);
 	}
 
+	public void setValueAndResetWorkAsExpected() {
+		String gaugeName = "simpleGauge";
+		gaugeRepository.setValue(gaugeName, 1);
+		Gauge g = gaugeRepository.findOne(gaugeName);
+		assertThat(g.getValue(), equalTo(1L));
+
+		gaugeRepository.setValue(gaugeName, 20);
+		assertThat(gaugeRepository.findOne(gaugeName).getValue(), equalTo(20L));
+
+		gaugeRepository.reset(gaugeName);
+		assertThat(gaugeRepository.findOne(gaugeName).getValue(), equalTo(0L));
+	}
+
 	@Test
 	public void testCrud() {
 		GaugeRepository repo = gaugeRepository;

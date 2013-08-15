@@ -38,7 +38,7 @@ public class Tap implements InitializingBean {
 		Assert.hasText(tapPoint, "tapPoint must not be empty or null");
 		Assert.hasText(tapModule, "tapModule must not be empty or null");
 		Assert.notNull(channelRegistry, "channelRegistry must not be null");
-		this.tapPoint = (tapPoint.matches("^.*\\.\\d+$") ? tapPoint : tapPoint + ".0");
+		this.tapPoint = tapPoint;
 		this.tapModule = tapModule;
 		this.channelRegistry = channelRegistry;
 	}

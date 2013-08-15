@@ -16,69 +16,137 @@
 
 package org.springframework.integration.x.channel.registry;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Properties;
 
 import org.junit.Test;
-
+import org.springframework.http.MediaType;
+import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.xd.dirt.plugins.StreamPlugin;
-import org.springframework.xd.module.Module;
-import org.springframework.xd.module.Plugin;
-import org.springframework.xd.module.SimpleModule;
+import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.xd.dirt.stream.Tap;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Gary Russell
  */
 public abstract class AbstractChannelRegistryTests {
 
+	private static final Collection<MediaType> ALL = Collections.singletonList(MediaType.ALL);
+
 	@Test
 	public void testClean() throws Exception {
 		ChannelRegistry registry = getRegistry();
-		registry.outbound("foo.0", new DirectChannel());
-		registry.inbound("foo.0", new DirectChannel());
-		registry.outbound("foo.1", new DirectChannel());
-		registry.inbound("foo.1", new DirectChannel());
-		registry.outbound("foo.2", new DirectChannel());
+		registry.createOutbound("foo.0", new DirectChannel(), false);
+		registry.createInbound("foo.0", new DirectChannel(), ALL, false);
+		registry.createOutbound("foo.1", new DirectChannel(), false);
+		registry.createInbound("foo.1", new DirectChannel(), ALL, false);
+		registry.createOutbound("foo.2", new DirectChannel(), false);
 		registry.tap("bar", "foo.0", new DirectChannel());
 		Collection<?> bridges = getBridges(registry);
 		assertEquals(6, bridges.size());
-		registry.cleanAll("foo.0");
-		assertEquals(4, bridges.size());
-		registry.cleanAll("foo.1");
-		assertEquals(2, bridges.size());
-		registry.cleanAll("foo.2");
+		registry.deleteOutbound("foo.0");
+		assertEquals(5, bridges.size());
+		registry.deleteInbound("foo.0");
+		registry.deleteOutbound("foo.1");
+		assertEquals(3, bridges.size());
+		registry.deleteInbound("foo.1");
+		registry.deleteOutbound("foo.2");
 		assertEquals(1, bridges.size()); // tap remains
 	}
 
 	@Test
 	public void testCleanTap() throws Exception {
 		ChannelRegistry registry = getRegistry();
-		registry.outbound("foo.0", new DirectChannel());
-		registry.inbound("foo.0", new DirectChannel());
-		Module module = new SimpleModule("tap", "source");
-		Properties properties = new Properties();
-		properties.put("channel", "foo.0");
-		module.addProperties(properties);
-		module = spy(module);
+		registry.createOutbound("foo.0", new DirectChannel(), false);
+		registry.createInbound("foo.0", new DirectChannel(), ALL, false);
+
 		MessageChannel output = new DirectChannel();
-		when(module.getComponents(MessageChannel.class)).thenReturn(
-				Collections.singletonMap("output", output));
-		Plugin plugin = new StreamPlugin(registry);
-		plugin.processModule(module, "bar", 0);
-		registry.inbound("bar.0", new DirectChannel());
+
+		Tap tap = new Tap("foo.0", "bar.0", registry);
+		tap.setOutputChannel(output);
+		tap.afterPropertiesSet();
+
+		registry.createInbound("bar.0", new DirectChannel(), ALL, false);
+		registry.createOutbound("bar.0", output, false);
 		Collection<?> bridges = getBridges(registry);
 		assertEquals(5, bridges.size()); // 2 each stream + tap
-		registry.cleanAll("bar.0");
+		registry.deleteOutbound("bar.0");
+		registry.deleteInbound("bar.0");
 		assertEquals(2, bridges.size()); // tap completely gone
-		registry.cleanAll("foo.0");
+		registry.deleteOutbound("foo.0");
+		registry.deleteInbound("foo.0");
 		assertEquals(0, bridges.size());
+	}
+
+	@Test
+	public void testSendAndReceive() throws Exception {
+		ChannelRegistry registry = getRegistry();
+		DirectChannel moduleOutputChannel = new DirectChannel();
+		QueueChannel moduleInputChannel = new QueueChannel();
+		QueueChannel tapChannel = new QueueChannel();
+		registry.createOutbound("foo.0", moduleOutputChannel, false);
+		registry.createInbound("foo.0", moduleInputChannel, ALL, false);
+		registry.tap("tapper", "foo.0", tapChannel);
+		Message<?> message = MessageBuilder.withPayload("foo").setHeader(MessageHeaders.CONTENT_TYPE, "foo/bar").build();
+		boolean tapSuccess = false;
+		boolean retried = false;
+		while (!tapSuccess) {
+			moduleOutputChannel.send(message);
+			Message<?> inbound = moduleInputChannel.receive(5000);
+			assertNotNull(inbound);
+			assertEquals("foo", inbound.getPayload());
+			assertNull(inbound.getHeaders().get(ChannelRegistrySupport.ORIGINAL_CONTENT_TYPE_HEADER));
+			assertEquals("foo/bar", inbound.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+			Message<?> tapped = tapChannel.receive(5000);
+			if (tapped == null) {
+				// tap listener might not have started
+				assertFalse("Failed to receive tap after retry", retried);
+				retried = true;
+				continue;
+			}
+			tapSuccess = true;
+			assertEquals("foo", tapped.getPayload());
+			assertNull(tapped.getHeaders().get(ChannelRegistrySupport.ORIGINAL_CONTENT_TYPE_HEADER));
+			assertEquals("foo/bar", tapped.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		}
+	}
+
+	@Test
+	public void testSendAndReceiveNoOriginalContentType() throws Exception {
+		ChannelRegistry registry = getRegistry();
+		DirectChannel moduleOutputChannel = new DirectChannel();
+		QueueChannel moduleInputChannel = new QueueChannel();
+		QueueChannel tapChannel = new QueueChannel();
+		registry.createOutbound("bar.0", moduleOutputChannel, false);
+		registry.createInbound("bar.0", moduleInputChannel, ALL, false);
+		registry.tap("tapper", "bar.0", tapChannel);
+		boolean tapSuccess = false;
+		boolean retried = false;
+		while (!tapSuccess) {
+			Message<?> message = MessageBuilder.withPayload("foo").build();
+			moduleOutputChannel.send(message);
+			Message<?> inbound = moduleInputChannel.receive(5000);
+			assertNotNull(inbound);
+			assertEquals("foo", inbound.getPayload());
+			assertNull(inbound.getHeaders().get(ChannelRegistrySupport.ORIGINAL_CONTENT_TYPE_HEADER));
+			assertNull(inbound.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+			Message<?> tapped = tapChannel.receive(5000);
+			if (tapped == null) {
+				// tap listener might not have started
+				assertFalse("Failed to receive tap after retry", retried);
+				retried = true;
+				continue;
+			}
+			tapSuccess = true;
+			assertEquals("foo", tapped.getPayload());
+			assertNull(tapped.getHeaders().get(ChannelRegistrySupport.ORIGINAL_CONTENT_TYPE_HEADER));
+			assertNull(tapped.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		}
 	}
 
 	protected abstract Collection<?> getBridges(ChannelRegistry registry);

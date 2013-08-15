@@ -16,38 +16,47 @@
 
 package org.springframework.integration.x.redis;
 
+import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.http.MediaType;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessageHeaders;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.AbstractMessageHandler;
-import org.springframework.integration.redis.inbound.RedisInboundChannelAdapter;
-import org.springframework.integration.redis.outbound.RedisPublishingMessageHandler;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.x.channel.registry.ChannelRegistry;
+import org.springframework.integration.x.channel.registry.ChannelRegistrySupport;
+import org.springframework.redis.x.NoOpRedisSerializer;
 import org.springframework.util.Assert;
 
 /**
  * A {@link ChannelRegistry} implementation backed by Redis.
- *
+ * 
  * @author Mark Fisher
  * @author Gary Russell
  * @author David Turanski
  */
-public class RedisChannelRegistry implements ChannelRegistry, DisposableBean {
+public class RedisChannelRegistry extends ChannelRegistrySupport implements DisposableBean {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -55,29 +64,39 @@ public class RedisChannelRegistry implements ChannelRegistry, DisposableBean {
 
 	private final List<Lifecycle> lifecycleBeans = Collections.synchronizedList(new ArrayList<Lifecycle>());
 
+	private final EmbeddedHeadersMessageConverter embeddedHeadersMessageConverter = new EmbeddedHeadersMessageConverter();
 
 	public RedisChannelRegistry(RedisConnectionFactory connectionFactory) {
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");
 		this.redisTemplate.setConnectionFactory(connectionFactory);
+		this.redisTemplate.setValueSerializer(new NoOpRedisSerializer());
 		this.redisTemplate.afterPropertiesSet();
 	}
 
 	@Override
-	public void inbound(final String name, MessageChannel channel) {
+	public void createInbound(final String name, MessageChannel moduleInputChannel,
+			final Collection<MediaType> acceptedMediaTypes, boolean aliasHint) {
 		RedisQueueInboundChannelAdapter adapter = new RedisQueueInboundChannelAdapter("queue." + name,
-				this.redisTemplate.getConnectionFactory());
-		adapter.setOutputChannel(channel);
+				this.redisTemplate.getConnectionFactory(), new NoOpRedisSerializer());
+		DirectChannel bridgeToModuleChannel = new DirectChannel();
+		bridgeToModuleChannel.setBeanName(name + ".bridge");
+		adapter.setOutputChannel(bridgeToModuleChannel);
 		adapter.setBeanName("inbound." + name);
 		adapter.afterPropertiesSet();
 		this.lifecycleBeans.add(adapter);
+		ReceivingHandler convertingBridge = new ReceivingHandler(acceptedMediaTypes);
+		convertingBridge.setOutputChannel(moduleInputChannel);
+		convertingBridge.setBeanName(name + ".convert.bridge");
+		convertingBridge.afterPropertiesSet();
+		bridgeToModuleChannel.subscribe(convertingBridge);
 		adapter.start();
 	}
 
 	@Override
-	public void outbound(final String name, MessageChannel channel) {
-		Assert.isInstanceOf(SubscribableChannel.class, channel);
+	public void createOutbound(final String name, MessageChannel moduleOutputChannel, boolean aliasHint) {
+		Assert.isInstanceOf(SubscribableChannel.class, moduleOutputChannel);
 		MessageHandler handler = new CompositeHandler(name, this.redisTemplate.getConnectionFactory());
-		EventDrivenConsumer consumer = new EventDrivenConsumer((SubscribableChannel) channel, handler);
+		EventDrivenConsumer consumer = new EventDrivenConsumer((SubscribableChannel) moduleOutputChannel, handler);
 		consumer.setBeanName("outbound." + name);
 		consumer.afterPropertiesSet();
 		this.lifecycleBeans.add(consumer);
@@ -85,19 +104,49 @@ public class RedisChannelRegistry implements ChannelRegistry, DisposableBean {
 	}
 
 	@Override
-	public void tap(String tapModule, final String name, MessageChannel channel) {
+	public void tap(String tapModule, final String name, MessageChannel tapModuleInputChannel) {
 		RedisInboundChannelAdapter adapter = new RedisInboundChannelAdapter(this.redisTemplate.getConnectionFactory());
+		adapter.setSerializer(new NoOpRedisSerializer());
 		adapter.setTopics("topic." + name);
-		adapter.setOutputChannel(channel);
+		DirectChannel bridgeToTapChannel = new DirectChannel();
+		bridgeToTapChannel.setBeanName(tapModule + ".bridge");
+		adapter.setOutputChannel(bridgeToTapChannel);
 		adapter.setBeanName("tap." + name);
 		adapter.setComponentName(tapModule + "." + "tapAdapter");
 		adapter.afterPropertiesSet();
 		this.lifecycleBeans.add(adapter);
+		// TODO: media types need to be passed in by Tap.
+		Collection<MediaType> acceptedMediaTypes = Collections.singletonList(MediaType.ALL);
+		ReceivingHandler convertingBridge = new ReceivingHandler(acceptedMediaTypes);
+		convertingBridge.setOutputChannel(tapModuleInputChannel);
+		convertingBridge.setBeanName(tapModule + ".convert.bridge");
+		convertingBridge.afterPropertiesSet();
+		bridgeToTapChannel.subscribe(convertingBridge);
 		adapter.start();
 	}
 
 	@Override
-	public void cleanAll(String name) {
+	public void deleteInbound(String name) {
+		synchronized (this.lifecycleBeans) {
+			Iterator<Lifecycle> iterator = this.lifecycleBeans.iterator();
+			while (iterator.hasNext()) {
+				Lifecycle endpoint = iterator.next();
+				if (endpoint instanceof RedisQueueInboundChannelAdapter
+						&& ("inbound." + name).equals(((IntegrationObjectSupport) endpoint).getComponentName())) {
+					((RedisQueueInboundChannelAdapter) endpoint).stop();
+					iterator.remove();
+				}
+				else if (endpoint instanceof RedisInboundChannelAdapter
+						&& (name + ".tapAdapter").equals(((IntegrationObjectSupport) endpoint).getComponentName())) {
+					((RedisInboundChannelAdapter) endpoint).stop();
+					iterator.remove();
+				}
+			}
+		}
+	}
+
+	@Override
+	public void deleteOutbound(String name) {
 		synchronized (this.lifecycleBeans) {
 			Iterator<Lifecycle> iterator = this.lifecycleBeans.iterator();
 			while (iterator.hasNext()) {
@@ -106,16 +155,7 @@ public class RedisChannelRegistry implements ChannelRegistry, DisposableBean {
 						&& ("outbound." + name).equals(((IntegrationObjectSupport) endpoint).getComponentName())) {
 					((EventDrivenConsumer) endpoint).stop();
 					iterator.remove();
-				}
-				else if (endpoint instanceof RedisQueueInboundChannelAdapter &&
-						("inbound." + name).equals(((IntegrationObjectSupport) endpoint).getComponentName())) {
-					((RedisQueueInboundChannelAdapter) endpoint).stop();
-					iterator.remove();
-				}
-				else if (endpoint instanceof RedisInboundChannelAdapter &&
-						(name + ".tapAdapter").equals(((IntegrationObjectSupport) endpoint).getComponentName())) {
-					((RedisInboundChannelAdapter) endpoint).stop();
-					iterator.remove();
+					return;
 				}
 			}
 		}
@@ -126,7 +166,8 @@ public class RedisChannelRegistry implements ChannelRegistry, DisposableBean {
 		for (Lifecycle bean : this.lifecycleBeans) {
 			try {
 				bean.stop();
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				if (logger.isWarnEnabled()) {
 					logger.warn("failed to stop adapter", e);
 				}
@@ -134,7 +175,7 @@ public class RedisChannelRegistry implements ChannelRegistry, DisposableBean {
 		}
 	}
 
-	private static class CompositeHandler extends AbstractMessageHandler {
+	private class CompositeHandler extends AbstractMessageHandler {
 
 		private final RedisPublishingMessageHandler topic;
 
@@ -143,20 +184,109 @@ public class RedisChannelRegistry implements ChannelRegistry, DisposableBean {
 		private CompositeHandler(String name, RedisConnectionFactory connectionFactory) {
 			// TODO: replace with a multiexec that does both publish and lpush
 			RedisPublishingMessageHandler topic = new RedisPublishingMessageHandler(connectionFactory);
+			NoOpRedisSerializer serializer = new NoOpRedisSerializer();
+			topic.setSerializer(serializer);
 			topic.setDefaultTopic("topic." + name);
 			topic.afterPropertiesSet();
 			this.topic = topic;
 			RedisQueueOutboundChannelAdapter queue = new RedisQueueOutboundChannelAdapter("queue." + name,
-					connectionFactory);
+					connectionFactory, serializer);
 			queue.afterPropertiesSet();
 			this.queue = queue;
 		}
 
 		@Override
 		protected void handleMessageInternal(Message<?> message) throws Exception {
-			topic.handleMessage(message);
-			queue.handleMessage(message);
+			@SuppressWarnings("unchecked")
+			Message<byte[]> transformed = (Message<byte[]>) transformOutboundIfNecessary(message,
+					MediaType.APPLICATION_OCTET_STREAM);
+			Message<?> messageToSend = embeddedHeadersMessageConverter.embedHeaders(transformed,
+					MessageHeaders.CONTENT_TYPE, ORIGINAL_CONTENT_TYPE_HEADER);
+			Assert.isInstanceOf(byte[].class, messageToSend.getPayload());
+			topic.handleMessage(messageToSend);
+			queue.handleMessage(messageToSend);
 		}
+
+	}
+
+	private class ReceivingHandler extends AbstractReplyProducingMessageHandler {
+
+		private final Collection<MediaType> acceptedMediaTypes;
+
+		public ReceivingHandler(Collection<MediaType> acceptedMediaTypes) {
+			this.acceptedMediaTypes = acceptedMediaTypes;
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		protected Object handleRequestMessage(Message<?> requestMessage) {
+			Message<?> theRequestMessage = requestMessage;
+			try {
+				theRequestMessage = embeddedHeadersMessageConverter.extractHeaders((Message<byte[]>) requestMessage);
+			}
+			catch (UnsupportedEncodingException e) {
+				logger.error("Could not convert message", e);
+			}
+			return transformInboundIfNecessary(theRequestMessage, acceptedMediaTypes);
+		}
+
+	};
+
+	static class EmbeddedHeadersMessageConverter {
+
+		/**
+		 * Encodes requested headers into payload; max headers = 255; max header name
+		 * length = 255; max header value length = 255.
+		 * 
+		 * @throws UnsupportedEncodingException
+		 */
+		Message<byte[]> embedHeaders(Message<byte[]> message, String... headers) throws UnsupportedEncodingException {
+			String[] headerValues = new String[headers.length];
+			int n = 0;
+			int headerCount = 0;
+			int headersLength = 0;
+			for (String header : headers) {
+				String value = (String) message.getHeaders().get(header);
+				headerValues[n++] = value;
+				if (value != null) {
+					headerCount++;
+					headersLength += header.length() + value.length();
+				}
+			}
+			byte[] newPayload = new byte[message.getPayload().length + headersLength + headerCount * 2 + 1];
+			ByteBuffer byteBuffer = ByteBuffer.wrap(newPayload);
+			byteBuffer.put((byte) headerCount);
+			for (int i = 0; i < headers.length; i++) {
+				if (headerValues[i] != null) {
+					byteBuffer.put((byte) headers[i].length());
+					byteBuffer.put(headers[i].getBytes("UTF-8"));
+					byteBuffer.put((byte) headerValues[i].length());
+					byteBuffer.put(headerValues[i].getBytes("UTF-8"));
+				}
+			}
+			byteBuffer.put(message.getPayload());
+			return MessageBuilder.withPayload(newPayload).copyHeaders(message.getHeaders()).build();
+		}
+
+		Message<byte[]> extractHeaders(Message<byte[]> message) throws UnsupportedEncodingException {
+			byte[] bytes = message.getPayload();
+			ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
+			int headerCount = byteBuffer.get();
+			Map<String, String> headers = new HashMap<String, String>();
+			for (int i = 0; i < headerCount; i++) {
+				int len = byteBuffer.get();
+				String headerName = new String(bytes, byteBuffer.position(), len, "UTF-8");
+				byteBuffer.position(byteBuffer.position() + len);
+				len = byteBuffer.get();
+				String headerValue = new String(bytes, byteBuffer.position(), len, "UTF-8");
+				byteBuffer.position(byteBuffer.position() + len);
+				headers.put(headerName, headerValue);
+			}
+			byte[] newPayload = new byte[byteBuffer.remaining()];
+			byteBuffer.get(newPayload);
+			return MessageBuilder.withPayload(newPayload).copyHeaders(headers).build();
+		}
+
 	}
 
 }

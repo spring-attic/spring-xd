@@ -26,19 +26,23 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 
 /**
- *
+ * A converter that maps from the batch {@link FieldSet} world to Mongo's {@link DBObject}. A field named {@code id}
+ * will be mapped to Mongo's {@code _id}.
+ * 
  * @author Mark Pollack
  */
 public class FieldSetConverter implements Converter<FieldSet, DBObject> {
 
+	@Override
 	public DBObject convert(FieldSet fieldSet) {
 		DBObject dbo = new BasicDBObject();
 		Properties props = fieldSet.getProperties();
-		Set<String> keys = new HashSet(props.keySet());
+		Set<String> keys = new HashSet<String>(props.stringPropertyNames());
 		for (String key : keys) {
 			if (key.compareToIgnoreCase("id") == 0) {
 				dbo.put("_id", props.get(key));
-			} else {
+			}
+			else {
 				dbo.put(key, props.get(key));
 			}
 		}

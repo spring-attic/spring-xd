@@ -13,17 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.analytics.metrics.memory;
 
 import org.junit.After;
 import org.junit.Before;
-import org.springframework.xd.analytics.metrics.SharedFieldValueCounterRepositoryTests;
+import org.springframework.xd.analytics.metrics.AbstractFieldValueCounterRepositoryTests;
 
-public class InMemoryFieldValueCounterRepositoryTests extends SharedFieldValueCounterRepositoryTests {
+public class InMemoryFieldValueCounterRepositoryTests extends AbstractFieldValueCounterRepositoryTests {
 
 	@After
 	@Before
 	public void beforeAndAfter() {
-		fvRepository = new InMemoryFieldValueCounterRepository();
+		fieldValueCounterRepository = new InMemoryFieldValueCounterRepository();
 	}
 }

@@ -18,14 +18,16 @@ package org.springframework.xd.analytics.metrics.redis;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.util.StringUtils;
-import org.springframework.xd.analytics.metrics.MetricsException;
 import org.springframework.xd.analytics.metrics.core.MetricUtils;
 import org.springframework.xd.analytics.metrics.core.RichGauge;
+import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
 
 /**
  * @author Luke Taylor
  */
-public final class RedisRichGaugeRepository extends AbstractRedisMetricRepository <RichGauge, String> {
+public final class RedisRichGaugeRepository extends
+		AbstractRedisMetricRepository<RichGauge, String> implements RichGaugeRepository {
+
 	private static final String ZERO = serialize(new RichGauge("zero"));
 
 	public RedisRichGaugeRepository(RedisConnectionFactory connectionFactory) {
@@ -36,14 +38,20 @@ public final class RedisRichGaugeRepository extends AbstractRedisMetricRepositor
 	RichGauge create(String name, String value) {
 		String[] parts = StringUtils.delimitedListToStringArray(value, " ");
 
-		return new RichGauge(
-				name,
-				Double.valueOf(parts[0]),
-				Double.valueOf(parts[1]),
-				Double.valueOf(parts[2]),
-				Double.valueOf(parts[3]),
-				Long.valueOf(parts[4])
-		);
+		return new RichGauge(name, Double.valueOf(parts[0]), Double.valueOf(parts[1]),
+				Double.valueOf(parts[2]), Double.valueOf(parts[3]),
+				Double.valueOf(parts[4]), Long.valueOf(parts[5]));
+	}
+
+	@Override
+	public void setValue(String name, double value) {
+		String key = getMetricKey(name);
+		RichGauge g = findOne(name);
+		if (g == null) {
+			g = new RichGauge(name);
+		}
+		MetricUtils.setRichGaugeValue(g, value);
+		valueOperations.set(key, serialize(g));
 	}
 
 	@Override
@@ -51,20 +59,26 @@ public final class RedisRichGaugeRepository extends AbstractRedisMetricRepositor
 		return ZERO;
 	}
 
-	public void setValue(String name, double value) {
-		String key = getMetricKey(name);
+	@Override
+	String value(RichGauge metric) {
+		return serialize(metric);
+	}
+
+	@Override
+	public void setAlpha(String name, double value) {
 		RichGauge g = findOne(name);
 		if (g == null) {
-			throw new MetricsException("Gauge " + name + " not found");
+			g = new RichGauge(name);
 		}
-		MetricUtils.setRichGaugeValue(g, value);
-		valueOperations.set(key, serialize(g));
+		MetricUtils.setRichGaugeAlpha(g, value);
+		save(g);
 	}
 
 	private static String serialize(RichGauge g) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(Double.toString(g.getValue())).append(" ");
-		sb.append(Double.toString(g.getMean())).append(" ");
+		sb.append(Double.toString(g.getAlpha())).append(" ");
+		sb.append(Double.toString(g.getAverage())).append(" ");
 		sb.append(Double.toString(g.getMax())).append(" ");
 		sb.append(Double.toString(g.getMin())).append(" ");
 		sb.append(Long.toString(g.getCount()));

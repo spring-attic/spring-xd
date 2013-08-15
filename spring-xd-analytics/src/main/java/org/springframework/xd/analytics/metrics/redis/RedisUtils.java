@@ -5,14 +5,16 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
-@SuppressWarnings("unchecked")
+/**
+ * 
+ * @author Luke Taylor
+ */
 class RedisUtils {
 
-	static RedisTemplate createRedisTemplate(
-			RedisConnectionFactory connectionFactory, Class<?> valueClass) {
-		RedisTemplate redisTemplate = new RedisTemplate();
+	static <K, V> RedisTemplate<K, V> createRedisTemplate(RedisConnectionFactory connectionFactory, Class<V> valueClass) {
+		RedisTemplate<K, V> redisTemplate = new RedisTemplate<K, V>();
 		redisTemplate.setKeySerializer(new StringRedisSerializer());
-		redisTemplate.setValueSerializer(new GenericToStringSerializer(valueClass));
+		redisTemplate.setValueSerializer(new GenericToStringSerializer<V>(valueClass));
 
 		// avoids proxy
 		redisTemplate.setExposeConnection(true);

@@ -20,25 +20,33 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
-
-import org.springframework.xd.dirt.launcher.RedisContainerLauncher;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.web.context.support.XmlWebApplicationContext;
+import org.springframework.xd.dirt.container.DefaultContainer;
+import org.springframework.xd.dirt.core.Container;
+import org.springframework.xd.dirt.launcher.ContainerLauncher;
+import org.springframework.xd.dirt.server.options.AbstractOptions;
+import org.springframework.xd.dirt.server.options.ContainerOptions;
+import org.springframework.xd.dirt.server.options.OptionUtils;
 
 /**
  * The main driver class for the container
- *
+ * 
  * @author Mark Pollack
  * @author Jennifer Hickey
  * @author Ilayaperumal Gopinathan
  * @author Mark Fisher
  * @author David Turanski
- *
  */
-public class ContainerMain extends AbstractMain {
+public class ContainerMain {
 
 	private static final Log logger = LogFactory.getLog(ContainerMain.class);
 
+	private static final String LAUNCHER_CONFIG_LOCATION = DefaultContainer.XD_INTERNAL_CONFIG_ROOT + "launcher.xml";
+
 	/**
 	 * Start the RedisContainerLauncher
+	 * 
 	 * @param args command line argument
 	 */
 	public static void main(String[] args) {
@@ -53,21 +61,41 @@ public class ContainerMain extends AbstractMain {
 			System.exit(1);
 		}
 
-		setXDHome(options.getXDHomeDir());
-		setXDTransport(options.getTransport());
+		AbstractOptions.setXDHome(options.getXDHomeDir());
+		AbstractOptions.setXDTransport(options.getTransport());
+		AbstractOptions.setXDAnalytics(options.getAnalytics());
 
 		if (options.isShowHelp()) {
 			parser.printUsage(System.err);
 			System.exit(0);
 		}
+		launch(options);
+	}
 
-		// future versions to support other types of container launchers
-		if ("redis".equals(System.getProperty(XD_TRANSPORT_KEY))) {
-			RedisContainerLauncher.main(new String[]{System.getProperty(XD_HOME_KEY)});
+	/**
+	 * Create a container instance
+	 * 
+	 * @param options
+	 */
+	@SuppressWarnings("resource")
+	public static Container launch(ContainerOptions options) {
+		ClassPathXmlApplicationContext context = null;
+		XmlWebApplicationContext analyticsContext = new XmlWebApplicationContext();
+		analyticsContext.setConfigLocation("classpath:" + DefaultContainer.XD_ANALYTICS_CONFIG_ROOT + options.getAnalytics()
+				+ "-analytics.xml");
+		analyticsContext.refresh();
+		context = new ClassPathXmlApplicationContext();
+		context.setConfigLocation(LAUNCHER_CONFIG_LOCATION);
+		context.setParent(analyticsContext);
+		if (!options.isJmxDisabled()) {
+			context.getEnvironment().addActiveProfile("xd.jmx.enabled");
+			OptionUtils.setJmxProperties(options, context.getEnvironment());
 		}
-		else {
-			logger.info("only redis transport is supported now");
-		}
+		context.refresh();
+		context.registerShutdownHook();
+		ContainerLauncher launcher = context.getBean(ContainerLauncher.class);
+		Container container = launcher.launch(options);
+		return container;
 	}
 
 }

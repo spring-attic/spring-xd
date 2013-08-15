@@ -18,19 +18,19 @@ package org.springframework.xd.analytics.metrics.core;
 import org.springframework.data.annotation.PersistenceConstructor;
 import org.springframework.util.Assert;
 
-
 /**
- * Represents the data stored in a valueer of a single value.  Operations on it are expected to increment or decrement
- * the value.  The name property is a friendly user assigned name, and should be unique.
- *
+ * Represents the data stored in a valueer of a single value. Operations on it are expected to increment or decrement
+ * the value. The name property is a friendly user assigned name, and should be unique.
+ * 
  * Note: Additional metadata to help in searching for Counters, such as tags and last time updated will be coming.
- *
+ * 
  * @author Mark Pollack
- *
+ * 
  */
-public final class Counter implements Metric {
+public class Counter implements Metric {
 
 	private final String name;
+
 	private long value;
 
 	/**
@@ -62,31 +62,45 @@ public final class Counter implements Metric {
 		return value;
 	}
 
-	Counter set(long value) {
-		this.value = value;
-		return this;
+	/**
+	 * Increment this counter by a given amount. Stores that manage their own value bookkeepingmay not use this method.
+	 */
+	public long increment(long amount) {
+		return value += amount;
+	}
+
+	/**
+	 * Decrement this counter by a given amount. Stores that manage their own value bookkeepingmay not use this method.
+	 */
+	public long decrement(long amount) {
+		return value -= amount;
 	}
 
 	/**
 	 * @return the name
 	 */
+	@Override
 	public String getName() {
 		return name;
 	}
 
 	@Override
-	public int hashCode() {
+	public final int hashCode() {
 		return name.hashCode();
 	}
 
 	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+	public final boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (!(o instanceof Counter)) {
+			return false;
+		}
 
 		Counter counter = (Counter) o;
 
-		if (!name.equals(counter.name)) return false;
+		if (!name.equals(counter.name))
+			return false;
 
 		return true;
 	}

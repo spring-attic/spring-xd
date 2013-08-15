@@ -18,8 +18,10 @@
 -->
 
 <!-- begin temporary config (see note above on commented out adapter) -->
-	<int:inbound-channel-adapter id="results" ref="twitterSearchMessageSource" method="getTweets">
-		<int:poller fixed-rate="5000"/>
+	<int:inbound-channel-adapter id="results"
+			auto-startup="false"
+			ref="twitterSearchMessageSource" method="getTweets">
+		<int:poller fixed-delay="${fixedDelay:5000}"/>
 	</int:inbound-channel-adapter>
 
 	<bean id="twitterSearchMessageSource" class="org.springframework.integration.x.twitter.TwitterSearchMessageSource">

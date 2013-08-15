@@ -2,13 +2,9 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:int-redis="http://www.springframework.org/schema/integration/redis"
-	xmlns:redis="http://www.springframework.org/schema/redis"
-	xmlns:int-event="http://www.springframework.org/schema/integration/event"
-	xsi:schemaLocation="http://www.springframework.org/schema/redis http://www.springframework.org/schema/redis/spring-redis.xsd
-		http://www.springframework.org/schema/integration/event http://www.springframework.org/schema/integration/event/spring-integration-event-3.0.xsd
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-3.0.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis-3.0.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
 	<import resource="classpath:/META-INF/spring-xd/internal/container.xml"/>
@@ -16,8 +12,8 @@
 
 	<!-- Pipe the deployment messages directly to the container input -->
 
-	<bean id="streamDeployer" class="org.springframework.xd.dirt.stream.DefaultStreamDeployer">
-		<constructor-arg ref="input" />
-	</bean>
+	<int:bridge input-channel="deployChannel" output-channel="input"/>
+
+	<int:bridge input-channel="undeployChannel" output-channel="input"/>
 
 </beans>

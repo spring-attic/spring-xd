@@ -14,6 +14,7 @@
 package org.springframework.integration.x.channel.registry;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -23,43 +24,101 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.http.MediaType;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
+import org.springframework.integration.config.ConsumerEndpointFactoryBean;
+import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.handler.BridgeHandler;
-import org.springframework.integration.transformer.ObjectToStringTransformer;
+import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.util.Assert;
 
 /**
  * A simple implementation of {@link ChannelRegistry} for in-process use. For inbound and
- * outbound, creates a {@link DirectChannel} and bridges the passed
- * {@link MessageChannel} to the channel which is registered in the given application
- * context. If that channel does not yet exist, it will be created. For tap, it adds a
- * {@link WireTap} for an inbound channel whose name matches the one provided. If no such
- * inbound channel exists at the time of the method invocation, it will throw an
- * Exception. Otherwise the provided channel instance will receive messages from the wire
- * tap on that inbound channel.
- *
+ * outbound, creates a {@link DirectChannel} or a {@link QueueChannel} depending on
+ * whether the binding is aliased or not then bridges the passed {@link MessageChannel} to
+ * the channel which is registered in the given application context. If that channel does
+ * not yet exist, it will be created. For tap, it adds a {@link WireTap} for an inbound
+ * channel whose name matches the one provided. If no such inbound channel exists at the
+ * time of the method invocation, it will throw an Exception. Otherwise the provided
+ * channel instance will receive messages from the wire tap on that inbound channel.
+ * 
  * @author David Turanski
  * @author Mark Fisher
  * @author Gary Russell
  * @since 1.0
  */
-public class LocalChannelRegistry implements ChannelRegistry, ApplicationContextAware, InitializingBean {
+public class LocalChannelRegistry extends ChannelRegistrySupport implements ApplicationContextAware, InitializingBean {
 
 	private volatile AbstractApplicationContext applicationContext;
 
 	private final List<BridgeMetadata> bridges = Collections.synchronizedList(new ArrayList<BridgeMetadata>());
 
+	private volatile boolean convertWithinTransport = true;
+
+	private int queueSize = Integer.MAX_VALUE;
+
+	private PollerMetadata poller;
+
+	/**
+	 * Used in the canonical case, when the binding does not involve an alias name.
+	 */
+	private SharedChannelProvider<DirectChannel> directChannelProvider = new SharedChannelProvider<DirectChannel>(
+			DirectChannel.class) {
+
+		@Override
+		protected DirectChannel createSharedChannel(String name) {
+			return new DirectChannel();
+		}
+	};
+
+	/**
+	 * Used to create and customize {@link QueueChannel}s when the binding operation
+	 * involves aliased names.
+	 */
+	private SharedChannelProvider<QueueChannel> queueChannelProvider = new SharedChannelProvider<QueueChannel>(
+			QueueChannel.class) {
+
+		@Override
+		protected QueueChannel createSharedChannel(String name) {
+			QueueChannel queueChannel = new QueueChannel(queueSize);
+			return queueChannel;
+		}
+	};
+
+	/**
+	 * Set the size of the queue when using {@link QueueChannel}s.
+	 */
+	public void setQueueSize(int queueSize) {
+		this.queueSize = queueSize;
+	}
+
+	/**
+	 * Set the poller to use when QueueChannels are used.
+	 */
+	public void setPoller(PollerMetadata poller) {
+		this.poller = poller;
+	}
+
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		Assert.isInstanceOf(AbstractApplicationContext.class, applicationContext);
 		this.applicationContext = (AbstractApplicationContext) applicationContext;
+	}
+
+	/**
+	 * Determines whether any conversion logic is applied within the local transport. When
+	 * false, objects pass through without any modification; default true.
+	 */
+	public void setConvertWithinTransport(boolean convertWithinTransport) {
+		this.convertWithinTransport = convertWithinTransport;
 	}
 
 	@Override
@@ -74,12 +133,19 @@ public class LocalChannelRegistry implements ChannelRegistry, ApplicationContext
 	 * publish-subscribe channel.
 	 */
 	@Override
-	public void inbound(String name, MessageChannel channel) {
+	public void createInbound(String name, MessageChannel moduleInputChannel, Collection<MediaType> acceptedMediaTypes,
+			boolean aliasHint) {
 		Assert.hasText(name, "a valid name is required to register an inbound channel");
-		Assert.notNull(channel, "channel must not be null");
-		DirectChannel registeredChannel = lookupOrCreateSharedChannel(name, DirectChannel.class);
-		bridge(registeredChannel, channel, registeredChannel.getComponentName() + ".in.bridge");
+		Assert.notNull(moduleInputChannel, "channel must not be null");
+		AbstractMessageChannel registeredChannel = lookupOrCreateSharedChannel(name, aliasHint);
+		bridge(registeredChannel, moduleInputChannel, registeredChannel.getComponentName() + ".in.bridge",
+				acceptedMediaTypes);
 		createSharedTapChannelIfNecessary(registeredChannel);
+	}
+
+	private AbstractMessageChannel lookupOrCreateSharedChannel(String name, boolean useQueues) {
+		return useQueues ? queueChannelProvider.lookupOrCreateSharedChannel(name)
+				: directChannelProvider.lookupOrCreateSharedChannel(name);
 	}
 
 	/**
@@ -87,19 +153,17 @@ public class LocalChannelRegistry implements ChannelRegistry, ApplicationContext
 	 * that channel from the provided channel instance.
 	 */
 	@Override
-	public void outbound(String name, MessageChannel channel) {
+	public void createOutbound(String name, MessageChannel moduleOutputChannel, boolean aliasHint) {
 		Assert.hasText(name, "a valid name is required to register an outbound channel");
-		Assert.notNull(channel, "channel must not be null");
-		Assert.isTrue(channel instanceof SubscribableChannel,
-				"channel must be of type " + SubscribableChannel.class.getName());
-		DirectChannel registeredChannel = lookupOrCreateSharedChannel(name, DirectChannel.class);
-		bridge((SubscribableChannel) channel, registeredChannel, registeredChannel.getComponentName() + ".out.bridge");
+		Assert.notNull(moduleOutputChannel, "channel must not be null");
+		AbstractMessageChannel registeredChannel = lookupOrCreateSharedChannel(name, aliasHint);
+		bridge(moduleOutputChannel, registeredChannel, registeredChannel.getComponentName() + ".out.bridge");
 	}
 
 	/**
-	 * Looks up a wiretap for the inbound channel with the given name and creates a
-	 * bridge from that wiretap's output channel to the provided channel instance.
-	 * Will throw an Exception if no such wiretap exists.
+	 * Looks up a wiretap for the inbound channel with the given name and creates a bridge
+	 * from that wiretap's output channel to the provided channel instance. Will throw an
+	 * Exception if no such wiretap exists.
 	 */
 	@Override
 	public void tap(String tapModule, String name, MessageChannel channel) {
@@ -114,47 +178,34 @@ public class LocalChannelRegistry implements ChannelRegistry, ApplicationContext
 			throw new IllegalArgumentException("No tap channel exists for '" + name
 					+ "'. A tap is only valid for a registered inbound channel.");
 		}
-		bridge(tapChannel, channel, tapName + ".bridge", tapModule);
+		// TODO: media types needs to be passed in by Tap.
+		bridge(tapChannel, channel, tapName + ".in.bridge", tapModule);
 	}
 
+	@Override
+	public void deleteInbound(String name) {
+		doDelete(name, ".in.bridge");
+	}
 
 	@Override
-	public void cleanAll(String name) {
-		Assert.hasText(name, "a valid name is required to clean a module");
-		synchronized(this.bridges) {
+	public void deleteOutbound(String name) {
+		doDelete(name, ".out.bridge");
+	}
+
+	private void doDelete(String name, String suffix) {
+		Assert.hasText(name, "a valid name is required to remove a channel");
+		String bridgeName = name + suffix;
+		synchronized (this.bridges) {
 			Iterator<BridgeMetadata> iterator = this.bridges.iterator();
 			while (iterator.hasNext()) {
 				BridgeMetadata bridge = iterator.next();
-				System.out.println(bridge);
-				if (bridge.handler.getComponentName().startsWith(name) ||
-						name.equals(bridge.tapModule)) {
-					bridge.channel.unsubscribe(bridge.handler);
+				if (bridge.handler.getComponentName().equals(bridgeName) || name.equals(bridge.tapModule)) {
+					// bridge.channel.unsubscribe(bridge.handler);
+					bridge.cefb.stop();
 					iterator.remove();
 				}
 			}
 		}
-	}
-
-	protected synchronized <T extends AbstractMessageChannel> T lookupOrCreateSharedChannel(String name, Class<T> requiredType) {
-		T channel = lookupSharedChannel(name, requiredType);
-		if (channel == null) {
-			channel = createSharedChannel(name, requiredType);
-		}
-		return channel;
-	}
-
-	protected synchronized <T extends AbstractMessageChannel> T lookupSharedChannel(String name, Class<T> requiredType) {
-		T channel = null;
-		if (applicationContext.containsBean(name)) {
-			try {
-				channel = applicationContext.getBean(name, requiredType);
-			}
-			catch (Exception e) {
-				throw new IllegalArgumentException("bean '" + name
-						+ "' is already registered but does not match the required type");
-			}
-		}
-		return channel;
 	}
 
 	protected <T extends AbstractMessageChannel> T createSharedChannel(String name, Class<T> requiredType) {
@@ -179,7 +230,7 @@ public class LocalChannelRegistry implements ChannelRegistry, ApplicationContext
 			tapChannel = createSharedChannel(tapName, PublishSubscribeChannel.class);
 			WireTap wireTap = new WireTap(tapChannel);
 			channel.addInterceptor(wireTap);
-			bridge(tapChannel,new NullChannel(),channel.getComponentName()+".to.null");
+			bridge(tapChannel, new NullChannel(), channel.getComponentName() + ".to.null");
 		}
 		else {
 			try {
@@ -192,53 +243,139 @@ public class LocalChannelRegistry implements ChannelRegistry, ApplicationContext
 		}
 	}
 
-	protected BridgeHandler bridge(SubscribableChannel from, MessageChannel to, String bridgeName) {
-		return bridge(from, to, bridgeName, null);
+	protected BridgeHandler bridge(MessageChannel from, MessageChannel to, String bridgeName) {
+		return bridge(from, to, bridgeName, null, null);
 	}
 
-	protected BridgeHandler bridge(SubscribableChannel from, MessageChannel to, String bridgeName, String tapModule) {
-		// Temporarily perform string conversion for compatibility with Redis Registry
-		BridgeHandler handler = new BridgeHandler() {
+	protected BridgeHandler bridge(MessageChannel from, MessageChannel to, String bridgeName, String tapModule) {
+		return bridge(from, to, bridgeName, tapModule, null);
+	}
 
-			private final ObjectToStringTransformer objectToStringTransformer =
-					new ObjectToStringTransformer();
+	protected BridgeHandler bridge(MessageChannel from, MessageChannel to, String bridgeName,
+			Collection<MediaType> acceptedMediaTypes) {
+		return bridge(from, to, bridgeName, null, acceptedMediaTypes);
+	}
+
+	protected BridgeHandler bridge(MessageChannel from, MessageChannel to, String bridgeName, String tapModule,
+			final Collection<MediaType> acceptedMediaTypes) {
+
+		final boolean isInbound = bridgeName.endsWith("in.bridge");
+
+		BridgeHandler handler = new BridgeHandler() {
 
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
-				if (requestMessage.getPayload() instanceof String) {
-					return requestMessage;
+				/*
+				 * optimization for local transport, just pass through if false
+				 */
+				if (convertWithinTransport) {
+					if (acceptedMediaTypes != null) {
+						if (isInbound) {
+							return transformInboundIfNecessary(requestMessage, acceptedMediaTypes);
+						}
+					}
 				}
-				else {
-					return this.objectToStringTransformer.transform(requestMessage);
-				}
+				return requestMessage;
 			}
 
 		};
+
 		handler.setOutputChannel(to);
 		handler.setBeanName(bridgeName);
 		handler.afterPropertiesSet();
-		from.subscribe(handler);
-		if (!(to instanceof NullChannel)) {
-			this.bridges.add(new BridgeMetadata(handler, from, tapModule));
+
+		// Usage of a CEFB allows to handle both Direct & Queue channels the same way
+		ConsumerEndpointFactoryBean cefb = new ConsumerEndpointFactoryBean();
+		cefb.setInputChannel(from);
+		cefb.setHandler(handler);
+		cefb.setBeanFactory(applicationContext.getBeanFactory());
+		if (from instanceof PollableChannel) {
+			cefb.setPollerMetadata(poller);
 		}
+		try {
+			cefb.afterPropertiesSet();
+		}
+		catch (Exception e) {
+			throw new IllegalStateException(e);
+		}
+		if (!(to instanceof NullChannel)) {
+			this.bridges.add(new BridgeMetadata(handler, cefb, tapModule));
+		}
+		cefb.start();
 		return handler;
 	}
 
-	private class BridgeMetadata {
+	protected <T> T getBean(String name, Class<T> requiredType) {
+		return this.applicationContext.getBean(name, requiredType);
+	}
+
+	/**
+	 * Used to remember the bridging that was done, so it can be undone in
+	 * {@link LocalChannelRegistry#deleteOutbound(String)} .
+	 * 
+	 * @author Eric Bottard
+	 */
+	private static class BridgeMetadata {
+
 		private final BridgeHandler handler;
-		private final SubscribableChannel channel;
+
+		private ConsumerEndpointFactoryBean cefb;
+
 		private final String tapModule;
 
-		public BridgeMetadata(BridgeHandler handler, SubscribableChannel channel, String tapModule) {
+		public BridgeMetadata(BridgeHandler handler, ConsumerEndpointFactoryBean cefb, String tapModule) {
 			this.handler = handler;
-			this.channel = channel;
+			this.cefb = cefb;
 			this.tapModule = tapModule;
 		}
 
 		@Override
 		public String toString() {
-			return "BridgeMetadata [handler=" + handler + ", channel=" + channel + ", tapModule=" + tapModule + "]";
+			return "BridgeMetadata [handler=" + handler + ", tapModule=" + tapModule + "]";
 		}
 
+	}
+
+	/**
+	 * Looks up or optionally creates a new channel to use.
+	 * 
+	 * @author Eric Bottard
+	 */
+	private abstract class SharedChannelProvider<T extends AbstractMessageChannel> {
+
+		private final Class<T> requiredType;
+
+		private SharedChannelProvider(Class<T> clazz) {
+			this.requiredType = clazz;
+		}
+
+		private final T lookupOrCreateSharedChannel(String name) {
+			T channel = lookupSharedChannel(name);
+			if (channel == null) {
+				channel = createSharedChannel(name);
+				channel.setComponentName(name);
+				channel.setBeanFactory(applicationContext);
+				channel.setBeanName(name);
+				channel.afterPropertiesSet();
+				applicationContext.getBeanFactory().registerSingleton(name, channel);
+			}
+			return channel;
+		}
+
+		protected abstract T createSharedChannel(String name);
+
+		protected T lookupSharedChannel(String name) {
+			T channel = null;
+			if (applicationContext.containsBean(name)) {
+				try {
+					channel = applicationContext.getBean(name, requiredType);
+				}
+				catch (Exception e) {
+					throw new IllegalArgumentException("bean '" + name
+							+ "' is already registered but does not match the required type");
+				}
+			}
+			return channel;
+		}
 	}
 }

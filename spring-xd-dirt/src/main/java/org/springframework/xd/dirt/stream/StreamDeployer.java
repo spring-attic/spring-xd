@@ -17,12 +17,25 @@
 package org.springframework.xd.dirt.stream;
 
 /**
+ * Default implementation of {@link StreamDeployer} that emits deployment request messages on a bus and relies on
+ * {@link StreamDefinitionRepository} and {@link StreamRepository} for persistence.
+ * 
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Andy Clement
+ * @author Eric Bottard
+ * @author Gunnar Hillert
  */
-public interface StreamDeployer {
+public class StreamDeployer extends AbstractInstancePersistingDeployer<StreamDefinition, Stream> {
 
-	void deployStream(String name, String config);
+	public StreamDeployer(StreamDefinitionRepository repository, DeploymentMessageSender messageSender,
+			StreamRepository streamRepository, XDParser parser) {
+		super(repository, streamRepository, messageSender, parser, "stream");
+	}
 
-	void undeployStream(String name);
+	@Override
+	protected Stream makeInstance(StreamDefinition definition) {
+		return new Stream(definition);
+	}
+
 }

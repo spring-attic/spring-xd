@@ -17,34 +17,49 @@ package org.springframework.xd.dirt.listener;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.UUID;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportResource;
+import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.xd.dirt.core.Container;
 import org.springframework.xd.dirt.event.ContainerStartedEvent;
 import org.springframework.xd.dirt.event.ContainerStoppedEvent;
+import org.springframework.xd.test.redis.RedisAvailableRule;
 
 /**
  * Integration test of {@link RedisContainerEventListener}
- * 
+ *
  * @author Jennifer Hickey
- * 
+ * @author Gary Russell
+ *
  */
-@ContextConfiguration
+@ContextConfiguration(classes=RedisContainerEventListenerTestConfig.class)
 @RunWith(SpringJUnit4ClassRunner.class)
 public class RedisContainerEventListenerTest {
+
+	@Rule
+	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
 
 	@Autowired
 	private ApplicationContext context;
@@ -70,6 +85,7 @@ public class RedisContainerEventListenerTest {
 	@Test
 	public void testContainerStarted() {
 		when(container.getId()).thenReturn(containerId);
+		when(container.getJvmName()).thenReturn("123@test");
 		context.publishEvent(new ContainerStartedEvent(container));
 		assertNotNull(redisTemplate.boundHashOps("containers").get(containerId));
 	}
@@ -82,3 +98,25 @@ public class RedisContainerEventListenerTest {
 		assertNull(redisTemplate.boundHashOps("containers").get(containerId));
 	}
 }
+
+@Configuration
+@ImportResource("org/springframework/xd/dirt/listener/RedisContainerEventListenerTest-context.xml")
+class RedisContainerEventListenerTestConfig {
+
+	@Bean
+	public RedisConnectionFactory redisConnectionFactory() {
+		try {
+			LettuceConnectionFactory cf = new LettuceConnectionFactory();
+			cf.setHostName("localhost");
+			cf.setPort(6379);
+			cf.afterPropertiesSet();
+			return cf;
+		}
+		catch (RedisConnectionFailureException e) {
+			RedisConnectionFactory mockCF = mock(RedisConnectionFactory.class);
+			when(mockCF.getConnection()).thenReturn(mock(RedisConnection.class));
+			return mockCF;
+		}
+	}
+}
+

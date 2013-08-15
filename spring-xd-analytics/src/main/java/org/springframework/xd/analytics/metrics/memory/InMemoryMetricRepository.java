@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.analytics.metrics.memory;
 
 import java.util.ArrayList;
@@ -26,11 +27,12 @@ import org.springframework.xd.analytics.metrics.core.MetricRepository;
 
 /**
  * Memory backed implementation of MetricRepository that uses a ConcurrentMap
- *
+ * 
  * @author Luke Taylor
- *
+ * 
  */
-class InMemoryMetricRepository<M extends Metric> implements MetricRepository<M> {
+public abstract class InMemoryMetricRepository<M extends Metric> implements
+		MetricRepository<M> {
 
 	private final ConcurrentMap<String, M> map = new ConcurrentHashMap<String, M>();
 
@@ -43,7 +45,7 @@ class InMemoryMetricRepository<M extends Metric> implements MetricRepository<M> 
 	@Override
 	public <S extends M> Iterable<S> save(Iterable<S> metrics) {
 		List<S> results = new ArrayList<S>();
-		for (S m: metrics) {
+		for (S m : metrics) {
 			results.add(save(m));
 		}
 		return results;
@@ -63,7 +65,7 @@ class InMemoryMetricRepository<M extends Metric> implements MetricRepository<M> 
 
 	@Override
 	public void delete(Iterable<? extends M> metrics) {
-		for (M metric: metrics) {
+		for (M metric : metrics) {
 			delete(metric);
 		}
 	}
@@ -86,9 +88,9 @@ class InMemoryMetricRepository<M extends Metric> implements MetricRepository<M> 
 
 	@Override
 	public List<M> findAll(Iterable<String> keys) {
-		List<M> results = new ArrayList<M> ();
+		List<M> results = new ArrayList<M>();
 
-		for (String k: keys) {
+		for (String k : keys) {
 			M value = findOne(k);
 			if (value != null) {
 				results.add(value);
@@ -106,4 +108,17 @@ class InMemoryMetricRepository<M extends Metric> implements MetricRepository<M> 
 	public void deleteAll() {
 		map.clear();
 	}
+
+	protected M getOrCreate(String name) {
+		synchronized (map) {
+			M result = findOne(name);
+			if (result == null) {
+				result = create(name);
+				result = save(result);
+			}
+			return result;
+		}
+	}
+
+	protected abstract M create(String name);
 }

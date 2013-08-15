@@ -17,14 +17,17 @@
 package org.springframework.xd.dirt.container;
 
 import java.io.File;
+import java.lang.management.ManagementFactory;
 import java.util.UUID;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.log4j.Appender;
 import org.apache.log4j.Logger;
 import org.apache.log4j.RollingFileAppender;
-
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.context.support.AbstractApplicationContext;
@@ -39,20 +42,27 @@ import org.springframework.xd.dirt.event.ContainerStoppedEvent;
  * @author Jennifer Hickey
  * @author David Turanski
  */
-public class DefaultContainer implements Container, SmartLifecycle {
+public class DefaultContainer implements Container, SmartLifecycle, ApplicationContextAware {
+
+	private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
 	private static final Log logger = LogFactory.getLog(DefaultContainer.class);
-	
+
+	private volatile ApplicationContext deployerContext;
+
 	/**
-	 * Base location for XD config files. Chosen so as not to collide with user provided content.
+	 * Base location for XD config files. Chosen so as not to collide with user provided
+	 * content.
 	 */
 	public static final String XD_CONFIG_ROOT = "META-INF/spring-xd/";
-	
+
 	/**
 	 * Where container related config files reside.
 	 */
-	public static final String XD_INTERNAL_CONFIG_ROOT = XD_CONFIG_ROOT + "internal/"; 
-	  
+	public static final String XD_INTERNAL_CONFIG_ROOT = XD_CONFIG_ROOT + "internal/";
+
+	public static final String XD_ANALYTICS_CONFIG_ROOT = XD_CONFIG_ROOT + "analytics/";
+
 	private static final String CORE_CONFIG = XD_INTERNAL_CONFIG_ROOT + "container.xml";
 
 	// TODO: consider moving to a file: location pattern within $XD_HOME
@@ -64,8 +74,11 @@ public class DefaultContainer implements Container, SmartLifecycle {
 
 	private final String id;
 
+	private volatile String jvmName;
+
 	/**
 	 * Creates a container with a given id
+	 * 
 	 * @param id the id
 	 */
 	public DefaultContainer(String id) {
@@ -85,6 +98,16 @@ public class DefaultContainer implements Container, SmartLifecycle {
 	}
 
 	@Override
+	public String getJvmName() {
+		synchronized (this) {
+			if (this.jvmName == null) {
+				this.jvmName = ManagementFactory.getRuntimeMXBean().getName();
+			}
+		}
+		return this.jvmName;
+	}
+
+	@Override
 	public int getPhase() {
 		return 0;
 	}
@@ -100,10 +123,18 @@ public class DefaultContainer implements Container, SmartLifecycle {
 	}
 
 	@Override
+	public void setApplicationContext(ApplicationContext context) {
+		this.deployerContext = context;
+	}
+
+	@Override
 	public void start() {
-		this.context = new ClassPathXmlApplicationContext(new String[]{CORE_CONFIG, PLUGIN_CONFIGS}, false);
+		this.context = new ClassPathXmlApplicationContext(new String[] { CORE_CONFIG, PLUGIN_CONFIGS }, false);
 		context.setId(this.id);
 		updateLoggerFilename();
+		Assert.notNull(deployerContext, "no ApplicationContext has been set");
+		ApplicationContext analyticsContext = deployerContext.getParent();
+		context.setParent(analyticsContext);
 		context.registerShutdownHook();
 		context.refresh();
 		if (logger.isInfoEnabled()) {
@@ -117,6 +148,13 @@ public class DefaultContainer implements Container, SmartLifecycle {
 		if (this.context != null) {
 			this.context.publishEvent(new ContainerStoppedEvent(this));
 			this.context.close();
+			if (logger.isInfoEnabled()) {
+				final String message = "Stopped container: " + this.jvmName;
+				final StringBuilder sb = new StringBuilder(LINE_SEPARATOR);
+				sb.append(StringUtils.rightPad("", message.length(), "-")).append(LINE_SEPARATOR).append(message).append(
+						LINE_SEPARATOR).append(StringUtils.rightPad("", message.length(), "-")).append(LINE_SEPARATOR);
+				logger.info(sb.toString());
+			}
 		}
 	}
 
@@ -138,8 +176,8 @@ public class DefaultContainer implements Container, SmartLifecycle {
 		Appender appender = Logger.getRootLogger().getAppender(LOG4J_FILE_APPENDER);
 		if (appender instanceof RollingFileAppender) {
 			// the xd.home system property is always set at this point
-			((RollingFileAppender) appender).setFile(
-					new File(System.getProperty("xd.home")).getAbsolutePath() + "/logs/container-" + this.getId() + ".log");
+			((RollingFileAppender) appender).setFile(new File(System.getProperty("xd.home")).getAbsolutePath()
+					+ "/logs/container-" + this.getId() + ".log");
 			((RollingFileAppender) appender).activateOptions();
 		}
 	}

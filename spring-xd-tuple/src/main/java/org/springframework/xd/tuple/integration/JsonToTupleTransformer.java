@@ -13,35 +13,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.tuple.integration;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.integration.transformer.AbstractPayloadTransformer;
 import org.springframework.xd.tuple.Tuple;
 import org.springframework.xd.tuple.TupleBuilder;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 /**
  * Converts from a json string into a tuple data structure.
+ * 
  * @author Mark Fisher
  */
 public class JsonToTupleTransformer extends AbstractPayloadTransformer<String, Tuple> {
 
 	private final ObjectMapper mapper = new ObjectMapper();
 
+	public JsonToTupleTransformer() {
+		mapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
+	}
+
+	@Override
 	public Tuple transformPayload(String json) throws Exception {
 		List<String> names = new ArrayList<String>();
 		List<Object> values = new ArrayList<Object>();
 		JsonNode node = this.mapper.readTree(json);
-		Iterator<String> fieldNames = node.getFieldNames();
+		Iterator<String> fieldNames = node.fieldNames();
 		while (fieldNames.hasNext()) {
 			String name = fieldNames.next();
 			JsonNode valueNode = node.get(name);
-			Object value = mapper.readValue(valueNode, Object.class);
+			Object value = mapper.treeToValue(valueNode, Object.class);
 			names.add(name);
 			values.add(value);
 		}

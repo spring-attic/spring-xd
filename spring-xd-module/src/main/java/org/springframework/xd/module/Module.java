@@ -16,7 +16,6 @@
 
 package org.springframework.xd.module;
 
-import java.util.Map;
 import java.util.Properties;
 
 import org.springframework.context.ApplicationContext;
@@ -26,9 +25,11 @@ import org.springframework.core.io.Resource;
 /**
  * @author Mark Fisher
  * @author David Turanski
+ * @author Gary Russell
  */
 public interface Module extends Lifecycle {
 
+	void initialize();
 	/**
 	 * @return the generic module name or template name
 	 */
@@ -36,19 +37,18 @@ public interface Module extends Lifecycle {
 
 	String getType();
 
-	/**
-	 * @return an id for this instance
-	 */
-	String getInstanceId();
+	DeploymentMetadata getDeploymentMetadata();
 
 	void setParentContext(ApplicationContext parentContext);
 
 	void addComponents(Resource resource);
 
-	<T> Map<String, T> getComponents(Class<T> type);
-
 	void addProperties(Properties properties);
 
 	Properties getProperties();
+
+	<T> T getComponent(Class<T> requiredType);
+
+	<T> T getComponent(String componentName, Class<T> requiredType);
 
 }

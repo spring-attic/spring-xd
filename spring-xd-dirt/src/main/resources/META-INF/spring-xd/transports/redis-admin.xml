@@ -15,12 +15,6 @@
 
 	<import resource="redis-common.xml" />
 
-	<bean id="streamDeployer" class="org.springframework.xd.dirt.stream.DefaultStreamDeployer">
-		<constructor-arg ref="deployChannel" />
-	</bean>
-
-	<int:channel id="deployChannel" />
-
 	<int:chain input-channel="deployChannel">
 		<bean id="deployAdapter" class="org.springframework.integration.x.redis.RedisQueueOutboundChannelAdapter">
 			<constructor-arg name="queueName" value="queue.deployer"/>
@@ -28,4 +22,7 @@
 			<property name="extractPayload" value="false" />
 		</bean>
 	</int:chain>
+
+	<int-redis:outbound-channel-adapter channel="undeployChannel" topic="topic.undeployer" connection-factory="redisConnectionFactory" />
+	
 </beans>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -15,6 +15,7 @@ package org.springframework.integration.module;
 
 import java.util.Map.Entry;
 
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.channel.registry.ChannelRegistry;
 import org.springframework.integration.core.SubscribableChannel;
@@ -27,7 +28,7 @@ import org.springframework.xd.module.Plugin;
  * @author Gary Russell
  * @since 1.0
  */
-public class IntegrationPlugin implements Plugin {
+public class IntegrationPlugin  implements Plugin {
 
 	private volatile String integrationModuleBasePath = "/META-INF/spring/integration/module";
 
@@ -52,11 +53,8 @@ public class IntegrationPlugin implements Plugin {
 		this.integrationModuleBasePath = integrationModuleBasePath;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.xd.module.Plugin#processModule(org.springframework.xd.module.Module)
-	 */
 	@Override
-	public void processModule(Module module, String group, int index) {
+	public void preProcessModule(Module module) {
 		//TODO: Check if module started?
 		Assert.notNull(module, "module cannot be null");
 		Assert.isAssignable(IntegrationModule.class, module.getClass());
@@ -71,7 +69,15 @@ public class IntegrationPlugin implements Plugin {
 	}
 
 	@Override
-	public void removeModule(Module module, String group, int index) {
+	public void postProcessModule(Module module) {
+	}
+
+	@Override
+	public void postProcessSharedContext(ConfigurableApplicationContext commonContext) {
+	}
+
+	@Override
+	public void removeModule(Module module) {
 		Assert.notNull(module, "module cannot be null");
 		Assert.isAssignable(IntegrationModule.class, module.getClass());
 		// TODO:

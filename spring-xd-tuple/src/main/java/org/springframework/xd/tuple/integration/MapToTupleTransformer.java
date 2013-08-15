@@ -24,14 +24,15 @@ import org.springframework.xd.tuple.Tuple;
 import org.springframework.xd.tuple.TupleBuilder;
 
 /**
- * Converts from a Map to the Tuple data structure
+ * Converts from a Map to the Tuple data structure.
+ * 
  * @author Mark Pollack
- *
  */
-public class MapToTupleTransformer extends AbstractPayloadTransformer<Map, Tuple> {
+public class MapToTupleTransformer extends AbstractPayloadTransformer<Map<Object, Object>, Tuple> {
 
-	public Tuple transformPayload(Map map) {
-		
+	@Override
+	public Tuple transformPayload(Map<Object, Object> map) {
+
 		List<String> newNames = new ArrayList<String>();
 		List<Object> newValues = new ArrayList<Object>();
 		for (Object name : map.keySet()) {
@@ -41,6 +42,6 @@ public class MapToTupleTransformer extends AbstractPayloadTransformer<Map, Tuple
 			newValues.add(value);
 		}
 		return TupleBuilder.tuple().ofNamesAndValues(newNames, newValues);
-		
+
 	}
 }

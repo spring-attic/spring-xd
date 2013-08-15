@@ -20,10 +20,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.codehaus.jackson.map.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
+ * @author Luke Taylor
  */
 public class ModuleDeploymentRequest {
 
@@ -32,6 +34,10 @@ public class ModuleDeploymentRequest {
 	private volatile String module;
 
 	private volatile String group;
+
+	private volatile String sourceChannelName;
+
+	private volatile String sinkChannelName;
 
 	private volatile int index;
 
@@ -87,6 +93,22 @@ public class ModuleDeploymentRequest {
 
 	public Map<String, String> getParameters() {
 		return Collections.unmodifiableMap(this.parameters);
+	}
+
+	public String getSourceChannelName() {
+		return sourceChannelName;
+	}
+
+	public void setSourceChannelName(String sourceChannelName) {
+		this.sourceChannelName = sourceChannelName;
+	}
+
+	public String getSinkChannelName() {
+		return sinkChannelName;
+	}
+
+	public void setSinkChannelName(String sinkChannelName) {
+		this.sinkChannelName = sinkChannelName;
 	}
 
 	@Override

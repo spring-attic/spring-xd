@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.analytics.metrics.redis;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -20,19 +21,21 @@ import org.springframework.xd.analytics.metrics.core.Gauge;
 import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 
 /**
- * Redis backed implementation that uses Redis keys to store and update the value.
- * The naming strategy for keys in Redis is "gauges."  This means a Gauge named simpleGauge appears
- * under the name "gauges.simpleGauge" in Redis.
- *
+ * Redis backed implementation that uses Redis keys to store and update the value. The
+ * naming strategy for keys in Redis is "gauges." This means a Gauge named simpleGauge
+ * appears under the name "gauges.simpleGauge" in Redis.
+ * 
  * @author Mark Pollack
  */
-public class RedisGaugeRepository extends AbstractRedisMetricRepository<Gauge, Long> implements GaugeRepository {
+public class RedisGaugeRepository extends AbstractRedisMetricRepository<Gauge, Long>
+		implements GaugeRepository {
 
 	public RedisGaugeRepository(RedisConnectionFactory connectionFactory) {
 		this(connectionFactory, "gauges.");
 	}
 
-	public RedisGaugeRepository(RedisConnectionFactory connectionFactory, String gaugePrefix) {
+	public RedisGaugeRepository(RedisConnectionFactory connectionFactory,
+			String gaugePrefix) {
 		super(connectionFactory, gaugePrefix);
 	}
 
@@ -44,6 +47,11 @@ public class RedisGaugeRepository extends AbstractRedisMetricRepository<Gauge, L
 	@Override
 	Long defaultValue() {
 		return 0L;
+	}
+
+	@Override
+	Long value(Gauge metric) {
+		return metric.getValue();
 	}
 
 	public void setValue(String name, long value) {

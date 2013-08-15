@@ -3,30 +3,31 @@ package org.springframework.xd.analytics.metrics.integration;
 import org.springframework.integration.Message;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.util.Assert;
-import org.springframework.xd.analytics.metrics.core.CounterService;
+import org.springframework.xd.analytics.metrics.core.CounterRepository;
 
 /**
- * Counts the number of non-null messages using an underlying CounterService.
+ * Counts the number of non-null messages using an underlying {@link CounterRepository}.
  * 
  */
 public class MessageCounterHandler {
 
-	private final CounterService counterService;
+	private final CounterRepository counterRepository;
+
 	private final String counterName;
-	
-	public MessageCounterHandler(CounterService counterService, String counterName) {
-		Assert.notNull(counterService, "Counter Service can not be null");
+
+	public MessageCounterHandler(CounterRepository counterRepository, String counterName) {
+		Assert.notNull(counterRepository, "Counter Repository can not be null");
 		Assert.notNull(counterName, "Counter Name can not be null");
-		this.counterService = counterService;
+		this.counterRepository = counterRepository;
 		this.counterName = counterName;
 	}
 
 	@ServiceActivator
 	public Message<?> process(Message<?> message) {
 		if (message != null) {
-			this.counterService.increment(counterName);
+			this.counterRepository.increment(counterName);
 		}
 		return message;
 	}
-	
+
 }

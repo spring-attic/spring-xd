@@ -23,9 +23,10 @@ import java.util.List;
 
 import org.junit.Test;
 import org.springframework.xd.tuple.Tuple;
-import org.springframework.xd.tuple.integration.JsonToTupleTransformer;
 
 /**
+ * Unit test for JsonToTupleTransformer.
+ * 
  * @author Mark Fisher
  */
 public class JsonToTupleTransformerTests {
@@ -48,8 +49,9 @@ public class JsonToTupleTransformerTests {
 		String json = "{\"numbers\":[1,2,3]}";
 		Tuple tuple = transformer.transformPayload(json);
 		assertThat(tuple.size(), equalTo(1));
-		List list = Arrays.asList(1, 2, 3);
-		assertThat(tuple.getValue("numbers", List.class), equalTo(list));
+		List<Integer> list = Arrays.asList(1, 2, 3);
+		List<Integer> actual = tuple.getValue("numbers", List.class);
+		assertThat(actual, equalTo(list));
 	}
 
 	@Test
@@ -59,8 +61,9 @@ public class JsonToTupleTransformerTests {
 		String json = "{\"strings\":[\"one\",\"two\",\"three\"]}";
 		Tuple tuple = transformer.transformPayload(json);
 		assertThat(tuple.size(), equalTo(1));
-		List list = Arrays.asList("one", "two", "three");
-		assertThat(tuple.getValue("strings", List.class), equalTo(list));
+		List<String> list = Arrays.asList("one", "two", "three");
+		List<String> actual = tuple.getValue("strings", List.class);
+		assertThat(actual, equalTo(list));
 	}
 
 	@Test
@@ -70,7 +73,8 @@ public class JsonToTupleTransformerTests {
 		String json = "{\"stuff\":[1,\"two\",false]}";
 		Tuple tuple = transformer.transformPayload(json);
 		assertThat(tuple.size(), equalTo(1));
-		List list = Arrays.asList(1, "two", false);
-		assertThat(tuple.getValue("stuff", List.class), equalTo(list));
+		List<Object> list = Arrays.<Object> asList(1, "two", false);
+		List<Object> actual = tuple.getValue("stuff", List.class);
+		assertThat(actual, equalTo(list));
 	}
 }

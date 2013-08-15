@@ -17,23 +17,21 @@
 package org.springframework.xd.dirt.module;
 
 import org.springframework.core.io.Resource;
-import org.springframework.xd.module.Module;
-import org.springframework.xd.module.SimpleModule;
+import org.springframework.xd.module.ModuleDefinition;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public abstract class AbstractModuleRegistry implements ModuleRegistry {
 
 	@Override
-	public Module lookup(String name, String type) {
+	public ModuleDefinition lookup(String name, String type) {
 		Resource resource = this.loadResource(name, type);
-		SimpleModule module = new SimpleModule(name, type);
-		module.addComponents(resource);
+		ModuleDefinition module = new ModuleDefinition(name, type, resource);
 		// TODO: add properties from a property registry
 		return module;
 	}
 
 	protected abstract Resource loadResource(String name, String type);
-
 }

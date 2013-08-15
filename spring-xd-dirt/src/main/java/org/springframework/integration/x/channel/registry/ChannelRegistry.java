@@ -13,12 +13,15 @@
 
 package org.springframework.integration.x.channel.registry;
 
+import java.util.Collection;
+
+import org.springframework.http.MediaType;
 import org.springframework.integration.MessageChannel;
 
 /**
- * A strategy interface used to bind a {@link MessageChannel} to a logical name. The name
- * is intended to identify a logical consumer or producer of messages. This may be a
- * queue, a channel adapter, another message channel, a Spring bean, etc.
+ * A strategy interface used to bind a {@link MessageChannel} to a logical name. The name is intended to identify a
+ * logical consumer or producer of messages. This may be a queue, a channel adapter, another message channel, a Spring
+ * bean, etc.
  *
  * @author Mark Fisher
  * @author David Turanski
@@ -28,21 +31,28 @@ import org.springframework.integration.MessageChannel;
 public interface ChannelRegistry {
 
 	/**
-	 * Register a message consumer
+	 * Register a message consumer.
+	 *
 	 * @param name the logical identity of the message source
-	 * @param channel the channel bound as a consumer
+	 * @param moduleInputChannel the channel bound as a consumer
+	 * @param acceptedMediaTypes the media types supported by the channel
+	 * @param aliasHint whether the provided name represents an alias and thus should support late binding
 	 */
-	void inbound(String name, MessageChannel channel);
+	void createInbound(String name, MessageChannel moduleInputChannel, Collection<MediaType> acceptedMediaTypes,
+			boolean aliasHint);
 
 	/**
-	 * Register a message producer
+	 * Register a message producer.
+	 *
 	 * @param name the logical identity of the message target
-	 * @param channel the channel bound as a producer
+	 * @param moduleOutputChannel the channel bound as a producer
+	 * @param aliasHint whether the provided name represents an alias and thus should support late binding
 	 */
-	void outbound(String name, MessageChannel channel);
+	void createOutbound(String name, MessageChannel moduleOutputChannel, boolean aliasHint);
 
 	/**
-	 * Create a tap on an already registered inbound channel
+	 * Create a tap on an already registered inbound channel.
+	 *
 	 * @param tapModule the name of the tap module
 	 * @param name the registered name
 	 * @param channel the channel that will receive messages from the tap
@@ -50,9 +60,16 @@ public interface ChannelRegistry {
 	void tap(String tapModule, String name, MessageChannel channel);
 
 	/**
-	 * Remove all subscriptions to inter-module channels for this module
-	 * and stop any active components that use those channels.
-	 * @param name the module name
+	 * Remove an inbound inter-module channel and stop any active components that use the
+	 * channel.
+	 * @param name the channel name
 	 */
-	void cleanAll(String name);
+	void deleteInbound(String name);
+
+	/**
+	 * Remove an outbound inter-module channel and stop any active components that use the
+	 * channel.
+	 * @param name the channel name
+	 */
+	void deleteOutbound(String name);
 }

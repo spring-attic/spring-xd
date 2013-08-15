@@ -14,14 +14,17 @@ import org.springframework.xd.analytics.metrics.core.MetricRepository;
 
 /**
  * Common base functionality for Redis implementations.
- *
+ * 
  * Only handles single values (not lists, maps etc).
- *
+ * 
  * @author Luke Taylor
  */
 abstract class AbstractRedisMetricRepository<M extends Metric, V> implements MetricRepository<M> {
+
 	protected final String metricPrefix;
+
 	protected final ValueOperations<String, V> valueOperations;
+
 	protected final RedisOperations<String, V> redisOperations;
 
 	@SuppressWarnings("unchecked")
@@ -30,7 +33,7 @@ abstract class AbstractRedisMetricRepository<M extends Metric, V> implements Met
 		Assert.hasText(metricPrefix, "metric prefix cannot be empty");
 		this.metricPrefix = metricPrefix;
 		ParameterizedType parameterizedType = (ParameterizedType) getClass().getGenericSuperclass();
-		Class<?> valueClass = (Class<?>) parameterizedType.getActualTypeArguments()[1];
+		Class<V> valueClass = (Class<V>) parameterizedType.getActualTypeArguments()[1];
 		this.redisOperations = RedisUtils.createRedisTemplate(connectionFactory, valueClass);
 		this.valueOperations = redisOperations.opsForValue();
 	}
@@ -45,7 +48,7 @@ abstract class AbstractRedisMetricRepository<M extends Metric, V> implements Met
 
 	/**
 	 * Template method to create a single instance of the metric.
-	 *
+	 * 
 	 * @param name the metric name
 	 * @param value the initial value.
 	 * @return the metric instance
@@ -58,9 +61,13 @@ abstract class AbstractRedisMetricRepository<M extends Metric, V> implements Met
 	abstract V defaultValue();
 
 	/**
-	 * Provides the key for a named metric.
-	 * By default this appends the name to the metricPrefix value.
-	 *
+	 * @return the value carried by the given metric
+	 */
+	abstract V value(M metric);
+
+	/**
+	 * Provides the key for a named metric. By default this appends the name to the metricPrefix value.
+	 * 
 	 * @param metricName the name of the metric
 	 * @return the redis key under which the metric is stored
 	 */
@@ -70,17 +77,15 @@ abstract class AbstractRedisMetricRepository<M extends Metric, V> implements Met
 
 	@Override
 	public <S extends M> S save(S metric) {
-		String counterKey = getMetricKey(metric.getName());
-		if (this.valueOperations.get(counterKey) == null) {
-			this.valueOperations.set(counterKey, defaultValue());
-		}
+		String metricKey = getMetricKey(metric.getName());
+		valueOperations.set(metricKey, value(metric));
 		return metric;
 	}
 
 	@Override
 	public <S extends M> Iterable<S> save(Iterable<S> metrics) {
 		List<S> results = new ArrayList<S>();
-		for (S m: metrics) {
+		for (S m : metrics) {
 			results.add(save(m));
 		}
 		return results;
@@ -100,19 +105,20 @@ abstract class AbstractRedisMetricRepository<M extends Metric, V> implements Met
 
 	@Override
 	public void delete(Iterable<? extends M> metrics) {
-		for (M metric: metrics) {
+		for (M metric : metrics) {
 			delete(metric);
 		}
 	}
 
 	@Override
 	public M findOne(String name) {
-		Assert.notNull(name, "The name of the gauge must not be null");
+		Assert.notNull(name, "The name of the metric must not be null");
 		String gaugeKey = getMetricKey(name);
 		if (redisOperations.hasKey(gaugeKey)) {
 			V value = this.valueOperations.get(gaugeKey);
 			return create(name, value);
-		} else {
+		}
+		else {
 			return null;
 		}
 	}
@@ -125,8 +131,8 @@ abstract class AbstractRedisMetricRepository<M extends Metric, V> implements Met
 	@Override
 	public List<M> findAll() {
 		List<M> gauges = new ArrayList<M>();
-		//TODO asking for keys is not recommended.  See http://redis.io/commands/keys
-		//     Need to keep track of created instances explicitly.
+		// TODO asking for keys is not recommended. See http://redis.io/commands/keys
+		// Need to keep track of created instances explicitly.
 		Set<String> keys = this.redisOperations.keys(this.metricPrefix + "*");
 		for (String key : keys) {
 			if (!key.matches(metricPrefix + ".+?_\\d{4}\\.\\d{2}\\.\\d{2}-\\d{2}:\\d{2}")) {
@@ -142,9 +148,9 @@ abstract class AbstractRedisMetricRepository<M extends Metric, V> implements Met
 
 	@Override
 	public Iterable<M> findAll(Iterable<String> keys) {
-		List<M> results = new ArrayList<M> ();
+		List<M> results = new ArrayList<M>();
 
-		for (String k: keys) {
+		for (String k : keys) {
 			M value = findOne(k);
 			if (value != null) {
 				results.add(value);

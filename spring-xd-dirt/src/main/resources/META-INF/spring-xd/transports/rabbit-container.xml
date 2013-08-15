@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-event="http://www.springframework.org/schema/integration/event"
+	xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+	xmlns:int-rabbit="http://www.springframework.org/schema/integration/amqp"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit.xsd
+		http://www.springframework.org/schema/integration/event http://www.springframework.org/schema/integration/event/spring-integration-event.xsd
+		http://www.springframework.org/schema/integration/amqp http://www.springframework.org/schema/integration/amqp/spring-integration-amqp.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<import resource="rabbit-common.xml" />
+
+	<rabbit:admin connection-factory="rabbitConnectionFactory"/>
+
+	<rabbit:template id="rabbitTemplate" connection-factory="rabbitConnectionFactory"/>
+
+	<rabbit:fanout-exchange name="xd.events.modules"/>
+
+	<rabbit:fanout-exchange name="xd.events.containers"/>
+
+	<rabbit:queue name="xd.deployer"/>
+
+	<rabbit:queue id="undeployerQueue"/>
+
+	<rabbit:fanout-exchange name="xd.undeployer">
+		<rabbit:bindings>
+			<rabbit:binding queue="undeployerQueue"/>
+		</rabbit:bindings>
+	</rabbit:fanout-exchange>
+
+	<int-rabbit:outbound-channel-adapter channel="moduleEventsOut" exchange-name="xd.events.modules" amqp-template="rabbitTemplate"/>
+
+	<int-rabbit:outbound-channel-adapter channel="containerEventsOut" exchange-name="xd.events.containers" amqp-template="rabbitTemplate"/>
+
+	<int-rabbit:inbound-channel-adapter channel="input" queue-names="xd.deployer,#{undeployerQueue.name}" connection-factory="rabbitConnectionFactory"/>
+
+	<bean class="org.springframework.xd.dirt.listener.RabbitContainerEventListener">
+		<constructor-arg ref="rabbitConnectionFactory" />
+	</bean>
+
+	<bean id="moduleEventListener" class="org.springframework.xd.dirt.listener.RabbitModuleEventListener">
+		<constructor-arg ref="rabbitConnectionFactory" />
+	</bean>
+
+	<int-event:inbound-channel-adapter id="moduleEventsOut" event-types="org.springframework.xd.dirt.event.AbstractModuleEvent"/>
+
+	<int-event:inbound-channel-adapter id="containerEventsOut" event-types="org.springframework.xd.dirt.event.AbstractContainerEvent"/>
+
+</beans>

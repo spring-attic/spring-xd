@@ -20,7 +20,6 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.codehaus.jackson.map.ObjectMapper;
 
 import org.springframework.context.ApplicationListener;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -29,6 +28,8 @@ import org.springframework.xd.dirt.event.AbstractModuleEvent;
 import org.springframework.xd.dirt.event.ModuleDeployedEvent;
 import org.springframework.xd.dirt.event.ModuleUndeployedEvent;
 import org.springframework.xd.module.Module;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Mark Fisher

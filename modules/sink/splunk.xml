@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-splunk="http://www.springframework.org/schema/integration/splunk"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration
+		http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/splunk
+		http://www.springframework.org/schema/integration/splunk/spring-integration-splunk.xsd">
+
+	<int:channel id="input" />
+	<int:channel id="splunkOutput" />
+
+	<int:transformer input-channel="input" output-channel="splunkOutput"
+		ref="handler" />
+
+	<bean id="handler"
+		class="org.springframework.integration.x.splunk.SplunkTransformer">
+	</bean>
+
+	<int-splunk:outbound-channel-adapter
+		id="splunkTCPOutboundChannelAdapter" auto-startup="true" order="1"
+		channel="splunkOutput" splunk-server-ref="splunkServer">
+		<int-splunk:tcp-writer port="${tcp-port:9500}" />
+	</int-splunk:outbound-channel-adapter>
+
+	<int-splunk:server id="splunkServer" host="${host:localhost}" port="${port:8089}"
+		username="${username:admin}" password="${password:password}" owner="${owner:admin}"/>
+
+</beans>

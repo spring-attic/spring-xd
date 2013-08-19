@@ -66,8 +66,8 @@ public enum XDDSLMessages {
 	// CANNOT_USE_SUBSTREAM_WITH_SOURCE(ERROR,127,"cannot use substream with source channel"), //
 	// CANNOT_USE_SUBSTREAM_WITH_SINK(ERROR,128,"cannot use substream with source channel"), //
 	AMBIGUOUS_MODULE_NAME(ERROR, 129,
-			"ambiguous module name ''{0}'' in stream named ''{1}'', appears at both position {2} and {3}");
-	;
+			"ambiguous module name ''{0}'' in stream named ''{1}'', appears at both position {2} and {3}"),
+	AMBIGUOUS_STREAM_NAME(ERROR, 130, "Stream name ''{0}'' same as that of it's module name is not allowed.");
 
 	private Kind kind;
 

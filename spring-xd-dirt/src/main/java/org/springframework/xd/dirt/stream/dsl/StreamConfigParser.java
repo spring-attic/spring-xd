@@ -67,6 +67,13 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 		tokenStreamLength = tokenStream.size();
 		tokenStreamPointer = 0;
 		StreamsNode ast = eatStreams();
+		// Check if the stream name is same as that of any of its modules' names
+		// Throw DSLException as allowing this causes the parser to lookup the stream indefinitely.
+		for (StreamNode streamNode : ast.getStreamNodes()) {
+			if (streamNode.getModule(name) != null) {
+				throw new DSLException(stream, stream.indexOf(name), XDDSLMessages.STREAM_NAME_MATCHING_MODULE_NAME, name);
+			}
+		}
 		if (moreTokens()) {
 			throw new DSLException(this.expressionString, peekToken().startpos, XDDSLMessages.MORE_INPUT,
 					toString(nextToken()));

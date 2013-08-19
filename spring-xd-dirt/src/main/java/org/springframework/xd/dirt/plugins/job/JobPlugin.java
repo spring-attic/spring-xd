@@ -31,12 +31,12 @@ import org.springframework.xd.module.Module;
 
 /**
  * Plugin to enable the registration of jobs in a central registry.
- * 
+ *
  * @author Michael Minella
  * @author Gunnar Hillert
  * @author Gary Russell
  * @since 1.0
- * 
+ *
  */
 public class JobPlugin extends AbstractPlugin {
 
@@ -55,9 +55,6 @@ public class JobPlugin extends AbstractPlugin {
 			CONTEXT_CONFIG_ROOT + "registrar-with-fixed-delay.xml";
 
 	private static final String REGISTRAR = CONTEXT_CONFIG_ROOT + "registrar.xml";
-
-	private static final String COMMON_XML = CONTEXT_CONFIG_ROOT + "common.xml";
-
 	private static final String TRIGGER = "trigger";
 
 	private static final String CRON = "cron";
@@ -71,10 +68,6 @@ public class JobPlugin extends AbstractPlugin {
 	private static final String NUMBER_FORMAT = "numberFormat";
 
 	private static final String MAKE_UNIQUE = "makeUnique";
-
-	public JobPlugin() {
-		super.setPostProcessContextPaths(COMMON_XML);
-	}
 
 	@Override
 	public void configureProperties(Module module) {

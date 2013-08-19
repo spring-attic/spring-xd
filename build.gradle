@@ -257,7 +257,11 @@ project('spring-xd-dirt') {
 				"args4j:args4j:$args4jVersion",
 				"com.eaio.uuid:uuid:3.2",
 				"org.jolokia:jolokia-spring:$jolokiaVersion",
-				"org.springframework.plugin:spring-plugin-core:$springPluginVersion"
+				"org.springframework.plugin:spring-plugin-core:$springPluginVersion",
+				"hsqldb:hsqldb:1.8.0.10",
+				"org.apache.tomcat:tomcat-jdbc:7.0.42"
+
+
 
 		compile ("org.apache.activemq:activemq-core:5.6.0") {
 			exclude group: 'org.mortbay.jetty'
@@ -563,6 +567,8 @@ project('spring-xd-test') {
 		compile "org.springframework:spring-tx:$springVersion"
 		compile "org.springframework:spring-test:$springVersion"
 		compile "com.lambdaworks:lettuce:$lettuceVersion"
+		compile "hsqldb:hsqldb:1.8.0.10"
+		compile "org.apache.tomcat:tomcat-jdbc:7.0.42"
 		compile "junit:junit:$junitVersion"
 	}
 }
@@ -584,6 +590,8 @@ project('spring-xd-shell') {
 		compile "com.google.guava:guava:14.0.1"
 		testCompile project(":spring-xd-dirt")
 		testCompile project(":spring-xd-test")
+		testCompile "hsqldb:hsqldb:1.8.0.10"
+
 		testCompile "uk.co.modular-it:hamcrest-date:$hamcrestDateVersion"
 		runtime "org.slf4j:jcl-over-slf4j:$slf4jVersion",
 				"org.slf4j:slf4j-log4j12:$slf4jVersion",

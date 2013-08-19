@@ -17,7 +17,6 @@
 package org.springframework.integration.x.redis;
 
 import java.util.Date;
-import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -33,11 +32,10 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Jennifer Hickey
  */
 public class RedisQueueInboundChannelAdapter extends MessageProducerSupport {
 
@@ -51,26 +49,29 @@ public class RedisQueueInboundChannelAdapter extends MessageProducerSupport {
 
 	private volatile ScheduledFuture<?> listenerTask;
 
-	private final ObjectMapper objectMapper = new ObjectMapper();
+	private RedisSerializer<?> serializer;
+
+	private boolean enableDefaultSerializer = true;
 
 	public RedisQueueInboundChannelAdapter(String queueName, RedisConnectionFactory connectionFactory) {
-		this(queueName, connectionFactory, new StringRedisSerializer());
-	}
-
-	public RedisQueueInboundChannelAdapter(String queueName, RedisConnectionFactory connectionFactory,
-			RedisSerializer<?> valueSerializer) {
 		Assert.hasText(queueName, "queueName is required");
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");
 		this.queueName = queueName;
 		this.redisTemplate.setConnectionFactory(connectionFactory);
+		this.redisTemplate.setEnableDefaultSerializer(false);
 		StringRedisSerializer stringSerializer = new StringRedisSerializer();
 		this.redisTemplate.setKeySerializer(stringSerializer);
-		this.redisTemplate.setValueSerializer(valueSerializer);
 		this.redisTemplate.setHashKeySerializer(stringSerializer);
 		this.redisTemplate.setHashValueSerializer(stringSerializer);
-		this.redisTemplate.afterPropertiesSet();
 	}
 
+	public void setSerializer(RedisSerializer<?> serializer) {
+		this.serializer = serializer;
+	}
+
+	public void setEnableDefaultSerializer(boolean enableDefaultSerializer) {
+		this.enableDefaultSerializer = enableDefaultSerializer;
+	}
 
 	public void setExtractPayload(boolean extractPayload) {
 		this.extractPayload = extractPayload;
@@ -79,6 +80,7 @@ public class RedisQueueInboundChannelAdapter extends MessageProducerSupport {
 	@Override
 	protected void onInit() {
 		super.onInit();
+		initializeRedisTemplate();
 		this.taskScheduler = this.getTaskScheduler();
 		if (this.taskScheduler == null) {
 			ThreadPoolTaskScheduler tpts = new ThreadPoolTaskScheduler();
@@ -101,6 +103,27 @@ public class RedisQueueInboundChannelAdapter extends MessageProducerSupport {
 		}
 	}
 
+	private void initializeRedisTemplate() {
+		if(this.serializer == null) {
+			if(enableDefaultSerializer) {
+				initializeDefaultSerializer();
+			}
+			else {
+				Assert.isTrue(extractPayload, "extractPayload must be true if no serializer is set");
+			}
+		}
+		this.redisTemplate.setValueSerializer(this.serializer);
+		this.redisTemplate.afterPropertiesSet();
+	}
+
+	private void initializeDefaultSerializer() {
+		if(extractPayload) {
+			this.serializer = new StringRedisSerializer();
+		}
+		else {
+			this.serializer = new MessageRedisSerializer();
+		}
+	}
 
 	private class ListenerTask implements Runnable {
 
@@ -116,10 +139,8 @@ public class RedisQueueInboundChannelAdapter extends MessageProducerSupport {
 								message = MessageBuilder.withPayload(next).build();
 							}
 							else {
-								Assert.isInstanceOf(String.class, next);
-								MessageDeserializationWrapper wrapper = objectMapper.readValue((String) next,
-										MessageDeserializationWrapper.class);
-								message = wrapper.getMessage();
+								Assert.isInstanceOf(Message.class, next);
+								message = (Message<?>)next;
 							}
 							sendMessage(message);
 						} catch (Exception e) {
@@ -135,31 +156,4 @@ public class RedisQueueInboundChannelAdapter extends MessageProducerSupport {
 			}
 		}
 	}
-
-
-	@SuppressWarnings("unused") // used by object mapper
-	private static class MessageDeserializationWrapper {
-
-		private volatile Map<String, Object> headers;
-
-		private volatile Object payload;
-
-		private volatile Message<?> message;
-
-		void setHeaders(Map<String, Object> headers) {
-			this.headers = headers;
-		}
-
-		void setPayload(Object payload) {
-			this.payload = payload;
-		}
-
-		Message<?> getMessage() {
-			if (this.message == null) {
-				this.message = MessageBuilder.withPayload(this.payload).copyHeaders(this.headers).build();
-			}
-			return this.message;
-		}
-	}
-
 }

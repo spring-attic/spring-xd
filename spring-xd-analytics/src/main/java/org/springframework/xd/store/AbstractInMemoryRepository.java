@@ -21,7 +21,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -32,26 +34,25 @@ import org.springframework.util.Assert;
 
 /**
  * Base implementation for an in-memory store, using a {@link Map} internally.
- * 
- * Default behaviour is to retain sort order on the keys. Hence, this is by default the only sort supported when
- * querying with a {@link Pageable}.
- * 
+ *
+ * Default behaviour is to retain sort order on the keys. Hence, this is by default the
+ * only sort supported when querying with a {@link Pageable}.
+ *
  * @param <T> the type of things to store
  * @param <ID> a "primary key" to the things
  * @author Eric Bottard
  */
-public abstract class AbstractInMemoryRepository<T, ID extends Serializable> extends AbstractRepository<T, ID>
-		implements PagingAndSortingRepository<T, ID> {
+public abstract class AbstractInMemoryRepository<T, ID extends Serializable & Comparable<ID>> extends AbstractRepository<T, ID>
+		implements PagingAndSortingRepository<T, ID>, RangeCapableRepository<T, ID> {
 
-	private final Map<ID, T> map;
+	private final NavigableMap<ID, T> map;
 
 	protected AbstractInMemoryRepository() {
 		map = buildMap();
 	}
 
-	protected Map<ID, T> buildMap() {
-		Map<ID, T> map = new TreeMap<ID, T>();
-		return Collections.synchronizedMap(map);
+	protected NavigableMap<ID, T> buildMap() {
+		return new ConcurrentSkipListMap<ID, T>();
 	}
 
 	@Override
@@ -120,6 +121,11 @@ public abstract class AbstractInMemoryRepository<T, ID extends Serializable> ext
 	@Override
 	public Iterable<T> findAll(Sort sort) {
 		throw new UnsupportedOperationException("Arbitrary sorting is not implemented");
+	}
+
+	@Override
+	public Iterable<T> findAllInRange(ID from, boolean fromInclusive, ID to, boolean toInclusive) {
+		return map.subMap(from, fromInclusive, to, toInclusive).values();
 	}
 
 }

@@ -26,11 +26,11 @@ import org.springframework.xd.rest.client.domain.TapDefinitionResource;
 
 /**
  * Implementation of the Tap related part of the API.
- * 
+ *
  * @author Eric Bottard
  * @author Ilayaperumal Gopinathan
  * @author Gunnar Hillert
- * 
+ *
  * @since 1.0
  */
 public class TapTemplate extends AbstractTemplate implements TapOperations {
@@ -58,13 +58,13 @@ public class TapTemplate extends AbstractTemplate implements TapOperations {
 	public TapDefinitionResource.Page list() {
 		String uriTemplate = resources.get("taps").toString();
 		// TODO handle pagination at the client side
-		uriTemplate = uriTemplate + "?size=10000";
+		uriTemplate = uriTemplate + "?size=10000&deployments=true";
 		return restTemplate.getForObject(uriTemplate, TapDefinitionResource.Page.class);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.springframework.xd.rest.client.TapOperations#destroyTap(java.lang.String)
 	 */
 	@Override

@@ -59,7 +59,7 @@ public class JobsController extends
 	@ResponseBody
 	public PagedResources<JobDefinitionResource> list(Pageable pageable,
 			PagedResourcesAssembler<JobDefinition> assembler) {
-		return listValues(pageable, assembler);
+		return listValues(pageable, QueryOptions.NONE, assembler);
 	}
 
 

@@ -22,11 +22,11 @@ import org.springframework.hateoas.PagedResources;
 
 /**
  * Represents a stream definition, <i>i.e.</i> a flow of data in the system.
- * 
+ *
  * @author Eric Bottard
  */
 @XmlRootElement
-public class StreamDefinitionResource extends NamedResource {
+public class StreamDefinitionResource extends DeployableResource {
 
 	/**
 	 * The DSL representation of this stream definition.
@@ -51,7 +51,7 @@ public class StreamDefinitionResource extends NamedResource {
 
 	/**
 	 * Dedicated subclass to workaround type erasure.
-	 * 
+	 *
 	 * @author Eric Bottard
 	 */
 	public static class Page extends PagedResources<StreamDefinitionResource> {

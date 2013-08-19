@@ -14,16 +14,23 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.stream;
-
-import org.springframework.xd.store.DomainRepository;
-
+package org.springframework.xd.store;
 
 /**
- * A repository for persisting {@link Stream}s.
+ * Tests for {@link AbstractInMemoryRepository}.
  *
  * @author Eric Bottard
  */
-public interface StreamRepository extends DomainRepository<Stream, String> {
+public class AbstractInMemoryRepositoryTests extends BaseRepositoryTests<AbstractInMemoryRepository<String, Integer>>{
+
+	@Override
+	protected AbstractInMemoryRepository<String, Integer> createRepository() {
+		return new AbstractInMemoryRepository<String, Integer>() {
+			@Override
+			protected Integer keyFor(String entity) {
+				return NUMBERS.indexOf(entity);
+			}
+		};
+	}
 
 }

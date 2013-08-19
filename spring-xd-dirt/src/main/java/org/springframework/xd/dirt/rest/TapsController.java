@@ -55,8 +55,8 @@ public class TapsController
 	@ResponseBody
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
-	public PagedResources<TapDefinitionResource> list(Pageable pageable, PagedResourcesAssembler<TapDefinition> assembler) {
-		return this.listValues(pageable, assembler);
+	public PagedResources<TapDefinitionResource> list(Pageable pageable, QueryOptions queryOptions, PagedResourcesAssembler<TapDefinition> assembler) {
+		return this.listValues(pageable, queryOptions, assembler);
 	}
 
 	protected TapDefinition createDefinition(String name, String definition) {

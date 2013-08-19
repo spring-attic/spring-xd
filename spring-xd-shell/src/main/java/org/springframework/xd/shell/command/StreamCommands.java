@@ -65,7 +65,7 @@ public class StreamCommands implements CommandMarker {
 	public String destroyStream(
 			//
 			@CliOption(key = { "", "name" }, help = "the name of the stream to destroy", optionContext = "existing-stream disable-string-converter") String name,
-			@CliOption(key = { "all" }, help = "destroy all the existing streams", specifiedDefaultValue = "true") String all) {
+			@CliOption(key = { "all" }, help = "destroy all the existing streams", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean all) {
 		String message = "";
 		switch (Assertions.exactlyOneOf("name", name, "all", all)) {
 			case 0:
@@ -84,8 +84,8 @@ public class StreamCommands implements CommandMarker {
 
 	@CliCommand(value = DEPLOY_STREAM, help = "Deploy previously created stream(s)")
 	public String deployStream(
-			@CliOption(key = { "", "name" }, help = "the name of the stream to deploy", optionContext = "existing-stream disable-string-converter") String name,
-			@CliOption(key = { "all" }, help = "deploy all un-deployed streams", specifiedDefaultValue = "true") String all) {
+			@CliOption(key = { "", "name" }, help = "the name of the stream to deploy", optionContext = "existing-stream undeployed disable-string-converter") String name,
+			@CliOption(key = { "all" }, help = "deploy all un-deployed streams", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean all) {
 		String message = "";
 		switch (Assertions.exactlyOneOf("name", name, "all", all)) {
 			case 0:
@@ -104,8 +104,8 @@ public class StreamCommands implements CommandMarker {
 
 	@CliCommand(value = UNDEPLOY_STREAM, help = "Un-deploy previously deployed stream(s)")
 	public String undeployStream(
-			@CliOption(key = { "", "name" }, help = "the name of the stream to un-deploy", optionContext = "existing-stream disable-string-converter") String name,
-			@CliOption(key = { "all" }, help = "undeploy all the deployed streams", specifiedDefaultValue = "true") String all) {
+			@CliOption(key = { "", "name" }, help = "the name of the stream to un-deploy", optionContext = "existing-stream deployed disable-string-converter") String name,
+			@CliOption(key = { "all" }, help = "undeploy all the deployed streams", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean all) {
 		String message = "";
 		switch (Assertions.exactlyOneOf("name", name, "all", all)) {
 			case 0:
@@ -128,11 +128,16 @@ public class StreamCommands implements CommandMarker {
 		final PagedResources<StreamDefinitionResource> streams = streamOperations().list();
 
 		final Table table = new Table();
-		table.addHeader(1, new TableHeader("Stream Name")).addHeader(2, new TableHeader("Stream Definition"));
+		table.addHeader(1, new TableHeader("Stream Name")).addHeader(2, new TableHeader("Stream Definition")).addHeader(3, new TableHeader("Status"));
 
 		for (StreamDefinitionResource stream : streams) {
 			final TableRow row = table.newRow();
 			row.addValue(1, stream.getName()).addValue(2, stream.getDefinition());
+			if (Boolean.TRUE.equals(stream.isDeployed())) {
+				row.addValue(3, "deployed");
+			} else {
+				row.addValue(3, "");
+			}
 		}
 
 		return table;

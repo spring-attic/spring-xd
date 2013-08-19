@@ -33,10 +33,10 @@ import org.springframework.xd.shell.util.TableRow;
 
 /**
  * Tap commands.
- * 
+ *
  * @author Ilayaperumal Gopinathan
  * @author Gunnar Hillert
- * 
+ *
  * @since 1.0
  */
 
@@ -76,13 +76,18 @@ public class TapCommands implements CommandMarker {
 		final PagedResources<TapDefinitionResource> taps = tapOperations().list();
 
 		final Table table = new Table();
-		table.addHeader(1, new TableHeader("Tap Name")).addHeader(2, new TableHeader("Stream Name")).addHeader(3,
-				new TableHeader("Tap Definition"));
+		table.addHeader(1, new TableHeader("Tap Name")).addHeader(2, new TableHeader("Stream Name"))
+				.addHeader(3, new TableHeader("Tap Definition")).addHeader(4, new TableHeader("Status"));
 
 		for (TapDefinitionResource tapDefinitionResource : taps.getContent()) {
 			final TableRow row = new TableRow();
-			row.addValue(1, tapDefinitionResource.getName()).addValue(2, tapDefinitionResource.getStreamName()).addValue(
-					3, tapDefinitionResource.getDefinition());
+			row.addValue(1, tapDefinitionResource.getName()).addValue(2, tapDefinitionResource.getStreamName())
+					.addValue(3, tapDefinitionResource.getDefinition());
+			if (Boolean.TRUE.equals(tapDefinitionResource.isDeployed())) {
+				row.addValue(4, "deployed");
+			} else {
+				row.addValue(4, "");
+			}
 			table.getRows().add(row);
 		}
 
@@ -92,7 +97,7 @@ public class TapCommands implements CommandMarker {
 	@CliCommand(value = DESTROY_TAP, help = "Destroy existing tap(s)")
 	public String destroyTap(
 			@CliOption(key = { "", "name" }, help = "the name of the tap to destroy", optionContext = "existing-tap disable-string-converter") String name,
-			@CliOption(key = { "all" }, help = "destroy all the existing taps", specifiedDefaultValue = "true") String all) {
+			@CliOption(key = { "all" }, help = "destroy all the existing taps", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean all) {
 		String message = "";
 		switch (Assertions.exactlyOneOf("name", name, "all", all)) {
 			case 0:
@@ -112,7 +117,7 @@ public class TapCommands implements CommandMarker {
 	@CliCommand(value = DEPLOY_TAP, help = "Deploy previously created tap(s)")
 	public String deployTap(
 			@CliOption(key = { "", "name" }, help = "the name of the tap to deploy", optionContext = "existing-tap disable-string-converter") String name,
-			@CliOption(key = { "all" }, help = "deploy all the un-deployed taps", specifiedDefaultValue = "true") String all) {
+			@CliOption(key = { "all" }, help = "deploy all the un-deployed taps", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean all) {
 		String message = "";
 		switch (Assertions.exactlyOneOf("name", name, "all", all)) {
 			case 0:
@@ -132,7 +137,7 @@ public class TapCommands implements CommandMarker {
 	@CliCommand(value = UNDEPLOY_TAP, help = "Un-deploy previously deployed tap(s)")
 	public String undeployTap(
 			@CliOption(key = { "", "name" }, help = "the name of the tap to un-deploy", optionContext = "existing-tap disable-string-converter") String name,
-			@CliOption(key = { "all" }, help = "undeploy all the deployed taps", specifiedDefaultValue = "true") String all) {
+			@CliOption(key = { "all" }, help = "undeploy all the deployed taps", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean all) {
 		String message = "";
 		switch (Assertions.exactlyOneOf("name", name, "all", all)) {
 			case 0:

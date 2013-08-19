@@ -16,13 +16,14 @@
 
 package org.springframework.xd.dirt.stream;
 
-import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.xd.store.DomainRepository;
+
 
 /**
  * A repository for persisting {@link StreamDefinition}s.
- * 
+ *
  * @author Eric Bottard
  */
-public interface StreamDefinitionRepository extends PagingAndSortingRepository<StreamDefinition, String> {
+public interface StreamDefinitionRepository extends DomainRepository<StreamDefinition, String> {
 
 }

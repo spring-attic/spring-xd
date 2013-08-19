@@ -17,6 +17,9 @@ import org.springframework.xd.store.DomainRepository;
 
 /**
  * A repository for persisting {@link JobDefinition}s.
+ *
+ * @author David Turanski
+ * @author Gunnar Hillert
  */
 public interface JobDefinitionRepository extends DomainRepository<JobDefinition,String> {
 

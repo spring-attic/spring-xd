@@ -49,9 +49,8 @@ public class AbstractRedisRepositoryTests extends BaseRepositoryTests<AbstractRe
 	}
 
 	@Override
-	public void setup() {
-
-		repo = new AbstractRedisRepository<String, Integer>("_test", new StringRedisTemplate(connectionFactory)) {
+	protected AbstractRedisRepository<String, Integer> createRepository()  {
+		return new AbstractRedisRepository<String, Integer>("_test", new StringRedisTemplate(connectionFactory)) {
 
 			@Override
 			protected String serializeId(Integer id) {

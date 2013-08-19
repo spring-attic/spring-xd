@@ -17,6 +17,9 @@ import org.springframework.xd.store.DomainRepository;
 
 /**
  * A repository for persisting {@link TapDefinition}s.
+ *
+ * @author David Turanski
+ * @author Gunnar Hillert
  */
 public interface TapDefinitionRepository extends DomainRepository<TapDefinition,String> {
 

@@ -24,8 +24,8 @@ package org.springframework.xd.store;
 public class AbstractInMemoryRepositoryTests extends BaseRepositoryTests<AbstractInMemoryRepository<String, Integer>>{
 
 	@Override
-	public void setup() {
-		repo = new AbstractInMemoryRepository<String, Integer>() {
+	protected AbstractInMemoryRepository<String, Integer> createRepository() {
+		return new AbstractInMemoryRepository<String, Integer>() {
 			@Override
 			protected Integer keyFor(String entity) {
 				return NUMBERS.indexOf(entity);

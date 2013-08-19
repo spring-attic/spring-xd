@@ -40,11 +40,16 @@ public abstract class BaseRepositoryTests<R extends PagingAndSortingRepository<S
 
 	protected R repo;
 
+	@Before
+	public void setup() {
+		repo = createRepository();
+		populateRepository();
+	}
+
 	/**
 	 * Subclasses must implement to init the repository.
 	 */
-	@Before
-	public abstract void setup();
+	protected abstract R createRepository();
 
 	@After
 	public void tearDown() {
@@ -53,7 +58,6 @@ public abstract class BaseRepositoryTests<R extends PagingAndSortingRepository<S
 
 	@Test
 	public void testRangeWithBoundariesPresent() {
-		populateRepository();
 		Iterable<String> result = repo.findAllInRange(3, true, 6, true);
 		assertEquals(Arrays.asList("three", "four", "five", "six"), asList(result));
 
@@ -63,15 +67,19 @@ public abstract class BaseRepositoryTests<R extends PagingAndSortingRepository<S
 
 	@Test
 	public void testRangeBoundariesNotPresent() {
-		populateRepository();
 		Iterable<String> result = repo.findAllInRange(8, true, 16, true);
 		assertEquals(Arrays.asList("eight", "nine"), asList(result));
 
 	}
 
 	@Test
+	public void testOutside() {
+		Iterable<String> result = repo.findAllInRange(99, true, 101, true);
+		assertFalse(result.iterator().hasNext());
+	}
+
+	@Test
 	public void testRangeSingleSelection() {
-		populateRepository();
 		Iterable<String> result = repo.findAllInRange(8, true, 8, true);
 		assertEquals(Arrays.asList("eight"), asList(result));
 		result = repo.findAllInRange(8, true, 8, false);

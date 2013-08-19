@@ -87,7 +87,7 @@ public class ContainerMain {
 		context = new ClassPathXmlApplicationContext();
 		context.setConfigLocation(LAUNCHER_CONFIG_LOCATION);
 		context.setParent(analyticsContext);
-		if (!options.isJmxDisabled()) {
+		if (!options.isJmxEnabled()) {
 			context.getEnvironment().addActiveProfile("xd.jmx.enabled");
 			OptionUtils.setJmxProperties(options, context.getEnvironment());
 		}

@@ -60,7 +60,9 @@ public class ContainerMain {
 			parser.printUsage(System.err);
 			System.exit(1);
 		}
-
+		if (options.isJmxEnabled()) {
+			System.setProperty(AbstractOptions.XD_JMX_ENABLED_KEY, "true");
+		}
 		AbstractOptions.setXDHome(options.getXDHomeDir());
 		AbstractOptions.setXDTransport(options.getTransport());
 		AbstractOptions.setXDAnalytics(options.getAnalytics());
@@ -87,7 +89,7 @@ public class ContainerMain {
 		context = new ClassPathXmlApplicationContext();
 		context.setConfigLocation(LAUNCHER_CONFIG_LOCATION);
 		context.setParent(analyticsContext);
-		if (!options.isJmxDisabled()) {
+		if (options.isJmxEnabled()) {
 			context.getEnvironment().addActiveProfile("xd.jmx.enabled");
 			OptionUtils.setJmxProperties(options, context.getEnvironment());
 		}

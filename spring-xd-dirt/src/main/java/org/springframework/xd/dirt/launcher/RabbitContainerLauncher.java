@@ -53,11 +53,11 @@ public class RabbitContainerLauncher extends AbstractContainerLauncher {
 						this.connectionFactory.getHost(),
 						this.connectionFactory.getVirtualHost(),
 						this.connectionFactory.getPort()));
-			if (options.isJmxDisabled()) {
-				runtimeInfo.append(" JMX is disabled for XD components");
+			if (options.isJmxEnabled()) {
+				runtimeInfo.append(String.format(" JMX port: %d", options.getJmxPort()));
 			}
 			else {
-				runtimeInfo.append(String.format(" JMX port: %d", options.getJmxPort()));
+				runtimeInfo.append(" JMX is disabled for XD components");
 			}
 			logger.info(BannerUtils.displayBanner(container.getJvmName(), runtimeInfo.toString()));
 		}

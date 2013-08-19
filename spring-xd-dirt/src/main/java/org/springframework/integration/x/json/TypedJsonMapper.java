@@ -59,6 +59,7 @@ public class TypedJsonMapper implements BeanClassLoaderAware {
 		// include type information
 		this.mapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
 		mapper.configure(SerializationFeature.WRAP_ROOT_VALUE, true);
+		mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 		mapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
 		unmarshallingMapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
 	}

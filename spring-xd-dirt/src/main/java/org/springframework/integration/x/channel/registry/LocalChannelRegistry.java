@@ -256,7 +256,7 @@ public class LocalChannelRegistry extends ChannelRegistrySupport implements Appl
 		return bridge(from, to, bridgeName, null, acceptedMediaTypes);
 	}
 
-	protected BridgeHandler bridge(MessageChannel from, MessageChannel to, String bridgeName, String tapModule,
+	protected BridgeHandler bridge(MessageChannel from, MessageChannel to, final String bridgeName, String tapModule,
 			final Collection<MediaType> acceptedMediaTypes) {
 
 		final boolean isInbound = bridgeName.endsWith("in.bridge");
@@ -264,15 +264,27 @@ public class LocalChannelRegistry extends ChannelRegistrySupport implements Appl
 		BridgeHandler handler = new BridgeHandler() {
 
 			@Override
+			protected boolean shouldCopyRequestHeaders() {
+				/*
+				 * we've already copied the headers so no need for the ARPMH to do it, and
+				 * we don't want the content-type restored if absent.
+				 */
+				return false;
+			}
+
+			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
 				/*
 				 * optimization for local transport, just pass through if false
 				 */
 				if (convertWithinTransport) {
-					if (acceptedMediaTypes != null) {
-						if (isInbound) {
-							return transformInboundIfNecessary(requestMessage, acceptedMediaTypes);
-						}
+					if (isInbound) {
+						return transformInboundIfNecessary(requestMessage,
+								acceptedMediaTypes == null ? Collections.singletonList(MediaType.ALL)
+										: acceptedMediaTypes);
+					}
+					else {
+						return transformOutboundIfNecessary(requestMessage, MediaType.APPLICATION_OCTET_STREAM);
 					}
 				}
 				return requestMessage;

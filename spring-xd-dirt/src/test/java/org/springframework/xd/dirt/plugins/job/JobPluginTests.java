@@ -73,13 +73,17 @@ public class JobPluginTests {
 		assertTrue(moduleBeans[2].contains("startupJobLauncher"));
 	}
 
+	/**
+	 * There should not be any shared beans for the plugin. As per XD-703
+	 * the common job beans are registered in the global common context,
+	 * so that they are shared across xd-admin/xd-container.
+	 */
 	@Test
 	public void sharedComponentsAdded() {
 		GenericApplicationContext context = new GenericApplicationContext();
 		plugin.preProcessSharedContext(context);
 		List<BeanFactoryPostProcessor> sharedBeans = context.getBeanFactoryPostProcessors();
-		assertEquals(1, sharedBeans.size());
-		assertTrue(sharedBeans.get(0) instanceof BeanDefinitionAddingPostProcessor);
+		assertEquals(0, sharedBeans.size());
 	}
 
 	@Test

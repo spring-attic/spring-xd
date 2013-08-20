@@ -130,7 +130,7 @@ org.eclipse.jdt.core.formatter.alignment_for_superinterfaces_in_type_declaration
 org.eclipse.jdt.core.formatter.alignment_for_throws_clause_in_constructor_declaration=16
 org.eclipse.jdt.core.formatter.alignment_for_throws_clause_in_method_declaration=16
 org.eclipse.jdt.core.formatter.alignment_for_union_type_in_multicatch=16
-org.eclipse.jdt.core.formatter.blank_lines_after_imports=2
+org.eclipse.jdt.core.formatter.blank_lines_after_imports=1
 org.eclipse.jdt.core.formatter.blank_lines_after_package=1
 org.eclipse.jdt.core.formatter.blank_lines_before_field=1
 org.eclipse.jdt.core.formatter.blank_lines_before_first_class_body_declaration=1

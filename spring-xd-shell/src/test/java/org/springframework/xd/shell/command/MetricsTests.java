@@ -28,9 +28,10 @@ import org.springframework.util.StreamUtils;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableHeader;
 
+
 /**
  * Tests various metrics related sinks.
- * 
+ *
  * @author Eric Bottard
  * @author Ilayaperumal Gopinathan
  */
@@ -38,21 +39,23 @@ public class MetricsTests extends AbstractStreamIntegrationTest {
 
 	private static final String TEST_STREAM_NAME = "foo";
 
+	private HttpSource httpSource;
+
 	@Test
 	public void testSimpleCounter() throws Exception {
 		createTestStream(MetricType.COUNTER);
-		httpPostData(DEFAULT_HTTP_URL, "one");
-		httpPostData(DEFAULT_HTTP_URL, "one");
-		httpPostData(DEFAULT_HTTP_URL, "two");
+		httpSource.postData("one");
+		httpSource.postData("one");
+		httpSource.postData("two");
 		counter().verifyCounter("3");
 	}
 
 	@Test
 	public void testSimpleCounterImplicitName() throws Exception {
 		String streamName = "foo";
-		stream().create(streamName, "http --port=%s | counter", DEFAULT_HTTP_PORT);
-		Thread.sleep(5000);
-		httpPostData(DEFAULT_HTTP_URL, "one");
+		httpSource = newHttpSource();
+		stream().create(streamName, "%s | counter", httpSource);
+		httpSource.postData("one");
 		counter().verifyCounter(streamName, "1");
 		// Explicitly delete the counter
 		counter().deleteCounter(streamName);
@@ -61,45 +64,45 @@ public class MetricsTests extends AbstractStreamIntegrationTest {
 	@Test
 	public void testCounterDeletion() throws Exception {
 		createTestStream(MetricType.COUNTER);
-		httpPostData(DEFAULT_HTTP_URL, "one");
+		httpSource.postData("one");
 		counter().deleteDefaultCounter();
 	}
 
 	@Test
 	public void testAggregateCounterList() throws Exception {
 		createTestStream(MetricType.AGGR_COUNTER);
-		httpPostData(DEFAULT_HTTP_URL, "one");
+		httpSource.postData("one");
 		aggCounter().verifyDefaultExists();
 	}
 
 	@Test
 	public void testAggregateCounterDelete() throws Exception {
 		createTestStream(MetricType.AGGR_COUNTER);
-		httpPostData(DEFAULT_HTTP_URL, "one");
+		httpSource.postData("one");
 		aggCounter().deleteDefaultCounter();
 	}
 
 	@Test
 	public void testRichGaugeList() throws Exception {
 		createTestStream(MetricType.RICH_GAUGE);
-		httpPostData(DEFAULT_HTTP_URL, "15");
+		httpSource.postData("15");
 		richGauge().verifyDefaultExists();
 	}
 
 	@Test
 	public void testRichGaugeDisplay() throws Exception {
 		createTestStream(MetricType.RICH_GAUGE);
-		httpPostData(DEFAULT_HTTP_URL, "5");
-		httpPostData(DEFAULT_HTTP_URL, "10");
-		httpPostData(DEFAULT_HTTP_URL, "15");
-		Table t = constructRichGaugeDisplay(15d, -1d, 10d, 15d, 5d, 3l);
+		httpSource.postData("5");
+		httpSource.postData("10");
+		httpSource.postData("15");
+		Table t = constructRichGaugeDisplay(15d, -1d, 10d, 15d, 5d, 3L);
 		richGauge().verifyRichGauge(t.toString());
 	}
 
 	@Test
 	public void testRichGaugeDelete() throws Exception {
 		createTestStream(MetricType.RICH_GAUGE);
-		httpPostData(DEFAULT_HTTP_URL, "10");
+		httpSource.postData("10");
 		richGauge().deleteDefaultRichGauge();
 	}
 
@@ -160,9 +163,9 @@ public class MetricsTests extends AbstractStreamIntegrationTest {
 	}
 
 	private void createTestStream(MetricType metricType) throws Exception {
-		stream().create(TEST_STREAM_NAME, "http --port=%s | %s --name=%s", DEFAULT_HTTP_PORT, metricType.getName(),
-				DEFAULT_METRIC_NAME);
-		Thread.sleep(5000);
+		httpSource = newHttpSource();
+		stream().create(TEST_STREAM_NAME, "%s | %s --name=%s", httpSource, metricType.getName(), DEFAULT_METRIC_NAME);
+		httpSource.ensureReady();
 	}
 
 	private void createTailSourceFVCStream(TailSource tailSource, String fieldName) throws Exception {

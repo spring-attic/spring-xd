@@ -31,9 +31,10 @@ import org.junit.rules.TemporaryFolder;
 
 import org.springframework.integration.test.util.SocketUtils;
 
+
 /**
- * Test http commands
- * 
+ * Test http commands.
+ *
  * @author Gunnar Hillert
  * @since 1.0
  */
@@ -44,8 +45,6 @@ public class HttpCommandTests extends AbstractStreamIntegrationTest {
 	@Rule
 	public TemporaryFolder testFolder = new TemporaryFolder();
 
-	private static final String SINK_FILE_SUFFIX = "txt";
-
 	/**
 	 * This test will create a stream using a HTTP source and a File Sink. Subsequently the "http post" shell command is
 	 * used to post a simple Ascii String to the admin server.
@@ -54,15 +53,12 @@ public class HttpCommandTests extends AbstractStreamIntegrationTest {
 	public void testHttpPostAsciiText() throws InterruptedException, IOException {
 
 		final int openPort = SocketUtils.findAvailableServerSocket(8000);
-		final String tempFileName = "asciidata";
-		final File tempFile = testFolder.newFile(tempFileName + "." + SINK_FILE_SUFFIX);
-		final String tempFileDir = tempFile.getParentFile().getAbsolutePath();
 
 		final String stringToPost = "hello";
+		final FileSink fileSink = newFileSink();
 
 		final String streamName = "postAsciiData";
-		final String stream = String.format("http --port=%s | file --name=%s --suffix=%s --dir=%s", openPort,
-				tempFileName, SINK_FILE_SUFFIX, tempFileDir);
+		final String stream = String.format("http --port=%s | %s", openPort, fileSink);
 
 		logger.info("Creating Stream: " + stream);
 		stream().create(streamName, stream);
@@ -71,8 +67,7 @@ public class HttpCommandTests extends AbstractStreamIntegrationTest {
 		getShell().executeCommand(
 				String.format("http post --target http://localhost:%s --data \"%s\"", openPort, stringToPost));
 
-		final String resultData = FileUtils.readFileToString(tempFile);
-		assertEquals(stringToPost + "\n", resultData);
+		assertEquals(stringToPost + "\n", fileSink.getContents());
 	}
 
 	/**
@@ -83,16 +78,13 @@ public class HttpCommandTests extends AbstractStreamIntegrationTest {
 	public void testHttpPostUtfText() throws InterruptedException, IOException {
 
 		final int openPort = SocketUtils.findAvailableServerSocket(8200);
-		final String tempFileName = "utfdata";
-		final File tempFile = testFolder.newFile("utfdata" + "." + SINK_FILE_SUFFIX);
-		final String tempFileDir = tempFile.getParentFile().getAbsolutePath();
+		final FileSink fileSink = newFileSink();
 
 		/** I want to go to Japan. */
 		final String stringToPostInJapanese = "\u65e5\u672c\u306b\u884c\u304d\u305f\u3044\u3002";
 
 		final String streamName = "postUtf8Data";
-		final String stream = String.format("http --port=%s | file --name=%s --suffix=%s --dir=%s", openPort,
-				tempFileName, SINK_FILE_SUFFIX, tempFileDir);
+		final String stream = String.format("http --port=%s | %s", openPort, fileSink);
 
 		logger.info("Creating Stream: " + stream);
 		stream().create(streamName, stream);
@@ -101,27 +93,23 @@ public class HttpCommandTests extends AbstractStreamIntegrationTest {
 		getShell().executeCommand(
 				String.format("http post --target http://localhost:%s --data \"%s\"", openPort, stringToPostInJapanese));
 
-		final String resultData = FileUtils.readFileToString(tempFile, "UTF-8");
-		assertEquals(stringToPostInJapanese + "\n", resultData);
+		assertEquals(stringToPostInJapanese + "\n", fileSink.getContents());
 	}
 
 	@Test
 	public void testReadingFromFile() throws Exception {
 		final int openPort = SocketUtils.findAvailableServerSocket(8300);
-		final String tempFileOutName = "utfdataout";
-		final File tempFileOut = testFolder.newFile(tempFileOutName + "." + SINK_FILE_SUFFIX);
 		final File tempFileIn = testFolder.newFile("utfdatain.txt");
-		final String tempFileDir = tempFileOut.getParentFile().getAbsolutePath();
+		final FileSink fileSink = newFileSink();
 
-		/** I want to go to Japan. */
+		/* I want to go to Japan. */
 		final String stringToPostInJapanese = "\u65e5\u672c\u306b\u884c\u304d\u305f\u3044\u3002";
 		// Let's source from an UTF16 file.
 		Charset inCharset = Charset.forName("UTF-16");
 		FileUtils.writeStringToFile(tempFileIn, stringToPostInJapanese, inCharset);
 
 		final String streamName = "postUtf8Data";
-		final String stream = String.format("http --port=%s | file --name=%s --suffix=%s --dir=%s", openPort,
-				tempFileOutName, SINK_FILE_SUFFIX, tempFileDir);
+		final String stream = String.format("http --port=%s | %s", openPort, fileSink);
 
 		stream().create(streamName, stream);
 
@@ -130,10 +118,7 @@ public class HttpCommandTests extends AbstractStreamIntegrationTest {
 						"http post --target http://localhost:%s --file %s --contentType \"text/plain;charset=%s\"",
 						openPort, tempFileIn.getAbsolutePath(), inCharset));
 
-		Thread.sleep(2000);
-		// Using UTF-8 here, as this is the default of file sink.
-		final String resultData = FileUtils.readFileToString(tempFileOut, "UTF-8");
-		assertEquals(stringToPostInJapanese + "\n", resultData);
+		assertEquals(stringToPostInJapanese + "\n", fileSink.getContents());
 
 	}
 }

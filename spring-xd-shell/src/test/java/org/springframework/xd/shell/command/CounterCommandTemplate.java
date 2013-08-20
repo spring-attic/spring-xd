@@ -19,7 +19,7 @@ package org.springframework.xd.shell.command;
 import org.springframework.shell.core.JLineShellComponent;
 
 /**
- * 
+ *
  * @author Mark Pollack
  */
 public class CounterCommandTemplate extends AbstractCommandTemplate {
@@ -28,7 +28,7 @@ public class CounterCommandTemplate extends AbstractCommandTemplate {
 
 	/**
 	 * Construct a new CounterCommandTemplate, given a spring shell.
-	 * 
+	 *
 	 * @param shell the spring shell to execute commands against
 	 */
 	/* default */CounterCommandTemplate(JLineShellComponent shell) {
@@ -47,7 +47,7 @@ public class CounterCommandTemplate extends AbstractCommandTemplate {
 
 	/**
 	 * Deletes the given counter
-	 * 
+	 *
 	 * @param counterName
 	 */
 	public void deleteCounter(String counterName) {

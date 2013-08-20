@@ -26,7 +26,7 @@ import org.springframework.xd.rest.client.domain.TriggerDefinitionResource;
 
 /**
  * Implementation of the Trigger related part of the API.
- *
+ * 
  * @author Ilayaperumal Gopinathan
  * @since 1.0
  */
@@ -57,11 +57,49 @@ public class TriggerTemplate extends AbstractTemplate implements TriggerOperatio
 		uriTemplate = uriTemplate + "?size=10000";
 		return restTemplate.getForObject(uriTemplate, TriggerDefinitionResource.Page.class);
 	}
+
 	@Override
-	public void deleteTrigger(String name) {
+	public void destroy(String name) {
 		String uriTemplate = resources.get("triggers").toString() + "/{name}";
-		restTemplate
-				.delete(uriTemplate, Collections.singletonMap("name", name));
+		restTemplate.delete(uriTemplate, Collections.singletonMap("name", name));
+	}
+
+	@Override
+	public void deploy(String name) {
+		String uriTemplate = resources.get("triggers").toString() + "/{name}";
+		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
+		values.add("deploy", "true");
+		restTemplate.put(uriTemplate, values, name);
+	}
+
+	@Override
+	public void undeploy(String name) {
+		String uriTemplate = resources.get("triggers").toString() + "/{name}";
+		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
+		values.add("deploy", "false");
+		restTemplate.put(uriTemplate, values, name);
+
+	}
+
+	@Override
+	public void undeployAll() {
+		String uriTemplate = resources.get("triggers").toString() + DEPLOYMENTS_URI;
+		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
+		values.add("deploy", "false");
+		restTemplate.put(uriTemplate, values);
+	}
+
+	@Override
+	public void deployAll() {
+		String uriTemplate = resources.get("triggers").toString() + DEPLOYMENTS_URI;
+		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
+		values.add("deploy", "true");
+		restTemplate.put(uriTemplate, values);
+	}
+
+	@Override
+	public void destroyAll() {
+		restTemplate.delete(resources.get("triggers"));
 	}
 
 }

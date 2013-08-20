@@ -19,24 +19,26 @@ package org.springframework.xd.dirt.stream;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.BaseDefinition;
+import org.springframework.xd.store.DomainRepository;
 
 /**
- * Base support class for deployers that know how to deal with {@link BaseInstance instances} of a
- * {@link BaseDefinition definition}.
- * 
+ * Base support class for deployers that know how to deal with {@link BaseInstance
+ * instances} of a {@link BaseDefinition definition}.
+ *
  * @param D the kind of definition this deployer deals with
  * @param I the corresponding instance type
- * 
+ *
  * @author Eric Bottard
+ * @author Ilayaperumal Gopinathan
  */
 public abstract class AbstractInstancePersistingDeployer<D extends BaseDefinition, I extends BaseInstance<D>> extends
-		AbstractDeployer<D> {
+AbstractDeployer<D> {
 
-	private PagingAndSortingRepository<I, String> instanceRepository;
+	private DomainRepository<I, String> instanceRepository;
 
 	protected AbstractInstancePersistingDeployer(PagingAndSortingRepository<D, String> definitionRespository,
-			PagingAndSortingRepository<I, String> instanceRepository, DeploymentMessageSender messageSender,
-			XDParser parser, String definitionKind) {
+			DomainRepository<I, String> instanceRepository, DeploymentMessageSender messageSender, XDParser parser,
+			String definitionKind) {
 		super(definitionRespository, messageSender, parser, definitionKind);
 		this.instanceRepository = instanceRepository;
 	}
@@ -82,6 +84,43 @@ public abstract class AbstractInstancePersistingDeployer<D extends BaseDefinitio
 
 		final I instance = makeInstance(definition);
 		instanceRepository.save(instance);
+	}
+
+	@Override
+	public void undeployAll() {
+		for (D definition : findAll()) {
+			String name = definition.getName();
+			// Make sure we un-deploy only the resources that are already deployed.
+			if (instanceRepository.exists(name)) {
+				undeploy(name);
+			}
+		}
+	}
+
+	@Override
+	public void deployAll() {
+		for (D definition : findAll()) {
+			String name = definition.getName();
+			// Make sure we deploy only the resources that are not already deployed.
+			if (!instanceRepository.exists(name)) {
+				deploy(name);
+			}
+		}
+	}
+
+	@Override
+	public void deleteAll() {
+		// Make sure to un-deploy before delete.
+		undeployAll();
+		super.deleteAll();
+	}
+
+	/**
+	 * Query deployment information about definitions whose ids range from {@code first}
+	 * to {@code last}.
+	 */
+	public Iterable<I> deploymentInfo(String first, String last) {
+		return instanceRepository.findAllInRange(first, true, last, true);
 	}
 
 	/**

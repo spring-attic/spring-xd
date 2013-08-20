@@ -57,9 +57,9 @@ public class StreamsController extends
 	@ResponseBody
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
-	public PagedResources<StreamDefinitionResource> list(Pageable pageable,
+	public PagedResources<StreamDefinitionResource> list(Pageable pageable, QueryOptions queryOptions,
 			PagedResourcesAssembler<StreamDefinition> assembler) {
-		return listValues(pageable, assembler);
+		return listValues(pageable, queryOptions, assembler);
 	}
 
 	protected StreamDefinition createDefinition(String name, String definition) {

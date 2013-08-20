@@ -19,11 +19,14 @@ import org.springframework.integration.MessageHandlingException;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.dirt.stream.dsl.DSLException;
+import org.springframework.xd.module.ModuleType;
 
 /**
  * @author Glenn Renfro
  * @author Luke Taylor
- * 
+ * @author Ilayaperumal Gopinathan
+ * @author Gunnar Hillert
+ *
  */
 public class JobDeployer extends AbstractDeployer<JobDefinition> {
 
@@ -33,8 +36,12 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 
 	private static final String DEPLOYER_TYPE = "job";
 
-	public JobDeployer(JobDefinitionRepository repository, DeploymentMessageSender messageSender, XDParser parser) {
+	private final TriggerDefinitionRepository triggerDefinitionRepository;
+
+	public JobDeployer(JobDefinitionRepository repository, TriggerDefinitionRepository triggerDefinitionRepository, DeploymentMessageSender messageSender,
+			XDParser parser) {
 		super(repository, messageSender, parser, DEPLOYER_TYPE);
+		this.triggerDefinitionRepository = triggerDefinitionRepository;
 	}
 
 	@Override
@@ -51,19 +58,50 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 		}
 		catch (DSLException dslException) {
 			getDefinitionRepository().delete(name);// if it is a DSL exception (meaning
-											// bad definition) go ahead a delete
-											// the module.
+			// bad definition) go ahead a delete
+			// the module.
 		}
 	}
 
 	@Override
 	public void deploy(String name) {
+		deploy(name, null, null, null, null);
+	}
+
+	public void deploy(String name, String jobParameters, String dateFormat, String numberFormat, Boolean makeUnique) {
 		Assert.hasText(name, "name cannot be blank or null");
 		JobDefinition definition = getDefinitionRepository().findOne(name);
 		if (definition == null) {
 			throwNoSuchDefinitionException(name);
 		}
 		List<ModuleDeploymentRequest> requests = parse(name, definition.getDefinition());
+		// If the job definition has trigger then, check if the trigger exists
+		// TODO: should we do this at the parser?
+		// but currently the parser has reference to StreamDefinitionRepository only.
+		if (requests != null && requests.get(0).getParameters().containsKey(ModuleType.TRIGGER.getTypeName())) {
+			String triggerName = requests.get(0).getParameters().get(ModuleType.TRIGGER.getTypeName());
+			if(triggerDefinitionRepository.findOne(triggerName) == null) {
+				throwNoSuchDefinitionException(triggerName, ModuleType.TRIGGER.getTypeName());
+			}
+		}
+
+		for (ModuleDeploymentRequest request : requests) {
+			if ("job".equals(request.getType())) {
+				if (jobParameters != null) {
+					request.setParameter("jobParameters", jobParameters);
+				}
+				if (dateFormat != null) {
+					request.setParameter("dateFormat", dateFormat);
+				}
+				if (numberFormat != null) {
+					request.setParameter("numberFormat", numberFormat);
+				}
+				if (makeUnique != null) {
+					request.setParameter("makeUnique", String.valueOf(makeUnique));
+				}
+			}
+		}
+
 		try {
 			sendDeploymentRequests(name, requests);
 		}
@@ -99,5 +137,27 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 		catch (MessageHandlingException ex) {
 			// Job is not deployed.
 		}
+	}
+
+	@Override
+	public void deployAll() {
+		// TODO: we should revisit here to check on instance repository
+		for (JobDefinition definition : getDefinitionRepository().findAll()) {
+			deploy(definition.getName());
+		}
+	}
+
+	@Override
+	public void undeployAll() {
+		// TODO: we should revisit here to check on instance repository
+		for (JobDefinition definition : getDefinitionRepository().findAll()) {
+			undeploy(definition.getName());
+		}
+	}
+
+	@Override
+	public void deleteAll() {
+		undeployAll();
+		super.deleteAll();
 	}
 }

@@ -10,6 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.xd.dirt.core;
 
 import org.springframework.data.domain.Page;
@@ -23,11 +24,17 @@ import org.springframework.xd.dirt.stream.StreamDefinition;
  * 
  * @author David Turanski
  * @author Gunnar Hillert
+ * @author Ilayaperumal Gopinathan
  * 
  */
 public interface ResourceDeployer<R extends BaseDefinition> {
 
 	void deploy(String name);
+
+	/**
+	 * @return Iterable all definitions
+	 */
+	Iterable<R> findAll();
 
 	/**
 	 * Return a slice of all definitions.
@@ -44,12 +51,27 @@ public interface ResourceDeployer<R extends BaseDefinition> {
 	R findOne(String name);
 
 	/**
-	 * Delete the Definition using the provided name. The definition may also be {@link #undeploy(String) undeployed} as
-	 * part of that process.
+	 * Delete the Definition using the provided name. The definition may also be
+	 * {@link #undeploy(String) undeployed} as part of that process.
 	 * 
 	 * @param name the name of the definition to delete
 	 */
 	void delete(String name);
 
 	void undeploy(String name);
+
+	/**
+	 * Delete all the definitions
+	 */
+	void deleteAll();
+
+	/**
+	 * deploy all available undeployed resource definitions.
+	 */
+	void deployAll();
+
+	/**
+	 * Undeploy all the deployed resources.
+	 */
+	void undeployAll();
 }

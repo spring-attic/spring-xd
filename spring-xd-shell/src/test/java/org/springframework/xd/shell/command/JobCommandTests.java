@@ -13,19 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.shell.command;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
-import org.springframework.shell.core.CommandResult;
 
-import static org.junit.Assert.*;
+import org.springframework.batch.core.JobParameter;
+import org.springframework.shell.core.CommandResult;
 
 /**
  * Test stream commands
  * 
  * @author Glenn Renfro
+ * @author Gunnar Hillert
  */
 public class JobCommandTests extends AbstractJobIntegrationTest {
 
@@ -42,6 +58,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		CommandResult cr = getShell().executeCommand("job undeploy --name myTest");
 		checkForSuccess(cr);
 		assertEquals("Un-deployed Job 'myTest'", cr.getResult());
+		waitForResult(200);
 		assertTrue("Batch Script did not complete successfully", fileExists(TEST_FILE));
 	}
 
@@ -51,6 +68,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		executeJobCreate(MY_JOB, JOB_DESCRIPTOR);
 
 		checkForJobInList(MY_JOB, JOB_DESCRIPTOR);
+		waitForResult();
 		assertTrue(fileExists(TMP_FILE));
 
 		CommandResult cr = getShell().executeCommand("job create --definition \"job\" --name myJob");
@@ -90,6 +108,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		CommandResult cr = getShell().executeCommand("job deploy --name myJob");
 		checkForSuccess(cr);
 		assertEquals("Deployed job 'myJob'", cr.getResult());
+		waitForResult();
 		assertTrue(fileExists(TMP_FILE));
 
 		checkForJobInList(MY_JOB, JOB_DESCRIPTOR);
@@ -125,7 +144,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		CommandResult cr = getShell().executeCommand(
 				"job create --definition \"job --trigger=yourTrigger\" --name myJob ");
 		checkForFail(cr);
-		checkErrorMessages(cr, "Error creating bean with name 'org.springframework.scheduling.config.TriggerTask#0'");
+		checkErrorMessages(cr, "There is no trigger definition named 'yourTrigger'");
 		assertFalse(fileExists(TMP_FILE));
 	}
 
@@ -135,12 +154,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 				"trigger create --name mytriggertest --definition \"trigger --fixedRate='100'\"");
 		checkForSuccess(cr);
 		executeJobCreate(MY_JOB, "job --trigger=mytriggertest");
-		try {
-			Thread.sleep(300);// Have to give time for the Trigger to fire.
-		}
-		catch (Exception sleepException) {
-			assertTrue(sleepException.getMessage(), true);
-		}
+		waitForResult(300);// Have to give time for the Trigger to fire.
 		cr = getShell().executeCommand("trigger destroy mytriggertest");
 		checkForSuccess(cr);
 		assertTrue(fileExists(TMP_FILE));
@@ -149,24 +163,150 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 	@Test
 	public void testAdHocCron() {
 		executeJobCreate(MY_JOB, "job --cron='*/1 * * * * *'");
-		try {
-			Thread.sleep(1500);// Have to give time for the Trigger to fire.
-		}
-		catch (Exception sleepException) {
-			assertTrue(sleepException.getMessage(), true);
-		}
+		waitForResult(1500);// Have to give time for the Trigger to fire.
 		assertTrue(fileExists(TMP_FILE));
 	}
 
 	@Test
 	public void testAdHocFixedRate() {
 		executeJobCreate(MY_JOB, "job --fixedRate=100");
-		try {
-			Thread.sleep(200);// Have to give time for the Trigger to fire.
-		}
-		catch (Exception sleepException) {
-			assertTrue(sleepException.getMessage(), true);
-		}
+		waitForResult(200);// Have to give time for the Trigger to fire.
 		assertTrue(fileExists(TMP_FILE));
+	}
+
+	@Test
+	public void testJobDeployWithParameters() throws InterruptedException {
+		logger.info("Create batch job with parameters");
+
+		JobParametersHolder.reset();
+		executeJobCreate(MY_JOB_WITH_PARAMETERS, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
+		checkForJobInList(MY_JOB_WITH_PARAMETERS, JOB_WITH_PARAMETERS_DESCRIPTOR);
+
+		final JobParametersHolder jobParametersHolder = new JobParametersHolder();
+
+		final String commandString = "job deploy --name myJobWithParameters --jobParameters \"{\"param1\":\"spring rocks!\"}\"";
+		System.out.println(commandString);
+
+		CommandResult cr = getShell().executeCommand(commandString);
+
+		checkForSuccess(cr);
+		assertEquals("Deployed job 'myJobWithParameters'", cr.getResult());
+
+		boolean done = jobParametersHolder.isDone();
+
+		assertTrue("The countdown latch expired and did not count down.", done);
+
+		int numberOfJobParameters = JobParametersHolder.getJobParameters().size();
+		assertTrue("Expecting 2 parameters but got " + numberOfJobParameters, numberOfJobParameters == 2);
+
+		assertNotNull(JobParametersHolder.getJobParameters().get("random"));
+
+		final JobParameter parameter1 = JobParametersHolder.getJobParameters().get("param1");
+
+		assertNotNull(parameter1);
+		assertEquals("spring rocks!", parameter1.getValue());
+	}
+
+	@Test
+	public void testJobDeployWithParametersAndMakeUniqueIsFalse() throws InterruptedException {
+		logger.info("Create batch job with parameters");
+
+		JobParametersHolder.reset();
+		executeJobCreate(MY_JOB_WITH_PARAMETERS, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
+		checkForJobInList(MY_JOB_WITH_PARAMETERS, JOB_WITH_PARAMETERS_DESCRIPTOR);
+
+		final JobParametersHolder jobParametersHolder = new JobParametersHolder();
+
+		final String commandString = "job deploy --name myJobWithParameters --makeUnique \"false\" --jobParameters \"{\"param1\":\"spring rocks!\"}\"";
+		System.out.println(commandString);
+
+		CommandResult cr = getShell().executeCommand(commandString);
+
+		checkForSuccess(cr);
+		assertEquals("Deployed job 'myJobWithParameters'", cr.getResult());
+
+		boolean done = jobParametersHolder.isDone();
+
+		assertTrue("The countdown latch expired and did not count down.", done);
+
+		assertTrue("Expecting 1 parameters.", JobParametersHolder.getJobParameters().size() == 1);
+		assertNull(JobParametersHolder.getJobParameters().get("random"));
+
+		final JobParameter parameter1 = JobParametersHolder.getJobParameters().get("param1");
+
+		assertNotNull(parameter1);
+		assertEquals("spring rocks!", parameter1.getValue());
+	}
+
+	@Test
+	public void testJobDeployWithTypedParameters() throws InterruptedException, ParseException {
+		logger.info("Create batch job with typed parameters");
+		JobParametersHolder.reset();
+		executeJobCreate(MY_JOB_WITH_PARAMETERS, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
+		checkForJobInList(MY_JOB_WITH_PARAMETERS, JOB_WITH_PARAMETERS_DESCRIPTOR);
+
+		final JobParametersHolder jobParametersHolder = new JobParametersHolder();
+
+		final String commandString = "job deploy --name myJobWithParameters --jobParameters "
+				+ "\"{\"-param1(long)\":\"12345\",\"param2(date)\":\"1990/10/03\"}\"";
+
+		System.out.println(commandString);
+
+		final CommandResult cr = getShell().executeCommand(commandString);
+
+		checkForSuccess(cr);
+		assertEquals("Deployed job 'myJobWithParameters'", cr.getResult());
+
+		boolean done = jobParametersHolder.isDone();
+
+		assertTrue("The countdown latch expired and did not count down.", done);
+		assertTrue("Expecting 3 parameters.", JobParametersHolder.getJobParameters().size() == 3);
+		assertNotNull(JobParametersHolder.getJobParameters().get("random"));
+
+		final JobParameter parameter1 = JobParametersHolder.getJobParameters().get("param1");
+		final JobParameter parameter2 = JobParametersHolder.getJobParameters().get("param2");
+
+		assertNotNull(parameter1);
+		assertNotNull(parameter2);
+		assertTrue("parameter1 should be a Long", parameter1.getValue() instanceof Long);
+		assertTrue("parameter2 should be a java.util.Date", parameter2.getValue() instanceof Date);
+
+		final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
+		final Date expectedDate = dateFormat.parse("1990/10/03");
+
+		assertEquals("Was expecting the Long value 12345", Long.valueOf(12345), parameter1.getValue());
+		assertEquals("Should be the same dates", expectedDate, parameter2.getValue());
+
+		assertFalse("parameter1 should be non-identifying", parameter1.isIdentifying());
+		assertTrue("parameter2 should be identifying", parameter2.isIdentifying());
+
+	}
+
+	public static class JobParametersHolder {
+
+		private static Map<String, JobParameter> jobParameters = new ConcurrentHashMap<String, JobParameter>();
+
+		private static CountDownLatch countDownLatch = new CountDownLatch(1);
+
+		public boolean isDone() throws InterruptedException {
+			return countDownLatch.await(10, TimeUnit.SECONDS);
+		}
+
+		public void countDown() throws InterruptedException {
+			countDownLatch.countDown();
+		}
+
+		public void addParameter(String parameterName, JobParameter jobParameter) {
+			jobParameters.put(parameterName, jobParameter);
+		}
+
+		protected static Map<String, JobParameter> getJobParameters() {
+			return jobParameters;
+		}
+
+		public static void reset() {
+			jobParameters.clear();
+			countDownLatch = new CountDownLatch(1);
+		}
 	}
 }

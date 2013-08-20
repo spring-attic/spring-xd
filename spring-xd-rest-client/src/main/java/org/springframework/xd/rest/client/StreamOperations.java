@@ -23,28 +23,14 @@ import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
  * Interface defining operations available against streams.
  * 
  * @author Eric Bottard
+ * @author Ilayaperumal Gopinathan
  */
-public interface StreamOperations {
+public interface StreamOperations extends ResourceOperations {
 
 	/**
 	 * Create a new Stream, optionally deploying it.
 	 */
 	public StreamDefinitionResource createStream(String name, String defintion, boolean deploy);
-
-	/**
-	 * Destroy an existing stream.
-	 */
-	public void destroyStream(String name);
-
-	/**
-	 * Deploy an already created stream.
-	 */
-	public void deployStream(String name);
-
-	/**
-	 * Undeploy a deployed stream, retaining its definition.
-	 */
-	public void undeployStream(String name);
 
 	/**
 	 * List streams known to the system.

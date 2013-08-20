@@ -22,7 +22,7 @@ import org.springframework.util.Assert;
 
 /**
  * Various utility methods when dealing with shell commands.
- * 
+ *
  * @author Eric Bottard
  */
 public class Assertions {
@@ -32,26 +32,30 @@ public class Assertions {
 	}
 
 	/**
-	 * Accepts 2*N arguments, even ones being names and odd ones being values for those names. Asserts that exactly only
-	 * one value is non null, or throws an exception with a descriptive message otherwise.
-	 * 
+	 * Accepts 2*N arguments, even ones being names and odd ones being values for those
+	 * names. Asserts that exactly only one value is non null (or non-false, Boolean.FALSE being treated as false), or throws an exception with
+	 * a descriptive message otherwise.
+	 *
 	 * @return the index of the "pair" that was not {@code null}
 	 * @throws IllegalArgumentException if more than one argument is non null
-	 * @throws IllegalStateException if the method is called with wrong values (e.g. non even number of args)
+	 * @throws IllegalStateException if the method is called with wrong values (e.g. non
+	 *         even number of args)
 	 */
 	public static int exactlyOneOf(Object... namesAndValues) {
 		int index = atMostOneOf(namesAndValues);
-		Assert.isTrue(index > 0, "You must specify exactly one of " + collectNames(namesAndValues));
+		Assert.isTrue(index >= 0, "You must specify exactly one of " + collectNames(namesAndValues));
 		return index;
 	}
 
 	/**
-	 * Accepts 2*N arguments, even ones being names and odd ones being values for those names. Asserts that at most one
-	 * value is non null, or throws an exception with a descriptive message otherwise.
-	 * 
+	 * Accepts 2*N arguments, even ones being names and odd ones being values for those
+	 * names. Asserts that at most one value is non null (or non-false, Boolean.FALSE being treated as false), or throws an exception with a
+	 * descriptive message otherwise.
+	 *
 	 * @return the index of the "pair" that was not {@code null}, or -1 if none was set
 	 * @throws IllegalArgumentException if more than one argument is non null
-	 * @throws IllegalStateException if the method is called with wrong values (e.g. non even number of args)
+	 * @throws IllegalStateException if the method is called with wrong values (e.g. non
+	 *         even number of args)
 	 */
 	public static int atMostOneOf(Object... namesAndValues) {
 		int index = -1;
@@ -60,7 +64,7 @@ public class Assertions {
 		for (int i = 0; i < namesAndValues.length / 2; i++) {
 			Assert.state(namesAndValues[i * 2] instanceof String, "Argument at position " + i
 					+ " should be argument name");
-			if (namesAndValues[i * 2 + 1] != null) {
+			if (namesAndValues[i * 2 + 1] != null && namesAndValues[i * 2 + 1] != Boolean.FALSE) {
 				if (index != -1) {
 					throw new IllegalArgumentException(String.format("You can't specify both '%s' and '%s'",
 							namesAndValues[index * 2], namesAndValues[i * 2]));

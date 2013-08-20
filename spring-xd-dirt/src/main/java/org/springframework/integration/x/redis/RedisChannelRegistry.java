@@ -31,7 +31,6 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
@@ -46,7 +45,6 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.x.channel.registry.ChannelRegistry;
 import org.springframework.integration.x.channel.registry.ChannelRegistrySupport;
-import org.springframework.redis.x.NoOpRedisSerializer;
 import org.springframework.util.Assert;
 
 /**
@@ -55,12 +53,13 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Gary Russell
  * @author David Turanski
+ * @author Jennifer Hickey
  */
 public class RedisChannelRegistry extends ChannelRegistrySupport implements DisposableBean {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private final StringRedisTemplate redisTemplate = new StringRedisTemplate();
+	private RedisConnectionFactory connectionFactory;
 
 	private final List<Lifecycle> lifecycleBeans = Collections.synchronizedList(new ArrayList<Lifecycle>());
 
@@ -68,16 +67,15 @@ public class RedisChannelRegistry extends ChannelRegistrySupport implements Disp
 
 	public RedisChannelRegistry(RedisConnectionFactory connectionFactory) {
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");
-		this.redisTemplate.setConnectionFactory(connectionFactory);
-		this.redisTemplate.setValueSerializer(new NoOpRedisSerializer());
-		this.redisTemplate.afterPropertiesSet();
+		this.connectionFactory = connectionFactory;
 	}
 
 	@Override
 	public void createInbound(final String name, MessageChannel moduleInputChannel,
 			final Collection<MediaType> acceptedMediaTypes, boolean aliasHint) {
 		RedisQueueInboundChannelAdapter adapter = new RedisQueueInboundChannelAdapter("queue." + name,
-				this.redisTemplate.getConnectionFactory(), new NoOpRedisSerializer());
+				this.connectionFactory);
+		adapter.setEnableDefaultSerializer(false);
 		DirectChannel bridgeToModuleChannel = new DirectChannel();
 		bridgeToModuleChannel.setBeanName(name + ".bridge");
 		adapter.setOutputChannel(bridgeToModuleChannel);
@@ -95,7 +93,7 @@ public class RedisChannelRegistry extends ChannelRegistrySupport implements Disp
 	@Override
 	public void createOutbound(final String name, MessageChannel moduleOutputChannel, boolean aliasHint) {
 		Assert.isInstanceOf(SubscribableChannel.class, moduleOutputChannel);
-		MessageHandler handler = new CompositeHandler(name, this.redisTemplate.getConnectionFactory());
+		MessageHandler handler = new CompositeHandler(name, this.connectionFactory);
 		EventDrivenConsumer consumer = new EventDrivenConsumer((SubscribableChannel) moduleOutputChannel, handler);
 		consumer.setBeanName("outbound." + name);
 		consumer.afterPropertiesSet();
@@ -105,8 +103,8 @@ public class RedisChannelRegistry extends ChannelRegistrySupport implements Disp
 
 	@Override
 	public void tap(String tapModule, final String name, MessageChannel tapModuleInputChannel) {
-		RedisInboundChannelAdapter adapter = new RedisInboundChannelAdapter(this.redisTemplate.getConnectionFactory());
-		adapter.setSerializer(new NoOpRedisSerializer());
+		RedisInboundChannelAdapter adapter = new RedisInboundChannelAdapter(this.connectionFactory);
+		adapter.setSerializer(null);
 		adapter.setTopics("topic." + name);
 		DirectChannel bridgeToTapChannel = new DirectChannel();
 		bridgeToTapChannel.setBeanName(tapModule + ".bridge");
@@ -184,13 +182,13 @@ public class RedisChannelRegistry extends ChannelRegistrySupport implements Disp
 		private CompositeHandler(String name, RedisConnectionFactory connectionFactory) {
 			// TODO: replace with a multiexec that does both publish and lpush
 			RedisPublishingMessageHandler topic = new RedisPublishingMessageHandler(connectionFactory);
-			NoOpRedisSerializer serializer = new NoOpRedisSerializer();
-			topic.setSerializer(serializer);
 			topic.setDefaultTopic("topic." + name);
+			topic.setSerializer(null);
 			topic.afterPropertiesSet();
 			this.topic = topic;
 			RedisQueueOutboundChannelAdapter queue = new RedisQueueOutboundChannelAdapter("queue." + name,
-					connectionFactory, serializer);
+					connectionFactory);
+			queue.setEnableDefaultSerializer(false);
 			queue.afterPropertiesSet();
 			this.queue = queue;
 		}

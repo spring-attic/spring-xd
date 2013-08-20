@@ -49,6 +49,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author David Turanski
  * @author Gunnar Hillert
  * @author Glenn Renfro
+ * @author Ilayaperumal Gopinathan
  * 
  * @since 1.0
  * 
@@ -183,7 +184,81 @@ public class TapsControllerIntegrationTests extends AbstractControllerIntegratio
 		// As already undeployed, no new ModuleDeploymentRequest expected
 		verify(sender, times(2)).sendDeploymentRequests(eq("myawesometap"), anyListOf(ModuleDeploymentRequest.class));
 	}
+	
+	@Test
+	public void testTapDeployAll() throws Exception {
+		assertNull(tapInstanceRepository.findOne("mytap1"));
+		assertNull(tapInstanceRepository.findOne("mytap2"));
+		streamDefinitionRepository.save(new StreamDefinition("mystream1", "time | log"));
+		mockMvc.perform(
+				post("/taps").param("name", "mytap1").param("definition", "tap@mystream1 | log").param("deploy", "false").accept(
+						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
+		
+		// Create one more tap
+		mockMvc.perform(
+				post("/taps").param("name", "mytap2").param("definition", "tap@mystream1 | log").param("deploy", "false").accept(
+						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
+		// Make sure they are not deployed yet.
+		assertNull(tapInstanceRepository.findOne("mytap1"));
+		assertNull(tapInstanceRepository.findOne("mytap2"));
+		// Deploy all the taps 
+		mockMvc.perform(put("/taps/_deployments").param("deploy","true").accept(
+				MediaType.APPLICATION_JSON)).andExpect(status().isOk());
+		
+		assertNotNull(tapInstanceRepository.findOne("mytap1"));
+		assertNotNull(tapInstanceRepository.findOne("mytap2"));
+	}
+	
+	@Test
+	public void testTapUnDeployAll() throws Exception {
+		assertNull(tapInstanceRepository.findOne("mytap1"));
+		assertNull(tapInstanceRepository.findOne("mytap2"));
+		streamDefinitionRepository.save(new StreamDefinition("mystream1", "time | log"));
+		mockMvc.perform(
+				post("/taps").param("name", "mytap1").param("definition", "tap@mystream1 | log").accept(
+						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
+		
+		// Create one more tap
+		mockMvc.perform(
+				post("/taps").param("name", "mytap2").param("definition", "tap@mystream1 | log").accept(
+						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
+		// Make sure they are deployed.
+		assertNotNull(tapInstanceRepository.findOne("mytap1"));
+		assertNotNull(tapInstanceRepository.findOne("mytap2"));
+		// Un-deploy all the taps 
+		mockMvc.perform(put("/taps/_deployments").param("deploy","false").accept(
+				MediaType.APPLICATION_JSON)).andExpect(status().isOk());
+		
+		assertNull(tapInstanceRepository.findOne("mytap1"));
+		assertNull(tapInstanceRepository.findOne("mytap2"));
+	}
 
+	@Test
+	public void testTapDestroyAll() throws Exception {
+		assertNull(tapInstanceRepository.findOne("mytap1"));
+		assertNull(tapInstanceRepository.findOne("mytap2"));
+		streamDefinitionRepository.save(new StreamDefinition("mystream1", "time | log"));
+		mockMvc.perform(
+				post("/taps").param("name", "mytap1").param("definition", "tap@mystream1 | log").accept(
+						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
+		
+		// Create one more tap
+		mockMvc.perform(
+				post("/taps").param("name", "mytap2").param("definition", "tap@mystream1 | log").accept(
+						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
+		// Make sure they are deployed.
+		assertNotNull(tapInstanceRepository.findOne("mytap1"));
+		assertNotNull(tapInstanceRepository.findOne("mytap2"));
+		// Destroy all taps 
+		mockMvc.perform(delete("/taps").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
+		
+		assertNull(tapInstanceRepository.findOne("mytap1"));
+		assertNull(tapInstanceRepository.findOne("mytap2"));
+		
+		assertNull(tapDefinitionRepository.findOne("mytap1"));
+		assertNull(tapDefinitionRepository.findOne("mytap2"));
+	}
+	
 	@Before
 	public void resetAdditionalMocks() {
 		reset(sender);

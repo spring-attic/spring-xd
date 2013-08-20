@@ -26,11 +26,11 @@ import org.springframework.xd.rest.client.domain.TapDefinitionResource;
 
 /**
  * Implementation of the Tap related part of the API.
- * 
+ *
  * @author Eric Bottard
  * @author Ilayaperumal Gopinathan
  * @author Gunnar Hillert
- * 
+ *
  * @since 1.0
  */
 public class TapTemplate extends AbstractTemplate implements TapOperations {
@@ -58,19 +58,56 @@ public class TapTemplate extends AbstractTemplate implements TapOperations {
 	public TapDefinitionResource.Page list() {
 		String uriTemplate = resources.get("taps").toString();
 		// TODO handle pagination at the client side
-		uriTemplate = uriTemplate + "?size=10000";
+		uriTemplate = uriTemplate + "?size=10000&deployments=true";
 		return restTemplate.getForObject(uriTemplate, TapDefinitionResource.Page.class);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.springframework.xd.rest.client.TapOperations#destroyTap(java.lang.String)
 	 */
 	@Override
-	public void destroyTap(String name) {
+	public void destroy(String name) {
 		String uriTemplate = resources.get("taps").toString() + "/{name}";
 		restTemplate.delete(uriTemplate, Collections.singletonMap("name", name));
+	}
+
+	@Override
+	public void deploy(String name) {
+		String uriTemplate = resources.get("taps").toString() + "/{name}";
+		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
+		values.add("deploy", "true");
+		restTemplate.put(uriTemplate, values, name);
+	}
+
+	@Override
+	public void undeploy(String name) {
+		String uriTemplate = resources.get("taps").toString() + "/{name}";
+		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
+		values.add("deploy", "false");
+		restTemplate.put(uriTemplate, values, name);
+	}
+
+	@Override
+	public void undeployAll() {
+		String uriTemplate = resources.get("taps").toString() + DEPLOYMENTS_URI;
+		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
+		values.add("deploy", "false");
+		restTemplate.put(uriTemplate, values);
+	}
+
+	@Override
+	public void deployAll() {
+		String uriTemplate = resources.get("taps").toString() + DEPLOYMENTS_URI;
+		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
+		values.add("deploy", "true");
+		restTemplate.put(uriTemplate, values);
+	}
+
+	@Override
+	public void destroyAll() {
+		restTemplate.delete(resources.get("taps"));
 	}
 
 }

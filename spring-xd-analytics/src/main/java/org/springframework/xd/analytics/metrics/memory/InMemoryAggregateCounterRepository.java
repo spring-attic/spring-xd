@@ -27,18 +27,18 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.xd.analytics.metrics.core.AggregateCount;
 import org.springframework.xd.analytics.metrics.core.AggregateCounterRepository;
 import org.springframework.xd.analytics.metrics.core.Counter;
-import org.springframework.xd.store.AbstractRepository;
+import org.springframework.xd.store.AbstractInMemoryRepository;
 
 /**
  * In-memory aggregate counter with minute resolution.
- * 
+ *
  * Note that the data is permanently accumulated, so will grow steadily in size until the host process is restarted.
- * 
+ *
  * @author Luke Taylor
  * @author Eric Bottard
  */
 @Qualifier("aggregate")
-public class InMemoryAggregateCounterRepository extends AbstractRepository<Counter, String> implements
+public class InMemoryAggregateCounterRepository extends AbstractInMemoryRepository<Counter, String> implements
 		AggregateCounterRepository {
 
 	private Map<String, InMemoryAggregateCounter> aggregates = new HashMap<String, InMemoryAggregateCounter>();
@@ -119,6 +119,11 @@ public class InMemoryAggregateCounterRepository extends AbstractRepository<Count
 	@Override
 	public void deleteAll() {
 		aggregates.clear();
+	}
+
+	@Override
+	protected String keyFor(Counter entity) {
+		return entity.getName();
 	}
 
 }

@@ -66,9 +66,10 @@ public class JobPluginTests {
 		plugin.preProcessModule(module);
 		String[] moduleBeans = module.getApplicationContext().getBeanDefinitionNames();
 		Arrays.sort(moduleBeans);
-		assertEquals(2, moduleBeans.length);
-		assertTrue(moduleBeans[0].contains("registrar"));
-		assertTrue(moduleBeans[1].contains("startupJobLauncher"));
+		assertEquals(3, moduleBeans.length);
+		assertTrue(moduleBeans[0].contains("jobParametersBean"));
+		assertTrue(moduleBeans[1].contains("registrar"));
+		assertTrue(moduleBeans[2].contains("startupJobLauncher"));
 	}
 
 	@Test

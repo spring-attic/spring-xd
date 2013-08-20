@@ -13,27 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.redis.x;
 
-import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.data.redis.serializer.SerializationException;
+package org.springframework.xd.store;
 
 /**
- * A pass-through serializer used when the content is already a byte[]/
+ * Tests for {@link AbstractInMemoryRepository}.
  *
- * @author Gary Russell
- *
+ * @author Eric Bottard
  */
-public class NoOpRedisSerializer implements RedisSerializer<byte[]> {
+public class AbstractInMemoryRepositoryTests extends BaseRepositoryTests<AbstractInMemoryRepository<String, Integer>>{
 
 	@Override
-	public byte[] serialize(byte[] bytes) throws SerializationException {
-		return bytes;
-	}
-
-	@Override
-	public byte[] deserialize(byte[] bytes) throws SerializationException {
-		return bytes;
+	protected AbstractInMemoryRepository<String, Integer> createRepository() {
+		return new AbstractInMemoryRepository<String, Integer>() {
+			@Override
+			protected Integer keyFor(String entity) {
+				return NUMBERS.indexOf(entity);
+			}
+		};
 	}
 
 }

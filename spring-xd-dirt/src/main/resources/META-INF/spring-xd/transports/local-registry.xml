@@ -9,7 +9,7 @@
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.2.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<import resource="../internal/xd-common.xml"/>
+	<import resource="local-common.xml" />
 
 	<bean id="channelRegistry"
 		class="org.springframework.integration.x.channel.registry.LocalChannelRegistry">

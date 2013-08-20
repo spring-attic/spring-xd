@@ -34,6 +34,7 @@ import org.springframework.xd.dirt.stream.DeploymentMessageSender;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -43,11 +44,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Tests REST compliance of jobs-related endpoints.
  * 
  * @author Glenn Renfro
+ * @author Ilayaperumal Gopinathan
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = { RestConfiguration.class, Dependencies.class })
 public class JobsControllerIntegrationTests extends AbstractControllerIntegrationTest {
+	
+	private static final String JOB_DEFINITION = "job --cron='*/10 * * * * *'";
 
 	@Autowired
 	private DeploymentMessageSender sender;
@@ -70,20 +74,19 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 		when(moduleRegistry.lookup("job1", ModuleType.JOB.getTypeName())).thenReturn(jobDefinition);
 		when(moduleRegistry.lookup("job2", ModuleType.JOB.getTypeName())).thenReturn(jobDefinition);
 		when(moduleRegistry.lookup("job", ModuleType.JOB.getTypeName())).thenReturn(jobDefinition);
-
 	}
 
 	@Test
 	public void testSuccessfulJobCreation() throws Exception {
 		mockMvc.perform(
-				post("/jobs").param("name", "job1").param("definition", "job --cron='*/10 * * * * *'").accept(
+				post("/jobs").param("name", "job1").param("definition", JOB_DEFINITION).accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 	}
 
 	@Test
 	public void testSuccessfulJobCreateAndDeploy() throws Exception {
 		mockMvc.perform(
-				post("/jobs").param("name", "job5").param("definition", "job --cron='*/10 * * * * *'").accept(
+				post("/jobs").param("name", "job5").param("definition", JOB_DEFINITION).accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 		verify(sender, times(1)).sendDeploymentRequests(eq("job5"), anyListOf(ModuleDeploymentRequest.class));
 	}
@@ -92,7 +95,7 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 	public void testSuccessfulJobDeletion() throws Exception {
 		mockMvc.perform(delete("/jobs/{name}", "job1"));
 		mockMvc.perform(
-				post("/jobs").param("name", "job1").param("definition", "job --cron='*/10 * * * * *'").accept(
+				post("/jobs").param("name", "job1").param("definition", JOB_DEFINITION).accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 
 		mockMvc.perform(delete("/jobs/{name}", "job1")).andExpect(status().isOk());
@@ -101,10 +104,10 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 	@Test
 	public void testListAllJobs() throws Exception {
 		mockMvc.perform(
-				post("/jobs").param("name", "job1").param("definition", "job --cron='*/10 * * * * *'").accept(
+				post("/jobs").param("name", "job1").param("definition", JOB_DEFINITION).accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 		mockMvc.perform(
-				post("/jobs").param("name", "job2").param("definition", "job --cron='*/10 * * * * *'").accept(
+				post("/jobs").param("name", "job2").param("definition", JOB_DEFINITION).accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 
 		mockMvc.perform(get("/jobs").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
@@ -133,10 +136,10 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 	@Test
 	public void testCreateOnAlreadyCreatedJob() throws Exception {
 		mockMvc.perform(
-				post("/jobs").param("name", "job1").param("definition", "job --cron='*/10 * * * * *'").accept(
+				post("/jobs").param("name", "job1").param("definition", JOB_DEFINITION).accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 		mockMvc.perform(
-				post("/jobs").param("name", "job1").param("definition", "job --cron='*/10 * * * * *'").accept(
+				post("/jobs").param("name", "job1").param("definition", JOB_DEFINITION).accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isBadRequest());
 	}
 
@@ -153,5 +156,40 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 
 		mockMvc.perform(get("/jobs").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
 				jsonPath("$.content", Matchers.hasSize(0)));
+	}
+	
+	@Test
+	public void testJobDestroyAll() throws Exception{
+		mockMvc.perform(
+				post("/jobs").param("name", "job1").param("definition", JOB_DEFINITION).accept(
+						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
+		mockMvc.perform(
+				post("/jobs").param("name", "job2").param("definition", JOB_DEFINITION).accept(
+						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
+		assertNotNull(jobDefinitionRepository.findOne("job1"));
+		assertNotNull(jobDefinitionRepository.findOne("job2"));
+		
+		// Perform destroy all
+		mockMvc.perform(delete("/jobs").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
+		
+		assertNull(jobDefinitionRepository.findOne("job1"));
+		assertNull(jobDefinitionRepository.findOne("job2"));
+	}	
+
+	public void testJobWithNonexistentTrigger() throws Exception {
+		mockMvc.perform(
+				post("/jobs").param("name", "job1").param("definition", "job --trigger=trigger1").accept(MediaType.APPLICATION_JSON)).andExpect(
+						status().isNotFound());
+	}
+	
+	@Test
+	public void testJobWithExistingTrigger() throws Exception {
+		mockMvc.perform(
+				post("/triggers").param("name", "trigger1").param("definition", "job --trigger=trigger1").accept(MediaType.APPLICATION_JSON)).andExpect(
+						status().isCreated());
+	    assertNotNull(triggerDefinitionRepository.findOne("trigger1"));
+		mockMvc.perform(
+				post("/jobs").param("name", "job1").param("definition", "job --trigger=trigger1").accept(MediaType.APPLICATION_JSON)).andExpect(
+						status().isCreated());
 	}
 }

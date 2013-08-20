@@ -25,8 +25,10 @@ import org.springframework.xd.rest.client.domain.JobDefinitionResource;
 
 /**
  * Implementation of the Job-related part of the API.
- *
+ * 
  * @author Glenn Renfro
+ * @author Ilayaperumal Gopinathan
+ * @author Gunnar Hillert
  */
 public class JobTemplate extends AbstractTemplate implements JobOperations {
 
@@ -35,7 +37,7 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 	}
 
 	@Override
-	public JobDefinitionResource createJob(String name,String definition, Boolean deploy) {
+	public JobDefinitionResource createJob(String name, String definition, Boolean deploy) {
 		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
 		values.add("name", name);
 		values.add("definition", definition);
@@ -46,27 +48,45 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 	}
 
 	@Override
-	public void destroyJob(String name) {
+	public void destroy(String name) {
 		String uriTemplate = resources.get("jobs").toString() + "/{name}";
 		restTemplate.delete(uriTemplate, Collections.singletonMap("name", name));
 	}
 
 	@Override
-	public void deployJob(String name) {
+	public void deployJob(String name, String jobParameters, String dateFormat, String numberFormat, Boolean makeUnique) {
 
 		String uriTemplate = resources.get("jobs").toString() + "/{name}";
 		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
 		values.add("deploy", "true");
+
+		if (jobParameters != null) {
+			values.add("jobParameters", jobParameters);
+		}
+		if (dateFormat != null) {
+			values.add("dateFormat", dateFormat);
+		}
+		if (numberFormat != null) {
+			values.add("numberFormat", numberFormat);
+		}
+		if (makeUnique != null) {
+			values.add("makeUnique", String.valueOf(makeUnique));
+		}
+
 		restTemplate.put(uriTemplate, values, name);
 	}
 
 	@Override
-	public void undeployJob(String name) {
+	public void deploy(String name) {
+		deployJob(name, null, null, null, null);
+	}
+
+	@Override
+	public void undeploy(String name) {
 		String uriTemplate = resources.get("jobs").toString() + "/{name}";
 		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
 		values.add("deploy", "false");
 		restTemplate.put(uriTemplate, values, name);
-
 	}
 
 	@Override
@@ -74,16 +94,33 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 		String uriTemplate = resources.get("jobs").toString();
 		// TODO handle pagination at the client side
 		uriTemplate = uriTemplate + "?size=10000";
-		return restTemplate.getForObject(uriTemplate,
-				JobDefinitionResource.Page.class);
+		return restTemplate.getForObject(uriTemplate, JobDefinitionResource.Page.class);
+	}
+
+	@Override
+	public void undeployAll() {
+		String uriTemplate = resources.get("jobs").toString() + DEPLOYMENTS_URI;
+		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
+		values.add("deploy", "false");
+		restTemplate.put(uriTemplate, values);
+	}
+
+	@Override
+	public void deployAll() {
+		String uriTemplate = resources.get("jobs").toString() + DEPLOYMENTS_URI;
+		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
+		values.add("deploy", "true");
+		restTemplate.put(uriTemplate, values);
+	}
+
+	@Override
+	public void destroyAll() {
+		restTemplate.delete(resources.get("jobs"));
 	}
 
 	@Override
 	public String toString() {
-		return "JobTemplate [restTemplate=" + restTemplate + ", resources="
-				+ resources +"]";
+		return "JobTemplate [restTemplate=" + restTemplate + ", resources=" + resources + "]";
 	}
-
-
 
 }

@@ -18,7 +18,7 @@ import java.util.Properties;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.xd.dirt.container.DefaultContainer;
-import org.springframework.xd.dirt.server.options.AbstractOptions;
+import org.springframework.xd.dirt.server.options.XdPropertyKeys;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.Plugin;
 
@@ -34,7 +34,8 @@ public class MBeanExportingPlugin implements Plugin {
 
 	@Override
 	public void preProcessModule(Module module) {
-		if (Boolean.getBoolean(AbstractOptions.XD_JMX_ENABLED_KEY)) {
+
+		if (System.getProperty(XdPropertyKeys.XD_JMX_ENABLED) == null) {
 			module.addComponents(new ClassPathResource(CONTEXT_CONFIG_ROOT + "mbean-exporters.xml"));
 			Properties objectNameProperties = new Properties();
 			objectNameProperties.put("xd.module.name", module.getName());

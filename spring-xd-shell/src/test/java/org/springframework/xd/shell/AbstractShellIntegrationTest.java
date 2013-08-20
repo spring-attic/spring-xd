@@ -29,11 +29,11 @@ import org.junit.Rule;
 import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
-import org.springframework.xd.dirt.server.AdminMain;
-import org.springframework.xd.dirt.server.options.AdminOptions;
+import org.springframework.xd.dirt.core.Container;
+import org.springframework.xd.dirt.server.SingleNodeMain;
+import org.springframework.xd.dirt.server.options.SingleNodeOptions;
 import org.springframework.xd.dirt.stream.StreamServer;
 import org.springframework.xd.test.redis.RedisAvailableRule;
-
 /**
  * Superclass for performing integration tests of spring-xd shell commands.
  * 
@@ -45,6 +45,7 @@ import org.springframework.xd.test.redis.RedisAvailableRule;
  * 
  * @author Mark Pollack
  * @author Kashyap Parikh
+ * @author David Turanski
  * 
  */
 public abstract class AbstractShellIntegrationTest {
@@ -68,9 +69,14 @@ public abstract class AbstractShellIntegrationTest {
 
 	@BeforeClass
 	public static void startUp() throws InterruptedException, IOException {
-		AdminOptions opts = AdminMain.parseOptions(new String[] { "--httpPort", "0", "--transport", "local", "--store",
+
+		SingleNodeOptions opts = SingleNodeMain.parseOptions(new String[] { "--httpPort", "0", "--transport",
+			"local", "--store",
 			"redis", "--analytics", "redis" });
-		server = AdminMain.launchStreamServer(opts);
+		server = SingleNodeMain.launchStreamServer(opts);
+		Container container = SingleNodeMain.launchContainer(opts.asContainerOptions());
+		SingleNodeMain.setUpControlChannels(server, container);
+
 		Bootstrap bootstrap = new Bootstrap(new String[] { "--port", Integer.toString(server.getLocalPort()) });
 		shell = bootstrap.getJLineShellComponent();
 	}

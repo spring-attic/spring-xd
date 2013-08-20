@@ -29,6 +29,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.xd.dirt.server.options.AbstractOptions;
 import org.springframework.xd.dirt.server.options.Transport;
+import org.springframework.xd.dirt.server.options.XdPropertyKeys;
 
 /**
  * @author David Turanski
@@ -48,8 +49,8 @@ public class PropertiesConfigurationTests {
 
 	@BeforeClass
 	public static void setup() {
-		AbstractOptions.setXDTransport(Transport.redis);
-		System.setProperty("xd.home", new File("..").getAbsolutePath());
+		System.setProperty(XdPropertyKeys.XD_TRANSPORT,"redis");
+		System.setProperty(XdPropertyKeys.XD_HOME, new File("..").getAbsolutePath());
 	}
 
 	@AfterClass

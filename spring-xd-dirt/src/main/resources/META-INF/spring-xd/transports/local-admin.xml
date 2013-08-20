@@ -8,13 +8,5 @@
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
 	<import resource="local-common.xml" />
-	<import resource="classpath:/META-INF/spring-xd/internal/container.xml"/>
-	<import resource="classpath*:/META-INF/spring-xd/plugins/*.xml"/>
-
-	<!-- Pipe the deployment messages directly to the container input -->
-
-	<int:bridge input-channel="deployChannel" output-channel="input"/>
-
-	<int:bridge input-channel="undeployChannel" output-channel="input"/>
 
 </beans>

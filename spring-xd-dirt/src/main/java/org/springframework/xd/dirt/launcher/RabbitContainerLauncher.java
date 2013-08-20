@@ -29,6 +29,7 @@ import org.springframework.xd.dirt.server.util.BannerUtils;
 
 /**
  * @author Mark Fisher
+ * @author David Turanski
  */
 public class RabbitContainerLauncher extends AbstractContainerLauncher {
 

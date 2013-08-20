@@ -18,12 +18,15 @@
 
 		<int:channel id="input" />
 
-		<int:service-activator input-channel="input" ref="handler" />
+		<int:service-activator input-channel="input" ref="moduleDeployer" />
 
-		<bean id="handler" class="org.springframework.xd.dirt.module.ModuleDeployer">
+		<bean id="moduleDeployer" class="org.springframework.xd.dirt.module.ModuleDeployer">
 			<constructor-arg ref="moduleRegistry" />
 		</bean>
 
-		<bean id="idGenerator" class="org.springframework.xd.dirt.container.UUIDGenerator" />
+<!--  	TODO: Causing problems with XD-353, Investigate
+'MessageHeaders.idGenerator' has already been set and can not be set again
+-->
+	<!--  <bean id="idGenerator" class="org.springframework.xd.dirt.container.UUIDGenerator" /> -->
 	</beans>
 </beans>

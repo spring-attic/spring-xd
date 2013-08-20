@@ -31,6 +31,7 @@ import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
 
+
 /**
  * @author Mark Fisher
  */
@@ -56,6 +57,7 @@ public abstract class AbstractStreamDeploymentIntegrationTests {
 		this.context = new ClassPathXmlApplicationContext(
 				"META-INF/spring-xd/internal/container.xml",
 				"META-INF/spring-xd/internal/deployers.xml",
+				"META-INF/spring-xd/plugins/streams.xml",
 				"META-INF/spring-xd/store/memory-admin.xml",
 				"META-INF/spring-xd/transports/" + transport + "-admin.xml");
 		this.streamDefinitionRepository = context.getBean(StreamDefinitionRepository.class);
@@ -65,6 +67,7 @@ public abstract class AbstractStreamDeploymentIntegrationTests {
 		AbstractMessageChannel undeployChannel = context.getBean("undeployChannel", AbstractMessageChannel.class);
 		deployChannel.addInterceptor(new WireTap(tapChannel));
 		undeployChannel.addInterceptor(new WireTap(tapChannel));
+		setupApplicationContext(context);
 	}
 
 	@After
@@ -99,6 +102,9 @@ public abstract class AbstractStreamDeploymentIntegrationTests {
 		String payload = (String) next.getPayload();
 		assertTrue(payload.contains("\"module\":\"" + moduleName + "\""));
 		assertTrue(payload.contains("\"remove\":" + (remove ? "true" : "false")));
+	}
+
+	protected void setupApplicationContext(ApplicationContext context) {
 	}
 
 	protected abstract String getTransport();

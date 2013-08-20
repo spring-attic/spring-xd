@@ -61,8 +61,6 @@ public class DefaultContainer implements Container, SmartLifecycle, ApplicationC
 	 */
 	public static final String XD_INTERNAL_CONFIG_ROOT = XD_CONFIG_ROOT + "internal/";
 
-	public static final String XD_ANALYTICS_CONFIG_ROOT = XD_CONFIG_ROOT + "analytics/";
-
 	private static final String CORE_CONFIG = XD_INTERNAL_CONFIG_ROOT + "container.xml";
 
 	// TODO: consider moving to a file: location pattern within $XD_HOME
@@ -125,6 +123,10 @@ public class DefaultContainer implements Container, SmartLifecycle, ApplicationC
 	@Override
 	public void setApplicationContext(ApplicationContext context) {
 		this.deployerContext = context;
+	}
+	
+	public ApplicationContext getApplicationContext() {
+		return this.context;
 	}
 
 	@Override

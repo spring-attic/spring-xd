@@ -26,12 +26,11 @@ import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.web.context.support.XmlWebApplicationContext;
 import org.springframework.xd.dirt.container.DefaultContainer;
-import org.springframework.xd.dirt.server.options.AbstractOptions;
 import org.springframework.xd.dirt.server.options.AdminOptions;
 import org.springframework.xd.dirt.server.options.OptionUtils;
 import org.springframework.xd.dirt.server.options.Transport;
-import org.springframework.xd.dirt.server.util.BannerUtils;
 import org.springframework.xd.dirt.stream.StreamServer;
+
 
 /**
  * The main driver class for the admin.
@@ -46,7 +45,6 @@ import org.springframework.xd.dirt.stream.StreamServer;
 public class AdminMain {
 
 	private static final Log logger = LogFactory.getLog(AdminMain.class);
-
 	/**
 	 * @param args
 	 */
@@ -69,13 +67,10 @@ public class AdminMain {
 			parser.printUsage(System.err);
 			System.exit(0);
 		}
-		if (options.isJmxEnabled()) {
-			System.setProperty(AbstractOptions.XD_JMX_ENABLED_KEY, "true");
+
+		if (options.getTransport() == Transport.local) {
+			logger.error("local transport is not supported. Run SingleNodeMain");
 		}
-		AbstractOptions.setXDHome(options.getXDHomeDir());
-		AbstractOptions.setXDTransport(options.getTransport());
-		AbstractOptions.setXDAnalytics(options.getAnalytics());
-		AdminOptions.setXDStore(options.getStore());
 
 		return options;
 	}
@@ -86,33 +81,19 @@ public class AdminMain {
 	public static StreamServer launchStreamServer(final AdminOptions options) {
 		try {
 			XmlWebApplicationContext parent = new XmlWebApplicationContext();
-			parent.setConfigLocation("classpath:" + DefaultContainer.XD_ANALYTICS_CONFIG_ROOT + options.getAnalytics()
-					+ "-analytics.xml");
-			parent.refresh();
+			parent.setConfigLocation("classpath:" + DefaultContainer.XD_INTERNAL_CONFIG_ROOT + "xd-global-beans.xml");
+
 			XmlWebApplicationContext context = new XmlWebApplicationContext();
 			context.setConfigLocation("classpath:" + DefaultContainer.XD_INTERNAL_CONFIG_ROOT + "admin-server.xml");
 			context.setParent(parent);
-			if (options.isJmxEnabled()) {
-				context.getEnvironment().addActiveProfile("xd.jmx.enabled");
-				OptionUtils.setJmxProperties(options, context.getEnvironment());
-			}
 
-			// Not making StreamServer a spring bean eases move to .war file if
-			// needed
+			OptionUtils.configureRuntime(options, context.getEnvironment());
+			parent.refresh();
+
 			final StreamServer server = new StreamServer(context, options.getHttpPort());
 			server.afterPropertiesSet();
 			server.start();
-			if (Transport.local == options.getTransport()) {
-				StringBuilder runtimeInfo = new StringBuilder(String.format("Running in Local Mode on port: %s ",
-						server.getLocalPort()));
-				if (!options.isJmxEnabled()) {
-					runtimeInfo.append(" JMX is disabled for XD components");
-				}
-				else {
-					runtimeInfo.append(String.format(" JMX port: %d", options.getJmxPort()));
-				}
-				System.out.println(BannerUtils.displayBanner(null, runtimeInfo.toString()));
-			}
+
 			context.addApplicationListener(new ApplicationListener<ContextClosedEvent>() {
 
 				@Override

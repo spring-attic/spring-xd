@@ -26,7 +26,6 @@ import org.springframework.web.context.support.XmlWebApplicationContext;
 import org.springframework.xd.dirt.container.DefaultContainer;
 import org.springframework.xd.dirt.core.Container;
 import org.springframework.xd.dirt.launcher.ContainerLauncher;
-import org.springframework.xd.dirt.server.options.AbstractOptions;
 import org.springframework.xd.dirt.server.options.ContainerOptions;
 import org.springframework.xd.dirt.server.options.OptionUtils;
 
@@ -61,12 +60,6 @@ public class ContainerMain {
 			parser.printUsage(System.err);
 			System.exit(1);
 		}
-		if (options.isJmxEnabled()) {
-			System.setProperty(AbstractOptions.XD_JMX_ENABLED_KEY, "true");
-		}
-		AbstractOptions.setXDHome(options.getXDHomeDir());
-		AbstractOptions.setXDTransport(options.getTransport());
-		AbstractOptions.setXDAnalytics(options.getAnalytics());
 
 		if (options.isShowHelp()) {
 			parser.printUsage(System.err);
@@ -83,18 +76,15 @@ public class ContainerMain {
 	@SuppressWarnings("resource")
 	public static Container launch(ContainerOptions options) {
 		ClassPathXmlApplicationContext context = null;
-		XmlWebApplicationContext analyticsContext = new XmlWebApplicationContext();
-		analyticsContext.setConfigLocation("classpath:" + DefaultContainer.XD_ANALYTICS_CONFIG_ROOT
-				+ options.getAnalytics()
-				+ "-analytics.xml");
-		analyticsContext.refresh();
+		XmlWebApplicationContext parentContext = new XmlWebApplicationContext();
+		parentContext.setConfigLocation("classpath:" + DefaultContainer.XD_INTERNAL_CONFIG_ROOT + "xd-global-beans.xml");
+		parentContext.refresh();
 		context = new ClassPathXmlApplicationContext();
 		context.setConfigLocation(LAUNCHER_CONFIG_LOCATION);
-		context.setParent(analyticsContext);
-		if (options.isJmxEnabled()) {
-			context.getEnvironment().addActiveProfile("xd.jmx.enabled");
-			OptionUtils.setJmxProperties(options, context.getEnvironment());
-		}
+		context.setParent(parentContext);
+
+		OptionUtils.configureRuntime(options, context.getEnvironment());
+
 		context.refresh();
 		context.registerShutdownHook();
 		ContainerLauncher launcher = context.getBean(ContainerLauncher.class);

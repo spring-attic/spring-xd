@@ -16,16 +16,10 @@
 
 package org.springframework.xd.dirt.server.options;
 
-import org.kohsuke.args4j.CmdLineException;
-import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
-import org.kohsuke.args4j.OptionDef;
-import org.kohsuke.args4j.spi.ExplicitBooleanOptionHandler;
-import org.kohsuke.args4j.spi.OptionHandler;
-import org.kohsuke.args4j.spi.Parameters;
-import org.kohsuke.args4j.spi.Setter;
 
-import org.springframework.util.StringUtils;
+import org.kohsuke.args4j.spi.ExplicitBooleanOptionHandler;
+
 
 /**
  * Options shared by both the admin and the container server.
@@ -39,74 +33,35 @@ public abstract class AbstractOptions {
 
 	public static final String DEFAULT_HOME = "..";
 
-	private static final String XD_PAYLOAD_TRANSFORMER_KEY = "xd.payload.transformer";
+	protected AbstractOptions() {
 
-	public static final String XD_HOME_KEY = "xd.home";
-
-	public static final String XD_TRANSPORT_KEY = "xd.transport";
-
-	public static final String XD_JMX_ENABLED_KEY = "xd.jmx.enabled";
-
-	private static final String XD_ANALYTICS_KEY = "xd.analytics";
-
-	// TODO: Technically it's a REST port for MBEAN resources rather than a JSR-160 port.
-	// Is the name misleading?
-	public static final String XD_JMX_PORT_KEY = "xd.jmx.port";
-
-	/**
-	 * Set xd.home system property. If not a valid String, fallback to default.
-	 */
-	public static void setXDHome(String home) {
-		boolean override = StringUtils.hasText(home);
-		if (override || System.getProperty(XD_HOME_KEY) == null) {
-			System.setProperty(XD_HOME_KEY, (override ? home : DEFAULT_HOME));
-		}
 	}
 
-	/**
-	 * Set xd.transport system property.
-	 */
-	public static void setXDTransport(Transport transport) {
-		System.setProperty(XD_TRANSPORT_KEY, transport.name());
-	}
-
-	/**
-	 * Set xd.analytics system property.
-	 */
-	public static void setXDAnalytics(Analytics analytics) {
-		System.setProperty(XD_ANALYTICS_KEY, analytics.name());
+	protected AbstractOptions(Transport defaultTransport, Analytics defaultAnalytics) {
+		this.transport = defaultTransport;
+		this.analytics = defaultAnalytics;
 	}
 
 	@Option(name = "--help", usage = "Show options help", aliases = { "-?", "-h" })
-	private boolean showHelp = false;
+	protected boolean showHelp = false;
 
 	@Option(name = "--transport", usage = "The transport to be used (default: redis)")
-	private Transport transport = Transport.redis;
+	protected Transport transport = Transport.redis;
 
 	@Option(name = "--xdHomeDir", usage = "The XD installation directory", metaVar = "<xdHomeDir>")
-	private String xdHomeDir = "";
+	protected String xdHomeDir = "..";
 
-	@Option(name = "--enableJmx", usage = "Enable JMX in the XD container (default: false)", handler = ExplicitBooleanOptionHandler.class, metaVar = "[true | false]")
-	private boolean jmxEnabled = false;
-
-	@Option(name = "--transformer", usage = "The default payload transformer class name", handler = PayloadTransformerHandler.class)
-	private String transformer;
+	@Option(name = "--enableJmx", usage = "Enable JMX in the XD container (default: false", handler = ExplicitBooleanOptionHandler.class)
+	protected boolean jmxEnabled = false;
 
 	@Option(name = "--analytics", usage = "How to persist analytics such as counters and gauges (default: redis)")
-	private Analytics analytics = Analytics.redis;
+	protected Analytics analytics = Analytics.redis;
 
 	@Option(name = "--hadoopDistro", usage = "The Hadoop distro to use (default: hadoop10)")
-	private HadoopDistro hadoopDistro = HadoopDistro.hadoop10;
+	protected HadoopDistro hadoopDistro = HadoopDistro.hadoop10;
 
 	public Analytics getAnalytics() {
 		return analytics;
-	}
-
-	/**
-	 * @return the transport
-	 */
-	public Transport getTransport() {
-		return transport;
 	}
 
 	/**
@@ -114,6 +69,14 @@ public abstract class AbstractOptions {
 	 */
 	public String getXDHomeDir() {
 		return xdHomeDir;
+	}
+
+	public Transport getTransport() {
+		return transport;
+	}
+
+	public HadoopDistro getHadoopDistro() {
+		return hadoopDistro;
 	}
 
 	/**
@@ -125,34 +88,10 @@ public abstract class AbstractOptions {
 
 	public abstract int getJmxPort();
 
-	public String getTransformer() {
-		return transformer;
-	}
-
 	/**
 	 * @return the showHelp
 	 */
 	public boolean isShowHelp() {
 		return showHelp;
 	}
-
-	public static class PayloadTransformerHandler extends OptionHandler<String> {
-
-		public PayloadTransformerHandler(CmdLineParser parser, OptionDef option, Setter<String> setter) {
-			super(parser, option, setter);
-		}
-
-		@Override
-		public int parseArguments(Parameters params) throws CmdLineException {
-			System.setProperty(XD_PAYLOAD_TRANSFORMER_KEY, params.getParameter(0));
-			return 1;
-		}
-
-		@Override
-		public String getDefaultMetaVariable() {
-			return "<transformer>";
-		}
-
-	}
-
 }

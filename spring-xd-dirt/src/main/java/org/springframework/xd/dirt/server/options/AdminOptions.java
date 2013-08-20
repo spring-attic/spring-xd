@@ -22,17 +22,26 @@ import org.kohsuke.args4j.Option;
  * A class the defines the options that will be parsed on the admin command line.
  * 
  * @author Mark Pollack
+ * @author David Turanski
  */
 public class AdminOptions extends AbstractOptions {
+	
+	protected AdminOptions(Transport defaultTransport, Analytics defaultAnalytics) {
+		super(defaultTransport, defaultAnalytics);
+	}
+	
+	public AdminOptions() {
+		super();
+	}
 
 	@Option(name = "--httpPort", usage = "Http port for the REST API server (default: 8080)", metaVar = "<httpPort>")
-	private int httpPort = 8080;
+	protected int httpPort = 8080;
 
 	@Option(name = "--store", usage = "How to persist admin data (default: redis)")
-	private Store store = Store.redis;
+	protected Store store = Store.redis;
 
 	@Option(name = "--jmxPort", usage = "The JMX port for the admin", metaVar = "<jmxPort>")
-	private int jmxPort = 8778;
+	protected int jmxPort = 8778;
 
 	/**
 	 * @return http port
@@ -45,13 +54,8 @@ public class AdminOptions extends AbstractOptions {
 		return store;
 	}
 
-	public static void setXDStore(Store store) {
-		System.setProperty("xd.store", store.name());
-	}
-
 	@Override
 	public int getJmxPort() {
 		return this.jmxPort;
 	}
-
 }

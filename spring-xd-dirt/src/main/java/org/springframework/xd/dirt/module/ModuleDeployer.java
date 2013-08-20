@@ -78,7 +78,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		this.deployerContext = context;
 		this.plugins = context.getBeansOfType(Plugin.class);
 		ClassPathXmlApplicationContext commonContext = new ClassPathXmlApplicationContext(
-				new String[] { DefaultContainer.XD_INTERNAL_CONFIG_ROOT + "common.xml" }, false);
+				new String[] { DefaultContainer.XD_INTERNAL_CONFIG_ROOT + "module-common.xml" }, false);
 		ApplicationContext analytics = context.getParent();
 		commonContext.setParent(analytics);
 		for (Plugin plugin : plugins.values()) {
@@ -121,7 +121,6 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 				parametersAsProps.putAll(parameters);
 				module.addProperties(parametersAsProps);
 			}
-			module.setParentContext(this.commonContext);
 			this.deployModule(module);
 			String key = group + ":" + module.getName() + ":" + index;
 			if (logger.isInfoEnabled()) {

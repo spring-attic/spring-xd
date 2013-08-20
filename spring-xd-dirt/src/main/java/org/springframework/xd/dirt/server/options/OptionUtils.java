@@ -18,6 +18,7 @@ import java.util.Properties;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.PropertiesPropertySource;
 
+
 /**
  * @author David Turanski
  * 
@@ -30,8 +31,36 @@ public class OptionUtils {
 	 */
 	public static void setJmxProperties(AbstractOptions options, ConfigurableEnvironment environment) {
 		Properties jmxProperties = new Properties();
-		jmxProperties.put(AbstractOptions.XD_JMX_PORT_KEY, options.getJmxPort());
+		jmxProperties.put(XdPropertyKeys.XD_JMX_PORT, options.getJmxPort());
 		environment.getPropertySources().addFirst(new PropertiesPropertySource("jmxProperties", jmxProperties));
 	}
 
+	/**
+	 * Configure the XD runtime enviroment using parsed command line options
+	 * 
+	 * @param options Command line options
+	 * @param environment the application Context environment
+	 */
+	public static void configureRuntime(AbstractOptions options, ConfigurableEnvironment environment) {
+		setSystemProperty(XdPropertyKeys.XD_HOME, options.getXDHomeDir(), false);
+		setSystemProperty(XdPropertyKeys.XD_TRANSPORT, options.getTransport().name(), false);
+		setSystemProperty(XdPropertyKeys.XD_ANALYTICS, options.getAnalytics().name(), false);
+		setSystemProperty(XdPropertyKeys.XD_JMX_ENABLED, String.valueOf(options.isJmxEnabled()), false);
+		if (options instanceof AdminOptions) {
+			setSystemProperty(XdPropertyKeys.XD_STORE, ((AdminOptions) options).getStore().name(), false);
+		}
+		if (environment != null) {
+			if (options.isJmxEnabled()) {
+				environment.addActiveProfile("xd.jmx.enabled");
+				OptionUtils.setJmxProperties(options, environment);
+			}
+		}
+	}
+
+	public static String setSystemProperty(String key, String value, boolean override) {
+		if (System.getProperty(key) == null || override) {
+			System.setProperty(key, value);
+		}
+		return System.getProperty(key);
+	}
 }

@@ -45,6 +45,7 @@ import org.springframework.xd.dirt.module.ModuleEventListener;
 import org.springframework.xd.dirt.server.options.AbstractOptions;
 import org.springframework.xd.dirt.server.options.Analytics;
 import org.springframework.xd.dirt.server.options.Transport;
+import org.springframework.xd.dirt.server.options.XdPropertyKeys;
 import org.springframework.xd.module.SimpleModule;
 
 /**
@@ -69,8 +70,8 @@ public class StreamPluginModuleDeploymentTests {
 
 	@BeforeClass
 	public static void setContextProperties() {
-		AbstractOptions.setXDTransport(Transport.local);
-		AbstractOptions.setXDAnalytics(Analytics.memory);
+		System.setProperty(XdPropertyKeys.XD_TRANSPORT, Transport.local.name());
+		System.setProperty(XdPropertyKeys.XD_ANALYTICS, Analytics.memory.name());
 		System.setProperty("xd.home", new File("..").getAbsolutePath());
 	}
 

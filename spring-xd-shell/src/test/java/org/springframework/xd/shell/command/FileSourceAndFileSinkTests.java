@@ -95,6 +95,7 @@ public class FileSourceAndFileSinkTests extends AbstractStreamIntegrationTest {
 		try {
 			FileCopyUtils.copy("hello", new FileWriter(in));
 			stream().create(streamName, "file | file " + sinkParam);
+			Thread.sleep(1000);
 			String actual = FileCopyUtils.copyToString(new FileReader(out));
 			assertEquals("hello\n", actual);
 		}

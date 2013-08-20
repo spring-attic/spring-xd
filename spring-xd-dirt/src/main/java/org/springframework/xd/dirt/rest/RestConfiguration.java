@@ -25,9 +25,11 @@ import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.hateoas.config.EnableHypermediaSupport;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
@@ -39,6 +41,7 @@ import org.springframework.xd.rest.client.util.RestTemplateMessageConverterUtil;
  * @author Eric Bottard
  * @author David Turanski
  * @author Andrew Eisenberg
+ * @author Scott Andrews
  */
 @Configuration
 @EnableWebMvc
@@ -54,6 +57,24 @@ public class RestConfiguration {
 			// TODO Access-Control-Allow-Origin header should not be hard-coded
 			private static final String ALLOWED_ORIGIN = "http://localhost:9889";
 
+			private static final String LOCATION = "Location";
+
+			private static final String ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin";
+
+			private static final String ACCESS_CONTROL_ALLOW_METHODS = "Access-Control-Allow-Methods";
+
+			private static final String ACCESS_CONTROL_ALLOW_HEADERS = "Access-Control-Allow-Headers";
+
+			private static final String ACCESS_CONTROL_EXPOSE_HEADERS = "Access-Control-Expose-Headers";
+
+			private static final String ACCESS_CONTROL_REQUEST_METHOD = "Access-Control-Request-Method";
+
+			private static final String ACCESS_CONTROL_REQUEST_HEADERS = "Access-Control-Request-Headers";
+
+			private static final String ACCESS_CONTROL_MAX_AGE = "Access-Control-Max-Age";
+
+			private static final String CACHE_SECONDS = "300";
+
 			@Override
 			public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
 				RestTemplateMessageConverterUtil.installMessageConverters(converters);
@@ -64,19 +85,45 @@ public class RestConfiguration {
 				registry.addInterceptor(new HandlerInterceptorAdapter() {
 
 					@Override
-					public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
-							throws Exception {
+					public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+						// For PUT requests we need an extra round-trip
+						// See e.g. http://www.html5rocks.com/en/tutorials/cors/
 
-						// ensure CORS headers are added to every web response
-						if (!response.containsHeader("Access-Control-Allow-Origin")) {
-							response.addHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
+						String acRequestMethod = request.getHeader(ACCESS_CONTROL_REQUEST_METHOD);
+						String acRequestHeaders = request.getHeader(ACCESS_CONTROL_REQUEST_HEADERS);
+
+						response.setHeader(ACCESS_CONTROL_ALLOW_ORIGIN, ALLOWED_ORIGIN);
+
+						if (HttpMethod.OPTIONS.toString().equals(request.getMethod()) && hasValue(acRequestMethod)) {
+							// this is a preflight check our API only needs this for PUT
+							// requests, anything we can PUT we can also GET
+							response.addHeader(ACCESS_CONTROL_ALLOW_METHODS, HttpMethod.GET.toString());
+							response.addHeader(ACCESS_CONTROL_ALLOW_METHODS, HttpMethod.POST.toString());
+							response.addHeader(ACCESS_CONTROL_ALLOW_METHODS, HttpMethod.PUT.toString());
+							response.addHeader(ACCESS_CONTROL_ALLOW_METHODS, HttpMethod.DELETE.toString());
+							response.setHeader(ACCESS_CONTROL_ALLOW_HEADERS, acRequestHeaders);
+							response.setHeader(ACCESS_CONTROL_MAX_AGE, CACHE_SECONDS);
+
+							return false; // Don't continue processing, return to browser
+											// immediately
 						}
-						if (!response.containsHeader("Access-Control-Allow-Methods")) {
-							response.addHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
+						else {
+							response.addHeader(ACCESS_CONTROL_EXPOSE_HEADERS, LOCATION);
 						}
-						return true;
+
+						return true; // Not a preflight check, continue as normal
+					}
+
+					private boolean hasValue(String s) {
+						return ((s != null) && !s.isEmpty());
 					}
 				});
+			}
+
+			// add a static resource handler for the UI
+			@Override
+			public void addResourceHandlers(ResourceHandlerRegistry registry) {
+				registry.addResourceHandler("/admin-ui/**", "/admin-ui/").addResourceLocations("classpath:/");
 			}
 
 		};

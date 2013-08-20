@@ -30,6 +30,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.shell.CommandLine;
 import org.springframework.shell.core.CommandMarker;
+import org.springframework.shell.core.JLineLogHandler;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
@@ -146,6 +147,12 @@ public class XDShell implements CommandMarker, InitializingBean {
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		target(getDefaultUri().toString());
+	}
+
+	// Set suppress duplicate messages to false
+	// to allow XD shell to display all the messages on the console
+	static {
+		JLineLogHandler.setSuppressDuplicateMessages(false);
 	}
 
 }

@@ -19,5 +19,6 @@ include 'spring-xd-test'
 include 'spring-xd-rest-client'
 include 'spring-xd-rest-domain'
 include 'spring-xd-shell'
+include 'spring-xd-ui'
 include 'modules'
 

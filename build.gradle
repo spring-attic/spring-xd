@@ -44,7 +44,8 @@ allprojects {
 }
 
 def javaProjects() {
-	subprojects.findAll { project -> project.name != 'redis' }
+        def nonJavaProjects = ['redis', 'spring-xd-ui']
+        subprojects.findAll { project -> !nonJavaProjects.contains(project.name) }
 }
 
 configure(javaProjects()) { subproject ->
@@ -288,7 +289,7 @@ project('spring-xd-dirt') {
 
 	}
 
-	apply plugin:'application'
+        apply plugin:'application'
 	// skip the startScripts task to avoid default start script generation
 	startScripts.setEnabled(false)
 	mainClassName = "org.springframework.xd.dirt.server.SingleNodeMain"
@@ -307,6 +308,11 @@ project('spring-xd-dirt') {
 		outputs.dir modules
 	}
 
+        task xdUiFiles {
+                def uiFiles = file("$rootDir/spring-xd-ui")
+                outputs.dir uiFiles
+        }
+
 	task scriptFiles {
 		def scripts = file("$rootDir/scripts/xd")
 		outputs.dir scripts
@@ -323,6 +329,10 @@ project('spring-xd-dirt') {
 	applicationDistribution.from(moduleFiles) {
 		into "modules"
 	}
+
+        applicationDistribution.from(xdUiFiles) {
+                into "spring-xd-ui"
+        }
 }
 
 project('spring-xd-http') {
@@ -459,7 +469,6 @@ project('spring-xd-rest-domain') {
 	}
 }
 
-
 project('spring-xd-hadoop') {
 	description = 'Spring XD Hadoop'
 	dependencies {
@@ -582,6 +591,10 @@ project('modules') {
 	dependencies {
 		compile project(':spring-xd-dirt')
 	}
+}
+
+project('spring-xd-ui') {
+	description = 'Spring XD UI'
 }
 
 project('spring-xd-test') {

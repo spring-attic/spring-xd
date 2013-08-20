@@ -6,4 +6,7 @@
 	<bean id="moduleRegistry" class="org.springframework.xd.dirt.module.FileModuleRegistry">
 		<constructor-arg value="${XD_HOME}/modules" />
 	</bean>
+	<bean id="xdUi" class="org.springframework.xd.dirt.rest.UiResourceIdentifier">
+        <constructor-arg value="${XD_HOME}/spring-xd-ui" />
+    </bean>
 </beans>

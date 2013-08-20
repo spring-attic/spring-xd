@@ -97,7 +97,7 @@ configure(javaProjects()) { subproject ->
 		commonsBeanUtilsVersion = '1.6'
 		slf4jVersion = '1.7.5'
 		log4jVersion = '1.2.17'
-		args4jVersion = '2.0.16'
+		args4jVersion = '2.0.25'
 		mockitoVersion = '1.9.5'
 	}
 

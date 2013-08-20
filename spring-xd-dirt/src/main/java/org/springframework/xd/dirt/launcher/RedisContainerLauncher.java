@@ -66,10 +66,10 @@ public class RedisContainerLauncher extends AbstractContainerLauncher {
 						redisInfo.getProperty("redis_mode"),
 						redisInfo.getProperty("tcp_port")));
 			if (options.isJmxEnabled()) {
-				runtimeInfo.append(" JMX is disabled for XD components");
+				runtimeInfo.append(String.format(" JMX port: %d", options.getJmxPort()));
 			}
 			else {
-				runtimeInfo.append(String.format(" JMX port: %d", options.getJmxPort()));
+				runtimeInfo.append(" JMX is disabled for XD components");
 			}
 			logger.info(BannerUtils.displayBanner(container.getJvmName(), runtimeInfo.toString()));
 		}

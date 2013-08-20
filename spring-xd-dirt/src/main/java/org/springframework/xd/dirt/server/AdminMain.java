@@ -68,6 +68,9 @@ public class AdminMain {
 			parser.printUsage(System.err);
 			System.exit(0);
 		}
+		if (options.isJmxEnabled()) {
+			System.setProperty(AbstractOptions.XD_ENABLED_JMX_KEY, "true");
+		}
 		AbstractOptions.setXDHome(options.getXDHomeDir());
 		AbstractOptions.setXDTransport(options.getTransport());
 		AbstractOptions.setXDAnalytics(options.getAnalytics());
@@ -88,7 +91,7 @@ public class AdminMain {
 			XmlWebApplicationContext context = new XmlWebApplicationContext();
 			context.setConfigLocation("classpath:" + DefaultContainer.XD_INTERNAL_CONFIG_ROOT + "admin-server.xml");
 			context.setParent(parent);
-			if (!options.isJmxEnabled()) {
+			if (options.isJmxEnabled()) {
 				context.getEnvironment().addActiveProfile("xd.jmx.enabled");
 				OptionUtils.setJmxProperties(options, context.getEnvironment());
 			}
@@ -101,7 +104,7 @@ public class AdminMain {
 			if (Transport.local == options.getTransport()) {
 				StringBuilder runtimeInfo = new StringBuilder(String.format("Running in Local Mode on port: %s ",
 						server.getLocalPort()));
-				if (options.isJmxEnabled()) {
+				if (!options.isJmxEnabled()) {
 					runtimeInfo.append(" JMX is disabled for XD components");
 				}
 				else {

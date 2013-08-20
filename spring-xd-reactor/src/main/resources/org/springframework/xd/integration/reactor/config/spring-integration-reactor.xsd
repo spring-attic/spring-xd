@@ -11,16 +11,20 @@
               schemaLocation="http://www.springframework.org/schema/integration/spring-integration-3.0.xsd"/>
 
   <xsd:annotation>
-    <xsd:documentation><![CDATA[
-			Defines the configuration elements for Spring Integration Reactor Adapters.
-		]]></xsd:documentation>
+    <xsd:documentation>
+      <![CDATA[
+			    Defines the configuration elements for Spring Integration Reactor Adapters.
+		  ]]>
+    </xsd:documentation>
   </xsd:annotation>
 
   <xsd:element name="syslog-inbound-channel-adapter">
     <xsd:annotation>
-      <xsd:documentation><![CDATA[
-	      Defines an inbound Syslog Channel Adapter.
-			]]></xsd:documentation>
+      <xsd:documentation>
+        <![CDATA[
+	          Defines an inbound Syslog Channel Adapter.
+			  ]]>
+      </xsd:documentation>
       <xsd:appinfo>
         <tool:annotation>
           <tool:exports type="org.springframework.xd.integration.reactor.syslog.SyslogInboundChannelAdapter"/>
@@ -29,27 +33,67 @@
     </xsd:annotation>
     <xsd:complexType>
       <xsd:attribute name="id" type="xsd:string" use="required"/>
-      <xsd:attribute name="env" type="xsd:string" use="required"/>
+      <xsd:attribute name="env" type="xsd:string" use="required">
+        <xsd:annotation>
+          <xsd:documentation>
+            <![CDATA[
+                Each SyslogInboundChannelAdapter must have a reference to an existing Environment.
+            ]]>
+          </xsd:documentation>
+          <xsd:appinfo>
+            <tool:annotation kind="ref">
+              <tool:expected-type type="reactor.core.Environment"/>
+            </tool:annotation>
+          </xsd:appinfo>
+        </xsd:annotation>
+      </xsd:attribute>
       <xsd:attribute name="port" type="xsd:string" use="required"/>
-      <xsd:attribute name="channel" type="xsd:string" use="optional"/>
-      <xsd:attribute name="error-channel" type="xsd:string" use="optional"/>
+      <xsd:attribute name="channel" type="xsd:string" use="optional">
+        <xsd:annotation>
+          <xsd:documentation>
+            <![CDATA[
+                The channel onto which syslog messages should be published.
+            ]]>
+          </xsd:documentation>
+          <xsd:appinfo>
+            <tool:annotation kind="ref">
+              <tool:expected-type type="org.springframework.integration.MessageChannel"/>
+            </tool:annotation>
+          </xsd:appinfo>
+        </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attribute name="error-channel" type="xsd:string" use="optional">
+        <xsd:annotation>
+          <xsd:documentation>
+            <![CDATA[
+                The channel onto which errors should be published.
+            ]]>
+          </xsd:documentation>
+          <xsd:appinfo>
+            <tool:annotation kind="ref">
+              <tool:expected-type type="org.springframework.integration.MessageChannel"/>
+            </tool:annotation>
+          </xsd:appinfo>
+        </xsd:annotation>
+      </xsd:attribute>
     </xsd:complexType>
   </xsd:element>
 
-  <xsd:element name="channel">
+  <xsd:element name="publish-subscribe-channel">
     <xsd:annotation>
-      <xsd:documentation><![CDATA[
-	      Defines a ReactorSubscribableChannel.
-			]]></xsd:documentation>
+      <xsd:documentation>
+        <![CDATA[
+	          Defines a ReactorPublishSubscribeChannel.
+			  ]]>
+      </xsd:documentation>
       <xsd:appinfo>
         <tool:annotation>
-          <tool:exports type="org.springframework.integration.core.SubscribableChannel"/>
+          <tool:exports type="org.springframework.integration.MessageChannel"/>
         </tool:annotation>
       </xsd:appinfo>
     </xsd:annotation>
     <xsd:complexType>
-      <xsd:attribute name="id" type="xsd:string" use="required"/>
-      <xsd:attribute name="env" type="xsd:string" use="required"/>
+      <xsd:attribute name="id" type="xsd:string" use="optional"/>
       <xsd:attribute name="scope" type="xsd:string" use="optional"/>
       <xsd:attribute name="datatype" type="xsd:string" use="optional">
         <xsd:annotation>
@@ -64,7 +108,20 @@
           </xsd:documentation>
         </xsd:annotation>
       </xsd:attribute>
-      <xsd:attribute name="dispatcher" type="xsd:string" use="optional"/>
+      <xsd:attribute name="dispatcher" type="xsd:string" use="optional">
+        <xsd:annotation>
+          <xsd:documentation>
+            <![CDATA[
+                The MessageDispatcher to use to actually dispatch messages.
+            ]]>
+          </xsd:documentation>
+          <xsd:appinfo>
+            <tool:annotation kind="ref">
+              <tool:expected-type type="org.springframework.integration.dispatcher.MessageDispatcher"/>
+            </tool:annotation>
+          </xsd:appinfo>
+        </xsd:annotation>
+      </xsd:attribute>
     </xsd:complexType>
   </xsd:element>
 

@@ -2,16 +2,15 @@ package org.springframework.xd.integration.reactor.channel;
 
 import org.springframework.integration.channel.AbstractSubscribableChannel;
 import org.springframework.integration.dispatcher.MessageDispatcher;
-import org.springframework.xd.integration.reactor.dispatcher.ReactorProcessorMessageDispatcher;
 
 /**
  * @author Jon Brisbin
  */
-public class ReactorSubscribableChannel extends AbstractSubscribableChannel {
+public class ReactorPublishSubscribeChannel extends AbstractSubscribableChannel {
 
-	private final ReactorProcessorMessageDispatcher dispatcher;
+	private final MessageDispatcher dispatcher;
 
-	public ReactorSubscribableChannel(ReactorProcessorMessageDispatcher dispatcher) {
+	public ReactorPublishSubscribeChannel(MessageDispatcher dispatcher) {
 		this.dispatcher = dispatcher;
 	}
 

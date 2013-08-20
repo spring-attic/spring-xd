@@ -5,10 +5,11 @@
              xmlns:beans="http://www.springframework.org/schema/beans"
              xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
              http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-             http\://www.springframework.org/schema/integration/reactor http://www.springframework.org/schema/integration/reactor/spring-integration-reactor.xsd">
+             http://www.springframework.org/schema/integration/reactor http://www.springframework.org/schema/integration/reactor/spring-integration-reactor.xsd">
 
-  <int-reactor:syslog-inbound-channel-adapter port="${port:5140}" channel="output"/>
   <beans:bean id="env" class="reactor.core.Environment"/>
+
+  <int-reactor:syslog-inbound-channel-adapter port="${port:5140}" env="env" channel="output"/>
 
   <beans:bean id="syslog" class="org.springframework.xd.integration.reactor.syslog.SyslogInboundChannelAdapter">
     <beans:constructor-arg ref="env"/>
@@ -19,7 +20,7 @@
   <beans:bean id="reactorProcessorDispatcher"
               class="org.springframework.xd.integration.reactor.dispatcher.ReactorProcessorMessageDispatcher"/>
 
-  <beans:bean id="output" class="org.springframework.xd.integration.reactor.channel.ReactorSubscribableChannel">
+  <beans:bean id="output" class="org.springframework.xd.integration.reactor.channel.ReactorPublishSubscribeChannel">
     <beans:constructor-arg ref="reactorProcessorDispatcher"/>
   </beans:bean>
 

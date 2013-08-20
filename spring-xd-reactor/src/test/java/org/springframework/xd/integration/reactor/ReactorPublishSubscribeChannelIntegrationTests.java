@@ -18,7 +18,7 @@ import static junit.framework.TestCase.assertTrue;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
-public class ReactorSubscribableChannelIntegrationTests {
+public class ReactorPublishSubscribeChannelIntegrationTests {
 
 	@Autowired
 	private SubscribableChannel output;

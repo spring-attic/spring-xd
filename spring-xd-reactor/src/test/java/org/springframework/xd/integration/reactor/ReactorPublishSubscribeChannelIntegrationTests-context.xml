@@ -8,9 +8,13 @@
        http://www.springframework.org/schema/integration/reactor http://www.springframework.org/schema/integration/reactor/spring-integration-reactor.xsd">
 
   <bean id="env" class="reactor.core.Environment"/>
-  <bean id="testHandler" class="org.springframework.xd.integration.reactor.TestMessageHandler"/>
+  <bean id="testHandler"
+        class="org.springframework.xd.integration.reactor.TestMessageHandler"/>
 
-  <int-reactor:channel id="output" env="env"/>
+  <bean id="reactorDispatcher"
+        class="org.springframework.xd.integration.reactor.dispatcher.ReactorProcessorMessageDispatcher"/>
+
+  <int-reactor:publish-subscribe-channel id="output" dispatcher="reactorDispatcher"/>
   <int:service-activator input-channel="output" ref="testHandler"/>
 
 </beans>

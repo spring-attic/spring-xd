@@ -1,18 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
+             xmlns:int-reactor="http://www.springframework.org/schema/integration/reactor"
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
              xmlns:beans="http://www.springframework.org/schema/beans"
              xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-             http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+             http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+             http\://www.springframework.org/schema/integration/reactor http://www.springframework.org/schema/integration/reactor/spring-integration-reactor.xsd">
 
+  <int-reactor:syslog-inbound-channel-adapter port="${port:5140}" channel="output"/>
   <beans:bean id="env" class="reactor.core.Environment"/>
-  <beans:bean id="syslog" class="reactor.spring.integration.syslog.SyslogInboundChannelAdapter">
+
+  <beans:bean id="syslog" class="org.springframework.xd.integration.reactor.syslog.SyslogInboundChannelAdapter">
     <beans:constructor-arg ref="env"/>
-    <beans:property name="port" value="${port:5140}"/>
-    <beans:property name="dispatcher" value="${dispatcher:eventLoop}"/>
+    <beans:constructor-arg value="${port:5140}"/>
     <beans:property name="outputChannel" ref="output"/>
   </beans:bean>
 
-  <channel id="output"/>
+  <beans:bean id="reactorProcessorDispatcher"
+              class="org.springframework.xd.integration.reactor.dispatcher.ReactorProcessorMessageDispatcher"/>
+
+  <beans:bean id="output" class="org.springframework.xd.integration.reactor.channel.ReactorSubscribableChannel">
+    <beans:constructor-arg ref="reactorProcessorDispatcher"/>
+  </beans:bean>
+
 
 </beans:beans>

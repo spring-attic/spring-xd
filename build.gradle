@@ -85,7 +85,7 @@ configure(javaProjects()) { subproject ->
 		springDataRedisVersion = '1.1.0.BUILD-SNAPSHOT'
 		springDataCommonsVersion = '1.6.0.M1'
 		springDataGemfireVersion = '1.3.2.RELEASE'
-		lettuceVersion = '2.3.2'
+		lettuceVersion = '2.3.3'
 		springDataHadoopVersion = '1.0.1.RC1'
 		hadoop10Version = '1.0.4'
 		hadoop11Version = '1.1.2'
@@ -318,7 +318,7 @@ project('spring-xd-http') {
 	description = 'Spring XD HTTP'
 	dependencies {
 		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
-		compile "io.netty:netty:3.6.5.Final"
+		compile "io.netty:netty:3.6.6.Final"
 		compile "org.springframework:spring-web:$springVersion"
 		testCompile project(":spring-xd-test")
 	}

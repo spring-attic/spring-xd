@@ -71,12 +71,12 @@ public class StreamConfigParserTests {
 		assertEquals("Streams[mystream = foo][mystream = (ModuleNode:foo:11>14)]", ast.stringify(true));
 	}
 
-	// Test if the DSLException thrown when the stream name is same as that of any of it's module's name.
+	// Test if the DSLException thrown when the stream name is same as that of any of its modules' names.
 	@Test
 	public void testInvalidStreamName() {
 		String streamName = "bar";
 		String stream = "foo | bar";
-		checkForParseError(streamName, stream, XDDSLMessages.AMBIGUOUS_STREAM_NAME, stream.indexOf(streamName), streamName);
+		checkForParseError(streamName, stream, XDDSLMessages.STREAM_NAME_MATCHING_MODULE_NAME, stream.indexOf(streamName), streamName);
 	}
 	
 	// Pipes are used to connect modules
@@ -690,7 +690,6 @@ public class StreamConfigParserTests {
 			fail("expected to fail but parsed " + sn.stringify());
 		}
 		catch (DSLException e) {
-			e.printStackTrace();
 			assertEquals(msg, e.getMessageCode());
 			assertEquals(pos, e.getPosition());
 			if (inserts != null) {
@@ -707,7 +706,6 @@ public class StreamConfigParserTests {
 			fail("expected to fail but parsed " + sn.stringify());
 		}
 		catch (DSLException e) {
-			e.printStackTrace();
 			assertEquals(msg, e.getMessageCode());
 			assertEquals(pos, e.getPosition());
 			if (inserts != null) {

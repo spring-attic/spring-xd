@@ -22,17 +22,17 @@ import org.springframework.xd.dirt.core.BaseDefinition;
 import org.springframework.xd.store.DomainRepository;
 
 /**
- * Base support class for deployers that know how to deal with {@link BaseInstance
- * instances} of a {@link BaseDefinition definition}.
- *
+ * Base support class for deployers that know how to deal with {@link BaseInstance instances} of a
+ * {@link BaseDefinition definition}.
+ * 
  * @param D the kind of definition this deployer deals with
  * @param I the corresponding instance type
- *
+ * 
  * @author Eric Bottard
  * @author Ilayaperumal Gopinathan
  */
 public abstract class AbstractInstancePersistingDeployer<D extends BaseDefinition, I extends BaseInstance<D>> extends
-AbstractDeployer<D> {
+		AbstractDeployer<D> {
 
 	private DomainRepository<I, String> instanceRepository;
 
@@ -116,8 +116,7 @@ AbstractDeployer<D> {
 	}
 
 	/**
-	 * Query deployment information about definitions whose ids range from {@code first}
-	 * to {@code last}.
+	 * Query deployment information about definitions whose ids range from {@code first} to {@code last}.
 	 */
 	public Iterable<I> deploymentInfo(String first, String last) {
 		return instanceRepository.findAllInRange(first, true, last, true);

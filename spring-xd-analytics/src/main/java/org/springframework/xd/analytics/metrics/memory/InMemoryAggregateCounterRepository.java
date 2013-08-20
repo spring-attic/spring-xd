@@ -23,6 +23,7 @@ import java.util.Map;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeField;
 import org.joda.time.Interval;
+
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.xd.analytics.metrics.core.AggregateCount;
 import org.springframework.xd.analytics.metrics.core.AggregateCounterRepository;
@@ -31,9 +32,9 @@ import org.springframework.xd.store.AbstractInMemoryRepository;
 
 /**
  * In-memory aggregate counter with minute resolution.
- *
+ * 
  * Note that the data is permanently accumulated, so will grow steadily in size until the host process is restarted.
- *
+ * 
  * @author Luke Taylor
  * @author Eric Bottard
  */

@@ -15,6 +15,7 @@ package org.springframework.xd.dirt.stream;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.xd.dirt.server.options.AbstractOptions;

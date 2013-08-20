@@ -23,7 +23,7 @@ import org.springframework.xd.rest.client.domain.JobDefinitionResource;
 
 /**
  * Knows how to build a REST resource out of our domain model {@link StreamDefinition}.
- *
+ * 
  * @author Glenn Renfro
  */
 public class JobDefinitionResourceAssembler extends

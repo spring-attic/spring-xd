@@ -20,9 +20,9 @@ import org.springframework.xd.store.DomainRepository;
 
 /**
  * Interface for repositories that now how to deal with {@link Counter}s.
- *
+ * 
  * @author Mark Pollack
- *
+ * 
  */
 public interface CounterRepository extends MetricRepository<Counter>, DomainRepository<Counter, String> {
 

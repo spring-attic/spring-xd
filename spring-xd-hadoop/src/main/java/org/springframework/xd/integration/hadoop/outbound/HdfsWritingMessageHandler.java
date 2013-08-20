@@ -56,7 +56,8 @@ public class HdfsWritingMessageHandler extends AbstractMessageHandler implements
 	protected void doWrite(Message<?> message) {
 		try {
 			hdfsWriter.write(message);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			throw new MessageHandlingException(message,
 					"failed to write Message payload to HDFS", e);
 		}
@@ -84,7 +85,7 @@ public class HdfsWritingMessageHandler extends AbstractMessageHandler implements
 
 	@Override
 	public void stop(Runnable callback) {
-		//TODO
+		// TODO
 		stop();
 	}
 

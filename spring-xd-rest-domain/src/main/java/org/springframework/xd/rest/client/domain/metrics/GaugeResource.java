@@ -26,6 +26,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  */
 @XmlRootElement(name = "gauge")
 public class GaugeResource extends MetricResource {
+
 	// TODO: This is identical to CounterResource. Perhaps we can have an "IntegralResource" instead.
 	/**
 	 * The value for the gauge.

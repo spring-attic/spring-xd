@@ -45,9 +45,8 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 	}
 
 	/**
-	 * Parse a stream definition without supplying the stream name up front. The stream
-	 * name may be embedded in the definition. For example:
-	 * <code>mystream = http | file</code>
+	 * Parse a stream definition without supplying the stream name up front. The stream name may be embedded in the
+	 * definition. For example: <code>mystream = http | file</code>
 	 * 
 	 * @return the AST for the parsed stream
 	 */
@@ -71,7 +70,8 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 		// Throw DSLException as allowing this causes the parser to lookup the stream indefinitely.
 		for (StreamNode streamNode : ast.getStreamNodes()) {
 			if (streamNode.getModule(name) != null) {
-				throw new DSLException(stream, stream.indexOf(name), XDDSLMessages.STREAM_NAME_MATCHING_MODULE_NAME, name);
+				throw new DSLException(stream, stream.indexOf(name), XDDSLMessages.STREAM_NAME_MATCHING_MODULE_NAME,
+						name);
 			}
 		}
 		if (moreTokens()) {

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.x.redis;
 
 import static org.junit.Assert.assertEquals;
@@ -26,7 +27,7 @@ import org.springframework.integration.x.redis.RedisChannelRegistry.EmbeddedHead
 /**
  * @author Gary Russell
  * @since 1.0
- *
+ * 
  */
 public class MessageConverterTests {
 

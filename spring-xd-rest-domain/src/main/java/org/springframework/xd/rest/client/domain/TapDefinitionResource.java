@@ -21,10 +21,10 @@ import org.springframework.util.Assert;
 
 /**
  * Represents a tap definition
- *
+ * 
  * @author David Turanski
  * @author Gunnar Hillert
- *
+ * 
  */
 public class TapDefinitionResource extends StreamDefinitionResource {
 
@@ -63,7 +63,7 @@ public class TapDefinitionResource extends StreamDefinitionResource {
 
 	/**
 	 * Dedicated subclass to workaround type erasure.
-	 *
+	 * 
 	 * @author Eric Bottard
 	 */
 	public static class Page extends PagedResources<TapDefinitionResource> {

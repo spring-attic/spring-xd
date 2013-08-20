@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.tuple.batch;
 
 import org.springframework.batch.item.database.ItemSqlParameterSourceProvider;
@@ -23,12 +24,13 @@ import org.springframework.xd.tuple.Tuple;
  * A factory for {@link TupleSqlParameterSource}s
  * 
  * @author Michael Minella
- *
+ * 
  */
 public class TupleSqlParameterSourceProvider implements ItemSqlParameterSourceProvider<Tuple> {
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.springframework.batch.item.database.ItemSqlParameterSourceProvider#createSqlParameterSource(T item)
 	 */
 	@Override

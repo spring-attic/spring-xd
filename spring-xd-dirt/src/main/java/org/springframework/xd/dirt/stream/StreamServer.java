@@ -82,6 +82,7 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 
 	/**
 	 * Set the servletName. Default is 'xd'.
+	 * 
 	 * @param servletName
 	 */
 	public void setServletName(String servletName) {
@@ -97,6 +98,7 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 
 	/**
 	 * Get the underlying HTTP port if a random port was requested, user port = 0.
+	 * 
 	 * @return the port
 	 */
 	public int getLocalPort() {
@@ -121,7 +123,7 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 		// in order to handle CORS requests
 		DispatcherServlet servlet = new DispatcherServlet(this.webApplicationContext);
 		servlet.setDispatchOptionsRequest(true);
-        Tomcat.addServlet(tomcatContext, this.servletName, servlet);
+		Tomcat.addServlet(tomcatContext, this.servletName, servlet);
 		tomcatContext.addServletMapping("/", this.servletName);
 
 		FilterDef filterDef = new FilterDef();
@@ -175,8 +177,8 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 			if (this.handlerTask != null) {
 				this.handlerTask.cancel(true);
 			}
-			//This will likely trigger an exception, but the 'clean' shutdown code is hanging.
-            tomcat.destroy();
+			// This will likely trigger an exception, but the 'clean' shutdown code is hanging.
+			tomcat.destroy();
 			this.running = false;
 		}
 		catch (LifecycleException e) {
@@ -187,19 +189,19 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 
 
 	/**
-	 * This was taken from the tomcat unit tests but it hangs on stop.
-	 * Leave it here for some further investigation.
+	 * This was taken from the tomcat unit tests but it hangs on stop. Leave it here for some further investigation.
+	 * 
 	 * @throws LifecycleException
 	 */
 	private void shutdownCleanly() throws LifecycleException {
 		// This is taken from the Tomcat unit tests.
 		// Make sure that stop() & destroy() are called as necessary.
 		if (tomcat.getServer() != null
-		        && tomcat.getServer().getState() != LifecycleState.DESTROYED) {
-		    if (tomcat.getServer().getState() != LifecycleState.STOPPED) {
-		        tomcat.stop();
-		    }
-		    tomcat.destroy();
+				&& tomcat.getServer().getState() != LifecycleState.DESTROYED) {
+			if (tomcat.getServer().getState() != LifecycleState.STOPPED) {
+				tomcat.stop();
+			}
+			tomcat.destroy();
 		}
 	}
 
@@ -210,6 +212,7 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 	}
 
 	private class Handler implements Runnable {
+
 		@Override
 		public void run() {
 			tomcat.getServer().await();

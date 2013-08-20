@@ -1,3 +1,4 @@
+
 package org.springframework.xd.module;
 
 import java.util.HashMap;
@@ -7,6 +8,7 @@ import org.springframework.util.Assert;
 
 /**
  * Represents information about a particular module deployment. Extensible using {@link #addAttribute(String, Object)}.
+ * 
  * @author Luke Taylor
  * @author Gary Russell
  */

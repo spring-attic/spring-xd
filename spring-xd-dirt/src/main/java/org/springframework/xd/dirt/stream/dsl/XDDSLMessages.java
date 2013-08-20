@@ -16,9 +16,9 @@
 
 package org.springframework.xd.dirt.stream.dsl;
 
-import java.text.MessageFormat;
+import static org.springframework.xd.dirt.stream.dsl.XDDSLMessages.Kind.ERROR;
 
-import static org.springframework.xd.dirt.stream.dsl.XDDSLMessages.Kind.*;
+import java.text.MessageFormat;
 
 /**
  * Contains all the messages that can be produced during Spring XD DSL parsing. Each message has a kind (info, warn,
@@ -67,7 +67,9 @@ public enum XDDSLMessages {
 	// CANNOT_USE_SUBSTREAM_WITH_SINK(ERROR,128,"cannot use substream with source channel"), //
 	AMBIGUOUS_MODULE_NAME(ERROR, 129,
 			"ambiguous module name ''{0}'' in stream named ''{1}'', appears at both position {2} and {3}"),
-	STREAM_NAME_MATCHING_MODULE_NAME(ERROR, 130, "Stream name ''{0}'' same as that of its modules' names is not allowed.");
+	STREAM_NAME_MATCHING_MODULE_NAME(ERROR,
+			130,
+			"Stream name ''{0}'' same as that of its modules' names is not allowed.");
 
 	private Kind kind;
 

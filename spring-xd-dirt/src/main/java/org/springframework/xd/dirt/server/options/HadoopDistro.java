@@ -29,17 +29,17 @@ public enum HadoopDistro {
 	 */
 	hadoop10,
 
-    /**
-     * Apache Hadoop 1.1
-     */
-    hadoop11,
+	/**
+	 * Apache Hadoop 1.1
+	 */
+	hadoop11,
 
-    /**
-     * Apache Hadoop 2.0
-     */
-    hadoop20,
+	/**
+	 * Apache Hadoop 2.0
+	 */
+	hadoop20,
 
-    /**
+	/**
 	 * Pivotal HD 1.0
 	 */
 	phd1;

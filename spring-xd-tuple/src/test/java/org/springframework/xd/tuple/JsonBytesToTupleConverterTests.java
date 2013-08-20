@@ -10,22 +10,25 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.xd.tuple;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
 /**
  * @author David Turanski
- *
+ * 
  */
 public class JsonBytesToTupleConverterTests {
+
 	private JsonBytesToTupleConverter converter = new JsonBytesToTupleConverter();
+
 	@Test
 	public void testSimple() {
 		String json = "{\"symbol\":\"VMW\",\"price\":73}";
 		Tuple t = converter.convert(json.getBytes());
-		assertEquals("VMW",t.getValue("symbol"));
+		assertEquals("VMW", t.getValue("symbol"));
 	}
 }

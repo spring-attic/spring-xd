@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.dirt.rest.metrics;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +34,7 @@ import org.springframework.xd.rest.client.domain.metrics.RichGaugeResource;
 
 /**
  * Exposes representations of {@link org.springframework.xd.analytics.metrics.core.Gauge}s.
- *
+ * 
  * @author Luke Taylor
  */
 @Controller

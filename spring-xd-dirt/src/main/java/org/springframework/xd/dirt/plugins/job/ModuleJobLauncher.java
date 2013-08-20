@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.dirt.plugins.job;
 
 import java.util.Collection;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.launch.JobLauncher;
@@ -27,28 +29,32 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * Executes all jobs defined within a given stream once the context has been
- * started. This really should be replaced once we have the concept of
- * triggers built in.
- *
+ * Executes all jobs defined within a given stream once the context has been started. This really should be replaced
+ * once we have the concept of triggers built in.
+ * 
  * @author Michael Minella
  * @author Gunnar Hillert
  * @since 1.0
- *
+ * 
  */
 public class ModuleJobLauncher implements Lifecycle {
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
 	private JobLauncher launcher;
+
 	private String groupName;
+
 	private JobRegistry registry;
 
 	private static String JOB_NAME_DELIMITER = ".";
+
 	private static int NAME_INDEX = 0;
 
 	private boolean isRunning = false;
+
 	private final boolean executeBatchJobOnStartup;
+
 	private final JobParameters jobParameters;
 
 	public ModuleJobLauncher(JobLauncher launcher, JobRegistry registry, boolean executeBatchJobOnStartup,

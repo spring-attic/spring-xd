@@ -17,17 +17,19 @@ import java.util.Map;
 
 import org.springframework.integration.MessageChannel;
 
+
 /**
  * Strategy interface to expose module inputs and outputs
- *
+ * 
  * @author David Turanski
  */
 public interface ChannelExporter {
 
-	public MessageChannel getInputChannel(Map<String,MessageChannel> channels);
+	public MessageChannel getInputChannel(Map<String, MessageChannel> channels);
 
-	public Map<String,MessageChannel> getOutputChannels(Map<String,MessageChannel> channels);
+	public Map<String, MessageChannel> getOutputChannels(Map<String, MessageChannel> channels);
 
-	public <T extends MessageChannel> Map<String, T> getOutputChannels(Map<String,MessageChannel> channels, Class<T> requiredType);
+	public <T extends MessageChannel> Map<String, T> getOutputChannels(Map<String, MessageChannel> channels,
+			Class<T> requiredType);
 
 }

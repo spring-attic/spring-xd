@@ -30,9 +30,10 @@ public class NotDeployedException extends XDRuntimeException {
 
 	/**
 	 * Create a new exception.
+	 * 
 	 * @param offendingName name of the definition that wasn't found
 	 * @param message Exception message. Can use {@link String#format(String, Object...)} syntax to include the
-	 * offendingName
+	 *        offendingName
 	 */
 	public NotDeployedException(String offendingName, String message) {
 		super(String.format(message, offendingName));

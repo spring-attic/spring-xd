@@ -50,9 +50,9 @@ public class RabbitContainerLauncher extends AbstractContainerLauncher {
 		if (logger.isInfoEnabled()) {
 			final StringBuilder runtimeInfo = new StringBuilder();
 			runtimeInfo.append(String.format("Using RabbitMQ at %s (virtual host: %s) on port: %d ",
-						this.connectionFactory.getHost(),
-						this.connectionFactory.getVirtualHost(),
-						this.connectionFactory.getPort()));
+					this.connectionFactory.getHost(),
+					this.connectionFactory.getVirtualHost(),
+					this.connectionFactory.getPort()));
 			if (options.isJmxEnabled()) {
 				runtimeInfo.append(String.format(" JMX port: %d", options.getJmxPort()));
 			}

@@ -10,6 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.xd.dirt.stream;
 
 import org.springframework.xd.store.DomainRepository;
@@ -17,11 +18,11 @@ import org.springframework.xd.store.DomainRepository;
 
 /**
  * Data Repository for {@link TriggerDefinition}s.
- *
+ * 
  * @author Gunnar Hillert
  * @since 1.0
- *
+ * 
  */
-public interface TriggerDefinitionRepository extends DomainRepository<TriggerDefinition,String> {
+public interface TriggerDefinitionRepository extends DomainRepository<TriggerDefinition, String> {
 
 }

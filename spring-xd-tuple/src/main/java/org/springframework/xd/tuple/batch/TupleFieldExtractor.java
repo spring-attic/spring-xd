@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.tuple.batch;
 
 import java.util.ArrayList;
@@ -23,18 +24,18 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.xd.tuple.Tuple;
 
 /**
- * Implementation of the {@link FieldExtractor} that extracts fields from a
- * {@link Tuple}.  There are two options for the extraction:
+ * Implementation of the {@link FieldExtractor} that extracts fields from a {@link Tuple}. There are two options for the
+ * extraction:
  * 
  * <ul>
- *   <li>Names - The fields will be extracted from the item in the order
- *   they are specified via the names in the provided List.</li>
- *   <li>Order - Since Tuple implementations are ordered, if a list of names
- *   is not provided, all fields in the Tuple will be extracted in order.
+ * <li>Names - The fields will be extracted from the item in the order they are specified via the names in the provided
+ * List.</li>
+ * <li>Order - Since Tuple implementations are ordered, if a list of names is not provided, all fields in the Tuple will
+ * be extracted in order.
  * </ul>
  * 
  * @author Michael Minella
- *
+ * 
  */
 public class TupleFieldExtractor implements FieldExtractor<Tuple> {
 
@@ -42,17 +43,19 @@ public class TupleFieldExtractor implements FieldExtractor<Tuple> {
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.springframework.batch.item.file.transform.FieldExtractor#extract(T item)
 	 */
 	@Override
 	public Object[] extract(Tuple item) {
 		List<Object> extractedFields = new ArrayList<Object>(item.getFieldCount());
 
-		if(CollectionUtils.isEmpty(names)) {
-			for(int i = 0; i < item.getFieldCount(); i++) {
+		if (CollectionUtils.isEmpty(names)) {
+			for (int i = 0; i < item.getFieldCount(); i++) {
 				extractedFields.add(item.getValue(i));
 			}
-		} else {
+		}
+		else {
 			for (String fieldName : names) {
 				extractedFields.add(item.getValue(fieldName));
 			}

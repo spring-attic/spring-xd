@@ -10,6 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.xd.analytics.metrics.integration;
 
 import org.springframework.integration.Message;
@@ -24,6 +25,7 @@ import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
  * 
  */
 public class RichGaugeHandler {
+
 	private final RichGaugeRepository richGaugeRepository;
 
 	private final String name;

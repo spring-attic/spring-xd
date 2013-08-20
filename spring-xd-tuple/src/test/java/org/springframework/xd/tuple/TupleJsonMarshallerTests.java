@@ -10,6 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.xd.tuple;
 
 import static org.junit.Assert.assertEquals;
@@ -21,16 +22,19 @@ import java.io.InputStreamReader;
 import java.util.List;
 
 import org.junit.Test;
+
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
 /**
  * @author David Turanski
- *
+ * 
  */
 public class TupleJsonMarshallerTests extends AbstractTupleMarshallerTests {
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.springframework.xd.tuple.AbstractTupleMarshallerTests#getMarshaller()
 	 */
 	@Override

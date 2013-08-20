@@ -26,6 +26,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.log4j.Appender;
 import org.apache.log4j.Logger;
 import org.apache.log4j.RollingFileAppender;
+
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationListener;
@@ -51,8 +52,7 @@ public class DefaultContainer implements Container, SmartLifecycle, ApplicationC
 	private volatile ApplicationContext deployerContext;
 
 	/**
-	 * Base location for XD config files. Chosen so as not to collide with user provided
-	 * content.
+	 * Base location for XD config files. Chosen so as not to collide with user provided content.
 	 */
 	public static final String XD_CONFIG_ROOT = "META-INF/spring-xd/";
 

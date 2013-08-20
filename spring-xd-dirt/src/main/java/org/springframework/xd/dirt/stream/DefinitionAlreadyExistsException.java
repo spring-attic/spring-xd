@@ -30,9 +30,10 @@ public class DefinitionAlreadyExistsException extends XDRuntimeException {
 
 	/**
 	 * Create a new exception.
+	 * 
 	 * @param offendingName name of the definition that conflicts
 	 * @param message Exception message. Can use {@link String#format(String, Object...)} syntax to include the
-	 * offendingName
+	 *        offendingName
 	 */
 	public DefinitionAlreadyExistsException(String offendingName, String message) {
 		super(String.format(message, offendingName));

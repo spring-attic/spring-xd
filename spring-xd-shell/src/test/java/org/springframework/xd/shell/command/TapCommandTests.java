@@ -16,12 +16,13 @@
 
 package org.springframework.xd.shell.command;
 
+import static org.junit.Assert.assertEquals;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
-import org.springframework.shell.core.CommandResult;
 
-import static org.junit.Assert.*;
+import org.springframework.shell.core.CommandResult;
 
 /**
  * Tap commands tests.

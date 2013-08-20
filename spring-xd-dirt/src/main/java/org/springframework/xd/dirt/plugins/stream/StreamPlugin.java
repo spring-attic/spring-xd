@@ -16,6 +16,10 @@
 
 package org.springframework.xd.dirt.plugins.stream;
 
+import static org.springframework.xd.module.ModuleType.PROCESSOR;
+import static org.springframework.xd.module.ModuleType.SINK;
+import static org.springframework.xd.module.ModuleType.SOURCE;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -23,6 +27,7 @@ import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
@@ -34,8 +39,6 @@ import org.springframework.xd.module.BeanDefinitionAddingPostProcessor;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.Plugin;
-
-import static org.springframework.xd.module.ModuleType.*;
 
 /**
  * @author Mark Fisher

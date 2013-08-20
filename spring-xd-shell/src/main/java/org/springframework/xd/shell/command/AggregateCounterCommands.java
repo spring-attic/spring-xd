@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.SortedMap;
 
 import org.joda.time.DateTimeConstants;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.shell.core.CommandMarker;
@@ -69,37 +70,30 @@ public class AggregateCounterCommands extends AbstractMetricsCommands implements
 
 	@CliCommand(value = DISPLAY_AGGR_COUNTER, help = "Display aggregate counter values by chosen interval and resolution(minute, hour)")
 	public Table display(
-			@CliOption(key = { "", "name" }, help = "the name of the aggregate counter to display", mandatory = true, optionContext = "existing-aggregate-counter disable-string-converter")
-			String name,
-			@CliOption(key = "from", help = "start-time for the interval. format: 'yyyy-MM-dd HH:mm:ss'", mandatory = false)
-			String from,
-			@CliOption(key = "to", help = "end-time for the interval. format: 'yyyy-MM-dd HH:mm:ss'. defaults to now", mandatory = false)
-			String to,
-			@CliOption(key = "lastHours", help = "set the interval to last 'n' hours", mandatory = false)
-			Integer lastHours,
-			@CliOption(key = "lastDays", help = "set the interval to last 'n' days", mandatory = false)
-			Integer lastDays,
-			@CliOption(key = "resolution", help = "the size of the bucket to aggregate (minute, hour)", mandatory = false, unspecifiedDefaultValue = "hour")
-			Resolution resolution,
-			@CliOption(key = "pattern", help = "the pattern used to format the count values (see DecimalFormat)", mandatory = false, unspecifiedDefaultValue = NumberFormatConverter.DEFAULT)
-			NumberFormat pattern) {
+			@CliOption(key = { "", "name" }, help = "the name of the aggregate counter to display", mandatory = true, optionContext = "existing-aggregate-counter disable-string-converter") String name,
+			@CliOption(key = "from", help = "start-time for the interval. format: 'yyyy-MM-dd HH:mm:ss'", mandatory = false) String from,
+			@CliOption(key = "to", help = "end-time for the interval. format: 'yyyy-MM-dd HH:mm:ss'. defaults to now", mandatory = false) String to,
+			@CliOption(key = "lastHours", help = "set the interval to last 'n' hours", mandatory = false) Integer lastHours,
+			@CliOption(key = "lastDays", help = "set the interval to last 'n' days", mandatory = false) Integer lastDays,
+			@CliOption(key = "resolution", help = "the size of the bucket to aggregate (minute, hour)", mandatory = false, unspecifiedDefaultValue = "hour") Resolution resolution,
+			@CliOption(key = "pattern", help = "the pattern used to format the count values (see DecimalFormat)", mandatory = false, unspecifiedDefaultValue = NumberFormatConverter.DEFAULT) NumberFormat pattern) {
 
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		try {
 			Date fromDate;
 			switch (Assertions.atMostOneOf("from", from, "lastHours", lastHours, "lastDays", lastDays)) {
-			case 0:
-				fromDate = dateFormat.parse(from);
-				break;
-			case 1:
-				fromDate = new Date(System.currentTimeMillis() - lastHours * DateTimeConstants.MILLIS_PER_HOUR);
-				break;
-			case 2:
-				fromDate = new Date(System.currentTimeMillis() - lastDays * DateTimeConstants.MILLIS_PER_DAY);
-				break;
-			default:
-				fromDate = null;
-				break;
+				case 0:
+					fromDate = dateFormat.parse(from);
+					break;
+				case 1:
+					fromDate = new Date(System.currentTimeMillis() - lastHours * DateTimeConstants.MILLIS_PER_HOUR);
+					break;
+				case 2:
+					fromDate = new Date(System.currentTimeMillis() - lastDays * DateTimeConstants.MILLIS_PER_DAY);
+					break;
+				default:
+					fromDate = null;
+					break;
 			}
 
 			Date toDate = (to == null) ? null : dateFormat.parse(to);
@@ -121,8 +115,7 @@ public class AggregateCounterCommands extends AbstractMetricsCommands implements
 
 	@CliCommand(value = DELETE_AGGR_COUNTER, help = "Delete an aggregate counter")
 	public String delete(
-			@CliOption(key = { "", "name" }, help = "the name of the aggregate counter to delete", mandatory = true, optionContext = "existing-aggregate-counter disable-string-converter")
-			String name) {
+			@CliOption(key = { "", "name" }, help = "the name of the aggregate counter to delete", mandatory = true, optionContext = "existing-aggregate-counter disable-string-converter") String name) {
 		aggrCounterOperations().delete(name);
 		return String.format("Deleted aggregatecounter '%s'", name);
 	}

@@ -19,12 +19,10 @@ package org.springframework.xd.dirt.core;
 import org.springframework.util.Assert;
 
 /**
- * Represents the base model for a data flow in the system. Every Spring XD
- * definition is represented by at least a <code>name</code (which also uniquely identifies
- * the definition). Each definition also has a <code>definition</code> property
- * which contains a String value representing the DSL to create the respective
- * definition.
- *
+ * Represents the base model for a data flow in the system. Every Spring XD definition is represented by at least a
+ * <code>name</code (which also uniquely identifies the definition). Each definition also has a <code>definition</code>
+ * property which contains a String value representing the DSL to create the respective definition.
+ * 
  * @author Gunnar Hillert
  * @since 1.0
  */
@@ -89,12 +87,14 @@ public abstract class BaseDefinition implements Comparable<BaseDefinition> {
 		if (definition == null) {
 			if (other.definition != null)
 				return false;
-		} else if (!definition.equals(other.definition))
+		}
+		else if (!definition.equals(other.definition))
 			return false;
 		if (name == null) {
 			if (other.name != null)
 				return false;
-		} else if (!name.equals(other.name))
+		}
+		else if (!name.equals(other.name))
 			return false;
 		return true;
 	}

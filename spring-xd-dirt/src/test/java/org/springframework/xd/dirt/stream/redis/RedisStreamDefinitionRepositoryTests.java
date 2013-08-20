@@ -10,11 +10,12 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.xd.dirt.stream.redis;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Iterator;
 
@@ -22,6 +23,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.xd.dirt.stream.StreamDefinition;
@@ -84,7 +86,7 @@ public class RedisStreamDefinitionRepositoryTests {
 		assertTrue(repository.exists("test3"));
 		assertTrue(!repository.exists("test4"));
 	}
-	
+
 	@Test
 	public void testDelete() {
 		StreamDefinition streamDefinition = new StreamDefinition("test", "time | log");
@@ -92,7 +94,7 @@ public class RedisStreamDefinitionRepositoryTests {
 		StreamDefinition saved = repository.findOne("test");
 		repository.delete(saved);
 		assertNull(repository.findOne("test"));
-	}	
+	}
 
 	@After
 	public void clearRepo() {

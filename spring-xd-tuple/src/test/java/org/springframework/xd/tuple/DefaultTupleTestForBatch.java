@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.tuple;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -34,47 +37,48 @@ import java.util.Locale;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+
 import org.springframework.core.convert.ConversionFailedException;
 
 /**
  * This is a port of the FieldSet tests from Spring Batch
- *
+ * 
  */
 public class DefaultTupleTestForBatch {
-	
+
 	Tuple tuple;
-	
+
 	List<Object> values;
-	
+
 	List<String> names;
-	
-	
+
+
 	@Before
 	public void setUp() throws Exception {
 
-		Object[] tokens = new String[] { "TestString", "true", "C", "10", "-472", "354224", "543", "124.3", "424.3", "1,3245",
-				null, "2007-10-12", "12-10-2007", "" };
-		String[] nameArray = new String[] { "String", "Boolean", "Char", "Byte", "Short", "Integer", "Long", "Float", "Double",
-				"BigDecimal", "Null", "Date", "DatePattern", "BlankInput" };
+		Object[] tokens = new String[] { "TestString", "true", "C", "10", "-472", "354224", "543", "124.3", "424.3",
+			"1,3245",
+			null, "2007-10-12", "12-10-2007", "" };
+		String[] nameArray = new String[] { "String", "Boolean", "Char", "Byte", "Short", "Integer", "Long", "Float",
+			"Double",
+			"BigDecimal", "Null", "Date", "DatePattern", "BlankInput" };
 
 		names = Arrays.asList(nameArray);
 		values = Arrays.asList(tokens);
 		/*
-		values = new ArrayList<Object>();
-		for (String token : tokens) {
-			values.add(token);
-		}*/
+		 * values = new ArrayList<Object>(); for (String token : tokens) { values.add(token); }
+		 */
 		tuple = tuple().ofNamesAndValues(names, values);
 		assertEquals(14, tuple.size());
 
 	}
-	
+
 	@Test
 	public void testNames() throws Exception {
-		//MLP - tuples always have names, FieldSet in Spring Batch doesn't require a name.
+		// MLP - tuples always have names, FieldSet in Spring Batch doesn't require a name.
 		assertThat(tuple.getFieldCount(), is(tuple.getFieldNames().size()));
 	}
-	
+
 	@Test
 	public void testReadString() {
 		assertThat(tuple.getString(0), is("TestString"));
@@ -86,31 +90,31 @@ public class DefaultTupleTestForBatch {
 		assertThat(tuple.getChar(2), is('C'));
 		assertThat(tuple.getChar("Char"), is('C'));
 	}
-	
+
 	@Test
 	public void testReadBooleanTrue() {
 		assertThat(tuple.getBoolean(1), is(true));
 		assertThat(tuple.getBoolean("Boolean"), is(true));
 	}
-	
+
 	@Test
 	public void testReadByte() {
 		assertTrue(tuple.getByte(3) == 10);
 		assertTrue(tuple.getByte("Byte") == 10);
 	}
-	
+
 	@Test
 	public void testReadShort() {
 		assertTrue(tuple.getShort(4) == -472);
 		assertTrue(tuple.getShort("Short") == -472);
 	}
-	
+
 	@Test
 	public void testReadIntegerAsFloat() {
 		assertEquals(354224, tuple.getFloat(5), .001);
 		assertEquals(354224, tuple.getFloat("Integer"), .001);
 	}
-	
+
 	@Test
 	public void testReadFloat() throws Exception {
 		assertTrue(tuple.getFloat(7) == 124.3F);
@@ -122,47 +126,49 @@ public class DefaultTupleTestForBatch {
 		assertEquals(354224, tuple.getDouble(5), .001);
 		assertEquals(354224, tuple.getDouble("Integer"), .001);
 	}
-	
+
 	@Test
 	public void testReadDouble() throws Exception {
 		assertTrue(tuple.getDouble(8) == 424.3);
 		assertTrue(tuple.getDouble("Double") == 424.3);
 	}
-	
+
 	@Test
 	public void testReadBigDecimal() throws Exception {
 		BigDecimal bd = new BigDecimal("424.3");
 		assertEquals(bd, tuple.getBigDecimal(8));
 		assertEquals(bd, tuple.getBigDecimal("Double"));
 	}
-	
+
 	@Test
 	public void testReadBigBigDecimal() throws Exception {
 		BigDecimal bd = new BigDecimal("12345678901234567890");
 		Tuple tuple = TupleBuilder.tuple().of("bigd", "12345678901234567890");
 		assertEquals(bd, tuple.getBigDecimal(0));
 	}
-	
+
 	@Test
 	public void testReadBigDecimalWithFormat() throws Exception {
-		Tuple numberFormatTuple = TupleBuilder.tuple().setNumberFormatFromLocale(Locale.US).ofNamesAndValues(tuple.getFieldNames(), tuple.getValues());		
+		Tuple numberFormatTuple = TupleBuilder.tuple().setNumberFormatFromLocale(Locale.US).ofNamesAndValues(
+				tuple.getFieldNames(), tuple.getValues());
 		BigDecimal bd = new BigDecimal("424.3");
 		assertEquals(bd, numberFormatTuple.getBigDecimal(8));
 	}
-	
+
 	@Test
 	public void testReadBigDecimalWithEuroFormat() throws Exception {
-		Tuple numberFormatTuple = TupleBuilder.tuple().setNumberFormatFromLocale(Locale.GERMANY).ofNamesAndValues(tuple.getFieldNames(), tuple.getValues());
+		Tuple numberFormatTuple = TupleBuilder.tuple().setNumberFormatFromLocale(Locale.GERMANY).ofNamesAndValues(
+				tuple.getFieldNames(), tuple.getValues());
 		BigDecimal bd = new BigDecimal("1.3245");
 		assertEquals(bd, numberFormatTuple.getBigDecimal(9));
 	}
-	
+
 	@Test
 	public void testReadNonExistentField() {
 		String s = tuple.getString("something");
 		assertThat(s, nullValue());
 	}
-	
+
 	@Test
 	public void testReadIndexOutOfRange() {
 		try {
@@ -181,7 +187,7 @@ public class DefaultTupleTestForBatch {
 			assertTrue(true);
 		}
 	}
-	
+
 	@Test
 	public void testReadBooleanWithTrueValue() {
 		assertTrue(tuple.getBoolean(1, "true"));
@@ -190,13 +196,13 @@ public class DefaultTupleTestForBatch {
 		assertTrue(tuple.getBoolean("Boolean", "true"));
 		assertFalse(tuple.getBoolean("Boolean", "incorrect trueValue"));
 	}
-	
+
 	@Test
 	public void testReadBooleanFalse() {
 		Tuple t = TupleBuilder.tuple().of("foo", false);
 		assertFalse(t.getBoolean(0));
 	}
-	
+
 	@Test
 	public void testReadCharException() {
 		try {
@@ -218,23 +224,23 @@ public class DefaultTupleTestForBatch {
 
 
 	@Test
-	public void testReadInt() throws Exception {		
+	public void testReadInt() throws Exception {
 		assertThat(354224, equalTo(tuple.getInt(5)));
 		assertThat(354224, equalTo(tuple.getInt("Integer")));
 	}
-	
+
 	@Test
 	public void testReadIntWithSeparator() {
 		Tuple t = TupleBuilder.tuple().of("foo", "354,224");
 		assertThat(354224, equalTo(t.getInt(0)));
 	}
-	
+
 	@Test
 	public void testReadIntWithSeparatorAndFormat() throws Exception {
-		Tuple t = TupleBuilder.tuple().setNumberFormatFromLocale(Locale.GERMAN).of("foo", "354.224");		
+		Tuple t = TupleBuilder.tuple().setNumberFormatFromLocale(Locale.GERMAN).of("foo", "354.224");
 		assertThat(354224, equalTo(t.getInt(0)));
 	}
-	
+
 	@Test
 	@Ignore("Difference in behavior due to returning Wrapper types that may be null.")
 	public void testReadBlankInt() {
@@ -258,31 +264,30 @@ public class DefaultTupleTestForBatch {
 		}
 
 	}
-	
+
 	@Test
 	public void testReadLong() throws Exception {
 		assertThat(543L, equalTo(tuple.getLong(6)));
 		assertThat(543L, equalTo(tuple.getLong("Long")));
 	}
-	
+
 	@Test
-	public void testReadLongWithPadding() throws Exception {		
+	public void testReadLongWithPadding() throws Exception {
 		Tuple t = TupleBuilder.tuple().of("foo", "000009");
 		assertThat(9L, equalTo(t.getLong(0)));
 	}
-	
+
 	@Test
 	@Ignore("Ignored until determine how to handle null value with wrapper types as well as default values")
-	public void testReadIntWithNullValue() {	
+	public void testReadIntWithNullValue() {
 	}
-	
+
 	@Test
 	@Ignore("Ignored until determine how to handle null value with wrapper types as well as default values")
 	public void testReadIntWithDefaultAndNotNull() {
 	}
-	
+
 	@Test
-	
 	public void testReadBigDecimalInvalid() {
 		int index = 0;
 
@@ -290,13 +295,13 @@ public class DefaultTupleTestForBatch {
 			tuple.getBigDecimal(index);
 			fail("field value is not a number, exception expected");
 		}
-		//TODO - in batch this used to be IllegalArgumentException (which is the nested exception type now)
+		// TODO - in batch this used to be IllegalArgumentException (which is the nested exception type now)
 		catch (ConversionFailedException e) {
 			assertTrue(e.getMessage().indexOf("TestString") > 0);
 		}
 
 	}
-	
+
 	@Test
 	public void testReadBigDecimalByNameInvalid() throws Exception {
 		try {
@@ -305,30 +310,30 @@ public class DefaultTupleTestForBatch {
 		}
 		catch (ConversionFailedException e) {
 			assertTrue(e.getMessage().indexOf("TestString") > 0);
-			//TODO - in batch this is part of the message, indicating what the name of the field is...
-			//assertTrue(e.getMessage().indexOf("name: [String]") > 0);
+			// TODO - in batch this is part of the message, indicating what the name of the field is...
+			// assertTrue(e.getMessage().indexOf("name: [String]") > 0);
 		}
 	}
-	
+
 
 	@Test
 	public void testReadDate() throws Exception {
 		assertNotNull(tuple.getDate(11));
 		assertNotNull(tuple.getDate("Date"));
 	}
-	
+
 	@Test
 	@Ignore("Ignored until determine how to handle default values")
-	public void testReadDateWithDefault() {	
+	public void testReadDateWithDefault() {
 	}
-	
+
 	@Test
 	public void testReadDateWithFormat() throws Exception {
 		SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
 		Tuple t = TupleBuilder.tuple().setDateFormat(dateFormat).of("foo", "13/01/1999");
-		assertEquals(dateFormat.parse("13/01/1999"), t.getDate(0));		
+		assertEquals(dateFormat.parse("13/01/1999"), t.getDate(0));
 	}
-	
+
 	@Test
 	public void testReadDateInvalid() throws Exception {
 		try {
@@ -340,7 +345,7 @@ public class DefaultTupleTestForBatch {
 		}
 
 	}
-	
+
 	@Test
 	public void testReadDateInvalidByName() throws Exception {
 
@@ -350,12 +355,12 @@ public class DefaultTupleTestForBatch {
 		}
 		catch (ConversionFailedException e) {
 			assertTrue(e.getMessage().indexOf("TestString") > 0);
-			//TODO - in batch this is part of the message, indicating what the name of the field is...
-			//assertTrue(e.getMessage().indexOf("name: [String]") > 0);
+			// TODO - in batch this is part of the message, indicating what the name of the field is...
+			// assertTrue(e.getMessage().indexOf("name: [String]") > 0);
 		}
 
 	}
-	
+
 	@Test
 	public void testReadDateInvalidWithPattern() throws Exception {
 
@@ -367,14 +372,14 @@ public class DefaultTupleTestForBatch {
 			assertTrue(e.getMessage().indexOf("dd-MM-yyyy") > 0);
 		}
 	}
-	
+
 	@Test
 	public void testReadDateWithPatternAndDefault() {
 		Date date = null;
 		assertEquals(date, tuple.getDateWithPattern(13, "dd-MM-yyyy", date));
 		assertEquals(date, tuple.getDateWithPattern("BlankInput", "dd-MM-yyyy", date));
 	}
-	
+
 	@Test
 	public void testStrictReadDateWithPattern() throws Exception {
 
@@ -388,11 +393,11 @@ public class DefaultTupleTestForBatch {
 			assertTrue("Message did not contain: " + message, message.indexOf("dd-MM-yyyy") > 0);
 		}
 	}
-	
+
 	@Test
 	public void testStrictReadDateWithPatternAndStrangeDate() throws Exception {
 
-		Tuple t = tuple().of("foo","5550212");
+		Tuple t = tuple().of("foo", "5550212");
 		try {
 			System.err.println(t.getDateWithPattern(0, "yyyyMMdd"));
 			fail("field value is not a valid date for strict parser, exception expected");
@@ -402,7 +407,7 @@ public class DefaultTupleTestForBatch {
 			assertTrue("Message did not contain: " + message, message.indexOf("yyyyMMdd") > 0);
 		}
 	}
-	
+
 	@Test
 	public void testReadDateByNameInvalidWithPattern() throws Exception {
 
@@ -415,21 +420,22 @@ public class DefaultTupleTestForBatch {
 			assertTrue(e.getMessage().indexOf("String") > 0);
 		}
 	}
-	
+
 	@Test
 	public void testPaddedLong() {
 		Tuple t = tuple().of("foo", "00000009");
-		//FieldSet fs = new DefaultFieldSet(new String[] { "00000009" });
+		// FieldSet fs = new DefaultFieldSet(new String[] { "00000009" });
 
 		long value = t.getLong(0);
 		assertEquals(value, 9);
 	}
+
 	@Test
 	public void testReadRawString() {
 		String name = "fieldName";
 		String value = " string with trailing whitespace   ";
 		Tuple t = tuple().of(name, value);
-		
+
 		assertEquals(value, t.getRawString(0));
 		assertEquals(value, t.getRawString(name));
 	}

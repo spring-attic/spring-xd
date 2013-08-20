@@ -1,3 +1,4 @@
+
 package org.springframework.xd.analytics.metrics.redis;
 
 import java.util.ArrayList;
@@ -16,9 +17,12 @@ import org.springframework.xd.analytics.metrics.core.FieldValueCounter;
 import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository;
 
 public class RedisFieldValueCounterRepository implements FieldValueCounterRepository {
+
 	protected final String metricPrefix;
+
 	protected final StringRedisTemplate redisTemplate;
-	private static final String MARKER= "_marker_";
+
+	private static final String MARKER = "_marker_";
 
 	public RedisFieldValueCounterRepository(RedisConnectionFactory connectionFactory) {
 		this(connectionFactory, "fieldvaluecounters.");
@@ -34,7 +38,7 @@ public class RedisFieldValueCounterRepository implements FieldValueCounterReposi
 		redisTemplate.setConnectionFactory(connectionFactory);
 		redisTemplate.afterPropertiesSet();
 	}
-	
+
 	@Override
 	public <S extends FieldValueCounter> S save(S fieldValueCounter) {
 		String counterKey = getMetricKey(fieldValueCounter.getName());
@@ -43,19 +47,20 @@ public class RedisFieldValueCounterRepository implements FieldValueCounterReposi
 				for (Map.Entry<String, Double> entry : fieldValueCounter.getFieldValueCount().entrySet()) {
 					increment(fieldValueCounter.getName(), entry.getKey(), entry.getValue());
 				}
-			} else {
+			}
+			else {
 				increment(fieldValueCounter.getName(), MARKER, 0);
 			}
 		}
 		// else TODO decide behavior
 		return fieldValueCounter;
-		
+
 	}
 
 	@Override
 	public <S extends FieldValueCounter> Iterable<S> save(Iterable<S> metrics) {
 		List<S> results = new ArrayList<S>();
-		for (S m: metrics) {
+		for (S m : metrics) {
 			results.add(save(m));
 		}
 		return results;
@@ -76,7 +81,7 @@ public class RedisFieldValueCounterRepository implements FieldValueCounterReposi
 
 	@Override
 	public void delete(Iterable<? extends FieldValueCounter> fvcs) {
-		for (FieldValueCounter fvc: fvcs) {
+		for (FieldValueCounter fvc : fvcs) {
 			delete(fvc);
 		}
 	}
@@ -89,7 +94,8 @@ public class RedisFieldValueCounterRepository implements FieldValueCounterReposi
 			Map<String, Double> values = getZSetData(metricKey);
 			FieldValueCounter c = new FieldValueCounter(name, values);
 			return c;
-		} else {
+		}
+		else {
 			return null;
 		}
 	}
@@ -122,9 +128,9 @@ public class RedisFieldValueCounterRepository implements FieldValueCounterReposi
 
 	@Override
 	public Iterable<FieldValueCounter> findAll(Iterable<String> keys) {
-		List<FieldValueCounter> results = new ArrayList<FieldValueCounter> ();
+		List<FieldValueCounter> results = new ArrayList<FieldValueCounter>();
 
-		for (String k: keys) {
+		for (String k : keys) {
 			FieldValueCounter value = findOne(k);
 			if (value != null) {
 				results.add(value);
@@ -145,43 +151,41 @@ public class RedisFieldValueCounterRepository implements FieldValueCounterReposi
 			redisTemplate.delete(keys);
 		}
 	}
-	
+
 	public void increment(String counterName, String fieldName) {
 		redisTemplate.boundZSetOps(getMetricKey(counterName)).incrementScore(fieldName, 1.0);
 	}
-	
+
 	public void increment(String counterName, String fieldName, double score) {
 		redisTemplate.boundZSetOps(getMetricKey(counterName)).incrementScore(fieldName, score);
 	}
-	
+
 	public void decrement(String counterName, String fieldName) {
 		redisTemplate.boundZSetOps(getMetricKey(counterName)).incrementScore(fieldName, -1.0);
 	}
-	
-	
+
+
 	public void decrement(String counterName, String fieldName, double score) {
 		redisTemplate.boundZSetOps(getMetricKey(counterName)).incrementScore(fieldName, -score);
 	}
-	
+
 	public void reset(String counterName, String fieldName) {
 		redisTemplate.boundZSetOps(getMetricKey(counterName)).remove(fieldName);
 	}
-	
 
-	
+
 	/**
-	 * Provides the key for a named metric.
-	 * By default this appends the name to the metricPrefix value.
-	 *
+	 * Provides the key for a named metric. By default this appends the name to the metricPrefix value.
+	 * 
 	 * @param metricName the name of the metric
 	 * @return the redis key under which the metric is stored
 	 */
 	protected String getMetricKey(String metricName) {
 		return metricPrefix + metricName;
 	}
-	
+
 	protected Map<String, Double> getZSetData(String counterKey) {
-		// TODO  directly serialize into a Map vs Set of TypedTuples to avoid extra copy
+		// TODO directly serialize into a Map vs Set of TypedTuples to avoid extra copy
 		Set<TypedTuple<String>> rangeWithScore = this.redisTemplate
 				.boundZSetOps(counterKey).rangeWithScores(0, -1);
 		Map<String, Double> values = new HashMap<String, Double>(

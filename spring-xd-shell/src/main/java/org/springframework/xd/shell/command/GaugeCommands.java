@@ -66,18 +66,15 @@ public class GaugeCommands extends AbstractMetricsCommands implements CommandMar
 
 	@CliCommand(value = DISPLAY_GAUGE, help = "Display the value of a gauge")
 	public String display(
-			@CliOption(key = { "", "name" }, help = "the name of the gauge to display", mandatory = true, optionContext = "existing-gauge disable-string-converter")
-			String name,
-			@CliOption(key = "pattern", help = "the pattern used to format the value (see DecimalFormat)", mandatory = false, unspecifiedDefaultValue = NumberFormatConverter.DEFAULT)
-			NumberFormat pattern) {
+			@CliOption(key = { "", "name" }, help = "the name of the gauge to display", mandatory = true, optionContext = "existing-gauge disable-string-converter") String name,
+			@CliOption(key = "pattern", help = "the pattern used to format the value (see DecimalFormat)", mandatory = false, unspecifiedDefaultValue = NumberFormatConverter.DEFAULT) NumberFormat pattern) {
 		GaugeResource gauge = gaugeOperations().retrieve(name);
 		return pattern.format(gauge.getValue());
 	}
 
 	@CliCommand(value = DELETE_GAUGE, help = "Delete a gauge")
 	public String delete(
-			@CliOption(key = { "", "name" }, help = "the name of the gauge to delete", mandatory = true, optionContext = "existing-gauge disable-string-converter")
-			String name) {
+			@CliOption(key = { "", "name" }, help = "the name of the gauge to delete", mandatory = true, optionContext = "existing-gauge disable-string-converter") String name) {
 		gaugeOperations().delete(name);
 		return String.format("Deleted gauge '%s'", name);
 	}

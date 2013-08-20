@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Knows how to parse String representations of {@link MediaType}.
- *
+ * 
  * @author Eric Bottard
  */
 @Component

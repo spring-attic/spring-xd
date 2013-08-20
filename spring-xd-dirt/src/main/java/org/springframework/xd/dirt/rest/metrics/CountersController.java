@@ -46,8 +46,7 @@ public class CountersController extends AbstractMetricsController<CounterReposit
 	private final DeepCounterResourceAssembler counterResourceAssembler = new DeepCounterResourceAssembler();
 
 	@Autowired
-	public CountersController(@Qualifier("simple")
-	CounterRepository repository) {
+	public CountersController(@Qualifier("simple") CounterRepository repository) {
 		super(repository);
 	}
 
@@ -66,8 +65,7 @@ public class CountersController extends AbstractMetricsController<CounterReposit
 	 */
 	@ResponseBody
 	@RequestMapping(value = "/{name}", method = RequestMethod.GET)
-	public CounterResource display(@PathVariable("name")
-	String name) {
+	public CounterResource display(@PathVariable("name") String name) {
 		Counter c = repository.findOne(name);
 		if (c == null) {
 			throw new NoSuchMetricException(name, "There is no counter named '%s'");

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.hadoop.fs;
 
 import java.io.IOException;
@@ -22,26 +23,28 @@ import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IOUtils;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.util.Assert;
 
 /**
- *
+ * 
  * @author Mark Pollack
  */
 public class HdfsTextFileWriter extends AbstractHdfsWriter implements HdfsWriter {
 
 	private FileSystem fileSystem;
+
 	private FSDataOutputStream fsDataOutputStream;
 
 	private volatile String charset = "UTF-8";
-	
+
 	public HdfsTextFileWriter(FileSystem fileSystem) {
 		Assert.notNull(fileSystem, "Hadoop FileSystem must not be null.");
 		this.fileSystem = fileSystem;
 	}
-	
+
 
 	@Override
 	public void write(Message<?> message) throws IOException {
@@ -49,20 +52,20 @@ public class HdfsTextFileWriter extends AbstractHdfsWriter implements HdfsWriter
 		prepareOutputStream();
 		copy(getPayloadAsBytes(message), this.fsDataOutputStream);
 	}
-	
+
 
 	private void prepareOutputStream() throws IOException {
 		boolean found = false;
 		Path name = null;
-		
-		//TODO improve algorithm
+
+		// TODO improve algorithm
 		while (!found) {
 			name = new Path(getFileName());
-			// If it doesn't exist, create it.  If it exists, return false
-			if (getFileSystem().createNewFile(name)) {	
+			// If it doesn't exist, create it. If it exists, return false
+			if (getFileSystem().createNewFile(name)) {
 				found = true;
 				this.resetBytesWritten();
-				//this.fsDataOutputStream = this.getFileSystem().append(name);
+				// this.fsDataOutputStream = this.getFileSystem().append(name);
 				this.fsDataOutputStream = this.getFileSystem().create(name);
 			}
 			else {
@@ -76,24 +79,25 @@ public class HdfsTextFileWriter extends AbstractHdfsWriter implements HdfsWriter
 			}
 		}
 	}
-	
+
 	public FileSystem getFileSystem() {
 		return this.fileSystem;
 	}
-	
+
 	/**
 	 * Simple not optimized copy
 	 */
 	public void copy(byte[] in, FSDataOutputStream out) throws IOException {
 		Assert.notNull(in, "No input byte array specified");
 		Assert.notNull(out, "No OutputStream specified");
-		out.write(in);	
+		out.write(in);
 		incrementBytesWritten(in.length);
 	}
 
-	//TODO note, taken from TcpMessageMapper
+	// TODO note, taken from TcpMessageMapper
 	/**
-	 * Extracts the payload as a byte array.  
+	 * Extracts the payload as a byte array.
+	 * 
 	 * @param message
 	 * @return payload
 	 */
@@ -114,7 +118,7 @@ public class HdfsTextFileWriter extends AbstractHdfsWriter implements HdfsWriter
 		else {
 			throw new MessageHandlingException(message,
 					"HdfsTextFileWriter expects " +
-					"either a byte array or String payload, but received: " + payload.getClass());
+							"either a byte array or String payload, but received: " + payload.getClass());
 		}
 		return bytes;
 	}

@@ -65,13 +65,12 @@ public class AdminController {
 	}
 
 	/**
-	 * This RequestMapping exists to handle CORS requests only
-	 * Ensures that our custom HandlerInterceptor is called
- 	 */
+	 * This RequestMapping exists to handle CORS requests only Ensures that our custom HandlerInterceptor is called
+	 */
 	@ResponseBody
-    @RequestMapping(value="**", method=RequestMethod.OPTIONS)
-    public String options() {
-       return "OK";
-   }
+	@RequestMapping(value = "**", method = RequestMethod.OPTIONS)
+	public String options() {
+		return "OK";
+	}
 
 }

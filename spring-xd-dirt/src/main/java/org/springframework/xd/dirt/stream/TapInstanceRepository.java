@@ -21,7 +21,7 @@ import org.springframework.xd.store.DomainRepository;
 
 /**
  * A repository for persisting {@link TapInstance}s.
- *
+ * 
  * @author Eric Bottard
  */
 public interface TapInstanceRepository extends DomainRepository<TapInstance, String> {

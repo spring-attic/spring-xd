@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.analytics.metrics.integration;
 
 import org.springframework.integration.Message;
@@ -24,10 +25,12 @@ import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 /**
  * @author David Turanski
  * @author Luke Taylor
- *
+ * 
  */
 public class GaugeHandler {
+
 	private final GaugeRepository gaugeRepository;
+
 	private final String name;
 
 	public GaugeHandler(GaugeRepository gaugeRepository, String name) {
@@ -53,10 +56,12 @@ public class GaugeHandler {
 		if (payload != null) {
 			if (payload instanceof Number) {
 				return ((Number) payload).longValue();
-			} else if (payload instanceof String) {
+			}
+			else if (payload instanceof String) {
 				try {
 					return Long.parseLong((String) payload);
-				} catch (Exception e) {
+				}
+				catch (Exception e) {
 					throw new MessagingException("cannot convert payload to long", e);
 				}
 			}

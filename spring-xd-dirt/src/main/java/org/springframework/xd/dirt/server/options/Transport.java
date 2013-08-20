@@ -18,7 +18,7 @@ package org.springframework.xd.dirt.server.options;
 
 /**
  * The kind of transport used for communication between the admin server and container(s).
- *
+ * 
  * @author Eric Bottard
  */
 public enum Transport {

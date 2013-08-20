@@ -128,14 +128,16 @@ public class StreamCommands implements CommandMarker {
 		final PagedResources<StreamDefinitionResource> streams = streamOperations().list();
 
 		final Table table = new Table();
-		table.addHeader(1, new TableHeader("Stream Name")).addHeader(2, new TableHeader("Stream Definition")).addHeader(3, new TableHeader("Status"));
+		table.addHeader(1, new TableHeader("Stream Name")).addHeader(2, new TableHeader("Stream Definition")).addHeader(
+				3, new TableHeader("Status"));
 
 		for (StreamDefinitionResource stream : streams) {
 			final TableRow row = table.newRow();
 			row.addValue(1, stream.getName()).addValue(2, stream.getDefinition());
 			if (Boolean.TRUE.equals(stream.isDeployed())) {
 				row.addValue(3, "deployed");
-			} else {
+			}
+			else {
 				row.addValue(3, "");
 			}
 		}

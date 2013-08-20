@@ -1,3 +1,4 @@
+
 package org.springframework.xd.analytics.metrics.integration;
 
 import org.springframework.integration.Message;

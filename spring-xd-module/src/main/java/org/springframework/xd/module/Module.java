@@ -30,6 +30,7 @@ import org.springframework.core.io.Resource;
 public interface Module extends Lifecycle {
 
 	void initialize();
+
 	/**
 	 * @return the generic module name or template name
 	 */

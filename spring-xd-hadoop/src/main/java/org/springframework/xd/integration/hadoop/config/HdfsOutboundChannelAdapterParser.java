@@ -27,7 +27,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * Parser for the 'hdfs-outbound-channel-adapter' element.
- *
+ * 
  * @author Mark Fisher
  */
 public class HdfsOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {

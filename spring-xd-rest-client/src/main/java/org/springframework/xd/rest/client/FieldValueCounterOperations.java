@@ -36,9 +36,10 @@ public interface FieldValueCounterOperations {
 	 * Retrieve basic information (i.e. names) for existing field value counters.
 	 */
 	PagedResources<MetricResource> list(/* TODO */);
-	
+
 	/**
 	 * Delete the given named field value counter
+	 * 
 	 * @param name the name of the field value counter to delete
 	 */
 	void delete(String name);

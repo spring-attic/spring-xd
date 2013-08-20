@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.x.channel.registry;
 
 import static org.junit.Assert.assertEquals;
@@ -37,7 +38,7 @@ import org.springframework.xd.tuple.TupleBuilder;
 
 /**
  * @author Gary Russell
- *
+ * 
  */
 public class ChannelRegistrySupportTests {
 
@@ -50,7 +51,8 @@ public class ChannelRegistrySupportTests {
 		Message<?> converted = channelRegistry.transformOutboundIfNecessary(message,
 				MediaType.APPLICATION_OCTET_STREAM);
 		assertSame(payload, converted.getPayload());
-		assertEquals(ChannelRegistrySupport.XD_OCTET_STREAM_VALUE, converted.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		assertEquals(ChannelRegistrySupport.XD_OCTET_STREAM_VALUE,
+				converted.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 		Message<?> reconstructed = channelRegistry.transformInboundIfNecessary(converted,
 				Collections.singletonList(MediaType.ALL));
 		payload = (byte[]) reconstructed.getPayload();
@@ -67,12 +69,14 @@ public class ChannelRegistrySupportTests {
 		Message<?> converted = channelRegistry.transformOutboundIfNecessary(message,
 				MediaType.APPLICATION_OCTET_STREAM);
 		assertSame(payload, converted.getPayload());
-		assertEquals(ChannelRegistrySupport.XD_OCTET_STREAM_VALUE, converted.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		assertEquals(ChannelRegistrySupport.XD_OCTET_STREAM_VALUE,
+				converted.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 		Message<?> reconstructed = channelRegistry.transformInboundIfNecessary(converted,
 				Collections.singletonList(MediaType.ALL));
 		payload = (byte[]) reconstructed.getPayload();
 		assertSame(converted.getPayload(), payload);
-		assertEquals(MediaType.APPLICATION_OCTET_STREAM_VALUE, reconstructed.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		assertEquals(MediaType.APPLICATION_OCTET_STREAM_VALUE,
+				reconstructed.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 		assertNull(reconstructed.getHeaders().get(ChannelRegistrySupport.ORIGINAL_CONTENT_TYPE_HEADER));
 	}
 
@@ -81,7 +85,8 @@ public class ChannelRegistrySupportTests {
 		Message<?> converted = channelRegistry.transformOutboundIfNecessary(
 				new GenericMessage<String>("foo"), MediaType.APPLICATION_OCTET_STREAM);
 		assertEquals("foo", new String((byte[]) converted.getPayload()));
-		assertEquals(ChannelRegistrySupport.XD_TEXT_PLAIN_UTF8_VALUE, converted.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		assertEquals(ChannelRegistrySupport.XD_TEXT_PLAIN_UTF8_VALUE,
+				converted.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 		Message<?> reconstructed = channelRegistry.transformInboundIfNecessary(converted,
 				Collections.singletonList(MediaType.ALL));
 		assertEquals("foo", reconstructed.getPayload());
@@ -95,7 +100,8 @@ public class ChannelRegistrySupportTests {
 		assertEquals(
 				"{\"Foo\":{\"@class\":\"org.springframework.integration.x.channel.registry.ChannelRegistrySupportTests$Foo\",\"bar\":\"bar\"}}",
 				new String((byte[]) converted.getPayload()));
-		assertEquals(ChannelRegistrySupport.XD_JSON_OCTET_STREAM_VALUE, converted.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		assertEquals(ChannelRegistrySupport.XD_JSON_OCTET_STREAM_VALUE,
+				converted.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 		Message<?> reconstructed = channelRegistry.transformInboundIfNecessary(converted,
 				Collections.singletonList(MediaType.ALL));
 		assertEquals("bar", ((Foo) reconstructed.getPayload()).getBar());
@@ -109,7 +115,8 @@ public class ChannelRegistrySupportTests {
 		assertEquals(
 				"{\"Foo\":{\"@class\":\"org.springframework.integration.x.channel.registry.ChannelRegistrySupportTests$Foo\",\"bar\":\"bar\"}}",
 				new String((byte[]) converted.getPayload()));
-		assertEquals(ChannelRegistrySupport.XD_JSON_OCTET_STREAM_VALUE, converted.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		assertEquals(ChannelRegistrySupport.XD_JSON_OCTET_STREAM_VALUE,
+				converted.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 		Message<?> reconstructed = channelRegistry.transformInboundIfNecessary(converted,
 				Collections.singletonList(new MediaType("application", "x-java-object")));
 		assertEquals("bar", ((Foo) reconstructed.getPayload()).getBar());
@@ -123,7 +130,8 @@ public class ChannelRegistrySupportTests {
 		assertEquals(
 				"{\"Foo\":{\"@class\":\"org.springframework.integration.x.channel.registry.ChannelRegistrySupportTests$Foo\",\"bar\":\"bar\"}}",
 				new String((byte[]) converted.getPayload()));
-		assertEquals(ChannelRegistrySupport.XD_JSON_OCTET_STREAM_VALUE, converted.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		assertEquals(ChannelRegistrySupport.XD_JSON_OCTET_STREAM_VALUE,
+				converted.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 		MediaType type = new MediaType("application", "x-java-object", Collections.singletonMap("type",
 				"org.springframework.integration.x.channel.registry.ChannelRegistrySupportTests$Foo"));
 		Message<?> reconstructed = channelRegistry.transformInboundIfNecessary(converted,
@@ -137,7 +145,8 @@ public class ChannelRegistrySupportTests {
 		Tuple payload = TupleBuilder.tuple().of("foo", "bar");
 		Message<?> converted = channelRegistry.transformOutboundIfNecessary(new GenericMessage<Tuple>(payload),
 				MediaType.APPLICATION_OCTET_STREAM);
-		assertEquals(ChannelRegistrySupport.XD_JSON_OCTET_STREAM_VALUE, converted.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		assertEquals(ChannelRegistrySupport.XD_JSON_OCTET_STREAM_VALUE,
+				converted.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 		Message<?> reconstructed = channelRegistry.transformInboundIfNecessary(converted,
 				Collections.singletonList(MediaType.ALL));
 		assertEquals("bar", ((Tuple) reconstructed.getPayload()).getString("foo"));

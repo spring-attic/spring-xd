@@ -16,6 +16,8 @@
 
 package org.springframework.xd.shell;
 
+import static org.junit.Assert.assertTrue;
+
 import java.io.IOException;
 
 import org.apache.commons.logging.Log;
@@ -23,6 +25,7 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
+
 import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
@@ -31,16 +34,14 @@ import org.springframework.xd.dirt.server.options.AdminOptions;
 import org.springframework.xd.dirt.stream.StreamServer;
 import org.springframework.xd.test.redis.RedisAvailableRule;
 
-import static org.junit.Assert.*;
-
 /**
  * Superclass for performing integration tests of spring-xd shell commands.
  * 
- * JUnit's BeforeClass and AfterClass annotations are used to start and stop the
- * XDAdminServer in local mode with the default store configured to use in-memory storage.
+ * JUnit's BeforeClass and AfterClass annotations are used to start and stop the XDAdminServer in local mode with the
+ * default store configured to use in-memory storage.
  * 
- * Note: This isn't ideal as it takes significant time to startup the embedded
- * XDContainer/tomcat and we should do this once across all tests.
+ * Note: This isn't ideal as it takes significant time to startup the embedded XDContainer/tomcat and we should do this
+ * once across all tests.
  * 
  * @author Mark Pollack
  * @author Kashyap Parikh

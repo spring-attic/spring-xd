@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.analytics.metrics.core;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -33,14 +34,14 @@ public class GaugeTests {
 		Gauge g = new Gauge("myGauge");
 		assertThat(g.getName(), equalTo("myGauge"));
 	}
-	
+
 	@Test
 	public void nameWithValue() {
 		Gauge g = new Gauge("myGauge", 314);
 		assertThat(g.getName(), equalTo("myGauge"));
 		assertThat(g.getValue(), equalTo(314L));
 	}
-	
+
 	@Test
 	public void equalsContract() {
 		EqualsVerifier.forClass(Gauge.class).suppress(Warning.NULL_FIELDS).verify();

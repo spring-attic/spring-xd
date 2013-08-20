@@ -10,7 +10,13 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.xd.analytics.metrics.integration;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -18,6 +24,7 @@ import java.util.Collections;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -41,9 +48,6 @@ import org.springframework.xd.test.redis.RedisAvailableRule;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
 
 /**
  * @author David Turanski
@@ -136,6 +140,7 @@ public class RichGaugeHandlerTests {
 	}
 
 	static class StringToJsonNodeTransformer {
+
 		private ObjectMapper mapper = new ObjectMapper();
 
 		public JsonNode transform(String json) {
@@ -152,6 +157,7 @@ public class RichGaugeHandlerTests {
 	}
 
 }
+
 
 @Configuration
 @ImportResource("org/springframework/xd/analytics/metrics/integration/RichGaugeHandlerTests-context.xml")

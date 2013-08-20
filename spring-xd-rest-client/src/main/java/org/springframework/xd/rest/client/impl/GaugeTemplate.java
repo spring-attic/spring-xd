@@ -43,7 +43,7 @@ public class GaugeTemplate extends AbstractTemplate implements GaugeOperations {
 		String url = resources.get("gauges").toString() + "?page=10000";
 		return restTemplate.getForObject(url, MetricResource.Page.class);
 	}
-	
+
 	@Override
 	public void delete(String name) {
 		String url = resources.get("gauges").toString() + "/{name}";

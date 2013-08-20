@@ -51,7 +51,8 @@ public class DeploymentMessageSender {
 			else {
 				this.deployChannel.send(message);
 			}
-		};
+		}
+		;
 	}
 
 	protected final void addDeployment(String name, List<ModuleDeploymentRequest> modules) {

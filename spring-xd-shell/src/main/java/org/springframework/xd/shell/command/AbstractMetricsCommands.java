@@ -29,8 +29,7 @@ import org.springframework.xd.shell.util.TableHeader;
 public abstract class AbstractMetricsCommands {
 
 	/**
-	 * The Capitalized, singular name of the kind of metrics we're dealing with (e.g.
-	 * Counter, Field Value Counter)
+	 * The Capitalized, singular name of the kind of metrics we're dealing with (e.g. Counter, Field Value Counter)
 	 */
 	private String kind;
 

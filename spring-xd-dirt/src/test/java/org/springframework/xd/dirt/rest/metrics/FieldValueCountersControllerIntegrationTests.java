@@ -16,12 +16,20 @@
 
 package org.springframework.xd.dirt.rest.metrics;
 
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import java.util.HashMap;
 import java.util.Map;
 
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -29,12 +37,8 @@ import org.springframework.xd.analytics.metrics.core.FieldValueCounter;
 import org.springframework.xd.dirt.rest.AbstractControllerIntegrationTest;
 import org.springframework.xd.dirt.rest.Dependencies;
 import org.springframework.xd.dirt.rest.RestConfiguration;
-import org.springframework.xd.dirt.rest.metrics.FieldValueCountersController;
 
 import scala.actors.threadpool.Arrays;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
  * Tests proper behavior of {@link FieldValueCountersController}.
@@ -77,14 +81,14 @@ public class FieldValueCountersControllerIntegrationTests extends AbstractContro
 		mockMvc.perform(get("/metrics/field-value-counters")).andExpect(status().isOk())//
 		.andExpect(jsonPath("$.content", Matchers.hasSize(10)));
 	}
-	
+
 	@Test
 	public void testDeleteFieldValueCounter() throws Exception {
 		when(fieldValueCounterRepository.exists("deleteme")).thenReturn(true);
 		mockMvc.perform(delete("/metrics/field-value-counters/{name}", "deleteme")).andExpect(status().isOk());
 		verify(fieldValueCounterRepository).delete("deleteme");
 	}
-	
+
 	@Test
 	public void testDeleteUnknownFieldValueCounter() throws Exception {
 		when(fieldValueCounterRepository.exists("deleteme")).thenReturn(false);

@@ -24,6 +24,7 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.FanoutExchange;
@@ -250,8 +251,8 @@ public class RabbitChannelRegistry extends ChannelRegistrySupport implements Dis
 		@Override
 		protected boolean shouldCopyRequestHeaders() {
 			/*
-			 * we've already copied the headers so no need for the ARPMH to do it, and we
-			 * don't want the content-type restored if absent.
+			 * we've already copied the headers so no need for the ARPMH to do it, and we don't want the content-type
+			 * restored if absent.
 			 */
 			return false;
 		}

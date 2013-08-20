@@ -43,7 +43,7 @@ public class FieldValueCounterTemplate extends AbstractTemplate implements Field
 		String url = resources.get("field-value-counters").toString() + "?page=10000";
 		return restTemplate.getForObject(url, MetricResource.Page.class);
 	}
-	
+
 	@Override
 	public void delete(String name) {
 		String url = resources.get("field-value-counters").toString() + "/{name}";

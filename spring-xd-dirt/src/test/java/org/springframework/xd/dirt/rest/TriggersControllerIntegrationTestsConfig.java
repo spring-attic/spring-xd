@@ -10,20 +10,21 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.xd.dirt.rest;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.xd.dirt.stream.EnhancedStreamParser;
-import org.springframework.xd.dirt.stream.XDParser;
 import org.springframework.xd.dirt.stream.TriggerDefinitionRepository;
 import org.springframework.xd.dirt.stream.TriggerDeployer;
+import org.springframework.xd.dirt.stream.XDParser;
 import org.springframework.xd.dirt.stream.memory.InMemoryTriggerDefinitionRepository;
 
 /**
  * @author Gunnar Hillert
  * @since 1.0
- *
+ * 
  */
 @Configuration
 public class TriggersControllerIntegrationTestsConfig extends Dependencies {

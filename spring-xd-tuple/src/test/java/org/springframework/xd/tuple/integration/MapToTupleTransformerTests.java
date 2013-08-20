@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.tuple.integration;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -22,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Test;
+
 import org.springframework.xd.tuple.Tuple;
 
 public class MapToTupleTransformerTests {

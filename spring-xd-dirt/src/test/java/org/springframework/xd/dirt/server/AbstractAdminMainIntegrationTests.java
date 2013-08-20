@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.dirt.server;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -22,14 +23,14 @@ import org.springframework.xd.dirt.stream.StreamServer;
 /**
  * @author Gary Russell
  * @since 1.0
- *
+ * 
  */
 public abstract class AbstractAdminMainIntegrationTests {
 
 	protected final void shutdown(StreamServer s) {
 		s.stop();
 		DirectFieldAccessor dfa = new DirectFieldAccessor(s);
-		((XmlWebApplicationContext)dfa.getPropertyValue("webApplicationContext")).destroy();
+		((XmlWebApplicationContext) dfa.getPropertyValue("webApplicationContext")).destroy();
 	}
 
 }

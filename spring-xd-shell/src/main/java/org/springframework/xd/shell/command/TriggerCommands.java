@@ -33,10 +33,10 @@ import org.springframework.xd.shell.util.TableRow;
 
 /**
  * Trigger commands.
- *
+ * 
  * @author Ilayaperumal Gopinathan
  * @author Gunnar Hillert
- *
+ * 
  * @since 1.0
  */
 

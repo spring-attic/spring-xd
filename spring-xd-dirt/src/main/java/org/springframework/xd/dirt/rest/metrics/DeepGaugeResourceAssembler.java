@@ -22,7 +22,7 @@ import org.springframework.xd.rest.client.domain.metrics.GaugeResource;
 
 /**
  * Knows how to assemble {@link GaugeResource}s out of {@link Gauge}s.
- *
+ * 
  * @author Luke Taylor
  */
 class DeepGaugeResourceAssembler extends

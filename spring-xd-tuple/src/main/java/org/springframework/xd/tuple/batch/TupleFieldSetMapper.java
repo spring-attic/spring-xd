@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.tuple.batch;
 
 import java.text.DateFormat;
@@ -26,24 +27,25 @@ import org.springframework.xd.tuple.Tuple;
 import org.springframework.xd.tuple.TupleBuilder;
 
 /**
- * A {@link FieldSetMapper} implementation intended to allow a user use a
- * {@link Tuple} as the item.  By default, all fields of the {@link FieldSet}
- * will be mapped as Strings.  To use type specific mapping, provide a
- * map of field names to {@link FieldSetType}. You are not required to map
- * all fields if using type specific mappings (only the ones that matter).
+ * A {@link FieldSetMapper} implementation intended to allow a user use a {@link Tuple} as the item. By default, all
+ * fields of the {@link FieldSet} will be mapped as Strings. To use type specific mapping, provide a map of field names
+ * to {@link FieldSetType}. You are not required to map all fields if using type specific mappings (only the ones that
+ * matter).
  * 
  * @author Michael Minella
- *
+ * 
  */
 public class TupleFieldSetMapper implements FieldSetMapper<Tuple> {
 
-	//TODO: Is one date format good enough or will we need to be able to map formats to fields?
+	// TODO: Is one date format good enough or will we need to be able to map formats to fields?
 	private DateFormat dateFormat;
-	//TODO: Currently this is bound by the convenience methods on the Tuple object.  Is custom conversion necessary?
+
+	// TODO: Currently this is bound by the convenience methods on the Tuple object. Is custom conversion necessary?
 	private Map<String, FieldSetType> types;
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.springframework.batch.item.file.mapping.FieldSetMapper#mapFieldSet(FieldSet fieldSet)
 	 */
 	@Override
@@ -52,11 +54,11 @@ public class TupleFieldSetMapper implements FieldSetMapper<Tuple> {
 
 		TupleBuilder builder = TupleBuilder.tuple();
 
-		if(dateFormat != null) {
+		if (dateFormat != null) {
 			builder.setDateFormat(dateFormat);
 		}
 
-		for(int i = 0; i < fieldSet.getFieldCount(); i++) {
+		for (int i = 0; i < fieldSet.getFieldCount(); i++) {
 			builder.put(names[i], getValue(fieldSet, names[i]));
 		}
 
@@ -64,44 +66,56 @@ public class TupleFieldSetMapper implements FieldSetMapper<Tuple> {
 	}
 
 	private Object getValue(FieldSet fs, String name) {
-		if(!CollectionUtils.isEmpty(types)) {
+		if (!CollectionUtils.isEmpty(types)) {
 			FieldSetType type = types.get(name);
 
-			if(type == null) {
+			if (type == null) {
 				return fs.readString(name);
-			} else if(type == FieldSetType.BIG_DECIMAL) {
+			}
+			else if (type == FieldSetType.BIG_DECIMAL) {
 				return fs.readBigDecimal(name);
-			} else if(type == FieldSetType.BOOLEAN) {
+			}
+			else if (type == FieldSetType.BOOLEAN) {
 				return fs.readBoolean(name);
-			} else if(type == FieldSetType.BYTE) {
+			}
+			else if (type == FieldSetType.BYTE) {
 				return fs.readByte(name);
-			} else if(type == FieldSetType.CHAR) {
+			}
+			else if (type == FieldSetType.CHAR) {
 				return fs.readChar(name);
-			} else if(type == FieldSetType.DATE) {
+			}
+			else if (type == FieldSetType.DATE) {
 				return fs.readDate(name);
-			} else if(type == FieldSetType.DOUBLE) {
+			}
+			else if (type == FieldSetType.DOUBLE) {
 				return fs.readDouble(name);
-			} else if(type == FieldSetType.FLOAT) {
+			}
+			else if (type == FieldSetType.FLOAT) {
 				return fs.readFloat(name);
-			} else if(type == FieldSetType.INT) {
+			}
+			else if (type == FieldSetType.INT) {
 				return fs.readInt(name);
-			} else if(type == FieldSetType.LONG) {
+			}
+			else if (type == FieldSetType.LONG) {
 				return fs.readLong(name);
-			} else if(type == FieldSetType.SHORT) {
+			}
+			else if (type == FieldSetType.SHORT) {
 				return fs.readShort(name);
-			} else if(type == FieldSetType.STRING) {
+			}
+			else if (type == FieldSetType.STRING) {
 				return fs.readString(name);
-			} else {
+			}
+			else {
 				throw new UnsupportedOperationException("Unable to determine the type to retrieve for " + name);
 			}
-		} else {
+		}
+		else {
 			return fs.readString(name);
 		}
 	}
 
 	/**
-	 * The {@link DateFormat} used by the resulting {@link Tuple} instance
-	 * returned when converting strings to Dates.
+	 * The {@link DateFormat} used by the resulting {@link Tuple} instance returned when converting strings to Dates.
 	 * 
 	 * @param formatter The format any dates provided will be in.
 	 */

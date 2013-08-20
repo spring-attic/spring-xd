@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.dirt.stream.dsl;
 
 /**
@@ -23,6 +24,7 @@ package org.springframework.xd.dirt.stream.dsl;
 public abstract class AstNode {
 
 	protected int startpos;
+
 	protected int endpos;
 
 	public AstNode(int startpos, int endpos) {

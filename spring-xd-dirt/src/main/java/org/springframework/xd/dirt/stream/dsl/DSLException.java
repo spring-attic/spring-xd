@@ -13,25 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.dirt.stream.dsl;
 
 /**
  * Root exception for DSL parsing related exceptions. Rather than holding a hard coded string indicating the problem, it
- * records a message key and the inserts for the message. See {@link XDDSLMessages} for the list of all possible messages
- * that can occur.
- *
+ * records a message key and the inserts for the message. See {@link XDDSLMessages} for the list of all possible
+ * messages that can occur.
+ * 
  * @author Andy Clement
  */
 @SuppressWarnings("serial")
 public class DSLException extends RuntimeException {
 
 	protected String expressionString;
+
 	protected int position; // -1 if not known - but should be known in all reasonable cases
+
 	private XDDSLMessages message;
+
 	private Object[] inserts;
 
 	public DSLException(String expressionString, int position, XDDSLMessages message, Object... inserts) {
-		super(message.formatMessage(position,inserts));
+		super(message.formatMessage(position, inserts));
 		this.position = position;
 		this.message = message;
 		this.inserts = inserts;
@@ -46,14 +50,15 @@ public class DSLException extends RuntimeException {
 		StringBuilder s = new StringBuilder();
 		if (message != null) {
 			s.append(message.formatMessage(position, inserts));
-		} else {
+		}
+		else {
 			s.append(super.getMessage());
 		}
-		if (expressionString!=null && expressionString.length()>0) {
+		if (expressionString != null && expressionString.length() > 0) {
 			s.append("\n").append(expressionString).append("\n");
 		}
-		if (position>=0) {
-			for (int i=0;i<position;i++) {
+		if (position >= 0) {
+			for (int i = 0; i < position; i++) {
 				s.append(' ');
 			}
 			s.append("^\n");

@@ -43,9 +43,8 @@ import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 
 /**
- * Parse streams and verify either the correct abstract syntax tree is produced or the
- * current exception comes out.
- *
+ * Parse streams and verify either the correct abstract syntax tree is produced or the current exception comes out.
+ * 
  * @author Andy Clement
  */
 public class StreamConfigParserTests {
@@ -76,9 +75,10 @@ public class StreamConfigParserTests {
 	public void testInvalidStreamName() {
 		String streamName = "bar";
 		String stream = "foo | bar";
-		checkForParseError(streamName, stream, XDDSLMessages.STREAM_NAME_MATCHING_MODULE_NAME, stream.indexOf(streamName), streamName);
+		checkForParseError(streamName, stream, XDDSLMessages.STREAM_NAME_MATCHING_MODULE_NAME,
+				stream.indexOf(streamName), streamName);
 	}
-	
+
 	// Pipes are used to connect modules
 	@Test
 	public void twoModules() {
@@ -214,7 +214,7 @@ public class StreamConfigParserTests {
 	@Test
 	public void testInvalidModules() {
 		String config = "test | foo--x=13";
-		EnhancedStreamParser parser = new EnhancedStreamParser(testRepository,moduleRegistry());
+		EnhancedStreamParser parser = new EnhancedStreamParser(testRepository, moduleRegistry());
 		try {
 			parser.parse("t", config);
 			fail(config + " is invalid. Should throw exception");
@@ -223,6 +223,7 @@ public class StreamConfigParserTests {
 			// success
 		}
 	}
+
 	public ModuleRegistry moduleRegistry() {
 		ModuleRegistry registry = mock(ModuleRegistry.class);
 		Resource resource = mock(Resource.class);
@@ -230,7 +231,8 @@ public class StreamConfigParserTests {
 		when(file.exists()).thenReturn(true);
 		try {
 			when(resource.getFile()).thenReturn(file);
-		} catch (IOException ioe) {
+		}
+		catch (IOException ioe) {
 			throw new RuntimeException(ioe);
 		}
 		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
@@ -251,7 +253,8 @@ public class StreamConfigParserTests {
 		when(registry.findDefinitions(ModuleType.PROCESSOR.name())).thenReturn(
 				definitions);
 		return registry;
-}
+	}
+
 	@Test
 	public void testDirtyTapSupport() {
 		parse("one", "foo | transform --expression=--payload | bar");
@@ -699,7 +702,7 @@ public class StreamConfigParserTests {
 			}
 		}
 	}
-	
+
 	private void checkForParseError(String name, String stream, XDDSLMessages msg, int pos, String... inserts) {
 		try {
 			StreamsNode sn = parse(name, stream);

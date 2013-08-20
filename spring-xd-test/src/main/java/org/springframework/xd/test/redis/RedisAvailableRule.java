@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.test.redis;
 
 import org.junit.runner.Description;
@@ -24,7 +25,7 @@ import org.springframework.xd.test.AbstractExternalServerAvailableRule;
 /**
  * @author Gary Russell
  * @since 1.0
- *
+ * 
  */
 public class RedisAvailableRule extends AbstractExternalServerAvailableRule {
 

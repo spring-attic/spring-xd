@@ -21,6 +21,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import org.junit.Before;
 import org.mockito.Mockito;
 import org.mockito.internal.util.MockUtil;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.http.MediaType;
@@ -42,8 +43,8 @@ import org.springframework.xd.dirt.stream.TriggerDefinitionRepository;
 import org.springframework.xd.dirt.stream.TriggerDeployer;
 
 /**
- * Base class for Controller layer tests. Takes care of resetting the mocked (be them
- * mockito mocks or <i>e.g.</i> in memory) dependencies before each test.
+ * Base class for Controller layer tests. Takes care of resetting the mocked (be them mockito mocks or <i>e.g.</i> in
+ * memory) dependencies before each test.
  * 
  * @author Eric Bottard
  * @author Ilayaperumal Gopinathan
@@ -98,10 +99,10 @@ public class AbstractControllerIntegrationTest {
 
 	@Autowired
 	protected FieldValueCounterRepository fieldValueCounterRepository;
-	
+
 	@Autowired
 	protected GaugeRepository gaugeRepository;
-	
+
 	@Autowired
 	protected RichGaugeRepository richGaugeRepository;
 
@@ -125,8 +126,7 @@ public class AbstractControllerIntegrationTest {
 	}
 
 	/**
-	 * Conditional resetting in case the dependency has been overridden and is not
-	 * actually a mock.
+	 * Conditional resetting in case the dependency has been overridden and is not actually a mock.
 	 */
 	private void maybeReset(Object o) {
 		if (mockUtil.isMock(o)) {

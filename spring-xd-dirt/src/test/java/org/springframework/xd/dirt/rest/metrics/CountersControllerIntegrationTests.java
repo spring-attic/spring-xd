@@ -16,9 +16,17 @@
 
 package org.springframework.xd.dirt.rest.metrics;
 
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -28,10 +36,6 @@ import org.springframework.xd.dirt.rest.Dependencies;
 import org.springframework.xd.dirt.rest.RestConfiguration;
 
 import scala.actors.threadpool.Arrays;
-
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
  * Tests proper behavior of {@link CountersController}.
@@ -53,9 +57,9 @@ public class CountersControllerIntegrationTests extends AbstractControllerIntegr
 		when(counterRepository.findOne("iamthere")).thenReturn(new Counter("iamthere", 12L));
 
 		mockMvc.perform(get("/metrics/counters/iamthere"))//
-				.andExpect(status().isOk())//
-				.andExpect(jsonPath("$.name").value("iamthere"))//
-				.andExpect(jsonPath("$.value").value(12));
+		.andExpect(status().isOk())//
+		.andExpect(jsonPath("$.name").value("iamthere"))//
+		.andExpect(jsonPath("$.value").value(12));
 	}
 
 	@Test
@@ -68,7 +72,7 @@ public class CountersControllerIntegrationTests extends AbstractControllerIntegr
 		when(counterRepository.findAll()).thenReturn(Arrays.asList(counters));
 
 		mockMvc.perform(get("/metrics/counters")).andExpect(status().isOk())//
-				.andExpect(jsonPath("$.content", Matchers.hasSize(10)));
+		.andExpect(jsonPath("$.content", Matchers.hasSize(10)));
 	}
 
 	@Test

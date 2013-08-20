@@ -20,6 +20,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
+
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.web.context.support.XmlWebApplicationContext;
 import org.springframework.xd.dirt.container.DefaultContainer;
@@ -83,7 +84,8 @@ public class ContainerMain {
 	public static Container launch(ContainerOptions options) {
 		ClassPathXmlApplicationContext context = null;
 		XmlWebApplicationContext analyticsContext = new XmlWebApplicationContext();
-		analyticsContext.setConfigLocation("classpath:" + DefaultContainer.XD_ANALYTICS_CONFIG_ROOT + options.getAnalytics()
+		analyticsContext.setConfigLocation("classpath:" + DefaultContainer.XD_ANALYTICS_CONFIG_ROOT
+				+ options.getAnalytics()
 				+ "-analytics.xml");
 		analyticsContext.refresh();
 		context = new ClassPathXmlApplicationContext();

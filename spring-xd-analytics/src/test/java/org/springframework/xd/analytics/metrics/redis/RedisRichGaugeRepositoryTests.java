@@ -1,3 +1,4 @@
+
 package org.springframework.xd.analytics.metrics.redis;
 
 import org.junit.After;
@@ -18,7 +19,7 @@ import org.springframework.xd.test.redis.RedisAvailableRule;
  * @author Luke Taylor
  * @author Gary Russell
  */
-@ContextConfiguration(classes=RedisRepositoriesConfig.class, loader=AnnotationConfigContextLoader.class)
+@ContextConfiguration(classes = RedisRepositoriesConfig.class, loader = AnnotationConfigContextLoader.class)
 @RunWith(SpringJUnit4ClassRunner.class)
 public class RedisRichGaugeRepositoryTests extends AbstractRichGaugeRepositoryTests {
 

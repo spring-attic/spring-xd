@@ -1,3 +1,4 @@
+
 package org.springframework.xd.analytics.metrics.redis;
 
 import java.lang.reflect.ParameterizedType;

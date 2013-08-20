@@ -13,17 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.analytics.metrics.core;
 
 /**
  * A marker interface for Gauge repositories.
- *
+ * 
  * @author Mark Pollack
- *
+ * 
  */
 public interface GaugeRepository extends MetricRepository<Gauge> {
+
 	/**
 	 * Set the value of the gauge
+	 * 
 	 * @param name the gauge name
 	 * @param value the value of the gauge
 	 * @throws IllegalArgumentException in case the given name is null
@@ -32,6 +35,7 @@ public interface GaugeRepository extends MetricRepository<Gauge> {
 
 	/**
 	 * Reset the gauge to zero
+	 * 
 	 * @param name the gauge name
 	 * @throws IllegalArgumentException in case the given name is null
 	 */

@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 import org.apache.commons.lang.StringUtils;
+
 import org.springframework.util.FileCopyUtils;
 
 /**
@@ -40,11 +41,10 @@ public final class BannerUtils {
 	}
 
 	/**
-	 * Retrieves the ASCII resource "banner.txt" from the classpath. Will also
-	 * use the version number from "MANIFEST.MF".
+	 * Retrieves the ASCII resource "banner.txt" from the classpath. Will also use the version number from
+	 * "MANIFEST.MF".
 	 * 
-	 * Similar to
-	 * {@link org.springframework.shell.plugin.support.DefaultBannerProvider}.
+	 * Similar to {@link org.springframework.shell.plugin.support.DefaultBannerProvider}.
 	 * 
 	 * @return String representing the Banner.
 	 */
@@ -64,7 +64,8 @@ public final class BannerUtils {
 					new InputStreamReader(BannerUtils.class
 							.getResourceAsStream("banner.txt"))).replaceAll(
 					"(\\r|\\n)+", LINE_SEPARATOR);
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			throw new IllegalStateException("Could not read banner.txt");
 		}
 	}

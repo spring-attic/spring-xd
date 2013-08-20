@@ -36,7 +36,8 @@ import org.springframework.integration.support.MessageBuilder;
  */
 public class HdfsOutboundChannelAdapterIntegrationTests {
 
-	@Ignore // requires Hadoop
+	@Ignore
+	// requires Hadoop
 	@Test
 	public void test() throws Exception {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(

@@ -77,8 +77,8 @@ public class RichGaugeResource extends MetricResource {
 	}
 
 	/**
-	 * Return the average value for the gauge. This will be the arithmetic mean unless an
-	 * 'alpha' value has been set for the gauge.
+	 * Return the average value for the gauge. This will be the arithmetic mean unless an 'alpha' value has been set for
+	 * the gauge.
 	 */
 	public double getAverage() {
 		return average;

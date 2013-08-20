@@ -10,6 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.integration.x.gemfire;
 
 import org.springframework.integration.transformer.MessageTransformationException;
@@ -21,26 +22,28 @@ import com.gemstone.org.json.JSONObject;
 
 /**
  * @author David Turanski
- *
+ * 
  */
 public class JsonStringToObjectTransformer {
+
 	public PdxInstance toObject(String json) {
 		JSONObject jsonObject = null;
 		try {
 			jsonObject = new JSONObject(json);
-		} catch (JSONException e) {
+		}
+		catch (JSONException e) {
 			throw new MessageTransformationException(e.getMessage());
 		}
 		return JSONFormatter.fromJSON(jsonObject.toString());
 	}
-	
+
 	public String toString(Object obj) {
 		if (obj == null) {
 			return null;
 		}
 		if (obj instanceof PdxInstance) {
-			String json =  JSONFormatter.toJSON((PdxInstance)obj);
-			//de-pretty
+			String json = JSONFormatter.toJSON((PdxInstance) obj);
+			// de-pretty
 			return json.replaceAll("\\n\\s*", "").replaceAll("\\s*:\\s*", ":").trim();
 		}
 		return obj.toString();

@@ -17,6 +17,7 @@
 package org.springframework.xd.dirt.server;
 
 import org.junit.Test;
+
 import org.springframework.xd.dirt.server.options.AdminOptions;
 import org.springframework.xd.dirt.stream.StreamServer;
 

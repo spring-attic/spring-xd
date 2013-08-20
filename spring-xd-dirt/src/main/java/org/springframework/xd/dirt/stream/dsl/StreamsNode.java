@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.dirt.stream.dsl;
 
 import java.util.List;
@@ -24,10 +25,11 @@ import java.util.List;
 public class StreamsNode extends AstNode {
 
 	private final String streamsText;
+
 	private final List<StreamNode> streamNodes;
 
 	public StreamsNode(String streamsText, List<StreamNode> streamNodes) {
-		super(streamNodes.get(0).getStartPos(),streamNodes.get(streamNodes.size()-1).getEndPos());
+		super(streamNodes.get(0).getStartPos(), streamNodes.get(streamNodes.size() - 1).getEndPos());
 		this.streamsText = streamsText;
 		this.streamNodes = streamNodes;
 	}
@@ -36,20 +38,20 @@ public class StreamsNode extends AstNode {
 	public String stringify(boolean includePositionalInfo) {
 		StringBuilder s = new StringBuilder();
 		s.append("Streams[").append(streamsText).append("]");
-		if (streamNodes.size()>1) {
+		if (streamNodes.size() > 1) {
 			s.append("\n");
 		}
-		for (int str=0;str<streamNodes.size();str++) {
-			if (str>0) {
+		for (int str = 0; str < streamNodes.size(); str++) {
+			if (str > 0) {
 				s.append("\n");
 			}
 			s.append(streamNodes.get(str).stringify(includePositionalInfo));
 		}
 		return s.toString();
 	}
-	
+
 	public void resolve(StreamLookupEnvironment env) {
-		for (StreamNode streamNode: streamNodes) {
+		for (StreamNode streamNode : streamNodes) {
 			streamNode.resolve(env);
 		}
 	}
@@ -71,9 +73,9 @@ public class StreamsNode extends AstNode {
 	}
 
 	public ModuleNode getModule(String moduleName) {
-		for (StreamNode streamNode: streamNodes) {
+		for (StreamNode streamNode : streamNodes) {
 			ModuleNode moduleNode = streamNode.getModule(moduleName);
-			if (moduleNode!=null) {
+			if (moduleNode != null) {
 				return moduleNode;
 			}
 		}
@@ -83,7 +85,7 @@ public class StreamsNode extends AstNode {
 	public List<StreamNode> getStreams() {
 		return streamNodes;
 	}
-	
+
 	public int getSize() {
 		return streamNodes.size();
 	}

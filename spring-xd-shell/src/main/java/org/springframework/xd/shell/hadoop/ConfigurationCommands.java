@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.shell.hadoop;
 
 import org.apache.hadoop.conf.Configuration;
@@ -20,6 +21,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.mapreduce.JobSubmissionFiles;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.hadoop.util.VersionInfo;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
@@ -62,8 +64,7 @@ public class ConfigurationCommands implements ApplicationEventPublisherAware, Co
 
 	@CliCommand(value = { PREFIX + "load" }, help = "Loads the Hadoop configuration from the given resource")
 	public String loadConfiguration(
-			@CliOption(key = { "", "location" }, mandatory = true, help = "configuration location (can be a URL)")
-			String location) {
+			@CliOption(key = { "", "location" }, mandatory = true, help = "configuration location (can be a URL)") String location) {
 		hadoopConfiguration.addResource(location);
 		hadoopConfiguration.size();
 
@@ -72,8 +73,7 @@ public class ConfigurationCommands implements ApplicationEventPublisherAware, Co
 
 	@CliCommand(value = { PREFIX + "props set" }, help = "Sets the value for the given Hadoop property")
 	public void setProperty(
-			@CliOption(key = { "", "property" }, mandatory = true, help = "what to set, in the form <name=value>")
-			String property) {
+			@CliOption(key = { "", "property" }, mandatory = true, help = "what to set, in the form <name=value>") String property) {
 		int i = property.indexOf("=");
 		Assert.isTrue(i >= 0, "invalid format");
 		String name = property.substring(0, i);
@@ -84,8 +84,7 @@ public class ConfigurationCommands implements ApplicationEventPublisherAware, Co
 	}
 
 	@CliCommand(value = { PREFIX + "props get" }, help = "Returns the value of the given Hadoop property")
-	public String getProperty(@CliOption(key = { "", "key" }, mandatory = true, help = "property name")
-	String name) {
+	public String getProperty(@CliOption(key = { "", "key" }, mandatory = true, help = "property name") String name) {
 		return hadoopConfiguration.get(name);
 	}
 
@@ -96,15 +95,13 @@ public class ConfigurationCommands implements ApplicationEventPublisherAware, Co
 
 	@CliCommand(value = { PREFIX + "fs" }, help = "Sets the Hadoop namenode")
 	public void setFs(
-			@CliOption(key = { "", "namenode" }, mandatory = true, help = "namenode address - can be local|<namenode:port>")
-			String namenode) {
+			@CliOption(key = { "", "namenode" }, mandatory = true, help = "namenode address - can be local|<namenode:port>") String namenode) {
 		FileSystem.setDefaultUri(hadoopConfiguration, namenode);
 	}
 
 	@CliCommand(value = { PREFIX + "jt" }, help = "Sets the Hadoop job tracker")
 	public void setJt(
-			@CliOption(key = { "", "jobtracker" }, mandatory = true, help = "job tracker address - can be local|<jobtracker:port>")
-			String jobtracker) {
+			@CliOption(key = { "", "jobtracker" }, mandatory = true, help = "job tracker address - can be local|<jobtracker:port>") String jobtracker) {
 		hadoopConfiguration.set("mapred.job.tracker", jobtracker);
 	}
 

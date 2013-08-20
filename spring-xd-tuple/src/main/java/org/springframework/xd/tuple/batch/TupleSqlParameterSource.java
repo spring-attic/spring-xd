@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.tuple.batch;
 
 import org.springframework.jdbc.core.namedparam.AbstractSqlParameterSource;
@@ -21,11 +22,10 @@ import org.springframework.util.Assert;
 import org.springframework.xd.tuple.Tuple;
 
 /**
- * Implementation of a {@link SqlParameterSource} that translates a {@link Tuple}
- * into SQL parameters.
+ * Implementation of a {@link SqlParameterSource} that translates a {@link Tuple} into SQL parameters.
  * 
  * @author Michael Minella
- *
+ * 
  */
 public class TupleSqlParameterSource extends AbstractSqlParameterSource {
 
@@ -38,6 +38,7 @@ public class TupleSqlParameterSource extends AbstractSqlParameterSource {
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.springframework.jdbc.core.namedparam.SqlParameterSource#hasValue(String paramName)
 	 */
 	@Override
@@ -47,6 +48,7 @@ public class TupleSqlParameterSource extends AbstractSqlParameterSource {
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.springframework.jdbc.core.namedparam.SqlParameterSource#getValue(String paramName)
 	 */
 	@Override

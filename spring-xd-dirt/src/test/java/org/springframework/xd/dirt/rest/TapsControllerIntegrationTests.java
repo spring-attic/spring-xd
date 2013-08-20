@@ -16,12 +16,29 @@
 
 package org.springframework.xd.dirt.rest;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Matchers.anyListOf;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import java.util.ArrayList;
 
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
@@ -35,12 +52,6 @@ import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.TapDefinition;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
-
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
  * Tests REST compliance of taps-related endpoints.
@@ -184,31 +195,33 @@ public class TapsControllerIntegrationTests extends AbstractControllerIntegratio
 		// As already undeployed, no new ModuleDeploymentRequest expected
 		verify(sender, times(2)).sendDeploymentRequests(eq("myawesometap"), anyListOf(ModuleDeploymentRequest.class));
 	}
-	
+
 	@Test
 	public void testTapDeployAll() throws Exception {
 		assertNull(tapInstanceRepository.findOne("mytap1"));
 		assertNull(tapInstanceRepository.findOne("mytap2"));
 		streamDefinitionRepository.save(new StreamDefinition("mystream1", "time | log"));
 		mockMvc.perform(
-				post("/taps").param("name", "mytap1").param("definition", "tap@mystream1 | log").param("deploy", "false").accept(
+				post("/taps").param("name", "mytap1").param("definition", "tap@mystream1 | log").param("deploy",
+						"false").accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
-		
+
 		// Create one more tap
 		mockMvc.perform(
-				post("/taps").param("name", "mytap2").param("definition", "tap@mystream1 | log").param("deploy", "false").accept(
+				post("/taps").param("name", "mytap2").param("definition", "tap@mystream1 | log").param("deploy",
+						"false").accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 		// Make sure they are not deployed yet.
 		assertNull(tapInstanceRepository.findOne("mytap1"));
 		assertNull(tapInstanceRepository.findOne("mytap2"));
-		// Deploy all the taps 
-		mockMvc.perform(put("/taps/_deployments").param("deploy","true").accept(
+		// Deploy all the taps
+		mockMvc.perform(put("/taps/_deployments").param("deploy", "true").accept(
 				MediaType.APPLICATION_JSON)).andExpect(status().isOk());
-		
+
 		assertNotNull(tapInstanceRepository.findOne("mytap1"));
 		assertNotNull(tapInstanceRepository.findOne("mytap2"));
 	}
-	
+
 	@Test
 	public void testTapUnDeployAll() throws Exception {
 		assertNull(tapInstanceRepository.findOne("mytap1"));
@@ -217,7 +230,7 @@ public class TapsControllerIntegrationTests extends AbstractControllerIntegratio
 		mockMvc.perform(
 				post("/taps").param("name", "mytap1").param("definition", "tap@mystream1 | log").accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
-		
+
 		// Create one more tap
 		mockMvc.perform(
 				post("/taps").param("name", "mytap2").param("definition", "tap@mystream1 | log").accept(
@@ -225,10 +238,10 @@ public class TapsControllerIntegrationTests extends AbstractControllerIntegratio
 		// Make sure they are deployed.
 		assertNotNull(tapInstanceRepository.findOne("mytap1"));
 		assertNotNull(tapInstanceRepository.findOne("mytap2"));
-		// Un-deploy all the taps 
-		mockMvc.perform(put("/taps/_deployments").param("deploy","false").accept(
+		// Un-deploy all the taps
+		mockMvc.perform(put("/taps/_deployments").param("deploy", "false").accept(
 				MediaType.APPLICATION_JSON)).andExpect(status().isOk());
-		
+
 		assertNull(tapInstanceRepository.findOne("mytap1"));
 		assertNull(tapInstanceRepository.findOne("mytap2"));
 	}
@@ -241,7 +254,7 @@ public class TapsControllerIntegrationTests extends AbstractControllerIntegratio
 		mockMvc.perform(
 				post("/taps").param("name", "mytap1").param("definition", "tap@mystream1 | log").accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
-		
+
 		// Create one more tap
 		mockMvc.perform(
 				post("/taps").param("name", "mytap2").param("definition", "tap@mystream1 | log").accept(
@@ -249,16 +262,16 @@ public class TapsControllerIntegrationTests extends AbstractControllerIntegratio
 		// Make sure they are deployed.
 		assertNotNull(tapInstanceRepository.findOne("mytap1"));
 		assertNotNull(tapInstanceRepository.findOne("mytap2"));
-		// Destroy all taps 
+		// Destroy all taps
 		mockMvc.perform(delete("/taps").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
-		
+
 		assertNull(tapInstanceRepository.findOne("mytap1"));
 		assertNull(tapInstanceRepository.findOne("mytap2"));
-		
+
 		assertNull(tapDefinitionRepository.findOne("mytap1"));
 		assertNull(tapDefinitionRepository.findOne("mytap2"));
 	}
-	
+
 	@Before
 	public void resetAdditionalMocks() {
 		reset(sender);

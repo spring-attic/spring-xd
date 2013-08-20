@@ -17,8 +17,8 @@
 package org.springframework.xd.analytics.metrics.core;
 
 /**
- * A repository to save, delete and find FieldValueCounter instances. Uses the Spring Data
- * Repository marker interface and conventions for method names and behavior.
+ * A repository to save, delete and find FieldValueCounter instances. Uses the Spring Data Repository marker interface
+ * and conventions for method names and behavior.
  * 
  * The name is the id and should be unique.
  * 
@@ -28,8 +28,7 @@ package org.springframework.xd.analytics.metrics.core;
 public interface FieldValueCounterRepository extends MetricRepository<FieldValueCounter> {
 
 	/**
-	 * Increment the FieldValueCounter for a given field name by one, creating missing
-	 * counters.
+	 * Increment the FieldValueCounter for a given field name by one, creating missing counters.
 	 * 
 	 * @param name the FieldValueCounter name
 	 * @param fieldName the name of the field
@@ -38,8 +37,7 @@ public interface FieldValueCounterRepository extends MetricRepository<FieldValue
 	void increment(String name, String fieldName);
 
 	/**
-	 * Decrement the FieldValueCounter for a given field name by one, creating missing
-	 * counters.
+	 * Decrement the FieldValueCounter for a given field name by one, creating missing counters.
 	 * 
 	 * @param name the FieldValueCounter name
 	 * @param fieldName the name of the field
@@ -48,8 +46,7 @@ public interface FieldValueCounterRepository extends MetricRepository<FieldValue
 	void decrement(String name, String fieldName);
 
 	/**
-	 * Reset the FieldValueCounter to zero for the given field name, creating missing
-	 * counters.
+	 * Reset the FieldValueCounter to zero for the given field name, creating missing counters.
 	 * 
 	 * @param name the FieldValueCounter name
 	 * @param fieldName the name of the field

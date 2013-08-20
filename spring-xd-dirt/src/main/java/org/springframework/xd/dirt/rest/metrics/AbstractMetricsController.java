@@ -67,12 +67,12 @@ abstract class AbstractMetricsController<R extends MetricRepository<M>, M extend
 
 	/**
 	 * Deletes the metric from the repository
+	 * 
 	 * @param name the name of the metric to delete
 	 */
 	@RequestMapping(value = "/{name}", method = RequestMethod.DELETE)
 	@ResponseStatus(HttpStatus.OK)
-	protected void delete(@PathVariable("name")
-	String name) {
+	protected void delete(@PathVariable("name") String name) {
 		if (!repository.exists(name)) {
 			throw new NoSuchMetricException(name, "Can't delete metric '%s' because it does not exist");
 		}

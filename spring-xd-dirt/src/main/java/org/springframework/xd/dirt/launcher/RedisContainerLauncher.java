@@ -62,9 +62,9 @@ public class RedisContainerLauncher extends AbstractContainerLauncher {
 			final Properties redisInfo = this.connectionFactory.getConnection().info();
 			final StringBuilder runtimeInfo = new StringBuilder();
 			runtimeInfo.append(String.format("Using Redis v%s (Mode: %s) on port: %s ",
-						redisInfo.getProperty("redis_version"),
-						redisInfo.getProperty("redis_mode"),
-						redisInfo.getProperty("tcp_port")));
+					redisInfo.getProperty("redis_version"),
+					redisInfo.getProperty("redis_mode"),
+					redisInfo.getProperty("tcp_port")));
 			if (options.isJmxEnabled()) {
 				runtimeInfo.append(String.format(" JMX port: %d", options.getJmxPort()));
 			}

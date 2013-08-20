@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.tuple;
 
 import java.math.BigDecimal;
@@ -37,26 +38,33 @@ import org.springframework.util.ClassUtils;
 
 /**
  * Default implementation of Tuple interface
- *
+ * 
  * @author Mark Pollack
  * @author David Turanski
- *
+ * 
  */
 public class DefaultTuple implements Tuple {
 
-	//TODO - error handling - when delegating to the conversion service, the ConversionFailedException does not have the context of which key
-	//					      caused the failure.  Need to wrap ConversionFailedException with IllegalArgumentException and add that context back in.
+	// TODO - error handling - when delegating to the conversion service, the ConversionFailedException does not have
+	// the context of which key
+	// caused the failure. Need to wrap ConversionFailedException with IllegalArgumentException and add that context
+	// back in.
 
-	//TODO consider LinkedHashMap and map to link index position to nam,e, look at efficient impls in goldman sach's collection class lib.
+	// TODO consider LinkedHashMap and map to link index position to nam,e, look at efficient impls in goldman sach's
+	// collection class lib.
 	private List<String> names;
+
 	private List<Object> values;
+
 	private FormattingConversionService formattingConversionService;
+
 	private Converter<Tuple, String> tupleToStringConverter = new DefaultTupleToStringConverter();
 
 	private UUID id;
+
 	private Long timestamp;
 
-	//TODO consider making final and package protect ctor so as to always use TupleBuilder
+	// TODO consider making final and package protect ctor so as to always use TupleBuilder
 
 	public DefaultTuple(List<String> names, List<Object> values, FormattingConversionService formattingConversionService) {
 		Assert.notNull(names);
@@ -66,8 +74,8 @@ public class DefaultTuple implements Tuple {
 			throw new IllegalArgumentException("Field names must be same length as values: names=" + names
 					+ ", values=" + values);
 		}
-		//TODO check for no duplicate names.
-		//TODO check for no null values.
+		// TODO check for no duplicate names.
+		// TODO check for no null values.
 		this.names = new ArrayList<String>(names);
 		this.values = new ArrayList<Object>(values); // shallow copy
 		this.formattingConversionService = formattingConversionService;
@@ -77,6 +85,7 @@ public class DefaultTuple implements Tuple {
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.springframework.xd.tuple.Tuple#size()
 	 */
 	@Override
@@ -86,6 +95,7 @@ public class DefaultTuple implements Tuple {
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.springframework.xd.tuple.Tuple#getId()
 	 */
 	@Override
@@ -95,6 +105,7 @@ public class DefaultTuple implements Tuple {
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.springframework.xd.tuple.Tuple#getTimestamp()
 	 */
 	@Override
@@ -104,6 +115,7 @@ public class DefaultTuple implements Tuple {
 
 	/**
 	 * Return the values for all the fields in this tuple
+	 * 
 	 * @return an unmodifiable List of names.
 	 */
 	@Override
@@ -113,6 +125,7 @@ public class DefaultTuple implements Tuple {
 
 	/**
 	 * Return the values for all the fields in this tuple
+	 * 
 	 * @return an unmodifiable List list of values.
 	 */
 	@Override
@@ -127,6 +140,7 @@ public class DefaultTuple implements Tuple {
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.springframework.xd.tuple.Tuple#hasName(java.lang.String)
 	 */
 	@Override
@@ -136,6 +150,7 @@ public class DefaultTuple implements Tuple {
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.springframework.xd.tuple.Tuple#getValue(java.lang.String)
 	 */
 	@Override
@@ -146,6 +161,7 @@ public class DefaultTuple implements Tuple {
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.springframework.xd.tuple.Tuple#getValue(int)
 	 */
 	@Override
@@ -163,7 +179,9 @@ public class DefaultTuple implements Tuple {
 		return Collections.unmodifiableList(types);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
@@ -175,7 +193,9 @@ public class DefaultTuple implements Tuple {
 		return result;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
@@ -194,14 +214,16 @@ public class DefaultTuple implements Tuple {
 			if (other.names != null) {
 				return false;
 			}
-		} else if (!names.equals(other.names)) {
+		}
+		else if (!names.equals(other.names)) {
 			return false;
 		}
 		if (values == null) {
 			if (other.values != null) {
 				return false;
 			}
-		} else if (!values.equals(other.values)) {
+		}
+		else if (!values.equals(other.values)) {
 			return false;
 		}
 		return true;
@@ -238,10 +260,12 @@ public class DefaultTuple implements Tuple {
 			String value = convert(rawValue, String.class);
 			if (value != null) {
 				return value.trim();
-			} else {
+			}
+			else {
 				return null;
 			}
-		} else {
+		}
+		else {
 			return null;
 		}
 	}
@@ -259,10 +283,12 @@ public class DefaultTuple implements Tuple {
 			String value = convert(rawValue, String.class);
 			if (value != null) {
 				return value;
-			} else {
+			}
+			else {
 				return null;
 			}
-		} else {
+		}
+		else {
 			return null;
 		}
 	}
@@ -504,7 +530,8 @@ public class DefaultTuple implements Tuple {
 	public Date getDateWithPattern(String name, String pattern) {
 		try {
 			return getDateWithPattern(indexOf(name), pattern);
-		} catch (IllegalArgumentException e) {
+		}
+		catch (IllegalArgumentException e) {
 			throw new IllegalArgumentException(e.getMessage() + ", name: [" + name + "]");
 		}
 	}
@@ -514,7 +541,8 @@ public class DefaultTuple implements Tuple {
 		try {
 			Date d = getDateWithPattern(index, pattern);
 			return (d != null) ? d : defaultValue;
-		} catch (IllegalArgumentException e) {
+		}
+		catch (IllegalArgumentException e) {
 			return defaultValue;
 		}
 
@@ -524,12 +552,15 @@ public class DefaultTuple implements Tuple {
 	public Date getDateWithPattern(String name, String pattern, Date defaultValue) {
 		try {
 			return getDateWithPattern(indexOf(name), pattern, defaultValue);
-		} catch (IllegalArgumentException e) {
+		}
+		catch (IllegalArgumentException e) {
 			throw new IllegalArgumentException(e.getMessage() + ", name: [" + name + "]");
 		}
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.springframework.xd.tuple.Tuple#getValue(java.lang.String, java.lang.Class)
 	 */
 	@Override
@@ -538,7 +569,9 @@ public class DefaultTuple implements Tuple {
 		return convert(value, valueClass);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.springframework.xd.tuple.Tuple#getValue(int, java.lang.Class)
 	 */
 	@Override
@@ -553,7 +586,7 @@ public class DefaultTuple implements Tuple {
 		ExpressionParser parser = new SpelExpressionParser();
 		Expression exp = parser.parseExpression(expression);
 
-		//TODO test instance is a map
+		// TODO test instance is a map
 		Object result = exp.getValue(context);
 		Map<String, Object> resultMap = null;
 		if (ClassUtils.isAssignableValue(Map.class, result)) {
@@ -561,7 +594,8 @@ public class DefaultTuple implements Tuple {
 		}
 		if (resultMap != null) {
 			return toTuple(resultMap);
-		} else {
+		}
+		else {
 			return new DefaultTuple(new ArrayList<String>(0), new ArrayList<Object>(0),
 					this.formattingConversionService);
 		}
@@ -594,14 +628,15 @@ public class DefaultTuple implements Tuple {
 
 	@SuppressWarnings("unchecked")
 	<T> T convert(Object value, Class<T> targetType) {
-		//TODO wrap ConversionFailedException in IllegalArgumentException... may need to pass in index/field name for good error reporting.
+		// TODO wrap ConversionFailedException in IllegalArgumentException... may need to pass in index/field name for
+		// good error reporting.
 		return (T) formattingConversionService.convert(value, TypeDescriptor.forObject(value),
 				TypeDescriptor.valueOf(targetType));
 	}
 
 	/**
 	 * Find the index in the names collection for the given name.
-	 *
+	 * 
 	 * @throws IllegalArgumentException if a the given name is not defined.
 	 */
 	protected int indexOf(String name) {
@@ -609,11 +644,11 @@ public class DefaultTuple implements Tuple {
 	}
 
 	/**
-	 *
+	 * 
 	 * @param tupleToStringConverter
 	 */
 	protected void setTupleToStringConverter(Converter<Tuple, String> tupleToStringConverter) {
-		Assert.notNull(tupleToStringConverter,"tupleToStringConverter cannot be null");
+		Assert.notNull(tupleToStringConverter, "tupleToStringConverter cannot be null");
 		this.tupleToStringConverter = tupleToStringConverter;
 	}
 
@@ -623,6 +658,7 @@ public class DefaultTuple implements Tuple {
 	}
 
 	class DefaultTupleToStringConverter implements Converter<Tuple, String> {
+
 		@Override
 		public String convert(Tuple source) {
 			return "DefaultTuple [names=" + names + ", values=" + values + ", id=" + id + ", timestamp=" + timestamp

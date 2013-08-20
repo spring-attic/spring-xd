@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.tuple.batch;
 
 import java.sql.ResultSet;
@@ -24,19 +25,18 @@ import org.springframework.xd.tuple.Tuple;
 import org.springframework.xd.tuple.TupleBuilder;
 
 /**
- * A {@link RowMapper} implementation to be used with the {@link Tuple}
- * data structure.  The resulting Tuple consists of the column names as the
- * field names and the result of the {@link ResultSet#getObject(int)} as the
- * value.  The order of the data will be the order they are returned in the
- * ResultSet (column order).
+ * A {@link RowMapper} implementation to be used with the {@link Tuple} data structure. The resulting Tuple consists of
+ * the column names as the field names and the result of the {@link ResultSet#getObject(int)} as the value. The order of
+ * the data will be the order they are returned in the ResultSet (column order).
  * 
  * @author Michael Minella
- *
+ * 
  */
 public class TupleRowMapper implements RowMapper<Tuple> {
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see org.springframework.jdbc.core.RowMapper#mapRow(ResultSet rs, int rowNum)
 	 */
 	@Override
@@ -45,7 +45,7 @@ public class TupleRowMapper implements RowMapper<Tuple> {
 
 		TupleBuilder builder = TupleBuilder.tuple();
 
-		for(int i = 1; i <= columnCount; i++) {
+		for (int i = 1; i <= columnCount; i++) {
 			builder.put(rs.getMetaData().getColumnName(i), JdbcUtils.getResultSetValue(rs, i));
 		}
 

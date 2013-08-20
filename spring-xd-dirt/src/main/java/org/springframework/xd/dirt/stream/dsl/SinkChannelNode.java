@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.dirt.stream.dsl;
 
 /**
@@ -23,7 +24,7 @@ public class SinkChannelNode extends AstNode {
 	private final ChannelNode channelNode;
 
 	public SinkChannelNode(ChannelNode channelNode, int startpos) {
-		super(startpos,channelNode.endpos);
+		super(startpos, channelNode.endpos);
 		this.channelNode = channelNode;
 	}
 
@@ -42,11 +43,11 @@ public class SinkChannelNode extends AstNode {
 		s.append(channelNode.toString());
 		return s.toString();
 	}
-	
+
 	public ChannelNode getChannelNode() {
 		return channelNode;
 	}
-	
+
 	public String getChannelName() {
 		return channelNode.getChannelName();
 	}

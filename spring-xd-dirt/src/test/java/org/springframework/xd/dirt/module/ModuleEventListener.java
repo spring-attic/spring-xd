@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.dirt.module;
 
 import java.util.concurrent.BlockingDeque;
@@ -22,10 +23,9 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.xd.dirt.event.AbstractModuleEvent;
 
 /**
- * Listens for {@link AbstractModuleEvent}s that signal module deployment and
- * undeployment and places the events on a blocking queue. Add this class to a
- * test application context to be informed on module events.
- *
+ * Listens for {@link AbstractModuleEvent}s that signal module deployment and undeployment and places the events on a
+ * blocking queue. Add this class to a test application context to be informed on module events.
+ * 
  * @author Jennifer Hickey
  */
 public class ModuleEventListener implements ApplicationListener<AbstractModuleEvent> {

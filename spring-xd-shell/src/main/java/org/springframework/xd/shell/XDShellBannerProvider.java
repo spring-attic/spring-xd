@@ -28,7 +28,7 @@ import org.springframework.xd.shell.util.UiUtils;
 
 /**
  * Provides the Spring XD specific {@link BannerProvider}.
- *
+ * 
  * @author Gunnar Hillert
  * @since 1.0
  */
@@ -57,17 +57,16 @@ public class XDShellBannerProvider implements BannerProvider {
 
 		if (TargetStatus.ERROR.equals(target.getStatus())) {
 			banner.append("\n" + UiUtils.HORIZONTAL_LINE)
-				.append("Error: " + target.getTargetResultMessage())
-				.append("\nPlease execute 'admin config info' for more details.")
-				.append("\n" + UiUtils.HORIZONTAL_LINE);
+					.append("Error: " + target.getTargetResultMessage())
+					.append("\nPlease execute 'admin config info' for more details.")
+					.append("\n" + UiUtils.HORIZONTAL_LINE);
 		}
 
 		return banner.toString();
 	}
 
 	/**
-	 * Returns the version information as found in the manifest file (set during
-	 * release).
+	 * Returns the version information as found in the manifest file (set during release).
 	 */
 	@Override
 	public String getVersion() {

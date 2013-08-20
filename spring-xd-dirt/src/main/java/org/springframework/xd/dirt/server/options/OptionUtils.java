@@ -10,6 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.xd.dirt.server.options;
 
 import java.util.Properties;
@@ -19,9 +20,10 @@ import org.springframework.core.env.PropertiesPropertySource;
 
 /**
  * @author David Turanski
- *
+ * 
  */
 public class OptionUtils {
+
 	/**
 	 * @param options
 	 * @param environment
@@ -29,7 +31,7 @@ public class OptionUtils {
 	public static void setJmxProperties(AbstractOptions options, ConfigurableEnvironment environment) {
 		Properties jmxProperties = new Properties();
 		jmxProperties.put(AbstractOptions.XD_JMX_PORT_KEY, options.getJmxPort());
-		environment.getPropertySources().addFirst(new PropertiesPropertySource("jmxProperties",jmxProperties));
+		environment.getPropertySources().addFirst(new PropertiesPropertySource("jmxProperties", jmxProperties));
 	}
 
 }

@@ -18,15 +18,18 @@ package org.springframework.xd.dirt.stream.dsl;
 
 /**
  * Holder for a kind of token, the associated data and its position in the input data stream (start/end).
- *
+ * 
  * @author Andy Clement
  */
 class Token {
 
 	TokenKind kind; // the kind of token
-	String data;    // any extra data for this token instance, e.g. the text for an identifier token
-	int startpos;   // index of first character
-	int endpos;     // index of char after the last character
+
+	String data; // any extra data for this token instance, e.g. the text for an identifier token
+
+	int startpos; // index of first character
+
+	int endpos; // index of char after the last character
 
 	/**
 	 * Constructor for use when there is no particular data for the token
@@ -38,11 +41,11 @@ class Token {
 	}
 
 	/**
-	 * Constructor for use when there is extra data to associate with a token.
-	 * For example the text for an identifier token.
+	 * Constructor for use when there is extra data to associate with a token. For example the text for an identifier
+	 * token.
 	 */
 	Token(TokenKind tokenKind, char[] tokenData, int pos, int endpos) {
-		this(tokenKind,pos,endpos);
+		this(tokenKind, pos, endpos);
 		this.data = new String(tokenData);
 	}
 
@@ -64,7 +67,7 @@ class Token {
 	}
 
 	public boolean isIdentifier() {
-		return kind==TokenKind.IDENTIFIER;
+		return kind == TokenKind.IDENTIFIER;
 	}
 
 	public String stringValue() {
@@ -73,8 +76,8 @@ class Token {
 
 	@Override
 	public int hashCode() {
-		return this.kind.ordinal()*37+(this.startpos+this.endpos)*37+
-				(this.kind.hasPayload()?this.data.hashCode():0);
+		return this.kind.ordinal() * 37 + (this.startpos + this.endpos) * 37 +
+				(this.kind.hasPayload() ? this.data.hashCode() : 0);
 	}
 
 	@Override
@@ -82,10 +85,11 @@ class Token {
 		if (!(o instanceof Token)) {
 			return false;
 		}
-		Token token = (Token)o;
-		boolean basicmatch = this.kind == token.kind && 
+		Token token = (Token) o;
+		boolean basicmatch = this.kind == token.kind &&
 				this.startpos == token.startpos && this.endpos == token.endpos;
-		if (!basicmatch) return false;
+		if (!basicmatch)
+			return false;
 		if (this.kind.hasPayload()) {
 			if (!this.data.equals(token.data)) {
 				return false;
@@ -95,6 +99,6 @@ class Token {
 	}
 
 	public boolean isKind(TokenKind desiredKind) {
-		return kind==desiredKind;
+		return kind == desiredKind;
 	}
 }

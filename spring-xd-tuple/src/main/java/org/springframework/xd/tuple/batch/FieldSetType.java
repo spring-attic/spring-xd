@@ -1,8 +1,8 @@
+
 package org.springframework.xd.tuple.batch;
 
 /**
- * Enum used to provide typing information when reading
- * from a file.
+ * Enum used to provide typing information when reading from a file.
  * 
  * @author Michael Minella
  * @see TupleFieldSetMapper

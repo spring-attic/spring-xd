@@ -5,7 +5,6 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.util.StringUtils;
 import org.springframework.xd.integration.reactor.syslog.SyslogInboundChannelAdapter;
 import org.w3c.dom.Element;
 
@@ -15,14 +14,10 @@ import org.w3c.dom.Element;
 public class SyslogInboundChannelAdapterParser extends AbstractChannelAdapterParser {
 	@Override
 	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
-		BeanDefinitionBuilder builder = ReactorNamespaceUtils.createBeanDefitionBuilder(SyslogInboundChannelAdapter.class, element);
+		BeanDefinitionBuilder builder = ReactorNamespaceUtils.createBeanDefinitionBuilder(SyslogInboundChannelAdapter.class, element);
 
-		String s = element.getAttribute("port");
-		int port = 5140;
-		if (StringUtils.hasText(s)) {
-			port = Integer.parseInt(s);
-		}
-		builder.addConstructorArgValue(port);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "host", "host");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "port", "port");
 
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel", "errorChannel");
 

@@ -33,7 +33,8 @@
     </xsd:annotation>
     <xsd:complexType>
       <xsd:attribute name="id" type="xsd:string" use="required"/>
-      <xsd:attribute name="port" type="xsd:string" use="required"/>
+      <xsd:attribute name="host" type="xsd:string" use="optional"/>
+      <xsd:attribute name="port" type="xsd:string" use="optional"/>
       <xsd:attribute name="env" type="xsd:string" use="optional">
         <xsd:annotation>
           <xsd:documentation>

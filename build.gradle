@@ -556,6 +556,14 @@ project('spring-xd-reactor') {
 		compile "org.projectreactor:reactor-spring:$reactorVersion",
 				"org.projectreactor:reactor-tcp:$reactorVersion",
 				"org.springframework.integration:spring-integration-core:$springIntegrationVersion"
+
+		testCompile "org.springframework:spring-test:$springVersion"
+		testCompile ("org.mockito:mockito-core:$mockitoVersion") {
+			exclude group:'org.hamcrest'
+		}
+		testRuntime "log4j:log4j:$log4jVersion",
+				"org.slf4j:jcl-over-slf4j:$slf4jVersion",
+				"org.slf4j:slf4j-log4j12:$slf4jVersion"
 	}
 }
 

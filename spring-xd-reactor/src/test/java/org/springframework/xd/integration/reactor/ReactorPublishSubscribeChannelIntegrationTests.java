@@ -26,7 +26,7 @@ public class ReactorPublishSubscribeChannelIntegrationTests {
 	private TestMessageHandler  testHandler;
 
 	@Test
-	public void testReactorSubscribableChannel() throws InterruptedException {
+	public void testReactorPublishSubscribeChannel() throws InterruptedException {
 		Message<?> msg = MessageBuilder.withPayload("Hello World!").build();
 		output.send(msg);
 

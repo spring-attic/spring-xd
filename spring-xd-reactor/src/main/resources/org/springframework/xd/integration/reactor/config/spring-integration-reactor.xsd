@@ -33,7 +33,8 @@
     </xsd:annotation>
     <xsd:complexType>
       <xsd:attribute name="id" type="xsd:string" use="required"/>
-      <xsd:attribute name="env" type="xsd:string" use="required">
+      <xsd:attribute name="port" type="xsd:string" use="required"/>
+      <xsd:attribute name="env" type="xsd:string" use="optional">
         <xsd:annotation>
           <xsd:documentation>
             <![CDATA[
@@ -47,7 +48,6 @@
           </xsd:appinfo>
         </xsd:annotation>
       </xsd:attribute>
-      <xsd:attribute name="port" type="xsd:string" use="required"/>
       <xsd:attribute name="channel" type="xsd:string" use="optional">
         <xsd:annotation>
           <xsd:documentation>
@@ -93,7 +93,7 @@
       </xsd:appinfo>
     </xsd:annotation>
     <xsd:complexType>
-      <xsd:attribute name="id" type="xsd:string" use="optional"/>
+      <xsd:attribute name="id" type="xsd:string" use="required"/>
       <xsd:attribute name="scope" type="xsd:string" use="optional"/>
       <xsd:attribute name="datatype" type="xsd:string" use="optional">
         <xsd:annotation>

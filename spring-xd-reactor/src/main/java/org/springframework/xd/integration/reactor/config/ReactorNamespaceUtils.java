@@ -9,7 +9,7 @@ import org.w3c.dom.Element;
  */
 public abstract class ReactorNamespaceUtils {
 
-	public static final String REACTOR_ENV_BEAN = "xd.reactor.env";
+	public static final String REACTOR_ENV_BEAN = "reactorEnv";
 
 	protected ReactorNamespaceUtils() {
 	}

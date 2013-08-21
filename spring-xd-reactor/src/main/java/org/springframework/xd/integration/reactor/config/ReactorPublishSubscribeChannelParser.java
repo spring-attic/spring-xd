@@ -11,7 +11,7 @@ import org.w3c.dom.Element;
 /**
  * @author Jon Brisbin
  */
-public class ReactorSubscribableChannelParser extends AbstractChannelParser {
+public class ReactorPublishSubscribeChannelParser extends AbstractChannelParser {
 	@Override
 	protected BeanDefinitionBuilder buildBeanDefinition(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ReactorPublishSubscribeChannel.class);

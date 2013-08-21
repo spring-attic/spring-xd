@@ -80,7 +80,7 @@ public class SyslogInboundChannelAdapterIntegrationTests {
 
 		@Bean
 		public SyslogInboundChannelAdapter syslogInboundChannelAdapter(Environment env, DirectChannel output) {
-			SyslogInboundChannelAdapter sica = new SyslogInboundChannelAdapter(env, 5140);
+			SyslogInboundChannelAdapter sica = new SyslogInboundChannelAdapter(env);
 			sica.setOutputChannel(output);
 			return sica;
 		}

@@ -18,14 +18,16 @@ import reactor.tcp.spec.TcpServerSpec;
  */
 public class SyslogInboundChannelAdapter extends MessageProducerSupport {
 
-	private final TcpServer<SyslogMessage, Void> server;
+	private final TcpServerSpec<SyslogMessage, Void> spec;
+	private volatile String host = "0.0.0.0";
+	private volatile int    port = 5140;
+	private volatile TcpServer<SyslogMessage, Void> server;
 
-	public SyslogInboundChannelAdapter(Environment env, int port) {
-		this.server = new TcpServerSpec<SyslogMessage, Void>(NettyTcpServer.class)
+	public SyslogInboundChannelAdapter(Environment env) {
+		this.spec = new TcpServerSpec<SyslogMessage, Void>(NettyTcpServer.class)
 				.env(env)
 				.dispatcher(new SynchronousDispatcher())
 				.codec(new SyslogCodec())
-				.listen(port)
 				.consume(new Consumer<TcpConnection<SyslogMessage, Void>>() {
 					@Override
 					public void accept(TcpConnection<SyslogMessage, Void> conn) {
@@ -37,18 +39,29 @@ public class SyslogInboundChannelAdapter extends MessageProducerSupport {
 							}
 						});
 					}
-				})
-				.get();
+				});
+	}
+
+	public void setHost(String host) {
+		this.host = host;
+	}
+
+	public void setPort(int port) {
+		this.port = port;
 	}
 
 	@Override
 	public String getComponentType() {
-		return "reactor:syslog-inbound-channel-adapter";
+		return "int-reactor:syslog-inbound-channel-adapter";
 	}
 
 	@Override
 	protected void onInit() {
 		super.onInit();
+
+		spec.listen(host, port);
+
+		this.server = spec.get();
 	}
 
 	@Override

@@ -35,7 +35,7 @@ public class MBeanExportingPlugin implements Plugin {
 	@Override
 	public void preProcessModule(Module module) {
 
-		if (System.getProperty(XdPropertyKeys.XD_JMX_ENABLED) == null) {
+		if (System.getProperty(XdPropertyKeys.XD_JMX_ENABLED).equals("true")) {
 			module.addComponents(new ClassPathResource(CONTEXT_CONFIG_ROOT + "mbean-exporters.xml"));
 			Properties objectNameProperties = new Properties();
 			objectNameProperties.put("xd.module.name", module.getName());

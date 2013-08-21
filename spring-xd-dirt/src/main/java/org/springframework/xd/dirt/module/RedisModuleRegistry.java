@@ -46,16 +46,4 @@ public class RedisModuleRegistry extends AbstractModuleRegistry {
 		return (config != null) ? new ByteArrayResource(config.toString().getBytes()) : null;
 	}
 
-	@Override
-	public List<ModuleDefinition> findDefinitions(String name) {
-		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
-		for (ModuleType type : ModuleType.values()) {
-			Resource resource = loadResource(name, type.getTypeName());
-			if (resource != null) {
-				ModuleDefinition moduleDef = new ModuleDefinition(name, type.getTypeName(), resource);
-				definitions.add(moduleDef);
-			}
-		}
-		return definitions;
-	}
 }

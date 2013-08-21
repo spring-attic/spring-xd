@@ -16,12 +16,8 @@
 
 package org.springframework.xd.dirt.module;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import org.springframework.xd.module.ModuleDefinition;
 
 /**
  * Simple {@link ModuleRegistry} that loads modules from the testmodules location
@@ -35,9 +31,4 @@ public class ClasspathTestModuleRegistry extends AbstractModuleRegistry {
 		return new ClassPathResource("testmodules/" + name + ".xml");
 	}
 
-	@Override
-	public List<ModuleDefinition> findDefinitions(String name) {
-		// TODO
-		return new ArrayList<ModuleDefinition>();
-	}
 }

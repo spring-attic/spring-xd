@@ -16,15 +16,16 @@
 
 package org.springframework.xd.module;
 
+import java.net.URL;
 import java.util.Properties;
 
 import org.springframework.core.io.Resource;
 
 /**
  * Defines a module.
- * 
+ *
  * @author Gary Russell
- * 
+ *
  */
 public class ModuleDefinition {
 
@@ -36,14 +37,21 @@ public class ModuleDefinition {
 
 	private volatile Properties properties;
 
+	private final URL[] classpath;
+
 	public ModuleDefinition(String name, String moduleType) {
 		this(name, moduleType, null);
 	}
 
 	public ModuleDefinition(String name, String type, Resource resource) {
+		this(name, type, resource, null);
+	}
+
+	public ModuleDefinition(String name, String type, Resource resource, URL[] classpath) {
 		this.resource = resource;
 		this.name = name;
 		this.type = type;
+		this.classpath = classpath;
 	}
 
 	public String getName() {
@@ -64,6 +72,10 @@ public class ModuleDefinition {
 
 	public void setProperties(Properties properties) {
 		this.properties = properties;
+	}
+
+	public URL[] getClasspath() {
+		return classpath;
 	}
 
 }

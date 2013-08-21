@@ -21,6 +21,7 @@ import org.apache.commons.logging.LogFactory;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.web.context.support.XmlWebApplicationContext;
 import org.springframework.xd.dirt.container.DefaultContainer;
@@ -43,6 +44,8 @@ public class ContainerMain {
 	private static final Log logger = LogFactory.getLog(ContainerMain.class);
 
 	private static final String LAUNCHER_CONFIG_LOCATION = DefaultContainer.XD_INTERNAL_CONFIG_ROOT + "launcher.xml";
+
+	private static ApplicationContext parentContext;
 
 	/**
 	 * Start the RedisContainerLauncher
@@ -76,21 +79,34 @@ public class ContainerMain {
 	@SuppressWarnings("resource")
 	public static Container launch(ContainerOptions options) {
 		ClassPathXmlApplicationContext context = null;
-		XmlWebApplicationContext parentContext = new XmlWebApplicationContext();
 
 		context = new ClassPathXmlApplicationContext();
 		context.setConfigLocation(LAUNCHER_CONFIG_LOCATION);
 
 		OptionUtils.configureRuntime(options, context.getEnvironment());
-		parentContext.setConfigLocation("classpath:" + DefaultContainer.XD_INTERNAL_CONFIG_ROOT + "xd-global-beans.xml");
-		parentContext.refresh();
-		context.setParent(parentContext);
 
+		if (parentContext == null) {
+			parentContext = createParentContext();
+		}
+
+		context.setParent(parentContext);
 		context.refresh();
 		context.registerShutdownHook();
+
 		ContainerLauncher launcher = context.getBean(ContainerLauncher.class);
 		Container container = launcher.launch(options);
 		return container;
+	}
+
+	public static void setParentContext(ApplicationContext parentContext) {
+		ContainerMain.parentContext = parentContext;
+	}
+
+	private static ApplicationContext createParentContext() {
+		XmlWebApplicationContext parentContext = new XmlWebApplicationContext();
+		parentContext.setConfigLocation("classpath:" + DefaultContainer.XD_INTERNAL_CONFIG_ROOT + "xd-global-beans.xml");
+		parentContext.refresh();
+		return parentContext;
 	}
 
 }

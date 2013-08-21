@@ -16,6 +16,10 @@
 
 package org.springframework.xd.dirt.server;
 
+import static org.junit.Assert.*;
+
+import static org.junit.Assert.assertNotNull;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
@@ -26,6 +30,7 @@ import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.x.channel.registry.ChannelRegistry;
+import org.springframework.xd.analytics.metrics.core.MetricRepository;
 import org.springframework.xd.dirt.container.DefaultContainer;
 import org.springframework.xd.dirt.core.Container;
 import org.springframework.xd.dirt.module.ModuleDeployer;
@@ -42,6 +47,7 @@ import org.springframework.xd.module.Plugin;
  * 
  */
 public class SingleNodeMainIntegrationTests extends AbstractAdminMainIntegrationTests {
+
 	@Test
 	public void testDefault() {
 		SingleNodeMain.main(new String[] {});
@@ -53,11 +59,11 @@ public class SingleNodeMainIntegrationTests extends AbstractAdminMainIntegration
 			"--store",
 			"memory", "--enableJmx", "true", "--analytics", "memory" });
 		StreamServer server = SingleNodeMain.launchStreamServer(opts);
-		Container container = SingleNodeMain.launchContainer(opts.asContainerOptions());
+		Container container = SingleNodeMain.launchContainer(opts.asContainerOptions(), server.getApplicationContext().getParent());
 		SingleNodeMain.setUpControlChannels(server, container);
 		DefaultContainer defaultContainer = (DefaultContainer) container;
 		ApplicationContext containerContext = defaultContainer.getApplicationContext();
-		ApplicationContext adminContext = server.getXmlWebApplicationContext();
+		ApplicationContext adminContext = server.getApplicationContext();
 		assertNotSame(containerContext, adminContext);
 
 		assertEquals(1, containerContext.getBeansOfType(ModuleDeployer.class).size());
@@ -68,13 +74,17 @@ public class SingleNodeMainIntegrationTests extends AbstractAdminMainIntegration
 				containerContext.getBeansOfType(ChannelRegistry.class).size());
 
 		assertTrue("No plugins loaded into container context",
-				 containerContext.getBeansOfType(Plugin.class).size() > 0);
-		assertTrue("No StreamPlugin loaded into container context", containerContext.getBeansOfType(StreamPlugin.class).size() > 0);
-		assertEquals("More than one StreamPlugin loaded into container context",1, containerContext.getBeansOfType(StreamPlugin.class).size());
-		
-		assertTrue("No JobPlugin loaded into container context", containerContext.getBeansOfType(JobPlugin.class).size() > 0);
-		assertEquals("More than 1 JobPlugin loaded into container context", 1, containerContext.getBeansOfType(JobPlugin.class).size());
-		
+				containerContext.getBeansOfType(Plugin.class).size() > 0);
+		assertTrue("No StreamPlugin loaded into container context",
+				containerContext.getBeansOfType(StreamPlugin.class).size() > 0);
+		assertEquals("More than one StreamPlugin loaded into container context", 1,
+				containerContext.getBeansOfType(StreamPlugin.class).size());
+
+		assertTrue("No JobPlugin loaded into container context",
+				containerContext.getBeansOfType(JobPlugin.class).size() > 0);
+		assertEquals("More than 1 JobPlugin loaded into container context", 1,
+				containerContext.getBeansOfType(JobPlugin.class).size());
+
 		assertEquals("admin context should not have plugins", 0,
 				adminContext.getBeansOfType(Plugin.class).size());
 		assertEquals("admin context should not have a channel registry", 0,
@@ -91,5 +101,11 @@ public class SingleNodeMainIntegrationTests extends AbstractAdminMainIntegration
 		catch (Exception e) {
 			// expected
 		}
+		assertNotNull(adminContext.getParent());
+		assertNotNull(containerContext.getParent());
+		assertSame(adminContext.getParent(), containerContext.getParent());
+
+		assertTrue("no metrics repositories have been registered in the container context",
+				containerContext.getParent().getBeansOfType(MetricRepository.class).size() > 0);
 	}
 }

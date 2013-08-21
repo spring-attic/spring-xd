@@ -14,7 +14,7 @@ public abstract class ReactorNamespaceUtils {
 	protected ReactorNamespaceUtils() {
 	}
 
-	public static BeanDefinitionBuilder createBeanDefitionBuilder(Class<?> componentType, Element element) {
+	public static BeanDefinitionBuilder createBeanDefinitionBuilder(Class<?> componentType, Element element) {
 		String envRef = element.getAttribute("env");
 		if (!StringUtils.hasText(envRef)) {
 			envRef = REACTOR_ENV_BEAN;

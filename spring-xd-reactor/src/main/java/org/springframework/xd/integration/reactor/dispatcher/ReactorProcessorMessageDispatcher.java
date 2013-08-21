@@ -16,6 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author Jon Brisbin
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class ReactorProcessorMessageDispatcher implements MessageDispatcher {
 
 	private final Map<MessageHandler, Consumer>    messageHandlerConsumers = new ConcurrentHashMap<MessageHandler, Consumer>();

@@ -77,13 +77,14 @@ public class ContainerMain {
 	public static Container launch(ContainerOptions options) {
 		ClassPathXmlApplicationContext context = null;
 		XmlWebApplicationContext parentContext = new XmlWebApplicationContext();
-		parentContext.setConfigLocation("classpath:" + DefaultContainer.XD_INTERNAL_CONFIG_ROOT + "xd-global-beans.xml");
-		parentContext.refresh();
+
 		context = new ClassPathXmlApplicationContext();
 		context.setConfigLocation(LAUNCHER_CONFIG_LOCATION);
-		context.setParent(parentContext);
 
 		OptionUtils.configureRuntime(options, context.getEnvironment());
+		parentContext.setConfigLocation("classpath:" + DefaultContainer.XD_INTERNAL_CONFIG_ROOT + "xd-global-beans.xml");
+		parentContext.refresh();
+		context.setParent(parentContext);
 
 		context.refresh();
 		context.registerShutdownHook();

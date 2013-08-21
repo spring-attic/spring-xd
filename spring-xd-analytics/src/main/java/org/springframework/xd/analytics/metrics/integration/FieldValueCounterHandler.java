@@ -35,9 +35,8 @@ import org.springframework.xd.tuple.Tuple;
 import org.springframework.xd.tuple.integration.JsonToTupleTransformer;
 
 /**
- * Counts the occurrence of values for a set of JavaBean properties or Tuple fields using
- * a FieldValueCounterService. Assumes a String payload is JSON and will convert it to a
- * Tuple.
+ * Counts the occurrence of values for a set of JavaBean properties or Tuple fields using a FieldValueCounterService.
+ * Assumes a String payload is JSON and will convert it to a Tuple.
  * 
  * @author Mark Pollack
  * @author David Turanski

@@ -36,7 +36,7 @@ import org.springframework.xd.rest.client.domain.JobDefinitionResource;
 
 /**
  * Handles all Job related interactions.
- *
+ * 
  * @author Glenn Renfro
  * @author Gunnar Hillert
  * @since 1.0
@@ -58,17 +58,17 @@ public class JobsController extends
 	@ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
 	@ResponseBody
 	public void deploy(String name) {
-		//not used
+		// not used
 	}
 
 	@RequestMapping(value = "/{name}", method = RequestMethod.PUT, params = "deploy=true")
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
 	public void deployJob(@PathVariable("name") String name,
-			@RequestParam(required=false) String jobParameters,
-			@RequestParam(required=false) String dateFormat,
-			@RequestParam(required=false) String numberFormat,
-			@RequestParam(required=false) Boolean makeUnique) {
+			@RequestParam(required = false) String jobParameters,
+			@RequestParam(required = false) String dateFormat,
+			@RequestParam(required = false) String numberFormat,
+			@RequestParam(required = false) Boolean makeUnique) {
 		final JobDeployer jobDeployer = (JobDeployer) getDeployer();
 		jobDeployer.deploy(name, jobParameters, dateFormat, numberFormat, makeUnique);
 	}
@@ -88,4 +88,3 @@ public class JobsController extends
 		return new JobDefinition(name, definition);
 	}
 }
-

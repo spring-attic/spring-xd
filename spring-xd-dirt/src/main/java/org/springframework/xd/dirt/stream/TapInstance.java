@@ -18,7 +18,7 @@ package org.springframework.xd.dirt.stream;
 
 /**
  * A runtime representation of a deployed {@link TapDefinition}.
- *
+ * 
  * @author Gunnar Hillert
  * @since 1.0
  */

@@ -16,6 +16,9 @@
 
 package org.springframework.xd.store;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -24,19 +27,19 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.data.repository.PagingAndSortingRepository;
 
-import static org.junit.Assert.*;
+import org.springframework.data.repository.PagingAndSortingRepository;
 
 
 /**
  * Base class for tests that apply to various repository implemenations.
- *
+ * 
  * @author Eric Bottard
  */
 public abstract class BaseRepositoryTests<R extends PagingAndSortingRepository<String, Integer> & RangeCapableRepository<String, Integer>> {
 
-	protected static final List<String> NUMBERS = Arrays.asList("zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine");
+	protected static final List<String> NUMBERS = Arrays.asList("zero", "one", "two", "three", "four", "five", "six",
+			"seven", "eight", "nine");
 
 	protected R repo;
 

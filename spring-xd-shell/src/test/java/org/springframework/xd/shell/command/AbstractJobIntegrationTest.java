@@ -34,8 +34,7 @@ import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableRow;
 
 /**
- * Provides an @After JUnit lifecycle method that will destroy the jobs that were created
- * by calling executeJobCreate
+ * Provides an @After JUnit lifecycle method that will destroy the jobs that were created by calling executeJobCreate
  * 
  * @author Glenn Renfro
  * @author Gunnar Hillert
@@ -125,8 +124,7 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 	}
 
 	/**
-	 * Execute job create for the supplied job name/definition, and verify the command
-	 * result.
+	 * Execute job create for the supplied job name/definition, and verify the command result.
 	 */
 	protected void executeJobCreate(String jobName, String jobDefinition, boolean deploy) {
 		CommandResult cr = executeCommand("job create --definition \"" + jobDefinition + "\" --name " + jobName

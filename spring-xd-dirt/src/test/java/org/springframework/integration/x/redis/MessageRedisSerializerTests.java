@@ -16,22 +16,23 @@
 
 package org.springframework.integration.x.redis;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
 import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Rule;
 import org.junit.Test;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.xd.test.redis.RedisAvailableRule;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
 /**
  * Unit test of {@link MessageRedisSerializer}
- *
+ * 
  * @author Jennifer Hickey
  */
 public class MessageRedisSerializerTests {

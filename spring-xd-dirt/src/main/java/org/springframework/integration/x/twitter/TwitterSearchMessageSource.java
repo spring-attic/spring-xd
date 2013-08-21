@@ -31,10 +31,10 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 /**
- * Temporary implementation that bypasses Spring Integration to use the TwitterTemplate
- * directly since the Twitter v1.0 API is being deprecated. This can be removed and
- * replaced as soon as we update the Spring Integration Twitter module accordingly.
- *
+ * Temporary implementation that bypasses Spring Integration to use the TwitterTemplate directly since the Twitter v1.0
+ * API is being deprecated. This can be removed and replaced as soon as we update the Spring Integration Twitter module
+ * accordingly.
+ * 
  * @author Mark Fisher
  * @author Luke Taylor
  */

@@ -28,9 +28,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Implementation of {@link RedisSerializer} that uses {@link MessageBuilder} to
- * deserialize raw bytes into {@link Message}s
- *
+ * Implementation of {@link RedisSerializer} that uses {@link MessageBuilder} to deserialize raw bytes into
+ * {@link Message}s
+ * 
  * @author Jennifer Hickey
  */
 public class MessageRedisSerializer implements RedisSerializer<Message<?>> {
@@ -65,18 +65,18 @@ public class MessageRedisSerializer implements RedisSerializer<Message<?>> {
 	}
 
 	/**
-	 *
-	 * @param stringSerializer The {@link RedisSerializer} to use for converting bytes
-	 *        to/from Strings before further serialization
+	 * 
+	 * @param stringSerializer The {@link RedisSerializer} to use for converting bytes to/from Strings before further
+	 *        serialization
 	 */
 	public void setStringSerializer(RedisSerializer<String> stringSerializer) {
 		this.stringSerializer = stringSerializer;
 	}
 
 	/**
-	 * DTO class for de-serialization, relying on {@link MessageBuilder} to return the
-	 * correct message type. Also, serialization framework needs a no-arg constructor.
-	 *
+	 * DTO class for de-serialization, relying on {@link MessageBuilder} to return the correct message type. Also,
+	 * serialization framework needs a no-arg constructor.
+	 * 
 	 * @author Jennifer Hickey
 	 */
 	private static class MessageDeserializationWrapper {

@@ -27,6 +27,7 @@ import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.converter.DefaultJobParametersConverter;
 import org.springframework.beans.factory.InitializingBean;
@@ -37,14 +38,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.MapType;
 
 /**
- * Prepares the {@link JobParameters} for the Spring Bach Jobs. As input you pass
- * in a JSON-based Map representation of the parameters. Will use the
- * {@link DefaultJobParametersConverter} class underneath, allowing you to provide
- * type information.
- *
+ * Prepares the {@link JobParameters} for the Spring Bach Jobs. As input you pass in a JSON-based Map representation of
+ * the parameters. Will use the {@link DefaultJobParametersConverter} class underneath, allowing you to provide type
+ * information.
+ * 
  * @author Gunnar Hillert
  * @since 1.0
- *
+ * 
  */
 public class JobParametersBean implements InitializingBean {
 
@@ -68,18 +68,18 @@ public class JobParametersBean implements InitializingBean {
 
 	/**
 	 * Initializes the {@link JobParametersBean}.
-	 *
-	 * @param jobParametersAsJsonMap Can be null or empty. In that case the resulting
-	 * {@link JobParameters} will be empty.
+	 * 
+	 * @param jobParametersAsJsonMap Can be null or empty. In that case the resulting {@link JobParameters} will be
+	 *        empty.
 	 */
 	public JobParametersBean(String jobParametersAsJsonMap) {
 		this.jobParametersAsJsonMap = jobParametersAsJsonMap;
 	}
 
 	/**
-	 * Will set the {@link DateFormat} on the underlying {@link DefaultJobParametersConverter}.
-	 * If not set explicitly the {@link DateFormat} will default to "yyyy/MM/dd".
-	 *
+	 * Will set the {@link DateFormat} on the underlying {@link DefaultJobParametersConverter}. If not set explicitly
+	 * the {@link DateFormat} will default to "yyyy/MM/dd".
+	 * 
 	 * @param dateFormat Must not be null
 	 */
 	public void setDateFormat(DateFormat dateFormat) {
@@ -94,9 +94,9 @@ public class JobParametersBean implements InitializingBean {
 	}
 
 	/**
-	 * Setter for the {@link NumberFormat} which is set on the underlying {@link DefaultJobParametersConverter}.
-	 * If not set explicitly, defaults to {@code NumberFormat.getInstance(Locale.US);}
-	 *
+	 * Setter for the {@link NumberFormat} which is set on the underlying {@link DefaultJobParametersConverter}. If not
+	 * set explicitly, defaults to {@code NumberFormat.getInstance(Locale.US);}
+	 * 
 	 * @param numberFormat Must not be null.
 	 */
 	public void setNumberFormat(NumberFormat numberFormat) {
@@ -111,8 +111,9 @@ public class JobParametersBean implements InitializingBean {
 	}
 
 	/**
-	 *
+	 * 
 	 * If not set, this property defaults to <code>true</code>.
+	 * 
 	 * @param makeParametersUnique
 	 */
 	public void setMakeParametersUnique(boolean makeParametersUnique) {
@@ -120,9 +121,8 @@ public class JobParametersBean implements InitializingBean {
 	}
 
 	/**
-	 * Please ensure that {@link #afterPropertiesSet()} is called before obtaining
-	 * the {@link JobParameters}.
-	 *
+	 * Please ensure that {@link #afterPropertiesSet()} is called before obtaining the {@link JobParameters}.
+	 * 
 	 * @return The parsed Job Parameters.
 	 */
 	public JobParameters getJobParameters() {
@@ -132,7 +132,7 @@ public class JobParametersBean implements InitializingBean {
 	@Override
 	public void afterPropertiesSet() throws Exception {
 
- 		if (this.dateFormat != null) {
+		if (this.dateFormat != null) {
 			jobParametersConverter.setDateFormat(dateFormat);
 		}
 

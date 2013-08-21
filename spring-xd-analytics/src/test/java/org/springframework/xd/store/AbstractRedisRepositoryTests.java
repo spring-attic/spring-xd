@@ -19,13 +19,14 @@ package org.springframework.xd.store;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
+
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.xd.test.redis.RedisAvailableRule;
 
 /**
  * Tests for {@link AbstractRedisRepository}.
- *
+ * 
  * @author Eric Bottard
  */
 public class AbstractRedisRepositoryTests extends BaseRepositoryTests<AbstractRedisRepository<String, Integer>> {
@@ -49,7 +50,7 @@ public class AbstractRedisRepositoryTests extends BaseRepositoryTests<AbstractRe
 	}
 
 	@Override
-	protected AbstractRedisRepository<String, Integer> createRepository()  {
+	protected AbstractRedisRepository<String, Integer> createRepository() {
 		return new AbstractRedisRepository<String, Integer>("_test", new StringRedisTemplate(connectionFactory)) {
 
 			@Override

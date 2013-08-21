@@ -22,11 +22,12 @@ import org.springframework.xd.store.AbstractInMemoryRepository;
 
 /**
  * In memory implementation of {@link TapInstanceRepository}.
- *
+ * 
  * @author Gunnar Hillert
  * @since 1.0
  */
-public class InMemoryTapInstanceRepository extends AbstractInMemoryRepository<TapInstance, String> implements TapInstanceRepository {
+public class InMemoryTapInstanceRepository extends AbstractInMemoryRepository<TapInstance, String> implements
+		TapInstanceRepository {
 
 	@Override
 	protected String keyFor(TapInstance entity) {

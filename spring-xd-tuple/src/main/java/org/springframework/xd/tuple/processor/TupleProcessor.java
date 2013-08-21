@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.tuple.processor;
 
 import org.springframework.xd.tuple.Tuple;
 
 /**
- * Simple type-safe process callback method that returns another Tuple 
+ * Simple type-safe process callback method that returns another Tuple
  * 
  * @author Mark Pollack
- *
+ * 
  */
 public interface TupleProcessor {
 

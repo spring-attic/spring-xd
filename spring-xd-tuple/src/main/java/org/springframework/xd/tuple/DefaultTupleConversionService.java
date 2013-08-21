@@ -10,6 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.xd.tuple;
 
 import java.util.Collection;
@@ -21,15 +22,16 @@ import org.springframework.format.support.DefaultFormattingConversionService;
  * Base {@link ConversionService} implementation suitable for use with {@link Tuple}
  * 
  * @author David Turanski
- *
+ * 
  */
 public class DefaultTupleConversionService extends DefaultFormattingConversionService {
+
 	DefaultTupleConversionService() {
 		/*
-		 * DefaultFormattingConversionService provides Collection -> Object conversion which will produce the first item if the target type matches.
-		 * Here, this results in an unfortunate side effect, getTuple(List<Tuple> list) would return a Tuple. In this case it is preferable to treat it 
-		 * as an error if the argument is not a Tuple.
+		 * DefaultFormattingConversionService provides Collection -> Object conversion which will produce the first item
+		 * if the target type matches. Here, this results in an unfortunate side effect, getTuple(List<Tuple> list)
+		 * would return a Tuple. In this case it is preferable to treat it as an error if the argument is not a Tuple.
 		 */
-		removeConvertible(Collection.class,Object.class);
+		removeConvertible(Collection.class, Object.class);
 	}
 }

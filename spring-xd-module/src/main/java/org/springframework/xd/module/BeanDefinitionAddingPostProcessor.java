@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.module;
 
 import java.util.Map.Entry;
@@ -27,21 +28,20 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProce
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
+
 /**
- * Implementation of {@link BeanDefinitionRegistryPostProcessor} that adds
- * all beans defined in the specified {@link Resource}s. Used by plugins
- * to hook into the shared application context.
- *
- * Alternatively, allows for adding {@link BeanDefinition}s programmatically as
- * well.
- *
+ * Implementation of {@link BeanDefinitionRegistryPostProcessor} that adds all beans defined in the specified
+ * {@link Resource}s. Used by plugins to hook into the shared application context.
+ * 
+ * Alternatively, allows for adding {@link BeanDefinition}s programmatically as well.
+ * 
  * @author Jennifer Hickey
  * @author Gunnar Hillert
- *
+ * 
  * @since 1.0
- *
+ * 
  */
-public class BeanDefinitionAddingPostProcessor implements BeanDefinitionRegistryPostProcessor{
+public class BeanDefinitionAddingPostProcessor implements BeanDefinitionRegistryPostProcessor {
 
 	private final Resource[] resources;
 
@@ -64,7 +64,7 @@ public class BeanDefinitionAddingPostProcessor implements BeanDefinitionRegistry
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
 		reader.loadBeanDefinitions(resources);
 
-		for(Entry<String, BeanDefinition> entry : beanDefinitions.entrySet()) {
+		for (Entry<String, BeanDefinition> entry : beanDefinitions.entrySet()) {
 			registry.registerBeanDefinition(entry.getKey(), entry.getValue());
 		}
 
@@ -72,7 +72,7 @@ public class BeanDefinitionAddingPostProcessor implements BeanDefinitionRegistry
 
 	/**
 	 * Allows you to add custom {@link BeanDefinition}s.
-	 *
+	 * 
 	 * @param beanName The name of the bean instance to register
 	 * @param beanDefinition Definition of the bean instance to register
 	 * @return The BeanDefinitionAddingPostProcessor

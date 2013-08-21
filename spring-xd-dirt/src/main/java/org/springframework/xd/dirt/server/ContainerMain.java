@@ -20,6 +20,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
+
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.web.context.support.XmlWebApplicationContext;
 import org.springframework.xd.dirt.container.DefaultContainer;
@@ -60,7 +61,9 @@ public class ContainerMain {
 			parser.printUsage(System.err);
 			System.exit(1);
 		}
-
+		if (options.isJmxEnabled()) {
+			System.setProperty(AbstractOptions.XD_JMX_ENABLED_KEY, "true");
+		}
 		AbstractOptions.setXDHome(options.getXDHomeDir());
 		AbstractOptions.setXDTransport(options.getTransport());
 		AbstractOptions.setXDAnalytics(options.getAnalytics());
@@ -81,13 +84,14 @@ public class ContainerMain {
 	public static Container launch(ContainerOptions options) {
 		ClassPathXmlApplicationContext context = null;
 		XmlWebApplicationContext analyticsContext = new XmlWebApplicationContext();
-		analyticsContext.setConfigLocation("classpath:" + DefaultContainer.XD_ANALYTICS_CONFIG_ROOT + options.getAnalytics()
+		analyticsContext.setConfigLocation("classpath:" + DefaultContainer.XD_ANALYTICS_CONFIG_ROOT
+				+ options.getAnalytics()
 				+ "-analytics.xml");
 		analyticsContext.refresh();
 		context = new ClassPathXmlApplicationContext();
 		context.setConfigLocation(LAUNCHER_CONFIG_LOCATION);
 		context.setParent(analyticsContext);
-		if (!options.isJmxDisabled()) {
+		if (options.isJmxEnabled()) {
 			context.getEnvironment().addActiveProfile("xd.jmx.enabled");
 			OptionUtils.setJmxProperties(options, context.getEnvironment());
 		}

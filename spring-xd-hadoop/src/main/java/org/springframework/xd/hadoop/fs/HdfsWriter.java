@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.hadoop.fs;
 
 import java.io.IOException;
@@ -20,12 +21,12 @@ import java.io.IOException;
 import org.springframework.integration.Message;
 
 /**
- *
+ * 
  * @author Mark Pollack
  */
 public interface HdfsWriter {
 
 	void write(Message<?> message) throws IOException;
-	
+
 	void close();
 }

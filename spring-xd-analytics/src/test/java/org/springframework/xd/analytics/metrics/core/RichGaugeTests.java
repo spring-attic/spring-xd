@@ -1,17 +1,21 @@
+
 package org.springframework.xd.analytics.metrics.core;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.HashSet;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 import nl.jqno.equalsverifier.Warning;
+
 import org.junit.Test;
 
 /**
  * @author Luke Taylor
  */
 public class RichGaugeTests {
+
 	private static double D = 1.0E-5;
 
 	@Test

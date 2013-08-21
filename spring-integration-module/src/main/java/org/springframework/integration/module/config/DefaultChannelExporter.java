@@ -20,11 +20,12 @@ import java.util.Map.Entry;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.integration.MessageChannel;
 
+
 /**
  * The Default ChannelExporter for Modules. Selects zero or one input channels and zero to many output channels from a
- * {@link DefaultListableBeanFactory}. Subclasses may override isInputChannel() and isOutputChannel() to implement an alternate
- * strategy.
- *
+ * {@link DefaultListableBeanFactory}. Subclasses may override isInputChannel() and isOutputChannel() to implement an
+ * alternate strategy.
+ * 
  * @author David Turanski
  * @since 3.0
  */
@@ -34,13 +35,15 @@ public class DefaultChannelExporter implements ChannelExporter {
 
 	private String outputChannelPrefix = "output";
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.springframework.integration.module.ChannelExporter#getInputChannel()
 	 */
 	@Override
-	public MessageChannel getInputChannel(Map<String,MessageChannel> channels) {
+	public MessageChannel getInputChannel(Map<String, MessageChannel> channels) {
 		MessageChannel inputChannel = null;
-		for (Entry<String,MessageChannel> entry: channels.entrySet()) {
+		for (Entry<String, MessageChannel> entry : channels.entrySet()) {
 			if (isInputChannel(entry.getKey(), entry.getValue())) {
 				if (inputChannel == null) {
 					inputChannel = entry.getValue();
@@ -53,21 +56,25 @@ public class DefaultChannelExporter implements ChannelExporter {
 		return inputChannel;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.springframework.integration.module.ChannelExporter#getOutputChannels()
 	 */
 	@Override
-	public Map<String,MessageChannel> getOutputChannels(Map<String,MessageChannel> channels) {
-		Map <String,MessageChannel> outputChannels = new HashMap<String,MessageChannel>();
-		for (Entry<String,MessageChannel> entry: channels.entrySet()) {
+	public Map<String, MessageChannel> getOutputChannels(Map<String, MessageChannel> channels) {
+		Map<String, MessageChannel> outputChannels = new HashMap<String, MessageChannel>();
+		for (Entry<String, MessageChannel> entry : channels.entrySet()) {
 			if (isOutputChannel(entry.getKey(), entry.getValue())) {
-				outputChannels.put(entry.getKey(),entry.getValue());
+				outputChannels.put(entry.getKey(), entry.getValue());
 			}
 		}
 		return outputChannels;
 	}
 
-	/*** Determine if a given bean is an output channel
+	/***
+	 * Determine if a given bean is an output channel
+	 * 
 	 * @param channelName
 	 * @param channel the MessageChannel
 	 * @return true if this is an outputChannel
@@ -78,6 +85,7 @@ public class DefaultChannelExporter implements ChannelExporter {
 
 	/**
 	 * Determine if a given bean is the input channel
+	 * 
 	 * @param channelName
 	 * @param channel the MessageChannel
 	 * @return true if this is an inputChannel
@@ -94,7 +102,7 @@ public class DefaultChannelExporter implements ChannelExporter {
 	}
 
 	protected void setInputChannelName(String inputChannelName) {
-		this.inputChannelName  = inputChannelName;
+		this.inputChannelName = inputChannelName;
 	}
 
 	/**
@@ -111,17 +119,21 @@ public class DefaultChannelExporter implements ChannelExporter {
 		this.outputChannelPrefix = outputChannelPrefix;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.integration.module.config.ChannelExporter#getOutputChannels(java.util.Map, org.springframework.integration.MessageChannel)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.springframework.integration.module.config.ChannelExporter#getOutputChannels(java.util.Map,
+	 * org.springframework.integration.MessageChannel)
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T extends MessageChannel> Map<String, T> getOutputChannels(Map<String, MessageChannel> channels, Class<T> requiredType) {
-		Map<String,MessageChannel> candidateChannels = getOutputChannels(channels);
-		Map<String,T> outputChannels = new HashMap<String,T>();
-		for (Entry<String,MessageChannel> entry: candidateChannels.entrySet()) {
+	public <T extends MessageChannel> Map<String, T> getOutputChannels(Map<String, MessageChannel> channels,
+			Class<T> requiredType) {
+		Map<String, MessageChannel> candidateChannels = getOutputChannels(channels);
+		Map<String, T> outputChannels = new HashMap<String, T>();
+		for (Entry<String, MessageChannel> entry : candidateChannels.entrySet()) {
 			if (requiredType.isAssignableFrom(entry.getValue().getClass())) {
-				outputChannels.put(entry.getKey(),(T)entry.getValue());
+				outputChannels.put(entry.getKey(), (T) entry.getValue());
 			}
 		}
 		return outputChannels;

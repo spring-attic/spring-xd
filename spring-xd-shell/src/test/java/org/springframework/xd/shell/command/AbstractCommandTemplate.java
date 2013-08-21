@@ -16,10 +16,10 @@
 
 package org.springframework.xd.shell.command;
 
+import static org.junit.Assert.assertTrue;
+
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
-
-import static org.junit.Assert.*;
 
 /**
  * Common operations to execute in the shell.

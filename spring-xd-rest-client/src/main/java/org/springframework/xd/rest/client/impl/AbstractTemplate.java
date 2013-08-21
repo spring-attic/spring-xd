@@ -27,8 +27,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.xd.rest.client.util.RestTemplateMessageConverterUtil;
 
 /**
- * Base class for sub-parts of the API, allows sharing configured objects like the
- * {@link RestTemplate}.
+ * Base class for sub-parts of the API, allows sharing configured objects like the {@link RestTemplate}.
  * 
  * @author Eric Bottard
  * 
@@ -56,8 +55,7 @@ import org.springframework.xd.rest.client.util.RestTemplateMessageConverterUtil;
 	}
 
 	/**
-	 * No arg constructor, used solely by entry point to the API, namely
-	 * {@link SpringXDTemplate}.
+	 * No arg constructor, used solely by entry point to the API, namely {@link SpringXDTemplate}.
 	 */
 	AbstractTemplate() {
 		restTemplate = new RestTemplate();

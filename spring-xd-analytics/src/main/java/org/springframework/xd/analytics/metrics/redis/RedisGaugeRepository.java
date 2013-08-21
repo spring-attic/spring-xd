@@ -21,9 +21,8 @@ import org.springframework.xd.analytics.metrics.core.Gauge;
 import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 
 /**
- * Redis backed implementation that uses Redis keys to store and update the value. The
- * naming strategy for keys in Redis is "gauges." This means a Gauge named simpleGauge
- * appears under the name "gauges.simpleGauge" in Redis.
+ * Redis backed implementation that uses Redis keys to store and update the value. The naming strategy for keys in Redis
+ * is "gauges." This means a Gauge named simpleGauge appears under the name "gauges.simpleGauge" in Redis.
  * 
  * @author Mark Pollack
  */

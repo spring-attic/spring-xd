@@ -16,10 +16,16 @@
 
 package org.springframework.integration.x.channel.registry;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
 import java.util.Collection;
 import java.util.Collections;
 
 import org.junit.Test;
+
 import org.springframework.http.MediaType;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
@@ -28,8 +34,6 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.xd.dirt.stream.Tap;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Gary Russell

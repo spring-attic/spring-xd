@@ -33,10 +33,10 @@ import org.springframework.xd.shell.util.TableRow;
 
 /**
  * Tap commands.
- *
+ * 
  * @author Ilayaperumal Gopinathan
  * @author Gunnar Hillert
- *
+ * 
  * @since 1.0
  */
 
@@ -85,7 +85,8 @@ public class TapCommands implements CommandMarker {
 					.addValue(3, tapDefinitionResource.getDefinition());
 			if (Boolean.TRUE.equals(tapDefinitionResource.isDeployed())) {
 				row.addValue(4, "deployed");
-			} else {
+			}
+			else {
 				row.addValue(4, "");
 			}
 			table.getRows().add(row);

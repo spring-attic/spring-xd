@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.analytics.metrics.integration;
 
 import static org.junit.Assert.assertEquals;
@@ -26,6 +27,7 @@ import java.util.Collections;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -54,10 +56,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author David Turanski
  * @author Luke Taylor
  * @author Gary Russell
- *
+ * 
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes=GaugeHandlerTestsConfig.class)
+@ContextConfiguration(classes = GaugeHandlerTestsConfig.class)
 public class GaugeHandlerTests {
 
 	@Rule
@@ -99,8 +101,8 @@ public class GaugeHandlerTests {
 		Gauge gauge = repo.findOne("test");
 		assertNotNull(gauge);
 		assertEquals(24, gauge.getValue());
-		//Included here because the message handler constructor creates the gauge. Don't want to
-		//delete it in @After.
+		// Included here because the message handler constructor creates the gauge. Don't want to
+		// delete it in @After.
 		repo.delete("test");
 	}
 
@@ -131,27 +133,31 @@ public class GaugeHandlerTests {
 		Gauge gauge = repo.findOne("test");
 		assertNotNull(gauge);
 		assertEquals(73, gauge.getValue());
-		//assertEquals(1, gauge.getCount());
+		// assertEquals(1, gauge.getCount());
 
-		//Included here because the message handler constructor creates the gauge. Don't want to
-		//delete it in @After.
+		// Included here because the message handler constructor creates the gauge. Don't want to
+		// delete it in @After.
 		repo.delete("test");
 	}
 
 	static class StringToJsonNodeTransformer {
+
 		private ObjectMapper mapper = new ObjectMapper();
 
 		public JsonNode transform(String json) {
 			try {
 				return mapper.readTree(json);
-			} catch (JsonParseException e) {
+			}
+			catch (JsonParseException e) {
 				throw new MessageTransformationException("unable to parse input: " + e.getMessage(), e);
-			} catch (IOException e) {
+			}
+			catch (IOException e) {
 				throw new MessageTransformationException("unable to create json parser: " + e.getMessage(), e);
 			}
 		}
 	}
 }
+
 
 @Configuration
 @ImportResource("org/springframework/xd/analytics/metrics/integration/GaugeHandlerTests-context.xml")

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.batch.item.hadoop;
 
 import java.io.IOException;
@@ -30,7 +31,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
 /**
- *
+ * 
  * @author Mark Pollack
  */
 public class SimpleHdfsTextItemWriter<T> extends SimpleAbstractHdfsItemWriter<T> implements InitializingBean {
@@ -38,10 +39,12 @@ public class SimpleHdfsTextItemWriter<T> extends SimpleAbstractHdfsItemWriter<T>
 	private static final String DEFAULT_LINE_SEPARATOR = System.getProperty("line.separator");
 
 	private FileSystem fileSystem;
-	private FSDataOutputStream fsDataOutputStream;
-    private LineAggregator<T> lineAggregator;
 
-    private String lineSeparator = DEFAULT_LINE_SEPARATOR;
+	private FSDataOutputStream fsDataOutputStream;
+
+	private LineAggregator<T> lineAggregator;
+
+	private String lineSeparator = DEFAULT_LINE_SEPARATOR;
 
 	private volatile String charset = "UTF-8";
 
@@ -52,14 +55,14 @@ public class SimpleHdfsTextItemWriter<T> extends SimpleAbstractHdfsItemWriter<T>
 
 	@Override
 	public void write(List<? extends T> items) throws Exception {
-		//	open (prepare)
+		// open (prepare)
 		initializeCounterIfNecessary();
 		prepareOutputStream();
 
-		//write
+		// write
 		copy(getItemsAsBytes(items), this.fsDataOutputStream);
 
-		//close
+		// close
 	}
 
 
@@ -67,10 +70,10 @@ public class SimpleHdfsTextItemWriter<T> extends SimpleAbstractHdfsItemWriter<T>
 		boolean found = false;
 		Path name = null;
 
-		//TODO improve algorithm
+		// TODO improve algorithm
 		while (!found) {
 			name = new Path(getFileName());
-			// If it doesn't exist, create it.  If it exists, return false
+			// If it doesn't exist, create it. If it exists, return false
 			if (getFileSystem().createNewFile(name)) {
 				found = true;
 				this.resetBytesWritten();
@@ -106,19 +109,21 @@ public class SimpleHdfsTextItemWriter<T> extends SimpleAbstractHdfsItemWriter<T>
 
 	/**
 	 * Converts the list of items to a byte array.
+	 * 
 	 * @param items the list
 	 * @return the byte array
 	 */
 	private byte[] getItemsAsBytes(List<? extends T> items) {
 
 		StringBuilder lines = new StringBuilder();
-		for (T item: items) {
+		for (T item : items) {
 			lines.append(lineAggregator.aggregate(item) + lineSeparator);
 		}
 		try {
 			return lines.toString().getBytes(this.charset);
-		} catch (UnsupportedEncodingException e) {
-			   throw new WriteFailedException("Could not write data.", e);
+		}
+		catch (UnsupportedEncodingException e) {
+			throw new WriteFailedException("Could not write data.", e);
 		}
 	}
 
@@ -129,21 +134,19 @@ public class SimpleHdfsTextItemWriter<T> extends SimpleAbstractHdfsItemWriter<T>
 		}
 	}
 
-    /**
-     * Public setter for the {@link LineAggregator}. This will be used to
-     * translate the item into a line for output.
-     *
-     * @param lineAggregator the {@link LineAggregator} to set
-     */
-    public void setLineAggregator(LineAggregator<T> lineAggregator) {
-            this.lineAggregator = lineAggregator;
-    }
+	/**
+	 * Public setter for the {@link LineAggregator}. This will be used to translate the item into a line for output.
+	 * 
+	 * @param lineAggregator the {@link LineAggregator} to set
+	 */
+	public void setLineAggregator(LineAggregator<T> lineAggregator) {
+		this.lineAggregator = lineAggregator;
+	}
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		Assert.notNull(lineAggregator, "A LineAggregator must be provided.");
 	}
-
 
 
 }

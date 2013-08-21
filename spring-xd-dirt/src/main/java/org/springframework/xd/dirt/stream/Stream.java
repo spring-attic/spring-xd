@@ -19,12 +19,12 @@ package org.springframework.xd.dirt.stream;
 
 /**
  * A runtime representation of a running stream.
- *
+ * 
  * @author Eric Bottard
  * @author Gunnar Hillert
- *
+ * 
  * @since 1.0
- *
+ * 
  */
 public class Stream extends BaseInstance<StreamDefinition> {
 

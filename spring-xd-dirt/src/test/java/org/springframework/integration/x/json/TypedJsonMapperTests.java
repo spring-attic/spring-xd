@@ -13,6 +13,9 @@
 
 package org.springframework.integration.x.json;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -23,14 +26,13 @@ import java.util.TreeSet;
 
 import org.joda.time.DateTime;
 import org.junit.Test;
+
 import org.springframework.xd.tuple.DefaultTuple;
 import org.springframework.xd.tuple.Tuple;
 import org.springframework.xd.tuple.TupleBuilder;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import static org.junit.Assert.*;
 
 /**
  * @author David Turanski

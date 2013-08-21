@@ -16,17 +16,21 @@
 
 package org.springframework.xd.analytics.metrics;
 
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertThat;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.xd.analytics.metrics.core.FieldValueCounter;
 import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository;
-
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
 
 /**
  * Base tests for various implementations of {@link FieldValueCounterRepository}.

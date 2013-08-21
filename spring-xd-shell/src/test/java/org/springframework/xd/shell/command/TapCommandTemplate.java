@@ -16,13 +16,14 @@
 
 package org.springframework.xd.shell.command;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
-
-import static org.junit.Assert.*;
 
 /**
  * Helper methods for tap commands to execute in the shell.

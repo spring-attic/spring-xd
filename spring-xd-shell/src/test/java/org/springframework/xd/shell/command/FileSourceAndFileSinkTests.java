@@ -16,6 +16,8 @@
 
 package org.springframework.xd.shell.command;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -23,9 +25,8 @@ import java.util.Random;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.util.FileCopyUtils;
 
-import static org.junit.Assert.*;
+import org.springframework.util.FileCopyUtils;
 
 /**
  * Tests to explicitly assert file related source and sink behavior.

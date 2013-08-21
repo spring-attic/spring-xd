@@ -23,10 +23,10 @@ import org.springframework.xd.dirt.core.BaseDefinition;
 
 /**
  * A runtime representation of a Definition.
- *
+ * 
  * @author Gunnar Hillert
  * @since 1.0
- *
+ * 
  * @param <D> The definition class representing this instance
  */
 public class BaseInstance<D extends BaseDefinition> {
@@ -65,7 +65,7 @@ public class BaseInstance<D extends BaseDefinition> {
 
 	/**
 	 * Returns the date when this instance was started.
-	 *
+	 * 
 	 * @param startedAt Must not be null
 	 */
 	public void setStartedAt(Date startedAt) {

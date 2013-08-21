@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.shell;
 
 import java.net.URI;
@@ -20,32 +21,38 @@ import java.net.URI;
 import org.springframework.util.Assert;
 
 /**
- * Encapsulates various data points related to the Admin Server Target, such as
- * target URI, success/error state, exception messages that may have occurred.
- *
+ * Encapsulates various data points related to the Admin Server Target, such as target URI, success/error state,
+ * exception messages that may have occurred.
+ * 
  * @author Gunnar Hillert
  * @since 1.0
- *
+ * 
  */
 public class Target {
 
-	public enum TargetStatus { SUCCESS, ERROR }
+	public enum TargetStatus {
+		SUCCESS, ERROR
+	}
 
-	public  static final String DEFAULT_SCHEME = "http";
-	public  static final String DEFAULT_HOST = "localhost";
-	public  static final int DEFAULT_PORT = 8080;
-	public  static final String DEFAULT_TARGET = DEFAULT_SCHEME + "://" + DEFAULT_HOST + ":" + DEFAULT_PORT + "/";
+	public static final String DEFAULT_SCHEME = "http";
+
+	public static final String DEFAULT_HOST = "localhost";
+
+	public static final int DEFAULT_PORT = 8080;
+
+	public static final String DEFAULT_TARGET = DEFAULT_SCHEME + "://" + DEFAULT_HOST + ":" + DEFAULT_PORT + "/";
 
 	private final URI targetUri;
 
 	private Exception targetException;
+
 	private String targetResultMessage;
+
 	private TargetStatus status;
 
 	/**
-	 * Construct a new Target. The passed in String parameter will be converted
-	 * to a {@link URI}.
-	 *
+	 * Construct a new Target. The passed in String parameter will be converted to a {@link URI}.
+	 * 
 	 * @param targetUriAsString Must not be empty
 	 * @throws IllegalArgumentException if the given string violates RFC 2396
 	 */
@@ -56,7 +63,7 @@ public class Target {
 
 	/**
 	 * Return the target status, which is either Success or Error.
-	 *
+	 * 
 	 * @return The {@link TargetStatus}. May be null.
 	 */
 	public TargetStatus getStatus() {
@@ -64,9 +71,9 @@ public class Target {
 	}
 
 	/**
-	 * If during targeting an error occurred, the resulting {@link Exception}
-	 * is made available for further introspection.
-	 *
+	 * If during targeting an error occurred, the resulting {@link Exception} is made available for further
+	 * introspection.
+	 * 
 	 * @return If present, returns the Exception, otherwise null is returned.
 	 */
 	public Exception getTargetException() {
@@ -74,9 +81,9 @@ public class Target {
 	}
 
 	/**
-	 * Provides a result message indicating whether the provide {@link #getTargetUri()}
-	 * was successfully targeted or not.
-	 *
+	 * Provides a result message indicating whether the provide {@link #getTargetUri()} was successfully targeted or
+	 * not.
+	 * 
 	 * @return The formatted result message.
 	 */
 	public String getTargetResultMessage() {
@@ -92,6 +99,7 @@ public class Target {
 
 	/**
 	 * Returns the target URI as a String.
+	 * 
 	 * @return Never null and will always return a valid URI value
 	 */
 	public String getTargetUriAsString() {
@@ -99,9 +107,9 @@ public class Target {
 	}
 
 	/**
-	 * Sets the exception in case an error occurred during targeting. Will also
-	 * set the respective {@link TargetStatus} to {@link TargetStatus#ERROR}.
-	 *
+	 * Sets the exception in case an error occurred during targeting. Will also set the respective {@link TargetStatus}
+	 * to {@link TargetStatus#ERROR}.
+	 * 
 	 * @param targetException Must not be null.
 	 */
 	public void setTargetException(Exception targetException) {
@@ -111,9 +119,8 @@ public class Target {
 	}
 
 	/**
-	 * Set the result messages indicating the success or failure while targeting
-	 * the Spring XD Admin Server.
-	 *
+	 * Set the result messages indicating the success or failure while targeting the Spring XD Admin Server.
+	 * 
 	 * @param targetResultMessage Must not be empty.
 	 */
 	public void setTargetResultMessage(String targetResultMessage) {

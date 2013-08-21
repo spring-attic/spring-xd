@@ -34,10 +34,10 @@ import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
 
 /**
  * Handles all Stream related interaction.
- *
+ * 
  * @author Eric Bottard
  * @author Gunnar Hillert
- *
+ * 
  * @since 1.0
  */
 @Controller
@@ -66,4 +66,3 @@ public class StreamsController extends
 		return new StreamDefinition(name, definition);
 	}
 }
-

@@ -10,29 +10,31 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.xd.gemfire;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 /**
  * @author David Turanski
- *
+ * 
  */
 public class CacheServer {
-	
+
 	private static final Log logger = LogFactory.getLog(CacheServer.class);
-	
+
 	public static void main(String[] args) {
- 		if (args.length != 1) {
- 			System.out.println("Usage: CacheServer <config-file-path>");
- 			System.exit(1);
- 		}
- 		String path = args[0];
+		if (args.length != 1) {
+			System.out.println("Usage: CacheServer <config-file-path>");
+			System.exit(1);
+		}
+		String path = args[0];
 		logger.info("Starting Cache Server");
- 		@SuppressWarnings("resource")
- 		FileSystemXmlApplicationContext context= new FileSystemXmlApplicationContext(path);
- 		context.registerShutdownHook();
+		@SuppressWarnings("resource")
+		FileSystemXmlApplicationContext context = new FileSystemXmlApplicationContext(path);
+		context.registerShutdownHook();
 	}
 }

@@ -10,6 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.xd.dirt.rest;
 
 import static org.mockito.Mockito.mock;
@@ -20,8 +21,8 @@ import org.springframework.xd.dirt.stream.DeploymentMessageSender;
 import org.springframework.xd.dirt.stream.EnhancedStreamParser;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDeployer;
-import org.springframework.xd.dirt.stream.XDParser;
 import org.springframework.xd.dirt.stream.StreamRepository;
+import org.springframework.xd.dirt.stream.XDParser;
 import org.springframework.xd.dirt.stream.memory.InMemoryStreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.memory.InMemoryStreamRepository;
 

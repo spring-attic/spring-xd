@@ -16,12 +16,28 @@
 
 package org.springframework.xd.dirt.rest;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Matchers.anyListOf;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import java.util.ArrayList;
 
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
@@ -34,12 +50,6 @@ import org.springframework.xd.dirt.stream.DeploymentMessageSender;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 /**
  * Tests REST compliance of jobs-related endpoints.
  * 
@@ -50,7 +60,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebAppConfiguration
 @ContextConfiguration(classes = { RestConfiguration.class, Dependencies.class })
 public class JobsControllerIntegrationTests extends AbstractControllerIntegrationTest {
-	
+
 	private static final String JOB_DEFINITION = "job --cron='*/10 * * * * *'";
 
 	@Autowired
@@ -157,9 +167,9 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 		mockMvc.perform(get("/jobs").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
 				jsonPath("$.content", Matchers.hasSize(0)));
 	}
-	
+
 	@Test
-	public void testJobDestroyAll() throws Exception{
+	public void testJobDestroyAll() throws Exception {
 		mockMvc.perform(
 				post("/jobs").param("name", "job1").param("definition", JOB_DEFINITION).accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
@@ -168,28 +178,31 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 		assertNotNull(jobDefinitionRepository.findOne("job1"));
 		assertNotNull(jobDefinitionRepository.findOne("job2"));
-		
+
 		// Perform destroy all
 		mockMvc.perform(delete("/jobs").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
-		
+
 		assertNull(jobDefinitionRepository.findOne("job1"));
 		assertNull(jobDefinitionRepository.findOne("job2"));
-	}	
+	}
 
 	public void testJobWithNonexistentTrigger() throws Exception {
 		mockMvc.perform(
-				post("/jobs").param("name", "job1").param("definition", "job --trigger=trigger1").accept(MediaType.APPLICATION_JSON)).andExpect(
-						status().isNotFound());
+				post("/jobs").param("name", "job1").param("definition", "job --trigger=trigger1").accept(
+						MediaType.APPLICATION_JSON)).andExpect(
+				status().isNotFound());
 	}
-	
+
 	@Test
 	public void testJobWithExistingTrigger() throws Exception {
 		mockMvc.perform(
-				post("/triggers").param("name", "trigger1").param("definition", "job --trigger=trigger1").accept(MediaType.APPLICATION_JSON)).andExpect(
-						status().isCreated());
-	    assertNotNull(triggerDefinitionRepository.findOne("trigger1"));
+				post("/triggers").param("name", "trigger1").param("definition", "job --trigger=trigger1").accept(
+						MediaType.APPLICATION_JSON)).andExpect(
+				status().isCreated());
+		assertNotNull(triggerDefinitionRepository.findOne("trigger1"));
 		mockMvc.perform(
-				post("/jobs").param("name", "job1").param("definition", "job --trigger=trigger1").accept(MediaType.APPLICATION_JSON)).andExpect(
-						status().isCreated());
+				post("/jobs").param("name", "job1").param("definition", "job --trigger=trigger1").accept(
+						MediaType.APPLICATION_JSON)).andExpect(
+				status().isCreated());
 	}
 }

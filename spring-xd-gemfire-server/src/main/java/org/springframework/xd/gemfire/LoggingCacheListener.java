@@ -15,6 +15,7 @@ package org.springframework.xd.gemfire;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.util.StringUtils;
 
 import com.gemstone.gemfire.cache.CacheListener;
@@ -39,17 +40,19 @@ public class LoggingCacheListener<K, V> implements CacheListener<K, V> {
 	}
 
 	public LoggingCacheListener(String level) {
-			try {
-				this.level = Level.valueOf(level.toUpperCase());
-			}
-			catch (IllegalArgumentException e) {
-				throw new IllegalArgumentException("Invalid log level '" + level
-						+ "'. The (case-insensitive) supported values are: "
-						+ StringUtils.arrayToCommaDelimitedString(Level.values()));
-			}
+		try {
+			this.level = Level.valueOf(level.toUpperCase());
+		}
+		catch (IllegalArgumentException e) {
+			throw new IllegalArgumentException("Invalid log level '" + level
+					+ "'. The (case-insensitive) supported values are: "
+					+ StringUtils.arrayToCommaDelimitedString(Level.values()));
+		}
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.gemstone.gemfire.cache.CacheCallback#close()
 	 */
 	@Override
@@ -57,7 +60,9 @@ public class LoggingCacheListener<K, V> implements CacheListener<K, V> {
 		// TODO Auto-generated method stub
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.gemstone.gemfire.cache.CacheListener#afterCreate(com.gemstone.gemfire.cache.EntryEvent)
 	 */
 	@Override
@@ -65,7 +70,9 @@ public class LoggingCacheListener<K, V> implements CacheListener<K, V> {
 		logEvent("created entry " + arg0.getKey());
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.gemstone.gemfire.cache.CacheListener#afterDestroy(com.gemstone.gemfire.cache.EntryEvent)
 	 */
 	@Override
@@ -73,7 +80,9 @@ public class LoggingCacheListener<K, V> implements CacheListener<K, V> {
 		logEvent("destroyed entry " + arg0.getKey());
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.gemstone.gemfire.cache.CacheListener#afterInvalidate(com.gemstone.gemfire.cache.EntryEvent)
 	 */
 	@Override
@@ -81,86 +90,98 @@ public class LoggingCacheListener<K, V> implements CacheListener<K, V> {
 		logEvent("invalidated entry " + arg0.getKey());
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.gemstone.gemfire.cache.CacheListener#afterRegionClear(com.gemstone.gemfire.cache.RegionEvent)
 	 */
 	@Override
 	public void afterRegionClear(RegionEvent<K, V> arg0) {
-		logEvent("region " + arg0.getRegion().getName()+ " cleared");
+		logEvent("region " + arg0.getRegion().getName() + " cleared");
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.gemstone.gemfire.cache.CacheListener#afterRegionCreate(com.gemstone.gemfire.cache.RegionEvent)
 	 */
 	@Override
 	public void afterRegionCreate(RegionEvent<K, V> arg0) {
-		logEvent("region " + arg0.getRegion().getName()+ " created");
+		logEvent("region " + arg0.getRegion().getName() + " created");
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.gemstone.gemfire.cache.CacheListener#afterRegionDestroy(com.gemstone.gemfire.cache.RegionEvent)
 	 */
 	@Override
 	public void afterRegionDestroy(RegionEvent<K, V> arg0) {
-		logEvent("region " + arg0.getRegion().getName()+ " destroyed");
+		logEvent("region " + arg0.getRegion().getName() + " destroyed");
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.gemstone.gemfire.cache.CacheListener#afterRegionInvalidate(com.gemstone.gemfire.cache.RegionEvent)
 	 */
 	@Override
 	public void afterRegionInvalidate(RegionEvent<K, V> arg0) {
-		logEvent("region " + arg0.getRegion().getName()+ " invalidated");
+		logEvent("region " + arg0.getRegion().getName() + " invalidated");
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.gemstone.gemfire.cache.CacheListener#afterRegionLive(com.gemstone.gemfire.cache.RegionEvent)
 	 */
 	@Override
 	public void afterRegionLive(RegionEvent<K, V> arg0) {
-		logEvent("region " + arg0.getRegion().getName()+ " live");
+		logEvent("region " + arg0.getRegion().getName() + " live");
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.gemstone.gemfire.cache.CacheListener#afterUpdate(com.gemstone.gemfire.cache.EntryEvent)
 	 */
 	@Override
 	public void afterUpdate(EntryEvent<K, V> arg0) {
 		logEvent("updated entry " + arg0.getKey());
 	}
-	
+
 	private void logEvent(String logMessage) {
 		switch (this.level) {
-		case FATAL:
-			if (logger.isFatalEnabled()) {
-				logger.fatal(logMessage);
-			}
-			break;
-		case ERROR:
-			if (logger.isErrorEnabled()) {
-				logger.error(logMessage);
-			}
-			break;
-		case WARN:
-			if (logger.isWarnEnabled()) {
-				logger.warn(logMessage);
-			}
-			break;
-		case INFO:
-			if (logger.isInfoEnabled()) {
-				logger.info(logMessage);
-			}
-			break;
-		case DEBUG:
-			if (logger.isDebugEnabled()) {
-				logger.debug(logMessage);
-			}
-			break;
-		case TRACE:
-			if (logger.isTraceEnabled()) {
-				logger.trace(logMessage);
-			}
-			break;
+			case FATAL:
+				if (logger.isFatalEnabled()) {
+					logger.fatal(logMessage);
+				}
+				break;
+			case ERROR:
+				if (logger.isErrorEnabled()) {
+					logger.error(logMessage);
+				}
+				break;
+			case WARN:
+				if (logger.isWarnEnabled()) {
+					logger.warn(logMessage);
+				}
+				break;
+			case INFO:
+				if (logger.isInfoEnabled()) {
+					logger.info(logMessage);
+				}
+				break;
+			case DEBUG:
+				if (logger.isDebugEnabled()) {
+					logger.debug(logMessage);
+				}
+				break;
+			case TRACE:
+				if (logger.isTraceEnabled()) {
+					logger.trace(logMessage);
+				}
+				break;
 		}
 	}
 

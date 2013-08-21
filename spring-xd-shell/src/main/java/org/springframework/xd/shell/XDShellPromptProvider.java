@@ -24,11 +24,11 @@ import org.springframework.stereotype.Component;
 
 /**
  * A provider that sets the shell prompt to xd:>
- *
+ * 
  * @author Mark Pollack
  * @author Gunnar Hillert
  * @since 1.0
- *
+ * 
  */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -46,7 +46,8 @@ public class XDShellPromptProvider implements PromptProvider {
 	public String getPrompt() {
 		if (xdShell.getSpringXDOperations() == null) {
 			return "server-unknown:>";
-		} else {
+		}
+		else {
 			return "xd:>";
 		}
 	}

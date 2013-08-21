@@ -16,19 +16,21 @@
 
 package org.springframework.xd.shell.command;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.io.IOException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.springframework.shell.core.CommandResult;
 
-import static org.junit.Assert.*;
+import org.springframework.shell.core.CommandResult;
 
 /**
  * Test stream commands
- *
+ * 
  * @author Mark Pollack
  * @author Kashyap Parikh
  * @author Andy Clement
@@ -105,9 +107,9 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	/*
 	 * TODO for test that post data to be verified, use a file sink and verify contents using guava helper method, shell
 	 * pulls in guava now.
-	 *
+	 * 
 	 * import com.google.common.base.Charsets; import com.google.common.io.Files;
-	 *
+	 * 
 	 * String content = Files.toString(new File("/home/x1/text.log"), Charsets.UTF_8); or List<String> lines =
 	 * Files.readLines(new File("/file/path/input.txt"), Charsets.UTF_8); and use hamcrest matcher for collections.
 	 * assertThat("List equality", list1, equalTo(list2));

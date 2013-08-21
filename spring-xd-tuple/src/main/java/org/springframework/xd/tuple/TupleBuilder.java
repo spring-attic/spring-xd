@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.tuple;
 
 import java.text.DateFormat;
@@ -31,20 +32,25 @@ import org.springframework.util.Assert;
  * Builder class to create Tuple instances.
  * 
  * Default Locale is US for NumberFormat and defeault DatePattern is "yyyy-MM-dd"
+ * 
  * @author Mark Pollack
  * @author David Turanski
- *
+ * 
  */
 public class TupleBuilder {
 
 	private List<String> names = new ArrayList<String>();
+
 	private List<Object> values = new ArrayList<Object>();
+
 	private FormattingConversionService formattingConversionService = new DefaultTupleConversionService();
 
 	private final static String DEFAULT_DATE_PATTERN = "yyyy-MM-dd";
+
 	private final static Locale DEFAULT_LOCALE = Locale.US;
 
 	private static Converter<Tuple, String> tupleToStringConverter = new TupleToJsonStringConverter();
+
 	private static Converter<String, Tuple> stringToTupleConverter = new JsonStringToTupleConverter();
 
 	private DateFormat dateFormat = new SimpleDateFormat(DEFAULT_DATE_PATTERN);
@@ -100,7 +106,7 @@ public class TupleBuilder {
 	public Tuple build() {
 		return newTuple(names, values);
 	}
-	
+
 	public static Tuple fromString(String source) {
 		return stringToTupleConverter.convert(source);
 	}

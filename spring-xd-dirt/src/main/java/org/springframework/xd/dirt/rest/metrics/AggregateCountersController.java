@@ -22,6 +22,7 @@ import org.joda.time.Interval;
 import org.joda.time.ReadablePeriod;
 import org.joda.time.chrono.ISOChronology;
 import org.joda.time.format.ISOPeriodFormat;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -58,7 +59,7 @@ public class AggregateCountersController extends AbstractMetricsController<Aggre
 	public AggregateCountersController(AggregateCounterRepository repository) {
 		super(repository);
 	}
-	
+
 	/**
 	 * List {@link AggregateCount}s that match the given criteria.
 	 */
@@ -74,22 +75,16 @@ public class AggregateCountersController extends AbstractMetricsController<Aggre
 	 * 
 	 * @param name the name of the aggregate counter we want to retrieve data from
 	 * @param from the start-time for the interval, default depends on the resolution (e.g. go back 1 day for hourly
-	 * buckets)
+	 *        buckets)
 	 * @param to the end-time for the interval, default "now"
 	 * @param resolution the size of buckets to aggregate, <i>e.g.</i> hourly, daily, <i>etc.</i> (default "hour")
 	 */
 	@ResponseBody
 	@RequestMapping(value = "/{name}", method = RequestMethod.GET)
-	public AggregateCountsResource display(@PathVariable("name")
-	String name,//
-			@RequestParam(value = "from", required = false)
-			@DateTimeFormat(iso = ISO.DATE_TIME)
-			DateTime from,//
-			@RequestParam(value = "to", required = false)
-			@DateTimeFormat(iso = ISO.DATE_TIME)
-			DateTime to, //
-			@RequestParam(value = "resolution", defaultValue = "hour")
-			Resolution resolution) {
+	public AggregateCountsResource display(@PathVariable("name") String name,//
+			@RequestParam(value = "from", required = false) @DateTimeFormat(iso = ISO.DATE_TIME) DateTime from,//
+			@RequestParam(value = "to", required = false) @DateTimeFormat(iso = ISO.DATE_TIME) DateTime to, //
+			@RequestParam(value = "resolution", defaultValue = "hour") Resolution resolution) {
 
 		if (to == null) {
 			to = new DateTime();

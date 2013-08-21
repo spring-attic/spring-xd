@@ -19,9 +19,8 @@ package org.springframework.xd.dirt.stream;
 import org.springframework.xd.dirt.core.XDRuntimeException;
 
 /**
- * Exception which is raised when a definition is syntactically correct but a required
- * elements definition is missing.
- *
+ * Exception which is raised when a definition is syntactically correct but a required elements definition is missing.
+ * 
  * @author Glenn Renfro
  */
 @SuppressWarnings("serial")
@@ -31,9 +30,10 @@ public class MissingRequiredDefinitionException extends XDRuntimeException {
 
 	/**
 	 * Create a new exception.
+	 * 
 	 * @param offendingName the name of the definition
 	 * @param message Exception message. Can use {@link String#format(String, Object...)} syntax to include the
-	 * offendingName
+	 *        offendingName
 	 */
 	public MissingRequiredDefinitionException(String offendingName,
 			String message) {

@@ -51,8 +51,8 @@ public interface ResourceDeployer<R extends BaseDefinition> {
 	R findOne(String name);
 
 	/**
-	 * Delete the Definition using the provided name. The definition may also be
-	 * {@link #undeploy(String) undeployed} as part of that process.
+	 * Delete the Definition using the provided name. The definition may also be {@link #undeploy(String) undeployed} as
+	 * part of that process.
 	 * 
 	 * @param name the name of the definition to delete
 	 */

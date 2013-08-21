@@ -10,6 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.xd.tuple;
 
 import static org.junit.Assert.assertEquals;
@@ -27,9 +28,10 @@ import org.junit.Test;
 
 /**
  * @author David Turanski
- *
+ * 
  */
 public abstract class AbstractTupleMarshallerTests {
+
 	private TupleStringMarshaller marshaller;
 
 	@Before
@@ -55,41 +57,41 @@ public abstract class AbstractTupleMarshallerTests {
 
 		String result = marshaller.fromTuple(tuple);
 		Tuple newTuple = marshaller.toTuple(result);
-		
+
 		assertEquals(2, newTuple.getFieldCount());
 		assertEquals("world", newTuple.getString(1));
-		
+
 		Tuple nested = newTuple.getTuple(0);
 		assertEquals(2, nested.getFieldCount());
 		assertEquals("bar", nested.getString(0));
 		assertEquals(1, nested.getInt(1));
 	}
-	
+
 	@Test
 	public void testMarshallTupleWithCollection() {
-		List<?> values = Arrays.asList("a","b","c");
+		List<?> values = Arrays.asList("a", "b", "c");
 		Tuple tuple = tuple().of("list", values);
 
 		String result = marshaller.fromTuple(tuple);
 		Tuple newTuple = marshaller.toTuple(result);
 		assertTrue(newTuple.getValue(0) instanceof List);
-		List<?> list = (List<?>)newTuple.getValue(0);
-		assertEquals(values.size(),list.size());
+		List<?> list = (List<?>) newTuple.getValue(0);
+		assertEquals(values.size(), list.size());
 	}
-	
+
 	@Test
 	public void testMarshallTupleWithMap() {
-		Map<String,String> map = new HashMap<String,String>();
+		Map<String, String> map = new HashMap<String, String>();
 		map.put("k1", "v1");
 		map.put("k2", "v2");
 		Tuple tuple = tuple().of("map", map);
 
 		String result = marshaller.fromTuple(tuple);
-		
+
 		Tuple newTuple = marshaller.toTuple(result);
 		assertNotNull(newTuple.getValue("map"));
-		
-		//Map is converted to a tuple
+
+		// Map is converted to a tuple
 		assertEquals("v1", newTuple.getTuple("map").getString("k1"));
 		assertEquals("v2", newTuple.getTuple("map").getString("k2"));
 	}

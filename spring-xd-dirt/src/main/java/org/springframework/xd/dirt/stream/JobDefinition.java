@@ -10,6 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.xd.dirt.stream;
 
 import org.springframework.xd.dirt.core.BaseDefinition;
@@ -17,16 +18,16 @@ import org.springframework.xd.dirt.core.BaseDefinition;
 /**
  * @author David Turanski
  * @author Gunnar Hillert
- *
+ * 
  * @since 1.0
- *
+ * 
  */
 public class JobDefinition extends BaseDefinition {
 
 	/**
 	 * @param name - the tap name
 	 * @param definition - the tap definition
-	 *
+	 * 
 	 */
 	public JobDefinition(String name, String definition) {
 		super(name, definition);

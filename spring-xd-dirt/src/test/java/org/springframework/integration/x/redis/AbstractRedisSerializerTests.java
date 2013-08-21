@@ -10,6 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.integration.x.redis;
 
 import static org.junit.Assert.assertEquals;
@@ -26,6 +27,7 @@ import java.util.TreeSet;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.xd.tuple.Tuple;
 import org.springframework.xd.tuple.TupleBuilder;
@@ -35,12 +37,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author David Turanski
- *
+ * 
  */
 public abstract class AbstractRedisSerializerTests {
+
 	private RedisSerializer<Object> serializer;
 
 	protected abstract RedisSerializer<Object> getSerializer();
+
 	@Before
 	public void setUp() {
 		serializer = getSerializer();
@@ -99,32 +103,32 @@ public abstract class AbstractRedisSerializerTests {
 		boolean obj = (Boolean) serializer.deserialize(bytes);
 		assertTrue(obj);
 	}
-	
+
 	@Test
 	public void testMapSerialization() {
-		Map<String,String> map = new HashMap<String,String>();
-		map.put("foo","bar");
+		Map<String, String> map = new HashMap<String, String>();
+		map.put("foo", "bar");
 		byte[] bytes = serializer.serialize(map);
-		Map<?,?> obj = (Map<?,?>)serializer.deserialize(bytes);
-		assertEquals("bar",obj.get("foo"));
+		Map<?, ?> obj = (Map<?, ?>) serializer.deserialize(bytes);
+		assertEquals("bar", obj.get("foo"));
 	}
-	
+
 	@Test
 	public void testListSerialization() {
 		List<String> list = new LinkedList<String>();
 		list.add("foo");
 		byte[] bytes = serializer.serialize(list);
-		List<?> obj = (List<?>)serializer.deserialize(bytes);
-		assertEquals("foo",obj.get(0));
+		List<?> obj = (List<?>) serializer.deserialize(bytes);
+		assertEquals("foo", obj.get(0));
 	}
-	
+
 	@Test
 	public void testSetSerialization() {
 		Set<String> set = new TreeSet<String>();
 		set.add("foo");
 		byte[] bytes = serializer.serialize(set);
-		Set<?> obj = (Set<?>)serializer.deserialize(bytes);
-		assertEquals("foo",obj.iterator().next());
+		Set<?> obj = (Set<?>) serializer.deserialize(bytes);
+		assertEquals("foo", obj.iterator().next());
 	}
 
 	@Test
@@ -137,6 +141,7 @@ public abstract class AbstractRedisSerializerTests {
 	}
 
 	public static class Foo {
+
 		@JsonCreator
 		public Foo(@JsonProperty("bar") String val) {
 			bar = val;

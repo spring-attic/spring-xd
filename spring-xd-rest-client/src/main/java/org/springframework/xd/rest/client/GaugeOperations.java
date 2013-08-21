@@ -30,17 +30,19 @@ public interface GaugeOperations {
 
 	/**
 	 * Retrieve information about the given named gauge.
+	 * 
 	 * @param name the name of the gauge to retrieve information for
 	 */
 	GaugeResource retrieve(String name);
-	
+
 	/**
 	 * List the names of the available gauges.
 	 */
 	PagedResources<MetricResource> list();
-	
+
 	/**
 	 * Delete the given named gauge.
+	 * 
 	 * @param name the name of the gauge to delete
 	 */
 	void delete(String name);

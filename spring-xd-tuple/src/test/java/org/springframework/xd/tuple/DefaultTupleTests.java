@@ -13,11 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.tuple;
 
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.sameInstance;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.springframework.xd.tuple.TupleBuilder.tuple;
-import static org.hamcrest.Matchers.*;
 
 import java.awt.Color;
 import java.io.IOException;
@@ -32,9 +40,8 @@ import java.util.List;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+
 import org.springframework.core.convert.ConverterNotFoundException;
-import org.springframework.xd.tuple.Tuple;
-import org.springframework.xd.tuple.TupleBuilder;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -72,8 +79,8 @@ public class DefaultTupleTests {
 
 	@Test
 	public void accessNonExistentEntry() {
-		//thrown.expect(IllegalArgumentException.class);
-		//thrown.expectMessage("Cannot access field [does-not-exist] from [foo]");
+		// thrown.expect(IllegalArgumentException.class);
+		// thrown.expectMessage("Cannot access field [does-not-exist] from [foo]");
 		Tuple tuple = TupleBuilder.tuple().of("foo", "bar");
 		Object v = tuple.getValue("does-not-exist");
 		assertThat(v, nullValue());
@@ -87,7 +94,7 @@ public class DefaultTupleTests {
 		assertThat(names.get(0), equalTo("foo"));
 		assertThat((String) tuple.getValue("foo"), equalTo("bar"));
 		assertThat(tuple.hasFieldName("foo"), equalTo(true));
-		//assertThat(tuple.get("foo").asString(), equalTo("bar"));
+		// assertThat(tuple.get("foo").asString(), equalTo("bar"));
 	}
 
 	@Test
@@ -211,7 +218,7 @@ public class DefaultTupleTests {
 
 		String tupleString = tuple.toString();
 
-		//valid JSON
+		// valid JSON
 		new ObjectMapper().readTree(tupleString);
 
 		Tuple tupleFromString = TupleBuilder.fromString(tupleString);
@@ -269,7 +276,7 @@ public class DefaultTupleTests {
 
 	@Test
 	public void testGetString() {
-		//test conversions of string, int, and float.
+		// test conversions of string, int, and float.
 		Tuple tuple = TupleBuilder.tuple().of("up", "down", "charm", 2, "top", 2.0f);
 		assertThat(tuple.getString("up"), equalTo("down"));
 		assertThat(tuple.getString("charm"), equalTo("2"));
@@ -279,12 +286,12 @@ public class DefaultTupleTests {
 	@Test
 	public void testGetNullValue() {
 		Tuple tuple = tuple().of("foo", null);
-		//non primitive types will return null
+		// non primitive types will return null
 		assertThat(tuple.getString("foo"), nullValue());
 		assertThat(tuple.getBigDecimal("foo"), nullValue());
 		assertThat(tuple.getDate("foo"), nullValue());
 
-		//primitive types will return default values
+		// primitive types will return default values
 		assertThat(tuple.getChar("foo"), equalTo('\u0000'));
 		assertThat(tuple.getBoolean("foo"), equalTo(false));
 		byte b = 0;
@@ -485,9 +492,9 @@ public class DefaultTupleTests {
 	@Test
 	public void testCollectionToTupleConversionFails() {
 		thrown.expect(ConverterNotFoundException.class);
-		Tuple t1 = tuple().of("hello","world");
-		Tuple t2 = tuple().of("foo","bar");
-		List<Tuple> list = Arrays.asList(t1,t2);
+		Tuple t1 = tuple().of("hello", "world");
+		Tuple t2 = tuple().of("foo", "bar");
+		List<Tuple> list = Arrays.asList(t1, t2);
 		Tuple t = tuple().of("list", list);
 		t.getTuple("list");
 	}

@@ -50,7 +50,7 @@ public class DefaultStreamParserTests {
 		assertEquals(1, sink.getIndex());
 		assertEquals("sink", sink.getType());
 		assertEquals(0, sink.getParameters().size());
-	}	
+	}
 
 	@Test
 	public void parameterizedModules() {
@@ -105,7 +105,8 @@ public class DefaultStreamParserTests {
 		try {
 			parser.getParameters(module);
 			fail(module + " is invalid. Should throw exception");
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 
 		}
 	}
@@ -117,7 +118,8 @@ public class DefaultStreamParserTests {
 		try {
 			parser.parse("t", config);
 			fail(config + " is invalid. Should throw exception");
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 
 		}
 	}

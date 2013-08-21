@@ -22,8 +22,8 @@ import org.springframework.xd.analytics.metrics.core.Metric;
 import org.springframework.xd.rest.client.domain.metrics.MetricResource;
 
 /**
- * Base class for a {@link ResourceAssembler} that builds shallow resources for metrics
- * (exposing only their names, and hence their "self" rel).
+ * Base class for a {@link ResourceAssembler} that builds shallow resources for metrics (exposing only their names, and
+ * hence their "self" rel).
  * 
  * @author Eric Bottard
  */

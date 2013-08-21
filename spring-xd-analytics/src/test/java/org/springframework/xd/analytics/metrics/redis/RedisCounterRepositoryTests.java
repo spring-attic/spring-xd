@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.analytics.metrics.redis;
 
 import org.junit.After;
@@ -32,9 +33,9 @@ import org.springframework.xd.test.redis.RedisAvailableRule;
  * @author Luke Taylor
  * @author Gary Russell
  * @since 1.0
- *
+ * 
  */
-@ContextConfiguration(classes=RedisRepositoriesConfig.class, loader=AnnotationConfigContextLoader.class)
+@ContextConfiguration(classes = RedisRepositoriesConfig.class, loader = AnnotationConfigContextLoader.class)
 @RunWith(SpringJUnit4ClassRunner.class)
 public class RedisCounterRepositoryTests extends AbstractCounterRepositoryTests {
 

@@ -25,10 +25,12 @@ import java.util.TreeMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.shell.CommandLine;
 import org.springframework.shell.core.CommandMarker;
+import org.springframework.shell.core.JLineLogHandler;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
@@ -41,7 +43,7 @@ import org.springframework.xd.shell.util.UiUtils;
  * @author Mark Pollack
  * @author Gunnar Hillert
  * @since 1.0
- *
+ * 
  */
 @Component
 public class XDShell implements CommandMarker, InitializingBean {
@@ -59,9 +61,8 @@ public class XDShell implements CommandMarker, InitializingBean {
 	}
 
 	/**
-	 * Return the {@link Target} which encapsulates not only the Target URI but
-	 * also success/error messages + status.
-	 *
+	 * Return the {@link Target} which encapsulates not only the Target URI but also success/error messages + status.
+	 * 
 	 * @return Should not never be null.
 	 */
 	public Target getTarget() {
@@ -70,8 +71,8 @@ public class XDShell implements CommandMarker, InitializingBean {
 
 	@CliCommand(value = { "admin config server" }, help = "Configure the XD admin server to use")
 	public String target(@CliOption(mandatory = false, key = { "", "uri" },
-		help = "the location of the XD Admin REST endpoint",
-		unspecifiedDefaultValue = Target.DEFAULT_TARGET) String targetUriString) {
+			help = "the location of the XD Admin REST endpoint",
+			unspecifiedDefaultValue = Target.DEFAULT_TARGET) String targetUriString) {
 
 		try {
 			this.target = new Target(targetUriString);
@@ -81,7 +82,8 @@ public class XDShell implements CommandMarker, InitializingBean {
 		catch (Exception e) {
 			this.target.setTargetException(e);
 			this.springXDOperations = null;
-			this.target.setTargetResultMessage(String.format("Unable to contact XD Admin Server at '%s'.", targetUriString));
+			this.target.setTargetResultMessage(String.format("Unable to contact XD Admin Server at '%s'.",
+					targetUriString));
 
 			if (logger.isTraceEnabled()) {
 				logger.trace(this.target.getTargetResultMessage(), e);
@@ -117,7 +119,7 @@ public class XDShell implements CommandMarker, InitializingBean {
 		return springXDOperations;
 	}
 
-	private URI getDefaultUri() throws URISyntaxException{
+	private URI getDefaultUri() throws URISyntaxException {
 
 		int port = Target.DEFAULT_PORT;
 		String host = Target.DEFAULT_HOST;
@@ -129,9 +131,11 @@ public class XDShell implements CommandMarker, InitializingBean {
 				String arg = args[i++];
 				if (arg.equals("--host")) {
 					host = args[i++];
-				} else if (arg.equals("--port")) {
+				}
+				else if (arg.equals("--port")) {
 					port = Integer.valueOf(args[i++]);
-				} else {
+				}
+				else {
 					i--;
 					break;
 				}
@@ -143,6 +147,12 @@ public class XDShell implements CommandMarker, InitializingBean {
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		target(getDefaultUri().toString());
+	}
+
+	// Set suppress duplicate messages to false
+	// to allow XD shell to display all the messages on the console
+	static {
+		JLineLogHandler.setSuppressDuplicateMessages(false);
 	}
 
 }

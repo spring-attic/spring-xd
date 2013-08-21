@@ -10,18 +10,22 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.xd.dirt.container;
+
 import org.springframework.integration.MessageHeaders.IdGenerator;
 
 import com.eaio.uuid.UUIDGen;
 
 /**
  * @author David Turanski
- *
+ * 
  */
 public class UUIDGenerator implements IdGenerator {
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.springframework.integration.MessageHeaders.IdGenerator#generateId()
 	 */
 	@Override

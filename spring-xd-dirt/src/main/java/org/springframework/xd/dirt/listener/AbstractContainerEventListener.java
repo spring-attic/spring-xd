@@ -31,7 +31,8 @@ public abstract class AbstractContainerEventListener implements ApplicationListe
 	public void onApplicationEvent(AbstractContainerEvent event) {
 		if (event instanceof ContainerStartedEvent) {
 			onContainerStartedEvent((ContainerStartedEvent) event);
-		}else if(event instanceof ContainerStoppedEvent) {
+		}
+		else if (event instanceof ContainerStoppedEvent) {
 			onContainerStoppedEvent((ContainerStoppedEvent) event);
 		}
 	}

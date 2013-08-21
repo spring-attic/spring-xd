@@ -25,8 +25,8 @@ import org.apache.commons.lang.StringUtils;
 import com.google.common.base.Splitter;
 
 /**
- * Contains utility methods for rendering data to a formatted console output. E.g. it
- * provides helper methods for rendering ASCII-based data tables.
+ * Contains utility methods for rendering data to a formatted console output. E.g. it provides helper methods for
+ * rendering ASCII-based data tables.
  * 
  * @author Gunnar Hillert
  * @author Thomas Risberg

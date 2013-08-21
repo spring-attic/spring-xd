@@ -45,7 +45,7 @@ public final class InMemoryGaugeRepository extends InMemoryMetricRepository<Gaug
 			save(gauge);
 		}
 		return gauge;
-}
+	}
 
 	@Override
 	public void setValue(String name, long value) {

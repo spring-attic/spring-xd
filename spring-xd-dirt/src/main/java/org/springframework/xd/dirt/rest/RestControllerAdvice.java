@@ -18,6 +18,7 @@ package org.springframework.xd.dirt.rest;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.hateoas.VndErrors;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.StringUtils;
@@ -44,9 +45,8 @@ public class RestControllerAdvice {
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	/*
-	 * Note that any controller-specific exception handler is resolved first. So for
-	 * example, having a onException(Exception e) resolver at a controller level will
-	 * prevent the one from this class to be triggered.
+	 * Note that any controller-specific exception handler is resolved first. So for example, having a
+	 * onException(Exception e) resolver at a controller level will prevent the one from this class to be triggered.
 	 */
 
 	/**
@@ -117,8 +117,7 @@ public class RestControllerAdvice {
 	}
 
 	/**
-	 * Handles the case where client tried to deploy something that is has an
-	 * invalid definition.
+	 * Handles the case where client tried to deploy something that is has an invalid definition.
 	 */
 	@ResponseBody
 	@ExceptionHandler

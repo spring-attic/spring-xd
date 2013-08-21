@@ -16,6 +16,8 @@
 
 package org.springframework.integration.x.redis;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -23,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
@@ -33,12 +36,11 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.xd.test.redis.RedisAvailableRule;
-import static org.junit.Assert.assertEquals;
 
 /**
- * Temporary copy of SI RedisPublishingMessageHandlerTests that adds tests that publish
- * messages with data types other than String
- *
+ * Temporary copy of SI RedisPublishingMessageHandlerTests that adds tests that publish messages with data types other
+ * than String
+ * 
  * @author Mark Fisher
  * @author Jennifer Hickey
  */

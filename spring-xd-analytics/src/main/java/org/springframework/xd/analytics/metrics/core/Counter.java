@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.analytics.metrics.core;
 
 import org.springframework.data.annotation.PersistenceConstructor;
@@ -35,6 +36,7 @@ public class Counter implements Metric {
 
 	/**
 	 * Construct a new Counter given a name
+	 * 
 	 * @param name the name of the Counter.
 	 */
 	public Counter(String name) {
@@ -45,6 +47,7 @@ public class Counter implements Metric {
 
 	/**
 	 * Construct a new Counter given a name and a initial value of the value
+	 * 
 	 * @param name the name of the value
 	 * @param value initial value.
 	 */

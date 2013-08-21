@@ -90,7 +90,8 @@ public class StreamPluginTests {
 
 	@Test
 	public void tapComponentsAdded() {
-		SimpleModule module = new SimpleModule(new ModuleDefinition("tap", "source"), new DeploymentMetadata("mystream", 1));
+		SimpleModule module = new SimpleModule(new ModuleDefinition("tap", "source"), new DeploymentMetadata(
+				"mystream", 1));
 		plugin.preProcessModule(module);
 		plugin.postProcessModule(module);
 		String[] moduleBeans = module.getApplicationContext().getBeanDefinitionNames();

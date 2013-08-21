@@ -1,12 +1,16 @@
 
 package org.springframework.xd.analytics.metrics.integration;
 
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
+
 import java.util.Arrays;
 import java.util.Map;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
@@ -14,9 +18,6 @@ import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository
 import org.springframework.xd.analytics.metrics.memory.InMemoryFieldValueCounterRepository;
 import org.springframework.xd.tuple.Tuple;
 import org.springframework.xd.tuple.TupleBuilder;
-
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
 
 public class FieldValueCounterHandlerTests {
 

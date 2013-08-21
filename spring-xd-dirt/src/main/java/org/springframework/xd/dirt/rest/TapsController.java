@@ -34,7 +34,7 @@ import org.springframework.xd.rest.client.domain.TapDefinitionResource;
 /**
  * @author David Turanski
  * @author Gunnar Hillert
- *
+ * 
  * @since 1.0
  */
 @Controller
@@ -55,7 +55,8 @@ public class TapsController
 	@ResponseBody
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
-	public PagedResources<TapDefinitionResource> list(Pageable pageable, QueryOptions queryOptions, PagedResourcesAssembler<TapDefinition> assembler) {
+	public PagedResources<TapDefinitionResource> list(Pageable pageable, QueryOptions queryOptions,
+			PagedResourcesAssembler<TapDefinition> assembler) {
 		return this.listValues(pageable, queryOptions, assembler);
 	}
 
@@ -65,4 +66,3 @@ public class TapsController
 
 
 }
-

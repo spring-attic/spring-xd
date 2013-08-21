@@ -1,3 +1,4 @@
+
 package org.springframework.xd.tuple.batch;
 
 import static org.junit.Assert.assertEquals;
@@ -9,12 +10,14 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+
 import org.springframework.xd.tuple.Tuple;
 import org.springframework.xd.tuple.TupleBuilder;
 
 public class TupleFieldExtractorTests {
 
 	private TupleFieldExtractor extractor;
+
 	@Rule
 	public ExpectedException expected = ExpectedException.none();
 
@@ -26,11 +29,14 @@ public class TupleFieldExtractorTests {
 	@Test
 	@SuppressWarnings("serial")
 	public void testExtractWithFields() throws Exception {
-		extractor.setNames(new ArrayList<String>() {{
-			add("first");
-			add("last");
-			add("born");
-		}});
+		extractor.setNames(new ArrayList<String>() {
+
+			{
+				add("first");
+				add("last");
+				add("born");
+			}
+		});
 
 		String first = "Alan";
 		String last = "Turing";
@@ -79,11 +85,14 @@ public class TupleFieldExtractorTests {
 		expected.expect(IllegalArgumentException.class);
 		expected.expectMessage("Invalid property 'birthday'");
 
-		extractor.setNames(new ArrayList<String>() {{
-			add("first");
-			add("last");
-			add("birthday");
-		}});
+		extractor.setNames(new ArrayList<String>() {
+
+			{
+				add("first");
+				add("last");
+				add("birthday");
+			}
+		});
 
 		String first = "Alan";
 		String last = "Turing";

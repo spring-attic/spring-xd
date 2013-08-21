@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.dirt.plugins.trigger;
 
 import static org.springframework.xd.module.ModuleType.TRIGGER;
@@ -37,12 +38,12 @@ import org.springframework.xd.module.Plugin;
 
 /**
  * {@link Plugin} to enable the registration of triggers.
- *
+ * 
  * @author Gunnar Hillert
  * @author Ilayaperumal Gopinathan
  * @author Gary Russell
  * @since 1.0
- *
+ * 
  */
 public class TriggerPlugin implements Plugin {
 
@@ -61,9 +62,8 @@ public class TriggerPlugin implements Plugin {
 	private ConfigurableApplicationContext commonApplicationContext;
 
 	/**
-	 * Processes a new {@link Trigger} being added. Currently, it supports adding
-	 * {@link CronTrigger}s. The {@link Trigger} is added to the common
-	 * {@link ConfigurableApplicationContext}.
+	 * Processes a new {@link Trigger} being added. Currently, it supports adding {@link CronTrigger}s. The
+	 * {@link Trigger} is added to the common {@link ConfigurableApplicationContext}.
 	 */
 	@Override
 	public void preProcessModule(Module module) {
@@ -80,11 +80,13 @@ public class TriggerPlugin implements Plugin {
 			triggers.put(TriggerType.cron.name(), trigger);
 		}
 		if (module.getProperties().containsKey(TriggerType.fixedDelay.name())) {
-			Trigger trigger = new PeriodicTrigger(Long.parseLong(module.getProperties().getProperty(TriggerType.fixedDelay.name())));
+			Trigger trigger = new PeriodicTrigger(Long.parseLong(module.getProperties().getProperty(
+					TriggerType.fixedDelay.name())));
 			triggers.put(TriggerType.fixedDelay.name(), trigger);
 		}
 		if (module.getProperties().containsKey(TriggerType.fixedRate.name())) {
-			PeriodicTrigger trigger = new PeriodicTrigger(Long.parseLong(module.getProperties().getProperty(TriggerType.fixedRate.name())));
+			PeriodicTrigger trigger = new PeriodicTrigger(Long.parseLong(module.getProperties().getProperty(
+					TriggerType.fixedRate.name())));
 			trigger.setFixedRate(true);
 			triggers.put(TriggerType.fixedRate.name(), trigger);
 		}
@@ -97,7 +99,8 @@ public class TriggerPlugin implements Plugin {
 					+ StringUtils.collectionToCommaDelimitedString(triggers.keySet()));
 		}
 		String group = module.getDeploymentMetadata().getGroup();
-		commonApplicationContext.getBeanFactory().registerSingleton(BEAN_NAME_PREFIX + group, triggers.values().iterator().next());
+		commonApplicationContext.getBeanFactory().registerSingleton(BEAN_NAME_PREFIX + group,
+				triggers.values().iterator().next());
 		final BeanDefinitionAddingPostProcessor postProcessor = new BeanDefinitionAddingPostProcessor();
 		postProcessor.addBeanDefinition(BEAN_NAME_PREFIX + group, builder.getBeanDefinition());
 		this.commonApplicationContext.addBeanFactoryPostProcessor(postProcessor);
@@ -116,6 +119,7 @@ public class TriggerPlugin implements Plugin {
 				.getBeanFactory();
 		((DefaultSingletonBeanRegistry) beanFactory).destroySingleton(beanName);
 	}
+
 	private void configureProperties(Module module) {
 		Properties properties = new Properties();
 		properties.setProperty("xd.stream.name", module.getDeploymentMetadata().getGroup());
@@ -123,8 +127,8 @@ public class TriggerPlugin implements Plugin {
 	}
 
 	/**
-	 * Will add the {@link ConfigurableApplicationContext} as an instance variable,
-	 * so it becomes available when registering a new Module.
+	 * Will add the {@link ConfigurableApplicationContext} as an instance variable, so it becomes available when
+	 * registering a new Module.
 	 */
 	@Override
 	public void postProcessSharedContext(ConfigurableApplicationContext context) {

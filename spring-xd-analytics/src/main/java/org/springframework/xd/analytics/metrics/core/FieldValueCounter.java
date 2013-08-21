@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.analytics.metrics.core;
 
 import java.util.Map;
@@ -22,23 +23,25 @@ import org.springframework.data.annotation.PersistenceConstructor;
 import org.springframework.util.Assert;
 
 /**
- * Represents the data stored in a Counter for multiple field-value pairs.  Operations on it are expected to increment or decrement
- * the value associated with a specific field name.  The name property is a friendly user assigned name, and should be unique.
+ * Represents the data stored in a Counter for multiple field-value pairs. Operations on it are expected to increment or
+ * decrement the value associated with a specific field name. The name property is a friendly user assigned name, and
+ * should be unique.
  * 
  * @author Mark Pollack
- *
+ * 
  */
 public final class FieldValueCounter implements Metric {
 
 	private final String name;
+
 	private final Map<String, Double> fieldValueCount;
-	
+
 	public FieldValueCounter(String name) {
 		Assert.notNull(name);
 		this.name = name;
 		this.fieldValueCount = new ConcurrentHashMap<String, Double>();
 	}
-	
+
 	@PersistenceConstructor
 	public FieldValueCounter(String name, Map<String, Double> fieldValueCount) {
 		Assert.notNull(name);
@@ -46,22 +49,24 @@ public final class FieldValueCounter implements Metric {
 		this.name = name;
 		this.fieldValueCount = fieldValueCount;
 	}
-	
+
 	/**
 	 * @return the name
 	 */
 	public String getName() {
 		return name;
 	}
-	
+
 	/**
 	 * @return the fieldValueCount
 	 */
 	public Map<String, Double> getFieldValueCount() {
 		return this.fieldValueCount;
 	}
-	
-	/* (non-Javadoc)
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
@@ -70,7 +75,9 @@ public final class FieldValueCounter implements Metric {
 				+ fieldValueCount + "]";
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
@@ -81,7 +88,9 @@ public final class FieldValueCounter implements Metric {
 		return result;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
@@ -100,10 +109,11 @@ public final class FieldValueCounter implements Metric {
 			if (other.name != null) {
 				return false;
 			}
-		} else if (!name.equals(other.name)) {
+		}
+		else if (!name.equals(other.name)) {
 			return false;
 		}
 		return true;
 	}
-	
+
 }

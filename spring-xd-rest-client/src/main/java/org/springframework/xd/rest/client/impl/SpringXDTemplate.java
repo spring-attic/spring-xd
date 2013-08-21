@@ -66,17 +66,17 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 	 * Holds the Field Value Counter related part of the API.
 	 */
 	private FieldValueCounterOperations fvcOperations;
-	
+
 	/**
 	 * Holds the Aggregate counter related part of the API
 	 */
 	private AggregateCounterOperations aggrCounterOperations;
-	
+
 	/**
 	 * Holds the Gauge related part of the API
 	 */
 	private GaugeOperations gaugeOperations;
-	
+
 	/**
 	 * Holds the RichGauge related part of the API
 	 */
@@ -94,14 +94,14 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 		resources.put("aggregate-counters", URI.create(xdRuntime.getLink("aggregate-counters").getHref()));
 		resources.put("gauges", URI.create(xdRuntime.getLink("gauges").getHref()));
 		resources.put("richgauges", URI.create(xdRuntime.getLink("richgauges").getHref()));
-		
+
 		streamOperations = new StreamTemplate(this);
 		tapOperations = new TapTemplate(this);
 		jobOperations = new JobTemplate(this);
 		triggerOperations = new TriggerTemplate(this);
 		counterOperations = new CounterTemplate(this);
 		fvcOperations = new FieldValueCounterTemplate(this);
-		aggrCounterOperations  = new AggregateCounterTemplate(this);
+		aggrCounterOperations = new AggregateCounterTemplate(this);
 		gaugeOperations = new GaugeTemplate(this);
 		richGaugeOperations = new RichGaugeTemplate(this);
 	}
@@ -135,17 +135,17 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 	public FieldValueCounterOperations fvcOperations() {
 		return fvcOperations;
 	}
-	
+
 	@Override
 	public AggregateCounterOperations aggrCounterOperations() {
 		return aggrCounterOperations;
 	}
-	
+
 	@Override
 	public GaugeOperations gaugeOperations() {
 		return gaugeOperations;
 	}
-	
+
 	@Override
 	public RichGaugeOperations richGaugeOperations() {
 		return richGaugeOperations;

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.dirt.plugins.job;
 
 import static org.junit.Assert.assertEquals;
@@ -35,11 +36,11 @@ import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.SimpleModule;
 
 /**
- *
+ * 
  * @author Michael Minella
  * @author Gunnar Hillert
  * @author Gary Russell
- *
+ * 
  */
 public class JobPluginTests {
 
@@ -93,7 +94,8 @@ public class JobPluginTests {
 
 	@Test
 	public void testThatLocalFixedDelayTaskIsAdded() {
-		SimpleModule module = new SimpleModule(new ModuleDefinition("testFixedDelayJob", "job"), new DeploymentMetadata("foo", 0));
+		SimpleModule module = new SimpleModule(new ModuleDefinition("testFixedDelayJob", "job"),
+				new DeploymentMetadata("foo", 0));
 		module.getProperties().put("fixedDelay", "60000");
 		plugin.preProcessModule(module);
 		String[] moduleBeans = module.getApplicationContext().getBeanNamesForType(IntervalTask.class);

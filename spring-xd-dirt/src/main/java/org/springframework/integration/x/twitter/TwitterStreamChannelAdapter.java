@@ -48,14 +48,14 @@ import org.springframework.web.client.RestTemplate;
 
 /**
  * Message producer which reads form Twitter's public stream endpoints.
- *
- * Unless filtering parameters are set, it will read from the <tt>statuses/sample.json</tt> endpoint, but if
- * any of the <tt>track</tt>, <tt>follow</tt> or <tt>locations</tt> parameters are set, it will switch to
- * using <tt>statuses/filter.json</tt>.
- *
- * Apart from the read and connection timeouts, the available parameters map directly to those defined for the
- * <a href="https://dev.twitter.com/docs/streaming-apis/streams/public">public streams</a> API.
- *
+ * 
+ * Unless filtering parameters are set, it will read from the <tt>statuses/sample.json</tt> endpoint, but if any of the
+ * <tt>track</tt>, <tt>follow</tt> or <tt>locations</tt> parameters are set, it will switch to using
+ * <tt>statuses/filter.json</tt>.
+ * 
+ * Apart from the read and connection timeouts, the available parameters map directly to those defined for the <a
+ * href="https://dev.twitter.com/docs/streaming-apis/streams/public">public streams</a> API.
+ * 
  * @author Mark Fisher
  * @author Luke Taylor
  */
@@ -71,15 +71,23 @@ public class TwitterStreamChannelAdapter extends MessageProducerSupport {
 
 	// Backoff values, as per https://dev.twitter.com/docs/streaming-apis/connecting#Reconnecting
 	private final AtomicInteger linearBackOff = new AtomicInteger(250);
+
 	private final AtomicInteger httpErrorBackOff = new AtomicInteger(5000);
+
 	private final AtomicInteger rateLimitBackOff = new AtomicInteger(60000);
 
 	private boolean delimited;
+
 	private boolean stallWarnings;
+
 	private String filterLevel = "none";
+
 	private String language = "";
+
 	private String track = "";
+
 	private String follow = "";
+
 	private String locations = "";
 
 	private final Object monitor = new Object();
@@ -248,7 +256,7 @@ public class TwitterStreamChannelAdapter extends MessageProducerSupport {
 		int millis = rateLimitBackOff.get();
 		logger.warn("Rate limit error, waiting for " + millis / 1000 + " seconds before restarting");
 		wait(millis);
-		rateLimitBackOff.set(millis*2);
+		rateLimitBackOff.set(millis * 2);
 	}
 
 	private void waitHttpErrorBackoff() {
@@ -256,7 +264,7 @@ public class TwitterStreamChannelAdapter extends MessageProducerSupport {
 		logger.warn("Http error, waiting for " + millis / 1000 + " seconds before restarting");
 		wait(millis);
 		if (millis < 320000) // 320 seconds max
-			httpErrorBackOff.set(millis*2);
+			httpErrorBackOff.set(millis * 2);
 	}
 
 	private void wait(int millis) {
@@ -269,6 +277,7 @@ public class TwitterStreamChannelAdapter extends MessageProducerSupport {
 
 	@SuppressWarnings("deprecation")
 	private class StreamReadingTask implements Runnable {
+
 		public void run() {
 			while (running.get()) {
 				try {
@@ -278,9 +287,11 @@ public class TwitterStreamChannelAdapter extends MessageProducerSupport {
 					if (sce.getStatusCode() == HttpStatus.UNAUTHORIZED) {
 						logger.error("Twitter authentication failed: " + sce.getMessage());
 						running.set(false);
-					} else if (sce.getStatusCode() == HttpStatus.METHOD_FAILURE) {
+					}
+					else if (sce.getStatusCode() == HttpStatus.METHOD_FAILURE) {
 						waitRateLimitBackoff();
-					} else {
+					}
+					else {
 						waitHttpErrorBackoff();
 					}
 				}
@@ -296,10 +307,12 @@ public class TwitterStreamChannelAdapter extends MessageProducerSupport {
 
 		private void readStream(RestTemplate restTemplate) {
 			restTemplate.execute(buildUri(), HttpMethod.GET, new RequestCallback() {
-						public void doWithRequest(ClientHttpRequest request) throws IOException {
-						}
-					},
+
+				public void doWithRequest(ClientHttpRequest request) throws IOException {
+				}
+			},
 					new ResponseExtractor<String>() {
+
 						public String extractData(ClientHttpResponse response) throws IOException {
 							InputStream inputStream = response.getBody();
 							LineNumberReader reader = new LineNumberReader(new InputStreamReader(inputStream));
@@ -314,10 +327,8 @@ public class TwitterStreamChannelAdapter extends MessageProducerSupport {
 							return null;
 						}
 					}
-			);
+					);
 		}
 	}
 
 }
-
-

@@ -21,7 +21,7 @@ import org.springframework.xd.store.DomainRepository;
 
 /**
  * A repository for persisting {@link StreamDefinition}s.
- *
+ * 
  * @author Eric Bottard
  */
 public interface StreamDefinitionRepository extends DomainRepository<StreamDefinition, String> {

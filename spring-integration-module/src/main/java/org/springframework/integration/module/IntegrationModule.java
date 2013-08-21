@@ -26,6 +26,7 @@ import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.SimpleModule;
 
+
 /**
  * @author David Turanski
  * @author Gary Russell
@@ -36,7 +37,7 @@ public class IntegrationModule extends SimpleModule {
 
 	private volatile MessageChannel inputChannel;
 
-	private Map<String,SubscribableChannel> outputChannels;
+	private Map<String, SubscribableChannel> outputChannels;
 
 	private final ChannelExporter channelExporter;
 
@@ -56,7 +57,7 @@ public class IntegrationModule extends SimpleModule {
 	 */
 	public IntegrationModule(String name, ChannelExporter channelExporter) {
 		super(new ModuleDefinition(name, MODULE_TYPE), new DeploymentMetadata("", 0));
-		Assert.notNull(channelExporter,"ChannelExporter cannot be null");
+		Assert.notNull(channelExporter, "ChannelExporter cannot be null");
 		this.channelExporter = channelExporter;
 	}
 
@@ -64,7 +65,7 @@ public class IntegrationModule extends SimpleModule {
 		return this.inputChannel;
 	}
 
-	public Map<String,SubscribableChannel> getOutputChannels() {
+	public Map<String, SubscribableChannel> getOutputChannels() {
 		return this.outputChannels;
 	}
 
@@ -84,12 +85,12 @@ public class IntegrationModule extends SimpleModule {
 
 	protected void initializeModule() {
 		ApplicationContext context = this.getApplicationContext();
-		Map<String,MessageChannel> messageChannels = context.getBeansOfType(MessageChannel.class);
+		Map<String, MessageChannel> messageChannels = context.getBeansOfType(MessageChannel.class);
 		this.inputChannel = this.channelExporter.getInputChannel(messageChannels);
-		Assert.notNull(inputChannel,"Module must contain exactly one input channel");
-		this.outputChannels = this.channelExporter.getOutputChannels(messageChannels,SubscribableChannel.class);
+		Assert.notNull(inputChannel, "Module must contain exactly one input channel");
+		this.outputChannels = this.channelExporter.getOutputChannels(messageChannels, SubscribableChannel.class);
 		if (this.activeProfiles != null && this.activeProfiles.length > 0) {
-			  ( (AbstractEnvironment) getApplicationContext().getEnvironment()).setActiveProfiles(activeProfiles);
+			((AbstractEnvironment) getApplicationContext().getEnvironment()).setActiveProfiles(activeProfiles);
 		}
 	}
 

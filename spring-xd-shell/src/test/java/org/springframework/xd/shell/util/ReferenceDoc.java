@@ -31,6 +31,7 @@ import java.util.TreeMap;
 import java.util.regex.Pattern;
 
 import org.junit.Test;
+
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.support.GenericApplicationContext;

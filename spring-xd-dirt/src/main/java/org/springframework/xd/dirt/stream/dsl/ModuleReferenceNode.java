@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.dirt.stream.dsl;
 
 
@@ -22,12 +23,13 @@ package org.springframework.xd.dirt.stream.dsl;
 public class ModuleReferenceNode extends AstNode {
 
 	private final String streamName;
+
 	private final String labelOrModuleName;
-	
+
 	private String resolvedChannel;
 
 	public ModuleReferenceNode(String streamName, String moduleName, int startpos, int endpos) {
-		super(startpos,endpos);
+		super(startpos, endpos);
 		this.streamName = streamName;
 		this.labelOrModuleName = moduleName;
 	}
@@ -40,7 +42,7 @@ public class ModuleReferenceNode extends AstNode {
 			s.append(streamName).append(".");
 		}
 		s.append(labelOrModuleName);
-		if (resolvedChannel!=null) {
+		if (resolvedChannel != null) {
 			s.append("[[channel:").append(resolvedChannel).append("]]");
 		}
 		if (includePositionalInfo) {
@@ -50,7 +52,7 @@ public class ModuleReferenceNode extends AstNode {
 		s.append(")");
 		return s.toString();
 	}
-	
+
 	public String toString() {
 		StringBuilder s = new StringBuilder();
 		if (streamName != null) {
@@ -66,30 +68,30 @@ public class ModuleReferenceNode extends AstNode {
 	public String getStreamName() {
 		return streamName;
 	}
-	
+
 	public String getModuleName() {
 		return labelOrModuleName;
 	}
 
 	public void resolve(StreamLookupEnvironment env) {
 		resolvedChannel = env.lookupChannelForLabelOrModule(streamName, labelOrModuleName);
-		if (streamName==null && resolvedChannel == null) {
+		if (streamName == null && resolvedChannel == null) {
 			// it is possible the singular name in labelOrModuleName is actually
 			// a stream reference
 			StreamNode sn = env.lookupStream(labelOrModuleName);
-			if (sn!=null) {
-				resolvedChannel = sn.getStreamName()+".0";
+			if (sn != null) {
+				resolvedChannel = sn.getStreamName() + ".0";
 			}
 		}
 	}
 
 	public ModuleReferenceNode copyOf() {
 		ModuleReferenceNode moduleReferenceNode =
-			new ModuleReferenceNode(streamName, labelOrModuleName, startpos, endpos);
+				new ModuleReferenceNode(streamName, labelOrModuleName, startpos, endpos);
 		moduleReferenceNode.resolvedChannel = resolvedChannel;
 		return moduleReferenceNode;
 	}
-	
+
 	public String getChannelName() {
 		return resolvedChannel;
 	}

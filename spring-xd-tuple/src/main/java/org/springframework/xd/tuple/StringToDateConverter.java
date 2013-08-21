@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.tuple;
 
 import java.text.DateFormat;
@@ -26,28 +27,29 @@ import org.springframework.core.convert.converter.Converter;
  * Converter for Strings to Date that can take into account date patterns
  * 
  * @author Mark Pollack
- *
+ * 
  */
 public class StringToDateConverter implements Converter<String, Date> {
 
 	private final static String DEFAULT_DATE_PATTERN = "yyyy-MM-dd";
-	
+
 	private DateFormat dateFormat;
-	
+
 	public StringToDateConverter() {
 		this.dateFormat = new SimpleDateFormat(DEFAULT_DATE_PATTERN);
 		this.dateFormat.setLenient(false);
-		
+
 	}
+
 	public StringToDateConverter(String pattern) {
 		this.dateFormat = new SimpleDateFormat(pattern);
-		this.dateFormat.setLenient(false);		
+		this.dateFormat.setLenient(false);
 	}
-	
+
 	public StringToDateConverter(DateFormat dateFormat) {
 		this.dateFormat = dateFormat;
 	}
-	
+
 	@Override
 	public Date convert(String source) {
 		try {

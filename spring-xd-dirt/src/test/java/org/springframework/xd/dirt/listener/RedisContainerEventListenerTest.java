@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.dirt.listener;
 
 import static org.junit.Assert.assertNotNull;
@@ -49,12 +50,12 @@ import org.springframework.xd.test.redis.RedisAvailableRule;
 
 /**
  * Integration test of {@link RedisContainerEventListener}
- *
+ * 
  * @author Jennifer Hickey
  * @author Gary Russell
- *
+ * 
  */
-@ContextConfiguration(classes=RedisContainerEventListenerTestConfig.class)
+@ContextConfiguration(classes = RedisContainerEventListenerTestConfig.class)
 @RunWith(SpringJUnit4ClassRunner.class)
 public class RedisContainerEventListenerTest {
 
@@ -99,6 +100,7 @@ public class RedisContainerEventListenerTest {
 	}
 }
 
+
 @Configuration
 @ImportResource("org/springframework/xd/dirt/listener/RedisContainerEventListenerTest-context.xml")
 class RedisContainerEventListenerTestConfig {
@@ -119,4 +121,3 @@ class RedisContainerEventListenerTestConfig {
 		}
 	}
 }
-

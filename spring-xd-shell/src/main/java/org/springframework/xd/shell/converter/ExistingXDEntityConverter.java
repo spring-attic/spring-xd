@@ -31,9 +31,8 @@ import org.springframework.xd.shell.XDShell;
 
 
 /**
- * A no-op converter from String to String, but that helps with completion in names of
- * already existing entities.
- *
+ * A no-op converter from String to String, but that helps with completion in names of already existing entities.
+ * 
  * @author Eric Bottard
  */
 @Component
@@ -43,9 +42,8 @@ public class ExistingXDEntityConverter implements Converter<String> {
 	private XDShell xdShell;
 
 	/**
-	 * Option Context of arguments that want to benefit from this converter should have
-	 * this suffix present, with the appended part representing the kind of entity they're
-	 * interested in (<i>e.g.</i> {@code existing-stream}).
+	 * Option Context of arguments that want to benefit from this converter should have this suffix present, with the
+	 * appended part representing the kind of entity they're interested in (<i>e.g.</i> {@code existing-stream}).
 	 */
 	private static final String EXISTING_PREFIX = "existing-";
 
@@ -100,18 +98,19 @@ public class ExistingXDEntityConverter implements Converter<String> {
 		return true;
 	}
 
-	private void populate(List<Completion> completions, Iterable<? extends NamedResource> resources, DeployedCriteria criteria, String kind) {
+	private void populate(List<Completion> completions, Iterable<? extends NamedResource> resources,
+			DeployedCriteria criteria, String kind) {
 		for (NamedResource named : resources) {
-			if( criteria.matches(named)) {
+			if (criteria.matches(named)) {
 				completions.add(new Completion(named.getName(), named.getName(), criteria.heading(named, kind), 0));
 			}
 		}
 	}
 
 	/**
-	 * Additional criteria that may be passed in the option context allow restriction on
-	 * deployed, undeployed or all entities.
-	 *
+	 * Additional criteria that may be passed in the option context allow restriction on deployed, undeployed or all
+	 * entities.
+	 * 
 	 * @author Eric Bottard
 	 */
 	private static enum DeployedCriteria {
@@ -152,8 +151,7 @@ public class ExistingXDEntityConverter implements Converter<String> {
 		},
 
 		/**
-		 * Display all instances. Groups instances in two categories when info is
-		 * available.
+		 * Display all instances. Groups instances in two categories when info is available.
 		 */
 		all {
 
@@ -183,8 +181,8 @@ public class ExistingXDEntityConverter implements Converter<String> {
 		abstract boolean matches(NamedResource resource);
 
 		/**
-		 * A grouping header depending on the status of the resource, or {@code null} if
-		 * no information can be derived / makes sense.
+		 * A grouping header depending on the status of the resource, or {@code null} if no information can be derived /
+		 * makes sense.
 		 */
 		abstract String heading(NamedResource resource, String kind);
 
@@ -192,13 +190,16 @@ public class ExistingXDEntityConverter implements Converter<String> {
 			List<String> list = Arrays.asList(optionContext.split(" "));
 			boolean hasDeployed = list.contains("deployed");
 			boolean hasUndeployed = list.contains("undeployed");
-			if (hasDeployed && ! hasUndeployed) {
+			if (hasDeployed && !hasUndeployed) {
 				return deployed;
-			} else if (hasUndeployed && !hasDeployed) {
+			}
+			else if (hasUndeployed && !hasDeployed) {
 				return undeployed;
-			} else if (hasDeployed && hasUndeployed) {
+			}
+			else if (hasDeployed && hasUndeployed) {
 				throw new IllegalArgumentException("deployed and undeployed are mutually exclusive");
-			} else {
+			}
+			else {
 				return all;
 			}
 

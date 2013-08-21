@@ -10,6 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.xd.dirt.stream;
 
 import java.util.regex.Matcher;
@@ -21,9 +22,9 @@ import org.springframework.xd.dirt.core.BaseDefinition;
 /**
  * @author David Turanski
  * @author Gunnnar Hillert
- *
+ * 
  * @since 1.0
- *
+ * 
  */
 public class TapDefinition extends BaseDefinition {
 
@@ -33,18 +34,18 @@ public class TapDefinition extends BaseDefinition {
 	 * @param name - the tap name
 	 * @param streamName - the tapped stream
 	 * @param definition - the tap definition
-	 *
+	 * 
 	 */
 	public TapDefinition(String name, String streamName, String definition) {
 		super(name, definition);
-		Assert.hasText(streamName,"streamName cannot be empty or null");
+		Assert.hasText(streamName, "streamName cannot be empty or null");
 		this.streamName = streamName;
 	}
 
 	/**
 	 * @param name - the tap name
 	 * @param definition - the tap definition
-	 *
+	 * 
 	 */
 	public TapDefinition(String name, String definition) {
 		this(name, getStreamName(name, definition), definition);
@@ -73,7 +74,7 @@ public class TapDefinition extends BaseDefinition {
 	@Override
 	public String toString() {
 		return "TapDefinition [name=" + getName()
-				+ ", definition=" + getDefinition()  + "]";
+				+ ", definition=" + getDefinition() + "]";
 	}
 
 	@Override
@@ -101,7 +102,8 @@ public class TapDefinition extends BaseDefinition {
 			if (other.streamName != null) {
 				return false;
 			}
-		} else if (!streamName.equals(other.streamName)) {
+		}
+		else if (!streamName.equals(other.streamName)) {
 			return false;
 		}
 		return true;

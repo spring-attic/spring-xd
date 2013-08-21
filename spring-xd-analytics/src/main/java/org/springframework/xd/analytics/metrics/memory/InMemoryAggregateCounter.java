@@ -27,18 +27,17 @@ import org.joda.time.DateTimeField;
 import org.joda.time.Duration;
 import org.joda.time.DurationField;
 import org.joda.time.Interval;
+
 import org.springframework.xd.analytics.metrics.core.AggregateCount;
 import org.springframework.xd.analytics.metrics.core.Counter;
 import org.springframework.xd.analytics.metrics.core.MetricUtils;
 
 /**
- * A counter that tracks integral values but also remembers how its value was distributed
- * over time.
+ * A counter that tracks integral values but also remembers how its value was distributed over time.
  * 
  * <p>
- * This core class only holds data structures. Depending on backing stores, logic for
- * computing totals may be implemented in a specialization of this class or at the
- * repository level.
+ * This core class only holds data structures. Depending on backing stores, logic for computing totals may be
+ * implemented in a specialization of this class or at the repository level.
  * </p>
  * 
  * @author Luke Taylor

@@ -1,3 +1,4 @@
+
 package org.springframework.xd.tuple.batch;
 
 import static org.junit.Assert.assertEquals;
@@ -10,14 +11,17 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.xd.tuple.Tuple;
 
 public class TupleRowMapperTests {
 
 	private RowMapper<Tuple> mapper;
+
 	@Mock
 	private ResultSet rs;
+
 	@Mock
 	private ResultSetMetaData metaData;
 

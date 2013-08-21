@@ -19,6 +19,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
@@ -75,6 +76,9 @@ public class RestConfiguration {
 
 			private static final String CACHE_SECONDS = "300";
 
+			@Autowired(required=false)
+			UiResourceIdentifier resourceIdentifier;
+
 			@Override
 			public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
 				RestTemplateMessageConverterUtil.installMessageConverters(converters);
@@ -123,7 +127,9 @@ public class RestConfiguration {
 			// add a static resource handler for the UI
 			@Override
 			public void addResourceHandlers(ResourceHandlerRegistry registry) {
-				registry.addResourceHandler("/admin-ui/**", "/admin-ui/").addResourceLocations("classpath:/");
+				if (resourceIdentifier != null) {
+					registry.addResourceHandler("/admin-ui/**", "/admin-ui/").addResourceLocations("file:"+ resourceIdentifier.getResourcesLocation()+"/");
+				}
 			}
 
 		};

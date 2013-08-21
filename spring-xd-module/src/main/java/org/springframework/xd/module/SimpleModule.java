@@ -33,6 +33,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
 
 /**
+ * A {@link Module} implementation backed by a Spring {@link ApplicationContext}.
+ *
  * @author Mark Fisher
  * @author David Turanski
  * @author Gary Russell

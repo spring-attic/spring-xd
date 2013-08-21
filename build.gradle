@@ -549,6 +549,24 @@ project('spring-xd-jdbc') {
 	}
 }
 
+project('spring-xd-reactor') {
+	description = 'Spring XD Reactor'
+	dependencies {
+		compile "org.projectreactor:reactor-spring:$reactorVersion",
+				"org.projectreactor:reactor-tcp:$reactorVersion",
+				"org.springframework.integration:spring-integration-core:$springIntegrationVersion"
+
+		testCompile project(":spring-xd-test")
+		testCompile "com.jayway.jsonpath:json-path:0.8.1"
+		testCompile("org.mockito:mockito-core:$mockitoVersion") {
+			exclude group: 'org.hamcrest'
+		}
+		testRuntime "org.slf4j:jcl-over-slf4j:$slf4jVersion",
+				"org.slf4j:slf4j-log4j12:$slf4jVersion",
+				"log4j:log4j:$log4jVersion"
+	}
+}
+
 project('modules') {
 	description = 'Spring XD Modules'
 	dependencies {

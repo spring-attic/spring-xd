@@ -28,6 +28,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.MessagingException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -106,7 +107,7 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 		return localPort;
 	}
 
-	public XmlWebApplicationContext getXmlWebApplicationContext() {
+	public ApplicationContext getApplicationContext() {
 		return this.webApplicationContext;
 	}
 

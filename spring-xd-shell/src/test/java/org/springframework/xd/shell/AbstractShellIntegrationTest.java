@@ -74,7 +74,7 @@ public abstract class AbstractShellIntegrationTest {
 			"local", "--store",
 			"redis", "--analytics", "redis" });
 		server = SingleNodeMain.launchStreamServer(opts);
-		Container container = SingleNodeMain.launchContainer(opts.asContainerOptions());
+		Container container = SingleNodeMain.launchContainer(opts.asContainerOptions(),server.getApplicationContext().getParent());
 		SingleNodeMain.setUpControlChannels(server, container);
 
 		Bootstrap bootstrap = new Bootstrap(new String[] { "--port", Integer.toString(server.getLocalPort()) });

@@ -48,7 +48,7 @@ public class SingleNodeMain {
 	public static void main(String[] args) {
 		SingleNodeOptions options = parseOptions(args);
 		StreamServer server = launchStreamServer(options);
-		Container container =launchContainer(options.asContainerOptions());
+		Container container =launchContainer(options.asContainerOptions(),server.getApplicationContext().getParent());
 		setUpControlChannels(server, container);
 	}
 
@@ -56,7 +56,8 @@ public class SingleNodeMain {
 		return AdminMain.launchStreamServer(options);
 	}
 
-	public static Container launchContainer(ContainerOptions options) {
+	public static Container launchContainer(ContainerOptions options, ApplicationContext parentContext) {
+		ContainerMain.setParentContext(parentContext);
 		return ContainerMain.launch(options);
 	}
 
@@ -89,7 +90,7 @@ public class SingleNodeMain {
 
 		MessageChannel containerControlChannel = containerContext.getBean("input", MessageChannel.class);
 
-		ApplicationContext adminContext = streamServer.getXmlWebApplicationContext();
+		ApplicationContext adminContext = streamServer.getApplicationContext();
 
 		SubscribableChannel deployChannel = adminContext.getBean("deployChannel", SubscribableChannel.class);
 		SubscribableChannel undeployChannel = adminContext.getBean("undeployChannel", SubscribableChannel.class);

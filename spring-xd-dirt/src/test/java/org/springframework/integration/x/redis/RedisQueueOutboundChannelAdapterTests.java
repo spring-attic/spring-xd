@@ -16,6 +16,8 @@
 
 package org.springframework.integration.x.redis;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,6 +25,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -34,11 +37,9 @@ import org.springframework.integration.Message;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.xd.test.redis.RedisAvailableRule;
 
-import static org.junit.Assert.*;
-
 /**
  * Integration test of {@link RedisQueueOutboundChannelAdapter}
- *
+ * 
  * @author Jennifer Hickey
  */
 public class RedisQueueOutboundChannelAdapterTests {
@@ -109,7 +110,7 @@ public class RedisQueueOutboundChannelAdapterTests {
 		assertEquals("message3", new String(value));
 	}
 
-	@Test(expected=IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void testNoSerializerNoExtractPayload() throws Exception {
 		RedisTemplate<String, byte[]> template = new RedisTemplate<String, byte[]>();
 		template.setEnableDefaultSerializer(false);

@@ -18,14 +18,15 @@ package org.springframework.xd.store;
 
 /**
  * Tests for {@link AbstractInMemoryRepository}.
- *
+ * 
  * @author Eric Bottard
  */
-public class AbstractInMemoryRepositoryTests extends BaseRepositoryTests<AbstractInMemoryRepository<String, Integer>>{
+public class AbstractInMemoryRepositoryTests extends BaseRepositoryTests<AbstractInMemoryRepository<String, Integer>> {
 
 	@Override
 	protected AbstractInMemoryRepository<String, Integer> createRepository() {
 		return new AbstractInMemoryRepository<String, Integer>() {
+
 			@Override
 			protected Integer keyFor(String entity) {
 				return NUMBERS.indexOf(entity);

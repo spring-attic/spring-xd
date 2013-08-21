@@ -13,7 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.dirt.plugins.job;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.text.DateFormat;
 import java.text.NumberFormat;
@@ -21,10 +29,9 @@ import java.text.SimpleDateFormat;
 import java.util.Locale;
 
 import org.junit.Test;
+
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Gunnar Hillert
@@ -34,7 +41,8 @@ public class JobParametersBeanTests {
 	@Test
 	public void createJobParametersWithUniqueParam() throws Exception {
 
-		final JobParametersBean jobParametersBean = new JobParametersBean("{\"param1\":\"Kenny\", \"param2\":\"Cartman\"}");
+		final JobParametersBean jobParametersBean = new JobParametersBean(
+				"{\"param1\":\"Kenny\", \"param2\":\"Cartman\"}");
 
 		assertNull(jobParametersBean.getJobParameters());
 
@@ -52,7 +60,8 @@ public class JobParametersBeanTests {
 	@Test
 	public void createJobParametersWithoutUniqueParam() throws Exception {
 
-		final JobParametersBean jobParametersBean = new JobParametersBean("{\"param1\":\"Kenny\", \"param2\":\"Cartman\"}");
+		final JobParametersBean jobParametersBean = new JobParametersBean(
+				"{\"param1\":\"Kenny\", \"param2\":\"Cartman\"}");
 
 		assertNull(jobParametersBean.getJobParameters());
 
@@ -75,7 +84,8 @@ public class JobParametersBeanTests {
 	@Test
 	public void createNotIdentifyingJobParameters() throws Exception {
 
-		final JobParametersBean jobParametersBean = new JobParametersBean("{\"-param1\":\"Kenny\", \"-param2\":\"Cartman\"}");
+		final JobParametersBean jobParametersBean = new JobParametersBean(
+				"{\"-param1\":\"Kenny\", \"-param2\":\"Cartman\"}");
 
 		assertNull(jobParametersBean.getJobParameters());
 
@@ -98,7 +108,8 @@ public class JobParametersBeanTests {
 	@Test
 	public void createTypedJobParameters() throws Exception {
 
-		final JobParametersBean jobParametersBean = new JobParametersBean("{\"param1(long)\":\"1234\", \"mydate(date)\":\"1978/05/01\"}");
+		final JobParametersBean jobParametersBean = new JobParametersBean(
+				"{\"param1(long)\":\"1234\", \"mydate(date)\":\"1978/05/01\"}");
 
 		assertNull(jobParametersBean.getJobParameters());
 
@@ -121,7 +132,8 @@ public class JobParametersBeanTests {
 	@Test
 	public void createTypedJobParametersWithCustomDateFormat() throws Exception {
 
-		final JobParametersBean jobParametersBean = new JobParametersBean("{\"param1\":\"We should all use ISO dates\", \"mydate(date)\":\"2013-08-15T14:50Z\"}");
+		final JobParametersBean jobParametersBean = new JobParametersBean(
+				"{\"param1\":\"We should all use ISO dates\", \"mydate(date)\":\"2013-08-15T14:50Z\"}");
 
 		assertNull(jobParametersBean.getJobParameters());
 
@@ -139,7 +151,8 @@ public class JobParametersBeanTests {
 
 	@Test
 	public void createTypedJobParametersWithNullDateFormat() throws Exception {
-		final JobParametersBean jobParametersBean = new JobParametersBean("{\"param1\":\"We should all use ISO dates\", \"mydate(date)\":\"2013-08-15T14:50Z\"}");
+		final JobParametersBean jobParametersBean = new JobParametersBean(
+				"{\"param1\":\"We should all use ISO dates\", \"mydate(date)\":\"2013-08-15T14:50Z\"}");
 		assertNull(jobParametersBean.getJobParameters());
 
 		try {
@@ -263,7 +276,8 @@ public class JobParametersBeanTests {
 		/** I want to go to Japan. */
 		final String stringToPostInJapanese = "\u65e5\u672c\u306b\u884c\u304d\u305f\u3044\u3002";
 
-		final JobParametersBean jobParametersBean = new JobParametersBean("{\"param1\":\"" + stringToPostInJapanese + "\"}");
+		final JobParametersBean jobParametersBean = new JobParametersBean("{\"param1\":\"" + stringToPostInJapanese
+				+ "\"}");
 
 		assertNull(jobParametersBean.getJobParameters());
 		jobParametersBean.afterPropertiesSet();
@@ -273,4 +287,3 @@ public class JobParametersBeanTests {
 		assertEquals(stringToPostInJapanese, jobParametersBean.getJobParameters().getString("param1"));
 	}
 }
-

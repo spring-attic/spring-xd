@@ -26,6 +26,7 @@ public class NoSuchModuleException extends ResourceDefinitionException {
 
 	/**
 	 * Create a new exception.
+	 * 
 	 * @param name the module name that was referenced, but could not be found
 	 */
 	public NoSuchModuleException(String name) {

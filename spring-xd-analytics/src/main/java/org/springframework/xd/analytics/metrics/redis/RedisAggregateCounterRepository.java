@@ -30,6 +30,7 @@ import org.joda.time.DurationField;
 import org.joda.time.Interval;
 import org.joda.time.MutableDateTime;
 import org.joda.time.ReadableDateTime;
+
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.HashOperations;
@@ -42,8 +43,8 @@ import org.springframework.xd.analytics.metrics.core.AggregateCounterRepository;
 import org.springframework.xd.analytics.metrics.core.MetricUtils;
 
 /**
- * Redis implementation of {@link AggregateCounterRepository}. Subclasses and intercepts
- * calls to {@link RedisCounterRepository} to also track counts in various redis hashes.
+ * Redis implementation of {@link AggregateCounterRepository}. Subclasses and intercepts calls to
+ * {@link RedisCounterRepository} to also track counts in various redis hashes.
  * 
  * @author Eric Bottard
  * @author Luke Taylor
@@ -92,16 +93,15 @@ public class RedisAggregateCounterRepository extends RedisCounterRepository impl
 	}
 
 	/**
-	 * Return the key under which are stored the names of the other keys used for the
-	 * given counter.
+	 * Return the key under which are stored the names of the other keys used for the given counter.
 	 */
 	private String bookkeepingKeyFor(String counterName) {
 		return "metric_meta.aggregatecounters." + counterName;
 	}
 
 	/**
-	 * Internally increments the given hash key, keeping track of created hash for a given
-	 * counter, so they can be cleaned up when needed.
+	 * Internally increments the given hash key, keeping track of created hash for a given counter, so they can be
+	 * cleaned up when needed.
 	 */
 	private void doIncrementHash(String key, String hashKey, long amount, String bookkeepingKey) {
 		long newValue = hashOperations.increment(key, hashKey, amount);
@@ -176,8 +176,7 @@ public class RedisAggregateCounterRepository extends RedisCounterRepository impl
 	}
 
 	/**
-	 * Will convert a (possibly sparse) map whose keys are String versions of numbers
-	 * between 0 and size, to an array.
+	 * Will convert a (possibly sparse) map whose keys are String versions of numbers between 0 and size, to an array.
 	 */
 	private long[] convertToArray(Map<String, Long> map, int size) {
 		long[] values = new long[size];

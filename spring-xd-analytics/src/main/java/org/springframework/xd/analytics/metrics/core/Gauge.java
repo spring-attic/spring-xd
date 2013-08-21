@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.analytics.metrics.core;
 
 import org.springframework.data.annotation.PersistenceConstructor;
@@ -21,21 +22,23 @@ import org.springframework.util.Assert;
 
 /**
  * Represents the data stored in a Gauge which can be set to any integral value.
- *
+ * 
  * The name property is a friendly user assigned name, and should be unique.
- *
+ * 
  * Note: Additional metadata to help in searching for Gauges, such as tags and last time updated will be coming.
- *
+ * 
  * @author Mark Pollack
- *
+ * 
  */
 public final class Gauge implements Metric {
 
 	private final String name;
+
 	private long value;
 
 	/**
 	 * Construct a new Gauge given a name
+	 * 
 	 * @param name the name of the Gauge.
 	 */
 	public Gauge(String name) {
@@ -46,6 +49,7 @@ public final class Gauge implements Metric {
 
 	/**
 	 * Construct a new Gauge given a name and a initial value of the value
+	 * 
 	 * @param name the name of the Gauge
 	 * @param value initial value.
 	 */
@@ -82,12 +86,15 @@ public final class Gauge implements Metric {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
 
 		Gauge gauge = (Gauge) o;
 
-		if (!name.equals(gauge.name)) return false;
+		if (!name.equals(gauge.name))
+			return false;
 
 		return true;
 	}
@@ -98,4 +105,3 @@ public final class Gauge implements Metric {
 	}
 
 }
-

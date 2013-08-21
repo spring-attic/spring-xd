@@ -10,6 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.integration.x.channel.registry;
 
 import java.io.UnsupportedEncodingException;
@@ -33,7 +34,7 @@ import org.springframework.util.ClassUtils;
 /**
  * @author David Turanski
  * @author Gary Russell
- *
+ * 
  */
 public abstract class ChannelRegistrySupport implements ChannelRegistry, BeanClassLoaderAware {
 
@@ -158,7 +159,8 @@ public abstract class ChannelRegistrySupport implements ChannelRegistry, BeanCla
 				else {
 					String preferredClass = toObjectType.getParameter("type");
 					try {
-						// If this fails, fall back to generic decoding and delegate object conversion to the conversionService
+						// If this fails, fall back to generic decoding and delegate object conversion to the
+						// conversionService
 						result = this.jsonMapper.fromBytes((byte[]) payload, preferredClass);
 					}
 					catch (ConversionException e) {
@@ -191,7 +193,8 @@ public abstract class ChannelRegistrySupport implements ChannelRegistry, BeanCla
 							return result;
 						}
 						// recursive call
-						return transformPayloadForInputChannel(result, contentType, Collections.singletonList(toObjectType));
+						return transformPayloadForInputChannel(result, contentType,
+								Collections.singletonList(toObjectType));
 					}
 				}
 			}
@@ -203,7 +206,7 @@ public abstract class ChannelRegistrySupport implements ChannelRegistry, BeanCla
 					logger.error("Could not convert bytes to String", e);
 				}
 			}
-			else if(XD_OCTET_STREAM_VALUE.equals(contentType)) {
+			else if (XD_OCTET_STREAM_VALUE.equals(contentType)) {
 				return payload;
 			}
 		}

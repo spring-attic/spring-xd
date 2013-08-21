@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.hadoop.fs;
 
 import java.util.Collection;
@@ -22,26 +23,29 @@ import java.util.regex.Pattern;
 
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
+
 import org.springframework.data.hadoop.fs.FsShell;
 
 /**
- * Logic for writing to files of a specified size or other strategies go here as they are shared across
- * implementations
- *
+ * Logic for writing to files of a specified size or other strategies go here as they are shared across implementations
+ * 
  * @author Mark Pollack
  */
 public abstract class AbstractHdfsWriter implements HdfsWriter {
 
-	//TODO need to initialize the counter based on directory contents.
+	// TODO need to initialize the counter based on directory contents.
 	private final AtomicLong counter = new AtomicLong(0L);
-	
+
 	private final AtomicLong bytesWritten = new AtomicLong(0L);
-	
+
 	private volatile boolean initialized;
-	
+
 	private String baseFilename = HdfsTextFileWriterFactory.DEFAULT_BASE_FILENAME;
+
 	private String basePath = HdfsTextFileWriterFactory.DEFAULT_BASE_PATH;
+
 	private String fileSuffix = HdfsTextFileWriterFactory.DEFAULT_FILE_SUFFIX;
+
 	private long rolloverThresholdInBytes = HdfsTextFileWriterFactory.DEFAULT_ROLLOVER_THRESHOLD_IN_BYTES;
 
 
@@ -54,7 +58,7 @@ public abstract class AbstractHdfsWriter implements HdfsWriter {
 	public void setFileSuffix(String fileSuffix) {
 		this.fileSuffix = fileSuffix;
 	}
-	
+
 	public String getBaseFilename() {
 		return baseFilename;
 	}
@@ -103,12 +107,12 @@ public abstract class AbstractHdfsWriter implements HdfsWriter {
 					}
 				}
 				if (foundFile) {
-					this.setCounter(maxCounter+1);				
+					this.setCounter(maxCounter + 1);
 				}
 			}
 			finally {
 				try {
-					//fsShell.close();
+					// fsShell.close();
 				}
 				catch (Exception e) {
 					// ignore
@@ -123,37 +127,37 @@ public abstract class AbstractHdfsWriter implements HdfsWriter {
 		Matcher matcher = pattern.matcher(shortName);
 		if (matcher.find()) {
 			return Integer.parseInt(matcher.group());
-		} 
-		return -1;			
+		}
+		return -1;
 	}
 
 	public long getCounter() {
 		return counter.get();
 	}
-	
+
 	public void setCounter(long value) {
 		counter.set(value);
 	}
-	
+
 	public void incrementCounter() {
 		counter.incrementAndGet();
 	}
-	
+
 	public void incrementBytesWritten(long bytesWritten) {
 		this.bytesWritten.addAndGet(bytesWritten);
 	}
-	
+
 	public void resetBytesWritten() {
 		this.bytesWritten.set(0L);
 	}
-	
+
 	public long getBytesWritten() {
 		return bytesWritten.get();
 	}
-	
+
 	public String getFileName() {
-		//TODO configure file suffix
+		// TODO configure file suffix
 		return basePath + baseFilename + "-" + getCounter() + "." + fileSuffix;
 	}
-	
+
 }

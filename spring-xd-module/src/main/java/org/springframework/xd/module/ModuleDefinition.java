@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.module;
 
 import java.util.Properties;
@@ -21,8 +22,9 @@ import org.springframework.core.io.Resource;
 
 /**
  * Defines a module.
+ * 
  * @author Gary Russell
- *
+ * 
  */
 public class ModuleDefinition {
 

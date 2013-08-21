@@ -104,8 +104,8 @@ public class RedisQueueInboundChannelAdapter extends MessageProducerSupport {
 	}
 
 	private void initializeRedisTemplate() {
-		if(this.serializer == null) {
-			if(enableDefaultSerializer) {
+		if (this.serializer == null) {
+			if (enableDefaultSerializer) {
 				initializeDefaultSerializer();
 			}
 			else {
@@ -117,7 +117,7 @@ public class RedisQueueInboundChannelAdapter extends MessageProducerSupport {
 	}
 
 	private void initializeDefaultSerializer() {
-		if(extractPayload) {
+		if (extractPayload) {
 			this.serializer = new StringRedisSerializer();
 		}
 		else {
@@ -140,17 +140,19 @@ public class RedisQueueInboundChannelAdapter extends MessageProducerSupport {
 							}
 							else {
 								Assert.isInstanceOf(Message.class, next);
-								message = (Message<?>)next;
+								message = (Message<?>) next;
 							}
 							sendMessage(message);
-						} catch (Exception e) {
+						}
+						catch (Exception e) {
 							logger.error("Error sending message", e);
 						}
 					}
 
 				}
-			} catch (RedisSystemException e) {
-				if(isRunning()) {
+			}
+			catch (RedisSystemException e) {
+				if (isRunning()) {
 					logger.error("Error polling Redis queue", e);
 				}
 			}

@@ -74,7 +74,7 @@ public class RedisQueueOutboundChannelAdapter extends AbstractMessageHandler {
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		Object objToQueue = message;
-		if(this.extractPayload) {
+		if (this.extractPayload) {
 			objToQueue = message.getPayload();
 		}
 		if (logger.isDebugEnabled()) {
@@ -84,8 +84,8 @@ public class RedisQueueOutboundChannelAdapter extends AbstractMessageHandler {
 	}
 
 	private void initializeRedisTemplate() {
-		if(this.serializer == null) {
-			if(enableDefaultSerializer) {
+		if (this.serializer == null) {
+			if (enableDefaultSerializer) {
 				initializeDefaultSerializer();
 			}
 			else {
@@ -97,7 +97,7 @@ public class RedisQueueOutboundChannelAdapter extends AbstractMessageHandler {
 	}
 
 	private void initializeDefaultSerializer() {
-		if(extractPayload) {
+		if (extractPayload) {
 			this.serializer = new StringRedisSerializer();
 		}
 		else {

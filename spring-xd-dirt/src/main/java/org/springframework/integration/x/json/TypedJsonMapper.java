@@ -16,6 +16,7 @@ package org.springframework.integration.x.json;
 import java.math.BigDecimal;
 
 import org.joda.time.DateTime;
+
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.core.convert.ConversionException;
 import org.springframework.util.ClassUtils;
@@ -30,12 +31,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
 /**
- * A class that maps objects to JSON. The result includes type information used to
- * recreate the original object. If type information is not included, JSON will be
- * unmarshalled as a {@link DefaultTuple}.
+ * A class that maps objects to JSON. The result includes type information used to recreate the original object. If type
+ * information is not included, JSON will be unmarshalled as a {@link DefaultTuple}.
  * 
- * Custom types must either be compatible with {@link ObjectMapper} or include the
- * appropriate Jackson annotations
+ * Custom types must either be compatible with {@link ObjectMapper} or include the appropriate Jackson annotations
  * 
  * @author David Turanski
  * @author Gary Russell
@@ -46,8 +45,7 @@ public class TypedJsonMapper implements BeanClassLoaderAware {
 	private final ObjectMapper mapper = new ObjectMapper();
 
 	/*
-	 * separate mapper required as a work around for
-	 * https://github.com/FasterXML/jackson-databind/issues/88
+	 * separate mapper required as a work around for https://github.com/FasterXML/jackson-databind/issues/88
 	 */
 	private final ObjectMapper unmarshallingMapper = new ObjectMapper();
 
@@ -191,8 +189,8 @@ public class TypedJsonMapper implements BeanClassLoaderAware {
 	}
 
 	/*
-	 * Determine if serialized content is wrapped with type information. In the case of a
-	 * raw JSON string, should return null.
+	 * Determine if serialized content is wrapped with type information. In the case of a raw JSON string, should return
+	 * null.
 	 */
 	private Class<?> getWrappedType(JsonNode root) {
 		String typeName = root.fieldNames().next();

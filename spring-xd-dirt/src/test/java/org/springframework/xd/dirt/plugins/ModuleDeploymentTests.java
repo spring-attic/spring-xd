@@ -43,7 +43,8 @@ public class ModuleDeploymentTests {
 	public void testProcessor() throws Exception {
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
 		connectionFactory.afterPropertiesSet();
-		RedisQueueOutboundChannelAdapter adapter = new RedisQueueOutboundChannelAdapter("queue.deployer", connectionFactory);
+		RedisQueueOutboundChannelAdapter adapter = new RedisQueueOutboundChannelAdapter("queue.deployer",
+				connectionFactory);
 		adapter.setExtractPayload(false);
 		adapter.afterPropertiesSet();
 		ModuleDeploymentRequest request = new ModuleDeploymentRequest();
@@ -60,7 +61,8 @@ public class ModuleDeploymentTests {
 	public void testSimpleStream() throws Exception {
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
 		connectionFactory.afterPropertiesSet();
-		RedisQueueOutboundChannelAdapter adapter = new RedisQueueOutboundChannelAdapter("queue.deployer", connectionFactory);
+		RedisQueueOutboundChannelAdapter adapter = new RedisQueueOutboundChannelAdapter("queue.deployer",
+				connectionFactory);
 		adapter.setExtractPayload(false);
 		adapter.afterPropertiesSet();
 		ModuleDeploymentRequest sinkRequest = new ModuleDeploymentRequest();

@@ -16,12 +16,10 @@
 
 package org.springframework.xd.rest.client.domain;
 
-import javax.xml.bind.annotation.XmlAttribute;
-
 
 /**
  * Abstract base class for resources that represent deployable things.
- *
+ * 
  * @author Eric Bottard
  */
 public abstract class DeployableResource extends NamedResource {
@@ -36,7 +34,7 @@ public abstract class DeployableResource extends NamedResource {
 		super(name);
 	}
 
-//	@XmlAttribute
+	// @XmlAttribute
 	private Boolean deployed;
 
 	/**

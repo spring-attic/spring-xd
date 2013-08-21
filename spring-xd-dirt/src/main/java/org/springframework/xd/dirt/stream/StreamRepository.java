@@ -21,7 +21,7 @@ import org.springframework.xd.store.DomainRepository;
 
 /**
  * A repository for persisting {@link Stream}s.
- *
+ * 
  * @author Eric Bottard
  */
 public interface StreamRepository extends DomainRepository<Stream, String> {

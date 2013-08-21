@@ -29,9 +29,8 @@ public class NoSuchMetricException extends XDRuntimeException {
 	private final String offendingName;
 
 	/**
-	 * Construct a new exception. Message can contain
-	 * {@link String#format(String, Object...)} placeholders and will be formatted with
-	 * the offending name.
+	 * Construct a new exception. Message can contain {@link String#format(String, Object...)} placeholders and will be
+	 * formatted with the offending name.
 	 * 
 	 */
 	public NoSuchMetricException(String offendingName, String message) {

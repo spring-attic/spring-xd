@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.dirt.stream.dsl;
 
 /**
@@ -21,10 +22,11 @@ package org.springframework.xd.dirt.stream.dsl;
 public class ChannelNode extends AstNode {
 
 	private final String streamName;
+
 	private final String channelName;
 
 	public ChannelNode(String streamName, String channelName, int startpos, int endpos) {
-		super(startpos,endpos);
+		super(startpos, endpos);
 		this.streamName = streamName;
 		this.channelName = channelName;
 	}
@@ -62,13 +64,13 @@ public class ChannelNode extends AstNode {
 	public String getStreamName() {
 		return streamName;
 	}
-	
+
 	public String getChannelName() {
 		return channelName;
 	}
 
 	public ChannelNode copyOf() {
-		return new ChannelNode(streamName,channelName,startpos,endpos);
+		return new ChannelNode(streamName, channelName, startpos, endpos);
 	}
 
 }

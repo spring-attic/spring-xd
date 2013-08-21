@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.shell.util;
 
 import java.util.HashMap;
@@ -20,13 +21,13 @@ import java.util.Map;
 
 /**
  * Holds the table rows used by {@link Table}.
- *
+ * 
  * @see UiUtils
- *
+ * 
  * @author Gunnar Hillert
  * @author Ilayaperumal Gopinathan
  * @since 1.0
- *
+ * 
  */
 public class TableRow {
 
@@ -39,10 +40,10 @@ public class TableRow {
 
 	/**
 	 * Return a value from this row.
-	 *
+	 * 
 	 * @param key Column for which to return the value for
 	 * @return Value of the specified column within this row
-	 *
+	 * 
 	 */
 	public String getValue(Integer key) {
 		return data.get(key);
@@ -50,7 +51,7 @@ public class TableRow {
 
 	/**
 	 * Add a value to the to the specified column within this row.
-	 *
+	 * 
 	 * @param column
 	 * @param value
 	 */
@@ -58,7 +59,7 @@ public class TableRow {
 		this.data.put(column, value);
 		return this;
 	}
-	
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -67,7 +68,7 @@ public class TableRow {
 				+ ((data == null) ? 0 : data.hashCode());
 		return result;
 	}
-	
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -80,7 +81,8 @@ public class TableRow {
 		if (data == null) {
 			if (other.data != null)
 				return false;
-		} else if (!data.equals(other.data))
+		}
+		else if (!data.equals(other.data))
 			return false;
 		return true;
 	}

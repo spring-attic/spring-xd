@@ -10,6 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.xd.dirt.rest.metrics;
 
 import static org.mockito.Mockito.verify;
@@ -21,6 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -41,9 +43,9 @@ public class RichGaugeControllerIntegrationTests extends AbstractControllerInteg
 
 	@Test
 	public void gaugeRetrievalSucceedsWithCorrectValues() throws Exception {
-		
+
 		when(richGaugeRepository.findOne("mygauge"))
-		.thenReturn(new RichGauge("mygauge", 57.0, -1.0, 56.0, 57.0, 55.0, 2));
+				.thenReturn(new RichGauge("mygauge", 57.0, -1.0, 56.0, 57.0, 55.0, 2));
 
 		mockMvc.perform(get("/metrics/richgauges/mygauge").accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
@@ -53,14 +55,14 @@ public class RichGaugeControllerIntegrationTests extends AbstractControllerInteg
 				.andExpect(jsonPath("$.max").value(57.0))
 				.andExpect(jsonPath("$.min").value(55.0));
 	}
-	
+
 	@Test
 	public void testDeleteRichGauge() throws Exception {
 		when(richGaugeRepository.exists("deleteme")).thenReturn(true);
 		mockMvc.perform(delete("/metrics/richgauges/{name}", "deleteme")).andExpect(status().isOk());
 		verify(richGaugeRepository).delete("deleteme");
 	}
-	
+
 	@Test
 	public void testDeleteUnknownGauge() throws Exception {
 		when(richGaugeRepository.exists("deleteme")).thenReturn(false);

@@ -48,9 +48,11 @@ public class DefaultStreamParser implements XDParser {
 			String moduleName = null;
 			Properties parameters = getParameters(module);
 			if (!CollectionUtils.isEmpty(parameters)) {
-				Assert.isTrue(module.indexOf(" ") > 0, "invalid module definition - no space before parameter assignment" + module);
+				Assert.isTrue(module.indexOf(" ") > 0,
+						"invalid module definition - no space before parameter assignment" + module);
 				moduleName = module.substring(0, module.indexOf(" "));
-			} else {
+			}
+			else {
 				moduleName = module;
 			}
 			ModuleDeploymentRequest request = new ModuleDeploymentRequest();

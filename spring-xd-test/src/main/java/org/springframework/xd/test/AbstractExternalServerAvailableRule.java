@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.test;
 
 import static org.junit.Assert.fail;
@@ -25,7 +26,7 @@ import org.junit.runners.model.Statement;
 /**
  * @author Gary Russell
  * @since 1.0
- *
+ * 
  */
 public abstract class AbstractExternalServerAvailableRule extends TestWatcher {
 
@@ -41,8 +42,10 @@ public abstract class AbstractExternalServerAvailableRule extends TestWatcher {
 			logger.error(server + " IS NOT AVAILABLE, SKIPPING TESTS", e);
 		}
 		return new Statement() {
+
 			@Override
-			public void evaluate() throws Throwable {}
+			public void evaluate() throws Throwable {
+			}
 		};
 	}
 

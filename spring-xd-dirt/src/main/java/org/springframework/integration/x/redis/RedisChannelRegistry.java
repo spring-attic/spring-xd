@@ -28,6 +28,7 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -233,8 +234,8 @@ public class RedisChannelRegistry extends ChannelRegistrySupport implements Disp
 	static class EmbeddedHeadersMessageConverter {
 
 		/**
-		 * Encodes requested headers into payload; max headers = 255; max header name
-		 * length = 255; max header value length = 255.
+		 * Encodes requested headers into payload; max headers = 255; max header name length = 255; max header value
+		 * length = 255.
 		 * 
 		 * @throws UnsupportedEncodingException
 		 */

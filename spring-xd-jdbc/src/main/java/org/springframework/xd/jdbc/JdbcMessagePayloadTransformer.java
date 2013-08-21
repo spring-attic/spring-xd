@@ -28,9 +28,8 @@ import org.springframework.util.StringUtils;
 /**
  * Transforms a payload to a Map representation based on provided column names.
  * 
- * TODO: Right now it simply supports full payload under a 'payload' key or a JSON string
- * with values stored with keys corresponding to the column names specified. This could be
- * expanded for additional payload types
+ * TODO: Right now it simply supports full payload under a 'payload' key or a JSON string with values stored with keys
+ * corresponding to the column names specified. This could be expanded for additional payload types
  * 
  * @author Thomas Risberg
  * @since 1.0

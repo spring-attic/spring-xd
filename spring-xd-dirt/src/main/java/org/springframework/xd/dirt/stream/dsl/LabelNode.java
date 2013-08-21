@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.dirt.stream.dsl;
 
 /**
@@ -25,7 +26,7 @@ public class LabelNode extends AstNode {
 	private final String label;
 
 	public LabelNode(String label, int startpos, int endpos) {
-		super(startpos,endpos);
+		super(startpos, endpos);
 		this.label = label;
 	}
 
@@ -40,7 +41,7 @@ public class LabelNode extends AstNode {
 		s.append(")");
 		return s.toString();
 	}
-	
+
 	public String toString() {
 		StringBuilder s = new StringBuilder();
 		s.append(label);

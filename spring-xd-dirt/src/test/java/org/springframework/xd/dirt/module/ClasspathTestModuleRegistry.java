@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.dirt.module;
 
 import java.util.ArrayList;
@@ -23,9 +24,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.xd.module.ModuleDefinition;
 
 /**
- * Simple {@link ModuleRegistry} that loads modules from the testmodules
- * location
- *
+ * Simple {@link ModuleRegistry} that loads modules from the testmodules location
+ * 
  * @author Jennifer Hickey
  */
 public class ClasspathTestModuleRegistry extends AbstractModuleRegistry {

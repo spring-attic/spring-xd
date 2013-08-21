@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.shell.util;
 
 import static org.junit.Assert.assertEquals;
@@ -24,9 +25,9 @@ import org.junit.Test;
 /**
  * @author Gunnar Hillert
  * @author Stephan Oudmaijer
- *
+ * 
  * @since 1.0
- *
+ * 
  */
 public class CommonUtilsTest {
 

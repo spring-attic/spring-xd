@@ -67,18 +67,15 @@ public class RichGaugeCommands extends AbstractMetricsCommands implements Comman
 
 	@CliCommand(value = DISPLAY_RICH_GAUGE, help = "Display Rich Gauge value")
 	public Table display(
-			@CliOption(key = { "", "name" }, help = "the name of the richgauge to display value", mandatory = true, optionContext = "existing-rich-gauge disable-string-converter")
-			String name,
-			@CliOption(key = "pattern", help = "the pattern used to format the richgauge value (see DecimalFormat)", mandatory = false, unspecifiedDefaultValue = NumberFormatConverter.DEFAULT)
-			NumberFormat pattern) {
+			@CliOption(key = { "", "name" }, help = "the name of the richgauge to display value", mandatory = true, optionContext = "existing-rich-gauge disable-string-converter") String name,
+			@CliOption(key = "pattern", help = "the pattern used to format the richgauge value (see DecimalFormat)", mandatory = false, unspecifiedDefaultValue = NumberFormatConverter.DEFAULT) NumberFormat pattern) {
 		RichGaugeResource resource = richGaugeOperations().retrieve(name);
 		return displayRichGauge(resource, pattern);
 	}
 
 	@CliCommand(value = DELETE_RICH_GAUGE, help = "Delete the richgauge")
 	public String delete(
-			@CliOption(key = { "", "name" }, help = "the name of the richgauge to delete", mandatory = true, optionContext = "existing-rich-gauge disable-string-converter")
-			String name) {
+			@CliOption(key = { "", "name" }, help = "the name of the richgauge to delete", mandatory = true, optionContext = "existing-rich-gauge disable-string-converter") String name) {
 		richGaugeOperations().delete(name);
 		return String.format("Deleted richgauge '%s'", name);
 	}

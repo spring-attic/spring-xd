@@ -10,6 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.xd.dirt.rest;
 
 import static org.mockito.Mockito.mock;
@@ -19,10 +20,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.xd.dirt.stream.DeploymentMessageSender;
 import org.springframework.xd.dirt.stream.EnhancedStreamParser;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
-import org.springframework.xd.dirt.stream.XDParser;
 import org.springframework.xd.dirt.stream.TapDefinitionRepository;
 import org.springframework.xd.dirt.stream.TapDeployer;
 import org.springframework.xd.dirt.stream.TapInstanceRepository;
+import org.springframework.xd.dirt.stream.XDParser;
 import org.springframework.xd.dirt.stream.memory.InMemoryStreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.memory.InMemoryTapDefinitionRepository;
 import org.springframework.xd.dirt.stream.memory.InMemoryTapInstanceRepository;
@@ -30,9 +31,9 @@ import org.springframework.xd.dirt.stream.memory.InMemoryTapInstanceRepository;
 /**
  * @author David Turanski
  * @author Gunnar Hillert
- *
+ * 
  * @since 1.0
- *
+ * 
  */
 @Configuration
 public class TapsControllerIntegrationTestsConfig extends Dependencies {
@@ -41,6 +42,7 @@ public class TapsControllerIntegrationTestsConfig extends Dependencies {
 	public StreamDefinitionRepository streamDefinitionRepository() {
 		return new InMemoryStreamDefinitionRepository();
 	}
+
 	@Bean
 	public TapDefinitionRepository tapDefinitionRepository() {
 		return new InMemoryTapDefinitionRepository();

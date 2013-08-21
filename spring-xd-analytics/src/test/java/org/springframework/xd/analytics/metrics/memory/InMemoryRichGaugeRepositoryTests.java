@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.analytics.metrics.memory;
 
 import org.springframework.xd.analytics.metrics.AbstractRichGaugeRepositoryTests;
@@ -22,6 +23,7 @@ import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
  * @author Luke Taylor
  */
 public class InMemoryRichGaugeRepositoryTests extends AbstractRichGaugeRepositoryTests {
+
 	@Override
 	protected RichGaugeRepository createService() {
 		return new InMemoryRichGaugeRepository();

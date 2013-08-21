@@ -16,11 +16,25 @@
 
 package org.springframework.xd.dirt.rest;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Matchers.anyListOf;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import java.util.ArrayList;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
@@ -36,16 +50,9 @@ import org.springframework.xd.dirt.stream.memory.InMemoryStreamRepository;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 /**
- * Tests REST compliance of streams-related end-points. Contrary to
- * {@link StreamsControllerIntegrationTests}, instead of mocks, this class provides access
- * to an actual repository: {@link InMemoryStreamRepository} and
+ * Tests REST compliance of streams-related end-points. Contrary to {@link StreamsControllerIntegrationTests}, instead
+ * of mocks, this class provides access to an actual repository: {@link InMemoryStreamRepository} and
  * {@link InMemoryStreamDefinitionRepository}.
  * 
  * @author Gunnar Hillert

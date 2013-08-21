@@ -29,9 +29,10 @@ public class AlreadyDeployedException extends XDRuntimeException {
 
 	/**
 	 * Create a new exception.
+	 * 
 	 * @param offendingName name of the definition that conflicts
 	 * @param message Exception message. Can use {@link String#format(String, Object...)} syntax to include the
-	 * offendingName
+	 *        offendingName
 	 */
 	public AlreadyDeployedException(String offendingName, String message) {
 		super(String.format(message, offendingName));
@@ -40,9 +41,10 @@ public class AlreadyDeployedException extends XDRuntimeException {
 
 	/**
 	 * Create a new exception.
+	 * 
 	 * @param offendingName name of the definition that conflicts
 	 * @param message Exception message. Can use {@link String#format(String, Object...)} syntax to include the
-	 * offendingName
+	 *        offendingName
 	 * @param cause root exception cause
 	 */
 	public AlreadyDeployedException(String offendingName, String message, Throwable cause) {

@@ -23,10 +23,10 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 
 /**
  * Implemented by XD repositories, exists mainly as a mean to capture several interfaces into one.
- *
+ * 
  * @author Eric Bottard
  */
 public interface DomainRepository<T, ID extends Serializable & Comparable<ID>> extends
-		PagingAndSortingRepository<T, ID>, RangeCapableRepository<T, ID>{
+		PagingAndSortingRepository<T, ID>, RangeCapableRepository<T, ID> {
 
 }

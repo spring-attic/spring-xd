@@ -26,7 +26,7 @@ import org.springframework.xd.module.ModuleType;
  * @author Luke Taylor
  * @author Ilayaperumal Gopinathan
  * @author Gunnar Hillert
- *
+ * 
  */
 public class JobDeployer extends AbstractDeployer<JobDefinition> {
 
@@ -38,7 +38,8 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 
 	private final TriggerDefinitionRepository triggerDefinitionRepository;
 
-	public JobDeployer(JobDefinitionRepository repository, TriggerDefinitionRepository triggerDefinitionRepository, DeploymentMessageSender messageSender,
+	public JobDeployer(JobDefinitionRepository repository, TriggerDefinitionRepository triggerDefinitionRepository,
+			DeploymentMessageSender messageSender,
 			XDParser parser) {
 		super(repository, messageSender, parser, DEPLOYER_TYPE);
 		this.triggerDefinitionRepository = triggerDefinitionRepository;
@@ -80,7 +81,7 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 		// but currently the parser has reference to StreamDefinitionRepository only.
 		if (requests != null && requests.get(0).getParameters().containsKey(ModuleType.TRIGGER.getTypeName())) {
 			String triggerName = requests.get(0).getParameters().get(ModuleType.TRIGGER.getTypeName());
-			if(triggerDefinitionRepository.findOne(triggerName) == null) {
+			if (triggerDefinitionRepository.findOne(triggerName) == null) {
 				throwNoSuchDefinitionException(triggerName, ModuleType.TRIGGER.getTypeName());
 			}
 		}

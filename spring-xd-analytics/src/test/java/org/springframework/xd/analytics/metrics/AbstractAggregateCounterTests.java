@@ -16,17 +16,18 @@
 
 package org.springframework.xd.analytics.metrics;
 
+import static org.junit.Assert.assertEquals;
+
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeField;
 import org.joda.time.Duration;
 import org.joda.time.Interval;
 import org.joda.time.chrono.ISOChronology;
 import org.junit.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.xd.analytics.metrics.core.AggregateCount;
 import org.springframework.xd.analytics.metrics.core.AggregateCounterRepository;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Luke Taylor

@@ -22,7 +22,7 @@ import org.springframework.xd.store.AbstractInMemoryRepository;
 
 /**
  * In memory implementation of {@link StreamRepository}.
- *
+ * 
  * @author Eric Bottard
  * @author Gunnar Hillert
  */

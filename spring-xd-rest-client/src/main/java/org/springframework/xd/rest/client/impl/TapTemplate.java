@@ -26,11 +26,11 @@ import org.springframework.xd.rest.client.domain.TapDefinitionResource;
 
 /**
  * Implementation of the Tap related part of the API.
- *
+ * 
  * @author Eric Bottard
  * @author Ilayaperumal Gopinathan
  * @author Gunnar Hillert
- *
+ * 
  * @since 1.0
  */
 public class TapTemplate extends AbstractTemplate implements TapOperations {
@@ -64,7 +64,7 @@ public class TapTemplate extends AbstractTemplate implements TapOperations {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see org.springframework.xd.rest.client.TapOperations#destroyTap(java.lang.String)
 	 */
 	@Override

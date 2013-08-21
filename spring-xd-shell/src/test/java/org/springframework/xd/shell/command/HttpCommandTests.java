@@ -16,6 +16,8 @@
 
 package org.springframework.xd.shell.command;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -26,9 +28,8 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.springframework.integration.test.util.SocketUtils;
 
-import static org.junit.Assert.*;
+import org.springframework.integration.test.util.SocketUtils;
 
 /**
  * Test http commands
@@ -46,9 +47,8 @@ public class HttpCommandTests extends AbstractStreamIntegrationTest {
 	private static final String SINK_FILE_SUFFIX = "txt";
 
 	/**
-	 * This test will create a stream using a HTTP source and a File Sink. Subsequently
-	 * the "http post" shell command is used to post a simple Ascii String to the admin
-	 * server.
+	 * This test will create a stream using a HTTP source and a File Sink. Subsequently the "http post" shell command is
+	 * used to post a simple Ascii String to the admin server.
 	 */
 	@Test
 	public void testHttpPostAsciiText() throws InterruptedException, IOException {
@@ -76,9 +76,8 @@ public class HttpCommandTests extends AbstractStreamIntegrationTest {
 	}
 
 	/**
-	 * This test will create a stream using a HTTP source and a File Sink. Subsequently
-	 * the "http post" shell command is used to post a UTF String (Japanese) to the admin
-	 * server.
+	 * This test will create a stream using a HTTP source and a File Sink. Subsequently the "http post" shell command is
+	 * used to post a UTF String (Japanese) to the admin server.
 	 */
 	@Test
 	public void testHttpPostUtfText() throws InterruptedException, IOException {

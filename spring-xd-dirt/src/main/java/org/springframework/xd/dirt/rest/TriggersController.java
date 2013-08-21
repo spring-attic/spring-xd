@@ -36,7 +36,7 @@ import org.springframework.xd.rest.client.domain.TriggerDefinitionResource;
 
 /**
  * Handles all Trigger related interactions.
- *
+ * 
  * @author Gunnar Hillert
  * @since 1.0
  */
@@ -66,9 +66,8 @@ public class TriggersController
 
 	/**
 	 * Request removal of an existing trigger.
-	 *
-	 * @param name
-	 *            the name of an existing trigger (required)
+	 * 
+	 * @param name the name of an existing trigger (required)
 	 */
 	@RequestMapping(value = "/{name}", method = RequestMethod.PUT, params = "deploy=false")
 	@ResponseStatus(HttpStatus.OK)

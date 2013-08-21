@@ -51,13 +51,13 @@ import org.springframework.xd.rest.client.domain.metrics.RichGaugeResource;
  * <li>Resets a {@link RestTemplate}'s message converters list to have json support come <em>before</em> xml.</li>
  * <li>Force injects JAXBContexts that know about our particular classes</li>
  * </ol>
- *
+ * 
  * <p>
  * The second item is necessary when marshalling (on the server) instances of <i>e.g.</i> {@link PagedResources} because
  * of type erasure. This hack can be worked around when un-marshalling (on the client) with use of constructs like
  * {@link org.springframework.xd.rest.client.domain.StreamDefinitionResource.Page}.
  * </p>
- *
+ * 
  * @author Eric Bottard
  */
 public class RestTemplateMessageConverterUtil {
@@ -76,9 +76,9 @@ public class RestTemplateMessageConverterUtil {
 					RestTemplateMessageConverterUtil.class.getClassLoader());
 
 	private static final Class<?>[] ourClasses = { StreamDefinitionResource.class, JobDefinitionResource.class,
-			TapDefinitionResource.class, TriggerDefinitionResource.class, MetricResource.class, GaugeResource.class,
-			AggregateCountsResource.class, CounterResource.class, XDRuntime.class, FieldValueCounterResource.class,
-			RichGaugeResource.class };
+		TapDefinitionResource.class, TriggerDefinitionResource.class, MetricResource.class, GaugeResource.class,
+		AggregateCountsResource.class, CounterResource.class, XDRuntime.class, FieldValueCounterResource.class,
+		RichGaugeResource.class };
 
 	private RestTemplateMessageConverterUtil() {
 

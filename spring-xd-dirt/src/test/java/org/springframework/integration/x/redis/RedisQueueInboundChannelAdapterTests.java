@@ -16,6 +16,8 @@
 
 package org.springframework.integration.x.redis;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingDeque;
@@ -26,6 +28,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -40,11 +43,9 @@ import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.xd.test.redis.RedisAvailableRule;
 
-import static org.junit.Assert.assertEquals;
-
 /**
  * Integration test of {@link RedisQueueInboundChannelAdapter}
- *
+ * 
  * @author Jennifer Hickey
  */
 public class RedisQueueInboundChannelAdapterTests {
@@ -130,7 +131,7 @@ public class RedisQueueInboundChannelAdapterTests {
 		assertEquals("message3", new String(message.getPayload()));
 	}
 
-	@Test(expected=IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void testNoSerializerNoExtractPayload() throws Exception {
 		RedisTemplate<String, byte[]> template = new RedisTemplate<String, byte[]>();
 		template.setEnableDefaultSerializer(false);
@@ -159,7 +160,7 @@ public class RedisQueueInboundChannelAdapterTests {
 		template.boundListOps(QUEUE_NAME).rightPush(5l);
 		@SuppressWarnings("unchecked")
 		Message<Long> message = (Message<Long>) messages.poll(1, TimeUnit.SECONDS);
-		assertEquals(5L,(long) message.getPayload());
+		assertEquals(5L, (long) message.getPayload());
 	}
 
 	@Test
@@ -178,7 +179,7 @@ public class RedisQueueInboundChannelAdapterTests {
 		template.boundListOps(QUEUE_NAME).rightPush(new GenericMessage<Long>(10l));
 		@SuppressWarnings("unchecked")
 		Message<Long> message = (Message<Long>) messages.poll(1, TimeUnit.SECONDS);
-		assertEquals(10L, (long)message.getPayload());
+		assertEquals(10L, (long) message.getPayload());
 	}
 
 	private class TestMessageHandler implements MessageHandler {

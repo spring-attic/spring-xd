@@ -17,6 +17,7 @@
 package org.springframework.xd.analytics.metrics.memory;
 
 import org.junit.Before;
+
 import org.springframework.xd.analytics.metrics.AbstractAggregateCounterTests;
 
 /**

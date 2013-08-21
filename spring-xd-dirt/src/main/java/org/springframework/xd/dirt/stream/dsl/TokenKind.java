@@ -33,15 +33,15 @@ enum TokenKind {
 	SEMICOLON(";"),
 	REFERENCE("@"),
 	DOT("."),
-	LITERAL_STRING,
-	;
+	LITERAL_STRING, ;
 
 	char[] tokenChars;
+
 	private boolean hasPayload; // is there more to this token than simply the kind
 
 	private TokenKind(String tokenString) {
 		tokenChars = tokenString.toCharArray();
-		hasPayload = tokenChars.length==0;
+		hasPayload = tokenChars.length == 0;
 	}
 
 	private TokenKind() {
@@ -49,7 +49,7 @@ enum TokenKind {
 	}
 
 	public String toString() {
-		return this.name()+(tokenChars.length!=0?"("+new String(tokenChars)+")":"");
+		return this.name() + (tokenChars.length != 0 ? "(" + new String(tokenChars) + ")" : "");
 	}
 
 	public boolean hasPayload() {
@@ -59,7 +59,7 @@ enum TokenKind {
 	public int getLength() {
 		return tokenChars.length;
 	}
-	
+
 	/**
 	 * @return the chars representing simple fixed token (eg. : > --)
 	 */

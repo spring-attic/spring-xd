@@ -28,10 +28,10 @@ import org.springframework.util.Assert;
 
 /**
  * Temporary - clone of SI that allows publishing of message types other than String
- *
+ * 
  * @author Gary Russell
  * @author Jennifer Hickey
- *
+ * 
  */
 public class RedisPublishingMessageHandler extends AbstractMessageHandler {
 

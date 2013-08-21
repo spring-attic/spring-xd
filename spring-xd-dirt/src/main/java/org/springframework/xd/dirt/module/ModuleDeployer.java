@@ -24,6 +24,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationEventPublisher;
@@ -167,8 +168,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 	}
 
 	/**
-	 * allow plugins to contribute properties (e.g. "stream.name") calling
-	 * module.addProperties(properties), etc.
+	 * allow plugins to contribute properties (e.g. "stream.name") calling module.addProperties(properties), etc.
 	 */
 	private void preProcessModule(Module module) {
 		if (this.plugins != null) {
@@ -179,8 +179,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 	}
 
 	/**
-	 * allow plugins to perform other configuration after the module is initialized but
-	 * before it is started.
+	 * allow plugins to perform other configuration after the module is initialized but before it is started.
 	 */
 	private void postProcessModule(Module module) {
 		if (this.plugins != null) {

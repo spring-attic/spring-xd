@@ -16,74 +16,75 @@
 
 package org.springframework.xd.jdbc;
 
+import static org.junit.Assert.assertEquals;
+
+import java.sql.Connection;
+
 import org.junit.After;
 import org.junit.Test;
+
 import org.springframework.core.io.ClassRelativeResourceLoader;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import java.sql.Connection;
-
-import static org.junit.Assert.assertEquals;
-
 public class SingleTableDatabaseInitializerTests {
 
-    private final EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
+	private final EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
 
-    private final EmbeddedDatabase db = builder.build();
+	private final EmbeddedDatabase db = builder.build();
 
-    private final SingleTableDatabaseInitializer databaseInitializer = new SingleTableDatabaseInitializer();
+	private final SingleTableDatabaseInitializer databaseInitializer = new SingleTableDatabaseInitializer();
 
-    private final ClassRelativeResourceLoader resourceLoader = new ClassRelativeResourceLoader(getClass());
+	private final ClassRelativeResourceLoader resourceLoader = new ClassRelativeResourceLoader(getClass());
 
-    private final JdbcTemplate jdbcTemplate = new JdbcTemplate(db);
+	private final JdbcTemplate jdbcTemplate = new JdbcTemplate(db);
 
-    @After
-    public void shutDown() {
-        if (TransactionSynchronizationManager.isSynchronizationActive()) {
-            TransactionSynchronizationManager.clear();
-            TransactionSynchronizationManager.unbindResource(db);
-        }
-        db.shutdown();
-    }
+	@After
+	public void shutDown() {
+		if (TransactionSynchronizationManager.isSynchronizationActive()) {
+			TransactionSynchronizationManager.clear();
+			TransactionSynchronizationManager.unbindResource(db);
+		}
+		db.shutdown();
+	}
 
-    @Test
-    public void testBuildWithPlaceholders() throws Exception {
-        databaseInitializer.addScript(resourceLoader.getResource("db-schema-with-placeholder.sql"));
-        databaseInitializer.setTableName("DEMO");
-        databaseInitializer.setIgnoreFailedDrops(true);
-        databaseInitializer.afterPropertiesSet();
-        Connection connection = db.getConnection();
-        try {
-            databaseInitializer.populate(connection);
-        }
-        finally {
-            connection.close();
-        }
+	@Test
+	public void testBuildWithPlaceholders() throws Exception {
+		databaseInitializer.addScript(resourceLoader.getResource("db-schema-with-placeholder.sql"));
+		databaseInitializer.setTableName("DEMO");
+		databaseInitializer.setIgnoreFailedDrops(true);
+		databaseInitializer.afterPropertiesSet();
+		Connection connection = db.getConnection();
+		try {
+			databaseInitializer.populate(connection);
+		}
+		finally {
+			connection.close();
+		}
 
-        assertTestDatabaseCreated("DEMO");
-    }
+		assertTestDatabaseCreated("DEMO");
+	}
 
-    @Test
-    public void testBuildWithoutPlaceholders() throws Exception {
-        databaseInitializer.addScript(resourceLoader.getResource("db-schema-without-placeholder.sql"));
-        databaseInitializer.setIgnoreFailedDrops(true);
-        databaseInitializer.afterPropertiesSet();
-        Connection connection = db.getConnection();
-        try {
-            databaseInitializer.populate(connection);
-        }
-        finally {
-            connection.close();
-        }
+	@Test
+	public void testBuildWithoutPlaceholders() throws Exception {
+		databaseInitializer.addScript(resourceLoader.getResource("db-schema-without-placeholder.sql"));
+		databaseInitializer.setIgnoreFailedDrops(true);
+		databaseInitializer.afterPropertiesSet();
+		Connection connection = db.getConnection();
+		try {
+			databaseInitializer.populate(connection);
+		}
+		finally {
+			connection.close();
+		}
 
-        assertTestDatabaseCreated("T_TEST");
-    }
+		assertTestDatabaseCreated("T_TEST");
+	}
 
-    private void assertTestDatabaseCreated(String name) {
-        assertEquals(0, jdbcTemplate.queryForObject("select count(*) from " + name, Number.class).intValue());
-    }
+	private void assertTestDatabaseCreated(String name) {
+		assertEquals(0, jdbcTemplate.queryForObject("select count(*) from " + name, Number.class).intValue());
+	}
 
 }

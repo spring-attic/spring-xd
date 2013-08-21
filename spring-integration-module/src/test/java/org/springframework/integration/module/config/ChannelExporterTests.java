@@ -25,6 +25,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.SubscribableChannel;
 
+
 /**
  * @author David Turanski
  */
@@ -32,31 +33,34 @@ public class ChannelExporterTests {
 
 	@Test
 	public void testBasicDefaultChannelExporter() {
-		ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("/org/springframework/integration/module/config/test-channels.xml");
-		Map<String,MessageChannel> channels = ctx.getBeansOfType(MessageChannel.class);
+		ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext(
+				"/org/springframework/integration/module/config/test-channels.xml");
+		Map<String, MessageChannel> channels = ctx.getBeansOfType(MessageChannel.class);
 		ChannelExporter channelExporter = new DefaultChannelExporter();
 		assertNotNull(channelExporter.getInputChannel(channels));
-		assertEquals(1,channelExporter.getOutputChannels(channels).size());
+		assertEquals(1, channelExporter.getOutputChannels(channels).size());
 		ctx.close();
 	}
 
 	@Test
 	public void testMultipleOutputChannels() {
-		ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("/org/springframework/integration/module/config/multiple-output-channels.xml");
+		ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext(
+				"/org/springframework/integration/module/config/multiple-output-channels.xml");
 		ChannelExporter channelExporter = new DefaultChannelExporter();
-		Map<String,MessageChannel> channels = ctx.getBeansOfType(MessageChannel.class);
+		Map<String, MessageChannel> channels = ctx.getBeansOfType(MessageChannel.class);
 		assertNotNull(channelExporter.getInputChannel(channels));
-		assertEquals(3,channelExporter.getOutputChannels(channels,SubscribableChannel.class).size());
+		assertEquals(3, channelExporter.getOutputChannels(channels, SubscribableChannel.class).size());
 		ctx.close();
 	}
 
 	@Test
 	public void testNoExportedChannels() {
-		ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("/org/springframework/integration/module/config/no-exported-channels.xml");
+		ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext(
+				"/org/springframework/integration/module/config/no-exported-channels.xml");
 		ChannelExporter channelExporter = new DefaultChannelExporter();
-		Map<String,MessageChannel> channels = ctx.getBeansOfType(MessageChannel.class);
+		Map<String, MessageChannel> channels = ctx.getBeansOfType(MessageChannel.class);
 		assertNull(channelExporter.getInputChannel(channels));
-		assertEquals(0,channelExporter.getOutputChannels(channels).size());
+		assertEquals(0, channelExporter.getOutputChannels(channels).size());
 		ctx.close();
 	}
 

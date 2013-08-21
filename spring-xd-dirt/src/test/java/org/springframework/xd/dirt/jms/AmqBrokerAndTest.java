@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.dirt.jms;
 
 import java.util.Properties;
@@ -31,18 +32,19 @@ import org.springframework.jms.core.JmsTemplate;
 import org.springframework.util.Assert;
 
 /**
- * Runs an ActiveMQ broker on the configured URL; after the broker
- * has started you can enter test messages on the command line;
- * terminate by entering 'quit', which stops the broker.
- * <p>Used to test the source module.
- * <p>Requires a parameter containing the location of the XD
- * home directory to find the configuration for the source
- * module in the config direcrtory.
- * <p>A second parameter is used to specify the stream name (source
- * queue). If omitted, defaults to 'jmsTest'.
+ * Runs an ActiveMQ broker on the configured URL; after the broker has started you can enter test messages on the
+ * command line; terminate by entering 'quit', which stops the broker.
+ * <p>
+ * Used to test the source module.
+ * <p>
+ * Requires a parameter containing the location of the XD home directory to find the configuration for the source module
+ * in the config direcrtory.
+ * <p>
+ * A second parameter is used to specify the stream name (source queue). If omitted, defaults to 'jmsTest'.
+ * 
  * @author Gary Russell
  * @since 1.0
- *
+ * 
  */
 public class AmqBrokerAndTest {
 

@@ -20,9 +20,9 @@ import org.springframework.hateoas.ResourceSupport;
 
 /**
  * Represents information about the XD Runtime.
- *
+ * 
  * @author Eric Bottard
- *
+ * 
  */
 public class XDRuntime extends ResourceSupport {
 

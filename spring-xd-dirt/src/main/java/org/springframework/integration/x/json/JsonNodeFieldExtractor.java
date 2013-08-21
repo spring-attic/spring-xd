@@ -10,20 +10,25 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.integration.x.json;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * Extract a field value from a {@link JsonNode}
+ * 
  * @author David Turanski
- *
+ * 
  */
 public class JsonNodeFieldExtractor {
+
 	private final String fieldName;
+
 	public JsonNodeFieldExtractor(String fieldName) {
 		this.fieldName = fieldName;
 	}
+
 	public String extract(JsonNode node) {
 		return node.get(this.fieldName).asText();
 	}

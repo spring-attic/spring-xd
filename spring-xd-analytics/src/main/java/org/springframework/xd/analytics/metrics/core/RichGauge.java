@@ -1,3 +1,4 @@
+
 package org.springframework.xd.analytics.metrics.core;
 
 import org.springframework.util.Assert;
@@ -12,6 +13,7 @@ import org.springframework.util.Assert;
  * @author Luke Taylor
  */
 public final class RichGauge implements Metric {
+
 	private final String name;
 
 	private double value;

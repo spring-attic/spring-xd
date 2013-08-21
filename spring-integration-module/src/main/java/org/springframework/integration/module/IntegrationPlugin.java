@@ -23,12 +23,13 @@ import org.springframework.util.Assert;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.Plugin;
 
+
 /**
  * @author David Turanski
  * @author Gary Russell
  * @since 1.0
  */
-public class IntegrationPlugin  implements Plugin {
+public class IntegrationPlugin implements Plugin {
 
 	private volatile String integrationModuleBasePath = "/META-INF/spring/integration/module";
 
@@ -55,15 +56,15 @@ public class IntegrationPlugin  implements Plugin {
 
 	@Override
 	public void preProcessModule(Module module) {
-		//TODO: Check if module started?
+		// TODO: Check if module started?
 		Assert.notNull(module, "module cannot be null");
 		Assert.isAssignable(IntegrationModule.class, module.getClass());
 		String resourcePath = this.integrationModuleBasePath + "/" + module.getName() + ".xml";
 		module.addComponents(new ClassPathResource(resourcePath));
 		IntegrationModule integrationModule = (IntegrationModule) module;
 		integrationModule.initializeModule();
-		channelRegistry.inbound(integrationModule.getName()+".input",integrationModule.getInputChannel());
-		for (Entry<String, SubscribableChannel> entry: integrationModule.getOutputChannels().entrySet()) {
+		channelRegistry.inbound(integrationModule.getName() + ".input", integrationModule.getInputChannel());
+		for (Entry<String, SubscribableChannel> entry : integrationModule.getOutputChannels().entrySet()) {
 			channelRegistry.outbound(integrationModule.getName() + "." + entry.getKey(), entry.getValue());
 		}
 	}

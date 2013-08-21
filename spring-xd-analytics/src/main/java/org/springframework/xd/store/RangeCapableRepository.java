@@ -20,17 +20,16 @@ import java.io.Serializable;
 
 /**
  * To be implemented by repositories that know how to return a slice of their data.
- *
+ * 
  * @author Eric Bottard
  */
 public interface RangeCapableRepository<T, ID extends Serializable & Comparable<ID>> {
 
 	/**
-	 * Return entities whose ids range between {@code from} and {@code to}. Note that it
-	 * is possible that entities with those exact ids do not exist. If they do exist, the
-	 * two boolean parameters control whether to include those results or not. A query
-	 * from {@code x} to {@code x} returns an empty result, unless both
-	 * {@code fromInclusive} and {@code toInclusive} are true.
+	 * Return entities whose ids range between {@code from} and {@code to}. Note that it is possible that entities with
+	 * those exact ids do not exist. If they do exist, the two boolean parameters control whether to include those
+	 * results or not. A query from {@code x} to {@code x} returns an empty result, unless both {@code fromInclusive}
+	 * and {@code toInclusive} are true.
 	 */
 	public Iterable<T> findAllInRange(ID from, boolean fromInclusive, ID to, boolean toInclusive);
 

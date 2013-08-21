@@ -1,6 +1,7 @@
+
 package org.springframework.xd.tuple;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -14,9 +15,9 @@ public class SpringToDateConverterTests {
 	public void testCtor() throws ParseException {
 		StringToDateConverter converter = new StringToDateConverter();
 		Date d = converter.convert("2013-05-02");
-		
+
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-		assertEquals(dateFormat.parse("2013-05-02"), d);	
+		assertEquals(dateFormat.parse("2013-05-02"), d);
 	}
 
 }

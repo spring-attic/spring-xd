@@ -19,6 +19,7 @@ package org.springframework.xd.analytics.metrics;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
+
 import org.springframework.xd.analytics.metrics.core.RichGauge;
 import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
 
@@ -70,4 +71,3 @@ public abstract class AbstractRichGaugeRepositoryTests {
 		assertEquals(70.71, g.getAverage(), 1E-6);
 	}
 }
-

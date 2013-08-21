@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.shell.util;
 
 import static org.junit.Assert.assertEquals;
@@ -26,6 +27,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.junit.Test;
+
 import org.springframework.util.FileCopyUtils;
 
 /**
@@ -39,14 +41,14 @@ public class UiUtilsTest {
 
 		final Table table = new Table();
 		table.addHeader(1, new TableHeader("Tap Name"))
-		     .addHeader(2, new TableHeader("Stream Name"))
-		     .addHeader(3, new TableHeader("Tap Definition"));
+				.addHeader(2, new TableHeader("Stream Name"))
+				.addHeader(3, new TableHeader("Tap Definition"));
 
-		for (int i = 1; i<=3; i++) {
+		for (int i = 1; i <= 3; i++) {
 			final TableRow row = new TableRow();
 			row.addValue(1, "tap" + i)
-			   .addValue(2, "ticktock")
-			   .addValue(3, "tap@ticktock|log");
+					.addValue(2, "ticktock")
+					.addValue(3, "tap@ticktock|log");
 			table.getRows().add(row);
 		}
 
@@ -60,7 +62,8 @@ public class UiUtilsTest {
 
 		try {
 			expectedTableAsString = FileCopyUtils.copyToString(new InputStreamReader(inputStream));
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			e.printStackTrace();
 			fail();
 		}
@@ -90,7 +93,8 @@ public class UiUtilsTest {
 
 		try {
 			expectedTableAsString = FileCopyUtils.copyToString(new InputStreamReader(inputStream));
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			e.printStackTrace();
 			fail();
 		}
@@ -121,7 +125,8 @@ public class UiUtilsTest {
 
 		try {
 			expectedTableAsString = FileCopyUtils.copyToString(new InputStreamReader(inputStream));
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			e.printStackTrace();
 			fail();
 		}
@@ -148,7 +153,8 @@ public class UiUtilsTest {
 
 		try {
 			expectedTableAsString = FileCopyUtils.copyToString(new InputStreamReader(inputStream));
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			e.printStackTrace();
 			fail();
 		}

@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.shell.hadoop;
 
 import java.util.logging.Logger;
 
 import org.apache.hadoop.conf.Configuration;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.shell.core.ExecutionProcessor;

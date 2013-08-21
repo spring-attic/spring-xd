@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.dirt.stream.dsl;
 
 import java.util.ArrayList;
@@ -30,6 +31,7 @@ import org.springframework.xd.dirt.stream.dsl.ModuleNode.ConsumedArgumentNode;
 public class ArgumentNode extends AstNode {
 
 	private final String name;
+
 	private final String value;
 
 	public ArgumentNode(String name, String value, int startpos, int endpos) {
@@ -52,7 +54,7 @@ public class ArgumentNode extends AstNode {
 		s.append("--").append(name).append("=").append(value);
 		return s.toString();
 	}
-	
+
 	public String toString() {
 		StringBuilder s = new StringBuilder();
 		s.append("--").append(name).append("=").append(value);
@@ -62,30 +64,32 @@ public class ArgumentNode extends AstNode {
 	public ArgumentNode withReplacedVariables(Map<String, ConsumedArgumentNode> argumentMap) {
 		String argumentValue = value;
 		List<Variable> variables = getVariablesInValue();
-		for (int v=variables.size()-1;v>=0;v--) {
+		for (int v = variables.size() - 1; v >= 0; v--) {
 			Variable variable = variables.get(v);
 			ConsumedArgumentNode replacement = argumentMap.get(variable.name);
 			String newValue = null;
-			if (replacement!=null) {
+			if (replacement != null) {
 				replacement.setConsumed(true);
 				newValue = replacement.argumentNode.getValue();
-			} else {
+			}
+			else {
 				newValue = variable.defaultValue;
 			}
-			if (newValue==null) {
-				throw new DSLException(null, -1, XDDSLMessages.MISSING_VALUE_FOR_VARIABLE, 
+			if (newValue == null) {
+				throw new DSLException(null, -1, XDDSLMessages.MISSING_VALUE_FOR_VARIABLE,
 						variable.name);
 			}
 			StringBuilder s = new StringBuilder();
-			s.append(argumentValue.substring(0,variable.start));
+			s.append(argumentValue.substring(0, variable.start));
 			s.append(newValue);
-			s.append(argumentValue.substring(variable.end+1));
+			s.append(argumentValue.substring(variable.end + 1));
 			argumentValue = s.toString();
 		}
-		return new ArgumentNode(name,argumentValue,startpos,endpos);
+		return new ArgumentNode(name, argumentValue, startpos, endpos);
 	}
-	
+
 	static class Variable {
+
 		public Variable(String name2, String defaultValue2, int startIndex,
 				int pos) {
 			this.name = name2;
@@ -93,51 +97,57 @@ public class ArgumentNode extends AstNode {
 			this.start = startIndex;
 			this.end = pos;
 		}
+
 		String name;
+
 		String defaultValue;
+
 		int start;
-		int end;		
+
+		int end;
 	}
-	
+
 	private Variable locateVariable(int startIndex) {
-		int pos = startIndex+2;
+		int pos = startIndex + 2;
 		int defaultValueStart = -1;
 		boolean variableEnded = false;
-		while (!variableEnded && pos<value.length()) {
+		while (!variableEnded && pos < value.length()) {
 			char ch = value.charAt(pos++);
-			if (ch=='}') {
+			if (ch == '}') {
 				variableEnded = true;
-			} else if (ch==':') {
+			}
+			else if (ch == ':') {
 				defaultValueStart = pos;
 			}
 		}
 		if (!variableEnded) {
-			throw new DSLException(null,-1,XDDSLMessages.VARIABLE_NOT_TERMINATED,toString());
+			throw new DSLException(null, -1, XDDSLMessages.VARIABLE_NOT_TERMINATED, toString());
 		}
 		String name = null;
 		String defaultValue = null;
 		if (defaultValueStart == -1) {
-			name = value.substring(startIndex+2,pos-1);
-		} else {
-			name = value.substring(startIndex+2,defaultValueStart-1);
-			defaultValue = value.substring(defaultValueStart,pos-1);
+			name = value.substring(startIndex + 2, pos - 1);
 		}
-		return new Variable(name,defaultValue,startIndex,pos-1);
+		else {
+			name = value.substring(startIndex + 2, defaultValueStart - 1);
+			defaultValue = value.substring(defaultValueStart, pos - 1);
+		}
+		return new Variable(name, defaultValue, startIndex, pos - 1);
 	}
-	
+
 	private List<Variable> getVariablesInValue() {
 		List<Variable> variables = null;
 		int idx = value.indexOf("${");
-		while (idx!=-1) {
+		while (idx != -1) {
 			// TODO Check for escaping
 			Variable v = locateVariable(idx);
-			if (variables==null) {
-				 variables = new ArrayList<Variable>();
+			if (variables == null) {
+				variables = new ArrayList<Variable>();
 			}
 			variables.add(v);
-			idx = value.indexOf("${",v.end+1);
+			idx = value.indexOf("${", v.end + 1);
 		}
-		return (variables==null?Collections.<Variable>emptyList():variables);
+		return (variables == null ? Collections.<Variable> emptyList() : variables);
 	}
 
 }

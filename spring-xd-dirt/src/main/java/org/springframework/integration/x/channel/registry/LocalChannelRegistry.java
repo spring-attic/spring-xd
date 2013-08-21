@@ -41,14 +41,12 @@ import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.util.Assert;
 
 /**
- * A simple implementation of {@link ChannelRegistry} for in-process use. For inbound and
- * outbound, creates a {@link DirectChannel} or a {@link QueueChannel} depending on
- * whether the binding is aliased or not then bridges the passed {@link MessageChannel} to
- * the channel which is registered in the given application context. If that channel does
- * not yet exist, it will be created. For tap, it adds a {@link WireTap} for an inbound
- * channel whose name matches the one provided. If no such inbound channel exists at the
- * time of the method invocation, it will throw an Exception. Otherwise the provided
- * channel instance will receive messages from the wire tap on that inbound channel.
+ * A simple implementation of {@link ChannelRegistry} for in-process use. For inbound and outbound, creates a
+ * {@link DirectChannel} or a {@link QueueChannel} depending on whether the binding is aliased or not then bridges the
+ * passed {@link MessageChannel} to the channel which is registered in the given application context. If that channel
+ * does not yet exist, it will be created. For tap, it adds a {@link WireTap} for an inbound channel whose name matches
+ * the one provided. If no such inbound channel exists at the time of the method invocation, it will throw an Exception.
+ * Otherwise the provided channel instance will receive messages from the wire tap on that inbound channel.
  * 
  * @author David Turanski
  * @author Mark Fisher
@@ -80,8 +78,7 @@ public class LocalChannelRegistry extends ChannelRegistrySupport implements Appl
 	};
 
 	/**
-	 * Used to create and customize {@link QueueChannel}s when the binding operation
-	 * involves aliased names.
+	 * Used to create and customize {@link QueueChannel}s when the binding operation involves aliased names.
 	 */
 	private SharedChannelProvider<QueueChannel> queueChannelProvider = new SharedChannelProvider<QueueChannel>(
 			QueueChannel.class) {
@@ -114,8 +111,8 @@ public class LocalChannelRegistry extends ChannelRegistrySupport implements Appl
 	}
 
 	/**
-	 * Determines whether any conversion logic is applied within the local transport. When
-	 * false, objects pass through without any modification; default true.
+	 * Determines whether any conversion logic is applied within the local transport. When false, objects pass through
+	 * without any modification; default true.
 	 */
 	public void setConvertWithinTransport(boolean convertWithinTransport) {
 		this.convertWithinTransport = convertWithinTransport;
@@ -127,10 +124,9 @@ public class LocalChannelRegistry extends ChannelRegistrySupport implements Appl
 	}
 
 	/**
-	 * Looks up or creates a DirectChannel with the given name and creates a bridge from
-	 * that channel to the provided channel instance. Also registers a wire tap if the
-	 * channel for the given name had been created. The target of the wire tap is a
-	 * publish-subscribe channel.
+	 * Looks up or creates a DirectChannel with the given name and creates a bridge from that channel to the provided
+	 * channel instance. Also registers a wire tap if the channel for the given name had been created. The target of the
+	 * wire tap is a publish-subscribe channel.
 	 */
 	@Override
 	public void createInbound(String name, MessageChannel moduleInputChannel, Collection<MediaType> acceptedMediaTypes,
@@ -149,8 +145,8 @@ public class LocalChannelRegistry extends ChannelRegistrySupport implements Appl
 	}
 
 	/**
-	 * Looks up or creates a DirectChannel with the given name and creates a bridge to
-	 * that channel from the provided channel instance.
+	 * Looks up or creates a DirectChannel with the given name and creates a bridge to that channel from the provided
+	 * channel instance.
 	 */
 	@Override
 	public void createOutbound(String name, MessageChannel moduleOutputChannel, boolean aliasHint) {
@@ -161,9 +157,8 @@ public class LocalChannelRegistry extends ChannelRegistrySupport implements Appl
 	}
 
 	/**
-	 * Looks up a wiretap for the inbound channel with the given name and creates a bridge
-	 * from that wiretap's output channel to the provided channel instance. Will throw an
-	 * Exception if no such wiretap exists.
+	 * Looks up a wiretap for the inbound channel with the given name and creates a bridge from that wiretap's output
+	 * channel to the provided channel instance. Will throw an Exception if no such wiretap exists.
 	 */
 	@Override
 	public void tap(String tapModule, String name, MessageChannel channel) {

@@ -13,7 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.x.channel.registry;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -21,6 +26,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.convert.converter.Converter;
@@ -32,8 +38,6 @@ import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.support.MessageBuilder;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Gary Russell
@@ -119,6 +123,7 @@ public class LocalChannelRegistryTests extends AbstractChannelRegistryTests {
 	}
 
 	static class Foo {
+
 		@Override
 		public String toString() {
 			return "foo";

@@ -16,6 +16,10 @@
 
 package org.springframework.xd.dirt.plugins.stream;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
@@ -26,6 +30,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
@@ -42,11 +47,8 @@ import org.springframework.xd.dirt.server.options.Analytics;
 import org.springframework.xd.dirt.server.options.Transport;
 import org.springframework.xd.module.SimpleModule;
 
-import static org.junit.Assert.*;
-
 /**
- * Integration test that deploys a few simple test modules to verify the full
- * functionality of {@link StreamPlugin}
+ * Integration test that deploys a few simple test modules to verify the full functionality of {@link StreamPlugin}
  * 
  * @author Jennifer Hickey
  * 
@@ -90,8 +92,7 @@ public class StreamPluginModuleDeploymentTests {
 	}
 
 	/**
-	 * Validates that channels defined in the modules end up in the shared
-	 * {@link ChannelRegistry}
+	 * Validates that channels defined in the modules end up in the shared {@link ChannelRegistry}
 	 * 
 	 * @throws InterruptedException
 	 */

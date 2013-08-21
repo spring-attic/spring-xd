@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.analytics.metrics.memory;
 
 import org.junit.After;
 import org.junit.Before;
+
 import org.springframework.xd.analytics.metrics.AbstractCounterRepositoryTests;
 
 public class InMemoryCounterRepositoryTests extends AbstractCounterRepositoryTests {

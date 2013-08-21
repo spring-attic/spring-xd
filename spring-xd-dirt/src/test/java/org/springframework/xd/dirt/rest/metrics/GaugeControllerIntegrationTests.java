@@ -10,6 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.xd.dirt.rest.metrics;
 
 import static org.mockito.Mockito.verify;
@@ -21,6 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -47,14 +49,14 @@ public class GaugeControllerIntegrationTests extends AbstractControllerIntegrati
 				.andExpect(jsonPath("$.name").value("mygauge"))
 				.andExpect(jsonPath("$.value").value(55));
 	}
-	
+
 	@Test
 	public void testDeleteGauge() throws Exception {
 		when(gaugeRepository.exists("deleteme")).thenReturn(true);
 		mockMvc.perform(delete("/metrics/gauges/{name}", "deleteme")).andExpect(status().isOk());
 		verify(gaugeRepository).delete("deleteme");
 	}
-	
+
 	@Test
 	public void testDeleteUnknownGauge() throws Exception {
 		when(gaugeRepository.exists("deleteme")).thenReturn(false);

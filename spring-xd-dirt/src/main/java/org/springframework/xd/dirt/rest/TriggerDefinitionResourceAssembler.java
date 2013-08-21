@@ -17,13 +17,12 @@
 package org.springframework.xd.dirt.rest;
 
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
-import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.TriggerDefinition;
 import org.springframework.xd.rest.client.domain.TriggerDefinitionResource;
 
 /**
  * Knows how to build a REST resource out of our domain model {@link TriggerDefinition}.
- *
+ * 
  * @author Gunnar Hillert
  * @since 1.0
  */

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.tuple;
 
 import java.text.NumberFormat;
@@ -23,8 +24,9 @@ import org.springframework.util.NumberUtils;
 
 /**
  * Converts from a String any JDK-standard Number implementation.
- *
- * <p>Support Number classes including Byte, Short, Integer, Float, Double, Long, BigInteger, BigDecimal. This class
+ * 
+ * <p>
+ * Support Number classes including Byte, Short, Integer, Float, Double, Long, BigInteger, BigDecimal. This class
  * delegates to {@link NumberUtils#parseNumber(String, Class, NumberFormat)} to perform the conversion.
  * 
  * @author Mark Pollack
@@ -43,7 +45,7 @@ import org.springframework.util.NumberUtils;
 public class LocaleAwareStringToNumberConverterFactory implements ConverterFactory<String, Number> {
 
 	private NumberFormat numberFormat;
-	
+
 	public LocaleAwareStringToNumberConverterFactory(NumberFormat numberFormat) {
 		this.numberFormat = numberFormat;
 	}
@@ -55,8 +57,8 @@ public class LocaleAwareStringToNumberConverterFactory implements ConverterFacto
 	private static final class StringToNumber<T extends Number> implements Converter<String, T> {
 
 		private final Class<T> targetType;
-		
-		private NumberFormat numberFormat;		
+
+		private NumberFormat numberFormat;
 
 		public StringToNumber(Class<T> targetType, NumberFormat numberFormat) {
 			this.targetType = targetType;

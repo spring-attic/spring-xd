@@ -2,8 +2,7 @@
 package org.springframework.xd.analytics.metrics.core;
 
 /**
- * Super interface for all metrics. Metrics all have a name which must be unique (per
- * kind).
+ * Super interface for all metrics. Metrics all have a name which must be unique (per kind).
  * 
  * @author Luke Taylor
  */

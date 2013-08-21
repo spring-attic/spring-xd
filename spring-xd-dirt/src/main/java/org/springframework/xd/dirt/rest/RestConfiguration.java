@@ -46,9 +46,11 @@ import org.springframework.xd.rest.client.util.RestTemplateMessageConverterUtil;
 @EnableSpringDataWebSupport
 @ComponentScan(excludeFilters = @Filter(Configuration.class))
 public class RestConfiguration {
+
 	@Bean
 	public WebMvcConfigurer configurer() {
 		return new WebMvcConfigurerAdapter() {
+
 			// TODO Access-Control-Allow-Origin header should not be hard-coded
 			private static final String ALLOWED_ORIGIN = "http://localhost:9889";
 
@@ -60,6 +62,7 @@ public class RestConfiguration {
 			@Override
 			public void addInterceptors(InterceptorRegistry registry) {
 				registry.addInterceptor(new HandlerInterceptorAdapter() {
+
 					@Override
 					public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
 							throws Exception {

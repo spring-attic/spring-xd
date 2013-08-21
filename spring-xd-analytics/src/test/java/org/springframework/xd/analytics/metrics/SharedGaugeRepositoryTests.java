@@ -13,18 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.analytics.metrics;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.xd.analytics.metrics.core.Gauge;
 import org.springframework.xd.analytics.metrics.core.GaugeRepository;
@@ -37,12 +41,12 @@ public abstract class SharedGaugeRepositoryTests {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testDeleteNullString() {
-		gaugeRepository.delete((String)null);
+		gaugeRepository.delete((String) null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testDeleteNullGauge() {
-		gaugeRepository.delete((Gauge)null);
+		gaugeRepository.delete((Gauge) null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)

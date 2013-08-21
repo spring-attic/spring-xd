@@ -16,6 +16,9 @@
 
 package org.springframework.xd.analytics.metrics.common;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,8 +33,6 @@ import org.springframework.xd.analytics.metrics.redis.RedisCounterRepository;
 import org.springframework.xd.analytics.metrics.redis.RedisFieldValueCounterRepository;
 import org.springframework.xd.analytics.metrics.redis.RedisGaugeRepository;
 import org.springframework.xd.analytics.metrics.redis.RedisRichGaugeRepository;
-
-import static org.mockito.Mockito.*;
 
 /**
  * Provides Redis backed repositories, to be tested one by one in Redis variant of tests.

@@ -34,7 +34,7 @@ import org.springframework.util.Assert;
 
 /**
  * A {@link Module} implementation backed by a Spring {@link ApplicationContext}.
- *
+ * 
  * @author Mark Fisher
  * @author David Turanski
  * @author Gary Russell
@@ -43,7 +43,7 @@ public class SimpleModule extends AbstractModule {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private final GenericApplicationContext context = new GenericApplicationContext();
+	private final GenericApplicationContext context;
 
 	private final AtomicInteger propertiesCounter = new AtomicInteger();
 
@@ -53,7 +53,15 @@ public class SimpleModule extends AbstractModule {
 
 
 	public SimpleModule(ModuleDefinition definition, DeploymentMetadata metadata) {
+		this(definition, metadata, null);
+	}
+
+	public SimpleModule(ModuleDefinition definition, DeploymentMetadata metadata, ClassLoader classLoader) {
 		super(definition, metadata);
+		context = new GenericApplicationContext();
+		if (classLoader != null) {
+			context.setClassLoader(classLoader);
+		}
 		if (definition != null) {
 			if (definition.getResource() != null) {
 				this.addComponents(definition.getResource());

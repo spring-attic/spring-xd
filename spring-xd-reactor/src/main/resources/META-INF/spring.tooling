@@ -1,0 +1,4 @@
+# Tooling related information for the integration Reactor namespace
+http\://www.springframework.org/schema/integration/reactor@name=integration Reactor Namespace
+http\://www.springframework.org/schema/integration/reactor@prefix=int-reactor
+http\://www.springframework.org/schema/integration/reactor@icon=org/springframework/xd/integration/reactor/config/spring-integration-reactor.gif

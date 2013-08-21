@@ -19,7 +19,7 @@ package org.springframework.xd.shell.command;
 
 /**
  * Base class for objects that can be incorporated in a stream definition by calling their {@link #toString()} method.
- *
+ * 
  * @author Eric Bottard
  */
 abstract class AbstractModuleFixture {

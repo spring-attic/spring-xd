@@ -24,12 +24,11 @@ import org.junit.After;
 import org.springframework.xd.shell.AbstractShellIntegrationTest;
 
 /**
- * Provides an @After JUnit lifecycle method that will destroy the definitions that were
- * created by the test.
- *
+ * Provides an @After JUnit lifecycle method that will destroy the definitions that were created by the test.
+ * 
  * @author Andy Clement
  * @author Mark Pollack
- *
+ * 
  */
 public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegrationTest {
 
@@ -124,6 +123,10 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 
 	protected HttpSource newHttpSource() {
 		return new HttpSource(getShell());
+	}
+
+	protected HttpSource newHttpSource(int port) {
+		return new HttpSource(getShell(), port);
 	}
 
 }

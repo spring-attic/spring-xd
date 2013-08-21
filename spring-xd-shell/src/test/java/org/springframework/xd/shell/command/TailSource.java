@@ -22,7 +22,7 @@ import java.io.IOException;
 
 /**
  * Support class that represents a tail source.
- *
+ * 
  * @author Ilayaperumal Gopinathan
  */
 class TailSource extends DisposableFileSupport {

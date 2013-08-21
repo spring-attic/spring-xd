@@ -41,12 +41,6 @@ public class CounterCommandTemplate extends AbstractCommandTemplate {
 	}
 
 	public void verifyCounter(String counterName, String expectedValue) {
-		try {
-			Thread.sleep(2000);
-		}
-		catch (InterruptedException e) {
-			e.printStackTrace();
-		}
 		metricCommandTemplate.checkIfMetricExists(counterName, MetricType.COUNTER);
 		metricCommandTemplate.checkMetricValue(counterName, MetricType.COUNTER, expectedValue);
 	}

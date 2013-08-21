@@ -16,21 +16,17 @@
 
 package org.springframework.xd.shell.command;
 
-import java.io.IOException;
-import java.net.ConnectException;
-import java.net.Socket;
-import java.net.UnknownHostException;
-
 import org.eclipse.jdt.internal.core.Assert;
 
 import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
+import org.springframework.web.client.RestTemplate;
 
 
 /**
  * Represents an http source running on localhost.
- *
+ * 
  * @author Eric Bottard
  */
 public class HttpSource extends AbstractModuleFixture {
@@ -59,25 +55,19 @@ public class HttpSource extends AbstractModuleFixture {
 		long giveUpAt = System.currentTimeMillis() + timeout;
 		while (System.currentTimeMillis() < giveUpAt) {
 			try {
-				Socket socket = new Socket("localhost", port);
-				socket.close();
+				new RestTemplate().headForHeaders("http://localhost:" + port);
 				return;
 			}
-			catch (ConnectException ignore) {
+			catch (Exception e) {
 				try {
 					Thread.sleep(100);
 				}
-				catch (InterruptedException e) {
+				catch (InterruptedException e1) {
 				}
 			}
-			catch (UnknownHostException e) {
-				throw new IllegalStateException("Should never happen", e);
-			}
-			catch (IOException e) {
-				throw new IllegalStateException("Should never happen", e);
-			}
 		}
-		throw new IllegalStateException(String.format("Source [%s] does not seem to be listening after waiting for %dms", this, timeout));
+		throw new IllegalStateException(String.format(
+				"Source [%s] does not seem to be listening after waiting for %dms", this, timeout));
 	}
 
 	@Override
@@ -86,7 +76,8 @@ public class HttpSource extends AbstractModuleFixture {
 	}
 
 	public void postData(String payload) {
-		CommandResult result = shell.executeCommand(String.format("http post --target http://localhost:%d --data %s", port, payload));
+		CommandResult result = shell.executeCommand(String.format("http post --target http://localhost:%d --data %s",
+				port, payload));
 		Assert.isTrue(result.isSuccess());
 	}
 

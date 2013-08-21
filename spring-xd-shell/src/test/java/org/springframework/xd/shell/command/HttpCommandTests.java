@@ -34,7 +34,7 @@ import org.springframework.integration.test.util.SocketUtils;
 
 /**
  * Test http commands.
- *
+ * 
  * @author Gunnar Hillert
  * @since 1.0
  */

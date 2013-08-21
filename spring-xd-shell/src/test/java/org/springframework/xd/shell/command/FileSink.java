@@ -26,7 +26,7 @@ import org.springframework.util.FileCopyUtils;
 
 /**
  * Support class to capture output of a sink in a File.
- *
+ * 
  * @author Eric Bottard
  */
 class FileSink extends DisposableFileSupport {
@@ -34,7 +34,8 @@ class FileSink extends DisposableFileSupport {
 	private String charset = "UTF-8";
 
 	/**
-	 * Create a file sink, but make sure that the future file is not present yet, so it can be waited upon with {@link #getContents()}.
+	 * Create a file sink, but make sure that the future file is not present yet, so it can be waited upon with
+	 * {@link #getContents()}.
 	 */
 	public FileSink() {
 		Assert.state(file.delete());
@@ -52,7 +53,7 @@ class FileSink extends DisposableFileSupport {
 	 */
 	public String getContents(int timeout) throws IOException {
 		waitFor(file, timeout);
-		Reader fileReader = new InputStreamReader(new FileInputStream( file), charset);
+		Reader fileReader = new InputStreamReader(new FileInputStream(file), charset);
 		return FileCopyUtils.copyToString(fileReader);
 	}
 

@@ -31,7 +31,7 @@ import org.springframework.xd.shell.util.TableHeader;
 
 /**
  * Tests various metrics related sinks.
- *
+ * 
  * @author Eric Bottard
  * @author Ilayaperumal Gopinathan
  */
@@ -163,7 +163,7 @@ public class MetricsTests extends AbstractStreamIntegrationTest {
 	}
 
 	private void createTestStream(MetricType metricType) throws Exception {
-		httpSource = newHttpSource();
+		httpSource = newHttpSource(9000);
 		stream().create(TEST_STREAM_NAME, "%s | %s --name=%s", httpSource, metricType.getName(), DEFAULT_METRIC_NAME);
 		httpSource.ensureReady();
 	}

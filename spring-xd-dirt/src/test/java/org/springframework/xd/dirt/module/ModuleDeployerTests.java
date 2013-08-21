@@ -90,7 +90,7 @@ public class ModuleDeployerTests {
 		@Override
 		public void postProcessSharedContext(ConfigurableApplicationContext moduleCommonContext) {
 			this.moduleCommonContext = moduleCommonContext;
-			assertTrue(moduleCommonContext.getEnvironment().acceptsProfiles("!xd.jmx.enabled"));
+			assertTrue("'xd.jmx.enabled' profile should not be active by default",moduleCommonContext.getEnvironment().acceptsProfiles("!xd.jmx.enabled"));
 			moduleCommonContext.getEnvironment().addActiveProfile("xd.jmx.enabled");
 		}
 

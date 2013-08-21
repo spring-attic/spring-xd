@@ -13,10 +13,6 @@ public class TestMessageHandler implements MessageHandler {
 
 	final CountDownLatch latch = new CountDownLatch(1);
 
-	public CountDownLatch getLatch() {
-		return latch;
-	}
-
 	@Override
 	public void handleMessage(Message<?> message) throws MessagingException {
 		latch.countDown();

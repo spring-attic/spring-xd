@@ -30,7 +30,7 @@ public class ReactorPublishSubscribeChannelIntegrationTests {
 		Message<?> msg = MessageBuilder.withPayload("Hello World!").build();
 		output.send(msg);
 
-		assertTrue("Latch did not time out", testHandler.getLatch().await(1, TimeUnit.SECONDS));
+		assertTrue("Latch did not time out", testHandler.latch.await(1, TimeUnit.SECONDS));
 	}
 
 }

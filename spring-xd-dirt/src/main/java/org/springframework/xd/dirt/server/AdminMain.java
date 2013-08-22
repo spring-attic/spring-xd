@@ -26,7 +26,7 @@ import org.springframework.xd.dirt.server.options.Transport;
 
 
 /**
- * The main driver class for the admin.
+ * The main driver class for the Admin Server.
  * 
  * @author Mark Pollack
  * @author Jennifer Hickey

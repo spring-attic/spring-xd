@@ -51,10 +51,11 @@ public class SingleNodeMainIntegrationTests extends AbstractAdminMainIntegration
 
 	@Test
 	public void testConfiguration() {
-		SingleNodeOptions opts = SingleNodeMain.parseOptions(new String[] { "--httpPort", "0", "--transport", "local",
+		SingleNodeOptions options = SingleNodeMain.parseOptions(new String[] { "--httpPort", "0", "--transport",
+			"local",
 			"--store",
 			"memory", "--enableJmx", "true", "--analytics", "memory" });
-		SingleNodeServer server = SingleNodeMain.launch(opts);
+		SingleNodeServer server = SingleNodeMain.launchSingleNodeServer(options);
 		AdminServer adminServer = server.getAdminServer();
 		XDContainer container = server.getContainer();
 

@@ -95,7 +95,7 @@ public abstract class AbstractShellIntegrationTest {
 		return shell;
 	}
 
-	public static AdminServer getStreamServer() {
+	public static AdminServer getAdminServer() {
 		return server;
 	}
 

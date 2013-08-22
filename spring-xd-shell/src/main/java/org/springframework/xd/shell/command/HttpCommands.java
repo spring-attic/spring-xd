@@ -60,7 +60,7 @@ public class HttpCommands implements CommandMarker {
 
 	@CliCommand(value = { POST_HTTPSOURCE }, help = "POST data to http endpoint")
 	public String postHttp(
-			@CliOption(mandatory = true, key = { "", "target" }, help = "the location to post to", unspecifiedDefaultValue = "http://localhost:9000") String target,
+			@CliOption(mandatory = false, key = { "", "target" }, help = "the location to post to", unspecifiedDefaultValue = "http://localhost:9000") String target,
 			@CliOption(mandatory = false, key = "data", help = "the text payload to post. exclusive with file. embedded double quotes are not supported if next to a space character") String data,
 			@CliOption(mandatory = false, key = "file", help = "filename to read data from. exclusive with data") File file,
 			@CliOption(mandatory = false, key = "contentType", help = "the content-type to use. file is also read using the specified charset", unspecifiedDefaultValue = DEFAULT_MEDIA_TYPE) MediaType mediaType)

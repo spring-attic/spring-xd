@@ -20,7 +20,7 @@ package org.springframework.xd.dirt.server.options;
  * 
  * @author David Turanski
  */
-public interface XdPropertyKeys {
+public interface XDPropertyKeys {
 
 	public static final String XD_HOME = "xd.home";
 

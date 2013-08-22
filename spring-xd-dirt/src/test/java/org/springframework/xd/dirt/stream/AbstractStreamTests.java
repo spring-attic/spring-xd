@@ -23,7 +23,7 @@ import org.springframework.xd.dirt.server.options.AdminOptions;
 import org.springframework.xd.dirt.server.options.Analytics;
 import org.springframework.xd.dirt.server.options.Store;
 import org.springframework.xd.dirt.server.options.Transport;
-import org.springframework.xd.dirt.server.options.XdPropertyKeys;
+import org.springframework.xd.dirt.server.options.XDPropertyKeys;
 
 /**
  * @author David Turanski
@@ -35,8 +35,8 @@ public abstract class AbstractStreamTests {
 	@BeforeClass
 	public static void startXDSingleNode() throws Exception {
 		System.setProperty("xd.home", "..");
-		System.setProperty(XdPropertyKeys.XD_TRANSPORT, Transport.local.name());
-		System.setProperty(XdPropertyKeys.XD_STORE, Store.memory.name());
+		System.setProperty(XDPropertyKeys.XD_TRANSPORT, Transport.local.name());
+		System.setProperty(XDPropertyKeys.XD_STORE, Store.memory.name());
 
 		ApplicationContext ctx = new ClassPathXmlApplicationContext("/META-INF/spring-xd/transports/local-admin.xml",
 				"/META-INF/spring-xd/store/memory-admin.xml");

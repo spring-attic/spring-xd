@@ -1,12 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:int-event="http://www.springframework.org/schema/integration/event"
 	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/integration/event http://www.springframework.org/schema/integration/event/spring-integration-event.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<beans profile="xd.jmx.enabled">
 		<import resource="jolokia.xml" />
@@ -16,17 +13,14 @@
 		<import
 			resource="classpath*:/META-INF/spring-xd/transports/${xd.transport}-container.xml" />
 
-		<int:channel id="input" />
+		<int:channel id="containerControlChannel" />
 
-		<int:service-activator input-channel="input" ref="moduleDeployer" />
+		<int:service-activator input-channel="containerControlChannel"
+			ref="moduleDeployer" />
 
 		<bean id="moduleDeployer" class="org.springframework.xd.dirt.module.ModuleDeployer">
 			<constructor-arg ref="moduleRegistry" />
 		</bean>
 
-<!--  	TODO: Causing problems with XD-353, Investigate
-'MessageHeaders.idGenerator' has already been set and can not be set again
--->
-	<!--  <bean id="idGenerator" class="org.springframework.xd.dirt.container.UUIDGenerator" /> -->
 	</beans>
 </beans>

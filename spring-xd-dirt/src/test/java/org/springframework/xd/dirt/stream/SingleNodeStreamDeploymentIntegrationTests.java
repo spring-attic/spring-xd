@@ -20,7 +20,7 @@ import org.springframework.integration.handler.BridgeHandler;
 
 
 /**
- * @author Mark Fisher
+ * @author David Turanski
  */
 public class SingleNodeStreamDeploymentIntegrationTests extends AbstractStreamDeploymentIntegrationTests {
 
@@ -31,7 +31,7 @@ public class SingleNodeStreamDeploymentIntegrationTests extends AbstractStreamDe
 
 	@Override
 	protected void setupApplicationContext(ApplicationContext context) {
-		MessageChannel containerControlChannel = context.getBean("input", MessageChannel.class);
+		MessageChannel containerControlChannel = context.getBean("containerControlChannel", MessageChannel.class);
 		SubscribableChannel deployChannel = context.getBean("deployChannel", SubscribableChannel.class);
 		SubscribableChannel undeployChannel = context.getBean("undeployChannel", SubscribableChannel.class);
 

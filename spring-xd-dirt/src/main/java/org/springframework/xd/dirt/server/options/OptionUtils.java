@@ -31,7 +31,7 @@ public class OptionUtils {
 	 */
 	public static void setJmxProperties(AbstractOptions options, ConfigurableEnvironment environment) {
 		Properties jmxProperties = new Properties();
-		jmxProperties.put(XdPropertyKeys.XD_JMX_PORT, options.getJmxPort());
+		jmxProperties.put(XDPropertyKeys.XD_JMX_PORT, options.getJmxPort());
 		environment.getPropertySources().addFirst(new PropertiesPropertySource("jmxProperties", jmxProperties));
 	}
 
@@ -42,12 +42,12 @@ public class OptionUtils {
 	 * @param environment the application Context environment
 	 */
 	public static void configureRuntime(AbstractOptions options, ConfigurableEnvironment environment) {
-		setSystemProperty(XdPropertyKeys.XD_HOME, options.getXDHomeDir(), false);
-		setSystemProperty(XdPropertyKeys.XD_TRANSPORT, options.getTransport().name(), false);
-		setSystemProperty(XdPropertyKeys.XD_ANALYTICS, options.getAnalytics().name(), false);
-		setSystemProperty(XdPropertyKeys.XD_JMX_ENABLED, String.valueOf(options.isJmxEnabled()), false);
+		setSystemProperty(XDPropertyKeys.XD_HOME, options.getXDHomeDir(), false);
+		setSystemProperty(XDPropertyKeys.XD_TRANSPORT, options.getTransport().name(), false);
+		setSystemProperty(XDPropertyKeys.XD_ANALYTICS, options.getAnalytics().name(), false);
+		setSystemProperty(XDPropertyKeys.XD_JMX_ENABLED, String.valueOf(options.isJmxEnabled()), false);
 		if (options instanceof AdminOptions) {
-			setSystemProperty(XdPropertyKeys.XD_STORE, ((AdminOptions) options).getStore().name(), false);
+			setSystemProperty(XDPropertyKeys.XD_STORE, ((AdminOptions) options).getStore().name(), false);
 		}
 		if (environment != null) {
 			if (options.isJmxEnabled()) {

@@ -21,7 +21,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.apache.commons.logging.Log;
 
 import org.springframework.xd.dirt.container.XDContainer;
-import org.springframework.xd.dirt.server.options.ContainerOptions;
 import org.springframework.xd.dirt.server.util.BannerUtils;
 
 /**
@@ -40,16 +39,17 @@ public class LocalContainerLauncher extends AbstractContainerLauncher {
 	}
 
 	@Override
-	protected void logContainerInfo(Log logger, XDContainer container, ContainerOptions options) {
+	protected void logContainerInfo(Log logger, XDContainer container) {
 		if (logger.isInfoEnabled()) {
 			final StringBuilder runtimeInfo = new StringBuilder();
 			runtimeInfo.append("Using local mode");
-			if (!options.isJmxEnabled()) {
-				runtimeInfo.append(" JMX is disabled for XD components");
+			if (container.isJmxEnabled()) {
+				runtimeInfo.append(String.format(" JMX port: %d", container.getJmxPort()));
 			}
 			else {
-				runtimeInfo.append(String.format(" JMX port: %d", options.getJmxPort()));
+				runtimeInfo.append(" JMX is disabled for XD components");
 			}
+
 			logger.info(BannerUtils.displayBanner(container.getJvmName(), runtimeInfo.toString()));
 		}
 	}

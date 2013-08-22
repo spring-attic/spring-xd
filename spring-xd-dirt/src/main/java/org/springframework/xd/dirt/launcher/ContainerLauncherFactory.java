@@ -40,28 +40,30 @@ public class ContainerLauncherFactory {
 	 * @param parentContext an optional parent context to set on the XDContainer's ApplicationContext.
 	 * @return a new ContainerLauncher instance
 	 */
-	@SuppressWarnings("resource")
+
 	public ContainerLauncher createContainerLauncher(ContainerOptions options, ApplicationContext parentContext) {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext();
 		context.setConfigLocation(LAUNCHER_CONFIG_LOCATION);
 
-		OptionUtils.configureRuntime(options, context.getEnvironment());
 
 		if (parentContext == null) {
-			parentContext = createParentContext();
+			parentContext = createParentContext(options);
 		}
 
 		context.setParent(parentContext);
+		// OptionUtils.configureRuntime(options, context.getEnvironment());
 		context.refresh();
+
 		context.registerShutdownHook();
 
 		ContainerLauncher launcher = context.getBean(ContainerLauncher.class);
 		return launcher;
 	}
 
-	private static ApplicationContext createParentContext() {
+	private static ApplicationContext createParentContext(ContainerOptions options) {
 		XmlWebApplicationContext parentContext = new XmlWebApplicationContext();
 		parentContext.setConfigLocation("classpath:" + XDContainer.XD_INTERNAL_CONFIG_ROOT + "xd-global-beans.xml");
+		OptionUtils.configureRuntime(options, parentContext.getEnvironment());
 		parentContext.refresh();
 		return parentContext;
 	}

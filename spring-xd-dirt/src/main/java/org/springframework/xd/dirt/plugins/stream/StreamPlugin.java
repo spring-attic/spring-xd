@@ -144,8 +144,8 @@ public class StreamPlugin implements Plugin {
 
 	@Override
 	public void preProcessSharedContext(ConfigurableApplicationContext context) {
-		context.addBeanFactoryPostProcessor(new BeanDefinitionAddingPostProcessor(new ClassPathResource(
-				CHANNEL_REGISTRY)));
+		context.addBeanFactoryPostProcessor(new BeanDefinitionAddingPostProcessor(context.getEnvironment(),
+				new ClassPathResource(CHANNEL_REGISTRY)));
 	}
 
 }

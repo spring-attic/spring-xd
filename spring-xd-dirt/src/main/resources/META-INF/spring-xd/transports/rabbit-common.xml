@@ -6,7 +6,7 @@
     <import resource="classpath:/META-INF/spring-xd/internal/xd-common.xml"/>
 
 	<bean id="rabbit.property.placeholder" class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
-		<property name="locations" value="file:${xd.home}/config/rabbit.properties"/>
+		<property name="locations" value="file:${XD_HOME}/config/rabbit.properties"/>
 	</bean>
 
 	<bean id="rabbitConnectionFactory" class="org.springframework.amqp.rabbit.connection.CachingConnectionFactory">

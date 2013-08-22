@@ -21,6 +21,7 @@ package org.springframework.xd.dirt.server.options;
  * A class the defines the options that will be parsed on the container command line.
  */
 public class SingleNodeOptions extends AdminOptions {
+
 	public SingleNodeOptions() {
 		super(Transport.local, Analytics.memory);
 		this.store = Store.memory;
@@ -35,7 +36,14 @@ public class SingleNodeOptions extends AdminOptions {
 		containerOptions.showHelp = this.showHelp;
 		containerOptions.transport = this.transport;
 		containerOptions.xdHomeDir = this.xdHomeDir;
+		// Clear explicit options for the container in single node case. As configuration
+		// has already happened
+		for (Object key : optionMetadataCache.keySet()) {
+			optionMetadataCache.put(key, false);
+		}
+		containerOptions.optionMetadataCache.putAll(this.optionMetadataCache);
 		return containerOptions;
 	}
+
 
 }

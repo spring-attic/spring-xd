@@ -82,21 +82,26 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 	@Override
 	public void setApplicationContext(ApplicationContext context) {
 		this.deployerContext = context;
-		this.plugins = context.getBeansOfType(Plugin.class);
-		ClassPathXmlApplicationContext commonContext = new ClassPathXmlApplicationContext(
-				new String[] { XDContainer.XD_INTERNAL_CONFIG_ROOT + "module-common.xml" }, false);
-		ApplicationContext analytics = context.getParent();
-		commonContext.setParent(analytics);
-		for (Plugin plugin : plugins.values()) {
-			plugin.preProcessSharedContext(commonContext);
-		}
-		commonContext.refresh();
-		this.commonContext = commonContext;
 	}
 
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher eventPublisher) {
 		this.eventPublisher = eventPublisher;
+	}
+
+	@Override
+	public void onInit() {
+		this.plugins = this.deployerContext.getBeansOfType(Plugin.class);
+		ClassPathXmlApplicationContext commonContext = new ClassPathXmlApplicationContext(
+				new String[] { XDContainer.XD_INTERNAL_CONFIG_ROOT + "module-common.xml" }, false);
+		ApplicationContext analytics = deployerContext.getParent();
+		commonContext.setParent(analytics);
+
+		for (Plugin plugin : plugins.values()) {
+			plugin.preProcessSharedContext(commonContext);
+		}
+		commonContext.refresh();
+		this.commonContext = commonContext;
 	}
 
 	@Override

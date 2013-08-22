@@ -25,7 +25,6 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.support.atomic.RedisAtomicLong;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.container.XDContainer;
-import org.springframework.xd.dirt.server.options.ContainerOptions;
 import org.springframework.xd.dirt.server.util.BannerUtils;
 
 /**
@@ -57,7 +56,7 @@ public class RedisContainerLauncher extends AbstractContainerLauncher {
 	}
 
 	@Override
-	protected void logContainerInfo(Log logger, XDContainer container, ContainerOptions options) {
+	protected void logContainerInfo(Log logger, XDContainer container) {
 		if (logger.isInfoEnabled()) {
 			final Properties redisInfo = this.connectionFactory.getConnection().info();
 			final StringBuilder runtimeInfo = new StringBuilder();
@@ -65,8 +64,8 @@ public class RedisContainerLauncher extends AbstractContainerLauncher {
 					redisInfo.getProperty("redis_version"),
 					redisInfo.getProperty("redis_mode"),
 					redisInfo.getProperty("tcp_port")));
-			if (options.isJmxEnabled()) {
-				runtimeInfo.append(String.format(" JMX port: %d", options.getJmxPort()));
+			if (container.isJmxEnabled()) {
+				runtimeInfo.append(String.format(" JMX port: %d", container.getJmxPort()));
 			}
 			else {
 				runtimeInfo.append(" JMX is disabled for XD components");

@@ -30,6 +30,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
+import org.springframework.xd.dirt.server.options.XDPropertyKeys;
 
 
 /**
@@ -50,10 +51,10 @@ public abstract class AbstractStreamDeploymentIntegrationTests {
 	@Before
 	public final void setUp() {
 		String transport = this.getTransport();
-		System.setProperty("xd.home", "..");
-		System.setProperty("xd.transport", transport);
-		System.setProperty("xd.analytics", "memory");
-		System.setProperty("xd.store", "memory");
+		System.setProperty(XDPropertyKeys.XD_HOME, "..");
+		System.setProperty(XDPropertyKeys.XD_TRANSPORT, transport);
+		System.setProperty(XDPropertyKeys.XD_ANALYTICS, "memory");
+		System.setProperty(XDPropertyKeys.XD_STORE, "memory");
 		this.context = new ClassPathXmlApplicationContext(
 				"META-INF/spring-xd/internal/container.xml",
 				"META-INF/spring-xd/internal/deployers.xml",

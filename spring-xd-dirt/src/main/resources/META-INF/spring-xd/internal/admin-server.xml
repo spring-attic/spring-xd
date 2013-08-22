@@ -7,8 +7,8 @@
 
 	<import resource="deployers.xml" />
 
-	<import resource="classpath*:/META-INF/spring-xd/transports/${xd.transport}-admin.xml"/>
-	<import resource="classpath*:/META-INF/spring-xd/store/${xd.store}-admin.xml"/>
+	<import resource="classpath*:/META-INF/spring-xd/transports/${XD_TRANSPORT}-admin.xml"/>
+	<import resource="classpath*:/META-INF/spring-xd/store/${XD_STORE}-admin.xml"/>
 	
 	<context:component-scan base-package="org.springframework.xd.dirt.rest" use-default-filters="false">
 		<!-- Include only this @Configuration classes, which will in turn include others -->

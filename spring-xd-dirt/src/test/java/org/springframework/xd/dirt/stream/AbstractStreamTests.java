@@ -18,9 +18,6 @@ import org.junit.BeforeClass;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.xd.dirt.server.options.AbstractOptions;
-import org.springframework.xd.dirt.server.options.AdminOptions;
-import org.springframework.xd.dirt.server.options.Analytics;
 import org.springframework.xd.dirt.server.options.Store;
 import org.springframework.xd.dirt.server.options.Transport;
 import org.springframework.xd.dirt.server.options.XDPropertyKeys;
@@ -34,7 +31,7 @@ public abstract class AbstractStreamTests {
 
 	@BeforeClass
 	public static void startXDSingleNode() throws Exception {
-		System.setProperty("xd.home", "..");
+		System.setProperty(XDPropertyKeys.XD_HOME, "..");
 		System.setProperty(XDPropertyKeys.XD_TRANSPORT, Transport.local.name());
 		System.setProperty(XDPropertyKeys.XD_STORE, Store.memory.name());
 
@@ -46,9 +43,9 @@ public abstract class AbstractStreamTests {
 
 	@AfterClass
 	public static void resetSystemProperties() {
-		System.clearProperty("xd.transport");
-		System.clearProperty("xd.home");
-		System.clearProperty("xd.store");
+		System.clearProperty(XDPropertyKeys.XD_HOME);
+		System.clearProperty(XDPropertyKeys.XD_TRANSPORT);
+		System.clearProperty(XDPropertyKeys.XD_STORE);
 	}
 
 	protected void deployStream(String name, String config) {

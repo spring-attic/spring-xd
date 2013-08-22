@@ -56,7 +56,7 @@ public class StreamPluginTests {
 
 	@Before
 	public void setup() {
-		System.setProperty("xd.transport", "local");
+		System.setProperty("XD_TRANSPORT", "local");
 	}
 
 	@Test

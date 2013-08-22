@@ -18,10 +18,9 @@ package org.springframework.xd.dirt.server;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.kohsuke.args4j.CmdLineException;
-import org.kohsuke.args4j.CmdLineParser;
 
 import org.springframework.xd.dirt.container.XDContainer;
+import org.springframework.xd.dirt.server.options.CommandLineParser;
 import org.springframework.xd.dirt.server.options.SingleNodeOptions;
 import org.springframework.xd.dirt.server.options.Transport;
 
@@ -54,15 +53,7 @@ public class SingleNodeMain {
 	 */
 	public static SingleNodeOptions parseOptions(String[] args) {
 		SingleNodeOptions options = new SingleNodeOptions();
-		CmdLineParser parser = new CmdLineParser(options);
-		try {
-			parser.parseArgument(args);
-
-		}
-		catch (CmdLineException e) {
-			logger.error(e.getMessage());
-			throw new InvalidCommandLineArgumentException(e.getMessage(), e);
-		}
+		new CommandLineParser(options).parseArgument(args);
 		return options;
 	}
 
@@ -75,11 +66,11 @@ public class SingleNodeMain {
 	 */
 	private static SingleNodeOptions parseCommandLineOptions(String[] args) {
 		SingleNodeOptions options = new SingleNodeOptions();
-		CmdLineParser parser = new CmdLineParser(options);
+		CommandLineParser parser = new CommandLineParser(options);
 		try {
 			parser.parseArgument(args);
 		}
-		catch (CmdLineException e) {
+		catch (InvalidCommandLineArgumentException e) {
 			logger.error(e.getMessage());
 			parser.printUsage(System.err);
 			System.exit(1);

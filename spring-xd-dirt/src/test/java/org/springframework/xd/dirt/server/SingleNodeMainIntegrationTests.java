@@ -23,9 +23,11 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import org.junit.After;
 import org.junit.Test;
 
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.env.Environment;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.x.channel.registry.ChannelRegistry;
 import org.springframework.xd.analytics.metrics.core.MetricRepository;
@@ -34,6 +36,7 @@ import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.plugins.job.JobPlugin;
 import org.springframework.xd.dirt.plugins.stream.StreamPlugin;
 import org.springframework.xd.dirt.server.options.SingleNodeOptions;
+import org.springframework.xd.dirt.server.options.XDPropertyKeys;
 import org.springframework.xd.module.Plugin;
 
 
@@ -105,5 +108,46 @@ public class SingleNodeMainIntegrationTests extends AbstractAdminMainIntegration
 
 		assertTrue("no metrics repositories have been registered in the container context",
 				containerContext.getParent().getBeansOfType(MetricRepository.class).size() > 0);
+	}
+
+	@Test
+	public void testConfigurationOverridesSystemProperties() {
+
+		System.setProperty(XDPropertyKeys.XD_ANALYTICS, "redis");
+		System.setProperty(XDPropertyKeys.XD_HTTP_PORT, "8080");
+		System.setProperty(XDPropertyKeys.XD_STORE, "redis");
+
+		SingleNodeServer server = SingleNodeMain.launchSingleNodeServer(
+				SingleNodeMain.parseOptions(new String[] { "--httpPort", "0", "--transport",
+					"local", "--analytics", "memory" }));
+		Environment env = server.getAdminServer().getApplicationContext().getEnvironment();
+
+		assertEquals("0", env.getProperty(XDPropertyKeys.XD_HTTP_PORT));
+		assertEquals("local", env.getProperty(XDPropertyKeys.XD_TRANSPORT));
+		assertEquals("memory", env.getProperty(XDPropertyKeys.XD_ANALYTICS));
+		assertEquals("redis", env.getProperty(XDPropertyKeys.XD_STORE));
+	}
+
+	@Test
+	public void testSystemPropertiesOverridesDefault() {
+
+		System.setProperty(XDPropertyKeys.XD_ANALYTICS, "redis");
+		System.setProperty(XDPropertyKeys.XD_HTTP_PORT, "0");
+		System.setProperty(XDPropertyKeys.XD_STORE, "redis");
+
+		SingleNodeServer server = SingleNodeMain.launchSingleNodeServer(
+				SingleNodeMain.parseOptions(new String[] {}));
+		Environment env = server.getAdminServer().getApplicationContext().getEnvironment();
+
+		assertEquals("0", env.getProperty(XDPropertyKeys.XD_HTTP_PORT));
+		assertEquals("redis", env.getProperty(XDPropertyKeys.XD_ANALYTICS));
+		assertEquals("redis", env.getProperty(XDPropertyKeys.XD_STORE));
+	}
+
+	@After
+	public void cleanUp() {
+		System.clearProperty(XDPropertyKeys.XD_ANALYTICS);
+		System.clearProperty(XDPropertyKeys.XD_HTTP_PORT);
+		System.clearProperty(XDPropertyKeys.XD_STORE);
 	}
 }

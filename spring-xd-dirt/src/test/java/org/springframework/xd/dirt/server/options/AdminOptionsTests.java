@@ -17,11 +17,12 @@
 package org.springframework.xd.dirt.server.options;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
 import org.junit.Test;
-
-import org.springframework.xd.dirt.server.AdminMain;
+import org.kohsuke.args4j.CmdLineException;
 
 
 /**
@@ -31,35 +32,52 @@ import org.springframework.xd.dirt.server.AdminMain;
 public class AdminOptionsTests {
 
 	@Test
-	public void testAdminOptionsWithOptions() {
-		AdminOptions opts = AdminMain.parseOptions(new String[] { "--httpPort", "0", "--transport", "local", "--store",
-			"memory", "--analytics", "memory"});
+	public void testAdminOptionsWithOptions() throws CmdLineException {
+		AdminOptions opts = new AdminOptions();
+		new CommandLineParser(opts).parseArgument(new String[] { "--httpPort", "0", "--transport",
+			"local",
+			"--store",
+			"memory", "--analytics", "memory" });
+
 
 		assertEquals(Store.memory, opts.getStore());
 		assertEquals(Analytics.memory, opts.getAnalytics());
 		assertEquals(false, opts.isJmxEnabled());
 
-		assertEquals(0, opts.getHttpPort());
-		assertEquals(8778, opts.getJmxPort());
+		assertEquals(0, (int) opts.getHttpPort());
+		assertEquals(8778, (int) opts.getJmxPort());
+
+
+		assertTrue(opts.isExplicit(opts.getHttpPort()));
+		assertFalse(opts.isExplicit(opts.getJmxPort()));
 
 	}
 
 	@Test
 	public void testDefaultOptions() {
-		AdminOptions opts = AdminMain.parseOptions(new String[] {});
+		AdminOptions opts = new AdminOptions();
+		new CommandLineParser(opts).parseArgument(new String[] {});
 		assertEquals(Transport.redis, opts.getTransport());
 		assertEquals(Analytics.redis, opts.getAnalytics());
 		assertEquals(Store.redis, opts.getStore());
 		assertEquals(HadoopDistro.hadoop10, opts.getHadoopDistro());
-		assertEquals(8080, opts.getHttpPort());
-		assertEquals(8778, opts.getJmxPort());
-		assertEquals(false, opts.isJmxEnabled());
+		assertEquals(8080, (int) opts.getHttpPort());
+		assertEquals(8778, (int) opts.getJmxPort());
+		assertEquals(false, (boolean) opts.isJmxEnabled());
+
+		assertFalse(opts.isExplicit(opts.getTransport()));
+		assertFalse(opts.isExplicit(opts.getAnalytics()));
+		assertFalse(opts.isExplicit(opts.getStore()));
+		assertFalse(opts.isExplicit(opts.getHadoopDistro()));
+		assertFalse(opts.isExplicit(opts.getHttpPort()));
+		assertFalse(opts.isExplicit(opts.isJmxEnabled()));
 	}
 
 	@Test
-	public void testJmxOptions() {
-		AdminOptions opts = AdminMain.parseOptions(new String[] { "--jmxPort", "1234" });
-		assertEquals(1234, opts.getJmxPort());
+	public void testJmxOptions() throws CmdLineException {
+		AdminOptions opts = new AdminOptions();
+		new CommandLineParser(opts).parseArgument(new String[] { "--jmxPort", "1234" });
+		assertEquals(1234, (int) opts.getJmxPort());
 	}
 
 	@After

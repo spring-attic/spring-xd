@@ -98,7 +98,7 @@ if not exist "%XD_HOME%" (
 )
 
 @rem Execute xd-container
-"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% -Dxd.container=container -Dxd.home=%XD_HOME% -Dlog4j.configuration=file:///%XD_HOME%/config/xd-container-logger.properties -classpath "%CLASSPATH%" org.springframework.xd.dirt.server.ContainerMain %CMD_LINE_ARGS%
+"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% -DXD_CONTAINER=container -Dlog4j.configuration=file:///%XD_HOME%/config/xd-container-logger.properties -classpath "%CLASSPATH%" org.springframework.xd.dirt.server.ContainerMain %CMD_LINE_ARGS%
 
 :end
 @rem End local scope for the variables with windows NT shell

@@ -10,6 +10,6 @@
 	</beans>
 
 	<beans>
-		<import resource="classpath*:/META-INF/spring-xd/transports/${xd.transport}-launcher.xml"/>
+		<import resource="classpath*:/META-INF/spring-xd/transports/${XD_TRANSPORT}-launcher.xml"/>
 	</beans>
 </beans>

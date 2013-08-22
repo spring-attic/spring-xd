@@ -59,7 +59,7 @@ public abstract class AbstractContainerLauncher implements ContainerLauncher, Ap
 			XDContainer container = new XDContainer(id);
 			container.setApplicationContext(deployerContext);
 			container.start();
-			this.logContainerInfo(logger, container, options);
+			this.logContainerInfo(logger, container);
 			container.addListener(new ShutdownListener(container));
 			this.eventPublisher.publishEvent(new ContainerStartedEvent(container));
 			return container;
@@ -74,7 +74,7 @@ public abstract class AbstractContainerLauncher implements ContainerLauncher, Ap
 
 	protected abstract String generateId();
 
-	protected abstract void logContainerInfo(Log logger, XDContainer container, ContainerOptions options);
+	protected abstract void logContainerInfo(Log logger, XDContainer container);
 
 	protected abstract void logErrorInfo(Exception exception);
 

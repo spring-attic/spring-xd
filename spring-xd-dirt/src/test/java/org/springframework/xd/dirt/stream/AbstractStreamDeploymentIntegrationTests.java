@@ -72,8 +72,8 @@ public abstract class AbstractStreamDeploymentIntegrationTests {
 
 	@After
 	public final void shutDown() {
-		this.cleanup(this.context);
 		if (this.context != null) {
+			this.cleanup(this.context);
 			this.context.close();
 		}
 	}

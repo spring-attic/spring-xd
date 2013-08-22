@@ -65,7 +65,7 @@ public class SingleNodeMainIntegrationTests extends AbstractAdminMainIntegration
 
 		assertEquals(1, containerContext.getBeansOfType(ModuleDeployer.class).size());
 		// No need to assert. Will throw exception
-		containerContext.getBean("input", MessageChannel.class);
+		containerContext.getBean("containerControlChannel", MessageChannel.class);
 
 		assertEquals("container context should not have a channel registry", 0,
 				containerContext.getBeansOfType(ChannelRegistry.class).size());

@@ -52,7 +52,7 @@ public class SingleNodeServer {
 	private void setUpControlChannels(AdminServer adminServer, XDContainer container) {
 		ApplicationContext containerContext = container.getApplicationContext();
 
-		MessageChannel containerControlChannel = containerContext.getBean("input", MessageChannel.class);
+		MessageChannel containerControlChannel = containerContext.getBean("containerControlChannel", MessageChannel.class);
 
 		ApplicationContext adminContext = adminServer.getApplicationContext();
 

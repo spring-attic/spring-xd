@@ -18,7 +18,7 @@ import java.util.Properties;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.xd.dirt.container.XDContainer;
-import org.springframework.xd.dirt.server.options.XdPropertyKeys;
+import org.springframework.xd.dirt.server.options.XDPropertyKeys;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.Plugin;
 
@@ -57,6 +57,6 @@ public class MBeanExportingPlugin implements Plugin {
 
 	@Override
 	public void postProcessSharedContext(ConfigurableApplicationContext context) {
-		jmxEnabled = "true".equals(context.getEnvironment().getProperty(XdPropertyKeys.XD_JMX_ENABLED));
+		jmxEnabled = "true".equals(context.getEnvironment().getProperty(XDPropertyKeys.XD_JMX_ENABLED));
 	}
 }

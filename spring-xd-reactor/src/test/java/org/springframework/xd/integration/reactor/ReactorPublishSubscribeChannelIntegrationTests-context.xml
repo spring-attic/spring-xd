@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:int="http://www.springframework.org/schema/integration"
+       xmlns:int-reactor="http://www.springframework.org/schema/integration/reactor"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+       http://www.springframework.org/schema/integration/reactor http://www.springframework.org/schema/integration/reactor/spring-integration-reactor.xsd">
+
+  <bean id="env" class="reactor.core.Environment"/>
+  <bean id="testHandler"
+        class="org.springframework.xd.integration.reactor.TestMessageHandler"/>
+
+  <bean id="reactorDispatcher"
+        class="org.springframework.xd.integration.reactor.dispatcher.ReactorProcessorMessageDispatcher"/>
+
+  <int-reactor:publish-subscribe-channel id="output" dispatcher="reactorDispatcher"/>
+  <int:service-activator input-channel="output" ref="testHandler"/>
+
+</beans>

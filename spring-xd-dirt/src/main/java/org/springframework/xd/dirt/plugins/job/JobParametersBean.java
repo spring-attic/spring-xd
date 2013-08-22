@@ -16,26 +16,12 @@
 
 package org.springframework.xd.dirt.plugins.job;
 
-import java.io.IOException;
 import java.text.DateFormat;
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.text.SimpleDateFormat;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.converter.DefaultJobParametersConverter;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.MapType;
 
 /**
  * Prepares the {@link JobParameters} for the Spring Bach Jobs. As input you pass in a JSON-based Map representation of
@@ -48,21 +34,9 @@ import com.fasterxml.jackson.databind.type.MapType;
  */
 public class JobParametersBean implements InitializingBean {
 
-	private final Log logger = LogFactory.getLog(getClass());
-
-	private static final String UNIQUE_JOB_PARAMETER_KEY = "random";
-
-	private final ObjectMapper objectMapper = new ObjectMapper();
-
 	private volatile JobParameters jobParameters;
 
-	private volatile DateFormat dateFormat = null;
-
-	private volatile NumberFormat numberFormat = null;
-
-	private volatile boolean makeParametersUnique = true;
-
-	private volatile DefaultJobParametersConverter jobParametersConverter = new DefaultJobParametersConverter();
+	private volatile ExpandedJobParametersConverter jobParametersConverter = new ExpandedJobParametersConverter();
 
 	private final String jobParametersAsJsonMap;
 
@@ -83,14 +57,11 @@ public class JobParametersBean implements InitializingBean {
 	 * @param dateFormat Must not be null
 	 */
 	public void setDateFormat(DateFormat dateFormat) {
-		Assert.notNull(dateFormat, "The provided dateFormat must not be null.");
-		this.dateFormat = dateFormat;
+		this.jobParametersConverter.setDateFormat(dateFormat);
 	}
 
 	public void setDateFormatAsString(String dateFormat) {
-		if (StringUtils.hasText(dateFormat)) {
-			this.dateFormat = new SimpleDateFormat(dateFormat);
-		}
+		this.jobParametersConverter.setDateFormatAsString(dateFormat);
 	}
 
 	/**
@@ -100,14 +71,11 @@ public class JobParametersBean implements InitializingBean {
 	 * @param numberFormat Must not be null.
 	 */
 	public void setNumberFormat(NumberFormat numberFormat) {
-		Assert.notNull(numberFormat, "The provided numberFormat must not be null.");
-		this.numberFormat = numberFormat;
+		this.jobParametersConverter.setNumberFormat(numberFormat);
 	}
 
 	public void setNumberFormatAsString(String numberFormat) {
-		if (StringUtils.hasText(numberFormat)) {
-			this.numberFormat = new DecimalFormat(numberFormat);
-		}
+		this.jobParametersConverter.setNumberFormatAsString(numberFormat);
 	}
 
 	/**
@@ -117,7 +85,7 @@ public class JobParametersBean implements InitializingBean {
 	 * @param makeParametersUnique
 	 */
 	public void setMakeParametersUnique(boolean makeParametersUnique) {
-		this.makeParametersUnique = makeParametersUnique;
+		this.jobParametersConverter.setMakeParametersUnique(makeParametersUnique);
 	}
 
 	/**
@@ -131,47 +99,6 @@ public class JobParametersBean implements InitializingBean {
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-
-		if (this.dateFormat != null) {
-			jobParametersConverter.setDateFormat(dateFormat);
-		}
-
-		if (this.numberFormat != null) {
-			jobParametersConverter.setNumberFormat(numberFormat);
-		}
-
-		final Properties parametersAsProperties = new Properties();
-
-		if (this.makeParametersUnique) {
-			parametersAsProperties.put("random", String.valueOf(Math.random()));
-		}
-
-		if (jobParametersAsJsonMap != null && !jobParametersAsJsonMap.isEmpty()) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("JobParameters in JSON format are being passed in. Convertering to Spring Batch JobParameters...");
-			}
-
-			final Map<String, Object> parameters;
-			final MapType mapType = objectMapper.getTypeFactory().constructMapType(HashMap.class, String.class,
-					String.class);
-
-			try {
-				parameters = new ObjectMapper().readValue(jobParametersAsJsonMap, mapType);
-			}
-			catch (IOException e) {
-				throw new IllegalArgumentException("Unable to convert provided JSON to Map<String, Object>", e);
-			}
-
-			if (parameters.containsKey(UNIQUE_JOB_PARAMETER_KEY)) {
-				throw new IllegalStateException(String.format(
-						"Parameter '%s' is already used to identify uniqueness for the executing Batch job.",
-						UNIQUE_JOB_PARAMETER_KEY));
-			}
-
-			parametersAsProperties.putAll(parameters);
-		}
-
-		this.jobParameters = jobParametersConverter.getJobParameters(parametersAsProperties);
-
+		this.jobParameters = this.jobParametersConverter.getJobParametersForJsonString(jobParametersAsJsonMap);
 	}
 }

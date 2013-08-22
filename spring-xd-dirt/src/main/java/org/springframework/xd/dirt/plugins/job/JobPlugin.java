@@ -69,6 +69,12 @@ public class JobPlugin extends AbstractPlugin {
 
 	private static final String MAKE_UNIQUE = "makeUnique";
 
+	public static final String JOB_BEAN_ID = "job";
+
+	public JobPlugin() {
+		super.setPostProcessContextPaths(COMMON_XML);
+	}
+
 	@Override
 	public void configureProperties(Module module) {
 		final Properties properties = new Properties();
@@ -81,7 +87,6 @@ public class JobPlugin extends AbstractPlugin {
 		else {
 			properties.setProperty("xd.trigger.execute_on_startup", "true");
 		}
-		module.addProperties(properties);
 
 		if (!module.getProperties().contains(JOB_PARAMETERS)) {
 			properties.setProperty(JOB_PARAMETERS, "");
@@ -99,6 +104,8 @@ public class JobPlugin extends AbstractPlugin {
 		if (logger.isInfoEnabled()) {
 			logger.info("Configuring module with the following properties: " + properties.toString());
 		}
+
+		module.addProperties(properties);
 
 	}
 

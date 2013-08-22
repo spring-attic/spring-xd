@@ -21,6 +21,9 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -56,21 +59,45 @@ public class JobPluginTests {
 		Module module = new SimpleModule(new ModuleDefinition("testJob", "job"), new DeploymentMetadata("foo", 0));
 		assertEquals(0, module.getProperties().size());
 		plugin.preProcessModule(module);
-		assertEquals(2, module.getProperties().size());
-		assertEquals("foo", module.getProperties().getProperty("xd.stream.name"));
-		assertEquals("true", module.getProperties().getProperty("xd.trigger.execute_on_startup"));
+
+		Properties moduleProperties = module.getProperties();
+
+		assertEquals(6, moduleProperties.size());
+		assertEquals("foo", moduleProperties.getProperty("xd.stream.name"));
+		assertEquals("true", moduleProperties.getProperty("xd.trigger.execute_on_startup"));
+
+		assertEquals("", moduleProperties.getProperty("dateFormat"));
+		assertEquals("", moduleProperties.getProperty("numberFormat"));
+		assertEquals("true", moduleProperties.getProperty("makeUnique"));
+		assertEquals("", moduleProperties.getProperty("jobParameters"));
 	}
 
 	@Test
 	public void streamComponentsAdded() {
+
 		SimpleModule module = new SimpleModule(new ModuleDefinition("testJob", "job"), new DeploymentMetadata("foo", 0));
+
+		GenericApplicationContext context = new GenericApplicationContext();
 		plugin.preProcessModule(module);
+		plugin.preProcessSharedContext(context);
+
 		String[] moduleBeans = module.getApplicationContext().getBeanDefinitionNames();
 		Arrays.sort(moduleBeans);
-		assertEquals(3, moduleBeans.length);
-		assertTrue(moduleBeans[0].contains("jobParametersBean"));
-		assertTrue(moduleBeans[1].contains("registrar"));
-		assertTrue(moduleBeans[2].contains("startupJobLauncher"));
+
+		SortedSet<String> names = new TreeSet<String>();
+		names.addAll(Arrays.asList(moduleBeans));
+
+		assertTrue(names.size() > 9);
+
+		assertTrue(names.contains("jobTriggerBean"));
+		assertTrue(names.contains("registrar"));
+		assertTrue(names.contains("jobFactoryBean"));
+		assertTrue(names.contains("jobLaunchRequestTransformer"));
+		assertTrue(names.contains("jobLaunchingMessageHandler"));
+		assertTrue(names.contains("input"));
+		assertTrue(names.contains("logger"));
+		assertTrue(names.contains("jobLaunchingChannel"));
+		assertTrue(names.contains("logger.adapter"));
 	}
 
 	/**
@@ -88,20 +115,51 @@ public class JobPluginTests {
 
 	@Test
 	public void testThatLocalCronTaskIsAdded() {
+
+		GenericApplicationContext context = new GenericApplicationContext();
+
 		SimpleModule module = new SimpleModule(new ModuleDefinition("testJob", "job"), new DeploymentMetadata("foo", 0));
-		module.getProperties().put("cron", "*/15 * * * * *");
+		Properties property = new Properties();
+		property.put("cron", "*/15 * * * * *");
+
+		module.addProperties(property);
+		assertEquals(1, module.getProperties().size());
+		plugin.preProcessSharedContext(context);
+		context.refresh();
+
+		module.setParentContext(context);
+
 		plugin.preProcessModule(module);
+		plugin.postProcessModule(module);
+
+		List<BeanFactoryPostProcessor> sharedBeans = context.getBeanFactoryPostProcessors();
+		assertEquals(1, sharedBeans.size());
+		assertTrue(sharedBeans.get(0) instanceof BeanDefinitionAddingPostProcessor);
+
+		context.getBeanDefinitionNames();
 		String[] moduleBeans = module.getApplicationContext().getBeanNamesForType(CronTask.class);
+
 		assertEquals(1, moduleBeans.length);
 		assertTrue(moduleBeans[0].contains("org.springframework.scheduling.config.CronTask"));
 	}
 
 	@Test
 	public void testThatLocalFixedDelayTaskIsAdded() {
+
+		GenericApplicationContext context = new GenericApplicationContext();
+
 		SimpleModule module = new SimpleModule(new ModuleDefinition("testFixedDelayJob", "job"),
 				new DeploymentMetadata("foo", 0));
-		module.getProperties().put("fixedDelay", "60000");
+		Properties property = new Properties();
+		property.put("fixedDelay", "60000");
+		module.addProperties(property);
+
+		plugin.preProcessSharedContext(context);
+		context.refresh();
+		module.setParentContext(context);
+
 		plugin.preProcessModule(module);
+
 		String[] moduleBeans = module.getApplicationContext().getBeanNamesForType(IntervalTask.class);
 		assertEquals(1, moduleBeans.length);
 		assertTrue(moduleBeans[0].contains("org.springframework.scheduling.config.IntervalTask"));

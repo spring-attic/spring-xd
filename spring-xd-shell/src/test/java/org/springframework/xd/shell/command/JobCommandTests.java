@@ -184,7 +184,8 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 
 		final JobParametersHolder jobParametersHolder = new JobParametersHolder();
 
-		final String commandString = "job deploy --name myJobWithParameters --jobParameters \"{\"param1\":\"spring rocks!\"}\"";
+		final String commandString =
+				"job deploy --name myJobWithParameters --jobParameters \"{\"param1\":\"spring rocks!\"}\"";
 		System.out.println(commandString);
 
 		CommandResult cr = getShell().executeCommand(commandString);
@@ -217,7 +218,8 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 
 		final JobParametersHolder jobParametersHolder = new JobParametersHolder();
 
-		final String commandString = "job deploy --name myJobWithParameters --makeUnique \"false\" --jobParameters \"{\"param1\":\"spring rocks!\"}\"";
+		final String commandString =
+				"job deploy --name myJobWithParameters --makeUnique \"false\" --jobParameters \"{\"param1\":\"spring rocks!\"}\"";
 		System.out.println(commandString);
 
 		CommandResult cr = getShell().executeCommand(commandString);
@@ -279,7 +281,6 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 
 		assertFalse("parameter1 should be non-identifying", parameter1.isIdentifying());
 		assertTrue("parameter2 should be identifying", parameter2.isIdentifying());
-
 	}
 
 	public static class JobParametersHolder {

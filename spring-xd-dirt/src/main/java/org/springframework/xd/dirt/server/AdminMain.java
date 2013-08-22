@@ -40,13 +40,44 @@ public class AdminMain {
 	private static final Log logger = LogFactory.getLog(AdminMain.class);
 
 	/**
-	 * @param args
+	 * The main entry point to create the AdminServer.
+	 * 
+	 * @param args command line arguments
 	 */
 	public static void main(String[] args) {
-		launchAdminServer(parseOptions(args));
+		launchAdminServer(parseCommandLineOptions(args));
 	}
 
+	/**
+	 * Parse command line options from a String array into a type safe ContainerOptions class. If any options are not
+	 * valid, an InvalidCommandLineArgumentException exception is thrown
+	 * 
+	 * @param args command line arguments
+	 * @return type safe ContainerOptions if all command line arguments are valid
+	 * @throws InvalidCommandLineArgumentException if there is an invalid command line argument
+	 */
 	public static AdminOptions parseOptions(String[] args) {
+		AdminOptions options = new AdminOptions();
+		CmdLineParser parser = new CmdLineParser(options);
+		try {
+			parser.parseArgument(args);
+
+		}
+		catch (CmdLineException e) {
+			logger.error(e.getMessage());
+			throw new InvalidCommandLineArgumentException(e.getMessage(), e);
+		}
+		return options;
+	}
+
+	/**
+	 * Parse command line options from a String array into a type safe ContainerOptions class. if any options are not
+	 * valid, a help message is displayed and System.exit is called. If the help option is passed, display the usage.
+	 * 
+	 * @param args command line arguments
+	 * @return type safe ContainerOptions if all command line arguments are valid
+	 */
+	private static AdminOptions parseCommandLineOptions(String[] args) {
 		AdminOptions options = new AdminOptions();
 		CmdLineParser parser = new CmdLineParser(options);
 		try {
@@ -70,9 +101,12 @@ public class AdminMain {
 	}
 
 	/**
-	 * Launch stream server with the given home and transport options
+	 * Create a new instance of the AdminServer given AdminOptions
+	 * 
+	 * @param options The options that select transport, analytics, and other infrastructure options.
+	 * @return a new AdminServer instance
 	 */
-	private static AdminServer launchAdminServer(final AdminOptions options) {
+	public static AdminServer launchAdminServer(final AdminOptions options) {
 		final AdminServer server = new AdminServer(options);
 		server.run();
 		return server;

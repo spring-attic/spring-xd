@@ -22,12 +22,10 @@ import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.web.context.support.XmlWebApplicationContext;
 import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.launcher.ContainerLauncher;
+import org.springframework.xd.dirt.launcher.ContainerLauncherFactory;
 import org.springframework.xd.dirt.server.options.ContainerOptions;
-import org.springframework.xd.dirt.server.options.OptionUtils;
 
 /**
  * The main driver class for the container
@@ -42,14 +40,45 @@ public class ContainerMain {
 
 	private static final Log logger = LogFactory.getLog(ContainerMain.class);
 
-	private static final String LAUNCHER_CONFIG_LOCATION = XDContainer.XD_INTERNAL_CONFIG_ROOT + "launcher.xml";
-
 	/**
-	 * Start the RedisContainerLauncher
+	 * The main entry point to create the XDContainer.
 	 * 
-	 * @param args command line argument
+	 * @param args command line arguments
 	 */
 	public static void main(String[] args) {
+		launchContainer(parseCommandLineOptions(args), null);
+	}
+
+	/**
+	 * Parse command line options from a String array into a type safe ContainerOptions class. If any options are not
+	 * valid, an InvalidCommandLineArgumentException exception is thrown
+	 * 
+	 * @param args command line arguments
+	 * @return type safe ContainerOptions if all command line arguments are valid
+	 * @throws InvalidCommandLineArgumentException if there is an invalid command line argument
+	 */
+	public static ContainerOptions parseOptions(String[] args) {
+		ContainerOptions options = new ContainerOptions();
+		CmdLineParser parser = new CmdLineParser(options);
+		try {
+			parser.parseArgument(args);
+
+		}
+		catch (CmdLineException e) {
+			logger.error(e.getMessage());
+			throw new InvalidCommandLineArgumentException(e.getMessage(), e);
+		}
+		return options;
+	}
+
+	/**
+	 * Parse command line options from a String array into a type safe ContainerOptions class. If any options are not
+	 * valid, a help message is displayed and System.exit is called. If the help option is passed, display the usage.
+	 * 
+	 * @param args command line arguments
+	 * @return type safe ContainerOptions if all command line arguments are valid
+	 */
+	private static ContainerOptions parseCommandLineOptions(String[] args) {
 		ContainerOptions options = new ContainerOptions();
 		CmdLineParser parser = new CmdLineParser(options);
 		try {
@@ -65,41 +94,20 @@ public class ContainerMain {
 			parser.printUsage(System.err);
 			System.exit(0);
 		}
-		launch(options, null);
+		return options;
 	}
 
 	/**
-	 * Create a container instance
+	 * Create a new instance of XDContainer given ContainerOptions and an optional parent ApplicationContext
 	 * 
-	 * @param options
+	 * @param options The options that select transport, analytics, and other infrastructure options.
+	 * @param parentContext an optional parent context to set on the XDContainer's ApplicationContext.
+	 * @return a new XDContainer instance
 	 */
-	@SuppressWarnings("resource")
-	public static XDContainer launch(ContainerOptions options, ApplicationContext parentContext) {
-		ClassPathXmlApplicationContext context = null;
-
-		context = new ClassPathXmlApplicationContext();
-		context.setConfigLocation(LAUNCHER_CONFIG_LOCATION);
-
-		OptionUtils.configureRuntime(options, context.getEnvironment());
-
-		if (parentContext == null) {
-			parentContext = createParentContext();
-		}
-
-		context.setParent(parentContext);
-		context.refresh();
-		context.registerShutdownHook();
-
-		ContainerLauncher launcher = context.getBean(ContainerLauncher.class);
+	public static XDContainer launchContainer(ContainerOptions options, ApplicationContext parentContext) {
+		ContainerLauncherFactory containerLauncherFactory = new ContainerLauncherFactory();
+		ContainerLauncher launcher = containerLauncherFactory.createContainerLauncher(options, parentContext);
 		XDContainer container = launcher.launch(options);
 		return container;
 	}
-
-	private static ApplicationContext createParentContext() {
-		XmlWebApplicationContext parentContext = new XmlWebApplicationContext();
-		parentContext.setConfigLocation("classpath:" + XDContainer.XD_INTERNAL_CONFIG_ROOT + "xd-global-beans.xml");
-		parentContext.refresh();
-		return parentContext;
-	}
-
 }

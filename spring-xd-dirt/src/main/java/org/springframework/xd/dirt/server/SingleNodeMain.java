@@ -59,7 +59,7 @@ public class SingleNodeMain {
 	}
 
 	private static XDContainer launchContainer(ContainerOptions options, ApplicationContext parentContext) {
-		return ContainerMain.launch(options, parentContext);
+		return ContainerMain.launchContainer(options, parentContext);
 	}
 
 	public static SingleNodeOptions parseOptions(String[] args) {

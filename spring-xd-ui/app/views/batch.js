@@ -45,14 +45,13 @@ function(_, Backbone, utils, conf, model, BatchDetail) {
             model.batchJobs.fetch({change:true, add:false});
         },
 
-        // disable rendering for now
-        renderXXXX: function() {
+        render: function() {
             // first remove all old expanded
             Object.keys(expanded).forEach(function(key) {
                 expanded[key].remove();
             }, this);
 
-            this.$el.html(_.template(utils.getTemplate(conf.templates.batchList), { jobs :model.batchJobs.transform() }));
+            this.$el.html(_.template(utils.getTemplate(conf.templates.batchList), { jobs :model.batchJobs.models }));
 
 
             // now add the expanded nodes back
@@ -61,8 +60,9 @@ function(_, Backbone, utils, conf, model, BatchDetail) {
                 var detailsElt = this.$el.find(detailsId);
                 if (detailsElt.length > 0) {
                     detailsElt.replaceWith(expanded[key].$el);
+                    detailsElt.collapse('show');
                 } else {
-                    // jon not here any more
+                    // job not here any more
                     delete expanded[key];
                 }
             }, this);
@@ -72,23 +72,37 @@ function(_, Backbone, utils, conf, model, BatchDetail) {
 
         showDetails: function(event) {
             var job = extractJob(event);
-            if (job && !expanded[job.id]) {
-                this.stopListening(model.batchJobs, 'change');
-                this.listenTo(model.batchJobs, 'change', this.render);
-                job.details(function(details) {
-                    var detailsView = new BatchDetail({details: details.job });
-                    detailsView.setElement('#' + job.id + '_details');
-                    detailsView.render();
-                    expanded[job.id] = detailsView;
-                });
+            if (job) {
+                var detailsView = expanded[job.id];
+                if (detailsView) {
+                    // remove from view
+                    detailsView.$el.empty();
+                    delete expanded[job.id];
+                } else {
+                    this.stopListening(model.batchJobs, 'change');
+                    job.fetch().then(function() {
+                        var detailsView = new BatchDetail({job: job });
+                        detailsView.setElement('#' + job.id + '_details');
+                        detailsView.render();
+                        expanded[job.id] = detailsView;
+                        this.listenTo(model.batchJobs, 'change', this.render);
+                    }.bind(this));
+                }
             }
-
         },
 
         launch: function(event) {
             var job = extractJob(event);
             if (job) {
-                job.launch();
+                job.launch().then(function() {
+                    var detailsView = expanded[job.id];
+                    if (detailsView) {
+                        job.fetch().then(function() {
+                            detailsView.options.job = job;
+                            detailsView.render();
+                        });
+                    }
+                });
             }
         }
     });

@@ -108,12 +108,12 @@ function(Backbone, rest, entity, mime, hateoas, errorcode) {
 
     // the query kinds we care about for now
     // TODO this can be done better
-    model.artifactKinds = ['streams', 'taps', 'jobs', 'triggers', 'richgauges', 'gauges', 'field-value-counters', 'counters', 'aggregate-counters'];
-    model.artifactUrls = ['streams', 'taps', 'jobs', 'triggers', 'metrics/richgauges', 'metrics/gauges', 'metrics/field-value-counters', 'metrics/counters', 'metrics/aggregate-counters'];
+    model.artifactKinds = ['streams', 'taps', /*'jobs',*/ 'triggers', 'richgauges', 'gauges', 'field-value-counters', 'counters', 'aggregate-counters'];
+    model.artifactUrls = ['streams', 'taps', /*'jobs',*/ 'triggers', 'metrics/richgauges', 'metrics/gauges', 'metrics/field-value-counters', 'metrics/counters', 'metrics/aggregate-counters'];
     model.readableNames = [
         { kind: 'streams', name: 'Streams' },
         { kind: 'taps', name: 'Taps' },
-        { kind: 'jobs', name: 'Jobs' },
+//        { kind: 'jobs', name: 'Jobs' },
         { kind: 'triggers', name: 'Triggers' },
         { kind: 'counters', name: 'Counters' },
         { kind: 'field-value-counters', name: 'Field Value Counters' },
@@ -129,6 +129,20 @@ function(Backbone, rest, entity, mime, hateoas, errorcode) {
     model.set('allAnalytics', allAnalytics);
 
 
+
+    /////////////////////////////////////////////////////////////////////////////////////
+    // stuff for batch.
+    // Here is the model:
+    //jobs (call it BatchJobs so as not to conflict above)
+    //job (call it BatchJob so as not to conflict above)
+    //instances
+    //instance
+    //executions
+    //execution
+    //stepExecutions
+    //stepExecution
+    /////////////////////////////////////////////////////////////////////////////////////
+
     // stuff for batch
     var BatchJob = Backbone.Model.extend({
         urlRoot: URL_ROOT + 'jobs',
@@ -136,18 +150,8 @@ function(Backbone, rest, entity, mime, hateoas, errorcode) {
             return this.urlRoot + '/' + this.id + '.json';
         },
         idAttribute: 'name',
-        // make viewer-friendly
-        transform: function() {
-            return {
-                name: this.get('name'),
-                description: this.get('description'),
-                executionCount: this.get('executionCount'),
-                isLaunchable: this.get('launchable'),
-                isExecutable: this.get('executable')
-            };
-        },
         launch: function(parameters) {
-            client({
+            return client({
                 path: this.url(),
                 method: 'POST',
                 headers: ACCEPT_HEADER
@@ -157,18 +161,22 @@ function(Backbone, rest, entity, mime, hateoas, errorcode) {
             });
         },
 
-        details: function(cb) {
-            client({
-                path: this.url(),
-                method: 'GET',
-                headers: ACCEPT_HEADER
-            }).then(function(resp) {
-                // for some reason coming back as a string
-                if (typeof resp === 'string') {
-                    resp = JSON.parse(resp);
-                }
-                cb(resp);
-            });
+        parse: function(data) {
+            // for some reason coming back as a string
+            if (typeof data === 'string') {
+                data = JSON.parse(data);
+            }
+            if (data.job) {
+                data = data.job;
+            }
+            if (data.jobInstances) {
+                data.jobInstances = new JobInstances(Object.keys(data.jobInstances).map(function(key) {
+                    var instance = new JobInstance(data.jobInstances[key]);
+                    instance.id = key;
+                    return instance;
+                }));
+            }
+            return data;
         }
     });
     var BatchJobs = Backbone.Collection.extend({
@@ -179,15 +187,50 @@ function(Backbone, rest, entity, mime, hateoas, errorcode) {
             return Object.keys(data.jobs.registrations).map(function(key) {
                 return data.jobs.registrations[key];
             });
-        },
-
-        // make viewer-friendly
-        transform: function() {
-            return this.models.map(function(job) {
-                return job.transform();
-            });
         }
     });
+
+    var Execution = Backbone.Model.extend({
+        urlRoot: URL_ROOT + 'jobs/executions',
+        url: function() {
+            return this.urlRoot + '/' + this.id + '.json';
+        },
+        idAttribute: 'id',
+        parse: function(response) {
+            return response.jobExecution;
+        }
+    });
+    var Executions = Backbone.Model.extend({
+        model: Execution,
+        urlRoot: URL_ROOT + 'jobs/executions/'
+    });
+
+    var JobInstance = Backbone.Model.extend({
+        urlRoot: URL_ROOT + 'jobs/',
+        url: function() {
+            return this.urlRoot + '/' + this.get('name') + '/' + this.id + '.json';
+        },
+        idAttribute: 'id',
+        parse: function(response) {
+            var instance = response.jobInstance;
+            return {
+                name: instance.jobName,
+                id: instance.id,
+                nameId: instance.name+ '/' + instance.id,
+                jobParameters: instance.jobParameters,
+                jobExecutions: new Executions(Object.keys(instance.jobExecutions).map(function(key) {
+                    var execution = new Execution(instance.jobExecutions[key]);
+                    execution.id = key;
+                    return execution;
+                }))
+            };
+        }
+    });
+    var JobInstances = Backbone.Collection.extend({
+        model: JobInstance
+    });
+
+
 
     model.batchJobs = new BatchJobs();
 

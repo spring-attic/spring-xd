@@ -33,7 +33,7 @@ function(_, Backbone, utils, conf, model) {
         },
 
         render: function() {
-            this.$el.html(_.template(utils.getTemplate(conf.templates.batchDetails), this.options.details));
+            this.$el.html(_.template(utils.getTemplate(conf.templates.batchDetails), this.options.job.attributes));
             return this;
         }
     });

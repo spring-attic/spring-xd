@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.server;
 
+import org.springframework.xd.dirt.server.options.AdminOptions;
 
 /**
  * @author Gary Russell
@@ -23,6 +24,10 @@ package org.springframework.xd.dirt.server;
  * 
  */
 public abstract class AbstractAdminMainIntegrationTests {
+
+	protected final AdminServer createAdminServer(AdminOptions adminOptions) {
+		return AdminMain.launchAdminServer(adminOptions);
+	}
 
 	protected final void shutdown(AdminServer s) {
 		s.stop();

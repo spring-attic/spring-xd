@@ -28,10 +28,10 @@ public class AdminMainMemoryStoreIntegrationTests extends AbstractAdminMainInteg
 
 	@Test
 	public void inMemoryStoreWithLocalTransportConfigurationLoadsSuccessfully() throws Exception {
-		AdminOptions opts = AdminMain.parseOptions(new String[] { "--httpPort", "0", "--transport", "local", "--store",
+		AdminOptions adminOptions = AdminMain.parseOptions(new String[] { "--httpPort", "0", "--transport", "local",
+			"--store",
 			"memory", "--analytics", "memory" });
-		AdminServer s = new AdminServer(opts);
-		s.run();
+		AdminServer s = super.createAdminServer(adminOptions);
 		super.shutdown(s);
 	}
 

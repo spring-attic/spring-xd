@@ -60,8 +60,9 @@ public class MBeanExportingPlugin implements Plugin {
 	public void preProcessSharedContext(ConfigurableApplicationContext context) {
 		jmxEnabled = "true".equals(context.getEnvironment().getProperty(XDPropertyKeys.XD_JMX_ENABLED));
 		if (jmxEnabled) {
-			context.addBeanFactoryPostProcessor(new BeanDefinitionAddingPostProcessor(new ClassPathResource(
-					CONTEXT_CONFIG_ROOT + "common.xml")));
+			context.addBeanFactoryPostProcessor(new BeanDefinitionAddingPostProcessor(context.getEnvironment(),
+					new ClassPathResource(
+							CONTEXT_CONFIG_ROOT + "common.xml")));
 		}
 	}
 }

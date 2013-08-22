@@ -4,6 +4,6 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<bean id="moduleRegistry" class="org.springframework.xd.dirt.module.FileModuleRegistry">
-		<constructor-arg value="${xd.home}/modules" />
+		<constructor-arg value="${XD_HOME}/modules" />
 	</bean>
 </beans>

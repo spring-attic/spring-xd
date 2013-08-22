@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,30 @@
 
 package org.springframework.xd.dirt.server.options;
 
+
 /**
- * XD property keys. These should not contain '.', etc. to be compatible with Environment variables
  * 
  * @author David Turanski
  */
-public interface XDPropertyKeys {
+class ParserArgEvent implements ParserEvent {
 
-	public static final String XD_HOME = "XD_HOME";
+	private final String optionName;
 
-	public static final String XD_TRANSPORT = "XD_TRANSPORT";
+	private final Event event;
 
-	public static final String XD_JMX_ENABLED = "XD_JMX_ENABLED";
+	ParserArgEvent(String optionName, Event event) {
+		this.optionName = optionName;
+		this.event = event;
+	}
 
-	public static final String XD_ANALYTICS = "XD_ANALYTICS";
+	String getOptionName() {
+		return optionName;
+	}
 
-	public static final String XD_HADOOP_DISTRO = "XD_HADOOP_DISTRO";
+	@Override
+	public Event getEvent() {
+		return this.event;
+	}
 
-	public static final String XD_STORE = "XD_STORE";
 
-	public static final String XD_JMX_PORT = "XD_JMX_PORT";
-
-	public static final String XD_HTTP_PORT = "XD_HTTP_PORT";
 }

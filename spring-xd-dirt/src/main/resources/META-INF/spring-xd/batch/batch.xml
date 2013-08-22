@@ -26,7 +26,7 @@
 	<bean id="dataSource" class="org.apache.tomcat.jdbc.pool.DataSource"
 		destroy-method="close">
 		<property name="driverClassName" value="org.hsqldb.jdbcDriver" />
-		<property name="url" value="jdbc:hsqldb:${xd.home}/data/jobs/xdjobrepo" />
+		<property name="url" value="jdbc:hsqldb:${XD_HOME}/data/jobs/xdjobrepo" />
 		<property name="username" value="sa" />
 		<property name="password" value="" />
 		<property name="initialSize" value="5" />

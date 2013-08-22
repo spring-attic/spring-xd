@@ -26,6 +26,7 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
 
@@ -37,6 +38,7 @@ import org.springframework.util.Assert;
  * 
  * @author Jennifer Hickey
  * @author Gunnar Hillert
+ * @author David Turanski
  * 
  * @since 1.0
  * 
@@ -45,14 +47,18 @@ public class BeanDefinitionAddingPostProcessor implements BeanDefinitionRegistry
 
 	private final Resource[] resources;
 
+	private final ConfigurableEnvironment environment;
+
 	private final SortedMap<String, BeanDefinition> beanDefinitions = new TreeMap<String, BeanDefinition>();
 
-	public BeanDefinitionAddingPostProcessor(Resource... resources) {
+	public BeanDefinitionAddingPostProcessor(ConfigurableEnvironment environment, Resource... resources) {
+		this.environment = environment;
 		this.resources = resources;
 	}
 
 	public BeanDefinitionAddingPostProcessor() {
 		this.resources = new Resource[] {};
+		this.environment = null;
 	}
 
 	@Override
@@ -62,12 +68,12 @@ public class BeanDefinitionAddingPostProcessor implements BeanDefinitionRegistry
 	@Override
 	public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(registry);
+		propagateXdProperties(reader);
 		reader.loadBeanDefinitions(resources);
 
 		for (Entry<String, BeanDefinition> entry : beanDefinitions.entrySet()) {
 			registry.registerBeanDefinition(entry.getKey(), entry.getValue());
 		}
-
 	}
 
 	/**
@@ -87,4 +93,16 @@ public class BeanDefinitionAddingPostProcessor implements BeanDefinitionRegistry
 
 	}
 
+	private void propagateXdProperties(XmlBeanDefinitionReader reader) {
+		// TODO: This code should be in OptionUtils, but can't create a circular dependency here
+		if (this.environment != null) {
+			ConfigurableEnvironment readerEnvironment = (ConfigurableEnvironment) reader.getEnvironment();
+			if (environment.getPropertySources().get("xdProperties") != null) {
+				readerEnvironment.getPropertySources().addFirst(environment.getPropertySources().get("xdProperties"));
+			}
+			if (environment.getPropertySources().get("xdDefaults") != null) {
+				readerEnvironment.getPropertySources().addLast(environment.getPropertySources().get("xdDefaults"));
+			}
+		}
+	}
 }

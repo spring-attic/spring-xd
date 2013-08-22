@@ -19,14 +19,20 @@ package org.springframework.xd.dirt.plugins.job;
 import static org.springframework.xd.module.ModuleType.JOB;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.http.MediaType;
+import org.springframework.integration.MessageChannel;
+import org.springframework.integration.x.channel.registry.ChannelRegistry;
 import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.module.AbstractPlugin;
+import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.Module;
 
 /**
@@ -35,6 +41,7 @@ import org.springframework.xd.module.Module;
  * @author Michael Minella
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Glenn Renfro
  * @since 1.0
  * 
  */
@@ -54,7 +61,7 @@ public class JobPlugin extends AbstractPlugin {
 	private static final String REGISTRAR_WITH_FIXED_DELAY =
 			CONTEXT_CONFIG_ROOT + "registrar-with-fixed-delay.xml";
 
-	private static final String REGISTRAR = CONTEXT_CONFIG_ROOT + "registrar.xml";
+	private static final String REGISTRAR = CONTEXT_CONFIG_ROOT + "job-module-beans.xml";
 
 	private static final String TRIGGER = "trigger";
 
@@ -72,6 +79,9 @@ public class JobPlugin extends AbstractPlugin {
 
 	public static final String JOB_BEAN_ID = "job";
 
+	private final static Collection<MediaType> DEFAULT_ACCEPTED_CONTENT_TYPES = Collections.singletonList(MediaType.ALL);
+
+
 	@Override
 	public void configureProperties(Module module) {
 		final Properties properties = new Properties();
@@ -84,7 +94,6 @@ public class JobPlugin extends AbstractPlugin {
 		else {
 			properties.setProperty("xd.trigger.execute_on_startup", "true");
 		}
-
 		if (!module.getProperties().contains(JOB_PARAMETERS)) {
 			properties.setProperty(JOB_PARAMETERS, "");
 		}
@@ -105,6 +114,40 @@ public class JobPlugin extends AbstractPlugin {
 		module.addProperties(properties);
 
 	}
+
+	@Override
+	public void postProcessModule(Module module) {
+		ChannelRegistry registry = findRegistry(module);
+		DeploymentMetadata md = module.getDeploymentMetadata();
+		if (registry != null) {
+			MessageChannel channel = module.getComponent("input", MessageChannel.class);
+			if (channel != null) {
+				registry.createInbound(md.getGroup(), channel,
+						DEFAULT_ACCEPTED_CONTENT_TYPES,
+						true);
+			}
+		}
+	}
+
+	private ChannelRegistry findRegistry(Module module) {
+		ChannelRegistry registry = null;
+		try {
+			registry = module.getComponent(ChannelRegistry.class);
+		}
+		catch (Exception e) {
+			logger.error("No registry in context, cannot wire channels");
+		}
+		return registry;
+	}
+
+	@Override
+	public void removeModule(Module module) {
+		ChannelRegistry registry = findRegistry(module);
+		if (registry != null) {
+			registry.deleteInbound(module.getDeploymentMetadata().getGroup());
+		}
+	}
+
 
 	@Override
 	public List<String> componentPathsSelector(Module module) {

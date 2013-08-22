@@ -68,11 +68,6 @@ public abstract class AbstractPlugin implements Plugin {
 	}
 
 
-	@Override
-	public final void postProcessModule(Module module) {
-		this.postProcessModuleInternal(module);
-	}
-
 	/**
 	 * Perform any plugin-specific post-refresh initialization.
 	 * 
@@ -104,9 +99,6 @@ public abstract class AbstractPlugin implements Plugin {
 		}
 	}
 
-	@Override
-	public void removeModule(Module module) {
-	}
 
 	private void addComponents(Module module, String path) {
 		module.addComponents(new ClassPathResource(path));

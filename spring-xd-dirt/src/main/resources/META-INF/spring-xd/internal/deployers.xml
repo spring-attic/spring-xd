@@ -39,7 +39,7 @@
 		<constructor-arg name="triggerDefinitionRepository" ref="triggerRepository" />
 		<constructor-arg name="messageSender" ref="deploymentMessageSender" />
 		<constructor-arg name="parser" ref="parser" />
-	</bean>
+</bean>
 
 	<bean id="triggerDeployer" class="org.springframework.xd.dirt.stream.TriggerDeployer">
 		<constructor-arg ref="triggerRepository"/>

@@ -16,7 +16,7 @@
 
 package org.springframework.xd.dirt.launcher;
 
-import org.springframework.xd.dirt.core.Container;
+import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.server.options.ContainerOptions;
 
 /**
@@ -24,5 +24,5 @@ import org.springframework.xd.dirt.server.options.ContainerOptions;
  */
 public interface ContainerLauncher {
 
-	Container launch(ContainerOptions options);
+	XDContainer launch(ContainerOptions options);
 }

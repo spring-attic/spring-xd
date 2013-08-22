@@ -11,7 +11,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.springframework.xd.dirt.stream;
+package org.springframework.xd.dirt.server;
 
 import java.io.File;
 import java.util.Date;
@@ -44,7 +44,7 @@ import org.springframework.web.servlet.DispatcherServlet;
  * @author Gary Russell
  * @author David Turanski
  */
-public class StreamServer implements SmartLifecycle, InitializingBean {
+public class AdminServer implements SmartLifecycle, InitializingBean {
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
@@ -64,7 +64,7 @@ public class StreamServer implements SmartLifecycle, InitializingBean {
 
 	private final XmlWebApplicationContext webApplicationContext;
 
-	public StreamServer(XmlWebApplicationContext webApplicationContext, int port) {
+	public AdminServer(XmlWebApplicationContext webApplicationContext, int port) {
 		Assert.notNull(webApplicationContext, "context must not be null");
 		Assert.isTrue(!webApplicationContext.isActive(), "context must not have been started");
 		this.webApplicationContext = webApplicationContext;

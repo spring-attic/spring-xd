@@ -29,11 +29,12 @@ import org.junit.Rule;
 import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
-import org.springframework.xd.dirt.core.Container;
+import org.springframework.xd.dirt.server.AdminServer;
 import org.springframework.xd.dirt.server.SingleNodeMain;
+import org.springframework.xd.dirt.server.SingleNodeServer;
 import org.springframework.xd.dirt.server.options.SingleNodeOptions;
-import org.springframework.xd.dirt.stream.StreamServer;
 import org.springframework.xd.test.redis.RedisAvailableRule;
+
 /**
  * Superclass for performing integration tests of spring-xd shell commands.
  * 
@@ -63,7 +64,7 @@ public abstract class AbstractShellIntegrationTest {
 
 	private static final Log logger = LogFactory.getLog(AbstractShellIntegrationTest.class);
 
-	private static StreamServer server;
+	private static AdminServer server;
 
 	private static JLineShellComponent shell;
 
@@ -73,11 +74,10 @@ public abstract class AbstractShellIntegrationTest {
 		SingleNodeOptions opts = SingleNodeMain.parseOptions(new String[] { "--httpPort", "0", "--transport",
 			"local", "--store",
 			"redis", "--analytics", "redis" });
-		server = SingleNodeMain.launchStreamServer(opts);
-		Container container = SingleNodeMain.launchContainer(opts.asContainerOptions(),server.getApplicationContext().getParent());
-		SingleNodeMain.setUpControlChannels(server, container);
+		SingleNodeServer server = SingleNodeMain.launch(opts);
 
-		Bootstrap bootstrap = new Bootstrap(new String[] { "--port", Integer.toString(server.getLocalPort()) });
+		Bootstrap bootstrap = new Bootstrap(new String[] { "--port",
+			Integer.toString(server.getAdminServer().getLocalPort()) });
 		shell = bootstrap.getJLineShellComponent();
 	}
 
@@ -95,7 +95,7 @@ public abstract class AbstractShellIntegrationTest {
 		return shell;
 	}
 
-	public static StreamServer getStreamServer() {
+	public static AdminServer getStreamServer() {
 		return server;
 	}
 

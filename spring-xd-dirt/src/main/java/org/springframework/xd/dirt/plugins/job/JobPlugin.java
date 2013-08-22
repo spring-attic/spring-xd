@@ -25,7 +25,7 @@ import java.util.Properties;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.xd.dirt.container.DefaultContainer;
+import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.module.AbstractPlugin;
 import org.springframework.xd.module.Module;
 
@@ -42,7 +42,7 @@ public class JobPlugin extends AbstractPlugin {
 
 	private final Log logger = LogFactory.getLog(getClass());
 
-	private static final String CONTEXT_CONFIG_ROOT = DefaultContainer.XD_CONFIG_ROOT
+	private static final String CONTEXT_CONFIG_ROOT = XDContainer.XD_CONFIG_ROOT
 			+ "plugins/job/";
 
 	private static final String REGISTRAR_WITH_TRIGGER_REF =

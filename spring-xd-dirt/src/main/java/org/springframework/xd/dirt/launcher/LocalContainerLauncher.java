@@ -16,30 +16,31 @@
 
 package org.springframework.xd.dirt.launcher;
 
-import java.util.Properties;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.logging.Log;
 
-import org.springframework.xd.dirt.core.Container;
+import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.server.options.ContainerOptions;
-
 import org.springframework.xd.dirt.server.util.BannerUtils;
 
 /**
+ * A Container Launcher for a Local (single node) Container
  * 
  * @author David Turanski
+ * @since 1.0
  */
 public class LocalContainerLauncher extends AbstractContainerLauncher {
-	private static AtomicLong id = new AtomicLong();
+
+	private final static AtomicLong idSequence = new AtomicLong();
 
 	@Override
 	protected String generateId() {
-		return String.valueOf(id.getAndIncrement());
+		return String.valueOf(idSequence.getAndIncrement());
 	}
 
 	@Override
-	protected void logContainerInfo(Log logger, Container container, ContainerOptions options) {
+	protected void logContainerInfo(Log logger, XDContainer container, ContainerOptions options) {
 		if (logger.isInfoEnabled()) {
 			final StringBuilder runtimeInfo = new StringBuilder();
 			runtimeInfo.append("Using local mode");
@@ -55,6 +56,7 @@ public class LocalContainerLauncher extends AbstractContainerLauncher {
 
 	@Override
 	protected void logErrorInfo(Exception exception) {
+		exception.printStackTrace(System.err);
 	}
 
 }

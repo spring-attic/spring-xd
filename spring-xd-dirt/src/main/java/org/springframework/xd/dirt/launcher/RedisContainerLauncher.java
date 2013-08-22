@@ -24,7 +24,7 @@ import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.support.atomic.RedisAtomicLong;
 import org.springframework.util.Assert;
-import org.springframework.xd.dirt.core.Container;
+import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.server.options.ContainerOptions;
 import org.springframework.xd.dirt.server.util.BannerUtils;
 
@@ -57,7 +57,7 @@ public class RedisContainerLauncher extends AbstractContainerLauncher {
 	}
 
 	@Override
-	protected void logContainerInfo(Log logger, Container container, ContainerOptions options) {
+	protected void logContainerInfo(Log logger, XDContainer container, ContainerOptions options) {
 		if (logger.isInfoEnabled()) {
 			final Properties redisInfo = this.connectionFactory.getConnection().info();
 			final StringBuilder runtimeInfo = new StringBuilder();

@@ -34,7 +34,7 @@ import org.springframework.http.MediaType;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.x.channel.registry.ChannelRegistry;
 import org.springframework.util.CollectionUtils;
-import org.springframework.xd.dirt.container.DefaultContainer;
+import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.module.BeanDefinitionAddingPostProcessor;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.Module;
@@ -51,7 +51,7 @@ public class StreamPlugin implements Plugin {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	private static final String CONTEXT_CONFIG_ROOT = DefaultContainer.XD_CONFIG_ROOT + "plugins/stream/";
+	private static final String CONTEXT_CONFIG_ROOT = XDContainer.XD_CONFIG_ROOT + "plugins/stream/";
 
 	private static final String TAP_XML = CONTEXT_CONFIG_ROOT + "tap.xml";
 

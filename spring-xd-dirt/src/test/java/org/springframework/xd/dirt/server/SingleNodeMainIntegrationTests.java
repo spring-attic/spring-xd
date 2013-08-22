@@ -16,12 +16,10 @@
 
 package org.springframework.xd.dirt.server;
 
-import static org.junit.Assert.*;
-
-import static org.junit.Assert.assertNotNull;
-
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -31,13 +29,11 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.x.channel.registry.ChannelRegistry;
 import org.springframework.xd.analytics.metrics.core.MetricRepository;
-import org.springframework.xd.dirt.container.DefaultContainer;
-import org.springframework.xd.dirt.core.Container;
+import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.plugins.job.JobPlugin;
 import org.springframework.xd.dirt.plugins.stream.StreamPlugin;
 import org.springframework.xd.dirt.server.options.SingleNodeOptions;
-import org.springframework.xd.dirt.stream.StreamServer;
 import org.springframework.xd.module.Plugin;
 
 
@@ -58,12 +54,13 @@ public class SingleNodeMainIntegrationTests extends AbstractAdminMainIntegration
 		SingleNodeOptions opts = SingleNodeMain.parseOptions(new String[] { "--httpPort", "0", "--transport", "local",
 			"--store",
 			"memory", "--enableJmx", "true", "--analytics", "memory" });
-		StreamServer server = SingleNodeMain.launchStreamServer(opts);
-		Container container = SingleNodeMain.launchContainer(opts.asContainerOptions(), server.getApplicationContext().getParent());
-		SingleNodeMain.setUpControlChannels(server, container);
-		DefaultContainer defaultContainer = (DefaultContainer) container;
-		ApplicationContext containerContext = defaultContainer.getApplicationContext();
-		ApplicationContext adminContext = server.getApplicationContext();
+		SingleNodeServer server = SingleNodeMain.launch(opts);
+		AdminServer adminServer = server.getAdminServer();
+		XDContainer container = server.getContainer();
+
+		ApplicationContext containerContext = container.getApplicationContext();
+		ApplicationContext adminContext = adminServer.getApplicationContext();
+
 		assertNotSame(containerContext, adminContext);
 
 		assertEquals(1, containerContext.getBeansOfType(ModuleDeployer.class).size());

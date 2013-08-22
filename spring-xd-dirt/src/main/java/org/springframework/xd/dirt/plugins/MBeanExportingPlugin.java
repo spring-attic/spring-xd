@@ -17,7 +17,7 @@ import java.util.Properties;
 
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.xd.dirt.container.DefaultContainer;
+import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.server.options.XdPropertyKeys;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.Plugin;
@@ -30,12 +30,14 @@ import org.springframework.xd.module.Plugin;
  */
 public class MBeanExportingPlugin implements Plugin {
 
-	private static final String CONTEXT_CONFIG_ROOT = DefaultContainer.XD_CONFIG_ROOT + "plugins/jmx/";
+	private static final String CONTEXT_CONFIG_ROOT = XDContainer.XD_CONFIG_ROOT + "plugins/jmx/";
+
+	private boolean jmxEnabled;
 
 	@Override
 	public void preProcessModule(Module module) {
 
-		if (System.getProperty(XdPropertyKeys.XD_JMX_ENABLED).equals("true")) {
+		if (jmxEnabled) {
 			module.addComponents(new ClassPathResource(CONTEXT_CONFIG_ROOT + "mbean-exporters.xml"));
 			Properties objectNameProperties = new Properties();
 			objectNameProperties.put("xd.module.name", module.getName());
@@ -55,6 +57,6 @@ public class MBeanExportingPlugin implements Plugin {
 
 	@Override
 	public void postProcessSharedContext(ConfigurableApplicationContext context) {
+		jmxEnabled = "true".equals(context.getEnvironment().getProperty(XdPropertyKeys.XD_JMX_ENABLED));
 	}
-
 }

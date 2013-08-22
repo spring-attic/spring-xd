@@ -25,8 +25,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextClosedEvent;
-import org.springframework.xd.dirt.container.DefaultContainer;
-import org.springframework.xd.dirt.core.Container;
+import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.event.ContainerStartedEvent;
 import org.springframework.xd.dirt.server.options.ContainerOptions;
 
@@ -53,10 +52,10 @@ public abstract class AbstractContainerLauncher implements ContainerLauncher, Ap
 	}
 
 	@Override
-	public Container launch(ContainerOptions options) {
+	public XDContainer launch(ContainerOptions options) {
 		try {
 			String id = this.generateId();
-			DefaultContainer container = new DefaultContainer(id);
+			XDContainer container = new XDContainer(id);
 			container.setApplicationContext(deployerContext);
 			container.start();
 			this.logContainerInfo(logger, container, options);
@@ -74,15 +73,15 @@ public abstract class AbstractContainerLauncher implements ContainerLauncher, Ap
 
 	protected abstract String generateId();
 
-	protected abstract void logContainerInfo(Log logger, Container container, ContainerOptions options);
+	protected abstract void logContainerInfo(Log logger, XDContainer container, ContainerOptions options);
 
 	protected abstract void logErrorInfo(Exception exception);
 
 	private static class ShutdownListener implements ApplicationListener<ContextClosedEvent> {
 
-		private final Container container;
+		private final XDContainer container;
 
-		ShutdownListener(Container container) {
+		ShutdownListener(XDContainer container) {
 			this.container = container;
 		}
 

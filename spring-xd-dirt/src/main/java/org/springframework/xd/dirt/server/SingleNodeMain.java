@@ -22,16 +22,11 @@ import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 
 import org.springframework.context.ApplicationContext;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.core.SubscribableChannel;
-import org.springframework.integration.handler.BridgeHandler;
-import org.springframework.xd.dirt.container.DefaultContainer;
-import org.springframework.xd.dirt.core.Container;
+import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.server.options.AdminOptions;
 import org.springframework.xd.dirt.server.options.ContainerOptions;
 import org.springframework.xd.dirt.server.options.SingleNodeOptions;
 import org.springframework.xd.dirt.server.options.Transport;
-import org.springframework.xd.dirt.stream.StreamServer;
 
 
 /**
@@ -46,19 +41,23 @@ public class SingleNodeMain {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		SingleNodeOptions options = parseOptions(args);
-		StreamServer server = launchStreamServer(options);
-		Container container =launchContainer(options.asContainerOptions(),server.getApplicationContext().getParent());
-		setUpControlChannels(server, container);
+		launch(parseOptions(args));
 	}
 
-	public static StreamServer launchStreamServer(AdminOptions options) {
-		return AdminMain.launchStreamServer(options);
+	public static SingleNodeServer launch(SingleNodeOptions options) {
+		AdminServer adminServer = launchAdminServer(options);
+
+		XDContainer container = launchContainer(options.asContainerOptions(),
+				adminServer.getApplicationContext().getParent());
+		return new SingleNodeServer(adminServer, container);
 	}
 
-	public static Container launchContainer(ContainerOptions options, ApplicationContext parentContext) {
-		ContainerMain.setParentContext(parentContext);
-		return ContainerMain.launch(options);
+	private static AdminServer launchAdminServer(AdminOptions options) {
+		return AdminMain.launch(options);
+	}
+
+	private static XDContainer launchContainer(ContainerOptions options, ApplicationContext parentContext) {
+		return ContainerMain.launch(options, parentContext);
 	}
 
 	public static SingleNodeOptions parseOptions(String[] args) {
@@ -82,24 +81,6 @@ public class SingleNodeMain {
 		}
 
 		return options;
-	}
-
-	public static void setUpControlChannels(StreamServer streamServer, Container container) {
-		DefaultContainer defaultContainer = (DefaultContainer) container;
-		ApplicationContext containerContext = defaultContainer.getApplicationContext();
-
-		MessageChannel containerControlChannel = containerContext.getBean("input", MessageChannel.class);
-
-		ApplicationContext adminContext = streamServer.getApplicationContext();
-
-		SubscribableChannel deployChannel = adminContext.getBean("deployChannel", SubscribableChannel.class);
-		SubscribableChannel undeployChannel = adminContext.getBean("undeployChannel", SubscribableChannel.class);
-
-		BridgeHandler handler = new BridgeHandler();
-		handler.setOutputChannel(containerControlChannel);
-		handler.setComponentName("xd.local.control.bridge");
-		deployChannel.subscribe(handler);
-		undeployChannel.subscribe(handler);
 	}
 
 }

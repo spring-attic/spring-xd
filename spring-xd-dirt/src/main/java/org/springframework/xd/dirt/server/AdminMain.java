@@ -25,11 +25,10 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.web.context.support.XmlWebApplicationContext;
-import org.springframework.xd.dirt.container.DefaultContainer;
+import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.server.options.AdminOptions;
 import org.springframework.xd.dirt.server.options.OptionUtils;
 import org.springframework.xd.dirt.server.options.Transport;
-import org.springframework.xd.dirt.stream.StreamServer;
 
 
 /**
@@ -45,11 +44,12 @@ import org.springframework.xd.dirt.stream.StreamServer;
 public class AdminMain {
 
 	private static final Log logger = LogFactory.getLog(AdminMain.class);
+
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		launchStreamServer(parseOptions(args));
+		launch(parseOptions(args));
 	}
 
 	public static AdminOptions parseOptions(String[] args) {
@@ -78,19 +78,19 @@ public class AdminMain {
 	/**
 	 * Launch stream server with the given home and transport
 	 */
-	public static StreamServer launchStreamServer(final AdminOptions options) {
+	public static AdminServer launch(final AdminOptions options) {
 		try {
 			XmlWebApplicationContext parent = new XmlWebApplicationContext();
-			parent.setConfigLocation("classpath:" + DefaultContainer.XD_INTERNAL_CONFIG_ROOT + "xd-global-beans.xml");
+			parent.setConfigLocation("classpath:" + XDContainer.XD_INTERNAL_CONFIG_ROOT + "xd-global-beans.xml");
 
 			XmlWebApplicationContext context = new XmlWebApplicationContext();
-			context.setConfigLocation("classpath:" + DefaultContainer.XD_INTERNAL_CONFIG_ROOT + "admin-server.xml");
+			context.setConfigLocation("classpath:" + XDContainer.XD_INTERNAL_CONFIG_ROOT + "admin-server.xml");
 			context.setParent(parent);
 
 			OptionUtils.configureRuntime(options, context.getEnvironment());
 			parent.refresh();
 
-			final StreamServer server = new StreamServer(context, options.getHttpPort());
+			final AdminServer server = new AdminServer(context, options.getHttpPort());
 			server.afterPropertiesSet();
 			server.start();
 
@@ -105,7 +105,7 @@ public class AdminMain {
 			return server;
 		}
 		catch (RedisConnectionFailureException e) {
-			final Log logger = LogFactory.getLog(StreamServer.class);
+			final Log logger = LogFactory.getLog(AdminServer.class);
 			logger.fatal(e.getMessage());
 			System.err.println("Redis does not seem to be running. Did you install and start Redis? "
 					+ "Please see the Getting Started section of the guide for instructions.");

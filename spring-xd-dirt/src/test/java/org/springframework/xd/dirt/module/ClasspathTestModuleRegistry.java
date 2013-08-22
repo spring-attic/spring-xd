@@ -27,7 +27,7 @@ import org.springframework.core.io.Resource;
 public class ClasspathTestModuleRegistry extends AbstractModuleRegistry {
 
 	@Override
-	protected Resource loadResource(String name, String type) {
+	protected Resource locateApplicationContext(String name, String type) {
 		return new ClassPathResource("testmodules/" + name + ".xml");
 	}
 

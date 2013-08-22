@@ -16,16 +16,12 @@
 
 package org.springframework.xd.dirt.module;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 
@@ -37,53 +33,30 @@ import org.springframework.xd.module.ModuleType;
  * @author Mark Fisher
  * @author Gary Russell
  */
-public abstract class AbstractModuleRegistry implements ModuleRegistry, ApplicationContextAware {
-
-	private ResourcePatternResolver resolver;
+public abstract class AbstractModuleRegistry implements ModuleRegistry {
 
 	@Override
 	public ModuleDefinition lookup(String name, String type) {
-		Resource resource = this.loadResource(name, type);
-		URL[] classpath = maybeLocateClasspath(resource, name);
+		Resource resource = this.locateApplicationContext(name, type);
+		URL[] classpath = maybeLocateClasspath(resource, name, type);
 		ModuleDefinition module = new ModuleDefinition(name, type, resource, classpath);
 		// TODO: add properties from a property registry
 		return module;
 	}
 
 	/**
-	 * Return an array of jar files locations or {@code null} if the module is a plain xml file.
+	 * Return an array of jar files locations or {@code null} if the module is a plain xml file. Default implementation
+	 * returns {@code null}.
 	 */
-	private URL[] maybeLocateClasspath(Resource resource, String name) {
-		try {
-			URL resourceLocation = resource.getURL();
-			if (resourceLocation.toString().endsWith(name + "/config/" + name + ".xml")) {
-				Resource jarsPattern = resource.createRelative("../lib/*.jar");
-				Resource[] jarsResources = resolver.getResources(jarsPattern.getURI().toString());
-				URL[] result = new URL[jarsResources.length];
-				for (int i = 0; i < jarsResources.length; i++) {
-					result[i] = jarsResources[i].getURL();
-				}
-				return result;
-			}
-			else {
-				return null;
-			}
-		}
-		catch (IOException ignored) {
-			return null;
-		}
-	}
-
-	@Override
-	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		resolver = applicationContext;
+	protected URL[] maybeLocateClasspath(Resource resource, String name, String type) {
+		return null;
 	}
 
 	@Override
 	public List<ModuleDefinition> findDefinitions(String name) {
 		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
 		for (ModuleType type : ModuleType.values()) {
-			Resource resource = loadResource(name, type.getTypeName());
+			Resource resource = locateApplicationContext(name, type.getTypeName());
 			if (resource != null) {
 				ModuleDefinition moduleDef = new ModuleDefinition(name, type.getTypeName(), resource);
 				definitions.add(moduleDef);
@@ -92,5 +65,8 @@ public abstract class AbstractModuleRegistry implements ModuleRegistry, Applicat
 		return definitions;
 	}
 
-	protected abstract Resource loadResource(String name, String type);
+	/**
+	 * Return a resource pointing to an {@link ApplicationContext} XML definition file.
+	 */
+	protected abstract Resource locateApplicationContext(String name, String type);
 }

@@ -276,11 +276,7 @@ project('spring-xd-dirt') {
 	apply plugin:'application'
 	// skip the startScripts task to avoid default start script generation
 	startScripts.setEnabled(false)
-	mainClassName = "org.springframework.xd.dirt.server.AdminMain"
-
-	run {
-		args = ['--transport', 'local']
-	}
+	mainClassName = "org.springframework.xd.dirt.server.SingleNodeMain"
 
 	test {
 		systemProperties["xd.home"] = "${rootProject.projectDir}"

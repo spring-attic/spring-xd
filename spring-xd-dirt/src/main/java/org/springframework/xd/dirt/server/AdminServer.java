@@ -31,7 +31,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.context.event.ContextClosedEvent;
-import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.integration.MessagingException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.StringUtils;
@@ -139,18 +138,8 @@ public class AdminServer implements SmartLifecycle, InitializingBean {
 	 * Call's {@link #afterPropertiesSet()} and {@link #start()}
 	 */
 	public void run() {
-		try {
-			this.afterPropertiesSet();
-			this.start();
-			// TODO Why a transport specific exception here, and why only for Redis?
-		}
-		catch (RedisConnectionFailureException e) {
-			final Log logger = LogFactory.getLog(AdminServer.class);
-			logger.fatal(e.getMessage());
-			System.err.println("Redis does not seem to be running. Did you install and start Redis? "
-					+ "Please see the Getting Started section of the guide for instructions.");
-			System.exit(1);
-		}
+		this.afterPropertiesSet();
+		this.start();
 	}
 
 	/**

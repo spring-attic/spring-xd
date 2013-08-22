@@ -95,6 +95,7 @@ public class AdminMain {
 
 		if (options.getTransport() == Transport.local) {
 			logger.error("local transport is not supported. Run SingleNodeMain");
+			System.exit(1);
 		}
 
 		return options;

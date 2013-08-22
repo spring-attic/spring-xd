@@ -31,12 +31,12 @@ import org.springframework.xd.module.Module;
 
 /**
  * Plugin to enable the registration of jobs in a central registry.
- *
+ * 
  * @author Michael Minella
  * @author Gunnar Hillert
  * @author Gary Russell
  * @since 1.0
- *
+ * 
  */
 public class JobPlugin extends AbstractPlugin {
 
@@ -55,6 +55,7 @@ public class JobPlugin extends AbstractPlugin {
 			CONTEXT_CONFIG_ROOT + "registrar-with-fixed-delay.xml";
 
 	private static final String REGISTRAR = CONTEXT_CONFIG_ROOT + "registrar.xml";
+
 	private static final String TRIGGER = "trigger";
 
 	private static final String CRON = "cron";
@@ -69,6 +70,8 @@ public class JobPlugin extends AbstractPlugin {
 
 	private static final String MAKE_UNIQUE = "makeUnique";
 
+	public static final String JOB_BEAN_ID = "job";
+
 	@Override
 	public void configureProperties(Module module) {
 		final Properties properties = new Properties();
@@ -81,7 +84,6 @@ public class JobPlugin extends AbstractPlugin {
 		else {
 			properties.setProperty("xd.trigger.execute_on_startup", "true");
 		}
-		module.addProperties(properties);
 
 		if (!module.getProperties().contains(JOB_PARAMETERS)) {
 			properties.setProperty(JOB_PARAMETERS, "");
@@ -99,6 +101,8 @@ public class JobPlugin extends AbstractPlugin {
 		if (logger.isInfoEnabled()) {
 			logger.info("Configuring module with the following properties: " + properties.toString());
 		}
+
+		module.addProperties(properties);
 
 	}
 

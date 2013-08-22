@@ -21,15 +21,19 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.scheduling.config.CronTask;
 import org.springframework.scheduling.config.IntervalTask;
-import org.springframework.xd.module.BeanDefinitionAddingPostProcessor;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.ModuleDefinition;
@@ -46,9 +50,16 @@ public class JobPluginTests {
 
 	private JobPlugin plugin;
 
+	private ConfigurableApplicationContext sharedContext;
+
 	@Before
 	public void setUp() throws Exception {
+
 		plugin = new JobPlugin();
+		sharedContext = new ClassPathXmlApplicationContext(
+				"classpath:/META-INF/spring-xd/batch/batch.xml");
+		plugin.preProcessSharedContext(sharedContext);
+
 	}
 
 	@Test
@@ -56,27 +67,50 @@ public class JobPluginTests {
 		Module module = new SimpleModule(new ModuleDefinition("testJob", "job"), new DeploymentMetadata("foo", 0));
 		assertEquals(0, module.getProperties().size());
 		plugin.preProcessModule(module);
-		assertEquals(2, module.getProperties().size());
-		assertEquals("foo", module.getProperties().getProperty("xd.stream.name"));
-		assertEquals("true", module.getProperties().getProperty("xd.trigger.execute_on_startup"));
+
+		Properties moduleProperties = module.getProperties();
+
+		assertEquals(6, moduleProperties.size());
+		assertEquals("foo", moduleProperties.getProperty("xd.stream.name"));
+		assertEquals("true", moduleProperties.getProperty("xd.trigger.execute_on_startup"));
+
+		assertEquals("", moduleProperties.getProperty("dateFormat"));
+		assertEquals("", moduleProperties.getProperty("numberFormat"));
+		assertEquals("true", moduleProperties.getProperty("makeUnique"));
+		assertEquals("", moduleProperties.getProperty("jobParameters"));
 	}
 
 	@Test
 	public void streamComponentsAdded() {
+
 		SimpleModule module = new SimpleModule(new ModuleDefinition("testJob", "job"), new DeploymentMetadata("foo", 0));
+
+		GenericApplicationContext context = new GenericApplicationContext();
 		plugin.preProcessModule(module);
+		plugin.preProcessSharedContext(context);
+
 		String[] moduleBeans = module.getApplicationContext().getBeanDefinitionNames();
 		Arrays.sort(moduleBeans);
-		assertEquals(3, moduleBeans.length);
-		assertTrue(moduleBeans[0].contains("jobParametersBean"));
-		assertTrue(moduleBeans[1].contains("registrar"));
-		assertTrue(moduleBeans[2].contains("startupJobLauncher"));
+
+		SortedSet<String> names = new TreeSet<String>();
+		names.addAll(Arrays.asList(moduleBeans));
+
+		assertTrue(names.size() > 9);
+
+		assertTrue(names.contains("jobTriggerBean"));
+		assertTrue(names.contains("registrar"));
+		assertTrue(names.contains("jobFactoryBean"));
+		assertTrue(names.contains("jobLaunchRequestTransformer"));
+		assertTrue(names.contains("jobLaunchingMessageHandler"));
+		assertTrue(names.contains("input"));
+		assertTrue(names.contains("logger"));
+		assertTrue(names.contains("jobLaunchingChannel"));
+		assertTrue(names.contains("logger.adapter"));
 	}
 
 	/**
-	 * There should not be any shared beans for the plugin. As per XD-703
-	 * the common job beans are registered in the global common context,
-	 * so that they are shared across xd-admin/xd-container.
+	 * There should not be any shared beans for the plugin. As per XD-703 the common job beans are registered in the
+	 * global common context, so that they are shared across xd-admin/xd-container.
 	 */
 	@Test
 	public void sharedComponentsAdded() {
@@ -88,20 +122,37 @@ public class JobPluginTests {
 
 	@Test
 	public void testThatLocalCronTaskIsAdded() {
+
 		SimpleModule module = new SimpleModule(new ModuleDefinition("testJob", "job"), new DeploymentMetadata("foo", 0));
-		module.getProperties().put("cron", "*/15 * * * * *");
+		Properties property = new Properties();
+		property.put("cron", "*/15 * * * * *");
+
+		module.addProperties(property);
+		assertEquals(1, module.getProperties().size());
+
+		module.setParentContext(sharedContext);
 		plugin.preProcessModule(module);
+		plugin.postProcessModule(module);
+
+		module.getApplicationContext().getBeanDefinitionNames();
 		String[] moduleBeans = module.getApplicationContext().getBeanNamesForType(CronTask.class);
+
 		assertEquals(1, moduleBeans.length);
 		assertTrue(moduleBeans[0].contains("org.springframework.scheduling.config.CronTask"));
 	}
 
 	@Test
 	public void testThatLocalFixedDelayTaskIsAdded() {
+
 		SimpleModule module = new SimpleModule(new ModuleDefinition("testFixedDelayJob", "job"),
 				new DeploymentMetadata("foo", 0));
-		module.getProperties().put("fixedDelay", "60000");
+		Properties property = new Properties();
+		property.put("fixedDelay", "60000");
+		module.addProperties(property);
+
+		module.setParentContext(sharedContext);
 		plugin.preProcessModule(module);
+
 		String[] moduleBeans = module.getApplicationContext().getBeanNamesForType(IntervalTask.class);
 		assertEquals(1, moduleBeans.length);
 		assertTrue(moduleBeans[0].contains("org.springframework.scheduling.config.IntervalTask"));

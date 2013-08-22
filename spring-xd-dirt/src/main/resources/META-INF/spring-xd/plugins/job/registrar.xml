@@ -2,27 +2,48 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:task="http://www.springframework.org/schema/task"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<bean id="registrar" class="org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor">
 		<property name="jobRegistry" ref="jobRegistry"/>
 		<property name="groupName" value="${xd.stream.name}"/>
 	</bean>
 
-	<bean id="jobParametersBean" class="org.springframework.xd.dirt.plugins.job.JobParametersBean">
-		<constructor-arg name="jobParametersAsJsonMap" value="${jobParameters}"/>
-		<property name="dateFormatAsString" value="${dateFormat}"/>
-		<property name="numberFormatAsString" value="${numberFormat}"/>
-		<property name="makeParametersUnique" value="${makeUnique}"/>
+	<bean id="jobFactoryBean" class="org.springframework.xd.dirt.plugins.job.JobFactoryBean">
+		<constructor-arg name="jobName"   value="${xd.stream.name}"/>
+		<constructor-arg name="jobSuffix" value="#{T(org.springframework.xd.dirt.plugins.job.JobPlugin).JOB_BEAN_ID}"/>
+		<constructor-arg name="registry"  ref="jobRegistry"/>
 	</bean>
 
-	<bean id="startupJobLauncher" class="org.springframework.xd.dirt.plugins.job.ModuleJobLauncher">
-		<constructor-arg name="launcher" ref="jobLauncher"/>
-		<constructor-arg name="registry" ref="jobRegistry"/>
+	<bean id="jobTriggerBean" class="org.springframework.xd.dirt.plugins.job.JobTriggerBean">
 		<constructor-arg name="executeBatchJobOnStartup" value="${xd.trigger.execute_on_startup}"/>
-		<constructor-arg name="jobParametersBean" ref="jobParametersBean"/>
-		<property name="groupName" value="${xd.stream.name}"/>
+		<constructor-arg name="jobParametersAsJsonMap" value="${jobParameters}"/>
+		<constructor-arg name="requestChannel" ref="input"/>
 	</bean>
 
+	<int:channel id="input"/>
+
+	<int:transformer id="jobLaunchRequestTransformer"
+		input-channel="input" output-channel="jobLaunchingChannel" >
+		<bean class="org.springframework.xd.dirt.plugins.job.JobLaunchRequestTransformer">
+			<constructor-arg name="job" ref="jobFactoryBean"/>
+			<property name="dateFormatAsString" value="${dateFormat}"/>
+			<property name="numberFormatAsString" value="${numberFormat}"/>
+			<property name="makeParametersUnique" value="${makeUnique}"/>
+		</bean>
+	</int:transformer>
+
+	<int:channel id="jobLaunchingChannel"/>
+
+	<int:service-activator id="jobLaunchingMessageHandler" method="launch"
+		input-channel="jobLaunchingChannel" output-channel="logger">
+		<bean class="org.springframework.batch.integration.launch.JobLaunchingMessageHandler">
+			<constructor-arg ref="jobLauncher"/>
+		</bean>
+	</int:service-activator>
+
+	<int:logging-channel-adapter id="logger" level="INFO" log-full-message="true"/>
 </beans>

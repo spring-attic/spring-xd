@@ -268,6 +268,12 @@ project('spring-xd-dirt') {
 		compile ("org.apache.activemq:activemq-core:5.6.0") {
 			exclude group: 'org.mortbay.jetty'
 		}
+
+		compile ("org.springframework.batch:spring-batch-integration:1.2.2.RELEASE") {
+			exclude group: 'org.springframework.integration'
+			exclude group: 'org.springframework'
+		}
+
 		runtime "org.slf4j:jcl-over-slf4j:$slf4jVersion",
 				"org.slf4j:slf4j-log4j12:$slf4jVersion"
 

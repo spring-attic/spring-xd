@@ -71,10 +71,10 @@ public abstract class AbstractShellIntegrationTest {
 	@BeforeClass
 	public static void startUp() throws InterruptedException, IOException {
 
-		SingleNodeOptions opts = SingleNodeMain.parseOptions(new String[] { "--httpPort", "0", "--transport",
+		SingleNodeOptions options = SingleNodeMain.parseOptions(new String[] { "--httpPort", "0", "--transport",
 			"local", "--store",
 			"redis", "--analytics", "redis" });
-		SingleNodeServer server = SingleNodeMain.launch(opts);
+		SingleNodeServer server = SingleNodeMain.launchSingleNodeServer(options);
 
 		Bootstrap bootstrap = new Bootstrap(new String[] { "--port",
 			Integer.toString(server.getAdminServer().getLocalPort()) });

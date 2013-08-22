@@ -18,7 +18,7 @@ package org.springframework.xd.dirt.listener;
 
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.xd.dirt.core.Container;
+import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.event.ContainerStartedEvent;
 import org.springframework.xd.dirt.event.ContainerStoppedEvent;
 
@@ -38,14 +38,14 @@ public class RabbitContainerEventListener extends AbstractContainerEventListener
 
 	@Override
 	protected void onContainerStartedEvent(ContainerStartedEvent event) {
-		final Container container = event.getSource();
+		final XDContainer container = event.getSource();
 		this.rabbitTemplate.convertAndSend(CONTAINER_EVENT_EXCHANGE, "",
 				"container started [" + container.getId() + ":" + container.getJvmName() + "]");
 	}
 
 	@Override
 	protected void onContainerStoppedEvent(ContainerStoppedEvent event) {
-		Container container = event.getSource();
+		XDContainer container = event.getSource();
 		this.rabbitTemplate.convertAndSend(CONTAINER_EVENT_EXCHANGE, "",
 				"container stopped [" + container.getId() + ":" + container.getJvmName() + "]");
 	}

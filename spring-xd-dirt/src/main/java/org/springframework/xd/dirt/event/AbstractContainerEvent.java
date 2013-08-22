@@ -16,15 +16,15 @@
 
 package org.springframework.xd.dirt.event;
 
-import org.springframework.xd.dirt.core.Container;
+import org.springframework.xd.dirt.container.XDContainer;
 
 /**
  * @author Mark Fisher
  */
 @SuppressWarnings("serial")
-public class AbstractContainerEvent extends AbstractEvent<Container> {
+public class AbstractContainerEvent extends AbstractEvent<XDContainer> {
 
-	public AbstractContainerEvent(Container container) {
+	public AbstractContainerEvent(XDContainer container) {
 		super(container);
 	}
 

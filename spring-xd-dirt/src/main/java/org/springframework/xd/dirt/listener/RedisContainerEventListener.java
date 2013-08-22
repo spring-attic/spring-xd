@@ -18,7 +18,7 @@ package org.springframework.xd.dirt.listener;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.xd.dirt.core.Container;
+import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.event.ContainerStartedEvent;
 import org.springframework.xd.dirt.event.ContainerStoppedEvent;
 
@@ -40,13 +40,13 @@ public class RedisContainerEventListener extends AbstractContainerEventListener 
 
 	@Override
 	protected void onContainerStartedEvent(ContainerStartedEvent event) {
-		final Container container = event.getSource();
+		final XDContainer container = event.getSource();
 		this.redisTemplate.boundHashOps("containers").put(container.getId(), container.getJvmName());
 	}
 
 	@Override
 	protected void onContainerStoppedEvent(ContainerStoppedEvent event) {
-		Container container = event.getSource();
+		XDContainer container = event.getSource();
 		this.redisTemplate.boundHashOps("containers").delete(container.getId());
 		this.redisTemplate.delete(container.getId());
 	}

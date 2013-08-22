@@ -34,7 +34,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
-import org.springframework.xd.dirt.container.DefaultContainer;
+import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.event.ModuleDeployedEvent;
 import org.springframework.xd.dirt.event.ModuleUndeployedEvent;
 import org.springframework.xd.module.DeploymentMetadata;
@@ -78,7 +78,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		this.deployerContext = context;
 		this.plugins = context.getBeansOfType(Plugin.class);
 		ClassPathXmlApplicationContext commonContext = new ClassPathXmlApplicationContext(
-				new String[] { DefaultContainer.XD_INTERNAL_CONFIG_ROOT + "module-common.xml" }, false);
+				new String[] { XDContainer.XD_INTERNAL_CONFIG_ROOT + "module-common.xml" }, false);
 		ApplicationContext analytics = context.getParent();
 		commonContext.setParent(analytics);
 		for (Plugin plugin : plugins.values()) {

@@ -43,7 +43,7 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.xd.dirt.core.Container;
+import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.event.ContainerStartedEvent;
 import org.springframework.xd.dirt.event.ContainerStoppedEvent;
 import org.springframework.xd.test.redis.RedisAvailableRule;
@@ -69,7 +69,7 @@ public class RedisContainerEventListenerTest {
 	private StringRedisTemplate redisTemplate;
 
 	@Mock
-	private Container container;
+	private XDContainer container;
 
 	private final String containerId = "test" + UUID.randomUUID().toString();
 

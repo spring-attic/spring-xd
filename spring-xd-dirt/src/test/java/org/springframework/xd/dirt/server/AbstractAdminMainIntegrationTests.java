@@ -18,7 +18,6 @@ package org.springframework.xd.dirt.server;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.web.context.support.XmlWebApplicationContext;
-import org.springframework.xd.dirt.stream.StreamServer;
 
 /**
  * @author Gary Russell
@@ -27,7 +26,7 @@ import org.springframework.xd.dirt.stream.StreamServer;
  */
 public abstract class AbstractAdminMainIntegrationTests {
 
-	protected final void shutdown(StreamServer s) {
+	protected final void shutdown(AdminServer s) {
 		s.stop();
 		DirectFieldAccessor dfa = new DirectFieldAccessor(s);
 		((XmlWebApplicationContext) dfa.getPropertyValue("webApplicationContext")).destroy();

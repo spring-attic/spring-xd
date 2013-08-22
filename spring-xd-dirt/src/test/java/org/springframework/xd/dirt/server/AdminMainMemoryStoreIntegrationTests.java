@@ -19,7 +19,6 @@ package org.springframework.xd.dirt.server;
 import org.junit.Test;
 
 import org.springframework.xd.dirt.server.options.AdminOptions;
-import org.springframework.xd.dirt.stream.StreamServer;
 
 /**
  * @author Luke Taylor
@@ -31,7 +30,7 @@ public class AdminMainMemoryStoreIntegrationTests extends AbstractAdminMainInteg
 	public void inMemoryStoreWithLocalTransportConfigurationLoadsSuccessfully() throws Exception {
 		AdminOptions opts = AdminMain.parseOptions(new String[] { "--httpPort", "0", "--transport", "local", "--store",
 			"memory", "--analytics", "memory" });
-		StreamServer s = AdminMain.launchStreamServer(opts);
+		AdminServer s = AdminMain.launch(opts);
 		super.shutdown(s);
 	}
 

@@ -34,7 +34,6 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.util.Assert;
-import org.springframework.xd.dirt.core.Container;
 import org.springframework.xd.dirt.event.ContainerStartedEvent;
 import org.springframework.xd.dirt.event.ContainerStoppedEvent;
 
@@ -43,11 +42,11 @@ import org.springframework.xd.dirt.event.ContainerStoppedEvent;
  * @author Jennifer Hickey
  * @author David Turanski
  */
-public class DefaultContainer implements Container, SmartLifecycle, ApplicationContextAware {
+public class XDContainer implements SmartLifecycle, ApplicationContextAware {
 
 	private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
-	private static final Log logger = LogFactory.getLog(DefaultContainer.class);
+	private static final Log logger = LogFactory.getLog(XDContainer.class);
 
 	private volatile ApplicationContext deployerContext;
 
@@ -79,23 +78,22 @@ public class DefaultContainer implements Container, SmartLifecycle, ApplicationC
 	 * 
 	 * @param id the id
 	 */
-	public DefaultContainer(String id) {
+	public XDContainer(String id) {
 		this.id = id;
 	}
 
 	/**
 	 * Default constructor generates a random id
 	 */
-	public DefaultContainer() {
+	public XDContainer() {
 		this.id = UUID.randomUUID().toString();
 	}
 
-	@Override
+
 	public String getId() {
 		return (this.context != null) ? this.context.getId() : "";
 	}
 
-	@Override
 	public String getJvmName() {
 		synchronized (this) {
 			if (this.jvmName == null) {
@@ -124,7 +122,7 @@ public class DefaultContainer implements Container, SmartLifecycle, ApplicationC
 	public void setApplicationContext(ApplicationContext context) {
 		this.deployerContext = context;
 	}
-	
+
 	public ApplicationContext getApplicationContext() {
 		return this.context;
 	}

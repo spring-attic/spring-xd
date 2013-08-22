@@ -28,15 +28,19 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.context.event.ContextClosedEvent;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.integration.MessagingException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.support.XmlWebApplicationContext;
 import org.springframework.web.filter.HttpPutFormContentFilter;
 import org.springframework.web.servlet.DispatcherServlet;
+import org.springframework.xd.dirt.container.XDContainer;
+import org.springframework.xd.dirt.server.options.AdminOptions;
+import org.springframework.xd.dirt.server.options.OptionUtils;
 
 /**
  * @author Mark Fisher
@@ -64,11 +68,28 @@ public class AdminServer implements SmartLifecycle, InitializingBean {
 
 	private final XmlWebApplicationContext webApplicationContext;
 
-	public AdminServer(XmlWebApplicationContext webApplicationContext, int port) {
-		Assert.notNull(webApplicationContext, "context must not be null");
-		Assert.isTrue(!webApplicationContext.isActive(), "context must not have been started");
-		this.webApplicationContext = webApplicationContext;
-		this.port = port;
+	public AdminServer(AdminOptions adminOptions) {
+		XmlWebApplicationContext parent = new XmlWebApplicationContext();
+		parent.setConfigLocation("classpath:" + XDContainer.XD_INTERNAL_CONFIG_ROOT + "xd-global-beans.xml");
+
+		this.webApplicationContext = new XmlWebApplicationContext();
+		this.webApplicationContext.setConfigLocation("classpath:" + XDContainer.XD_INTERNAL_CONFIG_ROOT
+				+ "admin-server.xml");
+		this.webApplicationContext.setParent(parent);
+
+		OptionUtils.configureRuntime(adminOptions, this.webApplicationContext.getEnvironment());
+		parent.refresh();
+
+		this.port = adminOptions.getHttpPort();
+
+		webApplicationContext.addApplicationListener(new ApplicationListener<ContextClosedEvent>() {
+
+			@Override
+			public void onApplicationEvent(ContextClosedEvent event) {
+				stop();
+			}
+		});
+		webApplicationContext.registerShutdownHook();
 	}
 
 	/**
@@ -107,10 +128,34 @@ public class AdminServer implements SmartLifecycle, InitializingBean {
 		return localPort;
 	}
 
-	public ApplicationContext getApplicationContext() {
+	/**
+	 * @return the WebApplicationContext
+	 */
+	public XmlWebApplicationContext getApplicationContext() {
 		return this.webApplicationContext;
 	}
 
+	/**
+	 * Call's {@link #afterPropertiesSet()} and {@link #start()}
+	 */
+	public void run() {
+		try {
+			this.afterPropertiesSet();
+			this.start();
+			// TODO Why a transport specific exception here, and why only for Redis?
+		}
+		catch (RedisConnectionFailureException e) {
+			final Log logger = LogFactory.getLog(AdminServer.class);
+			logger.fatal(e.getMessage());
+			System.err.println("Redis does not seem to be running. Did you install and start Redis? "
+					+ "Please see the Getting Started section of the guide for instructions.");
+			System.exit(1);
+		}
+	}
+
+	/**
+	 * Create an embedded Tomcat instance and have it run the WebApplicationContext
+	 */
 	@Override
 	public void afterPropertiesSet() {
 		this.scheduler.setPoolSize(3);

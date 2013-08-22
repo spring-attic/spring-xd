@@ -35,7 +35,8 @@ public class AdminMainRedisStoreIntegrationTests extends AbstractAdminMainIntegr
 	public void redisStoreWithLocalTransportConfigurationLoadsSuccessfully() throws Exception {
 		AdminOptions opts = AdminMain.parseOptions(new String[] { "--httpPort", "0", "--transport", "local", "--store",
 			"redis", "--analytics", "memory" });
-		AdminServer s = AdminMain.launch(opts);
+		AdminServer s = new AdminServer(opts);
+		s.run();
 		super.shutdown(s);
 	}
 

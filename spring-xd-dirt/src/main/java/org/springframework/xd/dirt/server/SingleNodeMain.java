@@ -53,7 +53,9 @@ public class SingleNodeMain {
 	}
 
 	private static AdminServer launchAdminServer(AdminOptions options) {
-		return AdminMain.launch(options);
+		final AdminServer server = new AdminServer(options);
+		server.run();
+		return server;
 	}
 
 	private static XDContainer launchContainer(ContainerOptions options, ApplicationContext parentContext) {

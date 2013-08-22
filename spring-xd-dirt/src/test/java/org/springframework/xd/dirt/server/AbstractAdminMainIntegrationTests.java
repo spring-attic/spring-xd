@@ -16,8 +16,6 @@
 
 package org.springframework.xd.dirt.server;
 
-import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.web.context.support.XmlWebApplicationContext;
 
 /**
  * @author Gary Russell
@@ -28,8 +26,7 @@ public abstract class AbstractAdminMainIntegrationTests {
 
 	protected final void shutdown(AdminServer s) {
 		s.stop();
-		DirectFieldAccessor dfa = new DirectFieldAccessor(s);
-		((XmlWebApplicationContext) dfa.getPropertyValue("webApplicationContext")).destroy();
+		s.getApplicationContext().destroy();
 	}
 
 }

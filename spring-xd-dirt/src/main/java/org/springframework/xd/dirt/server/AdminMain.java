@@ -21,13 +21,7 @@ import org.apache.commons.logging.LogFactory;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.ContextClosedEvent;
-import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.web.context.support.XmlWebApplicationContext;
-import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.server.options.AdminOptions;
-import org.springframework.xd.dirt.server.options.OptionUtils;
 import org.springframework.xd.dirt.server.options.Transport;
 
 
@@ -49,7 +43,7 @@ public class AdminMain {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		launch(parseOptions(args));
+		launchAdminServer(parseOptions(args));
 	}
 
 	public static AdminOptions parseOptions(String[] args) {
@@ -76,41 +70,11 @@ public class AdminMain {
 	}
 
 	/**
-	 * Launch stream server with the given home and transport
+	 * Launch stream server with the given home and transport options
 	 */
-	public static AdminServer launch(final AdminOptions options) {
-		try {
-			XmlWebApplicationContext parent = new XmlWebApplicationContext();
-			parent.setConfigLocation("classpath:" + XDContainer.XD_INTERNAL_CONFIG_ROOT + "xd-global-beans.xml");
-
-			XmlWebApplicationContext context = new XmlWebApplicationContext();
-			context.setConfigLocation("classpath:" + XDContainer.XD_INTERNAL_CONFIG_ROOT + "admin-server.xml");
-			context.setParent(parent);
-
-			OptionUtils.configureRuntime(options, context.getEnvironment());
-			parent.refresh();
-
-			final AdminServer server = new AdminServer(context, options.getHttpPort());
-			server.afterPropertiesSet();
-			server.start();
-
-			context.addApplicationListener(new ApplicationListener<ContextClosedEvent>() {
-
-				@Override
-				public void onApplicationEvent(ContextClosedEvent event) {
-					server.stop();
-				}
-			});
-			context.registerShutdownHook();
-			return server;
-		}
-		catch (RedisConnectionFailureException e) {
-			final Log logger = LogFactory.getLog(AdminServer.class);
-			logger.fatal(e.getMessage());
-			System.err.println("Redis does not seem to be running. Did you install and start Redis? "
-					+ "Please see the Getting Started section of the guide for instructions.");
-			System.exit(1);
-		}
-		return null;
+	private static AdminServer launchAdminServer(final AdminOptions options) {
+		final AdminServer server = new AdminServer(options);
+		server.run();
+		return server;
 	}
 }

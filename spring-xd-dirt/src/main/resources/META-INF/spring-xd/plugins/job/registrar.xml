@@ -17,14 +17,12 @@
 		<constructor-arg name="jobSuffix" value="#{T(org.springframework.xd.dirt.plugins.job.JobPlugin).JOB_BEAN_ID}"/>
 		<constructor-arg name="registry"  ref="jobRegistry"/>
 	</bean>
-
 	<bean id="jobTriggerBean" class="org.springframework.xd.dirt.plugins.job.JobTriggerBean">
 		<constructor-arg name="executeBatchJobOnStartup" value="${xd.trigger.execute_on_startup}"/>
 		<constructor-arg name="jobParametersAsJsonMap" value="${jobParameters}"/>
 		<constructor-arg name="requestChannel" ref="input"/>
 	</bean>
-
-	<int:channel id="input"/>
+	<int:channel id="input" />
 
 	<int:transformer id="jobLaunchRequestTransformer"
 		input-channel="input" output-channel="jobLaunchingChannel" >

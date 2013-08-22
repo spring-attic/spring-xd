@@ -26,7 +26,7 @@ import org.springframework.xd.module.ModuleType;
  * @author Luke Taylor
  * @author Ilayaperumal Gopinathan
  * @author Gunnar Hillert
- * 
+ *
  */
 public class JobDeployer extends AbstractDeployer<JobDefinition> {
 

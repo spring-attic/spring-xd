@@ -17,6 +17,7 @@
 package org.springframework.xd.tuple.spel;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Collections;
 import java.util.Map;
@@ -37,7 +38,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * 
  * @author Eric Bottard
  */
-public class JsonPropertyAccessorTest {
+public class JsonPropertyAccessorTests {
 
 	private final SpelExpressionParser parser = new SpelExpressionParser();
 
@@ -53,20 +54,20 @@ public class JsonPropertyAccessorTest {
 	@Test
 	public void testSimpleLookup() throws Exception {
 		Object json = mapper.readTree("{\"foo\": \"bar\"}");
-		JsonNode actual = evaluate("foo", json, JsonNode.class);
+		JsonNode actual = evaluate(json, "foo", JsonNode.class);
 		assertEquals("bar", actual.asText());
 	}
 
 	@Test(expected = SpelEvaluationException.class)
 	public void testUnsupportedJsonConstruct() throws Exception {
 		Object json = mapper.readTree("\"foo\"");
-		evaluate("fizz", json, JsonNode.class);
+		evaluate(json, "fizz", JsonNode.class);
 	}
 
 	@Test(expected = SpelEvaluationException.class)
 	public void testMissingProperty() throws Exception {
 		Object json = mapper.readTree("{\"foo\": \"bar\"}");
-		evaluate("fizz", json, JsonNode.class);
+		evaluate(json, "fizz", JsonNode.class);
 	}
 
 	@Test
@@ -75,7 +76,7 @@ public class JsonPropertyAccessorTest {
 		Map<String, Object> root = Collections.singletonMap("foo", json);
 		// JsonNode actual = evaluate("1", json, JsonNode.class); // Does not work
 		// JsonNode actual = evaluate("'1'", json, JsonNode.class); // Does not work
-		JsonNode actual = evaluate("['1']", json, JsonNode.class);
+		JsonNode actual = evaluate(json, "['1']", JsonNode.class);
 		assertEquals(4, actual.asInt());
 	}
 
@@ -84,7 +85,7 @@ public class JsonPropertyAccessorTest {
 		Object json = mapper.readTree("[[3], [4, 5], []]");
 		// JsonNode actual = evaluate("1.1", json, JsonNode.class); // Does not work
 		// JsonNode actual = evaluate("[1][1]", json, JsonNode.class); // Does not work
-		JsonNode actual = evaluate("['1']['1']", json, JsonNode.class);
+		JsonNode actual = evaluate(json, "['1']['1']", JsonNode.class);
 		assertEquals(5, actual.asInt());
 	}
 
@@ -92,13 +93,44 @@ public class JsonPropertyAccessorTest {
 	@Test
 	public void testNestedHashConstruct() throws Exception {
 		Object json = mapper.readTree("{\"foo\": {\"bar\": 4, \"fizz\": 5} }");
-		JsonNode actual = evaluate("foo.fizz", json, JsonNode.class);
+		JsonNode actual = evaluate(json, "foo.fizz", JsonNode.class);
 		assertEquals(5, actual.asInt());
-		actual = evaluate("[foo].bar", json, JsonNode.class);
-		assertEquals(4, actual.asInt());
 	}
 
-	private <T> T evaluate(String expression, Object target, Class<T> expectedType) {
+	@Test
+	public void testWriteInHash() throws Exception {
+		JsonNode json = mapper.readTree("{\"foo\": 4}");
+
+		assign(json, "bar", 42L);
+		assertTrue(json.get("bar").isLong());
+		assertEquals(42L, json.get("bar").longValue());
+
+		assign(json, "foo", "fizz");
+		assertEquals("fizz", json.get("foo").asText());
+	}
+
+	@Test
+	public void testWriteInArray() throws Exception {
+		JsonNode json = mapper.readTree("[4, 5, 6]");
+
+		assign(json, "['1']", 42);
+		assertEquals(42, json.get(1).asInt());
+	}
+
+	@Test
+	public void testWriteNested() throws Exception {
+		JsonNode json = mapper.readTree("{\"foo\": 42}");
+		Integer[] value = new Integer[] { 3, 4, 5 };
+
+		assign(json, "foo", value);
+		assertEquals(5, json.get("foo").get(2).asInt());
+	}
+
+	private <T> T evaluate(Object target, String expression, Class<T> expectedType) {
 		return parser.parseExpression(expression).getValue(context, target, expectedType);
+	}
+
+	private void assign(Object target, String expression, Object value) {
+		parser.parseExpression(expression).setValue(context, target, value);
 	}
 }

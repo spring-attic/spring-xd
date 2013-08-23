@@ -131,7 +131,7 @@ public class TriggerPlugin implements Plugin {
 	 * registering a new Module.
 	 */
 	@Override
-	public void postProcessSharedContext(ConfigurableApplicationContext context) {
+	public void preProcessSharedContext(ConfigurableApplicationContext context) {
 		this.commonApplicationContext = context;
 	}
 

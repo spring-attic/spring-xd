@@ -82,7 +82,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		ApplicationContext analytics = context.getParent();
 		commonContext.setParent(analytics);
 		for (Plugin plugin : plugins.values()) {
-			plugin.postProcessSharedContext(commonContext);
+			plugin.preProcessSharedContext(commonContext);
 		}
 		commonContext.refresh();
 		this.commonContext = commonContext;

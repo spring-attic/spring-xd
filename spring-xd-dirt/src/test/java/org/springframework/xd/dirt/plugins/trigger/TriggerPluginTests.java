@@ -61,7 +61,7 @@ public class TriggerPluginTests {
 	@Test
 	public void noPostProcessorsAdded() {
 		GenericApplicationContext context = new GenericApplicationContext();
-		plugin.postProcessSharedContext(context);
+		plugin.preProcessSharedContext(context);
 		List<BeanFactoryPostProcessor> postProcessors = context.getBeanFactoryPostProcessors();
 		assertEquals(0, postProcessors.size());
 	}
@@ -84,7 +84,7 @@ public class TriggerPluginTests {
 	@Test
 	public void testCronTriggerAddedToSharedContext() {
 		GenericApplicationContext commonContext = new GenericApplicationContext();
-		plugin.postProcessSharedContext(commonContext);
+		plugin.preProcessSharedContext(commonContext);
 
 		Module module = new SimpleModule(new ModuleDefinition("testTrigger", "trigger"), new DeploymentMetadata(
 				"newTrigger", 0));
@@ -100,7 +100,7 @@ public class TriggerPluginTests {
 	@Test
 	public void testCronTriggerDelete() {
 		GenericApplicationContext commonContext = new GenericApplicationContext();
-		plugin.postProcessSharedContext(commonContext);
+		plugin.preProcessSharedContext(commonContext);
 
 		Module module = new SimpleModule(new ModuleDefinition("testTrigger",
 				"trigger"), new DeploymentMetadata("newTrigger", 0));
@@ -121,7 +121,7 @@ public class TriggerPluginTests {
 	@Test
 	public void testFixedDelayTriggerAddedToSharedContext() {
 		GenericApplicationContext commonContext = new GenericApplicationContext();
-		plugin.postProcessSharedContext(commonContext);
+		plugin.preProcessSharedContext(commonContext);
 
 		Module module = new SimpleModule(new ModuleDefinition("testTrigger", "trigger"), new DeploymentMetadata(
 				"newTrigger", 0));
@@ -137,7 +137,7 @@ public class TriggerPluginTests {
 	@Test
 	public void testFixedRateTriggerAddedToSharedContext() {
 		GenericApplicationContext commonContext = new GenericApplicationContext();
-		plugin.postProcessSharedContext(commonContext);
+		plugin.preProcessSharedContext(commonContext);
 
 		Module module = new SimpleModule(new ModuleDefinition("testTrigger", "trigger"), new DeploymentMetadata(
 				"newTrigger", 0));
@@ -156,7 +156,7 @@ public class TriggerPluginTests {
 				"newTrigger", 0));
 		assertEquals(0, module.getProperties().size());
 		GenericApplicationContext commonContext = new GenericApplicationContext();
-		plugin.postProcessSharedContext(commonContext);
+		plugin.preProcessSharedContext(commonContext);
 
 		try {
 			plugin.preProcessModule(module);
@@ -174,7 +174,7 @@ public class TriggerPluginTests {
 		Module module = new SimpleModule(new ModuleDefinition("testTrigger", "trigger"), new DeploymentMetadata(
 				"newTrigger", 0));
 		GenericApplicationContext commonContext = new GenericApplicationContext();
-		plugin.postProcessSharedContext(commonContext);
+		plugin.preProcessSharedContext(commonContext);
 		module.getProperties().put("cron", "*/15 * * * * *");
 		module.getProperties().put("fixedRate", "6000");
 		assertEquals(2, module.getProperties().size());

@@ -56,7 +56,7 @@ public class MBeanExportingPlugin implements Plugin {
 	}
 
 	@Override
-	public void postProcessSharedContext(ConfigurableApplicationContext context) {
+	public void preProcessSharedContext(ConfigurableApplicationContext context) {
 		jmxEnabled = "true".equals(context.getEnvironment().getProperty(XDPropertyKeys.XD_JMX_ENABLED));
 	}
 }

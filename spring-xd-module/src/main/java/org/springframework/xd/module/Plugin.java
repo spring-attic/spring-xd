@@ -51,6 +51,6 @@ public interface Plugin {
 	 * 
 	 * @param context
 	 */
-	void postProcessSharedContext(ConfigurableApplicationContext context);
+	void preProcessSharedContext(ConfigurableApplicationContext context);
 
 }

@@ -98,7 +98,7 @@ public abstract class AbstractPlugin implements Plugin {
 	protected abstract void configureProperties(Module module);
 
 	@Override
-	public void postProcessSharedContext(ConfigurableApplicationContext context) {
+	public void preProcessSharedContext(ConfigurableApplicationContext context) {
 		if (postProcessContextPaths != null) {
 			addBeanFactoryPostProcessors(context, postProcessContextPaths);
 		}

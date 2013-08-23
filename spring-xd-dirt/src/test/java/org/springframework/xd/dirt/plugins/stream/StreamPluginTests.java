@@ -102,7 +102,7 @@ public class StreamPluginTests {
 	@Test
 	public void sharedComponentsAdded() {
 		GenericApplicationContext context = new GenericApplicationContext();
-		plugin.postProcessSharedContext(context);
+		plugin.preProcessSharedContext(context);
 		List<BeanFactoryPostProcessor> sharedBeans = context.getBeanFactoryPostProcessors();
 		assertEquals(1, sharedBeans.size());
 		assertTrue(sharedBeans.get(0) instanceof BeanDefinitionAddingPostProcessor);

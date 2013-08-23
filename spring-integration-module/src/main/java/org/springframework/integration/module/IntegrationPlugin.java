@@ -74,7 +74,7 @@ public class IntegrationPlugin implements Plugin {
 	}
 
 	@Override
-	public void postProcessSharedContext(ConfigurableApplicationContext commonContext) {
+	public void preProcessSharedContext(ConfigurableApplicationContext commonContext) {
 	}
 
 	@Override

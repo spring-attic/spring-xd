@@ -81,7 +81,8 @@ abstract class DisposableFileSupport extends AbstractModuleFixture {
 			try {
 				Thread.sleep(100);
 			}
-			catch (InterruptedException ignore) {
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
 			}
 			catch (Exception ex) {
 				break;

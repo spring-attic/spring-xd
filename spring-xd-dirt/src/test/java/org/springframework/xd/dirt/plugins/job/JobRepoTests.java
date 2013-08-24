@@ -87,14 +87,6 @@ public class JobRepoTests extends AbstractAdminMainIntegrationTests {
 	}
 
 	@Test
-	public void createdFileStoreForRepo() throws Exception {
-		File file = new File("../data");
-		assertTrue(file.isDirectory());
-		assertTrue(file.exists());
-		file.delete();
-	}
-
-	@Test
 	public void checkThatRepoTablesAreCreated() throws Exception {
 		@SuppressWarnings("resource")
 		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext();
@@ -128,10 +120,8 @@ public class JobRepoTests extends AbstractAdminMainIntegrationTests {
 		assertTrue(repo.isJobInstanceExists(SIMPLE_JOB_NAME, new JobParameters()));
 	}
 }
-
-
 @Configuration
-@ImportResource("org/springframework/xd/dirt/plugins/job/JobRepoTests-config.xml")
+@ImportResource("classpath:/META-INF/spring-xd/batch/batch.xml")
 class JobRepoTestsConfig {
 
 	@Autowired

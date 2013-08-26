@@ -22,6 +22,7 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
  * @author Jon Brisbin
  */
 public class ReactorNamespaceHandler extends AbstractIntegrationNamespaceHandler {
+
 	@Override
 	public void init() {
 		registerBeanDefinitionParser("syslog-inbound-channel-adapter", new SyslogInboundChannelAdapterParser());

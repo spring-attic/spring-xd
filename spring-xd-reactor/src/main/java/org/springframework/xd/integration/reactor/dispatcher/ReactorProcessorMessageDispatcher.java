@@ -16,9 +16,13 @@
 
 package org.springframework.xd.integration.reactor.dispatcher;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.dispatcher.MessageDispatcher;
+
 import reactor.core.processor.Operation;
 import reactor.core.processor.Processor;
 import reactor.core.processor.spec.ProcessorSpec;
@@ -26,17 +30,16 @@ import reactor.function.Consumer;
 import reactor.function.Supplier;
 import reactor.function.support.DelegatingConsumer;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * @author Jon Brisbin
  */
-@SuppressWarnings({"rawtypes", "unchecked"})
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class ReactorProcessorMessageDispatcher implements MessageDispatcher {
 
-	private final Map<MessageHandler, Consumer>    messageHandlerConsumers = new ConcurrentHashMap<MessageHandler, Consumer>();
-	private final DelegatingConsumer<MessageEvent> delegatingConsumer      = new DelegatingConsumer<MessageEvent>();
+	private final Map<MessageHandler, Consumer> messageHandlerConsumers = new ConcurrentHashMap<MessageHandler, Consumer>();
+
+	private final DelegatingConsumer<MessageEvent> delegatingConsumer = new DelegatingConsumer<MessageEvent>();
+
 	private final Processor<MessageEvent> processor;
 
 	public ReactorProcessorMessageDispatcher() {
@@ -46,6 +49,7 @@ public class ReactorProcessorMessageDispatcher implements MessageDispatcher {
 	public ReactorProcessorMessageDispatcher(boolean singleThreadedProducer) {
 		ProcessorSpec<MessageEvent> spec = new ProcessorSpec<MessageEvent>()
 				.dataSupplier(new Supplier<MessageEvent>() {
+
 					@Override
 					public MessageEvent get() {
 						return new MessageEvent();
@@ -54,7 +58,8 @@ public class ReactorProcessorMessageDispatcher implements MessageDispatcher {
 				.consume(delegatingConsumer);
 		if (singleThreadedProducer) {
 			spec.singleThreadedProducer();
-		} else {
+		}
+		else {
 			spec.multiThreadedProducer();
 		}
 		this.processor = spec.get();
@@ -63,6 +68,7 @@ public class ReactorProcessorMessageDispatcher implements MessageDispatcher {
 	@Override
 	public boolean addHandler(final MessageHandler handler) {
 		Consumer<MessageEvent> consumer = new Consumer<MessageEvent>() {
+
 			@Override
 			public void accept(MessageEvent ev) {
 				handler.handleMessage(ev.message);
@@ -92,6 +98,7 @@ public class ReactorProcessorMessageDispatcher implements MessageDispatcher {
 	}
 
 	private static class MessageEvent {
+
 		Message<?> message;
 	}
 

@@ -16,11 +16,11 @@
 
 package org.springframework.xd.integration.reactor;
 
+import java.util.concurrent.CountDownLatch;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageHandler;
-
-import java.util.concurrent.CountDownLatch;
 
 /**
  * @author Jon Brisbin

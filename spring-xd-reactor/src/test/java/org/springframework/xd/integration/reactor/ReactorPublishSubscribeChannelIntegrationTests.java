@@ -16,18 +16,19 @@
 
 package org.springframework.xd.integration.reactor;
 
+import static junit.framework.TestCase.assertTrue;
+
+import java.util.concurrent.TimeUnit;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import java.util.concurrent.TimeUnit;
-
-import static junit.framework.TestCase.assertTrue;
 
 /**
  * @author Jon Brisbin
@@ -38,8 +39,9 @@ public class ReactorPublishSubscribeChannelIntegrationTests {
 
 	@Autowired
 	private SubscribableChannel output;
+
 	@Autowired
-	private TestMessageHandler  testHandler;
+	private TestMessageHandler testHandler;
 
 	@Test
 	public void testReactorPublishSubscribeChannel() throws InterruptedException {

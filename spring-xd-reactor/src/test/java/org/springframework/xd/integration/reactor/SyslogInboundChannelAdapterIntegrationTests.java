@@ -16,9 +16,19 @@
 
 package org.springframework.xd.integration.reactor;
 
+import static org.junit.Assert.assertTrue;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,19 +39,11 @@ import org.springframework.integration.core.MessageHandler;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.xd.integration.reactor.syslog.SyslogInboundChannelAdapter;
+
 import reactor.core.Environment;
 import reactor.core.Reactor;
 import reactor.core.spec.Reactors;
 import reactor.spring.context.config.EnableReactor;
-
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Jon Brisbin
@@ -51,19 +53,24 @@ import static org.junit.Assert.assertTrue;
 public class SyslogInboundChannelAdapterIntegrationTests {
 
 	CountDownLatch latch;
-	Environment    env;
+
+	Environment env;
+
 	@Autowired
 	SyslogInboundChannelAdapter channelAdapter;
+
 	@Autowired
-	SyslogWriter                syslogWriter;
+	SyslogWriter syslogWriter;
+
 	@Autowired
-	DirectChannel               output;
+	DirectChannel output;
 
 	@Before
 	public void setup() {
 		env = new Environment();
 
 		output.subscribe(new MessageHandler() {
+
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
 				latch.countDown();
@@ -83,6 +90,7 @@ public class SyslogInboundChannelAdapterIntegrationTests {
 	@Configuration
 	@EnableReactor
 	static class TestConfiguration {
+
 		@Bean
 		public Reactor reactor(Environment env) {
 			return Reactors.reactor().env(env).get();
@@ -108,6 +116,7 @@ public class SyslogInboundChannelAdapterIntegrationTests {
 	}
 
 	static class SyslogWriter extends Thread {
+
 		@Override
 		public void run() {
 			try {
@@ -118,7 +127,8 @@ public class SyslogInboundChannelAdapterIntegrationTests {
 				channel.write(buff);
 
 				channel.close();
-			} catch (IOException e) {
+			}
+			catch (IOException e) {
 				throw new IllegalStateException(e);
 			}
 

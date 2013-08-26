@@ -19,6 +19,7 @@ package org.springframework.xd.integration.reactor.syslog;
 import org.springframework.integration.Message;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
+
 import reactor.core.Environment;
 import reactor.event.dispatch.SynchronousDispatcher;
 import reactor.function.Consumer;
@@ -35,8 +36,11 @@ import reactor.tcp.spec.TcpServerSpec;
 public class SyslogInboundChannelAdapter extends MessageProducerSupport {
 
 	private final TcpServerSpec<SyslogMessage, Void> spec;
+
 	private volatile String host = "0.0.0.0";
-	private volatile int    port = 5140;
+
+	private volatile int port = 5140;
+
 	private volatile TcpServer<SyslogMessage, Void> server;
 
 	public SyslogInboundChannelAdapter(Environment env) {
@@ -45,9 +49,11 @@ public class SyslogInboundChannelAdapter extends MessageProducerSupport {
 				.dispatcher(new SynchronousDispatcher())
 				.codec(new SyslogCodec())
 				.consume(new Consumer<TcpConnection<SyslogMessage, Void>>() {
+
 					@Override
 					public void accept(TcpConnection<SyslogMessage, Void> conn) {
 						conn.in().consume(new Consumer<SyslogMessage>() {
+
 							@Override
 							public void accept(SyslogMessage syslogMsg) {
 								Message<SyslogMessage> siMsg = MessageBuilder.withPayload(syslogMsg).build();

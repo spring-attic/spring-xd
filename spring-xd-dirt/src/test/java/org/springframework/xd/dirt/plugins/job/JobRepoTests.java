@@ -26,21 +26,14 @@ import javax.sql.DataSource;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.job.SimpleJob;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.repository.JobRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.xd.dirt.server.AbstractAdminMainIntegrationTests;
 import org.springframework.xd.dirt.server.SingleNodeMain;
 import org.springframework.xd.dirt.server.SingleNodeServer;
@@ -48,17 +41,16 @@ import org.springframework.xd.dirt.server.options.SingleNodeOptions;
 
 
 /**
- *
+ * 
  * @author Glenn Renfro
  * @author Gunnar Hillert
- *
+ * 
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = JobRepoTestsConfig.class)
 public class JobRepoTests extends AbstractAdminMainIntegrationTests {
 
 
 	private static final String SIMPLE_JOB_NAME = "foobar";
+
 	private static final String REPOSITORY_LOCATION = "../data";
 
 	private volatile SingleNodeServer streamServer;
@@ -70,9 +62,10 @@ public class JobRepoTests extends AbstractAdminMainIntegrationTests {
 			assertTrue(file.isDirectory());
 			file.delete();
 		}
-		SingleNodeOptions opts = SingleNodeMain.parseOptions(new String[] { "--httpPort", "0", "--transport", "local", "--store",
-				"memory", "--analytics", "memory" });
-			streamServer = 	SingleNodeMain.launchSingleNodeServer(opts);
+		SingleNodeOptions opts = SingleNodeMain.parseOptions(new String[] { "--httpPort", "0", "--transport", "local",
+			"--store",
+			"memory", "--analytics", "memory" });
+		streamServer = SingleNodeMain.launchSingleNodeServer(opts);
 
 	}
 
@@ -88,47 +81,50 @@ public class JobRepoTests extends AbstractAdminMainIntegrationTests {
 
 	@Test
 	public void checkThatRepoTablesAreCreated() throws Exception {
-		@SuppressWarnings("resource")
-		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext();
-		applicationContext.register(JobRepoTestsConfig.class);
-		applicationContext.refresh();
+		ClassPathXmlApplicationContext applicationContext = null;
+		try {
+			applicationContext = new ClassPathXmlApplicationContext(
+					"classpath:/META-INF/spring-xd/batch/batch.xml");
+			applicationContext.refresh();
 
-		DataSource source = applicationContext.getBean("dataSource", DataSource.class);
-		JdbcTemplate jdbcTemplate = new JdbcTemplate(source);
-		int count = jdbcTemplate.queryForObject(
-				"select count(*) from INFORMATION_SCHEMA.system_tables  WHERE TABLE_NAME LIKE 'BATCH_%'", Integer.class).intValue();
-		assertEquals("The number of batch tables returned from hsqldb did not match.", count, 9);
+			DataSource source = applicationContext.getBean("dataSource", DataSource.class);
+			JdbcTemplate jdbcTemplate = new JdbcTemplate(source);
+			int count = jdbcTemplate.queryForObject(
+					"select count(*) from INFORMATION_SCHEMA.system_tables  WHERE TABLE_NAME LIKE 'BATCH_%'",
+					Integer.class).intValue();
+			assertEquals("The number of batch tables returned from hsqldb did not match.", count, 9);
+		}
+		finally {
+			if (applicationContext != null) {
+				applicationContext.close();
+			}
+		}
 	}
 
 	@Test
 	public void checkThatContainerHasRepo() throws Exception {
-		@SuppressWarnings("resource")
-		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext();
-		applicationContext.register(JobRepoTestsConfig.class);
-		applicationContext.refresh();
-
-		JobRepository repo = applicationContext.getBean("jobRepository", JobRepository.class);
-		JobLauncher launcher = applicationContext.getBean("jobLauncher", JobLauncher.class);
-		Job job = new SimpleJob(SIMPLE_JOB_NAME);
+		ClassPathXmlApplicationContext applicationContext = null;
 		try {
-			launcher.run(job, new JobParameters());
-		}
-		catch (Exception ex)
-		{
-			// we can ignore this. Just want to create a fake job instance.
-		}
-		assertTrue(repo.isJobInstanceExists(SIMPLE_JOB_NAME, new JobParameters()));
-	}
-}
-@Configuration
-@ImportResource("classpath:/META-INF/spring-xd/batch/batch.xml")
-class JobRepoTestsConfig {
+			applicationContext = new ClassPathXmlApplicationContext(
+					"classpath:/META-INF/spring-xd/batch/batch.xml");
+			applicationContext.refresh();
 
-	@Autowired
-	DataSource dataSource;
+			JobRepository repo = applicationContext.getBean("jobRepository", JobRepository.class);
+			JobLauncher launcher = applicationContext.getBean("jobLauncher", JobLauncher.class);
+			Job job = new SimpleJob(SIMPLE_JOB_NAME);
+			try {
+				launcher.run(job, new JobParameters());
+			}
+			catch (Exception ex) {
+				// we can ignore this. Just want to create a fake job instance.
+			}
+			assertTrue(repo.isJobInstanceExists(SIMPLE_JOB_NAME, new JobParameters()));
 
-	@Bean
-	public DataSource getDataSource() {
-		return dataSource;
+		}
+		finally {
+			if (applicationContext != null) {
+				applicationContext.close();
+			}
+		}
 	}
 }

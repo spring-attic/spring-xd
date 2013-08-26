@@ -13,6 +13,8 @@
 
 package org.springframework.xd.dirt.server.options;
 
+import java.util.Properties;
+
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.util.Assert;
@@ -24,45 +26,82 @@ import org.springframework.util.CollectionUtils;
 public class OptionUtils {
 
 	/**
+	 * Build XD Properties from options, partitioning by explicit and non-explicit command line arguments
+	 * 
+	 * @param options - the options
+	 * @param explicit - true if explicit options are included, false otherwise
+	 * @return
+	 */
+	static Properties optionsToProperties(AbstractOptions options, boolean explicit) {
+		Properties xdProperties = new Properties();
+
+		boolean explicitOption;
+
+		explicitOption = options.isExplicit(options.getXDHomeDir());
+		if ((explicitOption && explicit)
+				|| (!explicitOption && !explicit)) {
+			xdProperties.setProperty(XDPropertyKeys.XD_HOME, options.getXDHomeDir());
+		}
+		explicitOption = options.isExplicit(options.getTransport());
+		if ((explicitOption && explicit)
+				|| (!explicitOption && !explicit)) {
+			xdProperties.setProperty(XDPropertyKeys.XD_TRANSPORT, options.getTransport().name());
+		}
+		explicitOption = options.isExplicit(options.getAnalytics());
+		if ((explicitOption && explicit)
+				|| (!explicitOption && !explicit)) {
+			xdProperties.setProperty(XDPropertyKeys.XD_ANALYTICS, options.getAnalytics().name());
+		}
+		explicitOption = options.isExplicit(options.getHadoopDistro());
+		if ((explicitOption && explicit)
+				|| (!explicitOption && !explicit)) {
+			xdProperties.setProperty(XDPropertyKeys.XD_HADOOP_DISTRO, options.getHadoopDistro().name());
+		}
+		explicitOption = options.isExplicit(options.isJmxEnabled());
+		if ((explicitOption && explicit)
+				|| (!explicitOption && !explicit)) {
+			xdProperties.setProperty(XDPropertyKeys.XD_JMX_ENABLED, String.valueOf(options.isJmxEnabled()));
+		}
+		explicitOption = options.isExplicit(options.getJmxPort());
+		if ((explicitOption && explicit)
+				|| (!explicitOption && !explicit)) {
+			xdProperties.setProperty(XDPropertyKeys.XD_JMX_PORT, String.valueOf(options.getJmxPort()));
+		}
+		if (options instanceof AdminOptions) {
+			AdminOptions adminOptions = (AdminOptions) options;
+			explicitOption = adminOptions.isExplicit(adminOptions.getHttpPort());
+			if ((explicitOption && explicit)
+					|| (!explicitOption && !explicit)) {
+				xdProperties.setProperty(XDPropertyKeys.XD_HTTP_PORT, String.valueOf(adminOptions.getHttpPort()));
+			}
+			explicitOption = adminOptions.isExplicit(adminOptions.getStore());
+			if ((explicitOption && explicit)
+					|| (!explicitOption && !explicit)) {
+				xdProperties.setProperty(XDPropertyKeys.XD_STORE, adminOptions.getStore().name());
+			}
+		}
+		return xdProperties;
+	}
+
+	/**
 	 * Configure the XD runtime enviroment using parsed command line options
 	 * 
 	 * @param options Command line options
 	 * @param environment the application Context environment
 	 */
 	public static void configureRuntime(AbstractOptions options, ConfigurableEnvironment environment) {
-		XDPropertyConfigurer propertyConfigurer = new XDPropertyConfigurer(environment, options);
 
-		propertyConfigurer.handleCommandLineOption(XDPropertyKeys.XD_HOME,
-				options.getXDHomeDir(), null);
-		propertyConfigurer.handleCommandLineOption(XDPropertyKeys.XD_TRANSPORT,
-				options.getTransport(), options.getTransport().name());
-		propertyConfigurer.handleCommandLineOption(XDPropertyKeys.XD_ANALYTICS,
-				options.getAnalytics(), options.getAnalytics().name());
-		propertyConfigurer.handleCommandLineOption(XDPropertyKeys.XD_TRANSPORT,
-				options.getTransport(), options.getTransport().name());
-		propertyConfigurer.handleCommandLineOption(XDPropertyKeys.XD_JMX_ENABLED,
-				options.isJmxEnabled(),
-				String.valueOf(options.isJmxEnabled()));
-
-		if (options instanceof AdminOptions) {
-			propertyConfigurer.handleCommandLineOption(XDPropertyKeys.XD_STORE,
-					((AdminOptions) options).getStore(),
-					((AdminOptions) options).getStore().name());
-			propertyConfigurer.handleCommandLineOption(XDPropertyKeys.XD_HTTP_PORT,
-					((AdminOptions) options).getHttpPort(), String.valueOf(((AdminOptions) options).getHttpPort()));
-		}
-
-		propertyConfigurer.handleCommandLineOption(XDPropertyKeys.XD_JMX_ENABLED,
-				options.isJmxEnabled(), String.valueOf(options.isJmxEnabled()));
-		if (options.isJmxEnabled()) {
-			propertyConfigurer.handleCommandLineOption(XDPropertyKeys.XD_JMX_PORT,
-					options.getJmxPort(), String.valueOf(options.getJmxPort()));
-		}
-
-		if (!CollectionUtils.isEmpty(propertyConfigurer.getOverrideProperties())) {
+		Properties overrideProperties = optionsToProperties(options, true);
+		if (!CollectionUtils.isEmpty(overrideProperties)) {
 			environment.getPropertySources().addFirst(new PropertiesPropertySource(
-					"xdProperties", propertyConfigurer.getOverrideProperties()));
+					"xdProperties", overrideProperties));
 		}
+		Properties defaultProperties = optionsToProperties(options, false);
+		if (!CollectionUtils.isEmpty(defaultProperties)) {
+			environment.getPropertySources().addLast(new PropertiesPropertySource(
+					"xdDefaults", defaultProperties));
+		}
+
 		Assert.isTrue(environment.containsProperty(XDPropertyKeys.XD_HOME), "XD_HOME is not set");
 		Assert.isTrue(environment.containsProperty(XDPropertyKeys.XD_TRANSPORT), "XD_TRANSPORT is not set");
 	}

@@ -24,8 +24,6 @@ import java.util.Map;
 import org.kohsuke.args4j.Option;
 import org.kohsuke.args4j.spi.ExplicitBooleanOptionHandler;
 
-import org.springframework.util.Assert;
-
 
 /**
  * Options shared by both the admin and the container server.
@@ -155,8 +153,7 @@ public abstract class AbstractOptions {
 
 	public boolean isExplicit(Object option) {
 		Boolean explicit = optionMetadataCache.get(option);
-		Assert.notNull(explicit, "no metadata found for object :" + option);
-		return explicit.booleanValue();
+		return explicit == null ? false : explicit.booleanValue();
 	}
 
 	/**

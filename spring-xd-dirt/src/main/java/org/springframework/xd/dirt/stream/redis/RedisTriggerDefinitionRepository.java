@@ -31,7 +31,7 @@ public class RedisTriggerDefinitionRepository extends AbstractRedisDefinitionRep
 		TriggerDefinitionRepository {
 
 	public RedisTriggerDefinitionRepository(RedisOperations<String, String> redisOperations) {
-		super("triggers.", redisOperations);
+		super("triggers", redisOperations);
 	}
 
 	@Override

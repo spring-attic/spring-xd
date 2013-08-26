@@ -37,7 +37,7 @@ public class RedisCounterRepository extends AbstractRedisRepository<Counter, Str
 	protected ValueOperations<String, Long> longOperations;
 
 	public RedisCounterRepository(RedisConnectionFactory redisConnectionFactory) {
-		this("counters.", redisConnectionFactory);
+		this("counters", redisConnectionFactory);
 	}
 
 	public RedisCounterRepository(String repoPrefix, RedisConnectionFactory redisConnectionFactory) {

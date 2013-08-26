@@ -30,7 +30,7 @@ public class RedisTapDefinitionRepository extends AbstractRedisDefinitionReposit
 		TapDefinitionRepository {
 
 	public RedisTapDefinitionRepository(RedisOperations<String, String> redisOperations) {
-		super("tap.definitions.", redisOperations);
+		super("tap.definitions", redisOperations);
 	}
 
 	@Override

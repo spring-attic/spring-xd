@@ -60,7 +60,7 @@ public class RedisAggregateCounterRepository extends RedisCounterRepository impl
 	 * @param redisConnectionFactory
 	 */
 	public RedisAggregateCounterRepository(RedisConnectionFactory redisConnectionFactory) {
-		super("aggregatecounters.", redisConnectionFactory);
+		super("aggregatecounters", redisConnectionFactory);
 		RedisTemplate<String, String> redisTemplate = new RedisTemplate<String, String>();
 		redisTemplate.setConnectionFactory(redisConnectionFactory);
 		redisTemplate.setKeySerializer(new StringRedisSerializer());

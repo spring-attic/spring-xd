@@ -39,7 +39,7 @@ import org.springframework.util.Assert;
  * <ul>
  * <li>a sorted set is stored under that exact key that tracks the entity ids this repository is responsible for,
  * <li>
- * <li>each entity is stored serialized under key {@code repoPrefix<id>}</li>
+ * <li>each entity is stored serialized under key {@code repoPrefix.<id>}</li>
  * </ul>
  * 
  * @param <T> the type of things to store
@@ -238,11 +238,12 @@ public abstract class AbstractRedisRepository<T, ID extends Serializable & Compa
 
 	protected String redisKeyFromId(ID id) {
 		Assert.notNull(id);
-		return repoPrefix + serializeId(id);
+		return repoPrefix + "." + serializeId(id);
 	}
 
 	protected ID idFromRedisKey(String redisKey) {
-		String serialized = redisKey.substring(repoPrefix.length());
+		// + 1 is for "." length
+		String serialized = redisKey.substring(repoPrefix.length() + 1);
 		return deserializeId(serialized);
 	}
 

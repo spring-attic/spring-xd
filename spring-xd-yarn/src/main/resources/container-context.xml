@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:yarn="http://www.springframework.org/schema/yarn"
+	xsi:schemaLocation="http://www.springframework.org/schema/yarn http://www.springframework.org/schema/yarn/spring-yarn.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
+
+	<task:executor id="taskExecutor" pool-size="5"/>
+	<task:scheduler id="taskScheduler" pool-size="5"/>
+
+	<!-- import XD launcher -->
+	<import resource="classpath*:/META-INF/spring-xd/internal/launcher.xml"/>
+
+	<!-- as bean reference order for DI to work -->
+	<bean id="xdContainer" class="org.springframework.xd.yarn.XdYarnContainer"/>
+	<yarn:container container-ref="xdContainer" />
+
+</beans>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:yarn="http://www.springframework.org/schema/yarn"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/yarn http://www.springframework.org/schema/yarn/spring-yarn.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
+
+	<import resource="classpath:META-INF/spring-xd/analytics/redis-analytics.xml" />
+
+	<context:annotation-config/>
+
+	<task:executor id="taskExecutor" pool-size="5"/>
+	<task:scheduler id="taskScheduler" pool-size="5"/>
+
+	<bean id="yarnEventPublisher" class="org.springframework.yarn.event.DefaultYarnEventPublisher"/>
+
+	<context:property-placeholder location="hadoop.properties" system-properties-mode="OVERRIDE"/>
+
+	<!-- We hook into properties given by client -->
+	<yarn:configuration>
+		fs.defaultFS=${syarn.hd.fs}
+		yarn.resourcemanager.address=${syarn.hd.rm}
+		yarn.resourcemanager.scheduler.address=${syarn.hd.scheduler}
+	</yarn:configuration>
+
+	<!-- Resources to localize into container's working directory -->
+	<yarn:localresources>
+		<yarn:hdfs path="/xd/xdapp.zip" type="ARCHIVE"/>
+	</yarn:localresources>
+
+	<!-- Container environment variables -->
+	<yarn:environment>
+		<yarn:classpath>
+			./xdapp.zip/lib/*
+		</yarn:classpath>
+		xd.home=${xd.home}
+	</yarn:environment>
+
+	<!-- Arguments to appmaster process launcher -->
+	<util:properties id="arguments">
+		<prop key="-Dxd.transport">${xd.transport}</prop>
+		<prop key="-Dxd.home">${xd.home}</prop>
+	</util:properties>
+
+	<!-- Our xd specific appmaster -->
+	<yarn:master class="org.springframework.xd.yarn.XdYarnAppmaster">
+		<yarn:container-runner arguments="arguments"/>
+	</yarn:master>
+
+</beans>

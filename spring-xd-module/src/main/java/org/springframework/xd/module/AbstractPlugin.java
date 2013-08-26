@@ -36,7 +36,7 @@ public abstract class AbstractPlugin implements Plugin {
 
 	/**
 	 * Represents the path and file name of the context to be used in post processing of the module. If not set the
-	 * postProcessContext will use defaults. Beans willl be added to the shared context.
+	 * postProcessContext will use defaults. Beans will be added to the shared context.
 	 * 
 	 */
 	private String[] postProcessContextPaths;

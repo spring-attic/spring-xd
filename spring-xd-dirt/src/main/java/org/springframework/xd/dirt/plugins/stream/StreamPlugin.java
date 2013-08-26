@@ -131,6 +131,9 @@ public class StreamPlugin implements Plugin {
 				else if (acceptedType instanceof MediaType) {
 					acceptedMediaTypes.add((MediaType) acceptedType);
 				}
+				else {
+					throw new IllegalArgumentException("Unrecognized MediaType :" + acceptedType);
+				}
 			}
 			return Collections.unmodifiableCollection(acceptedMediaTypes);
 		}

@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.DefaultSingletonBeanRegistry;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.scheduling.Trigger;
@@ -32,7 +31,6 @@ import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.module.ResourceDefinitionException;
-import org.springframework.xd.module.BeanDefinitionAddingPostProcessor;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.Plugin;
 
@@ -73,7 +71,6 @@ public class TriggerPlugin implements Plugin {
 		Assert.notNull(commonApplicationContext,
 				"The 'commonApplicationContext' property must not be null.");
 
-		final BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition();
 		Map<String, Trigger> triggers = new HashMap<String, Trigger>();
 		if (module.getProperties().containsKey(TriggerType.cron.name())) {
 			Trigger trigger = new CronTrigger(module.getProperties().getProperty(TriggerType.cron.name()));
@@ -98,12 +95,8 @@ public class TriggerPlugin implements Plugin {
 			throw new ResourceDefinitionException("Only one trigger property allowed, but received: "
 					+ StringUtils.collectionToCommaDelimitedString(triggers.keySet()));
 		}
-		String group = module.getDeploymentMetadata().getGroup();
-		commonApplicationContext.getBeanFactory().registerSingleton(BEAN_NAME_PREFIX + group,
+		commonApplicationContext.getBeanFactory().registerSingleton(makeTriggerBeanName(module),
 				triggers.values().iterator().next());
-		final BeanDefinitionAddingPostProcessor postProcessor = new BeanDefinitionAddingPostProcessor();
-		postProcessor.addBeanDefinition(BEAN_NAME_PREFIX + group, builder.getBeanDefinition());
-		this.commonApplicationContext.addBeanFactoryPostProcessor(postProcessor);
 		configureProperties(module);
 	}
 
@@ -113,11 +106,14 @@ public class TriggerPlugin implements Plugin {
 
 	@Override
 	public void removeModule(Module module) {
-		String beanName = BEAN_NAME_PREFIX
-				+ module.getDeploymentMetadata().getGroup();
+		String beanName = makeTriggerBeanName(module);
 		ConfigurableListableBeanFactory beanFactory = commonApplicationContext
 				.getBeanFactory();
 		((DefaultSingletonBeanRegistry) beanFactory).destroySingleton(beanName);
+	}
+
+	private String makeTriggerBeanName(Module module) {
+		return BEAN_NAME_PREFIX + module.getDeploymentMetadata().getGroup();
 	}
 
 	private void configureProperties(Module module) {

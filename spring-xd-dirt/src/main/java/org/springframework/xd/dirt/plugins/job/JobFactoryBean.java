@@ -16,16 +16,14 @@
 
 package org.springframework.xd.dirt.plugins.job;
 
-import java.util.Collection;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.configuration.JobRegistry;
+import org.springframework.batch.core.launch.NoSuchJobException;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * 
@@ -37,25 +35,25 @@ public class JobFactoryBean implements FactoryBean<Job> {
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
-	private String jobName;
+	private final String jobKeyInRegistry;
 
-	private JobRegistry registry;
+	private final JobRegistry registry;
 
 	private static String JOB_NAME_DELIMITER = ".";
-
-	private static int NAME_INDEX = 1;
 
 	/**
 	 * Instantiate the {@link JobFactoryBean} with the provided {@link JobRegistry} and the name of the {@link Job}.
 	 * 
 	 * @param registry Must not be null
 	 * @param jobName Must not be empty
+	 * @param jobSuffix Must not be empty
 	 */
-	public JobFactoryBean(JobRegistry registry, String jobName) {
+	public JobFactoryBean(JobRegistry registry, String jobName, String jobSuffix) {
 		Assert.notNull(registry, "A JobRegistry is required");
 		Assert.hasText(jobName, "The jobName must not be empty.");
+		Assert.hasText(jobSuffix, "The jobSuffix must not be empty.");
 		this.registry = registry;
-		this.jobName = jobName;
+		this.jobKeyInRegistry = jobName + JOB_NAME_DELIMITER + jobSuffix;
 	}
 
 	/**
@@ -65,21 +63,14 @@ public class JobFactoryBean implements FactoryBean<Job> {
 	@Override
 	public Job getObject() throws Exception {
 
-		final Collection<String> names = registry.getJobNames();
+		final Job job;
 
-		Job job = null;
-
-		for (String curName : names) {
-			String[] jobNames = StringUtils.split(curName, JOB_NAME_DELIMITER);
-			if (jobNames[NAME_INDEX].equals(jobName)) {
-				job = registry.getJob(curName);
-				break;
-			}
+		try {
+			job = registry.getJob(this.jobKeyInRegistry);
 		}
-
-		if (job == null) {
-			throw new IllegalArgumentException(String.format("No Batch Job found "
-					+ "for the provided Job Name '%s'.", jobName));
+		catch (NoSuchJobException e) {
+			throw new IllegalStateException(String.format("No Batch Job found in registry"
+					+ "for the provided key '%s'.", this.jobKeyInRegistry));
 		}
 
 		return job;

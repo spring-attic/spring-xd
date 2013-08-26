@@ -42,9 +42,8 @@ public class JobTriggerBean implements Lifecycle {
 
 	private boolean isRunning = false;
 
-	public JobTriggerBean(String jobName, String jobParametersAsJsonMap, boolean executeBatchJobOnStartup,
+	public JobTriggerBean(String jobParametersAsJsonMap, boolean executeBatchJobOnStartup,
 			MessageChannel requestChannel) {
-		Assert.hasText(jobName, "The jobName must not be empty.");
 		Assert.notNull(requestChannel, "The requestChannel must not be null.");
 		this.executeBatchJobOnStartup = executeBatchJobOnStartup;
 		this.jobParametersAsJsonMap = jobParametersAsJsonMap;

@@ -81,50 +81,33 @@ public class JobRepoTests extends AbstractAdminMainIntegrationTests {
 
 	@Test
 	public void checkThatRepoTablesAreCreated() throws Exception {
-		ClassPathXmlApplicationContext applicationContext = null;
-		try {
-			applicationContext = new ClassPathXmlApplicationContext(
-					"classpath:/META-INF/spring-xd/batch/batch.xml");
-			applicationContext.refresh();
+		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(
+				"classpath:/META-INF/spring-xd/batch/batch.xml");
 
-			DataSource source = applicationContext.getBean("dataSource", DataSource.class);
-			JdbcTemplate jdbcTemplate = new JdbcTemplate(source);
-			int count = jdbcTemplate.queryForObject(
-					"select count(*) from INFORMATION_SCHEMA.system_tables  WHERE TABLE_NAME LIKE 'BATCH_%'",
-					Integer.class).intValue();
-			assertEquals("The number of batch tables returned from hsqldb did not match.", count, 9);
-		}
-		finally {
-			if (applicationContext != null) {
-				applicationContext.close();
-			}
-		}
+		DataSource source = applicationContext.getBean("dataSource", DataSource.class);
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(source);
+		int count = jdbcTemplate.queryForObject(
+				"select count(*) from INFORMATION_SCHEMA.system_tables  WHERE TABLE_NAME LIKE 'BATCH_%'",
+				Integer.class).intValue();
+		assertEquals("The number of batch tables returned from hsqldb did not match.", count, 9);
+		applicationContext.close();
 	}
 
 	@Test
 	public void checkThatContainerHasRepo() throws Exception {
-		ClassPathXmlApplicationContext applicationContext = null;
+		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(
+				"classpath:/META-INF/spring-xd/batch/batch.xml");
+
+		JobRepository repo = applicationContext.getBean("jobRepository", JobRepository.class);
+		JobLauncher launcher = applicationContext.getBean("jobLauncher", JobLauncher.class);
+		Job job = new SimpleJob(SIMPLE_JOB_NAME);
 		try {
-			applicationContext = new ClassPathXmlApplicationContext(
-					"classpath:/META-INF/spring-xd/batch/batch.xml");
-			applicationContext.refresh();
-
-			JobRepository repo = applicationContext.getBean("jobRepository", JobRepository.class);
-			JobLauncher launcher = applicationContext.getBean("jobLauncher", JobLauncher.class);
-			Job job = new SimpleJob(SIMPLE_JOB_NAME);
-			try {
-				launcher.run(job, new JobParameters());
-			}
-			catch (Exception ex) {
-				// we can ignore this. Just want to create a fake job instance.
-			}
-			assertTrue(repo.isJobInstanceExists(SIMPLE_JOB_NAME, new JobParameters()));
-
+			launcher.run(job, new JobParameters());
 		}
-		finally {
-			if (applicationContext != null) {
-				applicationContext.close();
-			}
+		catch (Exception ex) {
+			// we can ignore this. Just want to create a fake job instance.
 		}
+		assertTrue(repo.isJobInstanceExists(SIMPLE_JOB_NAME, new JobParameters()));
+		applicationContext.close();
 	}
 }

@@ -17,7 +17,6 @@
 package org.springframework.xd.dirt.server.options;
 
 import org.kohsuke.args4j.Option;
-
 import org.kohsuke.args4j.spi.ExplicitBooleanOptionHandler;
 
 
@@ -51,7 +50,7 @@ public abstract class AbstractOptions {
 	@Option(name = "--xdHomeDir", usage = "The XD installation directory", metaVar = "<xdHomeDir>")
 	protected String xdHomeDir = "..";
 
-	@Option(name = "--enableJmx", usage = "Enable JMX in the XD container (default: false", handler = ExplicitBooleanOptionHandler.class)
+	@Option(name = "--enableJmx", usage = "Enable JMX in the XD container (default: false)", metaVar = "[true | false]", handler = ExplicitBooleanOptionHandler.class)
 	protected boolean jmxEnabled = false;
 
 	@Option(name = "--analytics", usage = "How to persist analytics such as counters and gauges (default: redis)")

@@ -34,8 +34,7 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.util.Assert;
-import org.springframework.xd.dirt.event.ContainerStartedEvent;
-import org.springframework.xd.dirt.event.ContainerStoppedEvent;
+
 
 /**
  * @author Mark Fisher
@@ -140,13 +139,11 @@ public class XDContainer implements SmartLifecycle, ApplicationContextAware {
 		if (logger.isInfoEnabled()) {
 			logger.info("started container: " + context.getId());
 		}
-		context.publishEvent(new ContainerStartedEvent(this));
 	}
 
 	@Override
 	public void stop() {
 		if (this.context != null) {
-			this.context.publishEvent(new ContainerStoppedEvent(this));
 			this.context.close();
 			if (logger.isInfoEnabled()) {
 				final String message = "Stopped container: " + this.jvmName;

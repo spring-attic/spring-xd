@@ -27,6 +27,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.event.ContainerStartedEvent;
+import org.springframework.xd.dirt.event.ContainerStoppedEvent;
 import org.springframework.xd.dirt.server.options.ContainerOptions;
 
 /**
@@ -87,6 +88,7 @@ public abstract class AbstractContainerLauncher implements ContainerLauncher, Ap
 
 		@Override
 		public void onApplicationEvent(ContextClosedEvent event) {
+			event.getApplicationContext().publishEvent(new ContainerStoppedEvent(container));
 			container.stop();
 		}
 	}

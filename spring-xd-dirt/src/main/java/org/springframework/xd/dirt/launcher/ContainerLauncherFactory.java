@@ -51,7 +51,6 @@ public class ContainerLauncherFactory {
 		}
 
 		context.setParent(parentContext);
-		// OptionUtils.configureRuntime(options, context.getEnvironment());
 		context.refresh();
 
 		context.registerShutdownHook();

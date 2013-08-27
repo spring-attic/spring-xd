@@ -104,5 +104,8 @@ public class OptionUtils {
 
 		Assert.isTrue(environment.containsProperty(XDPropertyKeys.XD_HOME), "XD_HOME is not set");
 		Assert.isTrue(environment.containsProperty(XDPropertyKeys.XD_TRANSPORT), "XD_TRANSPORT is not set");
+		if (environment.getProperty(XDPropertyKeys.XD_JMX_ENABLED).equals("true")) {
+			environment.addActiveProfile("xd.jmx.enabled");
+		}
 	}
 }

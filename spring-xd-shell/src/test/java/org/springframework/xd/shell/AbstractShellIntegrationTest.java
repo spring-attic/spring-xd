@@ -29,7 +29,6 @@ import org.junit.Rule;
 import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
-import org.springframework.xd.dirt.server.AdminServer;
 import org.springframework.xd.dirt.server.SingleNodeMain;
 import org.springframework.xd.dirt.server.SingleNodeServer;
 import org.springframework.xd.dirt.server.options.SingleNodeOptions;
@@ -64,7 +63,7 @@ public abstract class AbstractShellIntegrationTest {
 
 	private static final Log logger = LogFactory.getLog(AbstractShellIntegrationTest.class);
 
-	private static AdminServer server;
+	private static SingleNodeServer server;
 
 	private static JLineShellComponent shell;
 
@@ -74,7 +73,7 @@ public abstract class AbstractShellIntegrationTest {
 		SingleNodeOptions options = SingleNodeMain.parseOptions(new String[] { "--httpPort", "0", "--transport",
 			"local", "--store",
 			"redis", "--analytics", "redis" });
-		SingleNodeServer server = SingleNodeMain.launchSingleNodeServer(options);
+		server = SingleNodeMain.launchSingleNodeServer(options);
 
 		Bootstrap bootstrap = new Bootstrap(new String[] { "--port",
 			Integer.toString(server.getAdminServer().getLocalPort()) });
@@ -84,8 +83,9 @@ public abstract class AbstractShellIntegrationTest {
 	@AfterClass
 	public static void shutdown() {
 		if (server != null) {
-			logger.info("Stopping StreamServer");
-			server.stop();
+			logger.info("Stopping Single Node Server");
+			server.getContainer().stop();
+			server.getAdminServer().stop();
 		}
 		logger.info("Stopping XD Shell");
 		shell.stop();
@@ -93,10 +93,6 @@ public abstract class AbstractShellIntegrationTest {
 
 	public static JLineShellComponent getShell() {
 		return shell;
-	}
-
-	public static AdminServer getAdminServer() {
-		return server;
 	}
 
 	/**

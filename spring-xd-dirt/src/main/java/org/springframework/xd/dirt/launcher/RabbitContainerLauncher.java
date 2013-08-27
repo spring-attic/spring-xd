@@ -46,21 +46,13 @@ public class RabbitContainerLauncher extends AbstractContainerLauncher {
 	}
 
 	@Override
-	public void logContainerInfo(Log logger, XDContainer container) {
-		if (logger.isInfoEnabled()) {
-			final StringBuilder runtimeInfo = new StringBuilder();
-			runtimeInfo.append(String.format("Using RabbitMQ at %s (virtual host: %s) on port: %d ",
-					this.connectionFactory.getHost(),
-					this.connectionFactory.getVirtualHost(),
-					this.connectionFactory.getPort()));
-			if (container.isJmxEnabled()) {
-				runtimeInfo.append(String.format(" JMX port: %d", container.getJmxPort()));
-			}
-			else {
-				runtimeInfo.append(" JMX is disabled for XD components");
-			}
-			logger.info(BannerUtils.displayBanner(container.getJvmName(), runtimeInfo.toString()));
-		}
+	public String getRuntimeInfo(XDContainer container) {
+		final StringBuilder runtimeInfo = new StringBuilder();
+		runtimeInfo.append(String.format("Using RabbitMQ at %s (virtual host: %s) on port: %d ",
+				this.connectionFactory.getHost(),
+				this.connectionFactory.getVirtualHost(),
+				this.connectionFactory.getPort()));
+		return runtimeInfo.toString();
 	}
 
 	@Override

@@ -17,11 +17,8 @@
 package org.springframework.xd.dirt.module;
 
 import static org.junit.Assert.assertEquals;
-<<<<<<< HEAD
 
 import java.util.Properties;
-=======
->>>>>>> XD-739 - Rebased after batch.xml and reactor support
 
 import org.junit.Before;
 import org.junit.Test;
@@ -75,12 +72,9 @@ public class ModuleDeployerTests {
 		public void preProcessModule(Module module) {
 			assertEquals("module commonContext should not contain any Plugins", 0,
 					moduleCommonContext.getBeansOfType(Plugin.class).size());
-<<<<<<< HEAD
 			Properties properties = new Properties();
 			properties.setProperty("xd.stream.name", module.getDeploymentMetadata().getGroup());
 			module.addProperties(properties);
-=======
->>>>>>> XD-739 - Rebased after batch.xml and reactor support
 		}
 
 		@Override

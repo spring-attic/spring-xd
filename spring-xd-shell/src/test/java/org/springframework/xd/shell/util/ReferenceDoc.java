@@ -158,8 +158,6 @@ public class ReferenceDoc {
 		ctx.getBeanFactory().registerSingleton("commandLine", new CommandLine(null, 100, null));
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(ctx);
 		reader.loadBeanDefinitions("classpath*:META-INF/spring/spring-shell-plugin.xml");
-		// ApplicationContext context = new ClassPathXmlApplicationContext(
-		// "classpath*:META-INF/spring/spring-shell-plugin.xml");
 		ctx.refresh();
 
 		Comparator<Class<? extends CommandMarker>> comparator = new Comparator<Class<? extends CommandMarker>>() {
@@ -261,6 +259,7 @@ public class ReferenceDoc {
 			}
 			out.println();
 		}
+		ctx.close();
 	}
 
 	private boolean valueOptional(CliOption option) {

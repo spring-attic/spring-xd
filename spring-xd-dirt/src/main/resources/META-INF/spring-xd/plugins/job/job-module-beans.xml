@@ -37,11 +37,11 @@
 	<int:channel id="jobLaunchingChannel"/>
 
 	<int:service-activator id="jobLaunchingMessageHandler" method="launch"
-		input-channel="jobLaunchingChannel" output-channel="logger">
+		input-channel="jobLaunchingChannel" output-channel="notifications">
 		<bean class="org.springframework.batch.integration.launch.JobLaunchingMessageHandler">
 			<constructor-arg ref="jobLauncher"/>
 		</bean>
 	</int:service-activator>
 
-	<int:logging-channel-adapter id="logger" level="INFO" log-full-message="true"/>
+	<int:channel id="notifications"/>
 </beans>

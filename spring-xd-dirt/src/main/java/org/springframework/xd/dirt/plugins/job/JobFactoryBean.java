@@ -39,8 +39,6 @@ public class JobFactoryBean implements FactoryBean<Job> {
 
 	private final JobRegistry registry;
 
-	private static String JOB_NAME_DELIMITER = ".";
-
 	/**
 	 * Instantiate the {@link JobFactoryBean} with the provided {@link JobRegistry} and the name of the {@link Job}.
 	 * 
@@ -53,7 +51,7 @@ public class JobFactoryBean implements FactoryBean<Job> {
 		Assert.hasText(jobName, "The jobName must not be empty.");
 		Assert.hasText(jobSuffix, "The jobSuffix must not be empty.");
 		this.registry = registry;
-		this.jobKeyInRegistry = jobName + JOB_NAME_DELIMITER + jobSuffix;
+		this.jobKeyInRegistry = jobName + JobPlugin.JOB_NAME_DELIMITER + jobSuffix;
 	}
 
 	/**
@@ -69,7 +67,7 @@ public class JobFactoryBean implements FactoryBean<Job> {
 			job = registry.getJob(this.jobKeyInRegistry);
 		}
 		catch (NoSuchJobException e) {
-			throw new IllegalStateException(String.format("No Batch Job found in registry"
+			throw new IllegalStateException(String.format("No Batch Job found in registry "
 					+ "for the provided key '%s'.", this.jobKeyInRegistry));
 		}
 

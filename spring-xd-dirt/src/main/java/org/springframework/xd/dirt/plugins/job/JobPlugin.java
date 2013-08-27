@@ -79,6 +79,8 @@ public class JobPlugin extends AbstractPlugin {
 
 	public static final String JOB_BEAN_ID = "job";
 
+	public static final String JOB_NAME_DELIMITER = ".";
+
 	private final static Collection<MediaType> DEFAULT_ACCEPTED_CONTENT_TYPES = Collections.singletonList(MediaType.ALL);
 
 

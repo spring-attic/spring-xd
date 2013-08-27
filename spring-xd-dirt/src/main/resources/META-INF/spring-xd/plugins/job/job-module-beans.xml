@@ -7,7 +7,7 @@
 		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<bean id="registrar" class="org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor">
+	<bean id="registrar" class="org.springframework.xd.dirt.plugins.job.BatchJobRegistryBeanPostProcessor">
 		<property name="jobRegistry" ref="jobRegistry"/>
 		<property name="groupName" value="${xd.stream.name}"/>
 	</bean>

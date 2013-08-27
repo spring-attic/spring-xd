@@ -49,11 +49,11 @@ public class AdminMain {
 	}
 
 	/**
-	 * Parse command line options from a String array into a type safe ContainerOptions class. If any options are not
-	 * valid, an InvalidCommandLineArgumentException exception is thrown
+	 * Parse command line options from a String array into a type safe AdminOptions class. If any options are not valid,
+	 * an InvalidCommandLineArgumentException exception is thrown
 	 * 
 	 * @param args command line arguments
-	 * @return type safe ContainerOptions if all command line arguments are valid
+	 * @return type safe AdminOptions if all command line arguments are valid
 	 * @throws InvalidCommandLineArgumentException if there is an invalid command line argument
 	 */
 	public static AdminOptions parseOptions(String[] args) {
@@ -71,11 +71,11 @@ public class AdminMain {
 	}
 
 	/**
-	 * Parse command line options from a String array into a type safe ContainerOptions class. if any options are not
-	 * valid, a help message is displayed and System.exit is called. If the help option is passed, display the usage.
+	 * Parse command line options from a String array into a type safe AdminOptions class. if any options are not valid,
+	 * a help message is displayed and System.exit is called. If the help option is passed, display the usage.
 	 * 
 	 * @param args command line arguments
-	 * @return type safe ContainerOptions if all command line arguments are valid
+	 * @return type safe AdminOptions if all command line arguments are valid
 	 */
 	private static AdminOptions parseCommandLineOptions(String[] args) {
 		AdminOptions options = new AdminOptions();

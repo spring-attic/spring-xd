@@ -95,7 +95,7 @@ public class JobPluginTests {
 		SortedSet<String> names = new TreeSet<String>();
 		names.addAll(Arrays.asList(moduleBeans));
 
-		assertTrue(names.size() > 9);
+		assertTrue(names.size() > 8);
 
 		assertTrue(names.contains("jobTriggerBean"));
 		assertTrue(names.contains("registrar"));
@@ -103,9 +103,8 @@ public class JobPluginTests {
 		assertTrue(names.contains("jobLaunchRequestTransformer"));
 		assertTrue(names.contains("jobLaunchingMessageHandler"));
 		assertTrue(names.contains("input"));
-		assertTrue(names.contains("logger"));
 		assertTrue(names.contains("jobLaunchingChannel"));
-		assertTrue(names.contains("logger.adapter"));
+		assertTrue(names.contains("notifications"));
 	}
 
 	/**

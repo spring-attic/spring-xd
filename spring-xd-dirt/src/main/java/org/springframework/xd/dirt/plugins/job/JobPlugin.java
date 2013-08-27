@@ -81,8 +81,9 @@ public class JobPlugin extends AbstractPlugin {
 
 	public static final String JOB_NAME_DELIMITER = ".";
 
-	private final static Collection<MediaType> DEFAULT_ACCEPTED_CONTENT_TYPES = Collections.singletonList(MediaType.ALL);
+	private static final String NOTIFICATION_CHANNEL_SUFFIX = "-notifications";
 
+	private final static Collection<MediaType> DEFAULT_ACCEPTED_CONTENT_TYPES = Collections.singletonList(MediaType.ALL);
 
 	@Override
 	public void configureProperties(Module module) {
@@ -122,11 +123,15 @@ public class JobPlugin extends AbstractPlugin {
 		ChannelRegistry registry = findRegistry(module);
 		DeploymentMetadata md = module.getDeploymentMetadata();
 		if (registry != null) {
-			MessageChannel channel = module.getComponent("input", MessageChannel.class);
-			if (channel != null) {
-				registry.createInbound(md.getGroup(), channel,
+			MessageChannel inputChannel = module.getComponent("input", MessageChannel.class);
+			if (inputChannel != null) {
+				registry.createInbound(md.getGroup(), inputChannel,
 						DEFAULT_ACCEPTED_CONTENT_TYPES,
 						true);
+			}
+			MessageChannel notificationsChannel = module.getComponent("notifications", MessageChannel.class);
+			if (notificationsChannel != null) {
+				registry.createOutbound(md.getGroup() + NOTIFICATION_CHANNEL_SUFFIX, notificationsChannel, true);
 			}
 		}
 	}
@@ -147,9 +152,9 @@ public class JobPlugin extends AbstractPlugin {
 		ChannelRegistry registry = findRegistry(module);
 		if (registry != null) {
 			registry.deleteInbound(module.getDeploymentMetadata().getGroup());
+			registry.deleteOutbound(module.getDeploymentMetadata().getGroup() + NOTIFICATION_CHANNEL_SUFFIX);
 		}
 	}
-
 
 	@Override
 	public List<String> componentPathsSelector(Module module) {

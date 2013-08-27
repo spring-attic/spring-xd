@@ -41,6 +41,7 @@ import org.springframework.xd.module.Module;
  * @author Michael Minella
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Glenn Renfro
  * @since 1.0
  * 
  */
@@ -60,7 +61,7 @@ public class JobPlugin extends AbstractPlugin {
 	private static final String REGISTRAR_WITH_FIXED_DELAY =
 			CONTEXT_CONFIG_ROOT + "registrar-with-fixed-delay.xml";
 
-	private static final String REGISTRAR = CONTEXT_CONFIG_ROOT + "registrar.xml";
+	private static final String REGISTRAR = CONTEXT_CONFIG_ROOT + "job-module-beans.xml";
 
 	private static final String TRIGGER = "trigger";
 
@@ -121,9 +122,9 @@ public class JobPlugin extends AbstractPlugin {
 		if (registry != null) {
 			MessageChannel channel = module.getComponent("input", MessageChannel.class);
 			if (channel != null) {
-				registry.createInbound(module.getProperties().getProperty("xd.stream.name"), channel,
+				registry.createInbound(md.getGroup(), channel,
 						DEFAULT_ACCEPTED_CONTENT_TYPES,
-						true);// using true for now but after XD-641 is fixed then we can use md.isAliasedInput()
+						true);
 			}
 		}
 	}
@@ -143,7 +144,7 @@ public class JobPlugin extends AbstractPlugin {
 	public void removeModule(Module module) {
 		ChannelRegistry registry = findRegistry(module);
 		if (registry != null) {
-			registry.deleteInbound(module.getProperties().getProperty("xd.stream.name"));
+			registry.deleteInbound(module.getDeploymentMetadata().getGroup());
 		}
 	}
 

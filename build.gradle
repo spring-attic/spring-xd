@@ -78,7 +78,7 @@ configure(javaProjects()) { subproject ->
 		jolokiaVersion = '1.1.2'
 		springVersion = '3.2.2.RELEASE'
 		springBatchVersion = '2.2.0.RELEASE'
-		springIntegrationVersion = '3.0.0.M2'
+		springIntegrationVersion = '3.0.0.BUILD-SNAPSHOT'
 		springSocialVersion = '1.1.0.M3'
 		springShellVersion = '1.1.0.M1'
 		springIntegrationSplunkVersion = '1.0.0.M1'
@@ -252,7 +252,6 @@ project('spring-xd-dirt') {
 				"org.springframework.integration:spring-integration-jmx:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-redis:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-syslog:$springIntegrationVersion",
-				"org.springframework.integration:spring-integration-mqtt:1.0.0.M1",
 				"org.springframework.batch:spring-batch-core:$springBatchVersion",
 				"org.springframework.data:spring-data-redis:$springDataRedisVersion",
 				"org.springframework.social:spring-social-twitter:$springSocialVersion",
@@ -267,6 +266,10 @@ project('spring-xd-dirt') {
 
 		compile ("org.apache.activemq:activemq-core:5.6.0") {
 			exclude group: 'org.mortbay.jetty'
+		}
+
+		compile ("org.springframework.integration:spring-integration-mqtt:1.0.0.M1") {
+			exclude group: 'org.springframework.integration'
 		}
 
 		compile ("org.springframework.batch:spring-batch-integration:1.2.2.RELEASE") {

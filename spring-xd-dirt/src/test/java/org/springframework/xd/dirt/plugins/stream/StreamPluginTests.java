@@ -95,8 +95,10 @@ public class StreamPluginTests {
 		plugin.preProcessModule(module);
 		plugin.postProcessModule(module);
 		String[] moduleBeans = module.getApplicationContext().getBeanDefinitionNames();
-		assertEquals(1, moduleBeans.length);
-		assertTrue(moduleBeans[0].contains("Tap#"));
+		assertEquals(2, moduleBeans.length);
+		for (String moduleBeanString : moduleBeans) {
+			assertTrue(moduleBeanString.contains("Tap#") || moduleBeanString.contains("integrationEvaluationContext"));
+		}
 	}
 
 	@Test

@@ -18,10 +18,9 @@ package org.springframework.xd.dirt.server;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.kohsuke.args4j.CmdLineException;
-import org.kohsuke.args4j.CmdLineParser;
 
 import org.springframework.xd.dirt.server.options.AdminOptions;
+import org.springframework.xd.dirt.server.options.CommandLineParser;
 import org.springframework.xd.dirt.server.options.Transport;
 
 
@@ -58,15 +57,10 @@ public class AdminMain {
 	 */
 	public static AdminOptions parseOptions(String[] args) {
 		AdminOptions options = new AdminOptions();
-		CmdLineParser parser = new CmdLineParser(options);
-		try {
-			parser.parseArgument(args);
+		CommandLineParser parser = new CommandLineParser(options);
 
-		}
-		catch (CmdLineException e) {
-			logger.error(e.getMessage());
-			throw new InvalidCommandLineArgumentException(e.getMessage(), e);
-		}
+		parser.parseArgument(args);
+
 		return options;
 	}
 
@@ -79,11 +73,11 @@ public class AdminMain {
 	 */
 	private static AdminOptions parseCommandLineOptions(String[] args) {
 		AdminOptions options = new AdminOptions();
-		CmdLineParser parser = new CmdLineParser(options);
+		CommandLineParser parser = new CommandLineParser(options);
 		try {
 			parser.parseArgument(args);
 		}
-		catch (CmdLineException e) {
+		catch (InvalidCommandLineArgumentException e) {
 			logger.error(e.getMessage());
 			parser.printUsage(System.err);
 			System.exit(1);

@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,27 +16,12 @@
 
 package org.springframework.xd.dirt.server.options;
 
-import org.kohsuke.args4j.Option;
 
 /**
- * A class the defines the options that will be parsed on the container command line.
+ * 
+ * @author David Turanski
  */
-public class ContainerOptions extends AbstractOptions {
+interface ParserEventListener {
 
-	/**
-	 * @param defaultTransport
-	 * @param defaultAnalytics
-	 */
-	public ContainerOptions() {
-		super(Transport.redis, Analytics.redis);
-	}
-
-
-	@Option(name = "--" + JMX_PORT, usage = "The JMX port for the container", metaVar = "<jmxPort>")
-	protected Integer jmxPort = 8779;
-
-	@Override
-	public Integer getJmxPort() {
-		return jmxPort;
-	}
+	void handleEvent(ParserEvent event);
 }

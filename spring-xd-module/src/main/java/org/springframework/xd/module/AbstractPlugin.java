@@ -106,7 +106,7 @@ public abstract class AbstractPlugin implements Plugin {
 
 	private void addBeanFactoryPostProcessors(ConfigurableApplicationContext context, String... paths) {
 		for (String path : paths) {
-			context.addBeanFactoryPostProcessor(new BeanDefinitionAddingPostProcessor(new ClassPathResource(path)));
+			context.addBeanFactoryPostProcessor(new BeanDefinitionAddingPostProcessor(context.getEnvironment(), new ClassPathResource(path)));
 		}
 	}
 

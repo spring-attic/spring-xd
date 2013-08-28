@@ -16,10 +16,12 @@
 
 package org.springframework.xd.dirt.server.options;
 
-import org.junit.Test;
-import org.springframework.xd.dirt.server.SingleNodeMain;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 
 /**
@@ -30,35 +32,98 @@ public class SingleNodeOptionsTests {
 
 	@Test
 	public void testSingleNodeOptionsWithOptions() {
-		SingleNodeOptions opts = SingleNodeMain.parseOptions(new String[] { "--httpPort", "0", "--transport", "local",
-			"--store",
-			"memory", "--analytics", "memory", "--enableJmx", "true" });
+		SingleNodeOptions opts = new SingleNodeOptions();
+		new CommandLineParser(opts).parseArgument(new String[] { "--httpPort", "0", "--transport",
+			"local", "--store", "memory", "--analytics", "memory", "--enableJmx", "false" });
 
 		assertEquals(Store.memory, opts.getStore());
 		assertEquals(Analytics.memory, opts.getAnalytics());
-		assertEquals(true, opts.isJmxEnabled());
+		assertEquals(false, opts.isJmxEnabled());
+		assertEquals(0, (int) opts.getHttpPort());
+		assertEquals(8778, (int) opts.getJmxPort());
+		assertFalse(opts.isExplicit(opts.getXDHomeDir()));
+		assertTrue(opts.isExplicit(opts.getTransport()));
+		assertTrue(opts.isExplicit(opts.getAnalytics()));
+		assertTrue(opts.isExplicit(opts.getStore()));
+		assertFalse(opts.isExplicit(opts.getHadoopDistro()));
+		assertTrue(opts.isExplicit(opts.getHttpPort()));
+		assertFalse(opts.isExplicit(opts.getJmxPort()));
+		assertTrue(opts.isExplicit(opts.isJmxEnabled()));
 
-		assertEquals(0, opts.getHttpPort());
-		assertEquals(8778, opts.getJmxPort());
+	}
+
+	@Test
+	public void testSingleNodeOptionsToContainerOptions() {
+		SingleNodeOptions opts = new SingleNodeOptions();
+		new CommandLineParser(opts).parseArgument(new String[] { "--httpPort", "0", "--transport",
+			"local", "--store", "memory", "--analytics", "memory", "--enableJmx", "false" });
+
+		assertEquals(Store.memory, opts.getStore());
+		assertEquals(Analytics.memory, opts.getAnalytics());
+		assertEquals(false, opts.isJmxEnabled());
+		assertEquals(0, (int) opts.getHttpPort());
+		assertEquals(8778, (int) opts.getJmxPort());
+		assertFalse(opts.isExplicit(opts.getXDHomeDir()));
+		assertTrue(opts.isExplicit(opts.getTransport()));
+		assertTrue(opts.isExplicit(opts.getAnalytics()));
+		assertTrue(opts.isExplicit(opts.getStore()));
+		assertFalse(opts.isExplicit(opts.getHadoopDistro()));
+		assertTrue(opts.isExplicit(opts.getHttpPort()));
+		assertFalse(opts.isExplicit(opts.getJmxPort()));
+		assertTrue(opts.isExplicit(opts.isJmxEnabled()));
+
+		ContainerOptions containerOpts = opts.asContainerOptions();
+
+		assertSame(containerOpts.getAnalytics(), opts.getAnalytics());
+		assertSame(containerOpts.getXDHomeDir(), opts.getXDHomeDir());
+		assertSame(containerOpts.getTransport(), opts.getTransport());
+		assertSame(containerOpts.getHadoopDistro(), opts.getHadoopDistro());
+
+		assertSame(containerOpts.getJmxPort(), opts.getJmxPort());
+		assertSame(containerOpts.isJmxEnabled(), opts.isJmxEnabled());
+		// Better to treat derived options as not explicit
+		assertFalse(containerOpts.isExplicit(opts.getXDHomeDir()));
+		assertFalse(containerOpts.isExplicit(opts.getTransport()));
+		assertFalse(containerOpts.isExplicit(opts.getAnalytics()));
+		assertFalse(containerOpts.isExplicit(opts.getStore()));
+		assertFalse(containerOpts.isExplicit(opts.getHadoopDistro()));
+		assertFalse(containerOpts.isExplicit(opts.getHttpPort()));
+		assertFalse(containerOpts.isExplicit(opts.getJmxPort()));
+		assertFalse(containerOpts.isExplicit(opts.isJmxEnabled()));
 
 	}
 
 	@Test
 	public void testDefaultOptions() {
-		SingleNodeOptions opts = SingleNodeMain.parseOptions(new String[] {});
+		SingleNodeOptions opts = new SingleNodeOptions();
+		new CommandLineParser(opts).parseArgument(new String[] {});
 		assertEquals("..", opts.getXDHomeDir());
 		assertEquals(Transport.local, opts.getTransport());
 		assertEquals(Analytics.memory, opts.getAnalytics());
 		assertEquals(Store.memory, opts.getStore());
 		assertEquals(HadoopDistro.hadoop10, opts.getHadoopDistro());
-		assertEquals(8080, opts.getHttpPort());
-		assertEquals(8778, opts.getJmxPort());
+		assertEquals(8080, (int) opts.getHttpPort());
+		assertEquals(8778, (int) opts.getJmxPort());
 		assertEquals(false, opts.isJmxEnabled());
+
+		assertFalse(opts.isExplicit(opts.getXDHomeDir()));
+		assertFalse(opts.isExplicit(opts.getTransport()));
+		assertFalse(opts.isExplicit(opts.getAnalytics()));
+		assertFalse(opts.isExplicit(opts.getStore()));
+		assertFalse(opts.isExplicit(opts.getHadoopDistro()));
+		assertFalse(opts.isExplicit(opts.getHttpPort()));
+		assertFalse(opts.isExplicit(opts.getJmxPort()));
+		assertFalse(opts.isExplicit(opts.isJmxEnabled()));
 	}
 
 	@Test
 	public void testJmxOptions() {
-		SingleNodeOptions opts = SingleNodeMain.parseOptions(new String[] { "--jmxPort", "1234" });
-		assertEquals(1234, opts.getJmxPort());
+		SingleNodeOptions opts = new SingleNodeOptions();
+		new CommandLineParser(opts).parseArgument(new String[] { "--jmxPort", "1234" });
+		assertEquals(1234, (int) opts.getJmxPort());
+		assertTrue(opts.isExplicit(opts.getJmxPort()));
+		new CommandLineParser(opts).parseArgument(new String[] { "--jmxPort", "8778" });
+		assertTrue(opts.isExplicit(opts.getJmxPort()));
+
 	}
 }

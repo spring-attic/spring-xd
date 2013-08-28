@@ -40,6 +40,7 @@ import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.server.options.AdminOptions;
 import org.springframework.xd.dirt.server.options.OptionUtils;
+import org.springframework.xd.dirt.server.options.XDPropertyKeys;
 
 /**
  * @author Mark Fisher
@@ -76,10 +77,11 @@ public class AdminServer implements SmartLifecycle, InitializingBean {
 				+ "admin-server.xml");
 		this.webApplicationContext.setParent(parent);
 
+		OptionUtils.configureRuntime(adminOptions, parent.getEnvironment());
 		OptionUtils.configureRuntime(adminOptions, this.webApplicationContext.getEnvironment());
 		parent.refresh();
 
-		this.port = adminOptions.getHttpPort();
+		this.port = Integer.valueOf(this.webApplicationContext.getEnvironment().getProperty(XDPropertyKeys.XD_HTTP_PORT));
 
 		webApplicationContext.addApplicationListener(new ApplicationListener<ContextClosedEvent>() {
 

@@ -16,6 +16,11 @@
 
 package org.springframework.xd.dirt.server.options;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.kohsuke.args4j.Option;
 import org.kohsuke.args4j.spi.ExplicitBooleanOptionHandler;
 
@@ -30,10 +35,45 @@ import org.kohsuke.args4j.spi.ExplicitBooleanOptionHandler;
  */
 public abstract class AbstractOptions {
 
+	private final List<String> explicitArgs = new ArrayList<String>();
+
 	public static final String DEFAULT_HOME = "..";
 
-	protected AbstractOptions() {
+	private static final String JMX_ENABLED = "enableJmx";
 
+	private static final String HADOOP_DISTRO = "hadoopDistro";
+
+	private static final String TRANSPORT = "transport";
+
+	private static final String XD_HOME_DIR = "xdHomeDir";
+
+	private static final String ANALYTICS = "analytics";
+
+	protected static final String JMX_PORT = "jmxPort";
+
+	protected final Map<Object, Boolean> optionMetadataCache = new HashMap<Object, Boolean>();
+
+	ParserEventListener getParserEventListener() {
+		return new ParserEventListener() {
+
+			@Override
+			public void handleEvent(ParserEvent event) {
+				switch (event.getEvent()) {
+					case parser_started:
+						optionMetadataCache.clear();
+						explicitArgs.clear();
+						break;
+					case option_explicit:
+						String optionName = ((ParserArgEvent) event).getOptionName();
+						explicitArgs.add(optionName);
+						break;
+					case parser_complete:
+						createOptionMetadataCache();
+						break;
+					default:
+				}
+			}
+		};
 	}
 
 	protected AbstractOptions(Transport defaultTransport, Analytics defaultAnalytics) {
@@ -44,36 +84,46 @@ public abstract class AbstractOptions {
 	@Option(name = "--help", usage = "Show options help", aliases = { "-?", "-h" })
 	protected boolean showHelp = false;
 
-	@Option(name = "--transport", usage = "The transport to be used (default: redis)")
+	@Option(name = "--" + TRANSPORT, usage = "The transport to be used (default: redis)")
 	protected Transport transport = Transport.redis;
 
-	@Option(name = "--xdHomeDir", usage = "The XD installation directory", metaVar = "<xdHomeDir>")
+	@Option(name = "--" + XD_HOME_DIR, usage = "The XD installation directory", metaVar = "<xdHomeDir>")
 	protected String xdHomeDir = "..";
 
 	@Option(name = "--enableJmx", usage = "Enable JMX in the XD container (default: false)", metaVar = "[true | false]", handler = ExplicitBooleanOptionHandler.class)
 	protected boolean jmxEnabled = false;
 
-	@Option(name = "--analytics", usage = "How to persist analytics such as counters and gauges (default: redis)")
+	@Option(name = "--" + ANALYTICS, usage = "How to persist analytics such as counters and gauges (default: redis)")
 	protected Analytics analytics = Analytics.redis;
 
-	@Option(name = "--hadoopDistro", usage = "The Hadoop distro to use (default: hadoop10)")
+	@Option(name = "--" + HADOOP_DISTRO, usage = "The Hadoop distro to use (default: hadoop10)")
 	protected HadoopDistro hadoopDistro = HadoopDistro.hadoop10;
 
+
+	/**
+	 * @return analytics
+	 */
 	public Analytics getAnalytics() {
 		return analytics;
 	}
 
 	/**
-	 * @return the xdHomeDir
+	 * @return xdHomeDir
 	 */
 	public String getXDHomeDir() {
 		return xdHomeDir;
 	}
 
+	/**
+	 * @return transport
+	 */
 	public Transport getTransport() {
 		return transport;
 	}
 
+	/**
+	 * @return hadoopDistro
+	 */
 	public HadoopDistro getHadoopDistro() {
 		return hadoopDistro;
 	}
@@ -81,11 +131,30 @@ public abstract class AbstractOptions {
 	/**
 	 * @return jmxEnabled
 	 */
-	public boolean isJmxEnabled() {
+	public Boolean isJmxEnabled() {
 		return jmxEnabled;
 	}
 
-	public abstract int getJmxPort();
+	protected void createOptionMetadataCache()
+	{
+		optionMetadataCache.put(getAnalytics(), isArg(ANALYTICS));
+		optionMetadataCache.put(getTransport(), isArg(TRANSPORT));
+		optionMetadataCache.put(getXDHomeDir(), isArg(XD_HOME_DIR));
+		optionMetadataCache.put(isJmxEnabled(), isArg(JMX_ENABLED));
+		optionMetadataCache.put(getHadoopDistro(), isArg(HADOOP_DISTRO));
+		optionMetadataCache.put(getJmxPort(), isArg(JMX_PORT));
+	}
+
+	protected boolean isArg(String optionName) {
+		return explicitArgs.contains(optionName);
+	}
+
+	public abstract Integer getJmxPort();
+
+	public boolean isExplicit(Object option) {
+		Boolean explicit = optionMetadataCache.get(option);
+		return explicit == null ? false : explicit.booleanValue();
+	}
 
 	/**
 	 * @return the showHelp

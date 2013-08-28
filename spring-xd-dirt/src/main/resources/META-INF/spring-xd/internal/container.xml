@@ -11,7 +11,7 @@
 
 	<beans>
 		<import
-			resource="classpath*:/META-INF/spring-xd/transports/${xd.transport}-container.xml" />
+			resource="classpath*:/META-INF/spring-xd/transports/${XD_TRANSPORT}-container.xml" />
 
 		<int:channel id="containerControlChannel" />
 

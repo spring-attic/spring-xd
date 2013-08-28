@@ -10,7 +10,7 @@
 	<inbound-channel-adapter channel="output"
 			auto-startup="false"
 			expression="'${payload:}'">
-		<poller fixed-delay="${fixedDelay:1}" time-unit="SECONDS"/>
+		<poller cron="'${cron:'*/10 * * * * *'}'"/>
 	</inbound-channel-adapter>
 
 </beans:beans>

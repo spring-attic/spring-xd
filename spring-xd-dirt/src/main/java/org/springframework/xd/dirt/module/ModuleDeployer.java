@@ -126,7 +126,8 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		DeploymentMetadata metadata = new DeploymentMetadata(group, index, request.getSourceChannelName(),
 				request.getSinkChannelName());
 
-		ClassLoader classLoader = new ParentLastURLClassLoader(definition.getClasspath(), parentClassLoader);
+		ClassLoader classLoader = (definition.getClasspath() == null) ? null
+				: new ParentLastURLClassLoader(definition.getClasspath(), parentClassLoader);
 
 		Module module = new SimpleModule(definition, metadata, classLoader);
 		module.setParentContext(this.commonContext);
@@ -157,7 +158,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		this.fireModuleDeployedEvent(module);
 	}
 
-	public void handleUndeploy(ModuleDeploymentRequest request) {
+	private void handleUndeploy(ModuleDeploymentRequest request) {
 		String group = request.getGroup();
 		Map<Integer, Module> modules = this.deployedModules.get(group);
 		if (modules != null) {

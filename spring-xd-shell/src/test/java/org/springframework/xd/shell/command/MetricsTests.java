@@ -163,7 +163,7 @@ public class MetricsTests extends AbstractStreamIntegrationTest {
 	}
 
 	private void createTestStream(MetricType metricType) throws Exception {
-		httpSource = newHttpSource(9000);
+		httpSource = newHttpSource(9193);
 		stream().create(TEST_STREAM_NAME, "%s | %s --name=%s", httpSource, metricType.getName(), DEFAULT_METRIC_NAME);
 		httpSource.ensureReady();
 	}

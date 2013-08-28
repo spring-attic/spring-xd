@@ -25,6 +25,7 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationEventPublisher;
@@ -46,11 +47,14 @@ import org.springframework.xd.module.SimpleModule;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
+ * Listens for deployment request messages and instantiates {@link Module}s accordingly, applying {@link Plugin} logic
+ * to them.
+ * 
  * @author Mark Fisher
  * @author Gary Russell
  */
 public class ModuleDeployer extends AbstractMessageHandler implements ApplicationContextAware,
-		ApplicationEventPublisherAware {
+		ApplicationEventPublisherAware, BeanClassLoaderAware {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -67,6 +71,8 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 	private volatile Map<String, Plugin> plugins;
 
 	private final ModuleRegistry moduleRegistry;
+
+	private ClassLoader parentClassLoader;
 
 	public ModuleDeployer(ModuleRegistry moduleRegistry) {
 		Assert.notNull(moduleRegistry, "moduleRegistry must not be null");
@@ -94,41 +100,53 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 	}
 
 	@Override
+	public void setBeanClassLoader(ClassLoader classLoader) {
+		this.parentClassLoader = classLoader;
+	}
+
+	@Override
 	protected synchronized void handleMessageInternal(Message<?> message) throws Exception {
 		ModuleDeploymentRequest request = this.mapper.readValue(message.getPayload().toString(),
 				ModuleDeploymentRequest.class);
 		if (request.isRemove()) {
-			this.undeploy(request);
+			handleUndeploy(request);
 		}
 		else {
-			String group = request.getGroup();
-			int index = request.getIndex();
-			String name = request.getModule();
-			String type = request.getType();
-			ModuleDefinition definition = this.moduleRegistry.lookup(name, type);
-			Assert.notNull(definition, "No moduleDefinition for " + name + ":" + type);
-			DeploymentMetadata metadata = new DeploymentMetadata(group, index, request.getSourceChannelName(),
-					request.getSinkChannelName());
-			Module module = new SimpleModule(definition, metadata);
-			module.setParentContext(this.commonContext);
-			Object properties = message.getHeaders().get("properties");
-			if (properties instanceof Properties) {
-				module.addProperties((Properties) properties);
-			}
-			Map<String, String> parameters = request.getParameters();
-			if (!CollectionUtils.isEmpty(parameters)) {
-				Properties parametersAsProps = new Properties();
-				parametersAsProps.putAll(parameters);
-				module.addProperties(parametersAsProps);
-			}
-			this.deployModule(module);
-			String key = group + ":" + module.getName() + ":" + index;
-			if (logger.isInfoEnabled()) {
-				logger.info("launched " + module.getType() + " module: " + key);
-			}
-			this.deployedModules.putIfAbsent(group, new HashMap<Integer, Module>());
-			this.deployedModules.get(group).put(index, module);
+			handleDeploy(request, message);
 		}
+	}
+
+	private void handleDeploy(ModuleDeploymentRequest request, Message<?> message) {
+		String group = request.getGroup();
+		int index = request.getIndex();
+		String name = request.getModule();
+		String type = request.getType();
+		ModuleDefinition definition = this.moduleRegistry.lookup(name, type);
+		Assert.notNull(definition, "No moduleDefinition for " + name + ":" + type);
+		DeploymentMetadata metadata = new DeploymentMetadata(group, index, request.getSourceChannelName(),
+				request.getSinkChannelName());
+
+		ClassLoader classLoader = new ParentLastURLClassLoader(definition.getClasspath(), parentClassLoader);
+
+		Module module = new SimpleModule(definition, metadata, classLoader);
+		module.setParentContext(this.commonContext);
+		Object properties = message.getHeaders().get("properties");
+		if (properties instanceof Properties) {
+			module.addProperties((Properties) properties);
+		}
+		Map<String, String> parameters = request.getParameters();
+		if (!CollectionUtils.isEmpty(parameters)) {
+			Properties parametersAsProps = new Properties();
+			parametersAsProps.putAll(parameters);
+			module.addProperties(parametersAsProps);
+		}
+		this.deployModule(module);
+		String key = group + ":" + module.getName() + ":" + index;
+		if (logger.isInfoEnabled()) {
+			logger.info("launched " + module.getType() + " module: " + key);
+		}
+		this.deployedModules.putIfAbsent(group, new HashMap<Integer, Module>());
+		this.deployedModules.get(group).put(index, module);
 	}
 
 	private void deployModule(Module module) {
@@ -139,7 +157,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		this.fireModuleDeployedEvent(module);
 	}
 
-	public void undeploy(ModuleDeploymentRequest request) {
+	public void handleUndeploy(ModuleDeploymentRequest request) {
 		String group = request.getGroup();
 		Map<Integer, Module> modules = this.deployedModules.get(group);
 		if (modules != null) {
@@ -167,7 +185,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 	}
 
 	/**
-	 * allow plugins to contribute properties (e.g. "stream.name") calling module.addProperties(properties), etc.
+	 * Allow plugins to contribute properties (e.g. "stream.name") calling module.addProperties(properties), etc.
 	 */
 	private void preProcessModule(Module module) {
 		if (this.plugins != null) {
@@ -178,7 +196,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 	}
 
 	/**
-	 * allow plugins to perform other configuration after the module is initialized but before it is started.
+	 * Allow plugins to perform other configuration after the module is initialized but before it is started.
 	 */
 	private void postProcessModule(Module module) {
 		if (this.plugins != null) {
@@ -217,4 +235,5 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 			// undeployed
 		}
 	}
+
 }

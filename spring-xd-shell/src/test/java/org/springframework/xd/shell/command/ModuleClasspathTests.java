@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,21 +14,27 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.module;
+package org.springframework.xd.shell.command;
 
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
+import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
+
 
 /**
- * Simple {@link ModuleRegistry} that loads modules from the testmodules location
+ * Tests related to custom module packaging.
  * 
- * @author Jennifer Hickey
+ * @author Eric Bottard
  */
-public class ClasspathTestModuleRegistry extends AbstractModuleRegistry {
+public class ModuleClasspathTests extends AbstractStreamIntegrationTest {
 
-	@Override
-	protected Resource locateApplicationContext(String name, String type) {
-		return new ClassPathResource("testmodules/" + name + ".xml");
+	@Test
+	public void testModuleWithClasspathAfterServerStarted() throws Exception {
+		installTestModule("source", "time2");
+		FileSink fileSink = newFileSink();
+		stream().create("foo", "time2 --fixedDelay=1000 | %s", fileSink);
+
+		assertTrue(fileSink.getContents().length() > 5);
 	}
 
 }

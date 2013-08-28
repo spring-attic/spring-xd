@@ -19,6 +19,8 @@ package org.springframework.xd.dirt.module;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Properties;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -60,6 +62,7 @@ public class ModuleDeployerTests {
 		ModuleDeploymentRequest request = new ModuleDeploymentRequest();
 		request.setGroup("test");
 		request.setIndex(0);
+		request.setType("sink");
 		request.setModule("log");
 		Message<ModuleDeploymentRequest> message = new GenericMessage<ModuleDeploymentRequest>(request);
 		moduleDeployer.handleMessage(message);
@@ -73,6 +76,11 @@ public class ModuleDeployerTests {
 		public void preProcessModule(Module module) {
 			assertEquals("module commonContext should not contain any Plugins", 0,
 					moduleCommonContext.getBeansOfType(Plugin.class).size());
+
+			Properties properties = new Properties();
+			properties.setProperty("xd.stream.name", module.getDeploymentMetadata().getGroup());
+			module.addProperties(properties);
+
 		}
 
 		@Override

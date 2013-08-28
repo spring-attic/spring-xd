@@ -16,16 +16,11 @@
 
 package org.springframework.xd.dirt.module;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.Assert;
-import org.springframework.xd.module.ModuleDefinition;
-import org.springframework.xd.module.ModuleType;
 
 /**
  * @author Mark Fisher
@@ -41,21 +36,10 @@ public class RedisModuleRegistry extends AbstractModuleRegistry {
 	}
 
 	@Override
-	protected Resource loadResource(String name, String type) {
+	protected Resource locateApplicationContext(String name, String type) {
 		Object config = this.redisTemplate.boundHashOps("modules:" + type).get(name);
 		return (config != null) ? new ByteArrayResource(config.toString().getBytes()) : null;
 	}
 
-	@Override
-	public List<ModuleDefinition> findDefinitions(String name) {
-		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
-		for (ModuleType type : ModuleType.values()) {
-			Resource resource = loadResource(name, type.getTypeName());
-			if (resource != null) {
-				ModuleDefinition moduleDef = new ModuleDefinition(name, type.getTypeName(), resource);
-				definitions.add(moduleDef);
-			}
-		}
-		return definitions;
-	}
+
 }

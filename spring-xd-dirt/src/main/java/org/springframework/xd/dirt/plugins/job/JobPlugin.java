@@ -129,7 +129,7 @@ public class JobPlugin extends AbstractPlugin {
 						DEFAULT_ACCEPTED_CONTENT_TYPES,
 						true);
 			}
-			MessageChannel notificationsChannel = module.getComponent("notifications", MessageChannel.class);
+			MessageChannel notificationsChannel = module.getComponent("serializedNotifications", MessageChannel.class);
 			if (notificationsChannel != null) {
 				registry.createOutbound(md.getGroup() + NOTIFICATION_CHANNEL_SUFFIX, notificationsChannel, true);
 			}

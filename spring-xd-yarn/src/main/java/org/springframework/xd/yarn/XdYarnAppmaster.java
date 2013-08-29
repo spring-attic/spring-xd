@@ -22,6 +22,7 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
+import org.apache.hadoop.yarn.api.records.ContainerStatus;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 
 import org.springframework.yarn.YarnSystemConstants;
@@ -80,6 +81,13 @@ public class XdYarnAppmaster extends StaticEventingAppmaster
 		else {
 			return context;
 		}
+	}
+
+	@Override
+	protected void onContainerCompleted(ContainerStatus status) {
+		// for now we don't care this because we just
+		// let the app run and expected it to be killed.
+		// so no need to handle any of this
 	}
 
 }

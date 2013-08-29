@@ -103,6 +103,7 @@ configure(javaProjects()) { subproject ->
 		log4jVersion = '1.2.17'
 		args4jVersion = '2.0.25'
 		mockitoVersion = '1.9.5'
+		javaxMailVersion = '1.5.0'
 	}
 
 	eclipse {
@@ -247,6 +248,8 @@ project('spring-xd-dirt') {
 				"org.springframework.integration:spring-integration-amqp:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-event:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-file:$springIntegrationVersion",
+				"org.springframework.integration:spring-integration-mail:$springIntegrationVersion",
+				"com.sun.mail:javax.mail:$javaxMailVersion",
 				"org.springframework.integration:spring-integration-gemfire:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-groovy:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-jms:$springIntegrationVersion",

@@ -91,7 +91,7 @@ configure(javaProjects()) { subproject ->
 		springDataHadoopYarnVersion = '2.0.0.BUILD-SNAPSHOT'
 		hadoop10Version = '1.0.4'
 		hadoop11Version = '1.1.2'
-		hadoop20Version = '2.0.5-alpha'
+		hadoop20Version = '2.0.6-alpha'
 		phd1Version = '2.0.2-alpha-gphd-2.0.1.0'
 		springHATEOASVersion = '0.7.0.RELEASE'
 		springPluginVersion = '0.8.0.RELEASE'

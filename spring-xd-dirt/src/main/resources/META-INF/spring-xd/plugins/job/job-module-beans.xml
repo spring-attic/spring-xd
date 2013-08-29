@@ -44,4 +44,8 @@
 	</int:service-activator>
 
 	<int:channel id="notifications"/>
+	<int:payload-serializing-transformer id="serializePayloadToBytes"
+		input-channel="notifications" output-channel="serializedNotifications"/>
+	<int:channel id="serializedNotifications"/>
+
 </beans>

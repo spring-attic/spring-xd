@@ -3,10 +3,12 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
+	<import resource="xd-ppc.xml"/>
 	<bean id="moduleRegistry" class="org.springframework.xd.dirt.module.FileModuleRegistry">
 		<constructor-arg value="${XD_HOME}/modules" />
 	</bean>
 	<bean id="xdUi" class="org.springframework.xd.dirt.rest.UiResourceIdentifier">
-        <constructor-arg value="${XD_HOME}/spring-xd-ui" />
-    </bean>
+		<constructor-arg value="${XD_HOME}/spring-xd-ui" />
+	</bean>
+
 </beans>

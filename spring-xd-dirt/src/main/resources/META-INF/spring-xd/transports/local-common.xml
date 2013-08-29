@@ -5,5 +5,4 @@
 
 	<import resource="classpath:/META-INF/spring-xd/internal/xd-common.xml"/>
 
-	<bean id="local.property.placeholder" class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer" />
 </beans>

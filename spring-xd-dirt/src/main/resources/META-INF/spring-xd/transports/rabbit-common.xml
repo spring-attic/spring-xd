@@ -5,10 +5,6 @@
 
     <import resource="classpath:/META-INF/spring-xd/internal/xd-common.xml"/>
 
-	<bean id="rabbit.property.placeholder" class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
-		<property name="locations" value="file:${XD_HOME}/config/rabbit.properties"/>
-	</bean>
-
 	<bean id="rabbitConnectionFactory" class="org.springframework.amqp.rabbit.connection.CachingConnectionFactory">
 		<constructor-arg index="0" value="${rabbit.hostname:localhost}"/>
 		<constructor-arg index="1" value="${rabbit.port:5672}"/>

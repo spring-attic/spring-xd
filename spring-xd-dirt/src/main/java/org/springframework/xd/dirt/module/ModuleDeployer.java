@@ -94,8 +94,8 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		this.plugins = this.deployerContext.getBeansOfType(Plugin.class);
 		ClassPathXmlApplicationContext commonContext = new ClassPathXmlApplicationContext(
 				new String[] { XDContainer.XD_INTERNAL_CONFIG_ROOT + "module-common.xml" }, false);
-		ApplicationContext analytics = deployerContext.getParent();
-		commonContext.setParent(analytics);
+		ApplicationContext globalContext = deployerContext.getParent();
+		commonContext.setParent(globalContext);
 
 		for (Plugin plugin : plugins.values()) {
 			plugin.preProcessSharedContext(commonContext);

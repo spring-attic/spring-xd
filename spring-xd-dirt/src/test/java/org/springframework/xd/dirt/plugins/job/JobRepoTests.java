@@ -32,7 +32,7 @@ import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.job.SimpleJob;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.repository.JobRepository;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.xd.dirt.server.AbstractAdminMainIntegrationTests;
 import org.springframework.xd.dirt.server.SingleNodeMain;
@@ -53,7 +53,9 @@ public class JobRepoTests extends AbstractAdminMainIntegrationTests {
 
 	private static final String REPOSITORY_LOCATION = "../data";
 
-	private volatile SingleNodeServer streamServer;
+	private volatile SingleNodeServer singleNodeServer;
+
+	private ConfigurableApplicationContext applicationContext;
 
 	@Before
 	public void setUp() throws Exception {
@@ -64,14 +66,16 @@ public class JobRepoTests extends AbstractAdminMainIntegrationTests {
 		}
 		SingleNodeOptions opts = SingleNodeMain.parseOptions(new String[] { "--httpPort", "0", "--transport", "local",
 			"--store",
-			"memory", "--analytics", "memory" });
-		streamServer = SingleNodeMain.launchSingleNodeServer(opts);
+			"memory", "--analytics", "memory", "--xdHomeDir", ".." });
+		singleNodeServer = SingleNodeMain.launchSingleNodeServer(opts);
+		applicationContext = singleNodeServer.getAdminServer().getApplicationContext();
 
 	}
 
 	@After
 	public void teardown() throws Exception {
-		streamServer.getAdminServer().stop();
+		singleNodeServer.getAdminServer().stop();
+		singleNodeServer.getContainer().stop();
 
 		File file = new File(REPOSITORY_LOCATION);
 		if (file.exists() && file.isDirectory()) {
@@ -81,9 +85,6 @@ public class JobRepoTests extends AbstractAdminMainIntegrationTests {
 
 	@Test
 	public void checkThatRepoTablesAreCreated() throws Exception {
-		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(
-				"classpath:/META-INF/spring-xd/batch/batch.xml");
-
 		DataSource source = applicationContext.getBean("dataSource", DataSource.class);
 		JdbcTemplate jdbcTemplate = new JdbcTemplate(source);
 		int count = jdbcTemplate.queryForObject(
@@ -95,11 +96,8 @@ public class JobRepoTests extends AbstractAdminMainIntegrationTests {
 
 	@Test
 	public void checkThatContainerHasRepo() throws Exception {
-		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(
-				"classpath:/META-INF/spring-xd/batch/batch.xml");
-
-		JobRepository repo = applicationContext.getBean("jobRepository", JobRepository.class);
-		JobLauncher launcher = applicationContext.getBean("jobLauncher", JobLauncher.class);
+		JobRepository repo = applicationContext.getParent().getBean("jobRepository", JobRepository.class);
+		JobLauncher launcher = applicationContext.getParent().getBean("jobLauncher", JobLauncher.class);
 		Job job = new SimpleJob(SIMPLE_JOB_NAME);
 		try {
 			launcher.run(job, new JobParameters());

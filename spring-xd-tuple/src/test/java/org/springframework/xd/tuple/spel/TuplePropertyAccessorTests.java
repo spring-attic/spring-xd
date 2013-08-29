@@ -21,6 +21,7 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.expression.spel.SpelEvaluationException;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.xd.tuple.Tuple;
@@ -41,14 +42,27 @@ public class TuplePropertyAccessorTests {
 	}
 
 	@Test
-	public void testSimpleProperty() {
+	public void testSimplePropertyByFieldName() {
 		Tuple tuple = TupleBuilder.tuple().of("foo", "bar");
 		String result = evaluate("foo", tuple, String.class);
 		assertEquals("bar", result);
 	}
 
 	@Test
-	public void testNestedProperty() {
+	public void testSimplePropertyByIndex() {
+		Tuple tuple = TupleBuilder.tuple().of("foo", "bar");
+		String result = evaluate("['0']", tuple, String.class);
+		assertEquals("bar", result);
+	}
+
+	@Test(expected = SpelEvaluationException.class)
+	public void failOnNegativeIndex() {
+		Tuple tuple = TupleBuilder.tuple().of("foo", "bar");
+		evaluate("['-3']", tuple, String.class);
+	}
+
+	@Test
+	public void testNestedPropertyByFieldName() {
 		Tuple child = TupleBuilder.tuple().of("b", 123);
 		Tuple tuple = TupleBuilder.tuple().of("a", child);
 		int result = evaluate("a.b", tuple, Integer.class);
@@ -56,17 +70,56 @@ public class TuplePropertyAccessorTests {
 	}
 
 	@Test
-	public void testArrayProperty() {
+	public void testNestedPropertyByIndex() {
+		Tuple child = TupleBuilder.tuple().of("b", 123);
+		Tuple tuple = TupleBuilder.tuple().of("a", child);
+		int result = evaluate("a['0']", tuple, Integer.class);
+		assertEquals(123, result);
+	}
+
+	@Test
+	public void testNestedPropertyByIndexOnly() {
+		Tuple child = TupleBuilder.tuple().of("b", 123);
+		Tuple tuple = TupleBuilder.tuple().of("a", child);
+		int result = evaluate("['0']['0']", tuple, Integer.class);
+		assertEquals(123, result);
+	}
+
+	@Test
+	public void testArrayPropertyByFieldName() {
 		Tuple tuple = TupleBuilder.tuple().of("numbers", new Integer[] { 1, 2, 3 });
 		int result = evaluate("numbers[1]", tuple, Integer.class);
 		assertEquals(2, result);
 	}
 
 	@Test
-	public void testNestedArrayProperty() {
+	public void testArrayPropertyByIndex() {
+		Tuple tuple = TupleBuilder.tuple().of("numbers", new Integer[] { 1, 2, 3 });
+		int result = evaluate("['0'][0]", tuple, Integer.class);
+		assertEquals(1, result);
+	}
+
+	@Test
+	public void testNestedArrayPropertyByFieldName() {
 		Tuple child = TupleBuilder.tuple().of("numbers", new Integer[] { 7, 8, 9 });
 		Tuple tuple = TupleBuilder.tuple().of("child", child);
 		int result = evaluate("child.numbers[1]", tuple, Integer.class);
+		assertEquals(8, result);
+	}
+
+	@Test
+	public void testNestedArrayPropertyByIndex() {
+		Tuple child = TupleBuilder.tuple().of("numbers", new Integer[] { 7, 8, 9 });
+		Tuple tuple = TupleBuilder.tuple().of("child", child);
+		int result = evaluate("child['0'][2]", tuple, Integer.class);
+		assertEquals(9, result);
+	}
+
+	@Test
+	public void testNestedArrayPropertyByIndexOnly() {
+		Tuple child = TupleBuilder.tuple().of("numbers", new Integer[] { 7, 8, 9 });
+		Tuple tuple = TupleBuilder.tuple().of("child", child);
+		int result = evaluate("['0']['0'][1]", tuple, Integer.class);
 		assertEquals(8, result);
 	}
 

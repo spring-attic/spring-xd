@@ -37,14 +37,47 @@ public class TuplePropertyAccessor implements PropertyAccessor {
 
 	@Override
 	public boolean canRead(EvaluationContext context, Object target, String name) throws AccessException {
-		return ((Tuple) target).hasFieldName(name);
+		Tuple tuple = (Tuple) target;
+		if (tuple.hasFieldName(name)) {
+			return true;
+		}
+		return maybeIndex(name, tuple) != null;
+	}
+
+	/**
+	 * Return an integer if the String property name can be parsed as an int, or null otherwise.
+	 */
+	private Integer maybeIndex(String name, Tuple tuple) {
+		Integer index = null;
+		try {
+			int i = Integer.parseInt(name);
+			if (i > -1 && tuple.size() > i) {
+				index = i;
+			}
+		}
+		catch (NumberFormatException e) {
+			// not an integer
+		}
+		return index;
 	}
 
 	@Override
 	public TypedValue read(EvaluationContext context, Object target, String name) throws AccessException {
 		Tuple tuple = (Tuple) target;
-		Object value = tuple.getValue(name);
-		if (value == null && !tuple.hasFieldName(name)) {
+		boolean hasKey = false;
+		Object value = null;
+		if (tuple.hasFieldName(name)) {
+			hasKey = true;
+			value = tuple.getValue(name);
+		}
+		else {
+			Integer index = maybeIndex(name, tuple);
+			if (index != null) {
+				hasKey = true;
+				value = tuple.getValue(index);
+			}
+		}
+		if (value == null && !hasKey) {
 			throw new TupleAccessException(name);
 		}
 		return new TypedValue(value);

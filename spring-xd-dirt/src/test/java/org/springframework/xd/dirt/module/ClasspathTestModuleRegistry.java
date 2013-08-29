@@ -28,7 +28,11 @@ public class ClasspathTestModuleRegistry extends AbstractModuleRegistry {
 
 	@Override
 	protected Resource locateApplicationContext(String name, String type) {
-		return new ClassPathResource("testmodules/" + name + ".xml");
+		ClassPathResource classPathResource = new ClassPathResource("testmodules/" + type + "/" + name + ".xml");
+		if (classPathResource.exists()) {
+			return classPathResource;
+		}
+		return null;
 	}
 
 }

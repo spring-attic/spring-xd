@@ -63,7 +63,7 @@ public class SimpleModule extends AbstractModule {
 			context.setClassLoader(classLoader);
 		}
 		if (definition != null) {
-			if (definition.getResource() != null) {
+			if (definition.getResource().isReadable()) {
 				this.addComponents(definition.getResource());
 			}
 			if (definition.getProperties() != null) {

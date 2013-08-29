@@ -22,6 +22,7 @@ package org.springframework.xd.shell.command.fixtures;
  * 
  * @author Eric Bottard
  */
+
 public class ImapSource extends AbstractMailSource<ImapSource> {
 
 	@Override

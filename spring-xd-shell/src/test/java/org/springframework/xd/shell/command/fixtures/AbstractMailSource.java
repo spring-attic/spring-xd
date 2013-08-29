@@ -29,6 +29,7 @@ import com.icegreen.greenmail.util.ServerSetup;
  * 
  * @author Eric Bottard
  */
+
 public abstract class AbstractMailSource<T extends AbstractMailSource<T>> extends
 		DisposableMailSupport<AbstractMailSource<T>> {
 
@@ -52,6 +53,7 @@ public abstract class AbstractMailSource<T extends AbstractMailSource<T>> extend
 		ensureNotStarted();
 		this.port = port;
 		return (T) this;
+
 	}
 
 	public void sendEmail(String from, String subject, String msg) {

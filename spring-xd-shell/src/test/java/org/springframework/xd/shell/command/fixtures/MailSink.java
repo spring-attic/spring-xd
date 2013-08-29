@@ -22,7 +22,10 @@ import com.icegreen.greenmail.util.ServerSetup;
 
 
 /**
+<<<<<<< HEAD
  * A fixture to help test the {@code mail} sink module. Allows retrieval of emails sent to the configured server.
+=======
+>>>>>>> merging ericbottard-XD-767-768-Mail
  * 
  * @author Eric Bottard
  */

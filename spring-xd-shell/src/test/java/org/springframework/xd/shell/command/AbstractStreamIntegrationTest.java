@@ -16,12 +16,18 @@
 
 package org.springframework.xd.shell.command;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import org.junit.After;
 
 import org.springframework.xd.shell.AbstractShellIntegrationTest;
+import org.springframework.xd.shell.command.fixtures.Disposable;
+import org.springframework.xd.shell.command.fixtures.FileSink;
+import org.springframework.xd.shell.command.fixtures.FileSource;
+import org.springframework.xd.shell.command.fixtures.HttpSource;
+import org.springframework.xd.shell.command.fixtures.TailSource;
 
 /**
  * Provides an @After JUnit lifecycle method that will destroy the definitions that were created by the test.
@@ -44,11 +50,7 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 
 	private RichGaugeCommandTemplate richGaugeOps;
 
-	private Set<FileSink> fileSinks = new HashSet<FileSink>();
-
-	private Set<TailSource> tailSources = new HashSet<TailSource>();
-
-	private Set<FileSource> fileSources = new HashSet<FileSource>();
+	private List<Disposable> disposables = new ArrayList<Disposable>();
 
 	public AbstractStreamIntegrationTest() {
 		streamOps = new StreamCommandTemplate(getShell());
@@ -84,7 +86,6 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 	}
 
 	@After
-	@SuppressWarnings("unchecked")
 	public void after() {
 		tap().destroyCreatedTaps();
 		stream().destroyCreatedStreams();
@@ -92,32 +93,31 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 		aggCounter().deleteDefaultCounter();
 		fvc().deleteDefaultFVCounter();
 		richGauge().deleteDefaultRichGauge();
-		cleanFiles(fileSinks, fileSources, tailSources);
+		cleanUpDisposables();
 	}
 
-	private void cleanFiles(Iterable<? extends DisposableFileSupport>... sets) {
-		for (Iterable<? extends DisposableFileSupport> set : sets) {
-			for (DisposableFileSupport toDelete : set) {
-				toDelete.cleanup();
-			}
+	private void cleanUpDisposables() {
+		Collections.reverse(disposables);
+		for (Disposable disposable : disposables) {
+			disposable.cleanup();
 		}
 	}
 
 	protected FileSink newFileSink() {
 		FileSink fileSink = new FileSink();
-		fileSinks.add(fileSink);
+		disposables.add(fileSink);
 		return fileSink;
 	}
 
 	protected FileSource newFileSource() {
 		FileSource fileSource = new FileSource();
-		fileSources.add(fileSource);
+		disposables.add(fileSource);
 		return fileSource;
 	}
 
 	protected TailSource newTailSource() {
 		TailSource tailSource = new TailSource();
-		tailSources.add(tailSource);
+		disposables.add(tailSource);
 		return tailSource;
 	}
 

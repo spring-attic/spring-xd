@@ -25,8 +25,8 @@ import org.springframework.context.ApplicationContext;
 
 /**
  * An advice that will set the {@link Thread#setContextClassLoader(ClassLoader) thread context ClassLoader} to the
- * enclosing {@link ApplicationContext#getClassLoader() ApplicationContext classl loader} before invocation and reset it
- * afterwards.
+ * enclosing {@link ApplicationContext#getClassLoader() ApplicationContext's class loader} before invocation and reset
+ * it afterwards.
  * 
  * @author Eric Bottard
  */

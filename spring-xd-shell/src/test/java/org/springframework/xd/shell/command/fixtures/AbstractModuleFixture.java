@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.shell.command;
+package org.springframework.xd.shell.command.fixtures;
 
 
 /**
@@ -22,7 +22,7 @@ package org.springframework.xd.shell.command;
  * 
  * @author Eric Bottard
  */
-abstract class AbstractModuleFixture {
+public abstract class AbstractModuleFixture {
 
 	@Override
 	public final String toString() {

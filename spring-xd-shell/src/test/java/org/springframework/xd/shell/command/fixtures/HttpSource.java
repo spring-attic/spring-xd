@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.shell.command;
+package org.springframework.xd.shell.command.fixtures;
 
 import org.eclipse.jdt.internal.core.Assert;
 

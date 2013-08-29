@@ -25,6 +25,8 @@ import java.util.TreeMap;
 import org.junit.Test;
 
 import org.springframework.util.StreamUtils;
+import org.springframework.xd.shell.command.fixtures.HttpSource;
+import org.springframework.xd.shell.command.fixtures.TailSource;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableHeader;
 

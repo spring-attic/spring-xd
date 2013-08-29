@@ -14,22 +14,42 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.shell.command;
+package org.springframework.xd.shell.command.fixtures;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
 /**
- * Support class that represents a tail source.
+ * Support class that represents the file source module.
  * 
- * @author Ilayaperumal Gopinathan
+ * @author Eric Bottard
  */
-class TailSource extends DisposableFileSupport {
+public class FileSource extends DisposableFileSupport {
+
+	public FileSource() {
+		super(makeDir());
+	}
+
+	/**
+	 * First make a temporary directory where our file will live.
+	 */
+	private static File makeDir() {
+		try {
+			File dir = File.createTempFile("FileSource", "");
+			dir.delete();
+			dir.mkdirs();
+			return dir;
+		}
+		catch (IOException e) {
+			throw new IllegalStateException(e);
+		}
+	}
 
 	@Override
-	public String toDSL() {
-		return String.format("tail --fromEnd=false --name=%s", file.getAbsolutePath());
+	protected String toDSL() {
+		return String.format("file --dir=%s", file.getParent());
 	}
 
 	public void appendToFile(String contents) throws IOException {
@@ -38,4 +58,13 @@ class TailSource extends DisposableFileSupport {
 		bufferWritter.write(contents);
 		bufferWritter.close();
 	}
+
+	@Override
+	public void cleanup() {
+		// first delete file inside dir
+		super.cleanup();
+		// then dir itself
+		file.getParentFile().delete();
+	}
+
 }

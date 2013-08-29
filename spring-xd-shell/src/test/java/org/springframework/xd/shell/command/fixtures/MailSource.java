@@ -14,29 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.shell.command;
-
-import static org.junit.Assert.assertTrue;
-
-import org.junit.Test;
-
-import org.springframework.xd.shell.command.fixtures.FileSink;
+package org.springframework.xd.shell.command.fixtures;
 
 
 /**
- * Tests related to custom module packaging.
  * 
- * @author Eric Bottard
+ * @author ebottard
  */
-public class ModuleClasspathTests extends AbstractStreamIntegrationTest {
-
-	@Test
-	public void testModuleWithClasspathAfterServerStarted() throws Exception {
-		installTestModule("source", "time2");
-		FileSink fileSink = newFileSink();
-		stream().create("foo", "time2 --fixedDelay=1000 | %s", fileSink);
-
-		assertTrue(fileSink.getContents().length() > 5);
-	}
+public class MailSource {
 
 }

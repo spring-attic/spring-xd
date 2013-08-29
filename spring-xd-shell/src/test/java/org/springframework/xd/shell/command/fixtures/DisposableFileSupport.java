@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.shell.command;
+package org.springframework.xd.shell.command.fixtures;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,7 +24,7 @@ import java.io.IOException;
  * 
  * @author Eric Bottard
  */
-abstract class DisposableFileSupport extends AbstractModuleFixture {
+public abstract class DisposableFileSupport extends AbstractModuleFixture implements Disposable {
 
 	/**
 	 * How long to wait (max) for a file to appear, in ms.
@@ -46,6 +46,7 @@ abstract class DisposableFileSupport extends AbstractModuleFixture {
 		}
 	}
 
+	@Override
 	public void cleanup() {
 		file.delete();
 	}

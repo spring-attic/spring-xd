@@ -30,6 +30,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import org.springframework.integration.test.util.SocketUtils;
+import org.springframework.xd.shell.command.fixtures.FileSink;
 
 
 /**

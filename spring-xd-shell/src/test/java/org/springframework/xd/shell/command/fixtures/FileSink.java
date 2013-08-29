@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.shell.command;
+package org.springframework.xd.shell.command.fixtures;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -29,7 +29,7 @@ import org.springframework.util.FileCopyUtils;
  * 
  * @author Eric Bottard
  */
-class FileSink extends DisposableFileSupport {
+public class FileSink extends DisposableFileSupport {
 
 	private String charset = "UTF-8";
 

@@ -27,6 +27,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.shell.core.CommandResult;
+import org.springframework.xd.shell.command.fixtures.FileSink;
 
 /**
  * Test stream commands

@@ -14,29 +14,19 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.shell.command;
-
-import static org.junit.Assert.assertTrue;
-
-import org.junit.Test;
-
-import org.springframework.xd.shell.command.fixtures.FileSink;
+package org.springframework.xd.shell.command.fixtures;
 
 
 /**
- * Tests related to custom module packaging.
+ * To be implemented by fixtures that need special cleanup when a test is done.
  * 
  * @author Eric Bottard
  */
-public class ModuleClasspathTests extends AbstractStreamIntegrationTest {
+public interface Disposable {
 
-	@Test
-	public void testModuleWithClasspathAfterServerStarted() throws Exception {
-		installTestModule("source", "time2");
-		FileSink fileSink = newFileSink();
-		stream().create("foo", "time2 --fixedDelay=1000 | %s", fileSink);
-
-		assertTrue(fileSink.getContents().length() > 5);
-	}
+	/**
+	 * Free up resources that this fixture may have created.
+	 */
+	public void cleanup();
 
 }

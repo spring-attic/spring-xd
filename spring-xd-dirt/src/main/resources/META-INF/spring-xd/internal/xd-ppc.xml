@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<bean id="xd.property.placeholder"
+		class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
+	<property name="locations">
+		<list>
+			<value>file:${XD_HOME}/config/rabbit.properties</value>
+			<value>file:${XD_HOME}/config/redis.properties</value>
+		</list>
+		</property>
+	</bean>
+</beans>

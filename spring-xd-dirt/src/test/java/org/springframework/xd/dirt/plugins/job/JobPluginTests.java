@@ -25,7 +25,9 @@ import java.util.Properties;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
@@ -34,6 +36,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.scheduling.config.CronTask;
 import org.springframework.scheduling.config.IntervalTask;
+import org.springframework.xd.dirt.server.options.XDPropertyKeys;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.ModuleDefinition;
@@ -51,6 +54,16 @@ public class JobPluginTests {
 	private JobPlugin plugin;
 
 	private ConfigurableApplicationContext sharedContext;
+
+	@BeforeClass
+	public static void init() {
+		System.setProperty(XDPropertyKeys.XD_HOME, "..");
+	}
+
+	@AfterClass
+	public static void after() {
+		System.clearProperty(XDPropertyKeys.XD_HOME);
+	}
 
 	@Before
 	public void setUp() throws Exception {

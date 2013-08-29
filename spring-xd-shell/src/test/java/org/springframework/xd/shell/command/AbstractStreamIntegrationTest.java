@@ -27,6 +27,7 @@ import org.springframework.xd.shell.command.fixtures.Disposable;
 import org.springframework.xd.shell.command.fixtures.FileSink;
 import org.springframework.xd.shell.command.fixtures.FileSource;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
+import org.springframework.xd.shell.command.fixtures.MailSource;
 import org.springframework.xd.shell.command.fixtures.TailSource;
 
 /**
@@ -119,6 +120,12 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 		TailSource tailSource = new TailSource();
 		disposables.add(tailSource);
 		return tailSource;
+	}
+
+	protected MailSource newMailSource() {
+		MailSource mailSource = new MailSource();
+		disposables.add(mailSource);
+		return mailSource;
 	}
 
 	protected HttpSource newHttpSource() {

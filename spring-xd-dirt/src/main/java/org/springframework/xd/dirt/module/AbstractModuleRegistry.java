@@ -38,6 +38,9 @@ public abstract class AbstractModuleRegistry implements ModuleRegistry {
 	@Override
 	public ModuleDefinition lookup(String name, String type) {
 		Resource resource = this.locateApplicationContext(name, type);
+		if (resource == null) {
+			return null;
+		}
 		URL[] classpath = maybeLocateClasspath(resource, name, type);
 		ModuleDefinition module = new ModuleDefinition(name, type, resource, classpath);
 		// TODO: add properties from a property registry
@@ -56,10 +59,9 @@ public abstract class AbstractModuleRegistry implements ModuleRegistry {
 	public List<ModuleDefinition> findDefinitions(String name) {
 		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
 		for (ModuleType type : ModuleType.values()) {
-			Resource resource = locateApplicationContext(name, type.getTypeName());
-			if (resource != null) {
-				ModuleDefinition moduleDef = new ModuleDefinition(name, type.getTypeName(), resource);
-				definitions.add(moduleDef);
+			ModuleDefinition definition = lookup(name, type.getTypeName());
+			if (definition != null) {
+				definitions.add(definition);
 			}
 		}
 		return definitions;

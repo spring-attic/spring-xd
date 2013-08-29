@@ -27,6 +27,11 @@ import org.springframework.xd.module.ModuleDefinition;
  */
 public interface ModuleRegistry {
 
+	/**
+	 * Lookup a module of the given type with the given name.
+	 * 
+	 * @return {@code null} if this registry does not have such a module
+	 */
 	ModuleDefinition lookup(String name, String type);
 
 	/**

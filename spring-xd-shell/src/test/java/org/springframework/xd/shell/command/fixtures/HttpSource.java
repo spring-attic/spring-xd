@@ -18,7 +18,6 @@ package org.springframework.xd.shell.command.fixtures;
 
 import org.eclipse.jdt.internal.core.Assert;
 
-import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
 import org.springframework.web.client.RestTemplate;
@@ -36,7 +35,7 @@ public class HttpSource extends AbstractModuleFixture {
 	private JLineShellComponent shell;
 
 	public HttpSource(JLineShellComponent shell) {
-		this(shell, SocketUtils.findAvailableServerSocket(8000));
+		this(shell, AvailableSocketPorts.nextAvailablePort());
 	}
 
 	public HttpSource(JLineShellComponent shell, int port) {

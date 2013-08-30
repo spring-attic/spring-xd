@@ -41,20 +41,24 @@ public class TuplePropertyAccessor implements PropertyAccessor {
 		if (tuple.hasFieldName(name)) {
 			return true;
 		}
-		Integer index = maybeIndex(name);
-		return index != null && tuple.size() > index;
+		return maybeIndex(name, tuple) != null;
 	}
 
 	/**
 	 * Return an integer if the String property name can be parsed as an int, or null otherwise.
 	 */
-	private Integer maybeIndex(String name) {
+	private Integer maybeIndex(String name, Tuple tuple) {
+		Integer index = null;
 		try {
-			return Integer.valueOf(name);
+			int i = Integer.parseInt(name);
+			if (i > -1 && tuple.size() > i) {
+				index = i;
+			}
 		}
 		catch (NumberFormatException e) {
-			return null;
+			// not an integer
 		}
+		return index;
 	}
 
 	@Override
@@ -67,8 +71,8 @@ public class TuplePropertyAccessor implements PropertyAccessor {
 			value = tuple.getValue(name);
 		}
 		else {
-			Integer index = maybeIndex(name);
-			if (index != null && tuple.size() > index) {
+			Integer index = maybeIndex(name, tuple);
+			if (index != null) {
 				hasKey = true;
 				value = tuple.getValue(index);
 			}

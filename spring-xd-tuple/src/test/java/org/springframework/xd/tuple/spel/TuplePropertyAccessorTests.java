@@ -21,6 +21,7 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.expression.spel.SpelEvaluationException;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.xd.tuple.Tuple;
@@ -52,6 +53,12 @@ public class TuplePropertyAccessorTests {
 		Tuple tuple = TupleBuilder.tuple().of("foo", "bar");
 		String result = evaluate("['0']", tuple, String.class);
 		assertEquals("bar", result);
+	}
+
+	@Test(expected = SpelEvaluationException.class)
+	public void failOnNegativeIndex() {
+		Tuple tuple = TupleBuilder.tuple().of("foo", "bar");
+		evaluate("['-3']", tuple, String.class);
 	}
 
 	@Test

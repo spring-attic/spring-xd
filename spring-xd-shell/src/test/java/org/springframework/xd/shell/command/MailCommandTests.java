@@ -23,6 +23,7 @@ import org.junit.Test;
 
 import org.springframework.xd.shell.command.fixtures.FileSink;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
+import org.springframework.xd.shell.command.fixtures.ImapSource;
 import org.springframework.xd.shell.command.fixtures.MailSink;
 import org.springframework.xd.shell.command.fixtures.MailSource;
 
@@ -37,6 +38,22 @@ public class MailCommandTests extends AbstractStreamIntegrationTest {
 	@Test
 	public void testImapPoll() throws Exception {
 		MailSource mailSource = newMailSource();
+		FileSink fileSink = newFileSink();
+
+		mailSource.ensureStarted();
+
+		stream().create("mailstream", "%s | %s", mailSource, fileSink);
+
+		mailSource.sendEmail("from@foo.com", "The Subject", "My body is slim!");
+
+		String result = fileSink.getContents();
+
+		Assert.assertEquals("My body is slim!\r\n\n", result);
+	}
+
+	@Test
+	public void testImapIdle() throws Exception {
+		ImapSource mailSource = newImapSource();
 		FileSink fileSink = newFileSink();
 
 		mailSource.ensureStarted();

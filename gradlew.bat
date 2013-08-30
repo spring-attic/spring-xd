@@ -13,4 +13,8 @@ if not "%XD_STORE%" == "" (
 	set XD_STORE=memory
 )
 call .\build_xd.bat  %*
+<<<<<<< HEAD
 ENDLOCAL
+=======
+ENDLOCAL
+>>>>>>> XD-784 - updated gradlew.bat

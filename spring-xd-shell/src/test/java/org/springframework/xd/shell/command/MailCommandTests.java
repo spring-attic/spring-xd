@@ -16,33 +16,58 @@
 
 package org.springframework.xd.shell.command;
 
+import javax.mail.internet.MimeMessage;
+
 import org.junit.Assert;
 import org.junit.Test;
 
 import org.springframework.xd.shell.command.fixtures.FileSink;
+import org.springframework.xd.shell.command.fixtures.HttpSource;
+import org.springframework.xd.shell.command.fixtures.MailSink;
 import org.springframework.xd.shell.command.fixtures.MailSource;
 
 
 /**
- * Tests for the mail related source.
+ * Tests for the mail related sources and sink.
  * 
  * @author Eric Bottard
  */
-public class MailSourceCommandTests extends AbstractStreamIntegrationTest {
+public class MailCommandTests extends AbstractStreamIntegrationTest {
 
 	@Test
 	public void testImapPoll() throws Exception {
 		MailSource mailSource = newMailSource();
 		FileSink fileSink = newFileSink();
 
+		mailSource.ensureStarted();
+
 		stream().create("mailstream", "%s | %s", mailSource, fileSink);
 
 		mailSource.sendEmail("from@foo.com", "The Subject", "My body is slim!");
 
-
 		String result = fileSink.getContents();
 
 		Assert.assertEquals("My body is slim!\r\n\n", result);
+	}
+
+	@Test
+	public void testMailSink() throws Exception {
+		HttpSource httpSource = newHttpSource();
+		MailSink mailSink = newMailSink();
+
+		mailSink.ensureStarted()
+				.to("'\"some.one@domain.com\"'")
+				.subject("payload");
+
+
+		stream().create("mailstream", "%s | %s", httpSource, mailSink);
+
+		httpSource.ensureReady().postData("Woohoo!");
+		MimeMessage result = mailSink.waitForEmail();
+
+		Assert.assertEquals("Woohoo!\r\n", result.getContent());
+		Assert.assertEquals("Woohoo!", result.getSubject());
+
 	}
 
 }

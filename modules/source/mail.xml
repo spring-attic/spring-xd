@@ -15,7 +15,7 @@
 	<channel id="output"/>
 
 	<int-mail:inbound-channel-adapter
-		store-uri="${protocol:mail.source.protocol}://${username:mail.source.username}:${password:mail.source.password}@${host:mail.source.host}:${port:mail.source.port}/${folder:INBOX}"
+		store-uri="${protocol:${mail.source.protocol}}://${username:${mail.source.username}}:${password:${mail.source.password}}@${host:${mail.source.host}}:${port:${mail.source.port}}/${folder:INBOX}"
 		channel="transform"
 		should-mark-messages-as-read="${markAsRead:false}"
 		should-delete-messages="${delete:true}">

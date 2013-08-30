@@ -48,7 +48,7 @@ public class SpelPropertyAccessorIntegrationTests extends AbstractStreamIntegrat
 		source.ensureReady().postData("{'foo':'bar'}");
 
 		final String result = sink.getContents();
-		assertEquals("bar\n", result);
+		assertEquals("bar", result.trim());
 	}
 
 }

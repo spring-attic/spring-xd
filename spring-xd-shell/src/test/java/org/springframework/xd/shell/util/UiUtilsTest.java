@@ -70,7 +70,7 @@ public class UiUtilsTest {
 
 		final String tableRenderedAsString = UiUtils.renderTextTable(table);
 
-		assertEquals(expectedTableAsString, tableRenderedAsString);
+		assertEquals(expectedTableAsString.replaceAll("\r", ""), tableRenderedAsString);
 	}
 
 	@Test
@@ -100,7 +100,7 @@ public class UiUtilsTest {
 		}
 
 		final String tableRenderedAsString = UiUtils.renderTextTable(table);
-		assertEquals(expectedTableAsString, tableRenderedAsString);
+		assertEquals(expectedTableAsString.replaceAll("\r", ""), tableRenderedAsString);
 	}
 
 	@Test
@@ -132,7 +132,7 @@ public class UiUtilsTest {
 		}
 
 		final String tableRenderedAsString = UiUtils.renderTextTable(table);
-		assertEquals(expectedTableAsString, tableRenderedAsString);
+		assertEquals(expectedTableAsString.replaceAll("\r", ""), tableRenderedAsString);
 	}
 
 	@Test
@@ -160,6 +160,6 @@ public class UiUtilsTest {
 		}
 
 		final String tableRenderedAsString = UiUtils.renderParameterInfoDataAsTable(values, false, 20);
-		assertEquals(expectedTableAsString, tableRenderedAsString);
+		assertEquals(expectedTableAsString.replaceAll("\r", ""), tableRenderedAsString);
 	}
 }

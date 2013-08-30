@@ -18,6 +18,11 @@ package org.springframework.xd.shell.command;
 
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
+import java.io.IOException;
+
+import org.apache.commons.io.FileUtils;
+import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.xd.shell.command.fixtures.FileSink;
@@ -39,4 +44,17 @@ public class ModuleClasspathTests extends AbstractStreamIntegrationTest {
 		assertTrue(fileSink.getContents().length() > 5);
 	}
 
+	/**
+	 * A workaround for Windows. Once the jar is loaded it cannot be deleted.
+	 * 
+	 * @throws IOException
+	 */
+
+	@Before
+	public void cleanTestFiles() throws IOException {
+		File testModuleDir = new File("../modules/source/time2");
+		if (testModuleDir.exists()) {
+			FileUtils.deleteDirectory(testModuleDir);
+		}
+	}
 }

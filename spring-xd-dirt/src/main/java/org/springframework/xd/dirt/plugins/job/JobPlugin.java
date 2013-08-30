@@ -54,8 +54,6 @@ public class JobPlugin extends AbstractPlugin {
 
 	private static final String REGISTRAR = CONTEXT_CONFIG_ROOT + "job-module-beans.xml";
 
-	private static final String JOB_PARAMETERS = "jobParameters";
-
 	private static final String DATE_FORMAT = "dateFormat";
 
 	private static final String NUMBER_FORMAT = "numberFormat";
@@ -75,9 +73,6 @@ public class JobPlugin extends AbstractPlugin {
 		final Properties properties = new Properties();
 		properties.setProperty("xd.stream.name", module.getDeploymentMetadata().getGroup());
 
-		if (!module.getProperties().contains(JOB_PARAMETERS)) {
-			properties.setProperty(JOB_PARAMETERS, "");
-		}
 		if (!module.getProperties().contains(DATE_FORMAT)) {
 			properties.setProperty(DATE_FORMAT, "");
 		}

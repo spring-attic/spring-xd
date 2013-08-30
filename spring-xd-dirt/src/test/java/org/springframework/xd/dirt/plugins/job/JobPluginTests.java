@@ -81,12 +81,11 @@ public class JobPluginTests {
 
 		Properties moduleProperties = module.getProperties();
 
-		assertEquals(5, moduleProperties.size());
+		assertEquals(4, moduleProperties.size());
 		assertEquals("foo", moduleProperties.getProperty("xd.stream.name"));
 		assertEquals("", moduleProperties.getProperty("dateFormat"));
 		assertEquals("", moduleProperties.getProperty("numberFormat"));
 		assertEquals("true", moduleProperties.getProperty("makeUnique"));
-		assertEquals("", moduleProperties.getProperty("jobParameters"));
 	}
 
 	@Test

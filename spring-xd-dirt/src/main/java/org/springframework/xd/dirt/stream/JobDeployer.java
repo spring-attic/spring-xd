@@ -61,10 +61,10 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 
 	@Override
 	public void deploy(String name) {
-		deploy(name, null, null, null, null);
+		deploy(name, null, null, null);
 	}
 
-	public void deploy(String name, String jobParameters, String dateFormat, String numberFormat, Boolean makeUnique) {
+	public void deploy(String name, String dateFormat, String numberFormat, Boolean makeUnique) {
 		Assert.hasText(name, "name cannot be blank or null");
 		JobDefinition definition = getDefinitionRepository().findOne(name);
 		if (definition == null) {
@@ -74,9 +74,6 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 
 		for (ModuleDeploymentRequest request : requests) {
 			if ("job".equals(request.getType())) {
-				if (jobParameters != null) {
-					request.setParameter("jobParameters", jobParameters);
-				}
 				if (dateFormat != null) {
 					request.setParameter("dateFormat", dateFormat);
 				}

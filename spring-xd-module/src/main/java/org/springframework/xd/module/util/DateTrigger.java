@@ -16,7 +16,10 @@
 
 package org.springframework.xd.module.util;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
@@ -28,25 +31,26 @@ import org.springframework.scheduling.TriggerContext;
  */
 public class DateTrigger implements Trigger {
 
-	private volatile Date nextFireDate;
-
-	private volatile boolean singleFire = false;
+	private volatile List<Date> nextFireDates;
 
 	public DateTrigger() {
-		singleFire = true;
-		nextFireDate = new Date();
+		nextFireDates = new ArrayList<Date>();
+		nextFireDates.add(new Date());
 	}
 
-	public DateTrigger(Date nextFireDate) {
-		this.nextFireDate = nextFireDate;
+	public DateTrigger(Date... nextFireDates) {
+		for (Date date : nextFireDates) {
+			this.nextFireDates.add(date);
+		}
+		Collections.sort(this.nextFireDates);
 	}
 
 	@Override
 	public Date nextExecutionTime(TriggerContext triggerContext) {
 		Date result = null;
-		if (singleFire) {
-			singleFire = false;
-			return nextFireDate;
+		if (nextFireDates.size() > 0) {
+			result = nextFireDates.get(0);
+			nextFireDates.remove(0);
 		}
 		return result;
 	}

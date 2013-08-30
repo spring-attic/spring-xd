@@ -12,17 +12,23 @@
 
 	<context:property-placeholder location="file:${XD_HOME}/config/mail.properties"/>
 
-	<channel id="output"/>
+	<channel id="input" />
 
-	<int-mail:imap-idle-channel-adapter
-		store-uri="${protocol:${mail.source.protocol}}://${username:${mail.source.username}}:${password:${mail.source.password}}@${host:${mail.source.host}}:${port:${mail.source.port}}/${folder:INBOX}"
-		channel="transform"
-		auto-startup="true"
-		mail-filter-expression="${expression:true}"
-		should-mark-messages-as-read="${markAsRead:false}"
-		should-delete-messages="${delete:true}">
-	</int-mail:imap-idle-channel-adapter>
+	<int-mail:header-enricher input-channel="input" output-channel="send">
+		<int-mail:to expression="${to:null}" />
+		<int-mail:from expression="${from:null}" />
+		<int-mail:subject expression="${subject:null}" />
+		<int-mail:cc expression="${cc:null}" />
+		<int-mail:bcc expression="${bcc:null}" />
+		<int-mail:reply-to expression="${replyTo:null}" />
+		<int-mail:content-type expression="${contentType:null}" />
+	</int-mail:header-enricher>
 
-	<int-mail:mail-to-string-transformer charset="${charset:UTF-8}" input-channel="transform" output-channel="output" />
+	<channel id="send" />
+
+	<int-mail:outbound-channel-adapter
+		channel="send" host="${host:${mail.sink.host}}" port="${port:${mail.sink.port}}" username="${username:${mail.sink.username}}"
+		password="${password:${mail.sink.password}}" />
+
 
 </beans:beans>

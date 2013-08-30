@@ -249,8 +249,8 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		tap().create("mytap4", "tap myhttp.flibble | transform --expression=payload.replaceAll('A','.') | %s", tapsink1);
 		executeCommand("http post --data Dracarys! --target http://localhost:9314");
 
-		assertEquals("DRACARYS!\n", sink.getContents());
-		assertEquals("DR.C.RYS!\n", tapsink1.getContents());
+		assertEquals("DRACARYS!\n", sink.getContents().replaceAll("\r", ""));
+		assertEquals("DR.C.RYS!\n", tapsink1.getContents().replaceAll("\r", ""));
 	}
 
 	@Test

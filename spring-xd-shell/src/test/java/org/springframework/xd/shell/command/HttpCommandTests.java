@@ -68,7 +68,7 @@ public class HttpCommandTests extends AbstractStreamIntegrationTest {
 		getShell().executeCommand(
 				String.format("http post --target http://localhost:%s --data \"%s\"", openPort, stringToPost));
 
-		assertEquals(stringToPost + "\n", fileSink.getContents());
+		assertEquals(stringToPost, fileSink.getContents().trim());
 	}
 
 	/**
@@ -94,7 +94,7 @@ public class HttpCommandTests extends AbstractStreamIntegrationTest {
 		getShell().executeCommand(
 				String.format("http post --target http://localhost:%s --data \"%s\"", openPort, stringToPostInJapanese));
 
-		assertEquals(stringToPostInJapanese + "\n", fileSink.getContents());
+		assertEquals(stringToPostInJapanese, fileSink.getContents().trim());
 	}
 
 	@Test
@@ -119,7 +119,7 @@ public class HttpCommandTests extends AbstractStreamIntegrationTest {
 						"http post --target http://localhost:%s --file %s --contentType \"text/plain;charset=%s\"",
 						openPort, tempFileIn.getAbsolutePath(), inCharset));
 
-		assertEquals(stringToPostInJapanese + "\n", fileSink.getContents());
+		assertEquals(stringToPostInJapanese, fileSink.getContents().trim());
 
 	}
 }

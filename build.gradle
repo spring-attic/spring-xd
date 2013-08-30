@@ -84,7 +84,7 @@ configure(javaProjects()) { subproject ->
 		springShellVersion = '1.1.0.M1'
 		springIntegrationSplunkVersion = '1.0.0.M1'
 		springDataMongoVersion = '1.1.1.RELEASE'
-		springDataRedisVersion = '1.1.0.BUILD-SNAPSHOT'
+		springDataRedisVersion = '1.1.0.RC1'
 		springDataCommonsVersion = '1.6.0.M1'
 		springDataGemfireVersion = '1.3.2.RELEASE'
 		tomcatJdbcPoolVersion = '7.0.42'

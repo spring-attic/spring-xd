@@ -31,10 +31,9 @@ import org.springframework.scheduling.TriggerContext;
  */
 public class DateTrigger implements Trigger {
 
-	private volatile List<Date> nextFireDates;
+	private volatile List<Date> nextFireDates = new ArrayList<Date>();
 
 	public DateTrigger() {
-		nextFireDates = new ArrayList<Date>();
 		nextFireDates.add(new Date());
 	}
 

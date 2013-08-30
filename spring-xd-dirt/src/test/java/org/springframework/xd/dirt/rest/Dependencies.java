@@ -37,15 +37,12 @@ import org.springframework.xd.dirt.stream.StreamRepository;
 import org.springframework.xd.dirt.stream.TapDefinitionRepository;
 import org.springframework.xd.dirt.stream.TapDeployer;
 import org.springframework.xd.dirt.stream.TapInstanceRepository;
-import org.springframework.xd.dirt.stream.TriggerDefinitionRepository;
-import org.springframework.xd.dirt.stream.TriggerDeployer;
 import org.springframework.xd.dirt.stream.XDParser;
 import org.springframework.xd.dirt.stream.memory.InMemoryJobDefinitionRepository;
 import org.springframework.xd.dirt.stream.memory.InMemoryStreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.memory.InMemoryStreamRepository;
 import org.springframework.xd.dirt.stream.memory.InMemoryTapDefinitionRepository;
 import org.springframework.xd.dirt.stream.memory.InMemoryTapInstanceRepository;
-import org.springframework.xd.dirt.stream.memory.InMemoryTriggerDefinitionRepository;
 
 /**
  * Provide a mockito mock for any of the business layer dependencies. Adding yet another configuration class on top, one
@@ -106,8 +103,7 @@ public class Dependencies {
 
 	@Bean
 	public JobDeployer jobDeployer() {
-		return new JobDeployer(jobDefinitionRepository(), triggerDefinitionRepository(),
-				deploymentMessageSender(), parser());
+		return new JobDeployer(jobDefinitionRepository(), deploymentMessageSender(), parser());
 	}
 
 	@Bean
@@ -139,15 +135,5 @@ public class Dependencies {
 	@Bean
 	public TapInstanceRepository tapInstanceRepository() {
 		return new InMemoryTapInstanceRepository();
-	}
-
-	@Bean
-	public TriggerDefinitionRepository triggerDefinitionRepository() {
-		return new InMemoryTriggerDefinitionRepository();
-	}
-
-	@Bean
-	public TriggerDeployer triggerDeployer() {
-		return new TriggerDeployer(triggerDefinitionRepository(), deploymentMessageSender(), parser());
 	}
 }

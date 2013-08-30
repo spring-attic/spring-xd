@@ -36,7 +36,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.xd.rest.client.domain.JobDefinitionResource;
 import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
 import org.springframework.xd.rest.client.domain.TapDefinitionResource;
-import org.springframework.xd.rest.client.domain.TriggerDefinitionResource;
 import org.springframework.xd.rest.client.domain.XDRuntime;
 import org.springframework.xd.rest.client.domain.metrics.AggregateCountsResource;
 import org.springframework.xd.rest.client.domain.metrics.CounterResource;
@@ -76,7 +75,7 @@ public class RestTemplateMessageConverterUtil {
 					RestTemplateMessageConverterUtil.class.getClassLoader());
 
 	private static final Class<?>[] ourClasses = { StreamDefinitionResource.class, JobDefinitionResource.class,
-		TapDefinitionResource.class, TriggerDefinitionResource.class, MetricResource.class, GaugeResource.class,
+		TapDefinitionResource.class, MetricResource.class, GaugeResource.class,
 		AggregateCountsResource.class, CounterResource.class, XDRuntime.class, FieldValueCounterResource.class,
 		RichGaugeResource.class };
 

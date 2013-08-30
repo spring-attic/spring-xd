@@ -52,22 +52,7 @@ public class JobPlugin extends AbstractPlugin {
 	private static final String CONTEXT_CONFIG_ROOT = XDContainer.XD_CONFIG_ROOT
 			+ "plugins/job/";
 
-	private static final String REGISTRAR_WITH_TRIGGER_REF =
-			CONTEXT_CONFIG_ROOT + "registrar-with-trigger-ref.xml";
-
-	private static final String REGISTRAR_WITH_CRON =
-			CONTEXT_CONFIG_ROOT + "registrar-with-cron.xml";
-
-	private static final String REGISTRAR_WITH_FIXED_DELAY =
-			CONTEXT_CONFIG_ROOT + "registrar-with-fixed-delay.xml";
-
 	private static final String REGISTRAR = CONTEXT_CONFIG_ROOT + "job-module-beans.xml";
-
-	private static final String TRIGGER = "trigger";
-
-	private static final String CRON = "cron";
-
-	private static final String FIXED_DELAY = "fixedDelay";
 
 	private static final String JOB_PARAMETERS = "jobParameters";
 
@@ -90,13 +75,6 @@ public class JobPlugin extends AbstractPlugin {
 		final Properties properties = new Properties();
 		properties.setProperty("xd.stream.name", module.getDeploymentMetadata().getGroup());
 
-		if (module.getProperties().containsKey(TRIGGER) || module.getProperties().containsKey(CRON)
-				|| module.getProperties().containsKey(FIXED_DELAY)) {
-			properties.setProperty("xd.trigger.execute_on_startup", "false");
-		}
-		else {
-			properties.setProperty("xd.trigger.execute_on_startup", "true");
-		}
 		if (!module.getProperties().contains(JOB_PARAMETERS)) {
 			properties.setProperty(JOB_PARAMETERS, "");
 		}
@@ -162,18 +140,7 @@ public class JobPlugin extends AbstractPlugin {
 		if (!JOB.equals(module.getType())) {
 			return result;
 		}
-		if (module.getProperties().containsKey(TRIGGER)) {
-			result.add(REGISTRAR_WITH_TRIGGER_REF);
-		}
-		else if (module.getProperties().containsKey(CRON)) {
-			result.add(REGISTRAR_WITH_CRON);
-		}
-		else if (module.getProperties().containsKey(FIXED_DELAY)) {
-			result.add(REGISTRAR_WITH_FIXED_DELAY);
-		}
-		else {
-			result.add(REGISTRAR);
-		}
+		result.add(REGISTRAR);
 		return result;
 	}
 

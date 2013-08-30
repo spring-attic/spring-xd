@@ -34,8 +34,6 @@ import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.scheduling.config.CronTask;
-import org.springframework.scheduling.config.IntervalTask;
 import org.springframework.xd.dirt.server.options.XDPropertyKeys;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.Module;
@@ -83,10 +81,8 @@ public class JobPluginTests {
 
 		Properties moduleProperties = module.getProperties();
 
-		assertEquals(6, moduleProperties.size());
+		assertEquals(5, moduleProperties.size());
 		assertEquals("foo", moduleProperties.getProperty("xd.stream.name"));
-		assertEquals("true", moduleProperties.getProperty("xd.trigger.execute_on_startup"));
-
 		assertEquals("", moduleProperties.getProperty("dateFormat"));
 		assertEquals("", moduleProperties.getProperty("numberFormat"));
 		assertEquals("true", moduleProperties.getProperty("makeUnique"));
@@ -110,7 +106,6 @@ public class JobPluginTests {
 
 		assertTrue(names.size() > 8);
 
-		assertTrue(names.contains("jobTriggerBean"));
 		assertTrue(names.contains("registrar"));
 		assertTrue(names.contains("jobFactoryBean"));
 		assertTrue(names.contains("jobLaunchRequestTransformer"));
@@ -130,44 +125,6 @@ public class JobPluginTests {
 		plugin.preProcessSharedContext(context);
 		List<BeanFactoryPostProcessor> sharedBeans = context.getBeanFactoryPostProcessors();
 		assertEquals(0, sharedBeans.size());
-	}
-
-	@Test
-	public void testThatLocalCronTaskIsAdded() {
-
-		SimpleModule module = new SimpleModule(new ModuleDefinition("testJob", "job"), new DeploymentMetadata("foo", 0));
-		Properties property = new Properties();
-		property.put("cron", "*/15 * * * * *");
-
-		module.addProperties(property);
-		assertEquals(1, module.getProperties().size());
-
-		module.setParentContext(sharedContext);
-		plugin.preProcessModule(module);
-		plugin.postProcessModule(module);
-
-		module.getApplicationContext().getBeanDefinitionNames();
-		String[] moduleBeans = module.getApplicationContext().getBeanNamesForType(CronTask.class);
-
-		assertEquals(1, moduleBeans.length);
-		assertTrue(moduleBeans[0].contains("org.springframework.scheduling.config.CronTask"));
-	}
-
-	@Test
-	public void testThatLocalFixedDelayTaskIsAdded() {
-
-		SimpleModule module = new SimpleModule(new ModuleDefinition("testFixedDelayJob", "job"),
-				new DeploymentMetadata("foo", 0));
-		Properties property = new Properties();
-		property.put("fixedDelay", "60000");
-		module.addProperties(property);
-
-		module.setParentContext(sharedContext);
-		plugin.preProcessModule(module);
-
-		String[] moduleBeans = module.getApplicationContext().getBeanNamesForType(IntervalTask.class);
-		assertEquals(1, moduleBeans.length);
-		assertTrue(moduleBeans[0].contains("org.springframework.scheduling.config.IntervalTask"));
 	}
 
 }

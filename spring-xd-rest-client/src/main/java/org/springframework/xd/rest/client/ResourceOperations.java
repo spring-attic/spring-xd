@@ -17,7 +17,7 @@
 package org.springframework.xd.rest.client;
 
 /**
- * Operations common to resources like (Stream, Job, Tap and Trigger)
+ * Operations common to resources like (Stream, Job, and Tap )
  * 
  * @author Ilayaperumal Gopinathan
  */

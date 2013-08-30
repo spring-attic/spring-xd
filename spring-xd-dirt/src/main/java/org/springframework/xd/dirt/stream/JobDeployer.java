@@ -19,14 +19,13 @@ import org.springframework.integration.MessageHandlingException;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.dirt.stream.dsl.DSLException;
-import org.springframework.xd.module.ModuleType;
 
 /**
  * @author Glenn Renfro
  * @author Luke Taylor
  * @author Ilayaperumal Gopinathan
  * @author Gunnar Hillert
- *
+ * 
  */
 public class JobDeployer extends AbstractDeployer<JobDefinition> {
 
@@ -36,13 +35,9 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 
 	private static final String DEPLOYER_TYPE = "job";
 
-	private final TriggerDefinitionRepository triggerDefinitionRepository;
-
-	public JobDeployer(JobDefinitionRepository repository, TriggerDefinitionRepository triggerDefinitionRepository,
-			DeploymentMessageSender messageSender,
+	public JobDeployer(JobDefinitionRepository repository, DeploymentMessageSender messageSender,
 			XDParser parser) {
 		super(repository, messageSender, parser, DEPLOYER_TYPE);
-		this.triggerDefinitionRepository = triggerDefinitionRepository;
 	}
 
 	@Override
@@ -76,15 +71,6 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 			throwNoSuchDefinitionException(name);
 		}
 		List<ModuleDeploymentRequest> requests = parse(name, definition.getDefinition());
-		// If the job definition has trigger then, check if the trigger exists
-		// TODO: should we do this at the parser?
-		// but currently the parser has reference to StreamDefinitionRepository only.
-		if (requests != null && requests.get(0).getParameters().containsKey(ModuleType.TRIGGER.getTypeName())) {
-			String triggerName = requests.get(0).getParameters().get(ModuleType.TRIGGER.getTypeName());
-			if (triggerDefinitionRepository.findOne(triggerName) == null) {
-				throwNoSuchDefinitionException(triggerName, ModuleType.TRIGGER.getTypeName());
-			}
-		}
 
 		for (ModuleDeploymentRequest request : requests) {
 			if ("job".equals(request.getType())) {

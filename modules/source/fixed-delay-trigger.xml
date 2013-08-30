@@ -7,9 +7,9 @@
 
 	<channel id="output"/>
 
-	<beans:bean id="jobTriggerBean" class="org.springframework.xd.dirt.plugins.job.JobTriggerBean">
-		<beans:constructor-arg name="executeBatchJobOnStartup" value="true"/>
-		<beans:constructor-arg name="jobParametersAsJsonMap" value="${payload:}"/>
-		<beans:constructor-arg name="requestChannel" ref="output"/>
-	</beans:bean>
+	<inbound-channel-adapter channel="output"
+			auto-startup="false"
+			expression="'${payload:}'">
+		<poller fixed-delay="${fixedDelay:10}" time-unit="SECONDS"/>
+	</inbound-channel-adapter>
 </beans:beans>

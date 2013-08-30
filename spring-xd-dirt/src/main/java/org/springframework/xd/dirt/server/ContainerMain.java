@@ -25,6 +25,7 @@ import org.springframework.xd.dirt.launcher.ContainerLauncher;
 import org.springframework.xd.dirt.launcher.ContainerLauncherFactory;
 import org.springframework.xd.dirt.server.options.CommandLineParser;
 import org.springframework.xd.dirt.server.options.ContainerOptions;
+import org.springframework.xd.dirt.server.options.InvalidCommandLineArgumentException;
 
 /**
  * The main driver class for the container

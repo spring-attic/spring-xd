@@ -21,6 +21,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.server.options.CommandLineParser;
+import org.springframework.xd.dirt.server.options.InvalidCommandLineArgumentException;
 import org.springframework.xd.dirt.server.options.SingleNodeOptions;
 import org.springframework.xd.dirt.server.options.Transport;
 

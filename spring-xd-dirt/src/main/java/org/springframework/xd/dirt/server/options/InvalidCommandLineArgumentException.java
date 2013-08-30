@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.server;
+package org.springframework.xd.dirt.server.options;
 
 import org.springframework.xd.dirt.core.XDRuntimeException;
 

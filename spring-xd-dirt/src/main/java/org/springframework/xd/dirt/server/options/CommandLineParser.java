@@ -19,7 +19,6 @@ package org.springframework.xd.dirt.server.options;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 
-import org.springframework.xd.dirt.server.InvalidCommandLineArgumentException;
 import org.springframework.xd.dirt.server.options.ParserEvent.Event;
 
 

@@ -29,6 +29,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.event.ContainerStartedEvent;
 import org.springframework.xd.dirt.event.ContainerStoppedEvent;
+import org.springframework.xd.dirt.server.XDContainerLaunchException;
 import org.springframework.xd.dirt.server.options.ContainerOptions;
 import org.springframework.xd.dirt.server.options.XDPropertyKeys;
 import org.springframework.xd.dirt.server.util.BannerUtils;
@@ -70,9 +71,8 @@ public abstract class AbstractContainerLauncher implements ContainerLauncher, Ap
 		catch (Exception e) {
 			logger.fatal(e.getClass().getName() + " : " + e.getMessage());
 			this.logErrorInfo(e);
-			System.exit(1);
+			throw new XDContainerLaunchException(e.getMessage(), e);
 		}
-		return null;
 	}
 
 	protected abstract String generateId();

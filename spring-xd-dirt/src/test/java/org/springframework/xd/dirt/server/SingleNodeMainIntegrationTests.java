@@ -49,7 +49,7 @@ public class SingleNodeMainIntegrationTests extends AbstractAdminMainIntegration
 
 	@Test
 	public void testDefault() {
-		SingleNodeMain.main(new String[] {});
+		SingleNodeMain.parseOptions(new String[] {});
 	}
 
 	@Test

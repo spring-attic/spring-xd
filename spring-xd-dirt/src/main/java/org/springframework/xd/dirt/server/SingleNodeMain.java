@@ -41,7 +41,13 @@ public class SingleNodeMain {
 	 * @param args command line arguments
 	 */
 	public static void main(String[] args) {
-		launchSingleNodeServer(parseCommandLineOptions(args));
+		try {
+			launchSingleNodeServer(parseCommandLineOptions(args));
+		}
+		catch (Exception e) {
+			System.err.println(e.getMessage());
+			System.exit(1);
+		}
 	}
 
 	/**
@@ -100,5 +106,4 @@ public class SingleNodeMain {
 				adminServer.getApplicationContext().getParent());
 		return new SingleNodeServer(adminServer, container);
 	}
-
 }

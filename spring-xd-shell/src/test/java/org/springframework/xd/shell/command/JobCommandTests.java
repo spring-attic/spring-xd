@@ -18,8 +18,12 @@ package org.springframework.xd.shell.command;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
@@ -135,6 +139,79 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		checkForFail(cr);
 	}
 
+	@Test
+	public void testJobDeployWithParameters() throws InterruptedException {
+		logger.info("Create batch job with parameters");
+
+		JobParametersHolder.reset();
+		executeJobCreate(MY_JOB_WITH_PARAMETERS, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
+		checkForJobInList(MY_JOB_WITH_PARAMETERS, JOB_WITH_PARAMETERS_DESCRIPTOR);
+
+		final JobParametersHolder jobParametersHolder = new JobParametersHolder();
+
+		final String commandString =
+				"job deploy --name myJobWithParameters";
+
+		CommandResult cr = getShell().executeCommand(commandString);
+		checkForSuccess(cr);
+		assertEquals("Deployed job 'myJobWithParameters'", cr.getResult());
+		executemyjobWithParametersTriggerStream("{\"param1\":\"spring rocks!\"}");
+		boolean done = jobParametersHolder.isDone();
+
+		assertTrue("The countdown latch expired and did not count down.", done);
+
+		int numberOfJobParameters = JobParametersHolder.getJobParameters().size();
+		assertTrue("Expecting 2 parameters but got " + numberOfJobParameters, numberOfJobParameters == 2);
+
+		assertNotNull(JobParametersHolder.getJobParameters().get("random"));
+
+		final JobParameter parameter1 = JobParametersHolder.getJobParameters().get("param1");
+
+		assertNotNull(parameter1);
+		assertEquals("spring rocks!", parameter1.getValue());
+	}
+
+	@Test
+	public void testJobDeployWithTypedParameters() throws InterruptedException, ParseException {
+		logger.info("Create batch job with typed parameters");
+		JobParametersHolder.reset();
+		executeJobCreate(MY_JOB_WITH_PARAMETERS, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
+		checkForJobInList(MY_JOB_WITH_PARAMETERS, JOB_WITH_PARAMETERS_DESCRIPTOR);
+
+		final JobParametersHolder jobParametersHolder = new JobParametersHolder();
+
+		final String commandString = "job deploy --name myJobWithParameters ";
+
+		System.out.println(commandString);
+
+		final CommandResult cr = getShell().executeCommand(commandString);
+		checkForSuccess(cr);
+		assertEquals("Deployed job 'myJobWithParameters'", cr.getResult());
+		executemyjobWithParametersTriggerStream("{\"-param1(long)\":\"12345\",\"param2(date)\":\"1990/10/03\"}");
+
+		boolean done = jobParametersHolder.isDone();
+
+		assertTrue("The countdown latch expired and did not count down.", done);
+		assertTrue("Expecting 3 parameters.", JobParametersHolder.getJobParameters().size() == 3);
+		assertNotNull(JobParametersHolder.getJobParameters().get("random"));
+
+		final JobParameter parameter1 = JobParametersHolder.getJobParameters().get("param1");
+		final JobParameter parameter2 = JobParametersHolder.getJobParameters().get("param2");
+
+		assertNotNull(parameter1);
+		assertNotNull(parameter2);
+		assertTrue("parameter1 should be a Long", parameter1.getValue() instanceof Long);
+		assertTrue("parameter2 should be a java.util.Date", parameter2.getValue() instanceof Date);
+
+		final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
+		final Date expectedDate = dateFormat.parse("1990/10/03");
+
+		assertEquals("Was expecting the Long value 12345", Long.valueOf(12345), parameter1.getValue());
+		assertEquals("Should be the same dates", expectedDate, parameter2.getValue());
+
+		assertFalse("parameter1 should be non-identifying", parameter1.isIdentifying());
+		assertTrue("parameter2 should be identifying", parameter2.isIdentifying());
+	}
 
 	public static class JobParametersHolder {
 

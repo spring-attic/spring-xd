@@ -177,6 +177,13 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 		checkForSuccess(cr);
 	}
 
+	protected void executemyjobWithParametersTriggerStream(String params) {
+		String commandString = String.format(
+				"stream create --name me-Try2 --definition \"trigger --payload='%s' > :myJobWithParameters\"", params);
+		System.out.println("*****" + commandString);
+		CommandResult cr = getShell().executeCommand(commandString);
+		checkForSuccess(cr);
+	}
 
 	private Table listJobs() {
 		return (Table) getShell().executeCommand("job list").getResult();

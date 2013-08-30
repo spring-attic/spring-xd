@@ -65,12 +65,11 @@ public class JobsController extends
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
 	public void deployJob(@PathVariable("name") String name,
-			@RequestParam(required = false) String jobParameters,
 			@RequestParam(required = false) String dateFormat,
 			@RequestParam(required = false) String numberFormat,
 			@RequestParam(required = false) Boolean makeUnique) {
 		final JobDeployer jobDeployer = (JobDeployer) getDeployer();
-		jobDeployer.deploy(name, jobParameters, dateFormat, numberFormat, makeUnique);
+		jobDeployer.deploy(name, dateFormat, numberFormat, makeUnique);
 	}
 
 	/**
@@ -84,6 +83,7 @@ public class JobsController extends
 		return listValues(pageable, QueryOptions.NONE, assembler);
 	}
 
+	@Override
 	protected JobDefinition createDefinition(String name, String definition) {
 		return new JobDefinition(name, definition);
 	}

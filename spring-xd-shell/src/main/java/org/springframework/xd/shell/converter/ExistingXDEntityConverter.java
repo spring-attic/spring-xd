@@ -74,9 +74,6 @@ public class ExistingXDEntityConverter implements Converter<String> {
 		else if ("job".equals(kind)) {
 			populate(completions, springXDOperations.jobOperations().list(), criteria, "Jobs");
 		}
-		else if ("trigger".equals(kind)) {
-			populate(completions, springXDOperations.triggerOperations().list(), criteria, "Triggers");
-		}
 		else if ("counter".equals(kind)) {
 			populate(completions, springXDOperations.counterOperations().list(), criteria, "Counters");
 		}

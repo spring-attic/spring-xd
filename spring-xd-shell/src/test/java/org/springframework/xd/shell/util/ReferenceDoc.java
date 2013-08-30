@@ -52,7 +52,6 @@ import org.springframework.xd.shell.command.JobCommands;
 import org.springframework.xd.shell.command.RichGaugeCommands;
 import org.springframework.xd.shell.command.StreamCommands;
 import org.springframework.xd.shell.command.TapCommands;
-import org.springframework.xd.shell.command.TriggerCommands;
 import org.springframework.xd.shell.hadoop.ConfigurationCommands;
 import org.springframework.xd.shell.hadoop.FsShellCommands;
 
@@ -103,7 +102,6 @@ public class ReferenceDoc {
 		titles.put(StreamCommands.class, "Stream Commands");
 		titles.put(TapCommands.class, "Tap Commands");
 		titles.put(JobCommands.class, "Job Commands");
-		titles.put(TriggerCommands.class, "Trigger Commands");
 
 		// ======= Analytics =======
 		// Use of repeated title here on purpose

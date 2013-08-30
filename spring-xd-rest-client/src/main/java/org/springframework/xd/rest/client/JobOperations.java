@@ -35,7 +35,7 @@ public interface JobOperations extends ResourceOperations {
 	/**
 	 * Deploy an already created job with additional JobParameters.
 	 */
-	public void deployJob(String name, String jobParameters, String dateFormat, String numberFormat, Boolean makeUnique);
+	public void deployJob(String name, String dateFormat, String numberFormat, Boolean makeUnique);
 
 	/**
 	 * List jobs known to the system.

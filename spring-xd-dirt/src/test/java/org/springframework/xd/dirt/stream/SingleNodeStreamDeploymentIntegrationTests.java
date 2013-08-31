@@ -72,7 +72,7 @@ public class SingleNodeStreamDeploymentIntegrationTests extends AbstractStreamDe
 		assertEquals(1, streamRepository.count());
 		assertModuleRequest("router", false);
 
-		final Module module = getModule(moduleDeployer);
+		final Module module = getModule("router", 0, moduleDeployer);
 		final MessageChannel inputChannel = module.getComponent("routeit", MessageChannel.class);
 		assertNotNull(inputChannel);
 
@@ -119,7 +119,7 @@ public class SingleNodeStreamDeploymentIntegrationTests extends AbstractStreamDe
 		assertEquals(1, streamRepository.count());
 		assertModuleRequest("router", false);
 
-		final Module module = getModule(moduleDeployer);
+		final Module module = getModule("router", 0, moduleDeployer);
 		final MessageChannel inputChannel = module.getComponent("routeit", MessageChannel.class);
 		module.getComponent(ChannelRegistry.class);
 		assertNotNull(inputChannel);

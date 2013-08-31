@@ -124,17 +124,20 @@ public abstract class AbstractStreamDeploymentIntegrationTests {
 
 	protected abstract void cleanup(ApplicationContext context);
 
-	protected Module getModule(ModuleDeployer moduleDeployer) {
+	protected Module getModule(String moduleName, int index, ModuleDeployer moduleDeployer) {
 
 		@SuppressWarnings("unchecked")
 		final Map<String, Map<Integer, Module>> deployedModules = TestUtils.getPropertyValue(moduleDeployer,
 				"deployedModules", ConcurrentMap.class);
 
-		Module module = null;
+		Module matchedModule = null;
 		for (Entry<String, Map<Integer, Module>> entry : deployedModules.entrySet()) {
-			module = entry.getValue().values().iterator().next();
+			final Module module = entry.getValue().get(index);
+			if (module != null && moduleName.equals(module.getName())) {
+				matchedModule = module;
+				break;
+			}
 		}
-
-		return module;
+		return matchedModule;
 	}
 }

@@ -18,13 +18,10 @@ package org.springframework.xd.dirt.launcher;
 
 import java.util.UUID;
 
-import org.apache.commons.logging.Log;
-
 import org.springframework.amqp.AmqpConnectException;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.container.XDContainer;
-import org.springframework.xd.dirt.server.util.BannerUtils;
 
 /**
  * @author Mark Fisher

@@ -24,9 +24,9 @@
 
 	<!-- We hook into properties given by client -->
 	<yarn:configuration>
-		fs.defaultFS=${syarn.hd.fs}
-		yarn.resourcemanager.address=${syarn.hd.rm}
-		yarn.resourcemanager.scheduler.address=${syarn.hd.scheduler}
+		fs.defaultFS=${SHDP_HD_FS}
+		yarn.resourcemanager.address=${SHDP_HD_RM}
+		yarn.resourcemanager.scheduler.address=${SHDP_HD_SCHEDULER}
 	</yarn:configuration>
 
 	<!-- Resources to localize into container's working directory -->

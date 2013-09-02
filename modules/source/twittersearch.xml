@@ -11,35 +11,17 @@
 
 	<context:property-placeholder location="file:${XD_HOME}/config/twitter.properties"/>
 
-<!-- this can be re-added once Spring Integration is updated to support the latest spring-social-twitter version
-	<twitter:search-inbound-channel-adapter id="tweets" query="${query}" twitter-template="twitterTemplate">
-		<int:poller fixed-rate="5000"/>
+	<twitter:search-inbound-channel-adapter id="results" query="${query}" twitter-template="twitterTemplate">
+		<int:poller fixed-delay="5000"/>
 	</twitter:search-inbound-channel-adapter>
--->
 
-<!-- begin temporary config (see note above on commented out adapter) -->
-	<int:inbound-channel-adapter id="results"
-			auto-startup="false"
-			ref="twitterSearchMessageSource" method="getTweets">
-		<int:poller fixed-delay="${fixedDelay:5000}"/>
-	</int:inbound-channel-adapter>
-
-	<bean id="twitterSearchMessageSource" class="org.springframework.integration.x.twitter.TwitterSearchMessageSource">
-		<constructor-arg ref="oauth2Template"/>
-		<constructor-arg value="${query}"/>
-	</bean>
-
-	<bean id="oauth2Template" class="org.springframework.social.oauth2.OAuth2Template">
-		<constructor-arg index="0" value="${consumerKey:${twitter.oauth.consumerKey}}" />
-		<constructor-arg index="1" value="${consumerSecret:${twitter.oauth.consumerSecret}}" />
-		<constructor-arg index="2" value="http://notused" />
-		<constructor-arg index="3" value="http://notused" />
-		<constructor-arg index="4" value="https://api.twitter.com/oauth2/token" />
+	<bean id="twitterTemplate" class="org.springframework.integration.x.twitter.OAuth2AuthenticatingTwitterTemplate">
+		<constructor-arg value="${consumerKey:${twitter.oauth.consumerKey}}" />
+		<constructor-arg value="${consumerSecret:${twitter.oauth.consumerSecret}}" />
 	</bean>
 
 	<int:splitter input-channel="results" output-channel="tweets"/>
-<!-- end temporary config-->
-<int:router input-channel="tweets" expression="${json:false} ? 'json' : 'output'"/>
+  <int:router input-channel="tweets" expression="${json:false} ? 'json' : 'output'"/>
 
 	<int:channel id="json"/>
 	<int:object-to-json-transformer input-channel="json" output-channel="output"/>

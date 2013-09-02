@@ -45,7 +45,7 @@ public class TapCommands implements CommandMarker {
 
 	private final static String CREATE_TAP = "tap create";
 
-	private final static String LIST_TAPS = "taps list";
+	private final static String LIST_TAPS = "tap list";
 
 	private final static String DEPLOY_TAP = "tap deploy";
 
@@ -107,7 +107,7 @@ public class TapCommands implements CommandMarker {
 				break;
 			case 1:
 				tapOperations().destroyAll();
-				message = String.format("Destroyed all the taps");
+				message = String.format("Destroyed all taps");
 				break;
 			default:
 				throw new IllegalArgumentException("You must specify exactly one of 'name', 'all'");
@@ -127,7 +127,7 @@ public class TapCommands implements CommandMarker {
 				break;
 			case 1:
 				tapOperations().deployAll();
-				message = String.format("Deployed all the taps");
+				message = String.format("Deployed all taps");
 				break;
 			default:
 				throw new IllegalArgumentException("You must specify exactly one of 'name', 'all'");
@@ -147,7 +147,7 @@ public class TapCommands implements CommandMarker {
 				break;
 			case 1:
 				tapOperations().undeployAll();
-				message = String.format("Un-deployed all the taps");
+				message = String.format("Un-deployed all taps");
 				break;
 			default:
 				throw new IllegalArgumentException("You must specify exactly one of 'name', 'all'");

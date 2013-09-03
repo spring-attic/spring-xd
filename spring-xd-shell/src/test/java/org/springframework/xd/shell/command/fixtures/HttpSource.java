@@ -76,10 +76,12 @@ public class HttpSource extends AbstractModuleFixture {
 		return String.format("http --port=%d", port);
 	}
 
-	public void postData(String payload) {
-		CommandResult result = shell.executeCommand(String.format("http post --target http://localhost:%d --data %s",
+	public HttpSource postData(String payload) {
+		CommandResult result = shell.executeCommand(String.format(
+				"http post --target http://localhost:%d --data \"%s\"",
 				port, payload));
 		Assert.isTrue(result.isSuccess());
+		return this;
 	}
 
 }

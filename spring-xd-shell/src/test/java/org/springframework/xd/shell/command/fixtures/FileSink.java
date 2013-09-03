@@ -33,6 +33,8 @@ public class FileSink extends DisposableFileSupport {
 
 	private String charset = "UTF-8";
 
+	private boolean binary = false;
+
 	/**
 	 * Create a file sink, but make sure that the future file is not present yet, so it can be waited upon with
 	 * {@link #getContents()}.
@@ -48,6 +50,11 @@ public class FileSink extends DisposableFileSupport {
 		return getContents(DEFAULT_FILE_TIMEOUT);
 	}
 
+	public FileSink binary(boolean binary) {
+		this.binary = binary;
+		return this;
+	}
+
 	/**
 	 * Wait at most {@code timeout} ms for the file to appear and return its contents.
 	 */
@@ -60,8 +67,8 @@ public class FileSink extends DisposableFileSupport {
 	@Override
 	protected String toDSL() {
 		String fileName = file.getName();
-		return String.format("file --dir=%s --name=%s --suffix=%s --charset=%s", file.getParent(),
-				fileName.substring(0, fileName.lastIndexOf(".txt")), "txt", charset);
+		return String.format("file --dir=%s --name=%s --suffix=%s --charset=%s --binary=%b", file.getParent(),
+				fileName.substring(0, fileName.lastIndexOf(".txt")), "txt", charset, binary);
 	}
 
 }

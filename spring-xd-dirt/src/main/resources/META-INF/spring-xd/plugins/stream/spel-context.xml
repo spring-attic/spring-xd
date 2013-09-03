@@ -6,7 +6,8 @@
 	<bean id="integrationEvaluationContext" class="org.springframework.integration.config.IntegrationEvaluationContextFactoryBean">
 		<property name="propertyAccessors">
 			<list>
-				<bean class="org.springframework.xd.tuple.spel.TuplePropertyAccessor"/>
+				<bean class="org.springframework.xd.tuple.spel.TuplePropertyAccessor" />
+				<bean class="org.springframework.integration.json.JsonPropertyAccessor" />
 			</list>
 		</property>
 	</bean>

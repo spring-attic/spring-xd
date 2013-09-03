@@ -21,6 +21,9 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
 
@@ -33,11 +36,18 @@ public class DateTrigger implements Trigger {
 
 	private volatile List<Date> nextFireDates = new ArrayList<Date>();
 
+	protected final Log logger = LogFactory.getLog(getClass());
+
 	public DateTrigger() {
 		nextFireDates.add(new Date());
 	}
 
 	public DateTrigger(Date... nextFireDates) {
+		for (Date checkDate : nextFireDates) {
+			if (checkDate == null) {
+				throw new IllegalArgumentException("Date Trigger must have at least one date.");
+			}
+		}
 		for (Date date : nextFireDates) {
 			this.nextFireDates.add(date);
 		}
@@ -48,10 +58,13 @@ public class DateTrigger implements Trigger {
 	public Date nextExecutionTime(TriggerContext triggerContext) {
 		Date result = null;
 		if (nextFireDates.size() > 0) {
-			result = nextFireDates.get(0);
-			nextFireDates.remove(0);
+			try {
+				result = nextFireDates.remove(0);
+			}
+			catch (IndexOutOfBoundsException aoe) {
+				logger.debug(aoe.getMessage());
+			}
 		}
 		return result;
 	}
-
 }

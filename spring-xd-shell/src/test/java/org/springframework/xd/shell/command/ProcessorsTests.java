@@ -16,8 +16,13 @@
 
 package org.springframework.xd.shell.command;
 
+import static org.junit.Assert.assertEquals;
+
+import java.io.IOException;
+
 import org.junit.Test;
 
+import org.springframework.xd.shell.command.fixtures.FileSink;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
 
 
@@ -51,4 +56,41 @@ public class ProcessorsTests extends AbstractStreamIntegrationTest {
 
 	}
 
+	@Test
+	public void testAggregatorNormalRelease() throws IOException {
+		HttpSource httpSource = newHttpSource();
+		FileSink fileSink = newFileSink().binary(true);
+
+		stream().create(
+				"aggtest",
+				"%s | aggregator --count=3 --aggregation=T(org.springframework.util.StringUtils).collectionToDelimitedString(#this.![payload],' ') | %s",
+				httpSource, fileSink);
+
+		httpSource.ensureReady().postData("Hello").postData("World").postData("!");
+
+		String result = fileSink.getContents();
+		assertEquals("Hello World !", result);
+
+	}
+
+	@Test
+	public void testAggregatorEarlyRelease() throws IOException {
+		HttpSource httpSource = newHttpSource();
+		FileSink fileSink = newFileSink().binary(true);
+
+		int timeout = 1000;
+
+		stream().create(
+				"aggtest",
+				"%s | aggregator --count=100 --timeout=%d --aggregation=T(org.springframework.util.StringUtils).collectionToDelimitedString(#this.![payload],' ') | %s",
+				httpSource, timeout, fileSink);
+
+		httpSource.ensureReady().postData("Hello").postData("World").postData("!");
+
+		// The reaper and the task scheduler are both configured with 'timeout'
+		// so in the worst case, it can take 2*timeout to actually flush the msgs
+		String result = fileSink.getContents((int) (2.1 * timeout));
+		assertEquals("Hello World !", result);
+
+	}
 }

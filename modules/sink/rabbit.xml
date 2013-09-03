@@ -16,7 +16,7 @@
 	<int-amqp:outbound-channel-adapter id="input"
 			amqp-template="rabbitTemplate"
 			exchange-name="${exchange:}"
-			routing-key="${routingKey:${xd.stream.name}}"/>
+			routing-key-expression="${routingKey:'${xd.stream.name}'}"/>
 
 	<rabbit:template id="rabbitTemplate" connection-factory="connectionFactory"/>
 

@@ -171,8 +171,8 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 			isTapToken = true;
 			// TODO assert that it is followed by channel reference
 		}
-		if (peekToken(TokenKind.COLON)) {
-			ChannelNode channelNode = eatChannelReference(true);
+		if (isChannel()) {
+			ChannelNode channelNode = eatChannelReference(true, isTapToken);
 			Token gt = eatToken(TokenKind.GT);
 			sourceChannelNode = new SourceChannelNode(channelNode, gt.endpos, isTapToken);
 		}
@@ -186,13 +186,25 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 		return sourceChannelNode;
 	}
 
+	private boolean isChannel() {
+		boolean result = false;
+		if (peekToken(TokenKind.COLON)) {
+			result = true;
+		}
+		else if (tokenStreamLength > 2 && tokenStream.get(0).getKind() == TokenKind.IDENTIFIER
+				&& tokenStream.get(1).getKind() == TokenKind.COLON) {
+			result = true;
+		}
+		return result;
+	}
+
 	private SinkChannelNode maybeEatSinkChannel() {
 		// The last part of the stream might be a sink channel
 		// eg. "> :foo"
 		SinkChannelNode sinkChannelNode = null;
 		if (peekToken(TokenKind.GT)) {
 			Token gt = eatToken(TokenKind.GT);
-			ChannelNode channelNode = eatChannelReference(false);
+			ChannelNode channelNode = eatChannelReference(false, false);
 			sinkChannelNode = new SinkChannelNode(channelNode, gt.startpos);
 		}
 		return sinkChannelNode;
@@ -200,28 +212,47 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 
 	// if allowQualifiedChannel expects :(streamName '.')channelName
 	// else expects :channelName
-	private ChannelNode eatChannelReference(boolean allowQualifiedChannel) {
-		Token colon = nextToken();
-		if (!colon.isKind(TokenKind.COLON)) {
-			raiseException(colon.startpos, XDDSLMessages.EXPECTED_CHANNEL_QUALIFIER, toString(colon));
-		}
+	private ChannelNode eatChannelReference(boolean allowQualifiedChannel, boolean isTapToken) {
 		Token firstToken = nextToken();
-
-		if (!firstToken.isIdentifier()) {
-			raiseException(firstToken.startpos, XDDSLMessages.EXPECTED_CHANNEL_NAME, toString(firstToken));
+		if (!isValidChannel(firstToken)) {
+			raiseException(firstToken.startpos, XDDSLMessages.EXPECTED_CHANNEL_QUALIFIER, toString(firstToken));
 		}
+		Token secondToken = nextToken();
+		Token tapToken = firstToken.isKind(TokenKind.COLON) ? secondToken : firstToken;
 		// Supporting ":tap:stream" or ":tap:stream.channel"
-		if (firstToken.isIdentifier() && firstToken.data.equals("tap") && peekToken(TokenKind.COLON, true)) {
-			Token streamName = eatToken(TokenKind.IDENTIFIER);
+		if (isTapToken || (tapToken.isIdentifier() && tapToken.data.equals("tap") && peekToken(TokenKind.COLON, true))) {
+			Token streamName = isTapToken ? tapToken : eatToken(TokenKind.IDENTIFIER);
 			Token moduleName = null;
 			if (peekToken(TokenKind.DOT, true)) {
 				moduleName = eatToken(TokenKind.IDENTIFIER);
 			}
 			ChannelNode channelNode = new ChannelNode(streamName.data, moduleName == null ? null : moduleName.data,
-					colon.startpos,
+					firstToken.startpos,
 					moduleName == null ? streamName.endpos : moduleName.endpos);
 			channelNode.setIsTap(true);
 			return channelNode;
+		}
+		if (secondToken.isKind(TokenKind.COLON)) {
+			secondToken = getNameSpaceToken(firstToken, secondToken);
+		}
+		else {
+			secondToken = getLabelToken(secondToken);
+		}
+
+		if (allowQualifiedChannel && peekToken(TokenKind.DOT, true)) {
+			// secondToken is actually a stream name
+			Token channelToken = eatToken(TokenKind.IDENTIFIER);
+			return new ChannelNode(secondToken.data, channelToken.data, firstToken.startpos, channelToken.endpos);
+		}
+		else {
+			return new ChannelNode(null, secondToken.data, firstToken.startpos, secondToken.endpos);
+		}
+	}
+
+	private Token getLabelToken(Token firstToken) {
+
+		if (!firstToken.isIdentifier()) {
+			raiseException(firstToken.startpos, XDDSLMessages.EXPECTED_CHANNEL_NAME, toString(firstToken));
 		}
 		if (peekToken(TokenKind.COLON, true)) {
 			Token suffixToken = eatToken(TokenKind.IDENTIFIER);
@@ -229,14 +260,37 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 					firstToken.startpos, suffixToken.endpos);
 		}
 
-		if (allowQualifiedChannel && peekToken(TokenKind.DOT, true)) {
-			// firstToken is actually a stream name
-			Token channelToken = eatToken(TokenKind.IDENTIFIER);
-			return new ChannelNode(firstToken.data, channelToken.data, colon.startpos, channelToken.endpos);
+		return firstToken;
+	}
+
+	private Token getNameSpaceToken(Token firstTOKEN, Token colon) {
+		Token result = null;
+		if (!firstTOKEN.isIdentifier()) {
+			raiseException(firstTOKEN.startpos, XDDSLMessages.EXPECTED_CHANNEL_NAME, toString(firstTOKEN));
 		}
-		else {
-			return new ChannelNode(null, firstToken.data, colon.startpos, firstToken.endpos);
+		if (!colon.isKind(TokenKind.COLON)) {
+			raiseException(colon.startpos, XDDSLMessages.EXPECTED_CHANNEL_NAME, toString(colon));
 		}
+		if (peekToken(TokenKind.IDENTIFIER, false)) {
+			Token suffixToken = eatToken(TokenKind.IDENTIFIER);
+			result = new Token(TokenKind.IDENTIFIER, (firstTOKEN.data + ":" + suffixToken.data).toCharArray(),
+					firstTOKEN.startpos, suffixToken.endpos);
+		}
+
+		return result;
+	}
+
+	private boolean isValidChannel(Token colon) {
+		boolean result = true;
+		if (!colon.isKind(TokenKind.COLON)) {
+			try {
+				result = peekToken(TokenKind.COLON, false);
+			}
+			catch (NullPointerException npe) {
+				result = false;
+			}
+		}
+		return result;
 	}
 
 	// moduleList: module (| module)*

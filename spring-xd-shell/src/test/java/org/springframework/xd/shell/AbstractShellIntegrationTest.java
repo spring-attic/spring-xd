@@ -123,17 +123,6 @@ public abstract class AbstractShellIntegrationTest {
 	}
 
 	/**
-	 * Post data to http target.
-	 * 
-	 * @param target the http target
-	 * @param data the data to send
-	 * @throws
-	 */
-	protected void httpPostData(String target, String data) {
-		executeCommand("http post --target " + target + " --data " + data);
-	}
-
-	/**
 	 * Copies over module files (including jars if this is a directory-style module) from src/test/resources to where it
 	 * will be picked up and makes sure it will disappear at test end.
 	 * 

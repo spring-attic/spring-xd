@@ -31,6 +31,7 @@ import org.junit.rules.TemporaryFolder;
 
 import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.xd.shell.command.fixtures.FileSink;
+import org.springframework.xd.shell.command.fixtures.HttpSource;
 
 
 /**
@@ -53,22 +54,21 @@ public class HttpCommandTests extends AbstractStreamIntegrationTest {
 	@Test
 	public void testHttpPostAsciiText() throws InterruptedException, IOException {
 
-		final int openPort = SocketUtils.findAvailableServerSocket(8000);
+		final HttpSource httpSource = newHttpSource();
 
 		final String stringToPost = "hello";
-		final FileSink fileSink = newFileSink();
+		final FileSink fileSink = newFileSink().binary(true);
 
 		final String streamName = "postAsciiData";
-		final String stream = String.format("http --port=%s | %s", openPort, fileSink);
+		final String stream = String.format("%s | %s", httpSource, fileSink);
 
 		logger.info("Creating Stream: " + stream);
 		stream().create(streamName, stream);
 
 		logger.info("Posting String: " + stringToPost);
-		getShell().executeCommand(
-				String.format("http post --target http://localhost:%s --data \"%s\"", openPort, stringToPost));
+		httpSource.ensureReady().postData(stringToPost);
 
-		assertEquals(stringToPost, fileSink.getContents().trim());
+		assertEquals(stringToPost, fileSink.getContents());
 	}
 
 	/**

@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 
 import org.springframework.shell.core.CommandResult;
+import org.springframework.xd.shell.command.fixtures.HttpSource;
 
 /**
  * Tap commands tests.
@@ -38,7 +39,9 @@ public class TapCommandTests extends AbstractStreamIntegrationTest {
 	public void testCreateTap() {
 		logger.info("Create a tap");
 		String streamName = "taptestticktock";
-		stream().create(streamName, "http --port=%s | log", DEFAULT_HTTP_PORT);
+		HttpSource httpSource = newHttpSource();
+
+		stream().create(streamName, "%s | log", httpSource);
 		tap().createDontDeploy("taptest-tap", "tap @ %s | file", streamName);
 	}
 
@@ -46,15 +49,13 @@ public class TapCommandTests extends AbstractStreamIntegrationTest {
 	public void testCreateAndDeployTap() throws Exception {
 		logger.info("Create and deploy a tap");
 		String streamName = "taptestticktock";
-		String httpPort = DEFAULT_HTTP_PORT;
-		stream().create(streamName, "http --port=%s | log", httpPort);
+		HttpSource httpSource = newHttpSource();
+
+		stream().create(streamName, "%s | log", httpSource);
 		tap().create("taptest-tap", "tap@%s | counter --name=%s", streamName, DEFAULT_METRIC_NAME);
 		// Verify tap by checking counter value after posting http data
-		// Adding a small delay here to make sure the http source
-		// is actually started.
-		Thread.sleep(5000);
+		httpSource.ensureReady().postData("test");
 
-		httpPostData("http://localhost:" + httpPort, "test");
 		counter().verifyCounter("1");
 	}
 
@@ -63,10 +64,11 @@ public class TapCommandTests extends AbstractStreamIntegrationTest {
 		logger.info("Destroy a tap");
 		String streamName = "taptestticktock";
 		String counterName = "taptest-counter" + Math.random();
-		String httpPort = DEFAULT_HTTP_PORT;
 		String tapName = "tapdestroytest";
 
-		stream().create(streamName, "http --port=%s | log", httpPort);
+		HttpSource httpSource = newHttpSource();
+
+		stream().create(streamName, "%s | log", httpSource);
 
 		// Using raw commands here or else @After method will try to
 		// delete a tap that is already gone

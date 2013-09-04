@@ -28,6 +28,7 @@ import org.junit.Test;
 
 import org.springframework.shell.core.CommandResult;
 import org.springframework.xd.shell.command.fixtures.FileSink;
+import org.springframework.xd.shell.command.fixtures.HttpSource;
 
 /**
  * Test stream commands
@@ -119,75 +120,75 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	@Test
 	public void testNamedChannelWithNoConsumerShouldBuffer() {
 		logger.info("Create ticktock stream");
-		stream().create("ticktock-in", "http --port=9314 > :foox");
-		httpPostData("http://localhost:9314", "blahblah");
+		HttpSource source = newHttpSource();
+		stream().create("ticktock-in", "%s > :foox", source);
+		source.postData("blahblah");
 	}
 
-	@Test
-	public void testNamedChannelsLinkingSourceAndSink() {
-		stream().create("ticktock-in", "http --port=9314 > :foo");
-		stream().create("ticktock-out", ":foo > transform --expression=payload.toUpperCase() | log");
-		httpPostData("http://localhost:9314", "blahblah");
-	}
-
-	@Ignore
 	@Test
 	public void testDefiningSubstream() {
 		stream().createDontDeploy("s1", "transform --expression=payload.replace('Andy','zzz')");
 	}
 
-	@Ignore
 	@Test
+	@Ignore
 	public void testUsingSubstream() {
+		HttpSource httpSource = newHttpSource();
 		stream().createDontDeploy("s1", "transform --expression=payload.replace('Andy','zzz')");
-		stream().create("s2", "http --port=9314 | s1 | log");
-		httpPostData("http://localhost:9314", "fooAndyfoo");
+		stream().create("s2", "%s | s1 | log", httpSource);
+		httpSource.ensureReady().postData("fooAndyfoo");
 	}
 
-	@Ignore
 	@Test
+	@Ignore
 	public void testUsingSubstreamWithParameterizationAndDefaultValue() {
+		HttpSource httpSource = newHttpSource();
+
 		stream().createDontDeploy("obfuscate", "transform --expression=payload.replace('${text:rys}','.')");
-		stream().create("s2", "http --port=9314 | obfuscate | log");
-		httpPostData("http://localhost:9314", "Dracarys!");
+		stream().create("s2", "%s | obfuscate | log", httpSource);
+
+		httpSource.ensureReady().postData("Dracarys!");
 		// TODO verify the output of the 'log' sink is 'Draca.!'
 	}
 
-	@Ignore
 	@Test
+	@Ignore
 	public void testUsingSubstreamWithParameterization() throws IOException {
+		HttpSource httpSource = newHttpSource();
 		FileSink sink = newFileSink();
+
 		stream().createDontDeploy("obfuscate", "transform --expression=payload.replace('${text}','.')");
-		stream().create("s2", "http --port=9314 | obfuscate --text=aca | %s", sink);
-		httpPostData("http://localhost:9314", "Dracarys!");
+		stream().create("s2", "%s | obfuscate --text=aca | %s", httpSource, sink);
+		httpSource.ensureReady().postData("Dracarys!");
 		// TODO reactivate when get to the bottom of the race condition
-		// assertEquals("Dr.rys!\n", sink.getContents());
+		assertEquals("Dr.rys!\n", sink.getContents());
 	}
 
 	@Ignore
 	@Test
 	public void testSubSubstreams() throws IOException {
-		FileSink sink = newFileSink();
+		HttpSource source = newHttpSource();
+		FileSink sink = newFileSink().binary(true);
 		stream().createDontDeploy("swap", "transform --expression=payload.replaceAll('${from}','${to}')");
 		stream().createDontDeploy("abyz", "swap --from=a --to=z | swap --from=b --to=y");
-		stream().create("foo", "http --port=9314 | abyz | %s", sink);
-		httpPostData("http://localhost:9314", "aabbccxxyyzz");
-		assertEquals("zzyyccxxyyzz\n", sink.getContents());
+		stream().create("foo", "%s | abyz | %s", source, sink);
+		source.ensureReady().postData("aabbccxxyyzz");
+		assertEquals("zzyyccxxyyzz", sink.getContents());
 	}
 
 	// See https://jira.springsource.org/browse/XD-592
 	@Test
 	public void testTappingModules() throws IOException {
-		FileSink sink = newFileSink();
-		FileSink tapsink = newFileSink();
+		FileSink sink = newFileSink().binary(true);
+		FileSink tapsink = newFileSink().binary(true);
 
 		stream().create("myhttp", "http --port=9314 | transform --expression=payload.toUpperCase() | %s", sink);
 		tap().create("mytap", "tap myhttp.transform | transform --expression=payload.replaceAll('A','.') | %s", tapsink);
 		executeCommand("http post --data Dracarys! --target http://localhost:9314");
 
 		// TODO reactivate when get to the bottom of the race condition
-		// assertEquals("DRACARYS!\n", sink.getContents());
-		// assertEquals("DR.C.RYS!\n", tapsink.getContents());
+		assertEquals("DRACARYS!", sink.getContents());
+		assertEquals("DR.C.RYS!", tapsink.getContents());
 	}
 
 	// We might have a problem using a tap called tap
@@ -211,6 +212,8 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	@Test
 	public void testTappingModulesVariations() throws IOException {
 		// Note: this test is using a regular sink, not a named channel sink
+		HttpSource httpSource = newHttpSource();
+
 		FileSink sink = newFileSink();
 		FileSink tapsink1 = newFileSink();
 		FileSink tapsink2 = newFileSink();
@@ -218,7 +221,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		FileSink tapsink4 = newFileSink();
 		FileSink tapsink5 = newFileSink();
 
-		stream().create("myhttp", "http --port=9314 | transform --expression=payload.toUpperCase() | %s", sink);
+		stream().create("myhttp", "%s | transform --expression=payload.toUpperCase() | %s", httpSource, sink);
 
 		tap().create("mytap1", "tap @myhttp | transform --expression=payload.replaceAll('A','.') | %s", tapsink1);
 		tap().create("mytap2", "tap @myhttp.1 | transform --expression=payload.replaceAll('A','.') | %s", tapsink2);
@@ -227,15 +230,15 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		tap().create("mytap5", "tap myhttp.transform | transform --expression=payload.replaceAll('A','.') | %s",
 				tapsink5);
 
-		executeCommand("http post --data Dracarys! --target http://localhost:9314");
+		httpSource.ensureReady().postData("Dracarys!");
 
 		// TODO reactivate when get to the bottom of the race condition
-		// assertEquals("DRACARYS!\n", sink.getContents());
-		// assertEquals("Dracarys!\n", tapsink1.getContents());
-		// assertEquals("DR.C.RYS!\n", tapsink2.getContents());
-		// assertEquals("Dracarys!\n", tapsink3.getContents());
-		// assertEquals("DR.C.RYS!\n", tapsink4.getContents());
-		// assertEquals("DR.C.RYS!\n", tapsink5.getContents());
+		assertEquals("DRACARYS!\n", sink.getContents());
+		assertEquals("Dracarys!\n", tapsink1.getContents());
+		assertEquals("DR.C.RYS!\n", tapsink2.getContents());
+		assertEquals("Dracarys!\n", tapsink3.getContents());
+		assertEquals("DR.C.RYS!\n", tapsink4.getContents());
+		assertEquals("DR.C.RYS!\n", tapsink5.getContents());
 	}
 
 	// See https://jira.springsource.org/browse/XD-592
@@ -303,25 +306,28 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	}
 
 	// XD M2 does not support '>' with tap
-	@Ignore
-	@Test
 	// See https://jira.springsource.org/browse/XD-592
+	@Test
+	@Ignore
 	public void testUsingLabels() throws IOException {
-		FileSink sink1 = newFileSink();
-		FileSink sink2 = newFileSink();
-		FileSink sink3 = newFileSink();
+		FileSink sink1 = newFileSink().binary(true);
+		FileSink sink2 = newFileSink().binary(true);
+		FileSink sink3 = newFileSink().binary(true);
 
-		stream().create("myhttp", "http --port=9314 | flibble: transform --expression=payload.toUpperCase() | log");
+		HttpSource source = newHttpSource();
+
+		stream().create("myhttp", "%s | flibble: transform --expression=payload.toUpperCase() | log", source);
 		tap().create("wiretap1", "tap @myhttp.1 | transform --expression=payload.replaceAll('a','.') | %s", sink1);
 
 		tap().create("wiretap2", "tap myhttp.transform > transform --expression=payload.replaceAll('a','.') | %s",
 				sink2);
 		tap().create("wiretap3", "tap myhttp.flibble > transform --expression=payload.replaceAll('a','.') | %s", sink3);
-		httpPostData("http://localhost:9314", "Dracarys!");
+		source.ensureReady().postData("Dracarys!");
+
 		// TODO verify both logs output DRACARYS!
-		assertEquals("DRACARYS!\n", sink1.getContents());
-		assertEquals("DRACARYS!\n", sink2.getContents());
-		assertEquals("DRACARYS!\n", sink3.getContents());
+		assertEquals("DRACARYS!", sink1.getContents());
+		assertEquals("DRACARYS!", sink2.getContents());
+		assertEquals("DRACARYS!", sink3.getContents());
 	}
 
 }

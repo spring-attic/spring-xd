@@ -67,8 +67,8 @@ public class JobPluginTests {
 	public void setUp() throws Exception {
 
 		plugin = new JobPlugin();
-		sharedContext = new ClassPathXmlApplicationContext(
-				"classpath:/META-INF/spring-xd/batch/batch.xml");
+		sharedContext = new ClassPathXmlApplicationContext("classpath:/META-INF/spring-xd/batch/batch-admin.xml",
+				"classpath:/META-INF/spring-xd/batch/batch-container.xml");
 		plugin.preProcessSharedContext(sharedContext);
 
 	}

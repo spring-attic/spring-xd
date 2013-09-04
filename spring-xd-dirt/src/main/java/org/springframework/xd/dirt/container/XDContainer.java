@@ -59,12 +59,16 @@ public class XDContainer implements SmartLifecycle, ApplicationContextAware {
 	 */
 	public static final String XD_INTERNAL_CONFIG_ROOT = XD_CONFIG_ROOT + "internal/";
 
+	public static final String XD_BATCH_CONFIG_ROOT = XD_CONFIG_ROOT + "batch/";
+
 	private static final String CORE_CONFIG = XD_INTERNAL_CONFIG_ROOT + "container.xml";
 
 	// TODO: consider moving to a file: location pattern within $XD_HOME
 	private static final String PLUGIN_CONFIGS = "classpath*:" + XD_CONFIG_ROOT + "plugins/*.xml";
 
 	private static final String LOG4J_FILE_APPENDER = "file";
+
+	public static final String XD_CONFIG_DELIMITER = ",";
 
 	private volatile AbstractApplicationContext context;
 

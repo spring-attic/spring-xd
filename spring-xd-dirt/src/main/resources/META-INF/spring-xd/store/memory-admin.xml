@@ -5,7 +5,6 @@
 
 	<bean id="tapRepository" class="org.springframework.xd.dirt.stream.memory.InMemoryTapDefinitionRepository"/>
 	<bean id="jobRepository" class="org.springframework.xd.dirt.stream.memory.InMemoryJobDefinitionRepository"/>
-	<bean id="triggerRepository" class="org.springframework.xd.dirt.stream.memory.InMemoryTriggerDefinitionRepository"/>
 	<bean id="streamDefinitionRepository" class="org.springframework.xd.dirt.stream.memory.InMemoryStreamDefinitionRepository"/>
 	<bean id="streamRepository" class="org.springframework.xd.dirt.stream.memory.InMemoryStreamRepository" />
 	<bean id="tapInstanceRepository" class="org.springframework.xd.dirt.stream.memory.InMemoryTapInstanceRepository" />

@@ -123,8 +123,7 @@ public class EnhancedStreamParser implements XDParser {
 		}
 		if (lastIndex == 0) {
 			for (ModuleDefinition def : defs) {
-				if (def.getType().equals(ModuleType.JOB.getTypeName())
-						|| def.getType().equals(ModuleType.TRIGGER.getTypeName())) {
+				if (def.getType().equals(ModuleType.JOB.getTypeName())) {
 					type = def.getType();
 				}
 			}

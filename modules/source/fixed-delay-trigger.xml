@@ -10,9 +10,6 @@
 	<inbound-channel-adapter channel="output"
 			auto-startup="false"
 			expression="'${payload:}'">
-		<poller trigger="dateTrigger"/>
+		<poller fixed-delay="${fixedDelay:10}" time-unit="SECONDS"/>
 	</inbound-channel-adapter>
-	<beans:bean id="dateTrigger"
-		class="org.springframework.xd.module.util.DateTrigger">
-	</beans:bean>
 </beans:beans>

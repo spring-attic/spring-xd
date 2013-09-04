@@ -76,7 +76,7 @@ public class RestConfiguration {
 
 			private static final String CACHE_SECONDS = "300";
 
-			@Autowired(required=false)
+			@Autowired(required = false)
 			UiResourceIdentifier resourceIdentifier;
 
 			@Override
@@ -128,7 +128,8 @@ public class RestConfiguration {
 			@Override
 			public void addResourceHandlers(ResourceHandlerRegistry registry) {
 				if (resourceIdentifier != null) {
-					registry.addResourceHandler("/admin-ui/**", "/admin-ui/").addResourceLocations("file:"+ resourceIdentifier.getResourcesLocation()+"/");
+					registry.addResourceHandler("/admin-ui/**", "/admin-ui/").addResourceLocations(
+							"file:" + resourceIdentifier.getResourcesLocation() + "/");
 				}
 			}
 

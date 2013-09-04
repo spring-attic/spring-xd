@@ -31,7 +31,7 @@ import org.springframework.xd.tuple.Tuple;
 public class TuplePropertyAccessor implements PropertyAccessor {
 
 	@Override
-	public Class[] getSpecificTargetClasses() {
+	public Class<?>[] getSpecificTargetClasses() {
 		return new Class[] { Tuple.class };
 	}
 

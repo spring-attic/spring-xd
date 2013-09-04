@@ -23,6 +23,7 @@ import org.springframework.xd.dirt.core.XDRuntimeException;
  * 
  * @author David Turanski
  */
+@SuppressWarnings("serial")
 public class XDContainerLaunchException extends XDRuntimeException {
 
 	public XDContainerLaunchException(String message) {

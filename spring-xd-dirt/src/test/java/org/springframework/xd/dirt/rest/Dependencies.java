@@ -28,7 +28,7 @@ import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
 import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.stream.DeploymentMessageSender;
-import org.springframework.xd.dirt.stream.EnhancedStreamParser;
+import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobDeployer;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
@@ -95,7 +95,7 @@ public class Dependencies {
 
 	@Bean
 	public XDParser parser() {
-		return new EnhancedStreamParser(streamDefinitionRepository(),
+		return new XDStreamParser(streamDefinitionRepository(),
 				moduleRegistry());
 	}
 

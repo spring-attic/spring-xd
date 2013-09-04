@@ -41,11 +41,11 @@ import org.springframework.xd.module.ModuleType;
  */
 public class EnhancedStreamParserTests {
 
-	private EnhancedStreamParser parser;
+	private XDStreamParser parser;
 
 	@Before
 	public void setup() {
-		parser = new EnhancedStreamParser(moduleRegistry());
+		parser = new XDStreamParser(moduleRegistry());
 	}
 
 	@Test

@@ -317,19 +317,6 @@ public class StreamConfigParserTests {
 				ast.stringify(false));
 	}
 
-	@Test
-	public void tapWithChannel() {
-		StreamsNode ast = parse("tap :foo > file");
-		// TODO verify source positions for source channel - include tap?
-		assertEquals("Streams[tap :foo > file][tap (:foo:4>8)>(ModuleNode:file:11>15)]", ast.stringify(true));
-	}
-
-	@Test
-	public void tapWithQualifiedChannel() {
-		StreamsNode ast = parse("tap :mystream.foo > file");
-		assertEquals("Streams[tap :mystream.foo > file][tap (:mystream.foo:4>17)>(ModuleNode:file:20>24)]",
-				ast.stringify(true));
-	}
 
 	@Test
 	public void expressions_xd159() {
@@ -445,6 +432,17 @@ public class StreamConfigParserTests {
 	}
 
 	@Test
+	public void sourceTapChannelNoColon() {
+		parse("mystream = http | file");
+		StreamsNode ast = null;
+		SourceChannelNode sourceChannelNode = null;
+
+		ast = parse("tap:mystream.http > file");
+		sourceChannelNode = ast.getStreams().get(0).getSourceChannelNode();
+		assertEquals("tap:mystream.http", sourceChannelNode.getChannelName());
+	}
+
+	@Test
 	public void sourceTapChannel3() {
 		parse("mystream = http | file");
 		StreamsNode ast = null;
@@ -482,8 +480,6 @@ public class StreamConfigParserTests {
 		checkForParseError("myhttp | file", XDDSLMessages.NO_SOURCE_IN_SUBSTREAM, -1, "myhttp = :foo > filter");
 		parse("myhttp = :aaa.foo > filter");
 		checkForParseError("myhttp | file", XDDSLMessages.NO_SOURCE_IN_SUBSTREAM, -1, "myhttp = :aaa.foo > filter");
-		parse("myhttp = tap :foo > filter");
-		checkForParseError("myhttp | file", XDDSLMessages.NO_SOURCE_IN_SUBSTREAM, -1, "myhttp = tap :foo > filter");
 		parse("myhttp = tap aaa.foo > filter");
 		checkForParseError("myhttp | file", XDDSLMessages.NO_SOURCE_IN_SUBSTREAM, -1, "myhttp = tap aaa.foo > filter");
 		parse("myhttp = :foo > filter --name=payload");
@@ -606,6 +602,26 @@ public class StreamConfigParserTests {
 				"[(ModuleNode:trigger)>(:job:foo)]",
 				stream2.stringify());
 	}
+
+	@Test
+	public void nameSpaceTestAsSource() {
+		StreamsNode ast = parse("job:foo > file");
+		StreamNode stream2 = ast.getStreamNodes().get(0);
+		assertEquals(
+				"[(:job:foo)>(ModuleNode:file)]",
+				stream2.stringify());
+	}
+
+
+	@Test
+	public void nameSpaceTestNoColon() {
+		StreamsNode ast = parse("trigger > job:foo");
+		StreamNode stream2 = ast.getStreamNodes().get(0);
+		assertEquals(
+				"[(ModuleNode:trigger)>(:job:foo)]",
+				stream2.stringify());
+	}
+
 
 	@Test
 	public void nameSpaceTestWithSpaces() {

@@ -19,6 +19,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.server.options.XDPropertyKeys;
+import org.springframework.xd.module.BeanDefinitionAddingPostProcessor;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.Plugin;
 
@@ -58,5 +59,10 @@ public class MBeanExportingPlugin implements Plugin {
 	@Override
 	public void preProcessSharedContext(ConfigurableApplicationContext context) {
 		jmxEnabled = "true".equals(context.getEnvironment().getProperty(XDPropertyKeys.XD_JMX_ENABLED));
+		if (jmxEnabled) {
+			context.addBeanFactoryPostProcessor(new BeanDefinitionAddingPostProcessor(context.getEnvironment(),
+					new ClassPathResource(
+							CONTEXT_CONFIG_ROOT + "common.xml")));
+		}
 	}
 }

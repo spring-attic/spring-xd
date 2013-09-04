@@ -20,6 +20,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 
+import org.springframework.xd.shell.command.fixtures.HttpSource;
+
 /**
  * Tests for named channels.
  * 
@@ -33,8 +35,10 @@ public class NamedChannelTests extends AbstractStreamIntegrationTest {
 	@Test
 	public void testCreateNamedChannelAsSink() {
 		logger.info("Creating stream with named channel 'foo' as sink");
+		HttpSource source = newHttpSource();
+
 		stream().create("namedchanneltest-ticktock",
-				"http --port=%s | transform --expression=payload.toUpperCase() > :foo", DEFAULT_HTTP_PORT);
+				"%s | transform --expression=payload.toUpperCase() > :foo", source);
 	}
 
 	@Test
@@ -43,12 +47,13 @@ public class NamedChannelTests extends AbstractStreamIntegrationTest {
 		String stream1 = "namedchanneltest-ticktock";
 		String stream2 = "namedchanneltest-ticktock-counter";
 
-		stream().create(stream1, "http --port=%s | transform --expression=payload.toUpperCase() > :foo",
-				DEFAULT_HTTP_PORT);
+		HttpSource httpSource = newHttpSource();
+
+		stream().create(stream1, "%s | transform --expression=payload.toUpperCase() > :foo",
+				httpSource);
 		// Create stream with named channel as source
-		Thread.sleep(4000);
 		stream().create(stream2, ":foo > counter --name=%s", DEFAULT_METRIC_NAME);
-		httpPostData("http://localhost:" + DEFAULT_HTTP_PORT, "test");
+		httpSource.ensureReady().postData("test");
 		counter().verifyCounter("1");
 	}
 

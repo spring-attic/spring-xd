@@ -16,66 +16,65 @@
 
 package org.springframework.xd.dirt.module;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
-import org.apache.hadoop.fs.CommonConfigurationKeys;
-import org.junit.BeforeClass;
+import java.util.Properties;
+
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.jmx.export.MBeanExporter;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.xd.dirt.server.options.OptionUtils;
 import org.springframework.xd.dirt.server.options.SingleNodeOptions;
-import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.Module;
-import org.springframework.xd.module.ModuleDefinition;
-import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.Plugin;
-import org.springframework.xd.module.SimpleModule;
 
 
 /**
  * 
  * @author David Turanski
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
 public class ModuleDeployerTests {
 
-	@Autowired
-	private ApplicationContext context;
+	private ModuleDeployer moduleDeployer;
 
-	@BeforeClass
-	public static void setUp() {
-		OptionUtils.configureRuntime(new SingleNodeOptions(), null);
+	@Before
+	public void setUp() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext();
+		context.setConfigLocation(
+				"/org/springframework/xd/dirt/module/ModuleDeployerTests-context.xml");
+		OptionUtils.configureRuntime(new SingleNodeOptions(), context.getEnvironment());
+		context.refresh();
+		moduleDeployer = context.getBean(ModuleDeployer.class);
 	}
 
-	@Autowired
-	ModuleDeployer moduleDeployer;
 
 	@Test
 	public void testModuleContext() {
-			ModuleDeploymentRequest request = new ModuleDeploymentRequest();
-			request.setGroup("test");
-			request.setIndex(0);
-			request.setModule("log");
-			Message<ModuleDeploymentRequest> message = new GenericMessage<ModuleDeploymentRequest>(request);
-			moduleDeployer.handleMessage(message);
+		ModuleDeploymentRequest request = new ModuleDeploymentRequest();
+		request.setGroup("test");
+		request.setIndex(0);
+		request.setType("sink");
+		request.setModule("log");
+		Message<ModuleDeploymentRequest> message = new GenericMessage<ModuleDeploymentRequest>(request);
+		moduleDeployer.handleMessage(message);
 	}
 
 	public static class TestPlugin implements Plugin {
+
 		private ApplicationContext moduleCommonContext;
+
 		@Override
 		public void preProcessModule(Module module) {
-			assertEquals("module commonContext should not contain any Plugins",0, moduleCommonContext.getBeansOfType(Plugin.class).size());
-			moduleCommonContext.getBean("mbeanServer");
+			assertEquals("module commonContext should not contain any Plugins", 0,
+					moduleCommonContext.getBeansOfType(Plugin.class).size());
+			Properties properties = new Properties();
+			properties.setProperty("xd.stream.name", module.getDeploymentMetadata().getGroup());
+			module.addProperties(properties);
 		}
 
 		@Override
@@ -90,10 +89,7 @@ public class ModuleDeployerTests {
 		@Override
 		public void preProcessSharedContext(ConfigurableApplicationContext moduleCommonContext) {
 			this.moduleCommonContext = moduleCommonContext;
-			assertTrue("'xd.jmx.enabled' profile should not be active by default",moduleCommonContext.getEnvironment().acceptsProfiles("!xd.jmx.enabled"));
-			moduleCommonContext.getEnvironment().addActiveProfile("xd.jmx.enabled");
 		}
-
 	}
 
 }

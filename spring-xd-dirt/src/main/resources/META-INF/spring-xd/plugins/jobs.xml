@@ -7,4 +7,5 @@
 
 	<bean class="org.springframework.xd.dirt.plugins.job.JobPlugin"/>
 
+
 </beans>

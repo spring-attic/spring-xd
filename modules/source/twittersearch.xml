@@ -9,7 +9,7 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/integration/twitter http://www.springframework.org/schema/integration/twitter/spring-integration-twitter.xsd">
 
-	<context:property-placeholder location="file:${xd.home}/config/twitter.properties"/>
+	<context:property-placeholder location="file:${XD_HOME}/config/twitter.properties"/>
 
 <!-- this can be re-added once Spring Integration is updated to support the latest spring-social-twitter version
 	<twitter:search-inbound-channel-adapter id="tweets" query="${query}" twitter-template="twitterTemplate">

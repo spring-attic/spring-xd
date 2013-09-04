@@ -20,12 +20,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.EntityLinks;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.xd.rest.client.domain.JobDefinitionResource;
 import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
 import org.springframework.xd.rest.client.domain.TapDefinitionResource;
-import org.springframework.xd.rest.client.domain.TriggerDefinitionResource;
 import org.springframework.xd.rest.client.domain.XDRuntime;
 import org.springframework.xd.rest.client.domain.metrics.AggregateCountsResource;
 import org.springframework.xd.rest.client.domain.metrics.CounterResource;
@@ -52,7 +50,6 @@ public class AdminController {
 	public XDRuntime info() {
 		XDRuntime xdRuntime = new XDRuntime();
 		xdRuntime.add(entityLinks.linkFor(StreamDefinitionResource.class).withRel("streams"));
-		xdRuntime.add(entityLinks.linkFor(TriggerDefinitionResource.class).withRel("triggers"));
 		xdRuntime.add(entityLinks.linkFor(JobDefinitionResource.class).withRel("jobs"));
 		xdRuntime.add(entityLinks.linkFor(TapDefinitionResource.class).withRel("taps"));
 
@@ -63,14 +60,4 @@ public class AdminController {
 		xdRuntime.add(entityLinks.linkFor(RichGaugeResource.class).withRel("richgauges"));
 		return xdRuntime;
 	}
-
-	/**
-	 * This RequestMapping exists to handle CORS requests only Ensures that our custom HandlerInterceptor is called
-	 */
-	@ResponseBody
-	@RequestMapping(value = "**", method = RequestMethod.OPTIONS)
-	public String options() {
-		return "OK";
-	}
-
 }

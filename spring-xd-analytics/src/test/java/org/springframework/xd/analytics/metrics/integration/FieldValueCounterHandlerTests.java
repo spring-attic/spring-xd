@@ -26,9 +26,8 @@ public class FieldValueCounterHandlerTests {
 	private final String mentionsFieldValueCounterName = "tweetMentionsCounter";
 
 	@Before
-	@After
-	public void initAndCleanup() {
-		repo.delete(mentionsFieldValueCounterName);
+	public void init() {
+		repo = new InMemoryFieldValueCounterRepository();
 	}
 
 	@Test
@@ -76,4 +75,16 @@ public class FieldValueCounterHandlerTests {
 		assertThat(counts.get("jurgen"), equalTo(1.0));
 	}
 
+	@Test
+	public void handlesTweetHashtags() throws Exception {
+		String tweet = "{\"created_at\":\"Tue Aug 27 18:17:06 +0000 2013\",\"id\":100000,\"text\":\"whocares\",\"retweet_count\":0," +
+				"\"entities\":{\"hashtags\":[{\"text\":\"hello\",\"indices\":[23,41]},{\"text\":\"there\",\"indices\":[45,50]}],\"symbols\":[]," +
+				"\"urls\":[],\"user_mentions\":[]}," +
+				"\"favorited\":false,\"retweeted\":false,\"possibly_sensitive\":false,\"filter_level\":\"medium\",\"lang\":\"bg\"}";
+
+		FieldValueCounterHandler handler = new FieldValueCounterHandler(repo, "hashtags", "entities.hashtags.text");
+		handler.process(new GenericMessage<String>(tweet));
+		Map<String, Double> counts = repo.findOne("hashtags").getFieldValueCount();
+		assertThat(counts.get("hello"), equalTo(1.0));
+	}
 }

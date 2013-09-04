@@ -34,8 +34,7 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.util.Assert;
-import org.springframework.xd.dirt.event.ContainerStartedEvent;
-import org.springframework.xd.dirt.event.ContainerStoppedEvent;
+import org.springframework.xd.dirt.server.options.XDPropertyKeys;
 
 /**
  * @author Mark Fisher
@@ -133,20 +132,19 @@ public class XDContainer implements SmartLifecycle, ApplicationContextAware {
 		context.setId(this.id);
 		updateLoggerFilename();
 		Assert.notNull(deployerContext, "no ApplicationContext has been set");
-		ApplicationContext analyticsContext = deployerContext.getParent();
-		context.setParent(analyticsContext);
+		ApplicationContext globalContext = deployerContext.getParent();
+		Assert.notNull(globalContext, "no global context has been set");
+		context.setParent(globalContext);
 		context.registerShutdownHook();
 		context.refresh();
 		if (logger.isInfoEnabled()) {
 			logger.info("started container: " + context.getId());
 		}
-		context.publishEvent(new ContainerStartedEvent(this));
 	}
 
 	@Override
 	public void stop() {
 		if (this.context != null) {
-			this.context.publishEvent(new ContainerStoppedEvent(this));
 			this.context.close();
 			if (logger.isInfoEnabled()) {
 				final String message = "Stopped container: " + this.jvmName;
@@ -175,11 +173,23 @@ public class XDContainer implements SmartLifecycle, ApplicationContextAware {
 	private void updateLoggerFilename() {
 		Appender appender = Logger.getRootLogger().getAppender(LOG4J_FILE_APPENDER);
 		if (appender instanceof RollingFileAppender) {
-			// the xd.home system property is always set at this point
-			((RollingFileAppender) appender).setFile(new File(System.getProperty("xd.home")).getAbsolutePath()
+			String xdHome = context.getEnvironment().getProperty(XDPropertyKeys.XD_HOME);
+			((RollingFileAppender) appender).setFile(new File(xdHome).getAbsolutePath()
 					+ "/logs/container-" + this.getId() + ".log");
 			((RollingFileAppender) appender).activateOptions();
 		}
+	}
+
+	public int getJmxPort() {
+		return Integer.valueOf(this.context.getEnvironment().getProperty(XDPropertyKeys.XD_JMX_PORT));
+	}
+
+	public boolean isJmxEnabled() {
+		return Boolean.valueOf(this.context.getEnvironment().getProperty(XDPropertyKeys.XD_JMX_ENABLED));
+	}
+
+	public String getPropertyValue(String key) {
+		return this.context.getEnvironment().getProperty(key);
 	}
 
 }

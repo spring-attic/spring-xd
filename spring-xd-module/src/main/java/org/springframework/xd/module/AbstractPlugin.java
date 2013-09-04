@@ -36,7 +36,7 @@ public abstract class AbstractPlugin implements Plugin {
 
 	/**
 	 * Represents the path and file name of the context to be used in post processing of the module. If not set the
-	 * postProcessContext will use defaults. Beans willl be added to the shared context.
+	 * postProcessContext will use defaults. Beans will be added to the shared context.
 	 * 
 	 */
 	private String[] postProcessContextPaths;
@@ -67,11 +67,6 @@ public abstract class AbstractPlugin implements Plugin {
 	protected void preProcessModuleInternal(Module module) {
 	}
 
-
-	@Override
-	public final void postProcessModule(Module module) {
-		this.postProcessModuleInternal(module);
-	}
 
 	/**
 	 * Perform any plugin-specific post-refresh initialization.
@@ -104,9 +99,6 @@ public abstract class AbstractPlugin implements Plugin {
 		}
 	}
 
-	@Override
-	public void removeModule(Module module) {
-	}
 
 	private void addComponents(Module module, String path) {
 		module.addComponents(new ClassPathResource(path));
@@ -114,7 +106,7 @@ public abstract class AbstractPlugin implements Plugin {
 
 	private void addBeanFactoryPostProcessors(ConfigurableApplicationContext context, String... paths) {
 		for (String path : paths) {
-			context.addBeanFactoryPostProcessor(new BeanDefinitionAddingPostProcessor(new ClassPathResource(path)));
+			context.addBeanFactoryPostProcessor(new BeanDefinitionAddingPostProcessor(context.getEnvironment(), new ClassPathResource(path)));
 		}
 	}
 

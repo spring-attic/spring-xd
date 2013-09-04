@@ -20,7 +20,7 @@ package org.springframework.xd.module;
  * @author Glenn Renfro
  */
 public enum ModuleType {
-	SOURCE("source"), PROCESSOR("processor"), SINK("sink"), TRIGGER("trigger"), TAP("tap"), JOB("job");
+	SOURCE("source"), PROCESSOR("processor"), SINK("sink"), TAP("tap"), JOB("job");
 
 	String typeName;
 
@@ -60,9 +60,7 @@ public enum ModuleType {
 		if (typeName.equals(TAP.getTypeName())) {
 			return TAP;
 		}
-		if (typeName.equals(TRIGGER.getTypeName())) {
-			return TRIGGER;
-		}
+
 		return null;
 	}
 }

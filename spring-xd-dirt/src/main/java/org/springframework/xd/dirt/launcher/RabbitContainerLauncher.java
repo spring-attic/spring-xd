@@ -18,14 +18,10 @@ package org.springframework.xd.dirt.launcher;
 
 import java.util.UUID;
 
-import org.apache.commons.logging.Log;
-
 import org.springframework.amqp.AmqpConnectException;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.container.XDContainer;
-import org.springframework.xd.dirt.server.options.ContainerOptions;
-import org.springframework.xd.dirt.server.util.BannerUtils;
 
 /**
  * @author Mark Fisher
@@ -47,21 +43,13 @@ public class RabbitContainerLauncher extends AbstractContainerLauncher {
 	}
 
 	@Override
-	public void logContainerInfo(Log logger, XDContainer container, ContainerOptions options) {
-		if (logger.isInfoEnabled()) {
-			final StringBuilder runtimeInfo = new StringBuilder();
-			runtimeInfo.append(String.format("Using RabbitMQ at %s (virtual host: %s) on port: %d ",
-					this.connectionFactory.getHost(),
-					this.connectionFactory.getVirtualHost(),
-					this.connectionFactory.getPort()));
-			if (options.isJmxEnabled()) {
-				runtimeInfo.append(String.format(" JMX port: %d", options.getJmxPort()));
-			}
-			else {
-				runtimeInfo.append(" JMX is disabled for XD components");
-			}
-			logger.info(BannerUtils.displayBanner(container.getJvmName(), runtimeInfo.toString()));
-		}
+	public String getRuntimeInfo(XDContainer container) {
+		final StringBuilder runtimeInfo = new StringBuilder();
+		runtimeInfo.append(String.format("Using RabbitMQ at %s (virtual host: %s) on port: %d ",
+				this.connectionFactory.getHost(),
+				this.connectionFactory.getVirtualHost(),
+				this.connectionFactory.getPort()));
+		return runtimeInfo.toString();
 	}
 
 	@Override

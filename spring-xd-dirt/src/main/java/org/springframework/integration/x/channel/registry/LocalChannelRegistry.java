@@ -146,7 +146,8 @@ public class LocalChannelRegistry extends ChannelRegistrySupport implements Appl
 
 	/**
 	 * Looks up or creates a DirectChannel with the given name and creates a bridge to that channel from the provided
-	 * channel instance.
+	 * channel instance. Also registers a wire tap if the outbound channel is an alias since a module using a sink
+	 * channel implies there is no subequent module that would normally create the tap.
 	 */
 	@Override
 	public void createOutbound(String name, MessageChannel moduleOutputChannel, boolean aliasHint) {
@@ -154,6 +155,9 @@ public class LocalChannelRegistry extends ChannelRegistrySupport implements Appl
 		Assert.notNull(moduleOutputChannel, "channel must not be null");
 		AbstractMessageChannel registeredChannel = lookupOrCreateSharedChannel(name, aliasHint);
 		bridge(moduleOutputChannel, registeredChannel, registeredChannel.getComponentName() + ".out.bridge");
+		if (aliasHint) {
+			createSharedTapChannelIfNecessary(registeredChannel);
+		}
 	}
 
 	/**

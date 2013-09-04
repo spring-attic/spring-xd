@@ -27,7 +27,7 @@ import org.springframework.hateoas.PagedResources;
 public class JobDefinitionResource extends NamedResource {
 
 	/**
-	 * The DSL representation of this trigger definition.
+	 * The DSL representation of this job definition.
 	 */
 	private String definition;
 

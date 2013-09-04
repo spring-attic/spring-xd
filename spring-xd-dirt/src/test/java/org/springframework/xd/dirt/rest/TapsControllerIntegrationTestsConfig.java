@@ -18,7 +18,7 @@ import static org.mockito.Mockito.mock;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.xd.dirt.stream.DeploymentMessageSender;
-import org.springframework.xd.dirt.stream.EnhancedStreamParser;
+import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.TapDefinitionRepository;
 import org.springframework.xd.dirt.stream.TapDeployer;
@@ -55,7 +55,7 @@ public class TapsControllerIntegrationTestsConfig extends Dependencies {
 
 	@Bean
 	public TapDeployer tapDeployer() {
-		XDParser parser = new EnhancedStreamParser(
+		XDParser parser = new XDStreamParser(
 				tapDefinitionRepository(), moduleRegistry());
 		return new TapDeployer(tapDefinitionRepository(),
 				streamDefinitionRepository(), deploymentMessageSender(),

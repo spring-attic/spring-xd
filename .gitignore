@@ -17,3 +17,7 @@ dump.rdb
 tomcat.*
 activemq-data
 spring-shell.log
+data
+spring-xd-ui/client/bower_components
+spring-xd-ui/node_modules
+

@@ -17,22 +17,25 @@
 package org.springframework.xd.dirt.server.options;
 
 /**
+ * XD property keys. These should not contain '.', etc. to be compatible with Environment variables
  * 
  * @author David Turanski
  */
 public interface XDPropertyKeys {
 
-	public static final String XD_HOME = "xd.home";
+	public static final String XD_HOME = "XD_HOME";
 
-	public static final String XD_TRANSPORT = "xd.transport";
+	public static final String XD_TRANSPORT = "XD_TRANSPORT";
 
-	public static final String XD_JMX_ENABLED = "xd.jmx.enabled";
+	public static final String XD_JMX_ENABLED = "XD_JMX_ENABLED";
 
-	public static final String XD_ANALYTICS = "xd.analytics";
+	public static final String XD_ANALYTICS = "XD_ANALYTICS";
 
-	public static final String XD_HADOOP_DISTRO = "xd.hadoop.distro";
+	public static final String XD_HADOOP_DISTRO = "XD_HADOOP_DISTRO";
 
-	public static final String XD_STORE = "xd.store";
-	
-	public static final String XD_JMX_PORT = "xd.jmx.port";
+	public static final String XD_STORE = "XD_STORE";
+
+	public static final String XD_JMX_PORT = "XD_JMX_PORT";
+
+	public static final String XD_HTTP_PORT = "XD_HTTP_PORT";
 }

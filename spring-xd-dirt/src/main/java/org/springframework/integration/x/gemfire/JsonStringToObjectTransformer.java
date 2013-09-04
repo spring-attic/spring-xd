@@ -44,7 +44,7 @@ public class JsonStringToObjectTransformer {
 		if (obj instanceof PdxInstance) {
 			String json = JSONFormatter.toJSON((PdxInstance) obj);
 			// de-pretty
-			return json.replaceAll("\\n\\s*", "").replaceAll("\\s*:\\s*", ":").trim();
+			return json.replaceAll("\\r\\n\\s*", "").replaceAll("\\n\\s*", "").replaceAll("\\s*:\\s*", ":").trim();
 		}
 		return obj.toString();
 	}

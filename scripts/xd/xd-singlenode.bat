@@ -95,7 +95,7 @@ if exist "%APP_HOME_LIB%" (
 if not exist "%XD_HOME%" (
     set XD_HOME=%APP_HOME%
 )
-set SPRING_XD_ADMIN_OPTS=-Dxd.home=%XD_HOME%
+set SPRING_XD_ADMIN_OPTS=
 
 @rem Execute xd-singlenode
 "%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SPRING_XD_ADMIN_OPTS%  -classpath "%CLASSPATH%" org.springframework.xd.dirt.server.SingleNodeMain %CMD_LINE_ARGS%

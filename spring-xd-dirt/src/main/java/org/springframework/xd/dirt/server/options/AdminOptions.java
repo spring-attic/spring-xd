@@ -25,28 +25,32 @@ import org.kohsuke.args4j.Option;
  * @author David Turanski
  */
 public class AdminOptions extends AbstractOptions {
-	
+
+	private static final String STORE = "store";
+
+	private static final String HTTP_PORT = "httpPort";
+
+	public AdminOptions() {
+		super(Transport.redis, Analytics.redis);
+	}
+
 	protected AdminOptions(Transport defaultTransport, Analytics defaultAnalytics) {
 		super(defaultTransport, defaultAnalytics);
 	}
-	
-	public AdminOptions() {
-		super();
-	}
 
-	@Option(name = "--httpPort", usage = "Http port for the REST API server (default: 8080)", metaVar = "<httpPort>")
+	@Option(name = "--" + HTTP_PORT, usage = "Http port for the REST API server (default: 8080)", metaVar = "<httpPort>")
 	protected int httpPort = 8080;
 
-	@Option(name = "--store", usage = "How to persist admin data (default: redis)")
+	@Option(name = "--" + STORE, usage = "How to persist admin data (default: redis)")
 	protected Store store = Store.redis;
 
-	@Option(name = "--jmxPort", usage = "The JMX port for the admin", metaVar = "<jmxPort>")
-	protected int jmxPort = 8778;
+	@Option(name = "--" + JMX_PORT, usage = "The JMX port for the admin", metaVar = "<jmxPort>")
+	protected Integer jmxPort = 8778;
 
 	/**
 	 * @return http port
 	 */
-	public int getHttpPort() {
+	public Integer getHttpPort() {
 		return httpPort;
 	}
 
@@ -55,7 +59,14 @@ public class AdminOptions extends AbstractOptions {
 	}
 
 	@Override
-	public int getJmxPort() {
-		return this.jmxPort;
+	public Integer getJmxPort() {
+		return jmxPort;
+	}
+
+	@Override
+	protected void createOptionMetadataCache() {
+		super.createOptionMetadataCache();
+		optionMetadataCache.put(getHttpPort(), isArg(HTTP_PORT));
+		optionMetadataCache.put(getStore(), isArg(STORE));
 	}
 }

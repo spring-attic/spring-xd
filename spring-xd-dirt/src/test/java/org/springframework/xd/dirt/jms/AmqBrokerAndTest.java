@@ -53,7 +53,7 @@ public class AmqBrokerAndTest {
 		if (args.length > 0) {
 			xdHome = args[0];
 		}
-		Assert.notNull(xdHome, "need an xd_home argument");
+		Assert.notNull(xdHome, "need an XD_HOME argument");
 		String queueName = "jmsTest";
 		if (args.length > 1) {
 			queueName = args[1];

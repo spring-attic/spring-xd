@@ -16,9 +16,12 @@
 
 package org.springframework.xd.module;
 
+import java.net.URL;
 import java.util.Properties;
 
+import org.springframework.core.io.DescriptiveResource;
 import org.springframework.core.io.Resource;
+import org.springframework.util.Assert;
 
 /**
  * Defines a module.
@@ -36,14 +39,24 @@ public class ModuleDefinition {
 
 	private volatile Properties properties;
 
+	private final URL[] classpath;
+
 	public ModuleDefinition(String name, String moduleType) {
-		this(name, moduleType, null);
+		this(name, moduleType, new DescriptiveResource("Dummy resource"));
 	}
 
 	public ModuleDefinition(String name, String type, Resource resource) {
+		this(name, type, resource, null);
+	}
+
+	public ModuleDefinition(String name, String type, Resource resource, URL[] classpath) {
+		Assert.hasLength(name, "name cannot be blank");
+		Assert.hasLength(type, "type cannot be blank");
+		Assert.notNull(resource, "resource cannot be null");
 		this.resource = resource;
 		this.name = name;
 		this.type = type;
+		this.classpath = classpath != null && classpath.length > 0 ? classpath : null;
 	}
 
 	public String getName() {
@@ -64,6 +77,10 @@ public class ModuleDefinition {
 
 	public void setProperties(Properties properties) {
 		this.properties = properties;
+	}
+
+	public URL[] getClasspath() {
+		return classpath;
 	}
 
 }

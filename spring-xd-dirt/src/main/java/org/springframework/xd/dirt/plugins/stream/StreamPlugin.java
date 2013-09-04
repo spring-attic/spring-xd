@@ -55,6 +55,8 @@ public class StreamPlugin implements Plugin {
 
 	private static final String TAP_XML = CONTEXT_CONFIG_ROOT + "tap.xml";
 
+	private static final String SPEL_CONTEXT_XML = CONTEXT_CONFIG_ROOT + "spel-context.xml";
+
 	private static final String CHANNEL_REGISTRY = CONTEXT_CONFIG_ROOT + "channel-registry.xml";
 
 	private final static String CONTENT_TYPE_BEAN_NAME = "accepted-content-types";
@@ -71,6 +73,7 @@ public class StreamPlugin implements Plugin {
 			properties.setProperty("xd.stream.name", md.getGroup());
 			properties.setProperty("xd.module.index", String.valueOf(md.getIndex()));
 			module.addProperties(properties);
+			module.addComponents(new ClassPathResource(SPEL_CONTEXT_XML));
 		}
 
 		if ("tap".equals(module.getName()) && SOURCE.equals(type)) {
@@ -131,6 +134,9 @@ public class StreamPlugin implements Plugin {
 				else if (acceptedType instanceof MediaType) {
 					acceptedMediaTypes.add((MediaType) acceptedType);
 				}
+				else {
+					throw new IllegalArgumentException("Unrecognized MediaType :" + acceptedType);
+				}
 			}
 			return Collections.unmodifiableCollection(acceptedMediaTypes);
 		}
@@ -138,8 +144,8 @@ public class StreamPlugin implements Plugin {
 
 	@Override
 	public void preProcessSharedContext(ConfigurableApplicationContext context) {
-		context.addBeanFactoryPostProcessor(new BeanDefinitionAddingPostProcessor(new ClassPathResource(
-				CHANNEL_REGISTRY)));
+		context.addBeanFactoryPostProcessor(new BeanDefinitionAddingPostProcessor(context.getEnvironment(),
+				new ClassPathResource(CHANNEL_REGISTRY)));
 	}
 
 }

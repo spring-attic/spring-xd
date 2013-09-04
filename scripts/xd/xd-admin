@@ -177,7 +177,7 @@ fi
 
 # check if XD_HOME is already set; if it is not, then set APP_HOME as XD_HOME
 if [ x"$XD_HOME" = x ] ; then
-    XD_HOME=$APP_HOME
+    export XD_HOME=$APP_HOME
 fi
 # set XD_HOME as system property via SPRING_XD_CONTAINER_OPTS
 SPRING_XD_ADMIN_OPTS="-Dxd.home=$XD_HOME -Dlog4j.configuration=file:///$XD_HOME/config/xd-admin-logger.properties"

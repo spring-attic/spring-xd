@@ -27,6 +27,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.util.FileCopyUtils;
+import org.springframework.xd.shell.command.fixtures.FileSink;
+import org.springframework.xd.shell.command.fixtures.FileSource;
 
 /**
  * Tests to explicitly assert file related source and sink behavior.
@@ -75,7 +77,7 @@ public class FileSourceAndFileSinkTests extends AbstractStreamIntegrationTest {
 
 		source.appendToFile("Hi there!");
 		stream().create("foobar", "%s | %s", source, sink);
-		assertEquals("Hi there!\n", sink.getContents());
+		assertEquals("Hi there!", sink.getContents().trim());
 
 	}
 
@@ -98,7 +100,7 @@ public class FileSourceAndFileSinkTests extends AbstractStreamIntegrationTest {
 			stream().create(streamName, "file | file " + sinkParam);
 			Thread.sleep(1000);
 			String actual = FileCopyUtils.copyToString(new FileReader(out));
-			assertEquals("hello\n", actual);
+			assertEquals("hello", actual.trim());
 		}
 		finally {
 			in.delete();

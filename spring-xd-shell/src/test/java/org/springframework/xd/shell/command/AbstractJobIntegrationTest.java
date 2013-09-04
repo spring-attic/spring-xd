@@ -100,6 +100,7 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 	@After
 	public void after() {
 		executeJobDestroy(jobs.toArray(new String[jobs.size()]));
+		getShell().executeCommand("stream destroy " + "me-Try2");
 		removeTmpFile(TEST_FILE);
 		removeTmpFile(TMP_FILE);
 	}
@@ -164,6 +165,26 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 
 	protected void waitForResult() {
 		waitForResult(1000);
+	}
+
+	protected void executemyJobTriggerStream() {
+		CommandResult cr = getShell().executeCommand(
+				"stream create --name me-Try2 --definition \"trigger > :job:myJob\"");
+		checkForSuccess(cr);
+	}
+
+	protected void executemyTestTriggerStream() {
+		CommandResult cr = getShell().executeCommand(
+				"stream create --name me-Try2 --definition \"trigger > :job:myTest\"");
+		checkForSuccess(cr);
+	}
+
+	protected void executemyjobWithParametersTriggerStream(String params) {
+		String commandString = String.format(
+				"stream create --name me-Try2 --definition \"trigger --payload='%s' > :job:myJobWithParameters\"",
+				params);
+		CommandResult cr = getShell().executeCommand(commandString);
+		checkForSuccess(cr);
 	}
 
 	private Table listJobs() {

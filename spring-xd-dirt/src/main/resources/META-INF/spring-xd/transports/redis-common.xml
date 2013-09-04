@@ -8,10 +8,6 @@
 
 	<import resource="classpath:/META-INF/spring-xd/internal/xd-common.xml"/>
 
-	<bean id="redis.property.placeholder" class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
-		<property name="locations" value="file:${xd.home}/config/redis.properties"/>
-	</bean>
-
 	<bean id="redisConnectionFactory"
 		class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory">
 		<constructor-arg index="0" value="${redis.hostname:localhost}" />

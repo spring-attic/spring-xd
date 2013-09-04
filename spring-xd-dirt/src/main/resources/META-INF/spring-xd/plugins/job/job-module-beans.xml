@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<bean id="registrar" class="org.springframework.xd.dirt.plugins.job.BatchJobRegistryBeanPostProcessor">
+		<property name="jobRegistry" ref="jobRegistry"/>
+		<property name="groupName" value="${xd.stream.name}"/>
+	</bean>
+
+	<bean id="jobFactoryBean" class="org.springframework.xd.dirt.plugins.job.JobFactoryBean">
+		<constructor-arg name="jobName"   value="${xd.stream.name}"/>
+		<constructor-arg name="jobSuffix" value="#{T(org.springframework.xd.dirt.plugins.job.JobPlugin).JOB_BEAN_ID}"/>
+		<constructor-arg name="registry"  ref="jobRegistry"/>
+	</bean>
+
+	<int:channel id="input" />
+
+	<int:transformer id="jobLaunchRequestTransformer"
+		input-channel="input" output-channel="jobLaunchingChannel" >
+		<bean class="org.springframework.xd.dirt.plugins.job.JobLaunchRequestTransformer">
+			<constructor-arg name="job" ref="jobFactoryBean"/>
+			<property name="dateFormatAsString" value="${dateFormat}"/>
+			<property name="numberFormatAsString" value="${numberFormat}"/>
+			<property name="makeParametersUnique" value="${makeUnique}"/>
+		</bean>
+	</int:transformer>
+
+	<int:channel id="jobLaunchingChannel"/>
+
+	<int:service-activator id="jobLaunchingMessageHandler" method="launch"
+		input-channel="jobLaunchingChannel" output-channel="notifications">
+		<bean class="org.springframework.batch.integration.launch.JobLaunchingMessageHandler">
+			<constructor-arg ref="jobLauncher"/>
+		</bean>
+	</int:service-activator>
+
+	<int:channel id="notifications"/>
+	<int:payload-serializing-transformer id="serializePayloadToBytes"
+		input-channel="notifications" output-channel="serializedNotifications"/>
+	<int:channel id="serializedNotifications"/>
+
+</beans>

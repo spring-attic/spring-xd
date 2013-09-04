@@ -23,11 +23,20 @@ import org.kohsuke.args4j.Option;
  */
 public class ContainerOptions extends AbstractOptions {
 
-	@Option(name = "--jmxPort", usage = "The JMX port for the container", metaVar = "<jmxPort>")
-	protected int jmxPort = 8779;
+	/**
+	 * @param defaultTransport
+	 * @param defaultAnalytics
+	 */
+	public ContainerOptions() {
+		super(Transport.redis, Analytics.redis);
+	}
+
+
+	@Option(name = "--" + JMX_PORT, usage = "The JMX port for the container", metaVar = "<jmxPort>")
+	protected Integer jmxPort = 8779;
 
 	@Override
-	public int getJmxPort() {
-		return this.jmxPort;
+	public Integer getJmxPort() {
+		return jmxPort;
 	}
 }

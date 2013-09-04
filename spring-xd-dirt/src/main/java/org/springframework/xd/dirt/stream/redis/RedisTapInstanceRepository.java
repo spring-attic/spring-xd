@@ -37,7 +37,7 @@ public class RedisTapInstanceRepository extends AbstractRedisInstanceRepository<
 
 	public RedisTapInstanceRepository(RedisOperations<String, String> redisOperations,
 			RedisTapDefinitionRepository redisTapDefinitionRepository) {
-		super("taps.", redisOperations);
+		super("taps", redisOperations);
 		this.redisTapDefinitionRepository = redisTapDefinitionRepository;
 	}
 

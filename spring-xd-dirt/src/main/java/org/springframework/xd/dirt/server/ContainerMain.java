@@ -18,14 +18,14 @@ package org.springframework.xd.dirt.server;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.kohsuke.args4j.CmdLineException;
-import org.kohsuke.args4j.CmdLineParser;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.launcher.ContainerLauncher;
 import org.springframework.xd.dirt.launcher.ContainerLauncherFactory;
+import org.springframework.xd.dirt.server.options.CommandLineParser;
 import org.springframework.xd.dirt.server.options.ContainerOptions;
+import org.springframework.xd.dirt.server.options.InvalidCommandLineArgumentException;
 
 /**
  * The main driver class for the container
@@ -59,15 +59,10 @@ public class ContainerMain {
 	 */
 	public static ContainerOptions parseOptions(String[] args) {
 		ContainerOptions options = new ContainerOptions();
-		CmdLineParser parser = new CmdLineParser(options);
-		try {
-			parser.parseArgument(args);
+		CommandLineParser parser = new CommandLineParser(options);
 
-		}
-		catch (CmdLineException e) {
-			logger.error(e.getMessage());
-			throw new InvalidCommandLineArgumentException(e.getMessage(), e);
-		}
+		parser.parseArgument(args);
+
 		return options;
 	}
 
@@ -80,11 +75,11 @@ public class ContainerMain {
 	 */
 	private static ContainerOptions parseCommandLineOptions(String[] args) {
 		ContainerOptions options = new ContainerOptions();
-		CmdLineParser parser = new CmdLineParser(options);
+		CommandLineParser parser = new CommandLineParser(options);
 		try {
 			parser.parseArgument(args);
 		}
-		catch (CmdLineException e) {
+		catch (InvalidCommandLineArgumentException e) {
 			logger.error(e.getMessage());
 			parser.printUsage(System.err);
 			System.exit(1);

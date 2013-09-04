@@ -90,14 +90,13 @@ public class JobCommands implements CommandMarker {
 	public String deployJob(
 			@CliOption(key = { "", "name" }, help = "the name of the job to deploy", optionContext = "existing-job disable-string-converter") String name,
 			@CliOption(key = { "all" }, help = "deploy all the existing jobs", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean all,
-			@CliOption(key = "jobParameters", help = "the optional job parameters") String jobParameters,
 			@CliOption(key = "dateFormat", help = "the optional date format for job parameters") String dateFormat,
 			@CliOption(key = "numberFormat", help = "the optional number format for job parameters") String numberFormat,
 			@CliOption(key = "makeUnique", help = "shall job parameters be made unique?") Boolean makeUnique) {
 		String message = "";
 		switch (Assertions.exactlyOneOf("name", name, "all", all)) {
 			case 0:
-				jobOperations().deployJob(name, jobParameters, dateFormat, numberFormat, makeUnique);
+				jobOperations().deployJob(name, dateFormat, numberFormat, makeUnique);
 				message = String.format("Deployed job '%s'", name);
 				break;
 			case 1:

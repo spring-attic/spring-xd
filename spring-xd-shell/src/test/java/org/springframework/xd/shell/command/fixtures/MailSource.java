@@ -22,7 +22,7 @@ package org.springframework.xd.shell.command.fixtures;
  * 
  * @author Eric Bottard
  */
-public class MailSource extends AbstractMailSource {
+public class MailSource extends AbstractMailSource<MailSource> {
 
 	@Override
 	protected String toDSL() {

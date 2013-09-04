@@ -29,7 +29,8 @@ import com.icegreen.greenmail.util.ServerSetup;
  * 
  * @author Eric Bottard
  */
-public abstract class AbstractMailSource extends DisposableMailSupport<AbstractMailSource> {
+public abstract class AbstractMailSource<T extends AbstractMailSource<T>> extends
+		DisposableMailSupport<AbstractMailSource<T>> {
 
 	protected String protocol = "imap";
 
@@ -39,16 +40,18 @@ public abstract class AbstractMailSource extends DisposableMailSupport<AbstractM
 
 	private int smtpPort = AvailableSocketPorts.nextAvailablePort();
 
-	public DisposableMailSupport protocol(String protocol) {
+	@SuppressWarnings("unchecked")
+	public T protocol(String protocol) {
 		ensureNotStarted();
 		this.protocol = protocol;
-		return this;
+		return (T) this;
 	}
 
-	public DisposableMailSupport port(int port) {
+	@SuppressWarnings("unchecked")
+	public T port(int port) {
 		ensureNotStarted();
 		this.port = port;
-		return this;
+		return (T) this;
 	}
 
 	public void sendEmail(String from, String subject, String msg) {

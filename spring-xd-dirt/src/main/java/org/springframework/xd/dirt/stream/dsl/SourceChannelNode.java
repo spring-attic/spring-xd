@@ -60,6 +60,7 @@ public class SourceChannelNode extends AstNode {
 		return s.toString();
 	}
 
+	@Override
 	public String toString() {
 		StringBuilder s = new StringBuilder();
 		if (isTap) {
@@ -91,6 +92,9 @@ public class SourceChannelNode extends AstNode {
 		if (channelNode == null) {
 			// It is a module reference, needs to be resolved
 			moduleReferenceNode.resolve(env);
+		}
+		else {
+			channelNode.resolve(env);
 		}
 	}
 

@@ -23,7 +23,9 @@ public class ChannelNode extends AstNode {
 
 	private final String streamName;
 
-	private final String channelName;
+	private String channelName;
+
+	private boolean isTap = false;
 
 	public ChannelNode(String streamName, String channelName, int startpos, int endpos) {
 		super(startpos, endpos);
@@ -36,10 +38,18 @@ public class ChannelNode extends AstNode {
 		StringBuilder s = new StringBuilder();
 		s.append("(");
 		s.append(":");
-		if (streamName != null) {
-			s.append(streamName).append(".");
+		if (isTap) {
+			s.append("tap:");
 		}
-		s.append(channelName);
+		if (streamName != null) {
+			s.append(streamName);
+		}
+		if (channelName != null) {
+			if (streamName != null) {
+				s.append(".");
+			}
+			s.append(channelName);
+		}
 		if (includePositionalInfo) {
 			s.append(":");
 			s.append(getStartPos()).append(">").append(getEndPos());
@@ -48,6 +58,7 @@ public class ChannelNode extends AstNode {
 		return s.toString();
 	}
 
+	@Override
 	public String toString() {
 		StringBuilder s = new StringBuilder();
 		s.append(":");
@@ -66,11 +77,36 @@ public class ChannelNode extends AstNode {
 	}
 
 	public String getChannelName() {
-		return channelName;
+		StringBuilder name = new StringBuilder();
+		if (isTap) {
+			name.append("tap:");
+		}
+		if (streamName != null) {
+			name.append(streamName).append(".");
+		}
+		name.append(channelName);
+		return name.toString();
 	}
 
 	public ChannelNode copyOf() {
-		return new ChannelNode(streamName, channelName, startpos, endpos);
+		ChannelNode cn = new ChannelNode(streamName, channelName, startpos, endpos);
+		if (isTap) {
+			cn.isTap = true;
+		}
+		return cn;
+	}
+
+	public void setIsTap(boolean isTap) {
+		this.isTap = isTap;
+	}
+
+	public void resolve(StreamLookupEnvironment env) {
+		if (channelName == null) {
+			StreamNode streamNode = env.lookupStream(streamName);
+			if (streamNode != null) {
+				channelName = streamNode.getModuleNodes().get(0).getName();
+			}
+		}
 	}
 
 }

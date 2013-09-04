@@ -37,8 +37,8 @@ import org.junit.Test;
 import org.springframework.core.io.Resource;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.xd.dirt.module.ModuleRegistry;
-import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.dirt.stream.StreamDefinition;
+import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 
@@ -421,6 +421,42 @@ public class StreamConfigParserTests {
 	public void sourceChannel() {
 		StreamsNode ast = parse(":foo > file");
 		assertEquals("Streams[:foo > file][(:foo:0>4)>(ModuleNode:file:7>11)]", ast.stringify(true));
+	}
+
+	@Test
+	public void sourceChannel2() {
+		StreamsNode ast = parse(":foo.bar > file");
+		assertEquals("Streams[:foo.bar > file][(:foo.bar:0>8)>(ModuleNode:file:11>15)]", ast.stringify(true));
+		assertEquals("foo.bar", ast.getStreamNodes().get(0).getSourceChannelNode().getChannelName());
+	}
+
+	@Test
+	public void sourceTapChannel() {
+		StreamsNode ast = parse(":tap:xxy > file");
+		assertEquals("Streams[:tap:xxy > file][(:tap:xxy:0>8)>(ModuleNode:file:11>15)]", ast.stringify(true));
+	}
+
+
+	@Test
+	public void sourceTapChannel2() {
+		StreamsNode ast = parse(":tap:mystream.http > file");
+		assertEquals("Streams[:tap:mystream.http > file][(:tap:mystream.http:0>18)>(ModuleNode:file:21>25)]",
+				ast.stringify(true));
+	}
+
+	@Test
+	public void sourceTapChannel3() {
+		parse("mystream = http | file");
+		StreamsNode ast = null;
+		SourceChannelNode sourceChannelNode = null;
+
+		ast = parse(":tap:mystream.http > file");
+		sourceChannelNode = ast.getStreams().get(0).getSourceChannelNode();
+		assertEquals("tap:mystream.http", sourceChannelNode.getChannelName());
+
+		ast = parse(":tap:mystream > file");
+		sourceChannelNode = ast.getStreams().get(0).getSourceChannelNode();
+		assertEquals("tap:mystream.http", sourceChannelNode.getChannelName());
 	}
 
 	@Test

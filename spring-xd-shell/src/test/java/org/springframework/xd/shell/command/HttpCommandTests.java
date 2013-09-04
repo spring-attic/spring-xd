@@ -29,7 +29,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import org.springframework.integration.test.util.SocketUtils;
 import org.springframework.xd.shell.command.fixtures.FileSink;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
 
@@ -78,30 +77,31 @@ public class HttpCommandTests extends AbstractStreamIntegrationTest {
 	@Test
 	public void testHttpPostUtfText() throws InterruptedException, IOException {
 
-		final int openPort = SocketUtils.findAvailableServerSocket(8200);
-		final FileSink fileSink = newFileSink();
+		final HttpSource httpSource = newHttpSource();
+		final FileSink fileSink = newFileSink().binary(true);
 
 		/** I want to go to Japan. */
 		final String stringToPostInJapanese = "\u65e5\u672c\u306b\u884c\u304d\u305f\u3044\u3002";
 
 		final String streamName = "postUtf8Data";
-		final String stream = String.format("http --port=%s | %s", openPort, fileSink);
+		final String stream = String.format("%s | %s", httpSource, fileSink);
 
 		logger.info("Creating Stream: " + stream);
 		stream().create(streamName, stream);
 
 		logger.info("Posting String: " + stringToPostInJapanese);
-		getShell().executeCommand(
-				String.format("http post --target http://localhost:%s --data \"%s\"", openPort, stringToPostInJapanese));
+		httpSource.ensureReady().postData(stringToPostInJapanese);
 
-		assertEquals(stringToPostInJapanese, fileSink.getContents().trim());
+
+		assertEquals(stringToPostInJapanese, fileSink.getContents());
 	}
 
 	@Test
 	public void testReadingFromFile() throws Exception {
-		final int openPort = SocketUtils.findAvailableServerSocket(8300);
 		final File tempFileIn = testFolder.newFile("utfdatain.txt");
-		final FileSink fileSink = newFileSink();
+		final FileSink fileSink = newFileSink().binary(true);
+
+		final HttpSource source = newHttpSource();
 
 		/* I want to go to Japan. */
 		final String stringToPostInJapanese = "\u65e5\u672c\u306b\u884c\u304d\u305f\u3044\u3002";
@@ -110,16 +110,13 @@ public class HttpCommandTests extends AbstractStreamIntegrationTest {
 		FileUtils.writeStringToFile(tempFileIn, stringToPostInJapanese, inCharset);
 
 		final String streamName = "postUtf8Data";
-		final String stream = String.format("http --port=%s | %s", openPort, fileSink);
+		final String stream = String.format("%s | %s", source, fileSink);
 
 		stream().create(streamName, stream);
 
-		getShell().executeCommand(
-				String.format(
-						"http post --target http://localhost:%s --file %s --contentType \"text/plain;charset=%s\"",
-						openPort, tempFileIn.getAbsolutePath(), inCharset));
+		source.ensureReady().useContentType(String.format("text/plain;charset=%s", inCharset)).postFromFile(tempFileIn);
 
-		assertEquals(stringToPostInJapanese, fileSink.getContents().trim());
+		assertEquals(stringToPostInJapanese, fileSink.getContents());
 
 	}
 }

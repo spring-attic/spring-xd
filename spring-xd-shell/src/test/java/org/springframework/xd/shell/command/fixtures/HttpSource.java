@@ -16,6 +16,8 @@
 
 package org.springframework.xd.shell.command.fixtures;
 
+import java.io.File;
+
 import org.eclipse.jdt.internal.core.Assert;
 
 import org.springframework.shell.core.CommandResult;
@@ -33,6 +35,8 @@ public class HttpSource extends AbstractModuleFixture {
 	private int port;
 
 	private JLineShellComponent shell;
+
+	private String contentType;
 
 	public HttpSource(JLineShellComponent shell) {
 		this(shell, AvailableSocketPorts.nextAvailablePort());
@@ -76,9 +80,30 @@ public class HttpSource extends AbstractModuleFixture {
 	}
 
 	public HttpSource postData(String payload) {
-		CommandResult result = shell.executeCommand(String.format(
+		String command = String.format(
 				"http post --target http://localhost:%d --data \"%s\"",
-				port, payload));
+				port, payload);
+		if (contentType != null) {
+			command += String.format(" --contentType \"%s\"", contentType);
+		}
+		CommandResult result = shell.executeCommand(command);
+		Assert.isTrue(result.isSuccess());
+		return this;
+	}
+
+	public HttpSource useContentType(String contentType) {
+		this.contentType = contentType;
+		return this;
+	}
+
+	public HttpSource postFromFile(File file) {
+		String command = String.format(
+				"http post --target http://localhost:%d --file \"%s\"",
+				port, file.getAbsolutePath());
+		if (contentType != null) {
+			command += String.format(" --contentType \"%s\"", contentType);
+		}
+		CommandResult result = shell.executeCommand(command);
 		Assert.isTrue(result.isSuccess());
 		return this;
 	}

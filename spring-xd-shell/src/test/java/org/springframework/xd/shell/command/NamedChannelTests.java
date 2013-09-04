@@ -35,8 +35,10 @@ public class NamedChannelTests extends AbstractStreamIntegrationTest {
 	@Test
 	public void testCreateNamedChannelAsSink() {
 		logger.info("Creating stream with named channel 'foo' as sink");
+		HttpSource source = newHttpSource();
+
 		stream().create("namedchanneltest-ticktock",
-				"http --port=%s | transform --expression=payload.toUpperCase() > :foo", DEFAULT_HTTP_PORT);
+				"%s | transform --expression=payload.toUpperCase() > :foo", source);
 	}
 
 	@Test

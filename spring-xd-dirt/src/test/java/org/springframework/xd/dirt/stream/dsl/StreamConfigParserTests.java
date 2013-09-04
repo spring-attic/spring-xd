@@ -37,7 +37,7 @@ import org.junit.Test;
 import org.springframework.core.io.Resource;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.xd.dirt.module.ModuleRegistry;
-import org.springframework.xd.dirt.stream.EnhancedStreamParser;
+import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
@@ -214,7 +214,7 @@ public class StreamConfigParserTests {
 	@Test
 	public void testInvalidModules() {
 		String config = "test | foo--x=13";
-		EnhancedStreamParser parser = new EnhancedStreamParser(testRepository, moduleRegistry());
+		XDStreamParser parser = new XDStreamParser(testRepository, moduleRegistry());
 		try {
 			parser.parse("t", config);
 			fail(config + " is invalid. Should throw exception");
@@ -559,6 +559,24 @@ public class StreamConfigParserTests {
 		StreamNode stream2 = ast.getStreamNodes().get(0);
 		assertEquals(
 				"[(ModuleNode:http)(ModuleNode:transform --a1=default)(ModuleNode:transform --b1=def)(ModuleNode:file)]",
+				stream2.stringify());
+	}
+
+	@Test
+	public void nameSpaceTest() {
+		StreamsNode ast = parse("trigger > :job:foo");
+		StreamNode stream2 = ast.getStreamNodes().get(0);
+		assertEquals(
+				"[(ModuleNode:trigger)>(:job:foo)]",
+				stream2.stringify());
+	}
+
+	@Test
+	public void nameSpaceTestWithSpaces() {
+		StreamsNode ast = parse("trigger > :job:    too");
+		StreamNode stream2 = ast.getStreamNodes().get(0);
+		assertEquals(
+				"[(ModuleNode:trigger)>(:job:too)]",
 				stream2.stringify());
 	}
 

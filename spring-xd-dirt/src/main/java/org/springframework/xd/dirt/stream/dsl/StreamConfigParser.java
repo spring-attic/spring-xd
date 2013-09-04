@@ -209,6 +209,12 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 		if (!firstToken.isIdentifier()) {
 			raiseException(firstToken.startpos, XDDSLMessages.EXPECTED_CHANNEL_NAME, toString(firstToken));
 		}
+		if (peekToken(TokenKind.COLON, true)) {
+			Token suffixToken = eatToken(TokenKind.IDENTIFIER);
+			firstToken = new Token(TokenKind.IDENTIFIER, (firstToken.data + ":" + suffixToken.data).toCharArray(),
+					firstToken.startpos, suffixToken.endpos);
+		}
+
 		if (allowQualifiedChannel && peekToken(TokenKind.DOT, true)) {
 			// firstToken is actually a stream name
 			Token channelToken = eatToken(TokenKind.IDENTIFIER);

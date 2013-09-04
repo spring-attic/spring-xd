@@ -9,7 +9,7 @@
 
 	<int:channel id="undeployChannel" />
 
-	<bean id="parser" class="org.springframework.xd.dirt.stream.EnhancedStreamParser">
+	<bean id="parser" class="org.springframework.xd.dirt.stream.XDStreamParser">
 		<constructor-arg ref="streamDefinitionRepository"/>
 		<constructor-arg name="moduleRegistry" ref="moduleRegistry"/>
 	</bean>

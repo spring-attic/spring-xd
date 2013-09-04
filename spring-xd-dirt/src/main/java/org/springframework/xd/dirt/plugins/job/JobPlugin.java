@@ -83,6 +83,8 @@ public class JobPlugin extends AbstractPlugin {
 
 	private static final String NOTIFICATION_CHANNEL_SUFFIX = "-notifications";
 
+	private static final String JOB_CHANNEL_PREFIX = "job:";
+
 	private final static Collection<MediaType> DEFAULT_ACCEPTED_CONTENT_TYPES = Collections.singletonList(MediaType.ALL);
 
 	@Override
@@ -125,7 +127,7 @@ public class JobPlugin extends AbstractPlugin {
 		if (registry != null) {
 			MessageChannel inputChannel = module.getComponent("input", MessageChannel.class);
 			if (inputChannel != null) {
-				registry.createInbound(md.getGroup(), inputChannel,
+				registry.createInbound(JOB_CHANNEL_PREFIX + md.getGroup(), inputChannel,
 						DEFAULT_ACCEPTED_CONTENT_TYPES,
 						true);
 			}
@@ -151,7 +153,7 @@ public class JobPlugin extends AbstractPlugin {
 	public void removeModule(Module module) {
 		ChannelRegistry registry = findRegistry(module);
 		if (registry != null) {
-			registry.deleteInbound(module.getDeploymentMetadata().getGroup());
+			registry.deleteInbound(JOB_CHANNEL_PREFIX + module.getDeploymentMetadata().getGroup());
 			registry.deleteOutbound(module.getDeploymentMetadata().getGroup() + NOTIFICATION_CHANNEL_SUFFIX);
 		}
 	}

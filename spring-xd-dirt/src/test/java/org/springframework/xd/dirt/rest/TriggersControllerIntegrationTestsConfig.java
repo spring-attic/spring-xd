@@ -15,7 +15,7 @@ package org.springframework.xd.dirt.rest;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.xd.dirt.stream.EnhancedStreamParser;
+import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.dirt.stream.TriggerDefinitionRepository;
 import org.springframework.xd.dirt.stream.TriggerDeployer;
 import org.springframework.xd.dirt.stream.XDParser;
@@ -36,7 +36,7 @@ public class TriggersControllerIntegrationTestsConfig extends Dependencies {
 
 	@Bean
 	public TriggerDeployer triggerDeployer() {
-		XDParser parser = new EnhancedStreamParser(
+		XDParser parser = new XDStreamParser(
 				triggerDefinitionRepository(), moduleRegistry());
 
 		return new TriggerDeployer(triggerDefinitionRepository(),

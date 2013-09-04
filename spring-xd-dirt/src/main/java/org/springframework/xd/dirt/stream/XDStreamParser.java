@@ -41,13 +41,13 @@ import org.springframework.xd.module.ModuleType;
  * @author Glenn Renfro
  * @since 1.0
  */
-public class EnhancedStreamParser implements XDParser {
+public class XDStreamParser implements XDParser {
 
 	private CrudRepository<? extends BaseDefinition, String> repository;
 
 	private ModuleRegistry moduleRegistry;
 
-	public EnhancedStreamParser(CrudRepository<? extends BaseDefinition, String> repository,
+	public XDStreamParser(CrudRepository<? extends BaseDefinition, String> repository,
 			ModuleRegistry moduleRegistry) {
 		Assert.notNull(repository, "repository can not be null");
 		Assert.notNull(moduleRegistry, "moduleRegistry can not be null");
@@ -56,7 +56,7 @@ public class EnhancedStreamParser implements XDParser {
 		this.moduleRegistry = moduleRegistry;
 	}
 
-	public EnhancedStreamParser(ModuleRegistry moduleRegistry) {
+	public XDStreamParser(ModuleRegistry moduleRegistry) {
 		// no repository, will not be able to resolve substream/label references
 		Assert.notNull(moduleRegistry, "moduleRegistry can not be null");
 

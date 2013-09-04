@@ -18,7 +18,7 @@ import static org.mockito.Mockito.mock;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.xd.dirt.stream.DeploymentMessageSender;
-import org.springframework.xd.dirt.stream.EnhancedStreamParser;
+import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDeployer;
 import org.springframework.xd.dirt.stream.StreamRepository;
@@ -47,7 +47,7 @@ public class StreamsControllerIntegrationWithRepositoryTestsConfig extends
 
 	@Bean
 	public StreamDeployer streamDeployer() {
-		XDParser parser = new EnhancedStreamParser(
+		XDParser parser = new XDStreamParser(
 				streamDefinitionRepository(), moduleRegistry());
 
 		return new StreamDeployer(streamDefinitionRepository(),

@@ -18,7 +18,7 @@ import static org.mockito.Mockito.mock;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.xd.dirt.module.ModuleRegistry;
-import org.springframework.xd.dirt.stream.EnhancedStreamParser;
+import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobDeployer;
 import org.springframework.xd.dirt.stream.XDParser;
@@ -39,7 +39,7 @@ public class JobsControllerIntegrationTestsConfig extends Dependencies {
 
 	@Bean
 	public JobDeployer jobDeployer() {
-		XDParser parser = new EnhancedStreamParser(
+		XDParser parser = new XDStreamParser(
 				jobDefinitionRepository(), moduleRegistry());
 
 		return new JobDeployer(jobDefinitionRepository(), triggerDefinitionRepository(),

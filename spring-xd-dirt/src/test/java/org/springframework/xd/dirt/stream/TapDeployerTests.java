@@ -68,7 +68,7 @@ public class TapDeployerTests {
 		deployChannel = new DirectChannel();
 		undeployChannel = new PublishSubscribeChannel();
 		sender = new DeploymentMessageSender(deployChannel, undeployChannel);
-		XDParser parser = new EnhancedStreamParser(streamDefinitionRepository, moduleRegistry());
+		XDParser parser = new XDStreamParser(streamDefinitionRepository, moduleRegistry());
 		tapDeployer = new TapDeployer(repository, streamDefinitionRepository, sender, parser, tapInstanceRepository);
 	}
 

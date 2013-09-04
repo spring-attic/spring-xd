@@ -289,7 +289,6 @@ project('spring-xd-dirt') {
 		testCompile ("org.mockito:mockito-core:$mockitoVersion") {
 			exclude group:'org.hamcrest'
 		}
-		testCompile "com.icegreen:greenmail:1.3.1b"
 
 	}
 
@@ -641,6 +640,7 @@ project('spring-xd-shell') {
 		runtime "org.slf4j:jcl-over-slf4j:$slf4jVersion",
 				"org.slf4j:slf4j-log4j12:$slf4jVersion",
 				"log4j:log4j:$log4jVersion"
+		testCompile "com.icegreen:greenmail:1.3.1b"
 
 	}
 

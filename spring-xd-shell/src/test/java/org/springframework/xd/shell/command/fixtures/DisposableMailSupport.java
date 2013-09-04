@@ -55,8 +55,10 @@ public abstract class DisposableMailSupport<T extends DisposableMailSupport<T>> 
 		}
 	}
 
-	protected void ensureNotStarted() {
+	@SuppressWarnings("unchecked")
+	protected T ensureNotStarted() {
 		Assert.state(greenMail == null, "Can't configure once started");
+		return (T) this;
 	}
 
 	@SuppressWarnings("unchecked")

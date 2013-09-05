@@ -79,7 +79,7 @@ configure(javaProjects()) { subproject ->
 		jolokiaVersion = '1.1.2'
 		springVersion = '3.2.2.RELEASE'
 		springBatchVersion = '2.2.0.RELEASE'
-		springIntegrationVersion = '3.0.0.BUILD-SNAPSHOT'
+		springIntegrationVersion = '3.0.0.M3'
 		springSocialVersion = '1.1.0.M3'
 		springShellVersion = '1.1.0.M1'
 		springIntegrationSplunkVersion = '1.0.0.M1'

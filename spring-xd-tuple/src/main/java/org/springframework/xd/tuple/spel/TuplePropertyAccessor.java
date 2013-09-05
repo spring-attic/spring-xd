@@ -32,7 +32,7 @@ public class TuplePropertyAccessor implements PropertyAccessor {
 
 	@Override
 	public Class<?>[] getSpecificTargetClasses() {
-		return new Class[] { Tuple.class };
+		return new Class<?>[] { Tuple.class };
 	}
 
 	@Override

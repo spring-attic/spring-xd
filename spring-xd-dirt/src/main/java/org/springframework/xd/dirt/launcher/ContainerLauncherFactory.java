@@ -33,6 +33,8 @@ public class ContainerLauncherFactory {
 
 	private static final String LAUNCHER_CONFIG_LOCATION = XDContainer.XD_INTERNAL_CONFIG_ROOT + "launcher.xml";
 
+	private static final String CONTAINER_PROFILE = "node";
+
 	/**
 	 * Creates a new instance of ContainerLauncher.
 	 * 
@@ -61,9 +63,8 @@ public class ContainerLauncherFactory {
 
 	private static ApplicationContext createParentContext(ContainerOptions options) {
 		XmlWebApplicationContext parentContext = new XmlWebApplicationContext();
-		parentContext.setConfigLocation("classpath:" + XDContainer.XD_INTERNAL_CONFIG_ROOT + "xd-global-beans.xml"
-				+ XDContainer.XD_CONFIG_DELIMITER + "classpath:" + XDContainer.XD_BATCH_CONFIG_ROOT
-				+ "batch-container.xml");
+		parentContext.getEnvironment().setActiveProfiles(CONTAINER_PROFILE);
+		parentContext.setConfigLocation("classpath:" + XDContainer.XD_INTERNAL_CONFIG_ROOT + "xd-global-beans.xml");
 		OptionUtils.configureRuntime(options, parentContext.getEnvironment());
 		parentContext.refresh();
 		return parentContext;

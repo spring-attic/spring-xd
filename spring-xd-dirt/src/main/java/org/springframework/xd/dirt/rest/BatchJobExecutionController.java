@@ -26,16 +26,19 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.batch.admin.service.JobService;
 import org.springframework.batch.admin.web.JobExecutionInfo;
 import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.launch.NoSuchJobException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.xd.dirt.plugins.job.batch.NoSuchBatchJobException;
 
 
 /**
@@ -46,7 +49,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * 
  */
 @Controller
-@RequestMapping("/batch")
+@RequestMapping("/batch/jobs")
 @ExposesResourceFor(JobExecutionInfo.class)
 public class BatchJobExecutionController {
 
@@ -85,7 +88,7 @@ public class BatchJobExecutionController {
 		this.jobService = jobService;
 	}
 
-	@RequestMapping(value = { "/jobs/executions", "/jobs/executions.*" }, method = RequestMethod.GET)
+	@RequestMapping(value = { "/executions", "/executions.*" }, method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
 	public Collection<JobExecutionInfo> list(@RequestParam(defaultValue = "0") int startJobExecution,
@@ -98,27 +101,24 @@ public class BatchJobExecutionController {
 		return result;
 	}
 
-	// @RequestMapping(value = "/jobs/{jobName}/executions", method = RequestMethod.GET)
-	// @ResponseStatus(HttpStatus.OK)
-	// @ResponseBody
-	// public Collection<JobExecutionInfo> listForJob(@PathVariable String jobName, @ModelAttribute("date") Date date,
-	// Errors errors, @RequestParam(defaultValue = "0") int startJobExecution,
-	// @RequestParam(defaultValue = "20") int pageSize) {
-	//
-	// Collection<JobExecutionInfo> result = new ArrayList<JobExecutionInfo>();
-	// try {
-	//
-	// for (JobExecution jobExecution : jobService.listJobExecutionsForJob(jobName, startJobExecution, pageSize)) {
-	// result.add(new JobExecutionInfo(jobExecution, timeZone));
-	// }
-	// }
-	// catch (NoSuchJobException e) {
-	// errors.reject("no.such.job", new Object[] { jobName }, "There is no such job (" + jobName + ")");
-	// logger.warn("Could not locate Job with name=" + jobName);
-	// }
-	//
-	// return result;
-	//
-	// }
+	@RequestMapping(value = "/{jobName}/executions", method = RequestMethod.GET)
+	@ResponseStatus(HttpStatus.OK)
+	@ResponseBody
+	public Collection<JobExecutionInfo> listForJob(@PathVariable String jobName,
+			@RequestParam(defaultValue = "0") int startJobExecution,
+			@RequestParam(defaultValue = "20") int pageSize) {
+
+		Collection<JobExecutionInfo> result = new ArrayList<JobExecutionInfo>();
+		try {
+			for (JobExecution jobExecution : jobService.listJobExecutionsForJob(jobName, startJobExecution, pageSize)) {
+				result.add(new JobExecutionInfo(jobExecution, timeZone));
+			}
+		}
+		catch (NoSuchJobException e) {
+			logger.warn("Could not locate Job with name=" + jobName);
+			throw new NoSuchBatchJobException(jobName);
+		}
+		return result;
+	}
 
 }

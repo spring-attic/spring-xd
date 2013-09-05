@@ -56,6 +56,8 @@ public class AdminServer implements SmartLifecycle, InitializingBean {
 
 	private volatile String servletName = "xd";
 
+	public static final String ADMIN_PROFILE = "adminServer";
+
 	private final int port;
 
 	private volatile Tomcat tomcat = new Tomcat();
@@ -70,9 +72,8 @@ public class AdminServer implements SmartLifecycle, InitializingBean {
 
 	public AdminServer(AdminOptions adminOptions) {
 		XmlWebApplicationContext parent = new XmlWebApplicationContext();
-		parent.setConfigLocation("classpath:" + XDContainer.XD_INTERNAL_CONFIG_ROOT + "xd-global-beans.xml"
-				+ XDContainer.XD_CONFIG_DELIMITER +
-				"classpath:" + XDContainer.XD_BATCH_CONFIG_ROOT + "batch-admin.xml");
+		parent.getEnvironment().setActiveProfiles(ADMIN_PROFILE);
+		parent.setConfigLocation("classpath:" + XDContainer.XD_INTERNAL_CONFIG_ROOT + "xd-global-beans.xml");
 
 		this.webApplicationContext = new XmlWebApplicationContext();
 		this.webApplicationContext.setConfigLocation("classpath:" + XDContainer.XD_INTERNAL_CONFIG_ROOT

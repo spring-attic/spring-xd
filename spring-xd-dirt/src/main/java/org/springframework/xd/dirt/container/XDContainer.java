@@ -68,8 +68,6 @@ public class XDContainer implements SmartLifecycle, ApplicationContextAware {
 
 	private static final String LOG4J_FILE_APPENDER = "file";
 
-	public static final String XD_CONFIG_DELIMITER = ",";
-
 	private volatile AbstractApplicationContext context;
 
 	private final String id;

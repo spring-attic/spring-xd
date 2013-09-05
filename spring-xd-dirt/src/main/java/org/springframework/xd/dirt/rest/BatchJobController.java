@@ -22,13 +22,11 @@ import java.util.List;
 
 import org.springframework.batch.admin.service.JobService;
 import org.springframework.batch.admin.web.JobInfo;
-import org.springframework.batch.admin.web.TableUtils;
 import org.springframework.batch.core.launch.NoSuchJobException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -44,7 +42,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * 
  */
 @Controller
-@RequestMapping("/batch")
+@RequestMapping("/batch/jobs")
 @ExposesResourceFor(JobInfo.class)
 public class BatchJobController {
 
@@ -56,13 +54,11 @@ public class BatchJobController {
 		this.jobService = jobService;
 	}
 
-	@RequestMapping(value = "/jobs", method = RequestMethod.GET)
+	@RequestMapping(value = "", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public Collection<JobInfo> jobs(ModelMap model, @RequestParam(defaultValue = "0") int startJob,
+	public Collection<JobInfo> jobs(@RequestParam(defaultValue = "0") int startJob,
 			@RequestParam(defaultValue = "20") int pageSize) {
-		int total = jobService.countJobs();
-		TableUtils.addPagination(model, total, startJob, pageSize, "Job");
 		Collection<String> names = jobService.listJobs(startJob, pageSize);
 		List<JobInfo> jobs = new ArrayList<JobInfo>();
 		for (String name : names) {
@@ -79,4 +75,35 @@ public class BatchJobController {
 		}
 		return jobs;
 	}
+
+	// TODO: Currently the job name has "." separator which doesn't work as path variable
+	// @RequestMapping(value = "/{jobName}", method = RequestMethod.GET)
+	// @ResponseBody
+	// @ResponseStatus(HttpStatus.OK)
+	// public ModelMap details(ModelMap model, @PathVariable String jobName,
+	// @RequestParam(defaultValue = "0") int startJobInstance, @RequestParam(defaultValue = "20") int pageSize) {
+	//
+	// boolean launchable = jobService.isLaunchable(jobName);
+	//
+	// try {
+	// Collection<JobInstance> result = jobService.listJobInstances(jobName, startJobInstance, pageSize);
+	// Collection<JobInstanceInfo> jobInstances = new ArrayList<JobInstanceInfo>();
+	// model.addAttribute("jobParameters", "");
+	// for (JobInstance jobInstance : result) {
+	// jobInstances.add(new JobInstanceInfo(jobInstance, jobService.getJobExecutionsForJobInstance(jobName,
+	// jobInstance.getId())));
+	// }
+	//
+	// model.addAttribute("jobInstances", jobInstances);
+	// int count = jobService.countJobExecutionsForJob(jobName);
+	// model.addAttribute("jobInfo", new JobInfo(jobName, count, launchable, jobService.isIncrementable(jobName)));
+	//
+	// }
+	// catch (NoSuchJobException e) {
+	// throw new NoSuchBatchJobException(jobName);
+	// }
+	//
+	// return model;
+	//
+	// }
 }

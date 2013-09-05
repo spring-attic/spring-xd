@@ -41,7 +41,7 @@ public class SpelPropertyAccessorIntegrationTests extends AbstractStreamIntegrat
 	@Test
 	public void testTuplePropertyAccessor() throws Exception {
 		logger.info("Creating stream with temp File 'tupletest' as sink");
-		FileSink sink = newFileSink();
+		FileSink sink = newFileSink().binary(true);
 		HttpSource source = newHttpSource();
 
 		stream().create(
@@ -60,7 +60,7 @@ public class SpelPropertyAccessorIntegrationTests extends AbstractStreamIntegrat
 	 */
 	@Test
 	public void testJsonPropertyAccessor() throws Exception {
-		FileSink sink = newFileSink();
+		FileSink sink = newFileSink().binary(true);
 		HttpSource source = newHttpSource();
 
 		stream().create(
@@ -71,9 +71,7 @@ public class SpelPropertyAccessorIntegrationTests extends AbstractStreamIntegrat
 		source.ensureReady().postData("{\"foo\":\"bar\"}");
 
 		final String result = sink.getContents();
-		// Note that the result of extraction is a Jackson TextNode
-		// whose toString() representation includes quotes.
-		assertEquals("\"bar\"\n", result);
+		assertEquals("bar", result);
 
 	}
 

@@ -53,6 +53,10 @@ public class MBeanExportingPlugin implements Plugin {
 	}
 
 	@Override
+	public void beforeShutdown(Module module) {
+	}
+
+	@Override
 	public void removeModule(Module module) {
 	}
 

@@ -178,6 +178,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 							+ index);
 				}
 				// TODO: add beforeShutdown and/or afterShutdown callbacks?
+				this.beforeShutdown(module);
 				module.stop();
 				this.removeModule(module);
 				this.fireModuleUndeployedEvent(module);
@@ -216,6 +217,14 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		if (this.plugins != null) {
 			for (Plugin plugin : this.plugins.values()) {
 				plugin.removeModule(module);
+			}
+		}
+	}
+
+	private void beforeShutdown(Module module) {
+		if (this.plugins != null) {
+			for (Plugin plugin : this.plugins.values()) {
+				plugin.beforeShutdown(module);
 			}
 		}
 	}

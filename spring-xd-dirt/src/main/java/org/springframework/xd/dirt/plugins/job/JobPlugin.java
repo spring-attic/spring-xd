@@ -123,6 +123,10 @@ public class JobPlugin extends AbstractPlugin {
 	}
 
 	@Override
+	public void beforeShutdown(Module module) {
+	}
+
+	@Override
 	public void removeModule(Module module) {
 		ChannelRegistry registry = findRegistry(module);
 		if (registry != null) {

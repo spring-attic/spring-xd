@@ -15,20 +15,26 @@ package org.springframework.integration.x.channel.registry;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.context.Lifecycle;
 import org.springframework.core.convert.ConversionException;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.http.MediaType;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.x.json.TypedJsonMapper;
+import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -59,6 +65,8 @@ public abstract class ChannelRegistrySupport implements ChannelRegistry, BeanCla
 
 	protected static final String ORIGINAL_CONTENT_TYPE_HEADER = "originalContentType";
 
+	private final List<Bridge> bridges = Collections.synchronizedList(new ArrayList<Bridge>());
+
 	public void setConversionService(ConversionService conversionService) {
 		this.conversionService = conversionService;
 	}
@@ -66,6 +74,54 @@ public abstract class ChannelRegistrySupport implements ChannelRegistry, BeanCla
 	@Override
 	public void setBeanClassLoader(ClassLoader classLoader) {
 		this.beanClassloader = classLoader;
+	}
+
+	protected void addBridge(Bridge bridge) {
+		this.bridges.add(bridge);
+	}
+
+	protected void deleteBridges(String name) {
+		Assert.hasText(name, "a valid name is required to remove a bridge");
+		synchronized (this.bridges) {
+			Iterator<Bridge> iterator = this.bridges.iterator();
+			while (iterator.hasNext()) {
+				Bridge endpoint = iterator.next();
+				if (endpoint.getEndpoint().getComponentName().equals(name)) {
+					endpoint.stop();
+					iterator.remove();
+				}
+			}
+		}
+	}
+
+	protected void deleteBridge(String name, MessageChannel channel) {
+		Assert.hasText(name, "a valid name is required to remove a bridge");
+		Assert.notNull(channel, "A valid channel is required to remove a bridge");
+		synchronized (this.bridges) {
+			Iterator<Bridge> iterator = this.bridges.iterator();
+			while (iterator.hasNext()) {
+				Bridge channelEndpoint = iterator.next();
+				if (channelEndpoint.getChannel().equals(channel) &&
+						channelEndpoint.getEndpoint().getComponentName().equals(name)) {
+					channelEndpoint.stop();
+					iterator.remove();
+					return;
+				}
+			}
+		}
+	}
+
+	protected void stopBridges() {
+		for (Lifecycle bean : this.bridges) {
+			try {
+				bean.stop();
+			}
+			catch (Exception e) {
+				if (logger.isWarnEnabled()) {
+					logger.warn("failed to stop adapter", e);
+				}
+			}
+		}
 	}
 
 	protected final Message<?> transformOutboundIfNecessary(Message<?> message, MediaType to) {

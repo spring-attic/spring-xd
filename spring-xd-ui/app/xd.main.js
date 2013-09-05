@@ -34,6 +34,7 @@ requirejs.config({
 		'bootstrap-collapse': '../lib/bootstrap/js/bootstrap-collapse',
 		'cubism': '../lib/cubism/cubism.v1',
 		'd3': '../lib/d3/d3',
+		'tipsy': '../lib/tipsy/jquery.tipsy',
 		backbone: '../lib/backbone-amd/backbone'
 	},
     shim: {
@@ -41,6 +42,7 @@ requirejs.config({
         'bootstrap-alert': ['jquery'],
         'bootstrap-collapse': ['jquery'],
         'bootstrap-tab': ['jquery'],
+        'tipsy': ['jquery'],
         'cubism': ['d3']
     }
 });
@@ -48,5 +50,5 @@ requirejs.config({
 require(['backbone', 'xd.router', 'xd.viewer',  'xd.model', 'd3', 'cubism', 'bootstrap-typeahead', 'bootstrap-tab', 'bootstrap-alert', 'bootstrap-collapse'],
 function(Backbone, router, viewer, model) {
     new router.xdRouter(viewer);
-    Backbone.history.start();
+    Backbone.history.start({pushState: true, root: "/admin-ui/"});
 });

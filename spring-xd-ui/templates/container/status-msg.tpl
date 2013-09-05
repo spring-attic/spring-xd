@@ -6,5 +6,5 @@
 <% } %>
 <div class="alert <%= alert_class %>">
   <button type="button" class="close" data-dismiss="alert">&times;</button>
-  <strong><%= status %> </strong><%= message %>
+  <strong><%= status %> </strong><%= message %> 
 </div>

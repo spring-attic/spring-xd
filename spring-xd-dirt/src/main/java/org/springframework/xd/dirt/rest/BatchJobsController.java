@@ -37,7 +37,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.dirt.plugins.job.batch.NoSuchBatchJobException;
 
-
 /**
  * Controller for batch jobs.
  * 
@@ -75,11 +74,11 @@ public class BatchJobsController {
 			}
 			boolean launchable = jobService.isLaunchable(name);
 			boolean incrementable = jobService.isIncrementable(name);
-			jobs.add(new JobInfo(name, count, null, launchable, incrementable));
+			String simpleName = name.substring(0, name.length() - ".job".length());
+			jobs.add(new JobInfo(simpleName, count, null, launchable, incrementable));
 		}
 		return jobs;
 	}
-
 
 	@RequestMapping(value = "/{jobName}/instances", method = RequestMethod.GET)
 	@ResponseBody
@@ -87,8 +86,10 @@ public class BatchJobsController {
 	public Collection<JobInstance> jobInstances(@PathVariable String jobName,
 			@RequestParam(defaultValue = "0") int startJobInstance, @RequestParam(defaultValue = "20") int pageSize) {
 		Collection<JobInstance> jobInstances = new ArrayList<JobInstance>();
+		String fullName = jobName + ".job";
+
 		try {
-			jobInstances = jobService.listJobInstances(jobName, startJobInstance, pageSize);
+			jobInstances = jobService.listJobInstances(fullName, startJobInstance, pageSize);
 			// TODO: Need to add the jobExecutions for each jobInstance
 		}
 		catch (NoSuchJobException e) {
@@ -97,15 +98,16 @@ public class BatchJobsController {
 		return jobInstances;
 	}
 
-	@RequestMapping(value = "/{jobName}/info", method = RequestMethod.GET)
+	@RequestMapping(value = "/{jobName}", method = RequestMethod.GET)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
 	public JobInfo jobinfo(ModelMap model, @PathVariable String jobName) {
-		boolean launchable = jobService.isLaunchable(jobName);
+		String fullName = jobName + ".job";
+		boolean launchable = jobService.isLaunchable(fullName);
 		JobInfo jobInfo;
 		try {
-			int count = jobService.countJobExecutionsForJob(jobName);
-			jobInfo = new JobInfo(jobName, count, launchable, jobService.isIncrementable(jobName));
+			int count = jobService.countJobExecutionsForJob(fullName);
+			jobInfo = new JobInfo(jobName, count, launchable, jobService.isIncrementable(fullName));
 		}
 		catch (NoSuchJobException e) {
 			throw new NoSuchBatchJobException(jobName);

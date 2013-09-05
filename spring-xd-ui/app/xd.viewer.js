@@ -38,11 +38,11 @@ function(utils, CreateStream, Dashboard, Navbar, ScheduleJob, TapStream, Batch) 
             });
 
             views.scheduleJob = new ScheduleJob({
-                el: '#xd-schedule-job'
+                el: '#xd-create-job'
             });
 
             views.tapStream = new TapStream({
-                el: '#xd-tap-stream'
+                el: '#xd-create-tap'
             });
 
             views.batchList = new Batch({

@@ -140,8 +140,9 @@ function(_, when, Backbone, utils, conf, model, router, gauge, strings) {
             var paginationHtml = _.template(utils.getTemplate(conf.templates.pagination), templateVars);
             this.$('#' + kind + '-pagination').html(paginationHtml);
         },
-
-        toggleDetails: function(event) {
+        
+        toggleDetails: function(event) {},
+        toggleDetailsBAK: function(event) {
             // TODO brittle
             var name = $(event.target).parents('tr').attr('id');
             var show = !$(event.target).parents('table').find('#' + name + '_details').hasClass('in');

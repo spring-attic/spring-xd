@@ -46,7 +46,7 @@ function(Backbone, when, utils, strings, router, model) {
             var jobName = this.$('#job-name').val().trim();
             var jobDefinition = this.$('#job-definition').val().trim();
             var scheduleJob = router.createJob(jobName, jobDefinition, function() {
-                router.refresh('jobs');
+//                router.refresh('jobs');
                 utils.showSuccessMsg(strings.scheduleJobSuccess);
             });
             when(scheduleJob).then(this.resetScheduleJobForm());

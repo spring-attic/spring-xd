@@ -108,19 +108,24 @@ function(Backbone, rest, entity, mime, hateoas, errorcode) {
 
     // the query kinds we care about for now
     // TODO this can be done better
-    model.artifactKinds = ['streams', 'taps', /*'jobs',*/ 'triggers', 'richgauges', 'gauges', 'field-value-counters', 'counters', 'aggregate-counters'];
-    model.artifactUrls = ['streams', 'taps', /*'jobs',*/ 'triggers', 'metrics/richgauges', 'metrics/gauges', 'metrics/field-value-counters', 'metrics/counters', 'metrics/aggregate-counters'];
-    model.readableNames = [
-        { kind: 'streams', name: 'Streams' },
-        { kind: 'taps', name: 'Taps' },
-//        { kind: 'jobs', name: 'Jobs' },
-        { kind: 'triggers', name: 'Triggers' },
-        { kind: 'counters', name: 'Counters' },
-        { kind: 'field-value-counters', name: 'Field Value Counters' },
-        { kind: 'aggregate-counters', name: 'Aggregate Counters' },
-        { kind: 'gauges', name: 'Gauges' },
-        { kind: 'richgauges', name: 'Rich Gauges' }
-    ];
+    // this part of ui is disabled
+    model.artifactKinds = model.artifactUrls = ['jobs'];
+    model.readableNames = [{ kind: 'jobs', name: 'Jobs' }];
+    
+//     model.artifactKinds = ['streams', 'taps', 'jobs', 'triggers', 'richgauges', 'gauges', 'field-value-counters', 'counters', 'aggregate-counters'];
+//     model.artifactUrls = ['streams', 'taps', 'jobs', 'triggers', 'metrics/richgauges', 'metrics/gauges', 'metrics/field-value-counters', 'metrics/counters', 'metrics/aggregate-counters'];
+//     model.readableNames = [
+//         { kind: 'streams', name: 'Streams' },
+//         { kind: 'taps', name: 'Taps' },
+//         { kind: 'jobs', name: 'Jobs' },
+//         { kind: 'triggers', name: 'Triggers' },
+//         { kind: 'counters', name: 'Counters' },
+//         { kind: 'field-value-counters', name: 'Field Value Counters' },
+//         { kind: 'aggregate-counters', name: 'Aggregate Counters' },
+//         { kind: 'gauges', name: 'Gauges' },
+//         { kind: 'richgauges', name: 'Rich Gauges' }
+//     ];
+
 
     model.artifactKinds.forEach(function(kind) {
         model.addQuery(kind);
@@ -145,20 +150,43 @@ function(Backbone, rest, entity, mime, hateoas, errorcode) {
 
     // stuff for batch
     var BatchJob = Backbone.Model.extend({
-        urlRoot: URL_ROOT + 'jobs',
+        urlRoot: URL_ROOT + 'batch/jobs',
         url: function() {
             return this.urlRoot + '/' + this.id + '.json';
         },
         idAttribute: 'name',
         launch: function(parameters) {
-            return client({
-                path: this.url(),
+            var streamName = 'jobLaunchTrigger' + new Date();
+            var streamDefinition = 'trigger > :job:' + this.id;
+            // for now must create a stream that triggers job and then delete stream
+           var createPromise = client({
+                path: URL_ROOT + 'streams',
+                params: { name : streamName, definition: streamDefinition },
                 method: 'POST',
                 headers: ACCEPT_HEADER
-            }).then(function() {
-                // get the latest execution count for the job
-                model.batchJobs.fetch({merge:true, update:true });
             });
+            
+            var deletePromise = createPromise.then(function() {
+                return client({
+                    path: URL_ROOT + 'streams/' + streamName,
+                    method: 'DELETE',
+                    headers: ACCEPT_HEADER
+                });
+
+            });
+            return deletePromise.then(function() {
+                // get the latest execution count for the job
+                return model.batchJobs.fetch({merge:true, update:true });
+            });
+                
+//            return client({
+//                path: this.url(),
+//                method: 'POST',
+//                headers: ACCEPT_HEADER
+//            }).then(function() {
+//                // get the latest execution count for the job
+//                model.batchJobs.fetch({merge:true, update:true });
+//            });
         },
 
         parse: function(data) {
@@ -173,61 +201,83 @@ function(Backbone, rest, entity, mime, hateoas, errorcode) {
                 data.jobInstances = new JobInstances(Object.keys(data.jobInstances).map(function(key) {
                     var instance = new JobInstance(data.jobInstances[key]);
                     instance.id = key;
+                    instance.set('name', this.id);
                     return instance;
-                }));
+                }, this));
+            } else {
+                data.jobInstances = new JobInstances();
+                data.jobInstances.jobName = this.id;
             }
             return data;
         }
     });
     var BatchJobs = Backbone.Collection.extend({
         model: BatchJob,
-        url: URL_ROOT + 'jobs.json',
+        url: URL_ROOT + 'batch/jobs.json',
 
         parse: function(data) {
-            return Object.keys(data.jobs.registrations).map(function(key) {
-                return data.jobs.registrations[key];
-            });
-        }
+            return data;
+        },
+        comparator: 'name'
     });
 
     var Execution = Backbone.Model.extend({
-        urlRoot: URL_ROOT + 'jobs/executions',
+        urlRoot: URL_ROOT + 'batch/jobs/executions',
         url: function() {
             return this.urlRoot + '/' + this.id + '.json';
         },
         idAttribute: 'id',
         parse: function(response) {
             return response.jobExecution;
+        },
+        transform: function() {
+            return {
+                millis: Math.floor(Math.random() * 1000), // randomized data for now this.get('duration'),
+                name: this.id,
+                status: this.get('status')
+            };
         }
+
     });
-    var Executions = Backbone.Model.extend({
+    var Executions = Backbone.Collection.extend({
         model: Execution,
-        urlRoot: URL_ROOT + 'jobs/executions/'
+        urlRoot: URL_ROOT + 'batch/jobs/executions/'
     });
 
     var JobInstance = Backbone.Model.extend({
-        urlRoot: URL_ROOT + 'jobs/',
+        urlRoot: URL_ROOT + 'batch/jobs/',
         url: function() {
-            return this.urlRoot + '/' + this.get('name') + '/' + this.id + '.json';
+            return this.urlRoot + this.get('name') + '/' + this.id + '.json';
         },
         idAttribute: 'id',
-        parse: function(response) {
-            var instance = response.jobInstance;
+        parse: function(instance) {
             return {
                 name: instance.jobName,
                 id: instance.id,
+                version: instance.version,
                 nameId: instance.name+ '/' + instance.id,
                 jobParameters: instance.jobParameters,
-                jobExecutions: new Executions(Object.keys(instance.jobExecutions).map(function(key) {
-                    var execution = new Execution(instance.jobExecutions[key]);
-                    execution.id = key;
-                    return execution;
-                }))
+                jobExecutions: instance.jobExecutions ?
+                    new Executions(Object.keys(instance.jobExecutions).map(function(key) {
+                        var execution = new Execution(instance.jobExecutions[key]);
+                        execution.id = key;
+                        return execution;
+                    })) :
+                    new Executions()
             };
+        },
+        transformExecutions: function() {
+            return this.get('jobExecutions').map(function(execution) {
+                return execution.transform();
+            });
         }
     });
     var JobInstances = Backbone.Collection.extend({
-        model: JobInstance
+        model: JobInstance,
+        urlRoot: URL_ROOT + 'batch/jobs/',
+        url: function() {
+            return this.urlRoot + this.jobName + '/instances.json';
+        }
     });
 
 

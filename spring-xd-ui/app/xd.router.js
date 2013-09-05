@@ -21,11 +21,12 @@
 
 
 /*jshint browser:true */
-'use strict';
 
 define(['underscore', 'jquery', 'when', 'rest', 'rest/interceptor/entity', 'rest/interceptor/mime', 'rest/interceptor/hateoas', 'rest/interceptor/errorcode', 'backbone', 'xd.conf', 'xd.utils', 'xd.strings',
     'xd.model'],
 function(_, $, when, rest, entity, mime, hateoas, errorcode, Backbone, conf, utils, strings, model) {
+    'use strict';
+
     var resourceLinks = {}, views;
 
     // set up the rest client
@@ -38,6 +39,13 @@ function(_, $, when, rest, entity, mime, hateoas, errorcode, Backbone, conf, uti
      * Backbone Router object for xd app
      */
     ajax.xdRouter = Backbone.Router.extend({
+
+        routes: {
+            "dashboard/:artifact/:search":         "showDashboardPage",
+            "createStream":     "showCreateStream",
+            "createTap":     "showCreateTap",
+            "createJob":     "showCreateJob"
+        },
 
         initialize: function(viewer) {
             this.setUp(viewer);
@@ -141,28 +149,6 @@ function(_, $, when, rest, entity, mime, hateoas, errorcode, Backbone, conf, uti
             views.tapStream.tapStreamForm();
             views.scheduleJob.scheduleJobForm();
             views.done();
-
-            // TODO unused
-            ajax.generateHttpMsg = function(url, payload, hideMessage) {
-                return client({
-                    path: url,
-                    method: 'POST',
-                    headers: {
-                        contentType: 'text/json',
-                        'Accept': 'application/json'
-                    },
-                    entity: payload
-                }).then(function() {
-                    if (!hideMessage) {
-                        utils.showSuccessMsg(strings.httpMsgGenerationSuccess);
-                    }
-                },
-                function() {
-                    if (!hideMessage) {
-                        utils.showErrorMsg(strings.httpMsgGenerationSuccess);
-                    }
-                });
-            };
         },
 
         refreshStatus: function(kind) {

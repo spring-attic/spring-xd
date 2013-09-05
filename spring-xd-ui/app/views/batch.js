@@ -33,10 +33,33 @@ function(_, Backbone, utils, conf, model, BatchDetail) {
         return model.batchJobs.get(name);
     }
 
+    /**
+     * Check if string 'label' contains all the characters (in the right order
+     * but not necessarily adjacent) from charseq.
+     *
+     * @param {String} label the text to check
+     * @param {String} charseq the sequence of chars to check for
+     * @type {Boolean} true if matches
+     */
+    function matches(label, charseq) {
+        label = label.toLowerCase();
+        var cpos = 0;
+        for (var i=0;i<label.length;i++) {
+            if (label.charAt(i)===charseq[cpos]) {
+                cpos++;
+            }
+            if (cpos===charseq.length) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     var Batch = Backbone.View.extend({
         events: {
             "click button.detailAction": "showDetails",
-            "click button.launchAction": "launch"
+            "click button.launchAction": "launch",
+            "keyup input#job_filter": "filterJobs"
         },
 
         initialize: function() {
@@ -50,17 +73,18 @@ function(_, Backbone, utils, conf, model, BatchDetail) {
             Object.keys(expanded).forEach(function(key) {
                 expanded[key].remove();
             }, this);
-
             this.$el.html(_.template(utils.getTemplate(conf.templates.batchList), { jobs :model.batchJobs.models }));
-
 
             // now add the expanded nodes back
             Object.keys(expanded).forEach(function(key) {
                 var detailsId = '#' + key + '_details';
                 var detailsElt = this.$el.find(detailsId);
                 if (detailsElt.length > 0) {
-                    detailsElt.replaceWith(expanded[key].$el);
-                    detailsElt.collapse('show');
+                    var detailsView = expanded[key];
+                    detailsElt.replaceWith(detailsView.$el);
+                    detailsView.$detailsRow = this.$('#' + key + '_detailsRow');
+                    detailsView.$detailsRow.show();
+                    detailsView.delegateEvents(detailsView.events);
                 } else {
                     // job not here any more
                     delete expanded[key];
@@ -76,16 +100,21 @@ function(_, Backbone, utils, conf, model, BatchDetail) {
                 var detailsView = expanded[job.id];
                 if (detailsView) {
                     // remove from view
-                    detailsView.$el.empty();
+                    detailsView.destroy();
                     delete expanded[job.id];
                 } else {
                     this.stopListening(model.batchJobs, 'change');
                     job.fetch().then(function() {
-                        var detailsView = new BatchDetail({job: job });
-                        detailsView.setElement('#' + job.id + '_details');
-                        detailsView.render();
-                        expanded[job.id] = detailsView;
-                        this.listenTo(model.batchJobs, 'change', this.render);
+                        job.get('jobInstances').fetch().then(function() {
+                            var detailsView = new BatchDetail({job: job });
+                            detailsView.setElement('#' + job.id + '_details');
+                            detailsView.$detailsRow = this.$('#' + job.id + '_detailsRow');
+                            detailsView.render();
+                            // don't use bootstrap collapse.  See stackoverflow.com/questions/18495653/how-do-i-collapse-a-table-row-in-bootstrap/18496059#18496059
+                            detailsView.$detailsRow.show();
+                            expanded[job.id] = detailsView;
+                            this.listenTo(model.batchJobs, 'change', this.render);
+                        }.bind(this));
                     }.bind(this));
                 }
             }
@@ -104,6 +133,31 @@ function(_, Backbone, utils, conf, model, BatchDetail) {
                     }
                 });
             }
+        },
+
+        filterJobs : function(event) {
+            var value = event.currentTarget.value;
+            // get all rows
+            var rows = this.$('table#batch > tbody > tr');
+            rows.each(function (i) {
+                var row = $(rows[i]), id = row.attr('id');
+                var isDetails;
+                if (id) { // avoid the header row
+                    if (id.indexOf('_detailsRow') === id.length - '_detailsRow'.length) {
+                        id = id.substr(0, id.length - '_detailsRow'.length);
+                        isDetails = true;
+                    }
+                    if (matches(id, value)) {
+                        if (!isDetails || expanded[id]) {
+                            // never show details...this is wrong, but OK for now
+                            // we are forgetting where details used to be shown
+                            row.show();
+                        }
+                    } else {
+                        row.hide();
+                    }
+                }
+            });
         }
     });
     return Batch;

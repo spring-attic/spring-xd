@@ -33,7 +33,6 @@ function(_, Backbone, when, utils, conf, router, strings) {
             'click #create-msgstream-form #custom-options': 'customStreamForm',
             'click #create-msgstream-form #default-options': 'defaultStreamForm',
             'click #create-default-stream': 'createDefaultStream',
-            'click #create-custom-stream': 'createCustomStream',
             'change #source-selector': 'selectSourceParams',
             'change #processor-selector': 'selectProcessorParams',
             'change #sink-selector': 'selectSinkParams'
@@ -84,30 +83,6 @@ function(_, Backbone, when, utils, conf, router, strings) {
                 utils.showSuccessMsg(strings.scheduleJobSuccess);
             });
             when(createStream).then(this.resetDefaultStreamForm());
-        },
-
-        // TODO disable? can't get module info
-        createCustomStream: function(event) {
-            event.preventDefault();
-            // Get stream name
-            var streamName = this.$('#stream-name').val().trim();
-            var source_name = this.$('#source-selector').val();
-            var processor_name = this.$('#processor-selector').val();
-            var sink_name = this.$('#sink-selector').val();
-            var source_parameters = utils.getModuleParameters("source", source_name);
-            var processor_parameters = utils.getModuleParameters("processor", processor_name);
-            var sink_parameters = utils.getModuleParameters("sink", sink_name);
-            var stream_source_id = '#stream-source',
-                stream_processor_id = '#stream-processor',
-                stream_sink_id = '#stream-sink';
-            var stream = source_name + this.getModuleProps(stream_source_id, source_parameters);
-            // If processor is not selected
-            if (processor_name !== "") {
-                stream += " | " + processor_name + this.getModuleProps(stream_processor_id, processor_parameters);
-            }
-            stream += " | " + sink_name + this.getModuleProps(stream_sink_id, sink_parameters);
-            var createStreamPromise = router.createStream(streamName, stream, utils.showSuccessMsg(strings.customStreamCreationSuccess));
-            when(createStreamPromise).then(this.resetCustomStreamForm());
         },
 
         // Util to get module properties for the selected module type

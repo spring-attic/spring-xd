@@ -49,12 +49,12 @@
 	font: 14px/20px 'DaysRegular', Arial, sans-serif;
 }
 
-.form-horizontal .module-input .add-on {
+.form-horizontal .module-input .add-on { 
 	padding: 4px 10px;
 	margin-left: 32px;
 }
 
-.form-horizontal .module-params .add-on {
+.form-horizontal .module-params .add-on { 
 	padding: 4px 2px;
 	margin-left: 1px;
 }
@@ -104,6 +104,10 @@ a:hover {
 	color: black;
 }
 
+.jobDetailsRow {
+    display: none;
+}
+
 #streamTitle {
 	font-size: 30px;
 	padding: 30px 18px 5px;
@@ -123,11 +127,15 @@ div #xd-content{
 }
 
 .artifact_analytics {
-    position: relative;
+    position: relative;   
 }
 
+.jobInstance {
+    cursor:pointer;
+    cursor:hand;
+}
 
-/*
+/* 
 * Font styles
 */
 
@@ -149,9 +157,9 @@ div #xd-content{
     font-family: "ComfortaaThin";
     font-style: normal;
     font-weight: normal;
-    src: url("../fonts/Comfortaa_Thin-webfont.eot?#iefix") format("embedded-opentype"),
-    url("../fonts/Comfortaa_Thin-webfont.woff") format("woff"),
-    url("../fonts/Comfortaa_Thin-webfont.ttf") format("truetype"),
+    src: url("../fonts/Comfortaa_Thin-webfont.eot?#iefix") format("embedded-opentype"), 
+    url("../fonts/Comfortaa_Thin-webfont.woff") format("woff"), 
+    url("../fonts/Comfortaa_Thin-webfont.ttf") format("truetype"), 
     url("../fonts/Comfortaa_Thin-webfont.svg#ComfortaaThin") format("svg");
 }
 
@@ -159,17 +167,18 @@ div #xd-content{
     font-family: "ComfortaaRegular";
     font-style: normal;
     font-weight: normal;
-    src: url("../fonts/Comfortaa_Regular-webfont.eot?#iefix") format("embedded-opentype"),
+    src: url("../fonts/Comfortaa_Regular-webfont.eot?#iefix") format("embedded-opentype"), 
     url("../fonts/Comfortaa_Regular-webfont.woff") format("woff"),
-    url("../fonts/Comfortaa_Regular-webfont.ttf") format("truetype"),
+    url("../fonts/Comfortaa_Regular-webfont.ttf") format("truetype"), 
     url("../fonts/Comfortaa_Regular-webfont.svg#ComfortaaRegular") format("svg");
 }
 @font-face {
     font-family: "ComfortaaBold";
     font-style: normal;
     font-weight: bold;
-    src: url("../fonts/Comfortaa_Bold-webfont.eot?#iefix") format("embedded-opentype"),
-    url("../fonts/Comfortaa_Bold-webfont.woff") format("woff"),
-    url("../fonts/Comfortaa_Bold-webfont.ttf") format("truetype"),
+    src: url("../fonts/Comfortaa_Bold-webfont.eot?#iefix") format("embedded-opentype"), 
+    url("../fonts/Comfortaa_Bold-webfont.woff") format("woff"), 
+    url("../fonts/Comfortaa_Bold-webfont.ttf") format("truetype"), 
     url("../fonts/Comfortaa_Bold-webfont.svg#ComfortaaBold") format("svg");
 }
+

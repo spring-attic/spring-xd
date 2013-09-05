@@ -11,7 +11,8 @@
     "rest": "6e099b1b47abcee85583f79a4aeef1212e3ecc1f",
     "when": "2.2.1",
     "cubism": "1.2.2",
-    "d3": "3.2.8"
+    "d3": "3.2.8",
+    "tipsy": "1.7" // https://github.com/ajah/tipsy/tree/5d476399bf6cfa958b58c79aaeb839716f64e0a1
   },
   "ignore": [
     ".jshintrc",

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.plugins.job;
+package org.springframework.xd.dirt.plugins.job.batch;
 
 import org.springframework.xd.dirt.core.XDRuntimeException;
 
@@ -29,8 +29,7 @@ public class BatchJobAlreadyExistsException extends XDRuntimeException {
 	/**
 	 * @param message exception message
 	 */
-	public BatchJobAlreadyExistsException(String message) {
-		super(message);
+	public BatchJobAlreadyExistsException(String name) {
+		super("Batch Job with the name " + name + " already exists");
 	}
-
 }

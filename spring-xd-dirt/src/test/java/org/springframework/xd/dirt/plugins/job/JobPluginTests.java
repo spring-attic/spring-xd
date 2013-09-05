@@ -34,6 +34,7 @@ import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.xd.dirt.server.AdminServer;
 import org.springframework.xd.dirt.server.options.XDPropertyKeys;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.Module;
@@ -67,8 +68,8 @@ public class JobPluginTests {
 	public void setUp() throws Exception {
 
 		plugin = new JobPlugin();
-		sharedContext = new ClassPathXmlApplicationContext(
-				"classpath:/META-INF/spring-xd/batch/batch.xml");
+		sharedContext = new ClassPathXmlApplicationContext("classpath:/META-INF/spring-xd/batch/batch.xml");
+		sharedContext.getEnvironment().setActiveProfiles(AdminServer.ADMIN_PROFILE);
 		plugin.preProcessSharedContext(sharedContext);
 
 	}

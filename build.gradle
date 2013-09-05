@@ -36,7 +36,7 @@ allprojects {
 	repositories {
 		mavenCentral()
 		maven { url 'http://repo.springsource.org/libs-milestone' }
-		maven { url 'http://repo.springsource.org/libs-snapshot' }
+ 		maven { url 'http://repo.springsource.org/libs-snapshot' }
 		maven { url 'http://repo.springsource.org/plugins-release' }
 		maven { url 'http://repo.springsource.org/plugins-snapshot' }
 	}
@@ -79,6 +79,7 @@ configure(javaProjects()) { subproject ->
 		jolokiaVersion = '1.1.2'
 		springVersion = '3.2.2.RELEASE'
 		springBatchVersion = '2.2.0.RELEASE'
+		springBatchAdminMgrVersion = '1.3.0.BUILD-SNAPSHOT'
 		springIntegrationVersion = '3.0.0.BUILD-SNAPSHOT'
 		springSocialVersion = '1.1.0.M3'
 		springShellVersion = '1.1.0.M1'
@@ -257,6 +258,7 @@ project('spring-xd-dirt') {
 				"org.springframework.integration:spring-integration-redis:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-syslog:$springIntegrationVersion",
 				"org.springframework.batch:spring-batch-core:$springBatchVersion",
+				"org.springframework.batch:spring-batch-admin-manager:$springBatchAdminMgrVersion",
 				"org.springframework.data:spring-data-redis:$springDataRedisVersion",
 				"org.springframework.social:spring-social-twitter:$springSocialVersion",
 				"commons-lang:commons-lang:2.4",

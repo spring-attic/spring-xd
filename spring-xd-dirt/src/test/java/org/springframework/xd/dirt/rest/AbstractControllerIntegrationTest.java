@@ -22,6 +22,7 @@ import org.junit.Before;
 import org.mockito.Mockito;
 import org.mockito.internal.util.MockUtil;
 
+import org.springframework.batch.admin.service.JobService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.http.MediaType;
@@ -98,11 +99,15 @@ public class AbstractControllerIntegrationTest {
 	@Autowired
 	protected RichGaugeRepository richGaugeRepository;
 
+	@Autowired
+	private JobService jobService;
+
 	@Before
 	public void resetDependencies() {
 		maybeReset(streamDeployer);
 		maybeReset(tapDeployer);
 		maybeReset(jobDeployer);
+		maybeReset(jobService);
 
 		resetOrDelete(streamDefinitionRepository);
 		resetOrDelete(tapDefinitionRepository);

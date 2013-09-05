@@ -9,6 +9,7 @@
 		<list>
 			<value>file:${XD_HOME}/config/rabbit.properties</value>
 			<value>file:${XD_HOME}/config/redis.properties</value>
+			<value>file:${XD_HOME}/config/hsqldb.properties</value>
 		</list>
 		</property>
 	</bean>

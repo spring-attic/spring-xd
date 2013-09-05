@@ -18,6 +18,8 @@ package org.springframework.xd.rest.client.impl;
 
 import java.net.URI;
 
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.xd.rest.client.AggregateCounterOperations;
 import org.springframework.xd.rest.client.CounterOperations;
 import org.springframework.xd.rest.client.FieldValueCounterOperations;
@@ -70,7 +72,8 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 	 */
 	private RichGaugeOperations richGaugeOperations;
 
-	public SpringXDTemplate(URI baseURI) {
+	public SpringXDTemplate(ClientHttpRequestFactory factory, URI baseURI) {
+		super(factory);
 		XDRuntime xdRuntime = restTemplate.getForObject(baseURI, XDRuntime.class);
 		resources.put("streams", URI.create(xdRuntime.getLink("streams").getHref()));
 		resources.put("jobs", URI.create(xdRuntime.getLink("jobs").getHref()));
@@ -88,6 +91,10 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 		aggrCounterOperations = new AggregateCounterTemplate(this);
 		gaugeOperations = new GaugeTemplate(this);
 		richGaugeOperations = new RichGaugeTemplate(this);
+	}
+
+	public SpringXDTemplate(URI baseURI) {
+		this(new SimpleClientHttpRequestFactory(), baseURI);
 	}
 
 	@Override

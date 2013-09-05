@@ -20,6 +20,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -32,12 +33,14 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
 import org.springframework.xd.dirt.server.SingleNodeMain;
 import org.springframework.xd.dirt.server.SingleNodeServer;
 import org.springframework.xd.dirt.server.options.SingleNodeOptions;
+import org.springframework.xd.rest.client.impl.SpringXDTemplate;
 import org.springframework.xd.test.redis.RedisAvailableRule;
 
 /**
@@ -66,12 +69,6 @@ public abstract class AbstractShellIntegrationTest {
 	 */
 	private static final File TEST_MODULES_TARGET = new File("../modules/");
 
-	// These two are used across the tests, hopefully 9193 is free on most dev boxes and
-	// CI servers
-	public static final String DEFAULT_HTTP_PORT = "9193";
-
-	public static final String DEFAULT_HTTP_URL = "http://localhost:" + DEFAULT_HTTP_PORT;
-
 	protected static final String DEFAULT_METRIC_NAME = "bar";
 
 	@Rule
@@ -92,10 +89,35 @@ public abstract class AbstractShellIntegrationTest {
 			"local", "--store",
 			"redis", "--analytics", "redis" });
 		server = SingleNodeMain.launchSingleNodeServer(options);
+		int port = server.getAdminServer().getLocalPort();
+		waitForServerToBeReady(port);
+
 
 		Bootstrap bootstrap = new Bootstrap(new String[] { "--port",
-			Integer.toString(server.getAdminServer().getLocalPort()) });
+			Integer.toString(port) });
 		shell = bootstrap.getJLineShellComponent();
+	}
+
+	private static void waitForServerToBeReady(int port) throws InterruptedException {
+		SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+		// Set this to non-zero, or the underlying RestTemplate will hang forever
+		int clientTimeout = 10000;
+		factory.setConnectTimeout(clientTimeout);
+		factory.setReadTimeout(clientTimeout);
+
+		int timeout = 2 * clientTimeout;
+		long giveUpAt = System.currentTimeMillis() + timeout;
+		while (System.currentTimeMillis() < giveUpAt) {
+			try {
+				new SpringXDTemplate(factory, URI.create("http://localhost:" + port));
+				return;
+			}
+			catch (Exception e) {
+				Thread.sleep(50);
+			}
+		}
+		throw new IllegalStateException(String.format(
+				"Admin server on port %d does not seem to be listening after waiting for %dms", port, timeout));
 	}
 
 	@AfterClass

@@ -76,6 +76,26 @@ public abstract class ChannelRegistrySupport implements ChannelRegistry, BeanCla
 		this.beanClassloader = classLoader;
 	}
 
+	@Override
+	public void deleteInbound(String name) {
+		deleteBridges("inbound." + name);
+	}
+
+	@Override
+	public void deleteOutbound(String name) {
+		deleteBridges("outbound." + name);
+	}
+
+	@Override
+	public void deleteInbound(String name, MessageChannel channel) {
+		deleteBridge("inbound." + name, channel);
+	}
+
+	@Override
+	public void deleteOutbound(String name, MessageChannel channel) {
+		deleteBridge("outbound." + name, channel);
+	}
+
 	protected void addBridge(Bridge bridge) {
 		this.bridges.add(bridge);
 	}
@@ -85,9 +105,9 @@ public abstract class ChannelRegistrySupport implements ChannelRegistry, BeanCla
 		synchronized (this.bridges) {
 			Iterator<Bridge> iterator = this.bridges.iterator();
 			while (iterator.hasNext()) {
-				Bridge endpoint = iterator.next();
-				if (endpoint.getEndpoint().getComponentName().equals(name)) {
-					endpoint.stop();
+				Bridge bridge = iterator.next();
+				if (bridge.getEndpoint().getComponentName().equals(name)) {
+					bridge.stop();
 					iterator.remove();
 				}
 			}
@@ -100,10 +120,10 @@ public abstract class ChannelRegistrySupport implements ChannelRegistry, BeanCla
 		synchronized (this.bridges) {
 			Iterator<Bridge> iterator = this.bridges.iterator();
 			while (iterator.hasNext()) {
-				Bridge channelEndpoint = iterator.next();
-				if (channelEndpoint.getChannel().equals(channel) &&
-						channelEndpoint.getEndpoint().getComponentName().equals(name)) {
-					channelEndpoint.stop();
+				Bridge bridge = iterator.next();
+				if (bridge.getChannel().equals(channel) &&
+						bridge.getEndpoint().getComponentName().equals(name)) {
+					bridge.stop();
 					iterator.remove();
 					return;
 				}

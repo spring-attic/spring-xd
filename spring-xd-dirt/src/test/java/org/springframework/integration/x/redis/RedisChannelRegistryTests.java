@@ -16,12 +16,8 @@
 
 package org.springframework.integration.x.redis;
 
-import java.util.Collection;
-import java.util.List;
-
 import org.junit.Rule;
 
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.integration.x.channel.registry.AbstractChannelRegistryTests;
 import org.springframework.integration.x.channel.registry.ChannelRegistry;
@@ -42,12 +38,4 @@ public class RedisChannelRegistryTests extends AbstractChannelRegistryTests {
 		RedisChannelRegistry registry = new RedisChannelRegistry(connectionFactory);
 		return registry;
 	}
-
-	@Override
-	protected Collection<?> getBridges(ChannelRegistry registry) {
-		DirectFieldAccessor accessor = new DirectFieldAccessor(registry);
-		List<?> bridges = (List<?>) accessor.getPropertyValue("lifecycleBeans");
-		return bridges;
-	}
-
 }

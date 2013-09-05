@@ -235,18 +235,19 @@ public class ChannelRegistrySupportTests {
 				boolean aliasHint) {
 		}
 
+
+		@Override
+		public void createInboundPubSub(String name, MessageChannel moduleInputChannel,
+				Collection<MediaType> acceptedMediaTypes) {
+		}
+
+		@Override
+		public void createOutboundPubSub(String name, MessageChannel moduleOutputChannel) {
+		}
+
 		@Override
 		public void createOutbound(String name, MessageChannel channel, boolean aliasHint) {
 		}
-
-		@Override
-		public void deleteInbound(String name) {
-		}
-
-		@Override
-		public void deleteOutbound(String name) {
-		}
-
 	}
 
 }

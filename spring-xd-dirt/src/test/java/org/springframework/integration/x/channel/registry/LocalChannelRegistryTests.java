@@ -22,12 +22,10 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
 
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.DefaultConversionService;
@@ -55,13 +53,6 @@ public class LocalChannelRegistryTests extends AbstractChannelRegistryTests {
 		registry.setApplicationContext(new GenericApplicationContext());
 		registry.afterPropertiesSet();
 		return registry;
-	}
-
-	@Override
-	protected Collection<?> getBridges(ChannelRegistry registry) {
-		DirectFieldAccessor accessor = new DirectFieldAccessor(registry);
-		List<?> bridges = (List<?>) accessor.getPropertyValue("bridges");
-		return bridges;
 	}
 
 	@Test

@@ -26,12 +26,13 @@ import org.springframework.integration.MessageChannel;
  * @author Mark Fisher
  * @author David Turanski
  * @author Gary Russell
+ * @author Jennifer Hickey
  * @since 1.0
  */
 public interface ChannelRegistry {
 
 	/**
-	 * Register a message consumer.
+	 * Register a message consumer on a p2p channel
 	 * 
 	 * @param name the logical identity of the message source
 	 * @param moduleInputChannel the channel bound as a consumer
@@ -41,14 +42,34 @@ public interface ChannelRegistry {
 	void createInbound(String name, MessageChannel moduleInputChannel, Collection<MediaType> acceptedMediaTypes,
 			boolean aliasHint);
 
+
 	/**
-	 * Register a message producer.
-	 * 
+	 * Register a message consumer on a pub/sub channel
+	 *
+	 * @param name the logical identity of the message source
+	 * @param moduleInputChannel the channel bound as a pub/sub consumer
+	 * @param acceptedMediaTypes the media types supported by the channel
+	 */
+	void createInboundPubSub(final String name, MessageChannel inputChannel,
+			final Collection<MediaType> acceptedMediaTypes);
+
+	/**
+	 * Register a message producer on a p2p channel.
+	 *
 	 * @param name the logical identity of the message target
 	 * @param moduleOutputChannel the channel bound as a producer
 	 * @param aliasHint whether the provided name represents an alias and thus should support late binding
 	 */
 	void createOutbound(String name, MessageChannel moduleOutputChannel, boolean aliasHint);
+
+
+	/**
+	 * Register a message producer on a pub/sub channel.
+	 *
+	 * @param name the logical identity of the message target
+	 * @param moduleOutputChannel the channel bound as a producer
+	 */
+	void createOutboundPubSub(final String name, MessageChannel outputChannel);
 
 	/**
 	 * Create a tap on an already registered inbound channel.
@@ -72,4 +93,20 @@ public interface ChannelRegistry {
 	 * @param name the channel name
 	 */
 	void deleteOutbound(String name);
+
+	/**
+	 * Unregister a specific p2p or pub/sub message consumer
+	 *
+	 * @param name The logical identify of a message source
+	 * @param channel The channel bound as a consumer
+	 */
+	void deleteInbound(String name, MessageChannel channel);
+
+	/**
+	 * Unregister a specific p2p or pub/sub message producer
+	 *
+	 * @param name the logical identity of the message target
+	 * @param moduleOutputChannel the channel bound as a producer
+	 */
+	void deleteOutbound(String name, MessageChannel channel);
 }

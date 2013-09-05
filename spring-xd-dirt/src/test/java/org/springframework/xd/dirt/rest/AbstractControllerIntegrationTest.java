@@ -37,9 +37,6 @@ import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobDeployer;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDeployer;
-import org.springframework.xd.dirt.stream.TapDefinitionRepository;
-import org.springframework.xd.dirt.stream.TapDeployer;
-import org.springframework.xd.dirt.stream.TapInstanceRepository;
 
 /**
  * Base class for Controller layer tests. Takes care of resetting the mocked (be them mockito mocks or <i>e.g.</i> in
@@ -68,20 +65,11 @@ public class AbstractControllerIntegrationTest {
 	protected StreamDeployer streamDeployer;
 
 	@Autowired
-	protected TapDeployer tapDeployer;
-
-	@Autowired
 	protected JobDeployer jobDeployer;
 
 	// Definition Repositories
 	@Autowired
 	protected StreamDefinitionRepository streamDefinitionRepository;
-
-	@Autowired
-	protected TapDefinitionRepository tapDefinitionRepository;
-
-	@Autowired
-	protected TapInstanceRepository tapInstanceRepository;
 
 	@Autowired
 	protected JobDefinitionRepository jobDefinitionRepository;
@@ -105,13 +93,10 @@ public class AbstractControllerIntegrationTest {
 	@Before
 	public void resetDependencies() {
 		maybeReset(streamDeployer);
-		maybeReset(tapDeployer);
 		maybeReset(jobDeployer);
 		maybeReset(jobService);
 
 		resetOrDelete(streamDefinitionRepository);
-		resetOrDelete(tapDefinitionRepository);
-		resetOrDelete(tapInstanceRepository);
 		resetOrDelete(jobDefinitionRepository);
 
 		resetOrDelete(counterRepository);

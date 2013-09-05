@@ -176,75 +176,39 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		assertEquals("zzyyccxxyyzz", sink.getContents());
 	}
 
-	// See https://jira.springsource.org/browse/XD-592
-	@Test
-	public void testTappingModules() throws IOException {
-		FileSink sink = newFileSink().binary(true);
-		FileSink tapsink = newFileSink().binary(true);
-		HttpSource source = newHttpSource();
-
-		stream().create("myhttp", "%s | transform --expression=payload.toUpperCase() | %s", source, sink);
-		tap().create("mytap", "tap myhttp.transform | transform --expression=payload.replaceAll('A','.') | %s", tapsink);
-
-		source.ensureReady().postData("Dracarys!");
-
-		assertEquals("DRACARYS!", sink.getContents());
-		assertEquals("DR.C.RYS!", tapsink.getContents());
-	}
-
-	// We might have a problem using a tap called tap
-	// Resolver could skip 'tap' as a 'well known module name'
-	@Ignore
-	@Test
-	public void testTapCalledTap() throws IOException {
-		HttpSource source = newHttpSource();
-		FileSink sink = newFileSink().binary(true);
-		FileSink tapsink = newFileSink().binary(true);
-
-		stream().create("myhttp", "%s | transform --expression=payload.toUpperCase() | %s", source, sink);
-
-		// Fails with recursion issue?
-		tap().create("tap", "tap myhttp.transform | transform --expression=payload.replaceAll('A','.') | %s", tapsink);
-		source.ensureReady().postData("Dracarys!");
-
-		assertEquals("DRACARYS!", sink.getContents());
-		assertEquals("DR.C.RYS!", tapsink.getContents());
-	}
-
-	// See https://jira.springsource.org/browse/XD-592
 	@Test
 	public void testTappingModulesVariations() throws IOException {
 		// Note: this test is using a regular sink, not a named channel sink
 		HttpSource httpSource = newHttpSource();
+		HttpSource httpSource2 = newHttpSource();
 
 		FileSink sink = newFileSink().binary(true);
-		FileSink tapsink1 = newFileSink().binary(true);
-		FileSink tapsink2 = newFileSink().binary(true);
 		FileSink tapsink3 = newFileSink().binary(true);
-		FileSink tapsink4 = newFileSink().binary(true);
 		FileSink tapsink5 = newFileSink().binary(true);
 
 		stream().create("myhttp", "%s | transform --expression=payload.toUpperCase() | %s", httpSource, sink);
-
-		tap().create("mytap1", "tap @myhttp | transform --expression=payload.replaceAll('A','.') | %s", tapsink1);
-		tap().create("mytap2", "tap @myhttp.1 | transform --expression=payload.replaceAll('A','.') | %s", tapsink2);
-		tap().create("mytap3", "tap myhttp | transform --expression=payload.replaceAll('A','.') | %s", tapsink3);
-		tap().create("mytap4", "tap myhttp.1 | transform --expression=payload.replaceAll('A','.') | %s", tapsink4);
-		tap().create("mytap5", "tap myhttp.transform | transform --expression=payload.replaceAll('A','.') | %s",
+		stream().create("mytap3", ":tap:myhttp > transform --expression=payload.replaceAll('A','.') | %s", tapsink3);
+		stream().create("mytap5", ":tap:myhttp.transform > transform --expression=payload.replaceAll('A','.') | %s",
 				tapsink5);
+		// use the tap channel as a sink. Not very useful currently but will be once we allow users to create pub/sub
+		// channels
+		stream().create("mytap7", "%s > :tap:myhttp.transform",
+				httpSource2);
 
 		httpSource.ensureReady().postData("Dracarys!");
 
-		// TODO reactivate when get to the bottom of the race condition
 		assertEquals("DRACARYS!", sink.getContents());
-		assertEquals("Dracarys!", tapsink1.getContents());
-		assertEquals("DR.C.RYS!", tapsink2.getContents());
 		assertEquals("Dracarys!", tapsink3.getContents());
-		assertEquals("DR.C.RYS!", tapsink4.getContents());
 		assertEquals("DR.C.RYS!", tapsink5.getContents());
+
+		httpSource2.ensureReady().postData("TESTPLAN");
+		// our tap got the data and transformed appropriately
+		assertEquals("DR.C.RYS!TESTPL.N", tapsink5.getContents());
+		// other tap did not get data
+		assertEquals("Dracarys!", tapsink3.getContents());
 	}
 
-	// See https://jira.springsource.org/browse/XD-592
+	@Ignore("Not yet supporting tapped labels")
 	@Test
 	public void testTappingWithLabels() throws IOException {
 		// Note: this test is using a regular sink, not a named channel sink
@@ -252,9 +216,9 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 
 		FileSink sink = newFileSink().binary(true);
 		FileSink tapsink1 = newFileSink().binary(true);
-
 		stream().create("myhttp", "%s | flibble: transform --expression=payload.toUpperCase() | %s", source, sink);
-		tap().create("mytap4", "tap myhttp.flibble | transform --expression=payload.replaceAll('A','.') | %s", tapsink1);
+		stream().create("mytap4", ":tap:myhttp.flibble > transform --expression=payload.replaceAll('A','.') | %s",
+				tapsink1);
 		source.ensureReady().postData("Dracarys!");
 
 		assertEquals("DRACARYS!", sink.getContents());
@@ -266,56 +230,32 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		HttpSource source = newHttpSource();
 
 		FileSink sink = newFileSink().binary(true);
-		FileSink tapsink1 = newFileSink().binary(true);
-		FileSink tapsink2 = newFileSink().binary(true);
 		FileSink tapsink3 = newFileSink().binary(true);
-		FileSink tapsink4 = newFileSink().binary(true);
 		FileSink tapsink5 = newFileSink().binary(true);
 
 		stream().create("myhttp",
 				"%s | transform --expression=payload.toUpperCase() | filter --expression=true > :foobar", source);
 		stream().create("slurp", ":foobar > %s", sink);
 
-		// old style tapping, tap --channel=myhttp.0
-		tap().create("mytap1",
-				"tap @myhttp | transform --expression=payload.replaceAll('D','.') | %s",
-				tapsink1);
-
-		// old style tapping, tap --channel=myhttp.1
-		tap().create("mytap2",
-				"tap @myhttp.1 | transform --expression=payload.replaceAll('A','.') | %s",
-				tapsink2);
-
 		// new style tapping, tap --channel=myhttp.0
-		tap().create("mytap3",
-				"tap myhttp | transform --expression=payload.replaceAll('r','.') | %s",
+		stream().create("mytap3",
+				":tap:myhttp > transform --expression=payload.replaceAll('r','.') | %s",
 				tapsink3);
 
-		// new style tapping, tap --channel=myhttp.1
-		tap().create("mytap4",
-				"tap myhttp.1 | transform --expression=payload.replaceAll('S','.') | %s",
-				tapsink4);
-
 		// new style tapping, tap --channel=foobar
-		tap().create("mytap5", "tap myhttp.filter | transform --expression=payload.replaceAll('A','.') |  %s",
+		stream().create("mytap5", ":tap:myhttp.filter > transform --expression=payload.replaceAll('A','.') | %s",
 				tapsink5);
 
 		source.ensureReady().postData("Dracarys!");
 
-		// TODO reactivate these when sink checking reliable! If the test
-		// is run standalone these will work.
 		assertEquals("DRACARYS!", sink.getContents());
-		assertEquals(".racarys!", tapsink1.getContents());
-		assertEquals("DR.C.RYS!", tapsink2.getContents());
 		assertEquals("D.aca.ys!", tapsink3.getContents());
-		assertEquals("DRACARY.!", tapsink4.getContents());
 		assertEquals("DR.C.RYS!", tapsink5.getContents());
 	}
 
-	// XD M2 does not support '>' with tap
-	// See https://jira.springsource.org/browse/XD-592
+
+	@Ignore("Not yet supporting tapped labels")
 	@Test
-	@Ignore
 	public void testUsingLabels() throws IOException {
 		FileSink sink1 = newFileSink().binary(true);
 		FileSink sink2 = newFileSink().binary(true);
@@ -324,11 +264,11 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		HttpSource source = newHttpSource();
 
 		stream().create("myhttp", "%s | flibble: transform --expression=payload.toUpperCase() | log", source);
-		tap().create("wiretap1", "tap @myhttp.1 | transform --expression=payload.replaceAll('a','.') | %s", sink1);
-
-		tap().create("wiretap2", "tap myhttp.transform > transform --expression=payload.replaceAll('a','.') | %s",
+		stream().create("wiretap2", ":tap:myhttp.transform > transform --expression=payload.replaceAll('a','.') | %s",
 				sink2);
-		tap().create("wiretap3", "tap myhttp.flibble > transform --expression=payload.replaceAll('a','.') | %s", sink3);
+		stream().create("wiretap3", ":tap:myhttp.flibble > transform --expression=payload.replaceAll('a','.') | %s",
+				sink3);
+
 		source.ensureReady().postData("Dracarys!");
 
 		// TODO verify both logs output DRACARYS!

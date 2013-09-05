@@ -206,8 +206,22 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 			raiseException(colon.startpos, XDDSLMessages.EXPECTED_CHANNEL_QUALIFIER, toString(colon));
 		}
 		Token firstToken = nextToken();
+
 		if (!firstToken.isIdentifier()) {
 			raiseException(firstToken.startpos, XDDSLMessages.EXPECTED_CHANNEL_NAME, toString(firstToken));
+		}
+		// Supporting ":tap:stream" or ":tap:stream.channel"
+		if (firstToken.isIdentifier() && firstToken.data.equals("tap") && peekToken(TokenKind.COLON, true)) {
+			Token streamName = eatToken(TokenKind.IDENTIFIER);
+			Token moduleName = null;
+			if (peekToken(TokenKind.DOT, true)) {
+				moduleName = eatToken(TokenKind.IDENTIFIER);
+			}
+			ChannelNode channelNode = new ChannelNode(streamName.data, moduleName == null ? null : moduleName.data,
+					colon.startpos,
+					moduleName == null ? streamName.endpos : moduleName.endpos);
+			channelNode.setIsTap(true);
+			return channelNode;
 		}
 		if (peekToken(TokenKind.COLON, true)) {
 			Token suffixToken = eatToken(TokenKind.IDENTIFIER);

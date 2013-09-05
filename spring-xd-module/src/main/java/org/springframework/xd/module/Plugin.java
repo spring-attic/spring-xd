@@ -49,6 +49,14 @@ public interface Plugin {
 	 */
 	void removeModule(Module module);
 
+
+	/**
+	 * Perform any cleanup necessary prior to module shutdown
+	 *
+	 * @param module
+	 */
+	void beforeShutdown(Module module);
+
 	/**
 	 * Invoked when this plugin is discovered, allows to make any necessary changes to the context which will be used as
 	 * the parent of all {@link Module#setParentContext(org.springframework.context.ApplicationContext) modules}. Note

@@ -31,11 +31,6 @@ public interface SpringXDOperations {
 	public StreamOperations streamOperations();
 
 	/**
-	 * Returns the portion of the API for interaction with Taps.
-	 */
-	public TapOperations tapOperations();
-
-	/**
 	 * Returns the portion of the API for interaction with Jobs.
 	 */
 	public JobOperations jobOperations();

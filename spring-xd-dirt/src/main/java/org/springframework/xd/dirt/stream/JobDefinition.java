@@ -25,8 +25,8 @@ import org.springframework.xd.dirt.core.BaseDefinition;
 public class JobDefinition extends BaseDefinition {
 
 	/**
-	 * @param name - the tap name
-	 * @param definition - the tap definition
+	 * @param name - the job name
+	 * @param definition - the job definition
 	 * 
 	 */
 	public JobDefinition(String name, String definition) {

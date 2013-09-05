@@ -16,13 +16,9 @@
 
 package org.springframework.integration.x.rabbit;
 
-import java.util.Collection;
-import java.util.List;
-
 import org.junit.Rule;
 
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.x.channel.registry.AbstractChannelRegistryTests;
 import org.springframework.integration.x.channel.registry.ChannelRegistry;
 import org.springframework.xd.test.rabbit.RabbitAvailableRule;
@@ -40,13 +36,6 @@ public class RabbitChannelRegistryTests extends AbstractChannelRegistryTests {
 		CachingConnectionFactory connectionFactory = new CachingConnectionFactory("localhost");
 		RabbitChannelRegistry registry = new RabbitChannelRegistry(connectionFactory);
 		return registry;
-	}
-
-	@Override
-	protected Collection<?> getBridges(ChannelRegistry registry) {
-		DirectFieldAccessor accessor = new DirectFieldAccessor(registry);
-		List<?> bridges = (List<?>) accessor.getPropertyValue("lifecycleBeans");
-		return bridges;
 	}
 
 }

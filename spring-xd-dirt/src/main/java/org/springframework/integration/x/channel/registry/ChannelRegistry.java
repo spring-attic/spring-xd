@@ -26,12 +26,13 @@ import org.springframework.integration.MessageChannel;
  * @author Mark Fisher
  * @author David Turanski
  * @author Gary Russell
+ * @author Jennifer Hickey
  * @since 1.0
  */
 public interface ChannelRegistry {
 
 	/**
-	 * Register a message consumer.
+	 * Register a message consumer on a p2p channel
 	 * 
 	 * @param name the logical identity of the message source
 	 * @param moduleInputChannel the channel bound as a consumer
@@ -41,8 +42,19 @@ public interface ChannelRegistry {
 	void createInbound(String name, MessageChannel moduleInputChannel, Collection<MediaType> acceptedMediaTypes,
 			boolean aliasHint);
 
+
 	/**
-	 * Register a message producer.
+	 * Register a message consumer on a pub/sub channel
+	 * 
+	 * @param name the logical identity of the message source
+	 * @param moduleInputChannel the channel bound as a pub/sub consumer
+	 * @param acceptedMediaTypes the media types supported by the channel
+	 */
+	void createInboundPubSub(final String name, MessageChannel inputChannel,
+			final Collection<MediaType> acceptedMediaTypes);
+
+	/**
+	 * Register a message producer on a p2p channel.
 	 * 
 	 * @param name the logical identity of the message target
 	 * @param moduleOutputChannel the channel bound as a producer
@@ -50,14 +62,14 @@ public interface ChannelRegistry {
 	 */
 	void createOutbound(String name, MessageChannel moduleOutputChannel, boolean aliasHint);
 
+
 	/**
-	 * Create a tap on an already registered inbound channel.
+	 * Register a message producer on a pub/sub channel.
 	 * 
-	 * @param tapModule the name of the tap module
-	 * @param name the registered name
-	 * @param channel the channel that will receive messages from the tap
+	 * @param name the logical identity of the message target
+	 * @param moduleOutputChannel the channel bound as a producer
 	 */
-	void tap(String tapModule, String name, MessageChannel channel);
+	void createOutboundPubSub(final String name, MessageChannel outputChannel);
 
 	/**
 	 * Remove an inbound inter-module channel and stop any active components that use the channel.
@@ -72,4 +84,20 @@ public interface ChannelRegistry {
 	 * @param name the channel name
 	 */
 	void deleteOutbound(String name);
+
+	/**
+	 * Unregister a specific p2p or pub/sub message consumer
+	 * 
+	 * @param name The logical identify of a message source
+	 * @param channel The channel bound as a consumer
+	 */
+	void deleteInbound(String name, MessageChannel channel);
+
+	/**
+	 * Unregister a specific p2p or pub/sub message producer
+	 * 
+	 * @param name the logical identity of the message target
+	 * @param moduleOutputChannel the channel bound as a producer
+	 */
+	void deleteOutbound(String name, MessageChannel channel);
 }

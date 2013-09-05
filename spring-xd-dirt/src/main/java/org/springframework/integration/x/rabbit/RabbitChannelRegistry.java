@@ -16,11 +16,7 @@
 
 package org.springframework.integration.x.rabbit;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -34,7 +30,6 @@ import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.context.Lifecycle;
 import org.springframework.http.MediaType;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
@@ -42,13 +37,13 @@ import org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter;
 import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.mapping.AbstractHeaderMapper;
+import org.springframework.integration.x.channel.registry.Bridge;
 import org.springframework.integration.x.channel.registry.ChannelRegistry;
 import org.springframework.integration.x.channel.registry.ChannelRegistrySupport;
 import org.springframework.util.Assert;
@@ -58,6 +53,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Jennifer Hickey
  */
 public class RabbitChannelRegistry extends ChannelRegistrySupport implements DisposableBean {
 
@@ -70,8 +66,6 @@ public class RabbitChannelRegistry extends ChannelRegistrySupport implements Dis
 	private final ConnectionFactory connectionFactory;
 
 	private volatile Integer concurrentConsumers;
-
-	private final List<Lifecycle> lifecycleBeans = Collections.synchronizedList(new ArrayList<Lifecycle>());
 
 	private final DefaultAmqpHeaderMapper mapper;
 
@@ -93,12 +87,29 @@ public class RabbitChannelRegistry extends ChannelRegistrySupport implements Dis
 		if (logger.isInfoEnabled()) {
 			logger.info("declaring queue for inbound: " + name);
 		}
-		this.rabbitAdmin.declareQueue(new Queue(name));
+		Queue queue = new Queue(name);
+		this.rabbitAdmin.declareQueue(queue);
+		doCreateInbound(name, moduleInputChannel, acceptedMediaTypes, queue);
+	}
+
+	@Override
+	public void createInboundPubSub(String name, MessageChannel moduleInputChannel,
+			Collection<MediaType> acceptedMediaTypes) {
+		FanoutExchange exchange = new FanoutExchange("topic." + name);
+		rabbitAdmin.declareExchange(exchange);
+		Queue queue = this.rabbitAdmin.declareQueue();
+		Binding binding = BindingBuilder.bind(queue).to(exchange);
+		this.rabbitAdmin.declareBinding(binding);
+		doCreateInbound(name, moduleInputChannel, acceptedMediaTypes, queue);
+	}
+
+	private void doCreateInbound(String name, MessageChannel moduleInputChannel,
+			Collection<MediaType> acceptedMediaTypes, Queue queue) {
 		SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer(this.connectionFactory);
 		if (this.concurrentConsumers != null) {
 			listenerContainer.setConcurrentConsumers(this.concurrentConsumers);
 		}
-		listenerContainer.setQueueNames(name);
+		listenerContainer.setQueues(queue);
 		listenerContainer.afterPropertiesSet();
 		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(listenerContainer);
 		DirectChannel bridgeToModuleChannel = new DirectChannel();
@@ -107,7 +118,7 @@ public class RabbitChannelRegistry extends ChannelRegistrySupport implements Dis
 		adapter.setHeaderMapper(this.mapper);
 		adapter.setBeanName("inbound." + name);
 		adapter.afterPropertiesSet();
-		this.lifecycleBeans.add(adapter);
+		addBridge(new Bridge(moduleInputChannel, adapter));
 		ReceivingHandler convertingBridge = new ReceivingHandler(acceptedMediaTypes);
 		convertingBridge.setOutputChannel(moduleInputChannel);
 		convertingBridge.setBeanName(name + ".convert.bridge");
@@ -118,120 +129,55 @@ public class RabbitChannelRegistry extends ChannelRegistrySupport implements Dis
 
 	@Override
 	public void createOutbound(final String name, MessageChannel moduleOutputChannel, boolean aliasHint) {
+		if (logger.isInfoEnabled()) {
+			logger.info("declaring queue for outbound: " + name);
+		}
+		rabbitAdmin.declareQueue(new Queue(name));
+		AmqpOutboundEndpoint queue = new AmqpOutboundEndpoint(rabbitTemplate);
+		queue.setRoutingKey(name); // uses default exchange
+		queue.setHeaderMapper(mapper);
+		queue.afterPropertiesSet();
+		doCreateOutbound(name, moduleOutputChannel, queue);
+	}
+
+	@Override
+	public void createOutboundPubSub(String name, MessageChannel moduleOutputChannel) {
+		rabbitAdmin.declareExchange(new FanoutExchange("topic." + name));
+		AmqpOutboundEndpoint fanout = new AmqpOutboundEndpoint(rabbitTemplate);
+		fanout.setExchangeName("topic." + name);
+		fanout.setHeaderMapper(mapper);
+		fanout.afterPropertiesSet();
+		doCreateOutbound(name, moduleOutputChannel, fanout);
+	}
+
+	private void doCreateOutbound(final String name, MessageChannel moduleOutputChannel, MessageHandler delegate) {
 		Assert.isInstanceOf(SubscribableChannel.class, moduleOutputChannel);
-		MessageHandler handler = new CompositeHandler(name);
+		MessageHandler handler = new SendingHandler(delegate);
 		EventDrivenConsumer consumer = new EventDrivenConsumer((SubscribableChannel) moduleOutputChannel, handler);
 		consumer.setBeanName("outbound." + name);
 		consumer.afterPropertiesSet();
-		this.lifecycleBeans.add(consumer);
+		addBridge(new Bridge(moduleOutputChannel, consumer));
 		consumer.start();
 	}
 
 	@Override
-	public void tap(String tapModule, final String name, MessageChannel tapModuleInputChannel) {
-		SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer(this.connectionFactory);
-		if (this.concurrentConsumers != null) {
-			listenerContainer.setConcurrentConsumers(this.concurrentConsumers);
-		}
-		Queue queue = this.rabbitAdmin.declareQueue();
-		Binding binding = BindingBuilder.bind(queue).to(new FanoutExchange("tap." + name));
-		this.rabbitAdmin.declareBinding(binding);
-		listenerContainer.setQueues(queue);
-		listenerContainer.afterPropertiesSet();
-		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(listenerContainer);
-		DirectChannel bridgeToTapChannel = new DirectChannel();
-		bridgeToTapChannel.setBeanName(tapModule + ".bridge");
-		adapter.setOutputChannel(bridgeToTapChannel);
-		adapter.setHeaderMapper(this.mapper);
-		adapter.setBeanName("tap." + name);
-		adapter.setComponentName(tapModule + "." + "tapAdapter");
-		adapter.afterPropertiesSet();
-		this.lifecycleBeans.add(adapter);
-		// TODO: media types need to be passed in by Tap.
-		Collection<MediaType> acceptedMediaTypes = Collections.singletonList(MediaType.ALL);
-		ReceivingHandler convertingBridge = new ReceivingHandler(acceptedMediaTypes);
-		convertingBridge.setOutputChannel(tapModuleInputChannel);
-		convertingBridge.setBeanName(name + ".convert.bridge");
-		convertingBridge.afterPropertiesSet();
-		bridgeToTapChannel.subscribe(convertingBridge);
-		adapter.start();
-	}
-
-	@Override
-	public void deleteInbound(String name) {
-		synchronized (this.lifecycleBeans) {
-			Iterator<Lifecycle> iterator = this.lifecycleBeans.iterator();
-			while (iterator.hasNext()) {
-				Lifecycle endpoint = iterator.next();
-				if (endpoint instanceof AmqpInboundChannelAdapter) {
-					String componentName = ((IntegrationObjectSupport) endpoint).getComponentName();
-					if (("inbound." + name).equals(componentName) || (name + ".tapAdapter").equals(componentName)) {
-						((AmqpInboundChannelAdapter) endpoint).stop();
-						iterator.remove();
-					}
-				}
-			}
-		}
-	}
-
-	@Override
-	public void deleteOutbound(String name) {
-		synchronized (this.lifecycleBeans) {
-			Iterator<Lifecycle> iterator = this.lifecycleBeans.iterator();
-			while (iterator.hasNext()) {
-				Lifecycle endpoint = iterator.next();
-				if (endpoint instanceof EventDrivenConsumer
-						&& ("outbound." + name).equals(((IntegrationObjectSupport) endpoint).getComponentName())) {
-					((EventDrivenConsumer) endpoint).stop();
-					iterator.remove();
-					return;
-				}
-			}
-		}
-	}
-
-	@Override
 	public void destroy() {
-		for (Lifecycle bean : this.lifecycleBeans) {
-			try {
-				bean.stop();
-			}
-			catch (Exception e) {
-				if (logger.isWarnEnabled()) {
-					logger.warn("failed to stop adapter", e);
-				}
-			}
-		}
+		stopBridges();
 	}
 
-	private class CompositeHandler extends AbstractMessageHandler {
+	private class SendingHandler extends AbstractMessageHandler {
 
-		private final AmqpOutboundEndpoint queue;
+		private final MessageHandler delegate;
 
-		private final AmqpOutboundEndpoint tap;
-
-		private CompositeHandler(String name) {
-			if (logger.isInfoEnabled()) {
-				logger.info("declaring queue for outbound: " + name);
-			}
-			rabbitAdmin.declareQueue(new Queue(name));
-			rabbitAdmin.declareExchange(new FanoutExchange("tap." + name));
-			this.queue = new AmqpOutboundEndpoint(rabbitTemplate);
-			queue.setRoutingKey(name); // uses default exchange
-			queue.setHeaderMapper(mapper);
-			queue.afterPropertiesSet();
-			this.tap = new AmqpOutboundEndpoint(rabbitTemplate);
-			tap.setExchangeName("tap." + name);
-			tap.setHeaderMapper(mapper);
-			tap.afterPropertiesSet();
+		private SendingHandler(MessageHandler delegate) {
+			this.delegate = delegate;
 		}
 
 		@Override
 		protected void handleMessageInternal(Message<?> message) throws Exception {
 			// TODO: rabbit wire data pluggable format?
 			Message<?> messageToSend = transformOutboundIfNecessary(message, MediaType.APPLICATION_OCTET_STREAM);
-			this.tap.handleMessage(messageToSend);
-			this.queue.handleMessage(messageToSend);
+			this.delegate.handleMessage(messageToSend);
 		}
 	}
 

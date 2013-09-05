@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.xd.rest.client.domain.JobDefinitionResource;
 import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
-import org.springframework.xd.rest.client.domain.TapDefinitionResource;
 import org.springframework.xd.rest.client.domain.XDRuntime;
 import org.springframework.xd.rest.client.domain.metrics.AggregateCountsResource;
 import org.springframework.xd.rest.client.domain.metrics.CounterResource;
@@ -51,7 +50,6 @@ public class AdminController {
 		XDRuntime xdRuntime = new XDRuntime();
 		xdRuntime.add(entityLinks.linkFor(StreamDefinitionResource.class).withRel("streams"));
 		xdRuntime.add(entityLinks.linkFor(JobDefinitionResource.class).withRel("jobs"));
-		xdRuntime.add(entityLinks.linkFor(TapDefinitionResource.class).withRel("taps"));
 
 		xdRuntime.add(entityLinks.linkFor(CounterResource.class).withRel("counters"));
 		xdRuntime.add(entityLinks.linkFor(FieldValueCounterResource.class).withRel("field-value-counters"));

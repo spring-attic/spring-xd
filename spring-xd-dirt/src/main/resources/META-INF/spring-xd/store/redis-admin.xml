@@ -10,11 +10,6 @@
 		<constructor-arg ref="humanFriendlyRedisTemplate" />
 	</bean>
 
-	<bean id="tapRepository"
-		class="org.springframework.xd.dirt.stream.redis.RedisTapDefinitionRepository">
-		<constructor-arg ref="humanFriendlyRedisTemplate" />
-	</bean>
-
 	<bean id="streamDefinitionRepository" class="org.springframework.xd.dirt.stream.redis.RedisStreamDefinitionRepository">
 		<constructor-arg ref="humanFriendlyRedisTemplate" />
 	</bean>
@@ -22,11 +17,6 @@
 	<bean id="streamRepository" class="org.springframework.xd.dirt.stream.redis.RedisStreamRepository">
 		<constructor-arg ref="humanFriendlyRedisTemplate" />
 		<constructor-arg ref="streamDefinitionRepository" />
-	</bean>
-
-	<bean id="tapInstanceRepository" class="org.springframework.xd.dirt.stream.redis.RedisTapInstanceRepository">
-		<constructor-arg name="redisOperations" ref="humanFriendlyRedisTemplate" />
-		<constructor-arg name="redisTapDefinitionRepository" ref="tapRepository" />
 	</bean>
 
 </beans>

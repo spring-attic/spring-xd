@@ -78,6 +78,10 @@ public class IntegrationPlugin implements Plugin {
 	}
 
 	@Override
+	public void beforeShutdown(Module module) {
+	}
+
+	@Override
 	public void removeModule(Module module) {
 		Assert.notNull(module, "module cannot be null");
 		Assert.isAssignable(IntegrationModule.class, module.getClass());

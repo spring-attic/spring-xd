@@ -26,14 +26,6 @@
 		<constructor-arg name="parser" ref="parser" />
 	</bean>
 
-	<bean id="tapDeployer" class="org.springframework.xd.dirt.stream.TapDeployer">
-		<constructor-arg name="repository" ref="tapRepository" />
-		<constructor-arg name="streamDefinitionRepository" ref="streamDefinitionRepository" />
-		<constructor-arg name="messageSender" ref="deploymentMessageSender" />
-		<constructor-arg name="parser" ref="parser" />
-		<constructor-arg name="tapInstanceRepository" ref="tapInstanceRepository" />
-	</bean>
-
 	<bean id="jobDeployer" class="org.springframework.xd.dirt.stream.JobDeployer">
 		<constructor-arg name="repository" ref="jobRepository" />
 		<constructor-arg name="messageSender" ref="deploymentMessageSender" />

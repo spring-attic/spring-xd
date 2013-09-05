@@ -51,7 +51,6 @@ import org.springframework.xd.shell.command.HttpCommands;
 import org.springframework.xd.shell.command.JobCommands;
 import org.springframework.xd.shell.command.RichGaugeCommands;
 import org.springframework.xd.shell.command.StreamCommands;
-import org.springframework.xd.shell.command.TapCommands;
 import org.springframework.xd.shell.hadoop.ConfigurationCommands;
 import org.springframework.xd.shell.hadoop.FsShellCommands;
 
@@ -100,7 +99,6 @@ public class ReferenceDoc {
 		titles.put(XDShell.class, "Base Commands");
 		// ===== Streams etc. ======
 		titles.put(StreamCommands.class, "Stream Commands");
-		titles.put(TapCommands.class, "Tap Commands");
 		titles.put(JobCommands.class, "Job Commands");
 
 		// ======= Analytics =======

@@ -82,6 +82,10 @@ public class ModuleDeployerTests {
 		}
 
 		@Override
+		public void beforeShutdown(Module module) {
+		}
+
+		@Override
 		public void removeModule(Module module) {
 
 		}

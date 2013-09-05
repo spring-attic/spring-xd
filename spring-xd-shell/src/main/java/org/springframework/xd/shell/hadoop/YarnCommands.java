@@ -249,9 +249,9 @@ public class YarnCommands extends ConfigurationAware implements ExecutionProcess
 		launchCommandsFactory.setBeanName(YarnSystemConstants.DEFAULT_ID_APPMASTER);
 		Properties arguments = new Properties();
 		arguments.put("container-count", "2");
-		arguments.put("-Dxd.store", "redis");
-		arguments.put("-Dxd.transport", "redis");
-		arguments.put("-Dxd.home", "./xdapp.zip");
+		arguments.put("-DXD_STORE", "redis");
+		arguments.put("-DXD_TRANSPORT", "redis");
+		arguments.put("-DXD_HOME", "./xdapp.zip");
 		launchCommandsFactory.setArguments(arguments);
 		launchCommandsFactory.setStdout("<LOG_DIR>/Appmaster.stdout");
 		launchCommandsFactory.setStderr("<LOG_DIR>/Appmaster.stderr");

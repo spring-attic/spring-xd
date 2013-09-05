@@ -554,7 +554,6 @@ project('spring-xd-yarn') {
 		hadoopruntime.exclude group: 'org.apache.hadoop'
 		hadoopruntime.exclude group: 'commons-logging'
 		hadoopruntime.exclude group: 'org.codehaus.jettison'
-		hadoopruntime.exclude group: 'com.thoughtworks.xstream'
 		hadoopruntime.exclude group: 'org.apache.activemq'
 	}
 	dependencies {
@@ -757,10 +756,8 @@ task copyYarnInstall(type: Copy, dependsOn: ":spring-xd-yarn:copyToLib") {
 	from("$rootDir/spring-xd-dirt/build/install/spring-xd-dirt") {
 		include 'config/**'
 		include 'modules/**'
+		include 'spring-xd-ui/**'
 	}
-	//from "$rootDir/spring-xd-yarn/build/lib"
-	//from "$rootDir/spring-xd-dirt/build/install/spring-xd-dirt/config"
-	//from "$rootDir/spring-xd-dirt/build/install/spring-xd-dirt/modules"
 	into "$buildDir/dist/spring-xd/yarn"
 }
 

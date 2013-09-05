@@ -39,18 +39,19 @@
 		<yarn:classpath>
 			./xdapp.zip/lib/*
 		</yarn:classpath>
-		xd.home=${xd.home}
+		XD_HOME=${XD_HOME}
+		XD_ANALYTICS=redis
 	</yarn:environment>
 
 	<!-- Arguments to appmaster process launcher -->
 	<util:properties id="arguments">
-		<prop key="-Dxd.transport">${xd.transport}</prop>
-		<prop key="-Dxd.home">${xd.home}</prop>
+		<prop key="-DXD_TRANSPORT">${XD_TRANSPORT}</prop>
+		<prop key="-DXD_HOME">${XD_HOME}</prop>
 	</util:properties>
 
 	<!-- Our xd specific appmaster -->
 	<yarn:master class="org.springframework.xd.yarn.XdYarnAppmaster">
-		<yarn:container-runner arguments="arguments"/>
+		<yarn:container-runner runner="org.springframework.xd.yarn.XdYarnContainerRunner" arguments="arguments"/>
 	</yarn:master>
 
 </beans>

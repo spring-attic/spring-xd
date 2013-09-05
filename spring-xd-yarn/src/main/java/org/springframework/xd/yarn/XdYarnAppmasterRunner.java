@@ -45,9 +45,9 @@ public class XdYarnAppmasterRunner extends CommandLineAppmasterRunner {
 	protected ConfigurableApplicationContext getChildApplicationContext(
 			String configLocation, ConfigurableApplicationContext parent) {
 
-		log.info("Using xd.transport=" + System.getProperty("xd.transport"));
-		log.info("Using xd.store=" + System.getProperty("xd.store"));
-		log.info("Using xd.home=" + System.getProperty("xd.home"));
+		log.info("Using XD_TRANSPORT=" + System.getProperty("XD_TRANSPORT"));
+		log.info("Using XD_STORE=" + System.getProperty("XD_STORE"));
+		log.info("Using XD_HOME=" + System.getProperty("XD_HOME"));
 
 		XmlWebApplicationContext context = new XmlWebApplicationContext();
 		context.setParent(parent);

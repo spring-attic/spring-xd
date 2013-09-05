@@ -49,12 +49,14 @@ public class XdYarnContainer extends AbstractYarnContainer implements Applicatio
 	@Override
 	protected void runInternal() {
 		log.info("XdContainer internal run starting, setting up XD container launcher");
-		log.info("Using xd.home=" + getEnvironment("xd.home"));
+		log.info("Using XD_HOME=" + getEnvironment("XD_HOME"));
+		log.info("XdContainer context=" + context);
+		log.info("XdContainer parent context=" + context.getParent());
 
 		ContainerOptions options = new ContainerOptions();
 		String[] args = new String[] {
 			"--xdHomeDir",
-			getEnvironment("xd.home")
+			getEnvironment("XD_HOME")
 		};
 		CmdLineParser parser = new CmdLineParser(options);
 		try {

@@ -105,9 +105,9 @@ public class ConfigurationCommands implements ApplicationEventPublisherAware, Co
 		hadoopConfiguration.set("mapred.job.tracker", jobtracker);
 	}
 
-	@CliCommand(value = { PREFIX + "rm" }, help = "Sets the Hadoop resource manager")
+	@CliCommand(value = { PREFIX + "rm" }, help = "Sets the Hadoop Yarn resource manager")
 	public void setRm(
-			@CliOption(key = { "", "resourcemanager" }, mandatory = true, help = "resource manager - <resourcemanager:port>") String resourcemanager) {
+			@CliOption(key = { "", "resourcemanager" }, mandatory = true, help = "yarn resource manager address - <resourcemanager:port>") String resourcemanager) {
 		hadoopConfiguration.set("yarn.resourcemanager.address", resourcemanager);
 	}
 

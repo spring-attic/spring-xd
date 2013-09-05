@@ -81,6 +81,8 @@ public class YarnCommands extends ConfigurationAware implements ExecutionProcess
 
 	private static final String HELP_KILL = "Kill running XD instance on Yarn";
 
+	private static final String HELP_KILL_ID = "application id - as shown by Yarn resource manager or shell list command";
+
 	@Override
 	protected boolean configurationChanged() throws Exception {
 		return true;
@@ -119,22 +121,20 @@ public class YarnCommands extends ConfigurationAware implements ExecutionProcess
 	public String submit() throws Exception {
 		ApplicationId applicationId = getYarnClientForSubmit().submitApplication();
 		if (applicationId != null) {
-			return "Submit succesful, new id is " + applicationId.toString();
+			return "Submit succesful, new application id is " + applicationId.toString();
 		}
-		else {
-			return "Failure submitting new application.";
-		}
+		throw new IllegalArgumentException("Failed to submit new application instance.");
 	}
 
 	/**
-	 * Command listing known application instances known to Yarn resource manager.
+	 * Command listing application instances known to Yarn resource manager.
 	 * 
 	 * @param id the application to be killed
 	 * @return the Command message
 	 * @throws Exception if error occurred
 	 */
 	@CliCommand(value = COMMAND_KILL, help = HELP_KILL)
-	public String kill(@CliOption(key = { "", "id" }, mandatory = true, help = "app id") final String id)
+	public String kill(@CliOption(key = { "", "id" }, mandatory = true, help = HELP_KILL_ID) final String id)
 			throws Exception {
 		ApplicationId applicationId = null;
 		YarnClient yarnClient = getYarnClient();

@@ -543,7 +543,6 @@ project('spring-xd-hadoop:hadoop20') {
 }
 
 project('spring-xd-yarn') {
-	//apply plugin: "application"
 	description = 'Spring XD Yarn'
 	jar {
 		excludes.remove('log4j.properties')
@@ -565,10 +564,8 @@ project('spring-xd-yarn') {
 	}
 	task copyToLib(dependsOn: build, type: Copy) {
 		into "$buildDir/lib"
+		from configurations.runtime.allArtifacts.files
 		from configurations.hadoopruntime
-		from("$buildDir/libs") {
-			exclude '*-tests.jar','*-javadoc.jar','*-sources.jar'
-		}
 	}
 }
 

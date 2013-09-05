@@ -75,12 +75,8 @@ public class XdYarnAppmaster extends StaticEventingAppmaster
 			env.put(YarnSystemConstants.AMSERVICE_HOST, address);
 			env.put(YarnSystemConstants.SYARN_CONTAINER_ID, ConverterUtils.toString(context.getContainerId()));
 			context.setEnvironment(env);
-
-			return context;
 		}
-		else {
-			return context;
-		}
+		return context;
 	}
 
 	@Override

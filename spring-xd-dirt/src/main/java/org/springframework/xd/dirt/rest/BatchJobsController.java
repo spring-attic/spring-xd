@@ -22,16 +22,20 @@ import java.util.List;
 
 import org.springframework.batch.admin.service.JobService;
 import org.springframework.batch.admin.web.JobInfo;
+import org.springframework.batch.core.JobInstance;
 import org.springframework.batch.core.launch.NoSuchJobException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.xd.dirt.plugins.job.batch.NoSuchBatchJobException;
 
 
 /**
@@ -44,12 +48,12 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Controller
 @RequestMapping("/batch/jobs")
 @ExposesResourceFor(JobInfo.class)
-public class BatchJobController {
+public class BatchJobsController {
 
 	private final JobService jobService;
 
 	@Autowired
-	public BatchJobController(JobService jobService) {
+	public BatchJobsController(JobService jobService) {
 		super();
 		this.jobService = jobService;
 	}
@@ -76,34 +80,36 @@ public class BatchJobController {
 		return jobs;
 	}
 
-	// TODO: Currently the job name has "." separator which doesn't work as path variable
-	// @RequestMapping(value = "/{jobName}", method = RequestMethod.GET)
-	// @ResponseBody
-	// @ResponseStatus(HttpStatus.OK)
-	// public ModelMap details(ModelMap model, @PathVariable String jobName,
-	// @RequestParam(defaultValue = "0") int startJobInstance, @RequestParam(defaultValue = "20") int pageSize) {
-	//
-	// boolean launchable = jobService.isLaunchable(jobName);
-	//
-	// try {
-	// Collection<JobInstance> result = jobService.listJobInstances(jobName, startJobInstance, pageSize);
-	// Collection<JobInstanceInfo> jobInstances = new ArrayList<JobInstanceInfo>();
-	// model.addAttribute("jobParameters", "");
-	// for (JobInstance jobInstance : result) {
-	// jobInstances.add(new JobInstanceInfo(jobInstance, jobService.getJobExecutionsForJobInstance(jobName,
-	// jobInstance.getId())));
-	// }
-	//
-	// model.addAttribute("jobInstances", jobInstances);
-	// int count = jobService.countJobExecutionsForJob(jobName);
-	// model.addAttribute("jobInfo", new JobInfo(jobName, count, launchable, jobService.isIncrementable(jobName)));
-	//
-	// }
-	// catch (NoSuchJobException e) {
-	// throw new NoSuchBatchJobException(jobName);
-	// }
-	//
-	// return model;
-	//
-	// }
+
+	@RequestMapping(value = "/{jobName}/instances", method = RequestMethod.GET)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.OK)
+	public Collection<JobInstance> jobInstances(@PathVariable String jobName,
+			@RequestParam(defaultValue = "0") int startJobInstance, @RequestParam(defaultValue = "20") int pageSize) {
+		Collection<JobInstance> jobInstances = new ArrayList<JobInstance>();
+		try {
+			jobInstances = jobService.listJobInstances(jobName, startJobInstance, pageSize);
+			// TODO: Need to add the jobExecutions for each jobInstance
+		}
+		catch (NoSuchJobException e) {
+			throw new NoSuchBatchJobException(jobName);
+		}
+		return jobInstances;
+	}
+
+	@RequestMapping(value = "/{jobName}/info", method = RequestMethod.GET)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.OK)
+	public JobInfo jobinfo(ModelMap model, @PathVariable String jobName) {
+		boolean launchable = jobService.isLaunchable(jobName);
+		JobInfo jobInfo;
+		try {
+			int count = jobService.countJobExecutionsForJob(jobName);
+			jobInfo = new JobInfo(jobName, count, launchable, jobService.isIncrementable(jobName));
+		}
+		catch (NoSuchJobException e) {
+			throw new NoSuchBatchJobException(jobName);
+		}
+		return jobInfo;
+	}
 }

@@ -25,9 +25,6 @@ import org.springframework.batch.admin.service.JobService;
 import org.springframework.batch.admin.service.SearchableJobExecutionDao;
 import org.springframework.batch.admin.service.SearchableJobInstanceDao;
 import org.springframework.batch.admin.service.SearchableStepExecutionDao;
-import org.springframework.batch.admin.service.SimpleJobService;
-import org.springframework.batch.core.configuration.JobRegistry;
-import org.springframework.batch.core.configuration.ListableJobLocator;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.support.SimpleJobLauncher;
 import org.springframework.batch.core.repository.JobRepository;
@@ -42,6 +39,8 @@ import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository
 import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
 import org.springframework.xd.dirt.module.ModuleRegistry;
+import org.springframework.xd.dirt.plugins.job.batch.BatchJobLocator;
+import org.springframework.xd.dirt.plugins.job.batch.DistributedJobService;
 import org.springframework.xd.dirt.stream.DeploymentMessageSender;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobDeployer;
@@ -154,9 +153,9 @@ public class Dependencies {
 
 	@Bean
 	public JobService jobService() {
-		return new SimpleJobService(searchableJobInstanceDao(), searchableJobExecutionDao(),
+		return new DistributedJobService(searchableJobInstanceDao(), searchableJobExecutionDao(),
 				searchableStepExecutionDao(), jobRepository(), jobLauncher(),
-				jobLocator(), executionContextDao());
+				batchJobLocator(), executionContextDao());
 	}
 
 	@Bean
@@ -185,8 +184,8 @@ public class Dependencies {
 	}
 
 	@Bean
-	public ListableJobLocator jobLocator() {
-		return mock(JobRegistry.class);
+	public BatchJobLocator batchJobLocator() {
+		return mock(BatchJobLocator.class);
 	}
 
 	@Bean

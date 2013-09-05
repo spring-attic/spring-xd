@@ -51,9 +51,9 @@ import org.springframework.xd.dirt.plugins.job.batch.NoSuchBatchJobException;
 @Controller
 @RequestMapping("/batch/jobs")
 @ExposesResourceFor(JobExecutionInfo.class)
-public class BatchJobExecutionController {
+public class BatchJobExecutionsController {
 
-	private static Log logger = LogFactory.getLog(BatchJobExecutionController.class);
+	private static Log logger = LogFactory.getLog(BatchJobExecutionsController.class);
 
 	public static class StopRequest {
 
@@ -83,7 +83,7 @@ public class BatchJobExecutionController {
 	}
 
 	@Autowired
-	public BatchJobExecutionController(JobService jobService) {
+	public BatchJobExecutionsController(JobService jobService) {
 		super();
 		this.jobService = jobService;
 	}

@@ -36,12 +36,10 @@ import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.batch.core.repository.dao.ExecutionContextDao;
 
-
 /**
  * SimpleJobService in distributed mode
  * 
  * @author Ilayaperumal Gopinathan
- * @author Dave Syer
  */
 public class DistributedJobService extends SimpleJobService {
 

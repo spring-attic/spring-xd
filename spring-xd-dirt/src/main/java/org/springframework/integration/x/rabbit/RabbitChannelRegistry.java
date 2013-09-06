@@ -95,8 +95,10 @@ public class RabbitChannelRegistry extends ChannelRegistrySupport implements Dis
 	@Override
 	public void createInboundPubSub(String name, MessageChannel moduleInputChannel,
 			Collection<MediaType> acceptedMediaTypes) {
+		FanoutExchange exchange = new FanoutExchange("topic." + name);
+		rabbitAdmin.declareExchange(exchange);
 		Queue queue = this.rabbitAdmin.declareQueue();
-		Binding binding = BindingBuilder.bind(queue).to(new FanoutExchange("topic." + name));
+		Binding binding = BindingBuilder.bind(queue).to(exchange);
 		this.rabbitAdmin.declareBinding(binding);
 		doCreateInbound(name, moduleInputChannel, acceptedMediaTypes, queue);
 	}

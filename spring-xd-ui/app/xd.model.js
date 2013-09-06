@@ -108,10 +108,11 @@ function(Backbone, rest, entity, mime, hateoas, errorcode) {
 
     // the query kinds we care about for now
     // TODO this can be done better
-    // this part of ui is disabled
+    // only show jobs
     model.artifactKinds = model.artifactUrls = ['jobs'];
     model.readableNames = [{ kind: 'jobs', name: 'Jobs' }];
     
+    // this part of ui is disabled
 //     model.artifactKinds = ['streams', 'taps', 'jobs', 'triggers', 'richgauges', 'gauges', 'field-value-counters', 'counters', 'aggregate-counters'];
 //     model.artifactUrls = ['streams', 'taps', 'jobs', 'triggers', 'metrics/richgauges', 'metrics/gauges', 'metrics/field-value-counters', 'metrics/counters', 'metrics/aggregate-counters'];
 //     model.readableNames = [
@@ -218,7 +219,16 @@ function(Backbone, rest, entity, mime, hateoas, errorcode) {
         parse: function(data) {
             return data;
         },
-        comparator: 'name'
+        comparator: 'name',
+
+        startFetching: function() {
+            this.fetch({change:true, add:false}).then(
+                function() {
+                    setTimeout(function() {
+                        this.startFetching();
+                    }.bind(this), 5000);
+                }.bind(this));
+        }
     });
 
     var Execution = Backbone.Model.extend({

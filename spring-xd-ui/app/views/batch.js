@@ -65,7 +65,7 @@ function(_, Backbone, utils, conf, model, BatchDetail) {
         initialize: function() {
             this.listenTo(model.batchJobs, 'change', this.render);
             this.listenTo(model.batchJobs, 'reset', this.render);
-            model.batchJobs.fetch({change:true, add:false});
+            model.batchJobs.startFetching();
         },
 
         render: function() {
@@ -91,6 +91,8 @@ function(_, Backbone, utils, conf, model, BatchDetail) {
                 }
             }, this);
 
+            this.filterJobs();
+
             return this;
         },
 
@@ -110,7 +112,8 @@ function(_, Backbone, utils, conf, model, BatchDetail) {
                             detailsView.setElement('#' + job.id + '_details');
                             detailsView.$detailsRow = this.$('#' + job.id + '_detailsRow');
                             detailsView.render();
-                            // don't use bootstrap collapse.  See stackoverflow.com/questions/18495653/how-do-i-collapse-a-table-row-in-bootstrap/18496059#18496059
+                            // don't use bootstrap collapse.  
+                            // See stackoverflow.com/questions/18495653/how-do-i-collapse-a-table-row-in-bootstrap/18496059#18496059
                             detailsView.$detailsRow.show();
                             expanded[job.id] = detailsView;
                             this.listenTo(model.batchJobs, 'change', this.render);
@@ -136,7 +139,13 @@ function(_, Backbone, utils, conf, model, BatchDetail) {
         },
 
         filterJobs : function(event) {
-            var value = event.currentTarget.value;
+            if (event) {
+                this.filterValue = event.currentTarget.value;
+            }
+            if (!this.filterValue) {
+                return;
+            }
+
             // get all rows
             var rows = this.$('table#batch > tbody > tr');
             rows.each(function (i) {
@@ -147,7 +156,7 @@ function(_, Backbone, utils, conf, model, BatchDetail) {
                         id = id.substr(0, id.length - '_detailsRow'.length);
                         isDetails = true;
                     }
-                    if (matches(id, value)) {
+                    if (matches(id, this.filterValue)) {
                         if (!isDetails || expanded[id]) {
                             // never show details...this is wrong, but OK for now
                             // we are forgetting where details used to be shown

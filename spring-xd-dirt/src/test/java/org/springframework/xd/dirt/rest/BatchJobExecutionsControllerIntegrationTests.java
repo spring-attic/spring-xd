@@ -16,6 +16,12 @@
 
 package org.springframework.xd.dirt.rest;
 
+import static org.hamcrest.Matchers.contains;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -25,6 +31,7 @@ import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.batch.admin.service.JobService;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobInstance;
@@ -36,12 +43,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.xd.dirt.plugins.job.batch.BatchJobLocator;
-
-import static org.hamcrest.Matchers.*;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import org.springframework.xd.dirt.plugins.job.BatchJobLocator;
 
 /**
  * Tests REST compliance of BatchJobExecutionsController endpoints.
@@ -66,13 +68,8 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 		Collection<String> jobNames = new ArrayList<String>();
 		jobNames.add(job1.getName());
 		jobNames.add(job2.getName());
-		Collection<JobInstance> jobInstances = new ArrayList<JobInstance>();
 		JobInstance jobInstance1 = new JobInstance(0l, job1.getName());
 		JobInstance jobInstance2 = new JobInstance(2l, job2.getName());
-		JobInstance jobInstance3 = new JobInstance(3l, job1.getName());
-		jobInstances.add(jobInstance1);
-		jobInstances.add(jobInstance2);
-		jobInstances.add(jobInstance3);
 		Map<String, JobParameter> parametersMap1 = new HashMap<String, JobParameter>();
 		parametersMap1.put("param1", new JobParameter("test", true));
 		parametersMap1.put("param2", new JobParameter(123l, false));
@@ -93,7 +90,6 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 		when(jobService.isIncrementable(job1.getName())).thenReturn(false);
 		when(jobService.isIncrementable(job2.getName())).thenReturn(true);
 
-		when(jobService.listJobInstances(job1.getName(), 0, 20)).thenReturn(jobInstances);
 		when(jobService.listJobExecutions(0, 20)).thenReturn(jobExecutions1);
 		when(jobService.listJobExecutionsForJob(job2.getName(), 0, 20)).thenReturn(jobExecutions2);
 	}
@@ -101,7 +97,7 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 	@Test
 	public void testGetBatchJobExecutions() throws Exception {
 		mockMvc.perform(
-				get("/batch/jobs/executions").param("startJobExecution", "0").param("pageSize", "20").accept(
+				get("/batch/executions").param("startJobExecution", "0").param("pageSize", "20").accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
 				jsonPath("$", Matchers.hasSize(2))).andExpect(jsonPath("$[*].id", contains(0, 3))).andExpect(
 				jsonPath("$[*].jobId", contains(0, 2))).andExpect(jsonPath("$[*].jobExecution[*].id", contains(0, 3))).andExpect(
@@ -113,18 +109,4 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 				jsonPath("$[*].jobExecution[*].jobParameters.parameters.param2.identifying", contains(false, false)));
 	}
 
-	@Test
-	public void testGetJobExecutionsByName() throws Exception {
-		mockMvc.perform(
-				get("/batch/jobs/job2/executions").param("startJobExecution", "0").param("pageSize", "20").accept(
-						MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
-				jsonPath("$", Matchers.hasSize(1))).andExpect(jsonPath("$[0].id").value(3)).andExpect(
-				jsonPath("$[0].jobId").value(2)).andExpect(jsonPath("$[0].jobExecution[*].id").value(3)).andExpect(
-				jsonPath("$[0].jobExecution[*].jobParameters.parameters.param1.value").value("test")).andExpect(
-				jsonPath("$[0].jobExecution[*].jobParameters.parameters.param1.type").value("STRING")).andExpect(
-				jsonPath("$[0].jobExecution[*].jobParameters.parameters.param1.identifying").value(true)).andExpect(
-				jsonPath("$[0].jobExecution[*].jobParameters.parameters.param2.value").value(123)).andExpect(
-				jsonPath("$[0].jobExecution[*].jobParameters.parameters.param2.type").value("LONG")).andExpect(
-				jsonPath("$[0].jobExecution[*].jobParameters.parameters.param2.identifying").value(false));
-	}
 }

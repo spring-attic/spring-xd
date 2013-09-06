@@ -20,24 +20,19 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.TimeZone;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.batch.admin.service.JobService;
 import org.springframework.batch.admin.web.JobExecutionInfo;
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.launch.NoSuchJobException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.xd.dirt.plugins.job.batch.NoSuchBatchJobException;
 
 /**
  * Controller for job executions.
@@ -47,25 +42,9 @@ import org.springframework.xd.dirt.plugins.job.batch.NoSuchBatchJobException;
  * 
  */
 @Controller
-@RequestMapping("/batch/jobs")
+@RequestMapping("/batch/executions")
 @ExposesResourceFor(JobExecutionInfo.class)
 public class BatchJobExecutionsController {
-
-	private static Log logger = LogFactory.getLog(BatchJobExecutionsController.class);
-
-	public static class StopRequest {
-
-		private Long jobExecutionId;
-
-		public Long getJobExecutionId() {
-			return jobExecutionId;
-		}
-
-		public void setJobExecutionId(Long jobExecutionId) {
-			this.jobExecutionId = jobExecutionId;
-		}
-
-	}
 
 	private JobService jobService;
 
@@ -86,7 +65,7 @@ public class BatchJobExecutionsController {
 		this.jobService = jobService;
 	}
 
-	@RequestMapping(value = { "/executions", "/executions.*" }, method = RequestMethod.GET)
+	@RequestMapping(value = { "" }, method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
 	public Collection<JobExecutionInfo> list(@RequestParam(defaultValue = "0") int startJobExecution,
@@ -98,25 +77,4 @@ public class BatchJobExecutionsController {
 		}
 		return result;
 	}
-
-	@RequestMapping(value = "/{jobName}/executions", method = RequestMethod.GET)
-	@ResponseStatus(HttpStatus.OK)
-	@ResponseBody
-	public Collection<JobExecutionInfo> listForJob(@PathVariable String jobName,
-			@RequestParam(defaultValue = "0") int startJobExecution, @RequestParam(defaultValue = "20") int pageSize) {
-
-		String fullName = jobName + ".job";
-		Collection<JobExecutionInfo> result = new ArrayList<JobExecutionInfo>();
-		try {
-			for (JobExecution jobExecution : jobService.listJobExecutionsForJob(fullName, startJobExecution, pageSize)) {
-				result.add(new JobExecutionInfo(jobExecution, timeZone));
-			}
-		}
-		catch (NoSuchJobException e) {
-			logger.warn("Could not locate Job with name=" + jobName);
-			throw new NoSuchBatchJobException(jobName);
-		}
-		return result;
-	}
-
 }

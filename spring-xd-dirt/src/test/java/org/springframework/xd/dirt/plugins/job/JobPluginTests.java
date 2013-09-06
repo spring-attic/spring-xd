@@ -34,6 +34,7 @@ import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.xd.dirt.server.AdminServer;
 import org.springframework.xd.dirt.server.options.XDPropertyKeys;
 import org.springframework.xd.module.DeploymentMetadata;
@@ -70,6 +71,12 @@ public class JobPluginTests {
 		plugin = new JobPlugin();
 		sharedContext = new ClassPathXmlApplicationContext("classpath:/META-INF/spring-xd/batch/batch.xml");
 		sharedContext.getEnvironment().setActiveProfiles(AdminServer.ADMIN_PROFILE);
+		Properties hsqlProperties = new Properties();
+		hsqlProperties.put("hsql.server.dbname", "test");
+		hsqlProperties.put("hsql.server.port", "9100");
+		System.setProperty("hsql.server.database", "xdjobrepotest");
+		sharedContext.getEnvironment().getPropertySources().addFirst(new PropertiesPropertySource(
+				"hsqlProperties", hsqlProperties));
 		plugin.preProcessSharedContext(sharedContext);
 
 	}

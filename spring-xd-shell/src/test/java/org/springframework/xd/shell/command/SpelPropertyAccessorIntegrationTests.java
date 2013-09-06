@@ -34,10 +34,14 @@ public class SpelPropertyAccessorIntegrationTests extends AbstractStreamIntegrat
 
 	private static final Log logger = LogFactory.getLog(StreamCommandTests.class);
 
+	/**
+	 * This test focuses on tuple access. Note that it explicitly creates a tuple out of Json, which is no longer
+	 * required for end-user usecases (see {@link #testJsonPropertyAccessor()}).
+	 */
 	@Test
 	public void testTuplePropertyAccessor() throws Exception {
 		logger.info("Creating stream with temp File 'tupletest' as sink");
-		FileSink sink = newFileSink();
+		FileSink sink = newFileSink().binary(true);
 		HttpSource source = newHttpSource();
 
 		stream().create(
@@ -45,10 +49,30 @@ public class SpelPropertyAccessorIntegrationTests extends AbstractStreamIntegrat
 				"%s | json-to-tuple | transform --expression=payload.foo | %s",
 				source, sink);
 
-		source.ensureReady().postData("{'foo':'bar'}");
+		source.ensureReady().postData("{\"foo\":\"bar\"}");
 
 		final String result = sink.getContents();
 		assertEquals("bar", result.trim());
+	}
+
+	/**
+	 * This tests that we have Json property access out of the box.
+	 */
+	@Test
+	public void testJsonPropertyAccessor() throws Exception {
+		FileSink sink = newFileSink().binary(true);
+		HttpSource source = newHttpSource();
+
+		stream().create(
+				"jsontest",
+				"%s | transform --expression=payload.foo.toString() | %s",
+				source, sink);
+
+		source.ensureReady().postData("{\"foo\":\"bar\"}");
+
+		final String result = sink.getContents();
+		assertEquals("bar", result);
+
 	}
 
 }

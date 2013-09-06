@@ -65,7 +65,7 @@ public class SpelPropertyAccessorIntegrationTests extends AbstractStreamIntegrat
 
 		stream().create(
 				"jsontest",
-				"%s | transform --expression=payload.foo | %s",
+				"%s | transform --expression=payload.foo.toString() | %s",
 				source, sink);
 
 		source.ensureReady().postData("{\"foo\":\"bar\"}");

@@ -78,4 +78,42 @@ public class Table {
 		}
 	}
 
+	@Override
+	public int hashCode() {
+		calculateColumnWidths();
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((headers == null) ? 0 : headers.hashCode());
+		result = prime * result + ((rows == null) ? 0 : rows.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+
+		Table other = (Table) obj;
+		this.calculateColumnWidths();
+		other.calculateColumnWidths();
+		if (headers == null) {
+			if (other.headers != null)
+				return false;
+		}
+		else if (!headers.equals(other.headers))
+			return false;
+		if (rows == null) {
+			if (other.rows != null)
+				return false;
+		}
+		else if (!rows.equals(other.rows))
+			return false;
+		return true;
+	}
+
+
 }

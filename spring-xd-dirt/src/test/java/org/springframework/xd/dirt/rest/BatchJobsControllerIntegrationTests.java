@@ -59,8 +59,8 @@ public class BatchJobsControllerIntegrationTests extends AbstractControllerInteg
 
 	@Before
 	public void before() throws Exception {
-		SimpleJob job1 = new SimpleJob("job1");
-		SimpleJob job2 = new SimpleJob("job2");
+		SimpleJob job1 = new SimpleJob("job1.job");
+		SimpleJob job2 = new SimpleJob("job2.job");
 		Collection<String> jobNames = new ArrayList<String>();
 		jobNames.add(job1.getName());
 		jobNames.add(job2.getName());
@@ -99,13 +99,13 @@ public class BatchJobsControllerIntegrationTests extends AbstractControllerInteg
 						MediaType.APPLICATION_JSON)).andExpect(status().isOk())
 				.andExpect(jsonPath("$", Matchers.hasSize(3)))
 				.andExpect(jsonPath("$[*].id", contains(0, 2, 3)))
-				.andExpect(jsonPath("$[*].jobName", contains("job1", "job1", "job1")));
+				.andExpect(jsonPath("$[*].jobName", contains("job1.job", "job1.job", "job1.job")));
 	}
 
 	@Test
 	public void testGetJobInfoByJobName() throws Exception {
 		mockMvc.perform(
-				get("/batch/jobs/job1/info").param("startJobInstance", "0").param("pageSize", "20").accept(
+				get("/batch/jobs/job1").param("startJobInstance", "0").param("pageSize", "20").accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isOk())
 				.andExpect(jsonPath("$.executionCount").value(2))
 				.andExpect(jsonPath("$.launchable").value(true))

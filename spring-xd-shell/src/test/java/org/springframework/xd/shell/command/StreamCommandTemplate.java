@@ -107,6 +107,18 @@ public class StreamCommandTemplate extends AbstractCommandTemplate {
 	}
 
 	/**
+	 * Destroy a specific stream
+	 *
+	 * @param stream The stream to destroy
+	 */
+	public void destroyStream(String stream) {
+		CommandResult cr = executeCommand("stream destroy --name " + stream);
+		assertTrue("Failure to destory stream " + stream + ".  CommandResult = " + cr.toString(),
+				cr.isSuccess());
+		streams.remove(stream);
+	}
+
+	/**
 	 * Undeploy the given stream name
 	 * 
 	 * @param streamname name of the stream.

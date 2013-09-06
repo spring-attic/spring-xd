@@ -32,6 +32,9 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.channel.AbstractMessageChannel;
+import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.x.channel.registry.ChannelRegistry;
 import org.springframework.util.CollectionUtils;
 import org.springframework.xd.dirt.container.XDContainer;
@@ -53,7 +56,7 @@ public class StreamPlugin implements Plugin {
 
 	private static final String CONTEXT_CONFIG_ROOT = XDContainer.XD_CONFIG_ROOT + "plugins/stream/";
 
-	private static final String TAP_XML = CONTEXT_CONFIG_ROOT + "tap.xml";
+	private static final String TAP_CHANNEL_PREFIX = "tap:";
 
 	private static final String SPEL_CONTEXT_XML = CONTEXT_CONFIG_ROOT + "spel-context.xml";
 
@@ -75,28 +78,13 @@ public class StreamPlugin implements Plugin {
 			module.addProperties(properties);
 			module.addComponents(new ClassPathResource(SPEL_CONTEXT_XML));
 		}
-
-		if ("tap".equals(module.getName()) && SOURCE.equals(type)) {
-			module.addComponents(new ClassPathResource(TAP_XML));
-		}
 	}
 
 	@Override
 	public void postProcessModule(Module module) {
 		ChannelRegistry registry = findRegistry(module);
-		DeploymentMetadata md = module.getDeploymentMetadata();
-
-		if (registry != null) {
-			MessageChannel channel = module.getComponent("input", MessageChannel.class);
-			if (channel != null) {
-				registry.createInbound(md.getInputChannelName(), channel, getAcceptedMediaTypes(module),
-						md.isAliasedInput());
-			}
-			channel = module.getComponent("output", MessageChannel.class);
-			if (channel != null) {
-				registry.createOutbound(md.getOutputChannelName(), channel, md.isAliasedOutput());
-			}
-		}
+		createInbound(module, registry);
+		createOutbound(module, registry);
 	}
 
 	private ChannelRegistry findRegistry(Module module) {
@@ -110,17 +98,79 @@ public class StreamPlugin implements Plugin {
 		return registry;
 	}
 
+	private void createInbound(Module module, ChannelRegistry registry) {
+		DeploymentMetadata md = module.getDeploymentMetadata();
+		MessageChannel channel = module.getComponent("input", MessageChannel.class);
+		if (channel != null) {
+			if (isChannelPubSub(md.getInputChannelName())) {
+				registry.createInboundPubSub(md.getInputChannelName(), channel, getAcceptedMediaTypes(module));
+			}
+			else {
+				registry.createInbound(md.getInputChannelName(), channel, getAcceptedMediaTypes(module),
+						md.isAliasedInput());
+			}
+		}
+	}
+
+	private void createOutbound(Module module, ChannelRegistry registry) {
+		DeploymentMetadata md = module.getDeploymentMetadata();
+		MessageChannel channel = module.getComponent("output", MessageChannel.class);
+		if (channel != null) {
+			if (isChannelPubSub(md.getOutputChannelName())) {
+				registry.createOutboundPubSub(md.getOutputChannelName(), channel);
+			}
+			else {
+				registry.createOutbound(md.getOutputChannelName(), channel, md.isAliasedOutput());
+			}
+			// Create the tap channel now for possible future use (tap:mystream.mymodule)
+			if (channel instanceof AbstractMessageChannel) {
+				String tapChannelName = getTapChannelName(module);
+				DirectChannel tapChannel = new DirectChannel();
+				tapChannel.setBeanName(tapChannelName + ".tap.bridge");
+				((AbstractMessageChannel) channel).addInterceptor(new WireTap(tapChannel));
+				registry.createOutboundPubSub(tapChannelName, tapChannel);
+			}
+		}
+	}
+
 	@Override
 	public void beforeShutdown(Module module) {
+		ChannelRegistry registry = findRegistry(module);
+		if (registry != null) {
+			removeInbound(module, registry);
+			removeOutbound(module, registry);
+		}
 	}
 
 	@Override
 	public void removeModule(Module module) {
-		ChannelRegistry registry = findRegistry(module);
-		if (registry != null) {
-			registry.deleteInbound(module.getDeploymentMetadata().getInputChannelName());
-			registry.deleteOutbound(module.getDeploymentMetadata().getOutputChannelName());
+	}
+
+	private void removeInbound(Module module, ChannelRegistry registry) {
+		DeploymentMetadata md = module.getDeploymentMetadata();
+		if (isChannelPubSub(md.getInputChannelName())) {
+			MessageChannel inputChannel = module.getComponent("input", MessageChannel.class);
+			if (inputChannel != null) {
+				registry.deleteInbound(md.getInputChannelName(), inputChannel);
+			}
 		}
+		else {
+			registry.deleteInbound(module.getDeploymentMetadata().getInputChannelName());
+
+		}
+	}
+
+	private void removeOutbound(Module module, ChannelRegistry registry) {
+		registry.deleteOutbound(module.getDeploymentMetadata().getOutputChannelName());
+		registry.deleteOutbound(getTapChannelName(module));
+	}
+
+	private String getTapChannelName(Module module) {
+		return TAP_CHANNEL_PREFIX + module.getDeploymentMetadata().getGroup() + "." + module.getName();
+	}
+
+	private boolean isChannelPubSub(String channelName) {
+		return channelName != null && channelName.startsWith(TAP_CHANNEL_PREFIX);
 	}
 
 	private Collection<MediaType> getAcceptedMediaTypes(Module module) {

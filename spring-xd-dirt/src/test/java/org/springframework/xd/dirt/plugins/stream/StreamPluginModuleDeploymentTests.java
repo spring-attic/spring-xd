@@ -100,10 +100,10 @@ public class StreamPluginModuleDeploymentTests {
 	public void moduleChannelsRegisteredWithSameRegistry() throws InterruptedException {
 		this.source = sendModuleRequest(createSourceModuleRequest());
 		ChannelRegistry registry = source.getApplicationContext().getBean(ChannelRegistry.class);
-		assertEquals(1, getBridges(registry).size());
+		assertEquals(2, getBridges(registry).size());
 		this.sink = sendModuleRequest(createSinkModuleRequest());
 		assertSame(registry, sink.getApplicationContext().getBean(ChannelRegistry.class));
-		assertEquals(2, getBridges(registry).size());
+		assertEquals(3, getBridges(registry).size());
 	}
 
 	@Test
@@ -111,7 +111,7 @@ public class StreamPluginModuleDeploymentTests {
 		ModuleDeploymentRequest request = createSourceModuleRequest();
 		SimpleModule module = sendModuleRequest(request);
 		ChannelRegistry registry = module.getApplicationContext().getBean(ChannelRegistry.class);
-		assertEquals(1, getBridges(registry).size());
+		assertEquals(2, getBridges(registry).size());
 		request.setRemove(true);
 		sendModuleRequest(request);
 		assertEquals(0, getBridges(registry).size());

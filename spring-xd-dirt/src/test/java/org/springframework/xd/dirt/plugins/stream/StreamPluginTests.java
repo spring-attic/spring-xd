@@ -18,6 +18,8 @@ package org.springframework.xd.dirt.plugins.stream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -76,6 +78,7 @@ public class StreamPluginTests {
 		when(module.getDeploymentMetadata()).thenReturn(new DeploymentMetadata("foo", 1));
 		when(module.getType()).thenReturn(ModuleType.PROCESSOR.toString());
 		final ChannelRegistry registry = mock(ChannelRegistry.class);
+		when(module.getName()).thenReturn("testing");
 		when(module.getComponent(ChannelRegistry.class)).thenReturn(registry);
 		when(module.getComponent("input", MessageChannel.class)).thenReturn(input);
 		when(module.getComponent("output", MessageChannel.class)).thenReturn(output);
@@ -83,22 +86,12 @@ public class StreamPluginTests {
 		plugin.postProcessModule(module);
 		verify(registry).createInbound("foo.0", input, Collections.singletonList(MediaType.ALL), false);
 		verify(registry).createOutbound("foo.1", output, false);
+		verify(registry).createOutboundPubSub(eq("tap:foo.testing"), any(DirectChannel.class));
+		plugin.beforeShutdown(module);
 		plugin.removeModule(module);
 		verify(registry).deleteInbound("foo.0");
 		verify(registry).deleteOutbound("foo.1");
-	}
-
-	@Test
-	public void tapComponentsAdded() {
-		SimpleModule module = new SimpleModule(new ModuleDefinition("tap", "source"), new DeploymentMetadata(
-				"mystream", 1));
-		plugin.preProcessModule(module);
-		plugin.postProcessModule(module);
-		String[] moduleBeans = module.getApplicationContext().getBeanDefinitionNames();
-		assertEquals(2, moduleBeans.length);
-		for (String moduleBeanString : moduleBeans) {
-			assertTrue(moduleBeanString.contains("Tap#") || moduleBeanString.contains("integrationEvaluationContext"));
-		}
+		verify(registry).deleteOutbound("tap:foo.testing");
 	}
 
 	@Test

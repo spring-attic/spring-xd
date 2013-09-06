@@ -50,6 +50,9 @@ public class ModuleDeploymentRequest {
 
 	private volatile boolean launch;
 
+	private volatile boolean deployable = true;
+
+
 	public String getModule() {
 		return module;
 	}
@@ -120,6 +123,14 @@ public class ModuleDeploymentRequest {
 
 	public void setLaunch(boolean launch) {
 		this.launch = launch;
+	}
+
+	public void tagAsUndeployable() {
+		this.deployable = false;
+	}
+
+	public boolean isDeployable() {
+		return this.deployable;
 	}
 
 	@Override

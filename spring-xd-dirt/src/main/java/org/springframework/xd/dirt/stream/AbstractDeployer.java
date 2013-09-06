@@ -81,6 +81,11 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 				String.format("There is no %s definition named '%%s'", definitionKind));
 	}
 
+	protected void throwDefinitionNotDeployable(String name) {
+		throw new NoSuchDefinitionException(name,
+				String.format("The %s named '%%s' cannot be deployed", definitionKind));
+	}
+
 	protected void throwNoSuchDefinitionException(String name, String definitionKind) {
 		throw new NoSuchDefinitionException(name,
 				String.format("There is no %s definition named '%%s'", definitionKind));
@@ -143,6 +148,13 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		}
 
 		final List<ModuleDeploymentRequest> requests = parse(name, definition.getDefinition());
+
+		for (ModuleDeploymentRequest moduleDeploymentRequest : requests) {
+			if (!moduleDeploymentRequest.isDeployable()) {
+				throwDefinitionNotDeployable(name);
+			}
+		}
+
 		sendDeploymentRequests(name, requests);
 		return definition;
 	}

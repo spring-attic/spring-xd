@@ -137,7 +137,7 @@ public class XDStreamParser implements XDParser {
 		if (type == null) {
 			throw new NoSuchModuleException(name);
 		}
-		return verifyModuleOfTypeExists(name, type);
+		return verifyModuleOfTypeExists(request, name, type);
 	}
 
 	private ModuleType getNamedChannelModuleType(ModuleDeploymentRequest request, int lastIndex) {
@@ -146,7 +146,12 @@ public class XDStreamParser implements XDParser {
 		int index = request.getIndex();
 		if (request.getSourceChannelName() != null) {
 			if (index == lastIndex) {
-				type = ModuleType.SINK.getTypeName();
+				if (request.getSinkChannelName() != null) {
+					type = ModuleType.PROCESSOR.getTypeName();
+				}
+				else {
+					type = ModuleType.SINK.getTypeName();
+				}
 			}
 			else {
 				type = ModuleType.PROCESSOR.getTypeName();
@@ -160,13 +165,20 @@ public class XDStreamParser implements XDParser {
 				type = ModuleType.PROCESSOR.getTypeName();
 			}
 		}
-		return (type == null) ? null : verifyModuleOfTypeExists(moduleName, type);
+		return (type == null) ? null : verifyModuleOfTypeExists(request, moduleName, type);
 	}
 
-	private ModuleType verifyModuleOfTypeExists(String moduleName, String type) {
+	private ModuleType verifyModuleOfTypeExists(ModuleDeploymentRequest request, String moduleName, String type) {
 		ModuleDefinition def = moduleRegistry.findDefinition(moduleName, type);
 		if (def == null || def.getResource() == null) {
-			throw new NoSuchModuleException(moduleName);
+			List<ModuleDefinition> definitions = moduleRegistry.findDefinitions(moduleName);
+			if (definitions == null || definitions.size() == 0) {
+				throw new NoSuchModuleException(moduleName);
+			}
+			// The module is known but this doesn't seem to be a standard stream,
+			// assume it is a composite module stream that isn't deployable by itself
+			request.tagAsUndeployable();
+			return ModuleType.getModuleTypeByTypeName(definitions.get(0).getType());
 		}
 		return ModuleType.getModuleTypeByTypeName(def.getType());
 	}

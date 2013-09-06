@@ -227,14 +227,9 @@ public class ChannelRegistrySupportTests {
 	public class TestChannelRegistry extends ChannelRegistrySupport {
 
 		@Override
-		public void tap(String tapModule, String name, MessageChannel channel) {
-		}
-
-		@Override
 		public void createInbound(String name, MessageChannel channel, Collection<MediaType> acceptedMediaTypes,
 				boolean aliasHint) {
 		}
-
 
 		@Override
 		public void createInboundPubSub(String name, MessageChannel moduleInputChannel,

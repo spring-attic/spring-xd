@@ -159,11 +159,6 @@ public class RabbitChannelRegistry extends ChannelRegistrySupport implements Dis
 	}
 
 	@Override
-	public void tap(String tapModule, final String name, MessageChannel tapModuleInputChannel) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
 	public void destroy() {
 		stopBridges();
 	}

@@ -124,11 +124,6 @@ public class RedisChannelRegistry extends ChannelRegistrySupport implements Disp
 	}
 
 	@Override
-	public void tap(String tapModule, final String name, MessageChannel tapModuleInputChannel) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
 	public void destroy() {
 		stopBridges();
 	}

@@ -3,10 +3,8 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<bean id="tapRepository" class="org.springframework.xd.dirt.stream.memory.InMemoryTapDefinitionRepository"/>
 	<bean id="jobRepository" class="org.springframework.xd.dirt.stream.memory.InMemoryJobDefinitionRepository"/>
 	<bean id="streamDefinitionRepository" class="org.springframework.xd.dirt.stream.memory.InMemoryStreamDefinitionRepository"/>
 	<bean id="streamRepository" class="org.springframework.xd.dirt.stream.memory.InMemoryStreamRepository" />
-	<bean id="tapInstanceRepository" class="org.springframework.xd.dirt.stream.memory.InMemoryTapInstanceRepository" />
 
 </beans>

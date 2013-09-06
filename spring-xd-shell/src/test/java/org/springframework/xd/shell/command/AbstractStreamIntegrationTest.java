@@ -43,8 +43,6 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 
 	private StreamCommandTemplate streamOps;
 
-	private TapCommandTemplate tapOps;
-
 	private CounterCommandTemplate counterOps;
 
 	private AggregateCounterCommandTemplate aggOps;
@@ -57,7 +55,6 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 
 	public AbstractStreamIntegrationTest() {
 		streamOps = new StreamCommandTemplate(getShell());
-		tapOps = new TapCommandTemplate(getShell());
 		counterOps = new CounterCommandTemplate(getShell());
 		aggOps = new AggregateCounterCommandTemplate(getShell());
 		fvcOps = new FieldValueCounterCommandTemplate(getShell());
@@ -66,10 +63,6 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 
 	protected StreamCommandTemplate stream() {
 		return streamOps;
-	}
-
-	protected TapCommandTemplate tap() {
-		return tapOps;
 	}
 
 	protected CounterCommandTemplate counter() {
@@ -90,7 +83,6 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 
 	@After
 	public void after() {
-		tap().destroyCreatedTaps();
 		stream().destroyCreatedStreams();
 		counter().deleteDefaultCounter();
 		aggCounter().deleteDefaultCounter();

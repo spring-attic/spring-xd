@@ -174,11 +174,6 @@ public class LocalChannelRegistry extends ChannelRegistrySupport implements Appl
 		bridge(moduleOutputChannel, registeredChannel, "outbound." + registeredChannel.getComponentName());
 	}
 
-	@Override
-	public void tap(String tapModule, String name, MessageChannel channel) {
-		throw new UnsupportedOperationException();
-	}
-
 	protected <T extends AbstractMessageChannel> T createSharedChannel(String name, Class<T> requiredType) {
 		try {
 			T channel = requiredType.newInstance();

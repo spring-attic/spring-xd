@@ -155,7 +155,7 @@ public abstract class XDController<D extends BaseDefinition, A extends ResourceA
 	/**
 	 * Retrieve information about a single {@link ResourceSupport}.
 	 * 
-	 * @param name the name of an existing tap (required)
+	 * @param name the name of an existing resource (required)
 	 */
 	@RequestMapping(value = "/{name}", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)

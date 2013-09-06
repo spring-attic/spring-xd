@@ -89,8 +89,8 @@ public class StreamPluginTests {
 		verify(registry).createOutboundPubSub(eq("tap:foo.testing"), any(DirectChannel.class));
 		plugin.beforeShutdown(module);
 		plugin.removeModule(module);
-		verify(registry).deleteInbound("foo.0");
-		verify(registry).deleteOutbound("foo.1");
+		verify(registry).deleteInbound("foo.0", input);
+		verify(registry).deleteOutbound("foo.1", output);
 		verify(registry).deleteOutbound("tap:foo.testing");
 	}
 

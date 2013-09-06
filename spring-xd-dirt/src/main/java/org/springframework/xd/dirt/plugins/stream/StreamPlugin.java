@@ -147,21 +147,17 @@ public class StreamPlugin implements Plugin {
 	}
 
 	private void removeInbound(Module module, ChannelRegistry registry) {
-		DeploymentMetadata md = module.getDeploymentMetadata();
-		if (isChannelPubSub(md.getInputChannelName())) {
-			MessageChannel inputChannel = module.getComponent("input", MessageChannel.class);
-			if (inputChannel != null) {
-				registry.deleteInbound(md.getInputChannelName(), inputChannel);
-			}
-		}
-		else {
-			registry.deleteInbound(module.getDeploymentMetadata().getInputChannelName());
-
+		MessageChannel inputChannel = module.getComponent("input", MessageChannel.class);
+		if (inputChannel != null) {
+			registry.deleteInbound(module.getDeploymentMetadata().getInputChannelName(), inputChannel);
 		}
 	}
 
 	private void removeOutbound(Module module, ChannelRegistry registry) {
-		registry.deleteOutbound(module.getDeploymentMetadata().getOutputChannelName());
+		MessageChannel outputChannel = module.getComponent("output", MessageChannel.class);
+		if (outputChannel != null) {
+			registry.deleteOutbound(module.getDeploymentMetadata().getOutputChannelName(), outputChannel);
+		}
 		registry.deleteOutbound(getTapChannelName(module));
 	}
 

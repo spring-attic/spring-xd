@@ -64,6 +64,30 @@ public class FileSink extends DisposableFileSupport {
 		return FileCopyUtils.copyToString(fileReader);
 	}
 
+	/**
+	 * Wait at most {@code timeout} ms for the contents of the file to equal the specified contents.
+	 *
+	 * @param contents The expected file contents
+	 * @param timeout The amount of time to wait for the contents to appear in the file
+	 * @return true if contents were found before timeout
+	 * @throws IOException
+	 */
+	public boolean waitForContents(String contents, int timeout) throws IOException {
+		boolean passes = false;
+		for (long currentTime = System.currentTimeMillis(); System.currentTimeMillis() - currentTime < timeout;) {
+			if (contents.equals(getContents())) {
+				passes = true;
+				break;
+			}
+			try {
+				Thread.sleep(100);
+			}
+			catch (InterruptedException e) {
+			}
+		}
+		return passes;
+	}
+
 	@Override
 	protected String toDSL() {
 		String fileName = file.getName();

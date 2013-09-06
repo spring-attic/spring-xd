@@ -75,4 +75,27 @@ public class SpelPropertyAccessorIntegrationTests extends AbstractStreamIntegrat
 
 	}
 
+	@Test
+	public void testTuplePropertyAccessorProjection() throws Exception {
+		FileSink sink = newFileSink().binary(true);
+		HttpSource source = newHttpSource();
+
+		stream().create(
+				"jsontest",
+				"%s | json-to-tuple | transform --expression=payload.entities.hashtags.![text].toString() | %s",
+				source, sink);
+		String tweet = "{\"created_at\":\"Tue Aug 27 18:17:06 +0000 2013\",\"id\":100000,\"text\":\"whocares\",\"retweet_count\":0,"
+				+
+				"\"entities\":{\"hashtags\":[{\"text\":\"hello\",\"indices\":[23,41]},{\"text\":\"there\",\"indices\":[45,50]}],\"symbols\":[],"
+				+
+				"\"urls\":[],\"user_mentions\":[]},"
+				+
+				"\"favorited\":false,\"retweeted\":false,\"possibly_sensitive\":false,\"filter_level\":\"medium\",\"lang\":\"bg\"}";
+
+		source.ensureReady().postData(tweet);
+
+		final String result = sink.getContents();
+		assertEquals("[hello, there]", result);
+	}
+
 }

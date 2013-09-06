@@ -92,9 +92,10 @@ configure(javaProjects()) { subproject ->
 		reactorVersion = '1.0.0.BUILD-SNAPSHOT'
 		lettuceVersion = '2.3.3'
 		springDataHadoopVersion = '1.0.1.RC1'
+		springDataHadoopYarnVersion = '2.0.0.M1-hadoop20'
 		hadoop10Version = '1.0.4'
 		hadoop11Version = '1.1.2'
-		hadoop20Version = '2.0.5-alpha'
+		hadoop20Version = '2.0.6-alpha'
 		phd1Version = '2.0.2-alpha-gphd-2.0.1.0'
 		springHATEOASVersion = '0.7.0.RELEASE'
 		springPluginVersion = '0.8.0.RELEASE'
@@ -542,6 +543,33 @@ project('spring-xd-hadoop:hadoop20') {
 	}
 }
 
+project('spring-xd-yarn') {
+	description = 'Spring XD Yarn'
+	jar {
+		excludes.remove('log4j.properties')
+	}
+	configurations {
+		hadoopruntime.exclude group: 'log4j'
+		hadoopruntime.exclude group: 'org.slf4j'
+		hadoopruntime.exclude group: 'org.apache.hadoop'
+		hadoopruntime.exclude group: 'commons-logging'
+		hadoopruntime.exclude group: 'org.codehaus.jettison'
+		hadoopruntime.exclude group: 'org.apache.activemq'
+	}
+	dependencies {
+		compile project(':spring-xd-dirt')
+		compile "org.springframework.data:spring-yarn:$springDataHadoopYarnVersion"
+		testCompile project(":spring-xd-rest-client")
+		testCompile "org.springframework.data:spring-yarn-test:$springDataHadoopYarnVersion"
+		hadoopruntime configurations.runtime
+	}
+	task copyToLib(dependsOn: build, type: Copy) {
+		into "$buildDir/lib"
+		from configurations.runtime.allArtifacts.files
+		from configurations.hadoopruntime
+	}
+}
+
 project('spring-xd-hadoop:phd1') {
 	description = 'Pivotal HD 1.0 dependencies'
 	dependencies {
@@ -632,6 +660,7 @@ project('spring-xd-shell') {
 	dependencies {
 		compile "org.springframework.shell:spring-shell:$springShellVersion"
 		compile project(":spring-xd-rest-client")
+		compile project(":spring-xd-yarn")
 		compile ("org.springframework.data:spring-data-hadoop:$springDataHadoopVersion") {
 			exclude group: 'org.mortbay.jetty'
 		}
@@ -718,6 +747,26 @@ task copyXDShellInstall(type: Copy, dependsOn: [":spring-xd-shell:installApp"]) 
 	exclude "**/lib/hadoop-*.jar"
 }
 
+task copyYarnInstall(type: Copy, dependsOn: ":spring-xd-yarn:copyToLib") {
+	from("$rootDir/spring-xd-yarn/build") {
+		include 'lib/**'
+	}
+	from("$rootDir/spring-xd-dirt/build/install/spring-xd-dirt") {
+		include 'config/**'
+		include 'modules/**'
+		include 'spring-xd-ui/**'
+	}
+	into "$buildDir/dist/spring-xd/yarn"
+}
+
+task yarnAppZip(type: Zip, dependsOn: copyYarnInstall, overwrite: true) {
+	classifier = ''
+	description = "Bundles the XD Yarn app."
+	archiveName = 'xdapp.zip'
+	destinationDir = new File("$buildDir/dist/spring-xd/yarn")
+	from "$buildDir/dist/spring-xd/yarn"
+}
+
 task copyHadoopLibs(dependsOn: [":spring-xd-hadoop:hadoop10:copyToLib", ":spring-xd-hadoop:hadoop11:copyToLib", ":spring-xd-hadoop:hadoop20:copyToLib", ":spring-xd-hadoop:phd1:copyToLib"]) << {
 	['hadoop10', 'hadoop11', 'hadoop20', 'phd1'].each { distro ->
 		copy {
@@ -731,7 +780,7 @@ task copyHadoopLibs(dependsOn: [":spring-xd-hadoop:hadoop10:copyToLib", ":spring
 	}
 }
 
-task copyInstall (type: Copy, dependsOn: ["copyRedisInstall", "copyGemfireInstall", "copyXDInstall", "copyHadoopLibs", "copyXDShellInstall"]) {
+task copyInstall (type: Copy, dependsOn: ["copyRedisInstall", "copyGemfireInstall", "copyXDInstall", "copyHadoopLibs", "copyXDShellInstall", "yarnAppZip"]) {
 	group = 'Application'
 	description = "Copy all the required installs to build/dist directory"
 	from "$rootDir/scripts/README"

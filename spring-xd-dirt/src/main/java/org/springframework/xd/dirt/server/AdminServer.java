@@ -97,6 +97,26 @@ public class AdminServer implements SmartLifecycle, InitializingBean {
 	}
 
 	/**
+	 * Instantiates a new admin server. This allows better way to embed admin server into external application context.
+	 * 
+	 * @param webApplicationContext the web application context
+	 */
+	public AdminServer(XmlWebApplicationContext webApplicationContext) {
+		this.webApplicationContext = webApplicationContext;
+
+		this.port = 0;
+
+		webApplicationContext.addApplicationListener(new ApplicationListener<ContextClosedEvent>() {
+
+			@Override
+			public void onApplicationEvent(ContextClosedEvent event) {
+				stop();
+			}
+		});
+		webApplicationContext.registerShutdownHook();
+	}
+
+	/**
 	 * Set the contextPath to serve requests on. Empty string for root.
 	 */
 	public void setContextPath(String contextPath) {

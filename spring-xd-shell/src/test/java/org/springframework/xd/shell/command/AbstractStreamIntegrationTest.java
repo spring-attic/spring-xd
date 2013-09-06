@@ -53,12 +53,20 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 
 	private List<Disposable> disposables = new ArrayList<Disposable>();
 
+	private MetricsTemplate metrics;
+
 	public AbstractStreamIntegrationTest() {
 		streamOps = new StreamCommandTemplate(getShell());
 		counterOps = new CounterCommandTemplate(getShell());
 		aggOps = new AggregateCounterCommandTemplate(getShell());
 		fvcOps = new FieldValueCounterCommandTemplate(getShell());
 		richGaugeOps = new RichGaugeCommandTemplate(getShell());
+		metrics = new MetricsTemplate(getShell());
+		disposables.add(metrics);
+	}
+
+	protected MetricsTemplate metrics() {
+		return metrics;
 	}
 
 	protected StreamCommandTemplate stream() {

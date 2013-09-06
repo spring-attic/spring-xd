@@ -25,9 +25,10 @@ import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableRow;
 
 /**
- * 
+ * @deprecated use {@link MetricsTemplate}
  * @author mpollack
  */
+@Deprecated
 public class MetricCommandTemplate extends AbstractCommandTemplate {
 
 	/* default */MetricCommandTemplate(JLineShellComponent shell) {

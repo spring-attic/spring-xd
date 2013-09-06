@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.shell.command;
+package org.springframework.xd.shell.command.fixtures;
+
 
 /**
- * Represents the supported kinds of metrics that Spring XD has, along with their module name (and Shell command name).
+ * Marker interface for entities whose 'display' command returns a simple representation.
  * 
- * @deprecated
+ * @author Eric Bottard
  */
-public enum MetricType {
-	COUNTER("counter"), FIELD_VALUE_COUNTER("fieldvaluecounter"), AGGR_COUNTER("aggregatecounter"), GAUGE("gauge"), RICH_GAUGE("richgauge");
+public interface HasDisplayValue<T> {
 
-	private String name;
-
-	private MetricType(String name) {
-		this.name = name;
-	}
-
-	public String getName() {
-		return this.name;
-	}
 }

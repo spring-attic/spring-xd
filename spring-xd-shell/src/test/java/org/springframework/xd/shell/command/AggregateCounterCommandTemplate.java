@@ -19,9 +19,10 @@ package org.springframework.xd.shell.command;
 import org.springframework.shell.core.JLineShellComponent;
 
 /**
- * 
+ * @deprecated use {@link MetricsTemplate}
  * @author Mark Pollack
  */
+@Deprecated
 public class AggregateCounterCommandTemplate extends AbstractCommandTemplate {
 
 	private MetricCommandTemplate metricCommandTemplate;

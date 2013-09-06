@@ -19,9 +19,10 @@ package org.springframework.xd.shell.command;
 import org.springframework.shell.core.JLineShellComponent;
 
 /**
- * 
+ * @deprecated use {@link MetricsTemplate}
  * @author Ilayaperumal Gopinathan
  */
+@Deprecated
 public class FieldValueCounterCommandTemplate extends AbstractCommandTemplate {
 
 	private static final String METRIC_TYPE_NAME = "field-value-counter";

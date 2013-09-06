@@ -26,11 +26,12 @@ import org.springframework.xd.dirt.server.options.AdminOptions;
 public abstract class AbstractAdminMainIntegrationTests {
 
 	protected final AdminServer createAdminServer(AdminOptions adminOptions) {
+		System.setProperty("hsql.server.dbname", "test");
+		System.setProperty("hsql.server.port", "9100");
 		return AdminMain.launchAdminServer(adminOptions);
 	}
 
 	protected final void shutdown(AdminServer s) {
-		s.stop();
 		s.getApplicationContext().destroy();
 	}
 

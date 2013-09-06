@@ -74,7 +74,7 @@ configure(javaProjects()) { subproject ->
 		junitVersion = '4.11'
 		hamcrestVersion = '1.3'
 		hamcrestDateVersion = '0.9.3'
-		hsqldbVersion = '1.8.0.10'
+		hsqldbVersion = '2.3.0'
 		jodaTimeVersion = '1.6'
 		jolokiaVersion = '1.1.2'
 		springVersion = '3.2.2.RELEASE'
@@ -258,7 +258,6 @@ project('spring-xd-dirt') {
 				"org.springframework.integration:spring-integration-redis:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-syslog:$springIntegrationVersion",
 				"org.springframework.batch:spring-batch-core:$springBatchVersion",
-				"org.springframework.batch:spring-batch-admin-manager:$springBatchAdminMgrVersion",
 				"org.springframework.data:spring-data-redis:$springDataRedisVersion",
 				"org.springframework.social:spring-social-twitter:$springSocialVersion",
 				"commons-lang:commons-lang:2.4",
@@ -267,11 +266,15 @@ project('spring-xd-dirt') {
 				"com.eaio.uuid:uuid:3.2",
 				"org.jolokia:jolokia-spring:$jolokiaVersion",
 				"org.springframework.plugin:spring-plugin-core:$springPluginVersion",
-				"hsqldb:hsqldb:$hsqldbVersion",
+				"org.hsqldb:hsqldb:$hsqldbVersion",
 				"org.apache.tomcat:tomcat-jdbc:$tomcatJdbcPoolVersion"
 
 		compile ("org.apache.activemq:activemq-core:5.6.0") {
 			exclude group: 'org.mortbay.jetty'
+		}
+
+		compile ("org.springframework.batch:spring-batch-admin-manager:$springBatchAdminMgrVersion") {
+			exclude group: 'hsqldb'
 		}
 
 		compile ("org.springframework.integration:spring-integration-mqtt:1.0.0.M1") {
@@ -489,6 +492,7 @@ project('spring-xd-hadoop') {
 		compile ("org.springframework.data:spring-data-hadoop:$springDataHadoopVersion") {
 			exclude group: 'org.mortbay.jetty'
 			exclude group: 'org.codehaus.jackson'
+			exclude group: 'hsqldb'
 		}
 		// Needed for webhdfs sink
 		runtime ("org.mortbay.jetty:jetty-util:6.1.26")
@@ -580,7 +584,7 @@ project('spring-xd-jdbc') {
 		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
 		runtime "org.springframework.integration:spring-integration-jdbc:$springIntegrationVersion"
 		runtime "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
-		runtime "hsqldb:hsqldb:$hsqldbVersion"
+		runtime "org.hsqldb:hsqldb:$hsqldbVersion"
 		runtime "mysql:mysql-connector-java:5.1.23"
 		runtime "postgresql:postgresql:9.1-901-1.jdbc4"
 	}
@@ -627,7 +631,7 @@ project('spring-xd-test') {
 		compile "org.springframework:spring-tx:$springVersion"
 		compile "org.springframework:spring-test:$springVersion"
 		compile "com.lambdaworks:lettuce:$lettuceVersion"
-		compile "hsqldb:hsqldb:$hsqldbVersion"
+		compile "org.hsqldb:hsqldb:$hsqldbVersion"
 		compile "org.apache.tomcat:tomcat-jdbc:$tomcatJdbcPoolVersion"
 		compile "junit:junit:$junitVersion"
 		testCompile "commons-io:commons-io:2.4"
@@ -651,6 +655,7 @@ project('spring-xd-shell') {
 		compile project(":spring-xd-rest-client")
 		compile ("org.springframework.data:spring-data-hadoop:$springDataHadoopVersion") {
 			exclude group: 'org.mortbay.jetty'
+			exclude group: 'hsqldb'
 		}
 		compile "com.google.guava:guava:14.0.1"
 		testCompile project(":spring-xd-dirt")

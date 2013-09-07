@@ -155,8 +155,8 @@ public abstract class AbstractChannelRegistryTests {
 		// when other tap stream is deleted
 		registry.deleteInbound("tap:baz.http", module2InputChannel);
 		// Clean up as StreamPlugin would
-		registry.deleteInbound("baz.0");
-		registry.deleteOutbound("baz.0");
+		registry.deleteInbound("baz.0", moduleInputChannel);
+		registry.deleteOutbound("baz.0", moduleOutputChannel);
 		registry.deleteOutbound("tap:baz.http");
 		assertTrue(getBridges(registry).isEmpty());
 	}
@@ -222,8 +222,8 @@ public abstract class AbstractChannelRegistryTests {
 		// when other tap stream is deleted
 		registry.deleteInbound("tap:baz.http", module2InputChannel);
 		// Clean up as StreamPlugin would
-		registry.deleteInbound("baz.0");
-		registry.deleteOutbound("baz.0");
+		registry.deleteInbound("baz.0", moduleInputChannel);
+		registry.deleteOutbound("baz.0", moduleOutputChannel);
 		registry.deleteOutbound("tap:baz.http");
 		assertTrue(getBridges(registry).isEmpty());
 	}

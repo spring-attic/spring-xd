@@ -56,7 +56,7 @@ define(function() {
         createDefaultStream : conf.templateRoot + 'stream/default-stream.tpl',
         streamParameter: conf.templateRoot + 'stream/module/parameter-text.tpl',
         tapStream : conf.templateRoot + 'stream/tap-stream.tpl',
-        scheduleJob : conf.templateRoot + 'job/schedule-job.tpl',
+        createJob : conf.templateRoot + 'job/create-job.tpl',
 
         batchList: conf.templateRoot + 'batch/batch-list.tpl',
         batchDetails: conf.templateRoot + 'batch/batch-details.tpl'

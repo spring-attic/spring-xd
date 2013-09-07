@@ -25,32 +25,32 @@
 define(['backbone', 'when', 'xd.utils', 'xd.strings', 'xd.router', 'xd.model'],
 function(Backbone, when, utils, strings, router, model) {
 
-    var ScheduleJob = Backbone.View.extend({
+    var CreateJob = Backbone.View.extend({
 
         events: {
-            'click #schedule-job': 'scheduleJob'
+            'click #create-job': 'createJob'
         },
 
-        scheduleJobForm: function() {
-            this.$el.html(utils.templateHtml.scheduleJobTemplate);
+        createJobForm: function() {
+            this.$el.html(utils.templateHtml.createJobTemplate);
             this.$('#stream-job').html(utils.templateHtml.jobSelectTemplate);
         },
 
-        resetScheduleJobForm: function() {
+        resetCreateJobForm: function() {
             this.$('#stream-name').val('');
-            this.scheduleJobForm();
+            this.createJobForm();
         },
 
-        scheduleJob: function(event) {
+        createJob: function(event) {
             event.preventDefault();
             var jobName = this.$('#job-name').val().trim();
             var jobDefinition = this.$('#job-definition').val().trim();
-            var scheduleJob = router.createJob(jobName, jobDefinition, function() {
+            var createJob = router.createJob(jobName, jobDefinition, function() {
 //                router.refresh('jobs');
-                utils.showSuccessMsg(strings.scheduleJobSuccess);
+                utils.showSuccessMsg(strings.createJobSuccess);
             });
-            when(scheduleJob).then(this.resetScheduleJobForm());
+            when(createJob).then(this.resetCreateJobForm());
         }
     });
-    return ScheduleJob;
+    return CreateJob;
 });

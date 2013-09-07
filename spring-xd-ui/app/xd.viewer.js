@@ -19,8 +19,8 @@
  * @author Andrew Eisenberg
  */
 
-define(['xd.utils', 'views/create-stream', 'views/dashboard', 'views/navbar', 'views/schedule-job', 'views/tap-stream', 'views/batch'],
-function(utils, CreateStream, Dashboard, Navbar, ScheduleJob, TapStream, Batch) {
+define(['xd.utils', 'views/create-stream', 'views/dashboard', 'views/navbar', 'views/create-job', 'views/tap-stream', 'views/batch'],
+function(utils, CreateStream, Dashboard, Navbar, CreateJob, TapStream, Batch) {
     return {
         create : function() {
             var views = {};
@@ -37,7 +37,7 @@ function(utils, CreateStream, Dashboard, Navbar, ScheduleJob, TapStream, Batch) 
                 el: '#xd-create-stream'
             });
 
-            views.scheduleJob = new ScheduleJob({
+            views.createJob = new CreateJob({
                 el: '#xd-create-job'
             });
 

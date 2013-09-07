@@ -19,22 +19,26 @@ package org.springframework.xd.dirt.rest;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.TimeZone;
 
 import org.springframework.batch.admin.service.JobService;
+import org.springframework.batch.admin.web.JobExecutionInfo;
 import org.springframework.batch.admin.web.JobInfo;
+import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobInstance;
 import org.springframework.batch.core.launch.NoSuchJobException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.xd.dirt.plugins.job.batch.ExpandedJobInfo;
 import org.springframework.xd.dirt.plugins.job.batch.NoSuchBatchJobException;
 
 /**
@@ -42,6 +46,7 @@ import org.springframework.xd.dirt.plugins.job.batch.NoSuchBatchJobException;
  * 
  * @author Dave Syer
  * @author Ilayaperumal Gopinathan
+ * @author Andrew Eisenberg
  * 
  */
 @Controller
@@ -51,10 +56,21 @@ public class BatchJobsController {
 
 	private final JobService jobService;
 
+	private TimeZone timeZone = TimeZone.getDefault();
+
 	@Autowired
 	public BatchJobsController(JobService jobService) {
 		super();
 		this.jobService = jobService;
+	}
+
+	/**
+	 * @param timeZone the timeZone to set
+	 */
+	@Autowired(required = false)
+	@Qualifier("userTimeZone")
+	public void setTimeZone(TimeZone timeZone) {
+		this.timeZone = timeZone;
 	}
 
 	@RequestMapping(value = "", method = RequestMethod.GET)
@@ -65,17 +81,8 @@ public class BatchJobsController {
 		Collection<String> names = jobService.listJobs(startJob, pageSize);
 		List<JobInfo> jobs = new ArrayList<JobInfo>();
 		for (String name : names) {
-			int count = 0;
-			try {
-				count = jobService.countJobExecutionsForJob(name);
-			}
-			catch (NoSuchJobException e) {
-				// shouldn't happen
-			}
-			boolean launchable = jobService.isLaunchable(name);
-			boolean incrementable = jobService.isIncrementable(name);
-			String simpleName = name.substring(0, name.length() - ".job".length());
-			jobs.add(new JobInfo(simpleName, count, null, launchable, incrementable));
+			String displayName = name.substring(0, name.length() - ".job".length());
+			jobs.add(internalGetJobInfo(displayName, name));
 		}
 		return jobs;
 	}
@@ -101,17 +108,37 @@ public class BatchJobsController {
 	@RequestMapping(value = "/{jobName}", method = RequestMethod.GET)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
-	public JobInfo jobinfo(ModelMap model, @PathVariable String jobName) {
+	public ExpandedJobInfo jobinfo(@PathVariable String jobName) {
 		String fullName = jobName + ".job";
+		return internalGetJobInfo(jobName, fullName);
+	}
+
+	/**
+	 * @param displayName Job name as displayed to endpoint
+	 * @param fullName Job name as internal to the system
+	 * @return a job info for this job
+	 */
+	private ExpandedJobInfo internalGetJobInfo(String displayName, String fullName) {
 		boolean launchable = jobService.isLaunchable(fullName);
-		JobInfo jobInfo;
+		ExpandedJobInfo jobInfo;
 		try {
 			int count = jobService.countJobExecutionsForJob(fullName);
-			jobInfo = new JobInfo(jobName, count, launchable, jobService.isIncrementable(fullName));
+			jobInfo = new ExpandedJobInfo(displayName, count, launchable, jobService.isIncrementable(fullName),
+					getLastExecution(fullName));
 		}
 		catch (NoSuchJobException e) {
-			throw new NoSuchBatchJobException(jobName);
+			throw new NoSuchBatchJobException(displayName);
 		}
 		return jobInfo;
+	}
+
+	private JobExecutionInfo getLastExecution(String jobName) throws NoSuchJobException {
+		Collection<JobExecution> executions = jobService.listJobExecutionsForJob(jobName, 0, 1);
+		if (executions.size() > 0) {
+			return new JobExecutionInfo(executions.iterator().next(), timeZone);
+		}
+		else {
+			return null;
+		}
 	}
 }

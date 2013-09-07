@@ -80,7 +80,7 @@ function(_, Backbone, when, utils, conf, router, strings) {
             var streamDefinition = this.$('#stream-definition').val().trim();
             var createStream = router.createStream(streamName, streamDefinition, function() {
                 router.refresh('streams');
-                utils.showSuccessMsg(strings.scheduleJobSuccess);
+                utils.showSuccessMsg(strings.createJobSuccess);
             });
             when(createStream).then(this.resetDefaultStreamForm());
         },

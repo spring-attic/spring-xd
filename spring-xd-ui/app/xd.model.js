@@ -158,7 +158,7 @@ function(Backbone, rest, entity, mime, hateoas, errorcode) {
         idAttribute: 'name',
         launch: function(parameters) {
             var streamName = 'jobLaunchTrigger' + new Date();
-            var streamDefinition = 'trigger > :job:' + this.id;
+            var streamDefinition = 'trigger ' + (parameters ? '--payload=\'' + parameters + '\'' : '') + ' > :job:' + this.id;
             // for now must create a stream that triggers job and then delete stream
            var createPromise = client({
                 path: URL_ROOT + 'streams',

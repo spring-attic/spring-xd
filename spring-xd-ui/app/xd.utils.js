@@ -56,7 +56,7 @@ define(['underscore', 'when', 'jquery', 'xd.conf'], function(_, when, $, conf) {
         defaultStreamTemplate: _.template(utils.getTemplate(conf.templates.createDefaultStream))(),
         customStreamTemplate: _.template(utils.getTemplate(conf.templates.createCustomStream))(),
         tapStreamTemplate: _.template(utils.getTemplate(conf.templates.tapStream))(),
-        scheduleJobTemplate: _.template(utils.getTemplate(conf.templates.scheduleJob))()
+        createJobTemplate: _.template(utils.getTemplate(conf.templates.createJob))()
     };
 
     /*

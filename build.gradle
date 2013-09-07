@@ -629,6 +629,10 @@ project('spring-xd-shell') {
 		standardInput = System.in
 	}
 
+	test {
+	     exclude '**/MailCommand*'
+	}
+
 	dependencies {
 		compile "org.springframework.shell:spring-shell:$springShellVersion"
 		compile project(":spring-xd-rest-client")

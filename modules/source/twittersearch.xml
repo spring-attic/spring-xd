@@ -39,8 +39,13 @@
 
 	<int:splitter input-channel="results" output-channel="tweets"/>
 <!-- end temporary config-->
+<int:router input-channel="tweets" expression="${json:true} ? 'json' : 'pojo'"/>
 
-	<int:object-to-json-transformer input-channel="tweets" output-channel="output"/>
+	<int:channel id="json"/>
+	<int:object-to-json-transformer input-channel="json" output-channel="output"/>
+
+	<int:channel id="pojo"/>
+	<int:transformer input-channel="pojo" output-channel="output" expression="new org.springframework.integration.x.twitter.XDTweet(payload)"/>
 
 	<int:channel id="output"/>
 

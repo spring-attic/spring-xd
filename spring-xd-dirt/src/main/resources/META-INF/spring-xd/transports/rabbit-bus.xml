@@ -5,10 +5,10 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<import resource="redis-common.xml" />
+	<import resource="rabbit-common.xml" />
 
-	<bean id="channelRegistry" class="org.springframework.integration.x.redis.RedisChannelRegistry">
-		<constructor-arg ref="redisConnectionFactory" />
+	<bean id="messageBus" class="org.springframework.integration.x.rabbit.RabbitMessageBus">
+		<constructor-arg ref="rabbitConnectionFactory" />
 	</bean>
 
 </beans>

@@ -30,19 +30,18 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.MediaType;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.x.channel.registry.ChannelRegistry;
+import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.Module;
 
 /**
- * 
  * @author Jennifer Hickey
  * @author Gary Russell
  */
-public class ChannelRegistrationTests {
+public class MessageBusRegistrationTests {
 
 	@Mock
-	private ChannelRegistry registry;
+	private MessageBus bus;
 
 	private StreamPlugin streamPlugin = new StreamPlugin();
 
@@ -60,7 +59,7 @@ public class ChannelRegistrationTests {
 	@Before
 	public void setUp() {
 		MockitoAnnotations.initMocks(this);
-		when(module.getComponent(ChannelRegistry.class)).thenReturn(registry);
+		when(module.getComponent(MessageBus.class)).thenReturn(bus);
 		when(module.getComponent("input", MessageChannel.class)).thenReturn(input);
 		when(module.getComponent("output", MessageChannel.class)).thenReturn(output);
 		when(module.getDeploymentMetadata()).thenReturn(deploymentMetadata);
@@ -69,8 +68,8 @@ public class ChannelRegistrationTests {
 	@Test
 	public void testRegistration() throws Exception {
 		streamPlugin.postProcessModule(module);
-		verify(registry).createInbound("mystream.0", input, ALL, false);
-		verify(registry).createOutbound("mystream.1", output, false);
+		verify(bus).bindConsumer("mystream.0", input, ALL, false);
+		verify(bus).bindProducer("mystream.1", output, false);
 	}
 
 }

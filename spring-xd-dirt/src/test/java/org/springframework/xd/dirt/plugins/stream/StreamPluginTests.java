@@ -35,7 +35,7 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.http.MediaType;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.x.channel.registry.ChannelRegistry;
+import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.xd.module.BeanDefinitionAddingPostProcessor;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.Module;
@@ -77,21 +77,21 @@ public class StreamPluginTests {
 		Module module = mock(Module.class);
 		when(module.getDeploymentMetadata()).thenReturn(new DeploymentMetadata("foo", 1));
 		when(module.getType()).thenReturn(ModuleType.PROCESSOR.toString());
-		final ChannelRegistry registry = mock(ChannelRegistry.class);
+		final MessageBus bus = mock(MessageBus.class);
 		when(module.getName()).thenReturn("testing");
-		when(module.getComponent(ChannelRegistry.class)).thenReturn(registry);
+		when(module.getComponent(MessageBus.class)).thenReturn(bus);
 		when(module.getComponent("input", MessageChannel.class)).thenReturn(input);
 		when(module.getComponent("output", MessageChannel.class)).thenReturn(output);
 		plugin.preProcessModule(module);
 		plugin.postProcessModule(module);
-		verify(registry).createInbound("foo.0", input, Collections.singletonList(MediaType.ALL), false);
-		verify(registry).createOutbound("foo.1", output, false);
-		verify(registry).createOutboundPubSub(eq("tap:foo.testing"), any(DirectChannel.class));
+		verify(bus).bindConsumer("foo.0", input, Collections.singletonList(MediaType.ALL), false);
+		verify(bus).bindProducer("foo.1", output, false);
+		verify(bus).bindPubSubProducer(eq("tap:foo.testing"), any(DirectChannel.class));
 		plugin.beforeShutdown(module);
 		plugin.removeModule(module);
-		verify(registry).deleteInbound("foo.0", input);
-		verify(registry).deleteOutbound("foo.1", output);
-		verify(registry).deleteOutbound("tap:foo.testing");
+		verify(bus).unbindConsumer("foo.0", input);
+		verify(bus).unbindProducer("foo.1", output);
+		verify(bus).unbindProducers("tap:foo.testing");
 	}
 
 	@Test

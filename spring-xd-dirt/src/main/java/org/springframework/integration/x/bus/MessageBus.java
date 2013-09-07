@@ -11,7 +11,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.springframework.integration.x.channel.registry;
+package org.springframework.integration.x.bus;
 
 import java.util.Collection;
 
@@ -29,75 +29,76 @@ import org.springframework.integration.MessageChannel;
  * @author Jennifer Hickey
  * @since 1.0
  */
-public interface ChannelRegistry {
+public interface MessageBus {
 
 	/**
-	 * Register a message consumer on a p2p channel
+	 * Bind a message consumer on a p2p channel
 	 * 
 	 * @param name the logical identity of the message source
 	 * @param moduleInputChannel the channel bound as a consumer
 	 * @param acceptedMediaTypes the media types supported by the channel
 	 * @param aliasHint whether the provided name represents an alias and thus should support late binding
 	 */
-	void createInbound(String name, MessageChannel moduleInputChannel, Collection<MediaType> acceptedMediaTypes,
+	void bindConsumer(String name, MessageChannel moduleInputChannel, Collection<MediaType> acceptedMediaTypes,
 			boolean aliasHint);
 
 
 	/**
-	 * Register a message consumer on a pub/sub channel
+	 * Bind a message consumer on a pub/sub channel
 	 * 
 	 * @param name the logical identity of the message source
 	 * @param moduleInputChannel the channel bound as a pub/sub consumer
 	 * @param acceptedMediaTypes the media types supported by the channel
 	 */
-	void createInboundPubSub(final String name, MessageChannel inputChannel,
+	void bindPubSubConsumer(final String name, MessageChannel inputChannel,
 			final Collection<MediaType> acceptedMediaTypes);
 
 	/**
-	 * Register a message producer on a p2p channel.
+	 * Bind a message producer on a p2p channel.
 	 * 
 	 * @param name the logical identity of the message target
 	 * @param moduleOutputChannel the channel bound as a producer
 	 * @param aliasHint whether the provided name represents an alias and thus should support late binding
 	 */
-	void createOutbound(String name, MessageChannel moduleOutputChannel, boolean aliasHint);
+	void bindProducer(String name, MessageChannel moduleOutputChannel, boolean aliasHint);
 
 
 	/**
-	 * Register a message producer on a pub/sub channel.
+	 * Bind a message producer on a pub/sub channel.
 	 * 
 	 * @param name the logical identity of the message target
 	 * @param moduleOutputChannel the channel bound as a producer
 	 */
-	void createOutboundPubSub(final String name, MessageChannel outputChannel);
+	void bindPubSubProducer(final String name, MessageChannel outputChannel);
 
 	/**
-	 * Remove an inbound inter-module channel and stop any active components that use the channel.
+	 * Unbind an inbound inter-module channel and stop any active components that use the channel.
 	 * 
 	 * @param name the channel name
 	 */
-	void deleteInbound(String name);
+	void unbindConsumers(String name);
 
 	/**
-	 * Remove an outbound inter-module channel and stop any active components that use the channel.
+	 * Unbind an outbound inter-module channel and stop any active components that use the channel.
 	 * 
 	 * @param name the channel name
 	 */
-	void deleteOutbound(String name);
+	void unbindProducers(String name);
 
 	/**
-	 * Unregister a specific p2p or pub/sub message consumer
+	 * Unbind a specific p2p or pub/sub message consumer
 	 * 
 	 * @param name The logical identify of a message source
 	 * @param channel The channel bound as a consumer
 	 */
-	void deleteInbound(String name, MessageChannel channel);
+	void unbindConsumer(String name, MessageChannel channel);
 
 	/**
-	 * Unregister a specific p2p or pub/sub message producer
+	 * Unbind a specific p2p or pub/sub message producer
 	 * 
 	 * @param name the logical identity of the message target
 	 * @param moduleOutputChannel the channel bound as a producer
 	 */
-	void deleteOutbound(String name, MessageChannel channel);
+	void unbindProducer(String name, MessageChannel channel);
+
 }

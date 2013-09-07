@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.x.channel.registry;
+package org.springframework.integration.x.bus;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -41,23 +41,22 @@ import org.springframework.integration.support.MessageBuilder;
  * @author Gary Russell
  * @author David Turanski
  * @since 1.0
- * 
  */
-public class LocalChannelRegistryTests extends AbstractChannelRegistryTests {
+public class LocalMessageBusTests extends AbstractMessageBusTests {
 
 	private static final Collection<MediaType> ALL = Collections.singletonList(MediaType.ALL);
 
 	@Override
-	protected ChannelRegistry getRegistry() throws Exception {
-		LocalChannelRegistry registry = new LocalChannelRegistry();
-		registry.setApplicationContext(new GenericApplicationContext());
-		registry.afterPropertiesSet();
-		return registry;
+	protected MessageBus getMessageBus() throws Exception {
+		LocalMessageBus bus = new LocalMessageBus();
+		bus.setApplicationContext(new GenericApplicationContext());
+		bus.afterPropertiesSet();
+		return bus;
 	}
 
 	@Test
 	public void testPayloadConversionToString() throws Exception {
-		LocalChannelRegistry registry = (LocalChannelRegistry) getRegistry();
+		LocalMessageBus bus = (LocalMessageBus) getMessageBus();
 		DefaultConversionService conversionService = new DefaultConversionService();
 		conversionService.addConverter(new Converter<Foo, String>() {
 
@@ -66,33 +65,33 @@ public class LocalChannelRegistryTests extends AbstractChannelRegistryTests {
 				return source.toString();
 			}
 		});
-		registry.setConversionService(conversionService);
-		verifyPayloadConversion("foo", registry, Collections.singletonList(MediaType.TEXT_PLAIN));
+		bus.setConversionService(conversionService);
+		verifyPayloadConversion("foo", bus, Collections.singletonList(MediaType.TEXT_PLAIN));
 	}
 
 	@Test
 	public void testPayloadConversionNotNeededExplicitType() throws Exception {
-		LocalChannelRegistry registry = (LocalChannelRegistry) getRegistry();
-		verifyPayloadConversion(new Foo(), registry, Collections.singletonList(new MediaType("application",
+		LocalMessageBus bus = (LocalMessageBus) getMessageBus();
+		verifyPayloadConversion(new Foo(), bus, Collections.singletonList(new MediaType("application",
 				"x-java-object", Collections.singletonMap("type",
-						"org.springframework.integration.x.channel.registry.LocalChannelRegistryTests$Foo"))));
+						"org.springframework.integration.x.bus.LocalMessageBusTests$Foo"))));
 	}
 
 	@Test
 	public void testNoPayloadConversionByDefault() throws Exception {
-		LocalChannelRegistry registry = (LocalChannelRegistry) getRegistry();
-		verifyPayloadConversion(new Foo(), registry);
+		LocalMessageBus bus = (LocalMessageBus) getMessageBus();
+		verifyPayloadConversion(new Foo(), bus);
 	}
 
-	private void verifyPayloadConversion(final Object expectedValue, final LocalChannelRegistry registry) {
-		verifyPayloadConversion(expectedValue, registry, ALL);
+	private void verifyPayloadConversion(final Object expectedValue, final LocalMessageBus bus) {
+		verifyPayloadConversion(expectedValue, bus, ALL);
 	}
 
-	private void verifyPayloadConversion(final Object expectedValue, final LocalChannelRegistry registry,
+	private void verifyPayloadConversion(final Object expectedValue, final LocalMessageBus bus,
 			Collection<MediaType> acceptedMediaTypes) {
 		DirectChannel myChannel = new DirectChannel();
-		registry.createInbound("in", myChannel, acceptedMediaTypes, false);
-		DirectChannel input = registry.getBean("in", DirectChannel.class);
+		bus.bindConsumer("in", myChannel, acceptedMediaTypes, false);
+		DirectChannel input = bus.getBean("in", DirectChannel.class);
 		assertNotNull(input);
 
 		final AtomicBoolean msgSent = new AtomicBoolean(false);

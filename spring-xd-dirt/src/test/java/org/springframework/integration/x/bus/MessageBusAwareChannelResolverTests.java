@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.x.channel.registry;
+package org.springframework.integration.x.bus;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
@@ -42,22 +42,22 @@ import org.springframework.scheduling.support.PeriodicTrigger;
 /**
  * @author Mark Fisher
  */
-public class RegistryAwareChannelResolverTests {
+public class MessageBusAwareChannelResolverTests {
 
 	@Test
 	public void test() {
 		StaticApplicationContext context = new StaticApplicationContext();
-		context.registerSingleton("channelResolver", RegistryAwareChannelResolver.class);
-		context.registerSingleton("channelRegistry", LocalChannelRegistry.class);
+		context.registerSingleton("channelResolver", MessageBusAwareChannelResolver.class);
+		context.registerSingleton("messageBus", LocalMessageBus.class);
 		context.registerSingleton("other", DirectChannel.class);
 		context.registerSingleton("taskScheduler", ThreadPoolTaskScheduler.class);
 		context.refresh();
-		RegistryAwareChannelResolver resolver = context.getBean(RegistryAwareChannelResolver.class);
+		MessageBusAwareChannelResolver resolver = context.getBean(MessageBusAwareChannelResolver.class);
 		MessageChannel registered = resolver.resolveChannelName(":foo");
-		LocalChannelRegistry registry = context.getBean(LocalChannelRegistry.class);
+		LocalMessageBus bus = context.getBean(LocalMessageBus.class);
 		PollerMetadata poller = new PollerMetadata();
 		poller.setTrigger(new PeriodicTrigger(1000));
-		registry.setPoller(poller);
+		bus.setPoller(poller);
 		DirectChannel testChannel = new DirectChannel();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final List<Message<?>> received = new ArrayList<Message<?>>();
@@ -69,7 +69,7 @@ public class RegistryAwareChannelResolverTests {
 				latch.countDown();
 			}
 		});
-		registry.createInbound("foo", testChannel, null, true);
+		bus.bindConsumer("foo", testChannel, null, true);
 		MessageChannel other = resolver.resolveChannelName("other");
 		assertSame(context.getBean("other"), other);
 		assertEquals(0, received.size());

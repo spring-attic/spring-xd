@@ -11,7 +11,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.springframework.integration.x.channel.registry;
+package org.springframework.integration.x.bus;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
@@ -42,7 +42,7 @@ import org.springframework.util.ClassUtils;
  * @author Gary Russell
  * 
  */
-public abstract class ChannelRegistrySupport implements ChannelRegistry, BeanClassLoaderAware {
+public abstract class MessageBusSupport implements MessageBus, BeanClassLoaderAware {
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
@@ -77,22 +77,22 @@ public abstract class ChannelRegistrySupport implements ChannelRegistry, BeanCla
 	}
 
 	@Override
-	public void deleteInbound(String name) {
+	public void unbindConsumers(String name) {
 		deleteBridges("inbound." + name);
 	}
 
 	@Override
-	public void deleteOutbound(String name) {
+	public void unbindProducers(String name) {
 		deleteBridges("outbound." + name);
 	}
 
 	@Override
-	public void deleteInbound(String name, MessageChannel channel) {
+	public void unbindConsumer(String name, MessageChannel channel) {
 		deleteBridge("inbound." + name, channel);
 	}
 
 	@Override
-	public void deleteOutbound(String name, MessageChannel channel) {
+	public void unbindProducer(String name, MessageChannel channel) {
 		deleteBridge("outbound." + name, channel);
 	}
 
@@ -101,7 +101,7 @@ public abstract class ChannelRegistrySupport implements ChannelRegistry, BeanCla
 	}
 
 	protected void deleteBridges(String name) {
-		Assert.hasText(name, "a valid name is required to remove a bridge");
+		Assert.hasText(name, "a valid name is required to remove bridges");
 		synchronized (this.bridges) {
 			Iterator<Bridge> iterator = this.bridges.iterator();
 			while (iterator.hasNext()) {
@@ -116,7 +116,7 @@ public abstract class ChannelRegistrySupport implements ChannelRegistry, BeanCla
 
 	protected void deleteBridge(String name, MessageChannel channel) {
 		Assert.hasText(name, "a valid name is required to remove a bridge");
-		Assert.notNull(channel, "A valid channel is required to remove a bridge");
+		Assert.notNull(channel, "a valid channel is required to remove a bridge");
 		synchronized (this.bridges) {
 			Iterator<Bridge> iterator = this.bridges.iterator();
 			while (iterator.hasNext()) {

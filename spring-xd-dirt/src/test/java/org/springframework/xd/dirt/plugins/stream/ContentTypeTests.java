@@ -43,7 +43,7 @@ import org.mockito.stubbing.Answer;
 import org.springframework.http.MediaType;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.x.channel.registry.ChannelRegistry;
+import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.Module;
 
@@ -51,12 +51,11 @@ import org.springframework.xd.module.Module;
  * @author David Turanski
  * @author Gary Russell
  * @since 1.0
- * 
  */
 public class ContentTypeTests {
 
 	@Mock
-	private ChannelRegistry registry;
+	private MessageBus bus;
 
 	private StreamPlugin streamPlugin = new StreamPlugin();
 
@@ -70,7 +69,7 @@ public class ContentTypeTests {
 	@Before
 	public void setUp() {
 		MockitoAnnotations.initMocks(this);
-		when(module.getComponent(ChannelRegistry.class)).thenReturn(registry);
+		when(module.getComponent(MessageBus.class)).thenReturn(bus);
 		when(module.getDeploymentMetadata()).thenReturn(deploymentMetadata);
 		when(module.getComponent("input", MessageChannel.class)).thenReturn(input);
 	}
@@ -88,9 +87,10 @@ public class ContentTypeTests {
 						((Collection<?>) invocation.getArguments()[2]).iterator().next());
 				return null;
 			}
-		}).when(registry).createInbound(anyString(), any(MessageChannel.class), any(Collection.class), anyBoolean());
+		}).when(bus).bindConsumer(anyString(), any(MessageChannel.class), any(Collection.class),
+				anyBoolean());
 		streamPlugin.postProcessModule(module);
-		verify(registry).createInbound(anyString(), any(MessageChannel.class), any(Collection.class), anyBoolean());
+		verify(bus).bindConsumer(anyString(), any(MessageChannel.class), any(Collection.class), anyBoolean());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -114,9 +114,10 @@ public class ContentTypeTests {
 				assertFalse(first.equals(second));
 				return null;
 			}
-		}).when(registry).createInbound(anyString(), any(MessageChannel.class), any(Collection.class), anyBoolean());
+		}).when(bus).bindConsumer(anyString(), any(MessageChannel.class), any(Collection.class),
+				anyBoolean());
 		streamPlugin.postProcessModule(module);
-		verify(registry).createInbound(anyString(), any(MessageChannel.class), any(Collection.class), anyBoolean());
+		verify(bus).bindConsumer(anyString(), any(MessageChannel.class), any(Collection.class), anyBoolean());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -129,9 +130,10 @@ public class ContentTypeTests {
 				assertEquals(MediaType.ALL, ((Collection<?>) invocation.getArguments()[2]).iterator().next());
 				return null;
 			}
-		}).when(registry).createInbound(anyString(), any(MessageChannel.class), any(Collection.class), anyBoolean());
+		}).when(bus).bindConsumer(anyString(), any(MessageChannel.class), any(Collection.class),
+				anyBoolean());
 		streamPlugin.postProcessModule(module);
-		verify(registry).createInbound(anyString(), any(MessageChannel.class), any(Collection.class), anyBoolean());
+		verify(bus).bindConsumer(anyString(), any(MessageChannel.class), any(Collection.class), anyBoolean());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -145,9 +147,10 @@ public class ContentTypeTests {
 				assertEquals(MediaType.ALL, ((Collection<?>) invocation.getArguments()[2]).iterator().next());
 				return null;
 			}
-		}).when(registry).createInbound(anyString(), any(MessageChannel.class), any(Collection.class), anyBoolean());
+		}).when(bus).bindConsumer(anyString(), any(MessageChannel.class), any(Collection.class),
+				anyBoolean());
 		streamPlugin.postProcessModule(module);
-		verify(registry).createInbound(anyString(), any(MessageChannel.class), any(Collection.class), anyBoolean());
+		verify(bus).bindConsumer(anyString(), any(MessageChannel.class), any(Collection.class), anyBoolean());
 	}
 
 }

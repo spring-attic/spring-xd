@@ -29,7 +29,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.http.MediaType;
 import org.springframework.integration.MessageChannel;
-import org.springframework.integration.x.channel.registry.ChannelRegistry;
+import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.module.AbstractPlugin;
 import org.springframework.xd.module.DeploymentMetadata;
@@ -88,38 +88,36 @@ public class JobPlugin extends AbstractPlugin {
 		if (logger.isInfoEnabled()) {
 			logger.info("Configuring module with the following properties: " + properties.toString());
 		}
-
 		module.addProperties(properties);
-
 	}
 
 	@Override
 	public void postProcessModule(Module module) {
-		ChannelRegistry registry = findRegistry(module);
+		MessageBus bus = findMessageBus(module);
 		DeploymentMetadata md = module.getDeploymentMetadata();
-		if (registry != null) {
+		if (bus != null) {
 			MessageChannel inputChannel = module.getComponent("input", MessageChannel.class);
 			if (inputChannel != null) {
-				registry.createInbound(JOB_CHANNEL_PREFIX + md.getGroup(), inputChannel,
+				bus.bindConsumer(JOB_CHANNEL_PREFIX + md.getGroup(), inputChannel,
 						DEFAULT_ACCEPTED_CONTENT_TYPES,
 						true);
 			}
 			MessageChannel notificationsChannel = module.getComponent("serializedNotifications", MessageChannel.class);
 			if (notificationsChannel != null) {
-				registry.createOutbound(md.getGroup() + NOTIFICATION_CHANNEL_SUFFIX, notificationsChannel, true);
+				bus.bindProducer(md.getGroup() + NOTIFICATION_CHANNEL_SUFFIX, notificationsChannel, true);
 			}
 		}
 	}
 
-	private ChannelRegistry findRegistry(Module module) {
-		ChannelRegistry registry = null;
+	private MessageBus findMessageBus(Module module) {
+		MessageBus messageBus = null;
 		try {
-			registry = module.getComponent(ChannelRegistry.class);
+			messageBus = module.getComponent(MessageBus.class);
 		}
 		catch (Exception e) {
-			logger.error("No registry in context, cannot wire channels");
+			logger.error("No MessageBus in context, cannot wire channels");
 		}
-		return registry;
+		return messageBus;
 	}
 
 	@Override
@@ -128,10 +126,10 @@ public class JobPlugin extends AbstractPlugin {
 
 	@Override
 	public void removeModule(Module module) {
-		ChannelRegistry registry = findRegistry(module);
-		if (registry != null) {
-			registry.deleteInbound(JOB_CHANNEL_PREFIX + module.getDeploymentMetadata().getGroup());
-			registry.deleteOutbound(module.getDeploymentMetadata().getGroup() + NOTIFICATION_CHANNEL_SUFFIX);
+		MessageBus bus = findMessageBus(module);
+		if (bus != null) {
+			bus.unbindConsumers(JOB_CHANNEL_PREFIX + module.getDeploymentMetadata().getGroup());
+			bus.unbindProducers(module.getDeploymentMetadata().getGroup() + NOTIFICATION_CHANNEL_SUFFIX);
 		}
 	}
 

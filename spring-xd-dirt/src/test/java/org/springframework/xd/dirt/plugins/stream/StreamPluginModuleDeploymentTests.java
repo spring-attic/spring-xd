@@ -35,7 +35,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.x.channel.registry.ChannelRegistry;
+import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.xd.dirt.event.AbstractModuleEvent;
@@ -51,7 +51,6 @@ import org.springframework.xd.module.SimpleModule;
  * Integration test that deploys a few simple test modules to verify the full functionality of {@link StreamPlugin}
  * 
  * @author Jennifer Hickey
- * 
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -92,29 +91,30 @@ public class StreamPluginModuleDeploymentTests {
 	}
 
 	/**
-	 * Validates that channels defined in the modules end up in the shared {@link ChannelRegistry}
+	 * Validates that channels defined in the modules end up in the shared {@link MessageBus}
 	 * 
 	 * @throws InterruptedException
 	 */
 	@Test
-	public void moduleChannelsRegisteredWithSameRegistry() throws InterruptedException {
+	public void moduleChannelsRegisteredWithSameMessageBus() throws InterruptedException {
 		this.source = sendModuleRequest(createSourceModuleRequest());
-		ChannelRegistry registry = source.getApplicationContext().getBean(ChannelRegistry.class);
-		assertEquals(2, getBridges(registry).size());
+		MessageBus bus = source.getApplicationContext().getBean(MessageBus.class);
+		assertEquals(2, getBridges(bus).size());
 		this.sink = sendModuleRequest(createSinkModuleRequest());
-		assertSame(registry, sink.getApplicationContext().getBean(ChannelRegistry.class));
-		assertEquals(3, getBridges(registry).size());
+		assertSame(bus, sink.getApplicationContext().getBean(MessageBus.class));
+		assertEquals(3, getBridges(bus).size());
+		getBridges(bus).clear();
 	}
 
 	@Test
 	public void moduleUndeployUnregistersChannels() throws InterruptedException {
 		ModuleDeploymentRequest request = createSourceModuleRequest();
 		SimpleModule module = sendModuleRequest(request);
-		ChannelRegistry registry = module.getApplicationContext().getBean(ChannelRegistry.class);
-		assertEquals(2, getBridges(registry).size());
+		MessageBus bus = module.getApplicationContext().getBean(MessageBus.class);
+		assertEquals(2, getBridges(bus).size());
 		request.setRemove(true);
 		sendModuleRequest(request);
-		assertEquals(0, getBridges(registry).size());
+		assertEquals(0, getBridges(bus).size());
 	}
 
 	private SimpleModule sendModuleRequest(ModuleDeploymentRequest request) throws InterruptedException {
@@ -143,8 +143,8 @@ public class StreamPluginModuleDeploymentTests {
 		return request;
 	}
 
-	private Collection<?> getBridges(ChannelRegistry registry) {
-		DirectFieldAccessor accessor = new DirectFieldAccessor(registry);
+	private Collection<?> getBridges(MessageBus bus) {
+		DirectFieldAccessor accessor = new DirectFieldAccessor(bus);
 		List<?> bridges = (List<?>) accessor.getPropertyValue("bridges");
 		return bridges;
 	}

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.x.channel.registry;
+package org.springframework.integration.x.bus;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -40,80 +40,80 @@ import org.springframework.integration.support.MessageBuilder;
 /**
  * @author Gary Russell
  */
-public abstract class AbstractChannelRegistryTests {
+public abstract class AbstractMessageBusTests {
 
 	private static final Collection<MediaType> ALL = Collections.singletonList(MediaType.ALL);
 
 	@Test
 	public void testClean() throws Exception {
-		ChannelRegistry registry = getRegistry();
-		registry.createOutbound("foo.0", new DirectChannel(), false);
-		registry.createInbound("foo.0", new DirectChannel(), ALL, false);
-		registry.createOutbound("foo.1", new DirectChannel(), false);
-		registry.createInbound("foo.1", new DirectChannel(), ALL, false);
-		registry.createOutbound("foo.2", new DirectChannel(), false);
-		Collection<?> bridges = getBridges(registry);
+		MessageBus messageBus = getMessageBus();
+		messageBus.bindProducer("foo.0", new DirectChannel(), false);
+		messageBus.bindConsumer("foo.0", new DirectChannel(), ALL, false);
+		messageBus.bindProducer("foo.1", new DirectChannel(), false);
+		messageBus.bindConsumer("foo.1", new DirectChannel(), ALL, false);
+		messageBus.bindProducer("foo.2", new DirectChannel(), false);
+		Collection<?> bridges = getBridges(messageBus);
 		assertEquals(5, bridges.size());
-		registry.deleteOutbound("foo.0");
+		messageBus.unbindProducers("foo.0");
 		assertEquals(4, bridges.size());
-		registry.deleteInbound("foo.0");
-		registry.deleteOutbound("foo.1");
+		messageBus.unbindConsumers("foo.0");
+		messageBus.unbindProducers("foo.1");
 		assertEquals(2, bridges.size());
-		registry.deleteInbound("foo.1");
-		registry.deleteOutbound("foo.2");
+		messageBus.unbindConsumers("foo.1");
+		messageBus.unbindProducers("foo.2");
 		assertTrue(bridges.isEmpty());
 	}
 
 	@Test
 	public void testSendAndReceive() throws Exception {
-		ChannelRegistry registry = getRegistry();
+		MessageBus messageBus = getMessageBus();
 		DirectChannel moduleOutputChannel = new DirectChannel();
 		QueueChannel moduleInputChannel = new QueueChannel();
-		registry.createOutbound("foo.0", moduleOutputChannel, false);
-		registry.createInbound("foo.0", moduleInputChannel, ALL, false);
+		messageBus.bindProducer("foo.0", moduleOutputChannel, false);
+		messageBus.bindConsumer("foo.0", moduleInputChannel, ALL, false);
 		Message<?> message = MessageBuilder.withPayload("foo").setHeader(MessageHeaders.CONTENT_TYPE, "foo/bar").build();
 		moduleOutputChannel.send(message);
 		Message<?> inbound = moduleInputChannel.receive(5000);
 		assertNotNull(inbound);
 		assertEquals("foo", inbound.getPayload());
-		assertNull(inbound.getHeaders().get(ChannelRegistrySupport.ORIGINAL_CONTENT_TYPE_HEADER));
+		assertNull(inbound.getHeaders().get(MessageBusSupport.ORIGINAL_CONTENT_TYPE_HEADER));
 		assertEquals("foo/bar", inbound.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
 
 	@Test
 	public void testSendAndReceiveNoOriginalContentType() throws Exception {
-		ChannelRegistry registry = getRegistry();
+		MessageBus messageBus = getMessageBus();
 		DirectChannel moduleOutputChannel = new DirectChannel();
 		QueueChannel moduleInputChannel = new QueueChannel();
-		registry.createOutbound("bar.0", moduleOutputChannel, false);
-		registry.createInbound("bar.0", moduleInputChannel, ALL, false);
+		messageBus.bindProducer("bar.0", moduleOutputChannel, false);
+		messageBus.bindConsumer("bar.0", moduleInputChannel, ALL, false);
 
 		Message<?> message = MessageBuilder.withPayload("foo").build();
 		moduleOutputChannel.send(message);
 		Message<?> inbound = moduleInputChannel.receive(5000);
 		assertNotNull(inbound);
 		assertEquals("foo", inbound.getPayload());
-		assertNull(inbound.getHeaders().get(ChannelRegistrySupport.ORIGINAL_CONTENT_TYPE_HEADER));
+		assertNull(inbound.getHeaders().get(MessageBusSupport.ORIGINAL_CONTENT_TYPE_HEADER));
 		assertNull(inbound.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
 
 	@Test
 	public void testSendAndReceivePubSub() throws Exception {
-		ChannelRegistry registry = getRegistry();
+		MessageBus messageBus = getMessageBus();
 		DirectChannel moduleOutputChannel = new DirectChannel();
 		// Test pub/sub by emulating how StreamPlugin handles taps
 		DirectChannel tapChannel = new DirectChannel();
 		QueueChannel moduleInputChannel = new QueueChannel();
 		QueueChannel module2InputChannel = new QueueChannel();
 		QueueChannel module3InputChannel = new QueueChannel();
-		registry.createOutbound("baz.0", moduleOutputChannel, false);
-		registry.createInbound("baz.0", moduleInputChannel, ALL, false);
+		messageBus.bindProducer("baz.0", moduleOutputChannel, false);
+		messageBus.bindConsumer("baz.0", moduleInputChannel, ALL, false);
 		moduleOutputChannel.addInterceptor(new WireTap(tapChannel));
-		registry.createOutboundPubSub("tap:baz.http", tapChannel);
+		messageBus.bindPubSubProducer("tap:baz.http", tapChannel);
 		// A new module is using the tap as an input channel
-		registry.createInboundPubSub("tap:baz.http", module2InputChannel, ALL);
+		messageBus.bindPubSubConsumer("tap:baz.http", module2InputChannel, ALL);
 		// Another new module is using tap as an input channel
-		registry.createInboundPubSub("tap:baz.http", module3InputChannel, ALL);
+		messageBus.bindPubSubConsumer("tap:baz.http", module3InputChannel, ALL);
 		Message<?> message = MessageBuilder.withPayload("foo").setHeader(MessageHeaders.CONTENT_TYPE, "foo/bar").build();
 		boolean success = false;
 		boolean retried = false;
@@ -122,7 +122,7 @@ public abstract class AbstractChannelRegistryTests {
 			Message<?> inbound = moduleInputChannel.receive(5000);
 			assertNotNull(inbound);
 			assertEquals("foo", inbound.getPayload());
-			assertNull(inbound.getHeaders().get(ChannelRegistrySupport.ORIGINAL_CONTENT_TYPE_HEADER));
+			assertNull(inbound.getHeaders().get(MessageBusSupport.ORIGINAL_CONTENT_TYPE_HEADER));
 			assertEquals("foo/bar", inbound.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 			Message<?> tapped1 = module2InputChannel.receive(5000);
 			Message<?> tapped2 = module3InputChannel.receive(5000);
@@ -134,14 +134,14 @@ public abstract class AbstractChannelRegistryTests {
 			}
 			success = true;
 			assertEquals("foo", tapped1.getPayload());
-			assertNull(tapped1.getHeaders().get(ChannelRegistrySupport.ORIGINAL_CONTENT_TYPE_HEADER));
+			assertNull(tapped1.getHeaders().get(MessageBusSupport.ORIGINAL_CONTENT_TYPE_HEADER));
 			assertEquals("foo/bar", tapped1.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 			assertEquals("foo", tapped2.getPayload());
-			assertNull(tapped2.getHeaders().get(ChannelRegistrySupport.ORIGINAL_CONTENT_TYPE_HEADER));
+			assertNull(tapped2.getHeaders().get(MessageBusSupport.ORIGINAL_CONTENT_TYPE_HEADER));
 			assertEquals("foo/bar", tapped2.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 		}
 		// delete one tap stream is deleted
-		registry.deleteInbound("tap:baz.http", module3InputChannel);
+		messageBus.unbindConsumer("tap:baz.http", module3InputChannel);
 		Message<?> message2 = MessageBuilder.withPayload("bar").setHeader(MessageHeaders.CONTENT_TYPE, "foo/bar").build();
 		moduleOutputChannel.send(message2);
 
@@ -153,17 +153,17 @@ public abstract class AbstractChannelRegistryTests {
 		assertNull(module3InputChannel.receive(1000));
 
 		// when other tap stream is deleted
-		registry.deleteInbound("tap:baz.http", module2InputChannel);
+		messageBus.unbindConsumer("tap:baz.http", module2InputChannel);
 		// Clean up as StreamPlugin would
-		registry.deleteInbound("baz.0", moduleInputChannel);
-		registry.deleteOutbound("baz.0", moduleOutputChannel);
-		registry.deleteOutbound("tap:baz.http");
-		assertTrue(getBridges(registry).isEmpty());
+		messageBus.unbindConsumer("baz.0", moduleInputChannel);
+		messageBus.unbindProducer("baz.0", moduleOutputChannel);
+		messageBus.unbindProducers("tap:baz.http");
+		assertTrue(getBridges(messageBus).isEmpty());
 	}
 
 	@Test
 	public void createInboundPubSubBeforeOutboundPubSub() throws Exception {
-		ChannelRegistry registry = getRegistry();
+		MessageBus messageBus = getMessageBus();
 		DirectChannel moduleOutputChannel = new DirectChannel();
 		// Test pub/sub by emulating how StreamPlugin handles taps
 		DirectChannel tapChannel = new DirectChannel();
@@ -171,16 +171,16 @@ public abstract class AbstractChannelRegistryTests {
 		QueueChannel module2InputChannel = new QueueChannel();
 		QueueChannel module3InputChannel = new QueueChannel();
 		// Create the tap first
-		registry.createInboundPubSub("tap:baz.http", module2InputChannel, ALL);
+		messageBus.bindPubSubConsumer("tap:baz.http", module2InputChannel, ALL);
 
 		// Then create the stream
-		registry.createOutbound("baz.0", moduleOutputChannel, false);
-		registry.createInbound("baz.0", moduleInputChannel, ALL, false);
+		messageBus.bindProducer("baz.0", moduleOutputChannel, false);
+		messageBus.bindConsumer("baz.0", moduleInputChannel, ALL, false);
 		moduleOutputChannel.addInterceptor(new WireTap(tapChannel));
-		registry.createOutboundPubSub("tap:baz.http", tapChannel);
+		messageBus.bindPubSubProducer("tap:baz.http", tapChannel);
 
 		// Another new module is using tap as an input channel
-		registry.createInboundPubSub("tap:baz.http", module3InputChannel, ALL);
+		messageBus.bindPubSubConsumer("tap:baz.http", module3InputChannel, ALL);
 		Message<?> message = MessageBuilder.withPayload("foo").setHeader(MessageHeaders.CONTENT_TYPE, "foo/bar").build();
 		boolean success = false;
 		boolean retried = false;
@@ -189,7 +189,7 @@ public abstract class AbstractChannelRegistryTests {
 			Message<?> inbound = moduleInputChannel.receive(5000);
 			assertNotNull(inbound);
 			assertEquals("foo", inbound.getPayload());
-			assertNull(inbound.getHeaders().get(ChannelRegistrySupport.ORIGINAL_CONTENT_TYPE_HEADER));
+			assertNull(inbound.getHeaders().get(MessageBusSupport.ORIGINAL_CONTENT_TYPE_HEADER));
 			assertEquals("foo/bar", inbound.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 			Message<?> tapped1 = module2InputChannel.receive(5000);
 			Message<?> tapped2 = module3InputChannel.receive(5000);
@@ -201,14 +201,14 @@ public abstract class AbstractChannelRegistryTests {
 			}
 			success = true;
 			assertEquals("foo", tapped1.getPayload());
-			assertNull(tapped1.getHeaders().get(ChannelRegistrySupport.ORIGINAL_CONTENT_TYPE_HEADER));
+			assertNull(tapped1.getHeaders().get(MessageBusSupport.ORIGINAL_CONTENT_TYPE_HEADER));
 			assertEquals("foo/bar", tapped1.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 			assertEquals("foo", tapped2.getPayload());
-			assertNull(tapped2.getHeaders().get(ChannelRegistrySupport.ORIGINAL_CONTENT_TYPE_HEADER));
+			assertNull(tapped2.getHeaders().get(MessageBusSupport.ORIGINAL_CONTENT_TYPE_HEADER));
 			assertEquals("foo/bar", tapped2.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 		}
 		// delete one tap stream is deleted
-		registry.deleteInbound("tap:baz.http", module3InputChannel);
+		messageBus.unbindConsumer("tap:baz.http", module3InputChannel);
 		Message<?> message2 = MessageBuilder.withPayload("bar").setHeader(MessageHeaders.CONTENT_TYPE, "foo/bar").build();
 		moduleOutputChannel.send(message2);
 
@@ -220,20 +220,20 @@ public abstract class AbstractChannelRegistryTests {
 		assertNull(module3InputChannel.receive(1000));
 
 		// when other tap stream is deleted
-		registry.deleteInbound("tap:baz.http", module2InputChannel);
+		messageBus.unbindConsumer("tap:baz.http", module2InputChannel);
 		// Clean up as StreamPlugin would
-		registry.deleteInbound("baz.0", moduleInputChannel);
-		registry.deleteOutbound("baz.0", moduleOutputChannel);
-		registry.deleteOutbound("tap:baz.http");
-		assertTrue(getBridges(registry).isEmpty());
+		messageBus.unbindConsumer("baz.0", moduleInputChannel);
+		messageBus.unbindProducer("baz.0", moduleOutputChannel);
+		messageBus.unbindProducers("tap:baz.http");
+		assertTrue(getBridges(messageBus).isEmpty());
 	}
 
-	protected Collection<?> getBridges(ChannelRegistry registry) {
-		DirectFieldAccessor accessor = new DirectFieldAccessor(registry);
+	protected Collection<?> getBridges(MessageBus messageBus) {
+		DirectFieldAccessor accessor = new DirectFieldAccessor(messageBus);
 		List<?> bridges = (List<?>) accessor.getPropertyValue("bridges");
 		return bridges;
 	}
 
-	protected abstract ChannelRegistry getRegistry() throws Exception;
+	protected abstract MessageBus getMessageBus() throws Exception;
 
 }

@@ -35,7 +35,7 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
-import org.springframework.integration.x.channel.registry.ChannelRegistry;
+import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.util.CollectionUtils;
 import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.module.BeanDefinitionAddingPostProcessor;
@@ -60,7 +60,7 @@ public class StreamPlugin implements Plugin {
 
 	private static final String SPEL_CONTEXT_XML = CONTEXT_CONFIG_ROOT + "spel-context.xml";
 
-	private static final String CHANNEL_REGISTRY = CONTEXT_CONFIG_ROOT + "channel-registry.xml";
+	private static final String MESSAGE_BUS = CONTEXT_CONFIG_ROOT + "message-bus.xml";
 
 	private final static String CONTENT_TYPE_BEAN_NAME = "accepted-content-types";
 
@@ -70,7 +70,6 @@ public class StreamPlugin implements Plugin {
 	public void preProcessModule(Module module) {
 		String type = module.getType();
 		DeploymentMetadata md = module.getDeploymentMetadata();
-
 		if ((SOURCE.equals(type) || PROCESSOR.equals(type) || SINK.equals(type))) {
 			Properties properties = new Properties();
 			properties.setProperty("xd.stream.name", md.getGroup());
@@ -82,45 +81,45 @@ public class StreamPlugin implements Plugin {
 
 	@Override
 	public void postProcessModule(Module module) {
-		ChannelRegistry registry = findRegistry(module);
-		createInbound(module, registry);
-		createOutbound(module, registry);
+		MessageBus bus = findMessageBus(module);
+		registerConsumer(module, bus);
+		registerProducer(module, bus);
 	}
 
-	private ChannelRegistry findRegistry(Module module) {
-		ChannelRegistry registry = null;
+	private MessageBus findMessageBus(Module module) {
+		MessageBus messageBus = null;
 		try {
-			registry = module.getComponent(ChannelRegistry.class);
+			messageBus = module.getComponent(MessageBus.class);
 		}
 		catch (Exception e) {
-			logger.error("No registry in context, cannot wire channels");
+			logger.error("No MessageBus in context, cannot wire channels");
 		}
-		return registry;
+		return messageBus;
 	}
 
-	private void createInbound(Module module, ChannelRegistry registry) {
+	private void registerConsumer(Module module, MessageBus bus) {
 		DeploymentMetadata md = module.getDeploymentMetadata();
 		MessageChannel channel = module.getComponent("input", MessageChannel.class);
 		if (channel != null) {
 			if (isChannelPubSub(md.getInputChannelName())) {
-				registry.createInboundPubSub(md.getInputChannelName(), channel, getAcceptedMediaTypes(module));
+				bus.bindPubSubConsumer(md.getInputChannelName(), channel, getAcceptedMediaTypes(module));
 			}
 			else {
-				registry.createInbound(md.getInputChannelName(), channel, getAcceptedMediaTypes(module),
+				bus.bindConsumer(md.getInputChannelName(), channel, getAcceptedMediaTypes(module),
 						md.isAliasedInput());
 			}
 		}
 	}
 
-	private void createOutbound(Module module, ChannelRegistry registry) {
+	private void registerProducer(Module module, MessageBus bus) {
 		DeploymentMetadata md = module.getDeploymentMetadata();
 		MessageChannel channel = module.getComponent("output", MessageChannel.class);
 		if (channel != null) {
 			if (isChannelPubSub(md.getOutputChannelName())) {
-				registry.createOutboundPubSub(md.getOutputChannelName(), channel);
+				bus.bindPubSubProducer(md.getOutputChannelName(), channel);
 			}
 			else {
-				registry.createOutbound(md.getOutputChannelName(), channel, md.isAliasedOutput());
+				bus.bindProducer(md.getOutputChannelName(), channel, md.isAliasedOutput());
 			}
 			// Create the tap channel now for possible future use (tap:mystream.mymodule)
 			if (channel instanceof AbstractMessageChannel) {
@@ -128,17 +127,17 @@ public class StreamPlugin implements Plugin {
 				DirectChannel tapChannel = new DirectChannel();
 				tapChannel.setBeanName(tapChannelName + ".tap.bridge");
 				((AbstractMessageChannel) channel).addInterceptor(new WireTap(tapChannel));
-				registry.createOutboundPubSub(tapChannelName, tapChannel);
+				bus.bindPubSubProducer(tapChannelName, tapChannel);
 			}
 		}
 	}
 
 	@Override
 	public void beforeShutdown(Module module) {
-		ChannelRegistry registry = findRegistry(module);
-		if (registry != null) {
-			removeInbound(module, registry);
-			removeOutbound(module, registry);
+		MessageBus bus = findMessageBus(module);
+		if (bus != null) {
+			unregisterConsumer(module, bus);
+			unregisterProducer(module, bus);
 		}
 	}
 
@@ -146,19 +145,19 @@ public class StreamPlugin implements Plugin {
 	public void removeModule(Module module) {
 	}
 
-	private void removeInbound(Module module, ChannelRegistry registry) {
+	private void unregisterConsumer(Module module, MessageBus bus) {
 		MessageChannel inputChannel = module.getComponent("input", MessageChannel.class);
 		if (inputChannel != null) {
-			registry.deleteInbound(module.getDeploymentMetadata().getInputChannelName(), inputChannel);
+			bus.unbindConsumer(module.getDeploymentMetadata().getInputChannelName(), inputChannel);
 		}
 	}
 
-	private void removeOutbound(Module module, ChannelRegistry registry) {
+	private void unregisterProducer(Module module, MessageBus bus) {
 		MessageChannel outputChannel = module.getComponent("output", MessageChannel.class);
 		if (outputChannel != null) {
-			registry.deleteOutbound(module.getDeploymentMetadata().getOutputChannelName(), outputChannel);
+			bus.unbindProducer(module.getDeploymentMetadata().getOutputChannelName(), outputChannel);
 		}
-		registry.deleteOutbound(getTapChannelName(module));
+		bus.unbindProducers(getTapChannelName(module));
 	}
 
 	private String getTapChannelName(Module module) {
@@ -195,7 +194,7 @@ public class StreamPlugin implements Plugin {
 	@Override
 	public void preProcessSharedContext(ConfigurableApplicationContext context) {
 		context.addBeanFactoryPostProcessor(new BeanDefinitionAddingPostProcessor(context.getEnvironment(),
-				new ClassPathResource(CHANNEL_REGISTRY)));
+				new ClassPathResource(MESSAGE_BUS)));
 	}
 
 }

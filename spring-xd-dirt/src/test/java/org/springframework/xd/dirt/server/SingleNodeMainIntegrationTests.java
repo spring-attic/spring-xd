@@ -29,7 +29,7 @@ import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.integration.MessageChannel;
-import org.springframework.integration.x.channel.registry.ChannelRegistry;
+import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.xd.analytics.metrics.core.MetricRepository;
 import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.module.ModuleDeployer;
@@ -39,11 +39,9 @@ import org.springframework.xd.dirt.server.options.SingleNodeOptions;
 import org.springframework.xd.dirt.server.options.XDPropertyKeys;
 import org.springframework.xd.module.Plugin;
 
-
 /**
  * @author David Turanski
  * @since 1.0
- * 
  */
 public class SingleNodeMainIntegrationTests extends AbstractAdminMainIntegrationTests {
 
@@ -71,8 +69,8 @@ public class SingleNodeMainIntegrationTests extends AbstractAdminMainIntegration
 		// No need to assert. Will throw exception
 		containerContext.getBean("containerControlChannel", MessageChannel.class);
 
-		assertEquals("container context should not have a channel registry", 0,
-				containerContext.getBeansOfType(ChannelRegistry.class).size());
+		assertEquals("container context should not have a message bus", 0,
+				containerContext.getBeansOfType(MessageBus.class).size());
 
 		assertTrue("No plugins loaded into container context",
 				containerContext.getBeansOfType(Plugin.class).size() > 0);
@@ -88,8 +86,8 @@ public class SingleNodeMainIntegrationTests extends AbstractAdminMainIntegration
 
 		assertEquals("admin context should not have plugins", 0,
 				adminContext.getBeansOfType(Plugin.class).size());
-		assertEquals("admin context should not have a channel registry", 0,
-				adminContext.getBeansOfType(ChannelRegistry.class).size());
+		assertEquals("admin context should not have a message bus", 0,
+				adminContext.getBeansOfType(MessageBus.class).size());
 		assertEquals("admin context should not have a module deployer", 0,
 				adminContext.getBeansOfType(ModuleDeployer.class).size());
 

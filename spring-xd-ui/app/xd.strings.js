@@ -25,10 +25,10 @@
 */
 // TODO use requrejs internationalization support
 define({
-	defaultStreamCreationSuccess: "Default stream successfully created",
-	customStreamCreationSuccess: "Custom stream successfully created",
+	defaultStreamCreationSuccess: "Stream successfully created",
+	customStreamCreationSuccess: "Stream successfully created",
 	tapStreamCreationSuccess: "Tap stream successfully created",
-	scheduleJobSuccess: "Job scheduled successully",
+	createJobSuccess: "Job created successully",
 	streamCreationError: "Error while creating stream",
 	action: {
 		"start" : "Stream started successfully",

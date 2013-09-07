@@ -147,7 +147,7 @@ function(_, $, when, rest, entity, mime, hateoas, errorcode, Backbone, conf, uti
             // Render artifact creation forms
             views.createStream.defaultStreamForm();
             views.tapStream.tapStreamForm();
-            views.scheduleJob.scheduleJobForm();
+            views.createJob.createJobForm();
             views.done();
         },
 

@@ -16,7 +16,7 @@
 							    <li class="divider-vertical"></li>
 							   	<li><a href="#xd-create-tap" data-toggle="tab">Tap</a></li> -->
 							   	<li class="divider-vertical"></li>
-							    <li><a href="#xd-create-job" data-toggle="tab">Job</a></li>
+							    <li><a href="#xd-create-job" data-toggle="tab">Create Job</a></li>
 							 </ul>
 						</div>
 					</div>

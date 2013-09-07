@@ -1,4 +1,4 @@
-<form class="form-horizontal" id="xd-scheduleJob-form">
+<form class="form-horizontal" id="xd-createJob-form">
     			<div class="row">
     				<div class="input-prepend module-input">
     					<span class="add-on"><strong>Name</strong></span>
@@ -12,6 +12,6 @@
 		  			</div>
 		  		</div>
 		  		<div class="row">
-		  			<button id="schedule-job" type="submit" class="btn btn-inverse module-input">Create</button>
+		  			<button id="create-job" type="submit" class="btn btn-inverse module-input">Create</button>
 		  		</div>
 				</form>

@@ -135,6 +135,10 @@ div #xd-content{
     cursor:hand;
 }
 
+#batch > tbody > tr > td {
+    vertical-align:middle;
+}
+
 /* 
 * Font styles
 */

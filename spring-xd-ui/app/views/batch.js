@@ -33,6 +33,46 @@ function(_, Backbone, utils, conf, model, BatchDetail) {
         return model.batchJobs.get(name);
     }
 
+    function getStatusColor (exitStatus) {
+        var alertClass;
+        switch(exitStatus) {
+            case 'FAILED':
+               alertClass = 'alert-error';
+               break;
+            case 'STARTED':
+               alertClass = 'alert-alert';
+               break;
+            case 'SUCCESS':
+            case 'COMPLETED':
+               alertClass = 'alert-success';
+               break;
+            default: 
+                alertClass = '';
+        }
+        return alertClass;
+    }
+
+    function transformForRender (jobs) {
+        var newJobs = jobs.map(function(job) {
+            var hasExecutions = job.attributes.exitStatus ? true : false;
+            return {
+                name : job.attributes.name,
+                details : job.attributes.name + '_details',
+                detailsRow : job.attributes.name + '_detailsRow',
+                executionCount : (hasExecutions ? job.attributes.executionCount : '<em>no executions<em>'),
+                exitStatus : (hasExecutions ? job.attributes.exitStatus.exitCode : '<em>no executions<em>'),
+                alertClass : getStatusColor(hasExecutions ? job.attributes.exitStatus.exitCode : ''),
+                jobParameters : (hasExecutions ? job.attributes.jobParameters : '<em>no executions<em>'),
+                startTime : hasExecutions ? (job.attributes.startDate + ':' + 
+                        job.attributes.startTime) : '<em>no executions<em>',
+                duration : hasExecutions ? job.attributes.duration : '<em>no executions<em>',
+                launchable : job.attributes.launchable ? '' : 'disabled',
+                hasExecutions : hasExecutions
+            };
+        });
+        return newJobs;
+    }
+
     /**
      * Check if string 'label' contains all the characters (in the right order
      * but not necessarily adjacent) from charseq.
@@ -59,6 +99,7 @@ function(_, Backbone, utils, conf, model, BatchDetail) {
         events: {
             "click button.detailAction": "showDetails",
             "click button.launchAction": "launch",
+            "click button.launchWithParametersAction": "launchWithParameters",
             "keyup input#job_filter": "filterJobs"
         },
 
@@ -73,7 +114,9 @@ function(_, Backbone, utils, conf, model, BatchDetail) {
             Object.keys(expanded).forEach(function(key) {
                 expanded[key].remove();
             }, this);
-            this.$el.html(_.template(utils.getTemplate(conf.templates.batchList), { jobs :model.batchJobs.models }));
+            this.$el.html(_.template(utils.getTemplate(conf.templates.batchList), { 
+                jobs: transformForRender(model.batchJobs.models) 
+            }));
 
             // now add the expanded nodes back
             Object.keys(expanded).forEach(function(key) {
@@ -127,6 +170,21 @@ function(_, Backbone, utils, conf, model, BatchDetail) {
             var job = extractJob(event);
             if (job) {
                 job.launch().then(function() {
+                    var detailsView = expanded[job.id];
+                    if (detailsView) {
+                        job.fetch().then(function() {
+                            detailsView.options.job = job;
+                            detailsView.render();
+                        });
+                    }
+                });
+            }
+        },
+
+        launchWithParameters: function(event) {
+            var job = extractJob(event);
+            if (job) {
+                job.launch(JSON.stringify({arg1:1, arg2:'bar'})).then(function() {
                     var detailsView = expanded[job.id];
                     if (detailsView) {
                         job.fetch().then(function() {

@@ -36,49 +36,49 @@ import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.x.channel.registry.Bridge;
-import org.springframework.integration.x.channel.registry.ChannelRegistry;
-import org.springframework.integration.x.channel.registry.ChannelRegistrySupport;
+import org.springframework.integration.x.bus.Bridge;
+import org.springframework.integration.x.bus.MessageBus;
+import org.springframework.integration.x.bus.MessageBusSupport;
 import org.springframework.util.Assert;
 
 /**
- * A {@link ChannelRegistry} implementation backed by Redis.
+ * A {@link MessageBus} implementation backed by Redis.
  * 
  * @author Mark Fisher
  * @author Gary Russell
  * @author David Turanski
  * @author Jennifer Hickey
  */
-public class RedisChannelRegistry extends ChannelRegistrySupport implements DisposableBean {
+public class RedisMessageBus extends MessageBusSupport implements DisposableBean {
 
 	private RedisConnectionFactory connectionFactory;
 
 	private final EmbeddedHeadersMessageConverter embeddedHeadersMessageConverter = new EmbeddedHeadersMessageConverter();
 
-	public RedisChannelRegistry(RedisConnectionFactory connectionFactory) {
+	public RedisMessageBus(RedisConnectionFactory connectionFactory) {
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");
 		this.connectionFactory = connectionFactory;
 	}
 
 	@Override
-	public void createInbound(final String name, MessageChannel moduleInputChannel,
+	public void registerConsumer(final String name, MessageChannel moduleInputChannel,
 			final Collection<MediaType> acceptedMediaTypes, boolean aliasHint) {
 		RedisQueueInboundChannelAdapter adapter = new RedisQueueInboundChannelAdapter("queue." + name,
 				this.connectionFactory);
 		adapter.setEnableDefaultSerializer(false);
-		doCreateInbound(name, moduleInputChannel, acceptedMediaTypes, adapter);
+		doRegisterConsumer(name, moduleInputChannel, acceptedMediaTypes, adapter);
 	}
 
 	@Override
-	public void createInboundPubSub(final String name, MessageChannel moduleInputChannel,
+	public void registerPubSubConsumer(final String name, MessageChannel moduleInputChannel,
 			final Collection<MediaType> acceptedMediaTypes) {
 		RedisInboundChannelAdapter adapter = new RedisInboundChannelAdapter(this.connectionFactory);
 		adapter.setSerializer(null);
 		adapter.setTopics("topic." + name);
-		doCreateInbound(name, moduleInputChannel, acceptedMediaTypes, adapter);
+		doRegisterConsumer(name, moduleInputChannel, acceptedMediaTypes, adapter);
 	}
 
-	private void doCreateInbound(String name, MessageChannel moduleInputChannel,
+	private void doRegisterConsumer(String name, MessageChannel moduleInputChannel,
 			final Collection<MediaType> acceptedMediaTypes, MessageProducerSupport adapter) {
 		DirectChannel bridgeToModuleChannel = new DirectChannel();
 		bridgeToModuleChannel.setBeanName(name + ".bridge");
@@ -95,25 +95,25 @@ public class RedisChannelRegistry extends ChannelRegistrySupport implements Disp
 	}
 
 	@Override
-	public void createOutbound(final String name, MessageChannel moduleOutputChannel, boolean aliasHint) {
+	public void registerProducer(final String name, MessageChannel moduleOutputChannel, boolean aliasHint) {
 		Assert.isInstanceOf(SubscribableChannel.class, moduleOutputChannel);
 		RedisQueueOutboundChannelAdapter queue = new RedisQueueOutboundChannelAdapter("queue." + name,
 				connectionFactory);
 		queue.setEnableDefaultSerializer(false);
 		queue.afterPropertiesSet();
-		doCreateOutbound(name, moduleOutputChannel, queue);
+		doRegisterProducer(name, moduleOutputChannel, queue);
 	}
 
 	@Override
-	public void createOutboundPubSub(final String name, MessageChannel moduleOutputChannel) {
+	public void registerPubSubProducer(final String name, MessageChannel moduleOutputChannel) {
 		RedisPublishingMessageHandler topic = new RedisPublishingMessageHandler(connectionFactory);
 		topic.setDefaultTopic("topic." + name);
 		topic.setSerializer(null);
 		topic.afterPropertiesSet();
-		doCreateOutbound(name, moduleOutputChannel, topic);
+		doRegisterProducer(name, moduleOutputChannel, topic);
 	}
 
-	private void doCreateOutbound(final String name, MessageChannel moduleOutputChannel, MessageHandler delegate) {
+	private void doRegisterProducer(final String name, MessageChannel moduleOutputChannel, MessageHandler delegate) {
 		Assert.isInstanceOf(SubscribableChannel.class, moduleOutputChannel);
 		MessageHandler handler = new SendingHandler(delegate);
 		EventDrivenConsumer consumer = new EventDrivenConsumer((SubscribableChannel) moduleOutputChannel, handler);

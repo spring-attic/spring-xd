@@ -27,7 +27,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.x.channel.registry.ChannelRegistry;
+import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.xd.module.Module;
 
 
@@ -121,7 +121,7 @@ public class SingleNodeStreamDeploymentIntegrationTests extends AbstractStreamDe
 
 		final Module module = getModule("router", 0, moduleDeployer);
 		final MessageChannel inputChannel = module.getComponent("routeit", MessageChannel.class);
-		module.getComponent(ChannelRegistry.class);
+		module.getComponent(MessageBus.class);
 		assertNotNull(inputChannel);
 
 		final MessageChannel outputChannelFoo = module.getComponent("foo", MessageChannel.class);

@@ -19,23 +19,23 @@ package org.springframework.integration.x.redis;
 import org.junit.Rule;
 
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.integration.x.channel.registry.AbstractChannelRegistryTests;
-import org.springframework.integration.x.channel.registry.ChannelRegistry;
+import org.springframework.integration.x.bus.AbstractMessageBusTests;
+import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.xd.test.redis.RedisAvailableRule;
 
 /**
  * @author Gary Russell
  */
-public class RedisChannelRegistryTests extends AbstractChannelRegistryTests {
+public class RedisMessageBusTests extends AbstractMessageBusTests {
 
 	@Rule
 	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
 
 	@Override
-	protected ChannelRegistry getRegistry() throws Exception {
+	protected MessageBus getMessageBus() throws Exception {
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
 		connectionFactory.afterPropertiesSet();
-		RedisChannelRegistry registry = new RedisChannelRegistry(connectionFactory);
-		return registry;
+		return new RedisMessageBus(connectionFactory);
 	}
+
 }

@@ -37,10 +37,8 @@
 		<constructor-arg value="${accessTokenSecret:${twitter.oauth.accessTokenSecret}}"/>
 	</bean>
 
-	<int:filter id="discardDeletesPropertyExists"
-	    input-channel="to.discardDeletes" output-channel="to.filter"
-	    discard-channel="output"
-	    expression="'${discardDeletes:true}' eq 'true'"/>
+	<int:router id="discardDeletesRouter" input-channel="to.discardDeletes"
+		expression="${discardDeletes:true} ? 'to.filter':'output'" />
 
 <!-- pass anything not matching {"delete": -->
 	<int:filter id="discardDeletes" input-channel="to.filter" output-channel="output"

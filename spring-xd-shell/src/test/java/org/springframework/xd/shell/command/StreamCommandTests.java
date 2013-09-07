@@ -279,28 +279,31 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 
 	@Test
 	public void testNamedChannels() throws Exception {
-		HttpSource source = newHttpSource();
+		HttpSource source1 = newHttpSource();
 		HttpSource source2 = newHttpSource();
 		HttpSource source3 = newHttpSource();
 		FileSink sink = newFileSink().binary(true);
-		stream().create("stream1", "%s > :foo", source);
+		stream().create("stream1", "%s > :foo", source1);
 		stream().create("stream2", "%s > :foo", source2);
 		stream().create("stream3", ":foo > %s", sink);
 
-		source.ensureReady().postData("Dracarys!");
+		source1.ensureReady().postData("Dracarys!");
 		source2.ensureReady().postData("testing");
 
 		assertTrue(sink.waitForContents("Dracarys!testing", 1000));
 
 		stream().destroyStream("stream2");
 
-		source.ensureReady().postData("stillup");
+		source1.ensureReady().postData("stillup");
 		assertTrue(sink.waitForContents("Dracarys!testingstillup", 1000));
 
 		stream().create("stream4", "%s > :foo", source3);
 		source3.ensureReady().postData("newstream");
 		assertTrue(sink.waitForContents("Dracarys!testingstillupnewstream", 1000));
 
+		stream().destroyStream("stream4");
+		stream().destroyStream("stream1");
 		stream().destroyStream("stream3");
 	}
+
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.x.channel.registry;
+package org.springframework.integration.x.bus;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.MessageChannel;

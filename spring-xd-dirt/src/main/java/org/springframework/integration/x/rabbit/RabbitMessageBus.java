@@ -43,19 +43,19 @@ import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.mapping.AbstractHeaderMapper;
-import org.springframework.integration.x.channel.registry.Bridge;
-import org.springframework.integration.x.channel.registry.ChannelRegistry;
-import org.springframework.integration.x.channel.registry.ChannelRegistrySupport;
+import org.springframework.integration.x.bus.Bridge;
+import org.springframework.integration.x.bus.MessageBus;
+import org.springframework.integration.x.bus.MessageBusSupport;
 import org.springframework.util.Assert;
 
 /**
- * A {@link ChannelRegistry} implementation backed by RabbitMQ.
+ * A {@link MessageBus} implementation backed by RabbitMQ.
  * 
  * @author Mark Fisher
  * @author Gary Russell
  * @author Jennifer Hickey
  */
-public class RabbitChannelRegistry extends ChannelRegistrySupport implements DisposableBean {
+public class RabbitMessageBus extends MessageBusSupport implements DisposableBean {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -69,7 +69,7 @@ public class RabbitChannelRegistry extends ChannelRegistrySupport implements Dis
 
 	private final DefaultAmqpHeaderMapper mapper;
 
-	public RabbitChannelRegistry(ConnectionFactory connectionFactory) {
+	public RabbitMessageBus(ConnectionFactory connectionFactory) {
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");
 		this.connectionFactory = connectionFactory;
 		this.rabbitTemplate.setConnectionFactory(connectionFactory);
@@ -82,28 +82,28 @@ public class RabbitChannelRegistry extends ChannelRegistrySupport implements Dis
 	}
 
 	@Override
-	public void createInbound(final String name, MessageChannel moduleInputChannel,
+	public void registerConsumer(final String name, MessageChannel moduleInputChannel,
 			final Collection<MediaType> acceptedMediaTypes, boolean aliasHint) {
 		if (logger.isInfoEnabled()) {
 			logger.info("declaring queue for inbound: " + name);
 		}
 		Queue queue = new Queue(name);
 		this.rabbitAdmin.declareQueue(queue);
-		doCreateInbound(name, moduleInputChannel, acceptedMediaTypes, queue);
+		doRegisterConsumer(name, moduleInputChannel, acceptedMediaTypes, queue);
 	}
 
 	@Override
-	public void createInboundPubSub(String name, MessageChannel moduleInputChannel,
+	public void registerPubSubConsumer(String name, MessageChannel moduleInputChannel,
 			Collection<MediaType> acceptedMediaTypes) {
 		FanoutExchange exchange = new FanoutExchange("topic." + name);
 		rabbitAdmin.declareExchange(exchange);
 		Queue queue = this.rabbitAdmin.declareQueue();
 		Binding binding = BindingBuilder.bind(queue).to(exchange);
 		this.rabbitAdmin.declareBinding(binding);
-		doCreateInbound(name, moduleInputChannel, acceptedMediaTypes, queue);
+		doRegisterConsumer(name, moduleInputChannel, acceptedMediaTypes, queue);
 	}
 
-	private void doCreateInbound(String name, MessageChannel moduleInputChannel,
+	private void doRegisterConsumer(String name, MessageChannel moduleInputChannel,
 			Collection<MediaType> acceptedMediaTypes, Queue queue) {
 		SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer(this.connectionFactory);
 		if (this.concurrentConsumers != null) {
@@ -128,7 +128,7 @@ public class RabbitChannelRegistry extends ChannelRegistrySupport implements Dis
 	}
 
 	@Override
-	public void createOutbound(final String name, MessageChannel moduleOutputChannel, boolean aliasHint) {
+	public void registerProducer(final String name, MessageChannel moduleOutputChannel, boolean aliasHint) {
 		if (logger.isInfoEnabled()) {
 			logger.info("declaring queue for outbound: " + name);
 		}
@@ -137,20 +137,20 @@ public class RabbitChannelRegistry extends ChannelRegistrySupport implements Dis
 		queue.setRoutingKey(name); // uses default exchange
 		queue.setHeaderMapper(mapper);
 		queue.afterPropertiesSet();
-		doCreateOutbound(name, moduleOutputChannel, queue);
+		doRegisterProducer(name, moduleOutputChannel, queue);
 	}
 
 	@Override
-	public void createOutboundPubSub(String name, MessageChannel moduleOutputChannel) {
+	public void registerPubSubProducer(String name, MessageChannel moduleOutputChannel) {
 		rabbitAdmin.declareExchange(new FanoutExchange("topic." + name));
 		AmqpOutboundEndpoint fanout = new AmqpOutboundEndpoint(rabbitTemplate);
 		fanout.setExchangeName("topic." + name);
 		fanout.setHeaderMapper(mapper);
 		fanout.afterPropertiesSet();
-		doCreateOutbound(name, moduleOutputChannel, fanout);
+		doRegisterProducer(name, moduleOutputChannel, fanout);
 	}
 
-	private void doCreateOutbound(final String name, MessageChannel moduleOutputChannel, MessageHandler delegate) {
+	private void doRegisterProducer(final String name, MessageChannel moduleOutputChannel, MessageHandler delegate) {
 		Assert.isInstanceOf(SubscribableChannel.class, moduleOutputChannel);
 		MessageHandler handler = new SendingHandler(delegate);
 		EventDrivenConsumer consumer = new EventDrivenConsumer((SubscribableChannel) moduleOutputChannel, handler);

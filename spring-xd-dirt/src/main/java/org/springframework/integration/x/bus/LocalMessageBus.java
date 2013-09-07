@@ -11,7 +11,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.springframework.integration.x.channel.registry;
+package org.springframework.integration.x.bus;
 
 import java.util.Collection;
 
@@ -34,7 +34,7 @@ import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.util.Assert;
 
 /**
- * A simple implementation of {@link ChannelRegistry} for in-process use. For inbound and outbound, creates a
+ * A simple implementation of {@link MessageBus} for in-process use. For inbound and outbound, creates a
  * {@link DirectChannel} or a {@link QueueChannel} depending on whether the binding is aliased or not then bridges the
  * passed {@link MessageChannel} to the channel which is registered in the given application context. If that channel
  * does not yet exist, it will be created.
@@ -45,7 +45,7 @@ import org.springframework.util.Assert;
  * @author Jennifer Hickey
  * @since 1.0
  */
-public class LocalChannelRegistry extends ChannelRegistrySupport implements ApplicationContextAware, InitializingBean {
+public class LocalMessageBus extends MessageBusSupport implements ApplicationContextAware, InitializingBean {
 
 	private volatile AbstractApplicationContext applicationContext;
 
@@ -127,20 +127,20 @@ public class LocalChannelRegistry extends ChannelRegistrySupport implements Appl
 	 * channel instance.
 	 */
 	@Override
-	public void createInbound(String name, MessageChannel moduleInputChannel, Collection<MediaType> acceptedMediaTypes,
+	public void registerConsumer(String name, MessageChannel moduleInputChannel, Collection<MediaType> acceptedMediaTypes,
 			boolean aliasHint) {
 		SharedChannelProvider channelProvider = aliasHint ? queueChannelProvider
 				: directChannelProvider;
-		doCreateInbound(name, moduleInputChannel, acceptedMediaTypes, channelProvider);
+		doRegisterConsumer(name, moduleInputChannel, acceptedMediaTypes, channelProvider);
 	}
 
 	@Override
-	public void createInboundPubSub(String name, MessageChannel moduleInputChannel,
+	public void registerPubSubConsumer(String name, MessageChannel moduleInputChannel,
 			Collection<MediaType> acceptedMediaTypes) {
-		doCreateInbound(name, moduleInputChannel, acceptedMediaTypes, pubsubChannelProvider);
+		doRegisterConsumer(name, moduleInputChannel, acceptedMediaTypes, pubsubChannelProvider);
 	}
 
-	private void doCreateInbound(String name, MessageChannel moduleInputChannel,
+	private void doRegisterConsumer(String name, MessageChannel moduleInputChannel,
 			Collection<MediaType> acceptedMediaTypes,
 			SharedChannelProvider<?> channelProvider) {
 		Assert.hasText(name, "a valid name is required to register an inbound channel");
@@ -155,18 +155,18 @@ public class LocalChannelRegistry extends ChannelRegistrySupport implements Appl
 	 * channel instance.
 	 */
 	@Override
-	public void createOutbound(String name, MessageChannel moduleOutputChannel, boolean aliasHint) {
+	public void registerProducer(String name, MessageChannel moduleOutputChannel, boolean aliasHint) {
 		SharedChannelProvider channelProvider = aliasHint ? queueChannelProvider
 				: directChannelProvider;
-		doCreateOutbound(name, moduleOutputChannel, channelProvider);
+		doRegisterProducer(name, moduleOutputChannel, channelProvider);
 	}
 
 	@Override
-	public void createOutboundPubSub(String name, MessageChannel moduleOutputChannel) {
-		doCreateOutbound(name, moduleOutputChannel, pubsubChannelProvider);
+	public void registerPubSubProducer(String name, MessageChannel moduleOutputChannel) {
+		doRegisterProducer(name, moduleOutputChannel, pubsubChannelProvider);
 	}
 
-	private void doCreateOutbound(String name, MessageChannel moduleOutputChannel,
+	private void doRegisterProducer(String name, MessageChannel moduleOutputChannel,
 			SharedChannelProvider<?> channelProvider) {
 		Assert.hasText(name, "a valid name is required to register an outbound channel");
 		Assert.notNull(moduleOutputChannel, "channel must not be null");

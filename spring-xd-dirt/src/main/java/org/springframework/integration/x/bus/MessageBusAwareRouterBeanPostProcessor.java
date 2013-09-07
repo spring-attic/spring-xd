@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.x.channel.registry;
+package org.springframework.integration.x.bus;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -23,14 +23,14 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.integration.router.AbstractMappingMessageRouter;
 
 /**
- * A {@link BeanPostProcessor} that sets a {@link RegistryAwareChannelResolver} on any bean of type
+ * A {@link BeanPostProcessor} that sets a {@link MessageBusAwareChannelResolver} on any bean of type
  * {@link AbstractMappingMessageRouter} within the context.
  *
  * @author Mark Fisher
  */
-public class RegistryAwareRouterBeanPostProcessor implements BeanPostProcessor, BeanFactoryAware {
+public class MessageBusAwareRouterBeanPostProcessor implements BeanPostProcessor, BeanFactoryAware {
 
-	private final RegistryAwareChannelResolver channelResolver = new RegistryAwareChannelResolver();
+	private final MessageBusAwareChannelResolver channelResolver = new MessageBusAwareChannelResolver();
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {

@@ -1,18 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:util="http://www.springframework.org/schema/util"
 	xmlns:int="http://www.springframework.org/schema/integration"
 	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-3.0.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.2.xsd
-		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<import resource="local-common.xml" />
 
-	<bean id="channelRegistry"
-		class="org.springframework.integration.x.channel.registry.LocalChannelRegistry">
+	<bean id="messageBus"
+		class="org.springframework.integration.x.bus.LocalMessageBus">
 		<!-- TODO: This is a System property only. Not sete by command line option or environment variable -->
 		<property name="convertWithinTransport" value="${xd.local.transport.conversion:false}"/>
 		<property name="queueSize" value="${xd.local.transport.named.queueSize:0x7fffffff}" />

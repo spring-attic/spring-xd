@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.x.channel.registry;
+package org.springframework.integration.x.bus;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,26 +29,26 @@ import org.springframework.integration.support.channel.BeanFactoryChannelResolve
 
 /**
  * A {@link org.springframework.integration.support.channel.ChannelResolver} implementation that first checks for any
- * channel whose name begins with a colon in the {@link ChannelRegistry}.
- *
+ * channel whose name begins with a colon in the {@link MessageBus}.
+ * 
  * @author Mark Fisher
  */
-public class RegistryAwareChannelResolver extends BeanFactoryChannelResolver {
+public class MessageBusAwareChannelResolver extends BeanFactoryChannelResolver {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private final Map<String, MessageChannel> channels = new HashMap<String, MessageChannel>();
 
-	private volatile ChannelRegistry channelRegistry;
+	private volatile MessageBus messageBus;
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
 		super.setBeanFactory(beanFactory);
 		try {
-			channelRegistry = beanFactory.getBean(ChannelRegistry.class);
+			messageBus = beanFactory.getBean(MessageBus.class);
 		}
 		catch (Exception e) {
-			logger.warn("failed to locate a ChannelRegistry in the BeanFactory", e);
+			logger.warn("failed to locate a MessageBus in the BeanFactory", e);
 		}
 	}
 
@@ -58,9 +58,9 @@ public class RegistryAwareChannelResolver extends BeanFactoryChannelResolver {
 		if (name.startsWith(":")) {
 			String channelName = name.substring(1);
 			channel = channels.get(channelName);
-			if (channel == null && channelRegistry != null) {
+			if (channel == null && messageBus != null) {
 				channel = new DirectChannel();
-				channelRegistry.createOutbound(channelName, channel, true);
+				messageBus.registerProducer(channelName, channel, true);
 				channels.put(channelName, channel);
 			}
 		}

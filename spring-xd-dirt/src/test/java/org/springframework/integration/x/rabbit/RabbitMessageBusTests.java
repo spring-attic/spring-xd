@@ -19,23 +19,22 @@ package org.springframework.integration.x.rabbit;
 import org.junit.Rule;
 
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
-import org.springframework.integration.x.channel.registry.AbstractChannelRegistryTests;
-import org.springframework.integration.x.channel.registry.ChannelRegistry;
+import org.springframework.integration.x.bus.AbstractMessageBusTests;
+import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.xd.test.rabbit.RabbitAvailableRule;
 
 /**
  * @author Mark Fisher
  */
-public class RabbitChannelRegistryTests extends AbstractChannelRegistryTests {
+public class RabbitMessageBusTests extends AbstractMessageBusTests {
 
 	@Rule
 	public RabbitAvailableRule rabbitAvailableRule = new RabbitAvailableRule();
 
 	@Override
-	protected ChannelRegistry getRegistry() throws Exception {
+	protected MessageBus getMessageBus() throws Exception {
 		CachingConnectionFactory connectionFactory = new CachingConnectionFactory("localhost");
-		RabbitChannelRegistry registry = new RabbitChannelRegistry(connectionFactory);
-		return registry;
+		return new RabbitMessageBus(connectionFactory);
 	}
 
 }

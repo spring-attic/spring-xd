@@ -39,7 +39,7 @@
 
 	<int:splitter input-channel="results" output-channel="tweets"/>
 <!-- end temporary config-->
-<int:router input-channel="tweets" expression="${json:true} ? 'json' : 'pojo'"/>
+<int:router input-channel="tweets" expression="${json:false} ? 'json' : 'pojo'"/>
 
 	<int:channel id="json"/>
 	<int:object-to-json-transformer input-channel="json" output-channel="output"/>

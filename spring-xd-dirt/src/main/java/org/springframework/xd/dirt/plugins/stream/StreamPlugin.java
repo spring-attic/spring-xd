@@ -82,8 +82,8 @@ public class StreamPlugin implements Plugin {
 	@Override
 	public void postProcessModule(Module module) {
 		MessageBus bus = findMessageBus(module);
-		registerConsumer(module, bus);
-		registerProducer(module, bus);
+		bindConsumer(module, bus);
+		bindProducers(module, bus);
 	}
 
 	private MessageBus findMessageBus(Module module) {
@@ -97,7 +97,7 @@ public class StreamPlugin implements Plugin {
 		return messageBus;
 	}
 
-	private void registerConsumer(Module module, MessageBus bus) {
+	private void bindConsumer(Module module, MessageBus bus) {
 		DeploymentMetadata md = module.getDeploymentMetadata();
 		MessageChannel channel = module.getComponent("input", MessageChannel.class);
 		if (channel != null) {
@@ -111,7 +111,7 @@ public class StreamPlugin implements Plugin {
 		}
 	}
 
-	private void registerProducer(Module module, MessageBus bus) {
+	private void bindProducers(Module module, MessageBus bus) {
 		DeploymentMetadata md = module.getDeploymentMetadata();
 		MessageChannel channel = module.getComponent("output", MessageChannel.class);
 		if (channel != null) {
@@ -136,8 +136,8 @@ public class StreamPlugin implements Plugin {
 	public void beforeShutdown(Module module) {
 		MessageBus bus = findMessageBus(module);
 		if (bus != null) {
-			unregisterConsumer(module, bus);
-			unregisterProducer(module, bus);
+			unbindConsumer(module, bus);
+			unbindProducers(module, bus);
 		}
 	}
 
@@ -145,14 +145,14 @@ public class StreamPlugin implements Plugin {
 	public void removeModule(Module module) {
 	}
 
-	private void unregisterConsumer(Module module, MessageBus bus) {
+	private void unbindConsumer(Module module, MessageBus bus) {
 		MessageChannel inputChannel = module.getComponent("input", MessageChannel.class);
 		if (inputChannel != null) {
 			bus.unbindConsumer(module.getDeploymentMetadata().getInputChannelName(), inputChannel);
 		}
 	}
 
-	private void unregisterProducer(Module module, MessageBus bus) {
+	private void unbindProducers(Module module, MessageBus bus) {
 		MessageChannel outputChannel = module.getComponent("output", MessageChannel.class);
 		if (outputChannel != null) {
 			bus.unbindProducer(module.getDeploymentMetadata().getOutputChannelName(), outputChannel);

@@ -91,10 +91,10 @@ configure(javaProjects()) { subproject ->
 		tomcatJdbcPoolVersion = '7.0.42'
 		reactorVersion = '1.0.0.M2'
 		lettuceVersion = '2.3.3'
-		springDataHadoopVersion = '1.0.1.RC1'
+		springDataHadoopVersion = '1.0.1.RELEASE'
 		hadoop10Version = '1.0.4'
 		hadoop11Version = '1.1.2'
-		hadoop20Version = '2.0.5-alpha'
+		hadoop20Version = '2.0.6-alpha'
 		phd1Version = '2.0.2-alpha-gphd-2.0.1.0'
 		springHATEOASVersion = '0.7.0.RELEASE'
 		springPluginVersion = '0.8.0.RELEASE'
@@ -499,6 +499,7 @@ project('spring-xd-hadoop') {
 project('spring-xd-hadoop:hadoop10') {
 	description = 'Hadoop 1.0 dependencies'
 	dependencies {
+		runtime ("org.springframework.data:spring-data-hadoop:$springDataHadoopVersion")
 		runtime ("org.apache.hadoop:hadoop-core:$hadoop10Version")
 		runtime ("org.apache.hadoop:hadoop-streaming:$hadoop10Version")
 		runtime ("org.apache.hadoop:hadoop-tools:$hadoop10Version")
@@ -506,6 +507,7 @@ project('spring-xd-hadoop:hadoop10') {
 	task copyToLib(dependsOn: build, type: Copy) {
 		into "$buildDir/lib"
 		from configurations.default
+		include 'spring-data-hadoop-*'
 		include 'hadoop-*'
 	}
 }
@@ -513,6 +515,7 @@ project('spring-xd-hadoop:hadoop10') {
 project('spring-xd-hadoop:hadoop11') {
 	description = 'Hadoop 1.1 dependencies'
 	dependencies {
+		runtime ("org.springframework.data:spring-data-hadoop:$springDataHadoopVersion")
 		runtime ("org.apache.hadoop:hadoop-core:$hadoop11Version")
 		runtime ("org.apache.hadoop:hadoop-streaming:$hadoop11Version")
 		runtime ("org.apache.hadoop:hadoop-tools:$hadoop11Version")
@@ -520,6 +523,7 @@ project('spring-xd-hadoop:hadoop11') {
 	task copyToLib(dependsOn: build, type: Copy) {
 		into "$buildDir/lib"
 		from configurations.default
+		include 'spring-data-hadoop-*'
 		include 'hadoop-*'
 	}
 }
@@ -527,17 +531,21 @@ project('spring-xd-hadoop:hadoop11') {
 project('spring-xd-hadoop:hadoop20') {
 	description = 'Hadoop 2.0 dependencies'
 	dependencies {
+		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopVersion}-hadoop20")
 		runtime ("org.apache.hadoop:hadoop-common:$hadoop20Version")
 		runtime ("org.apache.hadoop:hadoop-distcp:$hadoop20Version")
 		runtime ("org.apache.hadoop:hadoop-hdfs:$hadoop20Version")
 		runtime ("org.apache.hadoop:hadoop-mapreduce-client-core:$hadoop20Version")
+		runtime ("org.apache.hadoop:hadoop-mapreduce-client-jobclient:$hadoop20Version")
 		runtime ("org.apache.hadoop:hadoop-streaming:$hadoop20Version")
 		runtime ("org.apache.hadoop:hadoop-yarn-common:$hadoop20Version")
 	}
 	task copyToLib(dependsOn: build, type: Copy) {
 		into "$buildDir/lib"
 		from configurations.default
+		include 'spring-data-hadoop-*'
 		include 'hadoop-*'
+		include 'avro-*'
 		include 'protobuf-java-*'
 	}
 }
@@ -545,17 +553,21 @@ project('spring-xd-hadoop:hadoop20') {
 project('spring-xd-hadoop:phd1') {
 	description = 'Pivotal HD 1.0 dependencies'
 	dependencies {
+		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopVersion}-phd1")
 		runtime ("org.apache.hadoop:hadoop-common:$phd1Version")
 		runtime ("org.apache.hadoop:hadoop-distcp:$phd1Version")
 		runtime ("org.apache.hadoop:hadoop-hdfs:$phd1Version")
 		runtime ("org.apache.hadoop:hadoop-mapreduce-client-core:$phd1Version")
+		runtime ("org.apache.hadoop:hadoop-mapreduce-client-jobclient:$phd1Version")
 		runtime ("org.apache.hadoop:hadoop-streaming:$phd1Version")
 		runtime ("org.apache.hadoop:hadoop-yarn-common:$phd1Version")
 	}
 	task copyToLib(dependsOn: build, type: Copy) {
 		into "$buildDir/lib"
 		from configurations.default
+		include 'spring-data-hadoop-*'
 		include 'hadoop-*'
+		include 'avro-*'
 		include 'protobuf-java-*'
 	}
 }
@@ -714,12 +726,14 @@ task copyXDInstall(type: Copy, dependsOn: [":spring-xd-dirt:build", ":spring-xd-
 	from "$rootDir/spring-xd-dirt/build/install/spring-xd-dirt"
 	into "$buildDir/dist/spring-xd/xd"
 	exclude "**/lib/hadoop-*.jar"
+	exclude "**/lib/spring-data-hadoop-*.jar"
 }
 
 task copyXDShellInstall(type: Copy, dependsOn: [":spring-xd-shell:installApp"]) {
 	from "$rootDir/spring-xd-shell/build/install/spring-xd-shell"
 	into "$buildDir/dist/spring-xd/shell"
 	exclude "**/lib/hadoop-*.jar"
+	exclude "**/lib/spring-data-hadoop-*.jar"
 }
 
 task copyHadoopLibs(dependsOn: [":spring-xd-hadoop:hadoop10:copyToLib", ":spring-xd-hadoop:hadoop11:copyToLib", ":spring-xd-hadoop:hadoop20:copyToLib", ":spring-xd-hadoop:phd1:copyToLib"]) << {

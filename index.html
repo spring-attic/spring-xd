@@ -1,0 +1,104 @@
+---
+# The name of your project
+title: Spring XD
+
+badges:
+
+
+  # Customize your project's badges. Delete any entries that do not apply.
+  custom:
+    - name: Source (GitHub)
+      url:  https://github.com/spring-projects/spring-xd
+      icon: github
+
+    - name: Issues (JIRA)
+      url:  http://jira.springsource.org/browse/XD
+      icon: tracking
+
+    - name: CI (Bamboo)
+      url:  https://build.springsource.org/browse/XD
+      icon: ci
+
+    - name: Forum
+      url:  http://forum.spring.io/forum/spring-projects/xd
+      icon: forum
+
+    - name: StackOverflow
+      url:  http://stackoverflow.com/questions/tagged/spring-xd
+      icon: stackoverflow
+
+    - name: Metrics (SonarQube)
+      url:  https://sonar.springsource.org/dashboard/index/org.springframework.xd:spring-xd
+      icon: metrics
+
+---
+<!DOCTYPE HTML>
+<html lang="en-US">
+
+{% capture billboard_description %}
+
+Spring XD is a unified, distributed, and extensible system for data ingestion, real time analytics, batch processing, and data export. The project's goal is to simplify the development of big data applications.
+
+{% endcapture %}
+
+{% capture main_content %}
+## Introduction
+Spring XD is a unified, distributed, and extensible system for data ingestion, real time analytics, batch processing, and data export. The project's goal is to simplify the development of big data applications.
+
+Big data applications share many characteristics with Enterprise Integration and Batch applications. Spring has provided proven solutions for building integration and batch applications for more than 6 years now via the Spring Integration and Spring Batch projects. Spring XD builds upon this foundation and provides a lightweight runtime environment that is easily configured and assembled via a simple DSL.
+
+The Spring ecosystem of projects provides an excellent foundation for building big data applications. The Spring XD project aims to build upon this foundation and provide a one stop shop solution for these use-cases. This is in contrast to many other offerings that are more siloed and fragmented. One of our first features is to create an out-of-the-box server that provide a consistent configuration model and runtime that spans the four use-case categories listed above.
+
+You don't need to code anything up to get going, no build scripts, no IDE, no maven coordinates. You can use a high level configuration DSL (not XML!) that will allow you to hit your head against the keyboard and get started quickly. However, if you choose to extend the platform (and we hope you will), Spring provides the foundation for extensibility.
+
+For the curious, XD is an abbreviation for eXtreme Data.
+
+
+## Features
+
+* High throughput distributed data ingestion from a variety of input sources into big data store such as HDFS or Splunk
+* Real-time analytics at ingestion time, e.g. gathering metrics and counting values.
+* Workflow management via batch jobs. The jobs combine interactions with standard enterprise systems (e.g. RDBMS) as well as Hadoop operations (e.g. MapReduce, HDFS, Pig, Hive or Cascading).
+* High throughput data export, e.g. from HDFS to a RDBMS or NoSQL database.
+
+<span id="quick-start"></span>
+## Quick Start
+
+##### Requirements
+* To get started, make sure your system has as a minimum Java JDK 6 or newer installed. Java JDK 7 is recommended.
+
+##### Installation
+
+* Download [spring-xd](http://www.springsource.org/download/community?project=Spring%20XD)
+
+* Unzip the distribution. This will yield the installation directory spring-xd-1.0.0.M2. All the commands below are executed from this directory, so change into it before proceeding
+`
+$ cd spring-xd-1.0.0.M2
+`
+* Set the environment variable XD_HOME to the installation directory &lt;root-install-dir>\spring-xd\xd
+
+##### Create a stream
+*  Start-up the runtime: The single node option is the easiest to get started with. It runs everything you need in a single process. To start it, you just need to cd to the xd directory and run the following command:
+`xd/bin>$ ./xd-singlenode`
+
+* Start XD Shell:  `./xd-shell`
+
+* Create your first stream by typing:
+`xd:> stream create --definition "time | log" --name ticktock`
+
+{% endcapture %}
+
+{% capture related_resources %}
+
+### Sample Projects
+
+* [Syslog Ingestion into HDFS](http://docs.spring.io/spring-xd/docs/1.0.0.M2/reference/html/#_syslog_ingestion_into_hdfs)
+
+
+### Getting Started Guides
+
+* [Capturing Stream Data]({{site.main_site_url}}/guides/gs/capturing-stream-data)
+{% endcapture %}
+
+{% include project_page.html %}
+</html>

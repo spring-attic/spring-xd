@@ -80,7 +80,7 @@ configure(javaProjects()) { subproject ->
 		springVersion = '3.2.2.RELEASE'
 		springBatchVersion = '2.2.0.RELEASE'
 		springIntegrationVersion = '3.0.0.M3'
-		springBatchAdminMgrVersion = '1.3.0.BUILD-SNAPSHOT'
+		springBatchAdminMgrVersion = '1.3.0.M1'
 		springSocialVersion = '1.1.0.M3'
 		springShellVersion = '1.1.0.M1'
 		springIntegrationSplunkVersion = '1.0.0.M1'

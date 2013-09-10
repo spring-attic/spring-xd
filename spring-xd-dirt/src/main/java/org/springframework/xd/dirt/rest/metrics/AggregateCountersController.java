@@ -30,6 +30,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.PagedResources;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -80,7 +81,7 @@ public class AggregateCountersController extends AbstractMetricsController<Aggre
 	 * @param resolution the size of buckets to aggregate, <i>e.g.</i> hourly, daily, <i>etc.</i> (default "hour")
 	 */
 	@ResponseBody
-	@RequestMapping(value = "/{name}", method = RequestMethod.GET)
+	@RequestMapping(value = "/{name}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public AggregateCountsResource display(@PathVariable("name") String name,//
 			@RequestParam(value = "from", required = false) @DateTimeFormat(iso = ISO.DATE_TIME) DateTime from,//
 			@RequestParam(value = "to", required = false) @DateTimeFormat(iso = ISO.DATE_TIME) DateTime to, //

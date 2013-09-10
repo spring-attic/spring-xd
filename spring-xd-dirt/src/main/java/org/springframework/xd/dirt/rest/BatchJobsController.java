@@ -97,12 +97,19 @@ public class BatchJobsController {
 
 		try {
 			jobInstances = jobService.listJobInstances(fullName, startJobInstance, pageSize);
+			// need to pass simple name back to the client
+			List<JobInstance> result = new ArrayList<JobInstance>();
+			for (JobInstance jobInstance : jobInstances) {
+				JobInstance simpleInstance = new JobInstance(jobInstance.getId(), jobName);
+				simpleInstance.setVersion(jobInstance.getVersion());
+				result.add(simpleInstance);
+			}
 			// TODO: Need to add the jobExecutions for each jobInstance
+			return result;
 		}
 		catch (NoSuchJobException e) {
 			throw new NoSuchBatchJobException(jobName);
 		}
-		return jobInstances;
 	}
 
 	@RequestMapping(value = "/{jobName}", method = RequestMethod.GET)

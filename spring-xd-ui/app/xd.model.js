@@ -179,15 +179,6 @@ function(Backbone, rest, entity, mime, hateoas, errorcode) {
                 // get the latest execution count for the job
                 return model.batchJobs.fetch({merge:true, update:true });
             });
-                
-//            return client({
-//                path: this.url(),
-//                method: 'POST',
-//                headers: ACCEPT_HEADER
-//            }).then(function() {
-//                // get the latest execution count for the job
-//                model.batchJobs.fetch({merge:true, update:true });
-//            });
         },
 
         parse: function(data) {
@@ -207,7 +198,7 @@ function(Backbone, rest, entity, mime, hateoas, errorcode) {
                 }, this));
             } else {
                 data.jobInstances = new JobInstances();
-                data.jobInstances.jobName = this.id;
+                data.jobInstances.jobName = data.name;
             }
             return data;
         }
@@ -232,9 +223,9 @@ function(Backbone, rest, entity, mime, hateoas, errorcode) {
     });
 
     var Execution = Backbone.Model.extend({
-        urlRoot: URL_ROOT + 'batch/jobs/executions',
+        urlRoot: URL_ROOT + 'batch/jobs/',
         url: function() {
-            return this.urlRoot + '/' + this.id + '.json';
+            return this.urlRoot + this.id + '/executions.json';
         },
         idAttribute: 'id',
         parse: function(response) {
@@ -251,9 +242,13 @@ function(Backbone, rest, entity, mime, hateoas, errorcode) {
     });
     var Executions = Backbone.Collection.extend({
         model: Execution,
-        urlRoot: URL_ROOT + 'batch/jobs/executions/'
+        urlRoot: URL_ROOT + 'batch/jobs/',
+        url: function() { 
+            return this.urlRoot + this.jobName + '/executions/';
+        }
     });
 
+    // Not used at the moment
     var JobInstance = Backbone.Model.extend({
         urlRoot: URL_ROOT + 'batch/jobs/',
         url: function() {
@@ -293,6 +288,6 @@ function(Backbone, rest, entity, mime, hateoas, errorcode) {
 
 
     model.batchJobs = new BatchJobs();
-
+    model.Executions = Executions;
     return model;
 });

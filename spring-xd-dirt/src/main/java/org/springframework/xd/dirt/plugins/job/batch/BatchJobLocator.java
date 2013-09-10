@@ -20,14 +20,15 @@ import java.util.Collection;
 
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.configuration.ListableJobLocator;
+import org.springframework.batch.core.job.SimpleJob;
 import org.springframework.batch.core.launch.NoSuchJobException;
 import org.springframework.jdbc.core.JdbcOperations;
 
-
 /**
- * Implementation of ListableJobLocator used by {@DistributedJobService}
+ * Implementation of ListableJobLocator used by {@link DistributedJobService}
  * 
  * @author Ilayaperumal Gopinathan
+ * @author Andrew Eisenberg
  */
 public class BatchJobLocator implements ListableJobLocator {
 
@@ -41,7 +42,6 @@ public class BatchJobLocator implements ListableJobLocator {
 
 	private static final String DELETE_ALL_JOBS = "DELETE FROM REGISTRY_NAMES";
 
-
 	private JdbcOperations jdbcTemplate;
 
 	@Override
@@ -51,18 +51,24 @@ public class BatchJobLocator implements ListableJobLocator {
 
 	@Override
 	public Job getJob(String name) throws NoSuchJobException {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("JobLocator.getJob(String) is not implemented yet.");
+		if (!getJobNames().contains(name)) {
+			throw new NoSuchJobException(name);
+		}
+		// TODO need to create the real job here
+		SimpleJob simpleJob = new SimpleJob(name);
+		return simpleJob;
 	}
 
 	/**
-	 * Store the job name & isIncrementable flag for the job when there is a registry update
+	 * Store the job name & isIncrementable flag for the job when there is a registry
+	 * update
 	 * 
 	 * @param name the job name to add
 	 * @param isIncrementable
 	 */
 	public void addJob(String name, boolean isIncrementable) {
-		// String batchJobName = name + JobPlugin.JOB_NAME_DELIMITER + JobPlugin.JOB_BEAN_ID;
+		// String batchJobName = name + JobPlugin.JOB_NAME_DELIMITER +
+		// JobPlugin.JOB_BEAN_ID;
 		Collection<String> jobNames = this.getJobNames();
 		if (!jobNames.contains(name)) {
 			jdbcTemplate.update(ADD_JOB, name, isIncrementable);
@@ -91,5 +97,4 @@ public class BatchJobLocator implements ListableJobLocator {
 	public void setJdbcTemplate(JdbcOperations jdbcTemplate) {
 		this.jdbcTemplate = jdbcTemplate;
 	}
-
 }

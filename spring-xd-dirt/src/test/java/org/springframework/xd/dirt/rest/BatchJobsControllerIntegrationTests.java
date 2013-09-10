@@ -134,7 +134,7 @@ public class BatchJobsControllerIntegrationTests extends AbstractControllerInteg
 				get("/batch/jobs/job1/instances").param("startJobInstance", "0").param("pageSize", "20").accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
 				jsonPath("$", Matchers.hasSize(3))).andExpect(jsonPath("$[*].id", contains(0, 2, 3))).andExpect(
-				jsonPath("$[*].jobName", contains("job1.job", "job1.job", "job1.job")));
+				jsonPath("$[*].jobName", contains("job1", "job1", "job1")));
 	}
 
 	@Test

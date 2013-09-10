@@ -55,6 +55,8 @@ function(_, Backbone, utils, conf, model, BatchDetail) {
     function transformForRender (jobs) {
         var newJobs = jobs.map(function(job) {
             var hasExecutions = job.attributes.exitStatus ? true : false;
+            var duration = hasExecutions ? job.attributes.duration : '<em>no executions<em>';
+            duration = (duration === "00:00:00" ? "< 1 second" : duration);
             return {
                 name : job.attributes.name,
                 details : job.attributes.name + '_details',
@@ -65,7 +67,7 @@ function(_, Backbone, utils, conf, model, BatchDetail) {
                 jobParameters : (hasExecutions ? job.attributes.jobParameters : '<em>no executions<em>'),
                 startTime : hasExecutions ? (job.attributes.startDate + ':' + 
                         job.attributes.startTime) : '<em>no executions<em>',
-                duration : hasExecutions ? job.attributes.duration : '<em>no executions<em>',
+                duration : duration,
                 launchable : job.attributes.launchable ? '' : 'disabled',
                 hasExecutions : hasExecutions
             };
@@ -111,7 +113,10 @@ function(_, Backbone, utils, conf, model, BatchDetail) {
 
         render: function() {
             // first remove all old expanded
+            // but keep track of any opened tooltips
+            var activeTargets = {};
             Object.keys(expanded).forEach(function(key) {
+                activeTargets[key] = expanded[key].findActiveTipsys();
                 expanded[key].remove();
             }, this);
             this.$el.html(_.template(utils.getTemplate(conf.templates.batchList), { 
@@ -123,11 +128,19 @@ function(_, Backbone, utils, conf, model, BatchDetail) {
                 var detailsId = '#' + key + '_details';
                 var detailsElt = this.$el.find(detailsId);
                 if (detailsElt.length > 0) {
+
+                    // a little complication here because of tipsy
+                    // since we are replacing the batch details view,
+                    // any active tipsy hovers will be left stranded
+                    // without a target.  
+                    // we need to etermine which tipsys are active
+                    // and then reactivate them once the render is complete
                     var detailsView = expanded[key];
                     detailsElt.replaceWith(detailsView.$el);
                     detailsView.$detailsRow = this.$('#' + key + '_detailsRow');
                     detailsView.$detailsRow.show();
                     detailsView.delegateEvents(detailsView.events);
+                    detailsView.reattachTipsy(activeTargets[key]);
                 } else {
                     // job not here any more
                     delete expanded[key];
@@ -184,7 +197,9 @@ function(_, Backbone, utils, conf, model, BatchDetail) {
         launchWithParameters: function(event) {
             var job = extractJob(event);
             if (job) {
-                job.launch(JSON.stringify({arg1:1, arg2:'bar'})).then(function() {
+                var jobParameters = prompt("Enter job parameters as JSON:", JSON.stringify({arg1:1, arg2:'bar'}));
+                jobParameters = encodeURIComponent(jobParameters);
+                job.launch().then(function() {
                     var detailsView = expanded[job.id];
                     if (detailsView) {
                         job.fetch().then(function() {

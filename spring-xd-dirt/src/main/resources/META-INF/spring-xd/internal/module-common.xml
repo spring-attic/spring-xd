@@ -6,6 +6,8 @@
 	<!-- Parent context for all modules. Before adding beans here, consider contributing them
 	by means of Plugin.preProcessSharedContext -->
 
+<!--
 	<bean id="reactorEnv" class="reactor.core.Environment"/>
+-->
 
 </beans>

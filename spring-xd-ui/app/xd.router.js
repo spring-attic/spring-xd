@@ -22,9 +22,9 @@
 
 /*jshint browser:true */
 
-define(['underscore', 'jquery', 'when', 'rest', 'rest/interceptor/entity', 'rest/interceptor/mime', 'rest/interceptor/hateoas', 'backbone', 'xd.conf', 'xd.utils', 'xd.strings',
+define(['underscore', 'jquery', 'when', 'rest', 'rest/interceptor/entity', 'rest/interceptor/mime', 'rest/interceptor/hateoas', 'rest/interceptor/errorCode', 'backbone', 'xd.conf', 'xd.utils', 'xd.strings',
     'xd.model'],
-function(_, $, when, rest, entity, mime, hateoas, Backbone, conf, utils, strings, model) {
+function(_, $, when, rest, entity, mime, hateoas, errorcode, Backbone, conf, utils, strings, model) {
     'use strict';
 
     var resourceLinks = {}, views;
@@ -32,7 +32,7 @@ function(_, $, when, rest, entity, mime, hateoas, Backbone, conf, utils, strings
     // set up the rest client
     var ACCEPT_HEADER = { 'Accept': 'application/json' };
     var URL_ROOT = 'http://localhost:8080/';
-    var client = rest.chain(mime).chain(hateoas).chain(entity);
+    var client = rest.chain(errorcode, { code: 400 }).chain(mime).chain(hateoas).chain(entity);
 
     var ajax = {};
     /*

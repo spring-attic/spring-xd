@@ -22,14 +22,14 @@
 /*global d3 */
 
 // This file defines the backbone model used by xd
-define(['backbone', 'rest', 'rest/interceptor/entity', 'rest/interceptor/mime', 'rest/interceptor/hateoas', 'rest/interceptor/errorcode', 'd3'],
-function(Backbone, rest, entity, mime, hateoas, errorcode) {
+define(['backbone', 'rest', 'rest/interceptor/entity', 'rest/interceptor/mime', 'rest/interceptor/hateoas', 'd3'],
+function(Backbone, rest, entity, mime, hateoas) {
 
     // set up the rest client
     // this is a copy from router
     var ACCEPT_HEADER = { 'Accept': 'application/json' };
     var URL_ROOT = 'http://localhost:8080/';
-    var client = rest.chain(errorcode, { code: 400 }).chain(mime).chain(hateoas).chain(entity);
+    var client = rest.chain(mime).chain(hateoas).chain(entity);
 
 
     var PAGE_SIZE = 5;

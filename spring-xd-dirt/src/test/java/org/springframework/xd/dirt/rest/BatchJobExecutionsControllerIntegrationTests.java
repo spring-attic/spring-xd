@@ -16,12 +16,6 @@
 
 package org.springframework.xd.dirt.rest;
 
-import static org.hamcrest.Matchers.contains;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -31,7 +25,6 @@ import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.batch.admin.service.JobService;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobInstance;
@@ -44,6 +37,11 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.xd.dirt.plugins.job.batch.BatchJobLocator;
+
+import static org.hamcrest.Matchers.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
  * Tests REST compliance of BatchJobExecutionsController endpoints.
@@ -63,8 +61,8 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 
 	@Before
 	public void before() throws Exception {
-		SimpleJob job1 = new SimpleJob("job1");
-		SimpleJob job2 = new SimpleJob("job2");
+		SimpleJob job1 = new SimpleJob("job1.job");
+		SimpleJob job2 = new SimpleJob("job2.job");
 		Collection<String> jobNames = new ArrayList<String>();
 		jobNames.add(job1.getName());
 		jobNames.add(job2.getName());
@@ -104,49 +102,29 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 	public void testGetBatchJobExecutions() throws Exception {
 		mockMvc.perform(
 				get("/batch/jobs/executions").param("startJobExecution", "0").param("pageSize", "20").accept(
-						MediaType.APPLICATION_JSON)).andExpect(status().isOk())
-				.andExpect(jsonPath("$", Matchers.hasSize(2)))
-				.andExpect(jsonPath("$[*].id", contains(0, 3)))
-				.andExpect(jsonPath("$[*].jobId", contains(0, 2)))
-				.andExpect(jsonPath("$[*].jobExecution[*].id", contains(0, 3)))
-				.andExpect(
-						jsonPath("$[*].jobExecution[*].jobParameters.parameters.param1.value", contains("test", "test")))
-				.andExpect(
-						jsonPath("$[*].jobExecution[*].jobParameters.parameters.param1.type",
-								contains("STRING", "STRING")))
-				.andExpect(
-						jsonPath("$[*].jobExecution[*].jobParameters.parameters.param1.identifying",
-								contains(true, true)))
-				.andExpect(
-						jsonPath("$[*].jobExecution[*].jobParameters.parameters.param2.value", contains(123, 123)))
-				.andExpect(
-						jsonPath("$[*].jobExecution[*].jobParameters.parameters.param2.type",
-								contains("LONG", "LONG")))
-				.andExpect(
-						jsonPath("$[*].jobExecution[*].jobParameters.parameters.param2.identifying",
-								contains(false, false)));
+						MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
+				jsonPath("$", Matchers.hasSize(2))).andExpect(jsonPath("$[*].id", contains(0, 3))).andExpect(
+				jsonPath("$[*].jobId", contains(0, 2))).andExpect(jsonPath("$[*].jobExecution[*].id", contains(0, 3))).andExpect(
+				jsonPath("$[*].jobExecution[*].jobParameters.parameters.param1.value", contains("test", "test"))).andExpect(
+				jsonPath("$[*].jobExecution[*].jobParameters.parameters.param1.type", contains("STRING", "STRING"))).andExpect(
+				jsonPath("$[*].jobExecution[*].jobParameters.parameters.param1.identifying", contains(true, true))).andExpect(
+				jsonPath("$[*].jobExecution[*].jobParameters.parameters.param2.value", contains(123, 123))).andExpect(
+				jsonPath("$[*].jobExecution[*].jobParameters.parameters.param2.type", contains("LONG", "LONG"))).andExpect(
+				jsonPath("$[*].jobExecution[*].jobParameters.parameters.param2.identifying", contains(false, false)));
 	}
 
 	@Test
 	public void testGetJobExecutionsByName() throws Exception {
 		mockMvc.perform(
 				get("/batch/jobs/job2/executions").param("startJobExecution", "0").param("pageSize", "20").accept(
-						MediaType.APPLICATION_JSON)).andExpect(status().isOk())
-				.andExpect(jsonPath("$", Matchers.hasSize(1)))
-				.andExpect(jsonPath("$[0].id").value(3))
-				.andExpect(jsonPath("$[0].jobId").value(2))
-				.andExpect(jsonPath("$[0].jobExecution[*].id").value(3))
-				.andExpect(
-						jsonPath("$[0].jobExecution[*].jobParameters.parameters.param1.value").value("test"))
-				.andExpect(
-						jsonPath("$[0].jobExecution[*].jobParameters.parameters.param1.type").value("STRING"))
-				.andExpect(jsonPath("$[0].jobExecution[*].jobParameters.parameters.param1.identifying").value(
-						true))
-				.andExpect(
-						jsonPath("$[0].jobExecution[*].jobParameters.parameters.param2.value").value(123))
-				.andExpect(
-						jsonPath("$[0].jobExecution[*].jobParameters.parameters.param2.type").value("LONG"))
-				.andExpect(jsonPath("$[0].jobExecution[*].jobParameters.parameters.param2.identifying").value(
-						false));
+						MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
+				jsonPath("$", Matchers.hasSize(1))).andExpect(jsonPath("$[0].id").value(3)).andExpect(
+				jsonPath("$[0].jobId").value(2)).andExpect(jsonPath("$[0].jobExecution[*].id").value(3)).andExpect(
+				jsonPath("$[0].jobExecution[*].jobParameters.parameters.param1.value").value("test")).andExpect(
+				jsonPath("$[0].jobExecution[*].jobParameters.parameters.param1.type").value("STRING")).andExpect(
+				jsonPath("$[0].jobExecution[*].jobParameters.parameters.param1.identifying").value(true)).andExpect(
+				jsonPath("$[0].jobExecution[*].jobParameters.parameters.param2.value").value(123)).andExpect(
+				jsonPath("$[0].jobExecution[*].jobParameters.parameters.param2.type").value("LONG")).andExpect(
+				jsonPath("$[0].jobExecution[*].jobParameters.parameters.param2.identifying").value(false));
 	}
 }

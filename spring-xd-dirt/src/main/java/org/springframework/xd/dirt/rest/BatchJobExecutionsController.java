@@ -22,7 +22,6 @@ import java.util.TimeZone;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.batch.admin.service.JobService;
 import org.springframework.batch.admin.web.JobExecutionInfo;
 import org.springframework.batch.core.JobExecution;
@@ -39,7 +38,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.dirt.plugins.job.batch.NoSuchBatchJobException;
-
 
 /**
  * Controller for job executions.
@@ -105,12 +103,12 @@ public class BatchJobExecutionsController {
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
 	public Collection<JobExecutionInfo> listForJob(@PathVariable String jobName,
-			@RequestParam(defaultValue = "0") int startJobExecution,
-			@RequestParam(defaultValue = "20") int pageSize) {
+			@RequestParam(defaultValue = "0") int startJobExecution, @RequestParam(defaultValue = "20") int pageSize) {
 
+		String fullName = jobName + ".job";
 		Collection<JobExecutionInfo> result = new ArrayList<JobExecutionInfo>();
 		try {
-			for (JobExecution jobExecution : jobService.listJobExecutionsForJob(jobName, startJobExecution, pageSize)) {
+			for (JobExecution jobExecution : jobService.listJobExecutionsForJob(fullName, startJobExecution, pageSize)) {
 				result.add(new JobExecutionInfo(jobExecution, timeZone));
 			}
 		}

@@ -26,6 +26,7 @@ import org.springframework.batch.admin.service.SimpleJobService;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersInvalidException;
+import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.launch.JobExecutionNotRunningException;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.NoSuchJobException;
@@ -40,6 +41,7 @@ import org.springframework.batch.core.repository.dao.ExecutionContextDao;
  * SimpleJobService in distributed mode
  * 
  * @author Ilayaperumal Gopinathan
+ * @author Andrew Eisenberg
  */
 public class DistributedJobService extends SimpleJobService {
 
@@ -49,24 +51,29 @@ public class DistributedJobService extends SimpleJobService {
 
 	private SearchableJobExecutionDao jobExecutionDao;
 
+	private JobRegistry jobRegistry;
+
+	private JobRepository jobRepository;
+
 	public DistributedJobService(SearchableJobInstanceDao jobInstanceDao, SearchableJobExecutionDao jobExecutionDao,
-			SearchableStepExecutionDao stepExecutionDao, JobRepository jobRepository,
-			JobLauncher jobLauncher, BatchJobLocator batchJobLocator,
-			ExecutionContextDao executionContextDao) {
+			SearchableStepExecutionDao stepExecutionDao, JobRepository jobRepository, JobLauncher jobLauncher,
+			BatchJobLocator batchJobLocator, ExecutionContextDao executionContextDao) {
 		super(jobInstanceDao, jobExecutionDao, stepExecutionDao, jobRepository, jobLauncher, batchJobLocator,
 				executionContextDao);
+		this.jobRepository = jobRepository;
 		this.batchJobLocator = batchJobLocator;
 		this.jobInstanceDao = jobInstanceDao;
 		this.jobExecutionDao = jobExecutionDao;
-
+		this.jobRegistry = jobRegistry;
 	}
 
 	@Override
 	public JobExecution launch(String jobName, JobParameters params) throws NoSuchJobException,
 			JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException,
 			JobParametersInvalidException {
-		// TODO
-		throw new UnsupportedOperationException("Job Launch");
+		JobExecution execution = jobRepository.createJobExecution(jobName, params);
+		jobRegistry.getJob(jobName).execute(execution);
+		return execution;
 	}
 
 	@Override
@@ -102,6 +109,25 @@ public class DistributedJobService extends SimpleJobService {
 		List<JobExecution> jobExecutions = jobExecutionDao.getJobExecutions(jobName, start, count);
 		return jobExecutions;
 	}
+
+	// TODO probably not needed. OK to delete?
+	// public JobParameters getJobParameters(Long jobExecutionId) throws
+	// NoSuchJobExecutionException {
+	// try {
+	// // TODO extract to constant
+	// Method getParametersMethod =
+	// JdbcJobExecutionDao.class.getDeclaredMethod("getJobParameters", Long.class);
+	// ReflectionUtils.makeAccessible(getParametersMethod);
+	// JobParameters parameters = (JobParameters)
+	// ReflectionUtils.invokeMethod(getParametersMethod,
+	// jobExecutionDao, jobExecutionId);
+	// return parameters == null ? new JobParameters() : parameters;
+	// }
+	// catch (Exception e) {
+	// throw new NoSuchJobExecutionException("Could not get job execution for id " +
+	// jobExecutionId, e);
+	// }
+	// }
 
 	private void checkJobExists(String jobName) throws NoSuchJobException {
 		if (batchJobLocator.getJobNames().contains(jobName)) {

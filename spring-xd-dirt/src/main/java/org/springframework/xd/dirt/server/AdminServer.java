@@ -29,6 +29,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.integration.MessagingException;
@@ -225,6 +226,7 @@ public class AdminServer implements SmartLifecycle, InitializingBean {
 			logger.warn("Did not stop tomcat cleanly - " + e.getMessage());
 		}
 		this.webApplicationContext.destroy();
+		((ConfigurableApplicationContext) this.webApplicationContext.getParent()).close();
 	}
 
 

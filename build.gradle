@@ -630,6 +630,7 @@ project('spring-xd-test') {
 		compile "hsqldb:hsqldb:$hsqldbVersion"
 		compile "org.apache.tomcat:tomcat-jdbc:$tomcatJdbcPoolVersion"
 		compile "junit:junit:$junitVersion"
+		testCompile "commons-io:commons-io:2.4"
 	}
 }
 

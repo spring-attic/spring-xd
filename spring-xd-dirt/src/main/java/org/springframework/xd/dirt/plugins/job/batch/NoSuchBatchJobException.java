@@ -18,7 +18,6 @@ package org.springframework.xd.dirt.plugins.job.batch;
 
 import org.springframework.xd.dirt.core.XDRuntimeException;
 
-
 /**
  * 
  * @author Ilayaperumal Gopinathan
@@ -30,6 +29,6 @@ public class NoSuchBatchJobException extends XDRuntimeException {
 	 * @param message exception message
 	 */
 	public NoSuchBatchJobException(String name) {
-		super("Batch Job with the name " + name + " doesn't exists");
+		super("Batch Job with the name " + name + " doesn't exist");
 	}
 }

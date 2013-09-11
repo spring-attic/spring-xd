@@ -30,6 +30,7 @@ import org.apache.log4j.RollingFileAppender;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -148,6 +149,7 @@ public class XDContainer implements SmartLifecycle, ApplicationContextAware {
 	public void stop() {
 		if (this.context != null) {
 			this.context.close();
+			((ConfigurableApplicationContext) context.getParent()).close();
 			if (logger.isInfoEnabled()) {
 				final String message = "Stopped container: " + this.jvmName;
 				final StringBuilder sb = new StringBuilder(LINE_SEPARATOR);

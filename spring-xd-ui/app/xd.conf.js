@@ -30,7 +30,7 @@ define(function() {
     var conf = {
         urlRoot: URL_ROOT,
         moduleRoot: URL_ROOT + 'modules/',
-        templateRoot: './templates/',
+        templateRoot: '/admin-ui/templates/',
         // Set the streams refresh interval
         refreshInterval: 4000,
         // Set the streams status refresh interval

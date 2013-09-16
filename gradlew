@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+
+GRADLE_OPTS="-XX:MaxPermSize=256m $GRADLE_OPTS"
+
 if [ x != x"$XD_HOME" ]; then
 	XD_HOME=..
 fi

@@ -69,9 +69,6 @@ public class SimpleModule extends AbstractModule {
 			if (definition.getProperties() != null) {
 				this.addProperties(definition.getProperties());
 			}
-			if (definition.getResource() != null) {
-				this.addComponents(definition.getResource());
-			}
 		}
 	}
 
@@ -155,6 +152,9 @@ public class SimpleModule extends AbstractModule {
 	public void initialize() {
 		Assert.state(this.context != null, "An ApplicationContext is required");
 		boolean propertyConfigurerPresent = false;
+		if (definition.getResource() != null) {
+			this.addComponents(definition.getResource());
+		}
 		for (String name : this.context.getBeanDefinitionNames()) {
 			if (name.startsWith("org.springframework.context.support.PropertySourcesPlaceholderConfigurer")) {
 				propertyConfigurerPresent = true;

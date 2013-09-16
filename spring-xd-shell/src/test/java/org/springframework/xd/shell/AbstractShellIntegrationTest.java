@@ -69,12 +69,6 @@ public abstract class AbstractShellIntegrationTest {
 	 */
 	private static final File TEST_MODULES_TARGET = new File("../modules/");
 
-	// These two are used across the tests, hopefully 9193 is free on most dev boxes and
-	// CI servers
-	public static final String DEFAULT_HTTP_PORT = "9193";
-
-	public static final String DEFAULT_HTTP_URL = "http://localhost:" + DEFAULT_HTTP_PORT;
-
 	protected static final String DEFAULT_METRIC_NAME = "bar";
 
 	@Rule
@@ -107,11 +101,11 @@ public abstract class AbstractShellIntegrationTest {
 	private static void waitForServerToBeReady(int port) throws InterruptedException {
 		SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
 		// Set this to non-zero, or the underlying RestTemplate will hang forever
-		int clientTimeout = 100;
+		int clientTimeout = 10000;
 		factory.setConnectTimeout(clientTimeout);
 		factory.setReadTimeout(clientTimeout);
 
-		int timeout = 10 * clientTimeout;
+		int timeout = 2 * clientTimeout;
 		long giveUpAt = System.currentTimeMillis() + timeout;
 		while (System.currentTimeMillis() < giveUpAt) {
 			try {

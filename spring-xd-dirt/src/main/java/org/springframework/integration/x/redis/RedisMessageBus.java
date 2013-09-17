@@ -187,7 +187,8 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 			int headerCount = 0;
 			int headersLength = 0;
 			for (String header : headers) {
-				String value = (String) message.getHeaders().get(header);
+				String value = message.getHeaders().get(header) == null ? null
+						: message.getHeaders().get(header).toString();
 				headerValues[n++] = value;
 				if (value != null) {
 					headerCount++;

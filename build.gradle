@@ -105,6 +105,7 @@ configure(javaProjects()) { subproject ->
 		args4jVersion = '2.0.25'
 		mockitoVersion = '1.9.5'
 		javaxMailVersion = '1.5.0'
+		kryoVersion = '2.21'
 	}
 
 	eclipse {
@@ -267,8 +268,9 @@ project('spring-xd-dirt') {
 				"com.eaio.uuid:uuid:3.2",
 				"org.jolokia:jolokia-spring:$jolokiaVersion",
 				"org.springframework.plugin:spring-plugin-core:$springPluginVersion",
-				"hsqldb:hsqldb:$hsqldbVersion",
-				"org.apache.tomcat:tomcat-jdbc:$tomcatJdbcPoolVersion"
+				"org.hsqldb:hsqldb:$hsqldbVersion",
+				"org.apache.tomcat:tomcat-jdbc:$tomcatJdbcPoolVersion",
+				"com.esotericsoftware.kryo:kryo:$kryoVersion"
 
 		compile ("org.apache.activemq:activemq-core:5.6.0") {
 			exclude group: 'org.mortbay.jetty'

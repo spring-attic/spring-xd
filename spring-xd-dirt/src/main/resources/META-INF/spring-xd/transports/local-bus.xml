@@ -15,6 +15,7 @@
 		<property name="poller">
 			<int:poller fixed-rate="${xd.local.transport.named.polling:1000}" />
 		</property>
+		<property name="codec" ref="codec"/>
 	</bean>
 
 

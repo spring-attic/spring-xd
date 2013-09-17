@@ -21,7 +21,6 @@ import java.util.Collection;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.core.Queue;
@@ -43,9 +42,10 @@ import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.mapping.AbstractHeaderMapper;
-import org.springframework.integration.x.bus.Bridge;
+import org.springframework.integration.x.bus.Binding;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.integration.x.bus.MessageBusSupport;
+import org.springframework.integration.x.bus.serializer.MultiTypeCodec;
 import org.springframework.util.Assert;
 
 /**
@@ -69,8 +69,9 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 	private final DefaultAmqpHeaderMapper mapper;
 
-	public RabbitMessageBus(ConnectionFactory connectionFactory) {
+	public RabbitMessageBus(ConnectionFactory connectionFactory, MultiTypeCodec<Object> codec) {
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");
+		Assert.notNull(codec, "codec must not be null");
 		this.connectionFactory = connectionFactory;
 		this.rabbitTemplate.setConnectionFactory(connectionFactory);
 		this.rabbitTemplate.afterPropertiesSet();
@@ -79,6 +80,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		this.mapper = new DefaultAmqpHeaderMapper();
 		this.mapper.setRequestHeaderNames(new String[] { AbstractHeaderMapper.STANDARD_REQUEST_HEADER_NAME_PATTERN,
 			ORIGINAL_CONTENT_TYPE_HEADER });
+		setCodec(codec);
 	}
 
 	@Override
@@ -98,8 +100,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		FanoutExchange exchange = new FanoutExchange("topic." + name);
 		rabbitAdmin.declareExchange(exchange);
 		Queue queue = this.rabbitAdmin.declareQueue();
-		Binding binding = BindingBuilder.bind(queue).to(exchange);
-		this.rabbitAdmin.declareBinding(binding);
+		this.rabbitAdmin.declareBinding(BindingBuilder.bind(queue).to(exchange));
 		doRegisterConsumer(name, moduleInputChannel, acceptedMediaTypes, queue);
 	}
 
@@ -118,7 +119,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		adapter.setHeaderMapper(this.mapper);
 		adapter.setBeanName("inbound." + name);
 		adapter.afterPropertiesSet();
-		addBridge(new Bridge(moduleInputChannel, adapter));
+		addBinding(Binding.forConsumer(adapter, moduleInputChannel));
 		ReceivingHandler convertingBridge = new ReceivingHandler(acceptedMediaTypes);
 		convertingBridge.setOutputChannel(moduleInputChannel);
 		convertingBridge.setBeanName(name + ".convert.bridge");
@@ -156,13 +157,13 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		EventDrivenConsumer consumer = new EventDrivenConsumer((SubscribableChannel) moduleOutputChannel, handler);
 		consumer.setBeanName("outbound." + name);
 		consumer.afterPropertiesSet();
-		addBridge(new Bridge(moduleOutputChannel, consumer));
+		addBinding(Binding.forProducer(moduleOutputChannel, consumer));
 		consumer.start();
 	}
 
 	@Override
 	public void destroy() {
-		stopBridges();
+		stopBindings();
 	}
 
 	private class SendingHandler extends AbstractMessageHandler {
@@ -176,7 +177,8 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		@Override
 		protected void handleMessageInternal(Message<?> message) throws Exception {
 			// TODO: rabbit wire data pluggable format?
-			Message<?> messageToSend = transformOutboundIfNecessary(message, MediaType.APPLICATION_OCTET_STREAM);
+			Message<?> messageToSend = transformPayloadForProducerIfNecessary(message,
+					MediaType.APPLICATION_OCTET_STREAM);
 			this.delegate.handleMessage(messageToSend);
 		}
 	}
@@ -191,7 +193,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 		@Override
 		protected Object handleRequestMessage(Message<?> requestMessage) {
-			return transformInboundIfNecessary(requestMessage, acceptedMediaTypes);
+			return transformPayloadForConsumerIfNecessary(requestMessage, acceptedMediaTypes);
 		}
 
 		@Override

@@ -24,7 +24,9 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Test;
 
@@ -36,6 +38,12 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.x.bus.serializer.AbstractCodec;
+import org.springframework.integration.x.bus.serializer.CompositeCodec;
+import org.springframework.integration.x.bus.serializer.MultiTypeCodec;
+import org.springframework.integration.x.bus.serializer.kryo.PojoCodec;
+import org.springframework.integration.x.bus.serializer.kryo.TupleCodec;
+import org.springframework.xd.tuple.Tuple;
 
 /**
  * @author Gary Russell
@@ -52,16 +60,16 @@ public abstract class AbstractMessageBusTests {
 		messageBus.bindProducer("foo.1", new DirectChannel(), false);
 		messageBus.bindConsumer("foo.1", new DirectChannel(), ALL, false);
 		messageBus.bindProducer("foo.2", new DirectChannel(), false);
-		Collection<?> bridges = getBridges(messageBus);
-		assertEquals(5, bridges.size());
+		Collection<?> bindings = getBindings(messageBus);
+		assertEquals(5, bindings.size());
 		messageBus.unbindProducers("foo.0");
-		assertEquals(4, bridges.size());
+		assertEquals(4, bindings.size());
 		messageBus.unbindConsumers("foo.0");
 		messageBus.unbindProducers("foo.1");
-		assertEquals(2, bridges.size());
+		assertEquals(2, bindings.size());
 		messageBus.unbindConsumers("foo.1");
 		messageBus.unbindProducers("foo.2");
-		assertTrue(bridges.isEmpty());
+		assertTrue(bindings.isEmpty());
 	}
 
 	@Test
@@ -158,7 +166,7 @@ public abstract class AbstractMessageBusTests {
 		messageBus.unbindConsumer("baz.0", moduleInputChannel);
 		messageBus.unbindProducer("baz.0", moduleOutputChannel);
 		messageBus.unbindProducers("tap:baz.http");
-		assertTrue(getBridges(messageBus).isEmpty());
+		assertTrue(getBindings(messageBus).isEmpty());
 	}
 
 	@Test
@@ -225,13 +233,18 @@ public abstract class AbstractMessageBusTests {
 		messageBus.unbindConsumer("baz.0", moduleInputChannel);
 		messageBus.unbindProducer("baz.0", moduleOutputChannel);
 		messageBus.unbindProducers("tap:baz.http");
-		assertTrue(getBridges(messageBus).isEmpty());
+		assertTrue(getBindings(messageBus).isEmpty());
 	}
 
-	protected Collection<?> getBridges(MessageBus messageBus) {
+	protected Collection<?> getBindings(MessageBus messageBus) {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(messageBus);
-		List<?> bridges = (List<?>) accessor.getPropertyValue("bridges");
-		return bridges;
+		return (List<?>) accessor.getPropertyValue("bindings");
+	}
+
+	protected MultiTypeCodec<Object> getCodec() {
+		Map<Class<?>, AbstractCodec<?>> codecs = new HashMap<Class<?>, AbstractCodec<?>>();
+		codecs.put(Tuple.class, new TupleCodec());
+		return new CompositeCodec(codecs, new PojoCodec());
 	}
 
 	protected abstract MessageBus getMessageBus() throws Exception;

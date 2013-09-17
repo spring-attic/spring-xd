@@ -1,0 +1,151 @@
+/*
+ * Copyright 2013 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.springframework.integration.x.bus.serializer.kryo;
+
+import static org.junit.Assert.assertEquals;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.junit.Test;
+
+import org.springframework.xd.tuple.Tuple;
+import org.springframework.xd.tuple.TupleBuilder;
+
+/**
+ * @author David Turanski
+ * @since 1.0
+ */
+public class KryoCodecTests {
+
+	@Test
+	public void testTupleSerialization() throws IOException {
+		Tuple t = TupleBuilder.tuple().of("foo", "bar");
+		TupleCodec serializer = new TupleCodec();
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		serializer.serialize(t, bos);
+
+		Tuple t2 = serializer.deserialize(bos.toByteArray());
+		assertEquals(t, t2);
+	}
+
+	@Test
+	public void testStringSerialization() throws IOException {
+		String str = "hello";
+		StringCodec serializer = new StringCodec();
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+
+		serializer.serialize(str, bos);
+
+		String s2 = serializer.deserialize(bos.toByteArray());
+		assertEquals(str, s2);
+	}
+
+	@Test
+	public void testSerializationWithStreams() throws IOException {
+		String str = "hello";
+		File file = new File("test.ser");
+		StringCodec serializer = new StringCodec();
+		FileOutputStream fos = new FileOutputStream(file);
+		serializer.serialize(str, fos);
+		fos.close();
+
+		FileInputStream fis = new FileInputStream(file);
+		String s2 = serializer.deserialize(fis);
+		file.delete();
+		assertEquals(str, s2);
+	}
+
+	@Test
+	public void testPojoSerialization() throws IOException {
+		PojoCodec serializer = new PojoCodec();
+		SomeClassWithNoDefaultConstructors foo = new SomeClassWithNoDefaultConstructors("foo", 123);
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		serializer.serialize(foo, bos);
+		Object foo2 = serializer.deserialize(bos.toByteArray(), SomeClassWithNoDefaultConstructors.class);
+		assertEquals(foo, foo2);
+	}
+
+	static class SomeClassWithNoDefaultConstructors {
+
+		private String val1;
+
+		private int val2;
+
+		public SomeClassWithNoDefaultConstructors(String val1) {
+			this.val1 = val1;
+		}
+
+		public SomeClassWithNoDefaultConstructors(String val1, int val2) {
+			this.val1 = val1;
+			this.val2 = val2;
+		}
+
+		@Override
+		public boolean equals(Object other) {
+			if (!(other instanceof SomeClassWithNoDefaultConstructors)) {
+				return false;
+			}
+			SomeClassWithNoDefaultConstructors that = (SomeClassWithNoDefaultConstructors) other;
+			return (this.val1.equals(that.val1) && val2 == that.val2);
+		}
+	}
+
+	@Test
+	public void testPrimitiveSerialization() throws IOException {
+		PojoCodec serializer = new PojoCodec();
+
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		serializer.serialize(true, bos);
+		boolean b = (Boolean) serializer.deserialize(bos.toByteArray(), Boolean.class);
+		assertEquals(true, b);
+		b = (Boolean) serializer.deserialize(bos.toByteArray(), boolean.class);
+		assertEquals(true, b);
+
+		bos = new ByteArrayOutputStream();
+		serializer.serialize(3.14159, bos);
+
+		double d = (Double) serializer.deserialize(bos.toByteArray(), double.class);
+		assertEquals(3.14159, d, 0.00001);
+
+		bos = new ByteArrayOutputStream();
+		serializer.serialize(new Double(3.14159), bos);
+
+		d = (Double) serializer.deserialize(bos.toByteArray(), Double.class);
+		assertEquals(3.14159, d, 0.00001);
+
+	}
+
+	@Test
+	public void testMapSerialization() throws IOException {
+		PojoCodec serializer = new PojoCodec();
+		Map<String, Integer> map = new HashMap<String, Integer>();
+		map.put("one", 1);
+		map.put("two", 2);
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		serializer.serialize(map, bos);
+		Map<?, ?> m2 = (Map<?, ?>) serializer.deserialize(bos.toByteArray(), HashMap.class);
+		assertEquals(2, m2.size());
+		assertEquals(1, m2.get("one"));
+		assertEquals(2, m2.get("two"));
+	}
+}

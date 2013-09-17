@@ -9,6 +9,7 @@
 
 	<bean id="messageBus" class="org.springframework.integration.x.redis.RedisMessageBus">
 		<constructor-arg ref="redisConnectionFactory" />
+		<constructor-arg ref="codec"/>
 	</bean>
 
 </beans>

@@ -36,7 +36,7 @@ import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.x.bus.Bridge;
+import org.springframework.integration.x.bus.Binding;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.integration.x.bus.MessageBusSupport;
 import org.springframework.util.Assert;
@@ -85,7 +85,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 		adapter.setOutputChannel(bridgeToModuleChannel);
 		adapter.setBeanName("inbound." + name);
 		adapter.afterPropertiesSet();
-		addBridge(new Bridge(moduleInputChannel, adapter));
+		addBinding(Binding.forConsumer(adapter, moduleInputChannel));
 		ReceivingHandler convertingBridge = new ReceivingHandler(acceptedMediaTypes);
 		convertingBridge.setOutputChannel(moduleInputChannel);
 		convertingBridge.setBeanName(name + ".convert.bridge");
@@ -119,13 +119,13 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 		EventDrivenConsumer consumer = new EventDrivenConsumer((SubscribableChannel) moduleOutputChannel, handler);
 		consumer.setBeanName("outbound." + name);
 		consumer.afterPropertiesSet();
-		addBridge(new Bridge(moduleOutputChannel, consumer));
+		addBinding(Binding.forProducer(moduleOutputChannel, consumer));
 		consumer.start();
 	}
 
 	@Override
 	public void destroy() {
-		stopBridges();
+		stopBindings();
 	}
 
 	private class SendingHandler extends AbstractMessageHandler {

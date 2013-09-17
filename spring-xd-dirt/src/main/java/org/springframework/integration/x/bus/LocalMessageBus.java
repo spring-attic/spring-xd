@@ -239,9 +239,9 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 
 		try {
 			cefb.getObject().setComponentName(handler.getComponentName());
-			Bridge bridge = isInbound ? new Bridge(to, cefb.getObject())
-					: new Bridge(from, cefb.getObject());
-			addBridge(bridge);
+			Binding binding = isInbound ? Binding.forConsumer(cefb.getObject(), to)
+					: Binding.forProducer(from, cefb.getObject());
+			addBinding(binding);
 		}
 		catch (Exception e) {
 			throw new IllegalStateException(e);

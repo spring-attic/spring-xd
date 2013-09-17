@@ -37,19 +37,11 @@ import org.springframework.xd.shell.command.fixtures.TailSource;
  * 
  * @author Andy Clement
  * @author Mark Pollack
- * 
+ * @author Eric Bottard
  */
 public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegrationTest {
 
 	private StreamCommandTemplate streamOps;
-
-	private CounterCommandTemplate counterOps;
-
-	private AggregateCounterCommandTemplate aggOps;
-
-	private FieldValueCounterCommandTemplate fvcOps;
-
-	private RichGaugeCommandTemplate richGaugeOps;
 
 	private List<Disposable> disposables = new ArrayList<Disposable>();
 
@@ -57,10 +49,6 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 
 	public AbstractStreamIntegrationTest() {
 		streamOps = new StreamCommandTemplate(getShell());
-		counterOps = new CounterCommandTemplate(getShell());
-		aggOps = new AggregateCounterCommandTemplate(getShell());
-		fvcOps = new FieldValueCounterCommandTemplate(getShell());
-		richGaugeOps = new RichGaugeCommandTemplate(getShell());
 		metrics = new MetricsTemplate(getShell());
 		disposables.add(metrics);
 	}
@@ -73,29 +61,9 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 		return streamOps;
 	}
 
-	protected CounterCommandTemplate counter() {
-		return counterOps;
-	}
-
-	protected AggregateCounterCommandTemplate aggCounter() {
-		return aggOps;
-	}
-
-	protected FieldValueCounterCommandTemplate fvc() {
-		return fvcOps;
-	}
-
-	protected RichGaugeCommandTemplate richGauge() {
-		return richGaugeOps;
-	}
-
 	@After
 	public void after() {
 		stream().destroyCreatedStreams();
-		counter().deleteDefaultCounter();
-		aggCounter().deleteDefaultCounter();
-		fvc().deleteDefaultFVCounter();
-		richGauge().deleteDefaultRichGauge();
 		cleanUpDisposables();
 	}
 

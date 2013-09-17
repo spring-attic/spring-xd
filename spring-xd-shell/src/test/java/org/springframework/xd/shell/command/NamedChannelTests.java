@@ -16,17 +16,22 @@
 
 package org.springframework.xd.shell.command;
 
+import static org.junit.Assert.assertThat;
+import static org.springframework.xd.shell.command.fixtures.XDMatchers.eventually;
+import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasValue;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 
+import org.springframework.xd.shell.command.fixtures.CounterSink;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
 
 /**
  * Tests for named channels.
  * 
  * @author Ilayaperumal Gopinathan
- * 
+ * @author Eric Bottard
  */
 public class NamedChannelTests extends AbstractStreamIntegrationTest {
 
@@ -48,13 +53,14 @@ public class NamedChannelTests extends AbstractStreamIntegrationTest {
 		String stream2 = "namedchanneltest-ticktock-counter";
 
 		HttpSource httpSource = newHttpSource();
+		CounterSink counterSink = metrics().newCounterSink();
 
 		stream().create(stream1, "%s | transform --expression=payload.toUpperCase() > :foo",
 				httpSource);
 		// Create stream with named channel as source
-		stream().create(stream2, ":foo > counter --name=%s", DEFAULT_METRIC_NAME);
+		stream().create(stream2, ":foo > %s", counterSink);
 		httpSource.ensureReady().postData("test");
-		counter().verifyCounter("1");
+		assertThat(counterSink, eventually(hasValue("1")));
 	}
 
 }

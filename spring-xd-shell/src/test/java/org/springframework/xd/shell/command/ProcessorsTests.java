@@ -17,11 +17,15 @@
 package org.springframework.xd.shell.command;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.springframework.xd.shell.command.fixtures.XDMatchers.eventually;
+import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasValue;
 
 import java.io.IOException;
 
 import org.junit.Test;
 
+import org.springframework.xd.shell.command.fixtures.CounterSink;
 import org.springframework.xd.shell.command.fixtures.FileSink;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
 
@@ -36,23 +40,25 @@ public class ProcessorsTests extends AbstractStreamIntegrationTest {
 	@Test
 	public void splitterDoesNotSplitByDefault() throws Exception {
 		HttpSource httpSource = newHttpSource();
+		CounterSink counterSink = metrics().newCounterSink();
 
-		stream().create("splitter-test", "%s | splitter | counter --name=%s", httpSource, DEFAULT_METRIC_NAME);
+		stream().create("splitter-test", "%s | splitter | %s", httpSource, counterSink);
 
 		httpSource.ensureReady().postData("Hello World !");
-		counter().verifyCounter("1");
+		assertThat(counterSink, eventually(hasValue("1")));
 
 	}
 
 	@Test
 	public void splitterDoesSplit() {
 		HttpSource httpSource = newHttpSource();
+		CounterSink counterSink = metrics().newCounterSink();
 
-		stream().create("splitter-test", "%s | splitter --expression=payload.split(' ') | counter --name=%s",
-				httpSource, DEFAULT_METRIC_NAME);
+		stream().create("splitter-test", "%s | splitter --expression=payload.split(' ') | %s",
+				httpSource, counterSink);
 
 		httpSource.ensureReady().postData("Hello World !");
-		counter().verifyCounter("3");
+		assertThat(counterSink, eventually(hasValue("3")));
 
 	}
 

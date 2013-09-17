@@ -52,16 +52,16 @@ public abstract class AbstractMessageBusTests {
 		messageBus.bindProducer("foo.1", new DirectChannel(), false);
 		messageBus.bindConsumer("foo.1", new DirectChannel(), ALL, false);
 		messageBus.bindProducer("foo.2", new DirectChannel(), false);
-		Collection<?> bridges = getBridges(messageBus);
-		assertEquals(5, bridges.size());
+		Collection<?> bindings = getBindings(messageBus);
+		assertEquals(5, bindings.size());
 		messageBus.unbindProducers("foo.0");
-		assertEquals(4, bridges.size());
+		assertEquals(4, bindings.size());
 		messageBus.unbindConsumers("foo.0");
 		messageBus.unbindProducers("foo.1");
-		assertEquals(2, bridges.size());
+		assertEquals(2, bindings.size());
 		messageBus.unbindConsumers("foo.1");
 		messageBus.unbindProducers("foo.2");
-		assertTrue(bridges.isEmpty());
+		assertTrue(bindings.isEmpty());
 	}
 
 	@Test
@@ -158,7 +158,7 @@ public abstract class AbstractMessageBusTests {
 		messageBus.unbindConsumer("baz.0", moduleInputChannel);
 		messageBus.unbindProducer("baz.0", moduleOutputChannel);
 		messageBus.unbindProducers("tap:baz.http");
-		assertTrue(getBridges(messageBus).isEmpty());
+		assertTrue(getBindings(messageBus).isEmpty());
 	}
 
 	@Test
@@ -225,13 +225,12 @@ public abstract class AbstractMessageBusTests {
 		messageBus.unbindConsumer("baz.0", moduleInputChannel);
 		messageBus.unbindProducer("baz.0", moduleOutputChannel);
 		messageBus.unbindProducers("tap:baz.http");
-		assertTrue(getBridges(messageBus).isEmpty());
+		assertTrue(getBindings(messageBus).isEmpty());
 	}
 
-	protected Collection<?> getBridges(MessageBus messageBus) {
+	protected Collection<?> getBindings(MessageBus messageBus) {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(messageBus);
-		List<?> bridges = (List<?>) accessor.getPropertyValue("bridges");
-		return bridges;
+		return (List<?>) accessor.getPropertyValue("bindings");
 	}
 
 	protected abstract MessageBus getMessageBus() throws Exception;

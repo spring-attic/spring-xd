@@ -65,7 +65,7 @@ public abstract class MessageBusSupport implements MessageBus, BeanClassLoaderAw
 
 	protected static final String ORIGINAL_CONTENT_TYPE_HEADER = "originalContentType";
 
-	private final List<Bridge> bridges = Collections.synchronizedList(new ArrayList<Bridge>());
+	private final List<Binding> bindings = Collections.synchronizedList(new ArrayList<Binding>());
 
 	public void setConversionService(ConversionService conversionService) {
 		this.conversionService = conversionService;
@@ -78,52 +78,52 @@ public abstract class MessageBusSupport implements MessageBus, BeanClassLoaderAw
 
 	@Override
 	public void unbindConsumers(String name) {
-		deleteBridges("inbound." + name);
+		deleteBindings("inbound." + name);
 	}
 
 	@Override
 	public void unbindProducers(String name) {
-		deleteBridges("outbound." + name);
+		deleteBindings("outbound." + name);
 	}
 
 	@Override
 	public void unbindConsumer(String name, MessageChannel channel) {
-		deleteBridge("inbound." + name, channel);
+		deleteBinding("inbound." + name, channel);
 	}
 
 	@Override
 	public void unbindProducer(String name, MessageChannel channel) {
-		deleteBridge("outbound." + name, channel);
+		deleteBinding("outbound." + name, channel);
 	}
 
-	protected void addBridge(Bridge bridge) {
-		this.bridges.add(bridge);
+	protected void addBinding(Binding binding) {
+		this.bindings.add(binding);
 	}
 
-	protected void deleteBridges(String name) {
-		Assert.hasText(name, "a valid name is required to remove bridges");
-		synchronized (this.bridges) {
-			Iterator<Bridge> iterator = this.bridges.iterator();
+	protected void deleteBindings(String name) {
+		Assert.hasText(name, "a valid name is required to remove bindings");
+		synchronized (this.bindings) {
+			Iterator<Binding> iterator = this.bindings.iterator();
 			while (iterator.hasNext()) {
-				Bridge bridge = iterator.next();
-				if (bridge.getEndpoint().getComponentName().equals(name)) {
-					bridge.stop();
+				Binding binding = iterator.next();
+				if (binding.getEndpoint().getComponentName().equals(name)) {
+					binding.stop();
 					iterator.remove();
 				}
 			}
 		}
 	}
 
-	protected void deleteBridge(String name, MessageChannel channel) {
-		Assert.hasText(name, "a valid name is required to remove a bridge");
-		Assert.notNull(channel, "a valid channel is required to remove a bridge");
-		synchronized (this.bridges) {
-			Iterator<Bridge> iterator = this.bridges.iterator();
+	protected void deleteBinding(String name, MessageChannel channel) {
+		Assert.hasText(name, "a valid name is required to remove a binding");
+		Assert.notNull(channel, "a valid channel is required to remove a binding");
+		synchronized (this.bindings) {
+			Iterator<Binding> iterator = this.bindings.iterator();
 			while (iterator.hasNext()) {
-				Bridge bridge = iterator.next();
-				if (bridge.getChannel().equals(channel) &&
-						bridge.getEndpoint().getComponentName().equals(name)) {
-					bridge.stop();
+				Binding binding = iterator.next();
+				if (binding.getChannel().equals(channel) &&
+						binding.getEndpoint().getComponentName().equals(name)) {
+					binding.stop();
 					iterator.remove();
 					return;
 				}
@@ -131,8 +131,8 @@ public abstract class MessageBusSupport implements MessageBus, BeanClassLoaderAw
 		}
 	}
 
-	protected void stopBridges() {
-		for (Lifecycle bean : this.bridges) {
+	protected void stopBindings() {
+		for (Lifecycle bean : this.bindings) {
 			try {
 				bean.stop();
 			}

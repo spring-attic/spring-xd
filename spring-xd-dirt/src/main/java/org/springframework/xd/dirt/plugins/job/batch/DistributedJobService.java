@@ -26,7 +26,6 @@ import org.springframework.batch.admin.service.SimpleJobService;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersInvalidException;
-import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.launch.JobExecutionNotRunningException;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.NoSuchJobException;
@@ -51,29 +50,22 @@ public class DistributedJobService extends SimpleJobService {
 
 	private SearchableJobExecutionDao jobExecutionDao;
 
-	private JobRegistry jobRegistry;
-
-	private JobRepository jobRepository;
-
 	public DistributedJobService(SearchableJobInstanceDao jobInstanceDao, SearchableJobExecutionDao jobExecutionDao,
 			SearchableStepExecutionDao stepExecutionDao, JobRepository jobRepository, JobLauncher jobLauncher,
 			BatchJobLocator batchJobLocator, ExecutionContextDao executionContextDao) {
 		super(jobInstanceDao, jobExecutionDao, stepExecutionDao, jobRepository, jobLauncher, batchJobLocator,
 				executionContextDao);
-		this.jobRepository = jobRepository;
 		this.batchJobLocator = batchJobLocator;
 		this.jobInstanceDao = jobInstanceDao;
 		this.jobExecutionDao = jobExecutionDao;
-		this.jobRegistry = jobRegistry;
 	}
 
 	@Override
 	public JobExecution launch(String jobName, JobParameters params) throws NoSuchJobException,
 			JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException,
 			JobParametersInvalidException {
-		JobExecution execution = jobRepository.createJobExecution(jobName, params);
-		jobRegistry.getJob(jobName).execute(execution);
-		return execution;
+		// TODO
+		throw new UnsupportedOperationException("Job Restart");
 	}
 
 	@Override

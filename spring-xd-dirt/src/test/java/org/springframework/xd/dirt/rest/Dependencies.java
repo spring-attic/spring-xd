@@ -158,11 +158,6 @@ public class Dependencies {
 	}
 
 	@Bean
-	public JobRegistry jobRegistry() {
-		return mock(JobRegistry.class);
-	}
-
-	@Bean
 	public JobLauncher jobLauncher() {
 		return mock(SimpleJobLauncher.class);
 	}

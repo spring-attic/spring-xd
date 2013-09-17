@@ -19,10 +19,9 @@ package org.springframework.xd.dirt.plugins.job.batch;
 import java.util.Collection;
 
 import org.springframework.batch.core.Job;
-import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.configuration.ListableJobLocator;
+import org.springframework.batch.core.job.SimpleJob;
 import org.springframework.batch.core.launch.NoSuchJobException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcOperations;
 
 /**
@@ -45,9 +44,6 @@ public class BatchJobLocator implements ListableJobLocator {
 
 	private JdbcOperations jdbcTemplate;
 
-	@Autowired
-	private JobRegistry jobRegistry;
-
 	@Override
 	public Collection<String> getJobNames() {
 		return jdbcTemplate.queryForList(ALL_JOBS_NAMES, String.class);
@@ -55,7 +51,12 @@ public class BatchJobLocator implements ListableJobLocator {
 
 	@Override
 	public Job getJob(String name) throws NoSuchJobException {
-		return jobRegistry.getJob(name);
+		if (!getJobNames().contains(name)) {
+			throw new NoSuchJobException(name);
+		}
+		// TODO need to create the real job here
+		SimpleJob simpleJob = new SimpleJob(name);
+		return simpleJob;
 	}
 
 	/**

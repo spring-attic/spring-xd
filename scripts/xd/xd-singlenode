@@ -65,7 +65,7 @@ cd "`dirname \"$PRG\"`/.." >&-
 APP_HOME="`pwd -P`"
 cd "$SAVED" >&-
 
-HADOOP_DISTRO="${HADOOP_DISTRO:-hadoop10}"
+HADOOP_DISTRO="${HADOOP_DISTRO:-hadoop12}"
 x=0
 args=("$@")
 for arg in "${args[@]}" ; do

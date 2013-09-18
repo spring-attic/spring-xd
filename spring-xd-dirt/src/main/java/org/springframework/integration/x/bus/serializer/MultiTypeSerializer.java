@@ -41,7 +41,7 @@ abstract class MultiTypeSerializer<T> extends AbstractKyroSerializer<T> {
 	 */
 	public T deserialize(InputStream inputStream, Class<? extends T> type) throws IOException {
 		Input input = new Input(inputStream);
-		T result = doDeserialize(kryo, input, type);
+		T result = doDeserialize(getKryo(), input, type);
 		input.close();
 		return result;
 	}

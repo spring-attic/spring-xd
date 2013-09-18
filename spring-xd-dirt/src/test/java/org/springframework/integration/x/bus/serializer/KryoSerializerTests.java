@@ -21,6 +21,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.Test;
 
@@ -120,5 +122,19 @@ public class KryoSerializerTests {
 		d = (Double) serializer.deserialize(bytes, Double.class);
 		assertEquals(3.14159, d, 0.00001);
 
+	}
+
+	@Test
+	public void testMapSerialization() throws IOException {
+		PojoSerializer serializer = new PojoSerializer();
+		byte[] bytes;
+		Map map = new HashMap();
+		map.put("one", 1);
+		map.put("two", 2);
+		bytes = serializer.serialize(map);
+		Map m2 = (Map) serializer.deserialize(bytes, HashMap.class);
+		assertEquals(2, m2.size());
+		assertEquals(1, m2.get("one"));
+		assertEquals(2, m2.get("two"));
 	}
 }

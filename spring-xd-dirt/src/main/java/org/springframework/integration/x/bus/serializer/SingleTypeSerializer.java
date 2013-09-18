@@ -39,7 +39,7 @@ abstract class SingleTypeSerializer<T> extends AbstractKyroSerializer<T> {
 	 */
 	public T deserialize(InputStream inputStream) throws IOException {
 		Input input = new Input(inputStream);
-		T result = doDeserialize(kryo, input);
+		T result = doDeserialize(getKryo(), input);
 		input.close();
 		return result;
 	}
@@ -56,4 +56,9 @@ abstract class SingleTypeSerializer<T> extends AbstractKyroSerializer<T> {
 	}
 
 	protected abstract T doDeserialize(Kryo kryo, Input input);
+
+	@Override
+	protected Kryo getKryo() {
+		return new Kryo();
+	}
 }

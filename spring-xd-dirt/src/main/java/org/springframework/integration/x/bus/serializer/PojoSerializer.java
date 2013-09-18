@@ -29,18 +29,21 @@ import com.esotericsoftware.kryo.io.Output;
  */
 public class PojoSerializer extends MultiTypeSerializer<Object> {
 
-	public PojoSerializer() {
-		super();
-		kryo.setInstantiatorStrategy(new StdInstantiatorStrategy());
-	}
-
 	@Override
 	protected void doSerialize(Object object, Kryo kryo, Output output) {
 		kryo.writeObject(output, object);
 	}
 
 	@Override
-	protected Object doDeserialize(Kryo kryo, Input input, Class<?> type) {
+	protected Object doDeserialize(Kryo kryo, Input input, Class<? extends Object> type) {
 		return kryo.readObject(input, type);
+	}
+
+
+	@Override
+	protected synchronized Kryo getKryo() {
+		Kryo kryo = new Kryo();
+		kryo.setInstantiatorStrategy(new StdInstantiatorStrategy());
+		return kryo;
 	}
 }

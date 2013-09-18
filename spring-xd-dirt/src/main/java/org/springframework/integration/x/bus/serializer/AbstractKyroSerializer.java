@@ -29,12 +29,6 @@ import com.esotericsoftware.kryo.io.Output;
  */
 abstract class AbstractKyroSerializer<T> {
 
-	protected Kryo kryo;
-
-	protected AbstractKyroSerializer() {
-		kryo = new Kryo();
-	}
-
 	/**
 	 * Serialize an object
 	 * 
@@ -57,11 +51,12 @@ abstract class AbstractKyroSerializer<T> {
 	@SuppressWarnings("resource")
 	public byte[] serialize(T object, OutputStream outputStream) throws IOException {
 		Output output = (outputStream == null) ? new Output(2048, 16384) : new Output(outputStream);
-		doSerialize(object, kryo, output);
+		doSerialize(object, getKryo(), output);
 		output.close();
 		return output.getBuffer();
 	}
 
 	protected abstract void doSerialize(T object, Kryo kryo, Output output);
 
+	protected abstract Kryo getKryo();
 }

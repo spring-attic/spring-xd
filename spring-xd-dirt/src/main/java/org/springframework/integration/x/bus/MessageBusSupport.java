@@ -152,7 +152,7 @@ public abstract class MessageBusSupport implements MessageBus, BeanClassLoaderAw
 
 		else if (to.equals(MediaType.APPLICATION_OCTET_STREAM)) {
 			contentType = resolveContentType(originalPayload);
-			Object payload = serializeOriginalPayloadIfNecessary(originalPayload);
+			Object payload = serializeProducerPayloadIfNecessary(originalPayload);
 			MessageBuilder<Object> messageBuilder = MessageBuilder.withPayload(payload)
 					.copyHeaders(message.getHeaders())
 					.setHeader(MessageHeaders.CONTENT_TYPE, contentType);
@@ -194,7 +194,7 @@ public abstract class MessageBusSupport implements MessageBus, BeanClassLoaderAw
 				return payload;
 			}
 			else {
-				result = deserializeInboundPayload((byte[]) payload, contentType);
+				result = deserializeConsumerPayload((byte[]) payload, contentType);
 				if (result != null) {
 					if (to.contains(MediaType.ALL)) {
 						return result;
@@ -285,7 +285,7 @@ public abstract class MessageBusSupport implements MessageBus, BeanClassLoaderAw
 				originalPayload.getClass().getName()));
 	}
 
-	private Object deserializeInboundPayload(byte[] bytes, MediaType contentType) {
+	private Object deserializeConsumerPayload(byte[] bytes, MediaType contentType) {
 		Class targetType = null;
 		try {
 			if (contentType.equals(MediaType.TEXT_PLAIN)) {
@@ -307,7 +307,7 @@ public abstract class MessageBusSupport implements MessageBus, BeanClassLoaderAw
 
 	}
 
-	private byte[] serializeOriginalPayloadIfNecessary(Object originalPayload) {
+	private byte[] serializeProducerPayloadIfNecessary(Object originalPayload) {
 		if (originalPayload instanceof byte[]) {
 			return (byte[]) originalPayload;
 		}

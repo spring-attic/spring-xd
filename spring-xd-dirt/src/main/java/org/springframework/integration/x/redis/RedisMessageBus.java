@@ -140,7 +140,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 		@Override
 		protected void handleMessageInternal(Message<?> message) throws Exception {
 			@SuppressWarnings("unchecked")
-			Message<byte[]> transformed = (Message<byte[]>) transformOutboundIfNecessary(message,
+			Message<byte[]> transformed = (Message<byte[]>) transformPayloadForProducerIfNecessary(message,
 					MediaType.APPLICATION_OCTET_STREAM);
 			Message<?> messageToSend = embeddedHeadersMessageConverter.embedHeaders(transformed,
 					MessageHeaders.CONTENT_TYPE, ORIGINAL_CONTENT_TYPE_HEADER);
@@ -168,7 +168,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 			catch (UnsupportedEncodingException e) {
 				logger.error("Could not convert message", e);
 			}
-			return transformInboundIfNecessary(theRequestMessage, acceptedMediaTypes);
+			return transformPayloadForConsumerIfNecessary(theRequestMessage, acceptedMediaTypes);
 		}
 
 	};

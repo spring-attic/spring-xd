@@ -174,7 +174,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		@Override
 		protected void handleMessageInternal(Message<?> message) throws Exception {
 			// TODO: rabbit wire data pluggable format?
-			Message<?> messageToSend = transformOutboundIfNecessary(message, MediaType.APPLICATION_OCTET_STREAM);
+			Message<?> messageToSend = transformPayloadForProducerIfNecessary(message, MediaType.APPLICATION_OCTET_STREAM);
 			this.delegate.handleMessage(messageToSend);
 		}
 	}
@@ -189,7 +189,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 		@Override
 		protected Object handleRequestMessage(Message<?> requestMessage) {
-			return transformInboundIfNecessary(requestMessage, acceptedMediaTypes);
+			return transformPayloadForConsumerIfNecessary(requestMessage, acceptedMediaTypes);
 		}
 
 		@Override

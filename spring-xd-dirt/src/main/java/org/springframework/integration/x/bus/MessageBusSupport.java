@@ -139,7 +139,7 @@ public abstract class MessageBusSupport implements MessageBus, BeanClassLoaderAw
 	}
 
 	// TODO: Performs serialization currently no transformation
-	protected final Message<?> transformOutboundIfNecessary(Message<?> message, MediaType to) {
+	protected final Message<?> transformPayloadForProducerIfNecessary(Message<?> message, MediaType to) {
 		Object originalPayload = message.getPayload();
 
 		Object originalContentType = message.getHeaders().get(MessageHeaders.CONTENT_TYPE);
@@ -166,11 +166,11 @@ public abstract class MessageBusSupport implements MessageBus, BeanClassLoaderAw
 		}
 	}
 
-	protected final Message<?> transformInboundIfNecessary(Message<?> message, Collection<MediaType> acceptedMediaTypes) {
+	protected final Message<?> transformPayloadForConsumerIfNecessary(Message<?> message, Collection<MediaType> acceptedMediaTypes) {
 		Message<?> messageToSend = message;
 		Object originalPayload = message.getPayload();
 		Object contentType = message.getHeaders().get(MessageHeaders.CONTENT_TYPE);
-		Object payload = transformPayloadForInputChannel(originalPayload,
+		Object payload = transformPayloadForConsumer(originalPayload,
 				getContentTypeHeaderAsMedia(contentType),
 				acceptedMediaTypes);
 
@@ -185,7 +185,7 @@ public abstract class MessageBusSupport implements MessageBus, BeanClassLoaderAw
 		return messageToSend;
 	}
 
-	private Object transformPayloadForInputChannel(Object payload, MediaType contentType, Collection<MediaType> to) {
+	private Object transformPayloadForConsumer(Object payload, MediaType contentType, Collection<MediaType> to) {
 		if (payload instanceof byte[]) {
 			Object result = null;
 			// Get the preferred java type, and try to decode it.
@@ -210,7 +210,7 @@ public abstract class MessageBusSupport implements MessageBus, BeanClassLoaderAw
 							return result;
 						}
 						// recursive call
-						return transformPayloadForInputChannel(result, contentType,
+						return transformPayloadForConsumer(result, contentType,
 								Collections.singletonList(toObjectType));
 					}
 				}

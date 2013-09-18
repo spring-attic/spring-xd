@@ -209,7 +209,7 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 				if (convertWithinTransport) {
 					if (acceptedMediaTypes != null) {
 						if (isInbound) {
-							return transformInboundIfNecessary(requestMessage, acceptedMediaTypes);
+							return transformPayloadForConsumerIfNecessary(requestMessage, acceptedMediaTypes);
 						}
 					}
 				}

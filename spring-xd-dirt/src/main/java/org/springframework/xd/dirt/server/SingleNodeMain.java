@@ -23,7 +23,6 @@ import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.server.options.CommandLineParser;
 import org.springframework.xd.dirt.server.options.InvalidCommandLineArgumentException;
 import org.springframework.xd.dirt.server.options.SingleNodeOptions;
-import org.springframework.xd.dirt.server.options.Transport;
 
 
 /**
@@ -86,11 +85,6 @@ public class SingleNodeMain {
 			parser.printUsage(System.err);
 			System.exit(0);
 		}
-		if (!options.getTransport().equals(Transport.local)) {
-			logger.error("Only local transport is currently supported for XD Single Node");
-			System.exit(1);
-		}
-
 		return options;
 	}
 

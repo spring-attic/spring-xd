@@ -48,21 +48,11 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 
 	private static final String TEST_TASKLET = "test.xml";
 
-	private static final String JOB_TASKLET = "job.xml";
-
 	private static final String JOB_WITH_PARAMETERS_TASKLET = "jobWithParameters.xml";
-
-	public static final String TMP_FILE = "./src/test/resources/TMPTESTFILE.txt";
-
-	public static final String TEST_FILE = "./src/test/resources/client1.txt";
 
 	public static final String MY_JOB = "myJob";
 
-	public static final String JOB_DESCRIPTOR = "job";
-
 	public static final String MY_TEST = "myTest";
-
-	public static final String TEST_DESCRIPTOR = "test";
 
 	public static final String MY_JOB_WITH_PARAMETERS = "myJobWithParameters";
 
@@ -72,7 +62,6 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 
 	@Before
 	public void before() {
-		copyTaskletDescriptorsToServer(MODULE_RESOURCE_DIR + JOB_TASKLET, MODULE_TARGET_DIR + JOB_TASKLET);
 		copyTaskletDescriptorsToServer(MODULE_RESOURCE_DIR + TEST_TASKLET, MODULE_TARGET_DIR + TEST_TASKLET);
 		copyTaskletDescriptorsToServer(MODULE_RESOURCE_DIR + JOB_WITH_PARAMETERS_TASKLET, MODULE_TARGET_DIR
 				+ JOB_WITH_PARAMETERS_TASKLET);
@@ -101,13 +90,6 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 	public void after() {
 		executeJobDestroy(jobs.toArray(new String[jobs.size()]));
 		getShell().executeCommand("stream destroy " + "me-Try2");
-		removeTmpFile(TEST_FILE);
-		removeTmpFile(TMP_FILE);
-	}
-
-	public boolean fileExists(String name) {
-		File file = new File(name);
-		return file.exists();
 	}
 
 	/**
@@ -153,20 +135,6 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 				cr.getException().getMessage().contains(expectedMessage));
 	}
 
-	protected void waitForResult(int milliseconds) {
-		try {
-			Thread.sleep(milliseconds);
-		}
-		catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-		}
-
-	}
-
-	protected void waitForResult() {
-		waitForResult(1000);
-	}
-
 	protected void executemyJobTriggerStream() {
 		CommandResult cr = getShell().executeCommand(
 				"stream create --name me-Try2 --definition \"trigger > :job:myJob\"");
@@ -201,13 +169,5 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 			assertTrue("Unable to deploy Job descriptor to server directory", out.isFile());
 		}
 		out.deleteOnExit();
-	}
-
-	private void removeTmpFile(String fileName) {
-		File file = new File(fileName);
-		if (file.exists()) {
-			file.delete();
-			file.deleteOnExit();
-		}
 	}
 }

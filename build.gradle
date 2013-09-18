@@ -93,9 +93,10 @@ configure(javaProjects()) { subproject ->
 		reactorVersion = '1.0.0.M3'
 		lettuceVersion = '2.3.3'
 		springDataHadoopVersion = '1.0.1.RELEASE'
-		hadoop10Version = '1.0.4'
-		hadoop11Version = '1.1.2'
+		hadoop12Version = '1.2.1'
 		hadoop20Version = '2.0.6-alpha'
+		cdh4Version = '2.0.0-cdh4.3.1'
+		hdp13Version = '1.2.0'
 		phd1Version = '2.0.2-alpha-gphd-2.0.1.0'
 		springHATEOASVersion = '0.7.0.RELEASE'
 		springPluginVersion = '0.8.0.RELEASE'
@@ -519,29 +520,13 @@ project('spring-xd-hadoop') {
 	}
 }
 
-project('spring-xd-hadoop:hadoop10') {
-	description = 'Hadoop 1.0 dependencies'
+project('spring-xd-hadoop:hadoop12') {
+	description = 'Hadoop 1.2 dependencies'
 	dependencies {
 		runtime ("org.springframework.data:spring-data-hadoop:$springDataHadoopVersion")
-		runtime ("org.apache.hadoop:hadoop-core:$hadoop10Version")
-		runtime ("org.apache.hadoop:hadoop-streaming:$hadoop10Version")
-		runtime ("org.apache.hadoop:hadoop-tools:$hadoop10Version")
-	}
-	task copyToLib(dependsOn: build, type: Copy) {
-		into "$buildDir/lib"
-		from configurations.default
-		include 'spring-data-hadoop-*'
-		include 'hadoop-*'
-	}
-}
-
-project('spring-xd-hadoop:hadoop11') {
-	description = 'Hadoop 1.1 dependencies'
-	dependencies {
-		runtime ("org.springframework.data:spring-data-hadoop:$springDataHadoopVersion")
-		runtime ("org.apache.hadoop:hadoop-core:$hadoop11Version")
-		runtime ("org.apache.hadoop:hadoop-streaming:$hadoop11Version")
-		runtime ("org.apache.hadoop:hadoop-tools:$hadoop11Version")
+		runtime ("org.apache.hadoop:hadoop-core:$hadoop12Version")
+		runtime ("org.apache.hadoop:hadoop-streaming:$hadoop12Version")
+		runtime ("org.apache.hadoop:hadoop-tools:$hadoop12Version")
 	}
 	task copyToLib(dependsOn: build, type: Copy) {
 		into "$buildDir/lib"
@@ -570,6 +555,44 @@ project('spring-xd-hadoop:hadoop20') {
 		include 'hadoop-*'
 		include 'avro-*'
 		include 'protobuf-java-*'
+	}
+}
+
+project('spring-xd-hadoop:cdh4') {
+	description = 'Cloudera CDH 4.3.1 dependencies'
+	dependencies {
+		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopVersion}-cdh4")
+		runtime ("org.apache.hadoop:hadoop-common:$cdh4Version")
+		runtime ("org.apache.hadoop:hadoop-distcp:$cdh4Version")
+		runtime ("org.apache.hadoop:hadoop-hdfs:$cdh4Version")
+		runtime ("org.apache.hadoop:hadoop-mapreduce-client-core:$cdh4Version")
+		runtime ("org.apache.hadoop:hadoop-mapreduce-client-jobclient:$cdh4Version")
+		runtime ("org.apache.hadoop:hadoop-streaming:$cdh4Version")
+		runtime ("org.apache.hadoop:hadoop-streaming:$cdh4Version")
+	}
+	task copyToLib(dependsOn: build, type: Copy) {
+		into "$buildDir/lib"
+		from configurations.default
+		include 'spring-data-hadoop-*'
+		include 'hadoop-*'
+		include 'avro-*'
+		include 'protobuf-java-*'
+	}
+}
+
+project('spring-xd-hadoop:hdp13') {
+	description = 'Hortonworks HDP 1.3 dependencies'
+	dependencies {
+		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopVersion}-hdp13")
+		runtime ("org.apache.hadoop:hadoop-core:$hdp13Version")
+		runtime ("org.apache.hadoop:hadoop-streaming:$hdp13Version")
+		runtime ("org.apache.hadoop:hadoop-tools:$hdp13Version")
+	}
+	task copyToLib(dependsOn: build, type: Copy) {
+		into "$buildDir/lib"
+		from configurations.default
+		include 'spring-data-hadoop-*'
+		include 'hadoop-*'
 	}
 }
 
@@ -761,8 +784,8 @@ task copyXDShellInstall(type: Copy, dependsOn: [":spring-xd-shell:installApp"]) 
 	exclude "**/lib/spring-data-hadoop-*.jar"
 }
 
-task copyHadoopLibs(dependsOn: [":spring-xd-hadoop:hadoop10:copyToLib", ":spring-xd-hadoop:hadoop11:copyToLib", ":spring-xd-hadoop:hadoop20:copyToLib", ":spring-xd-hadoop:phd1:copyToLib"]) << {
-	['hadoop10', 'hadoop11', 'hadoop20', 'phd1'].each { distro ->
+task copyHadoopLibs(dependsOn: [":spring-xd-hadoop:hadoop12:copyToLib", ":spring-xd-hadoop:hadoop20:copyToLib", ":spring-xd-hadoop:cdh4:copyToLib", ":spring-xd-hadoop:hdp13:copyToLib", ":spring-xd-hadoop:phd1:copyToLib"]) << {
+	['hadoop12', 'hadoop20', 'cdh4', 'hdp13', 'phd1'].each { distro ->
 		copy {
 			from "$rootDir/spring-xd-hadoop/$distro/build/lib"
 			into "$buildDir/dist/spring-xd/xd/lib/$distro"

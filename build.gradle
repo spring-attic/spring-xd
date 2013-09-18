@@ -50,7 +50,7 @@ def javaProjects() {
 
 configure(javaProjects()) { subproject ->
 
-	apply plugin: 'java'
+	apply plugin: 'groovy'
 	apply from:   "${rootProject.projectDir}/publish-maven.gradle"
 	apply plugin: 'eclipse'
 	apply plugin: 'idea'
@@ -138,6 +138,12 @@ configure(javaProjects()) { subproject ->
 
 	sourceSets {
 		test {
+			groovy {
+				srcDirs = ['src/test/java']
+				resources {
+					srcDirs = ['src/test/resources', 'src/test/java']
+				}
+			}
 			resources {
 				srcDirs = ['src/test/resources', 'src/test/java']
 			}

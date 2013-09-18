@@ -50,27 +50,31 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 	public void testJobLifecycleForMyJob() throws InterruptedException {
 
 		logger.info("Starting Job Create for myTest");
-		executeJobCreate(MY_TEST, TEST_DESCRIPTOR);
+		JobParametersHolder.reset();
+		final JobParametersHolder jobParametersHolder = new JobParametersHolder();
 
-		checkForJobInList(MY_TEST, TEST_DESCRIPTOR);
+		executeJobCreate(MY_TEST, JOB_WITH_PARAMETERS_DESCRIPTOR);
+
+		checkForJobInList(MY_TEST, JOB_WITH_PARAMETERS_DESCRIPTOR);
 		executemyTestTriggerStream();
-
+		assertTrue("Job did not complete within time alotted", jobParametersHolder.isDone());
 		CommandResult cr = getShell().executeCommand("job undeploy --name myTest");
 		checkForSuccess(cr);
 		assertEquals("Un-deployed Job 'myTest'", cr.getResult());
-		waitForResult();
-		assertTrue("Batch Script did not complete successfully", fileExists(TEST_FILE));
+
 	}
 
 	@Test
 	public void testJobCreateDuplicate() throws InterruptedException {
 		logger.info("Create job myJob");
-		executeJobCreate(MY_JOB, JOB_DESCRIPTOR);
+		JobParametersHolder.reset();
+		final JobParametersHolder jobParametersHolder = new JobParametersHolder();
+
+		executeJobCreate(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR);
 		executemyJobTriggerStream();
 
-		checkForJobInList(MY_JOB, JOB_DESCRIPTOR);
-		waitForResult();
-		assertTrue(fileExists(TMP_FILE));
+		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR);
+		assertTrue("Job did not complete within time alotted", jobParametersHolder.isDone());
 
 		CommandResult cr = getShell().executeCommand("job create --definition \"job\" --name myJob");
 		checkForFail(cr);
@@ -88,31 +92,33 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 	@Test
 	public void testJobCreateDuplicateWithDeployFalse() {
 		logger.info("Create 2 myJobs with --deploy = false");
-		executeJobCreate(MY_JOB, JOB_DESCRIPTOR, false);
+		executeJobCreate(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
 
-		checkForJobInList(MY_JOB, JOB_DESCRIPTOR);
+		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR);
 
 		CommandResult cr = getShell().executeCommand("job create --definition \"job\" --name myJob --deploy false");
 		checkForFail(cr);
 		checkErrorMessages(cr, "There is already a job named 'myJob'");
 
-		checkForJobInList(MY_JOB, JOB_DESCRIPTOR);
+		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR);
 	}
 
 	@Test
-	public void testJobDeployUndeployFlow() {
+	public void testJobDeployUndeployFlow() throws InterruptedException {
 		logger.info("Create batch job");
-		executeJobCreate(MY_JOB, JOB_DESCRIPTOR, false);
+		JobParametersHolder.reset();
+		final JobParametersHolder jobParametersHolder = new JobParametersHolder();
 
-		checkForJobInList(MY_JOB, JOB_DESCRIPTOR);
+		executeJobCreate(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
+
+		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR);
 		CommandResult cr = getShell().executeCommand("job deploy --name myJob");
 		checkForSuccess(cr);
 		assertEquals("Deployed job 'myJob'", cr.getResult());
 		executemyJobTriggerStream();
-		waitForResult();
-		assertTrue(fileExists(TMP_FILE));
+		assertTrue("Job did not complete within time alotted", jobParametersHolder.isDone());
 
-		checkForJobInList(MY_JOB, JOB_DESCRIPTOR);
+		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR);
 
 		cr = getShell().executeCommand("job undeploy --name myJob");
 		checkForSuccess(cr);
@@ -122,15 +128,18 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		checkForSuccess(cr);
 		assertEquals("Deployed job 'myJob'", cr.getResult());
 
-		checkForJobInList(MY_JOB, JOB_DESCRIPTOR);
+		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR);
 	}
 
 	@Test
-	public void testInvalidJobDescriptor() {
+	public void testInvalidJobDescriptor() throws InterruptedException {
+		JobParametersHolder.reset();
+		final JobParametersHolder jobParametersHolder = new JobParametersHolder();
+
 		CommandResult cr = getShell().executeCommand("job create --definition \"barsdaf\" --name myJob ");
 		checkForFail(cr);
 		checkErrorMessages(cr, "Module definition is missing");
-		assertFalse(fileExists(TMP_FILE));
+		assertFalse("Job did not complete within time alotted", jobParametersHolder.isDone());
 	}
 
 	@Test

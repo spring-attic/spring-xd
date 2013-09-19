@@ -1,0 +1,19 @@
+{
+	"name": "wire",
+	"version": "0.10.2",
+	"main": "./wire.js",
+	"dependencies": {
+		"meld": "~1",
+		"when": "~2",
+		"poly": "~0"
+	},
+	"devDependencies": {
+		"curl": "~0",
+		"requirejs": "~2",
+		"requirejs-domready": "~2",
+		"sizzle": "~1",
+		"jquery": "~1",
+		"dojo": "~1",
+		"dijit": "~1"
+	}
+}

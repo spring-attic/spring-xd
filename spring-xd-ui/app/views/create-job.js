@@ -19,38 +19,42 @@
  * @author Andrew Eisenberg
  */
 
+ /*global define */
+
 /*
  * View for the dashboard
  */
-define(['backbone', 'when', 'xd.utils', 'xd.strings', 'xd.router', 'xd.model'],
-function(Backbone, when, utils, strings, router, model) {
+define([],
+function() {
+    'use strict';
+    return function(Backbone, when, utils, strings, router, createJobTemplate) {
+        var CreateJob = Backbone.View.extend({
 
-    var CreateJob = Backbone.View.extend({
+            events: {
+                'click #create-job': 'createJob'
+            },
 
-        events: {
-            'click #create-job': 'createJob'
-        },
+            render: function() {
+                this.$el.html( _.template(createJobTemplate));
+                return this;
+            },
 
-        createJobForm: function() {
-            this.$el.html(utils.templateHtml.createJobTemplate);
-            this.$('#stream-job').html(utils.templateHtml.jobSelectTemplate);
-        },
+            resetCreateJobForm: function() {
+                this.$('#stream-name').val('');
+                this.render();
+            },
 
-        resetCreateJobForm: function() {
-            this.$('#stream-name').val('');
-            this.createJobForm();
-        },
-
-        createJob: function(event) {
-            event.preventDefault();
-            var jobName = this.$('#job-name').val().trim();
-            var jobDefinition = this.$('#job-definition').val().trim();
-            var createJob = router.createJob(jobName, jobDefinition, function() {
-//                router.refresh('jobs');
-                utils.showSuccessMsg(strings.createJobSuccess);
-            });
-            when(createJob).then(this.resetCreateJobForm());
-        }
-    });
-    return CreateJob;
+            createJob: function(event) {
+                event.preventDefault();
+                var jobName = this.$('#job-name').val().trim();
+                var jobDefinition = this.$('#job-definition').val().trim();
+                var createJob = router.createJob(jobName, jobDefinition, function() {
+    //                router.refresh('jobs');
+                    utils.showSuccessMsg(strings.createJobSuccess);
+                });
+                when(createJob).then(this.resetCreateJobForm());
+            }
+        });
+        return CreateJob;
+    };
 });

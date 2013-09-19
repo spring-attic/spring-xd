@@ -28,6 +28,7 @@ requirejs.config({
 	paths: {
 		jquery: '../lib/jquery/jquery',
 		underscore: '../lib/lodash/lodash',
+		'text': '../lib/requirejs-text/text',
 		'bootstrap-typeahead': '../lib/bootstrap/js/bootstrap-typeahead',
 		'bootstrap-tab': '../lib/bootstrap/js/bootstrap-tab',
 		'bootstrap-alert': '../lib/bootstrap/js/bootstrap-alert',
@@ -35,7 +36,8 @@ requirejs.config({
 		'cubism': '../lib/cubism/cubism.v1',
 		'd3': '../lib/d3/d3',
 		'tipsy': '../lib/tipsy/jquery.tipsy',
-		backbone: '../lib/backbone-amd/backbone'
+		backbone: '../lib/backbone-amd/backbone',
+		templates: '../templates'
 	},
 	shim: {
 		'bootstrap-typeahead': ['jquery'],

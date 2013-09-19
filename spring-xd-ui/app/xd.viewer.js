@@ -19,38 +19,41 @@
  * @author Andrew Eisenberg
  */
 
-define(['xd.utils', 'views/create-stream', 'views/dashboard', 'views/navbar', 'views/create-job', 'views/tap-stream', 'views/batch'],
-function(utils, CreateStream, Dashboard, Navbar, CreateJob, TapStream, Batch) {
-    return {
-        create : function() {
-            var views = {};
+// TODO move all these module parameters into the anonymous function
+define([], function() {
+    return function(utils, CreateStream, Dashboard, Navbar, CreateJob, TapStream, BatchList, router) {
+        var views = {};
+
+        // The wire.js init function
+        // called after initialization
+        // important dom nodes have been injected
+        views.init = function() {
             // Initialize the views
             views.navbar = new Navbar({
-                el: '#xd-navbar'
+                el: this.navbarElt
             });
 
             views.dashboard = new Dashboard({
-                el: '#xd-dashboard'
+                el: this.dashboardElt
             });
 
             views.createStream = new CreateStream({
-                el: '#xd-create-stream'
+                el: this.createStreamElt
             });
 
             views.createJob = new CreateJob({
-                el: '#xd-create-job'
+                el: this.createJobElt
             });
 
             views.tapStream = new TapStream({
-                el: '#xd-create-tap'
+                el: this.createTapElt
             });
 
-            views.batchList = new Batch({
-            });
+            views.batchList = new BatchList();
 
             //Initialize DOM elements for better handling
-            var loading = $('.xd-loading');
-            var statusMsg = $('#xd-status-msg');
+            var loading = $(this.xdLoadingElt);
+            var statusMsg = $(this.xdStatusMsgElt);
 
             $(window.document).on('success', function(evt, message) {
                 statusMsg.html('');
@@ -61,11 +64,11 @@ function(utils, CreateStream, Dashboard, Navbar, CreateJob, TapStream, Batch) {
                 statusMsg.html(utils.updateStatus("Error", message));
             });
 
-            // Render navbar
             views.navbar.render();
-
-            // Render dashboard
             views.dashboard.render();
+            views.createJob.render();
+            views.createStream.render();
+            views.tapStream.render();
 
             // can't do this earlier since the element is not yet created
             views.batchList.setElement($('#xd-batch-list')[0]);
@@ -74,7 +77,12 @@ function(utils, CreateStream, Dashboard, Navbar, CreateJob, TapStream, Batch) {
                 loading.hide();
             };
 
-            return views;
-        }
+            // hook the views up to router functions
+            router.initializeViewRouting(views);
+        };
+
+        return views;
     };
+
+
 });

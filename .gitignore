@@ -18,10 +18,4 @@ tomcat.*
 activemq-data
 spring-shell.log
 data
-spring-xd-ui/client/bower_components
-spring-xd-ui/node_modules
 
-spring-xd-ui/xd-ui.sublime-project
-spring-xd-ui/xd-ui.sublime-workspace
-.tern-port
-.tern-port

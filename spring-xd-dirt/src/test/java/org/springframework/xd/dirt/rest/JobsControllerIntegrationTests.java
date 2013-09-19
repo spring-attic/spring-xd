@@ -72,18 +72,17 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 	@Before
 	public void before() {
 		Resource resource = mock(Resource.class);
-		ModuleDefinition jobDefinition = new ModuleDefinition(ModuleType.JOB.getTypeName(),
+		ModuleDefinition moduleJobDefinition = new ModuleDefinition(ModuleType.JOB.getTypeName(),
 				ModuleType.JOB.getTypeName(), resource);
-
 		when(resource.exists()).thenReturn(true);
-		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(jobDefinition);
-		when(moduleRegistry.findDefinitions(ModuleType.JOB.getTypeName())).thenReturn(definitions);
-		when(moduleRegistry.findDefinitions("job1")).thenReturn(definitions);
-		when(moduleRegistry.findDefinitions("job2")).thenReturn(definitions);
-		when(moduleRegistry.lookup("job1", ModuleType.JOB.getTypeName())).thenReturn(jobDefinition);
-		when(moduleRegistry.lookup("job2", ModuleType.JOB.getTypeName())).thenReturn(jobDefinition);
-		when(moduleRegistry.lookup("job", ModuleType.JOB.getTypeName())).thenReturn(jobDefinition);
+		ArrayList<ModuleDefinition> moduleDefinitions = new ArrayList<ModuleDefinition>();
+		moduleDefinitions.add(moduleJobDefinition);
+		when(moduleRegistry.findDefinitions(ModuleType.JOB.getTypeName())).thenReturn(moduleDefinitions);
+		when(moduleRegistry.findDefinitions("job1")).thenReturn(moduleDefinitions);
+		when(moduleRegistry.findDefinitions("job2")).thenReturn(moduleDefinitions);
+		when(moduleRegistry.lookup("job1", ModuleType.JOB.getTypeName())).thenReturn(moduleJobDefinition);
+		when(moduleRegistry.lookup("job2", ModuleType.JOB.getTypeName())).thenReturn(moduleJobDefinition);
+		when(moduleRegistry.lookup("job", ModuleType.JOB.getTypeName())).thenReturn(moduleJobDefinition);
 	}
 
 	@Test
@@ -99,6 +98,16 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 				post("/jobs").param("name", "job5").param("definition", JOB_DEFINITION).accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 		verify(sender, times(1)).sendDeploymentRequests(eq("job5"), anyListOf(ModuleDeploymentRequest.class));
+	}
+
+	@Test
+	public void testSuccessfulJobLaunch() throws Exception {
+		mockMvc.perform(
+				post("/jobs").param("name", "joblaunch").param("definition", JOB_DEFINITION).accept(
+						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
+		mockMvc.perform(put("/jobs/{name}/launch", "joblaunch").accept(MediaType.APPLICATION_JSON)).andExpect(
+				status().isOk());
+		verify(sender, times(2)).sendDeploymentRequests(eq("joblaunch"), anyListOf(ModuleDeploymentRequest.class));
 	}
 
 	@Test

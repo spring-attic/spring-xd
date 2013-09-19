@@ -198,8 +198,8 @@ function(_, Backbone, utils, conf, model, BatchDetail) {
             var job = extractJob(event);
             if (job) {
                 var jobParameters = prompt("Enter job parameters as JSON:", JSON.stringify({arg1:1, arg2:'bar'}));
-                jobParameters = encodeURIComponent(jobParameters);
-                job.launch().then(function() {
+                //jobParameters = encodeURIComponent(jobParameters);
+                job.launch(jobParameters).then(function() {
                     var detailsView = expanded[job.id];
                     if (detailsView) {
                         job.fetch().then(function() {

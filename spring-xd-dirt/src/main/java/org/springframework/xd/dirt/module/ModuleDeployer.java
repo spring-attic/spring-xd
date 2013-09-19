@@ -38,6 +38,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.event.ModuleDeployedEvent;
 import org.springframework.xd.dirt.event.ModuleUndeployedEvent;
+import org.springframework.xd.dirt.plugins.job.JobPlugin;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.ModuleDefinition;
@@ -52,6 +53,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * 
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Ilayaperumal Gopinathan
  */
 public class ModuleDeployer extends AbstractMessageHandler implements ApplicationContextAware,
 		ApplicationEventPublisherAware, BeanClassLoaderAware {
@@ -115,6 +117,9 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 				ModuleDeploymentRequest.class);
 		if (request.isRemove()) {
 			handleUndeploy(request);
+		}
+		else if (request.isLaunch()) {
+			handleLaunch(request, message);
 		}
 		else {
 			handleDeploy(request, message);
@@ -191,6 +196,26 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		}
 	}
 
+	private void handleLaunch(ModuleDeploymentRequest request, Message<?> message) {
+		String group = request.getGroup();
+		Map<Integer, Module> modules = this.deployedModules.get(group);
+		if (modules != null) {
+			processLaunchRequest(modules, request);
+		}
+		else {
+			// Deploy the job module and then launch
+			handleDeploy(request, message);
+			processLaunchRequest(this.deployedModules.get(group), request);
+		}
+	}
+
+	private void processLaunchRequest(Map<Integer, Module> modules, ModuleDeploymentRequest request) {
+		Module module = modules.get(request.getIndex());
+		// Since the request parameter may change on each launch request,
+		// the request parameters are not added to module properties
+		launchModule(module, request.getParameters());
+	}
+
 	/**
 	 * Allow plugins to contribute properties (e.g. "stream.name") calling module.addProperties(properties), etc.
 	 */
@@ -217,6 +242,17 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		if (this.plugins != null) {
 			for (Plugin plugin : this.plugins.values()) {
 				plugin.removeModule(module);
+			}
+		}
+	}
+
+	private void launchModule(Module module, Map<String, String> parameters) {
+		if (this.plugins != null) {
+			for (Plugin plugin : this.plugins.values()) {
+				// Currently, launching module is applicable only to Jobs
+				if (plugin instanceof JobPlugin) {
+					((JobPlugin) plugin).launch(module, parameters);
+				}
 			}
 		}
 	}

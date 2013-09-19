@@ -99,6 +99,7 @@ public abstract class AbstractShellIntegrationTest {
 		System.setProperty("hsql.server.database", DEFAULT_HSQL_DATABASE);
 		server = SingleNodeMain.launchSingleNodeServer(options);
 		int port = server.getAdminServer().getLocalPort();
+		logger.info("Admin Server running on " + port);
 		waitForServerToBeReady(port);
 
 
@@ -135,8 +136,8 @@ public abstract class AbstractShellIntegrationTest {
 		shell.stop();
 		if (server != null) {
 			logger.info("Stopping Single Node Server");
-			// Stopping container will also stop the adminServer/and its parent context
-			// as the adminServer context is set as the parent context for the container
+			// Stopping container will also destroy the adminServer's parent context
+			// as the adminServer's parent context is set as the parent context for the container
 			// in case of SingleNodeMain server
 			server.getContainer().stop();
 		}

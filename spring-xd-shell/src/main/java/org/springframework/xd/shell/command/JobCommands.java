@@ -49,6 +49,8 @@ public class JobCommands implements CommandMarker {
 
 	private final static String DEPLOY_JOB = "job deploy";
 
+	private final static String LAUNCH_JOB = "job launch";
+
 	private final static String UNDEPLOY_JOB = "job undeploy";
 
 	private final static String DESTROY_JOB = "job destroy";
@@ -107,6 +109,14 @@ public class JobCommands implements CommandMarker {
 				throw new IllegalArgumentException("You must specify exactly one of 'name', 'all'");
 		}
 		return message;
+	}
+
+	@CliCommand(value = LAUNCH_JOB, help = "Launch previously deployed job")
+	public String launchJob(
+			@CliOption(key = { "", "name" }, help = "the name of the job to deploy", optionContext = "existing-job disable-string-converter") String name,
+			@CliOption(key = { "params" }, help = "the parameters for the job", unspecifiedDefaultValue = "") String jobParameters) {
+		jobOperations().launchJob(name, jobParameters);
+		return String.format("Successfully launched the job '%s'", name);
 	}
 
 	@CliCommand(value = UNDEPLOY_JOB, help = "Un-deploy existing job(s)")

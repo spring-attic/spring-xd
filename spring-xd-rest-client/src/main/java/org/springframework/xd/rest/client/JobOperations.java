@@ -38,6 +38,14 @@ public interface JobOperations extends ResourceOperations {
 	public void deployJob(String name, String dateFormat, String numberFormat, Boolean makeUnique);
 
 	/**
+	 * Launch a job that is already deployed
+	 * 
+	 * @param name the name of the job to launch
+	 * @param jobParameters the JSON string as jobParameters
+	 */
+	public void launchJob(String name, String jobParameters);
+
+	/**
 	 * List jobs known to the system.
 	 */
 	public PagedResources<JobDefinitionResource> list();

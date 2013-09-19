@@ -22,13 +22,16 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.http.MediaType;
+import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.module.AbstractPlugin;
@@ -42,6 +45,7 @@ import org.springframework.xd.module.Module;
  * @author Gunnar Hillert
  * @author Gary Russell
  * @author Glenn Renfro
+ * @author Ilayaperumal Gopinathan
  * @since 1.0
  * 
  */
@@ -64,9 +68,15 @@ public class JobPlugin extends AbstractPlugin {
 
 	public static final String JOB_NAME_DELIMITER = ".";
 
+	public static final String JOB_PARAMETERS_KEY = "jobParameters";
+
 	private static final String NOTIFICATION_CHANNEL_SUFFIX = "-notifications";
 
 	private static final String JOB_CHANNEL_PREFIX = "job:";
+
+	private static final String JOB_LAUNCH_REQUEST_CHANNEL = "input";
+
+	private static final String JOB_NOTIFICATIONS_CHANNEL = "serializedNotifications";
 
 	private final static Collection<MediaType> DEFAULT_ACCEPTED_CONTENT_TYPES = Collections.singletonList(MediaType.ALL);
 
@@ -96,13 +106,13 @@ public class JobPlugin extends AbstractPlugin {
 		MessageBus bus = findMessageBus(module);
 		DeploymentMetadata md = module.getDeploymentMetadata();
 		if (bus != null) {
-			MessageChannel inputChannel = module.getComponent("input", MessageChannel.class);
+			MessageChannel inputChannel = module.getComponent(JOB_LAUNCH_REQUEST_CHANNEL, MessageChannel.class);
 			if (inputChannel != null) {
 				bus.bindConsumer(JOB_CHANNEL_PREFIX + md.getGroup(), inputChannel,
 						DEFAULT_ACCEPTED_CONTENT_TYPES,
 						true);
 			}
-			MessageChannel notificationsChannel = module.getComponent("serializedNotifications", MessageChannel.class);
+			MessageChannel notificationsChannel = module.getComponent(JOB_NOTIFICATIONS_CHANNEL, MessageChannel.class);
 			if (notificationsChannel != null) {
 				bus.bindProducer(md.getGroup() + NOTIFICATION_CHANNEL_SUFFIX, notificationsChannel, true);
 			}
@@ -143,4 +153,12 @@ public class JobPlugin extends AbstractPlugin {
 		return result;
 	}
 
+	public void launch(Module module, Map<String, String> parameters) {
+		MessageChannel inputChannel = module.getComponent(JOB_LAUNCH_REQUEST_CHANNEL, MessageChannel.class);
+		String payloadJSON =
+				(parameters != null && parameters.get(JOB_PARAMETERS_KEY) != null) ? parameters.get(JOB_PARAMETERS_KEY)
+						: "";
+		Message<?> message = MessageBuilder.withPayload(payloadJSON).build();
+		inputChannel.send(message);
+	}
 }

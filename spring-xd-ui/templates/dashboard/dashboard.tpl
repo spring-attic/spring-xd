@@ -4,7 +4,7 @@
 				      <li class="active">
 				         <a href="#xd-batch-list" data-toggle="tab">Batch</a></li>
    					    <% kindNames.forEach(function(kindName) { %>
-					      <li <%= kindName.kind === 'streams' ? 'class="active"' : '' %>>
+					      <li>
 					         <a href="#xd-<%= kindName.kind %>-list" data-toggle="tab"><%= kindName.name %></a></li>
 					    <% });%>
 					</ul>
@@ -15,7 +15,7 @@
 				    	<div id="batch-table"></div>
 				    </div>
    					<% kindNames.forEach(function(kindName) { %>
-    				    <div class="tab-pane <%= kindName.kind === 'streams' ? 'active' : '' %>" id="xd-<%= kindName.kind %>-list"> 
+    				    <div class="tab-pane" id="xd-<%= kindName.kind %>-list"> 
     				    	<div id="<%= kindName.kind %>-table"></div>
     				    	<div id="<%= kindName.kind %>-pagination"></div>
     				    </div>

@@ -47,6 +47,8 @@ public class ModuleDeploymentRequest {
 
 	private volatile boolean remove;
 
+	private volatile boolean deployable = true;
+
 	public String getModule() {
 		return module;
 	}
@@ -109,6 +111,14 @@ public class ModuleDeploymentRequest {
 
 	public void setSinkChannelName(String sinkChannelName) {
 		this.sinkChannelName = sinkChannelName;
+	}
+
+	public void tagAsUndeployable() {
+		this.deployable = false;
+	}
+
+	public boolean isDeployable() {
+		return this.deployable;
 	}
 
 	@Override

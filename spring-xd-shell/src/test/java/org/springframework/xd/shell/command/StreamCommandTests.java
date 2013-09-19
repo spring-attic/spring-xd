@@ -126,12 +126,33 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	}
 
 	@Test
+	public void testNamedChannelsLinkingSourceAndSink() {
+		HttpSource source = newHttpSource();
+		stream().create("ticktock-in", "%s > :foo", source);
+		stream().create("ticktock-out", ":foo > transform --expression=payload.toUpperCase() | log");
+		source.postData("blahblah");
+	}
+
+	/**
+	 * Test a stream that is simply one processor module connecting two named channels.
+	 */
+	@Test
+	public void testProcessorLinkingChannels() throws Exception {
+		FileSink sink = newFileSink();
+		HttpSource source = newHttpSource(9314);
+		stream().create("in1", "%s > :foo", source);
+		stream().create("proc", ":foo > transform --expression=payload.toUpperCase() > :bar");
+		stream().create("out1", ":bar > %s", sink);
+		source.postData("blahblah");
+		assertEquals("BLAHBLAH\n", sink.getContents());
+	}
+
+	@Test
 	public void testDefiningSubstream() {
 		stream().createDontDeploy("s1", "transform --expression=payload.replace('Andy','zzz')");
 	}
 
 	@Test
-	@Ignore
 	public void testUsingSubstream() {
 		HttpSource httpSource = newHttpSource();
 		stream().createDontDeploy("s1", "transform --expression=payload.replace('Andy','zzz')");
@@ -140,39 +161,93 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	}
 
 	@Test
-	@Ignore
-	public void testUsingSubstreamWithParameterizationAndDefaultValue() {
+	public void testUsingCompositionWithParameterizationAndDefaultValue() throws IOException {
+		FileSink sink = newFileSink();
 		HttpSource httpSource = newHttpSource();
 
 		stream().createDontDeploy("obfuscate", "transform --expression=payload.replace('${text:rys}','.')");
-		stream().create("s2", "%s | obfuscate | log", httpSource);
+		stream().create("s2", "%s | obfuscate | %s", httpSource, sink);
 
 		httpSource.ensureReady().postData("Dracarys!");
-		// TODO verify the output of the 'log' sink is 'Draca.!'
+		assertEquals("Draca.!\n", sink.getContents());
 	}
 
 	@Test
-	@Ignore
-	public void testUsingSubstreamWithParameterization() throws IOException {
+	public void testParameterizedStreamComposition() throws IOException {
 		HttpSource httpSource = newHttpSource();
 		FileSink sink = newFileSink();
-
 		stream().createDontDeploy("obfuscate", "transform --expression=payload.replace('${text}','.')");
 		stream().create("s2", "%s | obfuscate --text=aca | %s", httpSource, sink);
 		httpSource.ensureReady().postData("Dracarys!");
-		// TODO reactivate when get to the bottom of the race condition
 		assertEquals("Dr.rys!\n", sink.getContents());
 	}
 
-	@Ignore
+	public void testComposedModules() throws IOException {
+		FileSink sink = newFileSink();
+		HttpSource httpSource = newHttpSource();
+		stream().createDontDeploy("chain",
+				"filter --expression=true | transform --expression=payload.replace('abc','...')");
+		stream().create("s2", "%s | chain | %s", httpSource, sink);
+		httpSource.postData("abcdefghi!");
+		// TODO reactivate when get to the bottom of the race condition
+		assertEquals("...defghi!\n", sink.getContents());
+	}
+
 	@Test
-	public void testSubSubstreams() throws IOException {
+	public void testFilteringSource() throws IOException {
+		FileSink sink = newFileSink();
+		HttpSource httpSource = newHttpSource();
+		stream().createDontDeploy("myFilteringSource",
+				"%s | filter --expression=payload.contains('e')", httpSource);
+		stream().create("s2", "myFilteringSource | transform --expression=payload.replace('e','.') | %s", sink);
+		httpSource.postData("foobar");
+		httpSource.postData("hello");
+		httpSource.postData("custardpie");
+		httpSource.postData("whisk");
+		// TODO reactivate when get to the bottom of the race condition
+		assertEquals("h.llo\ncustardpi.\n", sink.getContents());
+	}
+
+
+	@Test
+	public void testParameterizedComposedSource() throws IOException {
+		FileSink sink = newFileSink();
+		HttpSource httpSource = newHttpSource();
+		stream().createDontDeploy("myFilteringSource",
+				"%s | filter --expression=payload.contains('${word}')", httpSource);
+		stream().create("s2", "myFilteringSource --word=foo | %s", sink);
+		httpSource.postData("foobar");
+		httpSource.postData("hello");
+		httpSource.postData("custardfoo");
+		httpSource.postData("whisk");
+		assertEquals("foobar\ncustardfoo\n", sink.getContents());
+	}
+
+
+	@Test
+	public void testComposedStreamThatIsItselfDeployable() throws IOException {
+		FileSink sink = newFileSink();
+		HttpSource httpSource = newHttpSource();
+		stream().createDontDeploy("myFilteringHttpSource",
+				"%s | filter --expression=payload.contains('${word:foo}') | %s", httpSource, sink);
+		stream().create("s2", "myFilteringHttpSource", sink);
+		httpSource.postData("foobar");
+		httpSource.postData("hello");
+		httpSource.postData("custardfoo");
+		httpSource.postData("whisk");
+		assertEquals("foobar\ncustardfoo\n", sink.getContents());
+	}
+
+
+	@Test
+	public void testNestedStreamComposition() throws IOException {
 		HttpSource source = newHttpSource();
 		FileSink sink = newFileSink().binary(true);
 		stream().createDontDeploy("swap", "transform --expression=payload.replaceAll('${from}','${to}')");
 		stream().createDontDeploy("abyz", "swap --from=a --to=z | swap --from=b --to=y");
-		stream().create("foo", "%s | abyz | %s", source, sink);
-		source.ensureReady().postData("aabbccxxyyzz");
+		stream().create("foo", "%s | abyz | filter --expression=true | %s", source, sink);
+		tap().create("mytap", "tap foo.filter | log"); // will log zzyyccxxyyzz
+		source.postData("aabbccxxyyzz");
 		assertEquals("zzyyccxxyyzz", sink.getContents());
 	}
 

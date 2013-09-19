@@ -99,7 +99,8 @@ public class StreamCommandTemplate extends AbstractCommandTemplate {
 	 * Destroy all streams that were created using the 'create' method. Commonly called in a @After annotated method
 	 */
 	public void destroyCreatedStreams() {
-		for (String streamname : streams) {
+		for (int s = streams.size() - 1; s >= 0; s--) {
+			String streamname = streams.get(s);
 			CommandResult cr = executeCommand("stream destroy --name " + streamname);
 			assertTrue("Failure to destroy stream " + streamname + ".  CommandResult = " + cr.toString(),
 					cr.isSuccess());

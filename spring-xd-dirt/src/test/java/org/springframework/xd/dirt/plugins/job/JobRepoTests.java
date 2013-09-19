@@ -69,6 +69,7 @@ public class JobRepoTests extends AbstractAdminMainIntegrationTests {
 			"memory", "--analytics", "memory", "--xdHomeDir", ".." });
 		System.setProperty("hsql.server.dbname", "test");
 		System.setProperty("hsql.server.port", "9100");
+		System.setProperty("hsql.server.database", "xdjobrepotest");
 		singleNodeServer = SingleNodeMain.launchSingleNodeServer(opts);
 		applicationContext = singleNodeServer.getAdminServer().getApplicationContext();
 
@@ -80,6 +81,8 @@ public class JobRepoTests extends AbstractAdminMainIntegrationTests {
 		if (file.exists() && file.isDirectory()) {
 			file.delete();
 		}
+		singleNodeServer.getAdminServer().stop();
+		singleNodeServer.getContainer().stop();
 	}
 
 	@Test
@@ -90,7 +93,6 @@ public class JobRepoTests extends AbstractAdminMainIntegrationTests {
 				"select count(*) from INFORMATION_SCHEMA.system_tables  WHERE TABLE_NAME LIKE 'BATCH_%'",
 				Integer.class).intValue();
 		assertEquals("The number of batch tables returned from hsqldb did not match.", count, 9);
-		super.shutdown(singleNodeServer.getAdminServer());
 	}
 
 	@Test
@@ -105,6 +107,5 @@ public class JobRepoTests extends AbstractAdminMainIntegrationTests {
 			// we can ignore this. Just want to create a fake job instance.
 		}
 		assertTrue(repo.isJobInstanceExists(SIMPLE_JOB_NAME, new JobParameters()));
-		super.shutdown(singleNodeServer.getAdminServer());
 	}
 }

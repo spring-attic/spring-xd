@@ -161,5 +161,6 @@ public class SingleNodeMainIntegrationTests extends AbstractAdminMainIntegration
 	private void setBatchDBProperties() {
 		System.setProperty("hsql.server.dbname", "test");
 		System.setProperty("hsql.server.port", "9100");
+		System.setProperty("hsql.server.database", "xdjobrepotest");
 	}
 }

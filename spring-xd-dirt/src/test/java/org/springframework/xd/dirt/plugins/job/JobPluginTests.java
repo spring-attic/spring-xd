@@ -74,6 +74,7 @@ public class JobPluginTests {
 		Properties hsqlProperties = new Properties();
 		hsqlProperties.put("hsql.server.dbname", "test");
 		hsqlProperties.put("hsql.server.port", "9100");
+		System.setProperty("hsql.server.database", "xdjobrepotest");
 		sharedContext.getEnvironment().getPropertySources().addFirst(new PropertiesPropertySource(
 				"hsqlProperties", hsqlProperties));
 		plugin.preProcessSharedContext(sharedContext);

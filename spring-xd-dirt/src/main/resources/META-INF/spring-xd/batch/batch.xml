@@ -19,8 +19,8 @@
 			scope="singleton" lazy-init="false">
 			<property name="serverProperties">
 				<props>
-					<prop key="server.port">${hsql.server.port:9101}</prop>
-					<prop key="server.database.0">${XD_HOME}/data/jobs/xdjobrepo</prop>
+					<prop key="server.port">${hsql.server.port:9100}</prop>
+					<prop key="server.database.0">${XD_HOME}/data/jobs/${hsql.server.database:xdjobrepotest}</prop>
 					<prop key="server.dbname.0">${hsql.server.dbname:test}</prop>
 				</props>
 			</property>

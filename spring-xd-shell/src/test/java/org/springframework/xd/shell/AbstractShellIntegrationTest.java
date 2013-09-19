@@ -71,6 +71,12 @@ public abstract class AbstractShellIntegrationTest {
 
 	protected static final String DEFAULT_METRIC_NAME = "bar";
 
+	private static final String DEFAULT_HSQLDB_NAME = "test";
+
+	private static final String DEFAULT_HSQLDB_PORT = "9100";
+
+	private static final String DEFAULT_HSQL_DATABASE = "xdjobrepotest";
+
 	@Rule
 	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
 
@@ -88,6 +94,9 @@ public abstract class AbstractShellIntegrationTest {
 		SingleNodeOptions options = SingleNodeMain.parseOptions(new String[] { "--httpPort", "0", "--transport",
 			"local", "--store",
 			"redis", "--analytics", "redis" });
+		System.setProperty("hsql.server.dbname", DEFAULT_HSQLDB_NAME);
+		System.setProperty("hsql.server.port", DEFAULT_HSQLDB_PORT);
+		System.setProperty("hsql.server.database", DEFAULT_HSQL_DATABASE);
 		server = SingleNodeMain.launchSingleNodeServer(options);
 		int port = server.getAdminServer().getLocalPort();
 		waitForServerToBeReady(port);
@@ -122,13 +131,13 @@ public abstract class AbstractShellIntegrationTest {
 
 	@AfterClass
 	public static void shutdown() {
+		logger.info("Stopping XD Shell");
+		shell.stop();
 		if (server != null) {
 			logger.info("Stopping Single Node Server");
 			server.getContainer().stop();
-			server.getAdminServer().stop();
+			server.getAdminServer().getApplicationContext().destroy();
 		}
-		logger.info("Stopping XD Shell");
-		shell.stop();
 	}
 
 	public static JLineShellComponent getShell() {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.plugins.job.batch;
+package org.springframework.xd.dirt.job;
 
 import org.springframework.xd.dirt.core.XDRuntimeException;
 

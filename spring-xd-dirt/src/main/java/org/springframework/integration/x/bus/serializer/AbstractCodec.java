@@ -16,34 +16,27 @@
 
 package org.springframework.integration.x.bus.serializer;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
+
+import org.springframework.core.serializer.Deserializer;
+import org.springframework.core.serializer.Serializer;
 
 
 /**
- * @param <T>
+ * 
  * @author David Turanski
  */
-public interface MultiTypeDeserializer<T> {
+public abstract class AbstractCodec<T> implements Serializer<T>, Deserializer<T> {
 
 	/**
-	 * Deserialize an object of a given type
+	 * Deserialize a byte array
 	 * 
-	 * @param inputStream the input stream containing the serialized object
-	 * @param type the object's class
-	 * @return the object
+	 * @param bytes
+	 * @return
 	 * @throws IOException
 	 */
-	public abstract T deserialize(InputStream inputStream, Class<? extends T> type) throws IOException;
-
-	/**
-	 * Deserialize an object of a given type
-	 * 
-	 * @param bytes the byte array containing the serialized object
-	 * @param type the object's class
-	 * @return the object
-	 * @throws IOException
-	 */
-	public abstract T deserialize(byte[] bytes, Class<? extends T> type) throws IOException;
-
+	public T deserialize(byte[] bytes) throws IOException {
+		return deserialize(new ByteArrayInputStream(bytes));
+	}
 }

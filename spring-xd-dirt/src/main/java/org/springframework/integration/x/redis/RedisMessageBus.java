@@ -39,6 +39,7 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.x.bus.Binding;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.integration.x.bus.MessageBusSupport;
+import org.springframework.integration.x.bus.serializer.MultiTypeCodec;
 import org.springframework.util.Assert;
 
 /**
@@ -55,9 +56,11 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 
 	private final EmbeddedHeadersMessageConverter embeddedHeadersMessageConverter = new EmbeddedHeadersMessageConverter();
 
-	public RedisMessageBus(RedisConnectionFactory connectionFactory) {
+	public RedisMessageBus(RedisConnectionFactory connectionFactory, MultiTypeCodec<Object> codec) {
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");
+		Assert.notNull(codec, "codec must not be null");
 		this.connectionFactory = connectionFactory;
+		setCodec(codec);
 	}
 
 	@Override

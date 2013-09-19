@@ -23,7 +23,10 @@ import static org.junit.Assert.assertSame;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.http.MediaType;
@@ -32,6 +35,10 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.x.bus.serializer.AbstractCodec;
+import org.springframework.integration.x.bus.serializer.CompositeCodec;
+import org.springframework.integration.x.bus.serializer.kryo.PojoCodec;
+import org.springframework.integration.x.bus.serializer.kryo.TupleCodec;
 import org.springframework.xd.tuple.DefaultTuple;
 import org.springframework.xd.tuple.Tuple;
 import org.springframework.xd.tuple.TupleBuilder;
@@ -43,6 +50,13 @@ import org.springframework.xd.tuple.TupleBuilder;
 public class MessageBusSupportTests {
 
 	private final TestMessageBus messageBus = new TestMessageBus();
+
+	@Before
+	public void setUp() {
+		Map<Class<?>, AbstractCodec<?>> codecs = new HashMap<Class<?>, AbstractCodec<?>>();
+		codecs.put(Tuple.class, new TupleCodec());
+		messageBus.setCodec(new CompositeCodec(codecs, new PojoCodec()));
+	}
 
 	@Test
 	public void testBytesPassThru() {
@@ -113,7 +127,8 @@ public class MessageBusSupportTests {
 
 	@Test
 	public void testPojoSerialization() {
-		Message<?> converted = messageBus.transformPayloadForProducerIfNecessary(new GenericMessage<Foo>(new Foo("bar")),
+		Message<?> converted = messageBus.transformPayloadForProducerIfNecessary(
+				new GenericMessage<Foo>(new Foo("bar")),
 				MediaType.APPLICATION_OCTET_STREAM);
 		MediaType mediaType = (MediaType) converted.getHeaders().get(MessageHeaders.CONTENT_TYPE);
 		assertEquals("application", mediaType.getType());
@@ -128,7 +143,8 @@ public class MessageBusSupportTests {
 
 	@Test
 	public void testPojoWithXJavaObjectMediaTypeNoType() {
-		Message<?> converted = messageBus.transformPayloadForProducerIfNecessary(new GenericMessage<Foo>(new Foo("bar")),
+		Message<?> converted = messageBus.transformPayloadForProducerIfNecessary(
+				new GenericMessage<Foo>(new Foo("bar")),
 				MediaType.APPLICATION_OCTET_STREAM);
 		MediaType mediaType = (MediaType) converted.getHeaders().get(MessageHeaders.CONTENT_TYPE);
 		assertEquals("application", mediaType.getType());
@@ -143,7 +159,8 @@ public class MessageBusSupportTests {
 
 	@Test
 	public void testPojoWithXJavaObjectMediaTypeExplicitType() {
-		Message<?> converted = messageBus.transformPayloadForProducerIfNecessary(new GenericMessage<Foo>(new Foo("bar")),
+		Message<?> converted = messageBus.transformPayloadForProducerIfNecessary(
+				new GenericMessage<Foo>(new Foo("bar")),
 				MediaType.APPLICATION_OCTET_STREAM);
 		MediaType mediaType = (MediaType) converted.getHeaders().get(MessageHeaders.CONTENT_TYPE);
 		assertEquals("application", mediaType.getType());

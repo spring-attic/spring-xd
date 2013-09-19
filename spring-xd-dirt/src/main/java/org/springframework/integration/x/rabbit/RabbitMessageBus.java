@@ -45,6 +45,7 @@ import org.springframework.integration.mapping.AbstractHeaderMapper;
 import org.springframework.integration.x.bus.Binding;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.integration.x.bus.MessageBusSupport;
+import org.springframework.integration.x.bus.serializer.MultiTypeCodec;
 import org.springframework.util.Assert;
 
 /**
@@ -68,8 +69,9 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 	private final DefaultAmqpHeaderMapper mapper;
 
-	public RabbitMessageBus(ConnectionFactory connectionFactory) {
+	public RabbitMessageBus(ConnectionFactory connectionFactory, MultiTypeCodec<Object> codec) {
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");
+		Assert.notNull(codec, "codec must not be null");
 		this.connectionFactory = connectionFactory;
 		this.rabbitTemplate.setConnectionFactory(connectionFactory);
 		this.rabbitTemplate.afterPropertiesSet();
@@ -78,6 +80,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		this.mapper = new DefaultAmqpHeaderMapper();
 		this.mapper.setRequestHeaderNames(new String[] { AbstractHeaderMapper.STANDARD_REQUEST_HEADER_NAME_PATTERN,
 			ORIGINAL_CONTENT_TYPE_HEADER });
+		setCodec(codec);
 	}
 
 	@Override
@@ -174,7 +177,8 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		@Override
 		protected void handleMessageInternal(Message<?> message) throws Exception {
 			// TODO: rabbit wire data pluggable format?
-			Message<?> messageToSend = transformPayloadForProducerIfNecessary(message, MediaType.APPLICATION_OCTET_STREAM);
+			Message<?> messageToSend = transformPayloadForProducerIfNecessary(message,
+					MediaType.APPLICATION_OCTET_STREAM);
 			this.delegate.handleMessage(messageToSend);
 		}
 	}

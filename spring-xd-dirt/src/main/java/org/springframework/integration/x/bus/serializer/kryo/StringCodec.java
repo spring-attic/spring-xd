@@ -9,7 +9,7 @@ import com.esotericsoftware.kryo.io.Output;
  * @author David Turanski
  * @since 1.0
  */
-public class StringSerializer extends KryoSingleTypeSerializer<String> {
+public class StringCodec extends AbstractKryoCodec<String> {
 
 	@Override
 	protected void doSerialize(String object, Kryo kryo, Output output) {

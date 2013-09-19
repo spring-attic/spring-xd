@@ -24,7 +24,9 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Test;
 
@@ -36,6 +38,12 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.x.bus.serializer.AbstractCodec;
+import org.springframework.integration.x.bus.serializer.CompositeCodec;
+import org.springframework.integration.x.bus.serializer.MultiTypeCodec;
+import org.springframework.integration.x.bus.serializer.kryo.PojoCodec;
+import org.springframework.integration.x.bus.serializer.kryo.TupleCodec;
+import org.springframework.xd.tuple.Tuple;
 
 /**
  * @author Gary Russell
@@ -231,6 +239,12 @@ public abstract class AbstractMessageBusTests {
 	protected Collection<?> getBindings(MessageBus messageBus) {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(messageBus);
 		return (List<?>) accessor.getPropertyValue("bindings");
+	}
+
+	protected MultiTypeCodec<Object> getCodec() {
+		Map<Class<?>, AbstractCodec<?>> codecs = new HashMap<Class<?>, AbstractCodec<?>>();
+		codecs.put(Tuple.class, new TupleCodec());
+		return new CompositeCodec(codecs, new PojoCodec());
 	}
 
 	protected abstract MessageBus getMessageBus() throws Exception;

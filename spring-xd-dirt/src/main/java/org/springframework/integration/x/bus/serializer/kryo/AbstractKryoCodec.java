@@ -19,18 +19,34 @@ package org.springframework.integration.x.bus.serializer.kryo;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
-import org.springframework.core.serializer.Deserializer;
+import org.springframework.integration.x.bus.serializer.AbstractCodec;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
 
 
 /**
+ * 
  * @author David Turanski
- * @since 1.0
  */
-abstract class KryoSingleTypeSerializer<T> extends AbstractKryoSerializer<T> implements Deserializer<T> {
+abstract class AbstractKryoCodec<T> extends AbstractCodec<T> {
+
+	/**
+	 * Serialize an object using an existing output stream
+	 * 
+	 * @param object the object to be serialized
+	 * @param outputStream the output stream, e.g. a FileOutputStream
+	 * @throws IOException
+	 */
+	@Override
+	public void serialize(T object, OutputStream outputStream) throws IOException {
+		Output output = (outputStream == null) ? new Output(2048, -1) : new Output(outputStream);
+		doSerialize(object, getKryoInstance(), output);
+		output.close();
+	}
 
 	/**
 	 * Deserialize an object when the type is known
@@ -54,14 +70,16 @@ abstract class KryoSingleTypeSerializer<T> extends AbstractKryoSerializer<T> imp
 	 * @return the object
 	 * @throws IOException
 	 */
+	@Override
 	public T deserialize(byte[] bytes) throws IOException {
 		return deserialize(new ByteArrayInputStream(bytes));
 	}
 
-	protected abstract T doDeserialize(Kryo kryo, Input input);
-
-	@Override
 	protected Kryo getKryoInstance() {
 		return new Kryo();
 	}
+
+	protected abstract void doSerialize(T object, Kryo kryo, Output output);
+
+	protected abstract T doDeserialize(Kryo kryo, Input input);
 }

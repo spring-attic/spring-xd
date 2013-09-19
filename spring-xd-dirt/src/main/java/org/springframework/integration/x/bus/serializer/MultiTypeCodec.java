@@ -14,24 +14,20 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.x.bus.serializer.kryo;
+package org.springframework.integration.x.bus.serializer;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.springframework.integration.x.bus.serializer.MultiTypeDeserializer;
+import org.springframework.core.serializer.Serializer;
 
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.io.Input;
 
 /**
- * Base class for Kryo serializers that handle multiple types
+ * Interface for classes that perform both serialization and deserialization
  * 
  * @author David Turanski
- * @since 1.0
  */
-abstract class KryoMultiTypeSerializer<T> extends AbstractKryoSerializer<T> implements MultiTypeDeserializer<T> {
+public interface MultiTypeCodec<T> extends Serializer<T> {
 
 	/**
 	 * Deserialize an object of a given type
@@ -41,13 +37,7 @@ abstract class KryoMultiTypeSerializer<T> extends AbstractKryoSerializer<T> impl
 	 * @return the object
 	 * @throws IOException
 	 */
-	@Override
-	public T deserialize(InputStream inputStream, Class<? extends T> type) throws IOException {
-		Input input = new Input(inputStream);
-		T result = doDeserialize(getKryoInstance(), input, type);
-		input.close();
-		return result;
-	}
+	public abstract T deserialize(InputStream inputStream, Class<? extends T> type) throws IOException;
 
 	/**
 	 * Deserialize an object of a given type
@@ -57,10 +47,5 @@ abstract class KryoMultiTypeSerializer<T> extends AbstractKryoSerializer<T> impl
 	 * @return the object
 	 * @throws IOException
 	 */
-	@Override
-	public T deserialize(byte[] bytes, Class<? extends T> type) throws IOException {
-		return deserialize(new ByteArrayInputStream(bytes), type);
-	}
-
-	protected abstract T doDeserialize(Kryo kryo, Input input, Class<? extends T> type);
+	public abstract T deserialize(byte[] bytes, Class<? extends T> type) throws IOException;
 }

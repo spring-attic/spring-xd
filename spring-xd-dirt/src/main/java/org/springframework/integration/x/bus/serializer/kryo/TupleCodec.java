@@ -29,7 +29,7 @@ import com.esotericsoftware.kryo.io.Output;
  * @author David Turanski
  * @since 1.0
  */
-public class TupleSerializer extends KryoSingleTypeSerializer<Tuple> {
+public class TupleCodec extends AbstractKryoCodec<Tuple> {
 
 	@Override
 	protected void doSerialize(Tuple object, Kryo kryo, Output output) {

@@ -9,6 +9,7 @@
 
 	<bean id="messageBus" class="org.springframework.integration.x.rabbit.RabbitMessageBus">
 		<constructor-arg ref="rabbitConnectionFactory" />
+		<constructor-arg ref="codec"/>
 	</bean>
 
 </beans>

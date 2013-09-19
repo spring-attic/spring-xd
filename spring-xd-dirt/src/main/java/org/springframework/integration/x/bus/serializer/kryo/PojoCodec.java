@@ -27,7 +27,7 @@ import com.esotericsoftware.kryo.io.Output;
  * @author David Turanski
  * @since 1.0
  */
-public class PojoSerializer extends KryoMultiTypeSerializer<Object> {
+public class PojoCodec extends AbstractKryoMultiTypeCodec<Object> {
 
 	@Override
 	protected void doSerialize(Object object, Kryo kryo, Output output) {

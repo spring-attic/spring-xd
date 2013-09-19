@@ -25,6 +25,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.http.MediaType;
@@ -32,12 +33,10 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.x.bus.serializer.MultiTypeCodec;
 import org.springframework.integration.x.bus.serializer.SerializationException;
-import org.springframework.integration.x.bus.serializer.kryo.PojoSerializer;
-import org.springframework.integration.x.bus.serializer.kryo.TupleSerializer;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
-import org.springframework.xd.tuple.Tuple;
 
 /**
  * @author David Turanski
@@ -50,9 +49,7 @@ public abstract class MessageBusSupport implements MessageBus, BeanClassLoaderAw
 
 	private volatile ConversionService conversionService;
 
-	private final PojoSerializer pojoSerializer = new PojoSerializer();
-
-	private final TupleSerializer tupleSerializer = new TupleSerializer();
+	private MultiTypeCodec<Object> codec;
 
 	private volatile ClassLoader beanClassloader = ClassUtils.getDefaultClassLoader();
 
@@ -295,10 +292,8 @@ public abstract class MessageBusSupport implements MessageBus, BeanClassLoaderAw
 			}
 			targetType = Class.forName(contentType.getParameter("type"));
 
-			if (Tuple.class.isAssignableFrom(targetType)) {
-				return tupleSerializer.deserialize(bytes);
-			}
-			return pojoSerializer.deserialize(bytes, targetType);
+
+			return codec.deserialize(bytes, targetType);
 		}
 		catch (ClassNotFoundException e) {
 			throw new SerializationException("unable to deserialize [" + targetType + "]. Class not found.", e);
@@ -319,12 +314,8 @@ public abstract class MessageBusSupport implements MessageBus, BeanClassLoaderAw
 				if (originalPayload instanceof String) {
 					return ((String) originalPayload).getBytes("UTF-8");
 				}
-				else if (originalPayload instanceof Tuple) {
-					this.tupleSerializer.serialize((Tuple) originalPayload, bos);
-					return bos.toByteArray();
-				}
 
-				this.pojoSerializer.serialize(originalPayload, bos);
+				this.codec.serialize(originalPayload, bos);
 				return bos.toByteArray();
 
 			}
@@ -343,6 +334,11 @@ public abstract class MessageBusSupport implements MessageBus, BeanClassLoaderAw
 			return MediaType.valueOf((String) contentType);
 		}
 		return null;
+	}
+
+	@Autowired
+	public void setCodec(MultiTypeCodec<Object> codec) {
+		this.codec = codec;
 	}
 
 }

@@ -13,7 +13,7 @@
  *
  */
 
-package org.springframework.integration.x.bus.serializer;
+package org.springframework.integration.x.bus.serializer.kryo;
 
 import static org.junit.Assert.assertEquals;
 
@@ -27,9 +27,9 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import org.springframework.integration.x.bus.serializer.kryo.PojoSerializer;
-import org.springframework.integration.x.bus.serializer.kryo.StringSerializer;
-import org.springframework.integration.x.bus.serializer.kryo.TupleSerializer;
+import org.springframework.integration.x.bus.serializer.kryo.PojoCodec;
+import org.springframework.integration.x.bus.serializer.kryo.StringCodec;
+import org.springframework.integration.x.bus.serializer.kryo.TupleCodec;
 import org.springframework.xd.tuple.Tuple;
 import org.springframework.xd.tuple.TupleBuilder;
 
@@ -37,12 +37,12 @@ import org.springframework.xd.tuple.TupleBuilder;
  * @author David Turanski
  * @since 1.0
  */
-public class KryoSerializerTests {
+public class KryoCodecTests {
 
 	@Test
 	public void testTupleSerialization() throws IOException {
 		Tuple t = TupleBuilder.tuple().of("foo", "bar");
-		TupleSerializer serializer = new TupleSerializer();
+		TupleCodec serializer = new TupleCodec();
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		serializer.serialize(t, bos);
 
@@ -53,7 +53,7 @@ public class KryoSerializerTests {
 	@Test
 	public void testStringSerialization() throws IOException {
 		String str = "hello";
-		StringSerializer serializer = new StringSerializer();
+		StringCodec serializer = new StringCodec();
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
 		serializer.serialize(str, bos);
@@ -66,7 +66,7 @@ public class KryoSerializerTests {
 	public void testSerializationWithStreams() throws IOException {
 		String str = "hello";
 		File file = new File("test.ser");
-		StringSerializer serializer = new StringSerializer();
+		StringCodec serializer = new StringCodec();
 		FileOutputStream fos = new FileOutputStream(file);
 		serializer.serialize(str, fos);
 		fos.close();
@@ -79,7 +79,7 @@ public class KryoSerializerTests {
 
 	@Test
 	public void testPojoSerialization() throws IOException {
-		PojoSerializer serializer = new PojoSerializer();
+		PojoCodec serializer = new PojoCodec();
 		SomeClassWithNoDefaultConstructors foo = new SomeClassWithNoDefaultConstructors("foo", 123);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		serializer.serialize(foo, bos);
@@ -114,7 +114,7 @@ public class KryoSerializerTests {
 
 	@Test
 	public void testPrimitiveSerialization() throws IOException {
-		PojoSerializer serializer = new PojoSerializer();
+		PojoCodec serializer = new PojoCodec();
 
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		serializer.serialize(true, bos);
@@ -139,7 +139,7 @@ public class KryoSerializerTests {
 
 	@Test
 	public void testMapSerialization() throws IOException {
-		PojoSerializer serializer = new PojoSerializer();
+		PojoCodec serializer = new PojoCodec();
 		Map<String, Integer> map = new HashMap<String, Integer>();
 		map.put("one", 1);
 		map.put("two", 2);

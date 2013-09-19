@@ -70,8 +70,8 @@ function(_, $, when, rest, entity, mime, hateoas, errorcode, Backbone, conf, uti
             };
 
             // define the functions to refresh artifacts
-            model.artifactKinds.forEach(function(kind) {
-                ajax[kind] = function() { return refreshModel(kind); };
+            model.artifacts.forEach(function(artifact) {
+                ajax[artifact.kind] = function() { return refreshModel(artifact.kind); };
             });
 
             // only delete supported right now
@@ -136,10 +136,10 @@ function(_, $, when, rest, entity, mime, hateoas, errorcode, Backbone, conf, uti
 
 
             // Refresh all artifacts now and over time
-            model.artifactKinds.forEach(function(kind) {
-                ajax.refresh(kind);
+            model.artifacts.forEach(function(artifact) {
+                ajax.refresh(artifact.kind);
                 setInterval(function() {
-                    ajax.refresh(kind);
+                    ajax.refresh(artifact.kind);
                 }.bind(this), conf.refreshInterval);
             }, this);
 

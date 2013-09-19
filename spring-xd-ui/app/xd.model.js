@@ -18,8 +18,8 @@
  * @author Andrew Eisenberg
  */
 
-
-/*global d3 */
+/*jslint browser:true */
+/*global d3 define _ */
 
 // This file defines the backbone model used by xd
 define(['backbone', 'rest', 'rest/interceptor/entity', 'rest/interceptor/mime', 'rest/interceptor/hateoas', 'rest/interceptor/errorCode', 'd3'],
@@ -32,15 +32,12 @@ function(Backbone, rest, entity, mime, hateoas, errorcode) {
     var client = rest.chain(errorcode, { code: 400 }).chain(mime).chain(hateoas).chain(entity);
 
 
+	// page size is hardcoded, but should be configurable
     var PAGE_SIZE = 5;
 
     // The model is a collection of queries known by the client
     // abstract data type for all XD artifacts
     var Artifact = Backbone.Model.extend({});
-
-    var Stream = Artifact.extend({});
-    var Job = Artifact.extend({});
-    var Tap = Artifact.extend({});
 
     // a group of artifacts from the server.
     // has a query associtted with it
@@ -53,19 +50,22 @@ function(Backbone, rest, entity, mime, hateoas, errorcode) {
         // expected props: kind, size, totalElements, totalPages, number, artifacts
 
         getUrl : function() {
-            var index = model.artifactKinds.indexOf(this.get('kind'));
-            return URL_ROOT + model.artifactUrls[index];
+            return URL_ROOT + this.get('artifact').url;
         },
 
         getHttpParams : function() {
             var pageNum = (this.get('number') || 0);
             return { size: PAGE_SIZE, page: pageNum };
+        },
+
+        reset : function() {
+            this.unset('number');
+            this.set('artifacts', []);
         }
     });
 
     // analytics for an xd artifact
-    var Analytics = Backbone.Model.extend({
-    });
+    var Analytics = Backbone.Model.extend({});
 
     var AllAnalytics = Backbone.Collection.extend({
         model: Analytics
@@ -76,7 +76,7 @@ function(Backbone, rest, entity, mime, hateoas, errorcode) {
         addQuery : function(kind, pageInfo, items) {
             var args = pageInfo || {};
             items = items || [];
-            args.kind = kind;
+            args.artifact = model.findArtifact(kind);
             var artifacts = new ArtifactGroup();
             items.forEach(function(item) {
                 artifacts.add(new Artifact(item));
@@ -106,30 +106,32 @@ function(Backbone, rest, entity, mime, hateoas, errorcode) {
     });
     var model = new Model();
 
-    // the query kinds we care about for now
-    // TODO this can be done better
-    // only show jobs
-    model.artifactKinds = model.artifactUrls = ['jobs'];
-    model.readableNames = [{ kind: 'jobs', name: 'Jobs' }];
-    
-    // this part of ui is disabled
-//     model.artifactKinds = ['streams', 'taps', 'jobs', 'triggers', 'richgauges', 'gauges', 'field-value-counters', 'counters', 'aggregate-counters'];
-//     model.artifactUrls = ['streams', 'taps', 'jobs', 'triggers', 'metrics/richgauges', 'metrics/gauges', 'metrics/field-value-counters', 'metrics/counters', 'metrics/aggregate-counters'];
-//     model.readableNames = [
-//         { kind: 'streams', name: 'Streams' },
-//         { kind: 'taps', name: 'Taps' },
-//         { kind: 'jobs', name: 'Jobs' },
-//         { kind: 'triggers', name: 'Triggers' },
-//         { kind: 'counters', name: 'Counters' },
-//         { kind: 'field-value-counters', name: 'Field Value Counters' },
-//         { kind: 'aggregate-counters', name: 'Aggregate Counters' },
-//         { kind: 'gauges', name: 'Gauges' },
-//         { kind: 'richgauges', name: 'Rich Gauges' }
-//     ];
+    // define the query kinds we care about
+    model.artifacts = [];
+    function defineArtifact(kind, name, url) {
+		model.artifacts.push({ kind: kind, name: name, url: url });
+    }
+    model.findArtifact = function(kind) {
+		return _.find(model.artifacts, function(artifact) {
+			return artifact.kind === kind;
+		});
+    };
+//    defineArtifact('streams', 'Streams', 'streams');
+    defineArtifact('jobs', 'Jobs', 'jobs');
+//    defineArtifact('counters', 'Counters', 'metrics/counters');
+//    defineArtifact('field-value-counters', 'Field Value Counters', 'metrics/field-value-counters');
+//    defineArtifact('aggregate-counters', 'Aggregate Counters', 'metrics/aggregate-counters');
+
+//    these artifacts no longer exist
+//    defineArtifact('taps', 'Taps', 'taps');
+//    defineArtifact('triggers', 'Triggers', 'triggers');
+//    defineArtifact('guages', 'Guages', 'metrics/guages');
+//    defineArtifact('richguages', 'Rich Guages', 'metrics/richguages');
 
 
-    model.artifactKinds.forEach(function(kind) {
-        model.addQuery(kind);
+
+    model.artifacts.forEach(function(artifact) {
+        model.addQuery(artifact.kind);
     });
 
     model.set('allAnalytics', allAnalytics);
@@ -139,8 +141,8 @@ function(Backbone, rest, entity, mime, hateoas, errorcode) {
     /////////////////////////////////////////////////////////////////////////////////////
     // stuff for batch.
     // Here is the model:
-    //jobs (call it BatchJobs so as not to conflict above)
-    //job (call it BatchJob so as not to conflict above)
+    //batch jobs
+    //batch job
     //instances
     //instance
     //executions
@@ -167,7 +169,7 @@ function(Backbone, rest, entity, mime, hateoas, errorcode) {
                 method: 'PUT',
                 headers: ACCEPT_HEADER
             });
-            
+
             return model.batchJobs.fetch({merge:true, update:true });
         },
 
@@ -205,10 +207,19 @@ function(Backbone, rest, entity, mime, hateoas, errorcode) {
         startFetching: function() {
             this.fetch({change:true, add:false}).then(
                 function() {
-                    setTimeout(function() {
-                        this.startFetching();
+                    this.fetchTimer = setTimeout(function() {
+                        if (!this.stopFetch) {
+	                        this.startFetching();
+	                    }
                     }.bind(this), 5000);
                 }.bind(this));
+        },
+
+        stopFetching: function() {
+			if (this.fetchTimer) {
+                clearTimeout(this.fetchTimer);
+            }
+            this.stopFetch = true;
         }
     });
 
@@ -233,7 +244,7 @@ function(Backbone, rest, entity, mime, hateoas, errorcode) {
     var Executions = Backbone.Collection.extend({
         model: Execution,
         urlRoot: URL_ROOT + 'batch/jobs/',
-        url: function() { 
+        url: function() {
             return this.urlRoot + this.jobName + '/executions/';
         }
     });

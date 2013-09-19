@@ -30,6 +30,7 @@ define(['underscore', 'backbone', 'xd.utils', 'xd.conf'], function(_, Backbone, 
         render: function() {
             'use strict';
             this.$el.html(_.template(utils.getTemplate(conf.templates.navbar))());
+            return this;
         }
     });
     return Navbar;

@@ -13,10 +13,12 @@
  *
  */
 
-package org.springframework.integration.x.bus.serializer;
+package org.springframework.integration.x.bus.serializer.kryo;
 
 import java.io.IOException;
 import java.io.OutputStream;
+
+import org.springframework.core.serializer.Serializer;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Output;
@@ -27,7 +29,7 @@ import com.esotericsoftware.kryo.io.Output;
  * @author David Turanski
  * @since 1.0
  */
-abstract class AbstractKyroSerializer<T> {
+abstract class AbstractKyroSerializer<T> implements Serializer<T> {
 
 	/**
 	 * Serialize an object
@@ -36,8 +38,8 @@ abstract class AbstractKyroSerializer<T> {
 	 * @return a byte array representing the object in serialized form
 	 * @throws IOException
 	 */
-	public byte[] serialize(T object) throws IOException {
-		return serialize(object, null);
+	public void serialize(T object) throws IOException {
+		serialize(object, null);
 	}
 
 	/**
@@ -48,15 +50,14 @@ abstract class AbstractKyroSerializer<T> {
 	 * @return a byte array representing the object in serialized form
 	 * @throws IOException
 	 */
-	@SuppressWarnings("resource")
-	public byte[] serialize(T object, OutputStream outputStream) throws IOException {
-		Output output = (outputStream == null) ? new Output(2048, 16384) : new Output(outputStream);
-		doSerialize(object, getKryo(), output);
+	@Override
+	public void serialize(T object, OutputStream outputStream) throws IOException {
+		Output output = (outputStream == null) ? new Output(2048, -1) : new Output(outputStream);
+		doSerialize(object, getKryoInstance(), output);
 		output.close();
-		return output.getBuffer();
 	}
 
 	protected abstract void doSerialize(T object, Kryo kryo, Output output);
 
-	protected abstract Kryo getKryo();
+	protected abstract Kryo getKryoInstance();
 }

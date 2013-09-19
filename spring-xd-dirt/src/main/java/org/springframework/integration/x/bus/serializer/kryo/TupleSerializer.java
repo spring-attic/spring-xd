@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.x.bus.serializer;
+package org.springframework.integration.x.bus.serializer.kryo;
 
 import org.springframework.xd.tuple.Tuple;
 import org.springframework.xd.tuple.TupleBuilder;
@@ -29,12 +29,11 @@ import com.esotericsoftware.kryo.io.Output;
  * @author David Turanski
  * @since 1.0
  */
-public class TupleSerializer extends SingleTypeSerializer<Tuple> {
+public class TupleSerializer extends KryoSingleTypeSerializer<Tuple> {
 
 	@Override
 	protected void doSerialize(Tuple object, Kryo kryo, Output output) {
 		output.writeString(object.toString());
-
 	}
 
 	@Override

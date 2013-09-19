@@ -13,7 +13,7 @@
  *
  */
 
-package org.springframework.integration.x.bus.serializer;
+package org.springframework.integration.x.bus.serializer.kryo;
 
 import org.objenesis.strategy.StdInstantiatorStrategy;
 
@@ -27,21 +27,23 @@ import com.esotericsoftware.kryo.io.Output;
  * @author David Turanski
  * @since 1.0
  */
-public class PojoSerializer extends MultiTypeSerializer<Object> {
+public class PojoSerializer extends KryoMultiTypeSerializer<Object> {
 
 	@Override
 	protected void doSerialize(Object object, Kryo kryo, Output output) {
+		kryo.register(object.getClass());
 		kryo.writeObject(output, object);
 	}
 
 	@Override
 	protected Object doDeserialize(Kryo kryo, Input input, Class<? extends Object> type) {
+		kryo.register(type);
 		return kryo.readObject(input, type);
 	}
 
 
 	@Override
-	protected synchronized Kryo getKryo() {
+	protected synchronized Kryo getKryoInstance() {
 		Kryo kryo = new Kryo();
 		kryo.setInstantiatorStrategy(new StdInstantiatorStrategy());
 		return kryo;

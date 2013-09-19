@@ -16,49 +16,34 @@
 
 package org.springframework.integration.x.bus.serializer;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.io.Input;
-
 
 /**
+ * @param <T>
  * @author David Turanski
- * @since 1.0
  */
-abstract class SingleTypeSerializer<T> extends AbstractKyroSerializer<T> {
+public interface MultiTypeDeserializer<T> {
 
 	/**
-	 * Deserialize an object when the type is known
+	 * Deserialize an object of a given type
 	 * 
 	 * @param inputStream the input stream containing the serialized object
+	 * @param type the object's class
 	 * @return the object
 	 * @throws IOException
 	 */
-	public T deserialize(InputStream inputStream) throws IOException {
-		Input input = new Input(inputStream);
-		T result = doDeserialize(getKryo(), input);
-		input.close();
-		return result;
-	}
+	public abstract T deserialize(InputStream inputStream, Class<? extends T> type) throws IOException;
 
 	/**
-	 * Deserialize an object when the type is known
+	 * Deserialize an object of a given type
 	 * 
 	 * @param bytes the byte array containing the serialized object
+	 * @param type the object's class
 	 * @return the object
 	 * @throws IOException
 	 */
-	public T deserialize(byte[] bytes) throws IOException {
-		return deserialize(new ByteArrayInputStream(bytes));
-	}
+	public abstract T deserialize(byte[] bytes, Class<? extends T> type) throws IOException;
 
-	protected abstract T doDeserialize(Kryo kryo, Input input);
-
-	@Override
-	protected Kryo getKryo() {
-		return new Kryo();
-	}
 }

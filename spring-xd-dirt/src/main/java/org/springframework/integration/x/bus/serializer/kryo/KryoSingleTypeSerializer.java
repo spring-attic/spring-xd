@@ -14,49 +14,54 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.x.bus.serializer;
+package org.springframework.integration.x.bus.serializer.kryo;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.springframework.core.serializer.Deserializer;
+
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 
+
 /**
- * Base class for Kryo serializers that handle multiple types
- * 
  * @author David Turanski
  * @since 1.0
  */
-abstract class MultiTypeSerializer<T> extends AbstractKyroSerializer<T> {
+abstract class KryoSingleTypeSerializer<T> extends AbstractKyroSerializer<T> implements Deserializer<T> {
 
 	/**
-	 * Deserialize an object of a given type
+	 * Deserialize an object when the type is known
 	 * 
 	 * @param inputStream the input stream containing the serialized object
-	 * @param type the object's class
 	 * @return the object
 	 * @throws IOException
 	 */
-	public T deserialize(InputStream inputStream, Class<? extends T> type) throws IOException {
+	@Override
+	public T deserialize(InputStream inputStream) throws IOException {
 		Input input = new Input(inputStream);
-		T result = doDeserialize(getKryo(), input, type);
+		T result = doDeserialize(getKryoInstance(), input);
 		input.close();
 		return result;
 	}
 
 	/**
-	 * Deserialize an object of a given type
+	 * Deserialize an object when the type is known
 	 * 
 	 * @param bytes the byte array containing the serialized object
-	 * @param type the object's class
 	 * @return the object
 	 * @throws IOException
 	 */
-	public T deserialize(byte[] bytes, Class<? extends T> type) throws IOException {
-		return deserialize(new ByteArrayInputStream(bytes), type);
+	public T deserialize(byte[] bytes) throws IOException {
+		return deserialize(new ByteArrayInputStream(bytes));
 	}
 
-	protected abstract T doDeserialize(Kryo kryo, Input input, Class<? extends T> type);
+	protected abstract T doDeserialize(Kryo kryo, Input input);
+
+	@Override
+	protected Kryo getKryoInstance() {
+		return new Kryo();
+	}
 }

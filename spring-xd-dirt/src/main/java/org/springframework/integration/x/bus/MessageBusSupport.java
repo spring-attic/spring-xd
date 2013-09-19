@@ -13,6 +13,7 @@
 
 package org.springframework.integration.x.bus;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,9 +32,9 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.x.bus.serializer.PojoSerializer;
 import org.springframework.integration.x.bus.serializer.SerializationException;
-import org.springframework.integration.x.bus.serializer.TupleSerializer;
+import org.springframework.integration.x.bus.serializer.kryo.PojoSerializer;
+import org.springframework.integration.x.bus.serializer.kryo.TupleSerializer;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.xd.tuple.Tuple;
@@ -166,7 +167,8 @@ public abstract class MessageBusSupport implements MessageBus, BeanClassLoaderAw
 		}
 	}
 
-	protected final Message<?> transformPayloadForConsumerIfNecessary(Message<?> message, Collection<MediaType> acceptedMediaTypes) {
+	protected final Message<?> transformPayloadForConsumerIfNecessary(Message<?> message,
+			Collection<MediaType> acceptedMediaTypes) {
 		Message<?> messageToSend = message;
 		Object originalPayload = message.getPayload();
 		Object contentType = message.getHeaders().get(MessageHeaders.CONTENT_TYPE);
@@ -286,7 +288,7 @@ public abstract class MessageBusSupport implements MessageBus, BeanClassLoaderAw
 	}
 
 	private Object deserializeConsumerPayload(byte[] bytes, MediaType contentType) {
-		Class targetType = null;
+		Class<?> targetType = null;
 		try {
 			if (contentType.equals(MediaType.TEXT_PLAIN)) {
 				return new String(bytes, "UTF-8");
@@ -312,15 +314,18 @@ public abstract class MessageBusSupport implements MessageBus, BeanClassLoaderAw
 			return (byte[]) originalPayload;
 		}
 		else {
+			ByteArrayOutputStream bos = new ByteArrayOutputStream();
 			try {
 				if (originalPayload instanceof String) {
 					return ((String) originalPayload).getBytes("UTF-8");
 				}
 				else if (originalPayload instanceof Tuple) {
-					return this.tupleSerializer.serialize((Tuple) originalPayload);
+					this.tupleSerializer.serialize((Tuple) originalPayload, bos);
+					return bos.toByteArray();
 				}
 
-				return this.pojoSerializer.serialize(originalPayload);
+				this.pojoSerializer.serialize(originalPayload, bos);
+				return bos.toByteArray();
 
 			}
 			catch (IOException e) {

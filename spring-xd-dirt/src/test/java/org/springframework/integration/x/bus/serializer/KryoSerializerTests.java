@@ -17,6 +17,7 @@ package org.springframework.integration.x.bus.serializer;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -26,6 +27,9 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import org.springframework.integration.x.bus.serializer.kryo.PojoSerializer;
+import org.springframework.integration.x.bus.serializer.kryo.StringSerializer;
+import org.springframework.integration.x.bus.serializer.kryo.TupleSerializer;
 import org.springframework.xd.tuple.Tuple;
 import org.springframework.xd.tuple.TupleBuilder;
 
@@ -39,10 +43,10 @@ public class KryoSerializerTests {
 	public void testTupleSerialization() throws IOException {
 		Tuple t = TupleBuilder.tuple().of("foo", "bar");
 		TupleSerializer serializer = new TupleSerializer();
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		serializer.serialize(t, bos);
 
-		byte[] bytes = serializer.serialize(t);
-
-		Tuple t2 = serializer.deserialize(bytes);
+		Tuple t2 = serializer.deserialize(bos.toByteArray());
 		assertEquals(t, t2);
 	}
 
@@ -50,10 +54,11 @@ public class KryoSerializerTests {
 	public void testStringSerialization() throws IOException {
 		String str = "hello";
 		StringSerializer serializer = new StringSerializer();
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
-		byte[] bytes = serializer.serialize(str);
+		serializer.serialize(str, bos);
 
-		String s2 = serializer.deserialize(bytes);
+		String s2 = serializer.deserialize(bos.toByteArray());
 		assertEquals(str, s2);
 	}
 
@@ -76,8 +81,9 @@ public class KryoSerializerTests {
 	public void testPojoSerialization() throws IOException {
 		PojoSerializer serializer = new PojoSerializer();
 		SomeClassWithNoDefaultConstructors foo = new SomeClassWithNoDefaultConstructors("foo", 123);
-		byte[] bytes = serializer.serialize(foo);
-		Object foo2 = serializer.deserialize(bytes, SomeClassWithNoDefaultConstructors.class);
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		serializer.serialize(foo, bos);
+		Object foo2 = serializer.deserialize(bos.toByteArray(), SomeClassWithNoDefaultConstructors.class);
 		assertEquals(foo, foo2);
 	}
 
@@ -109,17 +115,24 @@ public class KryoSerializerTests {
 	@Test
 	public void testPrimitiveSerialization() throws IOException {
 		PojoSerializer serializer = new PojoSerializer();
-		byte[] bytes;
 
-		bytes = serializer.serialize(true);
-		boolean b = (Boolean) serializer.deserialize(bytes, Boolean.class);
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		serializer.serialize(true, bos);
+		boolean b = (Boolean) serializer.deserialize(bos.toByteArray(), Boolean.class);
 		assertEquals(true, b);
-		b = (Boolean) serializer.deserialize(bytes, boolean.class);
+		b = (Boolean) serializer.deserialize(bos.toByteArray(), boolean.class);
 		assertEquals(true, b);
 
-		bytes = serializer.serialize(3.14159);
-		double d = (Double) serializer.deserialize(bytes, double.class);
-		d = (Double) serializer.deserialize(bytes, Double.class);
+		bos = new ByteArrayOutputStream();
+		serializer.serialize(3.14159, bos);
+
+		double d = (Double) serializer.deserialize(bos.toByteArray(), double.class);
+		assertEquals(3.14159, d, 0.00001);
+
+		bos = new ByteArrayOutputStream();
+		serializer.serialize(new Double(3.14159), bos);
+
+		d = (Double) serializer.deserialize(bos.toByteArray(), Double.class);
 		assertEquals(3.14159, d, 0.00001);
 
 	}
@@ -127,12 +140,12 @@ public class KryoSerializerTests {
 	@Test
 	public void testMapSerialization() throws IOException {
 		PojoSerializer serializer = new PojoSerializer();
-		byte[] bytes;
-		Map map = new HashMap();
+		Map<String, Integer> map = new HashMap<String, Integer>();
 		map.put("one", 1);
 		map.put("two", 2);
-		bytes = serializer.serialize(map);
-		Map m2 = (Map) serializer.deserialize(bytes, HashMap.class);
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		serializer.serialize(map, bos);
+		Map m2 = (Map) serializer.deserialize(bos.toByteArray(), HashMap.class);
 		assertEquals(2, m2.size());
 		assertEquals(1, m2.get("one"));
 		assertEquals(2, m2.get("two"));

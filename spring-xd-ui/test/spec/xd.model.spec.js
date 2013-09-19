@@ -20,9 +20,11 @@
  */
 
 // tests for the xd backbone model
-define(['xd.model'], function(model) {
-	describe('model consistency test for non-batch artifacts', function() {
+define(['xd.model', 'backbone'], function(modelModule, backbone) {
+	var URL_ROOT = 'http://localhost:8080/', PAGE_SIZE = 5,
+		model = modelModule(null, backbone, URL_ROOT, PAGE_SIZE);
 
+	describe('model consistency test for non-batch artifacts', function() {
 		beforeEach(function() {
 			model.artifacts.forEach(function(artifact) {
 				model.get(artifact.kind).reset();
@@ -36,7 +38,6 @@ define(['xd.model'], function(model) {
 				expect(artifact.url).toBeDefined();
 			});
 		});
-
 		// for now, only test jobs artifacts.
 		// since this is the only artifact currently enabled
 		it('should have jobs artifact kind', function() {
@@ -57,36 +58,31 @@ define(['xd.model'], function(model) {
 		it('jobs should have a correct url', function() {
 			var query = model.get('jobs');
 			var url = query.getUrl();
-			expect(url).toBe('http://localhost:9393/jobs');
+			expect(url).toBe(URL_ROOT + 'jobs');
 		});
 		it('jobs should have correct pagination', function() {
 			var query = model.get('jobs');
 			var params = query.getHttpParams();
-			expect(params.size).toBe(5);
+			expect(params.size).toBe(PAGE_SIZE);
 			expect(params.page).toBe(0);
-
 			query.set('number', 7);
 			params = query.getHttpParams();
-			expect(params.size).toBe(5);
+			expect(params.size).toBe(PAGE_SIZE);
 			expect(params.page).toBe(7);
-
 			query.set('number', 0);
 			params = query.getHttpParams();
-			expect(params.size).toBe(5);
+			expect(params.size).toBe(PAGE_SIZE);
 			expect(params.page).toBe(0);
 		});
-
 		it('should be able to add results of a query', function() {
-
 			// simulate the results of querying the server for jobs
 			model.addQuery('jobs', {number:6}, [
 				{name: 'foo', definition: 'blart'},
 				{name: 'boo', definition: 'flart'}
 			]);
-
 			var query = model.get('jobs');
 			var params = query.getHttpParams();
-			expect(params.size).toBe(5);
+			expect(params.size).toBe(PAGE_SIZE);
 			expect(params.page).toBe(6);
 			var artifacts = query.get('artifacts');
 			expect(artifacts.length).toBe(2);
@@ -94,16 +90,14 @@ define(['xd.model'], function(model) {
 			expect(artifacts.at(0).get('definition')).toBe('blart');
 			expect(artifacts.at(1).get('name')).toBe('boo');
 			expect(artifacts.at(1).get('definition')).toBe('flart');
-
 			model.addQuery('jobs', {number:4}, [
 				{name: 'foo1', definition: 'blart1'},
 				{name: 'boo1', definition: 'flart1'},
 				{name: 'coo1', definition: 'clart1'}
 			]);
-
 			query = model.get('jobs');
 			params = query.getHttpParams();
-			expect(params.size).toBe(5);
+			expect(params.size).toBe(PAGE_SIZE);
 			expect(params.page).toBe(4);
 			artifacts = query.get('artifacts');
 			expect(artifacts.length).toBe(3);
@@ -115,7 +109,6 @@ define(['xd.model'], function(model) {
 			expect(artifacts.at(2).get('definition')).toBe('clart1');
 		});
 	});
-
 	describe('model consistency test for batch artifacts', function() {
 		it('should correctly parse batch jobs', function() {
 			var batchJobs = model.batchJobs;

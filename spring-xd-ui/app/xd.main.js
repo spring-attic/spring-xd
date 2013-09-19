@@ -22,12 +22,17 @@
 
 requirejs.config({
 	packages: [
+		{ name: 'poly', location: '../lib/poly', main:'poly'},
+		{ name: 'wire', location: '../lib/wire', main:'wire'},
+		{ name: 'meld', location: '../lib/meld', main:'meld'},
 		{ name: 'rest', location: '../lib/rest', main:'rest'},
 		{ name: 'when', location: '../lib/when', main:'when'}
 	],
 	paths: {
 		jquery: '../lib/jquery/jquery',
 		underscore: '../lib/lodash/lodash',
+		'text': '../lib/requirejs-text/text',
+		'wire/domReady': '../lib/requirejs/domReady',
 		'bootstrap-typeahead': '../lib/bootstrap/js/bootstrap-typeahead',
 		'bootstrap-tab': '../lib/bootstrap/js/bootstrap-tab',
 		'bootstrap-alert': '../lib/bootstrap/js/bootstrap-alert',
@@ -47,8 +52,6 @@ requirejs.config({
     }
 });
 
-require(['backbone', 'xd.router', 'xd.viewer',  'xd.model', 'd3', 'cubism', 'bootstrap-typeahead', 'bootstrap-tab', 'bootstrap-alert', 'bootstrap-collapse'],
-function(Backbone, router, viewer, model) {
-    new router.xdRouter(viewer);
-    Backbone.history.start({pushState: true, root: "/admin-ui/"});
-});
+// load up the wire spec and also load non-amd libraries
+require(['wire!xd.wirespec', 'd3', 'cubism', 'bootstrap-typeahead', 
+	'bootstrap-tab', 'bootstrap-alert', 'bootstrap-collapse']);

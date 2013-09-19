@@ -19,12 +19,12 @@ package org.springframework.xd.dirt.plugins.job;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor;
-import org.springframework.util.Assert;
-import org.springframework.xd.dirt.job.BatchJobAlreadyExistsException;
+import org.springframework.xd.dirt.plugins.job.batch.BatchJobAlreadyExistsException;
+import org.springframework.xd.dirt.plugins.job.batch.BatchJobLocator;
 
 
 /**
- * JobRegistryBeanPostProcessor that processes Job bean with name {@link JobPlugin.JOB_BEAN_ID}
+ * JobRegistryBeanPostProcessor that processes Job bean with name {@link JobPlugin#JOB_BEAN_ID}
  * 
  * @author Ilayaperumal Gopinathan
  */
@@ -35,8 +35,6 @@ public class BatchJobRegistryBeanPostProcessor extends JobRegistryBeanPostProces
 	private BatchJobLocator jobLocator;
 
 	private String groupName;
-
-	private String jobName;
 
 	@Override
 	public void setJobRegistry(JobRegistry jobRegistry) {
@@ -61,7 +59,7 @@ public class BatchJobRegistryBeanPostProcessor extends JobRegistryBeanPostProces
 			Job job = (Job) bean;
 
 			// the job name at the JobRegistry will be <groupName>.<batchJobId>
-			jobName = this.groupName + JobPlugin.JOB_NAME_DELIMITER + job.getName();
+			String jobName = this.groupName + JobPlugin.JOB_NAME_DELIMITER + job.getName();
 			if (!jobRegistry.getJobNames().contains(jobName)) {
 				// Add the job name & job parameters incrementer flag to BatchJobLocator
 				// Since, the Spring batch doesn't have persistent JobRegistry, the BatchJobLocator
@@ -80,8 +78,7 @@ public class BatchJobRegistryBeanPostProcessor extends JobRegistryBeanPostProces
 
 	@Override
 	public void destroy() throws Exception {
-		Assert.notNull(jobName, "JobName should not be null");
-		jobLocator.delteJobName(jobName);
+		jobLocator.deleteAll();
 		super.destroy();
 	}
 }

@@ -51,12 +51,11 @@ public class SingleNodeMainIntegrationTests extends AbstractAdminMainIntegration
 	}
 
 	@Test
-	public void testConfiguration() throws Exception {
+	public void testConfiguration() {
 		SingleNodeOptions options = SingleNodeMain.parseOptions(new String[] { "--httpPort", "0", "--transport",
 			"local",
 			"--store",
 			"memory", "--enableJmx", "true", "--analytics", "memory" });
-		setBatchDBProperties();
 		SingleNodeServer server = SingleNodeMain.launchSingleNodeServer(options);
 		AdminServer adminServer = server.getAdminServer();
 		XDContainer container = server.getContainer();
@@ -107,7 +106,6 @@ public class SingleNodeMainIntegrationTests extends AbstractAdminMainIntegration
 
 		assertTrue("no metrics repositories have been registered in the container context",
 				containerContext.getParent().getBeansOfType(MetricRepository.class).size() > 0);
-		stopServer(server);
 	}
 
 	@Test
@@ -116,7 +114,7 @@ public class SingleNodeMainIntegrationTests extends AbstractAdminMainIntegration
 		System.setProperty(XDPropertyKeys.XD_ANALYTICS, "redis");
 		System.setProperty(XDPropertyKeys.XD_HTTP_PORT, "8080");
 		System.setProperty(XDPropertyKeys.XD_STORE, "redis");
-		setBatchDBProperties();
+
 		SingleNodeServer server = SingleNodeMain.launchSingleNodeServer(
 				SingleNodeMain.parseOptions(new String[] { "--httpPort", "0", "--transport",
 					"local", "--analytics", "memory" }));
@@ -126,16 +124,15 @@ public class SingleNodeMainIntegrationTests extends AbstractAdminMainIntegration
 		assertEquals("local", env.getProperty(XDPropertyKeys.XD_TRANSPORT));
 		assertEquals("memory", env.getProperty(XDPropertyKeys.XD_ANALYTICS));
 		assertEquals("redis", env.getProperty(XDPropertyKeys.XD_STORE));
-		stopServer(server);
 	}
 
 	@Test
-	public void testSystemPropertiesOverridesDefault() throws Exception {
+	public void testSystemPropertiesOverridesDefault() {
 
 		System.setProperty(XDPropertyKeys.XD_ANALYTICS, "redis");
 		System.setProperty(XDPropertyKeys.XD_HTTP_PORT, "0");
 		System.setProperty(XDPropertyKeys.XD_STORE, "redis");
-		setBatchDBProperties();
+
 		SingleNodeServer server = SingleNodeMain.launchSingleNodeServer(
 				SingleNodeMain.parseOptions(new String[] {}));
 		Environment env = server.getAdminServer().getApplicationContext().getEnvironment();
@@ -143,7 +140,6 @@ public class SingleNodeMainIntegrationTests extends AbstractAdminMainIntegration
 		assertEquals("0", env.getProperty(XDPropertyKeys.XD_HTTP_PORT));
 		assertEquals("redis", env.getProperty(XDPropertyKeys.XD_ANALYTICS));
 		assertEquals("redis", env.getProperty(XDPropertyKeys.XD_STORE));
-		stopServer(server);
 	}
 
 	@After
@@ -151,15 +147,5 @@ public class SingleNodeMainIntegrationTests extends AbstractAdminMainIntegration
 		System.clearProperty(XDPropertyKeys.XD_ANALYTICS);
 		System.clearProperty(XDPropertyKeys.XD_HTTP_PORT);
 		System.clearProperty(XDPropertyKeys.XD_STORE);
-	}
-
-	private void stopServer(SingleNodeServer server) {
-		server.getContainer().stop();
-		super.shutdown(server.getAdminServer());
-	}
-
-	private void setBatchDBProperties() {
-		System.setProperty("hsql.server.dbname", "test");
-		System.setProperty("hsql.server.port", "9100");
 	}
 }

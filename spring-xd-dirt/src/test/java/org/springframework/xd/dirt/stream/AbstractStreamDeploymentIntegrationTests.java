@@ -73,6 +73,7 @@ public abstract class AbstractStreamDeploymentIntegrationTests {
 		this.streamDefinitionRepository = context.getBean(StreamDefinitionRepository.class);
 		this.streamRepository = context.getBean(StreamRepository.class);
 		this.streamDeployer = context.getBean(StreamDeployer.class);
+
 		this.moduleDeployer = context.getBean(ModuleDeployer.class);
 
 		AbstractMessageChannel deployChannel = context.getBean("deployChannel", AbstractMessageChannel.class);

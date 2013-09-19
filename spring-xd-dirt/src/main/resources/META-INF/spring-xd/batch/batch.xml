@@ -14,8 +14,8 @@
 
 	<beans profile="adminServer">
 
-		<bean id="hsqldb"
-			class="org.springframework.xd.dirt.job.HSQLServerBean"
+		<bean id="hsqlDataBase"
+			class="org.springframework.xd.dirt.plugins.job.batch.HSQLServerBean"
 			scope="singleton" lazy-init="false">
 			<property name="serverProperties">
 				<props>
@@ -33,13 +33,13 @@
 			<jdbc:script
 				location="classpath:/org/springframework/batch/core/schema-hsqldb.sql" />
 			<jdbc:script
-				location="classpath:/org/springframework/xd/dirt/job/registry-schema-drop-hsqldb.sql" />
+				location="classpath:/org/springframework/xd/dirt/plugins/job/registry-schema-drop-hsqldb.sql" />
 			<jdbc:script
-				location="classpath:/org/springframework/xd/dirt/job/registry-schema-hsqldb.sql" />
+				location="classpath:/org/springframework/xd/dirt/plugins/job/registry-schema-hsqldb.sql" />
 		</jdbc:initialize-database>
 
 		<bean
-			class="org.springframework.xd.dirt.job.DistributedJobService">
+			class="org.springframework.xd.dirt.plugins.job.batch.DistributedJobService">
 			<constructor-arg ref="jobInstanceDao" />
 			<constructor-arg ref="jobExecutionDao" />
 			<constructor-arg ref="stepExecutionDao" />
@@ -97,7 +97,7 @@
 			class="org.springframework.batch.core.configuration.support.MapJobRegistry" />
 
 		<bean id="batchJobLocator"
-			class="org.springframework.xd.dirt.plugins.job.BatchJobLocator">
+			class="org.springframework.xd.dirt.plugins.job.batch.BatchJobLocator">
 			<property name="jdbcTemplate" ref="jdbcTemplate" />
 		</bean>
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.job;
+package org.springframework.xd.dirt.plugins.job.batch;
 
 import java.util.Collection;
 import java.util.List;
@@ -35,7 +35,6 @@ import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteExcep
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.batch.core.repository.dao.ExecutionContextDao;
-import org.springframework.xd.dirt.plugins.job.BatchJobLocator;
 
 /**
  * SimpleJobService in distributed mode
@@ -66,7 +65,7 @@ public class DistributedJobService extends SimpleJobService {
 			JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException,
 			JobParametersInvalidException {
 		// TODO
-		throw new UnsupportedOperationException("Job Launch");
+		throw new UnsupportedOperationException("Job Restart");
 	}
 
 	@Override
@@ -102,6 +101,25 @@ public class DistributedJobService extends SimpleJobService {
 		List<JobExecution> jobExecutions = jobExecutionDao.getJobExecutions(jobName, start, count);
 		return jobExecutions;
 	}
+
+	// TODO probably not needed. OK to delete?
+	// public JobParameters getJobParameters(Long jobExecutionId) throws
+	// NoSuchJobExecutionException {
+	// try {
+	// // TODO extract to constant
+	// Method getParametersMethod =
+	// JdbcJobExecutionDao.class.getDeclaredMethod("getJobParameters", Long.class);
+	// ReflectionUtils.makeAccessible(getParametersMethod);
+	// JobParameters parameters = (JobParameters)
+	// ReflectionUtils.invokeMethod(getParametersMethod,
+	// jobExecutionDao, jobExecutionId);
+	// return parameters == null ? new JobParameters() : parameters;
+	// }
+	// catch (Exception e) {
+	// throw new NoSuchJobExecutionException("Could not get job execution for id " +
+	// jobExecutionId, e);
+	// }
+	// }
 
 	private void checkJobExists(String jobName) throws NoSuchJobException {
 		if (batchJobLocator.getJobNames().contains(jobName)) {

@@ -16,33 +16,20 @@
 
 package org.springframework.xd.dirt.rest;
 
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.nullValue;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.TimeZone;
 
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.batch.admin.service.JobService;
 import org.springframework.batch.admin.web.JobExecutionInfo;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobInstance;
-import org.springframework.batch.core.JobParameter;
-import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.job.SimpleJob;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +37,12 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.xd.dirt.plugins.job.BatchJobLocator;
+import org.springframework.xd.dirt.plugins.job.batch.BatchJobLocator;
+
+import static org.hamcrest.Matchers.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
  * Tests REST compliance of BatchJobsController endpoints.
@@ -82,24 +74,10 @@ public class BatchJobsControllerIntegrationTests extends AbstractControllerInteg
 		jobNames.add(job1.getName());
 		jobNames.add(job2.getName());
 		Collection<JobInstance> jobInstances = new ArrayList<JobInstance>();
-		JobInstance jobInstance1 = new JobInstance(0l, job1.getName());
-		JobInstance jobInstance2 = new JobInstance(2l, job2.getName());
-		JobInstance jobInstance3 = new JobInstance(3l, job1.getName());
-		jobInstances.add(jobInstance1);
-		jobInstances.add(jobInstance3);
+		jobInstances.add(new JobInstance(0l, job1.getName()));
+		jobInstances.add(new JobInstance(2l, job1.getName()));
+		jobInstances.add(new JobInstance(3l, job1.getName()));
 
-		Map<String, JobParameter> parametersMap1 = new HashMap<String, JobParameter>();
-		parametersMap1.put("param1", new JobParameter("test", true));
-		parametersMap1.put("param2", new JobParameter(123l, false));
-		JobParameters jobParameters1 = new JobParameters(parametersMap1);
-		JobParameters jobParameters2 = new JobParameters(parametersMap1);
-		JobExecution jobExecution1 = new JobExecution(jobInstance1, 0l, jobParameters1);
-		JobExecution jobExecution2 = new JobExecution(jobInstance2, 3l, jobParameters2);
-		Collection<JobExecution> jobExecutions1 = new ArrayList<JobExecution>();
-		Collection<JobExecution> jobExecutions2 = new ArrayList<JobExecution>();
-		jobExecutions1.add(jobExecution1);
-		jobExecutions1.add(jobExecution2);
-		jobExecutions2.add(jobExecution2);
 		when(jobLocator.getJobNames()).thenReturn(jobNames);
 		when(jobService.listJobs(0, 20)).thenReturn(jobNames);
 		when(jobService.countJobExecutionsForJob(job1.getName())).thenReturn(2);
@@ -120,8 +98,6 @@ public class BatchJobsControllerIntegrationTests extends AbstractControllerInteg
 		execution.setEndTime(endTime);
 		jobExecutions.add(execution);
 		when(jobService.listJobExecutionsForJob(job1.getName(), 0, 1)).thenReturn(jobExecutions);
-		when(jobService.listJobExecutions(0, 20)).thenReturn(jobExecutions1);
-		when(jobService.listJobExecutionsForJob(job2.getName(), 0, 20)).thenReturn(jobExecutions2);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -141,30 +117,24 @@ public class BatchJobsControllerIntegrationTests extends AbstractControllerInteg
 				jsonPath("$[*].stepExecutionCount", contains(info.getStepExecutionCount(), 0))).andExpect(
 				jsonPath("$[*].jobParameters", contains(info.getJobParametersString(), null)))
 
-				// should contain the display name (ie- without the .job suffix)
-				.andExpect(jsonPath("$[0].name", equalTo("job1"))).andExpect(
-						jsonPath("$[0].jobInstanceId", nullValue()))
+		// should contain the display name (ie- without the .job suffix)
+		.andExpect(jsonPath("$[0].name", equalTo("job1"))).andExpect(jsonPath("$[0].jobInstanceId", nullValue()))
 
-				.andExpect(jsonPath("$[1].name", equalTo("job2"))).andExpect(
-						jsonPath("$[1].jobInstanceId", nullValue()))
+		.andExpect(jsonPath("$[1].name", equalTo("job2"))).andExpect(jsonPath("$[1].jobInstanceId", nullValue()))
 
-				// exit status is non null for job 0 and null for job 1
-				.andExpect(
-						jsonPath("$[0].exitStatus.exitDescription",
-								equalTo(execution.getExitStatus().getExitDescription()))).andExpect(
-						jsonPath("$[0].exitStatus.exitCode", equalTo(execution.getExitStatus().getExitCode()))).andExpect(
-						jsonPath("$[0].exitStatus.running", equalTo(false))).andExpect(
-						jsonPath("$[1].exitStatus", nullValue()));
+		// exit status is non null for job 0 and null for job 1
+		.andExpect(jsonPath("$[0].exitStatus.exitDescription", equalTo(execution.getExitStatus().getExitDescription()))).andExpect(
+				jsonPath("$[0].exitStatus.exitCode", equalTo(execution.getExitStatus().getExitCode()))).andExpect(
+				jsonPath("$[0].exitStatus.running", equalTo(false))).andExpect(jsonPath("$[1].exitStatus", nullValue()));
 	}
 
 	@Test
 	public void testGetJobInstanceByJobName() throws Exception {
 		mockMvc.perform(
 				get("/batch/jobs/job1/instances").param("startJobInstance", "0").param("pageSize", "20").accept(
-						MediaType.APPLICATION_JSON)).andExpect(status().isOk())
-				.andExpect(jsonPath("$", Matchers.hasSize(2)))
-				.andExpect(jsonPath("$[*].id", contains(0, 3)))
-				.andExpect(jsonPath("$[*].jobName", contains("job1", "job1")));
+						MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
+				jsonPath("$", Matchers.hasSize(3))).andExpect(jsonPath("$[*].id", contains(0, 2, 3))).andExpect(
+				jsonPath("$[*].jobName", contains("job1", "job1", "job1")));
 	}
 
 	@Test
@@ -175,28 +145,5 @@ public class BatchJobsControllerIntegrationTests extends AbstractControllerInteg
 				jsonPath("$.executionCount").value(2)).andExpect(jsonPath("$.launchable").value(true)).andExpect(
 				jsonPath("$.incrementable").value(false)).andExpect(jsonPath("$.jobInstanceId", nullValue()));
 
-	}
-
-	@Test
-	public void testGetJobExecutionsByName() throws Exception {
-		mockMvc.perform(
-				get("/batch/jobs/job2/executions").param("startJobExecution", "0").param("pageSize", "20").accept(
-						MediaType.APPLICATION_JSON)).andExpect(status().isOk())
-				.andExpect(jsonPath("$", Matchers.hasSize(1)))
-				.andExpect(jsonPath("$[0].id").value(3))
-				.andExpect(jsonPath("$[0].jobId").value(2))
-				.andExpect(jsonPath("$[0].jobExecution[*].id").value(3))
-				.andExpect(
-						jsonPath("$[0].jobExecution[*].jobParameters.parameters.param1.value").value("test"))
-				.andExpect(
-						jsonPath("$[0].jobExecution[*].jobParameters.parameters.param1.type").value("STRING"))
-				.andExpect(jsonPath("$[0].jobExecution[*].jobParameters.parameters.param1.identifying").value(
-						true))
-				.andExpect(
-						jsonPath("$[0].jobExecution[*].jobParameters.parameters.param2.value").value(123))
-				.andExpect(
-						jsonPath("$[0].jobExecution[*].jobParameters.parameters.param2.type").value("LONG"))
-				.andExpect(jsonPath("$[0].jobExecution[*].jobParameters.parameters.param2.identifying").value(
-						false));
 	}
 }

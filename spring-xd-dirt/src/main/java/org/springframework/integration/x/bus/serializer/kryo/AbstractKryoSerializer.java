@@ -29,7 +29,7 @@ import com.esotericsoftware.kryo.io.Output;
  * @author David Turanski
  * @since 1.0
  */
-abstract class AbstractKyroSerializer<T> implements Serializer<T> {
+abstract class AbstractKryoSerializer<T> implements Serializer<T> {
 
 	/**
 	 * Serialize an object

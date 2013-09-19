@@ -30,7 +30,7 @@ import com.esotericsoftware.kryo.io.Input;
  * @author David Turanski
  * @since 1.0
  */
-abstract class KryoSingleTypeSerializer<T> extends AbstractKyroSerializer<T> implements Deserializer<T> {
+abstract class KryoSingleTypeSerializer<T> extends AbstractKryoSerializer<T> implements Deserializer<T> {
 
 	/**
 	 * Deserialize an object when the type is known

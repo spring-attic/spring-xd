@@ -31,7 +31,7 @@ import com.esotericsoftware.kryo.io.Input;
  * @author David Turanski
  * @since 1.0
  */
-abstract class KryoMultiTypeSerializer<T> extends AbstractKyroSerializer<T> implements MultiTypeDeserializer<T> {
+abstract class KryoMultiTypeSerializer<T> extends AbstractKryoSerializer<T> implements MultiTypeDeserializer<T> {
 
 	/**
 	 * Deserialize an object of a given type

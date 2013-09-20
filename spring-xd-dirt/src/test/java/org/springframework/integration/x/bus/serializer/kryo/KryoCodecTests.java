@@ -145,7 +145,7 @@ public class KryoCodecTests {
 		map.put("two", 2);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		serializer.serialize(map, bos);
-		Map m2 = (Map) serializer.deserialize(bos.toByteArray(), HashMap.class);
+		Map<?, ?> m2 = (Map<?, ?>) serializer.deserialize(bos.toByteArray(), HashMap.class);
 		assertEquals(2, m2.size());
 		assertEquals(1, m2.get("one"));
 		assertEquals(2, m2.get("two"));

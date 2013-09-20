@@ -40,7 +40,7 @@ import org.springframework.xd.tuple.TupleBuilder;
  */
 public class CompositeCodecTests {
 
-	private MultiTypeCodec codec;
+	private MultiTypeCodec<Object> codec;
 
 	@Before
 	public void setup() {
@@ -49,7 +49,6 @@ public class CompositeCodecTests {
 		codec = new CompositeCodec(codecs, new PojoCodec());
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testPojoSerialization() throws IOException {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -61,7 +60,6 @@ public class CompositeCodecTests {
 		assertEquals(foo, foo2);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testTupleSerialization() throws IOException {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();

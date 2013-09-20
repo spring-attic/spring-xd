@@ -50,6 +50,8 @@ public class LocalMessageBusTests extends AbstractMessageBusTests {
 	protected MessageBus getMessageBus() throws Exception {
 		LocalMessageBus bus = new LocalMessageBus();
 		bus.setApplicationContext(new GenericApplicationContext());
+		bus.setCodec(getCodec());
+		bus.setConvertWithinTransport(true);
 		bus.afterPropertiesSet();
 		return bus;
 	}

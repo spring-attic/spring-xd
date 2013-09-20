@@ -25,7 +25,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanClassLoaderAware;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.http.MediaType;
@@ -61,6 +60,10 @@ public abstract class MessageBusSupport implements MessageBus, BeanClassLoaderAw
 
 	public void setConversionService(ConversionService conversionService) {
 		this.conversionService = conversionService;
+	}
+
+	public void setCodec(MultiTypeCodec<Object> codec) {
+		this.codec = codec;
 	}
 
 	@Override
@@ -170,7 +173,7 @@ public abstract class MessageBusSupport implements MessageBus, BeanClassLoaderAw
 		Object originalPayload = message.getPayload();
 		Object contentType = message.getHeaders().get(MessageHeaders.CONTENT_TYPE);
 		Object payload = transformPayloadForConsumer(originalPayload,
-				getContentTypeHeaderAsMedia(contentType),
+				getContentTypeHeaderAsMediaType(contentType),
 				acceptedMediaTypes);
 
 		if (payload != null) {
@@ -326,7 +329,7 @@ public abstract class MessageBusSupport implements MessageBus, BeanClassLoaderAw
 		}
 	}
 
-	private MediaType getContentTypeHeaderAsMedia(Object contentType) {
+	private MediaType getContentTypeHeaderAsMediaType(Object contentType) {
 		if (contentType instanceof MediaType) {
 			return (MediaType) contentType;
 		}
@@ -335,10 +338,4 @@ public abstract class MessageBusSupport implements MessageBus, BeanClassLoaderAw
 		}
 		return null;
 	}
-
-	@Autowired
-	public void setCodec(MultiTypeCodec<Object> codec) {
-		this.codec = codec;
-	}
-
 }

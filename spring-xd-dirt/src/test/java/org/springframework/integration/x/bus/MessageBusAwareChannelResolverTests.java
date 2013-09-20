@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
+import org.springframework.beans.MutablePropertyValues;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
@@ -48,6 +49,7 @@ public class MessageBusAwareChannelResolverTests {
 	public void test() {
 		StaticApplicationContext context = new StaticApplicationContext();
 		context.registerSingleton("channelResolver", MessageBusAwareChannelResolver.class);
+		MutablePropertyValues props = new MutablePropertyValues();
 		context.registerSingleton("messageBus", LocalMessageBus.class);
 		context.registerSingleton("other", DirectChannel.class);
 		context.registerSingleton("taskScheduler", ThreadPoolTaskScheduler.class);

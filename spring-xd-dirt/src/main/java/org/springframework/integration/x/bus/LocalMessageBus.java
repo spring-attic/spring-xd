@@ -31,6 +31,7 @@ import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.scheduling.PollerMetadata;
+import org.springframework.integration.x.bus.serializer.MultiTypeCodec;
 import org.springframework.util.Assert;
 
 /**
@@ -49,7 +50,7 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 
 	private volatile AbstractApplicationContext applicationContext;
 
-	private volatile boolean convertWithinTransport = true;
+	private volatile boolean convertWithinTransport = false;
 
 	private int queueSize = Integer.MAX_VALUE;
 
@@ -89,6 +90,8 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 		}
 	};
 
+	private boolean hasCodec;
+
 	/**
 	 * Set the size of the queue when using {@link QueueChannel}s.
 	 */
@@ -118,8 +121,17 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 	}
 
 	@Override
+	public void setCodec(MultiTypeCodec<Object> codec) {
+		super.setCodec(codec);
+		this.hasCodec = codec != null;
+	}
+
+	@Override
 	public void afterPropertiesSet() throws Exception {
 		Assert.notNull(applicationContext, "The 'applicationContext' property cannot be null");
+		if (convertWithinTransport) {
+			Assert.isTrue(hasCodec, "The 'codec' property cannot be null if 'convertWithinTransport' is true");
+		}
 	}
 
 	/**

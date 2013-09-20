@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
 
+import org.springframework.integration.util.ClassUtils;
 import org.springframework.util.Assert;
 
 
@@ -80,14 +81,8 @@ public class CompositeCodec implements MultiTypeCodec<Object> {
 		if (delegates == null) {
 			return null;
 		}
-		if (delegates.get(type) != null) {
-			return delegates.get(type);
-		}
-		for (Class<?> clazz : delegates.keySet()) {
-			if (clazz.isAssignableFrom(type)) {
-				return delegates.get(clazz);
-			}
-		}
-		return null;
+
+		Class<?> clazz = ClassUtils.findClosestMatch(type, delegates.keySet(), false);
+		return delegates.get(clazz);
 	}
 }

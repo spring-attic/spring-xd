@@ -28,6 +28,7 @@ import java.util.Properties;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.aop.framework.Advised;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
@@ -121,12 +122,16 @@ public class StreamPlugin implements Plugin {
 			else {
 				bus.bindProducer(md.getOutputChannelName(), channel, md.isAliasedOutput());
 			}
+
+			// TODO remove this once addInterceptor is an interface method in SI
+			Object rawChannel = extractTarget(channel);
+
 			// Create the tap channel now for possible future use (tap:mystream.mymodule)
-			if (channel instanceof AbstractMessageChannel) {
+			if (rawChannel != null && rawChannel instanceof AbstractMessageChannel) {
 				String tapChannelName = getTapChannelName(module);
 				DirectChannel tapChannel = new DirectChannel();
 				tapChannel.setBeanName(tapChannelName + ".tap.bridge");
-				((AbstractMessageChannel) channel).addInterceptor(new WireTap(tapChannel));
+				((AbstractMessageChannel) rawChannel).addInterceptor(new WireTap(tapChannel));
 				bus.bindPubSubProducer(tapChannelName, tapChannel);
 			}
 		}
@@ -197,4 +202,21 @@ public class StreamPlugin implements Plugin {
 				new ClassPathResource(MESSAGE_BUS)));
 	}
 
+	// TODO please get me out of this class, preferably by deleting when SI has addInterceptor in an interface
+	private Object extractTarget(Object bean) {
+		if (!(bean instanceof Advised)) {
+			return bean;
+		}
+		Advised advised = (Advised) bean;
+		if (advised.getTargetSource() == null) {
+			return null;
+		}
+		try {
+			return extractTarget(advised.getTargetSource().getTarget());
+		}
+		catch (Exception e) {
+			logger.error("Could not extract target from output channel. Tap will not be created.", e);
+			return null;
+		}
+	}
 }

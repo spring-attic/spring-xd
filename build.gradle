@@ -241,6 +241,7 @@ project('spring-xd-dirt') {
 				project(':spring-xd-rest-domain'),
 				project(":spring-xd-reactor"),
 				"org.springframework:spring-webmvc:$springVersion",
+				"org.springframework:spring-aop:$springVersion",
 				"org.springframework.data:spring-data-commons:$springDataCommonsVersion",
 				"com.fasterxml.jackson.core:jackson-databind:$jacksonVersion",
 				"com.jayway.jsonpath:json-path:$jsonPathVersion",

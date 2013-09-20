@@ -306,4 +306,16 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		stream().destroyStream("stream3");
 	}
 
+	@Test
+	public void testJsonPath() throws IOException {
+		HttpSource source = newHttpSource();
+		FileSink sink = newFileSink();
+		stream().create("jsonPathStream",
+				"%s | transform --expression='#jsonPath(payload, \"$.foo.bar\")' | %s",
+				source, sink);
+		source.ensureReady().postData("{\"foo\":{\"bar\":123}}");
+		assertEquals("123\n", sink.getContents());
+		stream().destroyStream("jsonPathStream");
+	}
+
 }

@@ -41,8 +41,9 @@ class TweetSerializationTests {
 					data.toUserId,data.fromUserId,data.languageCode, data.source)
 			tweet.entities= new Entities(data.entities.urls,data.entities.hashTags,data.entities.mentions, data.entities.media)
 			tweet.user = new TwitterProfile(data.user.id, data.user.screenName, data.user.name, data.user.url, data.user.profileImageUrl, data.user.description, data.user.location, new Date(data.user.createdDate))
-			def bytes = codec.serialize(tweet)
-			def tweet2 = codec.deserialize(bytes, Tweet.class)
+			def bos = new ByteArrayOutputStream()
+			codec.serialize(tweet, bos)
+			def tweet2 = codec.deserialize(bos.toByteArray(), Tweet.class)
 			assert tweet == tweet2
 		}
 	}

@@ -348,12 +348,6 @@ project('spring-xd-dirt') {
         applicationDistribution.from(xdUiFiles) {
                 into "spring-xd-ui"
         }
-
-	task cleanDataDir(type: Delete) {
-		delete "$rootDir/data"
-	}
-	
-	tasks["clean"].dependsOn("cleanDataDir")
 }
 
 project('spring-xd-http') {

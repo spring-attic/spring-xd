@@ -218,8 +218,7 @@ public class AdminServer implements SmartLifecycle, InitializingBean {
 			if (this.handlerTask != null) {
 				this.handlerTask.cancel(true);
 			}
-			// This will likely trigger an exception, but the 'clean' shutdown code is hanging.
-			tomcat.destroy();
+			this.shutdownCleanly();
 			this.running = false;
 		}
 		catch (LifecycleException e) {

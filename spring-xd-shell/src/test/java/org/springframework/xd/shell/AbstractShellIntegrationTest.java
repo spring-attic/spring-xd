@@ -124,8 +124,10 @@ public abstract class AbstractShellIntegrationTest {
 	public static void shutdown() {
 		if (server != null) {
 			logger.info("Stopping Single Node Server");
+			// Stopping container will also stop the adminServer/and its parent context
+			// as the adminServer context is set as the parent context for the container
+			// in case of SingleNodeMain server
 			server.getContainer().stop();
-			server.getAdminServer().stop();
 		}
 		logger.info("Stopping XD Shell");
 		shell.stop();

@@ -25,6 +25,7 @@ import org.springframework.xd.rest.client.CounterOperations;
 import org.springframework.xd.rest.client.FieldValueCounterOperations;
 import org.springframework.xd.rest.client.GaugeOperations;
 import org.springframework.xd.rest.client.JobOperations;
+import org.springframework.xd.rest.client.ModuleOperations;
 import org.springframework.xd.rest.client.RichGaugeOperations;
 import org.springframework.xd.rest.client.SpringXDOperations;
 import org.springframework.xd.rest.client.StreamOperations;
@@ -46,6 +47,11 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 	 * Holds the Job-related part of the API.
 	 */
 	private JobOperations jobOperations;
+
+	/**
+	 * Holds the Module-related part of the API.
+	 */
+	private ModuleOperations moduleOperations;
 
 	/**
 	 * Holds the Counter-related part of the API.
@@ -77,6 +83,7 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 		XDRuntime xdRuntime = restTemplate.getForObject(baseURI, XDRuntime.class);
 		resources.put("streams", URI.create(xdRuntime.getLink("streams").getHref()));
 		resources.put("jobs", URI.create(xdRuntime.getLink("jobs").getHref()));
+		resources.put("modules", URI.create(xdRuntime.getLink("modules").getHref()));
 
 		resources.put("counters", URI.create(xdRuntime.getLink("counters").getHref()));
 		resources.put("field-value-counters", URI.create(xdRuntime.getLink("field-value-counters").getHref()));
@@ -91,6 +98,7 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 		aggrCounterOperations = new AggregateCounterTemplate(this);
 		gaugeOperations = new GaugeTemplate(this);
 		richGaugeOperations = new RichGaugeTemplate(this);
+		moduleOperations = new ModuleTemplate(this);
 	}
 
 	public SpringXDTemplate(URI baseURI) {
@@ -105,6 +113,11 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 	@Override
 	public JobOperations jobOperations() {
 		return jobOperations;
+	}
+
+	@Override
+	public ModuleOperations moduleOperations() {
+		return moduleOperations;
 	}
 
 	@Override

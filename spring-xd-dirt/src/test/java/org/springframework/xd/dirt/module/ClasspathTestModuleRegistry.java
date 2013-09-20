@@ -16,8 +16,12 @@
 
 package org.springframework.xd.dirt.module;
 
+import java.util.List;
+
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleType;
 
 /**
  * Simple {@link ModuleRegistry} that loads modules from the testmodules location
@@ -33,6 +37,32 @@ public class ClasspathTestModuleRegistry extends AbstractModuleRegistry {
 			return classPathResource;
 		}
 		return null;
+	}
+
+	private static final String MODULE_DIR = "src/test/resources/testmodules/";
+
+
+	@Override
+	public List<ModuleDefinition> findDefinitions(ModuleType type) {
+		ClassPathResource classPathResource = new ClassPathResource(MODULE_DIR);
+		FileModuleRegistry registry = new FileModuleRegistry(classPathResource.getPath());
+
+		return registry.findDefinitions(type);
+	}
+
+	public List<Resource> locateContexts(ModuleType type) {
+		ClassPathResource classPathResource = new ClassPathResource(MODULE_DIR);
+		FileModuleRegistry registry = new FileModuleRegistry(classPathResource.getPath());
+
+		return registry.locateContexts(type);
+	}
+
+	@Override
+	public List<ModuleDefinition> findDefinitions() {
+		ClassPathResource classPathResource = new ClassPathResource(MODULE_DIR);
+		FileModuleRegistry registry = new FileModuleRegistry(classPathResource.getPath());
+
+		return registry.findDefinitions();
 	}
 
 }

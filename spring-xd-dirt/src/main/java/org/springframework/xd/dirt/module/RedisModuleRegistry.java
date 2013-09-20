@@ -16,11 +16,16 @@
 
 package org.springframework.xd.dirt.module;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.Assert;
+import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleType;
 
 /**
  * @author Mark Fisher
@@ -39,6 +44,29 @@ public class RedisModuleRegistry extends AbstractModuleRegistry {
 	protected Resource locateApplicationContext(String name, String type) {
 		Object config = this.redisTemplate.boundHashOps("modules:" + type).get(name);
 		return (config != null) ? new ByteArrayResource(config.toString().getBytes()) : null;
+	}
+
+	@Override
+	public List<ModuleDefinition> findDefinitions(ModuleType type) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Auto-generated method stub");
+	}
+
+	public List<Resource> locateContexts(ModuleType type) {
+		ArrayList<Resource> resources = new ArrayList<Resource>();
+		for (Object object : this.redisTemplate.boundHashOps("modules:" + type.getTypeName()).entries().values()) {
+			resources.add(new ByteArrayResource(object.toString().getBytes()));
+		}
+		return resources;
+	}
+
+	@Override
+	public List<ModuleDefinition> findDefinitions() {
+		ArrayList<ModuleDefinition> results = new ArrayList<ModuleDefinition>();
+		for (ModuleType type : ModuleType.values()) {
+			results.addAll(findDefinitions(type));
+		}
+		return results;
 	}
 
 

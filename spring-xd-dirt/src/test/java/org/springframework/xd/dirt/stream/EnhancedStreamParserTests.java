@@ -213,22 +213,22 @@ public class EnhancedStreamParserTests {
 		ModuleDefinition jobDefinition = new ModuleDefinition(ModuleType.JOB.getTypeName(),
 				ModuleType.JOB.getTypeName(), resource);
 
-		when(registry.lookup("bart", ModuleType.SOURCE.getTypeName())).thenReturn(sourceDefinition);
-		when(registry.lookup("foo", ModuleType.SOURCE.getTypeName())).thenReturn(sourceDefinition);
-		when(registry.lookup("boo", ModuleType.SOURCE.getTypeName())).thenReturn(sourceDefinition);
-		when(registry.lookup("http", ModuleType.SOURCE.getTypeName())).thenReturn(sourceDefinition);
+		when(registry.findDefinition("bart", ModuleType.SOURCE.getTypeName())).thenReturn(sourceDefinition);
+		when(registry.findDefinition("foo", ModuleType.SOURCE.getTypeName())).thenReturn(sourceDefinition);
+		when(registry.findDefinition("boo", ModuleType.SOURCE.getTypeName())).thenReturn(sourceDefinition);
+		when(registry.findDefinition("http", ModuleType.SOURCE.getTypeName())).thenReturn(sourceDefinition);
 
-		when(registry.lookup("boot", ModuleType.SINK.getTypeName())).thenReturn(sinkDefinition);
-		when(registry.lookup("bar", ModuleType.SINK.getTypeName())).thenReturn(sinkDefinition);
-		when(registry.lookup("badLog", ModuleType.SINK.getTypeName())).thenReturn(sinkDefinition);
-		when(registry.lookup("file", ModuleType.SINK.getTypeName())).thenReturn(sinkDefinition);
+		when(registry.findDefinition("boot", ModuleType.SINK.getTypeName())).thenReturn(sinkDefinition);
+		when(registry.findDefinition("bar", ModuleType.SINK.getTypeName())).thenReturn(sinkDefinition);
+		when(registry.findDefinition("badLog", ModuleType.SINK.getTypeName())).thenReturn(sinkDefinition);
+		when(registry.findDefinition("file", ModuleType.SINK.getTypeName())).thenReturn(sinkDefinition);
 
-		when(registry.lookup("job", ModuleType.JOB.getTypeName())).thenReturn(jobDefinition);
+		when(registry.findDefinition("job", ModuleType.JOB.getTypeName())).thenReturn(jobDefinition);
 
-		when(registry.lookup("aaak", ModuleType.PROCESSOR.getTypeName())).thenReturn(processorDefinition);
-		when(registry.lookup("goo", ModuleType.PROCESSOR.getTypeName())).thenReturn(processorDefinition);
-		when(registry.lookup("blah", ModuleType.PROCESSOR.getTypeName())).thenReturn(processorDefinition);
-		when(registry.lookup("filter", ModuleType.PROCESSOR.getTypeName())).thenReturn(processorDefinition);
+		when(registry.findDefinition("aaak", ModuleType.PROCESSOR.getTypeName())).thenReturn(processorDefinition);
+		when(registry.findDefinition("goo", ModuleType.PROCESSOR.getTypeName())).thenReturn(processorDefinition);
+		when(registry.findDefinition("blah", ModuleType.PROCESSOR.getTypeName())).thenReturn(processorDefinition);
+		when(registry.findDefinition("filter", ModuleType.PROCESSOR.getTypeName())).thenReturn(processorDefinition);
 
 		return registry;
 	}

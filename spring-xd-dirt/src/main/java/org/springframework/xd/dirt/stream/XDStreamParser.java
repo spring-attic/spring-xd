@@ -164,7 +164,7 @@ public class XDStreamParser implements XDParser {
 	}
 
 	private ModuleType verifyModuleOfTypeExists(String moduleName, String type) {
-		ModuleDefinition def = moduleRegistry.lookup(moduleName, type);
+		ModuleDefinition def = moduleRegistry.findDefinition(moduleName, type);
 		if (def == null || def.getResource() == null) {
 			throw new NoSuchModuleException(moduleName);
 		}

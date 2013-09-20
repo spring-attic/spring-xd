@@ -148,7 +148,7 @@ public class JobPlugin extends AbstractPlugin {
 	@Override
 	public List<String> componentPathsSelector(Module module) {
 		List<String> result = new ArrayList<String>();
-		if (!JOB.equals(module.getType())) {
+		if (!JOB.equalsType(module.getType())) {
 			return result;
 		}
 		result.add(REGISTRAR);

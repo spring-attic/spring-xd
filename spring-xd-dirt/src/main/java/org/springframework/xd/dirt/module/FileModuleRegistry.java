@@ -19,6 +19,8 @@ package org.springframework.xd.dirt.module;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.FileSystemResource;
@@ -26,6 +28,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.util.Assert;
+import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleType;
 
 /**
  * File based implementation of {@link ModuleRegistry} that supports two kinds of modules:
@@ -94,6 +98,45 @@ public class FileModuleRegistry extends AbstractModuleRegistry implements Resour
 		Assert.isTrue(resourceLoader instanceof ResourcePatternResolver,
 				"resourceLoader must be a ResourcePatternResolver");
 		resolver = (ResourcePatternResolver) resourceLoader;
+	}
+
+	@Override
+	public List<ModuleDefinition> findDefinitions(ModuleType type) {
+		ArrayList<ModuleDefinition> results = new ArrayList<ModuleDefinition>();
+		for (Resource resource : locateContexts(type)) {
+			results.add(new ModuleDefinition(resource.getFilename().substring(0,
+					resource.getFilename().lastIndexOf('.')), type.getTypeName(), resource, null));
+		}
+		return results;
+	}
+
+	public List<Resource> locateContexts(ModuleType type) {
+		ArrayList<Resource> resources = new ArrayList<Resource>();
+		File typedDir = new File(directory, type.getTypeName());
+		File[] files = typedDir.listFiles();
+
+
+		for (File file : files) {
+			if (file.isFile()) {
+				String fileName = file.getName();
+				int i = fileName.lastIndexOf('.');
+				if (i > 0) {
+					if (fileName.substring(i + 1).equals("xml")) {
+						resources.add(new FileSystemResource(file));
+					}
+				}
+			}
+		}
+		return resources;
+	}
+
+	@Override
+	public List<ModuleDefinition> findDefinitions() {
+		ArrayList<ModuleDefinition> results = new ArrayList<ModuleDefinition>();
+		for (ModuleType type : ModuleType.values()) {
+			results.addAll(findDefinitions(type));
+		}
+		return results;
 	}
 
 }

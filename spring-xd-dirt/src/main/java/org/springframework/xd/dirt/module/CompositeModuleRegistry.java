@@ -22,12 +22,14 @@ import java.util.List;
 import java.util.Set;
 
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleType;
 
 
 /**
  * A {@link ModuleRegistry} that delegates to several ModuleRegistries, in order.
  * 
  * @author Eric Bottard
+ * @author Glenn Renfro
  */
 public class CompositeModuleRegistry implements ModuleRegistry {
 
@@ -42,9 +44,9 @@ public class CompositeModuleRegistry implements ModuleRegistry {
 	}
 
 	@Override
-	public ModuleDefinition lookup(String name, String type) {
+	public ModuleDefinition findDefinition(String name, String type) {
 		for (ModuleRegistry delegate : delegates) {
-			ModuleDefinition result = delegate.lookup(name, type);
+			ModuleDefinition result = delegate.findDefinition(name, type);
 			if (result != null) {
 				return result;
 			}
@@ -70,6 +72,34 @@ public class CompositeModuleRegistry implements ModuleRegistry {
 
 	private String makeKeyFor(ModuleDefinition definition) {
 		return definition.getType() + "|" + definition.getName();
+	}
+
+	@Override
+	public List<ModuleDefinition> findDefinitions(ModuleType type) {
+		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
+		Set<String> alreadySeen = new HashSet<String>();
+		for (ModuleRegistry delegate : delegates) {
+			for (ModuleDefinition def : delegate.findDefinitions(type)) {
+				if (alreadySeen.add(makeKeyFor(def))) {
+					definitions.add(def);
+				}
+			}
+		}
+		return definitions;
+	}
+
+	@Override
+	public List<ModuleDefinition> findDefinitions() {
+		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
+		Set<String> alreadySeen = new HashSet<String>();
+		for (ModuleRegistry delegate : delegates) {
+			for (ModuleDefinition def : delegate.findDefinitions()) {
+				if (alreadySeen.add(makeKeyFor(def))) {
+					definitions.add(def);
+				}
+			}
+		}
+		return definitions;
 	}
 
 }

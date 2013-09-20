@@ -20,6 +20,7 @@ package org.springframework.xd.dirt.module;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Assert;
@@ -30,6 +31,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleType;
 
 
 /**
@@ -50,24 +52,24 @@ public class CompositeModuleRegistryTests {
 
 	@Test
 	public void testFound() {
-		ModuleDefinition def = registry.lookup("http", "source");
+		ModuleDefinition def = registry.findDefinition("http", "source");
 		Assert.assertNotNull(def);
 		Assert.assertTrue(def.getResource() instanceof FileSystemResource);
 
-		def = registry.lookup("sink", "sink");
+		def = registry.findDefinition("sink", "sink");
 		Assert.assertNotNull(def);
 		Assert.assertTrue(def.getResource() instanceof ClassPathResource);
 	}
 
 	@Test
 	public void testNotFound() {
-		ModuleDefinition def = registry.lookup("foo", "bar");
+		ModuleDefinition def = registry.findDefinition("foo", "bar");
 		assertNull(def);
 	}
 
 	@Test
 	public void testShadowing() {
-		ModuleDefinition def = registry.lookup("file", "source");
+		ModuleDefinition def = registry.findDefinition("file", "source");
 		Assert.assertNotNull(def);
 		Assert.assertTrue(def.getResource() instanceof ClassPathResource);
 
@@ -77,4 +79,17 @@ public class CompositeModuleRegistryTests {
 		assertEquals("sink", multiple.get(1).getType());
 	}
 
+	@Test
+	public void testFindAll() {
+		List<ModuleDefinition> definitions = registry.findDefinitions(ModuleType.SOURCE);
+		Assert.assertNotNull("A result list should always be returned", definitions);
+		Assert.assertTrue("There should be more than 0 modules available", definitions.size() > 0);
+		ArrayList<String> moduleNames = new ArrayList<String>();
+		for (ModuleDefinition definition : definitions) {
+			moduleNames.add(definition.getName());
+		}
+		Assert.assertTrue("File Source should be available",
+				moduleNames.contains("file"));
+
+	}
 }

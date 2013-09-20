@@ -131,7 +131,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		int index = request.getIndex();
 		String name = request.getModule();
 		String type = request.getType();
-		ModuleDefinition definition = this.moduleRegistry.lookup(name, type);
+		ModuleDefinition definition = this.moduleRegistry.findDefinition(name, type);
 		Assert.notNull(definition, "No moduleDefinition for " + name + ":" + type);
 		DeploymentMetadata metadata = new DeploymentMetadata(group, index, request.getSourceChannelName(),
 				request.getSinkChannelName());

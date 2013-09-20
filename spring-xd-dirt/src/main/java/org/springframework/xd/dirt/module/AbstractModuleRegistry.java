@@ -36,7 +36,7 @@ import org.springframework.xd.module.ModuleType;
 public abstract class AbstractModuleRegistry implements ModuleRegistry {
 
 	@Override
-	public ModuleDefinition lookup(String name, String type) {
+	public ModuleDefinition findDefinition(String name, String type) {
 		Resource resource = this.locateApplicationContext(name, type);
 		if (resource == null) {
 			return null;
@@ -59,7 +59,7 @@ public abstract class AbstractModuleRegistry implements ModuleRegistry {
 	public List<ModuleDefinition> findDefinitions(String name) {
 		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
 		for (ModuleType type : ModuleType.values()) {
-			ModuleDefinition definition = lookup(name, type.getTypeName());
+			ModuleDefinition definition = findDefinition(name, type.getTypeName());
 			if (definition != null) {
 				definitions.add(definition);
 			}

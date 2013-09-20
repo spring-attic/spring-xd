@@ -49,6 +49,7 @@ import org.springframework.xd.shell.command.FieldValueCounterCommands;
 import org.springframework.xd.shell.command.GaugeCommands;
 import org.springframework.xd.shell.command.HttpCommands;
 import org.springframework.xd.shell.command.JobCommands;
+import org.springframework.xd.shell.command.ModuleCommands;
 import org.springframework.xd.shell.command.RichGaugeCommands;
 import org.springframework.xd.shell.command.StreamCommands;
 import org.springframework.xd.shell.hadoop.ConfigurationCommands;
@@ -100,6 +101,7 @@ public class ReferenceDoc {
 		// ===== Streams etc. ======
 		titles.put(StreamCommands.class, "Stream Commands");
 		titles.put(JobCommands.class, "Job Commands");
+		titles.put(ModuleCommands.class, "Module Commands");
 
 		// ======= Analytics =======
 		// Use of repeated title here on purpose

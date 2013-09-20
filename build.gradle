@@ -66,8 +66,15 @@ configure(javaProjects()) { subproject ->
 		}
 	}
 
-	sourceCompatibility=1.6
-	targetCompatibility=1.6
+	compileJava {
+		sourceCompatibility=1.6
+		targetCompatibility=1.6
+	}
+
+	compileTestJava {
+		sourceCompatibility=1.7
+		targetCompatibility=1.7
+	}
 
 	ext {
 		jacksonVersion = '2.2.2'

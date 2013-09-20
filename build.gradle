@@ -71,6 +71,7 @@ configure(javaProjects()) { subproject ->
 
 	ext {
 		jacksonVersion = '2.2.2'
+		jsonPathVersion = '0.8.1'
 		junitVersion = '4.11'
 		hamcrestVersion = '1.3'
 		hamcrestDateVersion = '0.9.3'
@@ -79,7 +80,7 @@ configure(javaProjects()) { subproject ->
 		jolokiaVersion = '1.1.2'
 		springVersion = '3.2.2.RELEASE'
 		springBatchVersion = '2.2.0.RELEASE'
-		springIntegrationVersion = '3.0.0.M3'
+		springIntegrationVersion = '3.0.0.BUILD-SNAPSHOT'
 		springBatchAdminMgrVersion = '1.3.0.M1'
 		springSocialVersion = '1.1.0.M3'
 		springShellVersion = '1.1.0.M1'
@@ -242,6 +243,7 @@ project('spring-xd-dirt') {
 				"org.springframework:spring-webmvc:$springVersion",
 				"org.springframework.data:spring-data-commons:$springDataCommonsVersion",
 				"com.fasterxml.jackson.core:jackson-databind:$jacksonVersion",
+				"com.jayway.jsonpath:json-path:$jsonPathVersion",
 				"org.apache.tomcat.embed:tomcat-embed-core:$tomcatVersion",
 				"org.apache.tomcat.embed:tomcat-embed-logging-juli:$tomcatVersion",
 				"org.apache.tomcat:tomcat-jsp-api:$tomcatVersion",

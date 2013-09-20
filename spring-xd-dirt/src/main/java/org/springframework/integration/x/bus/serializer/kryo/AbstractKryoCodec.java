@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import org.springframework.integration.x.bus.serializer.AbstractCodec;
+import org.springframework.util.Assert;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
@@ -43,7 +44,8 @@ abstract class AbstractKryoCodec<T> extends AbstractCodec<T> {
 	 */
 	@Override
 	public void serialize(T object, OutputStream outputStream) throws IOException {
-		Output output = (outputStream == null) ? new Output(2048, -1) : new Output(outputStream);
+		Assert.notNull(outputStream, "outputStream cannot be null");
+		Output output = new Output(outputStream);
 		doSerialize(object, getKryoInstance(), output);
 		output.close();
 	}

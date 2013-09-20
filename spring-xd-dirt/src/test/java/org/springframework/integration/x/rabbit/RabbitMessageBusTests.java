@@ -34,7 +34,7 @@ public class RabbitMessageBusTests extends AbstractMessageBusTests {
 	@Override
 	protected MessageBus getMessageBus() throws Exception {
 		CachingConnectionFactory connectionFactory = new CachingConnectionFactory("localhost");
-		return new RabbitMessageBus(connectionFactory);
+		return new RabbitMessageBus(connectionFactory, getCodec());
 	}
 
 }

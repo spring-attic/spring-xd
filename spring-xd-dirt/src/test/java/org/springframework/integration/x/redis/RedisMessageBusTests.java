@@ -35,7 +35,7 @@ public class RedisMessageBusTests extends AbstractMessageBusTests {
 	protected MessageBus getMessageBus() throws Exception {
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
 		connectionFactory.afterPropertiesSet();
-		return new RedisMessageBus(connectionFactory);
+		return new RedisMessageBus(connectionFactory, getCodec());
 	}
 
 }

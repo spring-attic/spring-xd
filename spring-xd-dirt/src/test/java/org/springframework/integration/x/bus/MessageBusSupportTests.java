@@ -20,43 +20,58 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.http.MediaType;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.x.bus.serializer.AbstractCodec;
+import org.springframework.integration.x.bus.serializer.CompositeCodec;
+import org.springframework.integration.x.bus.serializer.kryo.PojoCodec;
+import org.springframework.integration.x.bus.serializer.kryo.TupleCodec;
+import org.springframework.xd.tuple.DefaultTuple;
 import org.springframework.xd.tuple.Tuple;
 import org.springframework.xd.tuple.TupleBuilder;
 
 /**
  * @author Gary Russell
+ * @author David Turanski
  */
 public class MessageBusSupportTests {
 
 	private final TestMessageBus messageBus = new TestMessageBus();
 
+	@Before
+	public void setUp() {
+		Map<Class<?>, AbstractCodec<?>> codecs = new HashMap<Class<?>, AbstractCodec<?>>();
+		codecs.put(Tuple.class, new TupleCodec());
+		messageBus.setCodec(new CompositeCodec(codecs, new PojoCodec()));
+	}
+
 	@Test
 	public void testBytesPassThru() {
 		byte[] payload = "foo".getBytes();
 		Message<byte[]> message = MessageBuilder.withPayload(payload).build();
-		Message<?> converted = messageBus.transformOutboundIfNecessary(message,
+		Message<?> converted = messageBus.transformPayloadForProducerIfNecessary(message,
 				MediaType.APPLICATION_OCTET_STREAM);
 		assertSame(payload, converted.getPayload());
-		assertEquals(MessageBusSupport.XD_OCTET_STREAM_VALUE,
+		assertEquals(MediaType.APPLICATION_OCTET_STREAM,
 				converted.getHeaders().get(MessageHeaders.CONTENT_TYPE));
-		Message<?> reconstructed = messageBus.transformInboundIfNecessary(converted,
+		Message<?> reconstructed = messageBus.transformPayloadForConsumerIfNecessary(converted,
 				Collections.singletonList(MediaType.ALL));
 		payload = (byte[]) reconstructed.getPayload();
 		assertSame(converted.getPayload(), payload);
-		assertNull(reconstructed.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		assertNull(reconstructed.getHeaders().get(MessageBusSupport.ORIGINAL_CONTENT_TYPE_HEADER));
 	}
 
 	@Test
@@ -65,12 +80,12 @@ public class MessageBusSupportTests {
 		Message<byte[]> message = MessageBuilder.withPayload(payload)
 				.setHeader(MessageHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE)
 				.build();
-		Message<?> converted = messageBus.transformOutboundIfNecessary(message,
+		Message<?> converted = messageBus.transformPayloadForProducerIfNecessary(message,
 				MediaType.APPLICATION_OCTET_STREAM);
 		assertSame(payload, converted.getPayload());
-		assertEquals(MessageBusSupport.XD_OCTET_STREAM_VALUE,
+		assertEquals(MediaType.APPLICATION_OCTET_STREAM,
 				converted.getHeaders().get(MessageHeaders.CONTENT_TYPE));
-		Message<?> reconstructed = messageBus.transformInboundIfNecessary(converted,
+		Message<?> reconstructed = messageBus.transformPayloadForConsumerIfNecessary(converted,
 				Collections.singletonList(MediaType.ALL));
 		payload = (byte[]) reconstructed.getPayload();
 		assertSame(converted.getPayload(), payload);
@@ -80,105 +95,98 @@ public class MessageBusSupportTests {
 	}
 
 	@Test
-	public void testString() {
-		Message<?> converted = messageBus.transformOutboundIfNecessary(
+	public void testString() throws IOException {
+		Message<?> converted = messageBus.transformPayloadForProducerIfNecessary(
 				new GenericMessage<String>("foo"), MediaType.APPLICATION_OCTET_STREAM);
-		assertEquals("foo", new String((byte[]) converted.getPayload()));
-		assertEquals(MessageBusSupport.XD_TEXT_PLAIN_UTF8_VALUE,
+
+		assertEquals(MediaType.TEXT_PLAIN,
 				converted.getHeaders().get(MessageHeaders.CONTENT_TYPE));
-		Message<?> reconstructed = messageBus.transformInboundIfNecessary(converted,
+		Message<?> reconstructed = messageBus.transformPayloadForConsumerIfNecessary(converted,
 				Collections.singletonList(MediaType.ALL));
 		assertEquals("foo", reconstructed.getPayload());
 		assertNull(reconstructed.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
 
 	@Test
-	public void testJsonPojo() {
-		Message<?> converted = messageBus.transformOutboundIfNecessary(new GenericMessage<Foo>(new Foo("bar")),
-				MediaType.APPLICATION_OCTET_STREAM);
-		assertEquals(
-				"{\"Foo\":{\"@class\":\"org.springframework.integration.x.bus.MessageBusSupportTests$Foo\",\"bar\":\"bar\"}}",
-				new String((byte[]) converted.getPayload()));
-		assertEquals(MessageBusSupport.XD_JSON_OCTET_STREAM_VALUE,
+	public void testContentTypePreserved() throws IOException {
+		Message<String> inbound = MessageBuilder.withPayload("{\"foo\":\"foo\"}")
+				.copyHeaders(Collections.singletonMap(MessageHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+				.build();
+		Message<?> converted = messageBus.transformPayloadForProducerIfNecessary(
+				inbound, MediaType.APPLICATION_OCTET_STREAM);
+
+		assertEquals(MediaType.TEXT_PLAIN,
 				converted.getHeaders().get(MessageHeaders.CONTENT_TYPE));
-		Message<?> reconstructed = messageBus.transformInboundIfNecessary(converted,
+		assertEquals(MediaType.APPLICATION_JSON,
+				converted.getHeaders().get(MessageBusSupport.ORIGINAL_CONTENT_TYPE_HEADER));
+		Message<?> reconstructed = messageBus.transformPayloadForConsumerIfNecessary(converted,
+				Collections.singletonList(MediaType.ALL));
+		assertEquals("{\"foo\":\"foo\"}", reconstructed.getPayload());
+		assertEquals(MediaType.APPLICATION_JSON, reconstructed.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+	}
+
+	@Test
+	public void testPojoSerialization() {
+		Message<?> converted = messageBus.transformPayloadForProducerIfNecessary(
+				new GenericMessage<Foo>(new Foo("bar")),
+				MediaType.APPLICATION_OCTET_STREAM);
+		MediaType mediaType = (MediaType) converted.getHeaders().get(MessageHeaders.CONTENT_TYPE);
+		assertEquals("application", mediaType.getType());
+		assertEquals("x-java-object", mediaType.getSubtype());
+		assertEquals(Foo.class.getName(), mediaType.getParameter("type"));
+
+		Message<?> reconstructed = messageBus.transformPayloadForConsumerIfNecessary(converted,
 				Collections.singletonList(MediaType.ALL));
 		assertEquals("bar", ((Foo) reconstructed.getPayload()).getBar());
 		assertNull(reconstructed.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
 
 	@Test
-	public void testJsonPojoWithXJavaObjectMediaTypeNoType() {
-		Message<?> converted = messageBus.transformOutboundIfNecessary(new GenericMessage<Foo>(new Foo("bar")),
+	public void testPojoWithXJavaObjectMediaTypeNoType() {
+		Message<?> converted = messageBus.transformPayloadForProducerIfNecessary(
+				new GenericMessage<Foo>(new Foo("bar")),
 				MediaType.APPLICATION_OCTET_STREAM);
-		assertEquals(
-				"{\"Foo\":{\"@class\":\"org.springframework.integration.x.bus.MessageBusSupportTests$Foo\",\"bar\":\"bar\"}}",
-				new String((byte[]) converted.getPayload()));
-		assertEquals(MessageBusSupport.XD_JSON_OCTET_STREAM_VALUE,
-				converted.getHeaders().get(MessageHeaders.CONTENT_TYPE));
-		Message<?> reconstructed = messageBus.transformInboundIfNecessary(converted,
+		MediaType mediaType = (MediaType) converted.getHeaders().get(MessageHeaders.CONTENT_TYPE);
+		assertEquals("application", mediaType.getType());
+		assertEquals("x-java-object", mediaType.getSubtype());
+		assertEquals(Foo.class.getName(), mediaType.getParameter("type"));
+
+		Message<?> reconstructed = messageBus.transformPayloadForConsumerIfNecessary(converted,
 				Collections.singletonList(new MediaType("application", "x-java-object")));
 		assertEquals("bar", ((Foo) reconstructed.getPayload()).getBar());
 		assertNull(reconstructed.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
 
 	@Test
-	public void testJsonPojoWithXJavaObjectMediaTypeExplicitType() {
-		Message<?> converted = messageBus.transformOutboundIfNecessary(new GenericMessage<Foo>(new Foo("bar")),
+	public void testPojoWithXJavaObjectMediaTypeExplicitType() {
+		Message<?> converted = messageBus.transformPayloadForProducerIfNecessary(
+				new GenericMessage<Foo>(new Foo("bar")),
 				MediaType.APPLICATION_OCTET_STREAM);
-		assertEquals(
-				"{\"Foo\":{\"@class\":\"org.springframework.integration.x.bus.MessageBusSupportTests$Foo\",\"bar\":\"bar\"}}",
-				new String((byte[]) converted.getPayload()));
-		assertEquals(MessageBusSupport.XD_JSON_OCTET_STREAM_VALUE,
-				converted.getHeaders().get(MessageHeaders.CONTENT_TYPE));
-		MediaType type = new MediaType("application", "x-java-object", Collections.singletonMap("type",
-				"org.springframework.integration.x.bus.MessageBusSupportTests$Foo"));
-		Message<?> reconstructed = messageBus.transformInboundIfNecessary(converted,
-				Collections.singletonList(type));
+		MediaType mediaType = (MediaType) converted.getHeaders().get(MessageHeaders.CONTENT_TYPE);
+		assertEquals("application", mediaType.getType());
+		assertEquals("x-java-object", mediaType.getSubtype());
+		assertEquals(Foo.class.getName(), mediaType.getParameter("type"));
+
+		Message<?> reconstructed = messageBus.transformPayloadForConsumerIfNecessary(converted,
+				Collections.singletonList(mediaType));
 		assertEquals("bar", ((Foo) reconstructed.getPayload()).getBar());
 		assertNull(reconstructed.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
 
 	@Test
-	public void testJsonTuple() {
+	public void testTupleSerialization() {
 		Tuple payload = TupleBuilder.tuple().of("foo", "bar");
-		Message<?> converted = messageBus.transformOutboundIfNecessary(new GenericMessage<Tuple>(payload),
+		Message<?> converted = messageBus.transformPayloadForProducerIfNecessary(new GenericMessage<Tuple>(payload),
 				MediaType.APPLICATION_OCTET_STREAM);
-		assertEquals(MessageBusSupport.XD_JSON_OCTET_STREAM_VALUE,
-				converted.getHeaders().get(MessageHeaders.CONTENT_TYPE));
-		Message<?> reconstructed = messageBus.transformInboundIfNecessary(converted,
+		MediaType mediaType = (MediaType) converted.getHeaders().get(MessageHeaders.CONTENT_TYPE);
+		assertEquals("application", mediaType.getType());
+		assertEquals("x-java-object", mediaType.getSubtype());
+		assertEquals(DefaultTuple.class.getName(), mediaType.getParameter("type"));
+
+		Message<?> reconstructed = messageBus.transformPayloadForConsumerIfNecessary(converted,
 				Collections.singletonList(MediaType.ALL));
 		assertEquals("bar", ((Tuple) reconstructed.getPayload()).getString("foo"));
 		assertNull(reconstructed.getHeaders().get(MessageHeaders.CONTENT_TYPE));
-	}
-
-	/*
-	 * Foo transported as JSON, decoded and then converted to Bar using higher level protected methods
-	 */
-	@Test
-	public void testJsonPojoConvertMessage() {
-		DefaultConversionService conversionService = new DefaultConversionService();
-		conversionService.addConverter(new Converter<Foo, Bar>() {
-
-			@Override
-			public Bar convert(Foo source) {
-				return new Bar(source.getBar());
-			}
-		});
-		messageBus.setConversionService(conversionService);
-
-		Message<?> message = new GenericMessage<Foo>(new Foo("bar"));
-		Message<?> messageToSend = messageBus.transformOutboundIfNecessary(message,
-				MediaType.APPLICATION_OCTET_STREAM);
-		assertEquals(
-				"{\"Foo\":{\"@class\":\"org.springframework.integration.x.bus.MessageBusSupportTests$Foo\",\"bar\":\"bar\"}}",
-				new String((byte[]) messageToSend.getPayload()));
-
-		MediaType type = new MediaType("application", "x-java-object", Collections.singletonMap("type",
-				"org.springframework.integration.x.bus.MessageBusSupportTests$Bar"));
-		Message<?> messageToSink = messageBus.transformInboundIfNecessary(messageToSend,
-				Collections.singletonList(type));
-		assertEquals("bar", ((Bar) messageToSink.getPayload()).getFoo());
 	}
 
 	public static class Foo {

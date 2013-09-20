@@ -50,7 +50,7 @@ def javaProjects() {
 
 configure(javaProjects()) { subproject ->
 
-	apply plugin: 'java'
+	apply plugin: 'groovy'
 	apply from:   "${rootProject.projectDir}/publish-maven.gradle"
 	apply plugin: 'eclipse'
 	apply plugin: 'idea'
@@ -105,6 +105,7 @@ configure(javaProjects()) { subproject ->
 		args4jVersion = '2.0.25'
 		mockitoVersion = '1.9.5'
 		javaxMailVersion = '1.5.0'
+		kryoVersion = '2.21'
 	}
 
 	eclipse {
@@ -137,6 +138,12 @@ configure(javaProjects()) { subproject ->
 
 	sourceSets {
 		test {
+			groovy {
+				srcDirs = ['src/test/java']
+				resources {
+					srcDirs = ['src/test/resources', 'src/test/java']
+				}
+			}
 			resources {
 				srcDirs = ['src/test/resources', 'src/test/java']
 			}
@@ -150,6 +157,7 @@ configure(javaProjects()) { subproject ->
 	// dependencies that are common across all java projects
 	dependencies {
 		testCompile "junit:junit:$junitVersion"
+		testCompile "org.codehaus.groovy:groovy-all:2.1.0"
 		testCompile "org.hamcrest:hamcrest-library:$hamcrestVersion"
 		jacoco group: "org.jacoco", name: "org.jacoco.agent", version: "0.6.2.201302030002", classifier: "runtime"
 	}
@@ -267,8 +275,9 @@ project('spring-xd-dirt') {
 				"com.eaio.uuid:uuid:3.2",
 				"org.jolokia:jolokia-spring:$jolokiaVersion",
 				"org.springframework.plugin:spring-plugin-core:$springPluginVersion",
-				"hsqldb:hsqldb:$hsqldbVersion",
-				"org.apache.tomcat:tomcat-jdbc:$tomcatJdbcPoolVersion"
+				"org.hsqldb:hsqldb:$hsqldbVersion",
+				"org.apache.tomcat:tomcat-jdbc:$tomcatJdbcPoolVersion",
+				"com.esotericsoftware.kryo:kryo:$kryoVersion"
 
 		compile ("org.apache.activemq:activemq-core:5.6.0") {
 			exclude group: 'org.mortbay.jetty'
@@ -339,12 +348,6 @@ project('spring-xd-dirt') {
         applicationDistribution.from(xdUiFiles) {
                 into "spring-xd-ui"
         }
-
-	task cleanDataDir(type: Delete) {
-		delete "$rootDir/data"
-	}
-	
-	tasks["clean"].dependsOn("cleanDataDir")
 }
 
 project('spring-xd-http') {

@@ -36,9 +36,10 @@ import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.x.bus.Bridge;
+import org.springframework.integration.x.bus.Binding;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.integration.x.bus.MessageBusSupport;
+import org.springframework.integration.x.bus.serializer.MultiTypeCodec;
 import org.springframework.util.Assert;
 
 /**
@@ -55,9 +56,11 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 
 	private final EmbeddedHeadersMessageConverter embeddedHeadersMessageConverter = new EmbeddedHeadersMessageConverter();
 
-	public RedisMessageBus(RedisConnectionFactory connectionFactory) {
+	public RedisMessageBus(RedisConnectionFactory connectionFactory, MultiTypeCodec<Object> codec) {
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");
+		Assert.notNull(codec, "codec must not be null");
 		this.connectionFactory = connectionFactory;
+		setCodec(codec);
 	}
 
 	@Override
@@ -85,7 +88,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 		adapter.setOutputChannel(bridgeToModuleChannel);
 		adapter.setBeanName("inbound." + name);
 		adapter.afterPropertiesSet();
-		addBridge(new Bridge(moduleInputChannel, adapter));
+		addBinding(Binding.forConsumer(adapter, moduleInputChannel));
 		ReceivingHandler convertingBridge = new ReceivingHandler(acceptedMediaTypes);
 		convertingBridge.setOutputChannel(moduleInputChannel);
 		convertingBridge.setBeanName(name + ".convert.bridge");
@@ -119,13 +122,13 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 		EventDrivenConsumer consumer = new EventDrivenConsumer((SubscribableChannel) moduleOutputChannel, handler);
 		consumer.setBeanName("outbound." + name);
 		consumer.afterPropertiesSet();
-		addBridge(new Bridge(moduleOutputChannel, consumer));
+		addBinding(Binding.forProducer(moduleOutputChannel, consumer));
 		consumer.start();
 	}
 
 	@Override
 	public void destroy() {
-		stopBridges();
+		stopBindings();
 	}
 
 	private class SendingHandler extends AbstractMessageHandler {
@@ -140,7 +143,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 		@Override
 		protected void handleMessageInternal(Message<?> message) throws Exception {
 			@SuppressWarnings("unchecked")
-			Message<byte[]> transformed = (Message<byte[]>) transformOutboundIfNecessary(message,
+			Message<byte[]> transformed = (Message<byte[]>) transformPayloadForProducerIfNecessary(message,
 					MediaType.APPLICATION_OCTET_STREAM);
 			Message<?> messageToSend = embeddedHeadersMessageConverter.embedHeaders(transformed,
 					MessageHeaders.CONTENT_TYPE, ORIGINAL_CONTENT_TYPE_HEADER);
@@ -168,7 +171,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 			catch (UnsupportedEncodingException e) {
 				logger.error("Could not convert message", e);
 			}
-			return transformInboundIfNecessary(theRequestMessage, acceptedMediaTypes);
+			return transformPayloadForConsumerIfNecessary(theRequestMessage, acceptedMediaTypes);
 		}
 
 	};
@@ -187,7 +190,8 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 			int headerCount = 0;
 			int headersLength = 0;
 			for (String header : headers) {
-				String value = (String) message.getHeaders().get(header);
+				String value = message.getHeaders().get(header) == null ? null
+						: message.getHeaders().get(header).toString();
 				headerValues[n++] = value;
 				if (value != null) {
 					headerCount++;

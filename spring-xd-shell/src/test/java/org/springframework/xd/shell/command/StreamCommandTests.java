@@ -161,7 +161,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		stream().create("s2", "%s | obfuscate --text=aca | %s", httpSource, sink);
 		httpSource.ensureReady().postData("Dracarys!");
 		// TODO reactivate when get to the bottom of the race condition
-		assertEquals("Dr.rys!\n", sink.getContents());
+		assertEquals("Dr.rys!", sink.getContents().trim());
 	}
 
 	@Ignore
@@ -304,6 +304,18 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		stream().destroyStream("stream4");
 		stream().destroyStream("stream1");
 		stream().destroyStream("stream3");
+	}
+
+	@Test
+	public void testJsonPath() throws IOException {
+		HttpSource source = newHttpSource();
+		FileSink sink = newFileSink();
+		stream().create("jsonPathStream",
+				"%s | transform --expression='#jsonPath(payload, \"$.foo.bar\")' | %s",
+				source, sink);
+		source.ensureReady().postData("{\"foo\":{\"bar\":123}}");
+		assertEquals("123", sink.getContents().trim());
+		stream().destroyStream("jsonPathStream");
 	}
 
 }

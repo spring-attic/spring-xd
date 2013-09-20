@@ -69,7 +69,7 @@ public class StreamPlugin implements Plugin {
 	public void preProcessModule(Module module) {
 		String type = module.getType();
 		DeploymentMetadata md = module.getDeploymentMetadata();
-		if ((SOURCE.equals(type) || PROCESSOR.equals(type) || SINK.equals(type))) {
+		if ((SOURCE.equalsType(type) || PROCESSOR.equalsType(type) || SINK.equalsType(type))) {
 			Properties properties = new Properties();
 			properties.setProperty("xd.stream.name", md.getGroup());
 			properties.setProperty("xd.module.index", String.valueOf(md.getIndex()));

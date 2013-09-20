@@ -536,6 +536,7 @@ project('spring-xd-rest-client') {
 	dependencies {
 		compile "org.springframework:spring-web:$springVersion"
 		compile project(':spring-xd-rest-domain')
+		compile project(":spring-xd-module")
 		compile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
 		compile 'org.codehaus.jackson:jackson-core-asl:1.9.13'
         compile "joda-time:joda-time:$jodaTimeVersion"

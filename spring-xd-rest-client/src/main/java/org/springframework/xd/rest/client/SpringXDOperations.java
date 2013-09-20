@@ -36,6 +36,12 @@ public interface SpringXDOperations {
 	public JobOperations jobOperations();
 
 	/**
+	 * Returns the portion of the API for interaction with Modules.
+	 */
+	public ModuleOperations moduleOperations();
+
+
+	/**
 	 * Returns the portion of the API for interaction with Counters.
 	 */
 	public CounterOperations counterOperations();

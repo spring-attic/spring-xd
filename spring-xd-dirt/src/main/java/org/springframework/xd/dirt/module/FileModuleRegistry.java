@@ -19,13 +19,18 @@ package org.springframework.xd.dirt.module;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.util.Assert;
+import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleType;
 
 /**
  * File based implementation of {@link ModuleRegistry} that supports two kinds of modules:
@@ -45,7 +50,7 @@ public class FileModuleRegistry extends AbstractModuleRegistry implements Resour
 
 	private final File directory;
 
-	private ResourcePatternResolver resolver;
+	private ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 
 	public FileModuleRegistry(String directory) {
 		File f = new File(directory);
@@ -54,9 +59,8 @@ public class FileModuleRegistry extends AbstractModuleRegistry implements Resour
 	}
 
 	@Override
-	protected Resource locateApplicationContext(String name, String type) {
-		File typedDir = new File(directory, type);
-
+	protected Resource locateApplicationContext(String name, ModuleType type) {
+		File typedDir = new File(directory, type.getTypeName());
 		File enhanced = new File(typedDir, name + File.separator + "config" + File.separator + name + ".xml");
 		if (enhanced.exists()) {
 			return new FileSystemResource(enhanced);
@@ -94,6 +98,66 @@ public class FileModuleRegistry extends AbstractModuleRegistry implements Resour
 		Assert.isTrue(resourceLoader instanceof ResourcePatternResolver,
 				"resourceLoader must be a ResourcePatternResolver");
 		resolver = (ResourcePatternResolver) resourceLoader;
+	}
+
+	@Override
+	public List<ModuleDefinition> findDefinitions(ModuleType type) {
+		ArrayList<ModuleDefinition> results = new ArrayList<ModuleDefinition>();
+		for (Resource resource : locateApplicationContexts(type)) {
+			String name = resource.getFilename().substring(0,
+					resource.getFilename().lastIndexOf('.'));
+			results.add(new ModuleDefinition(name, type.getTypeName(), resource, maybeLocateClasspath(resource, name,
+					type.getTypeName())));
+		}
+		return results;
+	}
+
+	@Override
+	protected List<Resource> locateApplicationContexts(ModuleType type) {
+		ArrayList<Resource> resources = new ArrayList<Resource>();
+		File typedDir = new File(directory, type.getTypeName());
+		File[] files = typedDir.listFiles();
+		if (files == null) {
+			return resources;
+		}
+
+		for (File file : files) {
+			if (file.isFile()) {
+				String fileName = file.getName();
+				int i = fileName.lastIndexOf('.');
+				if (i > 0) {
+					if (fileName.substring(i + 1).equals("xml")) {
+						resources.add(new FileSystemResource(file));
+					}
+				}
+			}
+			else if (file.isDirectory()) {
+				FileSystemResource configResource = getResourceFromConfigDir(file, type.getTypeName());
+				if (configResource != null) {
+					resources.add(configResource);
+				}
+			}
+		}
+		return resources;
+	}
+
+	private FileSystemResource getResourceFromConfigDir(File file, String typeName) {
+		FileSystemResource result = null;
+		String moduleName = file.getName();
+		File moduleFile = new File(file.getPath() + "/config/" + moduleName + ".xml");
+		if (moduleFile.exists()) {
+			result = new FileSystemResource(moduleFile);
+		}
+		return result;
+	}
+
+	@Override
+	public List<ModuleDefinition> findDefinitions() {
+		ArrayList<ModuleDefinition> results = new ArrayList<ModuleDefinition>();
+		for (ModuleType type : ModuleType.values()) {
+			results.addAll(findDefinitions(type));
+		}
+		return results;
 	}
 
 }

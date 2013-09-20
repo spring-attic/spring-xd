@@ -84,13 +84,13 @@ public class StreamsControllerIntegrationWithRepositoryTests extends AbstractCon
 		definitions.add(new ModuleDefinition(ModuleType.SOURCE.getTypeName(), ModuleType.SOURCE.getTypeName(), resource));
 		when(moduleRegistry.findDefinitions(ModuleType.SOURCE.getTypeName())).thenReturn(definitions);
 		when(moduleRegistry.findDefinitions("time")).thenReturn(definitions);
-		when(moduleRegistry.lookup("time", "source")).thenReturn(sourceDefinition);
+		when(moduleRegistry.findDefinition("time", "source")).thenReturn(sourceDefinition);
 
 		definitions = new ArrayList<ModuleDefinition>();
 		definitions.add(new ModuleDefinition(ModuleType.SINK.getTypeName(), ModuleType.SINK.getTypeName(), resource));
 		when(moduleRegistry.findDefinitions(ModuleType.SINK.getTypeName())).thenReturn(definitions);
 		when(moduleRegistry.findDefinitions("log")).thenReturn(definitions);
-		when(moduleRegistry.lookup("log", "sink")).thenReturn(sinkDefinition);
+		when(moduleRegistry.findDefinition("log", "sink")).thenReturn(sinkDefinition);
 
 		definitions = new ArrayList<ModuleDefinition>();
 		definitions.add(new ModuleDefinition(ModuleType.PROCESSOR.getTypeName(), ModuleType.PROCESSOR.getTypeName(),

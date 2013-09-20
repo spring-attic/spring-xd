@@ -17,9 +17,10 @@
 package org.springframework.xd.dirt.module;
 
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Assert;
@@ -27,14 +28,15 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleType;
 
 
 /**
  * 
  * @author Eric Bottard
+ * @author Glenn Renfro
  */
 public class CompositeModuleRegistryTests {
 
@@ -43,38 +45,100 @@ public class CompositeModuleRegistryTests {
 	@Before
 	public void setup() {
 		ClasspathTestModuleRegistry cp = new ClasspathTestModuleRegistry();
-		FileModuleRegistry file = new FileModuleRegistry("../modules");
+		FileModuleRegistry file = new FileModuleRegistry("src/test/resources/testmodules");
 		file.setResourceLoader(new PathMatchingResourcePatternResolver());
 		registry = new CompositeModuleRegistry(cp, file);
 	}
 
 	@Test
 	public void testFound() {
-		ModuleDefinition def = registry.lookup("http", "source");
+		ModuleDefinition def = registry.findDefinition("file", "source");
 		Assert.assertNotNull(def);
-		Assert.assertTrue(def.getResource() instanceof FileSystemResource);
+		Assert.assertTrue(def.getResource() instanceof ClassPathResource);
 
-		def = registry.lookup("sink", "sink");
+		def = registry.findDefinition("sink", "sink");
 		Assert.assertNotNull(def);
 		Assert.assertTrue(def.getResource() instanceof ClassPathResource);
 	}
 
 	@Test
 	public void testNotFound() {
-		ModuleDefinition def = registry.lookup("foo", "bar");
+		ModuleDefinition def = registry.findDefinition("foo", "sink");
 		assertNull(def);
 	}
 
 	@Test
-	public void testShadowing() {
-		ModuleDefinition def = registry.lookup("file", "source");
-		Assert.assertNotNull(def);
-		Assert.assertTrue(def.getResource() instanceof ClassPathResource);
+	public void testFindSource() {
+		List<ModuleDefinition> definitions = registry.findDefinitions(ModuleType.SOURCE);
+		Assert.assertNotNull("A result list should always be returned", definitions);
+		Assert.assertEquals(4, definitions.size());
+		ArrayList<String> moduleNames = new ArrayList<String>();
+		for (ModuleDefinition definition : definitions) {
+			moduleNames.add(definition.getName());
+		}
+		Assert.assertTrue("File Source should be available",
+				moduleNames.contains("file"));
 
-		List<ModuleDefinition> multiple = registry.findDefinitions("file");
-		assertEquals(2, multiple.size());
-		assertEquals("source", multiple.get(0).getType());
-		assertEquals("sink", multiple.get(1).getType());
 	}
 
+	@Test
+	public void testFindSink() {
+		List<ModuleDefinition> definitions = registry.findDefinitions(ModuleType.SINK);
+		Assert.assertNotNull("A result list should always be returned", definitions);
+		Assert.assertEquals(1, definitions.size());
+		ArrayList<String> moduleNames = new ArrayList<String>();
+		for (ModuleDefinition definition : definitions) {
+			moduleNames.add(definition.getName());
+		}
+		Assert.assertTrue("Sink Sink should be available",
+				moduleNames.contains("sink"));
+
+	}
+
+	@Test
+	public void testFindAll() {
+		List<ModuleDefinition> definitions = registry.findDefinitions();
+		Assert.assertNotNull("A result list should always be returned", definitions);
+		Assert.assertEquals(5, definitions.size());
+		ArrayList<String> moduleNames = new ArrayList<String>();
+		for (ModuleDefinition definition : definitions) {
+			moduleNames.add(definition.getName());
+		}
+		Assert.assertTrue("File Source should be available",
+				moduleNames.contains("file"));
+		Assert.assertTrue(" Source should be available",
+				moduleNames.contains("source"));
+		Assert.assertTrue(" Sink should be available",
+				moduleNames.contains("sink"));
+		Assert.assertTrue(" source-config should be available",
+				moduleNames.contains("source-config"));
+	}
+
+	@Test
+	public void testClassPath() {
+		List<ModuleDefinition> definitions = registry.findDefinitions();
+		String sourceConfigClassPath = null;
+		URL[] sourceConfigNoLib = null;
+
+		ModuleDefinition fileModule = null;
+
+		for (ModuleDefinition definition : definitions) {
+			if (definition.getName().equals("source-config") && definition.getClasspath().length == 1) {
+				sourceConfigClassPath = definition.getClasspath()[0].toString();
+			}
+			if (definition.getName().equals("source-config-no-lib")) {
+				sourceConfigNoLib = definition.getClasspath();
+			}
+
+			if (definition.getName().equals("file")) {
+				fileModule = definition;
+			}
+		}
+		Assert.assertNull("File Source should not have a associated jar", fileModule.getClasspath());
+		Assert.assertNotNull("sourceConfigClassPath should not be null", sourceConfigClassPath);
+		Assert.assertTrue("source-config classpath should end with ../lib/source-config.jar",
+				sourceConfigClassPath.endsWith("../lib/source-config.jar"));
+		Assert.assertNull("source-config-no-lib should have no associated libraries", sourceConfigNoLib);
+
+	}
 }

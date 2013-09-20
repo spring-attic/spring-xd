@@ -37,7 +37,7 @@ public enum ModuleType {
 		return typeName;
 	}
 
-	public boolean equals(String s) {
+	public boolean equalsType(String s) {
 		if (valueOf(s.toUpperCase()).equals(this)) {
 			return true;
 		}

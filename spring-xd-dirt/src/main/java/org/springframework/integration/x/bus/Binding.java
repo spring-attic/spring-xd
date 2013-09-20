@@ -19,22 +19,39 @@ package org.springframework.integration.x.bus;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
-
+import org.springframework.util.Assert;
 
 /**
- * Represents a Bridge between a specified channel and an endpoint. The bridge could be in either direction.
+ * Represents a binding between a module's channel and an adapter endpoint that connects to the MessageBus. The binding
+ * could be for a consumer or a producer. A consumer binding represents a connection from an adapter on the bus to a
+ * module's input channel. A producer binding represents a connection from a module's output channel to an adapter on
+ * the bus.
  * 
  * @author Jennifer Hickey
+ * @author Mark Fisher
  */
-public class Bridge implements Lifecycle {
+public class Binding implements Lifecycle {
 
-	private MessageChannel channel;
+	private final MessageChannel channel;
 
-	private AbstractEndpoint endpoint;
+	private final AbstractEndpoint endpoint;
 
-	public Bridge(MessageChannel channel, AbstractEndpoint endpoint) {
+	private final String type;
+
+	private Binding(MessageChannel channel, AbstractEndpoint endpoint, String type) {
+		Assert.notNull(channel, "channel must not be null");
+		Assert.notNull(endpoint, "endpoint must not be null");
 		this.channel = channel;
 		this.endpoint = endpoint;
+		this.type = type;
+	}
+
+	public static Binding forConsumer(AbstractEndpoint adapterFromBus, MessageChannel moduleInputChannel) {
+		return new Binding(moduleInputChannel, adapterFromBus, "consumer");
+	}
+
+	public static Binding forProducer(MessageChannel moduleOutputChannel, AbstractEndpoint adapterToBus) {
+		return new Binding(moduleOutputChannel, adapterToBus, "producer");
 	}
 
 	public MessageChannel getChannel() {
@@ -62,6 +79,7 @@ public class Bridge implements Lifecycle {
 
 	@Override
 	public String toString() {
-		return "Bridge[channel=" + channel + ", endpoint=" + endpoint.getComponentName() + "]";
+		return type + "Binding[channel=" + channel + ", endpoint=" + endpoint.getComponentName() + "]";
 	}
+
 }

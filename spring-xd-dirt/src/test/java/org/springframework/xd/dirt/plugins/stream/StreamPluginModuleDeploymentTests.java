@@ -99,11 +99,11 @@ public class StreamPluginModuleDeploymentTests {
 	public void moduleChannelsRegisteredWithSameMessageBus() throws InterruptedException {
 		this.source = sendModuleRequest(createSourceModuleRequest());
 		MessageBus bus = source.getApplicationContext().getBean(MessageBus.class);
-		assertEquals(2, getBridges(bus).size());
+		assertEquals(2, getBindings(bus).size());
 		this.sink = sendModuleRequest(createSinkModuleRequest());
 		assertSame(bus, sink.getApplicationContext().getBean(MessageBus.class));
-		assertEquals(3, getBridges(bus).size());
-		getBridges(bus).clear();
+		assertEquals(3, getBindings(bus).size());
+		getBindings(bus).clear();
 	}
 
 	@Test
@@ -111,10 +111,10 @@ public class StreamPluginModuleDeploymentTests {
 		ModuleDeploymentRequest request = createSourceModuleRequest();
 		SimpleModule module = sendModuleRequest(request);
 		MessageBus bus = module.getApplicationContext().getBean(MessageBus.class);
-		assertEquals(2, getBridges(bus).size());
+		assertEquals(2, getBindings(bus).size());
 		request.setRemove(true);
 		sendModuleRequest(request);
-		assertEquals(0, getBridges(bus).size());
+		assertEquals(0, getBindings(bus).size());
 	}
 
 	private SimpleModule sendModuleRequest(ModuleDeploymentRequest request) throws InterruptedException {
@@ -143,9 +143,9 @@ public class StreamPluginModuleDeploymentTests {
 		return request;
 	}
 
-	private Collection<?> getBridges(MessageBus bus) {
+	private Collection<?> getBindings(MessageBus bus) {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(bus);
-		List<?> bridges = (List<?>) accessor.getPropertyValue("bridges");
-		return bridges;
+		return (List<?>) accessor.getPropertyValue("bindings");
 	}
+
 }

@@ -30,11 +30,14 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.http.MediaType;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.interceptor.WireTap;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.xd.module.BeanDefinitionAddingPostProcessor;
 import org.springframework.xd.module.DeploymentMetadata;
@@ -103,4 +106,19 @@ public class StreamPluginTests {
 		assertTrue(sharedBeans.get(0) instanceof BeanDefinitionAddingPostProcessor);
 	}
 
+	@Test
+	public void testTapOnProxy() {
+		Module module = mock(Module.class);
+		when(module.getDeploymentMetadata()).thenReturn(new DeploymentMetadata("foo", 1));
+		MessageBus messageBus = mock(MessageBus.class);
+		when(module.getComponent(MessageBus.class)).thenReturn(messageBus);
+		DirectChannel output = new DirectChannel();
+		MessageChannel proxy = (MessageChannel) new ProxyFactory(output).getProxy();
+		when(module.getComponent("output", MessageChannel.class)).thenReturn(proxy);
+		StreamPlugin plugin = new StreamPlugin();
+		plugin.postProcessModule(module);
+		List<?> interceptors = TestUtils.getPropertyValue(output, "interceptors.interceptors", List.class);
+		assertEquals(1, interceptors.size());
+		assertTrue(interceptors.get(0) instanceof WireTap);
+	}
 }

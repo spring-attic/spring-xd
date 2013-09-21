@@ -41,8 +41,26 @@
 	</int:service-activator>
 
 	<int:channel id="notifications"/>
-	<int:payload-serializing-transformer id="serializePayloadToBytes"
-		input-channel="notifications" output-channel="serializedNotifications"/>
-	<int:channel id="serializedNotifications"/>
 
+	<!-- Optional Listeners that can be referenced by deployed Spring Batch Jobs -->
+
+	<bean id="xdChunkListener" class="org.springframework.xd.dirt.plugins.job.support.listener.SimpleXdChunkListener">
+		<property name="notificationsChannel" ref="notifications"/>
+	</bean>
+
+	<bean id="xdItemListener" class="org.springframework.xd.dirt.plugins.job.support.listener.SimpleXdItemListener">
+		<property name="notificationsChannel" ref="notifications"/>
+	</bean>
+
+	<bean id="xdJobExecutionListener" class="org.springframework.xd.dirt.plugins.job.support.listener.SimpleXdJobExecutionListener">
+		<property name="notificationsChannel" ref="notifications"/>
+	</bean>
+
+	<bean id="xdStepExecutionListener" class="org.springframework.xd.dirt.plugins.job.support.listener.SimpleXdStepExecutionListener">
+		<property name="notificationsChannel" ref="notifications"/>
+	</bean>
+
+	<bean id="xdSkipListener" class="org.springframework.xd.dirt.plugins.job.support.listener.SimpleXdSkipListener">
+		<property name="notificationsChannel" ref="notifications"/>
+	</bean>
 </beans>

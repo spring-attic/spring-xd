@@ -55,7 +55,7 @@ public class SingleNodeMainIntegrationTests extends AbstractAdminMainIntegration
 		SingleNodeOptions options = SingleNodeMain.parseOptions(new String[] { "--httpPort", "0", "--transport",
 			"local",
 			"--store",
-			"memory", "--enableJmx", "true", "--analytics", "memory" });
+			"memory", "--enableJmx", "false", "--analytics", "memory" });
 		setBatchDBProperties();
 		SingleNodeServer server = SingleNodeMain.launchSingleNodeServer(options);
 		AdminServer adminServer = server.getAdminServer();

@@ -157,28 +157,18 @@ function(Backbone, rest, entity, mime, hateoas, errorcode) {
         },
         idAttribute: 'name',
         launch: function(parameters) {
-            var streamName = 'jobLaunchTrigger' + new Date();
-            var streamDefinition = 'trigger ' + (parameters ? '--payload=\'' + parameters + '\'' : '') + ' > :job:' + this.id;
-            // for now must create a stream that triggers job and then delete stream
-           var createPromise = client({
-                path: URL_ROOT + 'streams',
-                params: { name : streamName, definition: streamDefinition },
-                method: 'POST',
+            var params = "";
+            if (parameters) {
+                params = parameters;
+			}
+            var createPromise = client({
+                path: URL_ROOT +  'jobs/' + this.id + '/launch',
+                params: { "jobParameters" : params } ,
+                method: 'PUT',
                 headers: ACCEPT_HEADER
             });
             
-            var deletePromise = createPromise.then(function() {
-                return client({
-                    path: URL_ROOT + 'streams/' + streamName,
-                    method: 'DELETE',
-                    headers: ACCEPT_HEADER
-                });
-
-            });
-            return deletePromise.then(function() {
-                // get the latest execution count for the job
-                return model.batchJobs.fetch({merge:true, update:true });
-            });
+            return model.batchJobs.fetch({merge:true, update:true });
         },
 
         parse: function(data) {

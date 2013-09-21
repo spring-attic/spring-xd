@@ -214,6 +214,7 @@ public class AdminServer implements SmartLifecycle, InitializingBean {
 
 	@Override
 	public void stop() {
+		logger.info("Stopping AdminServer running on port " + this.getLocalPort());
 		try {
 			if (this.handlerTask != null) {
 				this.handlerTask.cancel(true);

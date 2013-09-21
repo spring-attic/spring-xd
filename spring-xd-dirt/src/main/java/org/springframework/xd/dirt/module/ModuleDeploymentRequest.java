@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Luke Taylor
+ * @author Ilayaperumal Gopinathan
  */
 public class ModuleDeploymentRequest {
 
@@ -46,6 +47,8 @@ public class ModuleDeploymentRequest {
 	private final Map<String, String> parameters = new HashMap<String, String>();
 
 	private volatile boolean remove;
+
+	private volatile boolean launch;
 
 	public String getModule() {
 		return module;
@@ -109,6 +112,14 @@ public class ModuleDeploymentRequest {
 
 	public void setSinkChannelName(String sinkChannelName) {
 		this.sinkChannelName = sinkChannelName;
+	}
+
+	public boolean isLaunch() {
+		return launch;
+	}
+
+	public void setLaunch(boolean launch) {
+		this.launch = launch;
 	}
 
 	@Override

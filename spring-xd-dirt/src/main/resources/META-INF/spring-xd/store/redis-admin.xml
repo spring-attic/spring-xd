@@ -5,7 +5,7 @@
 
 	<import resource="../transports/redis-common.xml" />
 
-	<bean id="jobRepository"
+	<bean id="jobDefinitionRepository"
 		class="org.springframework.xd.dirt.stream.redis.RedisJobDefinitionRepository">
 		<constructor-arg ref="humanFriendlyRedisTemplate" />
 	</bean>

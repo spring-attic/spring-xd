@@ -17,6 +17,7 @@ import java.util.List;
 
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.dirt.stream.dsl.DSLException;
 
@@ -34,6 +35,8 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 	private static final String BEAN_DEFINITION_EXEPTION = "org.springframework.beans.factory.BeanDefinitionStoreException";
 
 	private static final String DEPLOYER_TYPE = "job";
+
+	private static final String JOB_PARAMETERS_KEY = "jobParameters";
 
 	public JobDeployer(JobDefinitionRepository repository, DeploymentMessageSender messageSender,
 			XDParser parser) {
@@ -120,6 +123,26 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 		}
 		catch (MessageHandlingException ex) {
 			// Job is not deployed.
+		}
+	}
+
+	public void launch(String name, String jobParameters) {
+		JobDefinition job = getDefinitionRepository().findOne(name);
+		if (job == null) {
+			throwNoSuchDefinitionException(name);
+		}
+		List<ModuleDeploymentRequest> requests = parse(name, job.getDefinition());
+		for (ModuleDeploymentRequest request : requests) {
+			request.setLaunch(true);
+			if (!StringUtils.isEmpty(jobParameters) && jobParameters != null) {
+				request.setParameter(JOB_PARAMETERS_KEY, jobParameters);
+			}
+		}
+		try {
+			sendDeploymentRequests(name, requests);
+		}
+		catch (MessageHandlingException ex) {
+			// Job is not launched.
 		}
 	}
 

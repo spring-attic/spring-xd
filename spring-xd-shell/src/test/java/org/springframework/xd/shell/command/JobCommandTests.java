@@ -213,6 +213,30 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		assertTrue("parameter2 should be identifying", parameter2.isIdentifying());
 	}
 
+	@Test
+	public void testLaunchJob() {
+		logger.info("Launch batch job");
+		executeJobCreate(MY_JOB, JOB_DESCRIPTOR);
+		checkForJobInList(MY_JOB, JOB_DESCRIPTOR);
+		executeJobLaunch(MY_JOB);
+	}
+
+	@Test
+	public void testLaunchNotDeployedJob() {
+		logger.info("Launch batch job that is not deployed");
+		executeJobCreate(MY_JOB, JOB_DESCRIPTOR, false);
+		executeJobLaunch(MY_JOB);
+	}
+
+	@Test
+	public void testLaunchJobWithParameters() {
+		logger.info("Launch batch job with typed parameters");
+		String myJobParams = "{\"-param1(long)\":\"12345\",\"param2(date)\":\"1990/10/03\"}";
+		executeJobCreate(MY_JOB, JOB_DESCRIPTOR);
+		checkForJobInList(MY_JOB, JOB_DESCRIPTOR);
+		executeJobLaunch(MY_JOB, myJobParams);
+	}
+
 	public static class JobParametersHolder {
 
 		private static Map<String, JobParameter> jobParameters = new ConcurrentHashMap<String, JobParameter>();

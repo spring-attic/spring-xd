@@ -155,7 +155,7 @@ public class SingleNodeMainIntegrationTests extends AbstractAdminMainIntegration
 
 	private void stopServer(SingleNodeServer server) {
 		server.getContainer().stop();
-		super.shutdown(server.getAdminServer());
+		server.getAdminServer().stop();
 	}
 
 	private void setBatchDBProperties() {

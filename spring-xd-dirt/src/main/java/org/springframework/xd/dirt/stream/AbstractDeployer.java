@@ -31,7 +31,7 @@ import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 /**
  * Abstract implementation of the @link {@link org.springframework.xd.dirt.core.ResourceDeployer} interface. It provides
  * the basic support for calling CrudRepository methods and sending deployment messages.
- *
+ * 
  * @author Luke Taylor
  * @author Mark Pollack
  * @author Eric Bottard
@@ -86,14 +86,14 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 				String.format("There is no %s definition named '%%s'", definitionKind));
 	}
 
-	protected void throwAlreadyDeployedException(String name) {
-		throw new AlreadyDeployedException(name,
-				String.format("The %s named '%%s' is already deployed", definitionKind));
-	}
-
 	protected void throwNotDeployedException(String name) {
 		throw new NotDeployedException(name, String.format("The %s named '%%s' is not currently deployed",
 				definitionKind));
+	}
+
+	protected void throwAlreadyDeployedException(String name) {
+		throw new AlreadyDeployedException(name,
+				String.format("The %s named '%%s' is already deployed", definitionKind));
 	}
 
 	@Override
@@ -130,7 +130,7 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 
 	/**
 	 * Provides basic deployment behavior, whereby running state of deployed definitions is not persisted.
-	 *
+	 * 
 	 * @return the definition object for the given name
 	 * @throws NoSuchDefinitionException if there is no definition by the given name
 	 */

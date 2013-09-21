@@ -73,6 +73,20 @@ public class JobsController extends
 	}
 
 	/**
+	 * Send the request to launch Job. If the Job is not already deployed, then deploy and launch
+	 * 
+	 * @param name the name of the job
+	 * @param jobParameters the job parameters in JSON string
+	 */
+	@RequestMapping(value = "/{name}/launch", method = RequestMethod.PUT)
+	@ResponseStatus(HttpStatus.OK)
+	@ResponseBody
+	public void launchJob(@PathVariable("name") String name, @RequestParam(required = false) String jobParameters) {
+		final JobDeployer jobDeployer = (JobDeployer) getDeployer();
+		jobDeployer.launch(name, jobParameters);
+	}
+
+	/**
 	 * List job definitions.
 	 */
 	@RequestMapping(value = "", method = RequestMethod.GET)

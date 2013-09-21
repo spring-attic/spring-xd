@@ -79,6 +79,14 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 	}
 
 	@Override
+	public void launchJob(String name, String jobParameters) {
+		String uriTemplate = resources.get("jobs").toString() + "/{name}/launch";
+		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
+		values.add("jobParameters", jobParameters);
+		restTemplate.put(uriTemplate, values, Collections.singletonMap("name", name));
+	}
+
+	@Override
 	public void undeploy(String name) {
 		String uriTemplate = resources.get("jobs").toString() + "/{name}";
 		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();

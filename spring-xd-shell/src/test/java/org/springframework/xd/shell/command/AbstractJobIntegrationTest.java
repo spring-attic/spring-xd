@@ -135,6 +135,24 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 		jobs.add(jobName);
 	}
 
+	/**
+	 * Launch a job that is already deployed
+	 */
+	protected void executeJobLaunch(String jobName, String jobParameters) {
+		CommandResult cr = executeCommand("job launch --name " + jobName + " --params " + jobParameters);
+		String prefix = "Successfully launched the job '";
+		assertEquals(prefix + jobName + "'", cr.getResult());
+	}
+
+	/**
+	 * Launch a job that is already deployed
+	 */
+	protected void executeJobLaunch(String jobName) {
+		CommandResult cr = executeCommand("job launch --name " + jobName);
+		String prefix = "Successfully launched the job '";
+		assertEquals(prefix + jobName + "'", cr.getResult());
+	}
+
 	protected void checkForJobInList(String jobName, String jobDescriptor) {
 		Table t = listJobs();
 		assertTrue(t.getRows().contains(new TableRow().addValue(1, jobName).addValue(2, jobDescriptor)));

@@ -76,7 +76,7 @@ public class JobPlugin extends AbstractPlugin {
 
 	private static final String JOB_LAUNCH_REQUEST_CHANNEL = "input";
 
-	private static final String JOB_NOTIFICATIONS_CHANNEL = "serializedNotifications";
+	private static final String JOB_NOTIFICATIONS_CHANNEL = "notifications";
 
 	private final static Collection<MediaType> DEFAULT_ACCEPTED_CONTENT_TYPES = Collections.singletonList(MediaType.ALL);
 
@@ -112,7 +112,9 @@ public class JobPlugin extends AbstractPlugin {
 						DEFAULT_ACCEPTED_CONTENT_TYPES,
 						true);
 			}
+
 			MessageChannel notificationsChannel = module.getComponent(JOB_NOTIFICATIONS_CHANNEL, MessageChannel.class);
+
 			if (notificationsChannel != null) {
 				bus.bindProducer(md.getGroup() + NOTIFICATION_CHANNEL_SUFFIX, notificationsChannel, true);
 			}

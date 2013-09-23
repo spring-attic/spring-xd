@@ -28,6 +28,7 @@ import org.junit.Test;
 
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.xd.module.ModuleDefinition;
 
 
@@ -43,6 +44,7 @@ public class CompositeModuleRegistryTests {
 	public void setup() {
 		ClasspathTestModuleRegistry cp = new ClasspathTestModuleRegistry();
 		FileModuleRegistry file = new FileModuleRegistry("../modules");
+		file.setResourceLoader(new PathMatchingResourcePatternResolver());
 		registry = new CompositeModuleRegistry(cp, file);
 	}
 

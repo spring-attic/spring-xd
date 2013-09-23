@@ -24,6 +24,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Properties;
+
+import org.springframework.beans.factory.xml.PluggableSchemaResolver;
+import org.springframework.core.io.support.PropertiesLoaderUtils;
 
 /**
  * Extension for {@link URLClassLoader} that uses a parent-last (or child first) delegation.
@@ -33,6 +37,8 @@ import java.util.List;
 class ParentLastURLClassLoader extends URLClassLoader {
 
 	private final ClassLoader system;
+
+	private static final String[] SPECIAL_CASES = new String[] { "META-INF/spring.handlers", "META-INF/spring.schemas" };
 
 	public ParentLastURLClassLoader(URL[] classpath, ClassLoader parent) {
 		super(wrapNull(classpath), parent);
@@ -101,14 +107,41 @@ class ParentLastURLClassLoader extends URLClassLoader {
 		if (system != null) {
 			urls.addAll(Collections.list(system.getResources(name)));
 		}
-		urls.addAll(Collections.list(findResources(name)));
+		ArrayList<URL> fromSelf = Collections.list(findResources(name));
 
 		ClassLoader parent = getParent();
+		List<URL> fromParent = Collections.emptyList();
 		if (parent != null) {
-			urls.addAll(Collections.list(parent.getResources(name)));
+			fromParent = Collections.list(parent.getResources(name));
+		}
+		if (!isSpecialCase(name)) {
+			urls.addAll(fromSelf);
+			urls.addAll(fromParent);
+		}
+		else {
+			urls.addAll(fromParent);
+			urls.addAll(fromSelf);
 		}
 
 		return Collections.enumeration(urls);
+	}
+
+	/**
+	 * When loading spring schema related files, multiples resources will be loaded in turn in a {@link Properties}
+	 * object, with later mappings overriding previous ones. Hence, we actually want our directly loaded properties to
+	 * appear *last*. This is especially useful for version-less xsd mappings, where the one from our jar should be
+	 * considered the *current* one, not the one that was current in a jar with a different version.
+	 * 
+	 * @see PropertiesLoaderUtils
+	 * @see PluggableSchemaResolver
+	 */
+	private boolean isSpecialCase(String name) {
+		for (String c : SPECIAL_CASES) {
+			if (c.equals(name)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override

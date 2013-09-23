@@ -20,24 +20,17 @@ import org.springframework.xd.dirt.core.XDRuntimeException;
 
 
 /**
+ * Thrown when something goes wrong with inter-module communication.
  * 
  * @author David Turanski
- * @since 1.0
  */
+@SuppressWarnings("serial")
 public class SerializationException extends XDRuntimeException {
 
-	/**
-	 * @param message
-	 */
 	public SerializationException(String message) {
 		super(message);
 	}
 
-	/**
-	 * 
-	 * @param message
-	 * @param t
-	 */
 	public SerializationException(String message, Throwable t) {
 		super(message, t);
 	}

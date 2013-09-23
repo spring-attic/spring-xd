@@ -20,7 +20,7 @@
  */
 
 /*jslint browser:true */
-/*global d3 cubism */
+/*global d3 cubism $ define*/
 
 /*
  * View for the dashboard
@@ -44,8 +44,9 @@ function(_, when, Backbone, utils, conf, model, router, gauge, strings) {
             "click button.deleteAction": "deleteArtifact",
             "click button.detailAction": "toggleDetails"
         };
-        model.artifactKinds.forEach(function(kind) {
-            events['click #xd-' + kind + '-list .pagination #pagelinks li'] = 'set' + kind + 'Page';
+        model.artifacts.forEach(function(artifact) {
+            events['click #xd-' + artifact.kind + '-list .pagination #pagelinks li'] = 
+				'set' + artifact.kind + 'Page';
         });
         return events;
     }
@@ -55,19 +56,19 @@ function(_, when, Backbone, utils, conf, model, router, gauge, strings) {
         events: createEvents(),
 
         initialize: function() {
-            model.artifactKinds.forEach(function(kind) {
-                this['set' + kind + 'Page'] = function(event) {
-                    this.setPage(event, kind);
+            model.artifacts.forEach(function(artifact) {
+                this['set' + artifact.kind + 'Page'] = function(event) {
+                    this.setPage(event, artifact.kind);
                 };
-                this['load' + kind + 'List'] = function(event) {
-                    this.loadList(event, kind);
+                this['load' + artifact.kind + 'List'] = function(event) {
+                    this.loadList(event, artifact.kind);
                 };
             }, this);
         },
 
         render: function(data) {
             this.$el.html(_.template(utils.getTemplate(conf.templates.dashboard), {
-                kindNames: model.readableNames
+                kindNames: model.artifacts
             }));
         },
 

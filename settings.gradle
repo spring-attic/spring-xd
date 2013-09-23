@@ -22,4 +22,5 @@ include 'spring-xd-rest-domain'
 include 'spring-xd-shell'
 include 'spring-xd-ui'
 include 'modules'
+include 'modules:source:mail'
 

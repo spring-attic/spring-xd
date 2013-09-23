@@ -278,7 +278,6 @@ project('spring-xd-dirt') {
 				"org.jolokia:jolokia-spring:$jolokiaVersion",
 				"org.springframework.plugin:spring-plugin-core:$springPluginVersion",
 				"org.hsqldb:hsqldb:$hsqldbVersion",
-				"hsqldb:hsqldb:$hsqldbVersion",
 				"org.apache.tomcat:tomcat-jdbc:$tomcatJdbcPoolVersion",
 				"com.esotericsoftware.kryo:kryo:$kryoVersion"
 

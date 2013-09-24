@@ -72,7 +72,7 @@ public class SyslogInboundChannelAdapter extends MessageProducerSupport {
 						// safest guess of Dispatcher since we don't know what's happening downstream
 				.dispatcher(new SynchronousDispatcher())
 						// optimize for massive throughput by using lightweight codec in server
-				.codec(new DelimitedCodec<Buffer, Buffer>(StandardCodecs.PASS_THROUGH_CODEC))
+				.codec(new DelimitedCodec<Buffer, Buffer>(false, StandardCodecs.PASS_THROUGH_CODEC))
 				.consume(new Consumer<TcpConnection<Buffer, Buffer>>() {
 					@Override
 					public void accept(TcpConnection<Buffer, Buffer> conn) {

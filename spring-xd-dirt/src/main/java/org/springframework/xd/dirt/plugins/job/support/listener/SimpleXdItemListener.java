@@ -50,7 +50,7 @@ public class SimpleXdItemListener extends ItemListenerSupport<Object, Object> {
 		}
 		final Message<Exception> message = MessageBuilder.withPayload(exception)
 				.setHeader(BatchJobHeaders.BATCH_LISTENER_EVENT_TYPE,
-						BatchListenerEventType.ITEM_LISTENER_ON_READ_ERROR)
+						BatchListenerEventType.ITEM_LISTENER_ON_READ_ERROR.name())
 				.build();
 		notificationsChannel.send(message);
 	}

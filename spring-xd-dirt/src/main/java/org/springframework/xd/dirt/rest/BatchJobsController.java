@@ -42,7 +42,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.dirt.job.NoSuchBatchJobException;
-import org.springframework.xd.dirt.plugins.job.batch.ExpandedJobInfo;
+import org.springframework.xd.dirt.plugins.job.ExpandedJobInfo;
 
 /**
  * Controller for batch jobs.

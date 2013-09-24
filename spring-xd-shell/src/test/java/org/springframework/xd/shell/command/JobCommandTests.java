@@ -225,25 +225,50 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 	@Test
 	public void testLaunchJob() {
 		logger.info("Launch batch job");
-		executeJobCreate(MY_JOB, JOB_DESCRIPTOR);
-		checkForJobInList(MY_JOB, JOB_DESCRIPTOR);
+		executeJobCreate(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR);
+		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR);
 		executeJobLaunch(MY_JOB);
 	}
 
 	@Test
 	public void testLaunchNotDeployedJob() {
 		logger.info("Launch batch job that is not deployed");
-		executeJobCreate(MY_JOB, JOB_DESCRIPTOR, false);
+		executeJobCreate(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
 		executeJobLaunch(MY_JOB);
 	}
 
 	@Test
-	public void testLaunchJobWithParameters() {
+	public void testLaunchJobWithParameters() throws InterruptedException, ParseException {
 		logger.info("Launch batch job with typed parameters");
 		String myJobParams = "{\"-param1(long)\":\"12345\",\"param2(date)\":\"1990/10/03\"}";
-		executeJobCreate(MY_JOB, JOB_DESCRIPTOR);
-		checkForJobInList(MY_JOB, JOB_DESCRIPTOR);
+		JobParametersHolder.reset();
+		final JobParametersHolder jobParametersHolder = new JobParametersHolder();
+		executeJobCreate(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR);
+		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR);
 		executeJobLaunch(MY_JOB, myJobParams);
+		boolean done = jobParametersHolder.isDone();
+
+		assertTrue("The countdown latch expired and did not count down.", done);
+		// Make sure the job parameters are set when passing through job launch command
+		assertTrue("Expecting 3 parameters.", JobParametersHolder.getJobParameters().size() == 3);
+		assertNotNull(JobParametersHolder.getJobParameters().get("random"));
+
+		final JobParameter parameter1 = JobParametersHolder.getJobParameters().get("param1");
+		final JobParameter parameter2 = JobParametersHolder.getJobParameters().get("param2");
+
+		assertNotNull(parameter1);
+		assertNotNull(parameter2);
+		assertTrue("parameter1 should be a Long", parameter1.getValue() instanceof Long);
+		assertTrue("parameter2 should be a java.util.Date", parameter2.getValue() instanceof Date);
+
+		final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
+		final Date expectedDate = dateFormat.parse("1990/10/03");
+
+		assertEquals("Was expecting the Long value 12345", Long.valueOf(12345), parameter1.getValue());
+		assertEquals("Should be the same dates", expectedDate, parameter2.getValue());
+
+		assertFalse("parameter1 should be non-identifying", parameter1.isIdentifying());
+		assertTrue("parameter2 should be identifying", parameter2.isIdentifying());
 	}
 
 	public static class JobParametersHolder {

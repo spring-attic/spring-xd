@@ -170,6 +170,7 @@ configure(javaProjects()) { subproject ->
 		// suppress all console output during testing unless running `gradle -i`
 		logging.captureStandardOutput(LogLevel.INFO)
 		jvmArgs "-javaagent:${configurations.jacoco.asPath}=destfile=${buildDir}/jacoco.exec,includes=org.springframework.xd.*"
+		jvmArgs "-XX:MaxPermSize=256m"
 	}
 
 	javadoc {
@@ -358,7 +359,7 @@ project('spring-xd-dirt') {
 	task cleanDataDir(type: Delete) {
 		delete "$rootDir/data"
 	}
-	
+
 	tasks["clean"].dependsOn("cleanDataDir")
 }
 

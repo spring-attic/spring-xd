@@ -39,7 +39,7 @@
 		</jdbc:initialize-database>
 
 		<bean
-			class="org.springframework.xd.dirt.job.DistributedJobService">
+			class="org.springframework.xd.dirt.plugins.job.DistributedJobService">
 			<constructor-arg ref="jobInstanceDao" />
 			<constructor-arg ref="jobExecutionDao" />
 			<constructor-arg ref="stepExecutionDao" />

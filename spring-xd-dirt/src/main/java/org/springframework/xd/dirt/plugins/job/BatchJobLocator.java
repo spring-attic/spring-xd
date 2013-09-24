@@ -26,7 +26,6 @@ import org.springframework.batch.core.launch.NoSuchJobException;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.xd.dirt.job.BatchJobAlreadyExistsException;
-import org.springframework.xd.dirt.job.DistributedJobService;
 
 /**
  * Implementation of ListableJobLocator used by {@link DistributedJobService}

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.plugins.job.batch;
+package org.springframework.xd.dirt.plugins.job;
 
 import org.springframework.batch.admin.web.JobExecutionInfo;
 import org.springframework.batch.admin.web.JobInfo;

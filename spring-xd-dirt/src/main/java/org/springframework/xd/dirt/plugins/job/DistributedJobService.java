@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.job;
+package org.springframework.xd.dirt.plugins.job;
 
 import java.util.Collection;
 import java.util.List;
@@ -35,7 +35,6 @@ import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteExcep
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.batch.core.repository.dao.ExecutionContextDao;
-import org.springframework.xd.dirt.plugins.job.BatchJobLocator;
 
 /**
  * SimpleJobService in distributed mode

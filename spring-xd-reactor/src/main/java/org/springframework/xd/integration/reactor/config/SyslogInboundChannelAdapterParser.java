@@ -38,6 +38,7 @@ public class SyslogInboundChannelAdapterParser extends AbstractChannelAdapterPar
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "host", "host");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "port", "port");
 
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "channel", "outputChannel");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel", "errorChannel");
 
 		return builder.getBeanDefinition();

@@ -57,7 +57,7 @@ define(['xd.model'], function(model) {
 		it('jobs should have a correct url', function() {
 			var query = model.get('jobs');
 			var url = query.getUrl();
-			expect(url).toBe('http://localhost:8080/jobs');
+			expect(url).toBe('http://localhost:9393/jobs');
 		});
 		it('jobs should have correct pagination', function() {
 			var query = model.get('jobs');

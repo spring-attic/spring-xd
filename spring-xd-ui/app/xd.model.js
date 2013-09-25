@@ -28,7 +28,7 @@ function(Backbone, rest, entity, mime, hateoas, errorcode) {
     // set up the rest client
     // this is a copy from router
     var ACCEPT_HEADER = { 'Accept': 'application/json' };
-    var URL_ROOT = 'http://localhost:8080/';
+    var URL_ROOT = 'http://localhost:9393/';
     var client = rest.chain(errorcode, { code: 400 }).chain(mime).chain(hateoas).chain(entity);
 
 

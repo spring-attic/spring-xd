@@ -20,7 +20,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.xd.dirt.server.options.AdminOptions;
-import org.springframework.xd.test.redis.RedisAvailableRule;
+import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
  * @author Luke Taylor
@@ -29,7 +29,7 @@ import org.springframework.xd.test.redis.RedisAvailableRule;
 public class AdminMainRedisStoreIntegrationTests extends AbstractAdminMainIntegrationTests {
 
 	@Rule
-	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
+	public RedisTestSupport redisAvailableRule = new RedisTestSupport();
 
 	@Test
 	public void redisStoreWithLocalTransportConfigurationLoadsSuccessfully() throws Exception {

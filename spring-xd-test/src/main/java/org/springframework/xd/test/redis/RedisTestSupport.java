@@ -16,36 +16,32 @@
 
 package org.springframework.xd.test.redis;
 
-import org.junit.runner.Description;
-import org.junit.runners.model.Statement;
+import org.junit.Rule;
 
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.xd.test.AbstractExternalServerAvailableRule;
+import org.springframework.xd.test.AbstractExternalResourceTestSupport;
 
 /**
- * @author Gary Russell
- * @since 1.0
+ * JUnit {@link Rule} that detects the fact that a Redis server is running on localhost.
  * 
+ * @author Gary Russell
+ * @author Eric Bottard
  */
-public class RedisAvailableRule extends AbstractExternalServerAvailableRule {
+public class RedisTestSupport extends AbstractExternalResourceTestSupport<LettuceConnectionFactory> {
 
-	@Override
-	public Statement apply(Statement base, Description description) {
-		LettuceConnectionFactory connectionFactory = null;
-		try {
-			connectionFactory = new LettuceConnectionFactory();
-			connectionFactory.afterPropertiesSet();
-			connectionFactory.getConnection().close();
-		}
-		catch (Exception e) {
-			return super.failOrSkipTests("REDIS", e);
-		}
-		finally {
-			if (connectionFactory != null) {
-				connectionFactory.destroy();
-			}
-		}
-		return super.apply(base, description);
+	public RedisTestSupport() {
+		super("REDIS");
 	}
 
+	@Override
+	protected void obtainResource() throws Exception {
+		resource = new LettuceConnectionFactory();
+		resource.afterPropertiesSet();
+		resource.getConnection().close();
+	}
+
+	@Override
+	protected void cleanupResource() throws Exception {
+		resource.destroy();
+	}
 }

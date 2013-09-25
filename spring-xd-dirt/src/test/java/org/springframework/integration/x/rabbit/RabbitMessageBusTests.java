@@ -18,10 +18,9 @@ package org.springframework.integration.x.rabbit;
 
 import org.junit.Rule;
 
-import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.integration.x.bus.AbstractMessageBusTests;
 import org.springframework.integration.x.bus.MessageBus;
-import org.springframework.xd.test.rabbit.RabbitAvailableRule;
+import org.springframework.xd.test.rabbit.RabbitTestSupport;
 
 /**
  * @author Mark Fisher
@@ -29,12 +28,11 @@ import org.springframework.xd.test.rabbit.RabbitAvailableRule;
 public class RabbitMessageBusTests extends AbstractMessageBusTests {
 
 	@Rule
-	public RabbitAvailableRule rabbitAvailableRule = new RabbitAvailableRule();
+	public RabbitTestSupport rabbitAvailableRule = new RabbitTestSupport();
 
 	@Override
 	protected MessageBus getMessageBus() throws Exception {
-		CachingConnectionFactory connectionFactory = new CachingConnectionFactory("localhost");
-		return new RabbitMessageBus(connectionFactory, getCodec());
+		return new RabbitMessageBus(rabbitAvailableRule.getResource(), getCodec());
 	}
 
 }

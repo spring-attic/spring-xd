@@ -35,7 +35,7 @@ import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.xd.test.redis.RedisAvailableRule;
+import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
  * Temporary copy of SI RedisPublishingMessageHandlerTests that adds tests that publish messages with data types other
@@ -57,12 +57,11 @@ public class RedisPublishingMessageHandlerTests {
 	private CountDownLatch latch = new CountDownLatch(NUM_MESSAGES);
 
 	@Rule
-	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
+	public RedisTestSupport redisAvailableRule = new RedisTestSupport();
 
 	@Before
 	public void setUp() {
-		this.connectionFactory = new LettuceConnectionFactory();
-		connectionFactory.afterPropertiesSet();
+		this.connectionFactory = redisAvailableRule.getResource();
 	}
 
 	@Test

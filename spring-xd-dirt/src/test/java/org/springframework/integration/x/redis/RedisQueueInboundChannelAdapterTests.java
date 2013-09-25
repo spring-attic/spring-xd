@@ -41,7 +41,7 @@ import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.xd.test.redis.RedisAvailableRule;
+import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
  * Integration test of {@link RedisQueueInboundChannelAdapter}
@@ -59,13 +59,12 @@ public class RedisQueueInboundChannelAdapterTests {
 	private RedisQueueInboundChannelAdapter adapter;
 
 	@Rule
-	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
+	public RedisTestSupport redisAvailableRule = new RedisTestSupport();
 
 	@Before
 	public void setUp() {
 		messages.clear();
-		this.connectionFactory = new LettuceConnectionFactory();
-		connectionFactory.afterPropertiesSet();
+		this.connectionFactory = redisAvailableRule.getResource();
 		DirectChannel outputChannel = new DirectChannel();
 		outputChannel.subscribe(new TestMessageHandler());
 		adapter = new RedisQueueInboundChannelAdapter(QUEUE_NAME, connectionFactory);

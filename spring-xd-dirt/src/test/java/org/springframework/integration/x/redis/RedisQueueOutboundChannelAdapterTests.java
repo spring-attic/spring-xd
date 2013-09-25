@@ -35,7 +35,7 @@ import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.Message;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.xd.test.redis.RedisAvailableRule;
+import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
  * Integration test of {@link RedisQueueOutboundChannelAdapter}
@@ -51,12 +51,11 @@ public class RedisQueueOutboundChannelAdapterTests {
 	private RedisQueueOutboundChannelAdapter adapter;
 
 	@Rule
-	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
+	public RedisTestSupport redisAvailableRule = new RedisTestSupport();
 
 	@Before
 	public void setUp() {
-		this.connectionFactory = new LettuceConnectionFactory();
-		connectionFactory.afterPropertiesSet();
+		this.connectionFactory = redisAvailableRule.getResource();
 		adapter = new RedisQueueOutboundChannelAdapter(QUEUE_NAME, connectionFactory);
 	}
 

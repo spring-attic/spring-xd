@@ -18,10 +18,9 @@ package org.springframework.integration.x.redis;
 
 import org.junit.Rule;
 
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.integration.x.bus.AbstractMessageBusTests;
 import org.springframework.integration.x.bus.MessageBus;
-import org.springframework.xd.test.redis.RedisAvailableRule;
+import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
  * @author Gary Russell
@@ -29,13 +28,11 @@ import org.springframework.xd.test.redis.RedisAvailableRule;
 public class RedisMessageBusTests extends AbstractMessageBusTests {
 
 	@Rule
-	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
+	public RedisTestSupport redisAvailableRule = new RedisTestSupport();
 
 	@Override
 	protected MessageBus getMessageBus() throws Exception {
-		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
-		connectionFactory.afterPropertiesSet();
-		return new RedisMessageBus(connectionFactory, getCodec());
+		return new RedisMessageBus(redisAvailableRule.getResource(), getCodec());
 	}
 
 }

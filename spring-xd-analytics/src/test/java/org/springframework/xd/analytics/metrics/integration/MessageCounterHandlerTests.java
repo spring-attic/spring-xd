@@ -19,9 +19,6 @@ package org.springframework.xd.analytics.metrics.integration;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.integration.Message;
@@ -29,7 +26,6 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.xd.analytics.metrics.core.Counter;
 import org.springframework.xd.analytics.metrics.core.CounterRepository;
 import org.springframework.xd.analytics.metrics.memory.InMemoryCounterRepository;
-import org.springframework.xd.test.redis.RedisAvailableRule;
 
 /**
  * @author Mark Pollack
@@ -39,16 +35,7 @@ import org.springframework.xd.test.redis.RedisAvailableRule;
  */
 public class MessageCounterHandlerTests {
 
-	@Rule
-	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
-
 	private CounterRepository repo = new InMemoryCounterRepository();
-
-	@Before
-	@After
-	public void initAndCleanup() {
-		repo.delete("tupleCounter");
-	}
 
 	@Test
 	public void testNoPreexistingCounter() {

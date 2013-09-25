@@ -31,7 +31,7 @@ function(_, $, when, rest, entity, mime, hateoas, errorcode, Backbone, conf, uti
 
     // set up the rest client
     var ACCEPT_HEADER = { 'Accept': 'application/json' };
-    var URL_ROOT = 'http://localhost:8080/';
+    var URL_ROOT = 'http://localhost:8088/';
     var client = rest.chain(errorcode, { code: 400 }).chain(mime).chain(hateoas).chain(entity);
 
     var ajax = {};

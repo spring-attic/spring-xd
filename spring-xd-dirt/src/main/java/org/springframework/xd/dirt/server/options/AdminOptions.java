@@ -38,8 +38,8 @@ public class AdminOptions extends AbstractOptions {
 		super(defaultTransport, defaultAnalytics);
 	}
 
-	@Option(name = "--" + HTTP_PORT, usage = "Http port for the REST API server (default: 8080)", metaVar = "<httpPort>")
-	protected int httpPort = 8080;
+	@Option(name = "--" + HTTP_PORT, usage = "Http port for the REST API server (default: 8088)", metaVar = "<httpPort>")
+	protected int httpPort = 8088;
 
 	@Option(name = "--" + STORE, usage = "How to persist admin data (default: redis)")
 	protected Store store = Store.redis;

@@ -114,7 +114,7 @@ public class SingleNodeMainIntegrationTests extends AbstractAdminMainIntegration
 	public void testConfigurationOverridesSystemProperties() {
 
 		System.setProperty(XDPropertyKeys.XD_ANALYTICS, "redis");
-		System.setProperty(XDPropertyKeys.XD_HTTP_PORT, "8080");
+		System.setProperty(XDPropertyKeys.XD_HTTP_PORT, "8088");
 		System.setProperty(XDPropertyKeys.XD_STORE, "redis");
 		setBatchDBProperties();
 		SingleNodeServer server = SingleNodeMain.launchSingleNodeServer(

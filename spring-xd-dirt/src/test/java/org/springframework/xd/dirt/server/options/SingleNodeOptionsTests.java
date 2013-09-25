@@ -101,7 +101,7 @@ public class SingleNodeOptionsTests {
 		assertEquals(Transport.local, opts.getTransport());
 		assertEquals(Analytics.memory, opts.getAnalytics());
 		assertEquals(Store.memory, opts.getStore());
-		assertEquals(HadoopDistro.hadoop10, opts.getHadoopDistro());
+		assertEquals(HadoopDistro.hadoop12, opts.getHadoopDistro());
 		assertEquals(8080, (int) opts.getHttpPort());
 		assertEquals(8778, (int) opts.getJmxPort());
 		assertEquals(false, opts.isJmxEnabled());

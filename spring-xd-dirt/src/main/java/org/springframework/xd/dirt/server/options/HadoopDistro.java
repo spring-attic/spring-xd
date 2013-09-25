@@ -25,19 +25,24 @@ package org.springframework.xd.dirt.server.options;
 public enum HadoopDistro {
 
 	/**
-	 * Apache Hadoop 1.0
+	 * Apache Hadoop 1.2
 	 */
-	hadoop10,
-
-	/**
-	 * Apache Hadoop 1.1
-	 */
-	hadoop11,
+	hadoop12,
 
 	/**
 	 * Apache Hadoop 2.0
 	 */
 	hadoop20,
+
+	/**
+	 * Cloudera CDH 4
+	 */
+	cdh4,
+
+	/**
+	 * Hortonworks HDP 1.3
+	 */
+	hdp13,
 
 	/**
 	 * Pivotal HD 1.0

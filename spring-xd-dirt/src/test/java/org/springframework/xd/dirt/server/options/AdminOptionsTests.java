@@ -61,7 +61,7 @@ public class AdminOptionsTests {
 		assertEquals(Analytics.redis, opts.getAnalytics());
 		assertEquals(Store.redis, opts.getStore());
 		assertEquals(HadoopDistro.hadoop10, opts.getHadoopDistro());
-		assertEquals(8088, (int) opts.getHttpPort());
+		assertEquals(9393, (int) opts.getHttpPort());
 		assertEquals(8778, (int) opts.getJmxPort());
 		assertEquals(false, (boolean) opts.isJmxEnabled());
 

@@ -229,14 +229,15 @@ configure(javaProjects()) { subproject ->
 
 configure(moduleProjects()) { moduleProject ->
 
-//	apply plugin: 'java'
-	apply plugin: 'eclipse'
+	// We only apply the java plugin b/c the eclipse plugin
+	// requires it to emit a .classpath file. Those project don't actually
+	// contain java code, so reset everything (prevents creation of
+	// the 'build' directory, etc)
+	apply plugin: 'java'
+	task build(overwrite: true) {}
+	task clean(overwrite: true) {}
 
-	// Create a "runtime" configuration for those projects
-	// without incurring the burden of the whole java plugin
-	configurations {
-		runtime
-	}
+	apply plugin: 'eclipse'
 
 	forceSpringVersion(moduleProject)
 
@@ -250,8 +251,6 @@ configure(moduleProjects()) { moduleProject ->
 		into project.file('lib/')
 	}
 
-	task build {}
-	task clean {}
 
 	tasks.build.dependsOn copyLibs
 	tasks.eclipse.dependsOn copyLibs

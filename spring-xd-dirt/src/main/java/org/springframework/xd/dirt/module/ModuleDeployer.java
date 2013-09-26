@@ -81,6 +81,10 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		this.moduleRegistry = moduleRegistry;
 	}
 
+	public Map<String, Map<Integer, Module>> getDeployedModules() {
+		return deployedModules;
+	}
+
 	@Override
 	public void setApplicationContext(ApplicationContext context) {
 		this.deployerContext = context;

@@ -31,20 +31,20 @@ import org.springframework.util.Assert;
  * 
  * @author David Turanski
  */
-public class CompositeCodec implements MultiTypeCodec<Object> {
+public class CompositeCodec<P> implements MultiTypeCodec<Object> {
 
-	private final MultiTypeCodec defaultCodec;
+	private final MultiTypeCodec<P> defaultCodec;
 
-	private final Map<Class<?>, AbstractCodec<?>> delegates;
+	private final Map<Class<?>, AbstractCodec<P>> delegates;
 
-	public CompositeCodec(Map<Class<?>, AbstractCodec<?>> delegates, MultiTypeCodec<?> defaultCodec)
+	public CompositeCodec(Map<Class<?>, AbstractCodec<P>> delegates, MultiTypeCodec<P> defaultCodec)
 	{
 		Assert.notNull(defaultCodec, "'defaultCodec' cannot be null");
 		this.defaultCodec = defaultCodec;
 		this.delegates = delegates;
 	}
 
-	public CompositeCodec(MultiTypeCodec<?> defaultCodec) {
+	public CompositeCodec(MultiTypeCodec<P> defaultCodec) {
 		this(null, defaultCodec);
 	}
 
@@ -52,33 +52,33 @@ public class CompositeCodec implements MultiTypeCodec<Object> {
 	@Override
 	public void serialize(Object object, OutputStream outputStream) throws IOException {
 		Assert.notNull(object, "cannot serialize a null object");
-		AbstractCodec codec = findDelegate(object.getClass());
+		AbstractCodec<P> codec = findDelegate(object.getClass());
 		if (codec != null) {
-			codec.serialize(object, outputStream);
+			codec.serialize((P) object, outputStream);
 		}
 		else {
-			defaultCodec.serialize(object, outputStream);
+			defaultCodec.serialize((P) object, outputStream);
 		}
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public Object deserialize(InputStream inputStream, Class<? extends Object> type) throws IOException {
-		AbstractCodec codec = findDelegate(type);
+	public Object deserialize(InputStream inputStream, Class<?> type) throws IOException {
+		AbstractCodec<P> codec = findDelegate(type);
 		if (codec != null) {
 			return codec.deserialize(inputStream);
 		}
 		else {
-			return defaultCodec.deserialize(inputStream, type);
+			return defaultCodec.deserialize(inputStream, (Class<P>) type);
 		}
 	}
 
 	@Override
-	public Object deserialize(byte[] bytes, Class<? extends Object> type) throws IOException {
+	public Object deserialize(byte[] bytes, Class<?> type) throws IOException {
 		return deserialize(new ByteArrayInputStream(bytes), type);
 	}
 
-	private AbstractCodec<?> findDelegate(Class<?> type) {
+	private AbstractCodec<P> findDelegate(Class<?> type) {
 		if (delegates == null) {
 			return null;
 		}

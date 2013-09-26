@@ -13,40 +13,30 @@
 
 package org.springframework.xd.dirt.stream;
 
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.xd.dirt.server.options.Store;
-import org.springframework.xd.dirt.server.options.Transport;
-import org.springframework.xd.dirt.server.options.XDPropertyKeys;
+import org.springframework.xd.dirt.module.ModuleDeployer;
+import org.springframework.xd.dirt.server.SingleNodeMain;
+import org.springframework.xd.dirt.server.SingleNodeServer;
+import org.springframework.xd.dirt.server.options.SingleNodeOptions;
+import org.springframework.xd.module.Module;
 
 /**
  * @author David Turanski
  */
 public abstract class AbstractStreamTests {
 
-	static StreamDeployer streamDeployer;
+	private static StreamDeployer streamDeployer;
+
+	private static ModuleDeployer moduleDeployer;
 
 	@BeforeClass
 	public static void startXDSingleNode() throws Exception {
-		System.setProperty(XDPropertyKeys.XD_HOME, "..");
-		System.setProperty(XDPropertyKeys.XD_TRANSPORT, Transport.local.name());
-		System.setProperty(XDPropertyKeys.XD_STORE, Store.memory.name());
-
-		ApplicationContext ctx = new ClassPathXmlApplicationContext("/META-INF/spring-xd/transports/local-admin.xml",
-				"/META-INF/spring-xd/store/memory-admin.xml");
-		streamDeployer = ctx.getBean(StreamDeployer.class);
-
+		SingleNodeServer singleNode = SingleNodeMain.launchSingleNodeServer(new SingleNodeOptions());
+		streamDeployer = singleNode.getAdminServer().getApplicationContext().getBean(StreamDeployer.class);
+		moduleDeployer = singleNode.getContainer().getApplicationContext().getBean(ModuleDeployer.class);
 	}
 
-	@AfterClass
-	public static void resetSystemProperties() {
-		System.clearProperty(XDPropertyKeys.XD_HOME);
-		System.clearProperty(XDPropertyKeys.XD_TRANSPORT);
-		System.clearProperty(XDPropertyKeys.XD_STORE);
-	}
 
 	protected void deployStream(String name, String config) {
 		streamDeployer.save(new StreamDefinition(name, config));
@@ -57,4 +47,7 @@ public abstract class AbstractStreamTests {
 		streamDeployer.undeploy(name);
 	}
 
+	protected Module getDeployedModule(String streamName, int index) {
+		return moduleDeployer.getDeployedModules().get(streamName).get(index);
+	}
 }

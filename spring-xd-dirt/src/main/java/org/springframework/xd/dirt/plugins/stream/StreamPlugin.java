@@ -185,7 +185,7 @@ public class StreamPlugin implements Plugin {
 			Collection<MediaType> acceptedMediaTypes = new ArrayList<MediaType>(acceptedTypes.size());
 			for (Object acceptedType : acceptedTypes) {
 				if (acceptedType instanceof String) {
-					acceptedMediaTypes.add(MediaType.parseMediaType((String) acceptedType));
+					acceptedMediaTypes.add(MediaType.valueOf((String) acceptedType));
 				}
 				else if (acceptedType instanceof MediaType) {
 					acceptedMediaTypes.add((MediaType) acceptedType);

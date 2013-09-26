@@ -27,8 +27,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.Test;
 
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.http.MediaType;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
@@ -54,21 +52,6 @@ public class LocalMessageBusTests extends AbstractMessageBusTests {
 		bus.setConvertWithinTransport(true);
 		bus.afterPropertiesSet();
 		return bus;
-	}
-
-	@Test
-	public void testPayloadConversionToString() throws Exception {
-		LocalMessageBus bus = (LocalMessageBus) getMessageBus();
-		DefaultConversionService conversionService = new DefaultConversionService();
-		conversionService.addConverter(new Converter<Foo, String>() {
-
-			@Override
-			public String convert(Foo source) {
-				return source.toString();
-			}
-		});
-		bus.setConversionService(conversionService);
-		verifyPayloadConversion("foo", bus, Collections.singletonList(MediaType.TEXT_PLAIN));
 	}
 
 	@Test

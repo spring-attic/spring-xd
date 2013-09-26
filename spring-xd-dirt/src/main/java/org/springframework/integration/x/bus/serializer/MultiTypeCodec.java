@@ -23,7 +23,7 @@ import org.springframework.core.serializer.Serializer;
 
 
 /**
- * Interface for classes that perform both serialization and deserialization
+ * Interface for classes that perform both serialization and deserialization.
  * 
  * @author David Turanski
  */

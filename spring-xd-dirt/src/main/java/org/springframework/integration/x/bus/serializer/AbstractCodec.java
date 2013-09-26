@@ -24,13 +24,14 @@ import org.springframework.core.serializer.Serializer;
 
 
 /**
+ * Support class providing convenience methods for codecs.
  * 
  * @author David Turanski
  */
 public abstract class AbstractCodec<T> implements Serializer<T>, Deserializer<T> {
 
 	/**
-	 * Deserialize a byte array
+	 * Deserialize a byte array.
 	 * 
 	 * @param bytes
 	 * @return

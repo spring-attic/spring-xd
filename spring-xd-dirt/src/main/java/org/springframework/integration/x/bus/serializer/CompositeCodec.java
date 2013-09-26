@@ -27,6 +27,7 @@ import org.springframework.util.Assert;
 
 
 /**
+ * A codec that can delegate to one out of many codecs, depending on the type of the object to serialize/deserialize.
  * 
  * @author David Turanski
  */

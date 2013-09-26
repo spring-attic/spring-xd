@@ -141,7 +141,7 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 	@Override
 	public void bindConsumer(String name, MessageChannel moduleInputChannel, Collection<MediaType> acceptedMediaTypes,
 			boolean aliasHint) {
-		SharedChannelProvider channelProvider = aliasHint ? queueChannelProvider
+		SharedChannelProvider<?> channelProvider = aliasHint ? queueChannelProvider
 				: directChannelProvider;
 		doRegisterConsumer(name, moduleInputChannel, acceptedMediaTypes, channelProvider);
 	}
@@ -168,7 +168,7 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 	 */
 	@Override
 	public void bindProducer(String name, MessageChannel moduleOutputChannel, boolean aliasHint) {
-		SharedChannelProvider channelProvider = aliasHint ? queueChannelProvider
+		SharedChannelProvider<?> channelProvider = aliasHint ? queueChannelProvider
 				: directChannelProvider;
 		doRegisterProducer(name, moduleOutputChannel, channelProvider);
 	}

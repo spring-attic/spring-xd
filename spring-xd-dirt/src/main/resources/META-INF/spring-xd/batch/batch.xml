@@ -26,7 +26,7 @@
 			</property>
 		</bean>
 
-		<jdbc:initialize-database data-source="dataSource"
+		<jdbc:initialize-database data-source="lazyConnectionDataSourceProxy"
 			ignore-failures="DROPS">
 			<jdbc:script
 				location="classpath:/org/springframework/batch/core/schema-drop-hsqldb.sql" />
@@ -61,12 +61,12 @@
 
 		<bean id="jobExecutionDao"
 			class="org.springframework.batch.admin.service.JdbcSearchableJobExecutionDao">
-			<property name="dataSource" ref="dataSource" />
+			<property name="dataSource" ref="lazyConnectionDataSourceProxy" />
 		</bean>
 
 		<bean id="stepExecutionDao"
 			class="org.springframework.batch.admin.service.JdbcSearchableStepExecutionDao">
-			<property name="dataSource" ref="dataSource" />
+			<property name="dataSource" ref="lazyConnectionDataSourceProxy" />
 		</bean>
 	</beans>
 
@@ -84,9 +84,19 @@
 			<property name="minIdle" value="2" />
 		</bean>
 
-		<batch:job-repository id="jobRepository"
-			data-source="dataSource" transaction-manager="transactionManager"
-			isolation-level-for-create="SERIALIZABLE" table-prefix="BATCH_" />
+		<bean id="lazyConnectionDataSourceProxy" class="org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy">
+			<property name="targetDataSource" ref="dataSource"/>
+			<property name="defaultAutoCommit" value="true"/>
+			<!-- transaction isolation level TRANSACTION_READ_COMMITTED -->
+			<property name="defaultTransactionIsolation" value="2"/>
+		</bean>
+
+		<bean id="jobRepository" class="org.springframework.batch.core.repository.support.JobRepositoryFactoryBean" >
+			<property name="transactionManager" ref="transactionManager" />
+			<property name="dataSource" ref="lazyConnectionDataSourceProxy" />
+			<property name="databaseType" value="hsql" />
+			<property name="tablePrefix" value="BATCH_"/>
+		</bean>
 
 		<bean id="jobLauncher"
 			class="org.springframework.batch.core.launch.support.SimpleJobLauncher">
@@ -103,11 +113,11 @@
 
 		<bean id="transactionManager"
 			class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
-			<property name="dataSource" ref="dataSource" />
+			<property name="dataSource" ref="lazyConnectionDataSourceProxy" />
 		</bean>
 
 		<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
-			<constructor-arg ref="dataSource" />
+			<constructor-arg ref="lazyConnectionDataSourceProxy" />
 		</bean>
 
 		<task:scheduler id="scheduler" pool-size="10" />

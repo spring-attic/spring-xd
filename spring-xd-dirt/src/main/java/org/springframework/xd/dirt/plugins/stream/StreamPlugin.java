@@ -59,8 +59,6 @@ public class StreamPlugin implements Plugin {
 
 	private static final String TAP_CHANNEL_PREFIX = "tap:";
 
-	private static final String SPEL_CONTEXT_XML = CONTEXT_CONFIG_ROOT + "spel-context.xml";
-
 	private static final String MESSAGE_BUS = CONTEXT_CONFIG_ROOT + "message-bus.xml";
 
 	private final static String CONTENT_TYPE_BEAN_NAME = "accepted-content-types";
@@ -76,7 +74,6 @@ public class StreamPlugin implements Plugin {
 			properties.setProperty("xd.stream.name", md.getGroup());
 			properties.setProperty("xd.module.index", String.valueOf(md.getIndex()));
 			module.addProperties(properties);
-			module.addComponents(new ClassPathResource(SPEL_CONTEXT_XML));
 		}
 	}
 

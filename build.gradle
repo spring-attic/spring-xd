@@ -315,7 +315,7 @@ project('spring-xd-dirt') {
 				"org.springframework.integration:spring-integration-event:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-file:$springIntegrationVersion",
 //				"org.springframework.integration:spring-integration-mail:$springIntegrationVersion",
-//				"com.sun.mail:javax.mail:$javaxMailVersion",
+				"com.sun.mail:javax.mail:$javaxMailVersion",
 				"org.springframework.integration:spring-integration-gemfire:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-groovy:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-jms:$springIntegrationVersion",
@@ -362,7 +362,6 @@ project('spring-xd-dirt') {
 			exclude group:'org.hamcrest'
 		}
 		testCompile "com.icegreen:greenmail:1.3.1b"
-		//testCompile "org.scala-lang:scala-library:2.9.3"
 	}
 
     apply plugin:'application'
@@ -712,8 +711,31 @@ project('modules') {
 
 project('modules:source:mail') {
 	dependencies {
-		runtime "org.springframework.integration:spring-integration-mail:$springIntegrationVersion",
-				"com.sun.mail:javax.mail:$javaxMailVersion"
+		runtime "org.springframework.integration:spring-integration-mail:$springIntegrationVersion"
+		// Need to leave javax.mail at the dirt-server level for
+		// shell integration tests to work.
+		//		"com.sun.mail:javax.mail:$javaxMailVersion"
+
+	}
+}
+
+project('modules:source:imap') {
+	dependencies {
+		runtime "org.springframework.integration:spring-integration-mail:$springIntegrationVersion"
+		// Need to leave javax.mail at the dirt-server level for
+		// shell integration tests to work.
+		//		"com.sun.mail:javax.mail:$javaxMailVersion"
+
+	}
+}
+
+project('modules:sink:mail') {
+	dependencies {
+		runtime "org.springframework.integration:spring-integration-mail:$springIntegrationVersion"
+		// Need to leave javax.mail at the dirt-server level for
+		// shell integration tests to work.
+		//		"com.sun.mail:javax.mail:$javaxMailVersion"
+
 	}
 }
 

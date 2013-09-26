@@ -114,7 +114,9 @@ public class FileModuleRegistry extends AbstractModuleRegistry implements Resour
 		ArrayList<Resource> resources = new ArrayList<Resource>();
 		File typedDir = new File(directory, type.getTypeName());
 		File[] files = typedDir.listFiles();
-
+		if (files == null) {
+			return resources;
+		}
 
 		for (File file : files) {
 			if (file.isFile()) {

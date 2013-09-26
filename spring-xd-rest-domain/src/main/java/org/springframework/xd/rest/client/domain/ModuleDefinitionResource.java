@@ -33,7 +33,7 @@ public class ModuleDefinitionResource extends NamedResource {
 	}
 
 	/**
-	 * The DSL representation of this job definition.
+	 * The DSL representation of this module definition.
 	 */
 	private String definition;
 

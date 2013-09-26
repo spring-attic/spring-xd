@@ -17,6 +17,7 @@
 package org.springframework.xd.shell.command;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.apache.commons.logging.Log;
@@ -78,7 +79,7 @@ public class ModuleCommandTests extends AbstractShellIntegrationTest {
 	@Test
 	public void testListForInvalidType() throws InterruptedException {
 		Table t = listByType("foo");
-		assertTrue("Invalid Type should return no values", t.getRows().size() == 0);
+		assertNull("Invalid Type will return a null set", t);
 	}
 
 	private Table listAll() {

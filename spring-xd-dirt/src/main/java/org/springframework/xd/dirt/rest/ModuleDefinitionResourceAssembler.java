@@ -17,7 +17,7 @@
 package org.springframework.xd.dirt.rest;
 
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
-import org.springframework.xd.dirt.stream.ModuleDefinition;
+import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
 
 /**
@@ -39,7 +39,7 @@ public class ModuleDefinitionResourceAssembler extends
 
 	@Override
 	protected ModuleDefinitionResource instantiateResource(ModuleDefinition entity) {
-		return new ModuleDefinitionResource(entity.getName(), entity.getDefinition(), entity.getType());
+		return new ModuleDefinitionResource(entity.getName(), entity.getResource().getDescription(), entity.getType());
 	}
 
 }

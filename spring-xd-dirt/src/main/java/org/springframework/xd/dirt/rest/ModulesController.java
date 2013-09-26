@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.dirt.module.ModuleHandler;
 import org.springframework.xd.dirt.module.ModuleRegistry;
-import org.springframework.xd.dirt.stream.ModuleDefinition;
+import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
 
 /**
@@ -47,13 +47,10 @@ import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
 @ExposesResourceFor(ModuleDefinitionResource.class)
 public class ModulesController {
 
-	ModuleDefinitionResourceAssembler resourceAssemblerSupport = null;
-
-	ModuleRegistry moduleRegistry;
+	private final ModuleRegistry moduleRegistry;
 
 	@Autowired
 	public ModulesController(ModuleRegistry moduleRegistry) {
-		resourceAssemblerSupport = new ModuleDefinitionResourceAssembler();
 		this.moduleRegistry = moduleRegistry;
 	}
 
@@ -65,7 +62,7 @@ public class ModulesController {
 	@ResponseBody
 	public PagedResources<ModuleDefinitionResource> list(Pageable pageable,
 			PagedResourcesAssembler<ModuleDefinition> assembler,
-			@RequestParam("type") String type) {
+			@RequestParam(value = "type", required = false) String type) {
 		ModuleHandler handler = new ModuleHandler(moduleRegistry);
 		Page<ModuleDefinition> page = handler.findAll(pageable, type);
 		PagedResources<ModuleDefinitionResource> result = safePagedResources(assembler, page);
@@ -99,6 +96,6 @@ public class ModulesController {
 	}
 
 	protected ModuleDefinition createDefinition(String name, String definition, String type) {
-		return new ModuleDefinition(name, definition, type);
+		return new ModuleDefinition(name, type);
 	}
 }

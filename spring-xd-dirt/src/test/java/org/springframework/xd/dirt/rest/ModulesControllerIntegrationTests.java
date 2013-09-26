@@ -99,7 +99,7 @@ public class ModulesControllerIntegrationTests extends AbstractControllerIntegra
 
 	@Test
 	public void testListAll() throws Exception {
-		mockMvc.perform(get("/modules").param("type", "all").accept(MediaType.APPLICATION_JSON)).andExpect(
+		mockMvc.perform(get("/modules").accept(MediaType.APPLICATION_JSON)).andExpect(
 				status().isOk()).andExpect(
 				jsonPath("$.content", Matchers.hasSize(12))).andExpect(jsonPath("$.content[0].name").value("job_0")).andExpect(
 				jsonPath("$.content[1].name").value("source_0")).andExpect(
@@ -138,7 +138,6 @@ public class ModulesControllerIntegrationTests extends AbstractControllerIntegra
 	@Test
 	public void testListBadType() throws Exception {
 		mockMvc.perform(get("/modules").param("type", "foo").accept(MediaType.APPLICATION_JSON)).andExpect(
-				status().isOk()).andExpect(
-				jsonPath("$.content", Matchers.hasSize(0)));
+				status().isInternalServerError());
 	}
 }

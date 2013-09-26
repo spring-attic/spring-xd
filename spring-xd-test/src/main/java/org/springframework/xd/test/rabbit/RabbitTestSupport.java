@@ -17,36 +17,33 @@
 package org.springframework.xd.test.rabbit;
 
 
-import org.junit.runner.Description;
-import org.junit.runners.model.Statement;
+import org.junit.Rule;
 
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
-import org.springframework.amqp.rabbit.connection.Connection;
-import org.springframework.xd.test.AbstractExternalServerAvailableRule;
+import org.springframework.xd.test.AbstractExternalResourceTestSupport;
 
 /**
+ * JUnit {@link Rule} that detects the fact that RabbitMQ is available on localhost.
+ * 
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Eric Bottard
  */
-public class RabbitAvailableRule extends AbstractExternalServerAvailableRule {
+public class RabbitTestSupport extends AbstractExternalResourceTestSupport<CachingConnectionFactory> {
+
+	public RabbitTestSupport() {
+		super("RABBIT");
+	}
 
 	@Override
-	public Statement apply(Statement base, Description description) {
-		CachingConnectionFactory connectionFactory = null;
-		try {
-			connectionFactory = new CachingConnectionFactory("localhost");
-			Connection connection = connectionFactory.createConnection();
-			connection.close();
-		}
-		catch (Exception e) {
-			return super.failOrSkipTests("RABBIT", e);
-		}
-		finally {
-			if (connectionFactory != null) {
-				connectionFactory.destroy();
-			}
-		}
-		return super.apply(base, description);
+	protected void obtainResource() throws Exception {
+		resource = new CachingConnectionFactory("localhost");
+		resource.createConnection().close();
+	}
+
+	@Override
+	protected void cleanupResource() throws Exception {
+		resource.destroy();
 	}
 
 }

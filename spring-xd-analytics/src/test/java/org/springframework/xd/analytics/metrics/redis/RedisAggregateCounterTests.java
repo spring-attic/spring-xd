@@ -25,7 +25,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.xd.analytics.metrics.AbstractAggregateCounterTests;
 import org.springframework.xd.analytics.metrics.common.RedisRepositoriesConfig;
-import org.springframework.xd.test.redis.RedisAvailableRule;
+import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
  * @author Luke Taylor
@@ -38,7 +38,7 @@ import org.springframework.xd.test.redis.RedisAvailableRule;
 public class RedisAggregateCounterTests extends AbstractAggregateCounterTests {
 
 	@Rule
-	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
+	public RedisTestSupport redisAvailableRule = new RedisTestSupport();
 
 	@Before
 	@After

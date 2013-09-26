@@ -22,7 +22,7 @@ import org.junit.Rule;
 
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.xd.test.redis.RedisAvailableRule;
+import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
  * Tests for {@link AbstractRedisRepository}.
@@ -34,7 +34,7 @@ public class AbstractRedisRepositoryTests extends BaseRepositoryTests<AbstractRe
 	private static LettuceConnectionFactory connectionFactory;
 
 	@Rule
-	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
+	public RedisTestSupport redisAvailableRule = new RedisTestSupport();
 
 	@BeforeClass
 	public static void setupConnection() {

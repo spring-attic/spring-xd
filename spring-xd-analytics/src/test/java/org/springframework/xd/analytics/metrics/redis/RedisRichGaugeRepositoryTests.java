@@ -13,7 +13,7 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
 import org.springframework.xd.analytics.metrics.AbstractRichGaugeRepositoryTests;
 import org.springframework.xd.analytics.metrics.common.RedisRepositoriesConfig;
 import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
-import org.springframework.xd.test.redis.RedisAvailableRule;
+import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
  * @author Luke Taylor
@@ -24,7 +24,7 @@ import org.springframework.xd.test.redis.RedisAvailableRule;
 public class RedisRichGaugeRepositoryTests extends AbstractRichGaugeRepositoryTests {
 
 	@Rule
-	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
+	public RedisTestSupport redisAvailableRule = new RedisTestSupport();
 
 	@Autowired
 	private RedisRichGaugeRepository repo;

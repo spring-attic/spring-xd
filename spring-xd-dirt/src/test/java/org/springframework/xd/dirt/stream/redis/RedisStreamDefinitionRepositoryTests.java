@@ -24,11 +24,10 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.store.AbstractRedisRepository;
-import org.springframework.xd.test.redis.RedisAvailableRule;
+import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
  * @author David Turanski
@@ -38,18 +37,14 @@ import org.springframework.xd.test.redis.RedisAvailableRule;
 public class RedisStreamDefinitionRepositoryTests {
 
 	@Rule
-	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
+	public RedisTestSupport redisAvailableRule = new RedisTestSupport();
 
 	AbstractRedisRepository<StreamDefinition, String> repository;
 
 	@Before
 	public void setUp() {
 		StringRedisTemplate template = new StringRedisTemplate();
-		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
-		connectionFactory.setHostName("localhost");
-		connectionFactory.setPort(6379);
-		connectionFactory.afterPropertiesSet();
-		template.setConnectionFactory(connectionFactory);
+		template.setConnectionFactory(redisAvailableRule.getResource());
 		template.afterPropertiesSet();
 
 		repository = new RedisStreamDefinitionRepository(template);

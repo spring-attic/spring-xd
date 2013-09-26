@@ -16,7 +16,6 @@
 
 package org.springframework.xd.dirt.plugins;
 
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -25,7 +24,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.x.redis.RedisQueueOutboundChannelAdapter;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
-import org.springframework.xd.test.redis.RedisAvailableRule;
+import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
  * @author Mark Fisher
@@ -36,13 +35,11 @@ public class ModuleDeploymentTests {
 	// run redis-server and RedisContainerLauncher (or StreamServer) before this test
 
 	@Rule
-	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
+	public RedisTestSupport redisAvailableRule = new RedisTestSupport();
 
 	@Test
-	@Ignore
 	public void testProcessor() throws Exception {
-		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
-		connectionFactory.afterPropertiesSet();
+		LettuceConnectionFactory connectionFactory = redisAvailableRule.getResource();
 		RedisQueueOutboundChannelAdapter adapter = new RedisQueueOutboundChannelAdapter("queue.deployer",
 				connectionFactory);
 		adapter.setExtractPayload(false);
@@ -57,10 +54,8 @@ public class ModuleDeploymentTests {
 	}
 
 	@Test
-	@Ignore
 	public void testSimpleStream() throws Exception {
-		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
-		connectionFactory.afterPropertiesSet();
+		LettuceConnectionFactory connectionFactory = redisAvailableRule.getResource();
 		RedisQueueOutboundChannelAdapter adapter = new RedisQueueOutboundChannelAdapter("queue.deployer",
 				connectionFactory);
 		adapter.setExtractPayload(false);

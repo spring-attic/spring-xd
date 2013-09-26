@@ -23,12 +23,10 @@ import static org.junit.Assert.assertNull;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.xd.test.redis.RedisAvailableRule;
 
 /**
  * Unit test of {@link MessageRedisSerializer}
@@ -36,9 +34,6 @@ import org.springframework.xd.test.redis.RedisAvailableRule;
  * @author Jennifer Hickey
  */
 public class MessageRedisSerializerTests {
-
-	@Rule
-	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
 
 	@Test
 	public void testSerializeAndDeserialize() {

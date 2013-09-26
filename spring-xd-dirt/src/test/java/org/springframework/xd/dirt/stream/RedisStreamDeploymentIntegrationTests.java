@@ -18,7 +18,7 @@ import org.junit.Rule;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.xd.test.redis.RedisAvailableRule;
+import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
  * @author Mark Fisher
@@ -26,7 +26,7 @@ import org.springframework.xd.test.redis.RedisAvailableRule;
 public class RedisStreamDeploymentIntegrationTests extends AbstractStreamDeploymentIntegrationTests {
 
 	@Rule
-	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
+	public RedisTestSupport redisAvailableRule = new RedisTestSupport();
 
 	@Override
 	protected String getTransport() {

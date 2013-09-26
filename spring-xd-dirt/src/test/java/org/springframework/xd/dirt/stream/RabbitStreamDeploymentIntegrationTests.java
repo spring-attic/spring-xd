@@ -17,7 +17,7 @@ import org.junit.Rule;
 
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.context.ApplicationContext;
-import org.springframework.xd.test.rabbit.RabbitAvailableRule;
+import org.springframework.xd.test.rabbit.RabbitTestSupport;
 
 /**
  * @author Mark Fisher
@@ -25,7 +25,7 @@ import org.springframework.xd.test.rabbit.RabbitAvailableRule;
 public class RabbitStreamDeploymentIntegrationTests extends AbstractStreamDeploymentIntegrationTests {
 
 	@Rule
-	public RabbitAvailableRule rabbitAvailableRule = new RabbitAvailableRule();
+	public RabbitTestSupport rabbitAvailableRule = new RabbitTestSupport();
 
 	@Override
 	protected String getTransport() {

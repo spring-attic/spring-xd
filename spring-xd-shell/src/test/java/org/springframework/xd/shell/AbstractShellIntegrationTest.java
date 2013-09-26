@@ -41,7 +41,7 @@ import org.springframework.xd.dirt.server.SingleNodeMain;
 import org.springframework.xd.dirt.server.SingleNodeServer;
 import org.springframework.xd.dirt.server.options.SingleNodeOptions;
 import org.springframework.xd.rest.client.impl.SpringXDTemplate;
-import org.springframework.xd.test.redis.RedisAvailableRule;
+import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
  * Superclass for performing integration tests of spring-xd shell commands.
@@ -78,7 +78,7 @@ public abstract class AbstractShellIntegrationTest {
 	private static final String DEFAULT_HSQL_DATABASE = "xdjobrepotest";
 
 	@Rule
-	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
+	public RedisTestSupport redisAvailableRule = new RedisTestSupport();
 
 	private static final Log logger = LogFactory.getLog(AbstractShellIntegrationTest.class);
 

@@ -160,10 +160,10 @@ public abstract class MessageBusSupport implements MessageBus {
 
 	protected final Message<?> transformPayloadForConsumerIfNecessary(Message<?> message,
 			Collection<MediaType> acceptedMediaTypes) {
-		MessageMediaTypeResolver mimeTypeResolver = new DefaultMessageMediaTypeResolver();
+		MessageMediaTypeResolver mediaTypeResolver = new DefaultMessageMediaTypeResolver();
 		Message<?> messageToSend = message;
 		Object originalPayload = message.getPayload();
-		Object contentType = mimeTypeResolver.resolveMediaType(message);
+		Object contentType = mediaTypeResolver.resolveMediaType(message);
 		Object payload = transformPayloadForConsumer(originalPayload,
 				getContentTypeHeaderAsMediaType(contentType),
 				acceptedMediaTypes);

@@ -236,6 +236,11 @@ configure(moduleProjects()) { moduleProject ->
 	apply plugin: 'java'
 	task build(overwrite: true) {}
 	task clean(overwrite: true) {}
+	compileJava {
+		sourceCompatibility=1.6
+		targetCompatibility=1.6
+	}
+
 
 	apply plugin: 'eclipse'
 
@@ -708,7 +713,7 @@ project('modules') {
 	}
 }
 
-project('modules:source:mail') {
+project('modules.source.mail') {
 	dependencies {
 		runtime "org.springframework.integration:spring-integration-mail:$springIntegrationVersion"
 		// Need to leave javax.mail at the dirt-server level for
@@ -718,7 +723,7 @@ project('modules:source:mail') {
 	}
 }
 
-project('modules:source:imap') {
+project('modules.source.imap') {
 	dependencies {
 		runtime "org.springframework.integration:spring-integration-mail:$springIntegrationVersion"
 		// Need to leave javax.mail at the dirt-server level for
@@ -728,7 +733,7 @@ project('modules:source:imap') {
 	}
 }
 
-project('modules:sink:mail') {
+project('modules.sink.mail') {
 	dependencies {
 		runtime "org.springframework.integration:spring-integration-mail:$springIntegrationVersion"
 		// Need to leave javax.mail at the dirt-server level for

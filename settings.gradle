@@ -23,7 +23,14 @@ include 'spring-xd-shell'
 include 'spring-xd-ui'
 include 'modules'
 
-include 'modules:source:mail'
-include 'modules:source:imap'
-include 'modules:sink:mail'
+['source', 'processor', 'sink'].each {kind->
+	new File(rootDir, "modules/${kind}").eachDir { dir ->
+		if (new File(dir, "config/${dir.name}.xml").exists()) {
+		    include ":modules.${kind}.${dir.name}"
+		    project(":modules.${kind}.${dir.name}").projectDir = dir
+		}
+	}
+}
+
+
 

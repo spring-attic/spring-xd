@@ -16,8 +16,6 @@
 
 package org.springframework.integration.x.rabbit;
 
-import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
-
 import java.util.Collection;
 
 import org.apache.commons.logging.Log;
@@ -180,7 +178,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		protected void handleMessageInternal(Message<?> message) throws Exception {
 			// TODO: rabbit wire data pluggable format?
 			Message<?> messageToSend = transformPayloadForProducerIfNecessary(message,
-					APPLICATION_OCTET_STREAM);
+					MediaType.APPLICATION_OCTET_STREAM);
 			this.delegate.handleMessage(messageToSend);
 		}
 	}

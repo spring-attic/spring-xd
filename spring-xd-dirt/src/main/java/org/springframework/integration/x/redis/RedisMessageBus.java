@@ -16,8 +16,6 @@
 
 package org.springframework.integration.x.redis;
 
-import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
-
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.Collection;
@@ -146,7 +144,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 		protected void handleMessageInternal(Message<?> message) throws Exception {
 			@SuppressWarnings("unchecked")
 			Message<byte[]> transformed = (Message<byte[]>) transformPayloadForProducerIfNecessary(message,
-					APPLICATION_OCTET_STREAM);
+					MediaType.APPLICATION_OCTET_STREAM);
 			Message<?> messageToSend = embeddedHeadersMessageConverter.embedHeaders(transformed,
 					MessageHeaders.CONTENT_TYPE, ORIGINAL_CONTENT_TYPE_HEADER);
 			Assert.isInstanceOf(byte[].class, messageToSend.getPayload());

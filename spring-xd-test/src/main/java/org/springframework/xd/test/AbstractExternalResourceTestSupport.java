@@ -20,6 +20,7 @@ import static org.junit.Assert.fail;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.junit.Assume;
 import org.junit.Rule;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
@@ -96,6 +97,7 @@ public abstract class AbstractExternalResourceTestSupport<R> implements TestRule
 
 				@Override
 				public void evaluate() throws Throwable {
+					Assume.assumeTrue("Skipping test due to " + resourceDescription + " not being available", false);
 				}
 			};
 		}

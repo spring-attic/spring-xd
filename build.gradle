@@ -265,6 +265,7 @@ configure(moduleProjects()) { moduleProject ->
 	}
 
 	tasks.clean.dependsOn cleanLibs
+	tasks.cleanEclipse.dependsOn cleanLibs
 
 	project(':spring-xd-dirt').tasks['build'].dependsOn(moduleProject.tasks['build'])
 }
@@ -318,14 +319,12 @@ project('spring-xd-dirt') {
 				"log4j:log4j:$log4jVersion",
 				"org.springframework.integration:spring-integration-amqp:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-event:$springIntegrationVersion",
-//				"org.springframework.integration:spring-integration-mail:$springIntegrationVersion",
 				"com.sun.mail:javax.mail:$javaxMailVersion",
 				"org.springframework.integration:spring-integration-gemfire:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-groovy:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-jms:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-jmx:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-redis:$springIntegrationVersion",
-				"org.springframework.integration:spring-integration-syslog:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-twitter:$springIntegrationVersion",
 				"org.springframework.batch:spring-batch-core:$springBatchVersion",
 				"org.springframework.data:spring-data-redis:$springDataRedisVersion",
@@ -748,6 +747,18 @@ project('modules.source.tail') {
 project('modules.source.http') {
 	dependencies {
 		runtime	project(":spring-xd-http")
+	}
+}
+
+project('modules.source.syslog-tcp') {
+	dependencies {
+		runtime "org.springframework.integration:spring-integration-syslog:$springIntegrationVersion"
+	}
+}
+
+project('modules.source.syslog-udp') {
+	dependencies {
+		runtime "org.springframework.integration:spring-integration-syslog:$springIntegrationVersion"
 	}
 }
 

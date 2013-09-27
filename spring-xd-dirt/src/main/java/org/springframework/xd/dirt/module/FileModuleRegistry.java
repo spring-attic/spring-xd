@@ -88,7 +88,7 @@ public class FileModuleRegistry extends AbstractModuleRegistry implements Resour
 		}
 		catch (IOException e) {
 			// Can't happen as we know resource is a FileSystemResource
-			throw new IllegalStateException(e);
+			// throw new IllegalStateException(e);
 		}
 		return null;
 	}

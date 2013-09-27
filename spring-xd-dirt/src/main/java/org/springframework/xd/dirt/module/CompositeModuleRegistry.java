@@ -17,6 +17,7 @@
 package org.springframework.xd.dirt.module;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -30,17 +31,18 @@ import org.springframework.xd.module.ModuleType;
  * 
  * @author Eric Bottard
  * @author Glenn Renfro
+ * @author David Turanski
  */
 public class CompositeModuleRegistry implements ModuleRegistry {
 
-	private final ModuleRegistry[] delegates;
+	private final List<ModuleRegistry> delegates = new ArrayList<ModuleRegistry>();
 
 	/**
 	 * @param cp
 	 * @param file
 	 */
 	public CompositeModuleRegistry(ModuleRegistry... delegates) {
-		this.delegates = delegates;
+		this.delegates.addAll(Arrays.asList(delegates));
 	}
 
 	@Override
@@ -68,6 +70,10 @@ public class CompositeModuleRegistry implements ModuleRegistry {
 			}
 		}
 		return result;
+	}
+
+	public void addDelegate(ModuleRegistry delegate) {
+		delegates.add(delegate);
 	}
 
 	private String makeKeyFor(ModuleDefinition definition) {

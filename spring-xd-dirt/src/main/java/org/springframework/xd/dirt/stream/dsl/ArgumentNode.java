@@ -55,6 +55,7 @@ public class ArgumentNode extends AstNode {
 		return s.toString();
 	}
 
+	@Override
 	public String toString() {
 		StringBuilder s = new StringBuilder();
 		s.append("--").append(name).append("=").append(value);
@@ -88,7 +89,7 @@ public class ArgumentNode extends AstNode {
 		return new ArgumentNode(name, argumentValue, startpos, endpos);
 	}
 
-	static class Variable {
+	private static class Variable {
 
 		public Variable(String name2, String defaultValue2, int startIndex,
 				int pos) {

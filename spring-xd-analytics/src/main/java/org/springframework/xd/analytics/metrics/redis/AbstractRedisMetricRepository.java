@@ -22,11 +22,21 @@ import org.springframework.xd.analytics.metrics.core.MetricRepository;
  */
 abstract class AbstractRedisMetricRepository<M extends Metric, V> implements MetricRepository<M> {
 
-	protected final String metricPrefix;
+	private final String metricPrefix;
 
-	protected final ValueOperations<String, V> valueOperations;
+	private final ValueOperations<String, V> valueOperations;
 
-	protected final RedisOperations<String, V> redisOperations;
+
+	public ValueOperations<String, V> getValueOperations() {
+		return valueOperations;
+	}
+
+
+	public RedisOperations<String, V> getRedisOperations() {
+		return redisOperations;
+	}
+
+	private final RedisOperations<String, V> redisOperations;
 
 	@SuppressWarnings("unchecked")
 	AbstractRedisMetricRepository(RedisConnectionFactory connectionFactory, String metricPrefix) {

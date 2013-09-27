@@ -41,7 +41,7 @@ public class SingleNodeOptionsTests {
 		assertEquals(false, opts.isJmxEnabled());
 		assertEquals(0, (int) opts.getHttpPort());
 		assertEquals(8778, (int) opts.getJmxPort());
-		assertFalse(opts.isExplicit(opts.getXDHomeDir()));
+		assertFalse(opts.isExplicit(opts.getXdHomeDir()));
 		assertTrue(opts.isExplicit(opts.getTransport()));
 		assertTrue(opts.isExplicit(opts.getAnalytics()));
 		assertTrue(opts.isExplicit(opts.getStore()));
@@ -63,7 +63,7 @@ public class SingleNodeOptionsTests {
 		assertEquals(false, opts.isJmxEnabled());
 		assertEquals(0, (int) opts.getHttpPort());
 		assertEquals(8778, (int) opts.getJmxPort());
-		assertFalse(opts.isExplicit(opts.getXDHomeDir()));
+		assertFalse(opts.isExplicit(opts.getXdHomeDir()));
 		assertTrue(opts.isExplicit(opts.getTransport()));
 		assertTrue(opts.isExplicit(opts.getAnalytics()));
 		assertTrue(opts.isExplicit(opts.getStore()));
@@ -75,14 +75,14 @@ public class SingleNodeOptionsTests {
 		ContainerOptions containerOpts = opts.asContainerOptions();
 
 		assertSame(containerOpts.getAnalytics(), opts.getAnalytics());
-		assertSame(containerOpts.getXDHomeDir(), opts.getXDHomeDir());
+		assertSame(containerOpts.getXdHomeDir(), opts.getXdHomeDir());
 		assertSame(containerOpts.getTransport(), opts.getTransport());
 		assertSame(containerOpts.getHadoopDistro(), opts.getHadoopDistro());
 
 		assertSame(containerOpts.getJmxPort(), opts.getJmxPort());
 		assertSame(containerOpts.isJmxEnabled(), opts.isJmxEnabled());
 		// Better to treat derived options as not explicit
-		assertFalse(containerOpts.isExplicit(opts.getXDHomeDir()));
+		assertFalse(containerOpts.isExplicit(opts.getXdHomeDir()));
 		assertFalse(containerOpts.isExplicit(opts.getTransport()));
 		assertFalse(containerOpts.isExplicit(opts.getAnalytics()));
 		assertFalse(containerOpts.isExplicit(opts.getStore()));
@@ -97,7 +97,7 @@ public class SingleNodeOptionsTests {
 	public void testDefaultOptions() {
 		SingleNodeOptions opts = new SingleNodeOptions();
 		new CommandLineParser(opts).parseArgument(new String[] {});
-		assertEquals("..", opts.getXDHomeDir());
+		assertEquals("..", opts.getXdHomeDir());
 		assertEquals(Transport.local, opts.getTransport());
 		assertEquals(Analytics.memory, opts.getAnalytics());
 		assertEquals(Store.memory, opts.getStore());
@@ -106,7 +106,7 @@ public class SingleNodeOptionsTests {
 		assertEquals(8778, (int) opts.getJmxPort());
 		assertEquals(false, opts.isJmxEnabled());
 
-		assertFalse(opts.isExplicit(opts.getXDHomeDir()));
+		assertFalse(opts.isExplicit(opts.getXdHomeDir()));
 		assertFalse(opts.isExplicit(opts.getTransport()));
 		assertFalse(opts.isExplicit(opts.getAnalytics()));
 		assertFalse(opts.isExplicit(opts.getStore()));

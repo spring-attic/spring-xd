@@ -38,6 +38,6 @@
 
 	<int-event:inbound-channel-adapter id="moduleEventsOut" event-types="org.springframework.xd.dirt.event.AbstractModuleEvent"/>
 
-	<int-event:inbound-channel-adapter id="containerEventsOut" event-types="org.springframework.xd.dirt.event.AbstractContainerEvent"/>
+	<int-event:inbound-channel-adapter id="containerEventsOut" event-types="org.springframework.xd.dirt.container.AbstractContainerEvent"/>
 
 </beans>

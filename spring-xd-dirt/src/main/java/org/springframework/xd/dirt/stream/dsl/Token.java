@@ -46,7 +46,7 @@ class Token {
 	 */
 	Token(TokenKind tokenKind, char[] tokenData, int pos, int endpos) {
 		this(tokenKind, pos, endpos);
-		this.data = new String(tokenData);
+		this.data = new String(tokenData.clone());
 	}
 
 

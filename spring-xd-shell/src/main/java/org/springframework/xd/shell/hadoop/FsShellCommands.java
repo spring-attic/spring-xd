@@ -1,12 +1,12 @@
 /*
  * Copyright 2011-2013 the original author or authors.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -47,6 +47,22 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 
 	private static final String PREFIX = "hadoop fs ";
 
+	private static final String FALSE = "false";
+
+	private static final String TRUE = "true";
+
+	private static final String RECURSIVE = "recursive";
+
+	private static final String RECURSION_HELP = "whether with recursion";
+
+	private static final String PATH = "path";
+
+	private static final String FROM = "from";
+
+	private static final String SOURCE_FILE_NAMES = "source file names";
+
+	private static final String DESTINATION_PATH_NAME = "destination path name";
+
 	private FsShell shell;
 
 	@PostConstruct
@@ -70,23 +86,23 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 
 	@Override
 	public ParseResult beforeInvocation(ParseResult invocationContext) {
-		invocationContext = super.beforeInvocation(invocationContext);
+		ParseResult result = super.beforeInvocation(invocationContext);
 		String defaultNameKey = (String) ReflectionUtils.getField(
 				ReflectionUtils.findField(FileSystem.class, "FS_DEFAULT_NAME_KEY"), null);
 		String fs = getHadoopConfiguration().get(defaultNameKey);
 		if (fs != null && fs.length() > 0) {
-			return invocationContext;
+			return result;
 		}
 		else {
 			LOG.severe("You must set fs URL before running fs commands");
-			throw new RuntimeException("You must set fs URL before running fs commands");
+			throw new IllegalStateException("You must set fs URL before running fs commands");
 		}
 	}
 
 	@CliCommand(value = PREFIX + "ls", help = "List files in the directory")
 	public void ls(
 			@CliOption(key = { "", "dir" }, mandatory = false, unspecifiedDefaultValue = ".", help = "directory to be listed") final String path,
-			@CliOption(key = { "recursive" }, mandatory = false, specifiedDefaultValue = "true", unspecifiedDefaultValue = "false", help = "whether with recursion") final boolean recursive) {
+			@CliOption(key = { RECURSIVE }, mandatory = false, specifiedDefaultValue = TRUE, unspecifiedDefaultValue = FALSE, help = RECURSION_HELP) final boolean recursive) {
 		if (recursive) {
 			runCommand("-lsr", path);
 		}
@@ -97,15 +113,15 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 
 	@CliCommand(value = PREFIX + "cat", help = "Copy source paths to stdout")
 	public void cat(
-			@CliOption(key = { "", "path" }, mandatory = true, unspecifiedDefaultValue = ".", help = "file name to be shown") final String path) {
+			@CliOption(key = { "", PATH }, mandatory = true, unspecifiedDefaultValue = ".", help = "file name to be shown") final String path) {
 		runCommand("-cat", path);
 	}
 
 	@CliCommand(value = PREFIX + "chgrp", help = "Change group association of files")
 	public void chgrp(
-			@CliOption(key = { "recursive" }, mandatory = false, specifiedDefaultValue = "true", unspecifiedDefaultValue = "false", help = "whether with recursion") final boolean recursive,
+			@CliOption(key = { RECURSIVE }, mandatory = false, specifiedDefaultValue = TRUE, unspecifiedDefaultValue = FALSE, help = RECURSION_HELP) final boolean recursive,
 			@CliOption(key = { "group" }, mandatory = true, help = "group name") final String group,
-			@CliOption(key = { "", "path" }, mandatory = true, help = "path of the file whose group will be changed") final String path) {
+			@CliOption(key = { "", PATH }, mandatory = true, help = "path of the file whose group will be changed") final String path) {
 		List<String> argv = new ArrayList<String>();
 		argv.add("-chgrp");
 		if (recursive) {
@@ -119,9 +135,9 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 
 	@CliCommand(value = PREFIX + "chown", help = "Change the owner of files")
 	public void chown(
-			@CliOption(key = { "recursive" }, mandatory = false, specifiedDefaultValue = "true", unspecifiedDefaultValue = "false", help = "whether with recursion") final boolean recursive,
+			@CliOption(key = { RECURSIVE }, mandatory = false, specifiedDefaultValue = TRUE, unspecifiedDefaultValue = FALSE, help = RECURSION_HELP) final boolean recursive,
 			@CliOption(key = { "owner" }, mandatory = true, help = "owner name") final String owner,
-			@CliOption(key = { "", "path" }, mandatory = true, help = "path of the file whose ownership will be changed") final String path) {
+			@CliOption(key = { "", PATH }, mandatory = true, help = "path of the file whose ownership will be changed") final String path) {
 		List<String> argv = new ArrayList<String>();
 		argv.add("-chown");
 		if (recursive) {
@@ -135,9 +151,9 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 
 	@CliCommand(value = PREFIX + "chmod", help = "Change the permissions of files")
 	public void chmod(
-			@CliOption(key = { "recursive" }, mandatory = false, specifiedDefaultValue = "true", unspecifiedDefaultValue = "false", help = "whether with recursion") final boolean recursive,
+			@CliOption(key = { RECURSIVE }, mandatory = false, specifiedDefaultValue = TRUE, unspecifiedDefaultValue = FALSE, help = RECURSION_HELP) final boolean recursive,
 			@CliOption(key = { "mode" }, mandatory = true, help = "permission mode") final String mode,
-			@CliOption(key = { "", "path" }, mandatory = true, help = "path of the file whose permissions will be changed") final String path) {
+			@CliOption(key = { "", PATH }, mandatory = true, help = "path of the file whose permissions will be changed") final String path) {
 		List<String> argv = new ArrayList<String>();
 		argv.add("-chmod");
 		if (recursive) {
@@ -151,8 +167,8 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 
 	@CliCommand(value = PREFIX + "copyFromLocal", help = "Copy single src, or multiple srcs from local file system to the destination file system. Same as put")
 	public void copyFromLocal(
-			@CliOption(key = { "from" }, mandatory = true, help = "source file names") final String source,
-			@CliOption(key = { "to" }, mandatory = true, help = "destination path name") final String dest) {
+			@CliOption(key = { FROM }, mandatory = true, help = SOURCE_FILE_NAMES) final String source,
+			@CliOption(key = { "to" }, mandatory = true, help = DESTINATION_PATH_NAME) final String dest) {
 		List<String> argv = new ArrayList<String>();
 		argv.add("-copyFromLocal");
 		String[] fileNames = source.split(" ");
@@ -162,8 +178,8 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 	}
 
 	@CliCommand(value = PREFIX + "put", help = "Copy single src, or multiple srcs from local file system to the destination file system")
-	public void put(@CliOption(key = { "from" }, mandatory = true, help = "source file names") final String source,
-			@CliOption(key = { "to" }, mandatory = true, help = "destination path name") final String dest) {
+	public void put(@CliOption(key = { FROM }, mandatory = true, help = SOURCE_FILE_NAMES) final String source,
+			@CliOption(key = { "to" }, mandatory = true, help = DESTINATION_PATH_NAME) final String dest) {
 		List<String> argv = new ArrayList<String>();
 		argv.add("-put");
 		String[] fileNames = source.split(" ");
@@ -174,8 +190,8 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 
 	@CliCommand(value = PREFIX + "moveFromLocal", help = "Similar to put command, except that the source localsrc is deleted after it's copied")
 	public void moveFromLocal(
-			@CliOption(key = { "from" }, mandatory = true, help = "source file names") final String source,
-			@CliOption(key = { "to" }, mandatory = true, help = "destination path name") final String dest) {
+			@CliOption(key = { FROM }, mandatory = true, help = SOURCE_FILE_NAMES) final String source,
+			@CliOption(key = { "to" }, mandatory = true, help = DESTINATION_PATH_NAME) final String dest) {
 		List<String> argv = new ArrayList<String>();
 		argv.add("-moveFromLocal");
 		String[] fileNames = source.split(" ");
@@ -186,10 +202,10 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 
 	@CliCommand(value = PREFIX + "copyToLocal", help = "Copy files to the local file system. Same as get")
 	public void copyToLocal(
-			@CliOption(key = { "from" }, mandatory = true, help = "source file names") final String source,
-			@CliOption(key = { "to" }, mandatory = true, help = "destination path name") final String dest,
-			@CliOption(key = { "ignoreCrc" }, mandatory = false, specifiedDefaultValue = "true", unspecifiedDefaultValue = "false", help = "whether ignore CRC") final boolean ignoreCrc,
-			@CliOption(key = { "crc" }, mandatory = false, specifiedDefaultValue = "true", unspecifiedDefaultValue = "false", help = "whether copy CRC") final boolean crc) {
+			@CliOption(key = { FROM }, mandatory = true, help = SOURCE_FILE_NAMES) final String source,
+			@CliOption(key = { "to" }, mandatory = true, help = DESTINATION_PATH_NAME) final String dest,
+			@CliOption(key = { "ignoreCrc" }, mandatory = false, specifiedDefaultValue = TRUE, unspecifiedDefaultValue = FALSE, help = "whether ignore CRC") final boolean ignoreCrc,
+			@CliOption(key = { "crc" }, mandatory = false, specifiedDefaultValue = TRUE, unspecifiedDefaultValue = FALSE, help = "whether copy CRC") final boolean crc) {
 		List<String> argv = new ArrayList<String>();
 		argv.add("-copyToLocal");
 		if (ignoreCrc) {
@@ -205,25 +221,25 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 
 	@CliCommand(value = PREFIX + "copyMergeToLocal", help = "Takes a source directory and a destination file as input and concatenates files in src into the destination local file")
 	public void copyMergeToLocal(
-			@CliOption(key = { "from" }, mandatory = true, help = "source file names") final String source,
-			@CliOption(key = { "to" }, mandatory = true, help = "destination path name") final String dest,
-			@CliOption(key = { "endline" }, mandatory = false, specifiedDefaultValue = "true", unspecifiedDefaultValue = "false", help = "whether add a newline character at the end of each file") final boolean endline) {
+			@CliOption(key = { FROM }, mandatory = true, help = SOURCE_FILE_NAMES) final String source,
+			@CliOption(key = { "to" }, mandatory = true, help = DESTINATION_PATH_NAME) final String dest,
+			@CliOption(key = { "endline" }, mandatory = false, specifiedDefaultValue = TRUE, unspecifiedDefaultValue = FALSE, help = "whether add a newline character at the end of each file") final boolean endline) {
 		List<String> argv = new ArrayList<String>();
 		argv.add("-getmerge");
 		argv.add(source);
 		argv.add(dest);
 		if (endline) {
-			argv.add("true");
+			argv.add(TRUE);
 		}
 		run(argv.toArray(new String[0]));
 	}
 
 	@CliCommand(value = PREFIX + "get", help = "Copy files to the local file system")
 	public void get(
-			@CliOption(key = { "from" }, mandatory = true, help = "source file names") final String source,
-			@CliOption(key = { "to" }, mandatory = true, help = "destination path name") final String dest,
-			@CliOption(key = { "ignoreCrc" }, mandatory = false, specifiedDefaultValue = "true", unspecifiedDefaultValue = "false", help = "whether ignore CRC") final boolean ignoreCrc,
-			@CliOption(key = { "crc" }, mandatory = false, specifiedDefaultValue = "true", unspecifiedDefaultValue = "false", help = "whether copy CRC") final boolean crc) {
+			@CliOption(key = { FROM }, mandatory = true, help = SOURCE_FILE_NAMES) final String source,
+			@CliOption(key = { "to" }, mandatory = true, help = DESTINATION_PATH_NAME) final String dest,
+			@CliOption(key = { "ignoreCrc" }, mandatory = false, specifiedDefaultValue = TRUE, unspecifiedDefaultValue = FALSE, help = "whether ignore CRC") final boolean ignoreCrc,
+			@CliOption(key = { "crc" }, mandatory = false, specifiedDefaultValue = TRUE, unspecifiedDefaultValue = FALSE, help = "whether copy CRC") final boolean crc) {
 		List<String> argv = new ArrayList<String>();
 		argv.add("-get");
 		if (ignoreCrc) {
@@ -239,8 +255,8 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 
 	@CliCommand(value = PREFIX + "count", help = "Count the number of directories, files, bytes, quota, and remaining quota")
 	public void count(
-			@CliOption(key = { "quota" }, mandatory = false, specifiedDefaultValue = "true", unspecifiedDefaultValue = "false", help = "whether with quta information") final boolean quota,
-			@CliOption(key = { "path" }, mandatory = true, help = "path name") final String path) {
+			@CliOption(key = { "quota" }, mandatory = false, specifiedDefaultValue = TRUE, unspecifiedDefaultValue = FALSE, help = "whether with quta information") final boolean quota,
+			@CliOption(key = { PATH }, mandatory = true, help = "path name") final String path) {
 		List<String> argv = new ArrayList<String>();
 		argv.add("-count");
 		if (quota) {
@@ -252,8 +268,8 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 	}
 
 	@CliCommand(value = PREFIX + "cp", help = "Copy files from source to destination. This command allows multiple sources as well in which case the destination must be a directory")
-	public void cp(@CliOption(key = { "from" }, mandatory = true, help = "source file names") final String source,
-			@CliOption(key = { "to" }, mandatory = true, help = "destination path name") final String dest) {
+	public void cp(@CliOption(key = { FROM }, mandatory = true, help = SOURCE_FILE_NAMES) final String source,
+			@CliOption(key = { "to" }, mandatory = true, help = DESTINATION_PATH_NAME) final String dest) {
 		List<String> argv = new ArrayList<String>();
 		argv.add("-cp");
 		String[] fileNames = source.split(" ");
@@ -263,8 +279,8 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 	}
 
 	@CliCommand(value = PREFIX + "mv", help = "Move source files to destination in the HDFS")
-	public void mv(@CliOption(key = { "from" }, mandatory = true, help = "source file names") final String source,
-			@CliOption(key = { "to" }, mandatory = true, help = "destination path name") final String dest) {
+	public void mv(@CliOption(key = { FROM }, mandatory = true, help = SOURCE_FILE_NAMES) final String source,
+			@CliOption(key = { "to" }, mandatory = true, help = DESTINATION_PATH_NAME) final String dest) {
 		List<String> argv = new ArrayList<String>();
 		argv.add("-mv");
 		String[] fileNames = source.split(" ");
@@ -276,7 +292,7 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 	@CliCommand(value = PREFIX + "du", help = "Displays sizes of files and directories contained in the given directory or the length of a file in case its just a file")
 	public void du(
 			@CliOption(key = { "", "dir" }, mandatory = false, unspecifiedDefaultValue = ".", help = "directory to be listed") final String path,
-			@CliOption(key = { "summary" }, mandatory = false, specifiedDefaultValue = "true", unspecifiedDefaultValue = "false", help = "whether with summary") final boolean summary) {
+			@CliOption(key = { "summary" }, mandatory = false, specifiedDefaultValue = TRUE, unspecifiedDefaultValue = FALSE, help = "whether with summary") final boolean summary) {
 		List<String> argv = new ArrayList<String>();
 		if (summary) {
 			argv.add("-dus");
@@ -305,9 +321,9 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 
 	@CliCommand(value = PREFIX + "rm", help = "Remove files in the HDFS")
 	public void rm(
-			@CliOption(key = { "", "path" }, mandatory = false, unspecifiedDefaultValue = ".", help = "path to be deleted") final String path,
-			@CliOption(key = { "skipTrash" }, mandatory = false, specifiedDefaultValue = "true", unspecifiedDefaultValue = "false", help = "whether to skip trash") final boolean skipTrash,
-			@CliOption(key = { "recursive" }, mandatory = false, specifiedDefaultValue = "true", unspecifiedDefaultValue = "false", help = "whether to recurse") final boolean recursive) {
+			@CliOption(key = { "", PATH }, mandatory = false, unspecifiedDefaultValue = ".", help = "path to be deleted") final String path,
+			@CliOption(key = { "skipTrash" }, mandatory = false, specifiedDefaultValue = TRUE, unspecifiedDefaultValue = FALSE, help = "whether to skip trash") final boolean skipTrash,
+			@CliOption(key = { RECURSIVE }, mandatory = false, specifiedDefaultValue = TRUE, unspecifiedDefaultValue = FALSE, help = "whether to recurse") final boolean recursive) {
 		try {
 			Path file = new Path(path);
 			FileSystem fs = file.getFileSystem(getHadoopConfiguration());
@@ -324,18 +340,20 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 				fs.delete(p, recursive);
 			}
 		}
-		catch (Throwable t) {
-			LOG.severe("run HDFS shell failed. Message is: " + t.getMessage());
+		catch (Exception t) {
+			LOG.severe("Exception: run HDFS shell failed. Message is: " + t.getMessage());
 		}
-
+		catch (Error t) {
+			LOG.severe("Error: run HDFS shell failed. Message is: " + t.getMessage());
+		}
 	}
 
 	@CliCommand(value = PREFIX + "setrep", help = "Change the replication factor of a file")
 	public void setrep(
-			@CliOption(key = { "path" }, mandatory = true, help = "path name") final String path,
-			@CliOption(key = { "replica" }, mandatory = true, help = "source file names") final int replica,
-			@CliOption(key = { "recursive" }, mandatory = false, specifiedDefaultValue = "true", unspecifiedDefaultValue = "false", help = "whether with recursion") final boolean recursive,
-			@CliOption(key = { "waiting" }, mandatory = false, specifiedDefaultValue = "true", unspecifiedDefaultValue = "false", help = "whether wait for the replic number is eqal to the number") final boolean waiting) {
+			@CliOption(key = { PATH }, mandatory = true, help = "path name") final String path,
+			@CliOption(key = { "replica" }, mandatory = true, help = SOURCE_FILE_NAMES) final int replica,
+			@CliOption(key = { RECURSIVE }, mandatory = false, specifiedDefaultValue = TRUE, unspecifiedDefaultValue = FALSE, help = RECURSION_HELP) final boolean recursive,
+			@CliOption(key = { "waiting" }, mandatory = false, specifiedDefaultValue = TRUE, unspecifiedDefaultValue = FALSE, help = "whether wait for the replic number is eqal to the number") final boolean waiting) {
 		List<String> argv = new ArrayList<String>();
 		argv.add("-setrep");
 		if (recursive) {
@@ -352,7 +370,7 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 	@CliCommand(value = PREFIX + "tail", help = "Display last kilobyte of the file to stdout")
 	public void tail(
 			@CliOption(key = { "", "file" }, mandatory = true, help = "file to be tailed") final String path,
-			@CliOption(key = { "follow" }, mandatory = false, specifiedDefaultValue = "true", unspecifiedDefaultValue = "false", help = "whether show content while file grow") final boolean file) {
+			@CliOption(key = { "follow" }, mandatory = false, specifiedDefaultValue = TRUE, unspecifiedDefaultValue = FALSE, help = "whether show content while file grow") final boolean file) {
 		List<String> argv = new ArrayList<String>();
 		argv.add("-tail");
 		if (file) {
@@ -393,12 +411,17 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 		try {
 			shell.run(argv);
 		}
-		catch (Throwable t) {
-			LOG.severe("run HDFS shell failed. Message is: " + t.getMessage());
+		catch (Error t) {
+			LOG.severe("Severe: run HDFS shell failed. Message is: " + t.getMessage());
 			if (t.getCause() != null) {
 				LOG.severe("root error message is:" + t.getCause().getMessage());
 			}
-			// t.printStackTrace();
+		}
+		catch (Exception t) {
+			LOG.severe("Exception: run HDFS shell failed. Message is: " + t.getMessage());
+			if (t.getCause() != null) {
+				LOG.severe("root error message is:" + t.getCause().getMessage());
+			}
 		}
 	}
 

@@ -121,7 +121,7 @@ public class FieldValueCounterCommands extends AbstractMetricsCommands implement
 			if (fieldValueCounts.get(a) > fieldValueCounts.get(b)) {
 				return -1;
 			}
-			if (fieldValueCounts.get(a) == fieldValueCounts.get(b)) {
+			if (fieldValueCounts.get(a).equals(fieldValueCounts.get(b))) {
 				return 0;
 			}
 			else {

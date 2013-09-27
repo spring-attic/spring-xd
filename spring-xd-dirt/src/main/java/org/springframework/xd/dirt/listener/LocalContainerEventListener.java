@@ -13,8 +13,8 @@
 
 package org.springframework.xd.dirt.listener;
 
-import org.springframework.xd.dirt.event.ContainerStartedEvent;
-import org.springframework.xd.dirt.event.ContainerStoppedEvent;
+import org.springframework.xd.dirt.container.ContainerStartedEvent;
+import org.springframework.xd.dirt.container.ContainerStoppedEvent;
 
 /**
  * @author David Turanski

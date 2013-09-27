@@ -51,7 +51,7 @@ public final class RedisRichGaugeRepository extends
 			g = new RichGauge(name);
 		}
 		MetricUtils.setRichGaugeValue(g, value);
-		valueOperations.set(key, serialize(g));
+		getValueOperations().set(key, serialize(g));
 	}
 
 	@Override
@@ -85,7 +85,8 @@ public final class RedisRichGaugeRepository extends
 		return sb.toString();
 	}
 
+	@Override
 	public void reset(String name) {
-		valueOperations.set(getMetricKey(name), ZERO);
+		getValueOperations().set(getMetricKey(name), ZERO);
 	}
 }

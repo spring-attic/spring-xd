@@ -24,18 +24,37 @@ import org.joda.time.Interval;
  */
 public class AggregateCount {
 
-	public final String name;
+	private final String name;
 
-	public final Interval interval;
+	private final Interval interval;
 
-	public final long[] counts;
+	private final long[] counts;
 
-	public final DateTimeField resolution;
+	private final DateTimeField resolution;
+
+	public String getName() {
+		return name;
+	}
+
+
+	public Interval getInterval() {
+		return interval;
+	}
+
+
+	public long[] getCounts() {
+		return counts;
+	}
+
+
+	public DateTimeField getResolution() {
+		return resolution;
+	}
 
 	public AggregateCount(String name, Interval interval, long[] counts, DateTimeField resolution) {
 		this.name = name;
 		this.interval = interval;
-		this.counts = counts;
+		this.counts = counts.clone();
 		this.resolution = resolution;
 	}
 

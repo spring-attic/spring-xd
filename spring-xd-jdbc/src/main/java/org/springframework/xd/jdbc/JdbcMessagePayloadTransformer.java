@@ -85,10 +85,10 @@ public class JdbcMessagePayloadTransformer extends JsonToObjectTransformer<Map> 
 			return fullPayload;
 		}
 		Map<String, Object> payloadMap = super.transformPayload(payload);
-		for (String key : payloadMap.keySet()) {
-			Object o = payloadMap.get(key);
+		for (Map.Entry<String, Object> entry : payloadMap.entrySet()) {
+			Object o = entry.getValue();
 			if (o != null && !(o instanceof String || o instanceof Number)) {
-				payloadMap.put(key, o.toString());
+				payloadMap.put(entry.getKey(), o.toString());
 			}
 		}
 		for (String column : this.columnNames) {

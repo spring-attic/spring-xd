@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.context.ApplicationEvent;
-import org.springframework.xd.module.Module;
 
 /**
  * @author Mark Fisher
@@ -62,21 +61,6 @@ public abstract class AbstractEvent<S> extends ApplicationEvent {
 		StringBuilder sb = new StringBuilder();
 		sb.append("{\"timestamp\":" + this.getTimestamp() + ",");
 		sb.append("\"type\":\"" + getType() + "\"");
-		if (this instanceof AbstractContainerEvent) {
-			sb.append(",");
-			AbstractContainerEvent e = (AbstractContainerEvent) this;
-			sb.append("\"id\":\"" + e.getSource().getId() + "\"");
-		}
-		else if (this instanceof AbstractModuleEvent) {
-			sb.append(",");
-			AbstractModuleEvent e = (AbstractModuleEvent) this;
-			sb.append("\"container\":\"" + e.getContainerId() + "\",");
-			Module m = e.getSource();
-			sb.append("\"source\":{\"name\":\"" + m.getName() + "\",");
-			sb.append("\"type\":\"" + m.getType() + "\",");
-			sb.append("\"running\":" + m.isRunning());
-			sb.append("}");
-		}
 		sb.append("}");
 		return sb.toString();
 	}

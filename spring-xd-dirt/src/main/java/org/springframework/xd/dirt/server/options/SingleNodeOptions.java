@@ -29,19 +29,19 @@ public class SingleNodeOptions extends AdminOptions {
 
 	public ContainerOptions asContainerOptions() {
 		ContainerOptions containerOptions = new ContainerOptions();
-		containerOptions.analytics = this.analytics;
-		containerOptions.hadoopDistro = this.hadoopDistro;
-		containerOptions.jmxEnabled = this.jmxEnabled;
+		containerOptions.setAnalytics(this.getAnalytics());
+		containerOptions.setHadoopDistro(this.getHadoopDistro());
+		containerOptions.setJmxEnabled(this.isJmxEnabled());
 		containerOptions.jmxPort = this.jmxPort;
-		containerOptions.showHelp = this.showHelp;
-		containerOptions.transport = this.transport;
-		containerOptions.xdHomeDir = this.xdHomeDir;
+		containerOptions.setShowHelp(this.isShowHelp());
+		containerOptions.setTransport(this.getTransport());
+		containerOptions.setXdHomeDir(this.getXdHomeDir());
 		// Clear explicit options for the container in single node case. As configuration
 		// has already happened
-		for (Object key : optionMetadataCache.keySet()) {
-			optionMetadataCache.put(key, false);
+		for (Object key : getOptionMetadataCache().keySet()) {
+			getOptionMetadataCache().put(key, false);
 		}
-		containerOptions.optionMetadataCache.putAll(this.optionMetadataCache);
+		containerOptions.getOptionMetadataCache().putAll(this.getOptionMetadataCache());
 		return containerOptions;
 	}
 

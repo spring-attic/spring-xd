@@ -66,7 +66,7 @@ public class AdminOptions extends AbstractOptions {
 	@Override
 	protected void createOptionMetadataCache() {
 		super.createOptionMetadataCache();
-		optionMetadataCache.put(getHttpPort(), isArg(HTTP_PORT));
-		optionMetadataCache.put(getStore(), isArg(STORE));
+		getOptionMetadataCache().put(getHttpPort(), isArg(HTTP_PORT));
+		getOptionMetadataCache().put(getStore(), isArg(STORE));
 	}
 }

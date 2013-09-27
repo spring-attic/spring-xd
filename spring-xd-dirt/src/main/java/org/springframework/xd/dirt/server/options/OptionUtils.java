@@ -37,10 +37,10 @@ public class OptionUtils {
 
 		boolean explicitOption;
 
-		explicitOption = options.isExplicit(options.getXDHomeDir());
+		explicitOption = options.isExplicit(options.getXdHomeDir());
 		if ((explicitOption && explicit)
 				|| (!explicitOption && !explicit)) {
-			xdProperties.setProperty(XDPropertyKeys.XD_HOME, options.getXDHomeDir());
+			xdProperties.setProperty(XDPropertyKeys.XD_HOME, options.getXdHomeDir());
 		}
 		explicitOption = options.isExplicit(options.getTransport());
 		if ((explicitOption && explicit)

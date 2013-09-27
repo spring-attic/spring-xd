@@ -18,9 +18,9 @@ import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository
 
 public class RedisFieldValueCounterRepository implements FieldValueCounterRepository {
 
-	protected final String metricPrefix;
+	private final String metricPrefix;
 
-	protected final StringRedisTemplate redisTemplate;
+	private final StringRedisTemplate redisTemplate;
 
 	private static final String MARKER = "_marker_";
 
@@ -152,6 +152,7 @@ public class RedisFieldValueCounterRepository implements FieldValueCounterReposi
 		}
 	}
 
+	@Override
 	public void increment(String counterName, String fieldName) {
 		redisTemplate.boundZSetOps(getMetricKey(counterName)).incrementScore(fieldName, 1.0);
 	}
@@ -160,6 +161,7 @@ public class RedisFieldValueCounterRepository implements FieldValueCounterReposi
 		redisTemplate.boundZSetOps(getMetricKey(counterName)).incrementScore(fieldName, score);
 	}
 
+	@Override
 	public void decrement(String counterName, String fieldName) {
 		redisTemplate.boundZSetOps(getMetricKey(counterName)).incrementScore(fieldName, -1.0);
 	}
@@ -169,6 +171,7 @@ public class RedisFieldValueCounterRepository implements FieldValueCounterReposi
 		redisTemplate.boundZSetOps(getMetricKey(counterName)).incrementScore(fieldName, -score);
 	}
 
+	@Override
 	public void reset(String counterName, String fieldName) {
 		redisTemplate.boundZSetOps(getMetricKey(counterName)).remove(fieldName);
 	}

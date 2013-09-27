@@ -35,4 +35,21 @@ public abstract class AbstractModuleEvent extends AbstractEvent<Module> {
 		return this.containerId;
 	}
 
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("{\"timestamp\":" + this.getTimestamp() + ",");
+		sb.append("\"type\":\"" + getType() + "\"");
+		sb.append(",");
+		AbstractModuleEvent e = this;
+		sb.append("\"container\":\"" + e.getContainerId() + "\",");
+		Module m = e.getSource();
+		sb.append("\"source\":{\"name\":\"" + m.getName() + "\",");
+		sb.append("\"type\":\"" + m.getType() + "\",");
+		sb.append("\"running\":" + m.isRunning());
+		sb.append("}");
+		sb.append("}");
+		return sb.toString();
+	}
+
 }

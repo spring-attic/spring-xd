@@ -18,9 +18,9 @@ package org.springframework.xd.dirt.listener;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.xd.dirt.container.ContainerStartedEvent;
+import org.springframework.xd.dirt.container.ContainerStoppedEvent;
 import org.springframework.xd.dirt.container.XDContainer;
-import org.springframework.xd.dirt.event.ContainerStartedEvent;
-import org.springframework.xd.dirt.event.ContainerStoppedEvent;
 
 /**
  * @author Mark Fisher

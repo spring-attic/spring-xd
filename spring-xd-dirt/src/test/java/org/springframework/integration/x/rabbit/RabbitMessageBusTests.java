@@ -30,6 +30,7 @@ public class RabbitMessageBusTests extends AbstractMessageBusTests {
 	@Rule
 	public RabbitTestSupport rabbitAvailableRule = new RabbitTestSupport();
 
+	@SuppressWarnings("unchecked")
 	@Override
 	protected MessageBus getMessageBus() throws Exception {
 		return new RabbitMessageBus(rabbitAvailableRule.getResource(), getCodec());

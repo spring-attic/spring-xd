@@ -32,6 +32,7 @@ import org.springframework.xd.dirt.module.CompositeModuleRegistry;
 import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.server.SingleNodeMain;
 import org.springframework.xd.dirt.server.SingleNodeServer;
+import org.springframework.xd.dirt.server.options.CommandLineParser;
 import org.springframework.xd.dirt.server.options.SingleNodeOptions;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.SimpleModule;
@@ -40,7 +41,7 @@ import org.springframework.xd.module.SimpleModule;
 /**
  * @author David Turanski
  */
-public abstract class AbstractStreamTests {
+public class StreamTestSupport {
 
 	private static StreamDeployer streamDeployer;
 
@@ -48,7 +49,10 @@ public abstract class AbstractStreamTests {
 
 	@BeforeClass
 	public static void startXDSingleNode() throws Exception {
-		SingleNodeServer singleNode = SingleNodeMain.launchSingleNodeServer(new SingleNodeOptions());
+		SingleNodeOptions options = new SingleNodeOptions();
+		CommandLineParser parser = new CommandLineParser(options);
+		parser.parseArgument(new String[] { "--transport", "local" });
+		SingleNodeServer singleNode = SingleNodeMain.launchSingleNodeServer(options);
 
 		ConfigurableApplicationContext containerContext = (ConfigurableApplicationContext) singleNode.getContainer().getApplicationContext();
 
@@ -65,6 +69,15 @@ public abstract class AbstractStreamTests {
 	protected static void deployStream(String name, String config) {
 		streamDeployer.save(new StreamDefinition(name, config));
 		streamDeployer.deploy(name);
+		while (moduleDeployer.getDeployedModules().get(name) == null) {
+			try {
+				Thread.sleep(100);
+			}
+			catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 
 	protected static void undeployStream(String name) {
@@ -88,6 +101,7 @@ public abstract class AbstractStreamTests {
 
 	protected static Map<Integer, Module> getStreamModules(String streamName) {
 		Map<String, Map<Integer, Module>> deployedModules = moduleDeployer.getDeployedModules();
+		Assert.notNull(deployedModules.get(streamName), "Stream '" + streamName + "' apparently is not deployed");
 		return deployedModules.get(streamName);
 	}
 
@@ -98,6 +112,7 @@ public abstract class AbstractStreamTests {
 
 	protected static SubscribableChannel getSinkInputChannel(String streamName) {
 		SimpleModule sink = getDeployedSink(streamName);
+		// Should be a publish-subscribe-channel
 		return sink.getComponent("input", SubscribableChannel.class);
 	}
 
@@ -143,6 +158,15 @@ public abstract class AbstractStreamTests {
 
 		MessageChannel producer = getSourceOutputChannel(streamName);
 		SubscribableChannel consumer = getSinkInputChannel(tapName);
+		SubscribableChannel streamConsumer = getSinkInputChannel(streamName);
+
+		// Add a dummy consumer to the stream in case there is none
+		streamConsumer.subscribe(new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+			}
+		});
 
 		consumer.subscribe(test);
 		producer.send(message);
@@ -150,23 +174,22 @@ public abstract class AbstractStreamTests {
 
 		undeployStream(tapName);
 	}
-}
 
+	protected static abstract class MessageTest implements MessageHandler {
 
-abstract class MessageTest implements MessageHandler {
+		private boolean messageHandled;
 
-	private boolean messageHandled;
+		public boolean getMessageHandled() {
+			return this.messageHandled;
+		}
 
-	public boolean getMessageHandled() {
-		return this.messageHandled;
+		@Override
+		public final void handleMessage(Message<?> message) throws MessagingException {
+			this.test(message);
+			messageHandled = true;
+		}
+
+		protected abstract void test(Message<?> message);
+
 	}
-
-	@Override
-	public final void handleMessage(Message<?> message) throws MessagingException {
-		this.test(message);
-		messageHandled = true;
-	}
-
-	protected abstract void test(Message<?> message);
-
 }

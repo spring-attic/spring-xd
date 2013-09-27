@@ -241,7 +241,8 @@ public abstract class AbstractMessageBusTests {
 		return (List<?>) accessor.getPropertyValue("bindings");
 	}
 
-	protected MultiTypeCodec<Object> getCodec() {
+	@SuppressWarnings("unchecked")
+	protected MultiTypeCodec getCodec() {
 		Map<Class<?>, AbstractCodec<?>> codecs = new HashMap<Class<?>, AbstractCodec<?>>();
 		codecs.put(Tuple.class, new TupleCodec());
 		return new CompositeCodec(codecs, new PojoCodec());

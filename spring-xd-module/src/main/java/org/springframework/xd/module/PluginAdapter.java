@@ -14,28 +14,35 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.plugins;
+package org.springframework.xd.module;
 
-import org.springframework.xd.dirt.core.XDRuntimeException;
+import org.springframework.context.ConfigurableApplicationContext;
 
 
 /**
  * 
  * @author David Turanski
  */
-@SuppressWarnings("serial")
-public class ModuleConfigurationException extends XDRuntimeException {
+public class PluginAdapter implements Plugin {
 
-	public ModuleConfigurationException(String message) {
-		super(message);
+	@Override
+	public void preProcessModule(Module module) {
 	}
 
-	/**
-	 * @param message
-	 * @param cause
-	 */
-	public ModuleConfigurationException(String message, Throwable cause) {
-		super(message, cause);
+	@Override
+	public void postProcessModule(Module module) {
+	}
+
+	@Override
+	public void removeModule(Module module) {
+	}
+
+	@Override
+	public void beforeShutdown(Module module) {
+	}
+
+	@Override
+	public void preProcessSharedContext(ConfigurableApplicationContext context) {
 	}
 
 }

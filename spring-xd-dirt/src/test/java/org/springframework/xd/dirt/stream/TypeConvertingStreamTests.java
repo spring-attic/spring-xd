@@ -16,35 +16,30 @@ package org.springframework.xd.dirt.stream;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.io.Serializable;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import org.springframework.http.MediaType;
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.SubscribableChannel;
-import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.x.bus.DefaultMessageMediaTypeResolver;
 import org.springframework.xd.module.SimpleModule;
 import org.springframework.xd.tuple.Tuple;
 
 /**
  * @author David Turanski
  */
-public class TypeConvertingStreamTests extends AbstractStreamTests {
+public class TypeConvertingStreamTests extends StreamTestSupport {
+
+	private DefaultMessageMediaTypeResolver mediaTypeResolver = new DefaultMessageMediaTypeResolver();
 
 	@BeforeClass
 	public static void setup() {
 		deployStream(
 				"test1",
 				"source --outputType=application/json | sink --inputType=application/x-xd-tuple");
-		SubscribableChannel consumer = getSinkInputChannel("test1");
-		consumer.subscribe(new MessageHandler() {
-
-			@Override
-			public void handleMessage(Message<?> message) throws MessagingException {
-			}
-		});
 	}
 
 	@Test
@@ -58,9 +53,6 @@ public class TypeConvertingStreamTests extends AbstractStreamTests {
 	@Test
 	public void testBasicTypeConversion() {
 
-		MessageChannel producer = getSourceOutputChannel("test1");
-		SubscribableChannel consumer = getSinkInputChannel("test1");
-
 		MessageTest test = new MessageTest() {
 
 			@Override
@@ -69,11 +61,10 @@ public class TypeConvertingStreamTests extends AbstractStreamTests {
 				Tuple t = (Tuple) message.getPayload();
 				assertEquals("bar", t.getString("s"));
 				assertEquals(9999, t.getInt("i"));
+				assertEquals(MediaType.valueOf("application/x-xd-tuple"),
+						mediaTypeResolver.resolveMediaType(message));
 			}
 		};
-		consumer.subscribe(test);
-		producer.send(new GenericMessage<Foo>(new Foo("bar", 9999)));
-		assertTrue(test.getMessageHandled());
 
 		sendPayloadAndVerifyOutput("test1", new Foo("bar", 9999), test);
 	}
@@ -87,6 +78,9 @@ public class TypeConvertingStreamTests extends AbstractStreamTests {
 			public void test(Message<?> message) throws MessagingException {
 				assertTrue(message.getPayload() instanceof String);
 				assertEquals("{\"s\":\"bar\",\"i\":9999}", message.getPayload());
+				// TODO: This not working with the tap
+				// assertEquals(MediaType.APPLICATION_JSON,
+				// message.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 			}
 		};
 
@@ -94,10 +88,68 @@ public class TypeConvertingStreamTests extends AbstractStreamTests {
 
 	}
 
+	@Test
+	public void testInputTypeAsTJavaTypeConversion() {
+
+		deployStream(
+				"test2",
+				"source --outputType=application/json | sink --inputType=" + Tuple.class.getName());
+
+		MessageTest test = new MessageTest() {
+
+			@Override
+			public void test(Message<?> message) throws MessagingException {
+				assertTrue(message.getPayload() instanceof Tuple);
+				Tuple t = (Tuple) message.getPayload();
+				assertEquals("bar", t.getString("s"));
+				assertEquals(9999, t.getInt("i"));
+				assertEquals(MediaType.valueOf("application/x-java-object;type=" + Tuple.class.getName()),
+						mediaTypeResolver.resolveMediaType(message));
+			}
+		};
+
+		sendPayloadAndVerifyOutput("test2", new Foo("bar", 9999), test);
+	}
+
+	@Test
+	public void testRawBytes() {
+		deployStream(
+				"rawbytes",
+				"source --outputType=application/x-java-serialized-object | sink");
+
+		MessageTest test = new MessageTest() {
+
+			@Override
+			public void test(Message<?> message) throws MessagingException {
+				assertTrue(message.getPayload() instanceof byte[]);
+				assertEquals(MediaType.valueOf("application/x-java-serialized-object"),
+						mediaTypeResolver.resolveMediaType(message));
+			}
+		};
+		sendPayloadAndVerifyOutput("rawbytes", new Foo("bar", 9999), test);
+	}
+
+	@Test
+	public void contentTypeHeaderSet() {
+		deployStream(
+				"xml",
+				"source --outputType=application/xml | sink");
+		MessageTest test = new MessageTest() {
+
+			@Override
+			public void test(Message<?> message) throws MessagingException {
+				assertEquals("<foo/>", message.getPayload());
+				assertEquals(MediaType.valueOf("application/xml"),
+						mediaTypeResolver.resolveMediaType(message));
+			}
+		};
+		sendPayloadAndVerifyOutput("xml", "<foo/>", test);
+	}
+
 	/**
 	 * 
 	 */
-	static class Foo {
+	static class Foo implements Serializable {
 
 		private String s;
 

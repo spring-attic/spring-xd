@@ -29,12 +29,13 @@ import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.format.support.DefaultFormattingConversionService;
 import org.springframework.http.MediaType;
 import org.springframework.integration.channel.AbstractMessageChannel;
+import org.springframework.integration.x.bus.converter.ContentTypeHeaderInterceptor;
 import org.springframework.integration.x.bus.converter.DefaultContentTypeAwareConverterRegistry;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.xd.dirt.plugins.ModuleConfigurationException;
 import org.springframework.xd.module.Module;
-import org.springframework.xd.module.Plugin;
+import org.springframework.xd.module.PluginAdapter;
 import org.springframework.xd.module.SimpleModule;
 
 
@@ -42,17 +43,11 @@ import org.springframework.xd.module.SimpleModule;
  * 
  * @author David Turanski
  */
-public class ModuleTypeConversionPlugin implements Plugin {
+public class ModuleTypeConversionPlugin extends PluginAdapter {
 
 	private final static Log logger = LogFactory.getLog(ModuleTypeConversionPlugin.class);
 
 	private final DefaultContentTypeAwareConverterRegistry converterRegistry = new DefaultContentTypeAwareConverterRegistry();
-
-	@Override
-	public void preProcessModule(Module module) {
-
-	}
-
 
 	@Override
 	public void postProcessModule(Module module) {
@@ -75,17 +70,6 @@ public class ModuleTypeConversionPlugin implements Plugin {
 		registerConversionService(module, conversionService);
 	}
 
-	@Override
-	public void removeModule(Module module) {
-	}
-
-	@Override
-	public void beforeShutdown(Module module) {
-	}
-
-	@Override
-	public void preProcessSharedContext(ConfigurableApplicationContext context) {
-	}
 
 	private void registerConversionService(Module module, ConversionService conversionService) {
 		SimpleModule sm = (SimpleModule) module;
@@ -108,10 +92,13 @@ public class ModuleTypeConversionPlugin implements Plugin {
 			else {
 				channel = module.getComponent("output", AbstractMessageChannel.class);
 			}
+			channel.addInterceptor(new ContentTypeHeaderInterceptor(contentType));
+
 			Class<?> dataType = converterRegistry.getJavaTypeForContentType(contentType,
 					sm.getApplicationContext().getClassLoader());
 			if (dataType != null) {
 				channel.setDatatypes(dataType);
+
 				Map<Class<?>, Converter<?, ?>> converters = converterRegistry.getConverters(contentType);
 				if (!CollectionUtils.isEmpty(converters)) {
 					for (Entry<Class<?>, Converter<?, ?>> entry : converters.entrySet()) {

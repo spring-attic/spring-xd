@@ -6,6 +6,7 @@
 		http://www.springframework.org/schema/integration
 		http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<channel id="input" />
+<!-- Make this a pub sub to guarantee multiple consumers receive message -->
+	<publish-subscribe-channel id="input" />
 
 </beans:beans>

@@ -46,6 +46,8 @@ public class DefaultContentTypeAwareConverterRegistry implements ContentTypeAwar
 		addConverter(Tuple.class, APPLICATION_JSON, new TupleToJsonConverter());
 		addConverter(Tuple.class, TEXT_PLAIN, new TupleToJsonConverter());
 		addConverter(Object.class, APPLICATION_JSON, new MappingJackson2Converter());
+		addConverter(Object.class, ContentTypeAwareConverterRegistry.X_JAVA_SERIALIZED_OBJECT,
+				new JavaSerializingConverter());
 	}
 
 	@Override

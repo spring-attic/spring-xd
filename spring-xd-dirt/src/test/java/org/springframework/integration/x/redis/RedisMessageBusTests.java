@@ -30,6 +30,7 @@ public class RedisMessageBusTests extends AbstractMessageBusTests {
 	@Rule
 	public RedisTestSupport redisAvailableRule = new RedisTestSupport();
 
+	@SuppressWarnings("unchecked")
 	@Override
 	protected MessageBus getMessageBus() throws Exception {
 		return new RedisMessageBus(redisAvailableRule.getResource(), getCodec());

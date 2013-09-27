@@ -52,13 +52,14 @@ import org.springframework.xd.tuple.TupleBuilder;
  * @author Gary Russell
  * @author David Turanski
  */
-public class MessageBusSupportTests {
+public class MessageBusSupportTests<P> {
 
 	private final TestMessageBus messageBus = new TestMessageBus();
 
+	@SuppressWarnings("unchecked")
 	@Before
 	public void setUp() {
-		Map<Class<?>, AbstractCodec<?>> codecs = new HashMap<Class<?>, AbstractCodec<?>>();
+		Map<Class<?>, AbstractCodec<Tuple>> codecs = new HashMap<Class<?>, AbstractCodec<Tuple>>();
 		codecs.put(Tuple.class, new TupleCodec());
 		messageBus.setCodec(new CompositeCodec(codecs, new PojoCodec()));
 	}

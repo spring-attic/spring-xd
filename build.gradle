@@ -305,7 +305,6 @@ project('spring-xd-dirt') {
 				project(":spring-xd-module"),
 				project(":spring-xd-hadoop"),
 				project(":spring-xd-jdbc"),
-				project(":spring-xd-http"),
 				project(':spring-xd-rest-domain'),
 				project(":spring-xd-reactor"),
 				"org.springframework:spring-webmvc:$springVersion",
@@ -743,6 +742,12 @@ project('modules.source.file') {
 project('modules.source.tail') {
 	dependencies {
 		runtime	"org.springframework.integration:spring-integration-file:$springIntegrationVersion"
+	}
+}
+
+project('modules.source.http') {
+	dependencies {
+		runtime	project(":spring-xd-http")
 	}
 }
 

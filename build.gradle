@@ -307,7 +307,6 @@ project('spring-xd-dirt') {
 				project(":spring-xd-hadoop"),
 				project(":spring-xd-jdbc"),
 				project(':spring-xd-rest-domain'),
-				project(":spring-xd-reactor"),
 				"org.springframework:spring-webmvc:$springVersion",
 				"org.springframework:spring-aop:$springVersion",
 				"org.springframework.data:spring-data-commons:$springDataCommonsVersion",
@@ -337,6 +336,8 @@ project('spring-xd-dirt') {
 				"org.hsqldb:hsqldb:$hsqldbVersion",
 				"org.apache.tomcat:tomcat-jdbc:$tomcatJdbcPoolVersion",
 				"com.esotericsoftware.kryo:kryo:$kryoVersion"
+
+		runtime project(":spring-xd-reactor"),
 
 		compile ("org.apache.activemq:activemq-core:5.6.0") {
 			exclude group: 'org.mortbay.jetty'
@@ -761,6 +762,13 @@ project('modules.source.syslog-udp') {
 		runtime "org.springframework.integration:spring-integration-syslog:$springIntegrationVersion"
 	}
 }
+
+// Does not work b/c of shared Reactor stuff in module-common.xml
+//project('modules.source.reactor-syslog') {
+//	dependencies {
+//		runtime project(":spring-xd-reactor")
+//	}
+//}
 
 
 project('modules.sink.file') {

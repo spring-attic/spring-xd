@@ -94,7 +94,7 @@ public class HSQLServerBean implements InitializingBean, DisposableBean {
 			// Wait until the server shuts down or break after 5 seconds.
 			long start = System.currentTimeMillis();
 			long end = start + 5 * 1000;
-			while (server != null && server.getState() != ServerConstants.SERVER_STATE_SHUTDOWN) {
+			while (server.getState() != ServerConstants.SERVER_STATE_SHUTDOWN) {
 				try {
 					if (System.currentTimeMillis() > end) {
 						break;

@@ -43,9 +43,9 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.xd.dirt.container.ContainerStartedEvent;
+import org.springframework.xd.dirt.container.ContainerStoppedEvent;
 import org.springframework.xd.dirt.container.XDContainer;
-import org.springframework.xd.dirt.event.ContainerStartedEvent;
-import org.springframework.xd.dirt.event.ContainerStoppedEvent;
 import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**

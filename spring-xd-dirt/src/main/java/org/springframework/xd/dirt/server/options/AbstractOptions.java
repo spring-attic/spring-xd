@@ -51,7 +51,29 @@ public abstract class AbstractOptions {
 
 	protected static final String JMX_PORT = "jmxPort";
 
-	protected final Map<Object, Boolean> optionMetadataCache = new HashMap<Object, Boolean>();
+	private final Map<Object, Boolean> optionMetadataCache = new HashMap<Object, Boolean>();
+
+	@Option(name = "--help", usage = "Show options help", aliases = { "-?", "-h" })
+	private boolean showHelp = false;
+
+	@Option(name = "--" + TRANSPORT, usage = "The transport to be used (default: redis)")
+	private Transport transport = Transport.redis;
+
+	@Option(name = "--" + XD_HOME_DIR, usage = "The XD installation directory", metaVar = "<xdHomeDir>")
+	private String xdHomeDir = "..";
+
+	@Option(name = "--enableJmx", usage = "Enable JMX in the XD container (default: false)", metaVar = "[true | false]", handler = ExplicitBooleanOptionHandler.class)
+	private boolean jmxEnabled = false;
+
+	@Option(name = "--" + ANALYTICS, usage = "How to persist analytics such as counters and gauges (default: redis)")
+	private Analytics analytics = Analytics.redis;
+
+	@Option(name = "--" + HADOOP_DISTRO, usage = "The Hadoop distro to use (default: hadoop12)")
+	private HadoopDistro hadoopDistro = HadoopDistro.hadoop12;
+
+	public Map<Object, Boolean> getOptionMetadataCache() {
+		return optionMetadataCache;
+	}
 
 	ParserEventListener getParserEventListener() {
 		return new ParserEventListener() {
@@ -81,37 +103,44 @@ public abstract class AbstractOptions {
 		this.analytics = defaultAnalytics;
 	}
 
-	@Option(name = "--help", usage = "Show options help", aliases = { "-?", "-h" })
-	protected boolean showHelp = false;
 
-	@Option(name = "--" + TRANSPORT, usage = "The transport to be used (default: redis)")
-	protected Transport transport = Transport.redis;
+	public void setShowHelp(boolean showHelp) {
+		this.showHelp = showHelp;
+	}
 
-	@Option(name = "--" + XD_HOME_DIR, usage = "The XD installation directory", metaVar = "<xdHomeDir>")
-	protected String xdHomeDir = "..";
+	public void setTransport(Transport transport) {
+		this.transport = transport;
+	}
 
-	@Option(name = "--enableJmx", usage = "Enable JMX in the XD container (default: false)", metaVar = "[true | false]", handler = ExplicitBooleanOptionHandler.class)
-	protected boolean jmxEnabled = false;
+	public String getXdHomeDir() {
+		return xdHomeDir;
+	}
 
-	@Option(name = "--" + ANALYTICS, usage = "How to persist analytics such as counters and gauges (default: redis)")
-	protected Analytics analytics = Analytics.redis;
 
-	@Option(name = "--" + HADOOP_DISTRO, usage = "The Hadoop distro to use (default: hadoop12)")
-	protected HadoopDistro hadoopDistro = HadoopDistro.hadoop12;
+	public void setXdHomeDir(String xdHomeDir) {
+		this.xdHomeDir = xdHomeDir;
+	}
 
+
+	public void setJmxEnabled(boolean jmxEnabled) {
+		this.jmxEnabled = jmxEnabled;
+	}
+
+
+	public void setAnalytics(Analytics analytics) {
+		this.analytics = analytics;
+	}
+
+
+	public void setHadoopDistro(HadoopDistro hadoopDistro) {
+		this.hadoopDistro = hadoopDistro;
+	}
 
 	/**
 	 * @return analytics
 	 */
 	public Analytics getAnalytics() {
 		return analytics;
-	}
-
-	/**
-	 * @return xdHomeDir
-	 */
-	public String getXDHomeDir() {
-		return xdHomeDir;
 	}
 
 	/**
@@ -139,7 +168,7 @@ public abstract class AbstractOptions {
 	{
 		optionMetadataCache.put(getAnalytics(), isArg(ANALYTICS));
 		optionMetadataCache.put(getTransport(), isArg(TRANSPORT));
-		optionMetadataCache.put(getXDHomeDir(), isArg(XD_HOME_DIR));
+		optionMetadataCache.put(getXdHomeDir(), isArg(XD_HOME_DIR));
 		optionMetadataCache.put(isJmxEnabled(), isArg(JMX_ENABLED));
 		optionMetadataCache.put(getHadoopDistro(), isArg(HADOOP_DISTRO));
 		optionMetadataCache.put(getJmxPort(), isArg(JMX_PORT));

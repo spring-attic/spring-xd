@@ -97,11 +97,10 @@ public class BatchJobsController {
 	@ResponseStatus(HttpStatus.OK)
 	public Collection<JobInstance> jobInstances(@PathVariable String jobName,
 			@RequestParam(defaultValue = "0") int startJobInstance, @RequestParam(defaultValue = "20") int pageSize) {
-		Collection<JobInstance> jobInstances = new ArrayList<JobInstance>();
 		String fullName = jobName + ".job";
 
 		try {
-			jobInstances = jobService.listJobInstances(fullName, startJobInstance, pageSize);
+			Collection<JobInstance> jobInstances = jobService.listJobInstances(fullName, startJobInstance, pageSize);
 			// need to pass simple name back to the client
 			List<JobInstance> result = new ArrayList<JobInstance>();
 			for (JobInstance jobInstance : jobInstances) {

@@ -86,10 +86,12 @@ public class AggregateCounterCommands extends AbstractMetricsCommands implements
 					fromDate = dateFormat.parse(from);
 					break;
 				case 1:
-					fromDate = new Date(System.currentTimeMillis() - lastHours * DateTimeConstants.MILLIS_PER_HOUR);
+					fromDate = new Date(System.currentTimeMillis() - ((long) lastHours)
+							* DateTimeConstants.MILLIS_PER_HOUR);
 					break;
 				case 2:
-					fromDate = new Date(System.currentTimeMillis() - lastDays * DateTimeConstants.MILLIS_PER_DAY);
+					fromDate = new Date(System.currentTimeMillis() - ((long) lastDays)
+							* DateTimeConstants.MILLIS_PER_DAY);
 					break;
 				default:
 					fromDate = null;

@@ -45,13 +45,13 @@ import org.springframework.xd.analytics.metrics.core.MetricUtils;
  */
 class InMemoryAggregateCounter extends Counter {
 
-	protected Map<Integer, long[]> monthCountsByYear = new HashMap<Integer, long[]>();
+	private Map<Integer, long[]> monthCountsByYear = new HashMap<Integer, long[]>();
 
-	protected Map<Integer, long[]> dayCountsByYear = new HashMap<Integer, long[]>();
+	private Map<Integer, long[]> dayCountsByYear = new HashMap<Integer, long[]>();
 
-	protected Map<Integer, long[]> hourCountsByDay = new HashMap<Integer, long[]>();
+	private Map<Integer, long[]> hourCountsByDay = new HashMap<Integer, long[]>();
 
-	protected Map<Integer, long[]> minuteCountsByDay = new HashMap<Integer, long[]>();
+	private Map<Integer, long[]> minuteCountsByDay = new HashMap<Integer, long[]>();
 
 	public InMemoryAggregateCounter(String name, long value) {
 		super(name, value);

@@ -36,17 +36,17 @@ public class DeepAggregateCountResourceAssembler extends
 
 	@Override
 	public AggregateCountsResource toResource(AggregateCount entity) {
-		return createResourceWithId(entity.name, entity);
+		return createResourceWithId(entity.getName(), entity);
 	}
 
 	@Override
 	protected AggregateCountsResource instantiateResource(AggregateCount entity) {
-		AggregateCountsResource result = new AggregateCountsResource(entity.name);
-		long increment = entity.resolution.getDurationField().getUnitMillis();
-		long end = entity.interval.getEndMillis();
+		AggregateCountsResource result = new AggregateCountsResource(entity.getName());
+		long increment = entity.getResolution().getDurationField().getUnitMillis();
+		long end = entity.getInterval().getEndMillis();
 		int i = 0;
-		for (long when = entity.interval.getStartMillis(); when <= end; when += increment) {
-			result.addValue(new Date(when), entity.counts[i++]);
+		for (long when = entity.getInterval().getStartMillis(); when <= end; when += increment) {
+			result.addValue(new Date(when), entity.getCounts()[i++]);
 		}
 		return result;
 	}

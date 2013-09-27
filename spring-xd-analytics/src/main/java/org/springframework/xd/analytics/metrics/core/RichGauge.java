@@ -44,7 +44,10 @@ public final class RichGauge implements Metric {
 	public RichGauge(String name, double value) {
 		Assert.notNull(name, "The gauge name cannot be null or empty");
 		this.name = name;
-		max = min = average = this.value = value;
+		this.value = value;
+		average = this.value;
+		min = this.value;
+		max = this.value;
 		alpha = -1.0;
 		count = 1;
 	}
@@ -121,7 +124,8 @@ public final class RichGauge implements Metric {
 
 	RichGauge set(double value) {
 		if (count == 0) {
-			max = min = value;
+			max = value;
+			min = value;
 		}
 		else if (value > max) {
 			max = value;
@@ -144,22 +148,28 @@ public final class RichGauge implements Metric {
 	}
 
 	RichGauge reset() {
-		this.value = max = min = average = 0.0;
+		this.value = 0.0;
+		max = 0.0;
+		min = 0.0;
+		average = 0.0;
 		count = 0;
 		return this;
 	}
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o)
+		if (this == o) {
 			return true;
-		if (o == null || getClass() != o.getClass())
+		}
+		if (o == null || getClass() != o.getClass()) {
 			return false;
+		}
 
 		RichGauge richGauge = (RichGauge) o;
 
-		if (!name.equals(richGauge.name))
+		if (!name.equals(richGauge.name)) {
 			return false;
+		}
 
 		return true;
 	}

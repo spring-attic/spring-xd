@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.event;
+package org.springframework.xd.dirt.container;
 
-import org.springframework.xd.dirt.container.XDContainer;
 
 /**
- * @author Mark Fisher
+ * @author Jennifer Hickey
  */
 @SuppressWarnings("serial")
-public class AbstractContainerEvent extends AbstractEvent<XDContainer> {
+public class ContainerStoppedEvent extends AbstractContainerEvent {
 
-	public AbstractContainerEvent(XDContainer container) {
+	public ContainerStoppedEvent(XDContainer container) {
 		super(container);
 	}
-
 }

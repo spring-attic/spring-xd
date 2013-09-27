@@ -59,7 +59,7 @@ public abstract class AbstractAggregateCounterTests {
 		}
 		// Include 66th minute's value
 		aggregateCounterRepository.increment(counterName, val++, now);
-		long[] counts = aggregateCounterRepository.getCounts(counterName, new Interval(start, end), MINUTE_RESOLUTION).counts;
+		long[] counts = aggregateCounterRepository.getCounts(counterName, new Interval(start, end), MINUTE_RESOLUTION).getCounts();
 		// the counts.length should be 66 + 1 to include the 66th minute's count
 		assertEquals(67, counts.length);
 		assertEquals(1, counts[0]);
@@ -70,7 +70,7 @@ public abstract class AbstractAggregateCounterTests {
 	@Test
 	public void testDayCounts() throws Exception {
 		final DateTime start = new DateTime(2013, 6, 28, 23, 0, 0, 0);
-		final DateTime end   = start.plusDays(10);
+		final DateTime end = start.plusDays(10);
 
 		DateTime now = start;
 		int val = 1;
@@ -78,11 +78,11 @@ public abstract class AbstractAggregateCounterTests {
 			aggregateCounterRepository.increment(counterName, val++, now);
 			now = now.plus(Duration.standardDays(1));
 		}
-		long[] counts = aggregateCounterRepository.getCounts(counterName, new Interval(start, end), DAY_RESOLUTION).counts;
+		long[] counts = aggregateCounterRepository.getCounts(counterName, new Interval(start, end), DAY_RESOLUTION).getCounts();
 		assertEquals(11, counts.length);
 
-		for (int i=0; i < counts.length; i++) {
-			assertEquals("count at index " + i + " should be " + (i+1), i+1, counts[i]);
+		for (int i = 0; i < counts.length; i++) {
+			assertEquals("count at index " + i + " should be " + (i + 1), i + 1, counts[i]);
 		}
 	}
 
@@ -112,9 +112,9 @@ public abstract class AbstractAggregateCounterTests {
 		Interval queryInterval = new Interval(start, end);
 		AggregateCount aggregateCount = aggregateCounterRepository.getCounts(counterName, queryInterval,
 				MINUTE_RESOLUTION);
-		assertEquals(counterName, aggregateCount.name);
-		assertEquals(queryInterval, aggregateCount.interval);
-		long[] counts = aggregateCount.counts;
+		assertEquals(counterName, aggregateCount.getName());
+		assertEquals(queryInterval, aggregateCount.getInterval());
+		long[] counts = aggregateCount.getCounts();
 		// counts.length should include the end time's minute
 		assertEquals((2 * 24 * 60) + 1, counts.length);
 		assertEquals(27, counts[0]);
@@ -130,7 +130,7 @@ public abstract class AbstractAggregateCounterTests {
 		queryInterval = new Interval(now, now.plusHours(24));
 
 		aggregateCount = aggregateCounterRepository.getCounts(counterName, queryInterval, MINUTE_RESOLUTION);
-		counts = aggregateCount.counts;
+		counts = aggregateCount.getCounts();
 		// Add 'now.plusHours(24)' minute time to the count
 		assertEquals((24 * 60) + 1, counts.length);
 		assertEquals(0, counts[0]); // on an hour boundary
@@ -142,7 +142,7 @@ public abstract class AbstractAggregateCounterTests {
 		// Query the entire period in hours
 		queryInterval = new Interval(start, end);
 		aggregateCount = aggregateCounterRepository.getCounts(counterName, queryInterval, HOUR_RESOLUTION);
-		counts = aggregateCount.counts;
+		counts = aggregateCount.getCounts();
 		// counts.length should include end time's hour; hence 48+1
 		assertEquals(49, counts.length);
 		// The first hour starts before the first counts are added
@@ -155,7 +155,7 @@ public abstract class AbstractAggregateCounterTests {
 
 		// Query the entire period in days
 		aggregateCount = aggregateCounterRepository.getCounts(counterName, queryInterval, DAY_RESOLUTION);
-		counts = aggregateCount.counts;
+		counts = aggregateCount.getCounts();
 		assertEquals(3, counts.length);
 	}
 }

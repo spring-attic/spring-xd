@@ -53,12 +53,14 @@ public class RedisGaugeRepository extends AbstractRedisMetricRepository<Gauge, L
 		return metric.getValue();
 	}
 
+	@Override
 	public void setValue(String name, long value) {
-		valueOperations.set(getMetricKey(name), value);
+		getValueOperations().set(getMetricKey(name), value);
 	}
 
+	@Override
 	public void reset(String name) {
-		valueOperations.set(getMetricKey(name), 0L);
+		getValueOperations().set(getMetricKey(name), 0L);
 	}
 
 }

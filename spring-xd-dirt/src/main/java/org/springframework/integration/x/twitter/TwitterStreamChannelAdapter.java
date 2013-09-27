@@ -278,6 +278,7 @@ public class TwitterStreamChannelAdapter extends MessageProducerSupport {
 	@SuppressWarnings("deprecation")
 	private class StreamReadingTask implements Runnable {
 
+		@Override
 		public void run() {
 			while (running.get()) {
 				try {
@@ -308,22 +309,33 @@ public class TwitterStreamChannelAdapter extends MessageProducerSupport {
 		private void readStream(RestTemplate restTemplate) {
 			restTemplate.execute(buildUri(), HttpMethod.GET, new RequestCallback() {
 
+				@Override
 				public void doWithRequest(ClientHttpRequest request) throws IOException {
 				}
 			},
 					new ResponseExtractor<String>() {
 
+						@Override
 						public String extractData(ClientHttpResponse response) throws IOException {
 							InputStream inputStream = response.getBody();
-							LineNumberReader reader = new LineNumberReader(new InputStreamReader(inputStream));
-							resetBackOffs();
-							while (running.get()) {
-								String line = reader.readLine();
-								if (!StringUtils.hasText(line)) {
-									break;
+							LineNumberReader reader = null;
+							try {
+								reader = new LineNumberReader(new InputStreamReader(inputStream));
+								resetBackOffs();
+								while (running.get()) {
+									String line = reader.readLine();
+									if (!StringUtils.hasText(line)) {
+										break;
+									}
+									sendMessage(MessageBuilder.withPayload(line).build());
 								}
-								sendMessage(MessageBuilder.withPayload(line).build());
 							}
+							finally {
+								if (reader != null) {
+									reader.close();
+								}
+							}
+
 							return null;
 						}
 					}

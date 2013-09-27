@@ -28,15 +28,15 @@ import org.springframework.util.Assert;
  */
 class Tokenizer {
 
-	String expressionString; // The string to be tokenized
+	private String expressionString; // The string to be tokenized
 
-	char[] toProcess; // The expressionString as a char array
+	private char[] toProcess; // The expressionString as a char array
 
-	int max; // Length of input data
+	private int max; // Length of input data
 
-	int pos; // Current lexing position in the input data
+	private int pos; // Current lexing position in the input data
 
-	List<Token> tokens = new ArrayList<Token>(); // Output stream of tokens
+	private List<Token> tokens = new ArrayList<Token>(); // Output stream of tokens
 
 	public Tokenizer(String inputdata) {
 		this.expressionString = inputdata;
@@ -46,7 +46,7 @@ class Tokenizer {
 		process();
 	}
 
-	public void process() {
+	private void process() {
 		boolean justProcessedEquals = false;
 		while (pos < max) {
 			char ch = toProcess[pos];

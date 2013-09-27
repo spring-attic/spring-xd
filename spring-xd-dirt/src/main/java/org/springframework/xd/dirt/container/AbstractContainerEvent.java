@@ -14,17 +14,31 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.event;
+package org.springframework.xd.dirt.container;
 
-import org.springframework.xd.dirt.container.XDContainer;
+import org.springframework.xd.dirt.event.AbstractEvent;
 
 /**
  * @author Mark Fisher
  */
 @SuppressWarnings("serial")
-public class ContainerStartedEvent extends AbstractContainerEvent {
+public class AbstractContainerEvent extends AbstractEvent<XDContainer> {
 
-	public ContainerStartedEvent(XDContainer container) {
+	public AbstractContainerEvent(XDContainer container) {
 		super(container);
 	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("{\"timestamp\":" + this.getTimestamp() + ",");
+		sb.append("\"type\":\"" + getType() + "\"");
+		sb.append(",");
+		AbstractContainerEvent e = this;
+		sb.append("\"id\":\"" + e.getSource().getId() + "\"");
+		sb.append("}");
+		return sb.toString();
+	}
+
+
 }

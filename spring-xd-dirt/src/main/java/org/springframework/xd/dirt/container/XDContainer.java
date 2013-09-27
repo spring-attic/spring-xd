@@ -34,8 +34,6 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.util.Assert;
-import org.springframework.xd.dirt.event.ContainerStartedEvent;
-import org.springframework.xd.dirt.event.ContainerStoppedEvent;
 import org.springframework.xd.dirt.server.options.XDPropertyKeys;
 
 /**

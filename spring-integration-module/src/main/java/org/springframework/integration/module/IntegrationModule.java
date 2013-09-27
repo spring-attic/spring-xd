@@ -80,7 +80,7 @@ public class IntegrationModule extends SimpleModule {
 	 * @param activeProfiles the activeProfiles to set
 	 */
 	public void setActiveProfiles(String[] activeProfiles) {
-		this.activeProfiles = activeProfiles;
+		this.activeProfiles = activeProfiles.clone();
 	}
 
 	protected void initializeModule() {

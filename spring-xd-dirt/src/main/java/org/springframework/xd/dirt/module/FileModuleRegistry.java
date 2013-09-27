@@ -128,8 +128,24 @@ public class FileModuleRegistry extends AbstractModuleRegistry implements Resour
 					}
 				}
 			}
+			else if (file.isDirectory()) {
+				FileSystemResource configResource = getResourceFromConfigDir(file, type.getTypeName());
+				if (configResource != null) {
+					resources.add(configResource);
+				}
+			}
 		}
 		return resources;
+	}
+
+	private FileSystemResource getResourceFromConfigDir(File file, String typeName) {
+		FileSystemResource result = null;
+		String moduleName = file.getName();
+		File moduleFile = new File(file.getPath() + "/config/" + moduleName + ".xml");
+		if (moduleFile.exists()) {
+			result = new FileSystemResource(moduleFile);
+		}
+		return result;
 	}
 
 	@Override

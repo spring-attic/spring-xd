@@ -82,7 +82,7 @@ public class CompositeModuleRegistryTests {
 	public void testFindSource() {
 		List<ModuleDefinition> definitions = registry.findDefinitions(ModuleType.SOURCE);
 		Assert.assertNotNull("A result list should always be returned", definitions);
-		Assert.assertEquals(2, definitions.size());
+		Assert.assertEquals(3, definitions.size());
 		ArrayList<String> moduleNames = new ArrayList<String>();
 		for (ModuleDefinition definition : definitions) {
 			moduleNames.add(definition.getName());
@@ -110,7 +110,7 @@ public class CompositeModuleRegistryTests {
 	public void testFindAll() {
 		List<ModuleDefinition> definitions = registry.findDefinitions();
 		Assert.assertNotNull("A result list should always be returned", definitions);
-		Assert.assertEquals(3, definitions.size());
+		Assert.assertEquals(4, definitions.size());
 		ArrayList<String> moduleNames = new ArrayList<String>();
 		for (ModuleDefinition definition : definitions) {
 			moduleNames.add(definition.getName());
@@ -119,9 +119,10 @@ public class CompositeModuleRegistryTests {
 				moduleNames.contains("file"));
 		Assert.assertTrue(" Source should be available",
 				moduleNames.contains("source"));
-		Assert.assertTrue(" Source should be available",
+		Assert.assertTrue(" Sink should be available",
 				moduleNames.contains("sink"));
-
+		Assert.assertTrue(" source-config should be available",
+				moduleNames.contains("source-config"));
 
 	}
 }

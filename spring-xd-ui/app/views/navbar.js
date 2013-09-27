@@ -24,14 +24,17 @@
  * View for the navbar
  */
 
-define(['underscore', 'backbone', 'xd.utils', 'xd.conf'], function(_, Backbone, utils, conf) {
-    var Navbar = Backbone.View.extend({
+define(['underscore'],
+function(_) {
+	'use strict';
+	return function(Backbone, navbarTemplate) {
+	    var Navbar = Backbone.View.extend({
 
-        render: function() {
-            'use strict';
-            this.$el.html(_.template(utils.getTemplate(conf.templates.navbar))());
-            return this;
-        }
-    });
-    return Navbar;
+	        render: function() {
+	            this.$el.html(_.template(navbarTemplate));
+	            return this;
+	        }
+	    });
+	    return Navbar;
+	};
 });

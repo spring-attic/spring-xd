@@ -20,30 +20,32 @@
  */
 
 // tests for the xd backbone views
-define(['xd.model', 'xd.viewer', 'views/navbar'],
-function(model, viewer, NavBar) {
+define(['views/navbar', 'backbone', 'xd.utils', 'text!templates/container/navbar.tpl'], 
+function(navbarModule, backbone, utilsModule, navbarTemplate) {
 	describe('navbar view', function() {
-		it('should correcly render the navbar', function() {
-			var navbar = new NavBar();
-			var $navbar = navbar.render().$el;
-			// should have a jobs tab and a dashboard tab, but
-			// other tabs are not active
-			// they are specified using anchor tags
-			var $a = $navbar.find('a');
-			expect($a.length).toBe(4);
-			expect($a[2].href).toBe(location.toString() + '#xd-dashboard');
-			expect($a[3].href).toBe(location.toString() + '#xd-create-job');
-		});
+        it('should correcly render the navbar', function() {
+        	var URL_ROOT = location.toString();
+            var navbar = new (navbarModule(backbone, navbarTemplate))({
+            	el: '#stub'
+            });
+            var $navbar = navbar.render().$el;
+            // should have a jobs tab and a dashboard tab, but 
+            // other tabs are not active
+            // they are specified using anchor tags
+            var $a = $navbar.find('a');
+            expect($a.length).toBe(4);
+            expect($a[2].href).toBe(URL_ROOT + '#xd-dashboard');
+            expect($a[3].href).toBe(URL_ROOT + '#xd-create-job');
+        });
 	});
 
 	describe('artifacts-list-item view', function() {
 		// TODO test sumpin
 	});
-
 	describe('batch view', function() {
 		// TODO test sumpin
 	});
-
+	
 	describe('batch details view', function() {
 		// TODO test sumpin
 	});

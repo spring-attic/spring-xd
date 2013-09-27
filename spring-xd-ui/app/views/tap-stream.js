@@ -23,49 +23,53 @@
  * View for the dashboard
  */
 
-define(['backbone', 'when', 'xd.utils', 'xd.router', 'xd.strings', 'xd.model'],
-function(Backbone, when, utils, router, strings, model) {
+define([],
+function() {
+    'use strict';
 
-    var TapStream = Backbone.View.extend({
+    return function(Backbone, when, utils, router, strings, model, tapStreamTemplate) {
+        var TapStream = Backbone.View.extend({
 
-         events: {
-             'click #tap-stream': 'tapStream'
-         },
+             events: {
+                 'click #tap-stream': 'tapStream'
+             },
 
-         tapStreamForm: function() {
-             this.$el.html(utils.templateHtml.tapStreamTemplate);
-             this.$('#tap-stream-processor').html(utils.templateHtml.processorSelectTemplate);
-             this.$('#tap-stream-sink').html(utils.templateHtml.sinkSelectTemplate);
-             // Setup source function for typeahead to show streams
-             this.$('#stream-to-tap').typeahead({
-                 source: function(query, process) {
-                     var tapSource = [];
-                     model.get('streams').get('artifacts').forEach(function(stream) {
-                         tapSource.push(stream.get('name'));
-                     });
-                     process(tapSource);
-                     return tapSource;
-                 }
-             });
-         },
+             render: function() {
+                 this.$el.html(tapStreamTemplate);
+                 // this.$('#tap-stream-processor').html(utils.templateHtml.processorSelectTemplate);
+                 // this.$('#tap-stream-sink').html(utils.templateHtml.sinkSelectTemplate);
+                 // Setup source function for typeahead to show streams
+                 this.$('#stream-to-tap').typeahead({
+                     source: function(query, process) {
+                         var tapSource = [];
+                         model.get('streams').get('artifacts').forEach(function(stream) {
+                             tapSource.push(stream.get('name'));
+                         });
+                         process(tapSource);
+                         return tapSource;
+                     }
+                 });
+                 return this;
+             },
 
-         resetTapStreamForm: function() {
-             this.$('#tap-stream-name').val('');
-             this.tapStreamForm();
-         },
+             resetTapStreamForm: function() {
+                 this.$('#tap-stream-name').val('');
+                 this.render();
+             },
 
-         tapStream: function(event) {
-             event.preventDefault();
-             // Get stream name
-             var tapName = this.$('#tap-stream-name').val().trim();
-             var targetStream = this.$('#stream-to-tap').val();
-             var definition = this.$('#tap-stream-definition').val().trim();
-             var tapStream = router.createTap(tapName, targetStream, definition, function() {
-                router.refresh('taps');
-                utils.showSuccessMsg(strings.scheduleJobSuccess);
-            });
-            when(tapStream).then(this.resetTapStreamForm());
-         }
-     });
-     return TapStream;
+             tapStream: function(event) {
+                 event.preventDefault();
+                 // Get stream name
+                 var tapName = this.$('#tap-stream-name').val().trim();
+                 var targetStream = this.$('#stream-to-tap').val();
+                 var definition = this.$('#tap-stream-definition').val().trim();
+                 var tapStream = router.createTap(tapName, targetStream, definition, function() {
+                    router.refresh('taps');
+                    utils.showSuccessMsg(strings.scheduleJobSuccess);
+                });
+                when(tapStream).then(this.resetTapStreamForm());
+             }
+         });
+         return TapStream;
+     }
 });

@@ -55,9 +55,11 @@ function(model_spec, viewer_spec) {
 	jasmineEnv.updateInterval = 1000;
 
 	var htmlReporter = new jasmine.HtmlReporter();
-
-	jasmineEnv.addReporter(htmlReporter);
-
+	if (jasmine.hasOwnProperty("ConsoleReporter")) {
+		var consoleReporter = new jasmine.ConsoleReporter();
+		jasmineEnv.addReporter(consoleReporter);
+    }
+    jasmineEnv.addReporter(htmlReporter);
 	jasmineEnv.specFilter = function(spec) {
 		return htmlReporter.specFilter(spec);
 	};

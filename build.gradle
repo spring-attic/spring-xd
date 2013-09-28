@@ -30,6 +30,11 @@ ext {
 
 }
 
+// custom class to store the SingleNode server process
+class SingleNodeServerProcess {
+        Process process
+}
+
 allprojects {
 	group = 'org.springframework.xd'
 
@@ -90,7 +95,7 @@ ext {
 	mockitoVersion = '1.9.5'
 	javaxMailVersion = '1.5.0'
 	kryoVersion = '2.21'
-
+	singleNodeServerProcess = new SingleNodeServerProcess()
 }
 
 def forceSpringVersion(p) {
@@ -434,6 +439,20 @@ project('spring-xd-dirt') {
 	applicationDistribution.from(xdUiFiles) {
 		into "spring-xd-ui"
 	}
+
+	// Following execution is used by jsTests task to start SingleNodeMainServer as background process
+    task backgroundAdminServer << { task ->
+		println "Starting SingleNode server as a background process"
+		ProcessBuilder processBuilder = new ProcessBuilder("java", "-cp", sourceSets.main.runtimeClasspath.getAsPath(), "org.springframework.xd.dirt.server.SingleNodeMain");
+        processBuilder.directory(file("$rootDir/spring-xd-dirt"))
+		def Process proc = processBuilder.start()
+        proc.consumeProcessOutputStream(System.out)
+        println("Waiting for the server to startup...")
+        // Give 15s for the server startup
+        Thread.sleep(15000)
+        // Save the process object to destroy after test completion
+        project.singleNodeServerProcess.process = proc
+     }
 
 	task cleanDataDir(type: Delete) {
 		delete "$rootDir/data"
@@ -830,6 +849,19 @@ project('modules.sink.mail') {
 
 project('spring-xd-ui') {
 	description = 'Spring XD UI'
+	// Run the jasmine tests from commandline using phantomJS
+    // This task assumes existing installation of phantomJS
+    task jsTest(type: Exec, dependsOn: ':spring-xd-dirt:backgroundAdminServer') {
+		workingDir 'test'
+        commandLine 'phantomjs', 'jasmine-runner.js', 'http://localhost:9393/admin-ui/test/SpecRunnerPhantomJS.html'
+        doLast {
+			def singleNodeServerProcess = project(':spring-xd-dirt').singleNodeServerProcess
+			if (singleNodeServerProcess != null) {
+				singleNodeServerProcess.process.destroy()
+                println("Stopped the SingleNode server.")
+            }
+        }
+    }
 }
 
 project('spring-xd-test') {

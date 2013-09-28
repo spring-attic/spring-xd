@@ -789,6 +789,12 @@ project('modules.sink.mail') {
 
 project('spring-xd-ui') {
 	description = 'Spring XD UI'
+	// Run the jasmine tests from commandline using phantomJS
+	// This task assumes existing installation of phantomJS
+	task jsTest(type: Exec) {
+			workingDir 'test'
+			commandLine 'phantomjs', 'jasmine-runner.js', 'http://localhost:9393/admin-ui/test/SpecRunnerPhantomJS.html'
+	}
 }
 
 project('spring-xd-test') {

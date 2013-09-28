@@ -14,4 +14,8 @@
 		<!-- Include only this @Configuration classes, which will in turn include others -->
 		<context:include-filter type="regex" expression="org.springframework.xd.dirt.rest.RestConfiguration"/>
 	</context:component-scan>
+
+	<bean id="xdUi" class="org.springframework.xd.dirt.rest.UiResourceIdentifier">
+		<constructor-arg value="${XD_HOME}/spring-xd-ui" />
+	</bean>
 </beans>

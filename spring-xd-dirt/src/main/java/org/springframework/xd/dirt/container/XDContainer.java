@@ -28,13 +28,14 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.RollingFileAppender;
 
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.util.Assert;
+import org.springframework.xd.dirt.event.ContainerStartedEvent;
+import org.springframework.xd.dirt.event.ContainerStoppedEvent;
 import org.springframework.xd.dirt.server.options.XDPropertyKeys;
 
 /**
@@ -42,13 +43,13 @@ import org.springframework.xd.dirt.server.options.XDPropertyKeys;
  * @author Jennifer Hickey
  * @author David Turanski
  */
-public class XDContainer implements SmartLifecycle, ApplicationContextAware {
+public class XDContainer implements SmartLifecycle {
 
 	private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
 	private static final Log logger = LogFactory.getLog(XDContainer.class);
 
-	private volatile ApplicationContext deployerContext;
+	private volatile ApplicationContext launcherContext;
 
 	/**
 	 * Base location for XD config files. Chosen so as not to collide with user provided content.
@@ -59,8 +60,6 @@ public class XDContainer implements SmartLifecycle, ApplicationContextAware {
 	 * Where container related config files reside.
 	 */
 	public static final String XD_INTERNAL_CONFIG_ROOT = XD_CONFIG_ROOT + "internal/";
-
-	public static final String XD_BATCH_CONFIG_ROOT = XD_CONFIG_ROOT + "batch/";
 
 	private static final String CORE_CONFIG = XD_INTERNAL_CONFIG_ROOT + "container.xml";
 
@@ -120,9 +119,8 @@ public class XDContainer implements SmartLifecycle, ApplicationContextAware {
 		return this.context != null;
 	}
 
-	@Override
-	public void setApplicationContext(ApplicationContext context) {
-		this.deployerContext = context;
+	public void setLauncherContext(ApplicationContext context) {
+		this.launcherContext = context;
 	}
 
 	public ApplicationContext getApplicationContext() {
@@ -134,12 +132,13 @@ public class XDContainer implements SmartLifecycle, ApplicationContextAware {
 		this.context = new ClassPathXmlApplicationContext(new String[] { CORE_CONFIG, PLUGIN_CONFIGS }, false);
 		context.setId(this.id);
 		updateLoggerFilename();
-		Assert.notNull(deployerContext, "no ApplicationContext has been set");
-		ApplicationContext globalContext = deployerContext.getParent();
+		Assert.notNull(launcherContext, "no Container launcher ApplicationContext has been set");
+		ApplicationContext globalContext = launcherContext.getParent();
 		Assert.notNull(globalContext, "no global context has been set");
 		context.setParent(globalContext);
 		context.registerShutdownHook();
 		context.refresh();
+		context.publishEvent(new ContainerStartedEvent(this));
 		if (logger.isInfoEnabled()) {
 			logger.info("started container: " + context.getId());
 		}
@@ -150,6 +149,7 @@ public class XDContainer implements SmartLifecycle, ApplicationContextAware {
 		if (this.context != null) {
 			this.context.close();
 			((ConfigurableApplicationContext) context.getParent()).close();
+			context.publishEvent(new ContainerStoppedEvent(this));
 			if (logger.isInfoEnabled()) {
 				final String message = "Stopped container: " + this.jvmName;
 				final StringBuilder sb = new StringBuilder(LINE_SEPARATOR);

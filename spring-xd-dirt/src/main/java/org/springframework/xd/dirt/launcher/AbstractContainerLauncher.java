@@ -21,14 +21,10 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.core.env.Environment;
 import org.springframework.xd.dirt.container.XDContainer;
-import org.springframework.xd.dirt.event.ContainerStartedEvent;
-import org.springframework.xd.dirt.event.ContainerStoppedEvent;
 import org.springframework.xd.dirt.server.options.ContainerOptions;
 import org.springframework.xd.dirt.server.options.XDPropertyKeys;
 import org.springframework.xd.dirt.server.util.BannerUtils;
@@ -36,23 +32,15 @@ import org.springframework.xd.dirt.server.util.BannerUtils;
 /**
  * @author Mark Fisher
  */
-public abstract class AbstractContainerLauncher implements ContainerLauncher, ApplicationEventPublisherAware,
-		ApplicationContextAware {
+public abstract class AbstractContainerLauncher implements ContainerLauncher, ApplicationContextAware {
 
-	private volatile ApplicationEventPublisher eventPublisher;
-
-	private volatile ApplicationContext deployerContext;
+	private volatile ApplicationContext launcherContext;
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	@Override
-	public void setApplicationEventPublisher(ApplicationEventPublisher eventPublisher) {
-		this.eventPublisher = eventPublisher;
-	}
-
-	@Override
 	public void setApplicationContext(ApplicationContext context) {
-		this.deployerContext = context;
+		this.launcherContext = context;
 	}
 
 	@Override
@@ -60,11 +48,10 @@ public abstract class AbstractContainerLauncher implements ContainerLauncher, Ap
 		try {
 			String id = this.generateId();
 			XDContainer container = new XDContainer(id);
-			container.setApplicationContext(deployerContext);
+			container.setLauncherContext(launcherContext);
 			container.start();
 			this.logContainerInfo(logger, container);
 			container.addListener(new ShutdownListener(container));
-			this.eventPublisher.publishEvent(new ContainerStartedEvent(container));
 			return container;
 		}
 		catch (Exception e) {
@@ -90,7 +77,6 @@ public abstract class AbstractContainerLauncher implements ContainerLauncher, Ap
 
 		@Override
 		public void onApplicationEvent(ContextClosedEvent event) {
-			event.getApplicationContext().publishEvent(new ContainerStoppedEvent(container));
 			container.stop();
 		}
 	}

@@ -39,7 +39,7 @@ import org.springframework.xd.module.CompositeModule;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
-import org.springframework.xd.module.SimpleModule;
+import org.springframework.xd.module.SpringApplicationModule;
 
 /**
  * @author Mark Fisher
@@ -68,10 +68,10 @@ public class CompositeModuleTests {
 	@Test
 	public void testCompositeSource() {
 		DeploymentMetadata metadata = new DeploymentMetadata("compositesourcegroup", 0);
-		List<SimpleModule> modules = new ArrayList<SimpleModule>();
-		modules.add(new SimpleModule(sourceDefinition, metadata));
-		modules.add(new SimpleModule(processor1Definition, metadata));
-		modules.add(new SimpleModule(processor2Definition, metadata));
+		List<SpringApplicationModule> modules = new ArrayList<SpringApplicationModule>();
+		modules.add(new SpringApplicationModule(sourceDefinition, metadata));
+		modules.add(new SpringApplicationModule(processor1Definition, metadata));
+		modules.add(new SpringApplicationModule(processor2Definition, metadata));
 		CompositeModule module = new CompositeModule("compositesource", ModuleType.source, modules, metadata);
 		assertEquals(source, module.getType());
 	}
@@ -79,9 +79,9 @@ public class CompositeModuleTests {
 	@Test
 	public void testCompositeProcessor() {
 		DeploymentMetadata metadata = new DeploymentMetadata("compositeprocessorgroup", 1);
-		List<SimpleModule> modules = new ArrayList<SimpleModule>();
-		modules.add(new SimpleModule(processor1Definition, metadata));
-		modules.add(new SimpleModule(processor2Definition, metadata));
+		List<SpringApplicationModule> modules = new ArrayList<SpringApplicationModule>();
+		modules.add(new SpringApplicationModule(processor1Definition, metadata));
+		modules.add(new SpringApplicationModule(processor2Definition, metadata));
 		CompositeModule module = new CompositeModule("compositeprocessor", ModuleType.processor, modules, metadata);
 		module.initialize();
 		module.start();
@@ -106,10 +106,10 @@ public class CompositeModuleTests {
 	@Test
 	public void testCompositeSink() {
 		DeploymentMetadata metadata = new DeploymentMetadata("compositesinkgroup", 2);
-		List<SimpleModule> modules = new ArrayList<SimpleModule>();
-		modules.add(new SimpleModule(processor1Definition, metadata));
-		modules.add(new SimpleModule(processor2Definition, metadata));
-		modules.add(new SimpleModule(sinkDefinition, metadata));
+		List<SpringApplicationModule> modules = new ArrayList<SpringApplicationModule>();
+		modules.add(new SpringApplicationModule(processor1Definition, metadata));
+		modules.add(new SpringApplicationModule(processor2Definition, metadata));
+		modules.add(new SpringApplicationModule(sinkDefinition, metadata));
 		CompositeModule module = new CompositeModule("compositesink", ModuleType.sink, modules, metadata);
 		assertEquals(sink, module.getType());
 	}

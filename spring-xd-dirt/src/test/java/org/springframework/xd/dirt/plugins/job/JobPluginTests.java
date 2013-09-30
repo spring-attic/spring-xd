@@ -41,7 +41,7 @@ import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
-import org.springframework.xd.module.SimpleModule;
+import org.springframework.xd.module.SpringApplicationModule;
 
 /**
  * 
@@ -79,13 +79,15 @@ public class JobPluginTests {
 		sharedContext.getEnvironment().getPropertySources().addFirst(new PropertiesPropertySource(
 				"hsqlProperties", hsqlProperties));
 		plugin.preProcessSharedContext(sharedContext);
+		sharedContext.refresh();
 
 	}
 
 	@Test
 	public void streamPropertiesAdded() {
-		Module module = new SimpleModule(new ModuleDefinition("testJob", ModuleType.job), new DeploymentMetadata("foo",
-				0));
+		Module module = new SpringApplicationModule(new ModuleDefinition("testJob", ModuleType.job), new DeploymentMetadata(
+				"foo", 0));
+		module.initialize();
 		assertEquals(0, module.getProperties().size());
 		plugin.preProcessModule(module);
 
@@ -101,12 +103,14 @@ public class JobPluginTests {
 	@Test
 	public void streamComponentsAdded() {
 
-		SimpleModule module = new SimpleModule(new ModuleDefinition("testJob", ModuleType.job), new DeploymentMetadata(
-				"foo", 0));
+		SpringApplicationModule module = new SpringApplicationModule(new ModuleDefinition("testJob", ModuleType.job),
+				new DeploymentMetadata("foo", 0));
 
 		GenericApplicationContext context = new GenericApplicationContext();
 		plugin.preProcessModule(module);
 		plugin.preProcessSharedContext(context);
+
+		module.initialize();
 
 		String[] moduleBeans = module.getApplicationContext().getBeanDefinitionNames();
 		Arrays.sort(moduleBeans);

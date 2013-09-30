@@ -32,10 +32,6 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.io.Resource;
-import org.springframework.integration.config.ConsumerEndpointFactoryBean;
-import org.springframework.integration.endpoint.AbstractEndpoint;
-import org.springframework.integration.handler.BridgeHandler;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 
 /**
@@ -47,7 +43,7 @@ public class CompositeModule extends AbstractModule {
 
 	private final GenericApplicationContext context = new GenericApplicationContext();
 
-	private final List<SimpleModule> modules;
+	private final List<SpringApplicationModule> modules;
 
 	private final Properties properties = new Properties();
 
@@ -59,7 +55,8 @@ public class CompositeModule extends AbstractModule {
 	 * @param definitions
 	 * @param metadata
 	 */
-	public CompositeModule(String name, ModuleType type, List<SimpleModule> modules, DeploymentMetadata metadata) {
+	public CompositeModule(String name, ModuleType type, List<SpringApplicationModule> modules,
+			DeploymentMetadata metadata) {
 		super(new ModuleDefinition(name, type), metadata);
 		this.modules = modules;
 		this.validate();

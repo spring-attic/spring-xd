@@ -46,7 +46,7 @@ import org.springframework.xd.dirt.server.options.Analytics;
 import org.springframework.xd.dirt.server.options.Transport;
 import org.springframework.xd.dirt.server.options.XDPropertyKeys;
 import org.springframework.xd.module.ModuleType;
-import org.springframework.xd.module.SimpleModule;
+import org.springframework.xd.module.SpringApplicationModule;
 
 /**
  * Integration test that deploys a few simple test modules to verify the full functionality of {@link StreamPlugin}
@@ -63,9 +63,9 @@ public class StreamPluginModuleDeploymentTests {
 	@Autowired
 	private TestModuleEventListener eventListener;
 
-	private SimpleModule source;
+	private SpringApplicationModule source;
 
-	private SimpleModule sink;
+	private SpringApplicationModule sink;
 
 	@BeforeClass
 	public static void setContextProperties() {
@@ -110,7 +110,7 @@ public class StreamPluginModuleDeploymentTests {
 	@Test
 	public void moduleUndeployUnregistersChannels() throws InterruptedException {
 		ModuleDeploymentRequest request = createSourceModuleRequest();
-		SimpleModule module = sendModuleRequest(request);
+		SpringApplicationModule module = sendModuleRequest(request);
 		MessageBus bus = module.getApplicationContext().getBean(MessageBus.class);
 		assertEquals(2, getBindings(bus).size());
 		request.setRemove(true);
@@ -118,12 +118,12 @@ public class StreamPluginModuleDeploymentTests {
 		assertEquals(0, getBindings(bus).size());
 	}
 
-	private SimpleModule sendModuleRequest(ModuleDeploymentRequest request) throws InterruptedException {
+	private SpringApplicationModule sendModuleRequest(ModuleDeploymentRequest request) throws InterruptedException {
 		Message<?> message = MessageBuilder.withPayload(request.toString()).build();
 		moduleDeployer.handleMessage(message);
 		AbstractModuleEvent moduleDeployedEvent = eventListener.getEvents().poll(5, TimeUnit.SECONDS);
 		assertNotNull(moduleDeployedEvent);
-		return (SimpleModule) moduleDeployedEvent.getSource();
+		return (SpringApplicationModule) moduleDeployedEvent.getSource();
 	}
 
 	private ModuleDeploymentRequest createSourceModuleRequest() {

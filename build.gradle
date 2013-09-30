@@ -521,9 +521,6 @@ project('spring-xd-hadoop') {
 			exclude group: 'org.codehaus.jackson'
 			exclude group: 'hsqldb'
 		}
-		// Needed for webhdfs sink
-		runtime ("org.mortbay.jetty:jetty-util:6.1.26")
-		runtime("javax.ws.rs:jsr311-api:1.1.1")
 	}
 }
 
@@ -532,6 +529,7 @@ project('spring-xd-hadoop:hadoop12') {
 	dependencies {
 		runtime ("org.springframework.data:spring-data-hadoop:$springDataHadoopVersion")
 		runtime ("org.apache.hadoop:hadoop-core:$hadoop12Version")
+		runtime ("org.apache.hadoop:hadoop-client:$hadoop12Version")
 		runtime ("org.apache.hadoop:hadoop-streaming:$hadoop12Version")
 		runtime ("org.apache.hadoop:hadoop-tools:$hadoop12Version")
 	}
@@ -540,6 +538,7 @@ project('spring-xd-hadoop:hadoop12') {
 		from configurations.default
 		include 'spring-data-hadoop-*'
 		include 'hadoop-*'
+		include 'jetty-util-*'
 	}
 }
 
@@ -562,6 +561,7 @@ project('spring-xd-hadoop:hadoop20') {
 		include 'hadoop-*'
 		include 'avro-*'
 		include 'protobuf-java-*'
+		include 'jetty-util-*'
 	}
 }
 
@@ -584,6 +584,7 @@ project('spring-xd-hadoop:cdh4') {
 		include 'hadoop-*'
 		include 'avro-*'
 		include 'protobuf-java-*'
+		include 'jetty-util-*'
 	}
 }
 
@@ -592,6 +593,7 @@ project('spring-xd-hadoop:hdp13') {
 	dependencies {
 		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopVersion}-hdp13")
 		runtime ("org.apache.hadoop:hadoop-core:$hdp13Version")
+		runtime ("org.apache.hadoop:hadoop-client:$hdp13Version")
 		runtime ("org.apache.hadoop:hadoop-streaming:$hdp13Version")
 		runtime ("org.apache.hadoop:hadoop-tools:$hdp13Version")
 	}
@@ -600,6 +602,7 @@ project('spring-xd-hadoop:hdp13') {
 		from configurations.default
 		include 'spring-data-hadoop-*'
 		include 'hadoop-*'
+		include 'jetty-util-*'
 	}
 }
 
@@ -608,6 +611,7 @@ project('spring-xd-hadoop:phd1') {
 	dependencies {
 		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopVersion}-phd1")
 		runtime ("org.apache.hadoop:hadoop-common:$phd1Version")
+		runtime ("org.apache.hadoop:hadoop-client:$phd1Version")
 		runtime ("org.apache.hadoop:hadoop-distcp:$phd1Version")
 		runtime ("org.apache.hadoop:hadoop-hdfs:$phd1Version")
 		runtime ("org.apache.hadoop:hadoop-mapreduce-client-core:$phd1Version")
@@ -622,6 +626,7 @@ project('spring-xd-hadoop:phd1') {
 		include 'hadoop-*'
 		include 'avro-*'
 		include 'protobuf-java-*'
+		include 'jetty-util-*'
 	}
 }
 

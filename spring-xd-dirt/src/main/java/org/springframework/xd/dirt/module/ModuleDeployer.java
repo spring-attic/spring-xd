@@ -33,7 +33,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.context.support.GenericXmlApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.messaging.Message;
@@ -106,8 +106,8 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 	@Override
 	public void onInit() {
 		this.plugins = this.deployerContext.getBeansOfType(Plugin.class);
-		ClassPathXmlApplicationContext commonContext = new ClassPathXmlApplicationContext(
-				new String[] { XDContainer.XD_INTERNAL_CONFIG_ROOT + "module-common.xml" }, false);
+		GenericXmlApplicationContext commonContext = new GenericXmlApplicationContext();
+        commonContext.load(XDContainer.XD_INTERNAL_CONFIG_ROOT + "module-common.xml");
 		ApplicationContext globalContext = deployerContext.getParent();
 		commonContext.setParent(globalContext);
 		if (globalContext != null && globalContext.getEnvironment() instanceof ConfigurableEnvironment) {

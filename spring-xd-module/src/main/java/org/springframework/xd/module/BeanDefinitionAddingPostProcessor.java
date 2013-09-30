@@ -96,13 +96,7 @@ public class BeanDefinitionAddingPostProcessor implements BeanDefinitionRegistry
 	private void propagateXdProperties(XmlBeanDefinitionReader reader) {
 		// TODO: This code should be in OptionUtils, but can't create a circular dependency here
 		if (this.environment != null) {
-			ConfigurableEnvironment readerEnvironment = (ConfigurableEnvironment) reader.getEnvironment();
-			if (environment.getPropertySources().get("xdProperties") != null) {
-				readerEnvironment.getPropertySources().addFirst(environment.getPropertySources().get("xdProperties"));
-			}
-			if (environment.getPropertySources().get("xdDefaults") != null) {
-				readerEnvironment.getPropertySources().addLast(environment.getPropertySources().get("xdDefaults"));
-			}
+			reader.setEnvironment(this.environment);
 		}
 	}
 }

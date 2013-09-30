@@ -21,15 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.joda.time.Chronology;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeConstants;
-import org.joda.time.DateTimeField;
-import org.joda.time.Duration;
-import org.joda.time.DurationField;
-import org.joda.time.Interval;
-import org.joda.time.MutableDateTime;
-import org.joda.time.ReadableDateTime;
+import org.joda.time.*;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -113,6 +105,16 @@ public class RedisAggregateCounterRepository extends RedisCounterRepository impl
 		}
 	}
 
+	/**
+	 * For each query, we need to convert the interval into two variations. One is the start and end points rounded to
+	 * the resolution (used to calculate the number of entries to be returned from the query). The second is the start
+	 * and end buckets we have to retrieve which may contain entries for the interval. For example, when querying
+	 * at day resolution, the number of entries is the number of Joda time days between the start (rounded down to a
+	 * day boundary) and the end plus one day (also rounded down). However, we need load the data from the buckets
+	 * from the month the start day occurs in to the month end day occurs in. These are then concatenated, using the
+	 * start day as the start index into the first array, and writing the total number of entries in sequence from that
+	 * point into the combined result counts array.
+	 */
 	@Override
 	public AggregateCount getCounts(String name, Interval interval, DateTimeField resolution) {
 
@@ -133,7 +135,7 @@ public class RedisAggregateCounterRepository extends RedisCounterRepository impl
 				dt.add(step);
 			}
 			counts = MetricUtils.concatArrays(hours, interval.getStart().getMinuteOfHour(),
-					interval.toPeriod().toStandardMinutes().getMinutes() + 1, 60);
+					interval.toPeriod().toStandardMinutes().getMinutes() + 1);
 
 		}
 		else if (resolutionDuration.getUnitMillis() == DateTimeConstants.MILLIS_PER_HOUR) {
@@ -146,18 +148,38 @@ public class RedisAggregateCounterRepository extends RedisCounterRepository impl
 			}
 
 			counts = MetricUtils.concatArrays(days, interval.getStart().getHourOfDay(),
-					interval.toPeriod().toStandardHours().getHours() + 1, 24);
+					interval.toPeriod().toStandardHours().getHours() + 1);
 
 		}
+		else if (resolutionDuration.getUnitMillis() == DateTimeConstants.MILLIS_PER_DAY) {
+			DateTime startDay = new DateTime(c.dayOfYear().roundFloor(interval.getStart().getMillis()));
+			DateTime endDay = new DateTime(interval.getChronology().dayOfYear().roundFloor(end.plusDays(1).getMillis()));
+			Interval rounded = new Interval(startDay, endDay);
+			int nDays = rounded.toDuration().toStandardDays().getDays();
+			DateTime cursor = new DateTime(c.monthOfYear().roundFloor(interval.getStart().getMillis()));
+			List<long[]> months = new ArrayList<long[]>();
+			DateTime endMonth = new DateTime(c.monthOfYear().roundCeiling(interval.getEnd().plusMonths(1).getMillis()));
+			while (cursor.isBefore(endMonth)) {
+				months.add(getDayCountsForMonth(name, cursor));
+				cursor = cursor.plusMonths(1);
+			}
+
+			counts = MetricUtils.concatArrays(months, interval.getStart().getDayOfMonth() - 1, nDays);
+		}
 		else {
-			throw new IllegalArgumentException("Only minute or hour resolution is currently supported");
+			throw new IllegalArgumentException("Only minute, hour or day resolution is currently supported");
 		}
 		return new AggregateCount(name, interval, counts, resolution);
 	}
 
+	private long[] getDayCountsForMonth(String name, DateTime month) {
+		AggregateKeyGenerator akg = new AggregateKeyGenerator(getPrefix(), name, month.toDateMidnight());
+		return convertToArray(getEntries(akg.getMonthKey()), month.dayOfMonth().getMaximumValue(), true); // Days in this month
+	}
+
 	private long[] getHourCountsForDay(String name, DateTime day) {
 		AggregateKeyGenerator akg = new AggregateKeyGenerator(getPrefix(), name, day.toDateMidnight());
-		return convertToArray(getEntries(akg.getDayKey()), 24);
+		return convertToArray(getEntries(akg.getDayKey()), 24, false);
 	}
 
 	private long[] getMinCountsForHour(String name, ReadableDateTime dateTime) {
@@ -168,7 +190,7 @@ public class RedisAggregateCounterRepository extends RedisCounterRepository impl
 	private long[] getMinCountsForHour(String name, int year, int month, int day, int hour) {
 		DateTime dt = new DateTime().withYear(year).withMonthOfYear(month).withDayOfMonth(day).withHourOfDay(hour);
 		AggregateKeyGenerator akg = new AggregateKeyGenerator(getPrefix(), name, dt);
-		return convertToArray(getEntries(akg.getHourKey()), 60);
+		return convertToArray(getEntries(akg.getHourKey()), 60, false);
 	}
 
 	private Map<String, Long> getEntries(String key) {
@@ -178,10 +200,12 @@ public class RedisAggregateCounterRepository extends RedisCounterRepository impl
 	/**
 	 * Will convert a (possibly sparse) map whose keys are String versions of numbers between 0 and size, to an array.
 	 */
-	private long[] convertToArray(Map<String, Long> map, int size) {
+	private long[] convertToArray(Map<String, Long> map, int size, boolean unitOffset) {
 		long[] values = new long[size];
+		// Some joda fields (e.g. days of month are unit offset)
+		int arrayOffset = unitOffset ? -1 : 0;
 		for (Map.Entry<String, Long> cursor : map.entrySet()) {
-			int offset = Integer.parseInt(cursor.getKey());
+			int offset = Integer.parseInt(cursor.getKey()) + arrayOffset;
 			values[offset] = cursor.getValue();
 		}
 		return values;

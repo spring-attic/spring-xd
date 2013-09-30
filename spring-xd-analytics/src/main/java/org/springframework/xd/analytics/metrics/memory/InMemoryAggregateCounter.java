@@ -68,21 +68,33 @@ class InMemoryAggregateCounter extends Counter {
 
 		long[] counts;
 		if (resolutionDuration.getUnitMillis() == DateTimeConstants.MILLIS_PER_MINUTE) {
-			DateTime now = start;
 			List<long[]> days = accumulateDayCounts(minuteCountsByDay, start, end, 60 * 24);
 
 			counts = MetricUtils.concatArrays(days, interval.getStart().getMinuteOfDay(),
-					interval.toPeriod().toStandardMinutes().getMinutes() + 1, 24 * 60);
+					interval.toPeriod().toStandardMinutes().getMinutes() + 1);
 		}
 		else if (resolutionDuration.getUnitMillis() == DateTimeConstants.MILLIS_PER_HOUR) {
-			DateTime now = start;
 			List<long[]> days = accumulateDayCounts(hourCountsByDay, start, end, 24);
 
 			counts = MetricUtils.concatArrays(days, interval.getStart().getHourOfDay(),
-					interval.toPeriod().toStandardHours().getHours() + 1, 24);
+					interval.toPeriod().toStandardHours().getHours() + 1);
+		}
+		else if (resolutionDuration.getUnitMillis() == DateTimeConstants.MILLIS_PER_DAY) {
+			DateTime startDay = new DateTime(interval.getChronology().dayOfYear().roundFloor(start.getMillis()));
+			DateTime endDay = new DateTime(interval.getChronology().dayOfYear().roundFloor(end.plusDays(1).getMillis()));
+			Interval rounded = new Interval(startDay, endDay);
+			int nDays = rounded.toDuration().toStandardDays().getDays();
+			List<long[]> yearDays = new ArrayList<long[]>();
+
+			for (DateTime now = startDay; now.isBefore(endDay); now = now.plusYears(1)) {
+				yearDays.add(dayCountsByYear.get(now.getYear()));
+			}
+
+			counts = MetricUtils.concatArrays(yearDays, startDay.getDayOfYear(), nDays);
+
 		}
 		else {
-			throw new IllegalArgumentException("Only minute or hour resolution is currently supported");
+			throw new IllegalArgumentException("Only minute, hour or day resolution is currently supported");
 		}
 		return new AggregateCount(getName(), interval, counts, resolution);
 	}

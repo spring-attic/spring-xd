@@ -26,21 +26,19 @@ public final class MetricUtils {
 		return g.reset();
 	}
 
-	public static long[] concatArrays(List<long[]> arrays, int start, int size, int subSize) {
+	public static long[] concatArrays(List<long[]> arrays, int start, int size) {
 		long[] counts = new long[size];
-
+		long[] first = arrays.remove(0);
+		int index = Math.min(first.length - start, size);
+		System.arraycopy(first, start, counts, 0, index);
 		for (int i = 0; i < arrays.size(); i++) {
 			long[] sub = arrays.get(i);
-			for (int j = 0; j < subSize; j++) {
-				int index = i * subSize + j - start; // index in the complete interval
-
+			for (int j = 0; j < sub.length; j++) {
 				if (index >= counts.length) {
 					break;
 				}
 
-				if (index >= 0) {
-					counts[index] = sub[j];
-				}
+				counts[index++] = sub[j];
 			}
 		}
 

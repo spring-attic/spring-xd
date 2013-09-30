@@ -45,6 +45,8 @@ public abstract class AbstractAggregateCounterTests {
 
 	private final DateTimeField HOUR_RESOLUTION = ISOChronology.getInstanceUTC().hourOfDay();
 
+	private final DateTimeField DAY_RESOLUTION = ISOChronology.getInstanceUTC().dayOfMonth();
+
 	@Test
 	public void test66MinuteCount() throws Exception {
 		final DateTime start = new DateTime(2013, 6, 28, 23, 0, 0, 0);
@@ -63,6 +65,25 @@ public abstract class AbstractAggregateCounterTests {
 		assertEquals(1, counts[0]);
 		assertEquals(66, counts[65]);
 		assertEquals(67, counts[66]);
+	}
+
+	@Test
+	public void testDayCounts() throws Exception {
+		final DateTime start = new DateTime(2013, 6, 28, 23, 0, 0, 0);
+		final DateTime end   = start.plusDays(10);
+
+		DateTime now = start;
+		int val = 1;
+		while (now.isBefore(end.plusHours(1))) {
+			aggregateCounterRepository.increment(counterName, val++, now);
+			now = now.plus(Duration.standardDays(1));
+		}
+		long[] counts = aggregateCounterRepository.getCounts(counterName, new Interval(start, end), DAY_RESOLUTION).counts;
+		assertEquals(11, counts.length);
+
+		for (int i=0; i < counts.length; i++) {
+			assertEquals("count at index " + i + " should be " + (i+1), i+1, counts[i]);
+		}
 	}
 
 	@Test
@@ -131,5 +152,10 @@ public abstract class AbstractAggregateCounterTests {
 		}
 		// The last hour ends at 27th minute
 		assertEquals(378, counts[counts.length - 1]); // sum [0..27]
+
+		// Query the entire period in days
+		aggregateCount = aggregateCounterRepository.getCounts(counterName, queryInterval, DAY_RESOLUTION);
+		counts = aggregateCount.counts;
+		assertEquals(3, counts.length);
 	}
 }

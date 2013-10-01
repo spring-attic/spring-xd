@@ -319,7 +319,6 @@ project('spring-xd-dirt') {
 				"log4j:log4j:$log4jVersion",
 				"org.springframework.integration:spring-integration-amqp:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-event:$springIntegrationVersion",
-				"org.springframework.integration:spring-integration-file:$springIntegrationVersion",
 //				"org.springframework.integration:spring-integration-mail:$springIntegrationVersion",
 				"com.sun.mail:javax.mail:$javaxMailVersion",
 				"org.springframework.integration:spring-integration-gemfire:$springIntegrationVersion",
@@ -732,6 +731,25 @@ project('modules.source.imap') {
 		// shell integration tests to work.
 		//		"com.sun.mail:javax.mail:$javaxMailVersion"
 
+	}
+}
+
+project('modules.source.file') {
+	dependencies {
+		runtime	"org.springframework.integration:spring-integration-file:$springIntegrationVersion"
+	}
+}
+
+project('modules.source.tail') {
+	dependencies {
+		runtime	"org.springframework.integration:spring-integration-file:$springIntegrationVersion"
+	}
+}
+
+
+project('modules.sink.file') {
+	dependencies {
+		runtime	"org.springframework.integration:spring-integration-file:$springIntegrationVersion"
 	}
 }
 

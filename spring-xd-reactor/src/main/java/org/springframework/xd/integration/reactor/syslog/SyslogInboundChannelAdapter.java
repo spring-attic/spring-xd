@@ -38,6 +38,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
+ * {@code InboundChannelAdapter} implementation that uses the Reactor TCP support to read in syslog messages and
+ * transform them to a {@code Map} for use in downstream modules.
+ *
  * @author Jon Brisbin
  */
 public class SyslogInboundChannelAdapter extends MessageProducerSupport {

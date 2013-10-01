@@ -187,6 +187,7 @@ configure(javaProjects()) { subproject ->
 		logging.captureStandardOutput(LogLevel.INFO)
 		jvmArgs "-javaagent:${configurations.jacoco.asPath}=destfile=${buildDir}/jacoco.exec,includes=org.springframework.xd.*"
 		jvmArgs "-XX:MaxPermSize=256m"
+		jvmArgs "-Djava.net.preferIPv4Stack=true"
 	}
 
 	javadoc {

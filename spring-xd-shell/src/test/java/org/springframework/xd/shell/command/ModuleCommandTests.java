@@ -20,8 +20,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 
 import org.springframework.xd.shell.AbstractShellIntegrationTest;
@@ -35,8 +33,6 @@ import org.springframework.xd.shell.util.TableRow;
  * @author Gunnar Hillert
  */
 public class ModuleCommandTests extends AbstractShellIntegrationTest {
-
-	private static final Log logger = LogFactory.getLog(ModuleCommandTests.class);
 
 	@Test
 	public void testListAll() throws InterruptedException {

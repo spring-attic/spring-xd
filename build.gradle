@@ -44,11 +44,11 @@ allprojects {
 
 def javaProjects() {
     def nonJavaProjects = ['redis', 'spring-xd-ui']
-    subprojects.findAll { project -> !nonJavaProjects.contains(project.name) && !project.path.startsWith(':modules:')}
+    subprojects.findAll { project -> !nonJavaProjects.contains(project.name) && !project.path.startsWith(':modules.')}
 }
 
 def moduleProjects() {
-	project(':modules').subprojects
+    subprojects.findAll { project -> project.path.startsWith(':modules.')}
 }
 
 ext {
@@ -265,6 +265,8 @@ configure(moduleProjects()) { moduleProject ->
 	}
 
 	tasks.clean.dependsOn cleanLibs
+
+	project(':spring-xd-dirt').tasks['build'].dependsOn(moduleProject.tasks['build'])
 }
 
 

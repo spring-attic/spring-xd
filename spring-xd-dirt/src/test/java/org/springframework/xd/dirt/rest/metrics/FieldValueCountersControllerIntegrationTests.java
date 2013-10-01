@@ -23,6 +23,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,7 +39,6 @@ import org.springframework.xd.dirt.rest.AbstractControllerIntegrationTest;
 import org.springframework.xd.dirt.rest.Dependencies;
 import org.springframework.xd.dirt.rest.RestConfiguration;
 
-import scala.actors.threadpool.Arrays;
 
 /**
  * Tests proper behavior of {@link FieldValueCountersController}.
@@ -70,7 +70,6 @@ public class FieldValueCountersControllerIntegrationTests extends AbstractContro
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void testCounterListing() throws Exception {
 		FieldValueCounter[] counters = new FieldValueCounter[10];
 		for (int i = 0; i < counters.length; i++) {

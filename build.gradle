@@ -796,6 +796,7 @@ project('spring-xd-shell') {
 				"org.slf4j:slf4j-log4j12:$slf4jVersion",
 				"log4j:log4j:$log4jVersion"
 		testCompile "com.icegreen:greenmail:1.3.1b"
+		testCompile "commons-io:commons-io:2.4"
 
 	}
 

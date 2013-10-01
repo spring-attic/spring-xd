@@ -229,8 +229,8 @@ configure(javaProjects()) { subproject ->
 
 configure(moduleProjects()) { moduleProject ->
 
-	// We only apply the java plugin b/c the eclipse plugin
-	// requires it to emit a .classpath file. Those project don't actually
+	// We only apply the java plugin b/c the eclipse/idea plugins
+	// require it to emit e.g. a .classpath file. Those projects don't actually
 	// contain java code, so reset everything (prevents creation of
 	// the 'build' directory, etc)
 	apply plugin: 'java'
@@ -243,6 +243,7 @@ configure(moduleProjects()) { moduleProject ->
 
 
 	apply plugin: 'eclipse'
+	apply plugin: 'idea'
 
 	forceSpringVersion(moduleProject)
 
@@ -257,15 +258,13 @@ configure(moduleProjects()) { moduleProject ->
 	}
 
 
-	tasks.build.dependsOn copyLibs
-	tasks.eclipse.dependsOn copyLibs
+	['build', 'eclipse', 'idea'].each {t -> tasks[t].dependsOn copyLibs}
 
 	task cleanLibs(type: Delete)  {
 		delete copyLibs.outputs
 	}
 
-	tasks.clean.dependsOn cleanLibs
-	tasks.cleanEclipse.dependsOn cleanLibs
+	['clean', 'cleanEclipse', 'cleanIdea'].each {t -> tasks[t].dependsOn cleanLibs}
 
 	project(':spring-xd-dirt').tasks['build'].dependsOn(moduleProject.tasks['build'])
 }

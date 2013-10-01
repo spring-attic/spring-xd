@@ -24,6 +24,8 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.channel.interceptor.ChannelInterceptorAdapter;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.x.bus.DefaultMessageMediaTypeResolver;
+import org.springframework.integration.x.bus.MessageMediaTypeResolver;
 
 
 /**
@@ -34,6 +36,8 @@ public class ContentTypeHeaderInterceptor extends ChannelInterceptorAdapter {
 
 	private final MediaType contentType;
 
+	private final MessageMediaTypeResolver messageMediaTypeResolver = new DefaultMessageMediaTypeResolver();
+
 	public ContentTypeHeaderInterceptor(MediaType contentType) {
 		this.contentType = contentType;
 	}
@@ -43,16 +47,12 @@ public class ContentTypeHeaderInterceptor extends ChannelInterceptorAdapter {
 		return enrichMessage(message);
 	}
 
-
-	@Override
-	public Message<?> postReceive(Message<?> message, MessageChannel channel) {
-		return enrichMessage(message);
-	}
-
 	private Message<?> enrichMessage(Message<?> message) {
+		if (this.contentType.equals(messageMediaTypeResolver.resolveMediaType(message))) {
+			return message;
+		}
 		return MessageBuilder.fromMessage(message).copyHeaders(
 				Collections.singletonMap(MessageHeaders.CONTENT_TYPE, this.contentType))
 				.build();
 	}
-
 }

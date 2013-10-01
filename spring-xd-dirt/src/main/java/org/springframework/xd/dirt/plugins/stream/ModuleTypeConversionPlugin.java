@@ -92,32 +92,38 @@ public class ModuleTypeConversionPlugin extends PluginAdapter {
 			else {
 				channel = module.getComponent("output", AbstractMessageChannel.class);
 			}
-			channel.addInterceptor(new ContentTypeHeaderInterceptor(contentType));
+			Map<Class<?>, Converter<?, ?>> converters = converterRegistry.getConverters(contentType);
+			if (CollectionUtils.isEmpty(converters)) {
+				throw new ModuleConfigurationException("No message converter is registered for " + contentTypeString +
+						"(" +
+						module.getName() + " --" + (isInput ? "input" : "output") + "Type=" + contentTypeString
+						+ ")");
+			}
 
 			Class<?> dataType = converterRegistry.getJavaTypeForContentType(contentType,
 					sm.getApplicationContext().getClassLoader());
-			if (dataType != null) {
+			if (dataType == null) {
+				throw new ModuleConfigurationException("Content type is not associated with "
+						+ dataType.getClass().getName() + " (" +
+						module.getName() + " --" + (isInput ? "input" : "output") + "Type=" + contentTypeString
+						+ ")");
+			}
+			else {
+				channel.addInterceptor(new ContentTypeHeaderInterceptor(contentType));
 				channel.setDatatypes(dataType);
 
-				Map<Class<?>, Converter<?, ?>> converters = converterRegistry.getConverters(contentType);
-				if (!CollectionUtils.isEmpty(converters)) {
-					for (Entry<Class<?>, Converter<?, ?>> entry : converters.entrySet()) {
-						if (logger.isDebugEnabled()) {
-							logger.debug("registering converter sourceType [" + entry.getKey().getName() +
-									"] targetType [" + dataType.getName() + "] converter ["
-									+ entry.getValue().getClass().getName() + "]");
-
-						}
-						conversionService.addConverter(entry.getKey(), dataType, entry.getValue());
-					}
-				}
-				else {
+				for (Entry<Class<?>, Converter<?, ?>> entry : converters.entrySet()) {
 					if (logger.isDebugEnabled()) {
-						logger.warn("no content type converters found for " + dataType.getName());
+						logger.debug("registering converter sourceType [" + entry.getKey().getName() +
+								"] targetType [" + dataType.getName() + "] converter ["
+								+ entry.getValue().getClass().getName() + "]");
+
 					}
+					conversionService.addConverter(entry.getKey(), dataType, entry.getValue());
 				}
 				channel.setConversionService(conversionService);
 			}
+
 		}
 		catch (Throwable t) {
 			throw new ModuleConfigurationException(t.getMessage(), t);

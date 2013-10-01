@@ -52,6 +52,8 @@ public abstract class MessageBusSupport implements MessageBus {
 
 	private volatile MultiTypeCodec<Object> codec;
 
+	private final MessageMediaTypeResolver mediaTypeResolver = new DefaultMessageMediaTypeResolver();
+
 	private static final MediaType JAVA_OBJECT_TYPE = MediaType.valueOf("application/x-java-object");
 
 	protected static final String ORIGINAL_CONTENT_TYPE_HEADER = "originalContentType";
@@ -160,12 +162,10 @@ public abstract class MessageBusSupport implements MessageBus {
 
 	protected final Message<?> transformPayloadForConsumerIfNecessary(Message<?> message,
 			Collection<MediaType> acceptedMediaTypes) {
-		MessageMediaTypeResolver mediaTypeResolver = new DefaultMessageMediaTypeResolver();
 		Message<?> messageToSend = message;
 		Object originalPayload = message.getPayload();
-		Object contentType = mediaTypeResolver.resolveMediaType(message);
-		Object payload = transformPayloadForConsumer(originalPayload,
-				getContentTypeHeaderAsMediaType(contentType),
+		MediaType contentType = mediaTypeResolver.resolveMediaType(message);
+		Object payload = transformPayloadForConsumer(originalPayload, contentType,
 				acceptedMediaTypes);
 
 		if (payload != null) {
@@ -272,18 +272,5 @@ public abstract class MessageBusSupport implements MessageBus {
 						+ originalPayload.getClass().getName() + "]", e);
 			}
 		}
-	}
-
-	private MediaType getContentTypeHeaderAsMediaType(Object contentType) {
-		if (contentType instanceof MediaType) {
-			return (MediaType) contentType;
-		}
-		else if (contentType instanceof String) {
-			return MediaType.valueOf((String) contentType);
-		}
-		else if (contentType instanceof MediaType) {
-			return MediaType.valueOf(((MediaType) contentType).toString());
-		}
-		return null;
 	}
 }

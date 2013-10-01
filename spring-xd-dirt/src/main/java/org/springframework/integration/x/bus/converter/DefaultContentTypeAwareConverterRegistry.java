@@ -21,6 +21,7 @@ import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 import static org.springframework.http.MediaType.TEXT_PLAIN;
 import static org.springframework.http.MediaType.valueOf;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -43,8 +44,13 @@ public class DefaultContentTypeAwareConverterRegistry implements ContentTypeAwar
 		addConverter(String.class, X_XD_TUPLE, new JsonToTupleConverter());
 		MediaType nativeTupleType = valueOf("application/x-java-object;type=" + Tuple.class.getName());
 		addConverter(String.class, nativeTupleType, new JsonToTupleConverter());
+		addConverter(String.class, valueOf("application/x-java-object;type=" + Map.class.getName()),
+				new JsonToMapConverter());
+		addConverter(String.class, valueOf("application/x-java-object;type=" + HashMap.class.getName()),
+				new JsonToMapConverter());
 		addConverter(Tuple.class, APPLICATION_JSON, new TupleToJsonConverter());
 		addConverter(Tuple.class, TEXT_PLAIN, new TupleToJsonConverter());
+		addConverter(Object.class, TEXT_PLAIN, new DefaultObjectToStringConverter());
 		addConverter(Object.class, APPLICATION_JSON, new MappingJackson2Converter());
 		addConverter(Object.class, ContentTypeAwareConverterRegistry.X_JAVA_SERIALIZED_OBJECT,
 				new JavaSerializingConverter());

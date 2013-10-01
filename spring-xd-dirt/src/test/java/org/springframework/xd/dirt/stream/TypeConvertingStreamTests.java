@@ -15,8 +15,11 @@ package org.springframework.xd.dirt.stream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.Serializable;
+import java.util.Date;
+import java.util.Map;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -25,6 +28,7 @@ import org.springframework.http.MediaType;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.x.bus.DefaultMessageMediaTypeResolver;
+import org.springframework.xd.dirt.plugins.ModuleConfigurationException;
 import org.springframework.xd.module.SimpleModule;
 import org.springframework.xd.tuple.Tuple;
 
@@ -130,20 +134,79 @@ public class TypeConvertingStreamTests extends StreamTestSupport {
 	}
 
 	@Test
-	public void contentTypeHeaderSet() {
+	public void unknownContentTypeThrowsException() {
+		try {
+			deployStream(
+					"xml",
+					"source --outputType=application/xml | sink");
+			fail("should throw exception");
+		}
+		catch (Exception e) {
+			assertTrue(e.getCause() instanceof ModuleConfigurationException);
+			assertEquals("No message converter is registered for application/xml(source --outputType=application/xml)",
+					e.getCause().getMessage());
+		}
+	}
+
+	@Test
+	public void testObjectToStringConversion() {
+		final Foo foo = new Foo("hello", 123);
+
 		deployStream(
-				"xml",
-				"source --outputType=application/xml | sink");
+				"fooToString",
+				"source --outputType=text/plain | sink");
 		MessageTest test = new MessageTest() {
 
 			@Override
 			public void test(Message<?> message) throws MessagingException {
-				assertEquals("<foo/>", message.getPayload());
-				assertEquals(MediaType.valueOf("application/xml"),
+				assertEquals(foo.toString(), message.getPayload());
+				assertEquals(MediaType.valueOf("text/plain"),
 						mediaTypeResolver.resolveMediaType(message));
 			}
 		};
-		sendPayloadAndVerifyOutput("xml", "<foo/>", test);
+		sendPayloadAndVerifyOutput("fooToString", foo, test);
+	}
+
+
+	@Test
+	public void testJsonToMapConversion() {
+
+		deployStream(
+				"jsonToMap",
+				"source --outputType=application/json | sink --inputType=java.util.Map");
+		MessageTest test = new MessageTest() {
+
+			@Override
+			public void test(Message<?> message) throws MessagingException {
+				Map map = (Map) message.getPayload();
+				assertEquals("hello", map.get("s"));
+				assertEquals(123, map.get("i"));
+				assertEquals(MediaType.valueOf("application/x-java-object;type=java.util.Map"),
+						mediaTypeResolver.resolveMediaType(message));
+			}
+		};
+		sendPayloadAndVerifyOutput("jsonToMap", new Foo("hello", 123), test);
+	}
+
+	@Test
+	public void testDefaultTypeConversion() {
+		final Date now = new Date();
+		/*
+		 * Should fall back to Default conversion service
+		 */
+		deployStream(
+				"dateToString",
+				"source --outputType=text/plain | sink");
+		MessageTest test = new MessageTest() {
+
+			@Override
+			public void test(Message<?> message) throws MessagingException {
+				assertEquals(now.toString(), message.getPayload());
+				assertEquals(MediaType.valueOf("text/plain"),
+						mediaTypeResolver.resolveMediaType(message));
+			}
+		};
+		sendPayloadAndVerifyOutput("dateToString", now, test);
 	}
 
 	/**
@@ -174,6 +237,11 @@ public class TypeConvertingStreamTests extends StreamTestSupport {
 
 		public void setI(int i) {
 			this.i = i;
+		}
+
+		@Override
+		public String toString() {
+			return s + ":" + i;
 		}
 	}
 }

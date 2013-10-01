@@ -90,7 +90,7 @@ configure(javaProjects()) { subproject ->
 		springDataCommonsVersion = '1.6.0.M1'
 		springDataGemfireVersion = '1.3.2.RELEASE'
 		tomcatJdbcPoolVersion = '7.0.42'
-		reactorVersion = '1.0.0.M3'
+		reactorVersion = '1.0.0.RC1'
 		lettuceVersion = '2.3.3'
 		springDataHadoopVersion = '1.0.1.RELEASE'
 		hadoop10Version = '1.0.4'

@@ -48,8 +48,12 @@ public class RedisModuleRegistry extends AbstractModuleRegistry {
 
 	@Override
 	public List<ModuleDefinition> findDefinitions(ModuleType type) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Auto-generated method stub");
+		ArrayList<ModuleDefinition> results = new ArrayList<ModuleDefinition>();
+		for (Resource resource : locateContexts(type)) {
+			results.add(new ModuleDefinition(resource.getFilename().substring(0,
+					resource.getFilename().lastIndexOf('.')), type.getTypeName(), resource, null));
+		}
+		return results;
 	}
 
 	public List<Resource> locateContexts(ModuleType type) {

@@ -57,7 +57,7 @@ public interface ModuleRegistry {
 	/**
 	 * Returns all module definitions.
 	 * 
-	 * @return A list of the module definitions . If no module definition is found with the type an empty list will be
+	 * @return A list of the module definitions. If no module definition is found with the type an empty list will be
 	 *         returned.
 	 */
 	List<ModuleDefinition> findDefinitions();

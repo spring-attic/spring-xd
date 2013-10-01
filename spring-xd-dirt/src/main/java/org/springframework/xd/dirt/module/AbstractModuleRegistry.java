@@ -49,7 +49,7 @@ public abstract class AbstractModuleRegistry implements ModuleRegistry {
 
 	/**
 	 * Return an array of jar files locations or {@code null} if the module is a plain xml file. Default implementation
-	 * returns {@code null}.
+	 * returns {@code null} system.
 	 */
 	protected URL[] maybeLocateClasspath(Resource resource, String name, String type) {
 		return null;

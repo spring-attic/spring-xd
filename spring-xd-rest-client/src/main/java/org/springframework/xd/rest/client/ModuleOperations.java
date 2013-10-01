@@ -28,7 +28,7 @@ import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
 public interface ModuleOperations {
 
 	/**
-	 * Compose a new virtual Module, optionally deploying it.
+	 * Compose a new virtual Module.
 	 */
 	public ModuleDefinitionResource composeModule(String name, String definition);
 

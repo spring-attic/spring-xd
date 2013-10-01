@@ -30,6 +30,8 @@ import org.springframework.xd.module.ModuleType;
  */
 public class ClasspathTestModuleRegistry extends AbstractModuleRegistry {
 
+	private static final String MODULE_DIR = "src/test/resources/testmodules/";
+
 	@Override
 	protected Resource locateApplicationContext(String name, String type) {
 		ClassPathResource classPathResource = new ClassPathResource("testmodules/" + type + "/" + name + ".xml");
@@ -39,9 +41,6 @@ public class ClasspathTestModuleRegistry extends AbstractModuleRegistry {
 		return null;
 	}
 
-	private static final String MODULE_DIR = "src/test/resources/testmodules/";
-
-
 	@Override
 	public List<ModuleDefinition> findDefinitions(ModuleType type) {
 		ClassPathResource classPathResource = new ClassPathResource(MODULE_DIR);
@@ -50,12 +49,6 @@ public class ClasspathTestModuleRegistry extends AbstractModuleRegistry {
 		return registry.findDefinitions(type);
 	}
 
-	public List<Resource> locateContexts(ModuleType type) {
-		ClassPathResource classPathResource = new ClassPathResource(MODULE_DIR);
-		FileModuleRegistry registry = new FileModuleRegistry(classPathResource.getPath());
-
-		return registry.locateContexts(type);
-	}
 
 	@Override
 	public List<ModuleDefinition> findDefinitions() {

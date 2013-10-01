@@ -29,7 +29,7 @@ import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableRow;
 
 /**
- * Test stream commands
+ * Test module commands
  * 
  * @author Glenn Renfro
  * @author Gunnar Hillert
@@ -63,8 +63,8 @@ public class ModuleCommandTests extends AbstractShellIntegrationTest {
 		Table t = listByType("sink");
 		assertTrue("splunk module is missing from sink list",
 				t.getRows().contains(new TableRow().addValue(1, "splunk").addValue(2, "sink")));
-		assertFalse("file module should not be present int sink list",
-				t.getRows().contains(new TableRow().addValue(1, "file").addValue(2, "source")));
+		assertFalse("asdfer module should not be present in source list",
+				t.getRows().contains(new TableRow().addValue(1, "asdfer").addValue(2, "sink")));
 	}
 
 	@Test

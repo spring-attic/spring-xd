@@ -26,6 +26,7 @@ import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.util.Assert;
 import org.springframework.xd.module.ModuleDefinition;
@@ -49,7 +50,7 @@ public class FileModuleRegistry extends AbstractModuleRegistry implements Resour
 
 	private final File directory;
 
-	private ResourcePatternResolver resolver;
+	private ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 
 	public FileModuleRegistry(String directory) {
 		File f = new File(directory);
@@ -60,7 +61,6 @@ public class FileModuleRegistry extends AbstractModuleRegistry implements Resour
 	@Override
 	protected Resource locateApplicationContext(String name, String type) {
 		File typedDir = new File(directory, type);
-
 		File enhanced = new File(typedDir, name + File.separator + "config" + File.separator + name + ".xml");
 		if (enhanced.exists()) {
 			return new FileSystemResource(enhanced);
@@ -104,13 +104,15 @@ public class FileModuleRegistry extends AbstractModuleRegistry implements Resour
 	public List<ModuleDefinition> findDefinitions(ModuleType type) {
 		ArrayList<ModuleDefinition> results = new ArrayList<ModuleDefinition>();
 		for (Resource resource : locateContexts(type)) {
-			results.add(new ModuleDefinition(resource.getFilename().substring(0,
-					resource.getFilename().lastIndexOf('.')), type.getTypeName(), resource, null));
+			String name = resource.getFilename().substring(0,
+					resource.getFilename().lastIndexOf('.'));
+			results.add(new ModuleDefinition(name, type.getTypeName(), resource, maybeLocateClasspath(resource, name,
+					type.getTypeName())));
 		}
 		return results;
 	}
 
-	public List<Resource> locateContexts(ModuleType type) {
+	private List<Resource> locateContexts(ModuleType type) {
 		ArrayList<Resource> resources = new ArrayList<Resource>();
 		File typedDir = new File(directory, type.getTypeName());
 		File[] files = typedDir.listFiles();

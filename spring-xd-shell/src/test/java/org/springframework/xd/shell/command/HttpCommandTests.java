@@ -19,16 +19,18 @@ package org.springframework.xd.shell.command;
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.Charset;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import org.springframework.util.StreamUtils;
 import org.springframework.xd.shell.command.fixtures.FileSink;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
 
@@ -107,7 +109,9 @@ public class HttpCommandTests extends AbstractStreamIntegrationTest {
 		final String stringToPostInJapanese = "\u65e5\u672c\u306b\u884c\u304d\u305f\u3044\u3002";
 		// Let's source from an UTF16 file.
 		Charset inCharset = Charset.forName("UTF-16");
-		FileUtils.writeStringToFile(tempFileIn, stringToPostInJapanese, inCharset);
+		OutputStream os = new FileOutputStream(tempFileIn);
+		StreamUtils.copy(stringToPostInJapanese, inCharset, os);
+		os.close();
 
 		final String streamName = "postUtf8Data";
 		final String stream = String.format("%s | %s", source, fileSink);

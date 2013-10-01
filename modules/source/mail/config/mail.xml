@@ -19,7 +19,11 @@
 		channel="transform"
 		should-mark-messages-as-read="${markAsRead:false}"
 		should-delete-messages="${delete:true}">
-		<poller fixed-delay="${fixedDelay:60}" time-unit="SECONDS"/>
+		<poller fixed-delay="${fixedDelay:60}" time-unit="SECONDS">
+			<advice-chain>
+				<beans:bean class="org.springframework.xd.dirt.module.support.ThreadContextClassLoaderSetterAdvice" />
+			</advice-chain>
+		</poller>
 	</int-mail:inbound-channel-adapter>
 
 	<int-mail:mail-to-string-transformer charset="${charset:UTF-8}" input-channel="transform" output-channel="output" />

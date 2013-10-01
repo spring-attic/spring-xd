@@ -17,12 +17,12 @@ buildscript {
 }
 
 ext {
-	linkHomepage = 'https://github.com/SpringSource/spring-xd'
+	linkHomepage = 'https://github.com/spring-projects/spring-xd'
 	linkCi       = 'https://build.springsource.org/browse/XD'
 	linkIssue    = 'https://jira.springsource.org/browse/XD'
-	linkScmUrl           = 'https://github.com/SpringSource/spring-xd'
-	linkScmConnection    = 'https://github.com/SpringSource/spring-xd.git'
-	linkScmDevConnection = 'git@github.com:SpringSource/spring-xd.git'
+	linkScmUrl           = 'https://github.com/spring-projects/spring-xd'
+	linkScmConnection    = 'https://github.com/spring-projects/spring-xd.git'
+	linkScmDevConnection = 'git@github.com:spring-projects/spring-xd.git'
 
 	javadocLinks = [
 		"http://static.springsource.org/spring-shell/docs/current/api/"
@@ -40,22 +40,60 @@ allprojects {
 		maven { url 'http://repo.springsource.org/plugins-release' }
 		maven { url 'http://repo.springsource.org/plugins-snapshot' }
 	}
-	apply plugin: 'javadocHotfix'
 }
 
 def javaProjects() {
-        def nonJavaProjects = ['redis', 'spring-xd-ui']
-        subprojects.findAll { project -> !nonJavaProjects.contains(project.name) }
+    def nonJavaProjects = ['redis', 'spring-xd-ui']
+    subprojects.findAll { project -> !nonJavaProjects.contains(project.name) && !project.path.startsWith(':modules.')}
 }
 
-configure(javaProjects()) { subproject ->
+def moduleProjects() {
+    subprojects.findAll { project -> project.path.startsWith(':modules.')}
+}
 
-	apply plugin: 'groovy'
-	apply from:   "${rootProject.projectDir}/publish-maven.gradle"
-	apply plugin: 'eclipse'
-	apply plugin: 'idea'
+ext {
+	jacksonVersion = '2.2.2'
+	jsonPathVersion = '0.8.1'
+	junitVersion = '4.11'
+	hamcrestVersion = '1.3'
+	hamcrestDateVersion = '0.9.3'
+	hsqldbVersion = '2.3.0'
+	jodaTimeVersion = '1.6'
+	jolokiaVersion = '1.1.2'
+	springVersion = '3.2.2.RELEASE'
+	springBatchVersion = '2.2.3.BUILD-SNAPSHOT'
+	springIntegrationVersion = '3.0.0.BUILD-SNAPSHOT'
+	springBatchAdminMgrVersion = '1.3.0.M1'
+	springShellVersion = '1.1.0.M1'
+	springIntegrationSplunkVersion = '1.0.0.M1'
+	springDataMongoVersion = '1.1.1.RELEASE'
+	springDataRedisVersion = '1.1.0.RELEASE'
+	springDataCommonsVersion = '1.6.0.M1'
+	springDataGemfireVersion = '1.3.2.RELEASE'
+	tomcatJdbcPoolVersion = '7.0.42'
+	reactorVersion = '1.0.0.M3'
+	lettuceVersion = '2.3.3'
+	springDataHadoopVersion = '1.0.1.RELEASE'
+	hadoop12Version = '1.2.1'
+	hadoop20Version = '2.0.6-alpha'
+	cdh4Version = '2.0.0-cdh4.3.1'
+	hdp13Version = '1.2.0'
+	phd1Version = '2.0.2-alpha-gphd-2.0.1.0'
+	springHATEOASVersion = '0.7.0.RELEASE'
+	springPluginVersion = '0.8.0.RELEASE'
+	tomcatVersion = '7.0.35'
+	commonsBeanUtilsVersion = '1.6'
+	slf4jVersion = '1.7.5'
+	log4jVersion = '1.2.17'
+	args4jVersion = '2.0.25'
+	mockitoVersion = '1.9.5'
+	javaxMailVersion = '1.5.0'
+	kryoVersion = '2.21'
 
-	configurations.all {
+}
+
+def forceSpringVersion(p) {
+	p.configurations.all {
 		resolutionStrategy {
 			eachDependency { DependencyResolveDetails details ->
 				//Force same version of Spring across the board
@@ -65,6 +103,17 @@ configure(javaProjects()) { subproject ->
 			}
 		}
 	}
+}
+
+configure(javaProjects()) { subproject ->
+
+	apply plugin: 'groovy'
+	apply from:   "${rootProject.projectDir}/publish-maven.gradle"
+	apply plugin: 'eclipse'
+	apply plugin: 'idea'
+	apply plugin: 'javadocHotfix'
+
+	forceSpringVersion(subproject)
 
 	compileJava {
 		sourceCompatibility=1.6
@@ -74,46 +123,6 @@ configure(javaProjects()) { subproject ->
 	compileTestJava {
 		sourceCompatibility=1.7
 		targetCompatibility=1.7
-	}
-
-	ext {
-		jacksonVersion = '2.2.2'
-		jsonPathVersion = '0.8.1'
-		junitVersion = '4.11'
-		hamcrestVersion = '1.3'
-		hamcrestDateVersion = '0.9.3'
-		hsqldbVersion = '2.3.0'
-		jodaTimeVersion = '1.6'
-		jolokiaVersion = '1.1.2'
-		springVersion = '3.2.2.RELEASE'
-		springBatchVersion = '2.2.3.BUILD-SNAPSHOT'
-		springIntegrationVersion = '3.0.0.BUILD-SNAPSHOT'
-		springBatchAdminMgrVersion = '1.3.0.M1'
-		springShellVersion = '1.1.0.M1'
-		springIntegrationSplunkVersion = '1.0.0.M1'
-		springDataMongoVersion = '1.1.1.RELEASE'
-		springDataRedisVersion = '1.1.0.RELEASE'
-		springDataCommonsVersion = '1.6.0.M1'
-		springDataGemfireVersion = '1.3.2.RELEASE'
-		tomcatJdbcPoolVersion = '7.0.42'
-		reactorVersion = '1.0.0.M3'
-		lettuceVersion = '2.3.3'
-		springDataHadoopVersion = '1.0.1.RELEASE'
-		hadoop12Version = '1.2.1'
-		hadoop20Version = '2.0.6-alpha'
-		cdh4Version = '2.0.0-cdh4.3.1'
-		hdp13Version = '1.2.0'
-		phd1Version = '2.0.2-alpha-gphd-2.0.1.0'
-		springHATEOASVersion = '0.7.0.RELEASE'
-		springPluginVersion = '0.8.0.RELEASE'
-		tomcatVersion = '7.0.35'
-		commonsBeanUtilsVersion = '1.6'
-		slf4jVersion = '1.7.5'
-		log4jVersion = '1.2.17'
-		args4jVersion = '2.0.25'
-		mockitoVersion = '1.9.5'
-		javaxMailVersion = '1.5.0'
-		kryoVersion = '2.21'
 	}
 
 	eclipse {
@@ -178,6 +187,7 @@ configure(javaProjects()) { subproject ->
 		logging.captureStandardOutput(LogLevel.INFO)
 		jvmArgs "-javaagent:${configurations.jacoco.asPath}=destfile=${buildDir}/jacoco.exec,includes=org.springframework.xd.*"
 		jvmArgs "-XX:MaxPermSize=256m"
+		jvmArgs "-Djava.net.preferIPv4Stack=true"
 	}
 
 	javadoc {
@@ -218,6 +228,49 @@ configure(javaProjects()) { subproject ->
 	}
 }
 
+configure(moduleProjects()) { moduleProject ->
+
+	// We only apply the java plugin b/c the eclipse/idea plugins
+	// require it to emit e.g. a .classpath file. Those projects don't actually
+	// contain java code, so reset everything (prevents creation of
+	// the 'build' directory, etc)
+	apply plugin: 'java'
+	task build(overwrite: true) {}
+	task clean(overwrite: true) {}
+	compileJava {
+		sourceCompatibility=1.6
+		targetCompatibility=1.6
+	}
+
+
+	apply plugin: 'eclipse'
+	apply plugin: 'idea'
+
+	forceSpringVersion(moduleProject)
+
+	task copyLibs(type: Copy) {
+		def containerDeps = project(':spring-xd-dirt').configurations.runtime
+
+		inputs.property('deps', moduleProject.configurations.runtime.minus(containerDeps))
+		outputs.dir project.file('lib/')
+
+		from moduleProject.configurations.runtime.minus(containerDeps)
+		into project.file('lib/')
+	}
+
+
+	['build', 'eclipse', 'idea'].each {t -> tasks[t].dependsOn copyLibs}
+
+	task cleanLibs(type: Delete)  {
+		delete copyLibs.outputs
+	}
+
+	['clean', 'cleanEclipse', 'cleanIdea'].each {t -> tasks[t].dependsOn cleanLibs}
+
+	project(':spring-xd-dirt').tasks['build'].dependsOn(moduleProject.tasks['build'])
+}
+
+
 project('spring-xd-analytics') {
 	description = 'Spring XD Anayltics'
 	dependencies {
@@ -253,9 +306,7 @@ project('spring-xd-dirt') {
 				project(":spring-xd-module"),
 				project(":spring-xd-hadoop"),
 				project(":spring-xd-jdbc"),
-				project(":spring-xd-http"),
 				project(':spring-xd-rest-domain'),
-				project(":spring-xd-reactor"),
 				"org.springframework:spring-webmvc:$springVersion",
 				"org.springframework:spring-aop:$springVersion",
 				"org.springframework.data:spring-data-commons:$springDataCommonsVersion",
@@ -267,15 +318,12 @@ project('spring-xd-dirt') {
 				"log4j:log4j:$log4jVersion",
 				"org.springframework.integration:spring-integration-amqp:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-event:$springIntegrationVersion",
-				"org.springframework.integration:spring-integration-file:$springIntegrationVersion",
-				"org.springframework.integration:spring-integration-mail:$springIntegrationVersion",
 				"com.sun.mail:javax.mail:$javaxMailVersion",
 				"org.springframework.integration:spring-integration-gemfire:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-groovy:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-jms:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-jmx:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-redis:$springIntegrationVersion",
-				"org.springframework.integration:spring-integration-syslog:$springIntegrationVersion",
 				"org.springframework.integration:spring-integration-twitter:$springIntegrationVersion",
 				"org.springframework.batch:spring-batch-core:$springBatchVersion",
 				"org.springframework.data:spring-data-redis:$springDataRedisVersion",
@@ -288,6 +336,8 @@ project('spring-xd-dirt') {
 				"org.hsqldb:hsqldb:$hsqldbVersion",
 				"org.apache.tomcat:tomcat-jdbc:$tomcatJdbcPoolVersion",
 				"com.esotericsoftware.kryo:kryo:$kryoVersion"
+
+		runtime project(":spring-xd-reactor"),
 
 		compile ("org.apache.activemq:activemq-core:5.6.0") {
 			exclude group: 'org.mortbay.jetty'
@@ -315,11 +365,9 @@ project('spring-xd-dirt') {
 		testCompile ("org.mockito:mockito-core:$mockitoVersion") {
 			exclude group:'org.hamcrest'
 		}
-		testCompile "com.icegreen:greenmail:1.3.1b"
-		//testCompile "org.scala-lang:scala-library:2.9.3"
 	}
 
-        apply plugin:'application'
+    apply plugin:'application'
 	// skip the startScripts task to avoid default start script generation
 	startScripts.setEnabled(false)
 	mainClassName = "org.springframework.xd.dirt.server.SingleNodeMain"
@@ -338,10 +386,10 @@ project('spring-xd-dirt') {
 		outputs.dir modules
 	}
 
-        task xdUiFiles {
-                def uiFiles = file("$rootDir/spring-xd-ui")
-                outputs.dir uiFiles
-        }
+    task xdUiFiles {
+            def uiFiles = file("$rootDir/spring-xd-ui")
+            outputs.dir uiFiles
+    }
 
 	task scriptFiles {
 		def scripts = file("$rootDir/scripts/xd")
@@ -664,6 +712,80 @@ project('modules') {
 	}
 }
 
+project('modules.source.mail') {
+	dependencies {
+		runtime "org.springframework.integration:spring-integration-mail:$springIntegrationVersion"
+		// Need to leave javax.mail at the dirt-server level for
+		// shell integration tests to work.
+		//		"com.sun.mail:javax.mail:$javaxMailVersion"
+
+	}
+}
+
+project('modules.source.imap') {
+	dependencies {
+		runtime "org.springframework.integration:spring-integration-mail:$springIntegrationVersion"
+		// Need to leave javax.mail at the dirt-server level for
+		// shell integration tests to work.
+		//		"com.sun.mail:javax.mail:$javaxMailVersion"
+
+	}
+}
+
+project('modules.source.file') {
+	dependencies {
+		runtime	"org.springframework.integration:spring-integration-file:$springIntegrationVersion"
+	}
+}
+
+project('modules.source.tail') {
+	dependencies {
+		runtime	"org.springframework.integration:spring-integration-file:$springIntegrationVersion"
+	}
+}
+
+project('modules.source.http') {
+	dependencies {
+		runtime	project(":spring-xd-http")
+	}
+}
+
+project('modules.source.syslog-tcp') {
+	dependencies {
+		runtime "org.springframework.integration:spring-integration-syslog:$springIntegrationVersion"
+	}
+}
+
+project('modules.source.syslog-udp') {
+	dependencies {
+		runtime "org.springframework.integration:spring-integration-syslog:$springIntegrationVersion"
+	}
+}
+
+// Does not work b/c of shared Reactor stuff in module-common.xml
+//project('modules.source.reactor-syslog') {
+//	dependencies {
+//		runtime project(":spring-xd-reactor")
+//	}
+//}
+
+
+project('modules.sink.file') {
+	dependencies {
+		runtime	"org.springframework.integration:spring-integration-file:$springIntegrationVersion"
+	}
+}
+
+project('modules.sink.mail') {
+	dependencies {
+		runtime "org.springframework.integration:spring-integration-mail:$springIntegrationVersion"
+		// Need to leave javax.mail at the dirt-server level for
+		// shell integration tests to work.
+		//		"com.sun.mail:javax.mail:$javaxMailVersion"
+
+	}
+}
+
 project('spring-xd-ui') {
 	description = 'Spring XD UI'
 }
@@ -715,6 +837,7 @@ project('spring-xd-shell') {
 				"org.slf4j:slf4j-log4j12:$slf4jVersion",
 				"log4j:log4j:$log4jVersion"
 		testCompile "com.icegreen:greenmail:1.3.1b"
+		testCompile "commons-io:commons-io:2.3"
 
 	}
 

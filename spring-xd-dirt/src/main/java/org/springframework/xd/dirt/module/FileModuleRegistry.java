@@ -20,11 +20,10 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.util.Assert;
 
@@ -42,7 +41,7 @@ import org.springframework.util.Assert;
  * @author Glenn Renfro
  * @author Eric Bottard
  */
-public class FileModuleRegistry extends AbstractModuleRegistry implements ApplicationContextAware {
+public class FileModuleRegistry extends AbstractModuleRegistry implements ResourceLoaderAware {
 
 	private final File directory;
 
@@ -91,8 +90,10 @@ public class FileModuleRegistry extends AbstractModuleRegistry implements Applic
 	}
 
 	@Override
-	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		resolver = applicationContext;
+	public void setResourceLoader(ResourceLoader resourceLoader) {
+		Assert.isTrue(resourceLoader instanceof ResourcePatternResolver,
+				"resourceLoader must be a ResourcePatternResolver");
+		resolver = (ResourcePatternResolver) resourceLoader;
 	}
 
 }

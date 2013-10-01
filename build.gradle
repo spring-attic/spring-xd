@@ -825,6 +825,12 @@ project('modules.source.jms') {
 //	}
 //}
 
+project('modules.processor.http-client') {
+	dependencies {
+		runtime	"org.springframework.integration:spring-integration-http:$springIntegrationVersion"
+	}
+}
+
 
 project('modules.sink.file') {
 	dependencies {

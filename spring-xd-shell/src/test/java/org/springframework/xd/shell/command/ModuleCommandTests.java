@@ -64,7 +64,7 @@ public class ModuleCommandTests extends AbstractShellIntegrationTest {
 		assertTrue("splunk module is missing from sink list",
 				t.getRows().contains(new TableRow().addValue(1, "splunk").addValue(2, "sink")));
 		assertFalse("time module is should not be sink list",
-				t.getRows().contains(new TableRow().addValue(1, "time").addValue(2, "sink")));
+				t.getRows().contains(new TableRow().addValue(1, "time").addValue(2, "source")));
 
 	}
 

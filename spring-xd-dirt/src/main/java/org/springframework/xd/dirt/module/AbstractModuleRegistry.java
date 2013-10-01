@@ -37,12 +37,13 @@ public abstract class AbstractModuleRegistry implements ModuleRegistry {
 
 	@Override
 	public ModuleDefinition findDefinition(String name, String type) {
-		Resource resource = this.locateApplicationContext(name, type);
+		ModuleType moduleType = ModuleType.getModuleTypeByTypeName(type);
+		Resource resource = this.locateApplicationContext(name, moduleType);
 		if (resource == null) {
 			return null;
 		}
-		URL[] classpath = maybeLocateClasspath(resource, name, type);
-		ModuleDefinition module = new ModuleDefinition(name, type, resource, classpath);
+		URL[] classpath = maybeLocateClasspath(resource, name, moduleType.getTypeName());
+		ModuleDefinition module = new ModuleDefinition(name, moduleType.getTypeName(), resource, classpath);
 		// TODO: add properties from a property registry
 		return module;
 	}
@@ -70,5 +71,11 @@ public abstract class AbstractModuleRegistry implements ModuleRegistry {
 	/**
 	 * Return a resource pointing to an {@link ApplicationContext} XML definition file.
 	 */
-	protected abstract Resource locateApplicationContext(String name, String type);
+	protected abstract Resource locateApplicationContext(String name, ModuleType type);
+
+	/**
+	 * Return a list resources pointing to {@link ApplicationContext} XML definition files.
+	 */
+
+	protected abstract List<Resource> locateApplicationContexts(ModuleType type);
 }

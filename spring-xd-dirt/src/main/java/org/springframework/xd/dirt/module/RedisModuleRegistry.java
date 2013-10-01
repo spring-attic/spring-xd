@@ -41,7 +41,7 @@ public class RedisModuleRegistry extends AbstractModuleRegistry {
 	}
 
 	@Override
-	protected Resource locateApplicationContext(String name, String type) {
+	protected Resource locateApplicationContext(String name, ModuleType type) {
 		Object config = this.redisTemplate.boundHashOps("modules:" + type).get(name);
 		return (config != null) ? new ByteArrayResource(config.toString().getBytes()) : null;
 	}
@@ -58,7 +58,7 @@ public class RedisModuleRegistry extends AbstractModuleRegistry {
 		return results;
 	}
 
-	public List<Resource> locateApplicationContexts(ModuleType type) {
+	protected List<Resource> locateApplicationContexts(ModuleType type) {
 		ArrayList<Resource> resources = new ArrayList<Resource>();
 		for (Object object : this.redisTemplate.boundHashOps("modules:" + type.getTypeName()).entries().values()) {
 			resources.add(new ByteArrayResource(object.toString().getBytes()));

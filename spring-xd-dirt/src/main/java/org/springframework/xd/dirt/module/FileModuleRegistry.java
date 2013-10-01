@@ -59,8 +59,8 @@ public class FileModuleRegistry extends AbstractModuleRegistry implements Resour
 	}
 
 	@Override
-	protected Resource locateApplicationContext(String name, String type) {
-		File typedDir = new File(directory, type);
+	protected Resource locateApplicationContext(String name, ModuleType type) {
+		File typedDir = new File(directory, type.getTypeName());
 		File enhanced = new File(typedDir, name + File.separator + "config" + File.separator + name + ".xml");
 		if (enhanced.exists()) {
 			return new FileSystemResource(enhanced);
@@ -112,7 +112,8 @@ public class FileModuleRegistry extends AbstractModuleRegistry implements Resour
 		return results;
 	}
 
-	private List<Resource> locateApplicationContexts(ModuleType type) {
+	@Override
+	protected List<Resource> locateApplicationContexts(ModuleType type) {
 		ArrayList<Resource> resources = new ArrayList<Resource>();
 		File typedDir = new File(directory, type.getTypeName());
 		File[] files = typedDir.listFiles();

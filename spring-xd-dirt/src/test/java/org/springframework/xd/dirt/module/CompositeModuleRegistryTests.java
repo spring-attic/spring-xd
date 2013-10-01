@@ -63,7 +63,7 @@ public class CompositeModuleRegistryTests {
 
 	@Test
 	public void testNotFound() {
-		ModuleDefinition def = registry.findDefinition("foo", "bar");
+		ModuleDefinition def = registry.findDefinition("foo", "sink");
 		assertNull(def);
 	}
 

@@ -49,14 +49,16 @@ public class RedisModuleRegistry extends AbstractModuleRegistry {
 	@Override
 	public List<ModuleDefinition> findDefinitions(ModuleType type) {
 		ArrayList<ModuleDefinition> results = new ArrayList<ModuleDefinition>();
-		for (Resource resource : locateContexts(type)) {
-			results.add(new ModuleDefinition(resource.getFilename().substring(0,
-					resource.getFilename().lastIndexOf('.')), type.getTypeName(), resource, null));
+		for (Resource resource : locateApplicationContexts(type)) {
+			String name = resource.getFilename().substring(0,
+					resource.getFilename().lastIndexOf('.'));
+			results.add(new ModuleDefinition(name, type.getTypeName(), resource, maybeLocateClasspath(resource, name,
+					type.getTypeName())));
 		}
 		return results;
 	}
 
-	public List<Resource> locateContexts(ModuleType type) {
+	public List<Resource> locateApplicationContexts(ModuleType type) {
 		ArrayList<Resource> resources = new ArrayList<Resource>();
 		for (Object object : this.redisTemplate.boundHashOps("modules:" + type.getTypeName()).entries().values()) {
 			resources.add(new ByteArrayResource(object.toString().getBytes()));

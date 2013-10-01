@@ -30,11 +30,11 @@ import org.springframework.xd.module.ModuleType;
  * 
  * @author Glenn Renfro
  */
-public class ModuleHandler {
+public class ModuleRepository {
 
 	ModuleRegistry moduleRegistry;
 
-	public ModuleHandler(ModuleRegistry moduleRegistry) {
+	public ModuleRepository(ModuleRegistry moduleRegistry) {
 		this.moduleRegistry = moduleRegistry;
 	}
 

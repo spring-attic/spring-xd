@@ -103,7 +103,7 @@ public class FileModuleRegistry extends AbstractModuleRegistry implements Resour
 	@Override
 	public List<ModuleDefinition> findDefinitions(ModuleType type) {
 		ArrayList<ModuleDefinition> results = new ArrayList<ModuleDefinition>();
-		for (Resource resource : locateContexts(type)) {
+		for (Resource resource : locateApplicationContexts(type)) {
 			String name = resource.getFilename().substring(0,
 					resource.getFilename().lastIndexOf('.'));
 			results.add(new ModuleDefinition(name, type.getTypeName(), resource, maybeLocateClasspath(resource, name,
@@ -112,7 +112,7 @@ public class FileModuleRegistry extends AbstractModuleRegistry implements Resour
 		return results;
 	}
 
-	private List<Resource> locateContexts(ModuleType type) {
+	private List<Resource> locateApplicationContexts(ModuleType type) {
 		ArrayList<Resource> resources = new ArrayList<Resource>();
 		File typedDir = new File(directory, type.getTypeName());
 		File[] files = typedDir.listFiles();

@@ -16,19 +16,9 @@
 
 package org.springframework.xd.integration.reactor;
 
-import static org.junit.Assert.assertTrue;
-
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,11 +29,19 @@ import org.springframework.integration.core.MessageHandler;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.xd.integration.reactor.syslog.SyslogInboundChannelAdapter;
-
 import reactor.core.Environment;
 import reactor.core.Reactor;
 import reactor.core.spec.Reactors;
 import reactor.spring.context.config.EnableReactor;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Jon Brisbin
@@ -70,14 +68,13 @@ public class SyslogInboundChannelAdapterIntegrationTests {
 		env = new Environment();
 
 		output.subscribe(new MessageHandler() {
-
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
 				latch.countDown();
 			}
 		});
 
-		latch = new CountDownLatch(1);
+		latch = new CountDownLatch(2);
 	}
 
 	@Test
@@ -105,6 +102,7 @@ public class SyslogInboundChannelAdapterIntegrationTests {
 		@Bean
 		public SyslogInboundChannelAdapter syslogInboundChannelAdapter(Environment env, DirectChannel output) {
 			SyslogInboundChannelAdapter sica = new SyslogInboundChannelAdapter(env);
+			sica.setPort(12345);
 			sica.setOutputChannel(output);
 			return sica;
 		}
@@ -121,14 +119,16 @@ public class SyslogInboundChannelAdapterIntegrationTests {
 		public void run() {
 			try {
 				SocketChannel channel = SocketChannel.open();
-				channel.connect(new InetSocketAddress(5140));
+				channel.connect(new InetSocketAddress(12345));
 
-				ByteBuffer buff = ByteBuffer.wrap("<34>Oct 11 22:14:15 mymachine su: 'su root' failed for lonvick on /dev/pts/8\n".getBytes());
+				ByteBuffer buff = ByteBuffer.wrap(
+						("<34>Oct 11 22:14:15 mymachine su: 'su root' failed for lonvick on /dev/pts/8\n"
+								+ "<34>Oct 11 22:14:15 mymachine su: 'su root' failed for lonvick on /dev/pts/8\n").getBytes()
+				);
 				channel.write(buff);
 
 				channel.close();
-			}
-			catch (IOException e) {
+			} catch (IOException e) {
 				throw new IllegalStateException(e);
 			}
 

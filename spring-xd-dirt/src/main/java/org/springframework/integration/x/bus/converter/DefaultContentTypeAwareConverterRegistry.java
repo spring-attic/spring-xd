@@ -54,6 +54,7 @@ public class DefaultContentTypeAwareConverterRegistry implements ContentTypeAwar
 		addConverter(Object.class, APPLICATION_JSON, new MappingJackson2Converter());
 		addConverter(Object.class, ContentTypeAwareConverterRegistry.X_JAVA_SERIALIZED_OBJECT,
 				new JavaSerializingConverter());
+		addConverter(byte[].class, TEXT_PLAIN, new ByteArrayToStringConverter());
 	}
 
 	@Override
@@ -107,6 +108,12 @@ public class DefaultContentTypeAwareConverterRegistry implements ContentTypeAwar
 
 	@Override
 	public Map<Class<?>, Converter<?, ?>> getConverters(MediaType targetContentType) {
-		return converters.get(targetContentType);
+		MediaType lookupContentType = targetContentType;
+
+		// Handle input like "text/plain;charset=UTF-8"
+		if (MediaType.TEXT_PLAIN.includes(targetContentType)) {
+			lookupContentType = MediaType.TEXT_PLAIN;
+		}
+		return converters.get(lookupContentType);
 	}
 }

@@ -39,6 +39,7 @@ allprojects {
  		maven { url 'http://repo.springsource.org/libs-snapshot' }
 		maven { url 'http://repo.springsource.org/plugins-release' }
 		maven { url 'http://repo.springsource.org/plugins-snapshot' }
+		maven { url 'https://repo.eclipse.org/content/repositories/paho-releases' }
 	}
 }
 
@@ -355,7 +356,7 @@ project('spring-xd-dirt') {
 		// ************* Container: Modules (should move on their own: XD-915)
 		compile project(":spring-xd-hadoop")
 		compile project(":spring-xd-jdbc")
-		compile ("org.springframework.integration:spring-integration-mqtt:1.0.0.M1") {
+		compile ("org.springframework.integration:spring-integration-mqtt:1.0.0.BUILD-SNAPSHOT") {
 			exclude group: 'org.springframework.integration'
 		}
 		compile "org.springframework.integration:spring-integration-jms:$springIntegrationVersion"

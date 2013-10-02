@@ -354,6 +354,8 @@ project('spring-xd-dirt') {
 		compile ("org.springframework.integration:spring-integration-mqtt:1.0.0.BUILD-SNAPSHOT") {
 			exclude group: 'org.springframework.integration'
 		}
+		compile "org.springframework.integration:spring-integration-jms:$springIntegrationVersion"
+		runtime "org.springframework.integration:spring-integration-ip:$springIntegrationVersion"
 
 		// Splunk also needed for o.s.i.x
 		compile "org.springframework.integration:spring-integration-splunk:$springIntegrationSplunkVersion"

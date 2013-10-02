@@ -31,6 +31,8 @@ import org.springframework.xd.shell.command.fixtures.ImapSource;
 import org.springframework.xd.shell.command.fixtures.MailSink;
 import org.springframework.xd.shell.command.fixtures.MailSource;
 import org.springframework.xd.shell.command.fixtures.TailSource;
+import org.springframework.xd.shell.command.fixtures.TcpSink;
+import org.springframework.xd.shell.command.fixtures.TcpSource;
 
 /**
  * Provides an @After JUnit lifecycle method that will destroy the definitions that were created by the test.
@@ -72,6 +74,16 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 		for (Disposable disposable : disposables) {
 			disposable.cleanup();
 		}
+	}
+
+	protected TcpSource newTcpSource() {
+		return new TcpSource();
+	}
+
+	protected TcpSink newTcpSink() {
+		TcpSink tcpSink = new TcpSink();
+		disposables.add(tcpSink);
+		return tcpSink;
 	}
 
 	protected FileSink newFileSink() {

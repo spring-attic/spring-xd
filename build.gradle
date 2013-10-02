@@ -302,64 +302,73 @@ project('spring-xd-dirt') {
 	}
 	dependencies {
 
-		compile project(":spring-xd-analytics"),
-				project(":spring-xd-module"),
-				project(":spring-xd-hadoop"),
-				project(":spring-xd-jdbc"),
-				project(':spring-xd-rest-domain'),
-				"org.springframework:spring-webmvc:$springVersion",
-				"org.springframework:spring-aop:$springVersion",
-				"org.springframework.data:spring-data-commons:$springDataCommonsVersion",
-				"com.fasterxml.jackson.core:jackson-databind:$jacksonVersion",
-				"com.jayway.jsonpath:json-path:$jsonPathVersion",
-				"org.apache.tomcat.embed:tomcat-embed-core:$tomcatVersion",
-				"org.apache.tomcat.embed:tomcat-embed-logging-juli:$tomcatVersion",
-				"org.apache.tomcat:tomcat-jsp-api:$tomcatVersion",
-				"log4j:log4j:$log4jVersion",
-				"org.springframework.integration:spring-integration-amqp:$springIntegrationVersion",
-				"org.springframework.integration:spring-integration-event:$springIntegrationVersion",
-				"com.sun.mail:javax.mail:$javaxMailVersion",
-				"org.springframework.integration:spring-integration-gemfire:$springIntegrationVersion",
-				"org.springframework.integration:spring-integration-groovy:$springIntegrationVersion",
-				"org.springframework.integration:spring-integration-jms:$springIntegrationVersion",
-				"org.springframework.integration:spring-integration-jmx:$springIntegrationVersion",
-				"org.springframework.integration:spring-integration-redis:$springIntegrationVersion",
-				"org.springframework.integration:spring-integration-twitter:$springIntegrationVersion",
-				"org.springframework.batch:spring-batch-core:$springBatchVersion",
-				"org.springframework.data:spring-data-redis:$springDataRedisVersion",
-				"commons-lang:commons-lang:2.4",
-				"com.lambdaworks:lettuce:$lettuceVersion",
-				"args4j:args4j:$args4jVersion",
-				"com.eaio.uuid:uuid:3.2",
-				"org.jolokia:jolokia-spring:$jolokiaVersion",
-				"org.springframework.plugin:spring-plugin-core:$springPluginVersion",
-				"org.hsqldb:hsqldb:$hsqldbVersion",
-				"org.apache.tomcat:tomcat-jdbc:$tomcatJdbcPoolVersion",
-				"com.esotericsoftware.kryo:kryo:$kryoVersion"
-
-		runtime project(":spring-xd-reactor"),
-
+		// See XD-903 for breakdown
+		// ************* Common to both Server and Container
+		compile "org.springframework:spring-aop:$springVersion"
+		compile project(":spring-xd-analytics")
+		compile "org.springframework.data:spring-data-redis:$springDataRedisVersion"
+		compile "org.springframework.integration:spring-integration-redis:$springIntegrationVersion"
+		compile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
+		compile "log4j:log4j:$log4jVersion"
+		compile "org.springframework.integration:spring-integration-amqp:$springIntegrationVersion"
 		compile ("org.apache.activemq:activemq-core:5.6.0") {
 			exclude group: 'org.mortbay.jetty'
 			exclude group: 'org.fusesource.fuse-extra'
 		}
+		compile "org.springframework.integration:spring-integration-event:$springIntegrationVersion"
+		compile "org.springframework.integration:spring-integration-groovy:$springIntegrationVersion"
+		compile "org.springframework.integration:spring-integration-jmx:$springIntegrationVersion"
+		compile "org.jolokia:jolokia-spring:$jolokiaVersion"
+		compile "com.esotericsoftware.kryo:kryo:$kryoVersion"
+		compile "com.lambdaworks:lettuce:$lettuceVersion"
+		compile "args4j:args4j:$args4jVersion"
+		compile "commons-lang:commons-lang:2.4"
 
+		compile "org.hsqldb:hsqldb:$hsqldbVersion"
+		compile "org.springframework.batch:spring-batch-core:$springBatchVersion"
+		compile "org.apache.tomcat:tomcat-jdbc:$tomcatJdbcPoolVersion"
 		compile ("org.springframework.batch:spring-batch-admin-manager:$springBatchAdminMgrVersion") {
 			exclude group: 'hsqldb'
 		}
-
-		compile ("org.springframework.integration:spring-integration-mqtt:1.0.0.M1") {
-			exclude group: 'org.springframework.integration'
-		}
-
 		compile ("org.springframework.batch:spring-batch-integration:1.2.2.RELEASE") {
 			exclude group: 'org.springframework.integration'
 			exclude group: 'org.springframework'
 		}
 
-		runtime "org.slf4j:jcl-over-slf4j:$slf4jVersion",
-				"org.slf4j:slf4j-log4j12:$slf4jVersion"
 
+		runtime "org.slf4j:jcl-over-slf4j:$slf4jVersion"
+		runtime	"org.slf4j:slf4j-log4j12:$slf4jVersion"
+
+		// ************* Dirt-Server only
+		compile project(':spring-xd-rest-domain')
+		compile "org.springframework:spring-webmvc:$springVersion"
+		compile "org.springframework.plugin:spring-plugin-core:$springPluginVersion"
+		compile "org.springframework.data:spring-data-commons:$springDataCommonsVersion"
+		compile "org.apache.tomcat.embed:tomcat-embed-core:$tomcatVersion"
+		compile "org.apache.tomcat.embed:tomcat-embed-logging-juli:$tomcatVersion"
+		compile "org.apache.tomcat:tomcat-jsp-api:$tomcatVersion"
+
+		// ************* Dirt-Container only (per se)
+		compile project(":spring-xd-module")
+		compile "com.jayway.jsonpath:json-path:$jsonPathVersion"
+		compile "com.eaio.uuid:uuid:3.2"
+
+		// ************* Container: Modules (should move on their own: XD-915)
+		compile project(":spring-xd-hadoop")
+		compile project(":spring-xd-jdbc")
+		compile "org.springframework.integration:spring-integration-gemfire:$springIntegrationVersion"
+		compile ("org.springframework.integration:spring-integration-mqtt:1.0.0.M1") {
+			exclude group: 'org.springframework.integration'
+		}
+		compile "org.springframework.integration:spring-integration-twitter:$springIntegrationVersion"
+		compile "org.springframework.integration:spring-integration-jms:$springIntegrationVersion"
+
+		// ************* Container: Imposed by some Module (can't move)
+		compile "com.sun.mail:javax.mail:$javaxMailVersion"
+		runtime project(":spring-xd-reactor")
+
+
+		// ************* Test
 		testCompile project(":spring-xd-test")
 		testCompile "com.jayway.jsonpath:json-path:0.8.1"
 		testCompile ("org.mockito:mockito-core:$mockitoVersion") {

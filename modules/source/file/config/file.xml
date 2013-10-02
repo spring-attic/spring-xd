@@ -12,13 +12,22 @@
 
 	<file:inbound-channel-adapter
 			auto-startup="false"
-			channel="transform" directory="${dir:/tmp/xd/input/${xd.stream.name}}"
+			channel="router" directory="${dir:/tmp/xd/input/${xd.stream.name}}"
 			prevent-duplicates="${preventDuplicates:true}"
 			filename-pattern="${pattern:*}">
 		<poller fixed-delay="${fixedDelay:5}" time-unit="SECONDS"/>
 	</file:inbound-channel-adapter>
 
-	<file:file-to-string-transformer input-channel="transform" output-channel="output" />
+	<router input-channel="router" expression="${ref:false} ? 'output' : 'contents'"/>
+
+	<channel id="contents"/>
+
+	<chain id="extractContents" input-channel="contents" output-channel="output">
+		<header-enricher>
+			<header name="content-type" value="application/octet-stream"/>
+		</header-enricher>
+		<file:file-to-bytes-transformer/>
+	</chain>
 
 	<channel id="output"/>
 

@@ -25,6 +25,7 @@ import java.io.IOException;
  * Support class that represents the file source module.
  * 
  * @author Eric Bottard
+ * @author David Turanski
  */
 public class FileSource extends DisposableFileSupport {
 
@@ -49,7 +50,7 @@ public class FileSource extends DisposableFileSupport {
 
 	@Override
 	protected String toDSL() {
-		return String.format("file --dir=%s", file.getParent());
+		return String.format("file --outputType=text/plain --dir=%s", file.getParent());
 	}
 
 	public void appendToFile(String contents) throws IOException {

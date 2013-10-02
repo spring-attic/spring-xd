@@ -34,6 +34,7 @@ import org.springframework.xd.shell.command.fixtures.FileSource;
  * Tests to explicitly assert file related source and sink behavior.
  * 
  * @author Eric Bottard
+ * @author David Turanski
  */
 public class FileSourceAndFileSinkTests extends AbstractStreamIntegrationTest {
 
@@ -97,7 +98,7 @@ public class FileSourceAndFileSinkTests extends AbstractStreamIntegrationTest {
 
 		try {
 			FileCopyUtils.copy("hello", new FileWriter(in));
-			stream().create(streamName, "file | file " + sinkParam);
+			stream().create(streamName, "file --outputType=text/plain | file " + sinkParam);
 			Thread.sleep(1000);
 			String actual = FileCopyUtils.copyToString(new FileReader(out));
 			assertEquals("hello", actual.trim());

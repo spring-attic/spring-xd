@@ -17,6 +17,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Map;
 
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
 import org.springframework.context.ConfigurableApplicationContext;
@@ -47,12 +48,14 @@ public class StreamTestSupport {
 
 	private static ModuleDeployer moduleDeployer;
 
+	private static SingleNodeServer singleNode;
+
 	@BeforeClass
 	public static void startXDSingleNode() throws Exception {
 		SingleNodeOptions options = new SingleNodeOptions();
 		CommandLineParser parser = new CommandLineParser(options);
 		parser.parseArgument(new String[] { "--transport", "local" });
-		SingleNodeServer singleNode = SingleNodeMain.launchSingleNodeServer(options);
+		singleNode = SingleNodeMain.launchSingleNodeServer(options);
 
 		ConfigurableApplicationContext containerContext = (ConfigurableApplicationContext) singleNode.getContainer().getApplicationContext();
 
@@ -191,5 +194,23 @@ public class StreamTestSupport {
 
 		protected abstract void test(Message<?> message);
 
+		protected void waitForCompletion(int maxtime) {
+			int time = 0;
+			while (time < maxtime && !getMessageHandled()) {
+				try {
+					Thread.sleep(100);
+				}
+				catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				time += 100;
+			}
+		}
+
+	}
+
+	@AfterClass
+	public static void cleanUp() {
+		singleNode.stop();
 	}
 }

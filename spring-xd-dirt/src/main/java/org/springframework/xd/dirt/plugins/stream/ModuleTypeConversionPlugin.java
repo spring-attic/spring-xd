@@ -29,10 +29,12 @@ import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.format.support.DefaultFormattingConversionService;
 import org.springframework.http.MediaType;
 import org.springframework.integration.channel.AbstractMessageChannel;
+import org.springframework.integration.x.bus.converter.ByteArrayToStringConverter;
 import org.springframework.integration.x.bus.converter.ContentTypeHeaderInterceptor;
 import org.springframework.integration.x.bus.converter.DefaultContentTypeAwareConverterRegistry;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.plugins.ModuleConfigurationException;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.PluginAdapter;
@@ -40,8 +42,10 @@ import org.springframework.xd.module.SimpleModule;
 
 
 /**
+ * A {@link Plugin} for processing module message conversion parameters (inputType and outputType)
  * 
  * @author David Turanski
+ * @since 1.0
  */
 public class ModuleTypeConversionPlugin extends PluginAdapter {
 
@@ -103,10 +107,8 @@ public class ModuleTypeConversionPlugin extends PluginAdapter {
 			Class<?> dataType = converterRegistry.getJavaTypeForContentType(contentType,
 					sm.getApplicationContext().getClassLoader());
 			if (dataType == null) {
-				throw new ModuleConfigurationException("Content type is not associated with "
-						+ dataType.getClass().getName() + " (" +
-						module.getName() + " --" + (isInput ? "input" : "output") + "Type=" + contentTypeString
-						+ ")");
+				throw new ModuleConfigurationException("Content type is not supported for " +
+						module.getName() + " --" + (isInput ? "input" : "output") + "Type=" + contentTypeString);
 			}
 			else {
 				channel.addInterceptor(new ContentTypeHeaderInterceptor(contentType));
@@ -118,6 +120,16 @@ public class ModuleTypeConversionPlugin extends PluginAdapter {
 								"] targetType [" + dataType.getName() + "] converter ["
 								+ entry.getValue().getClass().getName() + "]");
 
+					}
+					Converter<?, ?> converter = entry.getValue();
+					// special case to handle charset parameter
+					if (converter instanceof ByteArrayToStringConverter) {
+						if (MediaType.TEXT_PLAIN.includes(contentType)) {
+							String charsetName = contentType.getParameter("charset");
+							if (StringUtils.hasText(charsetName)) {
+								converter = new ByteArrayToStringConverter(charsetName);
+							}
+						}
 					}
 					conversionService.addConverter(entry.getKey(), dataType, entry.getValue());
 				}

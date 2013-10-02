@@ -31,6 +31,7 @@ import org.springframework.data.redis.core.SetOperations;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.xd.analytics.metrics.core.AggregateCount;
+import org.springframework.xd.analytics.metrics.core.AggregateCountResolution;
 import org.springframework.xd.analytics.metrics.core.AggregateCounterRepository;
 import org.springframework.xd.analytics.metrics.core.MetricUtils;
 
@@ -116,15 +117,14 @@ public class RedisAggregateCounterRepository extends RedisCounterRepository impl
 	 * point into the combined result counts array.
 	 */
 	@Override
-	public AggregateCount getCounts(String name, Interval interval, DateTimeField resolution) {
+	public AggregateCount getCounts(String name, Interval interval, AggregateCountResolution resolution) {
 
 		DateTime end = interval.getEnd();
 		Chronology c = interval.getChronology();
-		DurationField resolutionDuration = resolution.getDurationField();
 
 		long[] counts;
 
-		if (resolutionDuration.getUnitMillis() == DateTimeConstants.MILLIS_PER_MINUTE) {
+		if (resolution == AggregateCountResolution.minute) {
 			// Iterate through each hour in the interval and load the minutes for it
 			MutableDateTime dt = new MutableDateTime(interval.getStart());
 			dt.setRounding(c.hourOfDay());
@@ -138,7 +138,7 @@ public class RedisAggregateCounterRepository extends RedisCounterRepository impl
 					interval.toPeriod().toStandardMinutes().getMinutes() + 1);
 
 		}
-		else if (resolutionDuration.getUnitMillis() == DateTimeConstants.MILLIS_PER_HOUR) {
+		else if (resolution == AggregateCountResolution.hour) {
 			DateTime cursor = new DateTime(c.dayOfMonth().roundFloor(interval.getStart().getMillis()));
 			List<long[]> days = new ArrayList<long[]>();
 			Duration step = Duration.standardHours(24);
@@ -151,11 +151,10 @@ public class RedisAggregateCounterRepository extends RedisCounterRepository impl
 					interval.toPeriod().toStandardHours().getHours() + 1);
 
 		}
-		else if (resolutionDuration.getUnitMillis() == DateTimeConstants.MILLIS_PER_DAY) {
+		else if (resolution == AggregateCountResolution.day) {
 			DateTime startDay = new DateTime(c.dayOfYear().roundFloor(interval.getStart().getMillis()));
-			DateTime endDay = new DateTime(interval.getChronology().dayOfYear().roundFloor(end.plusDays(1).getMillis()));
-			Interval rounded = new Interval(startDay, endDay);
-			int nDays = rounded.toDuration().toStandardDays().getDays();
+			DateTime endDay = new DateTime(c.dayOfYear().roundFloor(end.plusDays(1).getMillis()));
+			int nDays = Days.daysBetween(startDay, endDay).getDays();
 			DateTime cursor = new DateTime(c.monthOfYear().roundFloor(interval.getStart().getMillis()));
 			List<long[]> months = new ArrayList<long[]>();
 			DateTime endMonth = new DateTime(c.monthOfYear().roundCeiling(interval.getEnd().plusMonths(1).getMillis()));
@@ -166,10 +165,29 @@ public class RedisAggregateCounterRepository extends RedisCounterRepository impl
 
 			counts = MetricUtils.concatArrays(months, interval.getStart().getDayOfMonth() - 1, nDays);
 		}
+		else if (resolution == AggregateCountResolution.month) {
+			DateTime startMonth = new DateTime(c.monthOfYear().roundFloor(interval.getStartMillis()));
+			DateTime endMonth = new DateTime(c.monthOfYear().roundFloor(end.plusMonths(1).getMillis()));
+			int nMonths = Months.monthsBetween(startMonth, endMonth).getMonths();
+			DateTime cursor = new DateTime(c.year().roundFloor(interval.getStartMillis()));
+			List<long[]> years = new ArrayList<long[]>();
+			DateTime endYear = new DateTime(c.year().roundCeiling(interval.getEnd().plusYears(1).getMillis()));
+			while (cursor.isBefore(endYear)) {
+				years.add(getMonthCountsForYear(name, cursor));
+				cursor = cursor.plusYears(1);
+			}
+
+			counts = MetricUtils.concatArrays(years, interval.getStart().getMonthOfYear() - 1, nMonths);
+		}
 		else {
 			throw new IllegalArgumentException("Only minute, hour or day resolution is currently supported");
 		}
 		return new AggregateCount(name, interval, counts, resolution);
+	}
+
+	private long[] getMonthCountsForYear(String name, DateTime year) {
+		AggregateKeyGenerator akg = new AggregateKeyGenerator(getPrefix(), name, year);
+		return convertToArray(getEntries(akg.getYearKey()), year.monthOfYear().getMaximumValue(), true); // Months in this year
 	}
 
 	private long[] getDayCountsForMonth(String name, DateTime month) {

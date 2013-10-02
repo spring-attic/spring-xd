@@ -19,14 +19,13 @@ package org.springframework.xd.analytics.metrics;
 import static org.junit.Assert.assertEquals;
 
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeField;
 import org.joda.time.Duration;
 import org.joda.time.Interval;
-import org.joda.time.chrono.ISOChronology;
 import org.junit.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.xd.analytics.metrics.core.AggregateCount;
+import org.springframework.xd.analytics.metrics.core.AggregateCountResolution;
 import org.springframework.xd.analytics.metrics.core.AggregateCounterRepository;
 
 /**
@@ -41,12 +40,6 @@ public abstract class AbstractAggregateCounterTests {
 	@Autowired
 	protected AggregateCounterRepository aggregateCounterRepository;
 
-	private final DateTimeField MINUTE_RESOLUTION = ISOChronology.getInstanceUTC().minuteOfHour();
-
-	private final DateTimeField HOUR_RESOLUTION = ISOChronology.getInstanceUTC().hourOfDay();
-
-	private final DateTimeField DAY_RESOLUTION = ISOChronology.getInstanceUTC().dayOfMonth();
-
 	@Test
 	public void test66MinuteCount() throws Exception {
 		final DateTime start = new DateTime(2013, 6, 28, 23, 0, 0, 0);
@@ -59,7 +52,7 @@ public abstract class AbstractAggregateCounterTests {
 		}
 		// Include 66th minute's value
 		aggregateCounterRepository.increment(counterName, val++, now);
-		long[] counts = aggregateCounterRepository.getCounts(counterName, new Interval(start, end), MINUTE_RESOLUTION).getCounts();
+		long[] counts = aggregateCounterRepository.getCounts(counterName, new Interval(start, end), AggregateCountResolution.minute).getCounts();
 		// the counts.length should be 66 + 1 to include the 66th minute's count
 		assertEquals(67, counts.length);
 		assertEquals(1, counts[0]);
@@ -69,26 +62,50 @@ public abstract class AbstractAggregateCounterTests {
 
 	@Test
 	public void testDayCounts() throws Exception {
-		final DateTime start = new DateTime(2013, 6, 28, 23, 0, 0, 0);
-		final DateTime end = start.plusDays(10);
+		final DateTime start = new DateTime(2013, 11, 28, 23, 0);
+		final DateTime end   = start.plusDays(66);
 
 		DateTime now = start;
 		int val = 1;
-		while (now.isBefore(end.plusHours(1))) {
+		while (!now.isAfter(end.plusDays(1))) {
 			aggregateCounterRepository.increment(counterName, val++, now);
 			now = now.plus(Duration.standardDays(1));
 		}
-		long[] counts = aggregateCounterRepository.getCounts(counterName, new Interval(start, end), DAY_RESOLUTION).getCounts();
-		assertEquals(11, counts.length);
+		long[] counts = aggregateCounterRepository.getCounts(counterName, new Interval(start, end), AggregateCountResolution.day).getCounts();
+		assertEquals(67, counts.length);
+
+		for (int i=0; i < counts.length; i++) {
+			assertEquals("count at index " + i + " should be " + (i+1), i+1, counts[i]);
+		}
+
+		counts = aggregateCounterRepository.getCounts(counterName, new Interval(end.minusDays(30), end), AggregateCountResolution.day).getCounts();
+		assertEquals(31, counts.length);
+	}
+
+	@Test
+	public void testMonthCounts() throws Exception {
+		final DateTime start = new DateTime(2013, 11, 20, 0, 0);
+		final DateTime end   = start.plusMonths(5);
+		int val = 1;
+
+		for (DateTime now = start; !now.isAfter(end); now = now.plusMonths(1)) {
+			aggregateCounterRepository.increment(counterName, val++, now);
+		}
+		long[] counts = aggregateCounterRepository.getCounts(counterName, new Interval(start,end), AggregateCountResolution.month).getCounts();
+		assertEquals(6, counts.length);
 
 		for (int i = 0; i < counts.length; i++) {
 			assertEquals("count at index " + i + " should be " + (i + 1), i + 1, counts[i]);
 		}
+
+		// Check a query for twelve months past
+		counts = aggregateCounterRepository.getCounts(counterName, new Interval(end.minusMonths(11), end), AggregateCountResolution.month).getCounts();
+		assertEquals(12, counts.length);
 	}
 
 	@Test
 	public void testTwoDaysDataSimulation() throws Exception {
-		final DateTime start = new DateTime(2013, 6, 28, 23, 27, 0, 0);
+		final DateTime start = new DateTime(2013, 12, 30, 23, 27);
 		final DateTime end = start.plusDays(2);
 		DateTime now = start;
 
@@ -111,7 +128,7 @@ public abstract class AbstractAggregateCounterTests {
 		// Query the entire period
 		Interval queryInterval = new Interval(start, end);
 		AggregateCount aggregateCount = aggregateCounterRepository.getCounts(counterName, queryInterval,
-				MINUTE_RESOLUTION);
+				AggregateCountResolution.minute);
 		assertEquals(counterName, aggregateCount.getName());
 		assertEquals(queryInterval, aggregateCount.getInterval());
 		long[] counts = aggregateCount.getCounts();
@@ -129,7 +146,7 @@ public abstract class AbstractAggregateCounterTests {
 		now = start.plusHours(5).withMinuteOfHour(0);
 		queryInterval = new Interval(now, now.plusHours(24));
 
-		aggregateCount = aggregateCounterRepository.getCounts(counterName, queryInterval, MINUTE_RESOLUTION);
+		aggregateCount = aggregateCounterRepository.getCounts(counterName, queryInterval, AggregateCountResolution.minute);
 		counts = aggregateCount.getCounts();
 		// Add 'now.plusHours(24)' minute time to the count
 		assertEquals((24 * 60) + 1, counts.length);
@@ -141,9 +158,8 @@ public abstract class AbstractAggregateCounterTests {
 
 		// Query the entire period in hours
 		queryInterval = new Interval(start, end);
-		aggregateCount = aggregateCounterRepository.getCounts(counterName, queryInterval, HOUR_RESOLUTION);
+		aggregateCount = aggregateCounterRepository.getCounts(counterName, queryInterval, AggregateCountResolution.hour);
 		counts = aggregateCount.getCounts();
-		// counts.length should include end time's hour; hence 48+1
 		assertEquals(49, counts.length);
 		// The first hour starts before the first counts are added
 		assertEquals(1419, counts[0]); // sum [27..59]
@@ -154,8 +170,16 @@ public abstract class AbstractAggregateCounterTests {
 		assertEquals(378, counts[counts.length - 1]); // sum [0..27]
 
 		// Query the entire period in days
-		aggregateCount = aggregateCounterRepository.getCounts(counterName, queryInterval, DAY_RESOLUTION);
+		aggregateCount = aggregateCounterRepository.getCounts(counterName, queryInterval, AggregateCountResolution.day);
 		counts = aggregateCount.getCounts();
 		assertEquals(3, counts.length);
+
+		// Query beyond the period where we have data
+		DateTime newStart = start.withYear(2012);
+		aggregateCount = aggregateCounterRepository.getCounts(counterName, queryInterval.withStart(newStart), AggregateCountResolution.day);
+		counts = aggregateCount.getCounts();
+		assertEquals(368, counts.length);
+
+		aggregateCount = aggregateCounterRepository.getCounts(counterName, queryInterval.withStart(newStart), AggregateCountResolution.month);
 	}
 }

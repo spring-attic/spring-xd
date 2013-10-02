@@ -49,7 +49,7 @@ public interface AggregateCounterOperations {
 	void delete(String name);
 
 	public static enum Resolution {
-		minute, hour;
+		minute, hour, day, month;
 
 	};
 

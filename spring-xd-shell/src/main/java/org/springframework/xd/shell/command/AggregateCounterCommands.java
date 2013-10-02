@@ -75,7 +75,7 @@ public class AggregateCounterCommands extends AbstractMetricsCommands implements
 			@CliOption(key = "to", help = "end-time for the interval. format: 'yyyy-MM-dd HH:mm:ss'. defaults to now", mandatory = false) String to,
 			@CliOption(key = "lastHours", help = "set the interval to last 'n' hours", mandatory = false) Integer lastHours,
 			@CliOption(key = "lastDays", help = "set the interval to last 'n' days", mandatory = false) Integer lastDays,
-			@CliOption(key = "resolution", help = "the size of the bucket to aggregate (minute, hour)", mandatory = false, unspecifiedDefaultValue = "hour") Resolution resolution,
+			@CliOption(key = "resolution", help = "the size of the bucket to aggregate (minute, hour, day, month)", mandatory = false, unspecifiedDefaultValue = "hour") Resolution resolution,
 			@CliOption(key = "pattern", help = "the pattern used to format the count values (see DecimalFormat)", mandatory = false, unspecifiedDefaultValue = NumberFormatConverter.DEFAULT) NumberFormat pattern) {
 
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");

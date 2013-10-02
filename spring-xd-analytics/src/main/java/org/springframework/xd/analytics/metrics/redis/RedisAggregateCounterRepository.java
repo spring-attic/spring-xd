@@ -31,6 +31,7 @@ import org.springframework.data.redis.core.SetOperations;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.xd.analytics.metrics.core.AggregateCount;
+import org.springframework.xd.analytics.metrics.core.AggregateCountResolution;
 import org.springframework.xd.analytics.metrics.core.AggregateCounterRepository;
 import org.springframework.xd.analytics.metrics.core.MetricUtils;
 
@@ -116,15 +117,14 @@ public class RedisAggregateCounterRepository extends RedisCounterRepository impl
 	 * point into the combined result counts array.
 	 */
 	@Override
-	public AggregateCount getCounts(String name, Interval interval, DateTimeField resolution) {
+	public AggregateCount getCounts(String name, Interval interval, AggregateCountResolution resolution) {
 
 		DateTime end = interval.getEnd();
 		Chronology c = interval.getChronology();
-		DurationField resolutionDuration = resolution.getDurationField();
 
 		long[] counts;
 
-		if (resolutionDuration.getUnitMillis() == DateTimeConstants.MILLIS_PER_MINUTE) {
+		if (resolution == AggregateCountResolution.minute) {
 			// Iterate through each hour in the interval and load the minutes for it
 			MutableDateTime dt = new MutableDateTime(interval.getStart());
 			dt.setRounding(c.hourOfDay());
@@ -138,7 +138,7 @@ public class RedisAggregateCounterRepository extends RedisCounterRepository impl
 					interval.toPeriod().toStandardMinutes().getMinutes() + 1);
 
 		}
-		else if (resolutionDuration.getUnitMillis() == DateTimeConstants.MILLIS_PER_HOUR) {
+		else if (resolution == AggregateCountResolution.hour) {
 			DateTime cursor = new DateTime(c.dayOfMonth().roundFloor(interval.getStart().getMillis()));
 			List<long[]> days = new ArrayList<long[]>();
 			Duration step = Duration.standardHours(24);
@@ -151,7 +151,7 @@ public class RedisAggregateCounterRepository extends RedisCounterRepository impl
 					interval.toPeriod().toStandardHours().getHours() + 1);
 
 		}
-		else if (resolutionDuration.getUnitMillis() == DateTimeConstants.MILLIS_PER_DAY) {
+		else if (resolution == AggregateCountResolution.day) {
 			DateTime startDay = new DateTime(c.dayOfYear().roundFloor(interval.getStart().getMillis()));
 			DateTime endDay = new DateTime(interval.getChronology().dayOfYear().roundFloor(end.plusDays(1).getMillis()));
 			Interval rounded = new Interval(startDay, endDay);

@@ -21,11 +21,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeField;
 import org.joda.time.Interval;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.xd.analytics.metrics.core.AggregateCount;
+import org.springframework.xd.analytics.metrics.core.AggregateCountResolution;
 import org.springframework.xd.analytics.metrics.core.AggregateCounterRepository;
 import org.springframework.xd.analytics.metrics.core.Counter;
 import org.springframework.xd.store.AbstractInMemoryRepository;
@@ -61,7 +61,7 @@ public class InMemoryAggregateCounterRepository extends AbstractInMemoryReposito
 	}
 
 	@Override
-	public AggregateCount getCounts(String name, Interval interval, DateTimeField resolution) {
+	public AggregateCount getCounts(String name, Interval interval, AggregateCountResolution resolution) {
 		return getOrCreate(name).getCounts(interval, resolution);
 	}
 

@@ -30,28 +30,9 @@ public class AggregateCount {
 
 	private final long[] counts;
 
-	private final DateTimeField resolution;
+	public final AggregateCountResolution resolution;
 
-	public String getName() {
-		return name;
-	}
-
-
-	public Interval getInterval() {
-		return interval;
-	}
-
-
-	public long[] getCounts() {
-		return counts;
-	}
-
-
-	public DateTimeField getResolution() {
-		return resolution;
-	}
-
-	public AggregateCount(String name, Interval interval, long[] counts, DateTimeField resolution) {
+	public AggregateCount(String name, Interval interval, long[] counts, AggregateCountResolution resolution) {
 		this.name = name;
 		this.interval = interval;
 		this.counts = counts.clone();
@@ -67,5 +48,20 @@ public class AggregateCount {
 			total += counts[i];
 		}
 		return total;
+	}	public String getName() {
+		return name;
+	}
+
+	public Interval getInterval() {
+		return interval;
+	}
+
+	public long[] getCounts() {
+		return counts;
+	}
+
+	public AggregateCountResolution getResolution() {
+		return resolution;
 	}
 }
+

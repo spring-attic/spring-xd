@@ -22,13 +22,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeConstants;
-import org.joda.time.DateTimeField;
 import org.joda.time.Duration;
-import org.joda.time.DurationField;
 import org.joda.time.Interval;
 
 import org.springframework.xd.analytics.metrics.core.AggregateCount;
+import org.springframework.xd.analytics.metrics.core.AggregateCountResolution;
 import org.springframework.xd.analytics.metrics.core.Counter;
 import org.springframework.xd.analytics.metrics.core.MetricUtils;
 
@@ -61,25 +59,24 @@ class InMemoryAggregateCounter extends Counter {
 		super(name);
 	}
 
-	public AggregateCount getCounts(Interval interval, DateTimeField resolution) {
-		DurationField resolutionDuration = resolution.getDurationField();
+	public AggregateCount getCounts(Interval interval, AggregateCountResolution resolution) {
 		DateTime start = interval.getStart();
 		DateTime end = interval.getEnd();
 
 		long[] counts;
-		if (resolutionDuration.getUnitMillis() == DateTimeConstants.MILLIS_PER_MINUTE) {
+		if (resolution == AggregateCountResolution.minute) {
 			List<long[]> days = accumulateDayCounts(minuteCountsByDay, start, end, 60 * 24);
 
 			counts = MetricUtils.concatArrays(days, interval.getStart().getMinuteOfDay(),
 					interval.toPeriod().toStandardMinutes().getMinutes() + 1);
 		}
-		else if (resolutionDuration.getUnitMillis() == DateTimeConstants.MILLIS_PER_HOUR) {
+		else if (resolution == AggregateCountResolution.hour) {
 			List<long[]> days = accumulateDayCounts(hourCountsByDay, start, end, 24);
 
 			counts = MetricUtils.concatArrays(days, interval.getStart().getHourOfDay(),
 					interval.toPeriod().toStandardHours().getHours() + 1);
 		}
-		else if (resolutionDuration.getUnitMillis() == DateTimeConstants.MILLIS_PER_DAY) {
+		else if (resolution == AggregateCountResolution.day) {
 			DateTime startDay = new DateTime(interval.getChronology().dayOfYear().roundFloor(start.getMillis()));
 			DateTime endDay = new DateTime(interval.getChronology().dayOfYear().roundFloor(end.plusDays(1).getMillis()));
 			Interval rounded = new Interval(startDay, endDay);

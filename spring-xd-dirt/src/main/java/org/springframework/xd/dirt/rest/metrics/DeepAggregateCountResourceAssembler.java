@@ -44,7 +44,7 @@ public class DeepAggregateCountResourceAssembler extends
 	@Override
 	protected AggregateCountsResource instantiateResource(AggregateCount entity) {
 		AggregateCountsResource result = new AggregateCountsResource(entity.getName());
-		ReadablePeriod increment = entity.resolution.unitPeriod;
+		ReadablePeriod increment = entity.getResolution().unitPeriod;
 		DateTime end = entity.getInterval().getEnd();
 		int i = 0;
 		for (DateTime when = entity.getInterval().getStart(); !when.isAfter(end); when = when.plus(increment)) {

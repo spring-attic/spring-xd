@@ -52,7 +52,7 @@ public abstract class AbstractAggregateCounterTests {
 		}
 		// Include 66th minute's value
 		aggregateCounterRepository.increment(counterName, val++, now);
-		long[] counts = aggregateCounterRepository.getCounts(counterName, new Interval(start, end), AggregateCountResolution.minute).counts;
+		long[] counts = aggregateCounterRepository.getCounts(counterName, new Interval(start, end), AggregateCountResolution.minute).getCounts();
 		// the counts.length should be 66 + 1 to include the 66th minute's count
 		assertEquals(67, counts.length);
 		assertEquals(1, counts[0]);
@@ -62,17 +62,34 @@ public abstract class AbstractAggregateCounterTests {
 
 	@Test
 	public void testDayCounts() throws Exception {
-		final DateTime start = new DateTime(2013, 6, 28, 23, 0, 0, 0);
-		final DateTime end = start.plusDays(10);
+		final DateTime start = new DateTime(2013, 11, 28, 23, 0);
+		final DateTime end   = start.plusDays(66);
 
 		DateTime now = start;
 		int val = 1;
-		while (now.isBefore(end.plusHours(1))) {
+		while (!now.isAfter(end.plusDays(1))) {
 			aggregateCounterRepository.increment(counterName, val++, now);
 			now = now.plus(Duration.standardDays(1));
 		}
-		long[] counts = aggregateCounterRepository.getCounts(counterName, new Interval(start, end), AggregateCountResolution.day).counts;
-		assertEquals(11, counts.length);
+		long[] counts = aggregateCounterRepository.getCounts(counterName, new Interval(start, end), AggregateCountResolution.day).getCounts();
+		assertEquals(67, counts.length);
+
+		for (int i=0; i < counts.length; i++) {
+			assertEquals("count at index " + i + " should be " + (i+1), i+1, counts[i]);
+		}
+	}
+
+	@Test
+	public void testMonthCounts() throws Exception {
+		final DateTime start = new DateTime(2013, 11, 20, 0, 0);
+		final DateTime end   = start.plusMonths(5);
+		int val = 1;
+
+		for (DateTime now = start; !now.isAfter(end); now = now.plusMonths(1)) {
+			aggregateCounterRepository.increment(counterName, val++, now);
+		}
+		long[] counts = aggregateCounterRepository.getCounts(counterName, new Interval(start,end), AggregateCountResolution.month).getCounts();
+		assertEquals(6, counts.length);
 
 		for (int i = 0; i < counts.length; i++) {
 			assertEquals("count at index " + i + " should be " + (i + 1), i + 1, counts[i]);
@@ -81,7 +98,7 @@ public abstract class AbstractAggregateCounterTests {
 
 	@Test
 	public void testTwoDaysDataSimulation() throws Exception {
-		final DateTime start = new DateTime(2013, 6, 28, 23, 27, 0, 0);
+		final DateTime start = new DateTime(2013, 12, 30, 23, 27);
 		final DateTime end = start.plusDays(2);
 		DateTime now = start;
 

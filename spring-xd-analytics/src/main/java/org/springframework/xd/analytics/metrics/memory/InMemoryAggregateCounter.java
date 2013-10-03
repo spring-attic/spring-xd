@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.joda.time.Chronology;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Interval;
@@ -62,6 +63,7 @@ class InMemoryAggregateCounter extends Counter {
 	public AggregateCount getCounts(Interval interval, AggregateCountResolution resolution) {
 		DateTime start = interval.getStart();
 		DateTime end = interval.getEnd();
+		Chronology c = interval.getChronology();
 
 		long[] counts;
 		if (resolution == AggregateCountResolution.minute) {
@@ -77,21 +79,40 @@ class InMemoryAggregateCounter extends Counter {
 					interval.toPeriod().toStandardHours().getHours() + 1);
 		}
 		else if (resolution == AggregateCountResolution.day) {
-			DateTime startDay = new DateTime(interval.getChronology().dayOfYear().roundFloor(start.getMillis()));
-			DateTime endDay = new DateTime(interval.getChronology().dayOfYear().roundFloor(end.plusDays(1).getMillis()));
+			DateTime startDay = new DateTime(c.dayOfYear().roundFloor(start.getMillis()));
+			DateTime endDay = new DateTime(c.dayOfYear().roundFloor(end.plusDays(1).getMillis()));
 			Interval rounded = new Interval(startDay, endDay);
 			int nDays = rounded.toDuration().toStandardDays().getDays();
+			DateTime cursor = new DateTime(c.year().roundFloor(interval.getStartMillis()));
 			List<long[]> yearDays = new ArrayList<long[]>();
+			DateTime endYear = new DateTime(c.year().roundCeiling(end.getMillis()));
 
-			for (DateTime now = startDay; now.isBefore(endDay); now = now.plusYears(1)) {
-				yearDays.add(dayCountsByYear.get(now.getYear()));
+			while (cursor.isBefore(endYear)) {
+				yearDays.add(dayCountsByYear.get(cursor.getYear()));
+				cursor = cursor.plusYears(1);
 			}
 
-			counts = MetricUtils.concatArrays(yearDays, startDay.getDayOfYear(), nDays);
+			counts = MetricUtils.concatArrays(yearDays, startDay.getDayOfYear() - 1, nDays);
 
 		}
+		else if (resolution == AggregateCountResolution.month) {
+			DateTime startMonth = new DateTime(c.monthOfYear().roundFloor(interval.getStartMillis()));
+			DateTime endMonth = new DateTime(c.monthOfYear().roundFloor(end.plusMonths(1).getMillis()));
+			Interval rounded = new Interval(startMonth, endMonth);
+			int nMonths = rounded.toPeriod().getMonths();
+			DateTime cursor = new DateTime(c.year().roundFloor(interval.getStartMillis()));
+			List<long[]> yearMonths = new ArrayList<long[]>();
+			DateTime endYear = new DateTime(c.year().roundCeiling(end.getMillis()));
+
+			while (cursor.isBefore(endYear)) {
+				yearMonths.add(monthCountsByYear.get(cursor.getYear()));
+				cursor = cursor.plusYears(1);
+			}
+
+			counts = MetricUtils.concatArrays(yearMonths, startMonth.getMonthOfYear() - 1 , nMonths);
+		}
 		else {
-			throw new IllegalArgumentException("Only minute, hour or day resolution is currently supported");
+			throw new IllegalStateException("Shouldn't happen. Function should be total.");
 		}
 		return new AggregateCount(getName(), interval, counts, resolution);
 	}
@@ -150,8 +171,8 @@ class InMemoryAggregateCounter extends Counter {
 		}
 
 		minuteCounts[minute] += amount;
-		monthCounts[month] += amount;
-		dayCounts[day] += amount;
+		monthCounts[month-1] += amount;
+		dayCounts[day-1] += amount;
 		hourCounts[hour] += amount;
 
 		return increment(amount);

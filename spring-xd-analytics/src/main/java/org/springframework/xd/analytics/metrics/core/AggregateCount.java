@@ -30,7 +30,7 @@ public class AggregateCount {
 
 	private final long[] counts;
 
-	public final AggregateCountResolution resolution;
+	private final AggregateCountResolution resolution;
 
 	public AggregateCount(String name, Interval interval, long[] counts, AggregateCountResolution resolution) {
 		this.name = name;

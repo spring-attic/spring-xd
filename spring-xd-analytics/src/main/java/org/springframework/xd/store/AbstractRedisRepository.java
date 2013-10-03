@@ -49,7 +49,7 @@ import org.springframework.util.Assert;
 public abstract class AbstractRedisRepository<T, ID extends Serializable & Comparable<ID>> implements
 		PagingAndSortingRepository<T, ID>, RangeCapableRepository<T, ID> {
 
-	private String repoPrefix;
+	protected String repoPrefix;
 
 	protected BoundZSetOperations<String, String> zSetOperations;
 

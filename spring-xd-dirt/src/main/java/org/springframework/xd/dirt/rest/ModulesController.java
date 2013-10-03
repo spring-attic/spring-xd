@@ -31,8 +31,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.xd.dirt.module.ModuleRepository;
 import org.springframework.xd.dirt.module.ModuleRegistry;
+import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
 
@@ -63,7 +63,7 @@ public class ModulesController {
 	public PagedResources<ModuleDefinitionResource> list(Pageable pageable,
 			PagedResourcesAssembler<ModuleDefinition> assembler,
 			@RequestParam(value = "type", required = false) String type) {
-		ModuleRepository handler = new ModuleRepository(moduleRegistry);
+		ModuleDefinitionRepository handler = new ModuleDefinitionRepository(moduleRegistry);
 		Page<ModuleDefinition> page = handler.findAll(pageable, type);
 		PagedResources<ModuleDefinitionResource> result = safePagedResources(assembler, page);
 		return result;

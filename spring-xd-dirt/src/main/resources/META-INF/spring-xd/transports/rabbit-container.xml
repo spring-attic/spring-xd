@@ -19,10 +19,6 @@
 
 	<rabbit:template id="rabbitTemplate" connection-factory="rabbitConnectionFactory"/>
 
-	<rabbit:fanout-exchange name="xd.events.modules"/>
-
-	<rabbit:fanout-exchange name="xd.events.containers"/>
-
 	<rabbit:queue name="xd.deployer"/>
 
 	<rabbit:queue id="undeployerQueue"/>
@@ -33,22 +29,6 @@
 		</rabbit:bindings>
 	</rabbit:fanout-exchange>
 
-	<int-rabbit:outbound-channel-adapter channel="moduleEventsOut" exchange-name="xd.events.modules" amqp-template="rabbitTemplate"/>
-
-	<int-rabbit:outbound-channel-adapter channel="containerEventsOut" exchange-name="xd.events.containers" amqp-template="rabbitTemplate"/>
-
 	<int-rabbit:inbound-channel-adapter channel="containerControlChannel" queue-names="xd.deployer,#{undeployerQueue.name}" connection-factory="rabbitConnectionFactory"/>
-
-	<bean class="org.springframework.xd.dirt.listener.RabbitContainerEventListener">
-		<constructor-arg ref="rabbitConnectionFactory" />
-	</bean>
-
-	<bean id="moduleEventListener" class="org.springframework.xd.dirt.listener.RabbitModuleEventListener">
-		<constructor-arg ref="rabbitConnectionFactory" />
-	</bean>
-
-	<int-event:inbound-channel-adapter id="moduleEventsOut" event-types="org.springframework.xd.dirt.event.AbstractModuleEvent"/>
-
-	<int-event:inbound-channel-adapter id="containerEventsOut" event-types="org.springframework.xd.dirt.container.AbstractContainerEvent"/>
 
 </beans>

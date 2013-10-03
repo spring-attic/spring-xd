@@ -6,5 +6,7 @@
 	<bean id="jobDefinitionRepository" class="org.springframework.xd.dirt.stream.memory.InMemoryJobDefinitionRepository"/>
 	<bean id="streamDefinitionRepository" class="org.springframework.xd.dirt.stream.memory.InMemoryStreamDefinitionRepository"/>
 	<bean id="streamRepository" class="org.springframework.xd.dirt.stream.memory.InMemoryStreamRepository" />
-
+	<bean id="containerRepository" class="org.springframework.xd.dirt.container.store.InMemoryContainerRepository" />
+	<bean id="modulesRepository" class="org.springframework.xd.dirt.module.store.InMemoryModulesRepository" />
+	<bean id="containerModulesRepository" class="org.springframework.xd.dirt.module.store.InMemoryContainerModulesRepository" />
 </beans>

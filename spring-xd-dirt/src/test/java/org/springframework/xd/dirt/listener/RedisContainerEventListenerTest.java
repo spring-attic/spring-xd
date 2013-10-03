@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.listener;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
@@ -40,12 +41,13 @@ import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.xd.dirt.container.ContainerStartedEvent;
 import org.springframework.xd.dirt.container.ContainerStoppedEvent;
 import org.springframework.xd.dirt.container.XDContainer;
+import org.springframework.xd.dirt.container.store.ContainerEntity;
+import org.springframework.xd.dirt.container.store.ContainerRepository;
 import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
@@ -53,7 +55,7 @@ import org.springframework.xd.test.redis.RedisTestSupport;
  * 
  * @author Jennifer Hickey
  * @author Gary Russell
- * 
+ * @author Ilayaperumal Gopinathan
  */
 @ContextConfiguration(classes = RedisContainerEventListenerTestConfig.class)
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -66,7 +68,7 @@ public class RedisContainerEventListenerTest {
 	private ApplicationContext context;
 
 	@Autowired
-	private StringRedisTemplate redisTemplate;
+	private ContainerRepository containerRepository;
 
 	@Mock
 	private XDContainer container;
@@ -80,23 +82,29 @@ public class RedisContainerEventListenerTest {
 
 	@After
 	public void tearDown() {
-		redisTemplate.boundHashOps("containers").delete(containerId);
+		containerRepository.delete(containerId);
 	}
 
 	@Test
 	public void testContainerStarted() {
 		when(container.getId()).thenReturn(containerId);
 		when(container.getJvmName()).thenReturn("123@test");
+		when(container.getHostName()).thenReturn("localhost");
+		when(container.getIpAddress()).thenReturn("127.0.0.1");
 		context.publishEvent(new ContainerStartedEvent(container));
-		assertNotNull(redisTemplate.boundHashOps("containers").get(containerId));
+		ContainerEntity entity = containerRepository.findOne(container.getId());
+		assertNotNull(entity);
+		assertEquals(entity.getId(), containerId);
+		assertEquals(entity.getJvmName(), "123@test");
+		assertEquals(entity.getHostName(), "localhost");
+		assertEquals(entity.getIpAddress(), "127.0.0.1");
 	}
 
 	@Test
 	public void testContainerStopped() {
 		when(container.getId()).thenReturn(containerId);
-		redisTemplate.boundHashOps("containers").put(containerId, "container1");
 		context.publishEvent(new ContainerStoppedEvent(container));
-		assertNull(redisTemplate.boundHashOps("containers").get(containerId));
+		assertNull(containerRepository.findOne(container.getId()));
 	}
 }
 

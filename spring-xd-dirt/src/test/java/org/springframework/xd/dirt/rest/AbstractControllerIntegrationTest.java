@@ -33,6 +33,7 @@ import org.springframework.xd.analytics.metrics.core.CounterRepository;
 import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository;
 import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
+import org.springframework.xd.dirt.container.store.ContainerRepository;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobDeployer;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
@@ -74,6 +75,10 @@ public class AbstractControllerIntegrationTest {
 	@Autowired
 	protected JobDefinitionRepository jobDefinitionRepository;
 
+	// Container Repository
+	@Autowired
+	protected ContainerRepository containerRepository;
+
 	// Analytics repositories
 	@Autowired
 	protected CounterRepository counterRepository;
@@ -95,6 +100,8 @@ public class AbstractControllerIntegrationTest {
 		maybeReset(streamDeployer);
 		maybeReset(jobDeployer);
 		maybeReset(jobService);
+
+		resetOrDelete(containerRepository);
 
 		resetOrDelete(streamDefinitionRepository);
 		resetOrDelete(jobDefinitionRepository);

@@ -2,8 +2,9 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
-	<!-- Beans shared by Admin and Modules. They are set as a (parent context
+	<!-- Beans shared by Admin, Container and Modules. They are set as a (parent context
 		for Modules by the ModuleDeployer -->
+	<import resource="../store/${XD_STORE}-store.xml" />
 	<import resource="../analytics/${XD_ANALYTICS}-analytics.xml" />
 	<import resource="../batch/batch.xml" />
 

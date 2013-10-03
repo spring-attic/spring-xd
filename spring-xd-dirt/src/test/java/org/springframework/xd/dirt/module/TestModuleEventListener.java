@@ -28,7 +28,7 @@ import org.springframework.xd.dirt.event.AbstractModuleEvent;
  * 
  * @author Jennifer Hickey
  */
-public class ModuleEventListener implements ApplicationListener<AbstractModuleEvent> {
+public class TestModuleEventListener implements ApplicationListener<AbstractModuleEvent> {
 
 	final BlockingDeque<AbstractModuleEvent> events = new LinkedBlockingDeque<AbstractModuleEvent>(99);
 

@@ -32,11 +32,27 @@ public class ContainerOptions extends AbstractOptions {
 	}
 
 
+	@Option(name = "--" + STORE, usage = "How to persist container/modules data (default: redis)")
+	private Store store = Store.redis;
+
 	@Option(name = "--" + JMX_PORT, usage = "The JMX port for the container", metaVar = "<jmxPort>")
-	protected Integer jmxPort = 8779;
+	private Integer jmxPort = 8779;
 
 	@Override
 	public Integer getJmxPort() {
 		return jmxPort;
+	}
+
+	protected void setJmxPort(Integer jmxPort) {
+		this.jmxPort = jmxPort;
+	}
+
+	@Override
+	public Store getStore() {
+		return store;
+	}
+
+	protected void setStore(Store store) {
+		this.store = store;
 	}
 }

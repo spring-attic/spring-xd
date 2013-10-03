@@ -26,8 +26,6 @@ import org.kohsuke.args4j.Option;
  */
 public class AdminOptions extends AbstractOptions {
 
-	private static final String STORE = "store";
-
 	private static final String HTTP_PORT = "httpPort";
 
 	public AdminOptions() {
@@ -54,6 +52,7 @@ public class AdminOptions extends AbstractOptions {
 		return httpPort;
 	}
 
+	@Override
 	public Store getStore() {
 		return store;
 	}
@@ -67,6 +66,5 @@ public class AdminOptions extends AbstractOptions {
 	protected void createOptionMetadataCache() {
 		super.createOptionMetadataCache();
 		getOptionMetadataCache().put(getHttpPort(), isArg(HTTP_PORT));
-		getOptionMetadataCache().put(getStore(), isArg(STORE));
 	}
 }

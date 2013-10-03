@@ -32,10 +32,11 @@ public class SingleNodeOptions extends AdminOptions {
 		containerOptions.setAnalytics(this.getAnalytics());
 		containerOptions.setHadoopDistro(this.getHadoopDistro());
 		containerOptions.setJmxEnabled(this.isJmxEnabled());
-		containerOptions.jmxPort = this.jmxPort;
+		containerOptions.setJmxPort(this.getJmxPort());
 		containerOptions.setShowHelp(this.isShowHelp());
 		containerOptions.setTransport(this.getTransport());
 		containerOptions.setXdHomeDir(this.getXdHomeDir());
+		containerOptions.setStore(this.getStore());
 		// Clear explicit options for the container in single node case. As configuration
 		// has already happened
 		for (Object key : getOptionMetadataCache().keySet()) {
@@ -44,6 +45,5 @@ public class SingleNodeOptions extends AdminOptions {
 		containerOptions.getOptionMetadataCache().putAll(this.getOptionMetadataCache());
 		return containerOptions;
 	}
-
 
 }

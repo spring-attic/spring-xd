@@ -12,6 +12,6 @@
 
 	<bean class="org.springframework.xd.dirt.plugins.stream.StreamPlugin" />
 
-	<bean class="org.springframework.xd.dirt.module.ModuleEventListener" />
+	<bean class="org.springframework.xd.dirt.module.TestModuleEventListener" />
 
 </beans>

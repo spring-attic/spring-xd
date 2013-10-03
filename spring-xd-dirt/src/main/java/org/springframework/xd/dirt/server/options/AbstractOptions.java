@@ -49,6 +49,8 @@ public abstract class AbstractOptions {
 
 	private static final String ANALYTICS = "analytics";
 
+	protected static final String STORE = "store";
+
 	protected static final String JMX_PORT = "jmxPort";
 
 	private final Map<Object, Boolean> optionMetadataCache = new HashMap<Object, Boolean>();
@@ -172,6 +174,7 @@ public abstract class AbstractOptions {
 		optionMetadataCache.put(isJmxEnabled(), isArg(JMX_ENABLED));
 		optionMetadataCache.put(getHadoopDistro(), isArg(HADOOP_DISTRO));
 		optionMetadataCache.put(getJmxPort(), isArg(JMX_PORT));
+		optionMetadataCache.put(getStore(), isArg(STORE));
 	}
 
 	protected boolean isArg(String optionName) {
@@ -179,6 +182,8 @@ public abstract class AbstractOptions {
 	}
 
 	public abstract Integer getJmxPort();
+
+	public abstract Store getStore();
 
 	public boolean isExplicit(Object option) {
 		Boolean explicit = optionMetadataCache.get(option);

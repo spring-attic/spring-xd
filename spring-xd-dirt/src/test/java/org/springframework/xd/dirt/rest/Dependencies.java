@@ -38,7 +38,13 @@ import org.springframework.xd.analytics.metrics.core.CounterRepository;
 import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository;
 import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
+import org.springframework.xd.dirt.container.store.ContainerRepository;
+import org.springframework.xd.dirt.container.store.InMemoryContainerRepository;
 import org.springframework.xd.dirt.module.ModuleRegistry;
+import org.springframework.xd.dirt.module.store.ContainerModulesRepository;
+import org.springframework.xd.dirt.module.store.InMemoryContainerModulesRepository;
+import org.springframework.xd.dirt.module.store.InMemoryModulesRepository;
+import org.springframework.xd.dirt.module.store.ModulesRepository;
 import org.springframework.xd.dirt.plugins.job.BatchJobLocator;
 import org.springframework.xd.dirt.plugins.job.DistributedJobService;
 import org.springframework.xd.dirt.stream.DeploymentMessageSender;
@@ -58,7 +64,7 @@ import org.springframework.xd.dirt.stream.memory.InMemoryStreamRepository;
  * can selectively override those mocks (with <i>e.g.</i> in memory implementations).
  * 
  * @author Eric Bottard
- * 
+ * @author Ilayaperumal Gopinathan
  */
 @Configuration
 public class Dependencies {
@@ -128,6 +134,21 @@ public class Dependencies {
 	@Bean
 	public StreamRepository streamRepository() {
 		return new InMemoryStreamRepository();
+	}
+
+	@Bean
+	public ContainerRepository containerRepository() {
+		return new InMemoryContainerRepository();
+	}
+
+	@Bean
+	public ModulesRepository modulesRepository() {
+		return new InMemoryModulesRepository();
+	}
+
+	@Bean
+	public ContainerModulesRepository containerModulesRepository() {
+		return new InMemoryContainerModulesRepository();
 	}
 
 	@Bean

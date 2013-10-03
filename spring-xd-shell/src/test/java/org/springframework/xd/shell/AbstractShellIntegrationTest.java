@@ -136,10 +136,7 @@ public abstract class AbstractShellIntegrationTest {
 		shell.stop();
 		if (server != null) {
 			logger.info("Stopping Single Node Server");
-			// Stopping container will also destroy the adminServer's parent context
-			// as the adminServer's parent context is set as the parent context for the container
-			// in case of SingleNodeMain server
-			server.getContainer().stop();
+			server.stop();
 		}
 	}
 

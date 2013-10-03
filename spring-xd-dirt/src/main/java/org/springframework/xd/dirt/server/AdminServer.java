@@ -71,6 +71,8 @@ public class AdminServer implements SmartLifecycle, InitializingBean {
 
 	private final XmlWebApplicationContext webApplicationContext;
 
+	private Context tomcatContext;
+
 	public AdminServer(AdminOptions adminOptions) {
 		XmlWebApplicationContext parent = new XmlWebApplicationContext();
 		parent.getEnvironment().setActiveProfiles(ADMIN_PROFILE);
@@ -156,7 +158,7 @@ public class AdminServer implements SmartLifecycle, InitializingBean {
 		this.scheduler.setPoolSize(3);
 		this.scheduler.initialize();
 		this.tomcat.setPort(this.port);
-		Context tomcatContext = this.tomcat.addContext(this.contextPath, new File(".").getAbsolutePath());
+		tomcatContext = this.tomcat.addContext(this.contextPath, new File(".").getAbsolutePath());
 		this.webApplicationContext.setServletContext(tomcatContext.getServletContext());
 		this.webApplicationContext.refresh();
 
@@ -219,14 +221,14 @@ public class AdminServer implements SmartLifecycle, InitializingBean {
 			if (this.handlerTask != null) {
 				this.handlerTask.cancel(true);
 			}
+			this.webApplicationContext.destroy();
+			((ConfigurableApplicationContext) this.webApplicationContext.getParent()).close();
 			this.shutdownCleanly();
 			this.running = false;
 		}
 		catch (LifecycleException e) {
 			logger.warn("Did not stop tomcat cleanly - " + e.getMessage());
 		}
-		this.webApplicationContext.destroy();
-		((ConfigurableApplicationContext) this.webApplicationContext.getParent()).close();
 	}
 
 
@@ -241,6 +243,8 @@ public class AdminServer implements SmartLifecycle, InitializingBean {
 		if (tomcat.getServer() != null
 				&& tomcat.getServer().getState() != LifecycleState.DESTROYED) {
 			if (tomcat.getServer().getState() != LifecycleState.STOPPED) {
+				// Remove tomcatContext before tomcat.stop()
+				tomcat.getHost().removeChild(tomcatContext);
 				tomcat.stop();
 			}
 			tomcat.destroy();

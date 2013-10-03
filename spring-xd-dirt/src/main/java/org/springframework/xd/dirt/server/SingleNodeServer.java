@@ -27,6 +27,7 @@ import org.springframework.xd.dirt.container.XDContainer;
  * An XD server configured for a single node
  * 
  * @author David Turanski
+ * @author Ilayaperumal Gopinathan
  */
 public class SingleNodeServer {
 
@@ -52,7 +53,8 @@ public class SingleNodeServer {
 	private void setUpControlChannels(AdminServer adminServer, XDContainer container) {
 		ApplicationContext containerContext = container.getApplicationContext();
 
-		MessageChannel containerControlChannel = containerContext.getBean("containerControlChannel", MessageChannel.class);
+		MessageChannel containerControlChannel = containerContext.getBean("containerControlChannel",
+				MessageChannel.class);
 
 		ApplicationContext adminContext = adminServer.getApplicationContext();
 
@@ -64,5 +66,10 @@ public class SingleNodeServer {
 		handler.setComponentName("xd.local.control.bridge");
 		deployChannel.subscribe(handler);
 		undeployChannel.subscribe(handler);
+	}
+
+	public void stop() {
+		this.getContainer().stop();
+		this.getAdminServer().stop();
 	}
 }

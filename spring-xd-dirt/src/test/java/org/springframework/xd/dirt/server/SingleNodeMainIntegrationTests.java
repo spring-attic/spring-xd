@@ -107,7 +107,7 @@ public class SingleNodeMainIntegrationTests extends AbstractAdminMainIntegration
 
 		assertTrue("no metrics repositories have been registered in the container context",
 				containerContext.getParent().getBeansOfType(MetricRepository.class).size() > 0);
-		stopServer(server);
+		server.stop();
 	}
 
 	@Test
@@ -126,7 +126,7 @@ public class SingleNodeMainIntegrationTests extends AbstractAdminMainIntegration
 		assertEquals("local", env.getProperty(XDPropertyKeys.XD_TRANSPORT));
 		assertEquals("memory", env.getProperty(XDPropertyKeys.XD_ANALYTICS));
 		assertEquals("redis", env.getProperty(XDPropertyKeys.XD_STORE));
-		stopServer(server);
+		server.stop();
 	}
 
 	@Test
@@ -143,7 +143,7 @@ public class SingleNodeMainIntegrationTests extends AbstractAdminMainIntegration
 		assertEquals("0", env.getProperty(XDPropertyKeys.XD_HTTP_PORT));
 		assertEquals("redis", env.getProperty(XDPropertyKeys.XD_ANALYTICS));
 		assertEquals("redis", env.getProperty(XDPropertyKeys.XD_STORE));
-		stopServer(server);
+		server.stop();
 	}
 
 	@After
@@ -151,11 +151,6 @@ public class SingleNodeMainIntegrationTests extends AbstractAdminMainIntegration
 		System.clearProperty(XDPropertyKeys.XD_ANALYTICS);
 		System.clearProperty(XDPropertyKeys.XD_HTTP_PORT);
 		System.clearProperty(XDPropertyKeys.XD_STORE);
-	}
-
-	private void stopServer(SingleNodeServer server) {
-		server.getContainer().stop();
-		server.getAdminServer().stop();
 	}
 
 	private void setBatchDBProperties() {

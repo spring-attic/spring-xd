@@ -81,8 +81,7 @@ public class JobRepoTests extends AbstractAdminMainIntegrationTests {
 		if (file.exists() && file.isDirectory()) {
 			file.delete();
 		}
-		singleNodeServer.getAdminServer().stop();
-		singleNodeServer.getContainer().stop();
+		singleNodeServer.stop();
 	}
 
 	@Test

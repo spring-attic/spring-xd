@@ -17,7 +17,7 @@
 package org.springframework.xd.rest.client.impl;
 
 import org.springframework.xd.module.ModuleType;
-import org.springframework.xd.rest.client.ModuleOperations;
+import org.springframework.xd.rest.client.ModuleDefinitionOperations;
 import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
 
 
@@ -26,9 +26,9 @@ import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
  * 
  * @author Glenn Renfro
  */
-public class ModuleTemplate extends AbstractTemplate implements ModuleOperations {
+public class ModuleDefinitionTemplate extends AbstractTemplate implements ModuleDefinitionOperations {
 
-	ModuleTemplate(AbstractTemplate source) {
+	ModuleDefinitionTemplate(AbstractTemplate source) {
 		super(source);
 	}
 

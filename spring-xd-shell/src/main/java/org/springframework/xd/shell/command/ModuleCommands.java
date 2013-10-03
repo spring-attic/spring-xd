@@ -24,7 +24,7 @@ import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
 import org.springframework.xd.module.ModuleType;
-import org.springframework.xd.rest.client.ModuleOperations;
+import org.springframework.xd.rest.client.ModuleDefinitionOperations;
 import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
 import org.springframework.xd.shell.XDShell;
 import org.springframework.xd.shell.util.Table;
@@ -58,7 +58,7 @@ public class ModuleCommands implements CommandMarker {
 	public String createModule(
 			@CliOption(mandatory = true, key = { "name", "" }, help = "the name to give to the module") String name,
 			@CliOption(mandatory = true, key = "definition", help = "module definition using xd dsl") String dsl) {
-		xdShell.getSpringXDOperations().moduleOperations().composeModule(name, dsl);
+		xdShell.getSpringXDOperations().moduleDefinitionOperations().composeModule(name, dsl);
 		return String.format(("Successfully created module '%s'"), name);
 	}
 
@@ -67,7 +67,7 @@ public class ModuleCommands implements CommandMarker {
 			@CliOption(key = "type", help = "retrieve a specific type of module") String type) {
 		PagedResources<ModuleDefinitionResource> modules = null;
 		if (type == null) {
-			modules = moduleOperations().list(null);
+			modules = moduleDefinitionOperations().list(null);
 		}
 		else {
 
@@ -76,7 +76,7 @@ public class ModuleCommands implements CommandMarker {
 				throw new IllegalArgumentException(
 						"Valid types are: source, processor, sink, job");
 			}
-			modules = moduleOperations().list(moduleType);
+			modules = moduleDefinitionOperations().list(moduleType);
 		}
 		final Table table = new Table();
 		table.addHeader(1, new TableHeader("Module Name")).addHeader(2, new TableHeader("Module Type"));
@@ -89,7 +89,7 @@ public class ModuleCommands implements CommandMarker {
 		return table;
 	}
 
-	private ModuleOperations moduleOperations() {
-		return xdShell.getSpringXDOperations().moduleOperations();
+	private ModuleDefinitionOperations moduleDefinitionOperations() {
+		return xdShell.getSpringXDOperations().moduleDefinitionOperations();
 	}
 }

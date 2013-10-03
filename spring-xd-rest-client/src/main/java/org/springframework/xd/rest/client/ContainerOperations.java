@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,24 +17,16 @@
 package org.springframework.xd.rest.client;
 
 import org.springframework.hateoas.PagedResources;
-import org.springframework.xd.module.ModuleType;
-import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
+import org.springframework.xd.rest.client.domain.ContainerResource;
+
 
 /**
- * Interface defining operations available against Module.
+ * Interface defining operations available against Container.
  * 
- * @author Glenn Renfro
+ * @author Ilayaperumal Gopinathan
  */
-public interface ModuleOperations {
+public interface ContainerOperations {
 
-	/**
-	 * Compose a new virtual Module.
-	 */
-	public ModuleDefinitionResource composeModule(String name, String definition);
+	public PagedResources<ContainerResource> list();
 
-
-	/**
-	 * List modules known to the system.
-	 */
-	public PagedResources<ModuleDefinitionResource> list(ModuleType type);
 }

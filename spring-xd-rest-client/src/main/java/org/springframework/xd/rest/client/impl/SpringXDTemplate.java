@@ -21,12 +21,14 @@ import java.net.URI;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.xd.rest.client.AggregateCounterOperations;
+import org.springframework.xd.rest.client.ContainerOperations;
 import org.springframework.xd.rest.client.CounterOperations;
 import org.springframework.xd.rest.client.FieldValueCounterOperations;
 import org.springframework.xd.rest.client.GaugeOperations;
 import org.springframework.xd.rest.client.JobOperations;
-import org.springframework.xd.rest.client.ModuleOperations;
+import org.springframework.xd.rest.client.ModuleDefinitionOperations;
 import org.springframework.xd.rest.client.RichGaugeOperations;
+import org.springframework.xd.rest.client.RuntimeModulesOperations;
 import org.springframework.xd.rest.client.SpringXDOperations;
 import org.springframework.xd.rest.client.StreamOperations;
 import org.springframework.xd.rest.client.domain.XDRuntime;
@@ -49,9 +51,19 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 	private JobOperations jobOperations;
 
 	/**
+	 * Holds the Container-related part of the API.
+	 */
+	private ContainerOperations containerOperations;
+
+	/**
+	 * Holds the Module definition related part of the API.
+	 */
+	private ModuleDefinitionOperations moduleDefinitionOperations;
+
+	/**
 	 * Holds the Module-related part of the API.
 	 */
-	private ModuleOperations moduleOperations;
+	private RuntimeModulesOperations runtimeModulesOperations;
 
 	/**
 	 * Holds the Counter-related part of the API.
@@ -83,6 +95,8 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 		XDRuntime xdRuntime = restTemplate.getForObject(baseURI, XDRuntime.class);
 		resources.put("streams", URI.create(xdRuntime.getLink("streams").getHref()));
 		resources.put("jobs", URI.create(xdRuntime.getLink("jobs").getHref()));
+		resources.put("runtime/containers", URI.create(xdRuntime.getLink("runtime/containers").getHref()));
+		resources.put("runtime/modules", URI.create(xdRuntime.getLink("runtime/modules").getHref()));
 		resources.put("modules", URI.create(xdRuntime.getLink("modules").getHref()));
 
 		resources.put("counters", URI.create(xdRuntime.getLink("counters").getHref()));
@@ -98,7 +112,9 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 		aggrCounterOperations = new AggregateCounterTemplate(this);
 		gaugeOperations = new GaugeTemplate(this);
 		richGaugeOperations = new RichGaugeTemplate(this);
-		moduleOperations = new ModuleTemplate(this);
+		containerOperations = new ContainerTemplate(this);
+		moduleDefinitionOperations = new ModuleDefinitionTemplate(this);
+		runtimeModulesOperations = new RuntimeModulesTemplate(this);
 	}
 
 	public SpringXDTemplate(URI baseURI) {
@@ -116,8 +132,18 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 	}
 
 	@Override
-	public ModuleOperations moduleOperations() {
-		return moduleOperations;
+	public ContainerOperations containerOperations() {
+		return containerOperations;
+	}
+
+	@Override
+	public ModuleDefinitionOperations moduleDefinitionOperations() {
+		return moduleDefinitionOperations;
+	}
+
+	@Override
+	public RuntimeModulesOperations runtimeModulesOperations() {
+		return runtimeModulesOperations;
 	}
 
 	@Override

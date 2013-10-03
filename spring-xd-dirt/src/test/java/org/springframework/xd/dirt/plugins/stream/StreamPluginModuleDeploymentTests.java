@@ -41,7 +41,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.xd.dirt.event.AbstractModuleEvent;
 import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
-import org.springframework.xd.dirt.module.ModuleEventListener;
+import org.springframework.xd.dirt.module.TestModuleEventListener;
 import org.springframework.xd.dirt.server.options.Analytics;
 import org.springframework.xd.dirt.server.options.Transport;
 import org.springframework.xd.dirt.server.options.XDPropertyKeys;
@@ -60,7 +60,7 @@ public class StreamPluginModuleDeploymentTests {
 	private ModuleDeployer moduleDeployer;
 
 	@Autowired
-	private ModuleEventListener eventListener;
+	private TestModuleEventListener eventListener;
 
 	private SimpleModule source;
 

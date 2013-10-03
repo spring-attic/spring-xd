@@ -99,7 +99,7 @@ public abstract class AbstractContainerLauncher implements ContainerLauncher, Ap
 	private String logXDEnvironment(XDContainer container) {
 		Environment environment = container.getApplicationContext().getEnvironment();
 		String[] keys = new String[] { XDPropertyKeys.XD_HOME, XDPropertyKeys.XD_TRANSPORT,
-			XDPropertyKeys.XD_ANALYTICS, XDPropertyKeys.XD_HADOOP_DISTRO };
+			XDPropertyKeys.XD_STORE, XDPropertyKeys.XD_ANALYTICS, XDPropertyKeys.XD_HADOOP_DISTRO };
 		StringBuilder sb = new StringBuilder("\nXD Configuration:\n");
 		for (String key : keys) {
 			sb.append("\t" + key + "=" + environment.getProperty(key) + "\n");

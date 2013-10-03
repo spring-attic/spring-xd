@@ -67,17 +67,17 @@ public class OptionUtils {
 				|| (!explicitOption && !explicit)) {
 			xdProperties.setProperty(XDPropertyKeys.XD_JMX_PORT, String.valueOf(options.getJmxPort()));
 		}
+		explicitOption = options.isExplicit(options.getStore());
+		if ((explicitOption && explicit)
+				|| (!explicitOption && !explicit)) {
+			xdProperties.setProperty(XDPropertyKeys.XD_STORE, options.getStore().name());
+		}
 		if (options instanceof AdminOptions) {
 			AdminOptions adminOptions = (AdminOptions) options;
 			explicitOption = adminOptions.isExplicit(adminOptions.getHttpPort());
 			if ((explicitOption && explicit)
 					|| (!explicitOption && !explicit)) {
 				xdProperties.setProperty(XDPropertyKeys.XD_HTTP_PORT, String.valueOf(adminOptions.getHttpPort()));
-			}
-			explicitOption = adminOptions.isExplicit(adminOptions.getStore());
-			if ((explicitOption && explicit)
-					|| (!explicitOption && !explicit)) {
-				xdProperties.setProperty(XDPropertyKeys.XD_STORE, adminOptions.getStore().name());
 			}
 		}
 		return xdProperties;
@@ -104,6 +104,7 @@ public class OptionUtils {
 
 		Assert.isTrue(environment.containsProperty(XDPropertyKeys.XD_HOME), "XD_HOME is not set");
 		Assert.isTrue(environment.containsProperty(XDPropertyKeys.XD_TRANSPORT), "XD_TRANSPORT is not set");
+		Assert.isTrue(environment.containsProperty(XDPropertyKeys.XD_STORE), "XD_STORE is not set");
 		if (environment.getProperty(XDPropertyKeys.XD_JMX_ENABLED).equals("true")) {
 			environment.addActiveProfile("xd.jmx.enabled");
 		}

@@ -15,10 +15,6 @@
 
 	<import resource="redis-common.xml" />
 
-	<int-redis:outbound-channel-adapter channel="moduleEventsOut" topic="events:modules" />
-
-	<int-redis:outbound-channel-adapter channel="containerEventsOut" topic="events:containers" />
-
 	<bean id="redisInboundAdapter" class="org.springframework.integration.x.redis.RedisQueueInboundChannelAdapter">
 		<constructor-arg value="queue.deployer" />
 		<constructor-arg ref="redisConnectionFactory" />
@@ -27,17 +23,5 @@
 	</bean>
 
 	<int-redis:inbound-channel-adapter topics="topic.undeployer" channel="containerControlChannel"/>
-
-	<bean class="org.springframework.xd.dirt.listener.RedisContainerEventListener">
-		<constructor-arg ref="redisConnectionFactory" />
-	</bean>
-
-	<bean id="moduleEventListener" class="org.springframework.xd.dirt.listener.RedisModuleEventListener">
-		<constructor-arg ref="redisConnectionFactory" />
-	</bean>
-
-	<int-event:inbound-channel-adapter id="moduleEventsOut" event-types="org.springframework.xd.dirt.event.AbstractModuleEvent"/>
-
-	<int-event:inbound-channel-adapter id="containerEventsOut" event-types="org.springframework.xd.dirt.container.AbstractContainerEvent"/>
 
 </beans>

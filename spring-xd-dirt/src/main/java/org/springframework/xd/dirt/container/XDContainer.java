@@ -18,6 +18,8 @@ package org.springframework.xd.dirt.container;
 
 import java.io.File;
 import java.lang.management.ManagementFactory;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.UUID;
 
 import org.apache.commons.lang.StringUtils;
@@ -40,6 +42,7 @@ import org.springframework.xd.dirt.server.options.XDPropertyKeys;
  * @author Mark Fisher
  * @author Jennifer Hickey
  * @author David Turanski
+ * @author Ilayaperumal Gopinathan
  */
 public class XDContainer implements SmartLifecycle {
 
@@ -70,7 +73,13 @@ public class XDContainer implements SmartLifecycle {
 
 	private final String id;
 
+	private String hostName;
+
+	private String ipAddress;
+
 	private volatile String jvmName;
+
+	private volatile boolean containerRunning;
 
 	/**
 	 * Creates a container with a given id
@@ -91,6 +100,26 @@ public class XDContainer implements SmartLifecycle {
 
 	public String getId() {
 		return (this.context != null) ? this.context.getId() : "";
+	}
+
+	public String getHostName() {
+		try {
+			this.hostName = InetAddress.getLocalHost().getHostName();
+		}
+		catch (UnknownHostException uhe) {
+			this.hostName = "unknown";
+		}
+		return this.hostName;
+	}
+
+	public String getIpAddress() {
+		try {
+			this.ipAddress = InetAddress.getLocalHost().getHostAddress();
+		}
+		catch (UnknownHostException uhe) {
+			this.ipAddress = "unknown";
+		}
+		return this.ipAddress;
 	}
 
 	public String getJvmName() {
@@ -117,6 +146,10 @@ public class XDContainer implements SmartLifecycle {
 		return this.context != null;
 	}
 
+	private boolean isContainerRunning() {
+		return containerRunning;
+	}
+
 	public void setLauncherContext(ApplicationContext context) {
 		this.launcherContext = context;
 	}
@@ -136,6 +169,7 @@ public class XDContainer implements SmartLifecycle {
 		context.setParent(globalContext);
 		context.registerShutdownHook();
 		context.refresh();
+		this.containerRunning = true;
 		context.publishEvent(new ContainerStartedEvent(this));
 		if (logger.isInfoEnabled()) {
 			logger.info("started container: " + context.getId());
@@ -144,10 +178,11 @@ public class XDContainer implements SmartLifecycle {
 
 	@Override
 	public void stop() {
-		if (this.context != null) {
+		if (this.context != null && isContainerRunning()) {
+			this.containerRunning = false;
+			this.context.publishEvent(new ContainerStoppedEvent(this));
 			this.context.close();
 			((ConfigurableApplicationContext) context.getParent()).close();
-			context.publishEvent(new ContainerStoppedEvent(this));
 			if (logger.isInfoEnabled()) {
 				final String message = "Stopped container: " + this.jvmName;
 				final StringBuilder sb = new StringBuilder(LINE_SEPARATOR);

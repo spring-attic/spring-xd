@@ -68,7 +68,7 @@ public abstract class AbstractStreamDeploymentIntegrationTests {
 				"META-INF/spring-xd/internal/container.xml",
 				"META-INF/spring-xd/internal/deployers.xml",
 				"META-INF/spring-xd/plugins/streams.xml",
-				"META-INF/spring-xd/store/memory-admin.xml",
+				"META-INF/spring-xd/store/memory-store.xml",
 				"META-INF/spring-xd/transports/" + transport + "-admin.xml");
 		this.streamDefinitionRepository = context.getBean(StreamDefinitionRepository.class);
 		this.streamRepository = context.getBean(StreamRepository.class);

@@ -22,53 +22,60 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.context.ApplicationListener;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.xd.dirt.event.AbstractModuleEvent;
 import org.springframework.xd.dirt.event.ModuleDeployedEvent;
 import org.springframework.xd.dirt.event.ModuleUndeployedEvent;
+import org.springframework.xd.dirt.module.store.ModuleEntity;
+import org.springframework.xd.dirt.module.store.ContainerModulesRepository;
+import org.springframework.xd.dirt.module.store.ModulesRepository;
 import org.springframework.xd.module.Module;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Mark Fisher
+ * @author Ilayaperumal Gopinathan
  */
-public class RedisModuleEventListener implements ApplicationListener<AbstractModuleEvent> {
+public class ModuleEventListener implements ApplicationListener<AbstractModuleEvent> {
 
 	private final Log logger = LogFactory.getLog(getClass());
 
-	private final StringRedisTemplate redisTemplate = new StringRedisTemplate();
+	private final ModulesRepository modulesRepository;
+
+	private final ContainerModulesRepository modulesPerContainerRepository;
 
 	private final ObjectMapper mapper = new ObjectMapper();
 
 
-	public RedisModuleEventListener(RedisConnectionFactory redisConnectionFactory) {
-		this.redisTemplate.setConnectionFactory(redisConnectionFactory);
-		this.redisTemplate.afterPropertiesSet();
+	public ModuleEventListener(ModulesRepository modulesRepository,
+			ContainerModulesRepository modulesPerContainerRepository) {
+		this.modulesRepository = modulesRepository;
+		this.modulesPerContainerRepository = modulesPerContainerRepository;
 	}
-
 
 	@Override
 	public void onApplicationEvent(AbstractModuleEvent event) {
 		Module module = event.getSource();
 		Map<String, String> attributes = event.getAttributes();
-		String key = "modules:" + attributes.get("group");
-		String hashKey = module.getName() + "." + attributes.get("index");
+
 		try {
-			String properties = this.mapper.writeValueAsString(module.getProperties());
+			String moduleProperties = this.mapper.writeValueAsString(module.getProperties());
+			ModuleEntity entity = new ModuleEntity(event.getContainerId(), attributes.get("group"),
+					attributes.get("index"), moduleProperties);
 			if (event instanceof ModuleDeployedEvent) {
-				this.redisTemplate.boundHashOps(key).put(hashKey, properties);
+				modulesRepository.save(entity);
+				modulesPerContainerRepository.save(entity);
 			}
 			else if (event instanceof ModuleUndeployedEvent) {
-				this.redisTemplate.boundHashOps(key).delete(hashKey);
+				modulesRepository.delete(entity);
+				modulesPerContainerRepository.delete(entity);
 			}
 		}
-		catch (Exception e) {
+		catch (JsonProcessingException exception) {
 			if (logger.isWarnEnabled()) {
-				logger.warn("failed to generate JSON for module properties", e);
+				logger.warn("failed to generate JSON for module properties", exception);
 			}
 		}
 	}
-
 }

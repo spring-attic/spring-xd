@@ -19,4 +19,18 @@
 		<constructor-arg ref="streamDefinitionRepository" />
 	</bean>
 
+	<bean id="containerRepository" class="org.springframework.xd.dirt.container.store.RedisContainerRepository">
+		<constructor-arg ref="humanFriendlyRedisTemplate" />
+	</bean>
+
+	<bean id="modulesRepository" class="org.springframework.xd.dirt.module.store.RedisModulesRepository">
+		<constructor-arg name="repoPrefix" value="modules"/>
+		<constructor-arg ref="humanFriendlyRedisTemplate" />
+	</bean>
+
+	<bean id="containerModulesRepository" class="org.springframework.xd.dirt.module.store.RedisContainerModulesRepository">
+		<constructor-arg name="repoPrefix" value="modules-container"/>
+		<constructor-arg ref="humanFriendlyRedisTemplate" />
+	</bean>
+
 </beans>

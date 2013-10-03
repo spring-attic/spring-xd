@@ -44,6 +44,7 @@ import org.springframework.util.ReflectionUtils.MethodCallback;
 import org.springframework.util.ReflectionUtils.MethodFilter;
 import org.springframework.xd.shell.XDShell;
 import org.springframework.xd.shell.command.AggregateCounterCommands;
+import org.springframework.xd.shell.command.ContainerCommands;
 import org.springframework.xd.shell.command.CounterCommands;
 import org.springframework.xd.shell.command.FieldValueCounterCommands;
 import org.springframework.xd.shell.command.GaugeCommands;
@@ -51,6 +52,7 @@ import org.springframework.xd.shell.command.HttpCommands;
 import org.springframework.xd.shell.command.JobCommands;
 import org.springframework.xd.shell.command.ModuleCommands;
 import org.springframework.xd.shell.command.RichGaugeCommands;
+import org.springframework.xd.shell.command.RuntimeCommands;
 import org.springframework.xd.shell.command.StreamCommands;
 import org.springframework.xd.shell.hadoop.ConfigurationCommands;
 import org.springframework.xd.shell.hadoop.FsShellCommands;
@@ -98,6 +100,12 @@ public class ReferenceDoc {
 		 * Set titles for commands. Please note that insertion order matters!
 		 */
 		titles.put(XDShell.class, "Base Commands");
+		// ===== Runtime Containers/Modules ======
+		titles.put(RuntimeCommands.class, "Runtime Commands");
+
+		// ===== Containers ======
+		titles.put(ContainerCommands.class, "Container Commands");
+
 		// ===== Streams etc. ======
 		titles.put(StreamCommands.class, "Stream Commands");
 		titles.put(JobCommands.class, "Job Commands");

@@ -95,7 +95,7 @@ ext {
 	args4jVersion = '2.0.25'
 	mockitoVersion = '1.9.5'
 	javaxMailVersion = '1.5.0'
-	kryoVersion = '2.21'
+	kryoVersion = '2.22'
 	singleNodeServerProcess = new SingleNodeServerProcess()
 }
 

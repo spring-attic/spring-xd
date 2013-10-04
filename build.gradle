@@ -355,7 +355,6 @@ project('spring-xd-dirt') {
 
 		// ************* Container: Modules (should move on their own: XD-915)
 		compile project(":spring-xd-hadoop")
-		compile project(":spring-xd-jdbc")
 		compile ("org.springframework.integration:spring-integration-mqtt:1.0.0.BUILD-SNAPSHOT") {
 			exclude group: 'org.springframework.integration'
 		}
@@ -788,6 +787,12 @@ project('modules.source.syslog-udp') {
 project('modules.sink.file') {
 	dependencies {
 		runtime	"org.springframework.integration:spring-integration-file:$springIntegrationVersion"
+	}
+}
+
+project('modules.sink.jdbc') {
+	dependencies {
+		runtime project(":spring-xd-jdbc")
 	}
 }
 

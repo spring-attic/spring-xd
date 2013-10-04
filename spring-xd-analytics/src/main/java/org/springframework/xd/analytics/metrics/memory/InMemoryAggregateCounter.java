@@ -88,7 +88,12 @@ class InMemoryAggregateCounter extends Counter {
 			DateTime endYear = new DateTime(c.year().roundCeiling(end.getMillis()));
 
 			while (cursor.isBefore(endYear)) {
-				yearDays.add(dayCountsByYear.get(cursor.getYear()));
+				long[] dayCounts = dayCountsByYear.get(cursor.getYear());
+				if (dayCounts == null) {
+					// Querying where we have no data
+					dayCounts = new long[daysInYear(cursor.getYear())];
+				}
+				yearDays.add(dayCounts);
 				cursor = cursor.plusYears(1);
 			}
 
@@ -105,7 +110,11 @@ class InMemoryAggregateCounter extends Counter {
 			DateTime endYear = new DateTime(c.year().roundCeiling(end.getMillis()));
 
 			while (cursor.isBefore(endYear)) {
-				yearMonths.add(monthCountsByYear.get(cursor.getYear()));
+				long[] monthCounts = monthCountsByYear.get(cursor.getYear());
+				if (monthCounts == null) {
+					monthCounts = new long[12];
+				}
+				yearMonths.add(monthCounts);
 				cursor = cursor.plusYears(1);
 			}
 
@@ -137,6 +146,11 @@ class InMemoryAggregateCounter extends Counter {
 		return days;
 	}
 
+	private int daysInYear(int year) {
+		Duration d = new Duration(new DateTime(year, 1, 1, 0, 0), new DateTime(year + 1, 1, 1, 0, 0));
+		return (int)d.getStandardDays();
+	}
+
 	synchronized long increment(long amount, DateTime dateTime) {
 		int year = dateTime.getYear();
 		int month = dateTime.getMonthOfYear();
@@ -150,8 +164,7 @@ class InMemoryAggregateCounter extends Counter {
 		if (monthCounts == null) {
 			monthCounts = new long[12];
 			monthCountsByYear.put(year, monthCounts);
-			Duration d = new Duration(new DateTime(year, 1, 1, 0, 0, 0), new DateTime(year + 1, 1, 1, 0, 0, 0));
-			dayCounts = new long[(int) d.toDuration().getStandardDays()];
+			dayCounts = new long[daysInYear(year)];
 			dayCountsByYear.put(year, dayCounts);
 		}
 

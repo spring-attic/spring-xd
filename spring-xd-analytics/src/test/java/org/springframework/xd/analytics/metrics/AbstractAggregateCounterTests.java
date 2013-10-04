@@ -166,5 +166,13 @@ public abstract class AbstractAggregateCounterTests {
 		aggregateCount = aggregateCounterRepository.getCounts(counterName, queryInterval, AggregateCountResolution.day);
 		counts = aggregateCount.getCounts();
 		assertEquals(3, counts.length);
+
+		// Query beyond the period where we have data
+		DateTime newStart = start.withYear(2012);
+		aggregateCount = aggregateCounterRepository.getCounts(counterName, queryInterval.withStart(newStart), AggregateCountResolution.day);
+		counts = aggregateCount.getCounts();
+		assertEquals(368, counts.length);
+
+		aggregateCount = aggregateCounterRepository.getCounts(counterName, queryInterval.withStart(newStart), AggregateCountResolution.month);
 	}
 }

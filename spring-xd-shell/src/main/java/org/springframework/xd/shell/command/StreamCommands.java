@@ -26,7 +26,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.xd.rest.client.StreamOperations;
 import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
 import org.springframework.xd.shell.XDShell;
-import org.springframework.xd.shell.util.Assertions;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableHeader;
 import org.springframework.xd.shell.util.TableRow;
@@ -40,9 +39,18 @@ public class StreamCommands implements CommandMarker {
 
 	private static final String DEPLOY_STREAM = "stream deploy";
 
+	private static final String DEPLOY_STREAM_ALL = "stream all deploy";
+
 	private static final String UNDEPLOY_STREAM = "stream undeploy";
 
+	private static final String UNDEPLOY_STREAM_ALL = "stream all undeploy";
+
 	private static final String DESTROY_STREAM = "stream destroy";
+
+	private static final String DESTROY_STREAM_ALL = "stream all destroy";
+
+	@Autowired
+	private UserInput userInput;
 
 	@Autowired
 	private XDShell xdShell;
@@ -61,65 +69,65 @@ public class StreamCommands implements CommandMarker {
 		return String.format("Created new stream '%s'", name);
 	}
 
-	@CliCommand(value = DESTROY_STREAM, help = "Destroy existing stream(s)")
+	@CliCommand(value = DESTROY_STREAM, help = "Destroy an existing stream")
 	public String destroyStream(
-			//
-			@CliOption(key = { "", "name" }, help = "the name of the stream to destroy", optionContext = "existing-stream disable-string-converter") String name,
-			@CliOption(key = { "all" }, help = "destroy all the existing streams", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean all) {
-		String message = "";
-		switch (Assertions.exactlyOneOf("name", name, "all", all)) {
-			case 0:
-				streamOperations().destroy(name);
-				message = String.format("Destroyed stream '%s'", name);
-				break;
-			case 1:
-				streamOperations().destroyAll();
-				message = String.format("Destroyed all the streams");
-				break;
-			default:
-				throw new IllegalArgumentException("You must specify exactly one of 'name', 'all'");
-		}
-		return message;
+			@CliOption(key = { "", "name" }, help = "the name of the stream to destroy", mandatory = true, optionContext = "existing-stream disable-string-converter") String name) {
+		streamOperations().destroy(name);
+		return String.format("Destroyed stream '%s'", name);
 	}
 
-	@CliCommand(value = DEPLOY_STREAM, help = "Deploy previously created stream(s)")
+	@CliCommand(value = DESTROY_STREAM_ALL, help = "Destroy all existing streams")
+	public String destroyAllStreams(
+			@CliOption(key = "force", help = "bypass confirmation prompt", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean force) {
+		// Be sure to short-circuit promt if force is true
+		if (force || "y".equalsIgnoreCase(userInput.prompt("Really destroy all streams?", "n", "y", "n"))) {
+			streamOperations().destroyAll();
+			return "Destroyed all streams";
+		}
+		else {
+			return "";
+		}
+	}
+
+	@CliCommand(value = DEPLOY_STREAM, help = "Deploy a previously created stream")
 	public String deployStream(
-			@CliOption(key = { "", "name" }, help = "the name of the stream to deploy", optionContext = "existing-stream undeployed disable-string-converter") String name,
-			@CliOption(key = { "all" }, help = "deploy all un-deployed streams", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean all) {
-		String message = "";
-		switch (Assertions.exactlyOneOf("name", name, "all", all)) {
-			case 0:
-				streamOperations().deploy(name);
-				message = String.format("Deployed stream '%s'", name);
-				break;
-			case 1:
-				streamOperations().deployAll();
-				message = String.format("Deployed all the streams");
-				break;
-			default:
-				throw new IllegalArgumentException("You must specify exactly one of 'name', 'all'");
-		}
-		return message;
+			@CliOption(key = { "", "name" }, help = "the name of the stream to deploy", mandatory = true, optionContext = "existing-stream undeployed disable-string-converter") String name) {
+		streamOperations().deploy(name);
+		return String.format("Deployed stream '%s'", name);
 	}
 
-	@CliCommand(value = UNDEPLOY_STREAM, help = "Un-deploy previously deployed stream(s)")
-	public String undeployStream(
-			@CliOption(key = { "", "name" }, help = "the name of the stream to un-deploy", optionContext = "existing-stream deployed disable-string-converter") String name,
-			@CliOption(key = { "all" }, help = "undeploy all the deployed streams", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean all) {
-		String message = "";
-		switch (Assertions.exactlyOneOf("name", name, "all", all)) {
-			case 0:
-				streamOperations().undeploy(name);
-				message = String.format("Un-deployed stream '%s'", name);
-				break;
-			case 1:
-				streamOperations().undeployAll();
-				message = String.format("Un-deployed all the streams");
-				break;
-			default:
-				throw new IllegalArgumentException("You must specify exactly one of 'name', 'all'");
+	@CliCommand(value = DEPLOY_STREAM_ALL, help = "Deploy all previously created stream")
+	public String deployAllStreams(
+			@CliOption(key = "force", help = "bypass confirmation prompt", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean force
+			) {
+		if (force || "y".equalsIgnoreCase(userInput.prompt("Really deploy all streams?", "n", "y", "n"))) {
+			streamOperations().deployAll();
+			return String.format("Deployed all streams");
 		}
-		return message;
+		else {
+			return "";
+		}
+	}
+
+	@CliCommand(value = UNDEPLOY_STREAM, help = "Un-deploy a previously deployed stream")
+	public String undeployStream(
+			@CliOption(key = { "", "name" }, help = "the name of the stream to un-deploy", mandatory = true, optionContext = "existing-stream deployed disable-string-converter") String name
+			) {
+		streamOperations().undeploy(name);
+		return String.format("Un-deployed stream '%s'", name);
+	}
+
+	@CliCommand(value = UNDEPLOY_STREAM_ALL, help = "Un-deploy all previously deployed stream")
+	public String undeployAllStreams(
+			@CliOption(key = "force", help = "bypass confirmation prompt", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean force
+			) {
+		if (force || "y".equalsIgnoreCase(userInput.prompt("Really undeploy all streams?", "n", "y", "n"))) {
+			streamOperations().undeployAll();
+			return String.format("Un-deployed all the streams");
+		}
+		else {
+			return "";
+		}
 	}
 
 	@CliCommand(value = LIST_STREAM, help = "List created streams")

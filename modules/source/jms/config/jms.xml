@@ -9,7 +9,7 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<import resource="../common/jms-${provider:activemq}-infrastructure-context.xml"/>
+	<import resource="../../../common/jms-${provider:activemq}-infrastructure-context.xml"/>
 
 	<int-jms:message-driven-channel-adapter id="jmsSource"
 		auto-startup="false"

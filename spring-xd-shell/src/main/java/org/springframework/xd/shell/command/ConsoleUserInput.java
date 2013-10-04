@@ -43,12 +43,13 @@ public class ConsoleUserInput implements UserInput {
 		String answer;
 		do {
 			answer = "";
-			System.out.format("%s %s%n", prompt, optionsAsList);
+			System.out.format("%s %s: ", prompt, optionsAsList);
 			try {
 				for (char c = (char) console.read(); c != '\n'; c = (char) console.read()) {
 					System.out.print(c);
 					answer += c;
 				}
+				System.out.println();
 			}
 			catch (IOException e) {
 				throw new IllegalStateException(e);

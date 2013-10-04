@@ -311,10 +311,6 @@ project('spring-xd-dirt') {
 		compile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
 		compile "log4j:log4j:$log4jVersion"
 		compile "org.springframework.integration:spring-integration-amqp:$springIntegrationVersion"
-		compile ("org.apache.activemq:activemq-core:5.6.0") {
-			exclude group: 'org.mortbay.jetty'
-			exclude group: 'org.fusesource.fuse-extra'
-		}
 		compile "org.springframework.integration:spring-integration-event:$springIntegrationVersion"
 		compile "org.springframework.integration:spring-integration-groovy:$springIntegrationVersion"
 		compile "org.springframework.integration:spring-integration-jmx:$springIntegrationVersion"
@@ -358,7 +354,6 @@ project('spring-xd-dirt') {
 		compile ("org.springframework.integration:spring-integration-mqtt:1.0.0.BUILD-SNAPSHOT") {
 			exclude group: 'org.springframework.integration'
 		}
-		compile "org.springframework.integration:spring-integration-jms:$springIntegrationVersion"
 
 		// Splunk also needed for o.s.i.x
 		compile "org.springframework.integration:spring-integration-splunk:$springIntegrationSplunkVersion"
@@ -378,6 +373,15 @@ project('spring-xd-dirt') {
 		testCompile ("org.mockito:mockito-core:$mockitoVersion") {
 			exclude group:'org.hamcrest'
 		}
+
+		// The following two because of AmqBrokerAndTest
+		testCompile ("org.apache.activemq:activemq-core:5.6.0") {
+			exclude group: 'org.mortbay.jetty'
+			exclude group: 'org.fusesource.fuse-extra'
+		}
+		testCompile "org.springframework:spring-jms:$springVersion"
+
+
 	}
 
     apply plugin:'application'
@@ -773,6 +777,18 @@ project('modules.source.syslog-tcp') {
 project('modules.source.syslog-udp') {
 	dependencies {
 		runtime "org.springframework.integration:spring-integration-syslog:$springIntegrationVersion"
+	}
+}
+
+project('modules.source.jms') {
+	dependencies {
+		runtime "org.springframework.integration:spring-integration-jms:$springIntegrationVersion"
+		runtime ("org.apache.activemq:activemq-core:5.6.0") {
+			exclude group: 'org.mortbay.jetty'
+			exclude group: 'org.fusesource.fuse-extra'
+			exclude group: 'org.slf4j'
+		}
+
 	}
 }
 

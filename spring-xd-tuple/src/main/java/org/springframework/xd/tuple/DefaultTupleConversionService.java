@@ -26,7 +26,7 @@ import org.springframework.format.support.DefaultFormattingConversionService;
  */
 public class DefaultTupleConversionService extends DefaultFormattingConversionService {
 
-	DefaultTupleConversionService() {
+	public DefaultTupleConversionService() {
 		/*
 		 * DefaultFormattingConversionService provides Collection -> Object conversion which will produce the first item
 		 * if the target type matches. Here, this results in an unfortunate side effect, getTuple(List<Tuple> list)

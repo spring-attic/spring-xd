@@ -38,17 +38,6 @@ import org.springframework.xd.tuple.TupleBuilder;
 public class KryoCodecTests {
 
 	@Test
-	public void testTupleSerialization() throws IOException {
-		Tuple t = TupleBuilder.tuple().of("foo", "bar");
-		TupleCodec serializer = new TupleCodec();
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		serializer.serialize(t, bos);
-
-		Tuple t2 = serializer.deserialize(bos.toByteArray());
-		assertEquals(t, t2);
-	}
-
-	@Test
 	public void testStringSerialization() throws IOException {
 		String str = "hello";
 		StringCodec serializer = new StringCodec();
@@ -147,5 +136,19 @@ public class KryoCodecTests {
 		assertEquals(2, m2.size());
 		assertEquals(1, m2.get("one"));
 		assertEquals(2, m2.get("two"));
+	}
+
+	@Test
+	public void testNestedTupleSerialization() throws IOException {
+		TupleCodec serializer = new TupleCodec();
+		Tuple t0 = TupleBuilder.tuple().of("one", 1, "two", 2);
+		Tuple t1 = TupleBuilder.tuple().of("t0", t0);
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		serializer.serialize(t1, bos);
+		Tuple t2 = serializer.deserialize(bos.toByteArray());
+		Tuple t3 = (Tuple) t2.getValue("t0");
+		assertEquals(1, t3.getInt("one"));
+		assertEquals(2, t3.getInt("two"));
+		assertEquals(t0, t3);
 	}
 }

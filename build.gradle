@@ -793,7 +793,7 @@ project('modules.source.http') {
 
 project('modules.source.mqtt') {
 	dependencies {
-		runtime ("org.springframework.integration:spring-integration-mqtt:1.0.0.M1") {
+		runtime ("org.springframework.integration:spring-integration-mqtt:1.0.0.BUILD-SNAPSHOT") {
 		// spring-integration-mqtt has a different lifecycle than SI and may bring a version
 		// of SI which is believed by gradle to be newer than our preferred version.
             exclude group: 'org.springframework.integration'
@@ -803,7 +803,7 @@ project('modules.source.mqtt') {
 
 project('modules.sink.mqtt') {
 	dependencies {
-		runtime ("org.springframework.integration:spring-integration-mqtt:1.0.0.M1") {
+		runtime ("org.springframework.integration:spring-integration-mqtt:1.0.0.BUILD-SNAPSHOT") {
 		// spring-integration-mqtt has a different lifecycle than SI and may bring a version
 		// of SI which is believed by gradle to be newer than our preferred version.
             exclude group: 'org.springframework.integration'

@@ -1,3 +1,4 @@
+package org.springframework.integration.x.bus.serializer
 /*
  * Copyright 2013 the original author or authors.
  *
@@ -14,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.x.bus.serializer
+
 import groovy.json.JsonSlurper
 
 import org.junit.Test

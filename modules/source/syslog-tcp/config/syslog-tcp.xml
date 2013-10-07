@@ -11,17 +11,7 @@
 
 	<int-syslog:inbound-channel-adapter id="adapter" channel="output"
 			auto-startup="false"
-			protocol="tcp"
-			connection-factory="server"/>
-
-	<!-- Temporary work-around for INT-3107; revert when SI 3.0.0.M3 is available -->
-	<int-ip:tcp-connection-factory id="server"
-			type="server"
-			deserializer="syslogDeserializer"
-			port="${port:11111}"/>
-
-	<bean id="syslogDeserializer" class="org.springframework.integration.ip.tcp.serializer.ByteArrayLfSerializer"/>
-	<!-- End work-around -->
+			protocol="tcp" port="${port:11111}" />
 
 	<int:channel id="output"/>
 

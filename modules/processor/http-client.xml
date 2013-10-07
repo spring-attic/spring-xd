@@ -9,8 +9,8 @@
 		http://www.springframework.org/schema/integration/http
 			http://www.springframework.org/schema/integration/http/spring-integration-http.xsd">
 
-	<int-http:outbound-gateway id='http-request'
-		request-channel='input' url-expression="${url}" http-method='GET'
+	<int-http:outbound-gateway id='http-client'
+		request-channel='input' url-expression="${url}" http-method="${httpMethod:POST}"
 		expected-response-type='java.lang.String' charset='UTF-8'
 		reply-timeout='${reply-timeout:5000}' reply-channel='output'>
 	</int-http:outbound-gateway>

@@ -249,6 +249,12 @@ configure(moduleProjects()) { moduleProject ->
 
 	forceSpringVersion(moduleProject)
 
+	eclipse {
+		project {
+			natures += 'org.springframework.ide.eclipse.core.springnature'
+		}
+	}
+
 	task copyLibs(type: Copy) {
 		def containerDeps = project(':spring-xd-dirt').configurations.runtime
 

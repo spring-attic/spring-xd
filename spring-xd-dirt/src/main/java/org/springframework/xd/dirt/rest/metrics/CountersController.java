@@ -17,7 +17,6 @@
 package org.springframework.xd.dirt.rest.metrics;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.ExposesResourceFor;
@@ -47,8 +46,8 @@ public class CountersController extends AbstractMetricsController<CounterReposit
 	private final DeepCounterResourceAssembler counterResourceAssembler = new DeepCounterResourceAssembler();
 
 	@Autowired
-	public CountersController(@Qualifier("simple") CounterRepository repository) {
-		super(repository);
+	public CountersController(CounterRepository counterRepository) {
+		super(counterRepository);
 	}
 
 	/**

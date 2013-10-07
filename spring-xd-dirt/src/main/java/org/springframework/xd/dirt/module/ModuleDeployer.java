@@ -156,9 +156,8 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 			module.addProperties(parametersAsProps);
 		}
 		this.deployModule(module);
-		String key = group + ":" + module.getName() + ":" + index;
 		if (logger.isInfoEnabled()) {
-			logger.info("launched " + module.getType() + " module: " + key);
+			logger.info("deployed " + module.toString());
 		}
 		this.deployedModules.putIfAbsent(group, new HashMap<Integer, Module>());
 		this.deployedModules.get(group).put(index, module);
@@ -183,19 +182,23 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 			}
 			if (module != null) {
 				if (logger.isDebugEnabled()) {
-					logger.debug("removed " + module.getType() + " module: " + group + ":" + module.getName() + ":"
-							+ index);
+					logger.debug("removed " + module.toString());
 				}
 				// TODO: add beforeShutdown and/or afterShutdown callbacks?
 				this.beforeShutdown(module);
-				module.stop();
 				this.removeModule(module);
+				module.stop();
 				this.fireModuleUndeployedEvent(module);
+			}
+			else {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Ignoring undeploy - module not deployed here: " + request);
+				}
 			}
 		}
 		else {
 			if (logger.isTraceEnabled()) {
-				logger.trace("Ignoring undeploy - module not deployed here: " + request);
+				logger.trace("Ignoring undeploy - group not deployed here: " + request);
 			}
 		}
 	}
@@ -217,6 +220,9 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		Module module = modules.get(request.getIndex());
 		// Since the request parameter may change on each launch request,
 		// the request parameters are not added to module properties
+		if (logger.isDebugEnabled()) {
+			logger.debug("launching " + module.toString());
+		}
 		launchModule(module, request.getParameters());
 	}
 

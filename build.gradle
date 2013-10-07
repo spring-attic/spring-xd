@@ -66,7 +66,7 @@ ext {
 	hsqldbVersion = '2.3.0'
 	jodaTimeVersion = '2.1'
 	jolokiaVersion = '1.1.2'
-	springVersion = '3.2.2.RELEASE'
+	springVersion = '4.0.0.M3'
 	springBatchVersion = '2.2.3.BUILD-SNAPSHOT'
 	springIntegrationVersion = '3.0.0.BUILD-SNAPSHOT'
 	springBatchAdminMgrVersion = '1.3.0.M1'
@@ -194,6 +194,10 @@ configure(javaProjects()) { subproject ->
 		jvmArgs "-javaagent:${configurations.jacoco.asPath}=destfile=${buildDir}/jacoco.exec,includes=org.springframework.xd.*"
 		jvmArgs "-XX:MaxPermSize=256m"
 		jvmArgs "-Djava.net.preferIPv4Stack=true"
+// 	useful for debugging the GradleWorkerMain
+//		jvmArgs "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=8000"
+//		jvmArgs "-Dlog4j.debug=true"
+//		classpath = files('/some/dir/with/props') + project.sourceSets.test.runtimeClasspath
 	}
 
 	javadoc {

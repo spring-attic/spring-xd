@@ -52,4 +52,9 @@ public interface Module extends Lifecycle {
 
 	<T> T getComponent(String componentName, Class<T> requiredType);
 
+	/**
+	 * Destroy this module's application context.
+	 */
+	void destroy();
+
 }

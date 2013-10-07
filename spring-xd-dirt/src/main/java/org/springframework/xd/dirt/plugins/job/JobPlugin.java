@@ -127,7 +127,7 @@ public class JobPlugin extends AbstractPlugin {
 			messageBus = module.getComponent(MessageBus.class);
 		}
 		catch (Exception e) {
-			logger.error("No MessageBus in context, cannot wire channels");
+			logger.error("No MessageBus in context, cannot wire/unwire channels: " + e.getMessage());
 		}
 		return messageBus;
 	}

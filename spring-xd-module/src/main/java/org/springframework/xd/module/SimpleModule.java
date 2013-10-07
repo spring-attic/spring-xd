@@ -141,6 +141,13 @@ public class SimpleModule extends AbstractModule {
 		}
 	}
 
+	@Override
+	public void destroy() {
+		if (this.context != null) {
+			this.context.destroy();
+		}
+	}
+
 	/*
 	 * Lifecycle implementation
 	 */
@@ -160,7 +167,6 @@ public class SimpleModule extends AbstractModule {
 	public void stop() {
 		if (this.isRunning.compareAndSet(true, false)) {
 			this.context.stop();
-			this.context.destroy();
 			if (logger.isInfoEnabled()) {
 				logger.info("stopped module: " + this.toString());
 			}

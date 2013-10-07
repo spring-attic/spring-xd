@@ -154,8 +154,7 @@ public class RedisAggregateCounterRepository extends RedisCounterRepository impl
 		else if (resolution == AggregateCountResolution.day) {
 			DateTime startDay = new DateTime(c.dayOfYear().roundFloor(interval.getStart().getMillis()));
 			DateTime endDay = new DateTime(c.dayOfYear().roundFloor(end.plusDays(1).getMillis()));
-			Interval rounded = new Interval(startDay, endDay);
-			int nDays = rounded.toDuration().toStandardDays().getDays();
+			int nDays = Days.daysBetween(startDay, endDay).getDays();
 			DateTime cursor = new DateTime(c.monthOfYear().roundFloor(interval.getStart().getMillis()));
 			List<long[]> months = new ArrayList<long[]>();
 			DateTime endMonth = new DateTime(c.monthOfYear().roundCeiling(interval.getEnd().plusMonths(1).getMillis()));
@@ -165,11 +164,11 @@ public class RedisAggregateCounterRepository extends RedisCounterRepository impl
 			}
 
 			counts = MetricUtils.concatArrays(months, interval.getStart().getDayOfMonth() - 1, nDays);
-		} else if (resolution == AggregateCountResolution.month) {
+		}
+		else if (resolution == AggregateCountResolution.month) {
 			DateTime startMonth = new DateTime(c.monthOfYear().roundFloor(interval.getStartMillis()));
 			DateTime endMonth = new DateTime(c.monthOfYear().roundFloor(end.plusMonths(1).getMillis()));
-			Interval rounded = new Interval(startMonth, endMonth);
-			int nMonths = rounded.toPeriod().getMonths();
+			int nMonths = Months.monthsBetween(startMonth, endMonth).getMonths();
 			DateTime cursor = new DateTime(c.year().roundFloor(interval.getStartMillis()));
 			List<long[]> years = new ArrayList<long[]>();
 			DateTime endYear = new DateTime(c.year().roundCeiling(interval.getEnd().plusYears(1).getMillis()));

@@ -77,6 +77,9 @@ public abstract class AbstractAggregateCounterTests {
 		for (int i=0; i < counts.length; i++) {
 			assertEquals("count at index " + i + " should be " + (i+1), i+1, counts[i]);
 		}
+
+		counts = aggregateCounterRepository.getCounts(counterName, new Interval(end.minusDays(30), end), AggregateCountResolution.day).getCounts();
+		assertEquals(31, counts.length);
 	}
 
 	@Test
@@ -94,6 +97,10 @@ public abstract class AbstractAggregateCounterTests {
 		for (int i = 0; i < counts.length; i++) {
 			assertEquals("count at index " + i + " should be " + (i + 1), i + 1, counts[i]);
 		}
+
+		// Check a query for twelve months past
+		counts = aggregateCounterRepository.getCounts(counterName, new Interval(end.minusMonths(11), end), AggregateCountResolution.month).getCounts();
+		assertEquals(12, counts.length);
 	}
 
 	@Test

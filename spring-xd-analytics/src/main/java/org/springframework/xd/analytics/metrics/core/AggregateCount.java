@@ -16,10 +16,13 @@
 
 package org.springframework.xd.analytics.metrics.core;
 
-import org.joda.time.DateTimeField;
+import java.util.Arrays;
+
 import org.joda.time.Interval;
 
 /**
+ * Represents the data returned from an aggregate count query.
+ *
  * @author Luke Taylor
  */
 public class AggregateCount {
@@ -48,7 +51,9 @@ public class AggregateCount {
 			total += counts[i];
 		}
 		return total;
-	}	public String getName() {
+	}
+
+	public String getName() {
 		return name;
 	}
 
@@ -62,6 +67,16 @@ public class AggregateCount {
 
 	public AggregateCountResolution getResolution() {
 		return resolution;
+	}
+
+	@Override
+	public String toString() {
+		return "AggregateCount{" +
+				"name='" + name + '\'' +
+				", interval=" + interval +
+				", counts=" + Arrays.toString(counts) +
+				", resolution=" + resolution +
+				'}';
 	}
 }
 

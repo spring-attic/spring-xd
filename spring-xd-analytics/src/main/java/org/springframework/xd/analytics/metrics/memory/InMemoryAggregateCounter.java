@@ -23,9 +23,11 @@ import java.util.Map;
 
 import org.joda.time.Chronology;
 import org.joda.time.DateTime;
+import org.joda.time.Days;
 import org.joda.time.Duration;
 import org.joda.time.Interval;
 
+import org.joda.time.Months;
 import org.springframework.xd.analytics.metrics.core.AggregateCount;
 import org.springframework.xd.analytics.metrics.core.AggregateCountResolution;
 import org.springframework.xd.analytics.metrics.core.Counter;
@@ -81,8 +83,7 @@ class InMemoryAggregateCounter extends Counter {
 		else if (resolution == AggregateCountResolution.day) {
 			DateTime startDay = new DateTime(c.dayOfYear().roundFloor(start.getMillis()));
 			DateTime endDay = new DateTime(c.dayOfYear().roundFloor(end.plusDays(1).getMillis()));
-			Interval rounded = new Interval(startDay, endDay);
-			int nDays = rounded.toDuration().toStandardDays().getDays();
+			int nDays = Days.daysBetween(startDay, endDay).getDays();
 			DateTime cursor = new DateTime(c.year().roundFloor(interval.getStartMillis()));
 			List<long[]> yearDays = new ArrayList<long[]>();
 			DateTime endYear = new DateTime(c.year().roundCeiling(end.getMillis()));
@@ -103,8 +104,7 @@ class InMemoryAggregateCounter extends Counter {
 		else if (resolution == AggregateCountResolution.month) {
 			DateTime startMonth = new DateTime(c.monthOfYear().roundFloor(interval.getStartMillis()));
 			DateTime endMonth = new DateTime(c.monthOfYear().roundFloor(end.plusMonths(1).getMillis()));
-			Interval rounded = new Interval(startMonth, endMonth);
-			int nMonths = rounded.toPeriod().getMonths();
+			int nMonths = Months.monthsBetween(startMonth, endMonth).getMonths();
 			DateTime cursor = new DateTime(c.year().roundFloor(interval.getStartMillis()));
 			List<long[]> yearMonths = new ArrayList<long[]>();
 			DateTime endYear = new DateTime(c.year().roundCeiling(end.getMillis()));

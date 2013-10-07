@@ -104,15 +104,15 @@ public class AggregateCountersController extends AbstractMetricsController<Aggre
 	private DateTime fromValue(DateTime to, AggregateCountResolution resolution) {
 		switch(resolution) {
 			case minute:
-				return to.minusMinutes(60);
+				return to.minusMinutes(59);
 			case hour:
-				return to.minusHours(24);
+				return to.minusHours(23);
 			case day:
-				return to.minusDays(7);
+				return to.minusDays(6);
 			case month:
-				return to.minusMonths(12);
+				return to.minusMonths(11);
 			default:
-				throw new IllegalStateException("Shouldn't happen - function should be total");
+				throw new IllegalStateException("Shouldn't happen. Unhandled resolution: " + resolution);
 		}
 	}
 

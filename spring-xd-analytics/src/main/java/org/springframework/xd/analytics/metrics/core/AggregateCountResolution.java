@@ -3,6 +3,7 @@ package org.springframework.xd.analytics.metrics.core;
 import org.joda.time.*;
 
 /**
+ * The resolution options available for querying an aggregate counter.
  *
  * @author Luke Taylor
  */

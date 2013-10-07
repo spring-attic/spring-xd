@@ -441,23 +441,24 @@ project('spring-xd-dirt') {
 	}
 
 	// Following execution is used by jsTests task to start SingleNodeMainServer as background process
-    task backgroundAdminServer << { task ->
+	task backgroundAdminServer << { task ->
 		println "Starting SingleNode server as a background process"
 		ProcessBuilder processBuilder = new ProcessBuilder("java", "-cp", sourceSets.main.runtimeClasspath.getAsPath(), "org.springframework.xd.dirt.server.SingleNodeMain");
         processBuilder.directory(file("$rootDir/spring-xd-dirt"))
-		def Process proc = processBuilder.start()
+        def Process proc = processBuilder.start()
         proc.consumeProcessOutputStream(System.out)
         println("Waiting for the server to startup...")
         // Give 15s for the server startup
         Thread.sleep(15000)
         // Save the process object to destroy after test completion
         project.singleNodeServerProcess.process = proc
-     }
+    }
 
 	task cleanDataDir(type: Delete) {
 		delete "$rootDir/data"
 	}
 
+	tasks["backgroundAdminServer"].dependsOn("classes")
 	tasks["clean"].dependsOn("cleanDataDir")
 }
 

@@ -17,6 +17,7 @@
 package org.springframework.xd.analytics.metrics.redis;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,6 +31,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SetOperations;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.util.Assert;
 import org.springframework.xd.analytics.metrics.core.AggregateCount;
 import org.springframework.xd.analytics.metrics.core.AggregateCountResolution;
 import org.springframework.xd.analytics.metrics.core.AggregateCounterRepository;
@@ -104,6 +106,17 @@ public class RedisAggregateCounterRepository extends RedisCounterRepository impl
 		if (newValue == amount) {
 			setOperations.add(bookkeepingKey, key);
 		}
+	}
+
+	@Override
+	public AggregateCount getCounts(String name, int nCounts, AggregateCountResolution resolution) {
+		return getCounts(name, nCounts, new DateTime(), resolution);
+	}
+
+	public AggregateCount getCounts(String name, int nCounts, DateTime endDate, AggregateCountResolution resolution) {
+		Assert.notNull(endDate, "endDate cannot be null");
+
+		return getCounts(name, new Interval(resolution.minus(endDate, nCounts-1), endDate), resolution);
 	}
 
 	/**

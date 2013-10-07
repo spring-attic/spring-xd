@@ -17,6 +17,7 @@
 package org.springframework.xd.analytics.metrics.memory;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -61,8 +62,18 @@ public class InMemoryAggregateCounterRepository extends AbstractInMemoryReposito
 	}
 
 	@Override
+	public AggregateCount getCounts(String name, int nCounts, AggregateCountResolution resolution) {
+		return getOrCreate(name).getCounts(nCounts, new DateTime(), resolution);
+	}
+
+	@Override
 	public AggregateCount getCounts(String name, Interval interval, AggregateCountResolution resolution) {
 		return getOrCreate(name).getCounts(interval, resolution);
+	}
+
+	@Override
+	public AggregateCount getCounts(String name, int nCounts, DateTime end, AggregateCountResolution resolution) {
+		return getOrCreate(name).getCounts(nCounts, end, resolution);
 	}
 
 	private synchronized InMemoryAggregateCounter getOrCreate(String name) {

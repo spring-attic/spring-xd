@@ -17,6 +17,7 @@
 package org.springframework.xd.analytics.metrics.memory;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,7 @@ import org.joda.time.Duration;
 import org.joda.time.Interval;
 
 import org.joda.time.Months;
+import org.springframework.util.Assert;
 import org.springframework.xd.analytics.metrics.core.AggregateCount;
 import org.springframework.xd.analytics.metrics.core.AggregateCountResolution;
 import org.springframework.xd.analytics.metrics.core.Counter;
@@ -60,6 +62,12 @@ class InMemoryAggregateCounter extends Counter {
 
 	public InMemoryAggregateCounter(String name) {
 		super(name);
+	}
+
+	public AggregateCount getCounts(int nCounts, DateTime endDate, AggregateCountResolution resolution) {
+		Assert.notNull(endDate, "endDate must not be null");
+
+		return getCounts(new Interval(resolution.minus(endDate, nCounts-1), endDate), resolution);
 	}
 
 	public AggregateCount getCounts(Interval interval, AggregateCountResolution resolution) {

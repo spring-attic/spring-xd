@@ -80,6 +80,11 @@ public abstract class AbstractAggregateCounterTests {
 
 		counts = aggregateCounterRepository.getCounts(counterName, new Interval(end.minusDays(30), end), AggregateCountResolution.day).getCounts();
 		assertEquals(31, counts.length);
+
+		counts = aggregateCounterRepository.getCounts(counterName, 60, end, AggregateCountResolution.day).getCounts();
+		assertEquals(60, counts.length);
+		assertEquals(8, counts[0]);
+		assertEquals(67, counts[59]);
 	}
 
 	@Test
@@ -101,6 +106,10 @@ public abstract class AbstractAggregateCounterTests {
 		// Check a query for twelve months past
 		counts = aggregateCounterRepository.getCounts(counterName, new Interval(end.minusMonths(11), end), AggregateCountResolution.month).getCounts();
 		assertEquals(12, counts.length);
+
+		counts = aggregateCounterRepository.getCounts(counterName, 3, end, AggregateCountResolution.month).getCounts();
+		assertEquals(3, counts.length);
+		assertEquals(6, counts[2]);
 	}
 
 	@Test

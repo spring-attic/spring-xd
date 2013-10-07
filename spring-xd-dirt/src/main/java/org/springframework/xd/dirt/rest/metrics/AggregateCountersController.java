@@ -17,13 +17,8 @@
 package org.springframework.xd.dirt.rest.metrics;
 
 import org.joda.time.DateTime;
-import org.joda.time.Days;
-import org.joda.time.Hours;
 import org.joda.time.Interval;
 
-import org.joda.time.Minutes;
-import org.joda.time.Months;
-import org.joda.time.ReadablePeriod;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;

@@ -38,12 +38,12 @@ public interface SpringXDOperations {
 	/**
 	 * Returns the portion of the API for interaction with Modules' definitions.
 	 */
-	public ModuleDefinitionOperations moduleDefinitionOperations();
+	public ModuleOperations moduleOperations();
 
 	/**
-	 * Returns the portion of the API for interaction with deployed Modules.
+	 * Returns the portion of the API for interaction with runtime containers/modules.
 	 */
-	public RuntimeModulesOperations runtimeModulesOperations();
+	public RuntimeOperations runtimeOperations();
 
 	/**
 	 * Returns the portion of the API for interaction with Counters.
@@ -70,8 +70,4 @@ public interface SpringXDOperations {
 	 */
 	public RichGaugeOperations richGaugeOperations();
 
-	/**
-	 * Returns the portion of the API for available containers
-	 */
-	public ContainerOperations containerOperations();
 }

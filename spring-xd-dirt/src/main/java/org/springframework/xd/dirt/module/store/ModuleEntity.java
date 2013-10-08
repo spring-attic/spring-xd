@@ -24,15 +24,15 @@ package org.springframework.xd.dirt.module.store;
  */
 public class ModuleEntity {
 
-	private String id;
+	private final String id;
 
-	private String containerId;
+	private final String containerId;
 
-	private String group;
+	private final String group;
 
-	private String index;
+	private final String index;
 
-	private String properties;
+	private final String properties;
 
 	public ModuleEntity(String containerId, String group, String index, String properties) {
 		this.id = containerId + ":" + group + ":" + index;

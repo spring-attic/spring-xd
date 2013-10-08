@@ -21,14 +21,13 @@ import java.net.URI;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.xd.rest.client.AggregateCounterOperations;
-import org.springframework.xd.rest.client.ContainerOperations;
 import org.springframework.xd.rest.client.CounterOperations;
 import org.springframework.xd.rest.client.FieldValueCounterOperations;
 import org.springframework.xd.rest.client.GaugeOperations;
 import org.springframework.xd.rest.client.JobOperations;
-import org.springframework.xd.rest.client.ModuleDefinitionOperations;
+import org.springframework.xd.rest.client.ModuleOperations;
 import org.springframework.xd.rest.client.RichGaugeOperations;
-import org.springframework.xd.rest.client.RuntimeModulesOperations;
+import org.springframework.xd.rest.client.RuntimeOperations;
 import org.springframework.xd.rest.client.SpringXDOperations;
 import org.springframework.xd.rest.client.StreamOperations;
 import org.springframework.xd.rest.client.domain.XDRuntime;
@@ -51,19 +50,14 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 	private JobOperations jobOperations;
 
 	/**
-	 * Holds the Container-related part of the API.
-	 */
-	private ContainerOperations containerOperations;
-
-	/**
 	 * Holds the Module definition related part of the API.
 	 */
-	private ModuleDefinitionOperations moduleDefinitionOperations;
+	private ModuleOperations moduleOperations;
 
 	/**
 	 * Holds the Module-related part of the API.
 	 */
-	private RuntimeModulesOperations runtimeModulesOperations;
+	private RuntimeOperations runtimeOperations;
 
 	/**
 	 * Holds the Counter-related part of the API.
@@ -112,9 +106,8 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 		aggrCounterOperations = new AggregateCounterTemplate(this);
 		gaugeOperations = new GaugeTemplate(this);
 		richGaugeOperations = new RichGaugeTemplate(this);
-		containerOperations = new ContainerTemplate(this);
-		moduleDefinitionOperations = new ModuleDefinitionTemplate(this);
-		runtimeModulesOperations = new RuntimeModulesTemplate(this);
+		moduleOperations = new ModuleTemplate(this);
+		runtimeOperations = new RuntimeTemplate(this);
 	}
 
 	public SpringXDTemplate(URI baseURI) {
@@ -132,18 +125,13 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 	}
 
 	@Override
-	public ContainerOperations containerOperations() {
-		return containerOperations;
+	public ModuleOperations moduleOperations() {
+		return moduleOperations;
 	}
 
 	@Override
-	public ModuleDefinitionOperations moduleDefinitionOperations() {
-		return moduleDefinitionOperations;
-	}
-
-	@Override
-	public RuntimeModulesOperations runtimeModulesOperations() {
-		return runtimeModulesOperations;
+	public RuntimeOperations runtimeOperations() {
+		return runtimeOperations;
 	}
 
 	@Override

@@ -25,7 +25,7 @@ import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
  * 
  * @author Glenn Renfro
  */
-public interface ModuleDefinitionOperations {
+public interface ModuleOperations {
 
 	/**
 	 * Compose a new virtual Module.

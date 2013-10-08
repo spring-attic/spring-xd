@@ -45,6 +45,8 @@ import org.springframework.xd.module.Plugin;
  */
 public class SingleNodeMainIntegrationTests extends AbstractAdminMainIntegrationTests {
 
+	private SingleNodeServer server;
+
 	@Test
 	public void testDefault() {
 		SingleNodeMain.parseOptions(new String[] {});
@@ -57,7 +59,7 @@ public class SingleNodeMainIntegrationTests extends AbstractAdminMainIntegration
 			"--store",
 			"memory", "--enableJmx", "false", "--analytics", "memory" });
 		setBatchDBProperties();
-		SingleNodeServer server = SingleNodeMain.launchSingleNodeServer(options);
+		server = SingleNodeMain.launchSingleNodeServer(options);
 		AdminServer adminServer = server.getAdminServer();
 		XDContainer container = server.getContainer();
 
@@ -107,7 +109,6 @@ public class SingleNodeMainIntegrationTests extends AbstractAdminMainIntegration
 
 		assertTrue("no metrics repositories have been registered in the container context",
 				containerContext.getParent().getBeansOfType(MetricRepository.class).size() > 0);
-		server.stop();
 	}
 
 	@Test
@@ -117,7 +118,7 @@ public class SingleNodeMainIntegrationTests extends AbstractAdminMainIntegration
 		System.setProperty(XDPropertyKeys.XD_HTTP_PORT, "9393");
 		System.setProperty(XDPropertyKeys.XD_STORE, "redis");
 		setBatchDBProperties();
-		SingleNodeServer server = SingleNodeMain.launchSingleNodeServer(
+		server = SingleNodeMain.launchSingleNodeServer(
 				SingleNodeMain.parseOptions(new String[] { "--httpPort", "0", "--transport",
 					"local", "--analytics", "memory" }));
 		Environment env = server.getAdminServer().getApplicationContext().getEnvironment();
@@ -126,7 +127,6 @@ public class SingleNodeMainIntegrationTests extends AbstractAdminMainIntegration
 		assertEquals("local", env.getProperty(XDPropertyKeys.XD_TRANSPORT));
 		assertEquals("memory", env.getProperty(XDPropertyKeys.XD_ANALYTICS));
 		assertEquals("redis", env.getProperty(XDPropertyKeys.XD_STORE));
-		server.stop();
 	}
 
 	@Test
@@ -136,18 +136,20 @@ public class SingleNodeMainIntegrationTests extends AbstractAdminMainIntegration
 		System.setProperty(XDPropertyKeys.XD_HTTP_PORT, "0");
 		System.setProperty(XDPropertyKeys.XD_STORE, "redis");
 		setBatchDBProperties();
-		SingleNodeServer server = SingleNodeMain.launchSingleNodeServer(
+		server = SingleNodeMain.launchSingleNodeServer(
 				SingleNodeMain.parseOptions(new String[] {}));
 		Environment env = server.getAdminServer().getApplicationContext().getEnvironment();
 
 		assertEquals("0", env.getProperty(XDPropertyKeys.XD_HTTP_PORT));
 		assertEquals("redis", env.getProperty(XDPropertyKeys.XD_ANALYTICS));
 		assertEquals("redis", env.getProperty(XDPropertyKeys.XD_STORE));
-		server.stop();
 	}
 
 	@After
 	public void cleanUp() {
+		if (server != null) {
+			server.stop();
+		}
 		System.clearProperty(XDPropertyKeys.XD_ANALYTICS);
 		System.clearProperty(XDPropertyKeys.XD_HTTP_PORT);
 		System.clearProperty(XDPropertyKeys.XD_STORE);

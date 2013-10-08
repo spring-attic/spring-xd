@@ -63,9 +63,6 @@ public class RuntimeCommandTests extends AbstractStreamIntegrationTest {
 		Table table = (Table) cmdResult.getResult();
 		List<TableRow> fooStreamModules = new ArrayList<TableRow>();
 		for (TableRow row : table.getRows()) {
-			System.out.println(streamName);
-			System.out.println(row.getValue(1));
-			System.out.println(row.getValue(2));
 			// match by group name
 			if (row.getValue(2).equals(streamName)) {
 				fooStreamModules.add(row);

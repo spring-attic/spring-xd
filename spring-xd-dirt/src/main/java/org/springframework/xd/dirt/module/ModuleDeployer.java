@@ -186,8 +186,9 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 				}
 				// TODO: add beforeShutdown and/or afterShutdown callbacks?
 				this.beforeShutdown(module);
-				this.removeModule(module);
 				module.stop();
+				this.removeModule(module);
+				module.destroy();
 				this.fireModuleUndeployedEvent(module);
 			}
 			else {

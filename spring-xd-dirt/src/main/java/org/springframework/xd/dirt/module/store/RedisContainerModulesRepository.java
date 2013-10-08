@@ -42,7 +42,7 @@ public class RedisContainerModulesRepository extends AbstractRedisModulesReposit
 
 	@Override
 	public List<ModuleEntity> findAll(String containerId) {
-		Map<String, String> entityValues = hashOperations.entries(redisKeyFromId(containerId));
+		Map<String, String> entityValues = getHashOperations().entries(redisKeyFromId(containerId));
 		List<ModuleEntity> result = new ArrayList<ModuleEntity>();
 		for (Map.Entry<String, String> entry : entityValues.entrySet()) {
 			result.add(deserialize(entry.getKey(), entry.getValue()));

@@ -39,11 +39,23 @@ import org.springframework.xd.store.AbstractRedisRepository;
  */
 public abstract class AbstractRedisModulesRepository extends AbstractRedisRepository<ModuleEntity, String> {
 
-	protected HashOperations<String, String, String> hashOperations;
+	private static final int CONTAINER_ID_INDEX = 0;
+
+	private static final int GROUP_INDEX = 1;
+
+	private static final int INDEX = 2;
+
+	private static final int PROPERTIES_INDEX = 3;
+
+	private HashOperations<String, String, String> hashOperations;
 
 	public AbstractRedisModulesRepository(String repoPrefix, RedisOperations<String, String> redisOperations) {
 		super(repoPrefix, redisOperations);
 		hashOperations = redisOperations.opsForHash();
+	}
+
+	protected HashOperations<String, String, String> getHashOperations() {
+		return this.hashOperations;
 	}
 
 	@Override
@@ -64,7 +76,7 @@ public abstract class AbstractRedisModulesRepository extends AbstractRedisReposi
 	@Override
 	protected ModuleEntity deserialize(String redisKey, String value) {
 		String[] parts = value.split("\n");
-		return new ModuleEntity(parts[0], parts[1], parts[2], parts[3]);
+		return new ModuleEntity(parts[CONTAINER_ID_INDEX], parts[GROUP_INDEX], parts[INDEX], parts[PROPERTIES_INDEX]);
 	}
 
 	@Override

@@ -39,11 +39,8 @@ import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository
 import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
 import org.springframework.xd.dirt.container.store.ContainerRepository;
-import org.springframework.xd.dirt.container.store.InMemoryContainerRepository;
 import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.module.store.ContainerModulesRepository;
-import org.springframework.xd.dirt.module.store.InMemoryContainerModulesRepository;
-import org.springframework.xd.dirt.module.store.InMemoryModulesRepository;
 import org.springframework.xd.dirt.module.store.ModulesRepository;
 import org.springframework.xd.dirt.plugins.job.BatchJobLocator;
 import org.springframework.xd.dirt.plugins.job.DistributedJobService;
@@ -138,17 +135,17 @@ public class Dependencies {
 
 	@Bean
 	public ContainerRepository containerRepository() {
-		return new InMemoryContainerRepository();
+		return mock(ContainerRepository.class);
 	}
 
 	@Bean
 	public ModulesRepository modulesRepository() {
-		return new InMemoryModulesRepository();
+		return mock(ModulesRepository.class);
 	}
 
 	@Bean
 	public ContainerModulesRepository containerModulesRepository() {
-		return new InMemoryContainerModulesRepository();
+		return mock(ContainerModulesRepository.class);
 	}
 
 	@Bean

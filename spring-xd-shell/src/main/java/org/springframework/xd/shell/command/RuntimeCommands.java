@@ -23,8 +23,7 @@ import org.springframework.shell.core.annotation.CliAvailabilityIndicator;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
-import org.springframework.xd.rest.client.ContainerOperations;
-import org.springframework.xd.rest.client.RuntimeModulesOperations;
+import org.springframework.xd.rest.client.RuntimeOperations;
 import org.springframework.xd.rest.client.domain.ContainerResource;
 import org.springframework.xd.rest.client.domain.ModuleResource;
 import org.springframework.xd.shell.XDShell;
@@ -56,8 +55,7 @@ public class RuntimeCommands implements CommandMarker {
 	@CliCommand(value = LIST_CONTAINERS, help = "List runtime containers")
 	public Table listContainers() {
 
-		final PagedResources<ContainerResource> containers = containerOperations().list();
-
+		final PagedResources<ContainerResource> containers = runtimeOperations().listRuntimeContainers();
 		final Table table = new Table();
 		table.addHeader(1, new TableHeader("Container Id")).addHeader(2, new TableHeader("Host")).addHeader(
 				3, new TableHeader("IP Address"));
@@ -75,10 +73,10 @@ public class RuntimeCommands implements CommandMarker {
 
 		Iterable<ModuleResource> runtimeModules;
 		if (containerId != null) {
-			runtimeModules = moduleOperations().listByContainer(containerId);
+			runtimeModules = runtimeOperations().listRuntimeModulesByContainer(containerId);
 		}
 		else {
-			runtimeModules = moduleOperations().list();
+			runtimeModules = runtimeOperations().listRuntimeModules();
 		}
 		final Table table = new Table();
 		table.addHeader(1, new TableHeader("Container Id")).addHeader(2, new TableHeader("Group")).addHeader(
@@ -91,12 +89,8 @@ public class RuntimeCommands implements CommandMarker {
 		return table;
 	}
 
-	private RuntimeModulesOperations moduleOperations() {
-		return xdShell.getSpringXDOperations().runtimeModulesOperations();
-	}
-
-	private ContainerOperations containerOperations() {
-		return xdShell.getSpringXDOperations().containerOperations();
+	private RuntimeOperations runtimeOperations() {
+		return xdShell.getSpringXDOperations().runtimeOperations();
 	}
 
 }

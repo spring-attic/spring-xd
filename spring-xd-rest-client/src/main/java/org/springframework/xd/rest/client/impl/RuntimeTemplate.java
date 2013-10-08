@@ -16,30 +16,38 @@
 
 package org.springframework.xd.rest.client.impl;
 
-import org.springframework.xd.rest.client.RuntimeModulesOperations;
+import org.springframework.xd.rest.client.RuntimeOperations;
+import org.springframework.xd.rest.client.domain.ContainerResource;
 import org.springframework.xd.rest.client.domain.ModuleResource;
 
 
 /**
- * Implementation of the runtime modules related part of the API.
+ * Implementation of the runtime containers/modules related part of the API.
  * 
  * @author Ilayaperumal Gopinathan
  */
-public class RuntimeModulesTemplate extends AbstractTemplate implements RuntimeModulesOperations {
+public class RuntimeTemplate extends AbstractTemplate implements RuntimeOperations {
 
-	RuntimeModulesTemplate(AbstractTemplate source) {
+	RuntimeTemplate(AbstractTemplate source) {
 		super(source);
 	}
 
 	@Override
-	public ModuleResource.Page list() {
+	public ContainerResource.Page listRuntimeContainers() {
+		String uriTemplate = resources.get("runtime/containers").toString();
+		uriTemplate = uriTemplate + "?size=10000";
+		return restTemplate.getForObject(uriTemplate, ContainerResource.Page.class);
+	}
+
+	@Override
+	public ModuleResource.Page listRuntimeModules() {
 		String uriTemplate = resources.get("runtime/modules").toString();
 		uriTemplate = uriTemplate + "?size=10000";
 		return restTemplate.getForObject(uriTemplate, ModuleResource.Page.class);
 	}
 
 	@Override
-	public ModuleResource.List listByContainer(String containerId) {
+	public ModuleResource.List listRuntimeModulesByContainer(String containerId) {
 		String url = resources.get("runtime/containers").toString() + "/{containerId}/modules";
 		return restTemplate.getForObject(url, ModuleResource.List.class, containerId);
 	}

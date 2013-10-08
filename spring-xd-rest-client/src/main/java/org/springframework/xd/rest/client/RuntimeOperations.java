@@ -18,15 +18,20 @@ package org.springframework.xd.rest.client;
 
 import org.springframework.hateoas.PagedResources;
 import org.springframework.xd.rest.client.domain.ContainerResource;
+import org.springframework.xd.rest.client.domain.ModuleResource;
 
 
 /**
- * Interface defining operations available against Container.
+ * Interface defining operations available against runtime container/modules.
  * 
  * @author Ilayaperumal Gopinathan
  */
-public interface ContainerOperations {
+public interface RuntimeOperations {
 
-	public PagedResources<ContainerResource> list();
+	public PagedResources<ContainerResource> listRuntimeContainers();
+
+	public PagedResources<ModuleResource> listRuntimeModules();
+
+	public ModuleResource.List listRuntimeModulesByContainer(String containerId);
 
 }

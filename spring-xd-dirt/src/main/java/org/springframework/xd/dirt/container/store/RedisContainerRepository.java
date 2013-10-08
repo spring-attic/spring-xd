@@ -28,6 +28,14 @@ import org.springframework.xd.store.AbstractRedisRepository;
 public class RedisContainerRepository extends AbstractRedisRepository<ContainerEntity, String> implements
 		ContainerRepository {
 
+	private static final int CONTAINER_ID_INDEX = 0;
+
+	private static final int JVM_NAME_INDEX = 1;
+
+	private static final int HOST_NAME_INDEX = 2;
+
+	private static final int IP_ADDRESS_INDEX = 3;
+
 	public RedisContainerRepository(RedisOperations<String, String> redisOperations) {
 		super("containers", redisOperations);
 	}
@@ -35,7 +43,8 @@ public class RedisContainerRepository extends AbstractRedisRepository<ContainerE
 	@Override
 	protected ContainerEntity deserialize(String redisKey, String value) {
 		String[] parts = value.split("\n");
-		return new ContainerEntity(parts[0], parts[1], parts[2], parts[3]);
+		return new ContainerEntity(parts[CONTAINER_ID_INDEX], parts[JVM_NAME_INDEX], parts[HOST_NAME_INDEX],
+				parts[IP_ADDRESS_INDEX]);
 	}
 
 	@Override

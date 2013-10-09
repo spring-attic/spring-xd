@@ -14,10 +14,18 @@
  * limitations under the License.
  */
 
+package org.springframework.xd.dirt.module.store;
+
+import org.springframework.xd.store.DomainRepository;
+
+
 /**
- * Package for container info store.
+ * Repository for persisting runtime modules mapped to their containers.
+ * 
  * @author Ilayaperumal Gopinathan
  */
+public interface RuntimeContainerModuleInfoRepository extends DomainRepository<RuntimeModuleInfoEntity, String> {
 
-package org.springframework.xd.dirt.container.store;
+	Iterable<RuntimeModuleInfoEntity> findAllByContainerId(String containerId);
 
+}

@@ -16,27 +16,24 @@
 
 package org.springframework.xd.dirt.module.store;
 
-import java.util.List;
-
-import org.springframework.xd.store.AbstractInMemoryRepository;
+import org.springframework.data.redis.core.RedisOperations;
 
 
 /**
- * InMemory extension for the deployed modules repository with the modules mapped under their containers
+ * Redis specific implementation for runtime modules info repository.
  * 
  * @author Ilayaperumal Gopinathan
  */
-public class InMemoryContainerModulesRepository extends AbstractInMemoryRepository<ModuleEntity, String> implements
-		ContainerModulesRepository {
+public class RedisRuntimeModuleInfoRepository extends AbstractRedisModuleInfoRepository implements
+		RuntimeModuleInfoRepository {
 
-	@Override
-	protected String keyFor(ModuleEntity entity) {
-		return entity.getContainerId();
+	public RedisRuntimeModuleInfoRepository(String repoPrefix, RedisOperations<String, String> redisOperations) {
+		super(repoPrefix, redisOperations);
 	}
 
 	@Override
-	public List<ModuleEntity> findAll(String containerId) {
-		return (List<ModuleEntity>) findAll();
+	protected String keyForEntity(RuntimeModuleInfoEntity entity) {
+		return entity.getGroup();
 	}
 
 }

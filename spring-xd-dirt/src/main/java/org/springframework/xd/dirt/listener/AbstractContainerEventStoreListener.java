@@ -21,20 +21,20 @@ import org.springframework.xd.dirt.container.AbstractContainerEvent;
 import org.springframework.xd.dirt.container.ContainerStartedEvent;
 import org.springframework.xd.dirt.container.ContainerStoppedEvent;
 import org.springframework.xd.dirt.container.XDContainer;
-import org.springframework.xd.dirt.container.store.ContainerEntity;
+import org.springframework.xd.dirt.container.store.RuntimeContainerInfoEntity;
 
 /**
  * @author Mark Fisher
  * @author Jennifer Hickey
  * @author Ilayaperumal Gopinathan
  */
-public abstract class AbstractContainerEventListener implements ApplicationListener<AbstractContainerEvent> {
+public abstract class AbstractContainerEventStoreListener implements ApplicationListener<AbstractContainerEvent> {
 
 	@Override
 	public void onApplicationEvent(AbstractContainerEvent event) {
 		if (event instanceof ContainerStartedEvent) {
 			final XDContainer container = event.getSource();
-			ContainerEntity entity = new ContainerEntity(container.getId(), container.getJvmName(),
+			RuntimeContainerInfoEntity entity = new RuntimeContainerInfoEntity(container.getId(), container.getJvmName(),
 					container.getHostName(), container.getIpAddress());
 			storeContainerEntity(entity);
 		}
@@ -44,7 +44,7 @@ public abstract class AbstractContainerEventListener implements ApplicationListe
 		}
 	}
 
-	protected abstract void storeContainerEntity(ContainerEntity entity);
+	protected abstract void storeContainerEntity(RuntimeContainerInfoEntity entity);
 
 	protected abstract void removeContainerEntity(String id);
 

@@ -16,14 +16,20 @@
 
 package org.springframework.xd.dirt.module.store;
 
-import org.springframework.xd.store.DomainRepository;
+import org.springframework.xd.store.AbstractInMemoryRepository;
 
 
 /**
- * Repository for persisting runtime modules
+ * InMemory extension for the runtime module info repository.
  * 
  * @author Ilayaperumal Gopinathan
  */
-public interface ModulesRepository extends DomainRepository<ModuleEntity, String> {
+public class InMemoryRuntimeModuleInfoRepository extends AbstractInMemoryRepository<RuntimeModuleInfoEntity, String>
+		implements RuntimeModuleInfoRepository {
+
+	@Override
+	protected String keyFor(RuntimeModuleInfoEntity entity) {
+		return entity.getGroup() + ":" + entity.getIndex();
+	}
 
 }

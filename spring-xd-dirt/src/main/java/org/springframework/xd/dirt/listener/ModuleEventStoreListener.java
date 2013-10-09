@@ -25,31 +25,33 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.xd.dirt.event.AbstractModuleEvent;
 import org.springframework.xd.dirt.event.ModuleDeployedEvent;
 import org.springframework.xd.dirt.event.ModuleUndeployedEvent;
-import org.springframework.xd.dirt.module.store.ModuleEntity;
-import org.springframework.xd.dirt.module.store.ContainerModulesRepository;
-import org.springframework.xd.dirt.module.store.ModulesRepository;
+import org.springframework.xd.dirt.module.store.RuntimeContainerModuleInfoRepository;
+import org.springframework.xd.dirt.module.store.RuntimeModuleInfoEntity;
+import org.springframework.xd.dirt.module.store.RuntimeModuleInfoRepository;
 import org.springframework.xd.module.Module;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
+ * Module event listener that stores the module info.
+ * 
  * @author Mark Fisher
  * @author Ilayaperumal Gopinathan
  */
-public class ModuleEventListener implements ApplicationListener<AbstractModuleEvent> {
+public class ModuleEventStoreListener implements ApplicationListener<AbstractModuleEvent> {
 
 	private final Log logger = LogFactory.getLog(getClass());
 
-	private final ModulesRepository modulesRepository;
+	private final RuntimeModuleInfoRepository modulesRepository;
 
-	private final ContainerModulesRepository modulesPerContainerRepository;
+	private final RuntimeContainerModuleInfoRepository modulesPerContainerRepository;
 
 	private final ObjectMapper mapper = new ObjectMapper();
 
 
-	public ModuleEventListener(ModulesRepository modulesRepository,
-			ContainerModulesRepository modulesPerContainerRepository) {
+	public ModuleEventStoreListener(RuntimeModuleInfoRepository modulesRepository,
+			RuntimeContainerModuleInfoRepository modulesPerContainerRepository) {
 		this.modulesRepository = modulesRepository;
 		this.modulesPerContainerRepository = modulesPerContainerRepository;
 	}
@@ -61,7 +63,8 @@ public class ModuleEventListener implements ApplicationListener<AbstractModuleEv
 
 		try {
 			String moduleProperties = this.mapper.writeValueAsString(module.getProperties());
-			ModuleEntity entity = new ModuleEntity(event.getContainerId(), attributes.get("group"),
+			RuntimeModuleInfoEntity entity = new RuntimeModuleInfoEntity(event.getContainerId(),
+					attributes.get("group"),
 					attributes.get("index"), moduleProperties);
 			if (event instanceof ModuleDeployedEvent) {
 				modulesRepository.save(entity);

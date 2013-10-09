@@ -16,20 +16,43 @@
 
 package org.springframework.xd.dirt.container.store;
 
-import org.springframework.xd.store.AbstractInMemoryRepository;
-
 
 /**
- * InMemory extension for the container repository
+ * Represents Container info model.
  * 
  * @author Ilayaperumal Gopinathan
  */
-public class InMemoryContainerRepository extends AbstractInMemoryRepository<ContainerEntity, String> implements
-		ContainerRepository {
+public class RuntimeContainerInfoEntity {
 
-	@Override
-	protected String keyFor(ContainerEntity container) {
-		return container.getId();
+	private final String id;
+
+	private final String jvmName;
+
+	private final String hostName;
+
+	private final String ipAddress;
+
+	public RuntimeContainerInfoEntity(String id, String jvmName, String hostName, String ipAddress) {
+		this.id = id;
+		this.jvmName = jvmName;
+		this.hostName = hostName;
+		this.ipAddress = ipAddress;
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public String getJvmName() {
+		return jvmName;
+	}
+
+	public String getHostName() {
+		return hostName;
+	}
+
+	public String getIpAddress() {
+		return ipAddress;
 	}
 
 }

@@ -31,29 +31,29 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.xd.dirt.module.store.ModuleEntity;
-import org.springframework.xd.dirt.module.store.ModulesRepository;
-import org.springframework.xd.rest.client.domain.ModuleResource;
+import org.springframework.xd.dirt.module.store.RuntimeModuleInfoEntity;
+import org.springframework.xd.dirt.module.store.RuntimeModuleInfoRepository;
+import org.springframework.xd.rest.client.domain.RuntimeModuleInfoResource;
 
 
 /**
- * Controller that handles the interaction with the deployed modules
+ * Controller that handles the interaction with the deployed modules.
  * 
  * @author Ilayaperumal Gopinathan
  */
 @Controller
 @RequestMapping("/runtime/modules")
-@ExposesResourceFor(ModuleResource.class)
+@ExposesResourceFor(RuntimeModuleInfoResource.class)
 public class RuntimeModulesController {
 
-	private ModulesRepository modulesRepository;
+	private RuntimeModuleInfoRepository runtimeModuleInfoRepository;
 
-	private ResourceAssemblerSupport<ModuleEntity, ModuleResource> resourceAssemblerSupport;
+	private ResourceAssemblerSupport<RuntimeModuleInfoEntity, RuntimeModuleInfoResource> resourceAssemblerSupport;
 
 	@Autowired
-	public RuntimeModulesController(ModulesRepository modulesRepository) {
-		this.modulesRepository = modulesRepository;
-		resourceAssemblerSupport = new ModuleResourceAssembler();
+	public RuntimeModulesController(RuntimeModuleInfoRepository runtimeModuleInfoRepository) {
+		this.runtimeModuleInfoRepository = runtimeModuleInfoRepository;
+		resourceAssemblerSupport = new RuntimeModuleInfoResourceAssembler();
 	}
 
 	/**
@@ -62,22 +62,24 @@ public class RuntimeModulesController {
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public PagedResources<ModuleResource> list(Pageable pageable, PagedResourcesAssembler<ModuleEntity> assembler) {
-		Page<ModuleEntity> page = this.modulesRepository.findAll(pageable);
-		PagedResources<ModuleResource> result = safePagedResources(assembler, page);
+	public PagedResources<RuntimeModuleInfoResource> list(Pageable pageable,
+			PagedResourcesAssembler<RuntimeModuleInfoEntity> assembler) {
+		Page<RuntimeModuleInfoEntity> page = this.runtimeModuleInfoRepository.findAll(pageable);
+		PagedResources<RuntimeModuleInfoResource> result = safePagedResources(assembler, page);
 		return result;
 	}
 
 	/*
 	 * Work around https://github.com/SpringSource/spring-hateoas/issues/89
 	 */
-	private PagedResources<ModuleResource> safePagedResources(PagedResourcesAssembler<ModuleEntity> assembler,
-			Page<ModuleEntity> page) {
+	private PagedResources<RuntimeModuleInfoResource> safePagedResources(
+			PagedResourcesAssembler<RuntimeModuleInfoEntity> assembler,
+			Page<RuntimeModuleInfoEntity> page) {
 		if (page.hasContent()) {
 			return assembler.toResource(page, resourceAssemblerSupport);
 		}
 		else {
-			return new PagedResources<ModuleResource>(new ArrayList<ModuleResource>(), null);
+			return new PagedResources<RuntimeModuleInfoResource>(new ArrayList<RuntimeModuleInfoResource>(), null);
 		}
 	}
 

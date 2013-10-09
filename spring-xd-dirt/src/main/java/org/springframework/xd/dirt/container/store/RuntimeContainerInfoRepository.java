@@ -14,26 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.module.store;
+package org.springframework.xd.dirt.container.store;
 
-import org.springframework.data.redis.core.RedisOperations;
+import org.springframework.xd.store.DomainRepository;
 
 
 /**
- * Redis specific implementation for runtime modules repository
+ * Repository for persisting Container entities
  * 
  * @author Ilayaperumal Gopinathan
  */
-public class RedisModulesRepository extends AbstractRedisModulesRepository implements
-		ModulesRepository {
-
-	public RedisModulesRepository(String repoPrefix, RedisOperations<String, String> redisOperations) {
-		super(repoPrefix, redisOperations);
-	}
-
-	@Override
-	protected String keyForEntity(ModuleEntity entity) {
-		return entity.getGroup();
-	}
+public interface RuntimeContainerInfoRepository extends DomainRepository<RuntimeContainerInfoEntity, String> {
 
 }

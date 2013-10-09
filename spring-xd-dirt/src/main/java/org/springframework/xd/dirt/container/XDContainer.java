@@ -180,6 +180,7 @@ public class XDContainer implements SmartLifecycle {
 	public void stop() {
 		if (this.context != null && isContainerRunning()) {
 			this.containerRunning = false;
+			// Publish the container stopped event before the context is closed.
 			this.context.publishEvent(new ContainerStoppedEvent(this));
 			this.context.close();
 			((ConfigurableApplicationContext) context.getParent()).close();

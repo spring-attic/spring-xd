@@ -33,11 +33,11 @@ import org.springframework.xd.store.AbstractRedisRepository;
 
 
 /**
- * Abstract class that has redis hashOperations to operate on {@link ModuleEntity}s.
+ * Abstract class that has redis hashOperations to operate on {@link RuntimeModuleInfoEntity}s.
  * 
  * @author Ilayaperumal Gopinathan
  */
-public abstract class AbstractRedisModulesRepository extends AbstractRedisRepository<ModuleEntity, String> {
+public abstract class AbstractRedisModuleInfoRepository extends AbstractRedisRepository<RuntimeModuleInfoEntity, String> {
 
 	private static final int CONTAINER_ID_INDEX = 0;
 
@@ -49,7 +49,7 @@ public abstract class AbstractRedisModulesRepository extends AbstractRedisReposi
 
 	private HashOperations<String, String, String> hashOperations;
 
-	public AbstractRedisModulesRepository(String repoPrefix, RedisOperations<String, String> redisOperations) {
+	public AbstractRedisModuleInfoRepository(String repoPrefix, RedisOperations<String, String> redisOperations) {
 		super(repoPrefix, redisOperations);
 		hashOperations = redisOperations.opsForHash();
 	}
@@ -69,18 +69,18 @@ public abstract class AbstractRedisModulesRepository extends AbstractRedisReposi
 	}
 
 	@Override
-	protected String keyFor(ModuleEntity entity) {
+	protected String keyFor(RuntimeModuleInfoEntity entity) {
 		return entity.getId();
 	}
 
 	@Override
-	protected ModuleEntity deserialize(String redisKey, String value) {
+	protected RuntimeModuleInfoEntity deserialize(String redisKey, String value) {
 		String[] parts = value.split("\n");
-		return new ModuleEntity(parts[CONTAINER_ID_INDEX], parts[GROUP_INDEX], parts[INDEX], parts[PROPERTIES_INDEX]);
+		return new RuntimeModuleInfoEntity(parts[CONTAINER_ID_INDEX], parts[GROUP_INDEX], parts[INDEX], parts[PROPERTIES_INDEX]);
 	}
 
 	@Override
-	protected String serialize(ModuleEntity entity) {
+	protected String serialize(RuntimeModuleInfoEntity entity) {
 		return entity.getContainerId() + "\n" + entity.getGroup() + "\n" + entity.getIndex() + "\n"
 				+ entity.getProperties();
 	}
@@ -91,14 +91,14 @@ public abstract class AbstractRedisModulesRepository extends AbstractRedisReposi
 		return repoPrefix + ":" + serializeId(id);
 	}
 
-	protected String redisHashKeyFromEntity(ModuleEntity entity) {
+	protected String redisHashKeyFromEntity(RuntimeModuleInfoEntity entity) {
 		return entity.getGroup() + ":" + entity.getIndex();
 	}
 
-	protected abstract String keyForEntity(ModuleEntity entity);
+	protected abstract String keyForEntity(RuntimeModuleInfoEntity entity);
 
 	@Override
-	public <S extends ModuleEntity> S save(S entity) {
+	public <S extends RuntimeModuleInfoEntity> S save(S entity) {
 		String raw = serialize(entity);
 		String entityKey = redisKeyFromId(keyForEntity(entity));
 		trackMembership(entityKey);
@@ -107,7 +107,7 @@ public abstract class AbstractRedisModulesRepository extends AbstractRedisReposi
 	}
 
 	@Override
-	public void delete(ModuleEntity entity) {
+	public void delete(RuntimeModuleInfoEntity entity) {
 		String entityKey = redisKeyFromId(keyForEntity(entity));
 		redisOperations.boundHashOps(entityKey).delete(redisHashKeyFromEntity(entity));
 		if (redisOperations.boundHashOps(entityKey).entries().isEmpty()) {
@@ -116,11 +116,11 @@ public abstract class AbstractRedisModulesRepository extends AbstractRedisReposi
 	}
 
 	@Override
-	public Iterable<ModuleEntity> findAll() {
+	public Iterable<RuntimeModuleInfoEntity> findAll() {
 		// This set is sorted
 		Set<String> keys = zSetOperations.range(0, -1);
 
-		List<ModuleEntity> result = new ArrayList<ModuleEntity>(keys.size());
+		List<RuntimeModuleInfoEntity> result = new ArrayList<RuntimeModuleInfoEntity>(keys.size());
 		for (String entityKey : keys) {
 			Map<String, String> entityValues = hashOperations.entries(entityKey);
 			for (Map.Entry<String, String> entry : entityValues.entrySet()) {
@@ -131,12 +131,12 @@ public abstract class AbstractRedisModulesRepository extends AbstractRedisReposi
 	}
 
 	@Override
-	public Iterable<ModuleEntity> findAll(Iterable<String> ids) {
+	public Iterable<RuntimeModuleInfoEntity> findAll(Iterable<String> ids) {
 		List<String> redisKeys = new ArrayList<String>();
 		for (String id : ids) {
 			redisKeys.add(redisKeyFromId(id));
 		}
-		List<ModuleEntity> result = new ArrayList<ModuleEntity>(redisKeys.size());
+		List<RuntimeModuleInfoEntity> result = new ArrayList<RuntimeModuleInfoEntity>(redisKeys.size());
 		for (String entityKey : redisKeys) {
 			Map<String, String> entityValues = hashOperations.entries(entityKey);
 			for (Map.Entry<String, String> entry : entityValues.entrySet()) {
@@ -147,7 +147,7 @@ public abstract class AbstractRedisModulesRepository extends AbstractRedisReposi
 	}
 
 	@Override
-	public Page<ModuleEntity> findAll(Pageable pageable) {
+	public Page<RuntimeModuleInfoEntity> findAll(Pageable pageable) {
 		Assert.isNull(pageable.getSort(), "Arbitrary sorting is not implemented");
 		long count = zSetOperations.size();
 		// redis in inclusive on right side, hence -1
@@ -157,29 +157,29 @@ public abstract class AbstractRedisModulesRepository extends AbstractRedisReposi
 		Set<String> redisKeys = (to == -1) ? Collections.<String> emptySet() : zSetOperations.range(
 				pageable.getOffset(), to);
 
-		List<ModuleEntity> result = new ArrayList<ModuleEntity>(redisKeys.size());
+		List<RuntimeModuleInfoEntity> result = new ArrayList<RuntimeModuleInfoEntity>(redisKeys.size());
 		for (String entityKey : redisKeys) {
 			Map<String, String> entityValues = hashOperations.entries(entityKey);
 			for (Map.Entry<String, String> entry : entityValues.entrySet()) {
 				result.add(deserialize(entry.getKey(), entry.getValue()));
 			}
 		}
-		return new PageImpl<ModuleEntity>(result, pageable, count);
+		return new PageImpl<RuntimeModuleInfoEntity>(result, pageable, count);
 	}
 
 	@Override
-	public ModuleEntity findOne(String id) {
+	public RuntimeModuleInfoEntity findOne(String id) {
 		throw new UnsupportedOperationException("Can't find a module entity by id");
 	}
 
 	@Override
-	public Iterable<ModuleEntity> findAllInRange(String from, boolean fromInclusive, String to, boolean toInclusive) {
+	public Iterable<RuntimeModuleInfoEntity> findAllInRange(String from, boolean fromInclusive, String to, boolean toInclusive) {
 		Set<String> keys = zSetOperations.range(0, -1);
 		String fromRedis = redisKeyFromId(from);
 		String toRedis = redisKeyFromId(to);
 		Set<String> subSet = new TreeSet<String>(keys).subSet(fromRedis, fromInclusive, toRedis, toInclusive);
 
-		List<ModuleEntity> result = new ArrayList<ModuleEntity>(subSet.size());
+		List<RuntimeModuleInfoEntity> result = new ArrayList<RuntimeModuleInfoEntity>(subSet.size());
 		for (String entityKey : subSet) {
 			Map<String, String> entityValues = hashOperations.entries(entityKey);
 			for (Map.Entry<String, String> entry : entityValues.entrySet()) {

@@ -17,8 +17,8 @@
 package org.springframework.xd.rest.client.impl;
 
 import org.springframework.xd.rest.client.RuntimeOperations;
-import org.springframework.xd.rest.client.domain.ContainerResource;
-import org.springframework.xd.rest.client.domain.ModuleResource;
+import org.springframework.xd.rest.client.domain.RuntimeContainerInfoResource;
+import org.springframework.xd.rest.client.domain.RuntimeModuleInfoResource;
 
 
 /**
@@ -33,22 +33,22 @@ public class RuntimeTemplate extends AbstractTemplate implements RuntimeOperatio
 	}
 
 	@Override
-	public ContainerResource.Page listRuntimeContainers() {
+	public RuntimeContainerInfoResource.Page listRuntimeContainers() {
 		String uriTemplate = resources.get("runtime/containers").toString();
 		uriTemplate = uriTemplate + "?size=10000";
-		return restTemplate.getForObject(uriTemplate, ContainerResource.Page.class);
+		return restTemplate.getForObject(uriTemplate, RuntimeContainerInfoResource.Page.class);
 	}
 
 	@Override
-	public ModuleResource.Page listRuntimeModules() {
+	public RuntimeModuleInfoResource.Page listRuntimeModules() {
 		String uriTemplate = resources.get("runtime/modules").toString();
 		uriTemplate = uriTemplate + "?size=10000";
-		return restTemplate.getForObject(uriTemplate, ModuleResource.Page.class);
+		return restTemplate.getForObject(uriTemplate, RuntimeModuleInfoResource.Page.class);
 	}
 
 	@Override
-	public ModuleResource.List listRuntimeModulesByContainer(String containerId) {
+	public RuntimeModuleInfoResource.List listRuntimeModulesByContainer(String containerId) {
 		String url = resources.get("runtime/containers").toString() + "/{containerId}/modules";
-		return restTemplate.getForObject(url, ModuleResource.List.class, containerId);
+		return restTemplate.getForObject(url, RuntimeModuleInfoResource.List.class, containerId);
 	}
 }

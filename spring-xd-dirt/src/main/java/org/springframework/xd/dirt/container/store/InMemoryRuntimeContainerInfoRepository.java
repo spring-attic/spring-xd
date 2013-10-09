@@ -14,22 +14,23 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.module.store;
+package org.springframework.xd.dirt.container.store;
 
 import org.springframework.xd.store.AbstractInMemoryRepository;
 
 
 /**
- * InMemory extension for the deployed modules repository
+ * InMemory extension for the runtime container info repository.
  * 
  * @author Ilayaperumal Gopinathan
  */
-public class InMemoryModulesRepository extends AbstractInMemoryRepository<ModuleEntity, String> implements
-		ModulesRepository {
+public class InMemoryRuntimeContainerInfoRepository extends
+		AbstractInMemoryRepository<RuntimeContainerInfoEntity, String> implements
+		RuntimeContainerInfoRepository {
 
 	@Override
-	protected String keyFor(ModuleEntity entity) {
-		return entity.getGroup() + ":" + entity.getIndex();
+	protected String keyFor(RuntimeContainerInfoEntity container) {
+		return container.getId();
 	}
 
 }

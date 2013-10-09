@@ -16,63 +16,67 @@
 
 package org.springframework.xd.rest.client.domain;
 
+import java.util.ArrayList;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.ResourceSupport;
-import org.springframework.util.Assert;
 
 
 /**
- * Represents a Container
+ * Represents a runtime module.
  * 
  * @author Ilayaperumal Gopinathan
  */
 @XmlRootElement
-public class ContainerResource extends ResourceSupport {
+public class RuntimeModuleInfoResource extends ResourceSupport {
+
+	private String moduleId;
 
 	private String containerId;
 
-	private String jvmName;
+	private String group;
 
-	private String hostName;
+	private String index;
 
-	private String ipAddress;
+	private String properties;
 
 	@SuppressWarnings("unused")
-	private ContainerResource() {
+	private RuntimeModuleInfoResource() {
 	}
 
-	public ContainerResource(String containerId, String jvmName, String hostName, String ipAddress) {
-		Assert.hasText(containerId, "Container Id can not be empty");
-		Assert.hasText(jvmName, "JVM name can not be empty");
-		Assert.hasText(hostName, "Hostname can not be empty");
-		Assert.hasText(ipAddress, "IP address can not be empty");
+	public RuntimeModuleInfoResource(String containerId, String group, String index, String properties) {
+		this.moduleId = containerId + ":" + group + ":" + index;
 		this.containerId = containerId;
-		this.jvmName = jvmName;
-		this.hostName = hostName;
-		this.ipAddress = ipAddress;
+		this.group = group;
+		this.index = index;
+		this.properties = properties;
+	}
+
+	public String getModuleId() {
+		return moduleId;
 	}
 
 	public String getContainerId() {
 		return containerId;
 	}
 
-	public String getJvmName() {
-		return jvmName;
+	public String getGroup() {
+		return group;
 	}
 
-	public String getHostName() {
-		return hostName;
+	public String getIndex() {
+		return index;
 	}
 
-	public String getIpAddress() {
-		return ipAddress;
+	public String getProperties() {
+		return properties;
 	}
 
 	@Override
 	public String toString() {
-		return this.containerId;
+		return this.moduleId;
 	}
 
 	/**
@@ -80,7 +84,11 @@ public class ContainerResource extends ResourceSupport {
 	 * 
 	 * @author Eric Bottard
 	 */
-	public static class Page extends PagedResources<ContainerResource> {
+	public static class Page extends PagedResources<RuntimeModuleInfoResource> {
+
+	}
+
+	public static class List extends ArrayList<RuntimeModuleInfoResource> {
 
 	}
 

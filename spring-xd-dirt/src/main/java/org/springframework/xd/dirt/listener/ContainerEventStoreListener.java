@@ -13,23 +13,25 @@
 
 package org.springframework.xd.dirt.listener;
 
-import org.springframework.xd.dirt.container.store.ContainerEntity;
-import org.springframework.xd.dirt.container.store.ContainerRepository;
+import org.springframework.xd.dirt.container.store.RuntimeContainerInfoEntity;
+import org.springframework.xd.dirt.container.store.RuntimeContainerInfoRepository;
 
 /**
+ * Container event listener that stores the container info.
+ * 
  * @author David Turanski
  * @author Ilayaperumal Gopinathan
  */
-public class ContainerEventListener extends AbstractContainerEventListener {
+public class ContainerEventStoreListener extends AbstractContainerEventStoreListener {
 
-	private final ContainerRepository containerRepository;
+	private final RuntimeContainerInfoRepository containerRepository;
 
-	public ContainerEventListener(ContainerRepository containerRepository) {
+	public ContainerEventStoreListener(RuntimeContainerInfoRepository containerRepository) {
 		this.containerRepository = containerRepository;
 	}
 
 	@Override
-	protected void storeContainerEntity(ContainerEntity entity) {
+	protected void storeContainerEntity(RuntimeContainerInfoEntity entity) {
 		this.containerRepository.save(entity);
 	}
 

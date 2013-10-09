@@ -37,8 +37,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.xd.dirt.container.store.ContainerEntity;
-import org.springframework.xd.dirt.module.store.ModuleEntity;
+import org.springframework.xd.dirt.container.store.RuntimeContainerInfoEntity;
+import org.springframework.xd.dirt.module.store.RuntimeModuleInfoEntity;
 
 /**
  * Tests REST compliance of containers endpoint
@@ -53,21 +53,21 @@ public class ContainersControllerIntegrationTests extends AbstractControllerInte
 	@Before
 	public void before() {
 		PageRequest pageable = new PageRequest(0, 20);
-		ContainerEntity container1 = new ContainerEntity("1", "container1@1234", "host1", "127.0.0.1");
-		ContainerEntity container2 = new ContainerEntity("2", "container2@2345", "host2", "192.168.2.1");
-		List<ContainerEntity> containerEntities = new ArrayList<ContainerEntity>();
+		RuntimeContainerInfoEntity container1 = new RuntimeContainerInfoEntity("1", "container1@1234", "host1", "127.0.0.1");
+		RuntimeContainerInfoEntity container2 = new RuntimeContainerInfoEntity("2", "container2@2345", "host2", "192.168.2.1");
+		List<RuntimeContainerInfoEntity> containerEntities = new ArrayList<RuntimeContainerInfoEntity>();
 		containerEntities.add(container1);
 		containerEntities.add(container2);
-		ModuleEntity module1 = new ModuleEntity("1", "foo", "0", "{}");
-		ModuleEntity module2 = new ModuleEntity("2", "bar", "1", "{}");
-		List<ModuleEntity> containerModules1 = new ArrayList<ModuleEntity>();
-		List<ModuleEntity> containerModules2 = new ArrayList<ModuleEntity>();
+		RuntimeModuleInfoEntity module1 = new RuntimeModuleInfoEntity("1", "foo", "0", "{}");
+		RuntimeModuleInfoEntity module2 = new RuntimeModuleInfoEntity("2", "bar", "1", "{}");
+		List<RuntimeModuleInfoEntity> containerModules1 = new ArrayList<RuntimeModuleInfoEntity>();
+		List<RuntimeModuleInfoEntity> containerModules2 = new ArrayList<RuntimeModuleInfoEntity>();
 		containerModules1.add(module1);
 		containerModules2.add(module2);
-		Page<ContainerEntity> pagedEntity = new PageImpl<>(containerEntities);
+		Page<RuntimeContainerInfoEntity> pagedEntity = new PageImpl<>(containerEntities);
 		when(containerRepository.findAll(pageable)).thenReturn(pagedEntity);
-		when(containerModulesRepository.findAll("1")).thenReturn(containerModules1);
-		when(containerModulesRepository.findAll("2")).thenReturn(containerModules2);
+		when(containerModulesRepository.findAllByContainerId("1")).thenReturn(containerModules1);
+		when(containerModulesRepository.findAllByContainerId("2")).thenReturn(containerModules2);
 	}
 
 	@Test

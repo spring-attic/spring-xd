@@ -32,6 +32,6 @@ public interface RuntimeOperations {
 
 	public PagedResources<RuntimeModuleInfoResource> listRuntimeModules();
 
-	public RuntimeModuleInfoResource.List listRuntimeModulesByContainer(String containerId);
+	public PagedResources<RuntimeModuleInfoResource> listRuntimeModulesByContainer(String containerId);
 
 }

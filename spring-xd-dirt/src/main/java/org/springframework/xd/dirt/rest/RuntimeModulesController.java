@@ -29,8 +29,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.xd.dirt.module.store.RuntimeContainerModuleInfoRepository;
 import org.springframework.xd.dirt.module.store.RuntimeModuleInfoEntity;
 import org.springframework.xd.dirt.module.store.RuntimeModuleInfoRepository;
 import org.springframework.xd.rest.client.domain.RuntimeModuleInfoResource;
@@ -48,12 +50,16 @@ public class RuntimeModulesController {
 
 	private RuntimeModuleInfoRepository runtimeModuleInfoRepository;
 
-	private ResourceAssemblerSupport<RuntimeModuleInfoEntity, RuntimeModuleInfoResource> resourceAssemblerSupport;
+	private RuntimeContainerModuleInfoRepository runtimeContainerModuleInfoRepository;
+
+	private ResourceAssemblerSupport<RuntimeModuleInfoEntity, RuntimeModuleInfoResource> runtimeModuleResourceAssemblerSupport;
 
 	@Autowired
-	public RuntimeModulesController(RuntimeModuleInfoRepository runtimeModuleInfoRepository) {
+	public RuntimeModulesController(RuntimeModuleInfoRepository runtimeModuleInfoRepository,
+			RuntimeContainerModuleInfoRepository runtimeContainerModuleInfoRepository) {
 		this.runtimeModuleInfoRepository = runtimeModuleInfoRepository;
-		resourceAssemblerSupport = new RuntimeModuleInfoResourceAssembler();
+		this.runtimeContainerModuleInfoRepository = runtimeContainerModuleInfoRepository;
+		runtimeModuleResourceAssemblerSupport = new RuntimeModuleInfoResourceAssembler();
 	}
 
 	/**
@@ -63,8 +69,15 @@ public class RuntimeModulesController {
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
 	public PagedResources<RuntimeModuleInfoResource> list(Pageable pageable,
-			PagedResourcesAssembler<RuntimeModuleInfoEntity> assembler) {
-		Page<RuntimeModuleInfoEntity> page = this.runtimeModuleInfoRepository.findAll(pageable);
+			PagedResourcesAssembler<RuntimeModuleInfoEntity> assembler,
+			@RequestParam(value = "containerId", required = false) String containerId) {
+		Page<RuntimeModuleInfoEntity> page;
+		if (containerId != null) {
+			page = this.runtimeContainerModuleInfoRepository.findAllByContainerId(pageable, containerId);
+		}
+		else {
+			page = this.runtimeModuleInfoRepository.findAll(pageable);
+		}
 		PagedResources<RuntimeModuleInfoResource> result = safePagedResources(assembler, page);
 		return result;
 	}
@@ -76,7 +89,7 @@ public class RuntimeModulesController {
 			PagedResourcesAssembler<RuntimeModuleInfoEntity> assembler,
 			Page<RuntimeModuleInfoEntity> page) {
 		if (page.hasContent()) {
-			return assembler.toResource(page, resourceAssemblerSupport);
+			return assembler.toResource(page, runtimeModuleResourceAssemblerSupport);
 		}
 		else {
 			return new PagedResources<RuntimeModuleInfoResource>(new ArrayList<RuntimeModuleInfoResource>(), null);

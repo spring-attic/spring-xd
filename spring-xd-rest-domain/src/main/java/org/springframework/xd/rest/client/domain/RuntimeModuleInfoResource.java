@@ -16,8 +16,6 @@
 
 package org.springframework.xd.rest.client.domain;
 
-import java.util.ArrayList;
-
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.springframework.hateoas.PagedResources;
@@ -87,9 +85,4 @@ public class RuntimeModuleInfoResource extends ResourceSupport {
 	public static class Page extends PagedResources<RuntimeModuleInfoResource> {
 
 	}
-
-	public static class List extends ArrayList<RuntimeModuleInfoResource> {
-
-	}
-
 }

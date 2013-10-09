@@ -20,6 +20,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisOperations;
 
 
@@ -28,7 +31,7 @@ import org.springframework.data.redis.core.RedisOperations;
  * 
  * @author Ilayaperumal Gopinathan
  */
-public class RedisRuntimeContainerModuleInfoRepository extends AbstractRedisModuleInfoRepository implements
+public class RedisRuntimeContainerModuleInfoRepository extends AbstractRedisRuntimeModuleInfoRepository implements
 		RuntimeContainerModuleInfoRepository {
 
 	public RedisRuntimeContainerModuleInfoRepository(String repoPrefix, RedisOperations<String, String> redisOperations) {
@@ -41,13 +44,13 @@ public class RedisRuntimeContainerModuleInfoRepository extends AbstractRedisModu
 	}
 
 	@Override
-	public List<RuntimeModuleInfoEntity> findAllByContainerId(String containerId) {
+	public Page<RuntimeModuleInfoEntity> findAllByContainerId(Pageable pageable, String containerId) {
 		Map<String, String> entityValues = getHashOperations().entries(redisKeyFromId(containerId));
 		List<RuntimeModuleInfoEntity> result = new ArrayList<RuntimeModuleInfoEntity>();
 		for (Map.Entry<String, String> entry : entityValues.entrySet()) {
 			result.add(deserialize(entry.getKey(), entry.getValue()));
 		}
-		return result;
+		return new PageImpl<RuntimeModuleInfoEntity>(result, pageable, result.size());
 	}
 
 }

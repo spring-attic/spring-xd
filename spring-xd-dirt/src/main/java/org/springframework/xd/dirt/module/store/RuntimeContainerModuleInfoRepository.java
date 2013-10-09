@@ -16,6 +16,8 @@
 
 package org.springframework.xd.dirt.module.store;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.xd.store.DomainRepository;
 
 
@@ -26,6 +28,6 @@ import org.springframework.xd.store.DomainRepository;
  */
 public interface RuntimeContainerModuleInfoRepository extends DomainRepository<RuntimeModuleInfoEntity, String> {
 
-	Iterable<RuntimeModuleInfoEntity> findAllByContainerId(String containerId);
+	Page<RuntimeModuleInfoEntity> findAllByContainerId(Pageable pageable, String containerId);
 
 }

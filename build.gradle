@@ -363,10 +363,15 @@ project('spring-xd-dirt') {
 		// ************* Container: Modules (should move on their own: XD-915)
 		compile project(":spring-xd-hadoop")
 
+		runtime project(":spring-xd-extension-gemfire")
+
+		runtime project(":spring-xd-extension-splunk")
+
+		runtime project(":spring-xd-extension-twitter")
 
 		// ************* Container: Imposed by some Module (can't move)
 		compile "com.sun.mail:javax.mail:$javaxMailVersion"
-		runtime project(":spring-xd-reactor")
+		runtime project(":spring-xd-extension-reactor")
 
 
 		// ************* Test
@@ -457,7 +462,9 @@ project('spring-xd-dirt') {
 	tasks["clean"].dependsOn("cleanDataDir")
 }
 
-project('spring-xd-http') {
+// Extension projects, supporting module definitions.
+
+project('spring-xd-extension-http') {
 	description = 'Spring XD HTTP'
 	dependencies {
 		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
@@ -467,149 +474,56 @@ project('spring-xd-http') {
 	}
 }
 
-project('spring-xd-gemfire') {
+project('spring-xd-extension-gemfire') {
 	description = 'Spring XD Gemfire'
 	dependencies {
 		compile "org.springframework.integration:spring-integration-gemfire:$springIntegrationVersion"
 	}
 }
 
-project('spring-xd-twitter') {
+project('spring-xd-extension-twitter') {
 	description = 'Spring XD Twitter'
 	dependencies {
 		compile "org.springframework.integration:spring-integration-twitter:$springIntegrationVersion"
 	}
 }
 
-project('spring-xd-splunk') {
+project('spring-xd-extension-splunk') {
 	description = 'Spring XD Splunk'
 	dependencies {
 		compile "org.springframework.integration:spring-integration-splunk:$springIntegrationSplunkVersion"
 	}
 }
 
-project ('spring-xd-gemfire-server') {
-	description = 'Gemfire Server to support XD Development and Demos'
+project('spring-xd-extension-jdbc') {
+	description = 'Spring XD JDBC'
 	dependencies {
-		compile "commons-beanutils:commons-beanutils:$commonsBeanUtilsVersion"
-		compile "org.springframework.data:spring-data-gemfire:$springDataGemfireVersion"
-		compile project(':spring-xd-tuple')
-		runtime "log4j:log4j:$log4jVersion",
-				"org.slf4j:jcl-over-slf4j:$slf4jVersion",
-				"org.slf4j:slf4j-log4j12:$slf4jVersion"
-	}
-	apply plugin:'application'
-	// skip the startScripts task to avoid default start script generation
-	startScripts.setEnabled(false)
-
-	task(launch, dependsOn: 'classes', type: JavaExec) {
-		main = 'org.springframework.xd.gemfire.CacheServer'
-		classpath = sourceSets.test.runtimeClasspath
-		if (rootProject.hasProperty('config')) {
-			args = ["${rootProject.getProperty('config')}"]
-		}
-	}
-
-	mainClassName = 'org.springframework.xd.gemfire.CacheServer'
-
-	task configFiles {
-		def configs = file("$rootDir/spring-xd-gemfire-server/config")
-		outputs.dir configs
-	}
-
-	applicationDistribution.from(configFiles) {
-		into "config"
-	}
-
-	task scriptFiles {
-		def scripts = file("$rootDir/scripts/gemfire")
-		outputs.dir scripts
-	}
-
-	applicationDistribution.from(scriptFiles) {
-		into "bin"
-	}
-}
-
-
-project('redis') {
-	description = 'Redis distribution'
-	task syncScriptFiles(type: Sync) {
-		from "$rootDir/scripts/redis"
-		into project.file("${project.buildDir}/bin")
-	}
-
-	task sourceDist {
-		def distFile = file("$rootDir/redis/dist")
-		outputs.dir distFile
-	}
-
-	task syncDistFile(type: Sync) {
-		from "$rootDir/redis/dist"
-		into project.file("${project.buildDir}/dist")
-	}
-
-	task bundleRedis(dependsOn: ['syncScriptFiles', 'syncDistFile']) {
-		description = "Bundle redis source dist with install script"
-	}
-
-	task clean(type: Delete) {
-		description = "Wipes Redis build directory"
-		delete 'build'
-	}
-}
-
-project('spring-xd-module') {
-	description = 'Spring XD Module'
-	dependencies {
-		compile "org.springframework:spring-core:$springVersion"
-		compile "org.springframework:spring-context:$springVersion"
-		compile "org.springframework:spring-web:$springVersion"
-	}
-}
-
-project('spring-integration-module') {
-	description = 'Spring Integration Module Support'
-	dependencies {
-		compile project(":spring-xd-module")
-		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
-	}
-}
-
-project('spring-xd-tuple') {
-	description = 'Spring XD Tuple'
-	dependencies {
-	    compile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
-		compile "org.springframework:spring-context:$springVersion"
-		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
-		compile "org.springframework.batch:spring-batch-infrastructure:$springBatchVersion"
 		compile "org.springframework:spring-jdbc:$springVersion"
-		testCompile ("org.mockito:mockito-core:$mockitoVersion") {
-			exclude group:'org.hamcrest'
-		}
+		compile "org.springframework:spring-tx:$springVersion"
+		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
+		runtime "org.springframework.integration:spring-integration-jdbc:$springIntegrationVersion"
+		runtime "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
+		runtime "org.hsqldb:hsqldb:$hsqldbVersion"
+		runtime "mysql:mysql-connector-java:5.1.23"
+		runtime "postgresql:postgresql:9.1-901-1.jdbc4"
 	}
 }
 
-project('spring-xd-rest-client') {
-	description = 'Spring XD REST Client'
+project('spring-xd-extension-reactor') {
+	description = 'Spring XD Reactor'
 	dependencies {
-		compile "org.springframework:spring-web:$springVersion"
-		compile project(':spring-xd-rest-domain')
-		compile project(":spring-xd-module")
-		compile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
-		compile 'org.codehaus.jackson:jackson-core-asl:1.9.13'
-        compile "joda-time:joda-time:$jodaTimeVersion"
-	}
-}
+		compile "org.projectreactor:reactor-spring:$reactorVersion",
+				"org.projectreactor:reactor-tcp:$reactorVersion",
+				"org.springframework.integration:spring-integration-core:$springIntegrationVersion"
 
-project('spring-xd-rest-domain') {
-	description = 'Spring XD REST Domain'
-			dependencies {
-		compile ("org.springframework.hateoas:spring-hateoas:$springHATEOASVersion") {
-			exclude module: "spring-asm"
+		testCompile project(":spring-xd-test")
+		testCompile "com.jayway.jsonpath:json-path:0.8.1"
+		testCompile("org.mockito:mockito-core:$mockitoVersion") {
+			exclude group: 'org.hamcrest'
 		}
-		compile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
-		compile 'org.codehaus.jackson:jackson-core-asl:1.9.13'
+		testRuntime "org.slf4j:jcl-over-slf4j:$slf4jVersion",
+				"org.slf4j:slf4j-log4j12:$slf4jVersion",
+				"log4j:log4j:$log4jVersion"
 	}
 }
 
@@ -738,37 +652,137 @@ project('spring-xd-hadoop:phd1') {
 	}
 }
 
-project('spring-xd-jdbc') {
-	description = 'Spring XD JDBC'
+
+// 'Binary' distributions projects
+
+project ('spring-xd-gemfire-server') {
+	description = 'Gemfire Server to support XD Development and Demos'
 	dependencies {
-		compile "org.springframework:spring-jdbc:$springVersion"
-		compile "org.springframework:spring-tx:$springVersion"
-		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
-		runtime "org.springframework.integration:spring-integration-jdbc:$springIntegrationVersion"
-		runtime "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
-		runtime "org.hsqldb:hsqldb:$hsqldbVersion"
-		runtime "mysql:mysql-connector-java:5.1.23"
-		runtime "postgresql:postgresql:9.1-901-1.jdbc4"
+		compile "commons-beanutils:commons-beanutils:$commonsBeanUtilsVersion"
+		compile "org.springframework.data:spring-data-gemfire:$springDataGemfireVersion"
+		compile project(':spring-xd-tuple')
+		runtime "log4j:log4j:$log4jVersion",
+				"org.slf4j:jcl-over-slf4j:$slf4jVersion",
+				"org.slf4j:slf4j-log4j12:$slf4jVersion"
 	}
-}
+	apply plugin:'application'
+	// skip the startScripts task to avoid default start script generation
+	startScripts.setEnabled(false)
 
-project('spring-xd-reactor') {
-	description = 'Spring XD Reactor'
-	dependencies {
-		compile "org.projectreactor:reactor-spring:$reactorVersion",
-				"org.projectreactor:reactor-tcp:$reactorVersion",
-				"org.springframework.integration:spring-integration-core:$springIntegrationVersion"
-
-		testCompile project(":spring-xd-test")
-		testCompile "com.jayway.jsonpath:json-path:0.8.1"
-		testCompile("org.mockito:mockito-core:$mockitoVersion") {
-			exclude group: 'org.hamcrest'
+	task(launch, dependsOn: 'classes', type: JavaExec) {
+		main = 'org.springframework.xd.gemfire.CacheServer'
+		classpath = sourceSets.test.runtimeClasspath
+		if (rootProject.hasProperty('config')) {
+			args = ["${rootProject.getProperty('config')}"]
 		}
-		testRuntime "org.slf4j:jcl-over-slf4j:$slf4jVersion",
-				"org.slf4j:slf4j-log4j12:$slf4jVersion",
-				"log4j:log4j:$log4jVersion"
+	}
+
+	mainClassName = 'org.springframework.xd.gemfire.CacheServer'
+
+	task configFiles {
+		def configs = file("$rootDir/spring-xd-gemfire-server/config")
+		outputs.dir configs
+	}
+
+	applicationDistribution.from(configFiles) {
+		into "config"
+	}
+
+	task scriptFiles {
+		def scripts = file("$rootDir/scripts/gemfire")
+		outputs.dir scripts
+	}
+
+	applicationDistribution.from(scriptFiles) {
+		into "bin"
 	}
 }
+
+
+project('redis') {
+	description = 'Redis distribution'
+	task syncScriptFiles(type: Sync) {
+		from "$rootDir/scripts/redis"
+		into project.file("${project.buildDir}/bin")
+	}
+
+	task sourceDist {
+		def distFile = file("$rootDir/redis/dist")
+		outputs.dir distFile
+	}
+
+	task syncDistFile(type: Sync) {
+		from "$rootDir/redis/dist"
+		into project.file("${project.buildDir}/dist")
+	}
+
+	task bundleRedis(dependsOn: ['syncScriptFiles', 'syncDistFile']) {
+		description = "Bundle redis source dist with install script"
+	}
+
+	task clean(type: Delete) {
+		description = "Wipes Redis build directory"
+		delete 'build'
+	}
+}
+
+// Subprojects of Spring XD proper
+
+project('spring-xd-module') {
+	description = 'Spring XD Module'
+	dependencies {
+		compile "org.springframework:spring-core:$springVersion"
+		compile "org.springframework:spring-context:$springVersion"
+		compile "org.springframework:spring-web:$springVersion"
+	}
+}
+
+project('spring-integration-module') {
+	description = 'Spring Integration Module Support'
+	dependencies {
+		compile project(":spring-xd-module")
+		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
+	}
+}
+
+project('spring-xd-tuple') {
+	description = 'Spring XD Tuple'
+	dependencies {
+	    compile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
+		compile "org.springframework:spring-context:$springVersion"
+		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
+		compile "org.springframework.batch:spring-batch-infrastructure:$springBatchVersion"
+		compile "org.springframework:spring-jdbc:$springVersion"
+		testCompile ("org.mockito:mockito-core:$mockitoVersion") {
+			exclude group:'org.hamcrest'
+		}
+	}
+}
+
+project('spring-xd-rest-client') {
+	description = 'Spring XD REST Client'
+	dependencies {
+		compile "org.springframework:spring-web:$springVersion"
+		compile project(':spring-xd-rest-domain')
+		compile project(":spring-xd-module")
+		compile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
+		compile 'org.codehaus.jackson:jackson-core-asl:1.9.13'
+        compile "joda-time:joda-time:$jodaTimeVersion"
+	}
+}
+
+project('spring-xd-rest-domain') {
+	description = 'Spring XD REST Domain'
+			dependencies {
+		compile ("org.springframework.hateoas:spring-hateoas:$springHATEOASVersion") {
+			exclude module: "spring-asm"
+		}
+		compile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
+		compile 'org.codehaus.jackson:jackson-core-asl:1.9.13'
+	}
+}
+
+// Module definition projects (for projects w/ classpath)
 
 project('modules') {
 	description = 'Spring XD Modules'
@@ -811,7 +825,7 @@ project('modules.source.tail') {
 
 project('modules.source.http') {
 	dependencies {
-		runtime	project(":spring-xd-http")
+		runtime	project(":spring-xd-extension-http")
 	}
 }
 
@@ -874,7 +888,7 @@ project('modules.source.jms') {
 // Does not work b/c of shared Reactor stuff in module-common.xml
 //project('modules.source.reactor-syslog') {
 //	dependencies {
-//		runtime project(":spring-xd-reactor")
+//		runtime project(":spring-xd-extension-reactor")
 //	}
 //}
 
@@ -893,7 +907,7 @@ project('modules.sink.file') {
 
 project('modules.sink.jdbc') {
 	dependencies {
-		runtime project(":spring-xd-jdbc")
+		runtime project(":spring-xd-extension-jdbc")
 	}
 }
 
@@ -906,6 +920,8 @@ project('modules.sink.mail') {
 
 	}
 }
+
+
 
 project('spring-xd-ui') {
 	description = 'Spring XD UI'

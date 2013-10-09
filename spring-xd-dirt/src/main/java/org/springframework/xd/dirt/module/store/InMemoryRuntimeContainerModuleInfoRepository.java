@@ -16,16 +16,28 @@
 
 package org.springframework.xd.dirt.module.store;
 
-import org.springframework.xd.store.DomainRepository;
+import java.util.List;
+
+import org.springframework.xd.store.AbstractInMemoryRepository;
 
 
 /**
- * Repository for persisting runtime modules mapped to their containers
+ * InMemory extension for the runtime module info repository with the modules mapped under their containers.
  * 
  * @author Ilayaperumal Gopinathan
  */
-public interface ContainerModulesRepository extends DomainRepository<ModuleEntity, String> {
+public class InMemoryRuntimeContainerModuleInfoRepository extends
+		AbstractInMemoryRepository<RuntimeModuleInfoEntity, String> implements
+		RuntimeContainerModuleInfoRepository {
 
-	Iterable<ModuleEntity> findAll(String containerId);
+	@Override
+	protected String keyFor(RuntimeModuleInfoEntity entity) {
+		return entity.getContainerId();
+	}
+
+	@Override
+	public List<RuntimeModuleInfoEntity> findAllByContainerId(String containerId) {
+		return (List<RuntimeModuleInfoEntity>) findAll();
+	}
 
 }

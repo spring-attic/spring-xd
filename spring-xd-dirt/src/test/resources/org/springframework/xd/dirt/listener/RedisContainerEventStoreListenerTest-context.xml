@@ -13,11 +13,11 @@
 		http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<bean class="org.springframework.xd.dirt.listener.ContainerEventListener">
-		<constructor-arg ref="containerRepository"/>
+	<bean class="org.springframework.xd.dirt.listener.ContainerEventStoreListener">
+		<constructor-arg ref="runtimeContainerInfoRepository"/>
 	</bean>
 
-	<bean id="containerRepository" class="org.springframework.xd.dirt.container.store.RedisContainerRepository">
+	<bean id="runtimeContainerInfoRepository" class="org.springframework.xd.dirt.container.store.RedisRuntimeContainerInfoRepository">
 		<constructor-arg ref="humanFriendlyRedisTemplate" />
 	</bean>
 	

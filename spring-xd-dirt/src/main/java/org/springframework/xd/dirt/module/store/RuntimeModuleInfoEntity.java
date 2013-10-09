@@ -14,45 +14,52 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.container.store;
+package org.springframework.xd.dirt.module.store;
 
 
 /**
- * Represents Container model
+ * Represents runtime module model info.
  * 
  * @author Ilayaperumal Gopinathan
  */
-public class ContainerEntity {
+public class RuntimeModuleInfoEntity {
 
 	private final String id;
 
-	private final String jvmName;
+	private final String containerId;
 
-	private final String hostName;
+	private final String group;
 
-	private final String ipAddress;
+	private final String index;
 
-	public ContainerEntity(String id, String jvmName, String hostName, String ipAddress) {
-		this.id = id;
-		this.jvmName = jvmName;
-		this.hostName = hostName;
-		this.ipAddress = ipAddress;
+	private final String properties;
+
+	public RuntimeModuleInfoEntity(String containerId, String group, String index, String properties) {
+		this.id = containerId + ":" + group + ":" + index;
+		this.containerId = containerId;
+		this.group = group;
+		this.index = index;
+		this.properties = properties;
 	}
 
 	public String getId() {
 		return id;
 	}
 
-	public String getJvmName() {
-		return jvmName;
+	public String getContainerId() {
+		return containerId;
 	}
 
-	public String getHostName() {
-		return hostName;
+	public String getGroup() {
+		return group;
 	}
 
-	public String getIpAddress() {
-		return ipAddress;
+	public String getIndex() {
+		return index;
+	}
+
+	public String getProperties() {
+		return properties;
 	}
 
 }

@@ -37,7 +37,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.xd.dirt.module.store.ModuleEntity;
+import org.springframework.xd.dirt.module.store.RuntimeModuleInfoEntity;
 
 /**
  * Tests REST compliance of runtime modules endpoint
@@ -52,12 +52,12 @@ public class RuntimeModulesControllerIntegrationTests extends AbstractController
 	@Before
 	public void before() {
 		PageRequest pageable = new PageRequest(0, 20);
-		ModuleEntity entity1 = new ModuleEntity("1", "foo", "0", "{}");
-		ModuleEntity entity2 = new ModuleEntity("2", "bar", "1", "{}");
-		List<ModuleEntity> entities = new ArrayList<ModuleEntity>();
+		RuntimeModuleInfoEntity entity1 = new RuntimeModuleInfoEntity("1", "foo", "0", "{}");
+		RuntimeModuleInfoEntity entity2 = new RuntimeModuleInfoEntity("2", "bar", "1", "{}");
+		List<RuntimeModuleInfoEntity> entities = new ArrayList<RuntimeModuleInfoEntity>();
 		entities.add(entity1);
 		entities.add(entity2);
-		Page<ModuleEntity> pagedEntity = new PageImpl<>(entities);
+		Page<RuntimeModuleInfoEntity> pagedEntity = new PageImpl<>(entities);
 		when(modulesRepository.findAll(pageable)).thenReturn(pagedEntity);
 	}
 

@@ -46,20 +46,20 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.xd.dirt.container.ContainerStartedEvent;
 import org.springframework.xd.dirt.container.ContainerStoppedEvent;
 import org.springframework.xd.dirt.container.XDContainer;
-import org.springframework.xd.dirt.container.store.ContainerEntity;
-import org.springframework.xd.dirt.container.store.ContainerRepository;
+import org.springframework.xd.dirt.container.store.RuntimeContainerInfoEntity;
+import org.springframework.xd.dirt.container.store.RuntimeContainerInfoRepository;
 import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
- * Integration test of {@link RedisContainerEventListener}
+ * Integration test of {@link RedisContainerEventListener}.
  * 
  * @author Jennifer Hickey
  * @author Gary Russell
  * @author Ilayaperumal Gopinathan
  */
-@ContextConfiguration(classes = RedisContainerEventListenerTestConfig.class)
+@ContextConfiguration(classes = RedisContainerEventStoreListenerTestConfig.class)
 @RunWith(SpringJUnit4ClassRunner.class)
-public class RedisContainerEventListenerTest {
+public class RedisContainerEventStoreListenerTest {
 
 	@Rule
 	public RedisTestSupport redisAvailableRule = new RedisTestSupport();
@@ -68,7 +68,7 @@ public class RedisContainerEventListenerTest {
 	private ApplicationContext context;
 
 	@Autowired
-	private ContainerRepository containerRepository;
+	private RuntimeContainerInfoRepository containerRepository;
 
 	@Mock
 	private XDContainer container;
@@ -92,7 +92,7 @@ public class RedisContainerEventListenerTest {
 		when(container.getHostName()).thenReturn("localhost");
 		when(container.getIpAddress()).thenReturn("127.0.0.1");
 		context.publishEvent(new ContainerStartedEvent(container));
-		ContainerEntity entity = containerRepository.findOne(container.getId());
+		RuntimeContainerInfoEntity entity = containerRepository.findOne(container.getId());
 		assertNotNull(entity);
 		assertEquals(entity.getId(), containerId);
 		assertEquals(entity.getJvmName(), "123@test");
@@ -110,8 +110,8 @@ public class RedisContainerEventListenerTest {
 
 
 @Configuration
-@ImportResource("org/springframework/xd/dirt/listener/RedisContainerEventListenerTest-context.xml")
-class RedisContainerEventListenerTestConfig {
+@ImportResource("org/springframework/xd/dirt/listener/RedisContainerEventStoreListenerTest-context.xml")
+class RedisContainerEventStoreListenerTestConfig {
 
 	@Bean
 	public RedisConnectionFactory redisConnectionFactory() {

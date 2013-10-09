@@ -33,9 +33,9 @@ import org.springframework.xd.analytics.metrics.core.CounterRepository;
 import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository;
 import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
-import org.springframework.xd.dirt.container.store.ContainerRepository;
-import org.springframework.xd.dirt.module.store.ContainerModulesRepository;
-import org.springframework.xd.dirt.module.store.ModulesRepository;
+import org.springframework.xd.dirt.container.store.RuntimeContainerInfoRepository;
+import org.springframework.xd.dirt.module.store.RuntimeContainerModuleInfoRepository;
+import org.springframework.xd.dirt.module.store.RuntimeModuleInfoRepository;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobDeployer;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
@@ -79,14 +79,14 @@ public class AbstractControllerIntegrationTest {
 
 	// Container Repository
 	@Autowired
-	protected ContainerRepository containerRepository;
+	protected RuntimeContainerInfoRepository containerRepository;
 
 	// Runtime Repository
 	@Autowired
-	protected ModulesRepository modulesRepository;
+	protected RuntimeModuleInfoRepository modulesRepository;
 
 	@Autowired
-	protected ContainerModulesRepository containerModulesRepository;
+	protected RuntimeContainerModuleInfoRepository containerModulesRepository;
 
 	// Analytics repositories
 	@Autowired

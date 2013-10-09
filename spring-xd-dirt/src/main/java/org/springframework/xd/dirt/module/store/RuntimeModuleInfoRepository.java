@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.container.store;
+package org.springframework.xd.dirt.module.store;
 
 import org.springframework.xd.store.DomainRepository;
 
 
 /**
- * Repository for persisting Container entities
+ * Repository for persisting runtime modules.
  * 
  * @author Ilayaperumal Gopinathan
  */
-public interface ContainerRepository extends DomainRepository<ContainerEntity, String> {
+public interface RuntimeModuleInfoRepository extends DomainRepository<RuntimeModuleInfoEntity, String> {
 
 }

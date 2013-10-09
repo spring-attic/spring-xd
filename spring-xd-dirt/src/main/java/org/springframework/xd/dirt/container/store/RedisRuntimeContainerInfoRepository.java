@@ -21,12 +21,12 @@ import org.springframework.xd.store.AbstractRedisRepository;
 
 
 /**
- * Redis specific implementation for the container repository
+ * Redis specific implementation for the runtime container info repository.
  * 
  * @author Ilayaperumal Gopinathan
  */
-public class RedisContainerRepository extends AbstractRedisRepository<ContainerEntity, String> implements
-		ContainerRepository {
+public class RedisRuntimeContainerInfoRepository extends AbstractRedisRepository<RuntimeContainerInfoEntity, String>
+		implements RuntimeContainerInfoRepository {
 
 	private static final int CONTAINER_ID_INDEX = 0;
 
@@ -36,25 +36,25 @@ public class RedisContainerRepository extends AbstractRedisRepository<ContainerE
 
 	private static final int IP_ADDRESS_INDEX = 3;
 
-	public RedisContainerRepository(RedisOperations<String, String> redisOperations) {
+	public RedisRuntimeContainerInfoRepository(RedisOperations<String, String> redisOperations) {
 		super("containers", redisOperations);
 	}
 
 	@Override
-	protected ContainerEntity deserialize(String redisKey, String value) {
+	protected RuntimeContainerInfoEntity deserialize(String redisKey, String value) {
 		String[] parts = value.split("\n");
-		return new ContainerEntity(parts[CONTAINER_ID_INDEX], parts[JVM_NAME_INDEX], parts[HOST_NAME_INDEX],
+		return new RuntimeContainerInfoEntity(parts[CONTAINER_ID_INDEX], parts[JVM_NAME_INDEX], parts[HOST_NAME_INDEX],
 				parts[IP_ADDRESS_INDEX]);
 	}
 
 	@Override
-	protected String serialize(ContainerEntity container) {
+	protected String serialize(RuntimeContainerInfoEntity container) {
 		return container.getId() + "\n" + container.getJvmName() + "\n" + container.getHostName() + "\n"
 				+ container.getIpAddress();
 	}
 
 	@Override
-	protected String keyFor(ContainerEntity container) {
+	protected String keyFor(RuntimeContainerInfoEntity container) {
 		return container.getId();
 	}
 

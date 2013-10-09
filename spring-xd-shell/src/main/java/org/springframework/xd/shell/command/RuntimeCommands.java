@@ -24,8 +24,8 @@ import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
 import org.springframework.xd.rest.client.RuntimeOperations;
-import org.springframework.xd.rest.client.domain.ContainerResource;
-import org.springframework.xd.rest.client.domain.ModuleResource;
+import org.springframework.xd.rest.client.domain.RuntimeContainerInfoResource;
+import org.springframework.xd.rest.client.domain.RuntimeModuleInfoResource;
 import org.springframework.xd.shell.XDShell;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableHeader;
@@ -33,7 +33,7 @@ import org.springframework.xd.shell.util.TableRow;
 
 
 /**
- * Commands to interact with runtime containers/deployed modules
+ * Commands to interact with runtime containers/modules.
  * 
  * @author Ilayaperumal Gopinathan
  */
@@ -55,11 +55,11 @@ public class RuntimeCommands implements CommandMarker {
 	@CliCommand(value = LIST_CONTAINERS, help = "List runtime containers")
 	public Table listContainers() {
 
-		final PagedResources<ContainerResource> containers = runtimeOperations().listRuntimeContainers();
+		final PagedResources<RuntimeContainerInfoResource> containers = runtimeOperations().listRuntimeContainers();
 		final Table table = new Table();
 		table.addHeader(1, new TableHeader("Container Id")).addHeader(2, new TableHeader("Host")).addHeader(
 				3, new TableHeader("IP Address"));
-		for (ContainerResource container : containers) {
+		for (RuntimeContainerInfoResource container : containers) {
 			final TableRow row = table.newRow();
 			row.addValue(1, container.getContainerId()).addValue(2, container.getHostName()).addValue(3,
 					container.getIpAddress());
@@ -71,7 +71,7 @@ public class RuntimeCommands implements CommandMarker {
 	public Table listDeployedModules(
 			@CliOption(mandatory = false, key = { "", "containerId" }, help = "to filter by container id") String containerId) {
 
-		Iterable<ModuleResource> runtimeModules;
+		Iterable<RuntimeModuleInfoResource> runtimeModules;
 		if (containerId != null) {
 			runtimeModules = runtimeOperations().listRuntimeModulesByContainer(containerId);
 		}
@@ -81,7 +81,7 @@ public class RuntimeCommands implements CommandMarker {
 		final Table table = new Table();
 		table.addHeader(1, new TableHeader("Container Id")).addHeader(2, new TableHeader("Group")).addHeader(
 				3, new TableHeader("Index")).addHeader(4, new TableHeader("Properties"));
-		for (ModuleResource module : runtimeModules) {
+		for (RuntimeModuleInfoResource module : runtimeModules) {
 			final TableRow row = table.newRow();
 			row.addValue(1, module.getContainerId()).addValue(2, module.getGroup()).addValue(3,
 					module.getIndex()).addValue(4, module.getProperties());

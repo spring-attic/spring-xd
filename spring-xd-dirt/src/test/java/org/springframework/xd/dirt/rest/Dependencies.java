@@ -38,10 +38,10 @@ import org.springframework.xd.analytics.metrics.core.CounterRepository;
 import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository;
 import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
-import org.springframework.xd.dirt.container.store.ContainerRepository;
+import org.springframework.xd.dirt.container.store.RuntimeContainerInfoRepository;
 import org.springframework.xd.dirt.module.ModuleRegistry;
-import org.springframework.xd.dirt.module.store.ContainerModulesRepository;
-import org.springframework.xd.dirt.module.store.ModulesRepository;
+import org.springframework.xd.dirt.module.store.RuntimeContainerModuleInfoRepository;
+import org.springframework.xd.dirt.module.store.RuntimeModuleInfoRepository;
 import org.springframework.xd.dirt.plugins.job.BatchJobLocator;
 import org.springframework.xd.dirt.plugins.job.DistributedJobService;
 import org.springframework.xd.dirt.stream.DeploymentMessageSender;
@@ -134,18 +134,18 @@ public class Dependencies {
 	}
 
 	@Bean
-	public ContainerRepository containerRepository() {
-		return mock(ContainerRepository.class);
+	public RuntimeContainerInfoRepository containerRepository() {
+		return mock(RuntimeContainerInfoRepository.class);
 	}
 
 	@Bean
-	public ModulesRepository modulesRepository() {
-		return mock(ModulesRepository.class);
+	public RuntimeModuleInfoRepository modulesRepository() {
+		return mock(RuntimeModuleInfoRepository.class);
 	}
 
 	@Bean
-	public ContainerModulesRepository containerModulesRepository() {
-		return mock(ContainerModulesRepository.class);
+	public RuntimeContainerModuleInfoRepository containerModulesRepository() {
+		return mock(RuntimeContainerModuleInfoRepository.class);
 	}
 
 	@Bean

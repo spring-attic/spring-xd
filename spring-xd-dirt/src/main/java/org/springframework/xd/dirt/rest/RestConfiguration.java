@@ -17,11 +17,14 @@ package org.springframework.xd.dirt.rest;
 import java.util.List;
 
 import org.springframework.batch.core.StepExecution;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.hateoas.config.EnableHypermediaSupport;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -35,6 +38,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 import org.springframework.xd.dirt.plugins.job.support.StepExecutionJacksonMixIn;
 import org.springframework.xd.rest.client.util.RestTemplateMessageConverterUtil;
 
+import com.mangofactory.swagger.configuration.DocumentationConfig;
+
 /**
  * Takes care of infrastructure setup for the web/rest layer.
  * 
@@ -47,8 +52,13 @@ import org.springframework.xd.rest.client.util.RestTemplateMessageConverterUtil;
 @Configuration
 @EnableHypermediaSupport
 @EnableSpringDataWebSupport
+@Import(DocumentationConfig.class)
+@PropertySource("classpath:swagger.properties")
 @ComponentScan(excludeFilters = @Filter(Configuration.class))
 public class RestConfiguration {
+
+	@Value("${XD_HOME}")
+	private String xdHome;
 
 	@Bean
 	public WebMvcConfigurer configurer() {
@@ -86,6 +96,9 @@ public class RestConfiguration {
 			public void addResourceHandlers(ResourceHandlerRegistry registry) {
 				registry.addResourceHandler("/admin-ui/**", "/admin-ui/").addResourceLocations(
 						resourceRoot);
+
+				registry.addResourceHandler("/swagger/**", "/swagger").addResourceLocations(
+						"file:" + xdHome + "/swagger-ui/");
 			}
 
 			@Override
@@ -94,5 +107,4 @@ public class RestConfiguration {
 			}
 		};
 	}
-
 }

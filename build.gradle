@@ -412,7 +412,9 @@ project('spring-xd-dirt') {
 		testCompile "org.springframework.social:spring-social-twitter:1.0.5.RELEASE"
 
 		// REST API documentation
-		compile "com.mangofactory:swagger-springmvc:0.6.4"
+		compile ("com.mangofactory:swagger-springmvc:0.6.4") {
+			exclude group: 'cglib'
+		}
 
 	}
 

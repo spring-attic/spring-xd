@@ -799,6 +799,18 @@ project('modules.source.http') {
 	}
 }
 
+project('modules.source.tcp') {
+	dependencies {
+		runtime "org.springframework.integration:spring-integration-ip:$springIntegrationVersion"
+	}
+}
+
+project('modules.sink.tcp') {
+	dependencies {
+		runtime "org.springframework.integration:spring-integration-ip:$springIntegrationVersion"
+	}
+}
+
 project('modules.source.syslog-tcp') {
 	dependencies {
 		runtime "org.springframework.integration:spring-integration-syslog:$springIntegrationVersion"

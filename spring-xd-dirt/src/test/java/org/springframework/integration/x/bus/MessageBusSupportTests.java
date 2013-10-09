@@ -53,6 +53,7 @@ public class MessageBusSupportTests {
 
 	private final TestMessageBus messageBus = new TestMessageBus();
 
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	@Before
 	public void setUp() {
 		Map<Class<?>, AbstractCodec<?>> codecs = new HashMap<Class<?>, AbstractCodec<?>>();

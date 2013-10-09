@@ -262,7 +262,7 @@ configure(moduleProjects()) { moduleProject ->
 
 	task copyLibs(type: Copy) {
 		def containerDeps = project(':spring-xd-dirt').configurations.runtime
-
+	
 		inputs.property('deps', moduleProject.configurations.runtime.minus(containerDeps))
 		outputs.dir project.file('lib/')
 
@@ -362,9 +362,6 @@ project('spring-xd-dirt') {
 
 		// ************* Container: Modules (should move on their own: XD-915)
 		compile project(":spring-xd-hadoop")
-		compile ("org.springframework.integration:spring-integration-mqtt:1.0.0.BUILD-SNAPSHOT") {
-			exclude group: 'org.springframework.integration'
-		}
 
 		// Splunk also needed for o.s.i.x
 		compile "org.springframework.integration:spring-integration-splunk:$springIntegrationSplunkVersion"
@@ -796,6 +793,26 @@ project('modules.source.tail') {
 project('modules.source.http') {
 	dependencies {
 		runtime	project(":spring-xd-http")
+	}
+}
+
+project('modules.source.mqtt') {
+	dependencies {
+		runtime ("org.springframework.integration:spring-integration-mqtt:1.0.0.BUILD-SNAPSHOT") {
+		// spring-integration-mqtt has a different lifecycle than SI and may bring a version
+		// of SI which is believed by gradle to be newer than our preferred version.
+            exclude group: 'org.springframework.integration'
+        }
+	}
+}
+
+project('modules.sink.mqtt') {
+	dependencies {
+		runtime ("org.springframework.integration:spring-integration-mqtt:1.0.0.BUILD-SNAPSHOT") {
+		// spring-integration-mqtt has a different lifecycle than SI and may bring a version
+		// of SI which is believed by gradle to be newer than our preferred version.
+            exclude group: 'org.springframework.integration'
+        }
 	}
 }
 

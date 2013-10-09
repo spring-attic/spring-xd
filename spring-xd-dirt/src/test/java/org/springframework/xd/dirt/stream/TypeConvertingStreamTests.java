@@ -209,9 +209,8 @@ public class TypeConvertingStreamTests extends StreamTestSupport {
 		sendPayloadAndVerifyOutput("dateToString", now, test);
 	}
 
-	/**
-	 * 
-	 */
+
+	@SuppressWarnings("serial")
 	static class Foo implements Serializable {
 
 		private String s;

@@ -104,6 +104,7 @@ public class RestConfiguration {
 			@Override
 			public void addViewControllers(ViewControllerRegistry registry) {
 				registry.addViewController("admin-ui").setViewName("/admin-ui/index.html");
+				registry.addViewController("swagger").setViewName("redirect:/swagger/index.html");
 			}
 		};
 	}

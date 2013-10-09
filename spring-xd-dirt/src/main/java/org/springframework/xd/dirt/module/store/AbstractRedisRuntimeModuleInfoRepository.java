@@ -37,7 +37,7 @@ import org.springframework.xd.store.AbstractRedisRepository;
  * 
  * @author Ilayaperumal Gopinathan
  */
-public abstract class AbstractRedisModuleInfoRepository extends AbstractRedisRepository<RuntimeModuleInfoEntity, String> {
+public abstract class AbstractRedisRuntimeModuleInfoRepository extends AbstractRedisRepository<RuntimeModuleInfoEntity, String> {
 
 	private static final int CONTAINER_ID_INDEX = 0;
 
@@ -49,7 +49,7 @@ public abstract class AbstractRedisModuleInfoRepository extends AbstractRedisRep
 
 	private HashOperations<String, String, String> hashOperations;
 
-	public AbstractRedisModuleInfoRepository(String repoPrefix, RedisOperations<String, String> redisOperations) {
+	public AbstractRedisRuntimeModuleInfoRepository(String repoPrefix, RedisOperations<String, String> redisOperations) {
 		super(repoPrefix, redisOperations);
 		hashOperations = redisOperations.opsForHash();
 	}

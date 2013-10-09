@@ -24,7 +24,7 @@ import org.springframework.data.redis.core.RedisOperations;
  * 
  * @author Ilayaperumal Gopinathan
  */
-public class RedisRuntimeModuleInfoRepository extends AbstractRedisModuleInfoRepository implements
+public class RedisRuntimeModuleInfoRepository extends AbstractRedisRuntimeModuleInfoRepository implements
 		RuntimeModuleInfoRepository {
 
 	public RedisRuntimeModuleInfoRepository(String repoPrefix, RedisOperations<String, String> redisOperations) {

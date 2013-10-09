@@ -18,6 +18,8 @@ package org.springframework.xd.dirt.module.store;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.xd.store.AbstractInMemoryRepository;
 
 
@@ -32,12 +34,13 @@ public class InMemoryRuntimeContainerModuleInfoRepository extends
 
 	@Override
 	protected String keyFor(RuntimeModuleInfoEntity entity) {
-		return entity.getContainerId();
+		// In case in-memory there is a single container with id:0; hence key is group:index
+		return entity.getGroup() + ":" + entity.getIndex();
 	}
 
 	@Override
-	public List<RuntimeModuleInfoEntity> findAllByContainerId(String containerId) {
-		return (List<RuntimeModuleInfoEntity>) findAll();
+	public Page<RuntimeModuleInfoEntity> findAllByContainerId(Pageable pageable, String containerId) {
+		return slice((List<RuntimeModuleInfoEntity>) findAll(), pageable);
 	}
 
 }

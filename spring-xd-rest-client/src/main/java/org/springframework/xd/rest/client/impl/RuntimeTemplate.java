@@ -16,6 +16,7 @@
 
 package org.springframework.xd.rest.client.impl;
 
+import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.xd.rest.client.RuntimeOperations;
 import org.springframework.xd.rest.client.domain.RuntimeContainerInfoResource;
 import org.springframework.xd.rest.client.domain.RuntimeModuleInfoResource;
@@ -47,8 +48,9 @@ public class RuntimeTemplate extends AbstractTemplate implements RuntimeOperatio
 	}
 
 	@Override
-	public RuntimeModuleInfoResource.List listRuntimeModulesByContainer(String containerId) {
-		String url = resources.get("runtime/containers").toString() + "/{containerId}/modules";
-		return restTemplate.getForObject(url, RuntimeModuleInfoResource.List.class, containerId);
+	public RuntimeModuleInfoResource.Page listRuntimeModulesByContainer(String containerId) {
+		String url = resources.get("runtime/modules").toString();
+		String uriString = UriComponentsBuilder.fromUriString(url).queryParam("containerId", containerId).build().toUriString();
+		return restTemplate.getForObject(uriString, RuntimeModuleInfoResource.Page.class, containerId);
 	}
 }

@@ -27,17 +27,13 @@ import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.dirt.container.store.RuntimeContainerInfoEntity;
 import org.springframework.xd.dirt.container.store.RuntimeContainerInfoRepository;
-import org.springframework.xd.dirt.module.store.RuntimeContainerModuleInfoRepository;
-import org.springframework.xd.dirt.module.store.RuntimeModuleInfoEntity;
 import org.springframework.xd.rest.client.domain.RuntimeContainerInfoResource;
-import org.springframework.xd.rest.client.domain.RuntimeModuleInfoResource;
 
 
 /**
@@ -52,17 +48,11 @@ public class RuntimeContainersController {
 
 	private RuntimeContainerInfoRepository runtimeContainerInfoRepository;
 
-	private RuntimeContainerModuleInfoRepository runtimeContainerModuleInfoRepository;
-
 	private ResourceAssemblerSupport<RuntimeContainerInfoEntity, RuntimeContainerInfoResource> runtimeContainerResourceAssemblerSupport;
 
-	private ResourceAssemblerSupport<RuntimeModuleInfoEntity, RuntimeModuleInfoResource> moduleResourceAssemblerSupport = new RuntimeModuleInfoResourceAssembler();
-
 	@Autowired
-	public RuntimeContainersController(RuntimeContainerInfoRepository runtimeContainerInfoRepository,
-			RuntimeContainerModuleInfoRepository runtimeContainerModuleInfoRepository) {
+	public RuntimeContainersController(RuntimeContainerInfoRepository runtimeContainerInfoRepository) {
 		this.runtimeContainerInfoRepository = runtimeContainerInfoRepository;
-		this.runtimeContainerModuleInfoRepository = runtimeContainerModuleInfoRepository;
 		runtimeContainerResourceAssemblerSupport = new RuntimeContainerInfoResourceAssembler();
 	}
 
@@ -77,18 +67,6 @@ public class RuntimeContainersController {
 		Page<RuntimeContainerInfoEntity> page = this.runtimeContainerInfoRepository.findAll(pageable);
 		PagedResources<RuntimeContainerInfoResource> result = safePagedContainerResources(assembler, page);
 		return result;
-	}
-
-	/**
-	 * List all the available modules by container
-	 */
-	@RequestMapping(value = "/{containerId}/modules", method = RequestMethod.GET)
-	@ResponseStatus(HttpStatus.OK)
-	@ResponseBody
-	public Iterable<RuntimeModuleInfoResource> listRuntimeModulesByContainer(
-			@PathVariable("containerId") String containerId) {
-		Iterable<RuntimeModuleInfoEntity> moduleEntities = this.runtimeContainerModuleInfoRepository.findAllByContainerId(containerId);
-		return moduleResourceAssemblerSupport.toResources(moduleEntities);
 	}
 
 	/*

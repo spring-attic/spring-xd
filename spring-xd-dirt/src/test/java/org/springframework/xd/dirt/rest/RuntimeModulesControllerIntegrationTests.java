@@ -40,7 +40,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.xd.dirt.module.store.RuntimeModuleInfoEntity;
 
 /**
- * Tests REST compliance of runtime modules endpoint
+ * Tests REST compliance of runtime modules endpoint.
  * 
  * @author Ilayaperumal Gopinathan
  */
@@ -54,11 +54,19 @@ public class RuntimeModulesControllerIntegrationTests extends AbstractController
 		PageRequest pageable = new PageRequest(0, 20);
 		RuntimeModuleInfoEntity entity1 = new RuntimeModuleInfoEntity("1", "foo", "0", "{}");
 		RuntimeModuleInfoEntity entity2 = new RuntimeModuleInfoEntity("2", "bar", "1", "{}");
-		List<RuntimeModuleInfoEntity> entities = new ArrayList<RuntimeModuleInfoEntity>();
-		entities.add(entity1);
-		entities.add(entity2);
-		Page<RuntimeModuleInfoEntity> pagedEntity = new PageImpl<>(entities);
-		when(modulesRepository.findAll(pageable)).thenReturn(pagedEntity);
+		List<RuntimeModuleInfoEntity> entities1 = new ArrayList<RuntimeModuleInfoEntity>();
+		List<RuntimeModuleInfoEntity> entities2 = new ArrayList<RuntimeModuleInfoEntity>();
+		List<RuntimeModuleInfoEntity> entities3 = new ArrayList<RuntimeModuleInfoEntity>();
+		entities1.add(entity1);
+		entities1.add(entity2);
+		entities2.add(entity1);
+		entities3.add(entity2);
+		Page<RuntimeModuleInfoEntity> pagedEntity1 = new PageImpl<>(entities1);
+		Page<RuntimeModuleInfoEntity> pagedEntity2 = new PageImpl<>(entities2);
+		Page<RuntimeModuleInfoEntity> pagedEntity3 = new PageImpl<>(entities3);
+		when(modulesRepository.findAll(pageable)).thenReturn(pagedEntity1);
+		when(containerModulesRepository.findAllByContainerId(pageable, "1")).thenReturn(pagedEntity2);
+		when(containerModulesRepository.findAllByContainerId(pageable, "2")).thenReturn(pagedEntity3);
 	}
 
 	@Test
@@ -68,5 +76,15 @@ public class RuntimeModulesControllerIntegrationTests extends AbstractController
 				jsonPath("$.content[*].containerId", contains("1", "2"))).andExpect(
 				jsonPath("$.content[*].group", contains("foo", "bar"))).andExpect(
 				jsonPath("$.content[*].index", contains("0", "1")));
+	}
+
+	@Test
+	public void testListModulesByContainer() throws Exception {
+		mockMvc.perform(get("/runtime/modules?containerId=1").accept(MediaType.APPLICATION_JSON)).andExpect(
+				status().isOk()).andExpect(
+				jsonPath("$.content", Matchers.hasSize(1))).andExpect(
+				jsonPath("$.content[*].containerId", contains("1"))).andExpect(
+				jsonPath("$.content[*].group", contains("foo"))).andExpect(
+				jsonPath("$.content[*].index", contains("0")));
 	}
 }

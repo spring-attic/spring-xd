@@ -38,36 +38,29 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.xd.dirt.container.store.RuntimeContainerInfoEntity;
-import org.springframework.xd.dirt.module.store.RuntimeModuleInfoEntity;
 
 /**
- * Tests REST compliance of containers endpoint
+ * Tests REST compliance of containers endpoint.
  * 
  * @author Ilayaperumal Gopinathan
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = { RestConfiguration.class, Dependencies.class })
-public class ContainersControllerIntegrationTests extends AbstractControllerIntegrationTest {
+public class RuntimeContainersControllerIntegrationTests extends AbstractControllerIntegrationTest {
 
 	@Before
 	public void before() {
 		PageRequest pageable = new PageRequest(0, 20);
-		RuntimeContainerInfoEntity container1 = new RuntimeContainerInfoEntity("1", "container1@1234", "host1", "127.0.0.1");
-		RuntimeContainerInfoEntity container2 = new RuntimeContainerInfoEntity("2", "container2@2345", "host2", "192.168.2.1");
+		RuntimeContainerInfoEntity container1 = new RuntimeContainerInfoEntity("1", "container1@1234", "host1",
+				"127.0.0.1");
+		RuntimeContainerInfoEntity container2 = new RuntimeContainerInfoEntity("2", "container2@2345", "host2",
+				"192.168.2.1");
 		List<RuntimeContainerInfoEntity> containerEntities = new ArrayList<RuntimeContainerInfoEntity>();
 		containerEntities.add(container1);
 		containerEntities.add(container2);
-		RuntimeModuleInfoEntity module1 = new RuntimeModuleInfoEntity("1", "foo", "0", "{}");
-		RuntimeModuleInfoEntity module2 = new RuntimeModuleInfoEntity("2", "bar", "1", "{}");
-		List<RuntimeModuleInfoEntity> containerModules1 = new ArrayList<RuntimeModuleInfoEntity>();
-		List<RuntimeModuleInfoEntity> containerModules2 = new ArrayList<RuntimeModuleInfoEntity>();
-		containerModules1.add(module1);
-		containerModules2.add(module2);
 		Page<RuntimeContainerInfoEntity> pagedEntity = new PageImpl<>(containerEntities);
 		when(containerRepository.findAll(pageable)).thenReturn(pagedEntity);
-		when(containerModulesRepository.findAllByContainerId("1")).thenReturn(containerModules1);
-		when(containerModulesRepository.findAllByContainerId("2")).thenReturn(containerModules2);
 	}
 
 	@Test
@@ -78,15 +71,5 @@ public class ContainersControllerIntegrationTests extends AbstractControllerInte
 				jsonPath("$.content[*].jvmName", contains("container1@1234", "container2@2345"))).andExpect(
 				jsonPath("$.content[*].hostName", contains("host1", "host2"))).andExpect(
 				jsonPath("$.content[*].ipAddress", contains("127.0.0.1", "192.168.2.1")));
-	}
-
-	@Test
-	public void testListModulesByContainer() throws Exception {
-		mockMvc.perform(get("/runtime/containers/1/modules").accept(MediaType.APPLICATION_JSON)).andExpect(
-				status().isOk()).andExpect(
-				jsonPath("$.[*]", Matchers.hasSize(1))).andExpect(
-				jsonPath("$.[*].containerId", contains("1"))).andExpect(
-				jsonPath("$.[*].group", contains("foo"))).andExpect(
-				jsonPath("$.[*].index", contains("0")));
 	}
 }

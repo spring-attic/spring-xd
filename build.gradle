@@ -1288,5 +1288,5 @@ task dist(dependsOn: assemble) {
 task wrapper(type: Wrapper) {
 	description = "Generates build_xd[.bat] scripts"
 	gradleVersion = "1.6"
-	scriptFile= "build_xd"
+	scriptFile= "gradle/build_xd"
 }

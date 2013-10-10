@@ -14,4 +14,4 @@ fi
 if [ x != x"$XD_STORE" ]; then
 	XD_STORE=memory
 fi
-./build_xd $@
+gradle/build_xd $@

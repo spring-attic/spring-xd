@@ -15,6 +15,6 @@ if not "%XD_ANALYTICS%" == "" (
 if not "%XD_STORE%" == "" (
 	set XD_STORE=memory
 )
-call .\build_xd.bat  %*
+call gradle\build_xd.bat  %*
 
 

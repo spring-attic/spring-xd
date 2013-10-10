@@ -113,6 +113,21 @@ public abstract class AbstractAggregateCounterTests {
 	}
 
 	@Test
+	public void testYearCounts() throws Exception {
+		final DateTime start = new DateTime(2013, 11, 20, 0, 0);
+		final DateTime end   = start.plusYears(5);
+		int val = 1;
+
+		for (DateTime now = start; !now.isAfter(end); now = now.plusYears(1)) {
+			aggregateCounterRepository.increment(counterName, val++, now);
+		}
+		long[] counts = aggregateCounterRepository.getCounts(counterName, new Interval(start,end), AggregateCountResolution.year).getCounts();
+		assertEquals(6, counts.length);
+		assertEquals(6, counts[5]);
+		assertEquals(1, counts[0]);
+	}
+
+	@Test
 	public void testTwoDaysDataSimulation() throws Exception {
 		final DateTime start = new DateTime(2013, 12, 30, 23, 27);
 		final DateTime end = start.plusDays(2);

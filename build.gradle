@@ -492,6 +492,7 @@ project('spring-xd-extension-splunk') {
 	description = 'Spring XD Splunk'
 	dependencies {
 		compile "org.springframework.integration:spring-integration-splunk:$springIntegrationSplunkVersion"
+		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
 	}
 }
 

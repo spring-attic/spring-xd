@@ -1,3 +1,5 @@
+#Rename this file to twitter.properties and add your own keys below:
+
 twitter.oauth.consumerKey=
 twitter.oauth.consumerSecret=
 twitter.oauth.accessToken=

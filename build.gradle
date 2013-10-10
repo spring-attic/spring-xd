@@ -367,12 +367,6 @@ project('spring-xd-dirt') {
 		// ************* Container: Modules (should move on their own: XD-915)
 		compile project(":spring-xd-hadoop")
 
-		runtime project(":spring-xd-extension-gemfire")
-
-		runtime project(":spring-xd-extension-splunk")
-
-		runtime project(":spring-xd-extension-twitter")
-
 		// ************* Container: Imposed by some Module (can't move)
 		compile "com.sun.mail:javax.mail:$javaxMailVersion"
 		runtime project(":spring-xd-extension-reactor")
@@ -496,7 +490,6 @@ project('spring-xd-extension-splunk') {
 	description = 'Spring XD Splunk'
 	dependencies {
 		compile "org.springframework.integration:spring-integration-splunk:$springIntegrationSplunkVersion"
-		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
 	}
 }
 
@@ -881,6 +874,40 @@ project('modules.source.jms') {
 	}
 }
 
+project('modules.source.gemfire') {
+	dependencies {
+		runtime (project(":spring-xd-extension-gemfire")) {
+			exclude group: 'org.slf4j'
+			exclude group: 'commons-logging'
+		}
+	}
+}
+
+project('modules.source.gemfire-cq') {
+	dependencies {
+		runtime (project(":spring-xd-extension-gemfire")) {
+			exclude group: 'org.slf4j'
+			exclude group: 'commons-logging'
+		}
+	}
+}
+
+project('modules.source.twitterstream') {
+	dependencies {
+		runtime(project(":spring-xd-extension-twitter")) {
+			exclude group: 'org.codehaus.jackson'
+		}
+	}
+}
+
+project('modules.source.twittersearch') {
+	dependencies {
+		runtime(project(":spring-xd-extension-twitter")) {
+			exclude group: 'org.codehaus.jackson'
+		}
+	}
+}
+
 // Does not work b/c of shared Reactor stuff in module-common.xml
 //project('modules.source.reactor-syslog') {
 //	dependencies {
@@ -914,6 +941,32 @@ project('modules.sink.mail') {
 		// shell integration tests to work.
 		//		"com.sun.mail:javax.mail:$javaxMailVersion"
 
+	}
+}
+
+project('modules.sink.gemfire-json-server') {
+	dependencies {
+		runtime (project(":spring-xd-extension-gemfire")) {
+			exclude group: 'org.slf4j'
+			exclude group: 'commons-logging'
+		}
+	}
+}
+
+project('modules.sink.gemfire-server') {
+	dependencies {
+		runtime (project(":spring-xd-extension-gemfire")) {
+			exclude group: 'org.slf4j'
+			exclude group: 'commons-logging'
+		}
+	}
+}
+
+project('modules.sink.splunk') {
+	dependencies {
+		runtime(project(":spring-xd-extension-splunk")) {
+			exclude module: 'spring-integration-core'
+		}
 	}
 }
 

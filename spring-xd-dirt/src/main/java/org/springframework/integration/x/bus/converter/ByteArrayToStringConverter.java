@@ -23,22 +23,32 @@ import org.springframework.util.Assert;
 
 
 /**
+ * Converts a byte[] to String using the provided Charset (UTF-8 by default)
  * 
  * @author David Turanski
+ * @since 1.0
  */
-public class ByteArrayToStringConverter implements Converter<byte[], String> {
+public class ByteArrayToStringConverter implements Converter<byte[], String>, Cloneable {
 
-	private volatile Charset charset = Charset.forName("UTF-8");
+	private final Charset charset;
 
-	@Override
-	public String convert(byte[] source) {
-		return new String(source, charset);
+	public ByteArrayToStringConverter() {
+		charset = Charset.forName("UTF-8");
 	}
 
-	public void setCharset(String charsetName) {
+	/**
+	 * Constructor accepting a charset name
+	 * 
+	 * @param charsetName must correspond to a supported Charset else an exception will be thrown
+	 */
+	public ByteArrayToStringConverter(String charsetName) {
 		Assert.hasText(charsetName, "'charsetName' cannot be empty or null");
 		Assert.isTrue(Charset.isSupported(charsetName), charsetName + " is not a supported Charset");
 		charset = Charset.forName(charsetName);
 	}
 
+	@Override
+	public String convert(byte[] source) {
+		return new String(source, charset);
+	}
 }

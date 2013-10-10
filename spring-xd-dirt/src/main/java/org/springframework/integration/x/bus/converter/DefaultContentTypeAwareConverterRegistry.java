@@ -33,7 +33,6 @@ import org.springframework.xd.tuple.Tuple;
 
 
 /**
- * 
  * @author David Turanski
  */
 public class DefaultContentTypeAwareConverterRegistry implements ContentTypeAwareConverterRegistry {
@@ -66,14 +65,14 @@ public class DefaultContentTypeAwareConverterRegistry implements ContentTypeAwar
 		converters.get(targetContentType).put(sourceType, converter);
 	}
 
-	@Override
-	public final Converter<?, ?> getConverter(Class<?> sourceType, MediaType targetContentType) {
-		if (!converters.containsKey(targetContentType)) {
-			return null;
-		}
-		return converters.get(targetContentType).get(sourceType);
-	}
-
+	/**
+	 * For a given {@link MediaType} determine the corresponding Java type assumed by the registry
+	 * 
+	 * @param contentType the MediaType
+	 * @param classLoader the classLoader used to resolve the class from the type parameter if the contentType is of the
+	 *        form application/x-java-object;type=${className}
+	 * @return the class
+	 */
 	public Class<?> getJavaTypeForContentType(MediaType contentType, ClassLoader classLoader) {
 		if (X_JAVA_OBJECT.includes(contentType)) {
 			if (contentType.getParameter("type") != null) {

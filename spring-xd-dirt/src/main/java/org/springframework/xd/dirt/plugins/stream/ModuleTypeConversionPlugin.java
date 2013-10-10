@@ -107,10 +107,8 @@ public class ModuleTypeConversionPlugin extends PluginAdapter {
 			Class<?> dataType = converterRegistry.getJavaTypeForContentType(contentType,
 					sm.getApplicationContext().getClassLoader());
 			if (dataType == null) {
-				throw new ModuleConfigurationException("Content type is not associated with "
-						+ dataType.getClass().getName() + " (" +
-						module.getName() + " --" + (isInput ? "input" : "output") + "Type=" + contentTypeString
-						+ ")");
+				throw new ModuleConfigurationException("Content type is not supported for " +
+						module.getName() + " --" + (isInput ? "input" : "output") + "Type=" + contentTypeString);
 			}
 			else {
 				channel.addInterceptor(new ContentTypeHeaderInterceptor(contentType));
@@ -123,12 +121,13 @@ public class ModuleTypeConversionPlugin extends PluginAdapter {
 								+ entry.getValue().getClass().getName() + "]");
 
 					}
+					Converter<?, ?> converter = entry.getValue();
 					// special case to handle charset parameter
-					if (entry.getValue() instanceof ByteArrayToStringConverter) {
+					if (converter instanceof ByteArrayToStringConverter) {
 						if (MediaType.TEXT_PLAIN.includes(contentType)) {
 							String charsetName = contentType.getParameter("charset");
 							if (StringUtils.hasText(charsetName)) {
-								((ByteArrayToStringConverter) entry.getValue()).setCharset(charsetName);
+								converter = new ByteArrayToStringConverter(charsetName);
 							}
 						}
 					}

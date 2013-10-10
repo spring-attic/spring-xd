@@ -17,7 +17,6 @@
 package org.springframework.xd.analytics.metrics.memory;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 

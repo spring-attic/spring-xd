@@ -29,6 +29,7 @@ import org.joda.time.Duration;
 import org.joda.time.Interval;
 
 import org.joda.time.Months;
+import org.joda.time.Years;
 import org.springframework.util.Assert;
 import org.springframework.xd.analytics.metrics.core.AggregateCount;
 import org.springframework.xd.analytics.metrics.core.AggregateCountResolution;
@@ -47,7 +48,6 @@ import org.springframework.xd.analytics.metrics.core.MetricUtils;
  * @author Eric Bottard
  */
 class InMemoryAggregateCounter extends Counter {
-
 	private Map<Integer, long[]> monthCountsByYear = new HashMap<Integer, long[]>();
 
 	private Map<Integer, long[]> dayCountsByYear = new HashMap<Integer, long[]>();
@@ -128,8 +128,20 @@ class InMemoryAggregateCounter extends Counter {
 
 			counts = MetricUtils.concatArrays(yearMonths, startMonth.getMonthOfYear() - 1 , nMonths);
 		}
+		else if (resolution == AggregateCountResolution.year) {
+			DateTime startYear = new DateTime(interval.getStart().getYear(), 1, 1, 0, 0);
+			DateTime endYear   =  new DateTime(end.getYear() + 1, 1, 1, 0, 0);
+			int nYears = Years.yearsBetween(startYear, endYear).getYears();
+			counts = new long[nYears];
+
+			for (int i = 0; i < nYears; i++) {
+				long[] monthCounts = monthCountsByYear.get(startYear.plusYears(i).getYear());
+				counts[i] = MetricUtils.sum(monthCounts);
+			}
+
+		}
 		else {
-			throw new IllegalStateException("Shouldn't happen. Function should be total.");
+			throw new IllegalStateException("Shouldn't happen. Unhandled resolution: " + resolution);
 		}
 		return new AggregateCount(getName(), interval, counts, resolution);
 	}

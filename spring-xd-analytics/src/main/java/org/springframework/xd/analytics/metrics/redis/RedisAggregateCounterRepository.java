@@ -17,7 +17,6 @@
 package org.springframework.xd.analytics.metrics.redis;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -192,10 +191,31 @@ public class RedisAggregateCounterRepository extends RedisCounterRepository impl
 
 			counts = MetricUtils.concatArrays(years, interval.getStart().getMonthOfYear() - 1, nMonths);
 		}
+		else if (resolution == AggregateCountResolution.year) {
+			DateTime startYear = new DateTime(interval.getStart().getYear(), 1, 1, 0, 0);
+			DateTime endYear   =  new DateTime(end.getYear() + 1, 1, 1, 0, 0);
+			int nYears = Years.yearsBetween(startYear, endYear).getYears();
+			Map<String, Long> yearCounts = getYearCounts(name);
+			counts = new long[nYears];
+
+			for (int i=0; i < nYears; i++) {
+				int year = startYear.plusYears(i).getYear();
+				Long count = yearCounts.get(Integer.toString(year));
+				if (count == null) {
+					count = 0L;
+				}
+				counts[i] = count;
+			}
+		}
 		else {
-			throw new IllegalArgumentException("Only minute, hour or day resolution is currently supported");
+			throw new IllegalStateException("Shouldn't happen. Unhandled resolution: " + resolution);
 		}
 		return new AggregateCount(name, interval, counts, resolution);
+	}
+
+	private Map<String, Long> getYearCounts(String name) {
+		AggregateKeyGenerator akg = new AggregateKeyGenerator(getPrefix(), name, new DateTime());
+		return getEntries(akg.getYearsKey());
 	}
 
 	private long[] getMonthCountsForYear(String name, DateTime year) {

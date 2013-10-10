@@ -106,6 +106,8 @@ public class AggregateCountersController extends AbstractMetricsController<Aggre
 				return to.minusDays(6);
 			case month:
 				return to.minusMonths(11);
+			case year:
+				return to.minusYears(4);
 			default:
 				throw new IllegalStateException("Shouldn't happen. Unhandled resolution: " + resolution);
 		}

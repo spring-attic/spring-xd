@@ -6,6 +6,7 @@ import org.joda.time.Hours;
 import org.joda.time.Minutes;
 import org.joda.time.Months;
 import org.joda.time.ReadablePeriod;
+import org.joda.time.Years;
 
 /**
  * The resolution options available for querying an aggregate counter.
@@ -16,7 +17,8 @@ public enum AggregateCountResolution {
 	minute(Minutes.minutes(1)),
 	hour(Hours.hours(1)),
 	day(Days.days(1)),
-	month(Months.months(1));
+	month(Months.months(1)),
+	year(Years.years(1));
 
 	public final ReadablePeriod unitPeriod;
 

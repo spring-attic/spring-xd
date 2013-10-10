@@ -155,19 +155,19 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 
 	protected void executemyJobTriggerStream() {
 		CommandResult cr = getShell().executeCommand(
-				"stream create --name me-Try2 --definition \"trigger > :job:myJob\"");
+				"stream create --name me-Try2 --definition \"trigger > queue:job:myJob\"");
 		checkForSuccess(cr);
 	}
 
 	protected void executemyTestTriggerStream() {
 		CommandResult cr = getShell().executeCommand(
-				"stream create --name me-Try2 --definition \"trigger > :job:myTest\"");
+				"stream create --name me-Try2 --definition \"trigger > queue:job:myTest\"");
 		checkForSuccess(cr);
 	}
 
 	protected void executemyjobWithParametersTriggerStream(String params) {
 		String commandString = String.format(
-				"stream create --name me-Try2 --definition \"trigger --payload='%s' > :job:myJobWithParameters\"",
+				"stream create --name me-Try2 --definition \"trigger --payload='%s' > queue:job:myJobWithParameters\"",
 				params);
 		CommandResult cr = getShell().executeCommand(commandString);
 		checkForSuccess(cr);

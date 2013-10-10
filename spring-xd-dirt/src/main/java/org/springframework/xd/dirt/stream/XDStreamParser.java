@@ -31,7 +31,6 @@ import org.springframework.xd.dirt.stream.dsl.SinkChannelNode;
 import org.springframework.xd.dirt.stream.dsl.SourceChannelNode;
 import org.springframework.xd.dirt.stream.dsl.StreamConfigParser;
 import org.springframework.xd.dirt.stream.dsl.StreamNode;
-import org.springframework.xd.dirt.stream.dsl.StreamsNode;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 
@@ -67,10 +66,10 @@ public class XDStreamParser implements XDParser {
 	public List<ModuleDeploymentRequest> parse(String name, String config) {
 
 		StreamConfigParser parser = new StreamConfigParser(repository);
-		StreamsNode ast = parser.parse(name, config);
+		StreamNode stream = parser.parse(name, config);
 		List<ModuleDeploymentRequest> requests = new ArrayList<ModuleDeploymentRequest>();
 
-		List<ModuleNode> moduleNodes = ast.getModuleNodes();
+		List<ModuleNode> moduleNodes = stream.getModuleNodes();
 		for (int m = moduleNodes.size() - 1; m >= 0; m--) {
 			ModuleNode moduleNode = moduleNodes.get(m);
 			ModuleDeploymentRequest request = new ModuleDeploymentRequest();
@@ -85,7 +84,6 @@ public class XDStreamParser implements XDParser {
 			}
 			requests.add(request);
 		}
-		StreamNode stream = ast.getStreams().get(0);
 		SourceChannelNode sourceChannel = stream.getSourceChannelNode();
 		SinkChannelNode sinkChannel = stream.getSinkChannelNode();
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013 the xoriginal author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,39 +16,49 @@
 
 package org.springframework.xd.dirt.stream.dsl;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author Andy Clement
  */
 public class ChannelNode extends AstNode {
 
-	private final String streamName;
+	private ChannelType channelType;
 
-	private String channelName;
+	private List<String> nameComponents;
 
-	private boolean isTap = false;
+	private List<String> indexingElements;
 
-	public ChannelNode(String streamName, String channelName, int startpos, int endpos) {
+	public ChannelNode(ChannelType channelType, int startpos, int endpos, List<String> nameElements,
+			List<String> indexingElements) {
 		super(startpos, endpos);
-		this.streamName = streamName;
-		this.channelName = channelName;
+		this.channelType = channelType;
+		this.nameComponents = nameElements;
+		this.indexingElements = indexingElements;
 	}
 
 	@Override
 	public String stringify(boolean includePositionalInfo) {
 		StringBuilder s = new StringBuilder();
 		s.append("(");
-		s.append(":");
-		if (isTap) {
-			s.append("tap:");
+		s.append(channelType.getStringRepresentation());
+		int t = 0;
+		if (nameComponents.size() > 0 && channelType.isTap() &&
+				nameComponents.get(0).equalsIgnoreCase(channelType.tapSource().name())) {
+			t = 1;
 		}
-		if (streamName != null) {
-			s.append(streamName);
-		}
-		if (channelName != null) {
-			if (streamName != null) {
-				s.append(".");
+		for (int max = nameComponents.size(); t < max; t++) {
+			s.append(nameComponents.get(t));
+			if (t < nameComponents.size() - 1) {
+				s.append(":");
 			}
-			s.append(channelName);
+		}
+		if (indexingElements.size() != 0) {
+			for (int t2 = 0, max = indexingElements.size(); t2 < max; t2++) {
+				s.append(".");
+				s.append(indexingElements.get(t2));
+			}
 		}
 		if (includePositionalInfo) {
 			s.append(":");
@@ -61,52 +71,91 @@ public class ChannelNode extends AstNode {
 	@Override
 	public String toString() {
 		StringBuilder s = new StringBuilder();
-		s.append(":");
-		if (streamName != null) {
-			s.append(streamName).append(".");
-		}
-		s.append(channelName);
+		s.append(channelType.getStringRepresentation());
+		s.append(getNameComponents());
+		s.append(getIndexingComponents());
 		return s.toString();
 	}
 
-	/**
-	 * @return stream name which may be null if channel not qualified
-	 */
-	public String getStreamName() {
-		return streamName;
+	public String getChannelName() {
+		StringBuilder s = new StringBuilder();
+		if (channelType.isTap()) {
+			s.append("tap:");
+		}
+		s.append(getNameComponents());
+		s.append(getIndexingComponents());
+		return s.toString();
 	}
 
-	public String getChannelName() {
-		StringBuilder name = new StringBuilder();
-		if (isTap) {
-			name.append("tap:");
+	public String getNameComponents() {
+		StringBuilder s = new StringBuilder();
+		for (int t = 0, max = nameComponents.size(); t < max; t++) {
+			if (t > 0) {
+				s.append(":");
+			}
+			s.append(nameComponents.get(t));
 		}
-		if (streamName != null) {
-			name.append(streamName).append(".");
+		return s.toString();
+	}
+
+	public String getIndexingComponents() {
+		StringBuilder s = new StringBuilder();
+		for (int t = 0, max = indexingElements.size(); t < max; t++) {
+			s.append(".");
+			s.append(indexingElements.get(t));
 		}
-		name.append(channelName);
-		return name.toString();
+		return s.toString();
+	}
+
+	public String getStreamName() {
+		if (channelType == ChannelType.TAP_STREAM) {
+			return getNameComponents();
+		}
+		return null;
+	}
+
+	public ChannelType getChannelType() {
+		return this.channelType;
 	}
 
 	public ChannelNode copyOf() {
-		ChannelNode cn = new ChannelNode(streamName, channelName, startpos, endpos);
-		if (isTap) {
-			cn.isTap = true;
-		}
-		return cn;
-	}
-
-	public void setIsTap(boolean isTap) {
-		this.isTap = isTap;
+		// TODO not a deep copy, is that ok?
+		return new ChannelNode(this.channelType, startpos, endpos, nameComponents, indexingElements);
 	}
 
 	public void resolve(StreamLookupEnvironment env) {
-		if (channelName == null) {
-			StreamNode streamNode = env.lookupStream(streamName);
-			if (streamNode != null) {
-				channelName = streamNode.getModuleNodes().get(0).getName();
+		if (channelType == ChannelType.TAP_STREAM) {
+			if (indexingElements.isEmpty()) {
+				StreamNode sn = env.lookupStream(getStreamName());
+				if (sn == null) {
+					throw new StreamDefinitionException("", -1, XDDSLMessages.UNRECOGNIZED_STREAM_REFERENCE,
+							getStreamName());
+				}
+				// Point to the first element of the stream
+				indexingElements = new ArrayList<String>();
+				indexingElements.add(sn.getModuleNodes().get(0).getName());
+			}
+			else {
+				// Easter Egg: can use index of module in a stream when tapping.
+				// Key benefit:
+				// You can tap into something that perhaps wasn't labelled
+				// in some stream but needed to be because it was a dup:
+				// Note: need to be aware of how indexes will move when
+				// stream composition has occurred!
+				try {
+					int index = Integer.parseInt(indexingElements.get(0));
+					StreamNode sn = env.lookupStream(getStreamName());
+					if (sn == null) {
+						throw new StreamDefinitionException("", -1, XDDSLMessages.UNRECOGNIZED_STREAM_REFERENCE,
+								getStreamName());
+					}
+					indexingElements.remove(0);
+					indexingElements.add(0, sn.getModuleNodes().get(index).getName());
+				}
+				catch (NumberFormatException nfe) {
+					// this is ok, probably wasn't a number
+				}
 			}
 		}
 	}
-
 }

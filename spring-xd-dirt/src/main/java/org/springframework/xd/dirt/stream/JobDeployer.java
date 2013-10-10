@@ -19,7 +19,7 @@ import org.springframework.integration.MessageHandlingException;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
-import org.springframework.xd.dirt.stream.dsl.DSLException;
+import org.springframework.xd.dirt.stream.dsl.StreamDefinitionException;
 
 /**
  * @author Glenn Renfro
@@ -55,7 +55,7 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 			}
 			getDefinitionRepository().delete(name);
 		}
-		catch (DSLException dslException) {
+		catch (StreamDefinitionException dslException) {
 			getDefinitionRepository().delete(name);// if it is a DSL exception (meaning
 			// bad definition) go ahead a delete
 			// the module.

@@ -65,7 +65,7 @@ public class SingleNodeStreamDeploymentIntegrationTests extends AbstractStreamDe
 		assertEquals(0, streamRepository.count());
 
 		final StreamDefinition routerDefinition = new StreamDefinition("routerDefinition",
-				":routeit > router --expression=payload.contains('a')?':foo':':bar'");
+				"queue:routeit > router --expression=payload.contains('a')?'queue:foo':'queue:bar'");
 		streamDefinitionRepository.save(routerDefinition);
 		streamDeployer.deploy("routerDefinition");
 
@@ -76,23 +76,23 @@ public class SingleNodeStreamDeploymentIntegrationTests extends AbstractStreamDe
 		final MessageChannel inputChannel = module.getComponent("routeit", MessageChannel.class);
 		assertNotNull(inputChannel);
 
-		final MessageChannel outputChannelFoo = module.getComponent("foo", MessageChannel.class);
-		final MessageChannel outputChannelBar = module.getComponent("bar", MessageChannel.class);
+		final MessageChannel outputChannelFoo = module.getComponent("queue:foo", MessageChannel.class);
+		final MessageChannel outputChannelBar = module.getComponent("queue:bar", MessageChannel.class);
 		assertNull(outputChannelFoo);
 		assertNull(outputChannelBar);
 
 		inputChannel.send(MessageBuilder.withPayload("a").build());
 		Thread.sleep(1000);
-		final MessageChannel outputChannelFoo2 = module.getComponent("foo", MessageChannel.class);
-		final MessageChannel outputChannelBar2 = module.getComponent("bar", MessageChannel.class);
+		final MessageChannel outputChannelFoo2 = module.getComponent("queue:foo", MessageChannel.class);
+		final MessageChannel outputChannelBar2 = module.getComponent("queue:bar", MessageChannel.class);
 		assertNotNull(outputChannelFoo2);
 		assertNull(outputChannelBar2);
 
 		inputChannel.send(MessageBuilder.withPayload("b").build());
 		Thread.sleep(1000);
 
-		final QueueChannel outputChannelFoo3 = module.getComponent("foo", QueueChannel.class);
-		final QueueChannel outputChannelBar3 = module.getComponent("bar", QueueChannel.class);
+		final QueueChannel outputChannelFoo3 = module.getComponent("queue:foo", QueueChannel.class);
+		final QueueChannel outputChannelBar3 = module.getComponent("queue:bar", QueueChannel.class);
 		assertNotNull(outputChannelFoo3);
 		assertNotNull(outputChannelBar3);
 
@@ -112,7 +112,7 @@ public class SingleNodeStreamDeploymentIntegrationTests extends AbstractStreamDe
 		assertEquals(0, streamRepository.count());
 
 		final StreamDefinition routerDefinition = new StreamDefinition("routerDefinition",
-				":routeit > router --script='org/springframework/xd/dirt/stream/router.groovy'");
+				"queue:routeit > router --script='org/springframework/xd/dirt/stream/router.groovy'");
 		streamDefinitionRepository.save(routerDefinition);
 		streamDeployer.deploy("routerDefinition");
 		Thread.sleep(1000);
@@ -124,23 +124,23 @@ public class SingleNodeStreamDeploymentIntegrationTests extends AbstractStreamDe
 		module.getComponent(MessageBus.class);
 		assertNotNull(inputChannel);
 
-		final MessageChannel outputChannelFoo = module.getComponent("foo", MessageChannel.class);
-		final MessageChannel outputChannelBar = module.getComponent("bar", MessageChannel.class);
+		final MessageChannel outputChannelFoo = module.getComponent("queue:foo", MessageChannel.class);
+		final MessageChannel outputChannelBar = module.getComponent("queue:bar", MessageChannel.class);
 		assertNull(outputChannelFoo);
 		assertNull(outputChannelBar);
 
 		inputChannel.send(MessageBuilder.withPayload("a").build());
 		Thread.sleep(2000);
-		final MessageChannel outputChannelFoo2 = module.getComponent("foo", MessageChannel.class);
-		final MessageChannel outputChannelBar2 = module.getComponent("bar", MessageChannel.class);
+		final MessageChannel outputChannelFoo2 = module.getComponent("queue:foo", MessageChannel.class);
+		final MessageChannel outputChannelBar2 = module.getComponent("queue:bar", MessageChannel.class);
 		assertNotNull(outputChannelFoo2);
 		assertNull(outputChannelBar2);
 
 		inputChannel.send(MessageBuilder.withPayload("b").build());
 		Thread.sleep(1000);
 
-		final QueueChannel outputChannelFoo3 = module.getComponent("foo", QueueChannel.class);
-		final QueueChannel outputChannelBar3 = module.getComponent("bar", QueueChannel.class);
+		final QueueChannel outputChannelFoo3 = module.getComponent("queue:foo", QueueChannel.class);
+		final QueueChannel outputChannelBar3 = module.getComponent("queue:bar", QueueChannel.class);
 		assertNotNull(outputChannelFoo3);
 		assertNotNull(outputChannelBar3);
 

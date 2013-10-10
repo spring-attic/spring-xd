@@ -32,7 +32,7 @@ import org.springframework.xd.dirt.stream.AlreadyDeployedException;
 import org.springframework.xd.dirt.stream.DefinitionAlreadyExistsException;
 import org.springframework.xd.dirt.stream.MissingRequiredDefinitionException;
 import org.springframework.xd.dirt.stream.NoSuchDefinitionException;
-import org.springframework.xd.dirt.stream.dsl.DSLException;
+import org.springframework.xd.dirt.stream.dsl.StreamDefinitionException;
 
 /**
  * Central class for behavior common to all REST controllers.
@@ -122,7 +122,7 @@ public class RestControllerAdvice {
 	@ResponseBody
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
-	public VndErrors onInvalidDefintion(DSLException e) {
+	public VndErrors onInvalidDefintion(StreamDefinitionException e) {
 		String logref = log(e);
 		return new VndErrors(logref, e.getMessage());
 	}

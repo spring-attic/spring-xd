@@ -37,6 +37,7 @@ public class SinkChannelNode extends AstNode {
 		return s.toString();
 	}
 
+	@Override
 	public String toString() {
 		StringBuilder s = new StringBuilder();
 		s.append(" > ");
@@ -50,6 +51,10 @@ public class SinkChannelNode extends AstNode {
 
 	public String getChannelName() {
 		return channelNode.getChannelName();
+	}
+
+	public SinkChannelNode copyOf() {
+		return new SinkChannelNode(channelNode.copyOf(), startpos);
 	}
 
 }

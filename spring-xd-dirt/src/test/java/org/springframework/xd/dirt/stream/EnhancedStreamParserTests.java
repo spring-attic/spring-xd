@@ -146,7 +146,7 @@ public class EnhancedStreamParserTests {
 
 	@Test
 	public void sourceChannelNameIsAppliedToSourceModule() throws Exception {
-		List<ModuleDeploymentRequest> requests = parser.parse("test", ":foo > goo | blah | file");
+		List<ModuleDeploymentRequest> requests = parser.parse("test", "topic:foo > goo | blah | file");
 		assertEquals(3, requests.size());
 		assertEquals("foo", requests.get(2).getSourceChannelName());
 		assertEquals(ModuleType.PROCESSOR.getTypeName(), requests.get(2).getType());
@@ -156,7 +156,7 @@ public class EnhancedStreamParserTests {
 
 	@Test
 	public void sinkChannelNameIsAppliedToSinkModule() throws Exception {
-		List<ModuleDeploymentRequest> requests = parser.parse("test", "boo | blah | aaak > :foo");
+		List<ModuleDeploymentRequest> requests = parser.parse("test", "boo | blah | aaak > queue:foo");
 		assertEquals(3, requests.size());
 		assertEquals("foo", requests.get(0).getSinkChannelName());
 		assertEquals(ModuleType.PROCESSOR.getTypeName(), requests.get(0).getType());
@@ -165,8 +165,16 @@ public class EnhancedStreamParserTests {
 	}
 
 	@Test
+	public void tap() throws Exception {
+		List<ModuleDeploymentRequest> requests = parser.parse("test", "tap:stream:xxx.http > file");
+		assertEquals(1, requests.size());
+		assertEquals("tap:xxx.http", requests.get(0).getSourceChannelName());
+		assertEquals(ModuleType.SINK.getTypeName(), requests.get(0).getType());
+	}
+
+	@Test
 	public void simpleSinkNamedChannel() throws Exception {
-		List<ModuleDeploymentRequest> requests = parser.parse("test", "bart > :foo");
+		List<ModuleDeploymentRequest> requests = parser.parse("test", "bart > queue:foo");
 		assertEquals(1, requests.size());
 		assertEquals("foo", requests.get(0).getSinkChannelName());
 		assertEquals(ModuleType.SOURCE.getTypeName(), requests.get(0).getType());
@@ -189,7 +197,7 @@ public class EnhancedStreamParserTests {
 
 	@Test
 	public void simpleSourceNamedChannel() throws Exception {
-		List<ModuleDeploymentRequest> requests = parser.parse("test", ":foo > boot");
+		List<ModuleDeploymentRequest> requests = parser.parse("test", "queue:foo > boot");
 		assertEquals(1, requests.size());
 		assertEquals("foo", requests.get(0).getSourceChannelName());
 		assertEquals(ModuleType.SINK.getTypeName(), requests.get(0).getType());

@@ -29,13 +29,13 @@ import java.util.Properties;
  */
 public class ModuleNode extends AstNode {
 
+	private static final ArgumentNode[] NO_ARGUMENTS = new ArgumentNode[0];
+
 	private List<LabelNode> labels;
 
 	private final String moduleName;
 
 	private ArgumentNode[] arguments;
-
-	private boolean isjobstep;
 
 	public ModuleNode(List<LabelNode> labels, String moduleName, int startpos, int endpos, ArgumentNode[] arguments) {
 		super(startpos, endpos);
@@ -46,8 +46,12 @@ public class ModuleNode extends AstNode {
 			// adjust end pos for module node to end of final argument
 			this.endpos = this.arguments[this.arguments.length - 1].endpos;
 		}
+		else {
+			this.arguments = NO_ARGUMENTS;
+		}
 	}
 
+	@Override
 	public String toString() {
 		StringBuilder s = new StringBuilder();
 		if (labels != null) {
@@ -81,9 +85,6 @@ public class ModuleNode extends AstNode {
 				s.append(" --").append(arguments[a].getName()).append("=").append(arguments[a].getValue());
 			}
 		}
-		if (isjobstep) {
-			s.append(":isJobStep");
-		}
 		if (includePositionalInfo) {
 			s.append(":");
 			s.append(getStartPos()).append(">").append(getEndPos());
@@ -102,10 +103,6 @@ public class ModuleNode extends AstNode {
 
 	public boolean hasArguments() {
 		return arguments != null;
-	}
-
-	public boolean isJobStep() {
-		return isjobstep;
 	}
 
 	public List<String> getLabelNames() {
@@ -132,21 +129,17 @@ public class ModuleNode extends AstNode {
 		return props;
 	}
 
-	public void setIsJobStep(boolean isjobstep) {
-		this.isjobstep = isjobstep;
-	}
-
 	/**
 	 * Whilst working through arguments when creating a copy of the module, instances of this class tag whether an
 	 * argument has been used to satisfy a variable in a parameterized stream (e.g. ${NAME}).
 	 */
-	static class ConsumedArgumentNode {
+	static class ConsumableArgumentNode {
 
 		private boolean consumed;
 
 		ArgumentNode argumentNode;
 
-		ConsumedArgumentNode(ArgumentNode argumentNode) {
+		ConsumableArgumentNode(ArgumentNode argumentNode) {
 			this.consumed = false;
 			this.argumentNode = argumentNode;
 		}
@@ -166,10 +159,10 @@ public class ModuleNode extends AstNode {
 	 * override existing parameters with the same name - they can behave as additional parameters
 	 */
 	public ModuleNode copyOf(ArgumentNode[] arguments, boolean argumentOverriding) {
-		Map<String, ConsumedArgumentNode> extraArgumentsMap = new LinkedHashMap<String, ConsumedArgumentNode>();
+		Map<String, ConsumableArgumentNode> extraArgumentsMap = new LinkedHashMap<String, ConsumableArgumentNode>();
 		if (arguments != null) {
 			for (ArgumentNode argument : arguments) {
-				extraArgumentsMap.put(argument.getName(), new ConsumedArgumentNode(argument));
+				extraArgumentsMap.put(argument.getName(), new ConsumableArgumentNode(argument));
 			}
 		}
 
@@ -184,7 +177,7 @@ public class ModuleNode extends AstNode {
 		}
 
 		if (argumentOverriding) {
-			for (ConsumedArgumentNode can : extraArgumentsMap.values()) {
+			for (ConsumableArgumentNode can : extraArgumentsMap.values()) {
 				if (!can.isConsumed()) {
 					newModuleArguments.put(can.argumentNode.getName(), can.argumentNode);
 				}

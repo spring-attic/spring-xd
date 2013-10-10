@@ -24,38 +24,16 @@ public class SourceChannelNode extends AstNode {
 
 	private final ChannelNode channelNode;
 
-	private final ModuleReferenceNode moduleReferenceNode;
-
-	private final boolean isTap;
-
-	public SourceChannelNode(ChannelNode channelNode, int endpos, boolean isTap) {
+	public SourceChannelNode(ChannelNode channelNode, int endpos) {
 		super(channelNode.startpos, endpos);
 		this.channelNode = channelNode;
-		this.moduleReferenceNode = null;
-		this.isTap = isTap;
-	}
-
-	public SourceChannelNode(ModuleReferenceNode moduleReferenceNode, int endpos, boolean isTap) {
-		super(moduleReferenceNode.startpos, endpos);
-		this.moduleReferenceNode = moduleReferenceNode;
-		this.channelNode = null;
-		this.isTap = isTap;
-		// assert isTap==true
 	}
 
 	/** @inheritDoc */
 	@Override
 	public String stringify(boolean includePositionalInfo) {
 		StringBuilder s = new StringBuilder();
-		if (isTap) {
-			s.append("tap ");
-		}
-		if (channelNode != null) {
-			s.append(channelNode.stringify(includePositionalInfo));
-		}
-		else {
-			s.append(moduleReferenceNode.stringify(includePositionalInfo));
-		}
+		s.append(channelNode.stringify(includePositionalInfo));
 		s.append(">");
 		return s.toString();
 	}
@@ -63,15 +41,7 @@ public class SourceChannelNode extends AstNode {
 	@Override
 	public String toString() {
 		StringBuilder s = new StringBuilder();
-		if (isTap) {
-			s.append("tap ");
-		}
-		if (channelNode != null) {
-			s.append(channelNode.toString());
-		}
-		else {
-			s.append(moduleReferenceNode.toString());
-		}
+		s.append(channelNode.toString());
 		s.append(" > ");
 		return s.toString();
 	}
@@ -80,40 +50,20 @@ public class SourceChannelNode extends AstNode {
 		return channelNode;
 	}
 
-	public ModuleReferenceNode getModuleReferenceNode() {
-		return moduleReferenceNode;
-	}
-
-	public boolean isTap() {
-		return isTap;
-	}
-
 	public void resolve(StreamLookupEnvironment env) {
-		if (channelNode == null) {
-			// It is a module reference, needs to be resolved
-			moduleReferenceNode.resolve(env);
-		}
-		else {
-			channelNode.resolve(env);
-		}
+		channelNode.resolve(env);
 	}
 
 	public SourceChannelNode copyOf() {
-		if (channelNode != null) {
-			return new SourceChannelNode(channelNode.copyOf(), endpos, isTap);
-		}
-		else {
-			return new SourceChannelNode(moduleReferenceNode.copyOf(), endpos, isTap);
-		}
+		return new SourceChannelNode(channelNode.copyOf(), endpos);
 	}
 
 	public String getChannelName() {
-		if (channelNode != null) {
-			return channelNode.getChannelName();
-		}
-		else {
-			return moduleReferenceNode.getChannelName();
-		}
+		return channelNode.getChannelName();
+	}
+
+	public Object getChannelType() {
+		return channelNode.getChannelType();
 	}
 
 }

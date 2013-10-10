@@ -70,7 +70,7 @@ class Tokenizer {
 				switch (ch) {
 					case '-':
 						if (!isTwoCharToken(TokenKind.DOUBLE_MINUS)) {
-							throw new DSLException(
+							throw new StreamDefinitionException(
 									expressionString, pos,
 									XDDSLMessages.MISSING_CHARACTER, "-");
 						}
@@ -121,10 +121,10 @@ class Tokenizer {
 						pos++; // will take us to the end
 						break;
 					case '\\':
-						throw new DSLException(
+						throw new StreamDefinitionException(
 								expressionString, pos, XDDSLMessages.UNEXPECTED_ESCAPE_CHAR);
 					default:
-						throw new DSLException(
+						throw new StreamDefinitionException(
 								expressionString, pos, XDDSLMessages.UNEXPECTED_DATA,
 								Character.valueOf(ch).toString());
 				}
@@ -156,7 +156,7 @@ class Tokenizer {
 				}
 			}
 			if (ch == 0) {
-				throw new DSLException(
+				throw new StreamDefinitionException(
 						expressionString, start, XDDSLMessages.NON_TERMINATING_QUOTED_STRING);
 			}
 		}
@@ -185,7 +185,7 @@ class Tokenizer {
 				}
 			}
 			if (ch == 0) {
-				throw new DSLException(
+				throw new StreamDefinitionException(
 						expressionString, start, XDDSLMessages.NON_TERMINATING_DOUBLE_QUOTED_STRING);
 			}
 		}

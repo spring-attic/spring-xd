@@ -1,0 +1,16 @@
+XD_ANALYTICS: ${analytics:memory}
+XD_TRANSPORT: ${transport:local}
+XD_STORE: ${store:memory}
+XD_HOME: ${xdHomeDir:..}
+
+---
+
+spring:
+  profiles: adminServer
+  
+---
+
+spring:
+  profiles: node
+management:
+  port: 9000

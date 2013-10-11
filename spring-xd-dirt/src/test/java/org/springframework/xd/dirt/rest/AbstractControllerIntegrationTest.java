@@ -26,6 +26,7 @@ import org.springframework.batch.admin.service.JobService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
@@ -48,6 +49,7 @@ import org.springframework.xd.dirt.stream.StreamDeployer;
  * @author Eric Bottard
  * @author Ilayaperumal Gopinathan
  */
+@ContextConfiguration(classes = { LegacyMvcConfiguration.class })
 public class AbstractControllerIntegrationTest {
 
 	private MockUtil mockUtil = new MockUtil();

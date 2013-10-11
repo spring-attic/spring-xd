@@ -14,6 +14,7 @@
 package org.springframework.integration.x.json;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Date;
@@ -158,6 +159,7 @@ public class TypedJsonMapperTests {
 	public void testConvertSingleQuotedJson() {
 		String json = "{'symbol':'VMW','price':73}";
 		Tuple t = (Tuple) mapper.fromBytes(json.getBytes(), DefaultTuple.class.getName());
+		assertNotNull(t);
 	}
 
 	@Test

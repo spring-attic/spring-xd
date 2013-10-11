@@ -75,7 +75,7 @@ public class AdminServer implements SmartLifecycle, InitializingBean {
 
 	public AdminServer(AdminOptions adminOptions) {
 		XmlWebApplicationContext parent = new XmlWebApplicationContext();
-		parent.getEnvironment().setActiveProfiles(ADMIN_PROFILE);
+		parent.getEnvironment().setActiveProfiles(ADMIN_PROFILE, "legacy");
 		parent.setConfigLocation("classpath:" + XDContainer.XD_INTERNAL_CONFIG_ROOT + "xd-global-beans.xml");
 
 		this.webApplicationContext = new XmlWebApplicationContext();

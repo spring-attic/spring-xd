@@ -33,7 +33,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.context.support.GenericXmlApplicationContext;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -105,10 +106,14 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 	@Override
 	public void onInit() {
 		this.plugins = this.deployerContext.getBeansOfType(Plugin.class);
-		ClassPathXmlApplicationContext commonContext = new ClassPathXmlApplicationContext(
-				new String[] { XDContainer.XD_INTERNAL_CONFIG_ROOT + "module-common.xml" }, false);
+		GenericXmlApplicationContext commonContext = new GenericXmlApplicationContext();
+		commonContext.load(XDContainer.XD_INTERNAL_CONFIG_ROOT + "module-common.xml");
 		ApplicationContext globalContext = deployerContext.getParent();
 		commonContext.setParent(globalContext);
+		if (globalContext != null && globalContext.getEnvironment() instanceof ConfigurableEnvironment) {
+			commonContext.setEnvironment((ConfigurableEnvironment) globalContext.getEnvironment());
+		}
+
 		for (Plugin plugin : plugins.values()) {
 			plugin.preProcessSharedContext(commonContext);
 		}
@@ -173,7 +178,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 			if (logger.isDebugEnabled()) {
 				logger.debug("added properties for child module [" + module.getName() + "]: " + props);
 			}
-			// module.setParentContext(this.context);
+
 			modules.add(module);
 		}
 		CompositeModule module = new CompositeModule(request.getModule(), request.getType(), modules, metadata);
@@ -206,7 +211,23 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 				: new ParentLastURLClassLoader(definition.getClasspath(), parentClassLoader);
 
 		Module module = new SimpleModule(definition, metadata, classLoader);
-		deployModule(module, request, message);
+		module.setParentContext(this.commonContext);
+		Object properties = message.getHeaders().get("properties");
+		if (properties instanceof Properties) {
+			module.addProperties((Properties) properties);
+		}
+		Map<String, String> parameters = request.getParameters();
+		if (!CollectionUtils.isEmpty(parameters)) {
+			Properties parametersAsProps = new Properties();
+			parametersAsProps.putAll(parameters);
+			module.addProperties(parametersAsProps);
+		}
+		this.deploy(module);
+		if (logger.isInfoEnabled()) {
+			logger.info("deployed " + module.toString());
+		}
+		this.deployedModules.putIfAbsent(request.getGroup(), new HashMap<Integer, Module>());
+		this.deployedModules.get(request.getGroup()).put(request.getIndex(), module);
 	}
 
 	private void deployModule(Module module, ModuleDeploymentRequest request, Message<?> message) {

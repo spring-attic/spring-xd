@@ -8,4 +8,6 @@
 	<import resource="../analytics/${XD_ANALYTICS}-analytics.xml" />
 	<import resource="../batch/batch.xml" />
 
+	<bean id="postHandlerMapping" class="org.springframework.xd.dirt.post.DelegatingHandlerMapping"/>
+
 </beans>

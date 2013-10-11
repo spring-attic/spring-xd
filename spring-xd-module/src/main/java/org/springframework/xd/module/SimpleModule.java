@@ -17,20 +17,23 @@
 package org.springframework.xd.module;
 
 import java.util.Properties;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.context.initializer.ContextIdApplicationContextInitializer;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.env.PropertySource;
+import org.springframework.core.env.StandardEnvironment;
 import org.springframework.core.io.Resource;
-import org.springframework.util.Assert;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 /**
  * A {@link Module} implementation backed by a Spring {@link ApplicationContext}.
@@ -38,19 +41,21 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author David Turanski
  * @author Gary Russell
+ * @author Dave Syer
  */
 public class SimpleModule extends AbstractModule {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private final GenericApplicationContext context;
+	private ConfigurableApplicationContext context;
+
+	private final ConfigurableEnvironment environment;
+
+	private final SpringApplicationBuilder application;
 
 	private final AtomicInteger propertiesCounter = new AtomicInteger();
 
 	private final Properties properties = new Properties();
-
-	private final AtomicBoolean isRunning = new AtomicBoolean();
-
 
 	public SimpleModule(ModuleDefinition definition, DeploymentMetadata metadata) {
 		this(definition, metadata, null);
@@ -58,9 +63,10 @@ public class SimpleModule extends AbstractModule {
 
 	public SimpleModule(ModuleDefinition definition, DeploymentMetadata metadata, ClassLoader classLoader) {
 		super(definition, metadata);
-		context = new GenericApplicationContext();
+		application = new SpringApplicationBuilder().sources(PropertyPlaceholderAutoConfiguration.class).web(false);
+		environment = new StandardEnvironment();
 		if (classLoader != null) {
-			context.setClassLoader(classLoader);
+			application.resourceLoader(new PathMatchingResourcePatternResolver(classLoader));
 		}
 		if (definition != null) {
 			if (definition.getResource().isReadable()) {
@@ -75,13 +81,16 @@ public class SimpleModule extends AbstractModule {
 
 	@Override
 	public void setParentContext(ApplicationContext parent) {
-		this.context.setParent(parent);
+		this.application.parent((ConfigurableApplicationContext) parent);
 	}
 
 	@Override
 	public void addComponents(Resource resource) {
-		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(this.context);
-		reader.loadBeanDefinitions(resource);
+		addSource(resource);
+	}
+
+	protected void addSource(Object source) {
+		application.sources(source);
 	}
 
 	@Override
@@ -116,66 +125,46 @@ public class SimpleModule extends AbstractModule {
 		int propertiesIndex = this.propertiesCounter.getAndIncrement();
 		String propertySourceName = "properties-" + propertiesIndex;
 		PropertySource<?> propertySource = new PropertiesPropertySource(propertySourceName, properties);
-		this.context.getEnvironment().getPropertySources().addLast(propertySource);
+		this.environment.getPropertySources().addLast(propertySource);
 	}
 
 	@Override
 	public void initialize() {
-		Assert.state(this.context != null, "An ApplicationContext is required");
-		boolean propertyConfigurerPresent = false;
-		for (String name : this.context.getBeanDefinitionNames()) {
-			if (name.startsWith("org.springframework.context.support.PropertySourcesPlaceholderConfigurer")) {
-				propertyConfigurerPresent = true;
-				break;
-			}
-		}
-		if (!propertyConfigurerPresent) {
-			PropertySourcesPlaceholderConfigurer placeholderConfigurer = new PropertySourcesPlaceholderConfigurer();
-			placeholderConfigurer.setEnvironment(this.context.getEnvironment());
-			this.context.addBeanFactoryPostProcessor(placeholderConfigurer);
-		}
-		this.context.setId(this.toString());
-		this.context.refresh();
+		this.application.initializers(new ContextIdApplicationContextInitializer(this.toString()));
+		this.application.environment(environment);
+		this.context = this.application.run();
 		if (logger.isInfoEnabled()) {
 			logger.info("initialized module: " + this.toString());
 		}
 	}
 
 	@Override
-	public void destroy() {
-		if (this.context != null) {
-			this.context.destroy();
-		}
-	}
-
-	/*
-	 * Lifecycle implementation
-	 */
-
-	@Override
 	public void start() {
-		Assert.state(this.context != null, "An ApplicationContext is required");
-		if (this.isRunning.compareAndSet(false, true)) {
-			this.context.start();
-			if (logger.isInfoEnabled()) {
-				logger.info("started module: " + this.toString());
-			}
-		}
+		context.start();
 	}
 
 	@Override
 	public void stop() {
-		if (this.isRunning.compareAndSet(true, false)) {
-			this.context.stop();
-			if (logger.isInfoEnabled()) {
-				logger.info("stopped module: " + this.toString());
-			}
-		}
+		context.stop(); // Shouldn't need to close() as well?
 	}
 
 	@Override
 	public boolean isRunning() {
-		return isRunning.get();
+		return context.isRunning();
 	}
 
+	@Override
+	public void destroy() {
+		if (context instanceof DisposableBean) {
+			try {
+				((DisposableBean) context).destroy();
+			}
+			catch (RuntimeException e) {
+				throw e;
+			}
+			catch (Exception e) {
+				throw new IllegalStateException(e);
+			}
+		}
+	}
 }

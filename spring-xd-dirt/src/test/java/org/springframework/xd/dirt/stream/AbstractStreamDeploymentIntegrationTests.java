@@ -27,14 +27,18 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.support.AbstractApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
+import org.springframework.xd.dirt.boot.ParentConfiguration;
 import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.server.options.XDPropertyKeys;
 import org.springframework.xd.module.Module;
@@ -57,6 +61,16 @@ public abstract class AbstractStreamDeploymentIntegrationTests {
 
 	private final QueueChannel tapChannel = new QueueChannel();
 
+	@EnableAutoConfiguration
+	@Configuration
+	@ImportResource({
+		"META-INF/spring-xd/internal/container.xml",
+		"META-INF/spring-xd/internal/deployers.xml",
+		"META-INF/spring-xd/plugins/streams.xml",
+		"META-INF/spring-xd/store/memory-store.xml" })
+	protected static class StreamDeploymentIntegrationTestsConfiguration {
+	}
+
 	@Before
 	public final void setUp() {
 		String transport = this.getTransport();
@@ -64,12 +78,10 @@ public abstract class AbstractStreamDeploymentIntegrationTests {
 		System.setProperty(XDPropertyKeys.XD_TRANSPORT, transport);
 		System.setProperty(XDPropertyKeys.XD_ANALYTICS, "memory");
 		System.setProperty(XDPropertyKeys.XD_STORE, "memory");
-		this.context = new ClassPathXmlApplicationContext(
-				"META-INF/spring-xd/internal/container.xml",
-				"META-INF/spring-xd/internal/deployers.xml",
-				"META-INF/spring-xd/plugins/streams.xml",
-				"META-INF/spring-xd/store/memory-store.xml",
-				"META-INF/spring-xd/transports/" + transport + "-admin.xml");
+		context = (AbstractApplicationContext) new SpringApplicationBuilder(ParentConfiguration.class).profiles(
+				"singleNode").child(
+				StreamDeploymentIntegrationTestsConfiguration.class).sources(
+				"META-INF/spring-xd/transports/" + transport + "-admin.xml").web(false).run();
 		this.streamDefinitionRepository = context.getBean(StreamDefinitionRepository.class);
 		this.streamRepository = context.getBean(StreamRepository.class);
 		this.streamDeployer = context.getBean(StreamDeployer.class);

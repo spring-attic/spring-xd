@@ -66,8 +66,9 @@ public class StreamPluginTests {
 
 	@Test
 	public void streamPropertiesAdded() {
-		Module module = new SimpleModule(new ModuleDefinition("testsource", ModuleType.source), new DeploymentMetadata(
-				"foo", 0));
+		Module module = new SimpleModule(new ModuleDefinition("testsource", ModuleType.source),
+				new DeploymentMetadata("foo", 0));
+		module.initialize();
 		assertEquals(0, module.getProperties().size());
 		plugin.preProcessModule(module);
 		plugin.postProcessModule(module);

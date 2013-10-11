@@ -1,16 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:cloud="http://www.springframework.org/schema/cloud"
+	xsi:schemaLocation="http://www.springframework.org/schema/cloud http://www.springframework.org/schema/cloud/spring-cloud-0.1.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <import resource="classpath:/META-INF/spring-xd/internal/xd-common.xml"/>
-
-	<bean id="rabbitConnectionFactory" class="org.springframework.amqp.rabbit.connection.CachingConnectionFactory">
-		<constructor-arg index="0" value="${rabbit.hostname:localhost}"/>
-		<constructor-arg index="1" value="${rabbit.port:5672}"/>
-		<property name="username" value="${rabbit.username:guest}"/>
-		<property name="password" value="${rabbit.password:guest}"/>
-		<property name="virtualHost" value="${rabbit.vhost:/}"/>
-	</bean>
+	<import resource="classpath:/META-INF/spring-xd/internal/xd-common.xml" />
 
 </beans>

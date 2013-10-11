@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.server;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.xd.dirt.server.options.AdminOptions;
@@ -24,6 +25,7 @@ import org.springframework.xd.dirt.server.options.AdminOptions;
  * @author Luke Taylor
  * @author Gary Russell
  */
+@Ignore("Superseded by AdminServerApplication")
 public class AdminMainMemoryStoreIntegrationTests extends AbstractAdminMainIntegrationTests {
 
 	@Test

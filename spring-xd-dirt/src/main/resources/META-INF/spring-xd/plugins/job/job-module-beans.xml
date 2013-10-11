@@ -14,9 +14,9 @@
 	</bean>
 
 	<bean id="jobFactoryBean" class="org.springframework.xd.dirt.plugins.job.JobFactoryBean">
-		<constructor-arg name="jobName"   value="${xd.stream.name}"/>
-		<constructor-arg name="jobSuffix" value="#{T(org.springframework.xd.dirt.plugins.job.JobPlugin).JOB_BEAN_ID}"/>
-		<constructor-arg name="registry"  ref="jobRegistry"/>
+		<property name="jobName"   value="${xd.stream.name}"/>
+		<property name="jobSuffix" value="#{T(org.springframework.xd.dirt.plugins.job.JobPlugin).JOB_BEAN_ID}"/>
+		<property name="registry"  ref="jobRegistry"/>
 	</bean>
 
 	<int:channel id="input" />

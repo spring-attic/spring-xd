@@ -33,7 +33,7 @@ public interface ModuleRegistry {
 	 * 
 	 * @return {@code null} if this registry does not have such a module
 	 */
-	ModuleDefinition findDefinition(String name, String type);
+	ModuleDefinition findDefinition(String name, ModuleType moduleType);
 
 	/**
 	 * Searches the registry for the name specified and returns all module definitions that match the name regardless of

@@ -20,6 +20,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.xd.module.ModuleType;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -42,7 +44,7 @@ public class ModuleDeploymentRequest {
 
 	private volatile int index;
 
-	private volatile String type = "generic";
+	private volatile ModuleType type = null;
 
 	private final Map<String, String> parameters = new HashMap<String, String>();
 
@@ -77,11 +79,11 @@ public class ModuleDeploymentRequest {
 		this.index = index;
 	}
 
-	public String getType() {
+	public ModuleType getType() {
 		return type;
 	}
 
-	public void setType(String type) {
+	public void setType(ModuleType type) {
 		this.type = type;
 	}
 

@@ -16,9 +16,9 @@
 
 package org.springframework.xd.rest.client.impl;
 
-import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.rest.client.ModuleOperations;
 import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
+import org.springframework.xd.rest.client.domain.RESTModuleType;
 
 
 /**
@@ -39,10 +39,10 @@ public class ModuleTemplate extends AbstractTemplate implements ModuleOperations
 
 
 	@Override
-	public ModuleDefinitionResource.Page list(ModuleType type) {
+	public ModuleDefinitionResource.Page list(RESTModuleType type) {
 		String uriTemplate = resources.get("modules").toString();
 		// TODO handle pagination at the client side
-		uriTemplate = uriTemplate + "?size=10000" + ((type == null) ? "" : "&type=" + type.getTypeName());
+		uriTemplate = uriTemplate + "?size=10000" + ((type == null) ? "" : "&type=" + type.name());
 		return restTemplate.getForObject(uriTemplate, ModuleDefinitionResource.Page.class);
 	}
 

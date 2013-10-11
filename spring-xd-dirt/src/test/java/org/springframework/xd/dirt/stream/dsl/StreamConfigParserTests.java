@@ -236,21 +236,21 @@ public class StreamConfigParserTests {
 			throw new RuntimeException(ioe);
 		}
 		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(new ModuleDefinition(ModuleType.SOURCE.name(),
-				ModuleType.SOURCE.name(), resource));
-		when(registry.findDefinitions(ModuleType.SOURCE.name())).thenReturn(
+		definitions.add(new ModuleDefinition("SOURCE",
+				ModuleType.source, resource));
+		when(registry.findDefinitions("SOURCE")).thenReturn(
 				definitions);
 
 		definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(new ModuleDefinition(ModuleType.SINK.name(),
-				ModuleType.SINK.name(), resource));
-		when(registry.findDefinitions(ModuleType.SINK.name())).thenReturn(
+		definitions.add(new ModuleDefinition("SINK",
+				ModuleType.sink, resource));
+		when(registry.findDefinitions("SINK")).thenReturn(
 				definitions);
 
 		definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(new ModuleDefinition(ModuleType.PROCESSOR.name(),
-				ModuleType.PROCESSOR.name(), resource));
-		when(registry.findDefinitions(ModuleType.PROCESSOR.name())).thenReturn(
+		definitions.add(new ModuleDefinition("PROCESSOR",
+				ModuleType.processor, resource));
+		when(registry.findDefinitions("PROCESSOR")).thenReturn(
 				definitions);
 		return registry;
 	}

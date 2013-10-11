@@ -72,17 +72,17 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 	@Before
 	public void before() {
 		Resource resource = mock(Resource.class);
-		ModuleDefinition moduleJobDefinition = new ModuleDefinition(ModuleType.JOB.getTypeName(),
-				ModuleType.JOB.getTypeName(), resource);
+		ModuleDefinition moduleJobDefinition = new ModuleDefinition("job",
+				ModuleType.job, resource);
 		when(resource.exists()).thenReturn(true);
 		ArrayList<ModuleDefinition> moduleDefinitions = new ArrayList<ModuleDefinition>();
 		moduleDefinitions.add(moduleJobDefinition);
-		when(moduleRegistry.findDefinitions(ModuleType.JOB.getTypeName())).thenReturn(moduleDefinitions);
+		when(moduleRegistry.findDefinitions("job")).thenReturn(moduleDefinitions);
 		when(moduleRegistry.findDefinitions("job1")).thenReturn(moduleDefinitions);
 		when(moduleRegistry.findDefinitions("job2")).thenReturn(moduleDefinitions);
-		when(moduleRegistry.findDefinition("job1", ModuleType.JOB.getTypeName())).thenReturn(moduleJobDefinition);
-		when(moduleRegistry.findDefinition("job2", ModuleType.JOB.getTypeName())).thenReturn(moduleJobDefinition);
-		when(moduleRegistry.findDefinition("job", ModuleType.JOB.getTypeName())).thenReturn(moduleJobDefinition);
+		when(moduleRegistry.findDefinition("job1", ModuleType.job)).thenReturn(moduleJobDefinition);
+		when(moduleRegistry.findDefinition("job2", ModuleType.job)).thenReturn(moduleJobDefinition);
+		when(moduleRegistry.findDefinition("job", ModuleType.job)).thenReturn(moduleJobDefinition);
 	}
 
 	@Test

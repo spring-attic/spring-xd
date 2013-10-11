@@ -35,6 +35,7 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.xd.dirt.plugins.ModuleConfigurationException;
 import org.springframework.xd.module.Module;
+import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.PluginAdapter;
 import org.springframework.xd.module.SimpleModule;
 
@@ -53,10 +54,10 @@ public class ModuleTypeConversionPlugin extends PluginAdapter {
 	public void postProcessModule(Module module) {
 		String outputType = null;
 		String inputType = null;
-		if (module.getType().equals("source") || module.getType().equals("processor")) {
+		if (module.getType() == ModuleType.source || module.getType() == ModuleType.processor) {
 			outputType = module.getProperties().getProperty("outputType");
 		}
-		if (module.getType().equals("sink") || module.getType().equals("processor")) {
+		if (module.getType() == ModuleType.sink || module.getType() == ModuleType.processor) {
 			inputType = module.getProperties().getProperty("inputType");
 		}
 		DefaultFormattingConversionService conversionService = new DefaultFormattingConversionService();

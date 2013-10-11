@@ -99,7 +99,7 @@ public class XDStreamParser implements XDParser {
 
 		for (int m = 0; m < moduleNodes.size(); m++) {
 			ModuleDeploymentRequest request = requests.get(m);
-			request.setType(determineType(request, requests.size() - 1).getTypeName());
+			request.setType(determineType(request, requests.size() - 1));
 		}
 
 		return requests;
@@ -110,7 +110,7 @@ public class XDStreamParser implements XDParser {
 		if (moduleType != null) {
 			return moduleType;
 		}
-		String type = null;
+		ModuleType type = null;
 		String name = request.getModule();
 		int index = request.getIndex();
 		List<ModuleDefinition> defs = moduleRegistry.findDefinitions(name);
@@ -123,16 +123,16 @@ public class XDStreamParser implements XDParser {
 		}
 		if (lastIndex == 0) {
 			for (ModuleDefinition def : defs) {
-				if (def.getType().equals(ModuleType.JOB.getTypeName())) {
+				if (def.getType() == ModuleType.job) {
 					type = def.getType();
 				}
 			}
 		}
 		else if (index == 0) {
-			type = ModuleType.SOURCE.getTypeName();
+			type = ModuleType.source;
 		}
 		else if (index == lastIndex) {
-			type = ModuleType.SINK.getTypeName();
+			type = ModuleType.sink;
 		}
 		if (type == null) {
 			throw new NoSuchModuleException(name);
@@ -141,34 +141,34 @@ public class XDStreamParser implements XDParser {
 	}
 
 	private ModuleType getNamedChannelModuleType(ModuleDeploymentRequest request, int lastIndex) {
-		String type = null;
+		ModuleType type = null;
 		String moduleName = request.getModule();
 		int index = request.getIndex();
-		if (request.getSourceChannelName() != null) {
-			if (index == lastIndex) {
-				if (request.getSinkChannelName() != null) {
-					type = ModuleType.PROCESSOR.getTypeName();
+		if (request.getSourceChannelName() != null) { // preceded by >, so not a source
+			if (index == lastIndex) { // this is the final module of the stream
+				if (request.getSinkChannelName() != null) { // but followed by >, so not a sink
+					type = ModuleType.processor;
 				}
-				else {
-					type = ModuleType.SINK.getTypeName();
+				else { // final module and no >, so IS a sink
+					type = ModuleType.sink;
 				}
 			}
-			else {
-				type = ModuleType.PROCESSOR.getTypeName();
+			else { // not final module, must be a processor
+				type = ModuleType.processor;
 			}
 		}
-		else if (request.getSinkChannelName() != null) {
-			if (index == 0) {
-				type = ModuleType.SOURCE.getTypeName();
+		else if (request.getSinkChannelName() != null) { // followed by >, so not a sink
+			if (index == 0) { // first module in a stream, and not preceded by >, so IS a source
+				type = ModuleType.source;
 			}
-			else {
-				type = ModuleType.PROCESSOR.getTypeName();
+			else { // not first module, and followed by >, so not a source or sink
+				type = ModuleType.processor;
 			}
 		}
 		return (type == null) ? null : verifyModuleOfTypeExists(request, moduleName, type);
 	}
 
-	private ModuleType verifyModuleOfTypeExists(ModuleDeploymentRequest request, String moduleName, String type) {
+	private ModuleType verifyModuleOfTypeExists(ModuleDeploymentRequest request, String moduleName, ModuleType type) {
 		ModuleDefinition def = moduleRegistry.findDefinition(moduleName, type);
 		if (def == null || def.getResource() == null) {
 			List<ModuleDefinition> definitions = moduleRegistry.findDefinitions(moduleName);
@@ -178,9 +178,9 @@ public class XDStreamParser implements XDParser {
 			// The module is known but this doesn't seem to be a standard stream,
 			// assume it is a composite module stream that isn't deployable by itself
 			request.tagAsUndeployable();
-			return ModuleType.getModuleTypeByTypeName(definitions.get(0).getType());
+			return definitions.get(0).getType();
 		}
-		return ModuleType.getModuleTypeByTypeName(def.getType());
+		return def.getType();
 	}
 
 }

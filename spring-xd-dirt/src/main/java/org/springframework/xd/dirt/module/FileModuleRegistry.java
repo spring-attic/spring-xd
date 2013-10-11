@@ -60,7 +60,7 @@ public class FileModuleRegistry extends AbstractModuleRegistry implements Resour
 
 	@Override
 	protected Resource locateApplicationContext(String name, ModuleType type) {
-		File typedDir = new File(directory, type.getTypeName());
+		File typedDir = new File(directory, type.name());
 		File enhanced = new File(typedDir, name + File.separator + "config" + File.separator + name + ".xml");
 		if (enhanced.exists()) {
 			return new FileSystemResource(enhanced);
@@ -73,7 +73,7 @@ public class FileModuleRegistry extends AbstractModuleRegistry implements Resour
 	}
 
 	@Override
-	protected URL[] maybeLocateClasspath(Resource resource, String name, String type) {
+	protected URL[] maybeLocateClasspath(Resource resource, String name, ModuleType type) {
 		try {
 			URL resourceLocation = resource.getURL();
 			if (resourceLocation.toString().endsWith(name + "/config/" + name + ".xml")) {
@@ -106,8 +106,8 @@ public class FileModuleRegistry extends AbstractModuleRegistry implements Resour
 		for (Resource resource : locateApplicationContexts(type)) {
 			String name = resource.getFilename().substring(0,
 					resource.getFilename().lastIndexOf('.'));
-			results.add(new ModuleDefinition(name, type.getTypeName(), resource, maybeLocateClasspath(resource, name,
-					type.getTypeName())));
+			results.add(new ModuleDefinition(name, type, resource, maybeLocateClasspath(resource, name,
+					type)));
 		}
 		return results;
 	}
@@ -115,7 +115,7 @@ public class FileModuleRegistry extends AbstractModuleRegistry implements Resour
 	@Override
 	protected List<Resource> locateApplicationContexts(ModuleType type) {
 		ArrayList<Resource> resources = new ArrayList<Resource>();
-		File typedDir = new File(directory, type.getTypeName());
+		File typedDir = new File(directory, type.name());
 		File[] files = typedDir.listFiles();
 		if (files == null) {
 			return resources;
@@ -132,7 +132,7 @@ public class FileModuleRegistry extends AbstractModuleRegistry implements Resour
 				}
 			}
 			else if (file.isDirectory()) {
-				FileSystemResource configResource = getResourceFromConfigDir(file, type.getTypeName());
+				FileSystemResource configResource = getResourceFromConfigDir(file, type);
 				if (configResource != null) {
 					resources.add(configResource);
 				}
@@ -141,7 +141,7 @@ public class FileModuleRegistry extends AbstractModuleRegistry implements Resour
 		return resources;
 	}
 
-	private FileSystemResource getResourceFromConfigDir(File file, String typeName) {
+	private FileSystemResource getResourceFromConfigDir(File file, ModuleType type) {
 		FileSystemResource result = null;
 		String moduleName = file.getName();
 		File moduleFile = new File(file.getPath() + "/config/" + moduleName + ".xml");

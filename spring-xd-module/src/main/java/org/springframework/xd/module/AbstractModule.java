@@ -20,7 +20,7 @@ import org.springframework.util.Assert;
 
 /**
  * Base support class for modules, wrapping {@link ModuleDefinition} and {@link DeploymentMetadata}.
- *
+ * 
  * @author Mark Fisher
  * @author David Turanski
  * @author Gary Russell
@@ -44,7 +44,7 @@ public abstract class AbstractModule implements Module {
 	}
 
 	@Override
-	public String getType() {
+	public ModuleType getType() {
 		return this.definition.getType();
 	}
 

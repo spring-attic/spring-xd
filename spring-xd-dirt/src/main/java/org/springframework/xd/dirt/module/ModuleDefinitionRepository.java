@@ -44,14 +44,9 @@ public class ModuleDefinitionRepository {
 		return slice(definitions, pageable);
 	}
 
-	public Page<ModuleDefinition> findAll(Pageable pageable, String type) {
-		if (type == null) {
-			return findAll(pageable);
-		}
-		ModuleType moduleType = ModuleType.getModuleTypeByTypeName(type);
+	public Page<ModuleDefinition> findAll(Pageable pageable, ModuleType moduleType) {
 		if (moduleType == null) {
-			throw new IllegalArgumentException(
-					"Valid types are: source, processor, sink, job");
+			return findAll(pageable);
 		}
 		List<org.springframework.xd.module.ModuleDefinition> definitions = moduleRegistry.findDefinitions(moduleType);
 		Assert.isNull(pageable.getSort(), "Arbitrary sorting is not implemented");

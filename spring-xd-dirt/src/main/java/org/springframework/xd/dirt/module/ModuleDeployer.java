@@ -110,7 +110,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 				new String[] { XDContainer.XD_INTERNAL_CONFIG_ROOT + "module-common.xml" }, false);
 		ApplicationContext globalContext = deployerContext.getParent();
 		commonContext.setParent(globalContext);
-		if (globalContext.getEnvironment() instanceof ConfigurableEnvironment) {
+		if (globalContext != null && globalContext.getEnvironment() instanceof ConfigurableEnvironment) {
 			commonContext.setEnvironment((ConfigurableEnvironment) globalContext.getEnvironment());
 		}
 

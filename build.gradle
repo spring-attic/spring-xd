@@ -70,6 +70,7 @@ ext {
 	springVersion = '4.0.0.BUILD-SNAPSHOT'
 	springBatchVersion = '2.2.3.BUILD-SNAPSHOT'
 	springIntegrationVersion = '4.0.0.BUILD-SNAPSHOT'
+	springBootVersion = '0.5.0.M5'
 	springBatchAdminMgrVersion = '1.3.0.M1'
 	springShellVersion = '1.1.0.M1'
 	springIntegrationSplunkVersion = '1.0.0.M1'
@@ -766,6 +767,10 @@ project('spring-xd-module') {
 	description = 'Spring XD Module'
 	dependencies {
 		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
+		compile "org.springframework:spring-core:$springVersion"
+		compile "org.springframework:spring-context:$springVersion"
+		compile "org.springframework:spring-web:$springVersion"
+		compile "org.springframework.boot:spring-boot-autoconfigure:$springBootVersion"
 	}
 }
 

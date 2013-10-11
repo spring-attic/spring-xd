@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.Properties;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -43,9 +44,11 @@ public class ModuleDeployerTests {
 
 	private ModuleDeployer moduleDeployer;
 
+	private ClassPathXmlApplicationContext context;
+
 	@Before
 	public void setUp() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext();
+		context = new ClassPathXmlApplicationContext();
 		context.setConfigLocation(
 				"/org/springframework/xd/dirt/module/ModuleDeployerTests-context.xml");
 		OptionUtils.configureRuntime(new SingleNodeOptions(), context.getEnvironment());
@@ -53,6 +56,12 @@ public class ModuleDeployerTests {
 		moduleDeployer = context.getBean(ModuleDeployer.class);
 	}
 
+	@After
+	public void tearDown() {
+		if (context != null) {
+			context.close();
+		}
+	}
 
 	@Test
 	public void testModuleContext() {

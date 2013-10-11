@@ -18,7 +18,6 @@ package org.springframework.xd.dirt.stream.dsl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -122,9 +121,7 @@ public class StreamConfigParserTests {
 	@Test
 	public void oneModuleWithTwoParams() {
 		StreamsNode ast = parse("foo --name=value --x=y");
-		assertTrue(ast instanceof StreamsNode);
-		StreamsNode sn = ast;
-		List<ModuleNode> moduleNodes = sn.getModuleNodes();
+		List<ModuleNode> moduleNodes = ast.getModuleNodes();
 		assertEquals(1, moduleNodes.size());
 
 		ModuleNode mn = moduleNodes.get(0);

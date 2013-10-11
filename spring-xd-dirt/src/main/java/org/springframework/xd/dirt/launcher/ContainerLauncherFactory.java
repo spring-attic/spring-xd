@@ -44,6 +44,7 @@ public class ContainerLauncherFactory {
 	 */
 
 	public ContainerLauncher createContainerLauncher(ContainerOptions options, ApplicationContext parentContext) {
+		@SuppressWarnings("resource")
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext();
 		context.setConfigLocation(LAUNCHER_CONFIG_LOCATION);
 

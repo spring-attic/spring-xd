@@ -80,8 +80,6 @@ public class BatchJobsControllerIntegrationTests extends AbstractControllerInteg
 
 	private TimeZone timeZone = TimeZone.getDefault();
 
-	private static final String EXIT_STATUS_AS_String = "{\"exitDescription\":\"\",\"exitCode\":\"COMPLETED\",\"running\":false}";
-
 	@Before
 	public void before() throws Exception {
 		SimpleJob job1 = new SimpleJob("job1.job");

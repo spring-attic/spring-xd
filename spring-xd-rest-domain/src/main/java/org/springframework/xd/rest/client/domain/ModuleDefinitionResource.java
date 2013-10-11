@@ -16,39 +16,56 @@
 
 package org.springframework.xd.rest.client.domain;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 import org.springframework.hateoas.PagedResources;
+import org.springframework.hateoas.ResourceSupport;
 
 /**
  * Represents a Module Definition.
  * 
  * @author Glenn Renfro
+ * @author Mark Fisher
  * @since 1.0
  */
-public class ModuleDefinitionResource extends NamedResource {
+@XmlRootElement
+public class ModuleDefinitionResource extends ResourceSupport {
 
-	private String type;
+	private volatile String name;
 
-	public String getType() {
-		return type;
-	}
+	private volatile String type;
+
+	private volatile String moduleId;
 
 	/**
 	 * The DSL representation of this module definition.
 	 */
-	private String definition;
+	private volatile String definition;
 
 	/**
 	 * Default constructor for serialization frameworks.
 	 */
 	@SuppressWarnings("unused")
 	private ModuleDefinitionResource() {
-
 	}
 
 	public ModuleDefinitionResource(String name, String definition, String type) {
-		super(name);
+		this.moduleId = type + ":" + name;
+		this.name = name;
 		this.definition = definition;
 		this.type = type;
+	}
+
+	public String getModuleId() {
+		return moduleId;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public String getType() {
+		return type;
 	}
 
 	public String getDefinition() {

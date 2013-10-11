@@ -39,7 +39,9 @@ import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository
 import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
 import org.springframework.xd.dirt.container.store.RuntimeContainerInfoRepository;
+import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleRegistry;
+import org.springframework.xd.dirt.module.memory.InMemoryModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.store.RuntimeContainerModuleInfoRepository;
 import org.springframework.xd.dirt.module.store.RuntimeModuleInfoRepository;
 import org.springframework.xd.dirt.plugins.job.BatchJobLocator;
@@ -83,6 +85,11 @@ public class Dependencies {
 	}
 
 	@Bean
+	public ModuleDefinitionRepository moduleDefinitionRepository() {
+		return new InMemoryModuleDefinitionRepository(moduleRegistry());
+	}
+
+	@Bean
 	public ModuleRegistry moduleRegistry() {
 		return mock(ModuleRegistry.class);
 	}
@@ -105,7 +112,7 @@ public class Dependencies {
 	@Bean
 	public XDParser parser() {
 		return new XDStreamParser(streamDefinitionRepository(),
-				moduleRegistry());
+				moduleDefinitionRepository());
 	}
 
 	@Bean

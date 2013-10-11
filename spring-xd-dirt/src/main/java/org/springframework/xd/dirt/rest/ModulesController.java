@@ -17,6 +17,8 @@
 package org.springframework.xd.dirt.rest;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -26,13 +28,15 @@ import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
-import org.springframework.xd.dirt.module.ModuleRegistry;
+import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
@@ -41,6 +45,7 @@ import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
  * Handles all Module related interactions.
  * 
  * @author Glenn Renfro
+ * @author Mark Fisher
  * @since 1.0
  */
 @Controller
@@ -48,11 +53,15 @@ import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
 @ExposesResourceFor(ModuleDefinitionResource.class)
 public class ModulesController {
 
-	private final ModuleRegistry moduleRegistry;
+	private final ModuleDefinitionRepository repository;
+
+	private final XDStreamParser parser;
 
 	@Autowired
-	public ModulesController(ModuleRegistry moduleRegistry) {
-		this.moduleRegistry = moduleRegistry;
+	public ModulesController(ModuleDefinitionRepository moduleDefinitionRepository) {
+		Assert.notNull(moduleDefinitionRepository, "moduleDefinitionRepository must not be null");
+		this.repository = moduleDefinitionRepository;
+		this.parser = new XDStreamParser(moduleDefinitionRepository);
 	}
 
 	/**
@@ -64,8 +73,7 @@ public class ModulesController {
 	public PagedResources<ModuleDefinitionResource> list(Pageable pageable,
 			PagedResourcesAssembler<ModuleDefinition> assembler,
 			@RequestParam(value = "type", required = false) ModuleType type) {
-		ModuleDefinitionRepository handler = new ModuleDefinitionRepository(moduleRegistry);
-		Page<ModuleDefinition> page = handler.findAll(pageable, type);
+		Page<ModuleDefinition> page = repository.findByType(pageable, type);
 		PagedResources<ModuleDefinitionResource> result = safePagedResources(assembler, page);
 		return result;
 	}
@@ -83,7 +91,7 @@ public class ModulesController {
 	}
 
 	/**
-	 * Create a new Virtual Module.
+	 * Create a new composite Module.
 	 * 
 	 * @param name The name of the module to create (required)
 	 * @param definition The module definition, expressed in the XD DSL (required)
@@ -93,7 +101,35 @@ public class ModulesController {
 	@ResponseBody
 	public ModuleDefinitionResource save(@RequestParam("name") String name,
 			@RequestParam("definition") String definition) {
-		throw new UnsupportedOperationException("Auto-generated method stub");
+		List<ModuleDeploymentRequest> modules = this.parser.parse(name, definition);
+		ModuleType type = this.determineType(modules);
+		ModuleDefinition moduleDefinition = new ModuleDefinition(name, type);
+		moduleDefinition.setDefinition(definition);
+		ModuleDefinitionResource resource = new ModuleDefinitionResourceAssembler().toResource(moduleDefinition);
+		this.repository.save(moduleDefinition);
+		return resource;
+	}
+
+	private ModuleType determineType(List<ModuleDeploymentRequest> modules) {
+		Collections.sort(modules);
+		Assert.isTrue(modules != null && modules.size() > 0, "at least one module required");
+		if (modules.size() == 1) {
+			return modules.get(0).getType();
+		}
+		ModuleType firstType = modules.get(0).getType();
+		ModuleType lastType = modules.get(modules.size() - 1).getType();
+		boolean hasInput = (!firstType.equals(ModuleType.source));
+		boolean hasOutput = (!lastType.equals(ModuleType.sink));
+		if (hasInput && hasOutput) {
+			return ModuleType.processor;
+		}
+		if (hasInput) {
+			return ModuleType.sink;
+		}
+		if (hasOutput) {
+			return ModuleType.source;
+		}
+		throw new IllegalArgumentException("invalid module composition; must expose input and/or output channel");
 	}
 
 }

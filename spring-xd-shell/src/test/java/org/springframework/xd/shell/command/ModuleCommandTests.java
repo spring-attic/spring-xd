@@ -16,6 +16,7 @@
 
 package org.springframework.xd.shell.command;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -31,6 +32,7 @@ import org.springframework.xd.shell.util.TableRow;
  * 
  * @author Glenn Renfro
  * @author Gunnar Hillert
+ * @author Mark Fisher
  */
 public class ModuleCommandTests extends AbstractShellIntegrationTest {
 
@@ -77,6 +79,15 @@ public class ModuleCommandTests extends AbstractShellIntegrationTest {
 	public void testListForInvalidType() throws InterruptedException {
 		Table t = listByType("foo");
 		assertNull("Invalid Type will return a null set", t);
+	}
+
+	@Test
+	public void testModuleCompose() {
+		Object result = getShell().executeCommand("module compose compositesource --definition \"time | splitter\"").getResult();
+		assertEquals("Successfully created module 'compositesource'", result);
+		Table t = listByType("source");
+		assertTrue("compositesource is not present in list",
+				t.getRows().contains(new TableRow().addValue(1, "compositesource").addValue(2, "source")));
 	}
 
 	private Table listAll() {

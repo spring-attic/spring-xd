@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -18,42 +18,43 @@ import static org.mockito.Mockito.mock;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.xd.dirt.stream.DeploymentMessageSender;
-import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDeployer;
 import org.springframework.xd.dirt.stream.StreamRepository;
 import org.springframework.xd.dirt.stream.XDParser;
+import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.dirt.stream.memory.InMemoryStreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.memory.InMemoryStreamRepository;
 
 /**
  * @author Gunnar Hillert
  * @author Glenn Renfro
- * 
+ * @author Mark Fisher
  */
 @Configuration
-public class StreamsControllerIntegrationWithRepositoryTestsConfig extends
-		Dependencies {
+public class StreamsControllerIntegrationWithRepositoryTestsConfig extends Dependencies {
 
+	@Override
 	@Bean
 	public StreamDefinitionRepository streamDefinitionRepository() {
 		return new InMemoryStreamDefinitionRepository();
 	}
 
+	@Override
 	@Bean
 	public StreamRepository streamRepository() {
 		return new InMemoryStreamRepository();
 	}
 
+	@Override
 	@Bean
 	public StreamDeployer streamDeployer() {
-		XDParser parser = new XDStreamParser(
-				streamDefinitionRepository(), moduleRegistry());
-
+		XDParser parser = new XDStreamParser(streamDefinitionRepository(), moduleDefinitionRepository());
 		return new StreamDeployer(streamDefinitionRepository(),
 				deploymentMessageSender(), streamRepository(), parser);
 	}
 
+	@Override
 	@Bean
 	public DeploymentMessageSender deploymentMessageSender() {
 		return mock(DeploymentMessageSender.class);

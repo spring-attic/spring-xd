@@ -20,8 +20,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.util.Assert;
 import org.springframework.xd.module.ModuleType;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -30,7 +32,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Luke Taylor
  * @author Ilayaperumal Gopinathan
  */
-public class ModuleDeploymentRequest {
+// allows 'composite' to be included when serialized but not required when deserialized
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class ModuleDeploymentRequest implements Comparable<ModuleDeploymentRequest> {
 
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -51,8 +55,6 @@ public class ModuleDeploymentRequest {
 	private volatile boolean remove;
 
 	private volatile boolean launch;
-
-	private volatile boolean deployable = true;
 
 
 	public String getModule() {
@@ -127,12 +129,8 @@ public class ModuleDeploymentRequest {
 		this.launch = launch;
 	}
 
-	public void tagAsUndeployable() {
-		this.deployable = false;
-	}
-
-	public boolean isDeployable() {
-		return this.deployable;
+	public boolean isComposite() {
+		return false;
 	}
 
 	@Override
@@ -143,6 +141,12 @@ public class ModuleDeploymentRequest {
 		catch (Exception e) {
 			return super.toString();
 		}
+	}
+
+	@Override
+	public int compareTo(ModuleDeploymentRequest o) {
+		Assert.notNull(o, "ModuleDeploymentRequest must not be null");
+		return Integer.valueOf(this.getIndex()).compareTo(Integer.valueOf(o.getIndex()));
 	}
 
 }

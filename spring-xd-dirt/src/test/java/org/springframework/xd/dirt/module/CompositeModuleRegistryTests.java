@@ -99,7 +99,7 @@ public class CompositeModuleRegistryTests {
 	public void testFindAll() {
 		List<ModuleDefinition> definitions = registry.findDefinitions();
 		Assert.assertNotNull("A result list should always be returned", definitions);
-		Assert.assertEquals(5, definitions.size());
+		Assert.assertEquals(7, definitions.size());
 		ArrayList<String> moduleNames = new ArrayList<String>();
 		for (ModuleDefinition definition : definitions) {
 			moduleNames.add(definition.getName());

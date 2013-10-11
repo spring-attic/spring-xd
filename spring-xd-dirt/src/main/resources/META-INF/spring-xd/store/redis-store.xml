@@ -33,4 +33,18 @@
 		<constructor-arg ref="humanFriendlyRedisTemplate" />
 	</bean>
 
+	<bean id="moduleDefinitionRepository" class="org.springframework.xd.dirt.module.redis.RedisModuleDefinitionRepository">
+		<constructor-arg value="module.definitions"/>
+		<constructor-arg ref="humanFriendlyRedisTemplate"/>
+		<constructor-arg ref="moduleRegistry"/>
+	</bean>
+
+	<bean id="moduleRegistry" class="org.springframework.xd.dirt.module.CompositeModuleRegistry">
+		<constructor-arg>
+			<bean class="org.springframework.xd.dirt.module.FileModuleRegistry">
+				<constructor-arg value="${XD_HOME}/modules"/>
+			</bean>
+		</constructor-arg>
+	</bean>
+
 </beans>

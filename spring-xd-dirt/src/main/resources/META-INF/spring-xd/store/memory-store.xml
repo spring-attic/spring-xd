@@ -9,4 +9,17 @@
 	<bean id="runtimeContainerInfoRepository" class="org.springframework.xd.dirt.container.store.InMemoryRuntimeContainerInfoRepository" />
 	<bean id="runtimeModuleInfoRepository" class="org.springframework.xd.dirt.module.store.InMemoryRuntimeModuleInfoRepository" />
 	<bean id="runtimeContainerModuleInfoRepository" class="org.springframework.xd.dirt.module.store.InMemoryRuntimeContainerModuleInfoRepository" />
+	
+	<bean id="moduleDefinitionRepository" class="org.springframework.xd.dirt.module.memory.InMemoryModuleDefinitionRepository">
+		<constructor-arg ref="moduleRegistry"/>
+	</bean>
+
+	<bean id="moduleRegistry" class="org.springframework.xd.dirt.module.CompositeModuleRegistry">
+		<constructor-arg>
+			<bean class="org.springframework.xd.dirt.module.FileModuleRegistry">
+				<constructor-arg value="${XD_HOME}/modules"/>
+			</bean>
+		</constructor-arg>
+	</bean>
+
 </beans>

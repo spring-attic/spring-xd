@@ -16,7 +16,10 @@
 
 package org.springframework.xd.dirt.module;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
@@ -34,15 +37,18 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.event.ModuleDeployedEvent;
 import org.springframework.xd.dirt.event.ModuleUndeployedEvent;
 import org.springframework.xd.dirt.plugins.job.JobPlugin;
+import org.springframework.xd.module.CompositeModule;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
+import org.springframework.xd.module.ParentLastURLClassLoader;
 import org.springframework.xd.module.Plugin;
 import org.springframework.xd.module.SimpleModule;
 
@@ -73,13 +79,13 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 
 	private volatile Map<String, Plugin> plugins;
 
-	private final ModuleRegistry moduleRegistry;
+	private final ModuleDefinitionRepository moduleDefinitionRepository;
 
 	private ClassLoader parentClassLoader;
 
-	public ModuleDeployer(ModuleRegistry moduleRegistry) {
-		Assert.notNull(moduleRegistry, "moduleRegistry must not be null");
-		this.moduleRegistry = moduleRegistry;
+	public ModuleDeployer(ModuleDefinitionRepository moduleDefinitionRepository) {
+		Assert.notNull(moduleDefinitionRepository, "moduleDefinitionRepository must not be null");
+		this.moduleDefinitionRepository = moduleDefinitionRepository;
 	}
 
 	public Map<String, Map<Integer, Module>> getDeployedModules() {
@@ -103,7 +109,6 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 				new String[] { XDContainer.XD_INTERNAL_CONFIG_ROOT + "module-common.xml" }, false);
 		ApplicationContext globalContext = deployerContext.getParent();
 		commonContext.setParent(globalContext);
-
 		for (Plugin plugin : plugins.values()) {
 			plugin.preProcessSharedContext(commonContext);
 		}
@@ -118,8 +123,67 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 
 	@Override
 	protected synchronized void handleMessageInternal(Message<?> message) throws Exception {
-		ModuleDeploymentRequest request = this.mapper.readValue(message.getPayload().toString(),
-				ModuleDeploymentRequest.class);
+		String payloadString = message.getPayload().toString();
+		Class<?> type = (payloadString.contains("\"composite\":true")) ? CompositeModuleDeploymentRequest.class
+				: ModuleDeploymentRequest.class;
+		Object deserialized = this.mapper.readValue(payloadString, type);
+		if (deserialized instanceof CompositeModuleDeploymentRequest) {
+			handleCompositeModuleDeployment((CompositeModuleDeploymentRequest) deserialized, message);
+		}
+		else {
+			handleDeploymentRequest((ModuleDeploymentRequest) deserialized, message);
+		}
+	}
+
+	private void handleCompositeModuleDeployment(CompositeModuleDeploymentRequest request, Message<?> message) {
+		List<ModuleDeploymentRequest> children = request.getChildren();
+		Assert.notEmpty(children, "child module list must not be empty");
+		List<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
+		List<Map<String, String>> paramList = new ArrayList<Map<String, String>>();
+		for (ModuleDeploymentRequest child : children) {
+			String name = child.getModule();
+			ModuleType type = child.getType();
+			ModuleDefinition definition = this.moduleDefinitionRepository.findByNameAndType(name, type);
+			Assert.notNull(definition, "No moduleDefinition for " + type + ":" + name);
+			definitions.add(definition);
+			Map<String, String> params = child.getParameters();
+			if (CollectionUtils.isEmpty(params)) {
+				params = Collections.emptyMap();
+			}
+			paramList.add(params);
+		}
+		String group = request.getGroup();
+		int index = request.getIndex();
+		String sourceChannelName = request.getSourceChannelName();
+		String sinkChannelName = request.getSinkChannelName();
+		DeploymentMetadata metadata = new DeploymentMetadata(group, index, sourceChannelName, sinkChannelName);
+		List<SimpleModule> modules = new ArrayList<SimpleModule>(definitions.size());
+		if (parentClassLoader == null) {
+			parentClassLoader = ClassUtils.getDefaultClassLoader();
+		}
+		for (int i = 0; i < definitions.size(); i++) {
+			ModuleDefinition definition = definitions.get(i);
+			DeploymentMetadata submoduleMetadata = new DeploymentMetadata(metadata.getGroup() + "."
+					+ request.getModule(), i);
+			ClassLoader classLoader = (definition.getClasspath() == null) ? null
+					: new ParentLastURLClassLoader(definition.getClasspath(), parentClassLoader);
+			SimpleModule module = new SimpleModule(definition, submoduleMetadata, classLoader);
+			if (paramList != null && paramList.size() > i) {
+				Properties props = new Properties();
+				props.putAll(paramList.get(i));
+				module.addProperties(props);
+				if (logger.isDebugEnabled()) {
+					logger.debug("added properties for child module [" + module.getName() + "]: " + props);
+				}
+			}
+			// module.setParentContext(this.context);
+			modules.add(module);
+		}
+		CompositeModule module = new CompositeModule(request.getModule(), request.getType(), modules, metadata);
+		deployModule(module, request, message);
+	}
+
+	private void handleDeploymentRequest(ModuleDeploymentRequest request, Message<?> message) {
 		if (request.isRemove()) {
 			handleUndeploy(request);
 		}
@@ -136,7 +200,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		int index = request.getIndex();
 		String name = request.getModule();
 		ModuleType type = request.getType();
-		ModuleDefinition definition = this.moduleRegistry.findDefinition(name, type);
+		ModuleDefinition definition = this.moduleDefinitionRepository.findByNameAndType(name, type);
 		Assert.notNull(definition, "No moduleDefinition for " + name + ":" + type);
 		DeploymentMetadata metadata = new DeploymentMetadata(group, index, request.getSourceChannelName(),
 				request.getSinkChannelName());
@@ -145,6 +209,10 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 				: new ParentLastURLClassLoader(definition.getClasspath(), parentClassLoader);
 
 		Module module = new SimpleModule(definition, metadata, classLoader);
+		deployModule(module, request, message);
+	}
+
+	private void deployModule(Module module, ModuleDeploymentRequest request, Message<?> message) {
 		module.setParentContext(this.commonContext);
 		Object properties = message.getHeaders().get("properties");
 		if (properties instanceof Properties) {
@@ -156,15 +224,15 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 			parametersAsProps.putAll(parameters);
 			module.addProperties(parametersAsProps);
 		}
-		this.deployModule(module);
+		this.deploy(module);
 		if (logger.isInfoEnabled()) {
 			logger.info("deployed " + module.toString());
 		}
-		this.deployedModules.putIfAbsent(group, new HashMap<Integer, Module>());
-		this.deployedModules.get(group).put(index, module);
+		this.deployedModules.putIfAbsent(request.getGroup(), new HashMap<Integer, Module>());
+		this.deployedModules.get(request.getGroup()).put(request.getIndex(), module);
 	}
 
-	private void deployModule(Module module) {
+	private void deploy(Module module) {
 		this.preProcessModule(module);
 		module.initialize();
 		this.postProcessModule(module);
@@ -185,7 +253,6 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 				if (logger.isDebugEnabled()) {
 					logger.debug("removed " + module.toString());
 				}
-				// TODO: add beforeShutdown and/or afterShutdown callbacks?
 				this.beforeShutdown(module);
 				module.stop();
 				this.removeModule(module);

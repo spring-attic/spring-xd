@@ -37,7 +37,7 @@ public class ClasspathTestModuleRegistry extends AbstractModuleRegistry {
 
 	@Override
 	protected Resource locateApplicationContext(String name, ModuleType type) {
-		ClassPathResource classPathResource = new ClassPathResource("testmodules/" + type.getTypeName() + "/" + name
+		ClassPathResource classPathResource = new ClassPathResource("testmodules/" + type.name() + "/" + name
 				+ ".xml");
 		if (classPathResource.exists()) {
 			return classPathResource;
@@ -65,7 +65,7 @@ public class ClasspathTestModuleRegistry extends AbstractModuleRegistry {
 	@Override
 	protected List<Resource> locateApplicationContexts(ModuleType type) {
 		ArrayList<Resource> resources = new ArrayList<Resource>();
-		File typedDir = new File(MODULE_DIR, type.getTypeName());
+		File typedDir = new File(MODULE_DIR, type.name());
 		File[] files = typedDir.listFiles();
 		if (files == null) {
 			return resources;
@@ -82,7 +82,7 @@ public class ClasspathTestModuleRegistry extends AbstractModuleRegistry {
 				}
 			}
 			else if (file.isDirectory()) {
-				FileSystemResource configResource = getResourceFromConfigDir(file, type.getTypeName());
+				FileSystemResource configResource = getResourceFromConfigDir(file, type.name());
 				if (configResource != null) {
 					resources.add(configResource);
 				}

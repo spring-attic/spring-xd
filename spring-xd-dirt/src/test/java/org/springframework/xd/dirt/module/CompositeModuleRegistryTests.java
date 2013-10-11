@@ -52,24 +52,24 @@ public class CompositeModuleRegistryTests {
 
 	@Test
 	public void testFound() {
-		ModuleDefinition def = registry.findDefinition("file", "source");
+		ModuleDefinition def = registry.findDefinition("file", ModuleType.source);
 		Assert.assertNotNull(def);
 		Assert.assertTrue(def.getResource() instanceof ClassPathResource);
 
-		def = registry.findDefinition("sink", "sink");
+		def = registry.findDefinition("sink", ModuleType.sink);
 		Assert.assertNotNull(def);
 		Assert.assertTrue(def.getResource() instanceof ClassPathResource);
 	}
 
 	@Test
 	public void testNotFound() {
-		ModuleDefinition def = registry.findDefinition("foo", "sink");
+		ModuleDefinition def = registry.findDefinition("foo", ModuleType.sink);
 		assertNull(def);
 	}
 
 	@Test
 	public void testFindSource() {
-		List<ModuleDefinition> definitions = registry.findDefinitions(ModuleType.SOURCE);
+		List<ModuleDefinition> definitions = registry.findDefinitions(ModuleType.source);
 		Assert.assertNotNull("A result list should always be returned", definitions);
 		Assert.assertEquals(4, definitions.size());
 		ArrayList<String> moduleNames = new ArrayList<String>();
@@ -83,7 +83,7 @@ public class CompositeModuleRegistryTests {
 
 	@Test
 	public void testFindSink() {
-		List<ModuleDefinition> definitions = registry.findDefinitions(ModuleType.SINK);
+		List<ModuleDefinition> definitions = registry.findDefinitions(ModuleType.sink);
 		Assert.assertNotNull("A result list should always be returned", definitions);
 		Assert.assertEquals(1, definitions.size());
 		ArrayList<String> moduleNames = new ArrayList<String>();

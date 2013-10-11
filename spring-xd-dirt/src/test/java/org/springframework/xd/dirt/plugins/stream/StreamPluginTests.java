@@ -66,7 +66,8 @@ public class StreamPluginTests {
 
 	@Test
 	public void streamPropertiesAdded() {
-		Module module = new SimpleModule(new ModuleDefinition("testsource", "source"), new DeploymentMetadata("foo", 0));
+		Module module = new SimpleModule(new ModuleDefinition("testsource", ModuleType.source), new DeploymentMetadata(
+				"foo", 0));
 		assertEquals(0, module.getProperties().size());
 		plugin.preProcessModule(module);
 		plugin.postProcessModule(module);
@@ -79,7 +80,7 @@ public class StreamPluginTests {
 	public void streamChannelTests() {
 		Module module = mock(Module.class);
 		when(module.getDeploymentMetadata()).thenReturn(new DeploymentMetadata("foo", 1));
-		when(module.getType()).thenReturn(ModuleType.PROCESSOR.toString());
+		when(module.getType()).thenReturn(ModuleType.processor);
 		final MessageBus bus = mock(MessageBus.class);
 		when(module.getName()).thenReturn("testing");
 		when(module.getComponent(MessageBus.class)).thenReturn(bus);

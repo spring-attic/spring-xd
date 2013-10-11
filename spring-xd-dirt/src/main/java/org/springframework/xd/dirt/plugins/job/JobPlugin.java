@@ -16,8 +16,6 @@
 
 package org.springframework.xd.dirt.plugins.job;
 
-import static org.springframework.xd.module.ModuleType.JOB;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -37,6 +35,7 @@ import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.module.AbstractPlugin;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.Module;
+import org.springframework.xd.module.ModuleType;
 
 /**
  * Plugin to enable the registration of jobs in a central registry.
@@ -148,7 +147,7 @@ public class JobPlugin extends AbstractPlugin {
 	@Override
 	public List<String> componentPathsSelector(Module module) {
 		List<String> result = new ArrayList<String>();
-		if (!JOB.equalsType(module.getType())) {
+		if (module.getType() != ModuleType.job) {
 			return result;
 		}
 		result.add(REGISTRAR);

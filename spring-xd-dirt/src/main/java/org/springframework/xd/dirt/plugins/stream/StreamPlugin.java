@@ -16,9 +16,9 @@
 
 package org.springframework.xd.dirt.plugins.stream;
 
-import static org.springframework.xd.module.ModuleType.PROCESSOR;
-import static org.springframework.xd.module.ModuleType.SINK;
-import static org.springframework.xd.module.ModuleType.SOURCE;
+import static org.springframework.xd.module.ModuleType.processor;
+import static org.springframework.xd.module.ModuleType.sink;
+import static org.springframework.xd.module.ModuleType.source;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -42,6 +42,7 @@ import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.module.BeanDefinitionAddingPostProcessor;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.Module;
+import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.Plugin;
 
 /**
@@ -67,9 +68,9 @@ public class StreamPlugin implements Plugin {
 
 	@Override
 	public void preProcessModule(Module module) {
-		String type = module.getType();
+		ModuleType type = module.getType();
 		DeploymentMetadata md = module.getDeploymentMetadata();
-		if ((SOURCE.equalsType(type) || PROCESSOR.equalsType(type) || SINK.equalsType(type))) {
+		if (source == type || processor == type || sink == type) {
 			Properties properties = new Properties();
 			properties.setProperty("xd.stream.name", md.getGroup());
 			properties.setProperty("xd.module.index", String.valueOf(md.getIndex()));

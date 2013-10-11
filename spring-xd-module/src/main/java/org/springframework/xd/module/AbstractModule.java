@@ -45,7 +45,7 @@ public abstract class AbstractModule implements Module {
 	}
 
 	@Override
-	public String getType() {
+	public ModuleType getType() {
 		return this.definition.getType();
 	}
 

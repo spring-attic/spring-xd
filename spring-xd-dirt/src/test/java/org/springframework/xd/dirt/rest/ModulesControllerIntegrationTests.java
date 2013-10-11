@@ -67,33 +67,33 @@ public class ModulesControllerIntegrationTests extends AbstractControllerIntegra
 
 		for (int moduleCount = 0; moduleCount < 3; moduleCount++) {
 
-			ModuleDefinition moduleDefinition = new ModuleDefinition(ModuleType.JOB.getTypeName() + "_" + moduleCount,
-					ModuleType.JOB.getTypeName(), resource);
+			ModuleDefinition moduleDefinition = new ModuleDefinition("job_" + moduleCount,
+					ModuleType.job, resource);
 			moduleDefinitions.add(moduleDefinition);
 			jobDefinitions.add(moduleDefinition);
 
-			moduleDefinition = new ModuleDefinition(ModuleType.SOURCE.getTypeName() + "_" + moduleCount,
-					ModuleType.SOURCE.getTypeName(), resource);
+			moduleDefinition = new ModuleDefinition("source_" + moduleCount,
+					ModuleType.source, resource);
 			moduleDefinitions.add(moduleDefinition);
 			sourceDefinitions.add(moduleDefinition);
 
-			moduleDefinition = new ModuleDefinition(ModuleType.SINK.getTypeName() + "_" + moduleCount,
-					ModuleType.SINK.getTypeName(), resource);
+			moduleDefinition = new ModuleDefinition("sink_" + moduleCount,
+					ModuleType.sink, resource);
 			moduleDefinitions.add(moduleDefinition);
 			sinkDefinitions.add(moduleDefinition);
 
-			moduleDefinition = new ModuleDefinition(ModuleType.PROCESSOR.getTypeName() + "_" + moduleCount,
-					ModuleType.PROCESSOR.getTypeName(), resource);
+			moduleDefinition = new ModuleDefinition("processor_" + moduleCount,
+					ModuleType.processor, resource);
 			moduleDefinitions.add(moduleDefinition);
 			processorDefinitions.add(moduleDefinition);
 		}
 
 		when(resource.exists()).thenReturn(true);
 		when(resource.getDescription()).thenReturn("foo");
-		when(moduleRegistry.findDefinitions(ModuleType.SINK)).thenReturn(sinkDefinitions);
-		when(moduleRegistry.findDefinitions(ModuleType.SOURCE)).thenReturn(sourceDefinitions);
-		when(moduleRegistry.findDefinitions(ModuleType.JOB)).thenReturn(jobDefinitions);
-		when(moduleRegistry.findDefinitions(ModuleType.PROCESSOR)).thenReturn(processorDefinitions);
+		when(moduleRegistry.findDefinitions(ModuleType.sink)).thenReturn(sinkDefinitions);
+		when(moduleRegistry.findDefinitions(ModuleType.source)).thenReturn(sourceDefinitions);
+		when(moduleRegistry.findDefinitions(ModuleType.job)).thenReturn(jobDefinitions);
+		when(moduleRegistry.findDefinitions(ModuleType.processor)).thenReturn(processorDefinitions);
 		when(moduleRegistry.findDefinitions()).thenReturn(moduleDefinitions);
 	}
 

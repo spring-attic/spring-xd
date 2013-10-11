@@ -45,6 +45,7 @@ import org.springframework.xd.dirt.module.TestModuleEventListener;
 import org.springframework.xd.dirt.server.options.Analytics;
 import org.springframework.xd.dirt.server.options.Transport;
 import org.springframework.xd.dirt.server.options.XDPropertyKeys;
+import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.SimpleModule;
 
 /**
@@ -128,7 +129,7 @@ public class StreamPluginModuleDeploymentTests {
 	private ModuleDeploymentRequest createSourceModuleRequest() {
 		ModuleDeploymentRequest request = new ModuleDeploymentRequest();
 		request.setGroup("test");
-		request.setType("source");
+		request.setType(ModuleType.source);
 		request.setModule("source");
 		request.setIndex(0);
 		return request;
@@ -137,7 +138,7 @@ public class StreamPluginModuleDeploymentTests {
 	private ModuleDeploymentRequest createSinkModuleRequest() {
 		ModuleDeploymentRequest request = new ModuleDeploymentRequest();
 		request.setGroup("test");
-		request.setType("sink");
+		request.setType(ModuleType.sink);
 		request.setModule("sink");
 		request.setIndex(1);
 		return request;

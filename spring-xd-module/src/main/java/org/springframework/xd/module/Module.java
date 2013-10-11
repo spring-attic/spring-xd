@@ -36,7 +36,7 @@ public interface Module extends Lifecycle {
 	 */
 	String getName();
 
-	String getType();
+	ModuleType getType();
 
 	DeploymentMetadata getDeploymentMetadata();
 

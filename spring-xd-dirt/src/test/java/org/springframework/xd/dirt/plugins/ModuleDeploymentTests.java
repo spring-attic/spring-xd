@@ -24,6 +24,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.x.redis.RedisQueueOutboundChannelAdapter;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
@@ -46,7 +47,7 @@ public class ModuleDeploymentTests {
 		adapter.afterPropertiesSet();
 		ModuleDeploymentRequest request = new ModuleDeploymentRequest();
 		request.setGroup("test");
-		request.setType("processor");
+		request.setType(ModuleType.processor);
 		request.setModule("filter");
 		request.setIndex(0);
 		Message<?> message = MessageBuilder.withPayload(request.toString()).build();
@@ -62,14 +63,14 @@ public class ModuleDeploymentTests {
 		adapter.afterPropertiesSet();
 		ModuleDeploymentRequest sinkRequest = new ModuleDeploymentRequest();
 		sinkRequest.setGroup("teststream");
-		sinkRequest.setType("sink");
+		sinkRequest.setType(ModuleType.sink);
 		sinkRequest.setModule("log");
 		sinkRequest.setIndex(1);
 		Message<?> sinkMessage = MessageBuilder.withPayload(sinkRequest.toString()).build();
 		adapter.handleMessage(sinkMessage);
 		ModuleDeploymentRequest sourceRequest = new ModuleDeploymentRequest();
 		sourceRequest.setGroup("teststream");
-		sourceRequest.setType("source");
+		sourceRequest.setType(ModuleType.source);
 		sourceRequest.setModule("time");
 		sourceRequest.setIndex(0);
 		Message<?> sourceMessage = MessageBuilder.withPayload(sourceRequest.toString()).build();

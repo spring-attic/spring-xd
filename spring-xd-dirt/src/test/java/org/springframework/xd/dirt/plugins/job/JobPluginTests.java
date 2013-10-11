@@ -40,6 +40,7 @@ import org.springframework.xd.dirt.server.options.XDPropertyKeys;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.SimpleModule;
 
 /**
@@ -83,7 +84,8 @@ public class JobPluginTests {
 
 	@Test
 	public void streamPropertiesAdded() {
-		Module module = new SimpleModule(new ModuleDefinition("testJob", "job"), new DeploymentMetadata("foo", 0));
+		Module module = new SimpleModule(new ModuleDefinition("testJob", ModuleType.job), new DeploymentMetadata("foo",
+				0));
 		assertEquals(0, module.getProperties().size());
 		plugin.preProcessModule(module);
 
@@ -99,7 +101,8 @@ public class JobPluginTests {
 	@Test
 	public void streamComponentsAdded() {
 
-		SimpleModule module = new SimpleModule(new ModuleDefinition("testJob", "job"), new DeploymentMetadata("foo", 0));
+		SimpleModule module = new SimpleModule(new ModuleDefinition("testJob", ModuleType.job), new DeploymentMetadata(
+				"foo", 0));
 
 		GenericApplicationContext context = new GenericApplicationContext();
 		plugin.preProcessModule(module);

@@ -36,14 +36,13 @@ import org.springframework.xd.module.ModuleType;
 public abstract class AbstractModuleRegistry implements ModuleRegistry {
 
 	@Override
-	public ModuleDefinition findDefinition(String name, String type) {
-		ModuleType moduleType = ModuleType.getModuleTypeByTypeName(type);
+	public ModuleDefinition findDefinition(String name, ModuleType moduleType) {
 		Resource resource = this.locateApplicationContext(name, moduleType);
 		if (resource == null) {
 			return null;
 		}
-		URL[] classpath = maybeLocateClasspath(resource, name, moduleType.getTypeName());
-		ModuleDefinition module = new ModuleDefinition(name, moduleType.getTypeName(), resource, classpath);
+		URL[] classpath = maybeLocateClasspath(resource, name, moduleType);
+		ModuleDefinition module = new ModuleDefinition(name, moduleType, resource, classpath);
 		// TODO: add properties from a property registry
 		return module;
 	}
@@ -52,7 +51,7 @@ public abstract class AbstractModuleRegistry implements ModuleRegistry {
 	 * Return an array of jar files locations or {@code null} if the module is a plain xml file. Default implementation
 	 * returns {@code null} system.
 	 */
-	protected URL[] maybeLocateClasspath(Resource resource, String name, String type) {
+	protected URL[] maybeLocateClasspath(Resource resource, String name, ModuleType moduleType) {
 		return null;
 	}
 
@@ -60,7 +59,7 @@ public abstract class AbstractModuleRegistry implements ModuleRegistry {
 	public List<ModuleDefinition> findDefinitions(String name) {
 		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
 		for (ModuleType type : ModuleType.values()) {
-			ModuleDefinition definition = findDefinition(name, type.getTypeName());
+			ModuleDefinition definition = findDefinition(name, type);
 			if (definition != null) {
 				definitions.add(definition);
 			}

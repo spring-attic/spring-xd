@@ -42,6 +42,7 @@ import org.springframework.xd.dirt.plugins.job.JobPlugin;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.Plugin;
 import org.springframework.xd.module.SimpleModule;
 
@@ -134,7 +135,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		String group = request.getGroup();
 		int index = request.getIndex();
 		String name = request.getModule();
-		String type = request.getType();
+		ModuleType type = request.getType();
 		ModuleDefinition definition = this.moduleRegistry.findDefinition(name, type);
 		Assert.notNull(definition, "No moduleDefinition for " + name + ":" + type);
 		DeploymentMetadata metadata = new DeploymentMetadata(group, index, request.getSourceChannelName(),
@@ -282,8 +283,6 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 			event.setAttribute("group", module.getDeploymentMetadata().getGroup());
 			event.setAttribute("index", "" + module.getDeploymentMetadata().getIndex());
 			this.eventPublisher.publishEvent(event);
-			// TODO: in a listener publish info to redis so we know this module is running
-			// on this container
 		}
 	}
 
@@ -293,8 +292,6 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 			event.setAttribute("group", module.getDeploymentMetadata().getGroup());
 			event.setAttribute("index", "" + module.getDeploymentMetadata().getIndex());
 			this.eventPublisher.publishEvent(event);
-			// TODO: in a listener update info in redis so we know this module was
-			// undeployed
 		}
 	}
 

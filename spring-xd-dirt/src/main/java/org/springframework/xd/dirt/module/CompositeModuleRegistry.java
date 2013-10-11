@@ -46,9 +46,9 @@ public class CompositeModuleRegistry implements ModuleRegistry {
 	}
 
 	@Override
-	public ModuleDefinition findDefinition(String name, String type) {
+	public ModuleDefinition findDefinition(String name, ModuleType moduleType) {
 		for (ModuleRegistry delegate : delegates) {
-			ModuleDefinition result = delegate.findDefinition(name, type);
+			ModuleDefinition result = delegate.findDefinition(name, moduleType);
 			if (result != null) {
 				return result;
 			}

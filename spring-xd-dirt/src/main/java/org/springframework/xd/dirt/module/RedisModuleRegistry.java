@@ -52,15 +52,16 @@ public class RedisModuleRegistry extends AbstractModuleRegistry {
 		for (Resource resource : locateApplicationContexts(type)) {
 			String name = resource.getFilename().substring(0,
 					resource.getFilename().lastIndexOf('.'));
-			results.add(new ModuleDefinition(name, type.getTypeName(), resource, maybeLocateClasspath(resource, name,
-					type.getTypeName())));
+			results.add(new ModuleDefinition(name, type, resource, maybeLocateClasspath(resource, name,
+					type)));
 		}
 		return results;
 	}
 
+	@Override
 	protected List<Resource> locateApplicationContexts(ModuleType type) {
 		ArrayList<Resource> resources = new ArrayList<Resource>();
-		for (Object object : this.redisTemplate.boundHashOps("modules:" + type.getTypeName()).entries().values()) {
+		for (Object object : this.redisTemplate.boundHashOps("modules:" + type.name()).entries().values()) {
 			resources.add(new ByteArrayResource(object.toString().getBytes()));
 		}
 		return resources;

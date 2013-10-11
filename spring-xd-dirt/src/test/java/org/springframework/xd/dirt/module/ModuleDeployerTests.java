@@ -31,6 +31,7 @@ import org.springframework.integration.message.GenericMessage;
 import org.springframework.xd.dirt.server.options.OptionUtils;
 import org.springframework.xd.dirt.server.options.SingleNodeOptions;
 import org.springframework.xd.module.Module;
+import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.Plugin;
 
 
@@ -58,7 +59,7 @@ public class ModuleDeployerTests {
 		ModuleDeploymentRequest request = new ModuleDeploymentRequest();
 		request.setGroup("test");
 		request.setIndex(0);
-		request.setType("sink");
+		request.setType(ModuleType.sink);
 		request.setModule("log");
 		Message<ModuleDeploymentRequest> message = new GenericMessage<ModuleDeploymentRequest>(request);
 		moduleDeployer.handleMessage(message);

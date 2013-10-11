@@ -33,7 +33,7 @@ public class ModuleDefinition {
 
 	private final String name;
 
-	private final String type;
+	private final ModuleType type;
 
 	private final Resource resource;
 
@@ -41,17 +41,17 @@ public class ModuleDefinition {
 
 	private final URL[] classpath;
 
-	public ModuleDefinition(String name, String moduleType) {
+	public ModuleDefinition(String name, ModuleType moduleType) {
 		this(name, moduleType, new DescriptiveResource("Dummy resource"));
 	}
 
-	public ModuleDefinition(String name, String type, Resource resource) {
+	public ModuleDefinition(String name, ModuleType type, Resource resource) {
 		this(name, type, resource, null);
 	}
 
-	public ModuleDefinition(String name, String type, Resource resource, URL[] classpath) {
+	public ModuleDefinition(String name, ModuleType type, Resource resource, URL[] classpath) {
 		Assert.hasLength(name, "name cannot be blank");
-		Assert.hasLength(type, "type cannot be blank");
+		Assert.notNull(type, "type cannot be null");
 		Assert.notNull(resource, "resource cannot be null");
 		this.resource = resource;
 		this.name = name;
@@ -63,7 +63,7 @@ public class ModuleDefinition {
 		return name;
 	}
 
-	public String getType() {
+	public ModuleType getType() {
 		return type;
 	}
 

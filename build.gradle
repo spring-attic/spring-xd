@@ -68,6 +68,7 @@ ext {
 	jodaTimeVersion = '2.1'
 	jolokiaVersion = '1.1.2'
 	springVersion = '4.0.0.BUILD-SNAPSHOT'
+    snakeYamlVersion = '1.12'
 	springBatchVersion = '2.2.3.BUILD-SNAPSHOT'
 	springIntegrationVersion = '4.0.0.BUILD-SNAPSHOT'
 	springBootVersion = '0.5.0.M5'
@@ -320,6 +321,7 @@ project('spring-xd-dirt') {
 		// ************* Common to both Server and Container
 		compile "org.springframework:spring-aop:$springVersion"
 		compile project(":spring-xd-analytics")
+		compile "org.springframework.boot:spring-boot-autoconfigure:$springBootVersion"
 		compile "org.springframework.data:spring-data-redis:$springDataRedisVersion"
 		compile "org.springframework.integration:spring-integration-redis:$springIntegrationVersion"
 		compile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
@@ -348,6 +350,7 @@ project('spring-xd-dirt') {
 
 		runtime "org.slf4j:jcl-over-slf4j:$slf4jVersion"
 		runtime	"org.slf4j:slf4j-log4j12:$slf4jVersion"
+		runtime	"org.yaml:snakeyaml:$snakeYamlVersion"
 
 		// ************* Dirt-Server only
 		compile project(':spring-xd-rest-domain')

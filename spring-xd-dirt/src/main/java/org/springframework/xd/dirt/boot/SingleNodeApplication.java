@@ -34,13 +34,12 @@ public class SingleNodeApplication {
 	public static void main(String[] args) {
 
 		SpringApplicationBuilder admin = new SpringApplicationBuilder(
-				PARENT_CONTEXT).profiles("adminServer").child(
+				PARENT_CONTEXT).profiles("adminServer", "singleNode").child(
 				AdminServerApplication.class);
 		admin.run(args);
 
 		SpringApplicationBuilder container = admin
-				.sibling(LauncherApplication.class).profiles("node")
-				.defaultArgs("--management.port=0").web(false);
+				.sibling(LauncherApplication.class).profiles("node", "singleNode").web(false);
 		container.run(args);
 
 		setUpControlChannels(admin.context(), container.context());

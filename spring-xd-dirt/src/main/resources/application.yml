@@ -1,6 +1,6 @@
-XD_ANALYTICS: ${analytics:memory}
-XD_TRANSPORT: ${transport:local}
-XD_STORE: ${store:memory}
+XD_ANALYTICS: ${analytics:redis}
+XD_TRANSPORT: ${transport:redis}
+XD_STORE: ${store:redis}
 XD_HOME: ${xdHomeDir:..}
 
 ---
@@ -14,3 +14,12 @@ spring:
   profiles: node
 management:
   port: 9000
+  
+---
+spring:
+  profiles: singleNode
+transport: local
+store: memory
+analytics: memory
+management:
+  port: 0

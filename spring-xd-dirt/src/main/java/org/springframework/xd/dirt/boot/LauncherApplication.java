@@ -11,14 +11,14 @@ import org.springframework.xd.dirt.container.XDContainer;
 @EnableAutoConfiguration
 @ImportResource({
 	"classpath:" + XDContainer.XD_INTERNAL_CONFIG_ROOT + "launcher.xml",
-	"classpath:" + XDContainer.XD_INTERNAL_CONFIG_ROOT + "/container.xml",
+	"classpath:" + XDContainer.XD_INTERNAL_CONFIG_ROOT + "container.xml",
 	"classpath*:" + XDContainer.XD_CONFIG_ROOT + "plugins/*.xml" })
 public class LauncherApplication {
 
 	public static void main(String[] args) {
 		new SpringApplicationBuilder("classpath:"
 				+ XDContainer.XD_INTERNAL_CONFIG_ROOT + "xd-global-beans.xml")
-				.profiles("node").defaultArgs("--transport=redis")
+				.profiles("node")
 				.child(LauncherApplication.class).web(false).run(args);
 	}
 }

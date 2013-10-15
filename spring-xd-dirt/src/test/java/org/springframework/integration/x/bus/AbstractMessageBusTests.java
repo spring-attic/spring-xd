@@ -32,8 +32,6 @@ import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.http.MediaType;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
@@ -43,6 +41,8 @@ import org.springframework.integration.x.bus.serializer.CompositeCodec;
 import org.springframework.integration.x.bus.serializer.MultiTypeCodec;
 import org.springframework.integration.x.bus.serializer.kryo.PojoCodec;
 import org.springframework.integration.x.bus.serializer.kryo.TupleCodec;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.xd.tuple.Tuple;
 
 /**
@@ -241,7 +241,7 @@ public abstract class AbstractMessageBusTests {
 		return (List<?>) accessor.getPropertyValue("bindings");
 	}
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected MultiTypeCodec<Object> getCodec() {
 		Map<Class<?>, AbstractCodec<?>> codecs = new HashMap<Class<?>, AbstractCodec<?>>();
 		codecs.put(Tuple.class, new TupleCodec());

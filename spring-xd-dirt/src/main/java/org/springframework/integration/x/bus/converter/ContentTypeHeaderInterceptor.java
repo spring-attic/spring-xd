@@ -19,13 +19,13 @@ package org.springframework.integration.x.bus.converter;
 import java.util.Collections;
 
 import org.springframework.http.MediaType;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.channel.interceptor.ChannelInterceptorAdapter;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.x.bus.DefaultMessageMediaTypeResolver;
 import org.springframework.integration.x.bus.MessageMediaTypeResolver;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHeaders;
 
 
 /**

@@ -21,12 +21,12 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.MessagingException;
-import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.SubscribableChannel;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.module.ClasspathTestModuleRegistry;
 import org.springframework.xd.dirt.module.CompositeModuleRegistry;

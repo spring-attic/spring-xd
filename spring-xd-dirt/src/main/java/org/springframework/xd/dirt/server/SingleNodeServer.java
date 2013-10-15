@@ -17,9 +17,9 @@
 package org.springframework.xd.dirt.server;
 
 import org.springframework.context.ApplicationContext;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.handler.BridgeHandler;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.SubscribableChannel;
 import org.springframework.xd.dirt.container.XDContainer;
 
 

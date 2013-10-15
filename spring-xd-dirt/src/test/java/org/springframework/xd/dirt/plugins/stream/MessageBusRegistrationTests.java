@@ -28,9 +28,9 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import org.springframework.http.MediaType;
-import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.x.bus.MessageBus;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.Module;
 

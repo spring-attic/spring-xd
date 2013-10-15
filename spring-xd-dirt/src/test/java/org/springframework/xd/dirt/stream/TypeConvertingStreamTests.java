@@ -25,9 +25,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import org.springframework.http.MediaType;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessagingException;
 import org.springframework.integration.x.bus.DefaultMessageMediaTypeResolver;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 import org.springframework.xd.dirt.plugins.ModuleConfigurationException;
 import org.springframework.xd.module.SimpleModule;
 import org.springframework.xd.tuple.Tuple;

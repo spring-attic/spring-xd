@@ -25,10 +25,10 @@ import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import org.springframework.integration.Message;
 import org.springframework.integration.endpoint.MessageProducerSupport;
-import org.springframework.integration.support.converter.MessageConverter;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.converter.MessageConverter;
 import org.springframework.util.Assert;
 
 /**
@@ -100,6 +100,7 @@ public class RedisInboundChannelAdapter extends MessageProducerSupport {
 		this.container.stop();
 	}
 
+	@SuppressWarnings("unchecked")
 	private Message<?> convertMessage(Object object) {
 		return this.messageConverter.toMessage(object);
 	}

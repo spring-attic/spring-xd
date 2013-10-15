@@ -29,13 +29,13 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 import org.springframework.context.support.StaticApplicationContext;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.PeriodicTrigger;
 
@@ -53,7 +53,7 @@ public class MessageBusAwareChannelResolverTests {
 		context.registerSingleton("taskScheduler", ThreadPoolTaskScheduler.class);
 		context.refresh();
 		MessageBusAwareChannelResolver resolver = context.getBean(MessageBusAwareChannelResolver.class);
-		MessageChannel registered = resolver.resolveChannelName(":foo");
+		MessageChannel registered = resolver.resolveDestination(":foo");
 		LocalMessageBus bus = context.getBean(LocalMessageBus.class);
 		PollerMetadata poller = new PollerMetadata();
 		poller.setTrigger(new PeriodicTrigger(1000));
@@ -70,7 +70,7 @@ public class MessageBusAwareChannelResolverTests {
 			}
 		});
 		bus.bindConsumer("foo", testChannel, null, true);
-		MessageChannel other = resolver.resolveChannelName("other");
+		MessageChannel other = resolver.resolveDestination("other");
 		assertSame(context.getBean("other"), other);
 		assertEquals(0, received.size());
 		registered.send(MessageBuilder.withPayload("hello").build());

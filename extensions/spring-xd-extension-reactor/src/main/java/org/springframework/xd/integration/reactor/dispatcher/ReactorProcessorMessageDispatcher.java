@@ -19,9 +19,9 @@ package org.springframework.xd.integration.reactor.dispatcher;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.springframework.integration.Message;
-import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.dispatcher.MessageDispatcher;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
 
 import reactor.core.processor.Operation;
 import reactor.core.processor.Processor;

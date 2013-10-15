@@ -56,9 +56,9 @@ import org.jboss.netty.handler.execution.ExecutionHandler;
 import org.jboss.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
 
 import org.springframework.http.MediaType;
-import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 
 
@@ -97,7 +97,7 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 	}
 
 	/**
-	 *
+	 * 
 	 * @param executor The {@link Executor} to use with the Netty {@link ExecutionHandler} in the pipeline. This allows
 	 *        any potential blocking operations done by message consumers to be removed from the I/O thread. The default
 	 *        executor is an {@link OrderedMemoryAwareThreadPoolExecutor}, which is highly recommended because it

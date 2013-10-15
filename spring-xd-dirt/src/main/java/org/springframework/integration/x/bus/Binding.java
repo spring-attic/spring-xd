@@ -17,8 +17,8 @@
 package org.springframework.integration.x.bus;
 
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 
 /**

@@ -23,9 +23,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
 
 /**
  * A {@link org.springframework.integration.support.channel.ChannelResolver} implementation that first checks for any
@@ -33,7 +33,7 @@ import org.springframework.integration.support.channel.BeanFactoryChannelResolve
  * 
  * @author Mark Fisher
  */
-public class MessageBusAwareChannelResolver extends BeanFactoryChannelResolver {
+public class MessageBusAwareChannelResolver extends BeanFactoryMessageChannelDestinationResolver {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -53,7 +53,7 @@ public class MessageBusAwareChannelResolver extends BeanFactoryChannelResolver {
 	}
 
 	@Override
-	public MessageChannel resolveChannelName(String name) {
+	public MessageChannel resolveDestination(String name) {
 		MessageChannel channel = null;
 		if (name.startsWith(":")) {
 			String channelName = name.substring(1);
@@ -65,7 +65,7 @@ public class MessageBusAwareChannelResolver extends BeanFactoryChannelResolver {
 			}
 		}
 		if (channel == null) {
-			channel = super.resolveChannelName(name);
+			channel = super.resolveDestination(name);
 		}
 		return channel;
 	}

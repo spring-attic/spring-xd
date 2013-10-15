@@ -19,10 +19,10 @@ package org.springframework.xd.integration.reactor.syslog;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.springframework.integration.Message;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transformer.SyslogToMapTransformer;
+import org.springframework.messaging.Message;
 
 import reactor.core.Environment;
 import reactor.event.dispatch.SynchronousDispatcher;

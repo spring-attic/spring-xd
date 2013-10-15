@@ -24,8 +24,8 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IOUtils;
 
-import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
+import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
@@ -80,6 +80,7 @@ public class HdfsTextFileWriter extends AbstractHdfsWriter implements HdfsWriter
 		}
 	}
 
+	@Override
 	public FileSystem getFileSystem() {
 		return this.fileSystem;
 	}

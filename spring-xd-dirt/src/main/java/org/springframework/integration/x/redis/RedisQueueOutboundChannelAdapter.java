@@ -20,8 +20,8 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import org.springframework.integration.Message;
 import org.springframework.integration.handler.AbstractMessageHandler;
+import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**

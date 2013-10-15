@@ -21,8 +21,8 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.listener.JobExecutionListenerSupport;
-import org.springframework.integration.MessageChannel;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.xd.dirt.plugins.job.BatchJobHeaders;
 
 /**

@@ -24,7 +24,7 @@
 
 	<chain id="extractContents" input-channel="contents" output-channel="output">
 		<header-enricher>
-			<header name="content-type" value="application/octet-stream"/>
+			<header name="contentType" value="application/octet-stream"/>
 		</header-enricher>
 		<file:file-to-bytes-transformer/>
 	</chain>

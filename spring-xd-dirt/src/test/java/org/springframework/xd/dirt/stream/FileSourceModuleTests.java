@@ -30,10 +30,10 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import org.springframework.http.MediaType;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessagingException;
 import org.springframework.integration.x.bus.DefaultMessageMediaTypeResolver;
 import org.springframework.integration.x.bus.MessageMediaTypeResolver;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessagingException;
 
 
 /**

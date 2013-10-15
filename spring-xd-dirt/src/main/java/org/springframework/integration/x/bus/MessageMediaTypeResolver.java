@@ -17,7 +17,7 @@
 package org.springframework.integration.x.bus;
 
 import org.springframework.http.MediaType;
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 
 
 /**

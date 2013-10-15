@@ -16,7 +16,7 @@ package org.springframework.integration.x.bus;
 import java.util.Collection;
 
 import org.springframework.http.MediaType;
-import org.springframework.integration.MessageChannel;
+import org.springframework.messaging.MessageChannel;
 
 /**
  * A strategy interface used to bind a {@link MessageChannel} to a logical name. The name is intended to identify a

@@ -28,8 +28,8 @@ import org.junit.Test;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
-import org.springframework.integration.MessageChannel;
 import org.springframework.integration.x.bus.MessageBus;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.xd.analytics.metrics.core.MetricRepository;
 import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.module.ModuleDeployer;

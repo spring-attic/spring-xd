@@ -31,8 +31,8 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.converter.DefaultJobParametersConverter;
 import org.springframework.batch.integration.launch.JobLaunchRequest;
-import org.springframework.integration.Message;
 import org.springframework.integration.annotation.Transformer;
+import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.xd.tuple.Tuple;
 

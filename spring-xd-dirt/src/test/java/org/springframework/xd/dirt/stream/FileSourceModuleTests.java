@@ -42,7 +42,10 @@ import org.springframework.integration.x.bus.MessageMediaTypeResolver;
  */
 public class FileSourceModuleTests extends StreamTestSupport {
 
-	private static String sourceDirName = System.getProperty("java.io.tmpdir") + "/filesourcetests";
+	private static String tmpDirName = System.getProperty("java.io.tmpdir");
+
+	private static String sourceDirName =
+			tmpDirName + (tmpDirName.endsWith("/") ? "" : "/") + "filesourcetests";
 
 	private static File sourceDir = new File(sourceDirName);
 

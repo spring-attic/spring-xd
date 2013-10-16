@@ -19,7 +19,9 @@ package org.springframework.xd.dirt.rest.graphviz;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -52,22 +54,32 @@ public class GraphvizRenderer {
 	@RequestMapping(value = "/streams", method = RequestMethod.GET, produces = "text/vnd.graphviz")
 	@ResponseStatus(HttpStatus.OK)
 	public void graphviz(Writer out) throws IOException {
+		Map<String, List<ModuleDeploymentRequest>> allStreams = new HashMap<String, List<ModuleDeploymentRequest>>();
+		for (StreamDefinition stream : repository.findAll()) {
+			List<ModuleDeploymentRequest> modules = parser.parse(stream.getName(), stream.getDefinition());
+			Collections.reverse(modules);
+			allStreams.put(stream.getName(), modules);
+		}
+
 		GraphvizWriter graphviz = new GraphvizWriter(out);
 		graphviz.open("digraph G");
 		graphviz.line("graph [rankdir = LR, splines = ortho]");
-		for (StreamDefinition stream : repository.findAll()) {
-			renderStream(graphviz, stream);
+		for (String name : allStreams.keySet()) {
+			renderStream(graphviz, name, allStreams);
 		}
 		graphviz.close();
 		out.close();
 	}
 
-	private void renderStream(GraphvizWriter graphviz, StreamDefinition stream) throws IOException {
-		graphviz.open("subgraph cluster_%s", stream.getName());
-		graphviz.line("label = \"%s\"", stream.getName());
+	private void renderStream(GraphvizWriter graphviz, String name,
+			Map<String, List<ModuleDeploymentRequest>> allStreams)
+			throws IOException {
+		Map<String, String> channelVertexToLabel = new HashMap<String, String>();
 
-		List<ModuleDeploymentRequest> modules = parser.parse(stream.getName(), stream.getDefinition());
-		Collections.reverse(modules);
+		graphviz.open("subgraph cluster_%s", name);
+		graphviz.line("label = \"%s\"", name);
+
+		List<ModuleDeploymentRequest> modules = allStreams.get(name);
 		ModuleDeploymentRequest previous = null;
 		for (ModuleDeploymentRequest module : modules) {
 			if (previous != null) {
@@ -77,18 +89,31 @@ public class GraphvizRenderer {
 			graphviz.line("%s [label=\"%s\"]", makeVertexName(module), makeModuleLabel(module));
 			graphviz.line("%s [shape=box, style=rounded]", makeVertexName(module));
 
-			if (module.getSourceChannelName() != null) {
-				String from = makeVertexNameFromChannel(module.getSourceChannelName());
+			String sourceChannelName = module.getSourceChannelName();
+			String sinkChannelName = module.getSinkChannelName();
+			if (sourceChannelName != null) {
+				String from = makeVertexNameFromChannel(sourceChannelName, allStreams);
+				if (!isTap(sourceChannelName)) {
+					channelVertexToLabel.put(from, sourceChannelName);
+				}
 				graphviz.line("%s -> %s [style = dashed]", from, makeVertexName(module));
 			}
-			if (module.getSinkChannelName() != null) {
-				String to = makeVertexNameFromChannel(module.getSinkChannelName());
+			if (sinkChannelName != null) {
+				String to = makeVertexNameFromChannel(sinkChannelName, allStreams);
+				if (!isTap(sinkChannelName)) {
+					channelVertexToLabel.put(to, sinkChannelName);
+				}
 				graphviz.line("%s -> %s [style = dashed]", makeVertexName(module), to);
 			}
 			previous = module;
 		}
 
 		graphviz.close();
+
+		// Emit channels a edges out of any stream
+		for (Map.Entry<String, String> entry : channelVertexToLabel.entrySet()) {
+			graphviz.line("%s [label=\"%s\"]", entry.getKey(), ":" + entry.getValue());
+		}
 	}
 
 	private String makeModuleLabel(ModuleDeploymentRequest module) {
@@ -99,14 +124,40 @@ public class GraphvizRenderer {
 		return sb.toString();
 	}
 
-	private String makeVertexNameFromChannel(String channel) {
+	private String makeVertexNameFromChannel(String channel, Map<String, List<ModuleDeploymentRequest>> allStreams) {
 		int dot = channel.lastIndexOf('.');
 		int colon = channel.indexOf(':');
-		return channel.substring(colon + 1, dot) + "_" + channel.substring(dot + 1);
+		if (isTap(channel)) {
+			String streamName = channel.substring(colon + 1, dot);
+			String moduleName = channel.substring(dot + 1);
+			ModuleDeploymentRequest module = locateFirstModuleMatching(streamName, moduleName,
+					allStreams.get(streamName));
+			return makeVertexName(module);
+		}
+		else {
+			return "colon_" + channel;
+		}
+	}
+
+	/**
+	 * A tap module name does not know about the module index. Recover it from the stream definition.
+	 */
+	private ModuleDeploymentRequest locateFirstModuleMatching(String streamName, String moduleName,
+			List<ModuleDeploymentRequest> modules) {
+		for (ModuleDeploymentRequest m : modules) {
+			if (m.getModule().equals(moduleName)) {
+				return m;
+			}
+		}
+		throw new IllegalStateException();
+	}
+
+	private boolean isTap(String channel) {
+		return channel.startsWith("tap:");
 	}
 
 	private String makeVertexName(ModuleDeploymentRequest module) {
-		return module.getGroup() + "_" + module.getModule();
+		return module.getGroup() + "_" + module.getModule().replaceAll("-", "_dash_") + "_" + module.getIndex();
 	}
 
 }

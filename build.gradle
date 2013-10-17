@@ -58,6 +58,7 @@ def moduleProjects() {
 }
 
 ext {
+	jackson1Version = '1.9.9'
 	jacksonVersion = '2.2.2'
 	jsonPathVersion = '0.8.1'
 	junitVersion = '4.11'
@@ -312,9 +313,6 @@ project('spring-xd-analytics') {
 
 project('spring-xd-dirt') {
 	description = 'Spring XD DIRT'
-	configurations {
-		//[runtime,testRuntime]*.exclude group: 'org.codehaus.jackson'
-	}
 	dependencies {
 
 		// See XD-903 for breakdown
@@ -367,16 +365,13 @@ project('spring-xd-dirt') {
 		// ************* Container: Modules (should move on their own: XD-915)
 		compile project(":spring-xd-hadoop")
 
-		runtime project(":spring-xd-extension-gemfire")
-
-		runtime project(":spring-xd-extension-splunk")
-
-		runtime project(":spring-xd-extension-twitter")
-
 		// ************* Container: Imposed by some Module (can't move)
 		compile "com.sun.mail:javax.mail:$javaxMailVersion"
 		runtime project(":spring-xd-extension-reactor")
 
+		// The following is needed eg by twitter module b/c jackson classes
+		// are loaded by RestTemplate and RestTemplate is in Dirt
+		runtime "org.codehaus.jackson:jackson-mapper-asl:$jackson1Version"
 
 		// ************* Test
 		testCompile project(":spring-xd-test")
@@ -496,7 +491,7 @@ project('spring-xd-extension-splunk') {
 	description = 'Spring XD Splunk'
 	dependencies {
 		compile "org.springframework.integration:spring-integration-splunk:$springIntegrationSplunkVersion"
-		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
+		runtime "com.splunk:splunk:1.2.0"
 	}
 }
 
@@ -881,6 +876,40 @@ project('modules.source.jms') {
 	}
 }
 
+project('modules.source.gemfire') {
+	dependencies {
+		runtime (project(":spring-xd-extension-gemfire")) {
+			exclude group: 'org.slf4j'
+			exclude group: 'commons-logging'
+		}
+	}
+}
+
+project('modules.source.gemfire-cq') {
+	dependencies {
+		runtime (project(":spring-xd-extension-gemfire")) {
+			exclude group: 'org.slf4j'
+			exclude group: 'commons-logging'
+		}
+	}
+}
+
+project('modules.source.twitterstream') {
+	dependencies {
+		runtime(project(":spring-xd-extension-twitter")) {
+			exclude group: 'org.codehaus.jackson'
+		}
+	}
+}
+
+project('modules.source.twittersearch') {
+	dependencies {
+		runtime(project(":spring-xd-extension-twitter")) {
+			exclude group: 'org.codehaus.jackson'
+		}
+	}
+}
+
 // Does not work b/c of shared Reactor stuff in module-common.xml
 //project('modules.source.reactor-syslog') {
 //	dependencies {
@@ -914,6 +943,32 @@ project('modules.sink.mail') {
 		// shell integration tests to work.
 		//		"com.sun.mail:javax.mail:$javaxMailVersion"
 
+	}
+}
+
+project('modules.sink.gemfire-json-server') {
+	dependencies {
+		runtime (project(":spring-xd-extension-gemfire")) {
+			exclude group: 'org.slf4j'
+			exclude group: 'commons-logging'
+		}
+	}
+}
+
+project('modules.sink.gemfire-server') {
+	dependencies {
+		runtime (project(":spring-xd-extension-gemfire")) {
+			exclude group: 'org.slf4j'
+			exclude group: 'commons-logging'
+		}
+	}
+}
+
+project('modules.sink.splunk') {
+	dependencies {
+		runtime(project(":spring-xd-extension-splunk")) {
+			exclude module: 'spring-integration-core'
+		}
 	}
 }
 

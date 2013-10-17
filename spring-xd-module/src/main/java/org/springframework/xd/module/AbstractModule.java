@@ -49,6 +49,9 @@ public abstract class AbstractModule implements Module {
 		return this.definition.getType();
 	}
 
+	protected ModuleDefinition getDefinition() {
+		return definition;
+	}
 
 	@Override
 	public DeploymentMetadata getDeploymentMetadata() {

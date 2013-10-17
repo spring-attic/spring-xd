@@ -19,12 +19,14 @@ package org.springframework.xd.rest.client.impl;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.xd.rest.client.ModuleOperations;
+import org.springframework.xd.rest.client.domain.DetailedModuleDefinitionResource;
 import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
 import org.springframework.xd.rest.client.domain.RESTModuleType;
 
 /**
  * Implementation of the Module-related part of the API.
  * 
+ * @author Eric Bottard
  * @author Glenn Renfro
  * @author Mark Fisher
  * @author Gunnar Hillert
@@ -47,6 +49,13 @@ public class ModuleTemplate extends AbstractTemplate implements ModuleOperations
 	public void deleteModule(String name, RESTModuleType moduleType) {
 		final String uriTemplate = resources.get("modules").toString() + "/{type}/{name}";
 		restTemplate.delete(uriTemplate, moduleType.name(), name);
+	}
+
+	@Override
+	public DetailedModuleDefinitionResource info(String name, RESTModuleType type) {
+		String uriTemplate = resources.get("modules").toString() + "/{type}/{name}";
+
+		return restTemplate.getForObject(uriTemplate, DetailedModuleDefinitionResource.class, type, name);
 	}
 
 	@Override

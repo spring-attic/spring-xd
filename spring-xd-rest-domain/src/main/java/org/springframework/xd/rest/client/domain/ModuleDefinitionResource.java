@@ -35,29 +35,16 @@ public class ModuleDefinitionResource extends ResourceSupport {
 
 	private volatile String type;
 
-	private volatile String moduleId;
-
-	/**
-	 * The DSL representation of this module definition.
-	 */
-	private volatile String definition;
-
 	/**
 	 * Default constructor for serialization frameworks.
 	 */
-	@SuppressWarnings("unused")
-	private ModuleDefinitionResource() {
+	protected ModuleDefinitionResource() {
+
 	}
 
-	public ModuleDefinitionResource(String name, String definition, String type) {
-		this.moduleId = type + ":" + name;
+	public ModuleDefinitionResource(String name, String type) {
 		this.name = name;
-		this.definition = definition;
 		this.type = type;
-	}
-
-	public String getModuleId() {
-		return moduleId;
 	}
 
 	public String getName() {
@@ -66,10 +53,6 @@ public class ModuleDefinitionResource extends ResourceSupport {
 
 	public String getType() {
 		return type;
-	}
-
-	public String getDefinition() {
-		return definition;
 	}
 
 	/**

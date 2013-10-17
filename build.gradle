@@ -58,6 +58,7 @@ def moduleProjects() {
 }
 
 ext {
+	jackson1Version = '1.9.9'
 	jacksonVersion = '2.2.2'
 	jsonPathVersion = '0.8.1'
 	junitVersion = '4.11'
@@ -312,9 +313,6 @@ project('spring-xd-analytics') {
 
 project('spring-xd-dirt') {
 	description = 'Spring XD DIRT'
-	configurations {
-		//[runtime,testRuntime]*.exclude group: 'org.codehaus.jackson'
-	}
 	dependencies {
 
 		// See XD-903 for breakdown
@@ -371,6 +369,9 @@ project('spring-xd-dirt') {
 		compile "com.sun.mail:javax.mail:$javaxMailVersion"
 		runtime project(":spring-xd-extension-reactor")
 
+		// The following is needed eg by twitter module b/c jackson classes
+		// are loaded by RestTemplate and RestTemplate is in Dirt
+		runtime "org.codehaus.jackson:jackson-mapper-asl:$jackson1Version"
 
 		// ************* Test
 		testCompile project(":spring-xd-test")

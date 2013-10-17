@@ -17,5 +17,5 @@ dump.rdb
 tomcat.*
 activemq-data
 spring-shell.log
-data
+/data
 

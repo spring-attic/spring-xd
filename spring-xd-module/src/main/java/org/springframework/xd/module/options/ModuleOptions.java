@@ -19,6 +19,7 @@ package org.springframework.xd.module.options;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -142,6 +143,13 @@ public class ModuleOptions implements Iterable<ModuleOption> {
 
 	public void add(ModuleOption option) {
 		options.put(option.getName(), option);
+	}
+
+	public void setOptions(List<ModuleOption> options) {
+		options.clear();
+		for (ModuleOption o : options) {
+			add(o);
+		}
 	}
 
 	/**

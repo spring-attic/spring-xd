@@ -80,4 +80,22 @@ public class ModuleOption {
 		return type;
 	}
 
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+
+	public void setDefaultValue(String value) {
+		withDefaultValue(value);
+	}
+
+	public void setDefaultExpression(String expression) {
+		withDefaultExpression(expression);
+	}
+
+	public void setType(Class<?> type) {
+		this.type = type;
+	}
+
 }

@@ -25,7 +25,6 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.DescriptiveResource;
 import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
-import org.springframework.xd.module.options.ModuleOption;
 import org.springframework.xd.module.options.ModuleOptions;
 
 /**
@@ -91,13 +90,6 @@ public class ModuleDefinition {
 	}
 
 	public synchronized ModuleOptions getModuleOptions() {
-		if ("file".equals(name)) {
-			ModuleOptions result = new ModuleOptions();
-			result.add(ModuleOption.named("suffix").withDefaultExpression("foo + 'bar'"));
-			result.add(ModuleOption.named("foo"));
-			return result;
-		}
-
 		if (moduleOptions == null) {
 			try {
 				Resource optionsContext = resource.createRelative(name + "-options.xml");
@@ -108,6 +100,7 @@ public class ModuleDefinition {
 					GenericApplicationContext context = new GenericApplicationContext();
 					XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(context);
 					reader.loadBeanDefinitions(optionsContext);
+					context.refresh();
 					moduleOptions = context.getBean(ModuleOptions.class);
 				}
 			}

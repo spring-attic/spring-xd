@@ -10,9 +10,21 @@
 	<inbound-channel-adapter channel="output"
 			auto-startup="false"
 			expression="'${payload:}'">
-		<poller trigger="dateTrigger"/>
+		<poller ref="thePoller" />
 	</inbound-channel-adapter>
+
+	<poller id="thePoller" trigger="dateTrigger" />
 	<beans:bean id="dateTrigger"
 		class="org.springframework.xd.module.util.DateTrigger">
 	</beans:bean>
+
+	<beans:beans profile="-profile-fixedDelay">
+		<poller id="thePoller" fixed-delay="${fixedDelay:10}" time-unit="SECONDS" />
+	</beans:beans>
+
+	<beans:beans profile="-profile-cron">
+		<poller id="thePoller" cron="${cron:'*/10 * * * * *'}"/>
+	</beans:beans>
+
+
 </beans:beans>

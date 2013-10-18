@@ -16,7 +16,9 @@
 
 package org.springframework.xd.module;
 
+import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -27,6 +29,7 @@ import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.io.Resource;
@@ -63,9 +66,6 @@ public class SimpleModule extends AbstractModule {
 			context.setClassLoader(classLoader);
 		}
 		if (definition != null) {
-			if (definition.getResource().isReadable()) {
-				this.addComponents(definition.getResource());
-			}
 			if (definition.getProperties() != null) {
 				this.addProperties(definition.getProperties());
 			}
@@ -88,6 +88,35 @@ public class SimpleModule extends AbstractModule {
 	public void addProperties(Properties properties) {
 		this.registerPropertySource(properties);
 		this.properties.putAll(properties);
+		this.activateProfiles(properties);
+	}
+
+	/**
+	 * Activates Spring profiles for each option explicitly set on this Module.
+	 * 
+	 * <p>
+	 * This allows module implementors to radically change the behavior of the module given an option set, thus
+	 * alleviating the creation of two distinct modules. Obviously, this should not be abused and is useful for
+	 * module(s) that still provide related functionality.
+	 * <p>
+	 * 
+	 * <p>
+	 * More specifically, for each explicit {@link Module#getProperties() property} ({@code key = value}) set, the
+	 * following profiles will be activated:
+	 * <ul>
+	 * <li>{@literal -profile-[key]}: can be used to include beans as soon as the user provided the option,</li>
+	 * <li>{@literal -profile-[key]-[value]}: used to include beans when the user provided a specific value for the
+	 * option</li>
+	 * </ul>
+	 **/
+	private void activateProfiles(Properties properties) {
+		Set<Entry<Object, Object>> entrySet = properties.entrySet();
+		ConfigurableEnvironment environment = context.getEnvironment();
+		for (Entry<Object, Object> entry : entrySet) {
+			environment.addActiveProfile("-profile-" + String.valueOf(entry.getKey()));
+			environment.addActiveProfile("-profile-" + String.valueOf(entry.getKey()) + "-"
+					+ String.valueOf(entry.getValue()));
+		}
 	}
 
 	@Override
@@ -123,6 +152,9 @@ public class SimpleModule extends AbstractModule {
 	public void initialize() {
 		Assert.state(this.context != null, "An ApplicationContext is required");
 		boolean propertyConfigurerPresent = false;
+		if (definition.getResource() != null) {
+			this.addComponents(definition.getResource());
+		}
 		for (String name : this.context.getBeanDefinitionNames()) {
 			if (name.startsWith("org.springframework.context.support.PropertySourcesPlaceholderConfigurer")) {
 				propertyConfigurerPresent = true;

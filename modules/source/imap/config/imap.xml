@@ -14,15 +14,29 @@
 
 	<channel id="output"/>
 
-	<int-mail:imap-idle-channel-adapter
-		store-uri="${protocol:${mail.source.protocol}}://${username:${mail.source.username}}:${password:${mail.source.password}}@${host:${mail.source.host}}:${port:${mail.source.port}}/${folder:INBOX}"
-		channel="transform"
-		auto-startup="true"
-		mail-filter-expression="${expression:true}"
-		should-mark-messages-as-read="${markAsRead:false}"
-		should-delete-messages="${delete:true}">
-	</int-mail:imap-idle-channel-adapter>
-
 	<int-mail:mail-to-string-transformer charset="${charset:UTF-8}" input-channel="transform" output-channel="output" />
+
+	<!-- By default assume IMAP with idle command -->
+	<beans:beans profile="default">
+		<int-mail:imap-idle-channel-adapter id="adapter"
+			store-uri="${protocol:${mail.source.protocol}}://${username:${mail.source.username}}:${password:${mail.source.password}}@${host:${mail.source.host}}:${port:${mail.source.port}}/${folder:INBOX}"
+			channel="transform"
+			auto-startup="true"
+			mail-filter-expression="${expression:true}"
+			should-mark-messages-as-read="${markAsRead:false}"
+			should-delete-messages="${delete:true}">
+		</int-mail:imap-idle-channel-adapter>
+	</beans:beans>
+
+	<!-- Switch to polling version as soon as pollingDelay is set -->
+	<beans:beans profile="-profile-pollingDelay">
+		<int-mail:inbound-channel-adapter id="adapter"
+			store-uri="${protocol:${mail.source.protocol}}://${username:${mail.source.username}}:${password:${mail.source.password}}@${host:${mail.source.host}}:${port:${mail.source.port}}/${folder:INBOX}"
+			channel="transform"
+			should-mark-messages-as-read="${markAsRead:false}"
+			should-delete-messages="${delete:true}">
+			<poller fixed-delay="${pollingDelay}" time-unit="SECONDS"/>
+		</int-mail:inbound-channel-adapter>
+	</beans:beans>
 
 </beans:beans>

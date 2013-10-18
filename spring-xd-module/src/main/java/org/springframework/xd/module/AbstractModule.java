@@ -28,9 +28,9 @@ import org.springframework.util.ObjectUtils;
  */
 public abstract class AbstractModule implements Module {
 
-	private final ModuleDefinition definition;
+	protected final ModuleDefinition definition;
 
-	private final DeploymentMetadata metadata;
+	protected final DeploymentMetadata metadata;
 
 	public AbstractModule(ModuleDefinition definition, DeploymentMetadata metadata) {
 		Assert.notNull(definition, "definition must not be null");

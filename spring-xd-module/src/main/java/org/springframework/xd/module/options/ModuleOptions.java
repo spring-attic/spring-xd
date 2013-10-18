@@ -25,6 +25,7 @@ import java.util.Set;
 
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.env.EnumerablePropertySource;
+import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.expression.spel.SpelEvaluationException;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -36,6 +37,27 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
  * @author Eric Bottard
  */
 public class ModuleOptions implements Iterable<ModuleOption> {
+
+	/**
+	 * A {@link ModuleOptions} stub that can be used when metadata is not provided. Allows handling that case as the
+	 * normal case. Will report no declared options, will pass injected properties as is. Client code can test for
+	 * equality to this constant when they need to really distinguish between zero options and no information available.
+	 */
+	public static ModuleOptions ABSENT = new ModuleOptions() {
+
+		@Override
+		public ModuleOptionsValues interpolate(final Properties raw) {
+			return new ModuleOptionsValues(raw) {
+
+				@Override
+				public EnumerablePropertySource<?> asPropertySource() {
+					return new PropertiesPropertySource("ModuleOptionsValues@"
+							+ System.identityHashCode(this), raw);
+				}
+			};
+		}
+	};
+
 
 	/**
 	 * Represents runtime information about the module options once user provided values are injected.
@@ -66,8 +88,8 @@ public class ModuleOptions implements Iterable<ModuleOption> {
 
 				@Override
 				public Object getProperty(String name) {
-					boolean isDeclated = options.containsKey(name);
-					if (!isDeclated) {
+					boolean isDeclared = options.containsKey(name);
+					if (!isDeclared) {
 						// Not an explicitly allowed property: move on
 						return null;
 					}

@@ -25,6 +25,7 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.DescriptiveResource;
 import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
+import org.springframework.xd.module.options.ModuleOption;
 import org.springframework.xd.module.options.ModuleOptions;
 
 /**
@@ -46,8 +47,6 @@ public class ModuleDefinition {
 	private final URL[] classpath;
 
 	private ModuleOptions moduleOptions;
-
-	private static final ModuleOptions PENDING = new ModuleOptions();
 
 	public ModuleDefinition(String name, ModuleType moduleType) {
 		this(name, moduleType, new DescriptiveResource("Dummy resource"));
@@ -92,11 +91,18 @@ public class ModuleDefinition {
 	}
 
 	public synchronized ModuleOptions getModuleOptions() {
-		if (moduleOptions == PENDING) {
+		if ("file".equals(name)) {
+			ModuleOptions result = new ModuleOptions();
+			result.add(ModuleOption.named("suffix").withDefaultExpression("foo + 'bar'"));
+			result.add(ModuleOption.named("foo"));
+			return result;
+		}
+
+		if (moduleOptions == null) {
 			try {
 				Resource optionsContext = resource.createRelative(name + "-options.xml");
 				if (!optionsContext.exists()) {
-					moduleOptions = null;
+					moduleOptions = ModuleOptions.ABSENT;
 				}
 				else {
 					GenericApplicationContext context = new GenericApplicationContext();
@@ -107,7 +113,7 @@ public class ModuleDefinition {
 			}
 			catch (IOException e) {
 				e.printStackTrace();
-				moduleOptions = null;
+				moduleOptions = ModuleOptions.ABSENT;
 			}
 		}
 		return moduleOptions;

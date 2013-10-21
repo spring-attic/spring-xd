@@ -276,7 +276,7 @@ configure(moduleProjects()) { moduleProject ->
 	}
 
 
-	['build', 'eclipse', 'idea'].each {t -> tasks[t].dependsOn copyLibs}
+	['test','build', 'eclipse', 'idea'].each {t -> tasks[t].dependsOn copyLibs}
 
 	task cleanLibs(type: Delete)  {
 		delete copyLibs.outputs

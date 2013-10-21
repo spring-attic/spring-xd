@@ -31,6 +31,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 import org.springframework.xd.module.options.ModuleOption;
 import org.springframework.xd.module.options.ModuleOptions;
+import org.springframework.xd.module.options.ModuleOptions.ProfileActivationRule;
 
 
 /**
@@ -40,16 +41,13 @@ import org.springframework.xd.module.options.ModuleOptions;
  */
 public class ModuleOptionsBeanDefinitionParser implements BeanDefinitionParser {
 
-	/**
-	 * Name of the XML element representing an individual option.
-	 */
-	private static final String OPTION = "option";
 
 	@Override
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ModuleOptions.class);
 
 		registerModuleOptions(element, parserContext, builder);
+		registerProfileActivations(element, parserContext, builder);
 
 		builder.getRawBeanDefinition().setSource(parserContext.extractSource(element));
 		BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
@@ -57,8 +55,21 @@ public class ModuleOptionsBeanDefinitionParser implements BeanDefinitionParser {
 		return builder.getBeanDefinition();
 	}
 
+	private void registerProfileActivations(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+		List<Element> profiles = DomUtils.getChildElementsByTagName(element, "profile");
+
+		ManagedList<BeanMetadataElement> profilesList = new ManagedList<BeanMetadataElement>();
+		for (Element profileElement : profiles) {
+			BeanDefinitionBuilder ruleBuilder = BeanDefinitionBuilder.genericBeanDefinition(ProfileActivationRule.class);
+			ruleBuilder.addPropertyValue("profile", profileElement.getAttribute("name"));
+			ruleBuilder.addPropertyValue("rule", profileElement.getAttribute("rule"));
+			profilesList.add(ruleBuilder.getBeanDefinition());
+		}
+		builder.addPropertyValue("profileRules", profilesList);
+	}
+
 	private void registerModuleOptions(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		List<Element> options = DomUtils.getChildElementsByTagName(element, OPTION);
+		List<Element> options = DomUtils.getChildElementsByTagName(element, "option");
 
 		ManagedList<BeanMetadataElement> optionsList = new ManagedList<BeanMetadataElement>();
 		for (Element optionElement : options) {

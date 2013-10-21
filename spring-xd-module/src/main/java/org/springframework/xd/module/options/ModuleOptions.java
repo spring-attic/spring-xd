@@ -137,12 +137,40 @@ public class ModuleOptions implements Iterable<ModuleOption> {
 
 	private Map<String, ModuleOption> options = new HashMap<String, ModuleOption>();
 
+	/**
+	 * Setter-style class for specifying profile activation rules.
+	 */
+	public static class ProfileActivationRule {
+
+		private String profile;
+
+		private String rule;
+
+
+		public void setProfile(String profile) {
+			this.profile = profile;
+		}
+
+		public void setRule(String rule) {
+			this.rule = rule;
+		}
+
+
+	}
+
 
 	// ProfileName -> SpEL expression
 	private Map<String, String> profileConditions = new HashMap<String, String>();
 
 	public void add(ModuleOption option) {
 		options.put(option.getName(), option);
+	}
+
+	public void setProfileRules(List<ProfileActivationRule> rules) {
+		profileConditions.clear();
+		for (ProfileActivationRule r : rules) {
+			addProfileActivationRule(r.profile, r.rule);
+		}
 	}
 
 	public void setOptions(List<ModuleOption> options) {

@@ -188,7 +188,7 @@ public class ModuleOptions implements Iterable<ModuleOption> {
 	}
 
 	public void setOptions(List<ModuleOption> options) {
-		options.clear();
+		this.options.clear();
 		for (ModuleOption o : options) {
 			add(o);
 		}
@@ -208,5 +208,10 @@ public class ModuleOptions implements Iterable<ModuleOption> {
 	@Override
 	public Iterator<ModuleOption> iterator() {
 		return options.values().iterator();
+	}
+
+	@Override
+	public String toString() {
+		return String.format("ModuleOptions[options = %s, profiles = %s]", options.keySet(), profileConditions.keySet());
 	}
 }

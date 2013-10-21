@@ -30,7 +30,6 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 import org.springframework.xd.module.options.ModuleOption;
 import org.springframework.xd.module.options.ModuleOptions;
@@ -92,17 +91,23 @@ public class ModuleOptionsBeanDefinitionParser implements BeanDefinitionParser {
 			BeanDefinitionBuilder optionBuilder = BeanDefinitionBuilder.genericBeanDefinition(ModuleOption.class);
 			optionBuilder.addConstructorArgValue(optionElement.getAttribute("name"));
 			optionBuilder.addPropertyValue("description", optionElement.getAttribute("description"));
-			optionBuilder.addPropertyValue("type", shortToFQDN(optionElement.getAttribute("type")));
+			if (optionElement.hasAttribute("type")) {
+				optionBuilder.addPropertyValue("type", shortToFQDN(optionElement.getAttribute("type")));
+			}
 
-			String defaultValue = element.getAttribute("default-value");
-			String defaultExpression = element.getAttribute("default-expression");
-			if (StringUtils.hasText(defaultValue) && StringUtils.hasText(defaultExpression)) {
+			boolean hasDefaultValue = optionElement.hasAttribute("default-value");
+			boolean hasDefaultExpression = optionElement.hasAttribute("default-expression");
+			if (hasDefaultValue && hasDefaultExpression) {
 				parserContext.getReaderContext().error(
 						"Only one of 'default-value' or 'default-expression' is allowed",
-						element.getAttributeNode("default-value"));
+						optionElement.getAttributeNode("default-value"));
 			}
-			optionBuilder.addPropertyValue("defaultValue", defaultValue);
-			optionBuilder.addPropertyValue("defaultExpression", defaultExpression);
+			if (hasDefaultValue) {
+				optionBuilder.addPropertyValue("defaultValue", optionElement.getAttribute("default-value"));
+			}
+			else if (hasDefaultExpression) {
+				optionBuilder.addPropertyValue("defaultExpression", optionElement.getAttribute("default-expression"));
+			}
 
 			optionsList.add(optionBuilder.getBeanDefinition());
 		}

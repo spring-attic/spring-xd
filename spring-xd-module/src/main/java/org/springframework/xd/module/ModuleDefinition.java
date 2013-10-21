@@ -105,7 +105,6 @@ public class ModuleDefinition {
 				}
 			}
 			catch (IOException e) {
-				e.printStackTrace();
 				moduleOptions = ModuleOptions.ABSENT;
 			}
 		}

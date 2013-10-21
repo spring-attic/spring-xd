@@ -16,6 +16,8 @@
 
 package org.springframework.xd.module.options;
 
+import org.springframework.util.Assert;
+
 
 /**
  * Provides information about an option that a user can set to customize the behavior of a module.
@@ -95,7 +97,13 @@ public class ModuleOption {
 	}
 
 	public void setType(Class<?> type) {
+		Assert.notNull(type, "Option type cannot be null");
 		this.type = type;
+	}
+
+	@Override
+	public String toString() {
+		return String.format("ModuleOption[%s]", name);
 	}
 
 }

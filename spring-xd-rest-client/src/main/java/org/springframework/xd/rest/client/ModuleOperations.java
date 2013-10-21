@@ -17,6 +17,7 @@
 package org.springframework.xd.rest.client;
 
 import org.springframework.hateoas.PagedResources;
+import org.springframework.xd.rest.client.domain.DetailedModuleDefinitionResource;
 import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
 import org.springframework.xd.rest.client.domain.RESTModuleType;
 
@@ -50,10 +51,15 @@ public interface ModuleOperations {
 	 */
 	public String downloadConfigurationFile(RESTModuleType type, String name);
 
-
 	/**
 	 * Request deletion of module with given name and type. Only composite modules, which are not currently in use can
 	 * be deleted.
 	 */
 	public void deleteModule(String name, RESTModuleType moduleType);
+
+	/**
+	 * Retrieve information about a particular module.
+	 */
+	public DetailedModuleDefinitionResource info(String name, RESTModuleType type);
+
 }

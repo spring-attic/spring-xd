@@ -45,8 +45,8 @@ public class ModuleDefinitionResource extends ResourceSupport {
 	/**
 	 * Default constructor for serialization frameworks.
 	 */
-	@SuppressWarnings("unused")
-	private ModuleDefinitionResource() {
+	protected ModuleDefinitionResource() {
+
 	}
 
 	public ModuleDefinitionResource(String name, String definition, String type) {

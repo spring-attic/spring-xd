@@ -16,7 +16,10 @@
 
 package org.springframework.xd.module.config;
 
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.w3c.dom.Element;
 
@@ -41,6 +44,19 @@ import org.springframework.xd.module.options.ModuleOptions.ProfileActivationRule
  */
 public class ModuleOptionsBeanDefinitionParser implements BeanDefinitionParser {
 
+	private static final Map<String, String> SHORT_TYPE_NAMES = new HashMap<String, String>();
+	static {
+		SHORT_TYPE_NAMES.put("string", String.class.getName());
+		SHORT_TYPE_NAMES.put("boolean", Boolean.class.getName());
+		SHORT_TYPE_NAMES.put("byte", Byte.class.getName());
+		SHORT_TYPE_NAMES.put("char", Character.class.getName());
+		SHORT_TYPE_NAMES.put("short", Short.class.getName());
+		SHORT_TYPE_NAMES.put("int", Integer.class.getName());
+		SHORT_TYPE_NAMES.put("long", Long.class.getName());
+		SHORT_TYPE_NAMES.put("float", Float.class.getName());
+		SHORT_TYPE_NAMES.put("double", Double.class.getName());
+		SHORT_TYPE_NAMES.put("date", Date.class.getName());
+	}
 
 	@Override
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
@@ -96,7 +112,8 @@ public class ModuleOptionsBeanDefinitionParser implements BeanDefinitionParser {
 	}
 
 	private String shortToFQDN(String type) {
-		return type;
+		String longer = SHORT_TYPE_NAMES.get(type);
+		return longer == null ? type : longer;
 	}
 
 }

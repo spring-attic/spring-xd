@@ -26,6 +26,7 @@ import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -35,13 +36,14 @@ import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
+import org.springframework.xd.rest.client.domain.DetailedModuleDefinitionResource;
 import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
 
 /**
  * Handles all Module related interactions.
  * 
  * @author Glenn Renfro
- * @since 1.0
+ * @author Eric Bottard
  */
 @Controller
 @RequestMapping("/modules")
@@ -49,6 +51,8 @@ import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
 public class ModulesController {
 
 	private final ModuleRegistry moduleRegistry;
+
+	private final DetailedModuleDefinitionResourceAssembler detailedAssembler = new DetailedModuleDefinitionResourceAssembler();
 
 	@Autowired
 	public ModulesController(ModuleRegistry moduleRegistry) {
@@ -68,6 +72,19 @@ public class ModulesController {
 		Page<ModuleDefinition> page = handler.findAll(pageable, type);
 		PagedResources<ModuleDefinitionResource> result = safePagedResources(assembler, page);
 		return result;
+	}
+
+	/**
+	 * Retrieve detailed module definition about a particular module.
+	 */
+	@RequestMapping(value = "/{type}/{name}", method = RequestMethod.GET)
+	@ResponseStatus(HttpStatus.OK)
+	@ResponseBody
+	public DetailedModuleDefinitionResource info(@PathVariable("type") ModuleType type,
+			@PathVariable("name") String name) {
+		// TODO: go thru "ModuleDefinitionRepository" once composed module support is merged in?
+		ModuleDefinition def = moduleRegistry.findDefinition(name, type);
+		return detailedAssembler.toResource(def);
 	}
 
 	private PagedResources<ModuleDefinitionResource> safePagedResources(

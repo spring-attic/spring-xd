@@ -30,7 +30,7 @@ public class ModuleOption {
 
 	private String spel;
 
-	private Class<?> type = Object.class;
+	private Class<?> type = String.class;
 
 
 	private ModuleOption(String name) {

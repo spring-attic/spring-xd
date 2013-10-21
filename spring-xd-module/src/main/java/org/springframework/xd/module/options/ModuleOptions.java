@@ -98,7 +98,8 @@ public class ModuleOptions implements Iterable<ModuleOption> {
 					Class<?> expectedType = moduleOption.getType();
 					if (raw.containsKey(name)) {
 						// Provided by user. Coerse String value to given type
-						return parser.parseExpression(raw.getProperty(name)).getValue(expectedType);
+						String asString = quote(raw.getProperty(name));
+						return parser.parseExpression(asString).getValue(expectedType);
 					}
 					else {
 						// Maybe compute default
@@ -109,6 +110,19 @@ public class ModuleOptions implements Iterable<ModuleOption> {
 						// Allow evaluation against ourself
 						return parser.parseExpression(defaultExpression).getValue(context, this, expectedType);
 					}
+				}
+
+				private String quote(String property) {
+					StringBuilder sb = new StringBuilder(property.length());
+					sb.append("'");
+					for (int i = 0; i < property.length(); i++) {
+						if ('\'' == property.charAt(i)) {
+							sb.append('\'');
+						}
+						sb.append(property.charAt(i));
+					}
+					sb.append("'");
+					return sb.toString();
 				}
 
 				@Override

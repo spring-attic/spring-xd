@@ -21,6 +21,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 import java.util.Properties;
@@ -67,6 +68,27 @@ public class ModuleOptionsTests {
 		assertThat(ps.getProperty("cron"), is(nullValue()));
 		assertThat((Integer) ps.getProperty("delay"), equalTo(5));
 		assertThat((Integer) ps.getProperty("longer-delay"), equalTo(15));
+
+	}
+
+	@Test
+	public void testTypeSupport() {
+		moduleOptions.add(ModuleOption.named("greet"));
+		moduleOptions.add(ModuleOption.named("ihaveaquote"));
+		moduleOptions.add(ModuleOption.named("greek"));
+		moduleOptions.add(ModuleOption.named("grok").withType(Integer.class));
+
+		Properties props = new Properties();
+		props.setProperty("greet", "hello");
+		props.setProperty("greek", "12");
+		props.setProperty("ihaveaquote", "My name's \"Q\"");
+		props.setProperty("grok", "42");
+		PropertySource<?> ps = moduleOptions.interpolate(props).asPropertySource();
+
+		assertEquals("12", ps.getProperty("greek"));
+		assertEquals(42, ps.getProperty("grok"));
+		assertEquals("hello", ps.getProperty("greet"));
+		assertEquals("My name's \"Q\"", ps.getProperty("ihaveaquote"));
 
 	}
 }

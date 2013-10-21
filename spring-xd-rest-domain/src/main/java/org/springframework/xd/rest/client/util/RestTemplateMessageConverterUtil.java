@@ -34,6 +34,9 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.xd.rest.client.domain.JobDefinitionResource;
+import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
+import org.springframework.xd.rest.client.domain.RuntimeContainerInfoResource;
+import org.springframework.xd.rest.client.domain.RuntimeModuleInfoResource;
 import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
 import org.springframework.xd.rest.client.domain.XDRuntime;
 import org.springframework.xd.rest.client.domain.metrics.AggregateCountsResource;
@@ -73,7 +76,9 @@ public class RestTemplateMessageConverterUtil {
 			&& ClassUtils.isPresent("org.codehaus.jackson.JsonGenerator",
 					RestTemplateMessageConverterUtil.class.getClassLoader());
 
-	private static final Class<?>[] ourClasses = { StreamDefinitionResource.class, JobDefinitionResource.class,
+	private static final Class<?>[] ourClasses = { PagedResources.class, StreamDefinitionResource.class,
+		JobDefinitionResource.class, ModuleDefinitionResource.class, RuntimeContainerInfoResource.class,
+		RuntimeModuleInfoResource.class,
 		MetricResource.class, GaugeResource.class,
 		AggregateCountsResource.class, CounterResource.class, XDRuntime.class, FieldValueCounterResource.class,
 		RichGaugeResource.class };

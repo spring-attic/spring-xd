@@ -18,11 +18,10 @@ package org.springframework.integration.x.bus.serializer.kryo;
 
 import java.io.File;
 
-import org.objenesis.strategy.StdInstantiatorStrategy;
-
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
+import com.esotericsoftware.shaded.org.objenesis.strategy.StdInstantiatorStrategy;
 
 
 /**

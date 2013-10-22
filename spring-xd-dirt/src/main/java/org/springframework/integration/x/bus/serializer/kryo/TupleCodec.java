@@ -16,16 +16,16 @@
 
 package org.springframework.integration.x.bus.serializer.kryo;
 
-import org.objenesis.strategy.StdInstantiatorStrategy;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.xd.tuple.DefaultTuple;
 import org.springframework.xd.tuple.DefaultTupleConversionService;
 import org.springframework.xd.tuple.Tuple;
+import org.springframework.xd.tuple.TupleToJsonStringConverter;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
+import com.esotericsoftware.shaded.org.objenesis.strategy.StdInstantiatorStrategy;
 
 /**
  * Kryo serializer for {@link Tuple}
@@ -52,7 +52,7 @@ public class TupleCodec extends AbstractKryoCodec<Tuple> {
 	 * @param tuple
 	 */
 	private void restoreConversionService(DefaultTuple tuple) {
-		setConversionService(tuple, new DefaultTupleConversionService());
+		setConversionService(tuple, new DefaultTupleConversionService(), new TupleToJsonStringConverter());
 		for (Object value : tuple.getValues()) {
 			if (value instanceof DefaultTuple) {
 				restoreConversionService((DefaultTuple) value);
@@ -62,10 +62,13 @@ public class TupleCodec extends AbstractKryoCodec<Tuple> {
 
 	/**
 	 * @param defaultTupleConversionService
+	 * @param tupleToJsonStringConverter
 	 */
-	private void setConversionService(DefaultTuple tuple, DefaultTupleConversionService defaultTupleConversionService) {
+	private void setConversionService(DefaultTuple tuple, DefaultTupleConversionService defaultTupleConversionService,
+			TupleToJsonStringConverter tupleToJsonStringConverter) {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tuple);
 		dfa.setPropertyValue("formattingConversionService", defaultTupleConversionService);
+		dfa.setPropertyValue("tupleToStringConverter", tupleToJsonStringConverter);
 	}
 
 	@Override

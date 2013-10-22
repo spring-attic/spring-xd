@@ -139,6 +139,20 @@ public class KryoCodecTests {
 	}
 
 	@Test
+	public void testComplexObjectSerialization() throws IOException {
+		PojoCodec serializer = new PojoCodec();
+		Foo foo = new Foo();
+		foo.put("one", 1);
+		foo.put("two", 2);
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		serializer.serialize(foo, bos);
+
+		Foo foo2 = (Foo) serializer.deserialize(bos.toByteArray(), Foo.class);
+		assertEquals(1, foo2.get("one"));
+		assertEquals(2, foo2.get("two"));
+	}
+
+	@Test
 	public void testNestedTupleSerialization() throws IOException {
 		TupleCodec serializer = new TupleCodec();
 		Tuple t0 = TupleBuilder.tuple().of("one", 1, "two", 2);
@@ -150,5 +164,22 @@ public class KryoCodecTests {
 		assertEquals(1, t3.getInt("one"));
 		assertEquals(2, t3.getInt("two"));
 		assertEquals(t0, t3);
+	}
+
+	static class Foo {
+
+		private Map<Object, Object> map;
+
+		public Foo() {
+			map = new HashMap<Object, Object>();
+		}
+
+		public void put(Object key, Object value) {
+			map.put(key, value);
+		}
+
+		public Object get(Object key) {
+			return map.get(key);
+		}
 	}
 }

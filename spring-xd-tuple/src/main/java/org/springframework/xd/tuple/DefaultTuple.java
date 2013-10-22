@@ -58,7 +58,7 @@ public class DefaultTuple implements Tuple {
 
 	private transient FormattingConversionService formattingConversionService;
 
-	private Converter<Tuple, String> tupleToStringConverter = new DefaultTupleToStringConverter();
+	private transient Converter<Tuple, String> tupleToStringConverter = new DefaultTupleToStringConverter();
 
 	private UUID id;
 

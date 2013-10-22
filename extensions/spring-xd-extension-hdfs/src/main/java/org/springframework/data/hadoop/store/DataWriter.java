@@ -20,7 +20,8 @@ import java.io.Flushable;
 import java.io.IOException;
 
 /**
- *
+ * A {@code DataWriter} is a logical representation of
+ * data writer implementation.
  *
  * @author Janne Valkealahti
  *
@@ -28,8 +29,20 @@ import java.io.IOException;
  */
 public interface DataWriter<E> extends Flushable, Closeable {
 
+	/**
+	 * Opens this writer and any system resources associated
+	 * with it. If the writer is already opened then invoking this
+	 * method has no effect.
+	 *
+	 * @throws IOException if an I/O error occurs
+	 */
 	void open() throws IOException;
 
+	/**
+	 * Write an entity.
+	 *
+	 * @throws IOException if an I/O error occurs
+	 */
 	void write(E entity) throws IOException;
 
 }

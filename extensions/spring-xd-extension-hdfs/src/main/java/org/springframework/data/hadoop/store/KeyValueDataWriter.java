@@ -17,8 +17,25 @@ package org.springframework.data.hadoop.store;
 
 import java.io.IOException;
 
-public interface KeyValueDataWriter<T,E> extends DataWriter<E> {
+/**
+ * A {@code KeyValueDataWriter} is a logical representation of
+ * a data writer implementation that writes a key value pair.
+ *
+ * @author Janne Valkealahti
+ *
+ * @param <T> the type of the key to write
+ * @param <E> the type of an entity to write
+ */
+public interface KeyValueDataWriter<T, E> extends DataWriter<E> {
 
+	/**
+	 * Write an entity to a key.
+	 *
+	 * @throws IOException if an I/O error occurs
+	 *
+	 * @param key the key to write to
+	 * @param entity the entity to write
+	 */
 	void write(T key, E entity) throws IOException;
 
 }

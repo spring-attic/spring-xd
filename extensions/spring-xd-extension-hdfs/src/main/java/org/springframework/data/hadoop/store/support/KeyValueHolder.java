@@ -18,7 +18,7 @@ package org.springframework.data.hadoop.store.support;
 /**
  * A {@code KeyValueHolder} is used to return multiple values
  * from a function, in this case a key and a value. Other use
- * case is to denote null values in cases where i.e. stream
+ * case is to denote null values in cases where i.e. the stream
  * reader itself might return null indicating end of stream.
  *
  * @author Janne Valkealahti
@@ -26,7 +26,7 @@ package org.springframework.data.hadoop.store.support;
  * @param <T> Type of a key
  * @param <E> Type of an entity
  */
-public class KeyValueHolder<T,E> {
+public class KeyValueHolder<T, E> {
 
 	T key;
 	E value;

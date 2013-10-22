@@ -15,16 +15,32 @@
  */
 package org.springframework.data.hadoop.store;
 
-import org.springframework.dao.DataAccessException;
+import org.springframework.dao.NonTransientDataAccessException;
 
-public class StorageException extends DataAccessException {
+/**
+ * An exception that indicates there was an error accessing the the underlying
+ * HDFS storage implementation.
+ *
+ * @author Janne Valkealahti
+ * @author Thomas Risberg
+ */
+public class StorageException extends NonTransientDataAccessException {
 
 	private static final long serialVersionUID = 7066482966443178810L;
 
+	/**
+	 * Constructor for StorageException.
+	 * @param msg message
+	 * @param cause the root cause
+	 */
 	public StorageException(String msg, Throwable cause) {
 		super(msg, cause);
 	}
 
+	/**
+	 * Constructor for StorageException.
+	 * @param msg message
+	 */
 	public StorageException(String msg) {
 		super(msg);
 	}

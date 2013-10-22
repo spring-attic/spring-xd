@@ -20,14 +20,15 @@ import java.io.IOException;
 import org.springframework.data.hadoop.store.support.KeyValueHolder;
 
 /**
- * A {@code KeyValueDataReader}
+ * A {@code KeyValueDataReader} is a logical representation of
+ * a data writer implementation that writes a key value pair.
  *
  * @author Janne Valkealahti
  *
  * @param <T> Type of a key for the reader
  * @param <E> Type of an entity for the reader
  */
-public interface KeyValueDataReader<T,E> extends DataReader<E> {
+public interface KeyValueDataReader<T, E> extends DataReader<E> {
 
 	/**
 	 * Read next key value.
@@ -35,6 +36,6 @@ public interface KeyValueDataReader<T,E> extends DataReader<E> {
 	 * @return the {@code KeyValueHolder}
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	KeyValueHolder<T,E> readKeyValue() throws IOException;
+	KeyValueHolder<T, E> readKeyValue() throws IOException;
 
 }

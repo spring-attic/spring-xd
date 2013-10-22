@@ -28,29 +28,20 @@ import java.io.IOException;
  */
 public interface DataReader<E> extends Closeable {
 
-    /**
-     * Opens this reader and any system resources associated
-     * with it. If the reader is already opened then invoking this
-     * method has no effect.
-     *
-     * @throws IOException if an I/O error occurs
-     */
+	/**
+	 * Opens this reader and any system resources associated
+	 * with it. If the reader is already opened then invoking this
+	 * method has no effect.
+	 *
+	 * @throws IOException if an I/O error occurs
+	 */
 	void open() throws IOException;
-
-    /**
-     * Closes this reader and releases any system resources associated
-     * with it. If the reader is already closed then invoking this
-     * method has no effect.
-     *
-     * @throws IOException if an I/O error occurs
-     */
-	void close() throws IOException;
 
 	/**
 	 * Read next entity from a reader.
 	 *
 	 * @return the entity or <code>null</code>
-     * @throws IOException if an I/O error occurs
+	 * @throws IOException if an I/O error occurs
 	 */
 	E read() throws IOException;
 

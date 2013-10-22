@@ -1,10 +1,20 @@
 ---
 applications:
-- name: xd-single
+- name: xd-single-green
   memory: 1G
   instances: 1
-  host: xd-single
+  host: xd-single-green
   domain: cfapps.io
+  env:
+    XD_HOME: .
+  path: modules/build/libs/modules-1.0.0.BUILD-SNAPSHOT.jar
+- name: xd-single-blue
+  memory: 1G
+  instances: 1
+  host: xd-single-blue
+  domain: cfapps.io
+  command: .java/bin/java -cp . -Djava.io.tmpdir=$TMPDIR -XX:MaxPermSize=104857K -Xmx768M -Xss1M org.springframework.boot.loader.PropertiesLauncher --server.port=$PORT
+#  command: .java/bin/java -cp .:.lib/spring-auto-reconfiguration-0.7.2.jar -Djava.io.tmpdir=$TMPDIR -XX:MaxPermSize=104857K -XX:OnOutOfMemoryError=./.buildpack-diagnostics/killjava -Xmx768M -Xss1M org.springframework.boot.loader.PropertiesLauncher --server.port=$PORT
   env:
     XD_HOME: .
   path: modules/build/libs/modules-1.0.0.BUILD-SNAPSHOT.jar

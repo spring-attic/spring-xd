@@ -6,12 +6,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.handler.BridgeHandler;
-import org.springframework.xd.dirt.container.XDContainer;
 
 public class SingleNodeApplication {
-
-	private static final String PARENT_CONTEXT = "classpath:"
-			+ XDContainer.XD_INTERNAL_CONFIG_ROOT + "xd-global-beans.xml";
 
 	private static void setUpControlChannels(ApplicationContext adminContext,
 			ApplicationContext containerContext) {
@@ -34,7 +30,7 @@ public class SingleNodeApplication {
 	public static void main(String[] args) {
 
 		SpringApplicationBuilder admin = new SpringApplicationBuilder(
-				PARENT_CONTEXT).profiles("adminServer", "singleNode").child(
+				ParentConfiguration.class).profiles("adminServer", "singleNode").child(
 				AdminServerApplication.class);
 		admin.run(args);
 

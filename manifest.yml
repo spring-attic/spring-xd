@@ -1,0 +1,30 @@
+---
+applications:
+- name: xd-single
+  memory: 1G
+  instances: 1
+  host: xd-single
+  domain: cfapps.io
+  env:
+    XD_HOME: .
+  path: modules/build/libs/modules-1.0.0.BUILD-SNAPSHOT.jar
+- name: xd-admin
+  memory: 2G
+  instances: 1
+  host: xd-admin-server
+  domain: cfapps.io
+  env:
+    LOADER_MAIN: org.springframework.xd.dirt.boot.AdminServerApplication
+    SPRING_PROFILES_ACTIVE: adminServer,cloud
+    JDBC_DRIVER: org.postgresql.Driver
+  path: modules/build/libs/modules-1.0.0.BUILD-SNAPSHOT.jar
+- name: xd-node
+  memory: 2G
+  instances: 1
+  host: xd-node
+  domain: cfapps.io
+  env:
+    LOADER_MAIN: org.springframework.xd.dirt.boot.LauncherApplication
+    SPRING_PROFILES_ACTIVE: node,cloud
+    JDBC_DRIVER: org.postgresql.Driver
+  path: modules/build/libs/modules-1.0.0.BUILD-SNAPSHOT.jar

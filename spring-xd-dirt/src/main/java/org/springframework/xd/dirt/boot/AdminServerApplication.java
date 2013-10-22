@@ -16,11 +16,10 @@ import org.springframework.xd.dirt.rest.RestConfiguration;
 @Import(RestConfiguration.class)
 public class AdminServerApplication {
 
-	private static final String PARENT_CONTEXT = "classpath:"
-			+ XDContainer.XD_INTERNAL_CONFIG_ROOT + "xd-global-beans.xml";
-
 	public static void main(String[] args) {
-		new SpringApplicationBuilder(PARENT_CONTEXT).profiles("adminServer").child(AdminServerApplication.class) //
-		.run(args);
+		new SpringApplicationBuilder(ParentConfiguration.class).profiles("adminServer", "default") //
+		.child(AdminServerApplication.class)
+				.run(args);
 	}
+
 }

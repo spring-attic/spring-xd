@@ -6,6 +6,23 @@ XD_HOME: ${xdHomeDir:..}
 ---
 
 spring:
+  profiles: cloud
+  database:
+    url: ${spring.datasource.url}
+    driverClassName: ${spring.datasource.driverClassName}
+  datasource:
+    url: jdbc:${DATABASE_URL:postgresql://localhost}
+    driverClassName: ${JDBC_DRIVER:org.postgresql.Driver}
+redis:
+  hostname: ${vcap.services.redis.credentials.hostname:localhost}
+  port: ${vcap.services.redis.credentials.port:6379}
+  password: ${vcap.services.redis.credentials.password:#{null}}
+
+xdHomeDir: '.'
+
+---
+
+spring:
   profiles: adminServer
   
 ---

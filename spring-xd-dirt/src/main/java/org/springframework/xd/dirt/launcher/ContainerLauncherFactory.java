@@ -64,7 +64,7 @@ public class ContainerLauncherFactory {
 
 	private static ApplicationContext createParentContext(ContainerOptions options) {
 		XmlWebApplicationContext parentContext = new XmlWebApplicationContext();
-		parentContext.getEnvironment().setActiveProfiles(CONTAINER_PROFILE);
+		parentContext.getEnvironment().setActiveProfiles(CONTAINER_PROFILE, "legacy");
 		parentContext.setConfigLocation("classpath:" + XDContainer.XD_INTERNAL_CONFIG_ROOT + "xd-global-beans.xml");
 		OptionUtils.configureRuntime(options, parentContext.getEnvironment());
 		parentContext.refresh();

@@ -3,9 +3,9 @@ package org.springframework.xd.dirt.boot;
 
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContext;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.handler.BridgeHandler;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.SubscribableChannel;
 
 public class SingleNodeApplication {
 

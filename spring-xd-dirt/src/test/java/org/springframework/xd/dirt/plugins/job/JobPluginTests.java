@@ -30,10 +30,13 @@ import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.io.Resource;
 import org.springframework.xd.dirt.server.AdminServer;
 import org.springframework.xd.dirt.server.options.XDPropertyKeys;
@@ -73,27 +76,34 @@ public class JobPluginTests {
 		}
 	}
 
+	@Configuration
+	@ImportResource("classpath:/META-INF/spring-xd/batch/batch.xml")
+	@EnableAutoConfiguration
+	public static class SharedConfiguration {
+
+	}
+
 	@Before
 	public void setUp() throws Exception {
 
 		plugin = new JobPlugin();
-		sharedContext = new ClassPathXmlApplicationContext("classpath:/META-INF/spring-xd/batch/batch.xml");
-		sharedContext.getEnvironment().setActiveProfiles(AdminServer.ADMIN_PROFILE);
-		Properties hsqlProperties = new Properties();
-		hsqlProperties.put("hsql.server.dbname", "test");
-		hsqlProperties.put("hsql.server.port", "9100");
-		System.setProperty("hsql.server.database", "xdjobrepotest");
-		sharedContext.getEnvironment().getPropertySources().addFirst(new PropertiesPropertySource(
-				"hsqlProperties", hsqlProperties));
-		plugin.preProcessSharedContext(sharedContext);
-		sharedContext.refresh();
+		sharedContext = new SpringApplicationBuilder(SharedConfiguration.class).profiles(
+				AdminServer.ADMIN_PROFILE).properties("spring.datasource.url=jdbc:hsqldb:mem:xdjobrepotest").web(false).initializers(
+				new ApplicationContextInitializer<ConfigurableApplicationContext>() {
+
+					@Override
+					public void initialize(ConfigurableApplicationContext applicationContext) {
+						plugin.preProcessSharedContext(applicationContext);
+					}
+				}).run();
 
 	}
 
 	@Test
 	public void streamPropertiesAdded() {
-		Module module = new SpringApplicationModule(new ModuleDefinition("testJob", ModuleType.job), new DeploymentMetadata(
-				"foo", 0));
+		Module module = new SpringApplicationModule(new ModuleDefinition("testJob", ModuleType.job),
+				new DeploymentMetadata(
+						"foo", 0));
 
 		assertEquals(0, module.getProperties().size());
 		plugin.preProcessModule(module);
@@ -111,7 +121,7 @@ public class JobPluginTests {
 	public void streamComponentsAdded() {
 
 		Module module = Mockito.mock(Module.class);
-		Mockito.when(module.getType()).thenReturn("job");
+		Mockito.when(module.getType()).thenReturn(ModuleType.job);
 		Properties properties = new Properties();
 		Mockito.when(module.getProperties()).thenReturn(properties);
 		Mockito.when(module.getDeploymentMetadata()).thenReturn(new DeploymentMetadata("job", 0));

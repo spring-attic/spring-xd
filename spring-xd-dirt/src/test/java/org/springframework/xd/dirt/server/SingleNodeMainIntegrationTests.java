@@ -24,6 +24,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.context.ApplicationContext;
@@ -43,6 +44,7 @@ import org.springframework.xd.module.Plugin;
  * @author David Turanski
  * @since 1.0
  */
+@Ignore("Superseded by SingleNodeApplication")
 public class SingleNodeMainIntegrationTests extends AbstractAdminMainIntegrationTests {
 
 	private SingleNodeServer server;

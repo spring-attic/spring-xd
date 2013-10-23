@@ -27,7 +27,7 @@ import org.springframework.messaging.support.converter.MessageConverter;
 import org.springframework.util.Assert;
 
 /**
- * Temporary - clone of SI that allows publishing of message types other than String
+ * Temporary - clone of SI that allows publishing of message types other than String.
  * 
  * @author Gary Russell
  * @author Jennifer Hickey
@@ -37,7 +37,7 @@ public class RedisPublishingMessageHandler extends AbstractMessageHandler {
 
 	private final RedisTemplate<?, ?> template;
 
-	private volatile MessageConverter messageConverter = new SimpleMessageConverter();
+	private volatile MessageConverter<Object> messageConverter = new SimpleMessageConverter();
 
 	private volatile String defaultTopic;
 
@@ -55,7 +55,7 @@ public class RedisPublishingMessageHandler extends AbstractMessageHandler {
 		this.serializer = serializer;
 	}
 
-	public void setMessageConverter(MessageConverter messageConverter) {
+	public void setMessageConverter(MessageConverter<Object> messageConverter) {
 		Assert.notNull(messageConverter, "messageConverter must not be null");
 		this.messageConverter = messageConverter;
 	}
@@ -74,7 +74,6 @@ public class RedisPublishingMessageHandler extends AbstractMessageHandler {
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		String topic = this.determineTopic(message);
-		@SuppressWarnings("unchecked")
 		Object value = this.messageConverter.fromMessage(message, null);
 		this.template.convertAndSend(topic, value);
 	}

@@ -28,7 +28,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 
@@ -44,9 +44,10 @@ public class CompositeModuleRegistryTests {
 
 	@Before
 	public void setup() {
-		ClasspathTestModuleRegistry cp = new ClasspathTestModuleRegistry();
-		FileModuleRegistry file = new FileModuleRegistry("src/test/resources/testmodules");
-		file.setResourceLoader(new PathMatchingResourcePatternResolver());
+		// Mind the trailing slash
+		ResourceModuleRegistry cp = new ResourceModuleRegistry(new ClassPathResource("/testmodules/"));
+		ResourceModuleRegistry file = new ResourceModuleRegistry(new FileSystemResource(
+				"src/test/resources/testmodules"));
 		registry = new CompositeModuleRegistry(cp, file);
 	}
 
@@ -136,8 +137,8 @@ public class CompositeModuleRegistryTests {
 		}
 		Assert.assertNull("File Source should not have a associated jar", fileModule.getClasspath());
 		Assert.assertNotNull("sourceConfigClassPath should not be null", sourceConfigClassPath);
-		Assert.assertTrue("source-config classpath should end with ../lib/source-config.jar",
-				sourceConfigClassPath.endsWith("../lib/source-config.jar"));
+		Assert.assertTrue("source-config classpath should end with /lib/source-config.jar",
+				sourceConfigClassPath.endsWith("/lib/source-config.jar"));
 		Assert.assertNull("source-config-no-lib should have no associated libraries", sourceConfigNoLib);
 
 	}

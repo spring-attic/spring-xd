@@ -22,12 +22,16 @@ import java.util.List;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.Assert;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 
 /**
+ * A {@link ModuleRegistry} that stores module definitions in various redis hashes.
+ * 
+ * @author Eric Bottard
  * @author Mark Fisher
  * @author Glenn Renfro
  */
@@ -42,8 +46,8 @@ public class RedisModuleRegistry extends AbstractModuleRegistry {
 
 	@Override
 	protected Resource locateApplicationContext(String name, ModuleType type) {
-		Object config = this.redisTemplate.boundHashOps("modules:" + type).get(name);
-		return (config != null) ? new ByteArrayResource(config.toString().getBytes()) : null;
+		Object config = hashOpsForType(type).get(name);
+		return (config != null) ? new NamedByteArrayResource(name, config.toString().getBytes()) : null;
 	}
 
 	@Override
@@ -61,8 +65,9 @@ public class RedisModuleRegistry extends AbstractModuleRegistry {
 	@Override
 	protected List<Resource> locateApplicationContexts(ModuleType type) {
 		ArrayList<Resource> resources = new ArrayList<Resource>();
-		for (Object object : this.redisTemplate.boundHashOps("modules:" + type.name()).entries().values()) {
-			resources.add(new ByteArrayResource(object.toString().getBytes()));
+		BoundHashOperations<String, String, Object> hash = hashOpsForType(type);
+		for (String name : hash.keys()) {
+			resources.add(new NamedByteArrayResource(name, hash.get(name).toString().getBytes()));
 		}
 		return resources;
 	}
@@ -74,6 +79,34 @@ public class RedisModuleRegistry extends AbstractModuleRegistry {
 			results.addAll(findDefinitions(type));
 		}
 		return results;
+	}
+
+	@Override
+	protected String inferModuleName(Resource resource) {
+		Assert.isInstanceOf(NamedByteArrayResource.class, resource,
+				"The passed in resource does not appear to have been constructed by this class");
+		return ((NamedByteArrayResource) resource).name;
+	}
+
+	private BoundHashOperations<String, String, Object> hashOpsForType(ModuleType type) {
+		return redisTemplate.boundHashOps("modules:" + type.name());
+	}
+
+	/**
+	 * Used to remember the name of the module.
+	 * 
+	 * @author Eric Bottard
+	 */
+	private static class NamedByteArrayResource extends ByteArrayResource {
+
+		private final String name;
+
+		public NamedByteArrayResource(String name, byte[] byteArray) {
+			super(byteArray);
+			this.name = name;
+		}
+
+
 	}
 
 

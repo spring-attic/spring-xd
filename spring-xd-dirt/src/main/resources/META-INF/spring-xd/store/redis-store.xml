@@ -47,8 +47,12 @@
 
 	<bean id="moduleRegistry" class="org.springframework.xd.dirt.module.CompositeModuleRegistry">
 		<constructor-arg>
-			<bean class="org.springframework.xd.dirt.module.FileModuleRegistry">
-				<constructor-arg value="${XD_HOME}/modules"/>
+			<bean class="org.springframework.xd.dirt.module.ResourceModuleRegistry">
+				<constructor-arg>
+					<bean class="org.springframework.core.io.FileSystemResource">
+						<constructor-arg value="${XD_HOME}/modules/"/>
+					</bean>
+				</constructor-arg>
 			</bean>
 		</constructor-arg>
 	</bean>

@@ -5,9 +5,12 @@
 
 	<bean class="org.springframework.xd.dirt.module.ModuleDeployer">
 		<constructor-arg>
-			<bean class="org.springframework.xd.dirt.module.memory.InMemoryModuleDefinitionRepository">
+			<bean
+				class="org.springframework.xd.dirt.module.memory.InMemoryModuleDefinitionRepository">
 				<constructor-arg>
-					<bean class="org.springframework.xd.dirt.module.ClasspathTestModuleRegistry"/>
+					<bean class="org.springframework.xd.dirt.module.ResourceModuleRegistry">
+						<constructor-arg value="classpath:/testmodules/" />
+					</bean>
 				</constructor-arg>
 			</bean>
 		</constructor-arg>

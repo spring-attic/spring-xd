@@ -22,6 +22,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -30,10 +31,10 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
-import org.springframework.xd.dirt.module.ClasspathTestModuleRegistry;
 import org.springframework.xd.dirt.module.CompositeModuleRegistry;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeployer;
+import org.springframework.xd.dirt.module.ResourceModuleRegistry;
 import org.springframework.xd.dirt.server.SingleNodeMain;
 import org.springframework.xd.dirt.server.SingleNodeServer;
 import org.springframework.xd.dirt.server.options.CommandLineParser;
@@ -65,7 +66,7 @@ public class StreamTestSupport {
 		ConfigurableApplicationContext containerContext = (ConfigurableApplicationContext) singleNode.getContainer().getApplicationContext();
 
 		ConfigurableApplicationContext adminContext = singleNode.getAdminServer().getApplicationContext();
-		ClasspathTestModuleRegistry cp = new ClasspathTestModuleRegistry();
+		ResourceModuleRegistry cp = new ResourceModuleRegistry(new ClassPathResource("/testmodules/"));
 		CompositeModuleRegistry cmr1 = containerContext.getBean(CompositeModuleRegistry.class);
 		cmr1.addDelegate(cp);
 		CompositeModuleRegistry cmr2 = adminContext.getBean(CompositeModuleRegistry.class);

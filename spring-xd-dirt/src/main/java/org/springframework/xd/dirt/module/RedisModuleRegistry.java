@@ -43,7 +43,7 @@ public class RedisModuleRegistry extends AbstractModuleRegistry {
 	@Override
 	protected Resource locateApplicationContext(String name, ModuleType type) {
 		Object config = this.redisTemplate.boundHashOps("modules:" + type).get(name);
-		return (config != null) ? new ByteArrayResource(config.toString().getBytes()) : null;
+		return (config != null) ? new NamedByteArrayResource(config.toString().getBytes(), name) : null;
 	}
 
 	@Override
@@ -74,6 +74,28 @@ public class RedisModuleRegistry extends AbstractModuleRegistry {
 			results.addAll(findDefinitions(type));
 		}
 		return results;
+	}
+
+	@Override
+	protected String inferModuleName(Resource resource) {
+		return ((NamedByteArrayResource) resource).name;
+	}
+
+	/**
+	 * Used to remember the name of the module.
+	 * 
+	 * @author Eric Bottard
+	 */
+	private static class NamedByteArrayResource extends ByteArrayResource {
+
+		private final String name;
+
+		public NamedByteArrayResource(byte[] byteArray, String name) {
+			super(byteArray);
+			this.name = name;
+		}
+
+
 	}
 
 

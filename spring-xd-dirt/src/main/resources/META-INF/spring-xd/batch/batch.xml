@@ -11,6 +11,7 @@
 
 
 	<beans profile="legacy, default">
+
 		<bean id="hsqldb" class="org.springframework.xd.dirt.job.HSQLServerBean">
 			<property name="serverProperties">
 				<props>
@@ -21,6 +22,15 @@
 				</props>
 			</property>
 		</bean>
+
+		<jdbc:initialize-database data-source="dataSource"
+			ignore-failures="ALL">
+			<jdbc:script
+				location="classpath:/org/springframework/batch/core/schema-hsqldb.sql" />
+			<jdbc:script
+				location="classpath:/org/springframework/xd/dirt/job/registry-schema-hsqldb.sql" />
+		</jdbc:initialize-database>
+
 	</beans>
 
 	<beans profile="legacy">
@@ -48,21 +58,29 @@
 			<property name="defaultTransactionIsolation" value="2" />
 		</bean>
 
+		<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+			<constructor-arg ref="dataSource" />
+		</bean>
+
+		<beans profile="adminServer">
+
+			<jdbc:initialize-database data-source="dataSource"
+				ignore-failures="DROPS">
+				<jdbc:script
+					location="classpath:/org/springframework/batch/core/schema-drop-hsqldb.sql" />
+				<jdbc:script
+					location="classpath:/org/springframework/xd/dirt/job/registry-schema-drop-hsqldb.sql" />
+				<jdbc:script
+					location="classpath:/org/springframework/batch/core/schema-hsqldb.sql" />
+				<jdbc:script
+					location="classpath:/org/springframework/xd/dirt/job/registry-schema-hsqldb.sql" />
+			</jdbc:initialize-database>
+
+		</beans>
+
 	</beans>
 
 	<beans profile="adminServer">
-
-		<jdbc:initialize-database data-source="dataSource"
-			ignore-failures="DROPS">
-			<jdbc:script
-				location="classpath:/org/springframework/batch/core/schema-drop-hsqldb.sql" />
-			<jdbc:script
-				location="classpath:/org/springframework/batch/core/schema-hsqldb.sql" />
-			<jdbc:script
-				location="classpath:/org/springframework/xd/dirt/job/registry-schema-drop-hsqldb.sql" />
-			<jdbc:script
-				location="classpath:/org/springframework/xd/dirt/job/registry-schema-hsqldb.sql" />
-		</jdbc:initialize-database>
 
 		<bean class="org.springframework.xd.dirt.plugins.job.DistributedJobService">
 			<constructor-arg ref="jobInstanceDao" />
@@ -93,6 +111,19 @@
 			class="org.springframework.batch.admin.service.JdbcSearchableStepExecutionDao">
 			<property name="dataSource" ref="dataSource" />
 		</bean>
+
+		<beans profile="postgresql">
+
+			<jdbc:initialize-database data-source="dataSource"
+				ignore-failures="ALL">
+				<jdbc:script
+					location="classpath:/org/springframework/batch/core/schema-postgresql.sql" />
+				<jdbc:script
+					location="classpath:/org/springframework/xd/dirt/job/registry-schema-postgresql.sql" />
+			</jdbc:initialize-database>
+
+		</beans>
+
 	</beans>
 
 	<beans profile="adminServer, node">
@@ -121,10 +152,6 @@
 		<bean id="transactionManager"
 			class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
 			<property name="dataSource" ref="dataSource" />
-		</bean>
-
-		<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
-			<constructor-arg ref="dataSource" />
 		</bean>
 
 		<task:scheduler id="scheduler" pool-size="10" />

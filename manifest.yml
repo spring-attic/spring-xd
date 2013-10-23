@@ -1,40 +1,41 @@
 ---
+memory: 1G
+instances: 1
+path: modules/build/libs/modules-1.0.0.BUILD-SNAPSHOT.jar
+domain: cfapps.io
+
 applications:
 - name: xd-single-green
-  memory: 1G
-  instances: 1
   host: xd-single-green
-  domain: cfapps.io
   env:
     XD_HOME: .
-  path: modules/build/libs/modules-1.0.0.BUILD-SNAPSHOT.jar
 - name: xd-single-blue
-  memory: 1G
-  instances: 1
   host: xd-single-blue
-  domain: cfapps.io
-  command: .java/bin/java -cp . -Djava.io.tmpdir=$TMPDIR -XX:MaxPermSize=104857K -Xmx768M -Xss1M org.springframework.boot.loader.PropertiesLauncher --server.port=$PORT
-#  command: .java/bin/java -cp .:.lib/spring-auto-reconfiguration-0.7.2.jar -Djava.io.tmpdir=$TMPDIR -XX:MaxPermSize=104857K -XX:OnOutOfMemoryError=./.buildpack-diagnostics/killjava -Xmx768M -Xss1M org.springframework.boot.loader.PropertiesLauncher --server.port=$PORT
   env:
     XD_HOME: .
-  path: modules/build/libs/modules-1.0.0.BUILD-SNAPSHOT.jar
 - name: xd-admin
-  memory: 2G
-  instances: 1
   host: xd-admin-server
-  domain: cfapps.io
   env:
     LOADER_MAIN: org.springframework.xd.dirt.boot.AdminServerApplication
-    SPRING_PROFILES_ACTIVE: adminServer,cloud
-    JDBC_DRIVER: org.postgresql.Driver
-  path: modules/build/libs/modules-1.0.0.BUILD-SNAPSHOT.jar
+    SPRING_PROFILES_ACTIVE: adminServer,cloud,postgresql
+    XD_HOME: .
+  services:
+    postgresql:
+      provider: elephantsql
+      plan: turtle
+    redis:
+      provider: garantiadata
+      plan: 20mb
 - name: xd-node
-  memory: 2G
-  instances: 1
   host: xd-node
-  domain: cfapps.io
   env:
     LOADER_MAIN: org.springframework.xd.dirt.boot.LauncherApplication
-    SPRING_PROFILES_ACTIVE: node,cloud
-    JDBC_DRIVER: org.postgresql.Driver
-  path: modules/build/libs/modules-1.0.0.BUILD-SNAPSHOT.jar
+    SPRING_PROFILES_ACTIVE: node,cloud,postgresql
+    XD_HOME: .
+  services:
+    postgresql:
+      provider: elephantsql
+      plan: turtle
+    redis:
+      provider: garantiadata
+      plan: 20mb

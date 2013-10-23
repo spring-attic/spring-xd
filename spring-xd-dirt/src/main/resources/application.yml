@@ -2,23 +2,29 @@ XD_ANALYTICS: ${analytics:redis}
 XD_TRANSPORT: ${transport:redis}
 XD_STORE: ${store:redis}
 XD_HOME: ${xdHomeDir:..}
+server:
+  port: ${PORT:8080}
+
+---
+
+spring:
+  profiles: local
+  datasource:
+    url: jdbc:postgresql://localhost/test
+    username: root
+    password: changeme
+    driverClassName: org.postgresql.Driver
 
 ---
 
 spring:
   profiles: cloud
-  database:
-    url: ${spring.datasource.url}
-    driverClassName: ${spring.datasource.driverClassName}
-  datasource:
-    url: jdbc:${DATABASE_URL:postgresql://localhost}
-    driverClassName: ${JDBC_DRIVER:org.postgresql.Driver}
 redis:
   hostname: ${vcap.services.redis.credentials.hostname:localhost}
   port: ${vcap.services.redis.credentials.port:6379}
   password: ${vcap.services.redis.credentials.password:#{null}}
 
-xdHomeDir: '.'
+XD_HOME: .
 
 ---
 
@@ -30,7 +36,9 @@ spring:
 spring:
   profiles: node
 management:
-  port: 9000
+  port: ${PORT:9000}
+server:
+  port: ${PORT:9000}
   
 ---
 spring:

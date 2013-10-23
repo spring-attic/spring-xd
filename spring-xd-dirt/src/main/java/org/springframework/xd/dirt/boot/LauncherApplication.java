@@ -18,7 +18,7 @@ public class LauncherApplication {
 	public static void main(String[] args) {
 		new SpringApplicationBuilder(ParentConfiguration.class)
 				.profiles("node")
-				.child(LauncherApplication.class).web(false).run(args);
+				.child(LauncherApplication.class).run(args);
 	}
 
 }

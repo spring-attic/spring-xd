@@ -16,9 +16,15 @@
 
 package org.springframework.xd.dirt.boot;
 
+import javax.sql.DataSource;
+
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.ServerPropertiesAutoConfiguration;
+import org.springframework.cloud.Cloud;
+import org.springframework.cloud.CloudFactory;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ImportResource;
+import org.springframework.context.annotation.Profile;
 import org.springframework.xd.dirt.container.XDContainer;
 
 @EnableAutoConfiguration(exclude = ServerPropertiesAutoConfiguration.class)
@@ -26,5 +32,12 @@ import org.springframework.xd.dirt.container.XDContainer;
 		+ XDContainer.XD_INTERNAL_CONFIG_ROOT + "xd-global-beans.xml")
 public class ParentConfiguration {
 
+	@Bean
+	@Profile("cloud")
+	public DataSource dataSource() {
+		CloudFactory cloudFactory = new CloudFactory();
+		Cloud cloud = cloudFactory.getCloud();
+		return cloud.getServiceConnector("postgresql", DataSource.class, null);
+	}
 
 }

@@ -22,6 +22,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.BeansException;
+import org.springframework.core.Ordered;
 import org.springframework.web.servlet.handler.AbstractUrlHandlerMapping;
 
 
@@ -31,6 +32,10 @@ import org.springframework.web.servlet.handler.AbstractUrlHandlerMapping;
 public class DelegatingHandlerMapping extends AbstractUrlHandlerMapping {
 
 	private Map<String, Object> map = new HashMap<String, Object>();
+
+	public DelegatingHandlerMapping() {
+		setOrder(Ordered.HIGHEST_PRECEDENCE);
+	}
 
 	public void register(Object bean, String path) throws BeansException {
 		map.put(path, bean);

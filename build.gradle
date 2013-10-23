@@ -527,6 +527,21 @@ project('spring-xd-extension-reactor') {
 	}
 }
 
+project('spring-xd-extension-hdfs') {
+	description = 'Spring XD HDFS'
+	dependencies {
+		compile "org.springframework:spring-aop:$springVersion"
+		compile "org.springframework:spring-context:$springVersion"
+		compile "org.springframework:spring-context-support:$springVersion"
+		compile "org.springframework:spring-tx:$springVersion"
+		compile ("org.springframework.data:spring-data-hadoop:$springDataHadoopVersion") {
+			exclude group: 'org.mortbay.jetty'
+			exclude group: 'org.codehaus.jackson'
+			exclude group: 'hsqldb'
+		}
+	}
+}
+
 project('spring-xd-hadoop') {
 	description = 'Spring XD Hadoop'
 	dependencies {

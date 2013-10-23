@@ -74,7 +74,7 @@
 			destroy-method="close">
 			<property name="driverClassName" value="org.hsqldb.jdbcDriver" />
 			<property name="url"
-				value="jdbc:hsqldb:hsql://localhost:${hsql.server.port:9101}/${hsql.server.dbname:test}" />
+				value="jdbc:hsqldb:hsql://${hsql.server.host:localhost}:${hsql.server.port:9101}/${hsql.server.dbname:xdjob}" />
 			<property name="username" value="sa" />
 			<property name="password" value="" />
 			<property name="initialSize" value="5" />

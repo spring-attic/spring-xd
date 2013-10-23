@@ -67,6 +67,7 @@ public class JobRepoTests extends AbstractAdminMainIntegrationTests {
 		SingleNodeOptions opts = SingleNodeMain.parseOptions(new String[] { "--httpPort", "0", "--transport", "local",
 			"--store",
 			"memory", "--analytics", "memory", "--xdHomeDir", ".." });
+		System.setProperty("hsql.server.hostname", "localhost");
 		System.setProperty("hsql.server.dbname", "test");
 		System.setProperty("hsql.server.port", "9100");
 		System.setProperty("hsql.server.database", "xdjobrepotest");

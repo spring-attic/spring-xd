@@ -21,6 +21,7 @@ import org.apache.hadoop.fs.Path;
 
 import org.springframework.data.hadoop.store.Storage;
 import org.springframework.data.hadoop.store.input.InputSplit;
+import org.springframework.util.Assert;
 
 /**
  * Base support class for {@code DataWriter} and {@code DataReader} implementations. What we keep in this class is all
@@ -46,8 +47,7 @@ public abstract class DataObjectSupport {
 	 * @param configuration the configuration
 	 */
 	protected DataObjectSupport(Storage storage, Configuration configuration) {
-		this.storage = storage;
-		this.configuration = configuration;
+		this(storage, configuration, null, null);
 	}
 
 	/**
@@ -58,9 +58,7 @@ public abstract class DataObjectSupport {
 	 * @param path the path
 	 */
 	protected DataObjectSupport(Storage storage, Configuration configuration, Path path) {
-		this.storage = storage;
-		this.configuration = configuration;
-		this.path = path;
+		this(storage, configuration, path, null);
 	}
 
 	/**
@@ -71,8 +69,24 @@ public abstract class DataObjectSupport {
 	 * @param inputSplit the input split
 	 */
 	protected DataObjectSupport(Storage storage, Configuration configuration, InputSplit inputSplit) {
+		this(storage, configuration, null, inputSplit);
+	}
+
+	/**
+	 * Instantiates a new data object support.
+	 * 
+	 * @param storage the storage
+	 * @param configuration the configuration
+	 * @param inputSplit the input split
+	 */
+	protected DataObjectSupport(Storage storage, Configuration configuration, Path path, InputSplit inputSplit) {
+		Assert.notNull(storage, "Storage must be set");
+		Assert.notNull(storage, "Configuration must be set");
+		Assert.isTrue(!(path == null && inputSplit == null), "Either path or input split must be set");
+		Assert.isTrue(!(path == null && inputSplit == null), "Either path or input split must be set");
 		this.storage = storage;
 		this.configuration = configuration;
+		this.path = path;
 		this.inputSplit = inputSplit;
 	}
 

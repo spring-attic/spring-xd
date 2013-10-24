@@ -25,8 +25,8 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import org.springframework.integration.message.GenericMessage;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.support.GenericMessage;
 
 /**
  * Unit test of {@link MessageRedisSerializer}

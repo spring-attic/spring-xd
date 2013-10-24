@@ -10,9 +10,9 @@ import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository;
 import org.springframework.xd.analytics.metrics.memory.InMemoryFieldValueCounterRepository;
 import org.springframework.xd.tuple.Tuple;

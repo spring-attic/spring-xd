@@ -43,7 +43,7 @@ public class RedisInboundChannelAdapter extends MessageProducerSupport {
 
 	private final RedisMessageListenerContainer container = new RedisMessageListenerContainer();
 
-	private volatile MessageConverter<Object> messageConverter = new SimpleMessageConverter();
+	private volatile MessageConverter messageConverter = new SimpleMessageConverter();
 
 	private volatile String[] topics;
 
@@ -62,7 +62,7 @@ public class RedisInboundChannelAdapter extends MessageProducerSupport {
 		this.topics = topics;
 	}
 
-	public void setMessageConverter(MessageConverter<Object> messageConverter) {
+	public void setMessageConverter(MessageConverter messageConverter) {
 		Assert.notNull(messageConverter, "messageConverter must not be null");
 		this.messageConverter = messageConverter;
 	}
@@ -100,9 +100,8 @@ public class RedisInboundChannelAdapter extends MessageProducerSupport {
 		this.container.stop();
 	}
 
-	@SuppressWarnings("unchecked")
 	private Message<?> convertMessage(Object object) {
-		return this.messageConverter.toMessage(object);
+		return this.messageConverter.toMessage(object, null);
 	}
 
 	private class MessageListenerDelegate {

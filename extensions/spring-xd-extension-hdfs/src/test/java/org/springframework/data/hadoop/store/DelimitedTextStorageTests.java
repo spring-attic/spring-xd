@@ -24,6 +24,7 @@ import java.util.List;
 
 import org.junit.Test;
 
+import org.springframework.data.hadoop.store.codec.Codecs;
 import org.springframework.data.hadoop.store.input.TextDataReader;
 import org.springframework.data.hadoop.store.output.DelimitedTextDataWriter;
 import org.springframework.data.hadoop.store.output.TextDataWriter;
@@ -62,6 +63,30 @@ public class DelimitedTextStorageTests extends AbstractDataTests {
 	}
 
 	@Test
+	public void testWriteReadManyLinesWithGzip() throws IOException {
+		DelimitedTextStorage storage = new DelimitedTextStorage(testConfig, testDefaultPath,
+				Codecs.GZIP.getCodecInfo());
+
+		TextDataWriter writer = new TextDataWriter(storage, testConfig, testDefaultPath);
+		TestUtils.writeDataAndClose(writer, DATA09ARRAY);
+
+		TextDataReader reader = new TextDataReader(storage, testConfig, testDefaultPath);
+		TestUtils.readDataAndAssert(reader, DATA09ARRAY);
+	}
+
+	@Test
+	public void testWriteReadManyLinesWithBzip2() throws IOException {
+		DelimitedTextStorage storage = new DelimitedTextStorage(testConfig, testDefaultPath,
+				Codecs.BZIP2.getCodecInfo());
+
+		TextDataWriter writer = new TextDataWriter(storage, testConfig, testDefaultPath);
+		TestUtils.writeDataAndClose(writer, DATA09ARRAY);
+
+		TextDataReader reader = new TextDataReader(storage, testConfig, testDefaultPath);
+		TestUtils.readDataAndAssert(reader, DATA09ARRAY);
+	}
+
+	@Test
 	public void testCsvWriteReadManyLines() throws IOException {
 		DelimitedTextStorage storage = new DelimitedTextStorage(testConfig, testDefaultPath, null);
 
@@ -73,4 +98,5 @@ public class DelimitedTextStorageTests extends AbstractDataTests {
 		List<String> data = TestUtils.readData(reader);
 		assertThat(data.size(), is(1));
 	}
+
 }

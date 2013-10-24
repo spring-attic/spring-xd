@@ -31,6 +31,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.EncodedResource;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
+import org.springframework.util.Assert;
 
 /**
  * Class that's intended for initializing a single table and the script used can use a placeholder #table for the table
@@ -45,9 +46,13 @@ public class SingleTableDatabaseInitializer extends ResourceDatabasePopulator im
 
 	private List<Resource> scripts = new ArrayList<Resource>();
 
-	private String placeHolder = "#table";
+	private static final String TABLE_PLACEHOLDER = "#table";
 
 	private String tableName = null;
+
+	private static final String COLUMNS_PLACEHOLDER = "#columns";
+
+	private String columns = "payload varchar(2000)";
 
 	public void setTableName(String tableName) {
 		this.tableName = tableName;
@@ -63,14 +68,30 @@ public class SingleTableDatabaseInitializer extends ResourceDatabasePopulator im
 		this.scripts = Arrays.asList(scripts);
 	}
 
+	/**
+	 * Sets the column names which will be used to create a DDL definition
+	 * of the columns for the table.
+	 */
+	public void setColumnNames(String[] names) {
+		Assert.notEmpty(names, "columnNames cannot be empty");
+		StringBuilder columns = new StringBuilder();
+		for (String column : names) {
+			if (columns.length() > 0) {
+				columns.append(", ");
+			}
+			columns.append(column).append(" varchar(2000) ");
+		}
+		this.columns = columns.toString();
+	}
+
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		for (Resource script : this.scripts) {
-			super.addScript(substituteTableNameForResource(script));
+			super.addScript(substitutePlaceholdersForResource(script));
 		}
 	}
 
-	private Resource substituteTableNameForResource(Resource resource) {
+	private Resource substitutePlaceholdersForResource(Resource resource) {
 
 		StringBuilder script = new StringBuilder();
 
@@ -79,11 +100,13 @@ public class SingleTableDatabaseInitializer extends ResourceDatabasePopulator im
 			LineNumberReader lnr = new LineNumberReader(er.getReader());
 			String line = lnr.readLine();
 			while (line != null) {
-				if (tableName != null && line.contains(placeHolder)) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("Substituting '" + placeHolder + "' with '" + tableName + "' in '" + line + "'");
-					}
-					line = line.replace(placeHolder, tableName);
+				if (tableName != null && line.contains(TABLE_PLACEHOLDER)) {
+					logger.debug("Substituting '" + TABLE_PLACEHOLDER + "' with '" + tableName + "' in '" + line + "'");
+					line = line.replace(TABLE_PLACEHOLDER, tableName);
+				}
+				if (line.contains(COLUMNS_PLACEHOLDER)) {
+					logger.debug("Substituting '" + COLUMNS_PLACEHOLDER + "' with '" + columns + "' in '" + line + "'");
+					line = line.replace(COLUMNS_PLACEHOLDER, columns);
 				}
 				script.append(line + "\n");
 				line = lnr.readLine();

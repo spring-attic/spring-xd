@@ -17,6 +17,7 @@
 package org.springframework.data.hadoop.store.input;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -37,7 +38,7 @@ public class TextDataReader extends AbstractDataReader<String> {
 	private final static Log log = LogFactory.getLog(TextDataReader.class);
 
 	/** Flag skipping first entry, needed for splits beyond first one */
-	private boolean skipFirst = true;
+	private AtomicBoolean skipFirst = new AtomicBoolean(true);
 
 	/**
 	 * Instantiates a new text data reader.
@@ -70,12 +71,11 @@ public class TextDataReader extends AbstractDataReader<String> {
 		}
 		else {
 			StorageReader storageReader = getStorage().getStorageReader(getInputSplit());
-			if (skipFirst && getInputSplit().getStart() > 0) {
+			if (skipFirst.compareAndSet(true, false) && getInputSplit().getStart() > 0) {
 				byte[] skipBytes = storageReader.read();
 				if (log.isDebugEnabled()) {
 					log.info("skipping first entry: " + new String(skipBytes));
 				}
-				skipFirst = false;
 			}
 			bytes = storageReader.read();
 		}

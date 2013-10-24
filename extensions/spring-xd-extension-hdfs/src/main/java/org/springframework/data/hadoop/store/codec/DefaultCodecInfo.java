@@ -25,9 +25,9 @@ package org.springframework.data.hadoop.store.codec;
  */
 public class DefaultCodecInfo implements CodecInfo {
 
-	private boolean splittable;
+	private final boolean splittable;
 
-	private String clazz;
+	private final String clazz;
 
 	/**
 	 * Instantiates a new default codec info.

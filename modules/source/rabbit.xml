@@ -5,22 +5,35 @@
 	xmlns:int-amqp="http://www.springframework.org/schema/integration/amqp"
 	xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+	xmlns:cloud="http://www.springframework.org/schema/cloud"
 	xsi:schemaLocation="http://www.springframework.org/schema/integration/amqp http://www.springframework.org/schema/integration/amqp/spring-integration-amqp.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/cloud http://www.springframework.org/schema/cloud/spring-cloud.xsd
+		http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
-		http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit.xsd">
-
-	<context:property-placeholder location="file:${XD_HOME}/config/rabbit.properties" ignore-resource-not-found="true"/>
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
 	<int-amqp:inbound-channel-adapter
-			auto-startup="false"
-			queue-names="${queues:${xd.stream.name}}"
-			channel="output" connection-factory="connectionFactory"/>
+		auto-startup="false" queue-names="${queues:${xd.stream.name}}"
+		channel="output" connection-factory="connectionFactory" />
 
-	<rabbit:connection-factory id="connectionFactory" host="${host:${rabbit.hostname}}" port="${port:${rabbit.port}}"
-			virtual-host="${vhost:${rabbit.vhost}}"/>
 
-	<int:channel id="output"/>
+	<int:channel id="output" />
+
+	<beans profile="cloud" xmlns="http://www.springframework.org/schema/beans">
+		<cloud:rabbit-connection-factory id="connectionFactory" service-name="${xd.rabbit.service:rabbit}" />
+	</beans>
+
+	<beans profile="legacy,default" xmlns="http://www.springframework.org/schema/beans">
+
+		<context:property-placeholder
+			location="file:${XD_HOME}/config/rabbit.properties"
+			ignore-resource-not-found="true" />
+
+		<rabbit:connection-factory id="connectionFactory"
+			host="${host:${rabbit.hostname}}" port="${port:${rabbit.port}}"
+			virtual-host="${vhost:${rabbit.vhost}}" />
+
+	</beans>
 
 </beans>

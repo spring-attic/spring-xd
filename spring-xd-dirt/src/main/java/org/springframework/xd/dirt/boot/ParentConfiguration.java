@@ -18,11 +18,14 @@ package org.springframework.xd.dirt.boot;
 
 import javax.sql.DataSource;
 
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.ServerPropertiesAutoConfiguration;
 import org.springframework.cloud.Cloud;
 import org.springframework.cloud.CloudFactory;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Profile;
 import org.springframework.xd.dirt.container.XDContainer;
@@ -30,14 +33,32 @@ import org.springframework.xd.dirt.container.XDContainer;
 @EnableAutoConfiguration(exclude = ServerPropertiesAutoConfiguration.class)
 @ImportResource("classpath:"
 		+ XDContainer.XD_INTERNAL_CONFIG_ROOT + "xd-global-beans.xml")
+@EnableBatchProcessing
 public class ParentConfiguration {
 
-	@Bean
+	@Configuration
 	@Profile("cloud")
-	public DataSource dataSource() {
-		CloudFactory cloudFactory = new CloudFactory();
-		Cloud cloud = cloudFactory.getCloud();
-		return cloud.getServiceConnector("postgresql", DataSource.class, null);
+	protected static class CloudFoundryConfiguration {
+
+		@Bean
+		public DataSource dataSource() {
+			Cloud cloud = cloud();
+			return cloud.getServiceConnector("mysql", DataSource.class, null);
+		}
+
+		@Bean
+		@Profile("rabbit")
+		public ConnectionFactory rabbitConnectionFactory() {
+			Cloud cloud = cloud();
+			return cloud.getServiceConnector("rabbit", ConnectionFactory.class, null);
+		}
+
+		@Bean
+		protected Cloud cloud() {
+			CloudFactory cloudFactory = new CloudFactory();
+			Cloud cloud = cloudFactory.getCloud();
+			return cloud;
+		}
 	}
 
 }

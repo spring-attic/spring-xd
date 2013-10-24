@@ -42,7 +42,7 @@
 	</beans:bean>
 
 	<beans profile="cloud" xmlns="http://www.springframework.org/schema/beans">
-		<cloud:data-source id="dataSource" service-name="${xd.jdbc.service:postgresql}"/>
+		<cloud:data-source id="dataSource" service-name="${xd.jdbc.service:mysql}"/>
 	</beans>
 
 	<beans profile="legacy,default" xmlns="http://www.springframework.org/schema/beans">

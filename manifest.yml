@@ -17,25 +17,37 @@ applications:
   host: xd-admin-server
   env:
     LOADER_MAIN: org.springframework.xd.dirt.boot.AdminServerApplication
-    SPRING_PROFILES_ACTIVE: adminServer,cloud,postgresql
+    SPRING_PROFILES_ACTIVE: adminServer,cloud,mysql,rabbit
     XD_HOME: .
   services:
-    postgresql:
-      provider: elephantsql
-      plan: turtle
+    mysql:
+      label: cleardb
+      provider: cleardb
+      plan: spark
+    rabbit:
+      label: cloudamqp
+      provider: cloudamqp
+      plan: lemur
     redis:
+      label: rediscloud
       provider: garantiadata
       plan: 20mb
 - name: xd-node
   host: xd-node
   env:
     LOADER_MAIN: org.springframework.xd.dirt.boot.LauncherApplication
-    SPRING_PROFILES_ACTIVE: node,cloud,postgresql
+    SPRING_PROFILES_ACTIVE: node,cloud,mysql,rabbit
     XD_HOME: .
   services:
-    postgresql:
-      provider: elephantsql
-      plan: turtle
+    mysql:
+      label: cleardb
+      provider: cleardb
+      plan: spark
+    rabbit:
+      label: cloudamqp
+      provider: cloudamqp
+      plan: lemur
     redis:
+      label: rediscloud
       provider: garantiadata
       plan: 20mb

@@ -48,6 +48,7 @@ allprojects {
 		maven { url 'http://repo.spring.io/plugins-snapshot' }
 		maven { url 'https://repo.eclipse.org/content/repositories/paho-releases' }
 	}
+
 }
 
 def javaProjects() {
@@ -321,6 +322,11 @@ project('spring-xd-dirt') {
 	description = 'Spring XD DIRT'
 	dependencies {
 
+    	configurations {
+	    	//[runtime,testRuntime]*.exclude group: 'org.codehaus.jackson'
+            //all*.exclude module: "commons-logging"
+	    }
+
 		// See XD-903 for breakdown
 		// ************* Common to both Server and Container
 		compile "org.springframework:spring-aop:$springVersion"
@@ -359,6 +365,7 @@ project('spring-xd-dirt') {
 		runtime	"org.slf4j:slf4j-log4j12:$slf4jVersion"
 		runtime	"org.yaml:snakeyaml:$snakeYamlVersion"
         runtime "org.postgresql:postgresql:9.2-1002-jdbc4"
+		runtime "mysql:mysql-connector-java:5.1.23"
 
 		// ************* Dirt-Server only
 		compile project(':spring-xd-rest-domain')
@@ -401,8 +408,6 @@ project('spring-xd-dirt') {
 
 		// The following because of org/springframework/integration/x/bus/serializer/TweetSerializationTests.groovy
 		testCompile "org.springframework.social:spring-social-twitter:1.0.5.RELEASE"
-
-
 
 	}
 

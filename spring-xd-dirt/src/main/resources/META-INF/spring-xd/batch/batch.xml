@@ -2,13 +2,20 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:batch="http://www.springframework.org/schema/batch"
 	xmlns:jdbc="http://www.springframework.org/schema/jdbc" xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:task="http://www.springframework.org/schema/task" xmlns:cloud="http://www.springframework.org/schema/cloud"
 	xsi:schemaLocation="http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
 		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
+		http://www.springframework.org/schema/cloud http://www.springframework.org/schema/cloud/spring-cloud-0.1.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
+
+	<task:scheduler id="scheduler" pool-size="10" />
+
+	<bean id="batchJobLocator" class="org.springframework.xd.dirt.plugins.job.BatchJobLocator">
+		<property name="jdbcTemplate" ref="jdbcTemplate" />
+	</bean>
 
 	<beans profile="legacy, default">
 
@@ -25,8 +32,6 @@
 
 		<jdbc:initialize-database data-source="dataSource"
 			ignore-failures="ALL">
-			<jdbc:script
-				location="classpath:/org/springframework/batch/core/schema-hsqldb.sql" />
 			<jdbc:script
 				location="classpath:/org/springframework/xd/dirt/job/registry-schema-hsqldb.sql" />
 		</jdbc:initialize-database>
@@ -60,6 +65,27 @@
 
 		<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
 			<constructor-arg ref="dataSource" />
+		</bean>
+
+		<bean id="jobRepository"
+			class="org.springframework.batch.core.repository.support.JobRepositoryFactoryBean">
+			<property name="transactionManager" ref="transactionManager" />
+			<property name="dataSource" ref="dataSource" />
+			<property name="databaseType" value="hsql" />
+			<property name="tablePrefix" value="BATCH_" />
+		</bean>
+
+		<bean id="jobLauncher"
+			class="org.springframework.batch.core.launch.support.SimpleJobLauncher">
+			<property name="jobRepository" ref="jobRepository" />
+		</bean>
+
+		<bean id="jobRegistry"
+			class="org.springframework.batch.core.configuration.support.MapJobRegistry" />
+
+		<bean id="transactionManager"
+			class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+			<property name="dataSource" ref="dataSource" />
 		</bean>
 
 		<beans profile="adminServer">
@@ -112,48 +138,31 @@
 			<property name="dataSource" ref="dataSource" />
 		</bean>
 
-		<beans profile="postgresql">
+	</beans>
 
-			<jdbc:initialize-database data-source="dataSource"
-				ignore-failures="ALL">
-				<jdbc:script
-					location="classpath:/org/springframework/batch/core/schema-postgresql.sql" />
-				<jdbc:script
-					location="classpath:/org/springframework/xd/dirt/job/registry-schema-postgresql.sql" />
-			</jdbc:initialize-database>
+	<beans profile="cloud" xmlns="http://www.springframework.org/schema/beans">
+		<cloud:data-source id="dataSource"
+			service-name="${xd.datasource.service:mysql}" />
+	</beans>
 
-		</beans>
+	<beans profile="postgresql">
+
+		<jdbc:initialize-database data-source="dataSource"
+			ignore-failures="ALL">
+			<jdbc:script
+				location="classpath:/org/springframework/xd/dirt/job/registry-schema-postgresql.sql" />
+		</jdbc:initialize-database>
 
 	</beans>
 
-	<beans profile="adminServer, node">
+	<beans profile="mysql">
 
-		<bean id="jobRepository"
-			class="org.springframework.batch.core.repository.support.JobRepositoryFactoryBean">
-			<property name="transactionManager" ref="transactionManager" />
-			<property name="dataSource" ref="dataSource" />
-			<property name="databaseType" value="hsql" />
-			<property name="tablePrefix" value="BATCH_" />
-		</bean>
+		<jdbc:initialize-database data-source="dataSource"
+			ignore-failures="ALL">
+			<jdbc:script
+				location="classpath:/org/springframework/xd/dirt/job/registry-schema-mysql.sql" />
+		</jdbc:initialize-database>
 
-		<bean id="jobLauncher"
-			class="org.springframework.batch.core.launch.support.SimpleJobLauncher">
-			<property name="jobRepository" ref="jobRepository" />
-		</bean>
-
-		<bean id="jobRegistry"
-			class="org.springframework.batch.core.configuration.support.MapJobRegistry" />
-
-		<bean id="batchJobLocator"
-			class="org.springframework.xd.dirt.plugins.job.BatchJobLocator">
-			<property name="jdbcTemplate" ref="jdbcTemplate" />
-		</bean>
-
-		<bean id="transactionManager"
-			class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
-			<property name="dataSource" ref="dataSource" />
-		</bean>
-
-		<task:scheduler id="scheduler" pool-size="10" />
 	</beans>
+
 </beans>

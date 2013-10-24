@@ -8,12 +8,18 @@ server:
 ---
 
 spring:
+  profiles: rabbit
+XD_TRANSPORT: rabbit
+  
+---
+
+spring:
   profiles: local
   datasource:
-    url: jdbc:postgresql://localhost/test
+    url: jdbc:mysql://localhost/test
     username: root
-    password: changeme
-    driverClassName: org.postgresql.Driver
+    password: 
+    driverClassName: com.mysql.jdbc.Driver
 
 ---
 

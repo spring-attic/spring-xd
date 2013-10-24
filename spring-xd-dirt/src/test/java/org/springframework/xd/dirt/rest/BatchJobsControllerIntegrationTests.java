@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
@@ -35,6 +36,7 @@ import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 
 import org.springframework.batch.admin.service.JobService;
 import org.springframework.batch.admin.web.JobExecutionInfo;
@@ -44,18 +46,21 @@ import org.springframework.batch.core.JobInstance;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.job.SimpleJob;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.xd.dirt.plugins.job.BatchJobLocator;
 
 /**
  * Tests REST compliance of BatchJobsController endpoints.
  * 
  * @author Ilayaperumal Gopinathan
+ * @author Gunnar Hillert
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
@@ -67,6 +72,9 @@ public class BatchJobsControllerIntegrationTests extends AbstractControllerInteg
 
 	@Autowired
 	private BatchJobLocator jobLocator;
+
+	@Autowired
+	private BatchJobsController batchJobsController;
 
 	private JobExecution execution;
 
@@ -95,6 +103,13 @@ public class BatchJobsControllerIntegrationTests extends AbstractControllerInteg
 		JobParameters jobParameters2 = new JobParameters(parametersMap1);
 		JobExecution jobExecution1 = new JobExecution(jobInstance1, 0l, jobParameters1);
 		JobExecution jobExecution2 = new JobExecution(jobInstance2, 3l, jobParameters2);
+
+		// Verify XD-999
+		StepExecution stepExecution = new StepExecution("s1", jobExecution2);
+		List<StepExecution> stepExecutions = new ArrayList<StepExecution>();
+		stepExecutions.add(stepExecution);
+		jobExecution2.addStepExecutions(stepExecutions);
+
 		Collection<JobExecution> jobExecutions1 = new ArrayList<JobExecution>();
 		Collection<JobExecution> jobExecutions2 = new ArrayList<JobExecution>();
 		jobExecutions1.add(jobExecution1);
@@ -119,9 +134,14 @@ public class BatchJobsControllerIntegrationTests extends AbstractControllerInteg
 		execution.setStartTime(startTime);
 		execution.setEndTime(endTime);
 		jobExecutions.add(execution);
-		when(jobService.listJobExecutionsForJob(job1.getName(), 0, 1)).thenReturn(jobExecutions);
-		when(jobService.listJobExecutions(0, 20)).thenReturn(jobExecutions1);
-		when(jobService.listJobExecutionsForJob(job2.getName(), 0, 20)).thenReturn(jobExecutions2);
+
+		JobService spiedJobService = Mockito.spy(jobService);
+		Mockito.doReturn(jobExecutions).when(spiedJobService).listJobExecutionsForJob(job1.getName(), 0, 1);
+		Mockito.doReturn(jobExecutions1).when(spiedJobService).listJobExecutions(0, 20);
+		Mockito.doReturn(jobExecutions2).when(spiedJobService).listJobExecutionsForJob(job2.getName(), 0, 20);
+
+		ReflectionTestUtils.setField(this.batchJobsController, "jobService", spiedJobService, JobService.class);
+
 	}
 
 	@SuppressWarnings("unchecked")

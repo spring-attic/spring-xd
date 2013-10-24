@@ -36,14 +36,41 @@ public enum Codecs {
 	GZIP(new DefaultCodecInfo(GzipCodec.class.getName(), false)),
 
 	/**
-	 * Non-splittable {@link SnappyCodec}.
+	 * Non-splittable {@link SnappyCodec}. This codec will need native snappy libraries.
 	 */
 	SNAPPY(new DefaultCodecInfo(SnappyCodec.class.getName(), false)),
 
 	/**
 	 * Splittable {@link BZip2Codec}.
 	 */
-	BZIP2(new DefaultCodecInfo(BZip2Codec.class.getName(), true));
+	BZIP2(new DefaultCodecInfo(BZip2Codec.class.getName(), true)),
+
+	// TODO: should we do like DelegatingLzoCodecInfo for resolving
+	// these at runtime. Anyway only one can be present
+	// at any given time!
+	/**
+	 * Non-splittable {@code LzoCodec}. This codec should be based on implementation from
+	 * http://code.google.com/p/hadoop-gpl-compression.
+	 */
+	LZO(new DefaultCodecInfo("com.hadoop.compression.lzo.LzoCodec", false)),
+
+	/**
+	 * Splittable {@code LzoCodec}. This codec should be based on implementation from
+	 * http://github.com/kevinweil/hadoop-lzo.
+	 */
+	SLZO(new DefaultCodecInfo("com.hadoop.compression.lzo.LzoCodec", true)),
+
+	/**
+	 * Non-splittable {@code LzopCodec}. This codec should be based on implementation from
+	 * http://code.google.com/p/hadoop-gpl-compression.
+	 */
+	LZOP(new DefaultCodecInfo("com.hadoop.compression.lzo.LzopCodec", false)),
+
+	/**
+	 * Splittable {@code LzoCodec}. This codec should be based on implementation from
+	 * http://github.com/kevinweil/hadoop-lzo.
+	 */
+	SLZOP(new DefaultCodecInfo("com.hadoop.compression.lzo.LzopCodec", true));
 
 	private final CodecInfo codec;
 

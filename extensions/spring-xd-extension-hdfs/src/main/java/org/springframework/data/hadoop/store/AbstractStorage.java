@@ -16,6 +16,7 @@
 
 package org.springframework.data.hadoop.store;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -46,7 +47,7 @@ import org.springframework.util.ClassUtils;
  * @author Janne Valkealahti
  * 
  */
-public abstract class AbstractStorage {
+public abstract class AbstractStorage implements Storage {
 
 	private final static Log log = LogFactory.getLog(AbstractStorage.class);
 
@@ -115,6 +116,16 @@ public abstract class AbstractStorage {
 	 */
 	public boolean isCompressed() {
 		return codecInfo != null;
+	}
+
+	/**
+	 * Close all streams and resources for this storage. Default implementation just calls {@code #closeStreams()}.
+	 * 
+	 * @see Closeable
+	 */
+	@Override
+	public void close() throws IOException {
+		closeStreams();
 	}
 
 	/**

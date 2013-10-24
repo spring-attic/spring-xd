@@ -31,7 +31,6 @@ import org.apache.hadoop.io.compress.SplitCompressionInputStream;
 import org.apache.hadoop.util.LineReader;
 
 import org.springframework.data.hadoop.store.AbstractStorage;
-import org.springframework.data.hadoop.store.Storage;
 import org.springframework.data.hadoop.store.StorageReader;
 import org.springframework.data.hadoop.store.StorageWriter;
 import org.springframework.data.hadoop.store.codec.CodecInfo;
@@ -45,7 +44,7 @@ import org.springframework.data.hadoop.store.support.StreamsHolder;
  * @author Janne Valkealahti
  * 
  */
-public class DelimitedTextStorage extends AbstractStorage implements Storage {
+public class DelimitedTextStorage extends AbstractStorage {
 
 	private final static Log log = LogFactory.getLog(DelimitedTextStorage.class);
 
@@ -204,7 +203,7 @@ public class DelimitedTextStorage extends AbstractStorage implements Storage {
 			lineReader.close();
 			lineReader = null;
 		}
-		closeStreams();
+		super.close();
 	}
 
 }

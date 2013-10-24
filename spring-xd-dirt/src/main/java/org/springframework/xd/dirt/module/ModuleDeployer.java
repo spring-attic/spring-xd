@@ -124,14 +124,12 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 	@Override
 	protected synchronized void handleMessageInternal(Message<?> message) throws Exception {
 		String payloadString = message.getPayload().toString();
-		Class<?> type = (payloadString.contains("\"composite\":true")) ? CompositeModuleDeploymentRequest.class
-				: ModuleDeploymentRequest.class;
-		Object deserialized = this.mapper.readValue(payloadString, type);
+		ModuleDeploymentRequest deserialized = this.mapper.readValue(payloadString, ModuleDeploymentRequest.class);
 		if (deserialized instanceof CompositeModuleDeploymentRequest) {
 			handleCompositeModuleDeployment((CompositeModuleDeploymentRequest) deserialized, message);
 		}
 		else {
-			handleDeploymentRequest((ModuleDeploymentRequest) deserialized, message);
+			handleDeploymentRequest(deserialized, message);
 		}
 	}
 
@@ -168,13 +166,12 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 			ClassLoader classLoader = (definition.getClasspath() == null) ? null
 					: new ParentLastURLClassLoader(definition.getClasspath(), parentClassLoader);
 			SimpleModule module = new SimpleModule(definition, submoduleMetadata, classLoader);
-			if (paramList != null && paramList.size() > i) {
-				Properties props = new Properties();
-				props.putAll(paramList.get(i));
-				module.addProperties(props);
-				if (logger.isDebugEnabled()) {
-					logger.debug("added properties for child module [" + module.getName() + "]: " + props);
-				}
+
+			Properties props = new Properties();
+			props.putAll(paramList.get(i));
+			module.addProperties(props);
+			if (logger.isDebugEnabled()) {
+				logger.debug("added properties for child module [" + module.getName() + "]: " + props);
 			}
 			// module.setParentContext(this.context);
 			modules.add(module);

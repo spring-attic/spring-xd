@@ -97,15 +97,14 @@ public class XDStreamParser implements XDParser {
 			requests.get(0).setSinkChannelName(sinkChannel.getChannelName());
 		}
 
-		for (int m = 0; m < moduleNodes.size(); m++) {
-			ModuleDeploymentRequest request = requests.get(m);
-			request.setType(determineType(request, requests.size() - 1));
-			request = convertToCompositeIfNecessary(request);
-			// TODO: not too elegant resetting the list value here; would be better to somehow determine that it's a
-			// composite when creating the ModuleDeploymentRequest in the previous loop above
-			requests.set(m, request);
+		// Now that we know about source and sink channel names,
+		// do a second pass to determine type. Also convert to composites
+		List<ModuleDeploymentRequest> result = new ArrayList<ModuleDeploymentRequest>(requests.size());
+		for (ModuleDeploymentRequest original : requests) {
+			original.setType(determineType(original, requests.size() - 1));
+			result.add(convertToCompositeIfNecessary(original));
 		}
-		return requests;
+		return result;
 	}
 
 	private ModuleType determineType(ModuleDeploymentRequest request, int lastIndex) {
@@ -183,7 +182,7 @@ public class XDStreamParser implements XDParser {
 		ModuleDefinition def = moduleDefinitionRepository.findByNameAndType(moduleName, type);
 		if (def == null || def.getResource() == null) {
 			List<ModuleDefinition> definitions = moduleDefinitionRepository.findByName(moduleName);
-			if (definitions == null || definitions.size() == 0) {
+			if (definitions.isEmpty()) {
 				throw new NoSuchModuleException(moduleName);
 			}
 			// TODO: revisit this method altogether; it shouldn't apply to composite modules but at this stage we don't

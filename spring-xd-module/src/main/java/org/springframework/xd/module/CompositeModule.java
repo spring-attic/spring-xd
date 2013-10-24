@@ -74,8 +74,8 @@ public class CompositeModule extends AbstractModule {
 		else {
 			ModuleType firstType = modules.get(0).getType();
 			ModuleType lastType = modules.get(modules.size() - 1).getType();
-			boolean hasInput = (!firstType.equals(ModuleType.source));
-			boolean hasOutput = (!lastType.equals(ModuleType.sink));
+			boolean hasInput = firstType != ModuleType.source;
+			boolean hasOutput = lastType != ModuleType.sink;
 			if (hasInput && hasOutput) {
 				inferredType = ModuleType.processor;
 			}

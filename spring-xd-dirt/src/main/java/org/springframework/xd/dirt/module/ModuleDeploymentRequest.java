@@ -23,20 +23,23 @@ import java.util.Map;
 import org.springframework.util.Assert;
 import org.springframework.xd.module.ModuleType;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
+ * 
+ * 
  * @author Mark Fisher
  * @author Gary Russell
  * @author Luke Taylor
  * @author Ilayaperumal Gopinathan
  */
-// allows 'composite' to be included when serialized but not required when deserialized
-@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "@class")
+@JsonSubTypes({ @Type(name = "simple", value = ModuleDeploymentRequest.class),
+	@Type(name = "composite", value = CompositeModuleDeploymentRequest.class) })
 public class ModuleDeploymentRequest implements Comparable<ModuleDeploymentRequest> {
-
-	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	private volatile String module;
 
@@ -129,14 +132,11 @@ public class ModuleDeploymentRequest implements Comparable<ModuleDeploymentReque
 		this.launch = launch;
 	}
 
-	public boolean isComposite() {
-		return false;
-	}
-
 	@Override
 	public String toString() {
 		try {
-			return this.objectMapper.writeValueAsString(this);
+			ObjectMapper objectMapper = new ObjectMapper();
+			return objectMapper.writeValueAsString(this);
 		}
 		catch (Exception e) {
 			return super.toString();

@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.module;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -23,14 +24,20 @@ import java.util.Map;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
 /**
+ * A request to deploy a composite module. Contains embedded children deployment requests.
+ * 
  * @author Mark Fisher
  */
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "@class")
 public class CompositeModuleDeploymentRequest extends ModuleDeploymentRequest {
 
-	private volatile List<ModuleDeploymentRequest> children;
+	private volatile List<ModuleDeploymentRequest> children = new ArrayList<ModuleDeploymentRequest>();
 
-	public CompositeModuleDeploymentRequest() {
+	@SuppressWarnings("unused")
+	private CompositeModuleDeploymentRequest() {
 		// no-arg constructor for serialization
 	}
 
@@ -52,11 +59,6 @@ public class CompositeModuleDeploymentRequest extends ModuleDeploymentRequest {
 				this.setParameter(entry.getKey(), entry.getValue());
 			}
 		}
-	}
-
-	@Override
-	public boolean isComposite() {
-		return true;
 	}
 
 	public List<ModuleDeploymentRequest> getChildren() {

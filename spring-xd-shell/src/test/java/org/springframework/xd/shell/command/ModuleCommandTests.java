@@ -84,7 +84,7 @@ public class ModuleCommandTests extends AbstractShellIntegrationTest {
 	@Test
 	public void testModuleCompose() {
 		Object result = getShell().executeCommand("module compose compositesource --definition \"time | splitter\"").getResult();
-		assertEquals("Successfully created module 'compositesource'", result);
+		assertEquals("Successfully created module 'compositesource' with type source", result);
 		Table t = listByType("source");
 		assertTrue("compositesource is not present in list",
 				t.getRows().contains(new TableRow().addValue(1, "compositesource").addValue(2, "source")));

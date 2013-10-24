@@ -13,24 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.data.hadoop.store;
 
-import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
+import java.io.IOException;
 
 /**
- *
- * @author Thomas Risberg
- *
+ * Base {@code StorageWriter} interface.
+ * 
+ * @author Janne Valkealahti
+ * 
  */
-public class PlaceholderForTests {
+public interface StorageWriter {
 
-	@Test
-	public void testSomething() {
-		System.out.println("TEST");
-		assertEquals(0, 0);
-	}
-
+	/**
+	 * Write next bytes into a storage.
+	 * 
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
+	void write(byte[] value) throws IOException;
 
 }

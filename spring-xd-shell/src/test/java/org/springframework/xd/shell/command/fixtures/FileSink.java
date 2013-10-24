@@ -21,6 +21,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 
+import org.hamcrest.Description;
+import org.hamcrest.DiagnosingMatcher;
+import org.hamcrest.Matcher;
+
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 
@@ -30,6 +34,42 @@ import org.springframework.util.FileCopyUtils;
  * @author Eric Bottard
  */
 public class FileSink extends DisposableFileSupport {
+
+	/**
+	 * A matcher on the String contents of the sink, that delegates to another (String) matcher.
+	 * 
+	 * <p>
+	 * Instances are to be constructed using {@link XDMatchers#hasContentsThat(Matcher)}
+	 * 
+	 * @author Eric Bottard
+	 */
+	/* default */static final class FileSinkContentsMatcher extends DiagnosingMatcher<FileSink> {
+
+		private final Matcher<String> matcher;
+
+		/* default */FileSinkContentsMatcher(Matcher<String> matcher) {
+			this.matcher = matcher;
+		}
+
+		@Override
+		public void describeTo(Description description) {
+			description.appendDescriptionOf(matcher);
+		}
+
+		@Override
+		protected boolean matches(Object item, Description mismatchDescription) {
+			FileSink fs = (FileSink) item;
+			try {
+				String contents = fs.getContents();
+				mismatchDescription.appendValue(contents);
+				return matcher.matches(contents);
+			}
+			catch (IOException e) {
+				mismatchDescription.appendText("failed with an IOException: " + e.getMessage());
+				return false;
+			}
+		}
+	}
 
 	private String charset = "UTF-8";
 
@@ -45,7 +85,11 @@ public class FileSink extends DisposableFileSupport {
 
 	/**
 	 * Wait for the file to appear (default timeout) and return its contents.
+	 * 
+	 * @deprecated Use {@code assertThat(sink, eventually(hasContentsThat(someMatcher)))} to avoid a potential race
+	 *             condition where the file is detected as present but has no content yet.
 	 */
+	@Deprecated
 	public String getContents() throws IOException {
 		return getContents(DEFAULT_FILE_TIMEOUT);
 	}
@@ -57,7 +101,11 @@ public class FileSink extends DisposableFileSupport {
 
 	/**
 	 * Wait at most {@code timeout} ms for the file to appear and return its contents.
+	 * 
+	 * @deprecated Use {@code assertThat(sink, eventually(hasContentsThat(someMatcher)))} to avoid a potential race
+	 *             condition where the file is detected as present but has no content yet.
 	 */
+	@Deprecated
 	public String getContents(int timeout) throws IOException {
 		waitFor(file, timeout);
 		Reader fileReader = new InputStreamReader(new FileInputStream(file), charset);

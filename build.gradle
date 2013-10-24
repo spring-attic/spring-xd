@@ -471,6 +471,26 @@ project('spring-xd-dirt') {
 
 	tasks["backgroundAdminServer"].dependsOn("classes")
 	tasks["clean"].dependsOn("cleanDataDir")
+
+    jar {
+      exclude 'build'
+      exclude 'target'
+      into('modules') { 
+        from '../modules'
+      }
+      into('config') { 
+        from '../config'
+      }
+      into('spring-xd-ui') { 
+        from '../spring-xd-ui'
+      }
+    }
+    apply plugin: "spring-boot"
+    springBoot {
+      mainClass = 'org.springframework.xd.dirt.boot.SingleNodeApplication'
+      layout = 'ZIP'
+    }
+
 }
 
 // Extension projects, supporting module definitions.
@@ -829,24 +849,6 @@ project('modules') {
 	dependencies {
 		compile project(':spring-xd-dirt')
 	}
-    jar {
-      exclude 'build'
-      exclude 'target'
-      into('modules') { 
-        from '.'
-      }
-      into('config') { 
-        from '../config'
-      }
-      into('spring-xd-ui') { 
-        from '../spring-xd-ui'
-      }
-    }
-    apply plugin: "spring-boot"
-    springBoot {
-      mainClass = 'org.springframework.xd.dirt.boot.SingleNodeApplication'
-      layout = 'ZIP'
-    }
 }
 
 project('modules.source.mail') {

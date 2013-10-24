@@ -1,7 +1,7 @@
 ---
 memory: 1G
 instances: 1
-path: modules/build/libs/modules-1.0.0.BUILD-SNAPSHOT.jar
+path: spring-xd-dirt/build/libs/spring-xd-dirt-1.0.0.BUILD-SNAPSHOT.jar
 domain: cfapps.io
 
 applications:

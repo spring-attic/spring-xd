@@ -18,6 +18,8 @@ package org.springframework.xd.shell.command.fixtures;
 
 import org.hamcrest.Matcher;
 
+import org.springframework.xd.shell.command.fixtures.FileSink.FileSinkContentsMatcher;
+
 
 /**
  * Utility class that provides static factory methods for {@link Matcher}s in this package.
@@ -41,6 +43,10 @@ public class XDMatchers {
 
 	public static <U> EventuallyMatcher<U> eventually(Matcher<U> matcher) {
 		return new EventuallyMatcher<U>(matcher);
+	}
+
+	public static FileSinkContentsMatcher hasContentsThat(Matcher<String> matcher) {
+		return new FileSink.FileSinkContentsMatcher(matcher);
 	}
 
 }

@@ -16,7 +16,11 @@
 
 package org.springframework.xd.shell.command;
 
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.Matchers.isEmptyOrNullString;
+import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertThat;
+import static org.springframework.xd.shell.command.fixtures.XDMatchers.eventually;
+import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasContentsThat;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,7 +45,7 @@ public class ModuleClasspathTests extends AbstractStreamIntegrationTest {
 		FileSink fileSink = newFileSink();
 		stream().create("foo", "time2 --fixedDelay=1000 | %s", fileSink);
 
-		assertTrue(fileSink.getContents().length() > 5);
+		assertThat(fileSink, eventually(hasContentsThat(not(isEmptyOrNullString()))));
 	}
 
 	/**

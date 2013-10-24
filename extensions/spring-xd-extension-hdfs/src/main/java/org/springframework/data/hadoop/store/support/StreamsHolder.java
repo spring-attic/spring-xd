@@ -16,6 +16,12 @@
 
 package org.springframework.data.hadoop.store.support;
 
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
+
+import org.springframework.util.Assert;
+
 /**
  * Holder object streams. Mostly concept of a wrapped streams are used with a compressed streams in a hadoop where some
  * information still needs to be accessed from an underlying stream.
@@ -24,7 +30,7 @@ package org.springframework.data.hadoop.store.support;
  * @author Janne Valkealahti
  * 
  */
-public class StreamsHolder<T> {
+public class StreamsHolder<T extends Closeable> implements Closeable {
 
 	private T stream;
 
@@ -43,9 +49,32 @@ public class StreamsHolder<T> {
 	 * @param wrappedStream the wrapped stream
 	 */
 	public StreamsHolder(T stream, T wrappedStream) {
-		super();
+		Assert.notNull(stream, "Main stream should not be null");
 		this.stream = stream;
 		this.wrappedStream = wrappedStream;
+	}
+
+	/**
+	 * Close both streams in this holder. Possible {@code IOException} by closing wrapped stream is not thrown.
+	 * 
+	 * @see InputStream#close()
+	 * @see OutputStream#close()
+	 */
+	@Override
+	public void close() throws IOException {
+		if (stream != null) {
+			stream.close();
+		}
+		if (wrappedStream != null) {
+			try {
+				wrappedStream.close();
+			}
+			catch (IOException e) {
+				// try to close but eat IOException because it was
+				// already closed by the main stream or something
+				// else happened what we should not care about
+			}
+		}
 	}
 
 	/**

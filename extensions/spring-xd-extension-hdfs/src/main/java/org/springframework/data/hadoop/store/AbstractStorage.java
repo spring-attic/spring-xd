@@ -253,10 +253,7 @@ public abstract class AbstractStorage {
 	 */
 	protected void closeOutputStreams() throws IOException {
 		if (outputHolder != null) {
-			outputHolder.getStream().close();
-			if (outputHolder.getWrappedStream() != null) {
-				outputHolder.getWrappedStream().close();
-			}
+			outputHolder.close();
 			outputHolder = null;
 		}
 	}
@@ -268,10 +265,7 @@ public abstract class AbstractStorage {
 	 */
 	protected void closeInputStreams() throws IOException {
 		if (inputHolder != null) {
-			inputHolder.getStream().close();
-			if (inputHolder.getWrappedStream() != null) {
-				inputHolder.getWrappedStream().close();
-			}
+			inputHolder.close();
 			inputHolder = null;
 		}
 	}
@@ -282,15 +276,19 @@ public abstract class AbstractStorage {
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	protected void closeSplitInputStreams() throws IOException {
+		IOException last = null;
 		for (StreamsHolder<InputStream> holder : splitInputHolders.values()) {
-			if (holder.getStream() != null) {
-				holder.getStream().close();
+			try {
+				holder.close();
 			}
-			if (holder.getWrappedStream() != null) {
-				holder.getWrappedStream().close();
+			catch (IOException e) {
+				last = e;
 			}
 		}
 		splitInputHolders.clear();
+		if (last != null) {
+			throw last;
+		}
 	}
 
 }

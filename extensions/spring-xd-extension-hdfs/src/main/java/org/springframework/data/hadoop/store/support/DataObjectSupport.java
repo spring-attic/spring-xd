@@ -45,16 +45,6 @@ public abstract class DataObjectSupport {
 	 * 
 	 * @param storage the storage
 	 * @param configuration the configuration
-	 */
-	protected DataObjectSupport(Storage storage, Configuration configuration) {
-		this(storage, configuration, null, null);
-	}
-
-	/**
-	 * Instantiates a new data object support.
-	 * 
-	 * @param storage the storage
-	 * @param configuration the configuration
 	 * @param path the path
 	 */
 	protected DataObjectSupport(Storage storage, Configuration configuration, Path path) {
@@ -81,9 +71,9 @@ public abstract class DataObjectSupport {
 	 */
 	protected DataObjectSupport(Storage storage, Configuration configuration, Path path, InputSplit inputSplit) {
 		Assert.notNull(storage, "Storage must be set");
-		Assert.notNull(storage, "Configuration must be set");
+		Assert.notNull(configuration, "Configuration must be set");
 		Assert.isTrue(!(path == null && inputSplit == null), "Either path or input split must be set");
-		Assert.isTrue(!(path == null && inputSplit == null), "Either path or input split must be set");
+		Assert.isTrue(!(path != null && inputSplit != null), "Either path or input split must be set");
 		this.storage = storage;
 		this.configuration = configuration;
 		this.path = path;

@@ -25,7 +25,7 @@ package org.springframework.data.hadoop.store.codec;
 public interface CodecInfo {
 
 	/**
-	 * Checks if coded is splittable.
+	 * Checks if codec is splittable.
 	 * 
 	 * @return true, if is splittable
 	 */

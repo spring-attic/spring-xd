@@ -16,9 +16,6 @@
 
 package org.springframework.xd.dirt.plugins.job;
 
-import java.util.Collection;
-import java.util.List;
-
 import org.springframework.batch.admin.service.SearchableJobExecutionDao;
 import org.springframework.batch.admin.service.SearchableJobInstanceDao;
 import org.springframework.batch.admin.service.SearchableStepExecutionDao;
@@ -41,6 +38,7 @@ import org.springframework.batch.core.repository.dao.ExecutionContextDao;
  * 
  * @author Ilayaperumal Gopinathan
  * @author Andrew Eisenberg
+ * @author Gunnar Hillert
  */
 public class DistributedJobService extends SimpleJobService {
 
@@ -92,24 +90,6 @@ public class DistributedJobService extends SimpleJobService {
 	@Override
 	public boolean isIncrementable(String jobName) {
 		return batchJobLocator.isIncrementable(jobName);
-	}
-
-	@Override
-	public Collection<JobExecution> listJobExecutionsForJob(String jobName, int start, int count)
-			throws NoSuchJobException {
-		checkJobExists(jobName);
-		List<JobExecution> jobExecutions = jobExecutionDao.getJobExecutions(jobName, start, count);
-		return jobExecutions;
-	}
-
-	private void checkJobExists(String jobName) throws NoSuchJobException {
-		if (batchJobLocator.getJobNames().contains(jobName)) {
-			return;
-		}
-		if (jobInstanceDao.countJobInstances(jobName) > 0) {
-			return;
-		}
-		throw new NoSuchJobException("No Job with that name either current or historic: [" + jobName + "]");
 	}
 
 }

@@ -16,7 +16,7 @@
 
 package org.springframework.xd.module.options;
 
-import org.springframework.core.env.PropertySource;
+import org.springframework.core.env.EnumerablePropertySource;
 
 
 /**
@@ -36,8 +36,9 @@ public abstract class InterpolatedModuleOptions implements ProfileNamesProvider 
 
 	private static final String[] NONE = new String[0];
 
-	public abstract PropertySource<?> asPropertySource();
+	public abstract EnumerablePropertySource<?> asPropertySource();
 
+	@Override
 	public String[] getProfilesToActivate() {
 		return NONE;
 	}

@@ -19,8 +19,8 @@ package org.springframework.xd.module.options;
 import java.util.Iterator;
 import java.util.Properties;
 
+import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.PropertiesPropertySource;
-import org.springframework.core.env.PropertySource;
 
 
 /**
@@ -49,7 +49,7 @@ public class AbsentModuleOptions implements ModuleOptions {
 		return new InterpolatedModuleOptions() {
 
 			@Override
-			public PropertySource<?> asPropertySource() {
+			public EnumerablePropertySource<?> asPropertySource() {
 				return new PropertiesPropertySource(this.toString(), raw);
 			}
 		};

@@ -21,7 +21,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import org.springframework.core.env.PropertySource;
+import org.springframework.core.env.EnumerablePropertySource;
 
 
 /**
@@ -48,10 +48,10 @@ public class SimpleModuleOptions implements ModuleOptions {
 		return new InterpolatedModuleOptions() {
 
 			@Override
-			public PropertySource<?> asPropertySource() {
+			public EnumerablePropertySource<?> asPropertySource() {
 				// Return a property source with only the intersection
 				// between declared properties and actual provided values
-				return new PropertySource<Object>(this.toString()) {
+				return new EnumerablePropertySource<Object>(this.toString(), this) {
 
 					@Override
 					public Object getProperty(String name) {
@@ -68,6 +68,11 @@ public class SimpleModuleOptions implements ModuleOptions {
 						else {
 							return null;
 						}
+					}
+
+					@Override
+					public String[] getPropertyNames() {
+						return options.keySet().toArray(new String[options.size()]);
 					}
 				};
 			}

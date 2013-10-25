@@ -54,7 +54,7 @@ public class DetailedModuleDefinitionResource extends ModuleDefinitionResource {
 
 		private String description;
 
-		private String defaultExpression;
+		private String defaultValue;
 
 		/**
 		 * Default constructor for serialization frameworks.
@@ -64,11 +64,11 @@ public class DetailedModuleDefinitionResource extends ModuleDefinitionResource {
 
 		}
 
-		public Option(String name, String type, String description, String defaultExpression) {
+		public Option(String name, String type, String description, String defaultValue) {
 			this.name = name;
 			this.type = type;
 			this.description = description;
-			this.defaultExpression = defaultExpression;
+			this.defaultValue = defaultValue;
 		}
 
 
@@ -87,8 +87,8 @@ public class DetailedModuleDefinitionResource extends ModuleDefinitionResource {
 		}
 
 
-		public String getDefaultExpression() {
-			return defaultExpression;
+		public String getDefaultValue() {
+			return defaultValue;
 		}
 
 

@@ -24,26 +24,18 @@ package org.springframework.xd.module.options;
  */
 public class ModuleOption {
 
-	private String name;
+	private final String name;
 
-	private String description;
+	private final String description;
 
 	private Object defaultValue;
 
 	private Class<?> type;
 
 
-	private ModuleOption(String name) {
+	public ModuleOption(String name, String description) {
 		this.name = name;
-	}
-
-	public static ModuleOption named(String name) {
-		return new ModuleOption(name);
-	}
-
-	public ModuleOption withDescription(String description) {
 		this.description = description;
-		return this;
 	}
 
 	public ModuleOption withType(Class<?> type) {

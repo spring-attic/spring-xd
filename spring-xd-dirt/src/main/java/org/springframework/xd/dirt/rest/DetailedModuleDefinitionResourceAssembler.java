@@ -46,10 +46,14 @@ public class DetailedModuleDefinitionResourceAssembler extends
 				entity.getResource().getDescription(),
 				entity.getType().name());
 		ModuleOptions moduleOptions = entity.getModuleOptions();
-		for (ModuleOption option : moduleOptions) {
-			result.addOption(new DetailedModuleDefinitionResource.Option(option.getName(),
-					option.getType().getSimpleName(), option.getDescription(),
-					option.getSpel()));
+		if (moduleOptions.iterator() != null) {
+			for (ModuleOption option : moduleOptions) {
+				Object defaultValue = option.getDefaultValue();
+				Class<?> type = option.getType();
+				result.addOption(new DetailedModuleDefinitionResource.Option(option.getName(),
+						type == null ? null : type.getSimpleName(), option.getDescription(),
+						defaultValue == null ? null : defaultValue.toString()));
+			}
 		}
 		return result;
 	}

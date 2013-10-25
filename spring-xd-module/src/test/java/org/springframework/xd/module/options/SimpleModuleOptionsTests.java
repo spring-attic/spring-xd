@@ -48,8 +48,8 @@ public class SimpleModuleOptionsTests {
 
 	@Test
 	public void testNonEmptyBehavior() {
-		moduleOptions.add(ModuleOption.named("foo"));
-		moduleOptions.add(ModuleOption.named("bar").withDefaultValue("here"));
+		moduleOptions.add(new ModuleOption("foo", "d"));
+		moduleOptions.add(new ModuleOption("bar", "d").withDefaultValue("here"));
 
 		Iterator<ModuleOption> it = moduleOptions.iterator();
 
@@ -59,9 +59,9 @@ public class SimpleModuleOptionsTests {
 
 	@Test
 	public void testInterpolation() {
-		moduleOptions.add(ModuleOption.named("foo"));
-		moduleOptions.add(ModuleOption.named("bar").withDefaultValue("here"));
-		moduleOptions.add(ModuleOption.named("fizz").withDefaultValue("there"));
+		moduleOptions.add(new ModuleOption("foo", "d"));
+		moduleOptions.add(new ModuleOption("bar", "d").withDefaultValue("here"));
+		moduleOptions.add(new ModuleOption("fizz", "d").withDefaultValue("there"));
 
 		Properties userValues = new Properties();
 		userValues.setProperty("foo", "one");

@@ -84,8 +84,10 @@ public class ModuleCommands implements CommandMarker {
 				3, new TableHeader("Default")).addHeader(4, new TableHeader("Type"));
 		for (DetailedModuleDefinitionResource.Option o : info.getOptions()) {
 			final TableRow row = new TableRow();
-			row.addValue(1, o.getName()).addValue(2, o.getDescription()).addValue(3, o.getDefaultExpression()).addValue(
-					4, o.getType());
+			row.addValue(1, o.getName())
+					.addValue(2, o.getDescription())
+					.addValue(3, o.getDefaultValue() == null ? "<none>" : o.getDefaultValue())
+					.addValue(4, o.getType() == null ? "<unknown>" : o.getType());
 			table.getRows().add(row);
 		}
 		return table;

@@ -96,13 +96,15 @@ public class ModuleOptionsFactory {
 				Object defaultValue = props.getProperty(String.format("options.%s.default", optionName));
 				String type = props.getProperty(String.format("options.%s.type", optionName));
 				Class<?> clazz = null;
-				try {
-					clazz = Class.forName(type);
+				if (type != null) {
+					try {
+						clazz = Class.forName(type);
+					}
+					catch (ClassNotFoundException e) {
+						e.printStackTrace();
+					}
 				}
-				catch (ClassNotFoundException e) {
-					e.printStackTrace();
-				}
-				ModuleOption moduleOption = ModuleOption.named(optionName).withDescription(description).withDefaultValue(
+				ModuleOption moduleOption = new ModuleOption(optionName, description).withDefaultValue(
 						defaultValue).withType(clazz);
 				result.add(moduleOption);
 			}

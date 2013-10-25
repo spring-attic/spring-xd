@@ -24,6 +24,6 @@ package org.springframework.xd.module.options;
  */
 public interface ProfileNamesProvider {
 
-	public String[] getProfilesToActivate();
+	public String[] profilesToActivate();
 
 }

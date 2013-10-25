@@ -16,8 +16,16 @@
 
 package org.springframework.xd.module.options;
 
+import java.beans.PropertyDescriptor;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Properties;
+
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.BeanWrapperImpl;
+import org.springframework.beans.MutablePropertyValues;
+import org.springframework.core.env.EnumerablePropertySource;
 
 
 /**
@@ -33,29 +41,82 @@ import java.util.Properties;
  * <li>reported properties are computed from all the getters,</li>
  * <li>the POJO may bear JSR303 validation annotations, which will be used to validate the interpolated options,</li>
  * <li>if the POJO implements {@link ProfileNamesProvider}, profile names will be gathered from a reflective call to
- * {@link ProfileNamesProvider#getProfilesToActivate()}</li>
+ * {@link ProfileNamesProvider#profilesToActivate()}</li>
  * </ul>
  * 
  * @author Eric Bottard
  */
 public class PojoModuleOptions implements ModuleOptions {
 
-	private final Class<?> clazz;
+	private BeanWrapper beanWrapper;
+
+	private List<ModuleOption> options;
 
 	public PojoModuleOptions(Class<?> clazz) {
-		this.clazz = clazz;
+		beanWrapper = new BeanWrapperImpl(clazz);
+		options = new ArrayList<ModuleOption>();
+		for (PropertyDescriptor pd : beanWrapper.getPropertyDescriptors()) {
+			String name = pd.getName();
+			if (!beanWrapper.isWritableProperty(name)) {
+				continue;
+			}
+			ModuleOption option = new ModuleOption(name, "TODO").withType(pd.getPropertyType());
+			if (beanWrapper.isReadableProperty(name)) {
+				option.withDefaultValue(beanWrapper.getPropertyValue(name));
+			}
+			options.add(option);
+		}
+	}
+
+	public static void main(String[] args) {
+		PojoModuleOptions pojoModuleOptions = new PojoModuleOptions(TriggerModuleOptions.class);
+		for (ModuleOption o : pojoModuleOptions) {
+			System.out.println(o);
+		}
 	}
 
 	@Override
 	public Iterator<ModuleOption> iterator() {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Auto-generated method stub");
+		return options.iterator();
 	}
 
 	@Override
 	public InterpolatedModuleOptions interpolate(Properties raw) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Auto-generated method stub");
-	}
+		beanWrapper.setPropertyValues(new MutablePropertyValues(raw), true, true);
+		return new InterpolatedModuleOptions() {
 
+			@Override
+			public EnumerablePropertySource<?> asPropertySource() {
+				return new EnumerablePropertySource<BeanWrapper>(this.toString(), beanWrapper) {
+
+					@Override
+					public String[] getPropertyNames() {
+						List<String> result = new ArrayList<String>();
+						for (PropertyDescriptor pd : beanWrapper.getPropertyDescriptors()) {
+							String name = pd.getName();
+							if (beanWrapper.isReadableProperty(name)) {
+								result.add(name);
+							}
+						}
+						return result.toArray(new String[result.size()]);
+					}
+
+					@Override
+					public Object getProperty(String name) {
+						return beanWrapper.getPropertyValue(name);
+					}
+				};
+			}
+
+			@Override
+			public String[] profilesToActivate() {
+				if (beanWrapper.getWrappedInstance() instanceof ProfileNamesProvider) {
+					return ((ProfileNamesProvider) beanWrapper.getWrappedInstance()).profilesToActivate();
+				}
+				else {
+					return super.profilesToActivate();
+				}
+			}
+		};
+	}
 }

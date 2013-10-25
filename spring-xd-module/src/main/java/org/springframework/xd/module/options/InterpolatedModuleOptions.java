@@ -39,7 +39,7 @@ public abstract class InterpolatedModuleOptions implements ProfileNamesProvider 
 	public abstract EnumerablePropertySource<?> asPropertySource();
 
 	@Override
-	public String[] getProfilesToActivate() {
+	public String[] profilesToActivate() {
 		return NONE;
 	}
 

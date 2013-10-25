@@ -243,7 +243,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		for (String key : propertySource.getPropertyNames()) {
 			Object value = propertySource.getProperty(key);
 			if (value != null) {
-				props.setProperty(key, (String) value);
+				props.setProperty(key, "" + value);
 			}
 		}
 		module.addProperties(props);

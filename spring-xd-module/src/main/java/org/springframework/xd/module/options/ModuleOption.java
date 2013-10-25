@@ -64,4 +64,11 @@ public class ModuleOption {
 		return defaultValue;
 	}
 
+	@Override
+	public String toString() {
+		return "ModuleOption [name=" + name + ", type=" + type + ", defaultValue=" + defaultValue + ", description="
+				+ description + "]";
+	}
+
+
 }

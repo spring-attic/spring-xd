@@ -272,6 +272,16 @@ configure(moduleProjects()) { moduleProject ->
 		}
 	}
 
+	// FIXME: remove this
+	configurations {
+		runtime {
+			// Workaround for https://jira.springsource.org/browse/SPR-11028
+			exclude group: 'org.codehaus.groovy'
+			// Workaround for duplicate large jars being included by mistake
+			exclude module: 'gemfire'
+		}
+	}
+
 	task copyLibs(type: Copy) {
 		def containerDeps = project(':spring-xd-dirt').configurations.runtime
 
@@ -491,6 +501,10 @@ project('spring-xd-exec') {
        jar {
           exclude 'build'
           exclude 'target'
+		  // FIXME: unhack this
+          exclude '**/gemfire-*.jar'
+          exclude '**/aspectweaver-*.jar'
+          into('.') { from '../spring-xd-dirt/src/main/resources/log4j.properties' }
           into('modules') { from '../modules' }
           into('config') { from '../config' }
           into('spring-xd-ui') { from '../spring-xd-ui' }

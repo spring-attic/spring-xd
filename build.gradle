@@ -477,25 +477,27 @@ project('spring-xd-dirt') {
 	tasks["backgroundAdminServer"].dependsOn("classes")
 	tasks["clean"].dependsOn("cleanDataDir")
 
-    jar {
-      exclude 'build'
-      exclude 'target'
-      into('modules') { 
-        from '../modules'
-      }
-      into('config') { 
-        from '../config'
-      }
-      into('spring-xd-ui') { 
-        from '../spring-xd-ui'
-      }
-    }
+}
+
+project('spring-xd-exec') {
+	dependencies {
+		compile project(':spring-xd-dirt')
+	}
     apply plugin: "spring-boot"
     springBoot {
       mainClass = 'org.springframework.xd.dirt.boot.SingleNodeApplication'
       layout = 'ZIP'
     }
-
+       jar {
+          exclude 'build'
+          exclude 'target'
+          into('modules') { from '../modules' }
+          into('config') { from '../config' }
+          into('spring-xd-ui') { from '../spring-xd-ui' }
+        }
+    moduleProjects().each { moduleProject ->
+          project.jar.dependsOn moduleProject.copyLibs
+    }
 }
 
 // Extension projects, supporting module definitions.

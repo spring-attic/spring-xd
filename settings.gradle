@@ -18,6 +18,7 @@ include 'spring-xd-rest-domain'
 include 'spring-xd-shell'
 include 'spring-xd-ui'
 include 'modules'
+include 'spring-xd-exec'
 
 ['source', 'processor', 'sink', 'job'].each {kind->
 	new File(rootDir, "modules/${kind}").eachDir { dir ->
@@ -37,5 +38,4 @@ new File(rootDir, 'extensions').eachDir { dir ->
 		project(":${dir.name}").projectDir = dir
 	}
 }
-
 

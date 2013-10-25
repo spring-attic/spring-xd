@@ -16,15 +16,14 @@
 
 package org.springframework.xd.module;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.Properties;
 
 import org.springframework.core.io.DescriptiveResource;
 import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
-import org.springframework.xd.module.options.AbsentModuleOptions;
 import org.springframework.xd.module.options.ModuleOptions;
+import org.springframework.xd.module.options.ModuleOptionsFactory;
 
 /**
  * Defines a module.
@@ -107,19 +106,7 @@ public class ModuleDefinition {
 
 	public synchronized ModuleOptions getModuleOptions() {
 		if (moduleOptions == null) {
-			try {
-				Resource optionsContext = resource.createRelative(name + ".properties");
-				if (!optionsContext.exists()) {
-					moduleOptions = AbsentModuleOptions.INSTANCE;
-				}
-				else {
-					// TODO
-				}
-			}
-			catch (IOException e) {
-				e.printStackTrace();
-				moduleOptions = AbsentModuleOptions.INSTANCE;
-			}
+			moduleOptions = ModuleOptionsFactory.create(this);
 		}
 		return moduleOptions;
 	}

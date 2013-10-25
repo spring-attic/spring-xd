@@ -5,7 +5,7 @@ apply plugin: 'idea'
 
 buildscript {
 	repositories {
-        mavenLocal()
+		 mavenLocal()
 		maven { url "http://repo.springsource.org/plugins-snapshot" }
 	}
 	dependencies {
@@ -20,9 +20,9 @@ buildscript {
 
 ext {
 	linkHomepage = 'https://github.com/spring-projects/spring-xd'
-	linkCi       = 'https://build.springsource.org/browse/XD'
+	linkCi		= 'https://build.springsource.org/browse/XD'
 	linkIssue    = 'https://jira.springsource.org/browse/XD'
-	linkScmUrl           = 'https://github.com/spring-projects/spring-xd'
+	linkScmUrl		    = 'https://github.com/spring-projects/spring-xd'
 	linkScmConnection    = 'https://github.com/spring-projects/spring-xd.git'
 	linkScmDevConnection = 'git@github.com:spring-projects/spring-xd.git'
 
@@ -34,7 +34,7 @@ ext {
 
 // custom class to store the SingleNode server process
 class SingleNodeServerProcess {
-        Process process
+		 Process process
 }
 
 allprojects {
@@ -186,7 +186,7 @@ configure(javaProjects()) { subproject ->
 	}
 
 	// dependencies that are common across all java projects
-	dependencies {
+dependencies {
 		testCompile "junit:junit:$junitVersion"
 		testCompile "org.codehaus.groovy:groovy-all:2.1.0"
 		testCompile "org.hamcrest:hamcrest-library:$hamcrestVersion"
@@ -232,7 +232,7 @@ configure(javaProjects()) { subproject ->
 			"${System.getProperty("java.version")} (${System.getProperty("java.specification.vendor")})"
 		manifest.attributes["Implementation-Title"] = subproject.name
 		manifest.attributes["Implementation-Version"] = subproject.version
-		exclude('log4j.properties')
+        if (project != project(':spring-xd-exec')) { exclude 'log4j.properties' }
 	}
 
 	task javadocJar(type: Jar) {
@@ -334,7 +334,7 @@ project('spring-xd-dirt') {
 
     	configurations {
 	    	//[runtime,testRuntime]*.exclude group: 'org.codehaus.jackson'
-            //all*.exclude module: "commons-logging"
+		     //all*.exclude module: "commons-logging"
 	    }
 
 		// See XD-903 for breakdown
@@ -374,7 +374,7 @@ project('spring-xd-dirt') {
 		runtime "org.slf4j:jcl-over-slf4j:$slf4jVersion"
 		runtime	"org.slf4j:slf4j-log4j12:$slf4jVersion"
 		runtime	"org.yaml:snakeyaml:$snakeYamlVersion"
-        runtime "org.postgresql:postgresql:9.2-1002-jdbc4"
+		 runtime "org.postgresql:postgresql:9.2-1002-jdbc4"
 		runtime "mysql:mysql-connector-java:5.1.23"
 
 		// ************* Dirt-Server only
@@ -441,8 +441,8 @@ project('spring-xd-dirt') {
 	}
 
     task xdUiFiles {
-            def uiFiles = file("$rootDir/spring-xd-ui")
-            outputs.dir uiFiles
+		     def uiFiles = file("$rootDir/spring-xd-ui")
+		     outputs.dir uiFiles
     }
 
 	task scriptFiles {
@@ -470,14 +470,14 @@ project('spring-xd-dirt') {
 	task backgroundAdminServer << { task ->
 		println "Starting SingleNode server as a background process"
 		ProcessBuilder processBuilder = new ProcessBuilder("java", "-cp", sourceSets.main.runtimeClasspath.getAsPath(), "org.springframework.xd.dirt.server.SingleNodeMain");
-        processBuilder.directory(file("$rootDir/spring-xd-dirt"))
-        def Process proc = processBuilder.start()
-        proc.consumeProcessOutputStream(System.out)
-        println("Waiting for the server to startup...")
-        // Give 15s for the server startup
-        Thread.sleep(15000)
-        // Save the process object to destroy after test completion
-        project.singleNodeServerProcess.process = proc
+		 processBuilder.directory(file("$rootDir/spring-xd-dirt"))
+		 def Process proc = processBuilder.start()
+		 proc.consumeProcessOutputStream(System.out)
+		 println("Waiting for the server to startup...")
+		 // Give 15s for the server startup
+		 Thread.sleep(15000)
+		 // Save the process object to destroy after test completion
+		 project.singleNodeServerProcess.process = proc
     }
 
 	task cleanDataDir(type: Delete) {
@@ -498,19 +498,19 @@ project('spring-xd-exec') {
       mainClass = 'org.springframework.xd.dirt.boot.SingleNodeApplication'
       layout = 'ZIP'
     }
-       jar {
-          exclude 'build'
-          exclude 'target'
-		  // FIXME: unhack this
-          exclude '**/gemfire-*.jar'
-          exclude '**/aspectweaver-*.jar'
-          into('.') { from '../spring-xd-dirt/src/main/resources/log4j.properties' }
-          into('modules') { from '../modules' }
-          into('config') { from '../config' }
-          into('spring-xd-ui') { from '../spring-xd-ui' }
-        }
+	jar {
+		exclude 'build'
+		exclude 'target'
+		// FIXME: unhack this
+		exclude '**/gemfire-*.jar'
+		exclude '**/aspectweaver-*.jar'
+		into('.') { from '../spring-xd-dirt/src/main/resources/log4j.properties' }
+		into('modules') { from '../modules' }
+		into('config') { from '../config' }
+		into('spring-xd-ui') { from '../spring-xd-ui' }
+	}
     moduleProjects().each { moduleProject ->
-          project.jar.dependsOn moduleProject.copyLibs
+	   project.jar.dependsOn moduleProject.copyLibs
     }
 }
 
@@ -848,7 +848,7 @@ project('spring-xd-rest-client') {
 		compile project(':spring-xd-rest-domain')
 		compile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
 		compile 'org.codehaus.jackson:jackson-core-asl:1.9.13'
-        compile "joda-time:joda-time:$jodaTimeVersion"
+	 compile "joda-time:joda-time:$jodaTimeVersion"
 	}
 }
 
@@ -933,8 +933,8 @@ project('modules.source.mqtt') {
 		runtime ("org.springframework.integration:spring-integration-mqtt:4.0.0.BUILD-SNAPSHOT") {
 		// spring-integration-mqtt has a different lifecycle than SI and may bring a version
 		// of SI which is believed by gradle to be newer than our preferred version.
-            exclude group: 'org.springframework.integration'
-        }
+	     exclude group: 'org.springframework.integration'
+	 }
 	}
 }
 
@@ -943,8 +943,8 @@ project('modules.sink.mqtt') {
 		runtime ("org.springframework.integration:spring-integration-mqtt:4.0.0.BUILD-SNAPSHOT") {
 		// spring-integration-mqtt has a different lifecycle than SI and may bring a version
 		// of SI which is believed by gradle to be newer than our preferred version.
-            exclude group: 'org.springframework.integration'
-        }
+	     exclude group: 'org.springframework.integration'
+	 }
 	}
 }
 
@@ -1092,14 +1092,14 @@ project('spring-xd-ui') {
     // This task assumes existing installation of phantomJS
     task jsTest(type: Exec, dependsOn: ':spring-xd-dirt:backgroundAdminServer') {
 		workingDir 'test'
-        commandLine 'phantomjs', 'jasmine-runner.js', 'http://localhost:9393/admin-ui/test/SpecRunnerPhantomJS.html'
-        doLast {
+	 commandLine 'phantomjs', 'jasmine-runner.js', 'http://localhost:9393/admin-ui/test/SpecRunnerPhantomJS.html'
+	 doLast {
 			def singleNodeServerProcess = project(':spring-xd-dirt').singleNodeServerProcess
 			if (singleNodeServerProcess != null) {
 				singleNodeServerProcess.process.destroy()
-                println("Stopped the SingleNode server.")
-            }
-        }
+		  println("Stopped the SingleNode server.")
+	     }
+	 }
     }
 }
 

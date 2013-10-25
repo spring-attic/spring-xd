@@ -28,9 +28,9 @@ public class ModuleOption {
 
 	private String description;
 
-	private String spel;
+	private Object defaultValue;
 
-	private Class<?> type = Object.class;
+	private Class<?> type;
 
 
 	private ModuleOption(String name) {
@@ -41,18 +41,8 @@ public class ModuleOption {
 		return new ModuleOption(name);
 	}
 
-	public ModuleOption withHelp(String description) {
+	public ModuleOption withDescription(String description) {
 		this.description = description;
-		return this;
-	}
-
-	public ModuleOption withDefaultValue(String value) {
-		this.spel = "'" + value + "'";
-		return this;
-	}
-
-	public ModuleOption withDefaultExpression(String expression) {
-		this.spel = expression;
 		return this;
 	}
 
@@ -61,23 +51,25 @@ public class ModuleOption {
 		return this;
 	}
 
+	public ModuleOption withDefaultValue(Object defaultValue) {
+		this.defaultValue = defaultValue;
+		return this;
+	}
+
 	public String getName() {
 		return name;
 	}
-
 
 	public String getDescription() {
 		return description;
 	}
 
-
-	public String getSpel() {
-		return spel;
-	}
-
-
 	public Class<?> getType() {
 		return type;
+	}
+
+	public Object getDefaultValue() {
+		return defaultValue;
 	}
 
 }

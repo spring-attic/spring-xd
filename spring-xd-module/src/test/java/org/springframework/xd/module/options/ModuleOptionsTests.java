@@ -16,19 +16,6 @@
 
 package org.springframework.xd.module.options;
 
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
-
-import java.util.Properties;
-import java.util.Set;
-
-import org.junit.Test;
-
-import org.springframework.core.env.PropertySource;
 
 
 /**
@@ -38,35 +25,4 @@ import org.springframework.core.env.PropertySource;
  */
 public class ModuleOptionsTests {
 
-	private ModuleOptions moduleOptions = new ModuleOptions();
-
-	@Test
-	public void testProfileActivation() {
-		moduleOptions.addProfileActivationRule("use-cron", "cron != null");
-		moduleOptions.addProfileActivationRule("use-delay", "delay != null");
-
-		Properties props = new Properties();
-		props.setProperty("cron", "0 * * * *");
-
-		Set<String> profiles = moduleOptions.interpolate(props).getActivatedProfiles();
-
-		assertThat(profiles, contains("use-cron"));
-		assertThat(profiles, not(contains("use-delay")));
-	}
-
-	@Test
-	public void testPropertySource() {
-		moduleOptions.add(ModuleOption.named("cron"));
-		moduleOptions.add(ModuleOption.named("delay").withDefaultValue("10").withType(int.class));
-		moduleOptions.add(ModuleOption.named("longer-delay").withDefaultExpression("delay + 10").withType(int.class));
-
-		Properties props = new Properties();
-		props.setProperty("delay", "5");
-		PropertySource<?> ps = moduleOptions.interpolate(props).asPropertySource();
-
-		assertThat(ps.getProperty("cron"), is(nullValue()));
-		assertThat((Integer) ps.getProperty("delay"), equalTo(5));
-		assertThat((Integer) ps.getProperty("longer-delay"), equalTo(15));
-
-	}
 }

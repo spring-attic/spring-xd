@@ -20,11 +20,10 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Properties;
 
-import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
-import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.DescriptiveResource;
 import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
+import org.springframework.xd.module.options.AbsentModuleOptions;
 import org.springframework.xd.module.options.ModuleOptions;
 
 /**
@@ -48,8 +47,6 @@ public class ModuleDefinition {
 	private final URL[] classpath;
 
 	private ModuleOptions moduleOptions;
-
-	private static final ModuleOptions PENDING = new ModuleOptions();
 
 	public ModuleDefinition(String name, ModuleType moduleType) {
 		this(name, moduleType, new DescriptiveResource("Dummy resource"));
@@ -109,22 +106,19 @@ public class ModuleDefinition {
 	}
 
 	public synchronized ModuleOptions getModuleOptions() {
-		if (moduleOptions == PENDING) {
+		if (moduleOptions == null) {
 			try {
-				Resource optionsContext = resource.createRelative(name + "-options.xml");
+				Resource optionsContext = resource.createRelative(name + ".properties");
 				if (!optionsContext.exists()) {
-					moduleOptions = null;
+					moduleOptions = AbsentModuleOptions.INSTANCE;
 				}
 				else {
-					GenericApplicationContext context = new GenericApplicationContext();
-					XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(context);
-					reader.loadBeanDefinitions(optionsContext);
-					moduleOptions = context.getBean(ModuleOptions.class);
+					// TODO
 				}
 			}
 			catch (IOException e) {
 				e.printStackTrace();
-				moduleOptions = null;
+				moduleOptions = AbsentModuleOptions.INSTANCE;
 			}
 		}
 		return moduleOptions;

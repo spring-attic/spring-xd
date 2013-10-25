@@ -16,16 +16,14 @@
 
 package org.springframework.xd.module.options;
 
-import java.util.Properties;
-
 
 /**
- * Encapsulates metadata about the accepted options for a module.
+ * To be implemented by classes that instruct the framework to activate some named profiles.
  * 
  * @author Eric Bottard
  */
-public interface ModuleOptions extends Iterable<ModuleOption> {
+public interface ProfileNamesProvider {
 
-	public abstract InterpolatedModuleOptions interpolate(Properties raw);
+	public String[] getProfilesToActivate();
 
 }

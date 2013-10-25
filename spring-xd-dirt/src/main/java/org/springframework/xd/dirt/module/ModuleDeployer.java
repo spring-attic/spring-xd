@@ -31,6 +31,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -152,9 +153,24 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		}
 		Map<String, String> parameters = request.getParameters();
 		if (!CollectionUtils.isEmpty(parameters)) {
+
 			Properties parametersAsProps = new Properties();
 			parametersAsProps.putAll(parameters);
-			module.addProperties(parametersAsProps);
+
+			if (definition.getModuleOptions() != null) {
+				EnumerablePropertySource<?> propertySource = definition.getModuleOptions().interpolate(
+						parametersAsProps).asPropertySource();
+				// Go back to the java.util.Properties world for now
+				Properties props = new Properties();
+				for (String key : propertySource.getPropertyNames()) {
+					props.setProperty(key, "" + propertySource.getProperty(key));
+				}
+				module.addProperties(props);
+			}
+			else {
+				module.addProperties(parametersAsProps);
+			}
+
 		}
 		this.deployModule(module);
 		if (logger.isInfoEnabled()) {

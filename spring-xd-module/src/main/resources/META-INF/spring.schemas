@@ -1,0 +1,2 @@
+http\://www.springframework.org/schema/xd/spring-xd-1.0.xsd=org/springframework/xd/module/config/spring-xd-1.0.xsd
+http\://www.springframework.org/schema/xd/spring-xd.xsd=org/springframework/xd/module/config/spring-xd-1.0.xsd

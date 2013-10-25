@@ -41,7 +41,7 @@ public class ModuleDefinitionResource extends NamedResource {
 	 * Default constructor for serialization frameworks.
 	 */
 	@SuppressWarnings("unused")
-	private ModuleDefinitionResource() {
+	protected ModuleDefinitionResource() {
 
 	}
 

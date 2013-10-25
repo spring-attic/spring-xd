@@ -17,6 +17,7 @@
 package org.springframework.xd.rest.client;
 
 import org.springframework.hateoas.PagedResources;
+import org.springframework.xd.rest.client.domain.DetailedModuleDefinitionResource;
 import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
 import org.springframework.xd.rest.client.domain.RESTModuleType;
 
@@ -37,4 +38,10 @@ public interface ModuleOperations {
 	 * List modules known to the system.
 	 */
 	public PagedResources<ModuleDefinitionResource> list(RESTModuleType type);
+
+
+	/**
+	 * Retrieve information about a particular module.
+	 */
+	public DetailedModuleDefinitionResource info(String name, RESTModuleType type);
 }

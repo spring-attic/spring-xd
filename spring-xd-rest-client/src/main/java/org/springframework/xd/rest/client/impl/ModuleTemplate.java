@@ -17,6 +17,7 @@
 package org.springframework.xd.rest.client.impl;
 
 import org.springframework.xd.rest.client.ModuleOperations;
+import org.springframework.xd.rest.client.domain.DetailedModuleDefinitionResource;
 import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
 import org.springframework.xd.rest.client.domain.RESTModuleType;
 
@@ -24,6 +25,7 @@ import org.springframework.xd.rest.client.domain.RESTModuleType;
 /**
  * Implementation of the Module-related part of the API.
  * 
+ * @author Eric Bottard
  * @author Glenn Renfro
  */
 public class ModuleTemplate extends AbstractTemplate implements ModuleOperations {
@@ -37,6 +39,12 @@ public class ModuleTemplate extends AbstractTemplate implements ModuleOperations
 		return null;
 	}
 
+	@Override
+	public DetailedModuleDefinitionResource info(String name, RESTModuleType type) {
+		String uriTemplate = resources.get("modules").toString() + "/{type}/{name}";
+
+		return restTemplate.getForObject(uriTemplate, DetailedModuleDefinitionResource.class, type, name);
+	}
 
 	@Override
 	public ModuleDefinitionResource.Page list(RESTModuleType type) {

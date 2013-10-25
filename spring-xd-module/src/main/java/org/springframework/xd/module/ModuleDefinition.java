@@ -16,12 +16,16 @@
 
 package org.springframework.xd.module;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.Properties;
 
+import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.DescriptiveResource;
 import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
+import org.springframework.xd.module.options.ModuleOptions;
 
 /**
  * Defines a module.
@@ -40,6 +44,8 @@ public class ModuleDefinition {
 	private volatile Properties properties;
 
 	private final URL[] classpath;
+
+	private ModuleOptions moduleOptions;
 
 	public ModuleDefinition(String name, ModuleType moduleType) {
 		this(name, moduleType, new DescriptiveResource("Dummy resource"));
@@ -83,4 +89,25 @@ public class ModuleDefinition {
 		return classpath;
 	}
 
+	public synchronized ModuleOptions getModuleOptions() {
+		if (moduleOptions == null) {
+			try {
+				Resource optionsContext = resource.createRelative(name + "-options.xml");
+				if (!optionsContext.exists()) {
+					moduleOptions = ModuleOptions.ABSENT;
+				}
+				else {
+					GenericApplicationContext context = new GenericApplicationContext();
+					XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(context);
+					reader.loadBeanDefinitions(optionsContext);
+					context.refresh();
+					moduleOptions = context.getBean(ModuleOptions.class);
+				}
+			}
+			catch (IOException e) {
+				moduleOptions = ModuleOptions.ABSENT;
+			}
+		}
+		return moduleOptions;
+	}
 }

@@ -67,7 +67,7 @@ ext {
 	hsqldbVersion = '2.3.0'
 	jodaTimeVersion = '2.1'
 	jolokiaVersion = '1.1.2'
-	springVersion = '4.0.0.M3'
+	springVersion = '4.0.0.BUILD-SNAPSHOT'
 	springBatchVersion = '2.2.3.BUILD-SNAPSHOT'
 	springIntegrationVersion = '4.0.0.BUILD-SNAPSHOT'
 	springBatchAdminMgrVersion = '1.3.0.M1'

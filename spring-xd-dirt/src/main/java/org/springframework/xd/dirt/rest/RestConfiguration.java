@@ -16,6 +16,7 @@ package org.springframework.xd.dirt.rest;
 
 import java.util.List;
 
+import org.springframework.batch.core.StepExecution;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -24,12 +25,14 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.hateoas.config.EnableHypermediaSupport;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.xd.dirt.plugins.job.support.StepExecutionJacksonMixIn;
 import org.springframework.xd.rest.client.util.RestTemplateMessageConverterUtil;
 
 /**
@@ -39,6 +42,7 @@ import org.springframework.xd.rest.client.util.RestTemplateMessageConverterUtil;
  * @author David Turanski
  * @author Andrew Eisenberg
  * @author Scott Andrews
+ * @author Gunnar Hillert
  */
 @Configuration
 @EnableWebMvc
@@ -57,6 +61,14 @@ public class RestConfiguration {
 			@Override
 			public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
 				RestTemplateMessageConverterUtil.installMessageConverters(converters);
+
+				for (HttpMessageConverter<?> httpMessageConverter : converters) {
+					if (httpMessageConverter instanceof MappingJackson2HttpMessageConverter) {
+						final MappingJackson2HttpMessageConverter converter = (MappingJackson2HttpMessageConverter) httpMessageConverter;
+						converter.getObjectMapper().addMixInAnnotations(StepExecution.class,
+								StepExecutionJacksonMixIn.class);
+					}
+				}
 			}
 
 			@Override

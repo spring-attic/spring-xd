@@ -37,7 +37,7 @@ public class RedisPublishingMessageHandler extends AbstractMessageHandler {
 
 	private final RedisTemplate<?, ?> template;
 
-	private volatile MessageConverter<Object> messageConverter = new SimpleMessageConverter();
+	private volatile MessageConverter messageConverter = new SimpleMessageConverter();
 
 	private volatile String defaultTopic;
 
@@ -55,7 +55,7 @@ public class RedisPublishingMessageHandler extends AbstractMessageHandler {
 		this.serializer = serializer;
 	}
 
-	public void setMessageConverter(MessageConverter<Object> messageConverter) {
+	public void setMessageConverter(MessageConverter messageConverter) {
 		Assert.notNull(messageConverter, "messageConverter must not be null");
 		this.messageConverter = messageConverter;
 	}

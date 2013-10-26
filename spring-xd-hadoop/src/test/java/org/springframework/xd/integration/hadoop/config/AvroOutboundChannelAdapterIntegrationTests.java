@@ -16,49 +16,36 @@
 
 package org.springframework.xd.integration.hadoop.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.junit.Test;
-
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.data.hadoop.store.dataset.DatasetOperations;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.MessageChannel;
 
+import java.io.File;
+
+import static org.junit.Assert.assertTrue;
+
 /**
- * @author Mark Fisher
  * @author Thomas Risberg
  */
-public class HdfsOutboundChannelAdapterIntegrationTests {
+public class AvroOutboundChannelAdapterIntegrationTests {
 
 	@Test
 	public void test() throws Exception {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"org/springframework/xd/integration/hadoop/config/HdfsOutboundChannelAdapterIntegrationTests.xml");
-		MessageChannel channel = context.getBean("hdfsOut", MessageChannel.class);
+				"org/springframework/xd/integration/hadoop/config/AvroOutboundChannelAdapterIntegrationTests.xml");
+		MessageChannel channel = context.getBean("avroOut", MessageChannel.class);
 		channel.send(MessageBuilder.withPayload("foo").build());
 		channel.send(MessageBuilder.withPayload("bar").build());
-		FileSystem fileSystem = context.getBean("hadoopFs", FileSystem.class);
+		DatasetOperations datasetOperations = context.getBean("datasetOperations", DatasetOperations.class);
 		String path = context.getBean("path", String.class);
+		assertTrue("Dataset path created", new File(path).exists());
+		assertTrue("Dataset storage created",
+				new File(path + "/" + datasetOperations.getDatasetName(String.class)).exists());
+		assertTrue("Dataset metadata created",
+				new File(path + "/" + datasetOperations.getDatasetName(String.class) + "/.metadata").exists());
 		context.close();
-		Path basepath = new Path(path + "/testdir/");
-		Path filepath0 = new Path(basepath, "testfile-0.txt");
-		Path filepath1 = new Path(basepath, "testfile-1.txt");
-		assertTrue(fileSystem.exists(basepath));
-		assertTrue(fileSystem.exists(filepath0));
-		assertTrue(fileSystem.exists(filepath1));
-		BufferedReader reader0 = new BufferedReader(new InputStreamReader(fileSystem.open(filepath0)));
-		assertEquals("foo", reader0.readLine());
-		BufferedReader reader1 = new BufferedReader(new InputStreamReader(fileSystem.open(filepath1)));
-		assertEquals("bar", reader1.readLine());
-		reader0.close();
-		reader1.close();
-		assertTrue(fileSystem.delete(basepath, true));
 	}
 
 }

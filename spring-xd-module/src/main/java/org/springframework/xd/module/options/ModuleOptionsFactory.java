@@ -23,6 +23,7 @@ import java.util.regex.Pattern;
 
 import org.springframework.core.io.Resource;
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ParentLastURLClassLoader;
 
 
 /**
@@ -65,7 +66,11 @@ public class ModuleOptionsFactory {
 				String pojoClass = props.getProperty(OPTIONS_CLASS);
 				if (pojoClass != null) {
 					try {
-						Class<?> clazz = Class.forName(pojoClass);
+						ClassLoader classLoaderToUse = definition.getClasspath() != null
+								? new ParentLastURLClassLoader(definition.getClasspath(),
+										ModuleOptionsFactory.class.getClassLoader())
+								: ModuleOptionsFactory.class.getClassLoader();
+						Class<?> clazz = Class.forName(pojoClass, true, classLoaderToUse);
 						return new PojoModuleOptions(clazz);
 					}
 					catch (ClassNotFoundException e) {

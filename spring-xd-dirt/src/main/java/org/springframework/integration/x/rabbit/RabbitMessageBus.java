@@ -18,12 +18,14 @@ package org.springframework.integration.x.rabbit;
 
 import java.util.Collection;
 
+import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.rabbit.config.StatelessRetryOperationsInterceptorFactoryBean;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -111,6 +113,8 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 			listenerContainer.setConcurrentConsumers(this.concurrentConsumers);
 		}
 		listenerContainer.setQueues(queue);
+		Advice advice = new StatelessRetryOperationsInterceptorFactoryBean().getObject();
+		listenerContainer.setAdviceChain(new Advice[] { advice });
 		listenerContainer.afterPropertiesSet();
 		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(listenerContainer);
 		DirectChannel bridgeToModuleChannel = new DirectChannel();

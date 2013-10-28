@@ -16,10 +16,22 @@
 
 package org.springframework.integration.x.rabbit;
 
-import org.junit.Rule;
+import static org.junit.Assert.assertTrue;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import org.junit.Rule;
+import org.junit.Test;
+
+import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.x.bus.AbstractMessageBusTests;
 import org.springframework.integration.x.bus.MessageBus;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.MessagingException;
 import org.springframework.xd.test.rabbit.RabbitTestSupport;
 
 /**
@@ -30,10 +42,31 @@ public class RabbitMessageBusTests extends AbstractMessageBusTests {
 	@Rule
 	public RabbitTestSupport rabbitAvailableRule = new RabbitTestSupport();
 
-	@SuppressWarnings("unchecked")
 	@Override
 	protected MessageBus getMessageBus() throws Exception {
 		return new RabbitMessageBus(rabbitAvailableRule.getResource(), getCodec());
 	}
+
+	@Test
+	public void testSendAndReceiveBad() throws Exception {
+		MessageBus messageBus = getMessageBus();
+		DirectChannel moduleOutputChannel = new DirectChannel();
+		DirectChannel moduleInputChannel = new DirectChannel();
+		messageBus.bindProducer("bad.0", moduleOutputChannel, false);
+		messageBus.bindConsumer("bad.0", moduleInputChannel, ALL, false);
+		Message<?> message = MessageBuilder.withPayload("bad").setHeader(MessageHeaders.CONTENT_TYPE, "foo/bar").build();
+		final CountDownLatch latch = new CountDownLatch(3);
+		moduleInputChannel.subscribe(new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				latch.countDown();
+				throw new RuntimeException("bad");
+			}
+		});
+		moduleOutputChannel.send(message);
+		assertTrue(latch.await(10, TimeUnit.SECONDS));
+	}
+
 
 }

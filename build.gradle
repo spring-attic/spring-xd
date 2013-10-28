@@ -992,6 +992,12 @@ project('modules.job.filejdbc') {
 	}
 }
 
+project('modules.job.hdfsjdbc') {
+	dependencies {
+		runtime(project(":spring-xd-extension-jdbc"))
+	}
+}
+
 project('spring-xd-ui') {
 	description = 'Spring XD UI'
 	// Run the jasmine tests from commandline using phantomJS

@@ -53,7 +53,7 @@ public class JobsController extends
 	}
 
 	/**
-	 * Send the request to launch Job. If the Job is not already deployed, then deploy and launch
+	 * Send the request to launch Job. If the Job is not already deployed, then deploy and launch.
 	 * 
 	 * @param name the name of the job
 	 * @param jobParameters the job parameters in JSON string
@@ -72,9 +72,9 @@ public class JobsController extends
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public PagedResources<JobDefinitionResource> list(Pageable pageable,
+	public PagedResources<JobDefinitionResource> list(Pageable pageable, QueryOptions queryOptions,
 			PagedResourcesAssembler<JobDefinition> assembler) {
-		return listValues(pageable, QueryOptions.NONE, assembler);
+		return listValues(pageable, queryOptions, assembler);
 	}
 
 	@Override

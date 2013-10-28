@@ -55,6 +55,7 @@ import org.springframework.xd.dirt.stream.StreamRepository;
 import org.springframework.xd.dirt.stream.XDParser;
 import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.dirt.stream.memory.InMemoryJobDefinitionRepository;
+import org.springframework.xd.dirt.stream.memory.InMemoryJobRepository;
 import org.springframework.xd.dirt.stream.memory.InMemoryStreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.memory.InMemoryStreamRepository;
 
@@ -122,7 +123,7 @@ public class Dependencies {
 
 	@Bean
 	public JobDeployer jobDeployer() {
-		return new JobDeployer(jobDefinitionRepository(), deploymentMessageSender(), parser());
+		return new JobDeployer(deploymentMessageSender(), jobDefinitionRepository(), xdJobRepository(), parser());
 	}
 
 	@Bean
@@ -138,6 +139,11 @@ public class Dependencies {
 	@Bean
 	public StreamRepository streamRepository() {
 		return new InMemoryStreamRepository();
+	}
+
+	@Bean
+	public org.springframework.xd.dirt.stream.JobRepository xdJobRepository() {
+		return new InMemoryJobRepository();
 	}
 
 	@Bean

@@ -89,11 +89,19 @@ public class JobCommands implements CommandMarker {
 
 		final PagedResources<JobDefinitionResource> jobs = jobOperations().list();
 		final Table table = new Table();
-		table.addHeader(1, new TableHeader("Job Name")).addHeader(2, new TableHeader("Job Definition"));
+		table.addHeader(1, new TableHeader("Job Name")).
+				addHeader(2, new TableHeader("Job Definition")).
+				addHeader(3, new TableHeader("Status"));
 
 		for (JobDefinitionResource jobDefinitionResource : jobs) {
 			final TableRow row = new TableRow();
 			row.addValue(1, jobDefinitionResource.getName()).addValue(2, jobDefinitionResource.getDefinition());
+			if (Boolean.TRUE.equals(jobDefinitionResource.isDeployed())) {
+				row.addValue(3, "deployed");
+			}
+			else {
+				row.addValue(3, "");
+			}
 			table.getRows().add(row);
 		}
 		return table;
@@ -101,7 +109,7 @@ public class JobCommands implements CommandMarker {
 
 	@CliCommand(value = DEPLOY_JOB, help = "Deploy a previously created job")
 	public String deployJob(
-			@CliOption(key = { "", "name" }, help = "the name of the job to deploy", mandatory = true, optionContext = "existing-job disable-string-converter") String name) {
+			@CliOption(key = { "", "name" }, help = "the name of the job to deploy", mandatory = true, optionContext = "existing-job undeployed disable-string-converter") String name) {
 		jobOperations().deploy(name);
 		return String.format("Deployed job '%s'", name);
 	}
@@ -129,7 +137,7 @@ public class JobCommands implements CommandMarker {
 
 	@CliCommand(value = UNDEPLOY_JOB, help = "Un-deploy an existing job")
 	public String undeployJob(
-			@CliOption(key = { "", "name" }, help = "the name of the job to un-deploy", mandatory = true, optionContext = "existing-job disable-string-converter") String name
+			@CliOption(key = { "", "name" }, help = "the name of the job to un-deploy", mandatory = true, optionContext = "existing-job deployed disable-string-converter") String name
 			) {
 		jobOperations().undeploy(name);
 		return String.format("Un-deployed Job '%s'", name);

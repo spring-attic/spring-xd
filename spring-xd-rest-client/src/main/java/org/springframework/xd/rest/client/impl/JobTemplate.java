@@ -42,15 +42,20 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 
 		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
 		values.add("name", name);
-		values.add("definition", definition);
 		values.add("deploy", String.valueOf(deploy));
+		StringBuilder enhancedDefinition = new StringBuilder(definition);
+
 		if (dateFormat != null) {
-			values.add("dateFormat", dateFormat);
+			enhancedDefinition.append(" --dataFormat=").append(dateFormat);
 		}
 		if (numberFormat != null) {
-			values.add("numberFormat", numberFormat);
+			enhancedDefinition.append(" --numberFormat=").append(numberFormat);
 		}
-		values.add("makeUnique", String.valueOf(makeUnique));
+		if (makeUnique) {
+			enhancedDefinition.append(" --makeUnique=true");
+		}
+
+		values.add("definition", enhancedDefinition.toString());
 
 		JobDefinitionResource job = restTemplate.postForObject(resources.get("jobs"), values,
 				JobDefinitionResource.class);
@@ -93,7 +98,7 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 	public JobDefinitionResource.Page list() {
 		String uriTemplate = resources.get("jobs").toString();
 		// TODO handle pagination at the client side
-		uriTemplate = uriTemplate + "?size=10000";
+		uriTemplate = uriTemplate + "?size=10000&deployments=true";
 		return restTemplate.getForObject(uriTemplate, JobDefinitionResource.Page.class);
 	}
 

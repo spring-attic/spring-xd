@@ -55,7 +55,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 
 		executeJobCreate(MY_TEST, JOB_WITH_PARAMETERS_DESCRIPTOR);
 
-		checkForJobInList(MY_TEST, JOB_WITH_PARAMETERS_DESCRIPTOR);
+		checkForJobInList(MY_TEST, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
 		executemyTestTriggerStream();
 		assertTrue("Job did not complete within time alotted", jobParametersHolder.isDone());
 		CommandResult cr = getShell().executeCommand("job undeploy --name myTest");
@@ -73,7 +73,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		executeJobCreate(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR);
 		executemyJobTriggerStream();
 
-		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR);
+		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
 		assertTrue("Job did not complete within time alotted", jobParametersHolder.isDone());
 
 		CommandResult cr = getShell().executeCommand("job create --definition \"job\" --name myJob");
@@ -94,13 +94,13 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		logger.info("Create 2 myJobs with --deploy = false");
 		executeJobCreate(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
 
-		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR);
+		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
 
 		CommandResult cr = getShell().executeCommand("job create --definition \"job\" --name myJob --deploy false");
 		checkForFail(cr);
 		checkErrorMessages(cr, "There is already a job named 'myJob'");
 
-		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR);
+		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
 	}
 
 	@Test
@@ -111,14 +111,14 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 
 		executeJobCreate(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
 
-		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR);
+		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
 		CommandResult cr = getShell().executeCommand("job deploy --name myJob");
 		checkForSuccess(cr);
 		assertEquals("Deployed job 'myJob'", cr.getResult());
 		executemyJobTriggerStream();
 		assertTrue("Job did not complete within time alotted", jobParametersHolder.isDone());
 
-		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR);
+		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
 
 		cr = getShell().executeCommand("job undeploy --name myJob");
 		checkForSuccess(cr);
@@ -128,7 +128,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		checkForSuccess(cr);
 		assertEquals("Deployed job 'myJob'", cr.getResult());
 
-		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR);
+		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
 	}
 
 	@Test
@@ -154,7 +154,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 
 		JobParametersHolder.reset();
 		executeJobCreate(MY_JOB_WITH_PARAMETERS, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
-		checkForJobInList(MY_JOB_WITH_PARAMETERS, JOB_WITH_PARAMETERS_DESCRIPTOR);
+		checkForJobInList(MY_JOB_WITH_PARAMETERS, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
 
 		final JobParametersHolder jobParametersHolder = new JobParametersHolder();
 
@@ -185,7 +185,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		logger.info("Create batch job with typed parameters");
 		JobParametersHolder.reset();
 		executeJobCreate(MY_JOB_WITH_PARAMETERS, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
-		checkForJobInList(MY_JOB_WITH_PARAMETERS, JOB_WITH_PARAMETERS_DESCRIPTOR);
+		checkForJobInList(MY_JOB_WITH_PARAMETERS, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
 
 		final JobParametersHolder jobParametersHolder = new JobParametersHolder();
 
@@ -226,7 +226,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 	public void testLaunchJob() {
 		logger.info("Launch batch job");
 		executeJobCreate(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR);
-		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR);
+		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
 		executeJobLaunch(MY_JOB);
 	}
 
@@ -244,7 +244,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		JobParametersHolder.reset();
 		final JobParametersHolder jobParametersHolder = new JobParametersHolder();
 		executeJobCreate(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR);
-		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR);
+		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
 		executeJobLaunch(MY_JOB, myJobParams);
 		boolean done = jobParametersHolder.isDone();
 

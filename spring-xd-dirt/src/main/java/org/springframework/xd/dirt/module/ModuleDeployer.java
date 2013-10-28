@@ -178,11 +178,11 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 			if (logger.isDebugEnabled()) {
 				logger.debug("added properties for child module [" + module.getName() + "]: " + props);
 			}
-			// module.setParentContext(this.context);
+
 			modules.add(module);
 		}
 		CompositeModule module = new CompositeModule(request.getModule(), request.getType(), modules, metadata);
-		deploy(module, request, message);
+		deployModule(module, request, message);
 	}
 
 	private void handleDeploymentRequest(ModuleDeploymentRequest request, Message<?> message) {
@@ -222,7 +222,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 			parametersAsProps.putAll(parameters);
 			module.addProperties(parametersAsProps);
 		}
-		this.deploy(module, request, message);
+		this.deploy(module);
 		if (logger.isInfoEnabled()) {
 			logger.info("deployed " + module.toString());
 		}
@@ -230,7 +230,27 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		this.deployedModules.get(request.getGroup()).put(request.getIndex(), module);
 	}
 
-	private void deploy(Module module, ModuleDeploymentRequest request, Message<?> message) {
+	private void deployModule(Module module, ModuleDeploymentRequest request, Message<?> message) {
+		module.setParentContext(this.commonContext);
+		Object properties = message.getHeaders().get("properties");
+		if (properties instanceof Properties) {
+			module.addProperties((Properties) properties);
+		}
+		Map<String, String> parameters = request.getParameters();
+		if (!CollectionUtils.isEmpty(parameters)) {
+			Properties parametersAsProps = new Properties();
+			parametersAsProps.putAll(parameters);
+			module.addProperties(parametersAsProps);
+		}
+		this.deploy(module);
+		if (logger.isInfoEnabled()) {
+			logger.info("deployed " + module.toString());
+		}
+		this.deployedModules.putIfAbsent(request.getGroup(), new HashMap<Integer, Module>());
+		this.deployedModules.get(request.getGroup()).put(request.getIndex(), module);
+	}
+
+	private void deploy(Module module) {
 		this.preProcessModule(module);
 		module.initialize();
 		this.postProcessModule(module);

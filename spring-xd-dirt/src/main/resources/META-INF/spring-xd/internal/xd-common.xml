@@ -3,14 +3,6 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<bean id="moduleRegistry" class="org.springframework.xd.dirt.module.CompositeModuleRegistry">
-		<constructor-arg>
-			<bean class="org.springframework.xd.dirt.module.FileModuleRegistry">
-				<constructor-arg value="${XD_HOME}/modules" />
-			</bean>
-		</constructor-arg>
-	</bean>
-
 	<beans>
 		<import resource="xd-ppc.xml"/>
 	</beans>

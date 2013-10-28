@@ -29,6 +29,7 @@ import org.junit.Test;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
 
+import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -79,6 +80,7 @@ public class JobPluginTests {
 	@Configuration
 	@ImportResource("classpath:/META-INF/spring-xd/batch/batch.xml")
 	@EnableAutoConfiguration
+	@EnableBatchProcessing
 	public static class SharedConfiguration {
 
 	}

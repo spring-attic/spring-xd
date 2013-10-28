@@ -29,7 +29,7 @@ import org.springframework.integration.x.bus.DefaultMessageMediaTypeResolver;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.xd.dirt.plugins.ModuleConfigurationException;
-import org.springframework.xd.module.SpringApplicationModule;
+import org.springframework.xd.module.Module;
 import org.springframework.xd.tuple.Tuple;
 
 /**
@@ -48,8 +48,8 @@ public class TypeConvertingStreamTests extends StreamTestSupport {
 
 	@Test
 	public void testParametersPresent() {
-		SpringApplicationModule source = getDeployedSource("test1");
-		SpringApplicationModule sink = getDeployedSink("test1");
+		Module source = getDeployedSource("test1");
+		Module sink = getDeployedSink("test1");
 		assertEquals("application/json", source.getProperties().get("outputType"));
 		assertEquals("application/x-xd-tuple", sink.getProperties().get("inputType"));
 	}

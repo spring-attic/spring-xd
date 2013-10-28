@@ -41,7 +41,6 @@ import org.springframework.xd.dirt.server.options.CommandLineParser;
 import org.springframework.xd.dirt.server.options.SingleNodeOptions;
 import org.springframework.xd.module.CompositeModule;
 import org.springframework.xd.module.Module;
-import org.springframework.xd.module.SpringApplicationModule;
 
 
 /**
@@ -95,19 +94,19 @@ public class StreamTestSupport {
 		streamDeployer.undeploy(name);
 	}
 
-	protected static SpringApplicationModule getDeployedModule(String streamName, int index) {
+	protected static Module getDeployedModule(String streamName, int index) {
 		Map<Integer, Module> streamModules = getStreamModules(streamName);
-		return (SpringApplicationModule) streamModules.get(index);
+		return streamModules.get(index);
 	}
 
-	protected static SpringApplicationModule getDeployedSource(String streamName) {
+	protected static Module getDeployedSource(String streamName) {
 		Map<Integer, Module> streamModules = getStreamModules(streamName);
-		return (SpringApplicationModule) streamModules.get(0);
+		return streamModules.get(0);
 	}
 
-	protected static SpringApplicationModule getDeployedSink(String streamName) {
+	protected static Module getDeployedSink(String streamName) {
 		Map<Integer, Module> streamModules = getStreamModules(streamName);
-		return (SpringApplicationModule) streamModules.get(streamModules.size() - 1);
+		return streamModules.get(streamModules.size() - 1);
 	}
 
 	protected static Map<Integer, Module> getStreamModules(String streamName) {

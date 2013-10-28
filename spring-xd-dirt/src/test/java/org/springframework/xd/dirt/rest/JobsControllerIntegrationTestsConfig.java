@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -17,17 +17,20 @@ import static org.mockito.Mockito.mock;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleRegistry;
-import org.springframework.xd.dirt.stream.XDStreamParser;
+import org.springframework.xd.dirt.module.memory.InMemoryModuleDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobDeployer;
 import org.springframework.xd.dirt.stream.XDParser;
+import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.dirt.stream.memory.InMemoryJobDefinitionRepository;
 
 /**
  * Override some dependencies to use actual in-memory implementations.
  * 
  * @author Glenn Renfro
+ * @author Mark Fisher
  */
 @Configuration
 public class JobsControllerIntegrationTestsConfig extends Dependencies {
@@ -42,16 +45,15 @@ public class JobsControllerIntegrationTestsConfig extends Dependencies {
 	@Bean
 	public JobDeployer jobDeployer() {
 		XDParser parser = new XDStreamParser(
-				jobDefinitionRepository(), moduleRegistry());
+				jobDefinitionRepository(), moduleDefinitionRepository());
 
 		return new JobDeployer(jobDefinitionRepository(), deploymentMessageSender(), parser);
 	}
 
 	@Override
 	@Bean
-	public ModuleRegistry moduleRegistry() {
-		ModuleRegistry registry = mock(ModuleRegistry.class);
-
-		return registry;
+	public ModuleDefinitionRepository moduleDefinitionRepository() {
+		return new InMemoryModuleDefinitionRepository(mock(ModuleRegistry.class));
 	}
+
 }

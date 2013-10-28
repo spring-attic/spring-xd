@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.module;
+package org.springframework.xd.module;
 
 import java.io.IOException;
 import java.net.URL;
@@ -34,7 +34,7 @@ import org.springframework.core.io.support.PropertiesLoaderUtils;
  * 
  * @author Costin Leau
  */
-class ParentLastURLClassLoader extends URLClassLoader {
+public class ParentLastURLClassLoader extends URLClassLoader {
 
 	private final ClassLoader system;
 

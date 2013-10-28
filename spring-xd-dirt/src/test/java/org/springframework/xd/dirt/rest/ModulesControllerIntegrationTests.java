@@ -19,10 +19,12 @@ package org.springframework.xd.dirt.rest;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 import org.hamcrest.Matchers;
 import org.junit.Before;
@@ -35,6 +37,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.stream.DeploymentMessageSender;
 import org.springframework.xd.module.ModuleDefinition;
@@ -44,6 +47,7 @@ import org.springframework.xd.module.ModuleType;
  * Tests REST compliance of module-related endpoints.
  * 
  * @author Glenn Renfro
+ * @author Mark Fisher
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
@@ -55,6 +59,9 @@ public class ModulesControllerIntegrationTests extends AbstractControllerIntegra
 
 	@Autowired
 	private ModuleRegistry moduleRegistry;
+
+	@Autowired
+	private ModuleDefinitionRepository moduleDefinitionRepository;
 
 	@Before
 	public void before() {
@@ -90,11 +97,26 @@ public class ModulesControllerIntegrationTests extends AbstractControllerIntegra
 
 		when(resource.exists()).thenReturn(true);
 		when(resource.getDescription()).thenReturn("foo");
+		for (int i = 0; i < 3; i++) {
+			when(moduleRegistry.findDefinition("source_" + i, ModuleType.source)).thenReturn(sourceDefinitions.get(i));
+			when(moduleRegistry.findDefinitions("source_" + i)).thenReturn(
+					Collections.singletonList(sourceDefinitions.get(i)));
+			when(moduleRegistry.findDefinition("processor_" + i, ModuleType.processor)).thenReturn(
+					processorDefinitions.get(i));
+			when(moduleRegistry.findDefinitions("processor_" + i)).thenReturn(
+					Collections.singletonList(processorDefinitions.get(i)));
+			when(moduleRegistry.findDefinition("sink_" + i, ModuleType.sink)).thenReturn(sinkDefinitions.get(i));
+			when(moduleRegistry.findDefinitions("sink_" + i)).thenReturn(
+					Collections.singletonList(sinkDefinitions.get(i)));
+		}
 		when(moduleRegistry.findDefinitions(ModuleType.sink)).thenReturn(sinkDefinitions);
 		when(moduleRegistry.findDefinitions(ModuleType.source)).thenReturn(sourceDefinitions);
 		when(moduleRegistry.findDefinitions(ModuleType.job)).thenReturn(jobDefinitions);
 		when(moduleRegistry.findDefinitions(ModuleType.processor)).thenReturn(processorDefinitions);
 		when(moduleRegistry.findDefinitions()).thenReturn(moduleDefinitions);
+
+		// clear this one so it does not have side effects on other tests
+		moduleDefinitionRepository.delete("sink:compositesink");
 	}
 
 	@Test
@@ -130,7 +152,8 @@ public class ModulesControllerIntegrationTests extends AbstractControllerIntegra
 	public void testListSink() throws Exception {
 		mockMvc.perform(get("/modules").param("type", "sink").accept(MediaType.APPLICATION_JSON)).andExpect(
 				status().isOk()).andExpect(
-				jsonPath("$.content", Matchers.hasSize(3))).andExpect(jsonPath("$.content[0].name").value("sink_0")).andExpect(
+				jsonPath("$.content", Matchers.hasSize(3))).andExpect(
+				jsonPath("$.content[0].name").value("sink_0")).andExpect(
 				jsonPath("$.content[1].name").value("sink_1")).andExpect(
 				jsonPath("$.content[2].name").value("sink_2"));
 	}
@@ -140,4 +163,16 @@ public class ModulesControllerIntegrationTests extends AbstractControllerIntegra
 		mockMvc.perform(get("/modules").param("type", "foo").accept(MediaType.APPLICATION_JSON)).andExpect(
 				status().isInternalServerError());
 	}
+
+	@Test
+	public void saveComposedModule() throws Exception {
+		mockMvc.perform(post("/modules")
+				.param("name", "compositesink")
+				.param("definition", "processor_2 | sink_1")
+				.accept(MediaType.APPLICATION_JSON))
+				.andExpect(status().is(201)).andExpect(
+						jsonPath("$.name").value("compositesink")).andExpect(
+						jsonPath("$.type").value("sink"));
+	}
+
 }

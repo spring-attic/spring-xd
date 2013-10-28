@@ -58,8 +58,9 @@ public class ModuleCommands implements CommandMarker {
 	public String createModule(
 			@CliOption(mandatory = true, key = { "name", "" }, help = "the name to give to the module") String name,
 			@CliOption(mandatory = true, key = "definition", help = "module definition using xd dsl") String dsl) {
-		xdShell.getSpringXDOperations().moduleOperations().composeModule(name, dsl);
-		return String.format(("Successfully created module '%s'"), name);
+		ModuleDefinitionResource composedModule = moduleOperations().composeModule(name, dsl);
+		return String.format(("Successfully created module '%s' with type %s"), composedModule.getName(),
+				composedModule.getType());
 	}
 
 	@CliCommand(value = LIST_MODULES, help = "List all modules")

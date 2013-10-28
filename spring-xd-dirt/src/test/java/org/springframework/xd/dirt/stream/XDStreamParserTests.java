@@ -30,8 +30,10 @@ import org.junit.Test;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.Resource;
+import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.dirt.module.ModuleRegistry;
+import org.springframework.xd.dirt.module.memory.InMemoryModuleDefinitionRepository;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 
@@ -39,13 +41,13 @@ import org.springframework.xd.module.ModuleType;
  * @author Mark Fisher
  * @author David Turanski
  */
-public class EnhancedStreamParserTests {
+public class XDStreamParserTests {
 
 	private XDStreamParser parser;
 
 	@Before
 	public void setup() {
-		parser = new XDStreamParser(moduleRegistry());
+		parser = new XDStreamParser(moduleDefinitionRepository());
 	}
 
 	@Test
@@ -193,6 +195,11 @@ public class EnhancedStreamParserTests {
 		assertEquals(1, requests.size());
 		assertEquals("foo", requests.get(0).getSourceChannelName());
 		assertEquals(ModuleType.sink, requests.get(0).getType());
+	}
+
+	@Bean
+	public ModuleDefinitionRepository moduleDefinitionRepository() {
+		return new InMemoryModuleDefinitionRepository(moduleRegistry());
 	}
 
 	@Bean

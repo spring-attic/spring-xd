@@ -19,46 +19,20 @@ package org.springframework.xd.dirt.module;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.util.Assert;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
-
+import org.springframework.xd.store.DomainRepository;
 
 /**
- * 
- * @author Glenn Renfro
+ * @author Mark Fisher
  */
-public class ModuleDefinitionRepository {
+public interface ModuleDefinitionRepository extends DomainRepository<ModuleDefinition, String> {
 
-	ModuleRegistry moduleRegistry;
+	List<ModuleDefinition> findByName(String name);
 
-	public ModuleDefinitionRepository(ModuleRegistry moduleRegistry) {
-		this.moduleRegistry = moduleRegistry;
-	}
+	ModuleDefinition findByNameAndType(String name, ModuleType type);
 
-	public Page<ModuleDefinition> findAll(Pageable pageable) {
-		List<ModuleDefinition> definitions = moduleRegistry.findDefinitions();
-		Assert.isNull(pageable.getSort(), "Arbitrary sorting is not implemented");
-		return slice(definitions, pageable);
-	}
+	Page<ModuleDefinition> findByType(Pageable pageable, ModuleType type);
 
-	public Page<ModuleDefinition> findAll(Pageable pageable, ModuleType moduleType) {
-		if (moduleType == null) {
-			return findAll(pageable);
-		}
-		List<org.springframework.xd.module.ModuleDefinition> definitions = moduleRegistry.findDefinitions(moduleType);
-		Assert.isNull(pageable.getSort(), "Arbitrary sorting is not implemented");
-		return slice(definitions, pageable);
-	}
-
-	/**
-	 * Post-process the list to only return elements matching the page request.
-	 */
-	protected Page<ModuleDefinition> slice(List<ModuleDefinition> list, Pageable pageable) {
-		int to = Math.min(list.size(), pageable.getOffset() + pageable.getPageSize());
-		List<ModuleDefinition> data = list.subList(pageable.getOffset(), to);
-		return new PageImpl<ModuleDefinition>(data, pageable, list.size());
-	}
 }

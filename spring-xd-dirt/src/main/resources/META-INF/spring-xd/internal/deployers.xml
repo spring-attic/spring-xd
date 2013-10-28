@@ -11,7 +11,7 @@
 
 	<bean id="parser" class="org.springframework.xd.dirt.stream.XDStreamParser">
 		<constructor-arg ref="streamDefinitionRepository"/>
-		<constructor-arg name="moduleRegistry" ref="moduleRegistry"/>
+		<constructor-arg name="moduleDefinitionRepository" ref="moduleDefinitionRepository"/>
 	</bean>
 
 	<bean id="deploymentMessageSender" class="org.springframework.xd.dirt.stream.DeploymentMessageSender">

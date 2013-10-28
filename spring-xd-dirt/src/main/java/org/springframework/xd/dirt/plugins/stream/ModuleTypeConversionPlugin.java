@@ -77,9 +77,11 @@ public class ModuleTypeConversionPlugin extends PluginAdapter {
 
 
 	private void registerConversionService(Module module, ConversionService conversionService) {
-		SimpleModule sm = (SimpleModule) module;
-		ConfigurableApplicationContext applicationContext = (ConfigurableApplicationContext) sm.getApplicationContext();
-		applicationContext.getBeanFactory().registerSingleton("conversionService", conversionService);
+		if (module instanceof SimpleModule) {
+			SimpleModule sm = (SimpleModule) module;
+			ConfigurableApplicationContext applicationContext = (ConfigurableApplicationContext) sm.getApplicationContext();
+			applicationContext.getBeanFactory().registerSingleton("conversionService", conversionService);
+		}
 	}
 
 	private void configureModuleConverters(String contentTypeString, Module module,

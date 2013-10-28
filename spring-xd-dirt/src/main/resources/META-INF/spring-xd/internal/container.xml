@@ -21,7 +21,7 @@
 			ref="moduleDeployer" />
 
 		<bean id="moduleDeployer" class="org.springframework.xd.dirt.module.ModuleDeployer">
-			<constructor-arg ref="moduleRegistry" />
+			<constructor-arg ref="moduleDefinitionRepository" />
 		</bean>
 
 	</beans>

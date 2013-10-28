@@ -746,9 +746,7 @@ project('redis') {
 project('spring-xd-module') {
 	description = 'Spring XD Module'
 	dependencies {
-		compile "org.springframework:spring-core:$springVersion"
-		compile "org.springframework:spring-context:$springVersion"
-		compile "org.springframework:spring-web:$springVersion"
+		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
 	}
 }
 

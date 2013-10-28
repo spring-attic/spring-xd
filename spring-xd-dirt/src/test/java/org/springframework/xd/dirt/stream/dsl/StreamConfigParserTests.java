@@ -36,7 +36,9 @@ import org.junit.Test;
 
 import org.springframework.core.io.Resource;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleRegistry;
+import org.springframework.xd.dirt.module.memory.InMemoryModuleDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.module.ModuleDefinition;
@@ -214,7 +216,7 @@ public class StreamConfigParserTests {
 	@Test
 	public void testInvalidModules() {
 		String config = "test | foo--x=13";
-		XDStreamParser parser = new XDStreamParser(testRepository, moduleRegistry());
+		XDStreamParser parser = new XDStreamParser(testRepository, moduleDefinitionRepository());
 		try {
 			parser.parse("t", config);
 			fail(config + " is invalid. Should throw exception");
@@ -224,7 +226,7 @@ public class StreamConfigParserTests {
 		}
 	}
 
-	public ModuleRegistry moduleRegistry() {
+	public ModuleDefinitionRepository moduleDefinitionRepository() {
 		ModuleRegistry registry = mock(ModuleRegistry.class);
 		Resource resource = mock(Resource.class);
 		File file = mock(File.class);
@@ -252,7 +254,7 @@ public class StreamConfigParserTests {
 				ModuleType.processor, resource));
 		when(registry.findDefinitions("PROCESSOR")).thenReturn(
 				definitions);
-		return registry;
+		return new InMemoryModuleDefinitionRepository(registry);
 	}
 
 	@Test

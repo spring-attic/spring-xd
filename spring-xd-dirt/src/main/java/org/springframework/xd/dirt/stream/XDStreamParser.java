@@ -22,8 +22,9 @@ import java.util.List;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.BaseDefinition;
+import org.springframework.xd.dirt.module.CompositeModuleDeploymentRequest;
+import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
-import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.module.NoSuchModuleException;
 import org.springframework.xd.dirt.stream.dsl.ArgumentNode;
 import org.springframework.xd.dirt.stream.dsl.ModuleNode;
@@ -39,28 +40,27 @@ import org.springframework.xd.module.ModuleType;
  * @author Andy Clement
  * @author Gunnar Hillert
  * @author Glenn Renfro
+ * @author Mark Fisher
  * @since 1.0
  */
 public class XDStreamParser implements XDParser {
 
 	private CrudRepository<? extends BaseDefinition, String> repository;
 
-	private ModuleRegistry moduleRegistry;
+	private final ModuleDefinitionRepository moduleDefinitionRepository;
 
 	public XDStreamParser(CrudRepository<? extends BaseDefinition, String> repository,
-			ModuleRegistry moduleRegistry) {
+			ModuleDefinitionRepository moduleDefinitionRepository) {
 		Assert.notNull(repository, "repository can not be null");
-		Assert.notNull(moduleRegistry, "moduleRegistry can not be null");
-
+		Assert.notNull(moduleDefinitionRepository, "moduleDefinitionRepository can not be null");
 		this.repository = repository;
-		this.moduleRegistry = moduleRegistry;
+		this.moduleDefinitionRepository = moduleDefinitionRepository;
 	}
 
-	public XDStreamParser(ModuleRegistry moduleRegistry) {
-		// no repository, will not be able to resolve substream/label references
-		Assert.notNull(moduleRegistry, "moduleRegistry can not be null");
-
-		this.moduleRegistry = moduleRegistry;
+	public XDStreamParser(ModuleDefinitionRepository moduleDefinitionRepository) {
+		// no crud repository, will not be able to resolve substream/label references
+		Assert.notNull(moduleDefinitionRepository, "moduleDefinitionRepository can not be null");
+		this.moduleDefinitionRepository = moduleDefinitionRepository;
 	}
 
 	@Override
@@ -97,12 +97,14 @@ public class XDStreamParser implements XDParser {
 			requests.get(0).setSinkChannelName(sinkChannel.getChannelName());
 		}
 
-		for (int m = 0; m < moduleNodes.size(); m++) {
-			ModuleDeploymentRequest request = requests.get(m);
-			request.setType(determineType(request, requests.size() - 1));
+		// Now that we know about source and sink channel names,
+		// do a second pass to determine type. Also convert to composites
+		List<ModuleDeploymentRequest> result = new ArrayList<ModuleDeploymentRequest>(requests.size());
+		for (ModuleDeploymentRequest original : requests) {
+			original.setType(determineType(original, requests.size() - 1));
+			result.add(convertToCompositeIfNecessary(original));
 		}
-
-		return requests;
+		return result;
 	}
 
 	private ModuleType determineType(ModuleDeploymentRequest request, int lastIndex) {
@@ -113,8 +115,7 @@ public class XDStreamParser implements XDParser {
 		ModuleType type = null;
 		String name = request.getModule();
 		int index = request.getIndex();
-		List<ModuleDefinition> defs = moduleRegistry.findDefinitions(name);
-
+		List<ModuleDefinition> defs = moduleDefinitionRepository.findByName(name);
 		if (defs.size() == 0) {
 			throw new RuntimeException("Module definition is missing for " + name);
 		}
@@ -168,16 +169,29 @@ public class XDStreamParser implements XDParser {
 		return (type == null) ? null : verifyModuleOfTypeExists(request, moduleName, type);
 	}
 
+	private ModuleDeploymentRequest convertToCompositeIfNecessary(ModuleDeploymentRequest request) {
+		ModuleDefinition def = moduleDefinitionRepository.findByNameAndType(request.getModule(), request.getType());
+		if (def != null && def.getDefinition() != null) {
+			List<ModuleDeploymentRequest> composedModuleRequests = parse(def.getName(), def.getDefinition());
+			request = new CompositeModuleDeploymentRequest(request, composedModuleRequests);
+		}
+		return request;
+	}
+
 	private ModuleType verifyModuleOfTypeExists(ModuleDeploymentRequest request, String moduleName, ModuleType type) {
-		ModuleDefinition def = moduleRegistry.findDefinition(moduleName, type);
+		ModuleDefinition def = moduleDefinitionRepository.findByNameAndType(moduleName, type);
 		if (def == null || def.getResource() == null) {
-			List<ModuleDefinition> definitions = moduleRegistry.findDefinitions(moduleName);
-			if (definitions == null || definitions.size() == 0) {
+			List<ModuleDefinition> definitions = moduleDefinitionRepository.findByName(moduleName);
+			if (definitions.isEmpty()) {
 				throw new NoSuchModuleException(moduleName);
 			}
+			// TODO: revisit this method altogether; it shouldn't apply to composite modules but at this stage we don't
+			// know whether the 'stream' is actually a composite module (and we do want to verify complete streams)
+			// the following method was removed from MDR: (leaving here as a reminder for the TODO)
+
 			// The module is known but this doesn't seem to be a standard stream,
 			// assume it is a composite module stream that isn't deployable by itself
-			request.tagAsUndeployable();
+			// request.tagAsUndeployable();
 			return definitions.get(0).getType();
 		}
 		return def.getType();

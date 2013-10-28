@@ -32,6 +32,10 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.io.Resource;
+import org.springframework.integration.config.ConsumerEndpointFactoryBean;
+import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.handler.BridgeHandler;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 
 /**
@@ -92,7 +96,7 @@ public class CompositeModule extends AbstractModule {
 		List<AbstractEndpoint> endpoints = new ArrayList<AbstractEndpoint>();
 		MessageChannel previousOutputChannel = null;
 		for (int i = 0; i < this.modules.size(); i++) {
-			SimpleModule module = this.modules.get(i);
+			SpringApplicationModule module = this.modules.get(i);
 			module.initialize();
 			MessageChannel inputChannel = module.getComponent("input", MessageChannel.class);
 			MessageChannel outputChannel = module.getComponent("output", MessageChannel.class);

@@ -182,7 +182,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 			modules.add(module);
 		}
 		CompositeModule module = new CompositeModule(request.getModule(), request.getType(), modules, metadata);
-		deployModule(module, request, message);
+		deploy(module, request, message);
 	}
 
 	private void handleDeploymentRequest(ModuleDeploymentRequest request, Message<?> message) {
@@ -222,7 +222,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 			parametersAsProps.putAll(parameters);
 			module.addProperties(parametersAsProps);
 		}
-		this.deploy(module);
+		this.deploy(module, request, message);
 		if (logger.isInfoEnabled()) {
 			logger.info("deployed " + module.toString());
 		}
@@ -230,7 +230,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		this.deployedModules.get(request.getGroup()).put(request.getIndex(), module);
 	}
 
-	private void deploy(Module module) {
+	private void deploy(Module module, ModuleDeploymentRequest request, Message<?> message) {
 		this.preProcessModule(module);
 		module.initialize();
 		this.postProcessModule(module);

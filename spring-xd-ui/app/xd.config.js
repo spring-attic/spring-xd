@@ -15,17 +15,23 @@
  */
 
 /**
- * @author Andrew Eisenberg
- ** HTTP client
+ * @author Ilayaperumal Gopinathan
  */
- /*global define*/
-define(function() {
-	// set up the rest client
-	return function(rest, entity, mime, hateoas, errorcode, config) {
-		var client = rest.chain(errorcode, { code: 400 }).chain(mime).chain(hateoas).chain(entity);
-		return function(args) {
-			args.headers = args.headers || config.acceptHeader;
-			return client(args);
-		};
-	};
+/*global define:true */
+// Global configuration properties
+define({
+		location: {
+			hostname: 'localhost',
+			port: '9393'
+		},
+
+		urlRoot: 'http://'+this.location.hostname+":"+this.location.port+"/",
+
+		// TODO should be configurable
+		pageSize: 5,
+
+		acceptHeader: { 'Accept': 'application/json' },
+
+		// for polling server, how long do we wait?
+		refreshInterval: 4000
 });

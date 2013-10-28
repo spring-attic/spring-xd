@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *	  http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,10 +15,11 @@
  */
 /**
  * @author Andrew Eisenberg
+ * @author Ilayaperumal Gopinathan
  */
 
 
-/*global requirejs d3, cubism*/
+/*global requirejs, require, d3, cubism*/
 
 requirejs.config({
 	packages: [
@@ -33,7 +34,6 @@ requirejs.config({
 		underscore: '../lib/lodash/lodash',
 		'text': '../lib/requirejs-text/text',
 		'wire/domReady': '../lib/requirejs/domReady',
-		'bootstrap-typeahead': '../lib/bootstrap/js/bootstrap-typeahead',
 		'bootstrap-tab': '../lib/bootstrap/js/bootstrap-tab',
 		'bootstrap-alert': '../lib/bootstrap/js/bootstrap-alert',
 		'bootstrap-collapse': '../lib/bootstrap/js/bootstrap-collapse',
@@ -42,16 +42,15 @@ requirejs.config({
 		'tipsy': '../lib/tipsy/jquery.tipsy',
 		backbone: '../lib/backbone-amd/backbone'
 	},
-    shim: {
-        'bootstrap-typeahead': ['jquery'],
-        'bootstrap-alert': ['jquery'],
-        'bootstrap-collapse': ['jquery'],
-        'bootstrap-tab': ['jquery'],
-        'tipsy': ['jquery'],
-        'cubism': ['d3']
-    }
+	shim: {
+		'bootstrap-alert': ['jquery'],
+		'bootstrap-collapse': ['jquery'],
+		'bootstrap-tab': ['jquery'],
+		'bootstrap-dropdown': ['jquery'],
+		'tipsy': ['jquery'],
+		'cubism': ['d3']
+	}
 });
 
 // load up the wire spec and also load non-amd libraries
-require(['wire!xd.wirespec', 'd3', 'cubism', 'bootstrap-typeahead', 
-	'bootstrap-tab', 'bootstrap-alert', 'bootstrap-collapse']);
+require(['wire!xd.wirespec', 'd3', 'cubism', 'bootstrap-tab', 'bootstrap-collapse']);

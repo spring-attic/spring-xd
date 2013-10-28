@@ -21,10 +21,10 @@
 
 // tests for the xd backbone model
 define(['xd.model', 'backbone'], function(modelModule, backbone) {
-	var URL_ROOT = 'http://localhost:8080/', PAGE_SIZE = 5,
+	var URL_ROOT = 'http://localhost:9393/', PAGE_SIZE = 5,
 		model = modelModule(null, backbone, URL_ROOT, PAGE_SIZE);
 
-	describe('model consistency test for non-batch artifacts', function() {
+	xdescribe('model consistency test for non-batch artifacts', function() {
 		beforeEach(function() {
 			model.artifacts.forEach(function(artifact) {
 				model.get(artifact.kind).reset();
@@ -109,7 +109,7 @@ define(['xd.model', 'backbone'], function(modelModule, backbone) {
 			expect(artifacts.at(2).get('definition')).toBe('clart1');
 		});
 	});
-	describe('model consistency test for batch artifacts', function() {
+	xdescribe('model consistency test for batch artifacts', function() {
 		it('should correctly parse batch jobs', function() {
 			var batchJobs = model.batchJobs;
 			// TODO

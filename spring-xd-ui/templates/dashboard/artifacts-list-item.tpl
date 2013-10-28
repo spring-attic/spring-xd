@@ -10,7 +10,7 @@
     		</td>
     		<td><%= definition %>
     		</td>
-    		<td><button class="btn btn-mini deleteAction" type="button"><img height="16" width="16" title="Delete" src="images/close.png"/></button></td>
+    		<td><button class="btn btn-mini deleteAction" type="button"><img height="16" width="16" title="Delete" src="admin-ui/resources/images/close.png"/></button></td>
     	</tr>
     	<tr id="<%= detailsRow %>"><td colspan="3"><div id="<%= details %>" class="collapse <%= expandedClass %>">
     	   <div class="well artifact_details">

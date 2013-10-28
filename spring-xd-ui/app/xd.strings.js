@@ -23,6 +23,7 @@
 /*
 * For internationalization
 */
+/*global define:true*/
 // TODO use requrejs internationalization support
 define({
 	defaultStreamCreationSuccess: "Stream successfully created",

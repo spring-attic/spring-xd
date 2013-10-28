@@ -22,7 +22,7 @@
 /*
  * View for the dashboard
  */
-
+/*global define */
 define([],
 function() {
     'use strict';
@@ -39,16 +39,16 @@ function() {
                  // this.$('#tap-stream-processor').html(utils.templateHtml.processorSelectTemplate);
                  // this.$('#tap-stream-sink').html(utils.templateHtml.sinkSelectTemplate);
                  // Setup source function for typeahead to show streams
-                 this.$('#stream-to-tap').typeahead({
-                     source: function(query, process) {
-                         var tapSource = [];
-                         model.get('streams').get('artifacts').forEach(function(stream) {
-                             tapSource.push(stream.get('name'));
-                         });
-                         process(tapSource);
-                         return tapSource;
-                     }
-                 });
+//                 this.$('#stream-to-tap').typeahead({
+//                     source: function(query, process) {
+//                         var tapSource = [];
+//                         model.get('streams').get('artifacts').forEach(function(stream) {
+//                             tapSource.push(stream.get('name'));
+//                         });
+//                         process(tapSource);
+//                         return tapSource;
+//                     }
+//                 });
                  return this;
              },
 

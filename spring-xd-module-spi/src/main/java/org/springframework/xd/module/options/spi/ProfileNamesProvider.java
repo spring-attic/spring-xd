@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.module.options;
+package org.springframework.xd.module.options.spi;
 
 
 /**

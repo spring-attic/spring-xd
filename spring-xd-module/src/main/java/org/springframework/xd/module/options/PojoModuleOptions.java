@@ -26,6 +26,8 @@ import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.core.env.EnumerablePropertySource;
+import org.springframework.util.Assert;
+import org.springframework.xd.module.options.spi.ProfileNamesProvider;
 
 
 /**
@@ -60,19 +62,44 @@ public class PojoModuleOptions implements ModuleOptions {
 			if (!beanWrapper.isWritableProperty(name)) {
 				continue;
 			}
-			ModuleOption option = new ModuleOption(name, "TODO").withType(pd.getPropertyType());
+			org.springframework.xd.module.options.spi.ModuleOption annotation = pd.getWriteMethod().getAnnotation(
+					org.springframework.xd.module.options.spi.ModuleOption.class);
+			Assert.notNull(
+					annotation,
+					String.format(
+							"Setter method for option '%s' needs to bear the @%s annotation and provide a 'description'",
+							name,
+							org.springframework.xd.module.options.spi.ModuleOption.class.getSimpleName()));
+
+			String description = descriptionFromAnnotation(name, annotation);
+			ModuleOption option = new ModuleOption(name, description).withType(pd.getPropertyType());
 			if (beanWrapper.isReadableProperty(name)) {
 				option.withDefaultValue(beanWrapper.getPropertyValue(name));
+			}
+			else {
+				option.withDefaultValue(defaultFromAnnotation(annotation));
 			}
 			options.add(option);
 		}
 	}
 
-	public static void main(String[] args) {
-		PojoModuleOptions pojoModuleOptions = new PojoModuleOptions(TriggerModuleOptions.class);
-		for (ModuleOption o : pojoModuleOptions) {
-			System.out.println(o);
-		}
+	private Object defaultFromAnnotation(org.springframework.xd.module.options.spi.ModuleOption annotation) {
+		String value = annotation.defaultValue();
+		return org.springframework.xd.module.options.spi.ModuleOption.NO_DEFAULT.equals(value) ? null : value;
+	}
+
+	/**
+	 * Read the 'description' attribute from the annotation on the getter.
+	 */
+	private String descriptionFromAnnotation(String optionName,
+			org.springframework.xd.module.options.spi.ModuleOption annotation) {
+		Assert.hasLength(
+				annotation.description(),
+				String.format(
+						"Setter method for option '%s' needs to bear the @%s annotation and provide a non-empty 'description' attribute",
+						optionName,
+						org.springframework.xd.module.options.spi.ModuleOption.class.getSimpleName()));
+		return annotation.description();
 	}
 
 	@Override

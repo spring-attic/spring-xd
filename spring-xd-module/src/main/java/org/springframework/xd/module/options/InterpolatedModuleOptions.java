@@ -17,6 +17,7 @@
 package org.springframework.xd.module.options;
 
 import org.springframework.core.env.EnumerablePropertySource;
+import org.springframework.xd.module.options.spi.ProfileNamesProvider;
 
 
 /**

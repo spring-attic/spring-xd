@@ -524,6 +524,7 @@ project('spring-xd-extension-gemfire') {
 	description = 'Spring XD Gemfire'
 	dependencies {
 		compile "org.springframework.integration:spring-integration-gemfire:$springIntegrationVersion"
+		compile project(':spring-xd-module-spi')
 	}
 }
 
@@ -817,7 +818,12 @@ project('spring-xd-module') {
 	dependencies {
 		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
 		compile "org.springframework.boot:spring-boot-autoconfigure:$springBootVersion"
+		compile project(':spring-xd-module-spi')
 	}
+}
+
+project('spring-xd-module-spi') {
+	description = 'Spring XD Module Options API'
 }
 
 project('spring-xd-tuple') {

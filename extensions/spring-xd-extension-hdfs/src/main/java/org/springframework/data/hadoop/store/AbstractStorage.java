@@ -37,7 +37,9 @@ import org.apache.hadoop.io.compress.SplittableCompressionCodec;
 import org.apache.hadoop.util.ReflectionUtils;
 
 import org.springframework.data.hadoop.store.codec.CodecInfo;
+import org.springframework.data.hadoop.store.event.FileWrittenEvent;
 import org.springframework.data.hadoop.store.input.InputSplit;
+import org.springframework.data.hadoop.store.support.LifecycleObjectSupport;
 import org.springframework.data.hadoop.store.support.StreamsHolder;
 import org.springframework.util.ClassUtils;
 
@@ -47,7 +49,7 @@ import org.springframework.util.ClassUtils;
  * @author Janne Valkealahti
  * 
  */
-public abstract class AbstractStorage implements Storage {
+public abstract class AbstractStorage extends LifecycleObjectSupport implements Storage {
 
 	private final static Log log = LogFactory.getLog(AbstractStorage.class);
 
@@ -152,6 +154,7 @@ public abstract class AbstractStorage implements Storage {
 		StreamsHolder<OutputStream> holder = new StreamsHolder<OutputStream>();
 		FileSystem fs = FileSystem.get(getConfiguration());
 		Path p = getResolvedPath();
+		holder.setPath(p);
 		if (!isCompressed()) {
 			OutputStream out = fs.create(p);
 			holder.setStream(out);
@@ -168,6 +171,11 @@ public abstract class AbstractStorage implements Storage {
 		return holder;
 	}
 
+	/**
+	 * Gets the resolved path.
+	 * 
+	 * @return the resolved path
+	 */
 	protected Path getResolvedPath() {
 		return getPath();
 	}
@@ -265,6 +273,9 @@ public abstract class AbstractStorage implements Storage {
 	protected void closeOutputStreams() throws IOException {
 		if (outputHolder != null) {
 			outputHolder.close();
+			if (getStorageEventPublisher() != null) {
+				getStorageEventPublisher().publishEvent(new FileWrittenEvent(this, outputHolder.getPath()));
+			}
 			outputHolder = null;
 		}
 	}

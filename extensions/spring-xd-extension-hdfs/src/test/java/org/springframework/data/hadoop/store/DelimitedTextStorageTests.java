@@ -22,12 +22,15 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import java.io.IOException;
 import java.util.List;
 
+import org.apache.hadoop.fs.Path;
 import org.junit.Test;
 
 import org.springframework.data.hadoop.store.codec.Codecs;
 import org.springframework.data.hadoop.store.input.TextDataReader;
+import org.springframework.data.hadoop.store.naming.RollingFileNamingStrategy;
 import org.springframework.data.hadoop.store.output.DelimitedTextDataWriter;
 import org.springframework.data.hadoop.store.output.TextDataWriter;
+import org.springframework.data.hadoop.store.rollover.SizeRolloverStrategy;
 import org.springframework.data.hadoop.store.text.DelimitedTextStorage;
 
 
@@ -97,6 +100,33 @@ public class DelimitedTextStorageTests extends AbstractDataTests {
 		TextDataReader reader = new TextDataReader(storage, testConfig, testDefaultPath);
 		List<String> data = TestUtils.readData(reader);
 		assertThat(data.size(), is(1));
+	}
+
+	@Test
+	public void testWriteReadManyLinesWithNamingAndRollover() throws IOException {
+		DelimitedTextStorage storage = new DelimitedTextStorage(testConfig, testDefaultPath, null);
+		storage.setRolloverStrategy(new SizeRolloverStrategy(40));
+		storage.setFileNamingStrategy(new RollingFileNamingStrategy());
+
+		TextDataWriter writer = new TextDataWriter(storage, testConfig, testDefaultPath);
+		TestUtils.writeDataAndClose(writer, DATA09ARRAY);
+
+		Path path1 = new Path("0");
+		DelimitedTextStorage storage1 = new DelimitedTextStorage(testConfig, testDefaultPath, null);
+		TextDataReader reader1 = new TextDataReader(storage1, testConfig, path1);
+		List<String> splitData1 = TestUtils.readData(reader1);
+
+		Path path2 = new Path("1");
+		DelimitedTextStorage storage2 = new DelimitedTextStorage(testConfig, testDefaultPath, null);
+		TextDataReader reader2 = new TextDataReader(storage2, testConfig, path2);
+		List<String> splitData2 = TestUtils.readData(reader2);
+
+		Path path3 = new Path("2");
+		DelimitedTextStorage storage3 = new DelimitedTextStorage(testConfig, testDefaultPath, null);
+		TextDataReader reader3 = new TextDataReader(storage3, testConfig, path3);
+		List<String> splitData3 = TestUtils.readData(reader3);
+
+		assertThat(splitData1.size() + splitData2.size() + splitData3.size(), is(DATA09ARRAY.length));
 	}
 
 }

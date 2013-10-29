@@ -24,15 +24,123 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:attribute name="id" use="optional"/>
-			<xsd:attribute name="channel" use="optional"/>
-			<xsd:attribute name="file-system" use="required"/>
-			<xsd:attribute name="base-path" use="required"/>
-			<xsd:attribute name="base-filename" use="required"/>
-			<xsd:attribute name="file-suffix" use="required"/>
-			<xsd:attribute name="rollover-threshold-in-bytes" use="required"/>
+			<xsd:attribute name="id" type="xsd:ID" use="optional">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+					Bean id.
+					]]>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="writer" default="storageWriter"/>
 			<xsd:attribute name="auto-startup" default="true"/>
+			<xsd:attribute name="channel" use="optional"/>
 		</xsd:complexType>
 	</xsd:element>
+
+	<xsd:element name="storage">
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:ID" use="optional">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+					Bean id.
+					]]>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="configuration" default="hadoopConfiguration"/>
+			<xsd:attribute name="base-path" use="optional"/>
+			<xsd:attribute name="naming-policy" use="optional"/>
+			<xsd:attribute name="rollover-policy" use="optional"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="writer">
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:ID" use="optional">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+					Bean id.
+					]]>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="storage" default="storage"/>
+			<xsd:attribute name="base-path" use="optional"/>
+			<xsd:attribute name="configuration" default="hadoopConfiguration"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="naming-policy">
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="namingPolicyType">
+					<xsd:sequence minOccurs="0" maxOccurs="unbounded">
+						<xsd:choice>
+							<xsd:element name="static" type="staticNamingPolicyType"/>
+							<xsd:element name="rolling" type="rollingNamingPolicyType"/>
+							<xsd:element name="renaming" type="renamingNamingPolicyType"/>
+						</xsd:choice>
+					</xsd:sequence>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="rollover-policy">
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="rolloverPolicyType">
+					<xsd:sequence minOccurs="0" maxOccurs="unbounded">
+						<xsd:choice>
+							<xsd:element name="size" type="sizeRolloverPolicyType"/>
+						</xsd:choice>
+					</xsd:sequence>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="sizeRolloverPolicyType" mixed="true">
+		<xsd:attribute name="order" type="xsd:integer" use="optional"/>
+		<xsd:attribute name="size" type="xsd:string" use="optional"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="rolloverPolicyType">
+		<xsd:attribute name="id" type="xsd:ID" use="optional">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+				Bean id.
+				]]>
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+
+	<xsd:complexType name="namingPolicyType">
+		<xsd:attribute name="id" type="xsd:ID" use="optional">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+				Bean id.
+				]]>
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+
+	<xsd:complexType name="staticNamingPolicyType" mixed="true">
+		<xsd:attribute name="order" type="xsd:integer" use="optional"/>
+		<xsd:attribute name="file-name" type="xsd:string" use="optional"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="rollingNamingPolicyType" mixed="true">
+		<xsd:attribute name="order" type="xsd:integer" use="optional"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="renamingNamingPolicyType" mixed="true">
+		<xsd:attribute name="order" type="xsd:integer" use="optional"/>
+		<xsd:attribute name="suffix" type="xsd:string" use="optional"/>
+		<xsd:attribute name="configuration" default="hadoopConfiguration"/>
+	</xsd:complexType>
 
 </xsd:schema>

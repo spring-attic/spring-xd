@@ -16,31 +16,113 @@
 
 package org.springframework.xd.integration.hadoop.outbound;
 
+import java.util.concurrent.locks.ReentrantLock;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.context.SmartLifecycle;
 import org.springframework.data.hadoop.store.DataWriter;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.messaging.Message;
+import org.springframework.util.Assert;
 
 /**
+ * Spring Integration {@code MessageHandler} handling {@code Message} writing into hdfs using {@code DataWriter}.
  * 
  * @author Janne Valkealahti
  * 
  */
 public class HdfsStorageMessageHandler extends AbstractMessageHandler implements SmartLifecycle {
 
+	private static final Log log = LogFactory.getLog(HdfsStorageMessageHandler.class);
+
 	private volatile boolean autoStartup = true;
 
-	private volatile int phase;
+	private volatile int phase = 0;
 
-	protected final Object lifecycleMonitor = new Object();
+	private volatile boolean running;
 
-	private volatile boolean active;
+	private final ReentrantLock lifecycleLock = new ReentrantLock();
 
 	private DataWriter<String> dataWriter;
 
-	public void setDataWriter(DataWriter<String> dataWriter) {
-		this.dataWriter = dataWriter;
+	@Override
+	public final boolean isAutoStartup() {
+		return this.autoStartup;
+	}
+
+	@Override
+	public final int getPhase() {
+		return this.phase;
+	}
+
+	@Override
+	public final boolean isRunning() {
+		this.lifecycleLock.lock();
+		try {
+			return this.running;
+		}
+		finally {
+			this.lifecycleLock.unlock();
+		}
+	}
+
+	@Override
+	public final void start() {
+		this.lifecycleLock.lock();
+		try {
+			if (!this.running) {
+				this.doStart();
+				this.running = true;
+				if (log.isInfoEnabled()) {
+					log.info("started " + this);
+				}
+				else {
+					if (log.isDebugEnabled()) {
+						log.debug("already started " + this);
+					}
+				}
+			}
+		}
+		finally {
+			this.lifecycleLock.unlock();
+		}
+	}
+
+	@Override
+	public final void stop() {
+		this.lifecycleLock.lock();
+		try {
+			if (this.running) {
+				this.doStop();
+				this.running = false;
+				if (log.isInfoEnabled()) {
+					log.info("stopped " + this);
+				}
+			}
+			else {
+				if (log.isDebugEnabled()) {
+					log.debug("already stopped " + this);
+				}
+			}
+		}
+		finally {
+			this.lifecycleLock.unlock();
+		}
+	}
+
+	@Override
+	public final void stop(Runnable callback) {
+		this.lifecycleLock.lock();
+		try {
+			this.stop();
+			callback.run();
+		}
+		finally {
+			this.lifecycleLock.unlock();
+		}
 	}
 
 	@Override
@@ -48,6 +130,72 @@ public class HdfsStorageMessageHandler extends AbstractMessageHandler implements
 		doWrite(message);
 	}
 
+	@Override
+	protected void onInit() throws Exception {
+		super.onInit();
+		Assert.notNull(dataWriter, "Data Writer must be set");
+	}
+
+	/**
+	 * Sets the auto startup.
+	 * 
+	 * @param autoStartup the new auto startup
+	 * @see SmartLifecycle
+	 */
+	public void setAutoStartup(boolean autoStartup) {
+		this.autoStartup = autoStartup;
+	}
+
+	/**
+	 * Sets the phase.
+	 * 
+	 * @param phase the new phase
+	 * @see SmartLifecycle
+	 */
+	public void setPhase(int phase) {
+		this.phase = phase;
+	}
+
+	/**
+	 * Sets the data writer.
+	 * 
+	 * @param dataWriter the new data writer
+	 */
+	public void setDataWriter(DataWriter<String> dataWriter) {
+		this.dataWriter = dataWriter;
+	}
+
+	/**
+	 * Subclasses may override this method with the start behaviour. This method will be invoked while holding the
+	 * {@link #lifecycleLock}.
+	 */
+	protected void doStart() {
+		try {
+			dataWriter.open();
+		}
+		catch (Exception e) {
+			log.error("Error opening writer", e);
+		}
+	};
+
+	/**
+	 * Subclasses may override this method with the stop behaviour. This method will be invoked while holding the
+	 * {@link #lifecycleLock}.
+	 */
+	protected void doStop() {
+		try {
+			dataWriter.close();
+		}
+		catch (Exception e) {
+			log.error("Error closing writer", e);
+		}
+	};
+
+	/**
+	 * Do write.
+	 * 
+	 * @param message the message
+	 */
 	protected void doWrite(Message<?> message) {
 		try {
 			Object payload = message.getPayload();
@@ -63,57 +211,6 @@ public class HdfsStorageMessageHandler extends AbstractMessageHandler implements
 			throw new MessageHandlingException(message,
 					"failed to write Message payload to HDFS", e);
 		}
-	}
-
-	@Override
-	public boolean isRunning() {
-		return this.active;
-	}
-
-	@Override
-	public void start() {
-		synchronized (this.lifecycleMonitor) {
-			try {
-				dataWriter.open();
-			}
-			catch (Exception e) {
-			}
-		}
-	}
-
-	@Override
-	public void stop() {
-		synchronized (this.lifecycleMonitor) {
-			try {
-				dataWriter.close();
-			}
-			catch (Exception e) {
-			}
-		}
-	}
-
-	@Override
-	public void stop(Runnable callback) {
-		// TODO
-		stop();
-	}
-
-	@Override
-	public int getPhase() {
-		return this.phase;
-	}
-
-	public void setPhase(int phase) {
-		this.phase = phase;
-	}
-
-	@Override
-	public boolean isAutoStartup() {
-		return this.autoStartup;
-	}
-
-	public void setAutoStartup(boolean autoStartup) {
-		this.autoStartup = autoStartup;
 	}
 
 }

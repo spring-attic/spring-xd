@@ -228,6 +228,8 @@ public class StreamTestSupport {
 
 	@AfterClass
 	public static void cleanUp() {
-		singleNode.stop();
+		if (singleNode != null) {
+			singleNode.stop();
+		}
 	}
 }

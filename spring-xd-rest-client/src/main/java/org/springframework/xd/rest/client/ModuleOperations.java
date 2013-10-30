@@ -24,6 +24,8 @@ import org.springframework.xd.rest.client.domain.RESTModuleType;
  * Interface defining operations available against Module.
  * 
  * @author Glenn Renfro
+ * @author Gunnar Hillert
+ * 
  */
 public interface ModuleOperations {
 
@@ -37,4 +39,14 @@ public interface ModuleOperations {
 	 * List modules known to the system.
 	 */
 	public PagedResources<ModuleDefinitionResource> list(RESTModuleType type);
+
+	/**
+	 * Get the configuration file associated with the provided module information.
+	 * 
+	 * @param type Must not be null
+	 * @param name Must not be empty
+	 * 
+	 * @return The file contents of the module
+	 */
+	public String downloadConfigurationFile(RESTModuleType type, String name);
 }

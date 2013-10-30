@@ -27,6 +27,7 @@ import org.springframework.xd.rest.client.domain.RESTModuleType;
  * 
  * @author Glenn Renfro
  * @author Mark Fisher
+ * @author Gunnar Hillert
  */
 public class ModuleTemplate extends AbstractTemplate implements ModuleOperations {
 
@@ -50,10 +51,15 @@ public class ModuleTemplate extends AbstractTemplate implements ModuleOperations
 		return restTemplate.getForObject(uriTemplate, ModuleDefinitionResource.Page.class);
 	}
 
-
 	@Override
 	public String toString() {
 		return "ModuleTemplate [restTemplate=" + restTemplate + ", resources=" + resources + "]";
+	}
+
+	@Override
+	public String downloadConfigurationFile(RESTModuleType type, String name) {
+		final String uriTemplate = resources.get("modules").toString() + "/{type}/{name}/definition";
+		return restTemplate.getForObject(uriTemplate, String.class, type.name(), name);
 	}
 
 }

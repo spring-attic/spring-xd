@@ -20,18 +20,25 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import org.apache.commons.io.FileUtils;
 import org.hamcrest.Matchers;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
@@ -48,11 +55,15 @@ import org.springframework.xd.module.ModuleType;
  * 
  * @author Glenn Renfro
  * @author Mark Fisher
+ * @author Gunnar Hillert
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = { RestConfiguration.class, Dependencies.class })
 public class ModulesControllerIntegrationTests extends AbstractControllerIntegrationTest {
+
+	@Rule
+	public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
 	@Autowired
 	private DeploymentMessageSender sender;
@@ -64,7 +75,7 @@ public class ModulesControllerIntegrationTests extends AbstractControllerIntegra
 	private ModuleDefinitionRepository moduleDefinitionRepository;
 
 	@Before
-	public void before() {
+	public void before() throws IOException {
 		Resource resource = mock(Resource.class);
 		ArrayList<ModuleDefinition> moduleDefinitions = new ArrayList<ModuleDefinition>();
 		ArrayList<ModuleDefinition> jobDefinitions = new ArrayList<ModuleDefinition>();
@@ -95,6 +106,14 @@ public class ModulesControllerIntegrationTests extends AbstractControllerIntegra
 			processorDefinitions.add(moduleDefinition);
 		}
 
+		final File file = temporaryFolder.newFile("job_4_with_resource.xml");
+		FileUtils.write(file, "This is the contents of job_4_with_resource.xml");
+
+		ModuleDefinition moduleDefinition = new ModuleDefinition("job_4_with_resource",
+				ModuleType.job, new FileSystemResource(file));
+		moduleDefinitions.add(moduleDefinition);
+		jobDefinitions.add(moduleDefinition);
+
 		when(resource.exists()).thenReturn(true);
 		when(resource.getDescription()).thenReturn("foo");
 		for (int i = 0; i < 3; i++) {
@@ -114,6 +133,7 @@ public class ModulesControllerIntegrationTests extends AbstractControllerIntegra
 		when(moduleRegistry.findDefinitions(ModuleType.job)).thenReturn(jobDefinitions);
 		when(moduleRegistry.findDefinitions(ModuleType.processor)).thenReturn(processorDefinitions);
 		when(moduleRegistry.findDefinitions()).thenReturn(moduleDefinitions);
+		when(moduleRegistry.findDefinition("job_4_with_resource", ModuleType.job)).thenReturn(moduleDefinition);
 
 		// clear this one so it does not have side effects on other tests
 		moduleDefinitionRepository.delete("sink:compositesink");
@@ -123,7 +143,7 @@ public class ModulesControllerIntegrationTests extends AbstractControllerIntegra
 	public void testListAll() throws Exception {
 		mockMvc.perform(get("/modules").accept(MediaType.APPLICATION_JSON)).andExpect(
 				status().isOk()).andExpect(
-				jsonPath("$.content", Matchers.hasSize(12))).andExpect(jsonPath("$.content[0].name").value("job_0")).andExpect(
+				jsonPath("$.content", Matchers.hasSize(13))).andExpect(jsonPath("$.content[0].name").value("job_0")).andExpect(
 				jsonPath("$.content[1].name").value("source_0")).andExpect(
 				jsonPath("$.content[11].name").value("processor_2")).andExpect(
 				jsonPath("$.content[10].name").value("sink_2"));
@@ -133,9 +153,10 @@ public class ModulesControllerIntegrationTests extends AbstractControllerIntegra
 	public void testListJob() throws Exception {
 		mockMvc.perform(get("/modules").param("type", "job").accept(MediaType.APPLICATION_JSON)).andExpect(
 				status().isOk()).andExpect(
-				jsonPath("$.content", Matchers.hasSize(3))).andExpect(jsonPath("$.content[0].name").value("job_0")).andExpect(
+				jsonPath("$.content", Matchers.hasSize(4))).andExpect(jsonPath("$.content[0].name").value("job_0")).andExpect(
 				jsonPath("$.content[1].name").value("job_1")).andExpect(
-				jsonPath("$.content[2].name").value("job_2"));
+				jsonPath("$.content[2].name").value("job_2")).andExpect(
+				jsonPath("$.content[3].name").value("job_4_with_resource"));
 	}
 
 
@@ -156,6 +177,18 @@ public class ModulesControllerIntegrationTests extends AbstractControllerIntegra
 				jsonPath("$.content[0].name").value("sink_0")).andExpect(
 				jsonPath("$.content[1].name").value("sink_1")).andExpect(
 				jsonPath("$.content[2].name").value("sink_2"));
+	}
+
+	@Test
+	public void testDisplayNonExistingJobConfiguration() throws Exception {
+		mockMvc.perform(get("/modules/job/not_exists").accept(MediaType.TEXT_PLAIN)).andExpect(
+				status().isNotFound());
+	}
+
+	@Test
+	public void testDisplayJobConfiguration() throws Exception {
+		mockMvc.perform(get("/modules/job/job_4_with_resource").accept(MediaType.TEXT_PLAIN)).andExpect(
+				status().isOk()).andExpect(content().string("This is the contents of job_4_with_resource.xml"));
 	}
 
 	@Test

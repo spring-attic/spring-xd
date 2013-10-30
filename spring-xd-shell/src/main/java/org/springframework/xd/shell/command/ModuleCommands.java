@@ -18,11 +18,13 @@ package org.springframework.xd.shell.command;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.PagedResources;
+import org.springframework.http.HttpStatus;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliAvailabilityIndicator;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.xd.rest.client.ModuleOperations;
 import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
 import org.springframework.xd.rest.client.domain.RESTModuleType;
@@ -43,6 +45,8 @@ public class ModuleCommands implements CommandMarker {
 
 	private final static String COMPOSE_MODULE = "module compose";
 
+	private final static String DISPLAY_MODULE = "module display";
+
 	private final static String LIST_MODULES = "module list";
 
 
@@ -61,6 +65,24 @@ public class ModuleCommands implements CommandMarker {
 		ModuleDefinitionResource composedModule = moduleOperations().composeModule(name, dsl);
 		return String.format(("Successfully created module '%s' with type %s"), composedModule.getName(),
 				composedModule.getType());
+	}
+
+	@CliCommand(value = DISPLAY_MODULE, help = "Display the configuration file of a module")
+	public String display(
+			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the the module") String name,
+			@CliOption(mandatory = true, key = "type", help = "the type of the module") RESTModuleType moduleType) {
+
+		try {
+			String moduleConfigurationFile = xdShell.getSpringXDOperations().moduleOperations().displayConfigurationFile(
+					moduleType, name);
+			return moduleConfigurationFile;
+		}
+		catch (HttpClientErrorException e) {
+			if (HttpStatus.NOT_FOUND.equals(e.getStatusCode())) {
+				return e.getResponseBodyAsString();
+			}
+			throw e;
+		}
 	}
 
 	@CliCommand(value = LIST_MODULES, help = "List all modules")

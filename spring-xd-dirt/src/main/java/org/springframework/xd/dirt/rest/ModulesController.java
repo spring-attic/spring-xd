@@ -16,19 +16,28 @@
 
 package org.springframework.xd.dirt.rest;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.Assert;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -46,12 +55,15 @@ import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
  * 
  * @author Glenn Renfro
  * @author Mark Fisher
+ * @author Gunnar Hillert
  * @since 1.0
  */
 @Controller
 @RequestMapping("/modules")
 @ExposesResourceFor(ModuleDefinitionResource.class)
 public class ModulesController {
+
+	private final Log logger = LogFactory.getLog(ModulesController.class);
 
 	private final ModuleDefinitionRepository repository;
 
@@ -132,6 +144,68 @@ public class ModulesController {
 			return ModuleType.source;
 		}
 		throw new IllegalArgumentException("invalid module composition; must expose input and/or output channel");
+	}
+
+	/**
+	 * Retrieve the configuration file for the provided module information.
+	 * 
+	 * @param name the name of an existing resource (required)
+	 * @param type the type of the module (required)
+	 */
+	@RequestMapping(value = "/{type}/{name}", method = RequestMethod.GET, produces = MediaType.TEXT_PLAIN_VALUE)
+	@ResponseStatus(HttpStatus.OK)
+	@ResponseBody
+	public Resource display(@PathVariable("type") ModuleType type, @PathVariable("name") String name) {
+
+		final ModuleDefinition definition = this.repository.findByNameAndType(name, type);
+
+		if (definition == null) {
+			throw new DefinitionNotFoundException(String.format(
+					"There is no definition named '%s' for module type '%s'.",
+					name, type.name()));
+		}
+
+		final Resource resource = definition.getResource();
+
+		if (!definition.getResource().exists()) {
+			throw new ConfigurationFileNotFoundException(String.format("The Resourse ('%s" +
+					"') associated with the module named '%s' (%s) does not exist.",
+					definition.getResource().getFilename(), name, type.name()));
+		}
+
+		try {
+			if (resource.getFile().length() == 0 && logger.isWarnEnabled()) {
+				logger.warn(String.format("The length of the file '%s' for module '%s' (%s) is zero.",
+						resource.getFilename(), definition.getName(), definition.getType().name()));
+			}
+		}
+		catch (IOException e) {
+			throw new IllegalStateException("Unable to return the file for the provided resource: "
+					+ resource.getFilename(), e);
+		}
+
+		return resource;
+	}
+
+	public class DefinitionNotFoundException extends RuntimeException {
+
+		public DefinitionNotFoundException(String message) {
+			super(message);
+		}
+	}
+
+	public class ConfigurationFileNotFoundException extends RuntimeException {
+
+		public ConfigurationFileNotFoundException(String message) {
+			super(message);
+		}
+	}
+
+	@ExceptionHandler({ DefinitionNotFoundException.class, ConfigurationFileNotFoundException.class })
+	@ResponseStatus(HttpStatus.NOT_FOUND)
+	@ResponseBody
+	public Resource handleIndexNotFoundException(RuntimeException e) {
+		return new ByteArrayResource(e.getMessage().getBytes());
 	}
 
 }

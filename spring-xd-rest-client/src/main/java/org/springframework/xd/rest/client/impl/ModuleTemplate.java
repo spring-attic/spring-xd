@@ -16,6 +16,12 @@
 
 package org.springframework.xd.rest.client.impl;
 
+import java.util.Arrays;
+
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.xd.rest.client.ModuleOperations;
@@ -27,6 +33,7 @@ import org.springframework.xd.rest.client.domain.RESTModuleType;
  * 
  * @author Glenn Renfro
  * @author Mark Fisher
+ * @author Gunnar Hillert
  */
 public class ModuleTemplate extends AbstractTemplate implements ModuleOperations {
 
@@ -54,6 +61,17 @@ public class ModuleTemplate extends AbstractTemplate implements ModuleOperations
 	@Override
 	public String toString() {
 		return "ModuleTemplate [restTemplate=" + restTemplate + ", resources=" + resources + "]";
+	}
+
+	@Override
+	public String displayConfigurationFile(RESTModuleType type, String name) {
+		final String uriTemplate = resources.get("modules").toString() + "/{type}/{name}";
+
+		final HttpHeaders headers = new HttpHeaders();
+		headers.setAccept(Arrays.asList(MediaType.TEXT_PLAIN));
+
+		final HttpEntity<String> entity = new HttpEntity<String>("parameters", headers);
+		return restTemplate.exchange(uriTemplate, HttpMethod.GET, entity, String.class, type.name(), name).getBody();
 	}
 
 }

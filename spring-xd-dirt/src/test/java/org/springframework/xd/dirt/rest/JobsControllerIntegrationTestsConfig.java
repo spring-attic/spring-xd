@@ -47,7 +47,7 @@ public class JobsControllerIntegrationTestsConfig extends Dependencies {
 		XDParser parser = new XDStreamParser(
 				jobDefinitionRepository(), moduleDefinitionRepository());
 
-		return new JobDeployer(jobDefinitionRepository(), deploymentMessageSender(), parser);
+		return new JobDeployer(deploymentMessageSender(), jobDefinitionRepository(), xdJobRepository(), parser);
 	}
 
 	@Override

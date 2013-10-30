@@ -30,8 +30,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.dirt.analytics.NoSuchMetricException;
 import org.springframework.xd.dirt.stream.AlreadyDeployedException;
 import org.springframework.xd.dirt.stream.DefinitionAlreadyExistsException;
-import org.springframework.xd.dirt.stream.MissingRequiredDefinitionException;
 import org.springframework.xd.dirt.stream.NoSuchDefinitionException;
+import org.springframework.xd.dirt.stream.NotDeployedException;
 import org.springframework.xd.dirt.stream.dsl.DSLException;
 
 /**
@@ -78,7 +78,7 @@ public class RestControllerAdvice {
 	@ResponseBody
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.NOT_FOUND)
-	public VndErrors onNoSuchStreamException(NoSuchDefinitionException e) {
+	public VndErrors onNoSuchDefinitionException(NoSuchDefinitionException e) {
 		String logref = log(e);
 		return new VndErrors(logref, e.getMessage());
 	}
@@ -89,18 +89,7 @@ public class RestControllerAdvice {
 	@ResponseBody
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
-	public VndErrors onStreamAlreadyExistsException(DefinitionAlreadyExistsException e) {
-		String logref = log(e);
-		return new VndErrors(logref, e.getMessage());
-	}
-
-	/**
-	 * Handles the case where client referenced an entity that already exists.
-	 */
-	@ResponseBody
-	@ExceptionHandler
-	@ResponseStatus(HttpStatus.BAD_REQUEST)
-	public VndErrors onMissingRequiredDefinitionException(MissingRequiredDefinitionException e) {
+	public VndErrors onDefinitionAlreadyExistsException(DefinitionAlreadyExistsException e) {
 		String logref = log(e);
 		return new VndErrors(logref, e.getMessage());
 	}
@@ -111,7 +100,18 @@ public class RestControllerAdvice {
 	@ResponseBody
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
-	public VndErrors onStreamAlreadyDeployedException(AlreadyDeployedException e) {
+	public VndErrors onAlreadyDeployedException(AlreadyDeployedException e) {
+		String logref = log(e);
+		return new VndErrors(logref, e.getMessage());
+	}
+
+	/**
+	 * Handles the case where client tried to un-deploy something that is not currently deployed.
+	 */
+	@ResponseBody
+	@ExceptionHandler
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	public VndErrors onNotDeployedException(NotDeployedException e) {
 		String logref = log(e);
 		return new VndErrors(logref, e.getMessage());
 	}

@@ -49,6 +49,7 @@
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="configuration" default="hadoopConfiguration"/>
+			<xsd:attribute name="codec" use="optional"/>
 			<xsd:attribute name="base-path" use="optional"/>
 			<xsd:attribute name="naming-policy" use="optional"/>
 			<xsd:attribute name="rollover-policy" use="optional"/>

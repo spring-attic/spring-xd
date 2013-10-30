@@ -19,11 +19,13 @@ package org.springframework.xd.integration.hadoop.config;
 import org.apache.hadoop.fs.Path;
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.data.hadoop.store.codec.Codecs;
 import org.springframework.util.StringUtils;
 
 /**
@@ -53,6 +55,30 @@ public abstract class IntegrationHadoopNamespaceUtils {
 		BeanDefinitionBuilder pathBuilder = BeanDefinitionBuilder.genericBeanDefinition(Path.class);
 		pathBuilder.addConstructorArgValue(attribute);
 		AbstractBeanDefinition beanDef = pathBuilder.getBeanDefinition();
+		String beanName = BeanDefinitionReaderUtils.generateBeanName(beanDef, parserContext.getRegistry());
+		parserContext.registerBeanComponent(new BeanComponentDefinition(beanDef, beanName));
+		builder.addConstructorArgReference(beanName);
+	}
+
+	/**
+	 * Adds the codec info constructor arg reference. Creates new {@code CodecInfo} bean via
+	 * {@code MethodInvokingFactoryBean} by calling static {@code Codecs#getCodecInfo(String)} order to play nice with
+	 * property placeholder and expressions.
+	 * 
+	 * @param element the element
+	 * @param parserContext the parser context
+	 * @param builder the builder
+	 * @param attributeName the attribute name
+	 */
+	public static void addCodecInfoConstructorArgReference(Element element, ParserContext parserContext,
+			BeanDefinitionBuilder builder, String attributeName) {
+		BeanDefinitionBuilder codecBuilder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingFactoryBean.class);
+
+		codecBuilder.addPropertyValue("targetClass", Codecs.class);
+		codecBuilder.addPropertyValue("targetMethod", "getCodecInfo");
+		codecBuilder.addPropertyValue("arguments", new String[] { element.getAttribute(attributeName) });
+
+		AbstractBeanDefinition beanDef = codecBuilder.getBeanDefinition();
 		String beanName = BeanDefinitionReaderUtils.generateBeanName(beanDef, parserContext.getRegistry());
 		parserContext.registerBeanComponent(new BeanComponentDefinition(beanDef, beanName));
 		builder.addConstructorArgReference(beanName);

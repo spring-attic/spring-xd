@@ -16,7 +16,9 @@
 
 package org.springframework.xd.integration.hadoop.config;
 
-import static org.junit.Assert.assertNotNull;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,7 +46,28 @@ public class StorageNamespaceTests {
 	public void testDefaults() {
 		DelimitedTextStorage storage = context.getBean(IntegrationHadoopSystemConstants.DEFAULT_ID_STORAGE,
 				DelimitedTextStorage.class);
-		assertNotNull(storage);
+		assertThat(storage, notNullValue());
+	}
+
+	@Test
+	public void testCodecs() {
+		DelimitedTextStorage storage1 = context.getBean("bzip2Codec",
+				DelimitedTextStorage.class);
+		assertThat(storage1, notNullValue());
+		assertThat(storage1.getCodec(), notNullValue());
+
+		DelimitedTextStorage storage2 = context.getBean("gzipCodec", DelimitedTextStorage.class);
+		assertThat(storage2, notNullValue());
+		assertThat(storage2.getCodec(), notNullValue());
+
+		DelimitedTextStorage storage3 = context.getBean("wrongCodec", DelimitedTextStorage.class);
+		assertThat(storage3, notNullValue());
+		assertThat(storage3.getCodec(), nullValue());
+
+		DelimitedTextStorage storage4 = context.getBean("emptyCodec", DelimitedTextStorage.class);
+		assertThat(storage4, notNullValue());
+		assertThat(storage4.getCodec(), nullValue());
+
 	}
 
 }

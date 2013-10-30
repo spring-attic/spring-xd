@@ -43,11 +43,9 @@ public class StorageParser extends AbstractBeanDefinitionParser {
 
 		IntegrationHadoopNamespaceUtils.addPathConstructorArgReference(element, parserContext, builder, "base-path",
 				IntegrationHadoopSystemConstants.DEFAULT_DATA_PATH);
-		builder.addConstructorArgValue(null);
-
+		IntegrationHadoopNamespaceUtils.addCodecInfoConstructorArgReference(element, parserContext, builder, "codec");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "naming-policy",
 				"fileNamingStrategy");
-
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "rollover-policy",
 				"rolloverStrategy");
 

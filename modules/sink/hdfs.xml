@@ -33,6 +33,7 @@
 
 	<int-hadoop:storage id="storage"
 		base-path="${directory:/xd/${xd.stream.name}}"
+		codec="${codec:}"
 		rollover-policy="fileRolloverPolicy"
 		naming-policy="fileNamingPolicy"/>
 

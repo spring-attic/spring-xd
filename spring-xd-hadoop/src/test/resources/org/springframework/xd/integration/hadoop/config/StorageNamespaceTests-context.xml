@@ -13,4 +13,12 @@
 
 	<int-hadoop:storage />
 
+	<int-hadoop:storage id="bzip2Codec" codec="BZIP2"/>
+
+	<int-hadoop:storage id="gzipCodec" codec="gzip"/>
+
+	<int-hadoop:storage id="wrongCodec" codec="wrong"/>
+
+	<int-hadoop:storage id="emptyCodec" codec=""/>
+
 </beans>

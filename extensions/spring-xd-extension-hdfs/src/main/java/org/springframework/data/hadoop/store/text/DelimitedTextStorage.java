@@ -103,13 +103,19 @@ public class DelimitedTextStorage extends AbstractStrategiesStorage {
 
 			@Override
 			public void write(byte[] bytes) throws IOException {
-				OutputStream out = getOutput().getStream();
+				StreamsHolder<OutputStream> holder = getOutput();
+				OutputStream out = holder.getStream();
+				OutputStream wout = holder.getWrappedStream();
 				out.write(bytes);
 				out.write(delimiter);
 				out.flush();
+
 				// TODO: improve should not do casting
 				if (out instanceof FSDataOutputStream) {
 					reportSizeAware(((FSDataOutputStream) out).getPos());
+				}
+				else if (wout instanceof FSDataOutputStream) {
+					reportSizeAware(((FSDataOutputStream) wout).getPos());
 				}
 			}
 		};

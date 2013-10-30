@@ -15,6 +15,9 @@ package org.springframework.xd.dirt.stream;
 
 import java.util.List;
 
+import org.springframework.beans.FatalBeanException;
+import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -30,9 +33,9 @@ import org.springframework.xd.dirt.stream.dsl.DSLException;
  */
 public class JobDeployer extends AbstractDeployer<JobDefinition> {
 
-	private static final String BEAN_CREATION_EXCEPTION = "org.springframework.beans.factory.BeanCreationException";
+	private static final String BEAN_CREATION_EXCEPTION = BeanCreationException.class.getName();
 
-	private static final String BEAN_DEFINITION_EXEPTION = "org.springframework.beans.factory.BeanDefinitionStoreException";
+	private static final String BEAN_DEFINITION_EXEPTION = BeanDefinitionStoreException.class.getName();
 
 	private static final String DEPLOYER_TYPE = "job";
 
@@ -100,7 +103,7 @@ public class JobDeployer extends AbstractDeployer<JobDefinition> {
 			String exceptionClassName = cause.getClass().getName();
 			if (exceptionClassName.equals(BEAN_CREATION_EXCEPTION)
 					|| exceptionClassName.equals(BEAN_DEFINITION_EXEPTION)) {
-				throw new MissingRequiredDefinitionException(definition.getName(), cause.getMessage());
+				throw (FatalBeanException)cause;
 			}
 			else {
 				throw mhe;

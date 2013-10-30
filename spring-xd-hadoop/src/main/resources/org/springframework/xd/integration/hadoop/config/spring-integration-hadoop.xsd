@@ -80,6 +80,7 @@
 						<xsd:choice>
 							<xsd:element name="static" type="staticNamingPolicyType"/>
 							<xsd:element name="rolling" type="rollingNamingPolicyType"/>
+							<xsd:element name="codec" type="codecNamingPolicyType"/>
 							<xsd:element name="renaming" type="renamingNamingPolicyType"/>
 						</xsd:choice>
 					</xsd:sequence>
@@ -132,6 +133,10 @@
 	<xsd:complexType name="staticNamingPolicyType" mixed="true">
 		<xsd:attribute name="order" type="xsd:integer" use="optional"/>
 		<xsd:attribute name="file-name" type="xsd:string" use="optional"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="codecNamingPolicyType" mixed="true">
+		<xsd:attribute name="order" type="xsd:integer" use="optional"/>
 	</xsd:complexType>
 
 	<xsd:complexType name="rollingNamingPolicyType" mixed="true">

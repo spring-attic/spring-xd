@@ -22,6 +22,8 @@ import java.util.List;
 
 import org.apache.hadoop.fs.Path;
 
+import org.springframework.data.hadoop.store.codec.CodecInfo;
+import org.springframework.data.hadoop.store.codec.CodecInfoAware;
 import org.springframework.data.hadoop.store.support.OrderedComposite;
 
 /**
@@ -30,7 +32,7 @@ import org.springframework.data.hadoop.store.support.OrderedComposite;
  * @author Janne Valkealahti
  * 
  */
-public class ChainedFileNamingStrategy implements FileNamingStrategy {
+public class ChainedFileNamingStrategy implements FileNamingStrategy, CodecInfoAware {
 
 	/** List of ordered composite strategies */
 	private final OrderedComposite<FileNamingStrategy> strategies;
@@ -64,6 +66,16 @@ public class ChainedFileNamingStrategy implements FileNamingStrategy {
 	public void reset() {
 		for (Iterator<? extends FileNamingStrategy> iterator = strategies.iterator(); iterator.hasNext();) {
 			iterator.next().reset();
+		}
+	}
+
+	@Override
+	public void setCodecInfo(CodecInfo codecInfo) {
+		for (Iterator<? extends FileNamingStrategy> iterator = strategies.iterator(); iterator.hasNext();) {
+			FileNamingStrategy fileNamingStrategy = iterator.next();
+			if (fileNamingStrategy instanceof CodecInfoAware) {
+				((CodecInfoAware) fileNamingStrategy).setCodecInfo(codecInfo);
+			}
 		}
 	}
 

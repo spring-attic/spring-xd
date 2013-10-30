@@ -44,17 +44,17 @@ public enum Codecs {
 	/**
 	 * Non-splittable {@link GzipCodec}.
 	 */
-	GZIP(new DefaultCodecInfo(GzipCodec.class.getName(), false), "GZIP"),
+	GZIP(new DefaultCodecInfo(GzipCodec.class.getName(), false, "gzip"), "GZIP"),
 
 	/**
 	 * Non-splittable {@link SnappyCodec}. This codec will need native snappy libraries.
 	 */
-	SNAPPY(new DefaultCodecInfo(SnappyCodec.class.getName(), false), "SNAPPY"),
+	SNAPPY(new DefaultCodecInfo(SnappyCodec.class.getName(), false, "snappy"), "SNAPPY"),
 
 	/**
 	 * Splittable {@link BZip2Codec}.
 	 */
-	BZIP2(new DefaultCodecInfo(BZip2Codec.class.getName(), true), "BZIP2"),
+	BZIP2(new DefaultCodecInfo(BZip2Codec.class.getName(), true, "bzip2"), "BZIP2"),
 
 	// TODO: should we do like DelegatingLzoCodecInfo for resolving
 	// these at runtime. Anyway only one can be present
@@ -63,25 +63,25 @@ public enum Codecs {
 	 * Non-splittable {@code LzoCodec}. This codec should be based on implementation from
 	 * http://code.google.com/p/hadoop-gpl-compression.
 	 */
-	LZO(new DefaultCodecInfo("com.hadoop.compression.lzo.LzoCodec", false), "LZO"),
+	LZO(new DefaultCodecInfo("com.hadoop.compression.lzo.LzoCodec", false, "lzo"), "LZO"),
 
 	/**
 	 * Splittable {@code LzoCodec}. This codec should be based on implementation from
 	 * http://github.com/kevinweil/hadoop-lzo.
 	 */
-	SLZO(new DefaultCodecInfo("com.hadoop.compression.lzo.LzoCodec", true), "SLZO"),
+	SLZO(new DefaultCodecInfo("com.hadoop.compression.lzo.LzoCodec", true, "slzo"), "SLZO"),
 
 	/**
 	 * Non-splittable {@code LzopCodec}. This codec should be based on implementation from
 	 * http://code.google.com/p/hadoop-gpl-compression.
 	 */
-	LZOP(new DefaultCodecInfo("com.hadoop.compression.lzo.LzopCodec", false), "LZOP"),
+	LZOP(new DefaultCodecInfo("com.hadoop.compression.lzo.LzopCodec", false, "lzop"), "LZOP"),
 
 	/**
 	 * Splittable {@code LzoCodec}. This codec should be based on implementation from
 	 * http://github.com/kevinweil/hadoop-lzo.
 	 */
-	SLZOP(new DefaultCodecInfo("com.hadoop.compression.lzo.LzopCodec", true), "SLZOP");
+	SLZOP(new DefaultCodecInfo("com.hadoop.compression.lzo.LzopCodec", true, "slzop"), "SLZOP");
 
 	private final CodecInfo codec;
 

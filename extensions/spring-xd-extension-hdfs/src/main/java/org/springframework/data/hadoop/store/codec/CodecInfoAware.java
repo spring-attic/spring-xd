@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,32 +17,18 @@
 package org.springframework.data.hadoop.store.codec;
 
 /**
- * Generic interface for supported codec info.
+ * Interface to be implemented by any object that wishes to be notified of the {@link CodecInfo} currently used.
  * 
  * @author Janne Valkealahti
  * 
  */
-public interface CodecInfo {
+public interface CodecInfoAware {
 
 	/**
-	 * Checks if codec is splittable.
+	 * Sets the codec info.
 	 * 
-	 * @return true, if is splittable
+	 * @param codecInfo the new codec info
 	 */
-	boolean isSplittable();
-
-	/**
-	 * Gets the fully qualified name of a codec class.
-	 * 
-	 * @return the codec class
-	 */
-	String getCodecClass();
-
-	/**
-	 * Gets the default suffix.
-	 * 
-	 * @return the default suffix
-	 */
-	String getDefaultSuffix();
+	void setCodecInfo(CodecInfo codecInfo);
 
 }

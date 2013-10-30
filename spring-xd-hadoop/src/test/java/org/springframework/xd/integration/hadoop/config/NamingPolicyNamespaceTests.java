@@ -63,7 +63,7 @@ public class NamingPolicyNamespaceTests {
 
 		List<? extends FileNamingStrategy> strategies = ((ChainedFileNamingStrategy) policy).getStrategies();
 		assertNotNull(strategies);
-		assertThat(strategies.size(), is(3));
+		assertThat(strategies.size(), is(4));
 	}
 
 }

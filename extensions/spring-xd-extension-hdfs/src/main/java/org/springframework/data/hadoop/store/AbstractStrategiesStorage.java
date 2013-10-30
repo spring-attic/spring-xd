@@ -23,6 +23,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 
 import org.springframework.data.hadoop.store.codec.CodecInfo;
+import org.springframework.data.hadoop.store.codec.CodecInfoAware;
 import org.springframework.data.hadoop.store.naming.FileNamingStrategy;
 import org.springframework.data.hadoop.store.rollover.RolloverSizeAware;
 import org.springframework.data.hadoop.store.rollover.RolloverStrategy;
@@ -63,6 +64,9 @@ public abstract class AbstractStrategiesStorage extends AbstractStorage implemen
 	@Override
 	public void setFileNamingStrategy(FileNamingStrategy fileNamingStrategy) {
 		this.fileNamingStrategy = fileNamingStrategy;
+		if (fileNamingStrategy instanceof CodecInfoAware) {
+			((CodecInfoAware) fileNamingStrategy).setCodecInfo(getCodec());
+		}
 	}
 
 	/**

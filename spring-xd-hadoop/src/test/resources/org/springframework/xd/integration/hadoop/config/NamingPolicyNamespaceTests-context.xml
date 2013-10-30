@@ -14,8 +14,9 @@
 	<int-hadoop:naming-policy />
 
 	<int-hadoop:naming-policy id="nested">
-		<int-hadoop:static order="3" file-name="foo" />
-		<int-hadoop:rolling order="2" />
+		<int-hadoop:static order="4" file-name="foo" />
+		<int-hadoop:rolling order="3" />
+		<int-hadoop:codec order="2" />
 		<int-hadoop:renaming order="1" suffix="tmp" />
 	</int-hadoop:naming-policy>
 

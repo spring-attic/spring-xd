@@ -17,6 +17,8 @@
 package org.springframework.data.hadoop.store.naming;
 
 import org.springframework.core.Ordered;
+import org.springframework.data.hadoop.store.codec.CodecInfo;
+import org.springframework.data.hadoop.store.codec.CodecInfoAware;
 
 /**
  * Base class for {@code FileNamingStrategy} implementations. This class also implements {@code Ordered} interface to be
@@ -25,9 +27,11 @@ import org.springframework.core.Ordered;
  * @author Janne Valkealahti
  * 
  */
-public abstract class AbstractFileNamingStrategy implements FileNamingStrategy, Ordered {
+public abstract class AbstractFileNamingStrategy implements FileNamingStrategy, Ordered, CodecInfoAware {
 
 	private volatile int order = 0;
+
+	private volatile CodecInfo codecInfo;
 
 	/**
 	 * Implementation should override this method to define a chaining order.
@@ -48,6 +52,20 @@ public abstract class AbstractFileNamingStrategy implements FileNamingStrategy, 
 	 */
 	public void setOrder(int order) {
 		this.order = order;
+	}
+
+	@Override
+	public void setCodecInfo(CodecInfo codecInfo) {
+		this.codecInfo = codecInfo;
+	}
+
+	/**
+	 * Gets the codec info.
+	 * 
+	 * @return the codec info
+	 */
+	public CodecInfo getCodecInfo() {
+		return codecInfo;
 	}
 
 }

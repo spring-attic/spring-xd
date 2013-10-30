@@ -29,6 +29,7 @@ import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.data.hadoop.store.naming.ChainedFileNamingStrategy;
+import org.springframework.data.hadoop.store.naming.CodecFileNamingStrategy;
 import org.springframework.data.hadoop.store.naming.RenamingFileNamingStrategy;
 import org.springframework.data.hadoop.store.naming.RollingFileNamingStrategy;
 import org.springframework.data.hadoop.store.naming.StaticFileNamingStrategy;
@@ -53,8 +54,10 @@ public class NamingPolicyParser extends AbstractBeanDefinitionParser {
 		List<Element> staticElements = DomUtils.getChildElementsByTagName(element, "static");
 		List<Element> rollingElements = DomUtils.getChildElementsByTagName(element, "rolling");
 		List<Element> renamingElements = DomUtils.getChildElementsByTagName(element, "renaming");
+		List<Element> codecElements = DomUtils.getChildElementsByTagName(element, "codec");
 
-		if (staticElements.size() == 0 && rollingElements.size() == 0 && renamingElements.size() == 0) {
+		if (staticElements.size() == 0 && rollingElements.size() == 0 && renamingElements.size() == 0
+				&& codecElements.size() == 0) {
 			builder = BeanDefinitionBuilder.genericBeanDefinition(StaticFileNamingStrategy.class);
 			return builder.getBeanDefinition();
 		}
@@ -73,6 +76,15 @@ public class NamingPolicyParser extends AbstractBeanDefinitionParser {
 
 		for (Element e : rollingElements) {
 			BeanDefinitionBuilder nestedBuilder = BeanDefinitionBuilder.genericBeanDefinition(RollingFileNamingStrategy.class);
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(nestedBuilder, e, "order");
+			String nestedBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
+					nestedBuilder.getBeanDefinition(),
+					parserContext.getRegistry());
+			strategies.add(new RuntimeBeanReference(nestedBeanName));
+		}
+
+		for (Element e : codecElements) {
+			BeanDefinitionBuilder nestedBuilder = BeanDefinitionBuilder.genericBeanDefinition(CodecFileNamingStrategy.class);
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(nestedBuilder, e, "order");
 			String nestedBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
 					nestedBuilder.getBeanDefinition(),

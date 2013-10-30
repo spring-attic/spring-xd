@@ -28,6 +28,7 @@
 	<int-hadoop:naming-policy>
 		<int-hadoop:static file-name="${file-name:data}" />
 		<int-hadoop:rolling />
+		<int-hadoop:codec />
 		<int-hadoop:renaming configuration="hadoopConfiguration" suffix="${suffix:.tmp}" />
 	</int-hadoop:naming-policy>
 

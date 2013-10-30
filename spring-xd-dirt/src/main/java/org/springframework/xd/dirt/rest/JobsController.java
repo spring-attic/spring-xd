@@ -39,7 +39,6 @@ import org.springframework.xd.rest.client.domain.JobDefinitionResource;
  * 
  * @author Glenn Renfro
  * @author Gunnar Hillert
- * @since 1.0
  */
 @Controller
 @RequestMapping("/jobs")
@@ -51,25 +50,6 @@ public class JobsController extends
 	public JobsController(JobDeployer jobDeployer,
 			JobDefinitionRepository jobDefinitionRepository) {
 		super(jobDeployer, new JobDefinitionResourceAssembler());
-	}
-
-	@Override
-	@RequestMapping(value = "/unused/{name}", method = RequestMethod.PUT, params = "deploy=true")
-	@ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
-	@ResponseBody
-	public void deploy(String name) {
-		// not used
-	}
-
-	@RequestMapping(value = "/{name}", method = RequestMethod.PUT, params = "deploy=true")
-	@ResponseStatus(HttpStatus.OK)
-	@ResponseBody
-	public void deployJob(@PathVariable("name") String name,
-			@RequestParam(required = false) String dateFormat,
-			@RequestParam(required = false) String numberFormat,
-			@RequestParam(required = false) Boolean makeUnique) {
-		final JobDeployer jobDeployer = (JobDeployer) getDeployer();
-		jobDeployer.deploy(name, dateFormat, numberFormat, makeUnique);
 	}
 
 	/**

@@ -75,9 +75,12 @@ public class JobCommands implements CommandMarker {
 	public String createJob(
 			@CliOption(mandatory = true, key = { "name", "" }, help = "the name to give to the job") String name,
 			@CliOption(mandatory = true, key = "definition", help = "job definition using xd dsl ") String dsl,
-			@CliOption(key = "deploy", help = "whether to deploy the stream immediately", unspecifiedDefaultValue = "true") Boolean deploy) {
-		jobOperations().createJob(name, dsl, deploy);
-		return String.format(((deploy != null && deploy.booleanValue()) ? "Successfully created and deployed job '%s'"
+			@CliOption(key = "deploy", help = "whether to deploy the stream immediately", unspecifiedDefaultValue = "true") boolean deploy,
+			@CliOption(key = "dateFormat", help = "the optional date format for job parameters") String dateFormat,
+			@CliOption(key = "numberFormat", help = "the optional number format for job parameters") String numberFormat,
+			@CliOption(key = "makeUnique", help = "shall job parameters be made unique?", unspecifiedDefaultValue = "false") boolean makeUnique) {
+		jobOperations().createJob(name, dsl, dateFormat, numberFormat, makeUnique, deploy);
+		return String.format((deploy ? "Successfully created and deployed job '%s'"
 				: "Successfully created job '%s'"), name);
 	}
 
@@ -98,11 +101,8 @@ public class JobCommands implements CommandMarker {
 
 	@CliCommand(value = DEPLOY_JOB, help = "Deploy a previously created job")
 	public String deployJob(
-			@CliOption(key = { "", "name" }, help = "the name of the job to deploy", mandatory = true, optionContext = "existing-job disable-string-converter") String name,
-			@CliOption(key = "dateFormat", help = "the optional date format for job parameters") String dateFormat,
-			@CliOption(key = "numberFormat", help = "the optional number format for job parameters") String numberFormat,
-			@CliOption(key = "makeUnique", help = "shall job parameters be made unique?") Boolean makeUnique) {
-		jobOperations().deployJob(name, dateFormat, numberFormat, makeUnique);
+			@CliOption(key = { "", "name" }, help = "the name of the job to deploy", mandatory = true, optionContext = "existing-job disable-string-converter") String name) {
+		jobOperations().deploy(name);
 		return String.format("Deployed job '%s'", name);
 	}
 

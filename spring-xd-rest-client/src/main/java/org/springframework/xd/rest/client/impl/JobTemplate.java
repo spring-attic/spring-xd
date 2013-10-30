@@ -37,11 +37,21 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 	}
 
 	@Override
-	public JobDefinitionResource createJob(String name, String definition, Boolean deploy) {
+	public JobDefinitionResource createJob(String name, String definition, String dateFormat,
+			String numberFormat, boolean makeUnique, boolean deploy) {
+
 		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
 		values.add("name", name);
 		values.add("definition", definition);
-		values.add("deploy", deploy.toString());
+		values.add("deploy", String.valueOf(deploy));
+		if (dateFormat != null) {
+			values.add("dateFormat", dateFormat);
+		}
+		if (numberFormat != null) {
+			values.add("numberFormat", numberFormat);
+		}
+		values.add("makeUnique", String.valueOf(makeUnique));
+
 		JobDefinitionResource job = restTemplate.postForObject(resources.get("jobs"), values,
 				JobDefinitionResource.class);
 		return job;
@@ -54,28 +64,13 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 	}
 
 	@Override
-	public void deployJob(String name, String dateFormat, String numberFormat, Boolean makeUnique) {
+	public void deploy(String name) {
 
 		String uriTemplate = resources.get("jobs").toString() + "/{name}";
 		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
 		values.add("deploy", "true");
 
-		if (dateFormat != null) {
-			values.add("dateFormat", dateFormat);
-		}
-		if (numberFormat != null) {
-			values.add("numberFormat", numberFormat);
-		}
-		if (makeUnique != null) {
-			values.add("makeUnique", String.valueOf(makeUnique));
-		}
-
 		restTemplate.put(uriTemplate, values, name);
-	}
-
-	@Override
-	public void deploy(String name) {
-		deployJob(name, null, null, null);
 	}
 
 	@Override

@@ -5,7 +5,6 @@ apply plugin: 'idea'
 
 buildscript {
 	repositories {
-		 mavenLocal()
 		maven { url "http://repo.springsource.org/plugins-snapshot" }
 	}
 	dependencies {
@@ -275,8 +274,6 @@ configure(moduleProjects()) { moduleProject ->
 	// FIXME: remove this
 	configurations {
 		runtime {
-			// Workaround for https://jira.springsource.org/browse/SPR-11028
-			exclude group: 'org.codehaus.groovy'
 			// Workaround for duplicate large jars being included by mistake
 			exclude module: 'gemfire'
 		}
@@ -821,9 +818,6 @@ project('spring-xd-module') {
 	description = 'Spring XD Module'
 	dependencies {
 		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
-		compile "org.springframework:spring-core:$springVersion"
-		compile "org.springframework:spring-context:$springVersion"
-		compile "org.springframework:spring-web:$springVersion"
 		compile "org.springframework.boot:spring-boot-autoconfigure:$springBootVersion"
 	}
 }

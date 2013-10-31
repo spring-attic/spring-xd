@@ -64,7 +64,6 @@ public class SimpleModule extends AbstractModule {
 	public SimpleModule(ModuleDefinition definition, DeploymentMetadata metadata, ClassLoader classLoader) {
 		super(definition, metadata);
 		application = new SpringApplicationBuilder().sources(PropertyPlaceholderAutoConfiguration.class).web(false);
-		// How does HTTP source work?;
 		environment = new StandardEnvironment();
 		if (classLoader != null) {
 			application.resourceLoader(new PathMatchingResourcePatternResolver(classLoader));

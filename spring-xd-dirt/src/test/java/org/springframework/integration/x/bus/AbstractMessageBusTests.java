@@ -50,7 +50,7 @@ import org.springframework.xd.tuple.Tuple;
  */
 public abstract class AbstractMessageBusTests {
 
-	private static final Collection<MediaType> ALL = Collections.singletonList(MediaType.ALL);
+	protected static final Collection<MediaType> ALL = Collections.singletonList(MediaType.ALL);
 
 	@Test
 	public void testClean() throws Exception {

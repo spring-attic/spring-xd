@@ -134,7 +134,7 @@ public class ModuleTypeConversionPlugin extends PluginAdapter {
 							}
 						}
 					}
-					conversionService.addConverter(entry.getKey(), dataType, entry.getValue());
+					conversionService.addConverter(entry.getKey(), dataType, converter);
 				}
 				channel.setConversionService(conversionService);
 			}

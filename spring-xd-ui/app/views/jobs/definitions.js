@@ -18,11 +18,11 @@
  * View for XD Job Definitions.
  * @author Ilayaperumal Gopinathan
  */
-/*global define, _ */
+/*global define, _, $ */
 define([],
 function() {
 	'use strict';
-	return function(Backbone, model, xdJobDefinitionsTemplate) {
+	return function(Backbone, model, xdJobDefinitionsTemplate, utils, strings) {
 
 		var XDJobDefinitions = Backbone.View.extend({
 			initialize: function(options) {
@@ -31,11 +31,42 @@ function() {
 				model.jobDefinitions.startFetching();
 			},
 
+			events: {
+				'click .job-deploy': 'handleDeploy',
+				'click .job-undeploy': 'handleUndeploy'
+			},
+
 			template: _.template(xdJobDefinitionsTemplate),
 
 			render: function() {
 				this.$el.html(this.template({jobs: model.jobDefinitions.jobs}));
 				return this;
+			},
+
+			handleDeploy: function(event) {
+				var buttonId = event.target.id;
+				var jobName = buttonId.substring(buttonId.indexOf('-')+1);
+				var job = model.jobDefinitions.get(jobName);
+				if (job) {
+					job.deploy().then(function() {
+						utils.showSuccessMsg(strings.deployJobSuccess);
+						$(buttonId).prop('disabled', true);
+						$('undeploy-'+jobName).prop('disabled',false);
+					});
+				}
+			},
+
+			handleUndeploy: function(event) {
+				var buttonId = event.target.id;
+				var jobName = buttonId.substring(buttonId.indexOf('-')+1);
+				var job = model.jobDefinitions.get(jobName);
+				if (job) {
+					job.undeploy().then(function() {
+						utils.showSuccessMsg(strings.undeployJobSuccess);
+						$(buttonId).prop('disabled', true);
+						$('deploy-'+jobName).prop('disabled',false);
+					});
+				}
 			}
 		});
 		return XDJobDefinitions;

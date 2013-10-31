@@ -46,10 +46,12 @@ define([], function() {
 			var statusMsg = $(this.xdStatusMsgElt);
 
 			$(window.document).on('success', function(evt, message) {
+				statusMsg.show();
 				statusMsg.html('');
 				statusMsg.html(utils.updateStatus("Success", message));
 			});
 			$(window.document).on('error', function(evt, message) {
+				statusMsg.show();
 				statusMsg.html('');
 				statusMsg.html(utils.updateStatus("Error", message));
 			});

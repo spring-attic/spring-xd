@@ -53,4 +53,4 @@ requirejs.config({
 });
 
 // load up the wire spec and also load non-amd libraries
-require(['wire!xd.wirespec', 'd3', 'cubism', 'bootstrap-tab', 'bootstrap-collapse']);
+require(['wire!xd.wirespec', 'd3', 'cubism', 'bootstrap-alert', 'bootstrap-tab', 'bootstrap-collapse']);

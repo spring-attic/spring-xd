@@ -99,23 +99,39 @@ define([], function() {
 			urlRoot: URL_ROOT + '/jobs/',
 			url: function() {
 				return this.urlRoot + this.id + '/jobs.json';
+			},
+			idAttribute: 'name',
+			deploy: function() {
+				var createPromise = client({
+					path: URL_ROOT +  '/jobs/' + this.id,
+					params: { "deploy" : 'true' } ,
+					method: 'PUT',
+					headers: ACCEPT_HEADER
+				 });
+				 return XDModel.jobDefinitions.fetch({merge:true, update:true });
+			},
+			undeploy: function() {
+				var createPromise = client({
+					path: URL_ROOT +  '/jobs/' + this.id,
+					params: { "deploy" : 'false' } ,
+					method: 'PUT',
+					headers: ACCEPT_HEADER
+				 });
+				 return XDModel.jobDefinitions.fetch({merge:true, update:true });
 			}
 		});
 
 		var JobDefinitions = Backbone.Collection.extend({
 			model: JobDefinition,
-			urlRoot: URL_ROOT + "/jobs",
+			urlRoot: URL_ROOT + "/jobs?deployments=true",
 			url: function() {
 				return this.urlRoot;
 			},
+			comparator: 'name',
 			jobs: [],
 			parse: function(response) {
 				this.jobs = response.content;
-			},
-			transformResponse: function(data) {
-				for (var i = 0; i < data.length; i++) {
-					this.jobs.push({"name": data[i].name });
-				}
+				return this.jobs;
 			},
 			startFetching: function() {
 				this.fetch({change:true, add:false}).then(
@@ -246,7 +262,7 @@ define([], function() {
 					method: 'PUT',
 					headers: ACCEPT_HEADER
 				 });
-			return XDModel.batchJobs.fetch({merge:true, update:true });
+				return XDModel.batchJobs.fetch({merge:true, update:true });
 			},
 
 			parse: function(data) {
@@ -278,6 +294,7 @@ define([], function() {
 			jobs: [],
 			parse: function(data) {
 				this.jobs = data;
+				return data;
 			},
 			comparator: 'name',
 

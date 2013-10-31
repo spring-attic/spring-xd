@@ -32,6 +32,7 @@ define({
 	createJobSuccess: "Job created successully",
 	deployJobSuccess: "Job deployed successully",
 	undeployJobSuccess: "Job undeployed successully",
+	launchJobSuccess: "Job launched successully",
 	streamCreationError: "Error while creating stream",
 	action: {
 		"start" : "Stream started successfully",

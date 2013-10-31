@@ -52,6 +52,7 @@ define({
 			]
 		},
 		properties: {
+			xdJobsElt: { $ref: 'dom!xd-jobs'},
 			jobDefinitionsElt: { $ref: 'dom!job-definitions'},
 			jobDeploymentsElt: { $ref: 'dom!job-deployments'},
 			jobExecutionsElt: { $ref: 'dom!job-executions'},
@@ -119,7 +120,9 @@ define({
 			args: [
 				{ $ref: 'backbone' },
 				{ $ref: 'model' },
-				{ $ref: 'xdJobDeploymentsTemplate' }
+				{ $ref: 'xdJobDeploymentsTemplate' },
+				{ $ref: 'utils' },
+				{ $ref: 'strings' }
 			]
 		}
 	},

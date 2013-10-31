@@ -20,8 +20,12 @@
 /*global define:true */
 // Global configuration properties
 define({
-		// TODO should be configurable
-		urlRoot: 'http://localhost:9393/',
+		location: {
+			hostname: 'localhost',
+			port: '9393'
+		},
+
+		urlRoot: 'http://'+this.location.hostname+":"+this.location.port+"/",
 
 		// TODO should be configurable
 		pageSize: 5,
@@ -29,5 +33,5 @@ define({
 		acceptHeader: { 'Accept': 'application/json' },
 
 		// for polling server, how long do we wait?
-		refreshInterval: 40000
+		refreshInterval: 4000
 });

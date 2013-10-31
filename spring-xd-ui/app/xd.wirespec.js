@@ -179,7 +179,6 @@ define({
 	errorCode: { module: 'rest/interceptor/errorCode'},
 
 	plugins : [
-			{ module : 'wire/debug' },
 			{ module : 'wire/jquery/dom' }
 	]
 });

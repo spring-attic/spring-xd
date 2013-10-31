@@ -30,6 +30,8 @@ define({
 	customStreamCreationSuccess: "Stream successfully created",
 	tapStreamCreationSuccess: "Tap stream successfully created",
 	createJobSuccess: "Job created successully",
+	deployJobSuccess: "Job deployed successully",
+	undeployJobSuccess: "Job undeployed successully",
 	streamCreationError: "Error while creating stream",
 	action: {
 		"start" : "Stream started successfully",

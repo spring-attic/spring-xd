@@ -106,7 +106,9 @@ define({
 			args: [
 				{ $ref: 'backbone' },
 				{ $ref: 'model' },
-				{ $ref: 'xdJobDefinitionsTemplate' }
+				{ $ref: 'xdJobDefinitionsTemplate' },
+				{ $ref: 'utils' },
+				{ $ref: 'strings' }
 			]
 		}
 	},

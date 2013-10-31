@@ -4,7 +4,7 @@
 <% if ( status.indexOf("Error") !== -1) {%>
 <% var alert_class = "alert-error"; %>
 <% } %>
-<div class="alert <%= alert_class %>">
+<div class="alert <%= alert_class %> alert-dismissable">
   <button type="button" class="close" data-dismiss="alert">&times;</button>
   <strong><%= status %> </strong><%= message %> 
 </div>

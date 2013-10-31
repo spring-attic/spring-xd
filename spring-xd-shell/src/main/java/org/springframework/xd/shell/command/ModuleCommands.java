@@ -18,13 +18,11 @@ package org.springframework.xd.shell.command;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.PagedResources;
-import org.springframework.http.HttpStatus;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliAvailabilityIndicator;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.xd.rest.client.ModuleOperations;
 import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
 import org.springframework.xd.rest.client.domain.RESTModuleType;
@@ -32,6 +30,7 @@ import org.springframework.xd.shell.XDShell;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableHeader;
 import org.springframework.xd.shell.util.TableRow;
+import org.springframework.xd.shell.util.UiUtils;
 
 /**
  * Module commands.
@@ -72,17 +71,18 @@ public class ModuleCommands implements CommandMarker {
 			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the the module") String name,
 			@CliOption(mandatory = true, key = "type", help = "the type of the module") RESTModuleType moduleType) {
 
-		try {
-			String moduleConfigurationFile = xdShell.getSpringXDOperations().moduleOperations().displayConfigurationFile(
-					moduleType, name);
-			return moduleConfigurationFile;
-		}
-		catch (HttpClientErrorException e) {
-			if (HttpStatus.NOT_FOUND.equals(e.getStatusCode())) {
-				return e.getResponseBodyAsString();
-			}
-			throw e;
-		}
+		final String configurationFileContents = xdShell.getSpringXDOperations().moduleOperations().displayConfigurationFile(
+				moduleType, name);
+
+		final StringBuilder sb = new StringBuilder()
+				.append(String.format("Configuration file contents for module definiton '%s' (%s)\n\n", name,
+						moduleType))
+				.append(UiUtils.HORIZONTAL_LINE)
+				.append(configurationFileContents)
+				.append(UiUtils.HORIZONTAL_LINE);
+
+		return sb.toString();
+
 	}
 
 	@CliCommand(value = LIST_MODULES, help = "List all modules")

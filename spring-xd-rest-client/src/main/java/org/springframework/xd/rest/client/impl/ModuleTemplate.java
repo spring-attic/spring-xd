@@ -65,10 +65,10 @@ public class ModuleTemplate extends AbstractTemplate implements ModuleOperations
 
 	@Override
 	public String displayConfigurationFile(RESTModuleType type, String name) {
-		final String uriTemplate = resources.get("modules").toString() + "/{type}/{name}";
+		final String uriTemplate = resources.get("modules").toString() + "/{type}/{name}/definition";
 
 		final HttpHeaders headers = new HttpHeaders();
-		headers.setAccept(Arrays.asList(MediaType.TEXT_PLAIN));
+		headers.setAccept(Arrays.asList(MediaType.APPLICATION_XML));
 
 		final HttpEntity<String> entity = new HttpEntity<String>("parameters", headers);
 		return restTemplate.exchange(uriTemplate, HttpMethod.GET, entity, String.class, type.name(), name).getBody();

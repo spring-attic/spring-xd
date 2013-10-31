@@ -181,13 +181,13 @@ public class ModulesControllerIntegrationTests extends AbstractControllerIntegra
 
 	@Test
 	public void testDisplayNonExistingJobConfiguration() throws Exception {
-		mockMvc.perform(get("/modules/job/not_exists").accept(MediaType.TEXT_PLAIN)).andExpect(
+		mockMvc.perform(get("/modules/job/not_exists/definition").accept(MediaType.APPLICATION_XML)).andExpect(
 				status().isNotFound());
 	}
 
 	@Test
 	public void testDisplayJobConfiguration() throws Exception {
-		mockMvc.perform(get("/modules/job/job_4_with_resource").accept(MediaType.TEXT_PLAIN)).andExpect(
+		mockMvc.perform(get("/modules/job/job_4_with_resource/definition").accept(MediaType.APPLICATION_XML)).andExpect(
 				status().isOk()).andExpect(content().string("This is the contents of job_4_with_resource.xml"));
 	}
 

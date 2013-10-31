@@ -28,6 +28,7 @@ import org.springframework.shell.core.CommandResult;
 import org.springframework.xd.shell.AbstractShellIntegrationTest;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableRow;
+import org.springframework.xd.shell.util.UiUtils;
 
 /**
  * Test module commands
@@ -112,7 +113,10 @@ public class ModuleCommandTests extends AbstractShellIntegrationTest {
 
 		final String result = (String) commandResult.getResult();
 		assertTrue("The configuration file should start with the XML header.",
-				result.startsWith("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"));
+				result.startsWith(
+						"Configuration file contents for module definiton 'file' (source)\n\n"
+								+ UiUtils.HORIZONTAL_LINE
+								+ "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"));
 
 	}
 
@@ -120,10 +124,10 @@ public class ModuleCommandTests extends AbstractShellIntegrationTest {
 	public void testDisplayNonExistingConfigurationFile() throws InterruptedException {
 		final CommandResult commandResult = getShell().executeCommand(
 				String.format("module display blubbadoesnotexist --type source"));
-		assertTrue("The status of the command result should be successful", commandResult.isSuccess());
-		assertNull("We should get an exception returned.", commandResult.getException());
-		assertEquals("There is no definition named 'blubbadoesnotexist' for module type 'source'.",
-				commandResult.getResult());
+		assertFalse("The status of the command result should be successful", commandResult.isSuccess());
+		assertNotNull("We should get an exception returned.", commandResult.getException());
+		assertEquals("There is no definition named 'blubbadoesnotexist' for module type 'source'.\n",
+				commandResult.getException().getMessage());
 
 	}
 }

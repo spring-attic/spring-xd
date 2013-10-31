@@ -25,7 +25,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -36,7 +35,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.Assert;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -45,6 +43,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.dirt.stream.NoSuchDefinitionException;
 import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
@@ -152,7 +151,7 @@ public class ModulesController {
 	 * @param name the name of an existing resource (required)
 	 * @param type the type of the module (required)
 	 */
-	@RequestMapping(value = "/{type}/{name}", method = RequestMethod.GET, produces = MediaType.TEXT_PLAIN_VALUE)
+	@RequestMapping(value = "/{type}/{name}/definition", method = RequestMethod.GET, produces = MediaType.APPLICATION_XML_VALUE)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
 	public Resource display(@PathVariable("type") ModuleType type, @PathVariable("name") String name) {
@@ -160,18 +159,12 @@ public class ModulesController {
 		final ModuleDefinition definition = this.repository.findByNameAndType(name, type);
 
 		if (definition == null) {
-			throw new DefinitionNotFoundException(String.format(
+			throw new NoSuchDefinitionException(name, String.format(
 					"There is no definition named '%s' for module type '%s'.",
 					name, type.name()));
 		}
 
 		final Resource resource = definition.getResource();
-
-		if (!definition.getResource().exists()) {
-			throw new ConfigurationFileNotFoundException(String.format("The Resourse ('%s" +
-					"') associated with the module named '%s' (%s) does not exist.",
-					definition.getResource().getFilename(), name, type.name()));
-		}
 
 		try {
 			if (resource.getFile().length() == 0 && logger.isWarnEnabled()) {
@@ -185,27 +178,6 @@ public class ModulesController {
 		}
 
 		return resource;
-	}
-
-	public class DefinitionNotFoundException extends RuntimeException {
-
-		public DefinitionNotFoundException(String message) {
-			super(message);
-		}
-	}
-
-	public class ConfigurationFileNotFoundException extends RuntimeException {
-
-		public ConfigurationFileNotFoundException(String message) {
-			super(message);
-		}
-	}
-
-	@ExceptionHandler({ DefinitionNotFoundException.class, ConfigurationFileNotFoundException.class })
-	@ResponseStatus(HttpStatus.NOT_FOUND)
-	@ResponseBody
-	public Resource handleIndexNotFoundException(RuntimeException e) {
-		return new ByteArrayResource(e.getMessage().getBytes());
 	}
 
 }

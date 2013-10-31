@@ -16,9 +16,11 @@
 
 package org.springframework.xd.shell.command;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.text.ParseException;
@@ -234,7 +236,9 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 	public void testLaunchNotDeployedJob() {
 		logger.info("Launch batch job that is not deployed");
 		executeJobCreate(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
-		executeJobLaunch(MY_JOB);
+		CommandResult result = executeCommandExpectingFailure("job launch --name " + MY_JOB);
+		assertThat(result.getException().getMessage(),
+				containsString(String.format("The job named '%s' is not currently deployed", MY_JOB)));
 	}
 
 	@Test

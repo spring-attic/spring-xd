@@ -15,7 +15,7 @@ package org.springframework.xd.dirt.stream;
 
 import java.util.List;
 
-import org.springframework.integration.MessageHandlingException;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 
@@ -44,23 +44,24 @@ public class JobDeployer extends AbstractInstancePersistingDeployer<JobDefinitio
 	}
 
 	public void launch(String name, String jobParameters) {
+		// Double check so that user gets an informative error message
 		JobDefinition job = getDefinitionRepository().findOne(name);
 		if (job == null) {
 			throwNoSuchDefinitionException(name);
 		}
+		Job instance = instanceRepository.findOne(name);
+		if (instance == null) {
+			throwNotDeployedException(name);
+		}
+
 		List<ModuleDeploymentRequest> requests = parse(name, job.getDefinition());
-		for (ModuleDeploymentRequest request : requests) {
-			request.setLaunch(true);
-			if (!StringUtils.isEmpty(jobParameters) && jobParameters != null) {
-				request.setParameter(JOB_PARAMETERS_KEY, jobParameters);
-			}
+		Assert.isTrue(requests.size() == 1, "Expecting only a single module");
+		ModuleDeploymentRequest request = requests.get(0);
+		request.setLaunch(true);
+		if (!StringUtils.isEmpty(jobParameters)) {
+			request.setParameter(JOB_PARAMETERS_KEY, jobParameters);
 		}
-		try {
-			sendDeploymentRequests(name, requests);
-		}
-		catch (MessageHandlingException ex) {
-			// Job is not launched.
-		}
+		sendDeploymentRequests(name, requests);
 	}
 
 }

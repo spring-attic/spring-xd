@@ -53,7 +53,7 @@ public class JobsController extends
 	}
 
 	/**
-	 * Send the request to launch Job. If the Job is not already deployed, then deploy and launch.
+	 * Send the request to launch Job. Job has to be deployed first.
 	 * 
 	 * @param name the name of the job
 	 * @param jobParameters the job parameters in JSON string

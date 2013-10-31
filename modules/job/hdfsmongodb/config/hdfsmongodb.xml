@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:hdp="http://www.springframework.org/schema/hadoop"
+	xmlns:mongo="http://www.springframework.org/schema/data/mongo"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:batch="http://www.springframework.org/schema/batch"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/hadoop http://www.springframework.org/schema/hadoop/spring-hadoop.xsd
+		http://www.springframework.org/schema/data/mongo http://www.springframework.org/schema/data/mongo/spring-mongo.xsd
+		http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd">
+
+	<context:property-placeholder location="file:${XD_HOME}/config/${configProperties:batch-mongo-import}.properties" ignore-resource-not-found="true"/>
+
+	<batch:job id="job" restartable="${restartable:false}">
+		<batch:step id="readResourcesStep">
+			<batch:tasklet>
+				<batch:chunk reader="multifileReader" writer="itemWriter" commit-interval="100"/>
+			</batch:tasklet>
+		</batch:step>
+	</batch:job>
+
+	<bean id="multifileReader" class="org.springframework.batch.item.file.MultiResourceItemReader" scope="step">
+		<property name="resources" value="${resources}"/>
+		<property name="delegate" ref="itemReader"/>
+	</bean>
+
+	<bean id="itemReader" class="org.springframework.batch.item.file.FlatFileItemReader" scope="step">
+		<property name="lineMapper">
+			<bean class="org.springframework.batch.item.file.mapping.DefaultLineMapper">
+				<property name="lineTokenizer">
+					<bean class="org.springframework.batch.item.file.transform.DelimitedLineTokenizer">
+						<property name="names" value="${names}" />
+					</bean>
+				</property>
+				<property name="fieldSetMapper">
+					<bean class="org.springframework.xd.tuple.batch.TupleFieldSetMapper"/>
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="itemWriter" class="org.springframework.xd.mongodb.MongoItemWriter">
+		<constructor-arg>
+			<bean class="org.springframework.data.mongodb.core.MongoTemplate">
+				<constructor-arg ref="mongoDbFactory" />
+				<constructor-arg ref="mappingConverter"/>
+			</bean>
+		</constructor-arg>
+		<property name="collectionName" value="${collectionName:${xd.stream.name}}" />
+	</bean>
+
+	<bean id="hadoopFs" class="org.springframework.data.hadoop.fs.FileSystemFactoryBean">
+		<property name="configuration" ref="hadoopConfiguration"/>
+	</bean>
+
+	<hdp:configuration register-url-handler="false" properties-location="file:${XD_HOME}/config/hadoop.properties"/>
+	<hdp:resource-loader id="hadoopResourceLoader"/>
+	<mongo:db-factory dbname="${databaseName:xd}" host="${host}" port="${port}"/>
+
+	<mongo:mapping-converter>
+		<mongo:custom-converters>
+			<mongo:converter>
+				<bean class="org.springframework.xd.mongodb.TupleWriteConverter">
+					<property name="idField" value="${idField:null}"/>
+				</bean>
+			</mongo:converter>
+		</mongo:custom-converters>
+	</mongo:mapping-converter>
+
+	<bean id="defaultResourceLoader" class="org.springframework.data.hadoop.fs.CustomResourceLoaderRegistrar">
+		<property name="loader" ref="hadoopResourceLoader"/>
+	</bean>
+
+</beans>

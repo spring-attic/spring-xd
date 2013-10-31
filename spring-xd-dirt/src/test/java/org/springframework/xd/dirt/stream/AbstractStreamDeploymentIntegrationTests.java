@@ -78,7 +78,8 @@ public abstract class AbstractStreamDeploymentIntegrationTests {
 		System.setProperty(XDPropertyKeys.XD_TRANSPORT, transport);
 		System.setProperty(XDPropertyKeys.XD_ANALYTICS, "memory");
 		System.setProperty(XDPropertyKeys.XD_STORE, "memory");
-		context = (AbstractApplicationContext) new SpringApplicationBuilder(ParentConfiguration.class).child(
+		context = (AbstractApplicationContext) new SpringApplicationBuilder(ParentConfiguration.class).profiles(
+				"singleNode").child(
 				StreamDeploymentIntegrationTestsConfiguration.class).sources(
 				"META-INF/spring-xd/transports/" + transport + "-admin.xml").web(false).run();
 		this.streamDefinitionRepository = context.getBean(StreamDefinitionRepository.class);

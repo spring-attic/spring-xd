@@ -44,7 +44,7 @@ import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
-import org.springframework.xd.module.SpringApplicationModule;
+import org.springframework.xd.module.SimpleModule;
 
 /**
  * @author Mark Fisher
@@ -66,7 +66,7 @@ public class StreamPluginTests {
 
 	@Test
 	public void streamPropertiesAdded() {
-		Module module = new SpringApplicationModule(new ModuleDefinition("testsource", ModuleType.source),
+		Module module = new SimpleModule(new ModuleDefinition("testsource", ModuleType.source),
 				new DeploymentMetadata("foo", 0));
 		module.initialize();
 		assertEquals(0, module.getProperties().size());

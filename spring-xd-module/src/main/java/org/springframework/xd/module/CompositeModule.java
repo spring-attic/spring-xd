@@ -47,7 +47,7 @@ public class CompositeModule extends AbstractModule {
 
 	private final GenericApplicationContext context = new GenericApplicationContext();
 
-	private final List<SpringApplicationModule> modules;
+	private final List<SimpleModule> modules;
 
 	private final Properties properties = new Properties();
 
@@ -59,7 +59,7 @@ public class CompositeModule extends AbstractModule {
 	 * @param definitions
 	 * @param metadata
 	 */
-	public CompositeModule(String name, ModuleType type, List<SpringApplicationModule> modules,
+	public CompositeModule(String name, ModuleType type, List<SimpleModule> modules,
 			DeploymentMetadata metadata) {
 		super(new ModuleDefinition(name, type), metadata);
 		this.modules = modules;
@@ -96,7 +96,7 @@ public class CompositeModule extends AbstractModule {
 		List<AbstractEndpoint> endpoints = new ArrayList<AbstractEndpoint>();
 		MessageChannel previousOutputChannel = null;
 		for (int i = 0; i < this.modules.size(); i++) {
-			SpringApplicationModule module = this.modules.get(i);
+			SimpleModule module = this.modules.get(i);
 			module.initialize();
 			MessageChannel inputChannel = module.getComponent("input", MessageChannel.class);
 			MessageChannel outputChannel = module.getComponent("output", MessageChannel.class);

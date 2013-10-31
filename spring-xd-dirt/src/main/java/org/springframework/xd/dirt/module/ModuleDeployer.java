@@ -51,7 +51,7 @@ import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.ParentLastURLClassLoader;
 import org.springframework.xd.module.Plugin;
-import org.springframework.xd.module.SpringApplicationModule;
+import org.springframework.xd.module.SimpleModule;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -160,7 +160,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		String sourceChannelName = request.getSourceChannelName();
 		String sinkChannelName = request.getSinkChannelName();
 		DeploymentMetadata metadata = new DeploymentMetadata(group, index, sourceChannelName, sinkChannelName);
-		List<SpringApplicationModule> modules = new ArrayList<SpringApplicationModule>(definitions.size());
+		List<SimpleModule> modules = new ArrayList<SimpleModule>(definitions.size());
 		if (parentClassLoader == null) {
 			parentClassLoader = ClassUtils.getDefaultClassLoader();
 		}
@@ -170,7 +170,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 					+ request.getModule(), i);
 			ClassLoader classLoader = (definition.getClasspath() == null) ? null
 					: new ParentLastURLClassLoader(definition.getClasspath(), parentClassLoader);
-			SpringApplicationModule module = new SpringApplicationModule(definition, submoduleMetadata, classLoader);
+			SimpleModule module = new SimpleModule(definition, submoduleMetadata, classLoader);
 
 			Properties props = new Properties();
 			props.putAll(paramList.get(i));
@@ -210,7 +210,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		ClassLoader classLoader = (definition.getClasspath() == null) ? null
 				: new ParentLastURLClassLoader(definition.getClasspath(), parentClassLoader);
 
-		Module module = new SpringApplicationModule(definition, metadata, classLoader);
+		Module module = new SimpleModule(definition, metadata, classLoader);
 		module.setParentContext(this.commonContext);
 		Object properties = message.getHeaders().get("properties");
 		if (properties instanceof Properties) {

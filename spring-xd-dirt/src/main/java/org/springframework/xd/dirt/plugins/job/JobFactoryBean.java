@@ -28,6 +28,7 @@ import org.springframework.util.Assert;
 /**
  * 
  * @author Gunnar Hillert
+ * @author Dave Syer
  * @since 1.0
  * 
  */
@@ -35,23 +36,24 @@ public class JobFactoryBean implements FactoryBean<Job> {
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
-	private final String jobKeyInRegistry;
+	private JobRegistry registry;
 
-	private final JobRegistry registry;
+	private String jobName;
 
-	/**
-	 * Instantiate the {@link JobFactoryBean} with the provided {@link JobRegistry} and the name of the {@link Job}.
-	 * 
-	 * @param registry Must not be null
-	 * @param jobName Must not be empty
-	 * @param jobSuffix Must not be empty
-	 */
-	public JobFactoryBean(JobRegistry registry, String jobName, String jobSuffix) {
-		Assert.notNull(registry, "A JobRegistry is required");
-		Assert.hasText(jobName, "The jobName must not be empty.");
-		Assert.hasText(jobSuffix, "The jobSuffix must not be empty.");
+	private String jobSuffix;
+
+	public void setJobName(String jobName) {
+		this.jobName = jobName;
+	}
+
+
+	public void setJobSuffix(String jobSuffix) {
+		this.jobSuffix = jobSuffix;
+	}
+
+
+	public void setRegistry(JobRegistry registry) {
 		this.registry = registry;
-		this.jobKeyInRegistry = jobName + JobPlugin.JOB_NAME_DELIMITER + jobSuffix;
 	}
 
 	/**
@@ -61,14 +63,21 @@ public class JobFactoryBean implements FactoryBean<Job> {
 	@Override
 	public Job getObject() throws Exception {
 
+		// Delay validation otherwise early instantiation can prang the application context (see SPR-11049)
+		Assert.notNull(registry, "A JobRegistry is required");
+		Assert.hasText(jobName, "The jobName must not be empty.");
+		Assert.hasText(jobSuffix, "The jobSuffix must not be empty.");
+
 		final Job job;
 
+		String jobKeyInRegistry = jobName + JobPlugin.JOB_NAME_DELIMITER + jobSuffix;
+
 		try {
-			job = registry.getJob(this.jobKeyInRegistry);
+			job = registry.getJob(jobKeyInRegistry);
 		}
 		catch (NoSuchJobException e) {
 			throw new IllegalStateException(String.format("No Batch Job found in registry "
-					+ "for the provided key '%s'.", this.jobKeyInRegistry));
+					+ "for the provided key '%s'.", jobKeyInRegistry));
 		}
 
 		return job;

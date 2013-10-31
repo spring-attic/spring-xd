@@ -39,7 +39,7 @@ import org.springframework.xd.dirt.plugins.ModuleConfigurationException;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.PluginAdapter;
-import org.springframework.xd.module.SpringApplicationModule;
+import org.springframework.xd.module.SimpleModule;
 
 
 /**
@@ -77,8 +77,8 @@ public class ModuleTypeConversionPlugin extends PluginAdapter {
 
 
 	private void registerConversionService(Module module, ConversionService conversionService) {
-		if (module instanceof SpringApplicationModule) {
-			SpringApplicationModule sm = (SpringApplicationModule) module;
+		if (module instanceof SimpleModule) {
+			SimpleModule sm = (SimpleModule) module;
 			ConfigurableApplicationContext applicationContext = (ConfigurableApplicationContext) sm.getApplicationContext();
 			applicationContext.getBeanFactory().registerSingleton("conversionService", conversionService);
 		}
@@ -89,7 +89,7 @@ public class ModuleTypeConversionPlugin extends PluginAdapter {
 		if (logger.isDebugEnabled()) {
 			logger.debug("module " + (isInput ? "input" : "output") + "Type is " + contentTypeString);
 		}
-		SpringApplicationModule sm = (SpringApplicationModule) module;
+		SimpleModule sm = (SimpleModule) module;
 		try {
 			MediaType contentType = resolveContentType(contentTypeString, module);
 			AbstractMessageChannel channel = null;
@@ -154,7 +154,7 @@ public class ModuleTypeConversionPlugin extends PluginAdapter {
 	}
 
 	private Class<?> resolveJavaType(String type, Module module) throws ClassNotFoundException, LinkageError {
-		SpringApplicationModule sm = (SpringApplicationModule) module;
+		SimpleModule sm = (SimpleModule) module;
 		return ClassUtils.forName(type, sm.getApplicationContext().getClassLoader());
 	}
 

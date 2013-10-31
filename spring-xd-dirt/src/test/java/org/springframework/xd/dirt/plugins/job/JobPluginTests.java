@@ -45,7 +45,7 @@ import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
-import org.springframework.xd.module.SpringApplicationModule;
+import org.springframework.xd.module.SimpleModule;
 
 /**
  * 
@@ -103,7 +103,7 @@ public class JobPluginTests {
 
 	@Test
 	public void streamPropertiesAdded() {
-		Module module = new SpringApplicationModule(new ModuleDefinition("testJob", ModuleType.job),
+		Module module = new SimpleModule(new ModuleDefinition("testJob", ModuleType.job),
 				new DeploymentMetadata(
 						"foo", 0));
 

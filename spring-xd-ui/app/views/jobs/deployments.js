@@ -17,19 +17,28 @@
 /**
  * View for XD Job deployments
  * @author Ilayaperumal Gopinathan
+ * @author Andrew Eisenberg
  */
 /*global define, _ */
 define([],
 function() {
 	'use strict';
-	return function(Backbone, model, xdJobDeploymentsTemplate) {
+	return function(Backbone, model, xdJobDeploymentsTemplate, utils, strings) {
+
+		function extractJob(name) {
+			return model.batchJobs.get(name);
+        }
 
 		var XDJobDeployments = Backbone.View.extend({
-
 			initialize: function(options) {
 				this.listenTo(model.batchJobs, 'change', this.render);
 				this.listenTo(model.batchJobs, 'reset', this.render);
 				model.batchJobs.startFetching();
+			},
+
+			events: {
+				'click button.job-launch': 'launchJob',
+				'click button.job-schedule': 'scheduleJob'
 			},
 
 			template: _.template(xdJobDeploymentsTemplate),
@@ -37,6 +46,21 @@ function() {
 			render: function() {
 				this.$el.html(this.template({jobs: model.batchJobs.jobs}));
 				return this;
+			},
+
+			launchJob: function(event) {
+				var launchId = event.target.id;
+				var jobName = launchId.substring(launchId.indexOf('-')+1);
+				var job = extractJob(jobName);
+				if (job) {
+                    job.launch().then(function() {
+                        utils.showSuccessMsg(strings.launchJobSuccess);
+                    });
+                }
+			},
+
+			scheduleJob: function(event) {
+				var id = event.target;
 			}
 		});
 		return XDJobDeployments;

@@ -232,14 +232,14 @@ define([], function() {
 			}
 		});
 		var JobInstances = Backbone.Collection.extend({
-			jobs: [],
+			instances: [],
 			model: JobInstance,
 			urlRoot: URL_ROOT + 'batch/jobs/',
 			url: function() {
 				return this.urlRoot + this.jobName + '/instances.json';
 			},
 			parse: function(response) {
-				this.jobs = response;
+				this.instances = response;
 			}
 		});
 

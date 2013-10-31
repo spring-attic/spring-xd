@@ -16,8 +16,8 @@
 					<tr>
 						<td><%= jobs[i].name %></td>
 						<% if (jobs[i].launchable === true) { %>
-								<td><button type="button" class="btn btn-default">Launch</button></td>
-								<td><button type="button" class="btn btn-default">Schedule</button></td>
+								<td><button type="button" class="btn btn-default job-launch" id="launch-<%= jobs[i].name %>">Launch</button></td>
+								<td><button type="button" class="btn btn-default job-schedule" id="schedule-<%= jobs[i].name %>">Schedule</button></td>
 						<% } else { %>
 								<td></td>
 								<td></td>

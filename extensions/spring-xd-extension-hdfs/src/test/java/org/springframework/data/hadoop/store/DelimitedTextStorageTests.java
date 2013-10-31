@@ -22,7 +22,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import java.io.IOException;
 import java.util.List;
 
-import org.apache.hadoop.fs.Path;
 import org.junit.Test;
 
 import org.springframework.data.hadoop.store.codec.Codecs;
@@ -111,19 +110,16 @@ public class DelimitedTextStorageTests extends AbstractDataTests {
 		TextDataWriter writer = new TextDataWriter(storage, testConfig, testDefaultPath);
 		TestUtils.writeDataAndClose(writer, DATA09ARRAY);
 
-		Path path1 = new Path("0");
 		DelimitedTextStorage storage1 = new DelimitedTextStorage(testConfig, testDefaultPath, null);
-		TextDataReader reader1 = new TextDataReader(storage1, testConfig, path1);
+		TextDataReader reader1 = new TextDataReader(storage1, testConfig, testDefaultPath.suffix("0"));
 		List<String> splitData1 = TestUtils.readData(reader1);
 
-		Path path2 = new Path("1");
 		DelimitedTextStorage storage2 = new DelimitedTextStorage(testConfig, testDefaultPath, null);
-		TextDataReader reader2 = new TextDataReader(storage2, testConfig, path2);
+		TextDataReader reader2 = new TextDataReader(storage2, testConfig, testDefaultPath.suffix("1"));
 		List<String> splitData2 = TestUtils.readData(reader2);
 
-		Path path3 = new Path("2");
 		DelimitedTextStorage storage3 = new DelimitedTextStorage(testConfig, testDefaultPath, null);
-		TextDataReader reader3 = new TextDataReader(storage3, testConfig, path3);
+		TextDataReader reader3 = new TextDataReader(storage3, testConfig, testDefaultPath.suffix("2"));
 		List<String> splitData3 = TestUtils.readData(reader3);
 
 		assertThat(splitData1.size() + splitData2.size() + splitData3.size(), is(DATA09ARRAY.length));

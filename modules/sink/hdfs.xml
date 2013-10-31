@@ -22,14 +22,14 @@
 	<bean id="storageEventPublisher" class="org.springframework.data.hadoop.store.event.DefaultStorageEventPublisher"/>
 
 	<int-hadoop:rollover-policy>
-		<int-hadoop:size size="${rollover-size:100}" />
+		<int-hadoop:size size="${rolloverSize:100}" />
 	</int-hadoop:rollover-policy>
 
 	<int-hadoop:naming-policy>
-		<int-hadoop:static file-name="${file-name:data}" />
+		<int-hadoop:static file-name="${fileName:data}" />
 		<int-hadoop:rolling />
 		<int-hadoop:codec />
-		<int-hadoop:renaming configuration="hadoopConfiguration" suffix="${suffix:.tmp}" />
+		<int-hadoop:renaming configuration="hadoopConfiguration" suffix="${inUseSuffix:.tmp}" prefix="${inUsePrefix:}" />
 	</int-hadoop:naming-policy>
 
 	<int-hadoop:storage id="storage"

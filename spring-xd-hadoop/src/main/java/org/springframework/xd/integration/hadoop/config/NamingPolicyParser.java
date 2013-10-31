@@ -95,6 +95,7 @@ public class NamingPolicyParser extends AbstractBeanDefinitionParser {
 		for (Element e : renamingElements) {
 			BeanDefinitionBuilder nestedBuilder = BeanDefinitionBuilder.genericBeanDefinition(RenamingFileNamingStrategy.class);
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(nestedBuilder, e, "order");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(nestedBuilder, e, "prefix");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(nestedBuilder, e, "suffix");
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(nestedBuilder, e, "configuration");
 			String nestedBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(

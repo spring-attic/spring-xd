@@ -31,7 +31,7 @@ public class RollingFileNamingStrategy extends AbstractFileNamingStrategy {
 	@Override
 	public Path resolve(Path path) {
 		if (path != null) {
-			return new Path(path, Integer.toString(counter));
+			return new Path(path.getParent(), path.getName() + Integer.toString(counter));
 		}
 		else {
 			return new Path(Integer.toString(counter));

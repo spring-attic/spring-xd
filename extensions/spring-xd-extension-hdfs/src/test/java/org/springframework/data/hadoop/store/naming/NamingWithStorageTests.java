@@ -65,6 +65,15 @@ public class NamingWithStorageTests {
 	}
 
 	@Test
+	public void testWithRenaming() {
+		TestStorage storage = new TestStorage(new Configuration(), basePath, null);
+		storage.setFileNamingStrategy(new RenamingFileNamingStrategy(null, "-suffix", "prefix-"));
+		Path resolvedPath = storage.exposeResolvedPath();
+		assertThat(resolvedPath, notNullValue());
+		assertThat(resolvedPath.toString(), is("/prefix-base-suffix"));
+	}
+
+	@Test
 	public void testWithChainingRolling() {
 		TestStorage storage = new TestStorage(new Configuration(), basePath, null);
 		ChainedFileNamingStrategy chained = new ChainedFileNamingStrategy();
@@ -72,7 +81,7 @@ public class NamingWithStorageTests {
 		storage.setFileNamingStrategy(chained);
 		Path resolvedPath = storage.exposeResolvedPath();
 		assertThat(resolvedPath, notNullValue());
-		assertThat(resolvedPath.toString(), is("/base/0"));
+		assertThat(resolvedPath.toString(), is("/base0"));
 	}
 
 	@Test
@@ -81,7 +90,7 @@ public class NamingWithStorageTests {
 		storage.setFileNamingStrategy(new RollingFileNamingStrategy());
 		Path resolvedPath = storage.exposeResolvedPath();
 		assertThat(resolvedPath, notNullValue());
-		assertThat(resolvedPath.toString(), is("/base/0"));
+		assertThat(resolvedPath.toString(), is("/base0"));
 	}
 
 	@Test
@@ -94,7 +103,19 @@ public class NamingWithStorageTests {
 		storage.setFileNamingStrategy(chained);
 		Path resolvedPath = storage.exposeResolvedPath();
 		assertThat(resolvedPath, notNullValue());
-		assertThat(resolvedPath.toString(), is("/base/data/0.tmp"));
+		assertThat(resolvedPath.toString(), is("/base/data0.tmp"));
+	}
+
+	@Test
+	public void testWithChainingStaticAndRenaming() {
+		TestStorage storage = new TestStorage(new Configuration(), basePath, null);
+		ChainedFileNamingStrategy chained = new ChainedFileNamingStrategy();
+		chained.register(new StaticFileNamingStrategy());
+		chained.register(new RenamingFileNamingStrategy());
+		storage.setFileNamingStrategy(chained);
+		Path resolvedPath = storage.exposeResolvedPath();
+		assertThat(resolvedPath, notNullValue());
+		assertThat(resolvedPath.toString(), is("/base/data.tmp"));
 	}
 
 	@Test
@@ -108,7 +129,7 @@ public class NamingWithStorageTests {
 		storage.setFileNamingStrategy(chained);
 		Path resolvedPath = storage.exposeResolvedPath();
 		assertThat(resolvedPath, notNullValue());
-		assertThat(resolvedPath.toString(), is("/base/data/0.gzip.tmp"));
+		assertThat(resolvedPath.toString(), is("/base/data0.gzip.tmp"));
 	}
 
 	/**

@@ -25,9 +25,10 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
 import org.springframework.context.ApplicationListener;
+import org.springframework.data.hadoop.store.StorageException;
 import org.springframework.data.hadoop.store.event.AbstractStorageEvent;
 import org.springframework.data.hadoop.store.event.FileWrittenEvent;
-import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * A {@code FileNamingStrategy} which add tmp postfix and renames it back if event is received.
@@ -42,9 +43,11 @@ public class RenamingFileNamingStrategy extends AbstractFileNamingStrategy imple
 
 	private Configuration configuration;
 
-	private final static String DEFAULT_POSTFIX = ".tmp";
+	private final static String DEFAULT_SUFFIX = ".tmp";
 
 	private String suffix;
+
+	private String prefix;
 
 	/**
 	 * Instantiates a new renaming file naming strategy.
@@ -59,7 +62,7 @@ public class RenamingFileNamingStrategy extends AbstractFileNamingStrategy imple
 	 * @param configuration the configuration
 	 */
 	public RenamingFileNamingStrategy(Configuration configuration) {
-		this(configuration, DEFAULT_POSTFIX);
+		this(configuration, DEFAULT_SUFFIX);
 	}
 
 	/**
@@ -69,20 +72,35 @@ public class RenamingFileNamingStrategy extends AbstractFileNamingStrategy imple
 	 * @param suffix the suffix
 	 */
 	public RenamingFileNamingStrategy(Configuration configuration, String suffix) {
-		Assert.hasText(suffix, "Suffix cannot be empty");
+		this(configuration, suffix, null);
+	}
+
+	/**
+	 * Instantiates a new renaming file naming strategy.
+	 * 
+	 * @param configuration the configuration
+	 * @param suffix the suffix
+	 * @param prefix the prefix
+	 */
+	public RenamingFileNamingStrategy(Configuration configuration, String suffix, String prefix) {
 		this.configuration = configuration;
 		this.suffix = suffix;
+		this.prefix = prefix;
 	}
 
 	@Override
 	public int getOrder() {
+		// we potentially modify final path and filename,
+		// so order needs to be a last one
 		return LOWEST_PRECEDENCE;
 	}
 
 	@Override
 	public Path resolve(Path path) {
 		if (path != null) {
-			return path.suffix(suffix);
+			String name = (StringUtils.hasText(prefix) ? prefix : "") + path.getName()
+					+ (StringUtils.hasText(suffix) ? suffix : "");
+			return new Path(path.getParent(), name);
 		}
 		else {
 			return path;
@@ -96,19 +114,37 @@ public class RenamingFileNamingStrategy extends AbstractFileNamingStrategy imple
 	@Override
 	public void onApplicationEvent(AbstractStorageEvent event) {
 		if (event instanceof FileWrittenEvent) {
-			Path fromPath = ((FileWrittenEvent) event).getPath();
-			String name = fromPath.getName();
-			if (name.endsWith(suffix)) {
-				Path toPath = new Path(fromPath.getParent(), name.substring(0, name.length() - suffix.length()));
-				try {
-					log.info("Renaming from " + fromPath + " to " + toPath + " with configuration " + configuration);
-					FileSystem fs = fromPath.getFileSystem(configuration);
-					fs.rename(fromPath, toPath);
-				}
-				catch (IOException e) {
-					log.error("Error renaming file", e);
-				}
+			Path path = ((FileWrittenEvent) event).getPath();
+			if (path != null) {
+				renameFile(path);
 			}
+		}
+	}
+
+	/**
+	 * Rename file using prefix and suffix settings.
+	 * 
+	 * @param path the path to rename
+	 */
+	protected void renameFile(Path path) {
+		String name = path.getName();
+		if (StringUtils.startsWithIgnoreCase(name, prefix)) {
+			name = name.substring(prefix.length());
+		}
+		if (StringUtils.endsWithIgnoreCase(name, suffix)) {
+			name = name.substring(0, name.length() - suffix.length());
+		}
+		Path toPath = new Path(path.getParent(), name);
+		try {
+			FileSystem fs = path.getFileSystem(configuration);
+			if (!fs.rename(path, toPath)) {
+				throw new StorageException("Failed renaming from " + path + " to " + toPath
+						+ " with configuration " + configuration);
+			}
+		}
+		catch (IOException e) {
+			log.error("Error renaming file", e);
+			throw new StorageException("Error renaming file", e);
 		}
 	}
 
@@ -119,6 +155,15 @@ public class RenamingFileNamingStrategy extends AbstractFileNamingStrategy imple
 	 */
 	public void setSuffix(String suffix) {
 		this.suffix = suffix;
+	}
+
+	/**
+	 * Sets the prefix.
+	 * 
+	 * @param prefix the new prefix
+	 */
+	public void setPrefix(String prefix) {
+		this.prefix = prefix;
 	}
 
 	/**

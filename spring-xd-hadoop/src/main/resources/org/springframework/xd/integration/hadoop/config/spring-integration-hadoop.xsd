@@ -145,6 +145,7 @@
 
 	<xsd:complexType name="renamingNamingPolicyType" mixed="true">
 		<xsd:attribute name="order" type="xsd:integer" use="optional"/>
+		<xsd:attribute name="prefix" type="xsd:string" use="optional"/>
 		<xsd:attribute name="suffix" type="xsd:string" use="optional"/>
 		<xsd:attribute name="configuration" default="hadoopConfiguration"/>
 	</xsd:complexType>

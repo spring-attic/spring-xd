@@ -31,6 +31,8 @@ define([], function() {
 		var PAGE_SIZE = config.pageSize;
 		var REFRESH_INTERVAL = config.refreshInterval;
 
+		console.log('XD core configuration:', config);
+
 		// The XDModel is a collection of queries known by the client
 		// abstract data type for all XD artifacts
 		var Artifact = Backbone.Model.extend({});

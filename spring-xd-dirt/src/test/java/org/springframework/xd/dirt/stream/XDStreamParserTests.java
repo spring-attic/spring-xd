@@ -175,6 +175,14 @@ public class XDStreamParserTests {
 	}
 
 	@Test
+	public void tap() throws Exception {
+		List<ModuleDeploymentRequest> requests = parser.parse("test", "tap:stream:xxx.http > file");
+		assertEquals(1, requests.size());
+		assertEquals("tap:xxx.http", requests.get(0).getSourceChannelName());
+		assertEquals(ModuleType.SINK.getTypeName(), requests.get(0).getType());
+	}
+
+	@Test
 	public void simpleSinkNamedChannel() throws Exception {
 		List<ModuleDeploymentRequest> requests = parser.parse("test", "bart > queue:foo");
 		assertEquals(1, requests.size());

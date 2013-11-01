@@ -55,8 +55,8 @@ public class MessageBusAwareChannelResolver extends BeanFactoryMessageChannelDes
 	@Override
 	public MessageChannel resolveDestination(String name) {
 		MessageChannel channel = null;
-		if (name.startsWith(":")) {
-			String channelName = name.substring(1);
+		if (name.indexOf(":") != -1) {
+			String channelName = name;
 			channel = channels.get(channelName);
 			if (channel == null && messageBus != null) {
 				channel = new DirectChannel();

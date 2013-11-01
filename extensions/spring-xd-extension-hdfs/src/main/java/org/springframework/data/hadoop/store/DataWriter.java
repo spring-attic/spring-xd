@@ -19,12 +19,12 @@ package org.springframework.data.hadoop.store;
 import java.io.IOException;
 
 /**
- * Base {@code StorageWriter} interface.
+ * Base {@code DataWriter} interface.
  * 
  * @author Janne Valkealahti
  * 
  */
-public interface StorageWriter {
+public interface DataWriter {
 
 	/**
 	 * Write next bytes into a storage.

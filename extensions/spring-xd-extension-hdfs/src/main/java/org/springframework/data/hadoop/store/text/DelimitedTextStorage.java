@@ -26,8 +26,8 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.util.LineReader;
 
 import org.springframework.data.hadoop.store.AbstractStrategiesStorage;
-import org.springframework.data.hadoop.store.StorageReader;
-import org.springframework.data.hadoop.store.StorageWriter;
+import org.springframework.data.hadoop.store.DataReader;
+import org.springframework.data.hadoop.store.DataWriter;
 import org.springframework.data.hadoop.store.codec.CodecInfo;
 import org.springframework.data.hadoop.store.support.DataUtils;
 import org.springframework.data.hadoop.store.support.StreamsHolder;
@@ -83,8 +83,8 @@ public class DelimitedTextStorage extends AbstractStrategiesStorage {
 	}
 
 	@Override
-	public synchronized StorageWriter getStorageWriter() throws IOException {
-		return new StorageWriter() {
+	public synchronized DataWriter getDataWriter() throws IOException {
+		return new DataWriter() {
 
 			@Override
 			public void write(byte[] bytes) throws IOException {
@@ -107,11 +107,11 @@ public class DelimitedTextStorage extends AbstractStrategiesStorage {
 	}
 
 	@Override
-	public synchronized StorageReader getStorageReader(Path path) throws IOException {
+	public synchronized DataReader getDataReader(Path path) throws IOException {
 		if (lineReader == null) {
 			lineReader = new LineReader(getInput(path).getStream(), getConfiguration());
 		}
-		return new StorageReader() {
+		return new DataReader() {
 
 			@Override
 			public byte[] read() throws IOException {

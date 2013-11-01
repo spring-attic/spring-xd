@@ -52,7 +52,7 @@ public abstract class AbstractEntityWriter<E> extends DataObjectSupport implemen
 
 	@Override
 	public void write(E entity) throws IOException {
-		getStorage().getStorageWriter().write(convert(entity));
+		getStorage().getDataWriter().write(convert(entity));
 	}
 
 	@Override

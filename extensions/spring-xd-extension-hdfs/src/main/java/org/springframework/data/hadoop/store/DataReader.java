@@ -19,12 +19,12 @@ package org.springframework.data.hadoop.store;
 import java.io.IOException;
 
 /**
- * Base {@code StorageReader} interface.
+ * Base {@code DataReader} interface.
  * 
  * @author Janne Valkealahti
  * 
  */
-public interface StorageReader {
+public interface DataReader {
 
 	/**
 	 * Read next bytes from a storage.

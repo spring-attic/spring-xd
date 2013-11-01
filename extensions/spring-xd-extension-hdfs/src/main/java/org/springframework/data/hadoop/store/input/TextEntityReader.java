@@ -44,7 +44,7 @@ public class TextEntityReader extends AbstractEntityReader<String> {
 
 	@Override
 	public String read() throws IOException {
-		byte[] bytes = getStorage().getStorageReader(getPath()).read();
+		byte[] bytes = getStorage().getDataReader(getPath()).read();
 		// TODO: should we wrap in a holder to indicate null entry?
 		return bytes != null && bytes.length > 0 ? new String(bytes) : null;
 	}

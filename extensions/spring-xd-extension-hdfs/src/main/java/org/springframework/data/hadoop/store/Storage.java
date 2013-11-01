@@ -30,19 +30,19 @@ import org.apache.hadoop.fs.Path;
 public interface Storage extends Closeable {
 
 	/**
-	 * Gets the storage writer.
+	 * Gets the data writer.
 	 * 
-	 * @return the storage writer
+	 * @return the data writer
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	StorageWriter getStorageWriter() throws IOException;
+	DataWriter getDataWriter() throws IOException;
 
 	/**
-	 * Gets the storage reader.
+	 * Gets the data reader.
 	 * 
-	 * @return the storage reader
+	 * @return the data reader
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	StorageReader getStorageReader(Path path) throws IOException;
+	DataReader getDataReader(Path path) throws IOException;
 
 }

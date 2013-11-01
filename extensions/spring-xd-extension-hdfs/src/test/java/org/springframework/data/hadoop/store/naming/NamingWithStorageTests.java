@@ -27,8 +27,8 @@ import org.apache.hadoop.fs.Path;
 import org.junit.Test;
 
 import org.springframework.data.hadoop.store.AbstractStrategiesStorage;
-import org.springframework.data.hadoop.store.StorageReader;
-import org.springframework.data.hadoop.store.StorageWriter;
+import org.springframework.data.hadoop.store.DataReader;
+import org.springframework.data.hadoop.store.DataWriter;
 import org.springframework.data.hadoop.store.codec.CodecInfo;
 import org.springframework.data.hadoop.store.codec.Codecs;
 
@@ -141,12 +141,12 @@ public class NamingWithStorageTests {
 		}
 
 		@Override
-		public StorageWriter getStorageWriter() throws IOException {
+		public DataWriter getDataWriter() throws IOException {
 			throw new UnsupportedOperationException("not used");
 		}
 
 		@Override
-		public StorageReader getStorageReader(Path path) throws IOException {
+		public DataReader getDataReader(Path path) throws IOException {
 			throw new UnsupportedOperationException("not used");
 		}
 

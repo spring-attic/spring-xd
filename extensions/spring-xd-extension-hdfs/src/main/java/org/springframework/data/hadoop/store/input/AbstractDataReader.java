@@ -45,17 +45,6 @@ public abstract class AbstractDataReader<E> extends DataObjectSupport implements
 		super(storage, configuration, path);
 	}
 
-	/**
-	 * Instantiates a new abstract data reader.
-	 * 
-	 * @param storage the storage
-	 * @param configuration the configuration
-	 * @param inputSplit the input split
-	 */
-	protected AbstractDataReader(Storage storage, Configuration configuration, InputSplit inputSplit) {
-		super(storage, configuration, inputSplit);
-	}
-
 	@Override
 	public void open() throws IOException {
 		// default impl is no-opt

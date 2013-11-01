@@ -20,7 +20,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 
 import org.springframework.data.hadoop.store.Storage;
-import org.springframework.data.hadoop.store.input.InputSplit;
 import org.springframework.util.Assert;
 
 /**
@@ -38,8 +37,6 @@ public abstract class DataObjectSupport {
 
 	private final Path path;
 
-	private final InputSplit inputSplit;
-
 	/**
 	 * Instantiates a new data object support.
 	 * 
@@ -48,36 +45,12 @@ public abstract class DataObjectSupport {
 	 * @param path the path
 	 */
 	protected DataObjectSupport(Storage storage, Configuration configuration, Path path) {
-		this(storage, configuration, path, null);
-	}
-
-	/**
-	 * Instantiates a new data object support.
-	 * 
-	 * @param storage the storage
-	 * @param configuration the configuration
-	 * @param inputSplit the input split
-	 */
-	protected DataObjectSupport(Storage storage, Configuration configuration, InputSplit inputSplit) {
-		this(storage, configuration, null, inputSplit);
-	}
-
-	/**
-	 * Instantiates a new data object support.
-	 * 
-	 * @param storage the storage
-	 * @param configuration the configuration
-	 * @param inputSplit the input split
-	 */
-	protected DataObjectSupport(Storage storage, Configuration configuration, Path path, InputSplit inputSplit) {
 		Assert.notNull(storage, "Storage must be set");
 		Assert.notNull(configuration, "Configuration must be set");
-		Assert.isTrue(!(path == null && inputSplit == null), "Either path or input split must be set");
-		Assert.isTrue(!(path != null && inputSplit != null), "Either path or input split must be set");
+		Assert.notNull(path, "Path must be set");
 		this.storage = storage;
 		this.configuration = configuration;
 		this.path = path;
-		this.inputSplit = inputSplit;
 	}
 
 	/**
@@ -105,15 +78,6 @@ public abstract class DataObjectSupport {
 	 */
 	public Path getPath() {
 		return path;
-	}
-
-	/**
-	 * Gets the input split.
-	 * 
-	 * @return the input split
-	 */
-	public InputSplit getInputSplit() {
-		return inputSplit;
 	}
 
 }

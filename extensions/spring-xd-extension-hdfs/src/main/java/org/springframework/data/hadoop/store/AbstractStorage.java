@@ -20,7 +20,6 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Hashtable;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -32,13 +31,10 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.compress.CodecPool;
 import org.apache.hadoop.io.compress.CompressionCodec;
 import org.apache.hadoop.io.compress.Decompressor;
-import org.apache.hadoop.io.compress.SplitCompressionInputStream;
-import org.apache.hadoop.io.compress.SplittableCompressionCodec;
 import org.apache.hadoop.util.ReflectionUtils;
 
 import org.springframework.data.hadoop.store.codec.CodecInfo;
 import org.springframework.data.hadoop.store.event.FileWrittenEvent;
-import org.springframework.data.hadoop.store.input.InputSplit;
 import org.springframework.data.hadoop.store.support.LifecycleObjectSupport;
 import org.springframework.data.hadoop.store.support.StreamsHolder;
 import org.springframework.util.ClassUtils;
@@ -67,9 +63,6 @@ public abstract class AbstractStorage extends LifecycleObjectSupport implements 
 
 	/** Current output streams */
 	private StreamsHolder<OutputStream> outputHolder;
-
-	/** Current split input streams */
-	private Hashtable<InputSplit, StreamsHolder<InputStream>> splitInputHolders = new Hashtable<InputSplit, StreamsHolder<InputStream>>();
 
 	/**
 	 * Instantiates a new abstract storage format.
@@ -206,54 +199,6 @@ public abstract class AbstractStorage extends LifecycleObjectSupport implements 
 	}
 
 	/**
-	 * Gets the input stream for input split.
-	 * 
-	 * @param split the split
-	 * @return the input stream
-	 * @throws IOException Signals that an I/O exception has occurred.
-	 */
-	protected synchronized StreamsHolder<InputStream> getInput(InputSplit split) throws IOException {
-		StreamsHolder<InputStream> holder = splitInputHolders.get(split);
-		if (holder == null) {
-			log.info("Creating new InputStream for split");
-			holder = new StreamsHolder<InputStream>();
-			final FileSystem fs = basePath.getFileSystem(configuration);
-			if (!isCompressed()) {
-				FSDataInputStream input = fs.open(split.getPath());
-				input.seek(split.getStart());
-				holder.setStream(input);
-			}
-			else {
-				Class<?> clazz = ClassUtils.resolveClassName(codecInfo.getCodecClass(), getClass().getClassLoader());
-
-				if (!ClassUtils.isAssignable(SplittableCompressionCodec.class, clazz)) {
-					throw new StorageException("Not a SplittableCompressionCodec");
-				}
-
-				FSDataInputStream winput = fs.open(split.getPath());
-
-				CompressionCodec compressionCodec = (CompressionCodec) ReflectionUtils.newInstance(clazz,
-						getConfiguration());
-				Decompressor decompressor = CodecPool.getDecompressor(compressionCodec);
-
-
-				long start = split.getStart();
-				long end = start + split.getLength();
-				log.info("SplitCompressionInputStream start=" + start + " end=" + end);
-				SplitCompressionInputStream input =
-						((SplittableCompressionCodec) compressionCodec)
-								.createInputStream(winput, decompressor, start, end,
-										SplittableCompressionCodec.READ_MODE.BYBLOCK);
-
-				holder.setWrappedStream(winput);
-				holder.setStream(input);
-			}
-			splitInputHolders.put(split, holder);
-		}
-		return holder;
-	}
-
-	/**
 	 * Close all streams associated with this storage.
 	 * 
 	 * @throws IOException Signals that an I/O exception has occurred.
@@ -262,7 +207,6 @@ public abstract class AbstractStorage extends LifecycleObjectSupport implements 
 		log.info("Closing streams");
 		closeInputStreams();
 		closeOutputStreams();
-		closeSplitInputStreams();
 	}
 
 	/**
@@ -289,27 +233,6 @@ public abstract class AbstractStorage extends LifecycleObjectSupport implements 
 		if (inputHolder != null) {
 			inputHolder.close();
 			inputHolder = null;
-		}
-	}
-
-	/**
-	 * Close split input streams.
-	 * 
-	 * @throws IOException Signals that an I/O exception has occurred.
-	 */
-	protected void closeSplitInputStreams() throws IOException {
-		IOException last = null;
-		for (StreamsHolder<InputStream> holder : splitInputHolders.values()) {
-			try {
-				holder.close();
-			}
-			catch (IOException e) {
-				last = e;
-			}
-		}
-		splitInputHolders.clear();
-		if (last != null) {
-			throw last;
 		}
 	}
 

@@ -21,8 +21,6 @@ import java.io.IOException;
 
 import org.apache.hadoop.fs.Path;
 
-import org.springframework.data.hadoop.store.input.InputSplit;
-
 /**
  * Interface for a generic concept of a Storage.
  * 
@@ -46,14 +44,5 @@ public interface Storage extends Closeable {
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	StorageReader getStorageReader(Path path) throws IOException;
-
-	/**
-	 * Gets the storage reader.
-	 * 
-	 * @param inputSplit the input split
-	 * @return the storage reader
-	 * @throws IOException Signals that an I/O exception has occurred.
-	 */
-	StorageReader getStorageReader(InputSplit inputSplit) throws IOException;
 
 }

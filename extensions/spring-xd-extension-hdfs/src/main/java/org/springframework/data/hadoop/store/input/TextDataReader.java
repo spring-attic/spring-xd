@@ -17,15 +17,11 @@
 package org.springframework.data.hadoop.store.input;
 
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 
 import org.springframework.data.hadoop.store.Storage;
-import org.springframework.data.hadoop.store.StorageReader;
 
 /**
  * A {@code DataReader} for text data.
@@ -34,11 +30,6 @@ import org.springframework.data.hadoop.store.StorageReader;
  * 
  */
 public class TextDataReader extends AbstractDataReader<String> {
-
-	private final static Log log = LogFactory.getLog(TextDataReader.class);
-
-	/** Flag skipping first entry, needed for splits beyond first one */
-	private AtomicBoolean skipFirst = new AtomicBoolean(true);
 
 	/**
 	 * Instantiates a new text data reader.
@@ -51,34 +42,9 @@ public class TextDataReader extends AbstractDataReader<String> {
 		super(storage, configuration, path);
 	}
 
-	/**
-	 * Instantiates a new text data reader.
-	 * 
-	 * @param storage the storage
-	 * @param configuration the hadoop configuration
-	 * @param inputSplit the input split
-	 */
-	public TextDataReader(Storage storage, Configuration configuration, InputSplit inputSplit) {
-		super(storage, configuration, inputSplit);
-	}
-
 	@Override
 	public String read() throws IOException {
-		byte[] bytes = null;
-		if (getPath() != null) {
-			StorageReader storageReader = getStorage().getStorageReader(getPath());
-			bytes = storageReader.read();
-		}
-		else {
-			StorageReader storageReader = getStorage().getStorageReader(getInputSplit());
-			if (skipFirst.compareAndSet(true, false) && getInputSplit().getStart() > 0) {
-				byte[] skipBytes = storageReader.read();
-				if (log.isDebugEnabled()) {
-					log.info("skipping first entry: " + new String(skipBytes));
-				}
-			}
-			bytes = storageReader.read();
-		}
+		byte[] bytes = getStorage().getStorageReader(getPath()).read();
 		// TODO: should we wrap in a holder to indicate null entry?
 		return bytes != null && bytes.length > 0 ? new String(bytes) : null;
 	}

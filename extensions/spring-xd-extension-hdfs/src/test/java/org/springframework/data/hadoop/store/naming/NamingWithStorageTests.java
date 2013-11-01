@@ -31,7 +31,6 @@ import org.springframework.data.hadoop.store.StorageReader;
 import org.springframework.data.hadoop.store.StorageWriter;
 import org.springframework.data.hadoop.store.codec.CodecInfo;
 import org.springframework.data.hadoop.store.codec.Codecs;
-import org.springframework.data.hadoop.store.input.InputSplit;
 
 /**
  * Tests for {@code FileNamingStrategy}s via storage resolved paths.
@@ -148,11 +147,6 @@ public class NamingWithStorageTests {
 
 		@Override
 		public StorageReader getStorageReader(Path path) throws IOException {
-			throw new UnsupportedOperationException("not used");
-		}
-
-		@Override
-		public StorageReader getStorageReader(InputSplit inputSplit) throws IOException {
 			throw new UnsupportedOperationException("not used");
 		}
 

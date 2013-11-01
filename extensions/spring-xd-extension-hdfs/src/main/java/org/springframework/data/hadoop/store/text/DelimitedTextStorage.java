@@ -17,25 +17,18 @@
 package org.springframework.data.hadoop.store.text;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Hashtable;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.Seekable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.compress.SplitCompressionInputStream;
 import org.apache.hadoop.util.LineReader;
 
 import org.springframework.data.hadoop.store.AbstractStrategiesStorage;
 import org.springframework.data.hadoop.store.StorageReader;
 import org.springframework.data.hadoop.store.StorageWriter;
 import org.springframework.data.hadoop.store.codec.CodecInfo;
-import org.springframework.data.hadoop.store.input.InputSplit;
 import org.springframework.data.hadoop.store.support.DataUtils;
 import org.springframework.data.hadoop.store.support.StreamsHolder;
 
@@ -47,19 +40,11 @@ import org.springframework.data.hadoop.store.support.StreamsHolder;
  */
 public class DelimitedTextStorage extends AbstractStrategiesStorage {
 
-	private final static Log log = LogFactory.getLog(DelimitedTextStorage.class);
-
 	/** Data delimiter */
 	private final byte[] delimiter;
 
 	/** Hadoop's line reader */
 	private LineReader lineReader;
-
-	/** Line readers for splits. */
-	private Hashtable<InputSplit, LineReader> splitLineReaders = new Hashtable<InputSplit, LineReader>();
-
-	/** Storage readers for splits. */
-	private Hashtable<InputSplit, StorageReader> splitStorageReaders = new Hashtable<InputSplit, StorageReader>();
 
 	/**
 	 * Instantiates a new line storage.
@@ -138,78 +123,7 @@ public class DelimitedTextStorage extends AbstractStrategiesStorage {
 	}
 
 	@Override
-	public synchronized StorageReader getStorageReader(final InputSplit inputSplit) throws IOException {
-		StorageReader splitStorageReader = splitStorageReaders.get(inputSplit);
-
-		if (splitStorageReader == null) {
-
-			final StreamsHolder<InputStream> holder = getInput(inputSplit);
-			final LineReader splitReader = new LineReader(holder.getStream(), getConfiguration());
-			splitLineReaders.put(inputSplit, splitReader);
-
-			final long startx;
-			final long endx;
-			if (holder.getStream() instanceof SplitCompressionInputStream) {
-				startx = ((SplitCompressionInputStream) holder.getStream()).getAdjustedStart();
-				endx = ((SplitCompressionInputStream) holder.getStream()).getAdjustedEnd();
-			}
-			else {
-				startx = inputSplit.getStart();
-				endx = startx + inputSplit.getLength();
-			}
-
-			if (log.isDebugEnabled()) {
-				log.debug("Split start=" + startx + " end=" + endx);
-			}
-
-			splitStorageReader = new StorageReader() {
-
-				Seekable seekable = (Seekable) holder.getStream();
-
-				long start = startx;
-
-				long end = endx;
-
-				long pos = start;
-
-				@Override
-				public byte[] read() throws IOException {
-					long position = getFilePosition();
-					if (position <= end) {
-						Text text = new Text();
-						int newSize = splitReader.readLine(text);
-						pos += newSize;
-						return text.getBytes();
-					}
-					else {
-						return null;
-					}
-				}
-
-				private long getFilePosition() throws IOException {
-					long retVal;
-					if (getCodec() != null && seekable != null) {
-						retVal = seekable.getPos();
-					}
-					else {
-						retVal = pos;
-					}
-					return retVal;
-				}
-
-			};
-			splitStorageReaders.put(inputSplit, splitStorageReader);
-		}
-
-		return splitStorageReader;
-	}
-
-	@Override
 	public synchronized void close() throws IOException {
-		for (LineReader r : splitLineReaders.values()) {
-			r.close();
-		}
-		splitLineReaders.clear();
 		if (lineReader != null) {
 			lineReader.close();
 			lineReader = null;

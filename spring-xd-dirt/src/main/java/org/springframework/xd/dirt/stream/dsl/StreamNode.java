@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.stream.dsl;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -23,6 +24,8 @@ import java.util.List;
  * @author Andy Clement
  */
 public class StreamNode extends AstNode {
+
+	private final String streamText;
 
 	private final String streamName;
 
@@ -32,9 +35,14 @@ public class StreamNode extends AstNode {
 
 	private SinkChannelNode sinkChannelNode;
 
-	public StreamNode(String streamName, List<ModuleNode> moduleNodes, SourceChannelNode sourceChannelNode,
-			SinkChannelNode sinkChannelNode) {
+	// List of stream names that have been replaced during resolution of
+	// this stream
+	private List<String> inlinedStreams = new ArrayList<String>();
+
+	public StreamNode(String streamText, String streamName, List<ModuleNode> moduleNodes,
+			SourceChannelNode sourceChannelNode, SinkChannelNode sinkChannelNode) {
 		super(moduleNodes.get(0).getStartPos(), moduleNodes.get(moduleNodes.size() - 1).getEndPos());
+		this.streamText = streamText;
 		this.streamName = streamName;
 		this.moduleNodes = moduleNodes;
 		this.sourceChannelNode = sourceChannelNode;
@@ -45,6 +53,7 @@ public class StreamNode extends AstNode {
 	@Override
 	public String stringify(boolean includePositionalInfo) {
 		StringBuilder s = new StringBuilder();
+		// s.append("Stream[").append(streamText).append("]");
 		s.append("[");
 		if (getStreamName() != null) {
 			s.append(getStreamName()).append(" = ");
@@ -75,12 +84,7 @@ public class StreamNode extends AstNode {
 			ModuleNode moduleNode = moduleNodes.get(m);
 			s.append(moduleNode.toString());
 			if (m + 1 < moduleNodes.size()) {
-				if (moduleNode.isJobStep()) {
-					s.append(" & ");
-				}
-				else {
-					s.append(" | ");
-				}
+				s.append(" | ");
 			}
 		}
 		if (sinkChannelNode != null) {
@@ -131,57 +135,55 @@ public class StreamNode extends AstNode {
 	}
 
 	/**
-	 * Does the lookup of module nodes to see if any previously defined and if so replaces them in this stream
+	 * Does the lookup of module nodes to see if any previously defined and if so replaces them in this stream.
 	 */
 	public void resolveModuleNodes(StreamLookupEnvironment env, List<ModuleNode> moduleNodes) {
 		for (int m = moduleNodes.size() - 1; m >= 0; m--) {
 			ModuleNode moduleNode = moduleNodes.get(m);
-
 			StreamNode sn = env.lookupStream(moduleNode.getName());
 			if (sn != null) {
-				// Not yet supported - the commented out code below implements specifying
-				// source/sink channels in substreams
-				if (sn.getSourceChannelNode() != null) {
-					throw new DSLException(null, -1, XDDSLMessages.NO_SOURCE_IN_SUBSTREAM, sn.toString());
+				if (m == 0) {
+					if (sn.getSourceChannelNode() != null) {
+						if (getSourceChannelNode() != null) {
+							throw new StreamDefinitionException(this.streamText, moduleNode.startpos,
+									XDDSLMessages.CANNOT_USE_COMPOSEDMODULE_HERE_ALREADY_HAS_SOURCE_CHANNEL,
+									moduleNode.getName());
+						}
+						sourceChannelNode = sn.getSourceChannelNode().copyOf();
+					}
 				}
-				if (sn.getSinkChannelNode() != null) {
-					throw new DSLException(null, -1, XDDSLMessages.NO_SINK_IN_SUBSTREAM, sn.toString());
+				else if (m == moduleNodes.size() - 1) {
+					// Copy over the sink channel
+					if (sn.getSinkChannelNode() != null) {
+						if (getSinkChannelNode() != null) {
+							throw new StreamDefinitionException(this.streamText, moduleNode.startpos,
+									XDDSLMessages.CANNOT_USE_COMPOSEDMODULE_HERE_ALREADY_HAS_SINK_CHANNEL,
+									moduleNode.getName());
+						}
+						sinkChannelNode = sn.getSinkChannelNode().copyOf();
+					}
 				}
-				// if (m==0) {
-				// // Copy over the source module
-				// if (sn.getSourceChannelNode()!=null) {
-				// if (getSourceChannelNode()!=null) {
-				// throw new InternalParseException(new
-				// DSLParseException("",-1,XDDSLMessages.ALREADY_HAS_SOURCE,sn.getSourceChannelNode().stringify(),getSourceChannelNode().stringify()));
-				// }
-				// }
-				// sourceChannelNode = sn.getSourceChannelNode().copyOf();
-				// } else if (m==moduleNodes.size()-1) {
-				// // Copy over the sink channel
-				// if (sn.getSinkChannelNode()!=null) {
-				// if (getSinkChannelNode()!=null) {
-				// throw new InternalParseException(new
-				// DSLParseException("",-1,XDDSLMessages.ALREADY_HAS_SINK,sn.getSourceChannelNode().stringify(),getSourceChannelNode().stringify()));
-				// }
-				// }
-				// sourceChannelNode = sn.getSourceChannelNode().copyOf();
-				// } else {
-				// if (sn.getSourceChannelNode()!=null) {
-				// throw new InternalParseException(new
-				// DSLParseException("",-1,XDDSLMessages.CANNOT_USE_SUBSTREAM_WITH_SOURCE));
-				// } else if (sn.getSinkChannelNode()!=null) {
-				// throw new InternalParseException(new
-				// DSLParseException("",-1,XDDSLMessages.CANNOT_USE_SUBSTREAM_WITH_SINK));
-				// }
-				// }
+				else {
+					if (sn.getSourceChannelNode() != null) {
+						throw new StreamDefinitionException(this.streamText, moduleNode.startpos,
+								XDDSLMessages.CANNOT_USE_COMPOSEDMODULE_HERE_AS_IT_DEFINES_SOURCE_CHANNEL,
+								moduleNode.getName());
+					}
+					else if (sn.getSinkChannelNode() != null) {
+						throw new StreamDefinitionException(this.streamText, moduleNode.startpos,
+								XDDSLMessages.CANNOT_USE_COMPOSEDMODULE_HERE_AS_IT_DEFINES_SINK_CHANNEL,
+								moduleNode.getName());
+					}
+				}
 
-				// this moduleNode is a reference to an already defined (sub)stream
-				// Replace this moduleNode with a copy of the substream
+				// this moduleNode is a reference to an already defined stream
+				// Replace this moduleNode with a copy of the other stream
 				List<ModuleNode> newNodes = sn.getModuleNodes();
 				moduleNodes.remove(m);
 				for (int m2 = newNodes.size() - 1; m2 >= 0; m2--) {
 					moduleNodes.add(m, newNodes.get(m2).copyOf(moduleNode.getArguments(), newNodes.size() == 1));
 				}
+				inlinedStreams.add(moduleNode.getName());
 			}
 		}
 	}
@@ -205,6 +207,18 @@ public class StreamNode extends AstNode {
 
 	public String getStreamData() {
 		return toString(); // TODO is toString always ok? currently only used in testing...
+	}
+
+	public String getStreamText() {
+		return this.streamText;
+	}
+
+	public String getName() {
+		return this.streamName;
+	}
+
+	public List<String> getInlinedStream() {
+		return this.inlinedStreams;
 	}
 
 }

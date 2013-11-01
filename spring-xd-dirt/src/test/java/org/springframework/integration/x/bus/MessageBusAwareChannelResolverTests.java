@@ -53,7 +53,7 @@ public class MessageBusAwareChannelResolverTests {
 		context.registerSingleton("taskScheduler", ThreadPoolTaskScheduler.class);
 		context.refresh();
 		MessageBusAwareChannelResolver resolver = context.getBean(MessageBusAwareChannelResolver.class);
-		MessageChannel registered = resolver.resolveDestination(":foo");
+		MessageChannel registered = resolver.resolveDestination("queue:foo");
 		LocalMessageBus bus = context.getBean(LocalMessageBus.class);
 		PollerMetadata poller = new PollerMetadata();
 		poller.setTrigger(new PeriodicTrigger(1000));
@@ -69,7 +69,7 @@ public class MessageBusAwareChannelResolverTests {
 				latch.countDown();
 			}
 		});
-		bus.bindConsumer("foo", testChannel, null, true);
+		bus.bindConsumer("queue:foo", testChannel, null, true);
 		MessageChannel other = resolver.resolveDestination("other");
 		assertSame(context.getBean("other"), other);
 		assertEquals(0, received.size());

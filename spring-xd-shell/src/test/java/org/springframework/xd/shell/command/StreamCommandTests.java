@@ -64,6 +64,16 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	}
 
 	@Test
+	public void testCreatingTapWithSameNameAsExistingStream_xd299() {
+		CommandResult cr = getShell().executeCommand(
+				"stream create --name foo --definition \"tap:stream:foo > counter\"");
+		System.out.println(cr);
+		assertTrue("Failure. CommandResult = " + cr.toString(), !cr.isSuccess());
+		assertTrue("Failure. CommandResult = " + cr.toString(),
+				cr.getException().getMessage().contains("XD116E:unrecognized stream reference 'foo'"));
+	}
+
+	@Test
 	public void testStreamDestroyMissing() {
 		logger.info("Destroy a stream that doesn't exist");
 		CommandResult cr = getShell().executeCommand("stream destroy --name ticktock");
@@ -121,15 +131,15 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	public void testNamedChannelWithNoConsumerShouldBuffer() {
 		logger.info("Create ticktock stream");
 		HttpSource source = newHttpSource();
-		stream().create("ticktock-in", "%s > :foox", source);
+		stream().create("ticktock-in", "%s > queue:foox", source);
 		source.postData("blahblah");
 	}
 
 	@Test
 	public void testNamedChannelsLinkingSourceAndSink() {
 		HttpSource source = newHttpSource();
-		stream().create("ticktock-in", "%s > :foo", source);
-		stream().create("ticktock-out", ":foo > transform --expression=payload.toUpperCase() | log");
+		stream().create("ticktock-in", "%s > queue:foo", source);
+		stream().create("ticktock-out", "queue:foo > transform --expression=payload.toUpperCase() | log");
 		source.postData("blahblah");
 	}
 
@@ -140,9 +150,9 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	public void testProcessorLinkingChannels() throws Exception {
 		FileSink sink = newFileSink();
 		HttpSource source = newHttpSource(9314);
-		stream().create("in1", "%s > :foo", source);
-		stream().create("proc", ":foo > transform --expression=payload.toUpperCase() > :bar");
-		stream().create("out1", ":bar > %s", sink);
+		stream().create("in1", "%s > queue:foo", source);
+		stream().create("proc", "queue:foo > transform --expression=payload.toUpperCase() > queue:bar");
+		stream().create("out1", "queue:bar > %s", sink);
 		source.postData("blahblah");
 		assertEquals("BLAHBLAH\n", sink.getContents());
 	}
@@ -246,7 +256,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		stream().createDontDeploy("swap", "transform --expression=payload.replaceAll('${from}','${to}')");
 		stream().createDontDeploy("abyz", "swap --from=a --to=z | swap --from=b --to=y");
 		stream().create("foo", "%s | abyz | filter --expression=true | %s", source, sink);
-		stream().create("mytap", "tap:foo.filter > log"); // will log zzyyccxxyyzz
+		stream().create("mytap", "tap:stream:foo.filter > log"); // will log zzyyccxxyyzz
 		source.postData("aabbccxxyyzz");
 		assertEquals("zzyyccxxyyzz", sink.getContents());
 	}
@@ -260,27 +270,35 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		FileSink sink = newFileSink().binary(true);
 		FileSink tapsink3 = newFileSink().binary(true);
 		FileSink tapsink5 = newFileSink().binary(true);
+		FileSink tapsink6 = newFileSink().binary(true);
 
 		stream().create("myhttp", "%s | transform --expression=payload.toUpperCase() | %s", httpSource, sink);
-		stream().create("mytap3", ":tap:myhttp > transform --expression=payload.replaceAll('A','.') | %s", tapsink3);
-		stream().create("mytap5", ":tap:myhttp.transform > transform --expression=payload.replaceAll('A','.') | %s",
+		stream().create("mytap3",
+				"tap:stream:myhttp > transform --expression=payload.replaceAll('A','.') | %s",
+				tapsink3);
+		stream().create("mytap5",
+				"tap:stream:myhttp.transform > transform --expression=payload.replaceAll('A','.') | %s",
 				tapsink5);
+		stream().create("mytap6",
+				"tap:stream:myhttp.0 > transform --expression=payload.replaceAll('A','.') | %s",
+				tapsink6);
 		// use the tap channel as a sink. Not very useful currently but will be once we allow users to create pub/sub
 		// channels
-		stream().create("mytap7", "%s > :tap:myhttp.transform",
-				httpSource2);
+		// stream().create("mytap7", "%s > tap:stream:myhttp.transform",
+		// httpSource2);
 
 		httpSource.ensureReady().postData("Dracarys!");
 
 		assertEquals("DRACARYS!", sink.getContents());
 		assertEquals("Dracarys!", tapsink3.getContents());
 		assertEquals("DR.C.RYS!", tapsink5.getContents());
+		assertEquals("Dracarys!", tapsink6.getContents());
 
-		httpSource2.ensureReady().postData("TESTPLAN");
+		// httpSource2.ensureReady().postData("TESTPLAN");
 		// our tap got the data and transformed appropriately
-		assertEquals("DR.C.RYS!TESTPL.N", tapsink5.getContents());
+		// assertEquals("DR.C.RYS!TESTPL.N", tapsink5.getContents());
 		// other tap did not get data
-		assertEquals("Dracarys!", tapsink3.getContents());
+		// assertEquals("Dracarys!", tapsink3.getContents());
 	}
 
 	@Ignore("Not yet supporting tapped labels")
@@ -309,23 +327,24 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		FileSink tapsink5 = newFileSink().binary(true);
 
 		stream().create("myhttp",
-				"%s | transform --expression=payload.toUpperCase() | filter --expression=true > :foobar", source);
-		stream().create("slurp", ":foobar > %s", sink);
+				"%s | transform --expression=payload.toUpperCase() | filter --expression=true > queue:foobar", source);
+		stream().create("slurp", "queue:foobar > %s", sink);
 
 		// new style tapping, tap --channel=myhttp.0
 		stream().create("mytap3",
-				":tap:myhttp > transform --expression=payload.replaceAll('r','.') | %s",
+				"tap:stream:myhttp > transform --expression=payload.replaceAll('r','.') | %s",
 				tapsink3);
 
 		// new style tapping, tap --channel=foobar
-		stream().create("mytap5", ":tap:myhttp.filter > transform --expression=payload.replaceAll('A','.') | %s",
-				tapsink5);
+		// stream().create("mytap5",
+		// "tap:stream:myhttp.filter > transform --expression=payload.replaceAll('A','.') | %s",
+		// tapsink5);
 
 		source.ensureReady().postData("Dracarys!");
 
 		assertEquals("DRACARYS!", sink.getContents());
-		assertEquals("D.aca.ys!", tapsink3.getContents());
-		assertEquals("DR.C.RYS!", tapsink5.getContents());
+		// assertEquals("D.aca.ys!", tapsink3.getContents());
+		// assertEquals("DR.C.RYS!", tapsink5.getContents());
 	}
 
 
@@ -358,9 +377,9 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		HttpSource source2 = newHttpSource();
 		HttpSource source3 = newHttpSource();
 		FileSink sink = newFileSink().binary(true);
-		stream().create("stream1", "%s > :foo", source1);
-		stream().create("stream2", "%s > :foo", source2);
-		stream().create("stream3", ":foo > %s", sink);
+		stream().create("stream1", "%s > queue:foo", source1);
+		stream().create("stream2", "%s > queue:foo", source2);
+		stream().create("stream3", "queue:foo > %s", sink);
 
 		source1.ensureReady().postData("Dracarys!");
 		source2.ensureReady().postData("testing");
@@ -372,7 +391,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		source1.ensureReady().postData("stillup");
 		assertTrue(sink.waitForContents("Dracarys!testingstillup", 1000));
 
-		stream().create("stream4", "%s > :foo", source3);
+		stream().create("stream4", "%s > queue:foo", source3);
 		source3.ensureReady().postData("newstream");
 		assertTrue(sink.waitForContents("Dracarys!testingstillupnewstream", 1000));
 

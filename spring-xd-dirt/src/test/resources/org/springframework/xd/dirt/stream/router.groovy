@@ -1,6 +1,6 @@
 if (payload.contains('a')) {
-	return ":foo"
+	return "queue:foo"
 }
 else {
-	return ":bar"
+	return "queue:bar"
 }

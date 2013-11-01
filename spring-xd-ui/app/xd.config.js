@@ -16,16 +16,14 @@
 
 /**
  * @author Ilayaperumal Gopinathan
+ * @author Gunnar Hillert
  */
 /*global define:true */
 // Global configuration properties
 define({
-		location: {
-			hostname: 'localhost',
-			port: '9393'
-		},
-
-		urlRoot: 'http://'+this.location.hostname+":"+this.location.port+"/",
+		urlRoot: window.location.protocol
+			+ '//' + window.location.hostname
+			+ (window.location.port ? ':' + window.location.port: ''),
 
 		// TODO should be configurable
 		pageSize: 5,

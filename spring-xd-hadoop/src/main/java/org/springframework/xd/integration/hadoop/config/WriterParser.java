@@ -23,7 +23,7 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.data.hadoop.store.output.TextDataWriter;
+import org.springframework.data.hadoop.store.output.TextEntityWriter;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.integration.hadoop.IntegrationHadoopSystemConstants;
 
@@ -37,7 +37,7 @@ public class WriterParser extends AbstractBeanDefinitionParser {
 
 	@Override
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(TextDataWriter.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(TextEntityWriter.class);
 		builder.addConstructorArgReference(element.getAttribute("storage"));
 		builder.addConstructorArgReference(element.getAttribute("configuration"));
 

@@ -14,40 +14,35 @@
  * limitations under the License.
  */
 
-package org.springframework.data.hadoop.store.input;
-
-import java.io.IOException;
+package org.springframework.data.hadoop.store.output;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 
-import org.springframework.data.hadoop.store.DataReader;
 import org.springframework.data.hadoop.store.Storage;
-import org.springframework.data.hadoop.store.support.DataObjectSupport;
 
 /**
- * Base {@code DataReader} implementation sharing common functionality.
+ * A {@code DataWriter} for text data.
  * 
- * @param <E> Type of an entity for the reader
  * @author Janne Valkealahti
  * 
  */
-public abstract class AbstractDataReader<E> extends DataObjectSupport implements DataReader<E> {
+public class TextEntityWriter extends AbstractEntityWriter<String> {
 
 	/**
-	 * Instantiates a new abstract data reader.
+	 * Instantiates a new text data writer.
 	 * 
 	 * @param storage the storage
 	 * @param configuration the configuration
 	 * @param path the path
 	 */
-	protected AbstractDataReader(Storage storage, Configuration configuration, Path path) {
+	public TextEntityWriter(Storage storage, Configuration configuration, Path path) {
 		super(storage, configuration, path);
 	}
 
 	@Override
-	public void open() throws IOException {
-		// default impl is no-opt
+	protected byte[] convert(String entity) {
+		return entity.getBytes();
 	}
 
 }

@@ -16,21 +16,22 @@
 package org.springframework.data.hadoop.store;
 
 import java.io.Closeable;
+import java.io.Flushable;
 import java.io.IOException;
 
 /**
- * A {@code DataReader} is a logical representation of
- * data reader implementation.
+ * A {@code DataWriter} is a logical representation of
+ * data writer implementation.
  *
  * @author Janne Valkealahti
  *
- * @param <E> Type of an entity for the reader
+ * @param <E> the type of an entity to write
  */
-public interface DataReader<E> extends Closeable {
+public interface EntityWriter<E> extends Flushable, Closeable {
 
 	/**
-	 * Opens this reader and any system resources associated
-	 * with it. If the reader is already opened then invoking this
+	 * Opens this writer and any system resources associated
+	 * with it. If the writer is already opened then invoking this
 	 * method has no effect.
 	 *
 	 * @throws IOException if an I/O error occurs
@@ -38,11 +39,10 @@ public interface DataReader<E> extends Closeable {
 	void open() throws IOException;
 
 	/**
-	 * Read next entity from a reader.
+	 * Write an entity.
 	 *
-	 * @return the entity or <code>null</code>
 	 * @throws IOException if an I/O error occurs
 	 */
-	E read() throws IOException;
+	void write(E entity) throws IOException;
 
 }

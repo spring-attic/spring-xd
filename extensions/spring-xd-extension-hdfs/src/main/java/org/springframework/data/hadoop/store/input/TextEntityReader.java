@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.data.hadoop.store.output;
+package org.springframework.data.hadoop.store.input;
+
+import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -22,27 +24,34 @@ import org.apache.hadoop.fs.Path;
 import org.springframework.data.hadoop.store.Storage;
 
 /**
- * A {@code DataWriter} for text data.
+ * A {@code DataReader} for text data.
  * 
  * @author Janne Valkealahti
  * 
  */
-public class TextDataWriter extends AbstractDataWriter<String> {
+public class TextEntityReader extends AbstractEntityReader<String> {
 
 	/**
-	 * Instantiates a new text data writer.
+	 * Instantiates a new text data reader.
 	 * 
 	 * @param storage the storage
 	 * @param configuration the configuration
 	 * @param path the path
 	 */
-	public TextDataWriter(Storage storage, Configuration configuration, Path path) {
+	public TextEntityReader(Storage storage, Configuration configuration, Path path) {
 		super(storage, configuration, path);
 	}
 
 	@Override
-	protected byte[] convert(String entity) {
-		return entity.getBytes();
+	public String read() throws IOException {
+		byte[] bytes = getStorage().getStorageReader(getPath()).read();
+		// TODO: should we wrap in a holder to indicate null entry?
+		return bytes != null && bytes.length > 0 ? new String(bytes) : null;
+	}
+
+	@Override
+	public void close() throws IOException {
+		getStorage().close();
 	}
 
 }

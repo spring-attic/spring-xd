@@ -31,7 +31,7 @@ import org.springframework.data.hadoop.store.support.DataUtils;
  * @author Janne Valkealahti
  * 
  */
-public class DelimitedTextDataWriter extends AbstractDataWriter<String[]> {
+public class DelimitedTextEntityWriter extends AbstractEntityWriter<String[]> {
 
 	/** CSV Mode */
 	public final static byte[] CSV = DataUtils.getUTF8CsvDelimiter();
@@ -50,7 +50,7 @@ public class DelimitedTextDataWriter extends AbstractDataWriter<String[]> {
 	 * @param path the path
 	 * @param delimiter the field delimiter
 	 */
-	public DelimitedTextDataWriter(Storage storage, Configuration configuration, Path path, byte[] delimiter) {
+	public DelimitedTextEntityWriter(Storage storage, Configuration configuration, Path path, byte[] delimiter) {
 		super(storage, configuration, path);
 		this.delimiter = delimiter;
 	}

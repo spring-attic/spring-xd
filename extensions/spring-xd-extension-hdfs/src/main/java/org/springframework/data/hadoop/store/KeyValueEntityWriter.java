@@ -17,25 +17,25 @@ package org.springframework.data.hadoop.store;
 
 import java.io.IOException;
 
-import org.springframework.data.hadoop.store.support.KeyValueHolder;
-
 /**
- * A {@code KeyValueDataReader} is a logical representation of
+ * A {@code KeyValueDataWriter} is a logical representation of
  * a data writer implementation that writes a key value pair.
  *
  * @author Janne Valkealahti
  *
- * @param <T> Type of a key for the reader
- * @param <E> Type of an entity for the reader
+ * @param <T> the type of the key to write
+ * @param <E> the type of an entity to write
  */
-public interface KeyValueDataReader<T, E> extends DataReader<E> {
+public interface KeyValueEntityWriter<T, E> extends EntityWriter<E> {
 
 	/**
-	 * Read next key value.
+	 * Write an entity to a key.
 	 *
-	 * @return the {@code KeyValueHolder}
-	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @throws IOException if an I/O error occurs
+	 *
+	 * @param key the key to write to
+	 * @param entity the entity to write
 	 */
-	KeyValueHolder<T, E> readKeyValue() throws IOException;
+	void write(T key, E entity) throws IOException;
 
 }

@@ -23,7 +23,7 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.data.hadoop.store.output.TextDataWriter;
+import org.springframework.data.hadoop.store.output.TextEntityWriter;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.xd.integration.hadoop.IntegrationHadoopSystemConstants;
@@ -42,8 +42,8 @@ public class WriterNamespaceTests {
 
 	@Test
 	public void testDefaults() {
-		TextDataWriter writer = context.getBean(IntegrationHadoopSystemConstants.DEFAULT_ID_STORAGE_WRITER,
-				TextDataWriter.class);
+		TextEntityWriter writer = context.getBean(IntegrationHadoopSystemConstants.DEFAULT_ID_STORAGE_WRITER,
+				TextEntityWriter.class);
 		assertNotNull(writer);
 	}
 

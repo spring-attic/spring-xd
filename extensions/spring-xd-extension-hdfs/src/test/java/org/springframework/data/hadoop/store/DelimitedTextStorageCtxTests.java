@@ -25,9 +25,9 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.data.hadoop.store.input.TextDataReader;
+import org.springframework.data.hadoop.store.input.TextEntityReader;
 import org.springframework.data.hadoop.store.naming.ChainedFileNamingStrategy;
-import org.springframework.data.hadoop.store.output.TextDataWriter;
+import org.springframework.data.hadoop.store.output.TextEntityWriter;
 import org.springframework.data.hadoop.store.text.DelimitedTextStorage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -53,10 +53,10 @@ public class DelimitedTextStorageCtxTests extends AbstractDataTests {
 		assertNotNull(fileNamingStrategy);
 		storage.setFileNamingStrategy(fileNamingStrategy);
 
-		TextDataWriter writer = context.getBean("writer", TextDataWriter.class);
+		TextEntityWriter writer = context.getBean("writer", TextEntityWriter.class);
 		assertNotNull(writer);
 
-		TextDataReader reader = context.getBean("reader", TextDataReader.class);
+		TextEntityReader reader = context.getBean("reader", TextEntityReader.class);
 		assertNotNull(reader);
 
 		TestUtils.writeDataAndClose(writer, DATA09ARRAY);

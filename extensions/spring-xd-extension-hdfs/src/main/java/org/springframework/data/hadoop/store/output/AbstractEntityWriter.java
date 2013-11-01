@@ -14,44 +14,63 @@
  * limitations under the License.
  */
 
-package org.springframework.data.hadoop.store.input;
+package org.springframework.data.hadoop.store.output;
 
 import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 
+import org.springframework.data.hadoop.store.EntityWriter;
 import org.springframework.data.hadoop.store.Storage;
+import org.springframework.data.hadoop.store.support.DataObjectSupport;
 
 /**
- * A {@code DataReader} for text data.
+ * Base {@code EntityWriter} implementation sharing common functionality.
  * 
+ * @param <E> Type of an entity for the writer
  * @author Janne Valkealahti
  * 
  */
-public class TextDataReader extends AbstractDataReader<String> {
+public abstract class AbstractEntityWriter<E> extends DataObjectSupport implements EntityWriter<E> {
 
 	/**
-	 * Instantiates a new text data reader.
+	 * Instantiates a new abstract data writer.
 	 * 
 	 * @param storage the storage
 	 * @param configuration the configuration
 	 * @param path the path
 	 */
-	public TextDataReader(Storage storage, Configuration configuration, Path path) {
+	protected AbstractEntityWriter(Storage storage, Configuration configuration, Path path) {
 		super(storage, configuration, path);
 	}
 
 	@Override
-	public String read() throws IOException {
-		byte[] bytes = getStorage().getStorageReader(getPath()).read();
-		// TODO: should we wrap in a holder to indicate null entry?
-		return bytes != null && bytes.length > 0 ? new String(bytes) : null;
+	public void open() throws IOException {
+		// default impl is no-opt
+	}
+
+	@Override
+	public void write(E entity) throws IOException {
+		getStorage().getStorageWriter().write(convert(entity));
+	}
+
+	@Override
+	public void flush() throws IOException {
+		// default impl is no-opt
 	}
 
 	@Override
 	public void close() throws IOException {
 		getStorage().close();
 	}
+
+	/**
+	 * Convert an entity into byte array. Subclass needs to override this method to introduce conversion logic.
+	 * 
+	 * @param entity the entity
+	 * @return the byte[] to be written
+	 */
+	protected abstract byte[] convert(E entity);
 
 }

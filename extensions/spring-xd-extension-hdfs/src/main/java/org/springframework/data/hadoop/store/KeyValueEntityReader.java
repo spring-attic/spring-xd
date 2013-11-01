@@ -15,34 +15,27 @@
  */
 package org.springframework.data.hadoop.store;
 
-import java.io.Closeable;
-import java.io.Flushable;
 import java.io.IOException;
 
+import org.springframework.data.hadoop.store.support.KeyValueHolder;
+
 /**
- * A {@code DataWriter} is a logical representation of
- * data writer implementation.
+ * A {@code KeyValueDataReader} is a logical representation of
+ * a data writer implementation that writes a key value pair.
  *
  * @author Janne Valkealahti
  *
- * @param <E> the type of an entity to write
+ * @param <T> Type of a key for the reader
+ * @param <E> Type of an entity for the reader
  */
-public interface DataWriter<E> extends Flushable, Closeable {
+public interface KeyValueEntityReader<T, E> extends EntityReader<E> {
 
 	/**
-	 * Opens this writer and any system resources associated
-	 * with it. If the writer is already opened then invoking this
-	 * method has no effect.
+	 * Read next key value.
 	 *
-	 * @throws IOException if an I/O error occurs
+	 * @return the {@code KeyValueHolder}
+	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	void open() throws IOException;
-
-	/**
-	 * Write an entity.
-	 *
-	 * @throws IOException if an I/O error occurs
-	 */
-	void write(E entity) throws IOException;
+	KeyValueHolder<T, E> readKeyValue() throws IOException;
 
 }

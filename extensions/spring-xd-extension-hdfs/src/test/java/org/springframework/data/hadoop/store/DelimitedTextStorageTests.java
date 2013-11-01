@@ -25,10 +25,10 @@ import java.util.List;
 import org.junit.Test;
 
 import org.springframework.data.hadoop.store.codec.Codecs;
-import org.springframework.data.hadoop.store.input.TextDataReader;
+import org.springframework.data.hadoop.store.input.TextEntityReader;
 import org.springframework.data.hadoop.store.naming.RollingFileNamingStrategy;
-import org.springframework.data.hadoop.store.output.DelimitedTextDataWriter;
-import org.springframework.data.hadoop.store.output.TextDataWriter;
+import org.springframework.data.hadoop.store.output.DelimitedTextEntityWriter;
+import org.springframework.data.hadoop.store.output.TextEntityWriter;
 import org.springframework.data.hadoop.store.rollover.SizeRolloverStrategy;
 import org.springframework.data.hadoop.store.text.DelimitedTextStorage;
 
@@ -46,10 +46,10 @@ public class DelimitedTextStorageTests extends AbstractDataTests {
 		DelimitedTextStorage storage = new DelimitedTextStorage(testConfig, testDefaultPath, null);
 		String[] dataArray = new String[] { DATA10 };
 
-		TextDataWriter writer = new TextDataWriter(storage, testConfig, testDefaultPath);
+		TextEntityWriter writer = new TextEntityWriter(storage, testConfig, testDefaultPath);
 		TestUtils.writeDataAndClose(writer, dataArray);
 
-		TextDataReader reader = new TextDataReader(storage, testConfig, testDefaultPath);
+		TextEntityReader reader = new TextEntityReader(storage, testConfig, testDefaultPath);
 		TestUtils.readDataAndAssert(reader, dataArray);
 	}
 
@@ -57,10 +57,10 @@ public class DelimitedTextStorageTests extends AbstractDataTests {
 	public void testWriteReadManyLines() throws IOException {
 		DelimitedTextStorage storage = new DelimitedTextStorage(testConfig, testDefaultPath, null);
 
-		TextDataWriter writer = new TextDataWriter(storage, testConfig, testDefaultPath);
+		TextEntityWriter writer = new TextEntityWriter(storage, testConfig, testDefaultPath);
 		TestUtils.writeDataAndClose(writer, DATA09ARRAY);
 
-		TextDataReader reader = new TextDataReader(storage, testConfig, testDefaultPath);
+		TextEntityReader reader = new TextEntityReader(storage, testConfig, testDefaultPath);
 		TestUtils.readDataAndAssert(reader, DATA09ARRAY);
 	}
 
@@ -69,10 +69,10 @@ public class DelimitedTextStorageTests extends AbstractDataTests {
 		DelimitedTextStorage storage = new DelimitedTextStorage(testConfig, testDefaultPath,
 				Codecs.GZIP.getCodecInfo());
 
-		TextDataWriter writer = new TextDataWriter(storage, testConfig, testDefaultPath);
+		TextEntityWriter writer = new TextEntityWriter(storage, testConfig, testDefaultPath);
 		TestUtils.writeDataAndClose(writer, DATA09ARRAY);
 
-		TextDataReader reader = new TextDataReader(storage, testConfig, testDefaultPath);
+		TextEntityReader reader = new TextEntityReader(storage, testConfig, testDefaultPath);
 		TestUtils.readDataAndAssert(reader, DATA09ARRAY);
 	}
 
@@ -81,10 +81,10 @@ public class DelimitedTextStorageTests extends AbstractDataTests {
 		DelimitedTextStorage storage = new DelimitedTextStorage(testConfig, testDefaultPath,
 				Codecs.BZIP2.getCodecInfo());
 
-		TextDataWriter writer = new TextDataWriter(storage, testConfig, testDefaultPath);
+		TextEntityWriter writer = new TextEntityWriter(storage, testConfig, testDefaultPath);
 		TestUtils.writeDataAndClose(writer, DATA09ARRAY);
 
-		TextDataReader reader = new TextDataReader(storage, testConfig, testDefaultPath);
+		TextEntityReader reader = new TextEntityReader(storage, testConfig, testDefaultPath);
 		TestUtils.readDataAndAssert(reader, DATA09ARRAY);
 	}
 
@@ -92,11 +92,11 @@ public class DelimitedTextStorageTests extends AbstractDataTests {
 	public void testCsvWriteReadManyLines() throws IOException {
 		DelimitedTextStorage storage = new DelimitedTextStorage(testConfig, testDefaultPath, null);
 
-		DelimitedTextDataWriter writer = new DelimitedTextDataWriter(storage, testConfig, testDefaultPath,
-				DelimitedTextDataWriter.CSV);
+		DelimitedTextEntityWriter writer = new DelimitedTextEntityWriter(storage, testConfig, testDefaultPath,
+				DelimitedTextEntityWriter.CSV);
 		TestUtils.writeDataAndClose(writer, DATA09ARRAY);
 
-		TextDataReader reader = new TextDataReader(storage, testConfig, testDefaultPath);
+		TextEntityReader reader = new TextEntityReader(storage, testConfig, testDefaultPath);
 		List<String> data = TestUtils.readData(reader);
 		assertThat(data.size(), is(1));
 	}
@@ -107,19 +107,19 @@ public class DelimitedTextStorageTests extends AbstractDataTests {
 		storage.setRolloverStrategy(new SizeRolloverStrategy(40));
 		storage.setFileNamingStrategy(new RollingFileNamingStrategy());
 
-		TextDataWriter writer = new TextDataWriter(storage, testConfig, testDefaultPath);
+		TextEntityWriter writer = new TextEntityWriter(storage, testConfig, testDefaultPath);
 		TestUtils.writeDataAndClose(writer, DATA09ARRAY);
 
 		DelimitedTextStorage storage1 = new DelimitedTextStorage(testConfig, testDefaultPath, null);
-		TextDataReader reader1 = new TextDataReader(storage1, testConfig, testDefaultPath.suffix("0"));
+		TextEntityReader reader1 = new TextEntityReader(storage1, testConfig, testDefaultPath.suffix("0"));
 		List<String> splitData1 = TestUtils.readData(reader1);
 
 		DelimitedTextStorage storage2 = new DelimitedTextStorage(testConfig, testDefaultPath, null);
-		TextDataReader reader2 = new TextDataReader(storage2, testConfig, testDefaultPath.suffix("1"));
+		TextEntityReader reader2 = new TextEntityReader(storage2, testConfig, testDefaultPath.suffix("1"));
 		List<String> splitData2 = TestUtils.readData(reader2);
 
 		DelimitedTextStorage storage3 = new DelimitedTextStorage(testConfig, testDefaultPath, null);
-		TextDataReader reader3 = new TextDataReader(storage3, testConfig, testDefaultPath.suffix("2"));
+		TextEntityReader reader3 = new TextEntityReader(storage3, testConfig, testDefaultPath.suffix("2"));
 		List<String> splitData3 = TestUtils.readData(reader3);
 
 		assertThat(splitData1.size() + splitData2.size() + splitData3.size(), is(DATA09ARRAY.length));

@@ -22,7 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.context.SmartLifecycle;
-import org.springframework.data.hadoop.store.DataWriter;
+import org.springframework.data.hadoop.store.EntityWriter;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.messaging.Message;
@@ -46,7 +46,7 @@ public class HdfsStorageMessageHandler extends AbstractMessageHandler implements
 
 	private final ReentrantLock lifecycleLock = new ReentrantLock();
 
-	private DataWriter<String> dataWriter;
+	private EntityWriter<String> dataWriter;
 
 	@Override
 	public final boolean isAutoStartup() {
@@ -161,7 +161,7 @@ public class HdfsStorageMessageHandler extends AbstractMessageHandler implements
 	 * 
 	 * @param dataWriter the new data writer
 	 */
-	public void setDataWriter(DataWriter<String> dataWriter) {
+	public void setDataWriter(EntityWriter<String> dataWriter) {
 		this.dataWriter = dataWriter;
 	}
 

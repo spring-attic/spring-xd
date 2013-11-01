@@ -46,13 +46,13 @@
 		<constructor-arg><null/></constructor-arg>
 	</bean>
 
-	<bean id="writer" class="org.springframework.data.hadoop.store.output.TextDataWriter">
+	<bean id="writer" class="org.springframework.data.hadoop.store.output.TextEntityWriter">
 		<constructor-arg ref="storage"/>
 		<constructor-arg ref="hadoopConfiguration"/>
 		<constructor-arg ref="testBasePath"/>
 	</bean>
 
-	<bean id="reader" class="org.springframework.data.hadoop.store.input.TextDataReader">
+	<bean id="reader" class="org.springframework.data.hadoop.store.input.TextEntityReader">
 		<constructor-arg ref="storage"/>
 		<constructor-arg ref="hadoopConfiguration"/>
 		<constructor-arg ref="testBasePath"/>

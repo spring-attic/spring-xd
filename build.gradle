@@ -560,6 +560,7 @@ project('spring-xd-hadoop') {
 			exclude group: 'org.codehaus.jackson'
 			exclude group: 'hsqldb'
 		}
+		testCompile "org.springframework:spring-test:$springVersion"
 	}
 }
 

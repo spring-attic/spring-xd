@@ -42,7 +42,8 @@ public class CompositeCodecTests {
 
 	private MultiTypeCodec<Object> codec;
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Before
 	public void setup() {
 		Map<Class<?>, AbstractCodec<?>> codecs = new HashMap<Class<?>, AbstractCodec<?>>();

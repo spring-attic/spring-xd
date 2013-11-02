@@ -16,6 +16,7 @@
 
 package org.springframework.xd.shell;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -150,6 +151,12 @@ public abstract class AbstractShellIntegrationTest {
 	protected CommandResult executeCommand(String command) {
 		CommandResult cr = getShell().executeCommand(command);
 		assertTrue("Failure.  CommandResult = " + cr.toString(), cr.isSuccess());
+		return cr;
+	}
+
+	protected CommandResult executeCommandExpectingFailure(String command) {
+		CommandResult cr = getShell().executeCommand(command);
+		assertFalse("Expected command to fail.  CommandResult = " + cr.toString(), cr.isSuccess());
 		return cr;
 	}
 

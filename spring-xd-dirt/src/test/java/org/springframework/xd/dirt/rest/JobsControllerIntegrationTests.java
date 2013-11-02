@@ -34,6 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.ArrayList;
 
 import org.hamcrest.Matchers;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,6 +48,8 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.stream.DeploymentMessageSender;
+import org.springframework.xd.dirt.stream.JobDefinitionRepository;
+import org.springframework.xd.dirt.stream.JobRepository;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 
@@ -69,6 +72,12 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 	@Autowired
 	private ModuleRegistry moduleRegistry;
 
+	@Autowired
+	private JobDefinitionRepository jobDefinitionRepository;
+
+	@Autowired
+	private JobRepository xdJobRepository;
+
 	@Before
 	public void before() {
 		Resource resource = mock(Resource.class);
@@ -83,6 +92,12 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 		when(moduleRegistry.findDefinition("job1", ModuleType.job)).thenReturn(moduleJobDefinition);
 		when(moduleRegistry.findDefinition("job2", ModuleType.job)).thenReturn(moduleJobDefinition);
 		when(moduleRegistry.findDefinition("job", ModuleType.job)).thenReturn(moduleJobDefinition);
+	}
+
+	@After
+	public void cleanUp() {
+		jobDefinitionRepository.deleteAll();
+		xdJobRepository.deleteAll();
 	}
 
 	@Test
@@ -142,8 +157,11 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 
 	@Test
 	public void testJobUnDeployNoDef() throws Exception {
+		mockMvc.perform(
+				post("/jobs").param("name", "job1").param("definition", JOB_DEFINITION).accept(
+						MediaType.APPLICATION_JSON).param("deploy", "false")).andExpect(status().isCreated());
 		mockMvc.perform(put("/jobs/{name}", "myjob").param("deploy", "false").accept(MediaType.APPLICATION_JSON)).andExpect(
-				status().isNotFound());
+				status().isBadRequest());
 	}
 
 	@Test

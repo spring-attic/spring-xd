@@ -177,4 +177,5 @@ public class SimpleModule extends AbstractModule {
 	public boolean isRunning() {
 		return isRunning.get();
 	}
+
 }

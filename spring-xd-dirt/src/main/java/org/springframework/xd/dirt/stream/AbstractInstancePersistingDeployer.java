@@ -34,7 +34,7 @@ import org.springframework.xd.store.DomainRepository;
 public abstract class AbstractInstancePersistingDeployer<D extends BaseDefinition, I extends BaseInstance<D>> extends
 		AbstractDeployer<D> {
 
-	private DomainRepository<I, String> instanceRepository;
+	protected DomainRepository<I, String> instanceRepository;
 
 	protected AbstractInstancePersistingDeployer(PagingAndSortingRepository<D, String> definitionRespository,
 			DomainRepository<I, String> instanceRepository, DeploymentMessageSender messageSender, XDParser parser,

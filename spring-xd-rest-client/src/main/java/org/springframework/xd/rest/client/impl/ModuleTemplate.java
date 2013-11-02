@@ -16,15 +16,17 @@
 
 package org.springframework.xd.rest.client.impl;
 
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.xd.rest.client.ModuleOperations;
 import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
 import org.springframework.xd.rest.client.domain.RESTModuleType;
-
 
 /**
  * Implementation of the Module-related part of the API.
  * 
  * @author Glenn Renfro
+ * @author Mark Fisher
  */
 public class ModuleTemplate extends AbstractTemplate implements ModuleOperations {
 
@@ -34,9 +36,11 @@ public class ModuleTemplate extends AbstractTemplate implements ModuleOperations
 
 	@Override
 	public ModuleDefinitionResource composeModule(String name, String definition) {
-		return null;
+		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
+		values.add("name", name);
+		values.add("definition", definition);
+		return restTemplate.postForObject(resources.get("modules"), values, ModuleDefinitionResource.class);
 	}
-
 
 	@Override
 	public ModuleDefinitionResource.Page list(RESTModuleType type) {

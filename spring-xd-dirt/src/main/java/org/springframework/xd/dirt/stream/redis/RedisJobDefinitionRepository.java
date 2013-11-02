@@ -29,7 +29,7 @@ public class RedisJobDefinitionRepository extends AbstractRedisDefinitionReposit
 		JobDefinitionRepository {
 
 	public RedisJobDefinitionRepository(RedisOperations<String, String> redisOperations) {
-		super("jobs", redisOperations);
+		super("job.definitions", redisOperations);
 	}
 
 	@Override

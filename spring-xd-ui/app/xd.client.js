@@ -18,13 +18,14 @@
  * @author Andrew Eisenberg
  ** HTTP client
  */
+ /*global define*/
 define(function() {
-	    // set up the rest client
-    return function(rest, entity, mime, hateoas, errorcode, ACCEPT_HEADER) {
-    	var client = rest.chain(errorcode, { code: 400 }).chain(mime).chain(hateoas).chain(entity);
-    	return function(args) {
-	    	args.headers = args.headers || ACCEPT_HEADER;
-	    	return client(args);
-	    };
-    };
+	// set up the rest client
+	return function(rest, entity, mime, hateoas, errorcode, config) {
+		var client = rest.chain(errorcode, { code: 400 }).chain(mime).chain(hateoas).chain(entity);
+		return function(args) {
+			args.headers = args.headers || config.acceptHeader;
+			return client(args);
+		};
+	};
 });

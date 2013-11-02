@@ -34,13 +34,12 @@ public class ModuleDefinitionResourceAssembler extends
 
 	@Override
 	public ModuleDefinitionResource toResource(ModuleDefinition entity) {
-		return createResourceWithId(entity.getName(), entity);
+		return createResourceWithId(entity.getType() + ":" + entity.getName(), entity);
 	}
 
 	@Override
 	protected ModuleDefinitionResource instantiateResource(ModuleDefinition entity) {
-		return new ModuleDefinitionResource(entity.getName(), entity.getResource().getDescription(),
-				entity.getType().name());
+		return new ModuleDefinitionResource(entity.getName(), entity.getDefinition(), entity.getType().name());
 	}
 
 }

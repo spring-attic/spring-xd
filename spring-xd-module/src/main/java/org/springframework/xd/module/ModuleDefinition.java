@@ -39,6 +39,8 @@ public class ModuleDefinition {
 
 	private volatile Properties properties;
 
+	private volatile String definition;
+
 	private final URL[] classpath;
 
 	public ModuleDefinition(String name, ModuleType moduleType) {
@@ -79,8 +81,21 @@ public class ModuleDefinition {
 		this.properties = properties;
 	}
 
+	public String getDefinition() {
+		return definition;
+	}
+
+	public void setDefinition(String definition) {
+		this.definition = definition;
+	}
+
 	public URL[] getClasspath() {
 		return classpath;
+	}
+
+	@Override
+	public String toString() {
+		return "ModuleDefinition [name=" + name + ", type=" + type + ", definition=" + definition + "]";
 	}
 
 }

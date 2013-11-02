@@ -39,7 +39,9 @@ import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository
 import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
 import org.springframework.xd.dirt.container.store.RuntimeContainerInfoRepository;
+import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleRegistry;
+import org.springframework.xd.dirt.module.memory.InMemoryModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.store.RuntimeContainerModuleInfoRepository;
 import org.springframework.xd.dirt.module.store.RuntimeModuleInfoRepository;
 import org.springframework.xd.dirt.plugins.job.BatchJobLocator;
@@ -53,6 +55,7 @@ import org.springframework.xd.dirt.stream.StreamRepository;
 import org.springframework.xd.dirt.stream.XDParser;
 import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.dirt.stream.memory.InMemoryJobDefinitionRepository;
+import org.springframework.xd.dirt.stream.memory.InMemoryJobRepository;
 import org.springframework.xd.dirt.stream.memory.InMemoryStreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.memory.InMemoryStreamRepository;
 
@@ -83,6 +86,11 @@ public class Dependencies {
 	}
 
 	@Bean
+	public ModuleDefinitionRepository moduleDefinitionRepository() {
+		return new InMemoryModuleDefinitionRepository(moduleRegistry());
+	}
+
+	@Bean
 	public ModuleRegistry moduleRegistry() {
 		return mock(ModuleRegistry.class);
 	}
@@ -105,7 +113,7 @@ public class Dependencies {
 	@Bean
 	public XDParser parser() {
 		return new XDStreamParser(streamDefinitionRepository(),
-				moduleRegistry());
+				moduleDefinitionRepository());
 	}
 
 	@Bean
@@ -115,7 +123,7 @@ public class Dependencies {
 
 	@Bean
 	public JobDeployer jobDeployer() {
-		return new JobDeployer(jobDefinitionRepository(), deploymentMessageSender(), parser());
+		return new JobDeployer(deploymentMessageSender(), jobDefinitionRepository(), xdJobRepository(), parser());
 	}
 
 	@Bean
@@ -131,6 +139,11 @@ public class Dependencies {
 	@Bean
 	public StreamRepository streamRepository() {
 		return new InMemoryStreamRepository();
+	}
+
+	@Bean
+	public org.springframework.xd.dirt.stream.JobRepository xdJobRepository() {
+		return new InMemoryJobRepository();
 	}
 
 	@Bean

@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *	  http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,268 +18,307 @@
  * @author Andrew Eisenberg
  */
 
-/*jslint browser:true */
-/*global d3 define _ */
+/*global Backbone, d3, define, clearTimeout, setTimeout, _*/
 
 // This file defines the backbone model used by xd
-define(function() {
-    return function(client, backbone, URL_ROOT, PAGE_SIZE, ACCEPT_HEADER) {
+define([], function() {
+	'use strict';
 
-        // The model is a collection of queries known by the client
-        // abstract data type for all XD artifacts
-        var Artifact = Backbone.Model.extend({});
+	return function(client, backbone, config) {
 
-        // a group of artifacts from the server.
-        // has a query associtted with it
-        var ArtifactGroup = Backbone.Collection.extend({
-            model: Artifact
-        });
+		var URL_ROOT = config.urlRoot;
+		var ACCEPT_HEADER = config.acceptHeader;
+		var PAGE_SIZE = config.pageSize;
+		var REFRESH_INTERVAL = config.refreshInterval;
 
-        // to keep track of the pagination retrieved from the server
-        var Query = Backbone.Model.extend({
-            // expected props: kind, size, totalElements, totalPages, number, artifacts
+		// The XDModel is a collection of queries known by the client
+		// abstract data type for all XD artifacts
+		var Artifact = Backbone.Model.extend({});
 
-            getUrl : function() {
-                return URL_ROOT + this.get('artifact').url;
-            },
+		// a group of artifacts from the server.
+		// has a query associated with it
+		var ArtifactGroup = Backbone.Collection.extend({
+			XDModel: Artifact
+		});
 
-            getHttpParams : function() {
-                var pageNum = (this.get('number') || 0);
-                return { size: PAGE_SIZE, page: pageNum };
-            },
-            
-            reset : function() {
-                this.unset('number');
-                this.set('artifacts', []);
-            }
-        });
+		// to keep track of the pagination retrieved from the server
+		var Query = Backbone.Model.extend({
+			// expected props: kind, size, totalElements, totalPages, number, artifacts
 
-        // analytics for an xd artifact
-        var Analytics = Backbone.Model.extend({});
+			getUrl : function() {
+				return URL_ROOT + this.get('artifact').url;
+			},
 
-        var AllAnalytics = Backbone.Collection.extend({
-            model: Analytics
-        });
-        var allAnalytics = new AllAnalytics();
+			getHttpParams : function() {
+				var pageNum = (this.get('number') || 0);
+				return { size: PAGE_SIZE, page: pageNum };
+			},
 
-        var Model =  Backbone.Model.extend({
-            addQuery : function(kind, pageInfo, items) {
-                var args = pageInfo || {};
-                items = items || [];
-                args.artifact = model.findArtifact(kind);
-                var artifacts = new ArtifactGroup();
-                items.forEach(function(item) {
-                    artifacts.add(new Artifact(item));
-                });
-                args.artifacts = artifacts;
-                var query = new Query(args);
-                this.set(kind, query);
-            },
+			reset : function() {
+				this.unset('number');
+				this.set('artifacts', []);
+			}
+		});
 
-            addAnalytics : function(kind, name, cubismContext) {
-                var analytics = new Analytics({kind:kind, name:name});
-                allAnalytics.add(analytics);
-                var format = d3.time.format("%d-%b-%y");
-                var metric = cubismContext.metric(function(start, stop, step, callback) {
-                    d3.json("data/" + name, function(values) {
-                        analytics.set('values', values);
-                        callback(null, values.slice(-cubismContext.size()));
-                    });
-                }, name);
-                analytics.set('metric', metric);
-                return analytics;
-            },
+		var Model =  Backbone.Model.extend({
+			addQuery : function(kind, pageInfo, items) {
+				var args = pageInfo || {};
+				items = items || [];
+				args.artifact = this.findArtifact(kind);
+				var artifacts = new ArtifactGroup();
+				items.forEach(function(item) {
+					artifacts.add(new Artifact(item));
+				});
+				args.artifacts = artifacts;
+				var query = new Query(args);
+				this.set(kind, query);
+			}
+		});
 
-            removeAnalytics : function(kind, name) {
-                allAnalytics.remove(allAnalytics.where({kind:kind, name:name}));
-            }
-        });
-        var model = new Model();
+		var XDModel = new Model();
 
-        // define the query kinds we care about
-        model.artifacts = [];
-        function defineArtifact(kind, name, url) {
-    		model.artifacts.push({ kind: kind, name: name, url: url });
-        }
+		// define the query kinds we care about
+		XDModel.artifacts = [];
 
-        model.findArtifact = function(kind) {
-    		return _.find(model.artifacts, function(artifact) {
-    			return artifact.kind === kind;
-    		});
-        };
-    //    defineArtifact('streams', 'Streams', 'streams');
-        defineArtifact('jobs', 'Jobs', 'jobs');
-    //    defineArtifact('counters', 'Counters', 'metrics/counters');
-    //    defineArtifact('field-value-counters', 'Field Value Counters', 'metrics/field-value-counters');
-    //    defineArtifact('aggregate-counters', 'Aggregate Counters', 'metrics/aggregate-counters');
+		function defineArtifact(kind, name, url) {
+			XDModel.artifacts.push({ kind: kind, name: name, url: url });
+		}
 
-    //    these artifacts no longer exist
-    //    defineArtifact('taps', 'Taps', 'taps');
-    //    defineArtifact('triggers', 'Triggers', 'triggers');
-    //    defineArtifact('guages', 'Guages', 'metrics/guages');
-    //    defineArtifact('richguages', 'Rich Guages', 'metrics/richguages');
-    	
+		function findArtifact(kind) {
+			return _.find(XDModel.artifacts, function(artifact) {
+				return artifact.kind === kind;
+			});
+		}
 
+		XDModel.artifacts.forEach(function(artifact) {
+			XDModel.addQuery(artifact.kind);
+		});
 
-        model.artifacts.forEach(function(artifact) {
-            model.addQuery(artifact.kind);
-        });
+		// Batch Jobs model
+		var JobDefinition = Backbone.Model.extend({
+			urlRoot: URL_ROOT + '/jobs/',
+			url: function() {
+				return this.urlRoot + this.id + '/jobs.json';
+			},
+			idAttribute: 'name',
+			deploy: function() {
+				var createPromise = client({
+					path: URL_ROOT +  '/jobs/' + this.id,
+					params: { "deploy" : 'true' } ,
+					method: 'PUT',
+					headers: ACCEPT_HEADER
+				 });
+				 return XDModel.jobDefinitions.fetch({merge:true, update:true });
+			},
+			undeploy: function() {
+				var createPromise = client({
+					path: URL_ROOT +  '/jobs/' + this.id,
+					params: { "deploy" : 'false' } ,
+					method: 'PUT',
+					headers: ACCEPT_HEADER
+				 });
+				 return XDModel.jobDefinitions.fetch({merge:true, update:true });
+			}
+		});
 
-        model.set('allAnalytics', allAnalytics);
+		var JobDefinitions = Backbone.Collection.extend({
+			model: JobDefinition,
+			urlRoot: URL_ROOT + "/jobs?deployments=true",
+			url: function() {
+				return this.urlRoot;
+			},
+			comparator: 'name',
+			jobs: [],
+			parse: function(response) {
+				this.jobs = response.content;
+				return this.jobs;
+			},
+			startFetching: function() {
+				this.fetch({change:true, add:false}).then(
+					function() {
+						this.fetchTimer = setTimeout(function() {
+							if (!this.stopFetch) {
+								this.startFetching();
+							}
+						}.bind(this), REFRESH_INTERVAL);
+					}.bind(this));
+			},
 
-
-
-        /////////////////////////////////////////////////////////////////////////////////////
-        // stuff for batch.
-        // Here is the model:
-        //batch jobs
-        //batch job
-        //instances
-        //instance
-        //executions
-        //execution
-        //stepExecutions
-        //stepExecution
-        /////////////////////////////////////////////////////////////////////////////////////
-
-        // stuff for batch
-        var BatchJob = Backbone.Model.extend({
-            urlRoot: URL_ROOT + 'batch/jobs',
-            url: function() {
-                return this.urlRoot + '/' + this.id + '.json';
-            },
-            idAttribute: 'name',
-            launch: function(parameters) {
-                var params = "";
-                if (parameters) {
-                    params = parameters;
+			stopFetching: function() {
+				if (this.fetchTimer) {
+					clearTimeout(this.fetchTimer);
 				}
-                var createPromise = client({
-                    path: URL_ROOT +  'jobs/' + this.id + '/launch',
-                    params: { "jobParameters" : params } ,
-                    method: 'PUT',
-                    headers: ACCEPT_HEADER
-                 });
-            return model.batchJobs.fetch({merge:true, update:true });
-            },
+				this.stopFetch = true;
+			}
+		});
 
-            parse: function(data) {
-                // for some reason coming back as a string
-                if (typeof data === 'string') {
-                    data = JSON.parse(data);
-                }
-                if (data.job) {
-                    data = data.job;
-                }
-                if (data.jobInstances) {
-                    data.jobInstances = new JobInstances(Object.keys(data.jobInstances).map(function(key) {
-                        var instance = new JobInstance(data.jobInstances[key]);
-                        instance.id = key;
-                        instance.set('name', this.id);
-                        return instance;
-                    }, this));
-                } else {
-                    data.jobInstances = new JobInstances();
-                    data.jobInstances.jobName = data.name;
-                }
-                return data;
-            }
-        });
-        var BatchJobs = Backbone.Collection.extend({
-            model: BatchJob,
-            url: URL_ROOT + 'batch/jobs.json',
+		XDModel.jobDefinitions = new JobDefinitions();
 
-            parse: function(data) {
-                return data;
-            },
-            comparator: 'name',
+		var Execution = Backbone.Model.extend({
+			urlRoot: URL_ROOT + 'batch/jobs/',
+			url: function() {
+				return this.urlRoot + this.id + '.json';
+			},
+			idAttribute: 'id',
+			parse: function(response) {
+				return response.jobExecution;
+			},
+			transform: function() {
+				return {
+					millis: Math.floor(Math.random() * 1000), // randomized data for now this.get('duration'),
+					name: this.id,
+					status: this.get('status')
+				};
+			}
 
-            startFetching: function() {
-                this.fetch({change:true, add:false}).then(
-                    function() {
-                        this.fetchTimer = setTimeout(function() {
-                            if (!this.stopFetch) {
-    	                        this.startFetching();
-    	                    }
-                        }.bind(this), 5000);
-                    }.bind(this));
-            },
-            
-            stopFetching: function() {
-    			if (this.fetchTimer) {
-                    clearTimeout(this.fetchTimer);
-                }
-                this.stopFetch = true;
-            }
-        });
+		});
+		var Executions = Backbone.Collection.extend({
+			model: Execution,
+			executions: [],
+			urlRoot: URL_ROOT + 'batch/executions',
+			url: function() {
+				return this.urlRoot;
+			},
+			parse: function(response) {
+				this.executions = response;
+			},
+			startFetching: function() {
+				this.fetch({change:true, add:false}).then(
+					function() {
+						this.fetchTimer = setTimeout(function() {
+							if (!this.stopFetch) {
+								this.startFetching();
+							}
+						}.bind(this), REFRESH_INTERVAL);
+					}.bind(this));
+			},
 
-        var Execution = Backbone.Model.extend({
-            urlRoot: URL_ROOT + 'batch/jobs/',
-            url: function() {
-                return this.urlRoot + this.id + '/executions.json';
-            },
-            idAttribute: 'id',
-            parse: function(response) {
-                return response.jobExecution;
-            },
-            transform: function() {
-                return {
-                    millis: Math.floor(Math.random() * 1000), // randomized data for now this.get('duration'),
-                    name: this.id,
-                    status: this.get('status')
-                };
-            }
+			stopFetching: function() {
+				if (this.fetchTimer) {
+					clearTimeout(this.fetchTimer);
+				}
+				this.stopFetch = true;
+			}
+		});
 
-        });
-        var Executions = Backbone.Collection.extend({
-            model: Execution,
-            urlRoot: URL_ROOT + 'batch/jobs/',
-            url: function() { 
-                return this.urlRoot + this.jobName + '/executions/';
-            }
-        });
+		XDModel.jobExecutions = new Executions();
 
-        // Not used at the moment
-        var JobInstance = Backbone.Model.extend({
-            urlRoot: URL_ROOT + 'batch/jobs/',
-            url: function() {
-                return this.urlRoot + this.get('name') + '/' + this.id + '.json';
-            },
-            idAttribute: 'id',
-            parse: function(instance) {
-                return {
-                    name: instance.jobName,
-                    id: instance.id,
-                    version: instance.version,
-                    nameId: instance.name+ '/' + instance.id,
-                    jobParameters: instance.jobParameters,
-                    jobExecutions: instance.jobExecutions ?
-                        new Executions(Object.keys(instance.jobExecutions).map(function(key) {
-                            var execution = new Execution(instance.jobExecutions[key]);
-                            execution.id = key;
-                            return execution;
-                        })) :
-                        new Executions()
-                };
-            },
-            transformExecutions: function() {
-                return this.get('jobExecutions').map(function(execution) {
-                    return execution.transform();
-                });
-            }
-        });
-        var JobInstances = Backbone.Collection.extend({
-            model: JobInstance,
-            urlRoot: URL_ROOT + 'batch/jobs/',
-            url: function() {
-                return this.urlRoot + this.jobName + '/instances.json';
-            }
-        });
+		var JobInstance = Backbone.Model.extend({
+			urlRoot: URL_ROOT + 'batch/jobs/',
+			url: function() {
+				return this.urlRoot + this.get('name') + '/' + this.id + '.json';
+			},
+			idAttribute: 'id',
+			parse: function(instance) {
+				return {
+					name: instance.jobName,
+					id: instance.id,
+					version: instance.version,
+					nameId: instance.name+ '/' + instance.id,
+					jobParameters: instance.jobParameters,
+					jobExecutions: instance.jobExecutions ?
+						new Executions(Object.keys(instance.jobExecutions).map(function(key) {
+							var execution = new Execution(instance.jobExecutions[key]);
+							execution.id = key;
+							return execution;
+						})) :
+						new Executions()
+				};
+			},
+			transformExecutions: function() {
+				return this.get('jobExecutions').map(function(execution) {
+					return execution.transform();
+				});
+			}
+		});
+		var JobInstances = Backbone.Collection.extend({
+			jobs: [],
+			model: JobInstance,
+			urlRoot: URL_ROOT + 'batch/jobs/',
+			url: function() {
+				return this.urlRoot + this.jobName + '/instances.json';
+			},
+			parse: function(response) {
+				this.jobs = response;
+			}
+		});
 
+		XDModel.jobInstances = new JobInstances();
 
+		var BatchJob = Backbone.Model.extend({
+			urlRoot: URL_ROOT + 'batch/jobs',
+			url: function() {
+				return this.urlRoot + '/' + this.id + '.json';
+			},
+			idAttribute: 'name',
+			launch: function(parameters) {
+				var params = "";
+				if (parameters) {
+					params = parameters;
+				}
+				var createPromise = client({
+					path: URL_ROOT +  'jobs/' + this.id + '/launch',
+					params: { "jobParameters" : params } ,
+					method: 'PUT',
+					headers: ACCEPT_HEADER
+				 });
+				return XDModel.batchJobs.fetch({merge:true, update:true });
+			},
 
-        model.batchJobs = new BatchJobs();
-        model.Executions = Executions;
-        return model;
-    }
+			parse: function(data) {
+				// for some reason coming back as a string
+				if (typeof data === 'string') {
+					data = JSON.parse(data);
+				}
+				if (data.job) {
+					data = data.job;
+				}
+				if (data.jobInstances) {
+					data.jobInstances = new JobInstances(Object.keys(data.jobInstances).map(function(key) {
+						var instance = new JobInstance(data.jobInstances[key]);
+						instance.id = key;
+						instance.set('name', this.id);
+						return instance;
+					}, this));
+				} else {
+					data.jobInstances = new JobInstances();
+					data.jobInstances.jobName = data.name;
+				}
+				return data;
+			}
+		});
+
+		var BatchJobs = Backbone.Collection.extend({
+			model: BatchJob,
+			url: URL_ROOT + 'batch/jobs.json',
+			jobs: [],
+			parse: function(data) {
+				this.jobs = data;
+				return data;
+			},
+			comparator: 'name',
+
+			startFetching: function() {
+				this.fetch({change:true, add:false}).then(
+					function() {
+						this.fetchTimer = setTimeout(function() {
+							if (!this.stopFetch) {
+								this.startFetching();
+							}
+						}.bind(this), 5000);
+					}.bind(this));
+			},
+
+			stopFetching: function() {
+				if (this.fetchTimer) {
+					clearTimeout(this.fetchTimer);
+				}
+				this.stopFetch = true;
+			}
+		});
+
+		XDModel.batchJobs = new BatchJobs();
+
+		return XDModel;
+	};
 });

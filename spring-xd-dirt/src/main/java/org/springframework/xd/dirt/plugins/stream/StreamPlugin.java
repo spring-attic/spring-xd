@@ -114,6 +114,9 @@ public class StreamPlugin implements Plugin {
 		DeploymentMetadata md = module.getDeploymentMetadata();
 		MessageChannel channel = module.getComponent("output", MessageChannel.class);
 		if (channel != null) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("binding output channel [" + md.getOutputChannelName() + "] for " + module);
+			}
 			if (isChannelPubSub(md.getOutputChannelName())) {
 				bus.bindPubSubProducer(md.getOutputChannelName(), channel);
 			}

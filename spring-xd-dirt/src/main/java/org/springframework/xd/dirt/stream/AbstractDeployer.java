@@ -142,19 +142,10 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	protected D basicDeploy(String name) {
 		Assert.hasText(name, "name cannot be blank or null");
 		final D definition = getDefinitionRepository().findOne(name);
-
 		if (definition == null) {
 			throwNoSuchDefinitionException(name);
 		}
-
 		final List<ModuleDeploymentRequest> requests = parse(name, definition.getDefinition());
-
-		for (ModuleDeploymentRequest moduleDeploymentRequest : requests) {
-			if (!moduleDeploymentRequest.isDeployable()) {
-				throwDefinitionNotDeployable(name);
-			}
-		}
-
 		sendDeploymentRequests(name, requests);
 		return definition;
 	}
@@ -173,7 +164,6 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		}
 		Collections.reverse(requests);
 		sendDeploymentRequests(name, requests);
-
 	}
 
 }

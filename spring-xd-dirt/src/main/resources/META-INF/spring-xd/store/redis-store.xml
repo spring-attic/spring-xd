@@ -10,6 +10,12 @@
 		<constructor-arg ref="humanFriendlyRedisTemplate" />
 	</bean>
 
+	<bean id="xdJobRepository"
+		class="org.springframework.xd.dirt.stream.redis.RedisJobRepository">
+		<constructor-arg ref="humanFriendlyRedisTemplate" />
+		<constructor-arg ref="jobDefinitionRepository" />
+	</bean>
+
 	<bean id="streamDefinitionRepository" class="org.springframework.xd.dirt.stream.redis.RedisStreamDefinitionRepository">
 		<constructor-arg ref="humanFriendlyRedisTemplate" />
 	</bean>
@@ -31,6 +37,20 @@
 	<bean id="runtimeContainerModuleInfoRepository" class="org.springframework.xd.dirt.module.store.RedisRuntimeContainerModuleInfoRepository">
 		<constructor-arg name="repoPrefix" value="modules-container"/>
 		<constructor-arg ref="humanFriendlyRedisTemplate" />
+	</bean>
+
+	<bean id="moduleDefinitionRepository" class="org.springframework.xd.dirt.module.redis.RedisModuleDefinitionRepository">
+		<constructor-arg value="module.definitions"/>
+		<constructor-arg ref="humanFriendlyRedisTemplate"/>
+		<constructor-arg ref="moduleRegistry"/>
+	</bean>
+
+	<bean id="moduleRegistry" class="org.springframework.xd.dirt.module.CompositeModuleRegistry">
+		<constructor-arg>
+			<bean class="org.springframework.xd.dirt.module.FileModuleRegistry">
+				<constructor-arg value="${XD_HOME}/modules"/>
+			</bean>
+		</constructor-arg>
 	</bean>
 
 </beans>

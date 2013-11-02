@@ -18,9 +18,9 @@
 			class="org.springframework.xd.dirt.job.HSQLServerBean">
 			<property name="serverProperties">
 				<props>
-					<prop key="server.port">${hsql.server.port:9100}</prop>
-					<prop key="server.database.0">${XD_HOME}/data/jobs/${hsql.server.database:xdjobrepotest}</prop>
-					<prop key="server.dbname.0">${hsql.server.dbname:test}</prop>
+					<prop key="server.port">${hsql.server.port}</prop>
+					<prop key="server.database.0">${XD_HOME}/data/jobs/${hsql.server.database}</prop>
+					<prop key="server.dbname.0">${hsql.server.dbname}</prop>
 				</props>
 			</property>
 		</bean>
@@ -74,7 +74,7 @@
 			destroy-method="close">
 			<property name="driverClassName" value="org.hsqldb.jdbcDriver" />
 			<property name="url"
-				value="jdbc:hsqldb:hsql://localhost:${hsql.server.port:9101}/${hsql.server.dbname:test}" />
+				value="jdbc:hsqldb:hsql://${hsql.server.host}:${hsql.server.port}/${hsql.server.dbname}" />
 			<property name="username" value="sa" />
 			<property name="password" value="" />
 			<property name="initialSize" value="5" />

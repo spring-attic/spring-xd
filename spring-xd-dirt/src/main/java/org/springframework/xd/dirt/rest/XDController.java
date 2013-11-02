@@ -226,10 +226,10 @@ public abstract class XDController<D extends BaseDefinition, A extends ResourceA
 	}
 
 	/**
-	 * Create a new Module.
+	 * Create a new domain object.
 	 * 
-	 * @param name The name of the module to create (required)
-	 * @param definition The module definition, expressed in the XD DSL (required)
+	 * @param name The name of the entity to create (required)
+	 * @param definition The entity definition, expressed in the XD DSL (required)
 	 */
 	@RequestMapping(value = "", method = RequestMethod.POST)
 	@ResponseStatus(HttpStatus.CREATED)

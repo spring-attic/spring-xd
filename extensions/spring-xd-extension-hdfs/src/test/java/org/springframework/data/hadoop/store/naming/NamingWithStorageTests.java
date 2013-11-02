@@ -38,7 +38,6 @@ import org.springframework.data.hadoop.store.codec.Codecs;
  * @author Janne Valkealahti
  * 
  */
-@SuppressWarnings("resource")
 public class NamingWithStorageTests {
 
 	private final static Path basePath = new Path("/base");

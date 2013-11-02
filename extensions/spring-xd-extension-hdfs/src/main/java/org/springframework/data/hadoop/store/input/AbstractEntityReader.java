@@ -21,6 +21,7 @@ import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 
+import org.springframework.data.hadoop.store.DataReader;
 import org.springframework.data.hadoop.store.EntityReader;
 import org.springframework.data.hadoop.store.Storage;
 import org.springframework.data.hadoop.store.support.DataObjectSupport;
@@ -33,6 +34,8 @@ import org.springframework.data.hadoop.store.support.DataObjectSupport;
  * 
  */
 public abstract class AbstractEntityReader<E> extends DataObjectSupport implements EntityReader<E> {
+
+	private DataReader reader;
 
 	/**
 	 * Instantiates a new abstract data reader.
@@ -47,7 +50,19 @@ public abstract class AbstractEntityReader<E> extends DataObjectSupport implemen
 
 	@Override
 	public void open() throws IOException {
-		// default impl is no-opt
+		reader = getStorage().getDataReader(getPath());
 	}
+
+	@Override
+	public E read() throws IOException {
+		return convert(reader.read());
+	}
+
+	@Override
+	public void close() throws IOException {
+		reader.close();
+	}
+
+	protected abstract E convert(byte[] value);
 
 }

@@ -21,30 +21,27 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.integration.support.json.JacksonJsonObjectMapperProvider;
+import org.springframework.integration.support.json.JsonObjectMapper;
+import org.springframework.integration.transformer.AbstractPayloadTransformer;
 import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.util.StringUtils;
 
 /**
  * Transforms a payload to a Map representation based on provided column names.
- * 
+ *
  * TODO: Right now it simply supports full payload under a 'payload' key or a JSON string with values stored with keys
  * corresponding to the column names specified. This could be expanded for additional payload types
- * 
+ *
  * @author Thomas Risberg
  * @since 1.0
  */
 @SuppressWarnings("rawtypes")
-public class JdbcMessagePayloadTransformer extends JsonToObjectTransformer<Map> {
+public class JdbcMessagePayloadTransformer extends AbstractPayloadTransformer<String, Map> {
+
+	private final JsonObjectMapper<?> jsonObjectMapper = JacksonJsonObjectMapperProvider.newInstance();
 
 	private List<String> columnNames = new ArrayList<String>();
-
-	public JdbcMessagePayloadTransformer() {
-		super(Map.class);
-	}
-
-	public JdbcMessagePayloadTransformer(Class<Map> targetClass) {
-		super(targetClass);
-	}
 
 	public String getColumns() {
 		StringBuilder columns = new StringBuilder();
@@ -83,7 +80,7 @@ public class JdbcMessagePayloadTransformer extends JsonToObjectTransformer<Map> 
 			fullPayload.put("payload", payload);
 			return fullPayload;
 		}
-		Map<String, Object> payloadMap = super.transformPayload(payload);
+		Map<String, Object> payloadMap = this.jsonObjectMapper.fromJson(payload, Map.class);
 		for (Map.Entry<String, Object> entry : payloadMap.entrySet()) {
 			Object o = entry.getValue();
 			if (o != null && !(o instanceof String || o instanceof Number)) {

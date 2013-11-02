@@ -38,6 +38,7 @@ public class HdfsOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(HdfsStorageMessageHandler.class);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "writer", "dataWriter");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 		return builder.getBeanDefinition();
 	}
 

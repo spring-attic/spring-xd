@@ -16,6 +16,7 @@
 
 package org.springframework.data.hadoop.store;
 
+import java.io.Closeable;
 import java.io.IOException;
 
 /**
@@ -24,7 +25,7 @@ import java.io.IOException;
  * @author Janne Valkealahti
  * 
  */
-public interface DataReader {
+public interface DataReader extends Closeable {
 
 	/**
 	 * Read next bytes from a storage.

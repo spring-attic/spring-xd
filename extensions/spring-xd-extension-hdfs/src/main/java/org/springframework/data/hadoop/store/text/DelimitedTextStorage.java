@@ -17,20 +17,16 @@
 package org.springframework.data.hadoop.store.text;
 
 import java.io.IOException;
-import java.io.OutputStream;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.util.LineReader;
 
 import org.springframework.data.hadoop.store.AbstractStrategiesStorage;
 import org.springframework.data.hadoop.store.DataReader;
 import org.springframework.data.hadoop.store.DataWriter;
 import org.springframework.data.hadoop.store.codec.CodecInfo;
+import org.springframework.data.hadoop.store.event.StorageEventPublisher;
 import org.springframework.data.hadoop.store.support.DataUtils;
-import org.springframework.data.hadoop.store.support.StreamsHolder;
 
 /**
  * A {@code Storage} implementation using a delimited text as a record entry.
@@ -42,9 +38,6 @@ public class DelimitedTextStorage extends AbstractStrategiesStorage {
 
 	/** Data delimiter */
 	private final byte[] delimiter;
-
-	/** Hadoop's line reader */
-	private LineReader lineReader;
 
 	/**
 	 * Instantiates a new line storage.
@@ -84,51 +77,18 @@ public class DelimitedTextStorage extends AbstractStrategiesStorage {
 
 	@Override
 	public synchronized DataWriter getDataWriter() throws IOException {
-		return new DataWriter() {
-
-			@Override
-			public void write(byte[] bytes) throws IOException {
-				StreamsHolder<OutputStream> holder = getOutput();
-				OutputStream out = holder.getStream();
-				OutputStream wout = holder.getWrappedStream();
-				out.write(bytes);
-				out.write(delimiter);
-				out.flush();
-
-				// TODO: improve should not do casting
-				if (out instanceof FSDataOutputStream) {
-					reportSizeAware(((FSDataOutputStream) out).getPos());
-				}
-				else if (wout instanceof FSDataOutputStream) {
-					reportSizeAware(((FSDataOutputStream) wout).getPos());
-				}
-			}
-		};
+		DelimitedTextDataWriter writer = new DelimitedTextDataWriter(getOutput(), delimiter);
+		// TODO: should let spring handle this somehow
+		StorageEventPublisher eventPublisher = getStorageEventPublisher();
+		if (eventPublisher != null) {
+			writer.setStorageEventPublisher(getStorageEventPublisher());
+		}
+		return writer;
 	}
 
 	@Override
 	public synchronized DataReader getDataReader(Path path) throws IOException {
-		if (lineReader == null) {
-			lineReader = new LineReader(getInput(path).getStream(), getConfiguration());
-		}
-		return new DataReader() {
-
-			@Override
-			public byte[] read() throws IOException {
-				Text text = new Text();
-				lineReader.readLine(text);
-				return text.getBytes();
-			}
-		};
-	}
-
-	@Override
-	public synchronized void close() throws IOException {
-		if (lineReader != null) {
-			lineReader.close();
-			lineReader = null;
-		}
-		super.close();
+		return new DelimitedTextDataReader(getInput(path));
 	}
 
 }

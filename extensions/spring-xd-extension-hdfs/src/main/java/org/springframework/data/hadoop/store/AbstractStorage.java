@@ -16,7 +16,6 @@
 
 package org.springframework.data.hadoop.store;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -34,7 +33,6 @@ import org.apache.hadoop.io.compress.Decompressor;
 import org.apache.hadoop.util.ReflectionUtils;
 
 import org.springframework.data.hadoop.store.codec.CodecInfo;
-import org.springframework.data.hadoop.store.event.FileWrittenEvent;
 import org.springframework.data.hadoop.store.support.LifecycleObjectSupport;
 import org.springframework.data.hadoop.store.support.StreamsHolder;
 import org.springframework.util.ClassUtils;
@@ -57,12 +55,6 @@ public abstract class AbstractStorage extends LifecycleObjectSupport implements 
 
 	/** Hdfs path into a storage */
 	private final Path basePath;
-
-	/** Current input streams */
-	private StreamsHolder<InputStream> inputHolder;
-
-	/** Current output streams */
-	private StreamsHolder<OutputStream> outputHolder;
 
 	/**
 	 * Instantiates a new abstract storage format.
@@ -114,35 +106,12 @@ public abstract class AbstractStorage extends LifecycleObjectSupport implements 
 	}
 
 	/**
-	 * Close all streams and resources for this storage. Default implementation just calls {@code #closeStreams()}.
-	 * 
-	 * @see Closeable
-	 */
-	@Override
-	public void close() throws IOException {
-		closeStreams();
-	}
-
-	/**
-	 * Gets the output.
-	 * 
-	 * @return the output
-	 * @throws IOException Signals that an I/O exception has occurred.
-	 */
-	protected synchronized StreamsHolder<OutputStream> getOutput() throws IOException {
-		if (outputHolder == null) {
-			outputHolder = createOutput();
-		}
-		return outputHolder;
-	}
-
-	/**
 	 * Creates the needed output streams for the storage.
 	 * 
 	 * @return the stream holder
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	protected StreamsHolder<OutputStream> createOutput() throws IOException {
+	protected StreamsHolder<OutputStream> getOutput() throws IOException {
 		log.info("Creating new OutputStream");
 		StreamsHolder<OutputStream> holder = new StreamsHolder<OutputStream>();
 		FileSystem fs = FileSystem.get(getConfiguration());
@@ -173,67 +142,35 @@ public abstract class AbstractStorage extends LifecycleObjectSupport implements 
 		return getPath();
 	}
 
-	protected synchronized StreamsHolder<InputStream> getInput(Path inputPath) throws IOException {
-		if (inputHolder == null) {
-			log.info("Creating new InputStream");
-			inputHolder = new StreamsHolder<InputStream>();
-			final FileSystem fs = basePath.getFileSystem(configuration);
-			// TODO: hadoop2 isUriPathAbsolute() ?
-			Path p = inputPath.isAbsolute() ? inputPath : new Path(getPath(), inputPath);
-			if (!isCompressed()) {
-				InputStream input = fs.open(p);
-				inputHolder.setStream(input);
-			}
-			else {
-				Class<?> clazz = ClassUtils.resolveClassName(codecInfo.getCodecClass(), getClass().getClassLoader());
-				CompressionCodec compressionCodec = (CompressionCodec) ReflectionUtils.newInstance(clazz,
-						getConfiguration());
-				Decompressor decompressor = CodecPool.getDecompressor(compressionCodec);
-				FSDataInputStream winput = fs.open(p);
-				InputStream input = compressionCodec.createInputStream(winput, decompressor);
-				inputHolder.setWrappedStream(winput);
-				inputHolder.setStream(input);
-			}
-		}
-		return inputHolder;
-	}
-
 	/**
-	 * Close all streams associated with this storage.
+	 * Creates the needed input streams for the storage.
 	 * 
+	 * @return the stream holder
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	protected void closeStreams() throws IOException {
-		log.info("Closing streams");
-		closeInputStreams();
-		closeOutputStreams();
-	}
-
-	/**
-	 * Close output streams.
-	 * 
-	 * @throws IOException Signals that an I/O exception has occurred.
-	 */
-	protected void closeOutputStreams() throws IOException {
-		if (outputHolder != null) {
-			outputHolder.close();
-			if (getStorageEventPublisher() != null) {
-				getStorageEventPublisher().publishEvent(new FileWrittenEvent(this, outputHolder.getPath()));
-			}
-			outputHolder = null;
+	protected StreamsHolder<InputStream> getInput(Path inputPath) throws IOException {
+		log.info("Creating new InputStream");
+		StreamsHolder<InputStream> holder = new StreamsHolder<InputStream>();
+		final FileSystem fs = basePath.getFileSystem(configuration);
+		Path p = inputPath.isAbsolute() ? inputPath : new Path(getPath(), inputPath);
+		if (!fs.exists(p)) {
+			throw new StorageException("Path " + p + " does not exist");
 		}
-	}
-
-	/**
-	 * Close input streams.
-	 * 
-	 * @throws IOException Signals that an I/O exception has occurred.
-	 */
-	protected void closeInputStreams() throws IOException {
-		if (inputHolder != null) {
-			inputHolder.close();
-			inputHolder = null;
+		if (!isCompressed()) {
+			InputStream input = fs.open(p);
+			holder.setStream(input);
 		}
+		else {
+			Class<?> clazz = ClassUtils.resolveClassName(codecInfo.getCodecClass(), getClass().getClassLoader());
+			CompressionCodec compressionCodec = (CompressionCodec) ReflectionUtils.newInstance(clazz,
+					getConfiguration());
+			Decompressor decompressor = CodecPool.getDecompressor(compressionCodec);
+			FSDataInputStream winput = fs.open(p);
+			InputStream input = compressionCodec.createInputStream(winput, decompressor);
+			holder.setWrappedStream(winput);
+			holder.setStream(input);
+		}
+		return holder;
 	}
 
 }

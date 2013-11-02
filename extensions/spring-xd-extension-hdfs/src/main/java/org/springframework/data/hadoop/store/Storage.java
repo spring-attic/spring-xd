@@ -16,7 +16,6 @@
 
 package org.springframework.data.hadoop.store;
 
-import java.io.Closeable;
 import java.io.IOException;
 
 import org.apache.hadoop.fs.Path;
@@ -27,7 +26,7 @@ import org.apache.hadoop.fs.Path;
  * @author Janne Valkealahti
  * 
  */
-public interface Storage extends Closeable {
+public interface Storage {
 
 	/**
 	 * Gets the data writer.

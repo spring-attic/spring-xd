@@ -43,9 +43,10 @@ public class DelimitedTextStorageCtxTests extends AbstractDataTests {
 	private ApplicationContext context;
 
 	@Test
-	public void testWriteReadManyLines() throws IOException {
+	public void testWriteReadManyLines() throws IOException, InterruptedException {
 
 		DelimitedTextStorage storage = context.getBean("storage", DelimitedTextStorage.class);
+		// Configuration configuration = context.getBean("hadoopConfiguration", Configuration.class);
 		assertNotNull(storage);
 
 		ChainedFileNamingStrategy fileNamingStrategy = context.getBean("chainedFileNamingStrategy",
@@ -61,7 +62,6 @@ public class DelimitedTextStorageCtxTests extends AbstractDataTests {
 
 		TestUtils.writeDataAndClose(writer, DATA09ARRAY);
 		TestUtils.readDataAndAssert(reader, DATA09ARRAY);
-
 	}
 
 }

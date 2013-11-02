@@ -21,6 +21,7 @@ import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 
+import org.springframework.data.hadoop.store.DataReader;
 import org.springframework.data.hadoop.store.Storage;
 
 /**
@@ -30,6 +31,8 @@ import org.springframework.data.hadoop.store.Storage;
  * 
  */
 public class TextEntityReader extends AbstractEntityReader<String> {
+
+	private DataReader dataReader;
 
 	/**
 	 * Instantiates a new text data reader.
@@ -44,14 +47,19 @@ public class TextEntityReader extends AbstractEntityReader<String> {
 
 	@Override
 	public String read() throws IOException {
-		byte[] bytes = getStorage().getDataReader(getPath()).read();
+		byte[] bytes = dataReader.read();
 		// TODO: should we wrap in a holder to indicate null entry?
 		return bytes != null && bytes.length > 0 ? new String(bytes) : null;
 	}
 
 	@Override
 	public void close() throws IOException {
-		getStorage().close();
+		// getStorage().close();
+	}
+
+	@Override
+	public void open() throws IOException {
+		dataReader = getStorage().getDataReader(getPath());
 	}
 
 }

@@ -15,8 +15,9 @@
 
 	<int-hadoop:writer />
 
-	<int-hadoop:hdfs-outbound-channel-adapter id="hdfsOut" />
+	<!-- do not start, it will fail because we're not working with real hdfs -->
+	<int-hadoop:hdfs-outbound-channel-adapter id="hdfsOut" auto-startup="false" />
 
-	<int-hadoop:hdfs-outbound-channel-adapter id="adapter" channel="hdfsOut"/>
+	<int-hadoop:hdfs-outbound-channel-adapter id="adapter" channel="hdfsOut" auto-startup="false"/>
 
 </beans>

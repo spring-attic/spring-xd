@@ -16,9 +16,6 @@
 
 package org.springframework.data.hadoop.store;
 
-import java.io.IOException;
-import java.io.OutputStream;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 
@@ -27,8 +24,6 @@ import org.springframework.data.hadoop.store.codec.CodecInfoAware;
 import org.springframework.data.hadoop.store.naming.FileNamingStrategy;
 import org.springframework.data.hadoop.store.rollover.RolloverSizeAware;
 import org.springframework.data.hadoop.store.rollover.RolloverStrategy;
-import org.springframework.data.hadoop.store.support.StreamsHolder;
-
 
 /**
  * Extension of {@code AbstractStorage} adding strategy interfaces handling file naming and rolloving.
@@ -85,22 +80,13 @@ public abstract class AbstractStrategiesStorage extends AbstractStorage implemen
 		}
 	}
 
-	@Override
-	protected synchronized StreamsHolder<OutputStream> getOutput() throws IOException {
-		StreamsHolder<OutputStream> holder = super.getOutput();
-		if (checkStrategies(holder)) {
-			closeOutputStreams();
-			holder = super.getOutput();
-		}
-		return holder;
-	}
-
 	/**
 	 * Report {@code RolloverSizeAware} rollover interface about a new file size.
 	 * 
 	 * @param size the size
 	 */
-	protected void reportSizeAware(long size) {
+	@Override
+	public void reportSizeAware(long size) {
 		if (rolloverSizeAware != null) {
 			rolloverSizeAware.setSize(size);
 		}
@@ -112,7 +98,8 @@ public abstract class AbstractStrategiesStorage extends AbstractStorage implemen
 	 * @param holder the holder
 	 * @return true, if rollover should happen
 	 */
-	private boolean checkStrategies(StreamsHolder holder) {
+	@Override
+	public boolean checkStrategies() {
 		if (rolloverStrategy == null) {
 			return false;
 		}

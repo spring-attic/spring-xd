@@ -25,7 +25,7 @@ import org.springframework.data.hadoop.store.rollover.RolloverStrategy;
  * @author Janne Valkealahti
  * 
  */
-public interface StrategiesStorage {
+public interface StrategiesStorage extends Storage {
 
 	/**
 	 * Sets the file naming strategy.
@@ -40,5 +40,19 @@ public interface StrategiesStorage {
 	 * @param rolloverStrategy the new rollover strategy
 	 */
 	void setRolloverStrategy(RolloverStrategy rolloverStrategy);
+
+	/**
+	 * Report size aware.
+	 * 
+	 * @param size the size
+	 */
+	void reportSizeAware(long size);
+
+	/**
+	 * Check strategies.
+	 * 
+	 * @return true, if successful
+	 */
+	boolean checkStrategies();
 
 }

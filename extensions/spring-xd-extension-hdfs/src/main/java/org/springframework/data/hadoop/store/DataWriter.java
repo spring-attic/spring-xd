@@ -16,6 +16,8 @@
 
 package org.springframework.data.hadoop.store;
 
+import java.io.Closeable;
+import java.io.Flushable;
 import java.io.IOException;
 
 /**
@@ -24,13 +26,24 @@ import java.io.IOException;
  * @author Janne Valkealahti
  * 
  */
-public interface DataWriter {
+public interface DataWriter extends Flushable, Closeable {
 
 	/**
-	 * Write next bytes into a storage.
+	 * Write next bytes into a data stream.
 	 * 
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	void write(byte[] value) throws IOException;
+
+	/**
+	 * Gets the position in a writer. Usually this will indicate how many bytes has been written into a stream. One need
+	 * to understand that if underlying stream does its own buffering this method may not give accurate results until
+	 * stream has been completely flushed. Mostly this will happen with compressed streams which may buffer data and
+	 * thus wrapped stream will see nothing even if data has been written.
+	 * 
+	 * @return the position
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
+	long getPosition() throws IOException;
 
 }

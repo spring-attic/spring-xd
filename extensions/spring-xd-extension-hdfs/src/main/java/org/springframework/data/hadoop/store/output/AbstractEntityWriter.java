@@ -21,8 +21,10 @@ import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 
+import org.springframework.data.hadoop.store.DataWriter;
 import org.springframework.data.hadoop.store.EntityWriter;
 import org.springframework.data.hadoop.store.Storage;
+import org.springframework.data.hadoop.store.StrategiesStorage;
 import org.springframework.data.hadoop.store.support.DataObjectSupport;
 
 /**
@@ -33,6 +35,8 @@ import org.springframework.data.hadoop.store.support.DataObjectSupport;
  * 
  */
 public abstract class AbstractEntityWriter<E> extends DataObjectSupport implements EntityWriter<E> {
+
+	private DataWriter writer;
 
 	/**
 	 * Instantiates a new abstract data writer.
@@ -47,22 +51,32 @@ public abstract class AbstractEntityWriter<E> extends DataObjectSupport implemen
 
 	@Override
 	public void open() throws IOException {
-		// default impl is no-opt
+		writer = getStorage().getDataWriter();
 	}
 
 	@Override
 	public void write(E entity) throws IOException {
-		getStorage().getDataWriter().write(convert(entity));
+		Storage storage = getStorage();
+		if (storage instanceof StrategiesStorage) {
+			if (((StrategiesStorage) storage).checkStrategies()) {
+				close();
+				open();
+			}
+		}
+		writer.write(convert(entity));
+		if (storage instanceof StrategiesStorage) {
+			((StrategiesStorage) storage).reportSizeAware(writer.getPosition());
+		}
 	}
 
 	@Override
 	public void flush() throws IOException {
-		// default impl is no-opt
+		writer.flush();
 	}
 
 	@Override
 	public void close() throws IOException {
-		getStorage().close();
+		writer.close();
 	}
 
 	/**

@@ -106,6 +106,7 @@ public abstract class TestUtils {
 	public static void readDataAndAssert(TextEntityReader reader, String[] expected) throws IOException {
 		String line = null;
 		int count = 0;
+		reader.open();
 		while ((line = reader.read()) != null) {
 			assertThat(count, lessThan(expected.length));
 			assertThat(line, is(expected[count++]));
@@ -121,6 +122,7 @@ public abstract class TestUtils {
 	public static List<String> readData(TextEntityReader reader) throws IOException {
 		ArrayList<String> ret = new ArrayList<String>();
 		String line = null;
+		reader.open();
 		while ((line = reader.read()) != null) {
 			ret.add(line);
 		}

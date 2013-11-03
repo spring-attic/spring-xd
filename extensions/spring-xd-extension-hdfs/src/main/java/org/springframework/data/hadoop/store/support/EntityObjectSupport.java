@@ -29,7 +29,7 @@ import org.springframework.util.Assert;
  * @author Janne Valkealahti
  * 
  */
-public abstract class DataObjectSupport {
+public abstract class EntityObjectSupport {
 
 	private final Storage storage;
 
@@ -44,7 +44,7 @@ public abstract class DataObjectSupport {
 	 * @param configuration the configuration
 	 * @param path the path
 	 */
-	protected DataObjectSupport(Storage storage, Configuration configuration, Path path) {
+	protected EntityObjectSupport(Storage storage, Configuration configuration, Path path) {
 		Assert.notNull(storage, "Storage must be set");
 		Assert.notNull(configuration, "Configuration must be set");
 		Assert.notNull(path, "Path must be set");

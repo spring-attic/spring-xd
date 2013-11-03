@@ -24,7 +24,7 @@ import org.apache.hadoop.fs.Path;
 import org.springframework.data.hadoop.store.DataWriter;
 import org.springframework.data.hadoop.store.EntityWriter;
 import org.springframework.data.hadoop.store.StrategiesStorage;
-import org.springframework.data.hadoop.store.support.DataObjectSupport;
+import org.springframework.data.hadoop.store.support.EntityObjectSupport;
 
 /**
  * Base {@code EntityWriter} implementation sharing common functionality.
@@ -33,7 +33,7 @@ import org.springframework.data.hadoop.store.support.DataObjectSupport;
  * @author Janne Valkealahti
  * 
  */
-public abstract class AbstractEntityWriter<E> extends DataObjectSupport implements EntityWriter<E> {
+public abstract class AbstractEntityWriter<E> extends EntityObjectSupport implements EntityWriter<E> {
 
 	private volatile DataWriter writer;
 

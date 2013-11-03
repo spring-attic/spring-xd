@@ -24,7 +24,7 @@ import org.apache.hadoop.fs.Path;
 import org.springframework.data.hadoop.store.DataReader;
 import org.springframework.data.hadoop.store.EntityReader;
 import org.springframework.data.hadoop.store.Storage;
-import org.springframework.data.hadoop.store.support.DataObjectSupport;
+import org.springframework.data.hadoop.store.support.EntityObjectSupport;
 
 /**
  * Base {@code EntityReader} implementation sharing common functionality.
@@ -33,7 +33,7 @@ import org.springframework.data.hadoop.store.support.DataObjectSupport;
  * @author Janne Valkealahti
  * 
  */
-public abstract class AbstractEntityReader<E> extends DataObjectSupport implements EntityReader<E> {
+public abstract class AbstractEntityReader<E> extends EntityObjectSupport implements EntityReader<E> {
 
 	private DataReader reader;
 

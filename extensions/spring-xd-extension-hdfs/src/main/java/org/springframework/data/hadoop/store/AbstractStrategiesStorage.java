@@ -106,12 +106,17 @@ public abstract class AbstractStrategiesStorage extends AbstractStorage implemen
 
 		boolean hasRolled = rolloverStrategy.hasRolled();
 		if (hasRolled) {
-			rolloverStrategy.reset();
-			if (fileNamingStrategy != null) {
-				fileNamingStrategy.reset();
-			}
+			rollStrategies();
 		}
 		return hasRolled;
+	}
+
+	@Override
+	public void rollStrategies() {
+		rolloverStrategy.reset();
+		if (fileNamingStrategy != null) {
+			fileNamingStrategy.reset();
+		}
 	}
 
 	/**

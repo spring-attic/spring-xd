@@ -29,7 +29,7 @@ import org.springframework.util.Assert;
  * @author Janne Valkealahti
  * 
  */
-public abstract class EntityObjectSupport {
+public abstract class EntityObjectSupport extends LifecycleObjectSupport {
 
 	private final Storage storage;
 

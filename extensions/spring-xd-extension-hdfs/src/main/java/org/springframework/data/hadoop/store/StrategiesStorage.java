@@ -55,4 +55,9 @@ public interface StrategiesStorage extends Storage {
 	 */
 	boolean checkStrategies();
 
+	/**
+	 * Roll strategies.
+	 */
+	void rollStrategies();
+
 }

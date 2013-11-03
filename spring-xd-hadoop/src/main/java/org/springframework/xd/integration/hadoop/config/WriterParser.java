@@ -24,6 +24,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.data.hadoop.store.output.TextEntityWriter;
+import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.integration.hadoop.IntegrationHadoopSystemConstants;
 
@@ -43,6 +44,7 @@ public class WriterParser extends AbstractBeanDefinitionParser {
 
 		IntegrationHadoopNamespaceUtils.addPathConstructorArgReference(element, parserContext, builder, "base-path",
 				IntegrationHadoopSystemConstants.DEFAULT_DATA_PATH);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "idle-timeout");
 
 		return builder.getBeanDefinition();
 	}

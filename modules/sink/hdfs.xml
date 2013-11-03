@@ -9,6 +9,12 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/hadoop http://www.springframework.org/schema/hadoop/spring-hadoop.xsd">
 
+	<!-- TODO: should register default scheduler and executor from a namespace parser, this would
+	allow to use existing task framework defined by other components. Anyway these will be get from
+	a context bean factory -->
+	<bean id="taskScheduler" class="org.springframework.scheduling.concurrent.ConcurrentTaskScheduler"/>
+	<bean id="taskExecutor" class="org.springframework.core.task.SyncTaskExecutor"/>
+
 	<int:channel id="input"/>
 
 	<int:payload-type-router input-channel="input" default-output-channel="objects">
@@ -22,7 +28,7 @@
 	<bean id="storageEventPublisher" class="org.springframework.data.hadoop.store.event.DefaultStorageEventPublisher"/>
 
 	<int-hadoop:rollover-policy>
-		<int-hadoop:size size="${rolloverSize:100}" />
+		<int-hadoop:size size="${rolloverSize:1G}" />
 	</int-hadoop:rollover-policy>
 
 	<int-hadoop:naming-policy>
@@ -39,7 +45,8 @@
 		naming-policy="fileNamingPolicy"/>
 
 	<int-hadoop:writer id="storageWriter"
-		base-path="${directory:/xd/${xd.stream.name}}"/>
+		base-path="${directory:/xd/${xd.stream.name}}"
+		idle-timeout="${idleTimeout:0}"/>
 
 	<int-hadoop:hdfs-outbound-channel-adapter id="files"
 		writer="storageWriter"/>

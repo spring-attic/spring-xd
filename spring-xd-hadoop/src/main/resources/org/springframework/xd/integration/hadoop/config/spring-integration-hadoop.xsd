@@ -68,6 +68,7 @@
 			</xsd:attribute>
 			<xsd:attribute name="storage" default="storage"/>
 			<xsd:attribute name="base-path" use="optional"/>
+			<xsd:attribute name="idle-timeout" use="optional"/>
 			<xsd:attribute name="configuration" default="hadoopConfiguration"/>
 		</xsd:complexType>
 	</xsd:element>

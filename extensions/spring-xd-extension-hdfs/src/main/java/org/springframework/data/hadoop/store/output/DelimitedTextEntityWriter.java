@@ -21,7 +21,7 @@ import java.nio.ByteBuffer;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 
-import org.springframework.data.hadoop.store.Storage;
+import org.springframework.data.hadoop.store.StrategiesStorage;
 import org.springframework.data.hadoop.store.support.DataUtils;
 
 
@@ -50,7 +50,7 @@ public class DelimitedTextEntityWriter extends AbstractEntityWriter<String[]> {
 	 * @param path the path
 	 * @param delimiter the field delimiter
 	 */
-	public DelimitedTextEntityWriter(Storage storage, Configuration configuration, Path path, byte[] delimiter) {
+	public DelimitedTextEntityWriter(StrategiesStorage storage, Configuration configuration, Path path, byte[] delimiter) {
 		super(storage, configuration, path);
 		this.delimiter = delimiter;
 	}

@@ -23,7 +23,6 @@ import org.apache.hadoop.fs.Path;
 
 import org.springframework.data.hadoop.store.DataWriter;
 import org.springframework.data.hadoop.store.EntityWriter;
-import org.springframework.data.hadoop.store.Storage;
 import org.springframework.data.hadoop.store.StrategiesStorage;
 import org.springframework.data.hadoop.store.support.DataObjectSupport;
 
@@ -36,7 +35,11 @@ import org.springframework.data.hadoop.store.support.DataObjectSupport;
  */
 public abstract class AbstractEntityWriter<E> extends DataObjectSupport implements EntityWriter<E> {
 
-	private DataWriter writer;
+	private volatile DataWriter writer;
+
+	protected volatile StrategiesStorage strategiesStorage;
+
+	protected final static Object lock = new Object();
 
 	/**
 	 * Instantiates a new abstract data writer.
@@ -45,38 +48,49 @@ public abstract class AbstractEntityWriter<E> extends DataObjectSupport implemen
 	 * @param configuration the configuration
 	 * @param path the path
 	 */
-	protected AbstractEntityWriter(Storage storage, Configuration configuration, Path path) {
+	protected AbstractEntityWriter(StrategiesStorage storage, Configuration configuration, Path path) {
 		super(storage, configuration, path);
+		this.strategiesStorage = storage;
 	}
 
 	@Override
 	public void open() throws IOException {
-		writer = getStorage().getDataWriter();
+		synchronized (lock) {
+			if (writer == null) {
+				writer = getStorage().getDataWriter();
+			}
+		}
 	}
 
 	@Override
 	public void write(E entity) throws IOException {
-		Storage storage = getStorage();
-		if (storage instanceof StrategiesStorage) {
-			if (((StrategiesStorage) storage).checkStrategies()) {
+		synchronized (lock) {
+			if (strategiesStorage.checkStrategies()) {
 				close();
 				open();
 			}
-		}
-		writer.write(convert(entity));
-		if (storage instanceof StrategiesStorage) {
-			((StrategiesStorage) storage).reportSizeAware(writer.getPosition());
+			writer.write(convert(entity));
+			strategiesStorage.reportSizeAware(writer.getPosition());
 		}
 	}
 
 	@Override
 	public void flush() throws IOException {
-		writer.flush();
+		synchronized (lock) {
+			if (writer != null) {
+				writer.flush();
+			}
+		}
 	}
 
 	@Override
 	public void close() throws IOException {
-		writer.close();
+		synchronized (lock) {
+			if (writer != null) {
+				writer.close();
+				writer = null;
+			}
+		}
 	}
 
 	/**

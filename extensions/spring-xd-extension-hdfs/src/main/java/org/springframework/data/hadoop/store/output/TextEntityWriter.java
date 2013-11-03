@@ -19,7 +19,7 @@ package org.springframework.data.hadoop.store.output;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 
-import org.springframework.data.hadoop.store.Storage;
+import org.springframework.data.hadoop.store.StrategiesStorage;
 
 /**
  * A {@code DataWriter} for text data.
@@ -36,7 +36,7 @@ public class TextEntityWriter extends AbstractEntityWriter<String> {
 	 * @param configuration the configuration
 	 * @param path the path
 	 */
-	public TextEntityWriter(Storage storage, Configuration configuration, Path path) {
+	public TextEntityWriter(StrategiesStorage storage, Configuration configuration, Path path) {
 		super(storage, configuration, path);
 	}
 

@@ -63,10 +63,10 @@ public class DelimitedTextDataWriter extends LifecycleObjectSupport implements D
 
 	@Override
 	public void close() throws IOException {
+		holder.close();
 		if (getStorageEventPublisher() != null) {
 			getStorageEventPublisher().publishEvent(new FileWrittenEvent(this, holder.getPath()));
 		}
-		holder.close();
 	}
 
 	@Override

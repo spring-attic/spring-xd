@@ -112,10 +112,10 @@ public abstract class AbstractStorage extends LifecycleObjectSupport implements 
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	protected StreamsHolder<OutputStream> getOutput() throws IOException {
-		log.info("Creating new OutputStream");
 		StreamsHolder<OutputStream> holder = new StreamsHolder<OutputStream>();
 		FileSystem fs = FileSystem.get(getConfiguration());
 		Path p = getResolvedPath();
+		log.info("Creating output for path " + p);
 		holder.setPath(p);
 		if (!isCompressed()) {
 			OutputStream out = fs.create(p);

@@ -20,6 +20,8 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.apache.hadoop.fs.Path;
+
 import org.springframework.util.Assert;
 
 /**
@@ -36,6 +38,8 @@ public class StreamsHolder<T extends Closeable> implements Closeable {
 
 	private T wrappedStream;
 
+	private Path path;
+
 	/**
 	 * Instantiates a new streams holder.
 	 */
@@ -49,9 +53,21 @@ public class StreamsHolder<T extends Closeable> implements Closeable {
 	 * @param wrappedStream the wrapped stream
 	 */
 	public StreamsHolder(T stream, T wrappedStream) {
+		this(stream, wrappedStream, null);
+	}
+
+	/**
+	 * Instantiates a new streams holder.
+	 * 
+	 * @param stream the stream
+	 * @param wrappedStream the wrapped stream
+	 * @param path the path
+	 */
+	public StreamsHolder(T stream, T wrappedStream, Path path) {
 		Assert.notNull(stream, "Main stream should not be null");
 		this.stream = stream;
 		this.wrappedStream = wrappedStream;
+		this.path = path;
 	}
 
 	/**
@@ -111,6 +127,24 @@ public class StreamsHolder<T extends Closeable> implements Closeable {
 	 */
 	public void setWrappedStream(T wrappedStream) {
 		this.wrappedStream = wrappedStream;
+	}
+
+	/**
+	 * Gets the path.
+	 * 
+	 * @return the path
+	 */
+	public Path getPath() {
+		return path;
+	}
+
+	/**
+	 * Sets the path.
+	 * 
+	 * @param path the new path
+	 */
+	public void setPath(Path path) {
+		this.path = path;
 	}
 
 }

@@ -5,6 +5,7 @@ build
 *.ipr
 *.iml
 *.iws
+*.ucls
 .settings
 .classpath
 .project

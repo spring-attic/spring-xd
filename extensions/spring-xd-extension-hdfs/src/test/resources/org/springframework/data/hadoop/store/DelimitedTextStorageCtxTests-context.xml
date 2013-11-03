@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-hadoop="http://www.springframework.org/schema/integration/hadoop"
+	xmlns:hdp="http://www.springframework.org/schema/hadoop"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/hadoop http://www.springframework.org/schema/integration/hadoop/spring-integration-hadoop.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/hadoop http://www.springframework.org/schema/hadoop/spring-hadoop.xsd">
+
+
+	<bean id="hadoopConfiguration" class="org.apache.hadoop.conf.Configuration"/>
+
+	<bean id="storageEventPublisher" class="org.springframework.data.hadoop.store.event.DefaultStorageEventPublisher"/>
+
+	<bean id="loggingListener" class="org.springframework.data.hadoop.store.event.LoggingListener">
+		<constructor-arg value="INFO"/>
+	</bean>
+
+	<bean id="renamingFileNamingStrategy" class="org.springframework.data.hadoop.store.naming.RenamingFileNamingStrategy">
+		<constructor-arg ref="hadoopConfiguration"/>
+	</bean>
+
+	<bean id="chainedFileNamingStrategy" class="org.springframework.data.hadoop.store.naming.ChainedFileNamingStrategy">
+		<constructor-arg ref="renamingFileNamingStrategy"/>
+	</bean>
+
+	<bean id="tmpdir" class="java.lang.String">
+		<constructor-arg value="#{systemProperties['java.io.tmpdir']}"/>
+	</bean>
+
+	<bean id="testBasePath" class="org.apache.hadoop.fs.Path">
+		<constructor-arg ref="tmpdir"/>
+		<constructor-arg value="DelimitedTextStorageCtxTests/default"/>
+	</bean>
+
+	<bean id="testBasePathTmp" class="org.apache.hadoop.fs.Path">
+		<constructor-arg ref="tmpdir"/>
+		<constructor-arg value="DelimitedTextStorageCtxTests/default.tmp"/>
+	</bean>
+
+	<bean id="storage" class="org.springframework.data.hadoop.store.text.DelimitedTextStorage">
+		<constructor-arg ref="hadoopConfiguration"/>
+		<constructor-arg ref="testBasePath"/>
+		<constructor-arg><null/></constructor-arg>
+	</bean>
+
+	<bean id="writer" class="org.springframework.data.hadoop.store.output.TextEntityWriter">
+		<constructor-arg ref="storage"/>
+		<constructor-arg ref="hadoopConfiguration"/>
+		<constructor-arg ref="testBasePath"/>
+	</bean>
+
+	<bean id="reader" class="org.springframework.data.hadoop.store.input.TextEntityReader">
+		<constructor-arg ref="storage"/>
+		<constructor-arg ref="hadoopConfiguration"/>
+		<constructor-arg ref="testBasePath"/>
+	</bean>
+
+
+</beans>

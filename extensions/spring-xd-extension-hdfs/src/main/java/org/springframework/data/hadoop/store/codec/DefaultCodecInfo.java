@@ -29,16 +29,19 @@ public class DefaultCodecInfo implements CodecInfo {
 
 	private final String clazz;
 
+	private final String suffix;
+
 	/**
 	 * Instantiates a new default codec info.
 	 * 
 	 * @param clazz the clazz of a codec
 	 * @param splittable the info if codec is splittable
 	 */
-	public DefaultCodecInfo(String clazz, boolean splittable) {
+	public DefaultCodecInfo(String clazz, boolean splittable, String suffix) {
 		super();
 		this.splittable = splittable;
 		this.clazz = clazz;
+		this.suffix = suffix;
 	}
 
 	@Override
@@ -49,6 +52,11 @@ public class DefaultCodecInfo implements CodecInfo {
 	@Override
 	public String getCodecClass() {
 		return clazz;
+	}
+
+	@Override
+	public String getDefaultSuffix() {
+		return suffix;
 	}
 
 }

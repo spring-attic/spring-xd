@@ -13,36 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.data.hadoop.store;
 
 import java.io.Closeable;
 import java.io.IOException;
 
 /**
- * A {@code DataReader} is a logical representation of
- * data reader implementation.
- *
+ * Base {@code DataReader} interface.
+ * 
  * @author Janne Valkealahti
- *
- * @param <E> Type of an entity for the reader
+ * 
  */
-public interface DataReader<E> extends Closeable {
+public interface DataReader extends Closeable {
 
 	/**
-	 * Opens this reader and any system resources associated
-	 * with it. If the reader is already opened then invoking this
-	 * method has no effect.
-	 *
-	 * @throws IOException if an I/O error occurs
+	 * Read next bytes from a storage.
+	 * 
+	 * @return the byte[] read from a storage
+	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	void open() throws IOException;
-
-	/**
-	 * Read next entity from a reader.
-	 *
-	 * @return the entity or <code>null</code>
-	 * @throws IOException if an I/O error occurs
-	 */
-	E read() throws IOException;
+	byte[] read() throws IOException;
 
 }

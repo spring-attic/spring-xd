@@ -29,9 +29,10 @@ import java.util.List;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 
-import org.springframework.data.hadoop.store.input.TextDataReader;
-import org.springframework.data.hadoop.store.output.DelimitedTextDataWriter;
-import org.springframework.data.hadoop.store.output.TextDataWriter;
+import org.springframework.data.hadoop.store.input.DelimitedTextEntityReader;
+import org.springframework.data.hadoop.store.input.TextEntityReader;
+import org.springframework.data.hadoop.store.output.DelimitedTextEntityWriter;
+import org.springframework.data.hadoop.store.output.TextEntityWriter;
 
 /**
  * Testing utilities.
@@ -67,9 +68,10 @@ public abstract class TestUtils {
 	}
 
 	/**
-	 * Write data into {@code TextDataWriter}. Data items are strings starting from zero and counting up to given count.
+	 * Write data into {@code TextEntityWriter}. Data items are strings starting from zero and counting up to given
+	 * count.
 	 */
-	public static void writeDataAndClose(TextDataWriter writer, int count) throws IOException {
+	public static void writeDataAndClose(TextEntityWriter writer, int count) throws IOException {
 		writer.open();
 		for (int i = 0; i < count; i++) {
 			writer.write(Integer.toString(i));
@@ -79,9 +81,9 @@ public abstract class TestUtils {
 	}
 
 	/**
-	 * Write data into {@code TextDataWriter}. Data items are strings in a given array.
+	 * Write data into {@code TextEntityWriter}. Data items are strings in a given array.
 	 */
-	public static void writeDataAndClose(TextDataWriter writer, String[] data) throws IOException {
+	public static void writeDataAndClose(TextEntityWriter writer, String[] data) throws IOException {
 		writer.open();
 		for (String line : data) {
 			writer.write(line);
@@ -91,9 +93,9 @@ public abstract class TestUtils {
 	}
 
 	/**
-	 * Write data into {@code DelimitedTextDataWriter}. Data items are strings in a given array.
+	 * Write data into {@code DelimitedTextEntityWriter}. Data items are strings in a given array.
 	 */
-	public static void writeDataAndClose(DelimitedTextDataWriter writer, String[] data) throws IOException {
+	public static void writeDataAndClose(DelimitedTextEntityWriter writer, String[] data) throws IOException {
 		writer.open();
 		writer.write(data);
 		writer.flush();
@@ -101,11 +103,12 @@ public abstract class TestUtils {
 	}
 
 	/**
-	 * Read data from {@code TextDataReader}. Asserts read items with a given array in a specific order.
+	 * Read data from {@code TextEntityReader}. Asserts read items with a given array in a specific order.
 	 */
-	public static void readDataAndAssert(TextDataReader reader, String[] expected) throws IOException {
+	public static void readDataAndAssert(TextEntityReader reader, String[] expected) throws IOException {
 		String line = null;
 		int count = 0;
+		reader.open();
 		while ((line = reader.read()) != null) {
 			assertThat(count, lessThan(expected.length));
 			assertThat(line, is(expected[count++]));
@@ -116,11 +119,25 @@ public abstract class TestUtils {
 	}
 
 	/**
-	 * Read data from {@code TextDataReader} and returns items in a list.
+	 * Read data from {@code TextEntityReader} and returns items in a list.
 	 */
-	public static List<String> readData(TextDataReader reader) throws IOException {
+	public static List<String> readData(TextEntityReader reader) throws IOException {
 		ArrayList<String> ret = new ArrayList<String>();
 		String line = null;
+		reader.open();
+		while ((line = reader.read()) != null) {
+			ret.add(line);
+		}
+		return ret;
+	}
+
+	/**
+	 * Read data from {@code DelimitedTextEntityReader} and returns items in a list.
+	 */
+	public static List<String[]> readData(DelimitedTextEntityReader reader) throws IOException {
+		ArrayList<String[]> ret = new ArrayList<String[]>();
+		String line[] = null;
+		reader.open();
 		while ((line = reader.read()) != null) {
 			ret.add(line);
 		}

@@ -9,31 +9,46 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/hadoop http://www.springframework.org/schema/hadoop/spring-hadoop.xsd">
 
+	<!-- TODO: should register default scheduler and executor from a namespace parser, this would
+	allow to use existing task framework defined by other components. Anyway these will be get from
+	a context bean factory -->
+	<bean id="taskScheduler" class="org.springframework.scheduling.concurrent.ConcurrentTaskScheduler"/>
+	<bean id="taskExecutor" class="org.springframework.core.task.SyncTaskExecutor"/>
+
 	<int:channel id="input"/>
 
 	<int:payload-type-router input-channel="input" default-output-channel="objects">
-		<int:mapping type="java.lang.String" channel="strings"/>
+		<int:mapping type="java.lang.String" channel="files"/>
 	</int:payload-type-router>
 
-	<int:object-to-json-transformer input-channel="objects" output-channel="strings"/>
-
-	<int:transformer input-channel="strings" expression="${newline:true} ? payload + @newline : payload" output-channel="files"/>
-
-	<bean id="newline" class="java.lang.String">
-		<constructor-arg value="#{systemProperties['line.separator']}"/>
-	</bean>
-
-	<int-hadoop:hdfs-outbound-channel-adapter id="files"
-		file-system="hadoopFs"
-		base-path="${directory:/xd/${xd.stream.name}}"
-		base-filename="${filename:${xd.stream.name}}"
-		file-suffix="${suffix:log}"
-		rollover-threshold-in-bytes="${rollover:1000000}"/>
-
-	<bean id="hadoopFs" class="org.springframework.data.hadoop.fs.FileSystemFactoryBean">
-		<property name="configuration" ref="hadoopConfiguration"/>
-	</bean>
+	<int:object-to-json-transformer input-channel="objects" output-channel="files"/>
 
 	<hdp:configuration register-url-handler="false" properties-location="file:${XD_HOME}/config/hadoop.properties"/>
+
+	<bean id="storageEventPublisher" class="org.springframework.data.hadoop.store.event.DefaultStorageEventPublisher"/>
+
+	<int-hadoop:rollover-policy>
+		<int-hadoop:size size="${rolloverSize:1G}" />
+	</int-hadoop:rollover-policy>
+
+	<int-hadoop:naming-policy>
+		<int-hadoop:static file-name="${fileName:data}" />
+		<int-hadoop:rolling />
+		<int-hadoop:codec />
+		<int-hadoop:renaming configuration="hadoopConfiguration" suffix="${inUseSuffix:.tmp}" prefix="${inUsePrefix:}" />
+	</int-hadoop:naming-policy>
+
+	<int-hadoop:storage id="storage"
+		base-path="${directory:/xd/${xd.stream.name}}"
+		codec="${codec:}"
+		rollover-policy="fileRolloverPolicy"
+		naming-policy="fileNamingPolicy"/>
+
+	<int-hadoop:writer id="storageWriter"
+		base-path="${directory:/xd/${xd.stream.name}}"
+		idle-timeout="${idleTimeout:0}"/>
+
+	<int-hadoop:hdfs-outbound-channel-adapter id="files"
+		writer="storageWriter"/>
 
 </beans>

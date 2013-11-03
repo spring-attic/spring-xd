@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.data.hadoop.store;
 
 import java.io.Closeable;
@@ -20,29 +21,29 @@ import java.io.Flushable;
 import java.io.IOException;
 
 /**
- * A {@code DataWriter} is a logical representation of
- * data writer implementation.
- *
+ * Base {@code DataWriter} interface.
+ * 
  * @author Janne Valkealahti
- *
- * @param <E> the type of an entity to write
+ * 
  */
-public interface DataWriter<E> extends Flushable, Closeable {
+public interface DataWriter extends Flushable, Closeable {
 
 	/**
-	 * Opens this writer and any system resources associated
-	 * with it. If the writer is already opened then invoking this
-	 * method has no effect.
-	 *
-	 * @throws IOException if an I/O error occurs
+	 * Write next bytes into a data stream.
+	 * 
+	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	void open() throws IOException;
+	void write(byte[] value) throws IOException;
 
 	/**
-	 * Write an entity.
-	 *
-	 * @throws IOException if an I/O error occurs
+	 * Gets the position in a writer. Usually this will indicate how many bytes has been written into a stream. One need
+	 * to understand that if underlying stream does its own buffering this method may not give accurate results until
+	 * stream has been completely flushed. Mostly this will happen with compressed streams which may buffer data and
+	 * thus wrapped stream will see nothing even if data has been written.
+	 * 
+	 * @return the position
+	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	void write(E entity) throws IOException;
+	long getPosition() throws IOException;
 
 }

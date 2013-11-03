@@ -38,4 +38,11 @@ public interface CodecInfo {
 	 */
 	String getCodecClass();
 
+	/**
+	 * Gets the default suffix.
+	 * 
+	 * @return the default suffix
+	 */
+	String getDefaultSuffix();
+
 }

@@ -16,14 +16,25 @@
 
 package org.springframework.data.hadoop.store.codec;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.hadoop.io.compress.BZip2Codec;
 import org.apache.hadoop.io.compress.GzipCodec;
 import org.apache.hadoop.io.compress.SnappyCodec;
+
+import org.springframework.data.hadoop.store.Storage;
 
 /**
  * Default codecs supported by {@link Storage} framework. We keep codec info here for implementations which are
  * supported out of the box. Reference to codec is a fully qualified name of a class, not a class itself. This allows
  * user to define and use codecs which are added into a classpath unknown during the compilation time.
+ * <p>
+ * This enum also allows case insensitive lookup for main abbreviation. Defined abbreviations strings in a constructor
+ * are just keywords to do back mapping from a lookup table. Registering a mixing abbreviations is not checked.
+ * <p>
+ * Codecs.get("gzip").getAbbreviation(); -> "GZIP"
+ * <p>
  * 
  * @author Janne Valkealahti
  * 
@@ -33,17 +44,17 @@ public enum Codecs {
 	/**
 	 * Non-splittable {@link GzipCodec}.
 	 */
-	GZIP(new DefaultCodecInfo(GzipCodec.class.getName(), false)),
+	GZIP(new DefaultCodecInfo(GzipCodec.class.getName(), false, "gzip"), "GZIP"),
 
 	/**
 	 * Non-splittable {@link SnappyCodec}. This codec will need native snappy libraries.
 	 */
-	SNAPPY(new DefaultCodecInfo(SnappyCodec.class.getName(), false)),
+	SNAPPY(new DefaultCodecInfo(SnappyCodec.class.getName(), false, "snappy"), "SNAPPY"),
 
 	/**
 	 * Splittable {@link BZip2Codec}.
 	 */
-	BZIP2(new DefaultCodecInfo(BZip2Codec.class.getName(), true)),
+	BZIP2(new DefaultCodecInfo(BZip2Codec.class.getName(), true, "bzip2"), "BZIP2"),
 
 	// TODO: should we do like DelegatingLzoCodecInfo for resolving
 	// these at runtime. Anyway only one can be present
@@ -52,35 +63,50 @@ public enum Codecs {
 	 * Non-splittable {@code LzoCodec}. This codec should be based on implementation from
 	 * http://code.google.com/p/hadoop-gpl-compression.
 	 */
-	LZO(new DefaultCodecInfo("com.hadoop.compression.lzo.LzoCodec", false)),
+	LZO(new DefaultCodecInfo("com.hadoop.compression.lzo.LzoCodec", false, "lzo"), "LZO"),
 
 	/**
 	 * Splittable {@code LzoCodec}. This codec should be based on implementation from
 	 * http://github.com/kevinweil/hadoop-lzo.
 	 */
-	SLZO(new DefaultCodecInfo("com.hadoop.compression.lzo.LzoCodec", true)),
+	SLZO(new DefaultCodecInfo("com.hadoop.compression.lzo.LzoCodec", true, "slzo"), "SLZO"),
 
 	/**
 	 * Non-splittable {@code LzopCodec}. This codec should be based on implementation from
 	 * http://code.google.com/p/hadoop-gpl-compression.
 	 */
-	LZOP(new DefaultCodecInfo("com.hadoop.compression.lzo.LzopCodec", false)),
+	LZOP(new DefaultCodecInfo("com.hadoop.compression.lzo.LzopCodec", false, "lzop"), "LZOP"),
 
 	/**
 	 * Splittable {@code LzoCodec}. This codec should be based on implementation from
 	 * http://github.com/kevinweil/hadoop-lzo.
 	 */
-	SLZOP(new DefaultCodecInfo("com.hadoop.compression.lzo.LzopCodec", true));
+	SLZOP(new DefaultCodecInfo("com.hadoop.compression.lzo.LzopCodec", true, "slzop"), "SLZOP");
 
 	private final CodecInfo codec;
+
+	private final String[] abbreviations;
+
+	private static final Map<String, Codecs> lookup = new HashMap<String, Codecs>();
+
+	static {
+		for (Codecs c : Codecs.values()) {
+			String[] array = c.getAbbreviations();
+			for (String abbv : array) {
+				lookup.put(abbv.toLowerCase(), c);
+			}
+		}
+	}
 
 	/**
 	 * Instantiates a new codecs.
 	 * 
 	 * @param codec the codec info
+	 * @param abbreviations the codec abbreviations
 	 */
-	private Codecs(CodecInfo codec) {
+	private Codecs(CodecInfo codec, String... abbreviations) {
 		this.codec = codec;
+		this.abbreviations = abbreviations;
 	}
 
 	/**
@@ -90,6 +116,48 @@ public enum Codecs {
 	 */
 	public CodecInfo getCodecInfo() {
 		return codec;
+	}
+
+	/**
+	 * Gets the main abbreviation.
+	 * 
+	 * @return the main abbreviation
+	 */
+	public String getAbbreviation() {
+		return abbreviations[0];
+	}
+
+	/**
+	 * Gets the abbreviations.
+	 * 
+	 * @return the abbreviations
+	 */
+	public String[] getAbbreviations() {
+		return abbreviations;
+	}
+
+	/**
+	 * Gets the {@code Codecs} by its abbreviation. Lookup returns <code>NULL</code> if abbreviation hasn't been
+	 * registered.
+	 * 
+	 * @param abbreviation the abbreviation
+	 * @return the codecs resulted as a lookup
+	 */
+	public static Codecs get(String abbreviation) {
+		return lookup.get(abbreviation.toLowerCase());
+	}
+
+	/**
+	 * Gets the {@code CodecInfo} by {@code Codecs} abbreviation. Lookup returns <code>NULL</code> if abbreviation
+	 * hasn't been registered.
+	 * 
+	 * @param abbreviation the abbreviation
+	 * @return the codec info resulted as a lookup
+	 * @see #get(String)
+	 */
+	public static CodecInfo getCodecInfo(String abbreviation) {
+		Codecs codecs = get(abbreviation);
+		return codecs != null ? codecs.getCodecInfo() : null;
 	}
 
 }

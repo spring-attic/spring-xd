@@ -29,6 +29,7 @@ import java.util.List;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 
+import org.springframework.data.hadoop.store.input.DelimitedTextEntityReader;
 import org.springframework.data.hadoop.store.input.TextEntityReader;
 import org.springframework.data.hadoop.store.output.DelimitedTextEntityWriter;
 import org.springframework.data.hadoop.store.output.TextEntityWriter;
@@ -67,7 +68,8 @@ public abstract class TestUtils {
 	}
 
 	/**
-	 * Write data into {@code TextDataWriter}. Data items are strings starting from zero and counting up to given count.
+	 * Write data into {@code TextEntityWriter}. Data items are strings starting from zero and counting up to given
+	 * count.
 	 */
 	public static void writeDataAndClose(TextEntityWriter writer, int count) throws IOException {
 		writer.open();
@@ -79,7 +81,7 @@ public abstract class TestUtils {
 	}
 
 	/**
-	 * Write data into {@code TextDataWriter}. Data items are strings in a given array.
+	 * Write data into {@code TextEntityWriter}. Data items are strings in a given array.
 	 */
 	public static void writeDataAndClose(TextEntityWriter writer, String[] data) throws IOException {
 		writer.open();
@@ -91,7 +93,7 @@ public abstract class TestUtils {
 	}
 
 	/**
-	 * Write data into {@code DelimitedTextDataWriter}. Data items are strings in a given array.
+	 * Write data into {@code DelimitedTextEntityWriter}. Data items are strings in a given array.
 	 */
 	public static void writeDataAndClose(DelimitedTextEntityWriter writer, String[] data) throws IOException {
 		writer.open();
@@ -101,7 +103,7 @@ public abstract class TestUtils {
 	}
 
 	/**
-	 * Read data from {@code TextDataReader}. Asserts read items with a given array in a specific order.
+	 * Read data from {@code TextEntityReader}. Asserts read items with a given array in a specific order.
 	 */
 	public static void readDataAndAssert(TextEntityReader reader, String[] expected) throws IOException {
 		String line = null;
@@ -117,11 +119,24 @@ public abstract class TestUtils {
 	}
 
 	/**
-	 * Read data from {@code TextDataReader} and returns items in a list.
+	 * Read data from {@code TextEntityReader} and returns items in a list.
 	 */
 	public static List<String> readData(TextEntityReader reader) throws IOException {
 		ArrayList<String> ret = new ArrayList<String>();
 		String line = null;
+		reader.open();
+		while ((line = reader.read()) != null) {
+			ret.add(line);
+		}
+		return ret;
+	}
+
+	/**
+	 * Read data from {@code DelimitedTextEntityReader} and returns items in a list.
+	 */
+	public static List<String[]> readData(DelimitedTextEntityReader reader) throws IOException {
+		ArrayList<String[]> ret = new ArrayList<String[]>();
+		String line[] = null;
 		reader.open();
 		while ((line = reader.read()) != null) {
 			ret.add(line);

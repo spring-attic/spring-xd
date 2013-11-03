@@ -16,13 +16,16 @@
 
 package org.springframework.data.hadoop.store.output;
 
-import java.nio.ByteBuffer;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 
+import org.springframework.data.hadoop.store.StorageException;
 import org.springframework.data.hadoop.store.StrategiesStorage;
 import org.springframework.data.hadoop.store.support.DataUtils;
+import org.springframework.util.StringUtils;
 
 
 /**
@@ -39,8 +42,14 @@ public class DelimitedTextEntityWriter extends AbstractEntityWriter<String[]> {
 	/** TAB Mode */
 	public final static byte[] TAB = DataUtils.getUTF8TabDelimiter();
 
+	/** Default internal buffer size */
+	private final static int DEFAULT_BUFFER_SIZE = 256;
+
 	/** Field delimiter */
 	private final byte[] delimiter;
+
+	/** Internal buffer size */
+	private final int bufferSize;
 
 	/**
 	 * Instantiates a new delimited text data writer.
@@ -51,20 +60,41 @@ public class DelimitedTextEntityWriter extends AbstractEntityWriter<String[]> {
 	 * @param delimiter the field delimiter
 	 */
 	public DelimitedTextEntityWriter(StrategiesStorage storage, Configuration configuration, Path path, byte[] delimiter) {
+		this(storage, configuration, path, delimiter, DEFAULT_BUFFER_SIZE);
+	}
+
+	/**
+	 * Instantiates a new delimited text entity writer.
+	 * 
+	 * @param storage the storage
+	 * @param configuration the configuration
+	 * @param path the path
+	 * @param delimiter the delimiter
+	 * @param bufferSize the buffer size
+	 */
+	public DelimitedTextEntityWriter(StrategiesStorage storage, Configuration configuration, Path path,
+			byte[] delimiter, int bufferSize) {
 		super(storage, configuration, path);
 		this.delimiter = delimiter;
+		this.bufferSize = bufferSize;
 	}
 
 	@Override
 	protected byte[] convert(String[] entity) {
-		ByteBuffer buf = ByteBuffer.allocate(128);
+		ByteArrayOutputStream buf = new ByteArrayOutputStream(bufferSize);
 		for (int i = 0; i < entity.length; i++) {
-			buf.put(entity[i].getBytes());
-			if (i < (entity.length - 1)) {
-				buf.put(delimiter);
+			try {
+				buf.write(entity[i].getBytes());
+				if (i < (entity.length - 1)) {
+					buf.write(delimiter);
+				}
+			}
+			catch (IOException e) {
+				throw new StorageException("Can't convert entity array value: "
+						+ StringUtils.arrayToCommaDelimitedString(entity), e);
 			}
 		}
-		return buf.array();
+		return buf.toByteArray();
 	}
 
 }

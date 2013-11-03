@@ -18,6 +18,7 @@ package org.springframework.data.hadoop.store;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 
 import java.io.IOException;
 import java.util.List;
@@ -25,6 +26,7 @@ import java.util.List;
 import org.junit.Test;
 
 import org.springframework.data.hadoop.store.codec.Codecs;
+import org.springframework.data.hadoop.store.input.DelimitedTextEntityReader;
 import org.springframework.data.hadoop.store.input.TextEntityReader;
 import org.springframework.data.hadoop.store.naming.RollingFileNamingStrategy;
 import org.springframework.data.hadoop.store.output.DelimitedTextEntityWriter;
@@ -96,9 +98,11 @@ public class DelimitedTextStorageTests extends AbstractDataTests {
 				DelimitedTextEntityWriter.CSV);
 		TestUtils.writeDataAndClose(writer, DATA09ARRAY);
 
-		TextEntityReader reader = new TextEntityReader(storage, testConfig, testDefaultPath);
-		List<String> data = TestUtils.readData(reader);
+		DelimitedTextEntityReader reader = new DelimitedTextEntityReader(storage, testConfig, testDefaultPath,
+				DelimitedTextEntityReader.CSV);
+		List<String[]> data = TestUtils.readData(reader);
 		assertThat(data.size(), is(1));
+		assertThat(data.get(0), arrayContainingInAnyOrder(DATA09ARRAY));
 	}
 
 	@Test

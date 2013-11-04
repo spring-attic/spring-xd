@@ -121,6 +121,7 @@ define({
 				{ $ref: 'backbone' },
 				{ $ref: 'model' },
 				{ $ref: 'xdJobDeploymentsTemplate' },
+				{ $ref: 'xdJobParamsFormTemplate' },
 				{ $ref: 'utils' },
 				{ $ref: 'strings' }
 			]
@@ -142,6 +143,7 @@ define({
 	statusMsgTemplate: { module: 'text!../templates/container/status-msg.tpl' },
 	xdJobDefinitionsTemplate: { module: 'text!../templates/jobs/definitions.tpl' },
 	xdJobDeploymentsTemplate: { module: 'text!../templates/jobs/deployments.tpl' },
+	xdJobParamsFormTemplate: { module: 'text!../templates/jobs/jobParamsForm.tpl' },
 	xdJobExecutionsTemplate: { module: 'text!../templates/jobs/executions.tpl' },
 	//batchListTemplate: { module: 'text!../templates/batch/batch-list.tpl' },
 	//batchDetailsTemplate: { module: 'text!../templates/batch/batch-details.tpl' },

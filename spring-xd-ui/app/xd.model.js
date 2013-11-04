@@ -307,7 +307,7 @@ define([], function() {
 							if (!this.stopFetch) {
 								this.startFetching();
 							}
-						}.bind(this), 5000);
+						}.bind(this), 50000);
 					}.bind(this));
 			},
 

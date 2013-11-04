@@ -19,11 +19,11 @@
  * @author Ilayaperumal Gopinathan
  * @author Andrew Eisenberg
  */
-/*global define, _ */
+/*global define, _, $ */
 define([],
 function() {
 	'use strict';
-	return function(Backbone, model, xdJobDeploymentsTemplate, utils, strings) {
+	return function(Backbone, model, xdJobDeploymentsTemplate, jobParamsFormTemplate, utils, strings) {
 
 		function extractJob(name) {
 			return model.batchJobs.get(name);
@@ -37,27 +37,39 @@ function() {
 			},
 
 			events: {
-				'click button.job-launch': 'launchJob',
-				'click button.job-schedule': 'scheduleJob'
+				'click button.open-job-params': 'openJobParamsModal',
+				'click button.job-schedule': 'scheduleJob',
+				'click button.add-job-param': 'addJobParamToModal'
 			},
 
 			template: _.template(xdJobDeploymentsTemplate),
+
+			jobParamsFormTemplate: _.template(jobParamsFormTemplate),
 
 			render: function() {
 				this.$el.html(this.template({jobs: model.batchJobs.jobs}));
 				return this;
 			},
 
-			launchJob: function(event) {
+			openJobParamsModal: function(event) {
 				var launchId = event.target.id;
 				var jobName = launchId.substring(launchId.indexOf('-')+1);
-				var job = extractJob(jobName);
-				if (job) {
-                    job.launch().then(function() {
-                        utils.showSuccessMsg(strings.launchJobSuccess);
-                    });
-                }
+				//TODO: use jobName when launching job from Modal
+				$('#job-params-modal').modal('show');
 			},
+
+			addJobParamToModal: function() {
+				$('#job-params-form').append(this.jobParamsFormTemplate());
+			},
+
+//			launchJob: function(event) {
+//				var job = extractJob(jobName);
+//				if (job) {
+//                    job.launch().then(function() {
+//                        utils.showSuccessMsg(strings.launchJobSuccess);
+//                    });
+//                }
+//			},
 
 			scheduleJob: function(event) {
 				var id = event.target;

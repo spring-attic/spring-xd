@@ -36,6 +36,7 @@ requirejs.config({
 		'wire/domReady': '../lib/requirejs/domReady',
 		'bootstrap-tab': '../lib/bootstrap/js/bootstrap-tab',
 		'bootstrap-alert': '../lib/bootstrap/js/bootstrap-alert',
+		'bootstrap-modal': '../lib/bootstrap/js/bootstrap-modal',
 		'bootstrap-collapse': '../lib/bootstrap/js/bootstrap-collapse',
 		'cubism': '../lib/cubism/cubism.v1',
 		'd3': '../lib/d3/d3',
@@ -44,13 +45,13 @@ requirejs.config({
 	},
 	shim: {
 		'bootstrap-alert': ['jquery'],
+		'bootstrap-modal': ['jquery'],
 		'bootstrap-collapse': ['jquery'],
 		'bootstrap-tab': ['jquery'],
-		'bootstrap-dropdown': ['jquery'],
 		'tipsy': ['jquery'],
 		'cubism': ['d3']
 	}
 });
 
 // load up the wire spec and also load non-amd libraries
-require(['wire!xd.wirespec', 'd3', 'cubism', 'bootstrap-alert', 'bootstrap-tab', 'bootstrap-collapse']);
+require(['wire!xd.wirespec', 'd3', 'cubism', 'bootstrap-alert', 'bootstrap-modal', 'bootstrap-tab', 'bootstrap-collapse']);

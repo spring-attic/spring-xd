@@ -20,8 +20,8 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.integration.redis.outbound.RedisQueueOutboundChannelAdapter;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.x.redis.RedisQueueOutboundChannelAdapter;
 import org.springframework.messaging.Message;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.module.ModuleType;

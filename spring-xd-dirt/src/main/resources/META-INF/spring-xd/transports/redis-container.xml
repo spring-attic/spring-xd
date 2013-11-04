@@ -15,13 +15,12 @@
 
 	<import resource="redis-common.xml" />
 
-	<bean id="redisInboundAdapter" class="org.springframework.integration.x.redis.RedisQueueInboundChannelAdapter">
-		<constructor-arg value="queue.deployer" />
-		<constructor-arg ref="redisConnectionFactory" />
-		<property name="outputChannel" ref="containerControlChannel" />
-		<property name="extractPayload" value="false" />
-	</bean>
+	<int-redis:queue-inbound-channel-adapter id="redisInboundAdapter"
+		channel="containerControlChannel"
+		connection-factory="redisConnectionFactory"
+		queue="queue.deployer"
+		expect-message="true" />
 
-	<int-redis:inbound-channel-adapter topics="topic.undeployer" channel="containerControlChannel"/>
+	<int-redis:inbound-channel-adapter topics="topic.undeployer" channel="containerControlChannel" />
 
 </beans>

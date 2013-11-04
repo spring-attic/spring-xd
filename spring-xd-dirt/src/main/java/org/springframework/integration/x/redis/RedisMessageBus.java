@@ -30,6 +30,10 @@ import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.redis.inbound.RedisInboundChannelAdapter;
+import org.springframework.integration.redis.inbound.RedisQueueMessageDrivenEndpoint;
+import org.springframework.integration.redis.outbound.RedisPublishingMessageHandler;
+import org.springframework.integration.redis.outbound.RedisQueueOutboundChannelAdapter;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.x.bus.Binding;
 import org.springframework.integration.x.bus.MessageBus;
@@ -66,9 +70,9 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 	@Override
 	public void bindConsumer(final String name, MessageChannel moduleInputChannel,
 			final Collection<MediaType> acceptedMediaTypes, boolean aliasHint) {
-		RedisQueueInboundChannelAdapter adapter = new RedisQueueInboundChannelAdapter("queue." + name,
+		RedisQueueMessageDrivenEndpoint adapter = new RedisQueueMessageDrivenEndpoint("queue." + name,
 				this.connectionFactory);
-		adapter.setEnableDefaultSerializer(false);
+		adapter.setSerializer(null);
 		doRegisterConsumer(name, moduleInputChannel, acceptedMediaTypes, adapter);
 	}
 
@@ -102,7 +106,6 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 		Assert.isInstanceOf(SubscribableChannel.class, moduleOutputChannel);
 		RedisQueueOutboundChannelAdapter queue = new RedisQueueOutboundChannelAdapter("queue." + name,
 				connectionFactory);
-		queue.setEnableDefaultSerializer(false);
 		queue.afterPropertiesSet();
 		doRegisterProducer(name, moduleOutputChannel, queue);
 	}
@@ -111,7 +114,6 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 	public void bindPubSubProducer(final String name, MessageChannel moduleOutputChannel) {
 		RedisPublishingMessageHandler topic = new RedisPublishingMessageHandler(connectionFactory);
 		topic.setDefaultTopic("topic." + name);
-		topic.setSerializer(null);
 		topic.afterPropertiesSet();
 		doRegisterProducer(name, moduleOutputChannel, topic);
 	}

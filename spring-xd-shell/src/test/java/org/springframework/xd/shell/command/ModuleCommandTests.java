@@ -22,8 +22,11 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import org.junit.AfterClass;
 import org.junit.Test;
 
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.xd.shell.AbstractShellIntegrationTest;
 import org.springframework.xd.shell.util.Table;
@@ -38,6 +41,18 @@ import org.springframework.xd.shell.util.UiUtils;
  * @author Mark Fisher
  */
 public class ModuleCommandTests extends AbstractShellIntegrationTest {
+
+	@AfterClass
+	// TODO: refactor once module delete command is available
+	public static void cleanupComposedModules() {
+		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
+		connectionFactory.afterPropertiesSet();
+		StringRedisTemplate redisTemplate = new StringRedisTemplate();
+		redisTemplate.setConnectionFactory(connectionFactory);
+		redisTemplate.afterPropertiesSet();
+		redisTemplate.delete("module.definitions.source:compositesource");
+		redisTemplate.delete("module.definitions");
+	}
 
 	@Test
 	public void testListAll() throws InterruptedException {

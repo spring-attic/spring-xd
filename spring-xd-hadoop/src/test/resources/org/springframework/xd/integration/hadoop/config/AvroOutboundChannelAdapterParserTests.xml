@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-hadoop="http://www.springframework.org/schema/integration/hadoop"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration/hadoop http://www.springframework.org/schema/integration/hadoop/spring-integration-hadoop.xsd">
+
+	<bean id="datasetOperations" class="org.springframework.xd.hadoop.fs.StubDatasetOperations"/>
+
+	<int-hadoop:avro-outbound-channel-adapter
+		id="adapter"
+		channel="avroOut"
+		dataset-operations="datasetOperations"
+		auto-startup="false"/>
+
+	<int:channel id="avroOut"/>
+
+</beans>

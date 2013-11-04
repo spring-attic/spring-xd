@@ -13,23 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.springframework.data.hadoop.store.dataset;
 
-package org.springframework.xd.integration.hadoop.config;
-
-import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHandler;
+import com.cloudera.cdk.data.DatasetRepository;
 
 /**
- * Namespace handler for Spring Integration's 'hadoop' namespace.
- * 
- * @author Mark Fisher
- * @author Thomas Risberg
+ *  Callback interface for code that operates on a {@link DatasetRepository}.
+ *
+ *  @author Thomas Risberg
+ *  @since 1.0
  */
-public class HadoopNamespaceHandler extends AbstractIntegrationNamespaceHandler {
+public interface DatasetRepositoryCallback {
 
-	@Override
-	public void init() {
-		registerBeanDefinitionParser("hdfs-outbound-channel-adapter", new HdfsOutboundChannelAdapterParser());
-		registerBeanDefinitionParser("avro-outbound-channel-adapter", new AvroOutboundChannelAdapterParser());
-	}
+	void doInRepository(DatasetRepository datasetRepository);
 
 }

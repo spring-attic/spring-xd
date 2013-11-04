@@ -35,4 +35,18 @@
 		</xsd:complexType>
 	</xsd:element>
 
+	<xsd:element name="avro-outbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines an outbound HDFS Avro writing Channel Adapter.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute name="id" use="optional"/>
+			<xsd:attribute name="channel" use="optional"/>
+			<xsd:attribute name="dataset-operations" use="required"/>
+			<xsd:attribute name="auto-startup" default="true"/>
+		</xsd:complexType>
+	</xsd:element>
+
 </xsd:schema>

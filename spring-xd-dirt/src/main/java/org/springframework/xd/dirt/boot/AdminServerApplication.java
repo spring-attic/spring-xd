@@ -18,8 +18,7 @@ public class AdminServerApplication {
 
 	public static void main(String[] args) {
 		new SpringApplicationBuilder(ParentConfiguration.class).profiles("adminServer", "default") //
-		.child(AdminServerApplication.class)
-				.run(args);
+		.child(AdminServerApplication.class).run(args);
 	}
 
 }

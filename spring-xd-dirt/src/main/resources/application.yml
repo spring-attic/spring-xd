@@ -3,7 +3,7 @@ XD_TRANSPORT: ${transport:redis}
 XD_STORE: ${store:redis}
 XD_HOME: ${xdHomeDir:..}
 server:
-  port: ${PORT:8080}
+  port: ${PORT:9393}
 
 ---
 
@@ -48,9 +48,8 @@ server:
   
 ---
 spring:
-  profiles: singleNode
+  profiles: single
 transport: local
 store: memory
 analytics: memory
-management:
-  port: 0
+

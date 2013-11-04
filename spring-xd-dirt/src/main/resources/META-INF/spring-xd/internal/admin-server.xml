@@ -12,17 +12,17 @@
 	<bean id="xdUi" class="org.springframework.xd.dirt.rest.UiResourceIdentifier">
 		<constructor-arg value="${XD_HOME}/spring-xd-ui" />
 	</bean>
-	
-	<context:annotation-config/>
+
+	<context:annotation-config />
 
 	<beans profile="legacy">
-		<bean class="org.springframework.xd.dirt.rest.LegacyMvcConfiguration"/>
+		<bean class="org.springframework.xd.dirt.rest.LegacyMvcConfiguration" />
 	</beans>
 
 	<beans>
 		<!-- Include only this @Configuration classes, which will in turn include 
 			others -->
-		<bean class="org.springframework.xd.dirt.rest.RestConfiguration"/>
+		<bean class="org.springframework.xd.dirt.rest.RestConfiguration" />
 	</beans>
 
 </beans>

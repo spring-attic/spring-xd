@@ -86,6 +86,8 @@ public abstract class AbstractMessageBusTests {
 		assertEquals("foo", inbound.getPayload());
 		assertNull(inbound.getHeaders().get(MessageBusSupport.ORIGINAL_CONTENT_TYPE_HEADER));
 		assertEquals("foo/bar", inbound.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		messageBus.unbindProducers("foo.0");
+		messageBus.unbindConsumers("foo.0");
 	}
 
 	@Test
@@ -103,6 +105,8 @@ public abstract class AbstractMessageBusTests {
 		assertEquals("foo", inbound.getPayload());
 		assertNull(inbound.getHeaders().get(MessageBusSupport.ORIGINAL_CONTENT_TYPE_HEADER));
 		assertNull(inbound.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		messageBus.unbindProducers("bar.0");
+		messageBus.unbindConsumers("bar.0");
 	}
 
 	@Test

@@ -34,6 +34,7 @@ import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.integration.redis.outbound.RedisPublishingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.xd.test.redis.RedisTestSupport;
 
@@ -43,6 +44,7 @@ import org.springframework.xd.test.redis.RedisTestSupport;
  * 
  * @author Mark Fisher
  * @author Jennifer Hickey
+ * @author Gary Russell
  */
 public class RedisPublishingMessageHandlerTests {
 
@@ -68,7 +70,7 @@ public class RedisPublishingMessageHandlerTests {
 	public void testWithDefaultSerializer() throws Exception {
 		setupListener(new StringRedisSerializer());
 		final RedisPublishingMessageHandler handler = new RedisPublishingMessageHandler(connectionFactory);
-		handler.setDefaultTopic(TOPIC);
+		handler.setTopic(TOPIC);
 		handler.afterPropertiesSet();
 		for (int i = 0; i < NUM_MESSAGES; i++) {
 			handler.handleMessage(MessageBuilder.withPayload("test-" + i).build());
@@ -82,8 +84,7 @@ public class RedisPublishingMessageHandlerTests {
 	public void testWithNoSerializer() throws Exception {
 		setupListener(null);
 		final RedisPublishingMessageHandler handler = new RedisPublishingMessageHandler(connectionFactory);
-		handler.setDefaultTopic(TOPIC);
-		handler.setSerializer(null);
+		handler.setTopic(TOPIC);
 		handler.afterPropertiesSet();
 		for (int i = 0; i < NUM_MESSAGES; i++) {
 			handler.handleMessage(MessageBuilder.withPayload(new String("test-" + i).getBytes()).build());
@@ -98,7 +99,7 @@ public class RedisPublishingMessageHandlerTests {
 		GenericToStringSerializer<Long> serializer = new GenericToStringSerializer<Long>(Long.class);
 		setupListener(serializer);
 		final RedisPublishingMessageHandler handler = new RedisPublishingMessageHandler(connectionFactory);
-		handler.setDefaultTopic(TOPIC);
+		handler.setTopic(TOPIC);
 		handler.setSerializer(serializer);
 		handler.afterPropertiesSet();
 		for (long i = 0; i < NUM_MESSAGES; i++) {

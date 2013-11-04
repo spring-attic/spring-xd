@@ -43,7 +43,7 @@ public class RedisModuleRegistry extends AbstractModuleRegistry {
 	@Override
 	protected Resource locateApplicationContext(String name, ModuleType type) {
 		Object config = this.redisTemplate.boundHashOps("modules:" + type).get(name);
-		return (config != null) ? new NamedByteArrayResource(config.toString().getBytes(), name) : null;
+		return (config != null) ? new NamedByteArrayResource(name, config.toString().getBytes()) : null;
 	}
 
 	@Override
@@ -90,7 +90,7 @@ public class RedisModuleRegistry extends AbstractModuleRegistry {
 
 		private final String name;
 
-		public NamedByteArrayResource(byte[] byteArray, String name) {
+		public NamedByteArrayResource(String name, byte[] byteArray) {
 			super(byteArray);
 			this.name = name;
 		}

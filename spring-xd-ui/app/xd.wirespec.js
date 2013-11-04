@@ -113,20 +113,35 @@ define({
 			]
 		}
 	},
-
+	jobLaunches: {
+		create: {
+			module: 'views/jobs/joblaunches',
+			args: [
+				{ $ref: 'backbone' },
+				{ $ref: 'marionette' },
+				{ $ref: 'modelbinder' },
+				{ $ref: 'model' },
+				{ $ref: 'xdJobLaunchFormTemplate' },
+				{ $ref: 'xdJobLaunchParameterOptionsTemplate' },
+				{ $ref: 'xdJobLaunchParameterTemplate' },
+				{ $ref: 'utils' },
+				{ $ref: 'strings' }
+			]
+		}
+	},
 	jobDeployments: {
 		create: {
 			module: 'views/jobs/deployments',
 			args: [
 				{ $ref: 'backbone' },
 				{ $ref: 'model' },
+				{ $ref: 'jobLaunches' },
 				{ $ref: 'xdJobDeploymentsTemplate' },
 				{ $ref: 'utils' },
 				{ $ref: 'strings' }
 			]
 		}
 	},
-
 	jobExecutions: {
 		create: {
 			module: 'views/jobs/executions',
@@ -143,6 +158,10 @@ define({
 	xdJobDefinitionsTemplate: { module: 'text!../templates/jobs/definitions.tpl' },
 	xdJobDeploymentsTemplate: { module: 'text!../templates/jobs/deployments.tpl' },
 	xdJobExecutionsTemplate: { module: 'text!../templates/jobs/executions.tpl' },
+
+	xdJobLaunchFormTemplate: { module: 'text!../templates/jobs/launch/job-launch-form.tpl' },
+	xdJobLaunchParameterOptionsTemplate: { module: 'text!../templates/jobs/launch/job-launch-parameter-options.tpl' },
+	xdJobLaunchParameterTemplate: { module: 'text!../templates/jobs/launch/job-launch-parameter.tpl' },
 	//batchListTemplate: { module: 'text!../templates/batch/batch-list.tpl' },
 	//batchDetailsTemplate: { module: 'text!../templates/batch/batch-details.tpl' },
 	//navbarTemplate: { module: 'text!../templates/container/navbar.tpl' },
@@ -169,7 +188,10 @@ define({
 	backbone: {
 		module: 'backbone'
 	},
-
+	//babysitter: { module: 'backbone.marionette/backbone.babysitter'},
+	//wreqr: { module: 'backbone.marionette/backbone.wreqr'},
+	marionette: { module: 'marionette'},
+	modelbinder: { module: 'backbone.modelbinder'},
 	// just load d3 as a global
 	d3: {
 		module: 'd3'
@@ -184,6 +206,7 @@ define({
 	errorCode: { module: 'rest/interceptor/errorCode'},
 
 	plugins : [
-			{ module : 'wire/jquery/dom' }
+		//{ module: 'wire/debug', debug: true },
+		{ module : 'wire/jquery/dom' }
 	]
 });

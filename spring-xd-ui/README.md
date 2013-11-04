@@ -69,3 +69,14 @@ The wire spec specifies each module and all of their dependencies.
 
 When making changes to javascript files, you should use an editor that has jshint
 integration (eg- Scripted or Sublime text).
+
+## Use of LESS
+
+LESS is used e.g. to create the Bootstrap CSS. In order to compile the LESS files, we use **recess** (from twitter). After installing recess, use the following command:
+
+	recess ./bootstrap.less --compile
+	
+and to save the **bootstrap.css** into the `css` directory, just redirect the output there
+
+	recess ./bootstrap.less --compile > ../../css/bootstrap.css
+

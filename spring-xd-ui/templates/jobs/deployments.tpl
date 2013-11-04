@@ -16,7 +16,7 @@
 					<tr>
 						<td><%= jobs[i].name %></td>
 						<% if (jobs[i].launchable === true) { %>
-								<td><button type="button" class="btn btn-default job-launch" id="launch-<%= jobs[i].name %>">Launch</button></td>
+								<td><button type="button" data-target="#job-params-modal" class="btn btn-default open-job-params" id="launch-<%= jobs[i].name %>">Launch</button></td>
 								<td><button type="button" class="btn btn-default job-schedule" id="schedule-<%= jobs[i].name %>">Schedule</button></td>
 						<% } else { %>
 								<td></td>
@@ -32,4 +32,10 @@
 				<% } %>
 			</tbody>
 		</table>
+</div>
+<div class="modal" id="job-params-modal" tabindex="-1" role="dialog" aria-labelledby="job-launch-label" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content" id="job-launch-modal">
+		</div>
+	</div>
 </div>

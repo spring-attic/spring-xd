@@ -4,8 +4,8 @@
 			<tr>
 				<th>Id</th>
 				<th>Job</th>
-				<th>StartTime</th>
-				<th>StepExecutionsCount</th>
+				<th>Start Time</th>
+				<th>Step Executions Count</th>
 				<th>Status</th>
 			</tr>
 			<tr>

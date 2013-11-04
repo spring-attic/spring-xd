@@ -18,16 +18,17 @@
  * View for XD Job deployments
  * @author Ilayaperumal Gopinathan
  * @author Andrew Eisenberg
+ * @author Gunnar Hillert
  */
-/*global define, _ */
+/*global define, _, $ */
 define([],
 function() {
 	'use strict';
-	return function(Backbone, model, xdJobDeploymentsTemplate, utils, strings) {
+	return function(Backbone, model, JobLaunches, xdJobDeploymentsTemplate, utils, strings) {
 
 		function extractJob(name) {
 			return model.batchJobs.get(name);
-        }
+		}
 
 		var XDJobDeployments = Backbone.View.extend({
 			initialize: function(options) {
@@ -37,7 +38,7 @@ function() {
 			},
 
 			events: {
-				'click button.job-launch': 'launchJob',
+				'click button.open-job-params': 'openJobParamsModal',
 				'click button.job-schedule': 'scheduleJob'
 			},
 
@@ -48,21 +49,34 @@ function() {
 				return this;
 			},
 
-			launchJob: function(event) {
+			openJobParamsModal: function(event) {
 				var launchId = event.target.id;
 				var jobName = launchId.substring(launchId.indexOf('-')+1);
-				var job = extractJob(jobName);
-				if (job) {
-                    job.launch().then(function() {
-                        utils.showSuccessMsg(strings.launchJobSuccess);
-                    });
-                }
+
+				console.log("Opening Job Parameter screen for " + jobName);
+
+				var jobLaunchRequest = model.jobLaunchRequest;
+
+				jobLaunchRequest.set({
+					jobname: jobName
+				});
+
+				var jobLaunches = new JobLaunches({
+					el: $( "#job-launch-modal" ),
+					model: jobLaunchRequest
+				});
+				$('#job-params-modal').modal('show');
+				model.batchJobs.stopFetching();
+				jobLaunches.render();
 			},
 
 			scheduleJob: function(event) {
+				console.log("Scheduling not implemented, yet.")
 				var id = event.target;
-			}
+			},
+
 		});
+
 		return XDJobDeployments;
 	};
 });

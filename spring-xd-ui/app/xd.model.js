@@ -16,6 +16,7 @@
 /**
  * @author Ilayaperumal Gopinathan
  * @author Andrew Eisenberg
+ * @author Gunnar Hillert
  */
 
 /*global Backbone, d3, define, clearTimeout, setTimeout, _*/
@@ -157,7 +158,7 @@ define([], function() {
 		XDModel.jobDefinitions = new JobDefinitions();
 
 		var Execution = Backbone.Model.extend({
-			urlRoot: URL_ROOT + 'batch/jobs/',
+			urlRoot: URL_ROOT + '/batch/jobs/',
 			url: function() {
 				return this.urlRoot + this.id + '.json';
 			},
@@ -177,7 +178,7 @@ define([], function() {
 		var Executions = Backbone.Collection.extend({
 			model: Execution,
 			executions: [],
-			urlRoot: URL_ROOT + 'batch/executions',
+			urlRoot: URL_ROOT + '/batch/executions',
 			url: function() {
 				return this.urlRoot;
 			},
@@ -206,7 +207,7 @@ define([], function() {
 		XDModel.jobExecutions = new Executions();
 
 		var JobInstance = Backbone.Model.extend({
-			urlRoot: URL_ROOT + 'batch/jobs/',
+			urlRoot: URL_ROOT + '/batch/jobs/',
 			url: function() {
 				return this.urlRoot + this.get('name') + '/' + this.id + '.json';
 			},
@@ -236,7 +237,7 @@ define([], function() {
 		var JobInstances = Backbone.Collection.extend({
 			instances: [],
 			model: JobInstance,
-			urlRoot: URL_ROOT + 'batch/jobs/',
+			urlRoot: URL_ROOT + '/batch/jobs/',
 			url: function() {
 				return this.urlRoot + this.jobName + '/instances.json';
 			},
@@ -248,25 +249,11 @@ define([], function() {
 		XDModel.jobInstances = new JobInstances();
 
 		var BatchJob = Backbone.Model.extend({
-			urlRoot: URL_ROOT + 'batch/jobs',
+			urlRoot: URL_ROOT + '/batch/jobs',
 			url: function() {
 				return this.urlRoot + '/' + this.id + '.json';
 			},
 			idAttribute: 'name',
-			launch: function(parameters) {
-				var params = "";
-				if (parameters) {
-					params = parameters;
-				}
-				var createPromise = client({
-					path: URL_ROOT +  'jobs/' + this.id + '/launch',
-					params: { "jobParameters" : params } ,
-					method: 'PUT',
-					headers: ACCEPT_HEADER
-				 });
-				return XDModel.batchJobs.fetch({merge:true, update:true });
-			},
-
 			parse: function(data) {
 				// for some reason coming back as a string
 				if (typeof data === 'string') {
@@ -292,7 +279,10 @@ define([], function() {
 
 		var BatchJobs = Backbone.Collection.extend({
 			model: BatchJob,
-			url: URL_ROOT + 'batch/jobs.json',
+			urlRoot: URL_ROOT + '/batch/jobs.json',
+			url: function() {
+				return this.urlRoot ;
+			},
 			jobs: [],
 			parse: function(data) {
 				this.jobs = data;
@@ -301,17 +291,19 @@ define([], function() {
 			comparator: 'name',
 
 			startFetching: function() {
+				console.log("Start fetching for Batch Jobs...");
 				this.fetch({change:true, add:false}).then(
 					function() {
 						this.fetchTimer = setTimeout(function() {
 							if (!this.stopFetch) {
 								this.startFetching();
 							}
-						}.bind(this), 5000);
+						}.bind(this), 50000);
 					}.bind(this));
 			},
 
 			stopFetching: function() {
+				console.log("Stop fetching for Batch Jobs...");
 				if (this.fetchTimer) {
 					clearTimeout(this.fetchTimer);
 				}
@@ -320,6 +312,121 @@ define([], function() {
 		});
 
 		XDModel.batchJobs = new BatchJobs();
+
+		//JobLaunch
+		//Define the Model
+
+		var DataType = Backbone.Model.extend({
+			defaults: {
+				id: '1',
+				key: 'string',
+				name: 'String',
+				selected: false
+			}
+		});
+
+		var DataTypes = Backbone.Collection.extend({
+			model: DataType
+		});
+
+		XDModel.createDataTypes = function createDataTypes() {
+			return new DataTypes( [
+				new DataType({id:1, key:'string', name: 'String', selected: true}),
+				new DataType({id:2, key:'date',   name: 'Date'}),
+				new DataType({id:3, key:'long',   name: 'Long'}),
+				new DataType({id:4, key:'double', name: 'Double'})
+			] );
+		}
+
+		XDModel.dataTypes = XDModel.createDataTypes();
+
+		var JobParameter = Backbone.Model.extend({
+			idAttribute: 'key',
+			defaults: {
+				key: '',
+				value: '',
+				isIdentifying: true,
+				type: new DataType()
+			}
+		});
+
+		XDModel.jobParameter = new JobParameter();
+
+		XDModel.createJobParameter = function() {
+			return new JobParameter();
+		}
+
+		var JobParameters = Backbone.Collection.extend({
+			model: JobParameter
+		});
+
+		XDModel.jobParameters = new JobParameters();
+
+		XDModel.createJobParameters = function createJobParameters() {
+			return new JobParameters( [
+				new JobParameter( {key : "super", value : "value1" } ),
+				new JobParameter( {key : "super", value : "value2" } ),
+				new JobParameter( {key : "super", value : "value3" } )
+			] );
+		}
+
+		var JobLaunchRequest = Backbone.Model.extend({
+			urlRoot: URL_ROOT + '/batch/jobs.json',
+			url: function() {
+				return this.urlRoot ;
+			},
+			launch: function(jobName, parameters) {
+				var params = "";
+				if (parameters) {
+					params = parameters;
+				}
+				var createPromise = client({
+					path: URL_ROOT +  '/jobs/' + jobName + '/launch',
+					params: { "jobParameters" : params } ,
+					method: 'PUT',
+					headers: ACCEPT_HEADER
+				 });
+				return XDModel.batchJobs.fetch({merge:true, update:true });
+			},
+			defaults: {
+				jobname: 'your job name',
+				jobParameters: new JobParameters(
+					[new JobParameter({key : "", value : ""})])
+			},
+
+			convertToJsonAndSend: function() {
+				console.log('converting to Json');
+				console.log('Model Change: ' + JSON.stringify(this.toJSON()))
+
+				var jsonData = {};
+				this.get('jobParameters').forEach(function(jobParameter) {
+					var key = jobParameter.get('key');
+					var value = jobParameter.get('value');
+					var isIdentifying = jobParameter.get('isIdentifying');
+					var dataType = jobParameter.get('type');
+
+					var dataTypeToUse = '';
+					if(!(typeof dataType === "undefined")) {
+						var dataTypeToUse = "(" + dataType.get('key') + ")";
+					}
+
+					if (isIdentifying) {
+						jsonData["+" + key + dataTypeToUse] = value;
+					}
+					else {
+						jsonData["-" + key + dataTypeToUse] = value;
+					}
+				});
+				console.log(jsonData);
+				var jsonDataAsString = JSON.stringify(jsonData);
+				console.log(jsonDataAsString);
+
+				this.launch(this.get('jobname'), jsonDataAsString);
+
+			}
+		});
+
+		XDModel.jobLaunchRequest = new JobLaunchRequest();
 
 		return XDModel;
 	};

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.batch.item.mongodb;
+package org.springframework.xd.mongodb;
 
 import java.util.HashSet;
 import java.util.Properties;

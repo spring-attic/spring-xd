@@ -29,6 +29,7 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.util.Assert;
+import org.springframework.xd.dirt.core.RuntimeIOException;
 import org.springframework.xd.module.ModuleType;
 
 /**
@@ -70,7 +71,7 @@ public class ResourceModuleRegistry extends AbstractModuleRegistry implements Re
 			return null;
 		}
 		catch (IOException e) {
-			throw new RuntimeException(
+			throw new RuntimeIOException(
 					String.format("An error occured trying to locate context for module %s:%s", type, name), e);
 		}
 	}
@@ -113,7 +114,8 @@ public class ResourceModuleRegistry extends AbstractModuleRegistry implements Re
 			}
 		}
 		catch (IOException e) {
-			throw new RuntimeException(e);
+			throw new RuntimeIOException(
+					String.format("An error occured trying to compute the classpath for module %s:%s", type, name), e);
 		}
 		return null;
 	}
@@ -152,7 +154,8 @@ public class ResourceModuleRegistry extends AbstractModuleRegistry implements Re
 			return result;
 		}
 		catch (IOException e) {
-			throw new RuntimeException(e);
+			throw new RuntimeIOException(
+					String.format("An error occured trying to locate contexts for modules of type %s", type), e);
 		}
 	}
 

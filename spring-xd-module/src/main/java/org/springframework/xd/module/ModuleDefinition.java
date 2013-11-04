@@ -95,7 +95,9 @@ public class ModuleDefinition {
 
 	@Override
 	public String toString() {
-		return "ModuleDefinition [name=" + name + ", type=" + type + ", definition=" + definition + "]";
+		int nbJars = getClasspath() == null ? 0 : getClasspath().length;
+		return String.format("%s[%s:%s with %d jars at %s]", getClass().getSimpleName(), getType(), getName(), nbJars,
+				getResource().getDescription());
 	}
 
 }

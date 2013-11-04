@@ -29,6 +29,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -57,7 +58,7 @@ public class CompositeModuleTests {
 
 	@Before
 	public void setupModuleDefinitions() {
-		moduleRegistry = new FileModuleRegistry("src/test/resources/testmodules");
+		moduleRegistry = new ResourceModuleRegistry(new FileSystemResource("src/test/resources/testmodules/"));
 		sourceDefinition = moduleRegistry.findDefinition("source", source);
 		processor1Definition = moduleRegistry.findDefinition("testprocessor1", processor);
 		processor2Definition = moduleRegistry.findDefinition("testprocessor2", processor);

@@ -47,14 +47,6 @@ public abstract class AbstractModuleRegistry implements ModuleRegistry {
 		return module;
 	}
 
-	/**
-	 * Return an array of jar files locations or {@code null} if the module is a plain xml file. Default implementation
-	 * returns {@code null} system.
-	 */
-	protected URL[] maybeLocateClasspath(Resource resource, String name, ModuleType moduleType) {
-		return null;
-	}
-
 	@Override
 	public List<ModuleDefinition> findDefinitions(String name) {
 		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
@@ -67,14 +59,47 @@ public abstract class AbstractModuleRegistry implements ModuleRegistry {
 		return definitions;
 	}
 
+	@Override
+	public List<ModuleDefinition> findDefinitions(ModuleType type) {
+		ArrayList<ModuleDefinition> results = new ArrayList<ModuleDefinition>();
+		for (Resource resource : locateApplicationContexts(type)) {
+			String name = inferModuleName(resource);
+			results.add(new ModuleDefinition(name, type, resource, maybeLocateClasspath(resource, name,
+					type)));
+		}
+		return results;
+	}
+
+	/**
+	 * Recover the name of the module, given its resource location.
+	 */
+	protected abstract String inferModuleName(Resource resource);
+
+	@Override
+	public List<ModuleDefinition> findDefinitions() {
+		ArrayList<ModuleDefinition> results = new ArrayList<ModuleDefinition>();
+		for (ModuleType type : ModuleType.values()) {
+			results.addAll(findDefinitions(type));
+		}
+		return results;
+	}
+
 	/**
 	 * Return a resource pointing to an {@link ApplicationContext} XML definition file.
 	 */
 	protected abstract Resource locateApplicationContext(String name, ModuleType type);
 
 	/**
-	 * Return a list resources pointing to {@link ApplicationContext} XML definition files.
+	 * Return a list of resources pointing to {@link ApplicationContext} XML definition files.
 	 */
-
 	protected abstract List<Resource> locateApplicationContexts(ModuleType type);
+
+	/**
+	 * Return an array of jar files locations or {@code null} if the module is a plain xml file. Default implementation
+	 * returns {@code null} system.
+	 */
+	protected URL[] maybeLocateClasspath(Resource resource, String name, ModuleType moduleType) {
+		return null;
+	}
+
 }

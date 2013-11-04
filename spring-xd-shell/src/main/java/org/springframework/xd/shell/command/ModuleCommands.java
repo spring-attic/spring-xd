@@ -30,6 +30,7 @@ import org.springframework.xd.shell.XDShell;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableHeader;
 import org.springframework.xd.shell.util.TableRow;
+import org.springframework.xd.shell.util.UiUtils;
 
 /**
  * Module commands.
@@ -42,6 +43,8 @@ import org.springframework.xd.shell.util.TableRow;
 public class ModuleCommands implements CommandMarker {
 
 	private final static String COMPOSE_MODULE = "module compose";
+
+	private final static String DISPLAY_MODULE = "module display";
 
 	private final static String LIST_MODULES = "module list";
 
@@ -61,6 +64,25 @@ public class ModuleCommands implements CommandMarker {
 		ModuleDefinitionResource composedModule = moduleOperations().composeModule(name, dsl);
 		return String.format(("Successfully created module '%s' with type %s"), composedModule.getName(),
 				composedModule.getType());
+	}
+
+	@CliCommand(value = DISPLAY_MODULE, help = "Display the configuration file of a module")
+	public String display(
+			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the the module") String name,
+			@CliOption(mandatory = true, key = "type", help = "the type of the module") RESTModuleType moduleType) {
+
+		final String configurationFileContents = xdShell.getSpringXDOperations().moduleOperations().displayConfigurationFile(
+				moduleType, name);
+
+		final StringBuilder sb = new StringBuilder()
+				.append(String.format("Configuration file contents for module definiton '%s' (%s)\n\n", name,
+						moduleType))
+				.append(UiUtils.HORIZONTAL_LINE)
+				.append(configurationFileContents)
+				.append(UiUtils.HORIZONTAL_LINE);
+
+		return sb.toString();
+
 	}
 
 	@CliCommand(value = LIST_MODULES, help = "List all modules")

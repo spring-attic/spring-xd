@@ -500,6 +500,7 @@ project('spring-xd-extension-jdbc') {
 	dependencies {
 		compile "org.springframework:spring-jdbc:$springVersion"
 		compile "org.springframework:spring-tx:$springVersion"
+		compile "org.springframework.batch:spring-batch-infrastructure:$springBatchVersion"
 		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
 		runtime "org.springframework.integration:spring-integration-jdbc:$springIntegrationVersion"
 		runtime "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
@@ -985,7 +986,17 @@ project('modules.sink.splunk') {
 	}
 }
 
+project('modules.job.filejdbc') {
+	dependencies {
+		runtime(project(":spring-xd-extension-jdbc"))
+	}
+}
 
+project('modules.job.hdfsjdbc') {
+	dependencies {
+		runtime(project(":spring-xd-extension-jdbc"))
+	}
+}
 
 project('spring-xd-ui') {
 	description = 'Spring XD UI'

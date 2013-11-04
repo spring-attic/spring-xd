@@ -54,6 +54,7 @@ public class SingleTableDatabaseInitializerTests {
 	public void testBuildWithPlaceholders() throws Exception {
 		databaseInitializer.addScript(resourceLoader.getResource("db-schema-with-placeholder.sql"));
 		databaseInitializer.setTableName("DEMO");
+		databaseInitializer.setColumnNames(new String[] {"blah0", "blah1", "blah2"});
 		databaseInitializer.setIgnoreFailedDrops(true);
 		databaseInitializer.afterPropertiesSet();
 		Connection connection = db.getConnection();
@@ -65,6 +66,8 @@ public class SingleTableDatabaseInitializerTests {
 		}
 
 		assertTestDatabaseCreated("DEMO");
+		// Check a select with column names works
+		jdbcTemplate.execute("select blah0, blah1, blah2 from demo");
 	}
 
 	@Test

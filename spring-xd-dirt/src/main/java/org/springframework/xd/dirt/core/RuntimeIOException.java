@@ -24,6 +24,7 @@ import java.io.IOException;
  * 
  * @author Eric Bottard
  */
+@SuppressWarnings("serial")
 public class RuntimeIOException extends XDRuntimeException {
 
 	public RuntimeIOException(String message, IOException cause) {

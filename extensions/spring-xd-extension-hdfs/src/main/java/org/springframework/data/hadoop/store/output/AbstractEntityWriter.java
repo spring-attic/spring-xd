@@ -17,7 +17,6 @@
 package org.springframework.data.hadoop.store.output;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -29,8 +28,10 @@ import org.springframework.data.hadoop.store.DataWriter;
 import org.springframework.data.hadoop.store.EntityWriter;
 import org.springframework.data.hadoop.store.StrategiesStorage;
 import org.springframework.data.hadoop.store.support.EntityObjectSupport;
+import org.springframework.data.hadoop.store.support.IdleTimeoutTrigger;
 import org.springframework.data.hadoop.store.support.PollingTaskSupport;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.Trigger;
 
 /**
  * Base {@code EntityWriter} implementation sharing common functionality.
@@ -65,6 +66,9 @@ public abstract class AbstractEntityWriter<E> extends EntityObjectSupport implem
 	/** In millis an idle timeout for write. */
 	private volatile long idleTimeout;
 
+	/** Trigger in poller */
+	private volatile IdleTimeoutTrigger trigger;
+
 	/**
 	 * Instantiates a new abstract data writer.
 	 * 
@@ -96,6 +100,9 @@ public abstract class AbstractEntityWriter<E> extends EntityObjectSupport implem
 			}
 			writer.write(convert(entity));
 			strategiesStorage.reportSizeAware(writer.getPosition());
+			if (trigger != null) {
+				trigger.reset();
+			}
 			lastWrite = System.currentTimeMillis();
 		}
 	}
@@ -123,7 +130,8 @@ public abstract class AbstractEntityWriter<E> extends EntityObjectSupport implem
 	protected void onInit() throws Exception {
 		// if we have timeout, enable polling by creating it
 		if (idleTimeout > 0) {
-			idlePoller = new IdleTimeoutPoller(getTaskScheduler(), getTaskExecutor(), TimeUnit.SECONDS, 10);
+			trigger = new IdleTimeoutTrigger(idleTimeout);
+			idlePoller = new IdleTimeoutPoller(getTaskScheduler(), getTaskExecutor(), trigger);
 			idlePoller.init();
 		}
 	}
@@ -165,9 +173,8 @@ public abstract class AbstractEntityWriter<E> extends EntityObjectSupport implem
 	 */
 	private class IdleTimeoutPoller extends PollingTaskSupport<Boolean> {
 
-		public IdleTimeoutPoller(TaskScheduler taskScheduler, TaskExecutor taskExecutor, TimeUnit unit,
-				long duration) {
-			super(taskScheduler, taskExecutor, unit, duration);
+		public IdleTimeoutPoller(TaskScheduler taskScheduler, TaskExecutor taskExecutor, Trigger trigger) {
+			super(taskScheduler, taskExecutor, trigger);
 		}
 
 		@Override

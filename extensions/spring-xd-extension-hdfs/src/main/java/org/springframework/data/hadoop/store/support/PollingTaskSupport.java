@@ -51,7 +51,7 @@ public abstract class PollingTaskSupport<T> {
 	private TaskExecutor taskExecutor;
 
 	/**
-	 * Instantiates a new polling task support.
+	 * Instantiates a new polling task support. On default a simple {@code PeriodicTrigger} is used.
 	 * 
 	 * @param taskScheduler the task scheduler
 	 * @param taskExecutor the task executor
@@ -61,7 +61,7 @@ public abstract class PollingTaskSupport<T> {
 	}
 
 	/**
-	 * Instantiates a new polling task support.
+	 * Instantiates a new polling task support. On default a simple {@code PeriodicTrigger} is used.
 	 * 
 	 * @param taskScheduler the task scheduler
 	 * @param taskExecutor the task executor
@@ -73,6 +73,20 @@ public abstract class PollingTaskSupport<T> {
 		this.taskExecutor = taskExecutor;
 		this.trigger = new PeriodicTrigger(unit.toMillis(duration));
 	}
+
+	/**
+	 * Instantiates a new polling task support.
+	 * 
+	 * @param taskScheduler the task scheduler
+	 * @param taskExecutor the task executor
+	 * @param trigger the trigger
+	 */
+	public PollingTaskSupport(TaskScheduler taskScheduler, TaskExecutor taskExecutor, Trigger trigger) {
+		this.taskScheduler = taskScheduler;
+		this.taskExecutor = taskExecutor;
+		this.trigger = trigger;
+	}
+
 
 	/**
 	 * Inits the poller.

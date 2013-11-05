@@ -25,6 +25,7 @@ import org.junit.Test;
 
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.data.hadoop.store.support.IdleTimeoutTrigger;
 import org.springframework.data.hadoop.store.support.PollingTaskSupport;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
@@ -52,7 +53,55 @@ public class PollingTaskSupportTests {
 		assertThat(testPollingTaskSupport.counter, is(2));
 	}
 
+	@Test
+	public void testIdleTimeoutTrigger() throws InterruptedException {
+		TaskScheduler taskScheduler = new ConcurrentTaskScheduler();
+		TaskExecutor taskExecutor = new SyncTaskExecutor();
+		TestPollingTaskSupport poller = new TestPollingTaskSupport(taskScheduler, taskExecutor);
+		IdleTimeoutTrigger trigger = new IdleTimeoutTrigger(1000);
+		poller.setTrigger(trigger);
+		poller.init();
+		poller.start();
+
+		Thread.sleep(500);
+		// after 500ms initial no delay, should be 1
+		assertThat(poller.counter, is(1));
+		Thread.sleep(500);
+		// after 1000ms, should be 2
+		assertThat(poller.counter, is(2));
+
+		Thread.sleep(500);
+		// after 1500ms, should be 2
+		assertThat(poller.counter, is(2));
+		Thread.sleep(500);
+		// after 2000ms, should be 3
+		assertThat(poller.counter, is(3));
+
+		Thread.sleep(500);
+		// trigger reset should cause different trigger time after netext one
+		System.out.println("reset()");
+		trigger.reset();
+		// after 2500ms, should be 3
+		assertThat(poller.counter, is(3));
+		System.out.println("sleep(500)");
+		Thread.sleep(500);
+		// after 3000ms, should be 4
+		System.out.println("assert(4)");
+		assertThat(poller.counter, is(4));
+
+		Thread.sleep(500);
+		// after 3500ms, should be 5
+		System.out.println("assert(5)");
+		assertThat(poller.counter, is(5));
+		poller.stop();
+		assertThat(poller.counter, is(5));
+	}
+
 	private static class TestPollingTaskSupport extends PollingTaskSupport<String> {
+
+		public TestPollingTaskSupport(TaskScheduler taskScheduler, TaskExecutor taskExecutor) {
+			super(taskScheduler, taskExecutor);
+		}
 
 		public TestPollingTaskSupport(TaskScheduler taskScheduler, TaskExecutor taskExecutor, TimeUnit unit,
 				long duration) {

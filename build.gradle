@@ -858,6 +858,12 @@ project('modules.source.tcp') {
 	}
 }
 
+project('modules.source.tcp-client') {
+	dependencies {
+		runtime "org.springframework.integration:spring-integration-ip:$springIntegrationVersion"
+	}
+}
+
 project('modules.sink.tcp') {
 	dependencies {
 		runtime "org.springframework.integration:spring-integration-ip:$springIntegrationVersion"

@@ -157,7 +157,7 @@ define([], function() {
 		XDModel.jobDefinitions = new JobDefinitions();
 
 		var Execution = Backbone.Model.extend({
-			urlRoot: URL_ROOT + 'batch/jobs/',
+			urlRoot: URL_ROOT + '/batch/jobs/',
 			url: function() {
 				return this.urlRoot + this.id + '.json';
 			},
@@ -177,7 +177,7 @@ define([], function() {
 		var Executions = Backbone.Collection.extend({
 			model: Execution,
 			executions: [],
-			urlRoot: URL_ROOT + 'batch/executions',
+			urlRoot: URL_ROOT + '/batch/executions',
 			url: function() {
 				return this.urlRoot;
 			},
@@ -206,7 +206,7 @@ define([], function() {
 		XDModel.jobExecutions = new Executions();
 
 		var JobInstance = Backbone.Model.extend({
-			urlRoot: URL_ROOT + 'batch/jobs/',
+			urlRoot: URL_ROOT + '/batch/jobs/',
 			url: function() {
 				return this.urlRoot + this.get('name') + '/' + this.id + '.json';
 			},
@@ -236,7 +236,7 @@ define([], function() {
 		var JobInstances = Backbone.Collection.extend({
 			instances: [],
 			model: JobInstance,
-			urlRoot: URL_ROOT + 'batch/jobs/',
+			urlRoot: URL_ROOT + '/batch/jobs/',
 			url: function() {
 				return this.urlRoot + this.jobName + '/instances.json';
 			},
@@ -248,7 +248,7 @@ define([], function() {
 		XDModel.jobInstances = new JobInstances();
 
 		var BatchJob = Backbone.Model.extend({
-			urlRoot: URL_ROOT + 'batch/jobs',
+			urlRoot: URL_ROOT + '/batch/jobs',
 			url: function() {
 				return this.urlRoot + '/' + this.id + '.json';
 			},
@@ -259,7 +259,7 @@ define([], function() {
 					params = parameters;
 				}
 				var createPromise = client({
-					path: URL_ROOT +  'jobs/' + this.id + '/launch',
+					path: URL_ROOT +  '/jobs/' + this.id + '/launch',
 					params: { "jobParameters" : params } ,
 					method: 'PUT',
 					headers: ACCEPT_HEADER
@@ -292,7 +292,10 @@ define([], function() {
 
 		var BatchJobs = Backbone.Collection.extend({
 			model: BatchJob,
-			url: URL_ROOT + 'batch/jobs.json',
+			urlRoot: URL_ROOT + '/batch/jobs.json',
+			url: function() {
+				return this.urlRoot ;
+			},
 			jobs: [],
 			parse: function(data) {
 				this.jobs = data;

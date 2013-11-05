@@ -551,6 +551,8 @@ project('spring-xd-extension-hdfs') {
 			exclude group: 'org.mortbay.jetty'
 			exclude group: 'org.codehaus.jackson'
 			exclude group: 'hsqldb'
+			exclude group: 'javax.servlet'
+			exclude group: 'javax.servlet.jsp'
 		}
 		compile "com.cloudera.cdk:cdk-data-core:0.8.0"
 		compile "org.springframework.batch:spring-batch-core:$springBatchVersion"

@@ -16,6 +16,9 @@
 
 package org.springframework.xd.dirt.module.redis;
 
+import java.util.Set;
+
+import org.springframework.data.redis.core.BoundSetOperations;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.xd.dirt.module.ModuleDependencyRepository;
 import org.springframework.xd.module.ModuleType;
@@ -38,7 +41,22 @@ public class RedisModuleDependencyRepository implements ModuleDependencyReposito
 
 	@Override
 	public void store(String moduleName, ModuleType type, String target) {
-		redisOperations.boundSetOps(String.format("dependencies.module.%s:%s", type.name(), moduleName)).add(target);
+		setOpsFor(moduleName, type).add(target);
+	}
+
+	@Override
+	public void delete(String module, ModuleType type, String target) {
+		setOpsFor(module, type).remove(target);
+	}
+
+	private BoundSetOperations<String, String> setOpsFor(String moduleName, ModuleType type) {
+		return redisOperations.boundSetOps(String.format("dependencies.module.%s:%s", type.name(), moduleName));
+	}
+
+
+	@Override
+	public Set<String> findDependents(String name, ModuleType type) {
+		return setOpsFor(name, type).members();
 	}
 
 }

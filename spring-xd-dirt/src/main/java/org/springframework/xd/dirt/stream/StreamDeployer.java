@@ -47,13 +47,31 @@ public class StreamDeployer extends AbstractInstancePersistingDeployer<StreamDef
 	}
 
 	@Override
-	public StreamDefinition save(StreamDefinition definition) {
-		StreamDefinition result = super.save(definition);
+	protected StreamDefinition onAfterSave(StreamDefinition savedDefinition) {
+		StreamDefinition definition = super.onAfterSave(savedDefinition);
+		recordDependencies(definition);
+		return definition;
+	}
+
+	private void recordDependencies(StreamDefinition definition) {
 		List<ModuleDeploymentRequest> requests = streamParser.parse(definition.getName(), definition.getDefinition());
 		for (ModuleDeploymentRequest request : requests) {
 			dependencyTracker.record(request, "stream:" + definition.getName());
 		}
-		return result;
+	}
+
+	@Override
+	protected void onBeforeDelete(StreamDefinition definition) {
+		removeDependencies(definition);
+
+		super.onBeforeDelete(definition);
+	}
+
+	private void removeDependencies(StreamDefinition definition) {
+		List<ModuleDeploymentRequest> requests = streamParser.parse(definition.getName(), definition.getDefinition());
+		for (ModuleDeploymentRequest request : requests) {
+			dependencyTracker.remove(request, "stream:" + definition.getName());
+		}
 	}
 
 }

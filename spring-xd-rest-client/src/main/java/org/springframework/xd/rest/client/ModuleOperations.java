@@ -49,4 +49,11 @@ public interface ModuleOperations {
 	 * @return The file contents of the module
 	 */
 	public String downloadConfigurationFile(RESTModuleType type, String name);
+
+
+	/**
+	 * Request deletion of module with given name and type. Only composite modules, which are not currently in use can
+	 * be deleted.
+	 */
+	public void deleteModule(String name, RESTModuleType moduleType);
 }

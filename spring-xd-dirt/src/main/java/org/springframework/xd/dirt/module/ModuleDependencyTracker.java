@@ -16,7 +16,10 @@
 
 package org.springframework.xd.dirt.module;
 
+import java.util.Set;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.xd.module.ModuleType;
 
 
 /**
@@ -43,4 +46,27 @@ public class ModuleDependencyTracker {
 		}
 	}
 
+
+	/**
+	 * Return the set of things that depend on the given module.
+	 * 
+	 * @return a set of Strings of the form {@code type:name}, never {@code null}
+	 */
+	public Set<String> findDependents(String name, ModuleType type) {
+		return dependencyRepository.findDependents(name, type);
+	}
+
+	/**
+	 * @param request
+	 * @param dependencyKey
+	 */
+	public void remove(ModuleDeploymentRequest source, String target) {
+		dependencyRepository.delete(source.getModule(), source.getType(), target);
+		if (source instanceof CompositeModuleDeploymentRequest) {
+			CompositeModuleDeploymentRequest composed = (CompositeModuleDeploymentRequest) source;
+			for (ModuleDeploymentRequest child : composed.getChildren()) {
+				remove(child, target);
+			}
+		}
+	}
 }

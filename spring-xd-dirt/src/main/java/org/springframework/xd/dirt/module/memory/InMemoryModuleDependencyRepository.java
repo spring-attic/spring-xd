@@ -50,6 +50,16 @@ public class InMemoryModuleDependencyRepository implements ModuleDependencyRepos
 		dependencies.get(keyFor(moduleName, type)).add(target);
 	}
 
+	@Override
+	public void delete(String module, ModuleType type, String target) {
+		dependencies.get(keyFor(module, type)).remove(target);
+	}
+
+	@Override
+	public Set<String> findDependents(String name, ModuleType type) {
+		return dependencies.get(keyFor(name, type));
+	}
+
 	private String keyFor(String moduleName, ModuleType type) {
 		return type.name() + ":" + moduleName;
 	}

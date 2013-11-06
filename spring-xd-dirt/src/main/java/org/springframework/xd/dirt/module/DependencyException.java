@@ -18,31 +18,42 @@ package org.springframework.xd.dirt.module;
 
 import java.util.Set;
 
+import org.springframework.xd.dirt.core.XDRuntimeException;
 import org.springframework.xd.module.ModuleType;
 
 
 /**
- * Used to track usage of modules from streams and composed modules.
+ * Thrown when performing an action cannot be carried over because some dependency would be broken.
  * 
  * @author Eric Bottard
  */
-public interface ModuleDependencyRepository {
+@SuppressWarnings("serial")
+public class /* Module? */DependencyException extends XDRuntimeException {
 
-	/**
-	 * Store one atomic dependency from a module (composed or not) to some target (stream, or composed module).
-	 */
-	void store(String moduleName, ModuleType type, /* BaseDefinition? */String target);
+	private final Set<String> dependents;
 
-	/**
-	 * Return the set of things that depend on the given module.
-	 * 
-	 * @return a set of Strings of the form {@code type:name}, never {@code null}
-	 */
-	Set</* BaseDefinition? */String> findDependents(String name, ModuleType type);
+	private final String name;
 
-	/**
-	 * Remove an atomic dependency from a module (composed or not) to some target (stream, or composed module).
-	 */
-	void delete(String module, ModuleType type, /* BaseDefinition? */String target);
+	private final ModuleType type;
+
+	public DependencyException(String message, String name, ModuleType type, Set<String> dependents) {
+		super(String.format(message, name, type, dependents));
+		this.name = name;
+		this.type = type;
+		this.dependents = dependents;
+	}
+
+	public Set<String> getDependents() {
+		return dependents;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public ModuleType getType() {
+		return type;
+	}
+
 
 }

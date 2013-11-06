@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -41,8 +42,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.xd.dirt.module.DependencyException;
 import org.springframework.xd.dirt.module.ModuleAlreadyExistsException;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
+import org.springframework.xd.dirt.module.ModuleDependencyTracker;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.dirt.module.NoSuchModuleException;
 import org.springframework.xd.dirt.stream.XDStreamParser;
@@ -71,11 +74,15 @@ public class ModulesController {
 
 	private ModuleDefinitionResourceAssembler moduleDefinitionResourceAssembler = new ModuleDefinitionResourceAssembler();
 
+	private ModuleDependencyTracker dependencyTracker;
+
 	@Autowired
-	public ModulesController(ModuleDefinitionRepository moduleDefinitionRepository) {
+	public ModulesController(ModuleDefinitionRepository moduleDefinitionRepository,
+			ModuleDependencyTracker dependencyTracker) {
 		Assert.notNull(moduleDefinitionRepository, "moduleDefinitionRepository must not be null");
 		this.repository = moduleDefinitionRepository;
 		this.parser = new XDStreamParser(moduleDefinitionRepository);
+		this.dependencyTracker = dependencyTracker;
 	}
 
 	/**
@@ -120,12 +127,44 @@ public class ModulesController {
 		if (repository.findByNameAndType(name, type) != null) {
 			throw new ModuleAlreadyExistsException(name, type);
 		}
+		for (ModuleDeploymentRequest child : modules) {
+			dependencyTracker.record(child, dependencyKey(name, type));
+		}
 
 		ModuleDefinition moduleDefinition = new ModuleDefinition(name, type);
 		moduleDefinition.setDefinition(definition);
 		ModuleDefinitionResource resource = moduleDefinitionResourceAssembler.toResource(moduleDefinition);
 		this.repository.save(moduleDefinition);
 		return resource;
+	}
+
+	private String dependencyKey(String name, ModuleType type) {
+		return String.format("module:%s:%s", type.name(), name);
+	}
+
+	/**
+	 * Delete a (composite) module.
+	 */
+	@RequestMapping(value = "/{type}/{name}", method = RequestMethod.DELETE)
+	@ResponseStatus(HttpStatus.OK)
+	public void delete(@PathVariable("type") ModuleType type, @PathVariable("name") String name) {
+		ModuleDefinition definition = repository.findByNameAndType(name, type);
+		if (definition == null) {
+			throw new NoSuchModuleException(name, type);
+		}
+		if (definition.getDefinition() == null) {
+			throw new IllegalStateException(String.format("Cannot delete non-composed module %s:%s", type, name));
+		}
+		Set<String> dependedUpon = dependencyTracker.find(name, type);
+		if (!dependedUpon.isEmpty()) {
+			throw new DependencyException("Cannot delete module %2$s:%1$s because it is used by %3$s", name, type,
+					dependedUpon);
+		}
+		repository.delete(type.name() + ":" + name);
+		List<ModuleDeploymentRequest> requests = parser.parse(name, definition.getDefinition());
+		for (ModuleDeploymentRequest request : requests) {
+			dependencyTracker.remove(request, dependencyKey(name, type));
+		}
 	}
 
 	private ModuleType determineType(List<ModuleDeploymentRequest> modules) {

@@ -10,6 +10,7 @@
 	<bean id="runtimeContainerInfoRepository" class="org.springframework.xd.dirt.container.store.InMemoryRuntimeContainerInfoRepository" />
 	<bean id="runtimeModuleInfoRepository" class="org.springframework.xd.dirt.module.store.InMemoryRuntimeModuleInfoRepository" />
 	<bean id="runtimeContainerModuleInfoRepository" class="org.springframework.xd.dirt.module.store.InMemoryRuntimeContainerModuleInfoRepository" />
+	<bean id="moduleDependencyRepository" class="org.springframework.xd.dirt.module.memory.InMemoryModuleDependencyRepository" />
 	
 	<bean id="moduleDefinitionRepository" class="org.springframework.xd.dirt.module.memory.InMemoryModuleDefinitionRepository">
 		<constructor-arg ref="moduleRegistry"/>

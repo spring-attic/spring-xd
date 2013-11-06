@@ -41,7 +41,7 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 
 	private PagingAndSortingRepository<D, String> repository;
 
-	private final XDParser streamParser;
+	protected final XDParser streamParser;
 
 	private final DeploymentMessageSender messageSender;
 
@@ -68,7 +68,15 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 			throwDefinitionAlreadyExistsException(definition);
 		}
 		streamParser.parse(definition.getName(), definition.getDefinition());
-		return repository.save(definition);
+		D savedDefinition = repository.save(definition);
+		return afterSave(savedDefinition);
+	}
+
+	/**
+	 * Callback method that subclasses may override to get a chance to act on newly saved definitions.
+	 */
+	protected D afterSave(D savedDefinition) {
+		return savedDefinition;
 	}
 
 	protected void throwDefinitionAlreadyExistsException(D definition) {
@@ -164,6 +172,22 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		}
 		Collections.reverse(requests);
 		sendDeploymentRequests(name, requests);
+	}
+
+	@Override
+	public void delete(String name) {
+		D def = getDefinitionRepository().findOne(name);
+		if (def == null) {
+			throwNoSuchDefinitionException(name);
+		}
+		beforeDelete(def);
+		getDefinitionRepository().delete(name);
+	}
+
+	/**
+	 * Callback method that subclasses may override to get a chance to act on definitions that are about to be deleted.
+	 */
+	protected void beforeDelete(D definition) {
 	}
 
 }

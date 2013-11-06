@@ -19,10 +19,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.xd.dirt.stream.DeploymentMessageSender;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
-import org.springframework.xd.dirt.stream.StreamDeployer;
 import org.springframework.xd.dirt.stream.StreamRepository;
-import org.springframework.xd.dirt.stream.XDParser;
-import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.dirt.stream.memory.InMemoryStreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.memory.InMemoryStreamRepository;
 
@@ -44,14 +41,6 @@ public class StreamsControllerIntegrationWithRepositoryTestsConfig extends Depen
 	@Bean
 	public StreamRepository streamRepository() {
 		return new InMemoryStreamRepository();
-	}
-
-	@Override
-	@Bean
-	public StreamDeployer streamDeployer() {
-		XDParser parser = new XDStreamParser(streamDefinitionRepository(), moduleDefinitionRepository());
-		return new StreamDeployer(streamDefinitionRepository(),
-				deploymentMessageSender(), streamRepository(), parser);
 	}
 
 	@Override

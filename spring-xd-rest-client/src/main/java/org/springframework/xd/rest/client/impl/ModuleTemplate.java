@@ -44,6 +44,12 @@ public class ModuleTemplate extends AbstractTemplate implements ModuleOperations
 	}
 
 	@Override
+	public void deleteModule(String name, RESTModuleType moduleType) {
+		final String uriTemplate = resources.get("modules").toString() + "/{type}/{name}";
+		restTemplate.delete(uriTemplate, moduleType.name(), name);
+	}
+
+	@Override
 	public ModuleDefinitionResource.Page list(RESTModuleType type) {
 		String uriTemplate = resources.get("modules").toString();
 		// TODO handle pagination at the client side

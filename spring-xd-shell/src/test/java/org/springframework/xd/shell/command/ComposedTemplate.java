@@ -20,12 +20,14 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
+import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.shell.command.fixtures.Disposable;
 
 
@@ -36,7 +38,7 @@ import org.springframework.xd.shell.command.fixtures.Disposable;
  */
 public class ComposedTemplate implements Disposable {
 
-	private static final Pattern SUCCESS_PATTERN = Pattern.compile("Successfully created module '(.+)' with type (.+)");
+	private static final Pattern COMPOSE_SUCCESS_PATTERN = Pattern.compile("Successfully created module '(.+)' with type (.+)");
 
 	private final JLineShellComponent shell;
 
@@ -52,26 +54,26 @@ public class ComposedTemplate implements Disposable {
 	public String newModule(String name, String definition) {
 		CommandResult result = shell.executeCommand(String.format("module compose %s --definition \"%s\"", name,
 				definition));
-		if (!result.isSuccess()) {
-			if (result.getException() != null) {
-				throw new AssertionError("Module composition failed", result.getException());
-			}
-			else {
-				fail("Module composition failed with no exception");
-			}
-		}
-		Matcher matcher = SUCCESS_PATTERN.matcher((CharSequence) result.getResult());
+		Matcher matcher = COMPOSE_SUCCESS_PATTERN.matcher((CharSequence) result.getResult());
 		assertTrue("Module composition apparently failed: " + result.getResult(), matcher.matches());
 		String key = matcher.group(2) + ":" + matcher.group(1);
 		modules.add(key);
 		return key;
 	}
 
+	public boolean delete(String name, ModuleType type) {
+		CommandResult result = shell.executeCommand(String.format("module delete --type %s --name %s", type, name));
+		return result.isSuccess();
+	}
+
 	@Override
 	public void cleanup() {
-		// TODO: uncomment when available
+		Collections.reverse(modules);
 		for (String m : modules) {
-			// shell.executeCommand(String.format("module destroy %s"), m);
+			String[] parts = m.split(":");
+			ModuleType type = ModuleType.valueOf(parts[0]);
+			String name = parts[1];
+			delete(name, type);
 		}
 	}
 

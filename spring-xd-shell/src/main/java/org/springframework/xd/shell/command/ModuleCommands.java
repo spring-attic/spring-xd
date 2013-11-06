@@ -48,6 +48,8 @@ public class ModuleCommands implements CommandMarker {
 
 	private final static String LIST_MODULES = "module list";
 
+	private final static String DELETE_MODULE = "module delete";
+
 
 	@Autowired
 	private XDShell xdShell;
@@ -66,8 +68,19 @@ public class ModuleCommands implements CommandMarker {
 				composedModule.getType());
 	}
 
+	@CliCommand(value = DELETE_MODULE, help = "Delete a virtual module")
+	public String destroyModule(
+			// TODO: replace with converter once XD-953b is merged in
+			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the the module") String name,
+			@CliOption(mandatory = true, key = "type", help = "the type of the module") RESTModuleType moduleType) {
+		moduleOperations().deleteModule(name, moduleType);
+		return String.format(("Successfully destroyed module '%s' with type %s"), name,
+				moduleType);
+	}
+
 	@CliCommand(value = DISPLAY_MODULE, help = "Display the configuration file of a module")
 	public String display(
+			// TODO: replace with converter once XD-953b is merged in
 			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the the module") String name,
 			@CliOption(mandatory = true, key = "type", help = "the type of the module") RESTModuleType moduleType) {
 

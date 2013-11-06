@@ -14,25 +14,35 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.plugins;
+package org.springframework.xd.dirt.module;
 
 import org.springframework.xd.dirt.core.XDRuntimeException;
+import org.springframework.xd.module.ModuleType;
 
 
 /**
- * Thrown when something is wrong with options passed to a module.
+ * Thrown when trying to create a new module with the given name and type, but one already exists.
  * 
- * @author David Turanski
+ * @author Eric Bottard
  */
-@SuppressWarnings("serial")
-public class ModuleConfigurationException extends XDRuntimeException {
+public class ModuleAlreadyExistsException extends XDRuntimeException {
 
-	public ModuleConfigurationException(String message) {
-		super(message);
+	private final String name;
+
+	private final ModuleType type;
+
+	public ModuleAlreadyExistsException(String name, ModuleType type) {
+		super(String.format("There is already a module named '%s' with type '%s'", name, type));
+		this.name = name;
+		this.type = type;
 	}
 
-	public ModuleConfigurationException(String message, Throwable cause) {
-		super(message, cause);
+	public String getName() {
+		return name;
+	}
+
+	public ModuleType getType() {
+		return type;
 	}
 
 }

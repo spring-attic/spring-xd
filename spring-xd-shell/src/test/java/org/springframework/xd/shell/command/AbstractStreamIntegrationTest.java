@@ -49,10 +49,14 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 
 	private MetricsTemplate metrics;
 
+	private ComposedTemplate composedTemplate;
+
 	public AbstractStreamIntegrationTest() {
 		streamOps = new StreamCommandTemplate(getShell());
 		metrics = new MetricsTemplate(getShell());
+		composedTemplate = new ComposedTemplate(getShell());
 		disposables.add(metrics);
+		disposables.add(composedTemplate);
 	}
 
 	protected MetricsTemplate metrics() {
@@ -63,10 +67,16 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 		return streamOps;
 	}
 
+	protected ComposedTemplate compose() {
+		return composedTemplate;
+	}
+
 	@After
 	public void after() {
 		stream().destroyCreatedStreams();
+		// Clean up composed modules AFTER streams
 		cleanUpDisposables();
+
 	}
 
 	private void cleanUpDisposables() {

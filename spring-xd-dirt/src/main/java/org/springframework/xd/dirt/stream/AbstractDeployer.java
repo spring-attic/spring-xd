@@ -41,7 +41,7 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 
 	private PagingAndSortingRepository<D, String> repository;
 
-	private final XDParser streamParser;
+	protected final XDParser streamParser;
 
 	private final DeploymentMessageSender messageSender;
 

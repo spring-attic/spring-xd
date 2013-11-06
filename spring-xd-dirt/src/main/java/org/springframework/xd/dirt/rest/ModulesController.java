@@ -43,6 +43,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.dirt.module.ModuleAlreadyExistsException;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
+import org.springframework.xd.dirt.module.ModuleDependencyTracker;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.dirt.module.NoSuchModuleException;
 import org.springframework.xd.dirt.stream.XDStreamParser;
@@ -71,11 +72,15 @@ public class ModulesController {
 
 	private ModuleDefinitionResourceAssembler moduleDefinitionResourceAssembler = new ModuleDefinitionResourceAssembler();
 
+	private ModuleDependencyTracker dependencyTracker;
+
 	@Autowired
-	public ModulesController(ModuleDefinitionRepository moduleDefinitionRepository) {
+	public ModulesController(ModuleDefinitionRepository moduleDefinitionRepository,
+			ModuleDependencyTracker dependencyTracker) {
 		Assert.notNull(moduleDefinitionRepository, "moduleDefinitionRepository must not be null");
 		this.repository = moduleDefinitionRepository;
 		this.parser = new XDStreamParser(moduleDefinitionRepository);
+		this.dependencyTracker = dependencyTracker;
 	}
 
 	/**
@@ -119,6 +124,9 @@ public class ModulesController {
 		ModuleType type = this.determineType(modules);
 		if (repository.findByNameAndType(name, type) != null) {
 			throw new ModuleAlreadyExistsException(name, type);
+		}
+		for (ModuleDeploymentRequest child : modules) {
+			dependencyTracker.record(child, String.format("module:%s:%s", type.name(), name));
 		}
 
 		ModuleDefinition moduleDefinition = new ModuleDefinition(name, type);

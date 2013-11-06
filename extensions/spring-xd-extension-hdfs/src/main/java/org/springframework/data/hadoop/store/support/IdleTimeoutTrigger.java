@@ -95,4 +95,29 @@ public class IdleTimeoutTrigger implements Trigger {
 		lastReset = System.currentTimeMillis();
 	}
 
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + (int) (initialDelay ^ (initialDelay >>> 32));
+		result = prime * result + (int) (timeout ^ (timeout >>> 32));
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		IdleTimeoutTrigger other = (IdleTimeoutTrigger) obj;
+		if (initialDelay != other.initialDelay)
+			return false;
+		if (timeout != other.timeout)
+			return false;
+		return true;
+	}
+
 }

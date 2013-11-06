@@ -22,13 +22,11 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import org.junit.AfterClass;
 import org.junit.Test;
 
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.shell.core.CommandResult;
-import org.springframework.xd.shell.AbstractShellIntegrationTest;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableRow;
 import org.springframework.xd.shell.util.UiUtils;
@@ -40,10 +38,10 @@ import org.springframework.xd.shell.util.UiUtils;
  * @author Gunnar Hillert
  * @author Mark Fisher
  */
-public class ModuleCommandTests extends AbstractShellIntegrationTest {
+public class ModuleCommandTests extends AbstractStreamIntegrationTest {
 
-	@AfterClass
 	// TODO: refactor once module delete command is available
+	// see ComposedTemplate#dispose
 	public static void cleanupComposedModules() {
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
 		connectionFactory.afterPropertiesSet();
@@ -101,11 +99,38 @@ public class ModuleCommandTests extends AbstractShellIntegrationTest {
 
 	@Test
 	public void testModuleCompose() {
-		Object result = getShell().executeCommand("module compose compositesource --definition \"time | splitter\"").getResult();
-		assertEquals("Successfully created module 'compositesource' with type source", result);
+		compose().newModule("compositesource", "time | splitter");
+
+
 		Table t = listByType("source");
 		assertTrue("compositesource is not present in list",
 				t.getRows().contains(new TableRow().addValue(1, "compositesource").addValue(2, "source")));
+
+		// TODO: remove
+		cleanupComposedModules();
+	}
+
+	@Test
+	public void testCollidingModuleComposeWithOtherComposite() {
+		compose().newModule("compositesource", "time | splitter");
+
+		CommandResult result = getShell().executeCommand(
+				"module compose compositesource --definition \"time | transform\"");
+		assertEquals("There is already a module named 'compositesource' with type 'source'\n",
+				result.getException().getMessage());
+
+		// TODO: remove
+		cleanupComposedModules();
+	}
+
+	@Test
+	public void testCollidingModuleComposeWithRegularModule() {
+		CommandResult result = getShell().executeCommand(
+				"module compose tcp --definition \"time | transform\"");
+		assertEquals("There is already a module named 'tcp' with type 'source'\n", result.getException().getMessage());
+
+		// TODO: remove
+		cleanupComposedModules();
 	}
 
 	private Table listAll() {

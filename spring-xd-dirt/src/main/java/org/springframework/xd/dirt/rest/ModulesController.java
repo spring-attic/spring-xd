@@ -41,6 +41,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.xd.dirt.module.ModuleAlreadyExistsException;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.dirt.module.NoSuchModuleException;
@@ -116,6 +117,10 @@ public class ModulesController {
 			@RequestParam("definition") String definition) {
 		List<ModuleDeploymentRequest> modules = this.parser.parse(name, definition);
 		ModuleType type = this.determineType(modules);
+		if (repository.findByNameAndType(name, type) != null) {
+			throw new ModuleAlreadyExistsException(name, type);
+		}
+
 		ModuleDefinition moduleDefinition = new ModuleDefinition(name, type);
 		moduleDefinition.setDefinition(definition);
 		ModuleDefinitionResource resource = moduleDefinitionResourceAssembler.toResource(moduleDefinition);

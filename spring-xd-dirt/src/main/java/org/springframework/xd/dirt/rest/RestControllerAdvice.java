@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.dirt.analytics.NoSuchMetricException;
+import org.springframework.xd.dirt.module.ModuleAlreadyExistsException;
 import org.springframework.xd.dirt.module.NoSuchModuleException;
 import org.springframework.xd.dirt.stream.AlreadyDeployedException;
 import org.springframework.xd.dirt.stream.DefinitionAlreadyExistsException;
@@ -124,6 +125,14 @@ public class RestControllerAdvice {
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	public VndErrors onInvalidDefintion(DSLException e) {
+		String logref = log(e);
+		return new VndErrors(logref, e.getMessage());
+	}
+
+	@ResponseBody
+	@ExceptionHandler
+	@ResponseStatus(HttpStatus.CONFLICT)
+	public VndErrors onModuleAlreadyExistsException(ModuleAlreadyExistsException e) {
 		String logref = log(e);
 		return new VndErrors(logref, e.getMessage());
 	}

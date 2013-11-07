@@ -19,6 +19,7 @@ package org.springframework.xd.shell.command;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -66,6 +67,7 @@ public class ComposedTemplate implements Disposable {
 
 	@Override
 	public void cleanup() {
+		Collections.reverse(modules);
 		for (String m : modules) {
 			String[] parts = m.split(":");
 			ModuleType type = ModuleType.valueOf(parts[0]);

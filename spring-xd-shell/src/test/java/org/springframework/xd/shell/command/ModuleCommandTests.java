@@ -25,6 +25,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 import org.springframework.shell.core.CommandResult;
+import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableRow;
 import org.springframework.xd.shell.util.UiUtils;
@@ -111,6 +112,38 @@ public class ModuleCommandTests extends AbstractStreamIntegrationTest {
 				"module compose tcp --definition \"time | transform\"");
 		assertEquals("There is already a module named 'tcp' with type 'source'\n", result.getException().getMessage());
 
+	}
+
+	@Test
+	public void testAttemptToDeleteNonComposedModule() {
+		assertFalse(compose().delete("tcp", ModuleType.source));
+	}
+
+	@Test
+	public void testDeleteUnusedComposedModule() {
+		compose().newModule("myhttp", "http | filter");
+		assertTrue(compose().delete("myhttp", ModuleType.source));
+	}
+
+	@Test
+	public void testDeleteComposedModuleUsedByOtherModule() {
+		compose().newModule("myhttp", "http | filter");
+		compose().newModule("evenbetterhttp", "myhttp | transform");
+		assertFalse(compose().delete("myhttp", ModuleType.source));
+
+		// Now delete blocking module
+		assertTrue(compose().delete("evenbetterhttp", ModuleType.source));
+		assertTrue(compose().delete("myhttp", ModuleType.source));
+	}
+
+	@Test
+	public void testDeleteComposedModuleUsedByStream() {
+		compose().newModule("myhttp", "http | filter");
+		executeCommand("stream create foo --definition \"myhttp | log\" --deploy false");
+		assertFalse(compose().delete("myhttp", ModuleType.source));
+		// Now deleting blocking stream
+		executeCommand("stream destroy foo");
+		assertTrue(compose().delete("myhttp", ModuleType.source));
 	}
 
 	private Table listAll() {

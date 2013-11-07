@@ -19,7 +19,9 @@
 		channel="deployChannel"
 		connection-factory="redisConnectionFactory"
 		queue="queue.deployer"
-		extract-payload="false" />
+		extract-payload="false" 
+		serializer="redisSerializer"
+		/>
 
 	<int-redis:outbound-channel-adapter channel="undeployChannel" topic="topic.undeployer" connection-factory="redisConnectionFactory" />
 	

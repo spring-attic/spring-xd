@@ -19,7 +19,9 @@
 		channel="containerControlChannel"
 		connection-factory="redisConnectionFactory"
 		queue="queue.deployer"
-		expect-message="true" />
+		expect-message="true"
+		serializer="redisSerializer"
+		/>
 
 	<int-redis:inbound-channel-adapter topics="topic.undeployer" channel="containerControlChannel" />
 

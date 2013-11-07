@@ -1,0 +1,55 @@
+XD_ANALYTICS: ${analytics:redis}
+XD_TRANSPORT: ${transport:redis}
+XD_STORE: ${store:redis}
+XD_HOME: ${xdHomeDir:..}
+server:
+  port: ${PORT:9393}
+
+---
+
+spring:
+  profiles: rabbit
+XD_TRANSPORT: rabbit
+  
+---
+
+spring:
+  profiles: local
+  datasource:
+    url: jdbc:mysql://localhost/test
+    username: root
+    password: 
+    driverClassName: com.mysql.jdbc.Driver
+
+---
+
+spring:
+  profiles: cloud
+redis:
+  hostname: ${vcap.services.redis.credentials.hostname:localhost}
+  port: ${vcap.services.redis.credentials.port:6379}
+  password: ${vcap.services.redis.credentials.password:#{null}}
+
+XD_HOME: .
+
+---
+
+spring:
+  profiles: adminServer
+  
+---
+
+spring:
+  profiles: node
+management:
+  port: ${PORT:9000}
+server:
+  port: ${PORT:9000}
+  
+---
+spring:
+  profiles: single
+transport: local
+store: memory
+analytics: memory
+

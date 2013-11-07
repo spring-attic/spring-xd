@@ -17,7 +17,7 @@ package org.springframework.xd.dirt.rest;
 import java.util.List;
 
 import org.springframework.batch.core.StepExecution;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
@@ -27,7 +27,6 @@ import org.springframework.hateoas.config.EnableHypermediaSupport;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.ResourceHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
@@ -46,7 +45,7 @@ import org.springframework.xd.rest.client.util.RestTemplateMessageConverterUtil;
  * @author Gunnar Hillert
  */
 @Configuration
-@EnableWebMvc
+// @EnableWebMvc
 @EnableHypermediaSupport
 @EnableSpringDataWebSupport
 @ComponentScan(excludeFilters = @Filter(Configuration.class))
@@ -56,8 +55,8 @@ public class RestConfiguration {
 	public WebMvcConfigurer configurer() {
 		return new WebMvcConfigurerAdapter() {
 
-			@Autowired(required = false)
-			UiResourceIdentifier resourceIdentifier;
+			@Value("file:${XD_HOME}/admin-ui/")
+			private String resourceIdentifier;
 
 			@Override
 			public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
@@ -82,10 +81,8 @@ public class RestConfiguration {
 			// add a static resource handler for the UI
 			@Override
 			public void addResourceHandlers(ResourceHandlerRegistry registry) {
-				if (resourceIdentifier != null) {
-					registry.addResourceHandler("/admin-ui/**", "/admin-ui/").addResourceLocations(
-							"file:" + resourceIdentifier.getResourcesLocation() + "/");
-				}
+				registry.addResourceHandler("/admin-ui/**", "/admin-ui/").addResourceLocations(
+						resourceIdentifier);
 			}
 
 			@Override

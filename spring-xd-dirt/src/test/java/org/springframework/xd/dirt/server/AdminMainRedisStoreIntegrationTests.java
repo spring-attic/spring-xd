@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.server;
 
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -26,6 +27,7 @@ import org.springframework.xd.test.redis.RedisTestSupport;
  * @author Luke Taylor
  * @author Gary Russell
  */
+@Ignore("Superseded by AdminMainApplication")
 public class AdminMainRedisStoreIntegrationTests extends AbstractAdminMainIntegrationTests {
 
 	@Rule

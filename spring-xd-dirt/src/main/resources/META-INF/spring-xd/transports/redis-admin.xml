@@ -1,17 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:int-redis="http://www.springframework.org/schema/integration/redis"
-	xmlns:redis="http://www.springframework.org/schema/redis"
-	xmlns:int-event="http://www.springframework.org/schema/integration/event"
 	xmlns:int="http://www.springframework.org/schema/integration"
 	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-3.0.xsd
-		http://www.springframework.org/schema/redis http://www.springframework.org/schema/redis/spring-redis.xsd
-		http://www.springframework.org/schema/integration/event http://www.springframework.org/schema/integration/event/spring-integration-event-3.0.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis-3.0.xsd
-		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+		http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis-3.0.xsd">
 
 	<import resource="redis-common.xml" />
 

@@ -9,7 +9,7 @@
 
 	<bean id="messageBus"
 		class="org.springframework.integration.x.bus.LocalMessageBus">
-		<!-- TODO: This is a System property only. Not sete by command line option or environment variable -->
+		<!-- TODO: This is a System property only. Not set by command line option or environment variable -->
 		<property name="convertWithinTransport" value="${xd.local.transport.conversion:false}"/>
 		<property name="queueSize" value="${xd.local.transport.named.queueSize:0x7fffffff}" />
 		<property name="poller">

@@ -59,7 +59,8 @@ public class CompositeModule extends AbstractModule {
 	 * @param definitions
 	 * @param metadata
 	 */
-	public CompositeModule(String name, ModuleType type, List<SimpleModule> modules, DeploymentMetadata metadata) {
+	public CompositeModule(String name, ModuleType type, List<SimpleModule> modules,
+			DeploymentMetadata metadata) {
 		super(new ModuleDefinition(name, type), metadata);
 		this.modules = modules;
 		this.validate();

@@ -38,7 +38,7 @@ import org.springframework.xd.module.ModuleType;
  * @author Eric Bottard
  * @author Glenn Renfro
  */
-public class CompositeModuleRegistryTests {
+public class DelegatingModuleRegistryTests {
 
 	private ModuleRegistry registry;
 
@@ -48,7 +48,7 @@ public class CompositeModuleRegistryTests {
 		ResourceModuleRegistry cp = new ResourceModuleRegistry(new ClassPathResource("/testmodules/"));
 		ResourceModuleRegistry file = new ResourceModuleRegistry(new FileSystemResource(
 				"src/test/resources/testmodules"));
-		registry = new CompositeModuleRegistry(cp, file);
+		registry = new DelegatingModuleRegistry(cp, file);
 	}
 
 	@Test

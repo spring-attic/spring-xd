@@ -33,7 +33,7 @@ import org.springframework.xd.module.ModuleType;
  * @author Glenn Renfro
  * @author David Turanski
  */
-public class CompositeModuleRegistry implements ModuleRegistry {
+public class DelegatingModuleRegistry implements ModuleRegistry {
 
 	private final List<ModuleRegistry> delegates = new ArrayList<ModuleRegistry>();
 
@@ -41,7 +41,7 @@ public class CompositeModuleRegistry implements ModuleRegistry {
 	 * @param cp
 	 * @param file
 	 */
-	public CompositeModuleRegistry(ModuleRegistry... delegates) {
+	public DelegatingModuleRegistry(ModuleRegistry... delegates) {
 		this.delegates.addAll(Arrays.asList(delegates));
 	}
 

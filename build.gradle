@@ -578,6 +578,7 @@ project('spring-xd-hadoop') {
 			exclude group: 'org.codehaus.jackson'
 			exclude group: 'hsqldb'
 		}
+		testRuntime "org.xerial.snappy:snappy-java:1.1.0"
 	}
 }
 

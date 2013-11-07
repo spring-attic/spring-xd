@@ -32,6 +32,7 @@ import org.springframework.xd.shell.command.fixtures.HttpSource;
  * 
  * @author Ilayaperumal Gopinathan
  * @author Eric Bottard
+ * @author Andy Clement
  */
 public class NamedChannelTests extends AbstractStreamIntegrationTest {
 
@@ -39,11 +40,11 @@ public class NamedChannelTests extends AbstractStreamIntegrationTest {
 
 	@Test
 	public void testCreateNamedChannelAsSink() {
-		logger.info("Creating stream with named channel 'foo' as sink");
+		logger.info("Creating stream with named channel 'queue:foo' as sink");
 		HttpSource source = newHttpSource();
 
 		stream().create("namedchanneltest-ticktock",
-				"%s | transform --expression=payload.toUpperCase() > :foo", source);
+				"%s | transform --expression=payload.toUpperCase() > queue:foo", source);
 	}
 
 	@Test
@@ -55,10 +56,10 @@ public class NamedChannelTests extends AbstractStreamIntegrationTest {
 		HttpSource httpSource = newHttpSource();
 		CounterSink counterSink = metrics().newCounterSink();
 
-		stream().create(stream1, "%s | transform --expression=payload.toUpperCase() > :foo",
+		stream().create(stream1, "%s | transform --expression=payload.toUpperCase() > queue:foo",
 				httpSource);
 		// Create stream with named channel as source
-		stream().create(stream2, ":foo > %s", counterSink);
+		stream().create(stream2, "queue:foo > %s", counterSink);
 		httpSource.ensureReady().postData("test");
 		assertThat(counterSink, eventually(hasValue("1")));
 	}

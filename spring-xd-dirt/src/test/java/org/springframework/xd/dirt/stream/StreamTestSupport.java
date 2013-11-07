@@ -168,7 +168,7 @@ public class StreamTestSupport {
 		Assert.notNull(message, "message cannot be null");
 
 		String tapName = streamName + "Tap";
-		String tapChannel = "tap:" + streamName;
+		String tapChannel = "tap:stream:" + streamName;
 		if (moduleToTap != null) {
 			tapChannel = tapChannel + "." + moduleToTap;
 		}

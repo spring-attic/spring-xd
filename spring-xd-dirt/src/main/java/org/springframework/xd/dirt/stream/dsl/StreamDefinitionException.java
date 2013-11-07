@@ -24,7 +24,7 @@ package org.springframework.xd.dirt.stream.dsl;
  * @author Andy Clement
  */
 @SuppressWarnings("serial")
-public class DSLException extends RuntimeException {
+public class StreamDefinitionException extends RuntimeException {
 
 	protected String expressionString;
 
@@ -34,7 +34,7 @@ public class DSLException extends RuntimeException {
 
 	private Object[] inserts;
 
-	public DSLException(String expressionString, int position, XDDSLMessages message, Object... inserts) {
+	public StreamDefinitionException(String expressionString, int position, XDDSLMessages message, Object... inserts) {
 		super(message.formatMessage(position, inserts));
 		this.position = position;
 		this.message = message;

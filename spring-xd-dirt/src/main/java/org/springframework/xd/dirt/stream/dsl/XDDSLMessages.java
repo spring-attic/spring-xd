@@ -57,19 +57,42 @@ public enum XDDSLMessages {
 	EXPECTED_CHANNEL_QUALIFIER(ERROR, 120, "expected channel reference '':<channel>'' but found ''{0}''"), //
 	EXPECTED_CHANNEL_NAME(ERROR, 121, "expected channel name but found ''{0}''"), //
 	ILLEGAL_STREAM_NAME(ERROR, 122, "illegal name for a stream ''{0}''"), //
-	NO_SOURCE_IN_SUBSTREAM(ERROR, 123, "substreams cannot specify a source channel, substream is ''{0}''"), //
-	NO_SINK_IN_SUBSTREAM(ERROR, 124, "substreams cannot specify a sink channel, substream is ''{0}''"), //
 	MISSING_VALUE_FOR_VARIABLE(ERROR, 125, "no value specified for variable ''{0}'' when using substream"), //
 	VARIABLE_NOT_TERMINATED(ERROR, 126, "unable to find variable terminator ''}'' in argument ''{0}''"), //
-	// ALREADY_HAS_SOURCE(ERROR,125,"cannot use substream with a source channel here"), //
-	// ALREADY_HAS_SINK(ERROR,126,"cannot use substream with a sink channel here"), //
-	// CANNOT_USE_SUBSTREAM_WITH_SOURCE(ERROR,127,"cannot use substream with source channel"), //
-	// CANNOT_USE_SUBSTREAM_WITH_SINK(ERROR,128,"cannot use substream with source channel"), //
-	AMBIGUOUS_MODULE_NAME(ERROR, 129,
-			"ambiguous module name ''{0}'' in stream named ''{1}'', appears at both position {2} and {3}"),
-	STREAM_NAME_MATCHING_MODULE_NAME(ERROR,
-			130,
-			"Stream name ''{0}'' same as that of its modules' names is not allowed.");
+	AMBIGUOUS_MODULE_NAME(ERROR,
+			129,
+			"ambiguous module name ''{0}'' in stream named ''{1}'', appears at both position {2} and {3}"), //
+	STREAM_NAME_MATCHING_MODULE_NAME(ERROR, 130,
+			"Stream name ''{0}'' same as that of its modules' names is not allowed."), //
+	CHANNEL_INDEXING_NOT_ALLOWED(ERROR, 131, "Channel does not support indexing"), //
+	ONLY_A_TAP_ON_A_STREAM_CAN_BE_INDEXED(ERROR, 132, "Only a tap on a stream can be indexed"), //
+	EXPECTED_CHANNEL_PREFIX_QUEUE_TOPIC(ERROR,
+			133,
+			"Expected channel prefix of ''queue'' or ''topic'' but found ''{0}''"), //
+	EXPECTED_CHANNEL_PREFIX_QUEUE_TOPIC_TAP(ERROR,
+			134,
+			"Expected channel prefix of ''queue'', ''topic'' or ''tap'' but found ''{0}''"), //
+	CANNOT_USE_COMPOSEDMODULE_HERE_AS_IT_DEFINES_SOURCE_CHANNEL(ERROR,
+			135,
+			"cannot use composed module ''{0}'' here because it defines a source channel"), //
+	CANNOT_USE_COMPOSEDMODULE_HERE_AS_IT_DEFINES_SINK_CHANNEL(ERROR,
+			136,
+			"cannot use composed module ''{0}'' here because it defines a sink channel"), //
+	CANNOT_USE_COMPOSEDMODULE_HERE_ALREADY_HAS_SOURCE_CHANNEL(ERROR,
+			137,
+			"cannot use composed module ''{0}'' here, both that composed module and this stream define a source channel"), //
+	CANNOT_USE_COMPOSEDMODULE_HERE_ALREADY_HAS_SINK_CHANNEL(ERROR,
+			138,
+			"cannot use composed module ''{0}'' here, both that composed module and this stream define a sink channel"), //
+	NO_WHITESPACE_IN_CHANNEL_DEFINITION(ERROR, 139, "no whitespace allowed between components in a channel name"), //
+	NO_WHITESPACE_BETWEEN_LABEL_NAME_AND_COLON(ERROR, 140, "no whitespace allowed between label name and colon"), //
+	TAP_NEEDS_THREE_COMPONENTS(ERROR,
+			141,
+			"a tap needs at least three components (tap:queue:[name], tap:topic:[name], tap:stream:[streamname] or tap:job:[jobname])"), //
+	NOT_ALLOWED_TO_TAP_THAT(ERROR,
+			142,
+			"tapping only allowed on 'stream', 'topic', 'job' or 'queue'. Not allowed on ''{0}''"), //
+	;
 
 	private Kind kind;
 

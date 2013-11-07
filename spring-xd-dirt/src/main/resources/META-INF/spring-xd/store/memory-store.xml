@@ -15,7 +15,7 @@
 		<constructor-arg ref="moduleRegistry"/>
 	</bean>
 
-	<bean id="moduleRegistry" class="org.springframework.xd.dirt.module.CompositeModuleRegistry">
+	<bean id="moduleRegistry" class="org.springframework.xd.dirt.module.DelegatingModuleRegistry">
 		<constructor-arg>
 			<bean class="org.springframework.xd.dirt.module.ResourceModuleRegistry">
 				<constructor-arg>

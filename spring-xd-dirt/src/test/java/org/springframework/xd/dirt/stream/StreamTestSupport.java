@@ -31,7 +31,7 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
-import org.springframework.xd.dirt.module.CompositeModuleRegistry;
+import org.springframework.xd.dirt.module.DelegatingModuleRegistry;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.module.ResourceModuleRegistry;
@@ -67,9 +67,9 @@ public class StreamTestSupport {
 
 		ConfigurableApplicationContext adminContext = singleNode.getAdminServer().getApplicationContext();
 		ResourceModuleRegistry cp = new ResourceModuleRegistry(new ClassPathResource("/testmodules/"));
-		CompositeModuleRegistry cmr1 = containerContext.getBean(CompositeModuleRegistry.class);
+		DelegatingModuleRegistry cmr1 = containerContext.getBean(DelegatingModuleRegistry.class);
 		cmr1.addDelegate(cp);
-		CompositeModuleRegistry cmr2 = adminContext.getBean(CompositeModuleRegistry.class);
+		DelegatingModuleRegistry cmr2 = adminContext.getBean(DelegatingModuleRegistry.class);
 		cmr2.addDelegate(cp);
 		streamDeployer = adminContext.getBean(StreamDeployer.class);
 		moduleDeployer = containerContext.getBean(ModuleDeployer.class);

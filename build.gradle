@@ -539,7 +539,6 @@ project('spring-xd-extension-reactor') {
 
 project('spring-xd-extension-hdfs') {
 	description = 'Spring XD HDFS'
-
 	def hadoopDefault = "hadoop20"
 	def hadoopDistro = project.hasProperty("hadoopDistro") ? project.getProperty("hadoopDistro") : hadoopDefault
 	def hadoopSuffix = hadoopDistro.equals("hadoop12") ? "" : "-" + hadoopDistro 
@@ -556,9 +555,9 @@ project('spring-xd-extension-hdfs') {
 			exclude group: 'javax.servlet.jsp'
 		}
 		compile "com.cloudera.cdk:cdk-data-core:0.8.0"
-        compile "org.xerial.snappy:snappy-java:1.1.0"
 		compile "org.springframework.batch:spring-batch-core:$springBatchVersion"
 		testCompile "org.springframework:spring-test:$springVersion"
+		testRuntime "org.xerial.snappy:snappy-java:1.1.0"
 	}
 }
 

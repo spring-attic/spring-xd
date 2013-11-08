@@ -71,6 +71,9 @@ public abstract class AbstractStreamDeploymentIntegrationTests {
 	protected static class StreamDeploymentIntegrationTestsConfiguration {
 	}
 
+	// FIXME: Hack to prevent this test from overwriting the global VM setting for XD_TRANSPORT
+	private static final String originalTransport = System.getProperty(XDPropertyKeys.XD_TRANSPORT);
+
 	@Before
 	public final void setUp() {
 		String transport = this.getTransport();
@@ -96,6 +99,9 @@ public abstract class AbstractStreamDeploymentIntegrationTests {
 
 	@After
 	public final void shutDown() {
+		if (originalTransport != null) {
+			System.setProperty(XDPropertyKeys.XD_TRANSPORT, originalTransport);
+		}
 		if (this.context != null) {
 			this.cleanup(this.context);
 			this.context.close();

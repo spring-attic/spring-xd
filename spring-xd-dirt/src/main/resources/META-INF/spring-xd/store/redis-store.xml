@@ -44,6 +44,11 @@
 		<constructor-arg ref="humanFriendlyRedisTemplate"/>
 		<constructor-arg ref="moduleRegistry"/>
 	</bean>
+	
+	<bean id="moduleDependencyRepository" class="org.springframework.xd.dirt.module.redis.RedisModuleDependencyRepository">
+		<constructor-arg ref="humanFriendlyRedisTemplate"/>
+	</bean>
+	
 
 	<bean id="moduleRegistry" class="org.springframework.xd.dirt.module.DelegatingModuleRegistry">
 		<constructor-arg>

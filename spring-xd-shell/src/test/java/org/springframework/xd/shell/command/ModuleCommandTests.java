@@ -24,9 +24,8 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.shell.core.CommandResult;
+import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableRow;
 import org.springframework.xd.shell.util.UiUtils;
@@ -39,18 +38,6 @@ import org.springframework.xd.shell.util.UiUtils;
  * @author Mark Fisher
  */
 public class ModuleCommandTests extends AbstractStreamIntegrationTest {
-
-	// TODO: refactor once module delete command is available
-	// see ComposedTemplate#dispose
-	public static void cleanupComposedModules() {
-		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
-		connectionFactory.afterPropertiesSet();
-		StringRedisTemplate redisTemplate = new StringRedisTemplate();
-		redisTemplate.setConnectionFactory(connectionFactory);
-		redisTemplate.afterPropertiesSet();
-		redisTemplate.delete("module.definitions.source:compositesource");
-		redisTemplate.delete("module.definitions");
-	}
 
 	@Test
 	public void testListAll() throws InterruptedException {
@@ -106,8 +93,6 @@ public class ModuleCommandTests extends AbstractStreamIntegrationTest {
 		assertTrue("compositesource is not present in list",
 				t.getRows().contains(new TableRow().addValue(1, "compositesource").addValue(2, "source")));
 
-		// TODO: remove
-		cleanupComposedModules();
 	}
 
 	@Test
@@ -119,8 +104,6 @@ public class ModuleCommandTests extends AbstractStreamIntegrationTest {
 		assertEquals("There is already a module named 'compositesource' with type 'source'\n",
 				result.getException().getMessage());
 
-		// TODO: remove
-		cleanupComposedModules();
 	}
 
 	@Test
@@ -129,8 +112,38 @@ public class ModuleCommandTests extends AbstractStreamIntegrationTest {
 				"module compose tcp --definition \"time | transform\"");
 		assertEquals("There is already a module named 'tcp' with type 'source'\n", result.getException().getMessage());
 
-		// TODO: remove
-		cleanupComposedModules();
+	}
+
+	@Test
+	public void testAttemptToDeleteNonComposedModule() {
+		assertFalse(compose().delete("tcp", ModuleType.source));
+	}
+
+	@Test
+	public void testDeleteUnusedComposedModule() {
+		compose().newModule("myhttp", "http | filter");
+		assertTrue(compose().delete("myhttp", ModuleType.source));
+	}
+
+	@Test
+	public void testDeleteComposedModuleUsedByOtherModule() {
+		compose().newModule("myhttp", "http | filter");
+		compose().newModule("evenbetterhttp", "myhttp | transform");
+		assertFalse(compose().delete("myhttp", ModuleType.source));
+
+		// Now delete blocking module
+		assertTrue(compose().delete("evenbetterhttp", ModuleType.source));
+		assertTrue(compose().delete("myhttp", ModuleType.source));
+	}
+
+	@Test
+	public void testDeleteComposedModuleUsedByStream() {
+		compose().newModule("myhttp", "http | filter");
+		executeCommand("stream create foo --definition \"myhttp | log\" --deploy false");
+		assertFalse(compose().delete("myhttp", ModuleType.source));
+		// Now deleting blocking stream
+		executeCommand("stream destroy foo");
+		assertTrue(compose().delete("myhttp", ModuleType.source));
 	}
 
 	private Table listAll() {

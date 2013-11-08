@@ -40,8 +40,11 @@ import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
 import org.springframework.xd.dirt.container.store.RuntimeContainerInfoRepository;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
+import org.springframework.xd.dirt.module.ModuleDependencyRepository;
+import org.springframework.xd.dirt.module.ModuleDependencyTracker;
 import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.module.memory.InMemoryModuleDefinitionRepository;
+import org.springframework.xd.dirt.module.memory.InMemoryModuleDependencyRepository;
 import org.springframework.xd.dirt.module.store.RuntimeContainerModuleInfoRepository;
 import org.springframework.xd.dirt.module.store.RuntimeModuleInfoRepository;
 import org.springframework.xd.dirt.plugins.job.BatchJobLocator;
@@ -132,8 +135,19 @@ public class Dependencies {
 	}
 
 	@Bean
+	public ModuleDependencyRepository moduleDependencyRepository() {
+		return new InMemoryModuleDependencyRepository();
+	}
+
+	@Bean
+	public ModuleDependencyTracker dependencyTracker() {
+		return new ModuleDependencyTracker(moduleDependencyRepository());
+	}
+
+	@Bean
 	public StreamDeployer streamDeployer() {
-		return new StreamDeployer(streamDefinitionRepository(), deploymentMessageSender(), streamRepository(), parser());
+		return new StreamDeployer(streamDefinitionRepository(), deploymentMessageSender(), streamRepository(),
+				parser(), dependencyTracker());
 	}
 
 	@Bean

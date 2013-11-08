@@ -21,7 +21,7 @@ import org.springframework.xd.module.options.spi.ProfileNamesProvider;
 
 
 /**
- * Captures module options for the "gemfire-server" sink module.
+ * Captures module options for the "gemfire-server" and "gemfire-json-server" sink modules.
  * 
  * @author Eric Bottard
  */
@@ -35,13 +35,17 @@ public class GemfireServerSinkModuleOptions implements ProfileNamesProvider {
 
 	private Integer locatorPort;
 
+	private String regionName;
+
+	private String keyExpression = "payload";
+
 
 	public String getGemfireHost() {
 		return gemfireHost;
 	}
 
 
-	@ModuleOption(description = "hostname of a single gemfire host to target")
+	@ModuleOption("hostname of a single gemfire host to target")
 	public void setGemfireHost(String gemfireHost) {
 		this.gemfireHost = gemfireHost;
 	}
@@ -51,32 +55,32 @@ public class GemfireServerSinkModuleOptions implements ProfileNamesProvider {
 		return gemfirePort;
 	}
 
-	@ModuleOption(description = "port of a single gemfire host to target")
+	@ModuleOption("port of a single gemfire host to target")
 	public void setGemfirePort(int gemfirePort) {
 		this.gemfirePort = gemfirePort;
 	}
 
 
-	public String getLocatorHost() {
-		return locatorHost;
-	}
-
-	@ModuleOption(description = "hostname to target when using a gemfire locator")
-	public void setLocatorHost(String locatorHost) {
-		this.locatorHost = locatorHost;
-	}
+	// public String getLocatorHost() {
+	// return locatorHost;
+	// }
+	//
+	// @ModuleOption("hostname to target when using a gemfire locator")
+	// public void setLocatorHost(String locatorHost) {
+	// this.locatorHost = locatorHost;
+	// }
 
 
 	// Use wrapper class so that no default is reported
-	public Integer getLocatorPort() {
-		return locatorPort;
-	}
+	// public Integer getLocatorPort() {
+	// return locatorPort;
+	// }
 
-	@ModuleOption(description = "port to target when using a gemfire locator")
+	// @ModuleOption("port to target when using a gemfire locator")
 	// Use primitive type, so that null is not allowed
-	public void setLocatorPort(int locatorPort) {
-		this.locatorPort = locatorPort;
-	}
+	// public void setLocatorPort(int locatorPort) {
+	// this.locatorPort = locatorPort;
+	// }
 
 
 	@Override
@@ -87,6 +91,28 @@ public class GemfireServerSinkModuleOptions implements ProfileNamesProvider {
 		else {
 			return new String[] { "use-server" };
 		}
+	}
+
+
+	public String getRegionName() {
+		return regionName;
+	}
+
+
+	@ModuleOption("name of the region to use when storing data")
+	public void setRegionName(String regionName) {
+		this.regionName = regionName;
+	}
+
+
+	public String getKeyExpression() {
+		return keyExpression;
+	}
+
+
+	@ModuleOption("a SpEL expression which is evaluated to create a cache key")
+	public void setKeyExpression(String keyExpression) {
+		this.keyExpression = keyExpression;
 	}
 
 

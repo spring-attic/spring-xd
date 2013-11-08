@@ -94,12 +94,12 @@ public class PojoModuleOptions implements ModuleOptions {
 	private String descriptionFromAnnotation(String optionName,
 			org.springframework.xd.module.options.spi.ModuleOption annotation) {
 		Assert.hasLength(
-				annotation.description(),
+				annotation.value(),
 				String.format(
 						"Setter method for option '%s' needs to bear the @%s annotation and provide a non-empty 'description' attribute",
 						optionName,
 						org.springframework.xd.module.options.spi.ModuleOption.class.getSimpleName()));
-		return annotation.description();
+		return annotation.value();
 	}
 
 	@Override

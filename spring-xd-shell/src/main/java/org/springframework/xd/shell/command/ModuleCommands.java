@@ -114,16 +114,15 @@ public class ModuleCommands implements CommandMarker {
 
 	@CliCommand(value = DISPLAY_MODULE, help = "Display the configuration file of a module")
 	public String display(
-			// TODO: replace with converter once XD-953b is merged in
-			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the the module") String name,
-			@CliOption(mandatory = true, key = "type", help = "the type of the module") RESTModuleType moduleType) {
+			@CliOption(mandatory = true, key = { "name", "" }, help = "name of the module to display, in the form 'type:name'") QualifiedModuleName module
+			) {
 
 		final String configurationFileContents = moduleOperations().downloadConfigurationFile(
-				moduleType, name);
+				module.type, module.name);
 
 		final StringBuilder sb = new StringBuilder()
-				.append(String.format("Configuration file contents for module definiton '%s' (%s):%n%n", name,
-						moduleType))
+				.append(String.format("Configuration file contents for module definiton '%s' (%s):%n%n", module.name,
+						module.type))
 				.append(UiUtils.HORIZONTAL_LINE)
 				.append(configurationFileContents)
 				.append(UiUtils.HORIZONTAL_LINE);

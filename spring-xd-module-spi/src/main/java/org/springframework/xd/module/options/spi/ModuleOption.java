@@ -37,7 +37,7 @@ public @interface ModuleOption {
 	/**
 	 * Provide a short description of the option.
 	 */
-	String description();
+	String value();
 
 	/**
 	 * Provide a default value representation of the option. Only needed when there is no corresponding getter for that

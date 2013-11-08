@@ -17,6 +17,7 @@
 package org.springframework.xd.shell.command;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,6 +52,14 @@ public class ComposedTemplate implements Disposable {
 	public String newModule(String name, String definition) {
 		CommandResult result = shell.executeCommand(String.format("module compose %s --definition \"%s\"", name,
 				definition));
+		if (!result.isSuccess()) {
+			if (result.getException() != null) {
+				throw new AssertionError("Module composition failed", result.getException());
+			}
+			else {
+				fail("Module composition failed with no exception");
+			}
+		}
 		Matcher matcher = SUCCESS_PATTERN.matcher((CharSequence) result.getResult());
 		assertTrue("Module composition apparently failed: " + result.getResult(), matcher.matches());
 		String key = matcher.group(2) + ":" + matcher.group(1);

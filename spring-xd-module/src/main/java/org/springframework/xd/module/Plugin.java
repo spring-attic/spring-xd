@@ -24,7 +24,7 @@ import org.springframework.context.ConfigurableApplicationContext;
  * components} or {@link Module#addProperties(java.util.Properties) setting additional properties}.
  * 
  * @see ModuleDeployer
- * 
+ *
  * @author Mark Fisher
  * @author Gary Russell
  * @author Eric Bottard

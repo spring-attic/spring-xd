@@ -55,10 +55,6 @@ public class CompositeModule extends AbstractModule {
 
 	private final AtomicBoolean isRunning = new AtomicBoolean();
 
-	/**
-	 * @param definitions
-	 * @param metadata
-	 */
 	public CompositeModule(String name, ModuleType type, List<SimpleModule> modules,
 			DeploymentMetadata metadata) {
 		super(new ModuleDefinition(name, type), metadata);

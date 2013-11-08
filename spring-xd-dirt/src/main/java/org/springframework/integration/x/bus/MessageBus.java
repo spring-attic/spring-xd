@@ -47,7 +47,7 @@ public interface MessageBus {
 	 * Bind a message consumer on a pub/sub channel
 	 * 
 	 * @param name the logical identity of the message source
-	 * @param moduleInputChannel the channel bound as a pub/sub consumer
+	 * @param inputChannel the channel bound as a pub/sub consumer
 	 * @param acceptedMediaTypes the media types supported by the channel
 	 */
 	void bindPubSubConsumer(final String name, MessageChannel inputChannel,
@@ -67,7 +67,7 @@ public interface MessageBus {
 	 * Bind a message producer on a pub/sub channel.
 	 * 
 	 * @param name the logical identity of the message target
-	 * @param moduleOutputChannel the channel bound as a producer
+	 * @param outputChannel the channel bound as a producer
 	 */
 	void bindPubSubProducer(final String name, MessageChannel outputChannel);
 
@@ -97,7 +97,7 @@ public interface MessageBus {
 	 * Unbind a specific p2p or pub/sub message producer
 	 * 
 	 * @param name the logical identity of the message target
-	 * @param moduleOutputChannel the channel bound as a producer
+	 * @param channel the channel bound as a producer
 	 */
 	void unbindProducer(String name, MessageChannel channel);
 

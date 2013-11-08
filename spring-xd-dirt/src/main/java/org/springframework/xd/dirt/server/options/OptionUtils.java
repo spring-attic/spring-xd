@@ -30,7 +30,6 @@ public class OptionUtils {
 	 * 
 	 * @param options - the options
 	 * @param explicit - true if explicit options are included, false otherwise
-	 * @return
 	 */
 	static Properties optionsToProperties(AbstractOptions options, boolean explicit) {
 		Properties xdProperties = new Properties();

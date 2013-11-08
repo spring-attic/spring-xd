@@ -26,9 +26,6 @@ import org.springframework.xd.dirt.core.XDRuntimeException;
 @SuppressWarnings("serial")
 public class BatchJobAlreadyExistsException extends XDRuntimeException {
 
-	/**
-	 * @param message exception message
-	 */
 	public BatchJobAlreadyExistsException(String name) {
 		super("Batch Job with the name " + name + " already exists");
 	}

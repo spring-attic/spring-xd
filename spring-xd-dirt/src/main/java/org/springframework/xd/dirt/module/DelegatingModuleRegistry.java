@@ -37,10 +37,6 @@ public class DelegatingModuleRegistry implements ModuleRegistry {
 
 	private final List<ModuleRegistry> delegates = new ArrayList<ModuleRegistry>();
 
-	/**
-	 * @param cp
-	 * @param file
-	 */
 	public DelegatingModuleRegistry(ModuleRegistry... delegates) {
 		this.delegates.addAll(Arrays.asList(delegates));
 	}

@@ -18,7 +18,6 @@ package org.springframework.data.hadoop.store.support;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.io.InputStream;
 
 import org.springframework.util.Assert;
 
@@ -57,8 +56,8 @@ public class StreamsHolder<T extends Closeable> implements Closeable {
 	/**
 	 * Close both streams in this holder. Possible {@code IOException} by closing wrapped stream is not thrown.
 	 * 
-	 * @see InputStream#close()
-	 * @see OutputStream#close()
+	 * @see java.io.InputStream#close()
+	 * @see java.io.OutputStream#close()
 	 */
 	@Override
 	public void close() throws IOException {

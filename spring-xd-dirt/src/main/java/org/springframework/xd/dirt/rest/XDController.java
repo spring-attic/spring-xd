@@ -46,8 +46,8 @@ import org.springframework.xd.rest.client.domain.NamedResource;
  * Base Class for XD Controllers.
  * 
  * @param <D> the kind of definition entity this controller deals with
- * @param <V> a resource assembler that knows how to build Ts out of Ds
- * @param <T> the resource class for D
+ * @param <A> a resource assembler that knows how to build Ts out of Ds
+ * @param <R> the resource class for D
  * 
  * @author Glenn Renfro
  * @author Ilayaperumal Gopinathan

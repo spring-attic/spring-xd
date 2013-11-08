@@ -25,9 +25,6 @@ import org.springframework.xd.dirt.core.XDRuntimeException;
 @SuppressWarnings("serial")
 public class NoSuchBatchJobException extends XDRuntimeException {
 
-	/**
-	 * @param message exception message
-	 */
 	public NoSuchBatchJobException(String name) {
 		super("Batch Job with the name " + name + " doesn't exist");
 	}

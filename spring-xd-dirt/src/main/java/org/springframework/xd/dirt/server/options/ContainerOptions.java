@@ -23,14 +23,9 @@ import org.kohsuke.args4j.Option;
  */
 public class ContainerOptions extends AbstractOptions {
 
-	/**
-	 * @param defaultTransport
-	 * @param defaultAnalytics
-	 */
 	public ContainerOptions() {
 		super(Transport.redis, Analytics.redis);
 	}
-
 
 	@Option(name = "--" + STORE, usage = "How to persist container/modules data (default: redis)")
 	private Store store = Store.redis;

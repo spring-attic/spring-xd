@@ -34,7 +34,6 @@ public abstract class AbstractCodec<T> implements Serializer<T>, Deserializer<T>
 	 * Deserialize a byte array.
 	 * 
 	 * @param bytes
-	 * @return
 	 * @throws IOException
 	 */
 	public T deserialize(byte[] bytes) throws IOException {

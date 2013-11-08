@@ -38,6 +38,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.plugins.ModuleConfigurationException;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.ModuleType;
+import org.springframework.xd.module.Plugin;
 import org.springframework.xd.module.PluginAdapter;
 import org.springframework.xd.module.SimpleModule;
 

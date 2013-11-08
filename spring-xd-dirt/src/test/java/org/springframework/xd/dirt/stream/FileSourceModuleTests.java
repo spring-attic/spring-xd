@@ -58,7 +58,9 @@ public class FileSourceModuleTests extends StreamTestSupport {
 
 	@Before
 	public void setUp() throws IOException {
-		FileUtils.cleanDirectory(sourceDir);
+		if (sourceDir.exists()) {
+			FileUtils.cleanDirectory(sourceDir);
+		}
 	}
 
 	@Test
@@ -130,7 +132,9 @@ public class FileSourceModuleTests extends StreamTestSupport {
 
 	@AfterClass
 	public static void deleteTempDir() throws IOException {
-		FileUtils.cleanDirectory(sourceDir);
-		FileUtils.deleteDirectory(sourceDir);
+		if (sourceDir.exists()) {
+			FileUtils.cleanDirectory(sourceDir);
+			FileUtils.deleteDirectory(sourceDir);
+		}
 	}
 }

@@ -113,7 +113,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 	@Override
 	public void bindPubSubProducer(final String name, MessageChannel moduleOutputChannel) {
 		RedisPublishingMessageHandler topic = new RedisPublishingMessageHandler(connectionFactory);
-		topic.setDefaultTopic("topic." + name);
+		topic.setTopic("topic." + name);
 		topic.afterPropertiesSet();
 		doRegisterProducer(name, moduleOutputChannel, topic);
 	}

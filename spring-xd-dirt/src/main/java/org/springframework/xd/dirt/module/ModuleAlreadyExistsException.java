@@ -25,6 +25,7 @@ import org.springframework.xd.module.ModuleType;
  * 
  * @author Eric Bottard
  */
+@SuppressWarnings("serial")
 public class ModuleAlreadyExistsException extends XDRuntimeException {
 
 	private final String name;

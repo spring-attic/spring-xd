@@ -71,9 +71,10 @@ ext {
 	jodaTimeVersion = '2.1'
 	jolokiaVersion = '1.1.2'
 	snakeYamlVersion = '1.12'
-	springVersion = '4.0.0.BUILD-SNAPSHOT'
+	springVersion = '4.0.0.RC1'
 	springBatchVersion = '2.2.3.BUILD-SNAPSHOT'
-	springIntegrationVersion = '4.0.0.BUILD-SNAPSHOT'
+	springIntegrationVersion = '4.0.0.M1'
+	springIntegrationMQTTVersion = '4.0.0.M1'
 	springBootVersion = '0.5.0.BUILD-SNAPSHOT'
 	springCloudVersion = '0.9.3.BUILD-SNAPSHOT'
 	springBatchAdminMgrVersion = '1.3.0.M1'
@@ -922,7 +923,7 @@ project('modules.sink.tcp') {
 
 project('modules.source.mqtt') {
 	dependencies {
-		runtime ("org.springframework.integration:spring-integration-mqtt:4.0.0.BUILD-SNAPSHOT") {
+		runtime ("org.springframework.integration:spring-integration-mqtt:$springIntegrationMQTTVersion") {
 		// spring-integration-mqtt has a different lifecycle than SI and may bring a version
 		// of SI which is believed by gradle to be newer than our preferred version.
 	     exclude group: 'org.springframework.integration'
@@ -932,7 +933,7 @@ project('modules.source.mqtt') {
 
 project('modules.sink.mqtt') {
 	dependencies {
-		runtime ("org.springframework.integration:spring-integration-mqtt:4.0.0.BUILD-SNAPSHOT") {
+		runtime ("org.springframework.integration:spring-integration-mqtt:$springIntegrationMQTTVersion") {
 		// spring-integration-mqtt has a different lifecycle than SI and may bring a version
 		// of SI which is believed by gradle to be newer than our preferred version.
 	     exclude group: 'org.springframework.integration'

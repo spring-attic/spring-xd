@@ -36,8 +36,8 @@ public class DetailedModuleDefinitionResource extends ModuleDefinitionResource {
 
 	}
 
-	public DetailedModuleDefinitionResource(String name, String definition, String type) {
-		super(name, definition, type);
+	public DetailedModuleDefinitionResource(String name, String type) {
+		super(name, type);
 	}
 
 	private List<Option> options = new ArrayList<Option>();

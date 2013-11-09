@@ -43,7 +43,6 @@ public class DetailedModuleDefinitionResourceAssembler extends
 	@Override
 	protected DetailedModuleDefinitionResource instantiateResource(ModuleDefinition entity) {
 		DetailedModuleDefinitionResource result = new DetailedModuleDefinitionResource(entity.getName(),
-				entity.getResource().getDescription(),
 				entity.getType().name());
 		ModuleOptions moduleOptions = entity.getModuleOptions();
 		if (moduleOptions.iterator() != null) {

@@ -23,7 +23,7 @@ import org.springframework.core.io.DescriptiveResource;
 import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
 import org.springframework.xd.module.options.ModuleOptions;
-import org.springframework.xd.module.options.ModuleOptionsFactory;
+import org.springframework.xd.module.options.ModuleOptionsResolver;
 
 /**
  * Defines a module.
@@ -106,7 +106,7 @@ public class ModuleDefinition {
 
 	public synchronized ModuleOptions getModuleOptions() {
 		if (moduleOptions == null) {
-			moduleOptions = ModuleOptionsFactory.create(this);
+			moduleOptions = ModuleOptionsResolver.create(this);
 		}
 		return moduleOptions;
 	}

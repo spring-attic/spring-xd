@@ -27,14 +27,14 @@ import org.springframework.xd.module.ParentLastURLClassLoader;
 
 
 /**
- * Factory class for deriving {@link ModuleOptions} for a given {@link ModuleDefinition}.
+ * Resolves {@link ModuleOptions} for a given {@link ModuleDefinition}.
  * 
  * The following strategies will be applied in turn:
  * <ul>
  * <li>look for a file named {@code <modulename>.properties} next to the module xml definition file</li>
  * <li>if that file exists
  * <ul>
- * <li>look for an {@value ModuleOptionsFactory#OPTIONS_CLASS} property. If found, use a {@link PojoModuleOptions}
+ * <li>look for an {@value ModuleOptionsResolver#OPTIONS_CLASS} property. If found, use a {@link PojoModuleOptions}
  * backed by that POJO classname</li>
  * <li>use a {@link SimpleModuleOptions} backed by keys of the form {@code options.<name>.description}. Additionaly, one
  * can provide {@code options.<name>.default} and {@code options.<name>.type} properties.</li>
@@ -44,7 +44,7 @@ import org.springframework.xd.module.ParentLastURLClassLoader;
  * 
  * @author Eric Bottard
  */
-public class ModuleOptionsFactory {
+public class ModuleOptionsResolver {
 
 	private static final Pattern DESCRIPTION_KEY_PATTERN = Pattern.compile("^options\\.([a-zA-Z\\-_0-9]+)\\.description$");
 
@@ -68,20 +68,19 @@ public class ModuleOptionsFactory {
 					try {
 						ClassLoader classLoaderToUse = definition.getClasspath() != null
 								? new ParentLastURLClassLoader(definition.getClasspath(),
-										ModuleOptionsFactory.class.getClassLoader())
-								: ModuleOptionsFactory.class.getClassLoader();
+										ModuleOptionsResolver.class.getClassLoader())
+								: ModuleOptionsResolver.class.getClassLoader();
 						Class<?> clazz = Class.forName(pojoClass, true, classLoaderToUse);
 						return new PojoModuleOptions(clazz);
 					}
 					catch (ClassNotFoundException e) {
-						throw new RuntimeException(e);
+						throw new IllegalStateException("Unable to load class used by ModuleOptions: " + pojoClass, e);
 					}
 				}
 				return makeSimpleModuleOptions(props);
 			}
 		}
 		catch (IOException e) {
-			e.printStackTrace();
 			return AbsentModuleOptions.INSTANCE;
 		}
 
@@ -106,7 +105,8 @@ public class ModuleOptionsFactory {
 						clazz = Class.forName(type);
 					}
 					catch (ClassNotFoundException e) {
-						e.printStackTrace();
+						throw new IllegalStateException("Can't find class used for type of option '" + optionName
+								+ "': " + type);
 					}
 				}
 				ModuleOption moduleOption = new ModuleOption(optionName, description).withDefaultValue(

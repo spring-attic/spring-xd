@@ -144,6 +144,12 @@ a:hover {
     vertical-align:middle;
 }
 
+#job-params-modal .modal-dialog {
+	width: 90%;
+	margin-left:auto;
+	margin-right:auto;
+}
+
 /*
 * Font styles
 */

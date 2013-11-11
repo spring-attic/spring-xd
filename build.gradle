@@ -1400,7 +1400,7 @@ task docsZip(type: Zip) {
 
 task distZip(type: Zip, dependsOn: [asciidoctorHtml, copyInstall], overwrite: true) {
 	group = 'Application'
-	classifier = ''
+	classifier = 'dist'
 	description = "Bundles the XD project and associated installs with libs and OS specific scripts as a zip file."
 
 	ext.baseDir = "${project.name}-${project.version}";

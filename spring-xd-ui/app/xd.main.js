@@ -41,7 +41,11 @@ requirejs.config({
 		'cubism': '../lib/cubism/cubism.v1',
 		'd3': '../lib/d3/d3',
 		'tipsy': '../lib/tipsy/jquery.tipsy',
-		backbone: '../lib/backbone-amd/backbone'
+		backbone: '../lib/backbone-amd/backbone',
+		marionette : '../lib/backbone.marionette/backbone.marionette',
+		'backbone.babysitter': '../lib/backbone.marionette/backbone.babysitter',
+		'backbone.wreqr': '../lib/backbone.marionette/backbone.wreqr',
+		'backbone.modelbinder': '../lib/backbone.modelbinder/backbone.modelbinder',
 	},
 	shim: {
 		'bootstrap-alert': ['jquery'],
@@ -49,9 +53,19 @@ requirejs.config({
 		'bootstrap-collapse': ['jquery'],
 		'bootstrap-tab': ['jquery'],
 		'tipsy': ['jquery'],
-		'cubism': ['d3']
+		'cubism': ['d3'],
+		backbone : {
+			deps : ['jquery', 'underscore'],
+			exports : 'Backbone'
+		},
+		marionette : {
+			deps: ["backbone", "underscore"],
+			exports: "Backbone.Marionette"
+		}
 	}
 });
 
 // load up the wire spec and also load non-amd libraries
-require(['wire!xd.wirespec', 'd3', 'cubism', 'bootstrap-alert', 'bootstrap-modal', 'bootstrap-tab', 'bootstrap-collapse']);
+require([
+	'wire!xd.wirespec', 'd3', 'cubism', 'bootstrap-alert', 'bootstrap-modal',
+	'bootstrap-tab', 'bootstrap-collapse']);

@@ -25,6 +25,7 @@
 
 define([], function() {
 	'use strict';
+
 	var routerFactory = function(when, Backbone, utils, model, client, config) {
 
 		var REFRESH_INTERVAL = config.refreshInterval;
@@ -33,9 +34,9 @@ define([], function() {
 		 */
 		var XDRouter = Backbone.Router.extend({
 
-		routes: {
-			'jobs': 'showJobs'
-		},
+			routes: {
+				'jobs': 'showJobs'
+			},
 
 			// called by viewer
 			initializeViewRouting: function(views) {

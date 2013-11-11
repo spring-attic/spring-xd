@@ -18,16 +18,17 @@
  * View for XD Job deployments
  * @author Ilayaperumal Gopinathan
  * @author Andrew Eisenberg
+ * @author Gunnar Hillert
  */
 /*global define, _, $ */
 define([],
 function() {
 	'use strict';
-	return function(Backbone, model, xdJobDeploymentsTemplate, jobParamsFormTemplate, utils, strings) {
+	return function(Backbone, model, JobLaunches, xdJobDeploymentsTemplate, utils, strings) {
 
 		function extractJob(name) {
 			return model.batchJobs.get(name);
-        }
+		}
 
 		var XDJobDeployments = Backbone.View.extend({
 			initialize: function(options) {
@@ -38,13 +39,10 @@ function() {
 
 			events: {
 				'click button.open-job-params': 'openJobParamsModal',
-				'click button.job-schedule': 'scheduleJob',
-				'click button.add-job-param': 'addJobParamToModal'
+				'click button.job-schedule': 'scheduleJob'
 			},
 
 			template: _.template(xdJobDeploymentsTemplate),
-
-			jobParamsFormTemplate: _.template(jobParamsFormTemplate),
 
 			render: function() {
 				this.$el.html(this.template({jobs: model.batchJobs.jobs}));
@@ -54,27 +52,31 @@ function() {
 			openJobParamsModal: function(event) {
 				var launchId = event.target.id;
 				var jobName = launchId.substring(launchId.indexOf('-')+1);
-				//TODO: use jobName when launching job from Modal
+
+				console.log("Opening Job Parameter screen for " + jobName);
+
+				var jl = model.jobLaunchRequest;
+
+				jl.set({
+					jobname: jobName
+				});
+
+				var jobLaunches = new JobLaunches({
+					el: $( "#job-launch-modal" ),
+					model: jl
+				});
 				$('#job-params-modal').modal('show');
+				model.batchJobs.stopFetching();
+				jobLaunches.render();
 			},
-
-			addJobParamToModal: function() {
-				$('#job-params-form').append(this.jobParamsFormTemplate());
-			},
-
-//			launchJob: function(event) {
-//				var job = extractJob(jobName);
-//				if (job) {
-//                    job.launch().then(function() {
-//                        utils.showSuccessMsg(strings.launchJobSuccess);
-//                    });
-//                }
-//			},
 
 			scheduleJob: function(event) {
+				console.log("Scheduling not implemented, yet.")
 				var id = event.target;
-			}
+			},
+
 		});
+
 		return XDJobDeployments;
 	};
 });

@@ -7,6 +7,4 @@
 
 	<import resource="local-common.xml"/>
 
-	<bean class="org.springframework.xd.dirt.launcher.LocalContainerLauncher"/>
-
 </beans>

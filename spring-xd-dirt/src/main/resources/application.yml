@@ -8,6 +8,18 @@ server:
 ---
 
 spring:
+  profiles: memory
+XD_TRANSPORT: local
+XD_ANALYTICS: memory
+XD_STORE: memory
+server:
+  port: 0
+management:
+  port: 0
+
+---
+
+spring:
   profiles: rabbit
 XD_TRANSPORT: rabbit
 

@@ -7,8 +7,4 @@
 
 	<import resource="redis-common.xml"/>
 
-	<bean class="org.springframework.xd.dirt.launcher.RedisContainerLauncher">
-		<constructor-arg ref="redisConnectionFactory" />
-	</bean>
-
 </beans>

@@ -42,8 +42,6 @@ import org.springframework.xd.dirt.event.AbstractModuleEvent;
 import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.dirt.module.TestModuleEventListener;
-import org.springframework.xd.dirt.server.options.Analytics;
-import org.springframework.xd.dirt.server.options.Transport;
 import org.springframework.xd.dirt.server.options.XDPropertyKeys;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.SimpleModule;
@@ -69,8 +67,8 @@ public class StreamPluginModuleDeploymentTests {
 
 	@BeforeClass
 	public static void setContextProperties() {
-		System.setProperty(XDPropertyKeys.XD_TRANSPORT, Transport.local.name());
-		System.setProperty(XDPropertyKeys.XD_ANALYTICS, Analytics.memory.name());
+		System.setProperty(XDPropertyKeys.XD_TRANSPORT, "local");
+		System.setProperty(XDPropertyKeys.XD_ANALYTICS, "memory");
 		System.setProperty(XDPropertyKeys.XD_HOME, new File("..").getAbsolutePath());
 	}
 

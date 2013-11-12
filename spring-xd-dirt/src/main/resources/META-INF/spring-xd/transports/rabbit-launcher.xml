@@ -7,8 +7,4 @@
 
 	<import resource="rabbit-common.xml"/>
 
-	<bean class="org.springframework.xd.dirt.launcher.RabbitContainerLauncher">
-		<constructor-arg ref="rabbitConnectionFactory" />
-	</bean>
-
 </beans>

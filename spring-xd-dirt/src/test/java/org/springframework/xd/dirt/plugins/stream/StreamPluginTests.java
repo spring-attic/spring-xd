@@ -27,6 +27,7 @@ import static org.mockito.Mockito.when;
 import java.util.Collections;
 import java.util.List;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -39,6 +40,7 @@ import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.xd.dirt.server.options.XDPropertyKeys;
 import org.springframework.xd.module.BeanDefinitionAddingPostProcessor;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.Module;
@@ -62,6 +64,11 @@ public class StreamPluginTests {
 	@Before
 	public void setup() {
 		System.setProperty("XD_TRANSPORT", "local");
+	}
+
+	@After
+	public void clearContextProperties() {
+		System.clearProperty(XDPropertyKeys.XD_TRANSPORT);
 	}
 
 	@Test

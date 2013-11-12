@@ -14,24 +14,25 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.launcher;
+package org.springframework.xd.dirt;
 
-import org.springframework.xd.dirt.core.XDRuntimeException;
+import org.junit.Ignore;
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
+import org.junit.runners.Suite.SuiteClasses;
+
+import org.springframework.xd.dirt.stream.FileSourceModuleTests;
+import org.springframework.xd.dirt.stream.SingleNodeStreamDeploymentIntegrationTests;
+
 
 /**
- * Exception thrown when the XDContainer fails to launch.
+ * A test suite for probing weird ordering problems in the tests.
  * 
- * @author David Turanski
+ * @author Dave Syer
  */
-@SuppressWarnings("serial")
-public class XDContainerLaunchException extends XDRuntimeException {
-
-	public XDContainerLaunchException(String message) {
-		super(message);
-	}
-
-	public XDContainerLaunchException(String message, Throwable cause) {
-		super(message, cause);
-	}
+@RunWith(Suite.class)
+@SuiteClasses({ SingleNodeStreamDeploymentIntegrationTests.class, FileSourceModuleTests.class })
+@Ignore
+public class AdhocTestSuite {
 
 }

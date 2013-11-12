@@ -21,7 +21,6 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -34,14 +33,10 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
-import org.springframework.xd.dirt.server.SingleNodeMain;
-import org.springframework.xd.dirt.server.SingleNodeServer;
-import org.springframework.xd.dirt.server.options.SingleNodeOptions;
-import org.springframework.xd.rest.client.impl.SpringXDTemplate;
+import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
@@ -72,18 +67,12 @@ public abstract class AbstractShellIntegrationTest {
 
 	protected static final String DEFAULT_METRIC_NAME = "bar";
 
-	private static final String DEFAULT_HSQLDB_NAME = "test";
-
-	private static final String DEFAULT_HSQLDB_PORT = "9100";
-
-	private static final String DEFAULT_HSQL_DATABASE = "xdjobrepotest";
-
 	@Rule
 	public RedisTestSupport redisAvailableRule = new RedisTestSupport();
 
 	private static final Log logger = LogFactory.getLog(AbstractShellIntegrationTest.class);
 
-	private static SingleNodeServer server;
+	private static SingleNodeApplication application;
 
 	private static JLineShellComponent shell;
 
@@ -92,52 +81,22 @@ public abstract class AbstractShellIntegrationTest {
 	@BeforeClass
 	public static void startUp() throws InterruptedException, IOException {
 
-		SingleNodeOptions options = SingleNodeMain.parseOptions(new String[] { "--httpPort", "0", "--transport",
-			"local", "--store",
-			"redis", "--analytics", "redis" });
-		System.setProperty("hsql.server.dbname", DEFAULT_HSQLDB_NAME);
-		System.setProperty("hsql.server.port", DEFAULT_HSQLDB_PORT);
-		System.setProperty("hsql.server.database", DEFAULT_HSQL_DATABASE);
-		server = SingleNodeMain.launchSingleNodeServer(options);
-		int port = server.getAdminServer().getLocalPort();
-		logger.info("Admin Server running on " + port);
-		waitForServerToBeReady(port);
-
-
+		application = new SingleNodeApplication().run("--spring.profiles.active=memory,default", "--XD_STORE=redis",
+				"--XD_ANALYTICS=redis", "--server.port=9292");
+		// TODO: port scanning instead of using 9292
 		Bootstrap bootstrap = new Bootstrap(new String[] { "--port",
-			Integer.toString(port) });
+			"9292" });
 		shell = bootstrap.getJLineShellComponent();
-	}
 
-	private static void waitForServerToBeReady(int port) throws InterruptedException {
-		SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-		// Set this to non-zero, or the underlying RestTemplate will hang forever
-		int clientTimeout = 10000;
-		factory.setConnectTimeout(clientTimeout);
-		factory.setReadTimeout(clientTimeout);
-
-		int timeout = 2 * clientTimeout;
-		long giveUpAt = System.currentTimeMillis() + timeout;
-		while (System.currentTimeMillis() < giveUpAt) {
-			try {
-				new SpringXDTemplate(factory, URI.create("http://localhost:" + port));
-				return;
-			}
-			catch (Exception e) {
-				Thread.sleep(50);
-			}
-		}
-		throw new IllegalStateException(String.format(
-				"Admin server on port %d does not seem to be listening after waiting for %dms", port, timeout));
 	}
 
 	@AfterClass
 	public static void shutdown() {
 		logger.info("Stopping XD Shell");
 		shell.stop();
-		if (server != null) {
+		if (application != null) {
 			logger.info("Stopping Single Node Server");
-			server.stop();
+			application.close();
 		}
 	}
 

@@ -39,7 +39,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.Resource;
-import org.springframework.xd.dirt.server.AdminServer;
+import org.springframework.xd.dirt.server.AdminServerApplication;
 import org.springframework.xd.dirt.server.options.XDPropertyKeys;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.Module;
@@ -90,13 +90,15 @@ public class JobPluginTests {
 
 		plugin = new JobPlugin();
 		sharedContext = new SpringApplicationBuilder(SharedConfiguration.class).profiles(
-				AdminServer.ADMIN_PROFILE).properties("spring.datasource.url=jdbc:hsqldb:mem:xdjobrepotest").web(false).initializers(
+				AdminServerApplication.ADMIN_PROFILE).properties("spring.datasource.url=jdbc:hsqldb:mem:xdjobrepotest") //
+		.web(false).initializers(
 				new ApplicationContextInitializer<ConfigurableApplicationContext>() {
 
 					@Override
 					public void initialize(ConfigurableApplicationContext applicationContext) {
 						plugin.preProcessSharedContext(applicationContext);
 					}
+
 				}).run();
 
 	}

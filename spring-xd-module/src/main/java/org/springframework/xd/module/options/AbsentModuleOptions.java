@@ -16,6 +16,7 @@
 
 package org.springframework.xd.module.options;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Properties;
 
@@ -41,7 +42,7 @@ public class AbsentModuleOptions implements ModuleOptions {
 
 	@Override
 	public Iterator<ModuleOption> iterator() {
-		return null;
+		return Collections.<ModuleOption> emptyList().iterator();
 	}
 
 	@Override

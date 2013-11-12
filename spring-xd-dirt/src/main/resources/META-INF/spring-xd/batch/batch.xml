@@ -19,22 +19,26 @@
 
 	<beans profile="legacy, default">
 
-		<bean id="hsqldb" class="org.springframework.xd.dirt.job.HSQLServerBean">
-			<property name="serverProperties">
-				<props>
-					<prop key="server.port">${hsql.server.port:9100}</prop>
-					<prop key="server.database.0">${XD_HOME}/data/jobs/${hsql.server.database:xdjobrepotest}
-					</prop>
-					<prop key="server.dbname.0">${hsql.server.dbname:test}</prop>
-				</props>
-			</property>
-		</bean>
+		<beans profile="adminServer">
 
-		<jdbc:initialize-database data-source="dataSource"
-			ignore-failures="ALL">
-			<jdbc:script
-				location="classpath:/org/springframework/xd/dirt/job/registry-schema-hsqldb.sql" />
-		</jdbc:initialize-database>
+			<bean id="hsqldb" class="org.springframework.xd.dirt.job.HSQLServerBean">
+				<property name="serverProperties">
+					<props>
+						<prop key="server.port">${hsql.server.port:9100}</prop>
+						<prop key="server.database.0">${XD_HOME}/data/jobs/${hsql.server.database:xdjobrepotest}
+						</prop>
+						<prop key="server.dbname.0">${hsql.server.dbname:test}</prop>
+					</props>
+				</property>
+			</bean>
+
+			<jdbc:initialize-database data-source="dataSource"
+				ignore-failures="ALL">
+				<jdbc:script
+					location="classpath:/org/springframework/xd/dirt/job/registry-schema-hsqldb.sql" />
+			</jdbc:initialize-database>
+
+		</beans>
 
 	</beans>
 
@@ -55,7 +59,8 @@
 			<property name="minIdle" value="2" />
 		</bean>
 
-		<bean id="dataSource" class="org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy">
+		<bean id="dataSource"
+			class="org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy">
 			<property name="targetDataSource" ref="actualDataSource" />
 			<property name="defaultAutoCommit" value="true" />
 			<!-- transaction isolation level TRANSACTION_READ_COMMITTED -->
@@ -66,7 +71,8 @@
 			<constructor-arg ref="dataSource" />
 		</bean>
 
-		<bean id="jobRepository" class="org.springframework.batch.core.repository.support.JobRepositoryFactoryBean">
+		<bean id="jobRepository"
+			class="org.springframework.batch.core.repository.support.JobRepositoryFactoryBean">
 			<property name="transactionManager" ref="transactionManager" />
 			<property name="dataSource" ref="dataSource" />
 			<property name="databaseType" value="hsql" />

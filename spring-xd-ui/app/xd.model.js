@@ -318,28 +318,35 @@ define([], function() {
 
 		var DataType = Backbone.Model.extend({
 			defaults: {
-				id: '',
-				key: '',
-				value: '',
+				id: '1',
+				key: 'string',
+				name: 'String',
 				selected: false
 			}
 		});
 
-		var dataTypes = new Backbone.Collection({model:DataType});
-		dataTypes.add({id:1, key:'string', name: 'String', selected: true});
-		dataTypes.add({id:2, key:'date',   name: 'Date'});
-		dataTypes.add({id:3, key:'long',   name: 'Long'});
-		dataTypes.add({id:4, key:'double', name: 'Double'});
+		var DataTypes = Backbone.Collection.extend({
+			model: DataType
+		});
 
-		XDModel.dataTypes = dataTypes;
+		XDModel.createDataTypes = function createDataTypes() {
+			return new DataTypes( [
+				new DataType({id:1, key:'string', name: 'String', selected: true}),
+				new DataType({id:2, key:'date',   name: 'Date'}),
+				new DataType({id:3, key:'long',   name: 'Long'}),
+				new DataType({id:4, key:'double', name: 'Double'})
+			] );
+		}
+
+		XDModel.dataTypes = XDModel.createDataTypes();
 
 		var JobParameter = Backbone.Model.extend({
 			idAttribute: 'key',
 			defaults: {
 				key: '',
 				value: '',
-				isIdentifying: '',
-				type: DataType
+				isIdentifying: true,
+				type: new DataType()
 			}
 		});
 
@@ -384,10 +391,10 @@ define([], function() {
 			defaults: {
 				jobname: 'your job name',
 				jobParameters: new JobParameters(
-					[new JobParameter({key : "Enter your key", value : "the value" })])
+					[new JobParameter({key : "", value : ""})])
 			},
 
-			convertToJson: function() {
+			convertToJsonAndSend: function() {
 				console.log('converting to Json');
 				console.log('Model Change: ' + JSON.stringify(this.toJSON()))
 
@@ -395,16 +402,28 @@ define([], function() {
 				this.get('jobParameters').forEach(function(jobParameter) {
 					var key = jobParameter.get('key');
 					var value = jobParameter.get('value');
-					jsonData[key] = value;
+					var isIdentifying = jobParameter.get('isIdentifying');
+					var dataType = jobParameter.get('type');
+
+					var dataTypeToUse = '';
+					if(!(typeof dataType === "undefined")) {
+						var dataTypeToUse = "(" + dataType.get('key') + ")";
+					}
+
+					if (isIdentifying) {
+						jsonData["+" + key + dataTypeToUse] = value;
+					}
+					else {
+						jsonData["-" + key + dataTypeToUse] = value;
+					}
 				});
 				console.log(jsonData);
 				var jsonDataAsString = JSON.stringify(jsonData);
 				console.log(jsonDataAsString);
 
 				this.launch(this.get('jobname'), jsonDataAsString);
-			   // viewData.employees.push(jsonData);
-			}
 
+			}
 		});
 
 		XDModel.jobLaunchRequest = new JobLaunchRequest();

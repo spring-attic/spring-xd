@@ -35,7 +35,6 @@ function() {
 				var datatypeTemplate = _.template(xdJobLaunchParameterOptionsTemplate, {
 					datatypes: this.collection
 				});
-				console.log(this.el);
 				this.$el.html(datatypeTemplate);
 			}
 		});
@@ -55,7 +54,6 @@ function() {
 			onRender: function(){
 
 				var region = this.$el.find(".job-params").first();
-				console.log(region);
 
 				var dataTypeView = new DataTypeView({
 					el: region
@@ -89,7 +87,7 @@ function() {
 				console.log("Initializing CompositeView for the JobLaunchRequest");
 
 				this.on("itemview:property:remove", function(view, model){
-					console.log("The selected item will be removed." );
+					console.log("Removing Job Parameter." );
 					this.collection.remove(view.model);
 				});
 				this.model.bind('change', function (model) {
@@ -111,15 +109,15 @@ function() {
 				"click .launch-job" : "launchJob"
 			},
 			addParameter: function() {
-				console.log( "click add!" );
+				console.log( "Adding Job Parameter." );
 				var jp = model.createJobParameter();
 				model.jobLaunchRequest.get('jobParameters').add(jp);
 				this.collection.add(jp);
 			},
 			launchJob: function() {
-				console.log( "click launch it!" );
+				console.log( "Launching Job." );
 				console.log(this.model);
-				this.model.convertToJson();
+				this.model.convertToJsonAndSend();
 				$('#job-params-modal').modal('hide');
 				model.batchJobs.startFetching();
 				utils.showSuccessMsg("The launch request for job '" + this.model.get('jobname') + "' was sent.");

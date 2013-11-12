@@ -55,15 +55,15 @@ function() {
 
 				console.log("Opening Job Parameter screen for " + jobName);
 
-				var jl = model.jobLaunchRequest;
+				var jobLaunchRequest = model.jobLaunchRequest;
 
-				jl.set({
+				jobLaunchRequest.set({
 					jobname: jobName
 				});
 
 				var jobLaunches = new JobLaunches({
 					el: $( "#job-launch-modal" ),
-					model: jl
+					model: jobLaunchRequest
 				});
 				$('#job-params-modal').modal('show');
 				model.batchJobs.stopFetching();

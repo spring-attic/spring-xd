@@ -5,10 +5,10 @@
 			<div class="col-xs-10">
 				<div class="form-group">
 					<div class="col-xs-10 col-sm-5">
-						<input type="text" name="key" class="form-control" placeholder="key">
+						<input type="text" name="key" class="form-control" placeholder="Parameter Key">
 					</div>
 					<div class="col-xs-10 col-sm-5">
-						<input type="text" name="value" class="form-control" placeholder="<%= value %>">
+						<input type="text" name="value" class="form-control" placeholder="Parameter Value">
 					</div>
 				</div>
 				<div class="form-group">

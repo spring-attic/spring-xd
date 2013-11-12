@@ -589,7 +589,7 @@ project('spring-xd-extension-hdfs') {
 	description = 'Spring XD HDFS'
 	def hadoopDefault = "hadoop20"
 	def hadoopDistro = project.hasProperty("hadoopDistro") ? project.getProperty("hadoopDistro") : hadoopDefault
-	def hadoopSuffix = hadoopDistro.equals("hadoop12") ? "" : "-" + hadoopDistro 
+	def hadoopSuffix = hadoopDistro.equals("hadoop12") ? "" : "-" + hadoopDistro
 	dependencies {
 		compile "org.springframework:spring-aop:$springVersion"
 		compile "org.springframework:spring-context:$springVersion"

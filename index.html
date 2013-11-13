@@ -69,16 +69,34 @@ For the curious, XD is an abbreviation for eXtreme Data.
 
 * To get started, make sure your system has as a minimum Java JDK 6 or newer installed. Java JDK 7 is recommended.
 
-### Installation
+### Manual Installation
 
 * Download [spring-xd-1.0.0.M4.zip](http://repo.spring.io/simple/libs-milestone-local/org/springframework/xd/spring-xd/1.0.0.M4/spring-xd-1.0.0.M4-dist.zip)
 * Unzip the distribution. This will yield the installation directory spring-xd-1.0.0.M4. All the commands below are executed from this directory, so change into it before proceeding
-`
+
+```
 $ cd spring-xd-1.0.0.M4
-`
-* Set the environment variable XD_HOME to the installation directory &lt;root-install-dir>\spring-xd\xd
+```
+
+* Set the environment variable **XD_HOME** to the installation directory `<root-install-dir>\spring-xd\xd`
+
+### OSX Homebrew installation
+
+If you are on a Mac and using [homebrew](http://brew.sh/), all you need to do to install *Spring XD* is:
+
+```
+$ brew tap pivotal/tap
+$ brew install springxd
+```
+
+Homebrew will install `springxd` to `/usr/local/bin`. Now you can jump straight into using *Spring XD*:
+
+```
+$ xd-singlenode
+```
 
 ### Create a stream
+
 * Start-up the runtime: The single node option is the easiest to get started with. It runs everything you need in a single process. To start it, you just need to cd to the xd directory and run the following command: `xd/bin>$ ./xd-singlenode`
 * Start XD Shell:  `./xd-shell`
 * Create your first stream by typing: `xd:> stream create --definition "time | log" --name ticktock`

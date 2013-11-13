@@ -32,6 +32,7 @@ badges:
       icon: metrics
 
 ---
+
 <!DOCTYPE HTML>
 <html lang="en-US">
 
@@ -64,28 +65,23 @@ For the curious, XD is an abbreviation for eXtreme Data.
 <span id="quick-start"></span>
 ## Quick Start
 
-##### Requirements
+### Requirements
 
 * To get started, make sure your system has as a minimum Java JDK 6 or newer installed. Java JDK 7 is recommended.
 
-##### Installation
+### Installation
 
 * Download [spring-xd-1.0.0.M4.zip](http://repo.spring.io/simple/libs-milestone-local/org/springframework/xd/spring-xd/1.0.0.M4/spring-xd-1.0.0.M4-dist.zip)
-
 * Unzip the distribution. This will yield the installation directory spring-xd-1.0.0.M4. All the commands below are executed from this directory, so change into it before proceeding
 `
 $ cd spring-xd-1.0.0.M4
 `
 * Set the environment variable XD_HOME to the installation directory &lt;root-install-dir>\spring-xd\xd
 
-##### Create a stream
-*  Start-up the runtime: The single node option is the easiest to get started with. It runs everything you need in a single process. To start it, you just need to cd to the xd directory and run the following command:
-`xd/bin>$ ./xd-singlenode`
-
+### Create a stream
+* Start-up the runtime: The single node option is the easiest to get started with. It runs everything you need in a single process. To start it, you just need to cd to the xd directory and run the following command: `xd/bin>$ ./xd-singlenode`
 * Start XD Shell:  `./xd-shell`
-
-* Create your first stream by typing:
-`xd:> stream create --definition "time | log" --name ticktock`
+* Create your first stream by typing: `xd:> stream create --definition "time | log" --name ticktock`
 
 {% endcapture %}
 
@@ -94,6 +90,18 @@ $ cd spring-xd-1.0.0.M4
 ### Sample Projects
 
 * [Syslog Ingestion into HDFS](http://docs.spring.io/spring-xd/docs/1.0.0.M4/reference/html/#_syslog_ingestion_into_hdfs)
+* [Spring XD Samples Repo](http://www.github.com/spring-projects/spring-xd-samples)
+
+### Getting Started Guides
+
+* [Creating a stream of live Twitter data using Spring XD]({{site.main_site_url}}/guides/gs/spring-xd)
+
+### Blogs and Articles
+
+* [Spring XD 1.0 Milestone 2 Released]({{site.main_site_url}}/blog/2013/08/14/spring-xd-1-0-milestone-2-released/)
+* [Introducing Spring XD]({{site.main_site_url}}/blog/2013/04/23/introducing-spring-xd)
+* [Spring One Wrap-up](https://blog.codecentric.de/en/2013/09/spring-one-wrap-up-spring-batch-spring-hadoop-and-spring-xd/)
+* [Adding New Modules to Spring XD Part 1](http://glenn-renfro-dev.blogspot.com/2013/09/adding-new-modules-to-spring-xd-part-1.html)
 
 {% endcapture %}
 

@@ -12,14 +12,14 @@
 	<context:property-placeholder location="file:${XD_HOME}/config/mqtt.properties" ignore-resource-not-found="true"/>
 
 	<bean id="clientFactory" class="org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory">
-		<property name="userName" value="${userName:${mqtt.username}}"/>
+		<property name="userName" value="${username:${mqtt.username}}"/>
 		<property name="password" value="${password:${mqtt.password}}"/>
 	</bean>
 
 	<int-mqtt:message-driven-channel-adapter id="mqttInbound"
 		auto-startup="false"
 		client-id="${clientId:${mqtt.default.client.id}.src}"
-		url="${mqttUrl:${mqtt.url}}"
+		url="${url:${mqtt.url}}"
 		topics="${topics:${mqtt.default.topic}}"
 		client-factory="clientFactory"
 		channel="output"/>

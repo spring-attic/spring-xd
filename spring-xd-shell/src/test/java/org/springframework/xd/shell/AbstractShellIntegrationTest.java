@@ -33,7 +33,6 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 
-import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
@@ -84,7 +83,7 @@ public abstract class AbstractShellIntegrationTest {
 		application = new SingleNodeApplication().run("--spring.profiles.active=memory,default", "--XD_STORE=redis",
 				"--XD_ANALYTICS=redis", "--server.port=9292");
 		// TODO: port scanning instead of using 9292
-		Bootstrap bootstrap = new Bootstrap(new String[] { "--port",
+		XDShellBootStrap bootstrap = new XDShellBootStrap(new String[] { "--port",
 			"9292" });
 		shell = bootstrap.getJLineShellComponent();
 

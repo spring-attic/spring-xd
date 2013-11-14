@@ -1119,7 +1119,7 @@ project('spring-xd-test') {
 project('spring-xd-shell') {
 	description = 'Spring XD Shell'
 	apply plugin: "application"
-	mainClassName = "org.springframework.shell.Bootstrap"
+	mainClassName = "org.springframework.xd.shell.XDShellBootStrap"
 	run {
 		standardInput = System.in
 	}

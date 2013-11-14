@@ -157,7 +157,7 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 			SharedChannelProvider<?> channelProvider) {
 		Assert.hasText(name, "a valid name is required to register an inbound channel");
 		Assert.notNull(moduleInputChannel, "channel must not be null");
-		AbstractMessageChannel registeredChannel = channelProvider.lookupOrCreateSharedChannel(name);
+		AbstractMessageChannel registeredChannel = channelProvider.lookupOrCreateSharedChannel("queue:" + name);
 		bridge(registeredChannel, moduleInputChannel, "inbound." + registeredChannel.getComponentName(),
 				acceptedMediaTypes);
 	}
@@ -182,7 +182,7 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 			SharedChannelProvider<?> channelProvider) {
 		Assert.hasText(name, "a valid name is required to register an outbound channel");
 		Assert.notNull(moduleOutputChannel, "channel must not be null");
-		AbstractMessageChannel registeredChannel = channelProvider.lookupOrCreateSharedChannel(name);
+		AbstractMessageChannel registeredChannel = channelProvider.lookupOrCreateSharedChannel("queue:" + name);
 		bridge(moduleOutputChannel, registeredChannel, "outbound." + registeredChannel.getComponentName());
 	}
 

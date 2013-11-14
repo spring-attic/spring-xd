@@ -24,6 +24,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
 
@@ -56,12 +57,23 @@ public class MessageBusAwareChannelResolver extends BeanFactoryMessageChannelDes
 	public MessageChannel resolveDestination(String name) {
 		MessageChannel channel = null;
 		if (name.indexOf(":") != -1) {
-			String channelName = name;
-			channel = channels.get(channelName);
+			channel = channels.get(name);
 			if (channel == null && messageBus != null) {
-				channel = new DirectChannel();
-				messageBus.bindProducer(channelName, channel, true);
-				channels.put(channelName, channel);
+				String[] tokens = name.split(":", 2);
+				String type = tokens[0];
+				String shortName = tokens[1];
+				if ("queue".equals(type)) {
+					channel = new DirectChannel();
+					messageBus.bindProducer(shortName, channel, true);
+				}
+				else if ("topic".equals(type)) {
+					channel = new PublishSubscribeChannel();
+					messageBus.bindPubSubProducer(shortName, channel);
+				}
+				else {
+					throw new IllegalArgumentException("unrecognized channel type: " + type);
+				}
+				channels.put(name, channel);
 			}
 		}
 		if (channel == null) {

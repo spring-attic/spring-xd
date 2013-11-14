@@ -14,10 +14,6 @@
 
 	<context:annotation-config />
 
-	<beans profile="legacy">
-		<bean class="org.springframework.xd.dirt.rest.LegacyMvcConfiguration" />
-	</beans>
-
 	<beans>
 		<!-- Include only this @Configuration classes, which will in turn include
 			others -->

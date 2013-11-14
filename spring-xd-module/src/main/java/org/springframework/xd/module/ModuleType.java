@@ -17,52 +17,11 @@
 package org.springframework.xd.module;
 
 /**
+ * Represents the kind of modules that make up a stream.
+ * 
  * @author Glenn Renfro
  */
 public enum ModuleType {
-	SOURCE("source"), PROCESSOR("processor"), SINK("sink"), TRIGGER("trigger"), TAP("tap"), JOB("job");
+	source, processor, sink, job;
 
-	String typeName;
-
-	ModuleType(String typeName) {
-		this.typeName = typeName;
-	}
-
-	@Override
-	public String toString() {
-		return this.typeName;
-	}
-
-	public String getTypeName() {
-		return typeName;
-	}
-
-	public boolean equals(String s) {
-		if (valueOf(s.toUpperCase()).equals(this)) {
-			return true;
-		}
-		return false;
-	}
-
-	public static ModuleType getModuleTypeByTypeName(String typeName) {
-		if (typeName.equals(SOURCE.getTypeName())) {
-			return SOURCE;
-		}
-		if (typeName.equals(PROCESSOR.getTypeName())) {
-			return PROCESSOR;
-		}
-		if (typeName.equals(SINK.getTypeName())) {
-			return SINK;
-		}
-		if (typeName.equals(JOB.getTypeName())) {
-			return JOB;
-		}
-		if (typeName.equals(TAP.getTypeName())) {
-			return TAP;
-		}
-		if (typeName.equals(TRIGGER.getTypeName())) {
-			return TRIGGER;
-		}
-		return null;
-	}
 }

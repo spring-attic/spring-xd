@@ -25,7 +25,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.xd.analytics.metrics.AbstractFieldValueCounterRepositoryTests;
 import org.springframework.xd.analytics.metrics.common.RedisRepositoriesConfig;
-import org.springframework.xd.test.redis.RedisAvailableRule;
+import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
  * @author Mark Pollack
@@ -38,7 +38,7 @@ import org.springframework.xd.test.redis.RedisAvailableRule;
 public class RedisFieldValueCounterRepositoryTests extends AbstractFieldValueCounterRepositoryTests {
 
 	@Rule
-	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
+	public RedisTestSupport redisAvailableRule = new RedisTestSupport();
 
 	@After
 	@Before

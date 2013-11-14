@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<import resource="../../transports/${XD_TRANSPORT}-bus.xml"/>
+
+	<bean id="codec" class="org.springframework.integration.x.bus.serializer.CompositeCodec">
+		<constructor-arg name="delegates">
+			<map>
+				<entry key="org.springframework.xd.tuple.Tuple">
+					<bean class="org.springframework.integration.x.bus.serializer.kryo.TupleCodec"/>
+				</entry>
+				<entry key="java.io.File">
+					<bean class="org.springframework.integration.x.bus.serializer.kryo.FileCodec"/>
+				</entry>
+			</map>
+		</constructor-arg>
+		<constructor-arg name="defaultCodec">
+			<bean class="org.springframework.integration.x.bus.serializer.kryo.PojoCodec"/>
+		</constructor-arg>
+	</bean>
+
+</beans>

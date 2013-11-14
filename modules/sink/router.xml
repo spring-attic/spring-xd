@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:int-groovy="http://www.springframework.org/schema/integration/groovy"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration
+		http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/groovy
+		http://www.springframework.org/schema/integration/groovy/spring-integration-groovy.xsd">
+
+	<beans:import resource="../common/script-variable-generator.xml"/>
+
+	<channel id="input"/>
+
+	<filter input-channel="input" output-channel="to.script" discard-channel="to.spel" expression="'${script:null}' ne 'null'"/>
+
+	<router input-channel="to.spel" expression="${expression:null}"/>
+
+	<router input-channel="to.script">
+		<int-groovy:script location="${script:route.groovy}" script-variable-generator="variableGenerator" refresh-check-delay="60"/>
+	</router>
+
+	<beans:bean class="org.springframework.integration.x.bus.MessageBusAwareRouterBeanPostProcessor"/>
+
+</beans:beans>

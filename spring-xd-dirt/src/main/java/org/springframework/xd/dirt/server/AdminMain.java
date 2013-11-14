@@ -18,23 +18,15 @@ package org.springframework.xd.dirt.server;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.kohsuke.args4j.CmdLineException;
-import org.kohsuke.args4j.CmdLineParser;
 
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.ContextClosedEvent;
-import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.web.context.support.XmlWebApplicationContext;
-import org.springframework.xd.dirt.container.DefaultContainer;
-import org.springframework.xd.dirt.server.options.AbstractOptions;
 import org.springframework.xd.dirt.server.options.AdminOptions;
-import org.springframework.xd.dirt.server.options.OptionUtils;
+import org.springframework.xd.dirt.server.options.CommandLineParser;
+import org.springframework.xd.dirt.server.options.InvalidCommandLineArgumentException;
 import org.springframework.xd.dirt.server.options.Transport;
-import org.springframework.xd.dirt.server.util.BannerUtils;
-import org.springframework.xd.dirt.stream.StreamServer;
+
 
 /**
- * The main driver class for the admin.
+ * The main driver class for the Admin Server.
  * 
  * @author Mark Pollack
  * @author Jennifer Hickey
@@ -48,19 +40,45 @@ public class AdminMain {
 	private static final Log logger = LogFactory.getLog(AdminMain.class);
 
 	/**
-	 * @param args
+	 * The main entry point to create the AdminServer.
+	 * 
+	 * @param args command line arguments
 	 */
 	public static void main(String[] args) {
-		launchStreamServer(parseOptions(args));
+		launchAdminServer(parseCommandLineOptions(args));
 	}
 
+	/**
+	 * Parse command line options from a String array into a type safe AdminOptions class. If any options are not valid,
+	 * an InvalidCommandLineArgumentException exception is thrown
+	 * 
+	 * @param args command line arguments
+	 * @return type safe AdminOptions if all command line arguments are valid
+	 * @throws InvalidCommandLineArgumentException if there is an invalid command line argument
+	 */
 	public static AdminOptions parseOptions(String[] args) {
 		AdminOptions options = new AdminOptions();
-		CmdLineParser parser = new CmdLineParser(options);
+		CommandLineParser parser = new CommandLineParser(options);
+
+		parser.parseArgument(args);
+
+		return options;
+	}
+
+	/**
+	 * Parse command line options from a String array into a type safe AdminOptions class. if any options are not valid,
+	 * a help message is displayed and System.exit is called. If the help option is passed, display the usage.
+	 * 
+	 * @param args command line arguments
+	 * @return type safe AdminOptions if all command line arguments are valid
+	 */
+	private static AdminOptions parseCommandLineOptions(String[] args) {
+		AdminOptions options = new AdminOptions();
+		CommandLineParser parser = new CommandLineParser(options);
 		try {
 			parser.parseArgument(args);
 		}
-		catch (CmdLineException e) {
+		catch (InvalidCommandLineArgumentException e) {
 			logger.error(e.getMessage());
 			parser.printUsage(System.err);
 			System.exit(1);
@@ -69,67 +87,24 @@ public class AdminMain {
 			parser.printUsage(System.err);
 			System.exit(0);
 		}
-		if (options.isJmxEnabled()) {
-			System.setProperty(AbstractOptions.XD_JMX_ENABLED_KEY, "true");
+
+		if (options.getTransport() == Transport.local) {
+			logger.error("local transport is not supported. Run SingleNodeMain");
+			System.exit(1);
 		}
-		AbstractOptions.setXDHome(options.getXDHomeDir());
-		AbstractOptions.setXDTransport(options.getTransport());
-		AbstractOptions.setXDAnalytics(options.getAnalytics());
-		AdminOptions.setXDStore(options.getStore());
 
 		return options;
 	}
 
 	/**
-	 * Launch stream server with the given home and transport
+	 * Create a new instance of the AdminServer given AdminOptions
+	 * 
+	 * @param options The options that select transport, analytics, and other infrastructure options.
+	 * @return a new AdminServer instance
 	 */
-	public static StreamServer launchStreamServer(final AdminOptions options) {
-		try {
-			XmlWebApplicationContext parent = new XmlWebApplicationContext();
-			parent.setConfigLocation("classpath:" + DefaultContainer.XD_ANALYTICS_CONFIG_ROOT + options.getAnalytics()
-					+ "-analytics.xml");
-			parent.refresh();
-			XmlWebApplicationContext context = new XmlWebApplicationContext();
-			context.setConfigLocation("classpath:" + DefaultContainer.XD_INTERNAL_CONFIG_ROOT + "admin-server.xml");
-			context.setParent(parent);
-			if (options.isJmxEnabled()) {
-				context.getEnvironment().addActiveProfile("xd.jmx.enabled");
-				OptionUtils.setJmxProperties(options, context.getEnvironment());
-			}
-
-			// Not making StreamServer a spring bean eases move to .war file if
-			// needed
-			final StreamServer server = new StreamServer(context, options.getHttpPort());
-			server.afterPropertiesSet();
-			server.start();
-			if (Transport.local == options.getTransport()) {
-				StringBuilder runtimeInfo = new StringBuilder(String.format("Running in Local Mode on port: %s ",
-						server.getLocalPort()));
-				if (!options.isJmxEnabled()) {
-					runtimeInfo.append(" JMX is disabled for XD components");
-				}
-				else {
-					runtimeInfo.append(String.format(" JMX port: %d", options.getJmxPort()));
-				}
-				System.out.println(BannerUtils.displayBanner(null, runtimeInfo.toString()));
-			}
-			context.addApplicationListener(new ApplicationListener<ContextClosedEvent>() {
-
-				@Override
-				public void onApplicationEvent(ContextClosedEvent event) {
-					server.stop();
-				}
-			});
-			context.registerShutdownHook();
-			return server;
-		}
-		catch (RedisConnectionFailureException e) {
-			final Log logger = LogFactory.getLog(StreamServer.class);
-			logger.fatal(e.getMessage());
-			System.err.println("Redis does not seem to be running. Did you install and start Redis? "
-					+ "Please see the Getting Started section of the guide for instructions.");
-			System.exit(1);
-		}
-		return null;
+	public static AdminServer launchAdminServer(final AdminOptions options) {
+		final AdminServer server = new AdminServer(options);
+		server.run();
+		return server;
 	}
 }

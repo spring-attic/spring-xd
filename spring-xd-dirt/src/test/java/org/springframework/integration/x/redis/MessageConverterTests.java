@@ -20,9 +20,9 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import org.springframework.integration.Message;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.x.redis.RedisChannelRegistry.EmbeddedHeadersMessageConverter;
+import org.springframework.integration.x.redis.RedisMessageBus.EmbeddedHeadersMessageConverter;
+import org.springframework.messaging.Message;
 
 /**
  * @author Gary Russell

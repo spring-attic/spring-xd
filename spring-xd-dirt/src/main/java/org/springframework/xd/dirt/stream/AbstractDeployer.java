@@ -41,7 +41,7 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 
 	private PagingAndSortingRepository<D, String> repository;
 
-	private final XDParser streamParser;
+	protected final XDParser streamParser;
 
 	private final DeploymentMessageSender messageSender;
 
@@ -68,7 +68,15 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 			throwDefinitionAlreadyExistsException(definition);
 		}
 		streamParser.parse(definition.getName(), definition.getDefinition());
-		return repository.save(definition);
+		D savedDefinition = repository.save(definition);
+		return afterSave(savedDefinition);
+	}
+
+	/**
+	 * Callback method that subclasses may override to get a chance to act on newly saved definitions.
+	 */
+	protected D afterSave(D savedDefinition) {
+		return savedDefinition;
 	}
 
 	protected void throwDefinitionAlreadyExistsException(D definition) {
@@ -81,19 +89,24 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 				String.format("There is no %s definition named '%%s'", definitionKind));
 	}
 
+	protected void throwDefinitionNotDeployable(String name) {
+		throw new NoSuchDefinitionException(name,
+				String.format("The %s named '%%s' cannot be deployed", definitionKind));
+	}
+
 	protected void throwNoSuchDefinitionException(String name, String definitionKind) {
 		throw new NoSuchDefinitionException(name,
 				String.format("There is no %s definition named '%%s'", definitionKind));
 	}
 
-	protected void throwAlreadyDeployedException(String name) {
-		throw new AlreadyDeployedException(name,
-				String.format("The %s named '%%s' is already deployed", definitionKind));
-	}
-
 	protected void throwNotDeployedException(String name) {
 		throw new NotDeployedException(name, String.format("The %s named '%%s' is not currently deployed",
 				definitionKind));
+	}
+
+	protected void throwAlreadyDeployedException(String name) {
+		throw new AlreadyDeployedException(name,
+				String.format("The %s named '%%s' is already deployed", definitionKind));
 	}
 
 	@Override
@@ -129,11 +142,7 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	}
 
 	/**
-	 * <<<<<<< HEAD Provides basic deployment behavior, whereby running state of deployed definitions is not persisted.
-	 * 
-	 * ======= Provides basic deployment behavior, whereby running state of deployed definitions is not persisted.
-	 * 
-	 * >>>>>>> aedc3ef... Add missing definitionKind argument
+	 * Provides basic deployment behavior, whereby running state of deployed definitions is not persisted.
 	 * 
 	 * @return the definition object for the given name
 	 * @throws NoSuchDefinitionException if there is no definition by the given name
@@ -141,11 +150,9 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	protected D basicDeploy(String name) {
 		Assert.hasText(name, "name cannot be blank or null");
 		final D definition = getDefinitionRepository().findOne(name);
-
 		if (definition == null) {
 			throwNoSuchDefinitionException(name);
 		}
-
 		final List<ModuleDeploymentRequest> requests = parse(name, definition.getDefinition());
 		sendDeploymentRequests(name, requests);
 		return definition;
@@ -165,7 +172,22 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		}
 		Collections.reverse(requests);
 		sendDeploymentRequests(name, requests);
+	}
 
+	@Override
+	public void delete(String name) {
+		D def = getDefinitionRepository().findOne(name);
+		if (def == null) {
+			throwNoSuchDefinitionException(name);
+		}
+		beforeDelete(def);
+		getDefinitionRepository().delete(name);
+	}
+
+	/**
+	 * Callback method that subclasses may override to get a chance to act on definitions that are about to be deleted.
+	 */
+	protected void beforeDelete(D definition) {
 	}
 
 }

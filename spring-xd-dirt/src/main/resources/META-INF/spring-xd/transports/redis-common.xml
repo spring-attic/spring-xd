@@ -6,11 +6,7 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<import resource="classpath:/META-INF/spring-xd/internal/xd-common.xml"/>
-
-	<bean id="redis.property.placeholder" class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
-		<property name="locations" value="file:${xd.home}/config/redis.properties"/>
-	</bean>
+	<import resource="classpath:/META-INF/spring-xd/internal/xd-common.xml" />
 
 	<bean id="redisConnectionFactory"
 		class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory">
@@ -22,10 +18,12 @@
 	<bean id="humanFriendlyRedisTemplate" class="org.springframework.data.redis.core.StringRedisTemplate">
 		<property name="connectionFactory" ref="redisConnectionFactory" />
 	</bean>
-	
+
 	<bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
 		<property name="connectionFactory" ref="redisConnectionFactory" />
 	</bean>
-	
+
+	<bean id="redisSerializer"
+		class="org.springframework.integration.x.redis.KryoMessageSerializer" />
 
 </beans>

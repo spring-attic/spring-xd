@@ -18,16 +18,18 @@ package org.springframework.xd.rest.client.impl;
 
 import java.net.URI;
 
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.xd.rest.client.AggregateCounterOperations;
 import org.springframework.xd.rest.client.CounterOperations;
 import org.springframework.xd.rest.client.FieldValueCounterOperations;
 import org.springframework.xd.rest.client.GaugeOperations;
 import org.springframework.xd.rest.client.JobOperations;
+import org.springframework.xd.rest.client.ModuleOperations;
 import org.springframework.xd.rest.client.RichGaugeOperations;
+import org.springframework.xd.rest.client.RuntimeOperations;
 import org.springframework.xd.rest.client.SpringXDOperations;
 import org.springframework.xd.rest.client.StreamOperations;
-import org.springframework.xd.rest.client.TapOperations;
-import org.springframework.xd.rest.client.TriggerOperations;
 import org.springframework.xd.rest.client.domain.XDRuntime;
 
 /**
@@ -43,19 +45,19 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 	private StreamOperations streamOperations;
 
 	/**
-	 * Holds the Tap-related part of the API.
-	 */
-	private TapOperations tapOperations;
-
-	/**
-	 * Holds the Trigger-related part of the API.
-	 */
-	private TriggerOperations triggerOperations;
-
-	/**
 	 * Holds the Job-related part of the API.
 	 */
 	private JobOperations jobOperations;
+
+	/**
+	 * Holds the Module definition related part of the API.
+	 */
+	private ModuleOperations moduleOperations;
+
+	/**
+	 * Holds the Module-related part of the API.
+	 */
+	private RuntimeOperations runtimeOperations;
 
 	/**
 	 * Holds the Counter-related part of the API.
@@ -82,12 +84,14 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 	 */
 	private RichGaugeOperations richGaugeOperations;
 
-	public SpringXDTemplate(URI baseURI) {
+	public SpringXDTemplate(ClientHttpRequestFactory factory, URI baseURI) {
+		super(factory);
 		XDRuntime xdRuntime = restTemplate.getForObject(baseURI, XDRuntime.class);
 		resources.put("streams", URI.create(xdRuntime.getLink("streams").getHref()));
-		resources.put("taps", URI.create(xdRuntime.getLink("taps").getHref()));
-		resources.put("triggers", URI.create(xdRuntime.getLink("triggers").getHref()));
 		resources.put("jobs", URI.create(xdRuntime.getLink("jobs").getHref()));
+		resources.put("runtime/containers", URI.create(xdRuntime.getLink("runtime/containers").getHref()));
+		resources.put("runtime/modules", URI.create(xdRuntime.getLink("runtime/modules").getHref()));
+		resources.put("modules", URI.create(xdRuntime.getLink("modules").getHref()));
 
 		resources.put("counters", URI.create(xdRuntime.getLink("counters").getHref()));
 		resources.put("field-value-counters", URI.create(xdRuntime.getLink("field-value-counters").getHref()));
@@ -96,14 +100,18 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 		resources.put("richgauges", URI.create(xdRuntime.getLink("richgauges").getHref()));
 
 		streamOperations = new StreamTemplate(this);
-		tapOperations = new TapTemplate(this);
 		jobOperations = new JobTemplate(this);
-		triggerOperations = new TriggerTemplate(this);
 		counterOperations = new CounterTemplate(this);
 		fvcOperations = new FieldValueCounterTemplate(this);
 		aggrCounterOperations = new AggregateCounterTemplate(this);
 		gaugeOperations = new GaugeTemplate(this);
 		richGaugeOperations = new RichGaugeTemplate(this);
+		moduleOperations = new ModuleTemplate(this);
+		runtimeOperations = new RuntimeTemplate(this);
+	}
+
+	public SpringXDTemplate(URI baseURI) {
+		this(new SimpleClientHttpRequestFactory(), baseURI);
 	}
 
 	@Override
@@ -112,18 +120,18 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 	}
 
 	@Override
-	public TapOperations tapOperations() {
-		return tapOperations;
-	}
-
-	@Override
-	public TriggerOperations triggerOperations() {
-		return triggerOperations;
-	}
-
-	@Override
 	public JobOperations jobOperations() {
 		return jobOperations;
+	}
+
+	@Override
+	public ModuleOperations moduleOperations() {
+		return moduleOperations;
+	}
+
+	@Override
+	public RuntimeOperations runtimeOperations() {
+		return runtimeOperations;
 	}
 
 	@Override

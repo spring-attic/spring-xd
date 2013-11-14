@@ -71,7 +71,7 @@ set CMD_LINE_ARGS=%$
 
 @echo off
 set APP_HOME_LIB=%APP_HOME%\lib
-set HADOOP_DISTRO=hadoop10
+set HADOOP_DISTRO=hadoop12
 if exist "%APP_HOME_LIB%" (
     setLocal EnableDelayedExpansion
     set found=0
@@ -95,10 +95,10 @@ if exist "%APP_HOME_LIB%" (
 if not exist "%XD_HOME%" (
     set XD_HOME=%APP_HOME%
 )
-set SPRING_XD_ADMIN_OPTS=-Dxd.home=%XD_HOME%
+set SPRING_XD_ADMIN_OPTS=
 
-@rem Execute xd-admin
-"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SPRING_XD_ADMIN_OPTS%  -classpath "%CLASSPATH%" org.springframework.xd.dirt.server.AdminMain --transport local --store memory --analytics memory %CMD_LINE_ARGS%
+@rem Execute xd-singlenode
+"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SPRING_XD_ADMIN_OPTS%  -classpath "%CLASSPATH%" org.springframework.xd.dirt.server.SingleNodeMain %CMD_LINE_ARGS%
 
 :end
 @rem End local scope for the variables with windows NT shell

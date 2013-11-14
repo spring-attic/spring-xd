@@ -16,23 +16,33 @@
 
 package org.springframework.xd.shell;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.util.HashSet;
+import java.util.Set;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
-import org.springframework.xd.dirt.server.AdminMain;
-import org.springframework.xd.dirt.server.options.AdminOptions;
-import org.springframework.xd.dirt.stream.StreamServer;
-import org.springframework.xd.test.redis.RedisAvailableRule;
+import org.springframework.xd.dirt.server.SingleNodeMain;
+import org.springframework.xd.dirt.server.SingleNodeServer;
+import org.springframework.xd.dirt.server.options.SingleNodeOptions;
+import org.springframework.xd.rest.client.impl.SpringXDTemplate;
+import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
  * Superclass for performing integration tests of spring-xd shell commands.
@@ -45,52 +55,94 @@ import org.springframework.xd.test.redis.RedisAvailableRule;
  * 
  * @author Mark Pollack
  * @author Kashyap Parikh
+ * @author David Turanski
  * 
  */
 public abstract class AbstractShellIntegrationTest {
 
-	// These two are used across the tests, hopefully 9193 is free on most dev boxes and
-	// CI servers
-	public static final String DEFAULT_HTTP_PORT = "9193";
+	/**
+	 * Where test module definition assets reside, relative to this project cwd.
+	 */
+	private static final File TEST_MODULES_SOURCE = new File("src/test/resources/spring-xd/xd/modules/");
 
-	public static final String DEFAULT_HTTP_URL = "http://localhost:" + DEFAULT_HTTP_PORT;
+	/**
+	 * Where test modules should end up, relative to this project cwd.
+	 */
+	private static final File TEST_MODULES_TARGET = new File("../modules/");
 
 	protected static final String DEFAULT_METRIC_NAME = "bar";
 
+	private static final String DEFAULT_HSQLDB_NAME = "test";
+
+	private static final String DEFAULT_HSQLDB_PORT = "9100";
+
+	private static final String DEFAULT_HSQL_DATABASE = "xdjobrepotest";
+
 	@Rule
-	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
+	public RedisTestSupport redisAvailableRule = new RedisTestSupport();
 
 	private static final Log logger = LogFactory.getLog(AbstractShellIntegrationTest.class);
 
-	private static StreamServer server;
+	private static SingleNodeServer server;
 
 	private static JLineShellComponent shell;
 
+	private Set<File> toBeDeleted = new HashSet<File>();
+
 	@BeforeClass
 	public static void startUp() throws InterruptedException, IOException {
-		AdminOptions opts = AdminMain.parseOptions(new String[] { "--httpPort", "0", "--transport", "local", "--store",
+
+		SingleNodeOptions options = SingleNodeMain.parseOptions(new String[] { "--httpPort", "0", "--transport",
+			"local", "--store",
 			"redis", "--analytics", "redis" });
-		server = AdminMain.launchStreamServer(opts);
-		Bootstrap bootstrap = new Bootstrap(new String[] { "--port", Integer.toString(server.getLocalPort()) });
+		System.setProperty("hsql.server.dbname", DEFAULT_HSQLDB_NAME);
+		System.setProperty("hsql.server.port", DEFAULT_HSQLDB_PORT);
+		System.setProperty("hsql.server.database", DEFAULT_HSQL_DATABASE);
+		server = SingleNodeMain.launchSingleNodeServer(options);
+		int port = server.getAdminServer().getLocalPort();
+		logger.info("Admin Server running on " + port);
+		waitForServerToBeReady(port);
+
+
+		Bootstrap bootstrap = new Bootstrap(new String[] { "--port",
+			Integer.toString(port) });
 		shell = bootstrap.getJLineShellComponent();
+	}
+
+	private static void waitForServerToBeReady(int port) throws InterruptedException {
+		SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+		// Set this to non-zero, or the underlying RestTemplate will hang forever
+		int clientTimeout = 10000;
+		factory.setConnectTimeout(clientTimeout);
+		factory.setReadTimeout(clientTimeout);
+
+		int timeout = 2 * clientTimeout;
+		long giveUpAt = System.currentTimeMillis() + timeout;
+		while (System.currentTimeMillis() < giveUpAt) {
+			try {
+				new SpringXDTemplate(factory, URI.create("http://localhost:" + port));
+				return;
+			}
+			catch (Exception e) {
+				Thread.sleep(50);
+			}
+		}
+		throw new IllegalStateException(String.format(
+				"Admin server on port %d does not seem to be listening after waiting for %dms", port, timeout));
 	}
 
 	@AfterClass
 	public static void shutdown() {
-		if (server != null) {
-			logger.info("Stopping StreamServer");
-			server.stop();
-		}
 		logger.info("Stopping XD Shell");
 		shell.stop();
+		if (server != null) {
+			logger.info("Stopping Single Node Server");
+			server.stop();
+		}
 	}
 
 	public static JLineShellComponent getShell() {
 		return shell;
-	}
-
-	public static StreamServer getStreamServer() {
-		return server;
 	}
 
 	/**
@@ -102,15 +154,42 @@ public abstract class AbstractShellIntegrationTest {
 		return cr;
 	}
 
+	protected CommandResult executeCommandExpectingFailure(String command) {
+		CommandResult cr = getShell().executeCommand(command);
+		assertFalse("Expected command to fail.  CommandResult = " + cr.toString(), cr.isSuccess());
+		return cr;
+	}
+
 	/**
-	 * Post data to http target.
+	 * Copies over module files (including jars if this is a directory-style module) from src/test/resources to where it
+	 * will be picked up and makes sure it will disappear at test end.
 	 * 
-	 * @param target the http target
-	 * @param data the data to send
-	 * @throws
+	 * @param type the type of module, e.g. "source"
+	 * @param name the module name, with extension (e.g. time2.xml or time2 if a directory)
+	 * @throws IOException
 	 */
-	protected void httpPostData(String target, String data) {
-		executeCommand("http post --target " + target + " --data " + data);
+	protected void installTestModule(String type, String name) throws IOException {
+		File toCopy = new File(TEST_MODULES_SOURCE, type + File.separator + name);
+		File destination = new File(TEST_MODULES_TARGET, type + File.separator + name);
+		Assert.assertFalse(
+				String.format("Destination %s already present. Make sure you're not overwriting a "
+						+ "standard module, or if this is from a previous aborted test run, please delete manually",
+						destination),
+				destination.exists());
+		toBeDeleted.add(destination);
+		if (toCopy.isDirectory()) {
+			FileUtils.copyDirectory(toCopy, destination);
+		}
+		else {
+			FileUtils.copyFile(toCopy, destination);
+		}
+	}
+
+	@After
+	public void cleanTestModuleFiles() {
+		for (File file : toBeDeleted) {
+			FileUtils.deleteQuietly(file);
+		}
 	}
 
 }

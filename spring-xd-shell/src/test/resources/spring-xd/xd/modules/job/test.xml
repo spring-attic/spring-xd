@@ -4,13 +4,13 @@
 	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:p="http://www.springframework.org/schema/p"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="
-        http://www.springframework.org/schema/beans
+				http://www.springframework.org/schema/beans
 http://www.springframework.org/schema/beans/spring-beans.xsd
-        http://www.springframework.org/schema/batch
+				http://www.springframework.org/schema/batch
 http://www.springframework.org/schema/batch/spring-batch.xsd
-        http://www.springframework.org/schema/aop
+				http://www.springframework.org/schema/aop
 http://www.springframework.org/schema/aop/spring-aop.xsd
-        http://www.springframework.org/schema/tx
+				http://www.springframework.org/schema/tx
 http://www.springframework.org/schema/tx/spring-tx.xsd">
 
 	<!-- Set up our reader and its properties -->
@@ -19,20 +19,20 @@ http://www.springframework.org/schema/tx/spring-tx.xsd">
 		<property name="lineMapper" ref="lineMapper" />
 	</bean>
 
-    <bean id="lineMapper" class="org.springframework.batch.item.file.mapping.DefaultLineMapper">
-        <property name="lineTokenizer" ref="lineTokenizer" />
-        <property name="fieldSetMapper" ref="fieldSetMapper" />
-    </bean>
+		<bean id="lineMapper" class="org.springframework.batch.item.file.mapping.DefaultLineMapper">
+				<property name="lineTokenizer" ref="lineTokenizer" />
+				<property name="fieldSetMapper" ref="fieldSetMapper" />
+		</bean>
 
-    <bean id="lineTokenizer" class="org.springframework.batch.item.file.transform.DelimitedLineTokenizer">
-        <constructor-arg value="," />
-    </bean>
+		<bean id="lineTokenizer" class="org.springframework.batch.item.file.transform.DelimitedLineTokenizer">
+				<constructor-arg value="," />
+		</bean>
 
-    <bean id="fieldSetMapper" class="org.springframework.batch.item.file.mapping.PassThroughFieldSetMapper" />
+		<bean id="fieldSetMapper" class="org.springframework.batch.item.file.mapping.PassThroughFieldSetMapper" />
 
-    <bean id="lineAggregator" class="org.springframework.batch.item.file.transform.DelimitedLineAggregator">
-        <property name="delimiter" value=" "/>
-    </bean>
+		<bean id="lineAggregator" class="org.springframework.batch.item.file.transform.DelimitedLineAggregator">
+				<property name="delimiter" value=" "/>
+		</bean>
 
 
 	<!-- Set up our writer, and it's properties -->
@@ -40,7 +40,7 @@ http://www.springframework.org/schema/tx/spring-tx.xsd">
 		<property name="resource" value="file:./src/test/resources/client1.txt" />
 		<property name="lineAggregator" ref="lineAggregator" />
 	</bean>
-	<batch:job id="test">
+	<batch:job id="job">
 		<batch:step id="step1">
 			<batch:tasklet>
 				<batch:chunk reader="itemReader" writer="itemWriter"

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<context:property-placeholder location="file:${XD_HOME}/config/twitter.properties"/>
+
+	<bean class="org.springframework.integration.x.twitter.TwitterStreamChannelAdapter">
+		<constructor-arg ref="twitterTemplate"/>
+		<property name="autoStartup" value="false"/>
+		<property name="outputChannel" ref="to.discardDeletes"/>
+		<!-- 90sec timeout, as recommended in https://dev.twitter.com/docs/streaming-apis/connecting#Stalls -->
+		<property name="readTimeout" value="${readTimeout:90000}"/>
+		<property name="connectTimeout" value="${connectTimeout:5000}"/>
+		<property name="delimited" value="${delimited:false}" />
+		<property name="stallWarnings" value="${stallWarnings:false}" />
+		<property name="filterLevel" value="${filterLevel:none}" />
+		<property name="language" value="${language:}" />
+		<property name="track" value="${track:}" />
+		<property name="follow" value="${follow:}"/>
+		<property name="locations" value="${locations:}"/>
+	</bean>
+
+	<int:channel id="output"/>
+	<int:channel id="to.discardDeletes"/>
+	<int:channel id="to.filter"/>
+
+	<bean id="twitterTemplate" class="org.springframework.social.twitter.api.impl.TwitterTemplate">
+		<constructor-arg value="${consumerKey:${twitter.oauth.consumerKey}}"/>
+		<constructor-arg value="${consumerSecret:${twitter.oauth.consumerSecret}}"/>
+		<constructor-arg value="${accessToken:${twitter.oauth.accessToken}}"/>
+		<constructor-arg value="${accessTokenSecret:${twitter.oauth.accessTokenSecret}}"/>
+	</bean>
+
+	<int:router id="discardDeletesRouter" input-channel="to.discardDeletes"
+		expression="${discardDeletes:true} ? 'to.filter':'output'" />
+
+<!-- pass anything not matching {"delete": -->
+	<int:filter id="discardDeletes" input-channel="to.filter" output-channel="output"
+		discard-channel="nullChannel" expression="!(payload matches '^\{\s*&quot;delete&quot;\s*:.*' )"/>
+
+</beans>

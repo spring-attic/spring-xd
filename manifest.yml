@@ -1,0 +1,53 @@
+---
+memory: 1G
+instances: 1
+path: spring-xd-exec/build/libs/spring-xd-exec-1.0.0.BUILD-SNAPSHOT.jar
+domain: cfapps.io
+
+applications:
+- name: xd-single-green
+  host: xd-single-green
+  env:
+    XD_HOME: .
+- name: xd-single-blue
+  host: xd-single-blue
+  env:
+    XD_HOME: .
+- name: xd-admin
+  host: xd-admin-server
+  env:
+    LOADER_MAIN: org.springframework.xd.dirt.boot.AdminServerApplication
+    SPRING_PROFILES_ACTIVE: cloud,mysql,rabbit
+    XD_HOME: .
+  services:
+    mysql:
+      label: cleardb
+      provider: cleardb
+      plan: spark
+    rabbit:
+      label: cloudamqp
+      provider: cloudamqp
+      plan: lemur
+    redis:
+      label: rediscloud
+      provider: garantiadata
+      plan: 20mb
+- name: xd-node
+  host: xd-node
+  env:
+    LOADER_MAIN: org.springframework.xd.dirt.boot.LauncherApplication
+    SPRING_PROFILES_ACTIVE: cloud,mysql,rabbit
+    XD_HOME: .
+  services:
+    mysql:
+      label: cleardb
+      provider: cleardb
+      plan: spark
+    rabbit:
+      label: cloudamqp
+      provider: cloudamqp
+      plan: lemur
+    redis:
+      label: rediscloud
+      provider: garantiadata
+      plan: 20mb

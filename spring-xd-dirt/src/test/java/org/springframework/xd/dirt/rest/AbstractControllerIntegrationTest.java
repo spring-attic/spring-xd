@@ -22,9 +22,11 @@ import org.junit.Before;
 import org.mockito.Mockito;
 import org.mockito.internal.util.MockUtil;
 
+import org.springframework.batch.admin.service.JobService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
@@ -32,15 +34,13 @@ import org.springframework.xd.analytics.metrics.core.CounterRepository;
 import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository;
 import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
+import org.springframework.xd.dirt.container.store.RuntimeContainerInfoRepository;
+import org.springframework.xd.dirt.module.store.RuntimeContainerModuleInfoRepository;
+import org.springframework.xd.dirt.module.store.RuntimeModuleInfoRepository;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobDeployer;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDeployer;
-import org.springframework.xd.dirt.stream.TapDefinitionRepository;
-import org.springframework.xd.dirt.stream.TapDeployer;
-import org.springframework.xd.dirt.stream.TapInstanceRepository;
-import org.springframework.xd.dirt.stream.TriggerDefinitionRepository;
-import org.springframework.xd.dirt.stream.TriggerDeployer;
 
 /**
  * Base class for Controller layer tests. Takes care of resetting the mocked (be them mockito mocks or <i>e.g.</i> in
@@ -49,6 +49,7 @@ import org.springframework.xd.dirt.stream.TriggerDeployer;
  * @author Eric Bottard
  * @author Ilayaperumal Gopinathan
  */
+@ContextConfiguration(classes = { LegacyMvcConfiguration.class })
 public class AbstractControllerIntegrationTest {
 
 	private MockUtil mockUtil = new MockUtil();
@@ -69,12 +70,6 @@ public class AbstractControllerIntegrationTest {
 	protected StreamDeployer streamDeployer;
 
 	@Autowired
-	protected TapDeployer tapDeployer;
-
-	@Autowired
-	protected TriggerDeployer triggerDeployer;
-
-	@Autowired
 	protected JobDeployer jobDeployer;
 
 	// Definition Repositories
@@ -82,16 +77,18 @@ public class AbstractControllerIntegrationTest {
 	protected StreamDefinitionRepository streamDefinitionRepository;
 
 	@Autowired
-	protected TapDefinitionRepository tapDefinitionRepository;
-
-	@Autowired
-	protected TapInstanceRepository tapInstanceRepository;
-
-	@Autowired
-	protected TriggerDefinitionRepository triggerDefinitionRepository;
-
-	@Autowired
 	protected JobDefinitionRepository jobDefinitionRepository;
+
+	// Container Repository
+	@Autowired
+	protected RuntimeContainerInfoRepository containerRepository;
+
+	// Runtime Repository
+	@Autowired
+	protected RuntimeModuleInfoRepository modulesRepository;
+
+	@Autowired
+	protected RuntimeContainerModuleInfoRepository containerModulesRepository;
 
 	// Analytics repositories
 	@Autowired
@@ -106,17 +103,20 @@ public class AbstractControllerIntegrationTest {
 	@Autowired
 	protected RichGaugeRepository richGaugeRepository;
 
+	@Autowired
+	private JobService jobService;
+
 	@Before
 	public void resetDependencies() {
 		maybeReset(streamDeployer);
-		maybeReset(tapDeployer);
-		maybeReset(triggerDeployer);
 		maybeReset(jobDeployer);
+		maybeReset(jobService);
+
+		resetOrDelete(containerRepository);
+		resetOrDelete(modulesRepository);
+		resetOrDelete(containerModulesRepository);
 
 		resetOrDelete(streamDefinitionRepository);
-		resetOrDelete(tapDefinitionRepository);
-		resetOrDelete(tapInstanceRepository);
-		resetOrDelete(triggerDefinitionRepository);
 		resetOrDelete(jobDefinitionRepository);
 
 		resetOrDelete(counterRepository);

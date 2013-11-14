@@ -18,7 +18,7 @@ package org.springframework.xd.hadoop.fs;
 
 import java.io.IOException;
 
-import org.springframework.integration.Message;
+import org.springframework.messaging.Message;
 
 /**
  * 

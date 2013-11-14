@@ -75,27 +75,27 @@ public class StreamsControllerIntegrationWithRepositoryTests extends AbstractCon
 	@Before
 	public void before() {
 		Resource resource = mock(Resource.class);
-		ModuleDefinition sinkDefinition = new ModuleDefinition(ModuleType.SINK.getTypeName(),
-				ModuleType.SINK.getTypeName(), resource);
-		ModuleDefinition sourceDefinition = new ModuleDefinition(ModuleType.SOURCE.getTypeName(),
-				ModuleType.SOURCE.getTypeName(), resource);
+		ModuleDefinition sinkDefinition = new ModuleDefinition("sink",
+				ModuleType.sink, resource);
+		ModuleDefinition sourceDefinition = new ModuleDefinition("source",
+				ModuleType.source, resource);
 
 		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(new ModuleDefinition(ModuleType.SOURCE.getTypeName(), ModuleType.SOURCE.getTypeName(), resource));
-		when(moduleRegistry.findDefinitions(ModuleType.SOURCE.getTypeName())).thenReturn(definitions);
+		definitions.add(new ModuleDefinition("source", ModuleType.source, resource));
+		when(moduleRegistry.findDefinitions("source")).thenReturn(definitions);
 		when(moduleRegistry.findDefinitions("time")).thenReturn(definitions);
-		when(moduleRegistry.lookup("time", "source")).thenReturn(sourceDefinition);
+		when(moduleRegistry.findDefinition("time", ModuleType.source)).thenReturn(sourceDefinition);
 
 		definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(new ModuleDefinition(ModuleType.SINK.getTypeName(), ModuleType.SINK.getTypeName(), resource));
-		when(moduleRegistry.findDefinitions(ModuleType.SINK.getTypeName())).thenReturn(definitions);
+		definitions.add(new ModuleDefinition("sink", ModuleType.sink, resource));
+		when(moduleRegistry.findDefinitions("sink")).thenReturn(definitions);
 		when(moduleRegistry.findDefinitions("log")).thenReturn(definitions);
-		when(moduleRegistry.lookup("log", "sink")).thenReturn(sinkDefinition);
+		when(moduleRegistry.findDefinition("log", ModuleType.sink)).thenReturn(sinkDefinition);
 
 		definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(new ModuleDefinition(ModuleType.PROCESSOR.getTypeName(), ModuleType.PROCESSOR.getTypeName(),
+		definitions.add(new ModuleDefinition("processor", ModuleType.processor,
 				resource));
-		when(moduleRegistry.findDefinitions(ModuleType.PROCESSOR.getTypeName())).thenReturn(definitions);
+		when(moduleRegistry.findDefinitions("processor")).thenReturn(definitions);
 
 	}
 

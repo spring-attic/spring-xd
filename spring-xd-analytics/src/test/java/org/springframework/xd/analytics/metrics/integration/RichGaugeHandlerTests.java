@@ -35,15 +35,15 @@ import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.transformer.MessageTransformationException;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.xd.analytics.metrics.core.RichGauge;
 import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
 import org.springframework.xd.analytics.metrics.redis.RedisRichGaugeRepository;
-import org.springframework.xd.test.redis.RedisAvailableRule;
+import org.springframework.xd.test.redis.RedisTestSupport;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -59,7 +59,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class RichGaugeHandlerTests {
 
 	@Rule
-	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
+	public RedisTestSupport redisAvailableRule = new RedisTestSupport();
 
 	@Autowired
 	RedisRichGaugeRepository repo;
@@ -170,8 +170,10 @@ class RichGaugeHandlerTestsConfig {
 			cf.setHostName("localhost");
 			cf.setPort(6379);
 			cf.afterPropertiesSet();
+			cf.getConnection().close();
 			return cf;
-		}
+		} // The following is to have setup properly finishing
+			// The actual test(s) won't be executed thx to RedisAvailableRule
 		catch (RedisConnectionFailureException e) {
 			RedisConnectionFactory mockCF = mock(RedisConnectionFactory.class);
 			when(mockCF.getConnection()).thenReturn(mock(RedisConnection.class));

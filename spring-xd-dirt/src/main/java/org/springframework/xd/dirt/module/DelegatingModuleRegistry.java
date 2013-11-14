@@ -1,0 +1,107 @@
+/*
+ * Copyright 2013 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.springframework.xd.dirt.module;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleType;
+
+
+/**
+ * A {@link ModuleRegistry} that delegates to several ModuleRegistries, in order.
+ * 
+ * @author Eric Bottard
+ * @author Glenn Renfro
+ * @author David Turanski
+ */
+public class DelegatingModuleRegistry implements ModuleRegistry {
+
+	private final List<ModuleRegistry> delegates = new ArrayList<ModuleRegistry>();
+
+	public DelegatingModuleRegistry(ModuleRegistry... delegates) {
+		this.delegates.addAll(Arrays.asList(delegates));
+	}
+
+	@Override
+	public ModuleDefinition findDefinition(String name, ModuleType moduleType) {
+		for (ModuleRegistry delegate : delegates) {
+			ModuleDefinition result = delegate.findDefinition(name, moduleType);
+			if (result != null) {
+				return result;
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public List<ModuleDefinition> findDefinitions(String name) {
+		Set<String> alreadySeen = new HashSet<String>();
+		List<ModuleDefinition> result = new ArrayList<ModuleDefinition>();
+		for (ModuleRegistry delegate : delegates) {
+			List<ModuleDefinition> sub = delegate.findDefinitions(name);
+			for (ModuleDefinition definition : sub) {
+				// First registry's module shadows subsequent
+				if (alreadySeen.add(makeKeyFor(definition))) {
+					result.add(definition);
+				}
+			}
+		}
+		return result;
+	}
+
+	public void addDelegate(ModuleRegistry delegate) {
+		delegates.add(delegate);
+	}
+
+	private String makeKeyFor(ModuleDefinition definition) {
+		return definition.getType() + "|" + definition.getName();
+	}
+
+	@Override
+	public List<ModuleDefinition> findDefinitions(ModuleType type) {
+		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
+		Set<String> alreadySeen = new HashSet<String>();
+		for (ModuleRegistry delegate : delegates) {
+			for (ModuleDefinition def : delegate.findDefinitions(type)) {
+				if (alreadySeen.add(makeKeyFor(def))) {
+					definitions.add(def);
+				}
+			}
+		}
+		return definitions;
+	}
+
+	@Override
+	public List<ModuleDefinition> findDefinitions() {
+		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
+		Set<String> alreadySeen = new HashSet<String>();
+		for (ModuleRegistry delegate : delegates) {
+			for (ModuleDefinition def : delegate.findDefinitions()) {
+				if (alreadySeen.add(makeKeyFor(def))) {
+					definitions.add(def);
+				}
+			}
+		}
+		return definitions;
+	}
+
+}

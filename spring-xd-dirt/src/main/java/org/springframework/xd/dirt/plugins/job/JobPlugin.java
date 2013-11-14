@@ -16,18 +16,26 @@
 
 package org.springframework.xd.dirt.plugins.job;
 
-import static org.springframework.xd.module.ModuleType.JOB;
-
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.xd.dirt.container.DefaultContainer;
+import org.springframework.http.MediaType;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.x.bus.MessageBus;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.module.AbstractPlugin;
+import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.Module;
+import org.springframework.xd.module.ModuleType;
 
 /**
  * Plugin to enable the registration of jobs in a central registry.
@@ -35,6 +43,8 @@ import org.springframework.xd.module.Module;
  * @author Michael Minella
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Glenn Renfro
+ * @author Ilayaperumal Gopinathan
  * @since 1.0
  * 
  */
@@ -42,29 +52,10 @@ public class JobPlugin extends AbstractPlugin {
 
 	private final Log logger = LogFactory.getLog(getClass());
 
-	private static final String CONTEXT_CONFIG_ROOT = DefaultContainer.XD_CONFIG_ROOT
+	private static final String CONTEXT_CONFIG_ROOT = XDContainer.XD_CONFIG_ROOT
 			+ "plugins/job/";
 
-	private static final String REGISTRAR_WITH_TRIGGER_REF =
-			CONTEXT_CONFIG_ROOT + "registrar-with-trigger-ref.xml";
-
-	private static final String REGISTRAR_WITH_CRON =
-			CONTEXT_CONFIG_ROOT + "registrar-with-cron.xml";
-
-	private static final String REGISTRAR_WITH_FIXED_DELAY =
-			CONTEXT_CONFIG_ROOT + "registrar-with-fixed-delay.xml";
-
-	private static final String REGISTRAR = CONTEXT_CONFIG_ROOT + "registrar.xml";
-
-	private static final String COMMON_XML = CONTEXT_CONFIG_ROOT + "common.xml";
-
-	private static final String TRIGGER = "trigger";
-
-	private static final String CRON = "cron";
-
-	private static final String FIXED_DELAY = "fixedDelay";
-
-	private static final String JOB_PARAMETERS = "jobParameters";
+	private static final String REGISTRAR = CONTEXT_CONFIG_ROOT + "job-module-beans.xml";
 
 	private static final String DATE_FORMAT = "dateFormat";
 
@@ -72,27 +63,27 @@ public class JobPlugin extends AbstractPlugin {
 
 	private static final String MAKE_UNIQUE = "makeUnique";
 
-	public JobPlugin() {
-		super.setPostProcessContextPaths(COMMON_XML);
-	}
+	public static final String JOB_BEAN_ID = "job";
+
+	public static final String JOB_NAME_DELIMITER = ".";
+
+	public static final String JOB_PARAMETERS_KEY = "jobParameters";
+
+	private static final String NOTIFICATION_CHANNEL_SUFFIX = "-notifications";
+
+	private static final String JOB_CHANNEL_PREFIX = "job:";
+
+	private static final String JOB_LAUNCH_REQUEST_CHANNEL = "input";
+
+	private static final String JOB_NOTIFICATIONS_CHANNEL = "notifications";
+
+	private final static Collection<MediaType> DEFAULT_ACCEPTED_CONTENT_TYPES = Collections.singletonList(MediaType.ALL);
 
 	@Override
 	public void configureProperties(Module module) {
 		final Properties properties = new Properties();
 		properties.setProperty("xd.stream.name", module.getDeploymentMetadata().getGroup());
 
-		if (module.getProperties().containsKey(TRIGGER) || module.getProperties().containsKey(CRON)
-				|| module.getProperties().containsKey(FIXED_DELAY)) {
-			properties.setProperty("xd.trigger.execute_on_startup", "false");
-		}
-		else {
-			properties.setProperty("xd.trigger.execute_on_startup", "true");
-		}
-		module.addProperties(properties);
-
-		if (!module.getProperties().contains(JOB_PARAMETERS)) {
-			properties.setProperty(JOB_PARAMETERS, "");
-		}
 		if (!module.getProperties().contains(DATE_FORMAT)) {
 			properties.setProperty(DATE_FORMAT, "");
 		}
@@ -106,28 +97,69 @@ public class JobPlugin extends AbstractPlugin {
 		if (logger.isInfoEnabled()) {
 			logger.info("Configuring module with the following properties: " + properties.toString());
 		}
+		module.addProperties(properties);
+	}
 
+	@Override
+	public void postProcessModule(Module module) {
+		MessageBus bus = findMessageBus(module);
+		DeploymentMetadata md = module.getDeploymentMetadata();
+		if (bus != null) {
+			MessageChannel inputChannel = module.getComponent(JOB_LAUNCH_REQUEST_CHANNEL, MessageChannel.class);
+			if (inputChannel != null) {
+				bus.bindConsumer(JOB_CHANNEL_PREFIX + md.getGroup(), inputChannel,
+						DEFAULT_ACCEPTED_CONTENT_TYPES,
+						true);
+			}
+
+			MessageChannel notificationsChannel = module.getComponent(JOB_NOTIFICATIONS_CHANNEL, MessageChannel.class);
+
+			if (notificationsChannel != null) {
+				bus.bindProducer(md.getGroup() + NOTIFICATION_CHANNEL_SUFFIX, notificationsChannel, true);
+			}
+		}
+	}
+
+	private MessageBus findMessageBus(Module module) {
+		MessageBus messageBus = null;
+		try {
+			messageBus = module.getComponent(MessageBus.class);
+		}
+		catch (Exception e) {
+			logger.error("No MessageBus in context, cannot wire/unwire channels: " + e.getMessage());
+		}
+		return messageBus;
+	}
+
+	@Override
+	public void beforeShutdown(Module module) {
+	}
+
+	@Override
+	public void removeModule(Module module) {
+		MessageBus bus = findMessageBus(module);
+		if (bus != null) {
+			bus.unbindConsumers(JOB_CHANNEL_PREFIX + module.getDeploymentMetadata().getGroup());
+			bus.unbindProducers(module.getDeploymentMetadata().getGroup() + NOTIFICATION_CHANNEL_SUFFIX);
+		}
 	}
 
 	@Override
 	public List<String> componentPathsSelector(Module module) {
 		List<String> result = new ArrayList<String>();
-		if (!JOB.equals(module.getType())) {
+		if (module.getType() != ModuleType.job) {
 			return result;
 		}
-		if (module.getProperties().containsKey(TRIGGER)) {
-			result.add(REGISTRAR_WITH_TRIGGER_REF);
-		}
-		else if (module.getProperties().containsKey(CRON)) {
-			result.add(REGISTRAR_WITH_CRON);
-		}
-		else if (module.getProperties().containsKey(FIXED_DELAY)) {
-			result.add(REGISTRAR_WITH_FIXED_DELAY);
-		}
-		else {
-			result.add(REGISTRAR);
-		}
+		result.add(REGISTRAR);
 		return result;
 	}
 
+	public void launch(Module module, Map<String, String> parameters) {
+		MessageChannel inputChannel = module.getComponent(JOB_LAUNCH_REQUEST_CHANNEL, MessageChannel.class);
+		String payloadJSON =
+				(parameters != null && parameters.get(JOB_PARAMETERS_KEY) != null) ? parameters.get(JOB_PARAMETERS_KEY)
+						: "";
+		Message<?> message = MessageBuilder.withPayload(payloadJSON).build();
+		inputChannel.send(message);
+	}
 }

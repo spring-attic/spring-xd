@@ -8,6 +8,7 @@ buildscript {
 		maven { url "http://repo.springsource.org/plugins-snapshot" }
 	}
 	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:0.5.0.M6")
 		classpath("org.springframework.build.gradle:propdeps-plugin:0.0.3")
 		classpath("org.springframework.build.gradle:docbook-reference-plugin:0.2.7-SNAPSHOT")
 		classpath 'org.asciidoctor:asciidoctor-gradle-plugin:0.4.1'
@@ -17,12 +18,12 @@ buildscript {
 }
 
 ext {
-	linkHomepage = 'https://github.com/SpringSource/spring-xd'
+	linkHomepage = 'https://github.com/spring-projects/spring-xd'
 	linkCi       = 'https://build.springsource.org/browse/XD'
 	linkIssue    = 'https://jira.springsource.org/browse/XD'
-	linkScmUrl           = 'https://github.com/SpringSource/spring-xd'
-	linkScmConnection    = 'https://github.com/SpringSource/spring-xd.git'
-	linkScmDevConnection = 'git@github.com:SpringSource/spring-xd.git'
+	linkScmUrl           = 'https://github.com/spring-projects/spring-xd'
+	linkScmConnection    = 'https://github.com/spring-projects/spring-xd.git'
+	linkScmDevConnection = 'git@github.com:spring-projects/spring-xd.git'
 
 	javadocLinks = [
 		"http://static.springsource.org/spring-shell/docs/current/api/"
@@ -30,31 +31,83 @@ ext {
 
 }
 
+// custom class to store the SingleNode server process
+class SingleNodeServerProcess {
+		 Process process
+}
+
 allprojects {
 	group = 'org.springframework.xd'
 
 	repositories {
 		mavenCentral()
-		maven { url 'http://repo.springsource.org/libs-milestone' }
-		maven { url 'http://repo.springsource.org/libs-snapshot' }
-		maven { url 'http://repo.springsource.org/plugins-release' }
-		maven { url 'http://repo.springsource.org/plugins-snapshot' }
+		maven { url 'http://repo.spring.io/libs-milestone' }
+ 		maven { url 'http://repo.spring.io/libs-snapshot' }
+		maven { url 'http://repo.spring.io/plugins-release' }
+		maven { url 'http://repo.spring.io/plugins-snapshot' }
+		maven { url 'https://repo.eclipse.org/content/repositories/paho-releases' }
 	}
-	apply plugin: 'javadocHotfix'
+
 }
 
 def javaProjects() {
-	subprojects.findAll { project -> project.name != 'redis' }
+    def nonJavaProjects = ['redis', 'spring-xd-ui']
+    subprojects.findAll { project -> !nonJavaProjects.contains(project.name) && !project.path.startsWith(':modules.')}
 }
 
-configure(javaProjects()) { subproject ->
+def moduleProjects() {
+    subprojects.findAll { project -> project.path.startsWith(':modules.')}
+}
 
-	apply plugin: 'java'
-	apply from:   "${rootProject.projectDir}/publish-maven.gradle"
-	apply plugin: 'eclipse'
-	apply plugin: 'idea'
+ext {
+	jackson1Version = '1.9.9'
+	jacksonVersion = '2.2.2'
+	jsonPathVersion = '0.8.1'
+	junitVersion = '4.11'
+	hamcrestVersion = '1.3'
+	hamcrestDateVersion = '0.9.3'
+	hsqldbVersion = '2.3.0'
+	h2Version = '1.3.172'
+	jodaTimeVersion = '2.1'
+	jolokiaVersion = '1.1.2'
+	snakeYamlVersion = '1.12'
+	springVersion = '4.0.0.RC1'
+	springBatchVersion = '2.2.3.BUILD-SNAPSHOT'
+	springIntegrationVersion = '4.0.0.M1'
+	springIntegrationMQTTVersion = '4.0.0.M1'
+	springBootVersion = '0.5.0.M6'
+	springCloudVersion = '0.9.2'
+	springBatchAdminMgrVersion = '1.3.0.M1'
+	springShellVersion = '1.1.0.M1'
+	springIntegrationSplunkVersion = '1.0.0.M1'
+	springDataMongoVersion = '1.3.2.RELEASE'
+	springDataRedisVersion = '1.1.0.RELEASE'
+	springDataCommonsVersion = '1.6.2.RELEASE'
+	springDataGemfireVersion = '1.3.2.RELEASE'
+	tomcatJdbcPoolVersion = '7.0.42'
+	reactorVersion = '1.0.0.RC1'
+	lettuceVersion = '2.3.3'
+	springDataHadoopVersion = '1.0.2.RELEASE'
+	hadoop12Version = '1.2.1'
+	hadoop20Version = '2.0.6-alpha'
+	cdh4Version = '2.0.0-cdh4.3.1'
+	hdp13Version = '1.2.0'
+	phd1Version = '2.0.5-alpha-gphd-2.1.0.0'
+	springHATEOASVersion = '0.7.0.RELEASE'
+	springPluginVersion = '0.8.0.RELEASE'
+	tomcatVersion = '7.0.35'
+	commonsBeanUtilsVersion = '1.6'
+	slf4jVersion = '1.7.5'
+	log4jVersion = '1.2.17'
+	args4jVersion = '2.0.25'
+	mockitoVersion = '1.9.5'
+	javaxMailVersion = '1.5.0'
+	kryoVersion = '2.22'
+	singleNodeServerProcess = new SingleNodeServerProcess()
+}
 
-	configurations.all {
+def forceSpringVersion(p) {
+	p.configurations.all {
 		resolutionStrategy {
 			eachDependency { DependencyResolveDetails details ->
 				//Force same version of Spring across the board
@@ -64,41 +117,26 @@ configure(javaProjects()) { subproject ->
 			}
 		}
 	}
+}
 
-	sourceCompatibility=1.6
-	targetCompatibility=1.6
+configure(javaProjects()) { subproject ->
 
-	ext {
-		jacksonVersion = '2.2.2'
-		junitVersion = '4.11'
-		hamcrestVersion = '1.3'
-		hamcrestDateVersion = '0.9.3'
-		jodaTimeVersion = '1.6'
-		jolokiaVersion = '1.1.2'
-		springVersion = '3.2.2.RELEASE'
-		springBatchVersion = '2.2.0.RELEASE'
-		springIntegrationVersion = '3.0.0.M2'
-		springSocialVersion = '1.1.0.M3'
-		springShellVersion = '1.1.0.M1'
-		springIntegrationSplunkVersion = '1.0.0.M1'
-		springDataMongoVersion = '1.1.1.RELEASE'
-		springDataRedisVersion = '1.1.0.BUILD-SNAPSHOT'
-		springDataCommonsVersion = '1.6.0.M1'
-		springDataGemfireVersion = '1.3.2.RELEASE'
-		lettuceVersion = '2.3.3'
-		springDataHadoopVersion = '1.0.1.RC1'
-		hadoop10Version = '1.0.4'
-		hadoop11Version = '1.1.2'
-		hadoop20Version = '2.0.5-alpha'
-		phd1Version = '2.0.2-alpha-gphd-2.0.1.0'
-		springHATEOASVersion = '0.7.0.RELEASE'
-		springPluginVersion = '0.8.0.RELEASE'
-		tomcatVersion = '7.0.35'
-		commonsBeanUtilsVersion = '1.6'
-		slf4jVersion = '1.7.5'
-		log4jVersion = '1.2.17'
-		args4jVersion = '2.0.25'
-		mockitoVersion = '1.9.5'
+	apply plugin: 'groovy'
+	apply from:   "${rootProject.projectDir}/publish-maven.gradle"
+	apply plugin: 'eclipse'
+	apply plugin: 'idea'
+	apply plugin: 'javadocHotfix'
+
+	forceSpringVersion(subproject)
+
+	compileJava {
+		sourceCompatibility=1.6
+		targetCompatibility=1.6
+	}
+
+	compileTestJava {
+		sourceCompatibility=1.7
+		targetCompatibility=1.7
 	}
 
 	eclipse {
@@ -131,6 +169,12 @@ configure(javaProjects()) { subproject ->
 
 	sourceSets {
 		test {
+			groovy {
+				srcDirs = ['src/test/java']
+				resources {
+					srcDirs = ['src/test/resources', 'src/test/java']
+				}
+			}
 			resources {
 				srcDirs = ['src/test/resources', 'src/test/java']
 			}
@@ -142,8 +186,9 @@ configure(javaProjects()) { subproject ->
 	}
 
 	// dependencies that are common across all java projects
-	dependencies {
+dependencies {
 		testCompile "junit:junit:$junitVersion"
+		testCompile "org.codehaus.groovy:groovy-all:2.1.0"
 		testCompile "org.hamcrest:hamcrest-library:$hamcrestVersion"
 		jacoco group: "org.jacoco", name: "org.jacoco.agent", version: "0.6.2.201302030002", classifier: "runtime"
 	}
@@ -155,6 +200,12 @@ configure(javaProjects()) { subproject ->
 		// suppress all console output during testing unless running `gradle -i`
 		logging.captureStandardOutput(LogLevel.INFO)
 		jvmArgs "-javaagent:${configurations.jacoco.asPath}=destfile=${buildDir}/jacoco.exec,includes=org.springframework.xd.*"
+		jvmArgs "-XX:MaxPermSize=256m"
+		jvmArgs "-Djava.net.preferIPv4Stack=true"
+// 	useful for debugging the GradleWorkerMain
+//		jvmArgs "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=8000"
+//		jvmArgs "-Dlog4j.debug=true"
+//		classpath = files('/some/dir/with/props') + project.sourceSets.test.runtimeClasspath
 	}
 
 	javadoc {
@@ -181,7 +232,7 @@ configure(javaProjects()) { subproject ->
 			"${System.getProperty("java.version")} (${System.getProperty("java.specification.vendor")})"
 		manifest.attributes["Implementation-Title"] = subproject.name
 		manifest.attributes["Implementation-Version"] = subproject.version
-		exclude('log4j.properties')
+        if (project != project(':spring-xd-exec')) { exclude 'log4j.properties' }
 	}
 
 	task javadocJar(type: Jar) {
@@ -195,6 +246,63 @@ configure(javaProjects()) { subproject ->
 	}
 }
 
+configure(moduleProjects()) { moduleProject ->
+
+	// We only apply the java plugin b/c the eclipse/idea plugins
+	// require it to emit e.g. a .classpath file. Those projects don't actually
+	// contain java code, so reset everything (prevents creation of
+	// the 'build' directory, etc)
+	apply plugin: 'java'
+	task build(overwrite: true) {}
+	task clean(overwrite: true) {}
+	compileJava {
+		sourceCompatibility=1.6
+		targetCompatibility=1.6
+	}
+
+
+	apply plugin: 'eclipse'
+	apply plugin: 'idea'
+
+	forceSpringVersion(moduleProject)
+
+	eclipse {
+		project {
+			natures += 'org.springframework.ide.eclipse.core.springnature'
+		}
+	}
+
+	// FIXME: remove this
+	configurations {
+		runtime {
+			// Workaround for duplicate large jars being included by mistake
+			exclude module: 'gemfire'
+		}
+	}
+
+	task copyLibs(type: Copy) {
+		def containerDeps = project(':spring-xd-dirt').configurations.runtime
+
+		inputs.property('deps', moduleProject.configurations.runtime.minus(containerDeps))
+		outputs.dir project.file('lib/')
+
+		from moduleProject.configurations.runtime.minus(containerDeps)
+		into project.file('lib/')
+	}
+
+
+	['test','build', 'eclipse', 'idea'].each {t -> tasks[t].dependsOn copyLibs}
+
+	task cleanLibs(type: Delete)  {
+		delete copyLibs.outputs
+	}
+
+	['clean', 'cleanEclipse', 'cleanIdea'].each {t -> tasks[t].dependsOn cleanLibs}
+
+	project(':spring-xd-dirt').tasks['build'].dependsOn(moduleProject.tasks['build'])
+}
+
+
 project('spring-xd-analytics') {
 	description = 'Spring XD Anayltics'
 	dependencies {
@@ -204,7 +312,6 @@ project('spring-xd-analytics') {
 		compile "org.springframework.data:spring-data-commons:$springDataCommonsVersion"
 		compile "com.lambdaworks:lettuce:$lettuceVersion"
 		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
-		compile "org.springframework.integration:spring-integration-splunk:$springIntegrationSplunkVersion"
 		compile "joda-time:joda-time:$jodaTimeVersion"
 		testCompile project(":spring-xd-test")
 		testCompile "nl.jqno.equalsverifier:equalsverifier:1.1.3"
@@ -221,66 +328,97 @@ project('spring-xd-analytics') {
 
 project('spring-xd-dirt') {
 	description = 'Spring XD DIRT'
-	configurations {
-		//[runtime,testRuntime]*.exclude group: 'org.codehaus.jackson'
-	}
 	dependencies {
 
-		compile project(":spring-xd-analytics"),
-				project(":spring-xd-module"),
-				project(":spring-xd-hadoop"),
-				project(":spring-xd-jdbc"),
-				project(":spring-xd-http"),
-				project(':spring-xd-rest-domain'),
-				"org.springframework:spring-webmvc:$springVersion",
-				"org.springframework.data:spring-data-commons:$springDataCommonsVersion",
-				"com.fasterxml.jackson.core:jackson-databind:$jacksonVersion",
-				"org.apache.tomcat.embed:tomcat-embed-core:$tomcatVersion",
-				"org.apache.tomcat.embed:tomcat-embed-logging-juli:$tomcatVersion",
-				"org.apache.tomcat:tomcat-jsp-api:$tomcatVersion",
-				"log4j:log4j:$log4jVersion",
-				"org.springframework.integration:spring-integration-amqp:$springIntegrationVersion",
-				"org.springframework.integration:spring-integration-event:$springIntegrationVersion",
-				"org.springframework.integration:spring-integration-file:$springIntegrationVersion",
-				"org.springframework.integration:spring-integration-gemfire:$springIntegrationVersion",
-				"org.springframework.integration:spring-integration-groovy:$springIntegrationVersion",
-				"org.springframework.integration:spring-integration-jms:$springIntegrationVersion",
-				"org.springframework.integration:spring-integration-jmx:$springIntegrationVersion",
-				"org.springframework.integration:spring-integration-redis:$springIntegrationVersion",
-				"org.springframework.integration:spring-integration-syslog:$springIntegrationVersion",
-				"org.springframework.integration:spring-integration-mqtt:1.0.0.M1",
-				"org.springframework.batch:spring-batch-core:$springBatchVersion",
-				"org.springframework.data:spring-data-redis:$springDataRedisVersion",
-				"org.springframework.social:spring-social-twitter:$springSocialVersion",
-				"commons-lang:commons-lang:2.4",
-				"com.lambdaworks:lettuce:$lettuceVersion",
-				"args4j:args4j:$args4jVersion",
-				"com.eaio.uuid:uuid:3.2",
-				"org.jolokia:jolokia-spring:$jolokiaVersion",
-				"org.springframework.plugin:spring-plugin-core:$springPluginVersion"
+		// See XD-903 for breakdown
+		// ************* Common to both Server and Container
+		compile "org.springframework:spring-aop:$springVersion"
+		compile project(":spring-xd-analytics")
+		compile "org.springframework.cloud:spring-service-connector:$springCloudVersion"
+		compile "org.springframework.cloud:cloudfoundry-connector:$springCloudVersion"
+		compile "org.springframework.boot:spring-boot-autoconfigure:$springBootVersion"
+		compile "org.springframework.boot:spring-boot-actuator:$springBootVersion"
+		compile "org.springframework.data:spring-data-redis:$springDataRedisVersion"
+		compile "org.springframework.integration:spring-integration-redis:$springIntegrationVersion"
+		compile "org.springframework.integration:spring-integration-http:$springIntegrationVersion"
+		compile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
+		compile "log4j:log4j:$log4jVersion"
+		compile "org.springframework.integration:spring-integration-amqp:$springIntegrationVersion"
+		compile "org.springframework.integration:spring-integration-event:$springIntegrationVersion"
+		compile "org.springframework.integration:spring-integration-groovy:$springIntegrationVersion"
+		compile "org.springframework.integration:spring-integration-jmx:$springIntegrationVersion"
+		compile "org.jolokia:jolokia-spring:$jolokiaVersion"
+		compile "com.esotericsoftware.kryo:kryo:$kryoVersion"
+		compile "com.lambdaworks:lettuce:$lettuceVersion"
+		compile "args4j:args4j:$args4jVersion"
+		compile "commons-lang:commons-lang:2.4"
 
-		compile ("org.apache.activemq:activemq-core:5.6.0") {
-			exclude group: 'org.mortbay.jetty'
+		compile "org.hsqldb:hsqldb:$hsqldbVersion"
+		compile "org.springframework.batch:spring-batch-core:$springBatchVersion"
+		compile "org.apache.tomcat:tomcat-jdbc:$tomcatJdbcPoolVersion"
+		compile ("org.springframework.batch:spring-batch-admin-manager:$springBatchAdminMgrVersion") {
+			exclude group: 'hsqldb'
 		}
-		runtime "org.slf4j:jcl-over-slf4j:$slf4jVersion",
-				"org.slf4j:slf4j-log4j12:$slf4jVersion"
+		compile ("org.springframework.batch:spring-batch-integration:1.2.2.RELEASE") {
+			exclude group: 'org.springframework.integration'
+			exclude group: 'org.springframework'
+		}
 
+
+		runtime "org.slf4j:jcl-over-slf4j:$slf4jVersion"
+		runtime "org.slf4j:slf4j-log4j12:$slf4jVersion"
+		runtime "org.yaml:snakeyaml:$snakeYamlVersion"
+		runtime "org.postgresql:postgresql:9.2-1002-jdbc4"
+		runtime "mysql:mysql-connector-java:5.1.23"
+
+		// ************* Dirt-Server only
+		compile project(':spring-xd-rest-domain')
+		compile "org.springframework:spring-webmvc:$springVersion"
+		compile "org.springframework.plugin:spring-plugin-core:$springPluginVersion"
+		compile "org.springframework.data:spring-data-commons:$springDataCommonsVersion"
+		compile "org.apache.tomcat.embed:tomcat-embed-core:$tomcatVersion"
+		compile "org.apache.tomcat.embed:tomcat-embed-logging-juli:$tomcatVersion"
+		compile "org.apache.tomcat:tomcat-jsp-api:$tomcatVersion"
+
+		// ************* Dirt-Container only (per se)
+		compile project(":spring-xd-module")
+		compile "com.jayway.jsonpath:json-path:$jsonPathVersion"
+		compile "com.eaio.uuid:uuid:3.2"
+
+		// ************* Container: Modules (should move on their own: XD-915)
+		compile project(":spring-xd-hadoop")
+
+		// ************* Container: Imposed by some Module (can't move)
+		compile "com.sun.mail:javax.mail:$javaxMailVersion"
+		runtime project(":spring-xd-extension-reactor")
+
+		// The following is needed eg by twitter module b/c jackson classes
+		// are loaded by RestTemplate and RestTemplate is in Dirt
+		runtime "org.codehaus.jackson:jackson-mapper-asl:$jackson1Version"
+
+		// ************* Test
 		testCompile project(":spring-xd-test")
 		testCompile "com.jayway.jsonpath:json-path:0.8.1"
 		testCompile ("org.mockito:mockito-core:$mockitoVersion") {
 			exclude group:'org.hamcrest'
 		}
 
+		// The following two because of AmqBrokerAndTest
+		testCompile ("org.apache.activemq:activemq-core:5.6.0") {
+			exclude group: 'org.mortbay.jetty'
+			exclude group: 'org.fusesource.fuse-extra'
+		}
+		testCompile "org.springframework:spring-jms:$springVersion"
+
+		// The following because of org/springframework/integration/x/bus/serializer/TweetSerializationTests.groovy
+		testCompile "org.springframework.social:spring-social-twitter:1.0.5.RELEASE"
+
 	}
 
 	apply plugin:'application'
 	// skip the startScripts task to avoid default start script generation
 	startScripts.setEnabled(false)
-	mainClassName = "org.springframework.xd.dirt.server.AdminMain"
-
-	run {
-		args = ['--transport', 'local']
-	}
+	mainClassName = "org.springframework.xd.dirt.server.SingleNodeMain"
 
 	test {
 		systemProperties["xd.home"] = "${rootProject.projectDir}"
@@ -294,6 +432,11 @@ project('spring-xd-dirt') {
 	task moduleFiles {
 		def modules = file("$rootDir/modules")
 		outputs.dir modules
+	}
+
+	task xdUiFiles {
+		def uiFiles = file("$rootDir/spring-xd-ui")
+		outputs.dir uiFiles
 	}
 
 	task scriptFiles {
@@ -312,9 +455,62 @@ project('spring-xd-dirt') {
 	applicationDistribution.from(moduleFiles) {
 		into "modules"
 	}
+
+	applicationDistribution.from(xdUiFiles) {
+		into "spring-xd-ui"
+	}
+
+	// Following execution is used by jsTests task to start SingleNodeMainServer as background process
+	task backgroundAdminServer << { task ->
+		println "Starting SingleNode server as a background process"
+		ProcessBuilder processBuilder = new ProcessBuilder("java", "-cp", sourceSets.main.runtimeClasspath.getAsPath(), "org.springframework.xd.dirt.server.SingleNodeMain");
+		processBuilder.directory(file("$rootDir/spring-xd-dirt"))
+		def Process proc = processBuilder.start()
+		proc.consumeProcessOutputStream(System.out)
+		println("Waiting for the server to startup...")
+		// Give 15s for the server startup
+		Thread.sleep(15000)
+		// Save the process object to destroy after test completion
+		project.singleNodeServerProcess.process = proc
+	}
+
+	task cleanDataDir(type: Delete) {
+		delete "$rootDir/data"
+	}
+
+	tasks["backgroundAdminServer"].dependsOn("classes")
+	tasks["clean"].dependsOn("cleanDataDir")
+
 }
 
-project('spring-xd-http') {
+project('spring-xd-exec') {
+	dependencies {
+		compile project(':spring-xd-dirt')
+	}
+	apply plugin: "spring-boot"
+	springBoot {
+		mainClass = 'org.springframework.xd.dirt.boot.SingleNodeApplication'
+		layout = 'ZIP'
+	}
+	jar {
+		exclude 'build'
+		exclude 'target'
+		// FIXME: unhack this
+		exclude '**/gemfire-*.jar'
+		exclude '**/aspectweaver-*.jar'
+		into('.') { from '../spring-xd-dirt/src/main/resources/log4j.properties' }
+		into('modules') { from '../modules' }
+		into('config') { from '../config' }
+		into('spring-xd-ui') { from '../spring-xd-ui' }
+	}
+	moduleProjects().each { moduleProject ->
+		project.jar.dependsOn moduleProject.copyLibs
+	}
+}
+
+// Extension projects, supporting module definitions.
+
+project('spring-xd-extension-http') {
 	description = 'Spring XD HTTP'
 	dependencies {
 		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
@@ -323,6 +519,225 @@ project('spring-xd-http') {
 		testCompile project(":spring-xd-test")
 	}
 }
+
+project('spring-xd-extension-gemfire') {
+	description = 'Spring XD Gemfire'
+	dependencies {
+		compile "org.springframework.integration:spring-integration-gemfire:$springIntegrationVersion"
+	}
+}
+
+project('spring-xd-extension-twitter') {
+	description = 'Spring XD Twitter'
+	dependencies {
+		compile "org.springframework.integration:spring-integration-twitter:$springIntegrationVersion"
+	}
+}
+
+project('spring-xd-extension-splunk') {
+	description = 'Spring XD Splunk'
+	dependencies {
+		compile "org.springframework.integration:spring-integration-splunk:$springIntegrationSplunkVersion"
+		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
+		runtime "com.splunk:splunk:1.2.0"
+	}
+}
+
+project('spring-xd-extension-mongodb') {
+	description = 'Spring XD Mongodb'
+	dependencies {
+		compile project(':spring-xd-tuple')
+		compile "org.springframework.batch:spring-batch-core:$springBatchVersion"
+		compile "org.springframework.data:spring-data-mongodb:$springDataMongoVersion"
+	}
+}
+
+project('spring-xd-extension-jdbc') {
+	description = 'Spring XD JDBC'
+	dependencies {
+		compile "org.springframework:spring-jdbc:$springVersion"
+		compile "org.springframework:spring-tx:$springVersion"
+		compile "org.springframework.batch:spring-batch-infrastructure:$springBatchVersion"
+		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
+		runtime "org.springframework.integration:spring-integration-jdbc:$springIntegrationVersion"
+		runtime "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
+		compile "org.hsqldb:hsqldb:$hsqldbVersion"
+		runtime "mysql:mysql-connector-java:5.1.23"
+		runtime "org.postgresql:postgresql:9.2-1002-jdbc4"
+	}
+}
+
+project('spring-xd-extension-reactor') {
+	description = 'Spring XD Reactor'
+	dependencies {
+		compile "org.projectreactor:reactor-spring:$reactorVersion",
+				"org.projectreactor:reactor-tcp:$reactorVersion",
+				"org.springframework.integration:spring-integration-core:$springIntegrationVersion"
+
+		testCompile project(":spring-xd-test")
+		testCompile "com.jayway.jsonpath:json-path:0.8.1"
+		testCompile("org.mockito:mockito-core:$mockitoVersion") {
+			exclude group: 'org.hamcrest'
+		}
+		testRuntime "org.slf4j:jcl-over-slf4j:$slf4jVersion",
+				"org.slf4j:slf4j-log4j12:$slf4jVersion",
+				"log4j:log4j:$log4jVersion"
+	}
+}
+
+project('spring-xd-extension-hdfs') {
+	description = 'Spring XD HDFS'
+	def hadoopDefault = "hadoop20"
+	def hadoopDistro = project.hasProperty("hadoopDistro") ? project.getProperty("hadoopDistro") : hadoopDefault
+	def hadoopSuffix = hadoopDistro.equals("hadoop12") ? "" : "-" + hadoopDistro
+	dependencies {
+		compile "org.springframework:spring-aop:$springVersion"
+		compile "org.springframework:spring-context:$springVersion"
+		compile "org.springframework:spring-context-support:$springVersion"
+		compile "org.springframework:spring-tx:$springVersion"
+		compile ("org.springframework.data:spring-data-hadoop:${springDataHadoopVersion}${hadoopSuffix}") {
+			exclude group: 'org.mortbay.jetty'
+			exclude group: 'org.codehaus.jackson'
+			exclude group: 'hsqldb'
+			exclude group: 'javax.servlet'
+			exclude group: 'javax.servlet.jsp'
+		}
+		compile "com.cloudera.cdk:cdk-data-core:0.8.0"
+		compile "org.springframework.batch:spring-batch-core:$springBatchVersion"
+		testCompile "org.springframework:spring-test:$springVersion"
+		testRuntime "org.xerial.snappy:snappy-java:1.1.0"
+	}
+}
+
+project('spring-xd-hadoop') {
+	description = 'Spring XD Hadoop'
+	dependencies {
+		compile project(':spring-xd-extension-hdfs')
+		compile "org.springframework:spring-aop:$springVersion"
+		compile "org.springframework:spring-context:$springVersion"
+		compile "org.springframework:spring-context-support:$springVersion"
+		compile "org.springframework:spring-jdbc:$springVersion"
+		compile "org.springframework:spring-tx:$springVersion"
+		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
+		compile "org.springframework.batch:spring-batch-core:$springBatchVersion"
+		compile "org.springframework.data:spring-data-mongodb:$springDataMongoVersion"
+		compile ("org.springframework.data:spring-data-hadoop:$springDataHadoopVersion") {
+			exclude group: 'org.mortbay.jetty'
+			exclude group: 'org.codehaus.jackson'
+			exclude group: 'hsqldb'
+		}
+		testRuntime "org.xerial.snappy:snappy-java:1.1.0"
+	}
+}
+
+project('spring-xd-hadoop:hadoop12') {
+	description = 'Hadoop 1.2 dependencies'
+	dependencies {
+		runtime ("org.springframework.data:spring-data-hadoop:$springDataHadoopVersion")
+		runtime ("org.apache.hadoop:hadoop-core:$hadoop12Version")
+		runtime ("org.apache.hadoop:hadoop-client:$hadoop12Version")
+		runtime ("org.apache.hadoop:hadoop-streaming:$hadoop12Version")
+		runtime ("org.apache.hadoop:hadoop-tools:$hadoop12Version")
+	}
+	task copyToLib(dependsOn: build, type: Copy) {
+		into "$buildDir/lib"
+		from configurations.default
+		include 'spring-data-hadoop-*'
+		include 'hadoop-*'
+		include 'jetty-util-*'
+	}
+}
+
+project('spring-xd-hadoop:hadoop20') {
+	description = 'Hadoop 2.0 dependencies'
+	dependencies {
+		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopVersion}-hadoop20")
+		runtime ("org.apache.hadoop:hadoop-common:$hadoop20Version")
+		runtime ("org.apache.hadoop:hadoop-distcp:$hadoop20Version")
+		runtime ("org.apache.hadoop:hadoop-hdfs:$hadoop20Version")
+		runtime ("org.apache.hadoop:hadoop-mapreduce-client-core:$hadoop20Version")
+		runtime ("org.apache.hadoop:hadoop-mapreduce-client-jobclient:$hadoop20Version")
+		runtime ("org.apache.hadoop:hadoop-streaming:$hadoop20Version")
+		runtime ("org.apache.hadoop:hadoop-yarn-common:$hadoop20Version")
+	}
+	task copyToLib(dependsOn: build, type: Copy) {
+		into "$buildDir/lib"
+		from configurations.default
+		include 'spring-data-hadoop-*'
+		include 'hadoop-*'
+		include 'avro-*'
+		include 'protobuf-java-*'
+		include 'jetty-util-*'
+	}
+}
+
+project('spring-xd-hadoop:cdh4') {
+	description = 'Cloudera CDH 4.3.1 dependencies'
+	dependencies {
+		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopVersion}-cdh4")
+		runtime ("org.apache.hadoop:hadoop-common:$cdh4Version")
+		runtime ("org.apache.hadoop:hadoop-distcp:$cdh4Version")
+		runtime ("org.apache.hadoop:hadoop-hdfs:$cdh4Version")
+		runtime ("org.apache.hadoop:hadoop-mapreduce-client-core:$cdh4Version")
+		runtime ("org.apache.hadoop:hadoop-mapreduce-client-jobclient:$cdh4Version")
+		runtime ("org.apache.hadoop:hadoop-streaming:$cdh4Version")
+		runtime ("org.apache.hadoop:hadoop-streaming:$cdh4Version")
+	}
+	task copyToLib(dependsOn: build, type: Copy) {
+		into "$buildDir/lib"
+		from configurations.default
+		include 'spring-data-hadoop-*'
+		include 'hadoop-*'
+		include 'avro-*'
+		include 'protobuf-java-*'
+		include 'jetty-util-*'
+	}
+}
+
+project('spring-xd-hadoop:hdp13') {
+	description = 'Hortonworks HDP 1.3 dependencies'
+	dependencies {
+		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopVersion}-hdp13")
+		runtime ("org.apache.hadoop:hadoop-core:$hdp13Version")
+		runtime ("org.apache.hadoop:hadoop-client:$hdp13Version")
+		runtime ("org.apache.hadoop:hadoop-streaming:$hdp13Version")
+		runtime ("org.apache.hadoop:hadoop-tools:$hdp13Version")
+	}
+	task copyToLib(dependsOn: build, type: Copy) {
+		into "$buildDir/lib"
+		from configurations.default
+		include 'spring-data-hadoop-*'
+		include 'hadoop-*'
+		include 'jetty-util-*'
+	}
+}
+
+project('spring-xd-hadoop:phd1') {
+	description = 'Pivotal HD 1.0 dependencies'
+	dependencies {
+		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopVersion}-phd1")
+		runtime ("org.apache.hadoop:hadoop-common:$phd1Version")
+		runtime ("org.apache.hadoop:hadoop-client:$phd1Version")
+		runtime ("org.apache.hadoop:hadoop-distcp:$phd1Version")
+		runtime ("org.apache.hadoop:hadoop-hdfs:$phd1Version")
+		runtime ("org.apache.hadoop:hadoop-mapreduce-client-core:$phd1Version")
+		runtime ("org.apache.hadoop:hadoop-mapreduce-client-jobclient:$phd1Version")
+		runtime ("org.apache.hadoop:hadoop-streaming:$phd1Version")
+		runtime ("org.apache.hadoop:hadoop-yarn-common:$phd1Version")
+	}
+	task copyToLib(dependsOn: build, type: Copy) {
+		into "$buildDir/lib"
+		from configurations.default
+		include 'spring-data-hadoop-*'
+		include 'hadoop-*'
+		include 'avro-*'
+		include 'protobuf-java-*'
+		include 'jetty-util-*'
+	}
+}
+
+
+// 'Binary' distributions projects
 
 project ('spring-xd-gemfire-server') {
 	description = 'Gemfire Server to support XD Development and Demos'
@@ -395,20 +810,13 @@ project('redis') {
 	}
 }
 
+// Subprojects of Spring XD proper
+
 project('spring-xd-module') {
 	description = 'Spring XD Module'
 	dependencies {
-		compile "org.springframework:spring-core:$springVersion"
-		compile "org.springframework:spring-context:$springVersion"
-		compile "org.springframework:spring-web:$springVersion"
-	}
-}
-
-project('spring-integration-module') {
-	description = 'Spring Integration Module Support'
-	dependencies {
-		compile project(":spring-xd-module")
 		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
+		compile "org.springframework.boot:spring-boot-autoconfigure:$springBootVersion"
 	}
 }
 
@@ -433,7 +841,7 @@ project('spring-xd-rest-client') {
 		compile project(':spring-xd-rest-domain')
 		compile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
 		compile 'org.codehaus.jackson:jackson-core-asl:1.9.13'
-        compile "joda-time:joda-time:$jodaTimeVersion"
+	 compile "joda-time:joda-time:$jodaTimeVersion"
 	}
 }
 
@@ -448,111 +856,244 @@ project('spring-xd-rest-domain') {
 	}
 }
 
-
-project('spring-xd-hadoop') {
-	description = 'Spring XD Hadoop'
-	dependencies {
-		compile "org.springframework:spring-aop:$springVersion"
-		compile "org.springframework:spring-context:$springVersion"
-		compile "org.springframework:spring-context-support:$springVersion"
-		compile "org.springframework:spring-jdbc:$springVersion"
-		compile "org.springframework:spring-tx:$springVersion"
-		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
-		compile "org.springframework.batch:spring-batch-core:$springBatchVersion"
-		compile "org.springframework.data:spring-data-mongodb:$springDataMongoVersion"
-		compile ("org.springframework.data:spring-data-hadoop:$springDataHadoopVersion") {
-			exclude group: 'org.mortbay.jetty'
-			exclude group: 'org.codehaus.jackson'
-		}
-		// Needed for webhdfs sink
-		runtime ("org.mortbay.jetty:jetty-util:6.1.26")
-		runtime("javax.ws.rs:jsr311-api:1.1.1")
-	}
-}
-
-project('spring-xd-hadoop:hadoop10') {
-	description = 'Hadoop 1.0 dependencies'
-	dependencies {
-		runtime ("org.apache.hadoop:hadoop-core:$hadoop10Version")
-		runtime ("org.apache.hadoop:hadoop-streaming:$hadoop10Version")
-		runtime ("org.apache.hadoop:hadoop-tools:$hadoop10Version")
-	}
-	task copyToLib(dependsOn: build, type: Copy) {
-		into "$buildDir/lib"
-		from configurations.default
-		include 'hadoop-*'
-	}
-}
-
-project('spring-xd-hadoop:hadoop11') {
-	description = 'Hadoop 1.1 dependencies'
-	dependencies {
-		runtime ("org.apache.hadoop:hadoop-core:$hadoop11Version")
-		runtime ("org.apache.hadoop:hadoop-streaming:$hadoop11Version")
-		runtime ("org.apache.hadoop:hadoop-tools:$hadoop11Version")
-	}
-	task copyToLib(dependsOn: build, type: Copy) {
-		into "$buildDir/lib"
-		from configurations.default
-		include 'hadoop-*'
-	}
-}
-
-project('spring-xd-hadoop:hadoop20') {
-	description = 'Hadoop 2.0 dependencies'
-	dependencies {
-		runtime ("org.apache.hadoop:hadoop-common:$hadoop20Version")
-		runtime ("org.apache.hadoop:hadoop-distcp:$hadoop20Version")
-		runtime ("org.apache.hadoop:hadoop-hdfs:$hadoop20Version")
-		runtime ("org.apache.hadoop:hadoop-mapreduce-client-core:$hadoop20Version")
-		runtime ("org.apache.hadoop:hadoop-streaming:$hadoop20Version")
-		runtime ("org.apache.hadoop:hadoop-yarn-common:$hadoop20Version")
-	}
-	task copyToLib(dependsOn: build, type: Copy) {
-		into "$buildDir/lib"
-		from configurations.default
-		include 'hadoop-*'
-		include 'protobuf-java-*'
-	}
-}
-
-project('spring-xd-hadoop:phd1') {
-	description = 'Pivotal HD 1.0 dependencies'
-	dependencies {
-		runtime ("org.apache.hadoop:hadoop-common:$phd1Version")
-		runtime ("org.apache.hadoop:hadoop-distcp:$phd1Version")
-		runtime ("org.apache.hadoop:hadoop-hdfs:$phd1Version")
-		runtime ("org.apache.hadoop:hadoop-mapreduce-client-core:$phd1Version")
-		runtime ("org.apache.hadoop:hadoop-streaming:$phd1Version")
-		runtime ("org.apache.hadoop:hadoop-yarn-common:$phd1Version")
-	}
-	task copyToLib(dependsOn: build, type: Copy) {
-		into "$buildDir/lib"
-		from configurations.default
-		include 'hadoop-*'
-		include 'protobuf-java-*'
-	}
-}
-
-project('spring-xd-jdbc') {
-	description = 'Spring XD JDBC'
-	dependencies {
-		compile "org.springframework:spring-jdbc:$springVersion"
-		compile "org.springframework:spring-tx:$springVersion"
-		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
-		runtime "org.springframework.integration:spring-integration-jdbc:$springIntegrationVersion"
-		runtime "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
-		runtime "hsqldb:hsqldb:1.8.0.10"
-		runtime "mysql:mysql-connector-java:5.1.23"
-		runtime "postgresql:postgresql:9.1-901-1.jdbc4"
-	}
-}
+// Module definition projects (for projects w/ classpath)
 
 project('modules') {
 	description = 'Spring XD Modules'
 	dependencies {
 		compile project(':spring-xd-dirt')
 	}
+}
+
+project('modules.source.mail') {
+	dependencies {
+		runtime "org.springframework.integration:spring-integration-mail:$springIntegrationVersion"
+		// Need to leave javax.mail at the dirt-server level for
+		// shell integration tests to work.
+		//		"com.sun.mail:javax.mail:$javaxMailVersion"
+
+	}
+}
+
+project('modules.source.imap') {
+	dependencies {
+		runtime "org.springframework.integration:spring-integration-mail:$springIntegrationVersion"
+		// Need to leave javax.mail at the dirt-server level for
+		// shell integration tests to work.
+		//		"com.sun.mail:javax.mail:$javaxMailVersion"
+
+	}
+}
+
+project('modules.source.file') {
+	dependencies {
+		runtime	"org.springframework.integration:spring-integration-file:$springIntegrationVersion"
+	}
+}
+
+project('modules.source.tail') {
+	dependencies {
+		runtime	"org.springframework.integration:spring-integration-file:$springIntegrationVersion"
+	}
+}
+
+project('modules.source.http') {
+	dependencies {
+		runtime	project(":spring-xd-extension-http")
+	}
+}
+
+project('modules.source.tcp') {
+	dependencies {
+		runtime "org.springframework.integration:spring-integration-ip:$springIntegrationVersion"
+	}
+}
+
+project('modules.source.tcp-client') {
+	dependencies {
+		runtime "org.springframework.integration:spring-integration-ip:$springIntegrationVersion"
+	}
+}
+
+project('modules.sink.tcp') {
+	dependencies {
+		runtime "org.springframework.integration:spring-integration-ip:$springIntegrationVersion"
+	}
+}
+
+project('modules.source.mqtt') {
+	dependencies {
+		runtime ("org.springframework.integration:spring-integration-mqtt:$springIntegrationMQTTVersion") {
+		// spring-integration-mqtt has a different lifecycle than SI and may bring a version
+		// of SI which is believed by gradle to be newer than our preferred version.
+	     exclude group: 'org.springframework.integration'
+	 }
+	}
+}
+
+project('modules.sink.mqtt') {
+	dependencies {
+		runtime ("org.springframework.integration:spring-integration-mqtt:$springIntegrationMQTTVersion") {
+		// spring-integration-mqtt has a different lifecycle than SI and may bring a version
+		// of SI which is believed by gradle to be newer than our preferred version.
+	     exclude group: 'org.springframework.integration'
+	 }
+	}
+}
+
+project('modules.source.syslog-tcp') {
+	dependencies {
+		runtime "org.springframework.integration:spring-integration-syslog:$springIntegrationVersion"
+	}
+}
+
+project('modules.source.syslog-udp') {
+	dependencies {
+		runtime "org.springframework.integration:spring-integration-syslog:$springIntegrationVersion"
+	}
+}
+
+project('modules.source.jms') {
+	dependencies {
+		runtime "org.springframework.integration:spring-integration-jms:$springIntegrationVersion"
+		runtime ("org.apache.activemq:activemq-core:5.6.0") {
+			exclude group: 'org.mortbay.jetty'
+			exclude group: 'org.fusesource.fuse-extra'
+			exclude group: 'org.slf4j'
+		}
+
+	}
+}
+
+project('modules.source.gemfire') {
+	dependencies {
+		runtime (project(":spring-xd-extension-gemfire")) {
+			exclude group: 'org.slf4j'
+			exclude group: 'commons-logging'
+		}
+	}
+}
+
+project('modules.source.gemfire-cq') {
+	dependencies {
+		runtime (project(":spring-xd-extension-gemfire")) {
+			exclude group: 'org.slf4j'
+			exclude group: 'commons-logging'
+		}
+	}
+}
+
+project('modules.source.twitterstream') {
+	dependencies {
+		runtime(project(":spring-xd-extension-twitter")) {
+			exclude group: 'org.codehaus.jackson'
+		}
+	}
+}
+
+project('modules.source.twittersearch') {
+	dependencies {
+		runtime(project(":spring-xd-extension-twitter")) {
+			exclude group: 'org.codehaus.jackson'
+		}
+	}
+}
+
+// Does not work b/c of shared Reactor stuff in module-common.xml
+//project('modules.source.reactor-syslog') {
+//	dependencies {
+//		runtime project(":spring-xd-extension-reactor")
+//	}
+//}
+
+project('modules.processor.http-client') {
+	dependencies {
+		runtime	"org.springframework.integration:spring-integration-http:$springIntegrationVersion"
+	}
+}
+
+
+project('modules.sink.file') {
+	dependencies {
+		runtime	"org.springframework.integration:spring-integration-file:$springIntegrationVersion"
+	}
+}
+
+project('modules.sink.jdbc') {
+	dependencies {
+		runtime project(":spring-xd-extension-jdbc")
+	}
+}
+
+project('modules.sink.mail') {
+	dependencies {
+		runtime "org.springframework.integration:spring-integration-mail:$springIntegrationVersion"
+		// Need to leave javax.mail at the dirt-server level for
+		// shell integration tests to work.
+		//		"com.sun.mail:javax.mail:$javaxMailVersion"
+
+	}
+}
+
+project('modules.sink.gemfire-json-server') {
+	dependencies {
+		runtime (project(":spring-xd-extension-gemfire")) {
+			exclude group: 'org.slf4j'
+			exclude group: 'commons-logging'
+		}
+	}
+}
+
+project('modules.sink.gemfire-server') {
+	dependencies {
+		runtime (project(":spring-xd-extension-gemfire")) {
+			exclude group: 'org.slf4j'
+			exclude group: 'commons-logging'
+		}
+	}
+}
+
+project('modules.sink.splunk') {
+	dependencies {
+		runtime(project(":spring-xd-extension-splunk")) {
+			exclude module: 'spring-integration-core'
+		}
+	}
+}
+
+project('modules.job.filejdbc') {
+	dependencies {
+		runtime(project(":spring-xd-extension-jdbc"))
+	}
+}
+
+project('modules.job.hdfsmongodb') {
+	dependencies {
+		runtime(project(":spring-xd-extension-mongodb"))
+	}
+}
+
+project('modules.job.hdfsjdbc') {
+	dependencies {
+		runtime(project(":spring-xd-extension-jdbc"))
+	}
+}
+
+project('spring-xd-ui') {
+	description = 'Spring XD UI'
+	// Run the jasmine tests from commandline using phantomJS
+    // This task assumes existing installation of phantomJS
+    task jsTest(type: Exec, dependsOn: ':spring-xd-dirt:backgroundAdminServer') {
+		workingDir 'test'
+	 commandLine 'phantomjs', 'jasmine-runner.js', 'http://localhost:9393/admin-ui/test/SpecRunnerPhantomJS.html'
+	 doLast {
+			def singleNodeServerProcess = project(':spring-xd-dirt').singleNodeServerProcess
+			if (singleNodeServerProcess != null) {
+				singleNodeServerProcess.process.destroy()
+		  println("Stopped the SingleNode server.")
+	     }
+	 }
+    }
 }
 
 project('spring-xd-test') {
@@ -567,7 +1108,10 @@ project('spring-xd-test') {
 		compile "org.springframework:spring-tx:$springVersion"
 		compile "org.springframework:spring-test:$springVersion"
 		compile "com.lambdaworks:lettuce:$lettuceVersion"
+		compile "org.hsqldb:hsqldb:$hsqldbVersion"
+		compile "org.apache.tomcat:tomcat-jdbc:$tomcatJdbcPoolVersion"
 		compile "junit:junit:$junitVersion"
+		testCompile "commons-io:commons-io:2.4"
 	}
 }
 
@@ -579,19 +1123,27 @@ project('spring-xd-shell') {
 		standardInput = System.in
 	}
 
+	test {
+	     exclude '**/MailCommand*'
+	}
+
 	dependencies {
 		compile "org.springframework.shell:spring-shell:$springShellVersion"
 		compile project(":spring-xd-rest-client")
 		compile ("org.springframework.data:spring-data-hadoop:$springDataHadoopVersion") {
 			exclude group: 'org.mortbay.jetty'
+			exclude group: 'hsqldb'
 		}
 		compile "com.google.guava:guava:14.0.1"
 		testCompile project(":spring-xd-dirt")
 		testCompile project(":spring-xd-test")
+
 		testCompile "uk.co.modular-it:hamcrest-date:$hamcrestDateVersion"
 		runtime "org.slf4j:jcl-over-slf4j:$slf4jVersion",
 				"org.slf4j:slf4j-log4j12:$slf4jVersion",
 				"log4j:log4j:$log4jVersion"
+		testCompile "com.icegreen:greenmail:1.3.1b"
+		testCompile "commons-io:commons-io:2.3"
 
 	}
 
@@ -658,16 +1210,18 @@ task copyXDInstall(type: Copy, dependsOn: [":spring-xd-dirt:build", ":spring-xd-
 	from "$rootDir/spring-xd-dirt/build/install/spring-xd-dirt"
 	into "$buildDir/dist/spring-xd/xd"
 	exclude "**/lib/hadoop-*.jar"
+	exclude "**/lib/spring-data-hadoop-*.jar"
 }
 
 task copyXDShellInstall(type: Copy, dependsOn: [":spring-xd-shell:installApp"]) {
 	from "$rootDir/spring-xd-shell/build/install/spring-xd-shell"
 	into "$buildDir/dist/spring-xd/shell"
 	exclude "**/lib/hadoop-*.jar"
+	exclude "**/lib/spring-data-hadoop-*.jar"
 }
 
-task copyHadoopLibs(dependsOn: [":spring-xd-hadoop:hadoop10:copyToLib", ":spring-xd-hadoop:hadoop11:copyToLib", ":spring-xd-hadoop:hadoop20:copyToLib", ":spring-xd-hadoop:phd1:copyToLib"]) << {
-	['hadoop10', 'hadoop11', 'hadoop20', 'phd1'].each { distro ->
+task copyHadoopLibs(dependsOn: [":spring-xd-hadoop:hadoop12:copyToLib", ":spring-xd-hadoop:hadoop20:copyToLib", ":spring-xd-hadoop:cdh4:copyToLib", ":spring-xd-hadoop:hdp13:copyToLib", ":spring-xd-hadoop:phd1:copyToLib"]) << {
+	['hadoop12', 'hadoop20', 'cdh4', 'hdp13', 'phd1'].each { distro ->
 		copy {
 			from "$rootDir/spring-xd-hadoop/$distro/build/lib"
 			into "$buildDir/dist/spring-xd/xd/lib/$distro"
@@ -846,7 +1400,7 @@ task docsZip(type: Zip) {
 
 task distZip(type: Zip, dependsOn: [asciidoctorHtml, copyInstall], overwrite: true) {
 	group = 'Application'
-	classifier = ''
+	classifier = 'dist'
 	description = "Bundles the XD project and associated installs with libs and OS specific scripts as a zip file."
 
 	ext.baseDir = "${project.name}-${project.version}";
@@ -887,6 +1441,14 @@ task dist(dependsOn: assemble) {
 }
 
 task wrapper(type: Wrapper) {
-	description = "Generates gradlew[.bat] scripts"
+	description = "Generates build_xd[.bat] scripts"
 	gradleVersion = "1.6"
+	scriptFile= "gradle/build_xd"
 }
+
+idea {
+	project {
+		languageLevel = '1.7'
+	}
+}
+

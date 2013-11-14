@@ -18,6 +18,8 @@ package org.springframework.xd.dirt.rest.metrics;
 
 import java.util.Date;
 
+import org.joda.time.DateTime;
+import org.joda.time.ReadablePeriod;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.xd.analytics.metrics.core.AggregateCount;
 import org.springframework.xd.rest.client.domain.metrics.AggregateCountsResource;
@@ -36,17 +38,17 @@ public class DeepAggregateCountResourceAssembler extends
 
 	@Override
 	public AggregateCountsResource toResource(AggregateCount entity) {
-		return createResourceWithId(entity.name, entity);
+		return createResourceWithId(entity.getName(), entity);
 	}
 
 	@Override
 	protected AggregateCountsResource instantiateResource(AggregateCount entity) {
-		AggregateCountsResource result = new AggregateCountsResource(entity.name);
-		long increment = entity.resolution.getDurationField().getUnitMillis();
-		long end = entity.interval.getEndMillis();
+		AggregateCountsResource result = new AggregateCountsResource(entity.getName());
+		ReadablePeriod increment = entity.getResolution().unitPeriod;
+		DateTime end = entity.getInterval().getEnd();
 		int i = 0;
-		for (long when = entity.interval.getStartMillis(); when <= end; when += increment) {
-			result.addValue(new Date(when), entity.counts[i++]);
+		for (DateTime when = entity.getInterval().getStart(); !when.isAfter(end); when = when.plus(increment)) {
+			result.addValue(new Date(when.getMillis()), entity.getCounts()[i++]);
 		}
 		return result;
 	}

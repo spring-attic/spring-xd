@@ -21,68 +21,57 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextClosedEvent;
-import org.springframework.xd.dirt.container.DefaultContainer;
-import org.springframework.xd.dirt.core.Container;
-import org.springframework.xd.dirt.event.ContainerStartedEvent;
+import org.springframework.core.env.Environment;
+import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.server.options.ContainerOptions;
+import org.springframework.xd.dirt.server.options.XDPropertyKeys;
+import org.springframework.xd.dirt.server.util.BannerUtils;
 
 /**
  * @author Mark Fisher
  */
-public abstract class AbstractContainerLauncher implements ContainerLauncher, ApplicationEventPublisherAware,
-		ApplicationContextAware {
+public abstract class AbstractContainerLauncher implements ContainerLauncher, ApplicationContextAware {
 
-	private volatile ApplicationEventPublisher eventPublisher;
-
-	private volatile ApplicationContext deployerContext;
+	private volatile ApplicationContext launcherContext;
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	@Override
-	public void setApplicationEventPublisher(ApplicationEventPublisher eventPublisher) {
-		this.eventPublisher = eventPublisher;
-	}
-
-	@Override
 	public void setApplicationContext(ApplicationContext context) {
-		this.deployerContext = context;
+		this.launcherContext = context;
 	}
 
 	@Override
-	public Container launch(ContainerOptions options) {
+	public XDContainer launch(ContainerOptions options) {
 		try {
 			String id = this.generateId();
-			DefaultContainer container = new DefaultContainer(id);
-			container.setApplicationContext(deployerContext);
+			XDContainer container = new XDContainer(id);
+			container.setLauncherContext(launcherContext);
 			container.start();
-			this.logContainerInfo(logger, container, options);
+			this.logContainerInfo(logger, container);
 			container.addListener(new ShutdownListener(container));
-			this.eventPublisher.publishEvent(new ContainerStartedEvent(container));
 			return container;
 		}
 		catch (Exception e) {
 			logger.fatal(e.getClass().getName() + " : " + e.getMessage());
 			this.logErrorInfo(e);
-			System.exit(1);
+			throw new XDContainerLaunchException(e.getMessage(), e);
 		}
-		return null;
 	}
 
 	protected abstract String generateId();
 
-	protected abstract void logContainerInfo(Log logger, Container container, ContainerOptions options);
+	protected abstract String getRuntimeInfo(XDContainer container);
 
 	protected abstract void logErrorInfo(Exception exception);
 
 	private static class ShutdownListener implements ApplicationListener<ContextClosedEvent> {
 
-		private final Container container;
+		private final XDContainer container;
 
-		ShutdownListener(Container container) {
+		ShutdownListener(XDContainer container) {
 			this.container = container;
 		}
 
@@ -92,4 +81,29 @@ public abstract class AbstractContainerLauncher implements ContainerLauncher, Ap
 		}
 	}
 
+	protected void logContainerInfo(Log logger, XDContainer container) {
+		if (logger.isInfoEnabled()) {
+			StringBuilder runtimeInfo = new StringBuilder();
+			runtimeInfo.append(this.getRuntimeInfo(container));
+			if (container.isJmxEnabled()) {
+				runtimeInfo.append(String.format("\nMBean Server: http://localhost:%d/jolokia/", container.getJmxPort()));
+			}
+			else {
+				runtimeInfo.append(" JMX is disabled for XD components");
+			}
+			runtimeInfo.append(logXDEnvironment(container));
+			logger.info(BannerUtils.displayBanner(container.getJvmName(), runtimeInfo.toString()));
+		}
+	}
+
+	private String logXDEnvironment(XDContainer container) {
+		Environment environment = container.getApplicationContext().getEnvironment();
+		String[] keys = new String[] { XDPropertyKeys.XD_HOME, XDPropertyKeys.XD_TRANSPORT,
+			XDPropertyKeys.XD_STORE, XDPropertyKeys.XD_ANALYTICS, XDPropertyKeys.XD_HADOOP_DISTRO };
+		StringBuilder sb = new StringBuilder("\nXD Configuration:\n");
+		for (String key : keys) {
+			sb.append("\t" + key + "=" + environment.getProperty(key) + "\n");
+		}
+		return sb.toString();
+	}
 }

@@ -38,7 +38,7 @@ public class Target {
 
 	public static final String DEFAULT_HOST = "localhost";
 
-	public static final int DEFAULT_PORT = 8080;
+	public static final int DEFAULT_PORT = 9393;
 
 	public static final String DEFAULT_TARGET = DEFAULT_SCHEME + "://" + DEFAULT_HOST + ":" + DEFAULT_PORT + "/";
 

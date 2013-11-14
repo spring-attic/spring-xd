@@ -31,19 +31,19 @@ public interface SpringXDOperations {
 	public StreamOperations streamOperations();
 
 	/**
-	 * Returns the portion of the API for interaction with Taps.
-	 */
-	public TapOperations tapOperations();
-
-	/**
 	 * Returns the portion of the API for interaction with Jobs.
 	 */
 	public JobOperations jobOperations();
 
 	/**
-	 * Returns the portion of the API for interaction with Triggers.
+	 * Returns the portion of the API for interaction with Modules' definitions.
 	 */
-	public TriggerOperations triggerOperations();
+	public ModuleOperations moduleOperations();
+
+	/**
+	 * Returns the portion of the API for interaction with runtime containers/modules.
+	 */
+	public RuntimeOperations runtimeOperations();
 
 	/**
 	 * Returns the portion of the API for interaction with Counters.
@@ -69,4 +69,5 @@ public interface SpringXDOperations {
 	 * Returns the portion of the API for interaction with RichGauge.
 	 */
 	public RichGaugeOperations richGaugeOperations();
+
 }

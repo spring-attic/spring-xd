@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.xd.dirt.stream.dsl.ModuleNode.ConsumedArgumentNode;
+import org.springframework.xd.dirt.stream.dsl.ModuleNode.ConsumableArgumentNode;
 
 /**
  * Represents an argument like "--name=value".
@@ -55,18 +55,19 @@ public class ArgumentNode extends AstNode {
 		return s.toString();
 	}
 
+	@Override
 	public String toString() {
 		StringBuilder s = new StringBuilder();
 		s.append("--").append(name).append("=").append(value);
 		return s.toString();
 	}
 
-	public ArgumentNode withReplacedVariables(Map<String, ConsumedArgumentNode> argumentMap) {
+	public ArgumentNode withReplacedVariables(Map<String, ConsumableArgumentNode> argumentMap) {
 		String argumentValue = value;
 		List<Variable> variables = getVariablesInValue();
 		for (int v = variables.size() - 1; v >= 0; v--) {
 			Variable variable = variables.get(v);
-			ConsumedArgumentNode replacement = argumentMap.get(variable.name);
+			ConsumableArgumentNode replacement = argumentMap.get(variable.name);
 			String newValue = null;
 			if (replacement != null) {
 				replacement.setConsumed(true);
@@ -76,7 +77,7 @@ public class ArgumentNode extends AstNode {
 				newValue = variable.defaultValue;
 			}
 			if (newValue == null) {
-				throw new DSLException(null, -1, XDDSLMessages.MISSING_VALUE_FOR_VARIABLE,
+				throw new StreamDefinitionException(null, -1, XDDSLMessages.MISSING_VALUE_FOR_VARIABLE,
 						variable.name);
 			}
 			StringBuilder s = new StringBuilder();
@@ -88,7 +89,7 @@ public class ArgumentNode extends AstNode {
 		return new ArgumentNode(name, argumentValue, startpos, endpos);
 	}
 
-	static class Variable {
+	private static class Variable {
 
 		public Variable(String name2, String defaultValue2, int startIndex,
 				int pos) {
@@ -121,7 +122,7 @@ public class ArgumentNode extends AstNode {
 			}
 		}
 		if (!variableEnded) {
-			throw new DSLException(null, -1, XDDSLMessages.VARIABLE_NOT_TERMINATED, toString());
+			throw new StreamDefinitionException(null, -1, XDDSLMessages.VARIABLE_NOT_TERMINATED, toString());
 		}
 		String name = null;
 		String defaultValue = null;

@@ -28,15 +28,15 @@ import org.springframework.util.Assert;
  */
 class Tokenizer {
 
-	String expressionString; // The string to be tokenized
+	private String expressionString; // The string to be tokenized
 
-	char[] toProcess; // The expressionString as a char array
+	private char[] toProcess; // The expressionString as a char array
 
-	int max; // Length of input data
+	private int max; // Length of input data
 
-	int pos; // Current lexing position in the input data
+	private int pos; // Current lexing position in the input data
 
-	List<Token> tokens = new ArrayList<Token>(); // Output stream of tokens
+	private List<Token> tokens = new ArrayList<Token>(); // Output stream of tokens
 
 	public Tokenizer(String inputdata) {
 		this.expressionString = inputdata;
@@ -46,7 +46,7 @@ class Tokenizer {
 		process();
 	}
 
-	public void process() {
+	private void process() {
 		boolean justProcessedEquals = false;
 		while (pos < max) {
 			char ch = toProcess[pos];
@@ -70,7 +70,7 @@ class Tokenizer {
 				switch (ch) {
 					case '-':
 						if (!isTwoCharToken(TokenKind.DOUBLE_MINUS)) {
-							throw new DSLException(
+							throw new StreamDefinitionException(
 									expressionString, pos,
 									XDDSLMessages.MISSING_CHARACTER, "-");
 						}
@@ -121,10 +121,10 @@ class Tokenizer {
 						pos++; // will take us to the end
 						break;
 					case '\\':
-						throw new DSLException(
+						throw new StreamDefinitionException(
 								expressionString, pos, XDDSLMessages.UNEXPECTED_ESCAPE_CHAR);
 					default:
-						throw new DSLException(
+						throw new StreamDefinitionException(
 								expressionString, pos, XDDSLMessages.UNEXPECTED_DATA,
 								Character.valueOf(ch).toString());
 				}
@@ -156,7 +156,7 @@ class Tokenizer {
 				}
 			}
 			if (ch == 0) {
-				throw new DSLException(
+				throw new StreamDefinitionException(
 						expressionString, start, XDDSLMessages.NON_TERMINATING_QUOTED_STRING);
 			}
 		}
@@ -185,7 +185,7 @@ class Tokenizer {
 				}
 			}
 			if (ch == 0) {
-				throw new DSLException(
+				throw new StreamDefinitionException(
 						expressionString, start, XDDSLMessages.NON_TERMINATING_DOUBLE_QUOTED_STRING);
 			}
 		}

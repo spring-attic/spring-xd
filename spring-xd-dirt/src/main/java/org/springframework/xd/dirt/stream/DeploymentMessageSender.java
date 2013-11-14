@@ -20,9 +20,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
+import org.jboss.netty.channel.ChannelException;
+
+import org.springframework.context.ApplicationContextException;
+import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 
 /**
@@ -49,7 +53,17 @@ public class DeploymentMessageSender {
 				this.undeployChannel.send(message);
 			}
 			else {
-				this.deployChannel.send(message);
+				try {
+					this.deployChannel.send(message);
+				}
+				catch (MessageHandlingException e) {
+					if (e.getCause() instanceof ApplicationContextException
+							&& e.getCause().getCause() instanceof ChannelException) {
+						throw new MessageHandlingException(e.getFailedMessage(), e.getCause().getCause().getMessage()
+								+ ". Possibly the port is already in use.", e);
+					}
+					throw e;
+				}
 			}
 		}
 		;

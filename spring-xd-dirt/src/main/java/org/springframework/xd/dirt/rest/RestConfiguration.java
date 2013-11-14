@@ -1,11 +1,11 @@
 /*
  * Copyright 2013 the original author or authors.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -16,9 +16,8 @@ package org.springframework.xd.dirt.rest;
 
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import org.springframework.batch.core.StepExecution;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
@@ -26,11 +25,15 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.hateoas.config.EnableHypermediaSupport;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.ResourceHttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
-import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+import org.springframework.xd.dirt.plugins.job.support.StepExecutionJacksonMixIn;
 import org.springframework.xd.rest.client.util.RestTemplateMessageConverterUtil;
 
 /**
@@ -39,6 +42,8 @@ import org.springframework.xd.rest.client.util.RestTemplateMessageConverterUtil;
  * @author Eric Bottard
  * @author David Turanski
  * @author Andrew Eisenberg
+ * @author Scott Andrews
+ * @author Gunnar Hillert
  */
 @Configuration
 @EnableWebMvc
@@ -51,34 +56,42 @@ public class RestConfiguration {
 	public WebMvcConfigurer configurer() {
 		return new WebMvcConfigurerAdapter() {
 
-			// TODO Access-Control-Allow-Origin header should not be hard-coded
-			private static final String ALLOWED_ORIGIN = "http://localhost:9889";
+			@Autowired(required = false)
+			UiResourceIdentifier resourceIdentifier;
 
 			@Override
 			public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
 				RestTemplateMessageConverterUtil.installMessageConverters(converters);
+
+				for (HttpMessageConverter<?> httpMessageConverter : converters) {
+					if (httpMessageConverter instanceof MappingJackson2HttpMessageConverter) {
+						final MappingJackson2HttpMessageConverter converter = (MappingJackson2HttpMessageConverter) httpMessageConverter;
+						converter.getObjectMapper().addMixInAnnotations(StepExecution.class,
+								StepExecutionJacksonMixIn.class);
+					}
+				}
+
+				converters.add(new ResourceHttpMessageConverter());
 			}
 
 			@Override
 			public void addInterceptors(InterceptorRegistry registry) {
-				registry.addInterceptor(new HandlerInterceptorAdapter() {
-
-					@Override
-					public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
-							throws Exception {
-
-						// ensure CORS headers are added to every web response
-						if (!response.containsHeader("Access-Control-Allow-Origin")) {
-							response.addHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
-						}
-						if (!response.containsHeader("Access-Control-Allow-Methods")) {
-							response.addHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
-						}
-						return true;
-					}
-				});
+				registry.addInterceptor(new AccessControlInterceptor());
 			}
 
+			// add a static resource handler for the UI
+			@Override
+			public void addResourceHandlers(ResourceHandlerRegistry registry) {
+				if (resourceIdentifier != null) {
+					registry.addResourceHandler("/admin-ui/**", "/admin-ui/").addResourceLocations(
+							"file:" + resourceIdentifier.getResourcesLocation() + "/");
+				}
+			}
+
+			@Override
+			public void addViewControllers(ViewControllerRegistry registry) {
+				registry.addViewController("admin-ui").setViewName("/admin-ui/index.html");
+			}
 		};
 	}
 

@@ -22,12 +22,14 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
  * Namespace handler for Spring Integration's 'hadoop' namespace.
  * 
  * @author Mark Fisher
+ * @author Thomas Risberg
  */
 public class HadoopNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
 	@Override
 	public void init() {
 		registerBeanDefinitionParser("hdfs-outbound-channel-adapter", new HdfsOutboundChannelAdapterParser());
+		registerBeanDefinitionParser("avro-outbound-channel-adapter", new AvroOutboundChannelAdapterParser());
 	}
 
 }

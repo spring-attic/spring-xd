@@ -6,12 +6,18 @@
 	<bean class="org.springframework.xd.dirt.module.ModuleDeployer">
 		<constructor-arg>
 			<bean
-				class="org.springframework.xd.dirt.module.ClasspathTestModuleRegistry" />
+				class="org.springframework.xd.dirt.module.memory.InMemoryModuleDefinitionRepository">
+				<constructor-arg>
+					<bean class="org.springframework.xd.dirt.module.ResourceModuleRegistry">
+						<constructor-arg value="classpath:/testmodules/" />
+					</bean>
+				</constructor-arg>
+			</bean>
 		</constructor-arg>
 	</bean>
 
 	<bean class="org.springframework.xd.dirt.plugins.stream.StreamPlugin" />
 
-	<bean class="org.springframework.xd.dirt.module.ModuleEventListener" />
+	<bean class="org.springframework.xd.dirt.module.TestModuleEventListener" />
 
 </beans>

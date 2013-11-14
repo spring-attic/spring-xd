@@ -23,6 +23,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.Arrays;
+
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,7 +37,6 @@ import org.springframework.xd.dirt.rest.AbstractControllerIntegrationTest;
 import org.springframework.xd.dirt.rest.Dependencies;
 import org.springframework.xd.dirt.rest.RestConfiguration;
 
-import scala.actors.threadpool.Arrays;
 
 /**
  * Tests proper behavior of {@link CountersController}.
@@ -63,7 +64,6 @@ public class CountersControllerIntegrationTests extends AbstractControllerIntegr
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void testCounterListing() throws Exception {
 		Counter[] counters = new Counter[10];
 		for (int i = 0; i < counters.length; i++) {

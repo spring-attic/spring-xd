@@ -39,7 +39,6 @@ import org.springframework.xd.rest.client.domain.JobDefinitionResource;
  * 
  * @author Glenn Renfro
  * @author Gunnar Hillert
- * @since 1.0
  */
 @Controller
 @RequestMapping("/jobs")
@@ -53,24 +52,18 @@ public class JobsController extends
 		super(jobDeployer, new JobDefinitionResourceAssembler());
 	}
 
-	@Override
-	@RequestMapping(value = "/unused/{name}", method = RequestMethod.PUT, params = "deploy=true")
-	@ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
-	@ResponseBody
-	public void deploy(String name) {
-		// not used
-	}
-
-	@RequestMapping(value = "/{name}", method = RequestMethod.PUT, params = "deploy=true")
+	/**
+	 * Send the request to launch Job. Job has to be deployed first.
+	 * 
+	 * @param name the name of the job
+	 * @param jobParameters the job parameters in JSON string
+	 */
+	@RequestMapping(value = "/{name}/launch", method = RequestMethod.PUT)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public void deployJob(@PathVariable("name") String name,
-			@RequestParam(required = false) String jobParameters,
-			@RequestParam(required = false) String dateFormat,
-			@RequestParam(required = false) String numberFormat,
-			@RequestParam(required = false) Boolean makeUnique) {
+	public void launchJob(@PathVariable("name") String name, @RequestParam(required = false) String jobParameters) {
 		final JobDeployer jobDeployer = (JobDeployer) getDeployer();
-		jobDeployer.deploy(name, jobParameters, dateFormat, numberFormat, makeUnique);
+		jobDeployer.launch(name, jobParameters);
 	}
 
 	/**
@@ -79,11 +72,12 @@ public class JobsController extends
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public PagedResources<JobDefinitionResource> list(Pageable pageable,
+	public PagedResources<JobDefinitionResource> list(Pageable pageable, QueryOptions queryOptions,
 			PagedResourcesAssembler<JobDefinition> assembler) {
-		return listValues(pageable, QueryOptions.NONE, assembler);
+		return listValues(pageable, queryOptions, assembler);
 	}
 
+	@Override
 	protected JobDefinition createDefinition(String name, String definition) {
 		return new JobDefinition(name, definition);
 	}

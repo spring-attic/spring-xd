@@ -19,6 +19,7 @@ package org.springframework.xd.dirt.module;
 import java.util.List;
 
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleType;
 
 /**
  * @author Mark Fisher
@@ -27,7 +28,12 @@ import org.springframework.xd.module.ModuleDefinition;
  */
 public interface ModuleRegistry {
 
-	ModuleDefinition lookup(String name, String type);
+	/**
+	 * Lookup a module of the given type with the given name.
+	 * 
+	 * @return {@code null} if this registry does not have such a module
+	 */
+	ModuleDefinition findDefinition(String name, ModuleType moduleType);
 
 	/**
 	 * Searches the registry for the name specified and returns all module definitions that match the name regardless of
@@ -35,8 +41,26 @@ public interface ModuleRegistry {
 	 * 
 	 * @param name The module definition name to be searched.
 	 * @return A list of the module definitions that have the name specified by the input parameter. If no module
-	 *         definition is found with the name a null will be returned.
+	 *         definition is found with the name an empty list will be returned.
 	 */
 	List<ModuleDefinition> findDefinitions(String name);
+
+	/**
+	 * Searches the registry for the type specified and returns all module definitions that match the type.
+	 * 
+	 * @param type The module type name to be searched.
+	 * @return A list of the module definitions that have the type specified by the input parameter. If no module
+	 *         definition is found with the type an empty list will be returned.
+	 */
+	List<ModuleDefinition> findDefinitions(ModuleType type);
+
+	/**
+	 * Returns all module definitions.
+	 * 
+	 * @return A list of the module definitions. If no module definition is found with the type an empty list will be
+	 *         returned.
+	 */
+	List<ModuleDefinition> findDefinitions();
+
 
 }

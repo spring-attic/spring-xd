@@ -22,36 +22,49 @@ import org.kohsuke.args4j.Option;
  * A class the defines the options that will be parsed on the admin command line.
  * 
  * @author Mark Pollack
+ * @author David Turanski
  */
 public class AdminOptions extends AbstractOptions {
 
-	@Option(name = "--httpPort", usage = "Http port for the REST API server (default: 8080)", metaVar = "<httpPort>")
-	private int httpPort = 8080;
+	private static final String HTTP_PORT = "httpPort";
 
-	@Option(name = "--store", usage = "How to persist admin data (default: redis)")
-	private Store store = Store.redis;
+	public AdminOptions() {
+		super(Transport.redis, Analytics.redis);
+	}
 
-	@Option(name = "--jmxPort", usage = "The JMX port for the admin", metaVar = "<jmxPort>")
-	private int jmxPort = 8778;
+	protected AdminOptions(Transport defaultTransport, Analytics defaultAnalytics) {
+		super(defaultTransport, defaultAnalytics);
+	}
+
+	@Option(name = "--" + HTTP_PORT, usage = "Http port for the REST API server (default: 9393)", metaVar = "<httpPort>")
+	protected int httpPort = 9393;
+
+	@Option(name = "--" + STORE, usage = "How to persist admin data (default: redis)")
+	protected Store store = Store.redis;
+
+	@Option(name = "--" + JMX_PORT, usage = "The JMX port for the admin", metaVar = "<jmxPort>")
+	protected Integer jmxPort = 8778;
 
 	/**
 	 * @return http port
 	 */
-	public int getHttpPort() {
+	public Integer getHttpPort() {
 		return httpPort;
 	}
 
+	@Override
 	public Store getStore() {
 		return store;
 	}
 
-	public static void setXDStore(Store store) {
-		System.setProperty("xd.store", store.name());
+	@Override
+	public Integer getJmxPort() {
+		return jmxPort;
 	}
 
 	@Override
-	public int getJmxPort() {
-		return this.jmxPort;
+	protected void createOptionMetadataCache() {
+		super.createOptionMetadataCache();
+		getOptionMetadataCache().put(getHttpPort(), isArg(HTTP_PORT));
 	}
-
 }

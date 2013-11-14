@@ -15,11 +15,9 @@ package org.springframework.xd.dirt.stream;
 
 import java.util.List;
 
-import org.springframework.integration.MessageHandlingException;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
-import org.springframework.xd.dirt.stream.dsl.DSLException;
-import org.springframework.xd.module.ModuleType;
 
 /**
  * @author Glenn Renfro
@@ -28,137 +26,42 @@ import org.springframework.xd.module.ModuleType;
  * @author Gunnar Hillert
  * 
  */
-public class JobDeployer extends AbstractDeployer<JobDefinition> {
-
-	private static final String BEAN_CREATION_EXCEPTION = "org.springframework.beans.factory.BeanCreationException";
-
-	private static final String BEAN_DEFINITION_EXEPTION = "org.springframework.beans.factory.BeanDefinitionStoreException";
+public class JobDeployer extends AbstractInstancePersistingDeployer<JobDefinition, Job> { // extends
 
 	private static final String DEPLOYER_TYPE = "job";
 
-	private final TriggerDefinitionRepository triggerDefinitionRepository;
+	private static final String JOB_PARAMETERS_KEY = "jobParameters";
 
-	public JobDeployer(JobDefinitionRepository repository, TriggerDefinitionRepository triggerDefinitionRepository,
-			DeploymentMessageSender messageSender,
+	public JobDeployer(DeploymentMessageSender messageSender, JobDefinitionRepository definitionRepository,
+			JobRepository instanceRepository,
 			XDParser parser) {
-		super(repository, messageSender, parser, DEPLOYER_TYPE);
-		this.triggerDefinitionRepository = triggerDefinitionRepository;
+		super(definitionRepository, instanceRepository, messageSender, parser, DEPLOYER_TYPE);
 	}
 
 	@Override
-	public void delete(String name) {
-		JobDefinition def = getDefinitionRepository().findOne(name);
-		if (def == null) {
-			throwNoSuchDefinitionException(name);
-		}
-		try {
-			if (getDefinitionRepository().exists(name)) {
-				undeploy(name);
-			}
-			getDefinitionRepository().delete(name);
-		}
-		catch (DSLException dslException) {
-			getDefinitionRepository().delete(name);// if it is a DSL exception (meaning
-			// bad definition) go ahead a delete
-			// the module.
-		}
+	protected Job makeInstance(JobDefinition definition) {
+		return new Job(definition);
 	}
 
-	@Override
-	public void deploy(String name) {
-		deploy(name, null, null, null, null);
-	}
-
-	public void deploy(String name, String jobParameters, String dateFormat, String numberFormat, Boolean makeUnique) {
-		Assert.hasText(name, "name cannot be blank or null");
-		JobDefinition definition = getDefinitionRepository().findOne(name);
-		if (definition == null) {
-			throwNoSuchDefinitionException(name);
-		}
-		List<ModuleDeploymentRequest> requests = parse(name, definition.getDefinition());
-		// If the job definition has trigger then, check if the trigger exists
-		// TODO: should we do this at the parser?
-		// but currently the parser has reference to StreamDefinitionRepository only.
-		if (requests != null && requests.get(0).getParameters().containsKey(ModuleType.TRIGGER.getTypeName())) {
-			String triggerName = requests.get(0).getParameters().get(ModuleType.TRIGGER.getTypeName());
-			if (triggerDefinitionRepository.findOne(triggerName) == null) {
-				throwNoSuchDefinitionException(triggerName, ModuleType.TRIGGER.getTypeName());
-			}
-		}
-
-		for (ModuleDeploymentRequest request : requests) {
-			if ("job".equals(request.getType())) {
-				if (jobParameters != null) {
-					request.setParameter("jobParameters", jobParameters);
-				}
-				if (dateFormat != null) {
-					request.setParameter("dateFormat", dateFormat);
-				}
-				if (numberFormat != null) {
-					request.setParameter("numberFormat", numberFormat);
-				}
-				if (makeUnique != null) {
-					request.setParameter("makeUnique", String.valueOf(makeUnique));
-				}
-			}
-		}
-
-		try {
-			sendDeploymentRequests(name, requests);
-		}
-		catch (MessageHandlingException mhe) {
-			Throwable cause = mhe.getCause();
-			if (cause == null) {
-				throw mhe;
-			}
-			String exceptionClassName = cause.getClass().getName();
-			if (exceptionClassName.equals(BEAN_CREATION_EXCEPTION)
-					|| exceptionClassName.equals(BEAN_DEFINITION_EXEPTION)) {
-				throw new MissingRequiredDefinitionException(definition.getName(), cause.getMessage());
-			}
-			else {
-				throw mhe;
-			}
-		}
-	}
-
-	@Override
-	public void undeploy(String name) {
+	public void launch(String name, String jobParameters) {
+		// Double check so that user gets an informative error message
 		JobDefinition job = getDefinitionRepository().findOne(name);
 		if (job == null) {
 			throwNoSuchDefinitionException(name);
 		}
+		Job instance = instanceRepository.findOne(name);
+		if (instance == null) {
+			throwNotDeployedException(name);
+		}
+
 		List<ModuleDeploymentRequest> requests = parse(name, job.getDefinition());
-		for (ModuleDeploymentRequest request : requests) {
-			request.setRemove(true);
+		Assert.isTrue(requests.size() == 1, "Expecting only a single module");
+		ModuleDeploymentRequest request = requests.get(0);
+		request.setLaunch(true);
+		if (!StringUtils.isEmpty(jobParameters)) {
+			request.setParameter(JOB_PARAMETERS_KEY, jobParameters);
 		}
-		try {
-			sendDeploymentRequests(name, requests);
-		}
-		catch (MessageHandlingException ex) {
-			// Job is not deployed.
-		}
+		sendDeploymentRequests(name, requests);
 	}
 
-	@Override
-	public void deployAll() {
-		// TODO: we should revisit here to check on instance repository
-		for (JobDefinition definition : getDefinitionRepository().findAll()) {
-			deploy(definition.getName());
-		}
-	}
-
-	@Override
-	public void undeployAll() {
-		// TODO: we should revisit here to check on instance repository
-		for (JobDefinition definition : getDefinitionRepository().findAll()) {
-			undeploy(definition.getName());
-		}
-	}
-
-	@Override
-	public void deleteAll() {
-		undeployAll();
-		super.deleteAll();
-	}
 }

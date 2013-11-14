@@ -17,11 +17,7 @@
 package org.springframework.xd.dirt.rest.metrics;
 
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeField;
 import org.joda.time.Interval;
-import org.joda.time.ReadablePeriod;
-import org.joda.time.chrono.ISOChronology;
-import org.joda.time.format.ISOPeriodFormat;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -30,6 +26,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.PagedResources;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,6 +34,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.xd.analytics.metrics.core.AggregateCount;
+import org.springframework.xd.analytics.metrics.core.AggregateCountResolution;
 import org.springframework.xd.analytics.metrics.core.AggregateCounterRepository;
 import org.springframework.xd.analytics.metrics.core.Counter;
 import org.springframework.xd.rest.client.domain.metrics.AggregateCountsResource;
@@ -80,55 +78,38 @@ public class AggregateCountersController extends AbstractMetricsController<Aggre
 	 * @param resolution the size of buckets to aggregate, <i>e.g.</i> hourly, daily, <i>etc.</i> (default "hour")
 	 */
 	@ResponseBody
-	@RequestMapping(value = "/{name}", method = RequestMethod.GET)
+	@RequestMapping(value = "/{name}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public AggregateCountsResource display(@PathVariable("name") String name,//
 			@RequestParam(value = "from", required = false) @DateTimeFormat(iso = ISO.DATE_TIME) DateTime from,//
 			@RequestParam(value = "to", required = false) @DateTimeFormat(iso = ISO.DATE_TIME) DateTime to, //
-			@RequestParam(value = "resolution", defaultValue = "hour") Resolution resolution) {
+			@RequestParam(value = "resolution", defaultValue = "hour") AggregateCountResolution resolution) {
 
 		if (to == null) {
 			to = new DateTime();
 		}
 		if (from == null) {
-			from = to.minus(resolution.rewindDuration);
+			from = fromValue(to, resolution);
 		}
 
-		AggregateCount aggregate = repository.getCounts(name, new Interval(from, to), resolution.toJoda());
+		AggregateCount aggregate = repository.getCounts(name, new Interval(from, to), resolution);
 
 		return aggregateCountResourceAssembler.toResource(aggregate);
 	}
 
-	/**
-	 * The resolution at which to collect data between two dates.
-	 * 
-	 * @author Eric Bottard
-	 */
-	public static enum Resolution {
-
-		/**
-		 * One point per minute.
-		 */
-		minute(ISOChronology.getInstanceUTC().minuteOfHour(), ISOPeriodFormat.standard().parsePeriod("PT1H")),
-
-		/**
-		 * One point per hour.
-		 */
-		hour(ISOChronology.getInstanceUTC().hourOfDay(), ISOPeriodFormat.standard().parsePeriod("P1D"));
-
-		private final DateTimeField joda;
-
-		/**
-		 * A human friendly duration that makes sense given this resolution.
-		 */
-		private final ReadablePeriod rewindDuration;
-
-		private Resolution(DateTimeField joda, ReadablePeriod rewindDuration) {
-			this.joda = joda;
-			this.rewindDuration = rewindDuration;
-		}
-
-		DateTimeField toJoda() {
-			return joda;
+	private DateTime fromValue(DateTime to, AggregateCountResolution resolution) {
+		switch(resolution) {
+			case minute:
+				return to.minusMinutes(59);
+			case hour:
+				return to.minusHours(23);
+			case day:
+				return to.minusDays(6);
+			case month:
+				return to.minusMonths(11);
+			case year:
+				return to.minusYears(4);
+			default:
+				throw new IllegalStateException("Shouldn't happen. Unhandled resolution: " + resolution);
 		}
 	}
 

@@ -16,17 +16,25 @@
 
 package org.springframework.xd.shell.command;
 
+import static org.junit.Assert.assertThat;
+import static org.springframework.xd.shell.command.fixtures.XDMatchers.eventually;
+import static org.springframework.xd.shell.command.fixtures.XDMatchers.exists;
+import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasValue;
+
 import java.nio.charset.Charset;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import java.util.Map;
 import java.util.TreeMap;
 
 import org.junit.Test;
 
 import org.springframework.util.StreamUtils;
+import org.springframework.xd.shell.command.fixtures.AggregateCounterSink;
+import org.springframework.xd.shell.command.fixtures.CounterSink;
+import org.springframework.xd.shell.command.fixtures.FieldValueCounterSink;
+import org.springframework.xd.shell.command.fixtures.HttpSource;
+import org.springframework.xd.shell.command.fixtures.RichGaugeSink;
+import org.springframework.xd.shell.command.fixtures.TailSource;
 import org.springframework.xd.shell.util.Table;
-import org.springframework.xd.shell.util.TableHeader;
+
 
 /**
  * Tests various metrics related sinks.
@@ -38,78 +46,89 @@ public class MetricsTests extends AbstractStreamIntegrationTest {
 
 	private static final String TEST_STREAM_NAME = "foo";
 
+	private HttpSource httpSource;
+
 	@Test
 	public void testSimpleCounter() throws Exception {
-		createTestStream(MetricType.COUNTER);
-		httpPostData(DEFAULT_HTTP_URL, "one");
-		httpPostData(DEFAULT_HTTP_URL, "one");
-		httpPostData(DEFAULT_HTTP_URL, "two");
-		counter().verifyCounter("3");
+		httpSource = newHttpSource();
+		CounterSink counter = metrics().newCounterSink();
+		stream().create("mystream", "%s | %s", httpSource, counter);
+
+		httpSource.postData("one");
+		httpSource.postData("one");
+		httpSource.postData("two");
+
+		assertThat(counter, eventually(exists()));
+		assertThat(counter, eventually(hasValue("3")));
 	}
 
 	@Test
 	public void testSimpleCounterImplicitName() throws Exception {
 		String streamName = "foo";
-		stream().create(streamName, "http --port=%s | counter", DEFAULT_HTTP_PORT);
-		Thread.sleep(5000);
-		httpPostData(DEFAULT_HTTP_URL, "one");
-		counter().verifyCounter(streamName, "1");
-		// Explicitly delete the counter
-		counter().deleteCounter(streamName);
-	}
+		httpSource = newHttpSource();
 
-	@Test
-	public void testCounterDeletion() throws Exception {
-		createTestStream(MetricType.COUNTER);
-		httpPostData(DEFAULT_HTTP_URL, "one");
-		counter().deleteDefaultCounter();
+		// Create counter object, but don't use its toString
+		// in stream def. Instead, we know it should be named like
+		// the streamname.
+		CounterSink counter = metrics().newCounterSink(streamName);
+		stream().create(streamName, "%s | counter", httpSource);
+		httpSource.postData("one");
+		assertThat(counter, eventually(hasValue("1")));
 	}
 
 	@Test
 	public void testAggregateCounterList() throws Exception {
-		createTestStream(MetricType.AGGR_COUNTER);
-		httpPostData(DEFAULT_HTTP_URL, "one");
-		aggCounter().verifyDefaultExists();
+		httpSource = newHttpSource();
+		AggregateCounterSink counter = metrics().newAggregateCounterSink();
+		stream().create("mystream", "%s | %s", httpSource, counter);
+
+		httpSource.postData("one");
+		httpSource.postData("one");
+		httpSource.postData("two");
+
+		assertThat(counter, eventually(exists()));
 	}
 
 	@Test
-	public void testAggregateCounterDelete() throws Exception {
-		createTestStream(MetricType.AGGR_COUNTER);
-		httpPostData(DEFAULT_HTTP_URL, "one");
-		aggCounter().deleteDefaultCounter();
+	public void testAggregateCounterImplicitName() throws Exception {
+		String streamName = "foo";
+		httpSource = newHttpSource();
+
+		// Create sink object, but don't use its toString
+		// in stream def. Instead, we know it should be named like
+		// the streamname.
+		AggregateCounterSink counter = metrics().newAggregateCounterSink(streamName);
+		stream().create(streamName, "%s | aggregatecounter", httpSource);
+		httpSource.postData("one");
+		assertThat(counter, eventually(exists()));
 	}
 
-	@Test
-	public void testRichGaugeList() throws Exception {
-		createTestStream(MetricType.RICH_GAUGE);
-		httpPostData(DEFAULT_HTTP_URL, "15");
-		richGauge().verifyDefaultExists();
-	}
 
 	@Test
 	public void testRichGaugeDisplay() throws Exception {
-		createTestStream(MetricType.RICH_GAUGE);
-		httpPostData(DEFAULT_HTTP_URL, "5");
-		httpPostData(DEFAULT_HTTP_URL, "10");
-		httpPostData(DEFAULT_HTTP_URL, "15");
-		Table t = constructRichGaugeDisplay(15d, -1d, 10d, 15d, 5d, 3l);
-		richGauge().verifyRichGauge(t.toString());
-	}
+		httpSource = newHttpSource();
+		RichGaugeSink sink = metrics().newRichGauge();
+		stream().create("mystream", "%s | %s", httpSource, sink);
 
-	@Test
-	public void testRichGaugeDelete() throws Exception {
-		createTestStream(MetricType.RICH_GAUGE);
-		httpPostData(DEFAULT_HTTP_URL, "10");
-		richGauge().deleteDefaultRichGauge();
+		httpSource.ensureReady();
+		httpSource.postData("5");
+		httpSource.postData("10");
+		httpSource.postData("15");
+		Table t = sink.constructRichGaugeDisplay(15d, -1d, 10d, 15d, 5d, 3L);
+
+		assertThat(sink, eventually(exists()));
+		assertThat(sink, eventually(hasValue(t)));
 	}
 
 	@Test
 	public void testFieldValueCounterList() throws Exception {
 		TailSource tailSource = newTailSource();
 		tailTweets(tailSource);
-		createTailSourceFVCStream(tailSource, "fromUser");
-		Thread.sleep(3000);
-		fvc().verifyDefaultExists();
+
+		FieldValueCounterSink sink = metrics().newFieldValueCounterSink("fromUser");
+
+		stream().create(TEST_STREAM_NAME, "%s | %s", tailSource, sink);
+		assertThat(sink, eventually(exists()));
 	}
 
 	@Test
@@ -119,55 +138,12 @@ public class MetricsTests extends AbstractStreamIntegrationTest {
 		fvcMap.put("SpringSource", 2d);
 		TailSource tailSource = newTailSource();
 		tailTweets(tailSource);
-		createTailSourceFVCStream(tailSource, "fromUser");
-		Thread.sleep(2000);
-		Table t = constructFVCDisplay(fvcMap);
-		fvc().verifyFVCounter(t.toString());
-	}
 
-	@Test
-	public void testFieldValueCounterDelete() throws Exception {
-		TailSource tailSource = newTailSource();
-		createTailSourceFVCStream(tailSource, "fromUser");
-		tailTweets(tailSource);
-		fvc().deleteDefaultFVCounter();
-	}
+		FieldValueCounterSink sink = metrics().newFieldValueCounterSink("fromUser");
+		stream().create(TEST_STREAM_NAME, "%s | %s", tailSource, sink);
 
-	private Table constructRichGaugeDisplay(double value, double alpha, double average, double max, double min,
-			long count) {
-		Table t = new Table();
-		NumberFormat pattern = new DecimalFormat();
-		t.addHeader(1, new TableHeader(String.format("Name"))).addHeader(2, new TableHeader(DEFAULT_METRIC_NAME));
-		t.newRow().addValue(1, "value").addValue(2, pattern.format(value));
-		t.newRow().addValue(1, "alpha").addValue(2, pattern.format(alpha));
-		t.newRow().addValue(1, "average").addValue(2, pattern.format(average));
-		t.newRow().addValue(1, "max").addValue(2, pattern.format(max));
-		t.newRow().addValue(1, "min").addValue(2, pattern.format(min));
-		t.newRow().addValue(1, "count").addValue(2, pattern.format(count));
-		return t;
-	}
-
-	private Table constructFVCDisplay(TreeMap<String, Double> fvcMap) {
-		Table t = new Table();
-		NumberFormat pattern = new DecimalFormat();
-		t.addHeader(1, new TableHeader("FieldName=" + DEFAULT_METRIC_NAME)).addHeader(2, new TableHeader("")).addHeader(
-				3, new TableHeader(""));
-		t.newRow().addValue(1, "VALUE").addValue(2, "-").addValue(3, "COUNT");
-		for (Map.Entry<String, Double> entry : fvcMap.descendingMap().entrySet()) {
-			t.newRow().addValue(1, entry.getKey()).addValue(2, "|").addValue(3, pattern.format(entry.getValue()));
-		}
-		return t;
-	}
-
-	private void createTestStream(MetricType metricType) throws Exception {
-		stream().create(TEST_STREAM_NAME, "http --port=%s | %s --name=%s", DEFAULT_HTTP_PORT, metricType.getName(),
-				DEFAULT_METRIC_NAME);
-		Thread.sleep(5000);
-	}
-
-	private void createTailSourceFVCStream(TailSource tailSource, String fieldName) throws Exception {
-		stream().create(TEST_STREAM_NAME, tailSource + " | field-value-counter --fieldName=%s --counterName=%s",
-				fieldName, DEFAULT_METRIC_NAME);
+		Table t = sink.constructFVCDisplay(fvcMap);
+		assertThat(sink, eventually(hasValue(t)));
 	}
 
 	private void tailTweets(TailSource tailSource) throws Exception {

@@ -16,6 +16,8 @@
 
 package org.springframework.xd.dirt.module;
 
+import org.springframework.xd.module.ModuleType;
+
 /**
  * Thrown when attempting to refer to a module that does not exist.
  * 
@@ -31,6 +33,15 @@ public class NoSuchModuleException extends ResourceDefinitionException {
 	 */
 	public NoSuchModuleException(String name) {
 		super("Could not find module with name '" + name + "'");
+	}
+
+	/**
+	 * Create a new exception.
+	 * 
+	 * @param name the module name that was referenced, but could not be found
+	 */
+	public NoSuchModuleException(String name, ModuleType type) {
+		super(String.format("Could not find module with name '%s' and type '%s'", name, type));
 	}
 
 }

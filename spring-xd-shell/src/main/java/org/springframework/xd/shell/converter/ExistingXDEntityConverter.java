@@ -68,14 +68,8 @@ public class ExistingXDEntityConverter implements Converter<String> {
 		if ("stream".equals(kind)) {
 			populate(completions, springXDOperations.streamOperations().list(), criteria, "Streams");
 		}
-		else if ("tap".equals(kind)) {
-			populate(completions, springXDOperations.tapOperations().list(), criteria, "Taps");
-		}
 		else if ("job".equals(kind)) {
 			populate(completions, springXDOperations.jobOperations().list(), criteria, "Jobs");
-		}
-		else if ("trigger".equals(kind)) {
-			populate(completions, springXDOperations.triggerOperations().list(), criteria, "Triggers");
 		}
 		else if ("counter".equals(kind)) {
 			populate(completions, springXDOperations.counterOperations().list(), criteria, "Counters");

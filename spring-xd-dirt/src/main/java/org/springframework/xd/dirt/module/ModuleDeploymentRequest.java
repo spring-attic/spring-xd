@@ -20,16 +20,26 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.util.Assert;
+import org.springframework.xd.module.ModuleType;
+
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
+ * 
+ * 
  * @author Mark Fisher
  * @author Gary Russell
  * @author Luke Taylor
+ * @author Ilayaperumal Gopinathan
  */
-public class ModuleDeploymentRequest {
-
-	private final ObjectMapper objectMapper = new ObjectMapper();
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "@class")
+@JsonSubTypes({ @Type(name = "simple", value = ModuleDeploymentRequest.class),
+	@Type(name = "composite", value = CompositeModuleDeploymentRequest.class) })
+public class ModuleDeploymentRequest implements Comparable<ModuleDeploymentRequest> {
 
 	private volatile String module;
 
@@ -41,11 +51,14 @@ public class ModuleDeploymentRequest {
 
 	private volatile int index;
 
-	private volatile String type = "generic";
+	private volatile ModuleType type = null;
 
 	private final Map<String, String> parameters = new HashMap<String, String>();
 
 	private volatile boolean remove;
+
+	private volatile boolean launch;
+
 
 	public String getModule() {
 		return module;
@@ -71,11 +84,11 @@ public class ModuleDeploymentRequest {
 		this.index = index;
 	}
 
-	public String getType() {
+	public ModuleType getType() {
 		return type;
 	}
 
-	public void setType(String type) {
+	public void setType(ModuleType type) {
 		this.type = type;
 	}
 
@@ -111,14 +124,29 @@ public class ModuleDeploymentRequest {
 		this.sinkChannelName = sinkChannelName;
 	}
 
+	public boolean isLaunch() {
+		return launch;
+	}
+
+	public void setLaunch(boolean launch) {
+		this.launch = launch;
+	}
+
 	@Override
 	public String toString() {
 		try {
-			return this.objectMapper.writeValueAsString(this);
+			ObjectMapper objectMapper = new ObjectMapper();
+			return objectMapper.writeValueAsString(this);
 		}
 		catch (Exception e) {
 			return super.toString();
 		}
+	}
+
+	@Override
+	public int compareTo(ModuleDeploymentRequest o) {
+		Assert.notNull(o, "ModuleDeploymentRequest must not be null");
+		return Integer.valueOf(this.getIndex()).compareTo(Integer.valueOf(o.getIndex()));
 	}
 
 }

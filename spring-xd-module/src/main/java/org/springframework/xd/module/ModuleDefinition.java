@@ -16,9 +16,12 @@
 
 package org.springframework.xd.module;
 
+import java.net.URL;
 import java.util.Properties;
 
+import org.springframework.core.io.DescriptiveResource;
 import org.springframework.core.io.Resource;
+import org.springframework.util.Assert;
 
 /**
  * Defines a module.
@@ -30,27 +33,39 @@ public class ModuleDefinition {
 
 	private final String name;
 
-	private final String type;
+	private final ModuleType type;
 
 	private final Resource resource;
 
 	private volatile Properties properties;
 
-	public ModuleDefinition(String name, String moduleType) {
-		this(name, moduleType, null);
+	private volatile String definition;
+
+	private final URL[] classpath;
+
+	public ModuleDefinition(String name, ModuleType moduleType) {
+		this(name, moduleType, new DescriptiveResource("Dummy resource"));
 	}
 
-	public ModuleDefinition(String name, String type, Resource resource) {
+	public ModuleDefinition(String name, ModuleType type, Resource resource) {
+		this(name, type, resource, null);
+	}
+
+	public ModuleDefinition(String name, ModuleType type, Resource resource, URL[] classpath) {
+		Assert.hasLength(name, "name cannot be blank");
+		Assert.notNull(type, "type cannot be null");
+		Assert.notNull(resource, "resource cannot be null");
 		this.resource = resource;
 		this.name = name;
 		this.type = type;
+		this.classpath = classpath != null && classpath.length > 0 ? classpath : null;
 	}
 
 	public String getName() {
 		return name;
 	}
 
-	public String getType() {
+	public ModuleType getType() {
 		return type;
 	}
 
@@ -64,6 +79,25 @@ public class ModuleDefinition {
 
 	public void setProperties(Properties properties) {
 		this.properties = properties;
+	}
+
+	public String getDefinition() {
+		return definition;
+	}
+
+	public void setDefinition(String definition) {
+		this.definition = definition;
+	}
+
+	public URL[] getClasspath() {
+		return classpath;
+	}
+
+	@Override
+	public String toString() {
+		int nbJars = getClasspath() == null ? 0 : getClasspath().length;
+		return String.format("%s[%s:%s with %d jars at %s]", getClass().getSimpleName(), getType(), getName(), nbJars,
+				getResource().getDescription());
 	}
 
 }

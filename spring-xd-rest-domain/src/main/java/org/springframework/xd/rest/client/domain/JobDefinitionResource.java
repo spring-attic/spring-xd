@@ -24,10 +24,10 @@ import org.springframework.hateoas.PagedResources;
  * @author Glenn Renfro
  * @since 1.0
  */
-public class JobDefinitionResource extends NamedResource {
+public class JobDefinitionResource extends DeployableResource {
 
 	/**
-	 * The DSL representation of this trigger definition.
+	 * The DSL representation of this job definition.
 	 */
 	private String definition;
 

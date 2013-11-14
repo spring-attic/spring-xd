@@ -18,6 +18,8 @@ package org.springframework.xd.dirt.plugins.stream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -28,12 +30,15 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.http.MediaType;
-import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.x.channel.registry.ChannelRegistry;
+import org.springframework.integration.channel.interceptor.WireTap;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.x.bus.MessageBus;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.xd.module.BeanDefinitionAddingPostProcessor;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.Module;
@@ -56,12 +61,14 @@ public class StreamPluginTests {
 
 	@Before
 	public void setup() {
-		System.setProperty("xd.transport", "local");
+		System.setProperty("XD_TRANSPORT", "local");
 	}
 
 	@Test
 	public void streamPropertiesAdded() {
-		Module module = new SimpleModule(new ModuleDefinition("testsource", "source"), new DeploymentMetadata("foo", 0));
+		Module module = new SimpleModule(new ModuleDefinition("testsource", ModuleType.source),
+				new DeploymentMetadata("foo", 0));
+		module.initialize();
 		assertEquals(0, module.getProperties().size());
 		plugin.preProcessModule(module);
 		plugin.postProcessModule(module);
@@ -74,38 +81,46 @@ public class StreamPluginTests {
 	public void streamChannelTests() {
 		Module module = mock(Module.class);
 		when(module.getDeploymentMetadata()).thenReturn(new DeploymentMetadata("foo", 1));
-		when(module.getType()).thenReturn(ModuleType.PROCESSOR.toString());
-		final ChannelRegistry registry = mock(ChannelRegistry.class);
-		when(module.getComponent(ChannelRegistry.class)).thenReturn(registry);
+		when(module.getType()).thenReturn(ModuleType.processor);
+		final MessageBus bus = mock(MessageBus.class);
+		when(module.getName()).thenReturn("testing");
+		when(module.getComponent(MessageBus.class)).thenReturn(bus);
 		when(module.getComponent("input", MessageChannel.class)).thenReturn(input);
 		when(module.getComponent("output", MessageChannel.class)).thenReturn(output);
 		plugin.preProcessModule(module);
 		plugin.postProcessModule(module);
-		verify(registry).createInbound("foo.0", input, Collections.singletonList(MediaType.ALL), false);
-		verify(registry).createOutbound("foo.1", output, false);
+		verify(bus).bindConsumer("foo.0", input, Collections.singletonList(MediaType.ALL), false);
+		verify(bus).bindProducer("foo.1", output, false);
+		verify(bus).bindPubSubProducer(eq("tap:foo.testing"), any(DirectChannel.class));
+		plugin.beforeShutdown(module);
 		plugin.removeModule(module);
-		verify(registry).deleteInbound("foo.0");
-		verify(registry).deleteOutbound("foo.1");
-	}
-
-	@Test
-	public void tapComponentsAdded() {
-		SimpleModule module = new SimpleModule(new ModuleDefinition("tap", "source"), new DeploymentMetadata(
-				"mystream", 1));
-		plugin.preProcessModule(module);
-		plugin.postProcessModule(module);
-		String[] moduleBeans = module.getApplicationContext().getBeanDefinitionNames();
-		assertEquals(1, moduleBeans.length);
-		assertTrue(moduleBeans[0].contains("Tap#"));
+		verify(bus).unbindConsumer("foo.0", input);
+		verify(bus).unbindProducer("foo.1", output);
+		verify(bus).unbindProducers("tap:foo.testing");
 	}
 
 	@Test
 	public void sharedComponentsAdded() {
 		GenericApplicationContext context = new GenericApplicationContext();
-		plugin.postProcessSharedContext(context);
+		plugin.preProcessSharedContext(context);
 		List<BeanFactoryPostProcessor> sharedBeans = context.getBeanFactoryPostProcessors();
 		assertEquals(1, sharedBeans.size());
 		assertTrue(sharedBeans.get(0) instanceof BeanDefinitionAddingPostProcessor);
 	}
 
+	@Test
+	public void testTapOnProxy() {
+		Module module = mock(Module.class);
+		when(module.getDeploymentMetadata()).thenReturn(new DeploymentMetadata("foo", 1));
+		MessageBus messageBus = mock(MessageBus.class);
+		when(module.getComponent(MessageBus.class)).thenReturn(messageBus);
+		DirectChannel output = new DirectChannel();
+		MessageChannel proxy = (MessageChannel) new ProxyFactory(output).getProxy();
+		when(module.getComponent("output", MessageChannel.class)).thenReturn(proxy);
+		StreamPlugin plugin = new StreamPlugin();
+		plugin.postProcessModule(module);
+		List<?> interceptors = TestUtils.getPropertyValue(output, "interceptors.interceptors", List.class);
+		assertEquals(1, interceptors.size());
+		assertTrue(interceptors.get(0) instanceof WireTap);
+	}
 }

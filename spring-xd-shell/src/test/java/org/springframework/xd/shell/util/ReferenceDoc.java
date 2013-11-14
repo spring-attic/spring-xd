@@ -49,10 +49,10 @@ import org.springframework.xd.shell.command.FieldValueCounterCommands;
 import org.springframework.xd.shell.command.GaugeCommands;
 import org.springframework.xd.shell.command.HttpCommands;
 import org.springframework.xd.shell.command.JobCommands;
+import org.springframework.xd.shell.command.ModuleCommands;
 import org.springframework.xd.shell.command.RichGaugeCommands;
+import org.springframework.xd.shell.command.RuntimeCommands;
 import org.springframework.xd.shell.command.StreamCommands;
-import org.springframework.xd.shell.command.TapCommands;
-import org.springframework.xd.shell.command.TriggerCommands;
 import org.springframework.xd.shell.hadoop.ConfigurationCommands;
 import org.springframework.xd.shell.hadoop.FsShellCommands;
 
@@ -99,11 +99,13 @@ public class ReferenceDoc {
 		 * Set titles for commands. Please note that insertion order matters!
 		 */
 		titles.put(XDShell.class, "Base Commands");
+		// ===== Runtime Containers/Modules ======
+		titles.put(RuntimeCommands.class, "Runtime Commands");
+
 		// ===== Streams etc. ======
 		titles.put(StreamCommands.class, "Stream Commands");
-		titles.put(TapCommands.class, "Tap Commands");
 		titles.put(JobCommands.class, "Job Commands");
-		titles.put(TriggerCommands.class, "Trigger Commands");
+		titles.put(ModuleCommands.class, "Module Commands");
 
 		// ======= Analytics =======
 		// Use of repeated title here on purpose
@@ -158,8 +160,6 @@ public class ReferenceDoc {
 		ctx.getBeanFactory().registerSingleton("commandLine", new CommandLine(null, 100, null));
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(ctx);
 		reader.loadBeanDefinitions("classpath*:META-INF/spring/spring-shell-plugin.xml");
-		// ApplicationContext context = new ClassPathXmlApplicationContext(
-		// "classpath*:META-INF/spring/spring-shell-plugin.xml");
 		ctx.refresh();
 
 		Comparator<Class<? extends CommandMarker>> comparator = new Comparator<Class<? extends CommandMarker>>() {
@@ -261,6 +261,7 @@ public class ReferenceDoc {
 			}
 			out.println();
 		}
+		ctx.close();
 	}
 
 	private boolean valueOptional(CliOption option) {

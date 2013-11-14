@@ -46,8 +46,8 @@ import org.springframework.xd.rest.client.domain.NamedResource;
  * Base Class for XD Controllers.
  * 
  * @param <D> the kind of definition entity this controller deals with
- * @param <V> a resource assembler that knows how to build Ts out of Ds
- * @param <T> the resource class for D
+ * @param <A> a resource assembler that knows how to build Ts out of Ds
+ * @param <R> the resource class for D
  * 
  * @author Glenn Renfro
  * @author Ilayaperumal Gopinathan
@@ -155,7 +155,7 @@ public abstract class XDController<D extends BaseDefinition, A extends ResourceA
 	/**
 	 * Retrieve information about a single {@link ResourceSupport}.
 	 * 
-	 * @param name the name of an existing tap (required)
+	 * @param name the name of an existing resource (required)
 	 */
 	@RequestMapping(value = "/{name}", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
@@ -226,10 +226,10 @@ public abstract class XDController<D extends BaseDefinition, A extends ResourceA
 	}
 
 	/**
-	 * Create a new Module.
+	 * Create a new domain object.
 	 * 
-	 * @param name The name of the module to create (required)
-	 * @param definition The module definition, expressed in the XD DSL (required)
+	 * @param name The name of the entity to create (required)
+	 * @param definition The entity definition, expressed in the XD DSL (required)
 	 */
 	@RequestMapping(value = "", method = RequestMethod.POST)
 	@ResponseStatus(HttpStatus.CREATED)

@@ -26,7 +26,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.xd.rest.client.JobOperations;
 import org.springframework.xd.rest.client.domain.JobDefinitionResource;
 import org.springframework.xd.shell.XDShell;
-import org.springframework.xd.shell.util.Assertions;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableHeader;
 import org.springframework.xd.shell.util.TableRow;
@@ -49,9 +48,20 @@ public class JobCommands implements CommandMarker {
 
 	private final static String DEPLOY_JOB = "job deploy";
 
+	private final static String DEPLOY_ALL_JOBS = "job all deploy";
+
+	private final static String LAUNCH_JOB = "job launch";
+
 	private final static String UNDEPLOY_JOB = "job undeploy";
 
+	private final static String UNDEPLOY_ALL_JOBS = "job all undeploy";
+
 	private final static String DESTROY_JOB = "job destroy";
+
+	private final static String DESTROY_ALL_JOBS = "job all destroy";
+
+	@Autowired
+	private UserInput userInput;
 
 	@Autowired
 	private XDShell xdShell;
@@ -65,9 +75,12 @@ public class JobCommands implements CommandMarker {
 	public String createJob(
 			@CliOption(mandatory = true, key = { "name", "" }, help = "the name to give to the job") String name,
 			@CliOption(mandatory = true, key = "definition", help = "job definition using xd dsl ") String dsl,
-			@CliOption(key = "deploy", help = "whether to deploy the stream immediately", unspecifiedDefaultValue = "true") Boolean deploy) {
-		jobOperations().createJob(name, dsl, deploy);
-		return String.format(((deploy != null && deploy.booleanValue()) ? "Successfully created and deployed job '%s'"
+			@CliOption(key = "deploy", help = "whether to deploy the stream immediately", unspecifiedDefaultValue = "true") boolean deploy,
+			@CliOption(key = "dateFormat", help = "the optional date format for job parameters") String dateFormat,
+			@CliOption(key = "numberFormat", help = "the optional number format for job parameters") String numberFormat,
+			@CliOption(key = "makeUnique", help = "shall job parameters be made unique?", unspecifiedDefaultValue = "false") boolean makeUnique) {
+		jobOperations().createJob(name, dsl, dateFormat, numberFormat, makeUnique, deploy);
+		return String.format((deploy ? "Successfully created and deployed job '%s'"
 				: "Successfully created job '%s'"), name);
 	}
 
@@ -76,78 +89,93 @@ public class JobCommands implements CommandMarker {
 
 		final PagedResources<JobDefinitionResource> jobs = jobOperations().list();
 		final Table table = new Table();
-		table.addHeader(1, new TableHeader("Job Name")).addHeader(2, new TableHeader("Job Definition"));
+		table.addHeader(1, new TableHeader("Job Name")).
+				addHeader(2, new TableHeader("Job Definition")).
+				addHeader(3, new TableHeader("Status"));
 
 		for (JobDefinitionResource jobDefinitionResource : jobs) {
 			final TableRow row = new TableRow();
 			row.addValue(1, jobDefinitionResource.getName()).addValue(2, jobDefinitionResource.getDefinition());
+			if (Boolean.TRUE.equals(jobDefinitionResource.isDeployed())) {
+				row.addValue(3, "deployed");
+			}
+			else {
+				row.addValue(3, "");
+			}
 			table.getRows().add(row);
 		}
 		return table;
 	}
 
-	@CliCommand(value = DEPLOY_JOB, help = "Deploy previously created job(s)")
+	@CliCommand(value = DEPLOY_JOB, help = "Deploy a previously created job")
 	public String deployJob(
+			@CliOption(key = { "", "name" }, help = "the name of the job to deploy", mandatory = true, optionContext = "existing-job undeployed disable-string-converter") String name) {
+		jobOperations().deploy(name);
+		return String.format("Deployed job '%s'", name);
+	}
+
+	@CliCommand(value = DEPLOY_ALL_JOBS, help = "Deploy previously created job(s)")
+	public String deployAllJobs(
+			@CliOption(key = "force", help = "bypass confirmation prompt", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean force
+			) {
+		if (force || "y".equalsIgnoreCase(userInput.prompt("Really deploy all jobs?", "n", "y", "n"))) {
+			jobOperations().deployAll();
+			return String.format("Deployed all jobs");
+		}
+		else {
+			return "";
+		}
+	}
+
+	@CliCommand(value = LAUNCH_JOB, help = "Launch previously deployed job")
+	public String launchJob(
 			@CliOption(key = { "", "name" }, help = "the name of the job to deploy", optionContext = "existing-job disable-string-converter") String name,
-			@CliOption(key = { "all" }, help = "deploy all the existing jobs", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean all,
-			@CliOption(key = "jobParameters", help = "the optional job parameters") String jobParameters,
-			@CliOption(key = "dateFormat", help = "the optional date format for job parameters") String dateFormat,
-			@CliOption(key = "numberFormat", help = "the optional number format for job parameters") String numberFormat,
-			@CliOption(key = "makeUnique", help = "shall job parameters be made unique?") Boolean makeUnique) {
-		String message = "";
-		switch (Assertions.exactlyOneOf("name", name, "all", all)) {
-			case 0:
-				jobOperations().deployJob(name, jobParameters, dateFormat, numberFormat, makeUnique);
-				message = String.format("Deployed job '%s'", name);
-				break;
-			case 1:
-				jobOperations().deployAll();
-				message = String.format("Deployed all the jobs");
-				break;
-			default:
-				throw new IllegalArgumentException("You must specify exactly one of 'name', 'all'");
-		}
-		return message;
+			@CliOption(key = { "params" }, help = "the parameters for the job", unspecifiedDefaultValue = "") String jobParameters) {
+		jobOperations().launchJob(name, jobParameters);
+		return String.format("Successfully launched the job '%s'", name);
 	}
 
-	@CliCommand(value = UNDEPLOY_JOB, help = "Un-deploy existing job(s)")
+	@CliCommand(value = UNDEPLOY_JOB, help = "Un-deploy an existing job")
 	public String undeployJob(
-			@CliOption(key = { "", "name" }, help = "the name of the job to un-deploy", optionContext = "existing-job disable-string-converter") String name,
-			@CliOption(key = { "all" }, help = "undeploy all the existing jobs", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean all) {
-		String message = "";
-		switch (Assertions.exactlyOneOf("name", name, "all", all)) {
-			case 0:
-				jobOperations().undeploy(name);
-				message = String.format("Un-deployed Job '%s'", name);
-				break;
-			case 1:
-				jobOperations().undeployAll();
-				message = String.format("Un-deployed all the jobs");
-				break;
-			default:
-				throw new IllegalArgumentException("You must specify exactly one of 'name', 'all'");
-		}
-		return message;
+			@CliOption(key = { "", "name" }, help = "the name of the job to un-deploy", mandatory = true, optionContext = "existing-job deployed disable-string-converter") String name
+			) {
+		jobOperations().undeploy(name);
+		return String.format("Un-deployed Job '%s'", name);
 	}
 
-	@CliCommand(value = DESTROY_JOB, help = "Destroy existing job(s)")
-	public String destroyJob(
-			@CliOption(key = { "", "name" }, help = "the name of the job to destroy", optionContext = "existing-job disable-string-converter") String name,
-			@CliOption(key = { "all" }, help = "destroy all the existing jobs", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean all) {
-		String message = "";
-		switch (Assertions.exactlyOneOf("name", name, "all", all)) {
-			case 0:
-				jobOperations().destroy(name);
-				message = String.format("Destroyed job '%s'", name);
-				break;
-			case 1:
-				jobOperations().destroyAll();
-				message = String.format("Destroyed all the jobs");
-				break;
-			default:
-				throw new IllegalArgumentException("You must specify exactly one of 'name', 'all'");
+	@CliCommand(value = UNDEPLOY_ALL_JOBS, help = "Un-deploy all existing jobs")
+	public String undeployAllJobs(
+			@CliOption(key = "force", help = "bypass confirmation prompt", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean force
+			) {
+		if (force || "y".equalsIgnoreCase(userInput.prompt("Really undeploy all jobs?", "n", "y", "n"))) {
+			jobOperations().undeployAll();
+			return String.format("Un-deployed all the jobs");
 		}
-		return message;
+		else {
+			return "";
+		}
+	}
+
+	@CliCommand(value = DESTROY_JOB, help = "Destroy an existing job")
+	public String destroyJob(
+			@CliOption(key = { "", "name" }, help = "the name of the job to destroy", mandatory = true, optionContext = "existing-job disable-string-converter") String name
+			) {
+		jobOperations().destroy(name);
+		return String.format("Destroyed job '%s'", name);
+	}
+
+	@CliCommand(value = DESTROY_ALL_JOBS, help = "Destroy all existing jobs")
+	public String destroyAllJobs(
+			@CliOption(key = "force", help = "bypass confirmation prompt", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean force
+
+			) {
+		if (force || "y".equalsIgnoreCase(userInput.prompt("Really destroy all jobs?", "n", "y", "n"))) {
+			jobOperations().destroyAll();
+			return String.format("Destroyed all the jobs");
+		}
+		else {
+			return "";
+		}
 	}
 
 	private JobOperations jobOperations() {

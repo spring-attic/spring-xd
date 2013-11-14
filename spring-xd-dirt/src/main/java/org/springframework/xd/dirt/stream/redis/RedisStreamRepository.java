@@ -35,7 +35,7 @@ public class RedisStreamRepository extends AbstractRedisInstanceRepository<Strea
 
 	public RedisStreamRepository(RedisOperations<String, String> redisOperations,
 			RedisStreamDefinitionRepository redisStreamDefinitionRepository) {
-		super("streams.", redisOperations);
+		super("streams", redisOperations);
 		this.redisStreamDefinitionRepository = redisStreamDefinitionRepository;
 	}
 

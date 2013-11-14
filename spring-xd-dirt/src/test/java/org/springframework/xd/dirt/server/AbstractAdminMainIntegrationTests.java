@@ -16,9 +16,7 @@
 
 package org.springframework.xd.dirt.server;
 
-import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.web.context.support.XmlWebApplicationContext;
-import org.springframework.xd.dirt.stream.StreamServer;
+import org.springframework.xd.dirt.server.options.AdminOptions;
 
 /**
  * @author Gary Russell
@@ -27,10 +25,15 @@ import org.springframework.xd.dirt.stream.StreamServer;
  */
 public abstract class AbstractAdminMainIntegrationTests {
 
-	protected final void shutdown(StreamServer s) {
-		s.stop();
-		DirectFieldAccessor dfa = new DirectFieldAccessor(s);
-		((XmlWebApplicationContext) dfa.getPropertyValue("webApplicationContext")).destroy();
+	protected final AdminServer createAdminServer(AdminOptions adminOptions) {
+		System.setProperty("hsql.server.dbname", "test");
+		System.setProperty("hsql.server.port", "9100");
+		System.setProperty("hsql.server.database", "xdjobrepotest");
+		return AdminMain.launchAdminServer(adminOptions);
+	}
+
+	protected final void shutdown(AdminServer s) {
+		s.getApplicationContext().destroy();
 	}
 
 }

@@ -19,23 +19,26 @@ package org.springframework.xd.module;
 import org.springframework.context.ConfigurableApplicationContext;
 
 /**
+ * To be implemented by classes that want to alter how a {@link Module} works. Typically, implementations will add
+ * behavior to the module by {@link Module#addComponents(org.springframework.core.io.Resource) registering additional
+ * components} or {@link Module#addProperties(java.util.Properties) setting additional properties}.
+ * 
+ * @see ModuleDeployer
+ *
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Eric Bottard
  */
 public interface Plugin {
 
 	/**
-	 * Apply changes to the module before it is initialized (generally, this means before its context is refreshed).
-	 * 
-	 * @param module
+	 * Apply changes to the module before it is initialized <i>i.e.</i> before its context is refreshed.
 	 */
 	void preProcessModule(Module module);
 
 	/**
-	 * Apply changes to the module after it is initialized (generally, this means after its context is refreshed), but
-	 * before it is started.
-	 * 
-	 * @param module
+	 * Apply changes to the module after it is initialized <i>i.e.</i> after its context is refreshed, but before it is
+	 * started.
 	 */
 	void postProcessModule(Module module);
 
@@ -46,11 +49,19 @@ public interface Plugin {
 	 */
 	void removeModule(Module module);
 
+
 	/**
-	 * Make any necessary changes to the shared context.
-	 * 
-	 * @param context
+	 * Perform any cleanup necessary prior to module shutdown
+	 *
+	 * @param module
 	 */
-	void postProcessSharedContext(ConfigurableApplicationContext context);
+	void beforeShutdown(Module module);
+
+	/**
+	 * Invoked when this plugin is discovered, allows to make any necessary changes to the context which will be used as
+	 * the parent of all {@link Module#setParentContext(org.springframework.context.ApplicationContext) modules}. Note
+	 * that said context has not been {@link ConfigurableApplicationContext#refresh() refreshed} yet.
+	 */
+	void preProcessSharedContext(ConfigurableApplicationContext context);
 
 }

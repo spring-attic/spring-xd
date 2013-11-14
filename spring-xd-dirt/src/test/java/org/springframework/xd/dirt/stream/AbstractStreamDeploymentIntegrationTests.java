@@ -19,58 +19,91 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentMap;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.support.AbstractApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.Message;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.messaging.Message;
+import org.springframework.xd.dirt.boot.ParentConfiguration;
+import org.springframework.xd.dirt.module.ModuleDeployer;
+import org.springframework.xd.dirt.server.options.XDPropertyKeys;
+import org.springframework.xd.module.Module;
 
 /**
  * @author Mark Fisher
+ * @author Gunnar Hillert
  */
 public abstract class AbstractStreamDeploymentIntegrationTests {
 
 	private AbstractApplicationContext context;
 
-	private StreamDefinitionRepository streamDefinitionRepository;
+	protected StreamDefinitionRepository streamDefinitionRepository;
 
-	private StreamRepository streamRepository;
+	protected StreamRepository streamRepository;
 
-	private StreamDeployer streamDeployer;
+	protected StreamDeployer streamDeployer;
+
+	protected ModuleDeployer moduleDeployer;
 
 	private final QueueChannel tapChannel = new QueueChannel();
+
+	@EnableAutoConfiguration
+	@Configuration
+	@ImportResource({
+		"META-INF/spring-xd/internal/container.xml",
+		"META-INF/spring-xd/internal/deployers.xml",
+		"META-INF/spring-xd/plugins/streams.xml",
+		"META-INF/spring-xd/store/memory-store.xml" })
+	protected static class StreamDeploymentIntegrationTestsConfiguration {
+	}
+
+	// FIXME: Hack to prevent this test from overwriting the global VM setting for XD_TRANSPORT
+	private static final String originalTransport = System.getProperty(XDPropertyKeys.XD_TRANSPORT);
 
 	@Before
 	public final void setUp() {
 		String transport = this.getTransport();
-		System.setProperty("xd.home", "..");
-		System.setProperty("xd.transport", transport);
-		System.setProperty("xd.analytics", "memory");
-		System.setProperty("xd.store", "memory");
-		this.context = new ClassPathXmlApplicationContext(
-				"META-INF/spring-xd/internal/container.xml",
-				"META-INF/spring-xd/internal/deployers.xml",
-				"META-INF/spring-xd/store/memory-admin.xml",
-				"META-INF/spring-xd/transports/" + transport + "-admin.xml");
+		System.setProperty(XDPropertyKeys.XD_HOME, "..");
+		System.setProperty(XDPropertyKeys.XD_TRANSPORT, transport);
+		System.setProperty(XDPropertyKeys.XD_ANALYTICS, "memory");
+		System.setProperty(XDPropertyKeys.XD_STORE, "memory");
+		context = (AbstractApplicationContext) new SpringApplicationBuilder(ParentConfiguration.class).profiles(
+				"singleNode").child(
+				StreamDeploymentIntegrationTestsConfiguration.class).sources(
+				"META-INF/spring-xd/transports/" + transport + "-admin.xml").web(false).run();
 		this.streamDefinitionRepository = context.getBean(StreamDefinitionRepository.class);
 		this.streamRepository = context.getBean(StreamRepository.class);
 		this.streamDeployer = context.getBean(StreamDeployer.class);
+		this.moduleDeployer = context.getBean(ModuleDeployer.class);
+
 		AbstractMessageChannel deployChannel = context.getBean("deployChannel", AbstractMessageChannel.class);
 		AbstractMessageChannel undeployChannel = context.getBean("undeployChannel", AbstractMessageChannel.class);
 		deployChannel.addInterceptor(new WireTap(tapChannel));
 		undeployChannel.addInterceptor(new WireTap(tapChannel));
+		setupApplicationContext(context);
 	}
 
 	@After
 	public final void shutDown() {
-		this.cleanup(this.context);
+		if (originalTransport != null) {
+			System.setProperty(XDPropertyKeys.XD_TRANSPORT, originalTransport);
+		}
 		if (this.context != null) {
+			this.cleanup(this.context);
 			this.context.close();
 		}
 	}
@@ -93,7 +126,7 @@ public abstract class AbstractStreamDeploymentIntegrationTests {
 		assertNull(tapChannel.receive(0));
 	}
 
-	private void assertModuleRequest(String moduleName, boolean remove) {
+	protected void assertModuleRequest(String moduleName, boolean remove) {
 		Message<?> next = tapChannel.receive(0);
 		assertNotNull(next);
 		String payload = (String) next.getPayload();
@@ -101,8 +134,27 @@ public abstract class AbstractStreamDeploymentIntegrationTests {
 		assertTrue(payload.contains("\"remove\":" + (remove ? "true" : "false")));
 	}
 
+	protected void setupApplicationContext(ApplicationContext context) {
+	}
+
 	protected abstract String getTransport();
 
 	protected abstract void cleanup(ApplicationContext context);
 
+	protected Module getModule(String moduleName, int index, ModuleDeployer moduleDeployer) {
+
+		@SuppressWarnings("unchecked")
+		final Map<String, Map<Integer, Module>> deployedModules = TestUtils.getPropertyValue(moduleDeployer,
+				"deployedModules", ConcurrentMap.class);
+
+		Module matchedModule = null;
+		for (Entry<String, Map<Integer, Module>> entry : deployedModules.entrySet()) {
+			final Module module = entry.getValue().get(index);
+			if (module != null && moduleName.equals(module.getName())) {
+				matchedModule = module;
+				break;
+			}
+		}
+		return matchedModule;
+	}
 }

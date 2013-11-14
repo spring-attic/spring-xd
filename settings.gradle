@@ -4,19 +4,38 @@ include 'spring-xd-analytics'
 include 'spring-xd-dirt'
 include 'spring-xd-gemfire-server'
 include 'redis'
-include 'spring-xd-http'
 include 'spring-xd-module'
-include 'spring-integration-module'
 include 'spring-xd-tuple'
 include 'spring-xd-hadoop'
-include 'spring-xd-hadoop:hadoop10'
-include 'spring-xd-hadoop:hadoop11'
+include 'spring-xd-hadoop:hadoop12'
 include 'spring-xd-hadoop:hadoop20'
+include 'spring-xd-hadoop:cdh4'
+include 'spring-xd-hadoop:hdp13'
 include 'spring-xd-hadoop:phd1'
-include 'spring-xd-jdbc'
 include 'spring-xd-test'
 include 'spring-xd-rest-client'
 include 'spring-xd-rest-domain'
 include 'spring-xd-shell'
+include 'spring-xd-ui'
 include 'modules'
+include 'spring-xd-exec'
+
+['source', 'processor', 'sink', 'job'].each {kind->
+	new File(rootDir, "modules/${kind}").eachDir { dir ->
+		if (new File(dir, "config/${dir.name}.xml").exists()) {
+		    include ":modules.${kind}.${dir.name}"
+		    project(":modules.${kind}.${dir.name}").projectDir = dir
+		}
+	}
+}
+
+// For projects living in extensions/ directory:
+// This prevents the detection of the extensions/ directory itself
+// as a project (which it is not) and avoids manual listing of projects
+new File(rootDir, 'extensions').eachDir { dir ->
+	if (new File(dir, 'src/main/java').exists()) {
+		include ":${dir.name}"
+		project(":${dir.name}").projectDir = dir
+	}
+}
 

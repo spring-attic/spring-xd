@@ -30,17 +30,20 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
+import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import org.springframework.integration.Message;
-import org.springframework.integration.message.GenericMessage;
-import org.springframework.xd.test.redis.RedisAvailableRule;
+import org.springframework.integration.redis.outbound.RedisQueueOutboundChannelAdapter;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.GenericMessage;
+import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
  * Integration test of {@link RedisQueueOutboundChannelAdapter}
  * 
  * @author Jennifer Hickey
+ * @author Gary Russell
  */
 public class RedisQueueOutboundChannelAdapterTests {
 
@@ -51,12 +54,11 @@ public class RedisQueueOutboundChannelAdapterTests {
 	private RedisQueueOutboundChannelAdapter adapter;
 
 	@Rule
-	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
+	public RedisTestSupport redisAvailableRule = new RedisTestSupport();
 
 	@Before
 	public void setUp() {
-		this.connectionFactory = new LettuceConnectionFactory();
-		connectionFactory.afterPropertiesSet();
+		this.connectionFactory = redisAvailableRule.getResource();
 		adapter = new RedisQueueOutboundChannelAdapter(QUEUE_NAME, connectionFactory);
 	}
 
@@ -71,7 +73,7 @@ public class RedisQueueOutboundChannelAdapterTests {
 		template.afterPropertiesSet();
 
 		adapter.afterPropertiesSet();
-		adapter.handleMessageInternal(new GenericMessage<String>("message1"));
+		adapter.handleMessage(new GenericMessage<String>("message1"));
 		assertEquals("message1", template.boundListOps(QUEUE_NAME).rightPop());
 	}
 
@@ -79,7 +81,7 @@ public class RedisQueueOutboundChannelAdapterTests {
 	public void testDefaultMsgSerializer() throws Exception {
 		RedisTemplate<String, Message<?>> template = new RedisTemplate<String, Message<?>>();
 		template.setKeySerializer(new StringRedisSerializer());
-		template.setValueSerializer(new MessageRedisSerializer());
+		template.setValueSerializer(new JdkSerializationRedisSerializer());
 		template.setConnectionFactory(connectionFactory);
 		template.afterPropertiesSet();
 
@@ -88,7 +90,7 @@ public class RedisQueueOutboundChannelAdapterTests {
 
 		Map<String, Object> headers = new HashMap<String, Object>();
 		headers.put("header1", "foo");
-		adapter.handleMessageInternal(new GenericMessage<String>("message2", headers));
+		adapter.handleMessage(new GenericMessage<String>("message2", headers));
 		Message<?> message = template.boundListOps(QUEUE_NAME).rightPop();
 		assertEquals("message2", message.getPayload());
 		assertEquals("foo", message.getHeaders().get("header1"));
@@ -102,10 +104,9 @@ public class RedisQueueOutboundChannelAdapterTests {
 		template.setConnectionFactory(connectionFactory);
 		template.afterPropertiesSet();
 
-		adapter.setEnableDefaultSerializer(false);
 		adapter.afterPropertiesSet();
 
-		adapter.handleMessageInternal(new GenericMessage<byte[]>("message3".getBytes()));
+		adapter.handleMessage(new GenericMessage<byte[]>("message3".getBytes()));
 		byte[] value = template.boundListOps(QUEUE_NAME).rightPop();
 		assertEquals("message3", new String(value));
 	}
@@ -118,7 +119,7 @@ public class RedisQueueOutboundChannelAdapterTests {
 		template.setConnectionFactory(connectionFactory);
 		template.afterPropertiesSet();
 
-		adapter.setEnableDefaultSerializer(false);
+		adapter.setSerializer(null);
 		adapter.setExtractPayload(false);
 		adapter.afterPropertiesSet();
 	}
@@ -134,7 +135,7 @@ public class RedisQueueOutboundChannelAdapterTests {
 		adapter.setSerializer(new GenericToStringSerializer<Long>(Long.class));
 		adapter.afterPropertiesSet();
 
-		adapter.handleMessageInternal(new GenericMessage<Long>(5l));
+		adapter.handleMessage(new GenericMessage<Long>(5l));
 		assertEquals(Long.valueOf(5), template.boundListOps(QUEUE_NAME).rightPop());
 	}
 

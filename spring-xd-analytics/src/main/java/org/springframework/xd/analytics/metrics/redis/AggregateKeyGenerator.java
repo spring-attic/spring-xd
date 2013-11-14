@@ -14,7 +14,7 @@ import org.springframework.util.Assert;
  * The general format is </li>
  * <li>One total value</li>
  * <li>One years hash with a field per year eg. { 2010: value, 2011: value }</li>
- * <li>One hash per year with a field per month { 01: value, …}</li>
+ * <li>One hash per year with a field per month { 01: value, ...}</li>
  * <li>One hash per month with a field per day</li>
  * <li>One hash per day with a field per hour</li>
  * <li>One hash per hour with a field per minute</li>
@@ -90,7 +90,7 @@ import org.springframework.util.Assert;
 	}
 
 	private String key(String suffix) {
-		return repoPrefix + counterName + SEPARATOR + suffix;
+		return repoPrefix + SEPARATOR + counterName + SEPARATOR + suffix;
 	}
 
 	public String getHourKey() {

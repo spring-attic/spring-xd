@@ -31,11 +31,11 @@ import org.springframework.util.StringUtils;
 /**
  * Executes all jobs defined within a given stream once the context has been started. This really should be replaced
  * once we have the concept of triggers built in.
- * 
+ *
  * @author Michael Minella
  * @author Gunnar Hillert
  * @since 1.0
- * 
+ *
  */
 public class ModuleJobLauncher implements Lifecycle {
 

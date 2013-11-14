@@ -34,6 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.ArrayList;
 
 import org.hamcrest.Matchers;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,6 +48,8 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.stream.DeploymentMessageSender;
+import org.springframework.xd.dirt.stream.JobDefinitionRepository;
+import org.springframework.xd.dirt.stream.JobRepository;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 
@@ -69,21 +72,32 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 	@Autowired
 	private ModuleRegistry moduleRegistry;
 
+	@Autowired
+	private JobDefinitionRepository jobDefinitionRepository;
+
+	@Autowired
+	private JobRepository xdJobRepository;
+
 	@Before
 	public void before() {
 		Resource resource = mock(Resource.class);
-		ModuleDefinition jobDefinition = new ModuleDefinition(ModuleType.JOB.getTypeName(),
-				ModuleType.JOB.getTypeName(), resource);
-
+		ModuleDefinition moduleJobDefinition = new ModuleDefinition("job",
+				ModuleType.job, resource);
 		when(resource.exists()).thenReturn(true);
-		ArrayList<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
-		definitions.add(jobDefinition);
-		when(moduleRegistry.findDefinitions(ModuleType.JOB.getTypeName())).thenReturn(definitions);
-		when(moduleRegistry.findDefinitions("job1")).thenReturn(definitions);
-		when(moduleRegistry.findDefinitions("job2")).thenReturn(definitions);
-		when(moduleRegistry.lookup("job1", ModuleType.JOB.getTypeName())).thenReturn(jobDefinition);
-		when(moduleRegistry.lookup("job2", ModuleType.JOB.getTypeName())).thenReturn(jobDefinition);
-		when(moduleRegistry.lookup("job", ModuleType.JOB.getTypeName())).thenReturn(jobDefinition);
+		ArrayList<ModuleDefinition> moduleDefinitions = new ArrayList<ModuleDefinition>();
+		moduleDefinitions.add(moduleJobDefinition);
+		when(moduleRegistry.findDefinitions("job")).thenReturn(moduleDefinitions);
+		when(moduleRegistry.findDefinitions("job1")).thenReturn(moduleDefinitions);
+		when(moduleRegistry.findDefinitions("job2")).thenReturn(moduleDefinitions);
+		when(moduleRegistry.findDefinition("job1", ModuleType.job)).thenReturn(moduleJobDefinition);
+		when(moduleRegistry.findDefinition("job2", ModuleType.job)).thenReturn(moduleJobDefinition);
+		when(moduleRegistry.findDefinition("job", ModuleType.job)).thenReturn(moduleJobDefinition);
+	}
+
+	@After
+	public void cleanUp() {
+		jobDefinitionRepository.deleteAll();
+		xdJobRepository.deleteAll();
 	}
 
 	@Test
@@ -99,6 +113,16 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 				post("/jobs").param("name", "job5").param("definition", JOB_DEFINITION).accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 		verify(sender, times(1)).sendDeploymentRequests(eq("job5"), anyListOf(ModuleDeploymentRequest.class));
+	}
+
+	@Test
+	public void testSuccessfulJobLaunch() throws Exception {
+		mockMvc.perform(
+				post("/jobs").param("name", "joblaunch").param("definition", JOB_DEFINITION).accept(
+						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
+		mockMvc.perform(put("/jobs/{name}/launch", "joblaunch").accept(MediaType.APPLICATION_JSON)).andExpect(
+				status().isOk());
+		verify(sender, times(2)).sendDeploymentRequests(eq("joblaunch"), anyListOf(ModuleDeploymentRequest.class));
 	}
 
 	@Test
@@ -133,8 +157,11 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 
 	@Test
 	public void testJobUnDeployNoDef() throws Exception {
+		mockMvc.perform(
+				post("/jobs").param("name", "job1").param("definition", JOB_DEFINITION).accept(
+						MediaType.APPLICATION_JSON).param("deploy", "false")).andExpect(status().isCreated());
 		mockMvc.perform(put("/jobs/{name}", "myjob").param("deploy", "false").accept(MediaType.APPLICATION_JSON)).andExpect(
-				status().isNotFound());
+				status().isBadRequest());
 	}
 
 	@Test
@@ -184,25 +211,5 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 
 		assertNull(jobDefinitionRepository.findOne("job1"));
 		assertNull(jobDefinitionRepository.findOne("job2"));
-	}
-
-	public void testJobWithNonexistentTrigger() throws Exception {
-		mockMvc.perform(
-				post("/jobs").param("name", "job1").param("definition", "job --trigger=trigger1").accept(
-						MediaType.APPLICATION_JSON)).andExpect(
-				status().isNotFound());
-	}
-
-	@Test
-	public void testJobWithExistingTrigger() throws Exception {
-		mockMvc.perform(
-				post("/triggers").param("name", "trigger1").param("definition", "job --trigger=trigger1").accept(
-						MediaType.APPLICATION_JSON)).andExpect(
-				status().isCreated());
-		assertNotNull(triggerDefinitionRepository.findOne("trigger1"));
-		mockMvc.perform(
-				post("/jobs").param("name", "job1").param("definition", "job --trigger=trigger1").accept(
-						MediaType.APPLICATION_JSON)).andExpect(
-				status().isCreated());
 	}
 }

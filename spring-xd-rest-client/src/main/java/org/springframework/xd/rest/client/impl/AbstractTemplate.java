@@ -22,7 +22,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.xd.rest.client.util.RestTemplateMessageConverterUtil;
 
@@ -55,13 +57,13 @@ import org.springframework.xd.rest.client.util.RestTemplateMessageConverterUtil;
 	}
 
 	/**
-	 * No arg constructor, used solely by entry point to the API, namely {@link SpringXDTemplate}.
+	 * Basic constructor, used solely by entry point to the API, namely {@link SpringXDTemplate}.
 	 */
-	AbstractTemplate() {
-		restTemplate = new RestTemplate();
+	AbstractTemplate(ClientHttpRequestFactory factory) {
+		restTemplate = new RestTemplate(factory);
 		List<HttpMessageConverter<?>> converters = RestTemplateMessageConverterUtil.installMessageConverters(new ArrayList<HttpMessageConverter<?>>());
+		converters.add(new StringHttpMessageConverter());
 		restTemplate.setMessageConverters(converters);
 		restTemplate.setErrorHandler(new VndErrorResponseErrorHandler(restTemplate.getMessageConverters()));
 	}
-
 }

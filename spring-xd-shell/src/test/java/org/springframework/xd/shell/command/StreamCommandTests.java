@@ -23,10 +23,11 @@ import java.io.IOException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.shell.core.CommandResult;
+import org.springframework.xd.shell.command.fixtures.FileSink;
+import org.springframework.xd.shell.command.fixtures.HttpSource;
 
 /**
  * Test stream commands
@@ -59,6 +60,16 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		assertTrue("Failure.  CommandResult = " + cr.toString(), !cr.isSuccess());
 		assertTrue("Failure.  CommandResult = " + cr.toString(),
 				cr.getException().getMessage().contains("There is already a stream named 'ticktock'"));
+	}
+
+	@Test
+	public void testCreatingTapWithSameNameAsExistingStream_xd299() {
+		CommandResult cr = getShell().executeCommand(
+				"stream create --name foo --definition \"tap:stream:foo > counter\"");
+		System.out.println(cr);
+		assertTrue("Failure. CommandResult = " + cr.toString(), !cr.isSuccess());
+		assertTrue("Failure. CommandResult = " + cr.toString(),
+				cr.getException().getMessage().contains("XD116E:unrecognized stream reference 'foo'"));
 	}
 
 	@Test
@@ -118,198 +129,286 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	@Test
 	public void testNamedChannelWithNoConsumerShouldBuffer() {
 		logger.info("Create ticktock stream");
-		stream().create("ticktock-in", "http --port=9314 > :foox");
-		httpPostData("http://localhost:9314", "blahblah");
+		HttpSource source = newHttpSource();
+		stream().create("ticktock-in", "%s > queue:foox", source);
+		source.postData("blahblah");
 	}
 
 	@Test
 	public void testNamedChannelsLinkingSourceAndSink() {
-		stream().create("ticktock-in", "http --port=9314 > :foo");
-		stream().create("ticktock-out", ":foo > transform --expression=payload.toUpperCase() | log");
-		httpPostData("http://localhost:9314", "blahblah");
+		HttpSource source = newHttpSource();
+		stream().create("ticktock-in", "%s > queue:foo", source);
+		stream().create("ticktock-out", "queue:foo > transform --expression=payload.toUpperCase() | log");
+		source.postData("blahblah");
 	}
 
-	@Ignore
+	/**
+	 * Test a stream that is simply one processor module connecting two named channels.
+	 */
+	@Test
+	public void testProcessorLinkingChannels() throws Exception {
+		FileSink sink = newFileSink();
+		HttpSource source = newHttpSource(9314);
+		stream().create("in1", "%s > queue:foo", source);
+		stream().create("proc", "queue:foo > transform --expression=payload.toUpperCase() > queue:bar");
+		stream().create("out1", "queue:bar > %s", sink);
+		source.postData("blahblah");
+		assertEquals("BLAHBLAH\n", sink.getContents());
+	}
+
 	@Test
 	public void testDefiningSubstream() {
 		stream().createDontDeploy("s1", "transform --expression=payload.replace('Andy','zzz')");
 	}
 
-	@Ignore
 	@Test
 	public void testUsingSubstream() {
+		HttpSource httpSource = newHttpSource();
 		stream().createDontDeploy("s1", "transform --expression=payload.replace('Andy','zzz')");
-		stream().create("s2", "http --port=9314 | s1 | log");
-		httpPostData("http://localhost:9314", "fooAndyfoo");
+		stream().create("s2", "%s | s1 | log", httpSource);
+		httpSource.ensureReady().postData("fooAndyfoo");
 	}
 
-	@Ignore
 	@Test
-	public void testUsingSubstreamWithParameterizationAndDefaultValue() {
+	public void testUsingCompositionWithParameterizationAndDefaultValue() throws IOException {
+		FileSink sink = newFileSink();
+		HttpSource httpSource = newHttpSource();
+
 		stream().createDontDeploy("obfuscate", "transform --expression=payload.replace('${text:rys}','.')");
-		stream().create("s2", "http --port=9314 | obfuscate | log");
-		httpPostData("http://localhost:9314", "Dracarys!");
-		// TODO verify the output of the 'log' sink is 'Draca.!'
+		stream().create("s2", "%s | obfuscate | %s", httpSource, sink);
+
+		httpSource.ensureReady().postData("Dracarys!");
+		assertEquals("Draca.!\n", sink.getContents());
 	}
 
-	@Ignore
 	@Test
-	public void testUsingSubstreamWithParameterization() throws IOException {
+	public void testParameterizedStreamComposition() throws IOException {
+		HttpSource httpSource = newHttpSource();
 		FileSink sink = newFileSink();
 		stream().createDontDeploy("obfuscate", "transform --expression=payload.replace('${text}','.')");
-		stream().create("s2", "http --port=9314 | obfuscate --text=aca | %s", sink);
-		httpPostData("http://localhost:9314", "Dracarys!");
-		// TODO reactivate when get to the bottom of the race condition
-		// assertEquals("Dr.rys!\n", sink.getContents());
+		stream().create("s2", "%s | obfuscate --text=aca | %s", httpSource, sink);
+		httpSource.ensureReady().postData("Dracarys!");
+		assertEquals("Dr.rys!", sink.getContents().trim());
 	}
 
-	@Ignore
-	@Test
-	public void testSubSubstreams() throws IOException {
+	public void testComposedModules() throws IOException {
 		FileSink sink = newFileSink();
+		HttpSource httpSource = newHttpSource();
+		stream().createDontDeploy("chain",
+				"filter --expression=true | transform --expression=payload.replace('abc','...')");
+		stream().create("s2", "%s | chain | %s", httpSource, sink);
+		httpSource.postData("abcdefghi!");
+		// TODO reactivate when get to the bottom of the race condition
+		assertEquals("...defghi!\n", sink.getContents());
+	}
+
+	@Test
+	public void testFilteringSource() throws IOException {
+		FileSink sink = newFileSink();
+		HttpSource httpSource = newHttpSource();
+		stream().createDontDeploy("myFilteringSource",
+				"%s | filter --expression=payload.contains('e')", httpSource);
+		stream().create("s2", "myFilteringSource | transform --expression=payload.replace('e','.') | %s", sink);
+		httpSource.postData("foobar");
+		httpSource.postData("hello");
+		httpSource.postData("custardpie");
+		httpSource.postData("whisk");
+		// TODO reactivate when get to the bottom of the race condition
+		assertEquals("h.llo\ncustardpi.\n", sink.getContents());
+	}
+
+
+	@Test
+	public void testParameterizedComposedSource() throws IOException {
+		FileSink sink = newFileSink();
+		HttpSource httpSource = newHttpSource();
+		stream().createDontDeploy("myFilteringSource",
+				"%s | filter --expression=payload.contains('${word}')", httpSource);
+		stream().create("s2", "myFilteringSource --word=foo | %s", sink);
+		httpSource.postData("foobar");
+		httpSource.postData("hello");
+		httpSource.postData("custardfoo");
+		httpSource.postData("whisk");
+		assertEquals("foobar\ncustardfoo\n", sink.getContents());
+	}
+
+
+	@Test
+	public void testComposedStreamThatIsItselfDeployable() throws IOException {
+		FileSink sink = newFileSink();
+		HttpSource httpSource = newHttpSource();
+		stream().createDontDeploy("myFilteringHttpSource",
+				"%s | filter --expression=payload.contains('${word:foo}') | %s", httpSource, sink);
+		stream().create("s2", "myFilteringHttpSource", sink);
+		httpSource.postData("foobar");
+		httpSource.postData("hello");
+		httpSource.postData("custardfoo");
+		httpSource.postData("whisk");
+		assertEquals("foobar\ncustardfoo\n", sink.getContents());
+	}
+
+
+	@Test
+	public void testNestedStreamComposition() throws IOException {
+		HttpSource source = newHttpSource();
+		FileSink sink = newFileSink().binary(true);
 		stream().createDontDeploy("swap", "transform --expression=payload.replaceAll('${from}','${to}')");
 		stream().createDontDeploy("abyz", "swap --from=a --to=z | swap --from=b --to=y");
-		stream().create("foo", "http --port=9314 | abyz | %s", sink);
-		httpPostData("http://localhost:9314", "aabbccxxyyzz");
-		assertEquals("zzyyccxxyyzz\n", sink.getContents());
+		stream().create("foo", "%s | abyz | filter --expression=true | %s", source, sink);
+		stream().create("mytap", "tap:stream:foo.filter > log"); // will log zzyyccxxyyzz
+		source.postData("aabbccxxyyzz");
+		assertEquals("zzyyccxxyyzz", sink.getContents());
 	}
 
-	// See https://jira.springsource.org/browse/XD-592
-	@Test
-	public void testTappingModules() throws IOException {
-		FileSink sink = newFileSink();
-		FileSink tapsink = newFileSink();
-
-		stream().create("myhttp", "http --port=9314 | transform --expression=payload.toUpperCase() | %s", sink);
-		tap().create("mytap", "tap myhttp.transform | transform --expression=payload.replaceAll('A','.') | %s", tapsink);
-		executeCommand("http post --data Dracarys! --target http://localhost:9314");
-
-		// TODO reactivate when get to the bottom of the race condition
-		// assertEquals("DRACARYS!\n", sink.getContents());
-		// assertEquals("DR.C.RYS!\n", tapsink.getContents());
-	}
-
-	// We might have a problem using a tap called tap
-	// Resolver could skip 'tap' as a 'well known module name'
-	@Ignore
-	@Test
-	public void testTapCalledTap() throws IOException {
-		FileSink sink = newFileSink();
-		FileSink tapsink = newFileSink();
-		stream().create("myhttp", "http --port=9314 | transform --expression=payload.toUpperCase() | %s", sink);
-
-		// Fails with recursion issue?
-		tap().create("tap", "tap myhttp.transform | transform --expression=payload.replaceAll('A','.') | %s", tapsink);
-		executeCommand("http post --data Dracarys! --target http://localhost:9314");
-
-		assertEquals("DRACARYS!\n", sink.getContents());
-		assertEquals("DR.C.RYS!\n", tapsink.getContents());
-	}
-
-	// See https://jira.springsource.org/browse/XD-592
 	@Test
 	public void testTappingModulesVariations() throws IOException {
 		// Note: this test is using a regular sink, not a named channel sink
-		FileSink sink = newFileSink();
-		FileSink tapsink1 = newFileSink();
-		FileSink tapsink2 = newFileSink();
-		FileSink tapsink3 = newFileSink();
-		FileSink tapsink4 = newFileSink();
-		FileSink tapsink5 = newFileSink();
+		HttpSource httpSource = newHttpSource();
+		HttpSource httpSource2 = newHttpSource();
 
-		stream().create("myhttp", "http --port=9314 | transform --expression=payload.toUpperCase() | %s", sink);
+		FileSink sink = newFileSink().binary(true);
+		FileSink tapsink3 = newFileSink().binary(true);
+		FileSink tapsink5 = newFileSink().binary(true);
+		FileSink tapsink6 = newFileSink().binary(true);
 
-		tap().create("mytap1", "tap @myhttp | transform --expression=payload.replaceAll('A','.') | %s", tapsink1);
-		tap().create("mytap2", "tap @myhttp.1 | transform --expression=payload.replaceAll('A','.') | %s", tapsink2);
-		tap().create("mytap3", "tap myhttp | transform --expression=payload.replaceAll('A','.') | %s", tapsink3);
-		tap().create("mytap4", "tap myhttp.1 | transform --expression=payload.replaceAll('A','.') | %s", tapsink4);
-		tap().create("mytap5", "tap myhttp.transform | transform --expression=payload.replaceAll('A','.') | %s",
+		stream().create("myhttp", "%s | transform --expression=payload.toUpperCase() | %s", httpSource, sink);
+		stream().create("mytap3",
+				"tap:stream:myhttp > transform --expression=payload.replaceAll('A','.') | %s",
+				tapsink3);
+		stream().create("mytap5",
+				"tap:stream:myhttp.transform > transform --expression=payload.replaceAll('A','.') | %s",
 				tapsink5);
+		stream().create("mytap6",
+				"tap:stream:myhttp.0 > transform --expression=payload.replaceAll('A','.') | %s",
+				tapsink6);
+		// use the tap channel as a sink. Not very useful currently but will be once we allow users to create pub/sub
+		// channels
+		// stream().create("mytap7", "%s > tap:stream:myhttp.transform",
+		// httpSource2);
 
-		executeCommand("http post --data Dracarys! --target http://localhost:9314");
+		httpSource.ensureReady().postData("Dracarys!");
 
-		// TODO reactivate when get to the bottom of the race condition
-		// assertEquals("DRACARYS!\n", sink.getContents());
-		// assertEquals("Dracarys!\n", tapsink1.getContents());
-		// assertEquals("DR.C.RYS!\n", tapsink2.getContents());
-		// assertEquals("Dracarys!\n", tapsink3.getContents());
-		// assertEquals("DR.C.RYS!\n", tapsink4.getContents());
-		// assertEquals("DR.C.RYS!\n", tapsink5.getContents());
+		assertEquals("DRACARYS!", sink.getContents());
+		assertEquals("Dracarys!", tapsink3.getContents());
+		assertEquals("DR.C.RYS!", tapsink5.getContents());
+		assertEquals("Dracarys!", tapsink6.getContents());
+
+		// httpSource2.ensureReady().postData("TESTPLAN");
+		// our tap got the data and transformed appropriately
+		// assertEquals("DR.C.RYS!TESTPL.N", tapsink5.getContents());
+		// other tap did not get data
+		// assertEquals("Dracarys!", tapsink3.getContents());
 	}
 
-	// See https://jira.springsource.org/browse/XD-592
 	@Test
 	public void testTappingWithLabels() throws IOException {
 		// Note: this test is using a regular sink, not a named channel sink
-		FileSink sink = newFileSink();
-		FileSink tapsink1 = newFileSink();
+		HttpSource source = newHttpSource();
 
-		stream().create("myhttp", "http --port=9314 | flibble: transform --expression=payload.toUpperCase() | %s", sink);
-		tap().create("mytap4", "tap myhttp.flibble | transform --expression=payload.replaceAll('A','.') | %s", tapsink1);
-		executeCommand("http post --data Dracarys! --target http://localhost:9314");
+		FileSink sink = newFileSink().binary(true);
+		FileSink tapsink1 = newFileSink().binary(true);
+		stream().create("myhttp", "%s | flibble: transform --expression=payload.toUpperCase() | %s", source, sink);
+		stream().create("mytap4",
+				"tap:stream:myhttp.flibble > transform --expression=payload.replaceAll('A','.') | %s",
+				tapsink1);
+		source.ensureReady().postData("Dracarys!");
 
-		assertEquals("DRACARYS!\n", sink.getContents());
-		assertEquals("DR.C.RYS!\n", tapsink1.getContents());
+		assertEquals("DRACARYS!", sink.getContents());
+		assertEquals("DR.C.RYS!", tapsink1.getContents());
 	}
 
-	// See https://jira.springsource.org/browse/XD-592
-	@Ignore
 	@Test
-	public void testTappingModulesVariationsWithSinkChannel() throws IOException {
-		FileSink sink = newFileSink();
-		FileSink tapsink1 = newFileSink();
-		FileSink tapsink2 = newFileSink();
-		FileSink tapsink3 = newFileSink();
-		FileSink tapsink4 = newFileSink();
-		FileSink tapsink5 = newFileSink();
+	public void testTappingModulesVariationsWithSinkChannel_XD629() throws IOException {
+		HttpSource source = newHttpSource();
+
+		FileSink sink = newFileSink().binary(true);
+		FileSink tapsink3 = newFileSink().binary(true);
+		FileSink tapsink5 = newFileSink().binary(true);
 
 		stream().create("myhttp",
-				"http --port=9314 | transform --expression=payload.toUpperCase() | filter --expression=true > :foobar");
+				"%s | transform --expression=payload.toUpperCase() | filter --expression=true > queue:foobar", source);
+		stream().create("slurp", "queue:foobar > %s", sink);
 
-		// tap().create("mytap1",
-		// "tap @myhttp | transform --expression=payload.replaceAll('A','.') | %s",
-		// tapsink1);
-		// tap().create("mytap2",
-		// "tap @myhttp.1 | transform --expression=payload.replaceAll('A','.') | %s",
-		// tapsink2);
-		// tap().create("mytap3",
-		// "tap myhttp | transform --expression=payload.replaceAll('A','.') | %s",
-		// tapsink3);
-		// tap().create("mytap4",
-		// "tap myhttp.1 | transform --expression=payload.replaceAll('A','.') | %s",
-		// tapsink4);
-		tap().create("mytap5", "tap myhttp.filter | transform --expression=payload.replaceAll('A','.') | %s", tapsink5);
+		// new style tapping, tap --channel=myhttp.0
+		stream().create("mytap3",
+				"tap:stream:myhttp > transform --expression=payload.replaceAll('r','.') | %s",
+				tapsink3);
 
-		executeCommand("http post --data Dracarys! --target http://localhost:9314");
+		// new style tapping, tap --channel=foobar
+		// stream().create("mytap5",
+		// "tap:stream:myhttp.filter > transform --expression=payload.replaceAll('A','.') | %s",
+		// tapsink5);
 
-		// assertEquals("DRACARYS!\n", sink.getContents());
-		// assertEquals("Dracarys!\n", tapsink1.getContents());
-		// assertEquals("DR.C.RYS!\n", tapsink2.getContents());
-		// assertEquals("Dracarys!\n", tapsink3.getContents());
-		// assertEquals("DR.C.RYS!\n", tapsink4.getContents());
-		assertEquals("DR.C.RYS!\n", tapsink5.getContents());
+		source.ensureReady().postData("Dracarys!");
+
+		assertEquals("DRACARYS!", sink.getContents());
+		// assertEquals("D.aca.ys!", tapsink3.getContents());
+		// assertEquals("DR.C.RYS!", tapsink5.getContents());
 	}
 
-	// XD M2 does not support '>' with tap
-	@Ignore
 	@Test
-	// See https://jira.springsource.org/browse/XD-592
 	public void testUsingLabels() throws IOException {
-		FileSink sink1 = newFileSink();
-		FileSink sink2 = newFileSink();
-		FileSink sink3 = newFileSink();
+		FileSink sink1 = newFileSink().binary(true);
+		FileSink sink2 = newFileSink().binary(true);
+		FileSink sink3 = newFileSink().binary(true);
 
-		stream().create("myhttp", "http --port=9314 | flibble: transform --expression=payload.toUpperCase() | log");
-		tap().create("wiretap1", "tap @myhttp.1 | transform --expression=payload.replaceAll('a','.') | %s", sink1);
+		HttpSource source = newHttpSource();
 
-		tap().create("wiretap2", "tap myhttp.transform > transform --expression=payload.replaceAll('a','.') | %s",
+		stream().create("myhttp", "%s | flibble: transform --expression=payload.toUpperCase() | %s", source, sink1);
+		stream().create("wiretap2",
+				"tap:stream:myhttp.transform > transform --expression=payload.replaceAll('a','.') | %s",
 				sink2);
-		tap().create("wiretap3", "tap myhttp.flibble > transform --expression=payload.replaceAll('a','.') | %s", sink3);
-		httpPostData("http://localhost:9314", "Dracarys!");
+		stream().create("wiretap3",
+				"tap:stream:myhttp.flibble > transform --expression=payload.replaceAll('a','.') | %s",
+				sink3);
+
+		source.ensureReady().postData("Dracarys!");
+
 		// TODO verify both logs output DRACARYS!
-		assertEquals("DRACARYS!\n", sink1.getContents());
-		assertEquals("DRACARYS!\n", sink2.getContents());
-		assertEquals("DRACARYS!\n", sink3.getContents());
+		assertEquals("DRACARYS!", sink1.getContents());
+		assertEquals("DRACARYS!", sink2.getContents());
+		assertEquals("DRACARYS!", sink3.getContents());
+	}
+
+	@Test
+	public void testNamedChannels() throws Exception {
+		HttpSource source1 = newHttpSource();
+		HttpSource source2 = newHttpSource();
+		HttpSource source3 = newHttpSource();
+		FileSink sink = newFileSink().binary(true);
+		stream().create("stream1", "%s > queue:foo", source1);
+		stream().create("stream2", "%s > queue:foo", source2);
+		stream().create("stream3", "queue:foo > %s", sink);
+
+		source1.ensureReady().postData("Dracarys!");
+		source2.ensureReady().postData("testing");
+
+		assertTrue(sink.waitForContents("Dracarys!testing", 1000));
+
+		stream().destroyStream("stream2");
+
+		source1.ensureReady().postData("stillup");
+		assertTrue(sink.waitForContents("Dracarys!testingstillup", 1000));
+
+		stream().create("stream4", "%s > queue:foo", source3);
+		source3.ensureReady().postData("newstream");
+		assertTrue(sink.waitForContents("Dracarys!testingstillupnewstream", 1000));
+
+		stream().destroyStream("stream4");
+		stream().destroyStream("stream1");
+		stream().destroyStream("stream3");
+	}
+
+	@Test
+	public void testJsonPath() throws IOException {
+		HttpSource source = newHttpSource();
+		FileSink sink = newFileSink();
+		stream().create("jsonPathStream",
+				"%s | transform --expression='#jsonPath(payload, \"$.foo.bar\")' | %s",
+				source, sink);
+		source.ensureReady().postData("{\"foo\":{\"bar\":123}}");
+		assertEquals("123", sink.getContents().trim());
+		stream().destroyStream("jsonPathStream");
 	}
 
 }

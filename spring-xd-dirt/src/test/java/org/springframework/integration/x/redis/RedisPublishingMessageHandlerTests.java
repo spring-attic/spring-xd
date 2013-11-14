@@ -34,8 +34,9 @@ import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.integration.redis.outbound.RedisPublishingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.xd.test.redis.RedisAvailableRule;
+import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
  * Temporary copy of SI RedisPublishingMessageHandlerTests that adds tests that publish messages with data types other
@@ -43,6 +44,7 @@ import org.springframework.xd.test.redis.RedisAvailableRule;
  * 
  * @author Mark Fisher
  * @author Jennifer Hickey
+ * @author Gary Russell
  */
 public class RedisPublishingMessageHandlerTests {
 
@@ -57,19 +59,18 @@ public class RedisPublishingMessageHandlerTests {
 	private CountDownLatch latch = new CountDownLatch(NUM_MESSAGES);
 
 	@Rule
-	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
+	public RedisTestSupport redisAvailableRule = new RedisTestSupport();
 
 	@Before
 	public void setUp() {
-		this.connectionFactory = new LettuceConnectionFactory();
-		connectionFactory.afterPropertiesSet();
+		this.connectionFactory = redisAvailableRule.getResource();
 	}
 
 	@Test
 	public void testWithDefaultSerializer() throws Exception {
 		setupListener(new StringRedisSerializer());
 		final RedisPublishingMessageHandler handler = new RedisPublishingMessageHandler(connectionFactory);
-		handler.setDefaultTopic(TOPIC);
+		handler.setTopic(TOPIC);
 		handler.afterPropertiesSet();
 		for (int i = 0; i < NUM_MESSAGES; i++) {
 			handler.handleMessage(MessageBuilder.withPayload("test-" + i).build());
@@ -83,8 +84,7 @@ public class RedisPublishingMessageHandlerTests {
 	public void testWithNoSerializer() throws Exception {
 		setupListener(null);
 		final RedisPublishingMessageHandler handler = new RedisPublishingMessageHandler(connectionFactory);
-		handler.setDefaultTopic(TOPIC);
-		handler.setSerializer(null);
+		handler.setTopic(TOPIC);
 		handler.afterPropertiesSet();
 		for (int i = 0; i < NUM_MESSAGES; i++) {
 			handler.handleMessage(MessageBuilder.withPayload(new String("test-" + i).getBytes()).build());
@@ -99,7 +99,7 @@ public class RedisPublishingMessageHandlerTests {
 		GenericToStringSerializer<Long> serializer = new GenericToStringSerializer<Long>(Long.class);
 		setupListener(serializer);
 		final RedisPublishingMessageHandler handler = new RedisPublishingMessageHandler(connectionFactory);
-		handler.setDefaultTopic(TOPIC);
+		handler.setTopic(TOPIC);
 		handler.setSerializer(serializer);
 		handler.afterPropertiesSet();
 		for (long i = 0; i < NUM_MESSAGES; i++) {

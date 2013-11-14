@@ -16,16 +16,16 @@
 
 package org.springframework.xd.dirt.plugins;
 
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.integration.Message;
+import org.springframework.integration.redis.outbound.RedisQueueOutboundChannelAdapter;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.x.redis.RedisQueueOutboundChannelAdapter;
+import org.springframework.messaging.Message;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
-import org.springframework.xd.test.redis.RedisAvailableRule;
+import org.springframework.xd.module.ModuleType;
+import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
  * @author Mark Fisher
@@ -36,20 +36,18 @@ public class ModuleDeploymentTests {
 	// run redis-server and RedisContainerLauncher (or StreamServer) before this test
 
 	@Rule
-	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
+	public RedisTestSupport redisAvailableRule = new RedisTestSupport();
 
 	@Test
-	@Ignore
 	public void testProcessor() throws Exception {
-		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
-		connectionFactory.afterPropertiesSet();
+		LettuceConnectionFactory connectionFactory = redisAvailableRule.getResource();
 		RedisQueueOutboundChannelAdapter adapter = new RedisQueueOutboundChannelAdapter("queue.deployer",
 				connectionFactory);
 		adapter.setExtractPayload(false);
 		adapter.afterPropertiesSet();
 		ModuleDeploymentRequest request = new ModuleDeploymentRequest();
 		request.setGroup("test");
-		request.setType("processor");
+		request.setType(ModuleType.processor);
 		request.setModule("filter");
 		request.setIndex(0);
 		Message<?> message = MessageBuilder.withPayload(request.toString()).build();
@@ -57,24 +55,22 @@ public class ModuleDeploymentTests {
 	}
 
 	@Test
-	@Ignore
 	public void testSimpleStream() throws Exception {
-		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
-		connectionFactory.afterPropertiesSet();
+		LettuceConnectionFactory connectionFactory = redisAvailableRule.getResource();
 		RedisQueueOutboundChannelAdapter adapter = new RedisQueueOutboundChannelAdapter("queue.deployer",
 				connectionFactory);
 		adapter.setExtractPayload(false);
 		adapter.afterPropertiesSet();
 		ModuleDeploymentRequest sinkRequest = new ModuleDeploymentRequest();
 		sinkRequest.setGroup("teststream");
-		sinkRequest.setType("sink");
+		sinkRequest.setType(ModuleType.sink);
 		sinkRequest.setModule("log");
 		sinkRequest.setIndex(1);
 		Message<?> sinkMessage = MessageBuilder.withPayload(sinkRequest.toString()).build();
 		adapter.handleMessage(sinkMessage);
 		ModuleDeploymentRequest sourceRequest = new ModuleDeploymentRequest();
 		sourceRequest.setGroup("teststream");
-		sourceRequest.setType("source");
+		sourceRequest.setType(ModuleType.source);
 		sourceRequest.setModule("time");
 		sourceRequest.setIndex(0);
 		Message<?> sourceMessage = MessageBuilder.withPayload(sourceRequest.toString()).build();

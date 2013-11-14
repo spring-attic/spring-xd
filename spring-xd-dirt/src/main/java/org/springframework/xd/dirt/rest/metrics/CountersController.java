@@ -17,11 +17,11 @@
 package org.springframework.xd.dirt.rest.metrics;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.PagedResources;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -46,8 +46,8 @@ public class CountersController extends AbstractMetricsController<CounterReposit
 	private final DeepCounterResourceAssembler counterResourceAssembler = new DeepCounterResourceAssembler();
 
 	@Autowired
-	public CountersController(@Qualifier("simple") CounterRepository repository) {
-		super(repository);
+	public CountersController(CounterRepository counterRepository) {
+		super(counterRepository);
 	}
 
 	/**
@@ -64,7 +64,7 @@ public class CountersController extends AbstractMetricsController<CounterReposit
 	 * Retrieve information about a specific counter.
 	 */
 	@ResponseBody
-	@RequestMapping(value = "/{name}", method = RequestMethod.GET)
+	@RequestMapping(value = "/{name}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public CounterResource display(@PathVariable("name") String name) {
 		Counter c = repository.findOne(name);
 		if (c == null) {

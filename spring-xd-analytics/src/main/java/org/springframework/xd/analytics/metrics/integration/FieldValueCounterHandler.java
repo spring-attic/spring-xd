@@ -24,9 +24,9 @@ import java.util.Map;
 
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
-import org.springframework.integration.Message;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.transformer.MessageTransformationException;
+import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;

@@ -24,20 +24,18 @@ import java.io.InputStreamReader;
 
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.MessageChannel;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.MessageChannel;
 
 /**
  * @author Mark Fisher
+ * @author Thomas Risberg
  */
 public class HdfsOutboundChannelAdapterIntegrationTests {
 
-	@Ignore
-	// requires Hadoop
 	@Test
 	public void test() throws Exception {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
@@ -46,7 +44,9 @@ public class HdfsOutboundChannelAdapterIntegrationTests {
 		channel.send(MessageBuilder.withPayload("foo").build());
 		channel.send(MessageBuilder.withPayload("bar").build());
 		FileSystem fileSystem = context.getBean("hadoopFs", FileSystem.class);
-		Path basepath = new Path("/testdir/");
+		String path = context.getBean("path", String.class);
+		context.close();
+		Path basepath = new Path(path + "/testdir/");
 		Path filepath0 = new Path(basepath, "testfile-0.txt");
 		Path filepath1 = new Path(basepath, "testfile-1.txt");
 		assertTrue(fileSystem.exists(basepath));
@@ -59,7 +59,6 @@ public class HdfsOutboundChannelAdapterIntegrationTests {
 		reader0.close();
 		reader1.close();
 		assertTrue(fileSystem.delete(basepath, true));
-		context.close();
 	}
 
 }

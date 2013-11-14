@@ -15,29 +15,14 @@
 
 	<import resource="redis-common.xml" />
 
-	<int-redis:outbound-channel-adapter channel="moduleEventsOut" topic="events:modules" />
+	<int-redis:queue-inbound-channel-adapter id="redisInboundAdapter"
+		channel="containerControlChannel"
+		connection-factory="redisConnectionFactory"
+		queue="queue.deployer"
+		expect-message="true"
+		serializer="redisSerializer"
+		/>
 
-	<int-redis:outbound-channel-adapter channel="containerEventsOut" topic="events:containers" />
-
-	<bean id="redisInboundAdapter" class="org.springframework.integration.x.redis.RedisQueueInboundChannelAdapter">
-		<constructor-arg value="queue.deployer" />
-		<constructor-arg ref="redisConnectionFactory" />
-		<property name="outputChannel" ref="input" />
-		<property name="extractPayload" value="false" />
-	</bean>
-
-	<int-redis:inbound-channel-adapter topics="topic.undeployer" channel="input"/>
-
-	<bean class="org.springframework.xd.dirt.listener.RedisContainerEventListener">
-		<constructor-arg ref="redisConnectionFactory" />
-	</bean>
-
-	<bean id="moduleEventListener" class="org.springframework.xd.dirt.listener.RedisModuleEventListener">
-		<constructor-arg ref="redisConnectionFactory" />
-	</bean>
-
-	<int-event:inbound-channel-adapter id="moduleEventsOut" event-types="org.springframework.xd.dirt.event.AbstractModuleEvent"/>
-
-	<int-event:inbound-channel-adapter id="containerEventsOut" event-types="org.springframework.xd.dirt.event.AbstractContainerEvent"/>
+	<int-redis:inbound-channel-adapter topics="topic.undeployer" channel="containerControlChannel" />
 
 </beans>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<bean id="jobDefinitionRepository" class="org.springframework.xd.dirt.stream.memory.InMemoryJobDefinitionRepository"/>
+	<bean id="xdJobRepository" class="org.springframework.xd.dirt.stream.memory.InMemoryJobRepository"/>
+	<bean id="streamDefinitionRepository" class="org.springframework.xd.dirt.stream.memory.InMemoryStreamDefinitionRepository"/>
+	<bean id="streamRepository" class="org.springframework.xd.dirt.stream.memory.InMemoryStreamRepository" />
+	<bean id="runtimeContainerInfoRepository" class="org.springframework.xd.dirt.container.store.InMemoryRuntimeContainerInfoRepository" />
+	<bean id="runtimeModuleInfoRepository" class="org.springframework.xd.dirt.module.store.InMemoryRuntimeModuleInfoRepository" />
+	<bean id="runtimeContainerModuleInfoRepository" class="org.springframework.xd.dirt.module.store.InMemoryRuntimeContainerModuleInfoRepository" />
+	<bean id="moduleDependencyRepository" class="org.springframework.xd.dirt.module.memory.InMemoryModuleDependencyRepository" />
+	
+	<bean id="moduleDefinitionRepository" class="org.springframework.xd.dirt.module.memory.InMemoryModuleDefinitionRepository">
+		<constructor-arg ref="moduleRegistry"/>
+	</bean>
+
+	<bean id="moduleRegistry" class="org.springframework.xd.dirt.module.DelegatingModuleRegistry">
+		<constructor-arg>
+			<bean class="org.springframework.xd.dirt.module.ResourceModuleRegistry">
+				<constructor-arg>
+					<bean class="org.springframework.core.io.FileSystemResource">
+						<constructor-arg value="${XD_HOME}/modules/"/>
+					</bean>
+				</constructor-arg>
+			</bean>
+		</constructor-arg>
+	</bean>
+
+</beans>

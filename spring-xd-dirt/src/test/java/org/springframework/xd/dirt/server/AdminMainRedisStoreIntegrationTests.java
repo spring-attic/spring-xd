@@ -16,27 +16,29 @@
 
 package org.springframework.xd.dirt.server;
 
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.xd.dirt.server.options.AdminOptions;
-import org.springframework.xd.dirt.stream.StreamServer;
-import org.springframework.xd.test.redis.RedisAvailableRule;
+import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
  * @author Luke Taylor
  * @author Gary Russell
  */
+@Ignore("Superseded by AdminMainApplication")
 public class AdminMainRedisStoreIntegrationTests extends AbstractAdminMainIntegrationTests {
 
 	@Rule
-	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
+	public RedisTestSupport redisAvailableRule = new RedisTestSupport();
 
 	@Test
 	public void redisStoreWithLocalTransportConfigurationLoadsSuccessfully() throws Exception {
-		AdminOptions opts = AdminMain.parseOptions(new String[] { "--httpPort", "0", "--transport", "local", "--store",
+		AdminOptions adminOptions = AdminMain.parseOptions(new String[] { "--httpPort", "0", "--transport", "local",
+			"--store",
 			"redis", "--analytics", "memory" });
-		StreamServer s = AdminMain.launchStreamServer(opts);
+		AdminServer s = super.createAdminServer(adminOptions);
 		super.shutdown(s);
 	}
 

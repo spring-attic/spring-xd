@@ -36,7 +36,7 @@ public interface Module extends Lifecycle {
 	 */
 	String getName();
 
-	String getType();
+	ModuleType getType();
 
 	DeploymentMetadata getDeploymentMetadata();
 
@@ -51,5 +51,10 @@ public interface Module extends Lifecycle {
 	<T> T getComponent(Class<T> requiredType);
 
 	<T> T getComponent(String componentName, Class<T> requiredType);
+
+	/**
+	 * Destroy this module's application context.
+	 */
+	void destroy();
 
 }

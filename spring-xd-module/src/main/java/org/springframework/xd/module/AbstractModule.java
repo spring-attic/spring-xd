@@ -17,8 +17,11 @@
 package org.springframework.xd.module;
 
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
+ * Base support class for modules, wrapping {@link ModuleDefinition} and {@link DeploymentMetadata}.
+ * 
  * @author Mark Fisher
  * @author David Turanski
  * @author Gary Russell
@@ -42,7 +45,7 @@ public abstract class AbstractModule implements Module {
 	}
 
 	@Override
-	public String getType() {
+	public ModuleType getType() {
 		return this.definition.getType();
 	}
 
@@ -55,7 +58,8 @@ public abstract class AbstractModule implements Module {
 	@Override
 	public String toString() {
 		return this.getClass().getSimpleName() + " [name=" + this.getName() + ", type=" + this.getType() + ", group="
-				+ this.metadata.getGroup() + ", index=" + this.metadata.getIndex() + "]";
+				+ this.metadata.getGroup() + ", index=" + this.metadata.getIndex()
+				+ " @" + ObjectUtils.getIdentityHexString(this) + "]";
 	}
 
 }

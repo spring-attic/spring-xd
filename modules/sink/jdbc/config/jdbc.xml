@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:int-jdbc="http://www.springframework.org/schema/integration/jdbc"
+	xmlns:cloud="http://www.springframework.org/schema/cloud"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/cloud http://www.springframework.org/schema/cloud/spring-cloud.xsd
+		http://www.springframework.org/schema/integration/jdbc http://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<channel id="input" />
+
+	<transformer input-channel="input" ref="transformer"
+		output-channel="values" />
+
+	<channel id="values" />
+
+	<int-jdbc:outbound-channel-adapter
+		query="insert into ${tablename:${xd.stream.name}} (#{transformer.columns}) values(#{transformer.values})"
+		data-source="dataSource" channel="values" />
+
+	<beans:bean id="transformer" class="org.springframework.xd.jdbc.JdbcMessagePayloadTransformer">
+		<beans:property name="columnNames" value="${columns:payload}" />
+	</beans:bean>
+
+	<beans:bean id="dataSourceInitializer" class="org.springframework.jdbc.datasource.init.DataSourceInitializer">
+		<beans:property name="databasePopulator" ref="databasePopulator" />
+		<beans:property name="dataSource" ref="dataSource" />
+		<beans:property name="enabled" value="${initializeDatabase:false}" />
+	</beans:bean>
+
+	<beans:bean id="databasePopulator" class="org.springframework.xd.jdbc.SingleTableDatabaseInitializer">
+		<beans:property name="scripts" value="file:${XD_HOME}/config/${initializerScript:init_db.sql}" />
+		<beans:property name="ignoreFailedDrops" value="true" />
+		<beans:property name="tableName" value="${tableName:${xd.stream.name}}" />
+	</beans:bean>
+
+	<beans profile="cloud" xmlns="http://www.springframework.org/schema/beans">
+		<cloud:data-source id="dataSource" service-name="${xd.jdbc.service:mysql}"/>
+	</beans>
+
+	<beans profile="legacy,default" xmlns="http://www.springframework.org/schema/beans">
+
+		<context:property-placeholder
+			location="file:${XD_HOME}/config/${configProperties:jdbc}.properties"
+			ignore-resource-not-found="true" />
+
+		<bean id="dataSource"
+			class="org.springframework.jdbc.datasource.SimpleDriverDataSource">
+			<property name="driverClass" value="${driverClass}" />
+			<property name="url" value="${url}" />
+			<property name="username" value="${username}" />
+			<property name="password" value="${password:}" />
+		</bean>
+
+	</beans>
+
+</beans:beans>

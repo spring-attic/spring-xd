@@ -30,12 +30,16 @@ public interface JobOperations extends ResourceOperations {
 	/**
 	 * Create a new Job, optionally deploying it.
 	 */
-	public JobDefinitionResource createJob(String name, String defintion, Boolean deploy);
+	public JobDefinitionResource createJob(String name, String defintion, String dateFormat, String numberFormat,
+			boolean makeUnique, boolean deploy);
 
 	/**
-	 * Deploy an already created job with additional JobParameters.
+	 * Launch a job that is already deployed.
+	 * 
+	 * @param name the name of the job to launch
+	 * @param jobParameters the JSON string as jobParameters
 	 */
-	public void deployJob(String name, String jobParameters, String dateFormat, String numberFormat, Boolean makeUnique);
+	public void launchJob(String name, String jobParameters);
 
 	/**
 	 * List jobs known to the system.

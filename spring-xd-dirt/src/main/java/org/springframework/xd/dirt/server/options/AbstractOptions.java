@@ -16,16 +16,14 @@
 
 package org.springframework.xd.dirt.server.options;
 
-import org.kohsuke.args4j.CmdLineException;
-import org.kohsuke.args4j.CmdLineParser;
-import org.kohsuke.args4j.Option;
-import org.kohsuke.args4j.OptionDef;
-import org.kohsuke.args4j.spi.ExplicitBooleanOptionHandler;
-import org.kohsuke.args4j.spi.OptionHandler;
-import org.kohsuke.args4j.spi.Parameters;
-import org.kohsuke.args4j.spi.Setter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import org.springframework.util.StringUtils;
+import org.kohsuke.args4j.Option;
+import org.kohsuke.args4j.spi.ExplicitBooleanOptionHandler;
+
 
 /**
  * Options shared by both the admin and the container server.
@@ -37,96 +35,159 @@ import org.springframework.util.StringUtils;
  */
 public abstract class AbstractOptions {
 
+	private final List<String> explicitArgs = new ArrayList<String>();
+
 	public static final String DEFAULT_HOME = "..";
 
-	private static final String XD_PAYLOAD_TRANSFORMER_KEY = "xd.payload.transformer";
+	private static final String JMX_ENABLED = "enableJmx";
 
-	public static final String XD_HOME_KEY = "xd.home";
+	private static final String HADOOP_DISTRO = "hadoopDistro";
 
-	public static final String XD_TRANSPORT_KEY = "xd.transport";
+	private static final String TRANSPORT = "transport";
 
-	public static final String XD_JMX_ENABLED_KEY = "xd.jmx.enabled";
+	private static final String XD_HOME_DIR = "xdHomeDir";
 
-	private static final String XD_ANALYTICS_KEY = "xd.analytics";
+	private static final String ANALYTICS = "analytics";
 
-	// TODO: Technically it's a REST port for MBEAN resources rather than a JSR-160 port.
-	// Is the name misleading?
-	public static final String XD_JMX_PORT_KEY = "xd.jmx.port";
+	protected static final String STORE = "store";
 
-	/**
-	 * Set xd.home system property. If not a valid String, fallback to default.
-	 */
-	public static void setXDHome(String home) {
-		boolean override = StringUtils.hasText(home);
-		if (override || System.getProperty(XD_HOME_KEY) == null) {
-			System.setProperty(XD_HOME_KEY, (override ? home : DEFAULT_HOME));
-		}
-	}
+	protected static final String JMX_PORT = "jmxPort";
 
-	/**
-	 * Set xd.transport system property.
-	 */
-	public static void setXDTransport(Transport transport) {
-		System.setProperty(XD_TRANSPORT_KEY, transport.name());
-	}
-
-	/**
-	 * Set xd.analytics system property.
-	 */
-	public static void setXDAnalytics(Analytics analytics) {
-		System.setProperty(XD_ANALYTICS_KEY, analytics.name());
-	}
+	private final Map<Object, Boolean> optionMetadataCache = new HashMap<Object, Boolean>();
 
 	@Option(name = "--help", usage = "Show options help", aliases = { "-?", "-h" })
 	private boolean showHelp = false;
 
-	@Option(name = "--transport", usage = "The transport to be used (default: redis)")
+	@Option(name = "--" + TRANSPORT, usage = "The transport to be used (default: redis)")
 	private Transport transport = Transport.redis;
 
-	@Option(name = "--xdHomeDir", usage = "The XD installation directory", metaVar = "<xdHomeDir>")
-	private String xdHomeDir = "";
+	@Option(name = "--" + XD_HOME_DIR, usage = "The XD installation directory", metaVar = "<xdHomeDir>")
+	private String xdHomeDir = "..";
 
-	@Option(name = "--enableJmx", usage = "Enable JMX in the XD container (default: false)", handler = ExplicitBooleanOptionHandler.class, metaVar = "[true | false]")
+	@Option(name = "--enableJmx", usage = "Enable JMX in the XD container (default: false)", metaVar = "[true | false]", handler = ExplicitBooleanOptionHandler.class)
 	private boolean jmxEnabled = false;
 
-	@Option(name = "--transformer", usage = "The default payload transformer class name", handler = PayloadTransformerHandler.class)
-	private String transformer;
-
-	@Option(name = "--analytics", usage = "How to persist analytics such as counters and gauges (default: redis)")
+	@Option(name = "--" + ANALYTICS, usage = "How to persist analytics such as counters and gauges (default: redis)")
 	private Analytics analytics = Analytics.redis;
 
-	@Option(name = "--hadoopDistro", usage = "The Hadoop distro to use (default: hadoop10)")
-	private HadoopDistro hadoopDistro = HadoopDistro.hadoop10;
+	@Option(name = "--" + HADOOP_DISTRO, usage = "The Hadoop distro to use (default: hadoop12)")
+	private HadoopDistro hadoopDistro = HadoopDistro.hadoop12;
 
+	public Map<Object, Boolean> getOptionMetadataCache() {
+		return optionMetadataCache;
+	}
+
+	ParserEventListener getParserEventListener() {
+		return new ParserEventListener() {
+
+			@Override
+			public void handleEvent(ParserEvent event) {
+				switch (event.getEvent()) {
+					case parser_started:
+						optionMetadataCache.clear();
+						explicitArgs.clear();
+						break;
+					case option_explicit:
+						String optionName = ((ParserArgEvent) event).getOptionName();
+						explicitArgs.add(optionName);
+						break;
+					case parser_complete:
+						createOptionMetadataCache();
+						break;
+					default:
+				}
+			}
+		};
+	}
+
+	protected AbstractOptions(Transport defaultTransport, Analytics defaultAnalytics) {
+		this.transport = defaultTransport;
+		this.analytics = defaultAnalytics;
+	}
+
+
+	public void setShowHelp(boolean showHelp) {
+		this.showHelp = showHelp;
+	}
+
+	public void setTransport(Transport transport) {
+		this.transport = transport;
+	}
+
+	public String getXdHomeDir() {
+		return xdHomeDir;
+	}
+
+
+	public void setXdHomeDir(String xdHomeDir) {
+		this.xdHomeDir = xdHomeDir;
+	}
+
+
+	public void setJmxEnabled(boolean jmxEnabled) {
+		this.jmxEnabled = jmxEnabled;
+	}
+
+
+	public void setAnalytics(Analytics analytics) {
+		this.analytics = analytics;
+	}
+
+
+	public void setHadoopDistro(HadoopDistro hadoopDistro) {
+		this.hadoopDistro = hadoopDistro;
+	}
+
+	/**
+	 * @return analytics
+	 */
 	public Analytics getAnalytics() {
 		return analytics;
 	}
 
 	/**
-	 * @return the transport
+	 * @return transport
 	 */
 	public Transport getTransport() {
 		return transport;
 	}
 
 	/**
-	 * @return the xdHomeDir
+	 * @return hadoopDistro
 	 */
-	public String getXDHomeDir() {
-		return xdHomeDir;
+	public HadoopDistro getHadoopDistro() {
+		return hadoopDistro;
 	}
 
 	/**
 	 * @return jmxEnabled
 	 */
-	public boolean isJmxEnabled() {
+	public Boolean isJmxEnabled() {
 		return jmxEnabled;
 	}
 
-	public abstract int getJmxPort();
+	protected void createOptionMetadataCache()
+	{
+		optionMetadataCache.put(getAnalytics(), isArg(ANALYTICS));
+		optionMetadataCache.put(getTransport(), isArg(TRANSPORT));
+		optionMetadataCache.put(getXdHomeDir(), isArg(XD_HOME_DIR));
+		optionMetadataCache.put(isJmxEnabled(), isArg(JMX_ENABLED));
+		optionMetadataCache.put(getHadoopDistro(), isArg(HADOOP_DISTRO));
+		optionMetadataCache.put(getJmxPort(), isArg(JMX_PORT));
+		optionMetadataCache.put(getStore(), isArg(STORE));
+	}
 
-	public String getTransformer() {
-		return transformer;
+	protected boolean isArg(String optionName) {
+		return explicitArgs.contains(optionName);
+	}
+
+	public abstract Integer getJmxPort();
+
+	public abstract Store getStore();
+
+	public boolean isExplicit(Object option) {
+		Boolean explicit = optionMetadataCache.get(option);
+		return explicit == null ? false : explicit.booleanValue();
 	}
 
 	/**
@@ -135,24 +196,4 @@ public abstract class AbstractOptions {
 	public boolean isShowHelp() {
 		return showHelp;
 	}
-
-	public static class PayloadTransformerHandler extends OptionHandler<String> {
-
-		public PayloadTransformerHandler(CmdLineParser parser, OptionDef option, Setter<String> setter) {
-			super(parser, option, setter);
-		}
-
-		@Override
-		public int parseArguments(Parameters params) throws CmdLineException {
-			System.setProperty(XD_PAYLOAD_TRANSFORMER_KEY, params.getParameter(0));
-			return 1;
-		}
-
-		@Override
-		public String getDefaultMetaVariable() {
-			return "<transformer>";
-		}
-
-	}
-
 }

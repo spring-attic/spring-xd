@@ -33,25 +33,25 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.integration.Message;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.x.channel.registry.ChannelRegistry;
+import org.springframework.integration.x.bus.MessageBus;
+import org.springframework.messaging.Message;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.xd.dirt.event.AbstractModuleEvent;
 import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
-import org.springframework.xd.dirt.module.ModuleEventListener;
-import org.springframework.xd.dirt.server.options.AbstractOptions;
+import org.springframework.xd.dirt.module.TestModuleEventListener;
 import org.springframework.xd.dirt.server.options.Analytics;
 import org.springframework.xd.dirt.server.options.Transport;
+import org.springframework.xd.dirt.server.options.XDPropertyKeys;
+import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.SimpleModule;
 
 /**
  * Integration test that deploys a few simple test modules to verify the full functionality of {@link StreamPlugin}
  * 
  * @author Jennifer Hickey
- * 
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -61,7 +61,7 @@ public class StreamPluginModuleDeploymentTests {
 	private ModuleDeployer moduleDeployer;
 
 	@Autowired
-	private ModuleEventListener eventListener;
+	private TestModuleEventListener eventListener;
 
 	private SimpleModule source;
 
@@ -69,16 +69,16 @@ public class StreamPluginModuleDeploymentTests {
 
 	@BeforeClass
 	public static void setContextProperties() {
-		AbstractOptions.setXDTransport(Transport.local);
-		AbstractOptions.setXDAnalytics(Analytics.memory);
-		System.setProperty("xd.home", new File("..").getAbsolutePath());
+		System.setProperty(XDPropertyKeys.XD_TRANSPORT, Transport.local.name());
+		System.setProperty(XDPropertyKeys.XD_ANALYTICS, Analytics.memory.name());
+		System.setProperty(XDPropertyKeys.XD_HOME, new File("..").getAbsolutePath());
 	}
 
 	@AfterClass
 	public static void clearContextProperties() {
-		System.clearProperty("xd.transport");
-		System.clearProperty("xd.analytics");
-		System.clearProperty("xd.home");
+		System.clearProperty(XDPropertyKeys.XD_TRANSPORT);
+		System.clearProperty(XDPropertyKeys.XD_ANALYTICS);
+		System.clearProperty(XDPropertyKeys.XD_HOME);
 	}
 
 	@After
@@ -92,29 +92,30 @@ public class StreamPluginModuleDeploymentTests {
 	}
 
 	/**
-	 * Validates that channels defined in the modules end up in the shared {@link ChannelRegistry}
+	 * Validates that channels defined in the modules end up in the shared {@link MessageBus}
 	 * 
 	 * @throws InterruptedException
 	 */
 	@Test
-	public void moduleChannelsRegisteredWithSameRegistry() throws InterruptedException {
+	public void moduleChannelsRegisteredWithSameMessageBus() throws InterruptedException {
 		this.source = sendModuleRequest(createSourceModuleRequest());
-		ChannelRegistry registry = source.getApplicationContext().getBean(ChannelRegistry.class);
-		assertEquals(1, getBridges(registry).size());
+		MessageBus bus = source.getApplicationContext().getBean(MessageBus.class);
+		assertEquals(2, getBindings(bus).size());
 		this.sink = sendModuleRequest(createSinkModuleRequest());
-		assertSame(registry, sink.getApplicationContext().getBean(ChannelRegistry.class));
-		assertEquals(2, getBridges(registry).size());
+		assertSame(bus, sink.getApplicationContext().getBean(MessageBus.class));
+		assertEquals(3, getBindings(bus).size());
+		getBindings(bus).clear();
 	}
 
 	@Test
 	public void moduleUndeployUnregistersChannels() throws InterruptedException {
 		ModuleDeploymentRequest request = createSourceModuleRequest();
 		SimpleModule module = sendModuleRequest(request);
-		ChannelRegistry registry = module.getApplicationContext().getBean(ChannelRegistry.class);
-		assertEquals(1, getBridges(registry).size());
+		MessageBus bus = module.getApplicationContext().getBean(MessageBus.class);
+		assertEquals(2, getBindings(bus).size());
 		request.setRemove(true);
 		sendModuleRequest(request);
-		assertEquals(0, getBridges(registry).size());
+		assertEquals(0, getBindings(bus).size());
 	}
 
 	private SimpleModule sendModuleRequest(ModuleDeploymentRequest request) throws InterruptedException {
@@ -128,7 +129,7 @@ public class StreamPluginModuleDeploymentTests {
 	private ModuleDeploymentRequest createSourceModuleRequest() {
 		ModuleDeploymentRequest request = new ModuleDeploymentRequest();
 		request.setGroup("test");
-		request.setType("source");
+		request.setType(ModuleType.source);
 		request.setModule("source");
 		request.setIndex(0);
 		return request;
@@ -137,15 +138,15 @@ public class StreamPluginModuleDeploymentTests {
 	private ModuleDeploymentRequest createSinkModuleRequest() {
 		ModuleDeploymentRequest request = new ModuleDeploymentRequest();
 		request.setGroup("test");
-		request.setType("sink");
+		request.setType(ModuleType.sink);
 		request.setModule("sink");
 		request.setIndex(1);
 		return request;
 	}
 
-	private Collection<?> getBridges(ChannelRegistry registry) {
-		DirectFieldAccessor accessor = new DirectFieldAccessor(registry);
-		List<?> bridges = (List<?>) accessor.getPropertyValue("bridges");
-		return bridges;
+	private Collection<?> getBindings(MessageBus bus) {
+		DirectFieldAccessor accessor = new DirectFieldAccessor(bus);
+		return (List<?>) accessor.getPropertyValue("bindings");
 	}
+
 }

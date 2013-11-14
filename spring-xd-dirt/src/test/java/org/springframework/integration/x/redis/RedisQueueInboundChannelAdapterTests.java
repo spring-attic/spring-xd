@@ -17,6 +17,7 @@
 package org.springframework.integration.x.redis;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,17 +32,18 @@ import org.junit.Test;
 
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
+import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.message.GenericMessage;
-import org.springframework.xd.test.redis.RedisAvailableRule;
+import org.springframework.integration.redis.inbound.RedisQueueMessageDrivenEndpoint;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.support.GenericMessage;
+import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
  * Integration test of {@link RedisQueueInboundChannelAdapter}
@@ -56,19 +58,18 @@ public class RedisQueueInboundChannelAdapterTests {
 
 	private final BlockingDeque<Object> messages = new LinkedBlockingDeque<Object>(99);
 
-	private RedisQueueInboundChannelAdapter adapter;
+	private RedisQueueMessageDrivenEndpoint adapter;
 
 	@Rule
-	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
+	public RedisTestSupport redisAvailableRule = new RedisTestSupport();
 
 	@Before
 	public void setUp() {
 		messages.clear();
-		this.connectionFactory = new LettuceConnectionFactory();
-		connectionFactory.afterPropertiesSet();
+		this.connectionFactory = redisAvailableRule.getResource();
 		DirectChannel outputChannel = new DirectChannel();
 		outputChannel.subscribe(new TestMessageHandler());
-		adapter = new RedisQueueInboundChannelAdapter(QUEUE_NAME, connectionFactory);
+		adapter = new RedisQueueMessageDrivenEndpoint(QUEUE_NAME, connectionFactory);
 		adapter.setOutputChannel(outputChannel);
 	}
 
@@ -80,7 +81,9 @@ public class RedisQueueInboundChannelAdapterTests {
 
 	@Test
 	public void testDefaultPayloadSerializer() throws Exception {
-		StringRedisTemplate template = new StringRedisTemplate(connectionFactory);
+		RedisTemplate<String, Object> template = new RedisTemplate<String, Object>();
+		template.setConnectionFactory(connectionFactory);
+		template.setKeySerializer(new StringRedisSerializer());
 		template.afterPropertiesSet();
 
 		adapter.afterPropertiesSet();
@@ -89,6 +92,7 @@ public class RedisQueueInboundChannelAdapterTests {
 		template.boundListOps(QUEUE_NAME).rightPush("message1");
 		@SuppressWarnings("unchecked")
 		Message<String> message = (Message<String>) messages.poll(1, TimeUnit.SECONDS);
+		assertNotNull(message);
 		assertEquals("message1", message.getPayload());
 	}
 
@@ -96,11 +100,11 @@ public class RedisQueueInboundChannelAdapterTests {
 	public void testDefaultMsgSerializer() throws Exception {
 		RedisTemplate<String, Message<String>> template = new RedisTemplate<String, Message<String>>();
 		template.setKeySerializer(new StringRedisSerializer());
-		template.setValueSerializer(new MessageRedisSerializer());
+		template.setValueSerializer(new JdkSerializationRedisSerializer());
 		template.setConnectionFactory(connectionFactory);
 		template.afterPropertiesSet();
 
-		adapter.setExtractPayload(false);
+		adapter.setExpectMessage(true);
 		adapter.afterPropertiesSet();
 		adapter.start();
 
@@ -122,7 +126,7 @@ public class RedisQueueInboundChannelAdapterTests {
 		template.setConnectionFactory(connectionFactory);
 		template.afterPropertiesSet();
 
-		adapter.setEnableDefaultSerializer(false);
+		adapter.setSerializer(null);
 		adapter.afterPropertiesSet();
 		adapter.start();
 
@@ -139,8 +143,8 @@ public class RedisQueueInboundChannelAdapterTests {
 		template.setConnectionFactory(connectionFactory);
 		template.afterPropertiesSet();
 
-		adapter.setEnableDefaultSerializer(false);
-		adapter.setExtractPayload(false);
+		adapter.setSerializer(null);
+		adapter.setExpectMessage(true);
 		adapter.afterPropertiesSet();
 		adapter.start();
 	}
@@ -172,7 +176,7 @@ public class RedisQueueInboundChannelAdapterTests {
 		template.afterPropertiesSet();
 
 		adapter.setSerializer(new TestMessageSerializer());
-		adapter.setExtractPayload(false);
+		adapter.setExpectMessage(true);
 		adapter.afterPropertiesSet();
 		adapter.start();
 

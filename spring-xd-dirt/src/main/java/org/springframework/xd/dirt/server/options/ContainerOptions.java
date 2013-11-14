@@ -23,12 +23,31 @@ import org.kohsuke.args4j.Option;
  */
 public class ContainerOptions extends AbstractOptions {
 
-	@Option(name = "--jmxPort", usage = "The JMX port for the container", metaVar = "<jmxPort>")
-	private int jmxPort = 8779;
-
-	@Override
-	public int getJmxPort() {
-		return this.jmxPort;
+	public ContainerOptions() {
+		super(Transport.redis, Analytics.redis);
 	}
 
+	@Option(name = "--" + STORE, usage = "How to persist container/modules data (default: redis)")
+	private Store store = Store.redis;
+
+	@Option(name = "--" + JMX_PORT, usage = "The JMX port for the container", metaVar = "<jmxPort>")
+	private Integer jmxPort = 8779;
+
+	@Override
+	public Integer getJmxPort() {
+		return jmxPort;
+	}
+
+	protected void setJmxPort(Integer jmxPort) {
+		this.jmxPort = jmxPort;
+	}
+
+	@Override
+	public Store getStore() {
+		return store;
+	}
+
+	protected void setStore(Store store) {
+		this.store = store;
+	}
 }

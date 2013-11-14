@@ -21,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.hateoas.PagedResources;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -58,7 +59,7 @@ public class RichGaugesController extends AbstractMetricsController<RichGaugeRep
 	}
 
 	@ResponseBody
-	@RequestMapping(value = "/{name}", method = RequestMethod.GET)
+	@RequestMapping(value = "/{name}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 	public RichGaugeResource display(@PathVariable("name") String name) {
 		RichGauge g = repository.findOne(name);
 		if (g == null) {

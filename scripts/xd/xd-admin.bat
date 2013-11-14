@@ -72,7 +72,7 @@ set CMD_LINE_ARGS=%$
 
 @echo off
 set APP_HOME_LIB=%APP_HOME%\lib
-set HADOOP_DISTRO=hadoop10
+set HADOOP_DISTRO=hadoop12
 if exist "%APP_HOME_LIB%" (
     setLocal EnableDelayedExpansion
     set found=0
@@ -98,7 +98,7 @@ if not exist "%XD_HOME%" (
 )
 
 @rem Execute xd-admin
-"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% -Dxd.home=%XD_HOME% -Dlog4j.configuration=file:///%XD_HOME%/config/xd-admin-logger.properties -classpath "%CLASSPATH%" org.springframework.xd.dirt.server.AdminMain %CMD_LINE_ARGS%
+"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% -Dlog4j.configuration=file:///%XD_HOME%/config/xd-admin-logger.properties -classpath "%CLASSPATH%" org.springframework.xd.dirt.server.AdminMain %CMD_LINE_ARGS%
 
 :end
 @rem End local scope for the variables with windows NT shell

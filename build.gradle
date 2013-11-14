@@ -1446,3 +1446,9 @@ task wrapper(type: Wrapper) {
 	scriptFile= "gradle/build_xd"
 }
 
+idea {
+	project {
+		languageLevel = '1.7'
+	}
+}
+

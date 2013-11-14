@@ -423,6 +423,7 @@ public class StreamConfigParserTests {
 		parse("myhttp = queue:foo > filter --name=payload");
 
 		sn = parse("myhttp | file");
+
 		assertEquals("[(queue:foo:9>18)>(ModuleNode:filter --name=payload:21>42)(ModuleNode:file:9>13)]",
 				sn.stringify(true));
 
@@ -435,7 +436,6 @@ public class StreamConfigParserTests {
 		sn = parse("myhttp > topic:wibble");
 		assertEquals("[(queue:foo)>(ModuleNode:filter --name=payload)>(topic:wibble)]", sn.stringify());
 	}
-
 
 	@Test
 	public void substreamsWithSinkChannels() {

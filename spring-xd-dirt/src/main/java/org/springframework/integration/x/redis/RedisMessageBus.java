@@ -70,6 +70,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 	@Override
 	public void bindConsumer(final String name, MessageChannel moduleInputChannel,
 			final Collection<MediaType> acceptedMediaTypes, boolean aliasHint) {
+		Assert.notNull(acceptedMediaTypes, "acceptedMediaTypes cannot be null");
 		RedisQueueMessageDrivenEndpoint adapter = new RedisQueueMessageDrivenEndpoint("queue." + name,
 				this.connectionFactory);
 		adapter.setSerializer(null);
@@ -79,6 +80,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 	@Override
 	public void bindPubSubConsumer(final String name, MessageChannel moduleInputChannel,
 			final Collection<MediaType> acceptedMediaTypes) {
+		Assert.notNull(acceptedMediaTypes, "acceptedMediaTypes cannot be null");
 		RedisInboundChannelAdapter adapter = new RedisInboundChannelAdapter(this.connectionFactory);
 		adapter.setSerializer(null);
 		adapter.setTopics("topic." + name);

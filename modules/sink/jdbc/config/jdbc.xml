@@ -21,40 +21,32 @@
 		query="insert into ${tablename:${xd.stream.name}} (#{transformer.columns}) values(#{transformer.values})"
 		data-source="dataSource" channel="values" />
 
-	<beans:bean id="transformer" class="org.springframework.xd.jdbc.JdbcMessagePayloadTransformer">
+	<beans:bean id="transformer"
+		class="org.springframework.xd.jdbc.JdbcMessagePayloadTransformer">
 		<beans:property name="columnNames" value="${columns:payload}" />
 	</beans:bean>
 
-	<beans:bean id="dataSourceInitializer" class="org.springframework.jdbc.datasource.init.DataSourceInitializer">
+	<beans:bean id="dataSourceInitializer"
+		class="org.springframework.jdbc.datasource.init.DataSourceInitializer">
 		<beans:property name="databasePopulator" ref="databasePopulator" />
 		<beans:property name="dataSource" ref="dataSource" />
 		<beans:property name="enabled" value="${initializeDatabase:false}" />
 	</beans:bean>
 
-	<beans:bean id="databasePopulator" class="org.springframework.xd.jdbc.SingleTableDatabaseInitializer">
-		<beans:property name="scripts" value="file:${XD_HOME}/config/${initializerScript:init_db.sql}" />
+	<beans:bean id="databasePopulator"
+		class="org.springframework.xd.jdbc.SingleTableDatabaseInitializer">
+		<beans:property name="scripts"
+			value="file:${XD_HOME}/config/${initializerScript:init_db.sql}" />
 		<beans:property name="ignoreFailedDrops" value="true" />
 		<beans:property name="tableName" value="${tableName:${xd.stream.name}}" />
 	</beans:bean>
 
+	<context:property-placeholder
+		location="file:${XD_HOME}/config/${configProperties:jdbc}.properties"
+		ignore-resource-not-found="true" />
+
 	<beans profile="cloud" xmlns="http://www.springframework.org/schema/beans">
-		<cloud:data-source id="dataSource" service-name="${xd.jdbc.service:mysql}"/>
-	</beans>
-
-	<beans profile="legacy,default" xmlns="http://www.springframework.org/schema/beans">
-
-		<context:property-placeholder
-			location="file:${XD_HOME}/config/${configProperties:jdbc}.properties"
-			ignore-resource-not-found="true" />
-
-		<bean id="dataSource"
-			class="org.springframework.jdbc.datasource.SimpleDriverDataSource">
-			<property name="driverClass" value="${driverClass}" />
-			<property name="url" value="${url}" />
-			<property name="username" value="${username}" />
-			<property name="password" value="${password:}" />
-		</bean>
-
+		<cloud:data-source id="dataSource" service-name="${xd.jdbc.service:mysql}" />
 	</beans>
 
 </beans:beans>

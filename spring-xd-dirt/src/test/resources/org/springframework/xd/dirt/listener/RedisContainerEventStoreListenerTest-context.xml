@@ -18,10 +18,10 @@
 	</bean>
 
 	<bean id="runtimeContainerInfoRepository" class="org.springframework.xd.dirt.container.store.RedisRuntimeContainerInfoRepository">
-		<constructor-arg ref="humanFriendlyRedisTemplate" />
+		<constructor-arg ref="stringRedisTemplate" />
 	</bean>
 	
-	<bean id="humanFriendlyRedisTemplate" class="org.springframework.data.redis.core.StringRedisTemplate">
+	<bean id="stringRedisTemplate" class="org.springframework.data.redis.core.StringRedisTemplate">
 		<property name="connectionFactory" ref="redisConnectionFactory" />
 	</bean>
 

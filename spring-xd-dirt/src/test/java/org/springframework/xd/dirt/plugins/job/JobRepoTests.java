@@ -51,7 +51,7 @@ import org.springframework.xd.dirt.server.ParentConfiguration;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = ParentConfiguration.class, loader = SpringApplicationContextLoader.class)
-@ActiveProfiles({ "adminServer", "single", "memory", "default" })
+@ActiveProfiles({ "adminServer", "single", "memory" })
 @DirtiesContext
 public class JobRepoTests {
 

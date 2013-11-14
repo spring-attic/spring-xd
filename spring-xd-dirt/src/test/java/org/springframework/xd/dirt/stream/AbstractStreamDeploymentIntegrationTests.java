@@ -74,7 +74,7 @@ public abstract class AbstractStreamDeploymentIntegrationTests {
 	public final void setUp() {
 		String transport = this.getTransport();
 		context = (AbstractApplicationContext) new SpringApplicationBuilder(ParentConfiguration.class).profiles(
-				"singleNode", "default", "memory").properties("XD_HOME=..").child(
+				"node", "memory").properties("XD_HOME=..").child(
 				StreamDeploymentIntegrationTestsConfiguration.class).sources(
 				"META-INF/spring-xd/transports/" + transport + "-admin.xml").web(false).run(
 				"--XD_TRANSPORT=" + transport);

@@ -17,7 +17,7 @@ package org.springframework.xd.dirt.rest;
 import java.util.List;
 
 import org.springframework.batch.core.StepExecution;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
@@ -56,8 +56,9 @@ public class RestConfiguration {
 	public WebMvcConfigurer configurer() {
 		return new WebMvcConfigurerAdapter() {
 
-			@Autowired(required = false)
-			UiResourceIdentifier resourceIdentifier;
+			// N.B. must end in "/"
+			@Value("${XD_ADMIN_UI_ROOT:file:${XD_HOME}/spring-xd-ui/}")
+			private String resourceRoot;
 
 			@Override
 			public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
@@ -82,10 +83,8 @@ public class RestConfiguration {
 			// add a static resource handler for the UI
 			@Override
 			public void addResourceHandlers(ResourceHandlerRegistry registry) {
-				if (resourceIdentifier != null) {
-					registry.addResourceHandler("/admin-ui/**", "/admin-ui/").addResourceLocations(
-							"file:" + resourceIdentifier.getResourcesLocation() + "/");
-				}
+				registry.addResourceHandler("/admin-ui/**", "/admin-ui/").addResourceLocations(
+						resourceRoot);
 			}
 
 			@Override

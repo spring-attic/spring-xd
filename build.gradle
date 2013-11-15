@@ -103,6 +103,7 @@ ext {
 	mockitoVersion = '1.9.5'
 	javaxMailVersion = '1.5.0'
 	kryoVersion = '2.22'
+	uuidVersion = '3.2'
 	singleNodeServerProcess = new SingleNodeServerProcess()
 }
 
@@ -829,6 +830,7 @@ project('spring-xd-tuple') {
 		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
 		compile "org.springframework.batch:spring-batch-infrastructure:$springBatchVersion"
 		compile "org.springframework:spring-jdbc:$springVersion"
+		compile "com.eaio.uuid:uuid:$uuidVersion"
 		testCompile ("org.mockito:mockito-core:$mockitoVersion") {
 			exclude group:'org.hamcrest'
 		}

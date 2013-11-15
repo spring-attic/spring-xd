@@ -16,6 +16,8 @@
 
 package org.springframework.xd.tuple;
 
+import com.eaio.uuid.UUIDGen;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -79,7 +81,7 @@ public class DefaultTuple implements Tuple {
 		this.names = new ArrayList<String>(names);
 		this.values = new ArrayList<Object>(values); // shallow copy
 		this.formattingConversionService = formattingConversionService;
-		this.id = UUID.randomUUID();
+		this.id = new UUID(UUIDGen.newTime(), UUIDGen.getClockSeqAndNode());
 		this.timestamp = Long.valueOf(System.currentTimeMillis());
 	}
 

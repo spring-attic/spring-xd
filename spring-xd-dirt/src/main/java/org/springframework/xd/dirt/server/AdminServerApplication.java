@@ -35,7 +35,7 @@ public class AdminServerApplication {
 	}
 
 	public AdminServerApplication run(String... args) {
-		this.context = new SpringApplicationBuilder(ParentConfiguration.class).profiles(ADMIN_PROFILE, "default")
+		this.context = new SpringApplicationBuilder(ParentConfiguration.class).profiles(ADMIN_PROFILE)
 				.child(AdminServerApplication.class).run(args);
 		return this;
 	}

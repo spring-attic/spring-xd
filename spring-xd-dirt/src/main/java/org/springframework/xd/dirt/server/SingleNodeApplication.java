@@ -10,6 +10,8 @@ import org.springframework.messaging.SubscribableChannel;
 
 public class SingleNodeApplication {
 
+	public static final String SINGLE_PROFILE = "single";
+
 	private ConfigurableApplicationContext adminContext;
 
 	private ConfigurableApplicationContext containerContext;
@@ -21,12 +23,13 @@ public class SingleNodeApplication {
 	public SingleNodeApplication run(String... args) {
 
 		SpringApplicationBuilder admin = new SpringApplicationBuilder(
-				ParentConfiguration.class).profiles("adminServer", "single").child(
+				ParentConfiguration.class).profiles(AdminServerApplication.ADMIN_PROFILE, SINGLE_PROFILE).child(
 				AdminServerApplication.class);
 		admin.run(args);
 
 		SpringApplicationBuilder container = admin
-				.sibling(LauncherApplication.class).profiles("node", "single").web(false);
+				.sibling(LauncherApplication.class).profiles(LauncherApplication.NODE_PROFILE, SINGLE_PROFILE).web(
+						false);
 		container.run(args);
 
 		adminContext = admin.context();
@@ -38,7 +41,6 @@ public class SingleNodeApplication {
 		return this;
 
 	}
-
 
 	public ConfigurableApplicationContext getAdminContext() {
 		return adminContext;
@@ -76,7 +78,6 @@ public class SingleNodeApplication {
 		handler.setComponentName("xd.local.control.bridge");
 		deployChannel.subscribe(handler);
 		undeployChannel.subscribe(handler);
-
 
 	}
 

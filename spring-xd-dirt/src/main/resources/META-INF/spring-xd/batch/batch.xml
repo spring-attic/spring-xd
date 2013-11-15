@@ -97,7 +97,7 @@
 
 		</beans>
 
-		<beans profile="default">
+		<beans profile="hsqldb">
 
 			<jdbc:initialize-database data-source="dataSource"
 				ignore-failures="ALL">

@@ -302,7 +302,11 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 			else if (firstToken.data.equalsIgnoreCase("topic")) {
 				channelType = ChannelType.TOPIC;
 			}
-			channelScopeComponents.remove(0);
+			// TODO: DT not sure if this is the best way to handle
+			// StreamConfigParserTests.substreamsWithSourceChannels()
+			if (channelScopeComponents.size() >= 3) {
+				channelScopeComponents.remove(0);
+			}
 		}
 		int endpos = channelScopeComponents.get(channelScopeComponents.size() - 1).endpos;
 		if (!channelReferenceComponents.isEmpty()) {

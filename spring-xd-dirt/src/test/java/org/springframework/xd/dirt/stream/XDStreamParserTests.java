@@ -150,7 +150,7 @@ public class XDStreamParserTests {
 	public void sourceChannelNameIsAppliedToSourceModule() throws Exception {
 		List<ModuleDeploymentRequest> requests = parser.parse("test", "topic:foo > goo | blah | file");
 		assertEquals(3, requests.size());
-		assertEquals("foo", requests.get(2).getSourceChannelName());
+		assertEquals("topic:foo", requests.get(2).getSourceChannelName());
 		assertEquals(ModuleType.processor, requests.get(2).getType());
 		assertEquals(ModuleType.processor, requests.get(1).getType());
 		assertEquals(ModuleType.sink, requests.get(0).getType());
@@ -160,7 +160,7 @@ public class XDStreamParserTests {
 	public void sinkChannelNameIsAppliedToSinkModule() throws Exception {
 		List<ModuleDeploymentRequest> requests = parser.parse("test", "boo | blah | aaak > queue:foo");
 		assertEquals(3, requests.size());
-		assertEquals("foo", requests.get(0).getSinkChannelName());
+		assertEquals("queue:foo", requests.get(0).getSinkChannelName());
 		assertEquals(ModuleType.processor, requests.get(0).getType());
 		assertEquals(ModuleType.processor, requests.get(1).getType());
 		assertEquals(ModuleType.source, requests.get(2).getType());
@@ -178,7 +178,7 @@ public class XDStreamParserTests {
 	public void simpleSinkNamedChannel() throws Exception {
 		List<ModuleDeploymentRequest> requests = parser.parse("test", "bart > queue:foo");
 		assertEquals(1, requests.size());
-		assertEquals("foo", requests.get(0).getSinkChannelName());
+		assertEquals("queue:foo", requests.get(0).getSinkChannelName());
 		assertEquals(ModuleType.source, requests.get(0).getType());
 	}
 
@@ -201,7 +201,7 @@ public class XDStreamParserTests {
 	public void simpleSourceNamedChannel() throws Exception {
 		List<ModuleDeploymentRequest> requests = parser.parse("test", "queue:foo > boot");
 		assertEquals(1, requests.size());
-		assertEquals("foo", requests.get(0).getSourceChannelName());
+		assertEquals("queue:foo", requests.get(0).getSourceChannelName());
 		assertEquals(ModuleType.sink, requests.get(0).getType());
 	}
 

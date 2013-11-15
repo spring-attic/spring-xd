@@ -66,6 +66,8 @@ public class StreamPlugin implements Plugin {
 
 	private final static Collection<MediaType> DEFAULT_ACCEPTED_CONTENT_TYPES = Collections.singletonList(MediaType.ALL);
 
+	private static final String TOPIC_CHANNEL_PREFIX = "topic:";
+
 	@Override
 	public void preProcessModule(Module module) {
 		ModuleType type = module.getType();
@@ -176,7 +178,8 @@ public class StreamPlugin implements Plugin {
 	}
 
 	private boolean isChannelPubSub(String channelName) {
-		return channelName != null && channelName.startsWith(TAP_CHANNEL_PREFIX);
+		return channelName != null
+				&& (channelName.startsWith(TAP_CHANNEL_PREFIX) || channelName.startsWith(TOPIC_CHANNEL_PREFIX));
 	}
 
 	private Collection<MediaType> getAcceptedMediaTypes(Module module) {

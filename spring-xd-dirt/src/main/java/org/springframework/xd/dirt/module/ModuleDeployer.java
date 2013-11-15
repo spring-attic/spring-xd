@@ -29,12 +29,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
-import org.springframework.context.support.GenericXmlApplicationContext;
-import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -70,7 +72,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 
 	private volatile ApplicationContext deployerContext;
 
-	private volatile ApplicationContext commonContext;
+	private volatile ConfigurableApplicationContext commonContext;
 
 	private volatile ApplicationEventPublisher eventPublisher;
 
@@ -106,19 +108,24 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 	@Override
 	public void onInit() {
 		this.plugins = this.deployerContext.getBeansOfType(Plugin.class);
-		GenericXmlApplicationContext commonContext = new GenericXmlApplicationContext();
-		commonContext.load(XDContainer.XD_INTERNAL_CONFIG_ROOT + "module-common.xml");
-		ApplicationContext globalContext = deployerContext.getParent();
-		commonContext.setParent(globalContext);
-		if (globalContext != null && globalContext.getEnvironment() instanceof ConfigurableEnvironment) {
-			commonContext.setEnvironment((ConfigurableEnvironment) globalContext.getEnvironment());
+		SpringApplicationBuilder application = new SpringApplicationBuilder(XDContainer.XD_INTERNAL_CONFIG_ROOT
+				+ "module-common.xml", PropertyPlaceholderAutoConfiguration.class).web(false);
+		application.application().setShowBanner(false);
+		ConfigurableApplicationContext globalContext = (ConfigurableApplicationContext) deployerContext.getParent();
+		application.parent(globalContext);
+		if (globalContext != null) {
+			application.environment(globalContext.getEnvironment());
 		}
+		application.initializers(new ApplicationContextInitializer<ConfigurableApplicationContext>() {
 
-		for (Plugin plugin : plugins.values()) {
-			plugin.preProcessSharedContext(commonContext);
-		}
-		commonContext.refresh();
-		this.commonContext = commonContext;
+			@Override
+			public void initialize(ConfigurableApplicationContext applicationContext) {
+				for (Plugin plugin : plugins.values()) {
+					plugin.preProcessSharedContext(applicationContext);
+				}
+			};
+		});
+		this.commonContext = application.run();
 	}
 
 	@Override

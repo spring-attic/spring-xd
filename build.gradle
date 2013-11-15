@@ -490,7 +490,7 @@ project('spring-xd-exec') {
 	}
 	apply plugin: "spring-boot"
 	springBoot {
-		mainClass = 'org.springframework.xd.dirt.boot.SingleNodeApplication'
+		mainClass = 'org.springframework.xd.dirt.server.SingleNodeApplication'
 		layout = 'ZIP'
 	}
 	jar {

@@ -19,7 +19,7 @@
 	<int:channel id="output" />
 
 	<context:property-placeholder
-		location="file:${XD_HOME}/config/${configProperties:rabbit}.properties"
+		location="${XD_HOME}/config/${configProperties:rabbit}.properties"
 		ignore-resource-not-found="true" />
 
 	<beans profile="cloud" xmlns="http://www.springframework.org/schema/beans">

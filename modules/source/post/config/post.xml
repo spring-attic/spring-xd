@@ -12,7 +12,7 @@
 
 	<bean class="org.springframework.xd.dirt.post.HandlerMappingRegistrar">
 		<constructor-arg ref="postHandlerMapping" />
-		<constructor-arg value="/post/${path:${xd.stream.name}}"/>
+		<constructor-arg value="/post/${post:${xd.stream.name}}"/>
 		<constructor-arg ref="endpoint"/>
 	</bean>
 

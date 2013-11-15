@@ -16,49 +16,57 @@
 		<constructor-arg ref="jobDefinitionRepository" />
 	</bean>
 
-	<bean id="streamDefinitionRepository" class="org.springframework.xd.dirt.stream.redis.RedisStreamDefinitionRepository">
+	<bean id="streamDefinitionRepository"
+		class="org.springframework.xd.dirt.stream.redis.RedisStreamDefinitionRepository">
 		<constructor-arg ref="stringRedisTemplate" />
 	</bean>
 
-	<bean id="streamRepository" class="org.springframework.xd.dirt.stream.redis.RedisStreamRepository">
+	<bean id="streamRepository"
+		class="org.springframework.xd.dirt.stream.redis.RedisStreamRepository">
 		<constructor-arg ref="stringRedisTemplate" />
 		<constructor-arg ref="streamDefinitionRepository" />
 	</bean>
 
-	<bean id="runtimeContainerInfoRepository" class="org.springframework.xd.dirt.container.store.RedisRuntimeContainerInfoRepository">
+	<bean id="runtimeContainerInfoRepository"
+		class="org.springframework.xd.dirt.container.store.RedisRuntimeContainerInfoRepository">
 		<constructor-arg ref="stringRedisTemplate" />
 	</bean>
 
-	<bean id="runtimeModuleInfoRepository" class="org.springframework.xd.dirt.module.store.RedisRuntimeModuleInfoRepository">
-		<constructor-arg name="repoPrefix" value="modules"/>
+	<bean id="runtimeModuleInfoRepository"
+		class="org.springframework.xd.dirt.module.store.RedisRuntimeModuleInfoRepository">
+		<constructor-arg name="repoPrefix" value="modules" />
 		<constructor-arg ref="stringRedisTemplate" />
 	</bean>
 
-	<bean id="runtimeContainerModuleInfoRepository" class="org.springframework.xd.dirt.module.store.RedisRuntimeContainerModuleInfoRepository">
-		<constructor-arg name="repoPrefix" value="modules-container"/>
+	<bean id="runtimeContainerModuleInfoRepository"
+		class="org.springframework.xd.dirt.module.store.RedisRuntimeContainerModuleInfoRepository">
+		<constructor-arg name="repoPrefix" value="modules-container" />
 		<constructor-arg ref="stringRedisTemplate" />
 	</bean>
 
-	<bean id="moduleDefinitionRepository" class="org.springframework.xd.dirt.module.redis.RedisModuleDefinitionRepository">
-		<constructor-arg value="module.definitions"/>
-		<constructor-arg ref="stringRedisTemplate"/>
-		<constructor-arg ref="moduleRegistry"/>
+	<bean id="moduleDefinitionRepository"
+		class="org.springframework.xd.dirt.module.redis.RedisModuleDefinitionRepository">
+		<constructor-arg value="module.definitions" />
+		<constructor-arg ref="stringRedisTemplate" />
+		<constructor-arg ref="moduleRegistry" />
 	</bean>
-	
-	<bean id="moduleDependencyRepository" class="org.springframework.xd.dirt.module.redis.RedisModuleDependencyRepository">
-		<constructor-arg ref="stringRedisTemplate"/>
-	</bean>
-	
 
-	<bean id="moduleRegistry" class="org.springframework.xd.dirt.module.DelegatingModuleRegistry">
+	<bean id="moduleDependencyRepository"
+		class="org.springframework.xd.dirt.module.redis.RedisModuleDependencyRepository">
+		<constructor-arg ref="stringRedisTemplate" />
+	</bean>
+
+	<bean id="moduleRegistry"
+		class="org.springframework.xd.dirt.module.DelegatingModuleRegistry">
 		<constructor-arg>
-			<bean class="org.springframework.xd.dirt.module.ResourceModuleRegistry">
-				<constructor-arg>
-					<bean class="org.springframework.core.io.FileSystemResource">
-						<constructor-arg value="${XD_HOME}/modules/"/>
-					</bean>
-				</constructor-arg>
-			</bean>
+			<list>
+				<bean class="org.springframework.xd.dirt.module.ResourceModuleRegistry">
+					<constructor-arg value="${XD_HOME}/modules/" />
+				</bean>
+				<bean class="org.springframework.xd.dirt.module.ResourceModuleRegistry">
+					<constructor-arg value="classpath:/modules/" />
+				</bean>
+			</list>
 		</constructor-arg>
 	</bean>
 

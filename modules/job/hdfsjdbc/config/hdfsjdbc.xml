@@ -9,7 +9,7 @@
 		http://www.springframework.org/schema/hadoop http://www.springframework.org/schema/hadoop/spring-hadoop.xsd
 		http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd">
 
-	<context:property-placeholder location="file:${XD_HOME}/config/${configProperties:batch-jdbc-import}.properties" ignore-resource-not-found="true"/>
+	<context:property-placeholder location="${XD_HOME}/config/${configProperties:batch-jdbc-import}.properties" ignore-resource-not-found="true"/>
 
 	<batch:job id="job" restartable="${restartable:false}">
 		<batch:step id="readResourcesStep">
@@ -54,7 +54,7 @@
 		</bean>
 
 		<bean id="databasePopulator" class="org.springframework.xd.jdbc.SingleTableDatabaseInitializer">
-			<property name="scripts" value="file:${XD_HOME}/config/${initializerScript:init_batch_import.sql}"/>
+			<property name="scripts" value="${XD_HOME}/config/${initializerScript:init_batch_import.sql}"/>
 			<property name="ignoreFailedDrops" value="true"/>
 			<property name="tableName" value="${tableName:${xd.stream.name}}"/>
 			<property name="columnNames" value="${names}" />
@@ -73,7 +73,7 @@
 			<property name="configuration" ref="hadoopConfiguration"/>
 		</bean>
 
-		<hdp:configuration register-url-handler="false" properties-location="file:${XD_HOME}/config/hadoop.properties"/>
+		<hdp:configuration register-url-handler="false" properties-location="${XD_HOME}/config/hadoop.properties"/>
 		<hdp:resource-loader id="hadoopResourceLoader"/>
 
 		<bean id="defaultResourceLoader" class="org.springframework.data.hadoop.fs.CustomResourceLoaderRegistrar">

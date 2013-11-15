@@ -57,7 +57,7 @@ public class LocalSingleNodeStreamDeploymentIntegrationTests extends AbstractSin
 		assertNull(z1);
 
 		DirectChannel testChannel = new DirectChannel();
-		bus.bindProducer("x", testChannel, true);
+		bus.bindProducer("queue:x", testChannel, true);
 		testChannel.send(MessageBuilder.withPayload("y").build());
 		Thread.sleep(2000);
 
@@ -80,9 +80,9 @@ public class LocalSingleNodeStreamDeploymentIntegrationTests extends AbstractSin
 		assertEquals("y", yMessage.getPayload());
 		assertEquals("z", zMessage.getPayload());
 
-		bus.unbindProducer("x", x);
-		bus.unbindConsumer("y", y3);
-		bus.unbindConsumer("z", z3);
+		bus.unbindProducer("queue:x", testChannel);
+		bus.unbindConsumer("queue:y", y3);
+		bus.unbindConsumer("queue:z", z3);
 	}
 
 }

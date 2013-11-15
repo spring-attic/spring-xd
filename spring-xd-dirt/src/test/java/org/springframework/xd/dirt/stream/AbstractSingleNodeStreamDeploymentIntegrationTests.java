@@ -15,9 +15,12 @@ package org.springframework.xd.dirt.stream;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.Collections;
+
 import org.junit.Test;
 
 import org.springframework.context.ApplicationContext;
+import org.springframework.http.MediaType;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.BridgeHandler;
@@ -26,6 +29,7 @@ import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.SubscribableChannel;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.xd.module.Module;
 
 
@@ -71,6 +75,47 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 		doTest(routerDefinition);
 	}
 
+	@Test
+	public final void testTopicChannel() throws InterruptedException {
+
+		StreamDefinition bar1Definition = new StreamDefinition("bar1Definition",
+				"topic:foo > queue:bar1");
+		StreamDefinition bar2Definition = new StreamDefinition("bar2Definition",
+				"topic:foo > queue:bar2");
+		assertEquals(0, streamRepository.count());
+		streamDefinitionRepository.save(bar1Definition);
+		streamDeployer.deploy("bar1Definition");
+		streamDefinitionRepository.save(bar2Definition);
+		streamDeployer.deploy("bar2Definition");
+		Thread.sleep(1000);
+		assertEquals(2, streamRepository.count());
+
+		final Module module = getModule("bridge", 0, moduleDeployer);
+
+		MessageBus bus = module.getComponent(MessageBus.class);
+
+		QueueChannel bar1Channel = new QueueChannel();
+		QueueChannel bar2Channel = new QueueChannel();
+
+		bus.bindConsumer("queue:bar1", bar1Channel, Collections.singletonList(MediaType.ALL), true);
+		bus.bindConsumer("queue:bar2", bar2Channel, Collections.singletonList(MediaType.ALL), true);
+
+		DirectChannel testChannel = new DirectChannel();
+		bus.bindPubSubProducer("topic:foo", testChannel);
+
+		testChannel.send(new GenericMessage<String>("hello"));
+
+		final Message<?> bar1Message = bar1Channel.receive(2000);
+		final Message<?> bar2Message = bar2Channel.receive(2000);
+		assertEquals("hello", bar1Message.getPayload());
+		assertEquals("hello", bar2Message.getPayload());
+
+		bus.unbindProducer("topic:foo", testChannel);
+		bus.unbindConsumer("queue:bar1", bar1Channel);
+		bus.unbindConsumer("queue:bar2", bar2Channel);
+
+	}
+
 	private void doTest(StreamDefinition routerDefinition) throws InterruptedException {
 		assertEquals(0, streamRepository.count());
 		streamDefinitionRepository.save(routerDefinition);
@@ -84,27 +129,23 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
-		bus.bindConsumer("foo", fooChannel, null, true);
-		bus.bindConsumer("bar", barChannel, null, true);
+		bus.bindConsumer("queue:foo", fooChannel, Collections.singletonList(MediaType.ALL), true);
+		bus.bindConsumer("queue:bar", barChannel, Collections.singletonList(MediaType.ALL), true);
 
 		DirectChannel testChannel = new DirectChannel();
-		bus.bindProducer("routeit", testChannel, true);
+		bus.bindProducer("queue:routeit", testChannel, true);
 		testChannel.send(MessageBuilder.withPayload("a").build());
-		Thread.sleep(2000);
 
 		testChannel.send(MessageBuilder.withPayload("b").build());
-		Thread.sleep(2000);
 
-		// assertTrue(fooChannel.getQueueSize() == 1);
-		// assertTrue(barChannel.getQueueSize() == 1);
 		final Message<?> fooMessage = fooChannel.receive(2000);
 		final Message<?> barMessage = barChannel.receive(2000);
 		assertEquals("a", fooMessage.getPayload());
 		assertEquals("b", barMessage.getPayload());
 
-		bus.unbindProducer("routeit", testChannel);
-		bus.unbindConsumer("foo", fooChannel);
-		bus.unbindConsumer("bar", barChannel);
+		bus.unbindProducer("queue:routeit", testChannel);
+		bus.unbindConsumer("queue:foo", fooChannel);
+		bus.unbindConsumer("queue:bar", barChannel);
 	}
 
 }

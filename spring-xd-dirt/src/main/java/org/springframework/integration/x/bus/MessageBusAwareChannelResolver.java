@@ -61,14 +61,13 @@ public class MessageBusAwareChannelResolver extends BeanFactoryMessageChannelDes
 			if (channel == null && messageBus != null) {
 				String[] tokens = name.split(":", 2);
 				String type = tokens[0];
-				String shortName = tokens[1];
 				if ("queue".equals(type)) {
 					channel = new DirectChannel();
-					messageBus.bindProducer(shortName, channel, true);
+					messageBus.bindProducer(name, channel, true);
 				}
 				else if ("topic".equals(type)) {
 					channel = new PublishSubscribeChannel();
-					messageBus.bindPubSubProducer(shortName, channel);
+					messageBus.bindPubSubProducer(name, channel);
 				}
 				else {
 					throw new IllegalArgumentException("unrecognized channel type: " + type);

@@ -5,7 +5,7 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<context:property-placeholder location="file:${XD_HOME}/config/jms-activemq.properties" ignore-resource-not-found="true"/>
+	<context:property-placeholder location="${XD_HOME}/config/jms-activemq.properties" ignore-resource-not-found="true"/>
 
 	<bean id="connectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
 		<property name="brokerURL" value="${amq.url:tcp://localhost:61616}"/>

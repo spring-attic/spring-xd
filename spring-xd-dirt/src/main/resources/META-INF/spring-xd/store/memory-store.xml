@@ -18,13 +18,14 @@
 
 	<bean id="moduleRegistry" class="org.springframework.xd.dirt.module.DelegatingModuleRegistry">
 		<constructor-arg>
-			<bean class="org.springframework.xd.dirt.module.ResourceModuleRegistry">
-				<constructor-arg>
-					<bean class="org.springframework.core.io.FileSystemResource">
-						<constructor-arg value="${XD_HOME}/modules/"/>
-					</bean>
-				</constructor-arg>
-			</bean>
+			<list>
+				<bean class="org.springframework.xd.dirt.module.ResourceModuleRegistry">
+					<constructor-arg value="${XD_HOME}/modules/" />
+				</bean>
+				<bean class="org.springframework.xd.dirt.module.ResourceModuleRegistry">
+					<constructor-arg value="classpath:/modules/" />
+				</bean>
+			</list>
 		</constructor-arg>
 	</bean>
 

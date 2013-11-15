@@ -26,6 +26,7 @@ import java.util.List;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.core.io.UrlResource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.util.Assert;
@@ -54,7 +55,20 @@ public class ResourceModuleRegistry extends AbstractModuleRegistry implements Re
 	private ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 
 	public ResourceModuleRegistry(Resource root) {
-		this.root = root;
+		this.root = createRoot(root);
+	}
+
+	private Resource createRoot(Resource root) {
+		try {
+			if (root instanceof UrlResource && root.getURI().isOpaque()) {
+				// Maybe it could have been a FileSystemResource but Spring chose to provide a UrlResource
+				root = new UrlResource(root.getFile().toURI());
+			}
+		}
+		catch (IOException e) {
+			// Ignore (modules with classpath probably not resolvable later)
+		}
+		return root;
 	}
 
 	@Override
@@ -115,7 +129,8 @@ public class ResourceModuleRegistry extends AbstractModuleRegistry implements Re
 		}
 		catch (IOException e) {
 			throw new RuntimeIOException(
-					String.format("An error occured trying to compute the classpath for module %s:%s", type, name), e);
+					String.format("An error occured trying to compute the classpath for module with root=%s, %s: %s",
+							root, type, name), e);
 		}
 		return null;
 	}

@@ -40,10 +40,10 @@ spring:
 
 spring:
   profiles: cloud
-redis:
-  hostname: ${vcap.services.redis.credentials.hostname:localhost}
-  port: ${vcap.services.redis.credentials.port:6379}
-  password: ${vcap.services.redis.credentials.password:#{null}}
+  redis:
+    host: ${vcap.services.redis.credentials.hostname:localhost}
+    port: ${vcap.services.redis.credentials.port:6379}
+    password: ${vcap.services.redis.credentials.password:#{null}}
 
 XD_HOME: .
 

@@ -8,21 +8,6 @@
 
 	<import resource="classpath:/META-INF/spring-xd/internal/xd-common.xml" />
 
-	<bean id="redisConnectionFactory"
-		class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory">
-		<constructor-arg index="0" value="${spring.redis.hostname:localhost}" />
-		<constructor-arg index="1" value="${spring.redis.port:6379}" />
-		<property name="password" value="${spring.redis.password:#{null}}" />
-	</bean>
-
-	<bean id="humanFriendlyRedisTemplate" class="org.springframework.data.redis.core.StringRedisTemplate">
-		<property name="connectionFactory" ref="redisConnectionFactory" />
-	</bean>
-
-	<bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
-		<property name="connectionFactory" ref="redisConnectionFactory" />
-	</bean>
-
 	<bean id="redisSerializer"
 		class="org.springframework.integration.x.redis.KryoMessageSerializer" />
 

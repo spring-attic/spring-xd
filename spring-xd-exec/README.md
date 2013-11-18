@@ -1,0 +1,1 @@
+Directory is used by the *Spring XD Exec* Gradle module.

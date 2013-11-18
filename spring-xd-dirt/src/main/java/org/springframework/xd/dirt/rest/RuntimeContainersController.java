@@ -16,8 +16,6 @@
 
 package org.springframework.xd.dirt.rest;
 
-import java.util.ArrayList;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -65,21 +63,9 @@ public class RuntimeContainersController {
 	public PagedResources<RuntimeContainerInfoResource> list(Pageable pageable,
 			PagedResourcesAssembler<RuntimeContainerInfoEntity> assembler) {
 		Page<RuntimeContainerInfoEntity> page = this.runtimeContainerInfoRepository.findAll(pageable);
-		PagedResources<RuntimeContainerInfoResource> result = safePagedContainerResources(assembler, page);
+		PagedResources<RuntimeContainerInfoResource> result = assembler.toResource(page,
+				runtimeContainerResourceAssemblerSupport);
 		return result;
 	}
 
-	/*
-	 * Work around https://github.com/SpringSource/spring-hateoas/issues/89
-	 */
-	private PagedResources<RuntimeContainerInfoResource> safePagedContainerResources(
-			PagedResourcesAssembler<RuntimeContainerInfoEntity> assembler,
-			Page<RuntimeContainerInfoEntity> page) {
-		if (page.hasContent()) {
-			return assembler.toResource(page, runtimeContainerResourceAssemblerSupport);
-		}
-		else {
-			return new PagedResources<RuntimeContainerInfoResource>(new ArrayList<RuntimeContainerInfoResource>(), null);
-		}
-	}
 }

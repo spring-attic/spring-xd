@@ -11,7 +11,7 @@ buildscript {
 		classpath("org.springframework.boot:spring-boot-gradle-plugin:0.5.0.M6")
 		classpath("org.springframework.build.gradle:propdeps-plugin:0.0.3")
 		classpath("org.springframework.build.gradle:docbook-reference-plugin:0.2.7-SNAPSHOT")
-		classpath 'org.asciidoctor:asciidoctor-gradle-plugin:0.4.1'
+		classpath 'org.asciidoctor:asciidoctor-gradle-plugin:0.7.0'
 		classpath 'org.ajoberstar:gradle-git:0.4.0'
 		classpath 'me.champeau.gradle:gradle-javadoc-hotfix-plugin:0.1'
 	}
@@ -1322,6 +1322,7 @@ import org.asciidoctor.gradle.*
 task asciidoctorDocbook(type: AsciidoctorTask, dependsOn: [pullDocs, ':spring-xd-shell:referenceDoc']) {
 	sourceDocumentName = file("$buildDir/asciidoc/guide/index.adoc")
 	sourceDir = file("$buildDir/asciidoc/guide")
+	baseDir = sourceDir
 	outputDir = file("$buildDir/docbook")
 	backend = "docbook"
 	options = [
@@ -1341,21 +1342,22 @@ task asciidoctorDocbook(type: AsciidoctorTask, dependsOn: [pullDocs, ':spring-xd
 task asciidoctorHtml(type: AsciidoctorTask, dependsOn: [pullDocs, ':spring-xd-shell:referenceDoc']) {
 	sourceDocumentName = file("$buildDir/asciidoc/guide/index.adoc")
 	sourceDir = file("$buildDir/asciidoc/guide")
+	baseDir = sourceDir
 	outputDir = file("$buildDir/html")
 	backend = "html5"
 	options = [
 		attributes: [
 			docinfo: '',
 			toc2: '',
-			imagesdir: 'images',
-			stylesdir: 'stylesheets',
+			imagesdir: 'images/',
+			stylesdir: 'stylesheets/',
 			stylesheet: 'golo.css',
 			appversion: "$version",
 			'source-highlighter': 'highlightjs'
 		]
 	]
 
-	doLast {
+	doFirst {
 		copy {
 			from "$buildDir/asciidoc/guide/images"
 			into "$buildDir/html/images"

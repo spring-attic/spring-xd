@@ -17,7 +17,6 @@
 package org.springframework.xd.dirt.rest;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -95,20 +94,9 @@ public class ModulesController {
 			PagedResourcesAssembler<ModuleDefinition> assembler,
 			@RequestParam(value = "type", required = false) ModuleType type) {
 		Page<ModuleDefinition> page = repository.findByType(pageable, type);
-		PagedResources<ModuleDefinitionResource> result = safePagedResources(assembler, page);
+		PagedResources<ModuleDefinitionResource> result = assembler.toResource(page,
+				new ModuleDefinitionResourceAssembler());
 		return result;
-	}
-
-	private PagedResources<ModuleDefinitionResource> safePagedResources(
-			PagedResourcesAssembler<ModuleDefinition> assembler,
-			Page<ModuleDefinition> page) {
-		if (page.hasContent()) {
-			return assembler.toResource(page, new ModuleDefinitionResourceAssembler());
-		}
-		else {
-			return new PagedResources<ModuleDefinitionResource>(
-					new ArrayList<ModuleDefinitionResource>(), null);
-		}
 	}
 
 	/**

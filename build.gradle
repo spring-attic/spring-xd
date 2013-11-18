@@ -93,7 +93,7 @@ ext {
 	cdh4Version = '2.0.0-cdh4.3.1'
 	hdp13Version = '1.2.0'
 	phd1Version = '2.0.5-alpha-gphd-2.1.0.0'
-	springHATEOASVersion = '0.7.0.RELEASE'
+	springHATEOASVersion = '0.8.0.RELEASE'
 	springPluginVersion = '0.8.0.RELEASE'
 	tomcatVersion = '7.0.35'
 	commonsBeanUtilsVersion = '1.6'

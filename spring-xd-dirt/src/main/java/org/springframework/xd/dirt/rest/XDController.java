@@ -16,7 +16,6 @@
 
 package org.springframework.xd.dirt.rest;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 
 import org.springframework.data.domain.Page;
@@ -176,7 +175,7 @@ public abstract class XDController<D extends BaseDefinition, A extends ResourceA
 	// subclasses should override and make public (or delegate)
 	protected PagedResources<R> listValues(Pageable pageable, QueryOptions options, PagedResourcesAssembler<D> assembler) {
 		Page<D> page = deployer.findAll(pageable);
-		PagedResources<R> result = safePagedResources(assembler, page);
+		PagedResources<R> result = assembler.toResource(page, resourceAssemblerSupport);
 		if (options.isDeployments() && page.getNumberOfElements() > 0) {
 			maybeEnhanceWithDeployments(page, result);
 		}
@@ -210,18 +209,6 @@ public abstract class XDController<D extends BaseDefinition, A extends ResourceA
 				}
 			}
 			Assert.state(!deployedInstances.hasNext(), "Not all instances were looked at");
-		}
-	}
-
-	/*
-	 * Work around https://github.com/SpringSource/spring-hateoas/issues/89
-	 */
-	private PagedResources<R> safePagedResources(PagedResourcesAssembler<D> assembler, Page<D> page) {
-		if (page.hasContent()) {
-			return assembler.toResource(page, resourceAssemblerSupport);
-		}
-		else {
-			return new PagedResources<R>(new ArrayList<R>(), null);
 		}
 	}
 

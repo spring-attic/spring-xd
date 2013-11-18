@@ -58,8 +58,7 @@ public class ModuleDeployerTests {
 	@Before
 	public void setUp() {
 		context = new SpringApplicationBuilder(ModuleDeployerTestsConfiguration.class, TestPlugin.class).profiles(
-				"memory",
-				"default").web(false).run("--XD_STORE=memory");
+				"memory").web(false).run("--XD_STORE=memory");
 		moduleDeployer = context.getBean(ModuleDeployer.class);
 	}
 

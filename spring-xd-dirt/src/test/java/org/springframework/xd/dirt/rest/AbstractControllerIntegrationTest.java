@@ -24,12 +24,14 @@ import org.mockito.internal.util.MockUtil;
 
 import org.springframework.batch.admin.service.JobService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.xd.analytics.metrics.core.CounterRepository;
 import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository;
 import org.springframework.xd.analytics.metrics.core.GaugeRepository;
@@ -37,6 +39,7 @@ import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
 import org.springframework.xd.dirt.container.store.RuntimeContainerInfoRepository;
 import org.springframework.xd.dirt.module.store.RuntimeContainerModuleInfoRepository;
 import org.springframework.xd.dirt.module.store.RuntimeModuleInfoRepository;
+import org.springframework.xd.dirt.rest.AbstractControllerIntegrationTest.LegacyMvcConfiguration;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobDeployer;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
@@ -55,6 +58,11 @@ public class AbstractControllerIntegrationTest {
 	private MockUtil mockUtil = new MockUtil();
 
 	protected MockMvc mockMvc;
+
+	@Configuration
+	@EnableWebMvc
+	protected static class LegacyMvcConfiguration {
+	}
 
 	@Autowired
 	private WebApplicationContext wac;

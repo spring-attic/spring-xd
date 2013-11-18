@@ -10,9 +10,9 @@
 
 	<bean id="redisConnectionFactory"
 		class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory">
-		<constructor-arg index="0" value="${redis.hostname:localhost}" />
-		<constructor-arg index="1" value="${redis.port:6379}" />
-		<property name="password" value="${redis.password:#{null}}" />
+		<constructor-arg index="0" value="${spring.redis.hostname:localhost}" />
+		<constructor-arg index="1" value="${spring.redis.port:6379}" />
+		<property name="password" value="${spring.redis.password:#{null}}" />
 	</bean>
 
 	<bean id="humanFriendlyRedisTemplate" class="org.springframework.data.redis.core.StringRedisTemplate">

@@ -1,3 +1,6 @@
+spring:
+  profiles:
+    active: default,hsqldb
 XD_ANALYTICS: ${analytics:redis}
 XD_TRANSPORT: ${transport:redis}
 XD_STORE: ${store:redis}

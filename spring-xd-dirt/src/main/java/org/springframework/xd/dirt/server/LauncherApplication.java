@@ -17,6 +17,8 @@ import org.springframework.xd.dirt.container.XDContainer;
 	"classpath*:" + XDContainer.XD_CONFIG_ROOT + "plugins/*.xml" })
 public class LauncherApplication {
 
+	public static final String NODE_PROFILE = "node";
+
 	private ConfigurableApplicationContext context;
 
 	public static void main(String[] args) {
@@ -29,7 +31,7 @@ public class LauncherApplication {
 
 	public LauncherApplication run(String... args) {
 		this.context = new SpringApplicationBuilder(ParentConfiguration.class)
-				.profiles("node")
+				.profiles(NODE_PROFILE)
 				.child(LauncherApplication.class).run(args);
 		publishContainerStarted(context);
 		return this;

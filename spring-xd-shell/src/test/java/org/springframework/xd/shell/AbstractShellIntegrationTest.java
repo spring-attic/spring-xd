@@ -81,7 +81,8 @@ public abstract class AbstractShellIntegrationTest {
 	@BeforeClass
 	public static void startUp() throws InterruptedException, IOException {
 
-		application = new SingleNodeApplication().run("--spring.profiles.active=memory,default", "--XD_STORE=redis",
+		application = new SingleNodeApplication().run("--spring.profiles.active=memory,default,hsqldb",
+				"--XD_STORE=redis",
 				"--XD_ANALYTICS=redis", "--server.port=9292");
 		// TODO: port scanning instead of using 9292
 		Bootstrap bootstrap = new Bootstrap(new String[] { "--port",

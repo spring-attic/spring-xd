@@ -93,9 +93,9 @@ public class XDShell implements CommandMarker, InitializingBean {
 		return this.target.getTargetResultMessage();
 	}
 
+
 	@CliCommand(value = { "admin config info" }, help = "Show the XD admin server being used")
 	public String info() {
-
 		final Map<String, String> statusValues = new TreeMap<String, String>();
 
 		statusValues.put("Target", this.target.getTargetUriAsString());
@@ -123,23 +123,19 @@ public class XDShell implements CommandMarker, InitializingBean {
 
 		int port = Target.DEFAULT_PORT;
 		String host = Target.DEFAULT_HOST;
-
-		if (commandLine.getArgs() != null) {
-			String[] args = commandLine.getArgs();
-			int i = 0;
-			while (i < args.length) {
-				String arg = args[i++];
-				if (arg.equals("--host")) {
-					host = args[i++];
-				}
-				else if (arg.equals("--port")) {
-					port = Integer.valueOf(args[i++]);
-				}
-				else {
-					i--;
-					break;
-				}
+		String[] commands = commandLine.getArgs();
+		int commandCount = (commands == null) ? 0 : commands.length;
+		for (int x = 0; x < commandCount; x++) {
+			String arg = commands[x];
+			if (arg.equals("--host")) {
+				x++;
+				host = commands[x];
 			}
+			if (arg.equals("--port")) {
+				x++;
+				port = Integer.valueOf(commands[x]);
+			}
+
 		}
 		return new URI("http", null, host, port, null, null, null);
 	}

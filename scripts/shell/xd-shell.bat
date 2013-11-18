@@ -103,7 +103,7 @@ if exist "%APP_HOME_LIB%" (
 )
 
 @rem Execute spring-xd-shell
-"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SPRING_XD_SHELL_OPTS%  -classpath "%CLASSPATH%" org.springframework.shell.Bootstrap %CMD_LINE_ARGS%
+"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SPRING_XD_SHELL_OPTS%  -classpath "%CLASSPATH%" org.springframework.xd.shell.XDShellBootStrap %CMD_LINE_ARGS%
 
 :end
 @rem End local scope for the variables with windows NT shell

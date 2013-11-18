@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.xd.dirt.container.ContainerStartedEvent;
 import org.springframework.xd.dirt.container.XDContainer;
+import org.springframework.xd.dirt.util.BannerUtils;
 
 @Configuration
 @EnableAutoConfiguration
@@ -30,6 +31,7 @@ public class LauncherApplication {
 	}
 
 	public LauncherApplication run(String... args) {
+		System.out.println(BannerUtils.displayBanner(getClass().getSimpleName(), null));
 		this.context = new SpringApplicationBuilder(ParentConfiguration.class)
 				.profiles(NODE_PROFILE)
 				.child(LauncherApplication.class).run(args);

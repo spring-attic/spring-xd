@@ -71,7 +71,7 @@ ext {
 	jodaTimeVersion = '2.1'
 	jolokiaVersion = '1.1.2'
 	snakeYamlVersion = '1.12'
-	springVersion = '4.0.0.RC1'
+	springVersion = '4.0.0.BUILD-SNAPSHOT'
 	springBatchVersion = '2.2.3.BUILD-SNAPSHOT'
 	springIntegrationVersion = '4.0.0.M1'
 	springIntegrationMQTTVersion = '4.0.0.M1'
@@ -99,7 +99,6 @@ ext {
 	commonsBeanUtilsVersion = '1.6'
 	slf4jVersion = '1.7.5'
 	log4jVersion = '1.2.17'
-	args4jVersion = '2.0.25'
 	mockitoVersion = '1.9.5'
 	javaxMailVersion = '1.5.0'
 	kryoVersion = '2.22'
@@ -351,7 +350,6 @@ project('spring-xd-dirt') {
 		compile "org.jolokia:jolokia-spring:$jolokiaVersion"
 		compile "com.esotericsoftware.kryo:kryo:$kryoVersion"
 		compile "com.lambdaworks:lettuce:$lettuceVersion"
-		compile "args4j:args4j:$args4jVersion"
 		compile "commons-lang:commons-lang:2.4"
 
 		compile "org.hsqldb:hsqldb:$hsqldbVersion"

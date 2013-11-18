@@ -16,6 +16,8 @@
 
 package org.springframework.xd.dirt.plugins.job;
 
+import java.util.Collection;
+
 import org.springframework.batch.admin.service.SearchableJobExecutionDao;
 import org.springframework.batch.admin.service.SearchableJobInstanceDao;
 import org.springframework.batch.admin.service.SearchableStepExecutionDao;
@@ -48,6 +50,8 @@ public class DistributedJobService extends SimpleJobService {
 
 	private SearchableJobExecutionDao jobExecutionDao;
 
+	private SearchableStepExecutionDao stepExecutionDao;
+
 	public DistributedJobService(SearchableJobInstanceDao jobInstanceDao, SearchableJobExecutionDao jobExecutionDao,
 			SearchableStepExecutionDao stepExecutionDao, JobRepository jobRepository, JobLauncher jobLauncher,
 			BatchJobLocator batchJobLocator, ExecutionContextDao executionContextDao) {
@@ -56,6 +60,7 @@ public class DistributedJobService extends SimpleJobService {
 		this.batchJobLocator = batchJobLocator;
 		this.jobInstanceDao = jobInstanceDao;
 		this.jobExecutionDao = jobExecutionDao;
+		this.stepExecutionDao = stepExecutionDao;
 	}
 
 	@Override
@@ -90,6 +95,16 @@ public class DistributedJobService extends SimpleJobService {
 	@Override
 	public boolean isIncrementable(String jobName) {
 		return batchJobLocator.isIncrementable(jobName);
+	}
+
+	@Override
+	public Collection<JobExecution> listJobExecutions(int start, int count) {
+		Collection<JobExecution> jobExecutions = jobExecutionDao.getJobExecutions(start, count);
+		// Associate step executions for each of the job executions in the list.
+		for (JobExecution jobExecution : jobExecutions) {
+			stepExecutionDao.addStepExecutions(jobExecution);
+		}
+		return jobExecutions;
 	}
 
 }

@@ -25,6 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.hamcrest.Matchers;
@@ -37,6 +38,7 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobInstance;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.job.SimpleJob;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -79,6 +81,16 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 		JobExecution jobExecution2 = new JobExecution(jobInstance2, 3l, jobParameters2);
 		Collection<JobExecution> jobExecutions1 = new ArrayList<JobExecution>();
 		Collection<JobExecution> jobExecutions2 = new ArrayList<JobExecution>();
+		StepExecution step1 = new StepExecution("step1", jobExecution1);
+		StepExecution step2 = new StepExecution("step2", jobExecution1);
+		List<StepExecution> stepExecutions1 = new ArrayList<StepExecution>();
+		stepExecutions1.add(step1);
+		stepExecutions1.add(step2);
+		jobExecution1.addStepExecutions(stepExecutions1);
+		StepExecution step3 = new StepExecution("step3", jobExecution2);
+		List<StepExecution> stepExecutions2 = new ArrayList<StepExecution>();
+		stepExecutions2.add(step3);
+		jobExecution2.addStepExecutions(stepExecutions2);
 		jobExecutions1.add(jobExecution1);
 		jobExecutions1.add(jobExecution2);
 		jobExecutions2.add(jobExecution2);
@@ -100,6 +112,7 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 				get("/batch/executions").param("startJobExecution", "0").param("pageSize", "20").accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
 				jsonPath("$", Matchers.hasSize(2))).andExpect(jsonPath("$[*].id", contains(0, 3))).andExpect(
+				jsonPath("$[*].jobExecution[*].stepExecutions", Matchers.hasSize(3))).andExpect(
 				jsonPath("$[*].jobId", contains(0, 2))).andExpect(jsonPath("$[*].jobExecution[*].id", contains(0, 3))).andExpect(
 				jsonPath("$[*].jobExecution[*].jobParameters.parameters.param1.value", contains("test", "test"))).andExpect(
 				jsonPath("$[*].jobExecution[*].jobParameters.parameters.param1.type", contains("STRING", "STRING"))).andExpect(

@@ -22,7 +22,6 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -58,7 +57,7 @@ public class StreamTestSupport {
 		application = new SingleNodeApplication().run("--spring.profiles.active=memory");
 		ConfigurableApplicationContext adminContext = application.getAdminContext();
 		ConfigurableApplicationContext containerContext = application.getContainerContext();
-		ResourceModuleRegistry cp = new ResourceModuleRegistry(new ClassPathResource("/testmodules/"));
+		ResourceModuleRegistry cp = new ResourceModuleRegistry("classpath:/testmodules/");
 		DelegatingModuleRegistry cmr1 = containerContext.getBean(DelegatingModuleRegistry.class);
 		cmr1.addDelegate(cp);
 		DelegatingModuleRegistry cmr2 = adminContext.getBean(DelegatingModuleRegistry.class);

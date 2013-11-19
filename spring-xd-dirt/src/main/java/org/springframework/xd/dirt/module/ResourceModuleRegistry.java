@@ -16,9 +16,7 @@
 
 package org.springframework.xd.dirt.module;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,10 +24,10 @@ import java.util.List;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.core.io.UrlResource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.core.RuntimeIOException;
 import org.springframework.xd.module.ModuleType;
 
@@ -50,37 +48,30 @@ import org.springframework.xd.module.ModuleType;
 public class ResourceModuleRegistry extends AbstractModuleRegistry implements ResourceLoaderAware {
 
 
-	private final Resource root;
+	private final String root;
 
 	private ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 
-	public ResourceModuleRegistry(Resource root) {
-		this.root = createRoot(root);
-	}
-
-	private Resource createRoot(Resource root) {
-		try {
-			if (root instanceof UrlResource && root.getURI().isOpaque()) {
-				// Maybe it could have been a FileSystemResource but Spring chose to provide a UrlResource
-				root = new UrlResource(root.getFile().toURI());
-			}
-		}
-		catch (IOException e) {
-			// Ignore (modules with classpath probably not resolvable later)
-		}
-		return root;
+	public ResourceModuleRegistry(String root) {
+		this.root = StringUtils.trimTrailingCharacter(root, '/');
 	}
 
 	@Override
 	protected Resource locateApplicationContext(String name, ModuleType type) {
 		try {
-			Resource enhanced = rootForType(type).createRelative(enhancedLocation(name));
-			if (enhanced.exists()) {
-				return enhanced;
+			String rootUri = rootForType(type);
+			// Try all locations that match in case there are multiple
+			Resource[] resources = resolver.getResources(rootUri + enhancedLocation(name));
+			for (Resource enhanced : resources) {
+				if (enhanced.exists()) {
+					return enhanced;
+				}
 			}
-			Resource simple = rootForType(type).createRelative(simpleLocation(name));
-			if (simple.exists()) {
-				return simple;
+			resources = resolver.getResources(rootUri + simpleLocation(name));
+			for (Resource simple : resources) {
+				if (simple.exists()) {
+					return simple;
+				}
 			}
 			return null;
 		}
@@ -90,9 +81,9 @@ public class ResourceModuleRegistry extends AbstractModuleRegistry implements Re
 		}
 	}
 
-	private Resource rootForType(ModuleType type) throws IOException {
+	private String rootForType(ModuleType type) throws IOException {
 		// Mind the trailing "/"
-		return root.createRelative(type.name() + "/");
+		return root + "/" + type.name() + "/";
 	}
 
 	/**
@@ -118,8 +109,8 @@ public class ResourceModuleRegistry extends AbstractModuleRegistry implements Re
 			if (resourceLocation.toString().endsWith(enhancedLocation(name))) {
 				// Can't use Resource.makeRelative here, as some implementations
 				// will fail because they try to access the resulting path
-				URI uri = resource.getURI().resolve("../lib/*.jar");
-				Resource[] jarsResources = resolver.getResources(uri.toString());
+				Resource[] jarsResources = resolver.getResources(StringUtils.cleanPath(resource.getURI().toString()
+						+ "/../../lib/*.jar"));
 				URL[] result = new URL[jarsResources.length];
 				for (int i = 0; i < jarsResources.length; i++) {
 					result[i] = jarsResources[i].getURL();
@@ -146,21 +137,22 @@ public class ResourceModuleRegistry extends AbstractModuleRegistry implements Re
 	protected List<Resource> locateApplicationContexts(ModuleType type) {
 		try {
 			List<Resource> result = new ArrayList<Resource>();
-			URI typedRootAsURI = null;
-			try {
-				typedRootAsURI = rootForType(type).getURI();
+			String typedRootAsURI = rootForType(type);
+
+			if (!typedRootAsURI.contains("*")) {
+				Resource[] rootResources = resolver.getResources(typedRootAsURI);
+				if (rootResources.length > 0 && !rootResources[0].exists()) {
+					return result;
+				}
 			}
-			catch (FileNotFoundException e) {
-				// OK to ignore here, means registry does not have that kind of module
-				return result;
-			}
-			String enhancedGlob = typedRootAsURI.resolve(enhancedLocation("*")).toString();
+
+			String enhancedGlob = typedRootAsURI + enhancedLocation("*");
 			Resource[] enhancedCandidates = resolver.getResources(enhancedGlob);
 			for (Resource candidate : enhancedCandidates) {
 				result.add(candidate);
 			}
 
-			String simpleGlob = typedRootAsURI.resolve(simpleLocation("*")).toString();
+			String simpleGlob = typedRootAsURI + simpleLocation("*");
 			Resource[] simpleCandidates = resolver.getResources(simpleGlob);
 			for (Resource candidate : simpleCandidates) {
 				result.add(candidate);

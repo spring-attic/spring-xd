@@ -28,7 +28,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 
@@ -44,10 +43,9 @@ public class DelegatingModuleRegistryTests {
 
 	@Before
 	public void setup() {
-		// Mind the trailing slash
-		ResourceModuleRegistry cp = new ResourceModuleRegistry(new ClassPathResource("/testmodules/"));
-		ResourceModuleRegistry file = new ResourceModuleRegistry(new FileSystemResource(
-				"src/test/resources/testmodules"));
+		ResourceModuleRegistry cp = new ResourceModuleRegistry("classpath:/testmodules/");
+		ResourceModuleRegistry file = new ResourceModuleRegistry(
+				"file:src/test/resources/testmodules");
 		registry = new DelegatingModuleRegistry(cp, file);
 	}
 

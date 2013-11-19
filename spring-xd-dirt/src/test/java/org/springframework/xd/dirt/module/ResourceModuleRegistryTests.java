@@ -34,10 +34,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 
@@ -61,13 +58,13 @@ public class ResourceModuleRegistryTests {
 	@Parameters(name = "{0}")
 	public static Iterable<Object[]> roots() throws MalformedURLException {
 		List<Object[]> result = new ArrayList<Object[]>();
-		result.add(new Object[] { new FileSystemResource("src/test/resources/ResourceModuleRegistryTests-modules/") });
-		result.add(new Object[] { new ClassPathResource("/ResourceModuleRegistryTests-modules/") });
-		result.add(new Object[] { new UrlResource("file:src/test/resources/ResourceModuleRegistryTests-modules/") });
+		result.add(new Object[] { "file:src/test/resources/ResourceModuleRegistryTests-modules/" });
+		result.add(new Object[] { "classpath:/ResourceModuleRegistryTests-modules/" });
+		result.add(new Object[] { "classpath*:/ResourceModuleRegistryTests-modules/" });
 		return result;
 	}
 
-	public ResourceModuleRegistryTests(Resource root) {
+	public ResourceModuleRegistryTests(String root) {
 		registry = new ResourceModuleRegistry(root);
 	}
 

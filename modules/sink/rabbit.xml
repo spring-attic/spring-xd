@@ -16,16 +16,13 @@
 		id="input" amqp-template="rabbitTemplate" exchange-name="${exchange:}"
 		routing-key-expression="${routingKey:'${xd.stream.name}'}" />
 
-	<rabbit:template id="rabbitTemplate"
-		connection-factory="connectionFactory" />
+	<context:property-placeholder
+		location="file:${XD_HOME}/config/rabbit.properties"
+		ignore-resource-not-found="true" />
 
 	<beans profile="cloud" xmlns="http://www.springframework.org/schema/beans">
 		<cloud:rabbit-connection-factory id="connectionFactory"
 			service-name="${xd.rabbit.service:rabbit}" />
 	</beans>
-
-	<context:property-placeholder
-		location="file:${XD_HOME}/config/rabbit.properties"
-		ignore-resource-not-found="true" />
 
 </beans>

@@ -41,12 +41,12 @@
 		<beans:property name="tableName" value="${tableName:${xd.stream.name}}" />
 	</beans:bean>
 
-	<beans profile="cloud" xmlns="http://www.springframework.org/schema/beans">
-		<cloud:data-source id="dataSource" service-name="${xd.jdbc.service:mysql}" />
-	</beans>
-
 	<context:property-placeholder
 		location="file:${XD_HOME}/config/${configProperties:jdbc}.properties"
 		ignore-resource-not-found="true" />
+
+	<beans profile="cloud" xmlns="http://www.springframework.org/schema/beans">
+		<cloud:data-source id="dataSource" service-name="${xd.jdbc.service:mysql}" />
+	</beans>
 
 </beans:beans>

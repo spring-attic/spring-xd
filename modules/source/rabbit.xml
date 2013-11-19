@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:int="http://www.springframework.org/schema/integration"
 	xmlns:int-amqp="http://www.springframework.org/schema/integration/amqp"
 	xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:rabbit="http://www.springframework.org/schema/rabbit"
@@ -17,15 +16,15 @@
 		auto-startup="false" queue-names="${queues:${xd.stream.name}}"
 		channel="output" connection-factory="connectionFactory" />
 
-
 	<int:channel id="output" />
 
-	<beans profile="cloud" xmlns="http://www.springframework.org/schema/beans">
-		<cloud:rabbit-connection-factory id="connectionFactory" service-name="${xd.rabbit.service:rabbit}" />
-	</beans>
+	<context:property-placeholder
+		location="file:${XD_HOME}/config/${configProperties:rabbit}.properties"
+		ignore-resource-not-found="true" />
 
-		<context:property-placeholder
-			location="file:${XD_HOME}/config/${configProperties:rabbit}.properties"
-			ignore-resource-not-found="true" />
+	<beans profile="cloud" xmlns="http://www.springframework.org/schema/beans">
+		<cloud:rabbit-connection-factory id="connectionFactory"
+			service-name="${xd.rabbit.service:rabbit}" />
+	</beans>
 
 </beans>

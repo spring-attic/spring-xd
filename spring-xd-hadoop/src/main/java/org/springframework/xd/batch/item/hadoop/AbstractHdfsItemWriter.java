@@ -16,16 +16,20 @@
 
 package org.springframework.xd.batch.item.hadoop;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 
-import org.springframework.batch.item.ItemWriter;
+import org.apache.hadoop.fs.Path;
+import org.springframework.batch.item.support.AbstractItemStreamItemWriter;
 import org.springframework.data.hadoop.fs.FsShell;
 import org.springframework.xd.hadoop.fs.HdfsTextFileWriterFactory;
 
@@ -33,7 +37,9 @@ import org.springframework.xd.hadoop.fs.HdfsTextFileWriterFactory;
  * 
  * @author Mark Pollack
  */
-public abstract class AbstractHdfsItemWriter<T> implements ItemWriter<T> {
+public abstract class AbstractHdfsItemWriter<T> extends AbstractItemStreamItemWriter<T> {
+
+	protected final Log logger = LogFactory.getLog(getClass());
 
 	private final AtomicLong counter = new AtomicLong(0L);
 
@@ -53,33 +59,39 @@ public abstract class AbstractHdfsItemWriter<T> implements ItemWriter<T> {
 
 	public abstract FileSystem getFileSystem();
 
-	protected void initializeCounterIfNecessary() {
+	protected void initializeCounterIfNecessary() throws IOException {
 		if (!initialized) {
 			FsShell fsShell = new FsShell(getFileSystem().getConf(), getFileSystem());
-			int maxCounter = 0;
-			boolean foundFile = false;
-			Collection<FileStatus> fileStats = fsShell.ls(this.getBasePath());
-			for (FileStatus fileStatus : fileStats) {
-				String shortName = fileStatus.getPath().getName();
-				int counterFromName = getCounterFromName(shortName);
-				if (counterFromName != -1) {
-					foundFile = true;
-				}
-				if (counterFromName > maxCounter) {
-					maxCounter = counterFromName;
-				}
-			}
-			if (foundFile) {
-				this.setCounter(maxCounter + 1);
-			}
 
+			if (getFileSystem().exists(new Path(getBasePath()))) {
+				int maxCounter = 0;
+				boolean foundFile = false;
+				Collection<FileStatus> fileStats = fsShell.ls(this.getBasePath());
+				for (FileStatus fileStatus : fileStats) {
+					String shortName = fileStatus.getPath().getName();
+					int counterFromName = getCounterFromName(shortName);
+					if (counterFromName != -1) {
+						foundFile = true;
+					}
+					if (counterFromName > maxCounter) {
+						maxCounter = counterFromName;
+					}
+				}
+				if (foundFile) {
+					logger.debug("Found " + maxCounter + " existing files");
+					this.setCounter(maxCounter + 1);
+				}
+			}
+			else {
+				logger.info("Creating base path " + getBasePath());
+				fsShell.mkdir(getBasePath());
+			}
 			initialized = true;
 		}
 	}
 
-
 	protected int getCounterFromName(String shortName) {
-		Pattern pattern = Pattern.compile("([\\d+]{1,})");
+		Pattern pattern = Pattern.compile(baseFilename + "-([\\d+]{1,})");
 		Matcher matcher = pattern.matcher(shortName);
 		if (matcher.find()) {
 			return Integer.parseInt(matcher.group());

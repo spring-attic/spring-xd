@@ -42,6 +42,8 @@
 		</property>
 		<property name="baseFilename" value="${filename:${xd.stream.name}}"/>
 		<property name="rolloverThresholdInBytes" value="${rollover:1000000}"/>
+		<property name="basePath" value="${basePath:/data/}"/>
+		<property name="fileSuffix" value="${suffix:log}"/>
 	</bean>
 
 	<bean id="hadoopFs" class="org.springframework.data.hadoop.fs.FileSystemFactoryBean">

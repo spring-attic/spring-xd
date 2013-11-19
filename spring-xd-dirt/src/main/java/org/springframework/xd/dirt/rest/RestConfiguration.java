@@ -17,7 +17,6 @@ package org.springframework.xd.dirt.rest;
 import java.util.List;
 
 import org.springframework.batch.core.StepExecution;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -37,8 +36,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.xd.dirt.plugins.job.support.StepExecutionJacksonMixIn;
 import org.springframework.xd.rest.client.util.RestTemplateMessageConverterUtil;
-
-import com.mangofactory.swagger.configuration.DocumentationConfig;
 
 /**
  * Takes care of infrastructure setup for the web/rest layer.
@@ -64,9 +61,22 @@ public class RestConfiguration {
 	public WebMvcConfigurer configurer() {
 		return new WebMvcConfigurerAdapter() {
 
+			private String adminUIRoot;
+
+			private String swaggerRoot;
+
 			// N.B. must end in "/"
 			@Value("${xd.ui.home:file:${XD_HOME}/spring-xd-ui}/")
-			private String resourceRoot;
+			public void setAdminUIResourceRoot(String root) {
+				this.adminUIRoot = root.endsWith("/") ? root : root + "/";
+			}
+
+			// N.B. must end in "/"
+			@Value("${SWAGGER_ROOT:file:${XD_HOME}/swagger-ui/}")
+			public void setSwaggerResourceRoot(String root) {
+				this.swaggerRoot = root.endsWith("/") ? root : root + "/";
+			}
+
 
 			@Value("${xd.ui.allow_origin:http://localhost:9889}")
 			private String allowedOrigin;
@@ -95,10 +105,10 @@ public class RestConfiguration {
 			@Override
 			public void addResourceHandlers(ResourceHandlerRegistry registry) {
 				registry.addResourceHandler("/admin-ui/**", "/admin-ui/").addResourceLocations(
-						resourceRoot);
+						adminUIRoot);
 
 				registry.addResourceHandler("/swagger/**", "/swagger").addResourceLocations(
-						"file:" + xdHome + "/swagger-ui/");
+						swaggerRoot);
 			}
 
 			@Override

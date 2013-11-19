@@ -5,7 +5,7 @@ spring:
     url: jdbc:hsqldb:hsql://localhost:9101/xdjob
     username: sa
     password:
-    driverClassName: org.hsqldb.jdbcDriver
+    driverClassName: org.hsqldb.jdbc.JDBCDriver
 
 XD_ANALYTICS: ${analytics:redis}
 XD_TRANSPORT: ${transport:redis}
@@ -19,9 +19,9 @@ server:
 
 spring:
   profiles: memory
-XD_TRANSPORT: local
-XD_ANALYTICS: memory
-XD_STORE: memory
+transport: local
+analytics: memory
+store: memory
 server:
   port: 0
 management:
@@ -31,14 +31,14 @@ management:
 
 spring:
   profiles: rabbit
-XD_TRANSPORT: rabbit
+transport: rabbit
 
 ---
 
 spring:
   profiles: cloud
 
-XD_HOME: .
+xdHomeDir: .
 
 ---
 
@@ -49,10 +49,13 @@ spring:
 
 spring:
   profiles: node
+  batch:
+    initializer:
+      enabled: false
 management:
-  port: ${PORT:9000}
+  port: ${PORT:9292}
 server:
-  port: ${PORT:9000}
+  port: ${PORT:9292}
 
 ---
 
@@ -67,11 +70,6 @@ spring:
 ---
 spring:
   profiles: single
-  datasource:
-    url: jdbc:hsqldb:mem:xdjob
-    username: sa
-    password:
-    driverClassName: org.hsqldb.jdbcDriver
 transport: local
 store: memory
 analytics: memory

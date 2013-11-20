@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.plugins.job;
+package org.springframework.xd.rest.client.domain;
 
 import org.springframework.batch.admin.web.JobExecutionInfo;
-import org.springframework.batch.admin.web.JobInfo;
 import org.springframework.batch.core.ExitStatus;
 
 /**
- * A job info for batch jobs that provides more details than the base {@link JobInfo}
+ * A job info for batch jobs that provides more details than the base {@link BatchJobInfo}
  * 
  * @author Andrew Eisenberg
  */
-public class ExpandedJobInfo extends JobInfo {
+public class ExpandedJobInfo extends BatchJobInfo {
 
 	private String jobParameters;
 

@@ -26,7 +26,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.batch.admin.service.JobService;
 import org.springframework.batch.admin.web.JobExecutionInfo;
-import org.springframework.batch.admin.web.JobInfo;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobInstance;
 import org.springframework.batch.core.launch.NoSuchJobException;
@@ -42,7 +41,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.dirt.job.NoSuchBatchJobException;
-import org.springframework.xd.dirt.plugins.job.ExpandedJobInfo;
+import org.springframework.xd.rest.client.domain.BatchJobInfo;
+import org.springframework.xd.rest.client.domain.ExpandedJobInfo;
+
 
 /**
  * Controller for batch jobs and job instances, job executions on a given batch job.
@@ -54,7 +55,7 @@ import org.springframework.xd.dirt.plugins.job.ExpandedJobInfo;
  */
 @Controller
 @RequestMapping("/batch/jobs")
-@ExposesResourceFor(JobInfo.class)
+@ExposesResourceFor(BatchJobInfo.class)
 public class BatchJobsController {
 
 	private static Log logger = LogFactory.getLog(BatchJobsController.class);
@@ -87,10 +88,10 @@ public class BatchJobsController {
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public Collection<JobInfo> jobs(@RequestParam(defaultValue = "0") int startJob,
+	public Collection<BatchJobInfo> jobs(@RequestParam(defaultValue = "0") int startJob,
 			@RequestParam(defaultValue = "20") int pageSize) {
 		Collection<String> names = jobService.listJobs(startJob, pageSize);
-		List<JobInfo> jobs = new ArrayList<JobInfo>();
+		List<BatchJobInfo> jobs = new ArrayList<BatchJobInfo>();
 		for (String name : names) {
 			String displayName = name.substring(0, name.length() - ".job".length());
 			jobs.add(internalGetJobInfo(displayName, name));

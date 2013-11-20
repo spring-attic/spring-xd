@@ -21,12 +21,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.TimeZone;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.batch.admin.service.JobService;
-import org.springframework.batch.admin.web.JobExecutionInfo;
-import org.springframework.batch.admin.web.JobInfo;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobInstance;
 import org.springframework.batch.core.launch.NoSuchJobException;
@@ -41,8 +36,12 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.xd.dirt.job.DetailedJobInfo;
+import org.springframework.xd.dirt.job.JobExecutionInfo;
 import org.springframework.xd.dirt.job.NoSuchBatchJobException;
-import org.springframework.xd.dirt.plugins.job.ExpandedJobInfo;
+import org.springframework.xd.rest.client.domain.DetailedJobInfoResource;
+import org.springframework.xd.rest.client.domain.JobExecutionInfoResource;
+
 
 /**
  * Controller for batch jobs and job instances, job executions on a given batch job.
@@ -54,19 +53,23 @@ import org.springframework.xd.dirt.plugins.job.ExpandedJobInfo;
  */
 @Controller
 @RequestMapping("/batch/jobs")
-@ExposesResourceFor(JobInfo.class)
+@ExposesResourceFor(DetailedJobInfoResource.class)
 public class BatchJobsController {
-
-	private static Log logger = LogFactory.getLog(BatchJobsController.class);
 
 	private final JobService jobService;
 
 	private TimeZone timeZone = TimeZone.getDefault();
 
+	private DetailedJobInfoResourceAssembler jobInfoResourceAssembler;
+
+	private JobExecutionInfoResourceAssembler jobExecutionInfoResourceAssembler;
+
 	@Autowired
 	public BatchJobsController(JobService jobService) {
 		super();
 		this.jobService = jobService;
+		this.jobInfoResourceAssembler = new DetailedJobInfoResourceAssembler();
+		this.jobExecutionInfoResourceAssembler = new JobExecutionInfoResourceAssembler();
 	}
 
 	/**
@@ -87,10 +90,10 @@ public class BatchJobsController {
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public Collection<JobInfo> jobs(@RequestParam(defaultValue = "0") int startJob,
+	public Collection<DetailedJobInfoResource> jobs(@RequestParam(defaultValue = "0") int startJob,
 			@RequestParam(defaultValue = "20") int pageSize) {
 		Collection<String> names = jobService.listJobs(startJob, pageSize);
-		List<JobInfo> jobs = new ArrayList<JobInfo>();
+		List<DetailedJobInfoResource> jobs = new ArrayList<DetailedJobInfoResource>();
 		for (String name : names) {
 			String displayName = name.substring(0, name.length() - ".job".length());
 			jobs.add(internalGetJobInfo(displayName, name));
@@ -137,7 +140,7 @@ public class BatchJobsController {
 	@RequestMapping(value = "/{jobName}", method = RequestMethod.GET)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
-	public ExpandedJobInfo jobinfo(@PathVariable String jobName) {
+	public DetailedJobInfoResource jobinfo(@PathVariable String jobName) {
 		String fullName = jobName + ".job";
 		return internalGetJobInfo(jobName, fullName);
 	}
@@ -147,20 +150,20 @@ public class BatchJobsController {
 	 * @param fullName Job name as internal to the system
 	 * @return a job info for this job
 	 */
-	private ExpandedJobInfo internalGetJobInfo(String displayName, String fullName) {
+	private DetailedJobInfoResource internalGetJobInfo(String displayName, String fullName) {
 		boolean launchable = jobService.isLaunchable(fullName);
-		ExpandedJobInfo jobInfo;
+		DetailedJobInfoResource jobInfoResource;
 		try {
 			int count = jobService.countJobExecutionsForJob(fullName);
-			jobInfo = new ExpandedJobInfo(displayName, count, launchable, jobService.isIncrementable(fullName),
-					getLastExecution(fullName));
+			jobInfoResource = jobInfoResourceAssembler.toResource(new DetailedJobInfo(displayName, count, launchable,
+					jobService.isIncrementable(fullName),
+					getLastExecution(fullName)));
 		}
 		catch (NoSuchJobException e) {
 			throw new NoSuchBatchJobException(displayName);
 		}
-		return jobInfo;
+		return jobInfoResource;
 	}
-
 
 	/**
 	 * @param jobName name of the batch job
@@ -188,19 +191,18 @@ public class BatchJobsController {
 	@RequestMapping(value = "/{jobName}/executions", method = RequestMethod.GET)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
-	public Collection<JobExecutionInfo> executionsForJob(@PathVariable String jobName,
+	public Collection<JobExecutionInfoResource> executionsForJob(@PathVariable String jobName,
 			@RequestParam(defaultValue = "0") int startJobExecution,
 			@RequestParam(defaultValue = "20") int pageSize) {
 
-		Collection<JobExecutionInfo> result = new ArrayList<JobExecutionInfo>();
+		Collection<JobExecutionInfoResource> result = new ArrayList<JobExecutionInfoResource>();
 		String fullName = jobName + ".job";
 		try {
 			for (JobExecution jobExecution : jobService.listJobExecutionsForJob(fullName, startJobExecution, pageSize)) {
-				result.add(new JobExecutionInfo(jobExecution, timeZone));
+				result.add(jobExecutionInfoResourceAssembler.toResource(new JobExecutionInfo(jobExecution, timeZone)));
 			}
 		}
 		catch (NoSuchJobException e) {
-			logger.warn("Could not locate Job with name=" + fullName);
 			throw new NoSuchBatchJobException(fullName);
 		}
 		return result;

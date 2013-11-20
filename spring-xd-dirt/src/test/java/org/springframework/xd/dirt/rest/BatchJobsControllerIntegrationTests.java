@@ -38,7 +38,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.batch.admin.service.JobService;
-import org.springframework.batch.admin.web.JobExecutionInfo;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobInstance;
@@ -52,6 +51,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.xd.dirt.job.JobExecutionInfo;
 import org.springframework.xd.dirt.plugins.job.BatchJobLocator;
 
 /**
@@ -199,7 +199,7 @@ public class BatchJobsControllerIntegrationTests extends AbstractControllerInteg
 				get("/batch/jobs/job2/executions").param("startJobExecution", "0").param("pageSize", "20").accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isOk())
 				.andExpect(jsonPath("$", Matchers.hasSize(1)))
-				.andExpect(jsonPath("$[0].id").value(3))
+				.andExpect(jsonPath("$[0].executionId").value(3))
 				.andExpect(jsonPath("$[0].jobId").value(2))
 				.andExpect(jsonPath("$[0].jobExecution[*].id").value(3))
 				.andExpect(

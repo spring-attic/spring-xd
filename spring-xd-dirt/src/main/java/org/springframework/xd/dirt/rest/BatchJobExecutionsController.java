@@ -21,7 +21,6 @@ import java.util.Collection;
 import java.util.TimeZone;
 
 import org.springframework.batch.admin.service.JobService;
-import org.springframework.batch.admin.web.JobExecutionInfo;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.launch.NoSuchJobExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +34,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.xd.dirt.job.JobExecutionInfo;
 import org.springframework.xd.dirt.module.NoSuchJobExecutionInfoException;
+import org.springframework.xd.rest.client.domain.JobExecutionInfoResource;
 
 /**
  * Controller for batch job executions.
@@ -47,12 +48,14 @@ import org.springframework.xd.dirt.module.NoSuchJobExecutionInfoException;
  */
 @Controller
 @RequestMapping("/batch/executions")
-@ExposesResourceFor(JobExecutionInfo.class)
+@ExposesResourceFor(JobExecutionInfoResource.class)
 public class BatchJobExecutionsController {
 
 	private JobService jobService;
 
 	private TimeZone timeZone = TimeZone.getDefault();
+
+	private JobExecutionInfoResourceAssembler jobExecutionInfoResourceAssembler;
 
 	/**
 	 * @param timeZone the timeZone to set
@@ -67,6 +70,7 @@ public class BatchJobExecutionsController {
 	public BatchJobExecutionsController(JobService jobService) {
 		super();
 		this.jobService = jobService;
+		this.jobExecutionInfoResourceAssembler = new JobExecutionInfoResourceAssembler();
 	}
 
 	/**
@@ -74,29 +78,30 @@ public class BatchJobExecutionsController {
 	 * 
 	 * @param startJobExecution index of the first job execution to get
 	 * @param pageSize how many executions to return
+	 * @return Collection of JobExecutionInfoResource
 	 */
 	@RequestMapping(value = { "" }, method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public Collection<JobExecutionInfo> list(@RequestParam(defaultValue = "0") int startJobExecution,
+	public Collection<JobExecutionInfoResource> list(@RequestParam(defaultValue = "0") int startJobExecution,
 			@RequestParam(defaultValue = "20") int pageSize) {
 
-		Collection<JobExecutionInfo> result = new ArrayList<JobExecutionInfo>();
+		Collection<JobExecutionInfoResource> result = new ArrayList<JobExecutionInfoResource>();
 		for (JobExecution jobExecution : jobService.listJobExecutions(startJobExecution, pageSize)) {
-			result.add(new JobExecutionInfo(jobExecution, timeZone));
+			result.add(jobExecutionInfoResourceAssembler.toResource(new JobExecutionInfo(jobExecution, timeZone)));
 		}
 		return result;
 	}
 
 	/**
 	 * @param jobExecutionId Id of the {@link JobExecution}
-	 * @return ExpandedJobInfo for the given job name
+	 * @return JobExecutionInfo for the given job name
 	 * @throws NoSuchJobExecutionException Thrown if the {@link JobExecution} does not exist
 	 */
 	@RequestMapping(value = "/{jobExecutionId}", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public JobExecutionInfo getJobExecutionInfo(@PathVariable Long jobExecutionId) {
+	public JobExecutionInfoResource getJobExecutionInfo(@PathVariable Long jobExecutionId) {
 
 		final JobExecution jobExecution;
 
@@ -107,6 +112,6 @@ public class BatchJobExecutionsController {
 			throw new NoSuchJobExecutionInfoException(jobExecutionId);
 		}
 
-		return new JobExecutionInfo(jobExecution, timeZone);
+		return jobExecutionInfoResourceAssembler.toResource(new JobExecutionInfo(jobExecution, timeZone));
 	}
 }

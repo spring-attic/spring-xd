@@ -35,10 +35,7 @@ import org.springframework.xd.dirt.module.DelegatingModuleRegistry;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.module.ResourceModuleRegistry;
-import org.springframework.xd.dirt.server.SingleNodeMain;
-import org.springframework.xd.dirt.server.SingleNodeServer;
-import org.springframework.xd.dirt.server.options.CommandLineParser;
-import org.springframework.xd.dirt.server.options.SingleNodeOptions;
+import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.module.CompositeModule;
 import org.springframework.xd.module.Module;
 
@@ -54,18 +51,13 @@ public class StreamTestSupport {
 
 	private static ModuleDefinitionRepository moduleDefinitionRepository;
 
-	private static SingleNodeServer singleNode;
+	private static SingleNodeApplication application;
 
 	@BeforeClass
 	public static void startXDSingleNode() throws Exception {
-		SingleNodeOptions options = new SingleNodeOptions();
-		CommandLineParser parser = new CommandLineParser(options);
-		parser.parseArgument(new String[] { "--transport", "local" });
-		singleNode = SingleNodeMain.launchSingleNodeServer(options);
-
-		ConfigurableApplicationContext containerContext = (ConfigurableApplicationContext) singleNode.getContainer().getApplicationContext();
-
-		ConfigurableApplicationContext adminContext = singleNode.getAdminServer().getApplicationContext();
+		application = new SingleNodeApplication().run("--spring.profiles.active=memory,default");
+		ConfigurableApplicationContext adminContext = application.getAdminContext();
+		ConfigurableApplicationContext containerContext = application.getContainerContext();
 		ResourceModuleRegistry cp = new ResourceModuleRegistry(new ClassPathResource("/testmodules/"));
 		DelegatingModuleRegistry cmr1 = containerContext.getBean(DelegatingModuleRegistry.class);
 		cmr1.addDelegate(cp);
@@ -229,8 +221,8 @@ public class StreamTestSupport {
 
 	@AfterClass
 	public static void cleanUp() {
-		if (singleNode != null) {
-			singleNode.stop();
+		if (application != null) {
+			application.close();
 		}
 	}
 }

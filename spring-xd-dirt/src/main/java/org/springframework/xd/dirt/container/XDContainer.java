@@ -33,7 +33,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.server.options.XDPropertyKeys;
@@ -69,7 +68,7 @@ public class XDContainer implements SmartLifecycle {
 
 	private static final String LOG4J_FILE_APPENDER = "file";
 
-	private volatile AbstractApplicationContext context;
+	private volatile ConfigurableApplicationContext context;
 
 	private final String id;
 
@@ -152,6 +151,11 @@ public class XDContainer implements SmartLifecycle {
 
 	public void setLauncherContext(ApplicationContext context) {
 		this.launcherContext = context;
+	}
+
+
+	public void setContext(ConfigurableApplicationContext context) {
+		this.context = context;
 	}
 
 	public ApplicationContext getApplicationContext() {

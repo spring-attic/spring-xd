@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:int="http://www.springframework.org/schema/integration"
 	xmlns:int-amqp="http://www.springframework.org/schema/integration/amqp"
 	xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:rabbit="http://www.springframework.org/schema/rabbit"
@@ -13,27 +12,17 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<int-amqp:outbound-channel-adapter id="input"
-			amqp-template="rabbitTemplate"
-			exchange-name="${exchange:}"
-			routing-key-expression="${routingKey:'${xd.stream.name}'}"/>
+	<int-amqp:outbound-channel-adapter
+		id="input" amqp-template="rabbitTemplate" exchange-name="${exchange:}"
+		routing-key-expression="${routingKey:'${xd.stream.name}'}" />
 
-	<rabbit:template id="rabbitTemplate" connection-factory="connectionFactory"/>
+	<context:property-placeholder
+		location="file:${XD_HOME}/config/rabbit.properties"
+		ignore-resource-not-found="true" />
 
 	<beans profile="cloud" xmlns="http://www.springframework.org/schema/beans">
-		<cloud:rabbit-connection-factory id="connectionFactory" service-name="${xd.rabbit.service:rabbit}" />
-	</beans>
-
-	<beans profile="legacy,default" xmlns="http://www.springframework.org/schema/beans">
-
-		<context:property-placeholder
-			location="file:${XD_HOME}/config/rabbit.properties"
-			ignore-resource-not-found="true" />
-
-		<rabbit:connection-factory id="connectionFactory"
-			host="${host:${rabbit.hostname}}" port="${port:${rabbit.port}}"
-			virtual-host="${vhost:${rabbit.vhost}}" />
-
+		<cloud:rabbit-connection-factory id="connectionFactory"
+			service-name="${xd.rabbit.service:rabbit}" />
 	</beans>
 
 </beans>

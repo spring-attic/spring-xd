@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.server.util;
+package org.springframework.xd.dirt.util;
 
-import java.io.IOException;
 import java.io.InputStreamReader;
 
 import org.apache.commons.lang.StringUtils;
@@ -65,7 +64,7 @@ public final class BannerUtils {
 							.getResourceAsStream("banner.txt"))).replaceAll(
 					"(\\r|\\n)+", LINE_SEPARATOR);
 		}
-		catch (IOException e) {
+		catch (Exception e) {
 			throw new IllegalStateException("Could not read banner.txt");
 		}
 	}
@@ -87,7 +86,7 @@ public final class BannerUtils {
 						: additionalMessage)
 				.append(LINE_SEPARATOR)
 				.append(StringUtils.isEmpty(containerName) ? ""
-						: "started container : " + containerName)
+						: "Started container : " + containerName)
 				.append(LINE_SEPARATOR)
 				.append("Documentation: https://github.com/SpringSource/spring-xd/wiki")
 				.append(LINE_SEPARATOR);

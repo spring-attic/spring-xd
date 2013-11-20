@@ -45,7 +45,7 @@ import org.springframework.xd.dirt.job.NoSuchBatchJobException;
 import org.springframework.xd.dirt.plugins.job.ExpandedJobInfo;
 
 /**
- * Controller for batch jobs.
+ * Controller for batch jobs and job instances, job executions on a given batch job.
  * 
  * @author Dave Syer
  * @author Ilayaperumal Gopinathan
@@ -78,6 +78,12 @@ public class BatchJobsController {
 		this.timeZone = timeZone;
 	}
 
+	/**
+	 * Get a list of JobInfo, in a given range.
+	 * 
+	 * @param startJob the start index of the job names to return
+	 * @param how many items to retrieve
+	 */
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
@@ -92,10 +98,18 @@ public class BatchJobsController {
 		return jobs;
 	}
 
+	/**
+	 * Return a paged collection of job instances for a given job.
+	 * 
+	 * @param jobName name of the batch job
+	 * @param startJobInstance start index for the job instance
+	 * @param pageSize page size for the list
+	 * @return collection of JobInstnaces by job name
+	 */
 	@RequestMapping(value = "/{jobName}/instances", method = RequestMethod.GET)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
-	public Collection<JobInstance> jobInstances(@PathVariable String jobName,
+	public Collection<JobInstance> instancesForJob(@PathVariable String jobName,
 			@RequestParam(defaultValue = "0") int startJobInstance, @RequestParam(defaultValue = "20") int pageSize) {
 		String fullName = jobName + ".job";
 
@@ -116,6 +130,10 @@ public class BatchJobsController {
 		}
 	}
 
+	/**
+	 * @param jobName name of the job
+	 * @return ExpandedJobInfo for the given job name
+	 */
 	@RequestMapping(value = "/{jobName}", method = RequestMethod.GET)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
@@ -144,6 +162,11 @@ public class BatchJobsController {
 	}
 
 
+	/**
+	 * @param jobName name of the batch job
+	 * @return Last job execution info
+	 * @throws NoSuchJobException
+	 */
 	private JobExecutionInfo getLastExecution(String jobName) throws NoSuchJobException {
 		Collection<JobExecution> executions = jobService.listJobExecutionsForJob(jobName, 0, 1);
 		if (executions.size() > 0) {
@@ -154,10 +177,18 @@ public class BatchJobsController {
 		}
 	}
 
+	/**
+	 * Return a paged collection of job executions for a given job.
+	 * 
+	 * @param jobName name of the job
+	 * @param startJobExecution start index for the job execution list
+	 * @param pageSize page size for the list
+	 * @return collection of JobExecutionInfo
+	 */
 	@RequestMapping(value = "/{jobName}/executions", method = RequestMethod.GET)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.OK)
-	public Collection<JobExecutionInfo> listForJob(@PathVariable String jobName,
+	public Collection<JobExecutionInfo> executionsForJob(@PathVariable String jobName,
 			@RequestParam(defaultValue = "0") int startJobExecution,
 			@RequestParam(defaultValue = "20") int pageSize) {
 

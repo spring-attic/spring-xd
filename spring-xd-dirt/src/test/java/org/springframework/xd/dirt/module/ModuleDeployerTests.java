@@ -24,13 +24,14 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportResource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.xd.dirt.server.options.OptionUtils;
-import org.springframework.xd.dirt.server.options.SingleNodeOptions;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.Plugin;
@@ -44,15 +45,20 @@ public class ModuleDeployerTests {
 
 	private ModuleDeployer moduleDeployer;
 
-	private ClassPathXmlApplicationContext context;
+	private ConfigurableApplicationContext context;
+
+	@EnableAutoConfiguration
+	@Configuration
+	@ImportResource({
+		"META-INF/spring-xd/internal/container.xml",
+		"META-INF/spring-xd/store/${XD_STORE}-store.xml" })
+	protected static class ModuleDeployerTestsConfiguration {
+	}
 
 	@Before
 	public void setUp() {
-		context = new ClassPathXmlApplicationContext();
-		context.setConfigLocation(
-				"/org/springframework/xd/dirt/module/ModuleDeployerTests-context.xml");
-		OptionUtils.configureRuntime(new SingleNodeOptions(), context.getEnvironment());
-		context.refresh();
+		context = new SpringApplicationBuilder(ModuleDeployerTestsConfiguration.class, TestPlugin.class).profiles(
+				"node", "memory").web(false).run("--XD_STORE=memory");
 		moduleDeployer = context.getBean(ModuleDeployer.class);
 	}
 

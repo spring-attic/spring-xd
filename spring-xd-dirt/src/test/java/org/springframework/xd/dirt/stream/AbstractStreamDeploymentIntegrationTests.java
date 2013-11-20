@@ -38,9 +38,8 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
-import org.springframework.xd.dirt.boot.ParentConfiguration;
 import org.springframework.xd.dirt.module.ModuleDeployer;
-import org.springframework.xd.dirt.server.options.XDPropertyKeys;
+import org.springframework.xd.dirt.server.ParentConfiguration;
 import org.springframework.xd.module.Module;
 
 /**
@@ -71,20 +70,14 @@ public abstract class AbstractStreamDeploymentIntegrationTests {
 	protected static class StreamDeploymentIntegrationTestsConfiguration {
 	}
 
-	// FIXME: Hack to prevent this test from overwriting the global VM setting for XD_TRANSPORT
-	private static final String originalTransport = System.getProperty(XDPropertyKeys.XD_TRANSPORT);
-
 	@Before
 	public final void setUp() {
 		String transport = this.getTransport();
-		System.setProperty(XDPropertyKeys.XD_HOME, "..");
-		System.setProperty(XDPropertyKeys.XD_TRANSPORT, transport);
-		System.setProperty(XDPropertyKeys.XD_ANALYTICS, "memory");
-		System.setProperty(XDPropertyKeys.XD_STORE, "memory");
 		context = (AbstractApplicationContext) new SpringApplicationBuilder(ParentConfiguration.class).profiles(
-				"singleNode").child(
+				"node", "memory").properties("XD_HOME=..").child(
 				StreamDeploymentIntegrationTestsConfiguration.class).sources(
-				"META-INF/spring-xd/transports/" + transport + "-admin.xml").web(false).run();
+				"META-INF/spring-xd/transports/" + transport + "-admin.xml").web(false).run(
+				"--XD_TRANSPORT=" + transport);
 		this.streamDefinitionRepository = context.getBean(StreamDefinitionRepository.class);
 		this.streamRepository = context.getBean(StreamRepository.class);
 		this.streamDeployer = context.getBean(StreamDeployer.class);
@@ -99,9 +92,6 @@ public abstract class AbstractStreamDeploymentIntegrationTests {
 
 	@After
 	public final void shutDown() {
-		if (originalTransport != null) {
-			System.setProperty(XDPropertyKeys.XD_TRANSPORT, originalTransport);
-		}
 		if (this.context != null) {
 			this.cleanup(this.context);
 			this.context.close();

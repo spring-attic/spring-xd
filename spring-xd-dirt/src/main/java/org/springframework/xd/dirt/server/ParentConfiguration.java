@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.boot;
+package org.springframework.xd.dirt.server;
 
 import javax.sql.DataSource;
 

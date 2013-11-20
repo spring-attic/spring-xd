@@ -1,36 +1,44 @@
+spring:
+  profiles:
+    active: default,hsqldb
+  datasource:
+    url: jdbc:hsqldb:hsql://${hsql.server.host:localhost}:${hsql.server.port:9101}/${hsql.server.dbname:xdjob}
+    username: sa
+    password:
+    driverClassName: org.hsqldb.jdbc.JDBCDriver
+
 XD_ANALYTICS: ${analytics:redis}
 XD_TRANSPORT: ${transport:redis}
 XD_STORE: ${store:redis}
 XD_HOME: ${xdHomeDir:..}
+
 server:
   port: ${PORT:9393}
 
 ---
 
 spring:
-  profiles: rabbit
-XD_TRANSPORT: rabbit
+  profiles: memory
+transport: local
+analytics: memory
+store: memory
+server:
+  port: 0
+management:
+  port: 0
 
 ---
 
 spring:
-  profiles: local
-  datasource:
-    url: jdbc:mysql://localhost/test
-    username: root
-    password:
-    driverClassName: com.mysql.jdbc.Driver
+  profiles: rabbit
+transport: rabbit
 
 ---
 
 spring:
   profiles: cloud
-redis:
-  hostname: ${vcap.services.redis.credentials.hostname:localhost}
-  port: ${vcap.services.redis.credentials.port:6379}
-  password: ${vcap.services.redis.credentials.password:#{null}}
 
-XD_HOME: .
+xdHomeDir: .
 
 ---
 
@@ -41,10 +49,23 @@ spring:
 
 spring:
   profiles: node
+  batch:
+    initializer:
+      enabled: false
 management:
-  port: ${PORT:9000}
+  port: ${PORT:9292}
 server:
-  port: ${PORT:9000}
+  port: ${PORT:9292}
+
+---
+
+spring:
+  profiles: local
+  datasource:
+    url: jdbc:mysql://localhost/test
+    username: root
+    password:
+    driverClassName: com.mysql.jdbc.Driver
 
 ---
 spring:

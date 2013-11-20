@@ -35,7 +35,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
- * Controller for job executions.
+ * Controller for batch job executions.
  * 
  * @author Dave Syer
  * @author Ilayaperumal Gopinathan
@@ -65,6 +65,12 @@ public class BatchJobExecutionsController {
 		this.jobService = jobService;
 	}
 
+	/**
+	 * List all job executions in a given range.
+	 * 
+	 * @param startJobExecution index of the first job execution to get
+	 * @param pageSize how many executions to return
+	 */
 	@RequestMapping(value = { "" }, method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody

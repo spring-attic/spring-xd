@@ -16,8 +16,6 @@
 
 package org.springframework.xd.dirt.rest;
 
-import java.util.ArrayList;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -78,22 +76,9 @@ public class RuntimeModulesController {
 		else {
 			page = this.runtimeModuleInfoRepository.findAll(pageable);
 		}
-		PagedResources<RuntimeModuleInfoResource> result = safePagedResources(assembler, page);
+		PagedResources<RuntimeModuleInfoResource> result = assembler.toResource(page,
+				runtimeModuleResourceAssemblerSupport);
 		return result;
-	}
-
-	/*
-	 * Work around https://github.com/SpringSource/spring-hateoas/issues/89
-	 */
-	private PagedResources<RuntimeModuleInfoResource> safePagedResources(
-			PagedResourcesAssembler<RuntimeModuleInfoEntity> assembler,
-			Page<RuntimeModuleInfoEntity> page) {
-		if (page.hasContent()) {
-			return assembler.toResource(page, runtimeModuleResourceAssemblerSupport);
-		}
-		else {
-			return new PagedResources<RuntimeModuleInfoResource>(new ArrayList<RuntimeModuleInfoResource>(), null);
-		}
 	}
 
 }

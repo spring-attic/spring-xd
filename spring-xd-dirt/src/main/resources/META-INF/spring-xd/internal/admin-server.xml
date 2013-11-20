@@ -8,15 +8,7 @@
 
 	<import resource="classpath*:/META-INF/spring-xd/transports/${XD_TRANSPORT}-admin.xml" />
 
-	<bean id="xdUi" class="org.springframework.xd.dirt.rest.UiResourceIdentifier">
-		<constructor-arg value="${XD_HOME}/spring-xd-ui" />
-	</bean>
-
 	<context:annotation-config />
-
-	<beans profile="legacy">
-		<bean class="org.springframework.xd.dirt.rest.LegacyMvcConfiguration" />
-	</beans>
 
 	<beans>
 		<!-- Include only this @Configuration classes, which will in turn include

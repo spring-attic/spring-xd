@@ -189,4 +189,4 @@ function splitJvmOpts() {
 eval splitJvmOpts $DEFAULT_JVM_OPTS $JAVA_OPTS $SPRING_XD_ADMIN_OPTS
 
 
-exec "$JAVACMD" "${JVM_OPTS[@]}" -classpath "$CLASSPATH" org.springframework.xd.dirt.server.AdminMain "$@"
+exec "$JAVACMD" "${JVM_OPTS[@]}" -classpath "$CLASSPATH" org.springframework.xd.dirt.server.AdminServerApplication "$@"

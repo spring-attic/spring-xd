@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.plugins.job;
+package org.springframework.xd.dirt.job;
 
-import org.springframework.batch.admin.web.JobExecutionInfo;
-import org.springframework.batch.admin.web.JobInfo;
 import org.springframework.batch.core.ExitStatus;
 
 /**
  * A job info for batch jobs that provides more details than the base {@link JobInfo}
  * 
  * @author Andrew Eisenberg
+ * @author Ilayaperumal Gopinathan
  */
-public class ExpandedJobInfo extends JobInfo {
+public class DetailedJobInfo extends JobInfo {
 
 	private String jobParameters;
 
@@ -39,10 +38,13 @@ public class ExpandedJobInfo extends JobInfo {
 
 	private ExitStatus exitStatus;
 
-	public ExpandedJobInfo(String name, int executionCount, boolean launchable, boolean incrementable,
+	private JobExecutionInfo lastExecutionInfo;
+
+	public DetailedJobInfo(String name, int executionCount, boolean launchable, boolean incrementable,
 			JobExecutionInfo lastExecution) {
 		super(name, executionCount, launchable, incrementable);
-		if (lastExecution != null) {
+		this.lastExecutionInfo = lastExecution;
+		if (lastExecutionInfo != null) {
 			jobParameters = lastExecution.getJobParametersString();
 			duration = lastExecution.getDuration();
 			startTime = lastExecution.getStartTime();
@@ -50,6 +52,10 @@ public class ExpandedJobInfo extends JobInfo {
 			stepExecutionCount = lastExecution.getStepExecutionCount();
 			exitStatus = lastExecution.getJobExecution().getExitStatus();
 		}
+	}
+
+	public JobExecutionInfo getLastExecutionInfo() {
+		return lastExecutionInfo;
 	}
 
 	public String getJobParameters() {

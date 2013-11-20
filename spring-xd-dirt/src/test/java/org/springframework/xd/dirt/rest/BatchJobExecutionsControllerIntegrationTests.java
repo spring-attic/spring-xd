@@ -116,7 +116,7 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 		mockMvc.perform(
 				get("/batch/executions").param("startJobExecution", "0").param("pageSize", "20").accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
-				jsonPath("$", Matchers.hasSize(2))).andExpect(jsonPath("$[*].id", contains(0, 3))).andExpect(
+				jsonPath("$", Matchers.hasSize(2))).andExpect(jsonPath("$[*].executionId", contains(0, 3))).andExpect(
 				jsonPath("$[*].jobExecution[*].stepExecutions", Matchers.hasSize(3))).andExpect(
 				jsonPath("$[*].jobId", contains(0, 2))).andExpect(jsonPath("$[*].jobExecution[*].id", contains(0, 3))).andExpect(
 				jsonPath("$[*].jobExecution[*].jobParameters.parameters.param1.value", contains("test", "test"))).andExpect(
@@ -131,7 +131,7 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 	public void testGetSingleBatchJobExecution() throws Exception {
 		mockMvc.perform(
 				get("/batch/executions/0").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
-				.andExpect(jsonPath("$.id", Matchers.is(0)))
+				.andExpect(jsonPath("$.executionId", Matchers.is(0)))
 				.andExpect(jsonPath("$.jobExecution.id", Matchers.is(0)))
 				.andExpect(jsonPath("$.jobExecution.jobParameters.parameters.param1.type", Matchers.is("STRING")))
 				.andExpect(jsonPath("$.jobExecution.jobParameters.parameters.param1.identifying", Matchers.is(true)))

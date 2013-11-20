@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:file="http://www.springframework.org/schema/integration/file"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration
+		http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/file
+		http://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
+
+	<file:inbound-channel-adapter
+			auto-startup="false"
+			channel="router" directory="${dir:/tmp/xd/input/${xd.stream.name}}"
+			prevent-duplicates="${preventDuplicates:true}"
+			filename-pattern="${pattern:*}">
+		<poller fixed-delay="${fixedDelay:5}" time-unit="SECONDS"/>
+	</file:inbound-channel-adapter>
+
+	<router input-channel="router" expression="${ref:false} ? 'output' : 'contents'"/>
+
+	<channel id="contents"/>
+
+	<chain id="extractContents" input-channel="contents" output-channel="output">
+		<header-enricher>
+			<header name="contentType" value="application/octet-stream"/>
+		</header-enricher>
+		<file:file-to-bytes-transformer/>
+	</chain>
+
+	<channel id="output"/>
+
+</beans:beans>

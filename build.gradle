@@ -866,6 +866,8 @@ project('modules') {
 	}
 }
 
+// ================ M O D U L E S : S O U R C E S ======================
+
 project('modules.source.mail') {
 	dependencies {
 		runtime "org.springframework.integration:spring-integration-mail:$springIntegrationVersion"
@@ -916,23 +918,7 @@ project('modules.source.tcp-client') {
 	}
 }
 
-project('modules.sink.tcp') {
-	dependencies {
-		runtime "org.springframework.integration:spring-integration-ip:$springIntegrationVersion"
-	}
-}
-
 project('modules.source.mqtt') {
-	dependencies {
-		runtime ("org.springframework.integration:spring-integration-mqtt:$springIntegrationMQTTVersion") {
-		// spring-integration-mqtt has a different lifecycle than SI and may bring a version
-		// of SI which is believed by gradle to be newer than our preferred version.
-	     exclude group: 'org.springframework.integration'
-	 }
-	}
-}
-
-project('modules.sink.mqtt') {
 	dependencies {
 		runtime ("org.springframework.integration:spring-integration-mqtt:$springIntegrationMQTTVersion") {
 		// spring-integration-mqtt has a different lifecycle than SI and may bring a version
@@ -1007,9 +993,40 @@ project('modules.source.twittersearch') {
 //	}
 //}
 
+// ================ M O D U L E S : P R O C E S S O R S ================
+
+
 project('modules.processor.http-client') {
 	dependencies {
 		runtime	"org.springframework.integration:spring-integration-http:$springIntegrationVersion"
+	}
+}
+
+project('modules.processor.aggregator') {
+	dependencies {
+		// Adding redis for the message store, as it may become optional in DIRT itself
+		runtime	("org.springframework.integration:spring-integration-redis:$springIntegrationVersion") {
+			exclude group: 'org.slf4j'
+		}
+		runtime	("org.springframework.integration:spring-integration-jdbc:$springIntegrationVersion")
+	}
+}
+
+// ================ M O D U L E S : S I N K S ==========================
+
+project('modules.sink.tcp') {
+	dependencies {
+		runtime "org.springframework.integration:spring-integration-ip:$springIntegrationVersion"
+	}
+}
+
+project('modules.sink.mqtt') {
+	dependencies {
+		runtime ("org.springframework.integration:spring-integration-mqtt:$springIntegrationMQTTVersion") {
+		// spring-integration-mqtt has a different lifecycle than SI and may bring a version
+		// of SI which is believed by gradle to be newer than our preferred version.
+	     exclude group: 'org.springframework.integration'
+	 }
 	}
 }
 
@@ -1062,6 +1079,8 @@ project('modules.sink.splunk') {
 	}
 }
 
+// ================ M O D U L E S : J O B S ============================
+
 project('modules.job.filejdbc') {
 	dependencies {
 		runtime(project(":spring-xd-extension-jdbc"))
@@ -1079,6 +1098,12 @@ project('modules.job.hdfsjdbc') {
 		runtime(project(":spring-xd-extension-jdbc"))
 	}
 }
+
+
+
+
+
+
 
 project('spring-xd-ui') {
 	description = 'Spring XD UI'

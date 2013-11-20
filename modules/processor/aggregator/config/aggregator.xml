@@ -4,7 +4,9 @@
 	xmlns="http://www.springframework.org/schema/integration"
 	xmlns:task="http://www.springframework.org/schema/task"
 	xmlns:int-redis="http://www.springframework.org/schema/integration/redis"
-	xsi:schemaLocation="http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
+	xmlns:int-jdbc="http://www.springframework.org/schema/integration/jdbc"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration/jdbc http://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc-3.0.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd">
@@ -33,6 +35,27 @@
 		<beans:constructor-arg index="0" value="${hostname:localhost}" />
 		<beans:constructor-arg index="1" value="${port:6379}" />
 		<beans:property name="password" value="${password:#{null}}" />
+	</beans:bean>
+	
+	<beans:bean id="jdbcMessageStore" class="org.springframework.integration.jdbc.JdbcMessageStore" lazy-init="true" depends-on="dataSourceInitializer">
+		<beans:constructor-arg ref="dataSource"/>
+	</beans:bean>
+	
+	<beans:bean id="dataSourceInitializer" class="org.springframework.jdbc.datasource.init.DataSourceInitializer" lazy-init="true">
+		<beans:property name="databasePopulator" ref="databasePopulator"/>
+		<beans:property name="dataSource" ref="dataSource"/>
+		<beans:property name="enabled" value="#{'${initdb:null}' != 'null'}"/>
+	</beans:bean>
+
+	<beans:bean id="databasePopulator" class="org.springframework.jdbc.datasource.init.ResourceDatabasePopulator" lazy-init="true">
+		<beans:property name="scripts" value="classpath:/org/springframework/integration/jdbc/schema-${initdb:}.sql"/>
+	</beans:bean>
+
+	<beans:bean id="dataSource" class="org.springframework.jdbc.datasource.SimpleDriverDataSource" lazy-init="true">
+		<beans:property name="driverClass" value="${driverClass:}"/>
+		<beans:property name="url" value="${url:}"/>
+		<beans:property name="username" value="${username:}"/>
+		<beans:property name="password" value="${password:}"/>
 	</beans:bean>
 
 	<beans:bean id="reaper" class="org.springframework.integration.store.MessageGroupStoreReaper">

@@ -44,11 +44,16 @@
 	<beans:bean id="dataSourceInitializer" class="org.springframework.jdbc.datasource.init.DataSourceInitializer" lazy-init="true">
 		<beans:property name="databasePopulator" ref="databasePopulator"/>
 		<beans:property name="dataSource" ref="dataSource"/>
-		<beans:property name="enabled" value="#{'${initdb:null}' != 'null'}"/>
+		<beans:property name="enabled" value="${initdb:false}"/>
 	</beans:bean>
 
 	<beans:bean id="databasePopulator" class="org.springframework.jdbc.datasource.init.ResourceDatabasePopulator" lazy-init="true">
-		<beans:property name="scripts" value="classpath:/org/springframework/integration/jdbc/schema-${initdb:}.sql"/>
+		<beans:property name="scripts" value="classpath:/org/springframework/integration/jdbc/schema-#{@dbkind}.sql"/>
+	</beans:bean>
+	
+	<beans:bean id="dbkind" class="org.springframework.xd.dirt.jdbc.util.DatabaseVendorFriendlyNameFactoryBean" lazy-init="true">
+		<beans:property name="override" value="${dbkind:#{null}}" />
+		<beans:property name="dataSource" ref="dataSource" />
 	</beans:bean>
 
 	<beans:bean id="dataSource" class="org.springframework.jdbc.datasource.SimpleDriverDataSource" lazy-init="true">

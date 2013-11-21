@@ -16,7 +16,6 @@ package org.springframework.xd.dirt.stream;
 import org.junit.Rule;
 
 import org.springframework.context.ApplicationContext;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.xd.test.redis.RedisTestSupport;
 
@@ -35,9 +34,7 @@ public class RedisSingleNodeStreamDeploymentIntegrationTests extends AbstractSin
 
 	@Override
 	protected void cleanup(ApplicationContext context) {
-		RedisConnectionFactory connectionFactory = context.getBean(RedisConnectionFactory.class);
-		StringRedisTemplate template = new StringRedisTemplate(connectionFactory);
-		template.afterPropertiesSet();
+		StringRedisTemplate template = context.getBean(StringRedisTemplate.class);
 		template.delete("queue.deployer");
 	}
 

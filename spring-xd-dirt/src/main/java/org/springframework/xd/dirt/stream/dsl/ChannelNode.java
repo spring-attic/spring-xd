@@ -44,9 +44,15 @@ public class ChannelNode extends AstNode {
 		s.append("(");
 		s.append(channelType.getStringRepresentation());
 		int t = 0;
-		if (nameComponents.size() > 0 && channelType.isTap() &&
-				nameComponents.get(0).equalsIgnoreCase(channelType.tapSource().name())) {
-			t = 1;
+		if (nameComponents.size() > 0) {
+			if (channelType.isTap() &&
+					nameComponents.get(0).equalsIgnoreCase(channelType.tapSource().name())) {
+				t = 1;
+			}
+			else if ((nameComponents.get(0) + ":").equalsIgnoreCase(channelType.getStringRepresentation())) {
+				t = 1;
+			}
+
 		}
 		for (int max = nameComponents.size(); t < max; t++) {
 			s.append(nameComponents.get(t));

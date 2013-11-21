@@ -311,13 +311,13 @@ public class StreamConfigParserTests {
 	@Test
 	public void sourceChannel() {
 		StreamNode sn = parse("queue:foobar > file");
-		assertEquals("[(queue:queue:foobar:0>12)>(ModuleNode:file:15>19)]", sn.stringify(true));
+		assertEquals("[(queue:foobar:0>12)>(ModuleNode:file:15>19)]", sn.stringify(true));
 	}
 
 	@Test
 	public void sinkChannel() {
 		StreamNode sn = parse("http > queue:foo");
-		assertEquals("[(ModuleNode:http:0>4)>(queue:queue:foo:7>16)]", sn.stringify(true));
+		assertEquals("[(ModuleNode:http:0>4)>(queue:foo:7>16)]", sn.stringify(true));
 	}
 
 	@Test
@@ -348,7 +348,7 @@ public class StreamConfigParserTests {
 		checkForParseError("tap:queue:boo.xx.yy > file", XDDSLMessages.ONLY_A_TAP_ON_A_STREAM_CAN_BE_INDEXED, 13);
 
 		sn = parse("wibble: http > queue:bar");
-		assertEquals("[((Label:wibble) ModuleNode:http)>(queue:queue:bar)]", sn.stringify());
+		assertEquals("[((Label:wibble) ModuleNode:http)>(queue:bar)]", sn.stringify());
 	}
 
 	@Test
@@ -424,7 +424,7 @@ public class StreamConfigParserTests {
 
 		sn = parse("myhttp | file");
 
-		assertEquals("[(queue:queue:foo:9>24)>(ModuleNode:filter --name=payload:27>48)(ModuleNode:file:9>13)]",
+		assertEquals("[(queue:foo:9>24)>(ModuleNode:filter --name=payload:27>48)(ModuleNode:file:9>13)]",
 				sn.stringify(true));
 
 		checkForParseError("queue:foo > myhttp | file",
@@ -434,7 +434,7 @@ public class StreamConfigParserTests {
 				XDDSLMessages.CANNOT_USE_COMPOSEDMODULE_HERE_AS_IT_DEFINES_SOURCE_CHANNEL, 6, "myhttp");
 
 		sn = parse("myhttp > topic:wibble");
-		assertEquals("[(queue:queue:foo)>(ModuleNode:filter --name=payload)>(topic:topic:wibble)]", sn.stringify());
+		assertEquals("[(queue:foo)>(ModuleNode:filter --name=payload)>(topic:wibble)]", sn.stringify());
 	}
 
 	@Test
@@ -444,7 +444,7 @@ public class StreamConfigParserTests {
 		parse("mysink = filter --payload=true > queue:foo");
 
 		sn = parse("http | mysink");
-		assertEquals("[(ModuleNode:http:0>4)(ModuleNode:filter --payload=true:9>30)>(queue:queue:foo:33>48)]",
+		assertEquals("[(ModuleNode:http:0>4)(ModuleNode:filter --payload=true:9>30)>(queue:foo:33>48)]",
 				sn.stringify(true));
 
 		checkForParseError("http | mysink > topic:bar",
@@ -454,7 +454,7 @@ public class StreamConfigParserTests {
 				XDDSLMessages.CANNOT_USE_COMPOSEDMODULE_HERE_AS_IT_DEFINES_SINK_CHANNEL, 6, "mysink");
 
 		sn = parse("myhttp > topic:wibble");
-		assertEquals("[(ModuleNode:myhttp)>(topic:topic:wibble)]", sn.stringify());
+		assertEquals("[(ModuleNode:myhttp)>(topic:wibble)]", sn.stringify());
 	}
 
 	@Test
@@ -630,7 +630,7 @@ public class StreamConfigParserTests {
 	@Test
 	public void bridge01() {
 		StreamNode sn = parse("queue:bar > topic:boo");
-		assertEquals("[(queue:queue:bar:0>9)>(ModuleNode:bridge:10>11)>(topic:topic:boo:12>21)]", sn.stringify(true));
+		assertEquals("[(queue:bar:0>9)>(ModuleNode:bridge:10>11)>(topic:boo:12>21)]", sn.stringify(true));
 	}
 
 	// Parameters must be constructed via adjacent tokens

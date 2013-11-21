@@ -8,11 +8,12 @@
 
 	<int:channel id="input"/>
 
-	<int:service-activator input-channel="input" ref="handler" output-channel="nullChannel"/>
+	<int:service-activator input-channel="input" expression="@handler.process(#this, ${timeField:null})" output-channel="nullChannel"/>
 
 	<bean id="handler" class="org.springframework.xd.analytics.metrics.integration.AggregateCounterHandler">
 		<constructor-arg ref="aggregateCounterRepository"/>
 		<constructor-arg value="${name:${xd.stream.name}}"/>
+		<property name="timeFormat" value="${timeFormat:yyyy-MM-dd'T'HH:mm:ss.SSS'Z'}" />
 	</bean>
 
 </beans>

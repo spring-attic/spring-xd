@@ -16,6 +16,12 @@
 
 package org.springframework.xd.analytics.metrics.integration;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -30,6 +36,8 @@ public class AggregateCounterHandler {
 
 	private final String counterName;
 
+	private DateTimeFormatter dateFormat = ISODateTimeFormat.dateTime();
+
 	public AggregateCounterHandler(AggregateCounterRepository aggregateCounterRepository, String counterName) {
 		Assert.notNull(aggregateCounterRepository, "Aggregate Counter Repository can not be null");
 		Assert.notNull(counterName, "Counter Name can not be null");
@@ -37,11 +45,21 @@ public class AggregateCounterHandler {
 		this.counterName = counterName;
 	}
 
-	@ServiceActivator
-	public Message<?> process(Message<?> message) {
-		if (message != null) {
+	public void setTimeFormat(String pattern) {
+		Assert.hasText(pattern, "timeFormat pattern must not be empty");
+		this.dateFormat = DateTimeFormat.forPattern(pattern);
+	}
+
+	public Message<?> process(Message<?> message, String timeField) throws ParseException {
+		if (message == null) {
+			return null;
+		}
+		if (timeField == null) {
 			this.aggregateCounterRepository.increment(counterName);
+		} else {
+			this.aggregateCounterRepository.increment(counterName, 1, dateFormat.parseDateTime(timeField));
 		}
 		return message;
 	}
 }
+

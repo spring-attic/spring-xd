@@ -33,6 +33,8 @@ public class AdminServerApplication {
 
 	public static final String ADMIN_PROFILE = "adminServer";
 
+	public static final String HSQL_PROFILE = "hsqldb";
+
 	private ConfigurableApplicationContext context;
 
 	public static void main(String[] args) {

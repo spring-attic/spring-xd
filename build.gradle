@@ -1264,6 +1264,14 @@ task copyXDShellInstall(type: Copy, dependsOn: [":spring-xd-shell:installApp"]) 
 	exclude "**/lib/spring-data-hadoop-*.jar"
 }
 
+task copyYMLInstall(type: Copy, dependsOn: ["copyXDShellInstall"]) {
+	from "$rootDir/spring-xd-dirt/src/main/resources/application.yml"
+	into "$buildDir/dist/spring-xd/xd/config"
+	    rename { String fileName ->
+        fileName.replace('yml', 'template')
+    }
+}
+
 task copyHadoopLibs(dependsOn: [":spring-xd-hadoop:hadoop12:copyToLib", ":spring-xd-hadoop:hadoop22:copyToLib", ":spring-xd-hadoop:cdh4:copyToLib", ":spring-xd-hadoop:hdp13:copyToLib", ":spring-xd-hadoop:phd1:copyToLib"]) << {
 	['hadoop12', 'hadoop22', 'cdh4', 'hdp13', 'phd1'].each { distro ->
 		copy {
@@ -1277,7 +1285,7 @@ task copyHadoopLibs(dependsOn: [":spring-xd-hadoop:hadoop12:copyToLib", ":spring
 	}
 }
 
-task copyInstall (type: Copy, dependsOn: ["copyRedisInstall", "copyGemfireInstall", "copyXDInstall", "copyHadoopLibs", "copyXDShellInstall"]) {
+task copyInstall (type: Copy, dependsOn: ["copyRedisInstall", "copyGemfireInstall", "copyXDInstall", "copyHadoopLibs", "copyXDShellInstall", "copyYMLInstall"]) {
 	group = 'Application'
 	description = "Copy all the required installs to build/dist directory"
 	from "$rootDir/scripts/README"

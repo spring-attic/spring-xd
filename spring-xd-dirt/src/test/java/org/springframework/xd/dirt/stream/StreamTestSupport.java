@@ -54,7 +54,7 @@ public class StreamTestSupport {
 
 	@BeforeClass
 	public static void startXDSingleNode() throws Exception {
-		application = new SingleNodeApplication().run("--spring.profiles.active=memory");
+		application = new SingleNodeApplication().run("--spring.profiles.active=memory,hsqldb");
 		ConfigurableApplicationContext adminContext = application.getAdminContext();
 		ConfigurableApplicationContext containerContext = application.getContainerContext();
 		ResourceModuleRegistry cp = new ResourceModuleRegistry("classpath:/testmodules/");

@@ -17,10 +17,9 @@
 		<property name="jdbcTemplate" ref="jdbcTemplate" />
 	</bean>
 
-	<beans profile="default">
+	<beans profile="adminServer">
 
-		<beans profile="adminServer">
-
+		<beans profile="hsqldb">
 			<bean id="hsqldb" class="org.springframework.xd.dirt.job.HSQLServerBean">
 				<property name="serverProperties">
 					<props>
@@ -31,6 +30,39 @@
 					</props>
 				</property>
 			</bean>
+			<jdbc:initialize-database data-source="dataSource"
+				ignore-failures="ALL">
+				<jdbc:script
+					location="classpath:/org/springframework/xd/dirt/job/registry-schema-hsqldb.sql" />
+			</jdbc:initialize-database>
+
+		</beans>
+
+		<beans profile="postgresql">
+
+			<jdbc:initialize-database data-source="dataSource"
+				ignore-failures="ALL">
+				<jdbc:script
+					location="classpath:/org/springframework/xd/dirt/job/registry-schema-postgresql.sql" />
+			</jdbc:initialize-database>
+			<jdbc:initialize-database data-source="dataSource"
+				ignore-failures="ALL">
+				<jdbc:script location="org/springframework/batch/core/schema-postgresql.sql" />
+			</jdbc:initialize-database>
+
+		</beans>
+
+		<beans profile="mysql">
+
+			<jdbc:initialize-database data-source="dataSource"
+				ignore-failures="ALL">
+				<jdbc:script
+					location="classpath:/org/springframework/xd/dirt/job/registry-schema-mysql.sql" />
+			</jdbc:initialize-database>
+			<jdbc:initialize-database data-source="dataSource"
+				ignore-failures="ALL">
+				<jdbc:script location="org/springframework/batch/core/schema-mysql.sql" />
+			</jdbc:initialize-database>
 
 		</beans>
 
@@ -73,40 +105,6 @@
 	<beans profile="cloud" xmlns="http://www.springframework.org/schema/beans">
 		<cloud:data-source id="dataSource"
 			service-name="${xd.datasource.service:mysql}" />
-	</beans>
-
-	<beans profile="adminServer">
-
-		<beans profile="postgresql">
-
-			<jdbc:initialize-database data-source="dataSource"
-				ignore-failures="ALL">
-				<jdbc:script
-					location="classpath:/org/springframework/xd/dirt/job/registry-schema-postgresql.sql" />
-			</jdbc:initialize-database>
-
-		</beans>
-
-		<beans profile="mysql">
-
-			<jdbc:initialize-database data-source="dataSource"
-				ignore-failures="ALL">
-				<jdbc:script
-					location="classpath:/org/springframework/xd/dirt/job/registry-schema-mysql.sql" />
-			</jdbc:initialize-database>
-
-		</beans>
-
-		<beans profile="hsqldb">
-
-			<jdbc:initialize-database data-source="dataSource"
-				ignore-failures="ALL">
-				<jdbc:script
-					location="classpath:/org/springframework/xd/dirt/job/registry-schema-hsqldb.sql" />
-			</jdbc:initialize-database>
-
-		</beans>
-
 	</beans>
 
 </beans>

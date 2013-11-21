@@ -49,7 +49,7 @@ import org.springframework.xd.dirt.server.ParentConfiguration;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = ParentConfiguration.class, loader = SpringApplicationContextLoader.class)
-@ActiveProfiles({ "adminServer", "single", "memory" })
+@ActiveProfiles({ "adminServer", "single", "memory", "hsqldb" })
 @DirtiesContext
 public class JobRepoTests {
 

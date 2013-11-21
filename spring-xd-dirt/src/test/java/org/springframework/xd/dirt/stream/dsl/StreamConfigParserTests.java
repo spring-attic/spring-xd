@@ -424,7 +424,7 @@ public class StreamConfigParserTests {
 
 		sn = parse("myhttp | file");
 
-		assertEquals("[(queue:foo:9>24)>(ModuleNode:filter --name=payload:27>48)(ModuleNode:file:9>13)]",
+		assertEquals("[(queue:foo:9>18)>(ModuleNode:filter --name=payload:21>42)(ModuleNode:file:9>13)]",
 				sn.stringify(true));
 
 		checkForParseError("queue:foo > myhttp | file",
@@ -444,7 +444,7 @@ public class StreamConfigParserTests {
 		parse("mysink = filter --payload=true > queue:foo");
 
 		sn = parse("http | mysink");
-		assertEquals("[(ModuleNode:http:0>4)(ModuleNode:filter --payload=true:9>30)>(queue:foo:33>48)]",
+		assertEquals("[(ModuleNode:http:0>4)(ModuleNode:filter --payload=true:9>30)>(queue:foo:33>42)]",
 				sn.stringify(true));
 
 		checkForParseError("http | mysink > topic:bar",

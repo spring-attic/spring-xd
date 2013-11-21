@@ -42,17 +42,30 @@ public class ChannelNode extends AstNode {
 	public String stringify(boolean includePositionalInfo) {
 		StringBuilder s = new StringBuilder();
 		s.append("(");
-		s.append(channelType.getStringRepresentation());
-		int t = 0;
-		if (nameComponents.size() > 0) {
-			if (channelType.isTap() &&
-					nameComponents.get(0).equalsIgnoreCase(channelType.tapSource().name())) {
-				t = 1;
-			}
-			else if ((nameComponents.get(0) + ":").equalsIgnoreCase(channelType.getStringRepresentation())) {
-				t = 1;
-			}
+		produceStringRepresentation(s);
+		if (includePositionalInfo) {
+			s.append(":");
+			s.append(getStartPos()).append(">").append(getEndPos());
+		}
+		s.append(")");
+		return s.toString();
+	}
 
+	@Override
+	public String toString() {
+		StringBuilder s = new StringBuilder();
+		produceStringRepresentation(s);
+		return s.toString();
+	}
+
+	private void produceStringRepresentation(StringBuilder s) {
+		int t = 0;
+		if (channelType.isTap()) {
+			s.append(channelType.getStringRepresentation());
+		}
+		if (nameComponents.size() > 0 && channelType.isTap() &&
+				nameComponents.get(0).equalsIgnoreCase(channelType.tapSource().name())) {
+			t = 1;
 		}
 		for (int max = nameComponents.size(); t < max; t++) {
 			s.append(nameComponents.get(t));
@@ -66,21 +79,6 @@ public class ChannelNode extends AstNode {
 				s.append(indexingElements.get(t2));
 			}
 		}
-		if (includePositionalInfo) {
-			s.append(":");
-			s.append(getStartPos()).append(">").append(getEndPos());
-		}
-		s.append(")");
-		return s.toString();
-	}
-
-	@Override
-	public String toString() {
-		StringBuilder s = new StringBuilder();
-		s.append(channelType.getStringRepresentation());
-		s.append(getNameComponents());
-		s.append(getIndexingComponents());
-		return s.toString();
 	}
 
 	public String getChannelName() {
@@ -189,3 +187,4 @@ public class ChannelNode extends AstNode {
 		return s.toString();
 	}
 }
+

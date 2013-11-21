@@ -21,17 +21,18 @@
 
 		<beans profile="adminServer">
 
-			<bean id="hsqldb" class="org.springframework.xd.dirt.job.HSQLServerBean">
-				<property name="serverProperties">
-					<props>
-						<prop key="server.port">${hsql.server.port:9101}</prop>
-						<prop key="server.database.0">${xd.data.home:file:${XD_HOME}/data}/jobs/${hsql.server.database:xdjobrepotest}
-						</prop>
-						<prop key="server.dbname.0">${hsql.server.dbname:xdjob}</prop>
-					</props>
-				</property>
-			</bean>
-
+			<beans profile="hsqldb">
+				<bean id="hsqldb" class="org.springframework.xd.dirt.job.HSQLServerBean">
+					<property name="serverProperties">
+						<props>
+							<prop key="server.port">${hsql.server.port:9101}</prop>
+							<prop key="server.database.0">${xd.data.home:file:${XD_HOME}/data}/jobs/${hsql.server.database:xdjobrepotest}
+							</prop>
+							<prop key="server.dbname.0">${hsql.server.dbname:xdjob}</prop>
+						</props>
+					</property>
+				</bean>
+			</beans>
 		</beans>
 
 	</beans>

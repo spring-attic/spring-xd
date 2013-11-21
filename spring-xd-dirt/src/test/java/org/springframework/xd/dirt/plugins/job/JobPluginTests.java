@@ -77,7 +77,8 @@ public class JobPluginTests {
 
 		plugin = new JobPlugin();
 		sharedContext = new SpringApplicationBuilder(SharedConfiguration.class).profiles(
-				AdminServerApplication.ADMIN_PROFILE).properties("spring.datasource.url=jdbc:hsqldb:mem:xdjobrepotest") //
+				AdminServerApplication.ADMIN_PROFILE, AdminServerApplication.HSQL_PROFILE).properties(
+				"spring.datasource.url=jdbc:hsqldb:mem:xdjobrepotest") //
 		.web(false).initializers(
 				new ApplicationContextInitializer<ConfigurableApplicationContext>() {
 

@@ -338,6 +338,7 @@ project('spring-xd-dirt') {
 		compile "org.springframework.cloud:cloudfoundry-connector:$springCloudVersion"
 		compile "org.springframework.boot:spring-boot-autoconfigure:$springBootVersion"
 		compile "org.springframework.boot:spring-boot-actuator:$springBootVersion"
+		compile "org.springframework.boot:spring-boot-loader:$springBootVersion"
 		compile "org.springframework.data:spring-data-redis:$springDataRedisVersion"
 		compile "org.springframework.integration:spring-integration-redis:$springIntegrationVersion"
 		compile "org.springframework.integration:spring-integration-http:$springIntegrationVersion"

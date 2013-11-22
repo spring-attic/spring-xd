@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:file="http://www.springframework.org/schema/integration/file"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration
+		http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/file
+		http://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
+
+	<channel id="input"/>
+
+	<router input-channel="input" expression="${binary:false} ? 'files' : 'appendNewline'"/>
+
+	<transformer input-channel="appendNewline" expression="payload + @newline" output-channel="files"/>
+
+	<beans:bean id="newline" class="java.lang.String">
+		<beans:constructor-arg value="#{systemProperties['line.separator']}"/>
+	</beans:bean>
+
+	<channel id="files"/>
+
+	<file:outbound-channel-adapter id="files"
+		mode="APPEND"
+		charset="${charset:UTF-8}"
+		directory="${dir:/tmp/xd/output/}"
+		filename-generator-expression="'${name:${xd.stream.name}}'+(('${suffix:out}'.trim()=='')?'':'.${suffix:out}')"/>
+
+</beans:beans>

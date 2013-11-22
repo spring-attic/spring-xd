@@ -17,7 +17,7 @@
 		routing-key-expression="${routingKey:'${xd.stream.name}'}" />
 
 	<context:property-placeholder
-		location="${XD_HOME}/config/rabbit.properties"
+		location="${xd.config.home}/rabbit.properties"
 		ignore-resource-not-found="true" />
 
 	<beans profile="cloud" xmlns="http://www.springframework.org/schema/beans">

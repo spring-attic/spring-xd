@@ -10,7 +10,17 @@ spring:
 XD_ANALYTICS: ${analytics:redis}
 XD_TRANSPORT: ${transport:redis}
 XD_STORE: ${store:redis}
-XD_HOME: ${xdHomeDir:file:..}
+XD_HOME: ${xdHomeDir:..}
+
+xd:
+  data:
+    home: file:${XD_HOME}/data
+  config:
+    home: file:${XD_HOME}/config
+  module:
+    home: file:${XD_HOME}/modules
+  ui:
+    home: file:${XD_HOME}/spring-xd-ui
 
 server:
   port: ${PORT:9393}
@@ -38,7 +48,7 @@ transport: rabbit
 spring:
   profiles: cloud
 
-xdHomeDir: file:.
+xdHomeDir: .
 
 ---
 

@@ -25,7 +25,7 @@
 				<property name="serverProperties">
 					<props>
 						<prop key="server.port">${hsql.server.port:9101}</prop>
-						<prop key="server.database.0">${XD_DATA:${XD_HOME}/data}/jobs/${hsql.server.database:xdjobrepotest}
+						<prop key="server.database.0">${xd.data.home:file:${XD_HOME}/data}/jobs/${hsql.server.database:xdjobrepotest}
 						</prop>
 						<prop key="server.dbname.0">${hsql.server.dbname:xdjob}</prop>
 					</props>

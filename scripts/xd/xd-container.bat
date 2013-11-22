@@ -8,13 +8,12 @@
 @rem Set local scope for the variables with windows NT shell
 if "%OS%"=="Windows_NT" setlocal
 
-@rem Add default JVM options here. You can also use JAVA_OPTS and SPRING_XD_CONTAINER_OPTS to pass JVM options to this script.
+@rem Add default JVM options here. You can also use JAVA_OPTS to pass JVM options to this script.
 set DEFAULT_JVM_OPTS=
 
 set DIRNAME=%~dp0
 if "%DIRNAME%" == "" set DIRNAME=.
 set APP_BASE_NAME=%~n0
-
 set APP_HOME=%DIRNAME%..
 
 @rem Find java.exe
@@ -84,7 +83,7 @@ if exist "%APP_HOME_LIB%" (
             set found=0
         )
     )
-    set CLASSPATH=%APP_HOME%\modules\processor\scripts;%APP_HOME%\config
+    set CLASSPATH=%APP_HOME%\modules\processor\scripts;%APP_HOME%\config;%APP_HOME%
     set CLASSPATH=!CLASSPATH!;%APP_HOME_LIB%\*
     set HADOOP_LIB=%APP_HOME%\lib\!HADOOP_DISTRO!
     if exist "!HADOOP_LIB!" (
@@ -96,9 +95,10 @@ if exist "%APP_HOME_LIB%" (
 if not exist "%XD_HOME%" (
     set XD_HOME=%APP_HOME%
 )
+set SPRING_XD_OPTS="-Dspring.application.name=container -Dlogger.config=file:$XD_HOME/config/xd-container-logger.properties"
 
 @rem Execute xd-container
-"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% -DXD_CONTAINER=container -Dlog4j.configuration=file:///%XD_HOME%/config/xd-container-logger.properties -classpath "%CLASSPATH%" org.springframework.xd.dirt.server.LauncherApplication %CMD_LINE_ARGS%
+"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SPRING_XD_OPTS% -classpath "%CLASSPATH%" org.springframework.xd.dirt.server.LauncherApplication %CMD_LINE_ARGS%
 
 :end
 @rem End local scope for the variables with windows NT shell

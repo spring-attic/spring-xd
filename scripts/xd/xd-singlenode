@@ -75,7 +75,7 @@ for arg in "${args[@]}" ; do
     x=$((x+1))
 done
 APP_HOME_LIB=$APP_HOME/lib
-CLASSPATH=$APP_HOME/modules/processor/scripts:$APP_HOME/config
+CLASSPATH=$APP_HOME/modules/processor/scripts:$APP_HOME/config:$APP_HOME
 if [ -d "$APP_HOME_LIB" ]; then
     for i in "$APP_HOME_LIB"/*.jar; do
         CLASSPATH="$CLASSPATH":"$i"
@@ -180,14 +180,14 @@ if [ x"$XD_HOME" = x ] ; then
     export XD_HOME=$APP_HOME
 fi
 
-# set XD_HOME as system property via SPRING_XD_CONTAINER_OPTS
-SPRING_XD_ADMIN_OPTS="-Dxd.home=$XD_HOME -Dlog4j.configuration=file:///$XD_HOME/config/xd-singlenode-logger.properties"
+# set app name etc. via SPRING_XD_OPTS
+SPRING_XD_OPTS="-Dspring.application.name=admin -Dlogger.config=file:$XD_HOME/config/xd-container-logger.properties"
 
-# Split up the JVM_OPTS And SPRING_XD_ADMIN_OPTS values into an array, following the shell quoting and substitution rules
+# Split up the JVM_OPTS And SPRING_XD_OPTS values into an array, following the shell quoting and substitution rules
 function splitJvmOpts() {
     JVM_OPTS=("$@")
 }
-eval splitJvmOpts $DEFAULT_JVM_OPTS $JAVA_OPTS $SPRING_XD_ADMIN_OPTS
+eval splitJvmOpts $DEFAULT_JVM_OPTS $JAVA_OPTS $SPRING_XD_OPTS
 
 
 exec "$JAVACMD" "${JVM_OPTS[@]}" -classpath "$CLASSPATH" org.springframework.xd.dirt.server.SingleNodeApplication "$@"

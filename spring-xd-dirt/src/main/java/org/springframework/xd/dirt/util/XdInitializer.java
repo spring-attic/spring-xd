@@ -19,12 +19,9 @@ package org.springframework.xd.dirt.util;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.SpringApplicationInitializer;
-import org.springframework.context.ApplicationContextInitializer;
-import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.EnvironmentAware;
-import org.springframework.core.Ordered;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.env.Environment;
 
 
@@ -33,19 +30,11 @@ import org.springframework.core.env.Environment;
  * 
  * @author Dave Syer
  */
-public class XdInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext>,
-		SpringApplicationInitializer, EnvironmentAware, Ordered {
+public class XdInitializer implements ApplicationListener<ContextRefreshedEvent>, EnvironmentAware {
 
 	private static Log logger = LogFactory.getLog(XdInitializer.class);
 
 	private Environment environment;
-
-	private int order = Ordered.LOWEST_PRECEDENCE;
-
-	@Override
-	public int getOrder() {
-		return order;
-	}
 
 	@Override
 	public void setEnvironment(Environment environment) {
@@ -53,12 +42,7 @@ public class XdInitializer implements ApplicationContextInitializer<Configurable
 	}
 
 	@Override
-	public void initialize(SpringApplication springApplication, String[] args) {
-		springApplication.setShowBanner(false);
-	}
-
-	@Override
-	public void initialize(ConfigurableApplicationContext applicationContext) {
+	public void onApplicationEvent(ContextRefreshedEvent event) {
 		logger.info("XD home: " + environment.resolvePlaceholders("${XD_HOME}"));
 		logger.info("Transport: " + environment.resolvePlaceholders("${XD_TRANSPORT}"));
 		logger.info("Store: " + environment.resolvePlaceholders("${XD_STORE}"));

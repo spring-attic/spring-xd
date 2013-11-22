@@ -14,7 +14,7 @@
 			<tbody>
 				<% for (var i in executions) { %>
 					<tr>
-						<td><%= executions[i].id %></td>
+						<td><%= executions[i].executionId %></td>
 						<td><%= executions[i].name.substring(0, executions[i].name.lastIndexOf(".")) %></td>
 						<td><%= executions[i].startDate + ' ' + executions[i].startTime +  ' ' + executions[i].timeZone %></td>
 						<td><%= executions[i].stepExecutionCount %></td>

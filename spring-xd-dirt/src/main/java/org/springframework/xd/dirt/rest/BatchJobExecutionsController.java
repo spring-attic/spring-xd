@@ -21,7 +21,6 @@ import java.util.Collection;
 import java.util.TimeZone;
 
 import org.springframework.batch.admin.service.JobService;
-import org.springframework.batch.admin.web.JobExecutionInfo;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -33,6 +32,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.xd.rest.client.domain.BatchJobExecutionInfo;
 
 /**
  * Controller for batch job executions.
@@ -43,7 +43,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @Controller
 @RequestMapping("/batch/executions")
-@ExposesResourceFor(JobExecutionInfo.class)
+@ExposesResourceFor(BatchJobExecutionInfo.class)
 public class BatchJobExecutionsController {
 
 	private JobService jobService;
@@ -74,12 +74,12 @@ public class BatchJobExecutionsController {
 	@RequestMapping(value = { "" }, method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public Collection<JobExecutionInfo> list(@RequestParam(defaultValue = "0") int startJobExecution,
+	public Collection<BatchJobExecutionInfo> list(@RequestParam(defaultValue = "0") int startJobExecution,
 			@RequestParam(defaultValue = "20") int pageSize) {
 
-		Collection<JobExecutionInfo> result = new ArrayList<JobExecutionInfo>();
+		Collection<BatchJobExecutionInfo> result = new ArrayList<BatchJobExecutionInfo>();
 		for (JobExecution jobExecution : jobService.listJobExecutions(startJobExecution, pageSize)) {
-			result.add(new JobExecutionInfo(jobExecution, timeZone));
+			result.add(new BatchJobExecutionInfo(jobExecution, timeZone));
 		}
 		return result;
 	}

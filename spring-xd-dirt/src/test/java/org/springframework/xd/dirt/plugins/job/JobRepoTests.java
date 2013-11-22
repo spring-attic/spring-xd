@@ -19,11 +19,8 @@ package org.springframework.xd.dirt.plugins.job;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.io.File;
-
 import javax.sql.DataSource;
 
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,6 +44,7 @@ import org.springframework.xd.dirt.server.ParentConfiguration;
  * 
  * @author Glenn Renfro
  * @author Gunnar Hillert
+ * @author Ilayaperumal Gopinathan
  * 
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -57,8 +55,6 @@ public class JobRepoTests {
 
 	private static final String SIMPLE_JOB_NAME = "foobar";
 
-	private static final String REPOSITORY_LOCATION = "../data";
-
 	@Autowired
 	private DataSource source;
 
@@ -68,21 +64,13 @@ public class JobRepoTests {
 	@Autowired
 	private JobLauncher launcher;
 
-	@BeforeClass
-	public static void setUp() throws Exception {
-		File file = new File(REPOSITORY_LOCATION);
-		if (file.exists()) {
-			assertTrue(file.isDirectory());
-			file.delete();
-		}
-	}
+	@Autowired
+	private BatchJobLocator jobLocator;
 
-	@AfterClass
-	public static void teardown() throws Exception {
-		File file = new File(REPOSITORY_LOCATION);
-		if (file.exists() && file.isDirectory()) {
-			file.delete();
-		}
+	@BeforeClass
+	public static void setup() {
+		// use a different job repo database for this test
+		System.setProperty("hsql.server.database", "jobrepotest");
 	}
 
 	@Test
@@ -113,5 +101,6 @@ public class JobRepoTests {
 			// we can ignore this. Just want to create a fake job instance.
 		}
 		assertTrue(repo.isJobInstanceExists(SIMPLE_JOB_NAME, new JobParameters()));
+		jobLocator.delteJobName(SIMPLE_JOB_NAME);
 	}
 }

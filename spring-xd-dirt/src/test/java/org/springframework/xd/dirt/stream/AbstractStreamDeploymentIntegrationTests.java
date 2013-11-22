@@ -40,6 +40,9 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.server.ParentConfiguration;
+import org.springframework.xd.dirt.stream.dsl.ModuleNode;
+import org.springframework.xd.dirt.stream.dsl.StreamConfigParser;
+import org.springframework.xd.dirt.stream.dsl.StreamNode;
 import org.springframework.xd.module.Module;
 
 /**
@@ -57,6 +60,8 @@ public abstract class AbstractStreamDeploymentIntegrationTests {
 	protected StreamDeployer streamDeployer;
 
 	protected ModuleDeployer moduleDeployer;
+
+	protected StreamConfigParser parser;
 
 	private final QueueChannel tapChannel = new QueueChannel();
 
@@ -77,11 +82,12 @@ public abstract class AbstractStreamDeploymentIntegrationTests {
 				"node", "memory").properties("XD_HOME=..").child(
 				StreamDeploymentIntegrationTestsConfiguration.class).sources(
 				"META-INF/spring-xd/transports/" + transport + "-admin.xml").web(false).run(
-				"--XD_TRANSPORT=" + transport);
+				"--transport=" + transport);
 		this.streamDefinitionRepository = context.getBean(StreamDefinitionRepository.class);
 		this.streamRepository = context.getBean(StreamRepository.class);
 		this.streamDeployer = context.getBean(StreamDeployer.class);
 		this.moduleDeployer = context.getBean(ModuleDeployer.class);
+		this.parser = new StreamConfigParser(streamDefinitionRepository);
 
 		AbstractMessageChannel deployChannel = context.getBean("deployChannel", AbstractMessageChannel.class);
 		AbstractMessageChannel undeployChannel = context.getBean("undeployChannel", AbstractMessageChannel.class);
@@ -146,5 +152,45 @@ public abstract class AbstractStreamDeploymentIntegrationTests {
 			}
 		}
 		return matchedModule;
+	}
+
+	protected void deploy(StreamDefinition definition) {
+		waitForDeploy(definition);
+	}
+
+	private void waitForDeploy(StreamDefinition definition) {
+		StreamNode stream = parser.parse(definition.getDefinition());
+
+		boolean deployed = false;
+		streamDeployer.deploy(definition.getName());
+
+		final int MAX_TRIES = 10;
+		int tries = 1;
+		while (!deployed && tries <= MAX_TRIES) {
+			deployed = true;
+			int i = 0;
+			for (ModuleNode module : stream.getModuleNodes()) {
+				if (getModule(module.getName(), i++, moduleDeployer) == null) {
+					deployed = false;
+					break;
+				}
+			}
+			if (!deployed) {
+				try {
+					Thread.sleep(1000);
+					streamDeployer.undeploy(definition.getName());
+					Thread.sleep(1000);
+					streamDeployer.deploy(definition.getName());
+					tries++;
+				}
+				catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+			}
+		}
+		if (deployed) {
+			System.out.println("deployed after " + tries + " tries");
+		}
+		assertTrue("stream " + definition.getName() + " not deployed ", deployed);
 	}
 }

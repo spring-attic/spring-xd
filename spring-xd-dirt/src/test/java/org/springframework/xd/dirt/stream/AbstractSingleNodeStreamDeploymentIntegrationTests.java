@@ -84,9 +84,10 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 				"topic:foo > queue:bar2");
 		assertEquals(0, streamRepository.count());
 		streamDefinitionRepository.save(bar1Definition);
-		streamDeployer.deploy("bar1Definition");
+		deploy(bar1Definition);
+
 		streamDefinitionRepository.save(bar2Definition);
-		streamDeployer.deploy("bar2Definition");
+		deploy(bar2Definition);
 		Thread.sleep(1000);
 		assertEquals(2, streamRepository.count());
 
@@ -119,8 +120,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 	private void doTest(StreamDefinition routerDefinition) throws InterruptedException {
 		assertEquals(0, streamRepository.count());
 		streamDefinitionRepository.save(routerDefinition);
-		streamDeployer.deploy("routerDefinition");
-		Thread.sleep(1000);
+		deploy(routerDefinition);
 		assertEquals(1, streamRepository.count());
 		assertModuleRequest("router", false);
 
@@ -147,5 +147,6 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 		bus.unbindConsumer("queue:foo", fooChannel);
 		bus.unbindConsumer("queue:bar", barChannel);
 	}
+
 
 }

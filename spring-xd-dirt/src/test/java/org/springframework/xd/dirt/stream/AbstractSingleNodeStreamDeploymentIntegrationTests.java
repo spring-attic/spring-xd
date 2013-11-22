@@ -105,8 +105,8 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 
 		testChannel.send(new GenericMessage<String>("hello"));
 
-		final Message<?> bar1Message = bar1Channel.receive(2000);
-		final Message<?> bar2Message = bar2Channel.receive(2000);
+		final Message<?> bar1Message = bar1Channel.receive(10000);
+		final Message<?> bar2Message = bar2Channel.receive(10000);
 		assertEquals("hello", bar1Message.getPayload());
 		assertEquals("hello", bar2Message.getPayload());
 
@@ -138,8 +138,8 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 
 		testChannel.send(MessageBuilder.withPayload("b").build());
 
-		final Message<?> fooMessage = fooChannel.receive(2000);
-		final Message<?> barMessage = barChannel.receive(2000);
+		final Message<?> fooMessage = fooChannel.receive(10000);
+		final Message<?> barMessage = barChannel.receive(10000);
 		assertEquals("a", fooMessage.getPayload());
 		assertEquals("b", barMessage.getPayload());
 

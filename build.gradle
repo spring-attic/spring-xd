@@ -1350,7 +1350,7 @@ task asciidoctorHtml(type: AsciidoctorTask, dependsOn: [pullDocs, ':spring-xd-sh
 			docinfo: '',
 			toc2: '',
 			imagesdir: 'images/',
-			stylesdir: 'stylesheets/',
+			stylesdir: "$baseDir/stylesheets/",
 			stylesheet: 'golo.css',
 			appversion: "$version",
 			'source-highlighter': 'highlightjs'

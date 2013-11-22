@@ -23,22 +23,26 @@ import java.util.TimeZone;
 import org.springframework.batch.admin.service.JobService;
 import org.springframework.batch.admin.web.JobExecutionInfo;
 import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.launch.NoSuchJobExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.xd.dirt.module.NoSuchJobExecutionInfoException;
 
 /**
  * Controller for batch job executions.
  * 
  * @author Dave Syer
  * @author Ilayaperumal Gopinathan
+ * @author Gunnar Hillert
  * 
  */
 @Controller
@@ -82,5 +86,27 @@ public class BatchJobExecutionsController {
 			result.add(new JobExecutionInfo(jobExecution, timeZone));
 		}
 		return result;
+	}
+
+	/**
+	 * @param jobExecutionId Id of the {@link JobExecution}
+	 * @return ExpandedJobInfo for the given job name
+	 * @throws NoSuchJobExecutionException Thrown if the {@link JobExecution} does not exist
+	 */
+	@RequestMapping(value = "/{jobExecutionId}", method = RequestMethod.GET)
+	@ResponseStatus(HttpStatus.OK)
+	@ResponseBody
+	public JobExecutionInfo getJobExecutionInfo(@PathVariable Long jobExecutionId) {
+
+		final JobExecution jobExecution;
+
+		try {
+			jobExecution = jobService.getJobExecution(jobExecutionId);
+		}
+		catch (NoSuchJobExecutionException e) {
+			throw new NoSuchJobExecutionInfoException(jobExecutionId);
+		}
+
+		return new JobExecutionInfo(jobExecution, timeZone);
 	}
 }

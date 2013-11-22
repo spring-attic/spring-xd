@@ -149,6 +149,23 @@ public class SimpleModule extends AbstractModule {
 	}
 
 	private void copyEnvironment(ConfigurableEnvironment environment, ConfigurableEnvironment parent) {
+		MutablePropertySources sources = environment.getPropertySources();
+		String lastName = null;
+		for (PropertySource<?> source : parent.getPropertySources()) {
+			String name = source.getName();
+			if (sources.contains(name)) {
+				sources.replace(source.getName(), source);
+			}
+			else {
+				if (lastName == null) {
+					sources.addFirst(source);
+				}
+				else {
+					sources.addAfter(lastName, source);
+				}
+			}
+			lastName = name;
+		}
 		for (String profile : parent.getActiveProfiles()) {
 			environment.addActiveProfile(profile);
 		}
@@ -183,4 +200,5 @@ public class SimpleModule extends AbstractModule {
 			}
 		}
 	}
+
 }

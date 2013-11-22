@@ -3,12 +3,17 @@ package org.springframework.xd.dirt.server;
 
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
+import org.springframework.context.event.SourceFilteringListener;
 import org.springframework.xd.dirt.container.ContainerStartedEvent;
 import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.util.BannerUtils;
+import org.springframework.xd.dirt.util.XdInitializer;
 
 @Configuration
 @EnableAutoConfiguration
@@ -45,4 +50,10 @@ public class LauncherApplication {
 		context.publishEvent(new ContainerStartedEvent(container));
 	}
 
+	@Bean
+	public ApplicationListener<?> xdInitializer(ApplicationContext context) {
+		XdInitializer delegate = new XdInitializer();
+		delegate.setEnvironment(context.getEnvironment());
+		return new SourceFilteringListener(context, delegate);
+	}
 }

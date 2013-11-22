@@ -30,7 +30,7 @@
 		class="org.springframework.jdbc.datasource.init.DataSourceInitializer">
 		<beans:property name="databasePopulator" ref="databasePopulator" />
 		<beans:property name="dataSource" ref="dataSource" />
-		<beans:property name="enabled" value="${initializeDatabase:false}" />
+		<beans:property name="enabled" value="${initializeDatabase:true}" />
 	</beans:bean>
 
 	<beans:bean id="databasePopulator"
@@ -40,6 +40,15 @@
 		<beans:property name="ignoreFailedDrops" value="true" />
 		<beans:property name="tableName" value="${tableName:${xd.stream.name}}" />
 	</beans:bean>
+
+	<context:annotation-config/>
+
+	<bean class="org.springframework.boot.autoconfigure.jdbc.TomcatDataSourceConfiguration" xmlns="http://www.springframework.org/schema/beans">
+		<property name="driverClassName" value="${driverClassName:spring.datasource.driverClassName}"/>
+		<property name="url" value="${url:spring.datasource.url}"/>
+		<property name="username" value="${username:spring.datasource.username}"/>
+		<property name="password" value="${password:spring.datasource.password}"/>
+	</bean>
 
 	<context:property-placeholder
 		location="${xd.config.home}/${configProperties:jdbc}.properties"

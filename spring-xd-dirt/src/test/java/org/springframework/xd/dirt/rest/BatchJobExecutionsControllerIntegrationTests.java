@@ -40,6 +40,7 @@ import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.job.SimpleJob;
+import org.springframework.batch.core.launch.NoSuchJobExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
@@ -51,6 +52,7 @@ import org.springframework.xd.dirt.plugins.job.BatchJobLocator;
  * Tests REST compliance of BatchJobExecutionsController endpoints.
  * 
  * @author Ilayaperumal Gopinathan
+ * @author Gunnar Hillert
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
@@ -104,6 +106,9 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 
 		when(jobService.listJobExecutions(0, 20)).thenReturn(jobExecutions1);
 		when(jobService.listJobExecutionsForJob(job2.getName(), 0, 20)).thenReturn(jobExecutions2);
+		when(jobService.getJobExecution(jobExecution1.getId())).thenReturn(jobExecution1);
+		when(jobService.getJobExecution(99999L)).thenThrow(new NoSuchJobExecutionException("Not found."));
+
 	}
 
 	@Test
@@ -122,4 +127,27 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 				jsonPath("$[*].jobExecution[*].jobParameters.parameters.param2.identifying", contains(false, false)));
 	}
 
+	@Test
+	public void testGetSingleBatchJobExecution() throws Exception {
+		mockMvc.perform(
+				get("/batch/executions/0").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
+				.andExpect(jsonPath("$.id", Matchers.is(0)))
+				.andExpect(jsonPath("$.jobExecution.id", Matchers.is(0)))
+				.andExpect(jsonPath("$.jobExecution.jobParameters.parameters.param1.type", Matchers.is("STRING")))
+				.andExpect(jsonPath("$.jobExecution.jobParameters.parameters.param1.identifying", Matchers.is(true)))
+				.andExpect(jsonPath("$.jobExecution.jobParameters.parameters.param1.value", Matchers.is("test")))
+				.andExpect(jsonPath("$.jobExecution.jobParameters.parameters.param2.type", Matchers.is("LONG")))
+				.andExpect(jsonPath("$.jobExecution.jobParameters.parameters.param2.identifying", Matchers.is(false)))
+				.andExpect(jsonPath("$.jobExecution.jobParameters.parameters.param2.value", Matchers.is(123)))
+				.andExpect(jsonPath("$.jobExecution.stepExecutions", Matchers.hasSize(2)))
+				.andExpect(jsonPath("$.stepExecutionCount", Matchers.is(2)))
+				.andExpect(jsonPath("$.name", Matchers.is("job1.job")));
+	}
+
+	@Test
+	public void testGetNonExistingBatchJobExecution() throws Exception {
+		mockMvc.perform(get("/batch/executions/99999").accept(MediaType.APPLICATION_JSON))
+				.andExpect(status().isNotFound())
+				.andExpect(jsonPath("$[0].message", Matchers.is("Could not find jobExecution with id '99999'")));
+	}
 }

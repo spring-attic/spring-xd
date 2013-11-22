@@ -35,9 +35,9 @@ transport: local
 analytics: memory
 store: memory
 server:
-  port: 0
+  port: -1
 management:
-  port: 0
+  port: -1
 
 ---
 
@@ -65,9 +65,9 @@ spring:
     initializer:
       enabled: false
 management:
-  port: ${PORT:9292}
+  port: ${PORT:0}
 server:
-  port: ${PORT:9292}
+  port: ${PORT:0}
 
 ---
 

@@ -177,9 +177,7 @@ public class Dependencies {
 
 	@Bean
 	public JobService jobService() {
-		return new DistributedJobService(searchableJobInstanceDao(), searchableJobExecutionDao(),
-				searchableStepExecutionDao(), jobRepository(), jobLauncher(),
-				batchJobLocator(), executionContextDao());
+		return mock(DistributedJobService.class);
 	}
 
 	@Bean

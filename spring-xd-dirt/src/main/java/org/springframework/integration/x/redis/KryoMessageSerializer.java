@@ -37,7 +37,7 @@ import com.esotericsoftware.shaded.org.objenesis.strategy.StdInstantiatorStrateg
 public class KryoMessageSerializer implements RedisSerializer<Message<?>> {
 
 	@Override
-	public byte[] serialize(Message<?> message) throws SerializationException {
+	public synchronized byte[] serialize(Message<?> message) throws SerializationException {
 		Kryo kryo = kryoInstance();
 		Output output = new Output(2048, -1);
 		kryo.writeObjectOrNull(output, message, GenericMessage.class);
@@ -45,7 +45,7 @@ public class KryoMessageSerializer implements RedisSerializer<Message<?>> {
 	}
 
 	@Override
-	public Message<?> deserialize(byte[] bytes) throws SerializationException {
+	public synchronized Message<?> deserialize(byte[] bytes) throws SerializationException {
 		if (bytes == null) {
 			return null;
 		}
@@ -54,7 +54,7 @@ public class KryoMessageSerializer implements RedisSerializer<Message<?>> {
 		return kryo.readObjectOrNull(input, GenericMessage.class);
 	}
 
-	private Kryo kryoInstance() {
+	private synchronized Kryo kryoInstance() {
 		Kryo kryo = new Kryo();
 		kryo.register(MessageHeaders.class, new KryoMessageHeadersSerializer());
 		kryo.setInstantiatorStrategy(new StdInstantiatorStrategy());

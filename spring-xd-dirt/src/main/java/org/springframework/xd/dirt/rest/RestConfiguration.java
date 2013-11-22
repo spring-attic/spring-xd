@@ -57,7 +57,7 @@ public class RestConfiguration {
 		return new WebMvcConfigurerAdapter() {
 
 			// N.B. must end in "/"
-			@Value("${XD_ADMIN_UI_ROOT:${XD_HOME}/spring-xd-ui/}")
+			@Value("${xd.ui.home:file:${XD_HOME}/spring-xd-ui}/")
 			private String resourceRoot;
 
 			@Override

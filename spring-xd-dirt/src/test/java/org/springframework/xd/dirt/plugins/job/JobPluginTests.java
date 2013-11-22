@@ -22,9 +22,7 @@ import java.util.List;
 import java.util.Properties;
 
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
@@ -40,7 +38,6 @@ import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.xd.dirt.server.AdminServerApplication;
-import org.springframework.xd.dirt.server.options.XDPropertyKeys;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.ModuleDefinition;
@@ -59,16 +56,6 @@ public class JobPluginTests {
 	private JobPlugin plugin;
 
 	private ConfigurableApplicationContext sharedContext;
-
-	@BeforeClass
-	public static void init() {
-		System.setProperty(XDPropertyKeys.XD_HOME, "..");
-	}
-
-	@AfterClass
-	public static void after() {
-		System.clearProperty(XDPropertyKeys.XD_HOME);
-	}
 
 	@After
 	public void tearDown() {

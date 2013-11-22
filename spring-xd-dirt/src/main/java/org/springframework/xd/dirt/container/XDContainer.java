@@ -63,7 +63,6 @@ public class XDContainer implements SmartLifecycle {
 
 	private static final String CORE_CONFIG = XD_INTERNAL_CONFIG_ROOT + "container.xml";
 
-	// TODO: consider moving to a file: location pattern within $XD_HOME
 	private static final String PLUGIN_CONFIGS = "classpath*:" + XD_CONFIG_ROOT + "plugins/*.xml";
 
 	private static final String LOG4J_FILE_APPENDER = "file";

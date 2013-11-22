@@ -61,7 +61,7 @@
 		<constructor-arg>
 			<list>
 				<bean class="org.springframework.xd.dirt.module.ResourceModuleRegistry">
-					<constructor-arg value="${XD_HOME}/modules/" />
+					<constructor-arg value="${xd.module.home}/" />
 				</bean>
 				<bean class="org.springframework.xd.dirt.module.ResourceModuleRegistry">
 					<constructor-arg value="classpath:/modules/" />

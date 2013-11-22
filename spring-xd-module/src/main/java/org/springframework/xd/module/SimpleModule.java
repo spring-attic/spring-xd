@@ -29,6 +29,7 @@ import org.springframework.boot.context.initializer.ContextIdApplicationContextI
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.env.StandardEnvironment;
@@ -49,13 +50,15 @@ public class SimpleModule extends AbstractModule {
 
 	private ConfigurableApplicationContext context;
 
-	private final ConfigurableEnvironment environment;
-
 	private final SpringApplicationBuilder application;
 
 	private final AtomicInteger propertiesCounter = new AtomicInteger();
 
 	private final Properties properties = new Properties();
+
+	private final MutablePropertySources propertySources = new MutablePropertySources();
+
+	private ConfigurableApplicationContext parent;
 
 	public SimpleModule(ModuleDefinition definition, DeploymentMetadata metadata) {
 		this(definition, metadata, null);
@@ -64,7 +67,6 @@ public class SimpleModule extends AbstractModule {
 	public SimpleModule(ModuleDefinition definition, DeploymentMetadata metadata, ClassLoader classLoader) {
 		super(definition, metadata);
 		application = new SpringApplicationBuilder().sources(PropertyPlaceholderAutoConfiguration.class).web(false);
-		environment = new StandardEnvironment();
 		if (classLoader != null) {
 			application.resourceLoader(new PathMatchingResourcePatternResolver(classLoader));
 		}
@@ -81,7 +83,7 @@ public class SimpleModule extends AbstractModule {
 
 	@Override
 	public void setParentContext(ApplicationContext parent) {
-		this.application.parent((ConfigurableApplicationContext) parent);
+		this.parent = (ConfigurableApplicationContext) parent;
 	}
 
 	@Override
@@ -125,16 +127,30 @@ public class SimpleModule extends AbstractModule {
 		int propertiesIndex = this.propertiesCounter.getAndIncrement();
 		String propertySourceName = "properties-" + propertiesIndex;
 		PropertySource<?> propertySource = new PropertiesPropertySource(propertySourceName, properties);
-		this.environment.getPropertySources().addLast(propertySource);
+		this.propertySources.addLast(propertySource);
 	}
 
 	@Override
 	public void initialize() {
 		this.application.initializers(new ContextIdApplicationContextInitializer(this.toString()));
+		ConfigurableEnvironment environment = new StandardEnvironment();
+		if (parent != null) {
+			copyEnvironment(environment, parent.getEnvironment());
+		}
+		for (PropertySource<?> source : propertySources) {
+			environment.getPropertySources().addLast(source);
+		}
+		this.application.parent(parent);
 		this.application.environment(environment);
 		this.context = this.application.run();
 		if (logger.isInfoEnabled()) {
 			logger.info("initialized module: " + this.toString());
+		}
+	}
+
+	private void copyEnvironment(ConfigurableEnvironment environment, ConfigurableEnvironment parent) {
+		for (String profile : parent.getActiveProfiles()) {
+			environment.addActiveProfile(profile);
 		}
 	}
 

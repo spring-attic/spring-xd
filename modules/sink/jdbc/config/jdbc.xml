@@ -40,6 +40,10 @@
 		<beans:property name="ignoreFailedDrops" value="true" />
 		<beans:property name="tableName" value="${tableName:${xd.stream.name}}" />
 	</beans:bean>
+	
+	<context:annotation-config/>
+	
+	<beans:bean class="org.springframework.boot.autoconfigure.jdbc.TomcatDataSourceConfiguration"/>
 
 	<context:property-placeholder
 		location="${xd.config.home}/${configProperties:jdbc}.properties"

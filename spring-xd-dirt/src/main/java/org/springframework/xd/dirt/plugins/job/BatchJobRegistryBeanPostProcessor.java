@@ -81,7 +81,7 @@ public class BatchJobRegistryBeanPostProcessor extends JobRegistryBeanPostProces
 	@Override
 	public void destroy() throws Exception {
 		Assert.notNull(jobName, "JobName should not be null");
-		jobLocator.delteJobName(jobName);
+		jobLocator.deleteJobName(jobName);
 		super.destroy();
 	}
 }

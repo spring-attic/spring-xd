@@ -94,7 +94,7 @@ public class BatchJobLocator implements ListableJobLocator {
 		}
 	}
 
-	protected void delteJobName(String name) {
+	protected void deleteJobName(String name) {
 		jdbcTemplate.update(DELETE_JOB_NAME, name);
 		jdbcTemplate.update(DELETE_JOB_INCREMENTABLE, name);
 	}

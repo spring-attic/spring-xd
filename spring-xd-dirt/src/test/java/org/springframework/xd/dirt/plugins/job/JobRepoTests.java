@@ -101,6 +101,6 @@ public class JobRepoTests {
 			// we can ignore this. Just want to create a fake job instance.
 		}
 		assertTrue(repo.isJobInstanceExists(SIMPLE_JOB_NAME, new JobParameters()));
-		jobLocator.delteJobName(SIMPLE_JOB_NAME);
+		jobLocator.deleteJobName(SIMPLE_JOB_NAME);
 	}
 }

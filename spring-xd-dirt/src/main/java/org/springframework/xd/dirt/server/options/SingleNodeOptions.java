@@ -19,7 +19,7 @@ package org.springframework.xd.dirt.server.options;
 import javax.validation.constraints.NotNull;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.xd.dirt.server.options.CommonOptions.Store;
+import org.springframework.xd.dirt.server.options.CommonDistributedOptions.Store;
 
 
 /**
@@ -35,18 +35,18 @@ public class SingleNodeOptions {
 		memory, redis;
 	}
 
-	public static enum ControlTransport {
+	public static enum Transport {
 		local, rabbitmq, redis;
 	}
 
-	public static enum DataTransport {
-		// TBD
-	}
+	// TBD once XD-707 is done
+	// public static enum DataTransport {
+	// }
 
 
 	private Analytics analytics;
 
-	private ControlTransport controlTransport;
+	private Transport transport;
 
 	private Store store;
 
@@ -61,8 +61,8 @@ public class SingleNodeOptions {
 	}
 
 	@NotNull
-	public ControlTransport getXD_TRANSPORT() {
-		return controlTransport;
+	public Transport getXD_TRANSPORT() {
+		return transport;
 	}
 
 	public void setXD_ANALYTICS(Analytics analytics) {
@@ -73,7 +73,7 @@ public class SingleNodeOptions {
 		this.store = store;
 	}
 
-	public void setXD_TRANSPORT(ControlTransport transport) {
-		this.controlTransport = transport;
+	public void setXD_TRANSPORT(Transport transport) {
+		this.transport = transport;
 	}
 }

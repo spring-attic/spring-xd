@@ -25,10 +25,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @author Eric Bottard
  */
 @ConfigurationProperties
-public class ContainerOptions extends CommonOptions {
+public class ContainerOptions extends CommonDistributedOptions {
 
+	// TBD, see XD-707
 	public static enum DataTransport {
-		// TBD
 	}
 
 

@@ -25,6 +25,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @author Eric Bottard
  */
 @ConfigurationProperties
-public class AdminOptions extends CommonOptions {
+public class AdminOptions extends CommonDistributedOptions {
 
 }

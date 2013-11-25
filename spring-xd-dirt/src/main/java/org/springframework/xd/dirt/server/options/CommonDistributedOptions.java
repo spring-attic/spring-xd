@@ -25,15 +25,16 @@ import javax.validation.constraints.NotNull;
  * 
  * @author Eric Bottard
  */
-public class CommonOptions {
+public class CommonDistributedOptions {
 
 	public static enum Analytics {
 		// note: memory is NOT an option here
 		redis;
 	}
 
-	public static enum ControlTransport {
-		local, rabbitmq, redis;
+	// To be split in Transport & DataTransport. see XD-707
+	public static enum Transport {
+		rabbitmq, redis;
 	}
 
 	// Should be pushed down to AdminOptions but currently
@@ -44,7 +45,7 @@ public class CommonOptions {
 
 	private Analytics analytics;
 
-	private ControlTransport controlTransport;
+	private Transport transport;
 
 	private Store store;
 
@@ -59,8 +60,8 @@ public class CommonOptions {
 	}
 
 	@NotNull
-	public ControlTransport getXD_TRANSPORT() {
-		return controlTransport;
+	public Transport getXD_TRANSPORT() {
+		return transport;
 	}
 
 	public void setXD_ANALYTICS(Analytics analytics) {
@@ -71,7 +72,7 @@ public class CommonOptions {
 		this.store = store;
 	}
 
-	public void setXD_TRANSPORT(ControlTransport controlTransport) {
-		this.controlTransport = controlTransport;
+	public void setXD_TRANSPORT(Transport transport) {
+		this.transport = transport;
 	}
 }

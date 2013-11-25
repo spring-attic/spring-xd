@@ -47,7 +47,7 @@
 
 	<context:property-placeholder
 		location="${xd.config.home}/${configProperties:jdbc}.properties"
-		ignore-resource-not-found="true" />
+		ignore-resource-not-found="true" local-override="true" order="0"/>
 
 	<beans profile="cloud" xmlns="http://www.springframework.org/schema/beans">
 		<cloud:data-source id="dataSource" service-name="${xd.jdbc.service:mysql}" />

@@ -18,7 +18,7 @@
 
 	<context:property-placeholder
 		location="${xd.config.home}/rabbit.properties"
-		ignore-resource-not-found="true" />
+		ignore-resource-not-found="true" local-override="true" order="0"/>
 
 	<beans profile="cloud" xmlns="http://www.springframework.org/schema/beans">
 		<cloud:rabbit-connection-factory id="connectionFactory"

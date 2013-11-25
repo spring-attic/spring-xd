@@ -17,6 +17,7 @@
 package org.springframework.xd.dirt.module;
 
 import org.springframework.batch.core.JobExecution;
+import org.springframework.xd.dirt.core.XDRuntimeException;
 
 /**
  * Thrown when attempting to refer to {@link JobExecution} that does not exist.
@@ -24,7 +25,7 @@ import org.springframework.batch.core.JobExecution;
  * @author Gunnar Hillert
  */
 @SuppressWarnings("serial")
-public class NoSuchJobExecutionInfoException extends ResourceDefinitionException {
+public class NoSuchJobExecutionInfoException extends XDRuntimeException {
 
 	/**
 	 * Create a new exception.

@@ -12,6 +12,7 @@ import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.event.SourceFilteringListener;
 import org.springframework.xd.dirt.container.ContainerStartedEvent;
 import org.springframework.xd.dirt.container.XDContainer;
+import org.springframework.xd.dirt.server.options.ContainerOptions;
 import org.springframework.xd.dirt.util.BannerUtils;
 import org.springframework.xd.dirt.util.XdInitializer;
 
@@ -37,7 +38,7 @@ public class LauncherApplication {
 
 	public LauncherApplication run(String... args) {
 		System.out.println(BannerUtils.displayBanner(getClass().getSimpleName(), null));
-		this.context = new SpringApplicationBuilder(ParentConfiguration.class)
+		this.context = new SpringApplicationBuilder(ContainerOptions.class, ParentConfiguration.class)
 				.profiles(NODE_PROFILE)
 				.child(LauncherApplication.class).run(args);
 		publishContainerStarted(context);

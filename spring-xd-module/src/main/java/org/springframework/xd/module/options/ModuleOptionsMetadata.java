@@ -16,13 +16,16 @@
 
 package org.springframework.xd.module.options;
 
+import java.util.Properties;
 
 
 /**
- * Test for {@link ModuleOptions} and related classes.
+ * Encapsulates metadata about the accepted options for a module.
  * 
  * @author Eric Bottard
  */
-public class ModuleOptionsTests {
+public interface ModuleOptionsMetadata extends Iterable<ModuleOption> {
+
+	public abstract ModuleOptions interpolate(Properties raw);
 
 }

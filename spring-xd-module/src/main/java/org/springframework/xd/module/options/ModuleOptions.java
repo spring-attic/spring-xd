@@ -16,16 +16,36 @@
 
 package org.springframework.xd.module.options;
 
-import java.util.Properties;
+import org.springframework.core.env.EnumerablePropertySource;
+import org.springframework.xd.module.options.spi.ProfileNamesProvider;
 
 
 /**
- * Encapsulates metadata about the accepted options for a module.
+ * Represents runtime information about a module once user provided values are known. Depending on actual
+ * implementation, ModuleOptions may be able to
+ * <ul>
+ * <li>return the value of a property the user provided</li>
+ * <li>return the value of a property derived from other properties</li>
+ * <li>validate that the set of properties given by the user is consistent</li>
+ * <li>return a list of profile names that should be activated, most certainly computed from the values the user
+ * provided</li>
+ * </ul>
  * 
  * @author Eric Bottard
  */
-public interface ModuleOptions extends Iterable<ModuleOption> {
+public abstract class ModuleOptions implements ProfileNamesProvider {
 
-	public abstract InterpolatedModuleOptions interpolate(Properties raw);
+	private static final String[] NONE = new String[0];
+
+	public abstract EnumerablePropertySource<?> asPropertySource();
+
+	@Override
+	public String[] profilesToActivate() {
+		return NONE;
+	}
+
+	public void validate() {
+
+	}
 
 }

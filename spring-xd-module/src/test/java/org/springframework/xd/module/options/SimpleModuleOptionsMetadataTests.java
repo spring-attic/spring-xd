@@ -32,13 +32,13 @@ import org.springframework.core.env.PropertySource;
 
 
 /**
- * Test for {@link SimpleModuleOptions} behavior.
+ * Test for {@link SimpleModuleOptionsMetadata} behavior.
  * 
  * @author Eric Bottard
  */
-public class SimpleModuleOptionsTests {
+public class SimpleModuleOptionsMetadataTests {
 
-	private SimpleModuleOptions moduleOptions = new SimpleModuleOptions();
+	private SimpleModuleOptionsMetadata moduleOptions = new SimpleModuleOptionsMetadata();
 
 	@Test
 	public void testEmptyBehavior() {

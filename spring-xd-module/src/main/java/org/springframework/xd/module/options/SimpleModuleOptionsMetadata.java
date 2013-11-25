@@ -25,12 +25,12 @@ import org.springframework.core.env.EnumerablePropertySource;
 
 
 /**
- * An implementation of {@link ModuleOptions} that only knows how to list options and does not support advanced
+ * An implementation of {@link ModuleOptionsMetadata} that only knows how to list options and does not support advanced
  * facilities such as derived options, profile activation or validation.
  * 
  * @author Eric Bottard
  */
-public class SimpleModuleOptions implements ModuleOptions {
+public class SimpleModuleOptionsMetadata implements ModuleOptionsMetadata {
 
 	private Map<String, ModuleOption> options = new LinkedHashMap<String, ModuleOption>();
 
@@ -44,8 +44,8 @@ public class SimpleModuleOptions implements ModuleOptions {
 	}
 
 	@Override
-	public InterpolatedModuleOptions interpolate(final Properties raw) {
-		return new InterpolatedModuleOptions() {
+	public ModuleOptions interpolate(final Properties raw) {
+		return new ModuleOptions() {
 
 			@Override
 			public EnumerablePropertySource<?> asPropertySource() {

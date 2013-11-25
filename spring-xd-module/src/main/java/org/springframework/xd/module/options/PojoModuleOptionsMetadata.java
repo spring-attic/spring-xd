@@ -31,13 +31,13 @@ import org.springframework.xd.module.options.spi.ProfileNamesProvider;
 
 
 /**
- * An implementation of {@link ModuleOptions} that derives its information from a plain old java object:
+ * An implementation of {@link ModuleOptionsMetadata} that derives its information from a plain old java object:
  * <ul>
  * <li>public setters are reported as valid options</li>
  * <li>the type of the option is derived from the accepted type by the setter</li>
  * </ul>
  * 
- * {@link InterpolatedModuleOptions} for such a POJO will work as follows:
+ * {@link ModuleOptions} for such a POJO will work as follows:
  * <ul>
  * <li>an instance of the class will be created reflectively and injected with user provided values,</li>
  * <li>reported properties are computed from all the getters,</li>
@@ -48,13 +48,13 @@ import org.springframework.xd.module.options.spi.ProfileNamesProvider;
  * 
  * @author Eric Bottard
  */
-public class PojoModuleOptions implements ModuleOptions {
+public class PojoModuleOptionsMetadata implements ModuleOptionsMetadata {
 
 	private BeanWrapper beanWrapper;
 
 	private List<ModuleOption> options;
 
-	public PojoModuleOptions(Class<?> clazz) {
+	public PojoModuleOptionsMetadata(Class<?> clazz) {
 		beanWrapper = new BeanWrapperImpl(clazz);
 		options = new ArrayList<ModuleOption>();
 		for (PropertyDescriptor pd : beanWrapper.getPropertyDescriptors()) {
@@ -108,9 +108,9 @@ public class PojoModuleOptions implements ModuleOptions {
 	}
 
 	@Override
-	public InterpolatedModuleOptions interpolate(Properties raw) {
+	public ModuleOptions interpolate(Properties raw) {
 		beanWrapper.setPropertyValues(new MutablePropertyValues(raw), true, true);
-		return new InterpolatedModuleOptions() {
+		return new ModuleOptions() {
 
 			@Override
 			public EnumerablePropertySource<?> asPropertySource() {

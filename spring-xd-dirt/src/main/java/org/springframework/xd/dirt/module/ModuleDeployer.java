@@ -55,6 +55,7 @@ import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.ParentLastURLClassLoader;
 import org.springframework.xd.module.Plugin;
 import org.springframework.xd.module.SimpleModule;
+import org.springframework.xd.module.options.ModuleOptionsMetadata;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -236,17 +237,23 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 
 
 		ModuleDefinition definition = moduleDefinitionRepository.findByNameAndType(module.getName(), module.getType());
-		EnumerablePropertySource<?> propertySource = definition.getModuleOptions().interpolate(
-				parametersAsProps).asPropertySource();
-		// Go back to the java.util.Properties world for now
-		Properties props = new Properties();
-		for (String key : propertySource.getPropertyNames()) {
-			Object value = propertySource.getProperty(key);
-			if (value != null) {
-				props.setProperty(key, "" + value);
+		ModuleOptionsMetadata moduleOptionsMetadata = definition.getModuleOptions();
+		if (moduleOptionsMetadata != null) {
+			EnumerablePropertySource<?> propertySource = moduleOptionsMetadata.interpolate(
+					parametersAsProps).asPropertySource();
+			// Go back to the java.util.Properties world for now
+			Properties props = new Properties();
+			for (String key : propertySource.getPropertyNames()) {
+				Object value = propertySource.getProperty(key);
+				if (value != null) {
+					props.setProperty(key, "" + value);
+				}
 			}
+			module.addProperties(props);
 		}
-		module.addProperties(props);
+		else {
+			module.addProperties(parametersAsProps);
+		}
 
 
 		this.deploy(module);

@@ -7,6 +7,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.SubscribableChannel;
+import org.springframework.xd.dirt.server.options.SingleNodeOptions;
 import org.springframework.xd.dirt.util.BannerUtils;
 
 public class SingleNodeApplication {
@@ -25,7 +26,7 @@ public class SingleNodeApplication {
 
 		System.out.println(BannerUtils.displayBanner(getClass().getSimpleName(), null));
 
-		SpringApplicationBuilder admin = new SpringApplicationBuilder(
+		SpringApplicationBuilder admin = new SpringApplicationBuilder(SingleNodeOptions.class,
 				ParentConfiguration.class).profiles(AdminServerApplication.ADMIN_PROFILE, SINGLE_PROFILE).child(
 				AdminServerApplication.class);
 		admin.run(args);

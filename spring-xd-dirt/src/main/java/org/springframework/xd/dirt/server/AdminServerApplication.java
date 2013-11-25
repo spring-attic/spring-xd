@@ -14,6 +14,7 @@ import org.springframework.context.annotation.ImportResource;
 import org.springframework.web.filter.HttpPutFormContentFilter;
 import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.rest.RestConfiguration;
+import org.springframework.xd.dirt.server.options.AdminOptions;
 import org.springframework.xd.dirt.util.BannerUtils;
 
 @Configuration
@@ -37,7 +38,8 @@ public class AdminServerApplication {
 
 	public AdminServerApplication run(String... args) {
 		System.out.println(BannerUtils.displayBanner(getClass().getSimpleName(), null));
-		this.context = new SpringApplicationBuilder(ParentConfiguration.class).profiles(ADMIN_PROFILE)
+		this.context = new SpringApplicationBuilder(AdminOptions.class, ParentConfiguration.class).profiles(
+				ADMIN_PROFILE)
 				.child(AdminServerApplication.class).run(args);
 		return this;
 	}

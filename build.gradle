@@ -89,7 +89,7 @@ ext {
 	lettuceVersion = '2.3.3'
 	springDataHadoopVersion = '1.0.2.RELEASE'
 	hadoop12Version = '1.2.1'
-	hadoop20Version = '2.0.6-alpha'
+	hadoop22Version = '2.2.0'
 	cdh4Version = '2.0.0-cdh4.3.1'
 	hdp13Version = '1.2.0'
 	phd1Version = '2.0.5-alpha-gphd-2.1.0.0'
@@ -587,7 +587,7 @@ project('spring-xd-extension-reactor') {
 
 project('spring-xd-extension-hdfs') {
 	description = 'Spring XD HDFS'
-	def hadoopDefault = "hadoop20"
+	def hadoopDefault = "hadoop22"
 	def hadoopDistro = project.hasProperty("hadoopDistro") ? project.getProperty("hadoopDistro") : hadoopDefault
 	def hadoopSuffix = hadoopDistro.equals("hadoop12") ? "" : "-" + hadoopDistro
 	dependencies {
@@ -648,17 +648,17 @@ project('spring-xd-hadoop:hadoop12') {
 	}
 }
 
-project('spring-xd-hadoop:hadoop20') {
+project('spring-xd-hadoop:hadoop22') {
 	description = 'Hadoop 2.0 dependencies'
 	dependencies {
-		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopVersion}-hadoop20")
-		runtime ("org.apache.hadoop:hadoop-common:$hadoop20Version")
-		runtime ("org.apache.hadoop:hadoop-distcp:$hadoop20Version")
-		runtime ("org.apache.hadoop:hadoop-hdfs:$hadoop20Version")
-		runtime ("org.apache.hadoop:hadoop-mapreduce-client-core:$hadoop20Version")
-		runtime ("org.apache.hadoop:hadoop-mapreduce-client-jobclient:$hadoop20Version")
-		runtime ("org.apache.hadoop:hadoop-streaming:$hadoop20Version")
-		runtime ("org.apache.hadoop:hadoop-yarn-common:$hadoop20Version")
+		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopVersion}-hadoop22")
+		runtime ("org.apache.hadoop:hadoop-common:$hadoop22Version")
+		runtime ("org.apache.hadoop:hadoop-distcp:$hadoop22Version")
+		runtime ("org.apache.hadoop:hadoop-hdfs:$hadoop22Version")
+		runtime ("org.apache.hadoop:hadoop-mapreduce-client-core:$hadoop22Version")
+		runtime ("org.apache.hadoop:hadoop-mapreduce-client-jobclient:$hadoop22Version")
+		runtime ("org.apache.hadoop:hadoop-streaming:$hadoop22Version")
+		runtime ("org.apache.hadoop:hadoop-yarn-common:$hadoop22Version")
 	}
 	task copyToLib(dependsOn: build, type: Copy) {
 		into "$buildDir/lib"
@@ -1246,8 +1246,8 @@ task copyXDShellInstall(type: Copy, dependsOn: [":spring-xd-shell:installApp"]) 
 	exclude "**/lib/spring-data-hadoop-*.jar"
 }
 
-task copyHadoopLibs(dependsOn: [":spring-xd-hadoop:hadoop12:copyToLib", ":spring-xd-hadoop:hadoop20:copyToLib", ":spring-xd-hadoop:cdh4:copyToLib", ":spring-xd-hadoop:hdp13:copyToLib", ":spring-xd-hadoop:phd1:copyToLib"]) << {
-	['hadoop12', 'hadoop20', 'cdh4', 'hdp13', 'phd1'].each { distro ->
+task copyHadoopLibs(dependsOn: [":spring-xd-hadoop:hadoop12:copyToLib", ":spring-xd-hadoop:hadoop22:copyToLib", ":spring-xd-hadoop:cdh4:copyToLib", ":spring-xd-hadoop:hdp13:copyToLib", ":spring-xd-hadoop:phd1:copyToLib"]) << {
+	['hadoop12', 'hadoop22', 'cdh4', 'hdp13', 'phd1'].each { distro ->
 		copy {
 			from "$rootDir/spring-xd-hadoop/$distro/build/lib"
 			into "$buildDir/dist/spring-xd/xd/lib/$distro"

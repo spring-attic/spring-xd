@@ -35,7 +35,7 @@ public class JobExecutionInfoResourceAssembler extends
 
 	@Override
 	public JobExecutionInfoResource toResource(JobExecutionInfo entity) {
-		return createResourceWithId(entity.getName(), entity);
+		return createResourceWithId(entity.getExecutionId(), entity);
 	}
 
 	@Override

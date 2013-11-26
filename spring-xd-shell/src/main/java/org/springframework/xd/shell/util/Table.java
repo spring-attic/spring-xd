@@ -65,15 +65,32 @@ public class Table {
 		return row;
 	}
 
+	public Table addRow(String... values) {
+
+		final TableRow row = new TableRow();
+
+		int column = 1;
+
+		for (String value : values) {
+			row.addValue(column, value);
+			column++;
+		}
+
+		rows.add(row);
+
+		return this;
+	}
+
 	@Override
 	public String toString() {
 		return UiUtils.renderTextTable(this);
 	}
 
 	public void calculateColumnWidths() {
-		for (java.util.Map.Entry<Integer, TableHeader> entry : headers.entrySet()) {
+		for (java.util.Map.Entry<Integer, TableHeader> headerEntry : headers.entrySet()) {
+			final Integer headerEntryKey = headerEntry.getKey();
 			for (TableRow tableRow : rows) {
-				entry.getValue().updateWidth(tableRow.getValue(entry.getKey()).length());
+				headerEntry.getValue().updateWidth(tableRow.getValue(headerEntryKey).length());
 			}
 		}
 	}

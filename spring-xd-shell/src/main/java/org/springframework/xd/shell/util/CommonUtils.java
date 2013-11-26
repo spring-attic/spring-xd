@@ -18,8 +18,13 @@ package org.springframework.xd.shell.util;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Collection;
+import java.util.Date;
+import java.util.TimeZone;
 
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -126,4 +131,19 @@ public final class CommonUtils {
 		return stringBuilder.toString();
 	}
 
+	/**
+	 * Return a date/time/UTC formatted String for the provided {@link Date}. Uses {@link SimpleDateFormat} with format
+	 * {@code yyyy-MM-dd HH:mm:ss,SSS}
+	 * 
+	 * @param date Must not be null
+	 * @return Formatted date/time
+	 */
+	public static String getUtcTime(Date date) {
+		Assert.notNull(date, "The provided date must not be null.");
+
+		final TimeZone timeZone = TimeZone.getTimeZone("UTC");
+		final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
+		dateFormat.setTimeZone(timeZone);
+		return dateFormat.format(date);
+	}
 }

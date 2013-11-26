@@ -117,12 +117,12 @@ public class ModuleCommands implements CommandMarker {
 
 	@CliCommand(value = DELETE_MODULE, help = "Delete a virtual module")
 	public String destroyModule(
-			// TODO: replace with converter once XD-953b is merged in
-			@CliOption(mandatory = true, key = { "", "name" }, help = "the name of the the module") String name,
-			@CliOption(mandatory = true, key = "type", help = "the type of the module") RESTModuleType moduleType) {
-		moduleOperations().deleteModule(name, moduleType);
-		return String.format(("Successfully destroyed module '%s' with type %s"), name,
-				moduleType);
+			@CliOption(mandatory = true, key = { "name", "" }, help = "name of the module to delete, in the form 'type:name'") QualifiedModuleName module
+
+			) {
+		moduleOperations().deleteModule(module.name, module.type);
+		return String.format(("Successfully destroyed module '%s' with type %s"), module.name,
+				module.type);
 	}
 
 	@CliCommand(value = DISPLAY_MODULE, help = "Display the configuration file of a module")

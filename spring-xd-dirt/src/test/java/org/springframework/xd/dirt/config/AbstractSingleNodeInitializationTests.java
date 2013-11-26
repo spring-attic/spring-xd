@@ -46,15 +46,17 @@ public abstract class AbstractSingleNodeInitializationTests {
 
 	protected ModuleDeployer moduleDeployer;
 
+	private SingleNodeApplication application;
+
 	@Before
 	public final void setUp() {
 		String transport = this.getTransport();
-		SingleNodeApplication application = new SingleNodeApplication();
+		this.application = new SingleNodeApplication();
 		application.run("--transport=" + transport);
 
 		this.context = (AbstractApplicationContext) application.getContainerContext();
 
-		this.moduleDeployer = context.getBean(ModuleDeployer.class);
+		this.moduleDeployer = this.context.getBean(ModuleDeployer.class);
 
 		ConfigurableApplicationContext deployerContext = TestUtils.getPropertyValue(this.moduleDeployer,
 				"deployerContext",
@@ -63,7 +65,7 @@ public abstract class AbstractSingleNodeInitializationTests {
 
 		moduleDeployer.onInit();
 
-		setupApplicationContext(context);
+		setupApplicationContext(this.context);
 	}
 
 	protected void setupApplicationContext(ApplicationContext context) {
@@ -79,17 +81,15 @@ public abstract class AbstractSingleNodeInitializationTests {
 
 	@After
 	public final void shutDown() {
-		if (this.context != null) {
-			this.cleanup(this.context);
-			this.context.close();
-		}
+		this.cleanup(this.context);
+		this.application.close();
 	}
 
 	@Test
 	public final void environmentMatchesTransport() {
-		MessageChannel controlChannel = context.getBean("containerControlChannel", MessageChannel.class);
+		MessageChannel controlChannel = this.context.getBean("containerControlChannel", MessageChannel.class);
 		assertSame(controlChannel, getControlChannel());
-		MessageBus messageBus = moduleContext.getBean(MessageBus.class);
+		MessageBus messageBus = this.moduleContext.getBean(MessageBus.class);
 		assertEquals(getExpectedMessageBusType(), messageBus.getClass());
 	}
 

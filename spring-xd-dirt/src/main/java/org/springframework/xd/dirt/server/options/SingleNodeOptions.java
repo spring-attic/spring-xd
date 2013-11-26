@@ -36,7 +36,7 @@ public class SingleNodeOptions {
 	}
 
 	public static enum Transport {
-		local, rabbitmq, redis;
+		local, rabbit, redis;
 	}
 
 	// TBD once XD-707 is done

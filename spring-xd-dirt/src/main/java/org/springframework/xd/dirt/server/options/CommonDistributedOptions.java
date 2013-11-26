@@ -34,7 +34,7 @@ public class CommonDistributedOptions {
 
 	// To be split in Transport & DataTransport. see XD-707
 	public static enum Transport {
-		rabbitmq, redis;
+		rabbit, redis;
 	}
 
 	// Should be pushed down to AdminOptions but currently

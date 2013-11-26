@@ -40,9 +40,12 @@ public class DetailedModuleDefinitionResource extends ModuleDefinitionResource {
 		super(name, type);
 	}
 
-	private List<Option> options = new ArrayList<Option>();
+	private List<Option> options;
 
 	public void addOption(Option option) {
+		if (options == null) {
+			options = new ArrayList<Option>();
+		}
 		options.add(option);
 	}
 

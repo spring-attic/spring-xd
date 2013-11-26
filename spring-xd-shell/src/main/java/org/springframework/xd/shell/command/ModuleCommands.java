@@ -16,6 +16,8 @@
 
 package org.springframework.xd.shell.command;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.shell.core.CommandMarker;
@@ -25,6 +27,7 @@ import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
 import org.springframework.xd.rest.client.ModuleOperations;
 import org.springframework.xd.rest.client.domain.DetailedModuleDefinitionResource;
+import org.springframework.xd.rest.client.domain.DetailedModuleDefinitionResource.Option;
 import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
 import org.springframework.xd.rest.client.domain.RESTModuleType;
 import org.springframework.xd.shell.XDShell;
@@ -75,22 +78,32 @@ public class ModuleCommands implements CommandMarker {
 	}
 
 	@CliCommand(value = MODULE_INFO, help = "Get information about a module")
-	public Table moduleInfo(
+	public String moduleInfo(
 			@CliOption(mandatory = true, key = { "name", "" }, help = "name of the module to query, in the form 'type:name'") QualifiedModuleName module
 			) {
 		DetailedModuleDefinitionResource info = moduleOperations().info(module.name, module.type);
-		Table table = new Table().addHeader(1, new TableHeader("Option Name")).addHeader(2,
-				new TableHeader("Description")).addHeader(
-				3, new TableHeader("Default")).addHeader(4, new TableHeader("Type"));
-		for (DetailedModuleDefinitionResource.Option o : info.getOptions()) {
-			final TableRow row = new TableRow();
-			row.addValue(1, o.getName())
-					.addValue(2, o.getDescription())
-					.addValue(3, o.getDefaultValue() == null ? "<none>" : o.getDefaultValue())
-					.addValue(4, o.getType() == null ? "<unknown>" : o.getType());
-			table.getRows().add(row);
+		List<Option> options = info.getOptions();
+		StringBuilder result = new StringBuilder();
+		result.append("Information about ").append(module.type.name()).append(" module '").append(module.name).append(
+				"':\n\n");
+		if (options == null) {
+			result.append("Module options metadata is not available");
 		}
-		return table;
+		else {
+			Table table = new Table().addHeader(1, new TableHeader("Option Name")).addHeader(2,
+					new TableHeader("Description")).addHeader(
+					3, new TableHeader("Default")).addHeader(4, new TableHeader("Type"));
+			for (DetailedModuleDefinitionResource.Option o : options) {
+				final TableRow row = new TableRow();
+				row.addValue(1, o.getName())
+						.addValue(2, o.getDescription())
+						.addValue(3, o.getDefaultValue() == null ? "<none>" : o.getDefaultValue())
+						.addValue(4, o.getType() == null ? "<unknown>" : o.getType());
+				table.getRows().add(row);
+			}
+			result.append(table.toString());
+		}
+		return result.toString();
 	}
 
 	@CliCommand(value = COMPOSE_MODULE, help = "Create a virtual module")

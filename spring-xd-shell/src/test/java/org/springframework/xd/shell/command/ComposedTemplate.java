@@ -17,7 +17,6 @@
 package org.springframework.xd.shell.command;
 
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -62,7 +61,7 @@ public class ComposedTemplate implements Disposable {
 	}
 
 	public boolean delete(String name, ModuleType type) {
-		CommandResult result = shell.executeCommand(String.format("module delete --type %s --name %s", type, name));
+		CommandResult result = shell.executeCommand(String.format("module delete %s:%s", type, name));
 		return result.isSuccess();
 	}
 

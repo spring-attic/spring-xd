@@ -31,7 +31,7 @@ import org.springframework.xd.shell.util.TableRow;
 import org.springframework.xd.shell.util.UiUtils;
 
 /**
- * Test module commands
+ * Test module commands.
  * 
  * @author Glenn Renfro
  * @author Gunnar Hillert

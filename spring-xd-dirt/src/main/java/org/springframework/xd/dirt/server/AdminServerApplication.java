@@ -4,6 +4,7 @@ package org.springframework.xd.dirt.server;
 import javax.servlet.Filter;
 
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContext;
@@ -11,9 +12,11 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableMBeanExport;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.event.SourceFilteringListener;
+import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.web.filter.HttpPutFormContentFilter;
 import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.rest.RestConfiguration;
@@ -59,6 +62,18 @@ public class AdminServerApplication {
 		XdInitializer delegate = new XdInitializer();
 		delegate.setEnvironment(context.getEnvironment());
 		return new SourceFilteringListener(context, delegate);
+	}
+
+	@ConditionalOnExpression("${XD_JMX_ENABLED:false}")
+	@EnableMBeanExport(defaultDomain = "xd.admin")
+	protected static class JmxConfiguration {
+
+		@Bean
+		public IntegrationMBeanExporter integrationMBeanExporter() {
+			IntegrationMBeanExporter exporter = new IntegrationMBeanExporter();
+			exporter.setDefaultDomain("xd.admin");
+			return exporter;
+		}
 	}
 
 }

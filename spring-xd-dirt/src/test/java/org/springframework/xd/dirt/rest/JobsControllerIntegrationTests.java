@@ -20,7 +20,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.anyListOf;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -38,8 +37,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.DescriptiveResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
@@ -80,10 +79,9 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 
 	@Before
 	public void before() {
-		Resource resource = mock(Resource.class);
+		Resource resource = new DescriptiveResource("dummy");
 		ModuleDefinition moduleJobDefinition = new ModuleDefinition("job",
 				ModuleType.job, resource);
-		when(resource.exists()).thenReturn(true);
 		ArrayList<ModuleDefinition> moduleDefinitions = new ArrayList<ModuleDefinition>();
 		moduleDefinitions.add(moduleJobDefinition);
 		when(moduleRegistry.findDefinitions("job")).thenReturn(moduleDefinitions);

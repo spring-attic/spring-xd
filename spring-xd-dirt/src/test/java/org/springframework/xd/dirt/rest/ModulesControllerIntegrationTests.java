@@ -16,7 +16,6 @@
 
 package org.springframework.xd.dirt.rest;
 
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -36,8 +35,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.DescriptiveResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
@@ -76,7 +75,7 @@ public class ModulesControllerIntegrationTests extends AbstractControllerIntegra
 
 	@Before
 	public void before() throws IOException {
-		Resource resource = mock(Resource.class);
+		Resource resource = new DescriptiveResource("dummy");
 		ArrayList<ModuleDefinition> moduleDefinitions = new ArrayList<ModuleDefinition>();
 		ArrayList<ModuleDefinition> jobDefinitions = new ArrayList<ModuleDefinition>();
 		ArrayList<ModuleDefinition> processorDefinitions = new ArrayList<ModuleDefinition>();
@@ -114,8 +113,6 @@ public class ModulesControllerIntegrationTests extends AbstractControllerIntegra
 		moduleDefinitions.add(moduleDefinition);
 		jobDefinitions.add(moduleDefinition);
 
-		when(resource.exists()).thenReturn(true);
-		when(resource.getDescription()).thenReturn("foo");
 		for (int i = 0; i < 3; i++) {
 			when(moduleRegistry.findDefinition("source_" + i, ModuleType.source)).thenReturn(sourceDefinitions.get(i));
 			when(moduleRegistry.findDefinitions("source_" + i)).thenReturn(

@@ -44,7 +44,7 @@ public class DetailedModuleDefinitionResourceAssembler extends
 	protected DetailedModuleDefinitionResource instantiateResource(ModuleDefinition entity) {
 		DetailedModuleDefinitionResource result = new DetailedModuleDefinitionResource(entity.getName(),
 				entity.getType().name());
-		ModuleOptionsMetadata moduleOptionsMetadata = entity.getModuleOptions();
+		ModuleOptionsMetadata moduleOptionsMetadata = entity.getModuleOptionsMetadata();
 		if (moduleOptionsMetadata != null) {
 			for (ModuleOption option : moduleOptionsMetadata) {
 				Object defaultValue = option.getDefaultValue();

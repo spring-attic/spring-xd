@@ -27,8 +27,8 @@ import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
-
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.io.DescriptiveResource;
 import org.springframework.core.io.Resource;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
@@ -213,7 +213,7 @@ public class XDStreamParserTests {
 	@Bean
 	public ModuleRegistry moduleRegistry() {
 		ModuleRegistry registry = mock(ModuleRegistry.class);
-		Resource resource = mock(Resource.class);
+		Resource resource = new DescriptiveResource("dummy");
 		setupMockFindsForSource(registry, resource);
 		setupMockFindsForSink(registry, resource);
 		setupMockFindsForProcessor(registry, resource);

@@ -28,8 +28,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.dirt.analytics.NoSuchMetricException;
+import org.springframework.xd.dirt.job.JobExecutionNotRunningException;
+import org.springframework.xd.dirt.job.NoSuchJobExecutionException;
 import org.springframework.xd.dirt.module.ModuleAlreadyExistsException;
-import org.springframework.xd.dirt.module.NoSuchJobExecutionInfoException;
 import org.springframework.xd.dirt.module.NoSuchModuleException;
 import org.springframework.xd.dirt.stream.AlreadyDeployedException;
 import org.springframework.xd.dirt.stream.DefinitionAlreadyExistsException;
@@ -42,6 +43,7 @@ import org.springframework.xd.dirt.stream.dsl.StreamDefinitionException;
  * 
  * @author Eric Bottard
  * @author Gunnar Hillert
+ * @author Ilayaperumal Gopinathan
  */
 @ControllerAdvice
 public class RestControllerAdvice {
@@ -158,7 +160,15 @@ public class RestControllerAdvice {
 	@ResponseBody
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.NOT_FOUND)
-	public VndErrors onNoSuchJobExecutionInfoException(NoSuchJobExecutionInfoException e) {
+	public VndErrors onNoSuchJobExecutionException(NoSuchJobExecutionException e) {
+		String logref = log(e);
+		return new VndErrors(logref, e.getMessage());
+	}
+
+	@ResponseBody
+	@ExceptionHandler
+	@ResponseStatus(HttpStatus.NOT_FOUND)
+	public VndErrors onJobExecutionNotRunningException(JobExecutionNotRunningException e) {
 		String logref = log(e);
 		return new VndErrors(logref, e.getMessage());
 	}

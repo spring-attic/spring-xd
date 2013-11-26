@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.module;
+package org.springframework.xd.dirt.job;
 
 import org.springframework.batch.core.JobExecution;
 import org.springframework.xd.dirt.core.XDRuntimeException;
@@ -25,14 +25,14 @@ import org.springframework.xd.dirt.core.XDRuntimeException;
  * @author Gunnar Hillert
  */
 @SuppressWarnings("serial")
-public class NoSuchJobExecutionInfoException extends XDRuntimeException {
+public class NoSuchJobExecutionException extends XDRuntimeException {
 
 	/**
 	 * Create a new exception.
 	 * 
 	 * @param id the id of the {@link JobExecution} that could not be found
 	 */
-	public NoSuchJobExecutionInfoException(long id) {
+	public NoSuchJobExecutionException(long id) {
 		super("Could not find jobExecution with id '" + id + "'");
 	}
 

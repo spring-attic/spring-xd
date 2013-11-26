@@ -16,12 +16,15 @@
 
 package org.springframework.xd.rest.client.impl;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.xd.rest.client.JobOperations;
 import org.springframework.xd.rest.client.domain.JobDefinitionResource;
+import org.springframework.xd.rest.client.domain.JobExecutionInfoResource;
 
 /**
  * Implementation of the Job-related part of the API.
@@ -126,6 +129,22 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 	@Override
 	public String toString() {
 		return "JobTemplate [restTemplate=" + restTemplate + ", resources=" + resources + "]";
+	}
+
+	@Override
+	public List<JobExecutionInfoResource> listJobExecutions() {
+		String uriTemplate = resources.get("batch/executions").toString();
+		// TODO handle pagination at the client side
+		uriTemplate = uriTemplate + "?size=10000";
+		JobExecutionInfoResource[] jobExecutionInfoResources = restTemplate.getForObject(uriTemplate,
+				JobExecutionInfoResource[].class);
+		return Arrays.asList(jobExecutionInfoResources);
+	}
+
+	@Override
+	public JobExecutionInfoResource displayJobExecution(Long jobExecutionId) {
+		String uriTemplate = resources.get("batch/executions").toString() + "/{jobExecutionId}";
+		return restTemplate.getForObject(uriTemplate, JobExecutionInfoResource.class, jobExecutionId);
 	}
 
 }

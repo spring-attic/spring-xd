@@ -37,10 +37,11 @@ import org.junit.Test;
 
 import org.springframework.batch.core.JobParameter;
 import org.springframework.shell.core.CommandResult;
+import org.springframework.xd.shell.util.Table;
 
 /**
  * Test stream commands
- * 
+ *
  * @author Glenn Renfro
  * @author Gunnar Hillert
  */
@@ -301,5 +302,33 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 			jobParameters.clear();
 			countDownLatch = new CountDownLatch(1);
 		}
+	}
+
+	@Test
+	public void testListJobExecutions() {
+		executeJobCreate(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR);
+		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
+		executeJobLaunch(MY_JOB);
+		listJobExecutions();
+	}
+
+	@Test
+	public void testDisplaySpecificJobExecution() {
+		executeJobCreate(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR);
+		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
+		executeJobLaunch(MY_JOB);
+		final Table jobExecutions = listJobExecutions();
+		String id = jobExecutions.getRows().get(0).getValue(1);
+		displayJobExecution(id);
+	}
+
+	@Test
+	public void testDisplaySpecificJobExecutionWithDateParam() {
+		executeJobCreate(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR);
+		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
+		executeJobLaunch(MY_JOB, "{\"param1\":\"fixedDelayKenny\",\"param2(date)\":\"2013/12/28\"}");
+		final Table jobExecutions = listJobExecutions();
+		String id = jobExecutions.getRows().get(0).getValue(1);
+		displayJobExecution(id);
 	}
 }

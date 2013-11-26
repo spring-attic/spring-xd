@@ -162,4 +162,37 @@ public class UiUtilsTest {
 		final String tableRenderedAsString = UiUtils.renderParameterInfoDataAsTable(values, false, 20);
 		assertEquals(expectedTableAsString.replaceAll("\r", ""), tableRenderedAsString);
 	}
+
+	@Test
+	public void testRenderTableWithRowShorthand() {
+
+		final Table table = new Table();
+		table.addHeader(1, new TableHeader("Property"))
+				.addHeader(2, new TableHeader("Value"));
+
+		table.addRow("Job Execution ID", String.valueOf(1))
+				.addRow("Job Name", "My Job Name")
+				.addRow("Start Time", "12:30")
+				.addRow("Step Execution Count", String.valueOf(12))
+				.addRow("Status", "COMPLETED");
+
+		assertNotNull(table.toString());
+
+		final InputStream inputStream = getClass()
+				.getClassLoader()
+				.getResourceAsStream("testRenderTableWithRowShorthand-expected-output.txt");
+
+		assertNotNull("The inputstream is null.", inputStream);
+
+		String expectedTableAsString = null;
+
+		try {
+			expectedTableAsString = FileCopyUtils.copyToString(new InputStreamReader(inputStream));
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+			fail();
+		}
+		assertEquals(expectedTableAsString.replaceAll("\r", ""), table.toString());
+	}
 }

@@ -31,6 +31,8 @@ import org.springframework.batch.core.converter.DefaultJobParametersConverter;
 import org.springframework.batch.core.converter.JobParametersConverter;
 import org.springframework.hateoas.ResourceSupport;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 
 /**
  * Represents job execution info resource.
@@ -53,6 +55,7 @@ public class JobExecutionInfoResource extends ResourceSupport {
 
 	private Long jobId;
 
+	@JsonProperty("name")
 	private String jobName;
 
 	private String startDate = "";
@@ -76,6 +79,10 @@ public class JobExecutionInfoResource extends ResourceSupport {
 	private JobParametersConverter converter = new DefaultJobParametersConverter();
 
 	private final TimeZone timeZone;
+
+	public JobExecutionInfoResource() {
+		this.timeZone = TimeZone.getDefault();
+	}
 
 	public JobExecutionInfoResource(JobExecution jobExecution, TimeZone timeZone) {
 
@@ -116,6 +123,7 @@ public class JobExecutionInfoResource extends ResourceSupport {
 		return timeZone;
 	}
 
+	@JsonProperty
 	public String getName() {
 		return jobName;
 	}

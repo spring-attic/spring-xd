@@ -190,4 +190,17 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 		}
 		out.deleteOnExit();
 	}
+
+	protected Table listJobExecutions() {
+		return (Table) getShell().executeCommand("job execution list").getResult();
+	}
+
+	protected String displayJobExecution(String id) {
+		final CommandResult commandResult = getShell().executeCommand("job execution display " + id);
+
+		if (!commandResult.isSuccess()) {
+			throw new IllegalStateException("Expected a successful command execution.", commandResult.getException());
+		}
+		return (String) commandResult.getResult();
+	}
 }

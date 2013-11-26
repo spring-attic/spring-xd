@@ -16,6 +16,10 @@
 
 package org.springframework.xd.shell.command;
 
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.batch.core.JobParameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.shell.core.CommandMarker;
@@ -25,10 +29,13 @@ import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
 import org.springframework.xd.rest.client.JobOperations;
 import org.springframework.xd.rest.client.domain.JobDefinitionResource;
+import org.springframework.xd.rest.client.domain.JobExecutionInfoResource;
 import org.springframework.xd.shell.XDShell;
+import org.springframework.xd.shell.util.CommonUtils;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableHeader;
 import org.springframework.xd.shell.util.TableRow;
+import org.springframework.xd.shell.util.UiUtils;
 
 /**
  * Job commands.
@@ -45,6 +52,10 @@ public class JobCommands implements CommandMarker {
 	private final static String CREATE_JOB = "job create";
 
 	private final static String LIST_JOBS = "job list";
+
+	private final static String LIST_JOB_EXECUTIONS = "job execution list";
+
+	private final static String DISPLAY_JOB_EXECUTION = "job execution display";
 
 	private final static String DEPLOY_JOB = "job deploy";
 
@@ -105,6 +116,99 @@ public class JobCommands implements CommandMarker {
 			table.getRows().add(row);
 		}
 		return table;
+	}
+
+	@CliCommand(value = LIST_JOB_EXECUTIONS, help = "List all job executions")
+	public Table listJobExecutions() {
+
+		final List<JobExecutionInfoResource> jobExecutions = jobOperations().listJobExecutions();
+		final Table table = new Table();
+		table.addHeader(1, new TableHeader("Id"))
+				.addHeader(2, new TableHeader("Job Name"))
+				.addHeader(3, new TableHeader("Start Time"))
+				.addHeader(4, new TableHeader("Step Execution Count"))
+				.addHeader(5, new TableHeader("Status"));
+
+		for (JobExecutionInfoResource jobExecutionInfoResource : jobExecutions) {
+			final TableRow row = new TableRow();
+			final String startTimeAsString =
+					jobExecutionInfoResource.getStartDate() + " " +
+							jobExecutionInfoResource.getStartTime() + " " +
+							jobExecutionInfoResource.getTimeZone().getID();
+			row.addValue(1, String.valueOf(jobExecutionInfoResource.getExecutionId()))
+					.addValue(2, jobExecutionInfoResource.getName())
+					.addValue(3, startTimeAsString)
+					.addValue(4, String.valueOf(jobExecutionInfoResource.getStepExecutionCount()))
+					.addValue(5, jobExecutionInfoResource.getJobExecution().getStatus().name());
+			table.getRows().add(row);
+		}
+
+		return table;
+	}
+
+	@CliCommand(value = DISPLAY_JOB_EXECUTION, help = "Display the details of a Job Execution")
+	public String display(
+			@CliOption(mandatory = true, key = { "", "id" }, help = "the id of the job execution") Long jobExecutionId) {
+
+		final JobExecutionInfoResource jobExecutionInfoResource = jobOperations().displayJobExecution(jobExecutionId);
+
+		final String startTimeAsString =
+				jobExecutionInfoResource.getStartDate() + " " +
+						jobExecutionInfoResource.getStartTime() + " " +
+						jobExecutionInfoResource.getTimeZone().getID();
+
+		final Table jobExecutionTable = new Table();
+		jobExecutionTable.addHeader(1, new TableHeader("Property"))
+				.addHeader(2, new TableHeader("Value"));
+
+		final StringBuilder details = new StringBuilder();
+
+		details.append("Job Execution Details:\n");
+		details.append(UiUtils.HORIZONTAL_LINE);
+
+		final String utcCreateTime = CommonUtils.getUtcTime(jobExecutionInfoResource.getJobExecution().getCreateTime());
+		final String utcStartTime = CommonUtils.getUtcTime(jobExecutionInfoResource.getJobExecution().getStartTime());
+		final String utcEndTime = CommonUtils.getUtcTime(jobExecutionInfoResource.getJobExecution().getEndTime());
+
+		jobExecutionTable.addRow("Job Execution ID", String.valueOf(jobExecutionInfoResource.getExecutionId()))
+				.addRow("Job Name", jobExecutionInfoResource.getName())
+				.addRow("Start Time", startTimeAsString)
+				.addRow("Create Time (UTC)", utcCreateTime)
+				.addRow("Start Time (UTC)", utcStartTime)
+				.addRow("End Time (UTC)", utcEndTime)
+				.addRow("Running", String.valueOf(jobExecutionInfoResource.getJobExecution().isRunning()))
+				.addRow("Stopping", String.valueOf(jobExecutionInfoResource.getJobExecution().isStopping()))
+				.addRow("Step Execution Count", String.valueOf(jobExecutionInfoResource.getStepExecutionCount()))
+				.addRow("Status", jobExecutionInfoResource.getJobExecution().getStatus().name());
+
+		details.append(jobExecutionTable);
+
+		details.append(UiUtils.HORIZONTAL_LINE);
+		details.append("Job Parameters:\n");
+		details.append(UiUtils.HORIZONTAL_LINE);
+
+		if (jobExecutionInfoResource.getJobExecution().getJobParameters().isEmpty()) {
+			details.append("No Job Parameters are present");
+		}
+		else {
+			final Table jobParameterTable = new Table();
+			jobParameterTable.addHeader(1, new TableHeader("Name"))
+					.addHeader(2, new TableHeader("Value"))
+					.addHeader(3, new TableHeader("Type"))
+					.addHeader(4, new TableHeader("Identifying"));
+
+			for (Map.Entry<String, JobParameter> jobParameterEntry : jobExecutionInfoResource.getJobExecution().getJobParameters().getParameters().entrySet()) {
+
+				jobParameterTable.addRow(jobParameterEntry.getKey(),
+						jobParameterEntry.getValue().getValue().toString(),
+						jobParameterEntry.getValue().getType().name(),
+						String.valueOf(jobParameterEntry.getValue().isIdentifying()));
+			}
+
+			details.append(jobParameterTable);
+		}
+
+		return details.toString();
 	}
 
 	@CliCommand(value = DEPLOY_JOB, help = "Deploy a previously created job")

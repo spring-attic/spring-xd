@@ -16,14 +16,19 @@
 
 package org.springframework.xd.rest.client;
 
+import java.util.List;
+
 import org.springframework.hateoas.PagedResources;
 import org.springframework.xd.rest.client.domain.JobDefinitionResource;
+import org.springframework.xd.rest.client.domain.JobExecutionInfoResource;
 
 /**
  * Interface defining operations available against jobs.
  * 
  * @author Glenn Renfro
  * @author Ilayaperumal Gopinathan
+ * @author Gunnar Hillert
+ * 
  */
 public interface JobOperations extends ResourceOperations {
 
@@ -45,4 +50,18 @@ public interface JobOperations extends ResourceOperations {
 	 * List jobs known to the system.
 	 */
 	public PagedResources<JobDefinitionResource> list();
+
+	/**
+	 * List all Job Executions.
+	 */
+	public List<JobExecutionInfoResource> listJobExecutions();
+
+
+	/**
+	 * Retrieve a specific Job Execution for the provided {@code jobExecutionId}.
+	 * 
+	 * @param jobExecutionId Must not be null
+	 * @return
+	 */
+	public JobExecutionInfoResource displayJobExecution(Long jobExecutionId);
 }

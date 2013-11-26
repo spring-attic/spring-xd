@@ -73,7 +73,7 @@ ext {
 	snakeYamlVersion = '1.12'
 	springVersion = '4.0.0.BUILD-SNAPSHOT'
 	springBatchVersion = '2.2.3.BUILD-SNAPSHOT'
-	springIntegrationVersion = '4.0.0.M1'
+	springIntegrationVersion = '4.0.0.BUILD-SNAPSHOT'
 	springIntegrationMQTTVersion = '4.0.0.M1'
 	springBootVersion = '0.5.0.BUILD-SNAPSHOT'
 	springCloudVersion = '0.9.2'

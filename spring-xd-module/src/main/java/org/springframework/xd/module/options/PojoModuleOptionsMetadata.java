@@ -20,13 +20,19 @@ import java.beans.PropertyDescriptor;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Properties;
+import java.util.Map;
 
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
-import org.springframework.beans.MutablePropertyValues;
+import org.springframework.beans.InvalidPropertyException;
+import org.springframework.boot.bind.PropertySourcesPropertyValues;
 import org.springframework.core.env.EnumerablePropertySource;
+import org.springframework.core.env.MapPropertySource;
+import org.springframework.core.env.MutablePropertySources;
 import org.springframework.util.Assert;
+import org.springframework.validation.BindException;
+import org.springframework.validation.DataBinder;
+import org.springframework.validation.FieldError;
 import org.springframework.xd.module.options.spi.ProfileNamesProvider;
 
 
@@ -53,6 +59,8 @@ public class PojoModuleOptionsMetadata implements ModuleOptionsMetadata {
 	private BeanWrapper beanWrapper;
 
 	private List<ModuleOption> options;
+
+	private DataBinder dataBinder;
 
 	public PojoModuleOptionsMetadata(Class<?> clazz) {
 		beanWrapper = new BeanWrapperImpl(clazz);
@@ -108,8 +116,23 @@ public class PojoModuleOptionsMetadata implements ModuleOptionsMetadata {
 	}
 
 	@Override
-	public ModuleOptions interpolate(Properties raw) {
-		beanWrapper.setPropertyValues(new MutablePropertyValues(raw), true, true);
+	public ModuleOptions interpolate(Map<String, String> raw) throws BindException {
+		DataBinder dataBinder = new DataBinder(beanWrapper.getWrappedInstance());
+		dataBinder.setIgnoreUnknownFields(false);
+		MutablePropertySources mps = new MutablePropertySources();
+		mps.addFirst(new MapPropertySource("options", (Map) raw));
+		try {
+			dataBinder.bind(new PropertySourcesPropertyValues(mps));
+		}
+		catch (InvalidPropertyException e) {
+			dataBinder.getBindingResult().addError(new FieldError("", e.getPropertyName(), e.getMessage()));
+		}
+
+		if (dataBinder.getBindingResult().hasErrors()) {
+			throw new BindException(dataBinder.getBindingResult());
+		}
+
+		// beanWrapper.setPropertyValues(new MutablePropertyValues(raw), true, true);
 		return new ModuleOptions() {
 
 			@Override

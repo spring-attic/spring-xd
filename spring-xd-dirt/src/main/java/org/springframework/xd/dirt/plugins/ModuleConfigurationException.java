@@ -16,7 +16,12 @@
 
 package org.springframework.xd.dirt.plugins;
 
+import java.util.List;
+
+import org.springframework.validation.BindException;
+import org.springframework.validation.FieldError;
 import org.springframework.xd.dirt.core.XDRuntimeException;
+import org.springframework.xd.module.ModuleType;
 
 
 /**
@@ -33,6 +38,25 @@ public class ModuleConfigurationException extends XDRuntimeException {
 
 	public ModuleConfigurationException(String message, Throwable cause) {
 		super(message, cause);
+	}
+
+	/**
+	 * Construct an exception following a configuration exception on a particular module.
+	 */
+	public static ModuleConfigurationException fromBindException(String name, ModuleType type, BindException e) {
+		StringBuilder sb = new StringBuilder("Error with option(s) for module ");
+		sb.append(name).append(" of type ").append(type.name()).append(": ");
+
+		List<FieldError> errors = e.getBindingResult().getFieldErrors();
+		for (int i = 0; i < errors.size(); i++) {
+			if (i > 0) {
+				sb.append(", ");
+			}
+			sb.append(errors.get(i).getDefaultMessage());
+		}
+
+		ModuleConfigurationException result = new ModuleConfigurationException(sb.toString(), e);
+		return result;
 	}
 
 }

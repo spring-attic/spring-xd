@@ -43,6 +43,7 @@ import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
+import org.springframework.validation.BindException;
 import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.event.ModuleDeployedEvent;
 import org.springframework.xd.dirt.event.ModuleUndeployedEvent;
@@ -237,10 +238,17 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 
 
 		ModuleDefinition definition = moduleDefinitionRepository.findByNameAndType(module.getName(), module.getType());
-		ModuleOptionsMetadata moduleOptionsMetadata = definition.getModuleOptions();
+		ModuleOptionsMetadata moduleOptionsMetadata = definition.getModuleOptionsMetadata();
 		if (moduleOptionsMetadata != null) {
-			EnumerablePropertySource<?> propertySource = moduleOptionsMetadata.interpolate(
-					parametersAsProps).asPropertySource();
+			EnumerablePropertySource<?> propertySource;
+			try {
+				propertySource = moduleOptionsMetadata.interpolate(
+						parameters).asPropertySource();
+			}
+			catch (BindException e) {
+				// Should not happen as parser as already validated options
+				throw new IllegalStateException("Invalid options provided for module", e);
+			}
 			// Go back to the java.util.Properties world for now
 			Properties props = new Properties();
 			for (String key : propertySource.getPropertyNames()) {

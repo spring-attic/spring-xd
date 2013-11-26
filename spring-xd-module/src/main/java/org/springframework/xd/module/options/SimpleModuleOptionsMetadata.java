@@ -16,12 +16,15 @@
 
 package org.springframework.xd.module.options;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Properties;
 
 import org.springframework.core.env.EnumerablePropertySource;
+import org.springframework.validation.BindException;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.MapBindingResult;
 
 
 /**
@@ -44,7 +47,20 @@ public class SimpleModuleOptionsMetadata implements ModuleOptionsMetadata {
 	}
 
 	@Override
-	public ModuleOptions interpolate(final Properties raw) {
+	public ModuleOptions interpolate(final Map<String, String> raw) throws BindException {
+
+		MapBindingResult bindingResult = new MapBindingResult(new HashMap<String, String>(), "options");
+		for (String provided : raw.keySet()) {
+			if (!options.containsKey(provided)) {
+				bindingResult.addError(new FieldError("options", provided, String.format(
+						"Module option '%s' does not exist", provided)));
+			}
+		}
+
+		if (bindingResult.hasErrors()) {
+			throw new BindException(bindingResult);
+		}
+
 		return new ModuleOptions() {
 
 			@Override
@@ -57,7 +73,7 @@ public class SimpleModuleOptionsMetadata implements ModuleOptionsMetadata {
 					public Object getProperty(String name) {
 						ModuleOption option = options.get(name);
 						if (option != null) {
-							String provided = raw.getProperty(name);
+							String provided = raw.get(name);
 							if (provided != null) {
 								return provided;
 							}

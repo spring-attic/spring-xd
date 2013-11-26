@@ -21,11 +21,13 @@ import java.util.List;
 
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.util.Assert;
+import org.springframework.validation.BindException;
 import org.springframework.xd.dirt.core.BaseDefinition;
 import org.springframework.xd.dirt.module.CompositeModuleDeploymentRequest;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.dirt.module.NoSuchModuleException;
+import org.springframework.xd.dirt.plugins.ModuleConfigurationException;
 import org.springframework.xd.dirt.stream.dsl.ArgumentNode;
 import org.springframework.xd.dirt.stream.dsl.ModuleNode;
 import org.springframework.xd.dirt.stream.dsl.SinkChannelNode;
@@ -34,6 +36,7 @@ import org.springframework.xd.dirt.stream.dsl.StreamConfigParser;
 import org.springframework.xd.dirt.stream.dsl.StreamNode;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
+import org.springframework.xd.module.options.ModuleOptionsMetadata;
 
 /**
  * @author Andy Clement
@@ -96,10 +99,25 @@ public class XDStreamParser implements XDParser {
 		}
 
 		// Now that we know about source and sink channel names,
-		// do a second pass to determine type. Also convert to composites
+		// do a second pass to determine type. Also convert to composites.
+		// And while we're at it (and type is known), validate module name and options
 		List<ModuleDeploymentRequest> result = new ArrayList<ModuleDeploymentRequest>(requests.size());
 		for (ModuleDeploymentRequest original : requests) {
 			original.setType(determineType(original, requests.size() - 1));
+
+			// definition is guaranteed to be non-null here
+			ModuleDefinition moduleDefinition = moduleDefinitionRepository.findByNameAndType(original.getModule(),
+					original.getType());
+			ModuleOptionsMetadata optionsMetadata = moduleDefinition.getModuleOptionsMetadata();
+			if (optionsMetadata != null) {
+				try {
+					optionsMetadata.interpolate(original.getParameters());
+				}
+				catch (BindException e) {
+					throw ModuleConfigurationException.fromBindException(original.getModule(), original.getType(), e);
+				}
+			}
+
 			result.add(convertToCompositeIfNecessary(original));
 		}
 		return result;

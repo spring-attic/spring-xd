@@ -25,7 +25,6 @@ import org.springframework.batch.admin.service.SimpleJobService;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersInvalidException;
-import org.springframework.batch.core.launch.JobExecutionNotRunningException;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.NoSuchJobException;
 import org.springframework.batch.core.launch.NoSuchJobExecutionException;
@@ -77,12 +76,6 @@ public class DistributedJobService extends SimpleJobService {
 			NoSuchJobException, JobParametersInvalidException {
 		// TODO
 		throw new UnsupportedOperationException("Job Restart");
-	}
-
-	@Override
-	public JobExecution stop(Long jobExecutionId) throws NoSuchJobExecutionException, JobExecutionNotRunningException {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Stop Job Execution");
 	}
 
 	@Override

@@ -18,6 +18,7 @@ package org.springframework.xd.dirt.rest;
 
 import static org.hamcrest.Matchers.contains;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -40,6 +41,7 @@ import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.job.SimpleJob;
+import org.springframework.batch.core.launch.JobExecutionNotRunningException;
 import org.springframework.batch.core.launch.NoSuchJobExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -65,6 +67,7 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 	@Autowired
 	private BatchJobLocator jobLocator;
 
+	@SuppressWarnings("unchecked")
 	@Before
 	public void before() throws Exception {
 		SimpleJob job1 = new SimpleJob("job1.job");
@@ -100,7 +103,7 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 		when(jobService.listJobs(0, 20)).thenReturn(jobNames);
 		when(jobService.countJobExecutionsForJob(job1.getName())).thenReturn(2);
 		when(jobService.countJobExecutionsForJob(job2.getName())).thenReturn(1);
-		// isLaunchable() is always true here.
+
 		when(jobService.isIncrementable(job1.getName())).thenReturn(false);
 		when(jobService.isIncrementable(job2.getName())).thenReturn(true);
 
@@ -108,6 +111,9 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 		when(jobService.listJobExecutionsForJob(job2.getName(), 0, 20)).thenReturn(jobExecutions2);
 		when(jobService.getJobExecution(jobExecution1.getId())).thenReturn(jobExecution1);
 		when(jobService.getJobExecution(99999L)).thenThrow(new NoSuchJobExecutionException("Not found."));
+
+		when(jobService.stop(3l)).thenThrow(JobExecutionNotRunningException.class);
+		when(jobService.stop(5l)).thenThrow(NoSuchJobExecutionException.class);
 
 	}
 
@@ -149,5 +155,25 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 		mockMvc.perform(get("/batch/executions/99999").accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isNotFound())
 				.andExpect(jsonPath("$[0].message", Matchers.is("Could not find jobExecution with id '99999'")));
+	}
+
+	@Test
+	public void testStopJobExecution() throws Exception {
+		mockMvc.perform(delete("/batch/executions/{executionId}", "0")).andExpect(status().isOk());
+	}
+
+	@Test
+	public void testStopJobExecutionNotRunning() throws Exception {
+		mockMvc.perform(delete("/batch/executions/{executionId}", "3")).andExpect(status().isNotFound()).andExpect(
+				jsonPath("$[0].message", Matchers.is("Job execution with executionId '3' is not running.")));
+		;
+	}
+
+	@Test
+	public void testStopJobExecutionNotExists() throws Exception {
+		mockMvc.perform(delete("/batch/executions/{executionId}", "5")).andExpect(status().isNotFound()).andExpect(
+				jsonPath("$[0].message",
+						Matchers.is("Job execution with executionId '5' doesn't exist.")));
+
 	}
 }

@@ -22,7 +22,6 @@ import java.util.TimeZone;
 
 import org.springframework.batch.admin.service.JobService;
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.launch.NoSuchJobExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.hateoas.ExposesResourceFor;
@@ -35,6 +34,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.dirt.job.JobExecutionInfo;
+import org.springframework.xd.dirt.job.JobExecutionNotRunningException;
+import org.springframework.xd.dirt.job.NoSuchJobExecutionException;
 import org.springframework.xd.dirt.module.NoSuchJobExecutionInfoException;
 import org.springframework.xd.rest.client.domain.JobExecutionInfoResource;
 
@@ -108,10 +109,29 @@ public class BatchJobExecutionsController {
 		try {
 			jobExecution = jobService.getJobExecution(jobExecutionId);
 		}
-		catch (NoSuchJobExecutionException e) {
+		catch (org.springframework.batch.core.launch.NoSuchJobExecutionException e) {
 			throw new NoSuchJobExecutionInfoException(jobExecutionId);
 		}
 
 		return jobExecutionInfoResourceAssembler.toResource(new JobExecutionInfo(jobExecution, timeZone));
+	}
+
+	/**
+	 * Stop Job Execution by the given executionId.
+	 * 
+	 * @param jobExecutionId the executionId of the job execution to stop
+	 */
+	@RequestMapping(value = { "/{executionId}" }, method = RequestMethod.DELETE)
+	@ResponseStatus(HttpStatus.OK)
+	public void stopJobExecution(@PathVariable("executionId") Long jobExecutionId) {
+		try {
+			jobService.stop(jobExecutionId);
+		}
+		catch (org.springframework.batch.core.launch.JobExecutionNotRunningException e) {
+			throw new JobExecutionNotRunningException(jobExecutionId);
+		}
+		catch (org.springframework.batch.core.launch.NoSuchJobExecutionException e) {
+			throw new NoSuchJobExecutionException(jobExecutionId);
+		}
 	}
 }

@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.stream;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -27,6 +28,7 @@ import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.BaseDefinition;
 import org.springframework.xd.dirt.core.ResourceDeployer;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.module.ModuleDefinition;
 
 /**
  * Abstract implementation of the @link {@link org.springframework.xd.dirt.core.ResourceDeployer} interface. It provides
@@ -67,9 +69,32 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		if (repository.findOne(definition.getName()) != null) {
 			throwDefinitionAlreadyExistsException(definition);
 		}
-		streamParser.parse(definition.getName(), definition.getDefinition());
+		List<ModuleDeploymentRequest> moduleDeploymentRequests = streamParser.parse(definition.getName(),
+				definition.getDefinition());
+		List<ModuleDefinition> moduleDefinitions = createModuleDefinitions(moduleDeploymentRequests);
+		if (!moduleDefinitions.isEmpty()) {
+			definition.setModuleDefinitions(moduleDefinitions);
+		}
 		D savedDefinition = repository.save(definition);
 		return afterSave(savedDefinition);
+	}
+
+	/**
+	 * Create a list of ModuleDefinitions given the results of parsing the definition.
+	 * 
+	 * @param moduleDeploymentRequests The list of ModuleDeploymentRequest resulting from parsing the definition.
+	 * @return a list of ModuleDefinitions
+	 */
+	private List<ModuleDefinition> createModuleDefinitions(List<ModuleDeploymentRequest> moduleDeploymentRequests) {
+		List<ModuleDefinition> moduleDefinitions = new ArrayList<ModuleDefinition>(moduleDeploymentRequests.size());
+
+		for (ModuleDeploymentRequest moduleDeploymentRequest : moduleDeploymentRequests) {
+			ModuleDefinition moduleDefinition = new ModuleDefinition(moduleDeploymentRequest.getModule(),
+					moduleDeploymentRequest.getType());
+			moduleDefinitions.add(moduleDefinition);
+		}
+
+		return moduleDefinitions;
 	}
 
 	/**
@@ -181,7 +206,7 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 			throwNoSuchDefinitionException(name);
 		}
 		beforeDelete(def);
-		getDefinitionRepository().delete(name);
+		getDefinitionRepository().delete(def);
 	}
 
 	/**

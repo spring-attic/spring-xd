@@ -31,6 +31,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.DescriptiveResource;
 import org.springframework.core.io.Resource;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
+import org.springframework.xd.dirt.module.ModuleDependencyRepository;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.module.memory.InMemoryModuleDefinitionRepository;
@@ -207,7 +208,7 @@ public class XDStreamParserTests {
 
 	@Bean
 	public ModuleDefinitionRepository moduleDefinitionRepository() {
-		return new InMemoryModuleDefinitionRepository(moduleRegistry());
+		return new InMemoryModuleDefinitionRepository(moduleRegistry(), mock(ModuleDependencyRepository.class));
 	}
 
 	@Bean

@@ -18,6 +18,7 @@ import static org.mockito.Mockito.mock;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
+import org.springframework.xd.dirt.module.ModuleDependencyRepository;
 import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.module.memory.InMemoryModuleDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
@@ -53,7 +54,8 @@ public class JobsControllerIntegrationTestsConfig extends Dependencies {
 	@Override
 	@Bean
 	public ModuleDefinitionRepository moduleDefinitionRepository() {
-		return new InMemoryModuleDefinitionRepository(mock(ModuleRegistry.class));
+		return new InMemoryModuleDefinitionRepository(mock(ModuleRegistry.class),
+				mock(ModuleDependencyRepository.class));
 	}
 
 }

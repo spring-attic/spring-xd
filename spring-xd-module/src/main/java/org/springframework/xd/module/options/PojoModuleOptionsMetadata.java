@@ -33,6 +33,7 @@ import org.springframework.util.Assert;
 import org.springframework.validation.BindException;
 import org.springframework.validation.DataBinder;
 import org.springframework.validation.FieldError;
+import org.springframework.validation.beanvalidation.CustomValidatorBean;
 import org.springframework.xd.module.options.spi.ProfileNamesProvider;
 
 
@@ -59,8 +60,6 @@ public class PojoModuleOptionsMetadata implements ModuleOptionsMetadata {
 	private BeanWrapper beanWrapper;
 
 	private List<ModuleOption> options;
-
-	private DataBinder dataBinder;
 
 	public PojoModuleOptionsMetadata(Class<?> clazz) {
 		beanWrapper = new BeanWrapperImpl(clazz);
@@ -117,22 +116,8 @@ public class PojoModuleOptionsMetadata implements ModuleOptionsMetadata {
 
 	@Override
 	public ModuleOptions interpolate(Map<String, String> raw) throws BindException {
-		DataBinder dataBinder = new DataBinder(beanWrapper.getWrappedInstance());
-		dataBinder.setIgnoreUnknownFields(false);
-		MutablePropertySources mps = new MutablePropertySources();
-		mps.addFirst(new MapPropertySource("options", (Map) raw));
-		try {
-			dataBinder.bind(new PropertySourcesPropertyValues(mps));
-		}
-		catch (InvalidPropertyException e) {
-			dataBinder.getBindingResult().addError(new FieldError("", e.getPropertyName(), e.getMessage()));
-		}
+		bindAndValidate(raw);
 
-		if (dataBinder.getBindingResult().hasErrors()) {
-			throw new BindException(dataBinder.getBindingResult());
-		}
-
-		// beanWrapper.setPropertyValues(new MutablePropertyValues(raw), true, true);
 		return new ModuleOptions() {
 
 			@Override
@@ -169,4 +154,27 @@ public class PojoModuleOptionsMetadata implements ModuleOptionsMetadata {
 			}
 		};
 	}
+
+	private void bindAndValidate(Map<String, String> raw) throws BindException {
+		DataBinder dataBinder = new DataBinder(beanWrapper.getWrappedInstance());
+		dataBinder.setIgnoreUnknownFields(false);
+		MutablePropertySources mps = new MutablePropertySources();
+		mps.addFirst(new MapPropertySource("options", (Map) raw));
+		try {
+			dataBinder.bind(new PropertySourcesPropertyValues(mps));
+		}
+		catch (InvalidPropertyException e) {
+			dataBinder.getBindingResult().addError(new FieldError("options", e.getPropertyName(), e.getMessage()));
+		}
+
+		CustomValidatorBean validator = new CustomValidatorBean();
+		validator.afterPropertiesSet();
+		dataBinder.setValidator(validator);
+		dataBinder.validate();
+
+		if (dataBinder.getBindingResult().hasErrors()) {
+			throw new BindException(dataBinder.getBindingResult());
+		}
+	}
+
 }

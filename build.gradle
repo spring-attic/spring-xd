@@ -553,6 +553,7 @@ project('spring-xd-extension-mongodb') {
 project('spring-xd-extension-jdbc') {
 	description = 'Spring XD JDBC'
 	dependencies {
+		compile project(':spring-xd-tuple')
 		compile "org.springframework:spring-jdbc:$springVersion"
 		compile "org.springframework:spring-tx:$springVersion"
 		compile "org.springframework.batch:spring-batch-infrastructure:$springBatchVersion"
@@ -1111,8 +1112,11 @@ project('modules.job.hdfsjdbc') {
 	}
 }
 
-
-
+project('modules.job.jdbchdfs') {
+	dependencies {
+		runtime(project(":spring-xd-extension-jdbc"))
+	}
+}
 
 
 

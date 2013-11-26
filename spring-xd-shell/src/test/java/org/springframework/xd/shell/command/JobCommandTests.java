@@ -38,12 +38,14 @@ import org.junit.Test;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.xd.shell.util.Table;
+import org.springframework.xd.shell.util.TableRow;
 
 /**
  * Test {@link JobCommands}.
  * 
  * @author Glenn Renfro
  * @author Gunnar Hillert
+ * @author Ilayaperumal Gopinathan
  * @since 1.0
  */
 public class JobCommandTests extends AbstractJobIntegrationTest {
@@ -345,5 +347,31 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		String stepExecutionId = stepExecutions.getRows().get(0).getValue(1);
 
 		assertNotNull(stepExecutionId);
+	}
+
+	@Test
+	public void testStopJobExecution() throws Exception {
+		executeJobCreate(MY_JOB, JOB_WITH_STEP_EXECUTIONS);
+		checkForJobInList(MY_JOB, JOB_WITH_STEP_EXECUTIONS, true);
+		executemyJobFixedDelayStream("5");
+		Thread.sleep(5000);
+		Table table = (Table) executeCommand("job execution list").getResult();
+		assertTrue(!table.getRows().isEmpty());
+		String executionId = table.getRows().get(0).getValue(1);
+		String executionStatus = table.getRows().get(0).getValue(5);
+		assertTrue(executionStatus.equals("STARTING") || executionStatus.equals("STARTED"));
+		// Stop the execution by the given executionId.
+		executeCommand("job execution stop " + executionId);
+		// sleep for stop() until the step2 is invoked.
+		Thread.sleep(3000);
+		table = (Table) executeCommand("job execution list").getResult();
+		for (TableRow tr : table.getRows()) {
+			// Match by above executionId
+			if (tr.getValue(1).equals(executionId)) {
+				executionStatus = tr.getValue(5);
+				break;
+			}
+		}
+		assertEquals("STOPPED", executionStatus);
 	}
 }

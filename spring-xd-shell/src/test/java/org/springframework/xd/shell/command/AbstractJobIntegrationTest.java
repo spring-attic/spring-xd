@@ -50,6 +50,8 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 
 	private static final String JOB_WITH_PARAMETERS_TASKLET = "jobWithParameters.xml";
 
+	private static final String JOB_WITH_STEP_EXECUTIONS_TASKLET = "jobWithStepExecutions.xml";
+
 	public static final String MY_JOB = "myJob";
 
 	public static final String MY_TEST = "myTest";
@@ -58,6 +60,8 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 
 	public static final String JOB_WITH_PARAMETERS_DESCRIPTOR = "jobWithParameters";
 
+	public static final String JOB_WITH_STEP_EXECUTIONS = "jobWithStepExecutions";
+
 	private List<String> jobs = new ArrayList<String>();
 
 	@Before
@@ -65,6 +69,8 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 		copyTaskletDescriptorsToServer(MODULE_RESOURCE_DIR + TEST_TASKLET, MODULE_TARGET_DIR + TEST_TASKLET);
 		copyTaskletDescriptorsToServer(MODULE_RESOURCE_DIR + JOB_WITH_PARAMETERS_TASKLET, MODULE_TARGET_DIR
 				+ JOB_WITH_PARAMETERS_TASKLET);
+		copyTaskletDescriptorsToServer(MODULE_RESOURCE_DIR + JOB_WITH_STEP_EXECUTIONS_TASKLET, MODULE_TARGET_DIR
+				+ JOB_WITH_STEP_EXECUTIONS_TASKLET);
 		// clear any test jobs that may still exist
 		try {
 			executeJobDestroy(MY_JOB);
@@ -153,6 +159,13 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 	protected void checkErrorMessages(CommandResult cr, String expectedMessage) {
 		assertTrue("Failure.  CommandResult = " + cr.toString(),
 				cr.getException().getMessage().contains(expectedMessage));
+	}
+
+	protected void executemyJobFixedDelayStream(String fixedDelay) {
+		CommandResult cr = getShell().executeCommand(
+				"stream create --name me-Try2 --definition \"fixed-delay-trigger --fixedDelay=" + fixedDelay
+						+ " > queue:job:myJob\"");
+		checkForSuccess(cr);
 	}
 
 	protected void executemyJobTriggerStream() {

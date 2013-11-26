@@ -64,7 +64,7 @@ public interface JobOperations extends ResourceOperations {
 	 * @param jobExecutionId Must not be null
 	 * @return
 	 */
-	public JobExecutionInfoResource displayJobExecution(Long jobExecutionId);
+	public JobExecutionInfoResource displayJobExecution(long jobExecutionId);
 
 	/**
 	 * Retrieve a {@link List} of {@link StepExecutionInfoResource}s for the provided {@code jobExecutionId}.
@@ -72,5 +72,10 @@ public interface JobOperations extends ResourceOperations {
 	 * @param jobExecutionId Must not be null
 	 * @return
 	 */
-	public List<StepExecutionInfoResource> listStepExecutions(Long jobExecutionId);
+	public List<StepExecutionInfoResource> listStepExecutions(long jobExecutionId);
+
+	/**
+	 * Stop job execution that is running.
+	 */
+	public void stopJobExecution(long jobExecutionId);
 }

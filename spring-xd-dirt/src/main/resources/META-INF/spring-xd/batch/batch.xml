@@ -85,6 +85,10 @@
 				<jdbc:script
 					location="classpath:/org/springframework/xd/dirt/job/registry-schema-postgresql.sql" />
 			</jdbc:initialize-database>
+			<jdbc:initialize-database data-source="dataSource"
+				ignore-failures="ALL">
+				<jdbc:script location="org/springframework/batch/core/schema-postgresql.sql" />
+			</jdbc:initialize-database>
 
 		</beans>
 
@@ -94,6 +98,10 @@
 				ignore-failures="ALL">
 				<jdbc:script
 					location="classpath:/org/springframework/xd/dirt/job/registry-schema-mysql.sql" />
+			</jdbc:initialize-database>
+			<jdbc:initialize-database data-source="dataSource"
+				ignore-failures="ALL">
+				<jdbc:script location="org/springframework/batch/core/schema-mysql.sql" />
 			</jdbc:initialize-database>
 
 		</beans>

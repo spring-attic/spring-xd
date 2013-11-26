@@ -18,8 +18,8 @@ package org.springframework.xd.dirt.rest;
 
 import static org.hamcrest.Matchers.contains;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -159,19 +159,19 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 
 	@Test
 	public void testStopJobExecution() throws Exception {
-		mockMvc.perform(delete("/batch/executions/{executionId}", "0")).andExpect(status().isOk());
+		mockMvc.perform(put("/batch/executions/{executionId}", "0")).andExpect(status().isOk());
 	}
 
 	@Test
 	public void testStopJobExecutionNotRunning() throws Exception {
-		mockMvc.perform(delete("/batch/executions/{executionId}", "3")).andExpect(status().isNotFound()).andExpect(
+		mockMvc.perform(put("/batch/executions/{executionId}", "3")).andExpect(status().isNotFound()).andExpect(
 				jsonPath("$[0].message", Matchers.is("Job execution with executionId '3' is not running.")));
 		;
 	}
 
 	@Test
 	public void testStopJobExecutionNotExists() throws Exception {
-		mockMvc.perform(delete("/batch/executions/{executionId}", "5")).andExpect(status().isNotFound()).andExpect(
+		mockMvc.perform(put("/batch/executions/{executionId}", "5")).andExpect(status().isNotFound()).andExpect(
 				jsonPath("$[0].message",
 						Matchers.is("Could not find jobExecution with id '5'")));
 

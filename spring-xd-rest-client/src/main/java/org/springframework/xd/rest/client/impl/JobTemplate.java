@@ -91,6 +91,14 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 	}
 
 	@Override
+	public void stopJobExecution(long executionId) {
+		String uriTemplate = resources.get("batch/executions").toString() + "/{executionId}";
+		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
+		values.add("executionId", executionId);
+		restTemplate.put(uriTemplate, values, executionId);
+	}
+
+	@Override
 	public void undeploy(String name) {
 		String uriTemplate = resources.get("jobs").toString() + "/{name}";
 		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
@@ -143,13 +151,13 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 	}
 
 	@Override
-	public JobExecutionInfoResource displayJobExecution(Long jobExecutionId) {
+	public JobExecutionInfoResource displayJobExecution(long jobExecutionId) {
 		String uriTemplate = resources.get("batch/executions").toString() + "/{jobExecutionId}";
 		return restTemplate.getForObject(uriTemplate, JobExecutionInfoResource.class, jobExecutionId);
 	}
 
 	@Override
-	public List<StepExecutionInfoResource> listStepExecutions(Long jobExecutionId) {
+	public List<StepExecutionInfoResource> listStepExecutions(long jobExecutionId) {
 		String uriTemplate = resources.get("batch/executions").toString() + "/{jobExecutionId}/steps";
 		StepExecutionInfoResource[] stepExecutionInfoResources = restTemplate.getForObject(uriTemplate,
 				StepExecutionInfoResource[].class, jobExecutionId);

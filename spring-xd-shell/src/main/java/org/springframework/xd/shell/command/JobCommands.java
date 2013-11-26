@@ -59,6 +59,8 @@ public class JobCommands implements CommandMarker {
 
 	private final static String DISPLAY_JOB_EXECUTION = "job execution display";
 
+	private final static String STOP_JOB_EXECUTION = "job execution stop";
+
 	private final static String DEPLOY_JOB = "job deploy";
 
 	private final static String DEPLOY_ALL_JOBS = "job all deploy";
@@ -79,7 +81,7 @@ public class JobCommands implements CommandMarker {
 	@Autowired
 	private XDShell xdShell;
 
-	@CliAvailabilityIndicator({ CREATE_JOB, LIST_JOBS, DEPLOY_JOB, UNDEPLOY_JOB, DESTROY_JOB })
+	@CliAvailabilityIndicator({ CREATE_JOB, LIST_JOBS, DEPLOY_JOB, UNDEPLOY_JOB, DESTROY_JOB, STOP_JOB_EXECUTION })
 	public boolean available() {
 		return xdShell.getSpringXDOperations() != null;
 	}
@@ -243,6 +245,13 @@ public class JobCommands implements CommandMarker {
 		}
 
 		return details.toString();
+	}
+
+	@CliCommand(value = STOP_JOB_EXECUTION, help = "Stop the job execution that is running")
+	public String stopJobExecution(
+			@CliOption(key = { "", "id" }, help = "the id of the job execution", mandatory = true) long executionId) {
+		jobOperations().stopJobExecution(executionId);
+		return String.format("Stopped Job execution that has executionId '%s'", executionId);
 	}
 
 	@CliCommand(value = DEPLOY_JOB, help = "Deploy a previously created job")

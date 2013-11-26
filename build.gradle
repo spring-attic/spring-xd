@@ -272,14 +272,6 @@ configure(moduleProjects()) { moduleProject ->
 		}
 	}
 
-	// FIXME: remove this
-	configurations {
-		runtime {
-			// Workaround for duplicate large jars being included by mistake
-			exclude module: 'gemfire'
-		}
-	}
-
 	task copyLibs(type: Copy) {
 		def containerDeps = project(':spring-xd-dirt').configurations.runtime
 

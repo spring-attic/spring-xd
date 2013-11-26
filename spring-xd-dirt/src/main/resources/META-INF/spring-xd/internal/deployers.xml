@@ -30,7 +30,6 @@
 		<constructor-arg name="repository" ref="streamDefinitionRepository" />
 		<constructor-arg name="streamRepository" ref="streamRepository"/>
 		<constructor-arg name="parser" ref="parser" />
-		<constructor-arg name="dependencyTracker" ref="dependencyTracker" />
 	</bean>
 
 	<bean id="jobDeployer" class="org.springframework.xd.dirt.stream.JobDeployer">

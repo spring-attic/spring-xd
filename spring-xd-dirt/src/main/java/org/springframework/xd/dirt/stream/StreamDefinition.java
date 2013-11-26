@@ -28,6 +28,17 @@ import org.springframework.xd.dirt.core.BaseDefinition;
  */
 public class StreamDefinition extends BaseDefinition {
 
+	@SuppressWarnings("unused")
+	private StreamDefinition() {
+		// no-arg constructor for serialization
+	}
+
+	/**
+	 * Create a new StreamDefinition
+	 * 
+	 * @param name - the stream name
+	 * @param definition - the stream definition
+	 */
 	public StreamDefinition(String name, String definition) {
 		super(name, definition);
 	}

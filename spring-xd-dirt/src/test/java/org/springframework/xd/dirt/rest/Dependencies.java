@@ -131,7 +131,7 @@ public class Dependencies {
 
 	@Bean
 	public StreamDefinitionRepository streamDefinitionRepository() {
-		return new InMemoryStreamDefinitionRepository();
+		return new InMemoryStreamDefinitionRepository(new InMemoryModuleDependencyRepository());
 	}
 
 	@Bean
@@ -147,7 +147,7 @@ public class Dependencies {
 	@Bean
 	public StreamDeployer streamDeployer() {
 		return new StreamDeployer(streamDefinitionRepository(), deploymentMessageSender(), streamRepository(),
-				parser(), dependencyTracker());
+				parser());
 	}
 
 	@Bean

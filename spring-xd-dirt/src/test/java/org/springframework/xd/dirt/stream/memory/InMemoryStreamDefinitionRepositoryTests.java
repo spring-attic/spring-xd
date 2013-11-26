@@ -25,6 +25,7 @@ import org.junit.Test;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.xd.dirt.module.memory.InMemoryModuleDependencyRepository;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 
 /**
@@ -34,7 +35,8 @@ import org.springframework.xd.dirt.stream.StreamDefinition;
  */
 public class InMemoryStreamDefinitionRepositoryTests {
 
-	private InMemoryStreamDefinitionRepository repository = new InMemoryStreamDefinitionRepository();
+	private InMemoryStreamDefinitionRepository repository = new InMemoryStreamDefinitionRepository(
+			new InMemoryModuleDependencyRepository());
 
 	@Test
 	public void newlyCreatedRepo() {

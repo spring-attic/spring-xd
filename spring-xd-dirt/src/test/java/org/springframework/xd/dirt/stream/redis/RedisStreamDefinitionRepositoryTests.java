@@ -25,6 +25,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.xd.dirt.module.redis.RedisModuleDependencyRepository;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.store.AbstractRedisRepository;
 import org.springframework.xd.test.redis.RedisTestSupport;
@@ -46,8 +47,7 @@ public class RedisStreamDefinitionRepositoryTests {
 		StringRedisTemplate template = new StringRedisTemplate();
 		template.setConnectionFactory(redisAvailableRule.getResource());
 		template.afterPropertiesSet();
-
-		repository = new RedisStreamDefinitionRepository(template);
+		repository = new RedisStreamDefinitionRepository(template, new RedisModuleDependencyRepository(template));
 		repository.setPrefix("test.stream.definitions.");
 	}
 

@@ -17,6 +17,7 @@ import static org.mockito.Mockito.mock;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.xd.dirt.module.memory.InMemoryModuleDependencyRepository;
 import org.springframework.xd.dirt.stream.DeploymentMessageSender;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamRepository;
@@ -34,7 +35,7 @@ public class StreamsControllerIntegrationWithRepositoryTestsConfig extends Depen
 	@Override
 	@Bean
 	public StreamDefinitionRepository streamDefinitionRepository() {
-		return new InMemoryStreamDefinitionRepository();
+		return new InMemoryStreamDefinitionRepository(new InMemoryModuleDependencyRepository());
 	}
 
 	@Override

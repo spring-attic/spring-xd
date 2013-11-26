@@ -159,15 +159,17 @@ public class ModulesController {
 			throw new IllegalStateException(String.format("Cannot delete non-composed module %s:%s", type, name));
 		}
 		Set<String> dependedUpon = dependencyTracker.find(name, type);
-		if (!dependedUpon.isEmpty()) {
+		if (dependedUpon != null && !dependedUpon.isEmpty()) {
 			throw new DependencyException("Cannot delete module %2$s:%1$s because it is used by %3$s", name, type,
 					dependedUpon);
 		}
 		repository.delete(type.name() + ":" + name);
+
 		List<ModuleDeploymentRequest> requests = parser.parse(name, definition.getDefinition());
 		for (ModuleDeploymentRequest request : requests) {
 			dependencyTracker.remove(request, dependencyKey(name, type));
 		}
+
 	}
 
 	private ModuleType determineType(List<ModuleDeploymentRequest> modules) {

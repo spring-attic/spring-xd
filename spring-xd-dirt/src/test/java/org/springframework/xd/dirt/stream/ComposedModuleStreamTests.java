@@ -54,6 +54,8 @@ public class ComposedModuleStreamTests extends StreamTestSupport {
 			}
 		};
 		sendPayloadAndVerifyOutput("streamWithCompositeSource", "foo", test);
+		// Delete the stream definition
+		deleteStream("streamWithCompositeSource");
 	}
 
 	@Test
@@ -84,6 +86,7 @@ public class ComposedModuleStreamTests extends StreamTestSupport {
 		deleteStream("aCompositeStream");
 		// Now delete the composite module
 		modulesController.delete(ModuleType.source, "compositesource");
+		// Assert that it was deleted
 		assertNull(getModuleDefinitionRepository().findByNameAndType("compositesource", ModuleType.source));
 	}
 
@@ -108,6 +111,8 @@ public class ComposedModuleStreamTests extends StreamTestSupport {
 			}
 		};
 		sendPayloadAndVerifyOutput("streamWithCompositeProcessor", "foo", test);
+		// Delete the stream definition
+		deleteStream("streamWithCompositeProcessor");
 	}
 
 	@Test
@@ -121,6 +126,8 @@ public class ComposedModuleStreamTests extends StreamTestSupport {
 			}
 		};
 		sendPayloadAndVerifyOutput("streamWithCompositeSink", "foo", test);
+		// Delete the stream definition
+		deleteStream("streamWithCompositeSink");
 	}
 
 	private static void composeModule(String name, String definition, ModuleType type) {

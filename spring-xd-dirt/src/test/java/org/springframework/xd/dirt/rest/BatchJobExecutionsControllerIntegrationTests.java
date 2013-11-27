@@ -173,7 +173,7 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 	public void testStopJobExecutionNotExists() throws Exception {
 		mockMvc.perform(delete("/batch/executions/{executionId}", "5")).andExpect(status().isNotFound()).andExpect(
 				jsonPath("$[0].message",
-						Matchers.is("Job execution with executionId '5' doesn't exist.")));
+						Matchers.is("Could not find jobExecution with id '5'")));
 
 	}
 }

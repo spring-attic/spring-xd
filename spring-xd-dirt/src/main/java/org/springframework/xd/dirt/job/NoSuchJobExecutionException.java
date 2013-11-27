@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,16 +16,24 @@
 
 package org.springframework.xd.dirt.job;
 
+import org.springframework.batch.core.JobExecution;
 import org.springframework.xd.dirt.core.XDRuntimeException;
 
 /**
+ * Thrown when attempting to refer to {@link JobExecution} that does not exist.
  * 
- * @author Ilayaperumal Gopinathan
+ * @author Gunnar Hillert
  */
 @SuppressWarnings("serial")
 public class NoSuchJobExecutionException extends XDRuntimeException {
 
-	public NoSuchJobExecutionException(Long executionId) {
-		super("Job execution with executionId '" + executionId + "' doesn't exist.");
+	/**
+	 * Create a new exception.
+	 * 
+	 * @param id the id of the {@link JobExecution} that could not be found
+	 */
+	public NoSuchJobExecutionException(long id) {
+		super("Could not find jobExecution with id '" + id + "'");
 	}
+
 }

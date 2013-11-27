@@ -16,6 +16,8 @@
 
 package org.springframework.xd.dirt.config;
 
+import org.junit.Rule;
+
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter;
@@ -23,13 +25,15 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.integration.x.rabbit.RabbitMessageBus;
 import org.springframework.messaging.MessageChannel;
-
+import org.springframework.xd.test.rabbit.RabbitTestSupport;
 
 /**
- * 
  * @author David Turanski
  */
 public class RabbitSingleNodeInitializationTests extends AbstractSingleNodeInitializationTests {
+
+	@Rule
+	public RabbitTestSupport rabbitAvailableRule = new RabbitTestSupport();
 
 	@Override
 	protected void cleanup(ApplicationContext context) {

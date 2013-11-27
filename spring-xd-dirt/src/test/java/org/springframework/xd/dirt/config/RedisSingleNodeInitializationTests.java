@@ -18,6 +18,8 @@ package org.springframework.xd.dirt.config;
 
 import static org.junit.Assert.assertTrue;
 
+import org.junit.Rule;
+
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.integration.redis.inbound.RedisInboundChannelAdapter;
@@ -26,14 +28,15 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.integration.x.redis.RedisMessageBus;
 import org.springframework.messaging.MessageChannel;
-
+import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
- * 
  * @author David Turanski
  */
 public class RedisSingleNodeInitializationTests extends AbstractSingleNodeInitializationTests {
 
+	@Rule
+	public RedisTestSupport redisAvailableRule = new RedisTestSupport();
 
 	@Override
 	protected String getTransport() {

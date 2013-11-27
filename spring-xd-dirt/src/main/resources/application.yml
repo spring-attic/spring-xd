@@ -8,6 +8,9 @@ spring:
     driverClassName: org.hsqldb.jdbc.JDBCDriver
   main:
     show_banner: false
+endpoints:
+  jolokia:
+    enabled: ${XD_JMX_ENABLED:false}
 
 XD_ANALYTICS: ${analytics:redis}
 XD_TRANSPORT: ${transport:redis}

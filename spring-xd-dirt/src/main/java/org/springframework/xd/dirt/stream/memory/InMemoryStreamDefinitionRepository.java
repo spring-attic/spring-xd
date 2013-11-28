@@ -16,13 +16,11 @@
 
 package org.springframework.xd.dirt.stream.memory;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.xd.dirt.module.ModuleDependencyRepository;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
-import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.dirt.stream.StreamDefinitionRepositoryUtils;
 import org.springframework.xd.store.AbstractInMemoryRepository;
 
 /**
@@ -45,41 +43,38 @@ public class InMemoryStreamDefinitionRepository extends AbstractInMemoryReposito
 	@Override
 	public StreamDefinition save(StreamDefinition entity) {
 		StreamDefinition sd = super.save(entity);
-		recordDependencies(sd);
+		StreamDefinitionRepositoryUtils.saveDependencies(dependencyRepository, sd);
 		return sd;
 	}
 
 	@Override
 	public void delete(StreamDefinition entity) {
-		removeDependencies(entity);
+		StreamDefinitionRepositoryUtils.deleteDependencies(dependencyRepository, entity);
 		super.delete(entity);
 	};
 
 	@Override
 	public void delete(String id) {
 		StreamDefinition def = this.findOne(id);
-		this.delete(def);
+		if (def != null) {
+			this.delete(def);
+		}
 	};
 
 	// TODO remove code duplication with Redis impl
-
-	private void recordDependencies(StreamDefinition definition) {
-		List<ModuleDefinition> moduleDefinitions = definition.getModuleDefinitions();
-
-		for (ModuleDefinition moduleDefinition : moduleDefinitions) {
-			dependencyRepository.store(moduleDefinition.getName(), moduleDefinition.getType(),
-					"stream:" + definition.getName());
-		}
-	}
-
-	private void removeDependencies(StreamDefinition definition) {
-		List<ModuleDefinition> moduleDefinitions = definition.getModuleDefinitions();
-		for (ModuleDefinition moduleDefinition : moduleDefinitions) {
-			dependencyRepository.delete(moduleDefinition.getName(), moduleDefinition.getType(),
-					"stream:" + definition.getName());
-		}
-	}
-
+	/*
+	 * private void recordDependencies(StreamDefinition definition) { List<ModuleDefinition> moduleDefinitions =
+	 * definition.getModuleDefinitions();
+	 * 
+	 * for (ModuleDefinition moduleDefinition : moduleDefinitions) {
+	 * dependencyRepository.store(moduleDefinition.getName(), moduleDefinition.getType(), "stream:" +
+	 * definition.getName()); } }
+	 * 
+	 * private void removeDependencies(StreamDefinition definition) { List<ModuleDefinition> moduleDefinitions =
+	 * definition.getModuleDefinitions(); for (ModuleDefinition moduleDefinition : moduleDefinitions) {
+	 * dependencyRepository.delete(moduleDefinition.getName(), moduleDefinition.getType(), "stream:" +
+	 * definition.getName()); } }
+	 */
 	@Override
 	protected String keyFor(StreamDefinition entity) {
 		return entity.getName();

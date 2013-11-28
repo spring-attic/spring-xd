@@ -16,13 +16,12 @@
 
 package org.springframework.xd.dirt.stream.redis;
 
-import java.util.List;
-
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.xd.dirt.module.ModuleDependencyRepository;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
+import org.springframework.xd.dirt.stream.StreamDefinitionRepositoryUtils;
 import org.springframework.xd.module.ModuleDefinition;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -43,44 +42,33 @@ public class RedisStreamDefinitionRepository extends AbstractRedisDefinitionRepo
 			ModuleDependencyRepository dependencyRepository) {
 		super("stream.definitions", redisOperations);
 		this.dependencyRepository = dependencyRepository;
+		objectMapper.addMixInAnnotations(ModuleDefinition.class, ModuleDefinitionMixin.class);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public StreamDefinition save(StreamDefinition entity) {
 		StreamDefinition sd = super.save(entity);
-		recordDependencies(sd);
+		StreamDefinitionRepositoryUtils.saveDependencies(dependencyRepository, sd);
 		return sd;
 	}
 
 	@Override
 	public void delete(StreamDefinition entity) {
-		removeDependencies(entity);
+		StreamDefinitionRepositoryUtils.deleteDependencies(dependencyRepository, entity);
 		super.delete(entity);
-	};
-
-	private void recordDependencies(StreamDefinition definition) {
-		List<ModuleDefinition> moduleDefinitions = definition.getModuleDefinitions();
-
-		for (ModuleDefinition moduleDefinition : moduleDefinitions) {
-			dependencyRepository.store(moduleDefinition.getName(), moduleDefinition.getType(),
-					"stream:" + definition.getName());
-		}
 	}
 
-	private void removeDependencies(StreamDefinition definition) {
-		List<ModuleDefinition> moduleDefinitions = definition.getModuleDefinitions();
-		for (ModuleDefinition moduleDefinition : moduleDefinitions) {
-			dependencyRepository.delete(moduleDefinition.getName(), moduleDefinition.getType(),
-					"stream:" + definition.getName());
+	@Override
+	public void delete(String id) {
+		StreamDefinition def = this.findOne(id);
+		if (def != null) {
+			this.delete(def);
 		}
 	}
-
 
 	@Override
 	protected StreamDefinition deserialize(String redisKey, String v) {
-		// String[] parts = v.split("\n");
-		// return new StreamDefinition(parts[0], parts[1]);
 		try {
 			return this.objectMapper.readValue(v, StreamDefinition.class);
 		}
@@ -97,7 +85,6 @@ public class RedisStreamDefinitionRepository extends AbstractRedisDefinitionRepo
 		catch (Exception ex) {
 			throw new SerializationException("Could not write JSON: " + ex.getMessage(), ex);
 		}
-		// return entity.getName() + "\n" + entity.getDefinition();
 	}
 
 }

@@ -50,6 +50,7 @@
 		<constructor-arg value="module.definitions" />
 		<constructor-arg ref="stringRedisTemplate" />
 		<constructor-arg ref="moduleRegistry" />
+		<constructor-arg ref="moduleDependencyRepository" />
 	</bean>
 
 	<bean id="moduleDependencyRepository"

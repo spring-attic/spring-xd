@@ -39,9 +39,9 @@ import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository
 import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
 import org.springframework.xd.dirt.container.store.RuntimeContainerInfoRepository;
+import org.springframework.xd.dirt.module.CompositeModuleDefinitionService;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDependencyRepository;
-import org.springframework.xd.dirt.module.ModuleDependencyTracker;
 import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.module.memory.InMemoryModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.memory.InMemoryModuleDependencyRepository;
@@ -55,7 +55,6 @@ import org.springframework.xd.dirt.stream.JobDeployer;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDeployer;
 import org.springframework.xd.dirt.stream.StreamRepository;
-import org.springframework.xd.dirt.stream.XDParser;
 import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.dirt.stream.memory.InMemoryJobDefinitionRepository;
 import org.springframework.xd.dirt.stream.memory.InMemoryJobRepository;
@@ -90,7 +89,7 @@ public class Dependencies {
 
 	@Bean
 	public ModuleDefinitionRepository moduleDefinitionRepository() {
-		return new InMemoryModuleDefinitionRepository(moduleRegistry());
+		return new InMemoryModuleDefinitionRepository(moduleRegistry(), moduleDependencyRepository());
 	}
 
 	@Bean
@@ -114,7 +113,7 @@ public class Dependencies {
 	}
 
 	@Bean
-	public XDParser parser() {
+	public XDStreamParser parser() {
 		return new XDStreamParser(streamDefinitionRepository(),
 				moduleDefinitionRepository());
 	}
@@ -140,8 +139,8 @@ public class Dependencies {
 	}
 
 	@Bean
-	public ModuleDependencyTracker dependencyTracker() {
-		return new ModuleDependencyTracker(moduleDependencyRepository());
+	public CompositeModuleDefinitionService compositeModuleDefinitionService() {
+		return new CompositeModuleDefinitionService(moduleDefinitionRepository(), parser());
 	}
 
 	@Bean

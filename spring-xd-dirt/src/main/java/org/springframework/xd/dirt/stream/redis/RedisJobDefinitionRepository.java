@@ -20,6 +20,7 @@ import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.xd.dirt.stream.JobDefinition;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
+import org.springframework.xd.module.ModuleDefinition;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -35,6 +36,7 @@ public class RedisJobDefinitionRepository extends AbstractRedisDefinitionReposit
 
 	public RedisJobDefinitionRepository(RedisOperations<String, String> redisOperations) {
 		super("job.definitions", redisOperations);
+		objectMapper.addMixInAnnotations(ModuleDefinition.class, ModuleDefinitionMixin.class);
 	}
 
 	@Override
@@ -45,8 +47,6 @@ public class RedisJobDefinitionRepository extends AbstractRedisDefinitionReposit
 		catch (Exception ex) {
 			throw new SerializationException("Could not read JSON: " + ex.getMessage(), ex);
 		}
-		// String[] parts = v.split("\n");
-		// return new JobDefinition(parts[0], parts[1]);
 	}
 
 	@Override
@@ -57,7 +57,6 @@ public class RedisJobDefinitionRepository extends AbstractRedisDefinitionReposit
 		catch (Exception ex) {
 			throw new SerializationException("Could not write JSON: " + ex.getMessage(), ex);
 		}
-		// return entity.getName() + "\n" + entity.getDefinition();
 	}
 
 }

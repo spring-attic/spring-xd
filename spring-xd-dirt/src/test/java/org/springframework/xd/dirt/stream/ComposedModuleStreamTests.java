@@ -22,8 +22,8 @@ import org.junit.Test;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
+import org.springframework.xd.dirt.module.CompositeModuleDefinitionService;
 import org.springframework.xd.dirt.module.DependencyException;
-import org.springframework.xd.dirt.module.ModuleDependencyTracker;
 import org.springframework.xd.dirt.module.NoSuchModuleException;
 import org.springframework.xd.dirt.rest.ModulesController;
 import org.springframework.xd.module.ModuleDefinition;
@@ -61,8 +61,9 @@ public class ComposedModuleStreamTests extends StreamTestSupport {
 	@Test
 	public void testDeleteCompositeSource() {
 		deployStream("aCompositeStream", "compositesource | sink");
-		ModuleDependencyTracker tracker = getAdminContext().getBean(ModuleDependencyTracker.class);
-		ModulesController modulesController = new ModulesController(getModuleDefinitionRepository(), tracker);
+		CompositeModuleDefinitionService compositeModuleDefinitionService = getAdminContext().getBean(
+				CompositeModuleDefinitionService.class);
+		ModulesController modulesController = new ModulesController(compositeModuleDefinitionService);
 		try {
 			modulesController.delete(ModuleType.source, "compositeModuleThatDoesNotExist");
 			fail("Exception should be thrown when trying to delete a composite module that does not exist.");

@@ -24,7 +24,7 @@ import org.springframework.http.MediaType;
  * 
  * @author Eric Bottard
  */
-public class SinkModuleOptionsMetadataSupport {
+public abstract class SinkModuleOptionsMetadataSupport {
 
 	private MediaType inputType;
 

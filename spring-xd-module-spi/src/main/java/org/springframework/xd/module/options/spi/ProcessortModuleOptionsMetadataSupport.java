@@ -24,7 +24,7 @@ import org.springframework.http.MediaType;
  * 
  * @author Eric Bottard
  */
-public class ProcessortModuleOptionsMetadataSupport {
+public abstract class ProcessortModuleOptionsMetadataSupport {
 
 	private MediaType inputType;
 

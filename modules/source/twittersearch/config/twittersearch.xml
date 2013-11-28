@@ -12,7 +12,7 @@
 	<context:property-placeholder location="${xd.config.home}/twitter.properties"/>
 
 	<twitter:search-inbound-channel-adapter id="results" query="${query}" twitter-template="twitterTemplate">
-		<int:poller fixed-delay="${fixedDelay:5000}" />
+		<int:poller fixed-delay="${fixedDelay}" />
 	</twitter:search-inbound-channel-adapter>
 
 	<bean id="twitterTemplate" class="org.springframework.integration.x.twitter.OAuth2AuthenticatingTwitterTemplate">

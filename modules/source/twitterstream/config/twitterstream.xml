@@ -14,16 +14,15 @@
 		<constructor-arg ref="twitterTemplate"/>
 		<property name="autoStartup" value="false"/>
 		<property name="outputChannel" ref="to.discardDeletes"/>
-		<!-- 90sec timeout, as recommended in https://dev.twitter.com/docs/streaming-apis/connecting#Stalls -->
-		<property name="readTimeout" value="${readTimeout:90000}"/>
-		<property name="connectTimeout" value="${connectTimeout:5000}"/>
-		<property name="delimited" value="${delimited:false}" />
-		<property name="stallWarnings" value="${stallWarnings:false}" />
-		<property name="filterLevel" value="${filterLevel:none}" />
-		<property name="language" value="${language:}" />
-		<property name="track" value="${track:}" />
-		<property name="follow" value="${follow:}"/>
-		<property name="locations" value="${locations:}"/>
+		<property name="readTimeout" value="${readTimeout}"/>
+		<property name="connectTimeout" value="${connectTimeout}"/>
+		<property name="delimited" value="${delimited}" />
+		<property name="stallWarnings" value="${stallWarnings}" />
+		<property name="filterLevel" value="${filterLevel}" />
+		<property name="language" value="${language}" />
+		<property name="track" value="${track}" />
+		<property name="follow" value="${follow}"/>
+		<property name="locations" value="${locations}"/>
 	</bean>
 
 	<int:channel id="output"/>
@@ -38,7 +37,7 @@
 	</bean>
 
 	<int:router id="discardDeletesRouter" input-channel="to.discardDeletes"
-		expression="${discardDeletes:true} ? 'to.filter':'output'" />
+		expression="${discardDeletes} ? 'to.filter':'output'" />
 
 <!-- pass anything not matching {"delete": -->
 	<int:filter id="discardDeletes" input-channel="to.filter" output-channel="output"

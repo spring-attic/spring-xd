@@ -19,7 +19,9 @@ package org.springframework.xd.module;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -180,6 +182,8 @@ public class ModuleDefinition {
 	 */
 	private static class ModuleOptionsMetadataResolver {
 
+		private static final Map<String, Class<?>> SHORT_CLASSNAMES = new HashMap<String, Class<?>>();
+
 		private static final Pattern DESCRIPTION_KEY_PATTERN = Pattern.compile("^options\\.([a-zA-Z\\-_0-9]+)\\.description$");
 
 		/**
@@ -187,6 +191,20 @@ public class ModuleDefinition {
 		 * {@link PojoModuleOptionsMetadata}.
 		 */
 		private static final String OPTIONS_CLASS = "options_class";
+
+		static {
+			SHORT_CLASSNAMES.put("String", String.class);
+			SHORT_CLASSNAMES.put("boolean", boolean.class);
+			SHORT_CLASSNAMES.put("Boolean", Boolean.class);
+			SHORT_CLASSNAMES.put("int", int.class);
+			SHORT_CLASSNAMES.put("Integer", Integer.class);
+			SHORT_CLASSNAMES.put("long", long.class);
+			SHORT_CLASSNAMES.put("Long", Long.class);
+			SHORT_CLASSNAMES.put("float", float.class);
+			SHORT_CLASSNAMES.put("Float", Float.class);
+			SHORT_CLASSNAMES.put("double", double.class);
+			SHORT_CLASSNAMES.put("Double", Double.class);
+		}
 
 		public static ModuleOptionsMetadata create(ModuleDefinition definition) {
 			try {
@@ -237,12 +255,18 @@ public class ModuleDefinition {
 					String type = props.getProperty(String.format("options.%s.type", optionName));
 					Class<?> clazz = null;
 					if (type != null) {
-						try {
-							clazz = Class.forName(type);
+						if (SHORT_CLASSNAMES.containsKey(type)) {
+							clazz = SHORT_CLASSNAMES.get(type);
 						}
-						catch (ClassNotFoundException e) {
-							throw new IllegalStateException("Can't find class used for type of option '" + optionName
-									+ "': " + type);
+						else {
+							try {
+								clazz = Class.forName(type);
+							}
+							catch (ClassNotFoundException e) {
+								throw new IllegalStateException("Can't find class used for type of option '"
+										+ optionName
+										+ "': " + type);
+							}
 						}
 					}
 					ModuleOption moduleOption = new ModuleOption(optionName, description).withDefaultValue(

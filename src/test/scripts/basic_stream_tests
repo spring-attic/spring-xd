@@ -1,0 +1,44 @@
+#! /bin/sh
+
+source xdapi
+
+rm -R /tmp/xdtest/basic &> /dev/null
+set -e
+
+echo '*** Test 1. time | log stream\n'
+
+create_stream 'ticktock' 'time | log' 'false'
+list_streams
+deploy_stream 'ticktock'
+
+echo '*** Test 2. http | file stream\n'
+
+create_stream 'httptofile' 'http | file --dir=/tmp/xdtest/basic'
+
+post_data_and_check_result() {
+  curl -d blah "$XD_HOST:9000"
+  result=`cat /tmp/xdtest/basic/httptofile.out`
+
+  if [[ $result != 'blah' ]]
+  then
+    echo "\nPosted HTTP data ($result) does not match file sink contents"
+    exit 1
+  fi
+}
+
+# Run, undeploy, redeploy and run again
+
+post_data_and_check_result
+
+rm -R /tmp/xdtest/basic &> /dev/null
+undeploy_stream 'httptofile'
+
+echo 'Redeploying and running again...'
+
+deploy_stream 'httptofile'
+list_streams
+post_data_and_check_result
+
+destroy_stream 'ticktock'
+destroy_stream 'httptofile'
+

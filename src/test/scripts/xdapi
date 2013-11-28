@@ -1,0 +1,65 @@
+#! /bin/sh
+XD_HOST='http://localhost'
+XD_PORT=9393
+XDURL="$XD_HOST:$XD_PORT"
+
+alias xdc='curl -H "Accept: application/json"'
+
+create_stream() {
+  echo "Creating stream $1 ..."
+  xdc -d name=$1 --data-urlencode "definition=$2" -d deploy=${3:-'true'} "$XDURL/streams"
+  echo '\n'
+}
+
+undeploy_stream() {
+  xdc -X PUT -d deploy=false "$XDURL/streams/$1"
+}
+
+deploy_stream() {
+  xdc -X PUT -d 'deploy=true' "$XDURL/streams/$1"
+}
+
+destroy_stream() {
+  echo "Destroying stream $1 ..."
+  xdc -X DELETE "$XDURL/streams/$1"
+}
+
+create_job() {
+  echo "Creating job $1 ..."
+  xdc -d name=$1 --data-urlencode "definition=$2" "$XDURL/jobs"
+  echo '\n'
+}
+
+launch_job() {
+  echo "Launching job $1 ..."
+  xdc -X PUT "$XDURL/jobs/$1/launch"
+}
+
+destroy_job() {
+  echo "Destroying job $1 ..."
+  xdc -X DELETE "$XDURL/jobs/$1"
+}
+
+list_streams() {
+  xdc -s $XDURL/streams #| python -m json.tool
+  echo '\n'
+}
+
+list_jobs() {
+  xdc -s $XDURL/jobs #| python -m json.tool
+  echo '\n'
+}
+
+hdfs_size() {
+  local hd_size=`hadoop fs -ls $1 | grep csv | awk '{a+=$5}; END{print a}'`
+  echo "$hd_size"
+}
+
+assert_equals() {
+  if [[ $1 != $2 ]]
+  then
+    echo "Expected $1 does not match actual value ($2)"
+    exit 1;
+  fi
+}
+

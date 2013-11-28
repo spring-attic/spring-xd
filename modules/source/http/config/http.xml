@@ -8,7 +8,7 @@
 		http://www.springframework.org/schema/integration/spring-integration.xsd">
 
 	<beans:bean class="org.springframework.integration.x.http.NettyHttpInboundChannelAdapter">
-		<beans:constructor-arg value="${port:9000}"/>
+		<beans:constructor-arg value="${port}"/>
 		<beans:property name="autoStartup" value="false"/>
 		<beans:property name="outputChannel" ref="output"/>
 	</beans:bean>

@@ -11,7 +11,7 @@
 
 	<int-syslog:inbound-channel-adapter id="adapter" channel="output"
 			auto-startup="false"
-			protocol="tcp" port="${port:11111}" />
+			protocol="tcp" port="${port}" />
 
 	<int:channel id="output"/>
 

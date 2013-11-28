@@ -16,11 +16,15 @@
 
 package org.springframework.xd.shell.command;
 
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
+import static org.springframework.xd.shell.command.fixtures.XDMatchers.eventually;
+import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasContentsThat;
+
 import javax.mail.internet.MimeMessage;
 
 import org.junit.Assert;
 import org.junit.Test;
-
 import org.springframework.xd.shell.command.fixtures.FileSink;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
 import org.springframework.xd.shell.command.fixtures.ImapSource;
@@ -38,7 +42,7 @@ public class MailCommandTests extends AbstractStreamIntegrationTest {
 	@Test
 	public void testImapPoll() throws Exception {
 		MailSource mailSource = newMailSource();
-		FileSink fileSink = newFileSink();
+		FileSink fileSink = newFileSink().binary(true);
 
 		mailSource.ensureStarted();
 
@@ -46,15 +50,13 @@ public class MailCommandTests extends AbstractStreamIntegrationTest {
 
 		mailSource.sendEmail("from@foo.com", "The Subject", "My body is slim!");
 
-		String result = fileSink.getContents();
-
-		Assert.assertEquals("My body is slim!\r\n\n", result);
+		assertThat(fileSink, eventually(hasContentsThat(equalTo("My body is slim!\r\n"))));
 	}
 
 	@Test
 	public void testImapIdle() throws Exception {
 		ImapSource mailSource = newImapSource();
-		FileSink fileSink = newFileSink();
+		FileSink fileSink = newFileSink().binary(true);
 
 		mailSource.ensureStarted();
 
@@ -62,9 +64,7 @@ public class MailCommandTests extends AbstractStreamIntegrationTest {
 
 		mailSource.sendEmail("from@foo.com", "The Subject", "My body is slim!");
 
-		String result = fileSink.getContents();
-
-		Assert.assertEquals("My body is slim!\r\n\n", result);
+		assertThat(fileSink, eventually(hasContentsThat(equalTo("My body is slim!\r\n"))));
 	}
 
 	@Test

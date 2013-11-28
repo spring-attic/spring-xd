@@ -16,7 +16,10 @@
 
 package org.springframework.xd.shell.command;
 
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
+import static org.springframework.xd.shell.command.fixtures.XDMatchers.eventually;
+import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasContentsThat;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -29,7 +32,6 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
 import org.springframework.util.StreamUtils;
 import org.springframework.xd.shell.command.fixtures.FileSink;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
@@ -69,7 +71,8 @@ public class HttpCommandTests extends AbstractStreamIntegrationTest {
 		logger.info("Posting String: " + stringToPost);
 		httpSource.ensureReady().postData(stringToPost);
 
-		assertEquals(stringToPost, fileSink.getContents());
+		assertThat(fileSink, eventually(hasContentsThat(equalTo(stringToPost))));
+
 	}
 
 	/**
@@ -95,7 +98,8 @@ public class HttpCommandTests extends AbstractStreamIntegrationTest {
 		httpSource.ensureReady().postData(stringToPostInJapanese);
 
 
-		assertEquals(stringToPostInJapanese, fileSink.getContents());
+		assertThat(fileSink, eventually(hasContentsThat(equalTo(stringToPostInJapanese))));
+
 	}
 
 	@Test
@@ -120,7 +124,8 @@ public class HttpCommandTests extends AbstractStreamIntegrationTest {
 
 		source.ensureReady().useContentType(String.format("text/plain;charset=%s", inCharset)).postFromFile(tempFileIn);
 
-		assertEquals(stringToPostInJapanese, fileSink.getContents());
+		assertThat(fileSink, eventually(hasContentsThat(equalTo(stringToPostInJapanese))));
+
 
 	}
 }

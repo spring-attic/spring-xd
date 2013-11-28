@@ -16,10 +16,13 @@
 
 package org.springframework.xd.shell.command;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.springframework.xd.shell.command.fixtures.XDMatchers.eventually;
+import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasContentsThat;
 
 import org.junit.Test;
-
 import org.springframework.xd.shell.command.fixtures.FileSink;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
 import org.springframework.xd.shell.command.fixtures.TcpSink;
@@ -28,7 +31,7 @@ import org.springframework.xd.shell.command.fixtures.TcpSource;
 
 /**
  * Tests for tcp source and sink.
- *
+ * 
  * @author Eric Bottard
  */
 public class TcpModulesTests extends AbstractStreamIntegrationTest {
@@ -41,7 +44,8 @@ public class TcpModulesTests extends AbstractStreamIntegrationTest {
 
 		// Following \r\n is because of CRLF deserializer
 		tcpSource.ensureReady().sendBytes("Hello\r\n".getBytes("UTF-8"));
-		assertEquals("Hello", fileSink.getContents());
+		assertThat(fileSink, eventually(hasContentsThat(equalTo("Hello"))));
+
 	}
 
 

@@ -17,7 +17,6 @@
 package org.springframework.xd.shell.command.fixtures;
 
 import org.hamcrest.Matcher;
-
 import org.springframework.xd.shell.command.fixtures.FileSink.FileSinkContentsMatcher;
 
 
@@ -43,6 +42,10 @@ public class XDMatchers {
 
 	public static <U> EventuallyMatcher<U> eventually(Matcher<U> matcher) {
 		return new EventuallyMatcher<U>(matcher);
+	}
+
+	public static <U> EventuallyMatcher<U> eventually(int nbAttempts, int pause, Matcher<U> matcher) {
+		return new EventuallyMatcher<U>(matcher, nbAttempts, pause);
 	}
 
 	public static FileSinkContentsMatcher hasContentsThat(Matcher<String> matcher) {

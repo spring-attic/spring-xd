@@ -16,15 +16,17 @@
 
 package org.springframework.xd.shell.command;
 
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.springframework.xd.shell.command.fixtures.XDMatchers.eventually;
+import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasContentsThat;
 
 import java.io.IOException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
-
 import org.springframework.shell.core.CommandResult;
 import org.springframework.xd.shell.command.fixtures.FileSink;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
@@ -147,13 +149,14 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	 */
 	@Test
 	public void testProcessorLinkingChannels() throws Exception {
-		FileSink sink = newFileSink();
+		FileSink sink = newFileSink().binary(true);
 		HttpSource source = newHttpSource(9314);
 		stream().create("in1", "%s > queue:foo", source);
 		stream().create("proc", "queue:foo > transform --expression=payload.toUpperCase() > queue:bar");
 		stream().create("out1", "queue:bar > %s", sink);
 		source.postData("blahblah");
-		assertEquals("BLAHBLAH\n", sink.getContents());
+		assertThat(sink, eventually(hasContentsThat(equalTo("BLAHBLAH"))));
+
 	}
 
 	@Test
@@ -171,40 +174,42 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 
 	@Test
 	public void testUsingCompositionWithParameterizationAndDefaultValue() throws IOException {
-		FileSink sink = newFileSink();
+		FileSink sink = newFileSink().binary(true);
 		HttpSource httpSource = newHttpSource();
 
 		stream().createDontDeploy("obfuscate", "transform --expression=payload.replace('${text:rys}','.')");
 		stream().create("s2", "%s | obfuscate | %s", httpSource, sink);
 
 		httpSource.ensureReady().postData("Dracarys!");
-		assertEquals("Draca.!\n", sink.getContents());
+		assertThat(sink, eventually(hasContentsThat(equalTo("Draca.!"))));
+
 	}
 
 	@Test
 	public void testParameterizedStreamComposition() throws IOException {
 		HttpSource httpSource = newHttpSource();
-		FileSink sink = newFileSink();
+		FileSink sink = newFileSink().binary(true);
 		stream().createDontDeploy("obfuscate", "transform --expression=payload.replace('${text}','.')");
 		stream().create("s2", "%s | obfuscate --text=aca | %s", httpSource, sink);
 		httpSource.ensureReady().postData("Dracarys!");
-		assertEquals("Dr.rys!", sink.getContents().trim());
+		assertThat(sink, eventually(hasContentsThat(equalTo("Dr.rys!"))));
+
 	}
 
 	public void testComposedModules() throws IOException {
-		FileSink sink = newFileSink();
+		FileSink sink = newFileSink().binary(true);
 		HttpSource httpSource = newHttpSource();
 		stream().createDontDeploy("chain",
 				"filter --expression=true | transform --expression=payload.replace('abc','...')");
 		stream().create("s2", "%s | chain | %s", httpSource, sink);
 		httpSource.postData("abcdefghi!");
-		// TODO reactivate when get to the bottom of the race condition
-		assertEquals("...defghi!\n", sink.getContents());
+		assertThat(sink, eventually(hasContentsThat(equalTo("...defghi!"))));
+
 	}
 
 	@Test
 	public void testFilteringSource() throws IOException {
-		FileSink sink = newFileSink();
+		FileSink sink = newFileSink().binary(true);
 		HttpSource httpSource = newHttpSource();
 		stream().createDontDeploy("myFilteringSource",
 				"%s | filter --expression=payload.contains('e')", httpSource);
@@ -213,14 +218,14 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		httpSource.postData("hello");
 		httpSource.postData("custardpie");
 		httpSource.postData("whisk");
-		// TODO reactivate when get to the bottom of the race condition
-		assertEquals("h.llo\ncustardpi.\n", sink.getContents());
+		assertThat(sink, eventually(hasContentsThat(equalTo("h.llocustardpi."))));
+
 	}
 
 
 	@Test
 	public void testParameterizedComposedSource() throws IOException {
-		FileSink sink = newFileSink();
+		FileSink sink = newFileSink().binary(true);
 		HttpSource httpSource = newHttpSource();
 		stream().createDontDeploy("myFilteringSource",
 				"%s | filter --expression=payload.contains('${word}')", httpSource);
@@ -229,7 +234,8 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		httpSource.postData("hello");
 		httpSource.postData("custardfoo");
 		httpSource.postData("whisk");
-		assertEquals("foobar\ncustardfoo\n", sink.getContents());
+		assertThat(sink, eventually(hasContentsThat(equalTo("foobarcustardfoo"))));
+
 	}
 
 
@@ -244,7 +250,8 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		httpSource.postData("hello");
 		httpSource.postData("custardfoo");
 		httpSource.postData("whisk");
-		assertEquals("foobar\ncustardfoo\n", sink.getContents());
+		assertThat(sink, eventually(hasContentsThat(equalTo("foobar\ncustardfoo\n"))));
+
 	}
 
 
@@ -257,7 +264,8 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		stream().create("foo", "%s | abyz | filter --expression=true | %s", source, sink);
 		stream().create("mytap", "tap:stream:foo.filter > log"); // will log zzyyccxxyyzz
 		source.postData("aabbccxxyyzz");
-		assertEquals("zzyyccxxyyzz", sink.getContents());
+		assertThat(sink, eventually(hasContentsThat(equalTo("zzyyccxxyyzz"))));
+
 	}
 
 	@Test
@@ -288,16 +296,22 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 
 		httpSource.ensureReady().postData("Dracarys!");
 
-		assertEquals("DRACARYS!", sink.getContents());
-		assertEquals("Dracarys!", tapsink3.getContents());
-		assertEquals("DR.C.RYS!", tapsink5.getContents());
-		assertEquals("Dracarys!", tapsink6.getContents());
+		assertThat(sink, eventually(hasContentsThat(equalTo("DRACARYS!"))));
+
+		assertThat(tapsink3, eventually(hasContentsThat(equalTo("Dracarys!"))));
+
+		assertThat(tapsink5, eventually(hasContentsThat(equalTo("DR.C.RYS!"))));
+
+		assertThat(tapsink6, eventually(hasContentsThat(equalTo("Dracarys!"))));
+
 
 		// httpSource2.ensureReady().postData("TESTPLAN");
 		// our tap got the data and transformed appropriately
-		// assertEquals("DR.C.RYS!TESTPL.N", tapsink5.getContents());
+		// assertThat(tapsink5, eventually(hasContentsThat(equalTo("DR.C.RYS!TESTPL.N"))));
+
 		// other tap did not get data
-		// assertEquals("Dracarys!", tapsink3.getContents());
+		// assertThat(tapsink3, eventually(hasContentsThat(equalTo("Dracarys!"))));
+
 	}
 
 	@Test
@@ -313,8 +327,10 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 				tapsink1);
 		source.ensureReady().postData("Dracarys!");
 
-		assertEquals("DRACARYS!", sink.getContents());
-		assertEquals("DR.C.RYS!", tapsink1.getContents());
+		assertThat(sink, eventually(hasContentsThat(equalTo("DRACARYS!"))));
+
+		assertThat(tapsink1, eventually(hasContentsThat(equalTo("DR.C.RYS!"))));
+
 	}
 
 	@Test
@@ -341,9 +357,12 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 
 		source.ensureReady().postData("Dracarys!");
 
-		assertEquals("DRACARYS!", sink.getContents());
-		// assertEquals("D.aca.ys!", tapsink3.getContents());
-		// assertEquals("DR.C.RYS!", tapsink5.getContents());
+		assertThat(sink, eventually(hasContentsThat(equalTo("DRACARYS!"))));
+
+		// assertThat(tapsink3, eventually(hasContentsThat(equalTo("D.aca.ys!"))));
+
+		// assertThat(tapsink5, eventually(hasContentsThat(equalTo("DR.C.RYS!"))));
+
 	}
 
 	@Test
@@ -364,10 +383,12 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 
 		source.ensureReady().postData("Dracarys!");
 
-		// TODO verify both logs output DRACARYS!
-		assertEquals("DRACARYS!", sink1.getContents());
-		assertEquals("DRACARYS!", sink2.getContents());
-		assertEquals("DRACARYS!", sink3.getContents());
+		assertThat(sink1, eventually(hasContentsThat(equalTo("DRACARYS!"))));
+
+		assertThat(sink2, eventually(hasContentsThat(equalTo("DRACARYS!"))));
+
+		assertThat(sink3, eventually(hasContentsThat(equalTo("DRACARYS!"))));
+
 	}
 
 	@Test
@@ -383,16 +404,17 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		source1.ensureReady().postData("Dracarys!");
 		source2.ensureReady().postData("testing");
 
-		assertTrue(sink.waitForContents("Dracarys!testing", 1000));
+		assertThat(sink, eventually(hasContentsThat(equalTo("Dracarys!testing"))));
+
 
 		stream().destroyStream("stream2");
 
 		source1.ensureReady().postData("stillup");
-		assertTrue(sink.waitForContents("Dracarys!testingstillup", 1000));
+		assertThat(sink, eventually(hasContentsThat(equalTo("Dracarys!testingstillup"))));
 
 		stream().create("stream4", "%s > queue:foo", source3);
 		source3.ensureReady().postData("newstream");
-		assertTrue(sink.waitForContents("Dracarys!testingstillupnewstream", 1000));
+		assertThat(sink, eventually(hasContentsThat(equalTo("Dracarys!testingstillupnewstream"))));
 
 		stream().destroyStream("stream4");
 		stream().destroyStream("stream1");
@@ -402,12 +424,13 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	@Test
 	public void testJsonPath() throws IOException {
 		HttpSource source = newHttpSource();
-		FileSink sink = newFileSink();
+		FileSink sink = newFileSink().binary(true);
 		stream().create("jsonPathStream",
 				"%s | transform --expression='#jsonPath(payload, \"$.foo.bar\")' | %s",
 				source, sink);
-		source.ensureReady().postData("{\"foo\":{\"bar\":123}}");
-		assertEquals("123", sink.getContents().trim());
+		source.ensureReady().postData("{\"foo\":{\"bar\":\"123\"}}");
+		assertThat(sink, eventually(hasContentsThat(equalTo("123"))));
+
 		stream().destroyStream("jsonPathStream");
 	}
 

@@ -16,12 +16,14 @@
 
 package org.springframework.xd.shell.command;
 
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
+import static org.springframework.xd.shell.command.fixtures.XDMatchers.eventually;
+import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasContentsThat;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
-
 import org.springframework.xd.shell.command.fixtures.FileSink;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
 
@@ -51,8 +53,7 @@ public class SpelPropertyAccessorIntegrationTests extends AbstractStreamIntegrat
 
 		source.ensureReady().postData("{\"foo\":\"bar\"}");
 
-		final String result = sink.getContents();
-		assertEquals("bar", result.trim());
+		assertThat(sink, eventually(hasContentsThat(equalTo("bar"))));
 	}
 
 	/**
@@ -70,8 +71,7 @@ public class SpelPropertyAccessorIntegrationTests extends AbstractStreamIntegrat
 
 		source.ensureReady().postData("{\"foo\":\"bar\"}");
 
-		final String result = sink.getContents();
-		assertEquals("bar", result);
+		assertThat(sink, eventually(hasContentsThat(equalTo("bar"))));
 
 	}
 
@@ -94,8 +94,7 @@ public class SpelPropertyAccessorIntegrationTests extends AbstractStreamIntegrat
 
 		source.ensureReady().postData(tweet);
 
-		final String result = sink.getContents();
-		assertEquals("[hello, there]", result);
+		assertThat(sink, eventually(hasContentsThat(equalTo("[hello, there]"))));
 	}
 
 }

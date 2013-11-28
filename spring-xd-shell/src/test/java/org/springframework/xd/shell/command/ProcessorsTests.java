@@ -16,15 +16,15 @@
 
 package org.springframework.xd.shell.command;
 
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.springframework.xd.shell.command.fixtures.XDMatchers.eventually;
+import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasContentsThat;
 import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasValue;
 
 import java.io.IOException;
 
 import org.junit.Test;
-
 import org.springframework.xd.shell.command.fixtures.CounterSink;
 import org.springframework.xd.shell.command.fixtures.FileSink;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
@@ -74,8 +74,7 @@ public class ProcessorsTests extends AbstractStreamIntegrationTest {
 
 		httpSource.ensureReady().postData("Hello").postData("World").postData("!");
 
-		String result = fileSink.getContents();
-		assertEquals("Hello World !", result);
+		assertThat(fileSink, eventually(hasContentsThat(equalTo("Hello World !"))));
 
 	}
 
@@ -95,8 +94,7 @@ public class ProcessorsTests extends AbstractStreamIntegrationTest {
 
 		// The reaper and the task scheduler are both configured with 'timeout'
 		// so in the worst case, it can take 2*timeout to actually flush the msgs
-		String result = fileSink.getContents((int) (2.1 * timeout));
-		assertEquals("Hello World !", result);
+		assertThat(fileSink, eventually(1, (int) (2.1 * timeout), hasContentsThat(equalTo("Hello World !"))));
 
 	}
 }

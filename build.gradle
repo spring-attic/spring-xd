@@ -185,6 +185,9 @@ configure(javaProjects()) { subproject ->
 		jacoco //Configuration Group used by Sonar to provide Code Coverage using JaCoCo
 	}
 
+  configurations.all {
+    resolutionStrategy.cacheChangingModulesFor 60, 'minutes'
+  }
 	// dependencies that are common across all java projects
 dependencies {
 		testCompile "junit:junit:$junitVersion"

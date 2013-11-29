@@ -132,7 +132,7 @@ public class ResourceModuleRegistry2 implements ModuleRegistry {
 
 	private List<ModuleDefinition> lookupByPattern(String pattern) {
 		Assert.isTrue(pattern.startsWith("/"), "Pattern should start with a '/' : " + pattern);
-		List<ModuleDefinition> result = new ArrayList<>();
+		List<ModuleDefinition> result = new ArrayList<ModuleDefinition>();
 		try {
 			Resource[] resources = resolver.getResources(root + definitionSubdirectory + pattern);
 			for (Resource resource : resources) {

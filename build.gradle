@@ -8,7 +8,7 @@ buildscript {
 		maven { url "http://repo.springsource.org/plugins-snapshot" }
 	}
 	dependencies {
-		classpath("org.springframework.boot:spring-boot-gradle-plugin:0.5.0.M6")
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:0.5.0.BUILD-SNAPSHOT")
 		classpath("org.springframework.build.gradle:propdeps-plugin:0.0.3")
 		classpath("org.springframework.build.gradle:docbook-reference-plugin:0.2.7-SNAPSHOT")
 		classpath 'org.asciidoctor:asciidoctor-gradle-plugin:0.7.0'
@@ -52,11 +52,15 @@ allprojects {
 
 def javaProjects() {
     def nonJavaProjects = ['redis', 'spring-xd-ui']
-    subprojects.findAll { project -> !nonJavaProjects.contains(project.name) && !project.path.startsWith(':modules.')}
+    subprojects.findAll { project -> !nonJavaProjects.contains(project.name) && !project.path.startsWith(':modules.') && !project.path.startsWith(':modules2.')}
 }
 
 def moduleProjects() {
     subprojects.findAll { project -> project.path.startsWith(':modules.')}
+}
+
+def archiveModuleProjects() {
+    subprojects.findAll { project -> project.path.startsWith(':modules2.')}
 }
 
 ext {
@@ -189,7 +193,7 @@ configure(javaProjects()) { subproject ->
     resolutionStrategy.cacheChangingModulesFor 60, 'minutes'
   }
 	// dependencies that are common across all java projects
-dependencies {
+	dependencies {
 		testCompile "junit:junit:$junitVersion"
 		testCompile "org.codehaus.groovy:groovy-all:2.1.0"
 		testCompile "org.hamcrest:hamcrest-library:$hamcrestVersion"
@@ -295,6 +299,15 @@ configure(moduleProjects()) { moduleProject ->
 	['clean', 'cleanEclipse', 'cleanIdea'].each {t -> tasks[t].dependsOn cleanLibs}
 
 	project(':spring-xd-dirt').tasks['build'].dependsOn(moduleProject.tasks['build'])
+}
+
+configure(archiveModuleProjects()) { moduleProject ->
+	apply plugin: 'eclipse'
+	apply plugin: 'java'
+	apply plugin: "spring-boot"
+	springBoot {
+		layout = 'NONE'
+	}
 }
 
 
@@ -849,7 +862,7 @@ project('spring-xd-rest-client') {
 
 project('spring-xd-rest-domain') {
 	description = 'Spring XD REST Domain'
-			dependencies {
+	dependencies {
 		compile ("org.springframework.hateoas:spring-hateoas:$springHATEOASVersion") {
 			exclude module: "spring-asm"
 		}
@@ -867,6 +880,13 @@ project('modules') {
 	description = 'Spring XD Modules'
 	dependencies {
 		compile project(':spring-xd-dirt')
+	}
+}
+
+// ================ A R C H I V E   M O D U L E S ======================
+project('modules2.gemfire-modules') {
+	dependencies {
+		runtime project(':spring-xd-extension-gemfire')
 	}
 }
 

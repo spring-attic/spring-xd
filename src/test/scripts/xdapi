@@ -4,10 +4,14 @@ XD_PORT=9393
 XDURL="$XD_HOST:$XD_PORT"
 
 alias xdc='curl -H "Accept: application/json"'
+# This is needed because the CI agents don't have an up-to-date version of curl which
+# supports the --data-urlencode parameter
+alias urlencode='python -c "import sys, urllib as ul; print ul.quote_plus(sys.argv[1])"'
 
 create_stream() {
-  echo "Creating stream $1 ..."
-  xdc -d name=$1 --data-urlencode "definition=$2" -d deploy=${3:-'true'} "$XDURL/streams"
+  local udef=`urlencode "$2"`
+  echo "Creating stream $1 with definition '$udef' ..."
+  xdc -d name=$1 -d "definition=$udef" -d deploy=${3:-'true'} "$XDURL/streams"
   echo '\n'
 }
 
@@ -25,8 +29,9 @@ destroy_stream() {
 }
 
 create_job() {
-  echo "Creating job $1 ..."
-  xdc -d name=$1 --data-urlencode "definition=$2" "$XDURL/jobs"
+  local udef=`urlencode "$2"`
+  echo "Creating job $1 with definition '$udef' ..."
+  xdc -d name=$1 -d "definition=$udef" "$XDURL/jobs"
   echo '\n'
 }
 

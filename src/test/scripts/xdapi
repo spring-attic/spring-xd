@@ -68,3 +68,27 @@ assert_equals() {
   fi
 }
 
+wait_for_server() {
+  i=6
+
+  while [ $i != 0 ]
+  do
+      curl -s $XDURL
+      if [ $? != 0 ]
+      then
+        echo "Waiting for server to start..."; sleep 10
+        ((i--))
+      else
+        i=0
+      fi
+  done
+
+  curl -s $XDURL
+
+  if [ $? != 0 ]
+  then
+      echo "\n\n**** Server not started, exiting.\n\n"; exit 1
+  else
+      echo "\n\n**** Server is up...\n\n"
+  fi
+}

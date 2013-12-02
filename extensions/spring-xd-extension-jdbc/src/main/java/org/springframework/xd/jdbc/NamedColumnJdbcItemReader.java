@@ -17,14 +17,14 @@ import org.springframework.xd.tuple.TupleBuilder;
  * @author Luke Taylor
  */
 public class NamedColumnJdbcItemReader extends JdbcCursorItemReader<Tuple> {
-	private String[] names;
+	private String names;
 	private String tableName;
 
 	/**
 	 * The column names in the database, in the order in which they should be read and
 	 * assembled into the returned string.
 	 */
-	public void setColumnNames(String[] names) {
+	public void setColumnNames(String names) {
 		this.names = names;
 	}
 
@@ -37,16 +37,26 @@ public class NamedColumnJdbcItemReader extends JdbcCursorItemReader<Tuple> {
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		Assert.notEmpty(names, "columnNames must be set");
-		Assert.hasText(tableName, "tableName must be set");
+		Assert.hasText(names, "columns must be set");
+		if (!StringUtils.hasText(getSql())) {
+			Assert.hasText(tableName, "tableName must be set");
 
-		setSql("select " + StringUtils.arrayToCommaDelimitedString(names) + " from " + tableName);
+			String sql = "select " + names + " from " + tableName;
+			log.info("Setting SQL to: " + sql);
+			setSql(sql);
+		}
+		else if (StringUtils.hasText(tableName)) {
+			log.warn("You must set either the 'sql' and 'columns' properties or 'tableName' and 'columns'.");
+		}
+
+		final String[] cols = StringUtils.tokenizeToStringArray(names, ",");
+
 		setRowMapper(new RowMapper<Tuple>() {
 			@Override
 			public Tuple mapRow(ResultSet rs, int rowNum) throws SQLException {
 				TupleBuilder builder = TupleBuilder.tuple();
 
-				for (String name: names) {
+				for (String name: cols) {
 					builder.put(name, rs.getString(name));
 				}
 

@@ -28,8 +28,9 @@
 
 	<bean id="itemReader" class="org.springframework.xd.jdbc.NamedColumnJdbcItemReader">
 		<property name="dataSource" ref="dataSource" />
-		<property name="tableName" value="${tableName}" />
-		<property name="columnNames" value="${names}" />
+		<property name="tableName" value="${tableName:}" />
+		<property name="columnNames" value="${columns:}" />
+		<property name="sql" value="${sql:}"/>
 	</bean>
 
 	<bean id="itemWriter" class="org.springframework.xd.batch.item.hadoop.HdfsTextItemWriter">

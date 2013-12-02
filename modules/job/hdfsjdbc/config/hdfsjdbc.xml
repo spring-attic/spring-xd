@@ -29,7 +29,7 @@
 			<bean class="org.springframework.batch.item.file.mapping.DefaultLineMapper">
 				<property name="lineTokenizer">
 					<bean class="org.springframework.batch.item.file.transform.DelimitedLineTokenizer">
-						<property name="names" value="${names}"/>
+						<property name="names" value="${columns}"/>
 					</bean>
 				</property>
 				<property name="fieldSetMapper">
@@ -63,7 +63,7 @@
 		<bean id="itemWriter" class="org.springframework.xd.jdbc.NamedColumnJdbcBatchItemWriter">
 			<property name="dataSource" ref="dataSource"/>
 			<property name="tableName" value="${tableName:${xd.stream.name}}" />
-			<property name="columnNames" value="${names}" />
+			<property name="columnNames" value="${columns}" />
 			<property name="itemSqlParameterSourceProvider">
 				<bean class="org.springframework.xd.tuple.batch.TupleSqlParameterSourceProvider" />
 			</property>

@@ -109,7 +109,12 @@ public class ModuleDefinition {
 				getResource().getDescription());
 	}
 
-	public synchronized ModuleOptionsMetadata getModuleOptions() {
+	/**
+	 * Return metadata about the options that this module accepts.
+	 * 
+	 * @return {@code null} if metadata is not available
+	 */
+	public synchronized ModuleOptionsMetadata getModuleOptionsMetadata() {
 		if (moduleOptionsMetadata == null) {
 			moduleOptionsMetadata = ModuleOptionsMetadataResolver.create(this);
 		}

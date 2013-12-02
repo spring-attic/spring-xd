@@ -16,7 +16,9 @@
 
 package org.springframework.xd.module.options;
 
-import java.util.Properties;
+import java.util.Map;
+
+import org.springframework.validation.BindException;
 
 
 /**
@@ -26,6 +28,6 @@ import java.util.Properties;
  */
 public interface ModuleOptionsMetadata extends Iterable<ModuleOption> {
 
-	public abstract ModuleOptions interpolate(Properties raw);
+	public abstract ModuleOptions interpolate(Map<String, String> raw) throws BindException;
 
 }

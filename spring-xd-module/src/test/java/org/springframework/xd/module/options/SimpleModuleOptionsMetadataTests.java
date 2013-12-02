@@ -23,8 +23,9 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Properties;
+import java.util.Map;
 
 import org.junit.Test;
 
@@ -58,15 +59,15 @@ public class SimpleModuleOptionsMetadataTests {
 	}
 
 	@Test
-	public void testInterpolation() {
+	public void testInterpolation() throws Exception {
 		moduleOptions.add(new ModuleOption("foo", "d"));
 		moduleOptions.add(new ModuleOption("bar", "d").withDefaultValue("here"));
 		moduleOptions.add(new ModuleOption("fizz", "d").withDefaultValue("there"));
 
-		Properties userValues = new Properties();
-		userValues.setProperty("foo", "one");
-		userValues.setProperty("bar", "two");
-		userValues.setProperty("bong", "gotcha");
+		Map<String, String> userValues = new HashMap<String, String>();
+		userValues.put("foo", "one");
+		userValues.put("bar", "two");
+		userValues.put("bong", "gotcha");
 
 		PropertySource<?> ps = moduleOptions.interpolate(userValues).asPropertySource();
 		assertThat((String) ps.getProperty("foo"), equalTo("one"));

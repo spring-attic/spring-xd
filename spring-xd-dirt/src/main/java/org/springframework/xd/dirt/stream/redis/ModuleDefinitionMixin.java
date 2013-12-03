@@ -25,7 +25,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 
 /**
- * Mixin for Jackson that will ignore the Resource, Classpath, Composed and ModuleOption properties of a
+ * Mixin for Jackson that will ignore the Resource, Classpath, Composed and ModuleOptionMetadata properties of a
  * ModuleDefinition.
  * 
  * @see ModuleDefinition.
@@ -44,6 +44,6 @@ public interface ModuleDefinitionMixin {
 	URL[] getClasspath();
 
 	@JsonIgnore
-	ModuleOptionsMetadata getModuleOptions();
+	ModuleOptionsMetadata getModuleOptionsMetadata();
 
 }

@@ -109,13 +109,11 @@ public class XDStreamParser implements XDParser {
 			ModuleDefinition moduleDefinition = moduleDefinitionRepository.findByNameAndType(original.getModule(),
 					original.getType());
 			ModuleOptionsMetadata optionsMetadata = moduleDefinition.getModuleOptionsMetadata();
-			if (optionsMetadata != null) {
-				try {
-					optionsMetadata.interpolate(original.getParameters());
-				}
-				catch (BindException e) {
-					throw ModuleConfigurationException.fromBindException(original.getModule(), original.getType(), e);
-				}
+			try {
+				optionsMetadata.interpolate(original.getParameters());
+			}
+			catch (BindException e) {
+				throw ModuleConfigurationException.fromBindException(original.getModule(), original.getType(), e);
 			}
 
 			result.add(convertToCompositeIfNecessary(original));

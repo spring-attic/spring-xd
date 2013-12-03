@@ -24,6 +24,8 @@ package org.springframework.xd.module.options.spi;
  */
 public interface ProfileNamesProvider {
 
+	public final static String[] NO_PROFILES = new String[0];
+
 	public String[] profilesToActivate();
 
 }

@@ -16,12 +16,14 @@
 
 package org.springframework.xd.module;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -29,12 +31,16 @@ import org.springframework.boot.context.initializer.ContextIdApplicationContextI
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.env.StandardEnvironment;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.validation.BindException;
+import org.springframework.xd.module.options.DefaultModuleOptionsMetadata;
+import org.springframework.xd.module.options.ModuleOptions;
 
 /**
  * A {@link Module} implementation backed by a Spring {@link ApplicationContext}.
@@ -61,25 +67,52 @@ public class SimpleModule extends AbstractModule {
 	private ConfigurableApplicationContext parent;
 
 	public SimpleModule(ModuleDefinition definition, DeploymentMetadata metadata) {
-		this(definition, metadata, null);
+		this(definition, metadata, null, defaultModuleOptions());
 	}
 
-	public SimpleModule(ModuleDefinition definition, DeploymentMetadata metadata, ClassLoader classLoader) {
+	private static ModuleOptions defaultModuleOptions() {
+		try {
+			return new DefaultModuleOptionsMetadata().interpolate(Collections.<String, String> emptyMap());
+		}
+		catch (BindException e) {
+			throw new IllegalStateException(e);
+		}
+	}
+
+	public SimpleModule(ModuleDefinition definition, DeploymentMetadata metadata, ClassLoader classLoader,
+			ModuleOptions runtimeConfig) {
 		super(definition, metadata);
 		application = new SpringApplicationBuilder().sources(PropertyPlaceholderAutoConfiguration.class).web(false);
 		if (classLoader != null) {
 			application.resourceLoader(new PathMatchingResourcePatternResolver(classLoader));
 		}
+
+		propertySources.addFirst(runtimeConfig.asPropertySource());
+		// Also add as properties for now, b/c other parts of the system
+		// (eg type conversion plugin) expects it
+		this.properties.putAll(runtimeConfigToProperties(runtimeConfig));
+
+		application.profiles(runtimeConfig.profilesToActivate());
+
 		if (definition != null) {
 			if (definition.getResource().isReadable()) {
 				this.addComponents(definition.getResource());
 			}
-			if (definition.getProperties() != null) {
-				this.addProperties(definition.getProperties());
-			}
 		}
 	}
 
+
+	private Map<Object, Object> runtimeConfigToProperties(ModuleOptions runtimeConfig) {
+		Map<Object, Object> result = new HashMap<Object, Object>();
+		EnumerablePropertySource<?> ps = runtimeConfig.asPropertySource();
+		for (String propname : ps.getPropertyNames()) {
+			Object value = ps.getProperty(propname);
+			if (value != null) {
+				result.put(propname, value);
+			}
+		}
+		return result;
+	}
 
 	@Override
 	public void setParentContext(ApplicationContext parent) {

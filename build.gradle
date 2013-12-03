@@ -855,6 +855,7 @@ project('spring-xd-rest-domain') {
 		}
 		compile ("org.springframework.batch:spring-batch-admin-manager:$springBatchAdminMgrVersion") {
 			exclude group: 'org.springframework.integration'
+			exclude group: 'org.slf4j'
 		}
 		compile "org.springframework.batch:spring-batch-core:$springBatchVersion"
 		compile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"

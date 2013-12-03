@@ -46,7 +46,7 @@ public class TriggerSourceOptionsMetadata extends SourceModuleOptionsMetadataSup
 			return new String[] { "use-delay" };
 		}
 		else {
-			return NO_PROFILES;
+			return new String[] { "use-simple" };
 		}
 	}
 

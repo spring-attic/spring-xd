@@ -6,7 +6,7 @@
 
 	<channel id="output" />
 
-	<beans:beans profile="default">
+	<beans:beans profile="use-trigger">
 		<inbound-channel-adapter channel="output"
 			auto-startup="false" expression="'${payload:}'">
 			<poller trigger="dateTrigger" />

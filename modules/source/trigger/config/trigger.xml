@@ -8,7 +8,7 @@
 
 	<beans:beans profile="use-trigger">
 		<inbound-channel-adapter channel="output"
-			auto-startup="false" expression="'${payload:}'">
+			auto-startup="false" expression="'${payload}'">
 			<poller trigger="dateTrigger" />
 		</inbound-channel-adapter>
 		<beans:bean id="dateTrigger"
@@ -18,15 +18,15 @@
 	
 	<beans:beans profile="use-cron">
 		<inbound-channel-adapter channel="output"
-			auto-startup="false" expression="'${payload:}'">
-			<poller cron="${cron:'*/10 * * * * *'}" />
+			auto-startup="false" expression="'${payload}'">
+			<poller cron="${cron}" />
 		</inbound-channel-adapter>
 	</beans:beans>
 	
 	<beans:beans profile="use-delay">
 		<inbound-channel-adapter channel="output"
-			auto-startup="false" expression="'${payload:}'">
-			<poller fixed-delay="${fixedDelay:10}" time-unit="SECONDS" />
+			auto-startup="false" expression="'${payload}'">
+			<poller fixed-delay="${fixedDelay}" time-unit="SECONDS" />
 		</inbound-channel-adapter>
 	</beans:beans>
 

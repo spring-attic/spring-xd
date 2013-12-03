@@ -45,7 +45,7 @@ public class LocalSingleNodeStreamDeploymentIntegrationTests extends AbstractSin
 		streamDefinitionRepository.save(routerDefinition);
 		streamDeployer.deploy("routerDefinition");
 		Thread.sleep(1000);
-		final Module module = getModule("router", 0, moduleDeployer);
+		final Module module = getModule("router", 0);
 		MessageBus bus = module.getComponent(MessageBus.class);
 
 		MessageChannel x = module.getComponent("queue:x", MessageChannel.class);

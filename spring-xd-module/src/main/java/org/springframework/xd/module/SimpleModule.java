@@ -17,6 +17,8 @@
 package org.springframework.xd.module;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -29,6 +31,7 @@ import org.springframework.boot.context.initializer.ContextIdApplicationContextI
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.env.PropertySource;
@@ -85,6 +88,10 @@ public class SimpleModule extends AbstractModule {
 		}
 
 		propertySources.addFirst(runtimeConfig.asPropertySource());
+		// Also add as properties for now, b/c other parts of the system
+		// (eg type conversion plugin) expects it
+		this.properties.putAll(runtimeConfigToProperties(runtimeConfig));
+
 		application.profiles(runtimeConfig.profilesToActivate());
 
 		if (definition != null) {
@@ -94,6 +101,18 @@ public class SimpleModule extends AbstractModule {
 		}
 	}
 
+
+	private Map<Object, Object> runtimeConfigToProperties(ModuleOptions runtimeConfig) {
+		Map<Object, Object> result = new HashMap<Object, Object>();
+		EnumerablePropertySource<?> ps = runtimeConfig.asPropertySource();
+		for (String propname : ps.getPropertyNames()) {
+			Object value = ps.getProperty(propname);
+			if (value != null) {
+				result.put(propname, value);
+			}
+		}
+		return result;
+	}
 
 	@Override
 	public void setParentContext(ApplicationContext parent) {

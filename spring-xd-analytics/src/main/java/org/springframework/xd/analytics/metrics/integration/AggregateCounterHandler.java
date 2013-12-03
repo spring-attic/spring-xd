@@ -17,12 +17,11 @@
 package org.springframework.xd.analytics.metrics.integration;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
-import org.springframework.integration.annotation.ServiceActivator;
+
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.xd.analytics.metrics.core.AggregateCounterRepository;
@@ -56,10 +55,10 @@ public class AggregateCounterHandler {
 		}
 		if (timeField == null) {
 			this.aggregateCounterRepository.increment(counterName);
-		} else {
+		}
+		else {
 			this.aggregateCounterRepository.increment(counterName, 1, dateFormat.parseDateTime(timeField));
 		}
 		return message;
 	}
 }
-

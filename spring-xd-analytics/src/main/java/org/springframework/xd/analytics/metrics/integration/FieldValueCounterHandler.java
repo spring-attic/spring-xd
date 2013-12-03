@@ -18,7 +18,6 @@ package org.springframework.xd.analytics.metrics.integration;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -46,18 +45,20 @@ public class FieldValueCounterHandler {
 
 	private final FieldValueCounterRepository fieldValueCounterRepository;
 
-	private final Map<String, String> fieldNameToCounterNameMap;
+	private final String fieldName;
+
+	private final String counterName;
 
 	private final JsonToTupleTransformer jsonToTupleTransformer;
 
 	public FieldValueCounterHandler(FieldValueCounterRepository fieldValueCounterRepository, String counterName,
 			String fieldName) {
 		Assert.notNull(fieldValueCounterRepository, "FieldValueCounterRepository can not be null");
-		Assert.notNull(counterName, "counter Name can not be null");
+		Assert.notNull(counterName, "Counter name can not be null");
 		Assert.hasText(fieldName, "Field name can not be null or empty string");
 		this.fieldValueCounterRepository = fieldValueCounterRepository;
-		this.fieldNameToCounterNameMap = new HashMap<String, String>();
-		fieldNameToCounterNameMap.put(fieldName, counterName);
+		this.fieldName = fieldName;
+		this.counterName = counterName;
 		this.jsonToTupleTransformer = new JsonToTupleTransformer();
 
 	}
@@ -84,23 +85,15 @@ public class FieldValueCounterHandler {
 
 	private void processPojo(Object payload) {
 		BeanWrapper beanWrapper = new BeanWrapperImpl(payload);
-		for (Map.Entry<String, String> entry : this.fieldNameToCounterNameMap.entrySet()) {
-			String fieldName = entry.getKey();
-			String counterName = entry.getValue();
-			if (beanWrapper.isReadableProperty(fieldName)) {
-				Object value = beanWrapper.getPropertyValue(fieldName);
-				processValue(counterName, value);
-			}
+		if (beanWrapper.isReadableProperty(fieldName)) {
+			Object value = beanWrapper.getPropertyValue(fieldName);
+			processValue(counterName, value);
 		}
 	}
 
 	private void processTuple(Tuple tuple) {
-		for (Map.Entry<String, String> entry : this.fieldNameToCounterNameMap.entrySet()) {
-			String fieldName = entry.getKey();
-			String counterName = entry.getValue();
-			String[] path = StringUtils.tokenizeToStringArray(fieldName, ".");
-			processValueForCounter(counterName, tuple, path);
-		}
+		String[] path = StringUtils.tokenizeToStringArray(fieldName, ".");
+		processValueForCounter(counterName, tuple, path);
 	}
 
 	private void processValueForCounter(String counterName, Object value, String[] path) {

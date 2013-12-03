@@ -5,6 +5,7 @@ import java.sql.SQLException;
 
 import org.springframework.batch.item.database.JdbcCursorItemReader;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.tuple.Tuple;
@@ -50,20 +51,13 @@ public class NamedColumnJdbcItemReader extends JdbcCursorItemReader<Tuple> {
 		}
 
 		setRowMapper(new RowMapper<Tuple>() {
-			String[] columns;
-
 			@Override
 			public Tuple mapRow(ResultSet rs, int rowNum) throws SQLException {
-				if (columns == null) {
-					columns = new String[rs.getMetaData().getColumnCount()];
-					for (int i=1; i <= rs.getMetaData().getColumnCount(); i++) {
-						columns[i-1] = rs.getMetaData().getColumnName(i);
-						Assert.notNull(columns[i-1], "Metadata for column " + i + " gave a null name");
-					}
-				}
 				TupleBuilder builder = TupleBuilder.tuple();
-				for (String name: columns) {
-					builder.put(name, rs.getString(name));
+
+				for (int i=1; i <= rs.getMetaData().getColumnCount(); i++) {
+					String name = JdbcUtils.lookupColumnName(rs.getMetaData(), i);
+					builder.put(name, JdbcUtils.getResultSetValue(rs, i, String.class));
 				}
 
 				return builder.build();

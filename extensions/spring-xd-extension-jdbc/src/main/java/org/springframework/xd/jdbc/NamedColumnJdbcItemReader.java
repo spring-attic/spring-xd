@@ -37,26 +37,32 @@ public class NamedColumnJdbcItemReader extends JdbcCursorItemReader<Tuple> {
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		Assert.hasText(names, "columns must be set");
 		if (!StringUtils.hasText(getSql())) {
 			Assert.hasText(tableName, "tableName must be set");
+			Assert.hasText(names, "columns must be set");
 
 			String sql = "select " + names + " from " + tableName;
 			log.info("Setting SQL to: " + sql);
 			setSql(sql);
 		}
-		else if (StringUtils.hasText(tableName)) {
-			log.warn("You must set either the 'sql' and 'columns' properties or 'tableName' and 'columns'.");
+		else if (StringUtils.hasText(names) || StringUtils.hasText(tableName)) {
+			log.warn("You must set either the 'sql' property or 'tableName' and 'columns'.");
 		}
 
-		final String[] cols = StringUtils.tokenizeToStringArray(names, ",");
-
 		setRowMapper(new RowMapper<Tuple>() {
+			String[] columns;
+
 			@Override
 			public Tuple mapRow(ResultSet rs, int rowNum) throws SQLException {
+				if (columns == null) {
+					columns = new String[rs.getMetaData().getColumnCount()];
+					for (int i=1; i <= rs.getMetaData().getColumnCount(); i++) {
+						columns[i-1] = rs.getMetaData().getColumnName(i);
+						Assert.notNull(columns[i-1], "Metadata for column " + i + " gave a null name");
+					}
+				}
 				TupleBuilder builder = TupleBuilder.tuple();
-
-				for (String name: cols) {
+				for (String name: columns) {
 					builder.put(name, rs.getString(name));
 				}
 

@@ -94,7 +94,7 @@ public abstract class AbstractHdfsItemWriter<T> extends AbstractItemStreamItemWr
 		Pattern pattern = Pattern.compile(baseFilename + "-([\\d+]{1,})");
 		Matcher matcher = pattern.matcher(shortName);
 		if (matcher.find()) {
-			return Integer.parseInt(matcher.group());
+			return Integer.parseInt(matcher.group(1));
 		}
 		return -1;
 	}

@@ -30,6 +30,7 @@ import org.springframework.core.io.DescriptiveResource;
 import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+import org.springframework.xd.module.options.DefaultModuleOptionsMetadata;
 import org.springframework.xd.module.options.ModuleOption;
 import org.springframework.xd.module.options.ModuleOptionsMetadata;
 import org.springframework.xd.module.options.PojoModuleOptionsMetadata;
@@ -211,7 +212,7 @@ public class ModuleDefinition {
 				Resource propertiesResource = definition.getResource().createRelative(
 						definition.getName() + ".properties");
 				if (!propertiesResource.exists()) {
-					return null;
+					return new DefaultModuleOptionsMetadata();
 				}
 				else {
 					Properties props = new Properties();
@@ -235,7 +236,7 @@ public class ModuleDefinition {
 				}
 			}
 			catch (IOException e) {
-				return null;
+				return new DefaultModuleOptionsMetadata();
 			}
 
 		}

@@ -16,7 +16,7 @@
 
 package org.springframework.xd.module.options.spi;
 
-import org.springframework.http.MediaType;
+import java.awt.PageAttributes.MediaType;
 
 
 /**
@@ -33,7 +33,7 @@ public abstract class SourceModuleOptionsMetadataSupport {
 	}
 
 
-	@ModuleOption("how this module should emit messages going out")
+	@ModuleOption("how this module should emit messages it produces")
 	public void setOutputType(MediaType outputType) {
 		this.outputType = outputType;
 	}

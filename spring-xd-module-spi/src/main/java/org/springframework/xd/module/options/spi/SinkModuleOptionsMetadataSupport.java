@@ -16,7 +16,7 @@
 
 package org.springframework.xd.module.options.spi;
 
-import org.springframework.http.MediaType;
+import java.awt.PageAttributes.MediaType;
 
 
 /**
@@ -32,7 +32,7 @@ public abstract class SinkModuleOptionsMetadataSupport {
 		return inputType;
 	}
 
-	@ModuleOption("how this module should interpret messages coming in")
+	@ModuleOption("how this module should interpret messages it consumes")
 	public void setInputType(MediaType inputType) {
 		this.inputType = inputType;
 	}

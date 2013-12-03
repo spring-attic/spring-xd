@@ -23,12 +23,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.http.MediaType;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.xd.module.Module;
 
@@ -45,17 +42,6 @@ import org.springframework.xd.module.Module;
 public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 		AbstractStreamDeploymentIntegrationTests {
 
-	@Override
-	protected void setupApplicationContext(ApplicationContext context) {
-		MessageChannel containerControlChannel = context.getBean("containerControlChannel", MessageChannel.class);
-		SubscribableChannel deployChannel = context.getBean("deployChannel", SubscribableChannel.class);
-		SubscribableChannel undeployChannel = context.getBean("undeployChannel", SubscribableChannel.class);
-		BridgeHandler handler = new BridgeHandler();
-		handler.setOutputChannel(containerControlChannel);
-		handler.setComponentName("xd.local.control.bridge");
-		deployChannel.subscribe(handler);
-		undeployChannel.subscribe(handler);
-	}
 
 	@Override
 	protected void cleanup(ApplicationContext context) {
@@ -91,7 +77,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 		Thread.sleep(1000);
 		assertEquals(2, streamRepository.count());
 
-		final Module module = getModule("bridge", 0, moduleDeployer);
+		final Module module = getModule("bridge", 0);
 
 		MessageBus bus = module.getComponent(MessageBus.class);
 
@@ -124,7 +110,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 		assertEquals(1, streamRepository.count());
 		assertModuleRequest("router", false);
 
-		final Module module = getModule("router", 0, moduleDeployer);
+		final Module module = getModule("router", 0);
 		MessageBus bus = module.getComponent(MessageBus.class);
 
 		QueueChannel fooChannel = new QueueChannel();

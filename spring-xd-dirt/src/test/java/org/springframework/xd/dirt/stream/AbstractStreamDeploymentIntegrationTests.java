@@ -19,27 +19,25 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
-import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
-import org.springframework.xd.dirt.module.ModuleDeployer;
-import org.springframework.xd.dirt.server.ParentConfiguration;
+import org.springframework.xd.dirt.event.AbstractModuleEvent;
+import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.dirt.stream.dsl.ModuleNode;
 import org.springframework.xd.dirt.stream.dsl.StreamConfigParser;
 import org.springframework.xd.dirt.stream.dsl.StreamNode;
@@ -48,10 +46,13 @@ import org.springframework.xd.module.Module;
 /**
  * @author Mark Fisher
  * @author Gunnar Hillert
+ * @author David Turanski
  */
 public abstract class AbstractStreamDeploymentIntegrationTests {
 
 	private AbstractApplicationContext context;
+
+	private SingleNodeApplication application;
 
 	protected StreamDefinitionRepository streamDefinitionRepository;
 
@@ -59,67 +60,65 @@ public abstract class AbstractStreamDeploymentIntegrationTests {
 
 	protected StreamDeployer streamDeployer;
 
-	protected ModuleDeployer moduleDeployer;
+
+	private ModuleEventListener moduleEventListener = new ModuleEventListener();
 
 	protected StreamConfigParser parser;
 
 	private final QueueChannel tapChannel = new QueueChannel();
 
-	@EnableAutoConfiguration
-	@Configuration
-	@ImportResource({
-		"META-INF/spring-xd/internal/container.xml",
-		"META-INF/spring-xd/internal/deployers.xml",
-		"META-INF/spring-xd/plugins/streams.xml",
-		"META-INF/spring-xd/store/memory-store.xml" })
-	protected static class StreamDeploymentIntegrationTestsConfiguration {
-	}
 
 	@Before
 	public final void setUp() {
 		String transport = this.getTransport();
-		context = (AbstractApplicationContext) new SpringApplicationBuilder(ParentConfiguration.class).profiles(
-				"node", "memory").properties("XD_HOME=..").child(
-				StreamDeploymentIntegrationTestsConfiguration.class).sources(
-				"META-INF/spring-xd/transports/" + transport + "-admin.xml").web(false).run(
-				"--transport=" + transport);
+		this.application = new SingleNodeApplication();
+		application.run("--transport=" + transport);
+
+		this.context = (AbstractApplicationContext) application.getContainerContext();
 		this.streamDefinitionRepository = context.getBean(StreamDefinitionRepository.class);
 		this.streamRepository = context.getBean(StreamRepository.class);
-		this.streamDeployer = context.getBean(StreamDeployer.class);
-		this.moduleDeployer = context.getBean(ModuleDeployer.class);
+		this.streamDeployer = application.getAdminContext().getBean(StreamDeployer.class);
 		this.parser = new StreamConfigParser(streamDefinitionRepository);
 
-		AbstractMessageChannel deployChannel = context.getBean("deployChannel", AbstractMessageChannel.class);
-		AbstractMessageChannel undeployChannel = context.getBean("undeployChannel", AbstractMessageChannel.class);
+		AbstractMessageChannel deployChannel = application.getAdminContext().getBean("deployChannel",
+				AbstractMessageChannel.class);
+		AbstractMessageChannel undeployChannel = application.getAdminContext().getBean("undeployChannel",
+				AbstractMessageChannel.class);
 		deployChannel.addInterceptor(new WireTap(tapChannel));
 		undeployChannel.addInterceptor(new WireTap(tapChannel));
+		context.addApplicationListener(this.moduleEventListener);
 		setupApplicationContext(context);
 	}
 
 	@After
 	public final void shutDown() {
-		if (this.context != null) {
-			this.cleanup(this.context);
-			this.context.close();
-		}
+		cleanup(this.context);
+		this.application.close();
 	}
 
 	@Test
-	public final void deployAndUndeploy() {
+	public final void deployAndUndeploy() throws InterruptedException {
+
 		assertEquals(0, streamRepository.count());
-		StreamDefinition definition = new StreamDefinition("test1", "time | log");
-		streamDefinitionRepository.save(definition);
-		streamDeployer.deploy("test1");
-		assertEquals(1, streamRepository.count());
-		assertTrue(streamRepository.exists("test1"));
-		streamDeployer.undeploy("test1");
-		assertEquals(0, streamRepository.count());
-		assertFalse(streamRepository.exists("test1"));
-		assertModuleRequest("log", false);
-		assertModuleRequest("time", false);
-		assertModuleRequest("time", true);
-		assertModuleRequest("log", true);
-		assertNull(tapChannel.receive(0));
+		final int ITERATIONS = 5;
+		int i = 0;
+		for (i = 0; i < ITERATIONS; i++) {
+			StreamDefinition definition = new StreamDefinition("test" + i, "http | log");
+			streamDefinitionRepository.save(definition);
+			waitForDeploy(definition);
+			assertEquals(1, streamRepository.count());
+			assertTrue(streamRepository.exists("test" + i));
+			waitForUndeploy(definition);
+			assertEquals(0, streamRepository.count());
+			assertFalse(streamRepository.exists("test" + i));
+			assertModuleRequest("log", false);
+			assertModuleRequest("http", false);
+			assertModuleRequest("http", true);
+			assertModuleRequest("log", true);
+			assertNull(tapChannel.receive(0));
+		}
+		assertEquals(ITERATIONS, i);
+
 	}
 
 	protected void assertModuleRequest(String moduleName, boolean remove) {
@@ -137,11 +136,9 @@ public abstract class AbstractStreamDeploymentIntegrationTests {
 
 	protected abstract void cleanup(ApplicationContext context);
 
-	protected Module getModule(String moduleName, int index, ModuleDeployer moduleDeployer) {
+	protected Module getModule(String moduleName, int index) {
 
-		@SuppressWarnings("unchecked")
-		final Map<String, Map<Integer, Module>> deployedModules = TestUtils.getPropertyValue(moduleDeployer,
-				"deployedModules", ConcurrentMap.class);
+		final Map<String, Map<Integer, Module>> deployedModules = this.moduleEventListener.getDeployedModules();
 
 		Module matchedModule = null;
 		for (Entry<String, Map<Integer, Module>> entry : deployedModules.entrySet()) {
@@ -158,29 +155,25 @@ public abstract class AbstractStreamDeploymentIntegrationTests {
 		waitForDeploy(definition);
 	}
 
-	private void waitForDeploy(StreamDefinition definition) {
+	private boolean waitForStreamOp(StreamDefinition definition, boolean isDeploy) {
 		StreamNode stream = parser.parse(definition.getDefinition());
-
-		boolean deployed = false;
-		streamDeployer.deploy(definition.getName());
-
-		final int MAX_TRIES = 10;
+		final int MAX_TRIES = 20;
 		int tries = 1;
-		while (!deployed && tries <= MAX_TRIES) {
-			deployed = true;
+		boolean done = false;
+		while (!done && tries <= MAX_TRIES) {
+			done = true;
 			int i = 0;
 			for (ModuleNode module : stream.getModuleNodes()) {
-				if (getModule(module.getName(), i++, moduleDeployer) == null) {
-					deployed = false;
+				Module deployedModule = getModule(module.getName(), i++);
+
+				done = (isDeploy) ? deployedModule != null : deployedModule == null;
+				if (!done) {
 					break;
 				}
 			}
-			if (!deployed) {
+			if (!done) {
 				try {
-					Thread.sleep(1000);
-					streamDeployer.undeploy(definition.getName());
-					Thread.sleep(1000);
-					streamDeployer.deploy(definition.getName());
+					Thread.sleep(100);
 					tries++;
 				}
 				catch (InterruptedException e) {
@@ -188,9 +181,44 @@ public abstract class AbstractStreamDeploymentIntegrationTests {
 				}
 			}
 		}
-		if (deployed) {
-			System.out.println("deployed after " + tries + " tries");
-		}
+		return done;
+	}
+
+	private void waitForUndeploy(StreamDefinition definition) {
+		streamDeployer.undeploy(definition.getName());
+		boolean undeployed = waitForStreamOp(definition, false);
+		assertTrue("stream " + definition.getName() + " not undeployed ", undeployed);
+	}
+
+	private void waitForDeploy(StreamDefinition definition) {
+
+		streamDeployer.deploy(definition.getName());
+		boolean deployed = waitForStreamOp(definition, true);
 		assertTrue("stream " + definition.getName() + " not deployed ", deployed);
+	}
+
+	static class ModuleEventListener implements ApplicationListener<AbstractModuleEvent> {
+
+		private final ConcurrentMap<String, Map<Integer, Module>> deployedModules = new ConcurrentHashMap<String, Map<Integer, Module>>();
+
+		@Override
+		public void onApplicationEvent(AbstractModuleEvent event) {
+			Module module = event.getSource();
+			if (event.getType().equals("ModuleDeployed")) {
+				this.deployedModules.putIfAbsent(module.getDeploymentMetadata().getGroup(),
+						new HashMap<Integer, Module>());
+				this.deployedModules.get(module.getDeploymentMetadata().getGroup()).put(
+						module.getDeploymentMetadata().getIndex(), module);
+			}
+			else {
+				this.deployedModules.get(module.getDeploymentMetadata().getGroup()).remove(
+						module.getDeploymentMetadata().getIndex());
+			}
+		}
+
+		public Map<String, Map<Integer, Module>> getDeployedModules() {
+			return this.deployedModules;
+		}
+
 	}
 }

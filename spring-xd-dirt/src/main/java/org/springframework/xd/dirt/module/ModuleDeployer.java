@@ -140,14 +140,14 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		String payloadString = message.getPayload().toString();
 		ModuleDeploymentRequest deserialized = this.mapper.readValue(payloadString, ModuleDeploymentRequest.class);
 		if (deserialized instanceof CompositeModuleDeploymentRequest) {
-			handleCompositeModuleDeployment((CompositeModuleDeploymentRequest) deserialized, message);
+			handleCompositeModuleMessage((CompositeModuleDeploymentRequest) deserialized);
 		}
 		else {
-			handleDeploymentRequest(deserialized, message);
+			handleSingleModuleMessage(deserialized);
 		}
 	}
 
-	private void handleCompositeModuleDeployment(CompositeModuleDeploymentRequest request, Message<?> message) {
+	private void handleCompositeModuleMessage(CompositeModuleDeploymentRequest request) {
 		List<ModuleDeploymentRequest> children = request.getChildren();
 		Assert.notEmpty(children, "child module list must not be empty");
 		List<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
@@ -191,22 +191,22 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 			modules.add(module);
 		}
 		CompositeModule module = new CompositeModule(request.getModule(), request.getType(), modules, metadata);
-		deployModule(module, request, message);
+		bindOptionsAndDeployModule(module, request);
 	}
 
-	private void handleDeploymentRequest(ModuleDeploymentRequest request, Message<?> message) {
+	private void handleSingleModuleMessage(ModuleDeploymentRequest request) {
 		if (request.isRemove()) {
 			handleUndeploy(request);
 		}
 		else if (request.isLaunch()) {
-			handleLaunch(request, message);
+			handleLaunch(request);
 		}
 		else {
-			handleDeploy(request, message);
+			handleDeploy(request);
 		}
 	}
 
-	private void handleDeploy(ModuleDeploymentRequest request, Message<?> message) {
+	private void handleDeploy(ModuleDeploymentRequest request) {
 		String group = request.getGroup();
 		int index = request.getIndex();
 		String name = request.getModule();
@@ -220,20 +220,12 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 				: new ParentLastURLClassLoader(definition.getClasspath(), parentClassLoader);
 
 		Module module = new SimpleModule(definition, metadata, classLoader);
-		this.deployModule(module, request, message);
+		this.bindOptionsAndDeployModule(module, request);
 	}
 
-	private void deployModule(Module module, ModuleDeploymentRequest request, Message<?> message) {
+	private void bindOptionsAndDeployModule(Module module, ModuleDeploymentRequest request) {
 		module.setParentContext(this.commonContext);
-		Object properties = message.getHeaders().get("properties");
-		if (properties instanceof Properties) {
-			module.addProperties((Properties) properties);
-		}
 		Map<String, String> parameters = request.getParameters();
-		Properties parametersAsProps = new Properties();
-		if (!CollectionUtils.isEmpty(parameters)) {
-			parametersAsProps.putAll(parameters);
-		}
 
 
 		ModuleDefinition definition = moduleDefinitionRepository.findByNameAndType(module.getName(), module.getType());
@@ -259,11 +251,15 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 			module.addProperties(props);
 		}
 		else {
+			Properties parametersAsProps = new Properties();
+			if (!CollectionUtils.isEmpty(parameters)) {
+				parametersAsProps.putAll(parameters);
+			}
 			module.addProperties(parametersAsProps);
 		}
 
 
-		this.deploy(module);
+		this.doDeploy(module);
 
 		if (logger.isInfoEnabled()) {
 			logger.info("deployed " + module.toString());
@@ -272,7 +268,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		this.deployedModules.get(request.getGroup()).put(request.getIndex(), module);
 	}
 
-	private void deploy(Module module) {
+	private void doDeploy(Module module) {
 		this.preProcessModule(module);
 		module.initialize();
 		this.postProcessModule(module);
@@ -312,7 +308,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		}
 	}
 
-	private void handleLaunch(ModuleDeploymentRequest request, Message<?> message) {
+	private void handleLaunch(ModuleDeploymentRequest request) {
 		String group = request.getGroup();
 		Map<Integer, Module> modules = this.deployedModules.get(group);
 		if (modules != null) {
@@ -320,7 +316,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		}
 		else {
 			// Deploy the job module and then launch
-			handleDeploy(request, message);
+			handleDeploy(request);
 			processLaunchRequest(this.deployedModules.get(group), request);
 		}
 	}

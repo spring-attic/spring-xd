@@ -14,6 +14,12 @@ set -e
 echo -e "\nRunning batch HDFS import tests"
 echo "HDFS base path is $BASE_PATH"
 
+echo -e "\nConfiguring Hadoop PATH"
+PID=`ps -ef | grep "Dproc_datanode" | grep "hadoop" | head -n 1 | awk '{print $2}'`
+HADOOP_PREFIX=`lsof -p $PID -Fn | awk 'NR==2{print}' | sed "s/n\//\//"`
+echo -e "Hadoop home is $HADOOP_PREFIX"
+PATH=$HADOOP_PREFIX/bin:$HADOOP_PREFIX/sbin:$PATH
+
 echo -e "\n\n*** Test 1. Load single CSV file, no rollover\n"
 
 create_job csvjob "filehdfs --names=col1,col2,col3 --basePath=$BASE_PATH --filename=blah --suffix=csv"

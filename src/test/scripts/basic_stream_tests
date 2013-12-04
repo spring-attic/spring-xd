@@ -1,17 +1,17 @@
-#! /bin/sh
+#!/bin/bash
 
-source xdapi
+. xdapi
 
 rm -R /tmp/xdtest/basic &> /dev/null
 set -e
 
-echo '*** Test 1. time | log stream\n'
+echo -e '*** Test 1. time | log stream\n'
 
 create_stream 'ticktock' 'time | log' 'false'
 list_streams
 deploy_stream 'ticktock'
 
-echo '*** Test 2. http | file stream\n'
+echo -e '*** Test 2. http | file stream\n'
 
 create_stream 'httptofile' 'http | file --dir=/tmp/xdtest/basic'
 
@@ -21,7 +21,7 @@ post_data_and_check_result() {
 
   if [[ $result != 'blah' ]]
   then
-    echo "\nPosted HTTP data ($result) does not match file sink contents"
+    echo -e "\nPosted HTTP data ($result) does not match file sink contents"
     exit 1
   fi
 }

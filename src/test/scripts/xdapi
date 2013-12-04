@@ -1,18 +1,24 @@
-#! /bin/sh
+#!/bin/bash
+
 XD_HOST='http://localhost'
 XD_PORT=9393
 XDURL="$XD_HOST:$XD_PORT"
 
-alias xdc='curl -s -S -H "Accept: application/json"'
+xdc() {
+  curl -s -S -H "Accept: application/json" $@
+}
+
 # This is needed because the CI agents don't have an up-to-date version of curl which
 # supports the --data-urlencode parameter
-alias urlencode='python -c "import sys, urllib as ul; print ul.quote_plus(sys.argv[1])"'
+urlencode() {
+  python -c "import sys, urllib as ul; print ul.quote_plus(sys.argv[1])" "$@"
+}
 
 create_stream() {
   local udef=`urlencode "$2"`
   echo "Creating stream $1 with definition '$udef' ..."
   xdc -d name=$1 -d "definition=$udef" -d deploy=${3:-'true'} "$XDURL/streams"
-  echo '\n'
+  echo -e '\n'
 }
 
 undeploy_stream() {
@@ -24,35 +30,38 @@ deploy_stream() {
 }
 
 destroy_stream() {
-  echo "Destroying stream $1 ..."
+  echo -e "Destroying stream $1 ..."
   xdc -X DELETE "$XDURL/streams/$1"
+  echo -e '\n'
 }
 
 create_job() {
   local udef=`urlencode "$2"`
-  echo "Creating job $1 with definition '$udef' ..."
+  echo -e "Creating job $1 with definition '$udef' ..."
   xdc -d name=$1 -d "definition=$udef" "$XDURL/jobs"
-  echo '\n'
+  echo -e '\n'
 }
 
 launch_job() {
   echo "Launching job $1 ..."
   xdc -X PUT "$XDURL/jobs/$1/launch"
+  echo -e '\n'
 }
 
 destroy_job() {
-  echo "Destroying job $1 ..."
+  echo -e "Destroying job $1 ..."
   xdc -X DELETE "$XDURL/jobs/$1"
+  echo -e '\n'
 }
 
 list_streams() {
   xdc -s $XDURL/streams #| python -m json.tool
-  echo '\n'
+  echo -e '\n'
 }
 
 list_jobs() {
   xdc -s $XDURL/jobs #| python -m json.tool
-  echo '\n'
+  echo -e '\n'
 }
 
 hdfs_size() {
@@ -87,8 +96,9 @@ wait_for_server() {
 
   if [ $? != 0 ]
   then
-      echo "\n\n**** Server not started, exiting.\n\n"; exit 1
+      echo -e "\n\n**** Server not started, exiting.\n\n"; exit 1
   else
-      echo "\n\n**** Server is up...\n\n"
+      echo -e "\n\n**** Server is up...\n\n"
   fi
 }
+

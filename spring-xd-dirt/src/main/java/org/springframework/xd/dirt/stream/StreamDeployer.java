@@ -16,10 +16,6 @@
 
 package org.springframework.xd.dirt.stream;
 
-import java.util.List;
-
-import org.springframework.xd.dirt.module.ModuleDependencyTracker;
-import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 
 /**
  * Default implementation of {@link StreamDeployer} that emits deployment request messages on a bus and relies on
@@ -33,45 +29,14 @@ import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
  */
 public class StreamDeployer extends AbstractInstancePersistingDeployer<StreamDefinition, Stream> {
 
-	private ModuleDependencyTracker dependencyTracker;
-
 	public StreamDeployer(StreamDefinitionRepository repository, DeploymentMessageSender messageSender,
-			StreamRepository streamRepository, XDParser parser, ModuleDependencyTracker dependencyTracker) {
+			StreamRepository streamRepository, XDParser parser) {
 		super(repository, streamRepository, messageSender, parser, "stream");
-		this.dependencyTracker = dependencyTracker;
 	}
 
 	@Override
 	protected Stream makeInstance(StreamDefinition definition) {
 		return new Stream(definition);
-	}
-
-	@Override
-	protected StreamDefinition afterSave(StreamDefinition savedDefinition) {
-		StreamDefinition definition = super.afterSave(savedDefinition);
-		recordDependencies(definition);
-		return definition;
-	}
-
-	private void recordDependencies(StreamDefinition definition) {
-		List<ModuleDeploymentRequest> requests = streamParser.parse(definition.getName(), definition.getDefinition());
-		for (ModuleDeploymentRequest request : requests) {
-			dependencyTracker.record(request, "stream:" + definition.getName());
-		}
-	}
-
-	@Override
-	protected void beforeDelete(StreamDefinition definition) {
-		removeDependencies(definition);
-
-		super.beforeDelete(definition);
-	}
-
-	private void removeDependencies(StreamDefinition definition) {
-		List<ModuleDeploymentRequest> requests = streamParser.parse(definition.getName(), definition.getDefinition());
-		for (ModuleDeploymentRequest request : requests) {
-			dependencyTracker.remove(request, "stream:" + definition.getName());
-		}
 	}
 
 }

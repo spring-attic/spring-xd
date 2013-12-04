@@ -18,6 +18,8 @@ package org.springframework.xd.module;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -38,19 +40,32 @@ import org.springframework.xd.module.options.SimpleModuleOptionsMetadata;
  */
 public class ModuleDefinition {
 
-	private final String name;
+	private String name;
 
-	private final ModuleType type;
+	private ModuleType type;
 
-	private final Resource resource;
+	private boolean composed;
+
+	private Resource resource;
 
 	private volatile Properties properties;
 
 	private volatile String definition;
 
-	private final URL[] classpath;
+	private URL[] classpath;
 
 	private ModuleOptionsMetadata moduleOptionsMetadata;
+
+	/**
+	 * If a composed module, the list of modules
+	 */
+	private List<ModuleDefinition> composedModuleDefinitions = new ArrayList<ModuleDefinition>();
+
+	private ModuleDefinition() {
+		// no arg constructor for Jackson serialization
+		// JSON serialization ignores the resource, so set it here to a value.
+		resource = new DescriptiveResource("Dummy resource");
+	}
 
 	public ModuleDefinition(String name, ModuleType moduleType) {
 		this(name, moduleType, new DescriptiveResource("Dummy resource"));
@@ -68,6 +83,39 @@ public class ModuleDefinition {
 		this.name = name;
 		this.type = type;
 		this.classpath = classpath != null && classpath.length > 0 ? classpath : null;
+	}
+
+	/**
+	 * Determine if this a composed module
+	 * 
+	 * @return true if this is a composed module, false otherwise.
+	 */
+	public boolean isComposed() {
+		// TODO clean up usage of setDefinition with setComposed
+		return (composed) || (getDefinition() == null ? false : true);
+	}
+
+	public void setComposed(boolean composed) {
+		this.composed = composed;
+	}
+
+	/**
+	 * Set the list of composed modules if this is a composite module, can not be null
+	 * 
+	 * @param composedModuleDefinitions list of composed modules
+	 */
+	public void setComposedModuleDefinitions(List<ModuleDefinition> composedModuleDefinitions) {
+		Assert.notNull(composedModuleDefinitions, "composedModuleDefinitions cannot be null");
+		this.composedModuleDefinitions = composedModuleDefinitions;
+	}
+
+	public ModuleOptionsMetadata getModuleOptionsMetadata() {
+		return moduleOptionsMetadata;
+	}
+
+
+	public List<ModuleDefinition> getComposedModuleDefinitions() {
+		return composedModuleDefinitions;
 	}
 
 	public String getName() {

@@ -12,6 +12,7 @@
 						<constructor-arg value="classpath:/testmodules/" />
 					</bean>
 				</constructor-arg>
+				<constructor-arg ref="moduleDependencyRepository"/>
 			</bean>
 		</constructor-arg>
 	</bean>
@@ -20,4 +21,6 @@
 
 	<bean class="org.springframework.xd.dirt.module.TestModuleEventListener" />
 
+	<bean id="moduleDependencyRepository" class="org.springframework.xd.dirt.module.memory.InMemoryModuleDependencyRepository" />
+	
 </beans>

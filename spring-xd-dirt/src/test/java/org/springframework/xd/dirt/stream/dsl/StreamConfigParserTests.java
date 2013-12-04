@@ -36,6 +36,7 @@ import org.junit.Test;
 import org.springframework.core.io.Resource;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
+import org.springframework.xd.dirt.module.ModuleDependencyRepository;
 import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.module.memory.InMemoryModuleDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDefinition;
@@ -209,6 +210,7 @@ public class StreamConfigParserTests {
 
 	public ModuleDefinitionRepository moduleDefinitionRepository() {
 		ModuleRegistry registry = mock(ModuleRegistry.class);
+		ModuleDependencyRepository moduleDependencyRepository = mock(ModuleDependencyRepository.class);
 		Resource resource = mock(Resource.class);
 		File file = mock(File.class);
 		when(file.exists()).thenReturn(true);
@@ -235,7 +237,7 @@ public class StreamConfigParserTests {
 				ModuleType.processor, resource));
 		when(registry.findDefinitions("PROCESSOR")).thenReturn(
 				definitions);
-		return new InMemoryModuleDefinitionRepository(registry);
+		return new InMemoryModuleDefinitionRepository(registry, moduleDependencyRepository);
 	}
 
 	@Test

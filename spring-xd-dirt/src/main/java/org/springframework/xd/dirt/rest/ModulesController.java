@@ -17,9 +17,6 @@
 package org.springframework.xd.dirt.rest;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -41,13 +38,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.xd.dirt.module.DependencyException;
-import org.springframework.xd.dirt.module.ModuleAlreadyExistsException;
-import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
-import org.springframework.xd.dirt.module.ModuleDependencyTracker;
-import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.dirt.module.CompositeModuleDefinitionService;
 import org.springframework.xd.dirt.module.NoSuchModuleException;
-import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.rest.client.domain.DetailedModuleDefinitionResource;
@@ -68,23 +60,16 @@ public class ModulesController {
 
 	private final Log logger = LogFactory.getLog(ModulesController.class);
 
-	private final ModuleDefinitionRepository repository;
-
-	private final XDStreamParser parser;
+	private final CompositeModuleDefinitionService compositeModuleDefinitionService;
 
 	private ModuleDefinitionResourceAssembler moduleDefinitionResourceAssembler = new ModuleDefinitionResourceAssembler();
-
-	private ModuleDependencyTracker dependencyTracker;
 
 	private final DetailedModuleDefinitionResourceAssembler detailedAssembler = new DetailedModuleDefinitionResourceAssembler();
 
 	@Autowired
-	public ModulesController(ModuleDefinitionRepository moduleDefinitionRepository,
-			ModuleDependencyTracker dependencyTracker) {
-		Assert.notNull(moduleDefinitionRepository, "moduleDefinitionRepository must not be null");
-		this.repository = moduleDefinitionRepository;
-		this.parser = new XDStreamParser(moduleDefinitionRepository);
-		this.dependencyTracker = dependencyTracker;
+	public ModulesController(CompositeModuleDefinitionService compositeModuleDefinitionService) {
+		Assert.notNull(compositeModuleDefinitionService, "compositeModuleDefinitionService must not be null");
+		this.compositeModuleDefinitionService = compositeModuleDefinitionService;
 	}
 
 	/**
@@ -96,7 +81,8 @@ public class ModulesController {
 	public PagedResources<ModuleDefinitionResource> list(Pageable pageable,
 			PagedResourcesAssembler<ModuleDefinition> assembler,
 			@RequestParam(value = "type", required = false) ModuleType type) {
-		Page<ModuleDefinition> page = repository.findByType(pageable, type);
+		Page<ModuleDefinition> page = compositeModuleDefinitionService.getModuleDefinitionRepository().findByType(
+				pageable, type);
 		PagedResources<ModuleDefinitionResource> result = assembler.toResource(page,
 				new ModuleDefinitionResourceAssembler());
 		return result;
@@ -110,7 +96,8 @@ public class ModulesController {
 	@ResponseBody
 	public DetailedModuleDefinitionResource info(@PathVariable("type") ModuleType type,
 			@PathVariable("name") String name) {
-		ModuleDefinition def = repository.findByNameAndType(name, type);
+		ModuleDefinition def = compositeModuleDefinitionService.getModuleDefinitionRepository().findByNameAndType(name,
+				type);
 		return detailedAssembler.toResource(def);
 	}
 
@@ -125,24 +112,9 @@ public class ModulesController {
 	@ResponseBody
 	public ModuleDefinitionResource save(@RequestParam("name") String name,
 			@RequestParam("definition") String definition) {
-		List<ModuleDeploymentRequest> modules = this.parser.parse(name, definition);
-		ModuleType type = this.determineType(modules);
-		if (repository.findByNameAndType(name, type) != null) {
-			throw new ModuleAlreadyExistsException(name, type);
-		}
-		for (ModuleDeploymentRequest child : modules) {
-			dependencyTracker.record(child, dependencyKey(name, type));
-		}
-
-		ModuleDefinition moduleDefinition = new ModuleDefinition(name, type);
-		moduleDefinition.setDefinition(definition);
+		ModuleDefinition moduleDefinition = compositeModuleDefinitionService.save(name, definition);
 		ModuleDefinitionResource resource = moduleDefinitionResourceAssembler.toResource(moduleDefinition);
-		this.repository.save(moduleDefinition);
 		return resource;
-	}
-
-	private String dependencyKey(String name, ModuleType type) {
-		return String.format("module:%s:%s", type.name(), name);
 	}
 
 	/**
@@ -151,45 +123,7 @@ public class ModulesController {
 	@RequestMapping(value = "/{type}/{name}", method = RequestMethod.DELETE)
 	@ResponseStatus(HttpStatus.OK)
 	public void delete(@PathVariable("type") ModuleType type, @PathVariable("name") String name) {
-		ModuleDefinition definition = repository.findByNameAndType(name, type);
-		if (definition == null) {
-			throw new NoSuchModuleException(name, type);
-		}
-		if (definition.getDefinition() == null) {
-			throw new IllegalStateException(String.format("Cannot delete non-composed module %s:%s", type, name));
-		}
-		Set<String> dependedUpon = dependencyTracker.find(name, type);
-		if (!dependedUpon.isEmpty()) {
-			throw new DependencyException("Cannot delete module %2$s:%1$s because it is used by %3$s", name, type,
-					dependedUpon);
-		}
-		repository.delete(type.name() + ":" + name);
-		List<ModuleDeploymentRequest> requests = parser.parse(name, definition.getDefinition());
-		for (ModuleDeploymentRequest request : requests) {
-			dependencyTracker.remove(request, dependencyKey(name, type));
-		}
-	}
-
-	private ModuleType determineType(List<ModuleDeploymentRequest> modules) {
-		Collections.sort(modules);
-		Assert.isTrue(modules != null && modules.size() > 0, "at least one module required");
-		if (modules.size() == 1) {
-			return modules.get(0).getType();
-		}
-		ModuleType firstType = modules.get(0).getType();
-		ModuleType lastType = modules.get(modules.size() - 1).getType();
-		boolean hasInput = firstType != ModuleType.source;
-		boolean hasOutput = lastType != ModuleType.sink;
-		if (hasInput && hasOutput) {
-			return ModuleType.processor;
-		}
-		if (hasInput) {
-			return ModuleType.sink;
-		}
-		if (hasOutput) {
-			return ModuleType.source;
-		}
-		throw new IllegalArgumentException("invalid module composition; must expose input and/or output channel");
+		compositeModuleDefinitionService.delete(name, type);
 	}
 
 	/**
@@ -203,7 +137,8 @@ public class ModulesController {
 	@ResponseBody
 	public Resource downloadDefinition(@PathVariable("type") ModuleType type, @PathVariable("name") String name) {
 
-		final ModuleDefinition definition = this.repository.findByNameAndType(name, type);
+		final ModuleDefinition definition = this.compositeModuleDefinitionService.getModuleDefinitionRepository().findByNameAndType(
+				name, type);
 
 		if (definition == null) {
 			throw new NoSuchModuleException(name, type);

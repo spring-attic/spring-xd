@@ -17,8 +17,12 @@
 package org.springframework.xd.dirt.stream.redis;
 
 import org.springframework.data.redis.core.RedisOperations;
+import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.xd.dirt.stream.JobDefinition;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
+import org.springframework.xd.module.ModuleDefinition;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * An implementation of {@link JobDefinitionRepository} that persists @{link JobDefinition} in Redis.
@@ -28,19 +32,31 @@ import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 public class RedisJobDefinitionRepository extends AbstractRedisDefinitionRepository<JobDefinition> implements
 		JobDefinitionRepository {
 
+	private ObjectMapper objectMapper = new ObjectMapper();
+
 	public RedisJobDefinitionRepository(RedisOperations<String, String> redisOperations) {
 		super("job.definitions", redisOperations);
+		objectMapper.addMixInAnnotations(ModuleDefinition.class, ModuleDefinitionMixin.class);
 	}
 
 	@Override
 	protected JobDefinition deserialize(String redisKey, String v) {
-		String[] parts = v.split("\n");
-		return new JobDefinition(parts[0], parts[1]);
+		try {
+			return this.objectMapper.readValue(v, JobDefinition.class);
+		}
+		catch (Exception ex) {
+			throw new SerializationException("Could not read JSON: " + ex.getMessage(), ex);
+		}
 	}
 
 	@Override
 	protected String serialize(JobDefinition entity) {
-		return entity.getName() + "\n" + entity.getDefinition();
+		try {
+			return this.objectMapper.writeValueAsString(entity);
+		}
+		catch (Exception ex) {
+			throw new SerializationException("Could not write JSON: " + ex.getMessage(), ex);
+		}
 	}
 
 }

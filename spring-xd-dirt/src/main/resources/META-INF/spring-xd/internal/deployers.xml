@@ -18,19 +18,19 @@
 		<constructor-arg name="moduleDefinitionRepository" ref="moduleDefinitionRepository"/>
 	</bean>
 	
-	<bean id="dependencyTracker" class="org.springframework.xd.dirt.module.ModuleDependencyTracker" />
-
 	<bean id="deploymentMessageSender" class="org.springframework.xd.dirt.stream.DeploymentMessageSender">
 		<constructor-arg name="deployChannel" ref="deployChannel" />
 		<constructor-arg name="undeployChannel" ref="undeployChannel" />
 	</bean>
+	
+	<!-- This service plays a similar supporting role to ModulesController as StreamDeployer does with StreamsController -->
+	<bean id="compositeModuleDefinitionService" class="org.springframework.xd.dirt.module.CompositeModuleDefinitionService"/>
 
 	<bean id="streamDeployer" class="org.springframework.xd.dirt.stream.StreamDeployer">
 		<constructor-arg name="messageSender" ref="deploymentMessageSender" />
 		<constructor-arg name="repository" ref="streamDefinitionRepository" />
 		<constructor-arg name="streamRepository" ref="streamRepository"/>
 		<constructor-arg name="parser" ref="parser" />
-		<constructor-arg name="dependencyTracker" ref="dependencyTracker" />
 	</bean>
 
 	<bean id="jobDeployer" class="org.springframework.xd.dirt.stream.JobDeployer">

@@ -16,19 +16,27 @@
 
 package org.springframework.xd.dirt.module.redis;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisOperations;
+import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
+import org.springframework.xd.dirt.module.ModuleDependencyRepository;
 import org.springframework.xd.dirt.module.ModuleRegistry;
+import org.springframework.xd.dirt.module.support.ModuleDefinitionRepositoryUtils;
+import org.springframework.xd.dirt.stream.redis.ModuleDefinitionMixin;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.store.AbstractRedisRepository;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * An in memory store of {@link ModuleDefinition}s.
@@ -38,13 +46,21 @@ import org.springframework.xd.store.AbstractRedisRepository;
 public class RedisModuleDefinitionRepository extends AbstractRedisRepository<ModuleDefinition, String> implements
 		ModuleDefinitionRepository {
 
+
+	private ObjectMapper objectMapper = new ObjectMapper();
+
 	private final ModuleRegistry moduleRegistry;
 
+	private final ModuleDependencyRepository moduleDependencyRepository;
+
 	public RedisModuleDefinitionRepository(String repoPrefix, RedisOperations<String, String> redisOperations,
-			ModuleRegistry moduleRegistry) {
+			ModuleRegistry moduleRegistry, ModuleDependencyRepository moduleDependencyRepository) {
 		super(repoPrefix, redisOperations);
 		Assert.notNull(moduleRegistry, "moduleRegistry must not be null");
+		Assert.notNull(moduleDependencyRepository, "moduleDependencyRepository must not be null");
 		this.moduleRegistry = moduleRegistry;
+		this.moduleDependencyRepository = moduleDependencyRepository;
+		objectMapper.addMixInAnnotations(ModuleDefinition.class, ModuleDefinitionMixin.class);
 	}
 
 	@Override
@@ -64,16 +80,55 @@ public class RedisModuleDefinitionRepository extends AbstractRedisRepository<Mod
 
 	@Override
 	protected String serialize(ModuleDefinition entity) {
-		return entity.getName() + "\n" + entity.getType().name() + "\n" + entity.getDefinition();
+		try {
+			return this.objectMapper.writeValueAsString(entity);
+		}
+		catch (Exception ex) {
+			throw new SerializationException("Could not write JSON: " + ex.getMessage(), ex);
+		}
 	}
 
 	@Override
 	protected ModuleDefinition deserialize(String redisKey, String v) {
-		String[] parts = v.split("\n");
-		ModuleType type = ModuleType.valueOf(parts[1]);
-		ModuleDefinition moduleDefinition = new ModuleDefinition(parts[0], type);
-		moduleDefinition.setDefinition(parts[2]);
-		return moduleDefinition;
+		try {
+			return this.objectMapper.readValue(v, ModuleDefinition.class);
+		}
+		catch (Exception ex) {
+			throw new SerializationException("Could not read JSON: " + ex.getMessage(), ex);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public ModuleDefinition save(ModuleDefinition entity) {
+		ModuleDefinition md = super.save(entity);
+		for (ModuleDefinition child : md.getComposedModuleDefinitions()) {
+			ModuleDefinitionRepositoryUtils.saveDependencies(moduleDependencyRepository, child, dependencyKey(entity));
+		}
+		return md;
+	}
+
+	@Override
+	public void delete(ModuleDefinition entity) {
+		List<ModuleDefinition> composedModuleDefinitions = entity.getComposedModuleDefinitions();
+		for (ModuleDefinition composedModule : composedModuleDefinitions) {
+			ModuleDefinitionRepositoryUtils.deleteDependencies(moduleDependencyRepository, composedModule,
+					dependencyKey(entity));
+		}
+		super.delete(entity);
+	}
+
+	@Override
+	public void delete(String id) {
+		ModuleDefinition def = this.findOne(id);
+		if (def != null) {
+			this.delete(def);
+		}
+	}
+
+	// TODO refactor to use keyFor
+	private String dependencyKey(ModuleDefinition moduleDefinition) {
+		return String.format("module:%s:%s", moduleDefinition.getType(), moduleDefinition.getName());
 	}
 
 	@Override
@@ -135,6 +190,15 @@ public class RedisModuleDefinitionRepository extends AbstractRedisRepository<Mod
 		int to = Math.min(list.size(), pageable.getOffset() + pageable.getPageSize());
 		List<ModuleDefinition> data = list.subList(pageable.getOffset(), to);
 		return new PageImpl<ModuleDefinition>(data, pageable, list.size());
+	}
+
+	@Override
+	public Set<String> findDependentModules(String name, ModuleType type) {
+		Set<String> dependentModules = moduleDependencyRepository.find(name, type);
+		if (dependentModules == null) {
+			return new HashSet<String>();
+		}
+		return dependentModules;
 	}
 
 }

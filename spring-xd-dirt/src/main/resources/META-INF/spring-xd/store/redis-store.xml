@@ -19,6 +19,7 @@
 	<bean id="streamDefinitionRepository"
 		class="org.springframework.xd.dirt.stream.redis.RedisStreamDefinitionRepository">
 		<constructor-arg ref="stringRedisTemplate" />
+		<constructor-arg ref="moduleDependencyRepository" />
 	</bean>
 
 	<bean id="streamRepository"
@@ -49,6 +50,7 @@
 		<constructor-arg value="module.definitions" />
 		<constructor-arg ref="stringRedisTemplate" />
 		<constructor-arg ref="moduleRegistry" />
+		<constructor-arg ref="moduleDependencyRepository" />
 	</bean>
 
 	<bean id="moduleDependencyRepository"

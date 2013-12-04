@@ -20,6 +20,8 @@ import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.xd.dirt.server.options.SingleNodeOptions;
+import org.springframework.xd.dirt.server.options.SingleNodeOptions.Transport;
+import org.springframework.xd.dirt.server.options.XDPropertyKeys;
 import org.springframework.xd.dirt.util.BannerUtils;
 
 /**
@@ -58,8 +60,10 @@ public class SingleNodeApplication {
 		containerContext = container.context();
 		// TODO: should be encapsulated (or maybe just deleted)
 		LauncherApplication.publishContainerStarted(containerContext);
-		// TODO: Should check for control transport for XD-707
-		if ("local".equals(containerContext.getEnvironment().getProperty("transport"))) {
+
+		if (Transport.valueOf(
+				containerContext.getEnvironment().getProperty(XDPropertyKeys.XD_CONTROL_TRANSPORT)).equals(
+				Transport.local)) {
 			setUpControlChannels(adminContext, containerContext);
 		}
 		return this;

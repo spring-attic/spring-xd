@@ -29,12 +29,13 @@ import org.springframework.core.env.Environment;
  * Initializer that can print useful stuff about an XD context on startup.
  * 
  * @author Dave Syer
+ * @author David Turanski
  */
 public class XdInitializer implements ApplicationListener<ContextRefreshedEvent>, EnvironmentAware {
 
-	private static Log logger = LogFactory.getLog(XdInitializer.class);
+	protected Log logger = LogFactory.getLog(getClass());
 
-	private Environment environment;
+	protected Environment environment;
 
 	@Override
 	public void setEnvironment(Environment environment) {
@@ -44,7 +45,8 @@ public class XdInitializer implements ApplicationListener<ContextRefreshedEvent>
 	@Override
 	public void onApplicationEvent(ContextRefreshedEvent event) {
 		logger.info("XD home: " + environment.resolvePlaceholders("${XD_HOME}"));
-		logger.info("Transport: " + environment.resolvePlaceholders("${XD_TRANSPORT}"));
+		logger.info("Data Transport: " + environment.resolvePlaceholders("${XD_TRANSPORT}"));
+		logger.info("Control Transport: " + environment.resolvePlaceholders("${XD_CONTROL_TRANSPORT}"));
 		logger.info("Store: " + environment.resolvePlaceholders("${XD_STORE}"));
 		logger.info("Analytics: " + environment.resolvePlaceholders("${XD_ANALYTICS}"));
 	}

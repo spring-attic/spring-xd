@@ -32,10 +32,11 @@ public class CommonDistributedOptions {
 		redis;
 	}
 
-	// To be split in Transport & DataTransport. see XD-707
-	public static enum Transport {
-		rabbit, redis;
+	public static enum ControlTransport {
+		rabbit, redis
 	}
+
+	private ControlTransport controlTransport;
 
 	// Should be pushed down to AdminOptions but currently
 	// can't b/c of the way container runtime info is persisted
@@ -45,7 +46,6 @@ public class CommonDistributedOptions {
 
 	private Analytics analytics;
 
-	private Transport transport;
 
 	private Store store;
 
@@ -60,8 +60,8 @@ public class CommonDistributedOptions {
 	}
 
 	@NotNull
-	public Transport getXD_TRANSPORT() {
-		return transport;
+	public ControlTransport getXD_CONTROL_TRANSPORT() {
+		return controlTransport;
 	}
 
 	public void setXD_ANALYTICS(Analytics analytics) {
@@ -72,7 +72,7 @@ public class CommonDistributedOptions {
 		this.store = store;
 	}
 
-	public void setXD_TRANSPORT(Transport transport) {
-		this.transport = transport;
+	public void setXD_CONTROL_TRANSPORT(ControlTransport controlTransport) {
+		this.controlTransport = controlTransport;
 	}
 }

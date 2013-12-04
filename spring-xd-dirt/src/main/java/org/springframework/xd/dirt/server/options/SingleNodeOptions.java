@@ -27,6 +27,7 @@ import org.springframework.xd.dirt.server.options.CommonDistributedOptions.Store
  * because.
  * 
  * @author Eric Bottard
+ * @author David Turanski
  */
 @ConfigurationProperties
 public class SingleNodeOptions {
@@ -39,14 +40,15 @@ public class SingleNodeOptions {
 		local, rabbit, redis;
 	}
 
-	// TBD once XD-707 is done
-	// public static enum DataTransport {
-	// }
-
+	public static enum ControlTransport {
+		local, rabbit, redis;
+	}
 
 	private Analytics analytics;
 
 	private Transport transport;
+
+	private ControlTransport controlTransport;
 
 	private Store store;
 
@@ -65,6 +67,11 @@ public class SingleNodeOptions {
 		return transport;
 	}
 
+	@NotNull
+	public ControlTransport getXD_CONTROL_TRANSPORT() {
+		return controlTransport;
+	}
+
 	public void setXD_ANALYTICS(Analytics analytics) {
 		this.analytics = analytics;
 	}
@@ -75,5 +82,9 @@ public class SingleNodeOptions {
 
 	public void setXD_TRANSPORT(Transport transport) {
 		this.transport = transport;
+	}
+
+	public void setXD_CONTROL_TRANSPORT(ControlTransport controlTransport) {
+		this.controlTransport = controlTransport;
 	}
 }

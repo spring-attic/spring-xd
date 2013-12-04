@@ -14,33 +14,22 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.server.options;
+package org.springframework.xd.dirt.util;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.event.ContextRefreshedEvent;
 
 
 /**
- * Holds configuration options that are valid for the Container node, when using distributed mode.
  * 
- * @author Eric Bottard
  * @author David Turanski
  */
-@ConfigurationProperties
-public class ContainerOptions extends CommonDistributedOptions {
+public class XdAdminInitializer extends XdInitializer {
 
-	public static enum Transport {
-		rabbit, redis
+	@Override
+	public void onApplicationEvent(ContextRefreshedEvent event) {
+		logger.info("XD home: " + environment.resolvePlaceholders("${XD_HOME}"));
+		logger.info("Control Transport: " + environment.resolvePlaceholders("${XD_CONTROL_TRANSPORT}"));
+		logger.info("Store: " + environment.resolvePlaceholders("${XD_STORE}"));
+		logger.info("Analytics: " + environment.resolvePlaceholders("${XD_ANALYTICS}"));
 	}
-
-	private Transport transport;
-
-	public void setXD_TRANSPORT(Transport transport) {
-		this.transport = transport;
-	}
-
-	public Transport getXD_TRANSPORT() {
-		return this.transport;
-	}
-
-
 }

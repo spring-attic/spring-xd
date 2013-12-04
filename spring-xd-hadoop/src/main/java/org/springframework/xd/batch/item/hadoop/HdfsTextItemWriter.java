@@ -78,7 +78,7 @@ public class HdfsTextItemWriter<T> extends AbstractHdfsItemWriter<T> implements 
 			else {
 				if (this.getBytesWritten() >= getRolloverThresholdInBytes()) {
 					logger.debug("Rolling over new file");
-					close();
+					closeStream();
 					incrementCounter();
 				}
 				else {
@@ -124,6 +124,12 @@ public class HdfsTextItemWriter<T> extends AbstractHdfsItemWriter<T> implements 
 
 	@Override
 	public void close() {
+		logger.debug("Closing item writer");
+		closeStream();
+		reset();
+	}
+
+	private void closeStream() {
 		logger.debug("Closing output stream");
 		if (fsDataOutputStream != null) {
 			IOUtils.closeStream(fsDataOutputStream);

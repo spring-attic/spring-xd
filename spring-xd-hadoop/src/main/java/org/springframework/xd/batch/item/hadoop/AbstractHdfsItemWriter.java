@@ -90,6 +90,10 @@ public abstract class AbstractHdfsItemWriter<T> extends AbstractItemStreamItemWr
 		}
 	}
 
+	protected void reset() {
+		initialized = false;
+	}
+
 	protected int getCounterFromName(String shortName) {
 		Pattern pattern = Pattern.compile(baseFilename + "-([\\d+]{1,})");
 		Matcher matcher = pattern.matcher(shortName);

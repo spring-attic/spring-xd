@@ -147,7 +147,7 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 				.andExpect(jsonPath("$.jobExecution.jobParameters.parameters.param2.value", Matchers.is(123)))
 				.andExpect(jsonPath("$.jobExecution.stepExecutions", Matchers.hasSize(2)))
 				.andExpect(jsonPath("$.stepExecutionCount", Matchers.is(2)))
-				.andExpect(jsonPath("$.name", Matchers.is("job1.job")));
+				.andExpect(jsonPath("$.name", Matchers.is("job1")));
 	}
 
 	@Test

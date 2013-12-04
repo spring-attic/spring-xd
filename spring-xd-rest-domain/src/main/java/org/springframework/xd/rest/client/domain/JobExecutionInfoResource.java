@@ -125,7 +125,7 @@ public class JobExecutionInfoResource extends ResourceSupport {
 
 	@JsonProperty
 	public String getName() {
-		return jobName;
+		return (jobName.endsWith(".job") ? jobName.substring(0, jobName.lastIndexOf(".job")) : jobName);
 	}
 
 	public Long getExecutionId() {

@@ -71,7 +71,7 @@ public class JobExecutionDeserializationTests {
 		final JobExecutionInfoResource jobExecutionInfoResource = jobExecutionInfoResources[0];
 
 		Assert.assertEquals(Long.valueOf(0), jobExecutionInfoResource.getJobId());
-		Assert.assertEquals("mm.job", jobExecutionInfoResource.getName());
+		Assert.assertEquals("mm", jobExecutionInfoResource.getName());
 		Assert.assertEquals("COMPLETED", jobExecutionInfoResource.getJobExecution().getStatus().name());
 
 	}
@@ -98,7 +98,7 @@ public class JobExecutionDeserializationTests {
 
 		Assert.assertNotNull(jobExecutionInfoResource);
 		Assert.assertEquals(Long.valueOf(0), jobExecutionInfoResource.getJobId());
-		Assert.assertEquals("ff.job", jobExecutionInfoResource.getName());
+		Assert.assertEquals("ff", jobExecutionInfoResource.getName());
 		Assert.assertEquals("COMPLETED", jobExecutionInfoResource.getJobExecution().getStatus().name());
 
 	}

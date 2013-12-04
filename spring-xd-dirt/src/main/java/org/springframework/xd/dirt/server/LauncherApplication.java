@@ -17,7 +17,7 @@ import org.springframework.xd.dirt.container.ContainerStartedEvent;
 import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.server.options.ContainerOptions;
 import org.springframework.xd.dirt.util.BannerUtils;
-import org.springframework.xd.dirt.util.XdInitializer;
+import org.springframework.xd.dirt.util.XdConfigLoggingInitializer;
 
 @Configuration
 @EnableAutoConfiguration
@@ -56,7 +56,7 @@ public class LauncherApplication {
 
 	@Bean
 	public ApplicationListener<?> xdInitializer(ApplicationContext context) {
-		XdInitializer delegate = new XdInitializer();
+		XdConfigLoggingInitializer delegate = new XdConfigLoggingInitializer(true);
 		delegate.setEnvironment(context.getEnvironment());
 		return new SourceFilteringListener(context, delegate);
 	}

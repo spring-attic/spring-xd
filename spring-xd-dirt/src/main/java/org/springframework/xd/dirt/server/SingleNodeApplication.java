@@ -13,6 +13,7 @@
 
 package org.springframework.xd.dirt.server;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -20,6 +21,7 @@ import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.xd.dirt.server.options.SingleNodeOptions;
+import org.springframework.xd.dirt.server.options.SingleNodeOptions.ControlTransport;
 import org.springframework.xd.dirt.util.BannerUtils;
 
 /**
@@ -28,7 +30,12 @@ import org.springframework.xd.dirt.util.BannerUtils;
  * @author Dave Syer
  * @author David Turanski
  */
+
+
 public class SingleNodeApplication {
+
+	@Value("${XD_CONTROL_TRANSPORT}")
+	ControlTransport controlTransport;
 
 	public static final String SINGLE_PROFILE = "single";
 
@@ -45,9 +52,11 @@ public class SingleNodeApplication {
 		System.out.println(BannerUtils.displayBanner(getClass().getSimpleName(), null));
 
 		SpringApplicationBuilder admin = new SpringApplicationBuilder(SingleNodeOptions.class,
-				ParentConfiguration.class).profiles(AdminServerApplication.ADMIN_PROFILE, SINGLE_PROFILE).child(
-				AdminServerApplication.class);
+				ParentConfiguration.class, SingleNodeApplication.class).profiles(
+				AdminServerApplication.ADMIN_PROFILE,
+				SINGLE_PROFILE).child(AdminServerApplication.class);
 		admin.run(args);
+
 
 		SpringApplicationBuilder container = admin
 				.sibling(LauncherApplication.class).profiles(LauncherApplication.NODE_PROFILE, SINGLE_PROFILE).web(
@@ -58,8 +67,9 @@ public class SingleNodeApplication {
 		containerContext = container.context();
 		// TODO: should be encapsulated (or maybe just deleted)
 		LauncherApplication.publishContainerStarted(containerContext);
-		// TODO: Should check for control transport for XD-707
-		if ("local".equals(containerContext.getEnvironment().getProperty("transport"))) {
+
+		SingleNodeApplication singleNodeApp = adminContext.getBean(SingleNodeApplication.class);
+		if (singleNodeApp.controlTransport.equals(ControlTransport.local)) {
 			setUpControlChannels(adminContext, containerContext);
 		}
 		return this;

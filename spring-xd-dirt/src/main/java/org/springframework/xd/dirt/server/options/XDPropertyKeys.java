@@ -27,6 +27,8 @@ public interface XDPropertyKeys {
 
 	public static final String XD_TRANSPORT = "XD_TRANSPORT";
 
+	public static final String XD_CONTROL_TRANSPORT = "XD_CONTROL_TRANSPORT";
+
 	public static final String XD_JMX_ENABLED = "XD_JMX_ENABLED";
 
 	public static final String XD_ANALYTICS = "XD_ANALYTICS";
@@ -38,4 +40,5 @@ public interface XDPropertyKeys {
 	public static final String XD_JMX_PORT = "XD_JMX_PORT";
 
 	public static final String XD_HTTP_PORT = "XD_HTTP_PORT";
+
 }

@@ -6,7 +6,7 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<import
-		resource="classpath*:/META-INF/spring-xd/transports/${XD_TRANSPORT}-container.xml" />
+		resource="classpath*:/META-INF/spring-xd/transports/${XD_CONTROL_TRANSPORT}-container.xml" />
 	<import resource="classpath*:/META-INF/spring-xd/listeners/listeners.xml" />
 
 	<int:channel id="containerControlChannel" />

@@ -19,6 +19,8 @@ package org.springframework.xd.dirt.config;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 
+import java.util.Arrays;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,6 +31,7 @@ import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.module.PluginAdapter;
@@ -50,9 +53,12 @@ public abstract class AbstractSingleNodeInitializationTests {
 
 	@Before
 	public final void setUp() {
-		String transport = this.getTransport();
 		this.application = new SingleNodeApplication();
-		application.run("--transport=" + transport);
+
+		String[] args = {};
+		args = addArgIfProvided(args, "transport", getTransport());
+		args = addArgIfProvided(args, "controlTransport", getControlTransport());
+		application.run(args);
 
 		this.context = (AbstractApplicationContext) application.getContainerContext();
 
@@ -99,6 +105,17 @@ public abstract class AbstractSingleNodeInitializationTests {
 		public void preProcessSharedContext(ConfigurableApplicationContext context) {
 			moduleContext = (AbstractApplicationContext) context;
 		}
+	}
 
+	private String[] addArgIfProvided(String[] args, String argName, String argVal) {
+		if (StringUtils.hasText(argVal)) {
+			args = Arrays.copyOf(args, args.length + 1);
+			args[args.length - 1] = "--" + argName + "=" + argVal;
+		}
+		return args;
+	}
+
+	protected String getControlTransport() {
+		return null;
 	}
 }

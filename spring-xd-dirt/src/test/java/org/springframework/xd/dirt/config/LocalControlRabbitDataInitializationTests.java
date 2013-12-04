@@ -14,33 +14,24 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.server.options;
+package org.springframework.xd.dirt.config;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.messaging.MessageChannel;
 
 
 /**
- * Holds configuration options that are valid for the Container node, when using distributed mode.
  * 
- * @author Eric Bottard
  * @author David Turanski
  */
-@ConfigurationProperties
-public class ContainerOptions extends CommonDistributedOptions {
+public class LocalControlRabbitDataInitializationTests extends RabbitSingleNodeInitializationTests {
 
-	public static enum DataTransport {
-		rabbit, redis
+	@Override
+	protected String getControlTransport() {
+		return "local";
 	}
 
-	private DataTransport transport;
-
-	public void setXD_TRANSPORT(DataTransport transport) {
-		this.transport = transport;
+	@Override
+	protected MessageChannel getControlChannel() {
+		return context.getBean("containerControlChannel", MessageChannel.class);
 	}
-
-	public DataTransport getXD_TRANSPORT() {
-		return this.transport;
-	}
-
-
 }

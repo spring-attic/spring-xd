@@ -181,7 +181,7 @@ if [ x"$XD_HOME" = x ] ; then
 fi
 
 # set app name etc. via SPRING_XD_OPTS
-SPRING_XD_OPTS="-Dspring.application.name=admin -Dlogger.config=file:$XD_HOME/config/xd-singlenode-logger.properties"
+SPRING_XD_OPTS="-Dspring.application.name=admin -Dlogging.config=file:$XD_HOME/config/xd-singlenode-logger.properties  -Dxd.home=$XD_HOME"
 
 # Split up the JVM_OPTS And SPRING_XD_OPTS values into an array, following the shell quoting and substitution rules
 function splitJvmOpts() {

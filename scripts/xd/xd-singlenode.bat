@@ -95,7 +95,7 @@ if exist "%APP_HOME_LIB%" (
 if not exist "%XD_HOME%" (
     set XD_HOME=%APP_HOME%
 )
-set SPRING_XD_OPTS="-Dspring.application.name=singlenode -Dlogger.config=file:$XD_HOME/config/xd-singlenode-logger.properties"
+set SPRING_XD_OPTS="-Dspring.application.name=singlenode -Dlogging.config=file:%XD_HOME%/config/xd-singlenode-logger.properties  -Dxd.home=%XD_HOME%"
 
 @rem Execute xd-singlenode
 "%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SPRING_XD_OPTS%  -classpath "%CLASSPATH%" org.springframework.xd.dirt.server.SingleNodeApplication %CMD_LINE_ARGS%

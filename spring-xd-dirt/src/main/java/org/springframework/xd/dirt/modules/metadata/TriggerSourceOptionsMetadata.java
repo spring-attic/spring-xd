@@ -34,8 +34,7 @@ public class TriggerSourceOptionsMetadata extends SourceModuleOptionsMetadataSup
 
 	private String cron;
 
-	private Object payload;
-
+	private String payload = "";
 
 	@Override
 	public String[] profilesToActivate() {
@@ -46,7 +45,7 @@ public class TriggerSourceOptionsMetadata extends SourceModuleOptionsMetadataSup
 			return new String[] { "use-delay" };
 		}
 		else {
-			return new String[] { "use-simple" };
+			return new String[] { "use-date" };
 		}
 	}
 
@@ -57,7 +56,7 @@ public class TriggerSourceOptionsMetadata extends SourceModuleOptionsMetadataSup
 
 	@AssertTrue(message = "cron and fixedDelay are mutually exclusive")
 	private boolean isValid() {
-		return fixedDelay != null ^ cron != null;
+		return !(fixedDelay != null && cron != null);
 	}
 
 	@ModuleOption("number of seconds between executions")
@@ -76,12 +75,12 @@ public class TriggerSourceOptionsMetadata extends SourceModuleOptionsMetadataSup
 	}
 
 
-	public Object getPayload() {
+	public String getPayload() {
 		return payload;
 	}
 
 	@ModuleOption("the message that will be sent when the trigger fires")
-	public void setPayload(Object payload) {
+	public void setPayload(String payload) {
 		this.payload = payload;
 	}
 

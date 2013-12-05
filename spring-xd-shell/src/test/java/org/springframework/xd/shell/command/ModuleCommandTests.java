@@ -23,6 +23,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
+
 import org.springframework.shell.core.CommandResult;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.shell.util.Table;

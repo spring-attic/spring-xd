@@ -23,6 +23,7 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
 import org.springframework.util.Assert;
@@ -63,7 +64,6 @@ public class DateTrigger implements Trigger {
 				logger.debug(e.getMessage());
 			}
 		}
-		System.out.println("yo " + result);
 		return result;
 	}
 

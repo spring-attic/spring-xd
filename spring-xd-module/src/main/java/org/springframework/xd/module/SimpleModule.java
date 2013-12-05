@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -80,19 +81,19 @@ public class SimpleModule extends AbstractModule {
 	}
 
 	public SimpleModule(ModuleDefinition definition, DeploymentMetadata metadata, ClassLoader classLoader,
-			ModuleOptions runtimeConfig) {
+			ModuleOptions moduleOptions) {
 		super(definition, metadata);
 		application = new SpringApplicationBuilder().sources(PropertyPlaceholderAutoConfiguration.class).web(false);
 		if (classLoader != null) {
 			application.resourceLoader(new PathMatchingResourcePatternResolver(classLoader));
 		}
 
-		propertySources.addFirst(runtimeConfig.asPropertySource());
+		propertySources.addFirst(moduleOptions.asPropertySource());
 		// Also add as properties for now, b/c other parts of the system
 		// (eg type conversion plugin) expects it
-		this.properties.putAll(runtimeConfigToProperties(runtimeConfig));
+		this.properties.putAll(moduleOptionsToProperties(moduleOptions));
 
-		application.profiles(runtimeConfig.profilesToActivate());
+		application.profiles(moduleOptions.profilesToActivate());
 
 		if (definition != null) {
 			if (definition.getResource().isReadable()) {
@@ -102,9 +103,9 @@ public class SimpleModule extends AbstractModule {
 	}
 
 
-	private Map<Object, Object> runtimeConfigToProperties(ModuleOptions runtimeConfig) {
+	private Map<Object, Object> moduleOptionsToProperties(ModuleOptions moduleOptions) {
 		Map<Object, Object> result = new HashMap<Object, Object>();
-		EnumerablePropertySource<?> ps = runtimeConfig.asPropertySource();
+		EnumerablePropertySource<?> ps = moduleOptions.asPropertySource();
 		for (String propname : ps.getPropertyNames()) {
 			Object value = ps.getProperty(propname);
 			if (value != null) {

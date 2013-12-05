@@ -27,6 +27,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -244,9 +245,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 
 	private void deployAndStore(Module module, ModuleDeploymentRequest request) {
 		module.setParentContext(this.commonContext);
-
-		this.honorDeployLifecycle(module);
-
+		this.deploy(module);
 		if (logger.isInfoEnabled()) {
 			logger.info("deployed " + module.toString());
 		}
@@ -254,7 +253,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		this.deployedModules.get(request.getGroup()).put(request.getIndex(), module);
 	}
 
-	private void honorDeployLifecycle(Module module) {
+	private void deploy(Module module) {
 		this.preProcessModule(module);
 		module.initialize();
 		this.postProcessModule(module);

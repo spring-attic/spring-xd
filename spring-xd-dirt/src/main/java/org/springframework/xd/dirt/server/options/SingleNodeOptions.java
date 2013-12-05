@@ -36,7 +36,7 @@ public class SingleNodeOptions {
 		memory, redis;
 	}
 
-	public static enum Transport {
+	public static enum DataTransport {
 		local, rabbit, redis;
 	}
 
@@ -46,7 +46,7 @@ public class SingleNodeOptions {
 
 	private Analytics analytics;
 
-	private Transport transport;
+	private DataTransport transport;
 
 	private ControlTransport controlTransport;
 
@@ -63,7 +63,7 @@ public class SingleNodeOptions {
 	}
 
 	@NotNull
-	public Transport getXD_TRANSPORT() {
+	public DataTransport getXD_TRANSPORT() {
 		return transport;
 	}
 
@@ -80,7 +80,7 @@ public class SingleNodeOptions {
 		this.store = store;
 	}
 
-	public void setXD_TRANSPORT(Transport transport) {
+	public void setXD_TRANSPORT(DataTransport transport) {
 		this.transport = transport;
 	}
 

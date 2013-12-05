@@ -28,17 +28,17 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties
 public class ContainerOptions extends CommonDistributedOptions {
 
-	public static enum Transport {
+	public static enum DataTransport {
 		rabbit, redis
 	}
 
-	private Transport transport;
+	private DataTransport transport;
 
-	public void setXD_TRANSPORT(Transport transport) {
+	public void setXD_TRANSPORT(DataTransport transport) {
 		this.transport = transport;
 	}
 
-	public Transport getXD_TRANSPORT() {
+	public DataTransport getXD_TRANSPORT() {
 		return this.transport;
 	}
 

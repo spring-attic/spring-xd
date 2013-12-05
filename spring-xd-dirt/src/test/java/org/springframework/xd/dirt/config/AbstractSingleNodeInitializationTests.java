@@ -56,8 +56,8 @@ public abstract class AbstractSingleNodeInitializationTests {
 		this.application = new SingleNodeApplication();
 
 		String[] args = {};
-		args = addArgIfHasTest(args, "transport", getTransport());
-		args = addArgIfHasTest(args, "controlTransport", getControlTransport());
+		args = addArgIfProvided(args, "transport", getTransport());
+		args = addArgIfProvided(args, "controlTransport", getControlTransport());
 		application.run(args);
 
 		this.context = (AbstractApplicationContext) application.getContainerContext();
@@ -107,7 +107,7 @@ public abstract class AbstractSingleNodeInitializationTests {
 		}
 	}
 
-	private String[] addArgIfHasTest(String[] args, String argName, String argVal) {
+	private String[] addArgIfProvided(String[] args, String argName, String argVal) {
 		if (StringUtils.hasText(argVal)) {
 			args = Arrays.copyOf(args, args.length + 1);
 			args[args.length - 1] = "--" + argName + "=" + argVal;

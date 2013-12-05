@@ -22,7 +22,7 @@ import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.rest.RestConfiguration;
 import org.springframework.xd.dirt.server.options.AdminOptions;
 import org.springframework.xd.dirt.util.BannerUtils;
-import org.springframework.xd.dirt.util.XdAdminInitializer;
+import org.springframework.xd.dirt.util.XdConfigLoggingInitializer;
 
 @Configuration
 @EnableAutoConfiguration
@@ -61,7 +61,7 @@ public class AdminServerApplication {
 
 	@Bean
 	public ApplicationListener<?> xdInitializer(ApplicationContext context) {
-		XdAdminInitializer delegate = new XdAdminInitializer();
+		XdConfigLoggingInitializer delegate = new XdConfigLoggingInitializer(false);
 		delegate.setEnvironment(context.getEnvironment());
 		return new SourceFilteringListener(context, delegate);
 	}

@@ -18,6 +18,7 @@ package org.springframework.xd.module.options;
 
 import java.beans.PropertyDescriptor;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -138,7 +139,12 @@ public class PojoModuleOptionsMetadata implements ModuleOptionsMetadata {
 
 					@Override
 					public Object getProperty(String name) {
-						return beanWrapper.getPropertyValue(name);
+						if (Arrays.asList(getPropertyNames()).contains(name)) {
+							return beanWrapper.getPropertyValue(name);
+						}
+						else {
+							return null;
+						}
 					}
 				};
 			}

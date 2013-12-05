@@ -18,6 +18,7 @@ package org.springframework.xd.dirt.rest;
 
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.options.DefaultModuleOptionsMetadata;
 import org.springframework.xd.module.options.ModuleOption;
 import org.springframework.xd.module.options.ModuleOptionsMetadata;
 import org.springframework.xd.rest.client.domain.DetailedModuleDefinitionResource;
@@ -45,7 +46,7 @@ public class DetailedModuleDefinitionResourceAssembler extends
 		DetailedModuleDefinitionResource result = new DetailedModuleDefinitionResource(entity.getName(),
 				entity.getType().name());
 		ModuleOptionsMetadata moduleOptionsMetadata = entity.getModuleOptionsMetadata();
-		if (moduleOptionsMetadata != null) {
+		if (!(moduleOptionsMetadata instanceof DefaultModuleOptionsMetadata)) {
 			for (ModuleOption option : moduleOptionsMetadata) {
 				Object defaultValue = option.getDefaultValue();
 				Class<?> type = option.getType();

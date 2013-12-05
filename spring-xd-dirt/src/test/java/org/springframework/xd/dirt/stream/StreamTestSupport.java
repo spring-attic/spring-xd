@@ -71,10 +71,6 @@ public class StreamTestSupport {
 		moduleDefinitionRepository = adminContext.getBean(ModuleDefinitionRepository.class);
 	}
 
-	protected static ConfigurableApplicationContext getAdminContext() {
-		return adminContext;
-	}
-
 	protected static void deployStream(String name, String config) {
 		streamDeployer.save(new StreamDefinition(name, config));
 		streamDeployer.deploy(name);
@@ -135,6 +131,10 @@ public class StreamTestSupport {
 			sink = modules.get(modules.size() - 1);
 		}
 		return sink.getComponent("input", SubscribableChannel.class);
+	}
+
+	protected static ConfigurableApplicationContext getAdminContext() {
+		return adminContext;
 	}
 
 	protected static ModuleDefinitionRepository getModuleDefinitionRepository() {

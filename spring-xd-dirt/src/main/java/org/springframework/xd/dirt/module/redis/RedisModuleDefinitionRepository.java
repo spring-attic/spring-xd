@@ -39,7 +39,7 @@ import org.springframework.xd.store.AbstractRedisRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * An in memory store of {@link ModuleDefinition}s.
+ * An Redis-based store of {@link ModuleDefinition}s.
  * 
  * @author Mark Fisher
  */

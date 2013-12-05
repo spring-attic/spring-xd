@@ -17,7 +17,7 @@ import org.springframework.xd.dirt.core.BaseDefinition;
 
 /**
  * Represents a job in the system. Jobs are defined by a single module definition, referencing a Spring Batch Job as
- * compares to the more expressive DSL for defining streams. Job definitions are typically an expression of the form
+ * compared to the more expressive DSL for defining streams. Job definitions are typically an expression of the form
  * {@code job --jobOption1=value1 --jobOption2=value2}.
  * 
  * @author David Turanski
@@ -35,11 +35,11 @@ public class JobDefinition extends BaseDefinition {
 
 
 	/**
-	 * Create a new JobDefinition
+	 * Create a new JobDefinition.
 	 * 
-	 * @param name - the job name
-	 * @param definition - the job definition
-	 * @param moduleDefinitions - the module definitions derived by parsing the definition
+	 * @param name the job name
+	 * @param definition the job definition
+	 * @param moduleDefinitions the module definitions derived by parsing the definition
 	 */
 	public JobDefinition(String name, String definition) {
 		super(name, definition);

@@ -63,7 +63,6 @@ public class CompositeModuleDefinitionService {
 		moduleDefinition.setDefinition(definition);
 		List<ModuleDefinition> composedModuleDefinitions = createComposedModuleDefinitions(modules);
 		if (!composedModuleDefinitions.isEmpty()) {
-			moduleDefinition.setComposed(true);
 			moduleDefinition.setComposedModuleDefinitions(composedModuleDefinitions);
 		}
 
@@ -79,10 +78,10 @@ public class CompositeModuleDefinitionService {
 		if (definition.getDefinition() == null) {
 			throw new IllegalStateException(String.format("Cannot delete non-composed module %s:%s", type, name));
 		}
-		Set<String> dependedUpon = this.moduleDefinitionRepository.findDependentModules(name, type);
-		if (!dependedUpon.isEmpty()) {
+		Set<String> dependents = this.moduleDefinitionRepository.findDependentModules(name, type);
+		if (!dependents.isEmpty()) {
 			throw new DependencyException("Cannot delete module %2$s:%1$s because it is used by %3$s", name, type,
-					dependedUpon);
+					dependents);
 		}
 
 		this.moduleDefinitionRepository.delete(definition);
@@ -100,7 +99,6 @@ public class CompositeModuleDefinitionService {
 				ModuleDefinition moduleDefinition = new ModuleDefinition(moduleDeploymentRequest.getModule(),
 						moduleDeploymentRequest.getType());
 				moduleDefinition.setComposedModuleDefinitions(createComposedModuleDefinitions(composed.getChildren()));
-				moduleDefinition.setComposed(true);
 				moduleDefinitions.add(moduleDefinition);
 			}
 			else {
@@ -114,11 +112,11 @@ public class CompositeModuleDefinitionService {
 	}
 
 	private ModuleType determineType(List<ModuleDeploymentRequest> modules) {
-		Collections.sort(modules);
 		Assert.isTrue(modules != null && modules.size() > 0, "at least one module required");
 		if (modules.size() == 1) {
 			return modules.get(0).getType();
 		}
+		Collections.sort(modules);
 		ModuleType firstType = modules.get(0).getType();
 		ModuleType lastType = modules.get(modules.size() - 1).getType();
 		boolean hasInput = firstType != ModuleType.source;

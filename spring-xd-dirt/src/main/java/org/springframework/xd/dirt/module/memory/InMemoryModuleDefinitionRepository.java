@@ -156,7 +156,7 @@ public class InMemoryModuleDefinitionRepository extends AbstractInMemoryReposito
 		return String.format("module:%s:%s", moduleDefinition.getType(), moduleDefinition.getName());
 	}
 
-	// TODO BEGIN SHARED IMPL WITH RedisModuleDefintionRepository
+	// TODO END SHARED IMPL WITH RedisModuleDefintionRepository
 
 	/**
 	 * Post-process the list to only return elements matching the page request.

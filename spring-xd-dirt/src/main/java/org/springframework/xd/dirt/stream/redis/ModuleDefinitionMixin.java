@@ -38,6 +38,9 @@ public interface ModuleDefinitionMixin {
 	Resource getResource();
 
 	@JsonIgnore
+	boolean isComposed();
+
+	@JsonIgnore
 	URL[] getClasspath();
 
 	@JsonIgnore

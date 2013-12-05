@@ -43,11 +43,10 @@ public abstract class BaseDefinition implements Comparable<BaseDefinition> {
 	private String name;
 
 	/**
-	 * The list of modules that are derived from parsing the defintion
+	 * The list of modules that are derived from parsing the definition
 	 */
 	private List<ModuleDefinition> moduleDefinitions = new ArrayList<ModuleDefinition>();
 
-	@SuppressWarnings("unused")
 	protected BaseDefinition() {
 		// no-arg constructor for serialization
 	}

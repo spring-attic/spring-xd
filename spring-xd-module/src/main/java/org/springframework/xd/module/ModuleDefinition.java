@@ -27,6 +27,7 @@ import java.util.regex.Pattern;
 import org.springframework.core.io.DescriptiveResource;
 import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.xd.module.options.ModuleOption;
 import org.springframework.xd.module.options.ModuleOptionsMetadata;
 import org.springframework.xd.module.options.PojoModuleOptionsMetadata;
@@ -36,31 +37,31 @@ import org.springframework.xd.module.options.SimpleModuleOptionsMetadata;
  * Defines a module.
  * 
  * @author Gary Russell
- * 
+ * @author Eric Bottard
+ * @author Mark Pollack
  */
 public class ModuleDefinition {
 
-	private String name;
+	private volatile String name;
 
-	private ModuleType type;
+	private volatile ModuleType type;
 
-	private boolean composed;
-
-	private Resource resource;
+	private final Resource resource;
 
 	private volatile Properties properties;
 
 	private volatile String definition;
 
-	private URL[] classpath;
+	private volatile URL[] classpath;
 
-	private ModuleOptionsMetadata moduleOptionsMetadata;
+	private volatile ModuleOptionsMetadata moduleOptionsMetadata;
 
 	/**
 	 * If a composed module, the list of modules
 	 */
 	private List<ModuleDefinition> composedModuleDefinitions = new ArrayList<ModuleDefinition>();
 
+	@SuppressWarnings("unused")
 	private ModuleDefinition() {
 		// no arg constructor for Jackson serialization
 		// JSON serialization ignores the resource, so set it here to a value.
@@ -91,12 +92,7 @@ public class ModuleDefinition {
 	 * @return true if this is a composed module, false otherwise.
 	 */
 	public boolean isComposed() {
-		// TODO clean up usage of setDefinition with setComposed
-		return (composed) || (getDefinition() == null ? false : true);
-	}
-
-	public void setComposed(boolean composed) {
-		this.composed = composed;
+		return !CollectionUtils.isEmpty(this.composedModuleDefinitions);
 	}
 
 	/**
@@ -108,11 +104,6 @@ public class ModuleDefinition {
 		Assert.notNull(composedModuleDefinitions, "composedModuleDefinitions cannot be null");
 		this.composedModuleDefinitions = composedModuleDefinitions;
 	}
-
-	public ModuleOptionsMetadata getModuleOptionsMetadata() {
-		return moduleOptionsMetadata;
-	}
-
 
 	public List<ModuleDefinition> getComposedModuleDefinitions() {
 		return composedModuleDefinitions;

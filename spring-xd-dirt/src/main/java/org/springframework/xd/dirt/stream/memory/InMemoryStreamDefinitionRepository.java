@@ -61,20 +61,6 @@ public class InMemoryStreamDefinitionRepository extends AbstractInMemoryReposito
 		}
 	};
 
-	// TODO remove code duplication with Redis impl
-	/*
-	 * private void recordDependencies(StreamDefinition definition) { List<ModuleDefinition> moduleDefinitions =
-	 * definition.getModuleDefinitions();
-	 * 
-	 * for (ModuleDefinition moduleDefinition : moduleDefinitions) {
-	 * dependencyRepository.store(moduleDefinition.getName(), moduleDefinition.getType(), "stream:" +
-	 * definition.getName()); } }
-	 * 
-	 * private void removeDependencies(StreamDefinition definition) { List<ModuleDefinition> moduleDefinitions =
-	 * definition.getModuleDefinitions(); for (ModuleDefinition moduleDefinition : moduleDefinitions) {
-	 * dependencyRepository.delete(moduleDefinition.getName(), moduleDefinition.getType(), "stream:" +
-	 * definition.getName()); } }
-	 */
 	@Override
 	protected String keyFor(StreamDefinition entity) {
 		return entity.getName();

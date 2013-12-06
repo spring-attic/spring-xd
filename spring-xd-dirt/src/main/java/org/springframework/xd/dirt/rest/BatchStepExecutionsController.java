@@ -21,7 +21,6 @@ import java.util.Collection;
 import java.util.TimeZone;
 
 import org.springframework.batch.admin.service.JobService;
-import org.springframework.batch.admin.web.StepExecutionInfo;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +34,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.dirt.job.NoSuchJobExecutionException;
+import org.springframework.xd.dirt.job.StepExecutionInfo;
 import org.springframework.xd.rest.client.domain.StepExecutionInfoResource;
 
 /**

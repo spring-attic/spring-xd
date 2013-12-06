@@ -16,8 +16,8 @@
 
 package org.springframework.xd.dirt.rest;
 
-import org.springframework.batch.admin.web.StepExecutionInfo;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
+import org.springframework.xd.dirt.job.StepExecutionInfo;
 import org.springframework.xd.rest.client.domain.StepExecutionInfoResource;
 
 

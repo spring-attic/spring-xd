@@ -150,7 +150,7 @@ public class JobCommands implements CommandMarker {
 
 	@CliCommand(value = LIST_STEP_EXECUTIONS, help = "List all step executions for the provided job execution id")
 	public Table listStepExecutions(
-			@CliOption(mandatory = true, key = { "", "id" }, help = "the id of the job execution") Long jobExecutionId) {
+			@CliOption(mandatory = true, key = { "", "id" }, help = "the id of the job execution") long jobExecutionId) {
 
 		final List<StepExecutionInfoResource> stepExecutions = jobOperations().listStepExecutions(jobExecutionId);
 		final Table table = new Table();
@@ -182,7 +182,7 @@ public class JobCommands implements CommandMarker {
 
 	@CliCommand(value = DISPLAY_JOB_EXECUTION, help = "Display the details of a Job Execution")
 	public String display(
-			@CliOption(mandatory = true, key = { "", "id" }, help = "the id of the job execution") Long jobExecutionId) {
+			@CliOption(mandatory = true, key = { "", "id" }, help = "the id of the job execution") long jobExecutionId) {
 
 		final JobExecutionInfoResource jobExecutionInfoResource = jobOperations().displayJobExecution(jobExecutionId);
 

@@ -38,7 +38,7 @@ import org.springframework.xd.shell.command.fixtures.HttpSource;
  * @author Mark Pollack
  * @author Kashyap Parikh
  * @author Andy Clement
- * @author David Turanskigit c
+ * @author David Turanski
  */
 public class StreamCommandTests extends AbstractStreamIntegrationTest {
 

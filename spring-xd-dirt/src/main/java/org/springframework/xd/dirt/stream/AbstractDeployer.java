@@ -38,6 +38,7 @@ import org.springframework.xd.module.ModuleDefinition;
  * @author Mark Pollack
  * @author Eric Bottard
  * @author Andy Clement
+ * @author David Turanski
  */
 public abstract class AbstractDeployer<D extends BaseDefinition> implements ResourceDeployer<D> {
 

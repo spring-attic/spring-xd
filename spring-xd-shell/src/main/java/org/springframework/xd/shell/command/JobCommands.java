@@ -30,6 +30,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.xd.rest.client.JobOperations;
 import org.springframework.xd.rest.client.domain.JobDefinitionResource;
 import org.springframework.xd.rest.client.domain.JobExecutionInfoResource;
+import org.springframework.xd.rest.client.domain.StepExecutionInfoResource;
 import org.springframework.xd.shell.XDShell;
 import org.springframework.xd.shell.util.CommonUtils;
 import org.springframework.xd.shell.util.Table;
@@ -45,7 +46,6 @@ import org.springframework.xd.shell.util.UiUtils;
  * @author Gunnar Hillert
  * 
  */
-
 @Component
 public class JobCommands implements CommandMarker {
 
@@ -54,6 +54,8 @@ public class JobCommands implements CommandMarker {
 	private final static String LIST_JOBS = "job list";
 
 	private final static String LIST_JOB_EXECUTIONS = "job execution list";
+
+	private final static String LIST_STEP_EXECUTIONS = "job execution step list";
 
 	private final static String DISPLAY_JOB_EXECUTION = "job execution display";
 
@@ -140,6 +142,38 @@ public class JobCommands implements CommandMarker {
 					.addValue(3, startTimeAsString)
 					.addValue(4, String.valueOf(jobExecutionInfoResource.getStepExecutionCount()))
 					.addValue(5, jobExecutionInfoResource.getJobExecution().getStatus().name());
+			table.getRows().add(row);
+		}
+
+		return table;
+	}
+
+	@CliCommand(value = LIST_STEP_EXECUTIONS, help = "List all step executions for the provided job execution id")
+	public Table listStepExecutions(
+			@CliOption(mandatory = true, key = { "", "id" }, help = "the id of the job execution") Long jobExecutionId) {
+
+		final List<StepExecutionInfoResource> stepExecutions = jobOperations().listStepExecutions(jobExecutionId);
+		final Table table = new Table();
+		table.addHeader(1, new TableHeader("Id"))
+				.addHeader(2, new TableHeader("Step Name"))
+				.addHeader(3, new TableHeader("Job Exec ID"))
+				.addHeader(4, new TableHeader("Start Time (UTC)"))
+				.addHeader(5, new TableHeader("End Time (UTC)"))
+				.addHeader(6, new TableHeader("Status"));
+
+		for (StepExecutionInfoResource stepExecutionInfoResource : stepExecutions) {
+
+			final String utcStartTime = CommonUtils.getUtcTime(stepExecutionInfoResource.getStepExecution().getStartTime());
+			final String utcEndTime = CommonUtils.getUtcTime(stepExecutionInfoResource.getStepExecution().getEndTime());
+
+			final TableRow row = new TableRow();
+
+			row.addValue(1, String.valueOf(stepExecutionInfoResource.getStepExecution().getId()))
+					.addValue(2, stepExecutionInfoResource.getStepExecution().getStepName())
+					.addValue(3, String.valueOf(stepExecutionInfoResource.getJobExecutionId()))
+					.addValue(4, utcStartTime)
+					.addValue(5, utcEndTime)
+					.addValue(6, stepExecutionInfoResource.getStepExecution().getStatus().name());
 			table.getRows().add(row);
 		}
 

@@ -40,10 +40,11 @@ import org.springframework.shell.core.CommandResult;
 import org.springframework.xd.shell.util.Table;
 
 /**
- * Test stream commands
- *
+ * Test {@link JobCommands}.
+ * 
  * @author Glenn Renfro
  * @author Gunnar Hillert
+ * @since 1.0
  */
 public class JobCommandTests extends AbstractJobIntegrationTest {
 
@@ -330,5 +331,19 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		final Table jobExecutions = listJobExecutions();
 		String id = jobExecutions.getRows().get(0).getValue(1);
 		displayJobExecution(id);
+	}
+
+	@Test
+	public void testListStepExecutionsForSpecificJobExecution() {
+		executeJobCreate(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR);
+		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
+		executeJobLaunch(MY_JOB);
+		final Table jobExecutions = listJobExecutions();
+		String jobExecutionId = jobExecutions.getRows().get(0).getValue(1);
+
+		final Table stepExecutions = listStepExecutions(jobExecutionId);
+		String stepExecutionId = stepExecutions.getRows().get(0).getValue(1);
+
+		assertNotNull(stepExecutionId);
 	}
 }

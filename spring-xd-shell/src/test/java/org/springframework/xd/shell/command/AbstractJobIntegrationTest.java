@@ -203,4 +203,16 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 		}
 		return (String) commandResult.getResult();
 	}
+
+	protected Table listStepExecutions(String id) {
+
+		final CommandResult commandResult = getShell().executeCommand("job execution step list " + id);
+
+		if (!commandResult.isSuccess()) {
+			throw new IllegalStateException("Expected a successful command execution.", commandResult.getException());
+		}
+
+		return (Table) commandResult.getResult();
+	}
+
 }

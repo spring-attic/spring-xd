@@ -48,7 +48,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class JobExecutionDeserializationTests {
 
 	@Test
-	public void test() throws IOException {
+	public void testDeserializationOfMultipleJobExecutions() throws IOException {
 
 		final ObjectMapper objectMapper = new ObjectMapper();
 

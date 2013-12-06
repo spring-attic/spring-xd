@@ -25,6 +25,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.xd.rest.client.JobOperations;
 import org.springframework.xd.rest.client.domain.JobDefinitionResource;
 import org.springframework.xd.rest.client.domain.JobExecutionInfoResource;
+import org.springframework.xd.rest.client.domain.StepExecutionInfoResource;
 
 /**
  * Implementation of the Job-related part of the API.
@@ -145,6 +146,14 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 	public JobExecutionInfoResource displayJobExecution(Long jobExecutionId) {
 		String uriTemplate = resources.get("batch/executions").toString() + "/{jobExecutionId}";
 		return restTemplate.getForObject(uriTemplate, JobExecutionInfoResource.class, jobExecutionId);
+	}
+
+	@Override
+	public List<StepExecutionInfoResource> listStepExecutions(Long jobExecutionId) {
+		String uriTemplate = resources.get("batch/executions").toString() + "/{jobExecutionId}/steps";
+		StepExecutionInfoResource[] stepExecutionInfoResources = restTemplate.getForObject(uriTemplate,
+				StepExecutionInfoResource[].class, jobExecutionId);
+		return Arrays.asList(stepExecutionInfoResources);
 	}
 
 }

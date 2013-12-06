@@ -36,7 +36,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.dirt.job.JobExecutionInfo;
 import org.springframework.xd.dirt.job.JobExecutionNotRunningException;
 import org.springframework.xd.dirt.job.NoSuchJobExecutionException;
-import org.springframework.xd.dirt.job.NoSuchJobExecutionException;
 import org.springframework.xd.rest.client.domain.JobExecutionInfoResource;
 
 /**
@@ -56,7 +55,7 @@ public class BatchJobExecutionsController {
 
 	private TimeZone timeZone = TimeZone.getDefault();
 
-	private JobExecutionInfoResourceAssembler jobExecutionInfoResourceAssembler;
+	private final JobExecutionInfoResourceAssembler jobExecutionInfoResourceAssembler;
 
 	/**
 	 * @param timeZone the timeZone to set

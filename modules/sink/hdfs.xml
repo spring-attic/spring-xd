@@ -1,39 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:task="http://www.springframework.org/schema/task"
 	xmlns:int="http://www.springframework.org/schema/integration"
 	xmlns:int-hadoop="http://www.springframework.org/schema/integration/hadoop"
 	xmlns:hdp="http://www.springframework.org/schema/hadoop"
 	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/integration/hadoop http://www.springframework.org/schema/integration/hadoop/spring-integration-hadoop.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
 		http://www.springframework.org/schema/hadoop http://www.springframework.org/schema/hadoop/spring-hadoop.xsd">
+
+	<task:executor id="taskExecutor" pool-size="2"/>
+	<task:scheduler id="taskScheduler" pool-size="2"/>
+
+	<hdp:configuration properties-location="${xd.config.home}/hadoop.properties"/>
 
 	<int:channel id="input"/>
 
-	<int:payload-type-router input-channel="input" default-output-channel="objects">
-		<int:mapping type="java.lang.String" channel="strings"/>
-	</int:payload-type-router>
+	<int-hadoop:rollover-strategy>
+		<int-hadoop:size size="${rolloverSize:1G}" />
+	</int-hadoop:rollover-strategy>
 
-	<int:object-to-json-transformer input-channel="objects" output-channel="strings"/>
+	<int-hadoop:naming-strategy>
+		<int-hadoop:static file-name="${fileName:${xd.stream.name}}" />
+		<int-hadoop:rolling />
+		<int-hadoop:codec />
+	</int-hadoop:naming-strategy>
 
-	<int:transformer input-channel="strings" expression="${newline:true} ? payload + @newline : payload" output-channel="files"/>
+	<int-hadoop:store-writer
+		base-path="${directory:/xd}"
+		codec="${codec:}"
+		idle-timeout="${idleTimeout:0}"
+		in-use-suffix="${inUseSuffix:.tmp}"
+		in-use-prefix="${inUsePrefix:}"
+		rollover-strategy="fileRolloverStrategy"
+		naming-strategy="fileNamingStrategy" />
 
-	<bean id="newline" class="java.lang.String">
-		<constructor-arg value="#{systemProperties['line.separator']}"/>
-	</bean>
-
-	<int-hadoop:hdfs-outbound-channel-adapter id="files"
-		file-system="hadoopFs"
-		base-path="${directory:/xd/${xd.stream.name}}"
-		base-filename="${filename:${xd.stream.name}}"
-		file-suffix="${suffix:log}"
-		rollover-threshold-in-bytes="${rollover:1000000}"/>
-
-	<bean id="hadoopFs" class="org.springframework.data.hadoop.fs.FileSystemFactoryBean">
-		<property name="configuration" ref="hadoopConfiguration"/>
-	</bean>
-
-	<hdp:configuration register-url-handler="false" properties-location="${xd.config.home}/hadoop.properties"/>
+	<int-hadoop:hdfs-outbound-channel-adapter channel="input"
+		writer="storeWriter" />
 
 </beans>

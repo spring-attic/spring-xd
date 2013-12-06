@@ -23,27 +23,20 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.util.StringUtils;
+import org.springframework.xd.integration.hadoop.outbound.HdfsStoreMessageHandler;
 
 /**
  * Parser for the 'hdfs-outbound-channel-adapter' element.
  * 
  * @author Mark Fisher
+ * @author Janne Valkealahti
  */
 public class HdfsOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
 
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(HdfsWritingMessageHandlerFactoryBean.class);
-		String fileSystem = element.getAttribute("file-system");
-		if (!StringUtils.hasText(fileSystem)) {
-			parserContext.getReaderContext().error("file-system is required", element);
-		}
-		builder.addConstructorArgReference(fileSystem);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "base-path");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "base-filename");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "file-suffix");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "rollover-threshold-in-bytes");
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(HdfsStoreMessageHandler.class);
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "writer", "storeWriter");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 		return builder.getBeanDefinition();
 	}

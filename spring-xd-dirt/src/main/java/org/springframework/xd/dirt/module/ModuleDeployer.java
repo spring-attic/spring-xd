@@ -271,8 +271,8 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 				this.deployedModules.remove(group);
 			}
 			if (module != null) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("removed " + module.toString());
+				if (logger.isInfoEnabled()) {
+					logger.info("removed " + module.toString());
 				}
 				this.beforeShutdown(module);
 				module.stop();

@@ -38,6 +38,7 @@ import org.springframework.xd.module.ModuleDefinition;
  * @author Mark Pollack
  * @author Eric Bottard
  * @author Andy Clement
+ * @author David Turanski
  */
 public abstract class AbstractDeployer<D extends BaseDefinition> implements ResourceDeployer<D> {
 
@@ -162,8 +163,29 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		messageSender.sendDeploymentRequests(name, requests);
 	}
 
-	protected List<ModuleDeploymentRequest> parse(String name, String config) {
-		return streamParser.parse(name, config);
+	// TODO: The ModuleDefinition currently does not provide sourceChannelName and sinkChannelName required for
+	// deployment. This is only provided by the parser
+	protected List<ModuleDeploymentRequest> parse(String name, String definition) {
+		return this.streamParser.parse(name, definition);
+	}
+
+	protected List<ModuleDeploymentRequest> buildUndeployRequests(D definition) {
+		List<ModuleDefinition> moduleDefinitions = definition.getModuleDefinitions();
+		List<ModuleDeploymentRequest> moduleDeploymentRequests = new ArrayList<ModuleDeploymentRequest>(
+				moduleDefinitions.size());
+		/*
+		 * Only some fields required for undeploy
+		 */
+		for (int i = 0; i < moduleDefinitions.size(); i++) {
+			ModuleDefinition md = moduleDefinitions.get(i);
+			ModuleDeploymentRequest request = new ModuleDeploymentRequest();
+			request.setGroup(definition.getName());
+			request.setIndex(moduleDefinitions.size() - i - 1);
+			request.setRemove(true);
+			request.setModule(md.getName());
+			moduleDeploymentRequests.add(request);
+		}
+		return moduleDeploymentRequests;
 	}
 
 	/**
@@ -191,7 +213,7 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		if (definition == null) {
 			throwNoSuchDefinitionException(name);
 		}
-		List<ModuleDeploymentRequest> requests = parse(name, definition.getDefinition());
+		List<ModuleDeploymentRequest> requests = buildUndeployRequests(definition);
 		for (ModuleDeploymentRequest request : requests) {
 			request.setRemove(true);
 		}

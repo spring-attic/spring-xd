@@ -27,6 +27,7 @@ import java.io.IOException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
+
 import org.springframework.shell.core.CommandResult;
 import org.springframework.xd.shell.command.fixtures.FileSink;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
@@ -37,6 +38,7 @@ import org.springframework.xd.shell.command.fixtures.HttpSource;
  * @author Mark Pollack
  * @author Kashyap Parikh
  * @author Andy Clement
+ * @author David Turanski
  */
 public class StreamCommandTests extends AbstractStreamIntegrationTest {
 
@@ -388,7 +390,6 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		assertThat(sink2, eventually(hasContentsThat(equalTo("DRACARYS!"))));
 
 		assertThat(sink3, eventually(hasContentsThat(equalTo("DRACARYS!"))));
-
 	}
 
 	@Test
@@ -434,4 +435,11 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		stream().destroyStream("jsonPathStream");
 	}
 
+	@Test
+	public void testDestroyTap() {
+		stream().create("main", "file | log");
+		stream().create("tap", "tap:stream:main > queue:foo");
+		stream().destroyStream("main");
+		stream().destroyStream("tap");
+	}
 }

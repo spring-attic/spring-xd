@@ -1,30 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:int-hadoop="http://www.springframework.org/schema/integration/hadoop"
-       xmlns:hdp="http://www.springframework.org/schema/hadoop"
-       xsi:schemaLocation="http://www.springframework.org/schema/integration/hadoop http://www.springframework.org/schema/integration/hadoop/spring-integration-hadoop.xsd
+			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			xmlns:int-hadoop="http://www.springframework.org/schema/integration/hadoop"
+			xmlns:hdp="http://www.springframework.org/schema/hadoop"
+			xsi:schemaLocation="http://www.springframework.org/schema/integration/hadoop http://www.springframework.org/schema/integration/hadoop/spring-integration-hadoop.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/hadoop http://www.springframework.org/schema/hadoop/spring-hadoop.xsd">
 
-    <hdp:configuration register-url-handler="false">
-        fs.default.name=file:///
-    </hdp:configuration>
+	<hdp:configuration register-url-handler="false">
+		fs.default.name=file:///
+	</hdp:configuration>
 
-    <bean id="path" class="java.lang.String">
-        <constructor-arg value="#{systemProperties['java.io.tmpdir']}"/>
-    </bean>
+	<bean id="path" class="java.lang.String">
+		<constructor-arg value="#{systemProperties['java.io.tmpdir']}" />
+	</bean>
 
 	<bean id="hadoopFs" class="org.springframework.data.hadoop.fs.FileSystemFactoryBean">
 		<property name="configuration" ref="hadoopConfiguration"/>
 	</bean>
 
+	<int-hadoop:rollover-strategy>
+		<int-hadoop:size size="1" />
+	</int-hadoop:rollover-strategy>
+
+	<int-hadoop:naming-strategy>
+		<int-hadoop:static file-name="testfile" />
+		<int-hadoop:rolling />
+	</int-hadoop:naming-strategy>
+
+	<int-hadoop:store-writer base-path="#{path}/testdir/"
+		rollover-strategy="fileRolloverStrategy"
+		naming-strategy="fileNamingStrategy" />
+
 	<int-hadoop:hdfs-outbound-channel-adapter
 		id="hdfsOut"
-		file-system="hadoopFs"
-		base-path="#{path}/testdir/"
-		base-filename="testfile"
-		file-suffix="txt"
-		rollover-threshold-in-bytes="1"/>
+		writer="storeWriter" />
 
 </beans>

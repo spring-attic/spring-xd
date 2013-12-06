@@ -17,18 +17,20 @@
 package org.springframework.xd.integration.hadoop.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
-import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.conf.Configuration;
 import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.data.hadoop.store.output.TextFileWriter;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
-import org.springframework.xd.hadoop.fs.HdfsTextFileWriterFactory;
-import org.springframework.xd.integration.hadoop.outbound.HdfsWritingMessageHandler;
+import org.springframework.xd.integration.hadoop.outbound.HdfsStoreMessageHandler;
 
 /**
  * @author Mark Fisher
+ * @author Janne Valkealahti
  */
 public class HdfsOutboundChannelAdapterParserTests {
 
@@ -37,16 +39,16 @@ public class HdfsOutboundChannelAdapterParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"org/springframework/xd/integration/hadoop/config/HdfsOutboundChannelAdapterParserTests.xml");
 		EventDrivenConsumer adapter = context.getBean("adapter", EventDrivenConsumer.class);
-		HdfsWritingMessageHandler handler = (HdfsWritingMessageHandler) new DirectFieldAccessor(adapter).getPropertyValue("handler");
+		HdfsStoreMessageHandler handler = (HdfsStoreMessageHandler) new DirectFieldAccessor(adapter).getPropertyValue("handler");
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
 		assertEquals(false, handlerAccessor.getPropertyValue("autoStartup"));
-		HdfsTextFileWriterFactory writerFactory = (HdfsTextFileWriterFactory) handlerAccessor.getPropertyValue("hdfsWriterFactory");
-		assertEquals("/parsertestdir/", writerFactory.getBasePath());
-		assertEquals("parsertestfile", writerFactory.getBaseFilename());
-		assertEquals("test", writerFactory.getFileSuffix());
-		assertEquals(12345, writerFactory.getRolloverThresholdInBytes());
-		FileSystem fileSystem = (FileSystem) new DirectFieldAccessor(writerFactory).getPropertyValue("fileSystem");
-		assertEquals(context.getBean("hadoopFs"), fileSystem);
+
+		TextFileWriter storeWriter = (TextFileWriter) handlerAccessor.getPropertyValue("storeWriter");
+		assertNotNull(storeWriter);
+
+		Configuration configuration = (Configuration) new DirectFieldAccessor(storeWriter).getPropertyValue("configuration");
+		assertEquals(context.getBean("hadoopConfiguration"), configuration);
+
 		context.close();
 	}
 

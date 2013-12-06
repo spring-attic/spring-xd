@@ -7,16 +7,14 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration/hadoop http://www.springframework.org/schema/integration/hadoop/spring-integration-hadoop.xsd">
 
-	<bean id="hadoopFs" class="org.springframework.xd.hadoop.fs.StubFileSystem"/>
+	<bean id="hadoopConfiguration" class="org.apache.hadoop.conf.Configuration"/>
+
+	<int-hadoop:store-writer />
 
 	<int-hadoop:hdfs-outbound-channel-adapter
 		id="adapter"
 		channel="hdfsOut"
-		file-system="hadoopFs"
-		base-path="/parsertestdir/"
-		base-filename="parsertestfile"
-		file-suffix="test"
-		rollover-threshold-in-bytes="12345"
+		writer="storeWriter"
 		auto-startup="false"/>
 
 	<int:channel id="hdfsOut"/>

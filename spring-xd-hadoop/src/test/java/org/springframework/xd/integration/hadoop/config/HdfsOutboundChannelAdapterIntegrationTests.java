@@ -47,8 +47,8 @@ public class HdfsOutboundChannelAdapterIntegrationTests {
 		String path = context.getBean("path", String.class);
 		context.close();
 		Path basepath = new Path(path + "/testdir/");
-		Path filepath0 = new Path(basepath, "testfile-0.txt");
-		Path filepath1 = new Path(basepath, "testfile-1.txt");
+		Path filepath0 = new Path(basepath, "testfile0");
+		Path filepath1 = new Path(basepath, "testfile1");
 		assertTrue(fileSystem.exists(basepath));
 		assertTrue(fileSystem.exists(filepath0));
 		assertTrue(fileSystem.exists(filepath1));

@@ -9,9 +9,13 @@ BASE_PATH="/xdtest/$NOW/"
 
 wait_for_server
 
+echo 'Hadoop environment and classpath:'
+set | grep HADOOP
+hadoop classpath
+
 set -e
 
-echo "\nRunning batch HDFS import tests"
+echo -e "\nRunning batch HDFS import tests"
 echo "HDFS base path is $BASE_PATH"
 
 echo -e "\n\n*** Test 1. Load single CSV file, no rollover\n"

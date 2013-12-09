@@ -145,10 +145,11 @@ public abstract class AbstractStreamDeploymentIntegrationTests {
 		Module matchedModule = null;
 		for (Entry<String, Map<Integer, Module>> entry : deployedModules.entrySet()) {
 			final Module module = entry.getValue().get(index);
-			if (module != null && moduleName.equals(module.getName())) {
-				matchedModule = module;
-				break;
-			}
+			if (module != null)
+				if (module != null && moduleName.equals(module.getName())) {
+					matchedModule = module;
+					break;
+				}
 		}
 		return matchedModule;
 	}

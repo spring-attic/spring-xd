@@ -180,7 +180,7 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 			ModuleDefinition md = moduleDefinitions.get(i);
 			ModuleDeploymentRequest request = new ModuleDeploymentRequest();
 			request.setGroup(definition.getName());
-			request.setIndex(i);
+			request.setIndex(moduleDefinitions.size() - i - 1);
 			request.setRemove(true);
 			request.setModule(md.getName());
 			moduleDeploymentRequests.add(request);

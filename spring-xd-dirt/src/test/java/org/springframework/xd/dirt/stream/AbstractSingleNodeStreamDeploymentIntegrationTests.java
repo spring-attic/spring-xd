@@ -69,10 +69,10 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 		StreamDefinition bar2Definition = new StreamDefinition("bar2Definition",
 				"topic:foo > queue:bar2");
 		assertEquals(0, streamRepository.count());
-		streamDefinitionRepository.save(bar1Definition);
+		streamDeployer.save(bar1Definition);
 		deploy(bar1Definition);
 
-		streamDefinitionRepository.save(bar2Definition);
+		streamDeployer.save(bar2Definition);
 		deploy(bar2Definition);
 		Thread.sleep(1000);
 		assertEquals(2, streamRepository.count());
@@ -105,7 +105,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 
 	private void doTest(StreamDefinition routerDefinition) throws InterruptedException {
 		assertEquals(0, streamRepository.count());
-		streamDefinitionRepository.save(routerDefinition);
+		streamDeployer.save(routerDefinition);
 		deploy(routerDefinition);
 		assertEquals(1, streamRepository.count());
 		assertModuleRequest("router", false);

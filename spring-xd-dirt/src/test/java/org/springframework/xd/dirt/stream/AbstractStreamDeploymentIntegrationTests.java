@@ -38,10 +38,8 @@ import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.messaging.Message;
 import org.springframework.xd.dirt.event.AbstractModuleEvent;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
-import org.springframework.xd.dirt.stream.dsl.ModuleNode;
-import org.springframework.xd.dirt.stream.dsl.StreamConfigParser;
-import org.springframework.xd.dirt.stream.dsl.StreamNode;
 import org.springframework.xd.module.Module;
+import org.springframework.xd.module.ModuleDefinition;
 
 /**
  * @author Mark Fisher
@@ -63,8 +61,6 @@ public abstract class AbstractStreamDeploymentIntegrationTests {
 
 	private ModuleEventListener moduleEventListener = new ModuleEventListener();
 
-	protected StreamConfigParser parser;
-
 	private final QueueChannel tapChannel = new QueueChannel();
 
 
@@ -78,7 +74,6 @@ public abstract class AbstractStreamDeploymentIntegrationTests {
 		this.streamDefinitionRepository = context.getBean(StreamDefinitionRepository.class);
 		this.streamRepository = context.getBean(StreamRepository.class);
 		this.streamDeployer = application.getAdminContext().getBean(StreamDeployer.class);
-		this.parser = new StreamConfigParser(streamDefinitionRepository);
 
 		AbstractMessageChannel deployChannel = application.getAdminContext().getBean("deployChannel",
 				AbstractMessageChannel.class);
@@ -103,17 +98,24 @@ public abstract class AbstractStreamDeploymentIntegrationTests {
 		final int ITERATIONS = 5;
 		int i = 0;
 		for (i = 0; i < ITERATIONS; i++) {
-			StreamDefinition definition = new StreamDefinition("test" + i, "http | log");
-			streamDefinitionRepository.save(definition);
+			StreamDefinition definition = new StreamDefinition("test" + i,
+					"http | transform --expression=payload | filter --expression=true | log");
+			streamDeployer.save(definition);
 			waitForDeploy(definition);
 			assertEquals(1, streamRepository.count());
 			assertTrue(streamRepository.exists("test" + i));
 			waitForUndeploy(definition);
 			assertEquals(0, streamRepository.count());
 			assertFalse(streamRepository.exists("test" + i));
+			// Deploys in reverse order
 			assertModuleRequest("log", false);
+			assertModuleRequest("filter", false);
+			assertModuleRequest("transform", false);
 			assertModuleRequest("http", false);
+			// Undeploys in stream order
 			assertModuleRequest("http", true);
+			assertModuleRequest("transform", true);
+			assertModuleRequest("filter", true);
 			assertModuleRequest("log", true);
 			assertNull(tapChannel.receive(0));
 		}
@@ -125,6 +127,7 @@ public abstract class AbstractStreamDeploymentIntegrationTests {
 		Message<?> next = tapChannel.receive(0);
 		assertNotNull(next);
 		String payload = (String) next.getPayload();
+
 		assertTrue(payload.contains("\"module\":\"" + moduleName + "\""));
 		assertTrue(payload.contains("\"remove\":" + (remove ? "true" : "false")));
 	}
@@ -143,10 +146,11 @@ public abstract class AbstractStreamDeploymentIntegrationTests {
 		Module matchedModule = null;
 		for (Entry<String, Map<Integer, Module>> entry : deployedModules.entrySet()) {
 			final Module module = entry.getValue().get(index);
-			if (module != null && moduleName.equals(module.getName())) {
-				matchedModule = module;
-				break;
-			}
+			if (module != null)
+				if (module != null && moduleName.equals(module.getName())) {
+					matchedModule = module;
+					break;
+				}
 		}
 		return matchedModule;
 	}
@@ -156,15 +160,14 @@ public abstract class AbstractStreamDeploymentIntegrationTests {
 	}
 
 	private boolean waitForStreamOp(StreamDefinition definition, boolean isDeploy) {
-		StreamNode stream = parser.parse(definition.getDefinition());
-		final int MAX_TRIES = 20;
+		final int MAX_TRIES = 40;
 		int tries = 1;
 		boolean done = false;
 		while (!done && tries <= MAX_TRIES) {
 			done = true;
-			int i = 0;
-			for (ModuleNode module : stream.getModuleNodes()) {
-				Module deployedModule = getModule(module.getName(), i++);
+			int i = definition.getModuleDefinitions().size();
+			for (ModuleDefinition module : definition.getModuleDefinitions()) {
+				Module deployedModule = getModule(module.getName(), --i);
 
 				done = (isDeploy) ? deployedModule != null : deployedModule == null;
 				if (!done) {

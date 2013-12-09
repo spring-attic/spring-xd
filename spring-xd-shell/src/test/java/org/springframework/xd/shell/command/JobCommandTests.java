@@ -346,4 +346,24 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 
 		assertNotNull(stepExecutionId);
 	}
+
+	@Test
+	public void testStepExecutionProgress() {
+		executeJobCreate(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR);
+		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
+		executeJobLaunch(MY_JOB);
+		final Table jobExecutions = listJobExecutions();
+		String jobExecutionId = jobExecutions.getRows().get(0).getValue(1);
+
+		final Table stepExecutions = listStepExecutions(jobExecutionId);
+		String stepExecutionId = stepExecutions.getRows().get(0).getValue(1);
+
+		final Table stepExecutionProgress = getStepExecutionProgress(jobExecutionId, stepExecutionId);
+		String id = stepExecutionProgress.getRows().get(0).getValue(1);
+		String percentageComplete = stepExecutionProgress.getRows().get(0).getValue(3);
+		String duration = stepExecutionProgress.getRows().get(0).getValue(4);
+		assertEquals(stepExecutionId, id);
+		assertNotNull(percentageComplete);
+		assertNotNull(duration);
+	}
 }

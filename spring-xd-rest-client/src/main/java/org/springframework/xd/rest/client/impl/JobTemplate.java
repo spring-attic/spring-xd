@@ -26,6 +26,7 @@ import org.springframework.xd.rest.client.JobOperations;
 import org.springframework.xd.rest.client.domain.JobDefinitionResource;
 import org.springframework.xd.rest.client.domain.JobExecutionInfoResource;
 import org.springframework.xd.rest.client.domain.StepExecutionInfoResource;
+import org.springframework.xd.rest.client.domain.StepExecutionProgressInfoResource;
 
 /**
  * Implementation of the Job-related part of the API.
@@ -156,4 +157,12 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 		return Arrays.asList(stepExecutionInfoResources);
 	}
 
+	@Override
+	public StepExecutionProgressInfoResource stepExecutionProgress(Long jobExecutionId, Long stepExecutionId) {
+		String uriTemplate = resources.get("batch/executions").toString()
+				+ "/{jobExecutionId}/steps/{stepExecutionId}/progress";
+		StepExecutionProgressInfoResource progressInfoResource = restTemplate.getForObject(uriTemplate,
+				StepExecutionProgressInfoResource.class, jobExecutionId, stepExecutionId);
+		return progressInfoResource;
+	}
 }

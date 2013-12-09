@@ -13,10 +13,14 @@
 		http://www.springframework.org/schema/integration/file
 		http://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
 
+	<!-- Using default null values here on purpose. Could also explicitly declare a PPC that allows nulls -->
 	<file:tail-inbound-channel-adapter channel="output"
 		auto-startup="false"
 		file="${name:/tmp/xd/input/${xd.stream.name}}"
-		native-options="-F -n ${lines}" file-delay="${fixedDelay}" end="${fromEnd}"/>
+		delay="${delay:}"
+		end="${fromEnd:}"
+		reopen="${reOpen:}"
+		native-options="${nativeOptions:}" file-delay="${fileDelay}" />
 
 	<channel id="output"/>
 

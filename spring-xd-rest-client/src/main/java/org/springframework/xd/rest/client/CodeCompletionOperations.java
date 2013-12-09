@@ -14,30 +14,19 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.stream;
+package org.springframework.xd.rest.client;
 
+import java.util.List;
+
+import org.springframework.xd.rest.client.domain.CompletionKind;
 
 /**
- * Used to represent the context in which the code completion facility is invoked.
+ * Provides access to the code completion facility
  * 
  * @author Eric Bottard
  */
-public enum CompletionKind {
+public interface CodeCompletionOperations {
 
-	/**
-	 * A full stream definition, which ough to start with a source (or channel) and end with a sink (or channel)
-	 */
-	stream,
-
-	/**
-	 * A "half-stream", which starts or ends on a processor
-	 */
-	composed,
-
-	/**
-	 * A job definition.
-	 */
-	job;
-
+	List<String> completions(CompletionKind kind, String start);
 
 }

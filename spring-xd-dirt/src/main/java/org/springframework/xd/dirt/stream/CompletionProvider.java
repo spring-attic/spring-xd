@@ -16,9 +16,9 @@
 
 package org.springframework.xd.dirt.stream;
 
-import static org.springframework.xd.dirt.stream.CompletionKind.stream;
 import static org.springframework.xd.module.ModuleType.processor;
 import static org.springframework.xd.module.ModuleType.sink;
+import static org.springframework.xd.rest.client.domain.CompletionKind.stream;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -33,6 +33,7 @@ import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.options.ModuleOption;
+import org.springframework.xd.rest.client.domain.CompletionKind;
 
 
 public class CompletionProvider {

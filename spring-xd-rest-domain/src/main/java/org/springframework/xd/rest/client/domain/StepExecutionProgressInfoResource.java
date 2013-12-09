@@ -23,8 +23,6 @@ import org.springframework.batch.core.StepExecution;
 import org.springframework.hateoas.ResourceSupport;
 import org.springframework.util.Assert;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 
 /**
  * Represents the step execution progress info resource.
@@ -39,10 +37,9 @@ public class StepExecutionProgressInfoResource extends ResourceSupport {
 
 	private StepExecutionHistory stepExecutionHistory;
 
-	@JsonProperty("percentageComplete")
 	private double percentageComplete;
 
-	private String finished;
+	private boolean finished;
 
 	private double duration;
 
@@ -63,16 +60,15 @@ public class StepExecutionProgressInfoResource extends ResourceSupport {
 		this.stepExecution = stepExecution;
 		this.stepExecutionHistory = stepExecutionHistory;
 		this.percentageComplete = percentageComplete;
-		this.finished = isFinished ? "true" : "false";
+		this.finished = isFinished;
 		this.duration = duration;
 	}
 
-	@JsonProperty
 	public double getPercentageComplete() {
 		return percentageComplete;
 	}
 
-	public String getFinished() {
+	public boolean getFinished() {
 		return finished;
 	}
 

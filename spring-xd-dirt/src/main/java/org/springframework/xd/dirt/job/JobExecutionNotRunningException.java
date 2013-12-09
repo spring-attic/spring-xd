@@ -28,6 +28,6 @@ import org.springframework.xd.dirt.core.XDRuntimeException;
 public class JobExecutionNotRunningException extends XDRuntimeException {
 
 	public JobExecutionNotRunningException(Long executionId) {
-		super("Job execution with executionId '" + executionId + "' is not running.");
+		super("Job execution with executionId " + executionId + " is not running.");
 	}
 }

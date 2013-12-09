@@ -154,7 +154,7 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 	public void testGetNonExistingBatchJobExecution() throws Exception {
 		mockMvc.perform(get("/batch/executions/99999").accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isNotFound())
-				.andExpect(jsonPath("$[0].message", Matchers.is("Could not find jobExecution with id '99999'")));
+				.andExpect(jsonPath("$[0].message", Matchers.is("Could not find jobExecution with id 99999")));
 	}
 
 	@Test
@@ -165,7 +165,7 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 	@Test
 	public void testStopJobExecutionNotRunning() throws Exception {
 		mockMvc.perform(delete("/batch/executions/{executionId}", "3")).andExpect(status().isNotFound()).andExpect(
-				jsonPath("$[0].message", Matchers.is("Job execution with executionId '3' is not running.")));
+				jsonPath("$[0].message", Matchers.is("Job execution with executionId 3 is not running.")));
 		;
 	}
 
@@ -173,7 +173,7 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 	public void testStopJobExecutionNotExists() throws Exception {
 		mockMvc.perform(delete("/batch/executions/{executionId}", "5")).andExpect(status().isNotFound()).andExpect(
 				jsonPath("$[0].message",
-						Matchers.is("Could not find jobExecution with id '5'")));
+						Matchers.is("Could not find jobExecution with id 5")));
 
 	}
 }

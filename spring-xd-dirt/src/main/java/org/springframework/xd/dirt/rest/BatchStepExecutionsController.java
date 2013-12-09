@@ -90,7 +90,7 @@ public class BatchStepExecutionsController {
 	@RequestMapping(value = { "" }, method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public Collection<StepExecutionInfoResource> list(@PathVariable("jobExecutionId") Long jobExecutionId) {
+	public Collection<StepExecutionInfoResource> list(@PathVariable("jobExecutionId") long jobExecutionId) {
 
 		final Collection<StepExecution> stepExecutions;
 
@@ -122,8 +122,8 @@ public class BatchStepExecutionsController {
 	@RequestMapping(value = "/{stepExecutionId}/progress", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public StepExecutionProgressInfoResource progress(@PathVariable Long jobExecutionId,
-			@PathVariable Long stepExecutionId) {
+	public StepExecutionProgressInfoResource progress(@PathVariable long jobExecutionId,
+			@PathVariable long stepExecutionId) {
 		StepExecutionProgressInfoResource result;
 		try {
 			StepExecution stepExecution = jobService.getStepExecution(jobExecutionId, stepExecutionId);
@@ -147,10 +147,10 @@ public class BatchStepExecutionsController {
 	}
 
 	/**
-	 * Compute step execution history for the given jobs step
+	 * Compute step execution history for the given jobs step.
 	 * 
-	 * @param jobName
-	 * @param stepName
+	 * @param jobName the name of the job
+	 * @param stepName the name of the step
 	 * @return the step execution history for the given step
 	 */
 	private StepExecutionHistory computeHistory(String jobName, String stepName) {

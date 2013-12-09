@@ -33,7 +33,7 @@ public class NoSuchStepExecutionException extends XDRuntimeException {
 	 * @param id the id of the {@link StepExecution} that could not be found
 	 */
 	public NoSuchStepExecutionException(long id) {
-		super("Could not find step execution with id '" + id + "'");
+		super("Could not find step execution with id " + id);
 	}
 
 }

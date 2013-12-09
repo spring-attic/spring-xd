@@ -58,20 +58,15 @@ public interface JobOperations extends ResourceOperations {
 	 */
 	public List<JobExecutionInfoResource> listJobExecutions();
 
-
 	/**
 	 * Retrieve a specific Job Execution for the provided {@code jobExecutionId}.
 	 * 
-	 * @param jobExecutionId Must not be null
-	 * @return
 	 */
 	public JobExecutionInfoResource displayJobExecution(long jobExecutionId);
 
 	/**
 	 * Retrieve a {@link List} of {@link StepExecutionInfoResource}s for the provided {@code jobExecutionId}.
 	 * 
-	 * @param jobExecutionId Must not be null
-	 * @return
 	 */
 	public List<StepExecutionInfoResource> listStepExecutions(long jobExecutionId);
 
@@ -83,9 +78,6 @@ public interface JobOperations extends ResourceOperations {
 	/**
 	 * Retrieve step execution progress with the given {@code jobExecutionId} and {@code stepExecutionId}.
 	 * 
-	 * @param jobExecutionId Must not be null
-	 * @param stepExecutionId Must not be null
-	 * @return
 	 */
-	public StepExecutionProgressInfoResource stepExecutionProgress(Long jobExecutionId, Long stepExecutionId);
+	public StepExecutionProgressInfoResource stepExecutionProgress(long jobExecutionId, long stepExecutionId);
 }

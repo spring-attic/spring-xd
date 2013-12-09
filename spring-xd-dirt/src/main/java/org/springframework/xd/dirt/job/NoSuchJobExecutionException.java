@@ -33,7 +33,6 @@ public class NoSuchJobExecutionException extends XDRuntimeException {
 	 * @param id the id of the {@link JobExecution} that could not be found
 	 */
 	public NoSuchJobExecutionException(long id) {
-		super("Could not find jobExecution with id '" + id + "'");
+		super("Could not find jobExecution with id " + id);
 	}
-
 }

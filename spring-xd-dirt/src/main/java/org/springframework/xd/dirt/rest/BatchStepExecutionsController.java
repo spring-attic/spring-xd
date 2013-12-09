@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.TimeZone;
 
+import org.springframework.batch.admin.history.StepExecutionHistory;
 import org.springframework.batch.admin.service.JobService;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.StepExecution;
@@ -34,13 +35,18 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.dirt.job.NoSuchJobExecutionException;
+import org.springframework.xd.dirt.job.NoSuchStepExecutionException;
 import org.springframework.xd.dirt.job.StepExecutionInfo;
+import org.springframework.xd.dirt.job.StepExecutionProgressInfo;
 import org.springframework.xd.rest.client.domain.StepExecutionInfoResource;
+import org.springframework.xd.rest.client.domain.StepExecutionProgressInfoResource;
 
 /**
  * Controller for returning Batch {@link StepExecution}s.
  * 
  * @author Gunnar Hillert
+ * @author Dave Syer
+ * @author Ilayaperumal Gopinathan
  * @since 1.0
  * 
  */
@@ -52,6 +58,8 @@ public class BatchStepExecutionsController {
 	private final JobService jobService;
 
 	private final StepExecutionInfoResourceAssembler stepExecutionInfoResourceAssembler;
+
+	private final StepExecutionProgressInfoResourceAssembler progressInfoResourceAssembler;
 
 	private TimeZone timeZone = TimeZone.getDefault();
 
@@ -69,6 +77,7 @@ public class BatchStepExecutionsController {
 		super();
 		this.jobService = jobService;
 		this.stepExecutionInfoResourceAssembler = new StepExecutionInfoResourceAssembler();
+		this.progressInfoResourceAssembler = new StepExecutionProgressInfoResourceAssembler();
 	}
 
 	/**
@@ -101,4 +110,57 @@ public class BatchStepExecutionsController {
 		return result;
 	}
 
+	/**
+	 * Get the step execution progress for the given jobExecutions step.
+	 * 
+	 * @param jobExecutionId Id of the {@link JobExecution}, must not be null
+	 * @param stepExecutionId Id of the {@link StepExecution}, must not be null
+	 * @return {@link StepExecutionInfoResource} that has the progress info on the given {@link StepExecution}.
+	 * @throws NoSuchJobExecutionException Thrown if the respective {@link JobExecution} does not exist
+	 * @throws NoSuchStepExecutionException Thrown if the respective {@link StepExecution} does not exist
+	 */
+	@RequestMapping(value = "/{stepExecutionId}/progress", method = RequestMethod.GET)
+	@ResponseStatus(HttpStatus.OK)
+	@ResponseBody
+	public StepExecutionProgressInfoResource progress(@PathVariable Long jobExecutionId,
+			@PathVariable Long stepExecutionId) {
+		StepExecutionProgressInfoResource result;
+		try {
+			StepExecution stepExecution = jobService.getStepExecution(jobExecutionId, stepExecutionId);
+			String stepName = stepExecution.getStepName();
+			if (stepName.contains(":partition")) {
+				// assume we want to compare all partitions
+				stepName = stepName.replaceAll("(:partition).*", "$1*");
+			}
+			String jobName = stepExecution.getJobExecution().getJobInstance().getJobName();
+			StepExecutionHistory stepExecutionHistory = computeHistory(jobName, stepName);
+			result = progressInfoResourceAssembler.toResource(new StepExecutionProgressInfo(stepExecution,
+					stepExecutionHistory));
+		}
+		catch (org.springframework.batch.admin.service.NoSuchStepExecutionException e) {
+			throw new NoSuchStepExecutionException(stepExecutionId);
+		}
+		catch (org.springframework.batch.core.launch.NoSuchJobExecutionException e) {
+			throw new NoSuchJobExecutionException(jobExecutionId);
+		}
+		return result;
+	}
+
+	/**
+	 * Compute step execution history for the given jobs step
+	 * 
+	 * @param jobName
+	 * @param stepName
+	 * @return the step execution history for the given step
+	 */
+	private StepExecutionHistory computeHistory(String jobName, String stepName) {
+		int total = jobService.countStepExecutionsForStep(jobName, stepName);
+		StepExecutionHistory stepExecutionHistory = new StepExecutionHistory(stepName);
+		for (int i = 0; i < total; i += 1000) {
+			for (StepExecution stepExecution : jobService.listStepExecutionsForStep(jobName, stepName, i, 1000)) {
+				stepExecutionHistory.append(stepExecution);
+			}
+		}
+		return stepExecutionHistory;
+	}
 }

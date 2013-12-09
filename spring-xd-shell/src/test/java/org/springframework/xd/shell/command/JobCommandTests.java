@@ -350,6 +350,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 	}
 
 	@Test
+<<<<<<< HEAD
 	public void testStopJobExecution() throws Exception {
 		executeJobCreate(MY_JOB, JOB_WITH_STEP_EXECUTIONS);
 		checkForJobInList(MY_JOB, JOB_WITH_STEP_EXECUTIONS, true);
@@ -373,5 +374,24 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 			}
 		}
 		assertEquals("STOPPED", executionStatus);
+=======
+	public void testStepExecutionProgress() {
+		executeJobCreate(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR);
+		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
+		executeJobLaunch(MY_JOB);
+		final Table jobExecutions = listJobExecutions();
+		String jobExecutionId = jobExecutions.getRows().get(0).getValue(1);
+
+		final Table stepExecutions = listStepExecutions(jobExecutionId);
+		String stepExecutionId = stepExecutions.getRows().get(0).getValue(1);
+
+		final Table stepExecutionProgress = getStepExecutionProgress(jobExecutionId, stepExecutionId);
+		String id = stepExecutionProgress.getRows().get(0).getValue(1);
+		String percentageComplete = stepExecutionProgress.getRows().get(0).getValue(3);
+		String duration = stepExecutionProgress.getRows().get(0).getValue(4);
+		assertEquals(stepExecutionId, id);
+		assertNotNull(percentageComplete);
+		assertNotNull(duration);
+>>>>>>> XD-1091 XD-1088 stepExecution progress info
 	}
 }

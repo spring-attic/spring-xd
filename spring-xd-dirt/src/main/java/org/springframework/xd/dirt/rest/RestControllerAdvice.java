@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.dirt.analytics.NoSuchMetricException;
 import org.springframework.xd.dirt.job.JobExecutionNotRunningException;
 import org.springframework.xd.dirt.job.NoSuchJobExecutionException;
+import org.springframework.xd.dirt.job.NoSuchStepExecutionException;
 import org.springframework.xd.dirt.module.ModuleAlreadyExistsException;
 import org.springframework.xd.dirt.module.NoSuchModuleException;
 import org.springframework.xd.dirt.stream.AlreadyDeployedException;
@@ -169,6 +170,14 @@ public class RestControllerAdvice {
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.NOT_FOUND)
 	public VndErrors onJobExecutionNotRunningException(JobExecutionNotRunningException e) {
+		String logref = log(e);
+		return new VndErrors(logref, e.getMessage());
+	}
+
+	@ResponseBody
+	@ExceptionHandler
+	@ResponseStatus(HttpStatus.NOT_FOUND)
+	public VndErrors onNoSuchStepExecutionException(NoSuchStepExecutionException e) {
 		String logref = log(e);
 		return new VndErrors(logref, e.getMessage());
 	}

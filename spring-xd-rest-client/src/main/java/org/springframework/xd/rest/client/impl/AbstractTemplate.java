@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.batch.admin.history.StepExecutionHistory;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobInstance;
@@ -40,6 +41,7 @@ import org.springframework.xd.rest.client.impl.support.JobExecutionJacksonMixIn;
 import org.springframework.xd.rest.client.impl.support.JobInstanceJacksonMixIn;
 import org.springframework.xd.rest.client.impl.support.JobParameterJacksonMixIn;
 import org.springframework.xd.rest.client.impl.support.JobParametersJacksonMixIn;
+import org.springframework.xd.rest.client.impl.support.StepExecutionHistoryJacksonMixIn;
 import org.springframework.xd.rest.client.impl.support.StepExecutionJacksonMixIn;
 import org.springframework.xd.rest.client.util.RestTemplateMessageConverterUtil;
 
@@ -90,6 +92,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 				objectMapper.addMixInAnnotations(JobParameter.class, JobParameterJacksonMixIn.class);
 				objectMapper.addMixInAnnotations(JobInstance.class, JobInstanceJacksonMixIn.class);
 				objectMapper.addMixInAnnotations(StepExecution.class, StepExecutionJacksonMixIn.class);
+				objectMapper.addMixInAnnotations(StepExecutionHistory.class, StepExecutionHistoryJacksonMixIn.class);
 				objectMapper.addMixInAnnotations(ExecutionContext.class, ExecutionContextJacksonMixIn.class);
 				objectMapper.addMixInAnnotations(ExitStatus.class, ExitStatusJacksonMixIn.class);
 			}

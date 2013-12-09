@@ -81,12 +81,12 @@ public class HttpSource extends AbstractModuleFixture {
 	public HttpSource postData(String payload) {
 		String command = String.format(
 				"http post --target http://localhost:%d --data \"%s\"",
-				port, payload);
+				port, payload.replaceAll("\"", "\\\\\""));
 		if (contentType != null) {
 			command += String.format(" --contentType \"%s\"", contentType);
 		}
 		CommandResult result = shell.executeCommand(command);
-		Assert.isTrue(result.isSuccess());
+		Assert.isTrue(result.isSuccess(), "http post failed. Command result: " + result.getException());
 		return this;
 	}
 

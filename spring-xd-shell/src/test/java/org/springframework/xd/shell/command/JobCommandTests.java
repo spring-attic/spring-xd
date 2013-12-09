@@ -34,7 +34,6 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
-
 import org.springframework.batch.core.JobParameter;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.xd.shell.util.Table;
@@ -142,7 +141,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		final JobParametersHolder jobParametersHolder = new JobParametersHolder();
 		CommandResult cr = getShell().executeCommand("job create --definition \"barsdaf\" --name " + generateJobName());
 		checkForFail(cr);
-		checkErrorMessages(cr, "Module definition is missing");
+		checkErrorMessages(cr, "Could not find module with name 'barsdaf'");
 		assertFalse("Job did not complete within time alotted", jobParametersHolder.isDone());
 	}
 

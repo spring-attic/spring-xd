@@ -222,7 +222,8 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 		String streamName = generateStreamName();
 		CommandResult cr = getShell().executeCommand(
 				String.format("stream create --name " + streamName
-						+ " --definition \"trigger --payload='%s' > " + getJobLaunchQueue(jobName) + "\"", parameters));
+						+ " --definition \"trigger --payload='%s' > " + getJobLaunchQueue(jobName) + "\"",
+						parameters.replaceAll("\"", "\\\\\"")));
 		streams.add(streamName);
 		checkForSuccess(cr);
 	}

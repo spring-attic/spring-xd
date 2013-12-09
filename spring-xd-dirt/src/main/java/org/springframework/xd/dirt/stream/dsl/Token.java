@@ -21,7 +21,7 @@ package org.springframework.xd.dirt.stream.dsl;
  * 
  * @author Andy Clement
  */
-class Token {
+public class Token {
 
 	TokenKind kind; // the kind of token
 

@@ -138,7 +138,7 @@ public class XDStreamParser implements XDParser {
 		int index = request.getIndex();
 		List<ModuleDefinition> defs = moduleDefinitionRepository.findByName(name);
 		if (defs.size() == 0) {
-			throw new RuntimeException("Module definition is missing for " + name);
+			throw new NoSuchModuleException(name);
 		}
 		if (defs.size() == 1) {
 			type = defs.get(0).getType();

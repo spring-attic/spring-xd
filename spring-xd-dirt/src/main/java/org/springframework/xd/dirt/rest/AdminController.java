@@ -18,9 +18,12 @@ package org.springframework.xd.dirt.rest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.EntityLinks;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.xd.rest.client.domain.CompletionKind;
 import org.springframework.xd.rest.client.domain.DetailedJobInfoResource;
 import org.springframework.xd.rest.client.domain.JobDefinitionResource;
 import org.springframework.xd.rest.client.domain.JobExecutionInfoResource;
@@ -60,6 +63,13 @@ public class AdminController {
 		xdRuntime.add(entityLinks.linkFor(ModuleDefinitionResource.class).withRel("modules"));
 		xdRuntime.add(entityLinks.linkFor(RuntimeModuleInfoResource.class).withRel("runtime/modules"));
 		xdRuntime.add(entityLinks.linkFor(RuntimeContainerInfoResource.class).withRel("runtime/containers"));
+
+		for (CompletionKind k : CompletionKind.values()) {
+			Object mi = ControllerLinkBuilder.methodOn(CompletionsController.class).completions(k, "");
+			Link link = ControllerLinkBuilder.linkTo(mi).withRel(String.format("completions/%s", k));
+			xdRuntime.add(link);
+		}
+
 
 		xdRuntime.add(entityLinks.linkFor(CounterResource.class).withRel("counters"));
 		xdRuntime.add(entityLinks.linkFor(FieldValueCounterResource.class).withRel("field-value-counters"));

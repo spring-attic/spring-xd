@@ -21,6 +21,7 @@ import java.net.URI;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.xd.rest.client.AggregateCounterOperations;
+import org.springframework.xd.rest.client.CompletionOperations;
 import org.springframework.xd.rest.client.CounterOperations;
 import org.springframework.xd.rest.client.FieldValueCounterOperations;
 import org.springframework.xd.rest.client.GaugeOperations;
@@ -84,6 +85,11 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 	 */
 	private RichGaugeOperations richGaugeOperations;
 
+	/**
+	 * Holds the code completion related part of the API.
+	 */
+	private CompletionOperations completionOperations;
+
 	public SpringXDTemplate(ClientHttpRequestFactory factory, URI baseURI) {
 		super(factory);
 		XDRuntime xdRuntime = restTemplate.getForObject(baseURI, XDRuntime.class);
@@ -94,12 +100,16 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 		resources.put("runtime/containers", URI.create(xdRuntime.getLink("runtime/containers").getHref()));
 		resources.put("runtime/modules", URI.create(xdRuntime.getLink("runtime/modules").getHref()));
 		resources.put("modules", URI.create(xdRuntime.getLink("modules").getHref()));
+		resources.put("completions/stream", URI.create(xdRuntime.getLink("completions/stream").getHref()));
+		resources.put("completions/job", URI.create(xdRuntime.getLink("completions/job").getHref()));
+		resources.put("completions/module", URI.create(xdRuntime.getLink("completions/module").getHref()));
 
 		resources.put("counters", URI.create(xdRuntime.getLink("counters").getHref()));
 		resources.put("field-value-counters", URI.create(xdRuntime.getLink("field-value-counters").getHref()));
 		resources.put("aggregate-counters", URI.create(xdRuntime.getLink("aggregate-counters").getHref()));
 		resources.put("gauges", URI.create(xdRuntime.getLink("gauges").getHref()));
 		resources.put("richgauges", URI.create(xdRuntime.getLink("richgauges").getHref()));
+
 
 		streamOperations = new StreamTemplate(this);
 		jobOperations = new JobTemplate(this);
@@ -110,6 +120,7 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 		richGaugeOperations = new RichGaugeTemplate(this);
 		moduleOperations = new ModuleTemplate(this);
 		runtimeOperations = new RuntimeTemplate(this);
+		completionOperations = new CompletionTemplate(this);
 	}
 
 	public SpringXDTemplate(URI baseURI) {
@@ -159,5 +170,10 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 	@Override
 	public RichGaugeOperations richGaugeOperations() {
 		return richGaugeOperations;
+	}
+
+	@Override
+	public CompletionOperations completionOperations() {
+		return completionOperations;
 	}
 }

@@ -23,7 +23,11 @@ import java.io.InputStreamReader;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.Collections;
+import java.util.HashMap;
 
+import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.type.TypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -58,6 +62,8 @@ public class HttpCommands implements CommandMarker {
 
 	private static final String POST_HTTPSOURCE = "http post";
 
+	private static final String GET_HTTPSOURCE = "http get";
+
 	@CliCommand(value = { POST_HTTPSOURCE }, help = "POST data to http endpoint")
 	public String postHttp(
 			@CliOption(mandatory = false, key = { "", "target" }, help = "the location to post to", unspecifiedDefaultValue = "http://localhost:9000") String target,
@@ -79,28 +85,14 @@ public class HttpCommands implements CommandMarker {
 
 		final StringBuilder buffer = new StringBuilder();
 		URI requestURI = URI.create(target);
-		RestTemplate restTemplate = new RestTemplate();
 
 		final HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(mediaType);
 		final HttpEntity<String> request = new HttpEntity<String>(data, headers);
 
 		try {
-			restTemplate.setErrorHandler(new ResponseErrorHandler() {
-
-				@Override
-				public boolean hasError(ClientHttpResponse response) throws IOException {
-					HttpStatus status = response.getStatusCode();
-					return (status == HttpStatus.BAD_GATEWAY || status == HttpStatus.GATEWAY_TIMEOUT || status == HttpStatus.INTERNAL_SERVER_ERROR);
-				}
-
-				@Override
-				public void handleError(ClientHttpResponse response) throws IOException {
-					outputError(response.getStatusCode(), buffer);
-				}
-			});
 			outputRequest("POST", requestURI, mediaType, data, buffer);
-			ResponseEntity<String> response = restTemplate.postForEntity(requestURI, request, String.class);
+			ResponseEntity<String> response = createRestTemplate(buffer).postForEntity(requestURI, request, String.class);
 			outputResponse(response, buffer);
 			if (!response.getStatusCode().equals(HttpStatus.OK)) {
 				buffer.append(OsUtils.LINE_SEPARATOR).append(
@@ -116,17 +108,79 @@ public class HttpCommands implements CommandMarker {
 		}
 	}
 
+	@CliCommand(value = { GET_HTTPSOURCE }, help = "Make GET request to http endpoint")
+	public String getHttp(
+			@CliOption(mandatory = false, key = { "", "target" }, help = "the URL to make the request to", unspecifiedDefaultValue = "http://localhost:9393") String target)
+			throws IOException {
+
+		final StringBuilder buffer = new StringBuilder();
+		URI requestURI = URI.create(target);
+
+		try {
+			outputRequest("GET", requestURI, null, "", buffer);
+			ResponseEntity<String> response = createRestTemplate(buffer).getForEntity(requestURI, String.class);
+			outputResponse(response, buffer);
+			if (!response.getStatusCode().equals(HttpStatus.OK)) {
+				buffer.append(OsUtils.LINE_SEPARATOR).append(
+						String.format("Error sending request to '%s'", target));
+			}
+			return buffer.toString();
+		}
+		catch (ResourceAccessException e) {
+			return String.format(buffer.toString() + "Failed to access http endpoint %s", target);
+		}
+		catch (Exception e) {
+			return String.format(buffer.toString() + "Failed to get data from http endpoint %s", target);
+		}
+	}
+
+	private RestTemplate createRestTemplate(final StringBuilder buffer) {
+		RestTemplate restTemplate = new RestTemplate();
+
+		restTemplate.setErrorHandler(new ResponseErrorHandler() {
+			@Override
+			public boolean hasError(ClientHttpResponse response) throws IOException {
+				HttpStatus status = response.getStatusCode();
+				return (status == HttpStatus.BAD_GATEWAY || status == HttpStatus.GATEWAY_TIMEOUT || status == HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+
+			@Override
+			public void handleError(ClientHttpResponse response) throws IOException {
+				outputError(response.getStatusCode(), buffer);
+			}
+		});
+
+		return restTemplate;
+	}
+
 	private void outputRequest(String method, URI requestUri, MediaType mediaType, String requestData,
 			StringBuilder buffer) {
-		buffer.append("> ").append(method).append(" (").append(mediaType.toString()).append(") ").append(
-				requestUri.toString()).append(" ").append(requestData).append(OsUtils.LINE_SEPARATOR);
+		buffer.append("> ").append(method).append(' ');
+		if (mediaType != null) {
+			buffer.append("(").append(mediaType.toString()).append(") ");
+		}
+		buffer.append(requestUri.toString()).append(" ").append(requestData).append(OsUtils.LINE_SEPARATOR);
 	}
 
 	private void outputResponse(ResponseEntity<String> response, StringBuilder buffer) {
 		buffer.append("> ").append(response.getStatusCode().value()).append(" ").append(response.getStatusCode().name()).append(
 				OsUtils.LINE_SEPARATOR);
-		if (null != response.getBody()) {
-			buffer.append(response.getBody());
+		String maybeJson = response.getBody();
+		if (maybeJson != null) {
+			buffer.append(prettyPrintIfJson(maybeJson));
+		}
+	}
+
+	private String prettyPrintIfJson(String maybeJson) {
+		JsonFactory factory = new JsonFactory();
+		ObjectMapper mapper = new ObjectMapper(factory);
+		TypeReference<HashMap<String,Object>> typeRef = new TypeReference<HashMap<String,Object>>() {};
+		try {
+			return mapper.defaultPrettyPrintingWriter().writeValueAsString(mapper.readValue(maybeJson, typeRef));
+		}
+		catch (IOException e) {
+			// Not JSON? Return unchanged
+			return maybeJson;
 		}
 	}
 

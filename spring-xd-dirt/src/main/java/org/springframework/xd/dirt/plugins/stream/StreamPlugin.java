@@ -87,7 +87,7 @@ public class StreamPlugin implements Plugin {
 		bindProducers(module, bus);
 	}
 
-	private MessageBus findMessageBus(Module module) {
+	protected final MessageBus findMessageBus(Module module) {
 		MessageBus messageBus = null;
 		try {
 			messageBus = module.getComponent(MessageBus.class);

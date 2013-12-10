@@ -253,6 +253,15 @@ public class MessageBusSupportTests {
 		@Override
 		public void bindProducer(String name, MessageChannel channel, boolean aliasHint) {
 		}
+
+		@Override
+		public void bindRequestor(String name, MessageChannel requests, MessageChannel responses) {
+		}
+
+		@Override
+		public void bindResponder(String name, String requestorName, MessageChannel requests, MessageChannel responses) {
+		}
+
 	}
 
 }

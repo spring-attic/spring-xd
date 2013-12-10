@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<!--
+		Test master/slave module. Module instances are peers; one is the master. 
+		Modules may also have standard input/output channels.
+	-->
+
+	<!-- Module Master Part -->
+
+	<int:channel id="requests.out" />
+
+	<int:channel id="responses.in">
+		<int:queue />
+	</int:channel>
+
+	<!-- Module Slave Part -->	
+
+	<int:channel id="requests.in" />
+
+	<int:transformer input-channel="requests.in" output-channel="responses.out" expression="payload.toUpperCase()" />
+
+	<int:channel id="responses.out" />
+
+</beans>

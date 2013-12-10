@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.server.options;
 
+import org.kohsuke.args4j.Option;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 
@@ -28,6 +29,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties
 public class ContainerOptions extends CommonDistributedOptions {
 
+
+	@Option(name = "--transport", usage = "The transport to use for data messages (from node to node)")
 	private DataTransport transport;
 
 	public void setXD_TRANSPORT(DataTransport transport) {

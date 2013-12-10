@@ -104,6 +104,7 @@ ext {
 	javaxMailVersion = '1.5.0'
 	kryoVersion = '2.22'
 	uuidVersion = '3.2'
+	args4jVersion = '2.0.16'
 	singleNodeServerProcess = new SingleNodeServerProcess()
 }
 
@@ -349,6 +350,7 @@ project('spring-xd-dirt') {
 		compile "com.esotericsoftware.kryo:kryo:$kryoVersion"
 		compile "com.lambdaworks:lettuce:$lettuceVersion"
 		compile "commons-lang:commons-lang:2.4"
+		compile "args4j:args4j:$args4jVersion"
 
 		compile "org.hsqldb:hsqldb:$hsqldbVersion"
 		compile "org.springframework.batch:spring-batch-core:$springBatchVersion"

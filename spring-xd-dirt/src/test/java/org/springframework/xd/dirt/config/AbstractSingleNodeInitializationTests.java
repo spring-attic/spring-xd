@@ -24,7 +24,6 @@ import java.util.Arrays;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
@@ -109,8 +108,9 @@ public abstract class AbstractSingleNodeInitializationTests {
 
 	private String[] addArgIfProvided(String[] args, String argName, String argVal) {
 		if (StringUtils.hasText(argVal)) {
-			args = Arrays.copyOf(args, args.length + 1);
-			args[args.length - 1] = "--" + argName + "=" + argVal;
+			args = Arrays.copyOf(args, args.length + 2);
+			args[args.length - 2] = "--" + argName;
+			args[args.length - 1] = argVal;
 		}
 		return args;
 	}

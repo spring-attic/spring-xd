@@ -18,6 +18,7 @@ package org.springframework.xd.dirt.server.options;
 
 import javax.validation.constraints.NotNull;
 
+import org.kohsuke.args4j.Option;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.xd.dirt.server.options.CommonDistributedOptions.Store;
 
@@ -30,7 +31,7 @@ import org.springframework.xd.dirt.server.options.CommonDistributedOptions.Store
  * @author David Turanski
  */
 @ConfigurationProperties
-public class SingleNodeOptions {
+public class SingleNodeOptions extends CommonOptions {
 
 	public static enum Analytics {
 		memory, redis;
@@ -40,13 +41,28 @@ public class SingleNodeOptions {
 		local, rabbit, redis;
 	}
 
+	@Option(name = "--analytics", usage = "How to persist analytics such as counters and gauges")
 	private Analytics analytics;
 
+	@Option(name = "--transport", usage = "The transport to use for data messages (from node to node)")
 	private DataTransport transport;
 
+	@Option(name = "--controlTransport", aliases = "--control-transport", usage = "The transport to use for control messages (between admin and nodes)")
 	private ControlTransport controlTransport;
 
+	@Option(name = "--store", usage = "How to persist admin data")
 	private Store store;
+
+	@Option(name = "--httpPort", usage = "Http port for the REST API server", metaVar = "<httpPort>")
+	private Integer httpPort;
+
+	public Integer getPORT() {
+		return httpPort;
+	}
+
+	public void setPORT(int httpPort) {
+		this.httpPort = httpPort;
+	}
 
 	@NotNull
 	public Analytics getXD_ANALYTICS() {

@@ -32,7 +32,6 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Rule;
-
 import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
@@ -85,12 +84,11 @@ public abstract class AbstractShellIntegrationTest {
 	@BeforeClass
 	public static void startUp() throws InterruptedException, IOException {
 
-		application = new SingleNodeApplication().run("--spring.profiles.active=memory,default,hsqldb",
-				"--XD_STORE=redis",
-				"--XD_ANALYTICS=redis", "--server.port=9292");
-		// TODO: port scanning instead of using 9292
-		Bootstrap bootstrap = new Bootstrap(new String[] { "--port",
-			"9292" });
+		application = new SingleNodeApplication().run("--transport", "local",
+				"--analytics", "redis",
+				"--store", "redis"
+				);
+		Bootstrap bootstrap = new Bootstrap();
 		shell = bootstrap.getJLineShellComponent();
 
 		runtimeInformationRepository = application.getContainerContext().getBean(

@@ -20,7 +20,6 @@ import java.util.Map;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
@@ -56,7 +55,7 @@ public class StreamTestSupport {
 
 	@BeforeClass
 	public static void startXDSingleNode() throws Exception {
-		application = new SingleNodeApplication().run("--spring.profiles.active=memory,hsqldb");
+		application = new SingleNodeApplication().run("--analytics", "memory", "--store", "memory");
 		adminContext = application.getAdminContext();
 		ConfigurableApplicationContext containerContext = application.getContainerContext();
 		ResourceModuleRegistry cp = new ResourceModuleRegistry("classpath:/testmodules/");

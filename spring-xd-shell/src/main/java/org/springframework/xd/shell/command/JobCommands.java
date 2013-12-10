@@ -31,6 +31,7 @@ import org.springframework.xd.rest.client.JobOperations;
 import org.springframework.xd.rest.client.domain.JobDefinitionResource;
 import org.springframework.xd.rest.client.domain.JobExecutionInfoResource;
 import org.springframework.xd.rest.client.domain.StepExecutionInfoResource;
+import org.springframework.xd.rest.client.domain.StepExecutionProgressInfoResource;
 import org.springframework.xd.shell.XDShell;
 import org.springframework.xd.shell.util.CommonUtils;
 import org.springframework.xd.shell.util.Table;
@@ -56,6 +57,8 @@ public class JobCommands implements CommandMarker {
 	private final static String LIST_JOB_EXECUTIONS = "job execution list";
 
 	private final static String LIST_STEP_EXECUTIONS = "job execution step list";
+
+	private final static String PROGRESS_STEP_EXECUTION = "job execution step progress";
 
 	private final static String DISPLAY_JOB_EXECUTION = "job execution display";
 
@@ -177,6 +180,26 @@ public class JobCommands implements CommandMarker {
 			table.getRows().add(row);
 		}
 
+		return table;
+	}
+
+	@CliCommand(value = PROGRESS_STEP_EXECUTION, help = "Get step execution progress info for the given step execution")
+	public Table stepExecutionProgress(
+			@CliOption(mandatory = true, key = { "", "id" }, help = "the id of the step execution") long stepExecutionId,
+			@CliOption(mandatory = true, key = { "jobExecutionId" }, help = "the job execution id") long jobExecutionId) {
+		StepExecutionProgressInfoResource progressInfoResource = jobOperations().stepExecutionProgress(jobExecutionId,
+				stepExecutionId);
+		Table table = new Table();
+		table.addHeader(1, new TableHeader("Id"))
+				.addHeader(2, new TableHeader("Step Name"))
+				.addHeader(3, new TableHeader("Percentage Complete"))
+				.addHeader(4, new TableHeader("Duration"));
+		final TableRow tableRow = new TableRow();
+		tableRow.addValue(1, String.valueOf(progressInfoResource.getStepExecution().getId()))
+				.addValue(2, String.valueOf(progressInfoResource.getStepExecution().getStepName()))
+				.addValue(3, String.format("%.0f%%", progressInfoResource.getPercentageComplete() * 100))
+				.addValue(4, String.format("%.0f ms", progressInfoResource.getDuration()));
+		table.getRows().add(tableRow);
 		return table;
 	}
 

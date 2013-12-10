@@ -16,23 +16,24 @@
 
 package org.springframework.xd.dirt.job;
 
-import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.StepExecution;
 import org.springframework.xd.dirt.core.XDRuntimeException;
 
 /**
- * Thrown when attempting to refer to {@link JobExecution} that does not exist.
+ * Thrown when attempting to refer to {@link StepExecution} that does not exist.
  * 
- * @author Gunnar Hillert
+ * @author Ilayaperumal Gopinathan
  */
 @SuppressWarnings("serial")
-public class NoSuchJobExecutionException extends XDRuntimeException {
+public class NoSuchStepExecutionException extends XDRuntimeException {
 
 	/**
 	 * Create a new exception.
 	 * 
-	 * @param id the id of the {@link JobExecution} that could not be found
+	 * @param id the id of the {@link StepExecution} that could not be found
 	 */
-	public NoSuchJobExecutionException(long id) {
-		super("Could not find jobExecution with id " + id);
+	public NoSuchStepExecutionException(long id) {
+		super("Could not find step execution with id " + id);
 	}
+
 }

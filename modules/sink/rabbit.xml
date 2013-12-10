@@ -16,9 +16,12 @@
 		id="input" amqp-template="rabbitTemplate" exchange-name="${exchange:}"
 		routing-key-expression="${routingKey:'${xd.stream.name}'}" />
 
-	<context:property-placeholder
-		location="${xd.config.home}/rabbit.properties"
+	<context:property-placeholder location="${xd.config.home}/${configProperties:rabbit}.properties"
 		ignore-resource-not-found="true" />
+
+	<rabbit:connection-factory id="rabbitConnectionFactory" host="${host:${spring.rabbitmq.host:localhost}}"
+		port="${port:${spring.rabbitmq.port:5672}}" virtual-host="${virtualHost:${spring.rabbitmq.virtualHost:/}}"
+		username="${username:${spring.rabbitmq.username:guest}}" password="${password:${spring.rabbitmq.password:guest}}"/>
 
 	<beans profile="cloud" xmlns="http://www.springframework.org/schema/beans">
 		<cloud:rabbit-connection-factory id="connectionFactory"

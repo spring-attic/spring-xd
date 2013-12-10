@@ -13,25 +13,28 @@
 
 package org.springframework.xd.dirt.server;
 
+import joptsimple.OptionParser;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.env.JOptCommandLinePropertySource;
+import org.springframework.core.env.StandardEnvironment;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.SubscribableChannel;
+import org.springframework.web.context.support.StandardServletEnvironment;
 import org.springframework.xd.dirt.server.options.SingleNodeOptions;
 import org.springframework.xd.dirt.server.options.SingleNodeOptions.ControlTransport;
 import org.springframework.xd.dirt.util.BannerUtils;
 
 /**
- * Single Node XD Runtime
+ * Single Node XD Runtime.
  * 
  * @author Dave Syer
  * @author David Turanski
  */
-
-
 public class SingleNodeApplication {
 
 	@Value("${XD_CONTROL_TRANSPORT}")
@@ -51,10 +54,25 @@ public class SingleNodeApplication {
 
 		System.out.println(BannerUtils.displayBanner(getClass().getSimpleName(), null));
 
-		SpringApplicationBuilder admin = new SpringApplicationBuilder(SingleNodeOptions.class,
-				ParentConfiguration.class, SingleNodeApplication.class).profiles(
-				AdminServerApplication.ADMIN_PROFILE,
-				SINGLE_PROFILE).child(AdminServerApplication.class);
+		// Disable "standard" cmdline property source and use JOpt
+		StandardEnvironment environment = new StandardEnvironment();
+		OptionParser parser = new OptionParser();
+		parser.accepts("transport").withRequiredArg();
+		parser.accepts("controlTransport").withRequiredArg();
+		parser.accepts("analytics").withRequiredArg();
+		parser.accepts("store").withRequiredArg();
+		parser.allowsUnrecognizedOptions();
+
+		environment.getPropertySources().addFirst(new JOptCommandLinePropertySource(parser.parse(args)));
+
+		SpringApplicationBuilder admin =
+				new SpringApplicationBuilder(SingleNodeOptions.class, ParentConfiguration.class,
+						SingleNodeApplication.class)
+						.profiles(AdminServerApplication.ADMIN_PROFILE, SINGLE_PROFILE)
+						.addCommandLineProperties(false)
+						.environment(environment)
+						.child(AdminServerApplication.class)
+						.environment(new StandardServletEnvironment());
 		admin.run(args);
 
 

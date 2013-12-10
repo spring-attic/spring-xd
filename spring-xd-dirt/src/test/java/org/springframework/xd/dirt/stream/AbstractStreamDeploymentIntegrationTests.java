@@ -28,7 +28,6 @@ import java.util.concurrent.ConcurrentMap;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.support.AbstractApplicationContext;
@@ -67,7 +66,7 @@ public abstract class AbstractStreamDeploymentIntegrationTests {
 	public final void setUp() {
 		String transport = this.getTransport();
 		this.application = new SingleNodeApplication();
-		application.run("--transport=" + transport);
+		application.run("--transport", transport);
 
 		this.context = (AbstractApplicationContext) application.getContainerContext();
 		this.streamDefinitionRepository = context.getBean(StreamDefinitionRepository.class);

@@ -20,18 +20,17 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.SubscribableChannel;
+import org.springframework.xd.dirt.server.options.CommandLinePropertySourceOverridingInitializer;
 import org.springframework.xd.dirt.server.options.SingleNodeOptions;
 import org.springframework.xd.dirt.server.options.SingleNodeOptions.ControlTransport;
 import org.springframework.xd.dirt.util.BannerUtils;
 
 /**
- * Single Node XD Runtime
+ * Single Node XD Runtime.
  * 
  * @author Dave Syer
  * @author David Turanski
  */
-
-
 public class SingleNodeApplication {
 
 	@Value("${XD_CONTROL_TRANSPORT}")
@@ -51,15 +50,24 @@ public class SingleNodeApplication {
 
 		System.out.println(BannerUtils.displayBanner(getClass().getSimpleName(), null));
 
-		SpringApplicationBuilder admin = new SpringApplicationBuilder(SingleNodeOptions.class,
-				ParentConfiguration.class, SingleNodeApplication.class).profiles(
-				AdminServerApplication.ADMIN_PROFILE,
-				SINGLE_PROFILE).child(AdminServerApplication.class);
+
+		CommandLinePropertySourceOverridingInitializer<SingleNodeOptions> commandLineInitializer = new CommandLinePropertySourceOverridingInitializer<SingleNodeOptions>(
+				new SingleNodeOptions());
+
+		SpringApplicationBuilder admin =
+				new SpringApplicationBuilder(SingleNodeOptions.class, ParentConfiguration.class,
+						SingleNodeApplication.class)
+						.initializers(commandLineInitializer)
+						.profiles(AdminServerApplication.ADMIN_PROFILE, SINGLE_PROFILE)
+						.child(SingleNodeOptions.class, AdminServerApplication.class)
+						.initializers(commandLineInitializer);
 		admin.run(args);
 
 		SpringApplicationBuilder container = admin
-				.sibling(LauncherApplication.class).profiles(LauncherApplication.NODE_PROFILE, SINGLE_PROFILE).web(
-						false);
+				.sibling(SingleNodeOptions.class, LauncherApplication.class)
+				.profiles(LauncherApplication.NODE_PROFILE, SINGLE_PROFILE)
+				.initializers(commandLineInitializer)
+				.web(false);
 		container.run(args);
 
 		adminContext = admin.context();
@@ -68,7 +76,7 @@ public class SingleNodeApplication {
 		LauncherApplication.publishContainerStarted(containerContext);
 
 		SingleNodeApplication singleNodeApp = adminContext.getBean(SingleNodeApplication.class);
-		if (singleNodeApp.controlTransport.equals(ControlTransport.local)) {
+		if (singleNodeApp.controlTransport == ControlTransport.local) {
 			setUpControlChannels(adminContext, containerContext);
 		}
 		return this;

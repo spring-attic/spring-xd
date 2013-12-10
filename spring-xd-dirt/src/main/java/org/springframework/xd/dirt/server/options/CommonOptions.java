@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,29 +17,21 @@
 package org.springframework.xd.dirt.server.options;
 
 import org.kohsuke.args4j.Option;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-
 
 /**
- * Holds configuration options that are valid for the Container node, when using distributed mode.
+ * Base class for command line options that are common to absolutely every setup (single and distributed).
  * 
  * @author Eric Bottard
- * @author David Turanski
  */
-@ConfigurationProperties
-public class ContainerOptions extends CommonDistributedOptions {
+public class CommonOptions {
+
+	@Option(name = "--help", usage = "Show this help screen", aliases = { "-?", "-h" })
+	private boolean showHelp = false;
 
 
-	@Option(name = "--transport", usage = "The transport to use for data messages (from node to node)")
-	private DataTransport transport;
-
-	public void setXD_TRANSPORT(DataTransport transport) {
-		this.transport = transport;
+	// Using wrapped here so that "showHelp" is not returned as a property by BeanPropertiesPropertySource
+	public Boolean isShowHelp() {
+		return showHelp ? true : null;
 	}
-
-	public DataTransport getXD_TRANSPORT() {
-		return this.transport;
-	}
-
 
 }

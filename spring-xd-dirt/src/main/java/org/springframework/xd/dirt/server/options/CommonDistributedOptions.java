@@ -18,6 +18,8 @@ package org.springframework.xd.dirt.server.options;
 
 import javax.validation.constraints.NotNull;
 
+import org.kohsuke.args4j.Option;
+
 
 /**
  * Holds options that are common to both admin and container servers, when used in distributed mode. Note that single
@@ -25,7 +27,7 @@ import javax.validation.constraints.NotNull;
  * 
  * @author Eric Bottard
  */
-public class CommonDistributedOptions {
+public class CommonDistributedOptions extends CommonOptions {
 
 	public static enum Analytics {
 		// note: memory is NOT an option here
@@ -36,18 +38,20 @@ public class CommonDistributedOptions {
 		rabbit, redis
 	}
 
-	private ControlTransport controlTransport;
-
 	// Should be pushed down to AdminOptions but currently
 	// can't b/c of the way container runtime info is persisted
 	public static enum Store {
 		memory, redis;
 	}
 
+	@Option(name = "--analytics", usage = "How to persist analytics such as counters and gauges")
 	private Analytics analytics;
 
-
+	@Option(name = "--store", usage = "How to persist admin data")
 	private Store store;
+
+	@Option(name = "--controlTransport", aliases = "--control-transport", usage = "The transport to use for control messages (between admin and nodes)")
+	private ControlTransport controlTransport;
 
 	@NotNull
 	public Analytics getXD_ANALYTICS() {

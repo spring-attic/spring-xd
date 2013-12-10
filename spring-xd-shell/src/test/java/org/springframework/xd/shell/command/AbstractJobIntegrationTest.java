@@ -163,7 +163,7 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 
 	protected void executemyJobFixedDelayStream(String fixedDelay) {
 		CommandResult cr = getShell().executeCommand(
-				"stream create --name me-Try2 --definition \"fixed-delay-trigger --fixedDelay=" + fixedDelay
+				"stream create --name me-Try2 --definition \"trigger --fixedDelay=" + fixedDelay
 						+ " > queue:job:myJob\"");
 		checkForSuccess(cr);
 	}

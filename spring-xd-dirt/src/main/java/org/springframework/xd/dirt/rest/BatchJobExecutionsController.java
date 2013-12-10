@@ -120,7 +120,7 @@ public class BatchJobExecutionsController {
 	 * 
 	 * @param jobExecutionId the executionId of the job execution to stop
 	 */
-	@RequestMapping(value = { "/{executionId}" }, method = RequestMethod.DELETE)
+	@RequestMapping(value = { "/{executionId}" }, method = RequestMethod.PUT)
 	@ResponseStatus(HttpStatus.OK)
 	public void stopJobExecution(@PathVariable("executionId") Long jobExecutionId) {
 		try {

@@ -31,6 +31,7 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.util.Assert;
 import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.ModuleType;
@@ -76,6 +77,15 @@ public class JobPlugin extends AbstractPlugin {
 
 	private static final String JOB_NOTIFICATIONS_CHANNEL = "notifications";
 
+	private static final String JOB_PARTIONER_REQUEST_CHANNEL = "stepExecutions.output";
+
+	private static final String JOB_PARTIONER_REPLY_CHANNEL = "stepExecutionResults.input";
+
+	private static final String JOB_STEP_EXECUTION_REQUEST_CHANNEL = "stepExecutions.input";
+
+	private static final String JOB_STEP_EXECUTION_REPLY_CHANNEL = "stepExecutionResults.output";
+
+
 	private final static Collection<MediaType> DEFAULT_ACCEPTED_CONTENT_TYPES = Collections.singletonList(MediaType.ALL);
 
 	@Override
@@ -113,7 +123,40 @@ public class JobPlugin extends AbstractPlugin {
 				bus.bindProducer(JOB_CHANNEL_PREFIX + md.getGroup() + NOTIFICATION_CHANNEL_SUFFIX,
 						notificationsChannel, true);
 			}
+
+			if (module.getComponent(JOB_PARTIONER_REQUEST_CHANNEL, MessageChannel.class) != null) {
+				this.processPartitionedJob(module, md, bus);
+			}
 		}
+	}
+
+	private void processPartitionedJob(Module module, DeploymentMetadata md, MessageBus bus) {
+		MessageChannel partitionsOut = module.getComponent(JOB_PARTIONER_REQUEST_CHANNEL, MessageChannel.class);
+		Assert.notNull(partitionsOut, "Partitioned jobs must have a " + JOB_PARTIONER_REQUEST_CHANNEL);
+		if (logger.isDebugEnabled()) {
+			logger.debug("binding job partitioning channels for " + module);
+		}
+		MessageChannel partitionsIn = module.getComponent(JOB_PARTIONER_REPLY_CHANNEL, MessageChannel.class);
+		Assert.notNull(partitionsIn, "Partitioned jobs must have a " + JOB_PARTIONER_REPLY_CHANNEL);
+		String name = this.partitionerName(md);
+		bus.bindRequestor(name, partitionsOut, partitionsIn);
+
+		MessageChannel stepExcutionsIn = module.getComponent(JOB_STEP_EXECUTION_REQUEST_CHANNEL, MessageChannel.class);
+		Assert.notNull(stepExcutionsIn, "Partitioned jobs must have a " + JOB_STEP_EXECUTION_REQUEST_CHANNEL);
+		MessageChannel stepExecutionResultsOut = module.getComponent(JOB_STEP_EXECUTION_REPLY_CHANNEL,
+				MessageChannel.class);
+		Assert.notNull(stepExecutionResultsOut, "Partitioned jobs must have a " + JOB_STEP_EXECUTION_REPLY_CHANNEL);
+		name = this.replierName(md);
+		String requestorName = this.partitionerName(md);
+		bus.bindReplier(name, requestorName, stepExcutionsIn, stepExecutionResultsOut);
+	}
+
+	private String partitionerName(DeploymentMetadata md) {
+		return md.getGroup() + "." + md.getIndex() + ".partitioner";
+	}
+
+	private String replierName(DeploymentMetadata md) {
+		return md.getGroup() + "." + md.getIndex() + ".stepExecutor";
 	}
 
 	@Override

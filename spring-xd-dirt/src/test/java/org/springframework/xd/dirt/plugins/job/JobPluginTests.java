@@ -17,8 +17,11 @@
 package org.springframework.xd.dirt.plugins.job;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
+import static org.springframework.integration.test.matcher.PayloadMatcher.hasPayload;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -44,8 +47,12 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.x.bus.LocalMessageBus;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.xd.dirt.server.AdminServerApplication;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.ModuleDefinition;
@@ -176,6 +183,31 @@ public class JobPluginTests {
 	}
 
 	@Test
+	public void partitionedJob() {
+		Module module = Mockito.mock(Module.class);
+		when(module.getType()).thenReturn(ModuleType.job);
+		Properties properties = new Properties();
+		when(module.getProperties()).thenReturn(properties);
+		when(module.getDeploymentMetadata()).thenReturn(new DeploymentMetadata("partitionedJob", 0));
+		MessageBus bus = new LocalMessageBus();
+		when(module.getComponent(MessageBus.class)).thenReturn(bus);
+		MessageChannel stepsOut = new DirectChannel();
+		when(module.getComponent("stepExecutions.output", MessageChannel.class)).thenReturn(stepsOut);
+		PollableChannel stepResultsIn = new QueueChannel();
+		when(module.getComponent("stepExecutionResults.input", MessageChannel.class)).thenReturn(stepResultsIn);
+		PollableChannel stepsIn = new QueueChannel();
+		when(module.getComponent("stepExecutions.input", MessageChannel.class)).thenReturn(stepsIn);
+		MessageChannel stepResultsOut = new DirectChannel();
+		when(module.getComponent("stepExecutionResults.output", MessageChannel.class)).thenReturn(stepResultsOut);
+		plugin.preProcessModule(module);
+		plugin.postProcessModule(module);
+		stepsOut.send(new GenericMessage<String>("foo"));
+		assertThat(stepsIn.receive(10000), hasPayload("foo"));
+		stepResultsOut.send(new GenericMessage<String>("bar"));
+		assertThat(stepResultsIn.receive(10000), hasPayload("bar"));
+	}
+
+	@Test
 	public void streamComponentsAdded() {
 
 		Module module = Mockito.mock(Module.class);
@@ -294,5 +326,17 @@ public class JobPluginTests {
 		public List<String> getProducerNames() {
 			return producerNames;
 		}
+
+		@Override
+		public void bindRequestor(String name, MessageChannel requests, MessageChannel replies) {
+			Assert.fail("Should be not be called.");
+		}
+
+		@Override
+		public void bindReplier(String name, String requestorName, MessageChannel requests, MessageChannel replies) {
+			Assert.fail("Should be not be called.");
+		}
+
 	}
+
 }

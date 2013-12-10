@@ -237,6 +237,14 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 	}
 
 	@Test
+	public void testLaunchPartitionedJob() {
+		logger.info("Launch Partitioned batch job");
+		executeJobCreate(MY_JOB_WITH_PARTITIONS, JOB_WITH_PARTITIONS_DESCRIPTOR);
+		checkForJobInList(MY_JOB_WITH_PARTITIONS, JOB_WITH_PARTITIONS_DESCRIPTOR, true);
+		executeJobLaunch(MY_JOB_WITH_PARTITIONS);
+	}
+
+	@Test
 	public void testLaunchNotDeployedJob() {
 		logger.info("Launch batch job that is not deployed");
 		executeJobCreate(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR, false);

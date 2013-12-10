@@ -14,6 +14,10 @@
 package org.springframework.integration.x.bus;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
@@ -23,6 +27,7 @@ import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.http.MediaType;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.ExecutorChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
@@ -31,7 +36,10 @@ import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.x.bus.serializer.MultiTypeCodec;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.SubscribableChannel;
 import org.springframework.util.Assert;
 
 /**
@@ -55,6 +63,12 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 	private int queueSize = Integer.MAX_VALUE;
 
 	private PollerMetadata poller;
+
+	private final Map<String, ExecutorChannel> requestChannels = new HashMap<String, ExecutorChannel>();
+
+	private final Map<String, ExecutorChannel> replyChannels = new HashMap<String, ExecutorChannel>();
+
+	private volatile ExecutorService executor = Executors.newCachedThreadPool();
 
 	/**
 	 * Used in the canonical case, when the binding does not involve an alias name.
@@ -184,6 +198,55 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 		Assert.notNull(moduleOutputChannel, "channel must not be null");
 		AbstractMessageChannel registeredChannel = channelProvider.lookupOrCreateSharedChannel(name);
 		bridge(moduleOutputChannel, registeredChannel, "outbound." + registeredChannel.getComponentName());
+	}
+
+	@Override
+	public void bindRequestor(final String name, MessageChannel requests, final MessageChannel replies) {
+		// TODO: handle Pollable ?
+		final ExecutorChannel requestChannel = new ExecutorChannel(this.executor);
+		Assert.isTrue(this.requestChannels.put(name, requestChannel) == null, "requestor " + name + " is already bound");
+		Assert.isInstanceOf(SubscribableChannel.class, requests);
+		((SubscribableChannel) requests).subscribe(new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				requestChannel.send(message);
+			}
+		});
+		ExecutorChannel replyChannel = new ExecutorChannel(this.executor);
+		Assert.isTrue(this.replyChannels.put(name, replyChannel) == null, "requestor " + name + " is already bound");
+		replyChannel.subscribe(new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				replies.send(message);
+			}
+		});
+	}
+
+	@Override
+	public void bindReplier(String name, String requestorName, final MessageChannel requests, MessageChannel replies) {
+		SubscribableChannel requestChannel = this.requestChannels.get(requestorName);
+		Assert.notNull(requestChannel, requestorName + " is not bound");
+		requestChannel.subscribe(new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				requests.send(message);
+			}
+		});
+
+		// TODO: handle Pollable ?
+		Assert.isInstanceOf(SubscribableChannel.class, replies);
+		final SubscribableChannel replyChannel = this.replyChannels.get(requestorName);
+		Assert.notNull(replyChannel, requestorName + " is not bound");
+		((SubscribableChannel) replies).subscribe(new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				replyChannel.send(message);
+			}
+		});
 	}
 
 	protected <T extends AbstractMessageChannel> T createSharedChannel(String name, Class<T> requiredType) {

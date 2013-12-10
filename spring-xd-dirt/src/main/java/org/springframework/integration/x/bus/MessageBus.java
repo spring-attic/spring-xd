@@ -101,4 +101,8 @@ public interface MessageBus {
 	 */
 	void unbindProducer(String name, MessageChannel channel);
 
+	void bindRequestor(String name, MessageChannel requests, MessageChannel replies);
+
+	void bindReplier(String name, String requestorName, MessageChannel requests, MessageChannel replies);
+
 }

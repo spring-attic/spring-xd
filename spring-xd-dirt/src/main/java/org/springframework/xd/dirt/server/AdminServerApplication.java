@@ -59,6 +59,7 @@ public class AdminServerApplication {
 		parser.accepts("controlTransport").withRequiredArg();
 		parser.accepts("analytics").withRequiredArg();
 		parser.accepts("store").withRequiredArg();
+		parser.allowsUnrecognizedOptions();
 
 		environment.getPropertySources().addFirst(new JOptCommandLinePropertySource(parser.parse(args)));
 

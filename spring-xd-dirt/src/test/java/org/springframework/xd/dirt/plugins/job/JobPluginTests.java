@@ -17,12 +17,16 @@
 package org.springframework.xd.dirt.plugins.job;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
+import static org.springframework.integration.test.matcher.PayloadMatcher.hasPayload;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import org.junit.After;
@@ -44,8 +48,15 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.x.bus.LocalMessageBus;
 import org.springframework.integration.x.bus.MessageBus;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.xd.dirt.server.AdminServerApplication;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.ModuleDefinition;
@@ -176,6 +187,50 @@ public class JobPluginTests {
 	}
 
 	@Test
+	public void partitionedJob() {
+		Module module = Mockito.mock(Module.class);
+		when(module.getType()).thenReturn(ModuleType.job);
+		Properties properties = new Properties();
+		when(module.getProperties()).thenReturn(properties);
+		when(module.getDeploymentMetadata()).thenReturn(new DeploymentMetadata("partitionedJob", 0));
+		MessageBus bus = getMessageBus();
+		when(module.getComponent(MessageBus.class)).thenReturn(bus);
+		MessageChannel stepsOut = new DirectChannel();
+		when(module.getComponent("stepExecutionRequests.output", MessageChannel.class)).thenReturn(stepsOut);
+		PollableChannel stepResultsIn = new QueueChannel();
+		when(module.getComponent("stepExecutionReplies.input", MessageChannel.class)).thenReturn(stepResultsIn);
+		PollableChannel stepsIn = new QueueChannel();
+		when(module.getComponent("stepExecutionRequests.input", MessageChannel.class)).thenReturn(stepsIn);
+		MessageChannel stepResultsOut = new DirectChannel();
+		when(module.getComponent("stepExecutionReplies.output", MessageChannel.class)).thenReturn(stepResultsOut);
+		plugin.preProcessModule(module);
+		plugin.postProcessModule(module);
+		checkBusBound(bus);
+		stepsOut.send(new GenericMessage<String>("foo"));
+		Message<?> stepExecutionRequest = stepsIn.receive(10000);
+		assertThat(stepExecutionRequest, hasPayload("foo"));
+		stepResultsOut.send(MessageBuilder.withPayload("bar")
+				.copyHeaders(stepExecutionRequest.getHeaders()) // replyTo
+				.build());
+		assertThat(stepResultsIn.receive(10000), hasPayload("bar"));
+		plugin.removeModule(module);
+		checkBusUnbound(bus);
+	}
+
+
+	protected MessageBus getMessageBus() {
+		return new LocalMessageBus();
+	}
+
+	protected void checkBusBound(MessageBus bus) {
+		assertEquals(2, TestUtils.getPropertyValue(bus, "requestReplyChannels", Map.class).size());
+	}
+
+	protected void checkBusUnbound(MessageBus bus) {
+		assertEquals(0, TestUtils.getPropertyValue(bus, "requestReplyChannels", Map.class).size());
+	}
+
+	@Test
 	public void streamComponentsAdded() {
 
 		Module module = Mockito.mock(Module.class);
@@ -228,6 +283,7 @@ public class JobPluginTests {
 		doReturn(messageBus).when(spiedModule).getComponent(MessageBus.class);
 		doReturn(inputChannel).when(spiedModule).getComponent("input", MessageChannel.class);
 		doReturn(notificationChannel).when(spiedModule).getComponent("notifications", MessageChannel.class);
+		doReturn(null).when(spiedModule).getComponent("stepExecutionRequests.output", MessageChannel.class);
 
 		plugin.postProcessModule(spiedModule);
 
@@ -254,7 +310,7 @@ public class JobPluginTests {
 		@Override
 		public void bindPubSubConsumer(String name, MessageChannel inputChannel,
 				Collection<MediaType> acceptedMediaTypes) {
-			Assert.fail("Should be not be called.");
+			Assert.fail("Should not be called.");
 		}
 
 		@Override
@@ -264,7 +320,7 @@ public class JobPluginTests {
 
 		@Override
 		public void bindPubSubProducer(String name, MessageChannel outputChannel) {
-			Assert.fail("Should be not be called.");
+			Assert.fail("Should not be called.");
 		}
 
 		@Override
@@ -274,17 +330,17 @@ public class JobPluginTests {
 
 		@Override
 		public void unbindProducers(String name) {
-			Assert.fail("Should be not be called.");
+			Assert.fail("Should not be called.");
 		}
 
 		@Override
 		public void unbindConsumer(String name, MessageChannel channel) {
-			Assert.fail("Should be not be called.");
+			Assert.fail("Should not be called.");
 		}
 
 		@Override
 		public void unbindProducer(String name, MessageChannel channel) {
-			Assert.fail("Should be not be called.");
+			Assert.fail("Should not be called.");
 		}
 
 		public List<String> getConsumerNames() {
@@ -294,5 +350,17 @@ public class JobPluginTests {
 		public List<String> getProducerNames() {
 			return producerNames;
 		}
+
+		@Override
+		public void bindRequestor(String name, MessageChannel requests, MessageChannel replies) {
+			Assert.fail("Should not be called.");
+		}
+
+		@Override
+		public void bindReplier(String name, MessageChannel requests, MessageChannel replies) {
+			Assert.fail("Should not be called.");
+		}
+
 	}
+
 }

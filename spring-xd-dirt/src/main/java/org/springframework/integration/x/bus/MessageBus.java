@@ -101,4 +101,23 @@ public interface MessageBus {
 	 */
 	void unbindProducer(String name, MessageChannel channel);
 
+	/**
+	 * Bind a producer that expects async replies. To unbind, invoke unbindProducer() and unbindConsumer().
+	 * 
+	 * @param name The name of the requestor.
+	 * @param requests The request channel - sends requests.
+	 * @param replies The reply channel - receives replies.
+	 */
+	void bindRequestor(String name, MessageChannel requests, MessageChannel replies);
+
+	/**
+	 * Bind a consumer that handles requests from a requestor and asynchronously sends replies. To unbind, invoke
+	 * unbindProducer() and unbindConsumer().
+	 * 
+	 * @param name The name of the requestor for which this replier will handle requests.
+	 * @param requests The request channel - receives requests.
+	 * @param replies The reply channel - sends replies.
+	 */
+	void bindReplier(String name, MessageChannel requests, MessageChannel replies);
+
 }

@@ -97,8 +97,8 @@ public class BatchJobsControllerIntegrationTests extends AbstractControllerInteg
 		parametersMap1.put("param2", new JobParameter(123l, false));
 		JobParameters jobParameters1 = new JobParameters(parametersMap1);
 		JobParameters jobParameters2 = new JobParameters(parametersMap1);
-		JobExecution jobExecution1 = new JobExecution(jobInstance1, 0l, jobParameters1);
-		JobExecution jobExecution2 = new JobExecution(jobInstance2, 3l, jobParameters2);
+		JobExecution jobExecution1 = new JobExecution(jobInstance1, 0l, jobParameters1, null);
+		JobExecution jobExecution2 = new JobExecution(jobInstance2, 3l, jobParameters2, null);
 
 		// Verify XD-999
 		StepExecution stepExecution = new StepExecution("s1", jobExecution2);

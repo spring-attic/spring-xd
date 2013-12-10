@@ -14,6 +14,10 @@
 package org.springframework.integration.x.bus;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
@@ -23,6 +27,7 @@ import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.http.MediaType;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.ExecutorChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
@@ -31,7 +36,10 @@ import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.x.bus.serializer.MultiTypeCodec;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.SubscribableChannel;
 import org.springframework.util.Assert;
 
 /**
@@ -55,6 +63,10 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 	private int queueSize = Integer.MAX_VALUE;
 
 	private PollerMetadata poller;
+
+	private final Map<String, ExecutorChannel> requestReplyChannels = new HashMap<String, ExecutorChannel>();
+
+	private volatile ExecutorService executor = Executors.newCachedThreadPool();
 
 	/**
 	 * Used in the canonical case, when the binding does not involve an alias name.
@@ -184,6 +196,70 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 		Assert.notNull(moduleOutputChannel, "channel must not be null");
 		AbstractMessageChannel registeredChannel = channelProvider.lookupOrCreateSharedChannel(name);
 		bridge(moduleOutputChannel, registeredChannel, "outbound." + registeredChannel.getComponentName());
+	}
+
+	@Override
+	public void bindRequestor(final String name, MessageChannel requests, final MessageChannel replies) {
+		final MessageChannel requestChannel = this.findOrCreateRequestReplyChannel("requestor." + name);
+		// TODO: handle Pollable ?
+		Assert.isInstanceOf(SubscribableChannel.class, requests);
+		((SubscribableChannel) requests).subscribe(new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				requestChannel.send(message);
+			}
+		});
+
+		ExecutorChannel replyChannel = this.findOrCreateRequestReplyChannel("replier." + name);
+		replyChannel.subscribe(new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				replies.send(message);
+			}
+		});
+	}
+
+	@Override
+	public void bindReplier(String name, final MessageChannel requests, MessageChannel replies) {
+		SubscribableChannel requestChannel = this.findOrCreateRequestReplyChannel("requestor." + name);
+		requestChannel.subscribe(new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				requests.send(message);
+			}
+		});
+
+		// TODO: handle Pollable ?
+		Assert.isInstanceOf(SubscribableChannel.class, replies);
+		final SubscribableChannel replyChannel = this.findOrCreateRequestReplyChannel("replier." + name);
+		((SubscribableChannel) replies).subscribe(new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				replyChannel.send(message);
+			}
+		});
+	}
+
+	private synchronized ExecutorChannel findOrCreateRequestReplyChannel(String name) {
+		ExecutorChannel channel = this.requestReplyChannels.get(name);
+		if (channel == null) {
+			channel = new ExecutorChannel(this.executor);
+			this.requestReplyChannels.put(name, channel);
+		}
+		return channel;
+	}
+
+	@Override
+	public void unbindProducer(String name, MessageChannel channel) {
+		this.requestReplyChannels.remove("replier." + name);
+		MessageChannel requestChannel = this.requestReplyChannels.remove("requestor." + name);
+		if (requestChannel == null) {
+			super.unbindProducer(name, channel);
+		}
 	}
 
 	protected <T extends AbstractMessageChannel> T createSharedChannel(String name, Class<T> requiredType) {

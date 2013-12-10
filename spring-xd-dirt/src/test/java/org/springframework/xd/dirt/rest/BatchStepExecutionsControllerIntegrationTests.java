@@ -74,7 +74,7 @@ public class BatchStepExecutionsControllerIntegrationTests extends AbstractContr
 		parametersMap1.put("param1", new JobParameter("test", true));
 		parametersMap1.put("param2", new JobParameter(123L, false));
 		final JobParameters jobParameters1 = new JobParameters(parametersMap1);
-		final JobExecution jobExecution1 = new JobExecution(jobInstance1, 2L, jobParameters1);
+		final JobExecution jobExecution1 = new JobExecution(jobInstance1, 2L, jobParameters1, null);
 
 		final StepExecution step1 = new StepExecution("step1", jobExecution1, 1L);
 		final StepExecution step2 = new StepExecution("step2", jobExecution1, 2L);

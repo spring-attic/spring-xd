@@ -347,6 +347,7 @@ project('spring-xd-dirt') {
 		compile "com.esotericsoftware.kryo:kryo:$kryoVersion"
 		compile "com.lambdaworks:lettuce:$lettuceVersion"
 		compile "commons-lang:commons-lang:2.4"
+		compile "net.sf.jopt-simple:jopt-simple:4.5"
 
 		compile "org.hsqldb:hsqldb:$hsqldbVersion"
 		compile "org.springframework.batch:spring-batch-core:$springBatchVersion"

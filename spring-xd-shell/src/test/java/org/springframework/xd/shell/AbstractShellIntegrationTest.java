@@ -36,6 +36,7 @@ import org.junit.Rule;
 import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
+import org.springframework.xd.dirt.container.store.RedisRuntimeContainerInfoRepository;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.test.redis.RedisTestSupport;
 
@@ -78,6 +79,9 @@ public abstract class AbstractShellIntegrationTest {
 
 	private Set<File> toBeDeleted = new HashSet<File>();
 
+	private static RedisRuntimeContainerInfoRepository runtimeInformationRepository;
+
+
 	@BeforeClass
 	public static void startUp() throws InterruptedException, IOException {
 
@@ -89,10 +93,14 @@ public abstract class AbstractShellIntegrationTest {
 			"9292" });
 		shell = bootstrap.getJLineShellComponent();
 
+		runtimeInformationRepository = application.getContainerContext().getBean(
+				RedisRuntimeContainerInfoRepository.class);
+
 	}
 
 	@AfterClass
 	public static void shutdown() {
+		runtimeInformationRepository.delete(application.getContainerContext().getId());
 		logger.info("Stopping XD Shell");
 		shell.stop();
 		if (application != null) {
@@ -151,5 +159,4 @@ public abstract class AbstractShellIntegrationTest {
 			FileUtils.deleteQuietly(file);
 		}
 	}
-
 }

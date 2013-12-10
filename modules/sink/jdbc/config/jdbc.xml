@@ -30,20 +30,29 @@
 		class="org.springframework.jdbc.datasource.init.DataSourceInitializer">
 		<beans:property name="databasePopulator" ref="databasePopulator" />
 		<beans:property name="dataSource" ref="dataSource" />
-		<beans:property name="enabled" value="${initializeDatabase:false}" />
+		<beans:property name="enabled" value="${initializeDatabase:true}" />
 	</beans:bean>
 
-	<beans:bean id="databasePopulator"
-		class="org.springframework.xd.jdbc.SingleTableDatabaseInitializer">
-		<beans:property name="scripts"
+	<bean id="databasePopulator"
+		class="org.springframework.xd.jdbc.SingleTableDatabaseInitializer" xmlns="http://www.springframework.org/schema/beans">
+		<property name="scripts"
 			value="${xd.config.home}/${initializerScript:init_db.sql}" />
-		<beans:property name="ignoreFailedDrops" value="true" />
-		<beans:property name="tableName" value="${tableName:${xd.stream.name}}" />
-	</beans:bean>
+		<property name="ignoreFailedDrops" value="true" />
+		<property name="tableName" value="${tableName:${xd.stream.name}}" />
+	</bean>
+	
+	<context:annotation-config/>
+	
+	<bean class="org.springframework.boot.autoconfigure.jdbc.TomcatDataSourceConfiguration" xmlns="http://www.springframework.org/schema/beans">
+		<property name="driverClassName" value="${driverClassName:spring.datasource.driverClassName}"/>
+		<property name="url" value="${url:spring.datasource.url}"/>
+		<property name="username" value="${username:spring.datasource.username}"/>
+		<property name="password" value="${password:spring.datasource.password}"/>
+	</bean>
 
 	<context:property-placeholder
 		location="${xd.config.home}/${configProperties:jdbc}.properties"
-		ignore-resource-not-found="true" />
+		ignore-resource-not-found="true" local-override="true" order="0"/>
 
 	<beans profile="cloud" xmlns="http://www.springframework.org/schema/beans">
 		<cloud:data-source id="dataSource" service-name="${xd.jdbc.service:mysql}" />

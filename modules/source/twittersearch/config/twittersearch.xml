@@ -9,7 +9,7 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/integration/twitter http://www.springframework.org/schema/integration/twitter/spring-integration-twitter.xsd">
 
-	<context:property-placeholder location="${xd.config.home}/twitter.properties"/>
+	<context:property-placeholder location="${xd.config.home}/twitter.properties" local-override="true" order="0"/>
 
 	<twitter:search-inbound-channel-adapter id="results" query="${query}" twitter-template="twitterTemplate">
 		<int:poller fixed-delay="${fixedDelay}" />

@@ -51,13 +51,13 @@ destroy_stream 'timejdbc'
 
 echo -e '*** Test 4. tcp | file stream\n'
 
-create_stream 'tcptofile' 'tcp --port=11234 --socketTimeout=2000 | file --dir=/tmp/xdtest/basic'
+create_stream 'tcptofile' 'tcp --port=21234 --socketTimeout=2000 | file --dir=/tmp/xdtest/basic'
 
-echo -en 'blahblah\r\n' | netcat localhost 11234
+echo -en 'blahblah\r\n' | netcat localhost 21234
+sleep 2
+destroy_stream 'tcptofile'
 
 result=`cat /tmp/xdtest/basic/tcptofile.out`
-
-destroy_stream 'tcptofile'
 
 if [[ $result != 'blahblah' ]]
 then

@@ -617,8 +617,12 @@ project('spring-xd-hadoop') {
 project('spring-xd-hadoop:hadoop12') {
 	description = 'Hadoop 1.2 dependencies'
 	dependencies {
-		runtime ("org.springframework.data:spring-data-hadoop:$springDataHadoopVersion")
-		runtime ("org.springframework.data:spring-data-hadoop-store:$springDataHadoopVersion")
+		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopVersion}") {
+			exclude group: 'org.apache.hadoop'
+		}
+		runtime ("org.springframework.data:spring-data-hadoop-store:$springDataHadoopVersion") {
+			exclude group: 'org.apache.hadoop'
+		}
 		runtime ("org.apache.hadoop:hadoop-core:$hadoop12Version")
 		runtime ("org.apache.hadoop:hadoop-client:$hadoop12Version")
 		runtime ("org.apache.hadoop:hadoop-streaming:$hadoop12Version")

@@ -40,3 +40,10 @@ new File(rootDir, 'extensions').eachDir { dir ->
 	}
 }
 
+new File(rootDir, 'modules2').eachDir { dir ->
+	if (new File(dir, 'src/main/resources').exists()) {
+		def projectName = ":modules2.${dir.name}"
+		include projectName
+		project(projectName).projectDir = dir
+	}
+}

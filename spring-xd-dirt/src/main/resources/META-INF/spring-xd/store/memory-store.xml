@@ -26,6 +26,9 @@
 				<bean class="org.springframework.xd.dirt.module.ResourceModuleRegistry">
 					<constructor-arg value="classpath:/modules/" />
 				</bean>
+				<bean class="org.springframework.xd.dirt.module.ResourceModuleRegistry2">
+					<constructor-arg value="file:${XD_HOME}/modules2/*/build/libs/*.jar" />
+				</bean>
 			</list>
 		</constructor-arg>
 	</bean>

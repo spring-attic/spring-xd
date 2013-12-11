@@ -100,7 +100,7 @@ public abstract class AbstractShellIntegrationTest {
 
 	@AfterClass
 	public static void shutdown() {
-		runtimeInformationRepository.deleteAll();
+		runtimeInformationRepository.delete(application.getContainerContext().getId());
 		logger.info("Stopping XD Shell");
 		shell.stop();
 		if (application != null) {

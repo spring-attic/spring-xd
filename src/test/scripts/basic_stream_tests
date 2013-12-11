@@ -13,6 +13,10 @@ create_stream 'ticktock' 'time | log' 'false'
 list_streams
 deploy_stream 'ticktock'
 
+echo -e '*** Test 3. time | jdbc stream\n'
+
+create_stream 'timejdbc' 'time | jdbc'
+
 echo -e '*** Test 2. http | file stream\n'
 
 create_stream 'httptofile' 'http | file --dir=/tmp/xdtest/basic'
@@ -43,4 +47,22 @@ post_data_and_check_result
 
 destroy_stream 'ticktock'
 destroy_stream 'httptofile'
+destroy_stream 'timejdbc'
 
+echo -e '*** Test 4. tcp | file stream\n'
+
+create_stream 'tcptofile' 'tcp --port=11234 --socketTimeout=2000 | file --dir=/tmp/xdtest/basic'
+
+echo -en 'blahblah\r\n' | netcat localhost 11234
+
+result=`cat /tmp/xdtest/basic/tcptofile.out`
+
+destroy_stream 'tcptofile'
+
+if [[ $result != 'blahblah' ]]
+then
+  echo -e "\nTCP sent data ($result) does not match file sink contents"
+  exit 1
+fi
+
+echo -e '\nAll Good :-)\n'

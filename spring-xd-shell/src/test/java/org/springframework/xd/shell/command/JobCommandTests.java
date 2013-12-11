@@ -350,7 +350,6 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 	}
 
 	@Test
-<<<<<<< HEAD
 	public void testStopJobExecution() throws Exception {
 		executeJobCreate(MY_JOB, JOB_WITH_STEP_EXECUTIONS);
 		checkForJobInList(MY_JOB, JOB_WITH_STEP_EXECUTIONS, true);
@@ -374,7 +373,8 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 			}
 		}
 		assertEquals("STOPPED", executionStatus);
-=======
+	}
+
 	public void testStepExecutionProgress() {
 		executeJobCreate(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR);
 		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
@@ -392,6 +392,5 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		assertEquals(stepExecutionId, id);
 		assertNotNull(percentageComplete);
 		assertNotNull(duration);
->>>>>>> XD-1091 XD-1088 stepExecution progress info
 	}
 }

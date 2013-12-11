@@ -164,14 +164,8 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 
 	@Test
 	public void testStopJobExecutionNotRunning() throws Exception {
-<<<<<<< HEAD
 		mockMvc.perform(put("/batch/executions/{executionId}", "3")).andExpect(status().isNotFound()).andExpect(
-				jsonPath("$[0].message", Matchers.is("Job execution with executionId '3' is not running.")));
-=======
-		mockMvc.perform(delete("/batch/executions/{executionId}", "3")).andExpect(status().isNotFound()).andExpect(
 				jsonPath("$[0].message", Matchers.is("Job execution with executionId 3 is not running.")));
->>>>>>> XD-1091 Fix review comments
-		;
 	}
 
 	@Test

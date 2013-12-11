@@ -77,7 +77,6 @@ public interface JobOperations extends ResourceOperations {
 
 	/**
 	 * Retrieve step execution progress with the given {@code jobExecutionId} and {@code stepExecutionId}.
-	 * 
 	 */
 	public StepExecutionProgressInfoResource stepExecutionProgress(long jobExecutionId, long stepExecutionId);
 }

@@ -185,7 +185,7 @@ public class JobCommands implements CommandMarker {
 		return table;
 	}
 
-	@CliCommand(value = PROGRESS_STEP_EXECUTION, help = "Get step execution progress info for the given step execution")
+	@CliCommand(value = PROGRESS_STEP_EXECUTION, help = "Get the progress info for the given step execution")
 	public Table stepExecutionProgress(
 			@CliOption(mandatory = true, key = { "", "id" }, help = "the id of the step execution") long stepExecutionId,
 			@CliOption(mandatory = true, key = { "jobExecutionId" }, help = "the job execution id") long jobExecutionId) {

@@ -11,10 +11,4 @@
 
 	<context:annotation-config />
 
-	<beans>
-		<!-- Include only this @Configuration classes, which will in turn include
-			others -->
-		<bean class="org.springframework.xd.dirt.rest.RestConfiguration" />
-	</beans>
-
 </beans>

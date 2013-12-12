@@ -15,13 +15,12 @@ package org.springframework.xd.dirt.plugins;
 
 import java.util.Properties;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.xd.dirt.container.XDContainer;
-import org.springframework.xd.dirt.server.options.XDPropertyKeys;
 import org.springframework.xd.module.BeanDefinitionAddingPostProcessor;
 import org.springframework.xd.module.Module;
-import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.Plugin;
 
 /**
@@ -34,6 +33,7 @@ public class MBeanExportingPlugin implements Plugin {
 
 	private static final String CONTEXT_CONFIG_ROOT = XDContainer.XD_CONFIG_ROOT + "plugins/jmx/";
 
+	@Value("${XD_JMX_ENABLED}")
 	private boolean jmxEnabled;
 
 	@Override
@@ -60,7 +60,6 @@ public class MBeanExportingPlugin implements Plugin {
 
 	@Override
 	public void preProcessSharedContext(ConfigurableApplicationContext context) {
-		jmxEnabled = "true".equals(context.getEnvironment().getProperty(XDPropertyKeys.XD_JMX_ENABLED));
 		if (jmxEnabled) {
 			context.addBeanFactoryPostProcessor(new BeanDefinitionAddingPostProcessor(context.getEnvironment(),
 					new ClassPathResource(
@@ -69,7 +68,7 @@ public class MBeanExportingPlugin implements Plugin {
 	}
 
 	@Override
-	public boolean supports(ModuleType moduleType) {
+	public boolean supports(Module module) {
 		return jmxEnabled;
 	}
 }

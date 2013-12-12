@@ -46,7 +46,7 @@ public class PluginAdapter implements Plugin {
 	}
 
 	@Override
-	public boolean supports(ModuleType moduleType) {
+	public boolean supports(Module module) {
 		return true;
 	}
 

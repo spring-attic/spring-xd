@@ -88,7 +88,8 @@ public class StreamPlugin implements Plugin {
 	}
 
 	@Override
-	public boolean supports(ModuleType moduleType) {
+	public boolean supports(Module module) {
+		ModuleType moduleType = module.getType();
 		return (moduleType == ModuleType.source || moduleType == ModuleType.processor || moduleType == ModuleType.sink);
 	}
 

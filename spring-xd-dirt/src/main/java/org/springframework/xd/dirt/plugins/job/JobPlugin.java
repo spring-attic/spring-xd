@@ -121,8 +121,8 @@ public class JobPlugin extends AbstractPlugin {
 	}
 
 	@Override
-	public boolean supports(ModuleType moduleType) {
-		return (moduleType == ModuleType.job);
+	public boolean supports(Module module) {
+		return (module.getType() == ModuleType.job);
 	}
 
 	private MessageBus findMessageBus(Module module) {

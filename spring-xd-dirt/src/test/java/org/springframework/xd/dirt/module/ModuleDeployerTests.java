@@ -107,7 +107,7 @@ public class ModuleDeployerTests {
 		}
 
 		@Override
-		public boolean supports(ModuleType moduleType) {
+		public boolean supports(Module module) {
 			return true;
 		}
 

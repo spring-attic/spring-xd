@@ -65,11 +65,10 @@ public interface Plugin {
 	void preProcessSharedContext(ConfigurableApplicationContext context);
 
 	/**
-	 * Check if the module type is supported by the plugin.
+	 * Check if the module is supported by the plugin.
 	 * 
-	 * @param moduleType the module type of the module
-	 * @return boolean
+	 * @param module
 	 */
-	boolean supports(ModuleType moduleType);
+	boolean supports(Module module);
 
 }

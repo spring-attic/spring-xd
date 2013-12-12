@@ -317,15 +317,29 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 	}
 
 	/**
+	 * Get the list of supported plugins for the given module.
+	 * 
+	 * @param module
+	 * @return list supported list of plugins
+	 */
+	private List<Plugin> getSupportedPlugins(Module module) {
+		List<Plugin> plugins = new ArrayList<Plugin>();
+		if (this.plugins != null) {
+			for (Plugin plugin : this.plugins.values()) {
+				if (plugin.supports(module)) {
+					plugins.add(plugin);
+				}
+			}
+		}
+		return plugins;
+	}
+
+	/**
 	 * Allow plugins to contribute properties (e.g. "stream.name") calling module.addProperties(properties), etc.
 	 */
 	private void preProcessModule(Module module) {
-		if (this.plugins != null) {
-			for (Plugin plugin : this.plugins.values()) {
-				if (plugin.supports(module.getType())) {
-					plugin.preProcessModule(module);
-				}
-			}
+		for (Plugin plugin : this.getSupportedPlugins(module)) {
+			plugin.preProcessModule(module);
 		}
 	}
 
@@ -333,22 +347,14 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 	 * Allow plugins to perform other configuration after the module is initialized but before it is started.
 	 */
 	private void postProcessModule(Module module) {
-		if (this.plugins != null) {
-			for (Plugin plugin : this.plugins.values()) {
-				if (plugin.supports(module.getType())) {
-					plugin.postProcessModule(module);
-				}
-			}
+		for (Plugin plugin : this.getSupportedPlugins(module)) {
+			plugin.postProcessModule(module);
 		}
 	}
 
 	private void removeModule(Module module) {
-		if (this.plugins != null) {
-			for (Plugin plugin : this.plugins.values()) {
-				if (plugin.supports(module.getType())) {
-					plugin.removeModule(module);
-				}
-			}
+		for (Plugin plugin : this.getSupportedPlugins(module)) {
+			plugin.removeModule(module);
 		}
 	}
 
@@ -364,12 +370,8 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 	}
 
 	private void beforeShutdown(Module module) {
-		if (this.plugins != null) {
-			for (Plugin plugin : this.plugins.values()) {
-				if (plugin.supports(module.getType())) {
-					plugin.beforeShutdown(module);
-				}
-			}
+		for (Plugin plugin : this.getSupportedPlugins(module)) {
+			plugin.beforeShutdown(module);
 		}
 	}
 

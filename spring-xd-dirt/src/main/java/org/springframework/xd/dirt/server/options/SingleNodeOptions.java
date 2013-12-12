@@ -36,10 +36,6 @@ public class SingleNodeOptions {
 		memory, redis;
 	}
 
-	public static enum DataTransport {
-		local, rabbit, redis;
-	}
-
 	public static enum ControlTransport {
 		local, rabbit, redis;
 	}

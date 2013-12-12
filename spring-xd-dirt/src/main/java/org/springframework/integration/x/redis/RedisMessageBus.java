@@ -131,6 +131,18 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 	}
 
 	@Override
+	public void bindRequestor(String name, MessageChannel requests, MessageChannel responses) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Auto-generated method stub");
+	}
+
+	@Override
+	public void bindResponder(String name, String requestorName, MessageChannel requests, MessageChannel responses) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Auto-generated method stub");
+	}
+
+	@Override
 	public void destroy() {
 		stopBindings();
 	}

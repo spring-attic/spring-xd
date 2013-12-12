@@ -186,6 +186,18 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 		bridge(moduleOutputChannel, registeredChannel, "outbound." + registeredChannel.getComponentName());
 	}
 
+	@Override
+	public void bindRequestor(String name, MessageChannel requests, MessageChannel responses) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Auto-generated method stub");
+	}
+
+	@Override
+	public void bindResponder(String name, String requestorName, MessageChannel requests, MessageChannel responses) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Auto-generated method stub");
+	}
+
 	protected <T extends AbstractMessageChannel> T createSharedChannel(String name, Class<T> requiredType) {
 		try {
 			T channel = requiredType.newInstance();

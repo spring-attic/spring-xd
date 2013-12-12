@@ -1,0 +1,5 @@
+# The XD database. 
+urlid xd 
+url jdbc:hsqldb:hsql://localhost:9101/xdjob 
+username SA 
+password 

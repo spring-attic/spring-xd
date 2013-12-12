@@ -7,10 +7,17 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<gfe:client-cache id="client-cache" use-bean-factory-locator="false" close="false"/>
-	<gfe:pool id="client-pool">
-		<gfe:server host="${gemfireHost:localhost}" port="${gemfirePort:40404}" />
-	</gfe:pool>
-
 	<gfe:client-region id="region" cache-ref="client-cache"
 		name="${regionName:${xd.stream.name}}" data-policy="EMPTY"/>
+
+	<beans profile="use-server">
+		<gfe:pool id="client-pool">
+			<gfe:server host="${gemfireHost:localhost}" port="${gemfirePort:40404}" />
+		</gfe:pool>
+	</beans>
+	<beans profile="use-locator">
+		<gfe:pool>
+			<gfe:locator host="${gemfireHost:localhost}" port="${gemfirePort}" />
+		</gfe:pool>
+	</beans>
 </beans>

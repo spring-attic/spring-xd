@@ -26,19 +26,18 @@ import org.springframework.xd.module.options.spi.SinkModuleOptionsMetadataSuppor
  * 
  * @author Eric Bottard
  */
-public class GemfireServerSinkModuleOptionsMetadata extends SinkModuleOptionsMetadataSupport implements ProfileNamesProvider {
+public class GemfireServerSinkModuleOptionsMetadata extends SinkModuleOptionsMetadataSupport implements
+		ProfileNamesProvider {
 
 	private String gemfireHost = "localhost";
 
 	private int gemfirePort = 40404;
 
-	private String locatorHost;
-
-	private Integer locatorPort;
-
 	private String regionName;
 
 	private String keyExpression = "payload";
+
+	private boolean useLocator = false;
 
 
 	public String getGemfireHost() {
@@ -46,7 +45,7 @@ public class GemfireServerSinkModuleOptionsMetadata extends SinkModuleOptionsMet
 	}
 
 
-	@ModuleOption("hostname of a single gemfire host to target")
+	@ModuleOption("host name of the cache server or locator(if useLocator=true)")
 	public void setGemfireHost(String gemfireHost) {
 		this.gemfireHost = gemfireHost;
 	}
@@ -56,37 +55,14 @@ public class GemfireServerSinkModuleOptionsMetadata extends SinkModuleOptionsMet
 		return gemfirePort;
 	}
 
-	@ModuleOption("port of a single gemfire host to target")
+	@ModuleOption("port of the cache server or locator(if useLocator=true)")
 	public void setGemfirePort(int gemfirePort) {
 		this.gemfirePort = gemfirePort;
 	}
 
-
-	// public String getLocatorHost() {
-	// return locatorHost;
-	// }
-	//
-	// @ModuleOption("hostname to target when using a gemfire locator")
-	// public void setLocatorHost(String locatorHost) {
-	// this.locatorHost = locatorHost;
-	// }
-
-
-	// Use wrapper class so that no default is reported
-	// public Integer getLocatorPort() {
-	// return locatorPort;
-	// }
-
-	// @ModuleOption("port to target when using a gemfire locator")
-	// Use primitive type, so that null is not allowed
-	// public void setLocatorPort(int locatorPort) {
-	// this.locatorPort = locatorPort;
-	// }
-
-
 	@Override
 	public String[] profilesToActivate() {
-		if (locatorHost != null) {
+		if (useLocator) {
 			return new String[] { "use-locator" };
 		}
 		else {
@@ -98,7 +74,6 @@ public class GemfireServerSinkModuleOptionsMetadata extends SinkModuleOptionsMet
 	public String getRegionName() {
 		return regionName;
 	}
-
 
 	@ModuleOption("name of the region to use when storing data")
 	public void setRegionName(String regionName) {
@@ -116,5 +91,14 @@ public class GemfireServerSinkModuleOptionsMetadata extends SinkModuleOptionsMet
 		this.keyExpression = keyExpression;
 	}
 
+
+	public boolean isUseLocator() {
+		return useLocator;
+	}
+
+	@ModuleOption("indicates whether a locator is used to access the cache server")
+	public void setUseLocator(boolean useLocator) {
+		this.useLocator = useLocator;
+	}
 
 }

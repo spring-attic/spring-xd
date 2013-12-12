@@ -120,6 +120,11 @@ public class JobPlugin extends AbstractPlugin {
 		}
 	}
 
+	@Override
+	public boolean supports(Module module) {
+		return (module.getType() == ModuleType.job);
+	}
+
 	private MessageBus findMessageBus(Module module) {
 		MessageBus messageBus = null;
 		try {
@@ -147,9 +152,6 @@ public class JobPlugin extends AbstractPlugin {
 	@Override
 	public List<String> componentPathsSelector(Module module) {
 		List<String> result = new ArrayList<String>();
-		if (module.getType() != ModuleType.job) {
-			return result;
-		}
 		result.add(REGISTRAR);
 		return result;
 	}

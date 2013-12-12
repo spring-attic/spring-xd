@@ -107,6 +107,11 @@ public class ModuleDeployerTests {
 		}
 
 		@Override
+		public boolean supports(Module module) {
+			return true;
+		}
+
+		@Override
 		public void preProcessSharedContext(ConfigurableApplicationContext moduleCommonContext) {
 			this.moduleCommonContext = moduleCommonContext;
 		}

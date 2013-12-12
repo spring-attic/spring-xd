@@ -15,10 +15,10 @@ package org.springframework.xd.dirt.plugins;
 
 import java.util.Properties;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.xd.dirt.container.XDContainer;
-import org.springframework.xd.dirt.server.options.XDPropertyKeys;
 import org.springframework.xd.module.BeanDefinitionAddingPostProcessor;
 import org.springframework.xd.module.Module;
 import org.springframework.xd.module.Plugin;
@@ -33,19 +33,17 @@ public class MBeanExportingPlugin implements Plugin {
 
 	private static final String CONTEXT_CONFIG_ROOT = XDContainer.XD_CONFIG_ROOT + "plugins/jmx/";
 
+	@Value("${XD_JMX_ENABLED}")
 	private boolean jmxEnabled;
 
 	@Override
 	public void preProcessModule(Module module) {
+		module.addComponents(new ClassPathResource(CONTEXT_CONFIG_ROOT + "mbean-exporters.xml"));
+		Properties objectNameProperties = new Properties();
+		objectNameProperties.put("xd.module.name", module.getName());
+		objectNameProperties.put("xd.module.index", module.getDeploymentMetadata().getIndex());
 
-		if (jmxEnabled) {
-			module.addComponents(new ClassPathResource(CONTEXT_CONFIG_ROOT + "mbean-exporters.xml"));
-			Properties objectNameProperties = new Properties();
-			objectNameProperties.put("xd.module.name", module.getName());
-			objectNameProperties.put("xd.module.index", module.getDeploymentMetadata().getIndex());
-
-			module.addProperties(objectNameProperties);
-		}
+		module.addProperties(objectNameProperties);
 	}
 
 	@Override
@@ -62,11 +60,15 @@ public class MBeanExportingPlugin implements Plugin {
 
 	@Override
 	public void preProcessSharedContext(ConfigurableApplicationContext context) {
-		jmxEnabled = "true".equals(context.getEnvironment().getProperty(XDPropertyKeys.XD_JMX_ENABLED));
 		if (jmxEnabled) {
 			context.addBeanFactoryPostProcessor(new BeanDefinitionAddingPostProcessor(context.getEnvironment(),
 					new ClassPathResource(
 							CONTEXT_CONFIG_ROOT + "common.xml")));
 		}
+	}
+
+	@Override
+	public boolean supports(Module module) {
+		return jmxEnabled;
 	}
 }

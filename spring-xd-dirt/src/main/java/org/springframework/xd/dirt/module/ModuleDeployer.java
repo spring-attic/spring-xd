@@ -322,7 +322,9 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 	private void preProcessModule(Module module) {
 		if (this.plugins != null) {
 			for (Plugin plugin : this.plugins.values()) {
-				plugin.preProcessModule(module);
+				if (plugin.supports(module.getType())) {
+					plugin.preProcessModule(module);
+				}
 			}
 		}
 	}
@@ -333,7 +335,9 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 	private void postProcessModule(Module module) {
 		if (this.plugins != null) {
 			for (Plugin plugin : this.plugins.values()) {
-				plugin.postProcessModule(module);
+				if (plugin.supports(module.getType())) {
+					plugin.postProcessModule(module);
+				}
 			}
 		}
 	}
@@ -341,7 +345,9 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 	private void removeModule(Module module) {
 		if (this.plugins != null) {
 			for (Plugin plugin : this.plugins.values()) {
-				plugin.removeModule(module);
+				if (plugin.supports(module.getType())) {
+					plugin.removeModule(module);
+				}
 			}
 		}
 	}
@@ -360,7 +366,9 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 	private void beforeShutdown(Module module) {
 		if (this.plugins != null) {
 			for (Plugin plugin : this.plugins.values()) {
-				plugin.beforeShutdown(module);
+				if (plugin.supports(module.getType())) {
+					plugin.beforeShutdown(module);
+				}
 			}
 		}
 	}

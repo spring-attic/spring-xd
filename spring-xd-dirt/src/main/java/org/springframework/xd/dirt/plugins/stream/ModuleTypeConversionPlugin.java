@@ -76,7 +76,6 @@ public class ModuleTypeConversionPlugin extends PluginAdapter {
 		registerConversionService(module, conversionService);
 	}
 
-
 	private void registerConversionService(Module module, ConversionService conversionService) {
 		if (module instanceof SimpleModule) {
 			SimpleModule sm = (SimpleModule) module;

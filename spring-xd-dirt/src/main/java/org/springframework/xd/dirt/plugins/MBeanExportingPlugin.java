@@ -21,6 +21,7 @@ import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.server.options.XDPropertyKeys;
 import org.springframework.xd.module.BeanDefinitionAddingPostProcessor;
 import org.springframework.xd.module.Module;
+import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.Plugin;
 
 /**
@@ -37,15 +38,12 @@ public class MBeanExportingPlugin implements Plugin {
 
 	@Override
 	public void preProcessModule(Module module) {
+		module.addComponents(new ClassPathResource(CONTEXT_CONFIG_ROOT + "mbean-exporters.xml"));
+		Properties objectNameProperties = new Properties();
+		objectNameProperties.put("xd.module.name", module.getName());
+		objectNameProperties.put("xd.module.index", module.getDeploymentMetadata().getIndex());
 
-		if (jmxEnabled) {
-			module.addComponents(new ClassPathResource(CONTEXT_CONFIG_ROOT + "mbean-exporters.xml"));
-			Properties objectNameProperties = new Properties();
-			objectNameProperties.put("xd.module.name", module.getName());
-			objectNameProperties.put("xd.module.index", module.getDeploymentMetadata().getIndex());
-
-			module.addProperties(objectNameProperties);
-		}
+		module.addProperties(objectNameProperties);
 	}
 
 	@Override
@@ -68,5 +66,10 @@ public class MBeanExportingPlugin implements Plugin {
 					new ClassPathResource(
 							CONTEXT_CONFIG_ROOT + "common.xml")));
 		}
+	}
+
+	@Override
+	public boolean supports(ModuleType moduleType) {
+		return jmxEnabled;
 	}
 }

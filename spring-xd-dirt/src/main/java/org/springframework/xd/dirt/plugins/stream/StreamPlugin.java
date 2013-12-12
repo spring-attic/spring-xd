@@ -87,6 +87,11 @@ public class StreamPlugin implements Plugin {
 		bindProducers(module, bus);
 	}
 
+	@Override
+	public boolean supports(ModuleType moduleType) {
+		return (moduleType == ModuleType.source || moduleType == ModuleType.processor || moduleType == ModuleType.sink);
+	}
+
 	private MessageBus findMessageBus(Module module) {
 		MessageBus messageBus = null;
 		try {

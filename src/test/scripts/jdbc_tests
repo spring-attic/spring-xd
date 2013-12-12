@@ -1,0 +1,57 @@
+#!/bin/bash
+
+. xdapi
+
+PWD=`pwd`
+DB_FILE='/tmp/xdtest/jdbc.db'
+
+if [[ ! -f $XD_HOME/lib/sqlite-jdbc-3.7.2.jar ]]
+then
+  echo 'sqlite jar is missing from XD_HOME/lib. Skipping JDBC tests'
+  exit 0
+fi
+
+wait_for_server
+
+if [[ -f $DB_FILE ]]
+then
+  rm $DB_FILE &> /dev/null
+  rm /tmp/xdtest/jdbc1data &> /dev/null
+fi
+
+mkdir -p /tmp/xdtest
+
+echo -e "\n\n Test 1. tail | jdbc stream with pre-initialized database"
+
+sqlite3 $DB_FILE 'create table blah (col1 varchar, col2 varchar, col3 varchar)'
+
+create_stream jdbc1 "tail --lines=10 --name=/tmp/xdtest/jdbc1data --fileDelay=1000 | jdbc --driverClass=org.sqlite.JDBC --username='' --password='' --url=jdbc:sqlite:$DB_FILE --initializeDatabase=false --columns=col1,col2,col3 --tablename=blah"
+
+# Add some data to the file
+echo '{"col1":"x", "col2":"y", "col3":"z"}' >> /tmp/xdtest/jdbc1data
+sleep 3
+rows=`sqlite3 $DB_FILE 'select count(*) from blah'`
+destroy_stream jdbc1
+rm /tmp/xdtest/jdbc1data
+
+echo "Checking row count in database table matches import from tail file..."
+assert_equals 1 $rows
+col1=`sqlite3 $DB_FILE 'select col1 from blah'`
+assert_equals 'x' $col1
+
+echo -e "\n\n Test 2. tail | jdbc stream with db initialization"
+
+create_stream jdbc2 "tail --lines=10 --name=/tmp/xdtest/jdbc2data --fileDelay=1000 | jdbc --driverClass=org.sqlite.JDBC --username='' --password='' --url=jdbc:sqlite:$DB_FILE"
+
+echo "blahblah" >> /tmp/xdtest/jdbc2data
+sleep 3
+destroy_stream jdbc2
+rm /tmp/xdtest/jdbc2data
+
+echo "Checking row count in database table matches import from tail file..."
+rows=`sqlite3 $DB_FILE 'select count(*) from jdbc2'`
+assert_equals 1 $rows
+payload=`sqlite3 $DB_FILE 'select payload from jdbc2'`
+assert_equals 'blahblah' $payload
+
+echo -e '\nAll good :-)'

@@ -38,13 +38,13 @@
 		<beans:property name="scripts"
 			value="${xd.config.home}/${initializerScript:init_db.sql}" />
 		<beans:property name="ignoreFailedDrops" value="true" />
-		<beans:property name="tableName" value="${tableName:${xd.stream.name}}" />
+		<beans:property name="tableName" value="${tablename:${xd.stream.name}}" />
 	</beans:bean>
 
 	<context:annotation-config/>
 
-	<bean class="org.springframework.boot.autoconfigure.jdbc.TomcatDataSourceConfiguration" xmlns="http://www.springframework.org/schema/beans">
-		<property name="driverClassName" value="${driverClassName:spring.datasource.driverClassName}"/>
+	<bean id="dataSource" class="org.springframework.jdbc.datasource.SimpleDriverDataSource" xmlns="http://www.springframework.org/schema/beans">
+		<property name="driverClass" value="${driverClass:spring.datasource.driverClass}"/>
 		<property name="url" value="${url:spring.datasource.url}"/>
 		<property name="username" value="${username:spring.datasource.username}"/>
 		<property name="password" value="${password:spring.datasource.password}"/>

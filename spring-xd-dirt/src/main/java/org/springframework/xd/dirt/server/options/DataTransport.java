@@ -16,27 +16,11 @@
 
 package org.springframework.xd.dirt.server.options;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-
 
 /**
- * Holds configuration options that are valid for the Container node, when using distributed mode.
  * 
- * @author Eric Bottard
  * @author David Turanski
  */
-@ConfigurationProperties
-public class ContainerOptions extends CommonDistributedOptions {
-
-	private DataTransport transport;
-
-	public void setXD_TRANSPORT(DataTransport transport) {
-		this.transport = transport;
-	}
-
-	public DataTransport getXD_TRANSPORT() {
-		return this.transport;
-	}
-
-
+public enum DataTransport {
+	local, rabbit, redis
 }

@@ -13,9 +13,12 @@ import org.springframework.context.annotation.EnableMBeanExport;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.event.SourceFilteringListener;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
+import org.springframework.validation.BindException;
+import org.springframework.validation.FieldError;
 import org.springframework.xd.dirt.container.ContainerStartedEvent;
 import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.server.options.ContainerOptions;
+import org.springframework.xd.dirt.server.options.XDPropertyKeys;
 import org.springframework.xd.dirt.util.BannerUtils;
 import org.springframework.xd.dirt.util.XdConfigLoggingInitializer;
 
@@ -41,11 +44,36 @@ public class LauncherApplication {
 
 	public LauncherApplication run(String... args) {
 		System.out.println(BannerUtils.displayBanner(getClass().getSimpleName(), null));
-		this.context = new SpringApplicationBuilder(ContainerOptions.class, ParentConfiguration.class)
-				.profiles(NODE_PROFILE)
-				.child(LauncherApplication.class).run(args);
+		try {
+			this.context = new SpringApplicationBuilder(ContainerOptions.class, ParentConfiguration.class)
+					.profiles(NODE_PROFILE)
+					.child(LauncherApplication.class).run(args);
+		}
+		catch (Exception e) {
+			handleErrors(e);
+
+		}
 		publishContainerStarted(context);
 		return this;
+	}
+
+	private void handleErrors(Exception e) {
+		if (e.getCause() instanceof BindException) {
+			BindException be = (BindException) e.getCause();
+			for (FieldError error : be.getFieldErrors()) {
+				System.err.println(String.format("the value '%s' is not allowed for property '%s'",
+						error.getRejectedValue(),
+						error.getField()));
+				if (XDPropertyKeys.XD_CONTROL_TRANSPORT.equals(error.getField())) {
+					System.err.println(
+							String.format(
+									"If not explicitly provided, the default value of '%s' assumes the value provided for '%s'",
+									XDPropertyKeys.XD_CONTROL_TRANSPORT, XDPropertyKeys.XD_TRANSPORT,
+									error.getRejectedValue()));
+				}
+			}
+		}
+		System.exit(1);
 	}
 
 	public static void publishContainerStarted(ConfigurableApplicationContext context) {

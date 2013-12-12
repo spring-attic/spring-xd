@@ -6,6 +6,7 @@ PWD=`pwd`
 # Base path in HDFS
 NOW=`date "+%H-%M-%S"`
 BASE_PATH="/xdtest/$NOW/"
+TEST_DIR='/tmp/xdtest/batchhdfs'
 
 wait_for_server
 
@@ -33,18 +34,18 @@ assert_equals 6358 $blah_size || exit $?
 
 echo -e "\n\n*** Test 2. Import duplicate copies of a CSV data file\n"
 
-if [ ! -f /tmp/xdtest/csv/data1.csv ]
+if [[ ! -f $TEST_DIR/csv/data1.csv ]]
 then
-  mkdir -p /tmp/xdtest/csv
+  mkdir -p $TEST_DIR/csv
   for i in {1..4}
   do
-    echo "Copying csv file $i to /tmp/xdtest/csv"
-    cp $PWD/csv/data.csv "/tmp/xdtest/csv/data$i.csv"
+    echo "Copying csv file $i to $TEST_DIR/csv"
+    cp $PWD/csv/data.csv "$TEST_DIR/csv/data$i.csv"
   done
 fi
 
 create_job csvjob2 "filehdfs --names=col1,col2,col3 --rollover=5000 --basePath=$BASE_PATH --suffix=csv"
-create_stream csvstream2 'file --ref=true --dir=/tmp/xdtest/csv --pattern=*.csv > queue:job:csvjob2'
+create_stream csvstream2 "file --ref=true --dir=$TEST_DIR/csv --pattern=*.csv > queue:job:csvjob2"
 
 echo -e "\nWaiting for jobs to finish..."
 sleep 25;
@@ -54,12 +55,12 @@ job2_size=`hdfs_size "$BASE_PATH/csvjob2*"`
 destroy_stream csvstream2
 destroy_job    csvjob2
 
-echo "Checking size of HDFS results matches imports from /tmp/xdtest/csv"
+echo "Checking size of HDFS results matches imports from $TEST_DIR/csv"
 assert_equals 25432 $job2_size
 
 echo -e "\n\n*** Test 3. Import files using hdfs sink\n"
 
-create_stream csvstream3 "file --dir=/tmp/xdtest/csv --pattern=data1.csv | hdfs --directory=$BASE_PATH"
+create_stream csvstream3 "file --dir=$TEST_DIR/csv --pattern=data1.csv | hdfs --directory=$BASE_PATH"
 sleep 10
 undeploy_stream csvstream3
 deploy_stream csvstream3
@@ -77,26 +78,26 @@ fi
 
 echo -e "\n\n Test 4. Export file from hdfs to JDBC"
 
-if [ -f /tmp/xdtest/hdfsjdbc.db ]
+if [[ -f $TEST_DIR/hdfsjdbc.db ]]
 then
-  rm /tmp/xdtest/hdfsjdbc.db &> /dev/null
+  rm $TEST_DIR/hdfsjdbc.db &> /dev/null
 fi
 
-mkdir -p /tmp/xdtest
+mkdir -p $TEST_DIR
 
-sqlite3 /tmp/xdtest/hdfsjdbc.db 'create table blah (col1 varchar, col2 varchar, col3 varchar)'
+sqlite3 $TEST_DIR/hdfsjdbc.db 'create table blah (col1 varchar, col2 varchar, col3 varchar)'
 
-create_job csvjob4 "hdfsjdbc --driverClass=org.sqlite.JDBC --url=jdbc:sqlite:/tmp/xdtest/hdfsjdbc.db --resources=${BASE_PATH}blah-0.csv --columns=col1,col2,col3 --tableName=blah"
+create_job csvjob4 "hdfsjdbc --driverClass=org.sqlite.JDBC --url=jdbc:sqlite:$TEST_DIR/hdfsjdbc.db --resources=${BASE_PATH}blah-0.csv --columns=col1,col2,col3 --tableName=blah"
 launch_job csvjob4
 sleep 5
-rows=`sqlite3 /tmp/xdtest/hdfsjdbc.db 'select count(*) from blah'`
+rows=`sqlite3 $TEST_DIR/hdfsjdbc.db 'select count(*) from blah'`
 destroy_job csvjob4
 echo "Checking row count in database table matches import from hdfs..."
 assert_equals 292 $rows
 
 echo -e "\n\n Test 5. Import back to hdfs from JDBC"
 
-create_job csvjob5 "jdbchdfs --driverClass=org.sqlite.JDBC --url=jdbc:sqlite:/tmp/xdtest/hdfsjdbc.db --basePath=$BASE_PATH --filename=jdbcblah --suffix=csv --columns=col1,col2,col3 --tableName=blah"
+create_job csvjob5 "jdbchdfs --driverClass=org.sqlite.JDBC --url=jdbc:sqlite:$TEST_DIR/hdfsjdbc.db --basePath=$BASE_PATH --filename=jdbcblah --suffix=csv --columns=col1,col2,col3 --tableName=blah"
 launch_job csvjob5
 sleep 15
 
@@ -107,7 +108,7 @@ assert_equals 6358 $blah_size
 
 echo -e "\n\n Test 6. Import back to hdfs from JDBC using SQL"
 
-create_job csvjob6 "jdbchdfs --driverClass=org.sqlite.JDBC --url=jdbc:sqlite:/tmp/xdtest/hdfsjdbc.db --basePath=$BASE_PATH --filename=jdbcblahsql --suffix=csv --sql='select col1,col2,col3 from blah' --columns=col1,col2,col3"
+create_job csvjob6 "jdbchdfs --driverClass=org.sqlite.JDBC --url=jdbc:sqlite:$TEST_DIR/hdfsjdbc.db --basePath=$BASE_PATH --filename=jdbcblahsql --suffix=csv --sql='select col1,col2,col3 from blah' --columns=col1,col2,col3"
 launch_job csvjob6
 sleep 15
 

@@ -2,9 +2,11 @@
 
 . xdapi
 
+TEST_DIR=/tmp/xdtest/basic
+
 wait_for_server
 
-rm -R /tmp/xdtest/basic &> /dev/null
+rm -R $TEST_DIR &> /dev/null
 set -e
 
 echo -e '*** Test 1. time | log stream\n'
@@ -13,17 +15,17 @@ create_stream 'ticktock' 'time | log' 'false'
 list_streams
 deploy_stream 'ticktock'
 
-echo -e '*** Test 3. time | jdbc stream\n'
+echo -e '*** Test 2. time | jdbc stream\n'
 
 create_stream 'timejdbc' 'time | jdbc'
 
-echo -e '*** Test 2. http | file stream\n'
+echo -e '*** Test 3. http | file stream\n'
 
-create_stream 'httptofile' 'http | file --dir=/tmp/xdtest/basic'
+create_stream 'httptofile' "http | file --dir=$TEST_DIR"
 
 post_data_and_check_result() {
   curl -d blah "$XD_HOST:9000"
-  result=`cat /tmp/xdtest/basic/httptofile.out`
+  result=`cat $TEST_DIR/httptofile.out`
 
   if [[ $result != 'blah' ]]
   then
@@ -36,7 +38,7 @@ post_data_and_check_result() {
 
 post_data_and_check_result
 
-rm -R /tmp/xdtest/basic &> /dev/null
+rm -R $TEST_DIR &> /dev/null
 undeploy_stream 'httptofile'
 
 echo 'Redeploying and running again...'
@@ -51,13 +53,13 @@ destroy_stream 'timejdbc'
 
 echo -e '*** Test 4. tcp | file stream\n'
 
-create_stream 'tcptofile' 'tcp --port=21234 --socketTimeout=2000 | file --dir=/tmp/xdtest/basic'
+create_stream 'tcptofile' "tcp --port=21234 --socketTimeout=2000 | file --dir=$TEST_DIR"
 
 echo -en 'blahblah\r\n' | netcat localhost 21234
 sleep 2
 destroy_stream 'tcptofile'
 
-result=`cat /tmp/xdtest/basic/tcptofile.out`
+result=`cat $TEST_DIR/tcptofile.out`
 
 if [[ $result != 'blahblah' ]]
 then

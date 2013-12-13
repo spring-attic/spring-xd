@@ -16,7 +16,7 @@
 
 package org.springframework.xd.hadoop.fs;
 
-import com.cloudera.cdk.data.PartitionStrategy;
+import org.kitesdk.data.PartitionStrategy;
 
 import org.springframework.data.hadoop.store.dataset.DatasetOperations;
 import org.springframework.data.hadoop.store.dataset.DatasetRepositoryCallback;

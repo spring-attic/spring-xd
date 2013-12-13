@@ -22,7 +22,7 @@ echo -e "\n\n Test 1. tail | jdbc stream with pre-initialized database"
 
 sqlite3 $DB_FILE 'create table blah (col1 varchar, col2 varchar, col3 varchar)'
 
-create_stream jdbc1 "tail --lines=10 --name=$TEST_DIR/jdbc1.data --fileDelay=1000 | jdbc --driverClass=org.sqlite.JDBC --username='' --password='' --url=jdbc:sqlite:$DB_FILE --initializeDatabase=false --columns=col1,col2,col3 --tablename=blah"
+create_stream jdbc1 "tail --lines=10 --name=$TEST_DIR/jdbc1.data --fileDelay=1000 | jdbc --driverClass=org.sqlite.JDBC --username='' --password='' --url=jdbc:sqlite:$DB_FILE --initializeDatabase=false --columns=col1,col2,col3 --tableName=blah"
 
 # Add some data to the file
 echo '{"col1":"x", "col2":"y", "col3":"z"}' >> $TEST_DIR/jdbc1.data

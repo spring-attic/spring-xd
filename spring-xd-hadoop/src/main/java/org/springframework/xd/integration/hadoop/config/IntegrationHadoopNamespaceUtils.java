@@ -34,7 +34,12 @@ import org.springframework.util.StringUtils;
  * @author Janne Valkealahti
  * 
  */
-public abstract class IntegrationHadoopNamespaceUtils {
+public final class IntegrationHadoopNamespaceUtils {
+
+	/** Prevent instantiation. */
+	private IntegrationHadoopNamespaceUtils() {
+		throw new AssertionError();
+	}
 
 	/**
 	 * Adds the path constructor arg reference. Creates new hdfs {@code Path} as a spring bean order to play nice with

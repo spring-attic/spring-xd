@@ -45,4 +45,9 @@ public class PluginAdapter implements Plugin {
 	public void preProcessSharedContext(ConfigurableApplicationContext context) {
 	}
 
+	@Override
+	public boolean supports(Module module) {
+		return true;
+	}
+
 }

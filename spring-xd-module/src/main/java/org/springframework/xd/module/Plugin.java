@@ -24,7 +24,7 @@ import org.springframework.context.ConfigurableApplicationContext;
  * components} or {@link Module#addProperties(java.util.Properties) setting additional properties}.
  * 
  * @see ModuleDeployer
- *
+ * 
  * @author Mark Fisher
  * @author Gary Russell
  * @author Eric Bottard
@@ -52,7 +52,7 @@ public interface Plugin {
 
 	/**
 	 * Perform any cleanup necessary prior to module shutdown
-	 *
+	 * 
 	 * @param module
 	 */
 	void beforeShutdown(Module module);
@@ -63,5 +63,12 @@ public interface Plugin {
 	 * that said context has not been {@link ConfigurableApplicationContext#refresh() refreshed} yet.
 	 */
 	void preProcessSharedContext(ConfigurableApplicationContext context);
+
+	/**
+	 * Check if the module is supported by the plugin.
+	 * 
+	 * @param module
+	 */
+	boolean supports(Module module);
 
 }

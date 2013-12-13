@@ -16,10 +16,6 @@
 
 package org.springframework.xd.dirt.plugins.stream;
 
-import static org.springframework.xd.module.ModuleType.processor;
-import static org.springframework.xd.module.ModuleType.sink;
-import static org.springframework.xd.module.ModuleType.source;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -70,14 +66,11 @@ public class StreamPlugin implements Plugin {
 
 	@Override
 	public void preProcessModule(Module module) {
-		ModuleType type = module.getType();
 		DeploymentMetadata md = module.getDeploymentMetadata();
-		if (source == type || processor == type || sink == type) {
-			Properties properties = new Properties();
-			properties.setProperty("xd.stream.name", md.getGroup());
-			properties.setProperty("xd.module.index", String.valueOf(md.getIndex()));
-			module.addProperties(properties);
-		}
+		Properties properties = new Properties();
+		properties.setProperty("xd.stream.name", md.getGroup());
+		properties.setProperty("xd.module.index", String.valueOf(md.getIndex()));
+		module.addProperties(properties);
 	}
 
 	@Override

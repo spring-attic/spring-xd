@@ -323,15 +323,15 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 	 * @return list supported list of plugins
 	 */
 	private List<Plugin> getSupportedPlugins(Module module) {
-		List<Plugin> plugins = new ArrayList<Plugin>();
+		List<Plugin> supportedPlugins = new ArrayList<Plugin>();
 		if (this.plugins != null) {
 			for (Plugin plugin : this.plugins.values()) {
 				if (plugin.supports(module)) {
-					plugins.add(plugin);
+					supportedPlugins.add(plugin);
 				}
 			}
 		}
-		return plugins;
+		return supportedPlugins;
 	}
 
 	/**

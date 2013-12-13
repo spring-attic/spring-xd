@@ -46,7 +46,6 @@ import org.springframework.xd.module.ModuleType;
  * @author Glenn Renfro
  * @author Ilayaperumal Gopinathan
  * @since 1.0
- * 
  */
 public class JobPlugin extends AbstractPlugin {
 
@@ -83,7 +82,6 @@ public class JobPlugin extends AbstractPlugin {
 	public void configureProperties(Module module) {
 		final Properties properties = new Properties();
 		properties.setProperty("xd.stream.name", module.getDeploymentMetadata().getGroup());
-
 		if (!module.getProperties().contains(DATE_FORMAT)) {
 			properties.setProperty(DATE_FORMAT, "");
 		}
@@ -93,7 +91,6 @@ public class JobPlugin extends AbstractPlugin {
 		if (!module.getProperties().contains(MAKE_UNIQUE)) {
 			properties.setProperty(MAKE_UNIQUE, String.valueOf(Boolean.TRUE));
 		}
-
 		if (logger.isInfoEnabled()) {
 			logger.info("Configuring module with the following properties: " + properties.toString());
 		}
@@ -111,9 +108,7 @@ public class JobPlugin extends AbstractPlugin {
 						DEFAULT_ACCEPTED_CONTENT_TYPES,
 						true);
 			}
-
 			MessageChannel notificationsChannel = module.getComponent(JOB_NOTIFICATIONS_CHANNEL, MessageChannel.class);
-
 			if (notificationsChannel != null) {
 				bus.bindProducer(md.getGroup() + NOTIFICATION_CHANNEL_SUFFIX, notificationsChannel, true);
 			}
@@ -164,4 +159,5 @@ public class JobPlugin extends AbstractPlugin {
 		Message<?> message = MessageBuilder.withPayload(payloadJSON).build();
 		inputChannel.send(message);
 	}
+
 }

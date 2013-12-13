@@ -375,6 +375,32 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		assertEquals("STOPPED", executionStatus);
 	}
 
+	@Test
+	public void testStopAllJobExecutions() throws Exception {
+		executeJobCreate(MY_JOB, JOB_WITH_STEP_EXECUTIONS);
+		checkForJobInList(MY_JOB, JOB_WITH_STEP_EXECUTIONS, true);
+		executemyJobFixedDelayStream("5");
+		Thread.sleep(5000);
+		Table table = (Table) executeCommand("job execution list").getResult();
+		assertTrue(!table.getRows().isEmpty());
+		String executionId = table.getRows().get(0).getValue(1);
+		String executionStatus = table.getRows().get(0).getValue(5);
+		assertTrue(executionStatus.equals("STARTING") || executionStatus.equals("STARTED"));
+		// Stop the execution by the given executionId.
+		executeCommand("job all execution stop");
+		// sleep for stop() until the step2 is invoked.
+		Thread.sleep(3000);
+		table = (Table) executeCommand("job execution list").getResult();
+		for (TableRow tr : table.getRows()) {
+			// Match by above executionId
+			if (tr.getValue(1).equals(executionId)) {
+				executionStatus = tr.getValue(5);
+				break;
+			}
+		}
+		assertEquals("STOPPED", executionStatus);
+	}
+
 	public void testStepExecutionProgress() {
 		executeJobCreate(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR);
 		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR, true);

@@ -92,10 +92,19 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 	}
 
 	@Override
+	public void stopAllJobExecutions() {
+		String uriTemplate = resources.get("batch/executions").toString();
+		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
+		values.add("stop", "true");
+		restTemplate.put(uriTemplate, values);
+	}
+
+	@Override
 	public void stopJobExecution(long executionId) {
 		String uriTemplate = resources.get("batch/executions").toString() + "/{executionId}";
 		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
 		values.add("executionId", executionId);
+		uriTemplate = uriTemplate + "?stop=true";
 		restTemplate.put(uriTemplate, values, executionId);
 	}
 

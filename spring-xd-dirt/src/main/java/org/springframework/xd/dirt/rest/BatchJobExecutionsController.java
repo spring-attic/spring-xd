@@ -120,7 +120,7 @@ public class BatchJobExecutionsController {
 	 * 
 	 * @param jobExecutionId the executionId of the job execution to stop
 	 */
-	@RequestMapping(value = { "/{executionId}" }, method = RequestMethod.PUT)
+	@RequestMapping(value = { "/{executionId}" }, method = RequestMethod.PUT, params = "stop=true")
 	@ResponseStatus(HttpStatus.OK)
 	public void stopJobExecution(@PathVariable("executionId") Long jobExecutionId) {
 		try {
@@ -132,5 +132,15 @@ public class BatchJobExecutionsController {
 		catch (org.springframework.batch.core.launch.NoSuchJobExecutionException e) {
 			throw new NoSuchJobExecutionException(jobExecutionId);
 		}
+	}
+
+	/**
+	 * Stop all job executions.
+	 * 
+	 */
+	@RequestMapping(value = { "" }, method = RequestMethod.PUT, params = "stop=true")
+	@ResponseStatus(HttpStatus.OK)
+	public void stopAll() {
+		jobService.stopAll();
 	}
 }

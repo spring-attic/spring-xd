@@ -21,7 +21,12 @@ package org.springframework.xd.integration.hadoop;
  * 
  * @author Janne Valkealahti
  */
-public abstract class IntegrationHadoopSystemConstants {
+public final class IntegrationHadoopSystemConstants {
+
+	/** Prevent instantiation. */
+	private IntegrationHadoopSystemConstants() {
+		throw new AssertionError();
+	}
 
 	/** Default bean id for store writer. */
 	public static final String DEFAULT_ID_STORE_WRITER = "storeWriter";

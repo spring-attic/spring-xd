@@ -11,15 +11,16 @@
 		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
 		http://www.springframework.org/schema/hadoop http://www.springframework.org/schema/hadoop/spring-hadoop.xsd">
 
-	<task:executor id="taskExecutor" pool-size="2"/>
-	<task:scheduler id="taskScheduler" pool-size="2"/>
+	<!-- TODO: these should be defined globally -->
+	<task:executor id="taskExecutor" pool-size="1"/>
+	<task:scheduler id="taskScheduler" pool-size="1"/>
 
 	<hdp:configuration properties-location="${xd.config.home}/hadoop.properties"/>
 
 	<int:channel id="input"/>
 
 	<int-hadoop:rollover-strategy>
-		<int-hadoop:size size="${rolloverSize:1G}" />
+		<int-hadoop:size size="${rolloverSize}" />
 	</int-hadoop:rollover-strategy>
 
 	<int-hadoop:naming-strategy>
@@ -29,10 +30,10 @@
 	</int-hadoop:naming-strategy>
 
 	<int-hadoop:store-writer
-		base-path="${directory:/xd}"
+		base-path="${directory}"
 		codec="${codec:}"
-		idle-timeout="${idleTimeout:0}"
-		in-use-suffix="${inUseSuffix:.tmp}"
+		idle-timeout="${idleTimeout}"
+		in-use-suffix="${inUseSuffix}"
 		in-use-prefix="${inUsePrefix:}"
 		rollover-strategy="fileRolloverStrategy"
 		naming-strategy="fileNamingStrategy" />

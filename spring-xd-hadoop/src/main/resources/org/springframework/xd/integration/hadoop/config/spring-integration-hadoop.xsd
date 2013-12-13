@@ -17,6 +17,65 @@
 		]]></xsd:documentation>
 	</xsd:annotation>
 
+	<xsd:element name="naming-strategy">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines a naming strategy for store writer.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="namingStrategyType">
+					<xsd:sequence minOccurs="0" maxOccurs="unbounded">
+						<xsd:choice>
+							<xsd:element name="static" type="staticNamingStrategyType"/>
+							<xsd:element name="rolling" type="rollingNamingStrategyType"/>
+							<xsd:element name="codec" type="codecNamingStrategyType"/>
+						</xsd:choice>
+					</xsd:sequence>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="rollover-strategy">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines a rollover strategy for store writer.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="rolloverStrategyType">
+					<xsd:sequence minOccurs="0" maxOccurs="unbounded">
+						<xsd:choice>
+							<xsd:element name="size" type="sizeRolloverStrategyType"/>
+						</xsd:choice>
+					</xsd:sequence>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="store-writer">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines a store writer.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute name="id" use="optional"/>
+			<xsd:attribute name="base-path" use="optional"/>
+			<xsd:attribute name="configuration" use="optional" default="hadoopConfiguration"/>
+			<xsd:attribute name="codec" use="optional"/>
+			<xsd:attribute name="idle-timeout" use="optional"/>
+			<xsd:attribute name="in-use-suffix" use="optional"/>
+			<xsd:attribute name="in-use-prefix" use="optional"/>
+			<xsd:attribute name="rollover-strategy" use="optional"/>
+			<xsd:attribute name="naming-strategy" use="optional"/>
+		</xsd:complexType>
+	</xsd:element>
+
 	<xsd:element name="hdfs-outbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -26,11 +85,7 @@
 		<xsd:complexType>
 			<xsd:attribute name="id" use="optional"/>
 			<xsd:attribute name="channel" use="optional"/>
-			<xsd:attribute name="file-system" use="required"/>
-			<xsd:attribute name="base-path" use="required"/>
-			<xsd:attribute name="base-filename" use="required"/>
-			<xsd:attribute name="file-suffix" use="required"/>
-			<xsd:attribute name="rollover-threshold-in-bytes" use="required"/>
+			<xsd:attribute name="writer" use="required"/>
 			<xsd:attribute name="auto-startup" default="true"/>
 		</xsd:complexType>
 	</xsd:element>
@@ -48,5 +103,45 @@
 			<xsd:attribute name="auto-startup" default="true"/>
 		</xsd:complexType>
 	</xsd:element>
+
+	<xsd:complexType name="sizeRolloverStrategyType" mixed="true">
+		<xsd:attribute name="order" type="xsd:integer" use="optional"/>
+		<xsd:attribute name="size" type="xsd:string" use="optional"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="rolloverStrategyType">
+		<xsd:attribute name="id" type="xsd:ID" use="optional">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	Bean id.
+				]]>
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+
+	<xsd:complexType name="namingStrategyType">
+		<xsd:attribute name="id" type="xsd:ID" use="optional">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	Bean id.
+				]]>
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+
+	<xsd:complexType name="staticNamingStrategyType" mixed="true">
+		<xsd:attribute name="order" type="xsd:integer" use="optional"/>
+		<xsd:attribute name="file-name" type="xsd:string" use="optional"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="codecNamingStrategyType" mixed="true">
+		<xsd:attribute name="order" type="xsd:integer" use="optional"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="rollingNamingStrategyType" mixed="true">
+		<xsd:attribute name="order" type="xsd:integer" use="optional"/>
+	</xsd:complexType>
 
 </xsd:schema>

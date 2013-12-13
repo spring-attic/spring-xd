@@ -76,6 +76,11 @@ public interface JobOperations extends ResourceOperations {
 	public void stopJobExecution(long jobExecutionId);
 
 	/**
+	 * Stop all job executions.
+	 */
+	public void stopAllJobExecutions();
+
+	/**
 	 * Retrieve step execution progress with the given {@code jobExecutionId} and {@code stepExecutionId}.
 	 */
 	public StepExecutionProgressInfoResource stepExecutionProgress(long jobExecutionId, long stepExecutionId);

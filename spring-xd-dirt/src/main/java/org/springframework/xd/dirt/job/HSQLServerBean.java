@@ -23,7 +23,6 @@ import org.apache.commons.logging.LogFactory;
 import org.hsqldb.persist.HsqlProperties;
 import org.hsqldb.server.ServerConfiguration;
 import org.hsqldb.server.ServerConstants;
-
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
@@ -80,7 +79,8 @@ public class HSQLServerBean implements InitializingBean, DisposableBean {
 		server.start();
 		// server.start() is synchronous; so we should expect online status from server.
 		Assert.isTrue(server.getState() == ServerConstants.SERVER_STATE_ONLINE,
-				"HSQLDB not started yet.");
+				"HSQLDB could not be started. Maybe another instance is already running on " + server.getAddress()
+						+ ":" + server.getPort() + " ?");
 		log.info("Started HSQL Server");
 	}
 

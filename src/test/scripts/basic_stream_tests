@@ -23,20 +23,11 @@ echo -e '*** Test 3. http | file stream\n'
 
 create_stream 'httptofile' "http | file --dir=$TEST_DIR"
 
-post_data_and_check_result() {
-  curl -d blah "$XD_HOST:9000"
-  result=`cat $TEST_DIR/httptofile.out`
-
-  if [[ $result != 'blah' ]]
-  then
-    echo -e "\nPosted HTTP data ($result) does not match file sink contents"
-    exit 1
-  fi
-}
-
 # Run, undeploy, redeploy and run again
 
-post_data_and_check_result
+curl -d blah "$XD_HOST:9000"
+result=`cat $TEST_DIR/httptofile.out`
+assert_equals 'blah' $result
 
 rm -R $TEST_DIR &> /dev/null
 undeploy_stream 'httptofile'
@@ -45,7 +36,10 @@ echo 'Redeploying and running again...'
 
 deploy_stream 'httptofile'
 list_streams
-post_data_and_check_result
+
+curl -d blah "$XD_HOST:9000"
+result=`cat $TEST_DIR/httptofile.out`
+assert_equals 'blah' $result
 
 destroy_stream 'ticktock'
 destroy_stream 'httptofile'
@@ -60,11 +54,32 @@ sleep 2
 destroy_stream 'tcptofile'
 
 result=`cat $TEST_DIR/tcptofile.out`
+assert_equals 'blahblah' $result
 
-if [[ $result != 'blahblah' ]]
-then
-  echo -e "\nTCP sent data ($result) does not match file sink contents"
-  exit 1
-fi
+echo -e '*** Test 5. http | filter | file\n'
+
+create_stream 'httpfilter' "http | filter --expression=#jsonPath(payload,'\$.entities.hashtags[*].text').contains('good') \
+                                 | json-field-extractor --fieldName=id \
+                                 | file --dir=$TEST_DIR"
+# Add a tap after the filter
+create_stream 'httptap' "tap:stream:httpfilter.json-field-extractor > counter --name=tweets"
+
+# Send some JSON messages only one of which contain the required hashtag 'good'
+curl -d '{"id":9,"entities":{"hashtags":[{"text":"good"},{"text":"bad"}],"urls":[]}}' "$XD_HOST:9000"
+curl -d '{"id":2,"entities":{"hashtags":[{"text":"blah"},{"text":"blah"}],"urls":[]}}' "$XD_HOST:9000"
+curl -d '{"id":3,"entities":{"hashtags":[{"text":"bad"},{"text":"bad"}],"urls":[]}}' "$XD_HOST:9000"
+
+counter=`curl $XDURL/metrics/counters/tweets | grep -o value\":.`
+destroy_stream 'httptap'
+destroy_stream 'httpfilter'
+destroy_metric counters/tweets
+
+result=`cat $TEST_DIR/httpfilter.out`
+# We should get the id of the first message
+assert_equals '9' $result
+
+# Counter should have counted all three messages
+assert_equals 'value":1' $counter
 
 echo -e '\nAll Good :-)\n'
+

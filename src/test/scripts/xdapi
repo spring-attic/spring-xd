@@ -35,6 +35,12 @@ destroy_stream() {
   echo -e '\n'
 }
 
+destroy_metric() {
+  echo -e "Destroying metric $1 ..."
+  xdc -X DELETE "$XDURL/metrics/$1"
+  echo -e '\n'
+}
+
 create_job() {
   local udef=`urlencode "$2"`
   echo -e "Creating job $1 with definition '$udef' ..."

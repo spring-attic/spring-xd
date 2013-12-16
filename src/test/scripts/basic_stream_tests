@@ -46,7 +46,7 @@ destroy_stream 'httptofile'
 destroy_stream 'timejdbc'
 
 echo -e '*** Test 4. http | filter | file stream\n'
-create_stream 'httpfilter1' "http | good: filter --expression=payload=='good' | good2: filter --expression=payload=='good' | good3: filter --expression=payload=='good' | file"
+create_stream 'httpfilter1' "http | good: filter --expression=payload=='good' | good2: filter --expression=payload=='good' | good3: filter --expression=payload=='good' | file --dir=$TEST_DIR"
 create_stream 'httpfilter1tap'  "tap:stream:httpfilter1.good > counter --name=good"
 # Send one message
 curl -d 'good' $XD_HOST:9000

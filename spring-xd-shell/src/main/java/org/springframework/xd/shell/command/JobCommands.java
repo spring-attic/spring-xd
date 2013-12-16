@@ -62,7 +62,7 @@ public class JobCommands implements CommandMarker {
 
 	private final static String DISPLAY_JOB_EXECUTION = "job execution display";
 
-	private final static String STOP_ALL_JOB_EXECUTIONS = "job all execution stop";
+	private final static String STOP_ALL_JOB_EXECUTIONS = "job execution all stop";
 
 	private final static String STOP_JOB_EXECUTION = "job execution stop";
 
@@ -275,8 +275,13 @@ public class JobCommands implements CommandMarker {
 	@CliCommand(value = STOP_ALL_JOB_EXECUTIONS, help = "Stop all the job executions that are running")
 	public String stopAllJobExecutions(
 			@CliOption(key = "force", help = "bypass confirmation prompt", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean force) {
-		jobOperations().stopAllJobExecutions();
-		return String.format("Stopped all the job executions");
+		if (force || "y".equalsIgnoreCase(userInput.prompt("Really stop all job executions?", "n", "y", "n"))) {
+			jobOperations().stopAllJobExecutions();
+			return String.format("Stopped all the job executions");
+		}
+		else {
+			return "";
+		}
 	}
 
 	@CliCommand(value = STOP_JOB_EXECUTION, help = "Stop the job execution that is running")

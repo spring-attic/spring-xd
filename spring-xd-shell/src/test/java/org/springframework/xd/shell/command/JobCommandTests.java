@@ -387,7 +387,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		String executionStatus = table.getRows().get(0).getValue(5);
 		assertTrue(executionStatus.equals("STARTING") || executionStatus.equals("STARTED"));
 		// Stop the execution by the given executionId.
-		executeCommand("job all execution stop");
+		executeCommand("job execution all stop --force true");
 		// sleep for stop() until the step2 is invoked.
 		Thread.sleep(3000);
 		table = (Table) executeCommand("job execution list").getResult();

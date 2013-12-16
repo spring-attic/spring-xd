@@ -18,6 +18,7 @@ package org.springframework.xd.dirt.stream;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertThat;
@@ -27,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +59,7 @@ public class CompletionProviderTests {
 	private ModuleDefinitionRepository moduleDefinitionRepository;
 
 	@Test
+	// <TAB> => file,http,etc
 	public void testEmptyStartShouldProposeSourceModules() {
 		List<String> completions = completionProvider.complete(stream, "");
 
@@ -64,6 +67,9 @@ public class CompletionProviderTests {
 	}
 
 	@Test
+	// fi<TAB> => file
+	@Ignore
+	// Requires cleanup of XDStreamParser.determineType()
 	public void testUnfinishedModuleNameShouldReturnCommletions() {
 		List<String> completions = completionProvider.complete(stream, "fi");
 
@@ -71,6 +77,7 @@ public class CompletionProviderTests {
 	}
 
 	@Test
+	// file | filter<TAB> => file | filter | foo, etc
 	public void testValidSubStreamDefinitionShouldReturnPipe() {
 		List<String> completions = completionProvider.complete(stream, "file | filter");
 
@@ -78,6 +85,7 @@ public class CompletionProviderTests {
 	}
 
 	@Test
+	// file | filter<TAB> => file | filter --foo=, etc
 	public void testValidSubStreamDefinitionShouldReturnModuleOptions() {
 		List<String> completions = completionProvider.complete(stream, "file | filter");
 
@@ -86,12 +94,52 @@ public class CompletionProviderTests {
 	}
 
 	@Test
+	// file | filter -<TAB> => file | filter --foo,etc
 	public void testOneDashShouldReturnTwoDashes() {
 		List<String> completions = completionProvider.complete(stream, "file | filter -");
 
 		assertThat(new HashSet<>(completions), hasItem(startsWith("file | filter --script=")));
 		assertThat(new HashSet<>(completions), hasItem(startsWith("file | filter --expression=")));
 		assertThat(new HashSet<>(completions), not(hasItem(startsWith("file | filter |"))));
+	}
+
+	@Test
+	// file | filter --<TAB> => file | filter --foo,etc
+	public void testTwoDashesShouldReturnOptions() {
+		List<String> completions = completionProvider.complete(stream, "file | filter --");
+
+		assertThat(new HashSet<>(completions), hasItem(startsWith("file | filter --script=")));
+		assertThat(new HashSet<>(completions), hasItem(startsWith("file | filter --expression=")));
+		assertThat(new HashSet<>(completions), not(hasItem(startsWith("file | filter |"))));
+	}
+
+	@Test
+	// file |<TAB> => file | foo,etc
+	public void testDanglingPipeShouldReturnExtraModules() {
+		List<String> completions = completionProvider.complete(stream, "file |");
+
+		assertThat(new HashSet<>(completions), hasItem(startsWith("file | filter")));
+		assertThat(new HashSet<>(completions), hasItem(startsWith("file | script")));
+	}
+
+	@Test
+	// file --p<TAB> => file --preventDuplicates=, file --pattern=
+	public void testUnfinishedOptionNameShouldComplete() {
+		List<String> completions = completionProvider.complete(stream, "file --p");
+
+		assertThat(new HashSet<>(completions), hasItem(startsWith("file --preventDuplicates=")));
+		assertThat(new HashSet<>(completions), hasItem(startsWith("file --pattern=")));
+		assertThat(new HashSet<>(completions), not(hasItem(startsWith("file --dir="))));
+		assertThat(new HashSet<>(completions), not(hasItem(startsWith("file | filter |"))));
+	}
+
+	@Test
+	// file | counter --name=foo --inputType=bar<TAB> => we're done
+	public void testSinkWithAllOptionsSetCantGoFurther() {
+		List<String> completions = completionProvider.complete(stream,
+				"file | counter --name=foo --inputType=text/plain");
+
+		assertThat(completions, hasSize(0));
 	}
 
 	private List<String> namesOfModulesWithType(ModuleType type) {

@@ -19,6 +19,6 @@
 		</gfe:cache-listener>
 	</gfe:replicated-region>
 
-	<int-gfe:inbound-channel-adapter region="region" channel="output" expression="${cacheEventExpression:newValue}"/>
+	<int-gfe:inbound-channel-adapter region="region" channel="output" expression="${cacheEventExpression}"/>
 
 </beans>

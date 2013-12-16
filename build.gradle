@@ -71,7 +71,7 @@ ext {
 	jodaTimeVersion = '2.1'
 	jolokiaVersion = '1.1.2'
 	snakeYamlVersion = '1.12'
-	springVersion = '4.0.0.BUILD-SNAPSHOT'
+	springVersion = '4.0.0.RELEASE'
 	springBatchVersion = '2.2.4.BUILD-SNAPSHOT'
 	springIntegrationVersion = '4.0.0.BUILD-SNAPSHOT'
 	springIntegrationMQTTVersion = '4.0.0.M1'

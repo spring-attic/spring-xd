@@ -50,43 +50,81 @@ public class CompletionProvider {
 	}
 
 
-	public List<String> complete(CompletionKind kind, String start) {
-		List<String> result = new ArrayList<String>();
+	private class CompletionProposals {
 
-		if (start.trim().equals("")) {
-			addAllModulesOfType(ModuleType.source, result, start);
-			return result;
+		private final CompletionKind kind;
+
+		private String start;
+
+		private List<String> results = new ArrayList<String>();
+
+		public CompletionProposals(CompletionKind kind, String start) {
+			this.kind = kind;
+			this.start = start;
 		}
 
-		String name = "dummy";
-		List<ModuleDeploymentRequest> parsed = parser.parse(name, start);
-		// List is in reverse order
-		ModuleDeploymentRequest lastModule = parsed.get(0);
-		String lastModuleName = lastModule.getModule();
-		ModuleType lastModuleType = lastModule.getType();
-		ModuleDefinition lastModuleDefinition = moduleDefinitionRepository.findByNameAndType(lastModuleName,
-				lastModuleType);
-		Set<String> alreadyPresentOptions = new HashSet<String>(lastModule.getParameters().keySet());
-		for (ModuleOption option : lastModuleDefinition.getModuleOptionsMetadata()) {
-			if (!alreadyPresentOptions.contains(option.getName())) {
-				result.add(start + String.format(" --%s=", option.getName()));
+		private void compute() {
+			if (start.trim().equals("")) {
+				addAllModulesOfType(start, ModuleType.source);
+				return;
+			}
+
+			String name = "dummy";
+			List<ModuleDeploymentRequest> parsed = null;
+			try {
+				parsed = parser.parse(name, start);
+			}
+			catch (Exception e) {
+				// TODO: implement parser recovery
+				return;
+			}
+			// List is in reverse order
+			ModuleDeploymentRequest lastModule = parsed.get(0);
+			String lastModuleName = lastModule.getModule();
+			ModuleType lastModuleType = lastModule.getType();
+			ModuleDefinition lastModuleDefinition = moduleDefinitionRepository.findByNameAndType(lastModuleName,
+					lastModuleType);
+
+			Set<String> alreadyPresentOptions = new HashSet<String>(lastModule.getParameters().keySet());
+			for (ModuleOption option : lastModuleDefinition.getModuleOptionsMetadata()) {
+				if (!alreadyPresentOptions.contains(option.getName())) {
+					continueWith(String.format("--%s=", option.getName()));
+				}
+			}
+
+			if (lastModuleType != ModuleType.sink && kind == stream) {
+				addAllModulesOfType(start + maybePrefixWithSpace("| "), processor);
+				addAllModulesOfType(start + maybePrefixWithSpace("| "), sink);
+			}
+
+		}
+
+		private void continueWith(String what) {
+			results.add(start + (start.endsWith(" ") ? what : " " + what));
+		}
+
+		private void addAllModulesOfType(String beginning, ModuleType type) {
+			Page<ModuleDefinition> mods = moduleDefinitionRepository.findByType(new PageRequest(0, 1000), type);
+			for (ModuleDefinition mod : mods) {
+				results.add(beginning + mod.getName());
 			}
 		}
 
-		if (lastModuleType != ModuleType.sink && kind == stream) {
-			addAllModulesOfType(processor, result, start + " | ");
-			addAllModulesOfType(sink, result, start + " | ");
+		/**
+		 * Add an extra space before what if it is not already present at the end of what the user already typed.
+		 */
+		private String maybePrefixWithSpace(String what) {
+			return start.endsWith(" ") ? what : " " + what;
 		}
 
 
-		return result;
 	}
 
-	private void addAllModulesOfType(ModuleType type, List<String> results, String start) {
-		Page<ModuleDefinition> mods = moduleDefinitionRepository.findByType(new PageRequest(0, 1000), type);
-		for (ModuleDefinition mod : mods) {
-			results.add(start + mod.getName());
-		}
+	public List<String> complete(CompletionKind kind, String start) {
+		CompletionProposals proposals = new CompletionProposals(kind, start);
+		proposals.compute();
+		return proposals.results;
 	}
+
 
 }

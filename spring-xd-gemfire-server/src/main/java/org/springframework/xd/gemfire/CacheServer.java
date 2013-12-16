@@ -58,6 +58,7 @@ public class CacheServer {
 			System.out.println("failed to start cache server ");
 			System.exit(1);
 		}
+		System.out.println("cache server running");
 	}
 
 	public static boolean portAvailable(int port) {

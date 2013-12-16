@@ -35,7 +35,7 @@ public class GemfireServerSinkModuleOptionsMetadata extends SinkModuleOptionsMet
 
 	private String regionName;
 
-	private String keyExpression = "payload";
+	private String keyExpression;
 
 	private boolean useLocator = false;
 

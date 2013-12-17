@@ -1,5 +1,21 @@
 #!/bin/bash
-
+#-----------------------------------------------------------------------------
+# This script requires the following preconditions
+#  . XD installed somewhere, e.g.,
+#    > gradle build copyInstall -xtest -xjavaDoc
+#  . The XD Gemfire Server must be (re-started), e.g., with output redirected to gemfire.out. The CI Server does something like the following where
+#    <xd_dist_root> is where XD is installed or <xd_repo_root>/build/dist/spring-xd
+#    > nohup <xd_dist_root>/gemfire/bin/gemfire-server "file:<xd_dist_root>/gemfire/config/cq-demo.xml" > gemfire.out 2>&1 < /dev/null &
+#    > echo -n $! > gemfire.pid
+#
+#  . An XD SingleNode Server must be started.
+#  > <xd_dist_root>/xd/bin/xd-singlenode
+#
+# Postconditions:
+# If gemfire started successfully, kill the cache server, e.g.:
+# > cat gemfire.pid | xargs kill -9
+#
+#----------------------------------------------------------------------------
 . xdapi
 
 wait_for_gemfire_server() {

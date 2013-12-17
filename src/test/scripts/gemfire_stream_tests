@@ -14,6 +14,7 @@
 # Postconditions:
 # If gemfire started successfully, kill the cache server, e.g.:
 # > cat gemfire.pid | xargs kill -9
+# > rm gemfire.out
 #
 #----------------------------------------------------------------------------
 . xdapi
@@ -59,6 +60,7 @@ deploy_stream 'httptofile'
 
 post_data_and_check_result() {
   curl -d blah "$XD_HOST:9000"
+  sleep 2
   result=`cat $TEST_DIR/httptofile.out`
 
   if [[ $result != 'blah' ]]

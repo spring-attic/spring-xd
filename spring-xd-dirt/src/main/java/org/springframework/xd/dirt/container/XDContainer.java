@@ -97,7 +97,7 @@ public class XDContainer implements SmartLifecycle {
 
 
 	public String getId() {
-		return (this.context != null) ? this.context.getId() : "";
+		return this.id;
 	}
 
 	public String getHostName() {

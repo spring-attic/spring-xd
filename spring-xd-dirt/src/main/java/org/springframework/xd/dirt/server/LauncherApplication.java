@@ -50,6 +50,7 @@ public class LauncherApplication {
 
 	public static void publishContainerStarted(ConfigurableApplicationContext context) {
 		XDContainer container = new XDContainer();
+		context.setId(container.getId());
 		container.setContext(context);
 		context.publishEvent(new ContainerStartedEvent(container));
 	}

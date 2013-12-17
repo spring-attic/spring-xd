@@ -87,7 +87,9 @@ public class DistributedJobService extends SimpleJobService {
 
 	@Override
 	public boolean isIncrementable(String jobName) {
-		return batchJobLocator.isIncrementable(jobName);
+		// if the batch job is not launchable (the job is not deployed) then return false
+		// as the persistent job locator wouldn't have entries for the job.
+		return (isLaunchable(jobName) ? batchJobLocator.isIncrementable(jobName) : false);
 	}
 
 	@Override

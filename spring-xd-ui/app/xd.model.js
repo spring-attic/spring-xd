@@ -137,6 +137,7 @@ define([], function() {
 				return this.jobs;
 			},
 			startFetching: function() {
+				this.stopFetch = false;
 				this.fetch({change:true, add:false}).then(
 					function() {
 						this.fetchTimer = setTimeout(function() {
@@ -186,6 +187,7 @@ define([], function() {
 				this.executions = response;
 			},
 			startFetching: function() {
+				this.stopFetch = false;
 				this.fetch({change:true, add:false}).then(
 					function() {
 						this.fetchTimer = setTimeout(function() {
@@ -279,7 +281,7 @@ define([], function() {
 
 		var BatchJobs = Backbone.Collection.extend({
 			model: BatchJob,
-			urlRoot: URL_ROOT + '/batch/jobs.json',
+			urlRoot: URL_ROOT + '/batch/jobs',
 			url: function() {
 				return this.urlRoot ;
 			},
@@ -291,14 +293,15 @@ define([], function() {
 			comparator: 'name',
 
 			startFetching: function() {
+				this.stopFetch = false;
 				console.log("Start fetching for Batch Jobs...");
-				this.fetch({change:true, add:false}).then(
+				this.fetch().then(
 					function() {
 						this.fetchTimer = setTimeout(function() {
 							if (!this.stopFetch) {
 								this.startFetching();
 							}
-						}.bind(this), 50000);
+						}.bind(this), REFRESH_INTERVAL);
 					}.bind(this));
 			},
 

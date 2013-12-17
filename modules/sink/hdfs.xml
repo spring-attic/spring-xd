@@ -23,18 +23,26 @@
 		<int-hadoop:size size="${rolloverSize}" />
 	</int-hadoop:rollover-strategy>
 
+	<!--
+	Starting / for first static needed to start with a directory till we support
+	this use case in shdp store. Path passed into first naming strategy is
+	a directory(base-path) from a writer.
+	Order options needed because xml parser don't yet support
+	ordering in a way it exist in this xml
+	-->
 	<int-hadoop:naming-strategy>
-		<int-hadoop:static file-name="${fileName:${xd.stream.name}}" />
-		<int-hadoop:rolling />
+		<int-hadoop:static order="1" file-name="/${xd.stream.name}/${fileName:${xd.stream.name}}" />
+		<int-hadoop:rolling order="2" />
+		<int-hadoop:static order="3" file-name="${fileSuffix}" />
 		<int-hadoop:codec />
 	</int-hadoop:naming-strategy>
 
 	<int-hadoop:store-writer
 		base-path="${directory}"
-		codec="${codec:}"
+		codec="${codec}"
 		idle-timeout="${idleTimeout}"
 		in-use-suffix="${inUseSuffix}"
-		in-use-prefix="${inUsePrefix:}"
+		in-use-prefix="${inUsePrefix}"
 		rollover-strategy="fileRolloverStrategy"
 		naming-strategy="fileNamingStrategy" />
 

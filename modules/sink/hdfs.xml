@@ -23,18 +23,26 @@
 		<int-hadoop:size size="${rolloverSize}" />
 	</int-hadoop:rollover-strategy>
 
+	<!--
+	Order options needed because xml parser don't yet support
+	ordering in a way it exist in this xml.
+	default option for fileName set here due to variable.
+	-->
 	<int-hadoop:naming-strategy>
-		<int-hadoop:static file-name="${fileName:${xd.stream.name}}" />
-		<int-hadoop:rolling />
+		<int-hadoop:static order="1" name="${fileName:${xd.stream.name}}" />
+		<int-hadoop:rolling order="2" />
+		<int-hadoop:static order="3" prefix="." name="${fileExtension}" />
 		<int-hadoop:codec />
 	</int-hadoop:naming-strategy>
 
+	<!-- default option for directory set here due to variable -->
 	<int-hadoop:store-writer
-		base-path="${directory}"
-		codec="${codec:}"
+		base-path="${directory:/xd/${xd.stream.name}}"
+		codec="${codec}"
+		overwrite="${overwrite}"
 		idle-timeout="${idleTimeout}"
 		in-use-suffix="${inUseSuffix}"
-		in-use-prefix="${inUsePrefix:}"
+		in-use-prefix="${inUsePrefix}"
 		rollover-strategy="fileRolloverStrategy"
 		naming-strategy="fileNamingStrategy" />
 

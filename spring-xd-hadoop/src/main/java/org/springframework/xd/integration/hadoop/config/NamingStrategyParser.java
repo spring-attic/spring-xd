@@ -52,11 +52,9 @@ public class NamingStrategyParser extends AbstractBeanDefinitionParser {
 		ManagedList<RuntimeBeanReference> strategies = new ManagedList<RuntimeBeanReference>();
 		List<Element> staticElements = DomUtils.getChildElementsByTagName(element, "static");
 		List<Element> rollingElements = DomUtils.getChildElementsByTagName(element, "rolling");
-		List<Element> renamingElements = DomUtils.getChildElementsByTagName(element, "renaming");
 		List<Element> codecElements = DomUtils.getChildElementsByTagName(element, "codec");
 
-		if (staticElements.size() == 0 && rollingElements.size() == 0 && renamingElements.size() == 0
-				&& codecElements.size() == 0) {
+		if (staticElements.size() == 0 && rollingElements.size() == 0 && codecElements.size() == 0) {
 			builder = BeanDefinitionBuilder.genericBeanDefinition(StaticFileNamingStrategy.class);
 			return builder.getBeanDefinition();
 		}
@@ -66,7 +64,8 @@ public class NamingStrategyParser extends AbstractBeanDefinitionParser {
 		for (Element e : staticElements) {
 			BeanDefinitionBuilder nestedBuilder = BeanDefinitionBuilder.genericBeanDefinition(StaticFileNamingStrategy.class);
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(nestedBuilder, e, "order");
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(nestedBuilder, e, "file-name", "fileName");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(nestedBuilder, e, "name");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(nestedBuilder, e, "prefix");
 			String nestedBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
 					nestedBuilder.getBeanDefinition(),
 					parserContext.getRegistry());
@@ -76,6 +75,7 @@ public class NamingStrategyParser extends AbstractBeanDefinitionParser {
 		for (Element e : rollingElements) {
 			BeanDefinitionBuilder nestedBuilder = BeanDefinitionBuilder.genericBeanDefinition(RollingFileNamingStrategy.class);
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(nestedBuilder, e, "order");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(nestedBuilder, e, "prefix");
 			String nestedBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
 					nestedBuilder.getBeanDefinition(),
 					parserContext.getRegistry());

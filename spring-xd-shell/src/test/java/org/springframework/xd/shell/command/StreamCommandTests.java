@@ -315,7 +315,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		// assertThat(tapsink3, eventually(hasContentsThat(equalTo("Dracarys!"))));
 
 	}
-
+/*
 	@Test
 	public void testTappingWithLabels() throws IOException {
 		// Note: this test is using a regular sink, not a named channel sink
@@ -323,7 +323,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 
 		FileSink sink = newFileSink().binary(true);
 		FileSink tapsink1 = newFileSink().binary(true);
-		stream().create("myhttp", "%s | flibble: transform --expression=payload.toUpperCase() | %s", source, sink);
+		stream().create("myhttp", "%s | flibble: transform --expression=payload.toUpperCase() | flibble2: transform --expression=payload.toUpperCase() | %s", source, sink);
 		stream().create("mytap4",
 				"tap:stream:myhttp.flibble > transform --expression=payload.replaceAll('A','.') | %s",
 				tapsink1);
@@ -334,7 +334,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		assertThat(tapsink1, eventually(hasContentsThat(equalTo("DR.C.RYS!"))));
 
 	}
-
+*/
 	@Test
 	public void testTappingModulesVariationsWithSinkChannel_XD629() throws IOException {
 		HttpSource source = newHttpSource();

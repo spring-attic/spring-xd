@@ -22,7 +22,6 @@ import org.junit.Test;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
-import org.springframework.xd.dirt.module.CompositeModuleDefinitionService;
 import org.springframework.xd.dirt.module.DependencyException;
 import org.springframework.xd.dirt.module.NoSuchModuleException;
 import org.springframework.xd.dirt.rest.ModulesController;

@@ -27,7 +27,6 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -58,6 +57,7 @@ import org.springframework.xd.module.SimpleModule;
 import org.springframework.xd.module.options.DefaultModuleOptionsMetadata;
 import org.springframework.xd.module.options.ModuleOptions;
 import org.springframework.xd.module.options.ModuleOptionsMetadata;
+import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -90,9 +90,14 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 
 	private ClassLoader parentClassLoader;
 
-	public ModuleDeployer(ModuleDefinitionRepository moduleDefinitionRepository) {
+	private final ModuleOptionsMetadataResolver moduleOptionsMetadataResolver;
+
+	public ModuleDeployer(ModuleDefinitionRepository moduleDefinitionRepository,
+			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver) {
 		Assert.notNull(moduleDefinitionRepository, "moduleDefinitionRepository must not be null");
+		Assert.notNull(moduleOptionsMetadataResolver, "moduleOptionsMetadataResolver must not be null");
 		this.moduleDefinitionRepository = moduleDefinitionRepository;
+		this.moduleOptionsMetadataResolver = moduleOptionsMetadataResolver;
 	}
 
 	public Map<String, Map<Integer, Module>> getDeployedModules() {
@@ -237,7 +242,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 
 
 		Map<String, String> parameters = request.getParameters();
-		ModuleOptionsMetadata moduleOptionsMetadata = definition.getModuleOptionsMetadata();
+		ModuleOptionsMetadata moduleOptionsMetadata = moduleOptionsMetadataResolver.resolve(definition);
 		ModuleOptions interpolated = safeModuleOptionsInterpolate(moduleOptionsMetadata, parameters);
 		Module module = new SimpleModule(definition, metadata, classLoader, interpolated);
 		this.deployAndStore(module, request);

@@ -37,6 +37,7 @@ import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.module.memory.InMemoryModuleDefinitionRepository;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
+import org.springframework.xd.module.options.DefaultModuleOptionsMetadataResolver;
 
 /**
  * @author Mark Fisher
@@ -48,7 +49,7 @@ public class XDStreamParserTests {
 
 	@Before
 	public void setup() {
-		parser = new XDStreamParser(moduleDefinitionRepository());
+		parser = new XDStreamParser(moduleDefinitionRepository(), new DefaultModuleOptionsMetadataResolver());
 	}
 
 	@Test

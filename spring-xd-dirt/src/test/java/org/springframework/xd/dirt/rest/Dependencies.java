@@ -60,6 +60,8 @@ import org.springframework.xd.dirt.stream.memory.InMemoryJobDefinitionRepository
 import org.springframework.xd.dirt.stream.memory.InMemoryJobRepository;
 import org.springframework.xd.dirt.stream.memory.InMemoryStreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.memory.InMemoryStreamRepository;
+import org.springframework.xd.module.options.DefaultModuleOptionsMetadataResolver;
+import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 /**
  * Provide a mockito mock for any of the business layer dependencies. Adding yet another configuration class on top, one
@@ -98,6 +100,11 @@ public class Dependencies {
 	}
 
 	@Bean
+	public ModuleOptionsMetadataResolver moduleOptionsMetadataResolver() {
+		return new DefaultModuleOptionsMetadataResolver();
+	}
+
+	@Bean
 	public RichGaugeRepository richGaugeRepository() {
 		return mock(RichGaugeRepository.class);
 	}
@@ -115,7 +122,7 @@ public class Dependencies {
 	@Bean
 	public XDStreamParser parser() {
 		return new XDStreamParser(streamDefinitionRepository(),
-				moduleDefinitionRepository());
+				moduleDefinitionRepository(), moduleOptionsMetadataResolver());
 	}
 
 	@Bean

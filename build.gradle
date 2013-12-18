@@ -88,7 +88,7 @@ ext {
 	tomcatJdbcPoolVersion = '7.0.42'
 	reactorVersion = '1.0.0.RC1'
 	lettuceVersion = '2.3.3'
-	springDataHadoopVersion = '2.0.0.BUILD-SNAPSHOT'
+	springDataHadoopVersion = '2.0.0.M4'
 	hadoop12Version = '1.2.1'
 	hadoop22Version = '2.2.0'
 	cdh4Version = '2.0.0-cdh4.3.1'

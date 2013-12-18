@@ -63,14 +63,12 @@ echo -e "\n\n*** Test 3. Import files using hdfs sink\n"
 create_stream csvstream3 "file --dir=$TEST_DIR/csv --pattern=data1.csv --outputType=text/plain | hdfs --directory=$BASE_PATH"
 sleep 10
 undeploy_stream csvstream3
-#TODO: fix bug where re-deployment reuses filename of first deployment
-#deploy_stream csvstream3
-#sleep 10
+deploy_stream csvstream3
+sleep 10
 destroy_stream csvstream3
 
 data_size=`hdfs_size "$BASE_PATH/csvstream3*"`
-#assert_equals 16966 $data_size || exit $?
-assert_equals 6359 $data_size || exit $?
+assert_equals 12718 $data_size || exit $?
 
 if [[ ! -f $XD_HOME/lib/sqlite-jdbc-3.7.2.jar ]]
 then

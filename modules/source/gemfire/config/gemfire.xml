@@ -13,11 +13,7 @@
 
 	<gfe:cache use-bean-factory-locator="false"/>
 
-	<gfe:replicated-region id="region" name="${regionName}">
-		<gfe:cache-listener>
-			<bean class="org.springframework.integration.x.gemfire.LoggingCacheListener"/>
-		</gfe:cache-listener>
-	</gfe:replicated-region>
+	<gfe:replicated-region id="region" name="${regionName}"/>
 
 	<int-gfe:inbound-channel-adapter region="region" channel="output" expression="${cacheEventExpression:newValue}"/>
 

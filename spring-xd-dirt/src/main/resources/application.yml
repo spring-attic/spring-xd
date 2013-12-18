@@ -11,6 +11,8 @@ spring:
 endpoints:
   jolokia:
     enabled: ${XD_JMX_ENABLED:false}
+  jmx:
+    enabled: false
 
 XD_ANALYTICS: ${analytics:redis}
 XD_TRANSPORT: ${transport:redis}

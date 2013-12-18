@@ -24,7 +24,7 @@
 	</int-hadoop:rollover-strategy>
 
 	<int-hadoop:naming-strategy>
-		<int-hadoop:static file-name="testfile" />
+		<int-hadoop:static name="testfile" />
 		<int-hadoop:rolling />
 	</int-hadoop:naming-strategy>
 

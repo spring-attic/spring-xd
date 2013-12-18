@@ -48,6 +48,7 @@ public class StoreWriterParser extends AbstractBeanDefinitionParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "in-use-suffix", "inWritingSuffix");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "in-use-prefix", "inWritingPrefix");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "idle-timeout");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "overwrite");
 
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "naming-strategy",
 				"fileNamingStrategy");

@@ -17,20 +17,35 @@
 package org.springframework.xd.module.options;
 
 import java.beans.PropertyDescriptor;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.InvalidPropertyException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.bind.PropertySourcesPropertyValues;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.PropertySources;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.env.EnumerablePropertySource;
+import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.MutablePropertySources;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.core.io.support.ResourcePropertySource;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindException;
 import org.springframework.validation.DataBinder;
 import org.springframework.validation.FieldError;
@@ -62,8 +77,28 @@ public class PojoModuleOptionsMetadata implements ModuleOptionsMetadata {
 
 	private List<ModuleOption> options;
 
+	/**
+	 * Used to resolve the properties files that may be declared in @PropertySource annotations on the pojo class.
+	 */
+	private final ResourceLoader resourceLoader;
+
+	/**
+	 * Used to resolve placeholders in the locations of @PropertySource themselves. Not to be confused with the
+	 * environment that is created to honor @Value annotations (although the latter may inherit from this one).
+	 */
+	private final Environment environment;
+
 	public PojoModuleOptionsMetadata(Class<?> clazz) {
-		beanWrapper = new BeanWrapperImpl(clazz);
+		this(clazz, null, null);
+	}
+
+	public PojoModuleOptionsMetadata(Class<?> clazz, ResourceLoader resourceLoader, Environment environment) {
+		this.environment = environment;
+		this.resourceLoader = resourceLoader;
+
+		Object bean = createAndInject(clazz);
+
+		beanWrapper = new BeanWrapperImpl(bean);
 		options = new ArrayList<ModuleOption>();
 		for (PropertyDescriptor pd : beanWrapper.getPropertyDescriptors()) {
 			String name = pd.getName();
@@ -91,6 +126,73 @@ public class PojoModuleOptionsMetadata implements ModuleOptionsMetadata {
 		}
 	}
 
+	/**
+	 * Returns a new instance of the {@code clazz} class, created and (possibly {@link Value} injected) by means of a
+	 * throw away {@link ApplicationContext}.
+	 */
+	private Object createAndInject(Class<?> clazz) {
+		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+		context.register(clazz);
+
+		context.register(PropertySourcesPlaceholderConfigurer.class);
+		MutablePropertySources propertySources = context.getEnvironment().getPropertySources();
+
+		// process any @PropertySource annotations
+		Set<PropertySource> annotations = AnnotationUtils.getRepeatableAnnotation(clazz, PropertySources.class,
+				PropertySource.class);
+		for (PropertySource annotation : annotations) {
+			try {
+				addPropertySourceToComposite(annotation, propertySources);
+			}
+			catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
+
+		context.refresh();
+
+		Object bean = context.getBean(clazz);
+		context.close();
+		return bean;
+	}
+
+	private void addPropertySourceToComposite(PropertySource propertySource, MutablePropertySources propertySources)
+			throws IOException {
+		if (this.environment == null || this.resourceLoader == null) {
+			throw new IllegalStateException(
+					"Can't use @PropertySource with an instance that has not been fully configured");
+		}
+		String name = propertySource.name();
+		String[] locations = propertySource.value();
+		boolean ignoreResourceNotFound = propertySource.ignoreResourceNotFound();
+		int locationCount = locations.length;
+		if (locationCount == 0) {
+			throw new IllegalArgumentException("At least one @PropertySource(value) location is required");
+		}
+		for (String location : locations) {
+			Resource resource = this.resourceLoader.getResource(
+					this.environment.resolveRequiredPlaceholders(location));
+			try {
+				if (!StringUtils.hasText(name) || propertySources.contains(name)) {
+					// We need to ensure unique names when the property source will
+					// ultimately end up in a composite
+					ResourcePropertySource ps = StringUtils.hasText(name) ? new ResourcePropertySource(name, resource)
+							: new ResourcePropertySource(resource);
+					propertySources.addLast(ps);
+				}
+				else {
+					propertySources.addLast(new ResourcePropertySource(name, resource));
+				}
+			}
+			catch (FileNotFoundException ex) {
+				if (!ignoreResourceNotFound) {
+					throw ex;
+				}
+			}
+		}
+	}
+
 	private Object defaultFromAnnotation(org.springframework.xd.module.options.spi.ModuleOption annotation) {
 		String value = annotation.defaultValue();
 		return org.springframework.xd.module.options.spi.ModuleOption.NO_DEFAULT.equals(value) ? null : value;
@@ -104,7 +206,7 @@ public class PojoModuleOptionsMetadata implements ModuleOptionsMetadata {
 		Assert.hasLength(
 				annotation.value(),
 				String.format(
-						"Setter method for option '%s' needs to bear the @%s annotation and provide a non-empty 'description' attribute",
+						"Setter method for option '%s' needs to bear the @%s annotation and provide a non-empty description",
 						optionName,
 						org.springframework.xd.module.options.spi.ModuleOption.class.getSimpleName()));
 		return annotation.value();

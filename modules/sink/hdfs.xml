@@ -20,7 +20,7 @@
 	<int:channel id="input"/>
 
 	<int-hadoop:rollover-strategy>
-		<int-hadoop:size size="${rolloverSize}" />
+		<int-hadoop:size size="${rollover}" />
 	</int-hadoop:rollover-strategy>
 
 	<!--

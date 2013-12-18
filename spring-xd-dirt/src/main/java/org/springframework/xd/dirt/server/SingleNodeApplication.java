@@ -57,7 +57,6 @@ public class SingleNodeApplication {
 				SINGLE_PROFILE).child(AdminServerApplication.class);
 		admin.run(args);
 
-
 		SpringApplicationBuilder container = admin
 				.sibling(LauncherApplication.class).profiles(LauncherApplication.NODE_PROFILE, SINGLE_PROFILE).web(
 						false);

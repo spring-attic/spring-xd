@@ -24,7 +24,7 @@
 	</bean>
 	
 	<!-- This service plays a similar supporting role to ModulesController as StreamDeployer does with StreamsController -->
-	<bean id="compositeModuleDefinitionService" class="org.springframework.xd.dirt.module.CompositeModuleDefinitionService"/>
+	<bean id="compositeModuleDefinitionService" class="org.springframework.xd.dirt.stream.CompositeModuleDefinitionService"/>
 
 	<bean id="streamDeployer" class="org.springframework.xd.dirt.stream.StreamDeployer">
 		<constructor-arg name="messageSender" ref="deploymentMessageSender" />

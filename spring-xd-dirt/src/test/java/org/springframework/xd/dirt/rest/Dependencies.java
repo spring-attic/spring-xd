@@ -39,7 +39,6 @@ import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository
 import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
 import org.springframework.xd.dirt.container.store.RuntimeContainerInfoRepository;
-import org.springframework.xd.dirt.module.CompositeModuleDefinitionService;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDependencyRepository;
 import org.springframework.xd.dirt.module.ModuleRegistry;
@@ -49,6 +48,7 @@ import org.springframework.xd.dirt.module.store.RuntimeContainerModuleInfoReposi
 import org.springframework.xd.dirt.module.store.RuntimeModuleInfoRepository;
 import org.springframework.xd.dirt.plugins.job.BatchJobLocator;
 import org.springframework.xd.dirt.plugins.job.DistributedJobService;
+import org.springframework.xd.dirt.stream.CompositeModuleDefinitionService;
 import org.springframework.xd.dirt.stream.DeploymentMessageSender;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobDeployer;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.module;
+package org.springframework.xd.dirt.stream;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,7 +23,12 @@ import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
-import org.springframework.xd.dirt.stream.XDStreamParser;
+import org.springframework.xd.dirt.module.CompositeModuleDeploymentRequest;
+import org.springframework.xd.dirt.module.DependencyException;
+import org.springframework.xd.dirt.module.ModuleAlreadyExistsException;
+import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
+import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.dirt.module.NoSuchModuleException;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 

@@ -15,7 +15,7 @@
 
 	<gfe:client-cache id="client-cache" use-bean-factory-locator="false"/>
 	<gfe:pool id="cq-pool" subscription-enabled="true">
-		<gfe:server host="${gemfireHost:localhost}" port="${gemfirePort:40404}" />
+		<gfe:server host="${host}" port="${port}" />
 	</gfe:pool>
 
 	<gfe:cq-listener-container id="cqContainer"

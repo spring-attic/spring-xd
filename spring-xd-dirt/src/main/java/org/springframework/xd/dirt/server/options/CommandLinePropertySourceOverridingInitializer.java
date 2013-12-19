@@ -19,6 +19,9 @@ package org.springframework.xd.dirt.server.options;
 import static java.lang.Boolean.TRUE;
 import static org.springframework.core.env.CommandLinePropertySource.COMMAND_LINE_PROPERTY_SOURCE_NAME;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.springframework.boot.SpringApplication;
@@ -30,6 +33,7 @@ import org.springframework.context.EnvironmentAware;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.Environment;
+import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
 import org.springframework.util.Assert;
 
@@ -79,23 +83,17 @@ public class CommandLinePropertySourceOverridingInitializer<T extends CommonOpti
 				options);
 
 		// Convert all properties to their String representation
-		EnumerablePropertySource<T> wrapped = new EnumerablePropertySource<T>(
-				COMMAND_LINE_PROPERTY_SOURCE_NAME, options) {
-
-			@Override
-			public String[] getPropertyNames() {
-				return ps.getPropertyNames();
+		// Also, don't advertise property names for which value is null
+		Map<String, Object> map = new HashMap<String, Object>();
+		for (String key : ps.getPropertyNames()) {
+			Object raw = ps.getProperty(key);
+			if (raw != null) {
+				map.put(key, raw.toString());
 			}
+		}
 
-			@Override
-			public Object getProperty(String name) {
-				Object raw = ps.getProperty(name);
-				return raw == null ? null : raw.toString();
-			}
-		};
-
-
-		environment.getPropertySources().replace(COMMAND_LINE_PROPERTY_SOURCE_NAME, wrapped);
+		environment.getPropertySources().replace(COMMAND_LINE_PROPERTY_SOURCE_NAME,
+				new MapPropertySource(COMMAND_LINE_PROPERTY_SOURCE_NAME, map));
 
 	}
 

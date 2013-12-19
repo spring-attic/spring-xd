@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.server.options;
 
+import org.kohsuke.args4j.Option;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 
@@ -26,5 +27,18 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @ConfigurationProperties
 public class AdminOptions extends CommonDistributedOptions {
+
+	@Option(name = "--httpPort", usage = "Http port for the REST API server", metaVar = "<httpPort>")
+	private Integer httpPort;
+
+
+	public Integer getPORT() {
+		return httpPort;
+	}
+
+	public void setPORT(int httpPort) {
+		this.httpPort = httpPort;
+	}
+
 
 }

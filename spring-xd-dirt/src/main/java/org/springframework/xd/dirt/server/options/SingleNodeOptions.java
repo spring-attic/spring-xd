@@ -53,6 +53,17 @@ public class SingleNodeOptions extends CommonOptions {
 	@Option(name = "--store", usage = "How to persist admin data")
 	private Store store;
 
+	@Option(name = "--httpPort", usage = "Http port for the REST API server", metaVar = "<httpPort>")
+	private Integer httpPort;
+
+	public Integer getPORT() {
+		return httpPort;
+	}
+
+	public void setPORT(int httpPort) {
+		this.httpPort = httpPort;
+	}
+
 	@NotNull
 	public Analytics getXD_ANALYTICS() {
 		return analytics;

@@ -16,6 +16,7 @@
 	<bean id="parser" class="org.springframework.xd.dirt.stream.XDStreamParser">
 		<constructor-arg ref="streamDefinitionRepository"/>
 		<constructor-arg name="moduleDefinitionRepository" ref="moduleDefinitionRepository"/>
+		<constructor-arg name="moduleOptionsMetadataResolver" ref="moduleOptionsMetadataResolver"/>
 	</bean>
 	
 	<bean id="deploymentMessageSender" class="org.springframework.xd.dirt.stream.DeploymentMessageSender">

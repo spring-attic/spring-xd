@@ -16,11 +16,14 @@
 
 package org.springframework.xd.dirt.rest;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
+import org.springframework.stereotype.Component;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.options.DefaultModuleOptionsMetadata;
 import org.springframework.xd.module.options.ModuleOption;
 import org.springframework.xd.module.options.ModuleOptionsMetadata;
+import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 import org.springframework.xd.rest.client.domain.DetailedModuleDefinitionResource;
 
 
@@ -29,11 +32,16 @@ import org.springframework.xd.rest.client.domain.DetailedModuleDefinitionResourc
  * 
  * @author Eric Bottard
  */
+@Component
 public class DetailedModuleDefinitionResourceAssembler extends
 		ResourceAssemblerSupport<ModuleDefinition, DetailedModuleDefinitionResource> {
 
-	public DetailedModuleDefinitionResourceAssembler() {
+	private ModuleOptionsMetadataResolver moduleOptionsMetadataResolver;
+
+	@Autowired
+	public DetailedModuleDefinitionResourceAssembler(ModuleOptionsMetadataResolver moduleOptionsMetadataResolver) {
 		super(ModulesController.class, DetailedModuleDefinitionResource.class);
+		this.moduleOptionsMetadataResolver = moduleOptionsMetadataResolver;
 	}
 
 	@Override
@@ -45,7 +53,8 @@ public class DetailedModuleDefinitionResourceAssembler extends
 	protected DetailedModuleDefinitionResource instantiateResource(ModuleDefinition entity) {
 		DetailedModuleDefinitionResource result = new DetailedModuleDefinitionResource(entity.getName(),
 				entity.getType().name());
-		ModuleOptionsMetadata moduleOptionsMetadata = entity.getModuleOptionsMetadata();
+		ModuleOptionsMetadata moduleOptionsMetadata = moduleOptionsMetadataResolver.resolve(entity);
+
 		if (!(moduleOptionsMetadata instanceof DefaultModuleOptionsMetadata)) {
 			for (ModuleOption option : moduleOptionsMetadata) {
 				Object defaultValue = option.getDefaultValue();

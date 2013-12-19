@@ -20,7 +20,6 @@ import java.io.IOException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
@@ -64,12 +63,15 @@ public class ModulesController {
 
 	private ModuleDefinitionResourceAssembler moduleDefinitionResourceAssembler = new ModuleDefinitionResourceAssembler();
 
-	private final DetailedModuleDefinitionResourceAssembler detailedAssembler = new DetailedModuleDefinitionResourceAssembler();
+	private final DetailedModuleDefinitionResourceAssembler detailedAssembler;
 
 	@Autowired
-	public ModulesController(CompositeModuleDefinitionService compositeModuleDefinitionService) {
+	public ModulesController(CompositeModuleDefinitionService compositeModuleDefinitionService,
+			DetailedModuleDefinitionResourceAssembler detailedAssembler) {
 		Assert.notNull(compositeModuleDefinitionService, "compositeModuleDefinitionService must not be null");
+		Assert.notNull(detailedAssembler, "detailedAssembler must not be null");
 		this.compositeModuleDefinitionService = compositeModuleDefinitionService;
+		this.detailedAssembler = detailedAssembler;
 	}
 
 	/**

@@ -33,6 +33,9 @@ public class ContainerOptions extends CommonDistributedOptions {
 	@Option(name = "--transport", usage = "The transport to use for data messages (from node to node)")
 	private DataTransport transport;
 
+	@Option(name = "--hadoopDistro", usage = "The Hadoop distribution to be used for HDFS access")
+	private HadoopDistro distro;
+
 	public void setXD_TRANSPORT(DataTransport transport) {
 		this.transport = transport;
 	}
@@ -41,5 +44,11 @@ public class ContainerOptions extends CommonDistributedOptions {
 		return this.transport;
 	}
 
+	public void setHADOOP_DISTRO(HadoopDistro distro) {
+		this.distro = distro;
+	}
 
+	public HadoopDistro getHADOOP_DISTRO() {
+		return this.distro;
+	}
 }

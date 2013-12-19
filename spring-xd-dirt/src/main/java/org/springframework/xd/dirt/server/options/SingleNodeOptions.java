@@ -56,6 +56,9 @@ public class SingleNodeOptions extends CommonOptions {
 	@Option(name = "--httpPort", usage = "Http port for the REST API server", metaVar = "<httpPort>")
 	private Integer httpPort;
 
+	@Option(name = "--hadoopDistro", usage = "The Hadoop distribution to be used for HDFS access")
+	private HadoopDistro distro;
+
 	public Integer getPORT() {
 		return httpPort;
 	}
@@ -98,5 +101,13 @@ public class SingleNodeOptions extends CommonOptions {
 
 	public void setXD_CONTROL_TRANSPORT(ControlTransport controlTransport) {
 		this.controlTransport = controlTransport;
+	}
+
+	public void setHADOOP_DISTRO(HadoopDistro distro) {
+		this.distro = distro;
+	}
+
+	public HadoopDistro getHADOOP_DISTRO() {
+		return this.distro;
 	}
 }

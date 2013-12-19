@@ -44,7 +44,7 @@
 
 	<bean id="datasetRepositoryFactory" class="org.springframework.data.hadoop.store.dataset.DatasetRepositoryFactory">
 		<property name="conf" ref="hadoopConfiguration"/>
-		<property name="basePath" value="${basePath:/xd/${xd.stream.name}}"/>
+		<property name="basePath" value="${directory:/xd/${xd.stream.name}}"/>
 	</bean>
 
 	<hdp:configuration register-url-handler="false" properties-location="${xd.config.home}/hadoop.properties"/>

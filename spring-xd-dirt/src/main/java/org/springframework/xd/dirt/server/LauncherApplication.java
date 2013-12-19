@@ -87,6 +87,9 @@ public class LauncherApplication {
 				}
 			}
 		}
+		else {
+			e.printStackTrace();
+		}
 		System.exit(1);
 	}
 

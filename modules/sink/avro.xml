@@ -16,7 +16,7 @@
 	<int:aggregator
 			input-channel="input"
 			correlation-strategy-expression="payload.getClass().getName()"
-			release-strategy-expression="size() == ${batchSize:10000}"
+			release-strategy-expression="size() == ${batchSize}"
 			expire-groups-upon-completion="true"
 			send-partial-result-on-expiry="true"
 			message-store="messageStore"
@@ -24,7 +24,7 @@
 
 	<bean id="reaper" class="org.springframework.integration.store.MessageGroupStoreReaper">
 		<property name="messageGroupStore" ref="messageStore"/>
-		<property name="timeout" value="${idleTimeout:-1}"/>
+		<property name="timeout" value="${idleTimeout}"/>
 		<property name="expireOnDestroy" value="true"/>
 	</bean>
 

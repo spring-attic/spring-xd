@@ -24,7 +24,7 @@
 		username="${username:${spring.rabbitmq.username:guest}}" password="${password:${spring.rabbitmq.password:guest}}"/>
 
 	<beans profile="cloud" xmlns="http://www.springframework.org/schema/beans">
-		<cloud:rabbit-connection-factory id="connectionFactory"
+		<cloud:rabbit-connection-factory id="rabbitConnectionFactory"
 			service-name="${xd.rabbit.service:rabbit}" />
 	</beans>
 

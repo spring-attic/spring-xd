@@ -37,6 +37,30 @@ public class RabbitSourceOptionsMetadata extends SourceModuleOptionsMetadataSupp
 
 	private String queues;
 
+	private String username;
+
+	private String password;
+
+
+	public String getUsername() {
+		return username;
+	}
+
+	@ModuleOption("the username to use to connect to the broker")
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+
+	public String getPassword() {
+		return password;
+	}
+
+	@ModuleOption("the password to use to connect to the broker")
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
 	@Size
 	public String getHost() {
 		return host;

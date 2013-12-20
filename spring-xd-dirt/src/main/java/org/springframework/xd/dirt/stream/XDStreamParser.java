@@ -16,6 +16,10 @@
 
 package org.springframework.xd.dirt.stream;
 
+import static org.springframework.xd.module.ModuleType.job;
+import static org.springframework.xd.module.ModuleType.sink;
+import static org.springframework.xd.module.ModuleType.source;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -122,11 +126,10 @@ public class XDStreamParser implements XDParser {
 	}
 
 	private ModuleType determineType(ModuleDeploymentRequest request, int lastIndex) {
-		ModuleType moduleType = getNamedChannelModuleType(request, lastIndex);
-		if (moduleType != null) {
-			return moduleType;
+		ModuleType type = maybeGuessTypeFromNamedChannels(request, lastIndex);
+		if (type != null) {
+			return type;
 		}
-		ModuleType type = null;
 		String name = request.getModule();
 		int index = request.getIndex();
 		List<ModuleDefinition> defs = moduleDefinitionRepository.findByName(name);
@@ -137,17 +140,23 @@ public class XDStreamParser implements XDParser {
 			type = defs.get(0).getType();
 		}
 		if (lastIndex == 0) {
+			// If the stream definition is made of only one module, then
+			// we're looking for a job.
+			// Careful:
+			// Assumes composite modules of length 1 are not allowed
+			// and job are always of length 1
 			for (ModuleDefinition def : defs) {
-				if (def.getType() == ModuleType.job) {
-					type = def.getType();
+				if (def.getType() == job) {
+					type = job;
+					break;
 				}
 			}
 		}
 		else if (index == 0) {
-			type = ModuleType.source;
+			type = source;
 		}
 		else if (index == lastIndex) {
-			type = ModuleType.sink;
+			type = sink;
 		}
 		if (type == null) {
 			throw new NoSuchModuleException(name);
@@ -155,7 +164,13 @@ public class XDStreamParser implements XDParser {
 		return verifyModuleOfTypeExists(request, name, type);
 	}
 
-	private ModuleType getNamedChannelModuleType(ModuleDeploymentRequest request, int lastIndex) {
+	/**
+	 * Attempt to guess the type of a module given the presence of named channels references at the start or end of the
+	 * stream definition.
+	 * 
+	 * @return a sure to be valid module type, or null if no named channels were present
+	 */
+	private ModuleType maybeGuessTypeFromNamedChannels(ModuleDeploymentRequest request, int lastIndex) {
 		ModuleType type = null;
 		String moduleName = request.getModule();
 		int index = request.getIndex();

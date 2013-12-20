@@ -49,9 +49,11 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.x.bus.LocalMessageBus;
 import org.springframework.integration.x.bus.MessageBus;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
@@ -191,7 +193,7 @@ public class JobPluginTests {
 		Properties properties = new Properties();
 		when(module.getProperties()).thenReturn(properties);
 		when(module.getDeploymentMetadata()).thenReturn(new DeploymentMetadata("partitionedJob", 0));
-		MessageBus bus = new LocalMessageBus();
+		MessageBus bus = getMessageBus();
 		when(module.getComponent(MessageBus.class)).thenReturn(bus);
 		MessageChannel stepsOut = new DirectChannel();
 		when(module.getComponent("stepExecutions.output", MessageChannel.class)).thenReturn(stepsOut);
@@ -203,13 +205,29 @@ public class JobPluginTests {
 		when(module.getComponent("stepExecutionResults.output", MessageChannel.class)).thenReturn(stepResultsOut);
 		plugin.preProcessModule(module);
 		plugin.postProcessModule(module);
-		assertEquals(1, TestUtils.getPropertyValue(bus, "requestChannels", Map.class).size());
-		assertEquals(1, TestUtils.getPropertyValue(bus, "replyChannels", Map.class).size());
+		checkBusBound(bus);
 		stepsOut.send(new GenericMessage<String>("foo"));
-		assertThat(stepsIn.receive(10000), hasPayload("foo"));
-		stepResultsOut.send(new GenericMessage<String>("bar"));
+		Message<?> stepExecutionRequest = stepsIn.receive(10000);
+		assertThat(stepExecutionRequest, hasPayload("foo"));
+		stepResultsOut.send(MessageBuilder.withPayload("bar")
+				.copyHeaders(stepExecutionRequest.getHeaders()) // replyTo
+				.build());
 		assertThat(stepResultsIn.receive(10000), hasPayload("bar"));
 		plugin.removeModule(module);
+		checkBusUnbound(bus);
+	}
+
+
+	protected MessageBus getMessageBus() {
+		return new LocalMessageBus();
+	}
+
+	protected void checkBusBound(MessageBus bus) {
+		assertEquals(1, TestUtils.getPropertyValue(bus, "requestChannels", Map.class).size());
+		assertEquals(1, TestUtils.getPropertyValue(bus, "replyChannels", Map.class).size());
+	}
+
+	protected void checkBusUnbound(MessageBus bus) {
 		assertEquals(0, TestUtils.getPropertyValue(bus, "requestChannels", Map.class).size());
 		assertEquals(0, TestUtils.getPropertyValue(bus, "replyChannels", Map.class).size());
 	}

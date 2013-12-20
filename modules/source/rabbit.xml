@@ -14,7 +14,7 @@
 
 	<int-amqp:inbound-channel-adapter
 		auto-startup="false" queue-names="${queues:${xd.stream.name}}"
-		channel="output" connection-factory="connectionFactory" />
+		channel="output" connection-factory="rabbitConnectionFactory" />
 
 	<int:channel id="output" />
 
@@ -26,7 +26,7 @@
 		username="${username:${spring.rabbitmq.username:guest}}" password="${password:${spring.rabbitmq.password:guest}}"/>
 
 	<beans profile="cloud" xmlns="http://www.springframework.org/schema/beans">
-		<cloud:rabbit-connection-factory id="connectionFactory"
+		<cloud:rabbit-connection-factory id="rabbitConnectionFactory"
 			service-name="${xd.rabbit.service:rabbit}" />
 	</beans>
 

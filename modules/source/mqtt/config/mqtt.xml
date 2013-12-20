@@ -20,7 +20,7 @@
 		auto-startup="false"
 		client-id="${clientId:${mqtt.default.client.id}.src}"
 		url="${url:${mqtt.url}}"
-		topics="${topics:${mqtt.default.topics}}"
+		topics="${topic:${mqtt.default.topic}}"
 		client-factory="clientFactory"
 		channel="output"/>
 

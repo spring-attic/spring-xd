@@ -72,7 +72,7 @@ public class MqttSourceOptionsMetadata extends SourceModuleOptionsMetadataSuppor
 		return topics;
 	}
 
-	@Value("${mqtt.default.topics}")
+	@Value("${mqtt.source.default.topics}")
 	@ModuleOption("the topic(s) to which the source will subscribe")
 	public void setTopics(String topics) {
 		this.topics = topics;

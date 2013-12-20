@@ -68,6 +68,7 @@ public class LauncherApplication {
 
 			this.context = new SpringApplicationBuilder(ContainerOptions.class, ParentConfiguration.class)
 					.profiles(NODE_PROFILE)
+					.initializers(commandLineInitializer)
 					.child(LauncherApplication.class)
 					.initializers(commandLineInitializer)
 					.run(args);

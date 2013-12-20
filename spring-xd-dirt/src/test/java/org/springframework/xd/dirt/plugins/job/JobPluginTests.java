@@ -26,6 +26,7 @@ import static org.springframework.integration.test.matcher.PayloadMatcher.hasPay
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import org.junit.After;
@@ -48,6 +49,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.x.bus.LocalMessageBus;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.MessageChannel;
@@ -201,10 +203,15 @@ public class JobPluginTests {
 		when(module.getComponent("stepExecutionResults.output", MessageChannel.class)).thenReturn(stepResultsOut);
 		plugin.preProcessModule(module);
 		plugin.postProcessModule(module);
+		assertEquals(1, TestUtils.getPropertyValue(bus, "requestChannels", Map.class).size());
+		assertEquals(1, TestUtils.getPropertyValue(bus, "replyChannels", Map.class).size());
 		stepsOut.send(new GenericMessage<String>("foo"));
 		assertThat(stepsIn.receive(10000), hasPayload("foo"));
 		stepResultsOut.send(new GenericMessage<String>("bar"));
 		assertThat(stepResultsIn.receive(10000), hasPayload("bar"));
+		plugin.removeModule(module);
+		assertEquals(0, TestUtils.getPropertyValue(bus, "requestChannels", Map.class).size());
+		assertEquals(0, TestUtils.getPropertyValue(bus, "replyChannels", Map.class).size());
 	}
 
 	@Test

@@ -249,6 +249,22 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 		});
 	}
 
+	@Override
+	public void unbindProducer(String name, MessageChannel channel) {
+		MessageChannel requestChannel = this.requestChannels.remove(name);
+		if (requestChannel == null) {
+			super.unbindProducers(name);
+		}
+	}
+
+	@Override
+	public void unbindConsumer(String name, MessageChannel channel) {
+		MessageChannel requestChannel = this.replyChannels.remove(name);
+		if (requestChannel == null) {
+			super.unbindConsumer(name, channel);
+		}
+	}
+
 	protected <T extends AbstractMessageChannel> T createSharedChannel(String name, Class<T> requiredType) {
 		try {
 			T channel = requiredType.newInstance();

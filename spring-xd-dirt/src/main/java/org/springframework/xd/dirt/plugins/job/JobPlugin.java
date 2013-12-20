@@ -131,11 +131,11 @@ public class JobPlugin extends AbstractPlugin {
 	}
 
 	private void processPartitionedJob(Module module, DeploymentMetadata md, MessageBus bus) {
-		MessageChannel partitionsOut = module.getComponent(JOB_PARTIONER_REQUEST_CHANNEL, MessageChannel.class);
-		Assert.notNull(partitionsOut, "Partitioned jobs must have a " + JOB_PARTIONER_REQUEST_CHANNEL);
 		if (logger.isDebugEnabled()) {
 			logger.debug("binding job partitioning channels for " + module);
 		}
+		MessageChannel partitionsOut = module.getComponent(JOB_PARTIONER_REQUEST_CHANNEL, MessageChannel.class);
+		Assert.notNull(partitionsOut, "Partitioned jobs must have a " + JOB_PARTIONER_REQUEST_CHANNEL);
 		MessageChannel partitionsIn = module.getComponent(JOB_PARTIONER_REPLY_CHANNEL, MessageChannel.class);
 		Assert.notNull(partitionsIn, "Partitioned jobs must have a " + JOB_PARTIONER_REPLY_CHANNEL);
 		String name = this.partitionerName(md);
@@ -149,6 +149,32 @@ public class JobPlugin extends AbstractPlugin {
 		name = this.replierName(md);
 		String requestorName = this.partitionerName(md);
 		bus.bindReplier(name, requestorName, stepExcutionsIn, stepExecutionResultsOut);
+	}
+
+	private void unbindPartitionedJob(Module module, MessageBus bus) {
+		if (logger.isDebugEnabled()) {
+			logger.debug("unbinding job partitioning channels for " + module);
+		}
+		DeploymentMetadata md = module.getDeploymentMetadata();
+		MessageChannel partitionsOut = module.getComponent(JOB_PARTIONER_REQUEST_CHANNEL, MessageChannel.class);
+		String partitionerName = this.partitionerName(md);
+		if (partitionsOut != null) {
+			bus.unbindProducer(partitionerName, partitionsOut);
+		}
+		MessageChannel partitionsIn = module.getComponent(JOB_PARTIONER_REPLY_CHANNEL, MessageChannel.class);
+		if (partitionsIn != null) {
+			bus.unbindConsumer(partitionerName, partitionsIn);
+		}
+		MessageChannel stepExcutionsIn = module.getComponent(JOB_STEP_EXECUTION_REQUEST_CHANNEL, MessageChannel.class);
+		String replierName = this.replierName(md);
+		if (stepExcutionsIn != null) {
+			bus.unbindConsumer(replierName, stepExcutionsIn);
+		}
+		MessageChannel stepExecutionResultsOut = module.getComponent(JOB_STEP_EXECUTION_REPLY_CHANNEL,
+				MessageChannel.class);
+		if (stepExecutionResultsOut != null) {
+			bus.unbindProducer(replierName, stepExecutionResultsOut);
+		}
 	}
 
 	private String partitionerName(DeploymentMetadata md) {
@@ -185,6 +211,9 @@ public class JobPlugin extends AbstractPlugin {
 		if (bus != null) {
 			bus.unbindConsumers(JOB_CHANNEL_PREFIX + module.getDeploymentMetadata().getGroup());
 			bus.unbindProducers(module.getDeploymentMetadata().getGroup() + NOTIFICATION_CHANNEL_SUFFIX);
+			if (module.getComponent(JOB_PARTIONER_REQUEST_CHANNEL, MessageChannel.class) != null) {
+				this.unbindPartitionedJob(module, bus);
+			}
 		}
 	}
 

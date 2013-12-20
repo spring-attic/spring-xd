@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.stream;
+package org.springframework.xd.dirt.stream.completion;
 
 import static org.springframework.xd.module.ModuleType.processor;
 import static org.springframework.xd.module.ModuleType.sink;
@@ -30,6 +30,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.dirt.stream.XDParser;
+import org.springframework.xd.dirt.stream.dsl.CheckpointedStreamDefinitionException;
+import org.springframework.xd.dirt.stream.dsl.StreamDefinitionException;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.options.ModuleOption;
@@ -42,11 +45,16 @@ public class CompletionProvider {
 
 	private final ModuleDefinitionRepository moduleDefinitionRepository;
 
+	private final List<StacktraceFingerprintlingCompletionRecoveryStrategy> recoveries = new ArrayList<StacktraceFingerprintlingCompletionRecoveryStrategy>();
+
 
 	@Autowired
 	public CompletionProvider(XDParser parser, ModuleDefinitionRepository moduleDefinitionRepository) {
 		this.parser = parser;
 		this.moduleDefinitionRepository = moduleDefinitionRepository;
+		recoveries.add(new ModulesAfterPipeRecoveryStrategy(parser, moduleDefinitionRepository));
+		recoveries.add(new OptionNameAfterDashDashRecoveryStrategy(parser, moduleDefinitionRepository));
+		recoveries.add(new UnfinishedOptionNameRecoveryStrategy(parser, moduleDefinitionRepository));
 	}
 
 
@@ -74,8 +82,17 @@ public class CompletionProvider {
 			try {
 				parsed = parser.parse(name, start);
 			}
-			catch (Exception e) {
-				// TODO: implement parser recovery
+			catch (CheckpointedStreamDefinitionException recoverable) {
+				for (StacktraceFingerprintlingCompletionRecoveryStrategy strategy : recoveries) {
+					if (strategy.matches(recoverable)) {
+						strategy.use(recoverable, results, kind);
+						break;
+					}
+				}
+
+				return;
+			}
+			catch (StreamDefinitionException e) {
 				return;
 			}
 			// List is in reverse order

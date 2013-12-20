@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.stream;
+package org.springframework.xd.dirt.stream.completion;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
@@ -44,6 +44,8 @@ import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.module.ResourceModuleRegistry;
 import org.springframework.xd.dirt.module.memory.InMemoryModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.memory.InMemoryModuleDependencyRepository;
+import org.springframework.xd.dirt.stream.XDParser;
+import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 
@@ -115,7 +117,7 @@ public class CompletionProviderTests {
 
 	@Test
 	// file |<TAB> => file | foo,etc
-	public void testDanglingPipeShouldReturnExtraModules() {
+	public void testDanglingPipeShouldReturnExtraModulesOnlyOneModule() {
 		List<String> completions = completionProvider.complete(stream, "file |");
 
 		assertThat(new HashSet<>(completions), hasItem(startsWith("file | filter")));
@@ -123,13 +125,28 @@ public class CompletionProviderTests {
 	}
 
 	@Test
+	// file |<TAB> => file | filter | foo,etc
+	// Adding a specified test for this because of the way the parser guesses module type
+	// may currently interfere if there is only one module (thinks it's a job)
+	public void testDanglingPipeShouldReturnExtraModulesMoreThanOneModule() {
+		List<String> completions = completionProvider.complete(stream, "file | filter |");
+
+		assertThat(new HashSet<>(completions), hasItem(startsWith("file | filter | filter")));
+		assertThat(new HashSet<>(completions), hasItem(startsWith("file | filter | script")));
+	}
+
+	@Test
 	// file --p<TAB> => file --preventDuplicates=, file --pattern=
 	public void testUnfinishedOptionNameShouldComplete() {
-		List<String> completions = completionProvider.complete(stream, "file --p");
+		List<String> completions = completionProvider.complete(stream, "file | filter | jdbc --url=foo --ini");
 
-		assertThat(new HashSet<>(completions), hasItem(startsWith("file --preventDuplicates=")));
-		assertThat(new HashSet<>(completions), hasItem(startsWith("file --pattern=")));
-		assertThat(new HashSet<>(completions), not(hasItem(startsWith("file --dir="))));
+		assertThat(new HashSet<>(completions),
+				hasItem(startsWith("file | filter | jdbc --url=foo --initializerScript")));
+		assertThat(new HashSet<>(completions),
+				hasItem(startsWith("file | filter | jdbc --url=foo --initializeDatabase")));
+		assertThat(new HashSet<>(completions), not(hasItem(startsWith("file | filter | jdbc --url=foo --driverClass"))));
+
+		completions = completionProvider.complete(stream, "file | filter --ex");
 		assertThat(new HashSet<>(completions), not(hasItem(startsWith("file | filter |"))));
 	}
 
@@ -139,6 +156,65 @@ public class CompletionProviderTests {
 		List<String> completions = completionProvider.complete(stream,
 				"file | counter --name=foo --inputType=text/plain");
 
+		assertThat(completions, hasSize(0));
+	}
+
+	@Test
+	// file | counter --name=<TAB> => nothing
+	public void testInGenericOptionValueCantProposeAnything() {
+		List<String> completions = completionProvider.complete(stream,
+				"file | counter --name=");
+
+		assertThat(completions, hasSize(0));
+	}
+
+	@Test
+	// file | file --binary=<TAB> => we know it's a closed set of values
+	public void testInOptionValueBooleanNoStartAtAll() {
+		List<String> completions = completionProvider.complete(stream,
+				"file | file --binary=");
+		assertThat(completions, hasItem(startsWith("file | file --binary=true")));
+		assertThat(completions, hasItem(startsWith("file | file --binary=false")));
+	}
+
+	@Test
+	// file | file --binary=t<TAB> => we know it's a closed set, and 'true' matches
+	public void testInOptionValueBooleanValidStart() {
+		List<String> completions = completionProvider.complete(stream,
+				"file | file --binary=t");
+		assertThat(completions, hasItem(startsWith("file | file --binary=true")));
+	}
+
+	@Test
+	// file | file --binary=foo<TAB> => we know it's wrong, so return nothing
+	public void testInOptionValueBooleanInvalidStart() {
+		List<String> completions = completionProvider.complete(stream,
+				"file | file --binary=foo");
+		assertThat(completions, hasSize(0));
+	}
+
+	@Test
+	// file | hdfs --codec=<TAB> // same logic as testInOptionValueBoolean
+	public void testInOptionValueEnumNoStartAtAll() {
+		List<String> completions = completionProvider.complete(stream,
+				"file | hdfs --codec=");
+		assertThat(completions, hasItem(startsWith("hdfs --codec=SNAPPY")));
+		assertThat(completions, hasItem(startsWith("hdfs --codec=BZIP2")));
+	}
+
+	@Test
+	// file | hdfs --codec=S<TAB> => SNAPPY // same logic as testInOptionValueBoolean
+	public void testInOptionValueEnumValidStart() {
+		List<String> completions = completionProvider.complete(stream,
+				"hdfs --codec=S");
+		assertThat(completions, hasItem(startsWith("hdfs --codec=SNAPPY")));
+	}
+
+	@Test
+	// file | hdfs --codec=FOOBAR<TAB> // same logic as testInOptionValueBoolean
+	public void testInOptionValueEnumInvalidStart() {
+		List<String> completions = completionProvider.complete(stream,
+				"hdfs --codec=FOOBAR");
 		assertThat(completions, hasSize(0));
 	}
 

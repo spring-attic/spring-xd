@@ -21,7 +21,7 @@ package org.springframework.xd.dirt.stream.dsl;
  * 
  * @author Andy Clement
  */
-enum TokenKind {
+public enum TokenKind {
 	IDENTIFIER,
 	DOUBLE_MINUS("--"),
 	EQUALS("="),
@@ -48,6 +48,7 @@ enum TokenKind {
 		this("");
 	}
 
+	@Override
 	public String toString() {
 		return this.name() + (tokenChars.length != 0 ? "(" + new String(tokenChars) + ")" : "");
 	}

@@ -30,9 +30,9 @@ public class StreamDefinitionException extends RuntimeException {
 
 	protected int position; // -1 if not known - but should be known in all reasonable cases
 
-	private XDDSLMessages message;
+	protected XDDSLMessages message;
 
-	private Object[] inserts;
+	protected Object[] inserts;
 
 	public StreamDefinitionException(String expressionString, int position, XDDSLMessages message, Object... inserts) {
 		super(message.formatMessage(position, inserts));

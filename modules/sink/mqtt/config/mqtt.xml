@@ -21,7 +21,7 @@
 	<int-mqtt:outbound-channel-adapter id="mqttOutbound"
 		client-id="${clientId:${mqtt.default.client.id}.snk}"
 		url="${url:${mqtt.url}}"
-		default-topic="${topic:${mqtt.default.topic}}"
+		default-topic="${topic:${mqtt.sink.default.topic}}"
 		client-factory="clientFactory"
 		default-qos="${qos:1}"
 		default-retained="${retained:false}"

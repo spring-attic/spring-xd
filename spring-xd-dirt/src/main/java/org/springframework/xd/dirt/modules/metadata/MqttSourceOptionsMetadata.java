@@ -20,7 +20,8 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 import org.hibernate.validator.constraints.NotBlank;
-
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.xd.module.options.spi.ModuleOption;
 import org.springframework.xd.module.options.spi.SourceModuleOptionsMetadataSupport;
 
@@ -29,6 +30,7 @@ import org.springframework.xd.module.options.spi.SourceModuleOptionsMetadataSupp
  * 
  * @author Eric Bottard
  */
+@PropertySource(value = "${xd.config.home}/mqtt.properties", ignoreResourceNotFound = true)
 public class MqttSourceOptionsMetadata extends SourceModuleOptionsMetadataSupport {
 
 	private String clientId;
@@ -41,14 +43,13 @@ public class MqttSourceOptionsMetadata extends SourceModuleOptionsMetadataSuppor
 
 	private String password;
 
-	// Not putting @NotNull throughout for now, as defaults
-	// may come from properties file
-	// @NotNull
+	@NotNull
 	@Size(min = 1, max = 23)
 	public String getClientId() {
 		return clientId;
 	}
 
+	@Value("${mqtt.default.client.id}.src")
 	@ModuleOption("identifies the client")
 	public void setClientId(String clientId) {
 		this.clientId = clientId;
@@ -60,6 +61,7 @@ public class MqttSourceOptionsMetadata extends SourceModuleOptionsMetadataSuppor
 		return url;
 	}
 
+	@Value("${mqtt.url}")
 	@ModuleOption("location of the mqtt broker")
 	public void setUrl(String url) {
 		this.url = url;
@@ -70,6 +72,7 @@ public class MqttSourceOptionsMetadata extends SourceModuleOptionsMetadataSuppor
 		return topics;
 	}
 
+	@Value("${mqtt.source.default.topics}")
 	@ModuleOption("the topic(s) to which the source will subscribe")
 	public void setTopics(String topics) {
 		this.topics = topics;
@@ -79,6 +82,7 @@ public class MqttSourceOptionsMetadata extends SourceModuleOptionsMetadataSuppor
 		return username;
 	}
 
+	@Value("${mqtt.username}")
 	@ModuleOption("the username to use when connecting to the broker")
 	public void setUsername(String username) {
 		this.username = username;
@@ -88,6 +92,7 @@ public class MqttSourceOptionsMetadata extends SourceModuleOptionsMetadataSuppor
 		return password;
 	}
 
+	@Value("${mqtt.password}")
 	@ModuleOption("the password to use when connecting to the broker")
 	public void setPassword(String password) {
 		this.password = password;

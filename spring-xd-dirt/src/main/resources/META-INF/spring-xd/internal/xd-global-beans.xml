@@ -13,5 +13,8 @@
 	<bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean">
 		<property name="locateExistingServerIfPossible" value="true" />
 	</bean>
+	
+	<bean id="moduleOptionsMetadataResolver" class="org.springframework.xd.module.options.DefaultModuleOptionsMetadataResolver">
+	</bean>
 
 </beans>

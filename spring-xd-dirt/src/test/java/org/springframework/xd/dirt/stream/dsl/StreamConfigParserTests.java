@@ -32,7 +32,6 @@ import java.util.Properties;
 
 import org.junit.After;
 import org.junit.Test;
-
 import org.springframework.core.io.Resource;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
@@ -43,6 +42,7 @@ import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
+import org.springframework.xd.module.options.DefaultModuleOptionsMetadataResolver;
 
 /**
  * Parse streams and verify either the correct abstract syntax tree is produced or the current exception comes out.
@@ -198,7 +198,8 @@ public class StreamConfigParserTests {
 	@Test
 	public void testInvalidModules() {
 		String config = "test | foo--x=13";
-		XDStreamParser parser = new XDStreamParser(testRepository, moduleDefinitionRepository());
+		XDStreamParser parser = new XDStreamParser(testRepository, moduleDefinitionRepository(),
+				new DefaultModuleOptionsMetadataResolver());
 		try {
 			parser.parse("t", config);
 			fail(config + " is invalid. Should throw exception");

@@ -15,6 +15,9 @@
 				<constructor-arg ref="moduleDependencyRepository"/>
 			</bean>
 		</constructor-arg>
+		<constructor-arg>
+			<bean class="org.springframework.xd.module.options.DefaultModuleOptionsMetadataResolver"/>
+		</constructor-arg>
 	</bean>
 
 	<bean class="org.springframework.xd.dirt.plugins.stream.StreamPlugin" />

@@ -37,6 +37,7 @@ import org.springframework.xd.dirt.stream.dsl.StreamNode;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.options.ModuleOptionsMetadata;
+import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 /**
  * @author Andy Clement
@@ -51,18 +52,21 @@ public class XDStreamParser implements XDParser {
 
 	private final ModuleDefinitionRepository moduleDefinitionRepository;
 
+	private final ModuleOptionsMetadataResolver moduleOptionsMetadataResolver;
+
 	public XDStreamParser(CrudRepository<? extends BaseDefinition, String> repository,
-			ModuleDefinitionRepository moduleDefinitionRepository) {
-		Assert.notNull(repository, "repository can not be null");
+			ModuleDefinitionRepository moduleDefinitionRepository,
+			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver) {
 		Assert.notNull(moduleDefinitionRepository, "moduleDefinitionRepository can not be null");
+		Assert.notNull(moduleOptionsMetadataResolver, "moduleOptionsMetadataResolver can not be null");
 		this.repository = repository;
 		this.moduleDefinitionRepository = moduleDefinitionRepository;
+		this.moduleOptionsMetadataResolver = moduleOptionsMetadataResolver;
 	}
 
-	public XDStreamParser(ModuleDefinitionRepository moduleDefinitionRepository) {
-		// no crud repository, will not be able to resolve substream/label references
-		Assert.notNull(moduleDefinitionRepository, "moduleDefinitionRepository can not be null");
-		this.moduleDefinitionRepository = moduleDefinitionRepository;
+	public XDStreamParser(ModuleDefinitionRepository moduleDefinitionRepository,
+			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver) {
+		this(null, moduleDefinitionRepository, moduleOptionsMetadataResolver);
 	}
 
 	@Override
@@ -108,7 +112,7 @@ public class XDStreamParser implements XDParser {
 			// definition is guaranteed to be non-null here
 			ModuleDefinition moduleDefinition = moduleDefinitionRepository.findByNameAndType(original.getModule(),
 					original.getType());
-			ModuleOptionsMetadata optionsMetadata = moduleDefinition.getModuleOptionsMetadata();
+			ModuleOptionsMetadata optionsMetadata = moduleOptionsMetadataResolver.resolve(moduleDefinition);
 			try {
 				optionsMetadata.interpolate(original.getParameters());
 			}

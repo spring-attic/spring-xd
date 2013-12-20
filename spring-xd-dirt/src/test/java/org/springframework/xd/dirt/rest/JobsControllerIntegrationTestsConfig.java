@@ -13,19 +13,7 @@
 
 package org.springframework.xd.dirt.rest;
 
-import static org.mockito.Mockito.mock;
-
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
-import org.springframework.xd.dirt.module.ModuleDependencyRepository;
-import org.springframework.xd.dirt.module.ModuleRegistry;
-import org.springframework.xd.dirt.module.memory.InMemoryModuleDefinitionRepository;
-import org.springframework.xd.dirt.stream.JobDefinitionRepository;
-import org.springframework.xd.dirt.stream.JobDeployer;
-import org.springframework.xd.dirt.stream.XDParser;
-import org.springframework.xd.dirt.stream.XDStreamParser;
-import org.springframework.xd.dirt.stream.memory.InMemoryJobDefinitionRepository;
 
 /**
  * Override some dependencies to use actual in-memory implementations.
@@ -36,26 +24,5 @@ import org.springframework.xd.dirt.stream.memory.InMemoryJobDefinitionRepository
 @Configuration
 public class JobsControllerIntegrationTestsConfig extends Dependencies {
 
-	@Override
-	@Bean
-	public JobDefinitionRepository jobDefinitionRepository() {
-		return new InMemoryJobDefinitionRepository();
-	}
-
-	@Override
-	@Bean
-	public JobDeployer jobDeployer() {
-		XDParser parser = new XDStreamParser(
-				jobDefinitionRepository(), moduleDefinitionRepository());
-
-		return new JobDeployer(deploymentMessageSender(), jobDefinitionRepository(), xdJobRepository(), parser);
-	}
-
-	@Override
-	@Bean
-	public ModuleDefinitionRepository moduleDefinitionRepository() {
-		return new InMemoryModuleDefinitionRepository(mock(ModuleRegistry.class),
-				mock(ModuleDependencyRepository.class));
-	}
 
 }

@@ -32,6 +32,8 @@ import org.springframework.xd.dirt.util.XdConfigLoggingInitializer;
 @Import(RestConfiguration.class)
 public class AdminServerApplication {
 
+	private static final String MBEAN_EXPORTER_BEAN_NAME = "XDAdminMBeanExporter";
+
 	public static final String ADMIN_PROFILE = "adminServer";
 
 	public static final String HSQL_PROFILE = "hsqldb";
@@ -78,7 +80,7 @@ public class AdminServerApplication {
 	@EnableMBeanExport(defaultDomain = "xd.admin")
 	protected static class JmxConfiguration {
 
-		@Bean
+		@Bean(name = MBEAN_EXPORTER_BEAN_NAME)
 		public IntegrationMBeanExporter integrationMBeanExporter() {
 			IntegrationMBeanExporter exporter = new IntegrationMBeanExporter();
 			exporter.setDefaultDomain("xd.admin");

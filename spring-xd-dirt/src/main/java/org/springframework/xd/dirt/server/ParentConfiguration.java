@@ -39,6 +39,8 @@ import org.springframework.xd.dirt.container.XDContainer;
 @EnableBatchProcessing
 public class ParentConfiguration {
 
+	private static final String MBEAN_EXPORTER_BEAN_NAME = "XDParentConfigMBeanExporter";
+
 	@Configuration
 	@Profile("cloud")
 	protected static class CloudFoundryConfiguration {
@@ -68,7 +70,7 @@ public class ParentConfiguration {
 	@EnableMBeanExport(defaultDomain = "xd.parent")
 	protected static class JmxConfiguration {
 
-		@Bean
+		@Bean(name = MBEAN_EXPORTER_BEAN_NAME)
 		public IntegrationMBeanExporter integrationMBeanExporter() {
 			IntegrationMBeanExporter exporter = new IntegrationMBeanExporter();
 			exporter.setDefaultDomain("xd.parent");

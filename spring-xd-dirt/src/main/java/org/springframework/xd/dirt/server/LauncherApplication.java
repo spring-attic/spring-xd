@@ -46,6 +46,8 @@ import org.springframework.xd.dirt.util.XdConfigLoggingInitializer;
 	"classpath*:" + XDContainer.XD_CONFIG_ROOT + "plugins/*.xml" })
 public class LauncherApplication {
 
+	private static final String MBEAN_EXPORTER_BEAN_NAME = "XDLauncherMBeanExporter";
+
 	public static final String NODE_PROFILE = "node";
 
 	private ConfigurableApplicationContext context;
@@ -119,7 +121,7 @@ public class LauncherApplication {
 	@EnableMBeanExport(defaultDomain = "xd.container")
 	protected static class JmxConfiguration {
 
-		@Bean
+		@Bean(name = MBEAN_EXPORTER_BEAN_NAME)
 		public IntegrationMBeanExporter integrationMBeanExporter() {
 			IntegrationMBeanExporter exporter = new IntegrationMBeanExporter();
 			exporter.setDefaultDomain("xd.container");

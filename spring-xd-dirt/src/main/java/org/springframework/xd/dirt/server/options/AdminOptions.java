@@ -16,7 +16,10 @@
 
 package org.springframework.xd.dirt.server.options;
 
+import javax.validation.constraints.NotNull;
+
 import org.kohsuke.args4j.Option;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 
@@ -31,6 +34,18 @@ public class AdminOptions extends CommonDistributedOptions {
 	@Option(name = "--httpPort", usage = "Http port for the REST API server", metaVar = "<httpPort>")
 	private Integer httpPort;
 
+
+	@Option(name = "--controlTransport", aliases = { "--control-transport", "--transport" }, usage = "The transport to use for control messages (between admin and nodes)")
+	private ControlTransport controlTransport;
+
+	public void setXD_CONTROL_TRANSPORT(ControlTransport controlTransport) {
+		this.controlTransport = controlTransport;
+	}
+
+	@NotNull
+	public ControlTransport getXD_CONTROL_TRANSPORT() {
+		return controlTransport;
+	}
 
 	public Integer getPORT() {
 		return httpPort;

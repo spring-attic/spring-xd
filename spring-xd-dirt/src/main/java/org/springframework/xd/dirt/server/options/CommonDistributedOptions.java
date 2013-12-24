@@ -50,9 +50,6 @@ public class CommonDistributedOptions extends CommonOptions {
 	@Option(name = "--store", usage = "How to persist admin data")
 	private Store store;
 
-	@Option(name = "--controlTransport", aliases = "--control-transport", usage = "The transport to use for control messages (between admin and nodes)")
-	private ControlTransport controlTransport;
-
 	@NotNull
 	public Analytics getXD_ANALYTICS() {
 		return analytics;
@@ -63,11 +60,6 @@ public class CommonDistributedOptions extends CommonOptions {
 		return store;
 	}
 
-	@NotNull
-	public ControlTransport getXD_CONTROL_TRANSPORT() {
-		return controlTransport;
-	}
-
 	public void setXD_ANALYTICS(Analytics analytics) {
 		this.analytics = analytics;
 	}
@@ -76,7 +68,4 @@ public class CommonDistributedOptions extends CommonOptions {
 		this.store = store;
 	}
 
-	public void setXD_CONTROL_TRANSPORT(ControlTransport controlTransport) {
-		this.controlTransport = controlTransport;
-	}
 }

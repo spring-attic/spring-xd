@@ -97,7 +97,6 @@ analytics: memory
 # Redis properties
 # (vcap.services.* binds to a service called 'redis' in Pivotal CF)
 spring:
- data:
   redis:
    port: 6379
    host: localhost

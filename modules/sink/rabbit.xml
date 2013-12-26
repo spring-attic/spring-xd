@@ -16,6 +16,8 @@
 		id="input" amqp-template="rabbitTemplate" exchange-name="${exchange:}"
 		routing-key-expression="${routingKey:'${xd.stream.name}'}" />
 
+	<rabbit:template id="rabbitTemplate" connection-factory="rabbitConnectionFactory"/>
+
 	<context:property-placeholder location="${xd.config.home}/${configProperties:rabbit}.properties"
 		ignore-resource-not-found="true" />
 

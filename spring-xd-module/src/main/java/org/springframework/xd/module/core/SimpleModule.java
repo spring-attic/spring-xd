@@ -16,6 +16,7 @@
 
 package org.springframework.xd.module.core;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,11 +40,13 @@ import org.springframework.core.env.PropertySource;
 import org.springframework.core.env.StandardEnvironment;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.io.support.ResourcePropertySource;
 import org.springframework.validation.BindException;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.options.DefaultModuleOptionsMetadata;
 import org.springframework.xd.module.options.ModuleOptions;
+import org.springframework.xd.module.options.ModuleOptionsMetadata;
 
 /**
  * A {@link Module} implementation backed by a Spring {@link ApplicationContext}.
@@ -52,6 +55,7 @@ import org.springframework.xd.module.options.ModuleOptions;
  * @author David Turanski
  * @author Gary Russell
  * @author Dave Syer
+ * @author Ilayaperumal Gopinathan
  */
 public class SimpleModule extends AbstractModule {
 
@@ -68,6 +72,10 @@ public class SimpleModule extends AbstractModule {
 	private final MutablePropertySources propertySources = new MutablePropertySources();
 
 	private ConfigurableApplicationContext parent;
+
+	private static final String XD_CONFIG_HOME_PROPERTY_SOURCE_NAME = "xdConfigOptions";
+
+	private static final String MODULES_CONFIG_HOME_PROPERTY_SOURCE_NAME = "moduleConfigOptions";
 
 	public SimpleModule(ModuleDefinition definition, DeploymentMetadata metadata) {
 		this(definition, metadata, null, defaultModuleOptions());
@@ -96,14 +104,12 @@ public class SimpleModule extends AbstractModule {
 		this.properties.putAll(moduleOptionsToProperties(moduleOptions));
 
 		application.profiles(moduleOptions.profilesToActivate());
-
 		if (definition != null) {
 			if (definition.getResource().isReadable()) {
 				this.addComponents(definition.getResource());
 			}
 		}
 	}
-
 
 	private Map<Object, Object> moduleOptionsToProperties(ModuleOptions moduleOptions) {
 		Map<Object, Object> result = new HashMap<Object, Object>();
@@ -172,9 +178,33 @@ public class SimpleModule extends AbstractModule {
 		ConfigurableEnvironment environment = new StandardEnvironment();
 		if (parent != null) {
 			copyEnvironment(environment, parent.getEnvironment());
+			loadPropertiesResources(environment);
 		}
 		for (PropertySource<?> source : propertySources) {
-			environment.getPropertySources().addLast(source);
+			MutablePropertySources propertySources = environment.getPropertySources();
+			// Set the moduleOptions (interpolated from commandLine options) with the highest precedence
+			if (source.getName().equalsIgnoreCase(ModuleOptionsMetadata.MODULE_OPTIONS_PROPERTY_SOURCE_NAME)) {
+				propertySources.addFirst(source);
+			}
+			// Set MODULES_CONFIG_HOME with the precedence after systemEnvironment (which is after systemProperties)
+			else if (source.getName().equalsIgnoreCase(MODULES_CONFIG_HOME_PROPERTY_SOURCE_NAME)) {
+				// systemEnvironment PropertySource is always present. Hence, no need to check if it exists.
+				propertySources.addAfter(StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME,
+						source);
+			}
+			// Set XD_CONFIG_HOME with the precedence after MODULES_CONFIG_HOME
+			else if (source.getName().equalsIgnoreCase(XD_CONFIG_HOME_PROPERTY_SOURCE_NAME)) {
+				if (propertySources.contains(MODULES_CONFIG_HOME_PROPERTY_SOURCE_NAME)) {
+					propertySources.addAfter(MODULES_CONFIG_HOME_PROPERTY_SOURCE_NAME, source);
+				}
+				else {
+					propertySources.addAfter(StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME, source);
+				}
+			}
+			else {
+				// TODO: Should the module properties be added next to moduleOptions PropertySource?
+				environment.getPropertySources().addLast(source);
+			}
 		}
 		this.application.parent(parent);
 		this.application.environment(environment);
@@ -204,6 +234,32 @@ public class SimpleModule extends AbstractModule {
 		}
 		for (String profile : parent.getActiveProfiles()) {
 			environment.addActiveProfile(profile);
+		}
+	}
+
+	private void loadPropertiesResources(ConfigurableEnvironment environment) {
+		String[] propertiesHomes = { XD_CONFIG_HOME, MODULES_CONFIG_HOME + "/" + this.getType() };
+		for (String propertiesHome : propertiesHomes) {
+			String propertiesLocation = this.parent.getEnvironment().resolvePlaceholders(
+					propertiesHome + "/" + this.getName() + ".properties");
+			Resource propertiesResource = this.parent.getResource(propertiesLocation);
+			if (propertiesResource.exists()) {
+				try {
+					if (propertiesHome.equalsIgnoreCase(XD_CONFIG_HOME)) {
+						ResourcePropertySource rps = new ResourcePropertySource(XD_CONFIG_HOME_PROPERTY_SOURCE_NAME,
+								propertiesResource);
+						propertySources.addLast(rps);
+					}
+					else if (propertiesHome.equalsIgnoreCase(MODULES_CONFIG_HOME)) {
+						ResourcePropertySource rps = new ResourcePropertySource(
+								MODULES_CONFIG_HOME_PROPERTY_SOURCE_NAME, propertiesResource);
+						propertySources.addLast(rps);
+					}
+				}
+				catch (IOException e) {
+					// do nothing
+				}
+			}
 		}
 	}
 

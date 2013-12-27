@@ -31,6 +31,10 @@ import org.springframework.xd.module.ModuleType;
  */
 public interface Module extends Lifecycle {
 
+	public static final String XD_CONFIG_HOME = "${xd.config.home}";
+
+	public static final String MODULES_CONFIG_HOME = "${xd.config.home}/modules";
+
 	void initialize();
 
 	/**

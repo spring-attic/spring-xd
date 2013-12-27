@@ -28,6 +28,8 @@ import org.springframework.validation.BindException;
  */
 public interface ModuleOptionsMetadata extends Iterable<ModuleOption> {
 
+	public static final String MODULE_OPTIONS_PROPERTY_SOURCE_NAME = "moduleOptions";
+
 	public abstract ModuleOptions interpolate(Map<String, String> raw) throws BindException;
 
 }

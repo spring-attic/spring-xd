@@ -38,7 +38,7 @@ assert_equals 'x' $col1
 
 echo -e "\n\n Test 2. tail | jdbc stream with db initialization"
 
-create_stream jdbc2 "tail --lines=10 --name=$TEST_DIR/jdbc2.data --fileDelay=1000 | jdbc --driverClass=org.sqlite.JDBC --username='' --password='' --url=jdbc:sqlite:$DB_FILE"
+create_stream jdbc2 "tail --lines=10 --name=$TEST_DIR/jdbc2.data --fileDelay=1000 | jdbc --driverClass=org.sqlite.JDBC --username='' --password='' --url=jdbc:sqlite:$DB_FILE --initializeDatabase=true"
 
 echo "blahblah" >> $TEST_DIR/jdbc2.data
 sleep 3

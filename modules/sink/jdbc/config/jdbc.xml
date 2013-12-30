@@ -30,13 +30,13 @@
 		class="org.springframework.jdbc.datasource.init.DataSourceInitializer">
 		<beans:property name="databasePopulator" ref="databasePopulator" />
 		<beans:property name="dataSource" ref="dataSource" />
-		<beans:property name="enabled" value="${initializeDatabase}" />
+		<beans:property name="enabled" value="${initializeDatabase:false}" />
 	</beans:bean>
 
 	<beans:bean id="databasePopulator"
 		class="org.springframework.xd.jdbc.SingleTableDatabaseInitializer">
 		<beans:property name="scripts"
-			value="${xd.config.home}/${initializerScript}" />
+			value="${xd.config.home}/${initializerScript:init_db.sql}" />
 		<beans:property name="ignoreFailedDrops" value="true" />
 		<beans:property name="tableName" value="${tableName:${xd.stream.name}}" />
 	</beans:bean>

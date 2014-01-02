@@ -21,8 +21,10 @@ import static org.springframework.xd.module.ModuleType.sink;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Component;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.stream.XDParser;
 import org.springframework.xd.dirt.stream.dsl.CheckpointedStreamDefinitionException;
@@ -35,12 +37,14 @@ import org.springframework.xd.rest.client.domain.CompletionKind;
  * 
  * @author Eric Bottard
  */
+@Component
 public class ModulesAfterPipeRecoveryStrategy extends
 		StacktraceFingerprintlingCompletionRecoveryStrategy<CheckpointedStreamDefinitionException> {
 
 
 	private ModuleDefinitionRepository moduleDefinitionRepository;
 
+	@Autowired
 	public ModulesAfterPipeRecoveryStrategy(XDParser parser, ModuleDefinitionRepository moduleDefinitionRepository) {
 		super(parser, "file | filter |");
 		this.parser = parser;

@@ -22,8 +22,10 @@ import static org.springframework.xd.module.ModuleType.source;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Component;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.stream.XDParser;
 import org.springframework.xd.dirt.stream.dsl.CheckpointedStreamDefinitionException;
@@ -32,14 +34,16 @@ import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.rest.client.domain.CompletionKind;
 
 
+@Component
 public class EmptyStartYieldsModulesRecoveryStrategy extends
 		StacktraceFingerprintlingCompletionRecoveryStrategy<CheckpointedStreamDefinitionException> {
 
 	private ModuleDefinitionRepository moduleDefinitionRepository;
 
+	@Autowired
 	public EmptyStartYieldsModulesRecoveryStrategy(XDParser parser,
 			ModuleDefinitionRepository moduleDefinitionRepository) {
-		super(parser, "", "");
+		super(parser, "");
 		this.moduleDefinitionRepository = moduleDefinitionRepository;
 	}
 

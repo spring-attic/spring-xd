@@ -11,6 +11,6 @@
 
 	<context:annotation-config />
 
-	<bean class="org.springframework.xd.dirt.stream.completion.CompletionProvider" />
+	<context:component-scan base-package="org.springframework.xd.dirt.stream.completion" />
 
 </beans>

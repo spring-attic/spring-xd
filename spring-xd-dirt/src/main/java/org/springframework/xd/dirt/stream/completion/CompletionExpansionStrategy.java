@@ -18,25 +18,25 @@ package org.springframework.xd.dirt.stream.completion;
 
 import java.util.List;
 
+import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.rest.client.domain.CompletionKind;
 
 /**
- * Used to provide completions on ill-formed stream definitions, after an initial (failed) parse.
- * 
- * @param <E> the kind of exception that is intercepted during parsing
+ * Used to enhance a well formed stream definition by adding yet more text to it (<i>e.g.</i> adding more options to a
+ * module).
  * 
  * @author Eric Bottard
  */
-public interface CompletionRecoveryStrategy<E extends Throwable> {
+public interface CompletionExpansionStrategy {
 
 	/**
 	 * Whether this completion should be triggered
 	 */
-	boolean matches(E exception, CompletionKind kind);
+	boolean matches(String text, List<ModuleDeploymentRequest> parseResult, CompletionKind kind);
 
 	/**
 	 * Perform code completion by adding proposals to the {@code result} list.
 	 */
-	void use(E exception, List<String> result, CompletionKind kind);
+	void use(String text, List<ModuleDeploymentRequest> parseResult, List<String> result, CompletionKind kind);
 
 }

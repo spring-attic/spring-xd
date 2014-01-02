@@ -25,7 +25,24 @@ import org.springframework.xd.rest.client.domain.CompletionKind;
 /**
  * A recovery strategy that will trigger if the parser failure is similar to that of some sample unfinished stream
  * definition. The match is decided by analyzing the top frames of the stack trace emitted by the parser when it
- * encounters the ill formed input.
+ * encounters the ill formed input. Multiple fingerprints are supported, as the control flow in the parser code may be
+ * different depending on the form of the expression. For example, for the rule {@code stream = module (| module)* },
+ * the pseudo code for the parser may look like
+ * 
+ * <pre>
+ * <code>
+ * stream() {
+ *   module();  (1)
+ *   while(moreInput()) {
+ *     swallowPipe();
+ *     module();  (2)
+ *   }
+ * }
+ * </code>
+ * </pre>
+ * 
+ * In that setup, whether we're dealing with the first module, or a subsequent module, stack frames would be different
+ * (see (1) and (2)).
  * 
  * @author Eric Bottard
  */
@@ -41,7 +58,7 @@ public abstract class StacktraceFingerprintlingCompletionRecoveryStrategy<E exte
 		this.parser = parser;
 		for (String sample : samples) {
 			try {
-				parser.parse("dummy", sample);
+				parser.parse("__dummy", sample);
 			}
 			catch (Throwable exception) {
 				computeFingerprint(parser, exception);

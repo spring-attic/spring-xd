@@ -16,123 +16,74 @@
 
 package org.springframework.xd.dirt.stream.completion;
 
-import static org.springframework.xd.module.ModuleType.processor;
-import static org.springframework.xd.module.ModuleType.sink;
-import static org.springframework.xd.rest.client.domain.CompletionKind.stream;
-
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.dirt.stream.XDParser;
-import org.springframework.xd.module.ModuleDefinition;
-import org.springframework.xd.module.ModuleType;
-import org.springframework.xd.module.options.ModuleOption;
 import org.springframework.xd.rest.client.domain.CompletionKind;
 
-
+/**
+ * Provides code completion on a (maybe ill-formed) stream definition.
+ * 
+ * @author Eric Bottard
+ */
+@Service
+// Lazy needed to prevent circular dependency with ExpandOneDashToTwoDashesRecoveryStrategy
+@Lazy
 public class CompletionProvider {
 
 	private final XDParser parser;
 
-	private final ModuleDefinitionRepository moduleDefinitionRepository;
+	private final List<CompletionRecoveryStrategy<? extends Throwable>> recoveries;
 
-	private final List<CompletionRecoveryStrategy<? extends Throwable>> recoveries = new ArrayList<CompletionRecoveryStrategy<? extends Throwable>>();
+	private final List<CompletionExpansionStrategy> exapansions;
 
 
 	@Autowired
-	public CompletionProvider(XDParser parser, ModuleDefinitionRepository moduleDefinitionRepository) {
+	public CompletionProvider(XDParser parser,
+			List<CompletionRecoveryStrategy<? extends Throwable>> recoveries,
+			List<CompletionExpansionStrategy> exapansions) {
 		this.parser = parser;
-		this.moduleDefinitionRepository = moduleDefinitionRepository;
-		recoveries.add(new ModulesAfterPipeRecoveryStrategy(parser, moduleDefinitionRepository));
-		recoveries.add(new OptionNameAfterDashDashRecoveryStrategy(parser, moduleDefinitionRepository));
-		recoveries.add(new UnfinishedOptionNameRecoveryStrategy(parser, moduleDefinitionRepository));
-		recoveries.add(new EmptyStartYieldsModulesRecoveryStrategy(parser, moduleDefinitionRepository));
-		recoveries.add(new ExpandOneDashToTwoDashesRecoveryStrategy(parser, this));
+		this.recoveries = recoveries;
+		this.exapansions = exapansions;
 	}
 
 
-	private class CompletionProposals {
-
-		private final CompletionKind kind;
-
-		private String start;
-
-		private List<String> results = new ArrayList<String>();
-
-		public CompletionProposals(CompletionKind kind, String start) {
-			this.kind = kind;
-			this.start = start;
-		}
-
-		private void compute() {
-			String name = "dummy";
-			List<ModuleDeploymentRequest> parsed = null;
-			try {
-				parsed = parser.parse(name, start);
-			}
-			catch (Throwable recoverable) {
-				for (CompletionRecoveryStrategy strategy : recoveries) {
-					if (strategy.matches(recoverable, kind)) {
-						strategy.use(recoverable, results, kind);
-						break;
-					}
-				}
-
-				return;
-			}
-			// List is in reverse order
-			ModuleDeploymentRequest lastModule = parsed.get(0);
-			String lastModuleName = lastModule.getModule();
-			ModuleType lastModuleType = lastModule.getType();
-			ModuleDefinition lastModuleDefinition = moduleDefinitionRepository.findByNameAndType(lastModuleName,
-					lastModuleType);
-
-			Set<String> alreadyPresentOptions = new HashSet<String>(lastModule.getParameters().keySet());
-			for (ModuleOption option : lastModuleDefinition.getModuleOptionsMetadata()) {
-				if (!alreadyPresentOptions.contains(option.getName())) {
-					continueWith(String.format("--%s=", option.getName()));
-				}
-			}
-
-			if (lastModuleType != ModuleType.sink && kind == stream) {
-				addAllModulesOfType(start + maybePrefixWithSpace("| "), processor);
-				addAllModulesOfType(start + maybePrefixWithSpace("| "), sink);
-			}
-
-		}
-
-		private void continueWith(String what) {
-			results.add(start + (start.endsWith(" ") ? what : " " + what));
-		}
-
-		private void addAllModulesOfType(String beginning, ModuleType type) {
-			Page<ModuleDefinition> mods = moduleDefinitionRepository.findByType(new PageRequest(0, 1000), type);
-			for (ModuleDefinition mod : mods) {
-				results.add(beginning + mod.getName());
-			}
-		}
-
-		/**
-		 * Add an extra space before what if it is not already present at the end of what the user already typed.
-		 */
-		private String maybePrefixWithSpace(String what) {
-			return start.endsWith(" ") ? what : " " + what;
-		}
-
-
-	}
-
+	/*
+	 * Attempt to parse the text the user has already typed in. This either succeeds, in which case we may propose to
+	 * expand what she has typed, or it fails (most likely because this is not well formed), in which case we try to
+	 * recover from the parsing failure and still add proposals.
+	 */
 	public List<String> complete(CompletionKind kind, String start) {
-		CompletionProposals proposals = new CompletionProposals(kind, start);
-		proposals.compute();
-		return proposals.results;
+		List<String> results = new ArrayList<String>();
+
+		String name = "__dummy";
+		List<ModuleDeploymentRequest> parsed = null;
+		try {
+			parsed = parser.parse(name, start);
+		}
+		catch (Throwable recoverable) {
+			for (CompletionRecoveryStrategy strategy : recoveries) {
+				if (strategy.matches(recoverable, kind)) {
+					strategy.use(recoverable, results, kind);
+				}
+			}
+
+			return results;
+		}
+
+		for (CompletionExpansionStrategy strategy : exapansions) {
+			if (strategy.matches(start, parsed, kind)) {
+				strategy.use(start, parsed, results, kind);
+			}
+		}
+		return results;
+
+
 	}
 
 

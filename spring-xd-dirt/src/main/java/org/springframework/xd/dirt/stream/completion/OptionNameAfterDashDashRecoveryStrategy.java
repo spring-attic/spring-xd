@@ -20,6 +20,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.dirt.stream.XDParser;
@@ -27,24 +29,36 @@ import org.springframework.xd.dirt.stream.dsl.CheckpointedStreamDefinitionExcept
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.options.ModuleOption;
+import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 import org.springframework.xd.rest.client.domain.CompletionKind;
 
-
+/**
+ * Provides completion proposals when the user has typed the two dashes that precede an module option name.
+ * 
+ * @author Eric Bottard
+ */
+@Component
 public class OptionNameAfterDashDashRecoveryStrategy extends
 		StacktraceFingerprintlingCompletionRecoveryStrategy<CheckpointedStreamDefinitionException> {
 
 	private ModuleDefinitionRepository moduleDefinitionRepository;
 
+	private ModuleOptionsMetadataResolver moduleOptionsMetadataResolver;
+
+
+	@Autowired
 	public OptionNameAfterDashDashRecoveryStrategy(XDParser parser,
-			ModuleDefinitionRepository moduleDefinitionRepository) {
+			ModuleDefinitionRepository moduleDefinitionRepository,
+			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver) {
 		super(parser, "file --dir=foo --", "file --", "file | filter | transform --");
 		this.moduleDefinitionRepository = moduleDefinitionRepository;
+		this.moduleOptionsMetadataResolver = moduleOptionsMetadataResolver;
 	}
 
 	@Override
 	public void use(CheckpointedStreamDefinitionException exception, List<String> result, CompletionKind kind) {
 		String safe = exception.getExpressioStringUntilCheckpoint();
-		List<ModuleDeploymentRequest> parsed = parser.parse("dummy", safe);
+		List<ModuleDeploymentRequest> parsed = parser.parse("__dummy", safe);
 
 		// List is in reverse order
 		ModuleDeploymentRequest lastModule = parsed.get(0);
@@ -54,7 +68,7 @@ public class OptionNameAfterDashDashRecoveryStrategy extends
 				lastModuleType);
 
 		Set<String> alreadyPresentOptions = new HashSet<String>(lastModule.getParameters().keySet());
-		for (ModuleOption option : lastModuleDefinition.getModuleOptionsMetadata()) {
+		for (ModuleOption option : moduleOptionsMetadataResolver.resolve(lastModuleDefinition)) {
 			if (!alreadyPresentOptions.contains(option.getName())) {
 				result.add(String.format("%s --%s=", safe, option.getName()));
 			}

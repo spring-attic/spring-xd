@@ -33,6 +33,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -48,6 +49,8 @@ import org.springframework.xd.dirt.stream.XDParser;
 import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
+import org.springframework.xd.module.options.DefaultModuleOptionsMetadataResolver;
+import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -234,6 +237,7 @@ public class CompletionProviderTests {
 	}
 
 	@Configuration
+	@ComponentScan(basePackageClasses = CompletionProvider.class)
 	public static class Config {
 
 		@Bean
@@ -252,14 +256,14 @@ public class CompletionProviderTests {
 		}
 
 		@Bean
-		public XDParser parser(ModuleDefinitionRepository moduleDefinitionRepository) {
-			return new XDStreamParser(moduleDefinitionRepository);
+		public XDParser parser(ModuleDefinitionRepository moduleDefinitionRepository,
+				ModuleOptionsMetadataResolver moduleOptionsMetadataResolver) {
+			return new XDStreamParser(moduleDefinitionRepository, moduleOptionsMetadataResolver);
 		}
 
 		@Bean
-		public CompletionProvider completionProvider(XDParser parser,
-				ModuleDefinitionRepository moduleDefinitionRepository) {
-			return new CompletionProvider(parser, moduleDefinitionRepository);
+		public ModuleOptionsMetadataResolver moduleOptionsMetadataResolver() {
+			return new DefaultModuleOptionsMetadataResolver();
 		}
 
 	}

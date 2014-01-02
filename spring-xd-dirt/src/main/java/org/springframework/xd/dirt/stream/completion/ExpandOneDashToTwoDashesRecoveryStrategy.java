@@ -18,19 +18,29 @@ package org.springframework.xd.dirt.stream.completion;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.xd.dirt.stream.XDParser;
 import org.springframework.xd.dirt.stream.dsl.StreamDefinitionException;
 import org.springframework.xd.rest.client.domain.CompletionKind;
 
-
+/**
+ * Provides completion when the user has typed in the first dash to a module option.
+ * 
+ * @author Eric Bottard
+ */
+@Component
 public class ExpandOneDashToTwoDashesRecoveryStrategy extends
 		StacktraceFingerprintlingCompletionRecoveryStrategy<StreamDefinitionException> {
 
+
+	@Autowired
+	// Need field injection to prevent circular dependency
 	private CompletionProvider completionProvider;
 
-	public ExpandOneDashToTwoDashesRecoveryStrategy(XDParser parser, CompletionProvider completionProvider) {
+	@Autowired
+	public ExpandOneDashToTwoDashesRecoveryStrategy(XDParser parser) {
 		super(parser, "file -");
-		this.completionProvider = completionProvider;
 	}
 
 	@Override
@@ -39,5 +49,6 @@ public class ExpandOneDashToTwoDashesRecoveryStrategy extends
 		List<String> completions = completionProvider.complete(kind, exception.getExpressionString() + "-");
 		result.addAll(completions);
 	}
+
 
 }

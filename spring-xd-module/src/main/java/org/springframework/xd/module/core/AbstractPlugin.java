@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.module;
+package org.springframework.xd.module.core;
 
 
 import java.util.List;
@@ -25,6 +25,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.Assert;
+import org.springframework.xd.module.support.BeanDefinitionAddingPostProcessor;
 
 /**
  * @author Glenn Renfro

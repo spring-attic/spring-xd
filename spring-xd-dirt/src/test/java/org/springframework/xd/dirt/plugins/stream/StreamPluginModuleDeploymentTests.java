@@ -44,7 +44,7 @@ import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.dirt.module.TestModuleEventListener;
 import org.springframework.xd.dirt.server.options.XDPropertyKeys;
 import org.springframework.xd.module.ModuleType;
-import org.springframework.xd.module.SimpleModule;
+import org.springframework.xd.module.core.SimpleModule;
 
 /**
  * Integration test that deploys a few simple test modules to verify the full functionality of {@link StreamPlugin}

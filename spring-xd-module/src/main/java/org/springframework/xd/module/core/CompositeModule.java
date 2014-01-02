@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.module;
+package org.springframework.xd.module.core;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +37,9 @@ import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
+import org.springframework.xd.module.DeploymentMetadata;
+import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleType;
 
 /**
  * @author Mark Fisher

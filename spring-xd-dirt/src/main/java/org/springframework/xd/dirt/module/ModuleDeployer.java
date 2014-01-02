@@ -27,6 +27,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -46,18 +47,18 @@ import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.event.ModuleDeployedEvent;
 import org.springframework.xd.dirt.event.ModuleUndeployedEvent;
 import org.springframework.xd.dirt.plugins.job.JobPlugin;
-import org.springframework.xd.module.CompositeModule;
 import org.springframework.xd.module.DeploymentMetadata;
-import org.springframework.xd.module.Module;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
-import org.springframework.xd.module.ParentLastURLClassLoader;
-import org.springframework.xd.module.Plugin;
-import org.springframework.xd.module.SimpleModule;
+import org.springframework.xd.module.core.CompositeModule;
+import org.springframework.xd.module.core.Module;
+import org.springframework.xd.module.core.Plugin;
+import org.springframework.xd.module.core.SimpleModule;
 import org.springframework.xd.module.options.DefaultModuleOptionsMetadata;
 import org.springframework.xd.module.options.ModuleOptions;
 import org.springframework.xd.module.options.ModuleOptionsMetadata;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
+import org.springframework.xd.module.support.ParentLastURLClassLoader;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.module;
+package org.springframework.xd.module.support;
 
 import java.io.IOException;
 import java.net.URL;

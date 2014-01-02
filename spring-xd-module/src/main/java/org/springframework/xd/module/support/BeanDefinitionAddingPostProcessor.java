@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.module;
+package org.springframework.xd.module.support;
 
 import java.util.Map.Entry;
 import java.util.SortedMap;

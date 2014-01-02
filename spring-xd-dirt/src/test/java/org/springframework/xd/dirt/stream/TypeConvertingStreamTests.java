@@ -29,7 +29,7 @@ import org.springframework.integration.x.bus.DefaultMessageMediaTypeResolver;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.xd.dirt.plugins.ModuleConfigurationException;
-import org.springframework.xd.module.Module;
+import org.springframework.xd.module.core.Module;
 import org.springframework.xd.tuple.Tuple;
 
 /**

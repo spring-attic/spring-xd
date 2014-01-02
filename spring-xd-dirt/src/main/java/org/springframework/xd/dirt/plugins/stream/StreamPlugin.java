@@ -35,11 +35,11 @@ import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.CollectionUtils;
 import org.springframework.xd.dirt.container.XDContainer;
-import org.springframework.xd.module.BeanDefinitionAddingPostProcessor;
 import org.springframework.xd.module.DeploymentMetadata;
-import org.springframework.xd.module.Module;
 import org.springframework.xd.module.ModuleType;
-import org.springframework.xd.module.Plugin;
+import org.springframework.xd.module.core.Module;
+import org.springframework.xd.module.core.Plugin;
+import org.springframework.xd.module.support.BeanDefinitionAddingPostProcessor;
 
 /**
  * @author Mark Fisher

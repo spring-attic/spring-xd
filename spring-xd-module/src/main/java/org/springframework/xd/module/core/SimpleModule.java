@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.module;
+package org.springframework.xd.module.core;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -40,6 +40,8 @@ import org.springframework.core.env.StandardEnvironment;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.validation.BindException;
+import org.springframework.xd.module.DeploymentMetadata;
+import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.options.DefaultModuleOptionsMetadata;
 import org.springframework.xd.module.options.ModuleOptions;
 

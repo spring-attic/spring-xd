@@ -32,10 +32,10 @@ import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.xd.dirt.container.XDContainer;
-import org.springframework.xd.module.AbstractPlugin;
 import org.springframework.xd.module.DeploymentMetadata;
-import org.springframework.xd.module.Module;
 import org.springframework.xd.module.ModuleType;
+import org.springframework.xd.module.core.AbstractPlugin;
+import org.springframework.xd.module.core.Module;
 
 /**
  * Plugin to enable the registration of jobs in a central registry.

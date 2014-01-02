@@ -16,7 +16,7 @@
 
 package org.springframework.xd.dirt.event;
 
-import org.springframework.xd.module.Module;
+import org.springframework.xd.module.core.Module;
 
 /**
  * @author Mark Fisher

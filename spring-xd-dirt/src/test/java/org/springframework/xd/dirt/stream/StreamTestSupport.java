@@ -20,6 +20,7 @@ import java.util.Map;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
@@ -34,8 +35,8 @@ import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.module.ResourceModuleRegistry;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
-import org.springframework.xd.module.CompositeModule;
-import org.springframework.xd.module.Module;
+import org.springframework.xd.module.core.CompositeModule;
+import org.springframework.xd.module.core.Module;
 
 
 /**

@@ -12,17 +12,17 @@
 			<poller trigger="dateTrigger" />
 		</inbound-channel-adapter>
 		<beans:bean id="dateTrigger"
-			class="org.springframework.xd.module.util.DateTrigger">
+			class="org.springframework.xd.module.support.DateTrigger">
 		</beans:bean>
 	</beans:beans>
-	
+
 	<beans:beans profile="use-cron">
 		<inbound-channel-adapter channel="output"
 			auto-startup="false" expression="'${payload}'">
 			<poller cron="${cron}" />
 		</inbound-channel-adapter>
 	</beans:beans>
-	
+
 	<beans:beans profile="use-delay">
 		<inbound-channel-adapter channel="output"
 			auto-startup="false" expression="'${payload}'">

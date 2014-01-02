@@ -28,7 +28,7 @@ import org.springframework.xd.dirt.event.ModuleUndeployedEvent;
 import org.springframework.xd.dirt.module.store.RuntimeContainerModuleInfoRepository;
 import org.springframework.xd.dirt.module.store.RuntimeModuleInfoEntity;
 import org.springframework.xd.dirt.module.store.RuntimeModuleInfoRepository;
-import org.springframework.xd.module.Module;
+import org.springframework.xd.module.core.Module;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

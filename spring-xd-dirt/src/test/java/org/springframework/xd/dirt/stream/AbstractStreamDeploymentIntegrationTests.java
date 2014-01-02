@@ -28,6 +28,7 @@ import java.util.concurrent.ConcurrentMap;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.support.AbstractApplicationContext;
@@ -37,8 +38,8 @@ import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.messaging.Message;
 import org.springframework.xd.dirt.event.AbstractModuleEvent;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
-import org.springframework.xd.module.Module;
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.core.Module;
 
 /**
  * @author Mark Fisher

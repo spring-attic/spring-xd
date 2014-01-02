@@ -19,9 +19,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.xd.dirt.container.XDContainer;
-import org.springframework.xd.module.BeanDefinitionAddingPostProcessor;
-import org.springframework.xd.module.Module;
-import org.springframework.xd.module.Plugin;
+import org.springframework.xd.module.core.Module;
+import org.springframework.xd.module.core.Plugin;
+import org.springframework.xd.module.support.BeanDefinitionAddingPostProcessor;
 
 /**
  * Exports MBeans from a module using a unique domain name xd.[group].[module]

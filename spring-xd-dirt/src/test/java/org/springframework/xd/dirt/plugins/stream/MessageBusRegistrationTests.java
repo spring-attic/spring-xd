@@ -32,7 +32,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.xd.module.DeploymentMetadata;
-import org.springframework.xd.module.Module;
+import org.springframework.xd.module.core.Module;
 
 /**
  * @author Jennifer Hickey

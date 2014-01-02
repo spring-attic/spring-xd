@@ -20,6 +20,7 @@ import static org.mockito.Mockito.mock;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.xd.dirt.module.DependencyException;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.module.util;
+package org.springframework.xd.module.support;
 
 import java.util.ArrayList;
 import java.util.Collections;

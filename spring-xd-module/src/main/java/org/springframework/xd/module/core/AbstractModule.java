@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.module;
+package org.springframework.xd.module.core;
 
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
+import org.springframework.xd.module.DeploymentMetadata;
+import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleType;
 
 /**
  * Base support class for modules, wrapping {@link ModuleDefinition} and {@link DeploymentMetadata}.

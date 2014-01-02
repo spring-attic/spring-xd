@@ -23,6 +23,7 @@ import java.util.Properties;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContext;
@@ -32,9 +33,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
-import org.springframework.xd.module.Module;
 import org.springframework.xd.module.ModuleType;
-import org.springframework.xd.module.Plugin;
+import org.springframework.xd.module.core.Module;
+import org.springframework.xd.module.core.Plugin;
 import org.springframework.xd.module.options.DefaultModuleOptionsMetadataResolver;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 

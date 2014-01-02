@@ -30,7 +30,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.xd.module.ModuleDefinition;
-import org.springframework.xd.module.ParentLastURLClassLoader;
+import org.springframework.xd.module.support.ParentLastURLClassLoader;
 
 /**
  * The default implementation of {@link ModuleOptionsMetadataResolver} that deals with simple modules and reads the

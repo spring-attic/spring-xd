@@ -32,6 +32,7 @@ import java.util.Properties;
 
 import org.junit.After;
 import org.junit.Test;
+
 import org.springframework.core.io.Resource;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;

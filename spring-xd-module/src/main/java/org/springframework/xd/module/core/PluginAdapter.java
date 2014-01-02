@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.module;
+package org.springframework.xd.module.core;
 
 import org.springframework.context.ConfigurableApplicationContext;
 

@@ -27,6 +27,7 @@ import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.DescriptiveResource;
 import org.springframework.core.io.Resource;

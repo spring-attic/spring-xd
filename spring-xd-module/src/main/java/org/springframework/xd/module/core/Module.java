@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.module;
+package org.springframework.xd.module.core;
 
 import java.util.Properties;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.io.Resource;
+import org.springframework.xd.module.DeploymentMetadata;
+import org.springframework.xd.module.ModuleType;
 
 /**
  * @author Mark Fisher

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.module.util;
+package org.springframework.xd.module.support;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -25,6 +25,8 @@ import java.util.Calendar;
 import java.util.Date;
 
 import org.junit.Test;
+
+import org.springframework.xd.module.support.DateTrigger;
 
 /**
  * Tests for {@link DateTrigger}.

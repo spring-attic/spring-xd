@@ -26,7 +26,7 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.xd.module.Module;
+import org.springframework.xd.module.core.Module;
 
 /**
  * @author Mark Fisher

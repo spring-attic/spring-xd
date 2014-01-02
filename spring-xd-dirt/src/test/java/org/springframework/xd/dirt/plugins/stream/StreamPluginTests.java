@@ -41,12 +41,12 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.xd.dirt.server.options.XDPropertyKeys;
-import org.springframework.xd.module.BeanDefinitionAddingPostProcessor;
 import org.springframework.xd.module.DeploymentMetadata;
-import org.springframework.xd.module.Module;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
-import org.springframework.xd.module.SimpleModule;
+import org.springframework.xd.module.core.Module;
+import org.springframework.xd.module.core.SimpleModule;
+import org.springframework.xd.module.support.BeanDefinitionAddingPostProcessor;
 
 /**
  * @author Mark Fisher

@@ -565,6 +565,7 @@ project('spring-xd-extension-jdbc') {
 		runtime "org.springframework.integration:spring-integration-jdbc:$springIntegrationVersion"
 		runtime "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
 		compile "org.hsqldb:hsqldb:$hsqldbVersion"
+		compile project(':spring-xd-module-spi')
 		runtime "mysql:mysql-connector-java:5.1.23"
 		runtime "org.postgresql:postgresql:9.2-1002-jdbc4"
 	}

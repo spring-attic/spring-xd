@@ -30,7 +30,8 @@ import org.springframework.xd.module.options.ModuleOption;
 import org.springframework.xd.rest.client.domain.CompletionKind;
 
 
-public class OptionNameAfterDashDashRecoveryStrategy extends StacktraceFingerprintlingCompletionRecoveryStrategy {
+public class OptionNameAfterDashDashRecoveryStrategy extends
+		StacktraceFingerprintlingCompletionRecoveryStrategy<CheckpointedStreamDefinitionException> {
 
 	private ModuleDefinitionRepository moduleDefinitionRepository;
 
@@ -41,7 +42,7 @@ public class OptionNameAfterDashDashRecoveryStrategy extends StacktraceFingerpri
 	}
 
 	@Override
-	void use(CheckpointedStreamDefinitionException exception, List<String> result, CompletionKind kind) {
+	public void use(CheckpointedStreamDefinitionException exception, List<String> result, CompletionKind kind) {
 		String safe = exception.getExpressioStringUntilCheckpoint();
 		List<ModuleDeploymentRequest> parsed = parser.parse("dummy", safe);
 

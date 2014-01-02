@@ -31,8 +31,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.dirt.stream.XDParser;
-import org.springframework.xd.dirt.stream.dsl.CheckpointedStreamDefinitionException;
-import org.springframework.xd.dirt.stream.dsl.StreamDefinitionException;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.options.ModuleOption;
@@ -45,7 +43,7 @@ public class CompletionProvider {
 
 	private final ModuleDefinitionRepository moduleDefinitionRepository;
 
-	private final List<StacktraceFingerprintlingCompletionRecoveryStrategy> recoveries = new ArrayList<StacktraceFingerprintlingCompletionRecoveryStrategy>();
+	private final List<CompletionRecoveryStrategy<? extends Throwable>> recoveries = new ArrayList<CompletionRecoveryStrategy<? extends Throwable>>();
 
 
 	@Autowired
@@ -55,6 +53,8 @@ public class CompletionProvider {
 		recoveries.add(new ModulesAfterPipeRecoveryStrategy(parser, moduleDefinitionRepository));
 		recoveries.add(new OptionNameAfterDashDashRecoveryStrategy(parser, moduleDefinitionRepository));
 		recoveries.add(new UnfinishedOptionNameRecoveryStrategy(parser, moduleDefinitionRepository));
+		recoveries.add(new EmptyStartYieldsModulesRecoveryStrategy(parser, moduleDefinitionRepository));
+		recoveries.add(new ExpandOneDashToTwoDashesRecoveryStrategy(parser, this));
 	}
 
 
@@ -72,27 +72,19 @@ public class CompletionProvider {
 		}
 
 		private void compute() {
-			if (start.trim().equals("")) {
-				addAllModulesOfType(start, ModuleType.source);
-				return;
-			}
-
 			String name = "dummy";
 			List<ModuleDeploymentRequest> parsed = null;
 			try {
 				parsed = parser.parse(name, start);
 			}
-			catch (CheckpointedStreamDefinitionException recoverable) {
-				for (StacktraceFingerprintlingCompletionRecoveryStrategy strategy : recoveries) {
-					if (strategy.matches(recoverable)) {
+			catch (Throwable recoverable) {
+				for (CompletionRecoveryStrategy strategy : recoveries) {
+					if (strategy.matches(recoverable, kind)) {
 						strategy.use(recoverable, results, kind);
 						break;
 					}
 				}
 
-				return;
-			}
-			catch (StreamDefinitionException e) {
 				return;
 			}
 			// List is in reverse order

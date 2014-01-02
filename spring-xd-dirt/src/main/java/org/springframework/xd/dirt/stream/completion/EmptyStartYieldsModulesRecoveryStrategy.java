@@ -16,8 +16,9 @@
 
 package org.springframework.xd.dirt.stream.completion;
 
+import static org.springframework.xd.module.ModuleType.job;
 import static org.springframework.xd.module.ModuleType.processor;
-import static org.springframework.xd.module.ModuleType.sink;
+import static org.springframework.xd.module.ModuleType.source;
 
 import java.util.List;
 
@@ -30,32 +31,41 @@ import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.rest.client.domain.CompletionKind;
 
-/**
- * Provides completions for the case where the user has entered a pipe symbol and a module reference is expected next.
- * 
- * @author Eric Bottard
- */
-public class ModulesAfterPipeRecoveryStrategy extends
-		StacktraceFingerprintlingCompletionRecoveryStrategy<CheckpointedStreamDefinitionException> {
 
+public class EmptyStartYieldsModulesRecoveryStrategy extends
+		StacktraceFingerprintlingCompletionRecoveryStrategy<CheckpointedStreamDefinitionException> {
 
 	private ModuleDefinitionRepository moduleDefinitionRepository;
 
-	public ModulesAfterPipeRecoveryStrategy(XDParser parser, ModuleDefinitionRepository moduleDefinitionRepository) {
-		super(parser, "file | filter |");
-		this.parser = parser;
+	public EmptyStartYieldsModulesRecoveryStrategy(XDParser parser,
+			ModuleDefinitionRepository moduleDefinitionRepository) {
+		super(parser, "", "");
 		this.moduleDefinitionRepository = moduleDefinitionRepository;
 	}
 
 	@Override
 	public void use(CheckpointedStreamDefinitionException exception, List<String> result, CompletionKind kind) {
-		String start = exception.getExpressionString();
+		switch (kind) {
+			case composed:
+				// Add processors
+				addAllModulesOfType(result, exception.getExpressioStringUntilCheckpoint(), processor);
+				// fall thru
+			case stream:
+				// Add sources
+				addAllModulesOfType(result, exception.getExpressioStringUntilCheckpoint(), source);
+				break;
+			case job:
+				// Add jobs
+				addAllModulesOfType(result, exception.getExpressioStringUntilCheckpoint(), job);
+				break;
 
-		addAllModulesOfType(start.endsWith(" ") ? start : start + " ", processor, result);
-		addAllModulesOfType(start.endsWith(" ") ? start : start + " ", sink, result);
+			default:
+				break;
+		}
 	}
 
-	private void addAllModulesOfType(String beginning, ModuleType type, List<String> results) {
+	private void addAllModulesOfType(List<String> results, String start, ModuleType type) {
+		String beginning = start.length() == 0 || start.endsWith(" ") ? start : start + " ";
 		Page<ModuleDefinition> mods = moduleDefinitionRepository.findByType(new PageRequest(0, 1000), type);
 		for (ModuleDefinition mod : mods) {
 			results.add(beginning + mod.getName());

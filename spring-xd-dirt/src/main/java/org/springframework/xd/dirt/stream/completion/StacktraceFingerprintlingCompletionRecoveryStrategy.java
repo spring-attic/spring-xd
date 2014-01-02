@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.xd.dirt.stream.XDParser;
-import org.springframework.xd.dirt.stream.dsl.CheckpointedStreamDefinitionException;
 import org.springframework.xd.rest.client.domain.CompletionKind;
 
 /**
@@ -30,12 +29,13 @@ import org.springframework.xd.rest.client.domain.CompletionKind;
  * 
  * @author Eric Bottard
  */
-public abstract class StacktraceFingerprintlingCompletionRecoveryStrategy {
-
-	protected XDParser parser;
-
+public abstract class StacktraceFingerprintlingCompletionRecoveryStrategy<E extends Throwable> implements
+		CompletionRecoveryStrategy<E> {
 
 	private List<List<StackTraceElement>> fingerprints = new ArrayList<List<StackTraceElement>>();
+
+
+	protected XDParser parser;
 
 	public StacktraceFingerprintlingCompletionRecoveryStrategy(XDParser parser, String... samples) {
 		this.parser = parser;
@@ -43,7 +43,7 @@ public abstract class StacktraceFingerprintlingCompletionRecoveryStrategy {
 			try {
 				parser.parse("dummy", sample);
 			}
-			catch (CheckpointedStreamDefinitionException exception) {
+			catch (Throwable exception) {
 				computeFingerprint(parser, exception);
 			}
 		}
@@ -52,7 +52,7 @@ public abstract class StacktraceFingerprintlingCompletionRecoveryStrategy {
 	/**
 	 * Extract the top frames (until the call to {@link XDParser#parse(String, String)} appears) of the given exception.
 	 */
-	private void computeFingerprint(XDParser parser, CheckpointedStreamDefinitionException exception) {
+	private void computeFingerprint(XDParser parser, Throwable exception) {
 		boolean seenParserClass = false;
 		List<StackTraceElement> fingerPrint = new ArrayList<StackTraceElement>();
 		for (StackTraceElement frame : exception.getStackTrace()) {
@@ -67,17 +67,7 @@ public abstract class StacktraceFingerprintlingCompletionRecoveryStrategy {
 		fingerprints.add(fingerPrint);
 	}
 
-	public boolean matches(CheckpointedStreamDefinitionException exception) {
-		for (List<StackTraceElement> fingerPrint : fingerprints) {
-			if (fingerprintMatches(exception, fingerPrint)) {
-				return true;
-			}
-		}
-		return false;
-
-	}
-
-	private boolean fingerprintMatches(CheckpointedStreamDefinitionException exception,
+	private boolean fingerprintMatches(Throwable exception,
 			List<StackTraceElement> fingerPrint) {
 		int i = 0;
 		StackTraceElement[] stackTrace = exception.getStackTrace();
@@ -89,6 +79,16 @@ public abstract class StacktraceFingerprintlingCompletionRecoveryStrategy {
 		return true;
 	}
 
-	abstract void use(CheckpointedStreamDefinitionException exception, List<String> result, CompletionKind kind);
+	@Override
+	public boolean matches(Throwable exception, CompletionKind kind) {
+		for (List<StackTraceElement> fingerPrint : fingerprints) {
+			if (fingerprintMatches(exception, fingerPrint)) {
+				return true;
+			}
+		}
+		return false;
+
+	}
+
 
 }

@@ -71,7 +71,7 @@ public class CheckpointedStreamDefinitionException extends StreamDefinitionExcep
 
 
 	public int getCheckpointPosition() {
-		return tokens.get(checkpointPointer - 1).endpos;
+		return checkpointPointer == 0 ? 0 : tokens.get(checkpointPointer - 1).endpos;
 	}
 
 	/**

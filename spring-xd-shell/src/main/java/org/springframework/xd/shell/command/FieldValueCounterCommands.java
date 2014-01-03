@@ -122,7 +122,7 @@ public class FieldValueCounterCommands extends AbstractMetricsCommands implement
 				return -1;
 			}
 			if (fieldValueCounts.get(a).equals(fieldValueCounts.get(b))) {
-				return 0;
+				return a.compareTo(b);
 			}
 			else {
 				return 1;

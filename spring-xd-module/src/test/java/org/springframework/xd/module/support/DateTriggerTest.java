@@ -26,8 +26,6 @@ import java.util.Date;
 
 import org.junit.Test;
 
-import org.springframework.xd.module.support.DateTrigger;
-
 /**
  * Tests for {@link DateTrigger}.
  * 

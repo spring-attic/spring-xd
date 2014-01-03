@@ -16,14 +16,15 @@
 	<int:aggregator
 			input-channel="input"
 			correlation-strategy-expression="payload.getClass().getName()"
-			release-strategy-expression="size() == ${batchSize:1000}"
+			release-strategy-expression="size() == ${batchSize}"
+			expire-groups-upon-completion="true"
 			send-partial-result-on-expiry="true"
 			message-store="messageStore"
 			output-channel="objects"/>
 
 	<bean id="reaper" class="org.springframework.integration.store.MessageGroupStoreReaper">
 		<property name="messageGroupStore" ref="messageStore"/>
-		<property name="timeout" value="${timeout:10}000"/>
+		<property name="timeout" value="${idleTimeout}"/>
 		<property name="expireOnDestroy" value="true"/>
 	</bean>
 
@@ -31,17 +32,21 @@
 		<task:scheduled ref="reaper" method="run" fixed-rate="1000"/>
 	</task:scheduled-tasks>
 
-	<bean id="messageStore" class="org.springframework.integration.store.SimpleMessageStore"/>
+	<bean id="messageStore" class="org.springframework.integration.store.SimpleMessageStore">
+		<property name="timeoutOnIdle" value="true"/>
+	</bean>
 
 	<int-hadoop:avro-outbound-channel-adapter id="objects" dataset-operations="datasetOperations"/>
 
-	<bean id="datasetOperations" class="org.springframework.data.hadoop.store.dataset.DatasetTemplate">
+	<!-- TODO: switch back to original class once we update to use spring-data-hadoop 2.0.0.M5
+	    class="org.springframework.data.hadoop.store.dataset.DatasetTemplate" -->
+    <bean id="datasetOperations" class="org.springframework.data.hadoop.x.store.dataset.DatasetTemplateAllowingNulls">
 		<property name="datasetRepositoryFactory" ref="datasetRepositoryFactory"/>
 	</bean>
 
 	<bean id="datasetRepositoryFactory" class="org.springframework.data.hadoop.store.dataset.DatasetRepositoryFactory">
 		<property name="conf" ref="hadoopConfiguration"/>
-		<property name="basePath" value="${basePath:/xd/${xd.stream.name}}"/>
+		<property name="basePath" value="${directory:/xd/${xd.stream.name}}"/>
 	</bean>
 
 	<hdp:configuration register-url-handler="false" properties-location="${xd.config.home}/hadoop.properties"/>

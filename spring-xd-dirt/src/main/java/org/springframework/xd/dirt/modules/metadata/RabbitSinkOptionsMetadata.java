@@ -20,37 +20,47 @@ import org.springframework.http.MediaType;
 import org.springframework.xd.module.options.spi.ModuleOption;
 
 /**
- * Describes options to the {@code rabbit} source module.
+ * Captures options to the {@code rabbit} sink module.
  * 
  * @author Eric Bottard
  */
-public class RabbitSourceOptionsMetadata extends AbstractRabbitConnectionOptionsMetadata {
+public class RabbitSinkOptionsMetadata extends AbstractRabbitConnectionOptionsMetadata {
 
-	private String queues;
+	private String exchange = "";
 
-	public String getQueues() {
-		return queues;
+	private String routingKey;
+
+
+	public String getExchange() {
+		return exchange;
+	}
+
+	@ModuleOption("the Exchange on the RabbitMQ broker to which messages should be sent")
+	public void setExchange(String exchange) {
+		this.exchange = exchange;
 	}
 
 
-	@ModuleOption("the queue(s) from which messages will be received")
-	public void setQueues(String queues) {
-		this.queues = queues;
+	public String getRoutingKey() {
+		return routingKey;
 	}
 
+	@ModuleOption("the routing key to be passed with the message, as a SpEL expression")
+	public void setRoutingKey(String routingKey) {
+		this.routingKey = routingKey;
+	}
 
 	// Adding those back as we can't inherit from multiple classes.
 	// Will go away when XD-1050 is done
-	private MediaType outputType;
+	private MediaType inputType;
 
-	public MediaType getOutputType() {
-		return outputType;
+	public MediaType getInputType() {
+		return inputType;
 	}
 
-
-	@ModuleOption("how this module should emit messages it produces")
-	public void setOutputType(MediaType outputType) {
-		this.outputType = outputType;
+	@ModuleOption("how this module should interpret messages it consumes")
+	public void setInputType(MediaType inputType) {
+		this.inputType = inputType;
 	}
 
 

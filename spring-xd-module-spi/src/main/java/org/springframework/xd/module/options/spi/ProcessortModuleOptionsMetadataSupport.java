@@ -16,7 +16,7 @@
 
 package org.springframework.xd.module.options.spi;
 
-import java.awt.PageAttributes.MediaType;
+import org.springframework.http.MediaType;
 
 
 /**

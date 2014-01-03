@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.InvalidPropertyException;
@@ -110,12 +111,15 @@ public class PojoModuleOptionsMetadata implements ModuleOptionsMetadata {
 			Assert.notNull(
 					annotation,
 					String.format(
-							"Setter method for option '%s' needs to bear the @%s annotation and provide a 'description'",
+							"Setter method for option '%s' needs to bear the @%s annotation and provide a description",
 							name,
 							org.springframework.xd.module.options.spi.ModuleOption.class.getSimpleName()));
 
 			String description = descriptionFromAnnotation(name, annotation);
-			ModuleOption option = new ModuleOption(name, description).withType(pd.getPropertyType());
+			// Don't use pd.getPropertyType(), as it considers the getter first
+			// which may be different from the setter type, which is what we semantically want here
+			Class<?> type = BeanUtils.getWriteMethodParameter(pd).getParameterType();
+			ModuleOption option = new ModuleOption(name, description).withType(type);
 			if (beanWrapper.isReadableProperty(name)) {
 				option.withDefaultValue(beanWrapper.getPropertyValue(name));
 			}

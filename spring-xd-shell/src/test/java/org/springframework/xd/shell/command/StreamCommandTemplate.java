@@ -75,8 +75,9 @@ public class StreamCommandTemplate extends AbstractCommandTemplate {
 
 	private void doCreate(String streamname, String streamdefinition, boolean deploy, Object... values) {
 		String actualDefinition = String.format(streamdefinition, values);
+		// Shell parser expects quotes to be escaped by \
 		String wholeCommand = String.format("stream create %s --definition \"%s\" --deploy %s", streamname,
-				actualDefinition, deploy);
+				actualDefinition.replaceAll("\"", "\\\\\""), deploy);
 		CommandResult cr = executeCommand(wholeCommand);
 		// add the stream name to the streams list before assertion
 		streams.add(streamname);

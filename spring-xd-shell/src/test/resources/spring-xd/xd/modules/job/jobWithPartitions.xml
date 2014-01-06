@@ -7,64 +7,10 @@
 		http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd
 		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
 
-	<!-- This is the "remote" worker -->
-
-	<int:channel id="stepExecutions.input" />
-
-	<int:channel id="stepExecutionResults.output" />
-
-	<int:service-activator ref="stepExecutionRequestHandler" input-channel="stepExecutions.input"
-			output-channel="stepExecutionResults.output" />
-
-	<bean id="stepExecutionRequestHandler" class="org.springframework.batch.integration.partition.StepExecutionRequestHandler"
-		p:jobExplorer-ref="jobExplorer" p:stepLocator-ref="stepLocator" />
-
-	<bean id="stepLocator" class="org.springframework.batch.integration.partition.BeanFactoryStepLocator" />
-
-	<bean id="jobExplorer" class="org.springframework.batch.core.explore.support.SimpleJobExplorer">
-		<constructor-arg ref="jobInstanceDao" />
-		<constructor-arg ref="jobExecutionDao" />
-		<constructor-arg ref="stepExecutionDao" />
-		<constructor-arg ref="executionContextDao" />
-	</bean>
-
-	<bean id="executionContextDao" class="org.springframework.batch.core.repository.dao.JdbcExecutionContextDao">
-		<property name="jdbcTemplate" ref="jdbcTemplate" />
-		<property name="serializer">
-			<bean class="org.springframework.batch.core.repository.dao.XStreamExecutionContextStringSerializer" />
-		</property>
-	</bean>
-
-	<!-- Master -->
-
-	<int:channel id="stepExecutions.output" />
-
-	<int:channel id="stepExecutionResults.input" />
-
-	<bean id="partitionHandler" class="org.springframework.batch.integration.partition.MessageChannelPartitionHandler">
-		<property name="messagingOperations">
-			<bean class="org.springframework.integration.core.MessagingTemplate">
-				<property name="defaultChannel" ref="stepExecutions.output" />
-				<property name="receiveTimeout" value="60000" />
-			</bean>
-		</property>
-		<property name="stepName" value="step1" />
-	</bean>
-
-	<int:aggregator ref="partitionHandler" send-timeout="10000" input-channel="stepExecutionResults.input" />
-
-	<job id="job" xmlns="http://www.springframework.org/schema/batch">
-		<step id="step1-master">
-			<partition handler="partitionHandler" partitioner="partitioner" />
-		</step>
-	</job>
+	<import resource="classpath:/META-INF/spring-xd/batch/partition-import.xml"/>
 
 	<bean id="partitioner" class="org.springframework.xd.shell.command.SimpleTwoPartitionsPartitioner" scope="step" />
 
-	<step id="step1" xmlns="http://www.springframework.org/schema/batch">
-		<tasklet ref="testTasklet"/>
-	</step>
-
-	<bean id="testTasklet" class="org.springframework.xd.shell.command.SimpleTasklet" />
+	<bean id="tasklet" class="org.springframework.xd.shell.command.SimpleTasklet" />
 
 </beans>

@@ -1,0 +1,21 @@
+# XD Configuration file
+# You can set properties here to override the default which
+# are set in the application.yml file loaded by Spring Boot.
+#
+# Propertes set in here will take precedence.
+#
+# Alternatively, you can set the environment variable XD_CONFIG
+# to point to a file (use a file:// URL). That file will then be
+# used instead.
+
+
+#spring:
+#  datasource:
+#    url: jdbc:hsqldb:hsql://localhost:9101/xdjob
+#    username: sa
+#    password:
+#    driverClassName: org.hsqldb.jdbc.JDBCDriver
+
+#server:
+#  port: 9393
+

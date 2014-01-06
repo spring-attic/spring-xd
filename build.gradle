@@ -1110,7 +1110,7 @@ project('modules.sink.splunk') {
 
 // ================ M O D U L E S : J O B S ============================
 
-project('modules.job.filejdbc') {
+project('modules.job.files2jdbc') {
 	dependencies {
 		runtime(project(":spring-xd-extension-jdbc"))
 	}

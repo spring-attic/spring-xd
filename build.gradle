@@ -644,10 +644,10 @@ project('spring-xd-hadoop:hadoop12') {
 project('spring-xd-hadoop:hadoop22') {
 	description = 'Hadoop 2.0 dependencies'
 	dependencies {
-		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopVersion}") {
+		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopVersion}-hadoop22") {
 			exclude group: 'org.apache.hadoop'
 		}
-		runtime ("org.springframework.data:spring-data-hadoop-store:$springDataHadoopVersion") {
+		runtime ("org.springframework.data:spring-data-hadoop-store:${springDataHadoopVersion}-hadoop22") {
 			exclude group: 'org.apache.hadoop'
 		}
 		runtime ("org.apache.hadoop:hadoop-common:$hadoop22Version")
@@ -672,10 +672,10 @@ project('spring-xd-hadoop:hadoop22') {
 project('spring-xd-hadoop:cdh4') {
 	description = 'Cloudera CDH 4.3.1 dependencies'
 	dependencies {
-		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopVersion}") {
+		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopVersion}-cdh5") {
 			exclude group: 'org.apache.hadoop'
 		}
-		runtime ("org.springframework.data:spring-data-hadoop-store:$springDataHadoopVersion") {
+		runtime ("org.springframework.data:spring-data-hadoop-store:${springDataHadoopVersion}-cdh5") {
 			exclude group: 'org.apache.hadoop'
 		}
 		runtime ("org.apache.hadoop:hadoop-common:$cdh4Version")
@@ -703,7 +703,7 @@ project('spring-xd-hadoop:hdp13') {
 		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopVersion}") {
 			exclude group: 'org.apache.hadoop'
 		}
-		runtime ("org.springframework.data:spring-data-hadoop-store:$springDataHadoopVersion") {
+		runtime ("org.springframework.data:spring-data-hadoop-store:${springDataHadoopVersion}") {
 			exclude group: 'org.apache.hadoop'
 		}
 		runtime ("org.apache.hadoop:hadoop-core:$hdp13Version")
@@ -723,10 +723,10 @@ project('spring-xd-hadoop:hdp13') {
 project('spring-xd-hadoop:phd1') {
 	description = 'Pivotal HD 1.0 dependencies'
 	dependencies {
-		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopVersion}") {
+		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopVersion}-phd1") {
 			exclude group: 'org.apache.hadoop'
 		}
-		runtime ("org.springframework.data:spring-data-hadoop-store:$springDataHadoopVersion") {
+		runtime ("org.springframework.data:spring-data-hadoop-store:${springDataHadoopVersion}-phd1") {
 			exclude group: 'org.apache.hadoop'
 		}
 		runtime ("org.apache.hadoop:hadoop-common:$phd1Version")

@@ -18,7 +18,8 @@
 	</batch:job>
 
 	<bean id="multiResourceReader" class="org.springframework.batch.item.file.MultiResourceItemReader" scope="step">
-		<property name="resources" value="${resources}"/>
+		<!--<property name="resources" value="${resources}"/>-->
+        <property name="resources" value="file://#{jobParameters['dir']}/#{jobParameters['pattern']}" />
 		<property name="delegate" ref="itemReader"/>
 	</bean>
 

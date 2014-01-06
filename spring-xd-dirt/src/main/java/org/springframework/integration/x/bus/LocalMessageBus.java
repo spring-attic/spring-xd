@@ -253,7 +253,7 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 	public void unbindProducer(String name, MessageChannel channel) {
 		MessageChannel requestChannel = this.requestChannels.remove(name);
 		if (requestChannel == null) {
-			super.unbindProducers(name);
+			super.unbindProducer(name, channel);
 		}
 	}
 

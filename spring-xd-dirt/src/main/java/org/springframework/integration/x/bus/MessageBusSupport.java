@@ -38,7 +38,9 @@ import org.springframework.integration.x.bus.serializer.SerializationException;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
+import org.springframework.util.AlternativeJdkIdGenerator;
 import org.springframework.util.Assert;
+import org.springframework.util.IdGenerator;
 
 
 /**
@@ -58,10 +60,18 @@ public abstract class MessageBusSupport implements MessageBus {
 
 	protected static final String ORIGINAL_CONTENT_TYPE_HEADER = "originalContentType";
 
+	protected static final List<MediaType> MEDIATYPES_MEDIATYPE_ALL = Collections.singletonList(MediaType.ALL);
+
 	private final List<Binding> bindings = Collections.synchronizedList(new ArrayList<Binding>());
+
+	private final IdGenerator idGenerator = new AlternativeJdkIdGenerator();
 
 	public void setCodec(MultiTypeCodec<Object> codec) {
 		this.codec = codec;
+	}
+
+	protected IdGenerator getIdGenerator() {
+		return idGenerator;
 	}
 
 	@Override

@@ -17,7 +17,6 @@
 package org.springframework.integration.x.rabbit;
 
 import java.util.Collection;
-import java.util.Collections;
 
 import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
@@ -53,9 +52,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.SubscribableChannel;
-import org.springframework.util.AlternativeJdkIdGenerator;
 import org.springframework.util.Assert;
-import org.springframework.util.IdGenerator;
 
 /**
  * A {@link MessageBus} implementation backed by RabbitMQ.
@@ -77,8 +74,6 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	private volatile Integer concurrentConsumers;
 
 	private final DefaultAmqpHeaderMapper mapper;
-
-	private final IdGenerator idGenerator = new AlternativeJdkIdGenerator();
 
 	private final GenericApplicationContext autoDeclareContext = new GenericApplicationContext();
 
@@ -150,12 +145,17 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		if (logger.isInfoEnabled()) {
 			logger.info("declaring queue for outbound: " + name);
 		}
+		AmqpOutboundEndpoint queue = this.buildOutboundEndpoint(name);
+		doRegisterProducer(name, moduleOutputChannel, queue);
+	}
+
+	private AmqpOutboundEndpoint buildOutboundEndpoint(final String name) {
 		rabbitAdmin.declareQueue(new Queue(name));
 		AmqpOutboundEndpoint queue = new AmqpOutboundEndpoint(rabbitTemplate);
 		queue.setRoutingKey(name); // uses default exchange
 		queue.setHeaderMapper(mapper);
 		queue.afterPropertiesSet();
-		doRegisterProducer(name, moduleOutputChannel, queue);
+		return queue;
 	}
 
 	@Override
@@ -187,32 +187,29 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	@Override
 	public void bindRequestor(String name, MessageChannel requests, MessageChannel replies) {
 		if (logger.isInfoEnabled()) {
-			logger.info("declaring queues for requestor: " + name);
+			logger.info("binding requestor: " + name);
 		}
+		Assert.isInstanceOf(SubscribableChannel.class, requests);
 		String queueName = name + ".requests";
-		this.rabbitAdmin.declareQueue(new Queue(queueName));
-		AmqpOutboundEndpoint queue = new AmqpOutboundEndpoint(rabbitTemplate);
-		queue.setRoutingKey(queueName); // uses default exchange
-		queue.setHeaderMapper(mapper);
-		queue.afterPropertiesSet();
+		AmqpOutboundEndpoint queue = this.buildOutboundEndpoint(queueName);
 
-		String replyQueueName = name + ".replies." + this.idGenerator.generateId();
+		String replyQueueName = name + ".replies." + this.getIdGenerator().generateId();
 		this.doRegisterProducer(name, requests, queue, replyQueueName);
 		Queue replyQueue = new Queue(replyQueueName, false, false, true); // auto-delete
 		this.rabbitAdmin.declareQueue(replyQueue);
 		// register with context so it will be redeclared after a connection failure
 		this.autoDeclareContext.getBeanFactory().registerSingleton(replyQueueName, replyQueue);
-		this.doRegisterConsumer(name, replies, Collections.singletonList(MediaType.ALL), replyQueue);
+		this.doRegisterConsumer(name, replies, MEDIATYPES_MEDIATYPE_ALL, replyQueue);
 	}
 
 	@Override
 	public void bindReplier(String name, String requestorName, MessageChannel requests, MessageChannel replies) {
 		if (logger.isInfoEnabled()) {
-			logger.info("declaring queue for replier: " + name + " (" + requestorName + ")");
+			logger.info("binding replier: " + name + " (" + requestorName + ")");
 		}
 		Queue requestQueue = new Queue(requestorName + ".requests");
 		this.rabbitAdmin.declareQueue(requestQueue);
-		this.doRegisterConsumer(name, requests, Collections.singletonList(MediaType.ALL), requestQueue);
+		this.doRegisterConsumer(name, requests, MEDIATYPES_MEDIATYPE_ALL, requestQueue);
 
 		AmqpOutboundEndpoint replyQueue = new AmqpOutboundEndpoint(rabbitTemplate);
 		replyQueue.setBeanFactory(new DefaultListableBeanFactory());
@@ -240,7 +237,6 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 		@Override
 		protected void handleMessageInternal(Message<?> message) throws Exception {
-			// TODO: rabbit wire data pluggable format?
 			Message<?> messageToSend = transformPayloadForProducerIfNecessary(message,
 					MediaType.APPLICATION_OCTET_STREAM);
 			if (replyTo != null) {

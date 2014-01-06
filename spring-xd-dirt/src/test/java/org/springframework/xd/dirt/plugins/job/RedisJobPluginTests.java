@@ -24,6 +24,7 @@ import java.util.Map;
 
 import org.junit.Rule;
 
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.integration.x.bus.serializer.AbstractCodec;
@@ -31,8 +32,8 @@ import org.springframework.integration.x.bus.serializer.CompositeCodec;
 import org.springframework.integration.x.bus.serializer.MultiTypeCodec;
 import org.springframework.integration.x.bus.serializer.kryo.PojoCodec;
 import org.springframework.integration.x.bus.serializer.kryo.TupleCodec;
-import org.springframework.integration.x.rabbit.RabbitMessageBus;
-import org.springframework.xd.test.rabbit.RabbitTestSupport;
+import org.springframework.integration.x.redis.RedisMessageBus;
+import org.springframework.xd.test.redis.RedisTestSupport;
 import org.springframework.xd.tuple.Tuple;
 
 
@@ -40,14 +41,16 @@ import org.springframework.xd.tuple.Tuple;
  * 
  * @author Gary Russell
  */
-public class RabbitJobPluginTests extends JobPluginTests {
+public class RedisJobPluginTests extends JobPluginTests {
 
 	@Rule
-	public RabbitTestSupport rabbitAvailableRule = new RabbitTestSupport();
+	public RedisTestSupport redisAvailable = new RedisTestSupport();
 
 	@Override
 	protected MessageBus getMessageBus() {
-		return new RabbitMessageBus(rabbitAvailableRule.getResource(), getCodec());
+		RedisMessageBus redisMessageBus = new RedisMessageBus(redisAvailable.getResource(), getCodec());
+		redisMessageBus.setIntegrationEvaluationContext(new StandardEvaluationContext());
+		return redisMessageBus;
 	}
 
 	@Override

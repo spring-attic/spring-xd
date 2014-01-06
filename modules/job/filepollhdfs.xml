@@ -40,10 +40,10 @@
 				</property>
 			</bean>
 		</property>
-		<property name="baseFilename" value="${filename:${xd.stream.name}}"/>
+		<property name="baseFilename" value="${fileName:${xd.stream.name}}"/>
 		<property name="rolloverThresholdInBytes" value="${rollover:1000000}"/>
-		<property name="basePath" value="${basePath:/data/}"/>
-		<property name="fileSuffix" value="${suffix:log}"/>
+		<property name="basePath" value="${directory:/xd/${xd.stream.name}}/"/>
+		<property name="fileSuffix" value="${fileExtension:csv}"/>
 	</bean>
 
 	<bean id="hadoopFs" class="org.springframework.data.hadoop.fs.FileSystemFactoryBean">

@@ -21,7 +21,7 @@ echo "HDFS base path is $BASE_PATH"
 
 echo -e "\n\n*** Test 1. Load single CSV file, no rollover\n"
 
-create_job csvjob "filepollhdfs --names=col1,col2,col3 --basePath=$BASE_PATH --filename=blah --suffix=csv"
+create_job csvjob "filepollhdfs --names=col1,col2,col3 --directory=$BASE_PATH --fileName=blah --fileExtension=csv"
 create_stream csvstream "file --ref=true --dir=$PWD/csv --pattern=data.csv > queue:job:csvjob"
 
 sleep 10
@@ -44,7 +44,7 @@ then
   done
 fi
 
-create_job csvjob2 "filepollhdfs --names=col1,col2,col3 --rollover=5000 --basePath=$BASE_PATH --suffix=csv"
+create_job csvjob2 "filepollhdfs --names=col1,col2,col3 --rollover=5000 --directory=$BASE_PATH --fileExtension=csv"
 create_stream csvstream2 "file --ref=true --dir=$TEST_DIR/csv --pattern=*.csv > queue:job:csvjob2"
 
 echo -e "\nWaiting for jobs to finish..."

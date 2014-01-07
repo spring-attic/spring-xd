@@ -9,7 +9,7 @@
 		http://www.springframework.org/schema/hadoop http://www.springframework.org/schema/hadoop/spring-hadoop.xsd
 		http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd">
 
-	<context:property-placeholder location="${xd.config.home}/${configProperties:batch-jdbc-import}.properties" ignore-resource-not-found="true"/>
+	<context:property-placeholder location="${xd.config.home}/${configProperties:batch-jdbc}.properties" ignore-resource-not-found="true"/>
 
 	<batch:job id="job" restartable="${restartable:false}">
 		<batch:step id="readResourcesStep">
@@ -29,7 +29,7 @@
 			<bean class="org.springframework.batch.item.file.mapping.DefaultLineMapper">
 				<property name="lineTokenizer">
 					<bean class="org.springframework.batch.item.file.transform.DelimitedLineTokenizer">
-						<property name="names" value="${columns}"/>
+						<property name="names" value="${names}"/>
 					</bean>
 				</property>
 				<property name="fieldSetMapper">
@@ -46,38 +46,37 @@
 		<property name="password" value="${password:}"/>
 	</bean>
 
-<!-- Database must be pre-created for now, due to issue SHDP-201 (see not in XD-988)
-		<bean id="dataSourceInitializer" class="org.springframework.jdbc.datasource.init.DataSourceInitializer">
-			<property name="databasePopulator" ref="databasePopulator"/>
-			<property name="dataSource" ref="dataSource"/>
-			<property name="enabled" value="${initializeDatabase:false}"/>
-		</bean>
+	<bean id="dataSourceInitializer" class="org.springframework.jdbc.datasource.init.DataSourceInitializer">
+		<property name="databasePopulator" ref="databasePopulator"/>
+		<property name="dataSource" ref="dataSource"/>
+		<property name="enabled" value="${initializeDatabase:false}"/>
+	</bean>
 
-		<bean id="databasePopulator" class="org.springframework.xd.jdbc.SingleTableDatabaseInitializer">
-			<property name="scripts" value="${xd.config.home}/${initializerScript:init_batch_import.sql}"/>
-			<property name="ignoreFailedDrops" value="true"/>
-			<property name="tableName" value="${tableName:${xd.stream.name}}"/>
-			<property name="columnNames" value="${names}" />
-		</bean>
--->
-		<bean id="itemWriter" class="org.springframework.xd.jdbc.NamedColumnJdbcBatchItemWriter">
-			<property name="dataSource" ref="dataSource"/>
-			<property name="tableName" value="${tableName:${xd.stream.name}}" />
-			<property name="columnNames" value="${columns}" />
-			<property name="itemSqlParameterSourceProvider">
-				<bean class="org.springframework.xd.tuple.batch.TupleSqlParameterSourceProvider" />
-			</property>
-		</bean>
+	<bean id="databasePopulator" class="org.springframework.xd.jdbc.SingleTableDatabaseInitializer">
+		<property name="scripts" value="${xd.config.home}/${initializerScript:init_batch_import.sql}"/>
+		<property name="ignoreFailedDrops" value="true"/>
+		<property name="tableName" value="${tableName:${xd.stream.name}}"/>
+		<property name="columnNames" value="${names}" />
+	</bean>
 
-		<bean id="hadoopFs" class="org.springframework.data.hadoop.fs.FileSystemFactoryBean">
-			<property name="configuration" ref="hadoopConfiguration"/>
-		</bean>
+	<bean id="itemWriter" class="org.springframework.xd.jdbc.NamedColumnJdbcBatchItemWriter">
+		<property name="dataSource" ref="dataSource"/>
+		<property name="tableName" value="${tableName:${xd.stream.name}}" />
+		<property name="columnNames" value="${names}" />
+		<property name="itemSqlParameterSourceProvider">
+			<bean class="org.springframework.xd.tuple.batch.TupleSqlParameterSourceProvider" />
+		</property>
+	</bean>
 
-		<hdp:configuration register-url-handler="false" properties-location="${xd.config.home}/hadoop.properties"/>
-		<hdp:resource-loader id="hadoopResourceLoader"/>
+	<bean id="hadoopFs" class="org.springframework.data.hadoop.fs.FileSystemFactoryBean">
+		<property name="configuration" ref="hadoopConfiguration"/>
+	</bean>
 
-		<bean id="defaultResourceLoader" class="org.springframework.data.hadoop.fs.CustomResourceLoaderRegistrar">
-			<property name="loader" ref="hadoopResourceLoader"/>
-		</bean>
+	<hdp:configuration register-url-handler="false" properties-location="${xd.config.home}/hadoop.properties"/>
+	<hdp:resource-loader id="hadoopResourceLoader"/>
 
-	</beans>
+	<bean id="defaultResourceLoader" class="org.springframework.data.hadoop.fs.CustomResourceLoaderRegistrar">
+		<property name="loader" ref="hadoopResourceLoader"/>
+	</bean>
+
+</beans>

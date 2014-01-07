@@ -11,7 +11,7 @@
 		http://www.springframework.org/schema/data/mongo http://www.springframework.org/schema/data/mongo/spring-mongo.xsd
 		http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd">
 
-	<context:property-placeholder location="${xd.config.home}/${configProperties:batch-mongo-import}.properties" ignore-resource-not-found="true"/>
+	<context:property-placeholder location="${xd.config.home}/${configProperties:batch-mongo}.properties" ignore-resource-not-found="true"/>
 
 	<batch:job id="job" restartable="${restartable:false}">
 		<batch:step id="readResourcesStep">

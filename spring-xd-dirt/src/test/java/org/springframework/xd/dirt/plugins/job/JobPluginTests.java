@@ -110,6 +110,63 @@ public class JobPluginTests {
 	}
 
 	@Test
+	public void jobPluginVerifyThatMakeUniqueIsTrue() {
+		Module module = new SimpleModule(new ModuleDefinition("testJob", ModuleType.job),
+				new DeploymentMetadata(
+						"foo", 0));
+
+		assertEquals(0, module.getProperties().size());
+		module.getProperties().put("makeUnique", "false");
+		plugin.preProcessModule(module);
+
+		Properties moduleProperties = module.getProperties();
+
+		assertEquals(4, moduleProperties.size());
+		assertEquals("foo", moduleProperties.getProperty("xd.stream.name"));
+		assertEquals("", moduleProperties.getProperty("dateFormat"));
+		assertEquals("", moduleProperties.getProperty("numberFormat"));
+		assertEquals("false", moduleProperties.getProperty("makeUnique"));
+	}
+
+	@Test
+	public void jobPluginVerifyThatDateFormatIsSet() {
+		Module module = new SimpleModule(new ModuleDefinition("testJob", ModuleType.job),
+				new DeploymentMetadata(
+						"foo", 0));
+
+		assertEquals(0, module.getProperties().size());
+		module.getProperties().put("dateFormat", "yyyy.MM.dd");
+		plugin.preProcessModule(module);
+
+		Properties moduleProperties = module.getProperties();
+
+		assertEquals(4, moduleProperties.size());
+		assertEquals("foo", moduleProperties.getProperty("xd.stream.name"));
+		assertEquals("yyyy.MM.dd", moduleProperties.getProperty("dateFormat"));
+		assertEquals("", moduleProperties.getProperty("numberFormat"));
+		assertEquals("true", moduleProperties.getProperty("makeUnique"));
+	}
+
+	@Test
+	public void jobPluginVerifyThatNumberFormatIsSet() {
+		Module module = new SimpleModule(new ModuleDefinition("testJob", ModuleType.job),
+				new DeploymentMetadata(
+						"foo", 0));
+
+		assertEquals(0, module.getProperties().size());
+		module.getProperties().put("numberFormat", "###.##");
+		plugin.preProcessModule(module);
+
+		Properties moduleProperties = module.getProperties();
+
+		assertEquals(4, moduleProperties.size());
+		assertEquals("foo", moduleProperties.getProperty("xd.stream.name"));
+		assertEquals("", moduleProperties.getProperty("dateFormat"));
+		assertEquals("###.##", moduleProperties.getProperty("numberFormat"));
+		assertEquals("true", moduleProperties.getProperty("makeUnique"));
+	}
+
+	@Test
 	public void streamComponentsAdded() {
 
 		Module module = Mockito.mock(Module.class);

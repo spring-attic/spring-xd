@@ -82,13 +82,13 @@ public class JobPlugin extends AbstractPlugin {
 	public void configureProperties(Module module) {
 		final Properties properties = new Properties();
 		properties.setProperty("xd.stream.name", module.getDeploymentMetadata().getGroup());
-		if (!module.getProperties().contains(DATE_FORMAT)) {
+		if (!module.getProperties().containsKey(DATE_FORMAT)) {
 			properties.setProperty(DATE_FORMAT, "");
 		}
-		if (!module.getProperties().contains(NUMBER_FORMAT)) {
+		if (!module.getProperties().containsKey(NUMBER_FORMAT)) {
 			properties.setProperty(NUMBER_FORMAT, "");
 		}
-		if (!module.getProperties().contains(MAKE_UNIQUE)) {
+		if (!module.getProperties().containsKey(MAKE_UNIQUE)) {
 			properties.setProperty(MAKE_UNIQUE, String.valueOf(Boolean.TRUE));
 		}
 		if (logger.isInfoEnabled()) {

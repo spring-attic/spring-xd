@@ -97,7 +97,7 @@ assert_equals 292 $rows
 
 echo -e "\n\n Test 5. Import back to hdfs from JDBC"
 
-create_job csvjob5 "jdbchdfs --driverClass=org.sqlite.JDBC --url=jdbc:sqlite:$TEST_DIR/hdfsjdbc.db --basePath=$BASE_PATH --filename=jdbcblah --suffix=csv --columns=col1,col2,col3 --tableName=blah"
+create_job csvjob5 "jdbchdfs --driverClass=org.sqlite.JDBC --url=jdbc:sqlite:$TEST_DIR/hdfsjdbc.db --directory=$BASE_PATH --fileName=jdbcblah --fileExtension=csv --columns=col1,col2,col3 --tableName=blah"
 launch_job csvjob5
 sleep 15
 
@@ -108,7 +108,7 @@ assert_equals 6358 $blah_size
 
 echo -e "\n\n Test 6. Import back to hdfs from JDBC using SQL"
 
-create_job csvjob6 "jdbchdfs --driverClass=org.sqlite.JDBC --url=jdbc:sqlite:$TEST_DIR/hdfsjdbc.db --basePath=$BASE_PATH --filename=jdbcblahsql --suffix=csv --sql='select col1,col2,col3 from blah'"
+create_job csvjob6 "jdbchdfs --driverClass=org.sqlite.JDBC --url=jdbc:sqlite:$TEST_DIR/hdfsjdbc.db --directory=$BASE_PATH --fileName=jdbcblahsql --fileExtension=csv --sql='select col1,col2,col3 from blah'"
 launch_job csvjob6
 sleep 15
 

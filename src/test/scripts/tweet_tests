@@ -13,7 +13,20 @@ rm /tmp/xd/output/tweets &> /dev/null
 
 set -e
 
-echo -e '\n\n**** Test 1. Twitterstream tests\n\n'
+echo -e '\n\n**** Test 1. Twittersearch tests\n\n'
+
+create_stream 'searchtweets' "twittersearch --query='#spring' --outputType=application/json | file" 'false'
+create_stream 'searchtagcount' 'tap:stream:searchtweets > field-value-counter --fieldName=entities.hashTags.text --counterName=searchhashtags'
+deploy_stream 'searchtweets'
+sleep 10
+xdc $XDURL/metrics/field-value-counters/searchhashtags
+destroy_metric field-value-counters/searchhashtags
+
+destroy_stream 'searchtagcount'
+destroy_stream 'searchtweets'
+
+
+echo -e '\n\n**** Test 2. Twitterstream tests\n\n'
 
 create_stream 'tweets' 'twitterstream | file' 'false'
 
@@ -45,6 +58,4 @@ destroy_stream 'tweetlang'
 destroy_stream 'tweetcount'
 destroy_stream 'tagcount'
 destroy_stream 'tweets'
-
-
 

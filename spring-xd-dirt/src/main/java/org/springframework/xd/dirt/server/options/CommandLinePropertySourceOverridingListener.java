@@ -24,10 +24,10 @@ import java.util.Map;
 
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.SpringApplicationInitializer;
+import org.springframework.boot.SpringApplicationEnvironmentAvailableEvent;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContextInitializer;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -38,33 +38,31 @@ import org.springframework.core.env.PropertySource;
 import org.springframework.util.Assert;
 
 /**
- * An initializer that will parse command line options and also replace the default boot commandline
+ * An {@code ApplicationListener} that will parse command line options and also replace the default boot commandline
  * {@link PropertySource} with those values. This turns out to be the most elegant solution if we want to keep the
  * {@link SpringApplicationBuilder} code clean.
- * 
+ *
  * @author Eric Bottard
+ * @author Luke Taylor
  */
-public class CommandLinePropertySourceOverridingInitializer<T extends CommonOptions> implements EnvironmentAware,
-		SpringApplicationInitializer,
-		ApplicationContextInitializer<ConfigurableApplicationContext> {
-
-	private ConfigurableEnvironment environment;
+public class CommandLinePropertySourceOverridingListener<T extends CommonOptions> implements
+		ApplicationListener<SpringApplicationEnvironmentAvailableEvent> {
 
 	private T options;
 
-	public CommandLinePropertySourceOverridingInitializer(T options) {
+	public CommandLinePropertySourceOverridingListener(T options) {
 		super();
 		this.options = options;
 	}
 
 	@Override
-	public void initialize(SpringApplication springApplication, String[] args) {
-		if (args.length == 0) {
+	public void onApplicationEvent(SpringApplicationEnvironmentAvailableEvent event) {
+		if (event.getArgs().length == 0) {
 			return;
 		}
 		CmdLineParser parser = new CmdLineParser(options);
 		try {
-			parser.parseArgument(args);
+			parser.parseArgument(event.getArgs());
 			if (TRUE.equals(options.isShowHelp())) {
 				System.err.println("Usage:");
 				parser.printUsage(System.err);
@@ -92,19 +90,8 @@ public class CommandLinePropertySourceOverridingInitializer<T extends CommonOpti
 			}
 		}
 
-		environment.getPropertySources().replace(COMMAND_LINE_PROPERTY_SOURCE_NAME,
+		event.getEnvironment().getPropertySources().replace(COMMAND_LINE_PROPERTY_SOURCE_NAME,
 				new MapPropertySource(COMMAND_LINE_PROPERTY_SOURCE_NAME, map));
-
-	}
-
-	@Override
-	public void setEnvironment(Environment environment) {
-		Assert.isTrue(environment instanceof ConfigurableEnvironment, "Environment must be a ConfigurableEnvironment");
-		this.environment = (ConfigurableEnvironment) environment;
-	}
-
-	@Override
-	public void initialize(ConfigurableApplicationContext applicationContext) {
 
 	}
 

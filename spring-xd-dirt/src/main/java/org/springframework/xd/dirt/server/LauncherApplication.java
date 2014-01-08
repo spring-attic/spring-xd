@@ -32,7 +32,7 @@ import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.xd.dirt.container.ContainerStartedEvent;
 import org.springframework.xd.dirt.container.XDContainer;
-import org.springframework.xd.dirt.server.options.CommandLinePropertySourceOverridingInitializer;
+import org.springframework.xd.dirt.server.options.CommandLinePropertySourceOverridingListener;
 import org.springframework.xd.dirt.server.options.ContainerOptions;
 import org.springframework.xd.dirt.server.options.XDPropertyKeys;
 import org.springframework.xd.dirt.util.BannerUtils;
@@ -63,16 +63,16 @@ public class LauncherApplication {
 	public LauncherApplication run(String... args) {
 		System.out.println(BannerUtils.displayBanner(getClass().getSimpleName(), null));
 
-		CommandLinePropertySourceOverridingInitializer<ContainerOptions> commandLineInitializer = new CommandLinePropertySourceOverridingInitializer<ContainerOptions>(
+		CommandLinePropertySourceOverridingListener<ContainerOptions> commandLineListener = new CommandLinePropertySourceOverridingListener<ContainerOptions>(
 				new ContainerOptions());
 
 		try {
 
 			this.context = new SpringApplicationBuilder(ContainerOptions.class, ParentConfiguration.class)
 					.profiles(NODE_PROFILE)
-					.initializers(commandLineInitializer)
+					.listeners(commandLineListener)
 					.child(LauncherApplication.class)
-					.initializers(commandLineInitializer)
+					.listeners(commandLineListener)
 					.run(args);
 		}
 		catch (Exception e) {

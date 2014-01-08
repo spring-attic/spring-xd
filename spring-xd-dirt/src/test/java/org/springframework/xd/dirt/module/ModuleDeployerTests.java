@@ -24,6 +24,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContext;
@@ -51,6 +52,7 @@ public class ModuleDeployerTests {
 	private ConfigurableApplicationContext context;
 
 	@EnableAutoConfiguration
+	@EnableBatchProcessing
 	@Configuration
 	@ImportResource({
 		"META-INF/spring-xd/internal/container.xml",

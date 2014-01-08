@@ -104,14 +104,6 @@ public class StreamConfigParserTests {
 	}
 
 	@Test
-	public void moduleLabels2() {
-		StreamNode ast = parse("label: label2: http | label3: foo");
-		assertEquals(
-				"[((Label:label:0>5) (Label:label2:7>13) ModuleNode:http:0>19)((Label:label3:22>28) ModuleNode:foo:22>33)]",
-				ast.stringify(true));
-	}
-
-	@Test
 	public void moduleLabels3() {
 		StreamNode ast = parse("food = http | label3: foo");
 		assertEquals(
@@ -253,12 +245,20 @@ public class StreamConfigParserTests {
 	}
 
 	@Test
+	public void tapWithIndexReference() {
+		parse("mystream = http | transform | filter | transform | file");
+		StreamNode ast = parse("tap:stream:mystream.transform.1 > file");
+		assertEquals("[(tap:stream:mystream.transform.1)>(ModuleNode:file)]", ast.stringify());
+		ast = parse("tap:stream:mystream > file");
+		assertEquals("[(tap:stream:mystream.http)>(ModuleNode:file)]", ast.stringify());
+	}
+
+	@Test
 	public void tapWithQualifiedModuleReference() {
 		parse("mystream = http | foobar | file");
 		StreamNode sn = parse("tap:stream:mystream.foobar > file");
 		assertEquals("[(tap:stream:mystream.foobar:0>26)>(ModuleNode:file:29>33)]", sn.stringify(true));
 	}
-
 
 	@Test
 	public void expressions_xd159() {
@@ -630,6 +630,23 @@ public class StreamConfigParserTests {
 		checkForParseError("tap:xxx > file", XDDSLMessages.TAP_NEEDS_THREE_COMPONENTS, 0);
 	}
 
+	@Test
+	public void errorCases12() {
+		checkForParseError("xxx: http | xxx: file", XDDSLMessages.DUPLICATE_LABEL, 0, "xxx", "http", "file");
+		checkForParseError("xxx: http | yyy: filter | transform | xxx: transform | file",
+				XDDSLMessages.DUPLICATE_LABEL, 0, "xxx", "http", "transform");
+		checkForParseError("xxx: http | yyy: filter | transform | xxx: transform | xxx: file",
+				XDDSLMessages.DUPLICATE_LABEL, 0, "xxx", "http", "transform");
+	}
+
+	@Test
+	public void errorCases13() {
+		parse("mystream = http | transform | filter | transform | file");
+		checkForParseError("tap:stream:mystream.transform > file", XDDSLMessages.MODULE_REFERENCE_NOT_UNIQUE, 13,
+				"transform");
+		sn = parse("tap:stream:mystream.transform.1 > file");
+		assertEquals("tap:mystream.transform.1", sn.getSourceChannelNode().getChannelName());
+	}
 
 	@Test
 	public void bridge01() {

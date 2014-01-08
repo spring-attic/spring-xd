@@ -91,6 +91,20 @@ public class ChannelNode extends AstNode {
 		return s.toString();
 	}
 
+	public int getLengthOfPrefixPlusNameComponents() {
+		int length = 0;
+		if (channelType.isTap()) {
+			length += 4;
+		}
+		for (int i = 0; i < nameComponents.size(); i++) {
+			if (i > 0) {
+				length++;
+			}
+			length += nameComponents.get(i).length();
+		}
+		return length;
+	}
+
 	public String getNameComponents() {
 		StringBuilder s = new StringBuilder();
 		for (int t = 0, max = nameComponents.size(); t < max; t++) {
@@ -165,7 +179,15 @@ public class ChannelNode extends AstNode {
 					// getStreamName());
 					// }
 					if (sn != null) {
-						int index = sn.getIndexOfLabelOrModuleName(toString(indexingElements));
+						String indexString = toString(indexingElements);
+						if (sn.labelOrModuleNameOccursMultipleTimesInStream(indexString)) {
+							throw new StreamDefinitionException(getChannelName(),
+									getLengthOfPrefixPlusNameComponents() + 1,
+									XDDSLMessages.MODULE_REFERENCE_NOT_UNIQUE,
+									indexString,
+									sn.getStreamText());
+						}
+						int index = sn.getIndexOfLabelOrModuleName(indexString);
 						if (index != -1) {
 							indexingElements.clear();
 							indexingElements.add(0, sn.getModuleNodes().get(index).getName());
@@ -187,4 +209,3 @@ public class ChannelNode extends AstNode {
 		return s.toString();
 	}
 }
-

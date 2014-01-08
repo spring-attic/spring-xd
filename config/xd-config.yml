@@ -1,0 +1,52 @@
+# XD Configuration file
+# You can set properties here to override the default which
+# are set in the application.yml file loaded by Spring Boot.
+#
+# Propertes set in here will take precedence.
+#
+# Alternatively, you can set the environment variable XD_CONFIG
+# to point to a file (use a file:// URL). That file will then be
+# used instead.
+
+#The datasource used by the default profile
+#spring:
+#  datasource:
+#    url: jdbc:hsqldb:hsql://localhost:9101/xdjob
+#    username: sa
+#    password:
+#    driverClassName: org.hsqldb.jdbc.JDBCDriver
+
+#Set the profile to use the correct database type. The valid types are hsqldb, mysql, postgres. 
+#spring:
+#  profiles:
+#    active: default,postgres
+
+
+#Config for use with MySQL - uncomment and edit with relevant values for your environment
+#spring:
+#  datasource:
+#    url: jdbc:hsqldb:hsql://yourDBhost:9101/yourDB
+#    username: yourUsername
+#    password: yourPassword
+#    driverClassName: com.mysql.jdbc.Driver
+
+
+#Config for use with Postgres - uncomment and edit with relevant values for your environment
+#spring:
+#  datasource:
+#    url: jdbc:postgresql://yourDBhost:5432/yourDB
+#    username: yourUsername
+#    password: yourPassword
+#    driverClassName: org.hsqldb.jdbc.JDBCDriver
+
+---
+# Redis properties 
+#spring:
+#  redis:
+#   port: 6379
+#   host: localhost
+
+#Port that admin-ui is listing on
+#server:
+#  port: 9393
+

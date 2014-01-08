@@ -180,8 +180,13 @@ if [ x"$XD_HOME" = x ] ; then
     export XD_HOME=$APP_HOME
 fi
 
+# Check for an explicity set XD_CONFIG
+if [ x"$XD_CONFIG" = x ] ; then
+    export XD_CONFIG=file:$XD_HOME/config/xd-config.yml
+fi
+
 # set app name etc. via SPRING_XD_OPTS
-SPRING_XD_OPTS="-Dspring.application.name=container -Dlogging.config=file:$XD_HOME/config/xd-container-logger.properties -Dxd.home=$XD_HOME"
+SPRING_XD_OPTS="-Dspring.config.location=$XD_CONFIG -Dspring.application.name=container -Dlogging.config=file:$XD_HOME/config/xd-container-logger.properties -Dxd.home=$XD_HOME"
 
 # Split up the JVM_OPTS And SPRING_XD_OPTS values into an array, following the shell quoting and substitution rules
 function splitJvmOpts() {

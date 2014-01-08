@@ -567,6 +567,8 @@ project('spring-xd-extension-jdbc') {
 		compile "org.hsqldb:hsqldb:$hsqldbVersion"
 		runtime "mysql:mysql-connector-java:5.1.23"
 		runtime "org.postgresql:postgresql:9.2-1002-jdbc4"
+		compile project(':spring-xd-module-spi')
+		compile "javax.validation:validation-api:1.0.0.GA"
 	}
 }
 

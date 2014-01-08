@@ -110,7 +110,8 @@ public class JobPlugin extends AbstractPlugin {
 			}
 			MessageChannel notificationsChannel = module.getComponent(JOB_NOTIFICATIONS_CHANNEL, MessageChannel.class);
 			if (notificationsChannel != null) {
-				bus.bindProducer(md.getGroup() + NOTIFICATION_CHANNEL_SUFFIX, notificationsChannel, true);
+				bus.bindProducer(JOB_CHANNEL_PREFIX + md.getGroup() + NOTIFICATION_CHANNEL_SUFFIX,
+						notificationsChannel, true);
 			}
 		}
 	}

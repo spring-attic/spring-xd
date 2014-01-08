@@ -17,11 +17,16 @@
 package org.springframework.xd.dirt.plugins.job;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Matchers;
@@ -37,6 +42,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
+import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.x.bus.MessageBus;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.xd.dirt.server.AdminServerApplication;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.ModuleDefinition;
@@ -203,4 +212,87 @@ public class JobPluginTests {
 		assertEquals(0, sharedBeans.size());
 	}
 
+	@Test
+	public void testThatNotificationChannelIsBound() {
+
+		final Module module = new SimpleModule(new ModuleDefinition("myjob", ModuleType.job),
+				new DeploymentMetadata(
+						"myjob", 0));
+
+		final TestMessageBus messageBus = new TestMessageBus();
+		final DirectChannel inputChannel = new DirectChannel();
+		final DirectChannel notificationChannel = new DirectChannel();
+
+		final Module spiedModule = spy(module);
+
+		doReturn(messageBus).when(spiedModule).getComponent(MessageBus.class);
+		doReturn(inputChannel).when(spiedModule).getComponent("input", MessageChannel.class);
+		doReturn(notificationChannel).when(spiedModule).getComponent("notifications", MessageChannel.class);
+
+		plugin.postProcessModule(spiedModule);
+
+		assertEquals(Integer.valueOf(1), Integer.valueOf(messageBus.getConsumerNames().size()));
+		assertEquals(Integer.valueOf(1), Integer.valueOf(messageBus.getProducerNames().size()));
+
+		assertEquals("job:myjob", messageBus.getConsumerNames().get(0));
+		assertEquals("job:myjob-notifications", messageBus.getProducerNames().get(0));
+
+	}
+
+	private class TestMessageBus implements MessageBus {
+
+		private List<String> consumerNames = new ArrayList<String>();
+
+		private List<String> producerNames = new ArrayList<String>();
+
+		@Override
+		public void bindConsumer(String name, MessageChannel moduleInputChannel,
+				Collection<MediaType> acceptedMediaTypes, boolean aliasHint) {
+			consumerNames.add(name);
+		}
+
+		@Override
+		public void bindPubSubConsumer(String name, MessageChannel inputChannel,
+				Collection<MediaType> acceptedMediaTypes) {
+			Assert.fail("Should be not be called.");
+		}
+
+		@Override
+		public void bindProducer(String name, MessageChannel moduleOutputChannel, boolean aliasHint) {
+			producerNames.add(name);
+		}
+
+		@Override
+		public void bindPubSubProducer(String name, MessageChannel outputChannel) {
+			Assert.fail("Should be not be called.");
+		}
+
+		@Override
+		public void unbindConsumers(String name) {
+			Assert.fail("Should be not be called.");
+		}
+
+		@Override
+		public void unbindProducers(String name) {
+			Assert.fail("Should be not be called.");
+		}
+
+		@Override
+		public void unbindConsumer(String name, MessageChannel channel) {
+			Assert.fail("Should be not be called.");
+		}
+
+		@Override
+		public void unbindProducer(String name, MessageChannel channel) {
+			Assert.fail("Should be not be called.");
+		}
+
+		public List<String> getConsumerNames() {
+			return consumerNames;
+		}
+
+		public List<String> getProducerNames() {
+			return producerNames;
+		}
+	}
 }

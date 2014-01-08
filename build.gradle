@@ -598,7 +598,6 @@ project('spring-xd-hadoop') {
 		compile "org.springframework:spring-tx:$springVersion"
 		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
 		compile "org.springframework.batch:spring-batch-core:$springBatchVersion"
-		compile "org.springframework.data:spring-data-mongodb:$springDataMongoVersion"
 		compile ("org.springframework.data:spring-data-hadoop:$springDataHadoopVersion") {
 			exclude group: 'javax.servlet'
 			exclude group: 'javax.servlet.jsp'

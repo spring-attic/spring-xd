@@ -31,8 +31,6 @@ public abstract class AbstractJdbcModuleOptionsMetadata {
 
 	protected String initializerScript;
 
-	protected String names;
-
 	protected String password;
 
 	protected String tableName;
@@ -40,6 +38,9 @@ public abstract class AbstractJdbcModuleOptionsMetadata {
 	protected String url;
 
 	protected String username;
+
+	protected String configProperties;
+
 
 	@ModuleOption("the JDBC driver to use")
 	public void setDriverClass(String driverClass) {
@@ -49,11 +50,6 @@ public abstract class AbstractJdbcModuleOptionsMetadata {
 	@ModuleOption("whether the database initialization script should be run")
 	public void setInitializeDatabase(Boolean initializeDatabase) {
 		this.initializeDatabase = initializeDatabase;
-	}
-
-	@ModuleOption("the database columns to map the data to")
-	public void setNames(String names) {
-		this.names = names;
 	}
 
 	@ModuleOption("the JDBC password")
@@ -81,6 +77,11 @@ public abstract class AbstractJdbcModuleOptionsMetadata {
 		this.initializerScript = initializerScript;
 	}
 
+	@ModuleOption("the name of the properties file (in /config) used to override database settings")
+	public void setConfigProperties(String configProperties) {
+		this.configProperties = configProperties;
+	}
+
 	public String getDriverClass() {
 		return driverClass;
 	}
@@ -89,34 +90,28 @@ public abstract class AbstractJdbcModuleOptionsMetadata {
 		return initializeDatabase;
 	}
 
-
-	public String getNames() {
-		return names;
-	}
-
-
 	public String getPassword() {
 		return password;
 	}
-
 
 	public String getTableName() {
 		return tableName;
 	}
 
-
 	public String getUrl() {
 		return url;
 	}
-
 
 	public String getUsername() {
 		return username;
 	}
 
-
 	public String getInitializerScript() {
 		return initializerScript;
+	}
+
+	public String getConfigProperties() {
+		return configProperties;
 	}
 
 }

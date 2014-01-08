@@ -28,18 +28,30 @@ public class JdbcSinkModuleOptionsMetadata extends AbstractJdbcModuleOptionsMeta
 
 	private MediaType inputType;
 
+	private String columns;
+
 
 	public JdbcSinkModuleOptionsMetadata() {
-		names = "payload";
+		columns = "payload";
+		configProperties = "jdbc";
+	}
+
+	@ModuleOption("how this module should interpret messages it consumes")
+	public void setInputType(MediaType inputType) {
+		this.inputType = inputType;
+	}
+
+	@ModuleOption("the database columns to map the data to")
+	public void setColumns(String columns) {
+		this.columns = columns;
 	}
 
 	public MediaType getInputType() {
 		return inputType;
 	}
 
-	@ModuleOption("how this module should interpret messages it consumes")
-	public void setInputType(MediaType inputType) {
-		this.inputType = inputType;
+	public String getColumns() {
+		return columns;
 	}
 
 }

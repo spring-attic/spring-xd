@@ -28,26 +28,40 @@ public class FileJdbcJobModuleOptionsMetadata extends
 
 	private Boolean restartable;
 
+	private String names;
+
 	private String resources;
 
 
-	public Boolean getRestartable() {
-		return restartable;
+	public FileJdbcJobModuleOptionsMetadata() {
+		configProperties = "batch-jdbc";
 	}
 
-	@ModuleOption("whether the job should be retartable or not in case of failure")
+	@ModuleOption("whether the job should be restartable or not in case of failure")
 	public void setRestartable(Boolean restartable) {
 		this.restartable = restartable;
 	}
 
-
-	public String getResources() {
-		return resources;
+	@ModuleOption("the field names in the CSV file, used to map the data to the corresponding table columns")
+	public void setNames(String names) {
+		this.names = names;
 	}
 
 	@ModuleOption("the list of paths to import (Spring resources)")
 	public void setResources(String resources) {
 		this.resources = resources;
+	}
+
+	public Boolean getRestartable() {
+		return restartable;
+	}
+
+	public String getNames() {
+		return names;
+	}
+
+	public String getResources() {
+		return resources;
 	}
 
 }

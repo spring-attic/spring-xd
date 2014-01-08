@@ -23,7 +23,7 @@
 
 	<beans:bean id="transformer"
 		class="org.springframework.xd.jdbc.JdbcMessagePayloadTransformer">
-		<beans:property name="columnNames" value="${names}" />
+		<beans:property name="columnNames" value="${columns}" />
 	</beans:bean>
 
 	<beans:bean id="dataSourceInitializer"

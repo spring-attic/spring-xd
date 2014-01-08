@@ -104,7 +104,10 @@ public class BatchStepExecutionsController {
 		final Collection<StepExecutionInfoResource> result = new ArrayList<StepExecutionInfoResource>();
 
 		for (StepExecution stepExecution : stepExecutions) {
-			result.add(stepExecutionInfoResourceAssembler.toResource(new StepExecutionInfo(stepExecution, timeZone)));
+			// Band-Aid to prevent Hateos crash - see XD-1206
+			if (stepExecution.getId() != null) {
+				result.add(stepExecutionInfoResourceAssembler.toResource(new StepExecutionInfo(stepExecution, timeZone)));
+			}
 		}
 
 		return result;

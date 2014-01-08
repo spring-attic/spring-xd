@@ -87,7 +87,7 @@ mkdir -p $TEST_DIR
 
 sqlite3 $TEST_DIR/hdfsjdbc.db 'create table blah (col1 varchar, col2 varchar, col3 varchar)'
 
-create_job csvjob4 "hdfsjdbc --driverClass=org.sqlite.JDBC --url=jdbc:sqlite:$TEST_DIR/hdfsjdbc.db --resources=${BASE_PATH}blah-0.csv --names=col1,col2,col3 --tableName=blah"
+create_job csvjob4 "hdfsjdbc --driverClass=org.sqlite.JDBC --url=jdbc:sqlite:$TEST_DIR/hdfsjdbc.db --resources=${BASE_PATH}blah-0.csv --names=col1,col2,col3 --tableName=blah --initializeDatabase=true"
 launch_job csvjob4
 sleep 5
 rows=`sqlite3 $TEST_DIR/hdfsjdbc.db 'select count(*) from blah'`

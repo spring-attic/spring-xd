@@ -17,7 +17,9 @@
 package org.springframework.xd.dirt.stream.dsl;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -186,6 +188,24 @@ public class StreamNode extends AstNode {
 				inlinedStreams.add(moduleNode.getName());
 			}
 		}
+		// Check no duplicate labels across the stream
+		Map<String, ModuleNode> labeledModules = new HashMap<String, ModuleNode>();
+		for (int m = 0, max = moduleNodes.size(); m < max; m++) {
+			ModuleNode moduleNode = moduleNodes.get(m);
+			if (moduleNode.getLabelNames().size() != 0) {
+				List<String> labels = moduleNode.getLabelNames();
+				for (String label : labels) {
+					ModuleNode existingLabeledModule = labeledModules.get(label);
+					if (existingLabeledModule != null) {
+						// ERROR
+						throw new StreamDefinitionException(this.streamText, existingLabeledModule.startpos,
+								XDDSLMessages.DUPLICATE_LABEL, label, existingLabeledModule.getName(),
+								moduleNode.getName());
+					}
+					labeledModules.put(label, moduleNode);
+				}
+			}
+		}
 	}
 
 	public int getIndexOfLabelOrModuleName(String labelOrModuleName) {
@@ -203,6 +223,30 @@ public class StreamNode extends AstNode {
 			}
 		}
 		return -1;
+	}
+
+	public boolean labelOrModuleNameOccursMultipleTimesInStream(String labelOrModuleName) {
+		int foundModule = -1;
+		for (int m = 0; m < moduleNodes.size(); m++) {
+			ModuleNode moduleNode = moduleNodes.get(m);
+			if (moduleNode.getName().equals(labelOrModuleName)) {
+				if (foundModule != -1) {
+					return true;
+				}
+				foundModule = m;
+			}
+			else {
+				for (String labelName : moduleNode.getLabelNames()) {
+					if (labelName.equals(labelOrModuleName)) {
+						if (foundModule != -1) {
+							return true;
+						}
+						foundModule = m;
+					}
+				}
+			}
+		}
+		return false;
 	}
 
 	public String getStreamData() {

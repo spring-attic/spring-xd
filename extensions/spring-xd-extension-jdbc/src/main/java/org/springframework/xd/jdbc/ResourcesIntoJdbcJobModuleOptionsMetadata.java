@@ -19,11 +19,11 @@ package org.springframework.xd.jdbc;
 import org.springframework.xd.module.options.spi.ModuleOption;
 
 /**
- * Captures module options for the "filejdbc" job module.
+ * Typical class for metadata about jobs that slurp csv resources into jdbc. Can be used as is or extended if needed.
  * 
  * @author Eric Bottard
  */
-public class FileJdbcJobModuleOptionsMetadata extends
+public class ResourcesIntoJdbcJobModuleOptionsMetadata extends
 		AbstractJdbcModuleOptionsMetadata {
 
 	private Boolean restartable;
@@ -33,7 +33,7 @@ public class FileJdbcJobModuleOptionsMetadata extends
 	private String resources;
 
 
-	public FileJdbcJobModuleOptionsMetadata() {
+	public ResourcesIntoJdbcJobModuleOptionsMetadata() {
 		configProperties = "batch-jdbc";
 	}
 

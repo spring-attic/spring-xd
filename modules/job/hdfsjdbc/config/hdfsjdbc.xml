@@ -14,12 +14,12 @@
 	<batch:job id="job" restartable="${restartable:false}">
 		<batch:step id="readResourcesStep">
 			<batch:tasklet>
-				<batch:chunk reader="multifileReader" writer="itemWriter" commit-interval="100"/>
+				<batch:chunk reader="multiResourceReader" writer="itemWriter" commit-interval="100"/>
 			</batch:tasklet>
 		</batch:step>
 	</batch:job>
 
-	<bean id="multifileReader" class="org.springframework.batch.item.file.MultiResourceItemReader" scope="step">
+	<bean id="multiResourceReader" class="org.springframework.batch.item.file.MultiResourceItemReader" scope="step">
 		<property name="resources" value="${resources}"/>
 		<property name="delegate" ref="itemReader"/>
 	</bean>

@@ -18,9 +18,16 @@ package org.springframework.xd.dirt.modules.metadata;
 
 import static org.springframework.xd.dirt.modules.metadata.AggregatorProcessorModuleOptionsMetadata.StoreKind.memory;
 
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+import javax.validation.groups.Default;
+
+import org.hibernate.validator.constraints.NotBlank;
+import org.hibernate.validator.constraints.Range;
 import org.springframework.xd.module.options.spi.ModuleOption;
 import org.springframework.xd.module.options.spi.ProcessortModuleOptionsMetadataSupport;
 import org.springframework.xd.module.options.spi.ProfileNamesProvider;
+import org.springframework.xd.module.options.spi.ValidationGroupsProvider;
 
 
 /**
@@ -29,7 +36,7 @@ import org.springframework.xd.module.options.spi.ProfileNamesProvider;
  * @author Eric Bottard
  */
 public class AggregatorProcessorModuleOptionsMetadata extends ProcessortModuleOptionsMetadataSupport implements
-		ProfileNamesProvider {
+		ProfileNamesProvider, ValidationGroupsProvider {
 
 	private String correlation;
 
@@ -64,7 +71,13 @@ public class AggregatorProcessorModuleOptionsMetadata extends ProcessortModuleOp
 	private String username;
 
 	// This is used by both redis & jdbc
-	private String password;
+	private String password = "";
+
+	private static interface RedisStore extends Default {
+	}
+
+	private static interface JdbcStore extends Default {
+	}
 
 	@ModuleOption("how to correlate messages (SpEL expression against each message)")
 	public void setCorrelation(String correlation) {
@@ -141,37 +154,39 @@ public class AggregatorProcessorModuleOptionsMetadata extends ProcessortModuleOp
 		return correlation;
 	}
 
-
+	@NotNull
 	public String getRelease() {
 		return release != null ? release : String.format("size() == %d", getCount());
 	}
 
-
+	@Min(0)
 	public int getCount() {
 		return count;
 	}
 
-
+	@NotNull
 	public String getAggregation() {
 		return aggregation;
 	}
 
+	@Min(0)
 	public int getTimeout() {
 		return timeout;
 	}
 
-
+	@NotNull
 	public StoreKind getStore() {
 		return store;
 	}
 
-
+	@NotNull(groups = RedisStore.class)
 	public String getHostname() {
 		return hostname;
 	}
 
-
-	public int getPort() {
+	@Range(min = 0, max = 65535, groups = RedisStore.class)
+	@NotNull(groups = RedisStore.class)
+	public Integer getPort() {
 		return port;
 	}
 
@@ -185,17 +200,19 @@ public class AggregatorProcessorModuleOptionsMetadata extends ProcessortModuleOp
 		return dbkind;
 	}
 
-
+	@NotBlank(groups = JdbcStore.class)
 	public String getDriverClass() {
 		return driverClass;
 	}
 
 
+	@NotBlank(groups = JdbcStore.class)
 	public String getUrl() {
 		return url;
 	}
 
 
+	@NotBlank(groups = JdbcStore.class)
 	public String getUsername() {
 		return username;
 	}
@@ -208,5 +225,17 @@ public class AggregatorProcessorModuleOptionsMetadata extends ProcessortModuleOp
 	@Override
 	public String[] profilesToActivate() {
 		return new String[] { String.format("use-%s-store", store) };
+	}
+
+	@Override
+	public Class<?>[] groupsToValidate() {
+		switch (store) {
+			case jdbc:
+				return new Class<?>[] { JdbcStore.class };
+			case redis:
+				return new Class<?>[] { RedisStore.class };
+			default:
+				return new Class<?>[] { Default.class };
+		}
 	}
 }

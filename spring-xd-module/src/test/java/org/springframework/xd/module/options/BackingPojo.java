@@ -17,18 +17,23 @@
 package org.springframework.xd.module.options;
 
 import javax.validation.constraints.Max;
+import javax.validation.groups.Default;
 
 import org.springframework.xd.module.options.spi.ModuleOption;
 import org.springframework.xd.module.options.spi.ProfileNamesProvider;
+import org.springframework.xd.module.options.spi.ValidationGroupsProvider;
 
-class BackingPojo implements ProfileNamesProvider {
+class BackingPojo implements ProfileNamesProvider, ValidationGroupsProvider {
 
 	private String foo = "somedefault";
+
+	private static interface High extends Default {
+	}
 
 	@Max(10000)
 	private int bar = 42;
 
-
+	@Max(groups = High.class, value = 3, message = "length must be < 3 when bar > 2000")
 	public String getFoo() {
 		return foo;
 	}
@@ -56,6 +61,17 @@ class BackingPojo implements ProfileNamesProvider {
 		}
 		else {
 			return new String[] {};
+		}
+	}
+
+
+	@Override
+	public Class<?>[] groupsToValidate() {
+		if (bar > 2000) {
+			return new Class<?>[] { High.class };
+		}
+		else {
+			return DEFAULT_GROUP;
 		}
 	}
 

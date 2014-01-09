@@ -90,7 +90,7 @@ public class PojoModuleOptionsMetadataTests {
 		thrown.expect(BindException.class);
 		thrown.expectMessage("wizz");
 
-		ModuleOptions options = metadata.interpolate(values);
+		metadata.interpolate(values);
 
 	}
 
@@ -104,7 +104,7 @@ public class PojoModuleOptionsMetadataTests {
 		thrown.expectMessage("bar");
 		thrown.expectMessage("int");
 
-		ModuleOptions options = metadata.interpolate(values);
+		metadata.interpolate(values);
 
 	}
 
@@ -120,7 +120,7 @@ public class PojoModuleOptionsMetadataTests {
 		thrown.expectMessage("65536");
 		thrown.expectMessage("10000");
 
-		ModuleOptions options = metadata.interpolate(values);
+		metadata.interpolate(values);
 
 	}
 
@@ -136,6 +136,20 @@ public class PojoModuleOptionsMetadataTests {
 		values.clear();
 		options = metadata.interpolate(values);
 		assertThat(options.profilesToActivate().length, equalTo(0));
+
+	}
+
+	@Test
+	public void testGroupValidation() throws BindException {
+		Map<String, String> values = new HashMap<String, String>();
+		values.put("foo", "othervalue");
+		values.put("bar", "2065");
+
+		thrown.expect(BindException.class);
+		thrown.expectMessage("foo");
+		thrown.expectMessage("length must be < 3 when bar > 2000");
+
+		metadata.interpolate(values);
 
 	}
 

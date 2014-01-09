@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -98,7 +98,7 @@ public class JobCommands implements CommandMarker {
 			@CliOption(key = "deploy", help = "whether to deploy the stream immediately", unspecifiedDefaultValue = "true") boolean deploy,
 			@CliOption(key = "dateFormat", help = "the optional date format for job parameters") String dateFormat,
 			@CliOption(key = "numberFormat", help = "the optional number format for job parameters") String numberFormat,
-			@CliOption(key = "makeUnique", help = "shall job parameters be made unique?", unspecifiedDefaultValue = "false") boolean makeUnique) {
+			@CliOption(key = "makeUnique", help = "shall job parameters be made unique?", unspecifiedDefaultValue = "true") boolean makeUnique) {
 		jobOperations().createJob(name, dsl, dateFormat, numberFormat, makeUnique, deploy);
 		return String.format((deploy ? "Successfully created and deployed job '%s'"
 				: "Successfully created job '%s'"), name);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -277,6 +277,40 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 
 		assertFalse("parameter1 should be non-identifying", parameter1.isIdentifying());
 		assertTrue("parameter2 should be identifying", parameter2.isIdentifying());
+	}
+
+	@Test
+	public void testLaunchJobTwiceWhereMakeUniqueIsImplicitlyTrue() {
+		logger.info("Launch batch job twice (makeUnique is implicitly true)");
+
+		executeJobCreate(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR);
+		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
+		executeJobLaunch(MY_JOB);
+		executeJobLaunch(MY_JOB);
+	}
+
+	@Test
+	public void testLaunchJobTwiceWhereMakeUniqueIsTrue() {
+		logger.info("Launch batch job (makeUnique=true) twice");
+
+		executeJobCreate(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR + " --makeUnique=true");
+		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR + " --makeUnique=true", true);
+		executeJobLaunch(MY_JOB);
+		executeJobLaunch(MY_JOB);
+	}
+
+	@Test
+	public void testLaunchJobTwiceWhereMakeUniqueIsFalse() {
+		logger.info("Launch batch job (makeUnique=false) twice");
+
+		executeJobCreate(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR + " --makeUnique=false");
+		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR + " --makeUnique=false", true);
+		executeJobLaunch(MY_JOB);
+
+		CommandResult result = executeCommandExpectingFailure("job launch --name " + MY_JOB);
+		assertThat(
+				result.getException().getMessage(),
+				containsString("A job instance already exists and is complete for parameters={}.  If you want to run this job again, change the parameters."));
 	}
 
 	public static class JobParametersHolder {

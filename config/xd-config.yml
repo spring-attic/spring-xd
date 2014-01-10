@@ -51,3 +51,11 @@
 #server:
 #  port: 9393
 
+
+#spring:
+#  rabbitmq:
+#   host: localhost
+#   port: 5672
+#   username: guest
+#   password: guest
+#   virtual_host: /

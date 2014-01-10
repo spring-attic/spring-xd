@@ -26,7 +26,7 @@ import org.springframework.batch.core.StepExecution;
  * @author Gunnar Hillert
  * @since 1.0
  */
-public class XdChunkContextInfo implements Serializable {
+public class ChunkContextInfo implements Serializable {
 
 	private boolean complete;
 
@@ -79,7 +79,7 @@ public class XdChunkContextInfo implements Serializable {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		XdChunkContextInfo other = (XdChunkContextInfo) obj;
+		ChunkContextInfo other = (ChunkContextInfo) obj;
 		if (attributes == null) {
 			if (other.attributes != null)
 				return false;

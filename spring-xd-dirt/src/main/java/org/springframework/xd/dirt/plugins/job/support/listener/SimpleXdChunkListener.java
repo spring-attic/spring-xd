@@ -45,7 +45,7 @@ public class SimpleXdChunkListener implements ChunkListener {
 			logger.debug("Executing afterChunk: " + context);
 		}
 
-		final XdChunkContextInfo xdChunkContextInfo = convertChunkContext(context);
+		final ChunkContextInfo xdChunkContextInfo = convertChunkContext(context);
 
 		notificationsChannel.send(MessageBuilder.withPayload(xdChunkContextInfo)
 				.setHeader(BatchJobHeaders.BATCH_LISTENER_EVENT_TYPE,
@@ -59,7 +59,7 @@ public class SimpleXdChunkListener implements ChunkListener {
 			logger.debug("Executing beforeChunk: " + context);
 		}
 
-		final XdChunkContextInfo xdChunkContextInfo = convertChunkContext(context);
+		final ChunkContextInfo xdChunkContextInfo = convertChunkContext(context);
 
 		notificationsChannel.send(MessageBuilder.withPayload(xdChunkContextInfo)
 				.setHeader(BatchJobHeaders.BATCH_LISTENER_EVENT_TYPE,
@@ -73,7 +73,7 @@ public class SimpleXdChunkListener implements ChunkListener {
 			logger.debug("Executing afterChunkError: " + context);
 		}
 
-		final XdChunkContextInfo xdChunkContextInfo = convertChunkContext(context);
+		final ChunkContextInfo xdChunkContextInfo = convertChunkContext(context);
 
 		notificationsChannel.send(MessageBuilder.withPayload(xdChunkContextInfo)
 				.setHeader(BatchJobHeaders.BATCH_LISTENER_EVENT_TYPE,
@@ -81,9 +81,9 @@ public class SimpleXdChunkListener implements ChunkListener {
 				.build());
 	}
 
-	private XdChunkContextInfo convertChunkContext(ChunkContext context) {
+	private ChunkContextInfo convertChunkContext(ChunkContext context) {
 
-		final XdChunkContextInfo chunkContextInfo = new XdChunkContextInfo();
+		final ChunkContextInfo chunkContextInfo = new ChunkContextInfo();
 		chunkContextInfo.setComplete(context.isComplete());
 		chunkContextInfo.setStepExecution(context.getStepContext().getStepExecution());
 

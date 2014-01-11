@@ -896,6 +896,7 @@ project('modules') {
 	dependencies {
 		compile project(':spring-xd-dirt')
 	}
+	task build(overwrite: true) {}
 }
 
 // ================ M O D U L E S : S O U R C E S ======================

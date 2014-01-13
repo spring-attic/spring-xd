@@ -40,16 +40,6 @@ public class DateTriggerTest {
 	}
 
 	@Test
-	public void testDefaultConstructor() {
-		DateTrigger dateTrigger = new DateTrigger();
-		Date nextExecutionTime = dateTrigger.nextExecutionTime(null);
-		assertNotNull("The next Execution Time must have a value from a default constructor.", nextExecutionTime);
-		nextExecutionTime = dateTrigger.nextExecutionTime(null);
-		assertNull("The default constructor has only one entry and thus, this value should have already been pulled.",
-				nextExecutionTime);
-	}
-
-	@Test
 	public void testConstructor() {
 		Date epoch = new Date(0);
 		Calendar currentCalendar = Calendar.getInstance();

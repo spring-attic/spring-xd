@@ -16,17 +16,22 @@
 
 package org.springframework.xd.dirt.modules.metadata;
 
-import javax.validation.constraints.AssertTrue;
-import javax.validation.constraints.Min;
-
+import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.xd.module.options.spi.ModuleOption;
 import org.springframework.xd.module.options.spi.ProfileNamesProvider;
 import org.springframework.xd.module.options.spi.SourceModuleOptionsMetadataSupport;
+
+import javax.validation.constraints.AssertTrue;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Describes options to the {@code trigger} source module.
  * 
  * @author Eric Bottard
+ * @author Florent Biville
  */
 public class TriggerSourceOptionsMetadata extends SourceModuleOptionsMetadataSupport implements ProfileNamesProvider {
 
@@ -35,6 +40,10 @@ public class TriggerSourceOptionsMetadata extends SourceModuleOptionsMetadataSup
 	private String cron;
 
 	private String payload = "";
+
+    private String date;
+
+    private String dateFormat = "MM/dd/yy HH:mm:ss";
 
 	@Override
 	public String[] profilesToActivate() {
@@ -84,5 +93,26 @@ public class TriggerSourceOptionsMetadata extends SourceModuleOptionsMetadataSup
 		this.payload = payload;
 	}
 
+    @NotNull
+    public String getDate() {
+        if (date == null) {
+            return new SimpleDateFormat(dateFormat).format(new Date());
+        }
+        return date;
+    }
 
+    @ModuleOption("the date when the trigger should fire")
+    public void setDate(String date) {
+        this.date = date;
+    }
+
+    @NotBlank
+    public String getDateFormat() {
+        return dateFormat;
+    }
+
+    @ModuleOption("the format specifying how the date should be parsed")
+    public void setDateFormat(String dateFormat) {
+        this.dateFormat = dateFormat;
+    }
 }

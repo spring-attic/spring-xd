@@ -30,8 +30,9 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Rule;
+
 import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
@@ -81,26 +82,28 @@ public abstract class AbstractShellIntegrationTest {
 	private static RedisRuntimeContainerInfoRepository runtimeInformationRepository;
 
 
-	@BeforeClass
-	public static void startUp() throws InterruptedException, IOException {
-
-		application = new SingleNodeApplication().run("--transport", "local",
-				"--analytics", "redis",
-				"--store", "redis"
-				);
-		Bootstrap bootstrap = new Bootstrap();
-		shell = bootstrap.getJLineShellComponent();
-
-		runtimeInformationRepository = application.getContainerContext().getBean(
-				RedisRuntimeContainerInfoRepository.class);
-
+	@Before
+	public void startUp() throws InterruptedException, IOException {
+		if (runtimeInformationRepository == null) {
+			application = new SingleNodeApplication().run("--transport", "local",
+					"--analytics", "redis",
+					"--store", "redis");
+			Bootstrap bootstrap = new Bootstrap();
+			shell = bootstrap.getJLineShellComponent();
+			runtimeInformationRepository = application.getContainerContext().getBean(
+					RedisRuntimeContainerInfoRepository.class);
+		}
 	}
 
 	@AfterClass
 	public static void shutdown() {
-		runtimeInformationRepository.delete(application.getContainerContext().getId());
-		logger.info("Stopping XD Shell");
-		shell.stop();
+		if (runtimeInformationRepository != null) { // will be null if the @Rule prevented startUp()
+			runtimeInformationRepository.delete(application.getContainerContext().getId());
+		}
+		if (shell != null) {
+			logger.info("Stopping XD Shell");
+			shell.stop();
+		}
 		if (application != null) {
 			logger.info("Stopping Single Node Server");
 			application.close();

@@ -23,16 +23,15 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
 import org.springframework.util.Assert;
 
 /**
- * A {@link Trigger} implementation that enables execution on a series of Dates. By default it will fire one time as
- * soon as possible.
+ * A {@link Trigger} implementation that enables execution on a series of Dates.
  * 
  * @author Glenn Renfro
+ * @author Florent Biville
  */
 public class DateTrigger implements Trigger {
 
@@ -40,17 +39,11 @@ public class DateTrigger implements Trigger {
 
 	private final Log logger = LogFactory.getLog(getClass());
 
-
-	public DateTrigger() {
-		nextFireDates.add(new Date());
-	}
-
 	public DateTrigger(Date... dates) {
 		for (Date date : dates) {
-			Assert.notNull(date, "Date must not be null");
-			this.nextFireDates.add(date);
+			addDate(date);
 		}
-		Collections.sort(this.nextFireDates);
+		Collections.sort(nextFireDates);
 	}
 
 	@Override
@@ -65,6 +58,11 @@ public class DateTrigger implements Trigger {
 			}
 		}
 		return result;
+	}
+
+	private void addDate(Date date) {
+		Assert.notNull(date, "Date must not be null");
+		nextFireDates.add(date);
 	}
 
 }

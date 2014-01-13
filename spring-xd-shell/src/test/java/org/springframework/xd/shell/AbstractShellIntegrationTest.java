@@ -31,7 +31,8 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.Rule;
+import org.junit.ClassRule;
+
 import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
@@ -67,8 +68,8 @@ public abstract class AbstractShellIntegrationTest {
 
 	protected static final String DEFAULT_METRIC_NAME = "bar";
 
-	@Rule
-	public RedisTestSupport redisAvailableRule = new RedisTestSupport();
+	@ClassRule
+	public static RedisTestSupport redisAvailableRule = new RedisTestSupport();
 
 	private static final Log logger = LogFactory.getLog(AbstractShellIntegrationTest.class);
 

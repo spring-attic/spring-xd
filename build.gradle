@@ -69,7 +69,7 @@ ext {
 	hsqldbVersion = '2.3.0'
 	h2Version = '1.3.172'
 	jodaTimeVersion = '2.1'
-	jolokiaVersion = '1.1.2'
+	jolokiaVersion = '1.1.5'
 	snakeYamlVersion = '1.12'
 	springVersion = '4.0.0.RELEASE'
 	springBatchVersion = '2.2.4.RELEASE'
@@ -347,6 +347,7 @@ project('spring-xd-dirt') {
 		compile "org.springframework.integration:spring-integration-groovy:$springIntegrationVersion"
 		compile "org.springframework.integration:spring-integration-jmx:$springIntegrationVersion"
 		compile "org.jolokia:jolokia-spring:$jolokiaVersion"
+		compile "org.jolokia:jolokia-client-java:$jolokiaVersion"
 		compile "com.esotericsoftware.kryo:kryo:$kryoVersion"
 		compile "com.lambdaworks:lettuce:$lettuceVersion"
 		compile "commons-lang:commons-lang:2.4"

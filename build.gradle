@@ -893,6 +893,9 @@ project('spring-xd-rest-domain') {
 
 project('modules') {
 	description = 'Spring XD Modules'
+	dependencies {
+                compile project(':spring-xd-dirt')
+        }
 	task build(overwrite: true) {}
 }
 

@@ -19,14 +19,13 @@ package org.springframework.xd.dirt.modules.metadata;
 import javax.validation.constraints.AssertTrue;
 
 import org.springframework.xd.module.options.spi.ModuleOption;
-import org.springframework.xd.module.options.spi.SourceModuleOptionsMetadataSupport;
 
 /**
  * Describes options to the {@code tail} source module.
  * 
  * @author Eric Bottard
  */
-public class TailSourceOptionsMetadata extends SourceModuleOptionsMetadataSupport {
+public class TailSourceOptionsMetadata {
 
 	private int lines = 0;
 

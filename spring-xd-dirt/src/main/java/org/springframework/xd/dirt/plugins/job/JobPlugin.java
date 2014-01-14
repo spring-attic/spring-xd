@@ -25,7 +25,6 @@ import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.http.MediaType;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.x.bus.MessageBus;
@@ -57,12 +56,6 @@ public class JobPlugin extends AbstractPlugin {
 
 	private static final String REGISTRAR = CONTEXT_CONFIG_ROOT + "job-module-beans.xml";
 
-	private static final String DATE_FORMAT = "dateFormat";
-
-	private static final String NUMBER_FORMAT = "numberFormat";
-
-	private static final String MAKE_UNIQUE = "makeUnique";
-
 	public static final String JOB_BEAN_ID = "job";
 
 	public static final String JOB_NAME_DELIMITER = ".";
@@ -92,18 +85,6 @@ public class JobPlugin extends AbstractPlugin {
 	public void configureProperties(Module module) {
 		final Properties properties = new Properties();
 		properties.setProperty("xd.stream.name", module.getDeploymentMetadata().getGroup());
-		if (!module.getProperties().containsKey(DATE_FORMAT)) {
-			properties.setProperty(DATE_FORMAT, "");
-		}
-		if (!module.getProperties().containsKey(NUMBER_FORMAT)) {
-			properties.setProperty(NUMBER_FORMAT, "");
-		}
-		if (!module.getProperties().containsKey(MAKE_UNIQUE)) {
-			properties.setProperty(MAKE_UNIQUE, String.valueOf(Boolean.TRUE));
-		}
-		if (logger.isInfoEnabled()) {
-			logger.info("Configuring module with the following properties: " + properties.toString());
-		}
 		module.addProperties(properties);
 	}
 

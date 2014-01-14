@@ -21,14 +21,13 @@ import javax.validation.constraints.Min;
 
 import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.xd.module.options.spi.ModuleOption;
-import org.springframework.xd.module.options.spi.SourceModuleOptionsMetadataSupport;
 
 /**
  * Describes options to the {@code gemfire-cq} source module.
  * 
  * @author Eric Bottard
  */
-public class GemfireCQSourceOptionsMetadata extends SourceModuleOptionsMetadataSupport {
+public class GemfireCQSourceOptionsMetadata {
 
 	private int port = 40404;
 

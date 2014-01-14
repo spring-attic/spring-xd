@@ -38,6 +38,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.PropertySources;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
@@ -75,7 +76,7 @@ import org.springframework.xd.module.options.spi.ValidationGroupsProvider;
  */
 public class PojoModuleOptionsMetadata implements ModuleOptionsMetadata {
 
-	private BeanWrapper beanWrapper;
+	private BeanWrapperImpl beanWrapper;
 
 	private List<ModuleOption> options;
 
@@ -90,13 +91,20 @@ public class PojoModuleOptionsMetadata implements ModuleOptionsMetadata {
 	 */
 	private final Environment environment;
 
+	/**
+	 * Used to perform conversion from String representation of options to actual arguments of setters.
+	 */
+	private final ConversionService conversionService;
+
 	public PojoModuleOptionsMetadata(Class<?> clazz) {
-		this(clazz, null, null);
+		this(clazz, null, null, null);
 	}
 
-	public PojoModuleOptionsMetadata(Class<?> clazz, ResourceLoader resourceLoader, Environment environment) {
+	public PojoModuleOptionsMetadata(Class<?> clazz, ResourceLoader resourceLoader, Environment environment,
+			ConversionService conversionService) {
 		this.environment = environment;
 		this.resourceLoader = resourceLoader;
+		this.conversionService = conversionService;
 
 		Object bean = createAndInject(clazz);
 
@@ -204,7 +212,7 @@ public class PojoModuleOptionsMetadata implements ModuleOptionsMetadata {
 	}
 
 	/**
-	 * Read the 'description' attribute from the annotation on the getter.
+	 * Read the description from the value() attribute of the annotation on the getter.
 	 */
 	private String descriptionFromAnnotation(String optionName,
 			org.springframework.xd.module.options.spi.ModuleOption annotation) {
@@ -272,6 +280,7 @@ public class PojoModuleOptionsMetadata implements ModuleOptionsMetadata {
 	private void bindAndValidate(Map<String, String> raw) throws BindException {
 		DataBinder dataBinder = new DataBinder(beanWrapper.getWrappedInstance());
 		dataBinder.setIgnoreUnknownFields(false);
+		dataBinder.setConversionService(conversionService);
 		MutablePropertySources mps = new MutablePropertySources();
 		mps.addFirst(new MapPropertySource("options", (Map) raw));
 		try {
@@ -301,6 +310,12 @@ public class PojoModuleOptionsMetadata implements ModuleOptionsMetadata {
 		else {
 			return ValidationGroupsProvider.DEFAULT_GROUP;
 		}
+	}
+
+	@Override
+	public String toString() {
+		return String.format("%s backed by %s, defining options [%s]", getClass().getSimpleName(),
+				beanWrapper.getWrappedClass(), options);
 	}
 
 }

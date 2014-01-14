@@ -23,12 +23,16 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.support.ParentLastURLClassLoader;
 
@@ -47,7 +51,7 @@ import org.springframework.xd.module.support.ParentLastURLClassLoader;
  * <li>use a {@link SimpleModuleOptionsMetadata} backed by keys of the form {@code options.<name>.description}.
  * Additionaly, one can provide {@code options.<name>.default} and {@code options.<name>.type} properties.</li>
  * </ul>
- * <li>return an instance of {@link DefaultModuleOptionsMetadata}.
+ * <li>return an instance of {@link PassthruModuleOptionsMetadata}.
  * <ul>
  * 
  * 
@@ -93,6 +97,18 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 	 */
 	private ResourceLoader resourceLoader;
 
+	private ConversionService conversionService;
+
+	private final DefaultModuleOptionsMetadataCollector defaultModuleOptionsMetadataCollector = new DefaultModuleOptionsMetadataCollector();
+
+	public DefaultModuleOptionsMetadataResolver(ConversionService conversionService) {
+		this.conversionService = conversionService;
+	}
+
+	public DefaultModuleOptionsMetadataResolver() {
+		this(null);
+	}
+
 	private ModuleOptionsMetadata makeSimpleModuleOptions(Properties props) {
 		SimpleModuleOptionsMetadata result = new SimpleModuleOptionsMetadata();
 		for (Object key : props.keySet()) {
@@ -133,10 +149,14 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 	@Override
 	public ModuleOptionsMetadata resolve(ModuleDefinition definition) {
 		try {
+			ClassLoader classLoaderToUse = definition.getClasspath() != null
+					? new ParentLastURLClassLoader(definition.getClasspath(),
+							ModuleOptionsMetadataResolver.class.getClassLoader())
+					: ModuleOptionsMetadataResolver.class.getClassLoader();
 			Resource propertiesResource = definition.getResource().createRelative(
 					definition.getName() + ".properties");
 			if (!propertiesResource.exists()) {
-				return new DefaultModuleOptionsMetadata();
+				return inferModuleOptionsMetadata(definition, classLoaderToUse);
 			}
 			else {
 				Properties props = new Properties();
@@ -144,12 +164,8 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 				String pojoClass = props.getProperty(OPTIONS_CLASS);
 				if (pojoClass != null) {
 					try {
-						ClassLoader classLoaderToUse = definition.getClasspath() != null
-								? new ParentLastURLClassLoader(definition.getClasspath(),
-										ModuleOptionsMetadataResolver.class.getClassLoader())
-								: ModuleOptionsMetadataResolver.class.getClassLoader();
 						Class<?> clazz = Class.forName(pojoClass, true, classLoaderToUse);
-						return new PojoModuleOptionsMetadata(clazz, resourceLoader, environment);
+						return new PojoModuleOptionsMetadata(clazz, resourceLoader, environment, conversionService);
 					}
 					catch (ClassNotFoundException e) {
 						throw new IllegalStateException("Unable to load class used by ModuleOptionsMetadata: "
@@ -160,8 +176,26 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 			}
 		}
 		catch (IOException e) {
-			return new DefaultModuleOptionsMetadata();
+			return new PassthruModuleOptionsMetadata();
 		}
+
+	}
+
+	/**
+	 * Will parse the module xml definition file, looking for "${foo}" placeholders and advertise a {@link ModuleOption}
+	 * for each of those.
+	 * 
+	 * Note that this may end up in false positives and does not convey much information.
+	 * 
+	 * @param classLoaderToUse
+	 */
+	private ModuleOptionsMetadata inferModuleOptionsMetadata(ModuleDefinition definition, ClassLoader classLoaderToUse) {
+		final DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanFactory);
+		reader.setResourceLoader(new PathMatchingResourcePatternResolver(classLoaderToUse));
+		reader.loadBeanDefinitions(definition.getResource());
+
+		return defaultModuleOptionsMetadataCollector.collect(beanFactory);
 
 	}
 

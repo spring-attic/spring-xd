@@ -24,7 +24,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -42,7 +41,7 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.validation.BindException;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.ModuleDefinition;
-import org.springframework.xd.module.options.DefaultModuleOptionsMetadata;
+import org.springframework.xd.module.options.PassthruModuleOptionsMetadata;
 import org.springframework.xd.module.options.ModuleOptions;
 
 /**
@@ -75,7 +74,7 @@ public class SimpleModule extends AbstractModule {
 
 	private static ModuleOptions defaultModuleOptions() {
 		try {
-			return new DefaultModuleOptionsMetadata().interpolate(Collections.<String, String> emptyMap());
+			return new PassthruModuleOptionsMetadata().interpolate(Collections.<String, String> emptyMap());
 		}
 		catch (BindException e) {
 			throw new IllegalStateException(e);
@@ -111,7 +110,7 @@ public class SimpleModule extends AbstractModule {
 		for (String propname : ps.getPropertyNames()) {
 			Object value = ps.getProperty(propname);
 			if (value != null) {
-				result.put(propname, value);
+				result.put(propname, value.toString());
 			}
 		}
 		return result;

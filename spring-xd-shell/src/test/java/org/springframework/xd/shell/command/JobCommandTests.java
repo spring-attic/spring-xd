@@ -34,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
+
 import org.springframework.batch.core.JobParameter;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.xd.shell.util.Table;
@@ -53,7 +54,6 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 
 	@Test
 	public void testJobLifecycleForMyJob() throws InterruptedException {
-
 		JobParametersHolder.reset();
 		final JobParametersHolder jobParametersHolder = new JobParametersHolder();
 
@@ -65,12 +65,10 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		CommandResult cr = getShell().executeCommand("job undeploy --name " + jobName);
 		checkForSuccess(cr);
 		checkUndeployedJobMessage(cr, jobName);
-
 	}
 
 	@Test
 	public void testJobCreateDuplicate() throws InterruptedException {
-
 		JobParametersHolder.reset();
 		final JobParametersHolder jobParametersHolder = new JobParametersHolder();
 
@@ -264,7 +262,8 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 
 		assertTrue("The countdown latch expired and did not count down.", done);
 		// Make sure the job parameters are set when passing through job launch command
-		assertTrue("Expecting 3 parameters.", JobParametersHolder.getJobParameters().size() == 3);
+		assertTrue("Expecting 3 parameters, but got: " + JobParametersHolder.getJobParameters(),
+				JobParametersHolder.getJobParameters().size() == 3);
 		assertNotNull(JobParametersHolder.getJobParameters().get("random"));
 
 		final JobParameter parameter1 = JobParametersHolder.getJobParameters().get("param1");
@@ -390,12 +389,16 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 	@Test
 	public void testDisplaySpecificJobExecutionWithDateParam() {
 		String jobName = getJobName();
-		executeJobCreate(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR);
-		checkForJobInList(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
-		executeJobLaunch(jobName, "{\"param1\":\"fixedDelayKenny\",\"param2(date)\":\"2013/12/28\"}");
+		String jobDefinition = JOB_WITH_PARAMETERS_DESCRIPTOR + " --dateFormat='yyyy/dd/MM' --numberFormat='###;(###)'";
+		executeJobCreate(jobName, jobDefinition);
+		checkForJobInList(jobName, jobDefinition, true);
+		executeJobLaunch(jobName,
+				"{\"param1\":\"fixedDelayKenny\",\"param2(date)\":\"2013/28/12\",\"param3(long)\":\"(123)\"}");
 		final Table jobExecutions = listJobExecutions();
 		String id = jobExecutions.getRows().get(0).getValue(1);
-		displayJobExecution(id);
+		String displayed = displayJobExecution(id);
+		assertTrue(displayed.matches("(?s).*param2 +Sat Dec 28 00:00:00 [A-Z]{3} 2013 +DATE.*"));
+		assertTrue(displayed.matches("(?s).*param3 +-123 +LONG.*"));
 	}
 
 	@Test

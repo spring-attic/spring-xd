@@ -18,7 +18,6 @@ package org.springframework.xd.gemfire;
 
 import org.springframework.xd.module.options.spi.ModuleOption;
 import org.springframework.xd.module.options.spi.ProfileNamesProvider;
-import org.springframework.xd.module.options.spi.SinkModuleOptionsMetadataSupport;
 
 
 /**
@@ -26,8 +25,7 @@ import org.springframework.xd.module.options.spi.SinkModuleOptionsMetadataSuppor
  * 
  * @author Eric Bottard
  */
-public class GemfireServerSinkModuleOptionsMetadata extends SinkModuleOptionsMetadataSupport implements
-		ProfileNamesProvider {
+public class GemfireServerSinkModuleOptionsMetadata implements ProfileNamesProvider {
 
 	private String host = "localhost";
 

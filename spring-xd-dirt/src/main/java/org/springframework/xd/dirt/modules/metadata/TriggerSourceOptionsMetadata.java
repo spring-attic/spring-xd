@@ -19,7 +19,6 @@ package org.springframework.xd.dirt.modules.metadata;
 import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.xd.module.options.spi.ModuleOption;
 import org.springframework.xd.module.options.spi.ProfileNamesProvider;
-import org.springframework.xd.module.options.spi.SourceModuleOptionsMetadataSupport;
 
 import javax.validation.constraints.AssertTrue;
 import javax.validation.constraints.Min;
@@ -33,7 +32,7 @@ import java.util.Date;
  * @author Eric Bottard
  * @author Florent Biville
  */
-public class TriggerSourceOptionsMetadata extends SourceModuleOptionsMetadataSupport implements ProfileNamesProvider {
+public class TriggerSourceOptionsMetadata implements ProfileNamesProvider {
 
 	private Integer fixedDelay;
 

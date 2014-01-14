@@ -43,7 +43,9 @@ public class DefaultModuleOptionsMetadata implements ModuleOptionsMetadata {
 			@Override
 			@SuppressWarnings("unchecked")
 			public EnumerablePropertySource<?> asPropertySource() {
-				return new MapPropertySource("options", (Map) raw);
+				String uniqueName = String.format("%s-%s", DefaultModuleOptionsMetadata.class.getSimpleName(),
+						System.identityHashCode(DefaultModuleOptionsMetadata.this));
+				return new MapPropertySource(uniqueName, (Map) raw);
 			}
 		};
 	}

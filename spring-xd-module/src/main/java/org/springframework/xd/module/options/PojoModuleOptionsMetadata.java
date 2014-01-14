@@ -75,7 +75,7 @@ import org.springframework.xd.module.options.spi.ValidationGroupsProvider;
  */
 public class PojoModuleOptionsMetadata implements ModuleOptionsMetadata {
 
-	private BeanWrapper beanWrapper;
+	private BeanWrapperImpl beanWrapper;
 
 	private List<ModuleOption> options;
 
@@ -301,6 +301,12 @@ public class PojoModuleOptionsMetadata implements ModuleOptionsMetadata {
 		else {
 			return ValidationGroupsProvider.DEFAULT_GROUP;
 		}
+	}
+
+	@Override
+	public String toString() {
+		return String.format("%s backed by %s, defining options [%s]", getClass().getSimpleName(),
+				beanWrapper.getWrappedClass(), options);
 	}
 
 }

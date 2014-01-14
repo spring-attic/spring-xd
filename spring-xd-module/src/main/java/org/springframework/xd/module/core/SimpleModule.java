@@ -24,7 +24,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -111,7 +110,7 @@ public class SimpleModule extends AbstractModule {
 		for (String propname : ps.getPropertyNames()) {
 			Object value = ps.getProperty(propname);
 			if (value != null) {
-				result.put(propname, value);
+				result.put(propname, value.toString());
 			}
 		}
 		return result;

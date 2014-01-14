@@ -1,33 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans:beans xmlns="http://www.springframework.org/schema/integration"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:beans="http://www.springframework.org/schema/beans"
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:int="http://www.springframework.org/schema/integration"
 	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<channel id="output" />
+	<int:channel id="output" />
 
-	<beans:beans profile="use-date">
-		<inbound-channel-adapter channel="output"
+	<beans profile="use-date">
+		<int:inbound-channel-adapter channel="output"
 			auto-startup="false" expression="'${payload}'">
-			<poller trigger="dateTrigger" />
-		</inbound-channel-adapter>
-		<beans:bean id="dateTrigger"
-			class="org.springframework.xd.module.support.DateTrigger">
-		</beans:bean>
-	</beans:beans>
+			<int:poller trigger="dateTrigger" />
+		</int:inbound-channel-adapter>
+        <bean id="df" class="java.text.SimpleDateFormat">
+            <constructor-arg value="${dateFormat}" />
+        </bean>
+        <bean id="dateTrigger" class="org.springframework.xd.module.support.DateTrigger">
+            <constructor-arg>
+                <bean factory-bean="df" factory-method="parse">
+                    <constructor-arg value="${date}" />
+                </bean>
+            </constructor-arg>
+		</bean>
+	</beans>
 
-	<beans:beans profile="use-cron">
-		<inbound-channel-adapter channel="output"
+	<beans profile="use-cron">
+		<int:inbound-channel-adapter channel="output"
 			auto-startup="false" expression="'${payload}'">
-			<poller cron="${cron}" />
-		</inbound-channel-adapter>
-	</beans:beans>
+			<int:poller cron="${cron}" />
+		</int:inbound-channel-adapter>
+	</beans>
 
-	<beans:beans profile="use-delay">
-		<inbound-channel-adapter channel="output"
+	<beans profile="use-delay">
+		<int:inbound-channel-adapter channel="output"
 			auto-startup="false" expression="'${payload}'">
-			<poller fixed-delay="${fixedDelay}" time-unit="SECONDS" />
-		</inbound-channel-adapter>
-	</beans:beans>
+			<int:poller fixed-delay="${fixedDelay}" time-unit="SECONDS" />
+		</int:inbound-channel-adapter>
+	</beans>
 
-</beans:beans>
+</beans>

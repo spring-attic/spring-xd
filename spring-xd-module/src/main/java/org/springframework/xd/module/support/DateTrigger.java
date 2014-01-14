@@ -33,6 +33,7 @@ import org.springframework.util.Assert;
  * soon as possible.
  * 
  * @author Glenn Renfro
+ * @author Florent Biville
  */
 public class DateTrigger implements Trigger {
 
@@ -40,20 +41,14 @@ public class DateTrigger implements Trigger {
 
 	private final Log logger = LogFactory.getLog(getClass());
 
-
-	public DateTrigger() {
-		nextFireDates.add(new Date());
-	}
-
 	public DateTrigger(Date... dates) {
-		for (Date date : dates) {
-			Assert.notNull(date, "Date must not be null");
-			this.nextFireDates.add(date);
-		}
-		Collections.sort(this.nextFireDates);
+        for (Date date : dates) {
+            addDate(date);
+        }
+        Collections.sort(nextFireDates);
 	}
 
-	@Override
+    @Override
 	public Date nextExecutionTime(TriggerContext triggerContext) {
 		Date result = null;
 		if (nextFireDates.size() > 0) {
@@ -66,5 +61,10 @@ public class DateTrigger implements Trigger {
 		}
 		return result;
 	}
+
+    private void addDate(Date date) {
+        Assert.notNull(date, "Date must not be null");
+        nextFireDates.add(date);
+    }
 
 }

@@ -16,7 +16,7 @@
 
 package org.springframework.xd.shell.command;
 
-import java.util.List;
+import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.PagedResources;
@@ -36,12 +36,19 @@ import org.springframework.xd.shell.util.TableHeader;
 import org.springframework.xd.shell.util.TableRow;
 import org.springframework.xd.shell.util.UiUtils;
 
+import static com.google.common.collect.Lists.newLinkedList;
+import static com.google.common.collect.Maps.newHashMap;
+import static com.google.common.collect.Multimaps.index;
+import static com.google.common.collect.Sets.newTreeSet;
+import static com.google.common.collect.TreeMultimap.create;
+
 /**
  * Commands for working with modules. Allows retrieval of information about available modules, as well as creating new
  * composed modules.
  * 
  * @author Glenn Renfro
  * @author Eric Bottard
+ * @author Florent Biville
  */
 
 @Component
@@ -145,18 +152,9 @@ public class ModuleCommands implements CommandMarker {
 	}
 
 	@CliCommand(value = LIST_MODULES, help = "List all modules")
-	public Table listModules(
-			@CliOption(key = "type", help = "retrieve a specific type of module") RESTModuleType moduleType) {
+	public Table listModules(@CliOption(key = "type", help = "retrieve a specific type of module") RESTModuleType moduleType) {
 		PagedResources<ModuleDefinitionResource> modules = moduleOperations().list(moduleType);
-		final Table table = new Table();
-		table.addHeader(1, new TableHeader("Module Name")).addHeader(2, new TableHeader("Module Type"));
-
-		for (ModuleDefinitionResource moduleDefinitionResource : modules) {
-			final TableRow row = new TableRow();
-			row.addValue(1, moduleDefinitionResource.getName()).addValue(2, moduleDefinitionResource.getType());
-			table.getRows().add(row);
-		}
-		return table;
+		return new ModuleList(modules).renderByType();
 	}
 
 	private ModuleOperations moduleOperations() {

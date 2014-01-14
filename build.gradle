@@ -835,7 +835,7 @@ project('spring-xd-module') {
 		compile "org.springframework.boot:spring-boot-autoconfigure:$springBootVersion"
 		compile project(':spring-xd-module-spi')
 		runtime "org.hibernate:hibernate-validator:$hibernateValidatorVersion"
-		testCompile "javax.validation:validation-api:1.0.0.GA"
+		compile "javax.validation:validation-api:1.0.0.GA"
 
 	}
 }

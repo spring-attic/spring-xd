@@ -16,14 +16,18 @@
 
 package org.springframework.xd.shell.command;
 
+import static org.hamcrest.Matchers.hasItem;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import org.hamcrest.Description;
+import org.hamcrest.DiagnosingMatcher;
+import org.hamcrest.Matcher;
 import org.junit.Test;
-
 import org.springframework.shell.core.CommandResult;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.shell.util.Table;
@@ -39,60 +43,33 @@ import org.springframework.xd.shell.util.UiUtils;
  */
 public class ModuleCommandTests extends AbstractStreamIntegrationTest {
 
-	@Test
-	public void testListAll() throws InterruptedException {
-		Table t = listAll();
-		assertTrue("trigger source is not present in module list command",
-				t.getRows().contains(new TableRow().addValue(1, "trigger").addValue(2, "source")));
-		assertTrue("file source is not present in module list command",
-				t.getRows().contains(new TableRow().addValue(1, "file").addValue(2, "source")));
-		assertTrue("splitter processor is not present in module list command",
-				t.getRows().contains(new TableRow().addValue(1, "splitter").addValue(2, "processor")));
-		assertTrue("splunk sink is not present in module list command",
-				t.getRows().contains(new TableRow().addValue(1, "splunk").addValue(2, "sink")));
-	}
-
-	@Test
-	public void testListForSource() throws InterruptedException {
-		Table t = listByType("source");
-		assertTrue(t.getRows().contains(new TableRow().addValue(1, "trigger").addValue(2, "source")));
-		assertFalse(t.getRows().contains(new TableRow().addValue(1, "splunk").addValue(2, "sink")));
-	}
-
-	@Test
-	public void testListForSink() throws InterruptedException {
-		Table t = listByType("sink");
-		assertTrue("splunk module is missing from sink list",
-				t.getRows().contains(new TableRow().addValue(1, "splunk").addValue(2, "sink")));
-		assertFalse("time module is should not be sink list",
-				t.getRows().contains(new TableRow().addValue(1, "time").addValue(2, "source")));
-
-	}
-
-	@Test
-	public void testListForProcessor() throws InterruptedException {
-		Table t = listByType("processor");
-		assertTrue("Splitter Processor is not present in list",
-				t.getRows().contains(new TableRow().addValue(1, "splitter").addValue(2, "processor")));
-		assertFalse("Processor list should not contain a source module",
-				t.getRows().contains(new TableRow().addValue(1, "file").addValue(2, "source")));
-	}
-
-	@Test
-	public void testListForInvalidType() throws InterruptedException {
-		Table t = listByType("foo");
-		assertNull("Invalid Type will return a null set", t);
-	}
 
 	@Test
 	public void testModuleCompose() {
 		compose().newModule("compositesource", "time | splitter");
 
 
-		Table t = listByType("source");
-		assertTrue("compositesource is not present in list",
-				t.getRows().contains(new TableRow().addValue(1, "compositesource").addValue(2, "source")));
+		Table t = listAll();
 
+		assertThat(t.getRows(), hasItem(rowWithValue(1, "(c) compositesource")));
+
+	}
+
+	private Matcher<TableRow> rowWithValue(final int col, final String value) {
+		return new DiagnosingMatcher<TableRow>() {
+
+			@Override
+			public void describeTo(Description description) {
+				description.appendText("a row with ").appendValue(value);
+			}
+
+			@Override
+			protected boolean matches(Object item, Description mismatchDescription) {
+				String actualValue = ((TableRow) item).getValue(col);
+				mismatchDescription.appendText("a row with ").appendValue(actualValue);
+				return value.equals(actualValue);
+			}
+		};
 	}
 
 	@Test
@@ -148,10 +125,6 @@ public class ModuleCommandTests extends AbstractStreamIntegrationTest {
 
 	private Table listAll() {
 		return (Table) getShell().executeCommand("module list").getResult();
-	}
-
-	private Table listByType(String type) {
-		return (Table) getShell().executeCommand("module list --type " + type).getResult();
 	}
 
 	@Test

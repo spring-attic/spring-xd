@@ -31,9 +31,12 @@ import org.springframework.hateoas.ResourceSupport;
 @XmlRootElement
 public class ModuleDefinitionResource extends ResourceSupport {
 
+
 	private volatile String name;
 
 	private volatile String type;
+
+	private boolean composed;
 
 	/**
 	 * Default constructor for serialization frameworks.
@@ -42,9 +45,10 @@ public class ModuleDefinitionResource extends ResourceSupport {
 
 	}
 
-	public ModuleDefinitionResource(String name, String type) {
+	public ModuleDefinitionResource(String name, String type, boolean composed) {
 		this.name = name;
 		this.type = type;
+		this.composed = composed;
 	}
 
 	public String getName() {
@@ -53,6 +57,10 @@ public class ModuleDefinitionResource extends ResourceSupport {
 
 	public String getType() {
 		return type;
+	}
+
+	public boolean isComposed() {
+		return composed;
 	}
 
 	/**

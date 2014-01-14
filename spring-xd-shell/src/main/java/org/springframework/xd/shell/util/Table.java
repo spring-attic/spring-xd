@@ -41,10 +41,6 @@ public class Table {
 		return rows;
 	}
 
-	public void setRows(List<TableRow> rows) {
-		this.rows = rows;
-	}
-
 	public Map<Integer, TableHeader> getHeaders() {
 		return headers;
 	}
@@ -81,11 +77,6 @@ public class Table {
 		return this;
 	}
 
-	@Override
-	public String toString() {
-		return UiUtils.renderTextTable(this);
-	}
-
 	public void calculateColumnWidths() {
 		for (java.util.Map.Entry<Integer, TableHeader> headerEntry : headers.entrySet()) {
 			final Integer headerEntryKey = headerEntry.getKey();
@@ -94,6 +85,11 @@ public class Table {
 			}
 		}
 	}
+
+    @Override
+    public String toString() {
+        return UiUtils.renderTextTable(this);
+    }
 
 	@Override
 	public int hashCode() {
@@ -104,6 +100,7 @@ public class Table {
 		result = prime * result + ((rows == null) ? 0 : rows.hashCode());
 		return result;
 	}
+
 
 	@Override
 	public boolean equals(Object obj) {
@@ -131,6 +128,4 @@ public class Table {
 			return false;
 		return true;
 	}
-
-
 }

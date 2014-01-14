@@ -36,8 +36,8 @@ public class DetailedModuleDefinitionResource extends ModuleDefinitionResource {
 
 	}
 
-	public DetailedModuleDefinitionResource(String name, String type) {
-		super(name, type);
+	public DetailedModuleDefinitionResource(String name, String type, boolean composed) {
+		super(name, type, composed);
 	}
 
 	private List<Option> options;

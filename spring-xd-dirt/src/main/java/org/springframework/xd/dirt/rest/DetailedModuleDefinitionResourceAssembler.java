@@ -52,7 +52,7 @@ public class DetailedModuleDefinitionResourceAssembler extends
 	@Override
 	protected DetailedModuleDefinitionResource instantiateResource(ModuleDefinition entity) {
 		DetailedModuleDefinitionResource result = new DetailedModuleDefinitionResource(entity.getName(),
-				entity.getType().name());
+				entity.getType().name(), entity.isComposed());
 		ModuleOptionsMetadata moduleOptionsMetadata = moduleOptionsMetadataResolver.resolve(entity);
 
 		if (!(moduleOptionsMetadata instanceof DefaultModuleOptionsMetadata)) {

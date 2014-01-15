@@ -26,7 +26,6 @@ import javax.xml.bind.JAXBException;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.http.converter.json.MappingJacksonHttpMessageConverter;
 import org.springframework.http.converter.support.AllEncompassingFormHttpMessageConverter;
 import org.springframework.http.converter.xml.AbstractJaxb2HttpMessageConverter;
 import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConverter;
@@ -90,13 +89,15 @@ public class RestTemplateMessageConverterUtil {
 	/**
 	 * Install message converters we're interested in, with json coming before xml.
 	 */
+	@SuppressWarnings("deprecation")
 	public static List<HttpMessageConverter<?>> installMessageConverters(List<HttpMessageConverter<?>> messageConverters) {
 		messageConverters.add(new AllEncompassingFormHttpMessageConverter());
 		if (jackson2Present) {
 			messageConverters.add(new MappingJackson2HttpMessageConverter());
 		}
 		else if (jacksonPresent) {
-			messageConverters.add(new MappingJacksonHttpMessageConverter());
+			// avoiding import of MappingJacksonHttpMessageConverter to prevent deprecation warning
+			messageConverters.add(new org.springframework.http.converter.json.MappingJacksonHttpMessageConverter());
 		}
 		if (jaxb2Present) {
 			Jaxb2RootElementHttpMessageConverter jaxbConverter = new Jaxb2RootElementHttpMessageConverter();

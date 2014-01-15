@@ -16,6 +16,8 @@
 
 package org.springframework.data.hadoop.x.store.dataset;
 
+import java.util.Collection;
+
 import org.apache.avro.Schema;
 import org.apache.avro.reflect.ReflectData;
 import org.kitesdk.data.Dataset;
@@ -23,16 +25,15 @@ import org.kitesdk.data.DatasetDescriptor;
 import org.kitesdk.data.DatasetNotFoundException;
 import org.kitesdk.data.DatasetWriter;
 import org.kitesdk.data.PartitionStrategy;
+
 import org.springframework.data.hadoop.store.dataset.DatasetRepositoryFactory;
 import org.springframework.data.hadoop.store.dataset.DatasetTemplate;
 
-import java.util.Collection;
-
 /**
  * TODO: remove this class once we update to use spring-data-hadoop 2.0.0.M5
- *
+ * 
  * Temporary patch class to allow POJOs containing null values to be stored in Datasets
- *
+ * 
  * @author Thomas Risberg
  */
 public class DatasetTemplateAllowingNulls extends DatasetTemplate {
@@ -41,9 +42,10 @@ public class DatasetTemplateAllowingNulls extends DatasetTemplate {
 
 	/**
 	 * The {@link DatasetRepositoryFactory} to use for this template.
-	 *
+	 * 
 	 * @param datasetRepositoryFactory the DatasetRepositoryFactory to use
 	 */
+	@Override
 	public void setDatasetRepositoryFactory(DatasetRepositoryFactory datasetRepositoryFactory) {
 		this.dsFactory = datasetRepositoryFactory;
 		super.setDatasetRepositoryFactory(datasetRepositoryFactory);
@@ -55,12 +57,13 @@ public class DatasetTemplateAllowingNulls extends DatasetTemplate {
 	}
 
 	@Override
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void write(Collection<?> records, PartitionStrategy partitionStrategy) {
 		if (records == null || records.size() < 1) {
 			return;
 		}
-		@SuppressWarnings("unchecked")
-		Class recordClass = (Class) records.iterator().next().getClass();
+
+		Class recordClass = records.iterator().next().getClass();
 		Dataset dataset = getOrCreateDataset(recordClass, partitionStrategy);
 		DatasetWriter writer = dataset.newWriter();
 		try {

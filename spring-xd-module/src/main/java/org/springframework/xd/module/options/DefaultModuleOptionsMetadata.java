@@ -41,8 +41,9 @@ public class DefaultModuleOptionsMetadata implements ModuleOptionsMetadata {
 		return new ModuleOptions() {
 
 			@Override
+			@SuppressWarnings("unchecked")
 			public EnumerablePropertySource<?> asPropertySource() {
-				return new MapPropertySource("options", (Map)raw);
+				return new MapPropertySource("options", (Map) raw);
 			}
 		};
 	}

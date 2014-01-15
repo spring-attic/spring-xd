@@ -1,82 +1,117 @@
-# Spring-XD UI
+Spring XD User Interface Module
+===============================
 
-This project contains the Spring-XD UI and this document describes how to use it.
+This is the *Spring XD User Interface (UI) Module*. This module uses [AngularJS][]. In order to follow some common conventions, this module has been using [Yeoman][] to kickstart the project. Specifically, the [AngularJS generator][] has been used. However, instead of [ngRoute][], [AngularUI Router][] is used to provide nested view support.
 
-## Running the UI
+Proposing a few deviations from the [Yeoman][] [AngularJS generator][] conventions:
 
-1. Start the XD server on a local host
-2. Navigate to http://localhost:8080/admin-ui
+* Add E2E Testing (may consider Protractor later)
+* Name Controllers with the **Controller** suffix rather than **Ctrl**
+* Use [AngularUI Router][]
 
-## What is implemented now
+# Building the Module
 
-Currently, you can do the following:
+2 Build Tool Chains are supported. Primarily, the *Spring XD UI Module* uses [Grunt][] ([Node.js][]-based) and [Bower][] for managing dependencies and the execution if the build. In order to integrated with the larger *Spring XD* build process, [Gradle][] can also be used to execute the build (executing [Grunt][] underneath)
 
-1. Create batch jobs
-2. Launch batch jobs
-3. Launch batch jobs with custom parameters
-4. View a list of batch jobs already launched
+## Building the Project using Grunt
 
-## How to run the tests
+	$ grunt
 
-The test suite is written using [Jasmine](http://pivotal.github.io/jasmine/). 
-There are two ways to run the tests:
+This will invoke the default task. The default task is equivalent of executing:
 
-1. In the browser. Open up the test/SpecRunner.html file.
-2. Headleass.  (requires Phantomjs to be installed) run the following command:
+	$ grunt build
 
-    phantomjs test/run-jasmine.js test/SpecRunner.html
+This will trigger the following [Grunt][] tasks to be executed:
 
-To install phantomjs:
+* clean:dist
+* newer:jshint
+* bower:install
+* bower-install
+* less
+* useminPrepare
+* concurrent:dist
+* autoprefixer
+* concat
+* ngmin
+* copy:dist
+* cdnify
+* cssmin
+* uglify
+* rev
+* usemin
+* htmlmin
+* test:unit'
 
-    npm install -g phantiomjs
+In order to also execute the End-to-End (E2E) tests, execute the build using:
 
-You will need [npm](https://npmjs.org/) in order to run this command.
+	$ grunt builde2e
 
-## Use of bower
+### Running Tests
 
-The UI wants to use [bower](http://bower.io/) to manage dependencies.  Problem 
-is that bower will checkout entire git repositories and if not careful many 
-unnecessary files will be added to the XD git repository.  So, what we do is this:
+	$ grunt test
 
-1. keep bower.json up to date with the dependencies used
-2. after each dependency change, run `bower install` from the spring-xd-ui dir
-3. this will create a `bower_components` directory
-4. copy over all components from `bower_components` to `lib`
-5. delete all files (eg- test and documentation files) not used in the UI
+### E2E Testing
 
-To install bower:
+	$ grunt test:e2e
 
-    npm install -g bower
+### Running the Project for Development
 
-You will need [npm](https://npmjs.org/) in order to run this command.
+	$ grunt serve
 
-## Use of AMD and requirejs
+The local browser window should open automatically.
 
-The UI uses [AMD-style](https://github.com/amdjs/amdjs-api/wiki/AMD) modules 
-and [requirejs](http://requirejs.org/) as a module loader.  The AMD configuration 
-file is `spring-xd/spring-xd-ui/app/xd.main.js`. The AMD configuration for the 
-tests are located at `spring-xd/spring-xd-ui/test/xd.main.spec.js`
+## Building the Project using Gradle
 
+When using [Gradle][] execute:
 
-## Use of wire
+	$ gradle build
 
-The UI uses [wire.js](https://github.com/cujojs/wire) as a dependency injection framework.  
-The wirespec is located at `spring-xd/spring-xd-ui/app/xd.wirespec.js`.
+This will execute the following tasks:
 
-The wire spec specifies each module and all of their dependencies.
+* npmInstall (Install [Node.js][] dependencies defined in `package.json`)
+* installGrunt (Install [Grunt[]])
 
-## Use of jshint
+This will implicitly also install a local [Node.js][] instance.
 
-When making changes to javascript files, you should use an editor that has jshint
-integration (eg- Scripted or Sublime text).
+# Dependency Management using Bower
 
-## Use of LESS
+## Search for dependencies:
 
-LESS is used e.g. to create the Bootstrap CSS. In order to compile the LESS files, we use **recess** (from twitter). After installing recess, use the following command:
+The following command will search for a dependency called `angular-ui-route`.
 
-	recess ./bootstrap.less --compile
-	
-and to save the **bootstrap.css** into the `css` directory, just redirect the output there
+	$ bower search angular-ui-route
 
-	recess ./bootstrap.less --compile > ../../css/bootstrap.css
+## Install Bower dependency
 
+Install that dependency and save it to `bower.json`:
+
+	$ bower install angular-ui-router --save
+
+Inject your dependencies into your `index.html` file:
+
+	$ grunt bower-install
+
+# Dependency Management using Node (used by Grunt)
+
+## Install Build Dependency
+
+	$ npm install --save-dev grunt-contrib-less
+
+## How to Update Node.js dependencies in package.json
+
+Use [https://github.com/tjunnone/npm-check-updates](https://github.com/tjunnone/npm-check-updates)
+
+# Additional Testing Information
+
+When executing E2E tests using e.g. Chrome, make sure the relevant paths to your test browser are setup, e.g.:
+
+	$ export CHROME_BIN="/MyApps/Google Chrome.app/Contents/MacOS/Google Chrome"
+
+[AngularJS]: http://angularjs.org/
+[AngularJS generator]: https://github.com/yeoman/generator-angular
+[Yeoman]: http://yeoman.io/
+[ngRoute]: http://docs.angularjs.org/api/ngRoute
+[AngularUI Router]: https://github.com/angular-ui/ui-router
+[Grunt]: http://gruntjs.com/
+[Bower]: http://bower.io/
+[Node.js]: http://nodejs.org/

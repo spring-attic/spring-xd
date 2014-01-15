@@ -6,6 +6,7 @@ apply plugin: 'idea'
 buildscript {
 	repositories {
 		maven { url "http://repo.springsource.org/plugins-snapshot" }
+		jcenter()
 	}
 	dependencies {
 		classpath("org.springframework.boot:spring-boot-gradle-plugin:1.0.0.RC1")
@@ -14,6 +15,7 @@ buildscript {
 		classpath 'org.asciidoctor:asciidoctor-gradle-plugin:0.7.0'
 		classpath 'org.ajoberstar:gradle-git:0.4.0'
 		classpath 'me.champeau.gradle:gradle-javadoc-hotfix-plugin:0.1'
+		classpath 'com.moowork.gradle:gradle-grunt-plugin:0.4'
 	}
 }
 
@@ -437,7 +439,7 @@ project('spring-xd-dirt') {
 	}
 
 	task xdUiFiles {
-		def uiFiles = file("$rootDir/spring-xd-ui")
+		def uiFiles = file("$rootDir/spring-xd-ui/dist")
 		outputs.dir uiFiles
 	}
 
@@ -459,7 +461,7 @@ project('spring-xd-dirt') {
 	}
 
 	applicationDistribution.from(xdUiFiles) {
-		into "spring-xd-ui"
+		into "spring-xd-ui/dist"
 	}
 
 	// Following execution is used by jsTests task to start SingleNodeApplication as background process
@@ -503,7 +505,7 @@ project('spring-xd-exec') {
 		into('.') { from '../spring-xd-dirt/src/main/resources/log4j.properties' }
 		into('modules') { from '../modules' }
 		into('config') { from '../config' }
-		into('spring-xd-ui') { from '../spring-xd-ui' }
+		into('spring-xd-ui/dist') { from '../spring-xd-ui/dist' }
 	}
 	moduleProjects.each { moduleProject ->
 		project.jar.dependsOn moduleProject.copyLibs
@@ -1142,24 +1144,65 @@ project('modules.job.jdbchdfs') {
 	}
 }
 
-
-
-
 project('spring-xd-ui') {
+
 	description = 'Spring XD UI'
-	// Run the jasmine tests from commandline using phantomJS
-    // This task assumes existing installation of phantomJS
-    task jsTest(type: Exec, dependsOn: ':spring-xd-dirt:backgroundAdminServer') {
-		workingDir 'test'
-	 commandLine 'phantomjs', 'jasmine-runner.js', 'http://localhost:9393/admin-ui/test/SpecRunnerPhantomJS.html'
-	 doLast {
+	apply plugin: 'base'
+	apply plugin: 'grunt'
+
+	node {
+		version = '0.10.25'
+		download = true
+	}
+
+	task cleanDist(type: Delete) {
+		description = "Remove the 'dist' directory"
+		delete 'dist'
+	}
+
+	task cleanNodeModules(type: Delete) {
+		description = "Remove the 'node_modules' directory"
+		delete 'node_modules'
+	}
+
+	task cleanBowerFiles(type: Delete) {
+		description = "Remove Bower directories"
+		delete '.bower_cache'
+		delete 'bower_components'
+	}
+
+	task afterEclipseImport(dependsOn: 'build') {
+		description = "Ensure that the UI Build runs after import into STS"
+	}
+
+	afterEvaluate{
+		tasks['grunt_build'].dependsOn(['npmInstall', 'installGrunt']);
+		tasks['grunt_teste2e'].dependsOn(['npmInstall', 'installGrunt']);
+	}
+
+	task test(dependsOn: ['grunt_teste2e', ':spring-xd-dirt:backgroundAdminServer']) {
+
+		description = "E2E-test the Admin UI using Grunt"
+
+		doLast {
 			def singleNodeServerProcess = project(':spring-xd-dirt').singleNodeServerProcess
-			if (singleNodeServerProcess != null) {
+			if (singleNodeServerProcess != null && singleNodeServerProcess.process != null) {
 				singleNodeServerProcess.process.destroy()
-		  println("Stopped the SingleNode server.")
-	     }
-	 }
-    }
+				println("Stopped the SingleNode server.")
+			}
+		}
+	}
+
+	task build(dependsOn: ['grunt_build', 'test']) {
+		description = "Build the Admin UI using Grunt"
+	}
+
+	grunt_build.shouldRunAfter 'installGrunt'
+	grunt_teste2e.shouldRunAfter 'installGrunt'
+	installGrunt.shouldRunAfter 'npmInstall'
+
+	tasks['clean'].dependsOn(['cleanDist', 'cleanNodeModules', 'cleanBowerFiles'])
+
 }
 
 project('spring-xd-test') {

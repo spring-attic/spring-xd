@@ -38,7 +38,7 @@ public class CommonOptions {
 
 
 	public Boolean getXD_JMX_ENABLED() {
-		return (jmxEnabled != null && jmxEnabled) ? jmxEnabled : null;
+		return jmxEnabled;
 	}
 
 

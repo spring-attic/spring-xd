@@ -26,6 +26,7 @@ import org.springframework.batch.core.StepExecution;
  * @author Gunnar Hillert
  * @since 1.0
  */
+@SuppressWarnings("serial")
 public class ChunkContextInfo implements Serializable {
 
 	private boolean complete;
@@ -45,7 +46,6 @@ public class ChunkContextInfo implements Serializable {
 	public StepExecution getStepExecution() {
 		return stepExecution;
 	}
-
 
 	public void setStepExecution(StepExecution stepExecution) {
 		this.stepExecution = stepExecution;
@@ -96,4 +96,5 @@ public class ChunkContextInfo implements Serializable {
 			return false;
 		return true;
 	}
+
 }

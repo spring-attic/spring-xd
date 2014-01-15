@@ -120,12 +120,11 @@ public class InMemoryModuleDefinitionRepository extends AbstractInMemoryReposito
 		return dependentModules;
 	}
 
-	// TODO- BEGIN SHARED IMPL WITH RedisModuleDefintionRepository
+	// TODO- BEGIN SHARED IMPL WITH RedisModuleDefinitionRepository
 
-	@SuppressWarnings("unchecked")
 	@Override
-	public ModuleDefinition save(ModuleDefinition entity) {
-		ModuleDefinition md = super.save(entity);
+	public <M extends ModuleDefinition> M save(M entity) {
+		M md = super.save(entity);
 		for (ModuleDefinition child : md.getComposedModuleDefinitions()) {
 			ModuleDefinitionRepositoryUtils.saveDependencies(moduleDependencyRepository, child, dependencyKey(entity));
 		}
@@ -150,13 +149,12 @@ public class InMemoryModuleDefinitionRepository extends AbstractInMemoryReposito
 		}
 	}
 
-
 	// TODO refactor to use keyFor
 	private String dependencyKey(ModuleDefinition moduleDefinition) {
 		return String.format("module:%s:%s", moduleDefinition.getType(), moduleDefinition.getName());
 	}
 
-	// TODO END SHARED IMPL WITH RedisModuleDefintionRepository
+	// TODO END SHARED IMPL WITH RedisModuleDefinitionRepository
 
 	/**
 	 * Post-process the list to only return elements matching the page request.

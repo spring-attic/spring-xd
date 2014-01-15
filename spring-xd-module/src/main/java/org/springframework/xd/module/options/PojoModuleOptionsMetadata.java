@@ -267,6 +267,7 @@ public class PojoModuleOptionsMetadata implements ModuleOptionsMetadata {
 		};
 	}
 
+    @SuppressWarnings("unchecked")
 	private void bindAndValidate(Map<String, String> raw) throws BindException {
 		DataBinder dataBinder = new DataBinder(beanWrapper.getWrappedInstance());
 		dataBinder.setIgnoreUnknownFields(false);

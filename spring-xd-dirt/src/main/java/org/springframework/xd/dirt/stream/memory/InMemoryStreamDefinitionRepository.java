@@ -39,10 +39,9 @@ public class InMemoryStreamDefinitionRepository extends AbstractInMemoryReposito
 		this.dependencyRepository = dependencyRepository;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
-	public StreamDefinition save(StreamDefinition entity) {
-		StreamDefinition sd = super.save(entity);
+	public <S extends StreamDefinition> S save(S entity) {
+		S sd = super.save(entity);
 		StreamDefinitionRepositoryUtils.saveDependencies(dependencyRepository, sd);
 		return sd;
 	}
@@ -51,7 +50,7 @@ public class InMemoryStreamDefinitionRepository extends AbstractInMemoryReposito
 	public void delete(StreamDefinition entity) {
 		StreamDefinitionRepositoryUtils.deleteDependencies(dependencyRepository, entity);
 		super.delete(entity);
-	};
+	}
 
 	@Override
 	public void delete(String id) {
@@ -59,7 +58,7 @@ public class InMemoryStreamDefinitionRepository extends AbstractInMemoryReposito
 		if (def != null) {
 			this.delete(def);
 		}
-	};
+	}
 
 	@Override
 	protected String keyFor(StreamDefinition entity) {

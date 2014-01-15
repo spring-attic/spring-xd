@@ -46,7 +46,7 @@ import org.springframework.util.Assert;
  */
 public class CommandLinePropertySourceOverridingInitializer<T extends CommonOptions> implements EnvironmentAware,
 		SpringApplicationInitializer,
-		ApplicationContextInitializer {
+		ApplicationContextInitializer<ConfigurableApplicationContext> {
 
 	private ConfigurableEnvironment environment;
 

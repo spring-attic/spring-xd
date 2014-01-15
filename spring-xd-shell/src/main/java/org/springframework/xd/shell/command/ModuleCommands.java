@@ -16,8 +16,6 @@
 
 package org.springframework.xd.shell.command;
 
-import java.util.*;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.shell.core.CommandMarker;
@@ -36,11 +34,7 @@ import org.springframework.xd.shell.util.TableHeader;
 import org.springframework.xd.shell.util.TableRow;
 import org.springframework.xd.shell.util.UiUtils;
 
-import static com.google.common.collect.Lists.newLinkedList;
-import static com.google.common.collect.Maps.newHashMap;
-import static com.google.common.collect.Multimaps.index;
-import static com.google.common.collect.Sets.newTreeSet;
-import static com.google.common.collect.TreeMultimap.create;
+import java.util.List;
 
 /**
  * Commands for working with modules. Allows retrieval of information about available modules, as well as creating new

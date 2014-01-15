@@ -1,9 +1,7 @@
 package org.springframework.xd.shell.command;
 
 import com.google.common.base.Function;
-import com.google.common.collect.Iterators;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.TreeMultimap;
+import com.google.common.collect.*;
 import org.springframework.util.Assert;
 import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
 import org.springframework.xd.shell.util.Table;
@@ -11,8 +9,10 @@ import org.springframework.xd.shell.util.TableHeader;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Map;
 
 import static com.google.common.collect.Lists.newLinkedList;
+import static com.google.common.collect.Maps.transformValues;
 import static com.google.common.collect.Multimaps.index;
 
 /**
@@ -30,10 +30,17 @@ class ModuleList {
     };
 
     private final Multimap<String,ModuleDefinitionResource> modulesByType;
+    private final Map<String,Iterator<ModuleDefinitionResource>> iteratorsByType;
 
     public ModuleList(Iterable<ModuleDefinitionResource> modules) {
         Assert.state(modules != null);
         modulesByType = TreeMultimap.create(index(modules, BY_TYPE));
+        iteratorsByType = transformValues(modulesByType.asMap(), new Function<Collection<ModuleDefinitionResource>, Iterator<ModuleDefinitionResource>>() {
+            @Override
+            public Iterator<ModuleDefinitionResource> apply(Collection<ModuleDefinitionResource> input) {
+                return input.iterator();
+            }
+        });
     }
 
     public Table renderByType() {
@@ -72,8 +79,7 @@ class ModuleList {
     private Collection<String> computeRowValueCollection(int lineNumber) {
         Collection<String> rowValues = newLinkedList();
         for (String type : modulesByType.keySet()) {
-            Iterator<ModuleDefinitionResource> modules = modulesByType.get(type).iterator();
-            ModuleDefinitionResource module = Iterators.get(modules, lineNumber, null);
+            ModuleDefinitionResource module = Iterators.get(iteratorsByType.get(type), lineNumber, null);
             rowValues.add(computeModuleValue(module));
         }
         return rowValues;

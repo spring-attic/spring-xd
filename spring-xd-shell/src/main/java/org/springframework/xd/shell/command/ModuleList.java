@@ -4,6 +4,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.TreeMultimap;
+import org.springframework.util.Assert;
 import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableHeader;
@@ -11,7 +12,6 @@ import org.springframework.xd.shell.util.TableHeader;
 import java.util.Collection;
 import java.util.Iterator;
 
-import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Lists.newLinkedList;
 import static com.google.common.collect.Multimaps.index;
 
@@ -32,7 +32,7 @@ class ModuleList {
     private final Multimap<String,ModuleDefinitionResource> modulesByType;
 
     public ModuleList(Iterable<ModuleDefinitionResource> modules) {
-        checkState(modules != null);
+        Assert.state(modules != null);
         modulesByType = TreeMultimap.create(index(modules, BY_TYPE));
     }
 

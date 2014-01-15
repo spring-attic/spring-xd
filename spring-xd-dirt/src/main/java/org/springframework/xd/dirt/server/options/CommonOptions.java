@@ -29,7 +29,7 @@ public class CommonOptions {
 	private boolean showHelp = false;
 
 	@Option(name = "--jmxEnabled", usage = "Whether to enable JMX exposition of beans")
-	private boolean jmxEnabled = false;
+	private Boolean jmxEnabled;
 
 	// Using wrapped here so that "showHelp" is not returned as a property by BeanPropertiesPropertySource
 	public Boolean isShowHelp() {
@@ -37,12 +37,12 @@ public class CommonOptions {
 	}
 
 
-	public boolean isXD_JMX_ENABLED() {
+	public Boolean getXD_JMX_ENABLED() {
 		return jmxEnabled;
 	}
 
 
-	public void setXD_JMX_ENABLED(boolean jmxEnabled) {
+	public void setXD_JMX_ENABLED(Boolean jmxEnabled) {
 		this.jmxEnabled = jmxEnabled;
 	}
 

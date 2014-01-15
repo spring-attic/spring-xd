@@ -98,10 +98,9 @@ public class RedisModuleDefinitionRepository extends AbstractRedisRepository<Mod
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
-	public ModuleDefinition save(ModuleDefinition entity) {
-		ModuleDefinition md = super.save(entity);
+	public <M extends ModuleDefinition> M save(M entity) {
+		M md = super.save(entity);
 		for (ModuleDefinition child : md.getComposedModuleDefinitions()) {
 			ModuleDefinitionRepositoryUtils.saveDependencies(moduleDependencyRepository, child, dependencyKey(entity));
 		}

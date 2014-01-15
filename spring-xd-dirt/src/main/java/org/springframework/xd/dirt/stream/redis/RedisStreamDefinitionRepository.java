@@ -45,10 +45,9 @@ public class RedisStreamDefinitionRepository extends AbstractRedisDefinitionRepo
 		objectMapper.addMixInAnnotations(ModuleDefinition.class, ModuleDefinitionMixin.class);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
-	public StreamDefinition save(StreamDefinition entity) {
-		StreamDefinition sd = super.save(entity);
+	public <S extends StreamDefinition> S save(S entity) {
+		S sd = super.save(entity);
 		StreamDefinitionRepositoryUtils.saveDependencies(dependencyRepository, sd);
 		return sd;
 	}

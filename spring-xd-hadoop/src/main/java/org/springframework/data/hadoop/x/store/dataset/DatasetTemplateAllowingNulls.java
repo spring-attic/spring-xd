@@ -55,11 +55,12 @@ public class DatasetTemplateAllowingNulls extends DatasetTemplate {
 	}
 
 	@Override
+    @SuppressWarnings({"unchecked", "rawtypes"})
 	public void write(Collection<?> records, PartitionStrategy partitionStrategy) {
 		if (records == null || records.size() < 1) {
 			return;
 		}
-		@SuppressWarnings("unchecked")
+
 		Class recordClass = (Class) records.iterator().next().getClass();
 		Dataset dataset = getOrCreateDataset(recordClass, partitionStrategy);
 		DatasetWriter writer = dataset.newWriter();

@@ -37,11 +37,12 @@
 		</property>
 	</bean>
 
-	<bean id="dataSource" class="org.springframework.jdbc.datasource.SimpleDriverDataSource">
-		<property name="driverClass" value="${driverClass}"/>
-		<property name="url" value="${url}"/>
-		<property name="username" value="${username:}"/>
-		<property name="password" value="${password:}"/>
+	<bean id="dataSource" class="org.apache.tomcat.jdbc.pool.DataSource" destroy-method="close">
+		<property name="driverClassName" value="${driverClass:${spring.datasource.driverClassName}}"/>
+		<property name="url" value="${url:${spring.datasource.url}}"/>
+		<property name="username" value="${username:${spring.datasource.username}}"/>
+		<property name="password" value="${password:${spring.datasource.password}}"/>
+		<property name="initialSize" value="0" />
 	</bean>
 
 	<bean id="dataSourceInitializer" class="org.springframework.jdbc.datasource.init.DataSourceInitializer">

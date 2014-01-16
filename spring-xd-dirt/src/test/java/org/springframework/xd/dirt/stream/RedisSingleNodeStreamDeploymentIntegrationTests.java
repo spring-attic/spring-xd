@@ -35,8 +35,10 @@ public class RedisSingleNodeStreamDeploymentIntegrationTests extends AbstractSin
 
 	@AfterClass
 	public static void cleanup() {
-		StringRedisTemplate template = context.getBean(StringRedisTemplate.class);
-		template.delete("queue.deployer");
+		if (context != null) {
+			StringRedisTemplate template = context.getBean(StringRedisTemplate.class);
+			String queueDeployer = context.getEnvironment().resolvePlaceholders(XD_DEPLOYER_PLACEHOLDER);
+			template.delete(queueDeployer);
+		}
 	}
-
 }

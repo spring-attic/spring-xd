@@ -46,6 +46,7 @@ import org.springframework.xd.dirt.event.AbstractModuleEvent;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.core.Module;
+import org.springframework.xd.test.RandomConfigurationSupport;
 
 
 /**
@@ -57,7 +58,7 @@ import org.springframework.xd.module.core.Module;
  * @author Gunnar Hillert
  * @author Mark Fisher
  */
-public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
+public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends RandomConfigurationSupport {
 
 	protected static AbstractApplicationContext context;
 
@@ -73,6 +74,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 
 	private static final QueueChannel tapChannel = new QueueChannel();
 
+
 	@ClassRule
 	public static ExternalResource shutdownApplication = new ExternalResource() {
 
@@ -83,6 +85,10 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 			}
 		}
 	};
+
+	protected static final String XD_DEPLOYER_PLACEHOLDER = "${xd.deployer.queue}";
+
+	protected static final String XD_UNDEPLOYER_PLACEHOLDER = "${xd.undeployer.topic}";
 
 	@Test
 	public final void testRoutingWithSpel() throws InterruptedException {
@@ -100,7 +106,6 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 
 	@Test
 	public final void testTopicChannel() throws InterruptedException {
-
 		StreamDefinition bar1Definition = new StreamDefinition("bar1Definition",
 				"topic:foo > queue:bar1");
 		StreamDefinition bar2Definition = new StreamDefinition("bar2Definition",
@@ -137,7 +142,6 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		bus.unbindProducer("topic:foo", testChannel);
 		bus.unbindConsumer("queue:bar1", bar1Channel);
 		bus.unbindConsumer("queue:bar2", bar2Channel);
-
 	}
 
 

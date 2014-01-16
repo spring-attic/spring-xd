@@ -38,10 +38,12 @@ public class ModuleDeploymentTests {
 	@Rule
 	public RedisTestSupport redisAvailableRule = new RedisTestSupport();
 
+	private static long now = System.currentTimeMillis();
+
 	@Test
 	public void testProcessor() throws Exception {
 		LettuceConnectionFactory connectionFactory = redisAvailableRule.getResource();
-		RedisQueueOutboundChannelAdapter adapter = new RedisQueueOutboundChannelAdapter("queue.deployer",
+		RedisQueueOutboundChannelAdapter adapter = new RedisQueueOutboundChannelAdapter("queue.deployer." + now,
 				connectionFactory);
 		adapter.setExtractPayload(false);
 		adapter.afterPropertiesSet();
@@ -57,7 +59,7 @@ public class ModuleDeploymentTests {
 	@Test
 	public void testSimpleStream() throws Exception {
 		LettuceConnectionFactory connectionFactory = redisAvailableRule.getResource();
-		RedisQueueOutboundChannelAdapter adapter = new RedisQueueOutboundChannelAdapter("queue.deployer",
+		RedisQueueOutboundChannelAdapter adapter = new RedisQueueOutboundChannelAdapter("queue.deployer." + now,
 				connectionFactory);
 		adapter.setExtractPayload(false);
 		adapter.afterPropertiesSet();

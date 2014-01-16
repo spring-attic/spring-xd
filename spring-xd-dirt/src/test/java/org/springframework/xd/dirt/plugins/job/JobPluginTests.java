@@ -285,6 +285,7 @@ public class JobPluginTests {
 		doReturn(messageBus).when(spiedModule).getComponent(MessageBus.class);
 		doReturn(inputChannel).when(spiedModule).getComponent("input", MessageChannel.class);
 		doReturn(notificationChannel).when(spiedModule).getComponent("notifications", MessageChannel.class);
+		doReturn(null).when(spiedModule).getComponent("stepExecutions.output", MessageChannel.class);
 
 		plugin.postProcessModule(spiedModule);
 

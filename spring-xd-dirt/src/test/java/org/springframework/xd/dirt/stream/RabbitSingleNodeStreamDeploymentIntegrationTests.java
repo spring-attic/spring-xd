@@ -16,6 +16,7 @@ package org.springframework.xd.dirt.stream;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
+
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.xd.test.rabbit.RabbitTestSupport;
 
@@ -35,9 +36,13 @@ public class RabbitSingleNodeStreamDeploymentIntegrationTests extends
 
 	@AfterClass
 	public static void cleanup() {
-		RabbitAdmin admin = context.getBean(RabbitAdmin.class);
-		admin.deleteQueue("xd.deployer");
-		admin.deleteExchange("xd.undeployer");
+		if (context != null) {
+			RabbitAdmin admin = context.getBean(RabbitAdmin.class);
+			String deployerQueue = context.getEnvironment().resolvePlaceholders(XD_DEPLOYER_PLACEHOLDER);
+			String undeployerExchange = context.getEnvironment().resolvePlaceholders(XD_UNDEPLOYER_PLACEHOLDER);
+			admin.deleteQueue(deployerQueue);
+			admin.deleteExchange(undeployerExchange);
+		}
 	}
 
 }

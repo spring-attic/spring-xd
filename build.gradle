@@ -1177,7 +1177,7 @@ project('spring-xd-test') {
 		compile "org.hsqldb:hsqldb:$hsqldbVersion"
 		compile "org.apache.tomcat:tomcat-jdbc:$tomcatJdbcPoolVersion"
 		compile "junit:junit:$junitVersion"
-		testCompile "commons-io:commons-io:2.4"
+		compile "commons-io:commons-io:2.4"
 	}
 }
 

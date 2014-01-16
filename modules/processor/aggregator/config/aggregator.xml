@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans xmlns:beans="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/integration"
 	xmlns:task="http://www.springframework.org/schema/task"
 	xmlns:int-redis="http://www.springframework.org/schema/integration/redis"
 	xmlns:int-jdbc="http://www.springframework.org/schema/integration/jdbc"
@@ -11,67 +10,79 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd">
 
-	<channel id="input"/>
+	<channel id="input" />
 
-	<aggregator
-		input-channel="input" output-channel="output"
+	<aggregator input-channel="input" output-channel="output"
 		correlation-strategy-expression="${correlation:'${xd.stream.name}}'"
-		release-strategy-expression="${release:size() == ${count:50}}"
-		expression="${aggregation:#this.![payload]}"
-		send-partial-result-on-expiry="true"
-		expire-groups-upon-completion="true"
-		message-store="${store:memory}MessageStore"
-	>
+		release-strategy-expression="${release}" expression="${aggregation}"
+		send-partial-result-on-expiry="true" expire-groups-upon-completion="true"
+		message-store="messageStore">
 	</aggregator>
 
-	<beans:bean id="memoryMessageStore" class="org.springframework.integration.store.SimpleMessageStore" lazy-init="true" />
-
-	<beans:bean id="redisMessageStore" class="org.springframework.integration.redis.store.RedisMessageStore" lazy-init="true">
-		<beans:constructor-arg ref="redisConnectionFactory"/>
-	</beans:bean>
-	
-	<beans:bean id="redisConnectionFactory" lazy-init="true"
-		class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory">
-		<beans:constructor-arg index="0" value="${hostname:localhost}" />
-		<beans:constructor-arg index="1" value="${port:6379}" />
-		<beans:property name="password" value="${password:#{null}}" />
-	</beans:bean>
-	
-	<beans:bean id="jdbcMessageStore" class="org.springframework.integration.jdbc.JdbcMessageStore" lazy-init="true" depends-on="dataSourceInitializer">
-		<beans:constructor-arg ref="dataSource"/>
-	</beans:bean>
-	
-	<beans:bean id="dataSourceInitializer" class="org.springframework.jdbc.datasource.init.DataSourceInitializer" lazy-init="true">
-		<beans:property name="databasePopulator" ref="databasePopulator"/>
-		<beans:property name="dataSource" ref="dataSource"/>
-		<beans:property name="enabled" value="${initdb:false}"/>
-	</beans:bean>
-
-	<beans:bean id="databasePopulator" class="org.springframework.jdbc.datasource.init.ResourceDatabasePopulator" lazy-init="true">
-		<beans:property name="scripts" value="classpath:/org/springframework/integration/jdbc/schema-#{@dbkind}.sql"/>
-	</beans:bean>
-	
-	<beans:bean id="dbkind" class="org.springframework.xd.dirt.jdbc.util.DatabaseVendorFriendlyNameFactoryBean" lazy-init="true">
-		<beans:property name="override" value="${dbkind:#{null}}" />
-		<beans:property name="dataSource" ref="dataSource" />
-	</beans:bean>
-
-	<beans:bean id="dataSource" class="org.springframework.jdbc.datasource.SimpleDriverDataSource" lazy-init="true">
-		<beans:property name="driverClass" value="${driverClass:}"/>
-		<beans:property name="url" value="${url:}"/>
-		<beans:property name="username" value="${username:}"/>
-		<beans:property name="password" value="${password:}"/>
-	</beans:bean>
-
-	<beans:bean id="reaper" class="org.springframework.integration.store.MessageGroupStoreReaper">
-		<beans:property name="messageGroupStore" ref="${store:memory}MessageStore" />
-		<beans:property name="timeout" value="${timeout:50000}" />
+	<beans:bean id="reaper"
+		class="org.springframework.integration.store.MessageGroupStoreReaper">
+		<beans:property name="messageGroupStore" ref="messageStore" />
+		<beans:property name="timeout" value="${timeout}" />
 	</beans:bean>
 
 	<task:scheduled-tasks scheduler="scheduler">
-		<task:scheduled ref="reaper" method="run" fixed-rate="${timeout:50000}" />
+		<task:scheduled ref="reaper" method="run" fixed-rate="${timeout}" />
 	</task:scheduled-tasks>
 
-	<channel id="output"/>
+	<channel id="output" />
+
+	<beans:beans profile="use-memory-store">
+		<beans:bean id="messageStore"
+			class="org.springframework.integration.store.SimpleMessageStore" />
+	</beans:beans>
+
+	<beans:beans profile="use-jdbc-store">
+		<beans:bean id="messageStore"
+			class="org.springframework.integration.jdbc.JdbcMessageStore"
+			depends-on="dataSourceInitializer">
+			<beans:constructor-arg ref="dataSource" />
+		</beans:bean>
+
+		<beans:bean id="dataSourceInitializer"
+			class="org.springframework.jdbc.datasource.init.DataSourceInitializer">
+			<beans:property name="databasePopulator" ref="databasePopulator" />
+			<beans:property name="dataSource" ref="dataSource" />
+			<beans:property name="enabled" value="${initializeDatabase}" />
+		</beans:bean>
+
+		<beans:bean id="databasePopulator"
+			class="org.springframework.jdbc.datasource.init.ResourceDatabasePopulator">
+			<beans:property name="scripts"
+				value="classpath:/org/springframework/integration/jdbc/schema-#{@dbkind}.sql" />
+		</beans:bean>
+
+		<beans:bean id="dbkind"
+			class="org.springframework.xd.dirt.jdbc.util.DatabaseVendorFriendlyNameFactoryBean">
+			<beans:property name="override" value="${dbkind:#{null}}" />
+			<beans:property name="dataSource" ref="dataSource" />
+		</beans:bean>
+
+		<beans:bean id="dataSource"
+			class="org.springframework.jdbc.datasource.SimpleDriverDataSource">
+			<beans:property name="driverClass" value="${driverClass}" />
+			<beans:property name="url" value="${url}" />
+			<beans:property name="username" value="${username}" />
+			<beans:property name="password" value="${password}" />
+		</beans:bean>
+	</beans:beans>
+
+	<beans:beans profile="use-redis-store">
+		<beans:bean id="messageStore"
+			class="org.springframework.integration.redis.store.RedisMessageStore">
+			<beans:constructor-arg ref="redisConnectionFactory" />
+		</beans:bean>
+
+		<beans:bean id="redisConnectionFactory" lazy-init="true"
+			class="org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory">
+			<beans:constructor-arg index="0" value="${hostname}" />
+			<beans:constructor-arg index="1" value="${port}" />
+			<beans:property name="password" value="${password}" />
+		</beans:bean>
+	</beans:beans>
 
 </beans:beans>

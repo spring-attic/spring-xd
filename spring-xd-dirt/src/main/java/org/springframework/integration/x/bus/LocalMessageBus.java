@@ -64,9 +64,7 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 
 	private PollerMetadata poller;
 
-	private final Map<String, ExecutorChannel> requestChannels = new HashMap<String, ExecutorChannel>();
-
-	private final Map<String, ExecutorChannel> replyChannels = new HashMap<String, ExecutorChannel>();
+	private final Map<String, ExecutorChannel> requestReplyChannels = new HashMap<String, ExecutorChannel>();
 
 	private volatile ExecutorService executor = Executors.newCachedThreadPool();
 
@@ -202,9 +200,8 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 
 	@Override
 	public void bindRequestor(final String name, MessageChannel requests, final MessageChannel replies) {
+		final MessageChannel requestChannel = this.findOrCreateRequestReplyChannel("requestor." + name);
 		// TODO: handle Pollable ?
-		final ExecutorChannel requestChannel = new ExecutorChannel(this.executor);
-		Assert.isTrue(this.requestChannels.put(name, requestChannel) == null, "requestor " + name + " is already bound");
 		Assert.isInstanceOf(SubscribableChannel.class, requests);
 		((SubscribableChannel) requests).subscribe(new MessageHandler() {
 
@@ -213,8 +210,8 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 				requestChannel.send(message);
 			}
 		});
-		ExecutorChannel replyChannel = new ExecutorChannel(this.executor);
-		Assert.isTrue(this.replyChannels.put(name, replyChannel) == null, "requestor " + name + " is already bound");
+
+		ExecutorChannel replyChannel = this.findOrCreateRequestReplyChannel("replier." + name);
 		replyChannel.subscribe(new MessageHandler() {
 
 			@Override
@@ -225,9 +222,8 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 	}
 
 	@Override
-	public void bindReplier(String name, String requestorName, final MessageChannel requests, MessageChannel replies) {
-		SubscribableChannel requestChannel = this.requestChannels.get(requestorName);
-		Assert.notNull(requestChannel, requestorName + " is not bound");
+	public void bindReplier(String name, final MessageChannel requests, MessageChannel replies) {
+		SubscribableChannel requestChannel = this.findOrCreateRequestReplyChannel("requestor." + name);
 		requestChannel.subscribe(new MessageHandler() {
 
 			@Override
@@ -238,8 +234,7 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 
 		// TODO: handle Pollable ?
 		Assert.isInstanceOf(SubscribableChannel.class, replies);
-		final SubscribableChannel replyChannel = this.replyChannels.get(requestorName);
-		Assert.notNull(replyChannel, requestorName + " is not bound");
+		final SubscribableChannel replyChannel = this.findOrCreateRequestReplyChannel("replier." + name);
 		((SubscribableChannel) replies).subscribe(new MessageHandler() {
 
 			@Override
@@ -249,19 +244,21 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 		});
 	}
 
-	@Override
-	public void unbindProducer(String name, MessageChannel channel) {
-		MessageChannel requestChannel = this.requestChannels.remove(name);
-		if (requestChannel == null) {
-			super.unbindProducer(name, channel);
+	private synchronized ExecutorChannel findOrCreateRequestReplyChannel(String name) {
+		ExecutorChannel channel = this.requestReplyChannels.get(name);
+		if (channel == null) {
+			channel = new ExecutorChannel(this.executor);
+			this.requestReplyChannels.put(name, channel);
 		}
+		return channel;
 	}
 
 	@Override
-	public void unbindConsumer(String name, MessageChannel channel) {
-		MessageChannel requestChannel = this.replyChannels.remove(name);
+	public void unbindProducer(String name, MessageChannel channel) {
+		this.requestReplyChannels.remove("replier." + name);
+		MessageChannel requestChannel = this.requestReplyChannels.remove("requestor." + name);
 		if (requestChannel == null) {
-			super.unbindConsumer(name, channel);
+			super.unbindProducer(name, channel);
 		}
 	}
 

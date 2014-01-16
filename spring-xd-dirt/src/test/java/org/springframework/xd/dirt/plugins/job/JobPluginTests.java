@@ -223,13 +223,11 @@ public class JobPluginTests {
 	}
 
 	protected void checkBusBound(MessageBus bus) {
-		assertEquals(1, TestUtils.getPropertyValue(bus, "requestChannels", Map.class).size());
-		assertEquals(1, TestUtils.getPropertyValue(bus, "replyChannels", Map.class).size());
+		assertEquals(2, TestUtils.getPropertyValue(bus, "requestReplyChannels", Map.class).size());
 	}
 
 	protected void checkBusUnbound(MessageBus bus) {
-		assertEquals(0, TestUtils.getPropertyValue(bus, "requestChannels", Map.class).size());
-		assertEquals(0, TestUtils.getPropertyValue(bus, "replyChannels", Map.class).size());
+		assertEquals(0, TestUtils.getPropertyValue(bus, "requestReplyChannels", Map.class).size());
 	}
 
 	@Test
@@ -359,7 +357,7 @@ public class JobPluginTests {
 		}
 
 		@Override
-		public void bindReplier(String name, String requestorName, MessageChannel requests, MessageChannel replies) {
+		public void bindReplier(String name, MessageChannel requests, MessageChannel replies) {
 			Assert.fail("Should be not be called.");
 		}
 

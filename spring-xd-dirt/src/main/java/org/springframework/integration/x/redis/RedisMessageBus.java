@@ -168,12 +168,12 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 	}
 
 	@Override
-	public void bindReplier(String name, String requestorName, MessageChannel requests, MessageChannel replies) {
+	public void bindReplier(String name, MessageChannel requests, MessageChannel replies) {
 		if (logger.isInfoEnabled()) {
-			logger.info("binding replier: " + name + " (" + requestorName + ")");
+			logger.info("binding replier: " + name);
 		}
 		RedisQueueMessageDrivenEndpoint adapter = new RedisQueueMessageDrivenEndpoint(
-				"queue." + requestorName + ".requests",
+				"queue." + name + ".requests",
 				this.connectionFactory);
 		adapter.setSerializer(null);
 		this.doRegisterConsumer(name, requests, MEDIATYPES_MEDIATYPE_ALL, adapter);

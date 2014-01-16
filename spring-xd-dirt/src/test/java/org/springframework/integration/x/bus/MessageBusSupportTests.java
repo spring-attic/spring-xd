@@ -259,7 +259,7 @@ public class MessageBusSupportTests {
 		}
 
 		@Override
-		public void bindReplier(String name, String requestorName, MessageChannel requests, MessageChannel replies) {
+		public void bindReplier(String name, MessageChannel requests, MessageChannel replies) {
 		}
 
 	}

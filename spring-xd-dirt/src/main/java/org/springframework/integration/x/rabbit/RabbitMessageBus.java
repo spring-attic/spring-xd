@@ -203,11 +203,11 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	}
 
 	@Override
-	public void bindReplier(String name, String requestorName, MessageChannel requests, MessageChannel replies) {
+	public void bindReplier(String name, MessageChannel requests, MessageChannel replies) {
 		if (logger.isInfoEnabled()) {
-			logger.info("binding replier: " + name + " (" + requestorName + ")");
+			logger.info("binding replier: " + name);
 		}
-		Queue requestQueue = new Queue(requestorName + ".requests");
+		Queue requestQueue = new Queue(name + ".requests");
 		this.rabbitAdmin.declareQueue(requestQueue);
 		this.doRegisterConsumer(name, requests, MEDIATYPES_MEDIATYPE_ALL, requestQueue);
 

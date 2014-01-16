@@ -20,6 +20,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import org.springframework.context.ApplicationContext;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
@@ -83,6 +84,10 @@ public class LocalSingleNodeStreamDeploymentIntegrationTests extends AbstractSin
 		bus.unbindProducer("queue:x", testChannel);
 		bus.unbindConsumer("queue:y", y3);
 		bus.unbindConsumer("queue:z", z3);
+	}
+
+	@Override
+	protected void cleanup(ApplicationContext context) {
 	}
 
 }

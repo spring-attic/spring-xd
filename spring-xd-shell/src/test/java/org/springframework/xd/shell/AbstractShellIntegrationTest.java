@@ -28,9 +28,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.ClassRule;
 
 import org.springframework.shell.Bootstrap;
@@ -54,6 +52,7 @@ import org.springframework.xd.test.redis.RedisTestSupport;
  * @author David Turanski
  * 
  */
+
 public abstract class AbstractShellIntegrationTest {
 
 	/**
@@ -82,22 +81,23 @@ public abstract class AbstractShellIntegrationTest {
 	private static RedisRuntimeContainerInfoRepository runtimeInformationRepository;
 
 
-	@BeforeClass
-	public static void startUp() throws InterruptedException, IOException {
+	public static synchronized void startUp() throws InterruptedException, IOException {
+		if (application == null) {
+			application = new SingleNodeApplication().run("--transport", "local",
+					"--analytics", "redis",
+					"--store", "redis"
+					);
+			Bootstrap bootstrap = new Bootstrap();
+			shell = bootstrap.getJLineShellComponent();
 
-		application = new SingleNodeApplication().run("--transport", "local",
-				"--analytics", "redis",
-				"--store", "redis"
-				);
-		Bootstrap bootstrap = new Bootstrap();
-		shell = bootstrap.getJLineShellComponent();
-
-		runtimeInformationRepository = application.getContainerContext().getBean(
-				RedisRuntimeContainerInfoRepository.class);
-
+			runtimeInformationRepository = application.getContainerContext().getBean(
+					RedisRuntimeContainerInfoRepository.class);
+		}
+		if (!shell.isRunning()) {
+			shell.start();
+		}
 	}
 
-	@AfterClass
 	public static void shutdown() {
 		runtimeInformationRepository.delete(application.getContainerContext().getId());
 		logger.info("Stopping XD Shell");

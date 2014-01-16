@@ -41,7 +41,7 @@ import com.google.common.base.Function;
  * 
  * @author Florent Biville
  */
-public class ModuleListTest {
+public class ModuleListTests {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void failsIfModuleCollectionIsNull() {

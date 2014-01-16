@@ -23,6 +23,7 @@ import static org.springframework.xd.shell.command.fixtures.XDMatchers.eventuall
 import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasContentsThat;
 
 import org.junit.Test;
+
 import org.springframework.xd.shell.command.fixtures.FileSink;
 
 /**
@@ -48,7 +49,7 @@ public class TriggerModulesTest extends AbstractStreamIntegrationTest {
 				binaryFileSink
 				);
 
-		assertThat(binaryFileSink, not(eventually(3, 300, hasContentsThat(equalTo("Hello")))));
+		assertThat(binaryFileSink, not(eventually(1, 300, hasContentsThat(equalTo("Hello")))));
 
 	}
 }

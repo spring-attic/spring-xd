@@ -34,7 +34,6 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
-
 import org.springframework.batch.core.JobParameter;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.xd.shell.util.Table;

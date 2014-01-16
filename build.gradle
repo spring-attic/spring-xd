@@ -1190,7 +1190,7 @@ project('spring-xd-shell') {
 	}
 
 	test {
-		exclude '**/MailCommand*'
+		include '**/*TestSuite*'
 	}
 
 	dependencies {

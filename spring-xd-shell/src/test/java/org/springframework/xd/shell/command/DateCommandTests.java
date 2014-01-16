@@ -38,7 +38,7 @@ import uk.co.it.modular.hamcrest.date.DateMatchers;
  * @author Mark Pollack
  * 
  */
-public class DateCommandTest extends AbstractShellIntegrationTest {
+public class DateCommandTests extends AbstractShellIntegrationTest {
 
 	@Test
 	public void testDate() throws ParseException {

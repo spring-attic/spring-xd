@@ -288,37 +288,54 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 	}
 
 	@Test
-	public void testLaunchJobTwiceWhereMakeUniqueIsImplicitlyTrue() {
+	public void testLaunchJobTwiceWhereMakeUniqueIsImplicitlyTrue() throws Exception {
 		logger.info("Launch batch job twice (makeUnique is implicitly true)");
+		// Batch 3.0 requires at least one parameter to reject duplicate executions of an instance
+		String myJobParams = "{\"-param(long)\":\"12345\"}";
+		JobParametersHolder.reset();
+		final JobParametersHolder jobParametersHolder = new JobParametersHolder();
 
-		executeJobCreate(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR);
-		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
-		executeJobLaunch(MY_JOB);
-		executeJobLaunch(MY_JOB);
+		executeJobCreate(MY_JOB_WITH_PARAMETERS, JOB_WITH_PARAMETERS_DESCRIPTOR);
+		checkForJobInList(MY_JOB_WITH_PARAMETERS, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
+		executeJobLaunch(MY_JOB_WITH_PARAMETERS, myJobParams);
+		assertTrue("The countdown latch expired and did not count down.", jobParametersHolder.isDone());
+		executeJobLaunch(MY_JOB_WITH_PARAMETERS, myJobParams);
 	}
 
 	@Test
-	public void testLaunchJobTwiceWhereMakeUniqueIsTrue() {
+	public void testLaunchJobTwiceWhereMakeUniqueIsTrue() throws Exception {
 		logger.info("Launch batch job (makeUnique=true) twice");
+		// Batch 3.0 requires at least one parameter to reject duplicate executions of an instance
+		String myJobParams = "{\"-param(long)\":\"12345\"}";
+		JobParametersHolder.reset();
+		final JobParametersHolder jobParametersHolder = new JobParametersHolder();
 
-		executeJobCreate(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR + " --makeUnique=true");
-		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR + " --makeUnique=true", true);
-		executeJobLaunch(MY_JOB);
-		executeJobLaunch(MY_JOB);
+		executeJobCreate(MY_JOB_WITH_PARAMETERS, JOB_WITH_PARAMETERS_DESCRIPTOR + " --makeUnique=true");
+		checkForJobInList(MY_JOB_WITH_PARAMETERS, JOB_WITH_PARAMETERS_DESCRIPTOR + " --makeUnique=true", true);
+		executeJobLaunch(MY_JOB_WITH_PARAMETERS, myJobParams);
+		assertTrue("The countdown latch expired and did not count down.", jobParametersHolder.isDone());
+		executeJobLaunch(MY_JOB_WITH_PARAMETERS, myJobParams);
 	}
 
 	@Test
-	public void testLaunchJobTwiceWhereMakeUniqueIsFalse() {
+	public void testLaunchJobTwiceWhereMakeUniqueIsFalse() throws Exception {
 		logger.info("Launch batch job (makeUnique=false) twice");
+		// Batch 3.0 requires at least one parameter to reject duplicate executions of an instance
+		String myJobParams = "{\"-param(long)\":\"12345\"}";
+		JobParametersHolder.reset();
+		final JobParametersHolder jobParametersHolder = new JobParametersHolder();
 
-		executeJobCreate(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR + " --makeUnique=false");
-		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR + " --makeUnique=false", true);
-		executeJobLaunch(MY_JOB);
+		executeJobCreate(MY_JOB_WITH_PARAMETERS, JOB_WITH_PARAMETERS_DESCRIPTOR + " --makeUnique=false");
+		checkForJobInList(MY_JOB_WITH_PARAMETERS, JOB_WITH_PARAMETERS_DESCRIPTOR + " --makeUnique=false", true);
+		executeJobLaunch(MY_JOB_WITH_PARAMETERS, myJobParams);
+		assertTrue("The countdown latch expired and did not count down.", jobParametersHolder.isDone());
 
-		CommandResult result = executeCommandExpectingFailure("job launch --name " + MY_JOB);
+		CommandResult result = executeCommandExpectingFailure("job launch --name " + MY_JOB_WITH_PARAMETERS
+				+ " --params " + myJobParams);
 		assertThat(
 				result.getException().getMessage(),
-				containsString("A job instance already exists and is complete for parameters={}.  If you want to run this job again, change the parameters."));
+				containsString("A job instance already exists and is complete for parameters={param=12345}." +
+						"  If you want to run this job again, change the parameters."));
 	}
 
 	public static class JobParametersHolder {
@@ -461,4 +478,5 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		assertNotNull(percentageComplete);
 		assertNotNull(duration);
 	}
+
 }

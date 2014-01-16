@@ -52,6 +52,7 @@ import org.springframework.validation.DataBinder;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.beanvalidation.CustomValidatorBean;
 import org.springframework.xd.module.options.spi.ProfileNamesProvider;
+import org.springframework.xd.module.options.spi.ValidationGroupsProvider;
 
 
 /**
@@ -283,10 +284,22 @@ public class PojoModuleOptionsMetadata implements ModuleOptionsMetadata {
 		CustomValidatorBean validator = new CustomValidatorBean();
 		validator.afterPropertiesSet();
 		dataBinder.setValidator(validator);
-		dataBinder.validate();
+
+		Class<?>[] groups = determineGroupsToUse(beanWrapper.getWrappedInstance());
+		dataBinder.validate((Object[]) groups);
 
 		if (dataBinder.getBindingResult().hasErrors()) {
 			throw new BindException(dataBinder.getBindingResult());
+		}
+	}
+
+	private Class<?>[] determineGroupsToUse(Object pojo) {
+		if (pojo instanceof ValidationGroupsProvider) {
+			ValidationGroupsProvider groupsProvider = (ValidationGroupsProvider) pojo;
+			return groupsProvider.groupsToValidate();
+		}
+		else {
+			return ValidationGroupsProvider.DEFAULT_GROUP;
 		}
 	}
 

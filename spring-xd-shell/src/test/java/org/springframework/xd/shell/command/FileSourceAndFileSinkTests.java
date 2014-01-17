@@ -25,10 +25,10 @@ import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasConten
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.util.Random;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.util.FileCopyUtils;
 import org.springframework.xd.shell.command.fixtures.FileSink;
 import org.springframework.xd.shell.command.fixtures.FileSource;
@@ -80,7 +80,7 @@ public class FileSourceAndFileSinkTests extends AbstractStreamIntegrationTest {
 		FileSink sink = newFileSink().binary(true);
 
 		source.appendToFile("Hi there!");
-		stream().create("foobar", "%s | %s", source, sink);
+		stream().create(getStreamName(), "%s | %s", source, sink);
 		assertThat(sink, eventually(hasContentsThat(equalTo("Hi there!"))));
 
 
@@ -93,7 +93,7 @@ public class FileSourceAndFileSinkTests extends AbstractStreamIntegrationTest {
 		}
 
 		// Both use stream name
-		String streamName = String.format("foobar-%s", new Random().nextInt());
+		String streamName = getStreamName();
 
 		File inDir = new File(DEFAULT_IN, streamName);
 		inDir.mkdirs();

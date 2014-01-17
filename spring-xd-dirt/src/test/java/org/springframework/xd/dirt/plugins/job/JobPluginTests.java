@@ -51,6 +51,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.x.bus.AbstractTestMessageBus;
 import org.springframework.integration.x.bus.LocalMessageBus;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.Message;
@@ -76,6 +77,8 @@ public class JobPluginTests {
 	private JobPlugin plugin;
 
 	private ConfigurableApplicationContext sharedContext;
+
+	protected AbstractTestMessageBus testMessageBus;
 
 	@After
 	public void tearDown() {
@@ -188,11 +191,13 @@ public class JobPluginTests {
 
 	@Test
 	public void partitionedJob() {
+		String moduleGroupName = "partitionedJob";
+		int moduleIndex = 0;
 		Module module = Mockito.mock(Module.class);
 		when(module.getType()).thenReturn(ModuleType.job);
 		Properties properties = new Properties();
 		when(module.getProperties()).thenReturn(properties);
-		when(module.getDeploymentMetadata()).thenReturn(new DeploymentMetadata("partitionedJob", 0));
+		when(module.getDeploymentMetadata()).thenReturn(new DeploymentMetadata(moduleGroupName, moduleIndex));
 		MessageBus bus = getMessageBus();
 		when(module.getComponent(MessageBus.class)).thenReturn(bus);
 		MessageChannel stepsOut = new DirectChannel();
@@ -361,6 +366,13 @@ public class JobPluginTests {
 			Assert.fail("Should not be called.");
 		}
 
+	}
+
+	@After
+	public void cleanup() {
+		if (testMessageBus != null) {
+			testMessageBus.cleanup();
+		}
 	}
 
 }

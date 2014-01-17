@@ -27,6 +27,7 @@ import org.junit.Rule;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.x.bus.MessageBus;
+import org.springframework.integration.x.bus.RedisTestMessageBus;
 import org.springframework.integration.x.bus.serializer.AbstractCodec;
 import org.springframework.integration.x.bus.serializer.CompositeCodec;
 import org.springframework.integration.x.bus.serializer.MultiTypeCodec;
@@ -48,19 +49,28 @@ public class RedisJobPluginTests extends JobPluginTests {
 
 	@Override
 	protected MessageBus getMessageBus() {
-		RedisMessageBus redisMessageBus = new RedisMessageBus(redisAvailable.getResource(), getCodec());
-		redisMessageBus.setIntegrationEvaluationContext(new StandardEvaluationContext());
-		return redisMessageBus;
+		if (testMessageBus == null) {
+			testMessageBus = new RedisTestMessageBus(redisAvailable.getResource(), getCodec());
+			RedisMessageBus redisMessageBus = (RedisMessageBus) testMessageBus.getCoreMessageBus();
+			redisMessageBus.setIntegrationEvaluationContext(new StandardEvaluationContext());
+		}
+		return testMessageBus;
 	}
 
 	@Override
 	protected void checkBusBound(MessageBus bus) {
-		assertEquals(4, TestUtils.getPropertyValue(bus, "bindings", Collection.class).size());
+		if (bus instanceof RedisTestMessageBus) {
+			MessageBus msgBus = ((RedisTestMessageBus) bus).getCoreMessageBus();
+			assertEquals(4, TestUtils.getPropertyValue(msgBus, "bindings", Collection.class).size());
+		}
 	}
 
 	@Override
 	protected void checkBusUnbound(MessageBus bus) {
-		assertEquals(0, TestUtils.getPropertyValue(bus, "bindings", Collection.class).size());
+		if (bus instanceof RedisTestMessageBus) {
+			MessageBus msgBus = ((RedisTestMessageBus) bus).getCoreMessageBus();
+			assertEquals(0, TestUtils.getPropertyValue(msgBus, "bindings", Collection.class).size());
+		}
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })

@@ -24,6 +24,7 @@ import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasConten
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
+
 import org.springframework.xd.shell.command.fixtures.FileSink;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
 
@@ -47,7 +48,7 @@ public class SpelPropertyAccessorIntegrationTests extends AbstractStreamIntegrat
 		HttpSource source = newHttpSource();
 
 		stream().create(
-				"tupletest",
+				getStreamName(),
 				"%s | json-to-tuple | transform --expression=payload.foo | %s",
 				source, sink);
 
@@ -65,7 +66,7 @@ public class SpelPropertyAccessorIntegrationTests extends AbstractStreamIntegrat
 		HttpSource source = newHttpSource();
 
 		stream().create(
-				"jsontest",
+				getStreamName(),
 				"%s | transform --expression=payload.foo.toString() | %s",
 				source, sink);
 
@@ -81,7 +82,7 @@ public class SpelPropertyAccessorIntegrationTests extends AbstractStreamIntegrat
 		HttpSource source = newHttpSource();
 
 		stream().create(
-				"jsontest",
+				getStreamName(),
 				"%s | json-to-tuple | transform --expression=payload.entities.hashtags.![text].toString() | %s",
 				source, sink);
 		String tweet = "{\"created_at\":\"Tue Aug 27 18:17:06 +0000 2013\",\"id\":100000,\"text\":\"whocares\",\"retweet_count\":0,"

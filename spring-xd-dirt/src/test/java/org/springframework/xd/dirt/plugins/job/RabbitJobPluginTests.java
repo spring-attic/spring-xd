@@ -26,12 +26,12 @@ import org.junit.Rule;
 
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.x.bus.MessageBus;
+import org.springframework.integration.x.bus.RabbitTestMessageBus;
 import org.springframework.integration.x.bus.serializer.AbstractCodec;
 import org.springframework.integration.x.bus.serializer.CompositeCodec;
 import org.springframework.integration.x.bus.serializer.MultiTypeCodec;
 import org.springframework.integration.x.bus.serializer.kryo.PojoCodec;
 import org.springframework.integration.x.bus.serializer.kryo.TupleCodec;
-import org.springframework.integration.x.rabbit.RabbitMessageBus;
 import org.springframework.xd.test.rabbit.RabbitTestSupport;
 import org.springframework.xd.tuple.Tuple;
 
@@ -47,17 +47,26 @@ public class RabbitJobPluginTests extends JobPluginTests {
 
 	@Override
 	protected MessageBus getMessageBus() {
-		return new RabbitMessageBus(rabbitAvailableRule.getResource(), getCodec());
+		if (testMessageBus == null) {
+			testMessageBus = new RabbitTestMessageBus(rabbitAvailableRule.getResource(), getCodec());
+		}
+		return testMessageBus;
 	}
 
 	@Override
 	protected void checkBusBound(MessageBus bus) {
-		assertEquals(4, TestUtils.getPropertyValue(bus, "bindings", Collection.class).size());
+		if (bus instanceof RabbitTestMessageBus) {
+			MessageBus msgBus = ((RabbitTestMessageBus) bus).getCoreMessageBus();
+			assertEquals(4, TestUtils.getPropertyValue(msgBus, "bindings", Collection.class).size());
+		}
 	}
 
 	@Override
 	protected void checkBusUnbound(MessageBus bus) {
-		assertEquals(0, TestUtils.getPropertyValue(bus, "bindings", Collection.class).size());
+		if (bus instanceof RabbitTestMessageBus) {
+			MessageBus msgBus = ((RabbitTestMessageBus) bus).getCoreMessageBus();
+			assertEquals(0, TestUtils.getPropertyValue(msgBus, "bindings", Collection.class).size());
+		}
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })

@@ -38,8 +38,10 @@ public class RabbitSingleNodeInitializationTests extends AbstractSingleNodeIniti
 	@Override
 	protected void cleanup(ApplicationContext context) {
 		RabbitAdmin admin = context.getBean(RabbitAdmin.class);
-		admin.deleteQueue("xd.deployer");
-		admin.deleteExchange("xd.undeployer");
+		String deployerQueue = context.getEnvironment().resolvePlaceholders(XD_DEPLOYER_PLACEHOLDER);
+		String undeployerExchange = context.getEnvironment().resolvePlaceholders(XD_UNDEPLOYER_PLACEHOLDER);
+		admin.deleteQueue(deployerQueue);
+		admin.deleteExchange(undeployerExchange);
 	}
 
 	@Override

@@ -27,6 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
@@ -39,14 +40,22 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.x.bus.AbstractTestMessageBus;
 import org.springframework.integration.x.bus.MessageBus;
+import org.springframework.integration.x.bus.serializer.AbstractCodec;
+import org.springframework.integration.x.bus.serializer.CompositeCodec;
+import org.springframework.integration.x.bus.serializer.MultiTypeCodec;
+import org.springframework.integration.x.bus.serializer.kryo.PojoCodec;
+import org.springframework.integration.x.bus.serializer.kryo.TupleCodec;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.xd.dirt.config.TestMessageBusInjection;
 import org.springframework.xd.dirt.event.AbstractModuleEvent;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.core.Module;
 import org.springframework.xd.test.RandomConfigurationSupport;
+import org.springframework.xd.tuple.Tuple;
 
 
 /**
@@ -57,6 +66,7 @@ import org.springframework.xd.test.RandomConfigurationSupport;
  * @author David Turanski
  * @author Gunnar Hillert
  * @author Mark Fisher
+ * @author Ilayaperumal Gopinathan
  */
 public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends RandomConfigurationSupport {
 
@@ -74,6 +84,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 
 	private static final QueueChannel tapChannel = new QueueChannel();
 
+	protected static AbstractTestMessageBus testMessageBus;
 
 	@ClassRule
 	public static ExternalResource shutdownApplication = new ExternalResource() {
@@ -86,34 +97,37 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 		}
 	};
 
-	protected static final String XD_DEPLOYER_PLACEHOLDER = "${xd.deployer.queue}";
+	private final String queueRoute = "queue:routeit";
 
-	protected static final String XD_UNDEPLOYER_PLACEHOLDER = "${xd.undeployer.topic}";
+	private final String queueFoo = "queue:foo";
+
+	private final String queueBar = "queue:bar";
+
+	private final String topicFoo = "topic:foo";
 
 	@Test
 	public final void testRoutingWithSpel() throws InterruptedException {
 		final StreamDefinition routerDefinition = new StreamDefinition("routerDefinition",
-				"queue:routeit > router --expression=payload.contains('a')?'queue:foo':'queue:bar'");
+				queueRoute + " > router --expression=payload.contains('a')?'" + queueFoo + "':'" + queueBar + "'");
 		doTest(routerDefinition);
 	}
 
 	@Test
 	public final void testRoutingWithGroovy() throws InterruptedException {
 		StreamDefinition routerDefinition = new StreamDefinition("routerDefinition",
-				"queue:routeit > router --script='org/springframework/xd/dirt/stream/router.groovy'");
+				queueRoute + " > router --script='org/springframework/xd/dirt/stream/router.groovy'");
 		doTest(routerDefinition);
 	}
 
 	@Test
 	public final void testTopicChannel() throws InterruptedException {
-		StreamDefinition bar1Definition = new StreamDefinition("bar1Definition",
-				"topic:foo > queue:bar1");
-		StreamDefinition bar2Definition = new StreamDefinition("bar2Definition",
-				"topic:foo > queue:bar2");
+		String queueBar1 = "queue:bar1";
+		String queueBar2 = "queue:bar2";
+		StreamDefinition bar1Definition = new StreamDefinition("bar1Definition", topicFoo + " > " + queueBar1);
+		StreamDefinition bar2Definition = new StreamDefinition("bar2Definition", topicFoo + " > " + queueBar2);
 		assertEquals(0, streamRepository.count());
 		streamDeployer.save(bar1Definition);
 		deploy(bar1Definition);
-
 		streamDeployer.save(bar2Definition);
 		deploy(bar2Definition);
 		Thread.sleep(1000);
@@ -126,12 +140,10 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 		QueueChannel bar1Channel = new QueueChannel();
 		QueueChannel bar2Channel = new QueueChannel();
 
-		bus.bindConsumer("queue:bar1", bar1Channel, Collections.singletonList(MediaType.ALL), true);
-		bus.bindConsumer("queue:bar2", bar2Channel, Collections.singletonList(MediaType.ALL), true);
-
+		bus.bindConsumer(queueBar1, bar1Channel, Collections.singletonList(MediaType.ALL), true);
+		bus.bindConsumer(queueBar2, bar2Channel, Collections.singletonList(MediaType.ALL), true);
 		DirectChannel testChannel = new DirectChannel();
-		bus.bindPubSubProducer("topic:foo", testChannel);
-
+		bus.bindPubSubProducer(topicFoo, testChannel);
 		testChannel.send(new GenericMessage<String>("hello"));
 
 		final Message<?> bar1Message = bar1Channel.receive(10000);
@@ -139,9 +151,9 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 		assertEquals("hello", bar1Message.getPayload());
 		assertEquals("hello", bar2Message.getPayload());
 
-		bus.unbindProducer("topic:foo", testChannel);
-		bus.unbindConsumer("queue:bar1", bar1Channel);
-		bus.unbindConsumer("queue:bar2", bar2Channel);
+		bus.unbindProducer(topicFoo, testChannel);
+		bus.unbindConsumer(queueBar1, bar1Channel);
+		bus.unbindConsumer(queueBar2, bar2Channel);
 	}
 
 
@@ -153,7 +165,11 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 		streamDefinitionRepository = context.getBean(StreamDefinitionRepository.class);
 		streamRepository = context.getBean(StreamRepository.class);
 		streamDeployer = application.getAdminContext().getBean(StreamDeployer.class);
-
+		// testMessageBus could be null in case if the implementing class doesn't want
+		// the TestMessageBus to get injected. (ex: in case of LocalMessageBus)
+		if (testMessageBus != null) {
+			TestMessageBusInjection.injectMessageBus(application, testMessageBus);
+		}
 		AbstractMessageChannel deployChannel = application.getAdminContext().getBean("deployChannel",
 				AbstractMessageChannel.class);
 		AbstractMessageChannel undeployChannel = application.getAdminContext().getBean("undeployChannel",
@@ -161,6 +177,13 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 		deployChannel.addInterceptor(new WireTap(tapChannel));
 		undeployChannel.addInterceptor(new WireTap(tapChannel));
 		context.addApplicationListener(moduleEventListener);
+	}
+
+	@AfterClass
+	public static void cleanupMessageBus() {
+		if (testMessageBus != null) {
+			testMessageBus.cleanup();
+		}
 	}
 
 	@After
@@ -173,7 +196,13 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 		while (msg != null) {
 			msg = tapChannel.receive(1000);
 		}
+	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	protected static MultiTypeCodec<Object> getCodec() {
+		Map<Class<?>, AbstractCodec<?>> codecs = new HashMap<Class<?>, AbstractCodec<?>>();
+		codecs.put(Tuple.class, new TupleCodec());
+		return new CompositeCodec(codecs, new PojoCodec());
 	}
 
 	@Test
@@ -242,6 +271,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 		assertEquals(0, streamRepository.count());
 		streamDeployer.save(routerDefinition);
 		deploy(routerDefinition);
+		Thread.sleep(1000);
 		assertEquals(1, streamRepository.count());
 		assertModuleRequest("router", false);
 
@@ -250,11 +280,10 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
-		bus.bindConsumer("queue:foo", fooChannel, Collections.singletonList(MediaType.ALL), true);
-		bus.bindConsumer("queue:bar", barChannel, Collections.singletonList(MediaType.ALL), true);
-
+		bus.bindConsumer(queueFoo, fooChannel, Collections.singletonList(MediaType.ALL), true);
+		bus.bindConsumer(queueBar, barChannel, Collections.singletonList(MediaType.ALL), true);
 		DirectChannel testChannel = new DirectChannel();
-		bus.bindProducer("queue:routeit", testChannel, true);
+		bus.bindProducer(queueRoute, testChannel, true);
 		testChannel.send(MessageBuilder.withPayload("a").build());
 
 		testChannel.send(MessageBuilder.withPayload("b").build());
@@ -264,9 +293,9 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 		assertEquals("a", fooMessage.getPayload());
 		assertEquals("b", barMessage.getPayload());
 
-		bus.unbindProducer("queue:routeit", testChannel);
-		bus.unbindConsumer("queue:foo", fooChannel);
-		bus.unbindConsumer("queue:bar", barChannel);
+		bus.unbindProducer(queueRoute, testChannel);
+		bus.unbindConsumer(queueFoo, fooChannel);
+		bus.unbindConsumer(queueBar, barChannel);
 	}
 
 	private boolean waitForStreamOp(StreamDefinition definition, boolean isDeploy) {

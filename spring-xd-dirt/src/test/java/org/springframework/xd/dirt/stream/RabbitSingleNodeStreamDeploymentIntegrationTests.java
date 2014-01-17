@@ -16,8 +16,10 @@ package org.springframework.xd.dirt.stream;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.rules.ExternalResource;
 
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
+import org.springframework.integration.x.bus.RabbitTestMessageBus;
 import org.springframework.xd.test.rabbit.RabbitTestSupport;
 
 /**
@@ -34,6 +36,17 @@ public class RabbitSingleNodeStreamDeploymentIntegrationTests extends
 		setUp("rabbit");
 	}
 
+	@ClassRule
+	public static ExternalResource initializeRabbitTestMessageBus = new ExternalResource() {
+
+		@Override
+		protected void before() {
+			if (testMessageBus == null) {
+				testMessageBus = new RabbitTestMessageBus(rabbitAvailableRule.getResource(), getCodec());
+			}
+		}
+	};
+
 	@AfterClass
 	public static void cleanup() {
 		if (context != null) {
@@ -44,5 +57,4 @@ public class RabbitSingleNodeStreamDeploymentIntegrationTests extends
 			admin.deleteExchange(undeployerExchange);
 		}
 	}
-
 }

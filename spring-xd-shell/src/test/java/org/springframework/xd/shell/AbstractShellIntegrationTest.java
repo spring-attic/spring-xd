@@ -36,6 +36,8 @@ import org.junit.ClassRule;
 import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
+import org.springframework.util.AlternativeJdkIdGenerator;
+import org.springframework.util.IdGenerator;
 import org.springframework.xd.dirt.container.store.RedisRuntimeContainerInfoRepository;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.test.RandomConfigurationSupport;
@@ -70,6 +72,8 @@ public abstract class AbstractShellIntegrationTest extends RandomConfigurationSu
 	protected static final String DEFAULT_METRIC_NAME = "bar";
 
 	public static boolean SHUTDOWN_AFTER_RUN = true;
+
+	private final IdGenerator idGenerator = new AlternativeJdkIdGenerator();
 
 	@ClassRule
 	public static RedisTestSupport redisAvailableRule = new RedisTestSupport();
@@ -118,6 +122,40 @@ public abstract class AbstractShellIntegrationTest extends RandomConfigurationSu
 
 	public static JLineShellComponent getShell() {
 		return shell;
+	}
+
+	private String generateUniqueName(String name) {
+		return name + "-" + idGenerator.generateId();
+	}
+
+	private String generateUniqueName() {
+		StackTraceElement[] element = Thread.currentThread().getStackTrace();
+		// Assumption here is that the getStreamName()/getJobName() is called from the @Test method
+		return generateUniqueName(element[3].getMethodName());
+	}
+
+	protected String getStreamName(String name) {
+		return generateUniqueName(name);
+	}
+
+	protected String getStreamName() {
+		return generateUniqueName();
+	}
+
+	protected String getTapName(String streamName) {
+		return "tap:stream:" + streamName;
+	}
+
+	protected String getJobName(String name) {
+		return generateUniqueName(name);
+	}
+
+	protected String getJobName() {
+		return generateUniqueName();
+	}
+
+	protected String getJobLaunchQueue(String jobName) {
+		return "queue:job:" + jobName;
 	}
 
 	/**

@@ -32,6 +32,7 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
 import org.springframework.util.StreamUtils;
 import org.springframework.xd.shell.command.fixtures.FileSink;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
@@ -62,7 +63,7 @@ public class HttpCommandTests extends AbstractStreamIntegrationTest {
 		final String stringToPost = "hello";
 		final FileSink fileSink = newFileSink().binary(true);
 
-		final String streamName = "postAsciiData";
+		final String streamName = getStreamName();
 		final String stream = String.format("%s | %s", httpSource, fileSink);
 
 		logger.info("Creating Stream: " + stream);
@@ -88,7 +89,7 @@ public class HttpCommandTests extends AbstractStreamIntegrationTest {
 		/** I want to go to Japan. */
 		final String stringToPostInJapanese = "\u65e5\u672c\u306b\u884c\u304d\u305f\u3044\u3002";
 
-		final String streamName = "postUtf8Data";
+		final String streamName = getStreamName();
 		final String stream = String.format("%s | %s", httpSource, fileSink);
 
 		logger.info("Creating Stream: " + stream);
@@ -117,7 +118,7 @@ public class HttpCommandTests extends AbstractStreamIntegrationTest {
 		StreamUtils.copy(stringToPostInJapanese, inCharset, os);
 		os.close();
 
-		final String streamName = "postUtf8Data";
+		final String streamName = getStreamName();
 		final String stream = String.format("%s | %s", source, fileSink);
 
 		stream().create(streamName, stream);

@@ -20,6 +20,7 @@ import org.junit.Rule;
 
 import org.springframework.integration.x.bus.AbstractMessageBusTests;
 import org.springframework.integration.x.bus.MessageBus;
+import org.springframework.integration.x.bus.RedisTestMessageBus;
 import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
@@ -31,8 +32,11 @@ public class RedisMessageBusTests extends AbstractMessageBusTests {
 	public RedisTestSupport redisAvailableRule = new RedisTestSupport();
 
 	@Override
-	protected MessageBus getMessageBus() throws Exception {
-		return new RedisMessageBus(redisAvailableRule.getResource(), getCodec());
+	protected MessageBus getMessageBus() {
+		if (testMessageBus == null) {
+			testMessageBus = new RedisTestMessageBus(redisAvailableRule.getResource(), getCodec());
+		}
+		return testMessageBus;
 	}
 
 }

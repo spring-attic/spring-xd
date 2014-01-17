@@ -116,6 +116,7 @@ public abstract class AbstractShellIntegrationTest extends RandomConfigurationSu
 			if (application != null) {
 				logger.info("Stopping Single Node Server");
 				application.close();
+				redisAvailableRule.getResource().destroy();
 			}
 		}
 	}
@@ -204,4 +205,5 @@ public abstract class AbstractShellIntegrationTest extends RandomConfigurationSu
 			FileUtils.deleteQuietly(file);
 		}
 	}
+
 }

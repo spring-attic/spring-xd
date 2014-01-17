@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans" xmlns:p="http://www.springframework.org/schema/p"
-	xmlns:int="http://www.springframework.org/schema/integration" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:task="http://www.springframework.org/schema/task"
 	xsi:schemaLocation="http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-4.0.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd
 		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
@@ -15,7 +19,11 @@
 
 	<!-- This is the "remote" worker -->
 
-	<int:channel id="stepExecutionRequests.input" />
+	<int:channel id="stepExecutionRequests.input">
+		<int:dispatcher task-executor="stepExecutor" />
+	</int:channel>
+
+	<task:executor id="stepExecutor" pool-size="${stepConcurrency:2}" />
 
 	<int:channel id="stepExecutionReplies.output" />
 
@@ -32,13 +40,6 @@
 		<constructor-arg ref="jobExecutionDao" />
 		<constructor-arg ref="stepExecutionDao" />
 		<constructor-arg ref="executionContextDao" />
-	</bean>
-
-	<bean id="executionContextDao" class="org.springframework.batch.core.repository.dao.JdbcExecutionContextDao">
-		<property name="jdbcTemplate" ref="jdbcTemplate" />
-		<property name="serializer">
-			<bean class="org.springframework.batch.core.repository.dao.XStreamExecutionContextStringSerializer" />
-		</property>
 	</bean>
 
 	<!-- Master -->

@@ -77,13 +77,13 @@ public class JobPlugin extends AbstractPlugin {
 
 	private static final String JOB_NOTIFICATIONS_CHANNEL = "notifications";
 
-	private static final String JOB_PARTIONER_REQUEST_CHANNEL = "stepExecutions.output";
+	private static final String JOB_PARTIONER_REQUEST_CHANNEL = "stepExecutionRequests.output";
 
-	private static final String JOB_PARTIONER_REPLY_CHANNEL = "stepExecutionResults.input";
+	private static final String JOB_PARTIONER_REPLY_CHANNEL = "stepExecutionReplies.input";
 
-	private static final String JOB_STEP_EXECUTION_REQUEST_CHANNEL = "stepExecutions.input";
+	private static final String JOB_STEP_EXECUTION_REQUEST_CHANNEL = "stepExecutionRequests.input";
 
-	private static final String JOB_STEP_EXECUTION_REPLY_CHANNEL = "stepExecutionResults.output";
+	private static final String JOB_STEP_EXECUTION_REPLY_CHANNEL = "stepExecutionReplies.output";
 
 
 	private final static Collection<MediaType> DEFAULT_ACCEPTED_CONTENT_TYPES = Collections.singletonList(MediaType.ALL);
@@ -141,12 +141,12 @@ public class JobPlugin extends AbstractPlugin {
 		String name = md.getGroup() + "." + md.getIndex();
 		bus.bindRequestor(name, partitionsOut, partitionsIn);
 
-		MessageChannel stepExcutionsIn = module.getComponent(JOB_STEP_EXECUTION_REQUEST_CHANNEL, MessageChannel.class);
-		Assert.notNull(stepExcutionsIn, "Partitioned jobs must have a " + JOB_STEP_EXECUTION_REQUEST_CHANNEL);
+		MessageChannel stepExecutionsIn = module.getComponent(JOB_STEP_EXECUTION_REQUEST_CHANNEL, MessageChannel.class);
+		Assert.notNull(stepExecutionsIn, "Partitioned jobs must have a " + JOB_STEP_EXECUTION_REQUEST_CHANNEL);
 		MessageChannel stepExecutionResultsOut = module.getComponent(JOB_STEP_EXECUTION_REPLY_CHANNEL,
 				MessageChannel.class);
 		Assert.notNull(stepExecutionResultsOut, "Partitioned jobs must have a " + JOB_STEP_EXECUTION_REPLY_CHANNEL);
-		bus.bindReplier(name, stepExcutionsIn, stepExecutionResultsOut);
+		bus.bindReplier(name, stepExecutionsIn, stepExecutionResultsOut);
 	}
 
 	private void unbindPartitionedJob(Module module, MessageBus bus) {

@@ -15,12 +15,12 @@
 
 	<!-- This is the "remote" worker -->
 
-	<int:channel id="stepExecutions.input" />
+	<int:channel id="stepExecutionRequests.input" />
 
-	<int:channel id="stepExecutionResults.output" />
+	<int:channel id="stepExecutionReplies.output" />
 
-	<int:service-activator ref="stepExecutionRequestHandler" input-channel="stepExecutions.input"
-			output-channel="stepExecutionResults.output" />
+	<int:service-activator ref="stepExecutionRequestHandler" input-channel="stepExecutionRequests.input"
+			output-channel="stepExecutionReplies.output" />
 
 	<bean id="stepExecutionRequestHandler" class="org.springframework.batch.integration.partition.StepExecutionRequestHandler"
 		p:jobExplorer-ref="jobExplorer" p:stepLocator-ref="stepLocator" />
@@ -43,21 +43,21 @@
 
 	<!-- Master -->
 
-	<int:channel id="stepExecutions.output" />
+	<int:channel id="stepExecutionRequests.output" />
 
-	<int:channel id="stepExecutionResults.input" />
+	<int:channel id="stepExecutionReplies.input" />
 
 	<bean id="partitionHandler" class="org.springframework.batch.integration.partition.MessageChannelPartitionHandler">
 		<property name="messagingOperations">
 			<bean class="org.springframework.integration.core.MessagingTemplate">
-				<property name="defaultChannel" ref="stepExecutions.output" />
+				<property name="defaultChannel" ref="stepExecutionRequests.output" />
 				<property name="receiveTimeout" value="60000" />
 			</bean>
 		</property>
 		<property name="stepName" value="step1" />
 	</bean>
 
-	<int:aggregator ref="partitionHandler" send-timeout="10000" input-channel="stepExecutionResults.input" />
+	<int:aggregator ref="partitionHandler" send-timeout="10000" input-channel="stepExecutionReplies.input" />
 
 	<job id="job" xmlns="http://www.springframework.org/schema/batch">
 		<step id="step1-master">

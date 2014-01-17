@@ -196,13 +196,13 @@ public class JobPluginTests {
 		MessageBus bus = getMessageBus();
 		when(module.getComponent(MessageBus.class)).thenReturn(bus);
 		MessageChannel stepsOut = new DirectChannel();
-		when(module.getComponent("stepExecutions.output", MessageChannel.class)).thenReturn(stepsOut);
+		when(module.getComponent("stepExecutionRequests.output", MessageChannel.class)).thenReturn(stepsOut);
 		PollableChannel stepResultsIn = new QueueChannel();
-		when(module.getComponent("stepExecutionResults.input", MessageChannel.class)).thenReturn(stepResultsIn);
+		when(module.getComponent("stepExecutionReplies.input", MessageChannel.class)).thenReturn(stepResultsIn);
 		PollableChannel stepsIn = new QueueChannel();
-		when(module.getComponent("stepExecutions.input", MessageChannel.class)).thenReturn(stepsIn);
+		when(module.getComponent("stepExecutionRequests.input", MessageChannel.class)).thenReturn(stepsIn);
 		MessageChannel stepResultsOut = new DirectChannel();
-		when(module.getComponent("stepExecutionResults.output", MessageChannel.class)).thenReturn(stepResultsOut);
+		when(module.getComponent("stepExecutionReplies.output", MessageChannel.class)).thenReturn(stepResultsOut);
 		plugin.preProcessModule(module);
 		plugin.postProcessModule(module);
 		checkBusBound(bus);
@@ -283,7 +283,7 @@ public class JobPluginTests {
 		doReturn(messageBus).when(spiedModule).getComponent(MessageBus.class);
 		doReturn(inputChannel).when(spiedModule).getComponent("input", MessageChannel.class);
 		doReturn(notificationChannel).when(spiedModule).getComponent("notifications", MessageChannel.class);
-		doReturn(null).when(spiedModule).getComponent("stepExecutions.output", MessageChannel.class);
+		doReturn(null).when(spiedModule).getComponent("stepExecutionRequests.output", MessageChannel.class);
 
 		plugin.postProcessModule(spiedModule);
 
@@ -310,7 +310,7 @@ public class JobPluginTests {
 		@Override
 		public void bindPubSubConsumer(String name, MessageChannel inputChannel,
 				Collection<MediaType> acceptedMediaTypes) {
-			Assert.fail("Should be not be called.");
+			Assert.fail("Should not be called.");
 		}
 
 		@Override
@@ -320,7 +320,7 @@ public class JobPluginTests {
 
 		@Override
 		public void bindPubSubProducer(String name, MessageChannel outputChannel) {
-			Assert.fail("Should be not be called.");
+			Assert.fail("Should not be called.");
 		}
 
 		@Override
@@ -330,17 +330,17 @@ public class JobPluginTests {
 
 		@Override
 		public void unbindProducers(String name) {
-			Assert.fail("Should be not be called.");
+			Assert.fail("Should not be called.");
 		}
 
 		@Override
 		public void unbindConsumer(String name, MessageChannel channel) {
-			Assert.fail("Should be not be called.");
+			Assert.fail("Should not be called.");
 		}
 
 		@Override
 		public void unbindProducer(String name, MessageChannel channel) {
-			Assert.fail("Should be not be called.");
+			Assert.fail("Should not be called.");
 		}
 
 		public List<String> getConsumerNames() {
@@ -353,12 +353,12 @@ public class JobPluginTests {
 
 		@Override
 		public void bindRequestor(String name, MessageChannel requests, MessageChannel replies) {
-			Assert.fail("Should be not be called.");
+			Assert.fail("Should not be called.");
 		}
 
 		@Override
 		public void bindReplier(String name, MessageChannel requests, MessageChannel replies) {
-			Assert.fail("Should be not be called.");
+			Assert.fail("Should not be called.");
 		}
 
 	}

@@ -40,7 +40,10 @@ public class DelegatingModuleOptionsMetadataResolver implements ModuleOptionsMet
 	public ModuleOptionsMetadata resolve(ModuleDefinition moduleDefinition) {
 		List<ModuleOptionsMetadata> moms = new ArrayList<ModuleOptionsMetadata>(delegates.size());
 		for (ModuleOptionsMetadataResolver delegate : delegates) {
-			moms.add(delegate.resolve(moduleDefinition));
+			ModuleOptionsMetadata resolved = delegate.resolve(moduleDefinition);
+			if (resolved != null) {
+				moms.add(resolved);
+			}
 		}
 		return new FlattenedCompositeModuleOptionsMetadata(moms);
 	}

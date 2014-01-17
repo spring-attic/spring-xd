@@ -61,7 +61,18 @@ public class ModuleTypeConversionPluginMetadataResolver implements ModuleOptions
 			moms.add(new PojoModuleOptionsMetadata(Input.class, null, null,
 					conversionService));
 		}
-		return new FlattenedCompositeModuleOptionsMetadata(moms);
+
+		// Don't force deep layering if it's not needed
+		switch (moms.size()) {
+			case 2:
+				return new FlattenedCompositeModuleOptionsMetadata(moms);
+			case 1:
+				return moms.iterator().next();
+			case 0:
+				return null;
+			default:
+				throw new IllegalStateException("Should never happen: " + moms);
+		}
 	}
 
 	/**

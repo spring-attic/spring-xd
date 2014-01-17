@@ -70,6 +70,7 @@ public class FlattenedCompositeModuleOptionsMetadata implements ModuleOptionsMet
 	public ModuleOptions interpolate(Map<String, String> raw) throws BindException {
 
 
+		@SuppressWarnings("serial")
 		Map<ModuleOptionsMetadata, Map<String, String>> distributed = new HashMap<ModuleOptionsMetadata, Map<String, String>>() {
 
 			@Override

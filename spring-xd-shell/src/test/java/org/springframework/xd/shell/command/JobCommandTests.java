@@ -265,7 +265,8 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 
 		assertTrue("The countdown latch expired and did not count down.", done);
 		// Make sure the job parameters are set when passing through job launch command
-		assertTrue("Expecting 3 parameters.", JobParametersHolder.getJobParameters().size() == 3);
+		assertTrue("Expecting 3 parameters, but got: " + JobParametersHolder.getJobParameters(),
+				JobParametersHolder.getJobParameters().size() == 3);
 		assertNotNull(JobParametersHolder.getJobParameters().get("random"));
 
 		final JobParameter parameter1 = JobParametersHolder.getJobParameters().get("param1");

@@ -8,16 +8,21 @@
 # to point to a file (use a file:// URL). That file will then be
 # used instead.
 
-#The datasource used by the default profile
-#spring:
+#Config for use with HSQLDB
+#
+#Change the database host, port and name
+#hsql:
+#  server:
+#    host: localhost
+#    port: 9102
+#    dbname: xdjob
+#Change database username and password
+spring:
 #  datasource:
-#    url: jdbc:hsqldb:hsql://localhost:9101/xdjob
+#    url: jdbc:hsqldb:hsql://${hsql.server.host:localhost}:${hsql.server.port:9101}/${hsql.server.dbname:xdjob}
 #    username: sa
 #    password:
 #    driverClassName: org.hsqldb.jdbc.JDBCDriver
-#  profiles:
-#    active: default,hsqldb
-
 
 #Config for use with MySQL - uncomment and edit with relevant values for your environment
 #spring:

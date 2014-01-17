@@ -300,6 +300,8 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 	}
 
 	@Test
+	// @Ignore
+	// TODO: This test is failing
 	public void testLaunchJobTwiceWhereMakeUniqueIsFalse() {
 		logger.info("Launch batch job (makeUnique=false) twice");
 
@@ -308,6 +310,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		executeJobLaunch(MY_JOB);
 
 		CommandResult result = executeCommandExpectingFailure("job launch --name " + MY_JOB);
+		System.out.println("*************************" + result.getException().getMessage());
 		assertThat(
 				result.getException().getMessage(),
 				containsString("A job instance already exists and is complete for parameters={}.  If you want to run this job again, change the parameters."));

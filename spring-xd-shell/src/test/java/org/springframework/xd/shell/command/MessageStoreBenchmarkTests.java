@@ -41,7 +41,7 @@ import org.springframework.xd.shell.command.fixtures.HttpSource;
  * @author Eric Bottard
  */
 @RunWith(Parameterized.class)
-public class MessageStoreBenchmark extends AbstractStreamIntegrationTest {
+public class MessageStoreBenchmarkTests extends AbstractStreamIntegrationTest {
 
 	@Parameters(name = "{0}-{1}")
 	public static Iterable<Object[]> roots() {
@@ -63,7 +63,7 @@ public class MessageStoreBenchmark extends AbstractStreamIntegrationTest {
 
 	private String storeName;
 
-	public MessageStoreBenchmark(String storeName, int run, String streamDynamicPart) {
+	public MessageStoreBenchmarkTests(String storeName, int run, String streamDynamicPart) {
 		this.storeName = storeName;
 		this.streamDynamicPart = streamDynamicPart;
 	}

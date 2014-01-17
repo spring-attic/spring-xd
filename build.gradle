@@ -72,7 +72,7 @@ ext {
 	jolokiaVersion = '1.1.5'
 	snakeYamlVersion = '1.12'
 	springVersion = '4.0.0.RELEASE'
-	springBatchVersion = '2.2.4.RELEASE'
+	springBatchVersion = '3.0.0.BUILD-SNAPSHOT'
 	springIntegrationVersion = '4.0.0.M2'
 	springIntegrationMQTTVersion = '4.0.0.M2'
 	springBootVersion = '0.5.0.M7'
@@ -358,8 +358,9 @@ project('spring-xd-dirt') {
 		compile "org.apache.tomcat:tomcat-jdbc:$tomcatJdbcPoolVersion"
 		compile ("org.springframework.batch:spring-batch-admin-manager:$springBatchAdminMgrVersion") {
 			exclude group: 'hsqldb'
+			exclude module: 'spring-batch-integration'
 		}
-		compile ("org.springframework.batch:spring-batch-integration:1.2.2.RELEASE") {
+		compile ("org.springframework.batch:spring-batch-integration:$springBatchVersion") {
 			exclude group: 'org.springframework.integration'
 			exclude group: 'org.springframework'
 		}
@@ -398,6 +399,7 @@ project('spring-xd-dirt') {
 
 		// ************* Test
 		testCompile project(":spring-xd-test")
+		testCompile "org.springframework.integration:spring-integration-test:$springIntegrationVersion"
 		testCompile "com.jayway.jsonpath:json-path:0.8.1"
 		testCompile ("org.mockito:mockito-core:$mockitoVersion") {
 			exclude group:'org.hamcrest'
@@ -881,6 +883,7 @@ project('spring-xd-rest-domain') {
 			exclude module: "spring-asm"
 		}
 		compile ("org.springframework.batch:spring-batch-admin-manager:$springBatchAdminMgrVersion") {
+			exclude module: 'spring-batch-integration'
 			exclude group: 'org.springframework.integration'
 			exclude group: 'org.slf4j'
 		}

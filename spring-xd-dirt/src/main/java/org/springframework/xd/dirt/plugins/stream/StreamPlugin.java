@@ -86,7 +86,7 @@ public class StreamPlugin implements Plugin {
 		return (moduleType == ModuleType.source || moduleType == ModuleType.processor || moduleType == ModuleType.sink);
 	}
 
-	private MessageBus findMessageBus(Module module) {
+	protected final MessageBus findMessageBus(Module module) {
 		MessageBus messageBus = null;
 		try {
 			messageBus = module.getComponent(MessageBus.class);

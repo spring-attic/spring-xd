@@ -31,7 +31,10 @@ import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.http.MediaType;
+import org.springframework.integration.amqp.AmqpHeaders;
 import org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter;
 import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
@@ -40,6 +43,7 @@ import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.mapping.AbstractHeaderMapper;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.x.bus.Binding;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.integration.x.bus.MessageBusSupport;
@@ -71,6 +75,8 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 	private final DefaultAmqpHeaderMapper mapper;
 
+	private final GenericApplicationContext autoDeclareContext = new GenericApplicationContext();
+
 	public RabbitMessageBus(ConnectionFactory connectionFactory, MultiTypeCodec<Object> codec) {
 		Assert.notNull(connectionFactory, "connectionFactory must not be null");
 		Assert.notNull(codec, "codec must not be null");
@@ -78,11 +84,13 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		this.rabbitTemplate.setConnectionFactory(connectionFactory);
 		this.rabbitTemplate.afterPropertiesSet();
 		this.rabbitAdmin = new RabbitAdmin(connectionFactory);
+		this.autoDeclareContext.refresh();
+		this.rabbitAdmin.setApplicationContext(this.autoDeclareContext);
 		this.rabbitAdmin.afterPropertiesSet();
 		this.mapper = new DefaultAmqpHeaderMapper();
 		this.mapper.setRequestHeaderNames(new String[] { AbstractHeaderMapper.STANDARD_REQUEST_HEADER_NAME_PATTERN,
 			ORIGINAL_CONTENT_TYPE_HEADER });
-		setCodec(codec);
+		this.setCodec(codec);
 	}
 
 	@Override
@@ -137,12 +145,17 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		if (logger.isInfoEnabled()) {
 			logger.info("declaring queue for outbound: " + name);
 		}
+		AmqpOutboundEndpoint queue = this.buildOutboundEndpoint(name);
+		doRegisterProducer(name, moduleOutputChannel, queue);
+	}
+
+	private AmqpOutboundEndpoint buildOutboundEndpoint(final String name) {
 		rabbitAdmin.declareQueue(new Queue(name));
 		AmqpOutboundEndpoint queue = new AmqpOutboundEndpoint(rabbitTemplate);
 		queue.setRoutingKey(name); // uses default exchange
 		queue.setHeaderMapper(mapper);
 		queue.afterPropertiesSet();
-		doRegisterProducer(name, moduleOutputChannel, queue);
+		return queue;
 	}
 
 	@Override
@@ -155,14 +168,55 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		doRegisterProducer(name, moduleOutputChannel, fanout);
 	}
 
-	private void doRegisterProducer(final String name, MessageChannel moduleOutputChannel, MessageHandler delegate) {
+	private void doRegisterProducer(final String name, MessageChannel moduleOutputChannel,
+			MessageHandler delegate) {
+		this.doRegisterProducer(name, moduleOutputChannel, delegate, null);
+	}
+
+	private void doRegisterProducer(final String name, MessageChannel moduleOutputChannel,
+			MessageHandler delegate, String replyTo) {
 		Assert.isInstanceOf(SubscribableChannel.class, moduleOutputChannel);
-		MessageHandler handler = new SendingHandler(delegate);
+		MessageHandler handler = new SendingHandler(delegate, replyTo);
 		EventDrivenConsumer consumer = new EventDrivenConsumer((SubscribableChannel) moduleOutputChannel, handler);
 		consumer.setBeanName("outbound." + name);
 		consumer.afterPropertiesSet();
 		addBinding(Binding.forProducer(moduleOutputChannel, consumer));
 		consumer.start();
+	}
+
+	@Override
+	public void bindRequestor(String name, MessageChannel requests, MessageChannel replies) {
+		if (logger.isInfoEnabled()) {
+			logger.info("binding requestor: " + name);
+		}
+		Assert.isInstanceOf(SubscribableChannel.class, requests);
+		String queueName = name + ".requests";
+		AmqpOutboundEndpoint queue = this.buildOutboundEndpoint(queueName);
+
+		String replyQueueName = name + ".replies." + this.getIdGenerator().generateId();
+		this.doRegisterProducer(name, requests, queue, replyQueueName);
+		Queue replyQueue = new Queue(replyQueueName, false, false, true); // auto-delete
+		this.rabbitAdmin.declareQueue(replyQueue);
+		// register with context so it will be redeclared after a connection failure
+		this.autoDeclareContext.getBeanFactory().registerSingleton(replyQueueName, replyQueue);
+		this.doRegisterConsumer(name, replies, MEDIATYPES_MEDIATYPE_ALL, replyQueue);
+	}
+
+	@Override
+	public void bindReplier(String name, MessageChannel requests, MessageChannel replies) {
+		if (logger.isInfoEnabled()) {
+			logger.info("binding replier: " + name);
+		}
+		Queue requestQueue = new Queue(name + ".requests");
+		this.rabbitAdmin.declareQueue(requestQueue);
+		this.doRegisterConsumer(name, requests, MEDIATYPES_MEDIATYPE_ALL, requestQueue);
+
+		AmqpOutboundEndpoint replyQueue = new AmqpOutboundEndpoint(rabbitTemplate);
+		replyQueue.setBeanFactory(new DefaultListableBeanFactory());
+		replyQueue.setRoutingKeyExpression("headers['" + AmqpHeaders.REPLY_TO + "']");
+		replyQueue.setHeaderMapper(mapper);
+		replyQueue.afterPropertiesSet();
+		doRegisterProducer(name, replies, replyQueue);
 	}
 
 	@Override
@@ -174,15 +228,22 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 		private final MessageHandler delegate;
 
-		private SendingHandler(MessageHandler delegate) {
+		private final String replyTo;
+
+		private SendingHandler(MessageHandler delegate, String replyTo) {
 			this.delegate = delegate;
+			this.replyTo = replyTo;
 		}
 
 		@Override
 		protected void handleMessageInternal(Message<?> message) throws Exception {
-			// TODO: rabbit wire data pluggable format?
 			Message<?> messageToSend = transformPayloadForProducerIfNecessary(message,
 					MediaType.APPLICATION_OCTET_STREAM);
+			if (replyTo != null) {
+				messageToSend = MessageBuilder.fromMessage(messageToSend)
+						.setHeader(AmqpHeaders.REPLY_TO, this.replyTo)
+						.build();
+			}
 			this.delegate.handleMessage(messageToSend);
 		}
 	}

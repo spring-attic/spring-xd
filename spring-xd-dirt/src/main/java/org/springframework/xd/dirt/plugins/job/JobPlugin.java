@@ -31,6 +31,7 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.util.Assert;
 import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.ModuleType;
@@ -76,6 +77,15 @@ public class JobPlugin extends AbstractPlugin {
 
 	private static final String JOB_NOTIFICATIONS_CHANNEL = "notifications";
 
+	private static final String JOB_PARTIONER_REQUEST_CHANNEL = "stepExecutionRequests.output";
+
+	private static final String JOB_PARTIONER_REPLY_CHANNEL = "stepExecutionReplies.input";
+
+	private static final String JOB_STEP_EXECUTION_REQUEST_CHANNEL = "stepExecutionRequests.input";
+
+	private static final String JOB_STEP_EXECUTION_REPLY_CHANNEL = "stepExecutionReplies.output";
+
+
 	private final static Collection<MediaType> DEFAULT_ACCEPTED_CONTENT_TYPES = Collections.singletonList(MediaType.ALL);
 
 	@Override
@@ -113,6 +123,54 @@ public class JobPlugin extends AbstractPlugin {
 				bus.bindProducer(JOB_CHANNEL_PREFIX + md.getGroup() + NOTIFICATION_CHANNEL_SUFFIX,
 						notificationsChannel, true);
 			}
+
+			if (module.getComponent(JOB_PARTIONER_REQUEST_CHANNEL, MessageChannel.class) != null) {
+				this.processPartitionedJob(module, md, bus);
+			}
+		}
+	}
+
+	private void processPartitionedJob(Module module, DeploymentMetadata md, MessageBus bus) {
+		if (logger.isDebugEnabled()) {
+			logger.debug("binding job partitioning channels for " + module);
+		}
+		MessageChannel partitionsOut = module.getComponent(JOB_PARTIONER_REQUEST_CHANNEL, MessageChannel.class);
+		Assert.notNull(partitionsOut, "Partitioned jobs must have a " + JOB_PARTIONER_REQUEST_CHANNEL);
+		MessageChannel partitionsIn = module.getComponent(JOB_PARTIONER_REPLY_CHANNEL, MessageChannel.class);
+		Assert.notNull(partitionsIn, "Partitioned jobs must have a " + JOB_PARTIONER_REPLY_CHANNEL);
+		String name = md.getGroup() + "." + md.getIndex();
+		bus.bindRequestor(name, partitionsOut, partitionsIn);
+
+		MessageChannel stepExecutionsIn = module.getComponent(JOB_STEP_EXECUTION_REQUEST_CHANNEL, MessageChannel.class);
+		Assert.notNull(stepExecutionsIn, "Partitioned jobs must have a " + JOB_STEP_EXECUTION_REQUEST_CHANNEL);
+		MessageChannel stepExecutionResultsOut = module.getComponent(JOB_STEP_EXECUTION_REPLY_CHANNEL,
+				MessageChannel.class);
+		Assert.notNull(stepExecutionResultsOut, "Partitioned jobs must have a " + JOB_STEP_EXECUTION_REPLY_CHANNEL);
+		bus.bindReplier(name, stepExecutionsIn, stepExecutionResultsOut);
+	}
+
+	private void unbindPartitionedJob(Module module, MessageBus bus) {
+		if (logger.isDebugEnabled()) {
+			logger.debug("unbinding job partitioning channels for " + module);
+		}
+		DeploymentMetadata md = module.getDeploymentMetadata();
+		MessageChannel partitionsOut = module.getComponent(JOB_PARTIONER_REQUEST_CHANNEL, MessageChannel.class);
+		String name = md.getGroup() + "." + md.getIndex();
+		if (partitionsOut != null) {
+			bus.unbindProducer(name, partitionsOut);
+		}
+		MessageChannel partitionsIn = module.getComponent(JOB_PARTIONER_REPLY_CHANNEL, MessageChannel.class);
+		if (partitionsIn != null) {
+			bus.unbindConsumer(name, partitionsIn);
+		}
+		MessageChannel stepExcutionsIn = module.getComponent(JOB_STEP_EXECUTION_REQUEST_CHANNEL, MessageChannel.class);
+		if (stepExcutionsIn != null) {
+			bus.unbindConsumer(name, stepExcutionsIn);
+		}
+		MessageChannel stepExecutionResultsOut = module.getComponent(JOB_STEP_EXECUTION_REPLY_CHANNEL,
+				MessageChannel.class);
+		if (stepExecutionResultsOut != null) {
+			bus.unbindProducer(name, stepExecutionResultsOut);
 		}
 	}
 
@@ -142,6 +200,9 @@ public class JobPlugin extends AbstractPlugin {
 		if (bus != null) {
 			bus.unbindConsumers(JOB_CHANNEL_PREFIX + module.getDeploymentMetadata().getGroup());
 			bus.unbindProducers(module.getDeploymentMetadata().getGroup() + NOTIFICATION_CHANNEL_SUFFIX);
+			if (module.getComponent(JOB_PARTIONER_REQUEST_CHANNEL, MessageChannel.class) != null) {
+				this.unbindPartitionedJob(module, bus);
+			}
 		}
 	}
 

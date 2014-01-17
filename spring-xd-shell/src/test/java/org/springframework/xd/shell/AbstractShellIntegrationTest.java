@@ -85,6 +85,12 @@ public abstract class AbstractShellIntegrationTest {
 	@BeforeClass
 	public static void startUp() throws InterruptedException, IOException {
 
+		// Wipe out the job repository
+		File[] dbFiles = new File("../data/jobs").listFiles();
+		for (File dbFile : dbFiles) {
+			dbFile.delete();
+		}
+
 		application = new SingleNodeApplication().run("--transport", "local",
 				"--analytics", "redis",
 				"--store", "redis"

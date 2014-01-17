@@ -82,8 +82,8 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 		parametersMap1.put("param2", new JobParameter(123l, false));
 		JobParameters jobParameters1 = new JobParameters(parametersMap1);
 		JobParameters jobParameters2 = new JobParameters(parametersMap1);
-		JobExecution jobExecution1 = new JobExecution(jobInstance1, 0l, jobParameters1);
-		JobExecution jobExecution2 = new JobExecution(jobInstance2, 3l, jobParameters2);
+		JobExecution jobExecution1 = new JobExecution(jobInstance1, 0l, jobParameters1, null);
+		JobExecution jobExecution2 = new JobExecution(jobInstance2, 3l, jobParameters2, null);
 		Collection<JobExecution> jobExecutions1 = new ArrayList<JobExecution>();
 		Collection<JobExecution> jobExecutions2 = new ArrayList<JobExecution>();
 		StepExecution step1 = new StepExecution("step1", jobExecution1);

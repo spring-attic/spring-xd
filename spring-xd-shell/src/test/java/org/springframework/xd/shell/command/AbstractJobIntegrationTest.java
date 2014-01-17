@@ -52,6 +52,8 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 
 	private static final String JOB_WITH_STEP_EXECUTIONS_TASKLET = "jobWithStepExecutions.xml";
 
+	private static final String JOB_WITH_PARTITIONS_TASKLET = "jobWithPartitions.xml";
+
 	public static final String MY_JOB = "myJob";
 
 	public static final String MY_TEST = "myTest";
@@ -62,6 +64,10 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 
 	public static final String JOB_WITH_STEP_EXECUTIONS = "jobWithStepExecutions";
 
+	public static final String MY_JOB_WITH_PARTITIONS = "myJobWithPartitions";
+
+	public static final String JOB_WITH_PARTITIONS_DESCRIPTOR = "jobWithPartitions";
+
 	private List<String> jobs = new ArrayList<String>();
 
 	@Before
@@ -71,6 +77,8 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 				+ JOB_WITH_PARAMETERS_TASKLET);
 		copyTaskletDescriptorsToServer(MODULE_RESOURCE_DIR + JOB_WITH_STEP_EXECUTIONS_TASKLET, MODULE_TARGET_DIR
 				+ JOB_WITH_STEP_EXECUTIONS_TASKLET);
+		copyTaskletDescriptorsToServer(MODULE_RESOURCE_DIR + JOB_WITH_PARTITIONS_TASKLET, MODULE_TARGET_DIR
+				+ JOB_WITH_PARTITIONS_TASKLET);
 		// clear any test jobs that may still exist
 		try {
 			executeJobDestroy(MY_JOB);
@@ -86,6 +94,12 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 		}
 		try {
 			executeJobDestroy(MY_JOB_WITH_PARAMETERS);
+		}
+		catch (Throwable t) {
+			// don't worry if it is thrown
+		}
+		try {
+			executeJobDestroy(MY_JOB_WITH_PARTITIONS);
 		}
 		catch (Throwable t) {
 			// don't worry if it is thrown

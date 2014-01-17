@@ -32,7 +32,6 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-
 import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
@@ -69,6 +68,8 @@ public abstract class AbstractShellIntegrationTest {
 
 	protected static final String DEFAULT_METRIC_NAME = "bar";
 
+	public static boolean SHUTDOWN_AFTER_RUN = true;
+
 	@ClassRule
 	public static RedisTestSupport redisAvailableRule = new RedisTestSupport();
 
@@ -102,12 +103,14 @@ public abstract class AbstractShellIntegrationTest {
 
 	@AfterClass
 	public static void shutdown() {
-		runtimeInformationRepository.delete(application.getContainerContext().getId());
-		logger.info("Stopping XD Shell");
-		shell.stop();
-		if (application != null) {
-			logger.info("Stopping Single Node Server");
-			application.close();
+		if (SHUTDOWN_AFTER_RUN) {
+			runtimeInformationRepository.delete(application.getContainerContext().getId());
+			logger.info("Stopping XD Shell");
+			shell.stop();
+			if (application != null) {
+				logger.info("Stopping Single Node Server");
+				application.close();
+			}
 		}
 	}
 

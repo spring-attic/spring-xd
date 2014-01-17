@@ -21,44 +21,25 @@ import java.io.IOException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
-
 import org.springframework.xd.shell.AbstractShellIntegrationTest;
-
-
+import org.springframework.xd.test.PackageSuiteRunner;
 /**
+ * Runs all the Shell Integration Tests starting XD once.
  * 
  * @author David Turanski
  */
-@RunWith(Suite.class)
-@SuiteClasses({
-	DateCommandTest.class,
-	FileSourceAndFileSinkTests.class,
-	HttpCommandTests.class,
-	JobCommandTests.class,
-	// MailCommandTests.class,
-	MessageStoreBenchmark.class,
-	MetricsTests.class,
-	ModuleClasspathTests.class,
-	ModuleCommandTests.class,
-	NamedChannelTests.class,
-	ProcessorsTests.class,
-	RuntimeCommandTests.class,
-	SpelPropertyAccessorIntegrationTests.class,
-	StreamCommandTests.class,
-	TcpModulesTests.class,
-	TriggerModulesTest.class
-})
+@RunWith(PackageSuiteRunner.class)
 public class ShellCommandsTestSuite {
 
 	@BeforeClass
 	public static void startUp() throws InterruptedException, IOException {
 		AbstractShellIntegrationTest.startUp();
+		AbstractShellIntegrationTest.SHUTDOWN_AFTER_RUN = false;
 	}
 
 	@AfterClass
 	public static void shutdown() {
+		AbstractShellIntegrationTest.SHUTDOWN_AFTER_RUN = true;
 		AbstractShellIntegrationTest.shutdown();
 	}
 

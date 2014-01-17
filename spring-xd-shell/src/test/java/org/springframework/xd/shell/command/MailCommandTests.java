@@ -25,6 +25,7 @@ import javax.mail.internet.MimeMessage;
 
 import org.junit.Assert;
 import org.junit.Test;
+
 import org.springframework.xd.shell.command.fixtures.FileSink;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
 import org.springframework.xd.shell.command.fixtures.ImapSource;
@@ -46,7 +47,7 @@ public class MailCommandTests extends AbstractStreamIntegrationTest {
 
 		mailSource.ensureStarted();
 
-		stream().create("mailstream", "%s | %s", mailSource, fileSink);
+		stream().create(getRandomStreamName(), "%s | %s", mailSource, fileSink);
 
 		mailSource.sendEmail("from@foo.com", "The Subject", "My body is slim!");
 
@@ -60,7 +61,7 @@ public class MailCommandTests extends AbstractStreamIntegrationTest {
 
 		mailSource.ensureStarted();
 
-		stream().create("mailstream", "%s | %s", mailSource, fileSink);
+		stream().create(getRandomStreamName(), "%s | %s", mailSource, fileSink);
 
 		mailSource.sendEmail("from@foo.com", "The Subject", "My body is slim!");
 
@@ -77,7 +78,7 @@ public class MailCommandTests extends AbstractStreamIntegrationTest {
 				.subject("payload");
 
 
-		stream().create("mailstream", "%s | %s", httpSource, mailSink);
+		stream().create(getRandomStreamName(), "%s | %s", httpSource, mailSink);
 
 		httpSource.ensureReady().postData("Woohoo!");
 		MimeMessage result = mailSink.waitForEmail();

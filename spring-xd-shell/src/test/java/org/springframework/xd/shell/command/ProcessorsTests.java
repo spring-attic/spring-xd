@@ -25,6 +25,7 @@ import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasValue;
 import java.io.IOException;
 
 import org.junit.Test;
+
 import org.springframework.xd.shell.command.fixtures.CounterSink;
 import org.springframework.xd.shell.command.fixtures.FileSink;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
@@ -42,7 +43,7 @@ public class ProcessorsTests extends AbstractStreamIntegrationTest {
 		HttpSource httpSource = newHttpSource();
 		CounterSink counterSink = metrics().newCounterSink();
 
-		stream().create("splitter-test", "%s | splitter | %s", httpSource, counterSink);
+		stream().create(getRandomStreamName(), "%s | splitter | %s", httpSource, counterSink);
 
 		httpSource.ensureReady().postData("Hello World !");
 		assertThat(counterSink, eventually(hasValue("1")));
@@ -54,7 +55,7 @@ public class ProcessorsTests extends AbstractStreamIntegrationTest {
 		HttpSource httpSource = newHttpSource();
 		CounterSink counterSink = metrics().newCounterSink();
 
-		stream().create("splitter-test", "%s | splitter --expression=payload.split(' ') | %s",
+		stream().create(getRandomStreamName(), "%s | splitter --expression=payload.split(' ') | %s",
 				httpSource, counterSink);
 
 		httpSource.ensureReady().postData("Hello World !");
@@ -68,7 +69,7 @@ public class ProcessorsTests extends AbstractStreamIntegrationTest {
 		FileSink fileSink = newFileSink().binary(true);
 
 		stream().create(
-				"aggtest",
+				getRandomStreamName(),
 				"%s | aggregator --count=3 --aggregation=T(org.springframework.util.StringUtils).collectionToDelimitedString(#this.![payload],' ') | %s",
 				httpSource, fileSink);
 
@@ -86,7 +87,7 @@ public class ProcessorsTests extends AbstractStreamIntegrationTest {
 		int timeout = 1000;
 
 		stream().create(
-				"aggtest",
+				getRandomStreamName(),
 				"%s | aggregator --count=100 --timeout=%d --aggregation=T(org.springframework.util.StringUtils).collectionToDelimitedString(#this.![payload],' ') | %s",
 				httpSource, timeout, fileSink);
 

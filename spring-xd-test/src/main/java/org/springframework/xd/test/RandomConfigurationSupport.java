@@ -54,6 +54,10 @@ public class RandomConfigurationSupport {
 
 	private static final int adminPort = SocketUtils.findAvailableTcpPort();
 
+	protected static final String XD_DEPLOYER_PLACEHOLDER = "${xd.deployer.queue}";
+
+	protected static final String XD_UNDEPLOYER_PLACEHOLDER = "${xd.undeployer.topic}";
+
 	public static void setupRandomControlTransportChannels() {
 		System.setProperty(XD_DEPLOYER, "xd.deployer." + now);
 		System.setProperty(XD_UNDEPLOYER, "xd.undeployer." + now);

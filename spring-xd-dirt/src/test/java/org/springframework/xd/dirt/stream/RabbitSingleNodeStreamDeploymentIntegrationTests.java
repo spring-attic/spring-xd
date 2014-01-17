@@ -42,7 +42,17 @@ public class RabbitSingleNodeStreamDeploymentIntegrationTests extends
 			String undeployerExchange = context.getEnvironment().resolvePlaceholders(XD_UNDEPLOYER_PLACEHOLDER);
 			admin.deleteQueue(deployerQueue);
 			admin.deleteExchange(undeployerExchange);
+			if (!queues.isEmpty()) {
+				for (String queue : queues) {
+					admin.deleteQueue(queue);
+				}
+			}
+			if (!topics.isEmpty()) {
+				for (String exchange : topics) {
+					admin.deleteExchange(exchange);
+				}
+			}
 		}
-	}
 
+	}
 }

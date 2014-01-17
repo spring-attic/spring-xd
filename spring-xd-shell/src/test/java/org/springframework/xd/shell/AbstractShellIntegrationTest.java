@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
@@ -118,6 +119,22 @@ public abstract class AbstractShellIntegrationTest extends RandomConfigurationSu
 
 	public static JLineShellComponent getShell() {
 		return shell;
+	}
+
+	protected String getRandomStreamName() {
+		return "stream-test-" + UUID.randomUUID();
+	}
+
+	protected String getTapName(String streamName) {
+		return "tap:stream:" + streamName;
+	}
+
+	protected String getRandomJobName() {
+		return "test-job-" + UUID.randomUUID();
+	}
+
+	protected String getJobLaunchQueue(String jobName) {
+		return "queue:job:" + jobName;
 	}
 
 	/**

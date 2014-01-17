@@ -74,7 +74,7 @@ public class MessageStoreBenchmarkTests extends AbstractStreamIntegrationTest {
 		HttpSource source = newHttpSource();
 		CounterSink sink = metrics().newCounterSink();
 		stream().create(
-				storeName,
+				getRandomStreamName(),
 				"%s | aggregator --store=%s --count=3 --aggregation=T(org.springframework.util.StringUtils).collectionToDelimitedString(#this.![payload],' ') --timeout=500000%s | %s ",
 				source, storeName,
 				streamDynamicPart, sink);

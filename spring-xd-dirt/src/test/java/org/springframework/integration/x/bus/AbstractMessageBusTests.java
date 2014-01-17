@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.After;
 import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -47,10 +48,13 @@ import org.springframework.xd.tuple.Tuple;
 
 /**
  * @author Gary Russell
+ * @author Ilayaperumal Gopinathan
  */
 public abstract class AbstractMessageBusTests {
 
 	protected static final Collection<MediaType> ALL = Collections.singletonList(MediaType.ALL);
+
+	protected AbstractTestMessageBus testMessageBus;
 
 	@Test
 	public void testClean() throws Exception {
@@ -240,7 +244,17 @@ public abstract class AbstractMessageBusTests {
 		assertTrue(getBindings(messageBus).isEmpty());
 	}
 
-	protected Collection<?> getBindings(MessageBus messageBus) {
+	protected Collection<?> getBindings(MessageBus testMessageBus) {
+		if (testMessageBus instanceof AbstractTestMessageBus) {
+			return getBindingsFromMsgBus(((AbstractTestMessageBus) testMessageBus).getCoreMessageBus());
+		}
+		else if (testMessageBus instanceof LocalMessageBus) {
+			return getBindingsFromMsgBus(testMessageBus);
+		}
+		return Collections.EMPTY_LIST;
+	}
+
+	private Collection<?> getBindingsFromMsgBus(MessageBus messageBus) {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(messageBus);
 		return (List<?>) accessor.getPropertyValue("bindings");
 	}
@@ -253,5 +267,12 @@ public abstract class AbstractMessageBusTests {
 	}
 
 	protected abstract MessageBus getMessageBus() throws Exception;
+
+	@After
+	public void cleanup() {
+		if (testMessageBus != null) {
+			testMessageBus.cleanup();
+		}
+	}
 
 }

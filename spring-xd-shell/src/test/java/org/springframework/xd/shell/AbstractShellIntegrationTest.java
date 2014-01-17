@@ -28,7 +28,9 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.ClassRule;
 
 import org.springframework.shell.Bootstrap;
@@ -80,7 +82,7 @@ public abstract class AbstractShellIntegrationTest {
 
 	private static RedisRuntimeContainerInfoRepository runtimeInformationRepository;
 
-
+	@BeforeClass
 	public static synchronized void startUp() throws InterruptedException, IOException {
 		if (application == null) {
 			application = new SingleNodeApplication().run("--transport", "local",
@@ -98,6 +100,7 @@ public abstract class AbstractShellIntegrationTest {
 		}
 	}
 
+	@AfterClass
 	public static void shutdown() {
 		runtimeInformationRepository.delete(application.getContainerContext().getId());
 		logger.info("Stopping XD Shell");

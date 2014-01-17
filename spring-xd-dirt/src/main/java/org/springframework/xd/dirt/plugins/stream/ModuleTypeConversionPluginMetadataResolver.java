@@ -23,6 +23,7 @@ import static org.springframework.xd.module.ModuleType.source;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.http.MediaType;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
@@ -41,15 +42,24 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  */
 public class ModuleTypeConversionPluginMetadataResolver implements ModuleOptionsMetadataResolver {
 
+	private final GenericConversionService conversionService = new GenericConversionService();
+
+	public ModuleTypeConversionPluginMetadataResolver() {
+		conversionService.addConverter(new CustomMediaTypeConverter());
+	}
+
+
 	@Override
 	public ModuleOptionsMetadata resolve(ModuleDefinition moduleDefinition) {
 		List<ModuleOptionsMetadata> moms = new ArrayList<ModuleOptionsMetadata>();
 		ModuleType type = moduleDefinition.getType();
 		if (type == source || type == processor) {
-			moms.add(new PojoModuleOptionsMetadata(Output.class));
+			moms.add(new PojoModuleOptionsMetadata(Output.class, null, null,
+					conversionService));
 		}
 		if (type == sink || type == processor) {
-			moms.add(new PojoModuleOptionsMetadata(Input.class));
+			moms.add(new PojoModuleOptionsMetadata(Input.class, null, null,
+					conversionService));
 		}
 		return new FlattenedCompositeModuleOptionsMetadata(moms);
 	}

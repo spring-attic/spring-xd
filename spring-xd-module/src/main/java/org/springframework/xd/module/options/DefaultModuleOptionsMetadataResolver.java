@@ -31,6 +31,7 @@ import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -102,6 +103,16 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 	 */
 	private ResourceLoader resourceLoader;
 
+	private ConversionService conversionService;
+
+	public DefaultModuleOptionsMetadataResolver(ConversionService conversionService) {
+		this.conversionService = conversionService;
+	}
+
+	public DefaultModuleOptionsMetadataResolver() {
+		this(null);
+	}
+
 	private ModuleOptionsMetadata makeSimpleModuleOptions(Properties props) {
 		SimpleModuleOptionsMetadata result = new SimpleModuleOptionsMetadata();
 		for (Object key : props.keySet()) {
@@ -158,7 +169,7 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 				if (pojoClass != null) {
 					try {
 						Class<?> clazz = Class.forName(pojoClass, true, classLoaderToUse);
-						return new PojoModuleOptionsMetadata(clazz, resourceLoader, environment);
+						return new PojoModuleOptionsMetadata(clazz, resourceLoader, environment, conversionService);
 					}
 					catch (ClassNotFoundException e) {
 						throw new IllegalStateException("Unable to load class used by ModuleOptionsMetadata: "

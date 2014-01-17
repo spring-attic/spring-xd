@@ -24,9 +24,7 @@ import javax.validation.groups.Default;
 
 import org.hibernate.validator.constraints.NotBlank;
 import org.hibernate.validator.constraints.Range;
-
 import org.springframework.xd.module.options.spi.ModuleOption;
-import org.springframework.xd.module.options.spi.ProcessorModuleOptionsMetadataSupport;
 import org.springframework.xd.module.options.spi.ProfileNamesProvider;
 import org.springframework.xd.module.options.spi.ValidationGroupsProvider;
 
@@ -36,7 +34,7 @@ import org.springframework.xd.module.options.spi.ValidationGroupsProvider;
  * 
  * @author Eric Bottard
  */
-public class AggregatorProcessorModuleOptionsMetadata extends ProcessorModuleOptionsMetadataSupport implements
+public class AggregatorProcessorModuleOptionsMetadata implements
 		ProfileNamesProvider, ValidationGroupsProvider {
 
 	private String correlation;

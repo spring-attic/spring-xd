@@ -55,7 +55,7 @@ public class FlattenedCompositeModuleOptionsMetadataTests {
 	@Test
 	public void testProfileActivation() throws BindException {
 		Map<String, String> values = new HashMap<String, String>();
-		values.put("bar", "3000");
+		values.put("bar", "1000");
 		values.put("fizz", "bonjour");
 
 		assertThat(flattened.interpolate(values).profilesToActivate(),

@@ -358,7 +358,7 @@ project('spring-xd-dirt') {
 		compile "org.apache.tomcat:tomcat-jdbc:$tomcatJdbcPoolVersion"
 		compile ("org.springframework.batch:spring-batch-admin-manager:$springBatchAdminMgrVersion") {
 			exclude group: 'hsqldb'
-			exclude = 'spring-batch-integration'
+			exclude module: 'spring-batch-integration'
 		}
 		compile ("org.springframework.batch:spring-batch-integration:$springBatchVersion") {
 			exclude group: 'org.springframework.integration'
@@ -883,7 +883,7 @@ project('spring-xd-rest-domain') {
 			exclude module: "spring-asm"
 		}
 		compile ("org.springframework.batch:spring-batch-admin-manager:$springBatchAdminMgrVersion") {
-			exclude = 'spring-batch-integration'
+			exclude module: 'spring-batch-integration'
 			exclude group: 'org.springframework.integration'
 			exclude group: 'org.slf4j'
 		}

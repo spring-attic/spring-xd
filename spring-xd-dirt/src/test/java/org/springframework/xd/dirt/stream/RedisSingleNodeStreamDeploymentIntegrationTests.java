@@ -29,7 +29,7 @@ public class RedisSingleNodeStreamDeploymentIntegrationTests extends AbstractSin
 
 	@BeforeClass
 	public static void setUp() {
-		setUp("rabbit");
+		setUp("redis");
 	}
 
 	@AfterClass

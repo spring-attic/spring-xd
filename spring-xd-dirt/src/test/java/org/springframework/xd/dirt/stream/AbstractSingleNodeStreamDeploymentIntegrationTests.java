@@ -27,10 +27,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.junit.After;
-import org.junit.Before;
+import org.junit.AfterClass;
 import org.junit.Test;
-
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.http.MediaType;
@@ -59,19 +57,19 @@ import org.springframework.xd.module.core.Module;
  */
 public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 
-	private AbstractApplicationContext context;
+	protected static AbstractApplicationContext context;
 
-	private SingleNodeApplication application;
+	private static SingleNodeApplication application;
 
-	protected StreamDefinitionRepository streamDefinitionRepository;
+	protected static StreamDefinitionRepository streamDefinitionRepository;
 
-	protected StreamRepository streamRepository;
+	protected static StreamRepository streamRepository;
 
-	protected StreamDeployer streamDeployer;
+	protected static StreamDeployer streamDeployer;
 
-	private ModuleEventListener moduleEventListener = new ModuleEventListener();
+	private static ModuleEventListener moduleEventListener = new ModuleEventListener();
 
-	private final QueueChannel tapChannel = new QueueChannel();
+	private static final QueueChannel tapChannel = new QueueChannel();
 
 	@Test
 	public final void testRoutingWithSpel() throws InterruptedException {
@@ -130,16 +128,15 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 	}
 
 
-	@Before
-	public final void setUp() {
-		String transport = this.getTransport();
-		this.application = new SingleNodeApplication();
+	protected final static void setUp(String transport) {
+		application = new SingleNodeApplication();
+		System.out.println(transport);
 		application.run("--transport", transport);
 
-		this.context = (AbstractApplicationContext) application.getContainerContext();
-		this.streamDefinitionRepository = context.getBean(StreamDefinitionRepository.class);
-		this.streamRepository = context.getBean(StreamRepository.class);
-		this.streamDeployer = application.getAdminContext().getBean(StreamDeployer.class);
+		context = (AbstractApplicationContext) application.getContainerContext();
+		streamDefinitionRepository = context.getBean(StreamDefinitionRepository.class);
+		streamRepository = context.getBean(StreamRepository.class);
+		streamDeployer = application.getAdminContext().getBean(StreamDeployer.class);
 
 		AbstractMessageChannel deployChannel = application.getAdminContext().getBean("deployChannel",
 				AbstractMessageChannel.class);
@@ -147,14 +144,26 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 				AbstractMessageChannel.class);
 		deployChannel.addInterceptor(new WireTap(tapChannel));
 		undeployChannel.addInterceptor(new WireTap(tapChannel));
-		context.addApplicationListener(this.moduleEventListener);
-		setupApplicationContext(context);
+		context.addApplicationListener(moduleEventListener);
+		// setupApplicationContext(context);
 	}
 
 	@After
-	public final void shutDown() {
-		cleanup(this.context);
-		this.application.close();
+	public void cleanUp() {
+		streamRepository.deleteAll();
+		streamDefinitionRepository.deleteAll();
+		streamDeployer.undeployAll();
+
+		Message<?> msg = tapChannel.receive(1000);
+		while (msg != null) {
+			msg = tapChannel.receive(1000);
+		}
+
+	}
+
+	@AfterClass
+	public static final void shutDown() {
+		application.close();
 	}
 
 	@Test
@@ -194,20 +203,13 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		assertNotNull(next);
 		String payload = (String) next.getPayload();
 
-		assertTrue(payload.contains("\"module\":\"" + moduleName + "\""));
-		assertTrue(payload.contains("\"remove\":" + (remove ? "true" : "false")));
+		assertTrue(payload, payload.contains("\"module\":\"" + moduleName + "\""));
+		assertTrue(payload, payload.contains("\"remove\":" + (remove ? "true" : "false")));
 	}
-
-	protected void setupApplicationContext(ApplicationContext context) {
-	}
-
-	protected abstract String getTransport();
-
-	protected abstract void cleanup(ApplicationContext context);
 
 	protected Module getModule(String moduleName, int index) {
 
-		final Map<String, Map<Integer, Module>> deployedModules = this.moduleEventListener.getDeployedModules();
+		final Map<String, Map<Integer, Module>> deployedModules = moduleEventListener.getDeployedModules();
 
 		Module matchedModule = null;
 		for (Entry<String, Map<Integer, Module>> entry : deployedModules.entrySet()) {

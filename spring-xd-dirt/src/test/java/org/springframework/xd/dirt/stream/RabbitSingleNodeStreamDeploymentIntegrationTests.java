@@ -13,10 +13,10 @@
 
 package org.springframework.xd.dirt.stream;
 
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Rule;
-
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
-import org.springframework.context.ApplicationContext;
 import org.springframework.xd.test.rabbit.RabbitTestSupport;
 
 /**
@@ -28,13 +28,13 @@ public class RabbitSingleNodeStreamDeploymentIntegrationTests extends
 	@Rule
 	public RabbitTestSupport rabbitAvailableRule = new RabbitTestSupport();
 
-	@Override
-	protected String getTransport() {
-		return "rabbit";
+	@BeforeClass
+	public static void setUp() {
+		setUp("rabbit");
 	}
 
-	@Override
-	protected void cleanup(ApplicationContext context) {
+	@AfterClass
+	public static void cleanup() {
 		RabbitAdmin admin = context.getBean(RabbitAdmin.class);
 		admin.deleteQueue("xd.deployer");
 		admin.deleteExchange("xd.undeployer");

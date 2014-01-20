@@ -18,9 +18,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
-
-import org.springframework.context.ApplicationContext;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
@@ -34,9 +33,9 @@ import org.springframework.xd.module.core.Module;
  */
 public class LocalSingleNodeStreamDeploymentIntegrationTests extends AbstractSingleNodeStreamDeploymentIntegrationTests {
 
-	@Override
-	protected String getTransport() {
-		return "local";
+	@BeforeClass
+	public static void setUp() {
+		setUp("local");
 	}
 
 	@Test
@@ -84,10 +83,6 @@ public class LocalSingleNodeStreamDeploymentIntegrationTests extends AbstractSin
 		bus.unbindProducer("queue:x", testChannel);
 		bus.unbindConsumer("queue:y", y3);
 		bus.unbindConsumer("queue:z", z3);
-	}
-
-	@Override
-	protected void cleanup(ApplicationContext context) {
 	}
 
 }

@@ -51,7 +51,7 @@ public class PackageSuiteRunner extends Suite {
 	 */
 	private static Class<?>[] getClassesInPackage(Class<?> klass) {
 		String packageSearchPath = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX + "/" +
-				klass.getPackage().getName().replaceAll("\\.", "/") + "/*.class";
+				klass.getPackage().getName().replaceAll("\\.", "/") + "/*" + TEST_CLASSNAME_SUFFIX + ".class";
 		ArrayList<Class<?>> results = new ArrayList<Class<?>>();
 		ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
 		try {
@@ -61,7 +61,7 @@ public class PackageSuiteRunner extends Suite {
 					String unqualifiedClassName = resource.getFilename().replace(".class", "");
 					String className = klass.getPackage().getName() +"." + unqualifiedClassName;
 					Class<?> candidate = ClassUtils.resolveClassName(className, klass.getClassLoader());
-					if (!Modifier.isAbstract(candidate.getModifiers()) && className.endsWith(TEST_CLASSNAME_SUFFIX)) {
+					if (!Modifier.isAbstract(candidate.getModifiers())) {
 						results.add(candidate);
 					}
 					

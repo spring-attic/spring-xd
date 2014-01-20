@@ -34,7 +34,6 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
-
 import org.springframework.batch.core.JobParameter;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.xd.shell.util.Table;
@@ -310,7 +309,6 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		executeJobLaunch(MY_JOB);
 
 		CommandResult result = executeCommandExpectingFailure("job launch --name " + MY_JOB);
-		System.out.println("*************************" + result.getException().getMessage());
 		assertThat(
 				result.getException().getMessage(),
 				containsString("A job instance already exists and is complete for parameters={}.  If you want to run this job again, change the parameters."));

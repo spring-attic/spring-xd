@@ -13,9 +13,9 @@
 
 package org.springframework.xd.dirt.stream;
 
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Rule;
-
-import org.springframework.context.ApplicationContext;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.xd.test.redis.RedisTestSupport;
 
@@ -27,13 +27,13 @@ public class RedisSingleNodeStreamDeploymentIntegrationTests extends AbstractSin
 	@Rule
 	public RedisTestSupport redisAvailableRule = new RedisTestSupport();
 
-	@Override
-	protected String getTransport() {
-		return "redis";
+	@BeforeClass
+	public static void setUp() {
+		setUp("redis");
 	}
 
-	@Override
-	protected void cleanup(ApplicationContext context) {
+	@AfterClass
+	public static void cleanup() {
 		StringRedisTemplate template = context.getBean(StringRedisTemplate.class);
 		template.delete("queue.deployer");
 	}

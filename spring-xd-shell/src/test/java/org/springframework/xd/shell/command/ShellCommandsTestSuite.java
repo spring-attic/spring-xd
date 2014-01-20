@@ -20,9 +20,13 @@ import java.io.IOException;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.runner.RunWith;
+
 import org.springframework.xd.shell.AbstractShellIntegrationTest;
 import org.springframework.xd.test.PackageSuiteRunner;
+import org.springframework.xd.test.redis.RedisTestSupport;
+
 /**
  * Runs all the Shell Integration Tests starting XD once.
  * 
@@ -30,6 +34,9 @@ import org.springframework.xd.test.PackageSuiteRunner;
  */
 @RunWith(PackageSuiteRunner.class)
 public class ShellCommandsTestSuite {
+
+	@ClassRule
+	public static RedisTestSupport redisAvailableRule = new RedisTestSupport();
 
 	@BeforeClass
 	public static void startUp() throws InterruptedException, IOException {

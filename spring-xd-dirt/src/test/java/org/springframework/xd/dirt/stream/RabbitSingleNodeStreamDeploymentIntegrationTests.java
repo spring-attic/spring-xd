@@ -15,7 +15,8 @@ package org.springframework.xd.dirt.stream;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Rule;
+import org.junit.ClassRule;
+
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.xd.test.rabbit.RabbitTestSupport;
 
@@ -25,8 +26,8 @@ import org.springframework.xd.test.rabbit.RabbitTestSupport;
 public class RabbitSingleNodeStreamDeploymentIntegrationTests extends
 		AbstractSingleNodeStreamDeploymentIntegrationTests {
 
-	@Rule
-	public RabbitTestSupport rabbitAvailableRule = new RabbitTestSupport();
+	@ClassRule
+	public static RabbitTestSupport rabbitAvailableRule = new RabbitTestSupport();
 
 	@BeforeClass
 	public static void setUp() {

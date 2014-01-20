@@ -15,7 +15,8 @@ package org.springframework.xd.dirt.stream;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Rule;
+import org.junit.ClassRule;
+
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.xd.test.redis.RedisTestSupport;
 
@@ -24,8 +25,8 @@ import org.springframework.xd.test.redis.RedisTestSupport;
  */
 public class RedisSingleNodeStreamDeploymentIntegrationTests extends AbstractSingleNodeStreamDeploymentIntegrationTests {
 
-	@Rule
-	public RedisTestSupport redisAvailableRule = new RedisTestSupport();
+	@ClassRule
+	public static RedisTestSupport redisAvailableRule = new RedisTestSupport();
 
 	@BeforeClass
 	public static void setUp() {

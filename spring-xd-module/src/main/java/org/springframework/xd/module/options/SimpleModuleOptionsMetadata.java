@@ -49,10 +49,11 @@ public class SimpleModuleOptionsMetadata implements ModuleOptionsMetadata {
 	@Override
 	public ModuleOptions interpolate(final Map<String, String> raw) throws BindException {
 
-		MapBindingResult bindingResult = new MapBindingResult(new HashMap<String, String>(), "options");
+		MapBindingResult bindingResult = new MapBindingResult(new HashMap<String, String>(),
+				MODULE_OPTIONS_PROPERTY_SOURCE_NAME);
 		for (String provided : raw.keySet()) {
 			if (!options.containsKey(provided)) {
-				bindingResult.addError(new FieldError("options", provided, String.format(
+				bindingResult.addError(new FieldError(MODULE_OPTIONS_PROPERTY_SOURCE_NAME, provided, String.format(
 						"Module option '%s' does not exist", provided)));
 			}
 		}

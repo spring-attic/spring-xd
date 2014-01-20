@@ -18,9 +18,6 @@
 
 	<rabbit:template id="rabbitTemplate" connection-factory="rabbitConnectionFactory"/>
 
-	<context:property-placeholder location="${xd.config.home}/${configProperties:rabbit}.properties"
-		ignore-resource-not-found="true" />
-
 	<rabbit:connection-factory id="rabbitConnectionFactory" host="${host:${spring.rabbitmq.host:localhost}}"
 		port="${port:${spring.rabbitmq.port:5672}}" virtual-host="${vhost:${spring.rabbitmq.virtualHost:/}}"
 		username="${username:${spring.rabbitmq.username:guest}}" password="${password:${spring.rabbitmq.password:guest}}"/>

@@ -230,7 +230,7 @@ public class PojoModuleOptionsMetadata implements ModuleOptionsMetadata {
 
 			@Override
 			public EnumerablePropertySource<?> asPropertySource() {
-				return new EnumerablePropertySource<BeanWrapper>(this.toString(), beanWrapper) {
+				return new EnumerablePropertySource<BeanWrapper>(MODULE_OPTIONS_PROPERTY_SOURCE_NAME, beanWrapper) {
 
 					@Override
 					public String[] getPropertyNames() {
@@ -273,12 +273,13 @@ public class PojoModuleOptionsMetadata implements ModuleOptionsMetadata {
 		DataBinder dataBinder = new DataBinder(beanWrapper.getWrappedInstance());
 		dataBinder.setIgnoreUnknownFields(false);
 		MutablePropertySources mps = new MutablePropertySources();
-		mps.addFirst(new MapPropertySource("options", (Map) raw));
+		mps.addFirst(new MapPropertySource(MODULE_OPTIONS_PROPERTY_SOURCE_NAME, (Map) raw));
 		try {
 			dataBinder.bind(new PropertySourcesPropertyValues(mps));
 		}
 		catch (InvalidPropertyException e) {
-			dataBinder.getBindingResult().addError(new FieldError("options", e.getPropertyName(), e.getMessage()));
+			dataBinder.getBindingResult().addError(
+					new FieldError(MODULE_OPTIONS_PROPERTY_SOURCE_NAME, e.getPropertyName(), e.getMessage()));
 		}
 
 		CustomValidatorBean validator = new CustomValidatorBean();

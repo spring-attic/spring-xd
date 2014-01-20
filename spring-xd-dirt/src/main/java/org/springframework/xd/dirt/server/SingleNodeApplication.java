@@ -31,16 +31,12 @@ import org.springframework.xd.dirt.util.BannerUtils;
  * @author Dave Syer
  * @author David Turanski
  */
-public class SingleNodeApplication {
+public class SingleNodeApplication extends SingleNodeIntegrationSupport {
 
 	@Value("${XD_CONTROL_TRANSPORT}")
 	ControlTransport controlTransport;
 
 	public static final String SINGLE_PROFILE = "single";
-
-	private ConfigurableApplicationContext adminContext;
-
-	private ConfigurableApplicationContext containerContext;
 
 	public static void main(String[] args) {
 		new SingleNodeApplication().run(args);
@@ -79,17 +75,10 @@ public class SingleNodeApplication {
 		if (singleNodeApp.controlTransport == ControlTransport.local) {
 			setUpControlChannels(adminContext, containerContext);
 		}
+		super.init();
 		return this;
-
 	}
 
-	public ConfigurableApplicationContext getAdminContext() {
-		return adminContext;
-	}
-
-	public ConfigurableApplicationContext getContainerContext() {
-		return containerContext;
-	}
 
 	public void close() {
 		if (containerContext != null) {

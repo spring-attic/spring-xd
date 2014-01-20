@@ -58,8 +58,8 @@ public class StreamTestSupport extends RandomConfigurationSupport {
 	@BeforeClass
 	public static void startXDSingleNode() throws Exception {
 		application = new SingleNodeApplication().run("--analytics", "memory", "--store", "memory");
-		adminContext = application.getAdminContext();
-		ConfigurableApplicationContext containerContext = application.getContainerContext();
+		adminContext = application.adminContext();
+		ConfigurableApplicationContext containerContext = application.containerContext();
 		ResourceModuleRegistry cp = new ResourceModuleRegistry("classpath:/testmodules/");
 		DelegatingModuleRegistry cmr1 = containerContext.getBean(DelegatingModuleRegistry.class);
 		cmr1.addDelegate(cp);

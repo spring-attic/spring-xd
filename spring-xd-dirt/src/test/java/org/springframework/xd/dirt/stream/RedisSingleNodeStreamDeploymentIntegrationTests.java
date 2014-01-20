@@ -18,6 +18,7 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.rules.ExternalResource;
 
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.integration.x.bus.RedisTestMessageBus;
 import org.springframework.xd.test.redis.RedisTestSupport;
@@ -48,13 +49,10 @@ public class RedisSingleNodeStreamDeploymentIntegrationTests extends AbstractSin
 
 	@AfterClass
 	public static void cleanup() {
-		if (context != null) {
-			StringRedisTemplate template = context.getBean(StringRedisTemplate.class);
-			String queueDeployer = context.getEnvironment().resolvePlaceholders(XD_DEPLOYER_PLACEHOLDER);
-			template.delete(queueDeployer);
-			// Close the application here to avoid calling application.close() after the RedisTestSupport resource
-			// is destroyed.
-			application.close();
-		}
+		ApplicationContext context = application.containerContext();
+		StringRedisTemplate template = context.getBean(StringRedisTemplate.class);
+		String queueDeployer = context.getEnvironment().resolvePlaceholders(XD_DEPLOYER_PLACEHOLDER);
+		template.delete(queueDeployer);
+		application.close();
 	}
 }

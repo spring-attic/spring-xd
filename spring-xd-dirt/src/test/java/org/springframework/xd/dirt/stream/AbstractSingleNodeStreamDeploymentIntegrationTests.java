@@ -21,9 +21,6 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -31,13 +28,10 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
 
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.context.ApplicationContext;
 import org.springframework.integration.channel.AbstractMessageChannel;
-import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.x.bus.AbstractTestMessageBus;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.integration.x.bus.serializer.AbstractCodec;
@@ -48,13 +42,13 @@ import org.springframework.integration.x.bus.serializer.kryo.TupleCodec;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.xd.dirt.config.TestMessageBusInjection;
-import org.springframework.xd.dirt.event.AbstractModuleEvent;
+import org.springframework.xd.dirt.integration.support.sink.NamedChannelSink;
+import org.springframework.xd.dirt.integration.support.sink.SingleNodeNamedChannelSinkFactory;
+import org.springframework.xd.dirt.integration.support.source.NamedChannelSource;
+import org.springframework.xd.dirt.integration.support.source.SingleNodeNamedChannelSourceFactory;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
-import org.springframework.xd.module.ModuleDefinition;
-import org.springframework.xd.module.core.Module;
 import org.springframework.xd.test.RandomConfigurationSupport;
 import org.springframework.xd.tuple.Tuple;
-
 
 /**
  * Base class that contains the tests but does not provide the transport. Each subclass should implement
@@ -69,21 +63,7 @@ import org.springframework.xd.tuple.Tuple;
  */
 public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends RandomConfigurationSupport {
 
-	protected static AbstractApplicationContext context;
-
-	protected static SingleNodeApplication application;
-
-	protected static StreamDefinitionRepository streamDefinitionRepository;
-
-	protected static StreamRepository streamRepository;
-
-	protected static StreamDeployer streamDeployer;
-
-	private static ModuleEventListener moduleEventListener = new ModuleEventListener();
-
 	private static final QueueChannel tapChannel = new QueueChannel();
-
-	protected static AbstractTestMessageBus testMessageBus;
 
 	@ClassRule
 	public static ExternalResource shutdownApplication = new ExternalResource() {
@@ -103,6 +83,10 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 	private final String queueBar = "queue:bar";
 
 	private final String topicFoo = "topic:foo";
+
+	protected static SingleNodeApplication application;
+
+	protected static AbstractTestMessageBus testMessageBus;
 
 	@Test
 	public final void testRoutingWithSpel() throws InterruptedException {
@@ -159,61 +143,55 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 
 	@Test
 	public final void testTopicChannel() throws InterruptedException {
-		String queueBar1 = "queue:bar1";
-		String queueBar2 = "queue:bar2";
-		StreamDefinition bar1Definition = new StreamDefinition("bar1Definition", topicFoo + " > " + queueBar1);
-		StreamDefinition bar2Definition = new StreamDefinition("bar2Definition", topicFoo + " > " + queueBar2);
-		assertEquals(0, streamRepository.count());
-		streamDeployer.save(bar1Definition);
-		deploy(bar1Definition);
-		streamDeployer.save(bar2Definition);
-		deploy(bar2Definition);
+
+		StreamDefinition bar1Definition = new StreamDefinition("bar1Definition",
+				"topic:foo > queue:bar1");
+		StreamDefinition bar2Definition = new StreamDefinition("bar2Definition",
+				"topic:foo > queue:bar2");
+		assertEquals(0, application.streamRepository().count());
+		application.streamDeployer().save(bar1Definition);
+		application.deployStream(bar1Definition);
+
+		application.streamDeployer().save(bar2Definition);
+		application.deployStream(bar2Definition);
 		Thread.sleep(1000);
-		assertEquals(2, streamRepository.count());
+		assertEquals(2, application.streamRepository().count());
 
-		final Module module = getModule("bridge", 0);
+		MessageBus bus = application.messageBus();
 
-		MessageBus bus = module.getComponent(MessageBus.class);
+		SingleNodeNamedChannelSinkFactory sinkFactory = new SingleNodeNamedChannelSinkFactory(bus);
 
-		QueueChannel bar1Channel = new QueueChannel();
-		QueueChannel bar2Channel = new QueueChannel();
+		NamedChannelSink bar1sink = sinkFactory.createNamedChannelSink("queue:bar1");
+		NamedChannelSink bar2sink = sinkFactory.createNamedChannelSink("queue:bar2");
+		NamedChannelSource source = new SingleNodeNamedChannelSourceFactory(bus).createNamedChannelSource(topicFoo);
 
-		bus.bindConsumer(queueBar1, bar1Channel, true);
-		bus.bindConsumer(queueBar2, bar2Channel, true);
-		DirectChannel testChannel = new DirectChannel();
-		bus.bindPubSubProducer(topicFoo, testChannel);
-		testChannel.send(new GenericMessage<String>("hello"));
+		source.sendPayload("hello");
 
-		final Message<?> bar1Message = bar1Channel.receive(10000);
-		final Message<?> bar2Message = bar2Channel.receive(10000);
-		assertEquals("hello", bar1Message.getPayload());
-		assertEquals("hello", bar2Message.getPayload());
+		final Object bar1 = bar1sink.receivePayload(10000);
+		final Object bar2 = bar2sink.receivePayload(10000);
+		assertEquals("hello", bar1);
+		assertEquals("hello", bar2);
 
-		bus.unbindProducer(topicFoo, testChannel);
-		bus.unbindConsumer(queueBar1, bar1Channel);
-		bus.unbindConsumer(queueBar2, bar2Channel);
+		source.unbind();
+		bar1sink.unbind();
+		bar2sink.unbind();
 	}
 
-	protected final static void setUp(String transport) {
-		application = new SingleNodeApplication();
-		application.run("--transport", transport);
 
-		context = (AbstractApplicationContext) application.getContainerContext();
-		streamDefinitionRepository = context.getBean(StreamDefinitionRepository.class);
-		streamRepository = context.getBean(StreamRepository.class);
-		streamDeployer = application.getAdminContext().getBean(StreamDeployer.class);
-		// testMessageBus could be null in case if the implementing class doesn't want
-		// the TestMessageBus to get injected. (ex: in case of LocalMessageBus)
+	protected final static void setUp(String transport) {
+		application = new SingleNodeApplication().run("--transport", transport);
+
 		if (testMessageBus != null) {
 			TestMessageBusInjection.injectMessageBus(application, testMessageBus);
 		}
-		AbstractMessageChannel deployChannel = application.getAdminContext().getBean("deployChannel",
+
+		ApplicationContext adminContext = application.adminContext();
+		AbstractMessageChannel deployChannel = adminContext.getBean("deployChannel",
 				AbstractMessageChannel.class);
-		AbstractMessageChannel undeployChannel = application.getAdminContext().getBean("undeployChannel",
+		AbstractMessageChannel undeployChannel = adminContext.getBean("undeployChannel",
 				AbstractMessageChannel.class);
 		deployChannel.addInterceptor(new WireTap(tapChannel));
 		undeployChannel.addInterceptor(new WireTap(tapChannel));
-		context.addApplicationListener(moduleEventListener);
 	}
 
 	@AfterClass
@@ -226,9 +204,9 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 
 	@After
 	public void cleanUp() {
-		streamRepository.deleteAll();
-		streamDefinitionRepository.deleteAll();
-		streamDeployer.undeployAll();
+		application.streamRepository().deleteAll();
+		application.streamDefinitionRepository().deleteAll();
+		application.streamDeployer().undeployAll();
 
 		Message<?> msg = tapChannel.receive(1000);
 		while (msg != null) {
@@ -246,19 +224,19 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 	@Test
 	public final void deployAndUndeploy() throws InterruptedException {
 
-		assertEquals(0, streamRepository.count());
+		assertEquals(0, application.streamRepository().count());
 		final int ITERATIONS = 5;
 		int i = 0;
 		for (i = 0; i < ITERATIONS; i++) {
 			StreamDefinition definition = new StreamDefinition("test" + i,
 					"http | transform --expression=payload | filter --expression=true | log");
-			streamDeployer.save(definition);
-			waitForDeploy(definition);
-			assertEquals(1, streamRepository.count());
-			assertTrue(streamRepository.exists("test" + i));
-			waitForUndeploy(definition);
-			assertEquals(0, streamRepository.count());
-			assertFalse(streamRepository.exists("test" + i));
+			application.streamDeployer().save(definition);
+			assertTrue("stream not deployed", application.deployStream(definition));
+			assertEquals(1, application.streamRepository().count());
+			assertTrue(application.streamRepository().exists("test" + i));
+			assertTrue("stream not undeployed", application.undeployStream(definition));
+			assertEquals(0, application.streamRepository().count());
+			assertFalse(application.streamRepository().exists("test" + i));
 			// Deploys in reverse order
 			assertModuleRequest("log", false);
 			assertModuleRequest("filter", false);
@@ -286,43 +264,14 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 				payload.contains("\"remove\":" + (remove ? "true" : "false")));
 	}
 
-	protected Module getModule(String moduleName, int index) {
-
-		final Map<String, Map<Integer, Module>> deployedModules = moduleEventListener.getDeployedModules();
-
-		Module matchedModule = null;
-		for (Entry<String, Map<Integer, Module>> entry : deployedModules.entrySet()) {
-			final Module module = entry.getValue().get(index);
-			if (module != null && moduleName.equals(module.getName())) {
-				matchedModule = module;
-				break;
-			}
-		}
-		return matchedModule;
-	}
-
-	protected void deploy(StreamDefinition definition) {
-		waitForDeploy(definition);
-	}
 
 	private void tapTest(StreamDefinition streamDefinition, StreamDefinition tapDefinition) {
-		streamDeployer.save(streamDefinition);
-		deploy(streamDefinition);
+		application.createAndDeployStream(streamDefinition);
+		application.createAndDeployStream(tapDefinition);
 
-		streamDeployer.save(tapDefinition);
-		deploy(tapDefinition);
-
-		final Module module = getModule("transform", 0);
-
-		MessageBus bus = module.getComponent(MessageBus.class);
-
-		DirectChannel sourceChannel = new DirectChannel();
-		QueueChannel sinkChannel = new QueueChannel();
-		QueueChannel tapChannel = new QueueChannel();
-
-		bus.bindProducer("queue:source", sourceChannel, true);
-		bus.bindConsumer("queue:sink", sinkChannel, true);
-		bus.bindConsumer("queue:tap", tapChannel, true);
+		NamedChannelSource source = new SingleNodeNamedChannelSourceFactory(application.messageBus()).createNamedChannelSource("queue:source");
+		NamedChannelSink streamSink = new SingleNodeNamedChannelSinkFactory(application.messageBus()).createNamedChannelSink("queue:sink");
+		NamedChannelSink tapSink = new SingleNodeNamedChannelSinkFactory(application.messageBus()).createNamedChannelSink("queue:tap");
 
 		// Wait for things to set up before sending
 		try {
@@ -333,12 +282,12 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 			e.printStackTrace();
 		}
 
-		sourceChannel.send(new GenericMessage<String>("Dracarys!"));
+		source.send(new GenericMessage<String>("Dracarys!"));
 
 		Message<?> m1;
 		int count1 = 0;
 		String result1 = null;
-		while ((m1 = sinkChannel.receive(1000)) != null) {
+		while ((m1 = streamSink.receive(1000)) != null) {
 			count1++;
 			result1 = (String) m1.getPayload();
 		}
@@ -346,7 +295,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 		Message<?> m2;
 		int count2 = 0;
 		String result2 = null;
-		while ((m2 = tapChannel.receive(1000)) != null) {
+		while ((m2 = tapSink.receive(1000)) != null) {
 			count2++;
 			result2 = (String) m2.getPayload();
 		}
@@ -356,105 +305,43 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 
 		assertEquals("DR.C.RYS!", result2);
 		assertEquals(1, count2);
-		bus.unbindProducer("queue:source", sourceChannel);
-		bus.unbindConsumer("queue:sink", sinkChannel);
-		bus.unbindConsumer("queue:tap", tapChannel);
 
+		source.unbind();
+		streamSink.unbind();
+		tapSink.unbind();
+		application.undeployAndDestroyStream(streamDefinition);
+		application.undeployAndDestroyStream(tapDefinition);
 	}
 
 	private void doTest(StreamDefinition routerDefinition) throws InterruptedException {
-		assertEquals(0, streamRepository.count());
-		streamDeployer.save(routerDefinition);
-		deploy(routerDefinition);
-		Thread.sleep(1000);
-		assertEquals(1, streamRepository.count());
+		assertEquals(0, application.streamRepository().count());
+		application.streamDeployer().save(routerDefinition);
+		assertTrue("stream not deployed", application.deployStream(routerDefinition));
+		assertEquals(1, application.streamRepository().count());
 		assertModuleRequest("router", false);
 
-		final Module module = getModule("router", 0);
-		MessageBus bus = module.getComponent(MessageBus.class);
 
-		QueueChannel fooChannel = new QueueChannel();
-		QueueChannel barChannel = new QueueChannel();
-		bus.bindConsumer(queueFoo, fooChannel, true);
-		bus.bindConsumer(queueBar, barChannel, true);
-		DirectChannel testChannel = new DirectChannel();
-		bus.bindProducer(queueRoute, testChannel, true);
-		testChannel.send(MessageBuilder.withPayload("a").build());
+		MessageBus bus = application.messageBus();
+		assertNotNull(bus);
 
-		testChannel.send(MessageBuilder.withPayload("b").build());
+		SingleNodeNamedChannelSinkFactory sinkFactory = new SingleNodeNamedChannelSinkFactory(bus);
 
-		final Message<?> fooMessage = fooChannel.receive(10000);
-		final Message<?> barMessage = barChannel.receive(10000);
-		assertEquals("a", fooMessage.getPayload());
-		assertEquals("b", barMessage.getPayload());
+		NamedChannelSink foosink = sinkFactory.createNamedChannelSink("queue:foo");
+		NamedChannelSink barsink = sinkFactory.createNamedChannelSink("queue:bar");
 
-		bus.unbindProducer(queueRoute, testChannel);
-		bus.unbindConsumer(queueFoo, fooChannel);
-		bus.unbindConsumer(queueBar, barChannel);
-	}
+		NamedChannelSource source = new SingleNodeNamedChannelSourceFactory(bus).createNamedChannelSource("queue:routeit");
 
-	private boolean waitForStreamOp(StreamDefinition definition, boolean isDeploy) {
-		final int MAX_TRIES = 40;
-		int tries = 1;
-		boolean done = false;
-		while (!done && tries <= MAX_TRIES) {
-			done = true;
-			int i = definition.getModuleDefinitions().size();
-			for (ModuleDefinition module : definition.getModuleDefinitions()) {
-				Module deployedModule = getModule(module.getName(), --i);
+		source.sendPayload("a");
+		source.sendPayload("b");
 
-				done = (isDeploy) ? deployedModule != null : deployedModule == null;
-				if (!done) {
-					break;
-				}
-			}
-			if (!done) {
-				try {
-					Thread.sleep(100);
-					tries++;
-				}
-				catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
-			}
-		}
-		return done;
-	}
+		final Object fooPayload = foosink.receivePayload(10000);
+		final Object barPayload = barsink.receivePayload(10000);
 
-	private void waitForUndeploy(StreamDefinition definition) {
-		streamDeployer.undeploy(definition.getName());
-		boolean undeployed = waitForStreamOp(definition, false);
-		assertTrue("stream " + definition.getName() + " not undeployed ", undeployed);
-	}
+		assertEquals("a", fooPayload);
+		assertEquals("b", barPayload);
 
-	private void waitForDeploy(StreamDefinition definition) {
-
-		streamDeployer.deploy(definition.getName());
-		boolean deployed = waitForStreamOp(definition, true);
-		assertTrue("stream " + definition.getName() + " not deployed ", deployed);
-	}
-
-	static class ModuleEventListener implements ApplicationListener<AbstractModuleEvent> {
-
-		private final ConcurrentMap<String, Map<Integer, Module>> deployedModules = new ConcurrentHashMap<String, Map<Integer, Module>>();
-
-		@Override
-		public void onApplicationEvent(AbstractModuleEvent event) {
-			Module module = event.getSource();
-			if (event.getType().equals("ModuleDeployed")) {
-				this.deployedModules.putIfAbsent(module.getDeploymentMetadata().getGroup(),
-						new HashMap<Integer, Module>());
-				this.deployedModules.get(module.getDeploymentMetadata().getGroup()).put(
-						module.getDeploymentMetadata().getIndex(), module);
-			}
-			else {
-				this.deployedModules.get(module.getDeploymentMetadata().getGroup()).remove(
-						module.getDeploymentMetadata().getIndex());
-			}
-		}
-
-		public Map<String, Map<Integer, Module>> getDeployedModules() {
-			return this.deployedModules;
-		}
+		source.unbind();
+		foosink.unbind();
+		barsink.unbind();
 	}
 }

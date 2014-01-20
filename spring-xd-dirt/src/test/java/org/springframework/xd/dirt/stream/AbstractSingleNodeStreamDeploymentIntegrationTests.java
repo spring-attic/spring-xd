@@ -29,6 +29,7 @@ import java.util.concurrent.ConcurrentMap;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Test;
+
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.http.MediaType;
@@ -72,9 +73,9 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 
 	private static final QueueChannel tapChannel = new QueueChannel();
 
-	protected static final String XD_DEPLOYER_PLACEHOLDER = "${xd.deployer}";
+	protected static final String XD_DEPLOYER_PLACEHOLDER = "${xd.deployer.queue}";
 
-	protected static final String XD_UNDEPLOYER_PLACEHOLDER = "${xd.undeployer}";
+	protected static final String XD_UNDEPLOYER_PLACEHOLDER = "${xd.undeployer.topic}";
 
 	@Test
 	public final void testRoutingWithSpel() throws InterruptedException {

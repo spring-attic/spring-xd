@@ -32,9 +32,9 @@ import org.springframework.util.SocketUtils;
  */
 public class RandomConfigurationSupport {
 
-	private static final String XD_DEPLOYER = "xd.deployer";
+	private static final String XD_DEPLOYER = "xd.deployer.queue";
 
-	private static final String XD_UNDEPLOYER = "xd.undeployer";
+	private static final String XD_UNDEPLOYER = "xd.undeployer.topic";
 
 	private static final String ADMIN_SERVER_PORT = "PORT";
 

@@ -25,6 +25,7 @@ import static org.springframework.integration.test.matcher.PayloadMatcher.hasPay
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -35,7 +36,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
-
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -45,6 +45,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.integration.channel.DirectChannel;
@@ -57,12 +58,14 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.validation.BindException;
 import org.springframework.xd.dirt.server.AdminServerApplication;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.core.Module;
 import org.springframework.xd.module.core.SimpleModule;
+import org.springframework.xd.module.options.ModuleOptionsMetadata;
 
 /**
  * 
@@ -112,7 +115,7 @@ public class JobPluginTests {
 	}
 
 	@Test
-	public void streamPropertiesAdded() {
+	public void streamNameAdded() {
 		Module module = new SimpleModule(new ModuleDefinition("testJob", ModuleType.job),
 				new DeploymentMetadata(
 						"foo", 0));
@@ -122,69 +125,21 @@ public class JobPluginTests {
 
 		Properties moduleProperties = module.getProperties();
 
-		assertEquals(4, moduleProperties.size());
 		assertEquals("foo", moduleProperties.getProperty("xd.stream.name"));
-		assertEquals("", moduleProperties.getProperty("dateFormat"));
-		assertEquals("", moduleProperties.getProperty("numberFormat"));
-		assertEquals("true", moduleProperties.getProperty("makeUnique"));
 	}
 
 	@Test
-	public void jobPluginVerifyThatMakeUniqueIsTrue() {
-		Module module = new SimpleModule(new ModuleDefinition("testJob", ModuleType.job),
-				new DeploymentMetadata(
-						"foo", 0));
+	public void jobOptionsDefaults() throws BindException {
+		ModuleOptionsMetadata metadata = new JobPluginMetadataResolver().resolve(new ModuleDefinition("foo",
+				ModuleType.job));
 
-		assertEquals(0, module.getProperties().size());
-		module.getProperties().put("makeUnique", "false");
-		plugin.preProcessModule(module);
-
-		Properties moduleProperties = module.getProperties();
-
-		assertEquals(4, moduleProperties.size());
-		assertEquals("foo", moduleProperties.getProperty("xd.stream.name"));
-		assertEquals("", moduleProperties.getProperty("dateFormat"));
-		assertEquals("", moduleProperties.getProperty("numberFormat"));
-		assertEquals("false", moduleProperties.getProperty("makeUnique"));
+		Map<String, String> emptyMap = Collections.emptyMap();
+		EnumerablePropertySource<?> ps = metadata.interpolate(emptyMap).asPropertySource();
+		assertEquals(true, ps.getProperty("makeUnique"));
+		assertEquals("", ps.getProperty("dateFormat"));
+		assertEquals("", ps.getProperty("numberFormat"));
 	}
 
-	@Test
-	public void jobPluginVerifyThatDateFormatIsSet() {
-		Module module = new SimpleModule(new ModuleDefinition("testJob", ModuleType.job),
-				new DeploymentMetadata(
-						"foo", 0));
-
-		assertEquals(0, module.getProperties().size());
-		module.getProperties().put("dateFormat", "yyyy.MM.dd");
-		plugin.preProcessModule(module);
-
-		Properties moduleProperties = module.getProperties();
-
-		assertEquals(4, moduleProperties.size());
-		assertEquals("foo", moduleProperties.getProperty("xd.stream.name"));
-		assertEquals("yyyy.MM.dd", moduleProperties.getProperty("dateFormat"));
-		assertEquals("", moduleProperties.getProperty("numberFormat"));
-		assertEquals("true", moduleProperties.getProperty("makeUnique"));
-	}
-
-	@Test
-	public void jobPluginVerifyThatNumberFormatIsSet() {
-		Module module = new SimpleModule(new ModuleDefinition("testJob", ModuleType.job),
-				new DeploymentMetadata(
-						"foo", 0));
-
-		assertEquals(0, module.getProperties().size());
-		module.getProperties().put("numberFormat", "###.##");
-		plugin.preProcessModule(module);
-
-		Properties moduleProperties = module.getProperties();
-
-		assertEquals(4, moduleProperties.size());
-		assertEquals("foo", moduleProperties.getProperty("xd.stream.name"));
-		assertEquals("", moduleProperties.getProperty("dateFormat"));
-		assertEquals("###.##", moduleProperties.getProperty("numberFormat"));
-		assertEquals("true", moduleProperties.getProperty("makeUnique"));
-	}
 
 	@Test
 	public void partitionedJob() {

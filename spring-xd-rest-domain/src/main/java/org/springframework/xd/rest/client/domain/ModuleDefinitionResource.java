@@ -29,7 +29,7 @@ import org.springframework.hateoas.ResourceSupport;
  * @since 1.0
  */
 @XmlRootElement
-public class ModuleDefinitionResource extends ResourceSupport {
+public class ModuleDefinitionResource extends ResourceSupport implements Comparable<ModuleDefinitionResource> {
 
 	private volatile String name;
 
@@ -55,7 +55,16 @@ public class ModuleDefinitionResource extends ResourceSupport {
 		return type;
 	}
 
-	/**
+    @Override
+    public int compareTo(ModuleDefinitionResource other) {
+        String otherType = other.getType();
+        if (otherType.equals(type)) {
+            return name.compareTo(other.getName());
+        }
+        return type.compareTo(otherType);
+    }
+
+    /**
 	 * Dedicated subclass to workaround type erasure.
 	 * 
 	 * @author Eric Bottard

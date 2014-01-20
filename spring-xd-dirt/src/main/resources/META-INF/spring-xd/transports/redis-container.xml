@@ -18,11 +18,11 @@
 	<int-redis:queue-inbound-channel-adapter id="redisInboundAdapter"
 		channel="containerControlChannel"
 		connection-factory="redisConnectionFactory"
-		queue="queue.deployer"
+		queue="${xd.deployer.queue:queue.deployer}"
 		expect-message="true"
 		serializer="redisSerializer"
 		/>
 
-	<int-redis:inbound-channel-adapter topics="topic.undeployer" channel="containerControlChannel" />
+	<int-redis:inbound-channel-adapter topics="${xd.undeployer.topic:topic.undeployer}" channel="containerControlChannel" />
 
 </beans>

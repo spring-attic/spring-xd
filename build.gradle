@@ -105,6 +105,7 @@ ext {
 	kryoVersion = '2.22'
 	uuidVersion = '3.2'
 	args4jVersion = '2.0.16'
+	commonsIoVersion = '2.4'
 	singleNodeServerProcess = new SingleNodeServerProcess()
 }
 
@@ -1177,7 +1178,7 @@ project('spring-xd-test') {
 		compile "org.hsqldb:hsqldb:$hsqldbVersion"
 		compile "org.apache.tomcat:tomcat-jdbc:$tomcatJdbcPoolVersion"
 		compile "junit:junit:$junitVersion"
-		testCompile "commons-io:commons-io:2.4"
+		compile "commons-io:commons-io:$commonsIoVersion"
 	}
 }
 
@@ -1210,7 +1211,7 @@ project('spring-xd-shell') {
 				"log4j:log4j:$log4jVersion",
 				"org.codehaus.jackson:jackson-mapper-asl:$jackson1Version"
 		testCompile "com.icegreen:greenmail:1.3.1b"
-		testCompile "commons-io:commons-io:2.3"
+		testCompile "commons-io:commons-io:$commonsIoVersion"
 
 	}
 

@@ -144,7 +144,6 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		deployChannel.addInterceptor(new WireTap(tapChannel));
 		undeployChannel.addInterceptor(new WireTap(tapChannel));
 		context.addApplicationListener(moduleEventListener);
-		// setupApplicationContext(context);
 	}
 
 	@After
@@ -202,8 +201,10 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		assertNotNull(next);
 		String payload = (String) next.getPayload();
 
-		assertTrue(payload, payload.contains("\"module\":\"" + moduleName + "\""));
-		assertTrue(payload, payload.contains("\"remove\":" + (remove ? "true" : "false")));
+		assertTrue(String.format("payload %s does not contain the expected module name %s", payload, moduleName),
+				payload.contains("\"module\":\"" + moduleName + "\""));
+		assertTrue(String.format("payload %s does not contain the expected remove: value", payload),
+				payload.contains("\"remove\":" + (remove ? "true" : "false")));
 	}
 
 	protected Module getModule(String moduleName, int index) {

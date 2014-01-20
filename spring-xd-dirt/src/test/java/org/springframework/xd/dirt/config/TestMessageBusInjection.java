@@ -37,7 +37,7 @@ public class TestMessageBusInjection {
 	private static final String STREAM_PLUGIN_BEAN_ID = "streamPlugin";
 
 	public static void injectMessageBus(SingleNodeApplication application, AbstractTestMessageBus testMessageBus) {
-		ConfigurableApplicationContext containerContext = application.getContainerContext();
+		ConfigurableApplicationContext containerContext = application.containerContext();
 		StreamPlugin streamPlugin = containerContext.getBean(StreamPlugin.class);
 		ModuleDeployer moduleDeployer = containerContext.getBean(ModuleDeployer.class);
 		RootBeanDefinition bDefinition = new RootBeanDefinition(TestStreamPlugin.class);

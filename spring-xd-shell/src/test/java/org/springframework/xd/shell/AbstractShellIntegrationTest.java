@@ -99,7 +99,7 @@ public abstract class AbstractShellIntegrationTest extends RandomConfigurationSu
 				RandomConfigurationSupport.getAdminServerPort() });
 			shell = bootstrap.getJLineShellComponent();
 
-			runtimeInformationRepository = application.getContainerContext().getBean(
+			runtimeInformationRepository = application.containerContext().getBean(
 					RedisRuntimeContainerInfoRepository.class);
 		}
 		if (!shell.isRunning()) {
@@ -110,7 +110,7 @@ public abstract class AbstractShellIntegrationTest extends RandomConfigurationSu
 	@AfterClass
 	public static void shutdown() {
 		if (SHUTDOWN_AFTER_RUN) {
-			runtimeInformationRepository.delete(application.getContainerContext().getId());
+			runtimeInformationRepository.delete(application.containerContext().getId());
 			logger.info("Stopping XD Shell");
 			shell.stop();
 			if (application != null) {

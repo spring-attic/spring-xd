@@ -33,14 +33,14 @@ import org.springframework.xd.dirt.util.BannerUtils;
  */
 public class SingleNodeApplication {
 
+	private ConfigurableApplicationContext adminContext;
+
+	private ConfigurableApplicationContext containerContext;
+
 	@Value("${XD_CONTROL_TRANSPORT}")
 	ControlTransport controlTransport;
 
 	public static final String SINGLE_PROFILE = "single";
-
-	private ConfigurableApplicationContext adminContext;
-
-	private ConfigurableApplicationContext containerContext;
 
 	public static void main(String[] args) {
 		new SingleNodeApplication().run(args);
@@ -80,16 +80,8 @@ public class SingleNodeApplication {
 			setUpControlChannels(adminContext, containerContext);
 		}
 		return this;
-
 	}
 
-	public ConfigurableApplicationContext getAdminContext() {
-		return adminContext;
-	}
-
-	public ConfigurableApplicationContext getContainerContext() {
-		return containerContext;
-	}
 
 	public void close() {
 		if (containerContext != null) {
@@ -102,6 +94,14 @@ public class SingleNodeApplication {
 				((ConfigurableApplicationContext) parent).close();
 			}
 		}
+	}
+
+	public ConfigurableApplicationContext adminContext() {
+		return adminContext;
+	}
+
+	public ConfigurableApplicationContext containerContext() {
+		return containerContext;
 	}
 
 	private void setUpControlChannels(ApplicationContext adminContext,
@@ -119,7 +119,6 @@ public class SingleNodeApplication {
 		handler.setComponentName("xd.local.control.bridge");
 		deployChannel.subscribe(handler);
 		undeployChannel.subscribe(handler);
-
 	}
 
 }

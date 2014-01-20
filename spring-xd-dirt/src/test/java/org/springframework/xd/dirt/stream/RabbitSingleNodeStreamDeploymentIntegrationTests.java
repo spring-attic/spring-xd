@@ -13,15 +13,13 @@
 
 package org.springframework.xd.dirt.stream;
 
-import java.util.ArrayList;
-
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.rules.ExternalResource;
-import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
-import org.springframework.amqp.rabbit.connection.ConnectionListener;
+
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
+import org.springframework.context.ApplicationContext;
 import org.springframework.integration.x.bus.RabbitTestMessageBus;
 import org.springframework.xd.test.rabbit.RabbitTestSupport;
 
@@ -53,16 +51,12 @@ public class RabbitSingleNodeStreamDeploymentIntegrationTests extends
 
 	@AfterClass
 	public static void cleanup() {
-		if (context != null) {
-			RabbitAdmin admin = context.getBean(RabbitAdmin.class);
-			String deployerQueue = context.getEnvironment().resolvePlaceholders(XD_DEPLOYER_PLACEHOLDER);
-			String undeployerExchange = context.getEnvironment().resolvePlaceholders(XD_UNDEPLOYER_PLACEHOLDER);
-			CachingConnectionFactory ccf = context.getBean(CachingConnectionFactory.class);
-			ccf.setConnectionListeners(new ArrayList<ConnectionListener>());
-			admin.setApplicationContext(null);
-			application.close();
-			admin.deleteQueue(deployerQueue);
-			admin.deleteExchange(undeployerExchange);
-		}
+
+		ApplicationContext context = application.containerContext();
+		RabbitAdmin admin = context.getBean(RabbitAdmin.class);
+		String deployerQueue = context.getEnvironment().resolvePlaceholders(XD_DEPLOYER_PLACEHOLDER);
+		String undeployerExchange = context.getEnvironment().resolvePlaceholders(XD_UNDEPLOYER_PLACEHOLDER);
+		admin.deleteQueue(deployerQueue);
+		admin.deleteExchange(undeployerExchange);
 	}
 }

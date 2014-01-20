@@ -19,15 +19,11 @@ package org.springframework.xd.dirt.plugins.stream;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Collection;
-import java.util.Collections;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import org.springframework.http.MediaType;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.MessageChannel;
@@ -53,8 +49,6 @@ public class MessageBusRegistrationTests {
 	private MessageChannel input = new DirectChannel();
 
 	private MessageChannel output = new DirectChannel();
-
-	private static final Collection<MediaType> ALL = Collections.singletonList(MediaType.ALL);
 
 	@Before
 	public void setUp() {

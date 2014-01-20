@@ -130,7 +130,6 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 
 	protected final static void setUp(String transport) {
 		application = new SingleNodeApplication();
-		System.out.println(transport);
 		application.run("--transport", transport);
 
 		context = (AbstractApplicationContext) application.getContainerContext();

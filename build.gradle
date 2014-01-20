@@ -29,6 +29,14 @@ ext {
 		"http://static.springsource.org/spring-shell/docs/current/api/"
 	] as String[]
 
+	nonJavaProjects = [project(':redis'), project(':spring-xd-ui')]
+	moduleProjects  = subprojects.findAll { project -> project.path.startsWith(':modules.')}
+	javaProjects    = subprojects - (moduleProjects + nonJavaProjects)
+	coverageProjects = ['spring-xd-dirt', 'spring-xd-analytics', 'spring-xd-tuple',
+												'spring-xd-module', 'spring-xd-rest-client', 'spring-xd-rest-domain',
+												'spring-xd-shell','spring-xd-hadoop','spring-xd-extension-http',
+												'spring-xd-extension-jdbc','spring-xd-extension-reactor',
+												'spring-xd-extension-gemfire'].collect { p -> project(p) }
 }
 
 // custom class to store the SingleNode server process
@@ -48,15 +56,6 @@ allprojects {
 		maven { url 'https://repo.eclipse.org/content/repositories/paho-releases' }
 	}
 
-}
-
-def javaProjects() {
-    def nonJavaProjects = ['redis', 'spring-xd-ui']
-    subprojects.findAll { project -> !nonJavaProjects.contains(project.name) && !project.path.startsWith(':modules.')}
-}
-
-def moduleProjects() {
-    subprojects.findAll { project -> project.path.startsWith(':modules.')}
 }
 
 ext {
@@ -121,7 +120,7 @@ def forceSpringVersion(p) {
 	}
 }
 
-configure(javaProjects()) { subproject ->
+configure(javaProjects) { subproject ->
 
 	apply plugin: 'groovy'
 	apply from:   "${rootProject.projectDir}/publish-maven.gradle"
@@ -183,10 +182,6 @@ configure(javaProjects()) { subproject ->
 		}
 	}
 
-	configurations {
-		jacoco //Configuration Group used by Sonar to provide Code Coverage using JaCoCo
-	}
-
   configurations.all {
     resolutionStrategy.cacheChangingModulesFor 60, 'minutes'
   }
@@ -195,7 +190,6 @@ configure(javaProjects()) { subproject ->
 		testCompile "junit:junit:$junitVersion"
 		testCompile "org.codehaus.groovy:groovy-all:2.1.0"
 		testCompile "org.hamcrest:hamcrest-library:$hamcrestVersion"
-		jacoco group: "org.jacoco", name: "org.jacoco.agent", version: "0.6.2.201302030002", classifier: "runtime"
 	}
 
 	// enable all compiler warnings; individual projects may customize further
@@ -204,7 +198,6 @@ configure(javaProjects()) { subproject ->
 	test {
 		// suppress all console output during testing unless running `gradle -i`
 		logging.captureStandardOutput(LogLevel.INFO)
-		jvmArgs "-javaagent:${configurations.jacoco.asPath}=destfile=${buildDir}/jacoco.exec,includes=org.springframework.xd.*"
 		jvmArgs "-XX:MaxPermSize=256m"
 		jvmArgs "-Djava.net.preferIPv4Stack=true"
 // 	useful for debugging the GradleWorkerMain
@@ -253,7 +246,7 @@ configure(javaProjects()) { subproject ->
 	}
 }
 
-configure(moduleProjects()) { moduleProject ->
+configure(moduleProjects) { moduleProject ->
 
 	// We only apply the java plugin b/c the eclipse/idea plugins
 	// require it to emit e.g. a .classpath file. Those projects don't actually
@@ -506,7 +499,7 @@ project('spring-xd-exec') {
 		into('config') { from '../config' }
 		into('spring-xd-ui') { from '../spring-xd-ui' }
 	}
-	moduleProjects().each { moduleProject ->
+	moduleProjects.each { moduleProject ->
 		project.jar.dependsOn moduleProject.copyLibs
 	}
 }
@@ -1247,7 +1240,7 @@ apply plugin: 'sonar-runner'
 
 sonarRunner {
 	sonarProperties {
-		property "sonar.jacoco.reportPath", "${buildDir.name}/jacoco.exec"
+		property "sonar.jacoco.reportPath", "${buildDir.name}/jacoco/test.exec"
 		property "sonar.links.homepage", linkHomepage
 		property "sonar.links.ci", linkCi
 		property "sonar.links.issue", linkIssue
@@ -1256,6 +1249,7 @@ sonarRunner {
 		property "sonar.java.coveragePlugin", "jacoco"
 	}
 }
+
 
 task launch {
 	group = 'Application'
@@ -1435,11 +1429,11 @@ task api(type: Javadoc) {
 	options.links(javadocLinks)
 	options.overview = 'src/api/overview.html'
 
-	source rootProject.javaProjects().collect { project ->
+	source rootProject.javaProjects.collect { project ->
 		project.sourceSets.main.allJava
 	}
 	destinationDir = new File(buildDir, "api")
-	classpath = files(rootProject.javaProjects().collect { project ->
+	classpath = files(rootProject.javaProjects.collect { project ->
 		project.sourceSets.main.compileClasspath
 	})
 }
@@ -1508,8 +1502,31 @@ task dist(dependsOn: assemble) {
 
 task wrapper(type: Wrapper) {
 	description = "Generates build_xd[.bat] scripts"
-	gradleVersion = "1.9"
+	gradleVersion = "1.10"
 	scriptFile= "gradle/build_xd"
+}
+
+apply plugin: 'jacoco'
+
+configure (coverageProjects) { project ->
+	apply plugin: 'jacoco'
+	// Disable individual reports
+	jacocoTestReport {
+		reports {
+			xml.enabled false
+			csv.enabled false
+			html.enabled false
+		}
+	}
+}
+
+task coverageReport(type: JacocoReport) {
+	coverageProjects.collect { p -> executionData p.jacocoTestReport.executionData }
+	coverageProjects.collect { p -> sourceSets (p.sourceSets.main) }
+}
+
+coverageReport.dependsOn {
+	coverageProjects.collect { p -> p.jacocoTestReport }
 }
 
 idea {

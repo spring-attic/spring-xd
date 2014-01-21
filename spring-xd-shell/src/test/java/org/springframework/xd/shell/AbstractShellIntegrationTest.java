@@ -88,8 +88,10 @@ public abstract class AbstractShellIntegrationTest {
 		if (application == null) {
 			// Wipe out the job repository
 			File[] dbFiles = new File("../data/jobs").listFiles();
-			for (File dbFile : dbFiles) {
-				dbFile.delete();
+			if (dbFiles != null) {
+				for (File dbFile : dbFiles) {
+					dbFile.delete();
+				}
 			}
 			application = new SingleNodeApplication().run("--transport", "local",
 					"--analytics", "redis",

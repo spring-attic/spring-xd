@@ -60,7 +60,7 @@ public class RabbitJobPluginTests extends JobPluginTests {
 		assertEquals(0, TestUtils.getPropertyValue(bus, "bindings", Collection.class).size());
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected MultiTypeCodec<Object> getCodec() {
 		Map<Class<?>, AbstractCodec<?>> codecs = new HashMap<Class<?>, AbstractCodec<?>>();
 		codecs.put(Tuple.class, new TupleCodec());

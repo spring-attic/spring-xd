@@ -64,7 +64,7 @@ public class SingleTableDatabaseInitializer extends ResourceDatabasePopulator im
 	}
 
 	@Override
-	public void setScripts(Resource[] scripts) {
+	public void setScripts(Resource... scripts) {
 		this.scripts = Arrays.asList(scripts);
 	}
 

@@ -1161,6 +1161,19 @@ project('spring-xd-test') {
 		compile "org.springframework.integration:spring-integration-test:$springIntegrationVersion"
 		compile "org.springframework.integration:spring-integration-amqp:$springIntegrationVersion"
 		compile "org.springframework.integration:spring-integration-redis:$springIntegrationVersion"
+		compile ("org.springframework.data:spring-data-hadoop:$springDataHadoopVersion") {
+			exclude group: 'javax.servlet'
+			exclude group: 'javax.servlet.jsp'
+			exclude group: 'tomcat'
+			exclude group: 'org.mortbay.jetty'
+			exclude group: 'com.sun.jersey'
+			exclude group: 'org.codehaus.jackson'
+			exclude group: 'net.java.dev.jets3t'
+			exclude group: 'com.jcraft'
+			exclude group: 'junit'
+			exclude group: 'hsqldb'
+			exclude group: 'org.springframework.batch'
+		}
 		compile "org.springframework.data:spring-data-redis:$springDataRedisVersion"
 		compile "org.springframework:spring-context:$springVersion"
 		compile "org.springframework:spring-context-support:$springVersion"

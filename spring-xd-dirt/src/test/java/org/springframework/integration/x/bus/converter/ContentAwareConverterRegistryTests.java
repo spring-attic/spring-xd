@@ -58,7 +58,6 @@ public class ContentAwareConverterRegistryTests {
 	@Test
 	public void testCustomConverters() {
 		DefaultFormattingConversionService conversionService = new DefaultFormattingConversionService();
-		assertTrue(conversionService.canConvert(Object.class, String.class));
 		Foo foo = new Foo();
 		foo.setBar("bar");
 		try {

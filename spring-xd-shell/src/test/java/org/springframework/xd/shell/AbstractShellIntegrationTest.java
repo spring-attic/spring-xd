@@ -32,6 +32,7 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+
 import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
@@ -88,8 +89,10 @@ public abstract class AbstractShellIntegrationTest {
 		if (application == null) {
 			// Wipe out the job repository
 			File[] dbFiles = new File("../data/jobs").listFiles();
-			for (File dbFile : dbFiles) {
-				dbFile.delete();
+			if (dbFiles != null) {
+				for (File dbFile : dbFiles) {
+					dbFile.delete();
+				}
 			}
 			application = new SingleNodeApplication().run("--transport", "local",
 					"--analytics", "redis",

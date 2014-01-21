@@ -54,24 +54,22 @@ public class ModuleTypeConversionPluginMetadataResolver implements ModuleOptions
 		List<ModuleOptionsMetadata> moms = new ArrayList<ModuleOptionsMetadata>();
 		ModuleType type = moduleDefinition.getType();
 		if (type == source || type == processor) {
-			moms.add(new PojoModuleOptionsMetadata(Output.class, null, null,
+			moms.add(new PojoModuleOptionsMetadata(OutputOptionsMetadata.class, null, null,
 					conversionService));
 		}
 		if (type == sink || type == processor) {
-			moms.add(new PojoModuleOptionsMetadata(Input.class, null, null,
+			moms.add(new PojoModuleOptionsMetadata(InputOptionsMetadata.class, null, null,
 					conversionService));
 		}
 
 		// Don't force deep layering if it's not needed
 		switch (moms.size()) {
-			case 2:
-				return new FlattenedCompositeModuleOptionsMetadata(moms);
-			case 1:
-				return moms.iterator().next();
 			case 0:
 				return null;
+			case 1:
+				return moms.iterator().next();
 			default:
-				throw new IllegalStateException("Should never happen: " + moms);
+				return new FlattenedCompositeModuleOptionsMetadata(moms);
 		}
 	}
 
@@ -80,7 +78,8 @@ public class ModuleTypeConversionPluginMetadataResolver implements ModuleOptions
 	 * 
 	 * @author Eric Bottard
 	 */
-	public static class Input {
+	@SuppressWarnings("unused")
+	private static class InputOptionsMetadata {
 
 		private MediaType inputType;
 
@@ -99,7 +98,8 @@ public class ModuleTypeConversionPluginMetadataResolver implements ModuleOptions
 	 * 
 	 * @author Eric Bottard
 	 */
-	public static class Output {
+	@SuppressWarnings("unused")
+	private static class OutputOptionsMetadata {
 
 		private MediaType outputType;
 

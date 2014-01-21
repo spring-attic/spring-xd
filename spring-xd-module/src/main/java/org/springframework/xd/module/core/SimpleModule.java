@@ -41,7 +41,7 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.validation.BindException;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.ModuleDefinition;
-import org.springframework.xd.module.options.DefaultModuleOptionsMetadata;
+import org.springframework.xd.module.options.PassthruModuleOptionsMetadata;
 import org.springframework.xd.module.options.ModuleOptions;
 
 /**
@@ -74,7 +74,7 @@ public class SimpleModule extends AbstractModule {
 
 	private static ModuleOptions defaultModuleOptions() {
 		try {
-			return new DefaultModuleOptionsMetadata().interpolate(Collections.<String, String> emptyMap());
+			return new PassthruModuleOptionsMetadata().interpolate(Collections.<String, String> emptyMap());
 		}
 		catch (BindException e) {
 			throw new IllegalStateException(e);

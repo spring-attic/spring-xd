@@ -23,9 +23,6 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.config.PlaceholderConfigurerSupport;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.EnvironmentAware;
@@ -36,9 +33,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.util.PropertyPlaceholderHelper;
-import org.springframework.util.PropertyPlaceholderHelper.PlaceholderResolver;
-import org.springframework.util.StringValueResolver;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.support.ParentLastURLClassLoader;
 
@@ -57,7 +51,7 @@ import org.springframework.xd.module.support.ParentLastURLClassLoader;
  * <li>use a {@link SimpleModuleOptionsMetadata} backed by keys of the form {@code options.<name>.description}.
  * Additionaly, one can provide {@code options.<name>.default} and {@code options.<name>.type} properties.</li>
  * </ul>
- * <li>return an instance of {@link DefaultModuleOptionsMetadata}.
+ * <li>return an instance of {@link PassthruModuleOptionsMetadata}.
  * <ul>
  * 
  * 
@@ -104,6 +98,8 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 	private ResourceLoader resourceLoader;
 
 	private ConversionService conversionService;
+
+	private final DefaultModuleOptionsMetadataCollector defaultModuleOptionsMetadataCollector = new DefaultModuleOptionsMetadataCollector();
 
 	public DefaultModuleOptionsMetadataResolver(ConversionService conversionService) {
 		this.conversionService = conversionService;
@@ -180,7 +176,7 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 			}
 		}
 		catch (IOException e) {
-			return new DefaultModuleOptionsMetadata();
+			return new PassthruModuleOptionsMetadata();
 		}
 
 	}
@@ -194,50 +190,12 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 	 * @param classLoaderToUse
 	 */
 	private ModuleOptionsMetadata inferModuleOptionsMetadata(ModuleDefinition definition, ClassLoader classLoaderToUse) {
-		final SimpleModuleOptionsMetadata result = new SimpleModuleOptionsMetadata();
 		final DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(beanFactory);
 		reader.setResourceLoader(new PathMatchingResourcePatternResolver(classLoaderToUse));
 		reader.loadBeanDefinitions(definition.getResource());
-		final PropertyPlaceholderHelper helper = new PropertyPlaceholderHelper("${", "}");
-		final PlaceholderResolver placeholderResolver = new PlaceholderResolver() {
 
-			@Override
-			public String resolvePlaceholder(String placeholderName) {
-				int colon = placeholderName.indexOf(':');
-				String optionName = colon >= 0 ? placeholderName.substring(0, colon) : placeholderName;
-				if (optionName.indexOf('.') == -1) {
-					ModuleOption option = new ModuleOption(optionName, "unknwown").withType(String.class);
-					result.add(option);
-				}
-				return placeholderName;
-			}
-		};
-
-
-		final StringValueResolver resolver = new StringValueResolver() {
-
-			@Override
-			public String resolveStringValue(String strVal) {
-				helper.replacePlaceholders(strVal, placeholderResolver);
-				return strVal;
-			}
-		};
-
-		PlaceholderConfigurerSupport support = new PlaceholderConfigurerSupport() {
-
-			@Override
-			protected void processProperties(ConfigurableListableBeanFactory beanFactory, Properties props)
-					throws BeansException {
-
-			}
-
-			{
-				doProcessProperties(beanFactory, resolver);
-			}
-		};
-
-		return result;
+		return defaultModuleOptionsMetadataCollector.collect(beanFactory);
 
 	}
 

@@ -1510,23 +1510,11 @@ apply plugin: 'jacoco'
 
 configure (coverageProjects) { project ->
 	apply plugin: 'jacoco'
-	// Disable individual reports
-	jacocoTestReport {
-		reports {
-			xml.enabled false
-			csv.enabled false
-			html.enabled false
-		}
-	}
 }
 
 task coverageReport(type: JacocoReport) {
 	coverageProjects.collect { p -> executionData p.jacocoTestReport.executionData }
 	coverageProjects.collect { p -> sourceSets (p.sourceSets.main) }
-}
-
-coverageReport.dependsOn {
-	coverageProjects.collect { p -> p.jacocoTestReport }
 }
 
 idea {

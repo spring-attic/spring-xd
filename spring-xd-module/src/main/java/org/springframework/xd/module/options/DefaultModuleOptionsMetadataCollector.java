@@ -56,7 +56,8 @@ public class DefaultModuleOptionsMetadataCollector extends PlaceholderConfigurer
 					if (colon > 0) {
 						String defaultValue = placeholderName.substring(colon + 1);
 						if (!defaultValue.contains("${")) {
-							option.withDefaultValue(defaultValue);
+							// TODO: revisit (XD-1261)
+							// option.withDefaultValue(defaultValue);
 						}
 					}
 					result.add(option);

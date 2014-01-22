@@ -21,7 +21,7 @@ import org.springframework.web.filter.HttpPutFormContentFilter;
 import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.rest.RestConfiguration;
 import org.springframework.xd.dirt.server.options.AdminOptions;
-import org.springframework.xd.dirt.server.options.CommandLinePropertySourceOverridingInitializer;
+import org.springframework.xd.dirt.server.options.CommandLinePropertySourceOverridingListener;
 import org.springframework.xd.dirt.util.BannerUtils;
 import org.springframework.xd.dirt.util.XdConfigLoggingInitializer;
 
@@ -51,14 +51,14 @@ public class AdminServerApplication {
 	public AdminServerApplication run(String... args) {
 		System.out.println(BannerUtils.displayBanner(getClass().getSimpleName(), null));
 
-		CommandLinePropertySourceOverridingInitializer<AdminOptions> commandLineInitializer = new CommandLinePropertySourceOverridingInitializer<AdminOptions>(
+		CommandLinePropertySourceOverridingListener<AdminOptions> commandLineListener = new CommandLinePropertySourceOverridingListener<AdminOptions>(
 				new AdminOptions());
 
 		this.context = new SpringApplicationBuilder(AdminOptions.class, ParentConfiguration.class)
 				.profiles(ADMIN_PROFILE)
-				.initializers(commandLineInitializer)
+				.listeners(commandLineListener)
 				.child(AdminServerApplication.class)
-				.initializers(commandLineInitializer)
+				.listeners(commandLineListener)
 				.run(args);
 		return this;
 	}

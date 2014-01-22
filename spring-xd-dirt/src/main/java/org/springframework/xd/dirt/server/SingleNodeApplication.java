@@ -20,7 +20,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.SubscribableChannel;
-import org.springframework.xd.dirt.server.options.CommandLinePropertySourceOverridingInitializer;
+import org.springframework.xd.dirt.server.options.CommandLinePropertySourceOverridingListener;
 import org.springframework.xd.dirt.server.options.SingleNodeOptions;
 import org.springframework.xd.dirt.server.options.SingleNodeOptions.ControlTransport;
 import org.springframework.xd.dirt.util.BannerUtils;
@@ -51,22 +51,22 @@ public class SingleNodeApplication {
 		System.out.println(BannerUtils.displayBanner(getClass().getSimpleName(), null));
 
 
-		CommandLinePropertySourceOverridingInitializer<SingleNodeOptions> commandLineInitializer = new CommandLinePropertySourceOverridingInitializer<SingleNodeOptions>(
+		CommandLinePropertySourceOverridingListener<SingleNodeOptions> commandLineListener = new CommandLinePropertySourceOverridingListener<SingleNodeOptions>(
 				new SingleNodeOptions());
 
 		SpringApplicationBuilder admin =
 				new SpringApplicationBuilder(SingleNodeOptions.class, ParentConfiguration.class,
 						SingleNodeApplication.class)
-						.initializers(commandLineInitializer)
+						.listeners(commandLineListener)
 						.profiles(AdminServerApplication.ADMIN_PROFILE, SINGLE_PROFILE)
 						.child(SingleNodeOptions.class, AdminServerApplication.class)
-						.initializers(commandLineInitializer);
+						.listeners(commandLineListener);
 		admin.run(args);
 
 		SpringApplicationBuilder container = admin
 				.sibling(SingleNodeOptions.class, LauncherApplication.class)
 				.profiles(LauncherApplication.NODE_PROFILE, SINGLE_PROFILE)
-				.initializers(commandLineInitializer)
+				.listeners(commandLineListener)
 				.web(false);
 		container.run(args);
 

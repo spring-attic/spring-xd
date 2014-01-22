@@ -27,8 +27,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.junit.After;
-import org.junit.AfterClass;
+import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.rules.ExternalResource;
+
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.http.MediaType;
@@ -70,6 +72,17 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 	private static ModuleEventListener moduleEventListener = new ModuleEventListener();
 
 	private static final QueueChannel tapChannel = new QueueChannel();
+
+	@ClassRule
+	public static ExternalResource shutdownApplication = new ExternalResource() {
+
+		@Override
+		protected void after() {
+			if (application != null) {
+				application.close();
+			}
+		}
+	};
 
 	@Test
 	public final void testRoutingWithSpel() throws InterruptedException {
@@ -157,11 +170,6 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 			msg = tapChannel.receive(1000);
 		}
 
-	}
-
-	@AfterClass
-	public static final void shutDown() {
-		application.close();
 	}
 
 	@Test

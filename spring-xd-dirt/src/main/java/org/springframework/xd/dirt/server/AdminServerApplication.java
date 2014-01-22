@@ -36,6 +36,8 @@ public class AdminServerApplication {
 
 	public static final String ADMIN_PROFILE = "adminServer";
 
+	public static final String YARN_PROFILE = "yarn";
+
 	public static final String HSQL_PROFILE = "hsqldb";
 
 	private ConfigurableApplicationContext context;
@@ -55,7 +57,7 @@ public class AdminServerApplication {
 				new AdminOptions());
 
 		this.context = new SpringApplicationBuilder(AdminOptions.class, ParentConfiguration.class)
-				.profiles(ADMIN_PROFILE)
+				.profiles(ADMIN_PROFILE, YARN_PROFILE)
 				.initializers(commandLineInitializer)
 				.child(AdminServerApplication.class)
 				.initializers(commandLineInitializer)

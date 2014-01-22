@@ -7,11 +7,13 @@
 		http://www.springframework.org/schema/hadoop http://www.springframework.org/schema/hadoop/spring-hadoop.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<context:component-scan base-package="org.springframework.xd.shell" />
+	<context:component-scan base-package="org.springframework.xd.shell,org.springframework.xd.yarn.shell" />
 
 	<hadoop:configuration>
 		fs.default.name=
 		mapred.job.tracker=
 	</hadoop:configuration>
+
+	<bean id="shellConfigurationProperties" class="org.springframework.xd.shell.properties.SpringConfigurationProperties"/>
 
 </beans>

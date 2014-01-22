@@ -55,6 +55,7 @@ import org.springframework.xd.shell.command.RuntimeCommands;
 import org.springframework.xd.shell.command.StreamCommands;
 import org.springframework.xd.shell.hadoop.ConfigurationCommands;
 import org.springframework.xd.shell.hadoop.FsShellCommands;
+import org.springframework.xd.shell.properties.SpringConfigurationPropertiesCommands;
 
 /**
  * A quick and dirty tool to collect command help() text and generate an asciidoc page. Also enforces some constraints
@@ -121,6 +122,8 @@ public class ReferenceDoc {
 		// ======== Hadoop =========
 		titles.put(ConfigurationCommands.class, "Hadoop Configuration Commands");
 		titles.put(FsShellCommands.class, "Hadoop FileSystem Commands");
+
+		titles.put(SpringConfigurationPropertiesCommands.class, "Spring Boot Configuration Commands");
 	}
 
 	private static final class CommandsCollector implements MethodCallback {

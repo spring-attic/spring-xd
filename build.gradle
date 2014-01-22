@@ -3,6 +3,8 @@ description = 'Spring XD'
 apply plugin: 'base'
 apply plugin: 'idea'
 
+import org.apache.tools.ant.filters.*
+
 buildscript {
 	repositories {
 		maven { url "http://repo.springsource.org/plugins-snapshot" }
@@ -48,6 +50,7 @@ allprojects {
 	group = 'org.springframework.xd'
 
 	repositories {
+		mavenLocal()
 		mavenCentral()
 		maven { url 'http://repo.spring.io/libs-milestone' }
  		maven { url 'http://repo.spring.io/libs-snapshot' }
@@ -87,7 +90,8 @@ ext {
 	tomcatJdbcPoolVersion = '7.0.42'
 	reactorVersion = '1.0.0.RC1'
 	lettuceVersion = '2.3.3'
-	springDataHadoopVersion = '2.0.0.M4'
+	//springDataHadoopVersion = '2.0.0.M4'
+	springDataHadoopVersion = '2.0.0.BUILD-SNAPSHOT'
 	hadoop12Version = '1.2.1'
 	hadoop22Version = '2.2.0'
 	cdh4Version = '2.0.0-cdh4.3.1'
@@ -411,6 +415,12 @@ project('spring-xd-dirt') {
 
 	}
 
+	processResources {
+		filter ReplaceTokens, tokens: [
+			"application.version": project.version
+		]
+	}
+
 	apply plugin:'application'
 	// skip the startScripts task to avoid default start script generation
 	startScripts.setEnabled(false)
@@ -617,6 +627,7 @@ project('spring-xd-hadoop') {
 	}
 }
 
+
 project('spring-xd-hadoop:hadoop12') {
 	description = 'Hadoop 1.2 dependencies'
 	dependencies {
@@ -643,6 +654,7 @@ project('spring-xd-hadoop:hadoop12') {
 project('spring-xd-hadoop:hadoop22') {
 	description = 'Hadoop 2.0 dependencies'
 	dependencies {
+		runtime project(':spring-xd-yarn')
 		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopVersion}-hadoop22") {
 			exclude group: 'org.apache.hadoop'
 		}
@@ -661,6 +673,10 @@ project('spring-xd-hadoop:hadoop22') {
 		into "$buildDir/lib"
 		from configurations.default
 		include 'spring-data-hadoop-*'
+		include 'spring-yarn-*'
+		include 'yarn-app-xd-*'
+		include 'spring-xd-yarn-*'
+		include 'spring-boot-*'
 		include 'hadoop-*'
 		include 'avro-*'
 		include 'protobuf-java-*'
@@ -1198,10 +1214,15 @@ project('spring-xd-shell') {
 		testCompile project(":spring-xd-test")
 
 		testCompile "uk.co.modular-it:hamcrest-date:$hamcrestDateVersion"
+		// to get application.yml into shell classpath
+		runtime(project(":spring-xd-dirt")) {
+			transitive = false
+		}
 		runtime "org.slf4j:jcl-over-slf4j:$slf4jVersion",
 				"org.slf4j:slf4j-log4j12:$slf4jVersion",
 				"log4j:log4j:$log4jVersion",
 				"org.codehaus.jackson:jackson-mapper-asl:$jackson1Version"
+		runtime "org.yaml:snakeyaml:$snakeYamlVersion"
 		testCompile "com.icegreen:greenmail:1.3.1b"
 		testCompile "commons-io:commons-io:2.3"
 
@@ -1281,6 +1302,113 @@ task copyXDShellInstall(type: Copy, dependsOn: [":spring-xd-shell:installApp"]) 
 	exclude "**/lib/spring-data-hadoop-*.jar"
 }
 
+task copyYMLInstall(type: Copy, dependsOn: ["copyXDShellInstall"]) {
+	from "$rootDir/spring-xd-dirt/src/main/resources/application.yml"
+	into "$buildDir/dist/spring-xd/xd/config"
+	    rename { String fileName ->
+        fileName.replace('yml', 'template')
+    }
+}
+
+project('spring-xd-yarn') {
+	description = 'Spring XD Yarn'
+	dependencies {
+		compile(project(':spring-xd-shell')) {
+			exclude group: 'org.springframework.data'
+		}
+		compile "org.springframework.data:spring-yarn-boot:$springDataHadoopVersion-hadoop22"
+		compile "org.springframework.data:spring-yarn-boot-client:$springDataHadoopVersion-hadoop22"
+	}
+}
+
+project('spring-xd-yarn:yarn-app-xd') {
+	description = 'Spring Yarn XD App'
+	dependencies {
+		compile "org.springframework.data:spring-yarn-boot:$springDataHadoopVersion-hadoop22"
+	}
+}
+
+project('spring-xd-yarn:yarn-app-xd:yarn-app-xd-appmaster') {
+	description = 'Spring Yarn XD App Appmaster'
+	configurations {
+		hadoopruntime.exclude group: 'log4j'
+		hadoopruntime.exclude group: 'org.slf4j'
+		hadoopruntime.exclude group: 'org.apache.hadoop'
+		hadoopruntime.exclude group: 'commons-logging'
+		hadoopruntime.exclude group: 'org.codehaus.jettison'
+		hadoopruntime.exclude group: 'org.apache.activemq'
+	}
+	dependencies {
+		compile project(':spring-xd-yarn:yarn-app-xd')
+		compile "org.springframework.data:spring-yarn-boot:$springDataHadoopVersion-hadoop22"
+		compile "org.springframework:spring-web:$springVersion"
+		hadoopruntime configurations.runtime
+	}
+	task copyToLib(dependsOn: build, type: Copy) {
+		into "$buildDir/lib"
+		from configurations.runtime.allArtifacts.files
+		from configurations.hadoopruntime
+	}
+}
+
+project('spring-xd-yarn:yarn-app-xd:yarn-app-xd-container') {
+	description = 'Spring Yarn XD App Container'
+	dependencies {
+		compile project(':spring-xd-yarn:yarn-app-xd')
+		compile "org.springframework.data:spring-yarn-boot:$springDataHadoopVersion-hadoop22"
+		compile "org.springframework:spring-web:$springVersion"
+	}
+	task copyToLib(dependsOn: build, type: Copy) {
+		into "$buildDir/lib"
+		from configurations.runtime.allArtifacts.files
+	}
+}
+
+task copyYarnInstall(type: Copy, dependsOn: [":spring-xd-yarn:yarn-app-xd:yarn-app-xd-appmaster:copyToLib","spring-xd-yarn:yarn-app-xd:yarn-app-xd-container:copyToLib"]) {
+	from("$rootDir/spring-xd-yarn/yarn-app-xd/yarn-app-xd-appmaster/build") {
+		include 'lib/yarn-app-xd-*jar'
+		include 'lib/spring-yarn-*jar'
+	}
+	from("$rootDir/spring-xd-yarn/yarn-app-xd/yarn-app-xd-container/build") {
+		include 'lib/yarn-app-xd-*jar'
+	}
+	from("$rootDir/spring-xd-dirt/build/install/spring-xd-dirt") {
+		include 'lib/*jar'
+		include 'config/**'
+		include 'modules/**'
+		include 'spring-xd-ui/**'
+		exclude "lib/hadoop-*.jar"
+	}
+	into "$buildDir/dist/spring-xd/yarn"
+}
+
+task yarnAppZip(type: Zip, dependsOn: copyYarnInstall, overwrite: true) {
+//task yarnAppZip(type: Zip, dependsOn: ":spring-xd-yarn:copyToLib", overwrite: true) {
+	classifier = 'yarnapp'
+	description = "Bundles the XD Yarn app."
+	//archiveName = 'xdapp.zip'
+	destinationDir = new File("$buildDir/dist/spring-xd/yarn")
+
+
+	//group = 'Application'
+	//classifier = 'dist'
+	//description = "Bundles the XD project and associated installs with libs and OS specific scripts as a zip file."
+	//ext.baseDir = "${project.name}-${project.version}";
+	//from("$buildDir/dist/spring-xd") {
+	//	into "${baseDir}"
+	//}
+
+
+	//from("$rootDir/spring-xd-yarn/build") {
+	//	include 'lib/**'
+	//}
+	//from ("$buildDir/dist/spring-xd/xd") {
+	//	exclude 'bin/**'
+	//}
+	//from "$buildDir/dist/spring-xd/xd"
+	from "$buildDir/dist/spring-xd/yarn"
+}
+
 task copyHadoopLibs(dependsOn: [":spring-xd-hadoop:hadoop12:copyToLib", ":spring-xd-hadoop:hadoop22:copyToLib", ":spring-xd-hadoop:cdh4:copyToLib", ":spring-xd-hadoop:hdp13:copyToLib", ":spring-xd-hadoop:phd1:copyToLib"]) << {
 	['hadoop12', 'hadoop22', 'cdh4', 'hdp13', 'phd1'].each { distro ->
 		copy {
@@ -1294,7 +1422,7 @@ task copyHadoopLibs(dependsOn: [":spring-xd-hadoop:hadoop12:copyToLib", ":spring
 	}
 }
 
-task copyInstall (type: Copy, dependsOn: ["copyRedisInstall", "copyGemfireInstall", "copyXDInstall", "copyHadoopLibs", "copyXDShellInstall"]) {
+task copyInstall (type: Copy, dependsOn: ["copyRedisInstall", "copyGemfireInstall", "copyXDInstall", "copyHadoopLibs", "copyXDShellInstall", "yarnAppZip"]) {
 	group = 'Application'
 	description = "Copy all the required installs to build/dist directory"
 	from "$rootDir/scripts/README"

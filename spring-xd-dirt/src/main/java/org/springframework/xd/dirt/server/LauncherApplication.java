@@ -50,6 +50,8 @@ public class LauncherApplication {
 
 	public static final String NODE_PROFILE = "node";
 
+	public static final String YARN_PROFILE = "yarn";
+
 	private ConfigurableApplicationContext context;
 
 	public static void main(String[] args) {
@@ -69,7 +71,7 @@ public class LauncherApplication {
 		try {
 
 			this.context = new SpringApplicationBuilder(ContainerOptions.class, ParentConfiguration.class)
-					.profiles(NODE_PROFILE)
+					.profiles(NODE_PROFILE, YARN_PROFILE)
 					.initializers(commandLineInitializer)
 					.child(LauncherApplication.class)
 					.initializers(commandLineInitializer)

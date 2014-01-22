@@ -47,7 +47,7 @@ import org.springframework.xd.rest.client.util.RestTemplateMessageConverterUtil;
 @Configuration
 @EnableHypermediaSupport
 @EnableSpringDataWebSupport
-@ComponentScan(excludeFilters = @Filter(Configuration.class))
+@ComponentScan(basePackages = { "org.springframework.xd.dirt.rest", "org.springframework.xd.yarn.app.xd.appmaster" }, excludeFilters = @Filter(Configuration.class))
 public class RestConfiguration {
 
 	@Bean

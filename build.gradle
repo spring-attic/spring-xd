@@ -418,6 +418,7 @@ project('spring-xd-dirt') {
 
 	test {
 		systemProperties["xd.home"] = "${rootProject.projectDir}"
+		forkEvery = 10
 	}
 
 	task configFiles {

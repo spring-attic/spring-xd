@@ -328,16 +328,24 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	}
 
 
-	/*
-	 * @Test public void testTappingWithLabels() throws IOException { // Note: this test is using a regular sink, not
-	 * named channel sink HttpSource source = newHttpSource(); FileSink sink = newFileSink().binary(true); FileSink
-	 * tapsink1 = newFileSink().binary(true); String streamName = getRandomStreamName(); stream().create( streamName,
-	 * "%s | flibble: transform --expression=payload.toUpperCase() | flibble2: transform --expression=payload.toUpperCase() | %s"
-	 * , source, sink); stream().create(getRandomStreamName(),
-	 * "%s.flibble > transform --expression=payload.replaceAll('A','.') | %s", getTapName(streamName), tapsink1);
-	 * source.ensureReady().postData("Dracarys!"); assertThat(sink, eventually(hasContentsThat(equalTo("DRACARYS!"))));
-	 * assertThat(tapsink1, eventually(hasContentsThat(equalTo("DR.C.RYS!")))); }
-	 */
+//	@Test
+//	public void testTappingWithLabels() throws IOException {
+//		// Note: this test is using a regular sink, not named channel sink
+//		HttpSource source = newHttpSource();
+//		FileSink sink = newFileSink().binary(true);
+//		FileSink tapsink1 = newFileSink().binary(true);
+//		String streamName = getStreamName();
+//		stream().create(
+//				streamName,
+//				"%s | flibble: transform --expression=payload.toUpperCase() | flibble2: transform --expression=payload.toUpperCase() | %s"
+//				, source, sink);
+//		stream().create(getStreamName(),
+//				"%s.flibble > transform --expression=payload.replaceAll('A','.') | %s", getTapName(streamName),
+//				tapsink1);
+//		source.ensureReady().postData("Dracarys!");
+//		assertThat(sink, eventually(hasContentsThat(equalTo("DRACARYS!"))));
+//		assertThat(tapsink1, eventually(hasContentsThat(equalTo("DR.C.RYS!"))));
+//	}
 
 	@Test
 	public void testTappingModulesVariationsWithSinkChannel_XD629() throws IOException {

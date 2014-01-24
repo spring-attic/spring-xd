@@ -30,6 +30,7 @@ xd:
     home: file:${XD_HOME}/modules
   ui:
     home: file:${XD_HOME}/spring-xd-ui
+    allow_origin: http://localhost:9889
 
 server:
   port: ${PORT:9393}

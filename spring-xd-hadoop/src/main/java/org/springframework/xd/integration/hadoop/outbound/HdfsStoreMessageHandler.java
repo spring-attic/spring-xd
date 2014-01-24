@@ -23,9 +23,9 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.context.SmartLifecycle;
 import org.springframework.data.hadoop.store.DataStoreWriter;
-import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.util.Assert;
 
 /**

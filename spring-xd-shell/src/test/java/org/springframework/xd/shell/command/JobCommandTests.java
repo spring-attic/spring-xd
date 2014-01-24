@@ -34,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
+
 import org.springframework.batch.core.JobParameter;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.xd.shell.util.Table;
@@ -423,11 +424,18 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		// sleep for stop() until the step2 is invoked.
 		Thread.sleep(3000);
 		table = (Table) executeCommand("job execution list").getResult();
-		for (TableRow tr : table.getRows()) {
-			// Match by above executionId
-			if (tr.getValue(1).equals(executionId)) {
-				executionStatus = tr.getValue(5);
-				break;
+		int n = 0;
+		while (!"STOPPED".equals(executionStatus) && n++ < 100) {
+			for (TableRow tr : table.getRows()) {
+				// Match by above executionId
+				if (tr.getValue(1).equals(executionId)) {
+					executionStatus = tr.getValue(5);
+					if (!"STOPPED".equals(executionStatus)) {
+						Thread.sleep(100);
+						table = (Table) executeCommand("job execution list").getResult();
+					}
+					break;
+				}
 			}
 		}
 		assertEquals("STOPPED", executionStatus);

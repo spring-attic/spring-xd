@@ -20,6 +20,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.http.HttpMethod;
+import org.springframework.util.Assert;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 /**
@@ -27,10 +28,7 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
  * 
  * @author Eric Bottard
  */
-public class AccessControlInterceptor extends HandlerInterceptorAdapter {
-
-	// TODO Access-Control-Allow-Origin header should not be hard-coded
-	private static final String ALLOWED_ORIGIN = "http://localhost:9889";
+class AccessControlInterceptor extends HandlerInterceptorAdapter {
 
 	private static final String LOCATION = "Location";
 
@@ -50,6 +48,13 @@ public class AccessControlInterceptor extends HandlerInterceptorAdapter {
 
 	private static final String CACHE_SECONDS = "300";
 
+	private final String allowedOrigin;
+
+	AccessControlInterceptor(String allowedOrigin) {
+		Assert.hasText(allowedOrigin);
+		this.allowedOrigin = allowedOrigin;
+	}
+
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
 		// For PUT requests we need an extra round-trip
@@ -58,7 +63,7 @@ public class AccessControlInterceptor extends HandlerInterceptorAdapter {
 		String acRequestMethod = request.getHeader(ACCESS_CONTROL_REQUEST_METHOD);
 		String acRequestHeaders = request.getHeader(ACCESS_CONTROL_REQUEST_HEADERS);
 
-		response.setHeader(ACCESS_CONTROL_ALLOW_ORIGIN, ALLOWED_ORIGIN);
+		response.setHeader(ACCESS_CONTROL_ALLOW_ORIGIN, allowedOrigin);
 
 		if (HttpMethod.OPTIONS.toString().equals(request.getMethod()) && hasValue(acRequestMethod)) {
 			// this is a preflight check our API only needs this for PUT
@@ -70,8 +75,7 @@ public class AccessControlInterceptor extends HandlerInterceptorAdapter {
 			response.setHeader(ACCESS_CONTROL_ALLOW_HEADERS, acRequestHeaders);
 			response.setHeader(ACCESS_CONTROL_MAX_AGE, CACHE_SECONDS);
 
-			return false; // Don't continue processing, return to browser
-							// immediately
+			return false; // Don't continue processing, return to browser immediately
 		}
 		else {
 			response.addHeader(ACCESS_CONTROL_EXPOSE_HEADERS, LOCATION);

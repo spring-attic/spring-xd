@@ -58,6 +58,9 @@ public class RestConfiguration {
 			@Value("${xd.ui.home:file:${XD_HOME}/spring-xd-ui}/")
 			private String resourceRoot;
 
+			@Value("${xd.ui.allow_origin:http://localhost:9889}")
+			private String allowedOrigin;
+
 			@Override
 			public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
 				RestTemplateMessageConverterUtil.installMessageConverters(converters);
@@ -75,7 +78,7 @@ public class RestConfiguration {
 
 			@Override
 			public void addInterceptors(InterceptorRegistry registry) {
-				registry.addInterceptor(new AccessControlInterceptor());
+				registry.addInterceptor(new AccessControlInterceptor(allowedOrigin));
 			}
 
 			// add a static resource handler for the UI

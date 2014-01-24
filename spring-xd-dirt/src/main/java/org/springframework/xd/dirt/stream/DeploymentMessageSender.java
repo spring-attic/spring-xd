@@ -23,10 +23,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.jboss.netty.channel.ChannelException;
 
 import org.springframework.context.ApplicationContextException;
-import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 
 /**

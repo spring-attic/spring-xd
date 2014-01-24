@@ -47,7 +47,7 @@ public class MailCommandTests extends AbstractStreamIntegrationTest {
 
 		mailSource.ensureStarted();
 
-		stream().create(getRandomStreamName(), "%s | %s", mailSource, fileSink);
+		stream().create(getStreamName(), "%s | %s", mailSource, fileSink);
 
 		mailSource.sendEmail("from@foo.com", "The Subject", "My body is slim!");
 
@@ -61,7 +61,7 @@ public class MailCommandTests extends AbstractStreamIntegrationTest {
 
 		mailSource.ensureStarted();
 
-		stream().create(getRandomStreamName(), "%s | %s", mailSource, fileSink);
+		stream().create(getStreamName(), "%s | %s", mailSource, fileSink);
 
 		mailSource.sendEmail("from@foo.com", "The Subject", "My body is slim!");
 
@@ -78,7 +78,7 @@ public class MailCommandTests extends AbstractStreamIntegrationTest {
 				.subject("payload");
 
 
-		stream().create(getRandomStreamName(), "%s | %s", httpSource, mailSink);
+		stream().create(getStreamName(), "%s | %s", httpSource, mailSink);
 
 		httpSource.ensureReady().postData("Woohoo!");
 		MimeMessage result = mailSink.waitForEmail();

@@ -33,7 +33,9 @@ public class RedisMessageBusTests extends AbstractMessageBusTests {
 
 	@Override
 	protected MessageBus getMessageBus() {
-		testMessageBus = new RedisTestMessageBus(redisAvailableRule.getResource(), getCodec());
+		if (testMessageBus == null) {
+			testMessageBus = new RedisTestMessageBus(redisAvailableRule.getResource(), getCodec());
+		}
 		return testMessageBus;
 	}
 

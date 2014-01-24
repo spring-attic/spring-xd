@@ -23,7 +23,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
@@ -37,6 +36,8 @@ import org.junit.ClassRule;
 import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
+import org.springframework.util.AlternativeJdkIdGenerator;
+import org.springframework.util.IdGenerator;
 import org.springframework.xd.dirt.container.store.RedisRuntimeContainerInfoRepository;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.test.RandomConfigurationSupport;
@@ -71,6 +72,8 @@ public abstract class AbstractShellIntegrationTest extends RandomConfigurationSu
 	protected static final String DEFAULT_METRIC_NAME = "bar";
 
 	public static boolean SHUTDOWN_AFTER_RUN = true;
+
+	private final IdGenerator idGenerator = new AlternativeJdkIdGenerator();
 
 	@ClassRule
 	public static RedisTestSupport redisAvailableRule = new RedisTestSupport();
@@ -121,16 +124,22 @@ public abstract class AbstractShellIntegrationTest extends RandomConfigurationSu
 		return shell;
 	}
 
-	protected String getRandomStreamName() {
-		return "stream-test-" + UUID.randomUUID();
+	private String getTestMethodName() {
+		StackTraceElement[] element = Thread.currentThread().getStackTrace();
+		// Assumption here is that the getStreamName() is called from the @Test method
+		return element[3].getMethodName() + "-" + idGenerator.generateId();
+	}
+
+	protected String getStreamName() {
+		return getTestMethodName();
 	}
 
 	protected String getTapName(String streamName) {
 		return "tap:stream:" + streamName;
 	}
 
-	protected String getRandomJobName() {
-		return "test-job-" + UUID.randomUUID();
+	protected String getJobName() {
+		return getTestMethodName();
 	}
 
 	protected String getJobLaunchQueue(String jobName) {

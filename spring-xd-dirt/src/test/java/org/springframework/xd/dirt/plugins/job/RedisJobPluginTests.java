@@ -49,9 +49,11 @@ public class RedisJobPluginTests extends JobPluginTests {
 
 	@Override
 	protected MessageBus getMessageBus() {
-		testMessageBus = new RedisTestMessageBus(redisAvailable.getResource(), getCodec());
-		RedisMessageBus redisMessageBus = (RedisMessageBus) testMessageBus.getCoreMessageBus();
-		redisMessageBus.setIntegrationEvaluationContext(new StandardEvaluationContext());
+		if (testMessageBus == null) {
+			testMessageBus = new RedisTestMessageBus(redisAvailable.getResource(), getCodec());
+			RedisMessageBus redisMessageBus = (RedisMessageBus) testMessageBus.getCoreMessageBus();
+			redisMessageBus.setIntegrationEvaluationContext(new StandardEvaluationContext());
+		}
 		return testMessageBus;
 	}
 

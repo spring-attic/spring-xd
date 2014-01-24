@@ -22,7 +22,7 @@ import org.springframework.integration.x.redis.RedisMessageBus;
 
 
 /**
- * Test Support class for RedisTestMessageBus.
+ * Test support class for {@link RedisMessageBus}.
  * 
  * @author Ilayaperumal Gopinathan
  */

@@ -80,7 +80,7 @@ public class FileSourceAndFileSinkTests extends AbstractStreamIntegrationTest {
 		FileSink sink = newFileSink().binary(true);
 
 		source.appendToFile("Hi there!");
-		stream().create(getRandomStreamName(), "%s | %s", source, sink);
+		stream().create(getStreamName(), "%s | %s", source, sink);
 		assertThat(sink, eventually(hasContentsThat(equalTo("Hi there!"))));
 
 
@@ -93,7 +93,7 @@ public class FileSourceAndFileSinkTests extends AbstractStreamIntegrationTest {
 		}
 
 		// Both use stream name
-		String streamName = getRandomStreamName();
+		String streamName = getStreamName();
 
 		File inDir = new File(DEFAULT_IN, streamName);
 		inDir.mkdirs();

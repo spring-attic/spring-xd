@@ -43,15 +43,15 @@ public class NamedChannelTests extends AbstractStreamIntegrationTest {
 		logger.info("Creating stream with named channel 'queue:foo' as sink");
 		HttpSource source = newHttpSource();
 
-		stream().create(getRandomStreamName(),
+		stream().create(getStreamName(),
 				"%s | transform --expression=payload.toUpperCase() > queue:foo", source);
 	}
 
 	@Test
 	public void testCreateNamedChannelAsSource() throws InterruptedException {
 		logger.info("Creating stream with named channel 'foo' as source");
-		String streamName1 = getRandomStreamName();
-		String streamName2 = getRandomStreamName();
+		String streamName1 = getStreamName();
+		String streamName2 = getStreamName();
 
 		HttpSource httpSource = newHttpSource();
 		CounterSink counterSink = metrics().newCounterSink();

@@ -45,7 +45,9 @@ public class RabbitMessageBusTests extends AbstractMessageBusTests {
 
 	@Override
 	protected MessageBus getMessageBus() {
-		testMessageBus = new RabbitTestMessageBus(rabbitAvailableRule.getResource(), getCodec());
+		if (testMessageBus == null) {
+			testMessageBus = new RabbitTestMessageBus(rabbitAvailableRule.getResource(), getCodec());
+		}
 		return testMessageBus;
 	}
 

@@ -41,7 +41,7 @@ public class TcpModulesTests extends AbstractStreamIntegrationTest {
 	public void testTcpSource() throws Exception {
 		TcpSource tcpSource = newTcpSource();
 		FileSink fileSink = newFileSink().binary(true);
-		stream().create(getRandomStreamName(), "%s | %s", tcpSource, fileSink);
+		stream().create(getStreamName(), "%s | %s", tcpSource, fileSink);
 
 		// Following \r\n is because of CRLF deserializer
 		tcpSource.ensureReady().sendBytes("Hello\r\n".getBytes("UTF-8"));
@@ -56,7 +56,7 @@ public class TcpModulesTests extends AbstractStreamIntegrationTest {
 		HttpSource httpSource = newHttpSource();
 
 
-		stream().create(getRandomStreamName(), "%s | %s", httpSource, tcpSink);
+		stream().create(getStreamName(), "%s | %s", httpSource, tcpSink);
 		httpSource.ensureReady().postData("Hi there!");
 		// The following CRLF is b/c of the default tcp serializer
 		// NOT because of FileSink

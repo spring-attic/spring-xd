@@ -25,7 +25,7 @@ import org.springframework.messaging.MessageChannel;
 
 
 /**
- * Abstract class that adds test support on {@link MessageBus}
+ * Abstract class that adds test support for {@link MessageBus}.
  * 
  * @author Ilayaperumal Gopinathan
  */

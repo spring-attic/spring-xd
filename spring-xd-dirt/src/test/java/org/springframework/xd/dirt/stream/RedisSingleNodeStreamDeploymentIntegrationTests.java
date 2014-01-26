@@ -16,8 +16,10 @@ package org.springframework.xd.dirt.stream;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.rules.ExternalResource;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.integration.x.bus.RedisTestMessageBus;
 import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
@@ -32,6 +34,17 @@ public class RedisSingleNodeStreamDeploymentIntegrationTests extends AbstractSin
 	public static void setUp() {
 		setUp("redis");
 	}
+
+	@ClassRule
+	public static ExternalResource initializeRedisTestMessageBus = new ExternalResource() {
+
+		@Override
+		protected void before() {
+			if (testMessageBus == null) {
+				testMessageBus = new RedisTestMessageBus(redisAvailableRule.getResource(), getCodec());
+			}
+		}
+	};
 
 	@AfterClass
 	public static void cleanup() {

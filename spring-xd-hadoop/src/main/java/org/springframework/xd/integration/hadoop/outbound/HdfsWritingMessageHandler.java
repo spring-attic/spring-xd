@@ -17,9 +17,9 @@
 package org.springframework.xd.integration.hadoop.outbound;
 
 import org.springframework.context.SmartLifecycle;
-import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.util.Assert;
 import org.springframework.xd.hadoop.fs.HdfsWriter;
 import org.springframework.xd.hadoop.fs.HdfsWriterFactory;

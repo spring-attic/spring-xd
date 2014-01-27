@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -29,6 +30,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContext;
@@ -71,7 +73,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Ilayaperumal Gopinathan
  */
 public class ModuleDeployer extends AbstractMessageHandler implements ApplicationContextAware,
-		ApplicationEventPublisherAware, BeanClassLoaderAware {
+		ApplicationEventPublisherAware, BeanClassLoaderAware, DisposableBean {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -136,6 +138,21 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 			};
 		});
 		this.commonContext = application.run();
+	}
+
+	@Override
+	public void destroy() throws Exception {
+		for (Entry<String, Map<Integer, Module>> entry : this.deployedModules.entrySet()) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Destroying group:" + entry.getKey());
+			}
+			for (Entry<Integer, Module> moduleEntry : entry.getValue().entrySet()) {
+				this.destroyModule(moduleEntry.getValue());
+			}
+		}
+		if (this.commonContext != null) {
+			this.commonContext.close();
+		}
 	}
 
 	@Override
@@ -277,14 +294,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 				this.deployedModules.remove(group);
 			}
 			if (module != null) {
-				if (logger.isInfoEnabled()) {
-					logger.info("removed " + module.toString());
-				}
-				this.beforeShutdown(module);
-				module.stop();
-				this.removeModule(module);
-				module.destroy();
-				this.fireModuleUndeployedEvent(module);
+				this.destroyModule(module);
 			}
 			else {
 				if (logger.isDebugEnabled()) {
@@ -297,6 +307,17 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 				logger.trace("Ignoring undeploy - group not deployed here: " + request);
 			}
 		}
+	}
+
+	private void destroyModule(Module module) {
+		if (logger.isInfoEnabled()) {
+			logger.info("removed " + module.toString());
+		}
+		this.beforeShutdown(module);
+		module.stop();
+		this.removeModule(module);
+		module.destroy();
+		this.fireModuleUndeployedEvent(module);
 	}
 
 	private void handleLaunch(ModuleDeploymentRequest request) {

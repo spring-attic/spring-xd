@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,17 +13,22 @@
 
 package org.springframework.xd.dirt.stream;
 
+import java.util.ArrayList;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.rules.ExternalResource;
 
+import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
+import org.springframework.amqp.rabbit.connection.ConnectionListener;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.integration.x.bus.RabbitTestMessageBus;
 import org.springframework.xd.test.rabbit.RabbitTestSupport;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class RabbitSingleNodeStreamDeploymentIntegrationTests extends
 		AbstractSingleNodeStreamDeploymentIntegrationTests {
@@ -53,6 +58,10 @@ public class RabbitSingleNodeStreamDeploymentIntegrationTests extends
 			RabbitAdmin admin = context.getBean(RabbitAdmin.class);
 			String deployerQueue = context.getEnvironment().resolvePlaceholders(XD_DEPLOYER_PLACEHOLDER);
 			String undeployerExchange = context.getEnvironment().resolvePlaceholders(XD_UNDEPLOYER_PLACEHOLDER);
+			CachingConnectionFactory ccf = context.getBean(CachingConnectionFactory.class);
+			ccf.setConnectionListeners(new ArrayList<ConnectionListener>());
+			admin.setApplicationContext(null);
+			application.close();
 			admin.deleteQueue(deployerQueue);
 			admin.deleteExchange(undeployerExchange);
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.amqp.core.AnonymousQueue;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.core.Queue;
@@ -109,8 +110,15 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 			Collection<MediaType> acceptedMediaTypes) {
 		FanoutExchange exchange = new FanoutExchange("topic." + name);
 		rabbitAdmin.declareExchange(exchange);
-		Queue queue = this.rabbitAdmin.declareQueue();
-		this.rabbitAdmin.declareBinding(BindingBuilder.bind(queue).to(exchange));
+		Queue queue = new AnonymousQueue();
+		this.rabbitAdmin.declareQueue(queue);
+		org.springframework.amqp.core.Binding binding = BindingBuilder.bind(queue).to(exchange);
+		this.rabbitAdmin.declareBinding(binding);
+		// register with context so they will be redeclared after a connection failure
+		this.autoDeclareContext.getBeanFactory().registerSingleton(queue.getName(), queue);
+		if (!autoDeclareContext.containsBean(exchange.getName() + ".binding")) {
+			this.autoDeclareContext.getBeanFactory().registerSingleton(exchange.getName() + ".binding", binding);
+		}
 		doRegisterConsumer(name, moduleInputChannel, acceptedMediaTypes, queue);
 	}
 

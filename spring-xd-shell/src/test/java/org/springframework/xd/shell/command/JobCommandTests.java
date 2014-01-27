@@ -265,7 +265,8 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 
 		assertTrue("The countdown latch expired and did not count down.", done);
 		// Make sure the job parameters are set when passing through job launch command
-		assertTrue("Expecting 3 parameters.", JobParametersHolder.getJobParameters().size() == 3);
+		assertTrue("Expecting 3 parameters, but got: " + JobParametersHolder.getJobParameters(),
+				JobParametersHolder.getJobParameters().size() == 3);
 		assertNotNull(JobParametersHolder.getJobParameters().get("random"));
 
 		final JobParameter parameter1 = JobParametersHolder.getJobParameters().get("param1");
@@ -384,13 +385,18 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 	}
 
 	@Test
-	public void testDisplaySpecificJobExecutionWithDateParam() {
-		executeJobCreate(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR);
-		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
-		executeJobLaunch(MY_JOB, "{\"param1\":\"fixedDelayKenny\",\"param2(date)\":\"2013/12/28\"}");
+	public void testDisplaySpecificJobExecutionWithCustomFormats() {
+		String jobDefinition = JOB_WITH_PARAMETERS_DESCRIPTOR
+				+ " --dateFormat='yyyy/dd/MM' --numberFormat='###;(###)'";
+		executeJobCreate(MY_JOB, jobDefinition);
+		checkForJobInList(MY_JOB, jobDefinition, true);
+		executeJobLaunch(MY_JOB,
+				"{\"param1\":\"fixedDelayKenny\",\"param2(date)\":\"2013/28/12\",\"param3(long)\":\"(123)\"}");
 		final Table jobExecutions = listJobExecutions();
 		String id = jobExecutions.getRows().get(0).getValue(1);
-		displayJobExecution(id);
+		String displayed = displayJobExecution(id);
+		assertTrue(displayed.matches("(?s).*param2 +Sat Dec 28 00:00:00 CET 2013 +DATE.*"));
+		assertTrue(displayed.matches("(?s).*param3 +-123 +LONG.*"));
 	}
 
 	@Test

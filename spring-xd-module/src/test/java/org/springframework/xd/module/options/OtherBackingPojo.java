@@ -14,40 +14,34 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.modules.metadata;
+package org.springframework.xd.module.options;
 
 import org.springframework.xd.module.options.spi.ModuleOption;
-
-/**
- * Describes options to the {@code time} source module.
- * 
- * @author Eric Bottard
- */
-public class TimeSourceOptionsMetadata {
-
-	private String format = "yyyy-MM-dd HH:mm:ss";
-
-	private int fixedDelay = 1;
+import org.springframework.xd.module.options.spi.ProfileNamesProvider;
 
 
-	public String getFormat() {
-		return format;
+public class OtherBackingPojo implements ProfileNamesProvider {
+
+	private String fizz = "hello";
+
+
+	public String getFizz() {
+		return fizz;
 	}
 
-	@ModuleOption("how to render the current time, using SimpleDateFormat")
-	public void setFormat(String format) {
-		this.format = format;
+	@ModuleOption("the fizz option")
+	public void setFizz(String fizz) {
+		this.fizz = fizz;
 	}
 
-
-	public int getFixedDelay() {
-		return fixedDelay;
-	}
-
-
-	@ModuleOption("how often to emit a message, expressed in seconds")
-	public void setFixedDelay(int fixedDelay) {
-		this.fixedDelay = fixedDelay;
+	@Override
+	public String[] profilesToActivate() {
+		if ("bonjour".equals(fizz)) {
+			return new String[] { "french-profile" };
+		}
+		else {
+			return NO_PROFILES;
+		}
 	}
 
 

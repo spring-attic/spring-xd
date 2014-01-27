@@ -16,7 +16,6 @@
 
 package org.springframework.xd.dirt.modules.metadata;
 
-import org.springframework.http.MediaType;
 import org.springframework.xd.module.options.spi.ModuleOption;
 
 /**
@@ -49,19 +48,5 @@ public class RabbitSinkOptionsMetadata extends AbstractRabbitConnectionOptionsMe
 	public void setRoutingKey(String routingKey) {
 		this.routingKey = routingKey;
 	}
-
-	// Adding those back as we can't inherit from multiple classes.
-	// Will go away when XD-1050 is done
-	private MediaType inputType;
-
-	public MediaType getInputType() {
-		return inputType;
-	}
-
-	@ModuleOption("how this module should interpret messages it consumes")
-	public void setInputType(MediaType inputType) {
-		this.inputType = inputType;
-	}
-
 
 }

@@ -54,7 +54,7 @@ import org.springframework.xd.module.core.CompositeModule;
 import org.springframework.xd.module.core.Module;
 import org.springframework.xd.module.core.Plugin;
 import org.springframework.xd.module.core.SimpleModule;
-import org.springframework.xd.module.options.DefaultModuleOptionsMetadata;
+import org.springframework.xd.module.options.PassthruModuleOptionsMetadata;
 import org.springframework.xd.module.options.ModuleOptions;
 import org.springframework.xd.module.options.ModuleOptionsMetadata;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
@@ -188,7 +188,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 			ClassLoader classLoader = (definition.getClasspath() == null) ? null
 					: new ParentLastURLClassLoader(definition.getClasspath(), parentClassLoader);
 
-			DefaultModuleOptionsMetadata moduleOptionsMetadata = new DefaultModuleOptionsMetadata();
+			PassthruModuleOptionsMetadata moduleOptionsMetadata = new PassthruModuleOptionsMetadata();
 			ModuleOptions subModuleOptions = safeModuleOptionsInterpolate(moduleOptionsMetadata, paramList.get(i));
 			SimpleModule module = new SimpleModule(definition, submoduleMetadata, classLoader, subModuleOptions);
 

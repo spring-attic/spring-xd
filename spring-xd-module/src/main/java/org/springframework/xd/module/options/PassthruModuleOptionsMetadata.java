@@ -27,9 +27,12 @@ import org.springframework.validation.BindException;
 /**
  * Implementation of {@link ModuleOptionsMetadata} used when no explicit information about a module has been authored.
  * 
+ * This implementation does not know how to list its module options and will pass thru the raw options data it receives
+ * as options.
+ * 
  * @author Eric Bottard
  */
-public class DefaultModuleOptionsMetadata implements ModuleOptionsMetadata {
+public class PassthruModuleOptionsMetadata implements ModuleOptionsMetadata {
 
 	@Override
 	public Iterator<ModuleOption> iterator() {
@@ -43,7 +46,9 @@ public class DefaultModuleOptionsMetadata implements ModuleOptionsMetadata {
 			@Override
 			@SuppressWarnings("unchecked")
 			public EnumerablePropertySource<?> asPropertySource() {
-				return new MapPropertySource("options", (Map) raw);
+				String uniqueName = String.format("%s-%s", PassthruModuleOptionsMetadata.class.getSimpleName(),
+						System.identityHashCode(PassthruModuleOptionsMetadata.this));
+				return new MapPropertySource(uniqueName, (Map) raw);
 			}
 		};
 	}

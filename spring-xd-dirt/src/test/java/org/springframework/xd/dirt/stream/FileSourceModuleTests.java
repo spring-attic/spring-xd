@@ -28,7 +28,6 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
 import org.springframework.http.MediaType;
 import org.springframework.integration.x.bus.DefaultMessageMediaTypeResolver;
 import org.springframework.integration.x.bus.MessageMediaTypeResolver;

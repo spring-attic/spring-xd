@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,29 +14,26 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.module.options.spi;
+package org.springframework.xd.dirt.plugins.stream;
 
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.http.MediaType;
 
-
 /**
- * Provides info about the {@code outputType} option.
+ * A custom converter for {@link MediaType} that accepts a plain java class name as a shorthand for
+ * {@code application/x-java-object;type=the.qualified.ClassName}.
+ * 
  * 
  * @author Eric Bottard
  */
-public abstract class SourceModuleOptionsMetadataSupport {
+public class CustomMediaTypeConverter implements Converter<String, MediaType> {
 
-	private MediaType outputType;
-
-	public MediaType getOutputType() {
-		return outputType;
+	@Override
+	public MediaType convert(String source) {
+		if (!source.contains("/")) {
+			return MediaType.valueOf("application/x-java-object;type=" + source);
+		}
+		return MediaType.valueOf(source);
 	}
-
-
-	@ModuleOption("how this module should emit messages it produces")
-	public void setOutputType(MediaType outputType) {
-		this.outputType = outputType;
-	}
-
 
 }

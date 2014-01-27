@@ -19,14 +19,13 @@ package org.springframework.xd.dirt.modules.metadata;
 import javax.validation.constraints.Size;
 
 import org.springframework.xd.module.options.spi.ModuleOption;
-import org.springframework.xd.module.options.spi.SourceModuleOptionsMetadataSupport;
 
 /**
  * Describes options to the {@code mqtt} source module.
  * 
  * @author Eric Bottard
  */
-public class MqttSourceOptionsMetadata extends SourceModuleOptionsMetadataSupport {
+public class MqttSourceOptionsMetadata {
 
 	private String clientId;
 

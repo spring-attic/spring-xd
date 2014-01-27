@@ -16,7 +16,6 @@
 
 package org.springframework.xd.jdbc;
 
-import org.springframework.http.MediaType;
 import org.springframework.xd.module.options.spi.ModuleOption;
 
 /**
@@ -26,8 +25,6 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  */
 public class JdbcSinkModuleOptionsMetadata extends AbstractJdbcModuleOptionsMetadata {
 
-	private MediaType inputType;
-
 	private String columns;
 
 
@@ -36,18 +33,9 @@ public class JdbcSinkModuleOptionsMetadata extends AbstractJdbcModuleOptionsMeta
 		configProperties = "jdbc";
 	}
 
-	@ModuleOption("how this module should interpret messages it consumes")
-	public void setInputType(MediaType inputType) {
-		this.inputType = inputType;
-	}
-
 	@ModuleOption("the database columns to map the data to")
 	public void setColumns(String columns) {
 		this.columns = columns;
-	}
-
-	public MediaType getInputType() {
-		return inputType;
 	}
 
 	public String getColumns() {

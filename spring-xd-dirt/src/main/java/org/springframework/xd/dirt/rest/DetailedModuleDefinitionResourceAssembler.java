@@ -20,7 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.stereotype.Component;
 import org.springframework.xd.module.ModuleDefinition;
-import org.springframework.xd.module.options.DefaultModuleOptionsMetadata;
+import org.springframework.xd.module.options.PassthruModuleOptionsMetadata;
 import org.springframework.xd.module.options.ModuleOption;
 import org.springframework.xd.module.options.ModuleOptionsMetadata;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
@@ -55,7 +55,7 @@ public class DetailedModuleDefinitionResourceAssembler extends
 				entity.getType().name(), entity.isComposed());
 		ModuleOptionsMetadata moduleOptionsMetadata = moduleOptionsMetadataResolver.resolve(entity);
 
-		if (!(moduleOptionsMetadata instanceof DefaultModuleOptionsMetadata)) {
+		if (!(moduleOptionsMetadata instanceof PassthruModuleOptionsMetadata)) {
 			for (ModuleOption option : moduleOptionsMetadata) {
 				Object defaultValue = option.getDefaultValue();
 				Class<?> type = option.getType();

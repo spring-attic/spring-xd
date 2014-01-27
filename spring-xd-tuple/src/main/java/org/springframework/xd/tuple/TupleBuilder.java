@@ -31,7 +31,7 @@ import org.springframework.util.Assert;
 /**
  * Builder class to create Tuple instances.
  * 
- * Default Locale is US for NumberFormat and defeault DatePattern is "yyyy-MM-dd"
+ * Default Locale is US for NumberFormat and default DatePattern is "yyyy-MM-dd"
  * 
  * @author Mark Pollack
  * @author David Turanski

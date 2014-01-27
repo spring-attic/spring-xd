@@ -192,11 +192,11 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 		assertTrue("Failure.  CommandResult = " + cr.toString(), cr.isSuccess());
 	}
 
-	protected void checkDeployedJobMsg(CommandResult cr, String jobName) {
+	protected void checkDeployedJobMessage(CommandResult cr, String jobName) {
 		assertEquals("Deployed job '" + jobName + "'", cr.getResult());
 	}
 
-	protected void checkUndeployedJobMsg(CommandResult cr, String jobName) {
+	protected void checkUndeployedJobMessage(CommandResult cr, String jobName) {
 		assertEquals("Un-deployed Job '" + jobName + "'", cr.getResult());
 	}
 
@@ -205,7 +205,7 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 				cr.getException().getMessage().contains(expectedMessage));
 	}
 
-	protected void checkDuplicateJobErrorMsg(CommandResult cr, String jobName) {
+	protected void checkDuplicateJobErrorMessage(CommandResult cr, String jobName) {
 		checkErrorMessages(cr, "There is already a job named '" + jobName + "'");
 	}
 

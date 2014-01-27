@@ -64,7 +64,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		assertTrue("Job did not complete within time alotted", jobParametersHolder.isDone());
 		CommandResult cr = getShell().executeCommand("job undeploy --name " + jobName);
 		checkForSuccess(cr);
-		checkUndeployedJobMsg(cr, jobName);
+		checkUndeployedJobMessage(cr, jobName);
 
 	}
 
@@ -83,7 +83,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 
 		CommandResult cr = createJob(jobName, "job");
 		checkForFail(cr);
-		checkDuplicateJobErrorMsg(cr, jobName);
+		checkDuplicateJobErrorMessage(cr, jobName);
 	}
 
 	@Test
@@ -105,7 +105,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 
 		CommandResult cr = createJob(jobName, "job", "false");
 		checkForFail(cr);
-		checkDuplicateJobErrorMsg(cr, jobName);
+		checkDuplicateJobErrorMessage(cr, jobName);
 
 		checkForJobInList(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
 	}
@@ -121,7 +121,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		checkForJobInList(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
 		CommandResult cr = deployJob(jobName);
 		checkForSuccess(cr);
-		checkDeployedJobMsg(cr, jobName);
+		checkDeployedJobMessage(cr, jobName);
 		triggerJob(jobName);
 		assertTrue("Job did not complete within time alotted", jobParametersHolder.isDone());
 
@@ -129,7 +129,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 
 		cr = undeployJob(jobName);
 		checkForSuccess(cr);
-		checkUndeployedJobMsg(cr, jobName);
+		checkUndeployedJobMessage(cr, jobName);
 
 		cr = deployJob(jobName);
 		checkForSuccess(cr);
@@ -167,7 +167,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 
 		CommandResult cr = deployJob(jobName);
 		checkForSuccess(cr);
-		checkDeployedJobMsg(cr, jobName);
+		checkDeployedJobMessage(cr, jobName);
 		triggerJobWithParams(jobName, "{\"param1\":\"spring rocks!\"}");
 		boolean done = jobParametersHolder.isDone();
 
@@ -196,7 +196,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 
 		final CommandResult cr = deployJob(jobName);
 		checkForSuccess(cr);
-		checkDeployedJobMsg(cr, jobName);
+		checkDeployedJobMessage(cr, jobName);
 		triggerJobWithParams(jobName, "{\"-param1(long)\":\"12345\",\"param2(date)\":\"1990/10/03\"}");
 
 		boolean done = jobParametersHolder.isDone();

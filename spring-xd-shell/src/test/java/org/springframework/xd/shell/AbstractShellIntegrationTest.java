@@ -124,22 +124,34 @@ public abstract class AbstractShellIntegrationTest extends RandomConfigurationSu
 		return shell;
 	}
 
-	private String getTestMethodName() {
+	private String generateUniqueName(String name) {
+		return name + "-" + idGenerator.generateId();
+	}
+
+	private String generateUniqueName() {
 		StackTraceElement[] element = Thread.currentThread().getStackTrace();
-		// Assumption here is that the getStreamName() is called from the @Test method
-		return element[3].getMethodName() + "-" + idGenerator.generateId();
+		// Assumption here is that the getStreamName()/getJobName() is called from the @Test method
+		return generateUniqueName(element[3].getMethodName());
+	}
+
+	protected String getStreamName(String name) {
+		return generateUniqueName(name);
 	}
 
 	protected String getStreamName() {
-		return getTestMethodName();
+		return generateUniqueName();
 	}
 
 	protected String getTapName(String streamName) {
 		return "tap:stream:" + streamName;
 	}
 
+	protected String getJobName(String name) {
+		return generateUniqueName(name);
+	}
+
 	protected String getJobName() {
-		return getTestMethodName();
+		return generateUniqueName();
 	}
 
 	protected String getJobLaunchQueue(String jobName) {

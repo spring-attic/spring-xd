@@ -45,8 +45,6 @@ public class TestMessageBusInjection {
 		constructorArgumentValues.addIndexedArgumentValue(0, streamPlugin);
 		constructorArgumentValues.addIndexedArgumentValue(1, testMessageBus);
 		bDefinition.setConstructorArgumentValues(constructorArgumentValues);
-		bDefinition.setAttribute("streamPlugin", streamPlugin);
-		bDefinition.setAttribute("testMessageBus", testMessageBus);
 		BeanDefinitionRegistry bdr = (BeanDefinitionRegistry) containerContext.getBeanFactory();
 		bdr.removeBeanDefinition(STREAM_PLUGIN_BEAN_ID);
 		bdr.registerBeanDefinition(STREAM_PLUGIN_BEAN_ID, bDefinition);

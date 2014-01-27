@@ -21,7 +21,6 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Rule;
 
 import org.springframework.context.ApplicationContext;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.integration.redis.inbound.RedisInboundChannelAdapter;
 import org.springframework.integration.redis.inbound.RedisQueueMessageDrivenEndpoint;
 import org.springframework.integration.test.util.TestUtils;
@@ -61,8 +60,6 @@ public class RedisSingleNodeInitializationTests extends AbstractSingleNodeInitia
 
 	@Override
 	protected void cleanup(ApplicationContext context) {
-		StringRedisTemplate template = context.getBean(StringRedisTemplate.class);
-		template.delete("queue.deployer");
 	}
 
 }

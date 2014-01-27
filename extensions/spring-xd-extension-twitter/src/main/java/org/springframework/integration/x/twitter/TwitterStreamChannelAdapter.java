@@ -28,12 +28,13 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.http.client.HttpClient;
+import org.apache.http.params.CoreConnectionPNames;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.scheduling.TaskScheduler;
@@ -103,17 +104,24 @@ public class TwitterStreamChannelAdapter extends MessageProducerSupport {
 	 * The read timeout for the underlying URLConnection to the twitter stream.
 	 */
 	public void setReadTimeout(int millis) {
-		// InterceptingClientHttpRequestFactory doesn't let us access the underlying object
-		DirectFieldAccessor f = new DirectFieldAccessor(twitter.getRestTemplate().getRequestFactory());
-		((SimpleClientHttpRequestFactory) f.getPropertyValue("requestFactory")).setReadTimeout(millis);
+		getHttpClient().getParams().setIntParameter(CoreConnectionPNames.SO_TIMEOUT, millis);
 	}
 
 	/**
 	 * The connection timeout for making a connection to Twitter.
 	 */
 	public void setConnectTimeout(int millis) {
+		getHttpClient().getParams().setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, millis);
+	}
+
+	private HttpClient getHttpClient() {
+		// InterceptingClientHttpRequestFactory doesn't let us access the underlying object
 		DirectFieldAccessor f = new DirectFieldAccessor(twitter.getRestTemplate().getRequestFactory());
-		((SimpleClientHttpRequestFactory) f.getPropertyValue("requestFactory")).setConnectTimeout(millis);
+		// Unfortunately this class is internal to Spring Social - HttpComponentsClientHttpRequestFactory
+		// Not to be confused with the Spring class of the same name.
+		Object requestFactory = f.getPropertyValue("requestFactory");
+		f = new DirectFieldAccessor(requestFactory);
+		return (HttpClient) f.getPropertyValue("httpClient");
 	}
 
 	/**

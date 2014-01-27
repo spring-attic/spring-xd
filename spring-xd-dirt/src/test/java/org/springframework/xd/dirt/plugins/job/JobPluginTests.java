@@ -64,6 +64,7 @@ import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.core.Module;
 import org.springframework.xd.module.core.SimpleModule;
+import org.springframework.xd.test.RandomConfigurationSupport;
 
 /**
  * 
@@ -72,7 +73,7 @@ import org.springframework.xd.module.core.SimpleModule;
  * @author Gary Russell
  * 
  */
-public class JobPluginTests {
+public class JobPluginTests extends RandomConfigurationSupport {
 
 	private JobPlugin plugin;
 
@@ -369,7 +370,7 @@ public class JobPluginTests {
 	}
 
 	@After
-	public void cleanup() {
+	public void cleanupMessageBus() {
 		if (testMessageBus != null) {
 			testMessageBus.cleanup();
 		}

@@ -38,6 +38,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.xd.dirt.server.ParentConfiguration;
+import org.springframework.xd.test.RandomConfigurationSupport;
 
 
 /**
@@ -51,7 +52,7 @@ import org.springframework.xd.dirt.server.ParentConfiguration;
 @ContextConfiguration(classes = ParentConfiguration.class, loader = SpringApplicationContextLoader.class)
 @ActiveProfiles({ "adminServer", "single", "memory", "hsqldb" })
 @DirtiesContext
-public class JobRepoTests {
+public class JobRepoTests extends RandomConfigurationSupport {
 
 	private static final String SIMPLE_JOB_NAME = "foobar";
 

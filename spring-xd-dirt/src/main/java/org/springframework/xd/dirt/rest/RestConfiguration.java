@@ -37,6 +37,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 import org.springframework.xd.dirt.plugins.job.support.StepExecutionJacksonMixIn;
 import org.springframework.xd.rest.client.util.RestTemplateMessageConverterUtil;
 
+import com.mangofactory.swagger.configuration.DocumentationConfig;
+
 /**
  * Takes care of infrastructure setup for the web/rest layer.
  * 

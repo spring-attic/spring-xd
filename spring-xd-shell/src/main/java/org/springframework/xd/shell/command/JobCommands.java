@@ -95,11 +95,9 @@ public class JobCommands implements CommandMarker {
 	public String createJob(
 			@CliOption(mandatory = true, key = { "name", "" }, help = "the name to give to the job") String name,
 			@CliOption(mandatory = true, key = "definition", help = "job definition using xd dsl ") String dsl,
-			@CliOption(key = "deploy", help = "whether to deploy the stream immediately", unspecifiedDefaultValue = "true") boolean deploy,
-			@CliOption(key = "dateFormat", help = "the optional date format for job parameters") String dateFormat,
-			@CliOption(key = "numberFormat", help = "the optional number format for job parameters") String numberFormat,
-			@CliOption(key = "makeUnique", help = "shall job parameters be made unique?", unspecifiedDefaultValue = "true") boolean makeUnique) {
-		jobOperations().createJob(name, dsl, dateFormat, numberFormat, makeUnique, deploy);
+			@CliOption(key = "deploy", help = "whether to deploy the job immediately", unspecifiedDefaultValue = "true") boolean deploy
+			) {
+		jobOperations().createJob(name, dsl, deploy);
 		return String.format((deploy ? "Successfully created and deployed job '%s'"
 				: "Successfully created job '%s'"), name);
 	}

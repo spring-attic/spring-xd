@@ -37,8 +37,7 @@ public interface JobOperations extends ResourceOperations {
 	/**
 	 * Create a new Job, optionally deploying it.
 	 */
-	public JobDefinitionResource createJob(String name, String defintion, String dateFormat, String numberFormat,
-			boolean makeUnique, boolean deploy);
+	public JobDefinitionResource createJob(String name, String defintion, boolean deploy);
 
 	/**
 	 * Launch a job that is already deployed.

@@ -43,7 +43,7 @@ public class ProcessorsTests extends AbstractStreamIntegrationTest {
 		HttpSource httpSource = newHttpSource();
 		CounterSink counterSink = metrics().newCounterSink();
 
-		stream().create(getStreamName(), "%s | splitter | %s", httpSource, counterSink);
+		stream().create(generateStreamName(), "%s | splitter | %s", httpSource, counterSink);
 
 		httpSource.ensureReady().postData("Hello World !");
 		assertThat(counterSink, eventually(hasValue("1")));
@@ -55,7 +55,7 @@ public class ProcessorsTests extends AbstractStreamIntegrationTest {
 		HttpSource httpSource = newHttpSource();
 		CounterSink counterSink = metrics().newCounterSink();
 
-		stream().create(getStreamName(), "%s | splitter --expression=payload.split(' ') | %s",
+		stream().create(generateStreamName(), "%s | splitter --expression=payload.split(' ') | %s",
 				httpSource, counterSink);
 
 		httpSource.ensureReady().postData("Hello World !");
@@ -69,7 +69,7 @@ public class ProcessorsTests extends AbstractStreamIntegrationTest {
 		FileSink fileSink = newFileSink().binary(true);
 
 		stream().create(
-				getStreamName(),
+				generateStreamName(),
 				"%s | aggregator --count=3 --aggregation=T(org.springframework.util.StringUtils).collectionToDelimitedString(#this.![payload],' ') | %s",
 				httpSource, fileSink);
 
@@ -87,7 +87,7 @@ public class ProcessorsTests extends AbstractStreamIntegrationTest {
 		int timeout = 1000;
 
 		stream().create(
-				getStreamName(),
+				generateStreamName(),
 				"%s | aggregator --count=100 --timeout=%d --aggregation=T(org.springframework.util.StringUtils).collectionToDelimitedString(#this.![payload],' ') | %s",
 				httpSource, timeout, fileSink);
 

@@ -48,7 +48,7 @@ public class SpelPropertyAccessorIntegrationTests extends AbstractStreamIntegrat
 		HttpSource source = newHttpSource();
 
 		stream().create(
-				getStreamName(),
+				generateStreamName(),
 				"%s | json-to-tuple | transform --expression=payload.foo | %s",
 				source, sink);
 
@@ -66,7 +66,7 @@ public class SpelPropertyAccessorIntegrationTests extends AbstractStreamIntegrat
 		HttpSource source = newHttpSource();
 
 		stream().create(
-				getStreamName(),
+				generateStreamName(),
 				"%s | transform --expression=payload.foo.toString() | %s",
 				source, sink);
 
@@ -82,7 +82,7 @@ public class SpelPropertyAccessorIntegrationTests extends AbstractStreamIntegrat
 		HttpSource source = newHttpSource();
 
 		stream().create(
-				getStreamName(),
+				generateStreamName(),
 				"%s | json-to-tuple | transform --expression=payload.entities.hashtags.![text].toString() | %s",
 				source, sink);
 		String tweet = "{\"created_at\":\"Tue Aug 27 18:17:06 +0000 2013\",\"id\":100000,\"text\":\"whocares\",\"retweet_count\":0,"

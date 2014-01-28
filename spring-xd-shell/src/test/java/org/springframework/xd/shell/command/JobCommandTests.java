@@ -87,7 +87,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 	@Test
 	public void testStreamDestroyMissing() {
 		logger.info("Destroy a job that doesn't exist");
-		String jobName = getJobName();
+		String jobName = generateJobName();
 		CommandResult cr = jobDestroy(jobName);
 		checkForFail(cr);
 		checkErrorMessages(cr, "There is no job definition named '" + jobName + "'");
@@ -96,7 +96,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 	@Test
 	public void testJobCreateDuplicateWithDeployFalse() {
 		logger.info("Create 2 myJobs with --deploy = false");
-		String jobName = getJobName();
+		String jobName = generateJobName();
 		executeJobCreate(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
 
 		checkForJobInList(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
@@ -113,7 +113,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		logger.info("Create batch job");
 		JobParametersHolder.reset();
 		final JobParametersHolder jobParametersHolder = new JobParametersHolder();
-		String jobName = getJobName();
+		String jobName = generateJobName();
 		executeJobCreate(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
 
 		checkForJobInList(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
@@ -140,7 +140,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 	public void testInvalidJobDescriptor() throws InterruptedException {
 		JobParametersHolder.reset();
 		final JobParametersHolder jobParametersHolder = new JobParametersHolder();
-		CommandResult cr = getShell().executeCommand("job create --definition \"barsdaf\" --name " + getJobName());
+		CommandResult cr = getShell().executeCommand("job create --definition \"barsdaf\" --name " + generateJobName());
 		checkForFail(cr);
 		checkErrorMessages(cr, "Module definition is missing");
 		assertFalse("Job did not complete within time alotted", jobParametersHolder.isDone());
@@ -148,7 +148,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 
 	@Test
 	public void testMissingJobDescriptor() {
-		CommandResult cr = getShell().executeCommand("job create --name " + getJobName());
+		CommandResult cr = getShell().executeCommand("job create --name " + generateJobName());
 		checkForFail(cr);
 	}
 
@@ -157,7 +157,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		logger.info("Create batch job with parameters");
 
 		JobParametersHolder.reset();
-		String jobName = getJobName();
+		String jobName = generateJobName();
 		executeJobCreate(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
 		checkForJobInList(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
 
@@ -186,7 +186,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 	public void testJobDeployWithTypedParameters() throws InterruptedException, ParseException {
 		logger.info("Create batch job with typed parameters");
 		JobParametersHolder.reset();
-		String jobName = getJobName();
+		String jobName = generateJobName();
 		executeJobCreate(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
 		checkForJobInList(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
 
@@ -224,7 +224,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 	@Test
 	public void testLaunchJob() {
 		logger.info("Launch batch job");
-		String jobName = getJobName();
+		String jobName = generateJobName();
 		executeJobCreate(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR);
 		checkForJobInList(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
 		executeJobLaunch(jobName);
@@ -241,7 +241,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 	@Test
 	public void testLaunchNotDeployedJob() {
 		logger.info("Launch batch job that is not deployed");
-		String jobName = getJobName();
+		String jobName = generateJobName();
 		executeJobCreate(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
 		CommandResult result = executeCommandExpectingFailure("job launch --name " + jobName);
 		assertThat(result.getException().getMessage(),
@@ -254,7 +254,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		String myJobParams = "{\"-param1(long)\":\"12345\",\"param2(date)\":\"1990/10/03\"}";
 		JobParametersHolder.reset();
 		final JobParametersHolder jobParametersHolder = new JobParametersHolder();
-		String jobName = getJobName();
+		String jobName = generateJobName();
 		executeJobCreate(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR);
 		checkForJobInList(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
 		executeJobLaunch(jobName, myJobParams);
@@ -287,7 +287,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 	@Test
 	public void testLaunchJobTwiceWhereMakeUniqueIsImplicitlyTrue() throws Exception {
 		logger.info("Launch batch job twice (makeUnique is implicitly true)");
-		String jobName = getJobName();
+		String jobName = generateJobName();
 		// Batch 3.0 requires at least one parameter to reject duplicate executions of an instance
 		String myJobParams = "{\"-param(long)\":\"12345\"}";
 		JobParametersHolder.reset();
@@ -303,7 +303,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 	@Test
 	public void testLaunchJobTwiceWhereMakeUniqueIsTrue() throws Exception {
 		logger.info("Launch batch job (makeUnique=true) twice");
-		String jobName = getJobName();
+		String jobName = generateJobName();
 		// Batch 3.0 requires at least one parameter to reject duplicate executions of an instance
 		String myJobParams = "{\"-param(long)\":\"12345\"}";
 		JobParametersHolder.reset();
@@ -319,7 +319,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 	@Test
 	public void testLaunchJobTwiceWhereMakeUniqueIsFalse() throws Exception {
 		logger.info("Launch batch job (makeUnique=false) twice");
-		String jobName = getJobName();
+		String jobName = generateJobName();
 		// Batch 3.0 requires at least one parameter to reject duplicate executions of an instance
 		String myJobParams = "{\"-param(long)\":\"12345\"}";
 		JobParametersHolder.reset();
@@ -368,7 +368,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 
 	@Test
 	public void testListJobExecutions() {
-		String jobName = getJobName();
+		String jobName = generateJobName();
 		executeJobCreate(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR);
 		checkForJobInList(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
 		executeJobLaunch(jobName);
@@ -377,7 +377,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 
 	@Test
 	public void testDisplaySpecificJobExecution() {
-		String jobName = getJobName();
+		String jobName = generateJobName();
 		executeJobCreate(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR);
 		checkForJobInList(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
 		executeJobLaunch(jobName);
@@ -388,7 +388,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 
 	@Test
 	public void testDisplaySpecificJobExecutionWithDateParam() {
-		String jobName = getJobName();
+		String jobName = generateJobName();
 		String jobDefinition = JOB_WITH_PARAMETERS_DESCRIPTOR + " --dateFormat='yyyy/dd/MM' --numberFormat='###;(###)'";
 		executeJobCreate(jobName, jobDefinition);
 		checkForJobInList(jobName, jobDefinition, true);
@@ -403,7 +403,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 
 	@Test
 	public void testListStepExecutionsForSpecificJobExecution() {
-		String jobName = getJobName();
+		String jobName = generateJobName();
 		executeJobCreate(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR);
 		checkForJobInList(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
 		executeJobLaunch(jobName);
@@ -418,7 +418,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 
 	@Test
 	public void testStopJobExecution() throws Exception {
-		String jobName = getJobName();
+		String jobName = generateJobName();
 		executeJobCreate(jobName, JOB_WITH_STEP_EXECUTIONS);
 		checkForJobInList(jobName, JOB_WITH_STEP_EXECUTIONS, true);
 		triggerJobWithDelay(jobName, "5");
@@ -445,7 +445,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 
 	@Test
 	public void testStopAllJobExecutions() throws Exception {
-		String jobName = getJobName();
+		String jobName = generateJobName();
 		executeJobCreate(jobName, JOB_WITH_STEP_EXECUTIONS);
 		checkForJobInList(jobName, JOB_WITH_STEP_EXECUTIONS, true);
 		triggerJobWithDelay(jobName, "5");
@@ -471,7 +471,7 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 	}
 
 	public void testStepExecutionProgress() {
-		String jobName = getJobName();
+		String jobName = generateJobName();
 		executeJobCreate(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR);
 		checkForJobInList(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
 		executeJobLaunch(jobName);

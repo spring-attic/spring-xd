@@ -48,7 +48,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	@Test
 	public void testStreamLifecycleForTickTock() throws InterruptedException {
 		logger.info("Starting Stream Test for TickTock");
-		String streamName = getStreamName();
+		String streamName = generateStreamName();
 		stream().create(streamName, "time | log");
 		stream().undeploy(streamName);
 	}
@@ -56,7 +56,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	@Test
 	public void testStreamCreateDuplicate() throws InterruptedException {
 		logger.info("Create tictock stream");
-		String streamName = getStreamName();
+		String streamName = generateStreamName();
 		String streamDefinition = "time | log";
 		stream().create(streamName, streamDefinition);
 
@@ -69,7 +69,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 
 	@Test
 	public void testCreatingTapWithSameNameAsExistingStream_xd299() {
-		String streamName = getStreamName();
+		String streamName = generateStreamName();
 		CommandResult cr = getShell().executeCommand(
 				"stream create --name " + streamName + " --definition \"" + getTapName(streamName) + " > counter\"");
 		assertTrue("Failure. CommandResult = " + cr.toString(), !cr.isSuccess());
@@ -80,7 +80,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	@Test
 	public void testStreamDestroyMissing() {
 		logger.info("Destroy a stream that doesn't exist");
-		String streamName = getStreamName();
+		String streamName = generateStreamName();
 		CommandResult cr = getShell().executeCommand("stream destroy --name " + streamName);
 		assertTrue("Failure.  CommandResult = " + cr.toString(), !cr.isSuccess());
 		assertTrue("Failure.  CommandResult = " + cr.toString(),
@@ -90,7 +90,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	@Test
 	public void testStreamCreateDuplicateWithDeployFalse() {
 		logger.info("Create 2 tictok streams with --deploy = false");
-		String streamName = getStreamName();
+		String streamName = generateStreamName();
 		String streamDefinition = "time | log";
 		stream().createDontDeploy(streamName, streamDefinition);
 
@@ -106,7 +106,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	@Test
 	public void testStreamDeployUndeployFlow() {
 		logger.info("Create tictok stream");
-		String streamName = getStreamName();
+		String streamName = generateStreamName();
 		String streamDefinition = "time | log";
 		stream().createDontDeploy(streamName, streamDefinition);
 
@@ -124,7 +124,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 
 	@Test
 	public void testNamedChannelWithNoConsumerShouldBuffer() {
-		String streamName = getStreamName();
+		String streamName = generateStreamName();
 		logger.info("Create " + streamName + " stream");
 		HttpSource source = newHttpSource();
 		stream().create(streamName, "%s > queue:foox", source);
@@ -134,8 +134,8 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	@Test
 	public void testNamedChannelsLinkingSourceAndSink() {
 		HttpSource source = newHttpSource();
-		stream().create(getStreamName(), "%s > queue:foo", source);
-		stream().create(getStreamName(), "queue:foo > transform --expression=payload.toUpperCase() | log");
+		stream().create(generateStreamName(), "%s > queue:foo", source);
+		stream().create(generateStreamName(), "queue:foo > transform --expression=payload.toUpperCase() | log");
 		source.postData("blahblah");
 	}
 
@@ -146,9 +146,9 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	public void testProcessorLinkingChannels() throws Exception {
 		FileSink sink = newFileSink().binary(true);
 		HttpSource source = newHttpSource(9314);
-		stream().create(getStreamName(), "%s > queue:foo", source);
-		stream().create(getStreamName(), "queue:foo > transform --expression=payload.toUpperCase() > queue:bar");
-		stream().create(getStreamName(), "queue:bar > %s", sink);
+		stream().create(generateStreamName(), "%s > queue:foo", source);
+		stream().create(generateStreamName(), "queue:foo > transform --expression=payload.toUpperCase() > queue:bar");
+		stream().create(generateStreamName(), "queue:bar > %s", sink);
 		source.postData("blahblah");
 		assertThat(sink, eventually(hasContentsThat(equalTo("BLAHBLAH"))));
 
@@ -156,15 +156,15 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 
 	@Test
 	public void testDefiningSubstream() {
-		stream().createDontDeploy(getStreamName(), "transform --expression=payload.replace('Andy','zzz')");
+		stream().createDontDeploy(generateStreamName(), "transform --expression=payload.replace('Andy','zzz')");
 	}
 
 	@Test
 	public void testUsingSubstream() {
 		HttpSource httpSource = newHttpSource();
-		String streamName = getStreamName();
+		String streamName = generateStreamName();
 		stream().createDontDeploy(streamName, "transform --expression=payload.replace('Andy','zzz')");
-		stream().create(getStreamName(), "%s | %s | log", httpSource, streamName);
+		stream().create(generateStreamName(), "%s | %s | log", httpSource, streamName);
 		httpSource.ensureReady().postData("fooAndyfoo");
 	}
 
@@ -172,9 +172,9 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	public void testUsingCompositionWithParameterizationAndDefaultValue() throws IOException {
 		FileSink sink = newFileSink().binary(true);
 		HttpSource httpSource = newHttpSource();
-		String streamName = getStreamName();
+		String streamName = generateStreamName();
 		stream().createDontDeploy(streamName, "transform --expression=payload.replace('${text:rys}','.')");
-		stream().create(getStreamName(), "%s | %s | %s", httpSource, streamName, sink);
+		stream().create(generateStreamName(), "%s | %s | %s", httpSource, streamName, sink);
 
 		httpSource.ensureReady().postData("Dracarys!");
 		assertThat(sink, eventually(hasContentsThat(equalTo("Draca.!"))));
@@ -185,9 +185,9 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	public void testParameterizedStreamComposition() throws IOException {
 		HttpSource httpSource = newHttpSource();
 		FileSink sink = newFileSink().binary(true);
-		String streamName = getStreamName();
+		String streamName = generateStreamName();
 		stream().createDontDeploy(streamName, "transform --expression=payload.replace('${text}','.')");
-		stream().create(getStreamName(), "%s | %s --text=aca | %s", httpSource, streamName, sink);
+		stream().create(generateStreamName(), "%s | %s --text=aca | %s", httpSource, streamName, sink);
 		httpSource.ensureReady().postData("Dracarys!");
 		assertThat(sink, eventually(hasContentsThat(equalTo("Dr.rys!"))));
 
@@ -196,10 +196,10 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	public void testComposedModules() throws IOException {
 		FileSink sink = newFileSink().binary(true);
 		HttpSource httpSource = newHttpSource();
-		String streamName = getStreamName();
+		String streamName = generateStreamName();
 		stream().createDontDeploy(streamName,
 				"filter --expression=true | transform --expression=payload.replace('abc','...')");
-		stream().create(getStreamName(), "%s | %s | %s", httpSource, streamName, sink);
+		stream().create(generateStreamName(), "%s | %s | %s", httpSource, streamName, sink);
 		httpSource.postData("abcdefghi!");
 		assertThat(sink, eventually(hasContentsThat(equalTo("...defghi!"))));
 
@@ -209,10 +209,10 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	public void testFilteringSource() throws IOException {
 		FileSink sink = newFileSink().binary(true);
 		HttpSource httpSource = newHttpSource();
-		String streamName = getStreamName();
+		String streamName = generateStreamName();
 		stream().createDontDeploy(streamName,
 				"%s | filter --expression=payload.contains('e')", httpSource);
-		stream().create(getStreamName(), "%s | transform --expression=payload.replace('e','.') | %s", streamName,
+		stream().create(generateStreamName(), "%s | transform --expression=payload.replace('e','.') | %s", streamName,
 				sink);
 		httpSource.postData("foobar");
 		httpSource.postData("hello");
@@ -227,10 +227,10 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	public void testParameterizedComposedSource() throws IOException {
 		FileSink sink = newFileSink().binary(true);
 		HttpSource httpSource = newHttpSource();
-		String streamName = getStreamName();
+		String streamName = generateStreamName();
 		stream().createDontDeploy(streamName,
 				"%s | filter --expression=payload.contains('${word}')", httpSource);
-		stream().create(getStreamName(), "%s --word=foo | %s", streamName, sink);
+		stream().create(generateStreamName(), "%s --word=foo | %s", streamName, sink);
 		httpSource.postData("foobar");
 		httpSource.postData("hello");
 		httpSource.postData("custardfoo");
@@ -243,10 +243,10 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	public void testComposedStreamThatIsItselfDeployable() throws IOException {
 		FileSink sink = newFileSink();
 		HttpSource httpSource = newHttpSource();
-		String streamName = getStreamName();
+		String streamName = generateStreamName();
 		stream().createDontDeploy(streamName,
 				"%s | filter --expression=payload.contains('${word:foo}') | %s", httpSource, sink);
-		stream().create(getStreamName(), streamName);
+		stream().create(generateStreamName(), streamName);
 		httpSource.postData("foobar");
 		httpSource.postData("hello");
 		httpSource.postData("custardfoo");
@@ -260,13 +260,13 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	public void testNestedStreamComposition() throws IOException {
 		HttpSource source = newHttpSource();
 		FileSink sink = newFileSink().binary(true);
-		String streamName1 = getStreamName();
-		String streamName2 = getStreamName();
-		String streamName3 = getStreamName();
+		String streamName1 = generateStreamName();
+		String streamName2 = generateStreamName();
+		String streamName3 = generateStreamName();
 		stream().createDontDeploy(streamName1, "transform --expression=payload.replaceAll('${from}','${to}')");
 		stream().createDontDeploy(streamName2, "%s --from=a --to=z | %s --from=b --to=y", streamName1, streamName1);
 		stream().create(streamName3, "%s | %s | filter --expression=true | %s", source, streamName2, sink);
-		stream().create(getStreamName(), "%s.filter > log", getTapName(streamName3)); // will log zzyyccxxyyzz
+		stream().create(generateStreamName(), "%s.filter > log", getTapName(streamName3)); // will log zzyyccxxyyzz
 		source.postData("aabbccxxyyzz");
 		assertThat(sink, eventually(hasContentsThat(equalTo("zzyyccxxyyzz"))));
 
@@ -283,14 +283,14 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		FileSink tapsink5 = newFileSink().binary(true);
 		FileSink tapsink6 = newFileSink().binary(true);
 
-		String streamName = getStreamName();
+		String streamName = generateStreamName();
 		stream().create(streamName, "%s | transform --expression=payload.toUpperCase() | %s", httpSource, sink);
-		stream().create(getStreamName(), "%s > transform --expression=payload.replaceAll('A','.') | %s",
+		stream().create(generateStreamName(), "%s > transform --expression=payload.replaceAll('A','.') | %s",
 				getTapName(streamName), tapsink3);
-		stream().create(getStreamName(),
+		stream().create(generateStreamName(),
 				"%s.transform > transform --expression=payload.replaceAll('A','.') | %s", getTapName(streamName),
 				tapsink5);
-		stream().create(getStreamName(),
+		stream().create(generateStreamName(),
 				"%s.0 > transform --expression=payload.replaceAll('A','.') | %s", getTapName(streamName), tapsink6);
 		// use the tap channel as a sink. Not very useful currently but will be once we allow users to create pub/sub
 		// channels
@@ -325,12 +325,12 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		HttpSource source = newHttpSource();
 		FileSink sink = newFileSink().binary(true);
 		FileSink tapsink1 = newFileSink().binary(true);
-		String streamName = getStreamName();
+		String streamName = generateStreamName();
 		stream().create(
 				streamName,
 				"%s | flibble: transform --expression=payload.toUpperCase() | flibble2: transform --expression=payload.toUpperCase() | %s"
 				, source, sink);
-		stream().create(getStreamName(),
+		stream().create(generateStreamName(),
 				"%s.flibble > transform --expression=payload.replaceAll('A','.') | %s", getTapName(streamName),
 				tapsink1);
 		source.ensureReady().postData("Dracarys!");
@@ -346,15 +346,15 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		FileSink tapsink3 = newFileSink().binary(true);
 		FileSink tapsink5 = newFileSink().binary(true);
 
-		String streamName = getStreamName();
+		String streamName = generateStreamName();
 		stream().create(streamName,
 				"%s | transform --expression=payload.toUpperCase() | filter --expression=true > queue:foobar", source);
-		stream().create(getStreamName(), "queue:foobar > %s", sink);
+		stream().create(generateStreamName(), "queue:foobar > %s", sink);
 
-		stream().create(getStreamName(),
+		stream().create(generateStreamName(),
 				"%s > transform --expression=payload.replaceAll('r','.') | %s", getTapName(streamName), tapsink3);
 
-		stream().create(getStreamName(),
+		stream().create(generateStreamName(),
 				"%s.filter > transform --expression=payload.replaceAll('A','.') | %s", getTapName(streamName), tapsink5);
 
 		source.ensureReady().postData("Dracarys!");
@@ -375,11 +375,11 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 
 		HttpSource source = newHttpSource();
 
-		String streamName = getStreamName();
+		String streamName = generateStreamName();
 		stream().create(streamName, "%s | flibble: transform --expression=payload.toUpperCase() | %s", source, sink1);
-		stream().create(getStreamName(),
+		stream().create(generateStreamName(),
 				"%s.transform > transform --expression=payload.replaceAll('a','.') | %s", getTapName(streamName), sink2);
-		stream().create(getStreamName(),
+		stream().create(generateStreamName(),
 				"%s.flibble > transform --expression=payload.replaceAll('a','.') | %s", getTapName(streamName), sink3);
 
 		source.ensureReady().postData("Dracarys!");
@@ -397,10 +397,10 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		HttpSource source2 = newHttpSource();
 		HttpSource source3 = newHttpSource();
 		FileSink sink = newFileSink().binary(true);
-		String streamName = getStreamName();
-		stream().create(getStreamName(), "%s > queue:foo", source1);
+		String streamName = generateStreamName();
+		stream().create(generateStreamName(), "%s > queue:foo", source1);
 		stream().create(streamName, "%s > queue:foo", source2);
-		stream().create(getStreamName(), "queue:foo > %s", sink);
+		stream().create(generateStreamName(), "queue:foo > %s", sink);
 
 		source1.ensureReady().postData("Dracarys!");
 		source2.ensureReady().postData("testing");
@@ -413,7 +413,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		source1.ensureReady().postData("stillup");
 		assertThat(sink, eventually(hasContentsThat(equalTo("Dracarys!testingstillup"))));
 
-		stream().create(getStreamName(), "%s > queue:foo", source3);
+		stream().create(generateStreamName(), "%s > queue:foo", source3);
 		source3.ensureReady().postData("newstream");
 		assertThat(sink, eventually(hasContentsThat(equalTo("Dracarys!testingstillupnewstream"))));
 	}
@@ -422,7 +422,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	public void testJsonPath() throws IOException {
 		HttpSource source = newHttpSource();
 		FileSink sink = newFileSink().binary(true);
-		stream().create(getStreamName(),
+		stream().create(generateStreamName(),
 				"%s | transform --expression='#jsonPath(payload, \"$.foo.bar\")' | %s",
 				source, sink);
 		source.ensureReady().postData("{\"foo\":{\"bar\":\"123\"}}");
@@ -431,8 +431,8 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 
 	@Test
 	public void testDestroyTap() {
-		String streamName = getStreamName();
-		String tapName = getStreamName();
+		String streamName = generateStreamName();
+		String tapName = generateStreamName();
 		stream().create(streamName, "file | log");
 		stream().create(tapName, "%s > queue:foo", getTapName(streamName));
 		stream().destroyStream(streamName);

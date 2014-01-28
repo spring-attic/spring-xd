@@ -37,7 +37,7 @@ public class TriggerModulesTest extends AbstractStreamIntegrationTest {
 
 	@Test
 	public void receivesContentsInstantlyByDefault() {
-		stream().create(getStreamName(), "trigger --payload='Hello' | %s", binaryFileSink);
+		stream().create(generateStreamName(), "trigger --payload='Hello' | %s", binaryFileSink);
 
 		assertThat(binaryFileSink, eventually(hasContentsThat(equalTo("Hello"))));
 	}
@@ -45,7 +45,7 @@ public class TriggerModulesTest extends AbstractStreamIntegrationTest {
 	@Test
 	public void doesNotReceiveAnyContentsForAFarFuture() {
 		stream().create(
-				getStreamName(), "trigger --payload='Hello' --date='25/12/2032' --dateFormat='dd/MM/yyyy' | %s",
+				generateStreamName(), "trigger --payload='Hello' --date='25/12/2032' --dateFormat='dd/MM/yyyy' | %s",
 				binaryFileSink
 				);
 

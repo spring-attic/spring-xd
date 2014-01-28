@@ -26,6 +26,7 @@ import java.io.IOException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.shell.core.CommandResult;
@@ -71,7 +72,6 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		String streamName = getStreamName();
 		CommandResult cr = getShell().executeCommand(
 				"stream create --name " + streamName + " --definition \"" + getTapName(streamName) + " > counter\"");
-		System.out.println(cr);
 		assertTrue("Failure. CommandResult = " + cr.toString(), !cr.isSuccess());
 		assertTrue("Failure. CommandResult = " + cr.toString(),
 				cr.getException().getMessage().contains("XD116E:unrecognized stream reference '" + streamName + "'"));
@@ -121,16 +121,6 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 
 	}
 
-	/*
-	 * TODO for test that post data to be verified, use a file sink and verify contents using guava helper method, shell
-	 * pulls in guava now.
-	 * 
-	 * import com.google.common.base.Charsets; import com.google.common.io.Files;
-	 * 
-	 * String content = Files.toString(new File("/home/x1/text.log"), Charsets.UTF_8); or List<String> lines =
-	 * Files.readLines(new File("/file/path/input.txt"), Charsets.UTF_8); and use hamcrest matcher for collections.
-	 * assertThat("List equality", list1, equalTo(list2));
-	 */
 
 	@Test
 	public void testNamedChannelWithNoConsumerShouldBuffer() {
@@ -328,24 +318,25 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	}
 
 
-//	@Test
-//	public void testTappingWithLabels() throws IOException {
-//		// Note: this test is using a regular sink, not named channel sink
-//		HttpSource source = newHttpSource();
-//		FileSink sink = newFileSink().binary(true);
-//		FileSink tapsink1 = newFileSink().binary(true);
-//		String streamName = getStreamName();
-//		stream().create(
-//				streamName,
-//				"%s | flibble: transform --expression=payload.toUpperCase() | flibble2: transform --expression=payload.toUpperCase() | %s"
-//				, source, sink);
-//		stream().create(getStreamName(),
-//				"%s.flibble > transform --expression=payload.replaceAll('A','.') | %s", getTapName(streamName),
-//				tapsink1);
-//		source.ensureReady().postData("Dracarys!");
-//		assertThat(sink, eventually(hasContentsThat(equalTo("DRACARYS!"))));
-//		assertThat(tapsink1, eventually(hasContentsThat(equalTo("DR.C.RYS!"))));
-//	}
+	@Test
+	@Ignore("Fails due to duplicate messages when tapping (XD-1173)")
+	public void testTappingWithLabels() throws IOException {
+		// Note: this test is using a regular sink, not named channel sink
+		HttpSource source = newHttpSource();
+		FileSink sink = newFileSink().binary(true);
+		FileSink tapsink1 = newFileSink().binary(true);
+		String streamName = getStreamName();
+		stream().create(
+				streamName,
+				"%s | flibble: transform --expression=payload.toUpperCase() | flibble2: transform --expression=payload.toUpperCase() | %s"
+				, source, sink);
+		stream().create(getStreamName(),
+				"%s.flibble > transform --expression=payload.replaceAll('A','.') | %s", getTapName(streamName),
+				tapsink1);
+		source.ensureReady().postData("Dracarys!");
+		assertThat(sink, eventually(hasContentsThat(equalTo("DRACARYS!"))));
+		assertThat(tapsink1, eventually(hasContentsThat(equalTo("DR.C.RYS!"))));
+	}
 
 	@Test
 	public void testTappingModulesVariationsWithSinkChannel_XD629() throws IOException {
@@ -360,21 +351,19 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 				"%s | transform --expression=payload.toUpperCase() | filter --expression=true > queue:foobar", source);
 		stream().create(getStreamName(), "queue:foobar > %s", sink);
 
-		// new style tapping, tap --channel=myhttp.0
 		stream().create(getStreamName(),
 				"%s > transform --expression=payload.replaceAll('r','.') | %s", getTapName(streamName), tapsink3);
 
-		// new style tapping, tap --channel=foobar
-		// stream().create(getRandomStreamName(),
-		// "%s.filter > transform --expression=payload.replaceAll('A','.') | %s", getTapName(streamName), tapsink5);
+		stream().create(getStreamName(),
+				"%s.filter > transform --expression=payload.replaceAll('A','.') | %s", getTapName(streamName), tapsink5);
 
 		source.ensureReady().postData("Dracarys!");
 
 		assertThat(sink, eventually(hasContentsThat(equalTo("DRACARYS!"))));
 
-		// assertThat(tapsink3, eventually(hasContentsThat(equalTo("D.aca.ys!"))));
+		assertThat(tapsink3, eventually(hasContentsThat(equalTo("D.aca.ys!"))));
 
-		// assertThat(tapsink5, eventually(hasContentsThat(equalTo("DR.C.RYS!"))));
+		assertThat(tapsink5, eventually(hasContentsThat(equalTo("DR.C.RYS!"))));
 
 	}
 

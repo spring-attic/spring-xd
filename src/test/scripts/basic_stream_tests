@@ -17,7 +17,7 @@ deploy_stream 'ticktock'
 
 echo -e '*** Test 2. time | jdbc stream\n'
 
-create_stream 'timejdbc' 'time | jdbc'
+create_stream 'timejdbc' 'time | jdbc --initializeDatabase=true'
 
 echo -e '*** Test 3. http | file stream\n'
 

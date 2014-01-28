@@ -25,6 +25,7 @@ import org.springframework.xd.dirt.core.BaseDefinition;
 
 /**
  * @author Andy Clement
+ * @author David Turanski
  */
 public class StreamConfigParser implements StreamLookupEnvironment {
 

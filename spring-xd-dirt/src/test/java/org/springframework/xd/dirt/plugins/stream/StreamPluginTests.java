@@ -98,12 +98,12 @@ public class StreamPluginTests {
 		plugin.postProcessModule(module);
 		verify(bus).bindConsumer("foo.0", input, Collections.singletonList(MediaType.ALL), false);
 		verify(bus).bindProducer("foo.1", output, false);
-		verify(bus).bindPubSubProducer(eq("tap:foo.testing"), any(DirectChannel.class));
+		verify(bus).bindPubSubProducer(eq("tap:foo.testing.1"), any(DirectChannel.class));
 		plugin.beforeShutdown(module);
 		plugin.removeModule(module);
 		verify(bus).unbindConsumer("foo.0", input);
 		verify(bus).unbindProducer("foo.1", output);
-		verify(bus).unbindProducers("tap:foo.testing");
+		verify(bus).unbindProducers("tap:foo.testing.1");
 	}
 
 	@Test

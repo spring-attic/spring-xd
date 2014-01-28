@@ -130,7 +130,7 @@ public class StreamPlugin implements Plugin {
 
 			// Create the tap channel now for possible future use (tap:mystream.mymodule)
 			if (rawChannel instanceof AbstractMessageChannel) {
-				String tapChannelName = getTapChannelName(module);
+				String tapChannelName = buildTapChannelName(module);
 				DirectChannel tapChannel = new DirectChannel();
 				tapChannel.setBeanName(tapChannelName + ".tap.bridge");
 				((AbstractMessageChannel) rawChannel).addInterceptor(new WireTap(tapChannel));
@@ -169,11 +169,12 @@ public class StreamPlugin implements Plugin {
 		if (outputChannel != null) {
 			bus.unbindProducer(module.getDeploymentMetadata().getOutputChannelName(), outputChannel);
 		}
-		bus.unbindProducers(getTapChannelName(module));
+		bus.unbindProducers(buildTapChannelName(module));
 	}
 
-	private String getTapChannelName(Module module) {
-		return TAP_CHANNEL_PREFIX + module.getDeploymentMetadata().getGroup() + "." + module.getName();
+	private String buildTapChannelName(Module module) {
+		return TAP_CHANNEL_PREFIX + module.getDeploymentMetadata().getGroup() + "." + module.getName() + "."
+				+ module.getDeploymentMetadata().getIndex();
 	}
 
 	private boolean isChannelPubSub(String channelName) {

@@ -121,6 +121,45 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 	}
 
 	@Test
+	public void testBasicTap() {
+
+		StreamDefinition streamDefinition = new StreamDefinition(
+				"mystream",
+				"queue:source >  transform --expression=payload.toUpperCase() > queue:sink"
+				);
+		StreamDefinition tapDefinition = new StreamDefinition("mytap",
+				"tap:stream:mystream > transform --expression=payload.replaceAll('A','.') > queue:tap");
+		tapTest(streamDefinition, tapDefinition);
+	}
+
+	@Test
+	public void testTappingWithLabels() {
+
+		StreamDefinition streamDefinition = new StreamDefinition(
+				"streamWithLabels",
+				"queue:source > flibble: transform --expression=payload.toUpperCase() > queue:sink"
+				);
+
+		StreamDefinition tapDefinition = new StreamDefinition("tapWithLabels",
+				"tap:stream:streamWithLabels.flibble > transform --expression=payload.replaceAll('A','.') > queue:tap");
+		tapTest(streamDefinition, tapDefinition);
+	}
+
+	// XD-1173
+	@Test
+	public void testTappingWithRepeatedModulesDoesNotDuplicateMessages() {
+
+		StreamDefinition streamDefinition = new StreamDefinition(
+				"streamWithMultipleTransformers",
+				"queue:source > flibble: transform --expression=payload.toUpperCase() | transform --expression=payload.toUpperCase() > queue:sink"
+				);
+
+		StreamDefinition tapDefinition = new StreamDefinition("tapWithLabels",
+				"tap:stream:streamWithMultipleTransformers.flibble > transform --expression=payload.replaceAll('A','.') > queue:tap");
+		tapTest(streamDefinition, tapDefinition);
+	}
+
+	@Test
 	public final void testTopicChannel() throws InterruptedException {
 		String queueBar1 = "queue:bar1";
 		String queueBar2 = "queue:bar2";
@@ -156,7 +195,6 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 		bus.unbindConsumer(queueBar1, bar1Channel);
 		bus.unbindConsumer(queueBar2, bar2Channel);
 	}
-
 
 	protected final static void setUp(String transport) {
 		application = new SingleNodeApplication();
@@ -267,6 +305,63 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 
 	protected void deploy(StreamDefinition definition) {
 		waitForDeploy(definition);
+	}
+
+	private void tapTest(StreamDefinition streamDefinition, StreamDefinition tapDefinition) {
+		streamDeployer.save(streamDefinition);
+		deploy(streamDefinition);
+
+		streamDeployer.save(tapDefinition);
+		deploy(tapDefinition);
+
+		final Module module = getModule("transform", 0);
+
+		MessageBus bus = module.getComponent(MessageBus.class);
+
+		DirectChannel sourceChannel = new DirectChannel();
+		QueueChannel sinkChannel = new QueueChannel();
+		QueueChannel tapChannel = new QueueChannel();
+
+		bus.bindProducer("queue:source", sourceChannel, true);
+		bus.bindConsumer("queue:sink", sinkChannel, Collections.singletonList(MediaType.ALL), true);
+		bus.bindConsumer("queue:tap", tapChannel, Collections.singletonList(MediaType.ALL), true);
+
+		// Wait for things to set up before sending
+		try {
+			Thread.sleep(2000);
+		}
+		catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		sourceChannel.send(new GenericMessage<String>("Dracarys!"));
+
+		Message<?> m1;
+		int count1 = 0;
+		String result1 = null;
+		while ((m1 = sinkChannel.receive(1000)) != null) {
+			count1++;
+			result1 = (String) m1.getPayload();
+		}
+
+		Message<?> m2;
+		int count2 = 0;
+		String result2 = null;
+		while ((m2 = tapChannel.receive(1000)) != null) {
+			count2++;
+			result2 = (String) m2.getPayload();
+		}
+
+		assertEquals("DRACARYS!", result1);
+		assertEquals(1, count1);
+
+		assertEquals("DR.C.RYS!", result2);
+		assertEquals(1, count2);
+		bus.unbindProducer("queue:source", sourceChannel);
+		bus.unbindConsumer("queue:sink", sinkChannel);
+		bus.unbindConsumer("queue:tap", tapChannel);
+
 	}
 
 	private void doTest(StreamDefinition routerDefinition) throws InterruptedException {

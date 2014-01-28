@@ -21,6 +21,7 @@ import java.util.List;
 
 /**
  * @author Andy Clement
+ * @author David Turanski
  */
 public class ChannelNode extends AstNode {
 
@@ -151,7 +152,7 @@ public class ChannelNode extends AstNode {
 				}
 				// Point to the first element of the stream
 				indexingElements = new ArrayList<String>();
-				indexingElements.add(sn.getModuleNodes().get(0).getName());
+				indexingElements.add(sn.getModuleNodes().get(0).getName() + ".0");
 			}
 			else {
 				// Easter Egg: can use index of module in a stream when tapping.
@@ -168,7 +169,7 @@ public class ChannelNode extends AstNode {
 								getStreamName());
 					}
 					indexingElements.remove(0);
-					indexingElements.add(0, sn.getModuleNodes().get(index).getName());
+					indexingElements.add(0, sn.getModuleNodes().get(index).getName() + "." + index);
 				}
 				catch (NumberFormatException nfe) {
 					// this is ok, probably wasn't a number
@@ -190,7 +191,7 @@ public class ChannelNode extends AstNode {
 						int index = sn.getIndexOfLabelOrModuleName(indexString);
 						if (index != -1) {
 							indexingElements.clear();
-							indexingElements.add(0, sn.getModuleNodes().get(index).getName());
+							indexingElements.add(0, sn.getModuleNodes().get(index).getName() + "." + index);
 						}
 					}
 				}

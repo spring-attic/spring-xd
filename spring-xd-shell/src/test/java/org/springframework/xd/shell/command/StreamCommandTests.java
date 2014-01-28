@@ -26,7 +26,6 @@ import java.io.IOException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.shell.core.CommandResult;
@@ -315,27 +314,6 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		// other tap did not get data
 		// assertThat(tapsink3, eventually(hasContentsThat(equalTo("Dracarys!"))));
 
-	}
-
-
-	@Test
-	@Ignore("Fails due to duplicate messages when tapping (XD-1173)")
-	public void testTappingWithLabels() throws IOException {
-		// Note: this test is using a regular sink, not named channel sink
-		HttpSource source = newHttpSource();
-		FileSink sink = newFileSink().binary(true);
-		FileSink tapsink1 = newFileSink().binary(true);
-		String streamName = generateStreamName();
-		stream().create(
-				streamName,
-				"%s | flibble: transform --expression=payload.toUpperCase() | flibble2: transform --expression=payload.toUpperCase() | %s"
-				, source, sink);
-		stream().create(generateStreamName(),
-				"%s.flibble > transform --expression=payload.replaceAll('A','.') | %s", getTapName(streamName),
-				tapsink1);
-		source.ensureReady().postData("Dracarys!");
-		assertThat(sink, eventually(hasContentsThat(equalTo("DRACARYS!"))));
-		assertThat(tapsink1, eventually(hasContentsThat(equalTo("DR.C.RYS!"))));
 	}
 
 	@Test

@@ -117,7 +117,7 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 	}
 
 	protected String executeJobCreate(String jobDefinition) {
-		String jobName = getJobName();
+		String jobName = generateJobName();
 		executeJobCreate(jobName, jobDefinition, true);
 		return jobName;
 	}
@@ -210,7 +210,7 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 	}
 
 	protected void triggerJob(String jobName) {
-		String streamName = getStreamName();
+		String streamName = generateStreamName();
 		CommandResult cr = getShell().executeCommand(
 				"stream create --name " + streamName + " --definition \"trigger > "
 						+ getJobLaunchQueue(jobName) + "\"");
@@ -219,7 +219,7 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 	}
 
 	protected void triggerJobWithParams(String jobName, String parameters) {
-		String streamName = getStreamName();
+		String streamName = generateStreamName();
 		CommandResult cr = getShell().executeCommand(
 				String.format("stream create --name " + streamName
 						+ " --definition \"trigger --payload='%s' > " + getJobLaunchQueue(jobName) + "\"", parameters));
@@ -228,7 +228,7 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 	}
 
 	protected void triggerJobWithDelay(String jobName, String fixedDelay) {
-		String streamName = getStreamName();
+		String streamName = generateStreamName();
 		CommandResult cr = getShell().executeCommand(
 				"stream create --name " + streamName + " --definition \"trigger --fixedDelay=" + fixedDelay
 						+ " > " + getJobLaunchQueue(jobName) + "\"");

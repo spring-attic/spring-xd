@@ -167,7 +167,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 		streamDeployer = application.getAdminContext().getBean(StreamDeployer.class);
 		// testMessageBus could be null in case if the implementing class doesn't want
 		// the TestMessageBus to get injected. (ex: in case of LocalMessageBus)
-		if (testMessageBus != null) {
+		if (testMessageBus != null && transport != "local") {
 			TestMessageBusInjection.injectMessageBus(application, testMessageBus);
 		}
 		AbstractMessageChannel deployChannel = application.getAdminContext().getBean("deployChannel",

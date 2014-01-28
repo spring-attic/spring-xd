@@ -42,25 +42,12 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 	}
 
 	@Override
-	public JobDefinitionResource createJob(String name, String definition, String dateFormat,
-			String numberFormat, boolean makeUnique, boolean deploy) {
+	public JobDefinitionResource createJob(String name, String definition, boolean deploy) {
 
 		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
 		values.add("name", name);
 		values.add("deploy", String.valueOf(deploy));
-		StringBuilder enhancedDefinition = new StringBuilder(definition);
-
-		if (dateFormat != null) {
-			enhancedDefinition.append(" --dataFormat=").append(dateFormat);
-		}
-		if (numberFormat != null) {
-			enhancedDefinition.append(" --numberFormat=").append(numberFormat);
-		}
-		if (!makeUnique) {
-			enhancedDefinition.append(" --makeUnique=false");
-		}
-
-		values.add("definition", enhancedDefinition.toString());
+		values.add("definition", definition);
 
 		JobDefinitionResource job = restTemplate.postForObject(resources.get("jobs"), values,
 				JobDefinitionResource.class);

@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hsqldb.persist.HsqlProperties;
 import org.hsqldb.server.ServerConfiguration;
 import org.hsqldb.server.ServerConstants;
+
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;

@@ -81,7 +81,7 @@ public class HttpSource extends AbstractModuleFixture {
 	public HttpSource postData(String payload) {
 		String command = String.format(
 				"http post --target http://localhost:%d --data \"%s\"",
-				port, payload.replaceAll("\"", "\\\\\""));
+				port, payload.replace("\"", "\\\""));
 		if (contentType != null) {
 			command += String.format(" --contentType \"%s\"", contentType);
 		}

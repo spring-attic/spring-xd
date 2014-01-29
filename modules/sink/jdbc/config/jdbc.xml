@@ -39,6 +39,7 @@
 			value="${xd.config.home}/${initializerScript:init_db.sql}" />
 		<beans:property name="ignoreFailedDrops" value="true" />
 		<beans:property name="tableName" value="${tableName:${xd.stream.name}}" />
+		<beans:property name="columnNames" value="${columns:payload}" />
 	</beans:bean>
 
 	<context:annotation-config/>

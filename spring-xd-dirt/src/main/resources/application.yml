@@ -12,7 +12,8 @@ endpoints:
   jolokia:
     enabled: ${XD_JMX_ENABLED:false}
   jmx:
-    enabled: false
+    enabled: ${XD_JMX_ENABLED:false}
+    uniqueNames: true
 
 XD_ANALYTICS: ${analytics:redis}
 XD_TRANSPORT: ${transport:redis}

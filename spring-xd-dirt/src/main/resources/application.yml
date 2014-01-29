@@ -99,8 +99,8 @@ analytics: memory
 # (vcap.services.* binds to a service called 'redis' in Pivotal CF)
 spring:
   redis:
-   port: 6379
-   host: localhost
+   port: ${vcap.services.redis.credentials.port:6379}
+   host: ${vcap.services.redis.credentials.hostname:localhost}
 
 ---
 # RabbitMQ properties

@@ -102,6 +102,10 @@ spring:
   redis:
    port: ${vcap.services.redis.credentials.port:6379}
    host: ${vcap.services.redis.credentials.hostname:localhost}
+   pool.maxIdle: 8
+   pool.minIdle: 0
+   pool.maxActive: 8
+   pool.maxWait: -1
 
 ---
 # RabbitMQ properties

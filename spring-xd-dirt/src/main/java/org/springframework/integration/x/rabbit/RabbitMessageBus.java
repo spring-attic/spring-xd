@@ -16,8 +16,6 @@
 
 package org.springframework.integration.x.rabbit;
 
-import java.util.Collection;
-
 import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -95,19 +93,17 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	}
 
 	@Override
-	public void bindConsumer(final String name, MessageChannel moduleInputChannel,
-			final Collection<MediaType> acceptedMediaTypes, boolean aliasHint) {
+	public void bindConsumer(final String name, MessageChannel moduleInputChannel, boolean aliasHint) {
 		if (logger.isInfoEnabled()) {
 			logger.info("declaring queue for inbound: " + name);
 		}
 		Queue queue = new Queue(name);
 		this.rabbitAdmin.declareQueue(queue);
-		doRegisterConsumer(name, moduleInputChannel, acceptedMediaTypes, queue);
+		doRegisterConsumer(name, moduleInputChannel, queue);
 	}
 
 	@Override
-	public void bindPubSubConsumer(String name, MessageChannel moduleInputChannel,
-			Collection<MediaType> acceptedMediaTypes) {
+	public void bindPubSubConsumer(String name, MessageChannel moduleInputChannel) {
 		FanoutExchange exchange = new FanoutExchange("topic." + name);
 		rabbitAdmin.declareExchange(exchange);
 		Queue queue = new AnonymousQueue();
@@ -119,11 +115,10 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		if (!autoDeclareContext.containsBean(exchange.getName() + ".binding")) {
 			this.autoDeclareContext.getBeanFactory().registerSingleton(exchange.getName() + ".binding", binding);
 		}
-		doRegisterConsumer(name, moduleInputChannel, acceptedMediaTypes, queue);
+		doRegisterConsumer(name, moduleInputChannel, queue);
 	}
 
-	private void doRegisterConsumer(String name, MessageChannel moduleInputChannel,
-			Collection<MediaType> acceptedMediaTypes, Queue queue) {
+	private void doRegisterConsumer(String name, MessageChannel moduleInputChannel, Queue queue) {
 		SimpleMessageListenerContainer listenerContainer = new SimpleMessageListenerContainer(this.connectionFactory);
 		if (this.concurrentConsumers != null) {
 			listenerContainer.setConcurrentConsumers(this.concurrentConsumers);
@@ -140,7 +135,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		adapter.setBeanName("inbound." + name);
 		adapter.afterPropertiesSet();
 		addBinding(Binding.forConsumer(adapter, moduleInputChannel));
-		ReceivingHandler convertingBridge = new ReceivingHandler(acceptedMediaTypes);
+		ReceivingHandler convertingBridge = new ReceivingHandler();
 		convertingBridge.setOutputChannel(moduleInputChannel);
 		convertingBridge.setBeanName(name + ".convert.bridge");
 		convertingBridge.afterPropertiesSet();
@@ -207,7 +202,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		this.rabbitAdmin.declareQueue(replyQueue);
 		// register with context so it will be redeclared after a connection failure
 		this.autoDeclareContext.getBeanFactory().registerSingleton(replyQueueName, replyQueue);
-		this.doRegisterConsumer(name, replies, MEDIATYPES_MEDIATYPE_ALL, replyQueue);
+		this.doRegisterConsumer(name, replies, replyQueue);
 	}
 
 	@Override
@@ -217,7 +212,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		}
 		Queue requestQueue = new Queue(name + ".requests");
 		this.rabbitAdmin.declareQueue(requestQueue);
-		this.doRegisterConsumer(name, requests, MEDIATYPES_MEDIATYPE_ALL, requestQueue);
+		this.doRegisterConsumer(name, requests, requestQueue);
 
 		AmqpOutboundEndpoint replyQueue = new AmqpOutboundEndpoint(rabbitTemplate);
 		replyQueue.setBeanFactory(new DefaultListableBeanFactory());
@@ -245,7 +240,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 		@Override
 		protected void handleMessageInternal(Message<?> message) throws Exception {
-			Message<?> messageToSend = transformPayloadForProducerIfNecessary(message,
+			Message<?> messageToSend = serializePayloadForProducerIfNecessary(message,
 					MediaType.APPLICATION_OCTET_STREAM);
 			if (replyTo != null) {
 				messageToSend = MessageBuilder.fromMessage(messageToSend)
@@ -258,15 +253,9 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 	private class ReceivingHandler extends AbstractReplyProducingMessageHandler {
 
-		private final Collection<MediaType> acceptedMediaTypes;
-
-		public ReceivingHandler(Collection<MediaType> acceptedMediaTypes) {
-			this.acceptedMediaTypes = acceptedMediaTypes;
-		}
-
 		@Override
 		protected Object handleRequestMessage(Message<?> requestMessage) {
-			return transformPayloadForConsumerIfNecessary(requestMessage, acceptedMediaTypes);
+			return deserializePayloadForConsumerIfNecessary(requestMessage);
 		}
 
 		@Override

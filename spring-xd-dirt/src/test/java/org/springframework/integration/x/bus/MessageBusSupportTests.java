@@ -21,7 +21,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -65,13 +64,12 @@ public class MessageBusSupportTests {
 	public void testBytesPassThru() {
 		byte[] payload = "foo".getBytes();
 		Message<byte[]> message = MessageBuilder.withPayload(payload).build();
-		Message<?> converted = messageBus.transformPayloadForProducerIfNecessary(message,
+		Message<?> converted = messageBus.serializePayloadForProducerIfNecessary(message,
 				MediaType.APPLICATION_OCTET_STREAM);
 		assertSame(payload, converted.getPayload());
 		assertEquals(MediaType.APPLICATION_OCTET_STREAM,
 				mediaTypeResolver.resolveMediaType(converted));
-		Message<?> reconstructed = messageBus.transformPayloadForConsumerIfNecessary(converted,
-				Collections.singletonList(MediaType.ALL));
+		Message<?> reconstructed = messageBus.deserializePayloadForConsumerIfNecessary(converted);
 		payload = (byte[]) reconstructed.getPayload();
 		assertSame(converted.getPayload(), payload);
 		assertNull(reconstructed.getHeaders().get(MessageBusSupport.ORIGINAL_CONTENT_TYPE_HEADER));
@@ -83,13 +81,12 @@ public class MessageBusSupportTests {
 		Message<byte[]> message = MessageBuilder.withPayload(payload)
 				.setHeader(MessageHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE)
 				.build();
-		Message<?> converted = messageBus.transformPayloadForProducerIfNecessary(message,
+		Message<?> converted = messageBus.serializePayloadForProducerIfNecessary(message,
 				MediaType.APPLICATION_OCTET_STREAM);
 		assertSame(payload, converted.getPayload());
 		assertEquals(MediaType.APPLICATION_OCTET_STREAM,
 				mediaTypeResolver.resolveMediaType(converted));
-		Message<?> reconstructed = messageBus.transformPayloadForConsumerIfNecessary(converted,
-				Collections.singletonList(MediaType.ALL));
+		Message<?> reconstructed = messageBus.deserializePayloadForConsumerIfNecessary(converted);
 		payload = (byte[]) reconstructed.getPayload();
 		assertSame(converted.getPayload(), payload);
 		assertEquals(MediaType.APPLICATION_OCTET_STREAM_VALUE,
@@ -99,13 +96,12 @@ public class MessageBusSupportTests {
 
 	@Test
 	public void testString() throws IOException {
-		Message<?> converted = messageBus.transformPayloadForProducerIfNecessary(
+		Message<?> converted = messageBus.serializePayloadForProducerIfNecessary(
 				new GenericMessage<String>("foo"), MediaType.APPLICATION_OCTET_STREAM);
 
 		assertEquals(MediaType.TEXT_PLAIN,
 				mediaTypeResolver.resolveMediaType(converted));
-		Message<?> reconstructed = messageBus.transformPayloadForConsumerIfNecessary(converted,
-				Collections.singletonList(MediaType.ALL));
+		Message<?> reconstructed = messageBus.deserializePayloadForConsumerIfNecessary(converted);
 		assertEquals("foo", reconstructed.getPayload());
 		assertNull(reconstructed.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
@@ -115,22 +111,21 @@ public class MessageBusSupportTests {
 		Message<String> inbound = MessageBuilder.withPayload("{\"foo\":\"foo\"}")
 				.copyHeaders(Collections.singletonMap(MessageHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
 				.build();
-		Message<?> converted = messageBus.transformPayloadForProducerIfNecessary(
+		Message<?> converted = messageBus.serializePayloadForProducerIfNecessary(
 				inbound, MediaType.APPLICATION_OCTET_STREAM);
 
 		assertEquals(MediaType.TEXT_PLAIN,
 				mediaTypeResolver.resolveMediaType(converted));
 		assertEquals(MediaType.APPLICATION_JSON,
 				converted.getHeaders().get(MessageBusSupport.ORIGINAL_CONTENT_TYPE_HEADER));
-		Message<?> reconstructed = messageBus.transformPayloadForConsumerIfNecessary(converted,
-				Collections.singletonList(MediaType.ALL));
+		Message<?> reconstructed = messageBus.deserializePayloadForConsumerIfNecessary(converted);
 		assertEquals("{\"foo\":\"foo\"}", reconstructed.getPayload());
 		assertEquals(MediaType.APPLICATION_JSON, reconstructed.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
 
 	@Test
 	public void testPojoSerialization() {
-		Message<?> converted = messageBus.transformPayloadForProducerIfNecessary(
+		Message<?> converted = messageBus.serializePayloadForProducerIfNecessary(
 				new GenericMessage<Foo>(new Foo("bar")),
 				MediaType.APPLICATION_OCTET_STREAM);
 		MediaType mediaType = mediaTypeResolver.resolveMediaType(converted);
@@ -138,15 +133,14 @@ public class MessageBusSupportTests {
 		assertEquals("x-java-object", mediaType.getSubtype());
 		assertEquals(Foo.class.getName(), mediaType.getParameter("type"));
 
-		Message<?> reconstructed = messageBus.transformPayloadForConsumerIfNecessary(converted,
-				Collections.singletonList(MediaType.ALL));
+		Message<?> reconstructed = messageBus.deserializePayloadForConsumerIfNecessary(converted);
 		assertEquals("bar", ((Foo) reconstructed.getPayload()).getBar());
 		assertNull(reconstructed.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
 
 	@Test
 	public void testPojoWithXJavaObjectMediaTypeNoType() {
-		Message<?> converted = messageBus.transformPayloadForProducerIfNecessary(
+		Message<?> converted = messageBus.serializePayloadForProducerIfNecessary(
 				new GenericMessage<Foo>(new Foo("bar")),
 				MediaType.APPLICATION_OCTET_STREAM);
 		MediaType mediaType = mediaTypeResolver.resolveMediaType(converted);
@@ -154,15 +148,14 @@ public class MessageBusSupportTests {
 		assertEquals("x-java-object", mediaType.getSubtype());
 		assertEquals(Foo.class.getName(), mediaType.getParameter("type"));
 
-		Message<?> reconstructed = messageBus.transformPayloadForConsumerIfNecessary(converted,
-				Collections.singletonList(new MediaType("application", "x-java-object")));
+		Message<?> reconstructed = messageBus.deserializePayloadForConsumerIfNecessary(converted);
 		assertEquals("bar", ((Foo) reconstructed.getPayload()).getBar());
 		assertNull(reconstructed.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
 
 	@Test
 	public void testPojoWithXJavaObjectMediaTypeExplicitType() {
-		Message<?> converted = messageBus.transformPayloadForProducerIfNecessary(
+		Message<?> converted = messageBus.serializePayloadForProducerIfNecessary(
 				new GenericMessage<Foo>(new Foo("bar")),
 				MediaType.APPLICATION_OCTET_STREAM);
 		MediaType mediaType = mediaTypeResolver.resolveMediaType(converted);
@@ -170,8 +163,7 @@ public class MessageBusSupportTests {
 		assertEquals("x-java-object", mediaType.getSubtype());
 		assertEquals(Foo.class.getName(), mediaType.getParameter("type"));
 
-		Message<?> reconstructed = messageBus.transformPayloadForConsumerIfNecessary(converted,
-				Collections.singletonList(mediaType));
+		Message<?> reconstructed = messageBus.deserializePayloadForConsumerIfNecessary(converted);
 		assertEquals("bar", ((Foo) reconstructed.getPayload()).getBar());
 		assertNull(reconstructed.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
@@ -179,15 +171,14 @@ public class MessageBusSupportTests {
 	@Test
 	public void testTupleSerialization() {
 		Tuple payload = TupleBuilder.tuple().of("foo", "bar");
-		Message<?> converted = messageBus.transformPayloadForProducerIfNecessary(new GenericMessage<Tuple>(payload),
+		Message<?> converted = messageBus.serializePayloadForProducerIfNecessary(new GenericMessage<Tuple>(payload),
 				MediaType.APPLICATION_OCTET_STREAM);
 		MediaType mediaType = mediaTypeResolver.resolveMediaType(converted);
 		assertEquals("application", mediaType.getType());
 		assertEquals("x-java-object", mediaType.getSubtype());
 		assertEquals(DefaultTuple.class.getName(), mediaType.getParameter("type"));
 
-		Message<?> reconstructed = messageBus.transformPayloadForConsumerIfNecessary(converted,
-				Collections.singletonList(MediaType.ALL));
+		Message<?> reconstructed = messageBus.deserializePayloadForConsumerIfNecessary(converted);
 		assertEquals("bar", ((Tuple) reconstructed.getPayload()).getString("foo"));
 		assertNull(reconstructed.getHeaders().get(MessageHeaders.CONTENT_TYPE));
 	}
@@ -237,13 +228,11 @@ public class MessageBusSupportTests {
 	public class TestMessageBus extends MessageBusSupport {
 
 		@Override
-		public void bindConsumer(String name, MessageChannel channel, Collection<MediaType> acceptedMediaTypes,
-				boolean aliasHint) {
+		public void bindConsumer(String name, MessageChannel channel, boolean aliasHint) {
 		}
 
 		@Override
-		public void bindPubSubConsumer(String name, MessageChannel moduleInputChannel,
-				Collection<MediaType> acceptedMediaTypes) {
+		public void bindPubSubConsumer(String name, MessageChannel moduleInputChannel) {
 		}
 
 		@Override

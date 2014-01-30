@@ -33,7 +33,6 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.scheduling.PollerMetadata;
-import org.springframework.integration.x.bus.serializer.MultiTypeCodec;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -57,8 +56,6 @@ import org.springframework.util.Assert;
 public class LocalMessageBus extends MessageBusSupport implements ApplicationContextAware, InitializingBean {
 
 	private volatile AbstractApplicationContext applicationContext;
-
-	private volatile boolean convertWithinTransport = false;
 
 	private int queueSize = Integer.MAX_VALUE;
 
@@ -124,26 +121,9 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 		this.applicationContext = (AbstractApplicationContext) applicationContext;
 	}
 
-	/**
-	 * Determines whether any conversion logic is applied within the local transport. When false, objects pass through
-	 * without any modification; default true.
-	 */
-	public void setConvertWithinTransport(boolean convertWithinTransport) {
-		this.convertWithinTransport = convertWithinTransport;
-	}
-
-	@Override
-	public void setCodec(MultiTypeCodec<Object> codec) {
-		super.setCodec(codec);
-		this.hasCodec = codec != null;
-	}
-
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		Assert.notNull(applicationContext, "The 'applicationContext' property cannot be null");
-		if (convertWithinTransport) {
-			Assert.isTrue(hasCodec, "The 'codec' property cannot be null if 'convertWithinTransport' is true");
-		}
 	}
 
 	/**
@@ -151,27 +131,24 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 	 * channel instance.
 	 */
 	@Override
-	public void bindConsumer(String name, MessageChannel moduleInputChannel, Collection<MediaType> acceptedMediaTypes,
+	public void bindConsumer(String name, MessageChannel moduleInputChannel,
 			boolean aliasHint) {
 		SharedChannelProvider<?> channelProvider = aliasHint ? queueChannelProvider
 				: directChannelProvider;
-		doRegisterConsumer(name, moduleInputChannel, acceptedMediaTypes, channelProvider);
+		doRegisterConsumer(name, moduleInputChannel, channelProvider);
 	}
 
 	@Override
-	public void bindPubSubConsumer(String name, MessageChannel moduleInputChannel,
-			Collection<MediaType> acceptedMediaTypes) {
-		doRegisterConsumer(name, moduleInputChannel, acceptedMediaTypes, pubsubChannelProvider);
+	public void bindPubSubConsumer(String name, MessageChannel moduleInputChannel) {
+		doRegisterConsumer(name, moduleInputChannel, pubsubChannelProvider);
 	}
 
 	private void doRegisterConsumer(String name, MessageChannel moduleInputChannel,
-			Collection<MediaType> acceptedMediaTypes,
 			SharedChannelProvider<?> channelProvider) {
 		Assert.hasText(name, "a valid name is required to register an inbound channel");
 		Assert.notNull(moduleInputChannel, "channel must not be null");
 		AbstractMessageChannel registeredChannel = channelProvider.lookupOrCreateSharedChannel(name);
-		bridge(registeredChannel, moduleInputChannel, "inbound." + registeredChannel.getComponentName(),
-				acceptedMediaTypes);
+		bridge(registeredChannel, moduleInputChannel, "inbound." + registeredChannel.getComponentName());
 	}
 
 	/**
@@ -291,16 +268,6 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
-				/*
-				 * optimization for local transport, just pass through if false
-				 */
-				if (convertWithinTransport) {
-					if (acceptedMediaTypes != null) {
-						if (isInbound) {
-							return transformPayloadForConsumerIfNecessary(requestMessage, acceptedMediaTypes);
-						}
-					}
-				}
 				return requestMessage;
 			}
 

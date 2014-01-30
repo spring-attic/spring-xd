@@ -16,9 +16,6 @@
 
 package org.springframework.xd.dirt.plugins.stream;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Properties;
 
 import org.apache.commons.logging.Log;
@@ -27,13 +24,11 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.aop.framework.Advised;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.http.MediaType;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.util.CollectionUtils;
 import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.ModuleType;
@@ -57,10 +52,6 @@ public class StreamPlugin implements Plugin {
 	private static final String TAP_CHANNEL_PREFIX = "tap:";
 
 	private static final String MESSAGE_BUS = CONTEXT_CONFIG_ROOT + "message-bus.xml";
-
-	private final static String CONTENT_TYPE_BEAN_NAME = "accepted-content-types";
-
-	private final static Collection<MediaType> DEFAULT_ACCEPTED_CONTENT_TYPES = Collections.singletonList(MediaType.ALL);
 
 	private static final String TOPIC_CHANNEL_PREFIX = "topic:";
 
@@ -102,10 +93,10 @@ public class StreamPlugin implements Plugin {
 		MessageChannel channel = module.getComponent("input", MessageChannel.class);
 		if (channel != null) {
 			if (isChannelPubSub(md.getInputChannelName())) {
-				bus.bindPubSubConsumer(md.getInputChannelName(), channel, getAcceptedMediaTypes(module));
+				bus.bindPubSubConsumer(md.getInputChannelName(), channel);
 			}
 			else {
-				bus.bindConsumer(md.getInputChannelName(), channel, getAcceptedMediaTypes(module),
+				bus.bindConsumer(md.getInputChannelName(), channel,
 						md.isAliasedInput());
 			}
 		}
@@ -180,29 +171,6 @@ public class StreamPlugin implements Plugin {
 	private boolean isChannelPubSub(String channelName) {
 		return channelName != null
 				&& (channelName.startsWith(TAP_CHANNEL_PREFIX) || channelName.startsWith(TOPIC_CHANNEL_PREFIX));
-	}
-
-	private Collection<MediaType> getAcceptedMediaTypes(Module module) {
-		Collection<?> acceptedTypes = module.getComponent(CONTENT_TYPE_BEAN_NAME, Collection.class);
-
-		if (CollectionUtils.isEmpty(acceptedTypes)) {
-			return DEFAULT_ACCEPTED_CONTENT_TYPES;
-		}
-		else {
-			Collection<MediaType> acceptedMediaTypes = new ArrayList<MediaType>(acceptedTypes.size());
-			for (Object acceptedType : acceptedTypes) {
-				if (acceptedType instanceof String) {
-					acceptedMediaTypes.add(MediaType.valueOf((String) acceptedType));
-				}
-				else if (acceptedType instanceof MediaType) {
-					acceptedMediaTypes.add((MediaType) acceptedType);
-				}
-				else {
-					throw new IllegalArgumentException("Unrecognized MediaType :" + acceptedType);
-				}
-			}
-			return Collections.unmodifiableCollection(acceptedMediaTypes);
-		}
 	}
 
 	@Override

@@ -24,7 +24,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Collections;
 import java.util.List;
 
 import org.junit.After;
@@ -34,7 +33,6 @@ import org.junit.Test;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.http.MediaType;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.test.util.TestUtils;
@@ -96,7 +94,7 @@ public class StreamPluginTests {
 		when(module.getComponent("output", MessageChannel.class)).thenReturn(output);
 		plugin.preProcessModule(module);
 		plugin.postProcessModule(module);
-		verify(bus).bindConsumer("foo.0", input, Collections.singletonList(MediaType.ALL), false);
+		verify(bus).bindConsumer("foo.0", input, false);
 		verify(bus).bindProducer("foo.1", output, false);
 		verify(bus).bindPubSubProducer(eq("tap:foo.testing.1"), any(DirectChannel.class));
 		plugin.beforeShutdown(module);

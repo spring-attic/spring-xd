@@ -33,13 +33,13 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 import org.springframework.xd.rest.client.domain.CompletionKind;
 
 /**
- * Provides completion proposals when the user has typed the two dashes that precede an module option name.
+ * Provides completion proposals when the user has typed the two dashes that precede a module option name.
  * 
  * @author Eric Bottard
  */
 @Component
 public class OptionNameAfterDashDashRecoveryStrategy extends
-		StacktraceFingerprintlingCompletionRecoveryStrategy<CheckpointedStreamDefinitionException> {
+		StacktraceFingerprintingCompletionRecoveryStrategy<CheckpointedStreamDefinitionException> {
 
 	private ModuleDefinitionRepository moduleDefinitionRepository;
 
@@ -57,7 +57,7 @@ public class OptionNameAfterDashDashRecoveryStrategy extends
 
 	@Override
 	public void use(CheckpointedStreamDefinitionException exception, List<String> result, CompletionKind kind) {
-		String safe = exception.getExpressioStringUntilCheckpoint();
+		String safe = exception.getExpressionStringUntilCheckpoint();
 		List<ModuleDeploymentRequest> parsed = parser.parse("__dummy", safe);
 
 		// List is in reverse order

@@ -120,7 +120,7 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 		richGaugeOperations = new RichGaugeTemplate(this);
 		moduleOperations = new ModuleTemplate(this);
 		runtimeOperations = new RuntimeTemplate(this);
-		codeCompletionOperations = new CodeComletionTemplate(this);
+		codeCompletionOperations = new CodeCompletionTemplate(this);
 	}
 
 	public SpringXDTemplate(URI baseURI) {

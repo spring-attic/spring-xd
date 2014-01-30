@@ -39,7 +39,7 @@ import org.springframework.xd.rest.client.domain.CompletionKind;
  */
 @Component
 public class ModulesAfterPipeRecoveryStrategy extends
-		StacktraceFingerprintlingCompletionRecoveryStrategy<CheckpointedStreamDefinitionException> {
+		StacktraceFingerprintingCompletionRecoveryStrategy<CheckpointedStreamDefinitionException> {
 
 
 	private ModuleDefinitionRepository moduleDefinitionRepository;

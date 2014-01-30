@@ -44,7 +44,7 @@ import org.springframework.xd.rest.client.domain.CompletionKind;
  */
 @Component
 public class UnfinishedOptionNameRecoveryStrategy extends
-		StacktraceFingerprintlingCompletionRecoveryStrategy<CheckpointedStreamDefinitionException> {
+		StacktraceFingerprintingCompletionRecoveryStrategy<CheckpointedStreamDefinitionException> {
 
 	private ModuleDefinitionRepository moduleDefinitionRepository;
 
@@ -60,7 +60,7 @@ public class UnfinishedOptionNameRecoveryStrategy extends
 
 	@Override
 	public void use(CheckpointedStreamDefinitionException exception, List<String> result, CompletionKind kind) {
-		String safe = exception.getExpressioStringUntilCheckpoint();
+		String safe = exception.getExpressionStringUntilCheckpoint();
 		List<Token> tokens = exception.getTokens();
 		Token lastToken = tokens.get(tokens.size() - 1);
 		Assert.isTrue(lastToken.isKind(IDENTIFIER));

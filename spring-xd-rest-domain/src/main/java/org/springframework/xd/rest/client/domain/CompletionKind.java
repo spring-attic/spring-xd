@@ -25,7 +25,7 @@ package org.springframework.xd.rest.client.domain;
 public enum CompletionKind {
 
 	/**
-	 * A full stream definition, which ough to start with a source (or channel) and end with a sink (or channel)
+	 * A full stream definition, which ought to start with a source (or channel) and end with a sink (or channel)
 	 */
 	stream,
 

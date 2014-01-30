@@ -36,7 +36,7 @@ import org.springframework.xd.rest.client.domain.CompletionKind;
 
 @Component
 public class EmptyStartYieldsModulesRecoveryStrategy extends
-		StacktraceFingerprintlingCompletionRecoveryStrategy<CheckpointedStreamDefinitionException> {
+		StacktraceFingerprintingCompletionRecoveryStrategy<CheckpointedStreamDefinitionException> {
 
 	private ModuleDefinitionRepository moduleDefinitionRepository;
 
@@ -53,15 +53,15 @@ public class EmptyStartYieldsModulesRecoveryStrategy extends
 		switch (kind) {
 			case composed:
 				// Add processors
-				addAllModulesOfType(result, exception.getExpressioStringUntilCheckpoint(), processor);
+				addAllModulesOfType(result, exception.getExpressionStringUntilCheckpoint(), processor);
 				// fall thru
 			case stream:
 				// Add sources
-				addAllModulesOfType(result, exception.getExpressioStringUntilCheckpoint(), source);
+				addAllModulesOfType(result, exception.getExpressionStringUntilCheckpoint(), source);
 				break;
 			case job:
 				// Add jobs
-				addAllModulesOfType(result, exception.getExpressioStringUntilCheckpoint(), job);
+				addAllModulesOfType(result, exception.getExpressionStringUntilCheckpoint(), job);
 				break;
 
 			default:

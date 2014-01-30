@@ -46,7 +46,7 @@ import org.springframework.xd.rest.client.domain.CompletionKind;
  * 
  * @author Eric Bottard
  */
-public abstract class StacktraceFingerprintlingCompletionRecoveryStrategy<E extends Throwable> implements
+public abstract class StacktraceFingerprintingCompletionRecoveryStrategy<E extends Throwable> implements
 		CompletionRecoveryStrategy<E> {
 
 	private List<List<StackTraceElement>> fingerprints = new ArrayList<List<StackTraceElement>>();
@@ -54,7 +54,7 @@ public abstract class StacktraceFingerprintlingCompletionRecoveryStrategy<E exte
 
 	protected XDParser parser;
 
-	public StacktraceFingerprintlingCompletionRecoveryStrategy(XDParser parser, String... samples) {
+	public StacktraceFingerprintingCompletionRecoveryStrategy(XDParser parser, String... samples) {
 		this.parser = parser;
 		for (String sample : samples) {
 			try {

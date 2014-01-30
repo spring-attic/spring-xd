@@ -31,7 +31,7 @@ import org.springframework.xd.rest.client.domain.CompletionKind;
  */
 @Component
 public class ExpandOneDashToTwoDashesRecoveryStrategy extends
-		StacktraceFingerprintlingCompletionRecoveryStrategy<StreamDefinitionException> {
+		StacktraceFingerprintingCompletionRecoveryStrategy<StreamDefinitionException> {
 
 
 	@Autowired

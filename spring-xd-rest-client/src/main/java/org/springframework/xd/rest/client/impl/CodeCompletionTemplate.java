@@ -23,10 +23,10 @@ import org.springframework.xd.rest.client.CodeCompletionOperations;
 import org.springframework.xd.rest.client.domain.CompletionKind;
 
 
-public class CodeComletionTemplate extends AbstractTemplate implements CodeCompletionOperations {
+public class CodeCompletionTemplate extends AbstractTemplate implements CodeCompletionOperations {
 
 
-	CodeComletionTemplate(AbstractTemplate other) {
+	CodeCompletionTemplate(AbstractTemplate other) {
 		super(other);
 	}
 

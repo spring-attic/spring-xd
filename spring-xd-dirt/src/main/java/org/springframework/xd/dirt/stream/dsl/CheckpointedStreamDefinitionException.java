@@ -84,7 +84,7 @@ public class CheckpointedStreamDefinitionException extends StreamDefinitionExcep
 	 * Return the parsed expression until the last known, well formed position. Attempting to re-parse that expression
 	 * is guaranteed to not fail.
 	 */
-	public String getExpressioStringUntilCheckpoint() {
+	public String getExpressionStringUntilCheckpoint() {
 		return expressionString.substring(0, getCheckpointPosition());
 	}
 

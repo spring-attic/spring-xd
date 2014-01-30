@@ -34,7 +34,7 @@
 	<int:channel id="jobLaunchingChannel"/>
 
 	<int:service-activator id="jobLaunchingMessageHandler" method="launch"
-		input-channel="jobLaunchingChannel" output-channel="notifications">
+		input-channel="jobLaunchingChannel" output-channel="nullChannel">
 		<bean class="org.springframework.batch.integration.launch.JobLaunchingMessageHandler">
 			<constructor-arg ref="jobLauncher"/>
 		</bean>

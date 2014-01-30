@@ -16,11 +16,9 @@
 
 package org.springframework.integration.x.bus;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.springframework.http.MediaType;
 import org.springframework.messaging.MessageChannel;
 
 
@@ -42,15 +40,14 @@ public abstract class AbstractTestMessageBus implements MessageBus {
 	}
 
 	@Override
-	public void bindConsumer(String name, MessageChannel moduleInputChannel, Collection<MediaType> acceptedMediaTypes,
-			boolean aliasHint) {
-		messageBus.bindConsumer(name, moduleInputChannel, acceptedMediaTypes, aliasHint);
+	public void bindConsumer(String name, MessageChannel moduleInputChannel, boolean aliasHint) {
+		messageBus.bindConsumer(name, moduleInputChannel, aliasHint);
 		queues.add(name);
 	}
 
 	@Override
-	public void bindPubSubConsumer(String name, MessageChannel inputChannel, Collection<MediaType> acceptedMediaTypes) {
-		messageBus.bindPubSubConsumer(name, inputChannel, acceptedMediaTypes);
+	public void bindPubSubConsumer(String name, MessageChannel inputChannel) {
+		messageBus.bindPubSubConsumer(name, inputChannel);
 		addTopic(name);
 	}
 

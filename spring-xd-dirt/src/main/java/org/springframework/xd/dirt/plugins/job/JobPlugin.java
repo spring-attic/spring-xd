@@ -17,15 +17,13 @@
 package org.springframework.xd.dirt.plugins.job;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.http.MediaType;
+
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.Message;
@@ -78,9 +76,6 @@ public class JobPlugin extends AbstractPlugin {
 
 	private static final String JOB_STEP_EXECUTION_REPLY_CHANNEL = "stepExecutionReplies.output";
 
-
-	private final static Collection<MediaType> DEFAULT_ACCEPTED_CONTENT_TYPES = Collections.singletonList(MediaType.ALL);
-
 	@Override
 	public void configureProperties(Module module) {
 		final Properties properties = new Properties();
@@ -95,9 +90,7 @@ public class JobPlugin extends AbstractPlugin {
 		if (bus != null) {
 			MessageChannel inputChannel = module.getComponent(JOB_LAUNCH_REQUEST_CHANNEL, MessageChannel.class);
 			if (inputChannel != null) {
-				bus.bindConsumer(JOB_CHANNEL_PREFIX + md.getGroup(), inputChannel,
-						DEFAULT_ACCEPTED_CONTENT_TYPES,
-						true);
+				bus.bindConsumer(JOB_CHANNEL_PREFIX + md.getGroup(), inputChannel, true);
 			}
 			MessageChannel notificationsChannel = module.getComponent(JOB_NOTIFICATIONS_CHANNEL, MessageChannel.class);
 			if (notificationsChannel != null) {

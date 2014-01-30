@@ -19,7 +19,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -34,7 +33,6 @@ import org.junit.rules.ExternalResource;
 
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.support.AbstractApplicationContext;
-import org.springframework.http.MediaType;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -180,8 +178,8 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 		QueueChannel bar1Channel = new QueueChannel();
 		QueueChannel bar2Channel = new QueueChannel();
 
-		bus.bindConsumer(queueBar1, bar1Channel, Collections.singletonList(MediaType.ALL), true);
-		bus.bindConsumer(queueBar2, bar2Channel, Collections.singletonList(MediaType.ALL), true);
+		bus.bindConsumer(queueBar1, bar1Channel, true);
+		bus.bindConsumer(queueBar2, bar2Channel, true);
 		DirectChannel testChannel = new DirectChannel();
 		bus.bindPubSubProducer(topicFoo, testChannel);
 		testChannel.send(new GenericMessage<String>("hello"));
@@ -323,8 +321,8 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 		QueueChannel tapChannel = new QueueChannel();
 
 		bus.bindProducer("queue:source", sourceChannel, true);
-		bus.bindConsumer("queue:sink", sinkChannel, Collections.singletonList(MediaType.ALL), true);
-		bus.bindConsumer("queue:tap", tapChannel, Collections.singletonList(MediaType.ALL), true);
+		bus.bindConsumer("queue:sink", sinkChannel, true);
+		bus.bindConsumer("queue:tap", tapChannel, true);
 
 		// Wait for things to set up before sending
 		try {
@@ -377,8 +375,8 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
-		bus.bindConsumer(queueFoo, fooChannel, Collections.singletonList(MediaType.ALL), true);
-		bus.bindConsumer(queueBar, barChannel, Collections.singletonList(MediaType.ALL), true);
+		bus.bindConsumer(queueFoo, fooChannel, true);
+		bus.bindConsumer(queueBar, barChannel, true);
 		DirectChannel testChannel = new DirectChannel();
 		bus.bindProducer(queueRoute, testChannel, true);
 		testChannel.send(MessageBuilder.withPayload("a").build());

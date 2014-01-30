@@ -24,7 +24,6 @@ import static org.mockito.Mockito.when;
 import static org.springframework.integration.test.matcher.PayloadMatcher.hasPayload;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -48,7 +47,6 @@ import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.io.Resource;
-import org.springframework.http.MediaType;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
@@ -67,8 +65,8 @@ import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.core.Module;
 import org.springframework.xd.module.core.SimpleModule;
-import org.springframework.xd.test.RandomConfigurationSupport;
 import org.springframework.xd.module.options.ModuleOptionsMetadata;
+import org.springframework.xd.test.RandomConfigurationSupport;
 
 /**
  * 
@@ -262,14 +260,12 @@ public class JobPluginTests extends RandomConfigurationSupport {
 		private List<String> producerNames = new ArrayList<String>();
 
 		@Override
-		public void bindConsumer(String name, MessageChannel moduleInputChannel,
-				Collection<MediaType> acceptedMediaTypes, boolean aliasHint) {
+		public void bindConsumer(String name, MessageChannel moduleInputChannel, boolean aliasHint) {
 			consumerNames.add(name);
 		}
 
 		@Override
-		public void bindPubSubConsumer(String name, MessageChannel inputChannel,
-				Collection<MediaType> acceptedMediaTypes) {
+		public void bindPubSubConsumer(String name, MessageChannel inputChannel) {
 			Assert.fail("Should not be called.");
 		}
 

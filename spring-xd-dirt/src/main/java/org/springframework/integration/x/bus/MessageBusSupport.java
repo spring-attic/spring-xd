@@ -22,7 +22,6 @@ import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -143,7 +142,7 @@ public abstract class MessageBusSupport implements MessageBus {
 	}
 
 	// TODO: Performs serialization currently no transformation
-	protected final Message<?> transformPayloadForProducerIfNecessary(Message<?> message, MediaType to) {
+	protected final Message<?> serializePayloadForProducerIfNecessary(Message<?> message, MediaType to) {
 		Object originalPayload = message.getPayload();
 
 		Object originalContentType = message.getHeaders().get(MessageHeaders.CONTENT_TYPE);
@@ -170,13 +169,11 @@ public abstract class MessageBusSupport implements MessageBus {
 		}
 	}
 
-	protected final Message<?> transformPayloadForConsumerIfNecessary(Message<?> message,
-			Collection<MediaType> acceptedMediaTypes) {
+	protected final Message<?> deserializePayloadForConsumerIfNecessary(Message<?> message) {
 		Message<?> messageToSend = message;
 		Object originalPayload = message.getPayload();
 		MediaType contentType = mediaTypeResolver.resolveMediaType(message);
-		Object payload = transformPayloadForConsumer(originalPayload, contentType,
-				acceptedMediaTypes);
+		Object payload = deserializePayloadForConsumer(originalPayload, contentType);
 
 		if (payload != null) {
 			MessageBuilder<Object> transformed = MessageBuilder.withPayload(payload).copyHeaders(message.getHeaders());
@@ -189,47 +186,16 @@ public abstract class MessageBusSupport implements MessageBus {
 		return messageToSend;
 	}
 
-	private Object transformPayloadForConsumer(Object payload, MediaType contentType, Collection<MediaType> to) {
+	private Object deserializePayloadForConsumer(Object payload, MediaType contentType) {
 		if (payload instanceof byte[]) {
-			Object result = null;
-			// Get the preferred java type, and try to decode it.
-			MediaType toObjectType = findJavaObjectType(to);
 			if (APPLICATION_OCTET_STREAM.equals(contentType)) {
 				return payload;
 			}
 			else {
-				result = deserializeConsumerPayload((byte[]) payload, contentType);
-				if (result != null) {
-					if (to.contains(ALL)) {
-						return result;
-					}
-
-					if (toObjectType != null) {
-						if (toObjectType.getParameter("type") == null) {
-							return result;
-						}
-
-						String resultClass = result.getClass().getName();
-						if (resultClass.equals(toObjectType.getParameter("type"))) {
-							return result;
-						}
-						// recursive call
-						return transformPayloadForConsumer(result, contentType,
-								Collections.singletonList(toObjectType));
-					}
-				}
+				return deserializeConsumerPayload((byte[]) payload, contentType);
 			}
 		}
 		return payload;
-	}
-
-	private MediaType findJavaObjectType(Collection<MediaType> to) {
-		for (MediaType mediaType : to) {
-			if (JAVA_OBJECT_TYPE.includes(mediaType)) {
-				return mediaType;
-			}
-		}
-		return null;
 	}
 
 	private String resolveContentType(Object originalPayload) {

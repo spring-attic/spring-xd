@@ -68,7 +68,7 @@ public class MessageBusRegistrationTests {
 	@Test
 	public void testRegistration() throws Exception {
 		streamPlugin.postProcessModule(module);
-		verify(bus).bindConsumer("mystream.0", input, ALL, false);
+		verify(bus).bindConsumer("mystream.0", input, false);
 		verify(bus).bindProducer("mystream.1", output, false);
 	}
 

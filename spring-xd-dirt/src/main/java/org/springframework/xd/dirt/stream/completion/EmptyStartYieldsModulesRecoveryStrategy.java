@@ -48,6 +48,7 @@ public class EmptyStartYieldsModulesRecoveryStrategy extends
 	}
 
 	@Override
+	@SuppressWarnings("fallthrough")
 	public void use(CheckpointedStreamDefinitionException exception, List<String> result, CompletionKind kind) {
 		switch (kind) {
 			case composed:

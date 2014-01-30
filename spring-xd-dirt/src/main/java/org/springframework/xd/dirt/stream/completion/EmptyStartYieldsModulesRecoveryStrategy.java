@@ -52,7 +52,7 @@ public class EmptyStartYieldsModulesRecoveryStrategy extends
 	public void addProposals(CheckpointedStreamDefinitionException exception, CompletionKind kind,
 			List<String> proposals) {
 		switch (kind) {
-			case composed:
+			case module:
 				// Add processors
 				addAllModulesOfType(proposals, exception.getExpressionStringUntilCheckpoint(), processor);
 				// FALL THRU as composed modules can be either

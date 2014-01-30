@@ -25,14 +25,14 @@ package org.springframework.xd.rest.client.domain;
 public enum CompletionKind {
 
 	/**
-	 * A full stream definition, which ought to start with a source (or channel) and end with a sink (or channel)
+	 * A full stream definition, which ought to start with a source (or channel) and end with a sink (or channel).
 	 */
 	stream,
 
 	/**
-	 * A "half-stream", which starts or ends on a processor
+	 * A composed module, which starts or ends on a processor.
 	 */
-	composed,
+	module,
 
 	/**
 	 * A job definition.

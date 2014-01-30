@@ -19,7 +19,7 @@ package org.springframework.xd.dirt.stream.completion;
 import static org.springframework.xd.module.ModuleType.processor;
 import static org.springframework.xd.module.ModuleType.sink;
 import static org.springframework.xd.module.ModuleType.source;
-import static org.springframework.xd.rest.client.domain.CompletionKind.composed;
+import static org.springframework.xd.rest.client.domain.CompletionKind.module;
 import static org.springframework.xd.rest.client.domain.CompletionKind.stream;
 
 import java.util.List;
@@ -57,7 +57,8 @@ public class PipeIntoOtherModulesExpansionStrategy implements CompletionExpansio
 	}
 
 	@Override
-	public void addProposals(String start, List<ModuleDeploymentRequest> parseResult, CompletionKind kind, List<String> proposals) {
+	public void addProposals(String start, List<ModuleDeploymentRequest> parseResult, CompletionKind kind,
+			List<String> proposals) {
 		// List is in reverse order
 		ModuleDeploymentRequest lastModule = parseResult.get(0);
 		ModuleType lastModuleType = lastModule.getType();
@@ -71,7 +72,7 @@ public class PipeIntoOtherModulesExpansionStrategy implements CompletionExpansio
 		// For composed modules, don't go up to sink if we started with a source
 		ModuleDeploymentRequest firstModule = parseResult.get(parseResult.size() - 1);
 		ModuleType firstModuleType = firstModule.getType();
-		if (kind == composed && lastModuleType != ModuleType.sink) {
+		if (kind == module && lastModuleType != ModuleType.sink) {
 			addAllModulesOfType(start.endsWith(" ") ? start + "| " : start + " | ", processor, proposals);
 			if (firstModuleType != source) {
 				addAllModulesOfType(start.endsWith(" ") ? start + "| " : start + " | ", sink, proposals);

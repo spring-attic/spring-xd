@@ -18,7 +18,13 @@ package org.springframework.xd.dirt.stream.dsl;
 
 import java.util.List;
 
-
+/**
+ * An extension of StreamDefinitionException that remembers the point up to which parsing went OK (signaled by a '*' in
+ * the dumped message).
+ * 
+ * @author Eric Bottard
+ */
+@SuppressWarnings("serial")
 public class CheckpointedStreamDefinitionException extends StreamDefinitionException {
 
 	private int checkpointPointer = -1;
@@ -36,7 +42,7 @@ public class CheckpointedStreamDefinitionException extends StreamDefinitionExcep
 
 
 	/**
-	 * @return a formatted message with inserts applied
+	 * @return a formatted message with inserts applied.
 	 */
 	@Override
 	public String getMessage() {

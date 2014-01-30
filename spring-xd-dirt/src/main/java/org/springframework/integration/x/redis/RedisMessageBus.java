@@ -200,7 +200,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 		@Override
 		protected void handleMessageInternal(Message<?> message) throws Exception {
 			@SuppressWarnings("unchecked")
-			Message<byte[]> transformed = (Message<byte[]>) serializePayloadForProducerIfNecessary(message,
+			Message<byte[]> transformed = (Message<byte[]>) serializePayloadIfNecessary(message,
 					MediaType.APPLICATION_OCTET_STREAM);
 			if (this.replyTo != null) {
 				transformed = MessageBuilder.fromMessage(transformed)
@@ -227,7 +227,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 			catch (UnsupportedEncodingException e) {
 				logger.error("Could not convert message", e);
 			}
-			return deserializePayloadForConsumerIfNecessary(theRequestMessage);
+			return deserializePayloadIfNecessary(theRequestMessage);
 		}
 
 	};

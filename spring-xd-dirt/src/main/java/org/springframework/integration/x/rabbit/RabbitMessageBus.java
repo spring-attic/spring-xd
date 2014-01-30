@@ -240,7 +240,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 		@Override
 		protected void handleMessageInternal(Message<?> message) throws Exception {
-			Message<?> messageToSend = serializePayloadForProducerIfNecessary(message,
+			Message<?> messageToSend = serializePayloadIfNecessary(message,
 					MediaType.APPLICATION_OCTET_STREAM);
 			if (replyTo != null) {
 				messageToSend = MessageBuilder.fromMessage(messageToSend)
@@ -255,7 +255,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 		@Override
 		protected Object handleRequestMessage(Message<?> requestMessage) {
-			return deserializePayloadForConsumerIfNecessary(requestMessage);
+			return deserializePayloadIfNecessary(requestMessage);
 		}
 
 		@Override

@@ -330,7 +330,7 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 			for (Path p : FileUtil.stat2Paths(fs.globStatus(file), file)) {
 				FileStatus status = fs.getFileStatus(p);
 				if (status.isDir() && !recursive) {
-					LOG.severe("To remove directory, please use fs rm --recursive instead");
+					LOG.severe("To remove directory, please use 'fs rm </path/to/dir> --recursive' instead");
 					return;
 				}
 				if (!skipTrash) {

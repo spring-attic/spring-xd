@@ -21,7 +21,7 @@ import java.net.URI;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.xd.rest.client.AggregateCounterOperations;
-import org.springframework.xd.rest.client.CodeCompletionOperations;
+import org.springframework.xd.rest.client.CompletionOperations;
 import org.springframework.xd.rest.client.CounterOperations;
 import org.springframework.xd.rest.client.FieldValueCounterOperations;
 import org.springframework.xd.rest.client.GaugeOperations;
@@ -88,7 +88,7 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 	/**
 	 * Holds the code completion related part of the API.
 	 */
-	private CodeCompletionOperations codeCompletionOperations;
+	private CompletionOperations completionOperations;
 
 	public SpringXDTemplate(ClientHttpRequestFactory factory, URI baseURI) {
 		super(factory);
@@ -120,7 +120,7 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 		richGaugeOperations = new RichGaugeTemplate(this);
 		moduleOperations = new ModuleTemplate(this);
 		runtimeOperations = new RuntimeTemplate(this);
-		codeCompletionOperations = new CodeCompletionTemplate(this);
+		completionOperations = new CompletionTemplate(this);
 	}
 
 	public SpringXDTemplate(URI baseURI) {
@@ -173,7 +173,7 @@ public class SpringXDTemplate extends AbstractTemplate implements SpringXDOperat
 	}
 
 	@Override
-	public CodeCompletionOperations codeCompletionOperations() {
-		return codeCompletionOperations;
+	public CompletionOperations completionOperations() {
+		return completionOperations;
 	}
 }

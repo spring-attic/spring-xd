@@ -14,25 +14,19 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.rest.client.impl;
+package org.springframework.xd.rest.client;
 
-import java.util.Arrays;
 import java.util.List;
 
-import org.springframework.xd.rest.client.CodeCompletionOperations;
 import org.springframework.xd.rest.client.domain.CompletionKind;
 
+/**
+ * Provides access to the dsl completion facility.
+ * 
+ * @author Eric Bottard
+ */
+public interface CompletionOperations {
 
-public class CodeCompletionTemplate extends AbstractTemplate implements CodeCompletionOperations {
+	List<String> completions(CompletionKind kind, String start);
 
-
-	CodeCompletionTemplate(AbstractTemplate other) {
-		super(other);
-	}
-
-	@Override
-	public List<String> completions(CompletionKind kind, String start) {
-		String url = resources.get(String.format("completions/%s", kind)).toString() + "{start}";
-		return Arrays.asList(restTemplate.getForObject(url, String[].class, start));
-	}
 }

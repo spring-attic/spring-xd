@@ -31,6 +31,7 @@ import java.util.List;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -73,7 +74,7 @@ public class CompletionProviderTests {
 
 	@Test
 	// fi<TAB> => file
-	@Ignore
+	@Ignore("XD-1285")
 	// Requires cleanup of XDStreamParser.determineType()
 	public void testUnfinishedModuleNameShouldReturnCommletions() {
 		List<String> completions = completionProvider.complete(stream, "fi");
@@ -172,7 +173,7 @@ public class CompletionProviderTests {
 	}
 
 	@Test
-	@Ignore
+	@Ignore("XD-1284")
 	// file | file --binary=<TAB> => we know it's a closed set of values
 	public void testInOptionValueBooleanNoStartAtAll() {
 		List<String> completions = completionProvider.complete(stream,
@@ -182,7 +183,7 @@ public class CompletionProviderTests {
 	}
 
 	@Test
-	@Ignore
+	@Ignore("XD-1284")
 	// file | file --binary=t<TAB> => we know it's a closed set, and 'true' matches
 	public void testInOptionValueBooleanValidStart() {
 		List<String> completions = completionProvider.complete(stream,
@@ -191,7 +192,7 @@ public class CompletionProviderTests {
 	}
 
 	@Test
-	@Ignore
+	@Ignore("XD-1284")
 	// file | file --binary=foo<TAB> => we know it's wrong, so return nothing
 	public void testInOptionValueBooleanInvalidStart() {
 		List<String> completions = completionProvider.complete(stream,
@@ -200,7 +201,7 @@ public class CompletionProviderTests {
 	}
 
 	@Test
-	@Ignore
+	@Ignore("XD-1284")
 	// file | hdfs --codec=<TAB> // same logic as testInOptionValueBoolean
 	public void testInOptionValueEnumNoStartAtAll() {
 		List<String> completions = completionProvider.complete(stream,
@@ -210,7 +211,7 @@ public class CompletionProviderTests {
 	}
 
 	@Test
-	@Ignore
+	@Ignore("XD-1284")
 	// file | hdfs --codec=S<TAB> => SNAPPY // same logic as testInOptionValueBoolean
 	public void testInOptionValueEnumValidStart() {
 		List<String> completions = completionProvider.complete(stream,
@@ -219,7 +220,7 @@ public class CompletionProviderTests {
 	}
 
 	@Test
-	@Ignore
+	@Ignore("XD-1284")
 	// file | hdfs --codec=FOOBAR<TAB> // same logic as testInOptionValueBoolean
 	public void testInOptionValueEnumInvalidStart() {
 		List<String> completions = completionProvider.complete(stream,

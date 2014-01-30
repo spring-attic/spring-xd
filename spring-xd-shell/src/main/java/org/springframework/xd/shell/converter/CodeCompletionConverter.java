@@ -62,7 +62,7 @@ public class CodeCompletionConverter implements Converter<String> {
 
 		CompletionKind kind = determineKind(optionContext);
 		try {
-			List<String> candidates = xdShell.getSpringXDOperations().codeCompletionOperations().completions(kind,
+			List<String> candidates = xdShell.getSpringXDOperations().completionOperations().completions(kind,
 					start);
 			for (String candidate : candidates) {
 				completions.add(new Completion(candidate));

@@ -73,6 +73,6 @@ public interface SpringXDOperations {
 	/**
 	 * Returns the portion of the API for providing code completion.
 	 */
-	public CodeCompletionOperations codeCompletionOperations();
+	public CompletionOperations completionOperations();
 
 }

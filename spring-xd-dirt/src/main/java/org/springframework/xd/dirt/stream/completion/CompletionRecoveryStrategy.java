@@ -30,13 +30,13 @@ import org.springframework.xd.rest.client.domain.CompletionKind;
 public interface CompletionRecoveryStrategy<E extends Throwable> {
 
 	/**
-	 * Whether this completion should be triggered
+	 * Whether this completion should be triggered.
 	 */
-	boolean matches(E exception, CompletionKind kind);
+	boolean shouldTrigger(E exception, CompletionKind kind);
 
 	/**
-	 * Perform code completion by adding proposals to the {@code result} list.
+	 * Perform code completion by adding proposals to the {@code proposals} list.
 	 */
-	void use(E exception, List<String> result, CompletionKind kind);
+	void addProposals(E exception, CompletionKind kind, List<String> proposals);
 
 }

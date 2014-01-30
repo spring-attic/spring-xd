@@ -49,19 +49,22 @@ public class EmptyStartYieldsModulesRecoveryStrategy extends
 
 	@Override
 	@SuppressWarnings("fallthrough")
-	public void use(CheckpointedStreamDefinitionException exception, List<String> result, CompletionKind kind) {
+	public void addProposals(CheckpointedStreamDefinitionException exception, CompletionKind kind,
+			List<String> proposals) {
 		switch (kind) {
 			case composed:
 				// Add processors
-				addAllModulesOfType(result, exception.getExpressionStringUntilCheckpoint(), processor);
-				// fall thru
+				addAllModulesOfType(proposals, exception.getExpressionStringUntilCheckpoint(), processor);
+				// FALL THRU as composed modules can be either
+				// source | processors - or -
+				// processors | sink
 			case stream:
 				// Add sources
-				addAllModulesOfType(result, exception.getExpressionStringUntilCheckpoint(), source);
+				addAllModulesOfType(proposals, exception.getExpressionStringUntilCheckpoint(), source);
 				break;
 			case job:
 				// Add jobs
-				addAllModulesOfType(result, exception.getExpressionStringUntilCheckpoint(), job);
+				addAllModulesOfType(proposals, exception.getExpressionStringUntilCheckpoint(), job);
 				break;
 
 			default:

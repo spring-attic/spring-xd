@@ -59,7 +59,7 @@ public class UnfinishedOptionNameRecoveryStrategy extends
 	}
 
 	@Override
-	public void use(CheckpointedStreamDefinitionException exception, List<String> result, CompletionKind kind) {
+	public void addProposals(CheckpointedStreamDefinitionException exception, CompletionKind kind, List<String> proposals) {
 		String safe = exception.getExpressionStringUntilCheckpoint();
 		List<Token> tokens = exception.getTokens();
 		Token lastToken = tokens.get(tokens.size() - 1);
@@ -78,7 +78,7 @@ public class UnfinishedOptionNameRecoveryStrategy extends
 		Set<String> alreadyPresentOptions = new HashSet<String>(lastModule.getParameters().keySet());
 		for (ModuleOption option : moduleOptionsMetadataResolver.resolve(lastModuleDefinition)) {
 			if (!alreadyPresentOptions.contains(option.getName()) && option.getName().startsWith(optionNamePrefix)) {
-				result.add(String.format("%s --%s=", safe, option.getName()));
+				proposals.add(String.format("%s --%s=", safe, option.getName()));
 			}
 		}
 

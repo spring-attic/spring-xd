@@ -52,29 +52,29 @@ public class PipeIntoOtherModulesExpansionStrategy implements CompletionExpansio
 	}
 
 	@Override
-	public boolean matches(String text, List<ModuleDeploymentRequest> parseResult, CompletionKind kind) {
+	public boolean shouldTrigger(String text, List<ModuleDeploymentRequest> parseResult, CompletionKind kind) {
 		return true;
 	}
 
 	@Override
-	public void use(String start, List<ModuleDeploymentRequest> parseResult, List<String> result, CompletionKind kind) {
+	public void addProposals(String start, List<ModuleDeploymentRequest> parseResult, CompletionKind kind, List<String> proposals) {
 		// List is in reverse order
 		ModuleDeploymentRequest lastModule = parseResult.get(0);
 		ModuleType lastModuleType = lastModule.getType();
 
 		// For full streams, add processors and sinks
 		if (kind == stream && lastModuleType != ModuleType.sink) {
-			addAllModulesOfType(start.endsWith(" ") ? start + "| " : start + " | ", processor, result);
-			addAllModulesOfType(start.endsWith(" ") ? start + "| " : start + " | ", sink, result);
+			addAllModulesOfType(start.endsWith(" ") ? start + "| " : start + " | ", processor, proposals);
+			addAllModulesOfType(start.endsWith(" ") ? start + "| " : start + " | ", sink, proposals);
 		}
 
 		// For composed modules, don't go up to sink if we started with a source
 		ModuleDeploymentRequest firstModule = parseResult.get(parseResult.size() - 1);
 		ModuleType firstModuleType = firstModule.getType();
 		if (kind == composed && lastModuleType != ModuleType.sink) {
-			addAllModulesOfType(start.endsWith(" ") ? start + "| " : start + " | ", processor, result);
+			addAllModulesOfType(start.endsWith(" ") ? start + "| " : start + " | ", processor, proposals);
 			if (firstModuleType != source) {
-				addAllModulesOfType(start.endsWith(" ") ? start + "| " : start + " | ", sink, result);
+				addAllModulesOfType(start.endsWith(" ") ? start + "| " : start + " | ", sink, proposals);
 			}
 		}
 

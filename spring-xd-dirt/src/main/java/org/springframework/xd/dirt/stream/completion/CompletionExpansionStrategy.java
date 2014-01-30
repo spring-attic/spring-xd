@@ -30,13 +30,14 @@ import org.springframework.xd.rest.client.domain.CompletionKind;
 public interface CompletionExpansionStrategy {
 
 	/**
-	 * Whether this completion should be triggered
+	 * Whether this completion should be triggered.
 	 */
-	boolean matches(String text, List<ModuleDeploymentRequest> parseResult, CompletionKind kind);
+	boolean shouldTrigger(String text, List<ModuleDeploymentRequest> parseResult, CompletionKind kind);
 
 	/**
-	 * Perform code completion by adding proposals to the {@code result} list.
+	 * Perform code completion by adding proposals to the {@code proposals} list.
 	 */
-	void use(String text, List<ModuleDeploymentRequest> parseResult, List<String> result, CompletionKind kind);
+	void addProposals(String text, List<ModuleDeploymentRequest> parseResult, CompletionKind kind,
+			List<String> proposals);
 
 }

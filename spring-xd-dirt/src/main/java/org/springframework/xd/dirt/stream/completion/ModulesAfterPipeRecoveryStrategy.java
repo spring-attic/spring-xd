@@ -52,11 +52,11 @@ public class ModulesAfterPipeRecoveryStrategy extends
 	}
 
 	@Override
-	public void use(CheckpointedStreamDefinitionException exception, List<String> result, CompletionKind kind) {
+	public void addProposals(CheckpointedStreamDefinitionException exception, CompletionKind kind, List<String> proposals) {
 		String start = exception.getExpressionString();
 
-		addAllModulesOfType(start.endsWith(" ") ? start : start + " ", processor, result);
-		addAllModulesOfType(start.endsWith(" ") ? start : start + " ", sink, result);
+		addAllModulesOfType(start.endsWith(" ") ? start : start + " ", processor, proposals);
+		addAllModulesOfType(start.endsWith(" ") ? start : start + " ", sink, proposals);
 	}
 
 	private void addAllModulesOfType(String beginning, ModuleType type, List<String> results) {

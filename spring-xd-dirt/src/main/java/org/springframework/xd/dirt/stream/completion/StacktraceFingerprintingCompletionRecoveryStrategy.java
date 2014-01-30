@@ -97,7 +97,7 @@ public abstract class StacktraceFingerprintingCompletionRecoveryStrategy<E exten
 	}
 
 	@Override
-	public boolean matches(Throwable exception, CompletionKind kind) {
+	public boolean shouldTrigger(Throwable exception, CompletionKind kind) {
 		for (List<StackTraceElement> fingerPrint : fingerprints) {
 			if (fingerprintMatches(exception, fingerPrint)) {
 				return true;

@@ -51,12 +51,12 @@ public class AddModuleOptionsExpansionStrategy implements CompletionExpansionStr
 	}
 
 	@Override
-	public boolean matches(String text, List<ModuleDeploymentRequest> parseResult, CompletionKind kind) {
+	public boolean shouldTrigger(String text, List<ModuleDeploymentRequest> parseResult, CompletionKind kind) {
 		return true;
 	}
 
 	@Override
-	public void use(String text, List<ModuleDeploymentRequest> parseResult, List<String> result, CompletionKind kind) {
+	public void addProposals(String text, List<ModuleDeploymentRequest> parseResult, CompletionKind kind, List<String> proposals) {
 		// List is in reverse order
 		ModuleDeploymentRequest lastModule = parseResult.get(0);
 		String lastModuleName = lastModule.getModule();
@@ -67,7 +67,7 @@ public class AddModuleOptionsExpansionStrategy implements CompletionExpansionStr
 		Set<String> alreadyPresentOptions = new HashSet<String>(lastModule.getParameters().keySet());
 		for (ModuleOption option : moduleOptionsMetadataResolver.resolve(lastModuleDefinition)) {
 			if (!alreadyPresentOptions.contains(option.getName())) {
-				result.add(String.format("%s%s--%s=", text, text.endsWith(" ") ? "" : " ", option.getName()));
+				proposals.add(String.format("%s%s--%s=", text, text.endsWith(" ") ? "" : " ", option.getName()));
 			}
 		}
 

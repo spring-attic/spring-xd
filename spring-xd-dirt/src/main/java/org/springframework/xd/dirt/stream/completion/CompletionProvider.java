@@ -72,8 +72,8 @@ public class CompletionProvider {
 		}
 		catch (Throwable recoverable) {
 			for (CompletionRecoveryStrategy<Throwable> strategy : recoveries) {
-				if (strategy.matches(recoverable, kind)) {
-					strategy.use(recoverable, results, kind);
+				if (strategy.shouldTrigger(recoverable, kind)) {
+					strategy.addProposals(recoverable, kind, results);
 				}
 			}
 
@@ -81,8 +81,8 @@ public class CompletionProvider {
 		}
 
 		for (CompletionExpansionStrategy strategy : expansions) {
-			if (strategy.matches(start, parsed, kind)) {
-				strategy.use(start, parsed, results, kind);
+			if (strategy.shouldTrigger(start, parsed, kind)) {
+				strategy.addProposals(start, parsed, kind, results);
 			}
 		}
 		return results;

@@ -38,17 +38,21 @@ public class CompletionProvider {
 
 	private final XDParser parser;
 
-	private final List<CompletionRecoveryStrategy<? extends Throwable>> recoveries;
+	private final List<CompletionRecoveryStrategy<Throwable>> recoveries;
 
 	private final List<CompletionExpansionStrategy> exapansions;
 
 
 	@Autowired
+	@SuppressWarnings("unchecked")
 	public CompletionProvider(XDParser parser,
 			List<CompletionRecoveryStrategy<? extends Throwable>> recoveries,
 			List<CompletionExpansionStrategy> exapansions) {
 		this.parser = parser;
-		this.recoveries = recoveries;
+		// Unchecked downcast here is the best compromise
+		// if we want to still benefit from Spring's typed collection injection
+		Object o = recoveries;
+		this.recoveries = (List<CompletionRecoveryStrategy<Throwable>>) o;
 		this.exapansions = exapansions;
 	}
 
@@ -67,7 +71,7 @@ public class CompletionProvider {
 			parsed = parser.parse(name, start);
 		}
 		catch (Throwable recoverable) {
-			for (CompletionRecoveryStrategy strategy : recoveries) {
+			for (CompletionRecoveryStrategy<Throwable> strategy : recoveries) {
 				if (strategy.matches(recoverable, kind)) {
 					strategy.use(recoverable, results, kind);
 				}

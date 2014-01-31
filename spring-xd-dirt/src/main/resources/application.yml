@@ -39,18 +39,6 @@ server:
 ---
 
 spring:
-  profiles: memory
-transport: local
-analytics: memory
-store: memory
-server:
-  port: -1
-management:
-  port: -1
-
----
-
-spring:
   profiles: rabbit
 transport: rabbit
 
@@ -73,8 +61,6 @@ spring:
   batch:
     initializer:
       enabled: false
-management:
-  port: ${PORT:0}
 server:
   port: ${PORT:0}
 

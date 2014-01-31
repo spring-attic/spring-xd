@@ -52,6 +52,9 @@ public class RedisSingleNodeStreamDeploymentIntegrationTests extends AbstractSin
 			StringRedisTemplate template = context.getBean(StringRedisTemplate.class);
 			String queueDeployer = context.getEnvironment().resolvePlaceholders(XD_DEPLOYER_PLACEHOLDER);
 			template.delete(queueDeployer);
+			// Close the application here to avoid calling application.close() after the RedisTestSupport resource
+			// is destroyed.
+			application.close();
 		}
 	}
 }

@@ -16,6 +16,9 @@
 
 package org.springframework.integration.x.http;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+
 import org.springframework.xd.module.options.spi.ModuleOption;
 
 
@@ -41,6 +44,8 @@ public class HttpSourceOptionsMetadata {
 		this.unmarshallTo = unmarshallTo;
 	}
 
+	@Min(0)
+	@Max(65535)
 	public int getPort() {
 		return port;
 	}

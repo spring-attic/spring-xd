@@ -9,7 +9,7 @@
 
 	<bean class="org.springframework.integration.x.http.NettyHttpInboundChannelAdapter">
 		<constructor-arg value="${port}"/>
-		<property name="unmarshallTo" value="${unmarshallTo}"/>
+		<property name="unmarshallTo" value="${unmarshallTo:}"/>
 		<property name="autoStartup" value="false"/>
 		<property name="outputChannel" ref="output"/>
 	</bean>

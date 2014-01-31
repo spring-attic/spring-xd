@@ -29,8 +29,11 @@ public class HttpSourceOptionsMetadata {
 	private Class<?> unmarshallTo;
 
 
-	public Class<?> getUnmarshallTo() {
-		return unmarshallTo;
+	// The module's PPC conversion service would need a Class->String
+	// or bypass the Class->String->Class conversion altogether
+	// This will work for now
+	public String getUnmarshallTo() {
+		return unmarshallTo == null ? null : unmarshallTo.getName();
 	}
 
 	@ModuleOption("the type to convert to")

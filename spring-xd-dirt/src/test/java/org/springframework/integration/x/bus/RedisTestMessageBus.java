@@ -17,6 +17,7 @@
 package org.springframework.integration.x.bus;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.integration.x.bus.serializer.MultiTypeCodec;
 import org.springframework.integration.x.redis.RedisMessageBus;
 
@@ -28,11 +29,19 @@ import org.springframework.integration.x.redis.RedisMessageBus;
  */
 public class RedisTestMessageBus extends AbstractTestMessageBus {
 
+	private StringRedisTemplate template;
+
 	public RedisTestMessageBus(RedisConnectionFactory connectionFactory, MultiTypeCodec<Object> codec) {
 		super(new RedisMessageBus(connectionFactory, codec));
+		template = new StringRedisTemplate(connectionFactory);
 	}
 
 	@Override
 	public void cleanup() {
+		if (!queues.isEmpty()) {
+			for (String queue : queues) {
+				template.delete(queue);
+			}
+		}
 	}
 }

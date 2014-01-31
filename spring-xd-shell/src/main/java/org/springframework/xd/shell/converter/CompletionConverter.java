@@ -33,7 +33,7 @@ import org.springframework.xd.shell.XDShell;
  * @author Eric Bottard
  */
 @Component
-public class CodeCompletionConverter implements Converter<String> {
+public class CompletionConverter implements Converter<String> {
 
 	@Autowired
 	private XDShell xdShell;

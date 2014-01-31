@@ -28,19 +28,19 @@ import org.springframework.xd.dirt.stream.completion.CompletionProvider;
 import org.springframework.xd.rest.client.domain.CompletionKind;
 
 /**
- * Exposes code completion for stream-like definitions as a REST endpoint.
+ * Exposes completion for stream-like definitions as a REST endpoint.
  * 
  * @author Eric Bottard
  */
 @RestController
 @RequestMapping("/completions")
 @Lazy
-public class CodeCompletionsController {
+public class CompletionsController {
 
 	private final CompletionProvider completionProvider;
 
 	@Autowired
-	public CodeCompletionsController(CompletionProvider completionProvider) {
+	public CompletionsController(CompletionProvider completionProvider) {
 		this.completionProvider = completionProvider;
 	}
 

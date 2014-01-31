@@ -65,7 +65,7 @@ public class AdminController {
 		xdRuntime.add(entityLinks.linkFor(RuntimeContainerInfoResource.class).withRel("runtime/containers"));
 
 		for (CompletionKind k : CompletionKind.values()) {
-			Object mi = ControllerLinkBuilder.methodOn(CodeCompletionsController.class).completions(k, "");
+			Object mi = ControllerLinkBuilder.methodOn(CompletionsController.class).completions(k, "");
 			Link link = ControllerLinkBuilder.linkTo(mi).withRel(String.format("completions/%s", k));
 			xdRuntime.add(link);
 		}

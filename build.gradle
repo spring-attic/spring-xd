@@ -520,6 +520,8 @@ project('spring-xd-extension-http') {
 		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
 		compile "io.netty:netty:3.6.6.Final"
 		compile "org.springframework:spring-web:$springVersion"
+		compile project(':spring-xd-module-spi')
+		compile "javax.validation:validation-api:1.0.0.GA"
 		testCompile project(":spring-xd-test")
 	}
 }

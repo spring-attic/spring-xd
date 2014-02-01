@@ -41,8 +41,6 @@ public class TupleToJsonStringConverter implements Converter<Tuple, String> {
 
 	private ObjectNode toObjectNode(Tuple source) {
 		ObjectNode root = mapper.createObjectNode();
-		root.put("id", source.getId().toString());
-		root.put("timestamp", source.getTimestamp());
 		for (int i = 0; i < source.size(); i++) {
 			Object value = source.getValues().get(i);
 			String name = source.getFieldNames().get(i);

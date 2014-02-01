@@ -54,15 +54,7 @@ public class JsonStringToTupleConverter implements Converter<String, Tuple> {
 					builder.addEntry(name, nodeToList(node));
 				}
 				else {
-					if (name.equals("id")) {
-						// TODO how should this be handled?
-					}
-					else if (name.equals("timestamp")) {
-						// TODO how should this be handled?
-					}
-					else {
-						builder.addEntry(name, node.asText());
-					}
+					builder.addEntry(name, node.asText());
 				}
 			}
 		}

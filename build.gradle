@@ -107,6 +107,7 @@ ext {
 	args4jVersion = '2.0.16'
 	commonsIoVersion = '2.4'
 	singleNodeServerProcess = new SingleNodeServerProcess()
+	ftpServerVersion = '1.0.6'
 }
 
 def forceSpringVersion(p) {
@@ -336,14 +337,16 @@ project('spring-xd-dirt') {
 		compile "org.springframework.boot:spring-boot-autoconfigure:$springBootVersion"
 		compile "org.springframework.boot:spring-boot-actuator:$springBootVersion"
 		compile "org.springframework.data:spring-data-redis:$springDataRedisVersion"
-		compile "org.springframework.integration:spring-integration-redis:$springIntegrationVersion"
-		compile "org.springframework.integration:spring-integration-http:$springIntegrationVersion"
-		compile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
-		compile "log4j:log4j:$log4jVersion"
 		compile "org.springframework.integration:spring-integration-amqp:$springIntegrationVersion"
 		compile "org.springframework.integration:spring-integration-event:$springIntegrationVersion"
+		compile "org.springframework.integration:spring-integration-file:$springIntegrationVersion"
+		compile "org.springframework.integration:spring-integration-ftp:$springIntegrationVersion"
 		compile "org.springframework.integration:spring-integration-groovy:$springIntegrationVersion"
+		compile "org.springframework.integration:spring-integration-http:$springIntegrationVersion"
 		compile "org.springframework.integration:spring-integration-jmx:$springIntegrationVersion"
+		compile "org.springframework.integration:spring-integration-redis:$springIntegrationVersion"
+		compile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
+		compile "log4j:log4j:$log4jVersion"
 		compile "org.jolokia:jolokia-spring:$jolokiaVersion"
 		compile "org.jolokia:jolokia-client-java:$jolokiaVersion"
 		compile "com.esotericsoftware.kryo:kryo:$kryoVersion"
@@ -957,11 +960,7 @@ project('modules.source.tcp-client') {
 
 project('modules.source.mqtt') {
 	dependencies {
-		runtime ("org.springframework.integration:spring-integration-mqtt:$springIntegrationVersion") {
-		// spring-integration-mqtt has a different lifecycle than SI and may bring a version
-		// of SI which is believed by gradle to be newer than our preferred version.
-	     exclude group: 'org.springframework.integration'
-	 }
+		runtime "org.springframework.integration:spring-integration-mqtt:$springIntegrationVersion"
 	}
 }
 
@@ -1059,11 +1058,7 @@ project('modules.sink.tcp') {
 
 project('modules.sink.mqtt') {
 	dependencies {
-		runtime ("org.springframework.integration:spring-integration-mqtt:$springIntegrationVersion") {
-		// spring-integration-mqtt has a different lifecycle than SI and may bring a version
-		// of SI which is believed by gradle to be newer than our preferred version.
-	     exclude group: 'org.springframework.integration'
-	 }
+		runtime "org.springframework.integration:spring-integration-mqtt:$springIntegrationVersion"
 	}
 }
 
@@ -1142,6 +1137,11 @@ project('modules.job.jdbchdfs') {
 	}
 }
 
+project('modules.job.ftphdfs') {
+	dependencies {
+		runtime "org.springframework.integration:spring-integration-ftp:$springIntegrationVersion"
+	}
+}
 
 
 
@@ -1224,6 +1224,7 @@ project('spring-xd-shell') {
 				"org.codehaus.jackson:jackson-mapper-asl:$jackson1Version"
 		testCompile "com.icegreen:greenmail:1.3.1b"
 		testCompile "commons-io:commons-io:$commonsIoVersion"
+		testCompile "org.apache.ftpserver:ftpserver-core:$ftpServerVersion"
 
 	}
 

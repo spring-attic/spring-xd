@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:hdp="http://www.springframework.org/schema/hadoop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:batch="http://www.springframework.org/schema/batch"
+	xmlns:int-ftp="http://www.springframework.org/schema/integration/ftp"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp http://www.springframework.org/schema/integration/ftp/spring-integration-ftp-4.0.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-4.0.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd
+		http://www.springframework.org/schema/hadoop http://www.springframework.org/schema/hadoop/spring-hadoop.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<import resource="classpath:/META-INF/spring-xd/batch/singlestep-partition-support.xml"/>
+
+	<int:gateway id="ls.gateway"
+		default-request-channel="toLs"
+		service-interface="org.springframework.batch.integration.x.RemoteFilePartitioner$Gateway" />
+
+	<int:channel id="toLs" />
+
+	<int-ftp:outbound-gateway id="ftpGate" 
+		request-channel="toLs"
+		command="ls"
+		command-options="-1"
+		expression="payload"
+		session-factory="sessionFactory" />
+
+	<bean id="sessionFactory" class="org.springframework.integration.ftp.session.DefaultFtpSessionFactory">
+		<property name="host" value="${host:localhost}" />
+		<property name="port" value="${port:21}" />
+		<property name="username" value="${username:ftpuser}" />
+		<property name="password" value="${password:ftpuser}" />
+	</bean>
+
+	<bean id="partitioner" class="org.springframework.batch.integration.x.RemoteFilePartitioner" scope="step">
+		<constructor-arg ref="ls.gateway" />
+		<constructor-arg value="#{jobParameters['remoteDirectory']}"/>
+	</bean>
+
+	<bean id="tasklet" class="org.springframework.batch.integration.x.RemoteFileToHadoopTasklet" scope="step">
+		<constructor-arg ref="remoteFileTemplate" />
+		<constructor-arg ref="hadoopConfiguration" />
+		<constructor-arg value="#{jobParameters['hdfsDirectory']}" />
+	</bean>
+
+	<bean id="remoteFileTemplate" class="org.springframework.integration.file.remote.RemoteFileTemplate">
+		<constructor-arg ref="sessionFactory" />
+	</bean>
+
+	<hdp:configuration register-url-handler="false" properties-location="${xd.config.home}/hadoop.properties"/>
+	<hdp:resource-loader id="hadoopResourceLoader"/>
+
+</beans>

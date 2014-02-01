@@ -37,12 +37,13 @@ import org.springframework.xd.dirt.module.ResourceModuleRegistry;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.module.core.CompositeModule;
 import org.springframework.xd.module.core.Module;
+import org.springframework.xd.test.RandomConfigurationSupport;
 
 
 /**
  * @author David Turanski
  */
-public class StreamTestSupport {
+public class StreamTestSupport extends RandomConfigurationSupport {
 
 	private static StreamDeployer streamDeployer;
 

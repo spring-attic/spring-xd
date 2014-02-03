@@ -461,7 +461,7 @@ project('spring-xd-dirt') {
 	}
 
 	applicationDistribution.from(xdUiFiles) {
-		into "spring-xd-ui"
+		into "spring-xd-ui/dist"
 	}
 
 	// Following execution is used by jsTests task to start SingleNodeApplication as background process
@@ -505,7 +505,7 @@ project('spring-xd-exec') {
 		into('.') { from '../spring-xd-dirt/src/main/resources/log4j.properties' }
 		into('modules') { from '../modules' }
 		into('config') { from '../config' }
-		into('spring-xd-ui') { from '../spring-xd-ui/dist' }
+		into('spring-xd-ui/dist') { from '../spring-xd-ui/dist' }
 	}
 	moduleProjects.each { moduleProject ->
 		project.jar.dependsOn moduleProject.copyLibs
@@ -1177,12 +1177,12 @@ project('spring-xd-ui') {
 
 	afterEvaluate{
 		tasks['grunt_build'].dependsOn(['npmInstall', 'installGrunt']);
-		tasks['grunt_builde2e'].dependsOn(['npmInstall', 'installGrunt']);
+		tasks['grunt_teste2e'].dependsOn(['npmInstall', 'installGrunt']);
 	}
 
-	task build(dependsOn: ['grunt_builde2e', ':spring-xd-dirt:backgroundAdminServer']) {
+	task test(dependsOn: ['grunt_teste2e', ':spring-xd-dirt:backgroundAdminServer']) {
 
-		description = "Build the Admin UI using Grunt"
+		description = "E2E-test the Admin UI using Grunt"
 
 		doLast {
 			def singleNodeServerProcess = project(':spring-xd-dirt').singleNodeServerProcess
@@ -1193,8 +1193,12 @@ project('spring-xd-ui') {
 		}
 	}
 
+	task build(dependsOn: ['grunt_build', 'test']) {
+		description = "Build the Admin UI using Grunt"
+	}
+
 	grunt_build.shouldRunAfter 'installGrunt'
-	grunt_builde2e.shouldRunAfter 'installGrunt'
+	grunt_teste2e.shouldRunAfter 'installGrunt'
 	installGrunt.shouldRunAfter 'npmInstall'
 
 	tasks['clean'].dependsOn(['cleanDist', 'cleanNodeModules', 'cleanBowerFiles'])

@@ -421,8 +421,7 @@ module.exports = function (grunt) {
     'test:unit'
   ]);
 
-  grunt.registerTask('builde2e', [
-    'build',
+  grunt.registerTask('teste2e', [
     'test:e2e'
   ]);
 

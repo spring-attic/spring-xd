@@ -96,7 +96,7 @@ public class NettyHttpInboundChannelAdapter<T> extends MessageProducerSupport {
 	private volatile Executor executor = new OrderedMemoryAwareThreadPoolExecutor(DEFAULT_CORE_POOL_SIZE,
 			DEFAULT_MAX_CHANNEL_MEMORY_SIZE, DEFAULT_MAX_TOTAL_MEMORY_SIZE);
 
-	private HttpMessageConverterSupport httpMessageConverters = new HttpMessageConverterSupport();
+	private DelegatingHttpMessageConverter httpMessageConverters = new DelegatingHttpMessageConverter();
 
 	private Class<T> unmarshallTo = null;
 

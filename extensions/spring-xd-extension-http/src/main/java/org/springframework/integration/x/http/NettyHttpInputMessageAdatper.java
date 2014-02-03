@@ -30,6 +30,8 @@ import org.springframework.util.Assert;
 
 /**
  * Adapts from Netty's {@link HttpRequest} to Spring Integration's {@link HttpInputMessage}.
+ * 
+ * @author Eric Bottard
  */
 public class NettyHttpInputMessageAdatper implements HttpInputMessage {
 

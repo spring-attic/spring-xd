@@ -983,7 +983,8 @@ project('modules.source.syslog-udp') {
 
 project('modules.source.jms') {
 	dependencies {
-		runtime "org.springframework.integration:spring-integration-jms:$springIntegrationVersion"
+//		runtime "org.springframework.integration:spring-integration-jms:$springIntegrationVersion"
+		runtime "org.springframework.integration:spring-integration-jms:4.0.0.M2"
 		runtime ("org.apache.activemq:activemq-core:5.6.0") {
 			exclude group: 'org.mortbay.jetty'
 			exclude group: 'org.fusesource.fuse-extra'

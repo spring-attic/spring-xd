@@ -24,6 +24,8 @@ import org.springframework.xd.module.options.spi.ModuleOption;
 
 /**
  * Captures options available to the {@code http} source module.
+ * 
+ * @author Eric Bottard
  */
 public class HttpSourceOptionsMetadata {
 

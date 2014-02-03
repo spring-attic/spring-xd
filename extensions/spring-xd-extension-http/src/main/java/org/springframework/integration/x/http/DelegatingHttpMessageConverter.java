@@ -37,24 +37,25 @@ import org.springframework.util.ClassUtils;
 
 
 /**
+ * A registry of {@link HttpMessageConverter}s that will attempt each one in turn until one succeeds.
  * 
- * @author ebottard
+ * @author Eric Bottard
  */
-public class HttpMessageConverterSupport {
+public class DelegatingHttpMessageConverter {
 
 	private static final boolean jaxb2Present = ClassUtils.isPresent("javax.xml.bind.Binder",
-			HttpMessageConverterSupport.class.getClassLoader());
+			DelegatingHttpMessageConverter.class.getClassLoader());
 
 	private static boolean romePresent = ClassUtils.isPresent("com.sun.syndication.feed.WireFeed",
-			HttpMessageConverterSupport.class.getClassLoader());
+			DelegatingHttpMessageConverter.class.getClassLoader());
 
 	private List<HttpMessageConverter<?>> converters = new ArrayList<HttpMessageConverter<?>>();
 
-	public HttpMessageConverterSupport() {
+	public DelegatingHttpMessageConverter() {
 		this(true);
 	}
 
-	public HttpMessageConverterSupport(boolean installDefaultConverters) {
+	public DelegatingHttpMessageConverter(boolean installDefaultConverters) {
 		if (installDefaultConverters) {
 			installDefaultConverters();
 		}

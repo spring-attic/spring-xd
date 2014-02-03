@@ -1,7 +1,7 @@
 @if "%DEBUG%" == "" @echo off
 SETLOCAL
 
-set GRADLE_OPTS="-XX:MaxPermSize=256m %GRADLE_OPTS%"
+set GRADLE_OPTS=-XX:MaxPermSize=256m %GRADLE_OPTS%
 
 if not "%XD_HOME%" == "" (
 	set XD_HOME=

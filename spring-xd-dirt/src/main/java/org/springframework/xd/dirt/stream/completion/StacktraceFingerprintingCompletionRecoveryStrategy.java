@@ -16,10 +16,12 @@
 
 package org.springframework.xd.dirt.stream.completion;
 
-import static org.springframework.xd.dirt.stream.XDParser.EntityType.module;
+import static org.springframework.xd.dirt.stream.XDParser.EntityType.partial;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.xd.dirt.stream.XDParser;
 import org.springframework.xd.rest.client.domain.CompletionKind;
@@ -51,7 +53,7 @@ import org.springframework.xd.rest.client.domain.CompletionKind;
 public abstract class StacktraceFingerprintingCompletionRecoveryStrategy<E extends Throwable> implements
 		CompletionRecoveryStrategy<E> {
 
-	private List<List<StackTraceElement>> fingerprints = new ArrayList<List<StackTraceElement>>();
+	private Set<List<StackTraceElement>> fingerprints = new LinkedHashSet<List<StackTraceElement>>();
 
 
 	protected XDParser parser;
@@ -62,7 +64,7 @@ public abstract class StacktraceFingerprintingCompletionRecoveryStrategy<E exten
 			try {
 				// we're only interested in the exception, which is currently
 				// not influenced by the kind of parse. Use stream for now
-				parser.parse("__dummy", sample, module);
+				parser.parse("__dummy", sample, partial);
 			}
 			catch (Throwable exception) {
 				computeFingerprint(parser, exception);
@@ -108,7 +110,6 @@ public abstract class StacktraceFingerprintingCompletionRecoveryStrategy<E exten
 			}
 		}
 		return false;
-
 	}
 
 

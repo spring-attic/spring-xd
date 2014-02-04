@@ -74,7 +74,7 @@ public class CompletionProvider {
 		catch (Throwable recoverable) {
 			for (CompletionRecoveryStrategy<Throwable> strategy : recoveries) {
 				if (strategy.shouldTrigger(recoverable, kind)) {
-					strategy.addProposals(recoverable, kind, results);
+					strategy.addProposals(start, recoverable, kind, results);
 				}
 			}
 

@@ -74,12 +74,12 @@ public class CompletionProviderTests {
 
 	@Test
 	// fi<TAB> => file
-	@Ignore("XD-1285")
-	// Requires cleanup of XDStreamParser.determineType()
 	public void testUnfinishedModuleNameShouldReturnCompletions() {
 		List<String> completions = completionProvider.complete(stream, "fi");
-
 		assertThat(new HashSet<>(completions), hasItem(startsWith("file")));
+
+		completions = completionProvider.complete(stream, "file | tr");
+		assertThat(new HashSet<>(completions), hasItem(startsWith("file | transform")));
 	}
 
 	@Test

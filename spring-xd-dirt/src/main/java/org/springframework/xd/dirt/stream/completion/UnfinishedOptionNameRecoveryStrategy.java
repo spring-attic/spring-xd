@@ -60,7 +60,7 @@ public class UnfinishedOptionNameRecoveryStrategy extends
 	}
 
 	@Override
-	public void addProposals(CheckpointedStreamDefinitionException exception, CompletionKind kind,
+	public void addProposals(String dsl, CheckpointedStreamDefinitionException exception, CompletionKind kind,
 			List<String> proposals) {
 		String safe = exception.getExpressionStringUntilCheckpoint();
 		List<Token> tokens = exception.getTokens();

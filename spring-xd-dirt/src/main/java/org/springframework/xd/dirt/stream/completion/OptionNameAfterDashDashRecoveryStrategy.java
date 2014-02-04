@@ -58,7 +58,7 @@ public class OptionNameAfterDashDashRecoveryStrategy extends
 	}
 
 	@Override
-	public void addProposals(CheckpointedStreamDefinitionException exception, CompletionKind kind,
+	public void addProposals(String dsl, CheckpointedStreamDefinitionException exception, CompletionKind kind,
 			List<String> proposals) {
 		String safe = exception.getExpressionStringUntilCheckpoint();
 		List<ModuleDeploymentRequest> parsed = parser.parse("__dummy", safe, toEntityType(kind));

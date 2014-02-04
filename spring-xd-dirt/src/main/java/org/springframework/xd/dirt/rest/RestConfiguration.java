@@ -55,7 +55,7 @@ public class RestConfiguration {
 		return new WebMvcConfigurerAdapter() {
 
 			// N.B. must end in "/"
-			@Value("${xd.ui.home:file:${XD_HOME}/spring-xd-ui}/")
+			@Value("${xd.ui.home:file:${XD_HOME}/spring-xd-ui/dist/}")
 			private String resourceRoot;
 
 			@Value("${xd.ui.allow_origin:http://localhost:9889}")
@@ -90,7 +90,8 @@ public class RestConfiguration {
 
 			@Override
 			public void addViewControllers(ViewControllerRegistry registry) {
-				registry.addViewController("admin-ui").setViewName("/admin-ui/index.html");
+				registry.addViewController("admin-ui").setViewName("redirect:/admin-ui/");
+				registry.addViewController("admin-ui/").setViewName("index.html");
 			}
 		};
 	}

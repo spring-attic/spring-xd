@@ -16,8 +16,10 @@
 
 package org.springframework.xd.dirt.stream;
 
+
 import static org.springframework.xd.dirt.stream.XDParser.EntityType.module;
 import static org.springframework.xd.module.ModuleType.job;
+import static org.springframework.xd.module.ModuleType.processor;
 import static org.springframework.xd.module.ModuleType.sink;
 import static org.springframework.xd.module.ModuleType.source;
 
@@ -112,7 +114,7 @@ public class XDStreamParser implements XDParser {
 		// And while we're at it (and type is known), validate module name and options
 		List<ModuleDeploymentRequest> result = new ArrayList<ModuleDeploymentRequest>(requests.size());
 		for (ModuleDeploymentRequest original : requests) {
-			original.setType(determineType(original, requests.size() - 1));
+			original.setType(determineType(original, requests.size() - 1, type));
 
 			// definition is guaranteed to be non-null here
 			ModuleDefinition moduleDefinition = moduleDefinitionRepository.findByNameAndType(original.getModule(),
@@ -130,43 +132,56 @@ public class XDStreamParser implements XDParser {
 		return result;
 	}
 
-	private ModuleType determineType(ModuleDeploymentRequest request, int lastIndex) {
-		ModuleType type = maybeGuessTypeFromNamedChannels(request, lastIndex);
-		if (type != null) {
-			return type;
+	private ModuleType determineType(ModuleDeploymentRequest request, int lastIndex, EntityType entityType) {
+		ModuleType moduleType = maybeGuessTypeFromNamedChannels(request, lastIndex, entityType);
+		if (moduleType != null) {
+			return moduleType;
 		}
 		String name = request.getModule();
 		int index = request.getIndex();
-		List<ModuleDefinition> defs = moduleDefinitionRepository.findByName(name);
-		if (defs.size() == 0) {
-			throw new NoSuchModuleException(name);
+		if (entityType == EntityType.job) {
+			return verifyModuleOfTypeExists(name, job);
 		}
-		if (defs.size() == 1) {
-			type = defs.get(0).getType();
-		}
-		if (lastIndex == 0) {
-			// If the stream definition is made of only one module, then
-			// we're looking for a job.
-			// Careful:
-			// Assumes composite modules of length 1 are not allowed
-			// and job are always of length 1
-			for (ModuleDefinition def : defs) {
-				if (def.getType() == job) {
-					type = job;
-					break;
-				}
+		else if (entityType == EntityType.stream) {
+			// A stream, so we know for sure that it looks like
+			// source | processors* | sink (channels have already been checked)
+			if (index == 0) {
+				return verifyModuleOfTypeExists(name, source);
+			}
+			else if (index < lastIndex) {
+				return verifyModuleOfTypeExists(name, processor);
+			}
+			else {
+				return verifyModuleOfTypeExists(name, sink);
 			}
 		}
-		else if (index == 0) {
-			type = source;
+		else if (entityType == EntityType.partial) {
+			// A stream, but in the context of DSL completion
+			// so it may not end with a sink yet
+			if (index == 0) {
+				return verifyModuleOfTypeExists(name, source);
+			}
+			else {
+				return verifyModuleOfTypeExists(name, processor, sink);
+			}
 		}
-		else if (index == lastIndex) {
-			type = sink;
+		else if (entityType == EntityType.module) {
+			// Could be source | processor+ or processor+ | sink
+			// The following code favors the former arbitrarily
+			if (index == 0) {
+				return verifyModuleOfTypeExists(name, source, processor);
+			}
+			else if (index < lastIndex) {
+				return verifyModuleOfTypeExists(name, processor);
+			}
+			else {
+				return verifyModuleOfTypeExists(name, sink, processor);
+			}
 		}
-		if (type == null) {
-			throw new NoSuchModuleException(name);
+		else {
+			throw new AssertionError("Unknown definition type: " + entityType);
 		}
-		return verifyModuleOfTypeExists(request, name, type);
+
 	}
 
 	/**
@@ -175,7 +190,12 @@ public class XDStreamParser implements XDParser {
 	 * 
 	 * @return a sure to be valid module type, or null if no named channels were present
 	 */
-	private ModuleType maybeGuessTypeFromNamedChannels(ModuleDeploymentRequest request, int lastIndex) {
+	private ModuleType maybeGuessTypeFromNamedChannels(ModuleDeploymentRequest request, int lastIndex,
+			EntityType entityType) {
+		if (entityType == EntityType.job
+				&& (request.getSourceChannelName() != null || request.getSinkChannelName() != null)) {
+			throw new RuntimeException("TODO");
+		}
 		ModuleType type = null;
 		String moduleName = request.getModule();
 		int index = request.getIndex();
@@ -200,7 +220,7 @@ public class XDStreamParser implements XDParser {
 				type = ModuleType.processor;
 			}
 		}
-		return (type == null) ? null : verifyModuleOfTypeExists(request, moduleName, type);
+		return (type == null) ? null : verifyModuleOfTypeExists(moduleName, type);
 	}
 
 	private ModuleDeploymentRequest convertToCompositeIfNecessary(ModuleDeploymentRequest request) {
@@ -212,23 +232,18 @@ public class XDStreamParser implements XDParser {
 		return request;
 	}
 
-	private ModuleType verifyModuleOfTypeExists(ModuleDeploymentRequest request, String moduleName, ModuleType type) {
-		ModuleDefinition def = moduleDefinitionRepository.findByNameAndType(moduleName, type);
-		if (def == null || def.getResource() == null) {
-			List<ModuleDefinition> definitions = moduleDefinitionRepository.findByName(moduleName);
-			if (definitions.isEmpty()) {
-				throw new NoSuchModuleException(moduleName);
+	/**
+	 * Asserts that there exists a module with the given type (trying each one in order) and name and returns that type,
+	 * fails otherwise.
+	 */
+	private ModuleType verifyModuleOfTypeExists(String moduleName, ModuleType... candidates) {
+		for (ModuleType type : candidates) {
+			ModuleDefinition def = moduleDefinitionRepository.findByNameAndType(moduleName, type);
+			if (def != null) {
+				return type;
 			}
-			// TODO: revisit this method altogether; it shouldn't apply to composite modules but at this stage we don't
-			// know whether the 'stream' is actually a composite module (and we do want to verify complete streams)
-			// the following method was removed from MDR: (leaving here as a reminder for the TODO)
-
-			// The module is known but this doesn't seem to be a standard stream,
-			// assume it is a composite module stream that isn't deployable by itself
-			// request.tagAsUndeployable();
-			return definitions.get(0).getType();
 		}
-		return def.getType();
+		throw new NoSuchModuleException(moduleName, candidates);
 	}
 
 }

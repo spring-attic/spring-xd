@@ -46,7 +46,12 @@ public interface XDParser {
 		/**
 		 * A job definition.
 		 */
-		job;
+		job,
+
+		/**
+		 * For the purpose of DSL completion only, a (maybe unfinished) stream definition.
+		 */
+		partial;
 
 	}
 }

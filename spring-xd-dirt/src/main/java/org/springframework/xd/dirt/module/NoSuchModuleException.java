@@ -16,6 +16,9 @@
 
 package org.springframework.xd.dirt.module;
 
+import java.util.Arrays;
+
+import org.springframework.util.Assert;
 import org.springframework.xd.module.ModuleType;
 
 /**
@@ -26,22 +29,42 @@ import org.springframework.xd.module.ModuleType;
 @SuppressWarnings("serial")
 public class NoSuchModuleException extends ResourceDefinitionException {
 
-	/**
-	 * Create a new exception.
-	 * 
-	 * @param name the module name that was referenced, but could not be found
-	 */
-	public NoSuchModuleException(String name) {
-		super("Could not find module with name '" + name + "'");
-	}
+	private final String name;
+
+	private final ModuleType[] candidateTypes;
 
 	/**
 	 * Create a new exception.
 	 * 
 	 * @param name the module name that was referenced, but could not be found
+	 * @param candidateTypes the type(s) of the module that was expected but could not be found
 	 */
-	public NoSuchModuleException(String name, ModuleType type) {
-		super(String.format("Could not find module with name '%s' and type '%s'", name, type));
+	public NoSuchModuleException(String name, ModuleType... candidateTypes) {
+		super(""); // will be overriden by getMessage()
+		Assert.hasText(name);
+		Assert.notEmpty(candidateTypes);
+		this.name = name;
+		this.candidateTypes = candidateTypes;
 	}
 
+	@Override
+	public String getMessage() {
+		if (candidateTypes.length == 1) {
+			return String.format("Could not find module with name '%s' and type '%s'", name,
+					candidateTypes[0]);
+		}
+		else {
+			return String.format("Could not find module with name '%s' and type among %s", name,
+					Arrays.asList(candidateTypes));
+		}
+	}
+
+	public String getName() {
+		return name;
+	}
+
+
+	public ModuleType[] getCandidateTypes() {
+		return candidateTypes;
+	}
 }

@@ -90,7 +90,10 @@ public class CompletionProvider {
 	}
 
 	/* package */static EntityType toEntityType(CompletionKind kind) {
-		return EntityType.valueOf(kind.name());
+		EntityType mirrored = EntityType.valueOf(kind.name());
+		// Special case for streams: because we're in the context
+		// of completion, those may not be in full
+		return mirrored == EntityType.stream ? EntityType.partial : mirrored;
 	}
 
 

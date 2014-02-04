@@ -49,18 +49,18 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	private final DeploymentMessageSender messageSender;
 
 	/**
-	 * Lower-case, singular name of the kind of definition we're deploying. Used in exception messages.
+	 * Used in exception messages as well as indication to the parser.
 	 */
-	protected final String definitionKind;
+	protected final ParsingContext definitionKind;
 
 	protected AbstractDeployer(PagingAndSortingRepository<D, String> repository, DeploymentMessageSender messageSender,
-			XDParser parser, String definitionKind) {
+			XDParser parser, ParsingContext parsingContext) {
 		Assert.notNull(repository, "Repository cannot be null");
 		Assert.notNull(messageSender, "Message sender cannot be null");
-		Assert.hasText(definitionKind, "Definition kind cannot be blank");
+		Assert.notNull(parsingContext, "Entity type kind cannot be null");
 		this.repository = repository;
 		this.messageSender = messageSender;
-		this.definitionKind = definitionKind;
+		this.definitionKind = parsingContext;
 		this.streamParser = parser;
 	}
 
@@ -71,7 +71,7 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 			throwDefinitionAlreadyExistsException(definition);
 		}
 		List<ModuleDeploymentRequest> moduleDeploymentRequests = streamParser.parse(definition.getName(),
-				definition.getDefinition());
+				definition.getDefinition(), definitionKind);
 		List<ModuleDefinition> moduleDefinitions = createModuleDefinitions(moduleDeploymentRequests);
 		if (!moduleDefinitions.isEmpty()) {
 			definition.setModuleDefinitions(moduleDefinitions);
@@ -166,7 +166,7 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	// TODO: The ModuleDefinition currently does not provide sourceChannelName and sinkChannelName required for
 	// deployment. This is only provided by the parser
 	protected List<ModuleDeploymentRequest> parse(String name, String definition) {
-		return this.streamParser.parse(name, definition);
+		return this.streamParser.parse(name, definition, definitionKind);
 	}
 
 	protected List<ModuleDeploymentRequest> buildUndeployRequests(D definition) {

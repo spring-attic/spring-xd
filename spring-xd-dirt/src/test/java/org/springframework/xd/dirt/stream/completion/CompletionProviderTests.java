@@ -22,6 +22,8 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertThat;
+import static org.springframework.xd.rest.client.domain.CompletionKind.job;
+import static org.springframework.xd.rest.client.domain.CompletionKind.module;
 import static org.springframework.xd.rest.client.domain.CompletionKind.stream;
 
 import java.util.ArrayList;
@@ -74,12 +76,12 @@ public class CompletionProviderTests {
 
 	@Test
 	// fi<TAB> => file
-	@Ignore("XD-1285")
-	// Requires cleanup of XDStreamParser.determineType()
-	public void testUnfinishedModuleNameShouldReturnCommletions() {
+	public void testUnfinishedModuleNameShouldReturnCompletions() {
 		List<String> completions = completionProvider.complete(stream, "fi");
-
 		assertThat(new HashSet<>(completions), hasItem(startsWith("file")));
+
+		completions = completionProvider.complete(stream, "file | tr");
+		assertThat(new HashSet<>(completions), hasItem(startsWith("file | transform")));
 	}
 
 	@Test
@@ -226,6 +228,39 @@ public class CompletionProviderTests {
 		List<String> completions = completionProvider.complete(stream,
 				"hdfs --codec=FOOBAR");
 		assertThat(completions, hasSize(0));
+	}
+
+	@Test
+	public void testJobCompletions() {
+		List<String> completions = completionProvider.complete(job, "");
+		assertThat(completions, hasItem(startsWith("hdfs")));
+		assertThat(completions, not(hasItem(startsWith("gemfire-cq"))));
+
+		completions = completionProvider.complete(job, "hdf");
+		assertThat(completions, hasItem(startsWith("hdfs")));
+
+	}
+
+	@Test
+	public void testComposedModuleCompletions() {
+		List<String> completions = completionProvider.complete(module, "");
+		assertThat(completions, hasItem(startsWith("http")));
+		assertThat(completions, hasItem(startsWith("transform")));
+		assertThat(completions, not(hasItem(startsWith("splunk"))));
+
+		completions = completionProvider.complete(module, "t");
+		assertThat(completions, hasItem(startsWith("tcp")));
+		assertThat(completions, hasItem(startsWith("transform")));
+
+		completions = completionProvider.complete(module, "tcp | t");
+		assertThat(completions, hasItem(startsWith("tcp | transform")));
+		// TODO
+		// assertThat(completions, not(hasItem(startsWith("tcp | tcp"))));
+
+		completions = completionProvider.complete(module, "transform | t");
+		assertThat(completions, hasItem(startsWith("transform | transform")));
+		// TODO
+		// assertThat(completions, not(hasItem(startsWith("transform | tcp"))));
 	}
 
 	private List<String> namesOfModulesWithType(ModuleType type) {

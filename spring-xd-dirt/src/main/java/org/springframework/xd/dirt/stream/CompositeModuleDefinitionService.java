@@ -16,6 +16,8 @@
 
 package org.springframework.xd.dirt.stream;
 
+import static org.springframework.xd.dirt.stream.ParsingContext.module;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -56,7 +58,7 @@ public class CompositeModuleDefinitionService {
 	}
 
 	public ModuleDefinition save(String name, String definition) {
-		List<ModuleDeploymentRequest> modules = this.streamParser.parse(name, definition);
+		List<ModuleDeploymentRequest> modules = this.streamParser.parse(name, definition, module);
 
 		ModuleType type = this.determineType(modules);
 		if (moduleDefinitionRepository.findByNameAndType(name, type) != null) {

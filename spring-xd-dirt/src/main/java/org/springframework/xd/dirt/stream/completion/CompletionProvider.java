@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.dirt.stream.ParsingContext;
 import org.springframework.xd.dirt.stream.XDParser;
 import org.springframework.xd.rest.client.domain.CompletionKind;
 
@@ -68,12 +69,12 @@ public class CompletionProvider {
 		String name = "__dummy";
 		List<ModuleDeploymentRequest> parsed = null;
 		try {
-			parsed = parser.parse(name, start);
+			parsed = parser.parse(name, start, toParsingContext(kind));
 		}
 		catch (Throwable recoverable) {
 			for (CompletionRecoveryStrategy<Throwable> strategy : recoveries) {
 				if (strategy.shouldTrigger(recoverable, kind)) {
-					strategy.addProposals(recoverable, kind, results);
+					strategy.addProposals(start, recoverable, kind, results);
 				}
 			}
 
@@ -86,8 +87,19 @@ public class CompletionProvider {
 			}
 		}
 		return results;
+	}
 
-
+	/* package */static ParsingContext toParsingContext(CompletionKind kind) {
+		switch (kind) {
+			case stream:
+				return ParsingContext.partial_stream;
+			case module:
+				return ParsingContext.partial_module;
+			case job:
+				return ParsingContext.job;
+			default:
+				throw new IllegalArgumentException("Unknown kind: " + kind);
+		}
 	}
 
 

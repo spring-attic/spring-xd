@@ -38,7 +38,7 @@ public abstract class AbstractInstancePersistingDeployer<D extends BaseDefinitio
 
 	protected AbstractInstancePersistingDeployer(PagingAndSortingRepository<D, String> definitionRespository,
 			DomainRepository<I, String> instanceRepository, DeploymentMessageSender messageSender, XDParser parser,
-			String definitionKind) {
+			ParsingContext definitionKind) {
 		super(definitionRespository, messageSender, parser, definitionKind);
 		this.instanceRepository = instanceRepository;
 	}

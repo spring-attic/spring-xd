@@ -37,6 +37,6 @@ public interface CompletionRecoveryStrategy<E extends Throwable> {
 	/**
 	 * Perform code completion by adding proposals to the {@code proposals} list.
 	 */
-	void addProposals(E exception, CompletionKind kind, List<String> proposals);
+	void addProposals(String dsl, E exception, CompletionKind kind, List<String> proposals);
 
 }

@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.stream.completion;
 
+import static org.springframework.xd.dirt.stream.completion.CompletionProvider.toParsingContext;
 import static org.springframework.xd.dirt.stream.dsl.TokenKind.IDENTIFIER;
 
 import java.util.HashSet;
@@ -59,14 +60,15 @@ public class UnfinishedOptionNameRecoveryStrategy extends
 	}
 
 	@Override
-	public void addProposals(CheckpointedStreamDefinitionException exception, CompletionKind kind, List<String> proposals) {
+	public void addProposals(String dsl, CheckpointedStreamDefinitionException exception, CompletionKind kind,
+			List<String> proposals) {
 		String safe = exception.getExpressionStringUntilCheckpoint();
 		List<Token> tokens = exception.getTokens();
 		Token lastToken = tokens.get(tokens.size() - 1);
 		Assert.isTrue(lastToken.isKind(IDENTIFIER));
 
 		String optionNamePrefix = lastToken.stringValue();
-		List<ModuleDeploymentRequest> parsed = parser.parse("dummy", safe);
+		List<ModuleDeploymentRequest> parsed = parser.parse("__dummy", safe, toParsingContext(kind));
 
 		// List is in reverse order
 		ModuleDeploymentRequest lastModule = parsed.get(0);

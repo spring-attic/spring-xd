@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.stream;
 
+import static org.springframework.xd.dirt.stream.XDParser.EntityType.module;
 import static org.springframework.xd.module.ModuleType.job;
 import static org.springframework.xd.module.ModuleType.sink;
 import static org.springframework.xd.module.ModuleType.source;
@@ -74,7 +75,7 @@ public class XDStreamParser implements XDParser {
 	}
 
 	@Override
-	public List<ModuleDeploymentRequest> parse(String name, String config) {
+	public List<ModuleDeploymentRequest> parse(String name, String config, EntityType type) {
 
 		StreamConfigParser parser = new StreamConfigParser(repository);
 		StreamNode stream = parser.parse(name, config);
@@ -205,7 +206,7 @@ public class XDStreamParser implements XDParser {
 	private ModuleDeploymentRequest convertToCompositeIfNecessary(ModuleDeploymentRequest request) {
 		ModuleDefinition def = moduleDefinitionRepository.findByNameAndType(request.getModule(), request.getType());
 		if (def != null && def.getDefinition() != null) {
-			List<ModuleDeploymentRequest> composedModuleRequests = parse(def.getName(), def.getDefinition());
+			List<ModuleDeploymentRequest> composedModuleRequests = parse(def.getName(), def.getDefinition(), module);
 			request = new CompositeModuleDeploymentRequest(request, composedModuleRequests);
 		}
 		return request;

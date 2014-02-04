@@ -19,6 +19,7 @@ package org.springframework.xd.dirt.stream;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.BaseDefinition;
+import org.springframework.xd.dirt.stream.XDParser.EntityType;
 import org.springframework.xd.store.DomainRepository;
 
 /**
@@ -38,7 +39,7 @@ public abstract class AbstractInstancePersistingDeployer<D extends BaseDefinitio
 
 	protected AbstractInstancePersistingDeployer(PagingAndSortingRepository<D, String> definitionRespository,
 			DomainRepository<I, String> instanceRepository, DeploymentMessageSender messageSender, XDParser parser,
-			String definitionKind) {
+			EntityType definitionKind) {
 		super(definitionRespository, messageSender, parser, definitionKind);
 		this.instanceRepository = instanceRepository;
 	}

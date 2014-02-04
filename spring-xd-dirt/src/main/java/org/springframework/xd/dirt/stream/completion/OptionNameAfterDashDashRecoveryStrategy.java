@@ -16,6 +16,8 @@
 
 package org.springframework.xd.dirt.stream.completion;
 
+import static org.springframework.xd.dirt.stream.completion.CompletionProvider.toEntityType;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -56,9 +58,10 @@ public class OptionNameAfterDashDashRecoveryStrategy extends
 	}
 
 	@Override
-	public void addProposals(CheckpointedStreamDefinitionException exception, CompletionKind kind, List<String> proposals) {
+	public void addProposals(CheckpointedStreamDefinitionException exception, CompletionKind kind,
+			List<String> proposals) {
 		String safe = exception.getExpressionStringUntilCheckpoint();
-		List<ModuleDeploymentRequest> parsed = parser.parse("__dummy", safe);
+		List<ModuleDeploymentRequest> parsed = parser.parse("__dummy", safe, toEntityType(kind));
 
 		// List is in reverse order
 		ModuleDeploymentRequest lastModule = parsed.get(0);

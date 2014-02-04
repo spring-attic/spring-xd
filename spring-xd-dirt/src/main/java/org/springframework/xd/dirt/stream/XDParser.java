@@ -25,6 +25,28 @@ import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
  */
 public interface XDParser {
 
-	List<ModuleDeploymentRequest> parse(String name, String config);
+	List<ModuleDeploymentRequest> parse(String name, String config, EntityType type);
 
+	/**
+	 * The type of entity whose definition is being parsed.
+	 * 
+	 * @author Eric Bottard
+	 */
+	public static enum EntityType {
+		/**
+		 * A full stream definition, which ought to start with a source (or channel) and end with a sink (or channel).
+		 */
+		stream,
+
+		/**
+		 * A composed module, which starts or ends on a processor.
+		 */
+		module,
+
+		/**
+		 * A job definition.
+		 */
+		job;
+
+	}
 }

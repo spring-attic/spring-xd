@@ -16,6 +16,8 @@
 
 package org.springframework.xd.dirt.stream.completion;
 
+import static org.springframework.xd.dirt.stream.XDParser.EntityType.stream;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -58,7 +60,9 @@ public abstract class StacktraceFingerprintingCompletionRecoveryStrategy<E exten
 		this.parser = parser;
 		for (String sample : samples) {
 			try {
-				parser.parse("__dummy", sample);
+				// we're only interested in the exception, which is currently
+				// not influenced by the kind of parse. Use stream for now
+				parser.parse("__dummy", sample, stream);
 			}
 			catch (Throwable exception) {
 				computeFingerprint(parser, exception);

@@ -21,6 +21,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.springframework.xd.dirt.stream.XDParser.EntityType.stream;
 
 import java.io.File;
 import java.io.IOException;
@@ -195,7 +196,7 @@ public class StreamConfigParserTests {
 		XDStreamParser parser = new XDStreamParser(testRepository, moduleDefinitionRepository(),
 				new DefaultModuleOptionsMetadataResolver());
 		try {
-			parser.parse("t", config);
+			parser.parse("t", config, stream);
 			fail(config + " is invalid. Should throw exception");
 		}
 		catch (Exception e) {

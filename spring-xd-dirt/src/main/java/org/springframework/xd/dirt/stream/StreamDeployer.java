@@ -16,6 +16,8 @@
 
 package org.springframework.xd.dirt.stream;
 
+import static org.springframework.xd.dirt.stream.XDParser.EntityType.stream;
+
 
 /**
  * Default implementation of {@link StreamDeployer} that emits deployment request messages on a bus and relies on
@@ -31,7 +33,7 @@ public class StreamDeployer extends AbstractInstancePersistingDeployer<StreamDef
 
 	public StreamDeployer(StreamDefinitionRepository repository, DeploymentMessageSender messageSender,
 			StreamRepository streamRepository, XDParser parser) {
-		super(repository, streamRepository, messageSender, parser, "stream");
+		super(repository, streamRepository, messageSender, parser, stream);
 	}
 
 	@Override

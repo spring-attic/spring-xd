@@ -1147,7 +1147,6 @@ project('modules.job.jdbchdfs') {
 project('spring-xd-ui') {
 
 	description = 'Spring XD UI'
-	apply plugin: 'base'
 	apply plugin: 'grunt'
 
 	node {
@@ -1171,14 +1170,12 @@ project('spring-xd-ui') {
 		delete 'bower_components'
 	}
 
-	task afterEclipseImport(dependsOn: 'build') {
-		description = "Ensure that the UI Build runs after import into STS"
-	}
+	//task afterEclipseImport(dependsOn: 'setupUI') {
+	//	description = "Ensure that the UI Build runs after import into STS"
+	//}
 
-	afterEvaluate{
-		tasks['grunt_build'].dependsOn(['npmInstall', 'installGrunt']);
-		tasks['grunt_teste2e'].dependsOn(['npmInstall', 'installGrunt']);
-	}
+	tasks['grunt_build'].dependsOn(['npmInstall', 'installGrunt']);
+	tasks['grunt_teste2e'].dependsOn(['npmInstall', 'installGrunt']);
 
 	task test(dependsOn: ['grunt_teste2e', ':spring-xd-dirt:backgroundAdminServer']) {
 
@@ -1193,7 +1190,7 @@ project('spring-xd-ui') {
 		}
 	}
 
-	task build(dependsOn: ['grunt_build', 'test']) {
+	task setupUI(dependsOn: ['grunt_build', 'test']) {
 		description = "Build the Admin UI using Grunt"
 	}
 
@@ -1201,7 +1198,9 @@ project('spring-xd-ui') {
 	grunt_teste2e.shouldRunAfter 'installGrunt'
 	installGrunt.shouldRunAfter 'npmInstall'
 
-	tasks['clean'].dependsOn(['cleanDist', 'cleanNodeModules', 'cleanBowerFiles'])
+	task cleanUI(dependsOn: ['cleanDist', 'cleanNodeModules', 'cleanBowerFiles']) {
+		description = "Clean the Admin UI dist, node modules and bower files"
+	}
 
 }
 

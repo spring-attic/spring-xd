@@ -18,8 +18,13 @@
 		</batch:step>
 		<batch:listeners>
 			<batch:listener ref="xdJobExecutionListener"/>
+			<batch:listener ref="fileDeletionListener" />
 		</batch:listeners>
 	</batch:job>
+
+	<bean id="fileDeletionListener" class="org.springframework.xd.dirt.plugins.job.support.listener.FileDeletionJobExecutionListener">
+		<property name="deleteFiles" value="${deleteFiles:false}"/>
+	</bean>
 
 	<bean id="itemReader" class="org.springframework.batch.item.file.FlatFileItemReader" scope="step">
 		<property name="resource" value="file:///#{jobParameters['absoluteFilePath']}" />

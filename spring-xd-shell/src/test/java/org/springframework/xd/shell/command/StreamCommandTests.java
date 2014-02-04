@@ -26,6 +26,7 @@ import java.io.IOException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.shell.core.CommandResult;
@@ -154,11 +155,13 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	}
 
 	@Test
+	@Ignore("Disabling parameterized and 'substreams' for now")
 	public void testDefiningSubstream() {
 		stream().createDontDeploy(generateStreamName(), "transform --expression=payload.replace('Andy','zzz')");
 	}
 
 	@Test
+	@Ignore("Disabling parameterized and 'substreams' for now")
 	public void testUsingSubstream() {
 		HttpSource httpSource = newHttpSource();
 		String streamName = generateStreamName();
@@ -168,6 +171,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	}
 
 	@Test
+	@Ignore("Disabling parameterized and 'substreams' for now")
 	public void testUsingCompositionWithParameterizationAndDefaultValue() throws IOException {
 		FileSink sink = newFileSink().binary(true);
 		HttpSource httpSource = newHttpSource();
@@ -181,6 +185,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	}
 
 	@Test
+	@Ignore("Disabling parameterized and 'substreams' for now")
 	public void testParameterizedStreamComposition() throws IOException {
 		HttpSource httpSource = newHttpSource();
 		FileSink sink = newFileSink().binary(true);
@@ -205,6 +210,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	}
 
 	@Test
+	@Ignore("Disabling parameterized and 'substreams' for now")
 	public void testFilteringSource() throws IOException {
 		FileSink sink = newFileSink().binary(true);
 		HttpSource httpSource = newHttpSource();
@@ -223,6 +229,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 
 
 	@Test
+	@Ignore("Disabling parameterized and 'substreams' for now")
 	public void testParameterizedComposedSource() throws IOException {
 		FileSink sink = newFileSink().binary(true);
 		HttpSource httpSource = newHttpSource();
@@ -256,6 +263,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 
 
 	@Test
+	@Ignore("Disabling parameterized and 'substreams' for now")
 	public void testNestedStreamComposition() throws IOException {
 		HttpSource source = newHttpSource();
 		FileSink sink = newFileSink().binary(true);

@@ -32,6 +32,7 @@ public class ResourcesIntoJdbcJobModuleOptionsMetadata extends
 
 	private String resources;
 
+	private Boolean deleteFiles;
 
 	public ResourcesIntoJdbcJobModuleOptionsMetadata() {
 		configProperties = "batch-jdbc";
@@ -52,6 +53,11 @@ public class ResourcesIntoJdbcJobModuleOptionsMetadata extends
 		this.resources = resources;
 	}
 
+	@ModuleOption("whether to delete files after import")
+	public void setDeleteFiles(Boolean deleteFiles) {
+		this.deleteFiles = deleteFiles;
+	}
+
 	public Boolean getRestartable() {
 		return restartable;
 	}
@@ -64,4 +70,7 @@ public class ResourcesIntoJdbcJobModuleOptionsMetadata extends
 		return resources;
 	}
 
+	public Boolean getDeleteFiles() {
+		return deleteFiles;
+	}
 }

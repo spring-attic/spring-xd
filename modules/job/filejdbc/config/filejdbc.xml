@@ -20,8 +20,14 @@
 		</batch:step>
 		<batch:listeners>
 			<batch:listener ref="xdJobExecutionListener"/>
+			<batch:listener ref="fileDeletionListener" />
 		</batch:listeners>
 	</batch:job>
+
+	<bean id="fileDeletionListener" class="org.springframework.xd.dirt.plugins.job.support.listener.FileDeletionJobExecutionListener">
+		<property name="resources" value="${resources}"/>
+		<property name="deleteFiles" value="${deleteFiles:false}"/>
+	</bean>
 
 	<bean id="multiResourceReader" class="org.springframework.batch.item.file.MultiResourceItemReader" scope="step">
 		<property name="resources" value="${resources}"/>

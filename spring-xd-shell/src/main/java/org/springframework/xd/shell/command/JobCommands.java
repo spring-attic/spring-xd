@@ -94,7 +94,7 @@ public class JobCommands implements CommandMarker {
 	@CliCommand(value = CREATE_JOB, help = "Create a job")
 	public String createJob(
 			@CliOption(mandatory = true, key = { "name", "" }, help = "the name to give to the job") String name,
-			@CliOption(mandatory = true, key = "definition", help = "job definition using xd dsl ") String dsl,
+			@CliOption(mandatory = true, key = "definition", optionContext = "completion-job disable-string-converter", help = "job definition using xd dsl ") String dsl,
 			@CliOption(key = "deploy", help = "whether to deploy the job immediately", unspecifiedDefaultValue = "true") boolean deploy
 			) {
 		jobOperations().createJob(name, dsl, deploy);

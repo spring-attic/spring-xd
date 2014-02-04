@@ -23,12 +23,13 @@ import org.springframework.shell.core.Completion;
 import org.springframework.shell.core.Converter;
 import org.springframework.shell.core.MethodTarget;
 import org.springframework.stereotype.Component;
+import org.springframework.xd.rest.client.CompletionOperations;
 import org.springframework.xd.rest.client.domain.CompletionKind;
 import org.springframework.xd.shell.XDShell;
 
 
 /**
- * A converter that provides code-completion wherever parts of stream definition may appear.
+ * A converter that provides DSL completion wherever parts of stream definitions may appear.
  * 
  * @author Eric Bottard
  */
@@ -62,7 +63,7 @@ public class CompletionConverter implements Converter<String> {
 
 		CompletionKind kind = determineKind(optionContext);
 		try {
-			List<String> candidates = xdShell.getSpringXDOperations().completionOperations().completions(kind,
+			List<String> candidates = completionOperations().completions(kind,
 					start);
 			for (String candidate : candidates) {
 				completions.add(new Completion(candidate));
@@ -73,6 +74,10 @@ public class CompletionConverter implements Converter<String> {
 		catch (Exception e) {
 			return false;
 		}
+	}
+
+	private CompletionOperations completionOperations() {
+		return xdShell.getSpringXDOperations().completionOperations();
 	}
 
 	private CompletionKind determineKind(String optionContext) {

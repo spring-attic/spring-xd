@@ -110,7 +110,7 @@ public class ModuleCommands implements CommandMarker {
 	@CliCommand(value = COMPOSE_MODULE, help = "Create a virtual module")
 	public String createModule(
 			@CliOption(mandatory = true, key = { "name", "" }, help = "the name to give to the module") String name,
-			@CliOption(mandatory = true, key = "definition", help = "module definition using xd dsl") String dsl) {
+			@CliOption(mandatory = true, key = "definition", optionContext = "completion-module disable-string-converter", help = "module definition using xd dsl") String dsl) {
 		ModuleDefinitionResource composedModule = moduleOperations().composeModule(name, dsl);
 		return String.format(("Successfully created module '%s' with type %s"), composedModule.getName(),
 				composedModule.getType());

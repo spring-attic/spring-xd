@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -110,6 +110,35 @@ public class BatchStepExecutionsController {
 			}
 		}
 
+		return result;
+	}
+
+	/**
+	 * Inspect the StepExecution with the provided Step Execution Id
+	 * 
+	 * @param jobExecutionId Id of the {@link JobExecution}, must not be null
+	 * @param stepExecutionId Id of the {@link StepExecution}, must not be null
+	 * @return {@link StepExecutionInfoResource} that has the details on the given {@link StepExecution}.
+	 * @throws NoSuchJobExecutionException Thrown if the respective {@link JobExecution} does not exist
+	 * @throws NoSuchStepExecutionException Thrown if the respective {@link StepExecution} does not exist
+	 */
+	@RequestMapping(value = "/{stepExecutionId}", method = RequestMethod.GET)
+	@ResponseStatus(HttpStatus.OK)
+	@ResponseBody
+	public StepExecutionInfoResource details(@PathVariable long jobExecutionId,
+			@PathVariable long stepExecutionId) {
+		StepExecutionInfoResource result;
+		try {
+			StepExecution stepExecution = jobService.getStepExecution(jobExecutionId, stepExecutionId);
+			result = this.stepExecutionInfoResourceAssembler.toResource(new StepExecutionInfo(stepExecution,
+					this.timeZone));
+		}
+		catch (org.springframework.batch.admin.service.NoSuchStepExecutionException e) {
+			throw new NoSuchStepExecutionException(stepExecutionId);
+		}
+		catch (org.springframework.batch.core.launch.NoSuchJobExecutionException e) {
+			throw new NoSuchJobExecutionException(jobExecutionId);
+		}
 		return result;
 	}
 

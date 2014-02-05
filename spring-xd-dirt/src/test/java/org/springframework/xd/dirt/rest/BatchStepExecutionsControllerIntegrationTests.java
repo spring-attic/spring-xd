@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,7 @@ import org.springframework.xd.dirt.plugins.job.BatchJobLocator;
  * Tests REST compliance of {@link BatchStepExecutionsController} endpoints.
  * 
  * @author Gunnar Hillert
+ * @since 1.0
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
@@ -125,6 +126,35 @@ public class BatchStepExecutionsControllerIntegrationTests extends AbstractContr
 				jsonPath("$[0].message",
 						Matchers.is("Could not find jobExecution with id 5555")));
 
+	}
+
+	@Test
+	public void testGetSingleBatchStepExecution() throws Exception {
+		mockMvc.perform(
+				get("/batch/executions/2/steps/1").accept(MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("stepExecution.id", Matchers.is(1)))
+				.andExpect(jsonPath("jobExecutionId", Matchers.is(2)))
+				.andExpect(jsonPath("stepExecution.jobParameters.empty", Matchers.is(false)))
+				.andExpect(jsonPath("stepExecution.jobParameters.parameters.param1.value", Matchers.is("test")))
+				.andExpect(jsonPath("stepExecution.jobParameters.parameters.param2.value", Matchers.is(123)))
+				.andExpect(jsonPath("stepExecution.stepName", Matchers.is("step1")));
+	}
+
+	@Test
+	public void testGetSingleBatchStepExecutionForNonExistingJobExecution() throws Exception {
+		mockMvc.perform(get("/batch/executions/{jobExecutionId}/steps/{stepExecutionId}", "5555", "1")).andExpect(
+				status().isNotFound()).andExpect(
+				jsonPath("$[0].message",
+						Matchers.is("Could not find jobExecution with id 5555")));
+	}
+
+	@Test
+	public void testGetSingleBatchStepExecutionThatDoesNotExist() throws Exception {
+		mockMvc.perform(get("/batch/executions/{jobExecutionId}/steps/{stepExecutionId}", "2", "5555")).andExpect(
+				status().isNotFound()).andExpect(
+				jsonPath("$[0].message",
+						Matchers.is("Could not find step execution with id 5555")));
 	}
 
 	@Test

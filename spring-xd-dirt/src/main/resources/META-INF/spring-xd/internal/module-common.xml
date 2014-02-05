@@ -8,8 +8,6 @@
 	<!-- Parent context for all modules. Before adding beans here, consider contributing them
 	by means of Plugin.preProcessSharedContext -->
 
-	<bean id="reactorEnv" class="reactor.core.Environment"/>
-
 	<int:spel-property-accessors>
 	    <bean id="tuplePropertyAccessor" class="org.springframework.xd.tuple.spel.TuplePropertyAccessor" />
 	    <bean id="jsonPropertyAccessor" class="org.springframework.integration.json.JsonPropertyAccessor" />

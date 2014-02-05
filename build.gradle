@@ -394,7 +394,6 @@ project('spring-xd-dirt') {
 
 		// ************* Container: Imposed by some Module (can't move)
 		compile "com.sun.mail:javax.mail:$javaxMailVersion"
-		runtime project(":spring-xd-extension-reactor")
 
 		// The following is needed eg by twitter module b/c jackson classes
 		// are loaded by RestTemplate and RestTemplate is in Dirt
@@ -1024,12 +1023,11 @@ project('modules.source.twittersearch') {
 	}
 }
 
-// Does not work b/c of shared Reactor stuff in module-common.xml
-//project('modules.source.reactor-syslog') {
-//	dependencies {
-//		runtime project(":spring-xd-extension-reactor")
-//	}
-//}
+project('modules.source.reactor-syslog') {
+	dependencies {
+		runtime project(":spring-xd-extension-reactor")
+	}
+}
 
 // ================ M O D U L E S : P R O C E S S O R S ================
 

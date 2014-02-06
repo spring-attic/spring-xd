@@ -13,7 +13,7 @@
 
 package org.springframework.xd.dirt.stream;
 
-import static org.springframework.xd.dirt.stream.XDParser.EntityType.job;
+import static org.springframework.xd.dirt.stream.ParsingContext.job;
 
 import java.util.List;
 

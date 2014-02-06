@@ -16,7 +16,7 @@
 
 package org.springframework.xd.dirt.stream.completion;
 
-import static org.springframework.xd.dirt.stream.completion.CompletionProvider.toEntityType;
+import static org.springframework.xd.dirt.stream.completion.CompletionProvider.toParsingContext;
 import static org.springframework.xd.dirt.stream.dsl.TokenKind.IDENTIFIER;
 
 import java.util.HashSet;
@@ -68,7 +68,7 @@ public class UnfinishedOptionNameRecoveryStrategy extends
 		Assert.isTrue(lastToken.isKind(IDENTIFIER));
 
 		String optionNamePrefix = lastToken.stringValue();
-		List<ModuleDeploymentRequest> parsed = parser.parse("__dummy", safe, toEntityType(kind));
+		List<ModuleDeploymentRequest> parsed = parser.parse("__dummy", safe, toParsingContext(kind));
 
 		// List is in reverse order
 		ModuleDeploymentRequest lastModule = parsed.get(0);

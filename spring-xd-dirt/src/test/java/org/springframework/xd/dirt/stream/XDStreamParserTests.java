@@ -20,8 +20,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.springframework.xd.dirt.stream.XDParser.EntityType.job;
-import static org.springframework.xd.dirt.stream.XDParser.EntityType.stream;
+import static org.springframework.xd.dirt.stream.ParsingContext.job;
+import static org.springframework.xd.dirt.stream.ParsingContext.stream;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -16,13 +16,12 @@
 
 package org.springframework.xd.dirt.stream.completion;
 
-import static org.springframework.xd.dirt.stream.XDParser.EntityType.partial;
-
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.xd.dirt.stream.ParsingContext;
 import org.springframework.xd.dirt.stream.XDParser;
 import org.springframework.xd.rest.client.domain.CompletionKind;
 
@@ -64,7 +63,7 @@ public abstract class StacktraceFingerprintingCompletionRecoveryStrategy<E exten
 			try {
 				// we're only interested in the exception, which is currently
 				// not influenced by the kind of parse. Use stream for now
-				parser.parse("__dummy", sample, partial);
+				parser.parse("__dummy", sample, ParsingContext.partial_stream);
 			}
 			catch (Throwable exception) {
 				computeFingerprint(parser, exception);

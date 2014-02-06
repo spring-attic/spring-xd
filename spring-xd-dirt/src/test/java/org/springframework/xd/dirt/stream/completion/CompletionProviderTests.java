@@ -251,6 +251,16 @@ public class CompletionProviderTests {
 		completions = completionProvider.complete(module, "t");
 		assertThat(completions, hasItem(startsWith("tcp")));
 		assertThat(completions, hasItem(startsWith("transform")));
+
+		completions = completionProvider.complete(module, "tcp | t");
+		assertThat(completions, hasItem(startsWith("tcp | transform")));
+		// TODO
+		// assertThat(completions, not(hasItem(startsWith("tcp | tcp"))));
+
+		completions = completionProvider.complete(module, "transform | t");
+		assertThat(completions, hasItem(startsWith("transform | transform")));
+		// TODO
+		// assertThat(completions, not(hasItem(startsWith("transform | tcp"))));
 	}
 
 	private List<String> namesOfModulesWithType(ModuleType type) {

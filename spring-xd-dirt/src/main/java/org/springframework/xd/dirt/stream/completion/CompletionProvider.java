@@ -23,8 +23,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.dirt.stream.ParsingContext;
 import org.springframework.xd.dirt.stream.XDParser;
-import org.springframework.xd.dirt.stream.XDParser.EntityType;
 import org.springframework.xd.rest.client.domain.CompletionKind;
 
 /**
@@ -69,7 +69,7 @@ public class CompletionProvider {
 		String name = "__dummy";
 		List<ModuleDeploymentRequest> parsed = null;
 		try {
-			parsed = parser.parse(name, start, toEntityType(kind));
+			parsed = parser.parse(name, start, toParsingContext(kind));
 		}
 		catch (Throwable recoverable) {
 			for (CompletionRecoveryStrategy<Throwable> strategy : recoveries) {
@@ -89,11 +89,17 @@ public class CompletionProvider {
 		return results;
 	}
 
-	/* package */static EntityType toEntityType(CompletionKind kind) {
-		EntityType mirrored = EntityType.valueOf(kind.name());
-		// Special case for streams: because we're in the context
-		// of completion, those may not be in full
-		return mirrored == EntityType.stream ? EntityType.partial : mirrored;
+	/* package */static ParsingContext toParsingContext(CompletionKind kind) {
+		switch (kind) {
+			case stream:
+				return ParsingContext.partial_stream;
+			case module:
+				return ParsingContext.partial_module;
+			case job:
+				return ParsingContext.job;
+			default:
+				throw new IllegalArgumentException("Unknown kind: " + kind);
+		}
 	}
 
 

@@ -17,12 +17,6 @@
 package org.springframework.xd.dirt.stream;
 
 
-import static org.springframework.xd.dirt.stream.XDParser.EntityType.module;
-import static org.springframework.xd.module.ModuleType.job;
-import static org.springframework.xd.module.ModuleType.processor;
-import static org.springframework.xd.module.ModuleType.sink;
-import static org.springframework.xd.module.ModuleType.source;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,6 +29,7 @@ import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.dirt.module.NoSuchModuleException;
 import org.springframework.xd.dirt.plugins.ModuleConfigurationException;
+import org.springframework.xd.dirt.stream.ParsingContext.Position;
 import org.springframework.xd.dirt.stream.dsl.ArgumentNode;
 import org.springframework.xd.dirt.stream.dsl.ModuleNode;
 import org.springframework.xd.dirt.stream.dsl.SinkChannelNode;
@@ -77,7 +72,7 @@ public class XDStreamParser implements XDParser {
 	}
 
 	@Override
-	public List<ModuleDeploymentRequest> parse(String name, String config, EntityType type) {
+	public List<ModuleDeploymentRequest> parse(String name, String config, ParsingContext type) {
 
 		StreamConfigParser parser = new StreamConfigParser(repository);
 		StreamNode stream = parser.parse(name, config);
@@ -132,55 +127,18 @@ public class XDStreamParser implements XDParser {
 		return result;
 	}
 
-	private ModuleType determineType(ModuleDeploymentRequest request, int lastIndex, EntityType entityType) {
-		ModuleType moduleType = maybeGuessTypeFromNamedChannels(request, lastIndex, entityType);
+	private ModuleType determineType(ModuleDeploymentRequest request, int lastIndex, ParsingContext parsingContext) {
+		ModuleType moduleType = maybeGuessTypeFromNamedChannels(request, lastIndex, parsingContext);
 		if (moduleType != null) {
 			return moduleType;
 		}
 		String name = request.getModule();
 		int index = request.getIndex();
-		if (entityType == EntityType.job) {
-			return verifyModuleOfTypeExists(name, job);
-		}
-		else if (entityType == EntityType.stream) {
-			// A stream, so we know for sure that it looks like
-			// source | processors* | sink (channels have already been checked)
-			if (index == 0) {
-				return verifyModuleOfTypeExists(name, source);
-			}
-			else if (index < lastIndex) {
-				return verifyModuleOfTypeExists(name, processor);
-			}
-			else {
-				return verifyModuleOfTypeExists(name, sink);
-			}
-		}
-		else if (entityType == EntityType.partial) {
-			// A stream, but in the context of DSL completion
-			// so it may not end with a sink yet
-			if (index == 0) {
-				return verifyModuleOfTypeExists(name, source);
-			}
-			else {
-				return verifyModuleOfTypeExists(name, processor, sink);
-			}
-		}
-		else if (entityType == EntityType.module) {
-			// Could be source | processor+ or processor+ | sink
-			// The following code favors the former arbitrarily
-			if (index == 0) {
-				return verifyModuleOfTypeExists(name, source, processor);
-			}
-			else if (index < lastIndex) {
-				return verifyModuleOfTypeExists(name, processor);
-			}
-			else {
-				return verifyModuleOfTypeExists(name, sink, processor);
-			}
-		}
-		else {
-			throw new AssertionError("Unknown definition type: " + entityType);
-		}
+
+		Position position = Position.of(index, lastIndex);
+		ModuleType[] allowedTypes = parsingContext.allowed(position);
+		return verifyModuleOfTypeExists(name, allowedTypes);
+
 
 	}
 
@@ -191,8 +149,9 @@ public class XDStreamParser implements XDParser {
 	 * @return a sure to be valid module type, or null if no named channels were present
 	 */
 	private ModuleType maybeGuessTypeFromNamedChannels(ModuleDeploymentRequest request, int lastIndex,
-			EntityType entityType) {
-		if (entityType == EntityType.job
+			ParsingContext parsingContext) {
+		// Should this fail for composed module too?
+		if (parsingContext == ParsingContext.job
 				&& (request.getSourceChannelName() != null || request.getSinkChannelName() != null)) {
 			throw new RuntimeException("TODO");
 		}
@@ -226,14 +185,15 @@ public class XDStreamParser implements XDParser {
 	private ModuleDeploymentRequest convertToCompositeIfNecessary(ModuleDeploymentRequest request) {
 		ModuleDefinition def = moduleDefinitionRepository.findByNameAndType(request.getModule(), request.getType());
 		if (def != null && def.getDefinition() != null) {
-			List<ModuleDeploymentRequest> composedModuleRequests = parse(def.getName(), def.getDefinition(), module);
+			List<ModuleDeploymentRequest> composedModuleRequests = parse(def.getName(), def.getDefinition(),
+					ParsingContext.module);
 			request = new CompositeModuleDeploymentRequest(request, composedModuleRequests);
 		}
 		return request;
 	}
 
 	/**
-	 * Asserts that there exists a module with the given type (trying each one in order) and name and returns that type,
+	 * Asserts that there exists a module with the given name and type (trying each one in order) and returns that type,
 	 * fails otherwise.
 	 */
 	private ModuleType verifyModuleOfTypeExists(String moduleName, ModuleType... candidates) {

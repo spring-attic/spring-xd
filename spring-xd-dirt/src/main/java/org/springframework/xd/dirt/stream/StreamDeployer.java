@@ -16,7 +16,7 @@
 
 package org.springframework.xd.dirt.stream;
 
-import static org.springframework.xd.dirt.stream.XDParser.EntityType.stream;
+import static org.springframework.xd.dirt.stream.ParsingContext.stream;
 
 
 /**

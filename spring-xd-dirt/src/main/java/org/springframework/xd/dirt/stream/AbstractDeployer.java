@@ -28,7 +28,6 @@ import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.BaseDefinition;
 import org.springframework.xd.dirt.core.ResourceDeployer;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
-import org.springframework.xd.dirt.stream.XDParser.EntityType;
 import org.springframework.xd.module.ModuleDefinition;
 
 /**
@@ -52,16 +51,16 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	/**
 	 * Used in exception messages as well as indication to the parser.
 	 */
-	protected final EntityType definitionKind;
+	protected final ParsingContext definitionKind;
 
 	protected AbstractDeployer(PagingAndSortingRepository<D, String> repository, DeploymentMessageSender messageSender,
-			XDParser parser, EntityType entityType) {
+			XDParser parser, ParsingContext parsingContext) {
 		Assert.notNull(repository, "Repository cannot be null");
 		Assert.notNull(messageSender, "Message sender cannot be null");
-		Assert.notNull(entityType, "Entity type kind cannot be null");
+		Assert.notNull(parsingContext, "Entity type kind cannot be null");
 		this.repository = repository;
 		this.messageSender = messageSender;
-		this.definitionKind = entityType;
+		this.definitionKind = parsingContext;
 		this.streamParser = parser;
 	}
 

@@ -21,7 +21,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.springframework.xd.dirt.stream.XDParser.EntityType.stream;
+import static org.springframework.xd.dirt.stream.ParsingContext.stream;
 
 import java.io.File;
 import java.io.IOException;

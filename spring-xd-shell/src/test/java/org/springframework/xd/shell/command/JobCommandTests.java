@@ -19,6 +19,7 @@ package org.springframework.xd.shell.command;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -34,6 +35,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
+
 import org.springframework.batch.core.JobParameter;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.xd.shell.util.Table;
@@ -494,6 +496,30 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		assertEquals(stepExecutionId, id);
 		assertNotNull(percentageComplete);
 		assertNotNull(duration);
+	}
+
+	@Test
+	public void testDisplayStepExecution() {
+		final String jobName = generateJobName();
+		executeJobCreate(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR);
+		checkForJobInList(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
+		executeJobLaunch(jobName);
+		final Table jobExecutions = listJobExecutions();
+		final String jobExecutionId = jobExecutions.getRows().get(0).getValue(1);
+
+		final Table stepExecutions = listStepExecutions(jobExecutionId);
+		String stepExecutionId = stepExecutions.getRows().get(0).getValue(1);
+
+		final Table stepExecution = getDisplayStepExecution(jobExecutionId, stepExecutionId);
+		final String stepExecutionIdFromTable = stepExecution.getRows().get(0).getValue(2);
+		final String jobExecutionIdFromTable = stepExecution.getRows().get(1).getValue(2);
+		final String stepNameFromTable = stepExecution.getRows().get(3).getValue(2);
+		final String duration = stepExecution.getRows().get(6).getValue(2);
+
+		assertEquals(stepExecutionId, stepExecutionIdFromTable);
+		assertEquals(jobExecutionId, jobExecutionIdFromTable);
+		assertNotEquals(stepNameFromTable, "N/A");
+		assertTrue(duration.contains("ms"));
 	}
 
 }

@@ -21,6 +21,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.text.DateFormat;
@@ -38,10 +39,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
-
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.integration.launch.JobLaunchRequest;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -51,8 +52,11 @@ import org.springframework.xd.tuple.TupleBuilder;
 
 /**
  * @author Gunnar Hillert
+ * @author Ilayaperumal Gopinathan
  */
 public class JobLaunchRequestTransformerTests {
+
+	JobRegistry mockedJobRegistry;
 
 	Job mockedJob;
 
@@ -62,9 +66,11 @@ public class JobLaunchRequestTransformerTests {
 	public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
 	@Before
-	public void setup() {
+	public void setup() throws Exception {
 		mockedJob = Mockito.mock(Job.class);
-		transformer = new JobLaunchRequestTransformer(mockedJob);
+		mockedJobRegistry = Mockito.mock(JobRegistry.class);
+		when(mockedJobRegistry.getJob("testJob")).thenReturn(mockedJob);
+		transformer = new JobLaunchRequestTransformer(mockedJobRegistry, "testJob");
 	}
 
 	@Test

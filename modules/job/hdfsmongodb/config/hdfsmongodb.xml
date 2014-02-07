@@ -13,7 +13,7 @@
 
 	<context:property-placeholder location="${xd.config.home}/${configProperties:batch-mongo}.properties" ignore-resource-not-found="true"/>
 
-	<batch:job id="job" restartable="${restartable:false}">
+	<batch:job id="hdfsmongodb" restartable="${restartable:false}">
 		<batch:step id="readResourcesStep">
 			<batch:tasklet>
 				<batch:chunk reader="multifileReader" writer="itemWriter" commit-interval="100"/>

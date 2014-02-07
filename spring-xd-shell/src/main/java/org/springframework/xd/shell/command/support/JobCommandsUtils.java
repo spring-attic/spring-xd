@@ -62,16 +62,9 @@ public final class JobCommandsUtils {
 		String writeSkipCount = CommonUtils.NOT_AVAILABLE;
 		String exitDescription = CommonUtils.NOT_AVAILABLE;
 		String batchStatus = CommonUtils.NOT_AVAILABLE;
-		String jobName = CommonUtils.NOT_AVAILABLE;
 
 		if (stepExecutionInfoResource.getJobExecutionId() != null) {
 			jobExecutionIdFromData = String.valueOf(stepExecutionInfoResource.getJobExecutionId());
-		}
-
-		if (stepExecutionInfoResource.getStepExecution() != null &&
-				stepExecutionInfoResource.getStepExecution().getJobExecution() != null
-				&& stepExecutionInfoResource.getStepExecution().getJobExecution().getJobConfigurationName() != null) {
-			jobName = String.valueOf(stepExecutionInfoResource.getStepExecution().getJobExecution().getJobConfigurationName());
 		}
 
 		if (stepExecutionInfoResource.getStepExecution() != null) {
@@ -123,7 +116,6 @@ public final class JobCommandsUtils {
 		stepExecutionTable
 				.addRow("Step Execution Id", stepId)
 				.addRow("Job Execution Id", jobExecutionIdFromData)
-				.addRow("Job Name", jobName)
 				.addRow("Step Name", stepName)
 				.addRow("Start Time", startTimeAsString)
 				.addRow("End Time", endTimeAsString)

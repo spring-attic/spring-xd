@@ -62,50 +62,47 @@ public class JobCommandsUtilsTests {
 		assertEquals("Job Execution Id", table.getRows().get(1).getValue(1));
 		assertEquals("444", table.getRows().get(1).getValue(2));
 
-		assertEquals("Job Name", table.getRows().get(2).getValue(1));
-		assertEquals("hello", table.getRows().get(2).getValue(2));
+		assertEquals("Step Name", table.getRows().get(2).getValue(1));
+		assertEquals("coolStep", table.getRows().get(2).getValue(2));
 
-		assertEquals("Step Name", table.getRows().get(3).getValue(1));
-		assertEquals("coolStep", table.getRows().get(3).getValue(2));
+		assertEquals("Start Time", table.getRows().get(3).getValue(1));
+		assertEquals("2014-05-01 19:00:00,000", table.getRows().get(3).getValue(2));
 
-		assertEquals("Start Time", table.getRows().get(4).getValue(1));
-		assertEquals("2014-05-01 19:00:00,000", table.getRows().get(4).getValue(2));
+		assertEquals("End Time", table.getRows().get(4).getValue(1));
+		assertEquals("2014-05-01 19:01:00,000", table.getRows().get(4).getValue(2));
 
-		assertEquals("End Time", table.getRows().get(5).getValue(1));
-		assertEquals("2014-05-01 19:01:00,000", table.getRows().get(5).getValue(2));
+		assertEquals("Duration", table.getRows().get(5).getValue(1));
+		assertEquals("60000 ms", table.getRows().get(5).getValue(2));
 
-		assertEquals("Duration", table.getRows().get(6).getValue(1));
-		assertEquals("60000 ms", table.getRows().get(6).getValue(2));
+		assertEquals("Status", table.getRows().get(6).getValue(1));
+		assertEquals("COMPLETED", table.getRows().get(6).getValue(2));
 
-		assertEquals("Status", table.getRows().get(7).getValue(1));
-		assertEquals("COMPLETED", table.getRows().get(7).getValue(2));
+		assertEquals("Last Updated", table.getRows().get(7).getValue(1));
+		assertEquals("2014-05-05 05:00:00,000", table.getRows().get(7).getValue(2));
 
-		assertEquals("Last Updated", table.getRows().get(8).getValue(1));
-		assertEquals("2014-05-05 05:00:00,000", table.getRows().get(8).getValue(2));
-
-		assertEquals("Read Count", table.getRows().get(9).getValue(1));
+		assertEquals("Read Count", table.getRows().get(8).getValue(1));
+		assertEquals("0", table.getRows().get(8).getValue(2));
+		assertEquals("Write Count", table.getRows().get(9).getValue(1));
 		assertEquals("0", table.getRows().get(9).getValue(2));
-		assertEquals("Write Count", table.getRows().get(10).getValue(1));
+		assertEquals("Filter Count", table.getRows().get(10).getValue(1));
 		assertEquals("0", table.getRows().get(10).getValue(2));
-		assertEquals("Filter Count", table.getRows().get(11).getValue(1));
+		assertEquals("Read Skip Count", table.getRows().get(11).getValue(1));
 		assertEquals("0", table.getRows().get(11).getValue(2));
-		assertEquals("Read Skip Count", table.getRows().get(12).getValue(1));
+		assertEquals("Write Skip Count", table.getRows().get(12).getValue(1));
 		assertEquals("0", table.getRows().get(12).getValue(2));
-		assertEquals("Write Skip Count", table.getRows().get(13).getValue(1));
+		assertEquals("Process Skip Count", table.getRows().get(13).getValue(1));
 		assertEquals("0", table.getRows().get(13).getValue(2));
-		assertEquals("Process Skip Count", table.getRows().get(14).getValue(1));
+		assertEquals("Commit Count", table.getRows().get(14).getValue(1));
 		assertEquals("0", table.getRows().get(14).getValue(2));
-		assertEquals("Commit Count", table.getRows().get(15).getValue(1));
+
+		assertEquals("Rollback Count", table.getRows().get(15).getValue(1));
 		assertEquals("0", table.getRows().get(15).getValue(2));
 
-		assertEquals("Rollback Count", table.getRows().get(16).getValue(1));
-		assertEquals("0", table.getRows().get(16).getValue(2));
+		assertEquals("Exit Status", table.getRows().get(16).getValue(1));
+		assertEquals("COMPLETED", table.getRows().get(16).getValue(2));
 
-		assertEquals("Exit Status", table.getRows().get(17).getValue(1));
-		assertEquals("COMPLETED", table.getRows().get(17).getValue(2));
-
-		assertEquals("Exit Description", table.getRows().get(18).getValue(1));
-		assertEquals("We are done.", table.getRows().get(18).getValue(2));
+		assertEquals("Exit Description", table.getRows().get(17).getValue(1));
+		assertEquals("We are done.", table.getRows().get(17).getValue(2));
 	}
 
 	@Test
@@ -121,50 +118,47 @@ public class JobCommandsUtilsTests {
 		assertEquals("Job Execution Id", table.getRows().get(1).getValue(1));
 		assertEquals("N/A", table.getRows().get(1).getValue(2));
 
-		assertEquals("Job Name", table.getRows().get(2).getValue(1));
+		assertEquals("Step Name", table.getRows().get(2).getValue(1));
 		assertEquals("N/A", table.getRows().get(2).getValue(2));
 
-		assertEquals("Step Name", table.getRows().get(3).getValue(1));
+		assertEquals("Start Time", table.getRows().get(3).getValue(1));
 		assertEquals("N/A", table.getRows().get(3).getValue(2));
 
-		assertEquals("Start Time", table.getRows().get(4).getValue(1));
+		assertEquals("End Time", table.getRows().get(4).getValue(1));
 		assertEquals("N/A", table.getRows().get(4).getValue(2));
 
-		assertEquals("End Time", table.getRows().get(5).getValue(1));
+		assertEquals("Duration", table.getRows().get(5).getValue(1));
 		assertEquals("N/A", table.getRows().get(5).getValue(2));
 
-		assertEquals("Duration", table.getRows().get(6).getValue(1));
+		assertEquals("Status", table.getRows().get(6).getValue(1));
 		assertEquals("N/A", table.getRows().get(6).getValue(2));
 
-		assertEquals("Status", table.getRows().get(7).getValue(1));
+		assertEquals("Last Updated", table.getRows().get(7).getValue(1));
 		assertEquals("N/A", table.getRows().get(7).getValue(2));
 
-		assertEquals("Last Updated", table.getRows().get(8).getValue(1));
+		assertEquals("Read Count", table.getRows().get(8).getValue(1));
 		assertEquals("N/A", table.getRows().get(8).getValue(2));
-
-		assertEquals("Read Count", table.getRows().get(9).getValue(1));
+		assertEquals("Write Count", table.getRows().get(9).getValue(1));
 		assertEquals("N/A", table.getRows().get(9).getValue(2));
-		assertEquals("Write Count", table.getRows().get(10).getValue(1));
+		assertEquals("Filter Count", table.getRows().get(10).getValue(1));
 		assertEquals("N/A", table.getRows().get(10).getValue(2));
-		assertEquals("Filter Count", table.getRows().get(11).getValue(1));
+		assertEquals("Read Skip Count", table.getRows().get(11).getValue(1));
 		assertEquals("N/A", table.getRows().get(11).getValue(2));
-		assertEquals("Read Skip Count", table.getRows().get(12).getValue(1));
+		assertEquals("Write Skip Count", table.getRows().get(12).getValue(1));
 		assertEquals("N/A", table.getRows().get(12).getValue(2));
-		assertEquals("Write Skip Count", table.getRows().get(13).getValue(1));
+		assertEquals("Process Skip Count", table.getRows().get(13).getValue(1));
 		assertEquals("N/A", table.getRows().get(13).getValue(2));
-		assertEquals("Process Skip Count", table.getRows().get(14).getValue(1));
+		assertEquals("Commit Count", table.getRows().get(14).getValue(1));
 		assertEquals("N/A", table.getRows().get(14).getValue(2));
-		assertEquals("Commit Count", table.getRows().get(15).getValue(1));
+
+		assertEquals("Rollback Count", table.getRows().get(15).getValue(1));
 		assertEquals("N/A", table.getRows().get(15).getValue(2));
 
-		assertEquals("Rollback Count", table.getRows().get(16).getValue(1));
+		assertEquals("Exit Status", table.getRows().get(16).getValue(1));
 		assertEquals("N/A", table.getRows().get(16).getValue(2));
 
-		assertEquals("Exit Status", table.getRows().get(17).getValue(1));
+		assertEquals("Exit Description", table.getRows().get(17).getValue(1));
 		assertEquals("N/A", table.getRows().get(17).getValue(2));
-
-		assertEquals("Exit Description", table.getRows().get(18).getValue(1));
-		assertEquals("N/A", table.getRows().get(18).getValue(2));
 	}
 
 	@Test
@@ -186,7 +180,7 @@ public class JobCommandsUtilsTests {
 
 		final Table table = JobCommandsUtils.prepareStepExecutionTable(stepExecutionInfoResource);
 
-		assertEquals("Exit Description", table.getRows().get(18).getValue(1));
-		assertEquals("N/A", table.getRows().get(18).getValue(2));
+		assertEquals("Exit Description", table.getRows().get(17).getValue(1));
+		assertEquals("N/A", table.getRows().get(17).getValue(2));
 	}
 }

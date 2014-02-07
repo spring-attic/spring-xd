@@ -506,15 +506,15 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		executeJobLaunch(jobName);
 		final Table jobExecutions = listJobExecutions();
 		final String jobExecutionId = jobExecutions.getRows().get(0).getValue(1);
-
 		final Table stepExecutions = listStepExecutions(jobExecutionId);
 		String stepExecutionId = stepExecutions.getRows().get(0).getValue(1);
 
 		final Table stepExecution = getDisplayStepExecution(jobExecutionId, stepExecutionId);
 		final String stepExecutionIdFromTable = stepExecution.getRows().get(0).getValue(2);
 		final String jobExecutionIdFromTable = stepExecution.getRows().get(1).getValue(2);
-		final String stepNameFromTable = stepExecution.getRows().get(3).getValue(2);
-		final String duration = stepExecution.getRows().get(6).getValue(2);
+
+		final String stepNameFromTable = stepExecution.getRows().get(2).getValue(2);
+		final String duration = stepExecution.getRows().get(5).getValue(2);
 
 		assertEquals(stepExecutionId, stepExecutionIdFromTable);
 		assertEquals(jobExecutionId, jobExecutionIdFromTable);

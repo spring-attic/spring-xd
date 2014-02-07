@@ -169,4 +169,13 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 				StepExecutionProgressInfoResource.class, jobExecutionId, stepExecutionId);
 		return progressInfoResource;
 	}
+
+	@Override
+	public StepExecutionInfoResource displayStepExecution(long jobExecutionId, long stepExecutionId) {
+		String uriTemplate = resources.get("batch/executions").toString()
+				+ "/{jobExecutionId}/steps/{stepExecutionId}";
+		final StepExecutionInfoResource stepExecutionInfoResource = restTemplate.getForObject(uriTemplate,
+				StepExecutionInfoResource.class, jobExecutionId, stepExecutionId);
+		return stepExecutionInfoResource;
+	}
 }

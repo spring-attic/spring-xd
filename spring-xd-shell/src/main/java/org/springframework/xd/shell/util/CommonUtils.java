@@ -39,6 +39,8 @@ public final class CommonUtils {
 
 	private static final String EMAIL_VALIDATION_REGEX = "^[_A-Za-z0-9-+]+(\\.[_A-Za-z0-9-+]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$";
 
+	public static final String NOT_AVAILABLE = "N/A";
+
 	/**
 	 * Prevent instantiation.
 	 */

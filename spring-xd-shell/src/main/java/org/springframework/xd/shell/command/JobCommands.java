@@ -33,6 +33,7 @@ import org.springframework.xd.rest.client.domain.JobExecutionInfoResource;
 import org.springframework.xd.rest.client.domain.StepExecutionInfoResource;
 import org.springframework.xd.rest.client.domain.StepExecutionProgressInfoResource;
 import org.springframework.xd.shell.XDShell;
+import org.springframework.xd.shell.command.support.JobCommandsUtils;
 import org.springframework.xd.shell.util.CommonUtils;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableHeader;
@@ -59,6 +60,8 @@ public class JobCommands implements CommandMarker {
 	private final static String LIST_STEP_EXECUTIONS = "job execution step list";
 
 	private final static String PROGRESS_STEP_EXECUTION = "job execution step progress";
+
+	private final static String DISPLAY_STEP_EXECUTION = "job execution step display";
 
 	private final static String DISPLAY_JOB_EXECUTION = "job execution display";
 
@@ -203,6 +206,19 @@ public class JobCommands implements CommandMarker {
 				.addValue(4, String.format("%.0f ms", progressInfoResource.getDuration()));
 		table.getRows().add(tableRow);
 		return table;
+	}
+
+	@CliCommand(value = DISPLAY_STEP_EXECUTION, help = "Display the details of a Step Execution")
+	public Table displayStepExecution(
+			@CliOption(mandatory = true, key = { "", "id" }, help = "the id of the step execution") long stepExecutionId,
+			@CliOption(mandatory = true, key = { "jobExecutionId" }, help = "the job execution id") long jobExecutionId) {
+		final StepExecutionInfoResource stepExecutionInfoResource = jobOperations().displayStepExecution(
+				jobExecutionId,
+				stepExecutionId);
+
+		final Table stepExecutionTable = JobCommandsUtils.prepareStepExecutionTable(stepExecutionInfoResource);
+
+		return stepExecutionTable;
 	}
 
 	@CliCommand(value = DISPLAY_JOB_EXECUTION, help = "Display the details of a Job Execution")

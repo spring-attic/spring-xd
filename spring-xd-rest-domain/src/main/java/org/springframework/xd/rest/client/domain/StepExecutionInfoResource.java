@@ -54,6 +54,11 @@ public class StepExecutionInfoResource extends ResourceSupport {
 		this.jobExecutionId = jobExecutionId;
 	}
 
+	public StepExecutionInfoResource() {
+		this.stepExecution = null;
+		this.jobExecutionId = null;
+	}
+
 	/**
 	 * @return The jobExecutionId, which will never be null
 	 */

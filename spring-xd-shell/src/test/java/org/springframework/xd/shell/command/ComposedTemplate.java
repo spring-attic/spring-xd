@@ -31,7 +31,7 @@ import org.springframework.xd.shell.command.fixtures.Disposable;
 
 
 /**
- * Issues commands related to module composition and remembers created modules, so that they can be cleanedup.
+ * Issues commands related to module composition and remembers created modules, so that they can be cleaned up.
  * 
  * @author Eric Bottard
  */

@@ -154,18 +154,6 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	}
 
 
-	public void testComposedModules() throws IOException {
-		FileSink sink = newFileSink().binary(true);
-		HttpSource httpSource = newHttpSource();
-		String streamName = generateStreamName();
-		stream().createDontDeploy(streamName,
-				"filter --expression=true | transform --expression=payload.replace('abc','...')");
-		stream().create(generateStreamName(), "%s | %s | %s", httpSource, streamName, sink);
-		httpSource.postData("abcdefghi!");
-		assertThat(sink, eventually(hasContentsThat(equalTo("...defghi!"))));
-
-	}
-
 	@Test
 	public void testComposedStreamThatIsItselfDeployable() throws IOException {
 		FileSink sink = newFileSink();

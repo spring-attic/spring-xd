@@ -16,6 +16,7 @@
 
 package org.springframework.xd.shell.command;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -23,13 +24,20 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.springframework.xd.shell.command.fixtures.XDMatchers.eventually;
+import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasContentsThat;
+
+import java.io.IOException;
 
 import org.hamcrest.Description;
 import org.hamcrest.DiagnosingMatcher;
 import org.hamcrest.Matcher;
 import org.junit.Test;
+
 import org.springframework.shell.core.CommandResult;
 import org.springframework.xd.module.ModuleType;
+import org.springframework.xd.shell.command.fixtures.FileSink;
+import org.springframework.xd.shell.command.fixtures.HttpSource;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableRow;
 import org.springframework.xd.shell.util.UiUtils;
@@ -48,12 +56,23 @@ public class ModuleCommandTests extends AbstractStreamIntegrationTest {
 	public void testModuleCompose() {
 		compose().newModule("compositesource", "time | splitter");
 
-
 		Table t = listAll();
 
 		assertThat(t.getRows(), hasItem(rowWithValue(1, "(c) compositesource")));
+	}
+
+	@Test
+	public void testComposedModules() throws IOException {
+		FileSink sink = newFileSink().binary(true);
+		HttpSource httpSource = newHttpSource();
+		compose().newModule("filterAndTransform",
+				"filter --expression=true | transform --expression=payload.replace('abc','...')");
+		stream().create(generateStreamName(), "%s | filterAndTransform | %s", httpSource, sink);
+		httpSource.postData("abcdefghi!");
+		assertThat(sink, eventually(hasContentsThat(equalTo("...defghi!"))));
 
 	}
+
 
 	private Matcher<TableRow> rowWithValue(final int col, final String value) {
 		return new DiagnosingMatcher<TableRow>() {

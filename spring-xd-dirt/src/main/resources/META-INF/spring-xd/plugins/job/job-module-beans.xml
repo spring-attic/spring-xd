@@ -13,18 +13,13 @@
 		<property name="jobLocator" ref="batchJobLocator"/>
 	</bean>
 
-	<bean id="jobFactoryBean" class="org.springframework.xd.dirt.plugins.job.JobFactoryBean">
-		<property name="jobName"   value="${xd.stream.name}"/>
-		<property name="jobSuffix" value="#{T(org.springframework.xd.dirt.plugins.job.JobPlugin).JOB_BEAN_ID}"/>
-		<property name="registry"  ref="jobRegistry"/>
-	</bean>
-
 	<int:channel id="input" />
 
 	<int:transformer id="jobLaunchRequestTransformer"
 		input-channel="input" output-channel="jobLaunchingChannel" >
 		<bean class="org.springframework.xd.dirt.plugins.job.JobLaunchRequestTransformer">
-			<constructor-arg name="job" ref="jobFactoryBean"/>
+			<constructor-arg name="jobRegistry" ref="jobRegistry"/>
+			<constructor-arg name="jobName" value="${xd.stream.name}"/>
 			<property name="dateFormatAsString" value="${dateFormat}"/>
 			<property name="numberFormatAsString" value="${numberFormat}"/>
 			<property name="makeParametersUnique" value="${makeUnique}"/>

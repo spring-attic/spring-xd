@@ -80,8 +80,8 @@ public class BatchJobsControllerIntegrationTests extends AbstractControllerInteg
 
 	@Before
 	public void before() throws Exception {
-		SimpleJob job1 = new SimpleJob("job1.job");
-		SimpleJob job2 = new SimpleJob("job2.job");
+		SimpleJob job1 = new SimpleJob("job1");
+		SimpleJob job2 = new SimpleJob("job2");
 		Collection<String> jobNames = new ArrayList<String>();
 		jobNames.add(job1.getName());
 		jobNames.add(job2.getName());

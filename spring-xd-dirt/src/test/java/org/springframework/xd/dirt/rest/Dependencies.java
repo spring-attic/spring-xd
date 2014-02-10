@@ -25,6 +25,7 @@ import org.springframework.batch.admin.service.JobService;
 import org.springframework.batch.admin.service.SearchableJobExecutionDao;
 import org.springframework.batch.admin.service.SearchableJobInstanceDao;
 import org.springframework.batch.admin.service.SearchableStepExecutionDao;
+import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.support.SimpleJobLauncher;
 import org.springframework.batch.core.repository.JobRepository;
@@ -214,6 +215,11 @@ public class Dependencies {
 	@Bean
 	public BatchJobLocator batchJobLocator() {
 		return mock(BatchJobLocator.class);
+	}
+
+	@Bean
+	public JobRegistry jobRegistry() {
+		return mock(JobRegistry.class);
 	}
 
 	@Bean

@@ -54,8 +54,6 @@ public class JobPlugin extends AbstractPlugin {
 
 	private static final String REGISTRAR = CONTEXT_CONFIG_ROOT + "job-module-beans.xml";
 
-	public static final String JOB_BEAN_ID = "job";
-
 	public static final String JOB_NAME_DELIMITER = ".";
 
 	public static final String JOB_PARAMETERS_KEY = "jobParameters";

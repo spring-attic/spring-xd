@@ -26,10 +26,11 @@ import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.converter.DefaultJobParametersConverter;
+import org.springframework.batch.core.launch.NoSuchJobException;
 import org.springframework.batch.integration.launch.JobLaunchRequest;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.messaging.Message;
@@ -41,6 +42,7 @@ import org.springframework.xd.tuple.Tuple;
  * once we have the concept of triggers built in.
  * 
  * @author Gunnar Hillert
+ * @author Ilayaperumal Gopinathan
  * @since 1.0
  * 
  */
@@ -48,16 +50,19 @@ public class JobLaunchRequestTransformer {
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
-	private final Job job;
+	private final JobRegistry jobRegistry;
+
+	private final String jobName;
 
 	private volatile ExpandedJobParametersConverter jobParametersConverter = new ExpandedJobParametersConverter();
 
 	/**
-	 * @param job Must not be null
+	 * @param jobName Must not be null
 	 */
-	public JobLaunchRequestTransformer(Job job) {
-		Assert.notNull(job, "The provided job must not be null.");
-		this.job = job;
+	public JobLaunchRequestTransformer(JobRegistry jobRegistry, String jobName) {
+		Assert.notNull(jobName, "Job name must not be null.");
+		this.jobRegistry = jobRegistry;
+		this.jobName = jobName;
 	}
 
 	/**
@@ -100,7 +105,12 @@ public class JobLaunchRequestTransformer {
 
 	@Transformer
 	public JobLaunchRequest toJobLaunchRequest(Message<?> message) {
-
+		Job job;
+		try {
+		job = jobRegistry.getJob(jobName);
+		} catch (NoSuchJobException e) {
+			throw new IllegalArgumentException("The job "+ jobName + " doesn't exist. Is it deployed?");
+		}
 		final Object payload = message.getPayload();
 		final JobParameters jobParameters;
 

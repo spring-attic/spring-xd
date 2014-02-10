@@ -9,7 +9,7 @@
 
 	<context:property-placeholder location="${xd.config.home}/${configProperties:batch-jdbc}.properties" ignore-resource-not-found="true"/>
 
-	<batch:job id="job" restartable="${restartable:false}">
+	<batch:job id="filejdbc" restartable="${restartable:false}">
 		<batch:step id="readResourcesStep">
 			<batch:tasklet>
 				<batch:chunk reader="multiResourceReader" writer="itemWriter" commit-interval="100"/>

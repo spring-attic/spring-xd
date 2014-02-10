@@ -45,7 +45,6 @@ public class ModuleObjectNamingStrategy implements ObjectNamingStrategy {
 
 	@Override
 	public ObjectName getObjectName(Object managedBean, String beanKey) throws MalformedObjectNameException {
-		System.out.println("objectName:" + beanKey);
 		ObjectName originalName = ObjectNameManager.getInstance(beanKey);
 		StringBuilder sb = new StringBuilder();
 		sb.append(domain).append(":");
@@ -53,7 +52,6 @@ public class ModuleObjectNamingStrategy implements ObjectNamingStrategy {
 				objectNameProperties.getProperty("index")).append(",");
 		sb.append("component=").append(originalName.getKeyProperty("type")).append(",");
 		sb.append("name=").append(originalName.getKeyProperty("name"));
-		System.out.println(sb.toString());
 		return ObjectNameManager.getInstance(sb.toString());
 	}
 }

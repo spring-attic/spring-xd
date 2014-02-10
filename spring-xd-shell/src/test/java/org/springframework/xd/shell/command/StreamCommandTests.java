@@ -153,44 +153,6 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 
 	}
 
-	@Test
-	public void testDefiningSubstream() {
-		stream().createDontDeploy(generateStreamName(), "transform --expression=payload.replace('Andy','zzz')");
-	}
-
-	@Test
-	public void testUsingSubstream() {
-		HttpSource httpSource = newHttpSource();
-		String streamName = generateStreamName();
-		stream().createDontDeploy(streamName, "transform --expression=payload.replace('Andy','zzz')");
-		stream().create(generateStreamName(), "%s | %s | log", httpSource, streamName);
-		httpSource.ensureReady().postData("fooAndyfoo");
-	}
-
-	@Test
-	public void testUsingCompositionWithParameterizationAndDefaultValue() throws IOException {
-		FileSink sink = newFileSink().binary(true);
-		HttpSource httpSource = newHttpSource();
-		String streamName = generateStreamName();
-		stream().createDontDeploy(streamName, "transform --expression=payload.replace('${text:rys}','.')");
-		stream().create(generateStreamName(), "%s | %s | %s", httpSource, streamName, sink);
-
-		httpSource.ensureReady().postData("Dracarys!");
-		assertThat(sink, eventually(hasContentsThat(equalTo("Draca.!"))));
-
-	}
-
-	@Test
-	public void testParameterizedStreamComposition() throws IOException {
-		HttpSource httpSource = newHttpSource();
-		FileSink sink = newFileSink().binary(true);
-		String streamName = generateStreamName();
-		stream().createDontDeploy(streamName, "transform --expression=payload.replace('${text}','.')");
-		stream().create(generateStreamName(), "%s | %s --text=aca | %s", httpSource, streamName, sink);
-		httpSource.ensureReady().postData("Dracarys!");
-		assertThat(sink, eventually(hasContentsThat(equalTo("Dr.rys!"))));
-
-	}
 
 	public void testComposedModules() throws IOException {
 		FileSink sink = newFileSink().binary(true);
@@ -201,40 +163,6 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 		stream().create(generateStreamName(), "%s | %s | %s", httpSource, streamName, sink);
 		httpSource.postData("abcdefghi!");
 		assertThat(sink, eventually(hasContentsThat(equalTo("...defghi!"))));
-
-	}
-
-	@Test
-	public void testFilteringSource() throws IOException {
-		FileSink sink = newFileSink().binary(true);
-		HttpSource httpSource = newHttpSource();
-		String streamName = generateStreamName();
-		stream().createDontDeploy(streamName,
-				"%s | filter --expression=payload.contains('e')", httpSource);
-		stream().create(generateStreamName(), "%s | transform --expression=payload.replace('e','.') | %s", streamName,
-				sink);
-		httpSource.postData("foobar");
-		httpSource.postData("hello");
-		httpSource.postData("custardpie");
-		httpSource.postData("whisk");
-		assertThat(sink, eventually(hasContentsThat(equalTo("h.llocustardpi."))));
-
-	}
-
-
-	@Test
-	public void testParameterizedComposedSource() throws IOException {
-		FileSink sink = newFileSink().binary(true);
-		HttpSource httpSource = newHttpSource();
-		String streamName = generateStreamName();
-		stream().createDontDeploy(streamName,
-				"%s | filter --expression=payload.contains('${word}')", httpSource);
-		stream().create(generateStreamName(), "%s --word=foo | %s", streamName, sink);
-		httpSource.postData("foobar");
-		httpSource.postData("hello");
-		httpSource.postData("custardfoo");
-		httpSource.postData("whisk");
-		assertThat(sink, eventually(hasContentsThat(equalTo("foobarcustardfoo"))));
 
 	}
 
@@ -254,22 +182,6 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 
 	}
 
-
-	@Test
-	public void testNestedStreamComposition() throws IOException {
-		HttpSource source = newHttpSource();
-		FileSink sink = newFileSink().binary(true);
-		String streamName1 = generateStreamName();
-		String streamName2 = generateStreamName();
-		String streamName3 = generateStreamName();
-		stream().createDontDeploy(streamName1, "transform --expression=payload.replaceAll('${from}','${to}')");
-		stream().createDontDeploy(streamName2, "%s --from=a --to=z | %s --from=b --to=y", streamName1, streamName1);
-		stream().create(streamName3, "%s | %s | filter --expression=true | %s", source, streamName2, sink);
-		stream().create(generateStreamName(), "%s.filter > log", getTapName(streamName3)); // will log zzyyccxxyyzz
-		source.postData("aabbccxxyyzz");
-		assertThat(sink, eventually(hasContentsThat(equalTo("zzyyccxxyyzz"))));
-
-	}
 
 	@Test
 	public void testTappingModulesVariations() throws IOException {

@@ -33,14 +33,14 @@ import org.springframework.util.Assert;
  * 
  * @author Eric Bottard
  */
-public class NettyHttpInputMessageAdatper implements HttpInputMessage {
+public class NettyHttpInputMessage implements HttpInputMessage {
 
 	private final HttpRequest httpRequest;
 
 	/**
 	 * @param request
 	 */
-	public NettyHttpInputMessageAdatper(HttpRequest request) {
+	public NettyHttpInputMessage(HttpRequest request) {
 		Assert.notNull(request, "request cannot be null");
 		httpRequest = request;
 	}

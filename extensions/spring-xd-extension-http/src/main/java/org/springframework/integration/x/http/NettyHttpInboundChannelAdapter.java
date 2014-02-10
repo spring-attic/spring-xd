@@ -59,6 +59,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.Assert;
 
 
@@ -86,6 +87,22 @@ public class NettyHttpInboundChannelAdapter<T> extends MessageProducerSupport {
 	 * Default max total size of queued events for the whole pool for the default {@link Executor} (in bytes).
 	 */
 	private static final long DEFAULT_MAX_TOTAL_MEMORY_SIZE = 1048576;
+
+	/**
+	 * Mapping from http header name to Spring integration header name. Special value "_REMOVE_" means skip header.
+	 */
+	private static final Map<String, String> HEADER_MAPPINGS = new HashMap<String, String>();
+
+	static {
+		// Keys are compared in upper case
+		HEADER_MAPPINGS.put("CONTENT-TYPE", MessageHeaders.CONTENT_TYPE);
+		HEADER_MAPPINGS.put("ACCEPT", "_REMOVE_");
+		HEADER_MAPPINGS.put("ACCEPT-CHARSET", "_REMOVE_");
+		HEADER_MAPPINGS.put("ACCEPT-ENCODING", "_REMOVE_");
+		HEADER_MAPPINGS.put("ACCEPT-LANGUAGE", "_REMOVE_");
+		HEADER_MAPPINGS.put("ACCEPT-DATETIME", "_REMOVE_");
+		HEADER_MAPPINGS.put("CONNECTION", "_REMOVE_");
+	}
 
 	private final int port;
 
@@ -163,15 +180,16 @@ public class NettyHttpInboundChannelAdapter<T> extends MessageProducerSupport {
 			if (content.readable()) {
 				Map<String, String> messageHeaders = new HashMap<String, String>();
 				for (Entry<String, String> entry : request.getHeaders()) {
-					if (!entry.getKey().toUpperCase().startsWith("ACCEPT")
-							&& !entry.getKey().toUpperCase().equals("CONNECTION")) {
-						messageHeaders.put(entry.getKey(), entry.getValue());
+					String newName = HEADER_MAPPINGS.get(entry.getKey().toUpperCase());
+					if (newName == "_REMOVE_") {
+						continue;
 					}
+					messageHeaders.put(newName, entry.getValue());
 				}
 				messageHeaders.put("requestPath", request.getUri());
 				messageHeaders.put("requestMethod", request.getMethod().toString());
 				try {
-					NettyHttpInputMessageAdatper inputMessage = new NettyHttpInputMessageAdatper(request);
+					NettyHttpInputMessage inputMessage = new NettyHttpInputMessage(request);
 					Class<?> type = maybeInferType(inputMessage);
 					Object payload = httpMessageConverters.read(type, inputMessage);
 					sendMessage(MessageBuilder.withPayload(payload).copyHeaders(messageHeaders).build());

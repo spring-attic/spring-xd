@@ -42,6 +42,7 @@ import org.springframework.integration.x.bus.serializer.kryo.TupleCodec;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.xd.dirt.config.TestMessageBusInjection;
+import org.springframework.xd.dirt.integration.support.SingleNodeIntegrationSupport;
 import org.springframework.xd.dirt.integration.support.sink.NamedChannelSink;
 import org.springframework.xd.dirt.integration.support.sink.SingleNodeNamedChannelSinkFactory;
 import org.springframework.xd.dirt.integration.support.source.NamedChannelSource;
@@ -85,6 +86,8 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 	private final String topicFoo = "topic:foo";
 
 	protected static SingleNodeApplication application;
+
+	protected static SingleNodeIntegrationSupport integrationSupport;
 
 	protected static AbstractTestMessageBus testMessageBus;
 
@@ -148,16 +151,16 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 				"topic:foo > queue:bar1");
 		StreamDefinition bar2Definition = new StreamDefinition("bar2Definition",
 				"topic:foo > queue:bar2");
-		assertEquals(0, application.streamRepository().count());
-		application.streamDeployer().save(bar1Definition);
-		application.deployStream(bar1Definition);
+		assertEquals(0, integrationSupport.streamRepository().count());
+		integrationSupport.streamDeployer().save(bar1Definition);
+		integrationSupport.deployStream(bar1Definition);
 
-		application.streamDeployer().save(bar2Definition);
-		application.deployStream(bar2Definition);
+		integrationSupport.streamDeployer().save(bar2Definition);
+		integrationSupport.deployStream(bar2Definition);
 		Thread.sleep(1000);
-		assertEquals(2, application.streamRepository().count());
+		assertEquals(2, integrationSupport.streamRepository().count());
 
-		MessageBus bus = application.messageBus();
+		MessageBus bus = integrationSupport.messageBus();
 
 		SingleNodeNamedChannelSinkFactory sinkFactory = new SingleNodeNamedChannelSinkFactory(bus);
 
@@ -180,7 +183,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 
 	protected final static void setUp(String transport) {
 		application = new SingleNodeApplication().run("--transport", transport);
-
+		integrationSupport = new SingleNodeIntegrationSupport(application);
 		if (testMessageBus != null) {
 			TestMessageBusInjection.injectMessageBus(application, testMessageBus);
 		}
@@ -204,9 +207,9 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 
 	@After
 	public void cleanUp() {
-		application.streamRepository().deleteAll();
-		application.streamDefinitionRepository().deleteAll();
-		application.streamDeployer().undeployAll();
+		integrationSupport.streamRepository().deleteAll();
+		integrationSupport.streamDefinitionRepository().deleteAll();
+		integrationSupport.streamDeployer().undeployAll();
 
 		Message<?> msg = tapChannel.receive(1000);
 		while (msg != null) {
@@ -224,19 +227,19 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 	@Test
 	public final void deployAndUndeploy() throws InterruptedException {
 
-		assertEquals(0, application.streamRepository().count());
+		assertEquals(0, integrationSupport.streamRepository().count());
 		final int ITERATIONS = 5;
 		int i = 0;
 		for (i = 0; i < ITERATIONS; i++) {
 			StreamDefinition definition = new StreamDefinition("test" + i,
 					"http | transform --expression=payload | filter --expression=true | log");
-			application.streamDeployer().save(definition);
-			assertTrue("stream not deployed", application.deployStream(definition));
-			assertEquals(1, application.streamRepository().count());
-			assertTrue(application.streamRepository().exists("test" + i));
-			assertTrue("stream not undeployed", application.undeployStream(definition));
-			assertEquals(0, application.streamRepository().count());
-			assertFalse(application.streamRepository().exists("test" + i));
+			integrationSupport.streamDeployer().save(definition);
+			assertTrue("stream not deployed", integrationSupport.deployStream(definition));
+			assertEquals(1, integrationSupport.streamRepository().count());
+			assertTrue(integrationSupport.streamRepository().exists("test" + i));
+			assertTrue("stream not undeployed", integrationSupport.undeployStream(definition));
+			assertEquals(0, integrationSupport.streamRepository().count());
+			assertFalse(integrationSupport.streamRepository().exists("test" + i));
 			// Deploys in reverse order
 			assertModuleRequest("log", false);
 			assertModuleRequest("filter", false);
@@ -266,12 +269,12 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 
 
 	private void tapTest(StreamDefinition streamDefinition, StreamDefinition tapDefinition) {
-		application.createAndDeployStream(streamDefinition);
-		application.createAndDeployStream(tapDefinition);
+		integrationSupport.createAndDeployStream(streamDefinition);
+		integrationSupport.createAndDeployStream(tapDefinition);
 
-		NamedChannelSource source = new SingleNodeNamedChannelSourceFactory(application.messageBus()).createNamedChannelSource("queue:source");
-		NamedChannelSink streamSink = new SingleNodeNamedChannelSinkFactory(application.messageBus()).createNamedChannelSink("queue:sink");
-		NamedChannelSink tapSink = new SingleNodeNamedChannelSinkFactory(application.messageBus()).createNamedChannelSink("queue:tap");
+		NamedChannelSource source = new SingleNodeNamedChannelSourceFactory(integrationSupport.messageBus()).createNamedChannelSource("queue:source");
+		NamedChannelSink streamSink = new SingleNodeNamedChannelSinkFactory(integrationSupport.messageBus()).createNamedChannelSink("queue:sink");
+		NamedChannelSink tapSink = new SingleNodeNamedChannelSinkFactory(integrationSupport.messageBus()).createNamedChannelSink("queue:tap");
 
 		// Wait for things to set up before sending
 		try {
@@ -309,19 +312,19 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 		source.unbind();
 		streamSink.unbind();
 		tapSink.unbind();
-		application.undeployAndDestroyStream(streamDefinition);
-		application.undeployAndDestroyStream(tapDefinition);
+		integrationSupport.undeployAndDestroyStream(streamDefinition);
+		integrationSupport.undeployAndDestroyStream(tapDefinition);
 	}
 
 	private void doTest(StreamDefinition routerDefinition) throws InterruptedException {
-		assertEquals(0, application.streamRepository().count());
-		application.streamDeployer().save(routerDefinition);
-		assertTrue("stream not deployed", application.deployStream(routerDefinition));
-		assertEquals(1, application.streamRepository().count());
+		assertEquals(0, integrationSupport.streamRepository().count());
+		integrationSupport.streamDeployer().save(routerDefinition);
+		assertTrue("stream not deployed", integrationSupport.deployStream(routerDefinition));
+		assertEquals(1, integrationSupport.streamRepository().count());
 		assertModuleRequest("router", false);
 
 
-		MessageBus bus = application.messageBus();
+		MessageBus bus = integrationSupport.messageBus();
 		assertNotNull(bus);
 
 		SingleNodeNamedChannelSinkFactory sinkFactory = new SingleNodeNamedChannelSinkFactory(bus);

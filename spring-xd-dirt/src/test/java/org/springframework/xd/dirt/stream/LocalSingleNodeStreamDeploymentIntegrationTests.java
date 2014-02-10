@@ -43,10 +43,10 @@ public class LocalSingleNodeStreamDeploymentIntegrationTests extends AbstractSin
 	public void verifyChannelsRegisteredOnDemand() throws InterruptedException {
 		final StreamDefinition routerDefinition = new StreamDefinition("routerDefinition",
 				"queue:x > router --expression=payload.contains('y')?'queue:y':'queue:z'");
-		application.streamDefinitionRepository().save(routerDefinition);
-		application.deployStream(routerDefinition);
+		integrationSupport.streamDefinitionRepository().save(routerDefinition);
+		integrationSupport.deployStream(routerDefinition);
 		Thread.sleep(1000);
-		final Module module = application.getModule("router", 0);
+		final Module module = integrationSupport.getModule("router", 0);
 		MessageBus bus = module.getComponent(MessageBus.class);
 
 		MessageChannel x = module.getComponent("queue:x", MessageChannel.class);

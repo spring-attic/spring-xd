@@ -31,7 +31,11 @@ import org.springframework.xd.dirt.util.BannerUtils;
  * @author Dave Syer
  * @author David Turanski
  */
-public class SingleNodeApplication extends SingleNodeIntegrationSupport {
+public class SingleNodeApplication {
+
+	private ConfigurableApplicationContext adminContext;
+
+	private ConfigurableApplicationContext containerContext;
 
 	@Value("${XD_CONTROL_TRANSPORT}")
 	ControlTransport controlTransport;
@@ -75,7 +79,6 @@ public class SingleNodeApplication extends SingleNodeIntegrationSupport {
 		if (singleNodeApp.controlTransport == ControlTransport.local) {
 			setUpControlChannels(adminContext, containerContext);
 		}
-		super.init();
 		return this;
 	}
 
@@ -93,6 +96,14 @@ public class SingleNodeApplication extends SingleNodeIntegrationSupport {
 		}
 	}
 
+	public ConfigurableApplicationContext adminContext() {
+		return adminContext;
+	}
+
+	public ConfigurableApplicationContext containerContext() {
+		return containerContext;
+	}
+
 	private void setUpControlChannels(ApplicationContext adminContext,
 			ApplicationContext containerContext) {
 
@@ -108,7 +119,6 @@ public class SingleNodeApplication extends SingleNodeIntegrationSupport {
 		handler.setComponentName("xd.local.control.bridge");
 		deployChannel.subscribe(handler);
 		undeployChannel.subscribe(handler);
-
 	}
 
 }

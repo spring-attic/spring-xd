@@ -19,7 +19,7 @@ import org.springframework.xd.dirt.server.SingleNodeApplication;
 
 /**
  * Creates a stream from a processing chain (a stream definition with a source but no sink) and binds a
- * {@link NamedChannelSink} to create a complete stream;
+ * {@link NamedChannelSink} to create a complete stream.
  * 
  * @author David Turanski
  * 

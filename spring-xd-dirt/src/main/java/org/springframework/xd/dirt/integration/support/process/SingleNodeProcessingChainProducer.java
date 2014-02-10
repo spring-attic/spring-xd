@@ -18,8 +18,8 @@ import org.springframework.xd.dirt.integration.support.source.NamedChannelSource
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 
 /**
- * /** Creates a stream from a processing chain (partial stream definition with no source and a sink) and binds a
- * {@link NamedChannelSource} to create a complete stream;
+ * Creates a stream from a processing chain (partial stream definition with no source and a sink) and binds a
+ * {@link NamedChannelSource} to create a complete stream.
  * 
  * @author David Turanski
  * 

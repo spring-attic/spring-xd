@@ -23,8 +23,8 @@ import org.springframework.util.Assert;
 
 
 /**
- * base class for SingleNodeNamedChannel resources used to bind a {@link MessageChannel} to a shared channel using a
- * {@link MessageBus}
+ * Base class for SingleNodeNamedChannel resources used to bind a {@link MessageChannel} to a shared channel using a
+ * {@link MessageBus}.
  * 
  * @author David Turanski
  * 
@@ -39,12 +39,6 @@ public abstract class AbstractSingleNodeNamedChannelModule<T extends MessageChan
 
 	protected final String sharedChannelName;
 
-	/**
-	 * 
-	 * @param messageBus
-	 * @param messageChannel
-	 * @param sharedChannelName
-	 */
 	protected AbstractSingleNodeNamedChannelModule(MessageBus messageBus, T messageChannel, String sharedChannelName) {
 		Assert.notNull(messageBus, "messageBus cannot be null");
 		Assert.notNull(messageChannel, "messageChannel cannot be null");

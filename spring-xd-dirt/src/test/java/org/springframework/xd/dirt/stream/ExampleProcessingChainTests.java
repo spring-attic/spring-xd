@@ -30,6 +30,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import org.springframework.integration.x.bus.MessageBus;
+import org.springframework.xd.dirt.integration.support.SingleNodeIntegrationSupport;
 import org.springframework.xd.dirt.integration.support.process.SingleNodeProcessingChain;
 import org.springframework.xd.dirt.integration.support.process.SingleNodeProcessingChainConsumer;
 import org.springframework.xd.dirt.integration.support.process.SingleNodeProcessingChainProducer;
@@ -50,10 +51,13 @@ public class ExampleProcessingChainTests {
 
 	private static SingleNodeApplication application;
 
+	private static SingleNodeIntegrationSupport integrationSupport;
+
 	@BeforeClass
 	public static void setUp() {
 		// Args not required. Just shown as an example.
 		application = new SingleNodeApplication().run("--transport", "local");
+		integrationSupport = new SingleNodeIntegrationSupport(application);
 	}
 
 	@Test
@@ -63,9 +67,9 @@ public class ExampleProcessingChainTests {
 		String streamName = "test";
 
 		StreamDefinition testStream = new StreamDefinition(streamName, streamDefinition);
-		application.createAndDeployStream(testStream);
+		integrationSupport.createAndDeployStream(testStream);
 
-		MessageBus messageBus = application.messageBus();
+		MessageBus messageBus = integrationSupport.messageBus();
 
 		NamedChannelSource source = new SingleNodeNamedChannelSourceFactory(messageBus).createNamedChannelSource("queue:producer");
 		NamedChannelSink sink = new SingleNodeNamedChannelSinkFactory(messageBus).createNamedChannelSink("queue:consumer");
@@ -82,7 +86,7 @@ public class ExampleProcessingChainTests {
 		sink.unbind();
 
 		assertTrue("stream " + testStream.getName() + "not undeployed",
-				application.undeployAndDestroyStream(testStream));
+				integrationSupport.undeployAndDestroyStream(testStream));
 	}
 
 	/**
@@ -132,8 +136,8 @@ public class ExampleProcessingChainTests {
 		SingleNodeProcessingChainProducer chain = chainProducer(application, "dateToDateTime", processingChainUnderTest);
 
 		StreamDefinition tap = new StreamDefinition("testtap", "tap:stream:dateToDateTime.0 > queue:tap");
-		application.createAndDeployStream(tap);
-		NamedChannelSink sink = new SingleNodeNamedChannelSinkFactory(application.messageBus()).createNamedChannelSink("queue:tap");
+		integrationSupport.createAndDeployStream(tap);
+		NamedChannelSink sink = new SingleNodeNamedChannelSinkFactory(integrationSupport.messageBus()).createNamedChannelSink("queue:tap");
 
 		chain.sendPayload(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
 
@@ -141,7 +145,7 @@ public class ExampleProcessingChainTests {
 		assertNotNull(payload);
 		assertTrue(payload instanceof DateTime);
 
-		application.undeployAndDestroyStream(tap);
+		integrationSupport.undeployAndDestroyStream(tap);
 		chain.destroy();
 	}
 

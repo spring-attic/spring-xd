@@ -21,12 +21,15 @@ import org.springframework.xd.dirt.integration.support.NamedChannelModule;
 
 
 /**
- * 
  * @author David Turanski
  */
 public interface NamedChannelSink extends NamedChannelModule {
+
 	public Message<?> receive();
+
 	public Message<?> receive(int timeout);
+
 	public Object receivePayload();
+
 	public Object receivePayload(int timeout);
 }

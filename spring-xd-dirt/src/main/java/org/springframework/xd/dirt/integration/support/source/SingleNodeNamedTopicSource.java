@@ -10,6 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.xd.dirt.integration.support.source;
 
 import org.springframework.integration.channel.PublishSubscribeChannel;
@@ -18,15 +19,10 @@ import org.springframework.integration.x.bus.MessageBus;
 
 /**
  * @author David Turanski
- *
+ * 
  */
 public class SingleNodeNamedTopicSource extends AbstractSingleNodeNamedChannelSource {
 
-	/**
-	 * @param messageBus
-	 * @param messageChannel
-	 * @param sharedChannelName
-	 */
 	public SingleNodeNamedTopicSource(MessageBus messageBus, String sharedChannelName) {
 		super(messageBus, new PublishSubscribeChannel(), sharedChannelName);
 	}

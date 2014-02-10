@@ -22,11 +22,6 @@ import org.springframework.integration.x.bus.MessageBus;
  */
 public class SingleNodeNamedQueueSink extends AbstractSingleNodeNamedChannelSink {
 
-	/**
-	 * 
-	 * @param messageBus
-	 * @param sharedChannelName
-	 */
 	public SingleNodeNamedQueueSink(MessageBus messageBus, String sharedChannelName) {
 		super(messageBus, sharedChannelName);
 	}

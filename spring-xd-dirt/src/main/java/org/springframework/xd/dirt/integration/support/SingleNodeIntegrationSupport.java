@@ -11,13 +11,15 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.springframework.xd.dirt.server;
+package org.springframework.xd.dirt.integration.support;
 
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.integration.x.bus.MessageBus;
+import org.springframework.util.Assert;
+import org.springframework.xd.dirt.server.DeployedModuleState;
+import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDeployer;
@@ -30,7 +32,7 @@ import org.springframework.xd.module.core.Module;
  * @author David Turanski
  * 
  */
-abstract class SingleNodeIntegrationSupport {
+public class SingleNodeIntegrationSupport {
 
 	private StreamDefinitionRepository streamDefinitionRepository;
 
@@ -40,24 +42,13 @@ abstract class SingleNodeIntegrationSupport {
 
 	private DeployedModuleState deployedModuleState;
 
-	protected ConfigurableApplicationContext adminContext;
-
-	protected ConfigurableApplicationContext containerContext;
-
-	protected void init() {
+	public SingleNodeIntegrationSupport(SingleNodeApplication application) {
+		Assert.notNull(application, "SingleNodeApplication must not be null");
 		deployedModuleState = new DeployedModuleState();
-		streamDefinitionRepository = containerContext().getBean(StreamDefinitionRepository.class);
-		streamRepository = containerContext().getBean(StreamRepository.class);
-		streamDeployer = adminContext().getBean(StreamDeployer.class);
-		containerContext().addApplicationListener(deployedModuleState);
-	}
-
-	public ConfigurableApplicationContext adminContext() {
-		return adminContext;
-	}
-
-	public ConfigurableApplicationContext containerContext() {
-		return containerContext;
+		streamDefinitionRepository = application.containerContext().getBean(StreamDefinitionRepository.class);
+		streamRepository = application.containerContext().getBean(StreamRepository.class);
+		streamDeployer = application.adminContext().getBean(StreamDeployer.class);
+		application.containerContext().addApplicationListener(deployedModuleState);
 	}
 
 	public final StreamDeployer streamDeployer() {

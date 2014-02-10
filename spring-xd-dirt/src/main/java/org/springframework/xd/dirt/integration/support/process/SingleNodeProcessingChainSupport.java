@@ -20,17 +20,16 @@ import org.springframework.xd.dirt.server.SingleNodeApplication;
 
 
 /**
- * A helper class to easily create {@link AbstractSingleNodeProcessingChain}s using static methods
+ * A helper class to easily create {@link AbstractSingleNodeProcessingChain}s using static methods.
  * 
  * @author David Turanski
  */
 public abstract class SingleNodeProcessingChainSupport {
 
 	/**
-	 * 
-	 * @param application - the {@link SingleNodeApplication} to use
-	 * @param streamName - the name of the stream to create
-	 * @param processingChain - the partial stream definition DSL (no source or sink, only a processing chain}
+	 * @param application the {@link SingleNodeApplication} to use
+	 * @param streamName the name of the stream to create
+	 * @param processingChain the partial stream definition DSL (no source or sink, only a processing chain}
 	 * @return a {@link SingleNodeProcessingChain}
 	 */
 	public static final SingleNodeProcessingChain chain(SingleNodeApplication application, String streamName,

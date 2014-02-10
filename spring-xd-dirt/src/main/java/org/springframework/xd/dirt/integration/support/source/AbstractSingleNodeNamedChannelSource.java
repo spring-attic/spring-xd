@@ -10,6 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.xd.dirt.integration.support.source;
 
 import org.springframework.integration.support.MessageBuilder;
@@ -21,17 +22,12 @@ import org.springframework.xd.dirt.integration.support.AbstractSingleNodeNamedCh
 
 /**
  * @author David Turanski
- *
+ * 
  */
 public abstract class AbstractSingleNodeNamedChannelSource extends
 		AbstractSingleNodeNamedChannelModule<SubscribableChannel> implements
 		NamedChannelSource {
 
-	/**
-	 * @param messageBus
-	 * @param messageChannel
-	 * @param sharedChannelName
-	 */
 	protected AbstractSingleNodeNamedChannelSource(MessageBus messageBus, SubscribableChannel messageChannel,
 			String sharedChannelName) {
 		super(messageBus, messageChannel, sharedChannelName);
@@ -42,10 +38,12 @@ public abstract class AbstractSingleNodeNamedChannelSource extends
 		this.messageBus.unbindProducer(this.sharedChannelName, this.messageChannel);
 	}
 
+	@Override
 	public void send(Message<?> message) {
 		this.messageChannel.send(message);
 	}
 
+	@Override
 	public void sendPayload(Object payload) {
 		this.messageChannel.send(MessageBuilder.withPayload(payload).build());
 	}

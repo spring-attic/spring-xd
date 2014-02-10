@@ -18,6 +18,7 @@ package org.springframework.xd.dirt.integration.support.process;
 
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.util.Assert;
+import org.springframework.xd.dirt.integration.support.SingleNodeIntegrationSupport;
 import org.springframework.xd.dirt.integration.support.sink.NamedChannelSink;
 import org.springframework.xd.dirt.integration.support.sink.SingleNodeNamedQueueSink;
 import org.springframework.xd.dirt.integration.support.source.NamedChannelSource;
@@ -27,7 +28,7 @@ import org.springframework.xd.dirt.stream.StreamDefinition;
 
 
 /**
- * A helper class for building single node streams that use a {@link NamedChannelSource} and {@link NamedChannelSink}
+ * A helper class for building single node streams that use a {@link NamedChannelSource} and {@link NamedChannelSink}.
  * 
  * @author David Turanski
  */
@@ -45,28 +46,25 @@ public abstract class AbstractSingleNodeProcessingChain {
 
 	protected final NamedChannelSink sink;
 
-	protected final SingleNodeApplication application;
+	protected final SingleNodeIntegrationSupport integrationSupport;
 
 	protected AbstractSingleNodeProcessingChain(SingleNodeApplication application, String streamName,
 			String processingChain) {
 		Assert.notNull(application, "application cannot be null");
 		Assert.hasText(processingChain, "processingChain cannot be null or empty");
 		Assert.hasText(streamName, "streamName cannot be null or empty");
-		this.application = application;
+		this.integrationSupport = new SingleNodeIntegrationSupport(application);
 		String streamDefinition = buildStreamDefinition(processingChain);
 		stream = new StreamDefinition(streamName, streamDefinition);
 
-		application.createAndDeployStream(stream);
+		integrationSupport.createAndDeployStream(stream);
 
-		messageBus = application.messageBus();
+		messageBus = integrationSupport.messageBus();
 		this.sink = createSink() ? new SingleNodeNamedQueueSink(messageBus, QUEUE_CONSUMER) : null;
 		this.source = createSource() ? new SingleNodeNamedQueueSource(messageBus, QUEUE_PRODUCER) : null;
 
 	}
 
-	/**
-	 * @return
-	 */
 	private String buildStreamDefinition(String processingChain) {
 		StringBuilder sb = new StringBuilder();
 		if (createSource()) {
@@ -90,7 +88,7 @@ public abstract class AbstractSingleNodeProcessingChain {
 
 	public void destroy() {
 		unbind();
-		application.undeployAndDestroyStream(stream);
+		integrationSupport.undeployAndDestroyStream(stream);
 	}
 
 	protected abstract boolean createSink();

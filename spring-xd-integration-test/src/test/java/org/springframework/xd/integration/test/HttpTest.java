@@ -23,6 +23,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import org.springframework.xd.integration.util.SinkType;
 
 /**
  * @author Glenn Renfro
@@ -30,23 +31,25 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(Parameterized.class)
 public class HttpTest extends AbstractIntegrationTest{
 
-	private String sink;
+	private SinkType sink;
 
-	public HttpTest(String sink) {
+	public HttpTest(SinkType sink) {
 		this.sink = sink;
 	}
 
 	@Parameters
 	public static Collection<Object[]> sink() {
-		Object[][] sink = { { "log" }, {"file"} };
+		Object[][] sink = { {SinkType.log},{SinkType.file} };
 		return Arrays.asList(sink);
 	}
 
 	@Test
 	public void testHttp() throws Exception {
-		stream("http  | " + sink);
-		send("HTTP", "Hello World");
+		String data = "testHttpTest";
+		stream("http  | " + getTestSink(sink));
+		send("HTTP", data);
 		assertReceived();
+		assertValid(data,sink);
 	}
 
 }

@@ -18,7 +18,9 @@ package org.springframework.xd.integration.util;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.DataOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -28,8 +30,15 @@ import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
 
+import org.jclouds.domain.Credentials;
+import org.jclouds.domain.LoginCredentials;
+import org.jclouds.http.handlers.BackoffLimitedRetryHandler;
+import org.jclouds.io.Payload;
+import org.jclouds.sshj.SshjSshClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.net.HostAndPort;
 
 /**
  * Utilities for creating and monitoring streams and the JMX hooks for those
@@ -134,6 +143,27 @@ public class StreamUtils {
 		}
 	}
 
+	public static  void transferResultsToLocal(final XdEnvironment hosts, final URL url, final String fileName) throws IOException{
+		final LoginCredentials credential = LoginCredentials
+				.fromCredentials(new Credentials("ubuntu", hosts.getPrivateKey()));
+		final HostAndPort socket = HostAndPort.fromParts(url.getHost(), 22);
+		final SshjSshClient client = new SshjSshClient(
+				new BackoffLimitedRetryHandler(), socket, credential, 5000);
+		Payload payload = client.get(fileName);
+		InputStream iStream = payload.openStream();
+		BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
+		boolean isRead = true;
+		while (isRead) {
+			byte[] b = new byte[10];
+			int val = iStream.read(b);
+			String buffer = new String(b,0,val);
+			writer.write(buffer);
+			if (val<10){
+				isRead=false;
+			}
+		}
+		writer.close();
+	}
 	public enum SendTypes {
 		HTTP, MQTT, JMS, TCP
 	}

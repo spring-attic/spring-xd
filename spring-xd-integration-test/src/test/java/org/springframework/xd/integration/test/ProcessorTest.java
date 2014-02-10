@@ -24,6 +24,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.springframework.xd.integration.util.InvalidResultException;
+import org.springframework.xd.integration.util.SinkType;
 
 /**
  * @author Glenn Renfro
@@ -31,30 +32,34 @@ import org.springframework.xd.integration.util.InvalidResultException;
 @RunWith(Parameterized.class)
 public class ProcessorTest extends AbstractIntegrationTest{
 
-	private String sink;
+	private SinkType sink;
 
-	public ProcessorTest(String sink) {
+	public ProcessorTest(SinkType sink) {
 		this.sink = sink;
 	}
 
 	@Parameters
 	public static Collection<Object[]> sink() {
-		Object[][] sink = { { "log" }, {"file"} };
+		Object[][] sink = { {SinkType.log},{SinkType.file} };
 		return Arrays.asList(sink);
 	}
 
 	@Test(expected=InvalidResultException.class)
 	public void testFailedSink() throws Exception {
-		stream("http  | filter --expression=payload=='good' |" + sink);
-		send("HTTP", "Hello World");
+		stream("http  | filter --expression=payload=='good' |" + getTestSink(sink));
+		send("HTTP", "BAD");
 		assertReceived();
+		//assertNoResult();
 	}
 
 	@Test
 	public void testFilter() throws Exception {
-		stream("http  | filter --expression=payload=='good' |" + sink);
-		send("HTTP", "good");
+		String filterContent = "good";
+		stream("http  | filter --expression=payload=='"+filterContent+"' |" + getTestSink(sink));
+		
+		send("HTTP", filterContent);
 		assertReceived();
+		assertValid(filterContent,sink);
 	}
 
 	

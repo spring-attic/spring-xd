@@ -23,6 +23,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import org.springframework.xd.integration.util.SinkType;
 
 /**
  * Test Timer as a source
@@ -40,7 +41,7 @@ public class TickTockTest extends AbstractIntegrationTest {
 
 	@Parameters
 	public static Collection<Object[]> sink() {
-		Object[][] sink = { { "log" }, {"file"} };
+		Object[][] sink = { {SinkType.log.toString()},{SinkType.file.toString()+" --mode=REPLACE"} };
 		return Arrays.asList(sink);
 	}
 

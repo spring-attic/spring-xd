@@ -24,8 +24,9 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.springframework.xd.integration.util.SinkType;
 import org.springframework.xd.integration.util.StreamUtils;
-import org.springframework.xd.integration.util.XdEc2Hosts;
+import org.springframework.xd.integration.util.XdEnvironment;
 import org.springframework.xd.integration.util.XdEc2Validation;
 
 /**
@@ -38,25 +39,28 @@ public abstract class AbstractIntegrationTest {
 	private final static String STREAM_NAME = "ec2Test3";
 	private final static String HTTP_PREFIX = "http://";
 
-	protected static XdEc2Hosts hosts;
+	protected static XdEnvironment hosts;
 	protected static XdEc2Validation validation;
 	protected static URL adminServer;
 	protected static List<URL> containers;
 	protected static int jmxPort;
 	protected static int httpPort;
 	protected List<String> streamNames;
+	protected static String privateKey;
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 
-		hosts = new XdEc2Hosts();
+		hosts = new XdEnvironment();
 		adminServer = hosts.getAdminServer();
 		containers = hosts.getContainers();
 		validation = new XdEc2Validation();
 		validation.verifyXDAdminReady(adminServer);
 		jmxPort = hosts.getJMXPort();
 		httpPort = hosts.getHttpPort();
-		validation.verifyAtLeastOneContainerAvailable(hosts.getContainers(),jmxPort);
+		privateKey = hosts.getPrivateKey();
+		validation.verifyAtLeastOneContainerAvailable(hosts.getContainers(),
+				jmxPort);
 
 	}
 
@@ -68,7 +72,7 @@ public abstract class AbstractIntegrationTest {
 	@After
 	public void tearDown() throws IOException {
 		StreamUtils.destroyAllStreams(streamNames, adminServer);
-		waitForXD(500);
+		waitForXD();
 	}
 
 	/**
@@ -84,10 +88,10 @@ public abstract class AbstractIntegrationTest {
 		streamNames.add(STREAM_NAME);
 		waitForXD();
 	}
-	
+
 	public boolean send(String type, String message) throws IOException {
 		boolean result = true;
-		waitForXD(1500);//Extended wait time was need for the ProcessorTests.  
+		waitForXD(2000);// Extended wait time was need for the ProcessorTests.
 		if (type.equalsIgnoreCase(StreamUtils.SendTypes.HTTP.name())) {
 			URL originURL = getContainerForStream(STREAM_NAME);
 			URL targetURL = new URL(HTTP_PREFIX + originURL.getHost() + ":"
@@ -109,16 +113,40 @@ public abstract class AbstractIntegrationTest {
 	}
 
 	public void assertReceived() throws Exception {
-		waitForXD();// need this wait in case the send takes too long or Stream takes too long to build
-		
-		validation.assertReceived(StreamUtils.replacePort(
-				getContainerForStream(STREAM_NAME), jmxPort),
-				STREAM_NAME, "http");
+		waitForXD();// need this wait in case the send takes too long or Stream
+					// takes too long to build
+
+		validation.assertReceived(hosts, StreamUtils.replacePort(
+				getContainerForStream(STREAM_NAME), jmxPort), STREAM_NAME,
+				"http");
 	}
 
+	public void assertValid(String data, SinkType sink) throws IOException {
+		if(sink.equals(SinkType.log)){
+			return;
+		}
+		assertValid(data, getContainerForStream(STREAM_NAME), STREAM_NAME);
+	}
+
+	public void assertValid(String data, URL url, String streamName)
+			throws IOException {
+		waitForXD();
+		String fileName = XdEnvironment.RESULT_LOCATION + "/" + streamName
+				+ ".out";
+		validation.verifyTestContent(hosts, url, fileName, data);
+
+	}
+	protected String getTestSink(SinkType sink){
+		String sinkVal = sink.toString();
+		if(sink == SinkType.file){
+			sinkVal = sink.toString()+" --mode=REPLACE";
+		}
+		return sinkVal;
+	}
 	private void waitForXD() {
 		waitForXD(1000);
 	}
+
 	private void waitForXD(int millis) {
 		try {
 			Thread.sleep(millis);
@@ -127,5 +155,4 @@ public abstract class AbstractIntegrationTest {
 		}
 
 	}
-
 }

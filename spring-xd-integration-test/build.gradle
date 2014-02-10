@@ -16,6 +16,9 @@ ext{
 	springVersion = '4.0.0.RELEASE'
 	log4jVersion = '1.2.17'
 	jacksonVersion = '2.2.2'
+	jcloudsVersion = '1.7.0'
+	commonsVersion = '3.2'
+	
 }
 
 repositories {
@@ -23,7 +26,9 @@ repositories {
 }
 
 dependencies {
-	compile group: 'commons-collections', name: 'commons-collections', version: '3.2'
+	compile "commons-collections:commons-collections:$commonsVersion"
+	compile "org.apache.jclouds:jclouds-all:$jcloudsVersion"
+	compile "org.apache.jclouds.driver:jclouds-sshj:$jcloudsVersion"
 	compile "org.slf4j:slf4j-simple:$slf4jVersion"
 	compile "org.springframework:spring-web:$springVersion"
 	testCompile group: 'junit', name: 'junit', version: '4.+'

@@ -16,6 +16,8 @@
 
 package org.springframework.xd.integration.util;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Iterator;
@@ -34,8 +36,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Validates that all instances of the cluster is up and running.  
- * Also verifies that streams are running and available.
+ * Validates that all instances of the cluster is up and running. Also verifies
+ * that streams are running and available.
+ * 
  * @author Glenn Renfro
  */
 
@@ -64,23 +67,25 @@ public class XdEc2Validation {
 		}
 	}
 
-	public void verifyAtLeastOneContainerAvailable(final List<URL> containers,int jmxPort) throws Exception{
+	public void verifyAtLeastOneContainerAvailable(final List<URL> containers,
+			int jmxPort) throws Exception {
 		boolean result = false;
 		final Iterator<URL> containerIter = containers.iterator();
 		while (containerIter.hasNext()) {
 			final URL container = containerIter.next();
 			try {
-				verifyContainerConnection(StreamUtils.replacePort(container,jmxPort));
+				verifyContainerConnection(StreamUtils.replacePort(container,
+						jmxPort));
 				result = true;
 			} catch (ResourceAccessException rae) {
 				LOGGER.error("XD Container is not available at "
-						+ StreamUtils.replacePort(container,jmxPort));
+						+ StreamUtils.replacePort(container, jmxPort));
 			} catch (HttpClientErrorException hcee) {
 				LOGGER.debug(hcee.getMessage());
 				result = true;
-			} catch (IOException ioe){
+			} catch (IOException ioe) {
 				LOGGER.warn("XD Container is not available at "
-						+ StreamUtils.replacePort(container,jmxPort));
+						+ StreamUtils.replacePort(container, jmxPort));
 			}
 		}
 		if (!result) {
@@ -88,12 +93,36 @@ public class XdEc2Validation {
 		}
 	}
 
-	public void assertReceived(URL url, String streamName, String moduleName)
-			throws Exception {
+	public void assertReceived(XdEnvironment hosts, URL url, String streamName,
+			String moduleName) throws Exception {
 		String request = buildJMXRequest(url, streamName, moduleName, 0);
 		List<Module> modules = getModuleList(StreamUtils.httpGet(new URL(
 				request)));
 		verifySendCounts(modules);
+
+	}
+
+	public void verifyTestContent(XdEnvironment hosts, URL url, String fileName,
+			String data) throws IOException {
+		if (hosts.isOnEc2()) {
+			StreamUtils.transferResultsToLocal(hosts, url, fileName);
+		}
+		BufferedReader reader = new BufferedReader(new FileReader(fileName));
+		char cbuf[] = new char[15];
+		String result = "";
+		while (reader.ready()) {
+			int size = reader.read(cbuf);
+			result += String.valueOf(cbuf,0, size);
+		}
+
+		if (!result.equals(data+"\n")) {
+			reader.close();
+			throw new ResourceAccessException(
+					"Data in the result file is not what was sent. Read "
+							+ result + "\n but expected " + data);
+		}
+
+		reader.close();
 	}
 
 	private String buildJMXRequest(URL url, String streamName,
@@ -102,18 +131,19 @@ public class XdEc2Validation {
 				+ ":module=*,component=MessageChannel,name=*";
 		return result;
 	}
+
 	private String buildJMXList(URL url) {
-		String result = url.toString() + "/jolokia/list" ;
+		String result = url.toString() + "/jolokia/list";
 		return result;
 	}
-	
-	private List<Module> getModuleList(String json) throws Exception{
+
+	private List<Module> getModuleList(String json) throws Exception {
 		List<Module> result = null;
-			ObjectMapper mapper = new ObjectMapper();
-			JMXResult jmxResult = mapper.readValue(json,
-					new TypeReference<JMXResult>() {
-					});
-			result = jmxResult.getValue().getModules();
+		ObjectMapper mapper = new ObjectMapper();
+		JMXResult jmxResult = mapper.readValue(json,
+				new TypeReference<JMXResult>() {
+				});
+		result = jmxResult.getValue().getModules();
 		return result;
 	}
 
@@ -121,7 +151,8 @@ public class XdEc2Validation {
 		Iterator<Module> iter = modules.iterator();
 		while (iter.hasNext()) {
 			Module module = iter.next();
-			if(!module.getModuleChannel().equals("output")&&!module.getModuleChannel().equals("input")){
+			if (!module.getModuleChannel().equals("output")
+					&& !module.getModuleChannel().equals("input")) {
 				continue;
 			}
 			int sendCount = Integer.parseInt(module.getSendCount());
@@ -132,11 +163,11 @@ public class XdEc2Validation {
 						+ " expected to have a send count  > 0");
 			}
 			int errorCount = Integer.parseInt(module.getSendErrorCount());
-			if ( errorCount> 0){
+			if (errorCount > 0) {
 				throw new InvalidResultException("Module "
 						+ module.getModuleName() + " for channel "
-						+ module.getModuleChannel()
-						+ " had an error count of "+errorCount+",  expected 0.");
+						+ module.getModuleChannel() + " had an error count of "
+						+ errorCount + ",  expected 0.");
 			}
 		}
 	}
@@ -145,11 +176,10 @@ public class XdEc2Validation {
 			throws ResourceAccessException {
 		restTemplate.getForObject(host.toString(), String.class);
 	}
-	
-	private void verifyContainerConnection(final URL host) throws IOException{
+
+	private void verifyContainerConnection(final URL host) throws IOException {
 		String request = buildJMXList(host);
-		StreamUtils.httpGet(new URL(
-				request));
+		StreamUtils.httpGet(new URL(request));
 
 	}
 

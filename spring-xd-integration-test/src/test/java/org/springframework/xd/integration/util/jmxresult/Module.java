@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-/**
- * @author Glenn Renfro
- */
 package org.springframework.xd.integration.util.jmxresult;
 
 import java.lang.reflect.Method;
@@ -28,6 +25,9 @@ import java.util.Map.Entry;
 
 import org.springframework.util.StringUtils;
 
+/**
+ * @author Glenn Renfro
+ */
 public class Module {
 	private String sendCount;
 	private String timeSinceLastSend;

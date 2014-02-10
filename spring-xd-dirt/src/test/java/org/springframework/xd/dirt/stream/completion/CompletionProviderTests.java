@@ -252,15 +252,15 @@ public class CompletionProviderTests {
 		assertThat(completions, hasItem(startsWith("tcp")));
 		assertThat(completions, hasItem(startsWith("transform")));
 
-		completions = completionProvider.complete(module, "tcp | t");
-		assertThat(completions, hasItem(startsWith("tcp | transform")));
-		// TODO
-		// assertThat(completions, not(hasItem(startsWith("tcp | tcp"))));
+		completions = completionProvider.complete(module, "tcp | s");
+		assertThat(completions, hasItem(startsWith("tcp | splitter")));
+		assertThat(completions, hasItem(startsWith("tcp | splunk")));
+		assertThat(completions, not(hasItem(startsWith("tcp | syslog-tcp"))));
 
-		completions = completionProvider.complete(module, "transform | t");
-		assertThat(completions, hasItem(startsWith("transform | transform")));
-		// TODO
-		// assertThat(completions, not(hasItem(startsWith("transform | tcp"))));
+		completions = completionProvider.complete(module, "transform | s");
+		assertThat(completions, hasItem(startsWith("transform | splitter")));
+		assertThat(completions, hasItem(startsWith("transform | splunk")));
+		assertThat(completions, not(hasItem(startsWith("transform | syslog-tcp"))));
 	}
 
 	private List<String> namesOfModulesWithType(ModuleType type) {

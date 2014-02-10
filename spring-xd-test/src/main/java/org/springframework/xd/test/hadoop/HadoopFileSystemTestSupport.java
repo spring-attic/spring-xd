@@ -42,7 +42,6 @@ public class HadoopFileSystemTestSupport extends AbstractExternalResourceTestSup
 		ConfigurationFactoryBean cfb = new ConfigurationFactoryBean();
 		Properties props = new Properties();
 		props.setProperty("fs.default.name", "hdfs://localhost:8020");
-		props.setProperty("ipc.client.connect.max.retries", "1");
 		cfb.setProperties(props);
 		cfb.setRegisterUrlHandler(false);
 		cfb.afterPropertiesSet();

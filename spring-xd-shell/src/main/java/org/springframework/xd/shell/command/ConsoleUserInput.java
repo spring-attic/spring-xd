@@ -45,7 +45,7 @@ public class ConsoleUserInput implements UserInput {
 			answer = "";
 			System.out.format("%s %s: ", prompt, optionsAsList);
 			try {
-				for (char c = (char) console.read(); c != '\n'; c = (char) console.read()) {
+				for (char c = (char) console.read(); !(c == '\n' || c == '\r'); c = (char) console.read()) {
 					System.out.print(c);
 					answer += c;
 				}

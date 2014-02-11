@@ -55,6 +55,7 @@ public class RemoteFileToHadoopTaskletTests {
 	public final HadoopFileSystemTestSupport hadoopFileSystemTestSupport = new HadoopFileSystemTestSupport();
 
 	@Test
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	public void testWrite() throws Exception {
 		File file = new File(tmpDir, "foo.txt");
 		file.delete();
@@ -73,7 +74,6 @@ public class RemoteFileToHadoopTaskletTests {
 		StepContext stepContext = new StepContext(stepExecution);
 		ChunkContext chunkContext = new ChunkContext(stepContext);
 
-		@SuppressWarnings("unchecked")
 		RemoteFileTemplate template = new RemoteFileTemplate(factory);
 		template.setBeanFactory(mock(BeanFactory.class));
 		template.afterPropertiesSet();

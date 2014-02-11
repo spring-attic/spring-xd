@@ -52,6 +52,7 @@ public class RemoteFileToHadoopTasklet implements Tasklet {
 
 	private final String hdfsDirectory;
 
+	@SuppressWarnings("rawtypes")
 	public RemoteFileToHadoopTasklet(RemoteFileTemplate template, Configuration configuration, String hdfsDirectory) {
 		Assert.notNull(template, "'template' cannot be null");
 		Assert.notNull(configuration, "'configuration' cannot be null");

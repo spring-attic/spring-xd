@@ -34,7 +34,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
@@ -76,7 +75,7 @@ public class RemoteFileToHadoopTests {
 
 	private MessageBus bus;
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	@Before
 	public void setup() throws Exception {
 		byte[] bytes = "foobarbaz".getBytes();

@@ -19,7 +19,6 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.rules.ExternalResource;
-
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionListener;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
@@ -46,7 +45,7 @@ public class RabbitSingleNodeStreamDeploymentIntegrationTests extends
 
 		@Override
 		protected void before() {
-			if (testMessageBus == null) {
+			if (testMessageBus == null || !(testMessageBus instanceof RabbitTestMessageBus)) {
 				testMessageBus = new RabbitTestMessageBus(rabbitAvailableRule.getResource(), getCodec());
 			}
 		}

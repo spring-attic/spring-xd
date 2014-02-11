@@ -40,7 +40,7 @@ public class RedisSingleNodeStreamDeploymentIntegrationTests extends AbstractSin
 
 		@Override
 		protected void before() {
-			if (testMessageBus == null) {
+			if (testMessageBus == null || !(testMessageBus instanceof RedisTestMessageBus)) {
 				testMessageBus = new RedisTestMessageBus(redisAvailableRule.getResource(), getCodec());
 			}
 		}

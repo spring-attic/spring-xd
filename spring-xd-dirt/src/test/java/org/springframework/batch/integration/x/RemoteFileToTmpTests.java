@@ -104,7 +104,7 @@ public class RemoteFileToTmpTests {
 
 	private MessageBus bus;
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	@Before
 	public void setup() throws Exception {
 		byte[] bytes = "foo".getBytes();
@@ -168,6 +168,7 @@ public class RemoteFileToTmpTests {
 
 		private final RemoteFileTemplate<?> template;
 
+		@SuppressWarnings("rawtypes")
 		public RemoteFileToTmpDirTasklet(RemoteFileTemplate template) {
 			template.setFileNameExpression(new SpelExpressionParser().parseExpression("payload"));
 			try {

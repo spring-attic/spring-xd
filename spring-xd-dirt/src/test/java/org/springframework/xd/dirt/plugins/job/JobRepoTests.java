@@ -19,12 +19,14 @@ package org.springframework.xd.dirt.plugins.job;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 import javax.sql.DataSource;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.job.SimpleJob;
@@ -66,12 +68,21 @@ public class JobRepoTests extends RandomConfigurationSupport {
 	private JobLauncher launcher;
 
 	@Autowired
-	private BatchJobLocator jobLocator;
+	private DistributedJobLocator jobLocator;
+
+	private static SimpleJob job;
 
 	@BeforeClass
 	public static void setup() {
 		// use a different job repo database for this test
 		System.setProperty("hsql.server.database", "jobrepotest");
+		job = new SimpleJob(SIMPLE_JOB_NAME) {
+
+			@Override
+			public Collection<String> getStepNames() {
+				return Arrays.asList(("step1,step2").split(","));
+			}
+		};
 	}
 
 	@Test
@@ -89,7 +100,16 @@ public class JobRepoTests extends RandomConfigurationSupport {
 		int count = jdbcTemplate.queryForObject(
 				"select count(*) from INFORMATION_SCHEMA.system_tables  WHERE TABLE_NAME LIKE 'JOB_REGISTRY%'",
 				Integer.class).intValue();
-		assertEquals("The number of batch tables returned from hsqldb did not match.", 2, count);
+		assertEquals("The number of batch tables returned from hsqldb did not match.", 3, count);
+	}
+
+	@Test
+	public void checkThatStepNamesAreUpdated() throws Exception {
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(source);
+		jobLocator.addStepNames(SIMPLE_JOB_NAME, job.getStepNames());
+		int count = jdbcTemplate.queryForObject(
+				"select count(*) from JOB_REGISTRY_STEP_NAMES  WHERE JOB_NAME = ?", Integer.class, job.getName()).intValue();
+		assertEquals("The number of step names returned from hsqldb did not match.", 2, count);
 	}
 
 	@Test

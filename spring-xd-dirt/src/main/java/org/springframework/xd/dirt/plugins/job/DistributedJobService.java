@@ -22,6 +22,7 @@ import org.springframework.batch.admin.service.SearchableJobExecutionDao;
 import org.springframework.batch.admin.service.SearchableJobInstanceDao;
 import org.springframework.batch.admin.service.SearchableStepExecutionDao;
 import org.springframework.batch.admin.service.SimpleJobService;
+import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersInvalidException;
@@ -33,6 +34,7 @@ import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteExcep
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.batch.core.repository.dao.ExecutionContextDao;
+import org.springframework.xd.dirt.job.NoSuchBatchJobException;
 
 /**
  * SimpleJobService in distributed mode
@@ -43,9 +45,7 @@ import org.springframework.batch.core.repository.dao.ExecutionContextDao;
  */
 public class DistributedJobService extends SimpleJobService {
 
-	private BatchJobLocator batchJobLocator;
-
-	private SearchableJobInstanceDao jobInstanceDao;
+	private DistributedJobLocator distributedJobLocator;
 
 	private SearchableJobExecutionDao jobExecutionDao;
 
@@ -53,11 +53,10 @@ public class DistributedJobService extends SimpleJobService {
 
 	public DistributedJobService(SearchableJobInstanceDao jobInstanceDao, SearchableJobExecutionDao jobExecutionDao,
 			SearchableStepExecutionDao stepExecutionDao, JobRepository jobRepository, JobLauncher jobLauncher,
-			BatchJobLocator batchJobLocator, ExecutionContextDao executionContextDao) {
+			DistributedJobLocator batchJobLocator, ExecutionContextDao executionContextDao) {
 		super(jobInstanceDao, jobExecutionDao, stepExecutionDao, jobRepository, jobLauncher, batchJobLocator,
 				executionContextDao);
-		this.batchJobLocator = batchJobLocator;
-		this.jobInstanceDao = jobInstanceDao;
+		this.distributedJobLocator = batchJobLocator;
 		this.jobExecutionDao = jobExecutionDao;
 		this.stepExecutionDao = stepExecutionDao;
 	}
@@ -66,7 +65,9 @@ public class DistributedJobService extends SimpleJobService {
 	public JobExecution launch(String jobName, JobParameters params) throws NoSuchJobException,
 			JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException,
 			JobParametersInvalidException {
-		// TODO
+		// TODO: make sure to use XD way of launching the job instead of {@link SimpleJobService}'s launch
+		// as it uses JobParametersIncrementer that is not available in Job that the {@link DistributedJobLocator}
+		// returns.
 		throw new UnsupportedOperationException("Job Launch");
 	}
 
@@ -88,7 +89,7 @@ public class DistributedJobService extends SimpleJobService {
 	public boolean isIncrementable(String jobName) {
 		// if the batch job is not launchable (the job is not deployed) then return false
 		// as the persistent job locator wouldn't have entries for the job.
-		return (isLaunchable(jobName) ? batchJobLocator.isIncrementable(jobName) : false);
+		return (isLaunchable(jobName) ? distributedJobLocator.isIncrementable(jobName) : false);
 	}
 
 	@Override
@@ -101,4 +102,7 @@ public class DistributedJobService extends SimpleJobService {
 		return jobExecutions;
 	}
 
+	public Job getJob(String jobName) throws NoSuchJobException {
+		return distributedJobLocator.getJob(jobName);
+	}
 }

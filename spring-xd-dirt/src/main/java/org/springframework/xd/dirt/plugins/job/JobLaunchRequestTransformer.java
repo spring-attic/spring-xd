@@ -108,11 +108,12 @@ public class JobLaunchRequestTransformer {
 		Job job;
 		try {
 			job = jobRegistry.getJob(jobName);
-		} catch (NoSuchJobException e) {
-			throw new IllegalArgumentException("The job "+ jobName + " doesn't exist. Is it deployed?");
+		}
+		catch (NoSuchJobException e) {
+			throw new IllegalArgumentException("The job " + jobName + " doesn't exist. Is it deployed?");
 		}
 		final Object payload = message.getPayload();
-		final JobParameters jobParameters;
+		JobParameters jobParameters;
 
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("JobParameters are provided as '%s'. "
@@ -147,6 +148,10 @@ public class JobLaunchRequestTransformer {
 		else {
 			throw new IllegalArgumentException("This transformer does not support payloads of type "
 					+ payload.getClass().getSimpleName());
+		}
+
+		if (job.getJobParametersIncrementer() != null) {
+			jobParameters = job.getJobParametersIncrementer().getNext(jobParameters);
 		}
 
 		return new JobLaunchRequest(job, jobParameters);

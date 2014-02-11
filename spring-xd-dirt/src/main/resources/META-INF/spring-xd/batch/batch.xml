@@ -13,7 +13,7 @@
 
 	<task:scheduler id="scheduler" pool-size="10" />
 
-	<bean id="batchJobLocator" class="org.springframework.xd.dirt.plugins.job.BatchJobLocator">
+	<bean id="distributedJobLocator" class="org.springframework.xd.dirt.plugins.job.DistributedJobLocator">
 		<property name="jdbcTemplate" ref="jdbcTemplate" />
 	</bean>
 
@@ -76,7 +76,7 @@
 			<constructor-arg ref="stepExecutionDao" />
 			<constructor-arg ref="jobRepository" />
 			<constructor-arg ref="jobLauncher" />
-			<constructor-arg ref="batchJobLocator" />
+			<constructor-arg ref="distributedJobLocator" />
 			<constructor-arg>
 				<bean
 					class="org.springframework.batch.core.repository.dao.JdbcExecutionContextDao">

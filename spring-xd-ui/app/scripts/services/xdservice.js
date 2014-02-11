@@ -5,9 +5,6 @@ var xdService = angular.module('xdService', [
 	'angular-growl'
 ]);
 
-// angular.module('xdApp')
-// 	.controller('ListDefinitionController', function ($scope, $http) { //JobDefinitions, 
-
 xdService.factory('JobDefinitions', function($resource, $rootScope) {
 	return $resource($rootScope.xdAdminServerUrl + '/jobs.json?deployments=true', {}, {
 		query : {
@@ -40,10 +37,21 @@ xdService.factory('JobDeployments', function($resource, $rootScope) {
 	});
 });
 
-xdService.factory('JobExecutions', function($resource, $rootScope) {
-	return $resource($rootScope.xdAdminServerUrl + '/batch/executions', {}, {
-		getArray: {method: 'GET', isArray: true}
-	});
+xdService.factory('JobExecutions', function($resource, $rootScope, $log) {
+	return {
+		getArray: function(){
+			$log.info('Get Job Executions ');
+			return $resource($rootScope.xdAdminServerUrl + '/batch/executions', {}, {
+				getArray: {method: 'GET', isArray: true}
+			}).getArray();
+		},
+		restart: function(jobExecution){
+			$log.info('Restart Job Execution' + jobExecution.executionId);
+			return $resource($rootScope.xdAdminServerUrl + '/batch/executions/' + jobExecution.executionId, { 'restart' : true }, {
+				restart: { method: 'PUT' }
+			}).restart();
+		}
+	};
 });
 
 xdService.factory('JobLaunchService', function($resource, growl, $rootScope) {
@@ -94,7 +102,6 @@ xdService.factory('JobLaunchService', function($resource, growl, $rootScope) {
 					growl.addErrorMessage('Yikes, something bad happened while launching job ' + jobName);
 				}
 			);
-			
 		}
 	};
 });

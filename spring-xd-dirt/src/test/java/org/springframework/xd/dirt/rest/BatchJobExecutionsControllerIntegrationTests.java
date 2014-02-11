@@ -39,10 +39,15 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobInstance;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersInvalidException;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.job.SimpleJob;
 import org.springframework.batch.core.launch.JobExecutionNotRunningException;
+import org.springframework.batch.core.launch.NoSuchJobException;
 import org.springframework.batch.core.launch.NoSuchJobExecutionException;
+import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
+import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
+import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
@@ -114,6 +119,13 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 
 		when(jobService.stop(3l)).thenThrow(JobExecutionNotRunningException.class);
 		when(jobService.stop(5l)).thenThrow(NoSuchJobExecutionException.class);
+		when(jobService.restart(1234l)).thenThrow(NoSuchJobExecutionException.class);
+
+		when(jobService.restart(999L)).thenThrow(JobExecutionAlreadyRunningException.class);
+		when(jobService.restart(1111L)).thenThrow(JobRestartException.class);
+		when(jobService.restart(2222L)).thenThrow(JobInstanceAlreadyCompleteException.class);
+		when(jobService.restart(3333L)).thenThrow(NoSuchJobException.class);
+		when(jobService.restart(4444L)).thenThrow(JobParametersInvalidException.class);
 
 	}
 
@@ -165,6 +177,48 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 	@Test
 	public void testStopJobExecution() throws Exception {
 		mockMvc.perform(put("/batch/executions/{executionId}?stop=true", "0")).andExpect(status().isOk());
+	}
+
+	@Test
+	public void testStopAndRestartJobExecution() throws Exception {
+		mockMvc.perform(put("/batch/executions/{executionId}?stop=true", "0")).andExpect(status().isOk());
+		mockMvc.perform(put("/batch/executions/{executionId}?restart=true", "0")).andExpect(status().isOk());
+	}
+
+	@Test
+	public void testRestartNonExistingJobExecution() throws Exception {
+		mockMvc.perform(put("/batch/executions/{executionId}?restart=true", "1234")).andExpect(status().isNotFound()).andExpect(
+				jsonPath("$[0].message", Matchers.is("Could not find jobExecution with id 1234")));
+	}
+
+	@Test
+	public void testRestartAlreadyRunningJobExecution() throws Exception {
+		mockMvc.perform(put("/batch/executions/{executionId}?restart=true", "999")).andExpect(status().isBadRequest()).andExpect(
+				jsonPath("$[0].message", Matchers.is("Job Execution 999 is already running.")));
+	}
+
+	@Test
+	public void testRestartFailedForJobExecution() throws Exception {
+		mockMvc.perform(put("/batch/executions/{executionId}?restart=true", "1111")).andExpect(status().isBadRequest()).andExpect(
+				jsonPath("$[0].message", Matchers.is("Restarting of Job for Job Execution 1111 failed.")));
+	}
+
+	@Test
+	public void testRestartAlreadyCompleteJobExecution() throws Exception {
+		mockMvc.perform(put("/batch/executions/{executionId}?restart=true", "2222")).andExpect(status().isBadRequest()).andExpect(
+				jsonPath("$[0].message", Matchers.is("Job Execution 2222 is already complete.")));
+	}
+
+	@Test
+	public void testRestartJobExecutionWithJobNotAvailable() throws Exception {
+		mockMvc.perform(put("/batch/executions/{executionId}?restart=true", "3333")).andExpect(status().isNotFound()).andExpect(
+				jsonPath("$[0].message", Matchers.is("The required Job for Job Execution 3333 is not available.")));
+	}
+
+	@Test
+	public void testRestartJobExecutionWithInvalidJobParameters() throws Exception {
+		mockMvc.perform(put("/batch/executions/{executionId}?restart=true", "4444")).andExpect(status().isBadRequest()).andExpect(
+				jsonPath("$[0].message", Matchers.is("Some Job Parameters for Job Execution 4444 are invalid.")));
 	}
 
 	@Test

@@ -51,7 +51,7 @@ create_job csvjob2 "filepollhdfs --deleteFiles=true --names=col1,col2,col3 --rol
 create_stream csvstream2 "file --ref=true --dir=$TEST_DIR/csv --pattern=*.csv > queue:job:csvjob2"
 
 count_files() {
-  local nCsvFiles=`ls $TEST_DIR/csv | xargs -n 1 | wc -l`
+  local nCsvFiles=`ls -1 $TEST_DIR/csv | wc -l`
   echo "$nCsvFiles"
 }
 

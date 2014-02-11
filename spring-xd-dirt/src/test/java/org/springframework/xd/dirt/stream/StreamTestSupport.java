@@ -30,10 +30,9 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
-import org.springframework.xd.dirt.module.DelegatingModuleRegistry;
+import org.springframework.xd.dirt.integration.test.SingleNodeIntegrationTestSupport;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeployer;
-import org.springframework.xd.dirt.module.ResourceModuleRegistry;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.module.core.CompositeModule;
 import org.springframework.xd.module.core.Module;
@@ -59,16 +58,11 @@ public class StreamTestSupport extends RandomConfigurationSupport {
 	public static void startXDSingleNode() throws Exception {
 		application = new SingleNodeApplication().run("--analytics", "memory", "--store", "memory");
 		adminContext = application.adminContext();
-		ConfigurableApplicationContext containerContext = application.containerContext();
-		ResourceModuleRegistry cp = new ResourceModuleRegistry("classpath:/testmodules/");
-		DelegatingModuleRegistry cmr1 = containerContext.getBean(DelegatingModuleRegistry.class);
-		cmr1.addDelegate(cp);
-		DelegatingModuleRegistry cmr2 = adminContext.getBean(DelegatingModuleRegistry.class);
-		if (cmr1 != cmr2) {
-			cmr2.addDelegate(cp);
-		}
-		streamDeployer = adminContext.getBean(StreamDeployer.class);
-		moduleDeployer = containerContext.getBean(ModuleDeployer.class);
+		SingleNodeIntegrationTestSupport integrationTestSupport = new SingleNodeIntegrationTestSupport(application,
+				"classpath:/testmodules/");
+
+		streamDeployer = integrationTestSupport.streamDeployer();
+		moduleDeployer = application.containerContext().getBean(ModuleDeployer.class);
 		moduleDefinitionRepository = adminContext.getBean(ModuleDefinitionRepository.class);
 	}
 

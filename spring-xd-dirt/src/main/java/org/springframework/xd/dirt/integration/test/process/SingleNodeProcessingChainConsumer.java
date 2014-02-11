@@ -11,43 +11,53 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.springframework.xd.dirt.integration.support.process;
+package org.springframework.xd.dirt.integration.test.process;
 
 import org.springframework.messaging.Message;
-import org.springframework.xd.dirt.integration.support.source.NamedChannelSource;
+import org.springframework.xd.dirt.integration.test.sink.NamedChannelSink;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 
 /**
- * Creates a stream from a processing chain (partial stream definition with no source and a sink) and binds a
- * {@link NamedChannelSource} to create a complete stream.
+ * Creates a stream from a processing chain (a stream definition with a source but no sink) and binds a
+ * {@link NamedChannelSink} to create a complete stream.
  * 
  * @author David Turanski
  * 
  */
-public class SingleNodeProcessingChainProducer extends AbstractSingleNodeProcessingChain implements NamedChannelSource {
+public class SingleNodeProcessingChainConsumer extends AbstractSingleNodeProcessingChain implements NamedChannelSink {
 
-	public SingleNodeProcessingChainProducer(SingleNodeApplication application, String streamName,
+	public SingleNodeProcessingChainConsumer(SingleNodeApplication application, String streamName,
 			String processingChain) {
 		super(application, streamName, processingChain);
 	}
 
 	@Override
-	public void send(Message<?> message) {
-		source.send(message);
+	public Message<?> receive() {
+		return sink.receive();
 	}
 
 	@Override
-	public void sendPayload(Object payload) {
-		source.sendPayload(payload);
+	public Message<?> receive(int timeout) {
+		return sink.receive(timeout);
+	}
+
+	@Override
+	public Object receivePayload() {
+		return sink.receivePayload();
+	}
+
+	@Override
+	public Object receivePayload(int timeout) {
+		return sink.receivePayload(timeout);
 	}
 
 	@Override
 	protected boolean createSink() {
-		return false;
+		return true;
 	}
 
 	@Override
 	protected boolean createSource() {
-		return true;
+		return false;
 	}
 }

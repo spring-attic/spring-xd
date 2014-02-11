@@ -13,13 +13,14 @@
 
 package org.springframework.xd.dirt.stream;
 
+import static org.springframework.xd.dirt.integration.test.process.SingleNodeProcessingChainSupport.chain;
+import static org.springframework.xd.dirt.integration.test.process.SingleNodeProcessingChainSupport.chainConsumer;
+import static org.springframework.xd.dirt.integration.test.process.SingleNodeProcessingChainSupport.chainProducer;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.springframework.xd.dirt.integration.support.process.SingleNodeProcessingChainSupport.chain;
-import static org.springframework.xd.dirt.integration.support.process.SingleNodeProcessingChainSupport.chainConsumer;
-import static org.springframework.xd.dirt.integration.support.process.SingleNodeProcessingChainSupport.chainProducer;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -30,14 +31,14 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import org.springframework.integration.x.bus.MessageBus;
-import org.springframework.xd.dirt.integration.support.SingleNodeIntegrationSupport;
-import org.springframework.xd.dirt.integration.support.process.SingleNodeProcessingChain;
-import org.springframework.xd.dirt.integration.support.process.SingleNodeProcessingChainConsumer;
-import org.springframework.xd.dirt.integration.support.process.SingleNodeProcessingChainProducer;
-import org.springframework.xd.dirt.integration.support.sink.NamedChannelSink;
-import org.springframework.xd.dirt.integration.support.sink.SingleNodeNamedChannelSinkFactory;
-import org.springframework.xd.dirt.integration.support.source.NamedChannelSource;
-import org.springframework.xd.dirt.integration.support.source.SingleNodeNamedChannelSourceFactory;
+import org.springframework.xd.dirt.integration.test.SingleNodeIntegrationTestSupport;
+import org.springframework.xd.dirt.integration.test.process.SingleNodeProcessingChain;
+import org.springframework.xd.dirt.integration.test.process.SingleNodeProcessingChainConsumer;
+import org.springframework.xd.dirt.integration.test.process.SingleNodeProcessingChainProducer;
+import org.springframework.xd.dirt.integration.test.sink.NamedChannelSink;
+import org.springframework.xd.dirt.integration.test.sink.SingleNodeNamedChannelSinkFactory;
+import org.springframework.xd.dirt.integration.test.source.NamedChannelSource;
+import org.springframework.xd.dirt.integration.test.source.SingleNodeNamedChannelSourceFactory;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 
 
@@ -51,13 +52,13 @@ public class ExampleProcessingChainTests {
 
 	private static SingleNodeApplication application;
 
-	private static SingleNodeIntegrationSupport integrationSupport;
+	private static SingleNodeIntegrationTestSupport integrationSupport;
 
 	@BeforeClass
 	public static void setUp() {
 		// Args not required. Just shown as an example.
 		application = new SingleNodeApplication().run("--transport", "local");
-		integrationSupport = new SingleNodeIntegrationSupport(application);
+		integrationSupport = new SingleNodeIntegrationTestSupport(application);
 	}
 
 	@Test

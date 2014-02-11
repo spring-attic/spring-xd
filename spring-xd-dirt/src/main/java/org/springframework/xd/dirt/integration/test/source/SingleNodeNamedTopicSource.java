@@ -11,8 +11,9 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.springframework.xd.dirt.integration.support.sink;
+package org.springframework.xd.dirt.integration.test.source;
 
+import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.x.bus.MessageBus;
 
 
@@ -20,17 +21,15 @@ import org.springframework.integration.x.bus.MessageBus;
  * @author David Turanski
  * 
  */
-public class SingleNodeNamedQueueSink extends AbstractSingleNodeNamedChannelSink {
+public class SingleNodeNamedTopicSource extends AbstractSingleNodeNamedChannelSource {
 
-	public SingleNodeNamedQueueSink(MessageBus messageBus, String sharedChannelName) {
-		super(messageBus, sharedChannelName);
+	public SingleNodeNamedTopicSource(MessageBus messageBus, String sharedChannelName) {
+		super(messageBus, new PublishSubscribeChannel(), sharedChannelName);
 	}
-
 
 	@Override
 	protected void bind() {
-		this.messageBus.bindConsumer(this.sharedChannelName, this.messageChannel, true);
+		this.messageBus.bindPubSubProducer(this.sharedChannelName, this.messageChannel);
 	}
-
 
 }

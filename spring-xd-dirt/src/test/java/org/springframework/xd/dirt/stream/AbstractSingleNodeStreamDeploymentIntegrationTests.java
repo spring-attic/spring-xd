@@ -42,11 +42,11 @@ import org.springframework.integration.x.bus.serializer.kryo.TupleCodec;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.xd.dirt.config.TestMessageBusInjection;
-import org.springframework.xd.dirt.integration.support.SingleNodeIntegrationSupport;
-import org.springframework.xd.dirt.integration.support.sink.NamedChannelSink;
-import org.springframework.xd.dirt.integration.support.sink.SingleNodeNamedChannelSinkFactory;
-import org.springframework.xd.dirt.integration.support.source.NamedChannelSource;
-import org.springframework.xd.dirt.integration.support.source.SingleNodeNamedChannelSourceFactory;
+import org.springframework.xd.dirt.integration.test.SingleNodeIntegrationTestSupport;
+import org.springframework.xd.dirt.integration.test.sink.NamedChannelSink;
+import org.springframework.xd.dirt.integration.test.sink.SingleNodeNamedChannelSinkFactory;
+import org.springframework.xd.dirt.integration.test.source.NamedChannelSource;
+import org.springframework.xd.dirt.integration.test.source.SingleNodeNamedChannelSourceFactory;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.test.RandomConfigurationSupport;
 import org.springframework.xd.tuple.Tuple;
@@ -87,7 +87,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 
 	protected static SingleNodeApplication application;
 
-	protected static SingleNodeIntegrationSupport integrationSupport;
+	protected static SingleNodeIntegrationTestSupport integrationSupport;
 
 	protected static AbstractTestMessageBus testMessageBus;
 
@@ -183,7 +183,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 
 	protected final static void setUp(String transport) {
 		application = new SingleNodeApplication().run("--transport", transport);
-		integrationSupport = new SingleNodeIntegrationSupport(application);
+		integrationSupport = new SingleNodeIntegrationTestSupport(application);
 		if (testMessageBus != null) {
 			TestMessageBusInjection.injectMessageBus(application, testMessageBus);
 		}

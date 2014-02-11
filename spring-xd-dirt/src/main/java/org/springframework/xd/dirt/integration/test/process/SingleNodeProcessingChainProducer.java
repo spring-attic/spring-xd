@@ -11,44 +11,25 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.springframework.xd.dirt.integration.support.process;
+package org.springframework.xd.dirt.integration.test.process;
 
 import org.springframework.messaging.Message;
-import org.springframework.xd.dirt.integration.support.sink.NamedChannelSink;
-import org.springframework.xd.dirt.integration.support.source.NamedChannelSource;
+import org.springframework.xd.dirt.integration.test.source.NamedChannelSource;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 
 /**
+ * Creates a stream from a processing chain (partial stream definition with no source and a sink) and binds a
+ * {@link NamedChannelSource} to create a complete stream.
+ * 
  * @author David Turanski
  * 
  */
-public class SingleNodeProcessingChain extends AbstractSingleNodeProcessingChain implements NamedChannelSource,
-		NamedChannelSink {
+public class SingleNodeProcessingChainProducer extends AbstractSingleNodeProcessingChain implements NamedChannelSource {
 
-	public SingleNodeProcessingChain(SingleNodeApplication application, String streamName, String processingChain) {
+	public SingleNodeProcessingChainProducer(SingleNodeApplication application, String streamName,
+			String processingChain) {
 		super(application, streamName, processingChain);
 	}
-
-	@Override
-	public Message<?> receive() {
-		return sink.receive();
-	}
-
-	@Override
-	public Message<?> receive(int timeout) {
-		return sink.receive(timeout);
-	}
-
-	@Override
-	public Object receivePayload() {
-		return sink.receivePayload();
-	}
-
-	@Override
-	public Object receivePayload(int timeout) {
-		return sink.receivePayload(timeout);
-	}
-
 
 	@Override
 	public void send(Message<?> message) {
@@ -62,7 +43,7 @@ public class SingleNodeProcessingChain extends AbstractSingleNodeProcessingChain
 
 	@Override
 	protected boolean createSink() {
-		return true;
+		return false;
 	}
 
 	@Override

@@ -11,12 +11,12 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.springframework.xd.dirt.integration.support.sink;
+package org.springframework.xd.dirt.integration.test.sink;
 
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.Message;
-import org.springframework.xd.dirt.integration.support.AbstractSingleNodeNamedChannelModule;
+import org.springframework.xd.dirt.integration.test.AbstractSingleNodeNamedChannelModule;
 
 
 /**

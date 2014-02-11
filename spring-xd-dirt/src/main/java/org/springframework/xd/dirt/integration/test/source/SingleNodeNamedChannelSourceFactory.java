@@ -10,25 +10,28 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+package org.springframework.xd.dirt.integration.test.source;
 
-package org.springframework.xd.dirt.integration.support.source;
-
-import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.x.bus.MessageBus;
+import org.springframework.xd.dirt.integration.test.AbstractSingleNodeNamedChannelModuleFactory;
+
 
 /**
  * @author David Turanski
- * 
+ *
  */
-public class SingleNodeNamedQueueSource extends AbstractSingleNodeNamedChannelSource {
+public class SingleNodeNamedChannelSourceFactory extends AbstractSingleNodeNamedChannelModuleFactory {
 
-	public SingleNodeNamedQueueSource(MessageBus messageBus, String sharedChannelName) {
-		super(messageBus, new DirectChannel(), sharedChannelName);
+	public SingleNodeNamedChannelSourceFactory(MessageBus messageBus) {
+		super(messageBus);
 	}
-
-	@Override
-	protected void bind() {
-		this.messageBus.bindProducer(this.sharedChannelName, this.messageChannel, true);
+	
+	public NamedChannelSource createNamedChannelSource(String channelName) {
+		validateChannelName(channelName);
+		if (channelName.startsWith(QUEUE_PREFIX)) {
+			return new SingleNodeNamedQueueSource(this.messageBus, channelName);
+		}
+		return new SingleNodeNamedTopicSource(this.messageBus, channelName);
 	}
 
 }

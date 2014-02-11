@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.integration.support.process;
+package org.springframework.xd.dirt.integration.test.process;
 
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 

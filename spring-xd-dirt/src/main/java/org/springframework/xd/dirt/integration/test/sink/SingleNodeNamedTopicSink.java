@@ -10,28 +10,25 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.springframework.xd.dirt.integration.support.source;
+
+package org.springframework.xd.dirt.integration.test.sink;
 
 import org.springframework.integration.x.bus.MessageBus;
-import org.springframework.xd.dirt.integration.support.AbstractSingleNodeNamedChannelModuleFactory;
 
 
 /**
  * @author David Turanski
- *
+ * 
  */
-public class SingleNodeNamedChannelSourceFactory extends AbstractSingleNodeNamedChannelModuleFactory {
+public class SingleNodeNamedTopicSink extends AbstractSingleNodeNamedChannelSink {
 
-	public SingleNodeNamedChannelSourceFactory(MessageBus messageBus) {
-		super(messageBus);
+	protected SingleNodeNamedTopicSink(MessageBus messageBus, String sharedChannelName) {
+		super(messageBus, sharedChannelName);
 	}
-	
-	public NamedChannelSource createNamedChannelSource(String channelName) {
-		validateChannelName(channelName);
-		if (channelName.startsWith(QUEUE_PREFIX)) {
-			return new SingleNodeNamedQueueSource(this.messageBus, channelName);
-		}
-		return new SingleNodeNamedTopicSource(this.messageBus, channelName);
+
+	@Override
+	protected void bind() {
+		this.messageBus.bindPubSubConsumer(this.sharedChannelName, this.messageChannel);
 	}
 
 }

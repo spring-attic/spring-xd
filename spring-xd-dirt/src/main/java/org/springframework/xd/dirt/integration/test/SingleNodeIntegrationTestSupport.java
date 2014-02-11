@@ -11,13 +11,16 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.springframework.xd.dirt.integration.support;
+package org.springframework.xd.dirt.integration.test;
 
 import java.util.Map;
 import java.util.Map.Entry;
 
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.util.Assert;
+import org.springframework.xd.dirt.module.DelegatingModuleRegistry;
+import org.springframework.xd.dirt.module.ModuleRegistry;
+import org.springframework.xd.dirt.module.ResourceModuleRegistry;
 import org.springframework.xd.dirt.server.DeployedModuleState;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.dirt.stream.StreamDefinition;
@@ -32,7 +35,7 @@ import org.springframework.xd.module.core.Module;
  * @author David Turanski
  * 
  */
-public class SingleNodeIntegrationSupport {
+public class SingleNodeIntegrationTestSupport {
 
 	private StreamDefinitionRepository streamDefinitionRepository;
 
@@ -42,13 +45,32 @@ public class SingleNodeIntegrationSupport {
 
 	private DeployedModuleState deployedModuleState;
 
-	public SingleNodeIntegrationSupport(SingleNodeApplication application) {
+	public SingleNodeIntegrationTestSupport(SingleNodeApplication application) {
 		Assert.notNull(application, "SingleNodeApplication must not be null");
 		deployedModuleState = new DeployedModuleState();
 		streamDefinitionRepository = application.containerContext().getBean(StreamDefinitionRepository.class);
 		streamRepository = application.containerContext().getBean(StreamRepository.class);
 		streamDeployer = application.adminContext().getBean(StreamDeployer.class);
 		application.containerContext().addApplicationListener(deployedModuleState);
+	}
+
+	/**
+	 * Constructor useful for testing custom modules
+	 * 
+	 * @param application the {@link SingleNodeApplication}
+	 * @param moduleResourceLocation an additional Spring (file: or classpath:) resource location used by the
+	 *        {@link ModuleRegistry}
+	 */
+	public SingleNodeIntegrationTestSupport(SingleNodeApplication application, String moduleResourceLocation) {
+		this(application);
+		Assert.hasText(moduleResourceLocation, "'moduleResourceLocation' cannot be null or empty");
+		ResourceModuleRegistry cp = new ResourceModuleRegistry(moduleResourceLocation);
+		DelegatingModuleRegistry cmr1 = application.containerContext().getBean(DelegatingModuleRegistry.class);
+		cmr1.addDelegate(cp);
+		DelegatingModuleRegistry cmr2 = application.adminContext().getBean(DelegatingModuleRegistry.class);
+		if (cmr1 != cmr2) {
+			cmr2.addDelegate(cp);
+		}
 	}
 
 	public final StreamDeployer streamDeployer() {

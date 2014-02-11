@@ -14,22 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.integration.support.sink;
-
-import org.springframework.messaging.Message;
-import org.springframework.xd.dirt.integration.support.NamedChannelModule;
+package org.springframework.xd.dirt.integration.test;
 
 
 /**
+ * 
  * @author David Turanski
  */
-public interface NamedChannelSink extends NamedChannelModule {
+public interface NamedChannelModule {
 
-	public Message<?> receive();
-
-	public Message<?> receive(int timeout);
-
-	public Object receivePayload();
-
-	public Object receivePayload(int timeout);
+	public void unbind();
 }

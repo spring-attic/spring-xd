@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.integration.support.source;
+package org.springframework.xd.dirt.integration.test.source;
 
 import org.springframework.messaging.Message;
-import org.springframework.xd.dirt.integration.support.NamedChannelModule;
+import org.springframework.xd.dirt.integration.test.NamedChannelModule;
 
 
 /**

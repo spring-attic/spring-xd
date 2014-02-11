@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.integration.support.process;
+package org.springframework.xd.dirt.integration.test.process;
 
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.util.Assert;
-import org.springframework.xd.dirt.integration.support.SingleNodeIntegrationSupport;
-import org.springframework.xd.dirt.integration.support.sink.NamedChannelSink;
-import org.springframework.xd.dirt.integration.support.sink.SingleNodeNamedQueueSink;
-import org.springframework.xd.dirt.integration.support.source.NamedChannelSource;
-import org.springframework.xd.dirt.integration.support.source.SingleNodeNamedQueueSource;
+import org.springframework.xd.dirt.integration.test.SingleNodeIntegrationTestSupport;
+import org.springframework.xd.dirt.integration.test.sink.NamedChannelSink;
+import org.springframework.xd.dirt.integration.test.sink.SingleNodeNamedQueueSink;
+import org.springframework.xd.dirt.integration.test.source.NamedChannelSource;
+import org.springframework.xd.dirt.integration.test.source.SingleNodeNamedQueueSource;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 
@@ -46,14 +46,14 @@ public abstract class AbstractSingleNodeProcessingChain {
 
 	protected final NamedChannelSink sink;
 
-	protected final SingleNodeIntegrationSupport integrationSupport;
+	protected final SingleNodeIntegrationTestSupport integrationSupport;
 
 	protected AbstractSingleNodeProcessingChain(SingleNodeApplication application, String streamName,
 			String processingChain) {
 		Assert.notNull(application, "application cannot be null");
 		Assert.hasText(processingChain, "processingChain cannot be null or empty");
 		Assert.hasText(streamName, "streamName cannot be null or empty");
-		this.integrationSupport = new SingleNodeIntegrationSupport(application);
+		this.integrationSupport = new SingleNodeIntegrationTestSupport(application);
 		String streamDefinition = buildStreamDefinition(processingChain);
 		stream = new StreamDefinition(streamName, streamDefinition);
 

@@ -33,8 +33,13 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.xd.dirt.job.JobExecutionAlreadyRunningException;
 import org.springframework.xd.dirt.job.JobExecutionInfo;
 import org.springframework.xd.dirt.job.JobExecutionNotRunningException;
+import org.springframework.xd.dirt.job.JobInstanceAlreadyCompleteException;
+import org.springframework.xd.dirt.job.JobParametersInvalidException;
+import org.springframework.xd.dirt.job.JobRestartException;
+import org.springframework.xd.dirt.job.NoSuchJobException;
 import org.springframework.xd.dirt.job.NoSuchJobExecutionException;
 import org.springframework.xd.rest.client.domain.JobExecutionInfoResource;
 
@@ -131,6 +136,41 @@ public class BatchJobExecutionsController {
 		}
 		catch (org.springframework.batch.core.launch.NoSuchJobExecutionException e) {
 			throw new NoSuchJobExecutionException(jobExecutionId);
+		}
+	}
+
+	/**
+	 * Restart the Job Execution with the given executionId.
+	 * 
+	 * @param jobExecutionId the executionId of the job execution to restart
+	 */
+	@RequestMapping(value = { "/{executionId}" }, method = RequestMethod.PUT, params = "restart=true")
+	@ResponseStatus(HttpStatus.OK)
+	public void restartJobExecution(@PathVariable("executionId") Long jobExecutionId) {
+
+		try {
+			jobService.restart(jobExecutionId);
+		}
+		catch (org.springframework.batch.core.launch.NoSuchJobExecutionException e) {
+			throw new NoSuchJobExecutionException(jobExecutionId);
+		}
+		catch (org.springframework.batch.core.repository.JobExecutionAlreadyRunningException e) {
+			throw new JobExecutionAlreadyRunningException("Job Execution " + jobExecutionId + " is already running.", e);
+		}
+		catch (org.springframework.batch.core.repository.JobRestartException e) {
+			throw new JobRestartException("Restarting of Job for Job Execution " + jobExecutionId + " failed.", e);
+		}
+		catch (org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException e) {
+			throw new JobInstanceAlreadyCompleteException("Job Execution " + jobExecutionId + " is already complete.",
+					e);
+		}
+		catch (org.springframework.batch.core.launch.NoSuchJobException e) {
+			throw new NoSuchJobException("The required Job for Job Execution " + jobExecutionId
+					+ " is not available.", e);
+		}
+		catch (org.springframework.batch.core.JobParametersInvalidException e) {
+			throw new JobParametersInvalidException("Some Job Parameters for Job Execution " + jobExecutionId
+					+ " are invalid.", e);
 		}
 	}
 

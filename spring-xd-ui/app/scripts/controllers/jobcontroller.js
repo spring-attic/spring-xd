@@ -47,16 +47,34 @@ angular.module('App.Controllers', [])
 				growl.addErrorMessage('Error fetching data. Is the XD server running?');
 			});
 		})
-	.controller('ListJobExecutionsController', [ '$scope', '$http',
-		'JobExecutions', '$log', function($scope, $http, JobExecutions, $log) {
-			JobExecutions.getArray(function(data) {
-				$log.info(data);
-				$scope.jobExecutions = data;
-			});
-		} ])
-	.controller('LaunchJobController', [ '$scope', '$http', '$log', '$state', '$stateParams', 'growl', '$location',
-			'JobLaunchService', function($scope, $http, $log, $state, $stateParams, growl, $location, JobLaunchService) {
+	.controller('ListJobExecutionsController', function($scope, $http, JobExecutions, $log, growl) {
+			JobExecutions.getArray().$promise.then(
+				function (result) {
+					$log.info('>>>>');
+					$log.info(result);
+					$scope.jobExecutions = result;
+				}, function(error) {
+					$log.error('Error fetching data. Is the XD server running?');
+					$log.error(error);
+					growl.addErrorMessage('Error fetching data. Is the XD server running?');
+				});
 
+			$scope.restartJob = function (job) {
+				$log.info('Restarting Job ' + job.name);
+				JobExecutions.restart(job).$promise.then(
+					function (result) {
+						$log.info('>>>>');
+						$log.info(result);
+						$scope.jobExecutions = result;
+					}, function(error) {
+						$log.error('Error fetching data. Is the XD server running?');
+						$log.error(error);
+						growl.addErrorMessage('Error fetching data. Is the XD server running?');
+						growl.addErrorMessage(error.data[0].message);
+					});
+			};
+		})
+	.controller('LaunchJobController', function($scope, $http, $log, $state, $stateParams, growl, $location, JobLaunchService) {
 			var jobLaunchRequest = $scope.jobLaunchRequest = {
 				jobName: $stateParams.jobName,
 				jobParameters:[]
@@ -93,6 +111,5 @@ angular.module('App.Controllers', [])
 				JobLaunchService.convertToJsonAndSend(jobLaunchRequest);
 				$location.path('/jobs/deployments');
 			};
-		}]);
-
+		});
 

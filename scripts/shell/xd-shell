@@ -70,12 +70,12 @@ x=0
 args=("$@")
 for arg in "${args[@]}" ; do
     if [ "$arg" = "--hadoopDistro" ] ; then
-        if [ "${args[x+1]}" = "hadoop12" ] || [ "${args[x+1]}" = "hadoop22" ] || [ "${args[x+1]}" = "cdh4" ] || [ "${args[x+1]}" = "hdp13" ] || [ "${args[x+1]}" = "phd1" ] ; then
+        if [ "${args[x+1]}" = "hadoop12" ] || [ "${args[x+1]}" = "hadoop22" ] || [ "${args[x+1]}" = "cdh4" ] || [ "${args[x+1]}" = "hdp13" ]|| [ "${args[x+1]}" = "hdp20" ] || [ "${args[x+1]}" = "phd1" ] ; then
           HADOOP_DISTRO="${args[x+1]}"
           unset args[x+1]
           unset args[x]
         else
-          echo "ERROR: '${args[x+1]}' is not a valid Hadoop distro - valid distros are hadoop12, hadoop22, cdh4, hdp13 and phd1"
+          echo "ERROR: '${args[x+1]}' is not a valid Hadoop distro - valid distros are hadoop12, hadoop22, cdh4, hdp13, hdp20 and phd1"
           exit
         fi
     fi

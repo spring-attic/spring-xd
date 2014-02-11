@@ -38,9 +38,7 @@
 
 	<int-hadoop:avro-outbound-channel-adapter id="objects" dataset-operations="datasetOperations"/>
 
-	<!-- TODO: switch back to original class once we update to use spring-data-hadoop 2.0.0.M5
-	    class="org.springframework.data.hadoop.store.dataset.DatasetTemplate" -->
-    <bean id="datasetOperations" class="org.springframework.data.hadoop.x.store.dataset.DatasetTemplateAllowingNulls">
+    <bean id="datasetOperations" class="org.springframework.data.hadoop.store.dataset.DatasetTemplate">
 		<property name="datasetRepositoryFactory" ref="datasetRepositoryFactory"/>
 	</bean>
 

@@ -60,7 +60,7 @@ public abstract class AbstractSingleNodeInitializationTests extends RandomConfig
 		args = addArgIfProvided(args, "controlTransport", getControlTransport());
 		application.run(args);
 
-		this.context = (AbstractApplicationContext) application.getContainerContext();
+		this.context = (AbstractApplicationContext) application.containerContext();
 
 		this.moduleDeployer = this.context.getBean(ModuleDeployer.class);
 

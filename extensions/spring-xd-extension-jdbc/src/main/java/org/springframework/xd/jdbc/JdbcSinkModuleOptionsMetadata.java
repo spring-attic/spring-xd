@@ -23,7 +23,7 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  * 
  * @author Eric Bottard
  */
-public class JdbcSinkModuleOptionsMetadata extends AbstractJdbcModuleOptionsMetadata {
+public class JdbcSinkModuleOptionsMetadata extends AbstractImportToJdbcOptionsMetadata {
 
 	private String columns;
 

@@ -7,7 +7,7 @@
 		http://www.springframework.org/schema/hadoop http://www.springframework.org/schema/hadoop/spring-hadoop.xsd
 		http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd">
 
-	<batch:job id="filepollhdfs" restartable="${restartable:false}">
+	<batch:job id="filepollhdfs" restartable="${restartable}">
 		<batch:step id="fileHdfsStep">
 			<batch:tasklet>
 				<batch:chunk reader="itemReader" writer="itemWriter" commit-interval="100"/>
@@ -23,7 +23,7 @@
 	</batch:job>
 
 	<bean id="fileDeletionListener" class="org.springframework.xd.dirt.plugins.job.support.listener.FileDeletionJobExecutionListener">
-		<property name="deleteFiles" value="${deleteFiles:false}"/>
+		<property name="deleteFiles" value="${deleteFiles}"/>
 	</bean>
 
 	<bean id="itemReader" class="org.springframework.batch.item.file.FlatFileItemReader" scope="step">
@@ -52,9 +52,9 @@
 			</bean>
 		</property>
 		<property name="baseFilename" value="${fileName:${xd.stream.name}}"/>
-		<property name="rolloverThresholdInBytes" value="${rollover:1000000}"/>
+		<property name="rolloverThresholdInBytes" value="${rollover}"/>
 		<property name="basePath" value="${directory:/xd/${xd.stream.name}}/"/>
-		<property name="fileSuffix" value="${fileExtension:csv}"/>
+		<property name="fileSuffix" value="${fileExtension}"/>
 	</bean>
 
 	<bean id="hadoopFs" class="org.springframework.data.hadoop.fs.FileSystemFactoryBean">

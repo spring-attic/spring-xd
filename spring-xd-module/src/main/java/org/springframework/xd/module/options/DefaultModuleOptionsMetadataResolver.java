@@ -46,7 +46,7 @@ import org.springframework.xd.module.support.ParentLastURLClassLoader;
  * <li>look for a file named {@code <modulename>.properties} next to the module xml definition file</li>
  * <li>if that file exists
  * <ul>
- * <li>look for an {@value ModuleOptionsMetadataResolver#OPTIONS_CLASS} property. If found, use a
+ * <li>look for an {@value DefaultModuleOptionsMetadataResolver#OPTIONS_CLASS} property. If found, use a
  * {@link PojoModuleOptionsMetadata} backed by that POJO classname</li>
  * <li>use a {@link SimpleModuleOptionsMetadata} backed by keys of the form {@code options.<name>.description}.
  * Additionaly, one can provide {@code options.<name>.default} and {@code options.<name>.type} properties.</li>

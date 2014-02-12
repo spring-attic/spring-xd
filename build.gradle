@@ -1173,9 +1173,9 @@ project('spring-xd-ui') {
 	//}
 
 	tasks['grunt_build'].dependsOn(['npmInstall', 'installGrunt']);
-	tasks['grunt_teste2e'].dependsOn(['npmInstall', 'installGrunt']);
+	tasks['grunt_teste2e'].dependsOn(['grunt_build']);
 
-	task test(dependsOn: ['grunt_teste2e', ':spring-xd-dirt:backgroundAdminServer']) {
+	task ui_test(dependsOn: ['grunt_teste2e', ':spring-xd-dirt:backgroundAdminServer']) {
 
 		description = "E2E-test the Admin UI using Grunt"
 
@@ -1188,7 +1188,7 @@ project('spring-xd-ui') {
 		}
 	}
 
-	task setupUI(dependsOn: ['grunt_build', 'test']) {
+	task setupUI(dependsOn: ['grunt_build']) {
 		description = "Build the Admin UI using Grunt"
 	}
 

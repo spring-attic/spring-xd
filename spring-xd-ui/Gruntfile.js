@@ -1,11 +1,4 @@
-// Generated on 2014-01-15 using generator-angular 0.7.1
 'use strict';
-
-// # Globbing
-// for performance reasons we're only matching one level down:
-// 'test/spec/{,*/}*.js'
-// use this if you want to recursively match all subfolders:
-// 'test/spec/**/*.js'
 
 module.exports = function (grunt) {
 
@@ -352,12 +345,15 @@ module.exports = function (grunt) {
 
     // Test settings
     karma: {
+      options: {
+        browsers: ['PhantomJS'],
+        singleRun: true
+      },
       e2e: {
-        configFile: 'karma-e2e.conf.js'
+        configFile: 'karma-e2e.conf.js',
       },
       unit: {
         configFile: 'karma.conf.js',
-        singleRun: true
       }
     }
   });
@@ -396,6 +392,7 @@ module.exports = function (grunt) {
     'copy:testfiles',
     'clean:server',
     'concurrent:server',
+    'configureProxies:server',
     'connect:livereload',
     'karma:e2e'
   ]);

@@ -14,6 +14,8 @@
 
 package org.springframework.xd.dirt.rest;
 
+import static org.springframework.hateoas.config.EnableHypermediaSupport.HypermediaType.HAL;
+
 import java.util.List;
 
 import org.springframework.batch.core.StepExecution;
@@ -45,7 +47,7 @@ import org.springframework.xd.rest.client.util.RestTemplateMessageConverterUtil;
  * @author Gunnar Hillert
  */
 @Configuration
-@EnableHypermediaSupport
+@EnableHypermediaSupport(type = HAL)
 @EnableSpringDataWebSupport
 @ComponentScan(excludeFilters = @Filter(Configuration.class))
 public class RestConfiguration {

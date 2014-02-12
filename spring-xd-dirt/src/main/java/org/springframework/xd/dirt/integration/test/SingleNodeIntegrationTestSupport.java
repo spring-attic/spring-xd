@@ -32,6 +32,12 @@ import org.springframework.xd.module.core.Module;
 
 
 /**
+ * A helper class that provides methods used for testing streams with {@link SingleNodeApplication}. It exposes
+ * components and methods used for stream creation, deployment, and destruction and provides access to the
+ * {@link MessageBus}. Additionally, it supports registration of modules contained in a local resource location
+ * (default: "file:./config").
+ * 
+ * 
  * @author David Turanski
  * 
  */
@@ -46,12 +52,7 @@ public class SingleNodeIntegrationTestSupport {
 	private DeployedModuleState deployedModuleState;
 
 	public SingleNodeIntegrationTestSupport(SingleNodeApplication application) {
-		Assert.notNull(application, "SingleNodeApplication must not be null");
-		deployedModuleState = new DeployedModuleState();
-		streamDefinitionRepository = application.containerContext().getBean(StreamDefinitionRepository.class);
-		streamRepository = application.containerContext().getBean(StreamRepository.class);
-		streamDeployer = application.adminContext().getBean(StreamDeployer.class);
-		application.containerContext().addApplicationListener(deployedModuleState);
+		this(application, "file:./config");
 	}
 
 	/**
@@ -62,7 +63,12 @@ public class SingleNodeIntegrationTestSupport {
 	 *        {@link ModuleRegistry}
 	 */
 	public SingleNodeIntegrationTestSupport(SingleNodeApplication application, String moduleResourceLocation) {
-		this(application);
+		Assert.notNull(application, "SingleNodeApplication must not be null");
+		deployedModuleState = new DeployedModuleState();
+		streamDefinitionRepository = application.containerContext().getBean(StreamDefinitionRepository.class);
+		streamRepository = application.containerContext().getBean(StreamRepository.class);
+		streamDeployer = application.adminContext().getBean(StreamDeployer.class);
+		application.containerContext().addApplicationListener(deployedModuleState);
 		Assert.hasText(moduleResourceLocation, "'moduleResourceLocation' cannot be null or empty");
 		ResourceModuleRegistry cp = new ResourceModuleRegistry(moduleResourceLocation);
 		DelegatingModuleRegistry cmr1 = application.containerContext().getBean(DelegatingModuleRegistry.class);

@@ -19,6 +19,9 @@ import org.springframework.xd.dirt.integration.test.source.NamedChannelSource;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 
 /**
+ * Creates a stream to test a processing chain "p1 | p2 ... | pn" adding a {@link NamedChannelSink} and
+ * {@link NamedChannelSource}
+ * 
  * @author David Turanski
  * 
  */
@@ -27,6 +30,11 @@ public class SingleNodeProcessingChain extends AbstractSingleNodeProcessingChain
 
 	public SingleNodeProcessingChain(SingleNodeApplication application, String streamName, String processingChain) {
 		super(application, streamName, processingChain);
+	}
+
+	public SingleNodeProcessingChain(SingleNodeApplication application, String streamName, String processingChain,
+			String moduleResourceLocation) {
+		super(application, streamName, processingChain, moduleResourceLocation);
 	}
 
 	@Override

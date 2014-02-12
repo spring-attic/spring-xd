@@ -21,6 +21,8 @@ import org.springframework.xd.dirt.integration.test.AbstractSingleNodeNamedChann
 
 
 /**
+ * Base class for SingleNode named channel souorce types
+ * 
  * @author David Turanski
  * 
  */

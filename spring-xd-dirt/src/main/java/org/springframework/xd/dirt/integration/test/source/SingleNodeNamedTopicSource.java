@@ -18,6 +18,8 @@ import org.springframework.integration.x.bus.MessageBus;
 
 
 /**
+ * * A {@link NamedChannelSource} implementation that binds to a PubSub Channel.
+ * 
  * @author David Turanski
  * 
  */

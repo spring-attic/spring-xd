@@ -50,10 +50,17 @@ public abstract class AbstractSingleNodeProcessingChain {
 
 	protected AbstractSingleNodeProcessingChain(SingleNodeApplication application, String streamName,
 			String processingChain) {
+		this(application, streamName, processingChain, "file:./config");
+
+	}
+
+	protected AbstractSingleNodeProcessingChain(SingleNodeApplication application, String streamName,
+			String processingChain, String moduleResourceLocation) {
 		Assert.notNull(application, "application cannot be null");
 		Assert.hasText(processingChain, "processingChain cannot be null or empty");
 		Assert.hasText(streamName, "streamName cannot be null or empty");
-		this.integrationSupport = new SingleNodeIntegrationTestSupport(application);
+		Assert.hasText(moduleResourceLocation, "moduleResourceLocation cannot be null or empty");
+		this.integrationSupport = new SingleNodeIntegrationTestSupport(application, moduleResourceLocation);
 		String streamDefinition = buildStreamDefinition(processingChain);
 		stream = new StreamDefinition(streamName, streamDefinition);
 

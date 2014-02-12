@@ -18,8 +18,8 @@ import org.springframework.xd.dirt.integration.test.sink.NamedChannelSink;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 
 /**
- * Creates a stream from a processing chain (a stream definition with a source but no sink) and binds a
- * {@link NamedChannelSink} to create a complete stream.
+ * Creates a stream to test a processing chain including a source but no sink and adds a {@link NamedChannelSink} to
+ * create a complete stream.
  * 
  * @author David Turanski
  * 
@@ -29,6 +29,11 @@ public class SingleNodeProcessingChainConsumer extends AbstractSingleNodeProcess
 	public SingleNodeProcessingChainConsumer(SingleNodeApplication application, String streamName,
 			String processingChain) {
 		super(application, streamName, processingChain);
+	}
+
+	public SingleNodeProcessingChainConsumer(SingleNodeApplication application, String streamName,
+			String processingChain, String moduleResourceLocation) {
+		super(application, streamName, processingChain, moduleResourceLocation);
 	}
 
 	@Override

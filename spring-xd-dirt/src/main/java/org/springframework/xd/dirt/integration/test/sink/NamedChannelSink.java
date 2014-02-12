@@ -21,6 +21,8 @@ import org.springframework.xd.dirt.integration.test.NamedChannelModule;
 
 
 /**
+ * A Sink bound to a named channel
+ * 
  * @author David Turanski
  */
 public interface NamedChannelSink extends NamedChannelModule {

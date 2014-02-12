@@ -10,6 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.xd.dirt.integration.test;
 
 import org.springframework.integration.x.bus.MessageBus;
@@ -17,8 +18,11 @@ import org.springframework.util.Assert;
 
 
 /**
+ * Base class for factories used to create NamedChannelSource and NamedChannelSink. Factories are used to bind using p2p
+ * or pub-sub {@link MessageBus} bindings for named channels prefixed by 'queue:' or 'topic:' respectively
+ * 
  * @author David Turanski
- *
+ * 
  */
 public abstract class AbstractSingleNodeNamedChannelModuleFactory {
 

@@ -38,6 +38,19 @@ public abstract class SingleNodeProcessingChainSupport {
 	}
 
 	/**
+	 * @param application the {@link SingleNodeApplication} to use
+	 * @param streamName the name of the stream to create
+	 * @param processingChain the partial stream definition DSL (no source or sink, only a processing chain}
+	 * @param moduleResourceLocation a resource location pointing to a local directory from where module definitions may
+	 *        be registered
+	 * @return a {@link SingleNodeProcessingChain}
+	 */
+	public static final SingleNodeProcessingChain chain(SingleNodeApplication application, String streamName,
+			String processingChain, String moduleResourceLocation) {
+		return new SingleNodeProcessingChain(application, streamName, processingChain, moduleResourceLocation);
+	}
+
+	/**
 	 * 
 	 * @param application - the {@link SingleNodeApplication} to use
 	 * @param streamName - the name of the stream to create
@@ -53,11 +66,39 @@ public abstract class SingleNodeProcessingChainSupport {
 	 * 
 	 * @param application - the {@link SingleNodeApplication} to use
 	 * @param streamName - the name of the stream to create
+	 * @param processingChain - the partial stream definition DSL (must include a source and no sink}
+	 * @param moduleResourceLocation a resource location pointing to a local directory from where module definitions may
+	 *        be registered
+	 * @return a {@link SingleNodeProcessingChainConsumer}
+	 */
+	public static final SingleNodeProcessingChainConsumer chainConsumer(SingleNodeApplication application,
+			String streamName, String processingChain, String moduleResourceLocation) {
+		return new SingleNodeProcessingChainConsumer(application, streamName, processingChain, moduleResourceLocation);
+	}
+
+	/**
+	 * 
+	 * @param application - the {@link SingleNodeApplication} to use
+	 * @param streamName - the name of the stream to create
 	 * @param processingChain - the partial stream definition DSL (must include a sink and no source}
 	 * @return a {@link SingleNodeProcessingChainProducer}
 	 */
 	public static final SingleNodeProcessingChainProducer chainProducer(SingleNodeApplication application,
 			String streamName, String processingChain) {
 		return new SingleNodeProcessingChainProducer(application, streamName, processingChain);
+	}
+
+	/**
+	 * 
+	 * @param application - the {@link SingleNodeApplication} to use
+	 * @param streamName - the name of the stream to create
+	 * @param processingChain - the partial stream definition DSL (must include a sink and no source}
+	 * @param moduleResourceLocation a resource location pointing to a local directory from where module definitions may
+	 *        be registered
+	 * @return a {@link SingleNodeProcessingChainProducer}
+	 */
+	public static final SingleNodeProcessingChainProducer chainProducer(SingleNodeApplication application,
+			String streamName, String processingChain, String moduleResourceLocation) {
+		return new SingleNodeProcessingChainProducer(application, streamName, processingChain, moduleResourceLocation);
 	}
 }

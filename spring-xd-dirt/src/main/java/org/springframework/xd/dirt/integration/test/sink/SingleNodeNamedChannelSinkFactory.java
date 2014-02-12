@@ -10,6 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.xd.dirt.integration.test.sink;
 
 import org.springframework.integration.x.bus.MessageBus;
@@ -17,15 +18,17 @@ import org.springframework.xd.dirt.integration.test.AbstractSingleNodeNamedChann
 
 
 /**
+ * A factory for creating {@link NamedChannelSink}s
+ * 
  * @author David Turanski
- *
+ * 
  */
 public class SingleNodeNamedChannelSinkFactory extends AbstractSingleNodeNamedChannelModuleFactory {
 
 	public SingleNodeNamedChannelSinkFactory(MessageBus messageBus) {
 		super(messageBus);
 	}
-	
+
 	public NamedChannelSink createNamedChannelSink(String channelName) {
 		validateChannelName(channelName);
 		if (channelName.startsWith(QUEUE_PREFIX)) {

@@ -17,6 +17,8 @@ import org.springframework.integration.x.bus.MessageBus;
 
 
 /**
+ * A {@link NamedChannelSink} implementation that binds to a Queue Channel.
+ * 
  * @author David Turanski
  * 
  */

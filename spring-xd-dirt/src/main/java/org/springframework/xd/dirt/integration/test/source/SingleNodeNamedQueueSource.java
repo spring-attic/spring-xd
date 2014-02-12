@@ -17,6 +17,8 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.x.bus.MessageBus;
 
 /**
+ * A {@link NamedChannelSource} implementation that binds to a Queue Channel.
+ * 
  * @author David Turanski
  * 
  */

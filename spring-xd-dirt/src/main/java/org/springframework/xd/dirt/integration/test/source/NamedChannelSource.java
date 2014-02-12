@@ -21,6 +21,7 @@ import org.springframework.xd.dirt.integration.test.NamedChannelModule;
 
 
 /**
+ * A Source that binds to a named channel.
  * 
  * @author David Turanski
  */

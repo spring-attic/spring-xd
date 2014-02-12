@@ -23,7 +23,7 @@
 	<channel id="files"/>
 
 	<file:outbound-channel-adapter id="files"
-		mode="APPEND"
+		mode="${mode}"
 		charset="${charset}"
 		directory="${dir}"
 		filename-generator-expression="'${name:${xd.stream.name}}'+(('${suffix}'.trim()=='')?'':'.${suffix}')"/>

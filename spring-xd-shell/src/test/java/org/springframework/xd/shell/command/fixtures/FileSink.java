@@ -24,6 +24,7 @@ import java.io.Reader;
 import org.hamcrest.Description;
 import org.hamcrest.DiagnosingMatcher;
 import org.hamcrest.Matcher;
+
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 
@@ -109,8 +110,9 @@ public class FileSink extends DisposableFileSupport {
 	@Override
 	protected String toDSL() {
 		String fileName = file.getName();
-		return String.format("file --dir=%s --name=%s --suffix=%s --charset=%s --binary=%b", file.getParent(),
-				fileName.substring(0, fileName.lastIndexOf(".txt")), "txt", charset, binary);
+		return String.format("file --dir=%s --name=%s --suffix=%s --charset=%s --binary=%b --mode=%s",
+				file.getParent(),
+				fileName.substring(0, fileName.lastIndexOf(".txt")), "txt", charset, binary, "APPEND");
 	}
 
 }

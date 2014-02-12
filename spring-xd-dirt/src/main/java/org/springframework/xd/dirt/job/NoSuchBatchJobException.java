@@ -28,4 +28,12 @@ public class NoSuchBatchJobException extends XDRuntimeException {
 	public NoSuchBatchJobException(String name) {
 		super("Batch Job with the name " + name + " doesn't exist");
 	}
+
+	public NoSuchBatchJobException(String idName, String id, Throwable e) {
+		super("Batch Job with " + idName + " " + id + " doesn't exist", e);
+	}
+
+	public NoSuchBatchJobException(String name, Throwable e) {
+		super("Batch Job with the name " + name + " doesn't exist", e);
+	}
 }

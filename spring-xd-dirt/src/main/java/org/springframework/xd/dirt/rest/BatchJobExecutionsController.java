@@ -18,28 +18,23 @@ package org.springframework.xd.dirt.rest;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.TimeZone;
 
-import org.springframework.batch.admin.service.JobService;
 import org.springframework.batch.core.JobExecution;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.xd.dirt.job.JobExecutionAlreadyRunningException;
 import org.springframework.xd.dirt.job.JobExecutionInfo;
 import org.springframework.xd.dirt.job.JobExecutionNotRunningException;
 import org.springframework.xd.dirt.job.JobInstanceAlreadyCompleteException;
 import org.springframework.xd.dirt.job.JobParametersInvalidException;
 import org.springframework.xd.dirt.job.JobRestartException;
-import org.springframework.xd.dirt.job.NoSuchJobException;
+import org.springframework.xd.dirt.job.NoSuchBatchJobException;
 import org.springframework.xd.dirt.job.NoSuchJobExecutionException;
 import org.springframework.xd.rest.client.domain.JobExecutionInfoResource;
 
@@ -51,32 +46,10 @@ import org.springframework.xd.rest.client.domain.JobExecutionInfoResource;
  * @author Gunnar Hillert
  * 
  */
-@Controller
+@RestController
 @RequestMapping("/batch/executions")
 @ExposesResourceFor(JobExecutionInfoResource.class)
-public class BatchJobExecutionsController {
-
-	private JobService jobService;
-
-	private TimeZone timeZone = TimeZone.getDefault();
-
-	private final JobExecutionInfoResourceAssembler jobExecutionInfoResourceAssembler;
-
-	/**
-	 * @param timeZone the timeZone to set
-	 */
-	@Autowired(required = false)
-	@Qualifier("userTimeZone")
-	public void setTimeZone(TimeZone timeZone) {
-		this.timeZone = timeZone;
-	}
-
-	@Autowired
-	public BatchJobExecutionsController(JobService jobService) {
-		super();
-		this.jobService = jobService;
-		this.jobExecutionInfoResourceAssembler = new JobExecutionInfoResourceAssembler();
-	}
+public class BatchJobExecutionsController extends AbstractBatchJobsController {
 
 	/**
 	 * List all job executions in a given range.
@@ -87,7 +60,6 @@ public class BatchJobExecutionsController {
 	 */
 	@RequestMapping(value = { "" }, method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
-	@ResponseBody
 	public Collection<JobExecutionInfoResource> list(@RequestParam(defaultValue = "0") int startJobExecution,
 			@RequestParam(defaultValue = "20") int pageSize) {
 
@@ -105,7 +77,6 @@ public class BatchJobExecutionsController {
 	 */
 	@RequestMapping(value = "/{jobExecutionId}", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
-	@ResponseBody
 	public JobExecutionInfoResource getJobExecutionInfo(@PathVariable Long jobExecutionId) {
 
 		final JobExecution jobExecution;
@@ -165,8 +136,7 @@ public class BatchJobExecutionsController {
 					e);
 		}
 		catch (org.springframework.batch.core.launch.NoSuchJobException e) {
-			throw new NoSuchJobException("The required Job for Job Execution " + jobExecutionId
-					+ " is not available.", e);
+			throw new NoSuchBatchJobException("execution id", String.valueOf(jobExecutionId), e);
 		}
 		catch (org.springframework.batch.core.JobParametersInvalidException e) {
 			throw new JobParametersInvalidException("Some Job Parameters for Job Execution " + jobExecutionId

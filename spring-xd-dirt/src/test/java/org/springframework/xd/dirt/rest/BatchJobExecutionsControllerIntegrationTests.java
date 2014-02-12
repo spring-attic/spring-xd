@@ -33,7 +33,6 @@ import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.batch.admin.service.JobService;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobInstance;
@@ -56,7 +55,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.xd.dirt.plugins.job.BatchJobLocator;
 
 /**
- * Tests REST compliance of BatchJobExecutionsController endpoints.
+ * Tests REST compliance of {@link BatchJobExecutionsController} endpoints.
  * 
  * @author Ilayaperumal Gopinathan
  * @author Gunnar Hillert
@@ -212,7 +211,7 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 	@Test
 	public void testRestartJobExecutionWithJobNotAvailable() throws Exception {
 		mockMvc.perform(put("/batch/executions/{executionId}?restart=true", "3333")).andExpect(status().isNotFound()).andExpect(
-				jsonPath("$[0].message", Matchers.is("The required Job for Job Execution 3333 is not available.")));
+				jsonPath("$[0].message", Matchers.is("Batch Job with execution id 3333 doesn't exist")));
 	}
 
 	@Test

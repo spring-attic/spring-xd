@@ -18,22 +18,17 @@ package org.springframework.xd.dirt.rest;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.TimeZone;
 
 import org.springframework.batch.admin.history.StepExecutionHistory;
-import org.springframework.batch.admin.service.JobService;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.StepExecution;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.xd.dirt.job.NoSuchJobExecutionException;
 import org.springframework.xd.dirt.job.NoSuchStepExecutionException;
 import org.springframework.xd.dirt.job.StepExecutionInfo;
@@ -47,38 +42,11 @@ import org.springframework.xd.rest.client.domain.StepExecutionProgressInfoResour
  * @author Gunnar Hillert
  * @author Dave Syer
  * @author Ilayaperumal Gopinathan
- * @since 1.0
- * 
  */
-@Controller
+@RestController
 @RequestMapping("/batch/executions/{jobExecutionId}/steps")
 @ExposesResourceFor(StepExecutionInfoResource.class)
-public class BatchStepExecutionsController {
-
-	private final JobService jobService;
-
-	private final StepExecutionInfoResourceAssembler stepExecutionInfoResourceAssembler;
-
-	private final StepExecutionProgressInfoResourceAssembler progressInfoResourceAssembler;
-
-	private TimeZone timeZone = TimeZone.getDefault();
-
-	/**
-	 * @param timeZone the timeZone to set
-	 */
-	@Autowired(required = false)
-	@Qualifier("userTimeZone")
-	public void setTimeZone(TimeZone timeZone) {
-		this.timeZone = timeZone;
-	}
-
-	@Autowired
-	public BatchStepExecutionsController(JobService jobService) {
-		super();
-		this.jobService = jobService;
-		this.stepExecutionInfoResourceAssembler = new StepExecutionInfoResourceAssembler();
-		this.progressInfoResourceAssembler = new StepExecutionProgressInfoResourceAssembler();
-	}
+public class BatchStepExecutionsController extends AbstractBatchJobsController {
 
 	/**
 	 * List all step executions.
@@ -89,7 +57,6 @@ public class BatchStepExecutionsController {
 	 */
 	@RequestMapping(value = { "" }, method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
-	@ResponseBody
 	public Collection<StepExecutionInfoResource> list(@PathVariable("jobExecutionId") long jobExecutionId) {
 
 		final Collection<StepExecution> stepExecutions;
@@ -124,13 +91,11 @@ public class BatchStepExecutionsController {
 	 */
 	@RequestMapping(value = "/{stepExecutionId}", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
-	@ResponseBody
 	public StepExecutionInfoResource details(@PathVariable long jobExecutionId,
 			@PathVariable long stepExecutionId) {
-		StepExecutionInfoResource result;
 		try {
 			StepExecution stepExecution = jobService.getStepExecution(jobExecutionId, stepExecutionId);
-			result = this.stepExecutionInfoResourceAssembler.toResource(new StepExecutionInfo(stepExecution,
+			return this.stepExecutionInfoResourceAssembler.toResource(new StepExecutionInfo(stepExecution,
 					this.timeZone));
 		}
 		catch (org.springframework.batch.admin.service.NoSuchStepExecutionException e) {
@@ -139,7 +104,6 @@ public class BatchStepExecutionsController {
 		catch (org.springframework.batch.core.launch.NoSuchJobExecutionException e) {
 			throw new NoSuchJobExecutionException(jobExecutionId);
 		}
-		return result;
 	}
 
 	/**
@@ -153,10 +117,8 @@ public class BatchStepExecutionsController {
 	 */
 	@RequestMapping(value = "/{stepExecutionId}/progress", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
-	@ResponseBody
 	public StepExecutionProgressInfoResource progress(@PathVariable long jobExecutionId,
 			@PathVariable long stepExecutionId) {
-		StepExecutionProgressInfoResource result;
 		try {
 			StepExecution stepExecution = jobService.getStepExecution(jobExecutionId, stepExecutionId);
 			String stepName = stepExecution.getStepName();
@@ -166,7 +128,7 @@ public class BatchStepExecutionsController {
 			}
 			String jobName = stepExecution.getJobExecution().getJobInstance().getJobName();
 			StepExecutionHistory stepExecutionHistory = computeHistory(jobName, stepName);
-			result = progressInfoResourceAssembler.toResource(new StepExecutionProgressInfo(stepExecution,
+			return progressInfoResourceAssembler.toResource(new StepExecutionProgressInfo(stepExecution,
 					stepExecutionHistory));
 		}
 		catch (org.springframework.batch.admin.service.NoSuchStepExecutionException e) {
@@ -175,7 +137,6 @@ public class BatchStepExecutionsController {
 		catch (org.springframework.batch.core.launch.NoSuchJobExecutionException e) {
 			throw new NoSuchJobExecutionException(jobExecutionId);
 		}
-		return result;
 	}
 
 	/**

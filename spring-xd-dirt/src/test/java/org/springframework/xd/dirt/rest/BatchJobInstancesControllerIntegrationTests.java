@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,6 @@
 
 package org.springframework.xd.dirt.rest;
 
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -30,13 +27,11 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TimeZone;
 
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.batch.admin.service.JobService;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
@@ -46,24 +41,24 @@ import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.job.SimpleJob;
+import org.springframework.batch.core.launch.NoSuchJobException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.xd.dirt.job.JobExecutionInfo;
+import org.springframework.xd.dirt.job.NoSuchBatchJobInstanceException;
 import org.springframework.xd.dirt.plugins.job.BatchJobLocator;
 
 /**
- * Tests REST compliance of {@link BatchJobsController} endpoints.
+ * Tests REST compliance of {@link BatchJobInstancesController} endpoints.
  * 
  * @author Ilayaperumal Gopinathan
- * @author Gunnar Hillert
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = { RestConfiguration.class, Dependencies.class })
-public class BatchJobsControllerIntegrationTests extends AbstractControllerIntegrationTest {
+public class BatchJobInstancesControllerIntegrationTests extends AbstractControllerIntegrationTest {
 
 	@Autowired
 	private JobService jobService;
@@ -72,11 +67,9 @@ public class BatchJobsControllerIntegrationTests extends AbstractControllerInteg
 	private BatchJobLocator jobLocator;
 
 	@Autowired
-	private BatchJobsController batchJobsController;
+	private BatchJobInstancesController batchJobInstancesController;
 
 	private JobExecution execution;
-
-	private TimeZone timeZone = TimeZone.getDefault();
 
 	@Before
 	public void before() throws Exception {
@@ -111,8 +104,8 @@ public class BatchJobsControllerIntegrationTests extends AbstractControllerInteg
 		jobExecutions1.add(jobExecution1);
 		jobExecutions1.add(jobExecution2);
 		jobExecutions2.add(jobExecution2);
+
 		when(jobLocator.getJobNames()).thenReturn(jobNames);
-		when(jobService.listJobs(0, 20)).thenReturn(jobNames);
 		when(jobService.countJobExecutionsForJob(job1.getName())).thenReturn(2);
 		when(jobService.countJobExecutionsForJob(job2.getName())).thenReturn(1);
 
@@ -134,85 +127,38 @@ public class BatchJobsControllerIntegrationTests extends AbstractControllerInteg
 		execution.setEndTime(endTime);
 		jobExecutions.add(execution);
 
-		when(jobService.listJobExecutionsForJob(job1.getName(), 0, 1)).thenReturn(jobExecutions);
-		when(jobService.listJobExecutions(0, 20)).thenReturn(jobExecutions1);
-		when(jobService.listJobExecutionsForJob(job2.getName(), 0, 20)).thenReturn(jobExecutions2);
-
-	}
-
-	@SuppressWarnings("unchecked")
-	@Test
-	public void testGetBatchJobs() throws Exception {
-		JobExecutionInfo info = new JobExecutionInfo(execution, timeZone);
-		mockMvc.perform(
-				get("/batch/jobs").param("startJob", "0").param("pageSize", "20").accept(MediaType.APPLICATION_JSON)).andExpect(
-				status().isOk()).andExpect(jsonPath("$", Matchers.hasSize(2))).andExpect(
-				jsonPath("$[*].executionCount", contains(2, 1))).andExpect(
-				jsonPath("$[*].launchable", contains(false, true))).andExpect(
-				jsonPath("$[*].incrementable", contains(false, true))).andExpect(
-				jsonPath("$[*].jobInstanceId", contains(nullValue(), nullValue()))).andExpect(
-				jsonPath("$[*].duration", contains(info.getDuration(), null))).andExpect(
-				jsonPath("$[*].startTime", contains(info.getStartTime(), null))).andExpect(
-				jsonPath("$[*].startDate", contains(info.getStartDate(), null))).andExpect(
-				jsonPath("$[*].stepExecutionCount", contains(info.getStepExecutionCount(), 0))).andExpect(
-				jsonPath("$[*].jobParameters", contains(info.getJobParametersString(), null)))
-
-				// should contain the display name (ie- without the .job suffix)
-				.andExpect(jsonPath("$[0].name", equalTo("job1"))).andExpect(
-						jsonPath("$[0].jobInstanceId", nullValue()))
-
-				.andExpect(jsonPath("$[1].name", equalTo("job2"))).andExpect(
-						jsonPath("$[1].jobInstanceId", nullValue()))
-
-				// exit status is non null for job 0 and null for job 1
-				.andExpect(
-						jsonPath("$[0].exitStatus.exitDescription",
-								equalTo(execution.getExitStatus().getExitDescription()))).andExpect(
-						jsonPath("$[0].exitStatus.exitCode", equalTo(execution.getExitStatus().getExitCode()))).andExpect(
-						jsonPath("$[0].exitStatus.running", equalTo(false))).andExpect(
-						jsonPath("$[1].exitStatus", nullValue()));
+		when(jobService.getJobInstance(jobInstance1.getInstanceId())).thenReturn(jobInstance1);
+		when(jobService.getJobExecutionsForJobInstance(jobInstance1.getJobName(), jobInstance1.getInstanceId())).thenReturn(
+				jobExecutions2);
+		when(jobService.getJobInstance(100)).thenThrow(new NoSuchBatchJobInstanceException(100));
+		when(jobService.getJobInstance(101)).thenReturn(jobInstance2);
+		when(jobService.getJobExecutionsForJobInstance("job2", jobInstance2.getInstanceId())).thenThrow(
+				new NoSuchJobException("job2"));
 	}
 
 	@Test
-	public void testGetJobInstanceByJobName() throws Exception {
+	public void testGetJobInstanceByInstanceId() throws Exception {
 		mockMvc.perform(
-				get("/batch/jobs/job1/instances").param("startJobInstance", "0").param("pageSize", "20").accept(
-						MediaType.APPLICATION_JSON)).andExpect(status().isOk())
-				.andExpect(jsonPath("$", Matchers.hasSize(2)))
-				.andExpect(jsonPath("$[*].instanceId", contains(0, 3)))
-				.andExpect(jsonPath("$[*].jobName", contains("job1", "job1")));
+				get("/batch/instances/0").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
+				.andExpect(jsonPath("$.instanceId").value(0))
+				.andExpect(jsonPath("$.jobName").value("job1"))
+				.andExpect(jsonPath("$.jobExecutions", Matchers.hasSize(1)))
+				.andExpect(jsonPath("$.jobExecutions[0].id").value(3))
+				.andExpect(jsonPath("$.jobExecutions[0].stepExecutions", Matchers.hasSize(1)))
+				.andExpect(jsonPath("$.jobExecutions[0].stepExecutions[0].stepName").value("s1"));
 	}
 
 	@Test
-	public void testGetJobInfoByJobName() throws Exception {
+	public void testGetJobInstanceByInvalidInstanceId() throws Exception {
 		mockMvc.perform(
-				get("/batch/jobs/job1").param("startJobInstance", "0").param("pageSize", "20").accept(
-						MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
-				jsonPath("$.executionCount").value(2)).andExpect(jsonPath("$.launchable").value(false)).andExpect(
-				jsonPath("$.incrementable").value(false)).andExpect(jsonPath("$.jobInstanceId", nullValue()));
-
+				get("/batch/instances/100").accept(MediaType.APPLICATION_JSON)).andExpect(status().isNotFound())
+				.andExpect(jsonPath("$[0].message", Matchers.is("Batch Job instance with the id 100 doesn't exist")));
 	}
 
 	@Test
-	public void testGetJobExecutionsByName() throws Exception {
+	public void testGetJobInstanceExecutionsByInvalidJobName() throws Exception {
 		mockMvc.perform(
-				get("/batch/jobs/job2/executions").param("startJobExecution", "0").param("pageSize", "20").accept(
-						MediaType.APPLICATION_JSON)).andExpect(status().isOk())
-				.andExpect(jsonPath("$", Matchers.hasSize(1)))
-				.andExpect(jsonPath("$[0].executionId").value(3))
-				.andExpect(jsonPath("$[0].jobId").value(2))
-				.andExpect(jsonPath("$[0].jobExecution[*].id").value(3))
-				.andExpect(
-						jsonPath("$[0].jobExecution[*].jobParameters.parameters.param1.value").value("test"))
-				.andExpect(
-						jsonPath("$[0].jobExecution[*].jobParameters.parameters.param1.type").value("STRING"))
-				.andExpect(jsonPath("$[0].jobExecution[*].jobParameters.parameters.param1.identifying").value(
-						true))
-				.andExpect(
-						jsonPath("$[0].jobExecution[*].jobParameters.parameters.param2.value").value(123))
-				.andExpect(
-						jsonPath("$[0].jobExecution[*].jobParameters.parameters.param2.type").value("LONG"))
-				.andExpect(jsonPath("$[0].jobExecution[*].jobParameters.parameters.param2.identifying").value(
-						false));
+				get("/batch/instances/101").accept(MediaType.APPLICATION_JSON)).andExpect(status().isNotFound())
+				.andExpect(jsonPath("$[0].message", Matchers.is("Batch Job with the name job2 doesn't exist")));
 	}
 }

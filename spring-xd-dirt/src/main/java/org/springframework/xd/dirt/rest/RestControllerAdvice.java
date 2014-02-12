@@ -18,7 +18,6 @@ package org.springframework.xd.dirt.rest;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.hateoas.VndErrors;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.StringUtils;
@@ -33,7 +32,8 @@ import org.springframework.xd.dirt.job.JobExecutionNotRunningException;
 import org.springframework.xd.dirt.job.JobInstanceAlreadyCompleteException;
 import org.springframework.xd.dirt.job.JobParametersInvalidException;
 import org.springframework.xd.dirt.job.JobRestartException;
-import org.springframework.xd.dirt.job.NoSuchJobException;
+import org.springframework.xd.dirt.job.NoSuchBatchJobException;
+import org.springframework.xd.dirt.job.NoSuchBatchJobInstanceException;
 import org.springframework.xd.dirt.job.NoSuchJobExecutionException;
 import org.springframework.xd.dirt.job.NoSuchStepExecutionException;
 import org.springframework.xd.dirt.module.ModuleAlreadyExistsException;
@@ -220,7 +220,15 @@ public class RestControllerAdvice {
 	@ResponseBody
 	@ExceptionHandler
 	@ResponseStatus(HttpStatus.NOT_FOUND)
-	public VndErrors onNoSuchJobException(NoSuchJobException e) {
+	public VndErrors onNoSuchJobException(NoSuchBatchJobException e) {
+		String logref = log(e);
+		return new VndErrors(logref, e.getMessage());
+	}
+
+	@ResponseBody
+	@ExceptionHandler
+	@ResponseStatus(HttpStatus.NOT_FOUND)
+	public VndErrors onNoSuchJobInstanceException(NoSuchBatchJobInstanceException e) {
 		String logref = log(e);
 		return new VndErrors(logref, e.getMessage());
 	}

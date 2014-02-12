@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,16 +19,13 @@ package org.springframework.xd.dirt.job;
 import org.springframework.xd.dirt.core.XDRuntimeException;
 
 /**
- * @author Gunnar Hillert
+ * 
+ * @author Ilayaperumal Gopinathan
  */
 @SuppressWarnings("serial")
-public class NoSuchJobException extends XDRuntimeException {
+public class NoSuchBatchJobInstanceException extends XDRuntimeException {
 
-	public NoSuchJobException(String message) {
-		super(message);
-	}
-
-	public NoSuchJobException(String message, Throwable e) {
-		super(message, e);
+	public NoSuchBatchJobInstanceException(long instanceId) {
+		super("Batch Job instance with the id " + instanceId + " doesn't exist");
 	}
 }

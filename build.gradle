@@ -790,6 +790,29 @@ project('spring-xd-hadoop:phd1') {
 	}
 }
 
+project('spring-xd-yarn') {
+	description = 'Spring XD YARN'
+	dependencies {
+		compile "org.springframework:spring-aop:$springVersion"
+		compile "org.springframework:spring-context:$springVersion"
+		compile "org.springframework:spring-context-support:$springVersion"
+		compile "org.springframework:spring-jdbc:$springVersion"
+		compile "org.springframework:spring-tx:$springVersion"
+		compile "org.springframework.batch:spring-batch-core:$springBatchVersion"
+		compile ("org.springframework.data:spring-yarn:$springDataHadoopBase") {
+			exclude group: 'javax.servlet'
+			exclude group: 'javax.servlet.jsp'
+			exclude group: 'tomcat'
+			exclude group: 'org.mortbay.jetty'
+			exclude group: 'com.sun.jersey'
+			exclude group: 'org.codehaus.jackson'
+			exclude group: 'net.java.dev.jets3t'
+			exclude group: 'com.jcraft'
+			exclude group: 'junit'
+			exclude group: 'hsqldb'
+		}
+	}
+}
 
 // 'Binary' distributions projects
 
@@ -1387,7 +1410,14 @@ task copyHadoopLibs(dependsOn: [":spring-xd-hadoop:hadoop12:copyToLib", ":spring
 	}
 }
 
-task copyInstall (type: Copy, dependsOn: ["copyRedisInstall", "copyGemfireInstall", "copyXDInstall", "copyHadoopLibs", "copyXDShellInstall"]) {
+task copyYARNInstall(type: Copy, dependsOn: [":spring-xd-dirt:build", ":spring-xd-dirt:installApp"]) {
+	from "$rootDir/spring-xd-dirt/build/install/spring-xd-dirt"
+	into "$buildDir/dist/spring-xd-yarn/xd-yarn"
+	exclude "**/bin/*"
+	exclude "**/lib/hadoop-*.jar"
+}
+
+task copyInstall (type: Copy, dependsOn: ["copyRedisInstall", "copyGemfireInstall", "copyXDInstall", "copyHadoopLibs", "copyXDShellInstall", "copyYARNInstall"]) {
 	group = 'Application'
 	description = "Copy all the required installs to build/dist directory"
 	from "$rootDir/scripts/README"
@@ -1583,8 +1613,21 @@ task distTar(type: Tar, dependsOn: [asciidoctorHtml, copyInstall], overwrite: tr
 	}
 }
 
+task yarnZip(type: Zip, dependsOn: [copyInstall], overwrite: true) {
+	group = 'Application'
+	classifier = 'yarn'
+	description = "Bundles the XD project and associated installs with libs prepared for YARN deployment as a zip file."
+
+	ext.baseDir = "${project.name}-yarn-${project.version}";
+
+	from("$buildDir/dist/spring-xd-yarn") {
+		into "${baseDir}"
+	}
+}
+
 artifacts {
 	archives distZip
+	archives yarnZip
 	archives docsZip
 }
 

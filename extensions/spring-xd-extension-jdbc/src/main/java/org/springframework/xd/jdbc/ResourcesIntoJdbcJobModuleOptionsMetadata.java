@@ -24,22 +24,22 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  * @author Eric Bottard
  */
 public class ResourcesIntoJdbcJobModuleOptionsMetadata extends
-		AbstractJdbcModuleOptionsMetadata {
+		AbstractImportToJdbcOptionsMetadata {
 
-	private Boolean restartable;
+	private boolean restartable;
 
 	private String names;
 
 	private String resources;
 
-	private Boolean deleteFiles;
+	private boolean deleteFiles;
 
 	public ResourcesIntoJdbcJobModuleOptionsMetadata() {
 		configProperties = "batch-jdbc";
 	}
 
 	@ModuleOption("whether the job should be restartable or not in case of failure")
-	public void setRestartable(Boolean restartable) {
+	public void setRestartable(boolean restartable) {
 		this.restartable = restartable;
 	}
 
@@ -54,7 +54,7 @@ public class ResourcesIntoJdbcJobModuleOptionsMetadata extends
 	}
 
 	@ModuleOption("whether to delete files after successful import")
-	public void setDeleteFiles(Boolean deleteFiles) {
+	public void setDeleteFiles(boolean deleteFiles) {
 		this.deleteFiles = deleteFiles;
 	}
 
@@ -70,7 +70,7 @@ public class ResourcesIntoJdbcJobModuleOptionsMetadata extends
 		return resources;
 	}
 
-	public Boolean getDeleteFiles() {
+	public boolean getDeleteFiles() {
 		return deleteFiles;
 	}
 }

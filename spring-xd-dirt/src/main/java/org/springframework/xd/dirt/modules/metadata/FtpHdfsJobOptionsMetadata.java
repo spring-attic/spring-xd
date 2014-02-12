@@ -20,7 +20,6 @@ import org.springframework.xd.module.options.spi.ModuleOption;
 
 
 /**
- * 
  * Describes the options for the ftphdfs job.
  * 
  * @author Gary Russell

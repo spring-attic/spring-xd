@@ -85,9 +85,6 @@
 			</constructor-arg>
 		</bean>
 
-	</beans>
-
-	<beans>
 		<bean id="jobInstanceDao"
 			class="org.springframework.batch.admin.service.JdbcSearchableJobInstanceDao">
 			<property name="jdbcTemplate" ref="jdbcTemplate" />

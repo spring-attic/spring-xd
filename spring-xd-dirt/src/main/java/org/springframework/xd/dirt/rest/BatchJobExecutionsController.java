@@ -26,13 +26,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.xd.dirt.job.JobExecutionAlreadyRunningException;
 import org.springframework.xd.dirt.job.JobExecutionInfo;
 import org.springframework.xd.dirt.job.JobExecutionNotRunningException;
@@ -51,7 +50,7 @@ import org.springframework.xd.rest.client.domain.JobExecutionInfoResource;
  * @author Gunnar Hillert
  * 
  */
-@Controller
+@RestController
 @RequestMapping("/batch/executions")
 @ExposesResourceFor(JobExecutionInfoResource.class)
 public class BatchJobExecutionsController {
@@ -62,9 +61,6 @@ public class BatchJobExecutionsController {
 
 	private final JobExecutionInfoResourceAssembler jobExecutionInfoResourceAssembler;
 
-	/**
-	 * @param timeZone the timeZone to set
-	 */
 	@Autowired(required = false)
 	@Qualifier("userTimeZone")
 	public void setTimeZone(TimeZone timeZone) {
@@ -87,7 +83,6 @@ public class BatchJobExecutionsController {
 	 */
 	@RequestMapping(value = { "" }, method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
-	@ResponseBody
 	public Collection<JobExecutionInfoResource> list(@RequestParam(defaultValue = "0") int startJobExecution,
 			@RequestParam(defaultValue = "20") int pageSize) {
 
@@ -99,22 +94,21 @@ public class BatchJobExecutionsController {
 	}
 
 	/**
-	 * @param jobExecutionId Id of the {@link JobExecution}
+	 * @param executionId Id of the {@link JobExecution}
 	 * @return JobExecutionInfo for the given job name
 	 * @throws NoSuchJobExecutionException Thrown if the {@link JobExecution} does not exist
 	 */
-	@RequestMapping(value = "/{jobExecutionId}", method = RequestMethod.GET)
+	@RequestMapping(value = "/{executionId}", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
-	@ResponseBody
-	public JobExecutionInfoResource getJobExecutionInfo(@PathVariable Long jobExecutionId) {
+	public JobExecutionInfoResource getJobExecutionInfo(@PathVariable long executionId) {
 
 		final JobExecution jobExecution;
 
 		try {
-			jobExecution = jobService.getJobExecution(jobExecutionId);
+			jobExecution = jobService.getJobExecution(executionId);
 		}
 		catch (org.springframework.batch.core.launch.NoSuchJobExecutionException e) {
-			throw new NoSuchJobExecutionException(jobExecutionId);
+			throw new NoSuchJobExecutionException(executionId);
 		}
 
 		return jobExecutionInfoResourceAssembler.toResource(new JobExecutionInfo(jobExecution, timeZone));
@@ -127,7 +121,7 @@ public class BatchJobExecutionsController {
 	 */
 	@RequestMapping(value = { "/{executionId}" }, method = RequestMethod.PUT, params = "stop=true")
 	@ResponseStatus(HttpStatus.OK)
-	public void stopJobExecution(@PathVariable("executionId") Long jobExecutionId) {
+	public void stopJobExecution(@PathVariable("executionId") long jobExecutionId) {
 		try {
 			jobService.stop(jobExecutionId);
 		}
@@ -146,7 +140,7 @@ public class BatchJobExecutionsController {
 	 */
 	@RequestMapping(value = { "/{executionId}" }, method = RequestMethod.PUT, params = "restart=true")
 	@ResponseStatus(HttpStatus.OK)
-	public void restartJobExecution(@PathVariable("executionId") Long jobExecutionId) {
+	public void restartJobExecution(@PathVariable("executionId") long jobExecutionId) {
 
 		try {
 			jobService.restart(jobExecutionId);
@@ -176,7 +170,6 @@ public class BatchJobExecutionsController {
 
 	/**
 	 * Stop all job executions.
-	 * 
 	 */
 	@RequestMapping(value = { "" }, method = RequestMethod.PUT, params = "stop=true")
 	@ResponseStatus(HttpStatus.OK)

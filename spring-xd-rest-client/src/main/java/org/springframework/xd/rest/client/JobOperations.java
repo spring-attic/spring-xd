@@ -75,6 +75,11 @@ public interface JobOperations extends ResourceOperations {
 	public void stopJobExecution(long jobExecutionId);
 
 	/**
+	 * Restart a given job execution.
+	 */
+	public void restartJobExecution(long jobExecutionId);
+
+	/**
 	 * Stop all job executions.
 	 */
 	public void stopAllJobExecutions();

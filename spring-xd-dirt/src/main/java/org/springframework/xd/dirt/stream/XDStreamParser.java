@@ -72,7 +72,7 @@ public class XDStreamParser implements XDParser {
 	}
 
 	@Override
-	public List<ModuleDeploymentRequest> parse(String name, String config, ParsingContext type) {
+	public List<ModuleDeploymentRequest> parse(String name, String config, ParsingContext parsingContext) {
 
 		StreamConfigParser parser = new StreamConfigParser(repository);
 		StreamNode stream = parser.parse(name, config);
@@ -109,17 +109,19 @@ public class XDStreamParser implements XDParser {
 		// And while we're at it (and type is known), validate module name and options
 		List<ModuleDeploymentRequest> result = new ArrayList<ModuleDeploymentRequest>(requests.size());
 		for (ModuleDeploymentRequest original : requests) {
-			original.setType(determineType(original, requests.size() - 1, type));
+			original.setType(determineType(original, requests.size() - 1, parsingContext));
 
 			// definition is guaranteed to be non-null here
 			ModuleDefinition moduleDefinition = moduleDefinitionRepository.findByNameAndType(original.getModule(),
 					original.getType());
 			ModuleOptionsMetadata optionsMetadata = moduleOptionsMetadataResolver.resolve(moduleDefinition);
-			try {
-				optionsMetadata.interpolate(original.getParameters());
-			}
-			catch (BindException e) {
-				throw ModuleConfigurationException.fromBindException(original.getModule(), original.getType(), e);
+			if (parsingContext.shouldBindAndValidate()) {
+				try {
+					optionsMetadata.interpolate(original.getParameters());
+				}
+				catch (BindException e) {
+					throw ModuleConfigurationException.fromBindException(original.getModule(), original.getType(), e);
+				}
 			}
 
 			result.add(convertToCompositeIfNecessary(original));

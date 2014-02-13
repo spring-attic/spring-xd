@@ -32,33 +32,38 @@ public enum ParsingContext {
 	/**
 	 * A full stream definition, which ought to start with a source (or channel) and end with a sink (or channel).
 	 */
-	stream(source, processor, sink),
+	stream(true, source, processor, sink),
 
 	/**
 	 * A composed module, which starts or ends on a processor.
 	 */
 	// Read these vertically: either [source, processor, processor] or [processor, processor, sink]
-	module(new ModuleType[] { source, processor },
+	module(true, new ModuleType[] { source, processor },
 			new ModuleType[] { processor /* ,processsor */},
 			new ModuleType[] { processor, sink }),
 
 	/**
 	 * A job definition.
 	 */
-	job(ModuleType.job, null, null),
+	job(true, ModuleType.job, null, null),
 
 	/**
 	 * For the purpose of DSL completion only, a (maybe unfinished) stream definition.
 	 */
-	partial_stream(new ModuleType[] { source },
+	partial_stream(false, new ModuleType[] { source },
 			new ModuleType[] { processor },
 			new ModuleType[] { processor, sink }),
 	/**
 	 * For the purpose of DSL completion only, a (maybe unfinished) composed module definition.
 	 */
-	partial_module(new ModuleType[] { source, processor },
+	partial_module(false, new ModuleType[] { source, processor },
 			new ModuleType[] { processor },
-			new ModuleType[] { processor, sink });
+			new ModuleType[] { processor, sink }),
+
+	/**
+	 * For the purpose of DSL completion only, a (maybe unfinished) job definition.
+	 */
+	partial_job(false, ModuleType.job, null, null);
 
 	/**
 	 * Represents the position of a module in an XD DSL declaration.
@@ -105,19 +110,34 @@ public enum ParsingContext {
 		return result;
 	}
 
-	private ParsingContext(ModuleType atStart, ModuleType atMiddle, ModuleType atEnd) {
-		this(
+	public boolean shouldBindAndValidate() {
+		return bindAndValidate;
+	}
+
+	private ParsingContext(boolean bindAndValidate, ModuleType atStart, ModuleType atMiddle, ModuleType atEnd) {
+		this(bindAndValidate,
 				new ModuleType[] { atStart },
 				new ModuleType[] { atMiddle },
 				new ModuleType[] { atEnd });
 	}
 
-	private ParsingContext(ModuleType[] atStart, ModuleType[] atMiddle, ModuleType[] atEnd) {
+	private ParsingContext(boolean bindAndValidate, ModuleType[] atStart, ModuleType[] atMiddle, ModuleType[] atEnd) {
+		this.bindAndValidate = bindAndValidate;
 		allowed[0] = atStart;
 		allowed[1] = atMiddle;
 		allowed[2] = atEnd;
 	}
 
 	private final ModuleType[][] allowed = new ModuleType[Position.values().length][];
+
+	/**
+	 * Whether to apply binding and validation to module options.
+	 * 
+	 * <p>
+	 * Actual deployments will want this, while partials typically don't contain all required options yet, so we don't
+	 * want to fail with a validation exception.
+	 */
+	private final boolean bindAndValidate;
+
 
 }

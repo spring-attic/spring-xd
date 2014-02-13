@@ -69,6 +69,8 @@ public class JobCommands implements CommandMarker {
 
 	private final static String STOP_JOB_EXECUTION = "job execution stop";
 
+	private final static String RESTART_JOB_EXECUTION = "job execution restart";
+
 	private final static String DEPLOY_JOB = "job deploy";
 
 	private final static String DEPLOY_ALL_JOBS = "job all deploy";
@@ -298,11 +300,18 @@ public class JobCommands implements CommandMarker {
 		}
 	}
 
-	@CliCommand(value = STOP_JOB_EXECUTION, help = "Stop the job execution that is running")
+	@CliCommand(value = STOP_JOB_EXECUTION, help = "Stop a job execution that is running")
 	public String stopJobExecution(
 			@CliOption(key = { "", "id" }, help = "the id of the job execution", mandatory = true) long executionId) {
 		jobOperations().stopJobExecution(executionId);
 		return String.format("Stopped Job execution that has executionId '%s'", executionId);
+	}
+
+	@CliCommand(value = RESTART_JOB_EXECUTION, help = "Restart a job that failed or interrupted previously")
+	public String restartJobExecution(
+			@CliOption(key = { "", "id" }, help = "the id of the job execution that failed or interrupted", mandatory = true) long executionId) {
+		jobOperations().restartJobExecution(executionId);
+		return String.format("Restarted Job execution that had executionId '%s'", executionId);
 	}
 
 	@CliCommand(value = DEPLOY_JOB, help = "Deploy a previously created job")

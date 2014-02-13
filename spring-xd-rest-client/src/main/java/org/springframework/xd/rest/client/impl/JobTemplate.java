@@ -96,6 +96,15 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 	}
 
 	@Override
+	public void restartJobExecution(long executionId) {
+		String uriTemplate = resources.get("batch/executions").toString() + "/{executionId}";
+		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
+		values.add("executionId", executionId);
+		uriTemplate = uriTemplate + "?restart=true";
+		restTemplate.put(uriTemplate, values, executionId);
+	}
+
+	@Override
 	public void undeploy(String name) {
 		String uriTemplate = resources.get("jobs").toString() + "/{name}";
 		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();

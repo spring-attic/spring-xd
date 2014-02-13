@@ -71,21 +71,21 @@ public class BatchJobExecutionsController extends AbstractBatchJobsController {
 	}
 
 	/**
-	 * @param jobExecutionId Id of the {@link JobExecution}
+	 * @param executionId Id of the {@link JobExecution}
 	 * @return JobExecutionInfo for the given job name
 	 * @throws NoSuchJobExecutionException Thrown if the {@link JobExecution} does not exist
 	 */
-	@RequestMapping(value = "/{jobExecutionId}", method = RequestMethod.GET)
+	@RequestMapping(value = "/{executionId}", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
-	public JobExecutionInfoResource getJobExecutionInfo(@PathVariable Long jobExecutionId) {
+	public JobExecutionInfoResource getJobExecutionInfo(@PathVariable long executionId) {
 
 		final JobExecution jobExecution;
 
 		try {
-			jobExecution = jobService.getJobExecution(jobExecutionId);
+			jobExecution = jobService.getJobExecution(executionId);
 		}
 		catch (org.springframework.batch.core.launch.NoSuchJobExecutionException e) {
-			throw new NoSuchJobExecutionException(jobExecutionId);
+			throw new NoSuchJobExecutionException(executionId);
 		}
 
 		return jobExecutionInfoResourceAssembler.toResource(new JobExecutionInfo(jobExecution, timeZone));
@@ -98,7 +98,7 @@ public class BatchJobExecutionsController extends AbstractBatchJobsController {
 	 */
 	@RequestMapping(value = { "/{executionId}" }, method = RequestMethod.PUT, params = "stop=true")
 	@ResponseStatus(HttpStatus.OK)
-	public void stopJobExecution(@PathVariable("executionId") Long jobExecutionId) {
+	public void stopJobExecution(@PathVariable("executionId") long jobExecutionId) {
 		try {
 			jobService.stop(jobExecutionId);
 		}
@@ -117,7 +117,7 @@ public class BatchJobExecutionsController extends AbstractBatchJobsController {
 	 */
 	@RequestMapping(value = { "/{executionId}" }, method = RequestMethod.PUT, params = "restart=true")
 	@ResponseStatus(HttpStatus.OK)
-	public void restartJobExecution(@PathVariable("executionId") Long jobExecutionId) {
+	public void restartJobExecution(@PathVariable("executionId") long jobExecutionId) {
 
 		try {
 			jobService.restart(jobExecutionId);
@@ -146,7 +146,6 @@ public class BatchJobExecutionsController extends AbstractBatchJobsController {
 
 	/**
 	 * Stop all job executions.
-	 * 
 	 */
 	@RequestMapping(value = { "" }, method = RequestMethod.PUT, params = "stop=true")
 	@ResponseStatus(HttpStatus.OK)

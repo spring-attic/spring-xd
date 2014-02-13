@@ -367,7 +367,7 @@ project('spring-xd-dirt') {
 			exclude group: 'org.springframework.integration'
 			exclude group: 'org.springframework'
 		}
-
+		compile "org.hibernate:hibernate-validator:$hibernateValidatorVersion"
 
 		runtime "org.slf4j:jcl-over-slf4j:$slf4jVersion"
 		runtime "org.slf4j:slf4j-log4j12:$slf4jVersion"

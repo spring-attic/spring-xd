@@ -70,4 +70,26 @@
 		<tasklet ref="tasklet"/>
 	</step>
 
+	<bean id="jobInstanceDao"
+		class="org.springframework.batch.admin.service.JdbcSearchableJobInstanceDao">
+		<property name="jdbcTemplate" ref="jdbcTemplate" />
+	</bean>
+
+	<bean id="jobExecutionDao"
+		class="org.springframework.batch.admin.service.JdbcSearchableJobExecutionDao">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+
+	<bean id="stepExecutionDao"
+		class="org.springframework.batch.admin.service.JdbcSearchableStepExecutionDao">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+
+	<bean id="executionContextDao" class="org.springframework.batch.core.repository.dao.JdbcExecutionContextDao">
+		<property name="jdbcTemplate" ref="jdbcTemplate" />
+		<property name="serializer">
+			<bean class="org.springframework.batch.core.repository.dao.XStreamExecutionContextStringSerializer" />
+		</property>
+	</bean>
+
 </beans>

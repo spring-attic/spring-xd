@@ -231,13 +231,20 @@ public class CompletionProviderTests {
 	}
 
 	@Test
-	public void testJobCompletions() {
+	public void testJobNameCompletions() {
 		List<String> completions = completionProvider.complete(job, "");
 		assertThat(completions, hasItem(startsWith("hdfs")));
 		assertThat(completions, not(hasItem(startsWith("gemfire-cq"))));
 
 		completions = completionProvider.complete(job, "hdf");
 		assertThat(completions, hasItem(startsWith("hdfs")));
+
+	}
+
+	@Test
+	public void testJobOptionsCompletions() {
+		List<String> completions = completionProvider.complete(job, "filejdbc --");
+		assertThat(completions, hasItem(startsWith("filejdbc --resources")));
 
 	}
 

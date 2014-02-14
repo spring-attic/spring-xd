@@ -29,11 +29,18 @@ import org.springframework.hateoas.ResourceSupport;
  */
 public class JobInstanceInfoResource extends ResourceSupport {
 
-	private final String jobName;
+	private String jobName;
 
-	private final long instanceId;
+	private long instanceId;
 
-	private final List<JobExecutionInfoResource> jobExecutions;
+	private List<JobExecutionInfoResource> jobExecutions;
+
+	/**
+	 * Default constructor for serialization frameworks.
+	 */
+	protected JobInstanceInfoResource() {
+
+	}
 
 	public JobInstanceInfoResource(JobInstance jobInstance, List<JobExecutionInfoResource> jobExecutionInfoResources) {
 		this.jobName = jobInstance.getJobName();

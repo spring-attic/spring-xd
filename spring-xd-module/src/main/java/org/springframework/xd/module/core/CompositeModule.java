@@ -43,6 +43,7 @@ import org.springframework.xd.module.ModuleType;
 
 /**
  * @author Mark Fisher
+ * @author David Turanski
  */
 public class CompositeModule extends AbstractModule {
 
@@ -122,6 +123,8 @@ public class CompositeModule extends AbstractModule {
 					AbstractEndpoint endpoint = bridgeFactoryBean.getObject();
 					endpoints.add(endpoint);
 					this.context.getBeanFactory().registerSingleton("bridge-" + i, endpoint);
+					endpoint.setComponentName("bridge-" + i);
+					endpoint.afterPropertiesSet();
 				}
 				catch (Exception e) {
 					throw new IllegalStateException("failed to start bridge for CompositeModule", e);

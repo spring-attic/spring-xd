@@ -21,6 +21,8 @@ import java.util.Map;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
+import org.springframework.aop.framework.Advised;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
@@ -56,13 +58,14 @@ public class StreamTestSupport extends RandomConfigurationSupport {
 
 	@BeforeClass
 	public static void startXDSingleNode() throws Exception {
-		application = new SingleNodeApplication().run("--analytics", "memory", "--store", "memory");
+		application = new SingleNodeApplication().run("--analytics", "memory", "--store", "memory", "--jmxEnabled");
 		adminContext = application.adminContext();
 		SingleNodeIntegrationTestSupport integrationTestSupport = new SingleNodeIntegrationTestSupport(application,
 				"classpath:/testmodules/");
 
 		streamDeployer = integrationTestSupport.streamDeployer();
-		moduleDeployer = application.containerContext().getBean(ModuleDeployer.class);
+		Object md = application.containerContext().getBean("moduleDeployer", Object.class);
+		moduleDeployer = (ModuleDeployer) (AopUtils.isJdkDynamicProxy(md) ? ((Advised)md).getTargetSource().getTarget() : md);
 		moduleDefinitionRepository = adminContext.getBean(ModuleDefinitionRepository.class);
 	}
 

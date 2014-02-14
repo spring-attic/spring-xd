@@ -143,9 +143,9 @@ public class BatchJobInstancesControllerIntegrationTests extends AbstractControl
 				.andExpect(jsonPath("$.instanceId").value(0))
 				.andExpect(jsonPath("$.jobName").value("job1"))
 				.andExpect(jsonPath("$.jobExecutions", Matchers.hasSize(1)))
-				.andExpect(jsonPath("$.jobExecutions[0].id").value(3))
-				.andExpect(jsonPath("$.jobExecutions[0].stepExecutions", Matchers.hasSize(1)))
-				.andExpect(jsonPath("$.jobExecutions[0].stepExecutions[0].stepName").value("s1"));
+				.andExpect(jsonPath("$.jobExecutions[0].jobExecution.id").value(3))
+				.andExpect(jsonPath("$.jobExecutions[0].jobExecution.stepExecutions", Matchers.hasSize(1)))
+				.andExpect(jsonPath("$.jobExecutions[0].jobExecution.stepExecutions[0].stepName").value("s1"));
 	}
 
 	@Test

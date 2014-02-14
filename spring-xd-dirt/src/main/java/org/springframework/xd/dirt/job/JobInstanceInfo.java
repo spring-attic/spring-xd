@@ -18,7 +18,6 @@ package org.springframework.xd.dirt.job;
 
 import java.util.List;
 
-import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobInstance;
 import org.springframework.util.Assert;
 
@@ -32,9 +31,9 @@ public class JobInstanceInfo {
 
 	private final JobInstance jobInstance;
 
-	private final List<JobExecution> jobExecutions;
+	private final List<JobExecutionInfo> jobExecutions;
 
-	public JobInstanceInfo(JobInstance jobInstance, List<JobExecution> jobExecutions) {
+	public JobInstanceInfo(JobInstance jobInstance, List<JobExecutionInfo> jobExecutions) {
 		Assert.notNull(jobInstance, "jobInstance must not null");
 		Assert.notNull(jobExecutions, "jobExecutions must not null");
 		this.jobInstance = jobInstance;
@@ -45,7 +44,7 @@ public class JobInstanceInfo {
 		return jobInstance;
 	}
 
-	public List<JobExecution> getJobExecutions() {
+	public List<JobExecutionInfo> getJobExecutions() {
 		return jobExecutions;
 	}
 

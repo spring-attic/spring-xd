@@ -90,7 +90,11 @@ public class BatchJobsController extends AbstractBatchJobsController {
 			for (JobInstance jobInstance : jobInstances) {
 				List<JobExecution> jobExecutions = (List<JobExecution>) jobService.getJobExecutionsForJobInstance(
 						jobName, jobInstance.getId());
-				result.add(jobInstanceInfoResourceAssembler.toResource(new JobInstanceInfo(jobInstance, jobExecutions)));
+				List<JobExecutionInfo> jobExecutionInfos = new ArrayList<JobExecutionInfo>();
+				for (JobExecution jobExecution : jobExecutions) {
+					jobExecutionInfos.add(new JobExecutionInfo(jobExecution, timeZone));
+				}
+				result.add(jobInstanceInfoResourceAssembler.toResource(new JobInstanceInfo(jobInstance, jobExecutionInfos)));
 			}
 			return result;
 		}

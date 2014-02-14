@@ -30,6 +30,8 @@ import org.springframework.xd.rest.client.domain.JobInstanceInfoResource;
 public class JobInstanceInfoResourceAssembler extends
 		ResourceAssemblerSupport<JobInstanceInfo, JobInstanceInfoResource> {
 
+	JobExecutionInfoResourceAssembler jobExecutionInfoResourceAssembler = new JobExecutionInfoResourceAssembler();
+
 	public JobInstanceInfoResourceAssembler() {
 		super(BatchJobInstancesController.class, JobInstanceInfoResource.class);
 	}
@@ -41,6 +43,7 @@ public class JobInstanceInfoResourceAssembler extends
 
 	@Override
 	protected JobInstanceInfoResource instantiateResource(JobInstanceInfo entity) {
-		return new JobInstanceInfoResource(entity.getJobInstance(), entity.getJobExecutions());
+		return new JobInstanceInfoResource(entity.getJobInstance(),
+				jobExecutionInfoResourceAssembler.toResources(entity.getJobExecutions()));
 	}
 }

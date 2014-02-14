@@ -18,7 +18,6 @@ package org.springframework.xd.rest.client.domain;
 
 import java.util.List;
 
-import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobInstance;
 import org.springframework.hateoas.ResourceSupport;
 
@@ -34,19 +33,19 @@ public class JobInstanceInfoResource extends ResourceSupport {
 
 	private final long instanceId;
 
-	private final List<JobExecution> jobExecutions;
+	private final List<JobExecutionInfoResource> jobExecutions;
 
-	public JobInstanceInfoResource(JobInstance jobInstance, List<JobExecution> jobExecutions) {
+	public JobInstanceInfoResource(JobInstance jobInstance, List<JobExecutionInfoResource> jobExecutionInfoResources) {
 		this.jobName = jobInstance.getJobName();
 		this.instanceId = jobInstance.getInstanceId();
-		this.jobExecutions = jobExecutions;
+		this.jobExecutions = jobExecutionInfoResources;
 	}
 
 	public String getJobName() {
 		return jobName;
 	}
 
-	public List<JobExecution> getJobExecutions() {
+	public List<JobExecutionInfoResource> getJobExecutions() {
 		return this.jobExecutions;
 	}
 

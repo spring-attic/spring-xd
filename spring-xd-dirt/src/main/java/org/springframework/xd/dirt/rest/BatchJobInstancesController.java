@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.rest;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.batch.core.JobExecution;
@@ -29,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.xd.dirt.job.JobExecutionInfo;
 import org.springframework.xd.dirt.job.JobInstanceInfo;
 import org.springframework.xd.dirt.job.NoSuchBatchJobException;
 import org.springframework.xd.dirt.job.NoSuchBatchJobInstanceException;
@@ -60,7 +62,11 @@ public class BatchJobInstancesController extends AbstractBatchJobsController {
 			try {
 				List<JobExecution> jobExecutions = (List<JobExecution>) jobService.getJobExecutionsForJobInstance(
 						jobInstance.getJobName(), jobInstance.getId());
-				return jobInstanceInfoResourceAssembler.toResource(new JobInstanceInfo(jobInstance, jobExecutions));
+				List<JobExecutionInfo> jobExecutionInfos = new ArrayList<JobExecutionInfo>();
+				for (JobExecution jobExecution : jobExecutions) {
+					jobExecutionInfos.add(new JobExecutionInfo(jobExecution, timeZone));
+				}
+				return jobInstanceInfoResourceAssembler.toResource(new JobInstanceInfo(jobInstance, jobExecutionInfos));
 			}
 			catch (NoSuchJobException e) {
 				throw new NoSuchBatchJobException(jobName);

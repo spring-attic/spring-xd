@@ -25,6 +25,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.xd.rest.client.JobOperations;
 import org.springframework.xd.rest.client.domain.JobDefinitionResource;
 import org.springframework.xd.rest.client.domain.JobExecutionInfoResource;
+import org.springframework.xd.rest.client.domain.JobInstanceInfoResource;
 import org.springframework.xd.rest.client.domain.StepExecutionInfoResource;
 import org.springframework.xd.rest.client.domain.StepExecutionProgressInfoResource;
 
@@ -34,6 +35,7 @@ import org.springframework.xd.rest.client.domain.StepExecutionProgressInfoResour
  * @author Glenn Renfro
  * @author Ilayaperumal Gopinathan
  * @author Gunnar Hillert
+ * @author Eric Bottard
  */
 public class JobTemplate extends AbstractTemplate implements JobOperations {
 
@@ -177,5 +179,11 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 		final StepExecutionInfoResource stepExecutionInfoResource = restTemplate.getForObject(uriTemplate,
 				StepExecutionInfoResource.class, jobExecutionId, stepExecutionId);
 		return stepExecutionInfoResource;
+	}
+
+	@Override
+	public JobInstanceInfoResource displayJobInstance(long instanceId) {
+		String uriTemplate = resources.get("batch/instances").toString() + "/{instanceId}";
+		return restTemplate.getForObject(uriTemplate, JobInstanceInfoResource.class, instanceId);
 	}
 }

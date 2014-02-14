@@ -30,6 +30,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.xd.rest.client.JobOperations;
 import org.springframework.xd.rest.client.domain.JobDefinitionResource;
 import org.springframework.xd.rest.client.domain.JobExecutionInfoResource;
+import org.springframework.xd.rest.client.domain.JobInstanceInfoResource;
 import org.springframework.xd.rest.client.domain.StepExecutionInfoResource;
 import org.springframework.xd.rest.client.domain.StepExecutionProgressInfoResource;
 import org.springframework.xd.shell.XDShell;
@@ -46,6 +47,7 @@ import org.springframework.xd.shell.util.UiUtils;
  * @author Glenn Renfro
  * @author Ilayaperumal Gopinathan
  * @author Gunnar Hillert
+ * @author Eric Bottard
  * 
  */
 @Component
@@ -64,6 +66,8 @@ public class JobCommands implements CommandMarker {
 	private final static String DISPLAY_STEP_EXECUTION = "job execution step display";
 
 	private final static String DISPLAY_JOB_EXECUTION = "job execution display";
+
+	private final static String DISPLAY_JOB_INSTANCE = "job instance display";
 
 	private final static String STOP_ALL_JOB_EXECUTIONS = "job execution all stop";
 
@@ -353,6 +357,37 @@ public class JobCommands implements CommandMarker {
 			return "";
 		}
 	}
+
+	@CliCommand(value = DISPLAY_JOB_INSTANCE, help = "Display information about a given job instance")
+	public CharSequence displayJobInstance(
+			@CliOption(key = { "", "id" }, help = "the id of the job instance to retrieve") long instanceId
+			) {
+		JobInstanceInfoResource jobInstance = jobOperations().displayJobInstance(instanceId);
+		StringBuilder result = new StringBuilder("Information about instance ");
+		result.append(jobInstance.getInstanceId()).append(" of the job '").append(jobInstance.getJobName()).append(
+				"':\n");
+		Table table = new Table();
+		table.addHeader(1, new TableHeader("Execution Id"))
+				.addHeader(2, new TableHeader("Start Time"))
+				.addHeader(3, new TableHeader("Step Execution Count"))
+				.addHeader(4, new TableHeader("Status"));
+
+		for (JobExecutionInfoResource jobExecutionInfoResource : jobInstance.getJobExecutions()) {
+			String startTimeAsString =
+					jobExecutionInfoResource.getStartDate() + " " +
+							jobExecutionInfoResource.getStartTime() + " " +
+							jobExecutionInfoResource.getTimeZone().getID();
+			table.addRow(//
+					String.valueOf(jobExecutionInfoResource.getExecutionId()), //
+					startTimeAsString, //
+					String.valueOf(jobExecutionInfoResource.getStepExecutionCount()), //
+					jobExecutionInfoResource.getJobExecution().getStatus().name()//
+			);
+		}
+		result.append(table);
+		return result;
+	}
+
 
 	@CliCommand(value = DESTROY_JOB, help = "Destroy an existing job")
 	public String destroyJob(

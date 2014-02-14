@@ -21,6 +21,7 @@ import java.util.List;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.xd.rest.client.domain.JobDefinitionResource;
 import org.springframework.xd.rest.client.domain.JobExecutionInfoResource;
+import org.springframework.xd.rest.client.domain.JobInstanceInfoResource;
 import org.springframework.xd.rest.client.domain.StepExecutionInfoResource;
 import org.springframework.xd.rest.client.domain.StepExecutionProgressInfoResource;
 
@@ -87,10 +88,11 @@ public interface JobOperations extends ResourceOperations {
 	/**
 	 * Retrieve a specific {@link StepExecutionInfoResource} for the provided {@code jobExecutionId} and
 	 * {@code stepExecutionId}.
-	 * 
-	 * @param jobExecutionId Must not be null
-	 * @param stepExecutionId Must not be null
-	 * @return StepExecutionInfoResource
 	 */
 	public StepExecutionInfoResource displayStepExecution(long jobExecutionId, long stepExecutionId);
+
+	/**
+	 * Retrieve a specific instance of a job, given its intanceId.
+	 */
+	public JobInstanceInfoResource displayJobInstance(long instanceId);
 }

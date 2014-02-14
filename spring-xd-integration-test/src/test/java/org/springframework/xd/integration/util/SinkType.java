@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.integration.util;
 
 /**
- * Utilities for creating and monitoring streams and the JMX hooks for those
- * strings.
+ * Enumeration that represents the sinks that are supported by the integration tests.
  * 
  * @author Glenn Renfro
  */
 public enum SinkType {
- log,file
+	log, file
 }

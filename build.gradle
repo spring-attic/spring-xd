@@ -31,19 +31,31 @@ ext {
 		"http://static.springsource.org/spring-shell/docs/current/api/"
 	] as String[]
 
-	nonJavaProjects = [project(':redis'), project(':spring-xd-ui')]
+	nonJavaProjects = [
+		project(':redis'),
+		project(':spring-xd-ui')
+	]
 	moduleProjects  = subprojects.findAll { project -> project.path.startsWith(':modules.')}
 	javaProjects    = subprojects - (moduleProjects + nonJavaProjects)
-	coverageProjects = ['spring-xd-dirt', 'spring-xd-analytics', 'spring-xd-tuple',
-						'spring-xd-module', 'spring-xd-rest-client', 'spring-xd-rest-domain',
-						'spring-xd-shell','spring-xd-hadoop','spring-xd-extension-http',
-						'spring-xd-extension-jdbc','spring-xd-extension-reactor',
-						'spring-xd-extension-gemfire'].collect { p -> project(p) }
+	coverageProjects = [
+		'spring-xd-dirt',
+		'spring-xd-analytics',
+		'spring-xd-tuple',
+		'spring-xd-module',
+		'spring-xd-rest-client',
+		'spring-xd-rest-domain',
+		'spring-xd-shell',
+		'spring-xd-hadoop',
+		'spring-xd-extension-http',
+		'spring-xd-extension-jdbc',
+		'spring-xd-extension-reactor',
+		'spring-xd-extension-gemfire'
+	].collect { p -> project(p) }
 }
 
 // custom class to store the SingleNode server process
 class SingleNodeServerProcess {
-		 Process process
+	Process process
 }
 
 allprojects {
@@ -52,7 +64,7 @@ allprojects {
 	repositories {
 		mavenCentral()
 		maven { url 'http://repo.spring.io/libs-milestone' }
- 		maven { url 'http://repo.spring.io/libs-snapshot' }
+		maven { url 'http://repo.spring.io/libs-snapshot' }
 		maven { url 'http://repo.spring.io/plugins-release' }
 		maven { url 'http://repo.spring.io/plugins-snapshot' }
 		maven { url 'https://repo.eclipse.org/content/repositories/paho-releases' }
@@ -112,6 +124,8 @@ ext {
 	commonsIoVersion = '2.4'
 	singleNodeServerProcess = new SingleNodeServerProcess()
 	ftpServerVersion = '1.0.6'
+	jcloudsVersion = '1.7.0'
+	commonsVersion = '3.2'
 }
 
 def forceSpringVersion(p) {
@@ -151,16 +165,14 @@ configure(javaProjects) { subproject ->
 	}
 
 	eclipse {
-		project {
-			natures += 'org.springframework.ide.eclipse.core.springnature'
-		}
+		project { natures += 'org.springframework.ide.eclipse.core.springnature' }
 	}
 
 	// Include project specific settings
 	task eclipseSettings(type: Copy) {
 		from rootProject.files(
-			"src/eclipse/org.eclipse.jdt.ui.prefs",
-			"src/eclipse/de.loskutov.anyedit.AnyEditTools.prefs")
+				"src/eclipse/org.eclipse.jdt.ui.prefs",
+				"src/eclipse/de.loskutov.anyedit.AnyEditTools.prefs")
 		into project.file('.settings/')
 	}
 
@@ -183,18 +195,22 @@ configure(javaProjects) { subproject ->
 			groovy {
 				srcDirs = ['src/test/java']
 				resources {
-					srcDirs = ['src/test/resources', 'src/test/java']
+					srcDirs = [
+						'src/test/resources',
+						'src/test/java'
+					]
 				}
 			}
 			resources {
-				srcDirs = ['src/test/resources', 'src/test/java']
+				srcDirs = [
+					'src/test/resources',
+					'src/test/java'
+				]
 			}
 		}
 	}
 
-  configurations.all {
-    resolutionStrategy.cacheChangingModulesFor 60, 'minutes'
-  }
+	configurations.all { resolutionStrategy.cacheChangingModulesFor 60, 'minutes' }
 	// dependencies that are common across all java projects
 	dependencies {
 		testCompile "junit:junit:$junitVersion"
@@ -210,10 +226,10 @@ configure(javaProjects) { subproject ->
 		logging.captureStandardOutput(LogLevel.INFO)
 		jvmArgs "-XX:MaxPermSize=256m"
 		jvmArgs "-Djava.net.preferIPv4Stack=true"
-// 	useful for debugging the GradleWorkerMain
-//		jvmArgs "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=8000"
-//		jvmArgs "-Dlog4j.debug=true"
-//		classpath = files('/some/dir/with/props') + project.sourceSets.test.runtimeClasspath
+		// 	useful for debugging the GradleWorkerMain
+		//		jvmArgs "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=8000"
+		//		jvmArgs "-Dlog4j.debug=true"
+		//		classpath = files('/some/dir/with/props') + project.sourceSets.test.runtimeClasspath
 
 		ignoreFailures = project.hasProperty('ignoreTestFailures') ? getProperty('ignoreTestFailures') : false
 	}
@@ -239,10 +255,10 @@ configure(javaProjects) { subproject ->
 
 	jar {
 		manifest.attributes["Created-By"] =
-			"${System.getProperty("java.version")} (${System.getProperty("java.specification.vendor")})"
+				"${System.getProperty("java.version")} (${System.getProperty("java.specification.vendor")})"
 		manifest.attributes["Implementation-Title"] = subproject.name
 		manifest.attributes["Implementation-Version"] = subproject.version
-        if (project != project(':spring-xd-exec')) { exclude 'log4j.properties' }
+		if (project != project(':spring-xd-exec')) { exclude 'log4j.properties' }
 	}
 
 	task javadocJar(type: Jar) {
@@ -277,9 +293,7 @@ configure(moduleProjects) { moduleProject ->
 	forceSpringVersion(moduleProject)
 
 	eclipse {
-		project {
-			natures += 'org.springframework.ide.eclipse.core.springnature'
-		}
+		project { natures += 'org.springframework.ide.eclipse.core.springnature' }
 	}
 
 	task copyLibs(type: Copy) {
@@ -293,13 +307,20 @@ configure(moduleProjects) { moduleProject ->
 	}
 
 
-	['test','build', 'eclipse', 'idea'].each {t -> tasks[t].dependsOn copyLibs}
+	[
+		'test',
+		'build',
+		'eclipse',
+		'idea'
+	].each {t -> tasks[t].dependsOn copyLibs}
 
-	task cleanLibs(type: Delete)  {
-		delete copyLibs.outputs
-	}
+	task cleanLibs(type: Delete)  { delete copyLibs.outputs }
 
-	['clean', 'cleanEclipse', 'cleanIdea'].each {t -> tasks[t].dependsOn cleanLibs}
+	[
+		'clean',
+		'cleanEclipse',
+		'cleanIdea'
+	].each {t -> tasks[t].dependsOn cleanLibs}
 
 	project(':spring-xd-dirt').tasks['build'].dependsOn(moduleProject.tasks['build'])
 }
@@ -318,9 +339,7 @@ project('spring-xd-analytics') {
 		testCompile project(":spring-xd-test")
 		testCompile "nl.jqno.equalsverifier:equalsverifier:1.1.3"
 		testCompile "org.springframework:spring-test:$springVersion"
-		testCompile ("org.mockito:mockito-core:$mockitoVersion") {
-			exclude group:'org.hamcrest'
-		}
+		testCompile ("org.mockito:mockito-core:$mockitoVersion") { exclude group:'org.hamcrest' }
 		testCompile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
 		runtime "log4j:log4j:$log4jVersion",
 				"org.slf4j:jcl-over-slf4j:$slf4jVersion",
@@ -405,9 +424,7 @@ project('spring-xd-dirt') {
 		testCompile project(":spring-xd-test")
 		testCompile "org.springframework.integration:spring-integration-test:$springIntegrationVersion"
 		testCompile "com.jayway.jsonpath:json-path:0.8.1"
-		testCompile ("org.mockito:mockito-core:$mockitoVersion") {
-			exclude group:'org.hamcrest'
-		}
+		testCompile ("org.mockito:mockito-core:$mockitoVersion") { exclude group:'org.hamcrest' }
 
 		// The following two because of AmqBrokerAndTest
 		testCompile ("org.apache.activemq:activemq-core:5.6.0") {
@@ -452,21 +469,13 @@ project('spring-xd-dirt') {
 		outputs.dir scripts
 	}
 
-	applicationDistribution.from(configFiles) {
-		into "config"
-	}
+	applicationDistribution.from(configFiles) { into "config" }
 
-	applicationDistribution.from(scriptFiles) {
-		into "bin"
-	}
+	applicationDistribution.from(scriptFiles) { into "bin" }
 
-	applicationDistribution.from(moduleFiles) {
-		into "modules"
-	}
+	applicationDistribution.from(moduleFiles) { into "modules" }
 
-	applicationDistribution.from(xdUiFiles) {
-		into "spring-xd-ui/dist"
-	}
+	applicationDistribution.from(xdUiFiles) { into "spring-xd-ui/dist" }
 
 	// Following execution is used by jsTests task to start SingleNodeApplication as background process
 	task backgroundAdminServer << { task ->
@@ -482,9 +491,7 @@ project('spring-xd-dirt') {
 		project.singleNodeServerProcess.process = proc
 	}
 
-	task cleanDataDir(type: Delete) {
-		delete "$rootDir/data"
-	}
+	task cleanDataDir(type: Delete) { delete "$rootDir/data" }
 
 	tasks["backgroundAdminServer"].dependsOn("classes")
 	tasks["clean"].dependsOn("cleanDataDir")
@@ -492,9 +499,7 @@ project('spring-xd-dirt') {
 }
 
 project('spring-xd-exec') {
-	dependencies {
-		compile project(':spring-xd-dirt')
-	}
+	dependencies { compile project(':spring-xd-dirt') }
 	apply plugin: "spring-boot"
 	springBoot {
 		mainClass = 'org.springframework.xd.dirt.server.SingleNodeApplication'
@@ -559,9 +564,7 @@ project('spring-xd-extension-mongodb') {
 	dependencies {
 		compile project(':spring-xd-tuple')
 		compile "org.springframework.batch:spring-batch-core:$springBatchVersion"
-		compile ("org.springframework.data:spring-data-mongodb:$springDataMongoVersion") {
-			exclude group: 'org.slf4j'
-		}
+		compile ("org.springframework.data:spring-data-mongodb:$springDataMongoVersion") { exclude group: 'org.slf4j' }
 	}
 }
 
@@ -592,9 +595,7 @@ project('spring-xd-extension-reactor') {
 
 		testCompile project(":spring-xd-test")
 		testCompile "com.jayway.jsonpath:json-path:0.8.1"
-		testCompile("org.mockito:mockito-core:$mockitoVersion") {
-			exclude group: 'org.hamcrest'
-		}
+		testCompile("org.mockito:mockito-core:$mockitoVersion") { exclude group: 'org.hamcrest' }
 		testRuntime "org.slf4j:jcl-over-slf4j:$slf4jVersion",
 				"org.slf4j:slf4j-log4j12:$slf4jVersion",
 				"log4j:log4j:$log4jVersion"
@@ -623,9 +624,7 @@ project('spring-xd-hadoop') {
 			exclude group: 'junit'
 			exclude group: 'hsqldb'
 		}
-		compile ("org.springframework.data:spring-data-hadoop-store:$springDataHadoopVersion") {
-			exclude group: 'org.apache.hadoop'
-		}
+		compile ("org.springframework.data:spring-data-hadoop-store:$springDataHadoopVersion") { exclude group: 'org.apache.hadoop' }
 		testRuntime "org.xerial.snappy:snappy-java:1.1.0"
 	}
 }
@@ -833,7 +832,9 @@ project ('spring-xd-gemfire-server') {
 		main = 'org.springframework.xd.gemfire.CacheServer'
 		classpath = sourceSets.test.runtimeClasspath
 		if (rootProject.hasProperty('config')) {
-			args = ["${rootProject.getProperty('config')}"]
+			args = [
+				"${rootProject.getProperty('config')}"
+			]
 		}
 	}
 
@@ -844,18 +845,14 @@ project ('spring-xd-gemfire-server') {
 		outputs.dir configs
 	}
 
-	applicationDistribution.from(configFiles) {
-		into "config"
-	}
+	applicationDistribution.from(configFiles) { into "config" }
 
 	task scriptFiles {
 		def scripts = file("$rootDir/scripts/gemfire")
 		outputs.dir scripts
 	}
 
-	applicationDistribution.from(scriptFiles) {
-		into "bin"
-	}
+	applicationDistribution.from(scriptFiles) { into "bin" }
 }
 
 
@@ -876,9 +873,10 @@ project('redis') {
 		into project.file("${project.buildDir}/dist")
 	}
 
-	task bundleRedis(dependsOn: ['syncScriptFiles', 'syncDistFile']) {
-		description = "Bundle redis source dist with install script"
-	}
+	task bundleRedis(dependsOn: [
+		'syncScriptFiles',
+		'syncDistFile'
+	]) { description = "Bundle redis source dist with install script" }
 
 	task clean(type: Delete) {
 		description = "Wipes Redis build directory"
@@ -902,23 +900,19 @@ project('spring-xd-module') {
 
 project('spring-xd-module-spi') {
 	description = 'Spring XD Module Options API'
-	dependencies {
-		compile "org.springframework:spring-web:$springVersion"
-	}
+	dependencies { compile "org.springframework:spring-web:$springVersion" }
 }
 
 project('spring-xd-tuple') {
 	description = 'Spring XD Tuple'
 	dependencies {
-	    compile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
+		compile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
 		compile "org.springframework:spring-context:$springVersion"
 		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
 		compile "org.springframework.batch:spring-batch-infrastructure:$springBatchVersion"
 		compile "org.springframework:spring-jdbc:$springVersion"
 		compile "com.eaio.uuid:uuid:$uuidVersion"
-		testCompile ("org.mockito:mockito-core:$mockitoVersion") {
-			exclude group:'org.hamcrest'
-		}
+		testCompile ("org.mockito:mockito-core:$mockitoVersion") { exclude group:'org.hamcrest' }
 	}
 }
 
@@ -929,16 +923,14 @@ project('spring-xd-rest-client') {
 		compile project(':spring-xd-rest-domain')
 		compile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
 		compile "org.codehaus.jackson:jackson-core-asl:$jackson1Version"
-	 compile "joda-time:joda-time:$jodaTimeVersion"
+		compile "joda-time:joda-time:$jodaTimeVersion"
 	}
 }
 
 project('spring-xd-rest-domain') {
 	description = 'Spring XD REST Domain'
-			dependencies {
-		compile ("org.springframework.hateoas:spring-hateoas:$springHATEOASVersion") {
-			exclude module: "spring-asm"
-		}
+	dependencies {
+		compile ("org.springframework.hateoas:spring-hateoas:$springHATEOASVersion") { exclude module: "spring-asm" }
 		compile ("org.springframework.batch:spring-batch-admin-manager:$springBatchAdminMgrVersion") {
 			exclude module: 'spring-batch-integration'
 			exclude group: 'org.springframework.integration'
@@ -954,9 +946,7 @@ project('spring-xd-rest-domain') {
 
 project('modules') {
 	description = 'Spring XD Modules'
-	dependencies {
-		compile project(':spring-xd-dirt')
-	}
+	dependencies { compile project(':spring-xd-dirt') }
 	task build(overwrite: true) {}
 }
 
@@ -983,51 +973,35 @@ project('modules.source.imap') {
 }
 
 project('modules.source.file') {
-	dependencies {
-		runtime	"org.springframework.integration:spring-integration-file:$springIntegrationVersion"
-	}
+	dependencies { runtime	"org.springframework.integration:spring-integration-file:$springIntegrationVersion" }
 }
 
 project('modules.source.tail') {
-	dependencies {
-		runtime	"org.springframework.integration:spring-integration-file:$springIntegrationVersion"
-	}
+	dependencies { runtime	"org.springframework.integration:spring-integration-file:$springIntegrationVersion" }
 }
 
 project('modules.source.http') {
-	dependencies {
-		runtime	project(":spring-xd-extension-http")
-	}
+	dependencies { runtime	project(":spring-xd-extension-http") }
 }
 
 project('modules.source.tcp') {
-	dependencies {
-		runtime "org.springframework.integration:spring-integration-ip:$springIntegrationVersion"
-	}
+	dependencies { runtime "org.springframework.integration:spring-integration-ip:$springIntegrationVersion" }
 }
 
 project('modules.source.tcp-client') {
-	dependencies {
-		runtime "org.springframework.integration:spring-integration-ip:$springIntegrationVersion"
-	}
+	dependencies { runtime "org.springframework.integration:spring-integration-ip:$springIntegrationVersion" }
 }
 
 project('modules.source.mqtt') {
-	dependencies {
-		runtime "org.springframework.integration:spring-integration-mqtt:$springIntegrationVersion"
-	}
+	dependencies { runtime "org.springframework.integration:spring-integration-mqtt:$springIntegrationVersion" }
 }
 
 project('modules.source.syslog-tcp') {
-	dependencies {
-		runtime "org.springframework.integration:spring-integration-syslog:$springIntegrationVersion"
-	}
+	dependencies { runtime "org.springframework.integration:spring-integration-syslog:$springIntegrationVersion" }
 }
 
 project('modules.source.syslog-udp') {
-	dependencies {
-		runtime "org.springframework.integration:spring-integration-syslog:$springIntegrationVersion"
-	}
+	dependencies { runtime "org.springframework.integration:spring-integration-syslog:$springIntegrationVersion" }
 }
 
 project('modules.source.jms') {
@@ -1062,41 +1036,31 @@ project('modules.source.gemfire-cq') {
 
 project('modules.source.twitterstream') {
 	dependencies {
-		runtime(project(":spring-xd-extension-twitter")) {
-			exclude group: 'org.codehaus.jackson'
-		}
+		runtime(project(":spring-xd-extension-twitter")) { exclude group: 'org.codehaus.jackson' }
 	}
 }
 
 project('modules.source.twittersearch') {
 	dependencies {
-		runtime(project(":spring-xd-extension-twitter")) {
-			exclude group: 'org.codehaus.jackson'
-		}
+		runtime(project(":spring-xd-extension-twitter")) { exclude group: 'org.codehaus.jackson' }
 	}
 }
 
 project('modules.source.reactor-syslog') {
-	dependencies {
-		runtime project(":spring-xd-extension-reactor")
-	}
+	dependencies { runtime project(":spring-xd-extension-reactor") }
 }
 
 // ================ M O D U L E S : P R O C E S S O R S ================
 
 
 project('modules.processor.http-client') {
-	dependencies {
-		runtime	"org.springframework.integration:spring-integration-http:$springIntegrationVersion"
-	}
+	dependencies { runtime	"org.springframework.integration:spring-integration-http:$springIntegrationVersion" }
 }
 
 project('modules.processor.aggregator') {
 	dependencies {
 		// Adding redis for the message store, as it may become optional in DIRT itself
-		runtime	("org.springframework.integration:spring-integration-redis:$springIntegrationVersion") {
-			exclude group: 'org.slf4j'
-		}
+		runtime	("org.springframework.integration:spring-integration-redis:$springIntegrationVersion") { exclude group: 'org.slf4j' }
 		runtime	("org.springframework.integration:spring-integration-jdbc:$springIntegrationVersion")
 	}
 }
@@ -1104,28 +1068,20 @@ project('modules.processor.aggregator') {
 // ================ M O D U L E S : S I N K S ==========================
 
 project('modules.sink.tcp') {
-	dependencies {
-		runtime "org.springframework.integration:spring-integration-ip:$springIntegrationVersion"
-	}
+	dependencies { runtime "org.springframework.integration:spring-integration-ip:$springIntegrationVersion" }
 }
 
 project('modules.sink.mqtt') {
-	dependencies {
-		runtime "org.springframework.integration:spring-integration-mqtt:$springIntegrationVersion"
-	}
+	dependencies { runtime "org.springframework.integration:spring-integration-mqtt:$springIntegrationVersion" }
 }
 
 
 project('modules.sink.file') {
-	dependencies {
-		runtime	"org.springframework.integration:spring-integration-file:$springIntegrationVersion"
-	}
+	dependencies { runtime	"org.springframework.integration:spring-integration-file:$springIntegrationVersion" }
 }
 
 project('modules.sink.jdbc') {
-	dependencies {
-		runtime project(":spring-xd-extension-jdbc")
-	}
+	dependencies { runtime project(":spring-xd-extension-jdbc") }
 }
 
 project('modules.sink.mail') {
@@ -1158,9 +1114,7 @@ project('modules.sink.gemfire-server') {
 
 project('modules.sink.splunk') {
 	dependencies {
-		runtime(project(":spring-xd-extension-splunk")) {
-			exclude module: 'spring-integration-core'
-		}
+		runtime(project(":spring-xd-extension-splunk")) { exclude module: 'spring-integration-core' }
 	}
 }
 
@@ -1191,9 +1145,7 @@ project('modules.job.jdbchdfs') {
 }
 
 project('modules.job.ftphdfs') {
-	dependencies {
-		runtime "org.springframework.integration:spring-integration-ftp:$springIntegrationVersion"
-	}
+	dependencies { runtime "org.springframework.integration:spring-integration-ftp:$springIntegrationVersion" }
 }
 
 project('spring-xd-ui') {
@@ -1228,7 +1180,10 @@ project('spring-xd-ui') {
 	tasks['grunt_build'].dependsOn(['npmInstall', 'installGrunt']);
 	tasks['grunt_teste2e'].dependsOn(['grunt_build']);
 
-	task ui_test(dependsOn: ['grunt_teste2e', ':spring-xd-dirt:backgroundAdminServer']) {
+	task ui_test(dependsOn: [
+		'grunt_teste2e',
+		':spring-xd-dirt:backgroundAdminServer'
+	]) {
 
 		description = "E2E-test the Admin UI using Grunt"
 
@@ -1241,17 +1196,17 @@ project('spring-xd-ui') {
 		}
 	}
 
-	task setupUI(dependsOn: ['grunt_build']) {
-		description = "Build the Admin UI using Grunt"
-	}
+	task setupUI(dependsOn: ['grunt_build']) { description = "Build the Admin UI using Grunt" }
 
 	grunt_build.shouldRunAfter 'installGrunt'
 	grunt_teste2e.shouldRunAfter 'installGrunt'
 	installGrunt.shouldRunAfter 'npmInstall'
 
-	task cleanUI(dependsOn: ['cleanDist', 'cleanNodeModules', 'cleanBowerFiles']) {
-		description = "Clean the Admin UI dist, node modules and bower files"
-	}
+	task cleanUI(dependsOn: [
+		'cleanDist',
+		'cleanNodeModules',
+		'cleanBowerFiles'
+	]) { description = "Clean the Admin UI dist, node modules and bower files" }
 
 }
 
@@ -1291,13 +1246,9 @@ project('spring-xd-shell') {
 	description = 'Spring XD Shell'
 	apply plugin: "application"
 	mainClassName = "org.springframework.shell.Bootstrap"
-	run {
-		standardInput = System.in
-	}
+	run { standardInput = System.in }
 
-	test {
-		include '**/*TestSuite*'
-	}
+	test { include '**/*TestSuite*' }
 
 	dependencies {
 		compile "org.springframework.shell:spring-shell:$springShellVersion"
@@ -1328,24 +1279,52 @@ project('spring-xd-shell') {
 		def scripts = file("$rootDir/scripts/shell")
 		outputs.dir scripts
 	}
-	applicationDistribution.from(scriptFiles) {
-		into "bin"
-	}
+	applicationDistribution.from(scriptFiles) { into "bin" }
 
 	task configFiles {
 		def configs = file("$rootDir/spring-xd-shell/config")
 		outputs.dir configs
 	}
 
-	applicationDistribution.from(configFiles) {
-		into "config"
-	}
+	applicationDistribution.from(configFiles) { into "config" }
 
 	// Will be run as a side effect of
 	task referenceDoc(type: JavaExec, dependsOn: compileTestJava) {
 		classpath = sourceSets.test.runtimeClasspath //configurations.testCompile
 		main = 'org.springframework.xd.shell.util.ReferenceDoc'
-		args = ["$rootDir/build/asciidoc/guide/ShellReference.asciidoc"]
+		args = [
+			"$rootDir/build/asciidoc/guide/ShellReference.asciidoc"
+		]
+	}
+
+}
+
+// Integration Tests
+project('spring-xd-integration-test') {
+	description = 'Spring Integration tests'
+
+
+	test {
+		systemProperties = [
+			xd_admin_host: System.getProperty('xd_admin_host', 'http://localhost:9393'),
+			xd_containers: System.getProperty('xd_containers', 'http://localhost:9393'),
+			xd_http_port: System.getProperty('xd_http_port', '15000'),
+			xd_jmx_port: System.getProperty('xd_jmx_port', '15005'),
+			xd_container_log_dir: System.getProperty('xd_container_log_dir', '/home/ubuntu/spring-xd-1.0.0.BUILD-SNAPSHOT/xd/logs'),
+			xd_run_on_ec2: System.getProperty('xd_run_on_ec2', 'false')]
+		onlyIf {
+			System.getProperty('run_integration_tests', 'false')=='true'
+		}
+	}
+	dependencies {
+		compile project(":spring-xd-shell")
+		compile "commons-collections:commons-collections:$commonsVersion"
+		compile "org.apache.jclouds.provider:aws-sts:$jcloudsVersion"
+		compile "org.apache.jclouds.driver:jclouds-sshj:$jcloudsVersion"
+		compile "org.slf4j:slf4j-simple:$slf4jVersion"
+		compile "org.springframework:spring-web:$springVersion"
+		testCompile group: 'junit', name: 'junit', version: '4.+'
+		testCompile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
 	}
 
 }
@@ -1381,22 +1360,39 @@ task copyGemfireInstall(type: Copy, dependsOn: ":spring-xd-gemfire-server:instal
 	into "$buildDir/dist/spring-xd/gemfire"
 }
 
-task copyXDInstall(type: Copy, dependsOn: [":spring-xd-dirt:build", ":spring-xd-dirt:installApp"]) {
+task copyXDInstall(type: Copy, dependsOn: [
+	":spring-xd-dirt:build",
+	":spring-xd-dirt:installApp"
+]) {
 	from "$rootDir/spring-xd-dirt/build/install/spring-xd-dirt"
 	into "$buildDir/dist/spring-xd/xd"
 	exclude "**/lib/hadoop-*.jar"
 	exclude "**/lib/spring-data-hadoop-*.jar"
 }
 
-task copyXDShellInstall(type: Copy, dependsOn: [":spring-xd-shell:installApp"]) {
+task copyXDShellInstall(type: Copy, dependsOn: [
+	":spring-xd-shell:installApp"
+]) {
 	from "$rootDir/spring-xd-shell/build/install/spring-xd-shell"
 	into "$buildDir/dist/spring-xd/shell"
 	exclude "**/lib/hadoop-*.jar"
 	exclude "**/lib/spring-data-hadoop-*.jar"
 }
 
-task copyHadoopLibs(dependsOn: [":spring-xd-hadoop:hadoop12:copyToLib", ":spring-xd-hadoop:hadoop22:copyToLib", ":spring-xd-hadoop:cdh4:copyToLib", ":spring-xd-hadoop:hdp13:copyToLib", ":spring-xd-hadoop:hdp20:copyToLib", ":spring-xd-hadoop:phd1:copyToLib"]) << {
-	['hadoop12', 'hadoop22', 'cdh4', 'hdp13', 'hdp20', 'phd1'].each { distro ->
+task copyHadoopLibs(dependsOn: [
+	":spring-xd-hadoop:hadoop12:copyToLib",
+	":spring-xd-hadoop:hadoop22:copyToLib",
+	":spring-xd-hadoop:cdh4:copyToLib",
+	":spring-xd-hadoop:hdp13:copyToLib",
+	":spring-xd-hadoop:phd1:copyToLib"
+]) << {
+	[
+		'hadoop12',
+		'hadoop22',
+		'cdh4',
+		'hdp13',
+		'phd1'
+	].each { distro ->
 		copy {
 			from "$rootDir/spring-xd-hadoop/$distro/build/lib"
 			into "$buildDir/dist/spring-xd/xd/lib/$distro"
@@ -1423,9 +1419,7 @@ task copyInstall (type: Copy, dependsOn: ["copyRedisInstall", "copyGemfireInstal
 	into "$buildDir/dist/spring-xd"
 }
 
-configurations {
-	dist
-}
+configurations { dist }
 
 import org.ajoberstar.gradle.git.tasks.*
 import org.apache.tools.ant.filters.TokenFilter
@@ -1453,29 +1447,30 @@ task pullDocs(type: GitClone) {
 			from("$buildDir/asciidoc-raw") {
 				include  "**/*.asciidoc"
 				filter { line ->
-						// TODO: refine regex to only match local documents
-						def match = (line =~ /link:(.*?)#(.*?)\[(.*?)\]/)
-						if (match) match.replaceAll('xref:$2[$3]') else line
+					// TODO: refine regex to only match local documents
+					def match = (line =~ /link:(.*?)#(.*?)\[(.*?)\]/)
+					if (match) match.replaceAll('xref:$2[$3]') else line
 				}
 			}
-			from("$buildDir/asciidoc-raw") {
-				exclude "**/*.asciidoc"
-			}
+			from("$buildDir/asciidoc-raw") { exclude "**/*.asciidoc" }
 			into("$buildDir/asciidoc")
 
 		}
 
 		new File("$buildDir/asciidoc/guide/FullGuide.adoc")
-			.renameTo(new File("$buildDir/asciidoc/guide/index.adoc"))
+				.renameTo(new File("$buildDir/asciidoc/guide/index.adoc"))
 		new File("$buildDir/asciidoc/guide/FullGuide-docinfo.xml")
-			.renameTo(new File("$buildDir/asciidoc/guide/index-docinfo.xml"))
+				.renameTo(new File("$buildDir/asciidoc/guide/index-docinfo.xml"))
 
 	}
 }
 
 import org.asciidoctor.gradle.*
 
-task asciidoctorDocbook(type: AsciidoctorTask, dependsOn: [pullDocs, ':spring-xd-shell:referenceDoc']) {
+task asciidoctorDocbook(type: AsciidoctorTask, dependsOn: [
+	pullDocs,
+	':spring-xd-shell:referenceDoc'
+]) {
 	sourceDocumentName = file("$buildDir/asciidoc/guide/index.adoc")
 	sourceDir = file("$buildDir/asciidoc/guide")
 	baseDir = sourceDir
@@ -1495,7 +1490,10 @@ task asciidoctorDocbook(type: AsciidoctorTask, dependsOn: [pullDocs, ':spring-xd
 	}
 }
 
-task asciidoctorHtml(type: AsciidoctorTask, dependsOn: [pullDocs, ':spring-xd-shell:referenceDoc']) {
+task asciidoctorHtml(type: AsciidoctorTask, dependsOn: [
+	pullDocs,
+	':spring-xd-shell:referenceDoc'
+]) {
 	sourceDocumentName = file("$buildDir/asciidoc/guide/index.adoc")
 	sourceDir = file("$buildDir/asciidoc/guide")
 	baseDir = sourceDir
@@ -1564,9 +1562,7 @@ task docsZip(type: Zip) {
 	classifier = 'docs'
 	description = "Builds -${classifier} archive containing api and reference docs."
 
-	from (api) {
-		into 'api'
-	}
+	from (api) { into 'api' }
 
 	from (reference) {
 		exclude 'htmlsingle'
@@ -1574,9 +1570,7 @@ task docsZip(type: Zip) {
 		into 'reference'
 	}
 
-	from ("$buildDir/html") {
-		into "reference/html"
-	}
+	from ("$buildDir/html") { into "reference/html" }
 }
 
 task distZip(type: Zip, dependsOn: [asciidoctorHtml, copyInstall], overwrite: true) {
@@ -1586,13 +1580,9 @@ task distZip(type: Zip, dependsOn: [asciidoctorHtml, copyInstall], overwrite: tr
 
 	ext.baseDir = "${project.name}-${project.version}";
 
-	from("$buildDir/dist/spring-xd") {
-		into "${baseDir}"
-	}
+	from("$buildDir/dist/spring-xd") { into "${baseDir}" }
 
-	from ("$buildDir/html") {
-		into "${baseDir}/docs"
-	}
+	from ("$buildDir/html") { into "${baseDir}/docs" }
 }
 
 task distTar(type: Tar, dependsOn: [asciidoctorHtml, copyInstall], overwrite: true) {
@@ -1602,13 +1592,9 @@ task distTar(type: Tar, dependsOn: [asciidoctorHtml, copyInstall], overwrite: tr
 
 	ext.baseDir = "${project.name}-${project.version}";
 
-	from("$buildDir/dist/spring-xd") {
-		into "${baseDir}"
-	}
+	from("$buildDir/dist/spring-xd") { into "${baseDir}" }
 
-	from ("$buildDir/html") {
-		into "${baseDir}/docs"
-	}
+	from ("$buildDir/html") { into "${baseDir}/docs" }
 }
 
 task yarnZip(type: Zip, dependsOn: [copyInstall], overwrite: true) {
@@ -1642,9 +1628,7 @@ task wrapper(type: Wrapper) {
 
 apply plugin: 'jacoco'
 
-configure (coverageProjects) { project ->
-	apply plugin: 'jacoco'
-}
+configure (coverageProjects) { project -> apply plugin: 'jacoco' }
 
 task coverageReport(type: JacocoReport) {
 	coverageProjects.collect { p -> executionData p.jacocoTestReport.executionData }
@@ -1652,8 +1636,6 @@ task coverageReport(type: JacocoReport) {
 }
 
 idea {
-	project {
-		languageLevel = '1.7'
-	}
+	project { languageLevel = '1.7' }
 }
 

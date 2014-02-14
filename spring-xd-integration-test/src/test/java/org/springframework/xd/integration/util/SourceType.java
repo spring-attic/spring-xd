@@ -14,32 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.integration.test;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-
-import org.springframework.xd.integration.util.Sink;
-import org.springframework.xd.integration.util.Source;
+package org.springframework.xd.integration.util;
 
 /**
- * Test Timer as a source
+ * Enumeration that represents the sources that are supported by the integration tests.
  * 
  * @author Glenn Renfro
  */
-
-@RunWith(Parameterized.class)
-public class TickTockTest extends AbstractIntegrationTest {
-
-	public TickTockTest(Sink sink) {
-		this.sink = sink;
-	}
-
-	@Test
-	public void testHeartBeat() throws Exception {
-		stream(Source.TIME + XD_DELIMETER + sink);
-		assertReceived();
-	}
-
+public enum SourceType {
+	http, time
 }

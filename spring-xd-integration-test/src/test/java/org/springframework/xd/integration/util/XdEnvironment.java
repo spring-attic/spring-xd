@@ -25,12 +25,12 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.util.StringUtils;
 
 /**
@@ -41,48 +41,70 @@ import org.springframework.util.StringUtils;
 public class XdEnvironment {
 
 	public static final String XD_ADMIN_HOST = "xd_admin_host";
+
 	public static final String XD_CONTAINERS = "xd_containers";
+
 	public static final String XD_HTTP_PORT = "xd_http_port";
+
 	public static final String XD_JMX_PORT = "xd_jmx_port";
+
+	public static final String XD_CONTAINER_LOG_DIR = "xd_container_log_dir";
+
 	public static final String XD_PRIVATE_KEY_FILE = "xd_private_key_file";
+
 	public static final String XD_RUN_ON_EC2 = "xd_run_on_ec2";
-	
+
 	public final static String RESULT_LOCATION = "/tmp/xd/output";
+
+	public final static String LOGGER_LOCATION = "/home/ubuntu/spring-xd-1.0.0.BUILD-SNAPSHOT/xd/logs";
+
 
 	public static final String HTTP_PREFIX = "http://";
 
 	public static final String ADMIN_TOKEN = "adminNode";
+
 	public static final String CONTAINER_TOKEN = "containerNode";
 
 	private static final String ARTIFACT_NAME = "ec2servers.csv";
-	
-	
+
 
 	private transient final URL adminServer;
+
 	private transient final List<URL> containers;
+
 	private transient final int jmxPort;
+
+	private transient final String containerLogLocation;
+
 	private transient final int httpPort;
+
 	private transient String privateKey;
+
 	private transient boolean isOnEc2 = true;
 
 	private static final int SERVER_TYPE_OFFSET = 0;
+
 	private static final int HOST_OFFSET = 1;
+
 	private static final int XD_PORT_OFFSET = 2;
+
 	private static final int HTTP_PORT_OFFSET = 3;
+
 	private static final int JMX_PORT_OFFSET = 4;
 
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(XdEnvironment.class);
 
-	private final Map<String,String> systemProperties ;
+	private final Properties systemProperties;
 
 	public XdEnvironment() throws Exception {
-		systemProperties = System.getenv();
+		systemProperties = System.getProperties();
 		final Properties properties = getXDDeploymentProperties();
 		containers = getContainers(properties);
 		adminServer = getAdminServer(properties);
 		jmxPort = Integer.parseInt(properties.getProperty(XD_JMX_PORT));
 		httpPort = Integer.parseInt(properties.getProperty(XD_HTTP_PORT));
+		containerLogLocation = getContainerLogLocation(systemProperties);
 		isOnEc2 = getOnEc2Flag();
 		if (isOnEc2) {
 			String keyFile = getPrivateKeyFile();
@@ -115,7 +137,11 @@ public class XdEnvironment {
 		return isOnEc2;
 	}
 
-	private String getPrivateKey(String privateKeyFile) throws IOException{
+	public String getContainerLogLocation() {
+		return containerLogLocation;
+	}
+
+	private String getPrivateKey(String privateKeyFile) throws IOException {
 		String result = "";
 		BufferedReader br = null;
 		try {
@@ -123,12 +149,14 @@ public class XdEnvironment {
 			while (br.ready()) {
 				result += br.readLine() + "\n";
 			}
-		} finally {
+		}
+		finally {
 			if (br != null) {
 				try {
 					br.close();
-				} catch (Exception ex) {
-					//ignore error.
+				}
+				catch (Exception ex) {
+					// ignore error.
 				}
 			}
 		}
@@ -141,7 +169,8 @@ public class XdEnvironment {
 		final String host = properties.getProperty(XD_ADMIN_HOST);
 		try {
 			result = new URL(host);
-		} catch (MalformedURLException mue) {
+		}
+		catch (MalformedURLException mue) {
 			LOGGER.info("XD_ADMIN_HOST was not identified in either an artifact or system environment variables");
 		}
 		return result;
@@ -156,12 +185,21 @@ public class XdEnvironment {
 			final String containerHost = iter.next();
 			try {
 				containers.add(new URL(containerHost));
-			} catch (MalformedURLException ex) {
+			}
+			catch (MalformedURLException ex) {
 				LOGGER.error("Container Host IP is invalid ==>" + containerHost);
 			}
 
 		}
 		return containers;
+	}
+
+	private String getContainerLogLocation(Properties properties) {
+		String result = LOGGER_LOCATION + "/container.log";
+		if (properties.containsKey(XD_CONTAINER_LOG_DIR)) {
+			result = properties.getProperty(XD_CONTAINER_LOG_DIR) + "/container.log";
+		}
+		return result;
 	}
 
 	private Properties getXDDeploymentProperties() {
@@ -212,7 +250,8 @@ public class XdEnvironment {
 							containerHosts = HTTP_PREFIX
 									+ tokens[HOST_OFFSET].trim() + ":"
 									+ tokens[XD_PORT_OFFSET];
-						} else {
+						}
+						else {
 							containerHosts = containerHosts + "," + HTTP_PREFIX
 									+ tokens[HOST_OFFSET].trim() + ":"
 									+ tokens[XD_PORT_OFFSET];
@@ -220,14 +259,17 @@ public class XdEnvironment {
 					}
 				}
 			}
-		} catch (IOException ioe) {
+		}
+		catch (IOException ioe) {
 			// Ignore file open error. Default to System variables.
-		} finally {
+		}
+		finally {
 			try {
 				if (reader != null) {
 					reader.close();
 				}
-			} catch (IOException ioe) {
+			}
+			catch (IOException ioe) {
 				// ignore
 			}
 		}
@@ -241,17 +283,17 @@ public class XdEnvironment {
 		final Properties props = new Properties();
 		if (systemProperties.containsKey(XD_ADMIN_HOST)) {
 			props.put(XD_ADMIN_HOST,
-					systemProperties.get(XD_ADMIN_HOST));
+					systemProperties.getProperty(XD_ADMIN_HOST));
 		}
 		if (systemProperties.containsKey(XD_CONTAINERS)) {
 			props.put(XD_CONTAINERS,
-					systemProperties.get(XD_CONTAINERS));
+					systemProperties.getProperty(XD_CONTAINERS));
 		}
 		if (systemProperties.containsKey(XD_JMX_PORT)) {
-			props.put(XD_JMX_PORT, systemProperties.get(XD_JMX_PORT));
+			props.put(XD_JMX_PORT, systemProperties.getProperty(XD_JMX_PORT));
 		}
 		if (systemProperties.containsKey(XD_HTTP_PORT)) {
-			props.put(XD_HTTP_PORT, systemProperties.get(XD_HTTP_PORT));
+			props.put(XD_HTTP_PORT, systemProperties.getProperty(XD_HTTP_PORT));
 		}
 
 		return props;
@@ -264,19 +306,21 @@ public class XdEnvironment {
 							+ "  This can be set via the "
 							+ XD_PRIVATE_KEY_FILE + " environment variable");
 		}
-		return systemProperties.get(XD_PRIVATE_KEY_FILE);
+		return systemProperties.getProperty(XD_PRIVATE_KEY_FILE);
 	}
-	private boolean getOnEc2Flag(){
+
+	private boolean getOnEc2Flag() {
 		boolean result = isOnEc2;
 		if (systemProperties.containsKey(XD_RUN_ON_EC2)) {
-			result = Boolean.getBoolean(systemProperties.get(XD_PRIVATE_KEY_FILE));
+			result = Boolean.getBoolean(systemProperties.getProperty(XD_PRIVATE_KEY_FILE));
 		}
 		return result;
 	}
-	private void isFilePresent(String keyFile){
-		File file= new File(keyFile);
-		if(!file.exists()){
-			throw new IllegalArgumentException("The XD Private Key File ==> "+keyFile+" does not exist.");
+
+	private void isFilePresent(String keyFile) {
+		File file = new File(keyFile);
+		if (!file.exists()) {
+			throw new IllegalArgumentException("The XD Private Key File ==> " + keyFile + " does not exist.");
 		}
 	}
 }

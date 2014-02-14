@@ -17,17 +17,22 @@
 package org.springframework.xd.integration.test;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.springframework.xd.integration.util.SinkType;
+import org.junit.runners.Parameterized.Parameters;
+
+import org.springframework.xd.integration.util.Sink;
 import org.springframework.xd.integration.util.StreamUtils;
-import org.springframework.xd.integration.util.XdEnvironment;
 import org.springframework.xd.integration.util.XdEc2Validation;
+import org.springframework.xd.integration.util.XdEnvironment;
 
 /**
  * Base Class for Spring XD Integration classes
@@ -37,16 +42,31 @@ import org.springframework.xd.integration.util.XdEc2Validation;
 public abstract class AbstractIntegrationTest {
 
 	private final static String STREAM_NAME = "ec2Test3";
+
 	private final static String HTTP_PREFIX = "http://";
 
 	protected static XdEnvironment hosts;
+
 	protected static XdEc2Validation validation;
+
 	protected static URL adminServer;
+
 	protected static List<URL> containers;
+
 	protected static int jmxPort;
+
 	protected static int httpPort;
+
 	protected List<String> streamNames;
+
 	protected static String privateKey;
+
+	protected static String containerLogLocation;
+
+	protected Sink sink;
+
+	protected static String XD_DELIMETER = " | ";
+
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -59,6 +79,7 @@ public abstract class AbstractIntegrationTest {
 		jmxPort = hosts.getJMXPort();
 		httpPort = hosts.getHttpPort();
 		privateKey = hosts.getPrivateKey();
+		containerLogLocation = hosts.getContainerLogLocation();
 		validation.verifyAtLeastOneContainerAvailable(hosts.getContainers(),
 				jmxPort);
 
@@ -70,20 +91,25 @@ public abstract class AbstractIntegrationTest {
 	}
 
 	@After
-	public void tearDown() throws IOException {
+	public void tearDown() throws IOException, URISyntaxException {
 		StreamUtils.destroyAllStreams(streamNames, adminServer);
 		waitForXD();
 	}
 
+	@Parameters
+	public static Collection<Object[]> sink() {
+		Object[][] sink = { { Sink.FILE }, { Sink.LOG } };
+		return Arrays.asList(sink);
+	}
+
+
 	/**
-	 * Creates a stream on the XD cluster defined by the test's Artifact or
-	 * Environment variables
+	 * Creates a stream on the XD cluster defined by the test's Artifact or Environment variables
 	 * 
-	 * @param stream
-	 *            the stream definition
+	 * @param stream the stream definition
 	 * @throws IOException
 	 */
-	public void stream(String stream) throws IOException {
+	public void stream(String stream) throws IOException, URISyntaxException {
 		StreamUtils.stream(STREAM_NAME, stream, adminServer);
 		streamNames.add(STREAM_NAME);
 		waitForXD();
@@ -121,28 +147,29 @@ public abstract class AbstractIntegrationTest {
 				"http");
 	}
 
-	public void assertValid(String data, SinkType sink) throws IOException {
-		if(sink.equals(SinkType.log)){
-			return;
+	public void assertValid(String data) throws IOException {
+		if (sink.equals(Sink.FILE)) {
+			assertValidFile(data, getContainerForStream(STREAM_NAME), STREAM_NAME);
 		}
-		assertValid(data, getContainerForStream(STREAM_NAME), STREAM_NAME);
+		if (sink.equals(Sink.LOG)) {
+			assertLogEntry(data, getContainerForStream(STREAM_NAME));
+		}
 	}
 
-	public void assertValid(String data, URL url, String streamName)
+	public void assertValidFile(String data, URL url, String streamName)
 			throws IOException {
 		waitForXD();
 		String fileName = XdEnvironment.RESULT_LOCATION + "/" + streamName
 				+ ".out";
 		validation.verifyTestContent(hosts, url, fileName, data);
+	}
 
+	public void assertLogEntry(String data, URL url)
+			throws IOException {
+		waitForXD();
+		validation.verifyLogContent(hosts, url, containerLogLocation, data);
 	}
-	protected String getTestSink(SinkType sink){
-		String sinkVal = sink.toString();
-		if(sink == SinkType.file){
-			sinkVal = sink.toString()+" --mode=REPLACE";
-		}
-		return sinkVal;
-	}
+
 	private void waitForXD() {
 		waitForXD(1000);
 	}
@@ -150,7 +177,8 @@ public abstract class AbstractIntegrationTest {
 	private void waitForXD(int millis) {
 		try {
 			Thread.sleep(millis);
-		} catch (Exception ex) {
+		}
+		catch (Exception ex) {
 			// ignore
 		}
 

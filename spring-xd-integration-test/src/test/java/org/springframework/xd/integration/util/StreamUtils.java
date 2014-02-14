@@ -26,8 +26,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Iterator;
 import java.util.List;
 
 import org.jclouds.domain.Credentials;
@@ -38,11 +38,12 @@ import org.jclouds.sshj.SshjSshClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.xd.rest.client.impl.SpringXDTemplate;
+
 import com.google.common.net.HostAndPort;
 
 /**
- * Utilities for creating and monitoring streams and the JMX hooks for those
- * strings.
+ * Utilities for creating and monitoring streams and the JMX hooks for those strings.
  * 
  * @author Glenn Renfro
  */
@@ -54,33 +55,9 @@ public class StreamUtils {
 			.getLogger(XdEc2Validation.class);
 
 	public static void stream(String streamName, String streamDefinition,
-			URL adminServer) throws IOException {
-		final URL url = new URL(adminServer + STREAM_SUFFIX);
-		final String urlParameters = "name=" + streamName + "&definition="
-				+ streamDefinition;
-		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-		connection.setDoOutput(true);
-		connection.setDoInput(true);
-		connection.setInstanceFollowRedirects(false);
-		connection.setRequestMethod("POST");
-		connection.setRequestProperty("Content-Type",
-				"application/x-www-form-urlencoded");
-		connection.setRequestProperty("charset", "utf-8");
-		connection.setRequestProperty("Content-Length",
-				"" + Integer.toString(urlParameters.getBytes().length));
-		connection.setUseCaches(false);
-
-		DataOutputStream wr = new DataOutputStream(connection.getOutputStream());
-		wr.writeBytes(urlParameters);
-		wr.flush();
-		wr.close();
-		BufferedReader in = new BufferedReader(new InputStreamReader(
-				connection.getInputStream()));
-		String inputLine;
-		while ((inputLine = in.readLine()) != null) {
-			LOGGER.debug(inputLine);
-		}
-		connection.disconnect();
+			URL adminServer) throws IOException, URISyntaxException {
+		SpringXDTemplate xdTemplate = new SpringXDTemplate(adminServer.toURI());
+		xdTemplate.streamOperations().createStream(streamName, streamDefinition, true);
 	}
 
 	public static void send(SendTypes method, String message, URL url)
@@ -125,25 +102,13 @@ public class StreamUtils {
 	}
 
 	public static void destroyAllStreams(List<String> streamNames,
-			URL adminServer) throws MalformedURLException, IOException {
-		Iterator<String> streamNameIter = streamNames.iterator();
-		while (streamNameIter.hasNext()) {
-			URL url = new URL(adminServer + STREAM_SUFFIX
-					+ streamNameIter.next());
-			HttpURLConnection httpCon = (HttpURLConnection) url
-					.openConnection();
-			httpCon.setDoOutput(true);
-			httpCon.setRequestProperty("Content-Type",
-					"application/x-www-form-urlencoded");
-			httpCon.setRequestMethod("DELETE");
-			httpCon.connect();
-			LOGGER.debug("Delete reported a responseCode of "
-					+ httpCon.getResponseCode());
-			httpCon.disconnect();
-		}
+			URL adminServer) throws URISyntaxException, IOException {
+		SpringXDTemplate xdTemplate = new SpringXDTemplate(adminServer.toURI());
+		xdTemplate.streamOperations().destroyAll();
 	}
 
-	public static  void transferResultsToLocal(final XdEnvironment hosts, final URL url, final String fileName) throws IOException{
+	public static void transferResultsToLocal(final XdEnvironment hosts, final URL url, final String fileName)
+			throws IOException {
 		final LoginCredentials credential = LoginCredentials
 				.fromCredentials(new Credentials("ubuntu", hosts.getPrivateKey()));
 		final HostAndPort socket = HostAndPort.fromParts(url.getHost(), 22);
@@ -156,14 +121,40 @@ public class StreamUtils {
 		while (isRead) {
 			byte[] b = new byte[10];
 			int val = iStream.read(b);
-			String buffer = new String(b,0,val);
+			String buffer = new String(b, 0, val);
 			writer.write(buffer);
-			if (val<10){
-				isRead=false;
+			if (val < 10) {
+				isRead = false;
 			}
 		}
 		writer.close();
 	}
+
+	public static String transferLogToTmp(final XdEnvironment hosts, final URL url, final String fileName)
+			throws IOException {
+		String logLocation = "/tmp/xd/output/log.out";
+		final LoginCredentials credential = LoginCredentials
+				.fromCredentials(new Credentials("ubuntu", hosts.getPrivateKey()));
+		final HostAndPort socket = HostAndPort.fromParts(url.getHost(), 22);
+		final SshjSshClient client = new SshjSshClient(
+				new BackoffLimitedRetryHandler(), socket, credential, 5000);
+		Payload payload = client.get(fileName);
+		InputStream iStream = payload.openStream();
+		BufferedWriter writer = new BufferedWriter(new FileWriter(logLocation));
+		boolean isRead = true;
+		while (isRead) {
+			byte[] b = new byte[10];
+			int val = iStream.read(b);
+			String buffer = new String(b, 0, val);
+			writer.write(buffer);
+			if (val < 10) {
+				isRead = false;
+			}
+		}
+		writer.close();
+		return logLocation;
+	}
+
 	public enum SendTypes {
 		HTTP, MQTT, JMS, TCP
 	}

@@ -17,15 +17,21 @@
 package org.springframework.xd.integration.util;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
@@ -36,8 +42,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Validates that all instances of the cluster is up and running. Also verifies
- * that streams are running and available.
+ * Validates that all instances of the cluster is up and running. Also verifies that streams are running and available.
  * 
  * @author Glenn Renfro
  */
@@ -58,7 +63,8 @@ public class XdEc2Validation {
 	public void verifyXDAdminReady(final URL adminServer) {
 		try {
 			verifyAdminConnection(adminServer);
-		} catch (ResourceAccessException rae) {
+		}
+		catch (ResourceAccessException rae) {
 			LOGGER.error("XD Admin Server is not available at "
 					+ adminServer.toString());
 			throw new ResourceAccessException(
@@ -77,13 +83,16 @@ public class XdEc2Validation {
 				verifyContainerConnection(StreamUtils.replacePort(container,
 						jmxPort));
 				result = true;
-			} catch (ResourceAccessException rae) {
+			}
+			catch (ResourceAccessException rae) {
 				LOGGER.error("XD Container is not available at "
 						+ StreamUtils.replacePort(container, jmxPort));
-			} catch (HttpClientErrorException hcee) {
+			}
+			catch (HttpClientErrorException hcee) {
 				LOGGER.debug(hcee.getMessage());
 				result = true;
-			} catch (IOException ioe) {
+			}
+			catch (IOException ioe) {
 				LOGGER.warn("XD Container is not available at "
 						+ StreamUtils.replacePort(container, jmxPort));
 			}
@@ -107,23 +116,50 @@ public class XdEc2Validation {
 		if (hosts.isOnEc2()) {
 			StreamUtils.transferResultsToLocal(hosts, url, fileName);
 		}
-		BufferedReader reader = new BufferedReader(new FileReader(fileName));
-		char cbuf[] = new char[15];
-		String result = "";
-		while (reader.ready()) {
-			int size = reader.read(cbuf);
-			result += String.valueOf(cbuf,0, size);
-		}
-
-		if (!result.equals(data+"\n")) {
-			reader.close();
+		Reader fileReader = new InputStreamReader(new FileInputStream(fileName));
+		String result = FileCopyUtils.copyToString(fileReader);
+		if (!result.equals(data + "\n")) {
+			fileReader.close();
 			throw new ResourceAccessException(
 					"Data in the result file is not what was sent. Read "
 							+ result + "\n but expected " + data);
 		}
 
-		reader.close();
+		fileReader.close();
 	}
+
+
+	public void verifyLogContent(XdEnvironment hosts, URL url, String fileName,
+			String data) throws IOException {
+		String logLocation = fileName;
+		if (hosts.isOnEc2()) {
+			logLocation = StreamUtils.transferLogToTmp(hosts, url, fileName);
+		}
+		File file = new File(logLocation);
+		if (!file.exists()) {
+			throw new IllegalArgumentException(
+					"The Log File for the container is not present.  Please be sure to set the "
+							+ XdEnvironment.XD_CONTAINER_LOG_DIR + " on your gradle build.");
+		}
+		BufferedReader fileReader = new BufferedReader(new FileReader(logLocation));
+		boolean result = false;
+		while (fileReader.ready())
+		{
+			String line = fileReader.readLine();
+			if (line.contains(data)) {
+				result = true;
+				break;
+			}
+		}
+		fileReader.close();
+
+		if (!result) {
+			throw new ResourceAccessException(
+					"Data in the result file is not what was sent. Read "
+							+ result + "\n but expected " + data);
+		}
+	}
+
 
 	private String buildJMXRequest(URL url, String streamName,
 			String moduleName, int modulePosition) {

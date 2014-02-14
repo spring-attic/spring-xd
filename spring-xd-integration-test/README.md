@@ -34,21 +34,31 @@ PORT=15000
 management_port=15005
 server.port=9393
 
-#Running The Test
-* When running the test set up the environment based on your execution strategy:
-   - Command Line : 
-   	Setup the following environment variables in the integration test environment.
-    * export xd_admin_host=http://localhost:9393 
-    * export xd_containers=http://localhost:9393 
-    * export xd_http_port=15000 
-    * export xd_jmx_port=15005
-    * export xd_private_key_file=<location of your ec2 private key file> // if you are testing ec2 cluster
-    * export xd_run_on_ec2=[false if you are testing locally | true if you are testing on ec2]
-   - Eclipse 
-   In the run configuration for your test select the environment tab.  Add the environment variables from the command line instruction above.
-    -or-
-   - Create an artifact file named ec2servers.csv and place it in the root spring-xd-integration-test directory.
-	  The file looks like the following:
+[Running The Test] 
+ # Running build from Command Line 
+   - Gradle 
+      By default the tests are not active.  To run the tests execute the following:
+	     ./gradlew -Drun_integration_tests=true -Dxd_container_log_dir=/Users/renfrg/projects/crap/spring-xd/build/dist/spring-xd/xd/logs :spring-xd-integration-test:build
+
+# Changing default environment variables
+   - Environment Variables
+      * -Dxd_admin_host=http://localhost:9393 
+      * -Dxd_containers=http://localhost:9393 
+      * -Dxd_http_port=15000 
+      * -Dxd_jmx_port=15005
+      * -Dxd_private_key_file=<location of your ec2 private key file> // if you are testing ec2 cluster
+      * -Dxd_run_on_ec2=[false if you are testing locally | true if you are testing on ec2]
+   - Using the artifact
+   	  * Setup the environment by using the ec2servers.csv file
+        > Create an artifact file named ec2servers.csv and place it in the root spring-xd-integration-test directory.
+	      The file looks like the following:
 			adminNode,localhost,9393,15000,15005
-			containerNode,localhost,9393,15000,15005
+			containerNode,localhost,9393,15000,15005 
+	  * You will still need to use set the environment variables xd_private_key_file & xd_run_on_ec2.  
+   - Eclipse 
+      * In the run configuration of your tests add the environment variables to your VMArgs.  Use the environment variables above.  
+   - Eclipse
+   	  Execute the tests via the "Run As"->"JUnit Tests" infrastructure.
+
+   
 			

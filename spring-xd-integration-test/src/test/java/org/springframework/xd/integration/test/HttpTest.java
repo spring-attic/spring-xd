@@ -16,40 +16,33 @@
 
 package org.springframework.xd.integration.test;
 
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.UUID;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
-import org.springframework.xd.integration.util.SinkType;
+
+import org.springframework.xd.integration.util.Sink;
+import org.springframework.xd.integration.util.Source;
 
 /**
  * @author Glenn Renfro
  */
 @RunWith(Parameterized.class)
-public class HttpTest extends AbstractIntegrationTest{
+public class HttpTest extends AbstractIntegrationTest {
 
-	private SinkType sink;
-
-	public HttpTest(SinkType sink) {
+	public HttpTest(Sink sink) {
 		this.sink = sink;
-	}
-
-	@Parameters
-	public static Collection<Object[]> sink() {
-		Object[][] sink = { {SinkType.log},{SinkType.file} };
-		return Arrays.asList(sink);
 	}
 
 	@Test
 	public void testHttp() throws Exception {
-		String data = "testHttpTest";
-		stream("http  | " + getTestSink(sink));
+		String data = UUID.randomUUID().toString();
+		stream(Source.HTTP + XD_DELIMETER + sink);
 		send("HTTP", data);
+
 		assertReceived();
-		assertValid(data,sink);
+		assertValid(data);
 	}
 
 }

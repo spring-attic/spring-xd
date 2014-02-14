@@ -90,11 +90,13 @@ ext {
 	tomcatJdbcPoolVersion = '7.0.42'
 	reactorVersion = '1.0.0.RC1'
 	lettuceVersion = '2.3.3'
-	springDataHadoopVersion = '2.0.0.M4'
+	springDataHadoopBase = '2.0.0.M5'
+	springDataHadoopVersion = "${springDataHadoopBase}-hadoop12"
 	hadoop12Version = '1.2.1'
 	hadoop22Version = '2.2.0'
 	cdh4Version = '2.0.0-cdh4.3.1'
 	hdp13Version = '1.2.0'
+	hdp20Version = '2.2.0'
 	phd1Version = '2.0.5-alpha-gphd-2.1.0.0'
 	springHATEOASVersion = '0.9.0.RELEASE'
 	springPluginVersion = '0.8.0.RELEASE'
@@ -629,12 +631,12 @@ project('spring-xd-hadoop') {
 }
 
 project('spring-xd-hadoop:hadoop12') {
-	description = 'Hadoop 1.2 dependencies'
+	description = 'Hadoop 1.2.x dependencies'
 	dependencies {
-		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopVersion}") {
+		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopBase}-hadoop12") {
 			exclude group: 'org.apache.hadoop'
 		}
-		runtime ("org.springframework.data:spring-data-hadoop-store:$springDataHadoopVersion") {
+		runtime ("org.springframework.data:spring-data-hadoop-store:${springDataHadoopBase}-hadoop12") {
 			exclude group: 'org.apache.hadoop'
 		}
 		runtime ("org.apache.hadoop:hadoop-core:$hadoop12Version")
@@ -652,12 +654,12 @@ project('spring-xd-hadoop:hadoop12') {
 }
 
 project('spring-xd-hadoop:hadoop22') {
-	description = 'Hadoop 2.0 dependencies'
+	description = 'Hadoop 2.2.x dependencies'
 	dependencies {
-		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopVersion}-hadoop22") {
+		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopBase}") {
 			exclude group: 'org.apache.hadoop'
 		}
-		runtime ("org.springframework.data:spring-data-hadoop-store:${springDataHadoopVersion}-hadoop22") {
+		runtime ("org.springframework.data:spring-data-hadoop-store:${springDataHadoopBase}") {
 			exclude group: 'org.apache.hadoop'
 		}
 		runtime ("org.apache.hadoop:hadoop-common:$hadoop22Version")
@@ -682,10 +684,10 @@ project('spring-xd-hadoop:hadoop22') {
 project('spring-xd-hadoop:cdh4') {
 	description = 'Cloudera CDH 4.3.1 dependencies'
 	dependencies {
-		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopVersion}-cdh5") {
+		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopBase}-cdh4") {
 			exclude group: 'org.apache.hadoop'
 		}
-		runtime ("org.springframework.data:spring-data-hadoop-store:${springDataHadoopVersion}-cdh5") {
+		runtime ("org.springframework.data:spring-data-hadoop-store:${springDataHadoopBase}-cdh4") {
 			exclude group: 'org.apache.hadoop'
 		}
 		runtime ("org.apache.hadoop:hadoop-common:$cdh4Version")
@@ -710,10 +712,10 @@ project('spring-xd-hadoop:cdh4') {
 project('spring-xd-hadoop:hdp13') {
 	description = 'Hortonworks HDP 1.3 dependencies'
 	dependencies {
-		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopVersion}") {
+		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopBase}-hadoop12") {
 			exclude group: 'org.apache.hadoop'
 		}
-		runtime ("org.springframework.data:spring-data-hadoop-store:${springDataHadoopVersion}") {
+		runtime ("org.springframework.data:spring-data-hadoop-store:${springDataHadoopBase}-hadoop12") {
 			exclude group: 'org.apache.hadoop'
 		}
 		runtime ("org.apache.hadoop:hadoop-core:$hdp13Version")
@@ -730,13 +732,41 @@ project('spring-xd-hadoop:hdp13') {
 	}
 }
 
+project('spring-xd-hadoop:hdp20') {
+    description = 'Hortonworks HDP 2.0 dependencies'
+    dependencies {
+        runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopBase}-hdp20") {
+            exclude group: 'org.apache.hadoop'
+        }
+        runtime ("org.springframework.data:spring-data-hadoop-store:${springDataHadoopBase}-hdp20") {
+            exclude group: 'org.apache.hadoop'
+        }
+        runtime ("org.apache.hadoop:hadoop-common:$hdp20Version")
+        runtime ("org.apache.hadoop:hadoop-distcp:$hdp20Version")
+        runtime ("org.apache.hadoop:hadoop-hdfs:$hdp20Version")
+        runtime ("org.apache.hadoop:hadoop-mapreduce-client-core:$hdp20Version")
+        runtime ("org.apache.hadoop:hadoop-mapreduce-client-jobclient:$hdp20Version")
+        runtime ("org.apache.hadoop:hadoop-streaming:$hdp20Version")
+        runtime ("org.apache.hadoop:hadoop-yarn-common:$hdp20Version")
+    }
+    task copyToLib(dependsOn: build, type: Copy) {
+        into "$buildDir/lib"
+        from configurations.default
+        include 'spring-data-hadoop-*'
+        include 'hadoop-*'
+        include 'avro-*'
+        include 'protobuf-java-*'
+        include 'jetty-util-*'
+    }
+}
+
 project('spring-xd-hadoop:phd1') {
 	description = 'Pivotal HD 1.0 dependencies'
 	dependencies {
-		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopVersion}-phd1") {
+		runtime ("org.springframework.data:spring-data-hadoop:${springDataHadoopBase}-phd1") {
 			exclude group: 'org.apache.hadoop'
 		}
-		runtime ("org.springframework.data:spring-data-hadoop-store:${springDataHadoopVersion}-phd1") {
+		runtime ("org.springframework.data:spring-data-hadoop-store:${springDataHadoopBase}-phd1") {
 			exclude group: 'org.apache.hadoop'
 		}
 		runtime ("org.apache.hadoop:hadoop-common:$phd1Version")
@@ -1342,8 +1372,8 @@ task copyXDShellInstall(type: Copy, dependsOn: [":spring-xd-shell:installApp"]) 
 	exclude "**/lib/spring-data-hadoop-*.jar"
 }
 
-task copyHadoopLibs(dependsOn: [":spring-xd-hadoop:hadoop12:copyToLib", ":spring-xd-hadoop:hadoop22:copyToLib", ":spring-xd-hadoop:cdh4:copyToLib", ":spring-xd-hadoop:hdp13:copyToLib", ":spring-xd-hadoop:phd1:copyToLib"]) << {
-	['hadoop12', 'hadoop22', 'cdh4', 'hdp13', 'phd1'].each { distro ->
+task copyHadoopLibs(dependsOn: [":spring-xd-hadoop:hadoop12:copyToLib", ":spring-xd-hadoop:hadoop22:copyToLib", ":spring-xd-hadoop:cdh4:copyToLib", ":spring-xd-hadoop:hdp13:copyToLib", ":spring-xd-hadoop:hdp20:copyToLib", ":spring-xd-hadoop:phd1:copyToLib"]) << {
+	['hadoop12', 'hadoop22', 'cdh4', 'hdp13', 'hdp20', 'phd1'].each { distro ->
 		copy {
 			from "$rootDir/spring-xd-hadoop/$distro/build/lib"
 			into "$buildDir/dist/spring-xd/xd/lib/$distro"

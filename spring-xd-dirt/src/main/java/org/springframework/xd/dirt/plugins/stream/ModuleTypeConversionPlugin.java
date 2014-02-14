@@ -22,6 +22,8 @@ import java.util.Map.Entry;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.aop.framework.Advised;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.Converter;
@@ -92,13 +94,7 @@ public class ModuleTypeConversionPlugin extends PluginAdapter {
 		SimpleModule sm = (SimpleModule) module;
 		try {
 			MediaType contentType = resolveContentType(contentTypeString, module);
-			AbstractMessageChannel channel = null;
-			if (isInput) {
-				channel = module.getComponent("input", AbstractMessageChannel.class);
-			}
-			else {
-				channel = module.getComponent("output", AbstractMessageChannel.class);
-			}
+			AbstractMessageChannel channel = getChannel(module, isInput);
 			Map<Class<?>, Converter<?, ?>> converters = converterRegistry.getConverters(contentType);
 			if (CollectionUtils.isEmpty(converters)) {
 				throw new ModuleConfigurationException("No message converter is registered for " + contentTypeString +
@@ -143,6 +139,18 @@ public class ModuleTypeConversionPlugin extends PluginAdapter {
 		catch (Throwable t) {
 			throw new ModuleConfigurationException(t.getMessage(), t);
 		}
+	}
+
+	// Workaround for when the channel is proxied and can't be cast directly to AbstractMessageChannel
+	private AbstractMessageChannel getChannel(Module module, boolean isInput) throws Exception {
+		String name = isInput ? "input" : "output";
+		Object channel = module.getComponent(name, Object.class);
+
+		if (AopUtils.isJdkDynamicProxy(channel)) {
+			return (AbstractMessageChannel)(((Advised)channel).getTargetSource().getTarget());
+		}
+
+		return (AbstractMessageChannel)channel;
 	}
 
 	private MediaType resolveContentType(String type, Module module) throws ClassNotFoundException, LinkageError {

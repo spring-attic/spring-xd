@@ -16,7 +16,6 @@
 
 package org.springframework.xd.dirt.modules.metadata;
 
-import org.springframework.http.MediaType;
 import org.springframework.xd.module.options.spi.ModuleOption;
 
 /**
@@ -32,26 +31,8 @@ public class RabbitSourceOptionsMetadata extends AbstractRabbitConnectionOptions
 		return queues;
 	}
 
-
 	@ModuleOption("the queue(s) from which messages will be received")
 	public void setQueues(String queues) {
 		this.queues = queues;
 	}
-
-
-	// Adding those back as we can't inherit from multiple classes.
-	// Will go away when XD-1050 is done
-	private MediaType outputType;
-
-	public MediaType getOutputType() {
-		return outputType;
-	}
-
-
-	@ModuleOption("how this module should emit messages it produces")
-	public void setOutputType(MediaType outputType) {
-		this.outputType = outputType;
-	}
-
-
 }

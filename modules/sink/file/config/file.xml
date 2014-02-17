@@ -26,6 +26,6 @@
 		mode="${mode}"
 		charset="${charset}"
 		directory="${dir}"
-		filename-generator-expression="'${name:${xd.stream.name}}'+(('${suffix}'.trim()=='')?'':'.${suffix}')"/>
+		filename-generator-expression="'${name:${xd.stream.name}}' + '${extensionWithDot}'"/>
 
 </beans:beans>

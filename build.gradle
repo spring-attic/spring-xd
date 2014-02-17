@@ -788,28 +788,67 @@ project('spring-xd-hadoop:phd1') {
 	}
 }
 
-project('spring-xd-yarn') {
-	description = 'Spring XD YARN'
-	dependencies {
-		compile "org.springframework:spring-aop:$springVersion"
-		compile "org.springframework:spring-context:$springVersion"
-		compile "org.springframework:spring-context-support:$springVersion"
-		compile "org.springframework:spring-jdbc:$springVersion"
-		compile "org.springframework:spring-tx:$springVersion"
-		compile "org.springframework.batch:spring-batch-core:$springBatchVersion"
-		compile ("org.springframework.data:spring-yarn:$springDataHadoopBase") {
-			exclude group: 'javax.servlet'
-			exclude group: 'javax.servlet.jsp'
-			exclude group: 'tomcat'
-			exclude group: 'org.mortbay.jetty'
-			exclude group: 'com.sun.jersey'
-			exclude group: 'org.codehaus.jackson'
-			exclude group: 'net.java.dev.jets3t'
-			exclude group: 'com.jcraft'
-			exclude group: 'junit'
-			exclude group: 'hsqldb'
-		}
-	}
+project('spring-xd-yarn:spring-xd-yarn-client') {
+    description = 'Spring XD YARN Client App'
+    apply plugin: 'spring-boot'
+
+    dependencies {
+        compile "org.springframework:spring-aop:$springVersion"
+        compile "org.springframework:spring-context:$springVersion"
+        compile "org.springframework:spring-context-support:$springVersion"
+        compile "org.springframework:spring-jdbc:$springVersion"
+        compile "org.springframework:spring-tx:$springVersion"
+        compile "org.springframework.batch:spring-batch-core:$springBatchVersion"
+        compile ("org.springframework.data:spring-yarn-boot:$springDataHadoopBase") {
+            exclude group: 'javax.servlet'
+            exclude group: 'javax.servlet.jsp'
+            exclude group: 'tomcat'
+            exclude group: 'org.mortbay.jetty'
+            exclude group: 'com.sun.jersey'
+            exclude group: 'org.codehaus.jackson'
+            exclude group: 'net.java.dev.jets3t'
+            exclude group: 'com.jcraft'
+            exclude group: 'junit'
+            exclude group: 'hsqldb'
+            exclude group: 'org.slf4j'
+            exclude group: 'log4j'
+        }
+        compile "org.springframework.boot:spring-boot-autoconfigure:$springBootVersion"
+        runtime "log4j:log4j:$log4jVersion",
+                "org.slf4j:jcl-over-slf4j:$slf4jVersion",
+                "org.slf4j:slf4j-log4j12:$slf4jVersion"
+    }
+}
+
+project('spring-xd-yarn:spring-xd-yarn-appmaster') {
+    description = 'Spring XD YARN AppMaster'
+    apply plugin: 'spring-boot'
+
+    dependencies {
+        compile "org.springframework:spring-aop:$springVersion"
+        compile "org.springframework:spring-context:$springVersion"
+        compile "org.springframework:spring-context-support:$springVersion"
+        compile "org.springframework:spring-jdbc:$springVersion"
+        compile "org.springframework:spring-tx:$springVersion"
+        compile "org.springframework.batch:spring-batch-core:$springBatchVersion"
+        compile ("org.springframework.data:spring-yarn-boot:$springDataHadoopBase") {
+            exclude group: 'javax.servlet'
+            exclude group: 'javax.servlet.jsp'
+            exclude group: 'tomcat'
+            exclude group: 'org.mortbay.jetty'
+            exclude group: 'com.sun.jersey'
+            exclude group: 'org.codehaus.jackson'
+            exclude group: 'net.java.dev.jets3t'
+            exclude group: 'com.jcraft'
+            exclude group: 'junit'
+            exclude group: 'hsqldb'
+            exclude group: 'org.slf4j'
+            exclude group: 'log4j'
+            runtime "org.slf4j:jcl-over-slf4j:$slf4jVersion",
+                    "org.slf4j:slf4j-log4j12:$slf4jVersion"
+        }
+        compile "org.springframework.boot:spring-boot-autoconfigure:$springBootVersion"
+    }
 }
 
 // 'Binary' distributions projects
@@ -1408,14 +1447,16 @@ task copyHadoopLibs(dependsOn: [
 	}
 }
 
-task copyYARNInstall(type: Copy, dependsOn: [":spring-xd-dirt:build", ":spring-xd-dirt:installApp"]) {
+task copyYarnInstall(type: Copy, dependsOn: [":spring-xd-dirt:build", ":spring-xd-dirt:installApp", ":spring-xd-yarn:spring-xd-yarn-client:build", ":spring-xd-yarn:spring-xd-yarn-appmaster:build"]) {
 	from "$rootDir/spring-xd-dirt/build/install/spring-xd-dirt"
 	into "$buildDir/dist/spring-xd-yarn/xd-yarn"
 	exclude "**/bin/*"
 	exclude "**/lib/hadoop-*.jar"
+    exclude "**/lib/slf4j-log4j12-*.jar"
+    exclude "**/lib/log4j-*.jar"
 }
 
-task copyInstall (type: Copy, dependsOn: ["copyRedisInstall", "copyGemfireInstall", "copyXDInstall", "copyHadoopLibs", "copyXDShellInstall", "copyYARNInstall"]) {
+task copyInstall (type: Copy, dependsOn: ["copyRedisInstall", "copyGemfireInstall", "copyXDInstall", "copyHadoopLibs", "copyXDShellInstall", "copyYarnInstall"]) {
 	group = 'Application'
 	description = "Copy all the required installs to build/dist directory"
 	from "$rootDir/scripts/README"
@@ -1603,19 +1644,61 @@ task distTar(type: Tar, dependsOn: [asciidoctorHtml, copyInstall], overwrite: tr
 
 task yarnZip(type: Zip, dependsOn: [copyInstall], overwrite: true) {
 	group = 'Application'
-	classifier = 'yarn'
-	description = "Bundles the XD project and associated installs with libs prepared for YARN deployment as a zip file."
+	appendix = 'yarn'
+	description = "Bundles the XD project and with libs prepared for YARN deployment as a zip file."
 
-	ext.baseDir = "${project.name}-yarn-${project.version}";
+	destinationDir = new File("$buildDir/tmp")
 
-	from("$buildDir/dist/spring-xd-yarn") {
-		into "${baseDir}"
+    from("$buildDir/dist/spring-xd-yarn/xd-yarn/lib") {
+		into "/lib"
 	}
+    from("$buildDir/dist/spring-xd-yarn/xd-yarn/config") {
+        into "/config"
+    }
+    from("$buildDir/dist/spring-xd-yarn/xd-yarn/modules") {
+        into "/modules"
+    }
+}
+
+task distYarnZip(type: Zip, dependsOn: [copyInstall, yarnZip], overwrite: true) {
+	group = 'Application'
+	classifier = 'yarn'
+	description = "Bundles the XD files needed for YARN deployments."
+
+	ext.baseDir = "${project.name}-${project.version}-yarn";
+
+    from("$rootDir/scripts/README") {
+        into "${baseDir}"
+    }
+    from("$rootDir/scripts/LICENSE") {
+        into "${baseDir}"
+    }
+	from("$rootDir/spring-xd-yarn/site/scripts") {
+		include '*.sh'
+		into "${baseDir}/bin"
+	}
+	from("$rootDir/spring-xd-yarn/site/config") {
+		include '*.properties'
+		include '*.yml'
+		into "${baseDir}/config"
+	}
+	from("$rootDir/spring-xd-yarn/spring-xd-yarn-client/build/libs") {
+		include "spring-xd-yarn-client-${project.version}.jar"
+		into "${baseDir}/lib"
+	}
+	from("$rootDir/spring-xd-yarn/spring-xd-yarn-appmaster/build/libs") {
+		include "spring-xd-yarn-appmaster-${project.version}.jar"
+		into "${baseDir}/lib"
+	}
+    from("$buildDir/tmp") {
+    	include "spring-xd-yarn-${project.version}.zip"
+    	into "${baseDir}"
+    }
 }
 
 artifacts {
 	archives distZip
-	archives yarnZip
+	archives distYarnZip
 	archives docsZip
 }
 

@@ -18,6 +18,7 @@ package org.springframework.xd.dirt.plugins.stream;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.http.MediaType;
+import org.springframework.util.MimeType;
 
 /**
  * A custom converter for {@link MediaType} that accepts a plain java class name as a shorthand for
@@ -25,15 +26,16 @@ import org.springframework.http.MediaType;
  * 
  * 
  * @author Eric Bottard
+ * @author David Turanski
  */
-public class CustomMediaTypeConverter implements Converter<String, MediaType> {
+public class CustomMimeTypeConverter implements Converter<String, MimeType> {
 
 	@Override
-	public MediaType convert(String source) {
+	public MimeType convert(String source) {
 		if (!source.contains("/")) {
-			return MediaType.valueOf("application/x-java-object;type=" + source);
+			return MimeType.valueOf("application/x-java-object;type=" + source);
 		}
-		return MediaType.valueOf(source);
+		return MimeType.valueOf(source);
 	}
 
 }

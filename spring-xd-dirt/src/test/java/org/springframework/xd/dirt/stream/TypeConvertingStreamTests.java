@@ -24,12 +24,15 @@ import java.util.Map;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import org.springframework.http.MediaType;
-import org.springframework.integration.x.bus.DefaultMessageMediaTypeResolver;
+import org.springframework.integration.x.bus.StringConvertingContentTypeResolver;
+import org.springframework.integration.x.bus.converter.MessageConverterUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.converter.ContentTypeResolver;
+import org.springframework.util.MimeType;
 import org.springframework.xd.dirt.plugins.ModuleConfigurationException;
 import org.springframework.xd.module.core.Module;
+import org.springframework.xd.tuple.DefaultTuple;
 import org.springframework.xd.tuple.Tuple;
 
 /**
@@ -37,7 +40,7 @@ import org.springframework.xd.tuple.Tuple;
  */
 public class TypeConvertingStreamTests extends StreamTestSupport {
 
-	private DefaultMessageMediaTypeResolver mediaTypeResolver = new DefaultMessageMediaTypeResolver();
+	private ContentTypeResolver contentTypeResolver = new StringConvertingContentTypeResolver();
 
 	@BeforeClass
 	public static void setup() {
@@ -65,8 +68,8 @@ public class TypeConvertingStreamTests extends StreamTestSupport {
 				Tuple t = (Tuple) message.getPayload();
 				assertEquals("bar", t.getString("s"));
 				assertEquals(9999, t.getInt("i"));
-				assertEquals(MediaType.valueOf("application/x-xd-tuple"),
-						mediaTypeResolver.resolveMediaType(message));
+				assertEquals(MessageConverterUtils.javaObjectMimeType(DefaultTuple.class),
+						contentTypeResolver.resolve(message.getHeaders()));
 			}
 		};
 
@@ -107,8 +110,8 @@ public class TypeConvertingStreamTests extends StreamTestSupport {
 				Tuple t = (Tuple) message.getPayload();
 				assertEquals("bar", t.getString("s"));
 				assertEquals(9999, t.getInt("i"));
-				assertEquals(MediaType.valueOf("application/x-java-object;type=" + Tuple.class.getName()),
-						mediaTypeResolver.resolveMediaType(message));
+				assertEquals(MimeType.valueOf("application/x-java-object;type=" + DefaultTuple.class.getName()),
+						contentTypeResolver.resolve(message.getHeaders()));
 			}
 		};
 
@@ -126,8 +129,8 @@ public class TypeConvertingStreamTests extends StreamTestSupport {
 			@Override
 			public void test(Message<?> message) throws MessagingException {
 				assertTrue(message.getPayload() instanceof byte[]);
-				assertEquals(MediaType.valueOf("application/x-java-serialized-object"),
-						mediaTypeResolver.resolveMediaType(message));
+				assertEquals(MimeType.valueOf("application/x-java-serialized-object"),
+						contentTypeResolver.resolve(message.getHeaders()));
 			}
 		};
 		sendPayloadAndVerifyOutput("rawbytes", new Foo("bar", 9999), test);
@@ -142,6 +145,7 @@ public class TypeConvertingStreamTests extends StreamTestSupport {
 			fail("should throw exception");
 		}
 		catch (Exception e) {
+			e.printStackTrace();
 			assertTrue(e.getCause() instanceof ModuleConfigurationException);
 			assertEquals("No message converter is registered for application/xml(source --outputType=application/xml)",
 					e.getCause().getMessage());
@@ -160,8 +164,8 @@ public class TypeConvertingStreamTests extends StreamTestSupport {
 			@Override
 			public void test(Message<?> message) throws MessagingException {
 				assertEquals(foo.toString(), message.getPayload());
-				assertEquals(MediaType.valueOf("text/plain"),
-						mediaTypeResolver.resolveMediaType(message));
+				assertEquals(MimeType.valueOf("text/plain"),
+						contentTypeResolver.resolve(message.getHeaders()));
 			}
 		};
 		sendPayloadAndVerifyOutput("fooToString", foo, test);
@@ -181,8 +185,8 @@ public class TypeConvertingStreamTests extends StreamTestSupport {
 				Map map = (Map) message.getPayload();
 				assertEquals("hello", map.get("s"));
 				assertEquals(123, map.get("i"));
-				assertEquals(MediaType.valueOf("application/x-java-object;type=java.util.Map"),
-						mediaTypeResolver.resolveMediaType(message));
+				assertEquals(MimeType.valueOf("application/x-java-object;type=java.util.Map"),
+						contentTypeResolver.resolve(message.getHeaders()));
 			}
 		};
 		sendPayloadAndVerifyOutput("jsonToMap", new Foo("hello", 123), test);
@@ -202,8 +206,8 @@ public class TypeConvertingStreamTests extends StreamTestSupport {
 			@Override
 			public void test(Message<?> message) throws MessagingException {
 				assertEquals(now.toString(), message.getPayload());
-				assertEquals(MediaType.valueOf("text/plain"),
-						mediaTypeResolver.resolveMediaType(message));
+				assertEquals(MimeType.valueOf("text/plain"),
+						contentTypeResolver.resolve(message.getHeaders()));
 			}
 		};
 		sendPayloadAndVerifyOutput("dateToString", now, test);

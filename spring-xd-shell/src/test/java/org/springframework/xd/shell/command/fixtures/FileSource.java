@@ -50,7 +50,7 @@ public class FileSource extends DisposableFileSupport {
 
 	@Override
 	protected String toDSL() {
-		return String.format("file --outputType=text/plain --dir=%s", file.getParent());
+		return String.format("file --outputType=java.lang.String --dir=%s", file.getParent());
 	}
 
 	public void appendToFile(String contents) throws IOException {

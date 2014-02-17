@@ -790,6 +790,8 @@ project('spring-xd-hadoop:phd1') {
 
 project('spring-xd-yarn') {
 	description = 'Spring XD YARN'
+	apply plugin: 'spring-boot'
+
 	dependencies {
 		compile "org.springframework:spring-aop:$springVersion"
 		compile "org.springframework:spring-context:$springVersion"
@@ -797,7 +799,7 @@ project('spring-xd-yarn') {
 		compile "org.springframework:spring-jdbc:$springVersion"
 		compile "org.springframework:spring-tx:$springVersion"
 		compile "org.springframework.batch:spring-batch-core:$springBatchVersion"
-		compile ("org.springframework.data:spring-yarn:$springDataHadoopBase") {
+		compile ("org.springframework.data:spring-yarn-boot:$springDataHadoopBase") {
 			exclude group: 'javax.servlet'
 			exclude group: 'javax.servlet.jsp'
 			exclude group: 'tomcat'
@@ -809,7 +811,39 @@ project('spring-xd-yarn') {
 			exclude group: 'junit'
 			exclude group: 'hsqldb'
 		}
+		compile "org.springframework.boot:spring-boot-autoconfigure:$springBootVersion"
 	}
+
+	task clientJar(type: Jar) {
+	    appendix = 'client'
+	    from sourceSets.main.output
+	    exclude('**/AppMaster*')
+	}
+
+	task clientBoot(type: BootRepackage, dependsOn: clientJar) {
+	    withJarTask = clientJar
+	    customConfiguration = "bootRuntime"
+	}
+
+	task appmasterJar(type: Jar) {
+	    appendix = 'appmaster'
+	    from sourceSets.main.output
+	    exclude('**/Client*')
+	}
+
+	task appmasterBootJar(type: BootRepackage, dependsOn: appmasterJar) {
+	    withJarTask = appmasterJar
+	    customConfiguration = "bootRuntime"
+	}
+
+	clean.doLast {ant.delete(dir: "target")}
+
+	jar.enabled = false
+
+	bootRepackage.enabled = false
+
+	build.dependsOn(clientBoot, appmasterBootJar)
+
 }
 
 // 'Binary' distributions projects
@@ -1603,19 +1637,54 @@ task distTar(type: Tar, dependsOn: [asciidoctorHtml, copyInstall], overwrite: tr
 
 task yarnZip(type: Zip, dependsOn: [copyInstall], overwrite: true) {
 	group = 'Application'
-	classifier = 'yarn'
-	description = "Bundles the XD project and associated installs with libs prepared for YARN deployment as a zip file."
+	appendix = 'yarn'
+	description = "Bundles the XD project and with libs prepared for YARN deployment as a zip file."
 
-	ext.baseDir = "${project.name}-yarn-${project.version}";
+	destinationDir = new File("$buildDir/tmp")
 
-	from("$buildDir/dist/spring-xd-yarn") {
-		into "${baseDir}"
+    from("$buildDir/dist/spring-xd-yarn/xd-yarn/lib") {
+		into "/lib"
 	}
+    from("$buildDir/dist/spring-xd-yarn/xd-yarn/config") {
+        into "/config"
+    }
+    from("$buildDir/dist/spring-xd-yarn/xd-yarn/modules") {
+        into "/modules"
+    }
+}
+
+task distYarnZip(type: Zip, dependsOn: [copyInstall, yarnZip], overwrite: true) {
+	group = 'Application'
+	classifier = 'yarn'
+	description = "Bundles the XD files needed for YARN deployments."
+
+	ext.baseDir = "${project.name}-${project.version}";
+
+	from("$rootDir/spring-xd-yarn/site/scripts") {
+		include '*.sh'
+		into "${baseDir}/bin"
+	}
+
+	from("$rootDir/spring-xd-yarn/site/config") {
+		include '*.yml'
+		into "${baseDir}/config"
+	}
+
+	from("$rootDir/spring-xd-yarn/build/libs") {
+		include "spring-xd-yarn-client-${project.version}.jar"
+		include "spring-xd-yarn-appmaster-${project.version}.jar"
+		into "${baseDir}/lib"
+	}
+
+    from("$buildDir/tmp") {
+    	include '*-yarn-*.zip'
+    	into "${baseDir}"
+    }
 }
 
 artifacts {
 	archives distZip
-	archives yarnZip
+	archives distYarnZip
 	archives docsZip
 }
 

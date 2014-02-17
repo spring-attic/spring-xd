@@ -16,37 +16,28 @@
 
 package org.springframework.integration.x.bus;
 
-
-import org.springframework.http.InvalidMediaTypeException;
-import org.springframework.http.MediaType;
-import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.converter.DefaultContentTypeResolver;
+import org.springframework.util.MimeType;
 
 /**
- * @author Rossen Stoyanchev
+ * A {@link DefaultContentTypeResolver} that can parse String values.
+ * 
  * @author David Turanski
- * @since 1.0
  */
-public class DefaultMessageMediaTypeResolver implements MessageMediaTypeResolver {
+public class StringConvertingContentTypeResolver extends DefaultContentTypeResolver {
 
 
 	@Override
-	public MediaType resolveMediaType(Message<?> message) {
-
-		Object value = message.getHeaders().get(MessageHeaders.CONTENT_TYPE);
-		if (value == null) {
-			return null;
-		}
-
-		if (value instanceof MediaType) {
-			return (MediaType) value;
+	// TODO: This will likely be pushed to core Spring
+	public MimeType resolve(MessageHeaders headers) {
+		Object value = headers.get(MessageHeaders.CONTENT_TYPE);
+		if (value instanceof MimeType) {
+			return (MimeType) value;
 		}
 		else if (value instanceof String) {
-			return MediaType.valueOf((String) value);
+			return MimeType.valueOf((String) value);
 		}
-		else {
-			throw new InvalidMediaTypeException(value.toString(),
-					"Unexpected contentType header value type " + value.getClass());
-		}
+		return getDefaultMimeType();
 	}
 }

@@ -37,7 +37,9 @@ import org.springframework.integration.x.bus.serializer.kryo.TupleCodec;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.converter.ContentTypeResolver;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.util.MimeType;
 import org.springframework.xd.tuple.DefaultTuple;
 import org.springframework.xd.tuple.Tuple;
 import org.springframework.xd.tuple.TupleBuilder;
@@ -48,7 +50,7 @@ import org.springframework.xd.tuple.TupleBuilder;
  */
 public class MessageBusSupportTests {
 
-	private DefaultMessageMediaTypeResolver mediaTypeResolver = new DefaultMessageMediaTypeResolver();
+	private ContentTypeResolver contentTypeResolver = new StringConvertingContentTypeResolver();
 
 	private final TestMessageBus messageBus = new TestMessageBus();
 
@@ -68,7 +70,7 @@ public class MessageBusSupportTests {
 				MediaType.APPLICATION_OCTET_STREAM);
 		assertSame(payload, converted.getPayload());
 		assertEquals(MediaType.APPLICATION_OCTET_STREAM,
-				mediaTypeResolver.resolveMediaType(converted));
+				contentTypeResolver.resolve(converted.getHeaders()));
 		Message<?> reconstructed = messageBus.deserializePayloadIfNecessary(converted);
 		payload = (byte[]) reconstructed.getPayload();
 		assertSame(converted.getPayload(), payload);
@@ -85,7 +87,7 @@ public class MessageBusSupportTests {
 				MediaType.APPLICATION_OCTET_STREAM);
 		assertSame(payload, converted.getPayload());
 		assertEquals(MediaType.APPLICATION_OCTET_STREAM,
-				mediaTypeResolver.resolveMediaType(converted));
+				contentTypeResolver.resolve(converted.getHeaders()));
 		Message<?> reconstructed = messageBus.deserializePayloadIfNecessary(converted);
 		payload = (byte[]) reconstructed.getPayload();
 		assertSame(converted.getPayload(), payload);
@@ -100,7 +102,7 @@ public class MessageBusSupportTests {
 				new GenericMessage<String>("foo"), MediaType.APPLICATION_OCTET_STREAM);
 
 		assertEquals(MediaType.TEXT_PLAIN,
-				mediaTypeResolver.resolveMediaType(converted));
+				contentTypeResolver.resolve(converted.getHeaders()));
 		Message<?> reconstructed = messageBus.deserializePayloadIfNecessary(converted);
 		assertEquals("foo", reconstructed.getPayload());
 		assertNull(reconstructed.getHeaders().get(MessageHeaders.CONTENT_TYPE));
@@ -115,7 +117,7 @@ public class MessageBusSupportTests {
 				inbound, MediaType.APPLICATION_OCTET_STREAM);
 
 		assertEquals(MediaType.TEXT_PLAIN,
-				mediaTypeResolver.resolveMediaType(converted));
+				contentTypeResolver.resolve(converted.getHeaders()));
 		assertEquals(MediaType.APPLICATION_JSON,
 				converted.getHeaders().get(MessageBusSupport.ORIGINAL_CONTENT_TYPE_HEADER));
 		Message<?> reconstructed = messageBus.deserializePayloadIfNecessary(converted);
@@ -128,10 +130,10 @@ public class MessageBusSupportTests {
 		Message<?> converted = messageBus.serializePayloadIfNecessary(
 				new GenericMessage<Foo>(new Foo("bar")),
 				MediaType.APPLICATION_OCTET_STREAM);
-		MediaType mediaType = mediaTypeResolver.resolveMediaType(converted);
-		assertEquals("application", mediaType.getType());
-		assertEquals("x-java-object", mediaType.getSubtype());
-		assertEquals(Foo.class.getName(), mediaType.getParameter("type"));
+		MimeType mimeType = contentTypeResolver.resolve(converted.getHeaders());
+		assertEquals("application", mimeType.getType());
+		assertEquals("x-java-object", mimeType.getSubtype());
+		assertEquals(Foo.class.getName(), mimeType.getParameter("type"));
 
 		Message<?> reconstructed = messageBus.deserializePayloadIfNecessary(converted);
 		assertEquals("bar", ((Foo) reconstructed.getPayload()).getBar());
@@ -143,10 +145,10 @@ public class MessageBusSupportTests {
 		Message<?> converted = messageBus.serializePayloadIfNecessary(
 				new GenericMessage<Foo>(new Foo("bar")),
 				MediaType.APPLICATION_OCTET_STREAM);
-		MediaType mediaType = mediaTypeResolver.resolveMediaType(converted);
-		assertEquals("application", mediaType.getType());
-		assertEquals("x-java-object", mediaType.getSubtype());
-		assertEquals(Foo.class.getName(), mediaType.getParameter("type"));
+		MimeType mimeType = contentTypeResolver.resolve(converted.getHeaders());
+		assertEquals("application", mimeType.getType());
+		assertEquals("x-java-object", mimeType.getSubtype());
+		assertEquals(Foo.class.getName(), mimeType.getParameter("type"));
 
 		Message<?> reconstructed = messageBus.deserializePayloadIfNecessary(converted);
 		assertEquals("bar", ((Foo) reconstructed.getPayload()).getBar());
@@ -158,10 +160,10 @@ public class MessageBusSupportTests {
 		Message<?> converted = messageBus.serializePayloadIfNecessary(
 				new GenericMessage<Foo>(new Foo("bar")),
 				MediaType.APPLICATION_OCTET_STREAM);
-		MediaType mediaType = mediaTypeResolver.resolveMediaType(converted);
-		assertEquals("application", mediaType.getType());
-		assertEquals("x-java-object", mediaType.getSubtype());
-		assertEquals(Foo.class.getName(), mediaType.getParameter("type"));
+		MimeType mimeType = contentTypeResolver.resolve(converted.getHeaders());
+		assertEquals("application", mimeType.getType());
+		assertEquals("x-java-object", mimeType.getSubtype());
+		assertEquals(Foo.class.getName(), mimeType.getParameter("type"));
 
 		Message<?> reconstructed = messageBus.deserializePayloadIfNecessary(converted);
 		assertEquals("bar", ((Foo) reconstructed.getPayload()).getBar());
@@ -173,10 +175,10 @@ public class MessageBusSupportTests {
 		Tuple payload = TupleBuilder.tuple().of("foo", "bar");
 		Message<?> converted = messageBus.serializePayloadIfNecessary(new GenericMessage<Tuple>(payload),
 				MediaType.APPLICATION_OCTET_STREAM);
-		MediaType mediaType = mediaTypeResolver.resolveMediaType(converted);
-		assertEquals("application", mediaType.getType());
-		assertEquals("x-java-object", mediaType.getSubtype());
-		assertEquals(DefaultTuple.class.getName(), mediaType.getParameter("type"));
+		MimeType mimeType = contentTypeResolver.resolve(converted.getHeaders());
+		assertEquals("application", mimeType.getType());
+		assertEquals("x-java-object", mimeType.getSubtype());
+		assertEquals(DefaultTuple.class.getName(), mimeType.getParameter("type"));
 
 		Message<?> reconstructed = messageBus.deserializePayloadIfNecessary(converted);
 		assertEquals("bar", ((Tuple) reconstructed.getPayload()).getString("foo"));

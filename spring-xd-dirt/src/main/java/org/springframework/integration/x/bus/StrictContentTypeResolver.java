@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,24 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.x.bus.converter;
+package org.springframework.integration.x.bus;
 
-import org.springframework.core.convert.converter.Converter;
+import org.springframework.util.MimeType;
 
 
 /**
+ * A {@link StringConvertingContentTypeResolver} that requires a the content-type to be present.
  * 
  * @author David Turanski
  */
-public class DefaultObjectToStringConverter implements Converter<Object, String> {
+// TODO: This will likely be pushed to core Spring
+public class StrictContentTypeResolver extends StringConvertingContentTypeResolver {
 
-	@Override
-	public String convert(Object source) {
-		return source.toString();
+	/**
+	 * @param defaultMimeType the required {@link MimeType}
+	 */
+	public StrictContentTypeResolver(MimeType defaultMimeType) {
+		super();
+		setDefaultMimeType(defaultMimeType);
 	}
-
 }

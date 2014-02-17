@@ -16,26 +16,22 @@
 
 package org.springframework.xd.dirt.plugins.stream;
 
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.Collection;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.core.convert.support.ConfigurableConversionService;
-import org.springframework.format.support.DefaultFormattingConversionService;
-import org.springframework.http.MediaType;
 import org.springframework.integration.channel.AbstractMessageChannel;
-import org.springframework.integration.x.bus.converter.ByteArrayToStringConverter;
-import org.springframework.integration.x.bus.converter.ContentTypeHeaderInterceptor;
-import org.springframework.integration.x.bus.converter.DefaultContentTypeAwareConverterRegistry;
+import org.springframework.integration.x.bus.converter.AbstractFromMessageConverter;
+import org.springframework.integration.x.bus.converter.CompositeMessageConverterFactory;
+import org.springframework.integration.x.bus.converter.ConversionException;
+import org.springframework.integration.x.bus.converter.MessageConverterUtils;
+import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
+import org.springframework.util.MimeType;
 import org.springframework.xd.dirt.plugins.AbstractPlugin;
 import org.springframework.xd.dirt.plugins.ModuleConfigurationException;
 import org.springframework.xd.module.ModuleType;
@@ -45,7 +41,9 @@ import org.springframework.xd.module.core.SimpleModule;
 
 
 /**
- * A {@link Plugin} for processing module message conversion parameters (inputType and outputType)
+ * A {@link Plugin} for processing module message conversion parameters (inputType and outputType). Accepts a list of
+ * {@link AbstractFromMessageConverter}s which are always available along with an optional list of custom converters
+ * which may be provided by end users.
  * 
  * @author David Turanski
  * @since 1.0
@@ -54,7 +52,19 @@ public class ModuleTypeConversionPlugin extends AbstractPlugin {
 
 	private final static Log logger = LogFactory.getLog(ModuleTypeConversionPlugin.class);
 
-	private final DefaultContentTypeAwareConverterRegistry converterRegistry = new DefaultContentTypeAwareConverterRegistry();
+	private final CompositeMessageConverterFactory converterFactory;
+
+	/**
+	 * @param converters a list of default converters
+	 * @param customConverters a list of custom converters to extend the default converters
+	 */
+	public ModuleTypeConversionPlugin(Collection<AbstractFromMessageConverter> converters,
+			Collection<AbstractFromMessageConverter> customConverters) {
+		if (!CollectionUtils.isEmpty(customConverters)) {
+			converters.addAll(customConverters);
+		}
+		this.converterFactory = new CompositeMessageConverterFactory(converters);
+	}
 
 	@Override
 	public void postProcessModule(Module module) {
@@ -66,72 +76,44 @@ public class ModuleTypeConversionPlugin extends AbstractPlugin {
 		if (module.getType() == ModuleType.sink || module.getType() == ModuleType.processor) {
 			inputType = module.getProperties().getProperty("inputType");
 		}
-		DefaultFormattingConversionService conversionService = new DefaultFormattingConversionService();
 		if (outputType != null) {
-			configureModuleConverters(outputType, module, conversionService, false);
+			configureModuleConverters(outputType, module, false);
 		}
 		if (inputType != null) {
-			configureModuleConverters(inputType, module, conversionService, true);
-		}
-
-		registerConversionService(module, conversionService);
-	}
-
-	private void registerConversionService(Module module, ConversionService conversionService) {
-		if (module instanceof SimpleModule) {
-			SimpleModule sm = (SimpleModule) module;
-			ConfigurableApplicationContext applicationContext = (ConfigurableApplicationContext) sm.getApplicationContext();
-			applicationContext.getBeanFactory().registerSingleton("conversionService", conversionService);
+			configureModuleConverters(inputType, module, true);
 		}
 	}
 
-	private void configureModuleConverters(String contentTypeString, Module module,
-			ConfigurableConversionService conversionService, boolean isInput) {
+	private void configureModuleConverters(String contentTypeString, Module module, boolean isInput) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("module " + (isInput ? "input" : "output") + "Type is " + contentTypeString);
 		}
 		SimpleModule sm = (SimpleModule) module;
 		try {
-			MediaType contentType = resolveContentType(contentTypeString, module);
+			MimeType contentType = resolveContentType(contentTypeString, module);
+
 			AbstractMessageChannel channel = getChannel(module, isInput);
-			Map<Class<?>, Converter<?, ?>> converters = converterRegistry.getConverters(contentType);
-			if (CollectionUtils.isEmpty(converters)) {
-				throw new ModuleConfigurationException("No message converter is registered for " + contentTypeString +
+
+			CompositeMessageConverter converters = null;
+			try {
+				converters = converterFactory.newInstance(contentType);
+			}
+			catch (ConversionException e) {
+				throw new ModuleConfigurationException(e.getMessage() +
 						"(" +
 						module.getName() + " --" + (isInput ? "input" : "output") + "Type=" + contentTypeString
 						+ ")");
 			}
 
-			Class<?> dataType = converterRegistry.getJavaTypeForContentType(contentType,
+			Class<?> dataType = MessageConverterUtils.getJavaTypeForContentType(contentType,
 					sm.getApplicationContext().getClassLoader());
 			if (dataType == null) {
 				throw new ModuleConfigurationException("Content type is not supported for " +
 						module.getName() + " --" + (isInput ? "input" : "output") + "Type=" + contentTypeString);
 			}
 			else {
-				channel.addInterceptor(new ContentTypeHeaderInterceptor(contentType));
 				channel.setDatatypes(dataType);
-
-				for (Entry<Class<?>, Converter<?, ?>> entry : converters.entrySet()) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("registering converter sourceType [" + entry.getKey().getName() +
-								"] targetType [" + dataType.getName() + "] converter ["
-								+ entry.getValue().getClass().getName() + "]");
-
-					}
-					Converter<?, ?> converter = entry.getValue();
-					// special case to handle charset parameter
-					if (converter instanceof ByteArrayToStringConverter) {
-						if (MediaType.TEXT_PLAIN.includes(contentType)) {
-							String charsetName = contentType.getParameter("charset");
-							if (StringUtils.hasText(charsetName)) {
-								converter = new ByteArrayToStringConverter(charsetName);
-							}
-						}
-					}
-					conversionService.addConverter(entry.getKey(), dataType, converter);
-				}
-				channel.setConversionService(conversionService);
+				channel.setMessageConverter(converters);
 			}
 
 		}
@@ -152,12 +134,12 @@ public class ModuleTypeConversionPlugin extends AbstractPlugin {
 		return (AbstractMessageChannel) channel;
 	}
 
-	private MediaType resolveContentType(String type, Module module) throws ClassNotFoundException, LinkageError {
+	private MimeType resolveContentType(String type, Module module) throws ClassNotFoundException, LinkageError {
 		if (!type.contains("/")) {
 			Class<?> javaType = resolveJavaType(type, module);
-			return MediaType.valueOf("application/x-java-object;type=" + javaType.getName());
+			return MessageConverterUtils.javaObjectMimeType(javaType);
 		}
-		return MediaType.valueOf(type);
+		return MimeType.valueOf(type);
 	}
 
 	private Class<?> resolveJavaType(String type, Module module) throws ClassNotFoundException, LinkageError {

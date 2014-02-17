@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package org.springframework.integration.x.bus.converter;
 
-import org.springframework.core.convert.converter.Converter;
+import org.springframework.messaging.Message;
+import org.springframework.util.MimeTypeUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,28 +25,39 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 
 
 /**
+ * An {@link MessageConverter} to convert a Java object to a JSON String
  * 
  * @author David Turanski
  */
-public class MappingJackson2Converter implements Converter<Object, String> {
+public class PojoToJsonMessageConverter extends AbstractFromMessageConverter {
 
 	private final ObjectMapper mapper = new ObjectMapper();
 
-	public MappingJackson2Converter() {
+	public PojoToJsonMessageConverter() {
+		super(MimeTypeUtils.APPLICATION_JSON);
 		mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 	}
 
 	@Override
-	public String convert(Object source) {
-		String result = null;
-		try {
-			result = mapper.writeValueAsString(source);
-		}
-		catch (JsonProcessingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return result;
+	protected Class<?>[] supportedTargetTypes() {
+		return new Class<?>[] { String.class };
 	}
 
+	@Override
+	protected Class<?>[] supportedPayloadTypes() {
+		return null;
+	}
+
+	@Override
+	public Object convertFromInternal(Message<?> message, Class<?> targetClass) {
+		Object result = null;
+		try {
+			result = mapper.writeValueAsString(message.getPayload());
+		}
+		catch (JsonProcessingException e) {
+			logger.error(e.getMessage(), e);
+			return null;
+		}
+		return buildConvertedMessage(result, message.getHeaders(), MimeTypeUtils.APPLICATION_JSON);
+	}
 }

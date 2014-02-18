@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -92,7 +93,8 @@ public class SimpleModule extends AbstractModule {
 		propertySources.addFirst(moduleOptions.asPropertySource());
 		// Also add as properties for now, b/c other parts of the system
 		// (eg type conversion plugin) expects it
-		this.properties.putAll(moduleOptionsToProperties(moduleOptions));
+		Map<Object, Object> map = moduleOptionsToProperties(moduleOptions);
+		this.properties.putAll(map);
 
 		application.profiles(moduleOptions.profilesToActivate());
 

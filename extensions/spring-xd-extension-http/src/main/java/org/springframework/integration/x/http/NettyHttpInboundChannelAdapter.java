@@ -24,7 +24,6 @@ import static org.jboss.netty.handler.codec.http.HttpResponseStatus.OK;
 import static org.jboss.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 import java.net.InetSocketAddress;
-import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -55,7 +54,9 @@ import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
 import org.jboss.netty.handler.execution.ExecutionHandler;
 import org.jboss.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
 
+import org.springframework.http.HttpMessage;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.MessageHeaders;
@@ -63,25 +64,45 @@ import org.springframework.util.Assert;
 
 
 /**
+ * An inbound channel adapter that uses Netty as the http server. Will attempt to unmarshall/convert the incoming
+ * payload using a set of {@link HttpMessageConverter}s, possibly honoring the {@code unmarshallTo} module option.
+ * 
+ * @author Eric Bottard
  * @author Mark Fisher
  * @author Jennifer Hickey
  */
-public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
+public class NettyHttpInboundChannelAdapter<T> extends MessageProducerSupport {
 
 	/**
-	 * Default max number of threads for the default {@link Executor}
+	 * Default max number of threads for the default {@link Executor}.
 	 */
 	private static final int DEFAULT_CORE_POOL_SIZE = 16;
 
 	/**
-	 * Default max total size of queued events per channel for the default {@link Executor} (in bytes)
+	 * Default max total size of queued events per channel for the default {@link Executor} (in bytes).
 	 */
 	private static final long DEFAULT_MAX_CHANNEL_MEMORY_SIZE = 1048576;
 
 	/**
-	 * Default max total size of queued events for the whole pool for the default {@link Executor} (in bytes)
+	 * Default max total size of queued events for the whole pool for the default {@link Executor} (in bytes).
 	 */
 	private static final long DEFAULT_MAX_TOTAL_MEMORY_SIZE = 1048576;
+
+	/**
+	 * Mapping from http header name to Spring integration header name. Special value "_REMOVE_" means skip header.
+	 */
+	private static final Map<String, String> HEADER_MAPPINGS = new HashMap<String, String>();
+
+	static {
+		// Keys are compared in upper case
+		HEADER_MAPPINGS.put("CONTENT-TYPE", MessageHeaders.CONTENT_TYPE);
+		HEADER_MAPPINGS.put("ACCEPT", "_REMOVE_");
+		HEADER_MAPPINGS.put("ACCEPT-CHARSET", "_REMOVE_");
+		HEADER_MAPPINGS.put("ACCEPT-ENCODING", "_REMOVE_");
+		HEADER_MAPPINGS.put("ACCEPT-LANGUAGE", "_REMOVE_");
+		HEADER_MAPPINGS.put("ACCEPT-DATETIME", "_REMOVE_");
+		HEADER_MAPPINGS.put("CONNECTION", "_REMOVE_");
+	}
 
 	private final int port;
 
@@ -91,6 +112,15 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 
 	private volatile Executor executor = new OrderedMemoryAwareThreadPoolExecutor(DEFAULT_CORE_POOL_SIZE,
 			DEFAULT_MAX_CHANNEL_MEMORY_SIZE, DEFAULT_MAX_TOTAL_MEMORY_SIZE);
+
+	private DelegatingHttpMessageConverter httpMessageConverters = new DelegatingHttpMessageConverter();
+
+	private Class<T> unmarshallTo = null;
+
+
+	public void setUnmarshallTo(Class<T> unmarshallTo) {
+		this.unmarshallTo = unmarshallTo;
+	}
 
 	public NettyHttpInboundChannelAdapter(int port) {
 		this.port = port;
@@ -146,26 +176,23 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 		public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
 			HttpRequest request = (HttpRequest) e.getMessage();
 			ChannelBuffer content = request.getContent();
-			Charset charsetToUse = null;
 			HttpResponse response = new DefaultHttpResponse(HTTP_1_1, OK);
 			if (content.readable()) {
 				Map<String, String> messageHeaders = new HashMap<String, String>();
 				for (Entry<String, String> entry : request.getHeaders()) {
-					if (entry.getKey().equalsIgnoreCase("Content-Type")) {
-						charsetToUse = MediaType.parseMediaType(entry.getValue()).getCharSet();
-						messageHeaders.put(MessageHeaders.CONTENT_TYPE, entry.getValue());
+					String newName = HEADER_MAPPINGS.get(entry.getKey().toUpperCase());
+					if (newName == "_REMOVE_") {
+						continue;
 					}
-					else if (!entry.getKey().toUpperCase().startsWith("ACCEPT")
-							&& !entry.getKey().toUpperCase().equals("CONNECTION")) {
-						messageHeaders.put(entry.getKey(), entry.getValue());
-					}
+					messageHeaders.put(newName, entry.getValue());
 				}
-				// ISO-8859-1 is the default http charset when not set
-				charsetToUse = charsetToUse == null ? Charset.forName("ISO-8859-1") : charsetToUse;
 				messageHeaders.put("requestPath", request.getUri());
 				messageHeaders.put("requestMethod", request.getMethod().toString());
 				try {
-					sendMessage(MessageBuilder.withPayload(content.toString(charsetToUse)).copyHeaders(messageHeaders).build());
+					NettyHttpInputMessage inputMessage = new NettyHttpInputMessage(request);
+					Class<?> type = maybeInferType(inputMessage);
+					Object payload = httpMessageConverters.read(type, inputMessage);
+					sendMessage(MessageBuilder.withPayload(payload).copyHeaders(messageHeaders).build());
 				}
 				catch (Exception ex) {
 					logger.error("Error sending message", ex);
@@ -173,6 +200,24 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 				}
 			}
 			writeResponse(request, response, e.getChannel());
+		}
+
+		/**
+		 * Return {@link NettyHttpInboundChannelAdapter#unmarshallTo} if it is set, or fallback to {@link String} for
+		 * all {@code text/*} content-types, and {@code byte[]} for everything else.
+		 */
+		private Class<?> maybeInferType(HttpMessage inputMessage) {
+			if (unmarshallTo != null) {
+				return unmarshallTo;
+			}
+			else {
+				MediaType contentType = inputMessage.getHeaders().getContentType();
+				if (contentType == null) {
+					// Per the http spec: http://www.w3.org/Protocols/rfc2616/rfc2616-sec7.html#sec7.2.1
+					contentType = MediaType.APPLICATION_OCTET_STREAM;
+				}
+				return contentType.getType().equals("text") ? String.class : byte[].class;
+			}
 		}
 
 		@Override

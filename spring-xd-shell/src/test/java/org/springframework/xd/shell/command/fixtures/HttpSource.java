@@ -37,6 +37,8 @@ public class HttpSource extends AbstractModuleFixture {
 
 	private String contentType;
 
+	private String unmarshallTo;
+
 	public HttpSource(JLineShellComponent shell) {
 		this(shell, AvailableSocketPorts.nextAvailablePort());
 	}
@@ -75,7 +77,11 @@ public class HttpSource extends AbstractModuleFixture {
 
 	@Override
 	protected String toDSL() {
-		return String.format("http --port=%d", port);
+		String dsl = String.format("http --port=%d", port);
+		if (unmarshallTo != null) {
+			dsl += " --unmarshallTo=" + unmarshallTo;
+		}
+		return dsl;
 	}
 
 	public HttpSource postData(String payload) {
@@ -104,6 +110,11 @@ public class HttpSource extends AbstractModuleFixture {
 		}
 		CommandResult result = shell.executeCommand(command);
 		Assert.isTrue(result.isSuccess());
+		return this;
+	}
+
+	public HttpSource unmarshallTo(Class<?> clazz) {
+		this.unmarshallTo = clazz.getName();
 		return this;
 	}
 

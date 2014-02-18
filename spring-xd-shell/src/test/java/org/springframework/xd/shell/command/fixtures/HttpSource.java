@@ -75,7 +75,7 @@ public class HttpSource extends AbstractModuleFixture {
 
 	@Override
 	protected String toDSL() {
-		return String.format("http --port=%d", port);
+		return String.format("http --port=%d --outputType=java.lang.String", port);
 	}
 
 	public HttpSource postData(String payload) {

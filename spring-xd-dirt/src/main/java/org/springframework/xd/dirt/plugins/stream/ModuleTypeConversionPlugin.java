@@ -55,9 +55,6 @@ public class ModuleTypeConversionPlugin extends PluginAdapter {
 		this.converterFactory = new CompositeMessageConverterFactory(converters);
 	}
 
-	// TODO: Use DI here
-
-
 	@Override
 	public void postProcessModule(Module module) {
 		String outputType = null;
@@ -86,12 +83,6 @@ public class ModuleTypeConversionPlugin extends PluginAdapter {
 
 			AbstractMessageChannel channel = getChannel(module, isInput);
 
-			if (isInput) {
-				channel = module.getComponent("input", AbstractMessageChannel.class);
-			}
-			else {
-				channel = module.getComponent("output", AbstractMessageChannel.class);
-			}
 			CompositeMessageConverter converters = null;
 			try {
 				converters = converterFactory.newInstance(contentType);

@@ -24,18 +24,12 @@ import java.util.Map;
 
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
-import org.springframework.boot.SpringApplicationEnvironmentAvailableEvent;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.context.ApplicationContextInitializer;
+import org.springframework.boot.event.ApplicationEnvironmentPreparedEvent;
 import org.springframework.context.ApplicationListener;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.EnvironmentAware;
-import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.EnumerablePropertySource;
-import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
-import org.springframework.util.Assert;
 
 /**
  * An {@code ApplicationListener} that will parse command line options and also replace the default boot commandline
@@ -46,7 +40,7 @@ import org.springframework.util.Assert;
  * @author Luke Taylor
  */
 public class CommandLinePropertySourceOverridingListener<T extends CommonOptions> implements
-		ApplicationListener<SpringApplicationEnvironmentAvailableEvent> {
+		ApplicationListener<ApplicationEnvironmentPreparedEvent> {
 
 	private T options;
 
@@ -56,7 +50,7 @@ public class CommandLinePropertySourceOverridingListener<T extends CommonOptions
 	}
 
 	@Override
-	public void onApplicationEvent(SpringApplicationEnvironmentAvailableEvent event) {
+	public void onApplicationEvent(ApplicationEnvironmentPreparedEvent event) {
 		if (event.getArgs().length == 0) {
 			return;
 		}

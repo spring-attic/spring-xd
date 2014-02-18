@@ -83,8 +83,11 @@ public class StreamPlugin extends AbstractPlugin {
 				bus.bindPubSubConsumer(md.getInputChannelName(), channel);
 			}
 			else {
-				bus.bindConsumer(md.getInputChannelName(), channel,
-						md.isAliasedInput());
+				bus.bindConsumer(md.getInputChannelName(), channel, md.isAliasedInput());
+			}
+			if (md.isAliasedInput()) {
+				// If the input is a named channel, create a tap for future use
+				createTap(channel, module, bus, buildNamedTapChannelName(module));
 			}
 		}
 	}
@@ -93,29 +96,28 @@ public class StreamPlugin extends AbstractPlugin {
 		DeploymentMetadata md = module.getDeploymentMetadata();
 		MessageChannel channel = module.getComponent("output", MessageChannel.class);
 		if (channel != null) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("binding output channel [" + md.getOutputChannelName() + "] for " + module);
-			}
+			logger.debug("binding output channel [" + md.getOutputChannelName() + "] for " + module);
+
 			if (isChannelPubSub(md.getOutputChannelName())) {
 				bus.bindPubSubProducer(md.getOutputChannelName(), channel);
 			}
 			else {
 				bus.bindProducer(md.getOutputChannelName(), channel, md.isAliasedOutput());
 			}
+			createTap(channel, module, bus, buildTapChannelName(module));
+		}
+	}
 
-			// Create the tap channel now for possible future use (tap:mystream.mymodule)
-			if (channel instanceof ChannelInterceptorAware) {
-				String tapChannelName = buildTapChannelName(module);
-				DirectChannel tapChannel = new DirectChannel();
-				tapChannel.setBeanName(tapChannelName + ".tap.bridge");
-				((ChannelInterceptorAware) channel).addInterceptor(new WireTap(tapChannel));
-				bus.bindPubSubProducer(tapChannelName, tapChannel);
-			}
-			else {
-				if (logger.isDebugEnabled()) {
-					logger.debug("output channel is not interceptor aware. Tap will not be created.");
-				}
-			}
+	private void createTap(MessageChannel channel, Module module, MessageBus bus, String tapChannelName) {
+		// Create the tap channel now for possible future use (tap:mystream.mymodule)
+		if (channel instanceof ChannelInterceptorAware) {
+			DirectChannel tapChannel = new DirectChannel();
+			tapChannel.setBeanName(tapChannelName + ".tap.bridge");
+			((ChannelInterceptorAware) channel).addInterceptor(new WireTap(tapChannel));
+			bus.bindPubSubProducer(tapChannelName, tapChannel);
+		}
+		else {
+			logger.debug("output channel is not an AbstractMessageChannel. Tap will not be created.");
 		}
 	}
 
@@ -133,6 +135,7 @@ public class StreamPlugin extends AbstractPlugin {
 		if (inputChannel != null) {
 			bus.unbindConsumer(module.getDeploymentMetadata().getInputChannelName(), inputChannel);
 		}
+		bus.unbindProducers(buildNamedTapChannelName(module));
 	}
 
 	private void unbindProducers(Module module, MessageBus bus) {
@@ -141,6 +144,10 @@ public class StreamPlugin extends AbstractPlugin {
 			bus.unbindProducer(module.getDeploymentMetadata().getOutputChannelName(), outputChannel);
 		}
 		bus.unbindProducers(buildTapChannelName(module));
+	}
+
+	private String buildNamedTapChannelName(Module module) {
+		return TAP_CHANNEL_PREFIX + module.getDeploymentMetadata().getInputChannelName();
 	}
 
 	private String buildTapChannelName(Module module) {

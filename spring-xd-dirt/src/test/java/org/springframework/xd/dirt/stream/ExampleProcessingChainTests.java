@@ -71,6 +71,14 @@ public class ExampleProcessingChainTests extends RandomConfigurationSupport {
 		StreamDefinition testStream = new StreamDefinition(streamName, streamDefinition);
 		integrationSupport.createAndDeployStream(testStream);
 
+		StreamDefinition tap = new StreamDefinition("namedtap", "tap:queue:producer > queue:tap1");
+		integrationSupport.createAndDeployStream(tap);
+		NamedChannelSink tapSink = new SingleNodeNamedChannelSinkFactory(integrationSupport.messageBus()).createNamedChannelSink("queue:tap1");
+
+		StreamDefinition tap2 = new StreamDefinition("namedtap2", "tap:stream:test > queue:tap2");
+		integrationSupport.createAndDeployStream(tap2);
+		NamedChannelSink tapSink2 = new SingleNodeNamedChannelSinkFactory(integrationSupport.messageBus()).createNamedChannelSink("queue:tap2");
+
 		MessageBus messageBus = integrationSupport.messageBus();
 
 		NamedChannelSource source = new SingleNodeNamedChannelSourceFactory(messageBus).createNamedChannelSource("queue:producer");
@@ -79,6 +87,14 @@ public class ExampleProcessingChainTests extends RandomConfigurationSupport {
 		source.sendPayload("hello");
 		String result = (String) sink.receivePayload(1000);
 		assertEquals("HELLO", result);
+
+		String tapResult = (String) tapSink.receivePayload(1000);
+		assertEquals("hello", tapResult);
+		integrationSupport.undeployAndDestroyStream(tap);
+
+		String tapResult2 = (String) tapSink2.receivePayload(1000);
+		assertEquals("hello", tapResult2);
+		integrationSupport.undeployAndDestroyStream(tap2);
 
 		source.sendPayload("a");
 		result = (String) sink.receivePayload(1000);

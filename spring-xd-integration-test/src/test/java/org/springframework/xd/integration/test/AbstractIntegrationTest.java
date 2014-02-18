@@ -82,11 +82,12 @@ public abstract class AbstractIntegrationTest {
 		containerLogLocation = hosts.getContainerLogLocation();
 		validation.verifyAtLeastOneContainerAvailable(hosts.getContainers(),
 				jmxPort);
-
 	}
 
 	@Before
-	public void setup() {
+	public void setup() throws IOException, URISyntaxException {
+		StreamUtils.destroyAllStreams(streamNames, adminServer);
+		waitForXD();
 		streamNames = new ArrayList<String>();
 	}
 

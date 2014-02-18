@@ -132,6 +132,7 @@ public class XdEc2Validation {
 	public void verifyLogContent(XdEnvironment hosts, URL url, String fileName,
 			String data) throws IOException {
 		String logLocation = fileName;
+
 		if (hosts.isOnEc2()) {
 			logLocation = StreamUtils.transferLogToTmp(hosts, url, fileName);
 		}

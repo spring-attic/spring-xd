@@ -56,7 +56,7 @@ public class XdEnvironment {
 
 	public final static String RESULT_LOCATION = "/tmp/xd/output";
 
-	public final static String LOGGER_LOCATION = "/home/ubuntu/spring-xd-1.0.0.BUILD-SNAPSHOT/xd/logs";
+	public final static String LOGGER_LOCATION = "/home/ubuntu/spring-xd-1.0.0.BUILD-SNAPSHOT/xd/logs/container.log";
 
 
 	public static final String HTTP_PREFIX = "http://";
@@ -195,9 +195,9 @@ public class XdEnvironment {
 	}
 
 	private String getContainerLogLocation(Properties properties) {
-		String result = LOGGER_LOCATION + "/container.log";
+		String result = LOGGER_LOCATION;
 		if (properties.containsKey(XD_CONTAINER_LOG_DIR)) {
-			result = properties.getProperty(XD_CONTAINER_LOG_DIR) + "/container.log";
+			result = properties.getProperty(XD_CONTAINER_LOG_DIR);
 		}
 		return result;
 	}
@@ -312,7 +312,7 @@ public class XdEnvironment {
 	private boolean getOnEc2Flag() {
 		boolean result = isOnEc2;
 		if (systemProperties.containsKey(XD_RUN_ON_EC2)) {
-			result = Boolean.getBoolean(systemProperties.getProperty(XD_PRIVATE_KEY_FILE));
+			result = Boolean.getBoolean(XD_RUN_ON_EC2);
 		}
 		return result;
 	}

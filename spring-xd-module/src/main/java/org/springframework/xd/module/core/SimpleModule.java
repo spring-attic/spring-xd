@@ -27,7 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.context.initializer.ContextIdApplicationContextInitializer;
+import org.springframework.boot.context.ContextIdApplicationContextInitializer;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -41,8 +41,8 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.validation.BindException;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.ModuleDefinition;
-import org.springframework.xd.module.options.PassthruModuleOptionsMetadata;
 import org.springframework.xd.module.options.ModuleOptions;
+import org.springframework.xd.module.options.PassthruModuleOptionsMetadata;
 
 /**
  * A {@link Module} implementation backed by a Spring {@link ApplicationContext}.

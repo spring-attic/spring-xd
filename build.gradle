@@ -1308,10 +1308,11 @@ project('spring-xd-integration-test') {
 		systemProperties = [
 			xd_admin_host: System.getProperty('xd_admin_host', 'http://localhost:9393'),
 			xd_containers: System.getProperty('xd_containers', 'http://localhost:9393'),
-			xd_http_port: System.getProperty('xd_http_port', '15000'),
+			xd_http_port: System.getProperty('xd_http_port', '9000'),
 			xd_jmx_port: System.getProperty('xd_jmx_port', '15005'),
 			xd_container_log_dir: System.getProperty('xd_container_log_dir', '/home/ubuntu/spring-xd-1.0.0.BUILD-SNAPSHOT/xd/logs/container.log'),
 			xd_run_on_ec2: System.getProperty('xd_run_on_ec2', 'false'),
+			xd_pause_time: System.getProperty('xd_pause_time', '1'),
 			xd_private_key_file: System.getProperty('xd_private_key_file', '')]
 		
 		onlyIf {

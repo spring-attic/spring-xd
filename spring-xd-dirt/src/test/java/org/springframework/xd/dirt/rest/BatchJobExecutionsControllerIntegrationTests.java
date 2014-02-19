@@ -31,8 +31,10 @@ import java.util.Map;
 
 import org.hamcrest.Matchers;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.batch.admin.service.JobService;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobInstance;
@@ -56,7 +58,7 @@ import org.springframework.xd.dirt.plugins.job.DistributedJobLocator;
 
 /**
  * Tests REST compliance of {@link BatchJobExecutionsController} endpoints.
- * 
+ *
  * @author Ilayaperumal Gopinathan
  * @author Gunnar Hillert
  */
@@ -179,42 +181,49 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 	}
 
 	@Test
+	@Ignore
 	public void testStopAndRestartJobExecution() throws Exception {
 		mockMvc.perform(put("/batch/executions/{executionId}?stop=true", "0")).andExpect(status().isOk());
 		mockMvc.perform(put("/batch/executions/{executionId}?restart=true", "0")).andExpect(status().isOk());
 	}
 
 	@Test
+	@Ignore
 	public void testRestartNonExistingJobExecution() throws Exception {
 		mockMvc.perform(put("/batch/executions/{executionId}?restart=true", "1234")).andExpect(status().isNotFound()).andExpect(
 				jsonPath("$[0].message", Matchers.is("Could not find jobExecution with id 1234")));
 	}
 
 	@Test
+	@Ignore
 	public void testRestartAlreadyRunningJobExecution() throws Exception {
 		mockMvc.perform(put("/batch/executions/{executionId}?restart=true", "999")).andExpect(status().isBadRequest()).andExpect(
 				jsonPath("$[0].message", Matchers.is("Job Execution 999 is already running.")));
 	}
 
 	@Test
+	@Ignore
 	public void testRestartFailedForJobExecution() throws Exception {
 		mockMvc.perform(put("/batch/executions/{executionId}?restart=true", "1111")).andExpect(status().isBadRequest()).andExpect(
 				jsonPath("$[0].message", Matchers.is("Restarting of Job for Job Execution 1111 failed.")));
 	}
 
 	@Test
+	@Ignore
 	public void testRestartAlreadyCompleteJobExecution() throws Exception {
 		mockMvc.perform(put("/batch/executions/{executionId}?restart=true", "2222")).andExpect(status().isBadRequest()).andExpect(
 				jsonPath("$[0].message", Matchers.is("Job Execution 2222 is already complete.")));
 	}
 
 	@Test
+	@Ignore
 	public void testRestartJobExecutionWithJobNotAvailable() throws Exception {
 		mockMvc.perform(put("/batch/executions/{executionId}?restart=true", "3333")).andExpect(status().isNotFound()).andExpect(
 				jsonPath("$[0].message", Matchers.is("Batch Job with execution id 3333 doesn't exist")));
 	}
 
 	@Test
+	@Ignore
 	public void testRestartJobExecutionWithInvalidJobParameters() throws Exception {
 		mockMvc.perform(put("/batch/executions/{executionId}?restart=true", "4444")).andExpect(status().isBadRequest()).andExpect(
 				jsonPath("$[0].message", Matchers.is("Some Job Parameters for Job Execution 4444 are invalid.")));
@@ -231,6 +240,5 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 		mockMvc.perform(put("/batch/executions/{executionId}?stop=true", "5")).andExpect(status().isNotFound()).andExpect(
 				jsonPath("$[0].message",
 						Matchers.is("Could not find jobExecution with id 5")));
-
 	}
 }

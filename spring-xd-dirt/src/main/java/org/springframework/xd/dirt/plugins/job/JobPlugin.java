@@ -16,26 +16,22 @@
 
 package org.springframework.xd.dirt.plugins.job;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import org.springframework.http.MediaType;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.util.Assert;
 import org.springframework.xd.dirt.container.XDContainer;
-import org.springframework.xd.module.AbstractPlugin;
+import org.springframework.xd.dirt.plugins.AbstractPlugin;
 import org.springframework.xd.module.DeploymentMetadata;
-import org.springframework.xd.module.Module;
 import org.springframework.xd.module.ModuleType;
+import org.springframework.xd.module.core.Module;
 
 /**
  * Plugin to enable the registration of jobs in a central registry.
@@ -46,7 +42,6 @@ import org.springframework.xd.module.ModuleType;
  * @author Glenn Renfro
  * @author Ilayaperumal Gopinathan
  * @since 1.0
- * 
  */
 public class JobPlugin extends AbstractPlugin {
 
@@ -56,14 +51,6 @@ public class JobPlugin extends AbstractPlugin {
 			+ "plugins/job/";
 
 	private static final String REGISTRAR = CONTEXT_CONFIG_ROOT + "job-module-beans.xml";
-
-	private static final String DATE_FORMAT = "dateFormat";
-
-	private static final String NUMBER_FORMAT = "numberFormat";
-
-	private static final String MAKE_UNIQUE = "makeUnique";
-
-	public static final String JOB_BEAN_ID = "job";
 
 	public static final String JOB_NAME_DELIMITER = ".";
 
@@ -77,27 +64,25 @@ public class JobPlugin extends AbstractPlugin {
 
 	private static final String JOB_NOTIFICATIONS_CHANNEL = "notifications";
 
-	private final static Collection<MediaType> DEFAULT_ACCEPTED_CONTENT_TYPES = Collections.singletonList(MediaType.ALL);
+	private static final String JOB_PARTIONER_REQUEST_CHANNEL = "stepExecutionRequests.output";
 
-	@Override
+	private static final String JOB_PARTIONER_REPLY_CHANNEL = "stepExecutionReplies.input";
+
+	private static final String JOB_STEP_EXECUTION_REQUEST_CHANNEL = "stepExecutionRequests.input";
+
+	private static final String JOB_STEP_EXECUTION_REPLY_CHANNEL = "stepExecutionReplies.output";
+
 	public void configureProperties(Module module) {
 		final Properties properties = new Properties();
 		properties.setProperty("xd.stream.name", module.getDeploymentMetadata().getGroup());
-
-		if (!module.getProperties().contains(DATE_FORMAT)) {
-			properties.setProperty(DATE_FORMAT, "");
-		}
-		if (!module.getProperties().contains(NUMBER_FORMAT)) {
-			properties.setProperty(NUMBER_FORMAT, "");
-		}
-		if (!module.getProperties().contains(MAKE_UNIQUE)) {
-			properties.setProperty(MAKE_UNIQUE, String.valueOf(Boolean.TRUE));
-		}
-
-		if (logger.isInfoEnabled()) {
-			logger.info("Configuring module with the following properties: " + properties.toString());
-		}
 		module.addProperties(properties);
+	}
+
+	@Override
+	public void preProcessModule(Module module) {
+		Assert.notNull(module, "module cannot be null");
+		module.addComponents(new ClassPathResource(REGISTRAR));
+		configureProperties(module);
 	}
 
 	@Override
@@ -107,32 +92,67 @@ public class JobPlugin extends AbstractPlugin {
 		if (bus != null) {
 			MessageChannel inputChannel = module.getComponent(JOB_LAUNCH_REQUEST_CHANNEL, MessageChannel.class);
 			if (inputChannel != null) {
-				bus.bindConsumer(JOB_CHANNEL_PREFIX + md.getGroup(), inputChannel,
-						DEFAULT_ACCEPTED_CONTENT_TYPES,
-						true);
+				bus.bindConsumer(JOB_CHANNEL_PREFIX + md.getGroup(), inputChannel, true);
+			}
+			MessageChannel notificationsChannel = module.getComponent(JOB_NOTIFICATIONS_CHANNEL, MessageChannel.class);
+			if (notificationsChannel != null) {
+				bus.bindProducer(JOB_CHANNEL_PREFIX + md.getGroup() + NOTIFICATION_CHANNEL_SUFFIX,
+						notificationsChannel, true);
 			}
 
-			MessageChannel notificationsChannel = module.getComponent(JOB_NOTIFICATIONS_CHANNEL, MessageChannel.class);
-
-			if (notificationsChannel != null) {
-				bus.bindProducer(md.getGroup() + NOTIFICATION_CHANNEL_SUFFIX, notificationsChannel, true);
+			if (module.getComponent(JOB_PARTIONER_REQUEST_CHANNEL, MessageChannel.class) != null) {
+				this.processPartitionedJob(module, md, bus);
 			}
 		}
 	}
 
-	private MessageBus findMessageBus(Module module) {
-		MessageBus messageBus = null;
-		try {
-			messageBus = module.getComponent(MessageBus.class);
+	private void processPartitionedJob(Module module, DeploymentMetadata md, MessageBus bus) {
+		if (logger.isDebugEnabled()) {
+			logger.debug("binding job partitioning channels for " + module);
 		}
-		catch (Exception e) {
-			logger.error("No MessageBus in context, cannot wire/unwire channels: " + e.getMessage());
+		MessageChannel partitionsOut = module.getComponent(JOB_PARTIONER_REQUEST_CHANNEL, MessageChannel.class);
+		Assert.notNull(partitionsOut, "Partitioned jobs must have a " + JOB_PARTIONER_REQUEST_CHANNEL);
+		MessageChannel partitionsIn = module.getComponent(JOB_PARTIONER_REPLY_CHANNEL, MessageChannel.class);
+		Assert.notNull(partitionsIn, "Partitioned jobs must have a " + JOB_PARTIONER_REPLY_CHANNEL);
+		String name = md.getGroup() + "." + md.getIndex();
+		bus.bindRequestor(name, partitionsOut, partitionsIn);
+
+		MessageChannel stepExecutionsIn = module.getComponent(JOB_STEP_EXECUTION_REQUEST_CHANNEL, MessageChannel.class);
+		Assert.notNull(stepExecutionsIn, "Partitioned jobs must have a " + JOB_STEP_EXECUTION_REQUEST_CHANNEL);
+		MessageChannel stepExecutionResultsOut = module.getComponent(JOB_STEP_EXECUTION_REPLY_CHANNEL,
+				MessageChannel.class);
+		Assert.notNull(stepExecutionResultsOut, "Partitioned jobs must have a " + JOB_STEP_EXECUTION_REPLY_CHANNEL);
+		bus.bindReplier(name, stepExecutionsIn, stepExecutionResultsOut);
+	}
+
+	private void unbindPartitionedJob(Module module, MessageBus bus) {
+		if (logger.isDebugEnabled()) {
+			logger.debug("unbinding job partitioning channels for " + module);
 		}
-		return messageBus;
+		DeploymentMetadata md = module.getDeploymentMetadata();
+		MessageChannel partitionsOut = module.getComponent(JOB_PARTIONER_REQUEST_CHANNEL, MessageChannel.class);
+		String name = md.getGroup() + "." + md.getIndex();
+		if (partitionsOut != null) {
+			bus.unbindProducer(name, partitionsOut);
+		}
+		MessageChannel partitionsIn = module.getComponent(JOB_PARTIONER_REPLY_CHANNEL, MessageChannel.class);
+		if (partitionsIn != null) {
+			bus.unbindConsumer(name, partitionsIn);
+		}
+		MessageChannel stepExcutionsIn = module.getComponent(JOB_STEP_EXECUTION_REQUEST_CHANNEL, MessageChannel.class);
+		if (stepExcutionsIn != null) {
+			bus.unbindConsumer(name, stepExcutionsIn);
+		}
+		MessageChannel stepExecutionResultsOut = module.getComponent(JOB_STEP_EXECUTION_REPLY_CHANNEL,
+				MessageChannel.class);
+		if (stepExecutionResultsOut != null) {
+			bus.unbindProducer(name, stepExecutionResultsOut);
+		}
 	}
 
 	@Override
-	public void beforeShutdown(Module module) {
+	public boolean supports(Module module) {
+		return (module.getType() == ModuleType.job);
 	}
 
 	@Override
@@ -141,17 +161,10 @@ public class JobPlugin extends AbstractPlugin {
 		if (bus != null) {
 			bus.unbindConsumers(JOB_CHANNEL_PREFIX + module.getDeploymentMetadata().getGroup());
 			bus.unbindProducers(module.getDeploymentMetadata().getGroup() + NOTIFICATION_CHANNEL_SUFFIX);
+			if (module.getComponent(JOB_PARTIONER_REQUEST_CHANNEL, MessageChannel.class) != null) {
+				this.unbindPartitionedJob(module, bus);
+			}
 		}
-	}
-
-	@Override
-	public List<String> componentPathsSelector(Module module) {
-		List<String> result = new ArrayList<String>();
-		if (module.getType() != ModuleType.job) {
-			return result;
-		}
-		result.add(REGISTRAR);
-		return result;
 	}
 
 	public void launch(Module module, Map<String, String> parameters) {

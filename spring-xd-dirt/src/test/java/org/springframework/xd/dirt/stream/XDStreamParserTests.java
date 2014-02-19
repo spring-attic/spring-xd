@@ -20,6 +20,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.springframework.xd.dirt.stream.ParsingContext.job;
+import static org.springframework.xd.dirt.stream.ParsingContext.stream;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,13 +31,16 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.io.DescriptiveResource;
 import org.springframework.core.io.Resource;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
+import org.springframework.xd.dirt.module.ModuleDependencyRepository;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.module.memory.InMemoryModuleDefinitionRepository;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
+import org.springframework.xd.module.options.DefaultModuleOptionsMetadataResolver;
 
 /**
  * @author Mark Fisher
@@ -47,12 +52,12 @@ public class XDStreamParserTests {
 
 	@Before
 	public void setup() {
-		parser = new XDStreamParser(moduleDefinitionRepository());
+		parser = new XDStreamParser(moduleDefinitionRepository(), new DefaultModuleOptionsMetadataResolver());
 	}
 
 	@Test
 	public void testJob() {
-		List<ModuleDeploymentRequest> requests = parser.parse("myJob", "job");
+		List<ModuleDeploymentRequest> requests = parser.parse("myJob", "job", job);
 		assertEquals(1, requests.size());
 		ModuleDeploymentRequest job = requests.get(0);
 		assertEquals("job", job.getModule());
@@ -64,7 +69,7 @@ public class XDStreamParserTests {
 
 	@Test
 	public void testJobWithParams() {
-		List<ModuleDeploymentRequest> requests = parser.parse("myJob", "job --foo=bar");
+		List<ModuleDeploymentRequest> requests = parser.parse("myJob", "job --foo=bar", job);
 		assertEquals(1, requests.size());
 		ModuleDeploymentRequest job = requests.get(0);
 		assertEquals("job", job.getModule());
@@ -77,7 +82,7 @@ public class XDStreamParserTests {
 
 	@Test
 	public void simpleStream() {
-		List<ModuleDeploymentRequest> requests = parser.parse("test", "foo | bar");
+		List<ModuleDeploymentRequest> requests = parser.parse("test", "foo | bar", stream);
 		assertEquals(2, requests.size());
 		ModuleDeploymentRequest sink = requests.get(0);
 		ModuleDeploymentRequest source = requests.get(1);
@@ -95,7 +100,8 @@ public class XDStreamParserTests {
 
 	@Test
 	public void quotesInParams() {
-		List<ModuleDeploymentRequest> requests = parser.parse("test", "foo --bar='payload.matches(''hello'')' | file");
+		List<ModuleDeploymentRequest> requests = parser.parse("test", "foo --bar='payload.matches(''hello'')' | file",
+				stream);
 		assertEquals(2, requests.size());
 		// ModuleDeploymentRequest sink = requests.get(0);
 		ModuleDeploymentRequest source = requests.get(1);
@@ -111,7 +117,7 @@ public class XDStreamParserTests {
 	@Test
 	public void quotesInParams2() {
 		List<ModuleDeploymentRequest> requests = parser.parse("test",
-				"http --port=9700 | filter --expression=payload.matches('hello world') | file");
+				"http --port=9700 | filter --expression=payload.matches('hello world') | file", stream);
 		assertEquals(3, requests.size());
 		ModuleDeploymentRequest filter = requests.get(1);
 		assertEquals("filter", filter.getModule());
@@ -125,7 +131,7 @@ public class XDStreamParserTests {
 
 	@Test
 	public void parameterizedModules() {
-		List<ModuleDeploymentRequest> requests = parser.parse("test", "foo --x=1 --y=two | bar --z=3");
+		List<ModuleDeploymentRequest> requests = parser.parse("test", "foo --x=1 --y=two | bar --z=3", stream);
 		assertEquals(2, requests.size());
 		ModuleDeploymentRequest sink = requests.get(0);
 		ModuleDeploymentRequest source = requests.get(1);
@@ -148,9 +154,9 @@ public class XDStreamParserTests {
 
 	@Test
 	public void sourceChannelNameIsAppliedToSourceModule() throws Exception {
-		List<ModuleDeploymentRequest> requests = parser.parse("test", "topic:foo > goo | blah | file");
+		List<ModuleDeploymentRequest> requests = parser.parse("test", "topic:foo > goo | blah | file", stream);
 		assertEquals(3, requests.size());
-		assertEquals("foo", requests.get(2).getSourceChannelName());
+		assertEquals("topic:foo", requests.get(2).getSourceChannelName());
 		assertEquals(ModuleType.processor, requests.get(2).getType());
 		assertEquals(ModuleType.processor, requests.get(1).getType());
 		assertEquals(ModuleType.sink, requests.get(0).getType());
@@ -158,9 +164,9 @@ public class XDStreamParserTests {
 
 	@Test
 	public void sinkChannelNameIsAppliedToSinkModule() throws Exception {
-		List<ModuleDeploymentRequest> requests = parser.parse("test", "boo | blah | aaak > queue:foo");
+		List<ModuleDeploymentRequest> requests = parser.parse("test", "boo | blah | aaak > queue:foo", stream);
 		assertEquals(3, requests.size());
-		assertEquals("foo", requests.get(0).getSinkChannelName());
+		assertEquals("queue:foo", requests.get(0).getSinkChannelName());
 		assertEquals(ModuleType.processor, requests.get(0).getType());
 		assertEquals(ModuleType.processor, requests.get(1).getType());
 		assertEquals(ModuleType.source, requests.get(2).getType());
@@ -168,7 +174,7 @@ public class XDStreamParserTests {
 
 	@Test
 	public void tap() throws Exception {
-		List<ModuleDeploymentRequest> requests = parser.parse("test", "tap:stream:xxx.http > file");
+		List<ModuleDeploymentRequest> requests = parser.parse("test", "tap:stream:xxx.http > file", stream);
 		assertEquals(1, requests.size());
 		assertEquals("tap:xxx.http", requests.get(0).getSourceChannelName());
 		assertEquals(ModuleType.sink, requests.get(0).getType());
@@ -176,9 +182,9 @@ public class XDStreamParserTests {
 
 	@Test
 	public void simpleSinkNamedChannel() throws Exception {
-		List<ModuleDeploymentRequest> requests = parser.parse("test", "bart > queue:foo");
+		List<ModuleDeploymentRequest> requests = parser.parse("test", "bart > queue:foo", stream);
 		assertEquals(1, requests.size());
-		assertEquals("foo", requests.get(0).getSinkChannelName());
+		assertEquals("queue:foo", requests.get(0).getSinkChannelName());
 		assertEquals(ModuleType.source, requests.get(0).getType());
 	}
 
@@ -189,7 +195,7 @@ public class XDStreamParserTests {
 		// But badLog is a sink and there should be an exception thrown by the parser.
 		boolean isException = false;
 		try {
-			parser.parse("test", "badLog > :foo");
+			parser.parse("test", "badLog > :foo", stream);
 		}
 		catch (Exception e) {
 			isException = true;
@@ -199,21 +205,21 @@ public class XDStreamParserTests {
 
 	@Test
 	public void simpleSourceNamedChannel() throws Exception {
-		List<ModuleDeploymentRequest> requests = parser.parse("test", "queue:foo > boot");
+		List<ModuleDeploymentRequest> requests = parser.parse("test", "queue:foo > boot", stream);
 		assertEquals(1, requests.size());
-		assertEquals("foo", requests.get(0).getSourceChannelName());
+		assertEquals("queue:foo", requests.get(0).getSourceChannelName());
 		assertEquals(ModuleType.sink, requests.get(0).getType());
 	}
 
 	@Bean
 	public ModuleDefinitionRepository moduleDefinitionRepository() {
-		return new InMemoryModuleDefinitionRepository(moduleRegistry());
+		return new InMemoryModuleDefinitionRepository(moduleRegistry(), mock(ModuleDependencyRepository.class));
 	}
 
 	@Bean
 	public ModuleRegistry moduleRegistry() {
 		ModuleRegistry registry = mock(ModuleRegistry.class);
-		Resource resource = mock(Resource.class);
+		Resource resource = new DescriptiveResource("dummy");
 		setupMockFindsForSource(registry, resource);
 		setupMockFindsForSink(registry, resource);
 		setupMockFindsForProcessor(registry, resource);

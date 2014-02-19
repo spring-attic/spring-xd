@@ -24,7 +24,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Collections;
 import java.util.List;
 
 import org.junit.After;
@@ -34,19 +33,18 @@ import org.junit.Test;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.http.MediaType;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.xd.dirt.server.options.XDPropertyKeys;
-import org.springframework.xd.module.BeanDefinitionAddingPostProcessor;
 import org.springframework.xd.module.DeploymentMetadata;
-import org.springframework.xd.module.Module;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
-import org.springframework.xd.module.SimpleModule;
+import org.springframework.xd.module.core.Module;
+import org.springframework.xd.module.core.SimpleModule;
+import org.springframework.xd.module.support.BeanDefinitionAddingPostProcessor;
 
 /**
  * @author Mark Fisher
@@ -96,14 +94,14 @@ public class StreamPluginTests {
 		when(module.getComponent("output", MessageChannel.class)).thenReturn(output);
 		plugin.preProcessModule(module);
 		plugin.postProcessModule(module);
-		verify(bus).bindConsumer("foo.0", input, Collections.singletonList(MediaType.ALL), false);
+		verify(bus).bindConsumer("foo.0", input, false);
 		verify(bus).bindProducer("foo.1", output, false);
-		verify(bus).bindPubSubProducer(eq("tap:foo.testing"), any(DirectChannel.class));
+		verify(bus).bindPubSubProducer(eq("tap:foo.testing.1"), any(DirectChannel.class));
 		plugin.beforeShutdown(module);
 		plugin.removeModule(module);
 		verify(bus).unbindConsumer("foo.0", input);
 		verify(bus).unbindProducer("foo.1", output);
-		verify(bus).unbindProducers("tap:foo.testing");
+		verify(bus).unbindProducers("tap:foo.testing.1");
 	}
 
 	@Test

@@ -57,7 +57,7 @@ public class RuntimeCommandTests extends AbstractStreamIntegrationTest {
 	@Test
 	public void testListRuntimeModules() {
 		logger.info("List runtime modules");
-		String streamName = "foo-runtimeModulesTest";
+		String streamName = generateStreamName();
 		stream().create(streamName, "time | log");
 		CommandResult cmdResult = executeCommand("runtime modules");
 		Table table = (Table) cmdResult.getResult();
@@ -74,7 +74,7 @@ public class RuntimeCommandTests extends AbstractStreamIntegrationTest {
 	@Test
 	public void testListRuntimeModulesAfterUndeploy() {
 		logger.info("List runtime modules after undeploy");
-		String streamName = "foo-runtimeModulesAfterUndeploy";
+		String streamName = generateStreamName();
 		stream().create(streamName, "time | log");
 		stream().undeploy(streamName);
 		CommandResult cmdResult = executeCommand("runtime modules");
@@ -92,7 +92,7 @@ public class RuntimeCommandTests extends AbstractStreamIntegrationTest {
 	@Test
 	public void testListRuntimeModulesByContainerId() {
 		logger.info("Test listing of runtime modules by containerId");
-		String streamName = "foo-runtimeModulesByContainerIdTest";
+		String streamName = generateStreamName();
 		stream().create(streamName, "time | log");
 
 		Table table = (Table) executeCommand("runtime modules").getResult();
@@ -123,7 +123,7 @@ public class RuntimeCommandTests extends AbstractStreamIntegrationTest {
 	@Test
 	public void testListRuntimeModulesByInvalidContainerId() {
 		logger.info("Test listing of runtime modules by invalid containerId");
-		String streamName = "foo-runtimeModulesByInvalidContainerIdTest";
+		String streamName = generateStreamName();
 		stream().create(streamName, "time | log");
 		CommandResult cmdResult = executeCommand("runtime modules --containerId 10000");
 		Table table = (Table) cmdResult.getResult();

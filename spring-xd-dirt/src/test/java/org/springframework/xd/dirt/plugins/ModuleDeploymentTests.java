@@ -16,10 +16,12 @@
 
 package org.springframework.xd.dirt.plugins;
 
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.integration.redis.outbound.RedisQueueOutboundChannelAdapter;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
@@ -38,10 +40,12 @@ public class ModuleDeploymentTests {
 	@Rule
 	public RedisTestSupport redisAvailableRule = new RedisTestSupport();
 
+	private static String deployerQueue = "queue.deployer." + System.currentTimeMillis();
+
 	@Test
 	public void testProcessor() throws Exception {
 		LettuceConnectionFactory connectionFactory = redisAvailableRule.getResource();
-		RedisQueueOutboundChannelAdapter adapter = new RedisQueueOutboundChannelAdapter("queue.deployer",
+		RedisQueueOutboundChannelAdapter adapter = new RedisQueueOutboundChannelAdapter(deployerQueue,
 				connectionFactory);
 		adapter.setExtractPayload(false);
 		adapter.afterPropertiesSet();
@@ -57,7 +61,7 @@ public class ModuleDeploymentTests {
 	@Test
 	public void testSimpleStream() throws Exception {
 		LettuceConnectionFactory connectionFactory = redisAvailableRule.getResource();
-		RedisQueueOutboundChannelAdapter adapter = new RedisQueueOutboundChannelAdapter("queue.deployer",
+		RedisQueueOutboundChannelAdapter adapter = new RedisQueueOutboundChannelAdapter(deployerQueue,
 				connectionFactory);
 		adapter.setExtractPayload(false);
 		adapter.afterPropertiesSet();
@@ -75,6 +79,12 @@ public class ModuleDeploymentTests {
 		sourceRequest.setIndex(0);
 		Message<?> sourceMessage = MessageBuilder.withPayload(sourceRequest.toString()).build();
 		adapter.handleMessage(sourceMessage);
+	}
+
+	@After
+	public void cleanupQueue() {
+		StringRedisTemplate template = new StringRedisTemplate(redisAvailableRule.getResource());
+		template.delete(deployerQueue);
 	}
 
 }

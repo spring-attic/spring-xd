@@ -16,6 +16,10 @@ package org.springframework.xd.dirt.stream;
 import org.springframework.xd.dirt.core.BaseDefinition;
 
 /**
+ * Represents a job in the system. Jobs are defined by a single module definition, referencing a Spring Batch Job as
+ * compared to the more expressive DSL for defining streams. Job definitions are typically an expression of the form
+ * {@code job --jobOption1=value1 --jobOption2=value2}.
+ * 
  * @author David Turanski
  * @author Gunnar Hillert
  * 
@@ -24,10 +28,18 @@ import org.springframework.xd.dirt.core.BaseDefinition;
  */
 public class JobDefinition extends BaseDefinition {
 
+	@SuppressWarnings("unused")
+	private JobDefinition() {
+		// no-arg constructor for serialization
+	}
+
+
 	/**
-	 * @param name - the job name
-	 * @param definition - the job definition
+	 * Create a new JobDefinition.
 	 * 
+	 * @param name the job name
+	 * @param definition the job definition
+	 * @param moduleDefinitions the module definitions derived by parsing the definition
 	 */
 	public JobDefinition(String name, String definition) {
 		super(name, definition);

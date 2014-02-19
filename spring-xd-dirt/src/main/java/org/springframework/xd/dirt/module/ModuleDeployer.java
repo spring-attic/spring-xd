@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -29,6 +30,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContext;
@@ -42,18 +44,23 @@ import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
+import org.springframework.validation.BindException;
 import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.event.ModuleDeployedEvent;
 import org.springframework.xd.dirt.event.ModuleUndeployedEvent;
 import org.springframework.xd.dirt.plugins.job.JobPlugin;
-import org.springframework.xd.module.CompositeModule;
 import org.springframework.xd.module.DeploymentMetadata;
-import org.springframework.xd.module.Module;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
-import org.springframework.xd.module.ParentLastURLClassLoader;
-import org.springframework.xd.module.Plugin;
-import org.springframework.xd.module.SimpleModule;
+import org.springframework.xd.module.core.CompositeModule;
+import org.springframework.xd.module.core.Module;
+import org.springframework.xd.module.core.Plugin;
+import org.springframework.xd.module.core.SimpleModule;
+import org.springframework.xd.module.options.PassthruModuleOptionsMetadata;
+import org.springframework.xd.module.options.ModuleOptions;
+import org.springframework.xd.module.options.ModuleOptionsMetadata;
+import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
+import org.springframework.xd.module.support.ParentLastURLClassLoader;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -66,7 +73,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Ilayaperumal Gopinathan
  */
 public class ModuleDeployer extends AbstractMessageHandler implements ApplicationContextAware,
-		ApplicationEventPublisherAware, BeanClassLoaderAware {
+		ApplicationEventPublisherAware, BeanClassLoaderAware, DisposableBean {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -86,9 +93,14 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 
 	private ClassLoader parentClassLoader;
 
-	public ModuleDeployer(ModuleDefinitionRepository moduleDefinitionRepository) {
+	private final ModuleOptionsMetadataResolver moduleOptionsMetadataResolver;
+
+	public ModuleDeployer(ModuleDefinitionRepository moduleDefinitionRepository,
+			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver) {
 		Assert.notNull(moduleDefinitionRepository, "moduleDefinitionRepository must not be null");
+		Assert.notNull(moduleOptionsMetadataResolver, "moduleOptionsMetadataResolver must not be null");
 		this.moduleDefinitionRepository = moduleDefinitionRepository;
+		this.moduleOptionsMetadataResolver = moduleOptionsMetadataResolver;
 	}
 
 	public Map<String, Map<Integer, Module>> getDeployedModules() {
@@ -129,6 +141,21 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 	}
 
 	@Override
+	public void destroy() throws Exception {
+		for (Entry<String, Map<Integer, Module>> entry : this.deployedModules.entrySet()) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Destroying group:" + entry.getKey());
+			}
+			for (Entry<Integer, Module> moduleEntry : entry.getValue().entrySet()) {
+				this.destroyModule(moduleEntry.getValue());
+			}
+		}
+		if (this.commonContext != null) {
+			this.commonContext.close();
+		}
+	}
+
+	@Override
 	public void setBeanClassLoader(ClassLoader classLoader) {
 		this.parentClassLoader = classLoader;
 	}
@@ -138,14 +165,14 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		String payloadString = message.getPayload().toString();
 		ModuleDeploymentRequest deserialized = this.mapper.readValue(payloadString, ModuleDeploymentRequest.class);
 		if (deserialized instanceof CompositeModuleDeploymentRequest) {
-			handleCompositeModuleDeployment((CompositeModuleDeploymentRequest) deserialized, message);
+			handleCompositeModuleMessage((CompositeModuleDeploymentRequest) deserialized);
 		}
 		else {
-			handleDeploymentRequest(deserialized, message);
+			handleSingleModuleMessage(deserialized);
 		}
 	}
 
-	private void handleCompositeModuleDeployment(CompositeModuleDeploymentRequest request, Message<?> message) {
+	private void handleCompositeModuleMessage(CompositeModuleDeploymentRequest request) {
 		List<ModuleDeploymentRequest> children = request.getChildren();
 		Assert.notEmpty(children, "child module list must not be empty");
 		List<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
@@ -177,7 +204,10 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 					+ request.getModule(), i);
 			ClassLoader classLoader = (definition.getClasspath() == null) ? null
 					: new ParentLastURLClassLoader(definition.getClasspath(), parentClassLoader);
-			SimpleModule module = new SimpleModule(definition, submoduleMetadata, classLoader);
+
+			PassthruModuleOptionsMetadata moduleOptionsMetadata = new PassthruModuleOptionsMetadata();
+			ModuleOptions subModuleOptions = safeModuleOptionsInterpolate(moduleOptionsMetadata, paramList.get(i));
+			SimpleModule module = new SimpleModule(definition, submoduleMetadata, classLoader, subModuleOptions);
 
 			Properties props = new Properties();
 			props.putAll(paramList.get(i));
@@ -189,22 +219,33 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 			modules.add(module);
 		}
 		CompositeModule module = new CompositeModule(request.getModule(), request.getType(), modules, metadata);
-		deployModule(module, request, message);
+		deployAndStore(module, request);
 	}
 
-	private void handleDeploymentRequest(ModuleDeploymentRequest request, Message<?> message) {
+	private ModuleOptions safeModuleOptionsInterpolate(ModuleOptionsMetadata moduleOptionsMetadata,
+			Map<String, String> values) {
+		try {
+			return moduleOptionsMetadata.interpolate(values);
+		}
+		catch (BindException e) {
+			// Can't happen as parser should have already validated options
+			throw new IllegalStateException(e);
+		}
+	}
+
+	private void handleSingleModuleMessage(ModuleDeploymentRequest request) {
 		if (request.isRemove()) {
 			handleUndeploy(request);
 		}
 		else if (request.isLaunch()) {
-			handleLaunch(request, message);
+			handleLaunch(request);
 		}
 		else {
-			handleDeploy(request, message);
+			handleDeploy(request);
 		}
 	}
 
-	private void handleDeploy(ModuleDeploymentRequest request, Message<?> message) {
+	private void handleDeploy(ModuleDeploymentRequest request) {
 		String group = request.getGroup();
 		int index = request.getIndex();
 		String name = request.getModule();
@@ -217,22 +258,16 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		ClassLoader classLoader = (definition.getClasspath() == null) ? null
 				: new ParentLastURLClassLoader(definition.getClasspath(), parentClassLoader);
 
-		Module module = new SimpleModule(definition, metadata, classLoader);
-		this.deployModule(module, request, message);
+
+		Map<String, String> parameters = request.getParameters();
+		ModuleOptionsMetadata moduleOptionsMetadata = moduleOptionsMetadataResolver.resolve(definition);
+		ModuleOptions interpolated = safeModuleOptionsInterpolate(moduleOptionsMetadata, parameters);
+		Module module = new SimpleModule(definition, metadata, classLoader, interpolated);
+		this.deployAndStore(module, request);
 	}
 
-	private void deployModule(Module module, ModuleDeploymentRequest request, Message<?> message) {
+	private void deployAndStore(Module module, ModuleDeploymentRequest request) {
 		module.setParentContext(this.commonContext);
-		Object properties = message.getHeaders().get("properties");
-		if (properties instanceof Properties) {
-			module.addProperties((Properties) properties);
-		}
-		Map<String, String> parameters = request.getParameters();
-		if (!CollectionUtils.isEmpty(parameters)) {
-			Properties parametersAsProps = new Properties();
-			parametersAsProps.putAll(parameters);
-			module.addProperties(parametersAsProps);
-		}
 		this.deploy(module);
 		if (logger.isInfoEnabled()) {
 			logger.info("deployed " + module.toString());
@@ -259,14 +294,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 				this.deployedModules.remove(group);
 			}
 			if (module != null) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("removed " + module.toString());
-				}
-				this.beforeShutdown(module);
-				module.stop();
-				this.removeModule(module);
-				module.destroy();
-				this.fireModuleUndeployedEvent(module);
+				this.destroyModule(module);
 			}
 			else {
 				if (logger.isDebugEnabled()) {
@@ -281,7 +309,18 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		}
 	}
 
-	private void handleLaunch(ModuleDeploymentRequest request, Message<?> message) {
+	private void destroyModule(Module module) {
+		if (logger.isInfoEnabled()) {
+			logger.info("removed " + module.toString());
+		}
+		this.beforeShutdown(module);
+		module.stop();
+		this.removeModule(module);
+		module.destroy();
+		this.fireModuleUndeployedEvent(module);
+	}
+
+	private void handleLaunch(ModuleDeploymentRequest request) {
 		String group = request.getGroup();
 		Map<Integer, Module> modules = this.deployedModules.get(group);
 		if (modules != null) {
@@ -289,7 +328,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		}
 		else {
 			// Deploy the job module and then launch
-			handleDeploy(request, message);
+			handleDeploy(request);
 			processLaunchRequest(this.deployedModules.get(group), request);
 		}
 	}
@@ -305,13 +344,29 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 	}
 
 	/**
+	 * Get the list of supported plugins for the given module.
+	 * 
+	 * @param module
+	 * @return list supported list of plugins
+	 */
+	private List<Plugin> getSupportedPlugins(Module module) {
+		List<Plugin> supportedPlugins = new ArrayList<Plugin>();
+		if (this.plugins != null) {
+			for (Plugin plugin : this.plugins.values()) {
+				if (plugin.supports(module)) {
+					supportedPlugins.add(plugin);
+				}
+			}
+		}
+		return supportedPlugins;
+	}
+
+	/**
 	 * Allow plugins to contribute properties (e.g. "stream.name") calling module.addProperties(properties), etc.
 	 */
 	private void preProcessModule(Module module) {
-		if (this.plugins != null) {
-			for (Plugin plugin : this.plugins.values()) {
-				plugin.preProcessModule(module);
-			}
+		for (Plugin plugin : this.getSupportedPlugins(module)) {
+			plugin.preProcessModule(module);
 		}
 	}
 
@@ -319,18 +374,14 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 	 * Allow plugins to perform other configuration after the module is initialized but before it is started.
 	 */
 	private void postProcessModule(Module module) {
-		if (this.plugins != null) {
-			for (Plugin plugin : this.plugins.values()) {
-				plugin.postProcessModule(module);
-			}
+		for (Plugin plugin : this.getSupportedPlugins(module)) {
+			plugin.postProcessModule(module);
 		}
 	}
 
 	private void removeModule(Module module) {
-		if (this.plugins != null) {
-			for (Plugin plugin : this.plugins.values()) {
-				plugin.removeModule(module);
-			}
+		for (Plugin plugin : this.getSupportedPlugins(module)) {
+			plugin.removeModule(module);
 		}
 	}
 
@@ -346,10 +397,8 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 	}
 
 	private void beforeShutdown(Module module) {
-		if (this.plugins != null) {
-			for (Plugin plugin : this.plugins.values()) {
-				plugin.beforeShutdown(module);
-			}
+		for (Plugin plugin : this.getSupportedPlugins(module)) {
+			plugin.beforeShutdown(module);
 		}
 	}
 

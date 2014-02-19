@@ -13,15 +13,20 @@
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
 	<int-amqp:outbound-channel-adapter
-		id="input" amqp-template="rabbitTemplate" exchange-name="${exchange:}"
+		id="input" amqp-template="rabbitTemplate" exchange-name="${exchange}"
 		routing-key-expression="${routingKey:'${xd.stream.name}'}" />
 
-	<context:property-placeholder
-		location="file:${XD_HOME}/config/rabbit.properties"
+	<rabbit:template id="rabbitTemplate" connection-factory="rabbitConnectionFactory"/>
+
+	<context:property-placeholder location="${xd.config.home}/${configProperties:rabbit}.properties"
 		ignore-resource-not-found="true" />
 
+	<rabbit:connection-factory id="rabbitConnectionFactory" host="${host:${spring.rabbitmq.host:localhost}}"
+		port="${port:${spring.rabbitmq.port:5672}}" virtual-host="${vhost:${spring.rabbitmq.virtualHost:/}}"
+		username="${username:${spring.rabbitmq.username:guest}}" password="${password:${spring.rabbitmq.password:guest}}"/>
+
 	<beans profile="cloud" xmlns="http://www.springframework.org/schema/beans">
-		<cloud:rabbit-connection-factory id="connectionFactory"
+		<cloud:rabbit-connection-factory id="rabbitConnectionFactory"
 			service-name="${xd.rabbit.service:rabbit}" />
 	</beans>
 

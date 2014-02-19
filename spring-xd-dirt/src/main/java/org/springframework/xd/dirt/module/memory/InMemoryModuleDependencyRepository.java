@@ -42,7 +42,10 @@ public class InMemoryModuleDependencyRepository implements ModuleDependencyRepos
 
 	@Override
 	public void delete(String module, ModuleType type, String target) {
-		dependencies.get(keyFor(module, type)).remove(target);
+		Set<String> deps = dependencies.get(keyFor(module, type));
+		if (deps != null) {
+			deps.remove(target);
+		}
 	}
 
 	@Override

@@ -43,7 +43,7 @@ public class ModuleClasspathTests extends AbstractStreamIntegrationTest {
 	public void testModuleWithClasspathAfterServerStarted() throws Exception {
 		installTestModule("source", "time2");
 		FileSink fileSink = newFileSink();
-		stream().create("foo", "time2 --fixedDelay=1000 | %s", fileSink);
+		stream().create(generateStreamName(), "time2 --fixedDelay=1000 | %s", fileSink);
 
 		assertThat(fileSink, eventually(hasContentsThat(not(isEmptyOrNullString()))));
 	}

@@ -39,7 +39,7 @@ import org.springframework.util.StringUtils;
 @SuppressWarnings("rawtypes")
 public class JdbcMessagePayloadTransformer extends AbstractPayloadTransformer<String, Map> {
 
-	private final JsonObjectMapper<?> jsonObjectMapper = JacksonJsonObjectMapperProvider.newInstance();
+	private final JsonObjectMapper<?, ?> jsonObjectMapper = JacksonJsonObjectMapperProvider.newInstance();
 
 	private List<String> columnNames = new ArrayList<String>();
 

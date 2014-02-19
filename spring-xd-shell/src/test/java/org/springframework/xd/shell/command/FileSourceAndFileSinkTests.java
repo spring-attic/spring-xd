@@ -16,12 +16,15 @@
 
 package org.springframework.xd.shell.command;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.springframework.xd.shell.command.fixtures.XDMatchers.eventually;
+import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasContentsThat;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.util.Random;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -74,11 +77,12 @@ public class FileSourceAndFileSinkTests extends AbstractStreamIntegrationTest {
 		}
 
 		FileSource source = newFileSource();
-		FileSink sink = newFileSink();
+		FileSink sink = newFileSink().binary(true);
 
 		source.appendToFile("Hi there!");
-		stream().create("foobar", "%s | %s", source, sink);
-		assertEquals("Hi there!", sink.getContents().trim());
+		stream().create(generateStreamName(), "%s | %s", source, sink);
+		assertThat(sink, eventually(hasContentsThat(equalTo("Hi there!"))));
+
 
 	}
 
@@ -89,7 +93,7 @@ public class FileSourceAndFileSinkTests extends AbstractStreamIntegrationTest {
 		}
 
 		// Both use stream name
-		String streamName = String.format("foobar-%s", new Random().nextInt());
+		String streamName = generateStreamName();
 
 		File inDir = new File(DEFAULT_IN, streamName);
 		inDir.mkdirs();

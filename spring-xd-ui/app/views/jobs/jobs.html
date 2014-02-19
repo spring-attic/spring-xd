@@ -1,0 +1,10 @@
+<div class="tab-pane active col-md-12" id="xd-jobs">
+	<ul class="nav nav-tabs">
+		<li ng-class="{ active: $state.includes('home.jobs.definitions') }"><a ui-sref="home.jobs.definitions">Definitions</a></li>
+		<li ng-class="{ active: $state.includes('home.jobs.deployments') }"><a ui-sref="home.jobs.deployments">Deployments</a></li>
+		<li ng-class="{ active: $state.includes('home.jobs.executions') }"><a ui-sref="home.jobs.executions">Executions</a></li>
+	</ul>
+	<div class="tab-content">
+		<div ui-view></div>
+	</div>
+</div>

@@ -31,12 +31,16 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.Rule;
+import org.junit.ClassRule;
 
 import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
+import org.springframework.util.AlternativeJdkIdGenerator;
+import org.springframework.util.IdGenerator;
+import org.springframework.xd.dirt.container.store.RedisRuntimeContainerInfoRepository;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
+import org.springframework.xd.test.RandomConfigurationSupport;
 import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
@@ -53,7 +57,7 @@ import org.springframework.xd.test.redis.RedisTestSupport;
  * @author David Turanski
  * 
  */
-public abstract class AbstractShellIntegrationTest {
+public abstract class AbstractShellIntegrationTest extends RandomConfigurationSupport {
 
 	/**
 	 * Where test module definition assets reside, relative to this project cwd.
@@ -67,8 +71,12 @@ public abstract class AbstractShellIntegrationTest {
 
 	protected static final String DEFAULT_METRIC_NAME = "bar";
 
-	@Rule
-	public RedisTestSupport redisAvailableRule = new RedisTestSupport();
+	public static boolean SHUTDOWN_AFTER_RUN = true;
+
+	private final IdGenerator idGenerator = new AlternativeJdkIdGenerator();
+
+	@ClassRule
+	public static RedisTestSupport redisAvailableRule = new RedisTestSupport();
 
 	private static final Log logger = LogFactory.getLog(AbstractShellIntegrationTest.class);
 
@@ -78,31 +86,77 @@ public abstract class AbstractShellIntegrationTest {
 
 	private Set<File> toBeDeleted = new HashSet<File>();
 
+	private static RedisRuntimeContainerInfoRepository runtimeInformationRepository;
+
 	@BeforeClass
-	public static void startUp() throws InterruptedException, IOException {
+	public static synchronized void startUp() throws InterruptedException, IOException {
+		if (application == null) {
+			application = new SingleNodeApplication().run("--transport", "local",
+					"--analytics", "redis",
+					"--store", "redis"
+					);
+			Bootstrap bootstrap = new Bootstrap(new String[] { "--port",
+				RandomConfigurationSupport.getAdminServerPort() });
+			shell = bootstrap.getJLineShellComponent();
 
-		application = new SingleNodeApplication().run("--spring.profiles.active=memory,default,hsqldb",
-				"--XD_STORE=redis",
-				"--XD_ANALYTICS=redis", "--server.port=9292");
-		// TODO: port scanning instead of using 9292
-		Bootstrap bootstrap = new Bootstrap(new String[] { "--port",
-			"9292" });
-		shell = bootstrap.getJLineShellComponent();
-
+			runtimeInformationRepository = application.containerContext().getBean(
+					RedisRuntimeContainerInfoRepository.class);
+		}
+		if (!shell.isRunning()) {
+			shell.start();
+		}
 	}
 
 	@AfterClass
 	public static void shutdown() {
-		logger.info("Stopping XD Shell");
-		shell.stop();
-		if (application != null) {
-			logger.info("Stopping Single Node Server");
-			application.close();
+		if (SHUTDOWN_AFTER_RUN) {
+			runtimeInformationRepository.delete(application.containerContext().getId());
+			logger.info("Stopping XD Shell");
+			shell.stop();
+			if (application != null) {
+				logger.info("Stopping Single Node Server");
+				application.close();
+				redisAvailableRule.getResource().destroy();
+			}
 		}
 	}
 
 	public static JLineShellComponent getShell() {
 		return shell;
+	}
+
+	private String generateUniqueName(String name) {
+		return name + "-" + idGenerator.generateId();
+	}
+
+	private String generateUniqueName() {
+		StackTraceElement[] element = Thread.currentThread().getStackTrace();
+		// Assumption here is that the generateStreamName()/generateJobName() is called from the @Test method
+		return generateUniqueName(element[4].getMethodName());
+	}
+
+	protected String generateStreamName(String name) {
+		return (name == null) ? generateUniqueName() : generateUniqueName(name);
+	}
+
+	protected String generateStreamName() {
+		return generateStreamName(null);
+	}
+
+	protected String getTapName(String streamName) {
+		return "tap:stream:" + streamName;
+	}
+
+	protected String generateJobName(String name) {
+		return (name == null) ? generateUniqueName() : generateUniqueName(name);
+	}
+
+	protected String generateJobName() {
+		return generateJobName(null);
+	}
+
+	protected String getJobLaunchQueue(String jobName) {
+		return "queue:job:" + jobName;
 	}
 
 	/**

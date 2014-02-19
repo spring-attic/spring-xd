@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import org.springframework.batch.admin.service.SimpleJobService;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersInvalidException;
-import org.springframework.batch.core.launch.JobExecutionNotRunningException;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.NoSuchJobException;
 import org.springframework.batch.core.launch.NoSuchJobExecutionException;
@@ -75,14 +74,7 @@ public class DistributedJobService extends SimpleJobService {
 	public JobExecution restart(Long jobExecutionId) throws NoSuchJobExecutionException,
 			JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException,
 			NoSuchJobException, JobParametersInvalidException {
-		// TODO
-		throw new UnsupportedOperationException("Job Restart");
-	}
-
-	@Override
-	public JobExecution stop(Long jobExecutionId) throws NoSuchJobExecutionException, JobExecutionNotRunningException {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Stop Job Execution");
+		return super.restart(jobExecutionId);
 	}
 
 	@Override
@@ -94,7 +86,9 @@ public class DistributedJobService extends SimpleJobService {
 
 	@Override
 	public boolean isIncrementable(String jobName) {
-		return batchJobLocator.isIncrementable(jobName);
+		// if the batch job is not launchable (the job is not deployed) then return false
+		// as the persistent job locator wouldn't have entries for the job.
+		return (isLaunchable(jobName) ? batchJobLocator.isIncrementable(jobName) : false);
 	}
 
 	@Override

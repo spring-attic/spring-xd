@@ -19,16 +19,16 @@
 
 	<rabbit:template id="rabbitTemplate" connection-factory="rabbitConnectionFactory"/>
 
-	<rabbit:queue name="xd.deployer"/>
+	<rabbit:queue name="${xd.deployer.queue:xd.deployer}"/>
 
 	<rabbit:queue id="undeployerQueue"/>
 
-	<rabbit:fanout-exchange name="xd.undeployer">
+	<rabbit:fanout-exchange name="${xd.undeployer.topic:xd.undeployer}">
 		<rabbit:bindings>
 			<rabbit:binding queue="undeployerQueue"/>
 		</rabbit:bindings>
 	</rabbit:fanout-exchange>
 
-	<int-rabbit:inbound-channel-adapter channel="containerControlChannel" queue-names="xd.deployer,#{undeployerQueue.name}" connection-factory="rabbitConnectionFactory"/>
+	<int-rabbit:inbound-channel-adapter channel="containerControlChannel" queue-names="${xd.deployer.queue:xd.deployer},#{undeployerQueue.name}" connection-factory="rabbitConnectionFactory"/>
 
 </beans>

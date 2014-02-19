@@ -44,15 +44,13 @@ import org.springframework.xd.shell.util.Table;
  */
 public class MetricsTests extends AbstractStreamIntegrationTest {
 
-	private static final String TEST_STREAM_NAME = "foo";
-
 	private HttpSource httpSource;
 
 	@Test
 	public void testSimpleCounter() throws Exception {
 		httpSource = newHttpSource();
 		CounterSink counter = metrics().newCounterSink();
-		stream().create("mystream", "%s | %s", httpSource, counter);
+		stream().create(generateStreamName(), "%s | %s", httpSource, counter);
 
 		httpSource.postData("one");
 		httpSource.postData("one");
@@ -64,7 +62,7 @@ public class MetricsTests extends AbstractStreamIntegrationTest {
 
 	@Test
 	public void testSimpleCounterImplicitName() throws Exception {
-		String streamName = "foo";
+		String streamName = generateStreamName();
 		httpSource = newHttpSource();
 
 		// Create counter object, but don't use its toString
@@ -80,7 +78,7 @@ public class MetricsTests extends AbstractStreamIntegrationTest {
 	public void testAggregateCounterList() throws Exception {
 		httpSource = newHttpSource();
 		AggregateCounterSink counter = metrics().newAggregateCounterSink();
-		stream().create("mystream", "%s | %s", httpSource, counter);
+		stream().create(generateStreamName(), "%s | %s", httpSource, counter);
 
 		httpSource.postData("one");
 		httpSource.postData("one");
@@ -91,7 +89,7 @@ public class MetricsTests extends AbstractStreamIntegrationTest {
 
 	@Test
 	public void testAggregateCounterImplicitName() throws Exception {
-		String streamName = "foo";
+		String streamName = generateStreamName();
 		httpSource = newHttpSource();
 
 		// Create sink object, but don't use its toString
@@ -108,7 +106,7 @@ public class MetricsTests extends AbstractStreamIntegrationTest {
 	public void testRichGaugeDisplay() throws Exception {
 		httpSource = newHttpSource();
 		RichGaugeSink sink = metrics().newRichGauge();
-		stream().create("mystream", "%s | %s", httpSource, sink);
+		stream().create(generateStreamName(), "%s | %s", httpSource, sink);
 
 		httpSource.ensureReady();
 		httpSource.postData("5");
@@ -127,7 +125,7 @@ public class MetricsTests extends AbstractStreamIntegrationTest {
 
 		FieldValueCounterSink sink = metrics().newFieldValueCounterSink("fromUser");
 
-		stream().create(TEST_STREAM_NAME, "%s | %s", tailSource, sink);
+		stream().create(generateStreamName(), "%s | %s", tailSource, sink);
 		assertThat(sink, eventually(exists()));
 	}
 
@@ -140,7 +138,7 @@ public class MetricsTests extends AbstractStreamIntegrationTest {
 		tailTweets(tailSource);
 
 		FieldValueCounterSink sink = metrics().newFieldValueCounterSink("fromUser");
-		stream().create(TEST_STREAM_NAME, "%s | %s", tailSource, sink);
+		stream().create(generateStreamName(), "%s | %s", tailSource, sink);
 
 		Table t = sink.constructFVCDisplay(fvcMap);
 		assertThat(sink, eventually(hasValue(t)));

@@ -25,6 +25,5 @@ import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
  */
 public interface XDParser {
 
-	List<ModuleDeploymentRequest> parse(String name, String config);
-
+	List<ModuleDeploymentRequest> parse(String name, String config, ParsingContext type);
 }

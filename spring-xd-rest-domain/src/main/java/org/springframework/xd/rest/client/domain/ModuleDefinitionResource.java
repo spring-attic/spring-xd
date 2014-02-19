@@ -31,33 +31,24 @@ import org.springframework.hateoas.ResourceSupport;
 @XmlRootElement
 public class ModuleDefinitionResource extends ResourceSupport {
 
+
 	private volatile String name;
 
 	private volatile String type;
 
-	private volatile String moduleId;
-
-	/**
-	 * The DSL representation of this module definition.
-	 */
-	private volatile String definition;
+	private boolean composed;
 
 	/**
 	 * Default constructor for serialization frameworks.
 	 */
-	@SuppressWarnings("unused")
-	private ModuleDefinitionResource() {
+	protected ModuleDefinitionResource() {
+
 	}
 
-	public ModuleDefinitionResource(String name, String definition, String type) {
-		this.moduleId = type + ":" + name;
+	public ModuleDefinitionResource(String name, String type, boolean composed) {
 		this.name = name;
-		this.definition = definition;
 		this.type = type;
-	}
-
-	public String getModuleId() {
-		return moduleId;
+		this.composed = composed;
 	}
 
 	public String getName() {
@@ -68,8 +59,8 @@ public class ModuleDefinitionResource extends ResourceSupport {
 		return type;
 	}
 
-	public String getDefinition() {
-		return definition;
+	public boolean isComposed() {
+		return composed;
 	}
 
 	/**

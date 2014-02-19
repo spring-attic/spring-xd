@@ -25,6 +25,7 @@ package org.springframework.xd.dirt.plugins.job.support.listener;
  */
 public enum BatchListenerEventType {
 
+	JOB_EXECUTION_LISTENER_BEFORE_JOB,
 	JOB_EXECUTION_LISTENER_AFTER_JOB,
 
 	STEP_EXECUTION_LISTENER_BEFORE_STEP,

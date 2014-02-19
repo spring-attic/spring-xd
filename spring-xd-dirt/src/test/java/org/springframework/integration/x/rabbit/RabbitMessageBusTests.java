@@ -28,6 +28,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.x.bus.AbstractMessageBusTests;
 import org.springframework.integration.x.bus.MessageBus;
+import org.springframework.integration.x.bus.RabbitTestMessageBus;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHeaders;
@@ -43,8 +44,11 @@ public class RabbitMessageBusTests extends AbstractMessageBusTests {
 	public RabbitTestSupport rabbitAvailableRule = new RabbitTestSupport();
 
 	@Override
-	protected MessageBus getMessageBus() throws Exception {
-		return new RabbitMessageBus(rabbitAvailableRule.getResource(), getCodec());
+	protected MessageBus getMessageBus() {
+		if (testMessageBus == null) {
+			testMessageBus = new RabbitTestMessageBus(rabbitAvailableRule.getResource(), getCodec());
+		}
+		return testMessageBus;
 	}
 
 	@Test
@@ -53,7 +57,7 @@ public class RabbitMessageBusTests extends AbstractMessageBusTests {
 		DirectChannel moduleOutputChannel = new DirectChannel();
 		DirectChannel moduleInputChannel = new DirectChannel();
 		messageBus.bindProducer("bad.0", moduleOutputChannel, false);
-		messageBus.bindConsumer("bad.0", moduleInputChannel, ALL, false);
+		messageBus.bindConsumer("bad.0", moduleInputChannel, false);
 		Message<?> message = MessageBuilder.withPayload("bad").setHeader(MessageHeaders.CONTENT_TYPE, "foo/bar").build();
 		final CountDownLatch latch = new CountDownLatch(3);
 		moduleInputChannel.subscribe(new MessageHandler() {
@@ -67,6 +71,4 @@ public class RabbitMessageBusTests extends AbstractMessageBusTests {
 		moduleOutputChannel.send(message);
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
 	}
-
-
 }

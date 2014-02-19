@@ -153,12 +153,7 @@ if $cygwin ; then
     esac
 fi
 
-# check if GEMFIRE_HOME is already set; if it is not, then set APP_HOME as GEMFIRE_HOME
-if [ x"$GEMFIRE_HOME" = x ] ; then
-    GEMFIRE_HOME=$APP_HOME
-fi
-# set GEMFIRE_HOME as system property via SPRING_GEMFIRE_SERVER_OPTS
-SPRING_GEMFIRE_SERVER_OPTS="-Dgemfire.home=$GEMFIRE_HOME -Dlog4j.configuration=file:///$APP_HOME/config/gemfire-cacheserver-logger.properties"
+SPRING_GEMFIRE_SERVER_OPTS="-Dlog4j.configuration=file:///$APP_HOME/config/gemfire-cacheserver-logger.properties"
 
 # Split up the JVM_OPTS And SPRING_GEMFIRE_SERVER_OPTS values into an array, following the shell quoting and substitution rules
 function splitJvmOpts() {

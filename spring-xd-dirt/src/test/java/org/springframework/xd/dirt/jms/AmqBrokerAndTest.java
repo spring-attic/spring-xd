@@ -20,10 +20,12 @@ import java.util.Properties;
 import java.util.Scanner;
 
 import javax.jms.ConnectionFactory;
+import javax.jms.Destination;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.broker.BrokerService;
 import org.apache.activemq.command.ActiveMQQueue;
+import org.apache.activemq.command.ActiveMQTopic;
 
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
@@ -37,10 +39,12 @@ import org.springframework.util.Assert;
  * <p>
  * Used to test the source module.
  * <p>
- * Requires a parameter containing the location of the XD home directory to find the configuration for the source module
+ * Requires an argument containing the location of the XD home directory to find the configuration for the source module
  * in the config direcrtory.
  * <p>
- * A second parameter is used to specify the stream name (source queue). If omitted, defaults to 'jmsTest'.
+ * A second argument is used to specify the destination (source queue). If omitted, defaults to 'jmsTest'.
+ * <p>
+ * Third argument (topic) indicates send to a topic (instead of a queue) named by the second argument.
  * 
  * @author Gary Russell
  * @since 1.0
@@ -54,9 +58,13 @@ public class AmqBrokerAndTest {
 			xdHome = args[0];
 		}
 		Assert.notNull(xdHome, "need an XD_HOME argument");
-		String queueName = "jmsTest";
+		String destinationName = "jmsTest";
 		if (args.length > 1) {
-			queueName = args[1];
+			destinationName = args[1];
+		}
+		boolean topic = false;
+		if (args.length > 2 && args[2].equals("topic")) {
+			topic = true;
 		}
 		BrokerService broker = new BrokerService();
 		Properties props = new Properties();
@@ -69,13 +77,12 @@ public class AmqBrokerAndTest {
 		ConnectionFactory cf = new ActiveMQConnectionFactory(brokerURL);
 		CachingConnectionFactory ccf = new CachingConnectionFactory(cf);
 
-		ActiveMQQueue queue = new ActiveMQQueue(queueName);
-
+		Destination destination = topic ? new ActiveMQTopic(destinationName) : new ActiveMQQueue(destinationName);
 		JmsTemplate template = new JmsTemplate(ccf);
-		template.setDefaultDestination(queue);
+		template.setDefaultDestination(destination);
 
 		System.out.println("Enter test messages for destination " +
-				queueName + ", 'quit' to end");
+				destination + ", 'quit' to end");
 		Scanner scanner = new Scanner(System.in);
 		while (scanner.hasNextLine()) {
 			String line = scanner.nextLine();

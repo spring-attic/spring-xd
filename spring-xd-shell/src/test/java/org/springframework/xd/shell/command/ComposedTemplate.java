@@ -16,8 +16,8 @@
 
 package org.springframework.xd.shell.command;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,7 +32,7 @@ import org.springframework.xd.shell.command.fixtures.Disposable;
 
 
 /**
- * Issues commands related to module composition and remembers created modules, so that they can be cleanedup.
+ * Issues commands related to module composition and remembers created modules, so that they can be cleaned up.
  * 
  * @author Eric Bottard
  */
@@ -54,6 +54,8 @@ public class ComposedTemplate implements Disposable {
 	public String newModule(String name, String definition) {
 		CommandResult result = shell.executeCommand(String.format("module compose %s --definition \"%s\"", name,
 				definition));
+		assertNotNull("Module composition apparently failed. Exception is: " + result.getException(),
+				result.getResult());
 		Matcher matcher = COMPOSE_SUCCESS_PATTERN.matcher((CharSequence) result.getResult());
 		assertTrue("Module composition apparently failed: " + result.getResult(), matcher.matches());
 		String key = matcher.group(2) + ":" + matcher.group(1);
@@ -62,7 +64,7 @@ public class ComposedTemplate implements Disposable {
 	}
 
 	public boolean delete(String name, ModuleType type) {
-		CommandResult result = shell.executeCommand(String.format("module delete --type %s --name %s", type, name));
+		CommandResult result = shell.executeCommand(String.format("module delete %s:%s", type, name));
 		return result.isSuccess();
 	}
 

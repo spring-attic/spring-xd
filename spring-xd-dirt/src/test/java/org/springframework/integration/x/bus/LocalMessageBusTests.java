@@ -50,8 +50,6 @@ public class LocalMessageBusTests extends AbstractMessageBusTests {
 		GenericApplicationContext applicationContext = new GenericApplicationContext();
 		applicationContext.refresh();
 		bus.setApplicationContext(applicationContext);
-		bus.setCodec(getCodec());
-		bus.setConvertWithinTransport(true);
 		bus.afterPropertiesSet();
 		return bus;
 	}
@@ -59,9 +57,7 @@ public class LocalMessageBusTests extends AbstractMessageBusTests {
 	@Test
 	public void testPayloadConversionNotNeededExplicitType() throws Exception {
 		LocalMessageBus bus = (LocalMessageBus) getMessageBus();
-		verifyPayloadConversion(new Foo(), bus, Collections.singletonList(new MediaType("application",
-				"x-java-object", Collections.singletonMap("type",
-						"org.springframework.integration.x.bus.LocalMessageBusTests$Foo"))));
+		verifyPayloadConversion(new Foo(), bus);
 	}
 
 	@Test
@@ -70,14 +66,10 @@ public class LocalMessageBusTests extends AbstractMessageBusTests {
 		verifyPayloadConversion(new Foo(), bus);
 	}
 
-	private void verifyPayloadConversion(final Object expectedValue, final LocalMessageBus bus) {
-		verifyPayloadConversion(expectedValue, bus, ALL);
-	}
 
-	private void verifyPayloadConversion(final Object expectedValue, final LocalMessageBus bus,
-			Collection<MediaType> acceptedMediaTypes) {
+	private void verifyPayloadConversion(final Object expectedValue, final LocalMessageBus bus) {
 		DirectChannel myChannel = new DirectChannel();
-		bus.bindConsumer("in", myChannel, acceptedMediaTypes, false);
+		bus.bindConsumer("in", myChannel, false);
 		DirectChannel input = bus.getBean("in", DirectChannel.class);
 		assertNotNull(input);
 

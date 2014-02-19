@@ -13,12 +13,12 @@
 	<file:inbound-channel-adapter
 			auto-startup="false"
 			channel="router" directory="${dir:/tmp/xd/input/${xd.stream.name}}"
-			prevent-duplicates="${preventDuplicates:true}"
-			filename-pattern="${pattern:*}">
-		<poller fixed-delay="${fixedDelay:5}" time-unit="SECONDS"/>
+			prevent-duplicates="${preventDuplicates}"
+			filename-pattern="${pattern}">
+		<poller fixed-delay="${fixedDelay}" time-unit="SECONDS"/>
 	</file:inbound-channel-adapter>
 
-	<router input-channel="router" expression="${ref:false} ? 'output' : 'contents'"/>
+	<router input-channel="router" expression="${ref} ? 'output' : 'contents'"/>
 
 	<channel id="contents"/>
 

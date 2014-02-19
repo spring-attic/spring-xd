@@ -10,7 +10,7 @@
 	<int-syslog:inbound-channel-adapter id="adapter" channel="output"
 			auto-startup="false"
 			protocol="udp"
-			port="${port:11111}"/>
+			port="${port}"/>
 
 	<int:channel id="output"/>
 

@@ -8,7 +8,7 @@
 @rem Set local scope for the variables with windows NT shell
 if "%OS%"=="Windows_NT" setlocal
 
-@rem Add default JVM options here. You can also use JAVA_OPTS and SPRING_XD_ADMIN_OPTS to pass JVM options to this script.
+@rem Add default JVM options here. You can also use JAVA_OPTS to pass JVM options to this script.
 set DEFAULT_JVM_OPTS=
 
 set DIRNAME=%~dp0
@@ -83,7 +83,7 @@ if exist "%APP_HOME_LIB%" (
             set found=0
         )
     )
-    set CLASSPATH=%APP_HOME%\modules\processor\scripts;%APP_HOME%\config
+    set CLASSPATH=%APP_HOME%\modules\processor\scripts;%APP_HOME%\config;%APP_HOME%
     set CLASSPATH=!CLASSPATH!;%APP_HOME_LIB%\*
     set HADOOP_LIB=%APP_HOME%\lib\!HADOOP_DISTRO!
     if exist "!HADOOP_LIB!" (
@@ -95,10 +95,10 @@ if exist "%APP_HOME_LIB%" (
 if not exist "%XD_HOME%" (
     set XD_HOME=%APP_HOME%
 )
-set SPRING_XD_ADMIN_OPTS=
+set SPRING_XD_OPTS="-Dspring.application.name=singlenode -Dlogging.config=file:%XD_HOME%/config/xd-singlenode-logger.properties  -Dxd.home=%XD_HOME%"
 
 @rem Execute xd-singlenode
-"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SPRING_XD_ADMIN_OPTS%  -classpath "%CLASSPATH%" org.springframework.xd.dirt.server.SingleNodeApplication %CMD_LINE_ARGS%
+"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SPRING_XD_OPTS%  -classpath "%CLASSPATH%" org.springframework.xd.dirt.server.SingleNodeApplication %CMD_LINE_ARGS%
 
 :end
 @rem End local scope for the variables with windows NT shell

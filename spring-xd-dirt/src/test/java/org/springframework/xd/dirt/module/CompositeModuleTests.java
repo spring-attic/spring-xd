@@ -29,17 +29,16 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.xd.module.CompositeModule;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
-import org.springframework.xd.module.SimpleModule;
+import org.springframework.xd.module.core.CompositeModule;
+import org.springframework.xd.module.core.SimpleModule;
 
 /**
  * @author Mark Fisher
@@ -58,7 +57,7 @@ public class CompositeModuleTests {
 
 	@Before
 	public void setupModuleDefinitions() {
-		moduleRegistry = new ResourceModuleRegistry(new FileSystemResource("src/test/resources/testmodules/"));
+		moduleRegistry = new ResourceModuleRegistry("file:src/test/resources/testmodules/");
 		sourceDefinition = moduleRegistry.findDefinition("source", source);
 		processor1Definition = moduleRegistry.findDefinition("testprocessor1", processor);
 		processor2Definition = moduleRegistry.findDefinition("testprocessor2", processor);

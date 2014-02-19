@@ -18,10 +18,9 @@ package org.springframework.xd.shell.command.fixtures;
 
 import java.io.File;
 
-import org.eclipse.jdt.internal.core.Assert;
-
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
+import org.springframework.util.Assert;
 import org.springframework.web.client.RestTemplate;
 
 
@@ -82,12 +81,12 @@ public class HttpSource extends AbstractModuleFixture {
 	public HttpSource postData(String payload) {
 		String command = String.format(
 				"http post --target http://localhost:%d --data \"%s\"",
-				port, payload);
+				port, payload.replaceAll("\"", "\\\\\""));
 		if (contentType != null) {
 			command += String.format(" --contentType \"%s\"", contentType);
 		}
 		CommandResult result = shell.executeCommand(command);
-		Assert.isTrue(result.isSuccess());
+		Assert.isTrue(result.isSuccess(), "http post failed. Command result: " + result.getException());
 		return this;
 	}
 

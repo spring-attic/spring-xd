@@ -21,8 +21,9 @@ import java.util.Map;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
+import org.springframework.aop.framework.Advised;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -31,19 +32,19 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
-import org.springframework.xd.dirt.module.DelegatingModuleRegistry;
+import org.springframework.xd.dirt.integration.test.SingleNodeIntegrationTestSupport;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeployer;
-import org.springframework.xd.dirt.module.ResourceModuleRegistry;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
-import org.springframework.xd.module.CompositeModule;
-import org.springframework.xd.module.Module;
+import org.springframework.xd.module.core.CompositeModule;
+import org.springframework.xd.module.core.Module;
+import org.springframework.xd.test.RandomConfigurationSupport;
 
 
 /**
  * @author David Turanski
  */
-public class StreamTestSupport {
+public class StreamTestSupport extends RandomConfigurationSupport {
 
 	private static StreamDeployer streamDeployer;
 
@@ -53,18 +54,18 @@ public class StreamTestSupport {
 
 	private static SingleNodeApplication application;
 
+	private static ConfigurableApplicationContext adminContext;
+
 	@BeforeClass
 	public static void startXDSingleNode() throws Exception {
-		application = new SingleNodeApplication().run("--spring.profiles.active=memory,default");
-		ConfigurableApplicationContext adminContext = application.getAdminContext();
-		ConfigurableApplicationContext containerContext = application.getContainerContext();
-		ResourceModuleRegistry cp = new ResourceModuleRegistry(new ClassPathResource("/testmodules/"));
-		DelegatingModuleRegistry cmr1 = containerContext.getBean(DelegatingModuleRegistry.class);
-		cmr1.addDelegate(cp);
-		DelegatingModuleRegistry cmr2 = adminContext.getBean(DelegatingModuleRegistry.class);
-		cmr2.addDelegate(cp);
-		streamDeployer = adminContext.getBean(StreamDeployer.class);
-		moduleDeployer = containerContext.getBean(ModuleDeployer.class);
+		application = new SingleNodeApplication().run("--analytics", "memory", "--store", "memory", "--jmxEnabled");
+		adminContext = application.adminContext();
+		SingleNodeIntegrationTestSupport integrationTestSupport = new SingleNodeIntegrationTestSupport(application,
+				"classpath:/testmodules/");
+
+		streamDeployer = integrationTestSupport.streamDeployer();
+		Object md = application.containerContext().getBean("moduleDeployer", Object.class);
+		moduleDeployer = (ModuleDeployer) (AopUtils.isJdkDynamicProxy(md) ? ((Advised)md).getTargetSource().getTarget() : md);
 		moduleDefinitionRepository = adminContext.getBean(ModuleDefinitionRepository.class);
 	}
 
@@ -84,6 +85,10 @@ public class StreamTestSupport {
 
 	protected static void undeployStream(String name) {
 		streamDeployer.undeploy(name);
+	}
+
+	protected static void deleteStream(String name) {
+		streamDeployer.delete(name);
 	}
 
 	protected static Module getDeployedModule(String streamName, int index) {
@@ -124,6 +129,10 @@ public class StreamTestSupport {
 			sink = modules.get(modules.size() - 1);
 		}
 		return sink.getComponent("input", SubscribableChannel.class);
+	}
+
+	protected static ConfigurableApplicationContext getAdminContext() {
+		return adminContext;
 	}
 
 	protected static ModuleDefinitionRepository getModuleDefinitionRepository() {

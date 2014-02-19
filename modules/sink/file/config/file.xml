@@ -12,7 +12,7 @@
 
 	<channel id="input"/>
 
-	<router input-channel="input" expression="${binary:false} ? 'files' : 'appendNewline'"/>
+	<router input-channel="input" expression="${binary} ? 'files' : 'appendNewline'"/>
 
 	<transformer input-channel="appendNewline" expression="payload + @newline" output-channel="files"/>
 
@@ -23,9 +23,9 @@
 	<channel id="files"/>
 
 	<file:outbound-channel-adapter id="files"
-		mode="APPEND"
-		charset="${charset:UTF-8}"
-		directory="${dir:/tmp/xd/output/}"
-		filename-generator-expression="'${name:${xd.stream.name}}'+(('${suffix:out}'.trim()=='')?'':'.${suffix:out}')"/>
+		mode="${mode}"
+		charset="${charset}"
+		directory="${dir}"
+		filename-generator-expression="'${name:${xd.stream.name}}' + '${extensionWithDot}'"/>
 
 </beans:beans>

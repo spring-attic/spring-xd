@@ -14,6 +14,8 @@
 
 package org.springframework.xd.dirt.rest;
 
+import static org.springframework.hateoas.config.EnableHypermediaSupport.HypermediaType.HAL;
+
 import java.util.List;
 
 import org.springframework.batch.core.StepExecution;
@@ -27,7 +29,6 @@ import org.springframework.hateoas.config.EnableHypermediaSupport;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.ResourceHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
@@ -46,8 +47,7 @@ import org.springframework.xd.rest.client.util.RestTemplateMessageConverterUtil;
  * @author Gunnar Hillert
  */
 @Configuration
-@EnableWebMvc
-@EnableHypermediaSupport
+@EnableHypermediaSupport(type = HAL)
 @EnableSpringDataWebSupport
 @ComponentScan(excludeFilters = @Filter(Configuration.class))
 public class RestConfiguration {
@@ -57,8 +57,11 @@ public class RestConfiguration {
 		return new WebMvcConfigurerAdapter() {
 
 			// N.B. must end in "/"
-			@Value("${XD_ADMIN_UI_ROOT:file:${XD_HOME}/spring-xd-ui/}")
+			@Value("${xd.ui.home:file:${XD_HOME}/spring-xd-ui/dist/}")
 			private String resourceRoot;
+
+			@Value("${xd.ui.allow_origin:http://localhost:9889}")
+			private String allowedOrigin;
 
 			@Override
 			public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
@@ -77,7 +80,7 @@ public class RestConfiguration {
 
 			@Override
 			public void addInterceptors(InterceptorRegistry registry) {
-				registry.addInterceptor(new AccessControlInterceptor());
+				registry.addInterceptor(new AccessControlInterceptor(allowedOrigin));
 			}
 
 			// add a static resource handler for the UI
@@ -89,7 +92,8 @@ public class RestConfiguration {
 
 			@Override
 			public void addViewControllers(ViewControllerRegistry registry) {
-				registry.addViewController("admin-ui").setViewName("/admin-ui/index.html");
+				registry.addViewController("admin-ui").setViewName("redirect:/admin-ui/");
+				registry.addViewController("admin-ui/").setViewName("index.html");
 			}
 		};
 	}

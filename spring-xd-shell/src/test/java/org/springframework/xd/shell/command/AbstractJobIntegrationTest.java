@@ -38,6 +38,7 @@ import org.springframework.xd.shell.util.TableRow;
  * 
  * @author Glenn Renfro
  * @author Gunnar Hillert
+ * @author Ilayaperumal Gopinathan
  * 
  */
 public abstract class AbstractJobIntegrationTest extends AbstractShellIntegrationTest {
@@ -50,6 +51,10 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 
 	private static final String JOB_WITH_PARAMETERS_TASKLET = "jobWithParameters.xml";
 
+	private static final String JOB_WITH_STEP_EXECUTIONS_TASKLET = "jobWithStepExecutions.xml";
+
+	private static final String JOB_WITH_PARTITIONS_TASKLET = "jobWithPartitions.xml";
+
 	public static final String MY_JOB = "myJob";
 
 	public static final String MY_TEST = "myTest";
@@ -58,42 +63,35 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 
 	public static final String JOB_WITH_PARAMETERS_DESCRIPTOR = "jobWithParameters";
 
+	public static final String JOB_WITH_STEP_EXECUTIONS = "jobWithStepExecutions";
+
+	public static final String MY_JOB_WITH_PARTITIONS = "myJobWithPartitions";
+
+	public static final String JOB_WITH_PARTITIONS_DESCRIPTOR = "jobWithPartitions";
+
 	private List<String> jobs = new ArrayList<String>();
+
+	private List<String> streams = new ArrayList<String>();
 
 	@Before
 	public void before() {
 		copyTaskletDescriptorsToServer(MODULE_RESOURCE_DIR + TEST_TASKLET, MODULE_TARGET_DIR + TEST_TASKLET);
 		copyTaskletDescriptorsToServer(MODULE_RESOURCE_DIR + JOB_WITH_PARAMETERS_TASKLET, MODULE_TARGET_DIR
 				+ JOB_WITH_PARAMETERS_TASKLET);
-		// clear any test jobs that may still exist
-		try {
-			executeJobDestroy(MY_JOB);
-		}
-		catch (Throwable t) {
-			// don't worry if it is thrown
-		}
-		try {
-			executeJobDestroy(MY_TEST);
-		}
-		catch (Throwable t) {
-			// don't worry if it is thrown
-		}
-		try {
-			executeJobDestroy(MY_JOB_WITH_PARAMETERS);
-		}
-		catch (Throwable t) {
-			// don't worry if it is thrown
-		}
+		copyTaskletDescriptorsToServer(MODULE_RESOURCE_DIR + JOB_WITH_STEP_EXECUTIONS_TASKLET, MODULE_TARGET_DIR
+				+ JOB_WITH_STEP_EXECUTIONS_TASKLET);
+		copyTaskletDescriptorsToServer(MODULE_RESOURCE_DIR + JOB_WITH_PARTITIONS_TASKLET, MODULE_TARGET_DIR
+				+ JOB_WITH_PARTITIONS_TASKLET);
 	}
 
 	@After
 	public void after() {
 		executeJobDestroy(jobs.toArray(new String[jobs.size()]));
-		getShell().executeCommand("stream destroy " + "me-Try2");
+		executeStreamDestroy(streams.toArray(new String[streams.size()]));
 	}
 
 	/**
-	 * Execute 'job destroy' for the supplied stream names
+	 * Execute 'job destroy' for the supplied job names
 	 */
 	protected void executeJobDestroy(String... jobNames) {
 		for (String jobName : jobNames) {
@@ -102,8 +100,26 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 		}
 	}
 
+	protected CommandResult jobDestroy(String jobName) {
+		return getShell().executeCommand("job destroy --name " + jobName);
+	}
+
+	protected void executeStreamDestroy(String... streamNames) {
+		for (String streamName : streamNames) {
+			CommandResult cr = executeCommand("stream destroy --name " + streamName);
+			assertTrue("Failure to destroy stream " + streamName + ".  CommandResult = " + cr.toString(),
+					cr.isSuccess());
+		}
+	}
+
 	protected void executeJobCreate(String jobName, String jobDefinition) {
 		executeJobCreate(jobName, jobDefinition, true);
+	}
+
+	protected String executeJobCreate(String jobDefinition) {
+		String jobName = generateJobName();
+		executeJobCreate(jobName, jobDefinition, true);
+		return jobName;
 	}
 
 	/**
@@ -115,6 +131,32 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 		String prefix = (deploy) ? "Successfully created and deployed job '" : "Successfully created job '";
 		assertEquals(prefix + jobName + "'", cr.getResult());
 		jobs.add(jobName);
+	}
+
+	protected CommandResult createJob(String jobName, String definition) {
+		return createJob(jobName, definition, "true");
+	}
+
+	/**
+	 * Execute job create without any assertions
+	 */
+	protected CommandResult createJob(String jobName, String definition, String deploy) {
+		return getShell().executeCommand(
+				"job create --definition \"" + definition + "\" --name " + jobName + " --deploy " + deploy);
+	}
+
+	/**
+	 * Execute job deploy without any assertions
+	 */
+	protected CommandResult deployJob(String jobName) {
+		return getShell().executeCommand("job deploy " + jobName);
+	}
+
+	/**
+	 * Execute job undeploy without any assertions
+	 */
+	protected CommandResult undeployJob(String jobName) {
+		return getShell().executeCommand("job undeploy " + jobName);
 	}
 
 	/**
@@ -150,28 +192,48 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 		assertTrue("Failure.  CommandResult = " + cr.toString(), cr.isSuccess());
 	}
 
+	protected void checkDeployedJobMessage(CommandResult cr, String jobName) {
+		assertEquals("Deployed job '" + jobName + "'", cr.getResult());
+	}
+
+	protected void checkUndeployedJobMessage(CommandResult cr, String jobName) {
+		assertEquals("Un-deployed Job '" + jobName + "'", cr.getResult());
+	}
+
 	protected void checkErrorMessages(CommandResult cr, String expectedMessage) {
 		assertTrue("Failure.  CommandResult = " + cr.toString(),
 				cr.getException().getMessage().contains(expectedMessage));
 	}
 
-	protected void executemyJobTriggerStream() {
+	protected void checkDuplicateJobErrorMessage(CommandResult cr, String jobName) {
+		checkErrorMessages(cr, "There is already a job named '" + jobName + "'");
+	}
+
+	protected void triggerJob(String jobName) {
+		String streamName = generateStreamName();
 		CommandResult cr = getShell().executeCommand(
-				"stream create --name me-Try2 --definition \"trigger > queue:job:myJob\"");
+				"stream create --name " + streamName + " --definition \"trigger > "
+						+ getJobLaunchQueue(jobName) + "\"");
+		streams.add(streamName);
 		checkForSuccess(cr);
 	}
 
-	protected void executemyTestTriggerStream() {
+	protected void triggerJobWithParams(String jobName, String parameters) {
+		String streamName = generateStreamName();
 		CommandResult cr = getShell().executeCommand(
-				"stream create --name me-Try2 --definition \"trigger > queue:job:myTest\"");
+				String.format("stream create --name " + streamName
+						+ " --definition \"trigger --payload='%s' > " + getJobLaunchQueue(jobName) + "\"",
+						parameters.replaceAll("\"", "\\\\\"")));
+		streams.add(streamName);
 		checkForSuccess(cr);
 	}
 
-	protected void executemyjobWithParametersTriggerStream(String params) {
-		String commandString = String.format(
-				"stream create --name me-Try2 --definition \"trigger --payload='%s' > queue:job:myJobWithParameters\"",
-				params);
-		CommandResult cr = getShell().executeCommand(commandString);
+	protected void triggerJobWithDelay(String jobName, String fixedDelay) {
+		String streamName = generateStreamName();
+		CommandResult cr = getShell().executeCommand(
+				"stream create --name " + streamName + " --definition \"trigger --fixedDelay=" + fixedDelay
+						+ " > " + getJobLaunchQueue(jobName) + "\"");
+		streams.add(streamName);
 		checkForSuccess(cr);
 	}
 
@@ -189,5 +251,44 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 			assertTrue("Unable to deploy Job descriptor to server directory", out.isFile());
 		}
 		out.deleteOnExit();
+	}
+
+	protected Table listJobExecutions() {
+		return (Table) getShell().executeCommand("job execution list").getResult();
+	}
+
+	protected String displayJobExecution(String id) {
+		final CommandResult commandResult = getShell().executeCommand("job execution display " + id);
+
+		if (!commandResult.isSuccess()) {
+			throw new IllegalStateException("Expected a successful command execution.", commandResult.getException());
+		}
+		return (String) commandResult.getResult();
+	}
+
+	protected Table listStepExecutions(String id) {
+		final CommandResult commandResult = getShell().executeCommand("job execution step list " + id);
+		if (!commandResult.isSuccess()) {
+			throw new IllegalStateException("Expected a successful command execution.", commandResult.getException());
+		}
+		return (Table) commandResult.getResult();
+	}
+
+	protected Table getStepExecutionProgress(String jobExecutionId, String stepExecutionId) {
+		final CommandResult commandResult = getShell().executeCommand(
+				"job execution step progress " + stepExecutionId + " --jobExecutionId " + jobExecutionId);
+		if (!commandResult.isSuccess()) {
+			throw new IllegalStateException("Expected a successful command execution.", commandResult.getException());
+		}
+		return (Table) commandResult.getResult();
+	}
+
+	protected Table getDisplayStepExecution(String jobExecutionId, String stepExecutionId) {
+		final CommandResult commandResult = getShell().executeCommand(
+				"job execution step display " + stepExecutionId + " --jobExecutionId " + jobExecutionId);
+		if (!commandResult.isSuccess()) {
+			throw new IllegalStateException("Expected a successful command execution.", commandResult.getException());
+		}
+		return (Table) commandResult.getResult();
 	}
 }

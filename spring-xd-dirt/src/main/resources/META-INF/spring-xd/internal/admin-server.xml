@@ -6,14 +6,11 @@
 
 	<import resource="deployers.xml" />
 
-	<import resource="classpath*:/META-INF/spring-xd/transports/${XD_TRANSPORT}-admin.xml" />
+	<import
+		resource="classpath*:/META-INF/spring-xd/transports/${XD_CONTROL_TRANSPORT}-admin.xml" />
 
 	<context:annotation-config />
 
-	<beans>
-		<!-- Include only this @Configuration classes, which will in turn include
-			others -->
-		<bean class="org.springframework.xd.dirt.rest.RestConfiguration" />
-	</beans>
+	<context:component-scan base-package="org.springframework.xd.dirt.stream.completion" />
 
 </beans>

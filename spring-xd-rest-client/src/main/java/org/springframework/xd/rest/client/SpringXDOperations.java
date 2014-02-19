@@ -70,4 +70,9 @@ public interface SpringXDOperations {
 	 */
 	public RichGaugeOperations richGaugeOperations();
 
+	/**
+	 * Returns the portion of the API for providing code completion.
+	 */
+	public CompletionOperations completionOperations();
+
 }

@@ -123,10 +123,10 @@ public abstract class AbstractHdfsWriter implements HdfsWriter {
 	}
 
 	protected int getCounterFromName(String shortName) {
-		Pattern pattern = Pattern.compile("([\\d+]{1,})");
+		Pattern pattern = Pattern.compile(baseFilename + "-([\\d+]{1,})");
 		Matcher matcher = pattern.matcher(shortName);
 		if (matcher.find()) {
-			return Integer.parseInt(matcher.group());
+			return Integer.parseInt(matcher.group(1));
 		}
 		return -1;
 	}

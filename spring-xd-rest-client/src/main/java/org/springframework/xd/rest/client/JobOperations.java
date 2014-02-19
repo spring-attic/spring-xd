@@ -16,22 +16,28 @@
 
 package org.springframework.xd.rest.client;
 
+import java.util.List;
+
 import org.springframework.hateoas.PagedResources;
 import org.springframework.xd.rest.client.domain.JobDefinitionResource;
+import org.springframework.xd.rest.client.domain.JobExecutionInfoResource;
+import org.springframework.xd.rest.client.domain.StepExecutionInfoResource;
+import org.springframework.xd.rest.client.domain.StepExecutionProgressInfoResource;
 
 /**
  * Interface defining operations available against jobs.
  * 
  * @author Glenn Renfro
  * @author Ilayaperumal Gopinathan
+ * @author Gunnar Hillert
+ * 
  */
 public interface JobOperations extends ResourceOperations {
 
 	/**
 	 * Create a new Job, optionally deploying it.
 	 */
-	public JobDefinitionResource createJob(String name, String defintion, String dateFormat, String numberFormat,
-			boolean makeUnique, boolean deploy);
+	public JobDefinitionResource createJob(String name, String defintion, boolean deploy);
 
 	/**
 	 * Launch a job that is already deployed.
@@ -45,4 +51,51 @@ public interface JobOperations extends ResourceOperations {
 	 * List jobs known to the system.
 	 */
 	public PagedResources<JobDefinitionResource> list();
+
+	/**
+	 * List all Job Executions.
+	 */
+	public List<JobExecutionInfoResource> listJobExecutions();
+
+	/**
+	 * Retrieve a specific Job Execution for the provided {@code jobExecutionId}.
+	 * 
+	 */
+	public JobExecutionInfoResource displayJobExecution(long jobExecutionId);
+
+	/**
+	 * Retrieve a {@link List} of {@link StepExecutionInfoResource}s for the provided {@code jobExecutionId}.
+	 * 
+	 */
+	public List<StepExecutionInfoResource> listStepExecutions(long jobExecutionId);
+
+	/**
+	 * Stop job execution that is running.
+	 */
+	public void stopJobExecution(long jobExecutionId);
+
+	/**
+	 * Restart a given job execution.
+	 */
+	public void restartJobExecution(long jobExecutionId);
+
+	/**
+	 * Stop all job executions.
+	 */
+	public void stopAllJobExecutions();
+
+	/**
+	 * Retrieve step execution progress with the given {@code jobExecutionId} and {@code stepExecutionId}.
+	 */
+	public StepExecutionProgressInfoResource stepExecutionProgress(long jobExecutionId, long stepExecutionId);
+
+	/**
+	 * Retrieve a specific {@link StepExecutionInfoResource} for the provided {@code jobExecutionId} and
+	 * {@code stepExecutionId}.
+	 * 
+	 * @param jobExecutionId Must not be null
+	 * @param stepExecutionId Must not be null
+	 * @return StepExecutionInfoResource
+	 */
+	public StepExecutionInfoResource displayStepExecution(long jobExecutionId, long stepExecutionId);
 }

@@ -70,13 +70,15 @@ public class HdfsTextItemWriter<T> extends AbstractHdfsItemWriter<T> implements 
 			name = new Path(getFileName());
 			// If it doesn't exist, create it. If it exists, return false
 			if (getFileSystem().createNewFile(name)) {
+				logger.debug("Created new HDFS file " + name.getName());
 				found = true;
 				this.resetBytesWritten();
 				this.fsDataOutputStream = this.getFileSystem().append(name);
 			}
 			else {
 				if (this.getBytesWritten() >= getRolloverThresholdInBytes()) {
-					close();
+					logger.debug("Rolling over new file");
+					closeStream();
 					incrementCounter();
 				}
 				else {
@@ -90,9 +92,7 @@ public class HdfsTextItemWriter<T> extends AbstractHdfsItemWriter<T> implements 
 	/**
 	 * Simple not optimized copy
 	 */
-	public void copy(byte[] in, FSDataOutputStream out) throws IOException {
-		Assert.notNull(in, "No input byte array specified");
-		Assert.notNull(out, "No OutputStream specified");
+	private void copy(byte[] in, FSDataOutputStream out) throws IOException {
 		out.write(in);
 		incrementBytesWritten(in.length);
 	}
@@ -122,8 +122,15 @@ public class HdfsTextItemWriter<T> extends AbstractHdfsItemWriter<T> implements 
 		}
 	}
 
-
+	@Override
 	public void close() {
+		logger.debug("Closing item writer");
+		closeStream();
+		reset();
+	}
+
+	private void closeStream() {
+		logger.debug("Closing output stream");
 		if (fsDataOutputStream != null) {
 			IOUtils.closeStream(fsDataOutputStream);
 		}
@@ -142,6 +149,5 @@ public class HdfsTextItemWriter<T> extends AbstractHdfsItemWriter<T> implements 
 	public void afterPropertiesSet() throws Exception {
 		Assert.notNull(lineAggregator, "A LineAggregator must be provided.");
 	}
-
 
 }

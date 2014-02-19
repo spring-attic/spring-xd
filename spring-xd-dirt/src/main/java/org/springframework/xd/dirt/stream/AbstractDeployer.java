@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.stream;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -27,6 +28,7 @@ import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.BaseDefinition;
 import org.springframework.xd.dirt.core.ResourceDeployer;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.module.ModuleDefinition;
 
 /**
  * Abstract implementation of the @link {@link org.springframework.xd.dirt.core.ResourceDeployer} interface. It provides
@@ -36,6 +38,7 @@ import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
  * @author Mark Pollack
  * @author Eric Bottard
  * @author Andy Clement
+ * @author David Turanski
  */
 public abstract class AbstractDeployer<D extends BaseDefinition> implements ResourceDeployer<D> {
 
@@ -46,18 +49,18 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	private final DeploymentMessageSender messageSender;
 
 	/**
-	 * Lower-case, singular name of the kind of definition we're deploying. Used in exception messages.
+	 * Used in exception messages as well as indication to the parser.
 	 */
-	protected final String definitionKind;
+	protected final ParsingContext definitionKind;
 
 	protected AbstractDeployer(PagingAndSortingRepository<D, String> repository, DeploymentMessageSender messageSender,
-			XDParser parser, String definitionKind) {
+			XDParser parser, ParsingContext parsingContext) {
 		Assert.notNull(repository, "Repository cannot be null");
 		Assert.notNull(messageSender, "Message sender cannot be null");
-		Assert.hasText(definitionKind, "Definition kind cannot be blank");
+		Assert.notNull(parsingContext, "Entity type kind cannot be null");
 		this.repository = repository;
 		this.messageSender = messageSender;
-		this.definitionKind = definitionKind;
+		this.definitionKind = parsingContext;
 		this.streamParser = parser;
 	}
 
@@ -67,9 +70,32 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		if (repository.findOne(definition.getName()) != null) {
 			throwDefinitionAlreadyExistsException(definition);
 		}
-		streamParser.parse(definition.getName(), definition.getDefinition());
+		List<ModuleDeploymentRequest> moduleDeploymentRequests = streamParser.parse(definition.getName(),
+				definition.getDefinition(), definitionKind);
+		List<ModuleDefinition> moduleDefinitions = createModuleDefinitions(moduleDeploymentRequests);
+		if (!moduleDefinitions.isEmpty()) {
+			definition.setModuleDefinitions(moduleDefinitions);
+		}
 		D savedDefinition = repository.save(definition);
 		return afterSave(savedDefinition);
+	}
+
+	/**
+	 * Create a list of ModuleDefinitions given the results of parsing the definition.
+	 * 
+	 * @param moduleDeploymentRequests The list of ModuleDeploymentRequest resulting from parsing the definition.
+	 * @return a list of ModuleDefinitions
+	 */
+	private List<ModuleDefinition> createModuleDefinitions(List<ModuleDeploymentRequest> moduleDeploymentRequests) {
+		List<ModuleDefinition> moduleDefinitions = new ArrayList<ModuleDefinition>(moduleDeploymentRequests.size());
+
+		for (ModuleDeploymentRequest moduleDeploymentRequest : moduleDeploymentRequests) {
+			ModuleDefinition moduleDefinition = new ModuleDefinition(moduleDeploymentRequest.getModule(),
+					moduleDeploymentRequest.getType());
+			moduleDefinitions.add(moduleDefinition);
+		}
+
+		return moduleDefinitions;
 	}
 
 	/**
@@ -137,8 +163,29 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		messageSender.sendDeploymentRequests(name, requests);
 	}
 
-	protected List<ModuleDeploymentRequest> parse(String name, String config) {
-		return streamParser.parse(name, config);
+	// TODO: The ModuleDefinition currently does not provide sourceChannelName and sinkChannelName required for
+	// deployment. This is only provided by the parser
+	protected List<ModuleDeploymentRequest> parse(String name, String definition) {
+		return this.streamParser.parse(name, definition, definitionKind);
+	}
+
+	protected List<ModuleDeploymentRequest> buildUndeployRequests(D definition) {
+		List<ModuleDefinition> moduleDefinitions = definition.getModuleDefinitions();
+		List<ModuleDeploymentRequest> moduleDeploymentRequests = new ArrayList<ModuleDeploymentRequest>(
+				moduleDefinitions.size());
+		/*
+		 * Only some fields required for undeploy
+		 */
+		for (int i = 0; i < moduleDefinitions.size(); i++) {
+			ModuleDefinition md = moduleDefinitions.get(i);
+			ModuleDeploymentRequest request = new ModuleDeploymentRequest();
+			request.setGroup(definition.getName());
+			request.setIndex(moduleDefinitions.size() - i - 1);
+			request.setRemove(true);
+			request.setModule(md.getName());
+			moduleDeploymentRequests.add(request);
+		}
+		return moduleDeploymentRequests;
 	}
 
 	/**
@@ -166,7 +213,7 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		if (definition == null) {
 			throwNoSuchDefinitionException(name);
 		}
-		List<ModuleDeploymentRequest> requests = parse(name, definition.getDefinition());
+		List<ModuleDeploymentRequest> requests = buildUndeployRequests(definition);
 		for (ModuleDeploymentRequest request : requests) {
 			request.setRemove(true);
 		}
@@ -181,7 +228,7 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 			throwNoSuchDefinitionException(name);
 		}
 		beforeDelete(def);
-		getDefinitionRepository().delete(name);
+		getDefinitionRepository().delete(def);
 	}
 
 	/**

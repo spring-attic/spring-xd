@@ -16,15 +16,15 @@
 
 package org.springframework.xd.dirt.plugins.job;
 
-import org.springframework.batch.core.Job;
 import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor;
+import org.springframework.batch.core.job.flow.FlowJob;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.job.BatchJobAlreadyExistsException;
 
 
 /**
- * JobRegistryBeanPostProcessor that processes Job bean with name {@link JobPlugin.JOB_BEAN_ID}
+ * JobRegistryBeanPostProcessor that processes batch job from the job module.
  * 
  * @author Ilayaperumal Gopinathan
  */
@@ -35,8 +35,6 @@ public class BatchJobRegistryBeanPostProcessor extends JobRegistryBeanPostProces
 	private BatchJobLocator jobLocator;
 
 	private String groupName;
-
-	private String jobName;
 
 	@Override
 	public void setJobRegistry(JobRegistry jobRegistry) {
@@ -51,28 +49,23 @@ public class BatchJobRegistryBeanPostProcessor extends JobRegistryBeanPostProces
 	@Override
 	public void setGroupName(String groupName) {
 		this.groupName = groupName;
-		super.setGroupName(groupName);
 	}
 
 	@Override
 	public Object postProcessAfterInitialization(Object bean, String beanName) {
 		// Make sure we only post-process the Job bean from the job module's batch job
-		if (bean instanceof Job && beanName.equals(JobPlugin.JOB_BEAN_ID)) {
-			Job job = (Job) bean;
-
-			// the job name at the JobRegistry will be <groupName>.<batchJobId>
-			jobName = this.groupName + JobPlugin.JOB_NAME_DELIMITER + job.getName();
-			if (!jobRegistry.getJobNames().contains(jobName)) {
+		if (bean instanceof FlowJob) {
+			FlowJob job = (FlowJob) bean;
+			job.setName(this.groupName);
+			if (!jobRegistry.getJobNames().contains(groupName)) {
 				// Add the job name & job parameters incrementer flag to BatchJobLocator
 				// Since, the Spring batch doesn't have persistent JobRegistry, the BatchJobLocator
 				// acts as the store to have jobName & incrementer flag to be used by {@DistributedJobService}
-				jobLocator.addJob(jobName, (job.getJobParametersIncrementer() != null) ? true : false);
+				jobLocator.addJob(groupName, (job.getJobParametersIncrementer() != null) ? true : false);
 				super.postProcessAfterInitialization(bean, beanName);
 			}
 			else {
-				// Currently there is no way to get to this as the job module's batch job configuration
-				// schema won't allow multiple ids with JobPlugin.JOB_BEAN_ID ("job")
-				throw new BatchJobAlreadyExistsException(jobName);
+				throw new BatchJobAlreadyExistsException(groupName);
 			}
 		}
 		return bean;
@@ -80,8 +73,8 @@ public class BatchJobRegistryBeanPostProcessor extends JobRegistryBeanPostProces
 
 	@Override
 	public void destroy() throws Exception {
-		Assert.notNull(jobName, "JobName should not be null");
-		jobLocator.delteJobName(jobName);
+		Assert.notNull(groupName, "JobName should not be null");
+		jobLocator.deleteJobName(groupName);
 		super.destroy();
 	}
 }

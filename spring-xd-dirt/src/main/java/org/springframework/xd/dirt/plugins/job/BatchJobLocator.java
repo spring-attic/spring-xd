@@ -47,6 +47,10 @@ public class BatchJobLocator implements ListableJobLocator {
 
 	private static final String DELETE_JOB_NAME = "DELETE FROM JOB_REGISTRY_NAMES WHERE JOB_NAME = ?";
 
+	private static final String DELETE_JOB_INCREMENTABLE = "DELETE FROM JOB_REGISTRY_INCREMENTABLES WHERE JOB_NAME = ?";
+
+	private static final String DELETE_ALL_JOB_INCREMENTABLE = "DELETE FROM JOB_REGISTRY_INCREMENTABLES";
+
 	private static final String DELETE_ALL_JOB_NAMES = "DELETE FROM JOB_REGISTRY_NAMES";
 
 	private JdbcOperations jdbcTemplate;
@@ -61,9 +65,7 @@ public class BatchJobLocator implements ListableJobLocator {
 		if (!getJobNames().contains(name)) {
 			throw new NoSuchJobException(name);
 		}
-		// TODO need to create the real job here
-		SimpleJob simpleJob = new SimpleJob(name);
-		return simpleJob;
+		return new SimpleJob(name);
 	}
 
 	/**
@@ -73,7 +75,6 @@ public class BatchJobLocator implements ListableJobLocator {
 	 * @param isIncrementable
 	 */
 	protected void addJob(String name, boolean isIncrementable) {
-		// String batchJobName = name + JobPlugin.JOB_NAME_DELIMITER + JobPlugin.JOB_BEAN_ID;
 		Collection<String> jobNames = this.getJobNames();
 		if (!jobNames.contains(name)) {
 			jdbcTemplate.update(ADD_JOB_NAME, name);
@@ -90,12 +91,14 @@ public class BatchJobLocator implements ListableJobLocator {
 		}
 	}
 
-	protected void delteJobName(String name) {
+	protected void deleteJobName(String name) {
 		jdbcTemplate.update(DELETE_JOB_NAME, name);
+		jdbcTemplate.update(DELETE_JOB_INCREMENTABLE, name);
 	}
 
 	protected void deleteAll() {
 		jdbcTemplate.update(DELETE_ALL_JOB_NAMES);
+		jdbcTemplate.update(DELETE_ALL_JOB_INCREMENTABLE);
 	}
 
 	public Boolean isIncrementable(String name) {

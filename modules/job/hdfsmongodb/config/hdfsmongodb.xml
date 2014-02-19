@@ -11,14 +11,20 @@
 		http://www.springframework.org/schema/data/mongo http://www.springframework.org/schema/data/mongo/spring-mongo.xsd
 		http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd">
 
-	<context:property-placeholder location="file:${XD_HOME}/config/${configProperties:batch-mongo-import}.properties" ignore-resource-not-found="true"/>
+	<context:property-placeholder location="${xd.config.home}/${configProperties:batch-mongo}.properties" ignore-resource-not-found="true"/>
 
-	<batch:job id="job" restartable="${restartable:false}">
+	<batch:job id="hdfsmongodb" restartable="${restartable:false}">
 		<batch:step id="readResourcesStep">
 			<batch:tasklet>
 				<batch:chunk reader="multifileReader" writer="itemWriter" commit-interval="100"/>
 			</batch:tasklet>
+			<batch:listeners>
+				<batch:listener ref="xdStepExecutionListener"/>
+			</batch:listeners>
 		</batch:step>
+		<batch:listeners>
+			<batch:listener ref="xdJobExecutionListener"/>
+		</batch:listeners>
 	</batch:job>
 
 	<bean id="multifileReader" class="org.springframework.batch.item.file.MultiResourceItemReader" scope="step">
@@ -55,7 +61,7 @@
 		<property name="configuration" ref="hadoopConfiguration"/>
 	</bean>
 
-	<hdp:configuration register-url-handler="false" properties-location="file:${XD_HOME}/config/hadoop.properties"/>
+	<hdp:configuration register-url-handler="false" properties-location="${xd.config.home}/hadoop.properties"/>
 	<hdp:resource-loader id="hadoopResourceLoader"/>
 	<mongo:db-factory dbname="${databaseName:xd}" host="${host}" port="${port}"/>
 

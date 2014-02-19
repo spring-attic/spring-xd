@@ -85,12 +85,9 @@ public class FileSink extends DisposableFileSupport {
 
 	/**
 	 * Wait for the file to appear (default timeout) and return its contents.
-	 * 
-	 * @deprecated Use {@code assertThat(sink, eventually(hasContentsThat(someMatcher)))} to avoid a potential race
-	 *             condition where the file is detected as present but has no content yet.
 	 */
-	@Deprecated
-	public String getContents() throws IOException {
+	// This MUST remain private. Use XDMatchers.hasContentsThat() to assert
+	private String getContents() throws IOException {
 		return getContents(DEFAULT_FILE_TIMEOUT);
 	}
 
@@ -102,46 +99,20 @@ public class FileSink extends DisposableFileSupport {
 	/**
 	 * Wait at most {@code timeout} ms for the file to appear and return its contents.
 	 * 
-	 * @deprecated Use {@code assertThat(sink, eventually(hasContentsThat(someMatcher)))} to avoid a potential race
-	 *             condition where the file is detected as present but has no content yet.
 	 */
-	@Deprecated
-	public String getContents(int timeout) throws IOException {
+	// This MUST remain private. Use XDMatchers.hasContentsThat() to assert
+	private String getContents(int timeout) throws IOException {
 		waitFor(file, timeout);
 		Reader fileReader = new InputStreamReader(new FileInputStream(file), charset);
 		return FileCopyUtils.copyToString(fileReader);
 	}
 
-	/**
-	 * Wait at most {@code timeout} ms for the contents of the file to equal the specified contents.
-	 * 
-	 * @param contents The expected file contents
-	 * @param timeout The amount of time to wait for the contents to appear in the file
-	 * @return true if contents were found before timeout
-	 * @throws IOException
-	 */
-	public boolean waitForContents(String contents, int timeout) throws IOException {
-		boolean passes = false;
-		for (long startTime = System.currentTimeMillis(); System.currentTimeMillis() - startTime < timeout;) {
-			if (contents.equals(getContents())) {
-				passes = true;
-				break;
-			}
-			try {
-				Thread.sleep(100);
-			}
-			catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-			}
-		}
-		return passes;
-	}
-
 	@Override
 	protected String toDSL() {
 		String fileName = file.getName();
-		return String.format("file --dir=%s --name=%s --suffix=%s --charset=%s --binary=%b", file.getParent(),
-				fileName.substring(0, fileName.lastIndexOf(".txt")), "txt", charset, binary);
+		return String.format("file --dir=%s --name=%s --suffix=%s --charset=%s --binary=%b --mode=%s",
+				file.getParent(),
+				fileName.substring(0, fileName.lastIndexOf(".txt")), "txt", charset, binary, "APPEND");
 	}
 
 }

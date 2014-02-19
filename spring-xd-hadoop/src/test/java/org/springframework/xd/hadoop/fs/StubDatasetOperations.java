@@ -16,13 +16,13 @@
 
 package org.springframework.xd.hadoop.fs;
 
-import com.cloudera.cdk.data.PartitionStrategy;
+import java.util.Collection;
+
+import org.kitesdk.data.PartitionStrategy;
 
 import org.springframework.data.hadoop.store.dataset.DatasetOperations;
 import org.springframework.data.hadoop.store.dataset.DatasetRepositoryCallback;
 import org.springframework.data.hadoop.store.dataset.RecordCallback;
-
-import java.util.Collection;
 
 /**
  * @author Thomas Risberg
@@ -40,12 +40,12 @@ public class StubDatasetOperations implements DatasetOperations {
 	}
 
 	@Override
-	public void write(Collection<?> records, PartitionStrategy partitionStrategy) {
+	public <T> void write(Collection<T> records, PartitionStrategy partitionStrategy) {
 		throw new UnsupportedOperationException("not implemented");
 	}
 
 	@Override
-	public void write(Collection<?> records) {
+	public <T> void write(Collection<T> records) {
 		throw new UnsupportedOperationException("not implemented");
 	}
 

@@ -83,7 +83,12 @@ public abstract class AbstractRedisRepository<T, ID extends Serializable & Compa
 
 	@Override
 	public void delete(T entity) {
-		delete(keyFor(entity));
+		// Note, can't call delete due to how it gets subclassed, can lead to stackoverflow.
+		// TODO - investigate
+		ID id = keyFor(entity);
+		if (zSetOperations.remove(redisKeyFromId(id)) == 1) {
+			redisOperations.delete(redisKeyFromId(id));
+		}
 	}
 
 	@Override

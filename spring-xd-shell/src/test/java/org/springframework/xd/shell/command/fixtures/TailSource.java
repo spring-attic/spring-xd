@@ -29,7 +29,7 @@ public class TailSource extends DisposableFileSupport {
 
 	@Override
 	public String toDSL() {
-		return String.format("tail --fromEnd=false --name=%s", file.getAbsolutePath());
+		return String.format("tail --nativeOptions='-F -n +0' --name=%s", file.getAbsolutePath());
 	}
 
 	public void appendToFile(String contents) throws IOException {

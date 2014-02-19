@@ -25,6 +25,7 @@ import org.springframework.batch.admin.service.JobService;
 import org.springframework.batch.admin.service.SearchableJobExecutionDao;
 import org.springframework.batch.admin.service.SearchableJobInstanceDao;
 import org.springframework.batch.admin.service.SearchableStepExecutionDao;
+import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.support.SimpleJobLauncher;
 import org.springframework.batch.core.repository.JobRepository;
@@ -41,7 +42,6 @@ import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
 import org.springframework.xd.dirt.container.store.RuntimeContainerInfoRepository;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDependencyRepository;
-import org.springframework.xd.dirt.module.ModuleDependencyTracker;
 import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.module.memory.InMemoryModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.memory.InMemoryModuleDependencyRepository;
@@ -49,18 +49,20 @@ import org.springframework.xd.dirt.module.store.RuntimeContainerModuleInfoReposi
 import org.springframework.xd.dirt.module.store.RuntimeModuleInfoRepository;
 import org.springframework.xd.dirt.plugins.job.BatchJobLocator;
 import org.springframework.xd.dirt.plugins.job.DistributedJobService;
+import org.springframework.xd.dirt.stream.CompositeModuleDefinitionService;
 import org.springframework.xd.dirt.stream.DeploymentMessageSender;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobDeployer;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDeployer;
 import org.springframework.xd.dirt.stream.StreamRepository;
-import org.springframework.xd.dirt.stream.XDParser;
 import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.dirt.stream.memory.InMemoryJobDefinitionRepository;
 import org.springframework.xd.dirt.stream.memory.InMemoryJobRepository;
 import org.springframework.xd.dirt.stream.memory.InMemoryStreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.memory.InMemoryStreamRepository;
+import org.springframework.xd.module.options.DefaultModuleOptionsMetadataResolver;
+import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 /**
  * Provide a mockito mock for any of the business layer dependencies. Adding yet another configuration class on top, one
@@ -90,12 +92,17 @@ public class Dependencies {
 
 	@Bean
 	public ModuleDefinitionRepository moduleDefinitionRepository() {
-		return new InMemoryModuleDefinitionRepository(moduleRegistry());
+		return new InMemoryModuleDefinitionRepository(moduleRegistry(), moduleDependencyRepository());
 	}
 
 	@Bean
 	public ModuleRegistry moduleRegistry() {
 		return mock(ModuleRegistry.class);
+	}
+
+	@Bean
+	public ModuleOptionsMetadataResolver moduleOptionsMetadataResolver() {
+		return new DefaultModuleOptionsMetadataResolver();
 	}
 
 	@Bean
@@ -114,9 +121,9 @@ public class Dependencies {
 	}
 
 	@Bean
-	public XDParser parser() {
+	public XDStreamParser parser() {
 		return new XDStreamParser(streamDefinitionRepository(),
-				moduleDefinitionRepository());
+				moduleDefinitionRepository(), moduleOptionsMetadataResolver());
 	}
 
 	@Bean
@@ -131,7 +138,7 @@ public class Dependencies {
 
 	@Bean
 	public StreamDefinitionRepository streamDefinitionRepository() {
-		return new InMemoryStreamDefinitionRepository();
+		return new InMemoryStreamDefinitionRepository(moduleDependencyRepository());
 	}
 
 	@Bean
@@ -140,14 +147,14 @@ public class Dependencies {
 	}
 
 	@Bean
-	public ModuleDependencyTracker dependencyTracker() {
-		return new ModuleDependencyTracker(moduleDependencyRepository());
+	public CompositeModuleDefinitionService compositeModuleDefinitionService() {
+		return new CompositeModuleDefinitionService(moduleDefinitionRepository(), parser());
 	}
 
 	@Bean
 	public StreamDeployer streamDeployer() {
 		return new StreamDeployer(streamDefinitionRepository(), deploymentMessageSender(), streamRepository(),
-				parser(), dependencyTracker());
+				parser());
 	}
 
 	@Bean
@@ -177,9 +184,7 @@ public class Dependencies {
 
 	@Bean
 	public JobService jobService() {
-		return new DistributedJobService(searchableJobInstanceDao(), searchableJobExecutionDao(),
-				searchableStepExecutionDao(), jobRepository(), jobLauncher(),
-				batchJobLocator(), executionContextDao());
+		return mock(DistributedJobService.class);
 	}
 
 	@Bean
@@ -210,6 +215,11 @@ public class Dependencies {
 	@Bean
 	public BatchJobLocator batchJobLocator() {
 		return mock(BatchJobLocator.class);
+	}
+
+	@Bean
+	public JobRegistry jobRegistry() {
+		return mock(JobRegistry.class);
 	}
 
 	@Bean

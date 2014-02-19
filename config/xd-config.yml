@@ -1,0 +1,66 @@
+# XD Configuration file
+# You can set properties here to override the default which
+# are set in the application.yml file loaded by Spring Boot.
+#
+# Propertes set in here will take precedence.
+#
+# Alternatively, you can set the environment variable XD_CONFIG
+# to point to a file (use a file:// URL). That file will then be
+# used instead.
+
+#Config for use with HSQLDB
+#
+#Change the database host, port and name
+#hsql:
+#  server:
+#    host: localhost
+#    port: 9102
+#    dbname: xdjob
+#Change database username and password
+spring:
+#  datasource:
+#    url: jdbc:hsqldb:hsql://${hsql.server.host:localhost}:${hsql.server.port:9101}/${hsql.server.dbname:xdjob}
+#    username: sa
+#    password:
+#    driverClassName: org.hsqldb.jdbc.JDBCDriver
+
+#Config for use with MySQL - uncomment and edit with relevant values for your environment
+#spring:
+#  datasource:
+#    url: jdbc:mysql://yourDBhost:3306/yourDB
+#    username: yourUsername
+#    password: yourPassword
+#    driverClassName: com.mysql.jdbc.Driver
+#  profiles:
+#    active: default,mysql
+
+
+#Config for use with Postgres - uncomment and edit with relevant values for your environment
+#spring:
+#  datasource:
+#    url: jdbc:postgresql://yourDBhost:5432/yourDB
+#    username: yourUsername
+#    password: yourPassword
+#    driverClassName: org.postgresql.Driver
+#  profiles:
+#    active: default,postgresql
+
+---
+# Redis properties
+#spring:
+#  redis:
+#   port: 6379
+#   host: localhost
+
+#Port that admin-ui is listening on
+#server:
+#  port: 9393
+
+
+#spring:
+#  rabbitmq:
+#   host: localhost
+#   port: 5672
+#   username: guest
+#   password: guest
+#   virtual_host: /

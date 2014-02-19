@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.xd.shell.command;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -37,12 +38,16 @@ import org.junit.Test;
 
 import org.springframework.batch.core.JobParameter;
 import org.springframework.shell.core.CommandResult;
+import org.springframework.xd.shell.util.Table;
+import org.springframework.xd.shell.util.TableRow;
 
 /**
- * Test stream commands
+ * Test {@link JobCommands}.
  * 
  * @author Glenn Renfro
  * @author Gunnar Hillert
+ * @author Ilayaperumal Gopinathan
+ * @since 1.0
  */
 public class JobCommandTests extends AbstractJobIntegrationTest {
 
@@ -50,59 +55,58 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 
 	@Test
 	public void testJobLifecycleForMyJob() throws InterruptedException {
-
-		logger.info("Starting Job Create for myTest");
 		JobParametersHolder.reset();
 		final JobParametersHolder jobParametersHolder = new JobParametersHolder();
 
-		executeJobCreate(MY_TEST, JOB_WITH_PARAMETERS_DESCRIPTOR);
-
-		checkForJobInList(MY_TEST, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
-		executemyTestTriggerStream();
+		String jobName = executeJobCreate(JOB_WITH_PARAMETERS_DESCRIPTOR);
+		logger.info("Created Job " + jobName);
+		checkForJobInList(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
+		triggerJob(jobName);
 		assertTrue("Job did not complete within time alotted", jobParametersHolder.isDone());
-		CommandResult cr = getShell().executeCommand("job undeploy --name myTest");
+		CommandResult cr = getShell().executeCommand("job undeploy --name " + jobName);
 		checkForSuccess(cr);
-		assertEquals("Un-deployed Job 'myTest'", cr.getResult());
-
+		checkUndeployedJobMessage(cr, jobName);
 	}
 
 	@Test
 	public void testJobCreateDuplicate() throws InterruptedException {
-		logger.info("Create job myJob");
 		JobParametersHolder.reset();
 		final JobParametersHolder jobParametersHolder = new JobParametersHolder();
 
-		executeJobCreate(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR);
-		executemyJobTriggerStream();
+		String jobName = executeJobCreate(JOB_WITH_PARAMETERS_DESCRIPTOR);
+		logger.info("Create job " + jobName);
+		triggerJob(jobName);
 
-		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
+		checkForJobInList(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
 		assertTrue("Job did not complete within time alotted", jobParametersHolder.isDone());
 
-		CommandResult cr = getShell().executeCommand("job create --definition \"job\" --name myJob");
+		CommandResult cr = createJob(jobName, "job");
 		checkForFail(cr);
-		checkErrorMessages(cr, "There is already a job named 'myJob'");
+		checkDuplicateJobErrorMessage(cr, jobName);
 	}
 
 	@Test
 	public void testStreamDestroyMissing() {
 		logger.info("Destroy a job that doesn't exist");
-		CommandResult cr = getShell().executeCommand("job destroy --name myJob");
+		String jobName = generateJobName();
+		CommandResult cr = jobDestroy(jobName);
 		checkForFail(cr);
-		checkErrorMessages(cr, "There is no job definition named 'myJob'");
+		checkErrorMessages(cr, "There is no job definition named '" + jobName + "'");
 	}
 
 	@Test
 	public void testJobCreateDuplicateWithDeployFalse() {
 		logger.info("Create 2 myJobs with --deploy = false");
-		executeJobCreate(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
+		String jobName = generateJobName();
+		executeJobCreate(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
 
-		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
+		checkForJobInList(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
 
-		CommandResult cr = getShell().executeCommand("job create --definition \"job\" --name myJob --deploy false");
+		CommandResult cr = createJob(jobName, "job", "false");
 		checkForFail(cr);
-		checkErrorMessages(cr, "There is already a job named 'myJob'");
+		checkDuplicateJobErrorMessage(cr, jobName);
 
-		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
+		checkForJobInList(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
 	}
 
 	@Test
@@ -110,43 +114,42 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		logger.info("Create batch job");
 		JobParametersHolder.reset();
 		final JobParametersHolder jobParametersHolder = new JobParametersHolder();
+		String jobName = generateJobName();
+		executeJobCreate(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
 
-		executeJobCreate(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
-
-		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
-		CommandResult cr = getShell().executeCommand("job deploy --name myJob");
+		checkForJobInList(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
+		CommandResult cr = deployJob(jobName);
 		checkForSuccess(cr);
-		assertEquals("Deployed job 'myJob'", cr.getResult());
-		executemyJobTriggerStream();
+		checkDeployedJobMessage(cr, jobName);
+		triggerJob(jobName);
 		assertTrue("Job did not complete within time alotted", jobParametersHolder.isDone());
 
-		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
+		checkForJobInList(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
 
-		cr = getShell().executeCommand("job undeploy --name myJob");
+		cr = undeployJob(jobName);
 		checkForSuccess(cr);
-		assertEquals("Un-deployed Job 'myJob'", cr.getResult());
+		checkUndeployedJobMessage(cr, jobName);
 
-		cr = getShell().executeCommand("job deploy --name myJob");
+		cr = deployJob(jobName);
 		checkForSuccess(cr);
-		assertEquals("Deployed job 'myJob'", cr.getResult());
+		assertEquals("Deployed job '" + jobName + "'", cr.getResult());
 
-		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
+		checkForJobInList(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
 	}
 
 	@Test
 	public void testInvalidJobDescriptor() throws InterruptedException {
 		JobParametersHolder.reset();
 		final JobParametersHolder jobParametersHolder = new JobParametersHolder();
-
-		CommandResult cr = getShell().executeCommand("job create --definition \"barsdaf\" --name myJob ");
+		CommandResult cr = getShell().executeCommand("job create --definition \"barsdaf\" --name " + generateJobName());
 		checkForFail(cr);
-		checkErrorMessages(cr, "Module definition is missing");
+		checkErrorMessages(cr, "Could not find module with name 'barsdaf'");
 		assertFalse("Job did not complete within time alotted", jobParametersHolder.isDone());
 	}
 
 	@Test
 	public void testMissingJobDescriptor() {
-		CommandResult cr = getShell().executeCommand("job create --name myJob ");
+		CommandResult cr = getShell().executeCommand("job create --name " + generateJobName());
 		checkForFail(cr);
 	}
 
@@ -155,18 +158,16 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		logger.info("Create batch job with parameters");
 
 		JobParametersHolder.reset();
-		executeJobCreate(MY_JOB_WITH_PARAMETERS, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
-		checkForJobInList(MY_JOB_WITH_PARAMETERS, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
+		String jobName = generateJobName();
+		executeJobCreate(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
+		checkForJobInList(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
 
 		final JobParametersHolder jobParametersHolder = new JobParametersHolder();
 
-		final String commandString =
-				"job deploy --name myJobWithParameters";
-
-		CommandResult cr = getShell().executeCommand(commandString);
+		CommandResult cr = deployJob(jobName);
 		checkForSuccess(cr);
-		assertEquals("Deployed job 'myJobWithParameters'", cr.getResult());
-		executemyjobWithParametersTriggerStream("{\"param1\":\"spring rocks!\"}");
+		checkDeployedJobMessage(cr, jobName);
+		triggerJobWithParams(jobName, "{\"param1\":\"spring rocks!\"}");
 		boolean done = jobParametersHolder.isDone();
 
 		assertTrue("The countdown latch expired and did not count down.", done);
@@ -186,19 +187,16 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 	public void testJobDeployWithTypedParameters() throws InterruptedException, ParseException {
 		logger.info("Create batch job with typed parameters");
 		JobParametersHolder.reset();
-		executeJobCreate(MY_JOB_WITH_PARAMETERS, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
-		checkForJobInList(MY_JOB_WITH_PARAMETERS, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
+		String jobName = generateJobName();
+		executeJobCreate(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
+		checkForJobInList(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
 
 		final JobParametersHolder jobParametersHolder = new JobParametersHolder();
 
-		final String commandString = "job deploy --name myJobWithParameters ";
-
-		logger.info(commandString);
-
-		final CommandResult cr = getShell().executeCommand(commandString);
+		final CommandResult cr = deployJob(jobName);
 		checkForSuccess(cr);
-		assertEquals("Deployed job 'myJobWithParameters'", cr.getResult());
-		executemyjobWithParametersTriggerStream("{\"-param1(long)\":\"12345\",\"param2(date)\":\"1990/10/03\"}");
+		checkDeployedJobMessage(cr, jobName);
+		triggerJobWithParams(jobName, "{\"-param1(long)\":\"12345\",\"param2(date)\":\"1990/10/03\"}");
 
 		boolean done = jobParametersHolder.isDone();
 
@@ -227,18 +225,28 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 	@Test
 	public void testLaunchJob() {
 		logger.info("Launch batch job");
-		executeJobCreate(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR);
-		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
-		executeJobLaunch(MY_JOB);
+		String jobName = generateJobName();
+		executeJobCreate(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR);
+		checkForJobInList(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
+		executeJobLaunch(jobName);
+	}
+
+	@Test
+	public void testLaunchPartitionedJob() {
+		logger.info("Launch Partitioned batch job");
+		executeJobCreate(MY_JOB_WITH_PARTITIONS, JOB_WITH_PARTITIONS_DESCRIPTOR);
+		checkForJobInList(MY_JOB_WITH_PARTITIONS, JOB_WITH_PARTITIONS_DESCRIPTOR, true);
+		executeJobLaunch(MY_JOB_WITH_PARTITIONS);
 	}
 
 	@Test
 	public void testLaunchNotDeployedJob() {
 		logger.info("Launch batch job that is not deployed");
-		executeJobCreate(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
-		CommandResult result = executeCommandExpectingFailure("job launch --name " + MY_JOB);
+		String jobName = generateJobName();
+		executeJobCreate(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, false);
+		CommandResult result = executeCommandExpectingFailure("job launch --name " + jobName);
 		assertThat(result.getException().getMessage(),
-				containsString(String.format("The job named '%s' is not currently deployed", MY_JOB)));
+				containsString(String.format("The job named '%s' is not currently deployed", jobName)));
 	}
 
 	@Test
@@ -247,14 +255,16 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		String myJobParams = "{\"-param1(long)\":\"12345\",\"param2(date)\":\"1990/10/03\"}";
 		JobParametersHolder.reset();
 		final JobParametersHolder jobParametersHolder = new JobParametersHolder();
-		executeJobCreate(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR);
-		checkForJobInList(MY_JOB, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
-		executeJobLaunch(MY_JOB, myJobParams);
+		String jobName = generateJobName();
+		executeJobCreate(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR);
+		checkForJobInList(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
+		executeJobLaunch(jobName, myJobParams);
 		boolean done = jobParametersHolder.isDone();
 
 		assertTrue("The countdown latch expired and did not count down.", done);
 		// Make sure the job parameters are set when passing through job launch command
-		assertTrue("Expecting 3 parameters.", JobParametersHolder.getJobParameters().size() == 3);
+		assertTrue("Expecting 3 parameters, but got: " + JobParametersHolder.getJobParameters(),
+				JobParametersHolder.getJobParameters().size() == 3);
 		assertNotNull(JobParametersHolder.getJobParameters().get("random"));
 
 		final JobParameter parameter1 = JobParametersHolder.getJobParameters().get("param1");
@@ -273,6 +283,60 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 
 		assertFalse("parameter1 should be non-identifying", parameter1.isIdentifying());
 		assertTrue("parameter2 should be identifying", parameter2.isIdentifying());
+	}
+
+	@Test
+	public void testLaunchJobTwiceWhereMakeUniqueIsImplicitlyTrue() throws Exception {
+		logger.info("Launch batch job twice (makeUnique is implicitly true)");
+		String jobName = generateJobName();
+		// Batch 3.0 requires at least one parameter to reject duplicate executions of an instance
+		String myJobParams = "{\"-param(long)\":\"12345\"}";
+		JobParametersHolder.reset();
+		final JobParametersHolder jobParametersHolder = new JobParametersHolder();
+
+		executeJobCreate(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR);
+		checkForJobInList(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
+		executeJobLaunch(jobName, myJobParams);
+		assertTrue("The countdown latch expired and did not count down.", jobParametersHolder.isDone());
+		executeJobLaunch(jobName, myJobParams);
+	}
+
+	@Test
+	public void testLaunchJobTwiceWhereMakeUniqueIsTrue() throws Exception {
+		logger.info("Launch batch job (makeUnique=true) twice");
+		String jobName = generateJobName();
+		// Batch 3.0 requires at least one parameter to reject duplicate executions of an instance
+		String myJobParams = "{\"-param(long)\":\"12345\"}";
+		JobParametersHolder.reset();
+		final JobParametersHolder jobParametersHolder = new JobParametersHolder();
+
+		executeJobCreate(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR + " --makeUnique=true");
+		checkForJobInList(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR + " --makeUnique=true", true);
+		executeJobLaunch(jobName, myJobParams);
+		assertTrue("The countdown latch expired and did not count down.", jobParametersHolder.isDone());
+		executeJobLaunch(jobName, myJobParams);
+	}
+
+	@Test
+	public void testLaunchJobTwiceWhereMakeUniqueIsFalse() throws Exception {
+		logger.info("Launch batch job (makeUnique=false) twice");
+		String jobName = generateJobName();
+		// Batch 3.0 requires at least one parameter to reject duplicate executions of an instance
+		String myJobParams = "{\"-param(long)\":\"12345\"}";
+		JobParametersHolder.reset();
+		final JobParametersHolder jobParametersHolder = new JobParametersHolder();
+
+		executeJobCreate(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR + " --makeUnique=false");
+		checkForJobInList(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR + " --makeUnique=false", true);
+		executeJobLaunch(jobName, myJobParams);
+		assertTrue("The countdown latch expired and did not count down.", jobParametersHolder.isDone());
+
+		CommandResult result = executeCommandExpectingFailure("job launch --name " + jobName + " --params "
+				+ myJobParams);
+		assertThat(
+				result.getException().getMessage(),
+				containsString("A job instance already exists and is complete for parameters={param=12345}." +
+						"  If you want to run this job again, change the parameters."));
 	}
 
 	public static class JobParametersHolder {
@@ -302,4 +366,160 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 			countDownLatch = new CountDownLatch(1);
 		}
 	}
+
+	@Test
+	public void testListJobExecutions() {
+		String jobName = generateJobName();
+		executeJobCreate(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR);
+		checkForJobInList(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
+		executeJobLaunch(jobName);
+		listJobExecutions();
+	}
+
+	@Test
+	public void testDisplaySpecificJobExecution() {
+		String jobName = generateJobName();
+		executeJobCreate(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR);
+		checkForJobInList(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
+		executeJobLaunch(jobName);
+		final Table jobExecutions = listJobExecutions();
+		String id = jobExecutions.getRows().get(0).getValue(1);
+		displayJobExecution(id);
+	}
+
+	@Test
+	public void testDisplaySpecificJobExecutionWithDateParam() {
+		String jobName = generateJobName();
+		String jobDefinition = JOB_WITH_PARAMETERS_DESCRIPTOR + " --dateFormat='yyyy/dd/MM' --numberFormat='###;(###)'";
+		executeJobCreate(jobName, jobDefinition);
+		checkForJobInList(jobName, jobDefinition, true);
+		executeJobLaunch(jobName,
+				"{\"param1\":\"fixedDelayKenny\",\"param2(date)\":\"2013/28/12\",\"param3(long)\":\"(123)\"}");
+		final Table jobExecutions = listJobExecutions();
+		String id = jobExecutions.getRows().get(0).getValue(1);
+		String displayed = displayJobExecution(id);
+		assertTrue(displayed.matches("(?s).*param2 +Sat Dec 28 00:00:00 [A-Z]{3} 2013 +DATE.*"));
+		assertTrue(displayed.matches("(?s).*param3 +-123 +LONG.*"));
+	}
+
+	@Test
+	public void testListStepExecutionsForSpecificJobExecution() {
+		String jobName = generateJobName();
+		executeJobCreate(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR);
+		checkForJobInList(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
+		executeJobLaunch(jobName);
+		final Table jobExecutions = listJobExecutions();
+		String jobExecutionId = jobExecutions.getRows().get(0).getValue(1);
+
+		final Table stepExecutions = listStepExecutions(jobExecutionId);
+		String stepExecutionId = stepExecutions.getRows().get(0).getValue(1);
+
+		assertNotNull(stepExecutionId);
+	}
+
+	@Test
+	public void testStopJobExecution() throws Exception {
+		String jobName = generateJobName();
+		executeJobCreate(jobName, JOB_WITH_STEP_EXECUTIONS);
+		checkForJobInList(jobName, JOB_WITH_STEP_EXECUTIONS, true);
+		triggerJobWithDelay(jobName, "5");
+		Thread.sleep(5000);
+		Table table = (Table) executeCommand("job execution list").getResult();
+		assertTrue(!table.getRows().isEmpty());
+		String executionId = table.getRows().get(0).getValue(1);
+		String executionStatus = table.getRows().get(0).getValue(5);
+		assertTrue(executionStatus.equals("STARTING") || executionStatus.equals("STARTED"));
+		// Stop the execution by the given executionId.
+		executeCommand("job execution stop " + executionId);
+		// sleep for stop() until the step2 is invoked.
+		Thread.sleep(3000);
+		int n = 0;
+		do {
+			table = (Table) executeCommand("job execution list").getResult();
+			for (TableRow tr : table.getRows()) {
+				// Match by above executionId
+				if (tr.getValue(1).equals(executionId)) {
+					executionStatus = tr.getValue(5);
+					break;
+				}
+			}
+			if (!"STOPPED".equals(executionStatus)) {
+				Thread.sleep(100);
+			}
+		}
+		while (!"STOPPED".equals(executionStatus) && n++ < 100);
+		assertEquals("STOPPED", executionStatus);
+	}
+
+	@Test
+	public void testStopAllJobExecutions() throws Exception {
+		String jobName = generateJobName();
+		executeJobCreate(jobName, JOB_WITH_STEP_EXECUTIONS);
+		checkForJobInList(jobName, JOB_WITH_STEP_EXECUTIONS, true);
+		triggerJobWithDelay(jobName, "5");
+		Thread.sleep(5000);
+		Table table = (Table) executeCommand("job execution list").getResult();
+		assertTrue(!table.getRows().isEmpty());
+		String executionId = table.getRows().get(0).getValue(1);
+		String executionStatus = table.getRows().get(0).getValue(5);
+		assertTrue(executionStatus.equals("STARTING") || executionStatus.equals("STARTED"));
+		// Stop the execution by the given executionId.
+		executeCommand("job execution all stop --force true");
+		// sleep for stop() until the step2 is invoked.
+		Thread.sleep(3000);
+		table = (Table) executeCommand("job execution list").getResult();
+		for (TableRow tr : table.getRows()) {
+			// Match by above executionId
+			if (tr.getValue(1).equals(executionId)) {
+				executionStatus = tr.getValue(5);
+				break;
+			}
+		}
+		assertEquals("STOPPED", executionStatus);
+	}
+
+	public void testStepExecutionProgress() {
+		String jobName = generateJobName();
+		executeJobCreate(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR);
+		checkForJobInList(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
+		executeJobLaunch(jobName);
+		final Table jobExecutions = listJobExecutions();
+		String jobExecutionId = jobExecutions.getRows().get(0).getValue(1);
+
+		final Table stepExecutions = listStepExecutions(jobExecutionId);
+		String stepExecutionId = stepExecutions.getRows().get(0).getValue(1);
+
+		final Table stepExecutionProgress = getStepExecutionProgress(jobExecutionId, stepExecutionId);
+		String id = stepExecutionProgress.getRows().get(0).getValue(1);
+		String percentageComplete = stepExecutionProgress.getRows().get(0).getValue(3);
+		String duration = stepExecutionProgress.getRows().get(0).getValue(4);
+		assertEquals(stepExecutionId, id);
+		assertNotNull(percentageComplete);
+		assertNotNull(duration);
+	}
+
+	@Test
+	public void testDisplayStepExecution() {
+		final String jobName = generateJobName();
+		executeJobCreate(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR);
+		checkForJobInList(jobName, JOB_WITH_PARAMETERS_DESCRIPTOR, true);
+		executeJobLaunch(jobName);
+		final Table jobExecutions = listJobExecutions();
+		final String jobExecutionId = jobExecutions.getRows().get(0).getValue(1);
+		final Table stepExecutions = listStepExecutions(jobExecutionId);
+		String stepExecutionId = stepExecutions.getRows().get(0).getValue(1);
+
+		final Table stepExecution = getDisplayStepExecution(jobExecutionId, stepExecutionId);
+		final String stepExecutionIdFromTable = stepExecution.getRows().get(0).getValue(2);
+		final String jobExecutionIdFromTable = stepExecution.getRows().get(1).getValue(2);
+
+		final String stepNameFromTable = stepExecution.getRows().get(2).getValue(2);
+		final String duration = stepExecution.getRows().get(5).getValue(2);
+
+		assertEquals(stepExecutionId, stepExecutionIdFromTable);
+		assertEquals(jobExecutionId, jobExecutionIdFromTable);
+		assertNotEquals(stepNameFromTable, "N/A");
+		assertTrue(duration.contains("ms"));
+	}
+
 }

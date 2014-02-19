@@ -13,6 +13,8 @@
 
 package org.springframework.xd.dirt.stream;
 
+import static org.springframework.xd.dirt.stream.ParsingContext.job;
+
 import java.util.List;
 
 import org.springframework.util.Assert;
@@ -28,14 +30,13 @@ import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
  */
 public class JobDeployer extends AbstractInstancePersistingDeployer<JobDefinition, Job> { // extends
 
-	private static final String DEPLOYER_TYPE = "job";
 
 	private static final String JOB_PARAMETERS_KEY = "jobParameters";
 
 	public JobDeployer(DeploymentMessageSender messageSender, JobDefinitionRepository definitionRepository,
 			JobRepository instanceRepository,
 			XDParser parser) {
-		super(definitionRepository, instanceRepository, messageSender, parser, DEPLOYER_TYPE);
+		super(definitionRepository, instanceRepository, messageSender, parser, job);
 	}
 
 	@Override

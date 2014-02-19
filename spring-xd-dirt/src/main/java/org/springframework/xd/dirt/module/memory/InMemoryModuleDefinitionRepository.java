@@ -16,15 +16,19 @@
 
 package org.springframework.xd.dirt.module.memory;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
+import org.springframework.xd.dirt.module.ModuleDependencyRepository;
 import org.springframework.xd.dirt.module.ModuleRegistry;
+import org.springframework.xd.dirt.module.support.ModuleDefinitionRepositoryUtils;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.store.AbstractInMemoryRepository;
@@ -40,9 +44,14 @@ public class InMemoryModuleDefinitionRepository extends AbstractInMemoryReposito
 
 	private final ModuleRegistry moduleRegistry;
 
-	public InMemoryModuleDefinitionRepository(ModuleRegistry moduleRegistry) {
+	private final ModuleDependencyRepository moduleDependencyRepository;
+
+	public InMemoryModuleDefinitionRepository(ModuleRegistry moduleRegistry,
+			ModuleDependencyRepository moduleDependencyRepository) {
 		Assert.notNull(moduleRegistry, "moduleRegistry must not be null");
+		Assert.notNull(moduleDependencyRepository, "moduleDependencyRepository must not be null");
 		this.moduleRegistry = moduleRegistry;
+		this.moduleDependencyRepository = moduleDependencyRepository;
 	}
 
 	@Override
@@ -101,6 +110,51 @@ public class InMemoryModuleDefinitionRepository extends AbstractInMemoryReposito
 		Assert.isNull(pageable.getSort(), "Arbitrary sorting is not implemented");
 		return slice(definitions, pageable);
 	}
+
+	@Override
+	public Set<String> findDependentModules(String name, ModuleType type) {
+		Set<String> dependentModules = moduleDependencyRepository.find(name, type);
+		if (dependentModules == null) {
+			return new HashSet<String>();
+		}
+		return dependentModules;
+	}
+
+	// TODO- BEGIN SHARED IMPL WITH RedisModuleDefinitionRepository
+
+	@Override
+	public <M extends ModuleDefinition> M save(M entity) {
+		M md = super.save(entity);
+		for (ModuleDefinition child : md.getComposedModuleDefinitions()) {
+			ModuleDefinitionRepositoryUtils.saveDependencies(moduleDependencyRepository, child, dependencyKey(entity));
+		}
+		return md;
+	}
+
+	@Override
+	public void delete(ModuleDefinition entity) {
+		List<ModuleDefinition> composedModuleDefinitions = entity.getComposedModuleDefinitions();
+		for (ModuleDefinition composedModule : composedModuleDefinitions) {
+			ModuleDefinitionRepositoryUtils.deleteDependencies(moduleDependencyRepository, composedModule,
+					dependencyKey(entity));
+		}
+		super.delete(entity);
+	}
+
+	@Override
+	public void delete(String id) {
+		ModuleDefinition def = this.findOne(id);
+		if (def != null) {
+			this.delete(def);
+		}
+	}
+
+	// TODO refactor to use keyFor
+	private String dependencyKey(ModuleDefinition moduleDefinition) {
+		return String.format("module:%s:%s", moduleDefinition.getType(), moduleDefinition.getName());
+	}
+
+	// TODO END SHARED IMPL WITH RedisModuleDefinitionRepository
 
 	/**
 	 * Post-process the list to only return elements matching the page request.

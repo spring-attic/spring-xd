@@ -20,6 +20,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.listener.JobExecutionListenerSupport;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.MessageChannel;
@@ -29,7 +30,7 @@ import org.springframework.xd.dirt.plugins.job.BatchJobHeaders;
  * @author Gunnar Hillert
  * @since 1.0
  */
-public class SimpleXdJobExecutionListener extends JobExecutionListenerSupport {
+public class SimpleXdJobExecutionListener implements JobExecutionListener {
 
 	private static final Log logger = LogFactory.getLog(SimpleXdJobExecutionListener.class);
 
@@ -37,6 +38,17 @@ public class SimpleXdJobExecutionListener extends JobExecutionListenerSupport {
 
 	public void setNotificationsChannel(MessageChannel notificationsChannel) {
 		this.notificationsChannel = notificationsChannel;
+	}
+
+	@Override
+	public void beforeJob(JobExecution jobExecution) {
+		if (logger.isDebugEnabled()) {
+			logger.debug("Executing beforeJob: " + jobExecution);
+		}
+		notificationsChannel.send(MessageBuilder.withPayload(jobExecution)
+				.setHeader(BatchJobHeaders.BATCH_LISTENER_EVENT_TYPE,
+						BatchListenerEventType.JOB_EXECUTION_LISTENER_BEFORE_JOB.name())
+				.build());
 	}
 
 	@Override

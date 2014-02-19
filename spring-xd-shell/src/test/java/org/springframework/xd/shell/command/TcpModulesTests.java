@@ -16,7 +16,11 @@
 
 package org.springframework.xd.shell.command;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.springframework.xd.shell.command.fixtures.XDMatchers.eventually;
+import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasContentsThat;
 
 import org.junit.Test;
 
@@ -28,7 +32,7 @@ import org.springframework.xd.shell.command.fixtures.TcpSource;
 
 /**
  * Tests for tcp source and sink.
- *
+ * 
  * @author Eric Bottard
  */
 public class TcpModulesTests extends AbstractStreamIntegrationTest {
@@ -37,11 +41,12 @@ public class TcpModulesTests extends AbstractStreamIntegrationTest {
 	public void testTcpSource() throws Exception {
 		TcpSource tcpSource = newTcpSource();
 		FileSink fileSink = newFileSink().binary(true);
-		stream().create("tcp-stream", "%s | %s", tcpSource, fileSink);
+		stream().create(generateStreamName(), "%s | %s", tcpSource, fileSink);
 
 		// Following \r\n is because of CRLF deserializer
 		tcpSource.ensureReady().sendBytes("Hello\r\n".getBytes("UTF-8"));
-		assertEquals("Hello", fileSink.getContents());
+		assertThat(fileSink, eventually(hasContentsThat(equalTo("Hello"))));
+
 	}
 
 
@@ -51,7 +56,7 @@ public class TcpModulesTests extends AbstractStreamIntegrationTest {
 		HttpSource httpSource = newHttpSource();
 
 
-		stream().create("tcp-stream", "%s | %s", httpSource, tcpSink);
+		stream().create(generateStreamName(), "%s | %s", httpSource, tcpSink);
 		httpSource.ensureReady().postData("Hi there!");
 		// The following CRLF is b/c of the default tcp serializer
 		// NOT because of FileSink

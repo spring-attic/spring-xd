@@ -44,7 +44,10 @@ public class SimpleXdChunkListener implements ChunkListener {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Executing afterChunk: " + context);
 		}
-		notificationsChannel.send(MessageBuilder.withPayload(context)
+
+		final ChunkContextInfo xdChunkContextInfo = convertChunkContext(context);
+
+		notificationsChannel.send(MessageBuilder.withPayload(xdChunkContextInfo)
 				.setHeader(BatchJobHeaders.BATCH_LISTENER_EVENT_TYPE,
 						BatchListenerEventType.CHUNK_LISTENER_AFTER_CHUNK.name())
 				.build());
@@ -55,7 +58,10 @@ public class SimpleXdChunkListener implements ChunkListener {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Executing beforeChunk: " + context);
 		}
-		notificationsChannel.send(MessageBuilder.withPayload(context)
+
+		final ChunkContextInfo xdChunkContextInfo = convertChunkContext(context);
+
+		notificationsChannel.send(MessageBuilder.withPayload(xdChunkContextInfo)
 				.setHeader(BatchJobHeaders.BATCH_LISTENER_EVENT_TYPE,
 						BatchListenerEventType.CHUNK_LISTENER_BEFORE_CHUNK.name())
 				.build());
@@ -66,9 +72,28 @@ public class SimpleXdChunkListener implements ChunkListener {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Executing afterChunkError: " + context);
 		}
-		notificationsChannel.send(MessageBuilder.withPayload(context)
+
+		final ChunkContextInfo xdChunkContextInfo = convertChunkContext(context);
+
+		notificationsChannel.send(MessageBuilder.withPayload(xdChunkContextInfo)
 				.setHeader(BatchJobHeaders.BATCH_LISTENER_EVENT_TYPE,
 						BatchListenerEventType.CHUNK_LISTENER_AFTER_CHUNK_ERROR.name())
 				.build());
+	}
+
+	private ChunkContextInfo convertChunkContext(ChunkContext context) {
+
+		final ChunkContextInfo chunkContextInfo = new ChunkContextInfo();
+		chunkContextInfo.setComplete(context.isComplete());
+		chunkContextInfo.setStepExecution(context.getStepContext().getStepExecution());
+
+		final String[] attributeNames = context.attributeNames();
+
+		for (String attributeName : attributeNames) {
+			final Object attribute = context.getAttribute(attributeName);
+			chunkContextInfo.getAttributes().put(attributeName, attribute);
+		}
+
+		return chunkContextInfo;
 	}
 }

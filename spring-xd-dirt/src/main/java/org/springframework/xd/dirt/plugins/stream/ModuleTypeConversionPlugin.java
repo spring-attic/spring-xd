@@ -21,7 +21,8 @@ import java.util.Map.Entry;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
+import org.springframework.aop.framework.Advised;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.Converter;
@@ -35,12 +36,12 @@ import org.springframework.integration.x.bus.converter.DefaultContentTypeAwareCo
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.xd.dirt.plugins.AbstractPlugin;
 import org.springframework.xd.dirt.plugins.ModuleConfigurationException;
-import org.springframework.xd.module.Module;
 import org.springframework.xd.module.ModuleType;
-import org.springframework.xd.module.Plugin;
-import org.springframework.xd.module.PluginAdapter;
-import org.springframework.xd.module.SimpleModule;
+import org.springframework.xd.module.core.Module;
+import org.springframework.xd.module.core.Plugin;
+import org.springframework.xd.module.core.SimpleModule;
 
 
 /**
@@ -49,7 +50,7 @@ import org.springframework.xd.module.SimpleModule;
  * @author David Turanski
  * @since 1.0
  */
-public class ModuleTypeConversionPlugin extends PluginAdapter {
+public class ModuleTypeConversionPlugin extends AbstractPlugin {
 
 	private final static Log logger = LogFactory.getLog(ModuleTypeConversionPlugin.class);
 
@@ -76,7 +77,6 @@ public class ModuleTypeConversionPlugin extends PluginAdapter {
 		registerConversionService(module, conversionService);
 	}
 
-
 	private void registerConversionService(Module module, ConversionService conversionService) {
 		if (module instanceof SimpleModule) {
 			SimpleModule sm = (SimpleModule) module;
@@ -93,13 +93,7 @@ public class ModuleTypeConversionPlugin extends PluginAdapter {
 		SimpleModule sm = (SimpleModule) module;
 		try {
 			MediaType contentType = resolveContentType(contentTypeString, module);
-			AbstractMessageChannel channel = null;
-			if (isInput) {
-				channel = module.getComponent("input", AbstractMessageChannel.class);
-			}
-			else {
-				channel = module.getComponent("output", AbstractMessageChannel.class);
-			}
+			AbstractMessageChannel channel = getChannel(module, isInput);
 			Map<Class<?>, Converter<?, ?>> converters = converterRegistry.getConverters(contentType);
 			if (CollectionUtils.isEmpty(converters)) {
 				throw new ModuleConfigurationException("No message converter is registered for " + contentTypeString +
@@ -146,6 +140,18 @@ public class ModuleTypeConversionPlugin extends PluginAdapter {
 		}
 	}
 
+	// Workaround for when the channel is proxied and can't be cast directly to AbstractMessageChannel
+	private AbstractMessageChannel getChannel(Module module, boolean isInput) throws Exception {
+		String name = isInput ? "input" : "output";
+		Object channel = module.getComponent(name, Object.class);
+
+		if (AopUtils.isJdkDynamicProxy(channel)) {
+			return (AbstractMessageChannel) (((Advised) channel).getTargetSource().getTarget());
+		}
+
+		return (AbstractMessageChannel) channel;
+	}
+
 	private MediaType resolveContentType(String type, Module module) throws ClassNotFoundException, LinkageError {
 		if (!type.contains("/")) {
 			Class<?> javaType = resolveJavaType(type, module);
@@ -157,6 +163,11 @@ public class ModuleTypeConversionPlugin extends PluginAdapter {
 	private Class<?> resolveJavaType(String type, Module module) throws ClassNotFoundException, LinkageError {
 		SimpleModule sm = (SimpleModule) module;
 		return ClassUtils.forName(type, sm.getApplicationContext().getClassLoader());
+	}
+
+	@Override
+	public boolean supports(Module module) {
+		return true;
 	}
 
 }

@@ -16,6 +16,11 @@
 
 package org.springframework.xd.shell.command;
 
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
+import static org.springframework.xd.shell.command.fixtures.XDMatchers.eventually;
+import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasContentsThat;
+
 import javax.mail.internet.MimeMessage;
 
 import org.junit.Assert;
@@ -38,33 +43,29 @@ public class MailCommandTests extends AbstractStreamIntegrationTest {
 	@Test
 	public void testImapPoll() throws Exception {
 		MailSource mailSource = newMailSource();
-		FileSink fileSink = newFileSink();
+		FileSink fileSink = newFileSink().binary(true);
 
 		mailSource.ensureStarted();
 
-		stream().create("mailstream", "%s | %s", mailSource, fileSink);
+		stream().create(generateStreamName(), "%s | %s", mailSource, fileSink);
 
 		mailSource.sendEmail("from@foo.com", "The Subject", "My body is slim!");
 
-		String result = fileSink.getContents();
-
-		Assert.assertEquals("My body is slim!\r\n\n", result);
+		assertThat(fileSink, eventually(hasContentsThat(equalTo("My body is slim!\r\n"))));
 	}
 
 	@Test
 	public void testImapIdle() throws Exception {
 		ImapSource mailSource = newImapSource();
-		FileSink fileSink = newFileSink();
+		FileSink fileSink = newFileSink().binary(true);
 
 		mailSource.ensureStarted();
 
-		stream().create("mailstream", "%s | %s", mailSource, fileSink);
+		stream().create(generateStreamName(), "%s | %s", mailSource, fileSink);
 
 		mailSource.sendEmail("from@foo.com", "The Subject", "My body is slim!");
 
-		String result = fileSink.getContents();
-
-		Assert.assertEquals("My body is slim!\r\n\n", result);
+		assertThat(fileSink, eventually(hasContentsThat(equalTo("My body is slim!\r\n"))));
 	}
 
 	@Test
@@ -77,7 +78,7 @@ public class MailCommandTests extends AbstractStreamIntegrationTest {
 				.subject("payload");
 
 
-		stream().create("mailstream", "%s | %s", httpSource, mailSink);
+		stream().create(generateStreamName(), "%s | %s", httpSource, mailSink);
 
 		httpSource.ensureReady().postData("Woohoo!");
 		MimeMessage result = mailSink.waitForEmail();

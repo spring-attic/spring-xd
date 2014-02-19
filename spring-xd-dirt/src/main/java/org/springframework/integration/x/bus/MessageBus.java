@@ -13,9 +13,6 @@
 
 package org.springframework.integration.x.bus;
 
-import java.util.Collection;
-
-import org.springframework.http.MediaType;
 import org.springframework.messaging.MessageChannel;
 
 /**
@@ -36,11 +33,9 @@ public interface MessageBus {
 	 * 
 	 * @param name the logical identity of the message source
 	 * @param moduleInputChannel the channel bound as a consumer
-	 * @param acceptedMediaTypes the media types supported by the channel
 	 * @param aliasHint whether the provided name represents an alias and thus should support late binding
 	 */
-	void bindConsumer(String name, MessageChannel moduleInputChannel, Collection<MediaType> acceptedMediaTypes,
-			boolean aliasHint);
+	void bindConsumer(String name, MessageChannel moduleInputChannel, boolean aliasHint);
 
 
 	/**
@@ -48,10 +43,8 @@ public interface MessageBus {
 	 * 
 	 * @param name the logical identity of the message source
 	 * @param inputChannel the channel bound as a pub/sub consumer
-	 * @param acceptedMediaTypes the media types supported by the channel
 	 */
-	void bindPubSubConsumer(final String name, MessageChannel inputChannel,
-			final Collection<MediaType> acceptedMediaTypes);
+	void bindPubSubConsumer(final String name, MessageChannel inputChannel);
 
 	/**
 	 * Bind a message producer on a p2p channel.
@@ -100,5 +93,24 @@ public interface MessageBus {
 	 * @param channel the channel bound as a producer
 	 */
 	void unbindProducer(String name, MessageChannel channel);
+
+	/**
+	 * Bind a producer that expects async replies. To unbind, invoke unbindProducer() and unbindConsumer().
+	 * 
+	 * @param name The name of the requestor.
+	 * @param requests The request channel - sends requests.
+	 * @param replies The reply channel - receives replies.
+	 */
+	void bindRequestor(String name, MessageChannel requests, MessageChannel replies);
+
+	/**
+	 * Bind a consumer that handles requests from a requestor and asynchronously sends replies. To unbind, invoke
+	 * unbindProducer() and unbindConsumer().
+	 * 
+	 * @param name The name of the requestor for which this replier will handle requests.
+	 * @param requests The request channel - receives requests.
+	 * @param replies The reply channel - sends replies.
+	 */
+	void bindReplier(String name, MessageChannel requests, MessageChannel replies);
 
 }

@@ -16,7 +16,10 @@
 
 package org.springframework.xd.shell.command;
 
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
+import static org.springframework.xd.shell.command.fixtures.XDMatchers.eventually;
+import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasContentsThat;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -45,14 +48,13 @@ public class SpelPropertyAccessorIntegrationTests extends AbstractStreamIntegrat
 		HttpSource source = newHttpSource();
 
 		stream().create(
-				"tupletest",
+				generateStreamName(),
 				"%s | json-to-tuple | transform --expression=payload.foo | %s",
 				source, sink);
 
 		source.ensureReady().postData("{\"foo\":\"bar\"}");
 
-		final String result = sink.getContents();
-		assertEquals("bar", result.trim());
+		assertThat(sink, eventually(hasContentsThat(equalTo("bar"))));
 	}
 
 	/**
@@ -64,14 +66,13 @@ public class SpelPropertyAccessorIntegrationTests extends AbstractStreamIntegrat
 		HttpSource source = newHttpSource();
 
 		stream().create(
-				"jsontest",
+				generateStreamName(),
 				"%s | transform --expression=payload.foo.toString() | %s",
 				source, sink);
 
 		source.ensureReady().postData("{\"foo\":\"bar\"}");
 
-		final String result = sink.getContents();
-		assertEquals("bar", result);
+		assertThat(sink, eventually(hasContentsThat(equalTo("bar"))));
 
 	}
 
@@ -81,7 +82,7 @@ public class SpelPropertyAccessorIntegrationTests extends AbstractStreamIntegrat
 		HttpSource source = newHttpSource();
 
 		stream().create(
-				"jsontest",
+				generateStreamName(),
 				"%s | json-to-tuple | transform --expression=payload.entities.hashtags.![text].toString() | %s",
 				source, sink);
 		String tweet = "{\"created_at\":\"Tue Aug 27 18:17:06 +0000 2013\",\"id\":100000,\"text\":\"whocares\",\"retweet_count\":0,"
@@ -94,8 +95,7 @@ public class SpelPropertyAccessorIntegrationTests extends AbstractStreamIntegrat
 
 		source.ensureReady().postData(tweet);
 
-		final String result = sink.getContents();
-		assertEquals("[hello, there]", result);
+		assertThat(sink, eventually(hasContentsThat(equalTo("[hello, there]"))));
 	}
 
 }

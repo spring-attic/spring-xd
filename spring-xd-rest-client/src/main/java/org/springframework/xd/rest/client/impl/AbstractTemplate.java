@@ -22,11 +22,30 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.batch.admin.history.StepExecutionHistory;
+import org.springframework.batch.core.ExitStatus;
+import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobInstance;
+import org.springframework.batch.core.JobParameter;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.StepExecution;
+import org.springframework.batch.item.ExecutionContext;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.xd.rest.client.impl.support.ExecutionContextJacksonMixIn;
+import org.springframework.xd.rest.client.impl.support.ExitStatusJacksonMixIn;
+import org.springframework.xd.rest.client.impl.support.JobExecutionJacksonMixIn;
+import org.springframework.xd.rest.client.impl.support.JobInstanceJacksonMixIn;
+import org.springframework.xd.rest.client.impl.support.JobParameterJacksonMixIn;
+import org.springframework.xd.rest.client.impl.support.JobParametersJacksonMixIn;
+import org.springframework.xd.rest.client.impl.support.StepExecutionHistoryJacksonMixIn;
+import org.springframework.xd.rest.client.impl.support.StepExecutionJacksonMixIn;
 import org.springframework.xd.rest.client.util.RestTemplateMessageConverterUtil;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Base class for sub-parts of the API, allows sharing configured objects like the {@link RestTemplate}.
@@ -62,6 +81,23 @@ import org.springframework.xd.rest.client.util.RestTemplateMessageConverterUtil;
 	AbstractTemplate(ClientHttpRequestFactory factory) {
 		restTemplate = new RestTemplate(factory);
 		List<HttpMessageConverter<?>> converters = RestTemplateMessageConverterUtil.installMessageConverters(new ArrayList<HttpMessageConverter<?>>());
+
+		for (HttpMessageConverter<?> httpMessageConverter : converters) {
+			if (httpMessageConverter instanceof MappingJackson2HttpMessageConverter) {
+				final MappingJackson2HttpMessageConverter converter = (MappingJackson2HttpMessageConverter) httpMessageConverter;
+				final ObjectMapper objectMapper = converter.getObjectMapper();
+
+				objectMapper.addMixInAnnotations(JobExecution.class, JobExecutionJacksonMixIn.class);
+				objectMapper.addMixInAnnotations(JobParameters.class, JobParametersJacksonMixIn.class);
+				objectMapper.addMixInAnnotations(JobParameter.class, JobParameterJacksonMixIn.class);
+				objectMapper.addMixInAnnotations(JobInstance.class, JobInstanceJacksonMixIn.class);
+				objectMapper.addMixInAnnotations(StepExecution.class, StepExecutionJacksonMixIn.class);
+				objectMapper.addMixInAnnotations(StepExecutionHistory.class, StepExecutionHistoryJacksonMixIn.class);
+				objectMapper.addMixInAnnotations(ExecutionContext.class, ExecutionContextJacksonMixIn.class);
+				objectMapper.addMixInAnnotations(ExitStatus.class, ExitStatusJacksonMixIn.class);
+			}
+		}
+
 		converters.add(new StringHttpMessageConverter());
 		restTemplate.setMessageConverters(converters);
 		restTemplate.setErrorHandler(new VndErrorResponseErrorHandler(restTemplate.getMessageConverters()));

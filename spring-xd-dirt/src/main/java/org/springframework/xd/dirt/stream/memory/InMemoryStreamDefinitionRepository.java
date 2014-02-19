@@ -16,8 +16,11 @@
 
 package org.springframework.xd.dirt.stream.memory;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.xd.dirt.module.ModuleDependencyRepository;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
+import org.springframework.xd.dirt.stream.StreamDefinitionRepositoryUtils;
 import org.springframework.xd.store.AbstractInMemoryRepository;
 
 /**
@@ -28,6 +31,34 @@ import org.springframework.xd.store.AbstractInMemoryRepository;
  */
 public class InMemoryStreamDefinitionRepository extends AbstractInMemoryRepository<StreamDefinition, String> implements
 		StreamDefinitionRepository {
+
+	private final ModuleDependencyRepository dependencyRepository;
+
+	@Autowired
+	public InMemoryStreamDefinitionRepository(ModuleDependencyRepository dependencyRepository) {
+		this.dependencyRepository = dependencyRepository;
+	}
+
+	@Override
+	public <S extends StreamDefinition> S save(S entity) {
+		S sd = super.save(entity);
+		StreamDefinitionRepositoryUtils.saveDependencies(dependencyRepository, sd);
+		return sd;
+	}
+
+	@Override
+	public void delete(StreamDefinition entity) {
+		StreamDefinitionRepositoryUtils.deleteDependencies(dependencyRepository, entity);
+		super.delete(entity);
+	}
+
+	@Override
+	public void delete(String id) {
+		StreamDefinition def = this.findOne(id);
+		if (def != null) {
+			this.delete(def);
+		}
+	}
 
 	@Override
 	protected String keyFor(StreamDefinition entity) {

@@ -18,31 +18,41 @@
 	<channel id="values" />
 
 	<int-jdbc:outbound-channel-adapter
-		query="insert into ${tablename:${xd.stream.name}} (#{transformer.columns}) values(#{transformer.values})"
+		query="insert into ${tableName:${xd.stream.name}} (#{transformer.columns}) values(#{transformer.values})"
 		data-source="dataSource" channel="values" />
 
 	<beans:bean id="transformer"
 		class="org.springframework.xd.jdbc.JdbcMessagePayloadTransformer">
-		<beans:property name="columnNames" value="${columns:payload}" />
+		<beans:property name="columnNames" value="${columns}" />
 	</beans:bean>
 
 	<beans:bean id="dataSourceInitializer"
 		class="org.springframework.jdbc.datasource.init.DataSourceInitializer">
 		<beans:property name="databasePopulator" ref="databasePopulator" />
 		<beans:property name="dataSource" ref="dataSource" />
-		<beans:property name="enabled" value="${initializeDatabase:false}" />
+		<beans:property name="enabled" value="${initializeDatabase}" />
 	</beans:bean>
 
 	<beans:bean id="databasePopulator"
 		class="org.springframework.xd.jdbc.SingleTableDatabaseInitializer">
 		<beans:property name="scripts"
-			value="file:${XD_HOME}/config/${initializerScript:init_db.sql}" />
+			value="${xd.config.home}/${initializerScript:init_db.sql}" />
 		<beans:property name="ignoreFailedDrops" value="true" />
 		<beans:property name="tableName" value="${tableName:${xd.stream.name}}" />
 	</beans:bean>
 
+	<context:annotation-config/>
+
+	<bean id="dataSource" class="org.apache.tomcat.jdbc.pool.DataSource" destroy-method="close" xmlns="http://www.springframework.org/schema/beans">
+		<property name="driverClassName" value="${driverClass:${spring.datasource.driverClassName}}"/>
+		<property name="url" value="${url:${spring.datasource.url}}"/>
+		<property name="username" value="${username:${spring.datasource.username}}"/>
+		<property name="password" value="${password:${spring.datasource.password}}"/>
+		<property name="initialSize" value="0" />
+	</bean>
+
 	<context:property-placeholder
-		location="file:${XD_HOME}/config/${configProperties:jdbc}.properties"
+		location="${xd.config.home}/${configProperties:jdbc}.properties"
 		ignore-resource-not-found="true" />
 
 	<beans profile="cloud" xmlns="http://www.springframework.org/schema/beans">

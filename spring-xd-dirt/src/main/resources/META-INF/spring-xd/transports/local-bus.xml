@@ -1,22 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-3.0.xsd
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:int="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<import resource="local-common.xml" />
 
-	<bean id="messageBus"
-		class="org.springframework.integration.x.bus.LocalMessageBus">
-		<!-- TODO: This is a System property only. Not set by command line option or environment variable -->
-		<property name="convertWithinTransport" value="${xd.local.transport.conversion:false}"/>
-		<property name="queueSize" value="${xd.local.transport.named.queueSize:0x7fffffff}" />
+	<bean id="messageBus" class="org.springframework.integration.x.bus.LocalMessageBus">
+		<property name="queueSize"
+			value="${xd.local.transport.named.queueSize: #{T(Integer).MAX_VALUE}}" />
 		<property name="poller">
 			<int:poller fixed-rate="${xd.local.transport.named.polling:1000}" />
 		</property>
-		<property name="codec" ref="codec"/>
 	</bean>
-
 
 </beans>

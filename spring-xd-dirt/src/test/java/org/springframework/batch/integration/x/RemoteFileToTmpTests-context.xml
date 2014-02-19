@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.0.xsd
+		http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+	<import resource="file:../modules/job/ftphdfs/config/ftphdfs.xml" />
+
+	<context:property-placeholder properties-ref="props"/>
+
+	<util:properties id="props" />
+
+	<bean id="jobLauncher" class="org.springframework.batch.core.launch.support.SimpleJobLauncher">
+		<property name="jobRepository" ref="jobRepository" />
+	</bean>
+
+	<bean id="jobExplorer" class="org.springframework.batch.core.explore.support.MapJobExplorerFactoryBean">
+		<property name="repositoryFactory" ref="&amp;jobRepository" />
+	</bean>
+
+	<bean id="transactionManager" class="org.springframework.batch.support.transaction.ResourcelessTransactionManager" />
+
+	<bean id="jobRepository" class="org.springframework.batch.core.repository.support.MapJobRepositoryFactoryBean">
+		<property name="transactionManager" ref="transactionManager"/>
+	</bean>
+
+	<bean id="executionContextDao" class="java.lang.Object" />
+
+	<bean id="jobExecutionDao" class="java.lang.Object" />
+
+	<bean id="jobInstanceDao" class="java.lang.Object" />
+
+	<bean id="stepExecutionDao" class="java.lang.Object" />
+
+	<bean id="sessionFactory" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.integration.file.remote.session.SessionFactory" />
+	</bean>
+
+	<!-- Override the RemoteFileToHadoopTasklet to write to java.io.tmpdir, and the hadoop beans -->
+
+	<bean id="tasklet" class="org.springframework.batch.integration.x.RemoteFileToTmpTests$RemoteFileToTmpDirTasklet">
+		<constructor-arg ref="remoteFileTemplate" />
+	</bean>
+
+	<bean id="hadoopFs" class="java.lang.Object" />
+
+	<bean id="hadoopConfiguration" class="java.lang.Object" />
+
+	<bean id="hadoopResourceLoader" class="java.lang.Object" />
+
+</beans>

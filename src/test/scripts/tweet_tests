@@ -1,0 +1,61 @@
+#!/bin/bash
+source xdapi
+
+wait_for_server
+
+if [[ ! -f $XD_HOME/config/twitter.properties ]]
+then
+  echo 'twitter.properties file is missing from XD_HOME/config'
+  exit 1
+fi
+
+rm /tmp/xd/output/tweets &> /dev/null
+
+set -e
+
+echo -e '\n\n**** Test 1. Twittersearch tests\n\n'
+
+create_stream 'searchtweets' "twittersearch --query='#spring' --outputType=application/json | file" 'false'
+create_stream 'searchtagcount' 'tap:stream:searchtweets > field-value-counter --fieldName=entities.hashTags.text --counterName=searchhashtags'
+deploy_stream 'searchtweets'
+sleep 10
+xdc $XDURL/metrics/field-value-counters/searchhashtags
+destroy_metric field-value-counters/searchhashtags
+
+destroy_stream 'searchtagcount'
+destroy_stream 'searchtweets'
+
+
+echo -e '\n\n**** Test 2. Twitterstream tests\n\n'
+
+create_stream 'tweets' 'twitterstream | file' 'false'
+
+create_stream 'tweetcount' "tap:stream:tweets > aggregatecounter --timeFormat='EE MMM d HH:mm:ss Z yyyy' --timeField=#jsonPath(payload,'\$.created_at')"
+
+create_stream 'tweetlang' 'tap:stream:tweets > field-value-counter --fieldName=lang'
+
+create_stream 'tagcount' 'tap:stream:tweets > field-value-counter --fieldName=entities.hashtags.text --counterName=hashtags'
+
+deploy_stream 'tweets'
+
+sleep 10
+
+undeploy_stream 'tweets'
+
+echo -e 'Lang counts:\n'
+xdc $XDURL/metrics/field-value-counters/lang
+destroy_metric field-value-counters/lang
+echo -e '\n\nHashtag counts:\n'
+xdc $XDURL/metrics/field-value-counters/hashtags
+destroy_metric field-value-counters/hashtags
+echo -e '\n\nAggregate tweet counts:\n'
+xdc $XDURL/metrics/aggregate-counters/tweetcount
+destroy_metric aggregate-counters/tweetcount
+echo -e '\n\n'
+
+
+destroy_stream 'tweetlang'
+destroy_stream 'tweetcount'
+destroy_stream 'tagcount'
+destroy_stream 'tweets'
+

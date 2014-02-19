@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -22,7 +22,6 @@ import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -38,13 +37,14 @@ import org.springframework.integration.x.bus.serializer.SerializationException;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
+import org.springframework.util.AlternativeJdkIdGenerator;
 import org.springframework.util.Assert;
+import org.springframework.util.IdGenerator;
 
 
 /**
  * @author David Turanski
  * @author Gary Russell
- * 
  */
 public abstract class MessageBusSupport implements MessageBus {
 
@@ -54,14 +54,20 @@ public abstract class MessageBusSupport implements MessageBus {
 
 	private final MessageMediaTypeResolver mediaTypeResolver = new DefaultMessageMediaTypeResolver();
 
-	private static final MediaType JAVA_OBJECT_TYPE = MediaType.valueOf("application/x-java-object");
-
 	protected static final String ORIGINAL_CONTENT_TYPE_HEADER = "originalContentType";
+
+	protected static final List<MediaType> MEDIATYPES_MEDIATYPE_ALL = Collections.singletonList(MediaType.ALL);
 
 	private final List<Binding> bindings = Collections.synchronizedList(new ArrayList<Binding>());
 
+	private final IdGenerator idGenerator = new AlternativeJdkIdGenerator();
+
 	public void setCodec(MultiTypeCodec<Object> codec) {
 		this.codec = codec;
+	}
+
+	protected IdGenerator getIdGenerator() {
+		return idGenerator;
 	}
 
 	@Override
@@ -133,20 +139,16 @@ public abstract class MessageBusSupport implements MessageBus {
 	}
 
 	// TODO: Performs serialization currently no transformation
-	protected final Message<?> transformPayloadForProducerIfNecessary(Message<?> message, MediaType to) {
+	protected final Message<?> serializePayloadIfNecessary(Message<?> message, MediaType to) {
 		Object originalPayload = message.getPayload();
-
 		Object originalContentType = message.getHeaders().get(MessageHeaders.CONTENT_TYPE);
-
 		Object contentType = originalContentType;
-
 		if (to.equals(ALL)) {
 			return message;
 		}
-
 		else if (to.equals(APPLICATION_OCTET_STREAM)) {
 			contentType = resolveContentType(originalPayload);
-			Object payload = serializeProducerPayloadIfNecessary(originalPayload);
+			Object payload = serializePayloadIfNecessary(originalPayload);
 			MessageBuilder<Object> messageBuilder = MessageBuilder.withPayload(payload)
 					.copyHeaders(message.getHeaders())
 					.setHeader(MessageHeaders.CONTENT_TYPE, contentType);
@@ -160,79 +162,54 @@ public abstract class MessageBusSupport implements MessageBus {
 		}
 	}
 
-	protected final Message<?> transformPayloadForConsumerIfNecessary(Message<?> message,
-			Collection<MediaType> acceptedMediaTypes) {
+	private byte[] serializePayloadIfNecessary(Object originalPayload) {
+		if (originalPayload instanceof byte[]) {
+			return (byte[]) originalPayload;
+		}
+		else {
+			ByteArrayOutputStream bos = new ByteArrayOutputStream();
+			try {
+				if (originalPayload instanceof String) {
+					return ((String) originalPayload).getBytes("UTF-8");
+				}
+				this.codec.serialize(originalPayload, bos);
+				return bos.toByteArray();
+			}
+			catch (IOException e) {
+				throw new SerializationException("unable to serialize payload ["
+						+ originalPayload.getClass().getName() + "]", e);
+			}
+		}
+	}
+
+	protected final Message<?> deserializePayloadIfNecessary(Message<?> message) {
 		Message<?> messageToSend = message;
 		Object originalPayload = message.getPayload();
 		MediaType contentType = mediaTypeResolver.resolveMediaType(message);
-		Object payload = transformPayloadForConsumer(originalPayload, contentType,
-				acceptedMediaTypes);
-
+		Object payload = deserializePayload(originalPayload, contentType);
 		if (payload != null) {
 			MessageBuilder<Object> transformed = MessageBuilder.withPayload(payload).copyHeaders(message.getHeaders());
 			Object originalContentType = message.getHeaders().get(ORIGINAL_CONTENT_TYPE_HEADER);
 			transformed.setHeader(MessageHeaders.CONTENT_TYPE, originalContentType);
 			transformed.setHeader(ORIGINAL_CONTENT_TYPE_HEADER, null);
-
 			messageToSend = transformed.build();
 		}
 		return messageToSend;
 	}
 
-	private Object transformPayloadForConsumer(Object payload, MediaType contentType, Collection<MediaType> to) {
+	private Object deserializePayload(Object payload, MediaType contentType) {
 		if (payload instanceof byte[]) {
-			Object result = null;
-			// Get the preferred java type, and try to decode it.
-			MediaType toObjectType = findJavaObjectType(to);
 			if (APPLICATION_OCTET_STREAM.equals(contentType)) {
 				return payload;
 			}
 			else {
-				result = deserializeConsumerPayload((byte[]) payload, contentType);
-				if (result != null) {
-					if (to.contains(ALL)) {
-						return result;
-					}
-
-					if (toObjectType != null) {
-						if (toObjectType.getParameter("type") == null) {
-							return result;
-						}
-
-						String resultClass = result.getClass().getName();
-						if (resultClass.equals(toObjectType.getParameter("type"))) {
-							return result;
-						}
-						// recursive call
-						return transformPayloadForConsumer(result, contentType,
-								Collections.singletonList(toObjectType));
-					}
-				}
+				return deserializePayload((byte[]) payload, contentType);
 			}
 		}
 		return payload;
 	}
 
-	private MediaType findJavaObjectType(Collection<MediaType> to) {
-		for (MediaType mediaType : to) {
-			if (JAVA_OBJECT_TYPE.includes(mediaType)) {
-				return mediaType;
-			}
-		}
-		return null;
-	}
-
-	private String resolveContentType(Object originalPayload) {
-		if (originalPayload instanceof byte[]) {
-			return APPLICATION_OCTET_STREAM_VALUE;
-		}
-		if (originalPayload instanceof String) {
-			return TEXT_PLAIN_VALUE;
-		}
-		return "application/x-java-object;type=" + originalPayload.getClass().getName();
-	}
-
-	private Object deserializeConsumerPayload(byte[] bytes, MediaType contentType) {
+	private Object deserializePayload(byte[] bytes, MediaType contentType) {
 		Class<?> targetType = null;
 		try {
 			if (contentType.equals(TEXT_PLAIN)) {
@@ -252,25 +229,14 @@ public abstract class MessageBusSupport implements MessageBus {
 
 	}
 
-	private byte[] serializeProducerPayloadIfNecessary(Object originalPayload) {
+	private String resolveContentType(Object originalPayload) {
 		if (originalPayload instanceof byte[]) {
-			return (byte[]) originalPayload;
+			return APPLICATION_OCTET_STREAM_VALUE;
 		}
-		else {
-			ByteArrayOutputStream bos = new ByteArrayOutputStream();
-			try {
-				if (originalPayload instanceof String) {
-					return ((String) originalPayload).getBytes("UTF-8");
-				}
-
-				this.codec.serialize(originalPayload, bos);
-				return bos.toByteArray();
-
-			}
-			catch (IOException e) {
-				throw new SerializationException("unable to serialize payload ["
-						+ originalPayload.getClass().getName() + "]", e);
-			}
+		if (originalPayload instanceof String) {
+			return TEXT_PLAIN_VALUE;
 		}
+		return "application/x-java-object;type=" + originalPayload.getClass().getName();
 	}
+
 }

@@ -37,6 +37,8 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 	private int tokenStreamPointer; // Current location in the token stream when
 									// processing tokens
 
+	private int lastGoodPoint;
+
 	/** The repository (if supplied) is used to chase down substream/label references */
 	private CrudRepository<? extends BaseDefinition, String> repository;
 
@@ -302,7 +304,11 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 			else if (firstToken.data.equalsIgnoreCase("topic")) {
 				channelType = ChannelType.TOPIC;
 			}
-			channelScopeComponents.remove(0);
+			// TODO: DT not sure if this is the best way to handle
+			// StreamConfigParserTests.substreamsWithSourceChannels()
+			if (channelScopeComponents.size() >= 3) {
+				channelScopeComponents.remove(0);
+			}
 		}
 		int endpos = channelScopeComponents.get(channelScopeComponents.size() - 1).endpos;
 		if (!channelReferenceComponents.isEmpty()) {
@@ -352,6 +358,7 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 			raiseException(name.startpos, XDDSLMessages.EXPECTED_MODULENAME, name.data != null ? name.data
 					: new String(name.getKind().tokenChars));
 		}
+		checkpoint();
 		while (peekToken(TokenKind.COLON)) {
 			if (!isNextTokenAdjacent()) {
 				raiseException(peekToken().startpos, XDDSLMessages.NO_WHITESPACE_BETWEEN_LABEL_NAME_AND_COLON);
@@ -408,7 +415,7 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 			// raiseException(this.expressionString.length()-1,XDDSLMessages.OOD));
 			// }
 			String argValue = eatArgValue();
-
+			checkpoint();
 			if (args == null) {
 				args = new ArrayList<ArgumentNode>();
 			}
@@ -504,7 +511,12 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 	}
 
 	private void raiseException(int pos, XDDSLMessages message, Object... inserts) {
-		throw new StreamDefinitionException(expressionString, pos, message, inserts);
+		throw new CheckpointedStreamDefinitionException(expressionString, pos, lastGoodPoint, tokenStream, message,
+				inserts);
+	}
+
+	private void checkpoint() {
+		lastGoodPoint = tokenStreamPointer;
 	}
 
 	public String toString(Token t) {

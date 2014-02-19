@@ -72,13 +72,8 @@ set CMD_LINE_ARGS=%$
 
 set CLASSPATH=!CLASSPATH!;%APP_HOME%\lib\*
 
-@rem Set GEMFIRE_HOME to APP_HOME if GEMFIRE_HOME is not defined yet
-if not exist "%GEMFIRE_HOME%" (
-    set GEMFIRE_HOME=%APP_HOME%
-)
-
 @rem Execute gemfire-server
-"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% -Dgemfire.home=%GEMFIRE_HOME% -Dlog4j.configuration=file:///%APP_HOME%/config/gemfire-cacheserver-logger.properties -classpath "%CLASSPATH%" org.springframework.xd.gemfire.CacheServer %CMD_LINE_ARGS%
+"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% -Dlog4j.configuration=file:///%APP_HOME%/config/gemfire-cacheserver-logger.properties -classpath "%CLASSPATH%" org.springframework.xd.gemfire.CacheServer %CMD_LINE_ARGS%
 
 :end
 @rem End local scope for the variables with windows NT shell

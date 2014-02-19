@@ -3,15 +3,15 @@
 GRADLE_OPTS="-XX:MaxPermSize=256m $GRADLE_OPTS"
 
 if [ x != x"$XD_HOME" ]; then
-	XD_HOME=..
+	unset XD_HOME
 fi
 if [ x != x"$XD_TRANSPORT" ]; then
-	XD_TRANSPORT=local
+	unset XD_TRANSPORT
 fi
 if [ x != x"$XD_ANALYTICS" ]; then
-	XD_ANALYTICS=memory
+	unset XD_ANALYTICS
 fi
 if [ x != x"$XD_STORE" ]; then
-	XD_STORE=memory
+	unset XD_STORE
 fi
 gradle/build_xd $@

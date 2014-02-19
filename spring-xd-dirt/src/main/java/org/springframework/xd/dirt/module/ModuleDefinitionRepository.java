@@ -17,6 +17,7 @@
 package org.springframework.xd.dirt.module;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,5 +35,8 @@ public interface ModuleDefinitionRepository extends DomainRepository<ModuleDefin
 	ModuleDefinition findByNameAndType(String name, ModuleType type);
 
 	Page<ModuleDefinition> findByType(Pageable pageable, ModuleType type);
+
+	Set<String> findDependentModules(String name, ModuleType type);
+
 
 }

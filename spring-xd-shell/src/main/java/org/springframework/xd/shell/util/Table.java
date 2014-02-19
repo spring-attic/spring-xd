@@ -41,10 +41,6 @@ public class Table {
 		return rows;
 	}
 
-	public void setRows(List<TableRow> rows) {
-		this.rows = rows;
-	}
-
 	public Map<Integer, TableHeader> getHeaders() {
 		return headers;
 	}
@@ -65,18 +61,35 @@ public class Table {
 		return row;
 	}
 
-	@Override
-	public String toString() {
-		return UiUtils.renderTextTable(this);
+	public Table addRow(String... values) {
+
+		final TableRow row = new TableRow();
+
+		int column = 1;
+
+		for (String value : values) {
+			row.addValue(column, value);
+			column++;
+		}
+
+		rows.add(row);
+
+		return this;
 	}
 
 	public void calculateColumnWidths() {
-		for (java.util.Map.Entry<Integer, TableHeader> entry : headers.entrySet()) {
+		for (java.util.Map.Entry<Integer, TableHeader> headerEntry : headers.entrySet()) {
+			final Integer headerEntryKey = headerEntry.getKey();
 			for (TableRow tableRow : rows) {
-				entry.getValue().updateWidth(tableRow.getValue(entry.getKey()).length());
+				headerEntry.getValue().updateWidth(tableRow.getValue(headerEntryKey).length());
 			}
 		}
 	}
+
+    @Override
+    public String toString() {
+        return UiUtils.renderTextTable(this);
+    }
 
 	@Override
 	public int hashCode() {
@@ -87,6 +100,7 @@ public class Table {
 		result = prime * result + ((rows == null) ? 0 : rows.hashCode());
 		return result;
 	}
+
 
 	@Override
 	public boolean equals(Object obj) {
@@ -114,6 +128,4 @@ public class Table {
 			return false;
 		return true;
 	}
-
-
 }

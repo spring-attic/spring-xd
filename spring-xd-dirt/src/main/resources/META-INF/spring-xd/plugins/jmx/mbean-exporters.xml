@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:int-jmx="http://www.springframework.org/schema/integration/jmx"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:int-jmx="http://www.springframework.org/schema/integration/jmx"
 	xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:util="http://www.springframework.org/schema/util"
 	xsi:schemaLocation="http://www.springframework.org/schema/integration/jmx http://www.springframework.org/schema/integration/jmx/spring-integration-jmx.xsd
@@ -9,12 +8,18 @@
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.2.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<context:mbean-export/>
-	<int-jmx:mbean-export default-domain="xd.${xd.stream.name}"
-		object-name-static-properties="objectNameProperties"/>
+	<context:mbean-export />
+
+	<int-jmx:mbean-export object-naming-strategy="moduleObjectNamingStrategy" />
 	<!-- TODO: Add BatchMbeanExporter -->
 	<util:properties id="objectNameProperties">
 		<prop key="module">${xd.module.name}</prop>
 		<prop key="index">${xd.module.index}</prop>
 	</util:properties>
+
+	<bean id="moduleObjectNamingStrategy"
+		class="org.springframework.xd.dirt.module.jmx.ModuleObjectNamingStrategy">
+		<constructor-arg name="domain" value="xd.${xd.stream.name}" />
+		<constructor-arg name="objectNameProperties" ref="objectNameProperties" />
+	</bean>
 </beans>

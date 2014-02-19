@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:hdp="http://www.springframework.org/schema/hadoop"
+		xmlns:context="http://www.springframework.org/schema/context"
+		xmlns:batch="http://www.springframework.org/schema/batch"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/hadoop http://www.springframework.org/schema/hadoop/spring-hadoop.xsd
+		http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd">
+
+	<context:property-placeholder location="${xd.config.home}/${configProperties:batch-jdbc}.properties" ignore-resource-not-found="true"/>
+
+	<batch:job id="jdbchdfs" restartable="${restartable}">
+		<batch:step id="fileHdfsStep">
+			<batch:tasklet>
+				<batch:chunk reader="itemReader" writer="itemWriter" commit-interval="100"/>
+			</batch:tasklet>
+			<batch:listeners>
+				<batch:listener ref="xdStepExecutionListener"/>
+			</batch:listeners>
+		</batch:step>
+		<batch:listeners>
+			<batch:listener ref="xdJobExecutionListener"/>
+		</batch:listeners>
+	</batch:job>
+
+	<bean id="dataSource" class="org.apache.tomcat.jdbc.pool.DataSource" destroy-method="close">
+		<property name="driverClassName" value="${driverClass:${spring.datasource.driverClassName}}"/>
+		<property name="url" value="${url:${spring.datasource.url}}"/>
+		<property name="username" value="${username:${spring.datasource.username}}"/>
+		<property name="password" value="${password:${spring.datasource.password}}"/>
+		<property name="initialSize" value="0" />
+	</bean>
+
+	<bean id="itemReader" class="org.springframework.xd.jdbc.NamedColumnJdbcItemReader">
+		<property name="dataSource" ref="dataSource" />
+		<property name="tableName" value="${tableName}" />
+		<property name="columnNames" value="${columns}" />
+		<property name="sql" value="${sql}"/>
+	</bean>
+
+	<bean id="itemWriter" class="org.springframework.xd.batch.item.hadoop.HdfsTextItemWriter">
+		<constructor-arg ref="hadoopFs"/>
+		<property name="lineAggregator">
+			<bean class="org.springframework.batch.item.file.transform.DelimitedLineAggregator">
+				<property name="fieldExtractor">
+					<bean class="org.springframework.xd.tuple.batch.TupleFieldExtractor"/>
+				</property>
+			</bean>
+		</property>
+		<property name="baseFilename" value="${fileName:${xd.stream.name}}"/>
+		<property name="rolloverThresholdInBytes" value="${rollover}"/>
+		<property name="basePath" value="${directory:/xd/${xd.stream.name}}/"/>
+		<property name="fileSuffix" value="${fileExtension}"/>
+	</bean>
+
+	<bean id="hadoopFs" class="org.springframework.data.hadoop.fs.FileSystemFactoryBean">
+		<property name="configuration" ref="hadoopConfiguration"/>
+	</bean>
+
+	<hdp:configuration register-url-handler="false" properties-location="${xd.config.home}/hadoop.properties"/>
+	<hdp:resource-loader id="hadoopResourceLoader"/>
+
+</beans>

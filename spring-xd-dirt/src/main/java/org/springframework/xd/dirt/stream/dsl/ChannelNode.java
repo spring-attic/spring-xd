@@ -21,6 +21,7 @@ import java.util.List;
 
 /**
  * @author Andy Clement
+ * @author David Turanski
  */
 public class ChannelNode extends AstNode {
 
@@ -42,8 +43,27 @@ public class ChannelNode extends AstNode {
 	public String stringify(boolean includePositionalInfo) {
 		StringBuilder s = new StringBuilder();
 		s.append("(");
-		s.append(channelType.getStringRepresentation());
+		produceStringRepresentation(s);
+		if (includePositionalInfo) {
+			s.append(":");
+			s.append(getStartPos()).append(">").append(getEndPos());
+		}
+		s.append(")");
+		return s.toString();
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder s = new StringBuilder();
+		produceStringRepresentation(s);
+		return s.toString();
+	}
+
+	private void produceStringRepresentation(StringBuilder s) {
 		int t = 0;
+		if (channelType.isTap()) {
+			s.append(channelType.getStringRepresentation());
+		}
 		if (nameComponents.size() > 0 && channelType.isTap() &&
 				nameComponents.get(0).equalsIgnoreCase(channelType.tapSource().name())) {
 			t = 1;
@@ -60,21 +80,6 @@ public class ChannelNode extends AstNode {
 				s.append(indexingElements.get(t2));
 			}
 		}
-		if (includePositionalInfo) {
-			s.append(":");
-			s.append(getStartPos()).append(">").append(getEndPos());
-		}
-		s.append(")");
-		return s.toString();
-	}
-
-	@Override
-	public String toString() {
-		StringBuilder s = new StringBuilder();
-		s.append(channelType.getStringRepresentation());
-		s.append(getNameComponents());
-		s.append(getIndexingComponents());
-		return s.toString();
 	}
 
 	public String getChannelName() {
@@ -85,6 +90,20 @@ public class ChannelNode extends AstNode {
 		s.append(getNameComponents());
 		s.append(getIndexingComponents());
 		return s.toString();
+	}
+
+	public int getLengthOfPrefixPlusNameComponents() {
+		int length = 0;
+		if (channelType.isTap()) {
+			length += 4;
+		}
+		for (int i = 0; i < nameComponents.size(); i++) {
+			if (i > 0) {
+				length++;
+			}
+			length += nameComponents.get(i).length();
+		}
+		return length;
 	}
 
 	public String getNameComponents() {
@@ -133,7 +152,7 @@ public class ChannelNode extends AstNode {
 				}
 				// Point to the first element of the stream
 				indexingElements = new ArrayList<String>();
-				indexingElements.add(sn.getModuleNodes().get(0).getName());
+				indexingElements.add(sn.getModuleNodes().get(0).getName() + ".0");
 			}
 			else {
 				// Easter Egg: can use index of module in a stream when tapping.
@@ -150,7 +169,7 @@ public class ChannelNode extends AstNode {
 								getStreamName());
 					}
 					indexingElements.remove(0);
-					indexingElements.add(0, sn.getModuleNodes().get(index).getName());
+					indexingElements.add(0, sn.getModuleNodes().get(index).getName() + "." + index);
 				}
 				catch (NumberFormatException nfe) {
 					// this is ok, probably wasn't a number
@@ -161,10 +180,18 @@ public class ChannelNode extends AstNode {
 					// getStreamName());
 					// }
 					if (sn != null) {
-						int index = sn.getIndexOfLabelOrModuleName(toString(indexingElements));
+						String indexString = toString(indexingElements);
+						if (sn.labelOrModuleNameOccursMultipleTimesInStream(indexString)) {
+							throw new StreamDefinitionException(getChannelName(),
+									getLengthOfPrefixPlusNameComponents() + 1,
+									XDDSLMessages.MODULE_REFERENCE_NOT_UNIQUE,
+									indexString,
+									sn.getStreamText());
+						}
+						int index = sn.getIndexOfLabelOrModuleName(indexString);
 						if (index != -1) {
 							indexingElements.clear();
-							indexingElements.add(0, sn.getModuleNodes().get(index).getName());
+							indexingElements.add(0, sn.getModuleNodes().get(index).getName() + "." + index);
 						}
 					}
 				}

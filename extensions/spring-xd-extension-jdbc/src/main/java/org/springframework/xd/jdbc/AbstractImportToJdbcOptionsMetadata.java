@@ -20,41 +20,21 @@ import org.springframework.xd.module.options.spi.ModuleOption;
 
 /**
  * Factors out options that are common to modules/jobs that import into a db table.
- * 
+ *
  * @author Eric Bottard
  */
-public abstract class AbstractJdbcModuleOptionsMetadata {
+public abstract class AbstractImportToJdbcOptionsMetadata extends AbstractJdbcOptionsMetadata {
 
-	protected String driverClass;
-
-	protected Boolean initializeDatabase;
+	protected boolean initializeDatabase;
 
 	protected String initializerScript;
 
-	protected String password;
-
 	protected String tableName;
 
-	protected String url;
-
-	protected String username;
-
-	protected String configProperties;
-
-
-	@ModuleOption("the JDBC driver to use")
-	public void setDriverClass(String driverClass) {
-		this.driverClass = driverClass;
-	}
 
 	@ModuleOption("whether the database initialization script should be run")
-	public void setInitializeDatabase(Boolean initializeDatabase) {
+	public void setInitializeDatabase(boolean initializeDatabase) {
 		this.initializeDatabase = initializeDatabase;
-	}
-
-	@ModuleOption("the JDBC password")
-	public void setPassword(String password) {
-		this.password = password;
 	}
 
 	@ModuleOption("the database table to which the data will be written")
@@ -62,56 +42,21 @@ public abstract class AbstractJdbcModuleOptionsMetadata {
 		this.tableName = tableName;
 	}
 
-	@ModuleOption("the JDBC URL for the database")
-	public void setUrl(String url) {
-		this.url = url;
-	}
-
-	@ModuleOption("the JDBC username")
-	public void setUsername(String username) {
-		this.username = username;
-	}
-
 	@ModuleOption("the name of the SQL script (in /config) to run if 'initializeDatabase' is set")
 	public void setInitializerScript(String initializerScript) {
 		this.initializerScript = initializerScript;
-	}
-
-	@ModuleOption("the name of the properties file (in /config) used to override database settings")
-	public void setConfigProperties(String configProperties) {
-		this.configProperties = configProperties;
-	}
-
-	public String getDriverClass() {
-		return driverClass;
 	}
 
 	public Boolean getInitializeDatabase() {
 		return initializeDatabase;
 	}
 
-	public String getPassword() {
-		return password;
-	}
-
 	public String getTableName() {
 		return tableName;
 	}
 
-	public String getUrl() {
-		return url;
-	}
-
-	public String getUsername() {
-		return username;
-	}
-
 	public String getInitializerScript() {
 		return initializerScript;
-	}
-
-	public String getConfigProperties() {
-		return configProperties;
 	}
 
 }

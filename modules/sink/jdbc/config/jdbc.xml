@@ -30,7 +30,7 @@
 		class="org.springframework.jdbc.datasource.init.DataSourceInitializer">
 		<beans:property name="databasePopulator" ref="databasePopulator" />
 		<beans:property name="dataSource" ref="dataSource" />
-		<beans:property name="enabled" value="${initializeDatabase:false}" />
+		<beans:property name="enabled" value="${initializeDatabase}" />
 	</beans:bean>
 
 	<beans:bean id="databasePopulator"

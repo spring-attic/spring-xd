@@ -11,7 +11,7 @@
 
 	<context:property-placeholder location="${xd.config.home}/${configProperties:batch-jdbc}.properties" ignore-resource-not-found="true"/>
 
-	<batch:job id="jdbchdfs" restartable="${restartable:false}">
+	<batch:job id="jdbchdfs" restartable="${restartable}">
 		<batch:step id="fileHdfsStep">
 			<batch:tasklet>
 				<batch:chunk reader="itemReader" writer="itemWriter" commit-interval="100"/>
@@ -35,9 +35,9 @@
 
 	<bean id="itemReader" class="org.springframework.xd.jdbc.NamedColumnJdbcItemReader">
 		<property name="dataSource" ref="dataSource" />
-		<property name="tableName" value="${tableName:}" />
-		<property name="columnNames" value="${columns:}" />
-		<property name="sql" value="${sql:}"/>
+		<property name="tableName" value="${tableName}" />
+		<property name="columnNames" value="${columns}" />
+		<property name="sql" value="${sql}"/>
 	</bean>
 
 	<bean id="itemWriter" class="org.springframework.xd.batch.item.hadoop.HdfsTextItemWriter">
@@ -50,9 +50,9 @@
 			</bean>
 		</property>
 		<property name="baseFilename" value="${fileName:${xd.stream.name}}"/>
-		<property name="rolloverThresholdInBytes" value="${rollover:1000000}"/>
+		<property name="rolloverThresholdInBytes" value="${rollover}"/>
 		<property name="basePath" value="${directory:/xd/${xd.stream.name}}/"/>
-		<property name="fileSuffix" value="${fileExtension:csv}"/>
+		<property name="fileSuffix" value="${fileExtension}"/>
 	</bean>
 
 	<bean id="hadoopFs" class="org.springframework.data.hadoop.fs.FileSystemFactoryBean">

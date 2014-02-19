@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.configuration.JobRegistry;
@@ -40,11 +41,11 @@ import org.springframework.xd.tuple.Tuple;
 /**
  * Executes all jobs defined within a given stream once the context has been started. This really should be replaced
  * once we have the concept of triggers built in.
- * 
+ *
  * @author Gunnar Hillert
  * @author Ilayaperumal Gopinathan
  * @since 1.0
- * 
+ *
  */
 public class JobLaunchRequestTransformer {
 
@@ -68,7 +69,7 @@ public class JobLaunchRequestTransformer {
 	/**
 	 * Will set the {@link DateFormat} on the underlying {@link DefaultJobParametersConverter}. If not set explicitly
 	 * the {@link DateFormat} will default to "yyyy/MM/dd".
-	 * 
+	 *
 	 * @param dateFormat Must not be null
 	 */
 	public void setDateFormat(DateFormat dateFormat) {
@@ -82,7 +83,7 @@ public class JobLaunchRequestTransformer {
 	/**
 	 * Setter for the {@link NumberFormat} which is set on the underlying {@link DefaultJobParametersConverter}. If not
 	 * set explicitly, defaults to {@code NumberFormat.getInstance(Locale.US);}
-	 * 
+	 *
 	 * @param numberFormat Must not be null.
 	 */
 	public void setNumberFormat(NumberFormat numberFormat) {
@@ -94,9 +95,9 @@ public class JobLaunchRequestTransformer {
 	}
 
 	/**
-	 * 
+	 *
 	 * If not set, this property defaults to <code>true</code>.
-	 * 
+	 *
 	 * @param makeParametersUnique
 	 */
 	public void setMakeParametersUnique(boolean makeParametersUnique) {
@@ -150,9 +151,13 @@ public class JobLaunchRequestTransformer {
 					+ payload.getClass().getSimpleName());
 		}
 
-		if (job.getJobParametersIncrementer() != null) {
+		final boolean isRestart = Boolean.valueOf(jobParameters.getString(ExpandedJobParametersConverter.IS_RESTART_JOB_PARAMETER_KEY));
+
+		if (job.getJobParametersIncrementer() != null && !isRestart) {
 			jobParameters = job.getJobParametersIncrementer().getNext(jobParameters);
 		}
+
+		jobParameters = jobParametersConverter.removeRestartParameterIfExists(jobParameters);
 
 		return new JobLaunchRequest(job, jobParameters);
 	}

@@ -34,11 +34,10 @@ import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteExcep
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.batch.core.repository.dao.ExecutionContextDao;
-import org.springframework.xd.dirt.job.NoSuchBatchJobException;
 
 /**
  * SimpleJobService in distributed mode
- * 
+ *
  * @author Ilayaperumal Gopinathan
  * @author Andrew Eisenberg
  * @author Gunnar Hillert
@@ -75,7 +74,7 @@ public class DistributedJobService extends SimpleJobService {
 	public JobExecution restart(Long jobExecutionId) throws NoSuchJobExecutionException,
 			JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException,
 			NoSuchJobException, JobParametersInvalidException {
-		return super.restart(jobExecutionId);
+		throw new UnsupportedOperationException("Restart");
 	}
 
 	@Override

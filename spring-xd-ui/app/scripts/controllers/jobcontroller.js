@@ -83,7 +83,7 @@ angular.module('App.Controllers', [])
 			$log.info($stateParams);
 
 			$scope.addParameter = function() {
-				jobLaunchRequest.jobParameters.push({key:'new', value:''});
+				jobLaunchRequest.jobParameters.push({key:'', value:'', type: 'string'});
 			};
 
 			$scope.removeParameter = function(jobParameter) {

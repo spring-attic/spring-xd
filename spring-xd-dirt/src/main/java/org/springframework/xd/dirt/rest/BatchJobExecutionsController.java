@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,14 @@ package org.springframework.xd.dirt.rest;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import org.springframework.batch.core.BatchStatus;
+import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobInstance;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersInvalidException;
+import org.springframework.batch.core.launch.NoSuchJobException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,32 +35,36 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.xd.dirt.job.JobExecutionAlreadyRunningException;
 import org.springframework.xd.dirt.job.JobExecutionInfo;
 import org.springframework.xd.dirt.job.JobExecutionNotRunningException;
-import org.springframework.xd.dirt.job.JobInstanceAlreadyCompleteException;
-import org.springframework.xd.dirt.job.JobParametersInvalidException;
-import org.springframework.xd.dirt.job.JobRestartException;
-import org.springframework.xd.dirt.job.NoSuchBatchJobException;
 import org.springframework.xd.dirt.job.NoSuchJobExecutionException;
+import org.springframework.xd.dirt.plugins.job.DistributedJobLocator;
+import org.springframework.xd.dirt.plugins.job.ExpandedJobParametersConverter;
+import org.springframework.xd.dirt.stream.JobDeployer;
 import org.springframework.xd.rest.client.domain.JobExecutionInfoResource;
 
 /**
  * Controller for batch job executions.
- * 
+ *
  * @author Dave Syer
  * @author Ilayaperumal Gopinathan
  * @author Gunnar Hillert
- * 
+ *
  */
 @RestController
 @RequestMapping("/batch/executions")
 @ExposesResourceFor(JobExecutionInfoResource.class)
 public class BatchJobExecutionsController extends AbstractBatchJobsController {
 
+	@Autowired
+	private JobDeployer jobDeployer;
+
+	@Autowired
+	private DistributedJobLocator jobLocator;
+
 	/**
 	 * List all job executions in a given range.
-	 * 
+	 *
 	 * @param startJobExecution index of the first job execution to get
 	 * @param pageSize how many executions to return
 	 * @return Collection of JobExecutionInfoResource
@@ -93,7 +104,7 @@ public class BatchJobExecutionsController extends AbstractBatchJobsController {
 
 	/**
 	 * Stop Job Execution by the given executionId.
-	 * 
+	 *
 	 * @param jobExecutionId the executionId of the job execution to stop
 	 */
 	@RequestMapping(value = { "/{executionId}" }, method = RequestMethod.PUT, params = "stop=true")
@@ -112,36 +123,63 @@ public class BatchJobExecutionsController extends AbstractBatchJobsController {
 
 	/**
 	 * Restart the Job Execution with the given executionId.
-	 * 
+	 *
 	 * @param jobExecutionId the executionId of the job execution to restart
 	 */
 	@RequestMapping(value = { "/{executionId}" }, method = RequestMethod.PUT, params = "restart=true")
 	@ResponseStatus(HttpStatus.OK)
 	public void restartJobExecution(@PathVariable("executionId") long jobExecutionId) {
 
+		final JobExecution jobExecution;
 		try {
-			jobService.restart(jobExecutionId);
+			jobExecution = jobService.getJobExecution(jobExecutionId);
 		}
 		catch (org.springframework.batch.core.launch.NoSuchJobExecutionException e) {
 			throw new NoSuchJobExecutionException(jobExecutionId);
 		}
-		catch (org.springframework.batch.core.repository.JobExecutionAlreadyRunningException e) {
-			throw new JobExecutionAlreadyRunningException("Job Execution " + jobExecutionId + " is already running.", e);
+
+		if (jobExecution.isRunning()) {
+			throw new org.springframework.xd.dirt.job.JobExecutionAlreadyRunningException("Job Execution "
+					+ jobExecution.getId()
+					+ " is already running.");
 		}
-		catch (org.springframework.batch.core.repository.JobRestartException e) {
-			throw new JobRestartException("Restarting of Job for Job Execution " + jobExecutionId + " failed.", e);
+
+		final JobInstance lastInstance = jobExecution.getJobInstance();
+		final ExpandedJobParametersConverter expandedJobParametersConverter = new ExpandedJobParametersConverter();
+		final JobParameters jobParameters = jobExecution.getJobParameters();
+
+		final Job job;
+		try {
+			job = jobLocator.getJob(lastInstance.getJobName());
 		}
-		catch (org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException e) {
-			throw new JobInstanceAlreadyCompleteException("Job Execution " + jobExecutionId + " is already complete.",
-					e);
+		catch (NoSuchJobException e1) {
+			throw new org.springframework.xd.dirt.job.NoSuchBatchJobException("The job '" + lastInstance.getJobName()
+					+ "' does not exist.");
 		}
-		catch (org.springframework.batch.core.launch.NoSuchJobException e) {
-			throw new NoSuchBatchJobException("execution id", String.valueOf(jobExecutionId), e);
+		try {
+			job.getJobParametersValidator().validate(jobParameters);
 		}
-		catch (org.springframework.batch.core.JobParametersInvalidException e) {
-			throw new JobParametersInvalidException("Some Job Parameters for Job Execution " + jobExecutionId
-					+ " are invalid.", e);
+		catch (JobParametersInvalidException e) {
+			throw new org.springframework.xd.dirt.job.JobParametersInvalidException(
+					"The Job Parameters for Job Execution " + jobExecution.getId()
+							+ " are invalid.");
 		}
+
+		final BatchStatus status = jobExecution.getStatus();
+
+		if (status == BatchStatus.COMPLETED || status == BatchStatus.ABANDONED) {
+			throw new org.springframework.xd.dirt.job.JobInstanceAlreadyCompleteException(
+					"Job Execution " + jobExecution.getId() + " is already complete.");
+		}
+
+		if (!job.isRestartable()) {
+			throw new org.springframework.xd.dirt.job.JobRestartException(
+					"The job '" + lastInstance.getJobName() + "' is not restartable.");
+		}
+
+		final String jobParametersAsString = expandedJobParametersConverter
+				.getJobParametersAsString(jobParameters, true);
+		jobDeployer.launch(lastInstance.getJobName(), jobParametersAsString);
 	}
 
 	/**

@@ -16,16 +16,20 @@
 		<property name="locateExistingServerIfPossible" value="true" />
 	</bean>
 	
-	<bean id="moduleOptionsMetadataResolver" class="org.springframework.xd.module.options.DelegatingModuleOptionsMetadataResolver">
-		<property name="delegates">
-			<list>
-				<bean class="org.springframework.xd.module.options.DefaultModuleOptionsMetadataResolver">
-					<property name="compositeResolver" ref="moduleOptionsMetadataResolver" />
-				</bean>
-				<bean class="org.springframework.xd.dirt.plugins.stream.ModuleTypeConversionPluginMetadataResolver" />
-				<bean class="org.springframework.xd.dirt.plugins.job.JobPluginMetadataResolver" />
-			</list>
-		</property>
+	<bean id="moduleOptionsMetadataResolver" class="org.springframework.xd.module.options.DefaultsProvidingModuleOptionsMetadataResolver">
+		<constructor-arg>
+			<bean class="org.springframework.xd.module.options.DelegatingModuleOptionsMetadataResolver">
+				<property name="delegates">
+					<list>
+						<bean class="org.springframework.xd.module.options.DefaultModuleOptionsMetadataResolver">
+							<property name="compositeResolver" ref="moduleOptionsMetadataResolver" />
+						</bean>
+						<bean class="org.springframework.xd.dirt.plugins.stream.ModuleTypeConversionPluginMetadataResolver" />
+						<bean class="org.springframework.xd.dirt.plugins.job.JobPluginMetadataResolver" />
+					</list>
+				</property>
+			</bean>
+		</constructor-arg>
 	</bean>
-
+	
 </beans>

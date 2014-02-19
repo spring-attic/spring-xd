@@ -24,7 +24,6 @@ import java.util.Arrays;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
@@ -33,8 +32,9 @@ import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.module.ModuleDeployer;
+import org.springframework.xd.dirt.plugins.AbstractPlugin;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
-import org.springframework.xd.module.core.PluginAdapter;
+import org.springframework.xd.module.core.Module;
 import org.springframework.xd.test.RandomConfigurationSupport;
 
 
@@ -99,11 +99,16 @@ public abstract class AbstractSingleNodeInitializationTests extends RandomConfig
 		assertEquals(getExpectedMessageBusType(), messageBus.getClass());
 	}
 
-	public class TestPlugin extends PluginAdapter {
+	public class TestPlugin extends AbstractPlugin {
 
 		@Override
 		public void preProcessSharedContext(ConfigurableApplicationContext context) {
 			moduleContext = (AbstractApplicationContext) context;
+		}
+
+		@Override
+		public boolean supports(Module module) {
+			return true;
 		}
 	}
 

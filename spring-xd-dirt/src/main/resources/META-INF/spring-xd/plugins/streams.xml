@@ -1,9 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
 	<bean id="streamPlugin" class="org.springframework.xd.dirt.plugins.stream.StreamPlugin"/>
-	<bean class="org.springframework.xd.dirt.plugins.stream.ModuleTypeConversionPlugin"/>
+	<bean class="org.springframework.xd.dirt.plugins.stream.ModuleTypeConversionPlugin">
+		<constructor-arg name="converters" ref="xd.messageConverters"/>
+		<constructor-arg name="customConverters" ref="xd.customMessageConverters"/>
+	</bean>
+	
+	<util:list id="xd.messageConverters">
+			<bean class="org.springframework.integration.x.bus.converter.JsonToTupleMessageConverter"/>
+			<bean class="org.springframework.integration.x.bus.converter.PojoToJsonMessageConverter"/>
+			<bean class="org.springframework.integration.x.bus.converter.TupleToJsonMessageConverter"/>
+			<bean class="org.springframework.integration.x.bus.converter.JsonToPojoMessageConverter"/>
+			<bean class="org.springframework.integration.x.bus.converter.PojoToStringMessageConverter"/>
+			<bean class="org.springframework.integration.x.bus.converter.ByteArrayToStringMessageConverter"/>
+			<bean class="org.springframework.integration.x.bus.converter.JavaToSerializedMessageConverter"/>
+			<bean class="org.springframework.integration.x.bus.converter.SerializedToJavaMessageConverter"/>
+	</util:list>
+
+<!-- Users can override this to add converters.-->
+	<util:list id="xd.customMessageConverters"/>
 
 </beans>

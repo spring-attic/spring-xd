@@ -20,8 +20,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
@@ -41,8 +39,6 @@ import org.springframework.messaging.MessagingException;
  * @since 1.0
  */
 public class LocalMessageBusTests extends AbstractMessageBusTests {
-
-	private static final Collection<MediaType> ALL = Collections.singletonList(MediaType.ALL);
 
 	@Override
 	protected MessageBus getMessageBus() throws Exception {

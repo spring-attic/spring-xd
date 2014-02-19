@@ -165,7 +165,7 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 				messageHeaders.put("requestPath", request.getUri());
 				messageHeaders.put("requestMethod", request.getMethod().toString());
 				try {
-					sendMessage(MessageBuilder.withPayload(content.toString(charsetToUse)).copyHeaders(messageHeaders).build());
+					sendMessage(MessageBuilder.withPayload(content.array()).copyHeaders(messageHeaders).build());
 				}
 				catch (Exception ex) {
 					logger.error("Error sending message", ex);

@@ -37,9 +37,11 @@ import org.springframework.integration.x.bus.serializer.SerializationException;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.converter.ContentTypeResolver;
 import org.springframework.util.AlternativeJdkIdGenerator;
 import org.springframework.util.Assert;
 import org.springframework.util.IdGenerator;
+import org.springframework.util.MimeType;
 
 
 /**
@@ -52,7 +54,7 @@ public abstract class MessageBusSupport implements MessageBus {
 
 	private volatile MultiTypeCodec<Object> codec;
 
-	private final MessageMediaTypeResolver mediaTypeResolver = new DefaultMessageMediaTypeResolver();
+	private final ContentTypeResolver contentTypeResolver = new StringConvertingContentTypeResolver();
 
 	protected static final String ORIGINAL_CONTENT_TYPE_HEADER = "originalContentType";
 
@@ -185,7 +187,7 @@ public abstract class MessageBusSupport implements MessageBus {
 	protected final Message<?> deserializePayloadIfNecessary(Message<?> message) {
 		Message<?> messageToSend = message;
 		Object originalPayload = message.getPayload();
-		MediaType contentType = mediaTypeResolver.resolveMediaType(message);
+		MimeType contentType = contentTypeResolver.resolve(message.getHeaders());
 		Object payload = deserializePayload(originalPayload, contentType);
 		if (payload != null) {
 			MessageBuilder<Object> transformed = MessageBuilder.withPayload(payload).copyHeaders(message.getHeaders());
@@ -197,7 +199,7 @@ public abstract class MessageBusSupport implements MessageBus {
 		return messageToSend;
 	}
 
-	private Object deserializePayload(Object payload, MediaType contentType) {
+	private Object deserializePayload(Object payload, MimeType contentType) {
 		if (payload instanceof byte[]) {
 			if (APPLICATION_OCTET_STREAM.equals(contentType)) {
 				return payload;
@@ -209,7 +211,7 @@ public abstract class MessageBusSupport implements MessageBus {
 		return payload;
 	}
 
-	private Object deserializePayload(byte[] bytes, MediaType contentType) {
+	private Object deserializePayload(byte[] bytes, MimeType contentType) {
 		Class<?> targetType = null;
 		try {
 			if (contentType.equals(TEXT_PLAIN)) {

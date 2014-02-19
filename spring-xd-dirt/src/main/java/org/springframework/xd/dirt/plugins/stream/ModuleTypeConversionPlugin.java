@@ -30,6 +30,7 @@ import org.springframework.integration.x.bus.converter.ConversionException;
 import org.springframework.integration.x.bus.converter.MessageConverterUtils;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.MimeType;
 import org.springframework.xd.dirt.plugins.ModuleConfigurationException;
 import org.springframework.xd.module.ModuleType;
@@ -51,7 +52,11 @@ public class ModuleTypeConversionPlugin extends PluginAdapter {
 
 	private final CompositeMessageConverterFactory converterFactory;
 
-	public ModuleTypeConversionPlugin(Collection<AbstractFromMessageConverter> converters) {
+	public ModuleTypeConversionPlugin(Collection<AbstractFromMessageConverter> converters,
+			Collection<AbstractFromMessageConverter> customConverters) {
+		if (!CollectionUtils.isEmpty(customConverters)) {
+			converters.addAll(customConverters);
+		}
 		this.converterFactory = new CompositeMessageConverterFactory(converters);
 	}
 

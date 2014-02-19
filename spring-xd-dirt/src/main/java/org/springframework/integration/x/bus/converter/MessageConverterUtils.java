@@ -42,6 +42,11 @@ public class MessageConverterUtils {
 	public static final MimeType X_XD_STRING = MimeType.valueOf("application/x-xd-string");
 
 	/**
+	 * An XD MimeType for specifying a byte array
+	 */
+	public static final MimeType X_XD_BYTE_ARRAY = MimeType.valueOf("application/x-xd-byte-array");
+
+	/**
 	 * A general MimeType for Java Types
 	 */
 	public static final MimeType X_JAVA_OBJECT = MimeType.valueOf("application/x-java-object");

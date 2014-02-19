@@ -36,9 +36,8 @@ public class JsonToTupleMessageConverter extends AbstractFromMessageConverter {
 
 	private final static List<MimeType> targetMimeTypes = new ArrayList<MimeType>();
 	static {
-		targetMimeTypes.add(MimeType.valueOf("application/x-xd-tuple"));
-		targetMimeTypes.add(
-				MimeType.valueOf("application/x-java-object"));
+		targetMimeTypes.add(MessageConverterUtils.X_XD_TUPLE);
+		targetMimeTypes.add(MessageConverterUtils.X_JAVA_OBJECT);
 	}
 
 	public JsonToTupleMessageConverter() {

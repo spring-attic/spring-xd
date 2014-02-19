@@ -7,11 +7,11 @@
 
 	<bean id="streamPlugin" class="org.springframework.xd.dirt.plugins.stream.StreamPlugin"/>
 	<bean class="org.springframework.xd.dirt.plugins.stream.ModuleTypeConversionPlugin">
-		<constructor-arg ref="xd.MessageConverters"/>
+		<constructor-arg name="converters" ref="xd.messageConverters"/>
+		<constructor-arg name="customConverters" ref="xd.customMessageConverters"/>
 	</bean>
 	
-	<!-- TODO: Users should be able to add converters to this.-->
-	<util:list id="xd.MessageConverters">
+	<util:list id="xd.messageConverters">
 			<bean class="org.springframework.integration.x.bus.converter.JsonToTupleMessageConverter"/>
 			<bean class="org.springframework.integration.x.bus.converter.PojoToJsonMessageConverter"/>
 			<bean class="org.springframework.integration.x.bus.converter.TupleToJsonMessageConverter"/>
@@ -21,5 +21,8 @@
 			<bean class="org.springframework.integration.x.bus.converter.JavaToSerializedMessageConverter"/>
 			<bean class="org.springframework.integration.x.bus.converter.SerializedToJavaMessageConverter"/>
 	</util:list>
+
+<!-- Users can override this to add converters.-->
+	<util:list id="xd.customMessageConverters"/>
 
 </beans>

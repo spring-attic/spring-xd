@@ -32,28 +32,28 @@ import org.springframework.util.MimeType;
  * 
  * @author David Turanski
  */
-public class ByteArrayToStringMessageConverter extends AbstractFromMessageConverter {
+public class StringToByteArrayMessageConverter extends AbstractFromMessageConverter {
 
 	private final static ContentTypeResolver contentTypeResolver = new StringConvertingContentTypeResolver();
 
 	private final static List<MimeType> targetMimeTypes = new ArrayList<MimeType>();
 	static {
-		targetMimeTypes.add(MessageConverterUtils.X_XD_STRING);
+		targetMimeTypes.add(MessageConverterUtils.X_XD_BYTE_ARRAY);
 		targetMimeTypes.add(MessageConverterUtils.X_JAVA_OBJECT);
 	}
 
-	public ByteArrayToStringMessageConverter() {
+	public StringToByteArrayMessageConverter() {
 		super(targetMimeTypes);
 	}
 
 	@Override
 	protected boolean supports(Class<?> clazz) {
-		return ClassUtils.isAssignable(clazz, String.class);
+		return ClassUtils.isAssignable(clazz, byte[].class);
 	}
 
 	@Override
 	protected boolean supportsPayloadType(Class<?> clazz) {
-		return (ClassUtils.isAssignable(clazz, byte[].class));
+		return (ClassUtils.isAssignable(clazz, String.class));
 	}
 
 	/**
@@ -62,15 +62,15 @@ public class ByteArrayToStringMessageConverter extends AbstractFromMessageConver
 	@Override
 	public Object convertFromInternal(Message<?> message, Class<?> targetClass) {
 		MimeType mimeType = contentTypeResolver.resolve(message.getHeaders());
-		String converted = null;
+		byte[] converted = null;
 		if (mimeType == null || mimeType.getParameter("Charset") == null) {
-			converted = new String((byte[]) message.getPayload());
+			converted = ((String) message.getPayload()).getBytes();
 		}
 		else {
 			String encoding = mimeType.getParameter("Charset");
 			if (encoding != null) {
 				try {
-					converted = new String((byte[]) message.getPayload(), encoding);
+					converted = ((String) message.getPayload()).getBytes(encoding);
 				}
 				catch (UnsupportedEncodingException e) {
 					logger.error(e.getMessage(), e);

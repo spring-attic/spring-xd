@@ -63,6 +63,7 @@ public class FromMessageConverterTests {
 		converters.add(new JsonToPojoMessageConverter());
 		converters.add(new PojoToStringMessageConverter());
 		converters.add(new ByteArrayToStringMessageConverter());
+		converters.add(new StringToByteArrayMessageConverter());
 		converters.add(new JavaToSerializedMessageConverter());
 		converters.add(new SerializedToJavaMessageConverter());
 		converterFactory = new CompositeMessageConverterFactory(converters);
@@ -212,6 +213,15 @@ public class FromMessageConverterTests {
 		assertTrue(result.getPayload() instanceof Foo);
 		assertEquals(MimeType.valueOf("application/x-java-object;type=" + Foo.class.getName()),
 				result.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+	}
+
+	@Test
+	public void testStringToByteArray() throws UnsupportedEncodingException {
+		CompositeMessageConverter converter = converterFactory.newInstance(MimeType.valueOf("application/x-java-object"));
+		Message<String> msg = MessageBuilder.withPayload("hello").copyHeaders(
+				Collections.singletonMap(MessageHeaders.CONTENT_TYPE, MimeType.valueOf("text/plain;charset=UTF-8"))).build();
+		byte[] result = (byte[]) converter.fromMessage(msg, byte[].class);
+		assertEquals("hello", new String(result, "UTF-8"));
 	}
 }
 

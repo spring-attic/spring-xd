@@ -24,7 +24,6 @@ import java.io.Serializable;
 import org.apache.commons.lang.ClassUtils;
 
 import org.springframework.messaging.Message;
-import org.springframework.util.MimeType;
 
 
 /**
@@ -34,8 +33,7 @@ import org.springframework.util.MimeType;
 public class JavaToSerializedMessageConverter extends AbstractFromMessageConverter {
 
 	public JavaToSerializedMessageConverter() {
-		super(MimeType.valueOf("application/x-java-object"),
-				MimeType.valueOf("application/x-java-serialized-object"));
+		super(MessageConverterUtils.X_JAVA_OBJECT, MessageConverterUtils.X_JAVA_SERIALIZED_OBJECT);
 	}
 
 	@Override
@@ -60,7 +58,7 @@ public class JavaToSerializedMessageConverter extends AbstractFromMessageConvert
 		}
 
 		return buildConvertedMessage(bos.toByteArray(), message.getHeaders(),
-				MimeType.valueOf("application/x-java-serialized-object"));
+				MessageConverterUtils.X_JAVA_SERIALIZED_OBJECT);
 	}
 
 }

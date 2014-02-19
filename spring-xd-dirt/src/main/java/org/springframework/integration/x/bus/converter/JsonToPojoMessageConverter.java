@@ -19,7 +19,6 @@ package org.springframework.integration.x.bus.converter;
 import org.apache.commons.lang.ClassUtils;
 
 import org.springframework.messaging.Message;
-import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.xd.tuple.Tuple;
 
@@ -36,7 +35,7 @@ public class JsonToPojoMessageConverter extends AbstractFromMessageConverter {
 	private final ObjectMapper mapper = new ObjectMapper();
 
 	public JsonToPojoMessageConverter() {
-		super(MimeTypeUtils.APPLICATION_JSON, MimeType.valueOf("application/x-java-object"));
+		super(MimeTypeUtils.APPLICATION_JSON, MessageConverterUtils.X_JAVA_OBJECT);
 		mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 	}
 

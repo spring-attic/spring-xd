@@ -16,6 +16,9 @@
 
 package org.springframework.xd.module.core;
 
+import static org.springframework.core.env.StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME;
+import static org.springframework.core.env.StandardEnvironment.SYSTEM_PROPERTIES_PROPERTY_SOURCE_NAME;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -37,12 +40,13 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.Ordered;
+import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.EnumerablePropertySource;
+import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.env.PropertySource;
-import org.springframework.core.env.StandardEnvironment;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.validation.BindException;
@@ -60,6 +64,7 @@ import org.springframework.xd.module.options.PassthruModuleOptionsMetadata;
  * @author Gary Russell
  * @author Dave Syer
  * @author Ilayaperumal Gopinathan
+ * @author Eric Bottard
  */
 public class SimpleModule extends AbstractModule {
 
@@ -184,12 +189,24 @@ public class SimpleModule extends AbstractModule {
 	@Override
 	public void initialize() {
 		this.application.initializers(new ContextIdApplicationContextInitializer(this.toString()));
-		ConfigurableEnvironment environment = new StandardEnvironment();
+		// We don't need "standard" property sources, as they're already taken
+		// care of (using qualified names) by EnvironmentAwareModuleOptionsMetadataResolver.
+		// We still install fake PSs under those names because boot relies on them being present
+		ConfigurableEnvironment environment = new AbstractEnvironment() {
+
+			@Override
+			protected void customizePropertySources(MutablePropertySources propertySources) {
+				for (PropertySource<?> source : SimpleModule.this.propertySources) {
+					propertySources.addLast(source);
+				}
+				propertySources.addLast(new MapPropertySource(SYSTEM_PROPERTIES_PROPERTY_SOURCE_NAME,
+						new HashMap<String, Object>()));
+				propertySources.addLast(new MapPropertySource(SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME,
+						new HashMap<String, Object>()));
+			}
+		};
 		if (parent != null) {
-			copyEnvironment(environment, parent.getEnvironment());
-		}
-		for (PropertySource<?> source : propertySources) {
-			environment.getPropertySources().addLast(source);
+			copyActiveProfiles(environment, parent.getEnvironment());
 		}
 		this.application.parent(parent);
 		this.application.environment(environment);
@@ -241,24 +258,7 @@ public class SimpleModule extends AbstractModule {
 		}
 	}
 
-	private void copyEnvironment(ConfigurableEnvironment environment, ConfigurableEnvironment parent) {
-		MutablePropertySources sources = environment.getPropertySources();
-		String lastName = null;
-		for (PropertySource<?> source : parent.getPropertySources()) {
-			String name = source.getName();
-			if (sources.contains(name)) {
-				sources.replace(source.getName(), source);
-			}
-			else {
-				if (lastName == null) {
-					sources.addFirst(source);
-				}
-				else {
-					sources.addAfter(lastName, source);
-				}
-			}
-			lastName = name;
-		}
+	private void copyActiveProfiles(ConfigurableEnvironment environment, ConfigurableEnvironment parent) {
 		for (String profile : parent.getActiveProfiles()) {
 			environment.addActiveProfile(profile);
 		}

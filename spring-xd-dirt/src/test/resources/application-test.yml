@@ -1,0 +1,119 @@
+spring:
+  profiles:
+    active: default,hsqldb
+  datasource:
+    url: jdbc:hsqldb:hsql://${hsql.server.host:localhost}:${hsql.server.port:9101}/${hsql.server.dbname:xdjob}
+    username: sa
+    password:
+    driverClassName: org.hsqldb.jdbc.JDBCDriver
+  main:
+    show_banner: false
+endpoints:
+  jolokia:
+    enabled: ${XD_JMX_ENABLED:false}
+  jmx:
+    enabled: ${XD_JMX_ENABLED:false}
+    uniqueNames: true
+
+XD_ANALYTICS: ${analytics:redis}
+XD_TRANSPORT: ${transport:redis}
+XD_CONTROL_TRANSPORT: ${controlTransport:${XD_TRANSPORT}}
+XD_STORE: ${store:redis}
+XD_HOME: ${xdHomeDir:..}
+XD_JMX_ENABLED: ${jmxEnabled:false}
+
+xd:
+  data:
+    home: file:${XD_HOME}/data
+  config:
+    home: file:${XD_HOME}/config
+  module:
+    home: file:${XD_HOME}/modules
+  ui:
+    home: file:${XD_HOME}/spring-xd-ui/dist/
+    allow_origin: http://localhost:9889
+
+server:
+  port: ${PORT:9393}
+management:
+  port: ${XD_MGMT_PORT:${PORT:9393}}
+  
+processor:
+  transform:
+    expression: "'application-value'"
+
+---
+
+spring:
+  profiles: rabbit
+transport: rabbit
+
+---
+
+spring:
+  profiles: cloud
+
+xdHomeDir: .
+
+---
+
+spring:
+  profiles: adminServer
+
+---
+
+spring:
+  profiles: node
+  batch:
+    initializer:
+      enabled: false
+server:
+  port: ${PORT:0}
+management:
+  port: ${XD_MGMT_PORT:${PORT:}}
+---
+
+spring:
+  profiles: local
+  datasource:
+    url: jdbc:mysql://localhost/test
+    username: root
+    password:
+    driverClassName: com.mysql.jdbc.Driver
+
+---
+spring:
+  profiles: single
+transport: local
+store: memory
+analytics: memory
+
+---
+# Redis properties
+# (vcap.services.* binds to a service called 'redis' in Pivotal CF)
+spring:
+  redis:
+   port: ${vcap.services.redis.credentials.port:6379}
+   host: ${vcap.services.redis.credentials.hostname:localhost}
+   pool.maxIdle: 8
+   pool.minIdle: 0
+   pool.maxActive: 8
+   pool.maxWait: -1
+
+---
+# RabbitMQ properties
+# (vcap.services.* binds to a service called 'rabbitmq' in Pivotal CF)
+spring:
+  rabbitmq:
+   host: ${vcap.services.rabbitmq.credentials.hostname:localhost}
+   port: ${vcap.services.rabbitmq.credentials.port:5672}
+   username: ${vcap.services.rabbitmq.credentials.username:guest}
+   password: ${vcap.services.rabbitmq.credentials.password:guest}
+   virtual_host: ${vcap.services.rabbitmq.credentials.vhost:/}
+
+---
+# Hadoop properties
+spring:
+  hadoop:
+   fsUri: hdfs://localhost:8020
+    

@@ -25,13 +25,8 @@ import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
-import org.springframework.context.EnvironmentAware;
-import org.springframework.context.ResourceLoaderAware;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.core.env.Environment;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.support.ParentLastURLClassLoader;
@@ -57,8 +52,7 @@ import org.springframework.xd.module.support.ParentLastURLClassLoader;
  * 
  * @author Eric Bottard
  */
-public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetadataResolver, EnvironmentAware,
-		ResourceLoaderAware {
+public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetadataResolver {
 
 
 	private static final Pattern DESCRIPTION_KEY_PATTERN = Pattern.compile("^options\\.([a-zA-Z\\-_0-9]+)\\.description$");
@@ -84,18 +78,6 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 		SHORT_CLASSNAMES.put("double", double.class);
 		SHORT_CLASSNAMES.put("Double", Double.class);
 	}
-
-	/**
-	 * Used to resolve the possible placeholders in the location of a defaults file for
-	 * {@link PojoModuleOptionsMetadata} (as stated in a @{@link PropertySource} annotation).
-	 */
-	private Environment environment;
-
-	/**
-	 * Used to actually load the {@code .properties} file(s) that may be referenced in @{@link PropertySource}
-	 * annotations in {@link PojoModuleOptionsMetadata}.
-	 */
-	private ResourceLoader resourceLoader;
 
 	private ConversionService conversionService;
 
@@ -195,7 +177,7 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 				if (pojoClass != null) {
 					try {
 						Class<?> clazz = Class.forName(pojoClass, true, classLoaderToUse);
-						return new PojoModuleOptionsMetadata(clazz, resourceLoader, environment, conversionService);
+						return new PojoModuleOptionsMetadata(clazz, conversionService);
 					}
 					catch (ClassNotFoundException e) {
 						throw new IllegalStateException("Unable to load class used by ModuleOptionsMetadata: "
@@ -227,16 +209,5 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 		return defaultModuleOptionsMetadataCollector.collect(beanFactory);
 
 	}
-
-	@Override
-	public void setEnvironment(Environment environment) {
-		this.environment = environment;
-	}
-
-	@Override
-	public void setResourceLoader(ResourceLoader resourceLoader) {
-		this.resourceLoader = resourceLoader;
-	}
-
 
 }

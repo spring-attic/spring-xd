@@ -26,10 +26,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
+import org.springframework.boot.builder.ParentContextApplicationContextInitializer.ParentContextAvailableEvent;
+import org.springframework.boot.builder.ParentContextCloserApplicationListener;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.ContextIdApplicationContextInitializer;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.Ordered;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.MutablePropertySources;
@@ -41,6 +44,7 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.validation.BindException;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.options.ModuleOptions;
 import org.springframework.xd.module.options.PassthruModuleOptionsMetadata;
 
@@ -51,6 +55,7 @@ import org.springframework.xd.module.options.PassthruModuleOptionsMetadata;
  * @author David Turanski
  * @author Gary Russell
  * @author Dave Syer
+ * @author Ilayaperumal Gopinathan
  */
 public class SimpleModule extends AbstractModule {
 
@@ -177,6 +182,44 @@ public class SimpleModule extends AbstractModule {
 		}
 		this.application.parent(parent);
 		this.application.environment(environment);
+		this.application.listeners(new ParentContextCloserApplicationListener() {
+
+			@Override
+			public void onApplicationEvent(ParentContextAvailableEvent event) {
+				ConfigurableApplicationContext child = event.getApplicationContext();
+				if (child.getParent() instanceof ConfigurableApplicationContext) {
+					ConfigurableApplicationContext parent = (ConfigurableApplicationContext) child
+							.getParent();
+					parent.addApplicationListener(new ModuleContextCloserListener(child));
+				}
+			}
+
+			/**
+			 * Module context closer listener that sets the order based on {@link ModuleType}
+			 */
+			final class ModuleContextCloserListener extends ContextCloserListener implements Ordered {
+
+				public ModuleContextCloserListener(ConfigurableApplicationContext moduleContext) {
+					super(moduleContext);
+				}
+
+				@Override
+				public int getOrder() {
+					// Make sure consumer modules (sink/processor) get closed before the producer modules
+					// by setting them the highest precedence
+					if (getType() == ModuleType.sink) {
+						return HIGHEST_PRECEDENCE;
+					}
+					else if (getType() == ModuleType.processor) {
+						return LOWEST_PRECEDENCE - 10;
+					}
+					else {
+						return LOWEST_PRECEDENCE;
+					}
+				}
+
+			}
+		});
 		this.context = this.application.run();
 		if (logger.isInfoEnabled()) {
 			logger.info("initialized module: " + this.toString());

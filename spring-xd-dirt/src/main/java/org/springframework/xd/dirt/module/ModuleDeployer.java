@@ -28,7 +28,6 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
@@ -56,10 +55,10 @@ import org.springframework.xd.module.core.CompositeModule;
 import org.springframework.xd.module.core.Module;
 import org.springframework.xd.module.core.Plugin;
 import org.springframework.xd.module.core.SimpleModule;
-import org.springframework.xd.module.options.PassthruModuleOptionsMetadata;
 import org.springframework.xd.module.options.ModuleOptions;
 import org.springframework.xd.module.options.ModuleOptionsMetadata;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
+import org.springframework.xd.module.options.PassthruModuleOptionsMetadata;
 import org.springframework.xd.module.support.ParentLastURLClassLoader;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -147,11 +146,10 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 				logger.debug("Destroying group:" + entry.getKey());
 			}
 			for (Entry<Integer, Module> moduleEntry : entry.getValue().entrySet()) {
-				this.destroyModule(moduleEntry.getValue());
+				// fire module undeploy event to make sure the module event listeners
+				// such as {@link ModuleEventStoreListener} are up-to-date.
+				this.fireModuleUndeployedEvent(moduleEntry.getValue());
 			}
-		}
-		if (this.commonContext != null) {
-			this.commonContext.close();
 		}
 	}
 

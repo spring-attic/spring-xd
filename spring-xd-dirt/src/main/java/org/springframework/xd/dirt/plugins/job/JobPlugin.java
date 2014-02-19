@@ -16,23 +16,21 @@
 
 package org.springframework.xd.dirt.plugins.job;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.container.XDContainer;
+import org.springframework.xd.dirt.plugins.AbstractPlugin;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.ModuleType;
-import org.springframework.xd.module.core.AbstractPlugin;
 import org.springframework.xd.module.core.Module;
 
 /**
@@ -74,11 +72,17 @@ public class JobPlugin extends AbstractPlugin {
 
 	private static final String JOB_STEP_EXECUTION_REPLY_CHANNEL = "stepExecutionReplies.output";
 
-	@Override
 	public void configureProperties(Module module) {
 		final Properties properties = new Properties();
 		properties.setProperty("xd.stream.name", module.getDeploymentMetadata().getGroup());
 		module.addProperties(properties);
+	}
+
+	@Override
+	public void preProcessModule(Module module) {
+		Assert.notNull(module, "module cannot be null");
+		module.addComponents(new ClassPathResource(REGISTRAR));
+		configureProperties(module);
 	}
 
 	@Override
@@ -151,21 +155,6 @@ public class JobPlugin extends AbstractPlugin {
 		return (module.getType() == ModuleType.job);
 	}
 
-	private MessageBus findMessageBus(Module module) {
-		MessageBus messageBus = null;
-		try {
-			messageBus = module.getComponent(MessageBus.class);
-		}
-		catch (Exception e) {
-			logger.error("No MessageBus in context, cannot wire/unwire channels: " + e.getMessage());
-		}
-		return messageBus;
-	}
-
-	@Override
-	public void beforeShutdown(Module module) {
-	}
-
 	@Override
 	public void removeModule(Module module) {
 		MessageBus bus = findMessageBus(module);
@@ -178,13 +167,6 @@ public class JobPlugin extends AbstractPlugin {
 		}
 	}
 
-	@Override
-	public List<String> componentPathsSelector(Module module) {
-		List<String> result = new ArrayList<String>();
-		result.add(REGISTRAR);
-		return result;
-	}
-
 	public void launch(Module module, Map<String, String> parameters) {
 		MessageChannel inputChannel = module.getComponent(JOB_LAUNCH_REQUEST_CHANNEL, MessageChannel.class);
 		String payloadJSON =
@@ -193,5 +175,4 @@ public class JobPlugin extends AbstractPlugin {
 		Message<?> message = MessageBuilder.withPayload(payloadJSON).build();
 		inputChannel.send(message);
 	}
-
 }

@@ -20,20 +20,18 @@ import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import org.springframework.aop.framework.Advised;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.integration.channel.AbstractMessageChannel;
+import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.xd.dirt.container.XDContainer;
+import org.springframework.xd.dirt.plugins.AbstractPlugin;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.core.Module;
-import org.springframework.xd.module.core.Plugin;
 import org.springframework.xd.module.support.BeanDefinitionAddingPostProcessor;
 
 /**
@@ -43,9 +41,9 @@ import org.springframework.xd.module.support.BeanDefinitionAddingPostProcessor;
  * @author Jennifer Hickey
  * @author Glenn Renfro
  */
-public class StreamPlugin implements Plugin {
+public class StreamPlugin extends AbstractPlugin {
 
-	protected final Log logger = LogFactory.getLog(this.getClass());
+	private final Log logger = LogFactory.getLog(getClass());
 
 	private static final String CONTEXT_CONFIG_ROOT = XDContainer.XD_CONFIG_ROOT + "plugins/stream/";
 
@@ -77,17 +75,6 @@ public class StreamPlugin implements Plugin {
 		return (moduleType == ModuleType.source || moduleType == ModuleType.processor || moduleType == ModuleType.sink);
 	}
 
-	protected final MessageBus findMessageBus(Module module) {
-		MessageBus messageBus = null;
-		try {
-			messageBus = module.getComponent(MessageBus.class);
-		}
-		catch (Exception e) {
-			logger.error("No MessageBus in context, cannot wire/unwire channels: " + e.getMessage());
-		}
-		return messageBus;
-	}
-
 	private void bindConsumer(Module module, MessageBus bus) {
 		DeploymentMetadata md = module.getDeploymentMetadata();
 		MessageChannel channel = module.getComponent("input", MessageChannel.class);
@@ -116,20 +103,17 @@ public class StreamPlugin implements Plugin {
 				bus.bindProducer(md.getOutputChannelName(), channel, md.isAliasedOutput());
 			}
 
-			// TODO remove this once addInterceptor is an interface method in SI
-			Object rawChannel = extractTarget(channel);
-
 			// Create the tap channel now for possible future use (tap:mystream.mymodule)
-			if (rawChannel instanceof AbstractMessageChannel) {
+			if (channel instanceof ChannelInterceptorAware) {
 				String tapChannelName = buildTapChannelName(module);
 				DirectChannel tapChannel = new DirectChannel();
 				tapChannel.setBeanName(tapChannelName + ".tap.bridge");
-				((AbstractMessageChannel) rawChannel).addInterceptor(new WireTap(tapChannel));
+				((ChannelInterceptorAware) channel).addInterceptor(new WireTap(tapChannel));
 				bus.bindPubSubProducer(tapChannelName, tapChannel);
 			}
 			else {
 				if (logger.isDebugEnabled()) {
-					logger.debug("output channel is not an AbstractMessageChannel. Tap will not be created.");
+					logger.debug("output channel is not interceptor aware. Tap will not be created.");
 				}
 			}
 		}
@@ -142,10 +126,6 @@ public class StreamPlugin implements Plugin {
 			unbindConsumer(module, bus);
 			unbindProducers(module, bus);
 		}
-	}
-
-	@Override
-	public void removeModule(Module module) {
 	}
 
 	private void unbindConsumer(Module module, MessageBus bus) {
@@ -177,23 +157,5 @@ public class StreamPlugin implements Plugin {
 	public void preProcessSharedContext(ConfigurableApplicationContext context) {
 		context.addBeanFactoryPostProcessor(new BeanDefinitionAddingPostProcessor(context.getEnvironment(),
 				new ClassPathResource(MESSAGE_BUS)));
-	}
-
-	// TODO please get me out of this class, preferably by deleting when SI has addInterceptor in an interface
-	private Object extractTarget(Object bean) {
-		if (!(bean instanceof Advised)) {
-			return bean;
-		}
-		Advised advised = (Advised) bean;
-		if (advised.getTargetSource() == null) {
-			return null;
-		}
-		try {
-			return extractTarget(advised.getTargetSource().getTarget());
-		}
-		catch (Exception e) {
-			logger.error("Could not extract target from output channel. Tap will not be created.", e);
-			return null;
-		}
 	}
 }

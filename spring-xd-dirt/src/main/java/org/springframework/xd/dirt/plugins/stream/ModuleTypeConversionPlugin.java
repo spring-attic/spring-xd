@@ -21,7 +21,6 @@ import java.util.Map.Entry;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -37,11 +36,11 @@ import org.springframework.integration.x.bus.converter.DefaultContentTypeAwareCo
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.xd.dirt.plugins.AbstractPlugin;
 import org.springframework.xd.dirt.plugins.ModuleConfigurationException;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.core.Module;
 import org.springframework.xd.module.core.Plugin;
-import org.springframework.xd.module.core.PluginAdapter;
 import org.springframework.xd.module.core.SimpleModule;
 
 
@@ -51,7 +50,7 @@ import org.springframework.xd.module.core.SimpleModule;
  * @author David Turanski
  * @since 1.0
  */
-public class ModuleTypeConversionPlugin extends PluginAdapter {
+public class ModuleTypeConversionPlugin extends AbstractPlugin {
 
 	private final static Log logger = LogFactory.getLog(ModuleTypeConversionPlugin.class);
 
@@ -147,10 +146,10 @@ public class ModuleTypeConversionPlugin extends PluginAdapter {
 		Object channel = module.getComponent(name, Object.class);
 
 		if (AopUtils.isJdkDynamicProxy(channel)) {
-			return (AbstractMessageChannel)(((Advised)channel).getTargetSource().getTarget());
+			return (AbstractMessageChannel) (((Advised) channel).getTargetSource().getTarget());
 		}
 
-		return (AbstractMessageChannel)channel;
+		return (AbstractMessageChannel) channel;
 	}
 
 	private MediaType resolveContentType(String type, Module module) throws ClassNotFoundException, LinkageError {
@@ -164,6 +163,11 @@ public class ModuleTypeConversionPlugin extends PluginAdapter {
 	private Class<?> resolveJavaType(String type, Module module) throws ClassNotFoundException, LinkageError {
 		SimpleModule sm = (SimpleModule) module;
 		return ClassUtils.forName(type, sm.getApplicationContext().getClassLoader());
+	}
+
+	@Override
+	public boolean supports(Module module) {
+		return true;
 	}
 
 }

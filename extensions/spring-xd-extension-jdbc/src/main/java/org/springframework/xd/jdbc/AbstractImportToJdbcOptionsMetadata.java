@@ -47,7 +47,7 @@ public abstract class AbstractImportToJdbcOptionsMetadata extends AbstractJdbcOp
 		this.initializerScript = initializerScript;
 	}
 
-	public Boolean getInitializeDatabase() {
+	public boolean getInitializeDatabase() {
 		return initializeDatabase;
 	}
 

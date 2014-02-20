@@ -2,20 +2,22 @@ package org.springframework.xd.jdbc;
 
 import javax.validation.constraints.AssertTrue;
 
+import org.springframework.util.StringUtils;
 import org.springframework.xd.module.options.spi.ModuleOption;
 
 /**
  * @author Luke Taylor
+ * @author Ilayaperumal Gopinathan
  */
 public class JdbcHdfsOptionsMetadata extends AbstractJdbcOptionsMetadata {
 
 	private boolean restartable;
 
-	private String tableName;
+	private String tableName = "";
 
-	private String columns;
+	private String columns = "";
 
-	private String sql;
+	private String sql = "";
 
 	private String fileName;
 
@@ -48,10 +50,10 @@ public class JdbcHdfsOptionsMetadata extends AbstractJdbcOptionsMetadata {
 
 	@AssertTrue(message = "Use ('tableName' AND 'columns') OR 'sql' to define the data import")
 	boolean isEitherSqlOrTableAndColumns() {
-		if (sql == null) {
-			return tableName != null && columns != null;
+		if (!StringUtils.hasText(sql)) {
+			return StringUtils.hasText(tableName) && StringUtils.hasText(columns);
 		} else {
-			return tableName == null && columns == null;
+			return !StringUtils.hasText(tableName) && !StringUtils.hasText(columns);
 		}
 	}
 
@@ -75,7 +77,7 @@ public class JdbcHdfsOptionsMetadata extends AbstractJdbcOptionsMetadata {
 		this.fileExtension = fileExtension;
 	}
 
-	public Boolean isRestartable() {
+	public boolean getRestartable() {
 		return restartable;
 	}
 

@@ -59,11 +59,11 @@ public class FilePollHdfsJobOptionsMetadata {
 		this.fileExtension = fileExtension;
 	}
 
-	public Boolean getRestartable() {
+	public boolean getRestartable() {
 		return restartable;
 	}
 
-	public Boolean getDeleteFiles() {
+	public boolean getDeleteFiles() {
 		return deleteFiles;
 	}
 

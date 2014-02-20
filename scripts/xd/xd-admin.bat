@@ -92,10 +92,19 @@ if exist "%APP_HOME_LIB%" (
 )
 
 @rem Set XD_HOME to APP_HOME if XD_HOME is not defined yet
-if not exist "%XD_HOME%" (
-    set XD_HOME=%APP_HOME%
+if not defined XD_HOME (
+    set XD_HOME="%APP_HOME%"
 )
-set SPRING_XD_OPTS="-Dspring.application.name=admin -Dlogging.config=file:%XD_HOME%/config/xd-admin-logger.properties -Dxd.home=%XD_HOME%"
+
+@rem Check for an explicitly set XD_CONFIG
+if not defined XD_CONFIG (
+    set XD_CONFIG=%XD_HOME%/config/xd-config.yml
+)
+
+set SPRING_XD_OPTS=-Dspring.config.location=file:%XD_CONFIG% -Dspring.application.name=admin -Dlogging.config=file:%XD_HOME%/config/xd-admin-logger.properties -Dxd.home=%XD_HOME%
+
+@rem make sure to remove double quotes if any
+set XD_HOME=%XD_HOME:"=%
 
 @rem Execute xd-admin
 "%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SPRING_XD_OPTS% -classpath "%CLASSPATH%" org.springframework.xd.dirt.server.AdminServerApplication %CMD_LINE_ARGS%
@@ -114,4 +123,3 @@ exit /b 1
 if "%OS%"=="Windows_NT" endlocal
 
 :omega
-

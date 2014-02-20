@@ -58,7 +58,7 @@ public class ResourcesIntoJdbcJobModuleOptionsMetadata extends
 		this.deleteFiles = deleteFiles;
 	}
 
-	public Boolean getRestartable() {
+	public boolean getRestartable() {
 		return restartable;
 	}
 

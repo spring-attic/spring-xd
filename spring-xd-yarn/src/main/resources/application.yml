@@ -9,6 +9,7 @@ spring:
             files:
                 - "file:${spring.xd.yarn.app.path}/${spring.xd.yarn.app.zip}"
                 - "file:${spring.xd.yarn.am.path}/${spring.xd.yarn.am.jar}"
+                - "file:${spring.xd.yarn.config.path}/${spring.xd.yarn.config.props}"
             appmasterFile: "${spring.xd.yarn.am.jar}"
 ---
 spring:
@@ -22,6 +23,8 @@ spring:
                 -Dspring.xd.yarn.app.zip: "${spring.xd.yarn.app.zip}"
                 -Dspring.xd.yarn.am.path: "${spring.xd.yarn.am.path}"
                 -Dspring.xd.yarn.am.jar: "${spring.xd.yarn.am.jar}"
+                -Dspring.xd.yarn.config.path: "${spring.xd.yarn.config.path}"
+                -Dspring.xd.yarn.config.props: "${spring.xd.yarn.config.props}"
                 -Dspring.yarn.applicationDir: "${spring.yarn.applicationDir}"
                 -Dspring.yarn.fsUri: "${spring.yarn.fsUri}"
                 -Dspring.yarn.rmAddress: "${spring.yarn.rmAddress}"
@@ -32,9 +35,10 @@ spring:
             containerRunner: org.springframework.xd.dirt.server.AdminServerApplication
             containerCount: 1
             arguments:
-                -DxdHomeDir: "./${spring.xd.yarn.app.zip}"
                 -Dspring.application.name: "admin"
+                -DxdHomeDir: "./${spring.xd.yarn.app.zip}"
                 -DPORT: "${server.port}"
+                -Dspring.config.location: "./${spring.xd.yarn.config.props}"
             waitLatch: false
             classpath:
                 - "./${spring.xd.yarn.app.zip}"
@@ -52,6 +56,8 @@ spring:
                 -Dspring.xd.yarn.app.zip: "${spring.xd.yarn.app.zip}"
                 -Dspring.xd.yarn.am.path: "${spring.xd.yarn.am.path}"
                 -Dspring.xd.yarn.am.jar: "${spring.xd.yarn.am.jar}"
+                -Dspring.xd.yarn.config.path: "${spring.xd.yarn.config.path}"
+                -Dspring.xd.yarn.config.props: "${spring.xd.yarn.config.props}"
                 -Dspring.yarn.appName: "${spring.yarn.appName}"
                 -Dspring.yarn.applicationDir: "${spring.yarn.applicationDir}"
                 -Dspring.yarn.fsUri: "${spring.yarn.fsUri}"
@@ -63,8 +69,9 @@ spring:
             containerCount: 1
             containerRunner: org.springframework.xd.dirt.server.LauncherApplication
             arguments:
-                -DxdHomeDir: "./${spring.xd.yarn.app.zip}"
                 -Dspring.application.name: "container"
+                -DxdHomeDir: "./${spring.xd.yarn.app.zip}"
+                -Dspring.config.location: "./${spring.xd.yarn.config.props}"
             waitLatch: false
             classpath:
                 - "./${spring.xd.yarn.app.zip}"

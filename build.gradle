@@ -1666,6 +1666,7 @@ task distYarnZip(type: Zip, dependsOn: [copyInstall, yarnZip], overwrite: true) 
 	}
 
 	from("$rootDir/spring-xd-yarn/site/config") {
+		include '*.properties'
 		include '*.yml'
 		into "${baseDir}/config"
 	}

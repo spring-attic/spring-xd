@@ -67,6 +67,7 @@ XD_ZIP=`ls spring-xd-yarn*.zip`
 cd lib
 XD_AM_JAR=`ls spring-xd-yarn-appmaster*.jar`
 XD_CLIENT_JAR=`ls spring-xd-yarn-client*.jar`
+XD_CONFIG_PROPS=application.properties
 cd ..
 cd "$SAVED" >&-
 
@@ -157,4 +158,4 @@ if $cygwin ; then
     esac
 fi
 
-exec "$JAVACMD" "${JVM_OPTS[@]}" -Dspring.profiles.active=admin "-Dspring.config.location=${APP_HOME}/config/xd-site.yml" "-Dspring.xd.yarn.app.path=${APP_HOME}" "-Dspring.xd.yarn.app.zip=${XD_ZIP}" "-Dspring.xd.yarn.am.path=${APP_HOME}/lib" "-Dspring.xd.yarn.am.jar=${XD_AM_JAR}" -jar "${APP_HOME}/lib/${XD_CLIENT_JAR}"
+exec "$JAVACMD" "${JVM_OPTS[@]}" -Dspring.profiles.active=admin "-Dspring.config.location=${APP_HOME}/config/xd-site.yml" "-Dspring.xd.yarn.app.path=${APP_HOME}" "-Dspring.xd.yarn.app.zip=${XD_ZIP}" "-Dspring.xd.yarn.am.path=${APP_HOME}/lib" "-Dspring.xd.yarn.am.jar=${XD_AM_JAR}" "-Dspring.xd.yarn.config.path=${APP_HOME}/config" "-Dspring.xd.yarn.config.props=${XD_CONFIG_PROPS}" -jar "${APP_HOME}/lib/${XD_CLIENT_JAR}"

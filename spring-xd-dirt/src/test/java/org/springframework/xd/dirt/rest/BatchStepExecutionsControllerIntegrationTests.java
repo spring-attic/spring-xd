@@ -46,7 +46,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.xd.dirt.plugins.job.BatchJobLocator;
+import org.springframework.xd.dirt.plugins.job.DistributedJobLocator;
 
 /**
  * Tests REST compliance of {@link BatchStepExecutionsController} endpoints.
@@ -63,7 +63,7 @@ public class BatchStepExecutionsControllerIntegrationTests extends AbstractContr
 	private JobService jobService;
 
 	@Autowired
-	private BatchJobLocator jobLocator;
+	private DistributedJobLocator jobLocator;
 
 	@Before
 	public void before() throws Exception {

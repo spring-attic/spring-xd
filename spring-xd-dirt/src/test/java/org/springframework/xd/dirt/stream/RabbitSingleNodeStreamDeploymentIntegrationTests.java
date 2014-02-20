@@ -17,7 +17,6 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.rules.ExternalResource;
-
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.x.bus.RabbitTestMessageBus;
@@ -51,7 +50,6 @@ public class RabbitSingleNodeStreamDeploymentIntegrationTests extends
 
 	@AfterClass
 	public static void cleanup() {
-
 		ApplicationContext context = application.containerContext();
 		RabbitAdmin admin = context.getBean(RabbitAdmin.class);
 		String deployerQueue = context.getEnvironment().resolvePlaceholders(XD_DEPLOYER_PLACEHOLDER);

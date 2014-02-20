@@ -32,7 +32,7 @@ public class BatchJobRegistryBeanPostProcessor extends JobRegistryBeanPostProces
 
 	private JobRegistry jobRegistry;
 
-	private BatchJobLocator jobLocator;
+	private DistributedJobLocator jobLocator;
 
 	private String groupName;
 
@@ -42,7 +42,7 @@ public class BatchJobRegistryBeanPostProcessor extends JobRegistryBeanPostProces
 		super.setJobRegistry(jobRegistry);
 	}
 
-	public void setJobLocator(BatchJobLocator jobLocator) {
+	public void setJobLocator(DistributedJobLocator jobLocator) {
 		this.jobLocator = jobLocator;
 	}
 
@@ -58,10 +58,11 @@ public class BatchJobRegistryBeanPostProcessor extends JobRegistryBeanPostProces
 			FlowJob job = (FlowJob) bean;
 			job.setName(this.groupName);
 			if (!jobRegistry.getJobNames().contains(groupName)) {
-				// Add the job name & job parameters incrementer flag to BatchJobLocator
-				// Since, the Spring batch doesn't have persistent JobRegistry, the BatchJobLocator
-				// acts as the store to have jobName & incrementer flag to be used by {@DistributedJobService}
+				// Add the job name & job parameters incrementer flag to {@link DistributedJobLocator}
+				// Since, the Spring batch doesn't have persistent JobRegistry, the {@link DistributedJobLocator}
+				// acts as the store to have jobName & incrementer flag to be used by {@link DistributedJobService}
 				jobLocator.addJob(groupName, (job.getJobParametersIncrementer() != null) ? true : false);
+				jobLocator.addStepNames(groupName, job.getStepNames());
 				super.postProcessAfterInitialization(bean, beanName);
 			}
 			else {

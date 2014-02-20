@@ -43,6 +43,7 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.configuration.JobRegistry;
+import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.integration.launch.JobLaunchRequest;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -61,6 +62,8 @@ public class JobLaunchRequestTransformerTests {
 	Job mockedJob;
 
 	JobLaunchRequestTransformer transformer;
+
+	RunIdIncrementer jobParameterIncrementer = new RunIdIncrementer();
 
 	@Rule
 	public TemporaryFolder temporaryFolder = new TemporaryFolder();
@@ -431,5 +434,19 @@ public class JobLaunchRequestTransformerTests {
 
 		assertEquals("#000000.000", retrievedDecimalFormat.toPattern());
 
+	}
+
+	@Test
+	public void testJobParameterIncrementer() {
+		jobParameterIncrementer.setKey("test-param-incrementer");
+		when(mockedJob.getJobParametersIncrementer()).thenReturn(jobParameterIncrementer);
+		final Message<String> message = MessageBuilder.withPayload("{\"test-param-incrementer(long)\":\"1234\"}").build();
+
+		final JobLaunchRequest jobLaunchRequest = transformer.toJobLaunchRequest(message);
+
+		assertNotNull(jobLaunchRequest.getJobParameters());
+		assertTrue(jobLaunchRequest.getJobParameters().getParameters().size() == 2);
+		// Now check if the job parameter is incremented
+		assertEquals(Long.valueOf(1235), jobLaunchRequest.getJobParameters().getLong("test-param-incrementer"));
 	}
 }

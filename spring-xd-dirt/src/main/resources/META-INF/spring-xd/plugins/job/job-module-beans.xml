@@ -10,7 +10,7 @@
 	<bean id="registrar" class="org.springframework.xd.dirt.plugins.job.BatchJobRegistryBeanPostProcessor">
 		<property name="jobRegistry" ref="jobRegistry"/>
 		<property name="groupName" value="${xd.stream.name}"/>
-		<property name="jobLocator" ref="batchJobLocator"/>
+		<property name="jobLocator" ref="distributedJobLocator"/>
 	</bean>
 
 	<int:channel id="input" />

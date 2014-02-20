@@ -20,8 +20,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang.ClassUtils;
-
 import org.springframework.integration.x.bus.StringConvertingContentTypeResolver;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.ContentTypeResolver;
@@ -29,6 +27,8 @@ import org.springframework.util.MimeType;
 
 
 /**
+ * A {@link MessageConverter} to convert from byte[] to String applying the Charset provided in the content-type header
+ * if any.
  * 
  * @author David Turanski
  */
@@ -47,13 +47,13 @@ public class ByteArrayToStringMessageConverter extends AbstractFromMessageConver
 	}
 
 	@Override
-	protected boolean supports(Class<?> clazz) {
-		return ClassUtils.isAssignable(clazz, String.class);
+	protected Class<?>[] supportedTargetTypes() {
+		return new Class<?>[] { String.class };
 	}
 
 	@Override
-	protected boolean supportsPayloadType(Class<?> clazz) {
-		return (ClassUtils.isAssignable(clazz, byte[].class));
+	protected Class<?>[] supportedPayloadTypes() {
+		return new Class<?>[] { byte[].class };
 	}
 
 	/**

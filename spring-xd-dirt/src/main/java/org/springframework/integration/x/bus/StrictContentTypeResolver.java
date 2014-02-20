@@ -20,11 +20,16 @@ import org.springframework.util.MimeType;
 
 
 /**
+ * A {@link StringConvertingContentTypeResolver} that requires a the content-type to be present
  * 
  * @author David Turanski
  */
+// TODO: This will likely be pushed to core Spring
 public class StrictContentTypeResolver extends StringConvertingContentTypeResolver {
 
+	/**
+	 * @param defaultMimeType the required {@link MimeType}
+	 */
 	public StrictContentTypeResolver(MimeType defaultMimeType) {
 		super();
 		setDefaultMimeType(defaultMimeType);

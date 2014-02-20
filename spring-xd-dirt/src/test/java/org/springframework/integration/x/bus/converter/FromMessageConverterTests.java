@@ -57,15 +57,15 @@ public class FromMessageConverterTests {
 	@Before
 	public void setUp() {
 		// Order matters
-		converters.add(new JsonToTupleMessageConverter());
-		converters.add(new PojoToJsonMessageConverter());
-		converters.add(new TupleToJsonMessageConverter());
-		converters.add(new JsonToPojoMessageConverter());
-		converters.add(new PojoToStringMessageConverter());
-		converters.add(new ByteArrayToStringMessageConverter());
 		converters.add(new StringToByteArrayMessageConverter());
 		converters.add(new JavaToSerializedMessageConverter());
 		converters.add(new SerializedToJavaMessageConverter());
+		converters.add(new JsonToTupleMessageConverter());
+		converters.add(new TupleToJsonMessageConverter());
+		converters.add(new PojoToJsonMessageConverter());
+		converters.add(new JsonToPojoMessageConverter());
+		converters.add(new PojoToStringMessageConverter());
+		converters.add(new ByteArrayToStringMessageConverter());
 		converterFactory = new CompositeMessageConverterFactory(converters);
 	}
 
@@ -217,7 +217,7 @@ public class FromMessageConverterTests {
 
 	@Test
 	public void testStringToByteArray() throws UnsupportedEncodingException {
-		CompositeMessageConverter converter = converterFactory.newInstance(MimeType.valueOf("application/x-java-object"));
+		CompositeMessageConverter converter = converterFactory.newInstance(MimeType.valueOf("application/octet-stream"));
 		Message<String> msg = MessageBuilder.withPayload("hello").copyHeaders(
 				Collections.singletonMap(MessageHeaders.CONTENT_TYPE, MimeType.valueOf("text/plain;charset=UTF-8"))).build();
 		byte[] result = (byte[]) converter.fromMessage(msg, byte[].class);

@@ -20,15 +20,16 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang.ClassUtils;
-
 import org.springframework.integration.x.bus.StringConvertingContentTypeResolver;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.ContentTypeResolver;
 import org.springframework.util.MimeType;
+import org.springframework.util.MimeTypeUtils;
 
 
 /**
+ * An {@link MessageConverter} to convert a String to a byte[], applying the provided Charset in the content-type header
+ * if any.
  * 
  * @author David Turanski
  */
@@ -38,8 +39,7 @@ public class StringToByteArrayMessageConverter extends AbstractFromMessageConver
 
 	private final static List<MimeType> targetMimeTypes = new ArrayList<MimeType>();
 	static {
-		targetMimeTypes.add(MessageConverterUtils.X_XD_BYTE_ARRAY);
-		targetMimeTypes.add(MessageConverterUtils.X_JAVA_OBJECT);
+		targetMimeTypes.add(MimeTypeUtils.APPLICATION_OCTET_STREAM);
 	}
 
 	public StringToByteArrayMessageConverter() {
@@ -47,17 +47,17 @@ public class StringToByteArrayMessageConverter extends AbstractFromMessageConver
 	}
 
 	@Override
-	protected boolean supports(Class<?> clazz) {
-		return ClassUtils.isAssignable(clazz, byte[].class);
+	protected Class<?>[] supportedTargetTypes() {
+		return new Class<?>[] { byte[].class };
 	}
 
 	@Override
-	protected boolean supportsPayloadType(Class<?> clazz) {
-		return (ClassUtils.isAssignable(clazz, String.class));
+	protected Class<?>[] supportedPayloadTypes() {
+		return new Class<?>[] { String.class };
 	}
 
 	/**
-	 * Don't need to manipulate message headers. Just return payload
+	 * Don't need to manipulate message headers. Just return the payload
 	 */
 	@Override
 	public Object convertFromInternal(Message<?> message, Class<?> targetClass) {

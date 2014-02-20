@@ -21,12 +21,11 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
-import org.apache.commons.lang.ClassUtils;
-
 import org.springframework.messaging.Message;
 
 
 /**
+ * A {@link MessageConverter} to convert from a POJO to byte[] with Java.io serialization if any.
  * 
  * @author David Turanski
  */
@@ -37,13 +36,13 @@ public class JavaToSerializedMessageConverter extends AbstractFromMessageConvert
 	}
 
 	@Override
-	protected boolean supportsPayloadType(Class<?> clazz) {
-		return ClassUtils.isAssignable(clazz, Serializable.class);
+	protected Class<?>[] supportedTargetTypes() {
+		return new Class<?>[] { byte[].class };
 	}
 
 	@Override
-	protected boolean supports(Class<?> clazz) {
-		return ClassUtils.isAssignable(clazz, byte[].class);
+	protected Class<?>[] supportedPayloadTypes() {
+		return new Class<?>[] { Serializable.class };
 	}
 
 	@Override

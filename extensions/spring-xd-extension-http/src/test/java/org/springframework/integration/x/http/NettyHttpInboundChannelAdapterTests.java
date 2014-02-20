@@ -83,10 +83,8 @@ public class NettyHttpInboundChannelAdapterTests {
 		assertEquals(2, messages.size());
 		Message<?> message1 = messages.get(0);
 		Message<?> message2 = messages.get(1);
-		String payload1 = new String((byte[]) message1.getPayload());
-		String payload2 = new String((byte[]) message2.getPayload());
-		assertEquals("foo", payload1);
-		assertEquals("bar", payload2);
+		assertEquals("foo", message1.getPayload());
+		assertEquals("bar", message2.getPayload());
 		assertEquals("/test1", message1.getHeaders().get("requestPath"));
 		assertEquals("/test2", message2.getHeaders().get("requestPath"));
 	}
@@ -183,10 +181,8 @@ public class NettyHttpInboundChannelAdapterTests {
 		assertEquals(2, messages.size());
 		Message<?> message1 = messages.get(0);
 		Message<?> message2 = messages.get(1);
-		String payload1 = new String((byte[]) message1.getPayload());
-		String payload2 = new String((byte[]) message2.getPayload());
-		assertEquals("foo", payload1);
-		assertEquals("bar", payload2);
+		assertEquals("foo", message1.getPayload());
+		assertEquals("bar", message2.getPayload());
 		assertEquals("/test1", message1.getHeaders().get("requestPath"));
 		assertEquals("/test2", message2.getHeaders().get("requestPath"));
 	}

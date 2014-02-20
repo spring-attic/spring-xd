@@ -41,7 +41,9 @@ import org.springframework.xd.module.core.SimpleModule;
 
 
 /**
- * A {@link Plugin} for processing module message conversion parameters (inputType and outputType)
+ * A {@link Plugin} for processing module message conversion parameters (inputType and outputType). Accepts a list of
+ * {@link AbstractFromMessageConverter}s which are always available along with an optional list of custom converters
+ * which may be provided by end users.
  * 
  * @author David Turanski
  * @since 1.0
@@ -52,6 +54,10 @@ public class ModuleTypeConversionPlugin extends PluginAdapter {
 
 	private final CompositeMessageConverterFactory converterFactory;
 
+	/**
+	 * @param converters a list of default converters
+	 * @param customConverters a list of custom converters to extend the default converters
+	 */
 	public ModuleTypeConversionPlugin(Collection<AbstractFromMessageConverter> converters,
 			Collection<AbstractFromMessageConverter> customConverters) {
 		if (!CollectionUtils.isEmpty(customConverters)) {

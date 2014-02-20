@@ -16,11 +16,8 @@
 
 package org.springframework.integration.x.bus.converter;
 
-import org.apache.commons.lang.ClassUtils;
-
 import org.springframework.messaging.Message;
 import org.springframework.util.MimeTypeUtils;
-import org.springframework.xd.tuple.Tuple;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -40,13 +37,13 @@ public class JsonToPojoMessageConverter extends AbstractFromMessageConverter {
 	}
 
 	@Override
-	protected boolean supports(Class<?> clazz) {
-		return !ClassUtils.isAssignable(clazz, Tuple.class);
+	protected Class<?>[] supportedPayloadTypes() {
+		return new Class<?>[] { String.class, byte[].class };
 	}
 
 	@Override
-	protected boolean supportsPayloadType(Class<?> clazz) {
-		return (ClassUtils.isAssignable(clazz, byte[].class) || ClassUtils.isAssignable(clazz, String.class));
+	protected Class<?>[] supportedTargetTypes() {
+		return null; // any type
 	}
 
 	@Override
@@ -59,7 +56,7 @@ public class JsonToPojoMessageConverter extends AbstractFromMessageConverter {
 				result = mapper.readValue((byte[]) payload, targetClass);
 			}
 			else if (payload instanceof String) {
-				result = mapper.readValue(((String) payload).getBytes(), targetClass);
+				result = mapper.readValue((String) payload, targetClass);
 			}
 		}
 		catch (Exception e) {

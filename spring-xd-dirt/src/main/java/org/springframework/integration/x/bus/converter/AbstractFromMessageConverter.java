@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -36,7 +37,10 @@ import org.springframework.util.MimeType;
 
 
 /**
- * Base class for converters applied via Spring Integration 4 data type channels
+ * Base class for converters applied via Spring Integration 4.x data type channels.
+ * 
+ * Extend this class to implement {@link MessageConverter}s used with Spring XD Message conversion. Only fromMessage()
+ * is supported.
  * 
  * @author David Turanski
  */
@@ -60,7 +64,7 @@ public abstract class AbstractFromMessageConverter extends AbstractMessageConver
 	}
 
 	/**
-	 * Creates a converter that expects one or more content-type message headers
+	 * Creates a converter that handles one or more content-type message headers
 	 * 
 	 * @param supportedSourceMimeTypes list of {@link MimeType} that may present in content-type header
 	 * @param targetMimeType the required target type (outputType or inputType for XD)
@@ -73,6 +77,13 @@ public abstract class AbstractFromMessageConverter extends AbstractMessageConver
 		this.targetMimeTypes = Collections.singletonList(targetMimeType);
 	}
 
+	/**
+	 * Creates a converter that handles one or more content-type message headers and one or more target MIME types
+	 * 
+	 * @param supportedSourceMimeTypes a list of supported content types
+	 * @param targetMimeTypes a list of supported target types (outputType or inputType for XD)
+	 * @param {@link ContentTypeResolver} to use
+	 */
 	protected AbstractFromMessageConverter(Collection<MimeType> supportedSourceMimeTypes,
 			Collection<MimeType> targetMimeTypes,
 			ContentTypeResolver contentTypeResolver) {
@@ -83,9 +94,9 @@ public abstract class AbstractFromMessageConverter extends AbstractMessageConver
 	}
 
 	/**
-	 * Creates a converter that expects exactly one content-type message header
+	 * Creates a converter that requires a specific content-type message header
 	 * 
-	 * @param supportedSourceMimeTypes list of {@link MimeType} that may present in content-type header
+	 * @param supportedSourceMimeType {@link MimeType} that must be present in content-type header
 	 * @param targetMimeType the required target type (outputType or inputType for XD)
 	 */
 	protected AbstractFromMessageConverter(MimeType supportedSourceMimeType, MimeType targetMimeType) {
@@ -93,12 +104,51 @@ public abstract class AbstractFromMessageConverter extends AbstractMessageConver
 				supportedSourceMimeType));
 	}
 
+	/**
+	 * Creates a converter that requires a specific content-type message header and supports multiple target MIME types.
+	 * 
+	 * @param supportedSourceMimeType {@link MimeType} that must be present in content-type header
+	 * @param targetMimeTypes a list of supported target types (outputType or inputType for XD)
+	 */
 	protected AbstractFromMessageConverter(MimeType supportedSourceMimeType, Collection<MimeType> targetMimeTypes) {
 		this(Collections.singletonList(supportedSourceMimeType), targetMimeTypes, new StrictContentTypeResolver(
 				supportedSourceMimeType));
 	}
 
-	protected abstract boolean supportsPayloadType(Class<?> clazz);
+	/**
+	 * Subclasses implement this to specify supported target types
+	 * 
+	 * @return an array of supported classes or null if any target type is supported
+	 */
+	protected abstract Class<?>[] supportedTargetTypes();
+
+	/**
+	 * Subclasses implement this to specify supported payload types
+	 * 
+	 * @return an array of supported classes or null if any target type is supported
+	 */
+	protected abstract Class<?>[] supportedPayloadTypes();
+
+	protected boolean supportsPayloadType(Class<?> clazz) {
+		return supportsType(clazz, supportedPayloadTypes());
+	}
+
+	@Override
+	protected boolean supports(Class<?> clazz) {
+		return supportsType(clazz, supportedTargetTypes());
+	}
+
+	private boolean supportsType(Class<?> clazz, Class<?>[] supportedTypes) {
+		if (supportedTypes != null) {
+			for (Class<?> targetType : supportedTypes) {
+				if (ClassUtils.isAssignable(clazz, targetType)) {
+					return true;
+				}
+			}
+			return false;
+		}
+		return true;
+	}
 
 	@Override
 	protected boolean canConvertFrom(Message<?> message, Class<?> targetClass) {
@@ -116,22 +166,37 @@ public abstract class AbstractFromMessageConverter extends AbstractMessageConver
 	}
 
 	@Override
+	// TODO: This will likely be fixed in core Spring
 	public void setContentTypeResolver(ContentTypeResolver resolver) {
 		if (getContentTypeResolver() == null) {
 			super.setContentTypeResolver(resolver);
 		}
 	}
 
+	/**
+	 * Not supported by default
+	 */
 	@Override
 	protected boolean canConvertTo(Object payload, MessageHeaders headers) {
 		return false;
 	}
 
+	/**
+	 * Not supported by default
+	 */
 	@Override
 	public Object convertToInternal(Object payload, MessageHeaders headers) {
 		throw new UnsupportedOperationException("'convertTo' not supported");
 	}
 
+	/**
+	 * Convenience method to construct a converted message
+	 * 
+	 * @param payload the converted payload
+	 * @param headers the existing message headers
+	 * @param contentType the value of the content-type header
+	 * @return
+	 */
 	protected final Message<?> buildConvertedMessage(Object payload, MessageHeaders headers, MimeType contentType) {
 		return MessageBuilder.withPayload(payload).copyHeaders(headers)
 				.copyHeaders(

@@ -19,8 +19,6 @@ package org.springframework.integration.x.bus.converter;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang.ClassUtils;
-
 import org.springframework.messaging.Message;
 import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
@@ -29,6 +27,7 @@ import org.springframework.xd.tuple.TupleBuilder;
 
 
 /**
+ * A {@link MessageConverter} to convert from a JSON (byte[] or String) to a {@link Tuple}.
  * 
  * @author David Turanski
  */
@@ -45,13 +44,13 @@ public class JsonToTupleMessageConverter extends AbstractFromMessageConverter {
 	}
 
 	@Override
-	protected boolean supportsPayloadType(Class<?> clazz) {
-		return (ClassUtils.isAssignable(clazz, byte[].class) || ClassUtils.isAssignable(clazz, String.class));
+	protected Class<?>[] supportedTargetTypes() {
+		return new Class<?>[] { Tuple.class };
 	}
 
 	@Override
-	protected boolean supports(Class<?> clazz) {
-		return ClassUtils.isAssignable(clazz, Tuple.class);
+	protected Class<?>[] supportedPayloadTypes() {
+		return new Class<?>[] { byte[].class, String.class };
 	}
 
 	@Override

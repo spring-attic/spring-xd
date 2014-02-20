@@ -20,12 +20,12 @@ import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 
-import org.apache.commons.lang.ClassUtils;
-
 import org.springframework.messaging.Message;
 
 
 /**
+ * An {@link MessageConverter} to convert to deSerialize a serialized an {@Serializable} Java object
+ * using Java.io serialization
  * 
  * @author David Turanski
  */
@@ -36,13 +36,13 @@ public class SerializedToJavaMessageConverter extends AbstractFromMessageConvert
 	}
 
 	@Override
-	protected boolean supportsPayloadType(Class<?> clazz) {
-		return ClassUtils.isAssignable(clazz, byte[].class);
+	protected Class<?>[] supportedTargetTypes() {
+		return new Class<?>[] { Serializable.class };
 	}
 
 	@Override
-	protected boolean supports(Class<?> clazz) {
-		return ClassUtils.isAssignable(clazz, Serializable.class);
+	protected Class<?>[] supportedPayloadTypes() {
+		return new Class<?>[] { byte[].class };
 	}
 
 	@Override

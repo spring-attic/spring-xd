@@ -20,10 +20,16 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.DefaultContentTypeResolver;
 import org.springframework.util.MimeType;
 
+/**
+ * A {@link DefaultContentTypeResolver} that can parse String values
+ * 
+ * @author David Turanski
+ */
 public class StringConvertingContentTypeResolver extends DefaultContentTypeResolver {
 
 
 	@Override
+	// TODO: This will likely be pushed to core Spring
 	public MimeType resolve(MessageHeaders headers) {
 		Object value = headers.get(MessageHeaders.CONTENT_TYPE);
 		if (value instanceof MimeType) {

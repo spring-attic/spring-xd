@@ -16,11 +16,8 @@
 
 package org.springframework.integration.x.bus.converter;
 
-import org.apache.commons.lang.ClassUtils;
-
 import org.springframework.messaging.Message;
 import org.springframework.util.MimeTypeUtils;
-import org.springframework.xd.tuple.Tuple;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,6 +25,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 
 
 /**
+ * An {@link MessageConverter} to convert a Java object to a JSON String
  * 
  * @author David Turanski
  */
@@ -41,16 +39,14 @@ public class PojoToJsonMessageConverter extends AbstractFromMessageConverter {
 	}
 
 	@Override
-	protected boolean supports(Class<?> clazz) {
-		return ClassUtils.isAssignable(clazz, String.class);
+	protected Class<?>[] supportedTargetTypes() {
+		return new Class<?>[] { String.class };
 	}
 
 	@Override
-	protected boolean supportsPayloadType(Class<?> clazz) {
-		return !(ClassUtils.isAssignable(clazz, String.class) ||
-				ClassUtils.isAssignable(clazz, byte[].class) || ClassUtils.isAssignable(clazz, Tuple.class));
+	protected Class<?>[] supportedPayloadTypes() {
+		return null;
 	}
-
 
 	@Override
 	public Object convertFromInternal(Message<?> message, Class<?> targetClass) {

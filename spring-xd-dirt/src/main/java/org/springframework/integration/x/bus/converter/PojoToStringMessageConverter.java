@@ -16,13 +16,12 @@
 
 package org.springframework.integration.x.bus.converter;
 
-import org.apache.commons.lang.ClassUtils;
-
 import org.springframework.messaging.Message;
 import org.springframework.util.MimeTypeUtils;
 
 
 /**
+ * An {@link MessageConverter} to convert a Java object to a String using toString()
  * 
  * @author David Turanski
  */
@@ -33,13 +32,13 @@ public class PojoToStringMessageConverter extends AbstractFromMessageConverter {
 	}
 
 	@Override
-	protected boolean supportsPayloadType(Class<?> clazz) {
-		return !(ClassUtils.isAssignable(clazz, String.class) || ClassUtils.isAssignable(clazz, byte[].class));
+	protected Class<?>[] supportedTargetTypes() {
+		return new Class<?>[] { String.class };
 	}
 
 	@Override
-	protected boolean supports(Class<?> clazz) {
-		return ClassUtils.isAssignable(clazz, String.class);
+	protected Class<?>[] supportedPayloadTypes() {
+		return null;
 	}
 
 	@Override

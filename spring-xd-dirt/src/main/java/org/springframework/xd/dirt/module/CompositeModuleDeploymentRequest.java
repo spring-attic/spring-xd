@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
@@ -30,6 +29,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
  * A request to deploy a composite module. Contains embedded children deployment requests.
  * 
  * @author Mark Fisher
+ * @author Eric Bottard
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "@class")
 public class CompositeModuleDeploymentRequest extends ModuleDeploymentRequest {
@@ -53,12 +53,17 @@ public class CompositeModuleDeploymentRequest extends ModuleDeploymentRequest {
 		this.setSourceChannelName(parent.getSourceChannelName());
 		this.setType(parent.getType());
 		this.setChildren(children);
+
+
 		Map<String, String> parameters = parent.getParameters();
-		if (!CollectionUtils.isEmpty(parameters)) {
-			for (Map.Entry<String, String> entry : parameters.entrySet()) {
-				this.setParameter(entry.getKey(), entry.getValue());
-			}
+		for (Map.Entry<String, String> entry : parameters.entrySet()) {
+			this.setParameter(entry.getKey(), entry.getValue());
 		}
+
+		for (ModuleDeploymentRequest child : children) {
+			child.setGroup(parent.getGroup() + "." + child.getModule());
+		}
+
 	}
 
 	public List<ModuleDeploymentRequest> getChildren() {

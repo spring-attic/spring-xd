@@ -49,7 +49,7 @@ public class ModuleConfigurationException extends XDRuntimeException {
 
 		List<FieldError> errors = e.getBindingResult().getFieldErrors();
 		for (FieldError error : errors) {
-			sb.append("\n    ").append(error.getField()).append(" ").append(error.getDefaultMessage());
+			sb.append("\n    ").append(error.getField()).append(": ").append(error.getDefaultMessage());
 		}
 
 		ModuleConfigurationException result = new ModuleConfigurationException(sb.toString(), e);

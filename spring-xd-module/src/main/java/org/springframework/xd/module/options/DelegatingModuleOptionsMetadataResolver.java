@@ -30,9 +30,9 @@ import org.springframework.xd.module.ModuleDefinition;
  */
 public class DelegatingModuleOptionsMetadataResolver implements ModuleOptionsMetadataResolver {
 
-	private final List<ModuleOptionsMetadataResolver> delegates;
+	private List<ModuleOptionsMetadataResolver> delegates;
 
-	public DelegatingModuleOptionsMetadataResolver(List<ModuleOptionsMetadataResolver> delegates) {
+	public void setDelegates(List<ModuleOptionsMetadataResolver> delegates) {
 		Assert.notEmpty(delegates, "at least one delegate resolver is required");
 		this.delegates = delegates;
 	}

@@ -99,6 +99,16 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 
 	private ConversionService conversionService;
 
+	/**
+	 * The resolver to delegate to when building metadata for a composite module.
+	 */
+	private ModuleOptionsMetadataResolver compositeResolver = this;
+
+
+	public void setCompositeResolver(ModuleOptionsMetadataResolver compositeResolver) {
+		this.compositeResolver = compositeResolver;
+	}
+
 	private final DefaultModuleOptionsMetadataCollector defaultModuleOptionsMetadataCollector = new DefaultModuleOptionsMetadataCollector();
 
 	public DefaultModuleOptionsMetadataResolver(ConversionService conversionService) {
@@ -148,6 +158,26 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 
 	@Override
 	public ModuleOptionsMetadata resolve(ModuleDefinition definition) {
+		if (!definition.isComposed()) {
+			return resolveNormalMetadata(definition);
+		}
+		else {
+			return resolveComposedModuleMetadata(definition);
+		}
+
+	}
+
+	private ModuleOptionsMetadata resolveComposedModuleMetadata(ModuleDefinition definition) {
+		Map<String, ModuleOptionsMetadata> hierarchy = new HashMap<String, ModuleOptionsMetadata>();
+		for (ModuleDefinition subModuleDefinition : definition.getComposedModuleDefinitions()) {
+			ModuleOptionsMetadata subMetadata = compositeResolver.resolve(subModuleDefinition);
+			// TODO: should be .getAlias() instead of name
+			hierarchy.put(subModuleDefinition.getName(), subMetadata);
+		}
+		return new HierarchicalCompositeModuleOptionsMetadata(hierarchy);
+	}
+
+	private ModuleOptionsMetadata resolveNormalMetadata(ModuleDefinition definition) {
 		try {
 			ClassLoader classLoaderToUse = definition.getClasspath() != null
 					? new ParentLastURLClassLoader(definition.getClasspath(),
@@ -178,7 +208,6 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 		catch (IOException e) {
 			return new PassthruModuleOptionsMetadata();
 		}
-
 	}
 
 	/**

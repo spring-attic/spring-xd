@@ -16,13 +16,15 @@
 	</bean>
 	
 	<bean id="moduleOptionsMetadataResolver" class="org.springframework.xd.module.options.DelegatingModuleOptionsMetadataResolver">
-		<constructor-arg>
+		<property name="delegates">
 			<list>
-				<bean class="org.springframework.xd.module.options.DefaultModuleOptionsMetadataResolver"/>
-				<bean class="org.springframework.xd.dirt.plugins.stream.ModuleTypeConversionPluginMetadataResolver"/>
-				<bean class="org.springframework.xd.dirt.plugins.job.JobPluginMetadataResolver"/>
+				<bean class="org.springframework.xd.module.options.DefaultModuleOptionsMetadataResolver">
+					<property name="compositeResolver" ref="moduleOptionsMetadataResolver" />
+				</bean>
+				<bean class="org.springframework.xd.dirt.plugins.stream.ModuleTypeConversionPluginMetadataResolver" />
+				<bean class="org.springframework.xd.dirt.plugins.job.JobPluginMetadataResolver" />
 			</list>
-		</constructor-arg>
+		</property>
 	</bean>
 
 </beans>

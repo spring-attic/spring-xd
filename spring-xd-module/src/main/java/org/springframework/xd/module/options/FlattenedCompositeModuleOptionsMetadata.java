@@ -28,6 +28,7 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
@@ -108,6 +109,7 @@ public class FlattenedCompositeModuleOptionsMetadata implements ModuleOptionsMet
 		}
 
 		// Then, interpolate per-MOM and remember which MOM is responsible for which exposed value
+		// TODO: should be multimap, as several MOMs could expose the same value
 		final Map<String, ModuleOptions> nameToOptions = new HashMap<String, ModuleOptions>();
 
 		for (ModuleOptionsMetadata mom : momToSupportedOptions.keySet()) {

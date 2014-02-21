@@ -25,7 +25,6 @@ import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
-import org.springframework.xd.dirt.module.CompositeModuleDeploymentRequest;
 import org.springframework.xd.dirt.module.DependencyException;
 import org.springframework.xd.dirt.module.ModuleAlreadyExistsException;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
@@ -101,18 +100,8 @@ public class CompositeModuleDefinitionService {
 		List<ModuleDefinition> moduleDefinitions = new ArrayList<ModuleDefinition>(moduleDeploymentRequests.size());
 
 		for (ModuleDeploymentRequest moduleDeploymentRequest : moduleDeploymentRequests) {
-			if (moduleDeploymentRequest instanceof CompositeModuleDeploymentRequest) {
-				CompositeModuleDeploymentRequest composed = (CompositeModuleDeploymentRequest) moduleDeploymentRequest;
-				ModuleDefinition moduleDefinition = new ModuleDefinition(moduleDeploymentRequest.getModule(),
-						moduleDeploymentRequest.getType());
-				moduleDefinition.setComposedModuleDefinitions(createComposedModuleDefinitions(composed.getChildren()));
-				moduleDefinitions.add(moduleDefinition);
-			}
-			else {
-				ModuleDefinition moduleDefinition = new ModuleDefinition(moduleDeploymentRequest.getModule(),
-						moduleDeploymentRequest.getType());
-				moduleDefinitions.add(moduleDefinition);
-			}
+			moduleDefinitions.add(moduleDefinitionRepository.findByNameAndType(moduleDeploymentRequest.getModule(),
+					moduleDeploymentRequest.getType()));
 		}
 
 		return moduleDefinitions;

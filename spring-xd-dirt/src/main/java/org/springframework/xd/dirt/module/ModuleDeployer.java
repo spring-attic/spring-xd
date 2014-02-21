@@ -17,12 +17,10 @@
 package org.springframework.xd.dirt.module;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -42,8 +40,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.CollectionUtils;
 import org.springframework.validation.BindException;
 import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.event.ModuleDeployedEvent;
@@ -56,7 +52,6 @@ import org.springframework.xd.module.core.CompositeModule;
 import org.springframework.xd.module.core.Module;
 import org.springframework.xd.module.core.Plugin;
 import org.springframework.xd.module.core.SimpleModule;
-import org.springframework.xd.module.options.PassthruModuleOptionsMetadata;
 import org.springframework.xd.module.options.ModuleOptions;
 import org.springframework.xd.module.options.ModuleOptionsMetadata;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
@@ -163,69 +158,34 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 	@Override
 	protected synchronized void handleMessageInternal(Message<?> message) throws Exception {
 		String payloadString = message.getPayload().toString();
-		ModuleDeploymentRequest deserialized = this.mapper.readValue(payloadString, ModuleDeploymentRequest.class);
-		if (deserialized instanceof CompositeModuleDeploymentRequest) {
-			handleCompositeModuleMessage((CompositeModuleDeploymentRequest) deserialized);
+		ModuleDeploymentRequest request = this.mapper.readValue(payloadString, ModuleDeploymentRequest.class);
+
+		if (request.isRemove()) {
+			handleUndeploy(request);
+		}
+		else if (request.isLaunch()) {
+			Assert.isTrue(!(request instanceof CompositeModuleDeploymentRequest));
+			handleLaunch(request);
 		}
 		else {
-			handleSingleModuleMessage(deserialized);
+			handleDeploy(request);
 		}
+
+
 	}
 
-	private void handleCompositeModuleMessage(CompositeModuleDeploymentRequest request) {
-		List<ModuleDeploymentRequest> children = request.getChildren();
-		Assert.notEmpty(children, "child module list must not be empty");
-		List<ModuleDefinition> definitions = new ArrayList<ModuleDefinition>();
-		List<Map<String, String>> paramList = new ArrayList<Map<String, String>>();
-		for (ModuleDeploymentRequest child : children) {
-			String name = child.getModule();
-			ModuleType type = child.getType();
-			ModuleDefinition definition = this.moduleDefinitionRepository.findByNameAndType(name, type);
-			Assert.notNull(definition, "No moduleDefinition for " + type + ":" + name);
-			definitions.add(definition);
-			Map<String, String> params = child.getParameters();
-			if (CollectionUtils.isEmpty(params)) {
-				params = Collections.emptyMap();
-			}
-			paramList.add(params);
-		}
-		String group = request.getGroup();
-		int index = request.getIndex();
-		String sourceChannelName = request.getSourceChannelName();
-		String sinkChannelName = request.getSinkChannelName();
-		DeploymentMetadata metadata = new DeploymentMetadata(group, index, sourceChannelName, sinkChannelName);
-		List<SimpleModule> modules = new ArrayList<SimpleModule>(definitions.size());
-		if (parentClassLoader == null) {
-			parentClassLoader = ClassUtils.getDefaultClassLoader();
-		}
-		for (int i = 0; i < definitions.size(); i++) {
-			ModuleDefinition definition = definitions.get(i);
-			DeploymentMetadata submoduleMetadata = new DeploymentMetadata(metadata.getGroup() + "."
-					+ request.getModule(), i);
-			ClassLoader classLoader = (definition.getClasspath() == null) ? null
-					: new ParentLastURLClassLoader(definition.getClasspath(), parentClassLoader);
-
-			PassthruModuleOptionsMetadata moduleOptionsMetadata = new PassthruModuleOptionsMetadata();
-			ModuleOptions subModuleOptions = safeModuleOptionsInterpolate(moduleOptionsMetadata, paramList.get(i));
-			SimpleModule module = new SimpleModule(definition, submoduleMetadata, classLoader, subModuleOptions);
-
-			Properties props = new Properties();
-			props.putAll(paramList.get(i));
-			module.addProperties(props);
-			if (logger.isDebugEnabled()) {
-				logger.debug("added properties for child module [" + module.getName() + "]: " + props);
-			}
-
-			modules.add(module);
-		}
-		CompositeModule module = new CompositeModule(request.getModule(), request.getType(), modules, metadata);
-		deployAndStore(module, request);
-	}
-
-	private ModuleOptions safeModuleOptionsInterpolate(ModuleOptionsMetadata moduleOptionsMetadata,
-			Map<String, String> values) {
+	/**
+	 * Takes a request and returns an instance of {@link ModuleOptions} bound with the request parameters. Binding is
+	 * assumed to not fail, as it has already been validated on the admin side.
+	 */
+	private ModuleOptions safeModuleOptionsInterpolate(ModuleDeploymentRequest request) {
+		String name = request.getModule();
+		ModuleType type = request.getType();
+		ModuleDefinition definition = this.moduleDefinitionRepository.findByNameAndType(name, type);
+		Map<String, String> parameters = request.getParameters();
+		ModuleOptionsMetadata moduleOptionsMetadata = moduleOptionsMetadataResolver.resolve(definition);
 		try {
-			return moduleOptionsMetadata.interpolate(values);
+			return moduleOptionsMetadata.interpolate(parameters);
 		}
 		catch (BindException e) {
 			// Can't happen as parser should have already validated options
@@ -233,19 +193,49 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		}
 	}
 
-	private void handleSingleModuleMessage(ModuleDeploymentRequest request) {
-		if (request.isRemove()) {
-			handleUndeploy(request);
-		}
-		else if (request.isLaunch()) {
-			handleLaunch(request);
+	private void handleDeploy(ModuleDeploymentRequest request) {
+		ModuleOptions moduleOptions = safeModuleOptionsInterpolate(request);
+
+		Module module = createModule(request, moduleOptions);
+		this.deployAndStore(module, request);
+	}
+
+	private Module createModule(ModuleDeploymentRequest request, ModuleOptions moduleOptions) {
+
+		if (request instanceof CompositeModuleDeploymentRequest) {
+			return createCompositeModule((CompositeModuleDeploymentRequest) request, moduleOptions);
 		}
 		else {
-			handleDeploy(request);
+			return createSimpleModule(request, moduleOptions);
 		}
 	}
 
-	private void handleDeploy(ModuleDeploymentRequest request) {
+	private Module createCompositeModule(CompositeModuleDeploymentRequest compositeRequest,
+			ModuleOptions moduleOptionsForComposite) {
+		List<ModuleDeploymentRequest> children = compositeRequest.getChildren();
+		Assert.notEmpty(children, "child module list must not be empty");
+
+		List<Module> childrenModules = new ArrayList<Module>(children.size());
+		for (ModuleDeploymentRequest childRequest : children) {
+			ModuleOptions narrowedModuleOptions = new PrefixNarrowingModuleOptions(moduleOptionsForComposite,
+					childRequest.getModule());
+			childrenModules.add(createModule(childRequest, narrowedModuleOptions));
+		}
+
+		String group = compositeRequest.getGroup();
+		int index = compositeRequest.getIndex();
+		String sourceChannelName = compositeRequest.getSourceChannelName();
+		String sinkChannelName = compositeRequest.getSinkChannelName();
+		DeploymentMetadata deploymentMetadata = new DeploymentMetadata(group, index, sourceChannelName, sinkChannelName);
+
+		String moduleName = compositeRequest.getModule();
+		ModuleType moduleType = compositeRequest.getType();
+
+		return new CompositeModule(moduleName, moduleType, childrenModules, deploymentMetadata);
+	}
+
+
+	private Module createSimpleModule(ModuleDeploymentRequest request, ModuleOptions moduleOptions) {
 		String group = request.getGroup();
 		int index = request.getIndex();
 		String name = request.getModule();
@@ -259,12 +249,10 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 				: new ParentLastURLClassLoader(definition.getClasspath(), parentClassLoader);
 
 
-		Map<String, String> parameters = request.getParameters();
-		ModuleOptionsMetadata moduleOptionsMetadata = moduleOptionsMetadataResolver.resolve(definition);
-		ModuleOptions interpolated = safeModuleOptionsInterpolate(moduleOptionsMetadata, parameters);
-		Module module = new SimpleModule(definition, metadata, classLoader, interpolated);
-		this.deployAndStore(module, request);
+		Module module = new SimpleModule(definition, metadata, classLoader, moduleOptions);
+		return module;
 	}
+
 
 	private void deployAndStore(Module module, ModuleDeploymentRequest request) {
 		module.setParentContext(this.commonContext);

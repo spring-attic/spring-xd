@@ -38,6 +38,7 @@ import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.core.CompositeModule;
+import org.springframework.xd.module.core.Module;
 import org.springframework.xd.module.core.SimpleModule;
 
 /**
@@ -67,7 +68,7 @@ public class CompositeModuleTests {
 	@Test
 	public void testCompositeSource() {
 		DeploymentMetadata metadata = new DeploymentMetadata("compositesourcegroup", 0);
-		List<SimpleModule> modules = new ArrayList<SimpleModule>();
+		List<Module> modules = new ArrayList<Module>();
 		modules.add(new SimpleModule(sourceDefinition, metadata));
 		modules.add(new SimpleModule(processor1Definition, metadata));
 		modules.add(new SimpleModule(processor2Definition, metadata));
@@ -78,7 +79,7 @@ public class CompositeModuleTests {
 	@Test
 	public void testCompositeProcessor() {
 		DeploymentMetadata metadata = new DeploymentMetadata("compositeprocessorgroup", 1);
-		List<SimpleModule> modules = new ArrayList<SimpleModule>();
+		List<Module> modules = new ArrayList<Module>();
 		modules.add(new SimpleModule(processor1Definition, metadata));
 		modules.add(new SimpleModule(processor2Definition, metadata));
 		CompositeModule module = new CompositeModule("compositeprocessor", ModuleType.processor, modules, metadata);
@@ -105,7 +106,7 @@ public class CompositeModuleTests {
 	@Test
 	public void testCompositeSink() {
 		DeploymentMetadata metadata = new DeploymentMetadata("compositesinkgroup", 2);
-		List<SimpleModule> modules = new ArrayList<SimpleModule>();
+		List<Module> modules = new ArrayList<Module>();
 		modules.add(new SimpleModule(processor1Definition, metadata));
 		modules.add(new SimpleModule(processor2Definition, metadata));
 		modules.add(new SimpleModule(sinkDefinition, metadata));

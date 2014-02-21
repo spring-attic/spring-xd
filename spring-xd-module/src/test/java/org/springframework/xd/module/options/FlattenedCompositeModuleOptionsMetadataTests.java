@@ -19,17 +19,17 @@ package org.springframework.xd.module.options;
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasProperty;
 import static org.junit.Assert.assertThat;
+import static org.springframework.xd.module.options.ModuleOptionMatchers.moduleOptionNamed;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.hamcrest.Matcher;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+
 import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.validation.BindException;
 
@@ -133,7 +133,4 @@ public class FlattenedCompositeModuleOptionsMetadataTests {
 	}
 
 
-	private Matcher<ModuleOption> moduleOptionNamed(String name) {
-		return hasProperty("name", equalTo(name));
-	}
 }

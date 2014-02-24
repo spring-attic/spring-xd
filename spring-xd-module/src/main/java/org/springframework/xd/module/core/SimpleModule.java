@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.builder.ParentContextApplicationContextInitializer.ParentContextAvailableEvent;
@@ -205,9 +206,10 @@ public class SimpleModule extends AbstractModule {
 
 				@Override
 				public int getOrder() {
-					// Make sure consumer modules (sink/processor) get closed before the producer modules
+					// Make sure producer modules get closed before the consumer modules (sink/processor)
 					// by setting them the highest precedence
-					if (getType() == ModuleType.sink) {
+					ModuleType moduleType = getType();
+					if (moduleType == ModuleType.source || moduleType == ModuleType.job) {
 						return HIGHEST_PRECEDENCE;
 					}
 					else if (getType() == ModuleType.processor) {

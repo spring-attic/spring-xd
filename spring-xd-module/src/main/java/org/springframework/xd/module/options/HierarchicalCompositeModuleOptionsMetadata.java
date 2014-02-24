@@ -36,8 +36,8 @@ import org.springframework.xd.module.core.CompositeModule;
 
 
 /**
- * A composite {@link ModuleOptionsMetadata} made of several {@link ModuleOptionsMetadata}, each assigned to name, that
- * will appear in a hierarchy. Used to represent options to a composite module.
+ * A composite {@link ModuleOptionsMetadata} made of several {@link ModuleOptionsMetadata}, each assigned to a name,
+ * that will appear in a hierarchy. Used to represent options to a composite module.
  * 
  * @author Eric Bottard
  */

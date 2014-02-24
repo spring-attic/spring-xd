@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.util.Assert;
+import org.springframework.xd.module.core.CompositeModule;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
@@ -56,9 +57,21 @@ public class CompositeModuleDeploymentRequest extends ModuleDeploymentRequest {
 
 
 		Map<String, String> parameters = parent.getParameters();
+		// Pretend that options were set on the composed module itself
+		// (eases resolution wrt defaults later)
+		for (ModuleDeploymentRequest child : children) {
+			for (String key : child.getParameters().keySet()) {
+				String prefix = child.getModule() + CompositeModule.OPTION_SEPARATOR;
+				this.setParameter(prefix + key, child.getParameters().get(key));
+			}
+		}
+
+		// This is to copy options from parent to this (which may override
+		// what was set above)
 		for (Map.Entry<String, String> entry : parameters.entrySet()) {
 			this.setParameter(entry.getKey(), entry.getValue());
 		}
+
 
 		for (ModuleDeploymentRequest child : children) {
 			child.setGroup(parent.getGroup() + "." + child.getModule());

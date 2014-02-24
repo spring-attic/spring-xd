@@ -189,10 +189,6 @@ public class XDStreamParser implements XDParser {
 		if (def != null && def.getDefinition() != null) {
 			List<ModuleDeploymentRequest> composedModuleRequests = parse(def.getName(), def.getDefinition(),
 					ParsingContext.module);
-			// TODO:
-			// MOM metadata = resolver.resolve(def)
-			// Map expanded = expand(request.getParameters(), metadata)
-			// request.setParameters(expanded)
 			request = new CompositeModuleDeploymentRequest(request, composedModuleRequests);
 		}
 		return request;

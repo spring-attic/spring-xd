@@ -71,3 +71,14 @@
 #spring:
 #  hadoop:
 #   fsUri: hdfs://localhost:8020
+
+---
+# User Extensions: Where XD scans the classpath to discover extended container configuration
+#xd:
+#  extensions:
+#    basepackage: org.springframework.xd.extensions
+#    location: classpath*:META_INF/spring-xd/ext
+
+---
+
+

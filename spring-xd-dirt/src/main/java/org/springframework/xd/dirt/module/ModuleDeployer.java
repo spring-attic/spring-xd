@@ -26,6 +26,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
@@ -54,7 +55,6 @@ import org.springframework.xd.module.core.SimpleModule;
 import org.springframework.xd.module.options.ModuleOptions;
 import org.springframework.xd.module.options.ModuleOptionsMetadata;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
-import org.springframework.xd.module.options.PassthruModuleOptionsMetadata;
 import org.springframework.xd.module.support.ParentLastURLClassLoader;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -314,9 +314,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 			processLaunchRequest(modules, request);
 		}
 		else {
-			// Deploy the job module and then launch
-			handleDeploy(request);
-			processLaunchRequest(this.deployedModules.get(group), request);
+			throw new ModuleNotDeployedException("Job launch");
 		}
 	}
 

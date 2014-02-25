@@ -343,7 +343,7 @@ public class JobCommands implements CommandMarker {
 			@CliOption(key = { "", "name" }, help = "the name of the job to deploy", optionContext = "existing-job disable-string-converter") String name,
 			@CliOption(key = { "params" }, help = "the parameters for the job", unspecifiedDefaultValue = "") String jobParameters) {
 		jobOperations().launchJob(name, jobParameters);
-		return String.format("Successfully launched the job '%s'", name);
+		return String.format("Successfully submitted launch request for job '%s'", name);
 	}
 
 	@CliCommand(value = UNDEPLOY_JOB, help = "Un-deploy an existing job")

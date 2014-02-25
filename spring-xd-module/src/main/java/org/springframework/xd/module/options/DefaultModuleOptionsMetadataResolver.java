@@ -197,8 +197,6 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 	 * for each of those.
 	 * 
 	 * Note that this may end up in false positives and does not convey much information.
-	 * 
-	 * @param classLoaderToUse
 	 */
 	private ModuleOptionsMetadata inferModuleOptionsMetadata(ModuleDefinition definition, ClassLoader classLoaderToUse) {
 		final DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();

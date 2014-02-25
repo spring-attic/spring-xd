@@ -16,7 +16,7 @@
 		<property name="locateExistingServerIfPossible" value="true" />
 	</bean>
 	
-	<bean id="moduleOptionsMetadataResolver" class="org.springframework.xd.module.options.DefaultsProvidingModuleOptionsMetadataResolver">
+	<bean id="moduleOptionsMetadataResolver" class="org.springframework.xd.module.options.EnvironmentAwareModuleOptionsMetadataResolver">
 		<constructor-arg>
 			<bean class="org.springframework.xd.module.options.DelegatingModuleOptionsMetadataResolver">
 				<property name="delegates">

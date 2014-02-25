@@ -18,12 +18,14 @@ package org.springframework.integration.x.bus.converter;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.integration.x.bus.StringConvertingContentTypeResolver;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.ContentTypeResolver;
 import org.springframework.util.MimeType;
+import org.springframework.util.MimeTypeUtils;
 
 
 /**
@@ -40,10 +42,12 @@ public class ByteArrayToStringMessageConverter extends AbstractFromMessageConver
 	static {
 		targetMimeTypes.add(MessageConverterUtils.X_XD_STRING);
 		targetMimeTypes.add(MessageConverterUtils.X_JAVA_OBJECT);
+		targetMimeTypes.add(MimeTypeUtils.TEXT_PLAIN);
 	}
 
 	public ByteArrayToStringMessageConverter() {
-		super(targetMimeTypes);
+		super(Arrays.asList(new MimeType[] { MimeTypeUtils.APPLICATION_OCTET_STREAM, MimeTypeUtils.TEXT_PLAIN }),
+				targetMimeTypes, contentTypeResolver);
 	}
 
 	@Override
@@ -62,7 +66,9 @@ public class ByteArrayToStringMessageConverter extends AbstractFromMessageConver
 	@Override
 	public Object convertFromInternal(Message<?> message, Class<?> targetClass) {
 		MimeType mimeType = contentTypeResolver.resolve(message.getHeaders());
+
 		String converted = null;
+
 		if (mimeType == null || mimeType.getParameter("Charset") == null) {
 			converted = new String((byte[]) message.getPayload());
 		}

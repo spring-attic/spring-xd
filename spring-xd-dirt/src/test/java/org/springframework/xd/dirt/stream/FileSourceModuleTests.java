@@ -90,7 +90,7 @@ public class FileSourceModuleTests extends StreamTestSupport {
 	public void testFileContentsAsString() throws IOException {
 		deployStream(
 				"filestring",
-				"file --dir=" + sourceDirName + " --fixedDelay=0 --outputType='java.lang.String' | sink");
+				"file --dir=" + sourceDirName + " --fixedDelay=0 --outputType='text/plain;charset=UTF-8' | sink");
 		MessageTest test = new MessageTest() {
 
 			@Override

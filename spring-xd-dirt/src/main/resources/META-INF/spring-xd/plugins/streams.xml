@@ -16,8 +16,8 @@
 			<bean class="org.springframework.integration.x.bus.converter.JsonToPojoMessageConverter"/>
 			<bean class="org.springframework.integration.x.bus.converter.TupleToJsonMessageConverter"/>
 			<bean class="org.springframework.integration.x.bus.converter.PojoToJsonMessageConverter"/>
-			<bean class="org.springframework.integration.x.bus.converter.PojoToStringMessageConverter"/>
 			<bean class="org.springframework.integration.x.bus.converter.ByteArrayToStringMessageConverter"/>
+			<bean class="org.springframework.integration.x.bus.converter.PojoToStringMessageConverter"/>
 			<bean class="org.springframework.integration.x.bus.converter.JavaToSerializedMessageConverter"/>
 			<bean class="org.springframework.integration.x.bus.converter.SerializedToJavaMessageConverter"/>
 	</util:list>

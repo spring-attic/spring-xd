@@ -1,3 +1,4 @@
+#Port that admin-ui is listening on
 server:
     port: 9393
 
@@ -10,3 +11,4 @@ spring:
 #        fsUri: hdfs://localhost:8020
 #        rmAddress: localhost:8032
 #        schedulerAddress: localhost:8030
+

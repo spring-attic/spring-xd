@@ -50,7 +50,9 @@
 		<constructor-arg ref="sessionFactory" />
 	</bean>
 
-	<hdp:configuration register-url-handler="false" properties-location="${xd.config.home}/hadoop.properties"/>
+	<hdp:configuration register-url-handler="false" properties-location="${xd.config.home}/hadoop.properties">
+		fs.default.name=${spring.hadoop.fsUri}
+	</hdp:configuration>
 	<hdp:resource-loader id="hadoopResourceLoader"/>
 
 </beans>

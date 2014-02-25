@@ -61,7 +61,9 @@
 		<property name="configuration" ref="hadoopConfiguration"/>
 	</bean>
 
-	<hdp:configuration register-url-handler="false" properties-location="${xd.config.home}/hadoop.properties"/>
+	<hdp:configuration register-url-handler="false" properties-location="${xd.config.home}/hadoop.properties">
+		fs.default.name=${spring.hadoop.fsUri}
+	</hdp:configuration>
 	<hdp:resource-loader id="hadoopResourceLoader"/>
 	<mongo:db-factory dbname="${databaseName:xd}" host="${host}" port="${port}"/>
 

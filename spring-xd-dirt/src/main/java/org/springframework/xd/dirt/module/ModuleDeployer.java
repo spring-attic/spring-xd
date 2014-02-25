@@ -316,9 +316,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 			processLaunchRequest(modules, request);
 		}
 		else {
-			// Deploy the job module and then launch
-			handleDeploy(request);
-			processLaunchRequest(this.deployedModules.get(group), request);
+			throw new ModuleNotDeployedException("Job launch");
 		}
 	}
 

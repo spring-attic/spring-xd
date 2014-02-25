@@ -32,6 +32,7 @@ import java.io.IOException;
 import org.hamcrest.Description;
 import org.hamcrest.DiagnosingMatcher;
 import org.hamcrest.Matcher;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.shell.core.CommandResult;
@@ -62,6 +63,7 @@ public class ModuleCommandTests extends AbstractStreamIntegrationTest {
 	}
 
 	@Test
+	@Ignore
 	public void testComposedModules() throws IOException {
 		FileSink sink = newFileSink().binary(true);
 		HttpSource httpSource = newHttpSource();

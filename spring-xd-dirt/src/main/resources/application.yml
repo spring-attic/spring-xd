@@ -106,3 +106,8 @@ spring:
    password: ${vcap.services.rabbitmq.credentials.password:guest}
    virtual_host: ${vcap.services.rabbitmq.credentials.vhost:/}
 
+---
+# Hadoop properties
+spring:
+  hadoop:
+   fsUri: hdfs://localhost:8020

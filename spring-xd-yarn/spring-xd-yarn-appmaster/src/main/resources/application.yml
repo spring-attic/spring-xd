@@ -14,7 +14,6 @@ spring:
                 -Dspring.config.location: "./${spring.xd.yarn.config.props}"
             waitLatch: false
             classpath:
-                - "./${spring.xd.yarn.app.zip}"
                 - "./${spring.xd.yarn.app.zip}/config"
                 - "./${spring.xd.yarn.app.zip}/lib/*"
 ---
@@ -32,7 +31,6 @@ spring:
                 -Dspring.config.location: "./${spring.xd.yarn.config.props}"
             waitLatch: false
             classpath:
-                - "./${spring.xd.yarn.app.zip}"
                 - "./${spring.xd.yarn.app.zip}/config"
                 - "./${spring.xd.yarn.app.zip}/lib/*"
                 - "./${spring.xd.yarn.app.zip}/modules/processor/scripts"

@@ -818,6 +818,10 @@ project('spring-xd-yarn:spring-xd-yarn-client') {
                 "org.slf4j:jcl-over-slf4j:$slf4jVersion",
                 "org.slf4j:slf4j-log4j12:$slf4jVersion"
     }
+
+    jar {
+    	setExcludes([])
+	}
 }
 
 project('spring-xd-yarn:spring-xd-yarn-appmaster') {
@@ -849,6 +853,10 @@ project('spring-xd-yarn:spring-xd-yarn-appmaster') {
         }
         compile "org.springframework.boot:spring-boot-autoconfigure:$springBootVersion"
     }
+
+    jar {
+    	setExcludes([])
+	}
 }
 
 // 'Binary' distributions projects
@@ -1448,10 +1456,12 @@ task copyHadoopLibs(dependsOn: [
 }
 
 task copyYarnInstall(type: Copy, dependsOn: [":spring-xd-dirt:build", ":spring-xd-dirt:installApp", ":spring-xd-yarn:spring-xd-yarn-client:build", ":spring-xd-yarn:spring-xd-yarn-appmaster:build"]) {
+    group = 'Application'
 	from "$rootDir/spring-xd-dirt/build/install/spring-xd-dirt"
 	into "$buildDir/dist/spring-xd-yarn/xd-yarn"
 	exclude "**/bin/*"
 	exclude "**/lib/hadoop-*.jar"
+	exclude "**/lib/spring-data-hadoop-*.jar"
     exclude "**/lib/slf4j-log4j12-*.jar"
     exclude "**/lib/log4j-*.jar"
 }
@@ -1652,6 +1662,10 @@ task yarnZip(type: Zip, dependsOn: [copyInstall], overwrite: true) {
     from("$buildDir/dist/spring-xd-yarn/xd-yarn/lib") {
 		into "/lib"
 	}
+    from("$buildDir/dist/spring-xd/xd/lib/hadoop22") {
+        include "spring-data-hadoop-*.jar"
+        into "/lib"
+    }
     from("$buildDir/dist/spring-xd-yarn/xd-yarn/config") {
         into "/config"
     }

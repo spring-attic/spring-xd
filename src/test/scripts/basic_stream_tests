@@ -45,9 +45,10 @@ destroy_stream 'ticktock'
 destroy_stream 'httptofile'
 destroy_stream 'timejdbc'
 
-echo -e '*** Test 4. http | filter | file stream\n'
+
+echo -e '*** Test 4. http | filter | file stream with taps and labels\n'
 create_stream 'httpfilter1' "http | good: filter --expression=payload=='good' | good2: filter --expression=payload=='good' | good3: filter --expression=payload=='good' | file --dir=$TEST_DIR"
-create_stream 'httpfilter1tap'  "tap:stream:httpfilter1.good > counter --name=good"
+create_stream 'httpfilter1tap' "tap:stream:httpfilter1.good > counter --name=good"
 # Send one message
 curl -d 'good' $XD_HOST:9000
 
@@ -58,6 +59,27 @@ destroy_stream 'httpfilter1'
 
 # This fails when we have multiple filters
 #assert_equals 'value":1' $good
+
+
+echo -e '*** Test 4a. Tapping named channel queue:good > file\n'
+
+create_stream 'good2file' "queue:good > file --dir=$TEST_DIR"
+create_stream 'goodfeed'  'http > queue:good'
+create_stream 'goodqueuetap' "tap:queue:good > file --dir=$TEST_DIR"
+create_stream 'good2filetap' "tap:stream:good2file > file --dir=$TEST_DIR"
+
+curl -d 'good' $XD_HOST:9000
+destroy_stream 'goodfeed'
+result=`cat $TEST_DIR/good2file.out`
+result3=`cat $TEST_DIR/goodqueuetap.out`
+result2=`cat $TEST_DIR/good2filetap.out`
+assert_equals 'good' $result
+assert_equals 'good' $result2
+assert_equals 'good' $result3
+
+destroy_stream 'good2filetap'
+destroy_stream 'goodqueuetap'
+destroy_stream 'good2file'
 
 echo -e '*** Test 5. tcp | file stream\n'
 

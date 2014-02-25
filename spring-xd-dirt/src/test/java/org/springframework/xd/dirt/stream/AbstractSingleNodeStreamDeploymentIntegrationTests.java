@@ -107,13 +107,15 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 
 	@Test
 	public void testBasicTap() {
-
 		StreamDefinition streamDefinition = new StreamDefinition(
 				"mystream",
 				"queue:source >  transform --expression=payload.toUpperCase() > queue:sink"
 				);
+		// Tap should get the data prior to the stream's transform
 		StreamDefinition tapDefinition = new StreamDefinition("mytap",
-				"tap:stream:mystream > transform --expression=payload.replaceAll('A','.') > queue:tap");
+				"tap:stream:mystream > transform --expression=payload.replaceAll('a','.') " +
+						" | transform --expression=payload.toUpperCase()" +
+						" > queue:tap");
 		tapTest(streamDefinition, tapDefinition);
 	}
 

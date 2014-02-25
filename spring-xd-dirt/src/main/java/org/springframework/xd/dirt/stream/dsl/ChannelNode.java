@@ -151,8 +151,23 @@ public class ChannelNode extends AstNode {
 							getStreamName());
 				}
 				// Point to the first element of the stream
-				indexingElements = new ArrayList<String>();
-				indexingElements.add(sn.getModuleNodes().get(0).getName() + ".0");
+				if (sn.getSourceChannelNode() == null) {
+					indexingElements = new ArrayList<String>();
+					indexingElements.add(sn.getModuleNodes().get(0).getName() + ".0");
+				}
+				else {
+					SourceChannelNode source = sn.getSourceChannelNode();
+					// TODO: Another hack to get named channel taps working
+					if (source.getChannelType() == ChannelType.QUEUE) {
+						channelType = ChannelType.TAP_QUEUE;
+					}
+					else {
+						channelType = ChannelType.TAP_TOPIC;
+					}
+					nameComponents = source.getChannelNode().nameComponents;
+					startpos = source.getChannelNode().getStartPos();
+					endpos = source.getChannelNode().getEndPos();
+				}
 			}
 			else {
 				// Easter Egg: can use index of module in a stream when tapping.

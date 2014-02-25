@@ -15,7 +15,9 @@
 	<task:executor id="taskExecutor" pool-size="1"/>
 	<task:scheduler id="taskScheduler" pool-size="1"/>
 
-	<hdp:configuration properties-location="${xd.config.home}/hadoop.properties"/>
+	<hdp:configuration register-url-handler="false" properties-location="${xd.config.home}/hadoop.properties">
+		fs.default.name=${spring.hadoop.fsUri}
+	</hdp:configuration>
 
 	<int:channel id="input"/>
 

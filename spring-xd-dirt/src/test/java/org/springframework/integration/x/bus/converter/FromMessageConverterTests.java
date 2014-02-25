@@ -65,8 +65,8 @@ public class FromMessageConverterTests {
 		converters.add(new TupleToJsonMessageConverter());
 		converters.add(new PojoToJsonMessageConverter());
 		converters.add(new JsonToPojoMessageConverter());
-		converters.add(new PojoToStringMessageConverter());
 		converters.add(new ByteArrayToStringMessageConverter());
+		converters.add(new PojoToStringMessageConverter());
 		converterFactory = new CompositeMessageConverterFactory(converters);
 	}
 
@@ -148,7 +148,7 @@ public class FromMessageConverterTests {
 	public void testByteArrayToString() {
 		String json = "{\"foo\":\"bar\"}";
 		Message<?> msg = MessageBuilder.withPayload(json.getBytes()).build();
-		CompositeMessageConverter converter = converterFactory.newInstance(MimeType.valueOf("application/x-xd-string"));
+		CompositeMessageConverter converter = converterFactory.newInstance(MimeType.valueOf("text/plain"));
 
 		Object result = converter.fromMessage(msg, String.class);
 		assertEquals(json, result);

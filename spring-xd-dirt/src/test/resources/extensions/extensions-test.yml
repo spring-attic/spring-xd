@@ -1,0 +1,4 @@
+xd:
+   extensions:
+        basepackages: org.springframework.xd.extensions.test,org.springframework.xd.extensions.test2
+        locations: classpath*:META-INF/spring-xd/ext-test,classpath*:META-INF/spring-xd/ext-test2

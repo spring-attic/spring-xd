@@ -224,6 +224,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		DeploymentMetadata metadata = new DeploymentMetadata(group, index, request.getSourceChannelName(),
 				request.getSinkChannelName());
 
+		@SuppressWarnings("resource")
 		ClassLoader classLoader = (definition.getClasspath() == null) ? null
 				: new ParentLastURLClassLoader(definition.getClasspath(), parentClassLoader);
 

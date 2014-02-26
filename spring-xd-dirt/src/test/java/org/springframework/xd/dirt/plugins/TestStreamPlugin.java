@@ -17,7 +17,6 @@
 package org.springframework.xd.dirt.plugins;
 
 import org.springframework.boot.context.event.ApplicationPreparedEvent;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.integration.x.bus.AbstractTestMessageBus;
 import org.springframework.xd.dirt.module.SharedContextInitializer;
 import org.springframework.xd.dirt.plugins.stream.StreamPlugin;
@@ -59,10 +58,6 @@ public class TestStreamPlugin implements Plugin, SharedContextInitializer {
 	@Override
 	public void beforeShutdown(Module module) {
 		this.streamPlugin.beforeShutdown(module);
-	}
-
-	public void preProcessSharedContext(ConfigurableApplicationContext context) {
-		context.getBeanFactory().registerSingleton("messageBus", testMessageBus);
 	}
 
 	@Override

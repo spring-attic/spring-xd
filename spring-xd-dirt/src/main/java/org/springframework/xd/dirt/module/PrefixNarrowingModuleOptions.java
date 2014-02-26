@@ -50,7 +50,7 @@ public class PrefixNarrowingModuleOptions extends ModuleOptions {
 
 	@Override
 	public EnumerablePropertySource<?> asPropertySource() {
-		final EnumerablePropertySource ps = composedModuleOptions.asPropertySource();
+		final EnumerablePropertySource<?> ps = composedModuleOptions.asPropertySource();
 
 		final String prefix = moduleName + CompositeModule.OPTION_SEPARATOR;
 

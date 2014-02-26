@@ -31,8 +31,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.aop.framework.ProxyFactory;
-import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
-import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.test.util.TestUtils;
@@ -44,12 +42,12 @@ import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.core.Module;
 import org.springframework.xd.module.core.SimpleModule;
-import org.springframework.xd.module.support.BeanDefinitionAddingPostProcessor;
 
 /**
  * @author Mark Fisher
  * @author Jennifer Hickey
  * @author Gary Russell
+ * @author David Turanski
  */
 public class StreamPluginTests {
 
@@ -102,15 +100,6 @@ public class StreamPluginTests {
 		verify(bus).unbindConsumer("foo.0", input);
 		verify(bus).unbindProducer("foo.1", output);
 		verify(bus).unbindProducers("tap:foo.testing.1");
-	}
-
-	@Test
-	public void sharedComponentsAdded() {
-		GenericApplicationContext context = new GenericApplicationContext();
-		plugin.preProcessSharedContext(context);
-		List<BeanFactoryPostProcessor> sharedBeans = context.getBeanFactoryPostProcessors();
-		assertEquals(1, sharedBeans.size());
-		assertTrue(sharedBeans.get(0) instanceof BeanDefinitionAddingPostProcessor);
 	}
 
 	@Test

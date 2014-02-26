@@ -20,19 +20,16 @@ import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.core.io.ClassPathResource;
+
 import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.plugins.AbstractPlugin;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.core.Module;
-import org.springframework.xd.module.support.BeanDefinitionAddingPostProcessor;
 
 /**
  * @author Mark Fisher
@@ -45,11 +42,7 @@ public class StreamPlugin extends AbstractPlugin {
 
 	private final Log logger = LogFactory.getLog(getClass());
 
-	private static final String CONTEXT_CONFIG_ROOT = XDContainer.XD_CONFIG_ROOT + "plugins/stream/";
-
 	private static final String TAP_CHANNEL_PREFIX = "tap:";
-
-	private static final String MESSAGE_BUS = CONTEXT_CONFIG_ROOT + "message-bus.xml";
 
 	private static final String TOPIC_CHANNEL_PREFIX = "topic:";
 
@@ -151,11 +144,5 @@ public class StreamPlugin extends AbstractPlugin {
 	private boolean isChannelPubSub(String channelName) {
 		return channelName != null
 				&& (channelName.startsWith(TAP_CHANNEL_PREFIX) || channelName.startsWith(TOPIC_CHANNEL_PREFIX));
-	}
-
-	@Override
-	public void preProcessSharedContext(ConfigurableApplicationContext context) {
-		context.addBeanFactoryPostProcessor(new BeanDefinitionAddingPostProcessor(context.getEnvironment(),
-				new ClassPathResource(MESSAGE_BUS)));
 	}
 }

@@ -13,5 +13,7 @@
 		<constructor-arg ref="runtimeModuleInfoRepository" />
 		<constructor-arg ref="runtimeContainerModuleInfoRepository" />
 	</bean>
+	
+	<bean class="org.springframework.xd.dirt.module.MessageBusInitializer"/>
 
 </beans>

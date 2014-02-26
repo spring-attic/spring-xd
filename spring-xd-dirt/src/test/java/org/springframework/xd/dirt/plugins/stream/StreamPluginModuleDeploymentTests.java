@@ -50,6 +50,7 @@ import org.springframework.xd.module.core.SimpleModule;
  * Integration test that deploys a few simple test modules to verify the full functionality of {@link StreamPlugin}
  * 
  * @author Jennifer Hickey
+ * @author David Turanski
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration

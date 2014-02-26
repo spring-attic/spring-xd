@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.module.redis;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -91,7 +92,14 @@ public class RedisModuleDefinitionRepository extends AbstractRedisRepository<Mod
 	@Override
 	protected ModuleDefinition deserialize(String redisKey, String v) {
 		try {
-			return this.objectMapper.readValue(v, ModuleDefinition.class);
+			ModuleDefinition shallowValue = this.objectMapper.readValue(v, ModuleDefinition.class);
+			List<ModuleDefinition> deepModules = new ArrayList<ModuleDefinition>(
+					shallowValue.getComposedModuleDefinitions().size());
+			for (ModuleDefinition child : shallowValue.getComposedModuleDefinitions()) {
+				deepModules.add(this.findByNameAndType(child.getName(), child.getType()));
+			}
+			shallowValue.setComposedModuleDefinitions(deepModules);
+			return shallowValue;
 		}
 		catch (Exception ex) {
 			throw new SerializationException("Could not read JSON: " + ex.getMessage(), ex);

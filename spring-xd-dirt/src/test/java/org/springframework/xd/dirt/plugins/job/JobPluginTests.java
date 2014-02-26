@@ -37,14 +37,11 @@ import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
-import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
-import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.channel.DirectChannel;
@@ -104,15 +101,7 @@ public class JobPluginTests extends RandomConfigurationSupport {
 		sharedContext = new SpringApplicationBuilder(SharedConfiguration.class).profiles(
 				AdminServerApplication.ADMIN_PROFILE, AdminServerApplication.HSQL_PROFILE).properties(
 				"spring.datasource.url=jdbc:hsqldb:mem:xdjobrepotest") //
-		.web(false).initializers(
-				new ApplicationContextInitializer<ConfigurableApplicationContext>() {
-
-					@Override
-					public void initialize(ConfigurableApplicationContext applicationContext) {
-						plugin.preProcessSharedContext(applicationContext);
-					}
-
-				}).run();
+		.web(false).run();
 	}
 
 	@Test
@@ -197,10 +186,7 @@ public class JobPluginTests extends RandomConfigurationSupport {
 		Mockito.when(module.getProperties()).thenReturn(properties);
 		Mockito.when(module.getDeploymentMetadata()).thenReturn(new DeploymentMetadata("job", 0));
 
-		GenericApplicationContext context = new GenericApplicationContext();
 		plugin.preProcessModule(module);
-		plugin.preProcessSharedContext(context);
-
 		Mockito.verify(module).addComponents(Matchers.any(Resource.class));
 
 		// TODO: assert that the right resource was added.
@@ -211,18 +197,6 @@ public class JobPluginTests extends RandomConfigurationSupport {
 		// assertTrue(names.contains("input"));
 		// assertTrue(names.contains("jobLaunchingChannel"));
 		// assertTrue(names.contains("notifications"));
-	}
-
-	/**
-	 * There should not be any shared beans for the plugin. As per XD-703 the common job beans are registered in the
-	 * global common context, so that they are shared across xd-admin/xd-container.
-	 */
-	@Test
-	public void sharedComponentsAdded() {
-		GenericApplicationContext context = new GenericApplicationContext();
-		plugin.preProcessSharedContext(context);
-		List<BeanFactoryPostProcessor> sharedBeans = context.getBeanFactoryPostProcessors();
-		assertEquals(0, sharedBeans.size());
 	}
 
 	@Test

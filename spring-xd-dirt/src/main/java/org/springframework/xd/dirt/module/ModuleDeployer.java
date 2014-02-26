@@ -17,6 +17,9 @@
 package org.springframework.xd.dirt.module;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,16 +29,17 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.OrderComparator;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -54,7 +58,6 @@ import org.springframework.xd.module.core.SimpleModule;
 import org.springframework.xd.module.options.ModuleOptions;
 import org.springframework.xd.module.options.ModuleOptionsMetadata;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
-import org.springframework.xd.module.options.PassthruModuleOptionsMetadata;
 import org.springframework.xd.module.support.ParentLastURLClassLoader;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -82,7 +85,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 
 	private final ConcurrentMap<String, Map<Integer, Module>> deployedModules = new ConcurrentHashMap<String, Map<Integer, Module>>();
 
-	private volatile Map<String, Plugin> plugins;
+	private volatile List<Plugin> plugins;
 
 	private final ModuleDefinitionRepository moduleDefinitionRepository;
 
@@ -114,7 +117,15 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 
 	@Override
 	public void onInit() {
-		this.plugins = this.deployerContext.getBeansOfType(Plugin.class);
+		this.plugins = new ArrayList<Plugin>(this.deployerContext.getBeansOfType(Plugin.class).values());
+		Collections.sort(this.plugins, new OrderComparator());
+
+		Collection<SharedContextInitializer> sharedContextInitializerBeans = this.deployerContext.getBeansOfType(
+				SharedContextInitializer.class).values();
+
+		SharedContextInitializer[] sharedContextInitializers = sharedContextInitializerBeans.toArray(new SharedContextInitializer[sharedContextInitializerBeans.size()]);
+		Arrays.sort(sharedContextInitializers, new OrderComparator());
+
 		SpringApplicationBuilder application = new SpringApplicationBuilder(XDContainer.XD_INTERNAL_CONFIG_ROOT
 				+ "module-common.xml", PropertyPlaceholderAutoConfiguration.class).web(false);
 		application.application().setShowBanner(false);
@@ -123,15 +134,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		if (globalContext != null) {
 			application.environment(globalContext.getEnvironment());
 		}
-		application.initializers(new ApplicationContextInitializer<ConfigurableApplicationContext>() {
-
-			@Override
-			public void initialize(ConfigurableApplicationContext applicationContext) {
-				for (Plugin plugin : plugins.values()) {
-					plugin.preProcessSharedContext(applicationContext);
-				}
-			};
-		});
+		application.listeners(sharedContextInitializers);
 		this.commonContext = application.run();
 	}
 
@@ -339,7 +342,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 	private List<Plugin> getSupportedPlugins(Module module) {
 		List<Plugin> supportedPlugins = new ArrayList<Plugin>();
 		if (this.plugins != null) {
-			for (Plugin plugin : this.plugins.values()) {
+			for (Plugin plugin : this.plugins) {
 				if (plugin.supports(module)) {
 					supportedPlugins.add(plugin);
 				}
@@ -374,7 +377,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 
 	private void launchModule(Module module, Map<String, String> parameters) {
 		if (this.plugins != null) {
-			for (Plugin plugin : this.plugins.values()) {
+			for (Plugin plugin : this.plugins) {
 				// Currently, launching module is applicable only to Jobs
 				if (plugin instanceof JobPlugin) {
 					((JobPlugin) plugin).launch(module, parameters);

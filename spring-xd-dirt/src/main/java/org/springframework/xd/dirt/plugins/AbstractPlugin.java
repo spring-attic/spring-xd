@@ -18,7 +18,8 @@ package org.springframework.xd.dirt.plugins;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.context.ConfigurableApplicationContext;
+
+import org.springframework.core.Ordered;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.xd.module.core.Module;
 import org.springframework.xd.module.core.Plugin;
@@ -28,11 +29,12 @@ import org.springframework.xd.module.core.Plugin;
  * Abstract {@link Plugin} that contains no-op and common implementing methods.
  * 
  * @author Ilayaperumal Gopinathan
+ * @author David Turanski
  * 
  */
-public abstract class AbstractPlugin implements Plugin {
+public abstract class AbstractPlugin implements Plugin, Ordered {
 
-	private final Log logger = LogFactory.getLog(getClass());
+	protected final Log logger = LogFactory.getLog(getClass());
 
 	@Override
 	public void preProcessModule(Module module) {
@@ -50,10 +52,6 @@ public abstract class AbstractPlugin implements Plugin {
 	public void beforeShutdown(Module module) {
 	}
 
-	@Override
-	public void preProcessSharedContext(ConfigurableApplicationContext context) {
-	}
-
 	protected MessageBus findMessageBus(Module module) {
 		MessageBus messageBus = null;
 		try {
@@ -65,6 +63,12 @@ public abstract class AbstractPlugin implements Plugin {
 		return messageBus;
 	}
 
+	@Override
 	public abstract boolean supports(Module module);
+
+	@Override
+	public int getOrder() {
+		return 0;
+	}
 
 }

@@ -20,6 +20,8 @@
 		</constructor-arg>
 	</bean>
 
+	<bean class="org.springframework.xd.dirt.module.MessageBusInitializer"/>
+
 	<bean class="org.springframework.xd.dirt.plugins.stream.StreamPlugin" />
 
 	<bean class="org.springframework.xd.dirt.module.TestModuleEventListener" />

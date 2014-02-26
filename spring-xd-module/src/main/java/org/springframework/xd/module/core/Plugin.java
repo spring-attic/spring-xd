@@ -16,7 +16,6 @@
 
 package org.springframework.xd.module.core;
 
-import org.springframework.context.ConfigurableApplicationContext;
 
 /**
  * To be implemented by classes that want to alter how a {@link Module} works. Typically, implementations will add
@@ -28,6 +27,7 @@ import org.springframework.context.ConfigurableApplicationContext;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Eric Bottard
+ * @author David Turanski
  */
 public interface Plugin {
 
@@ -56,13 +56,6 @@ public interface Plugin {
 	 * @param module
 	 */
 	void beforeShutdown(Module module);
-
-	/**
-	 * Invoked when this plugin is discovered, allows to make any necessary changes to the context which will be used as
-	 * the parent of all {@link Module#setParentContext(org.springframework.context.ApplicationContext) modules}. Note
-	 * that said context has not been {@link ConfigurableApplicationContext#refresh() refreshed} yet.
-	 */
-	void preProcessSharedContext(ConfigurableApplicationContext context);
 
 	/**
 	 * Check if the module is supported by the plugin.

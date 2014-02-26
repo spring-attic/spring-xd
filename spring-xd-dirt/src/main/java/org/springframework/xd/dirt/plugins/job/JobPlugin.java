@@ -19,19 +19,13 @@ package org.springframework.xd.dirt.plugins.job;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
-import org.springframework.xd.dirt.plugins.AbstractPlugin;
-import org.springframework.xd.dirt.util.ConfigLocations;
-import org.springframework.xd.module.DeploymentMetadata;
-import org.springframework.xd.module.ModuleType;
+import org.springframework.xd.dirt.plugins.AbstractJobPlugin;
 import org.springframework.xd.module.core.Module;
 
 /**
@@ -45,43 +39,17 @@ import org.springframework.xd.module.core.Module;
  * @author David Turanski
  * @since 1.0
  */
-public class JobPlugin extends AbstractPlugin {
+public class JobPlugin extends AbstractJobPlugin {
 
-	private final Log logger = LogFactory.getLog(getClass());
-
-	private final MessageBus messageBus;
-
-	private static final String CONTEXT_CONFIG_ROOT = ConfigLocations.XD_CONFIG_ROOT + "plugins/job/";
-
-	private static final String REGISTRAR = CONTEXT_CONFIG_ROOT + "job-module-beans.xml";
-
-	public static final String JOB_NAME_DELIMITER = ".";
+	private static final String REGISTRAR = PLUGIN_CONTEXT_CONFIG_ROOT + "job/job-module-beans.xml";
 
 	public static final String JOB_PARAMETERS_KEY = "jobParameters";
 
-	private static final String NOTIFICATION_CHANNEL_SUFFIX = "-notifications";
-
-	private static final String JOB_CHANNEL_PREFIX = "job:";
-
-	private static final String JOB_LAUNCH_REQUEST_CHANNEL = "input";
-
-	private static final String JOB_NOTIFICATIONS_CHANNEL = "notifications";
-
-	private static final String JOB_PARTIONER_REQUEST_CHANNEL = "stepExecutionRequests.output";
-
-	private static final String JOB_PARTIONER_REPLY_CHANNEL = "stepExecutionReplies.input";
-
-	private static final String JOB_STEP_EXECUTION_REQUEST_CHANNEL = "stepExecutionRequests.input";
-
-	private static final String JOB_STEP_EXECUTION_REPLY_CHANNEL = "stepExecutionReplies.output";
-
 	public JobPlugin(MessageBus messageBus) {
-		super();
-		Assert.notNull(messageBus, "messageBus cannot be null.");
-		this.messageBus = messageBus;
+		super(messageBus);
 	}
 
-	public void configureProperties(Module module) {
+	private void configureProperties(Module module) {
 		final Properties properties = new Properties();
 		properties.setProperty("xd.stream.name", module.getDeploymentMetadata().getGroup());
 		module.addProperties(properties);
@@ -96,87 +64,25 @@ public class JobPlugin extends AbstractPlugin {
 
 	@Override
 	public void postProcessModule(Module module) {
-		DeploymentMetadata md = module.getDeploymentMetadata();
-
-		MessageChannel inputChannel = module.getComponent(JOB_LAUNCH_REQUEST_CHANNEL, MessageChannel.class);
-		if (inputChannel != null) {
-			this.messageBus.bindConsumer(JOB_CHANNEL_PREFIX + md.getGroup(), inputChannel, true);
-		}
-		MessageChannel notificationsChannel = module.getComponent(JOB_NOTIFICATIONS_CHANNEL, MessageChannel.class);
-		if (notificationsChannel != null) {
-			this.messageBus.bindProducer(JOB_CHANNEL_PREFIX + md.getGroup() + NOTIFICATION_CHANNEL_SUFFIX,
-					notificationsChannel, true);
-		}
-
-		if (module.getComponent(JOB_PARTIONER_REQUEST_CHANNEL, MessageChannel.class) != null) {
-			this.processPartitionedJob(module, md, this.messageBus);
-		}
-	}
-
-	private void processPartitionedJob(Module module, DeploymentMetadata md, MessageBus bus) {
-		if (logger.isDebugEnabled()) {
-			logger.debug("binding job partitioning channels for " + module);
-		}
-		MessageChannel partitionsOut = module.getComponent(JOB_PARTIONER_REQUEST_CHANNEL, MessageChannel.class);
-		Assert.notNull(partitionsOut, "Partitioned jobs must have a " + JOB_PARTIONER_REQUEST_CHANNEL);
-		MessageChannel partitionsIn = module.getComponent(JOB_PARTIONER_REPLY_CHANNEL, MessageChannel.class);
-		Assert.notNull(partitionsIn, "Partitioned jobs must have a " + JOB_PARTIONER_REPLY_CHANNEL);
-		String name = md.getGroup() + "." + md.getIndex();
-		bus.bindRequestor(name, partitionsOut, partitionsIn);
-
-		MessageChannel stepExecutionsIn = module.getComponent(JOB_STEP_EXECUTION_REQUEST_CHANNEL, MessageChannel.class);
-		Assert.notNull(stepExecutionsIn, "Partitioned jobs must have a " + JOB_STEP_EXECUTION_REQUEST_CHANNEL);
-		MessageChannel stepExecutionResultsOut = module.getComponent(JOB_STEP_EXECUTION_REPLY_CHANNEL,
-				MessageChannel.class);
-		Assert.notNull(stepExecutionResultsOut, "Partitioned jobs must have a " + JOB_STEP_EXECUTION_REPLY_CHANNEL);
-		bus.bindReplier(name, stepExecutionsIn, stepExecutionResultsOut);
-	}
-
-	private void unbindPartitionedJob(Module module, MessageBus bus) {
-		if (logger.isDebugEnabled()) {
-			logger.debug("unbinding job partitioning channels for " + module);
-		}
-		DeploymentMetadata md = module.getDeploymentMetadata();
-		MessageChannel partitionsOut = module.getComponent(JOB_PARTIONER_REQUEST_CHANNEL, MessageChannel.class);
-		String name = md.getGroup() + "." + md.getIndex();
-		if (partitionsOut != null) {
-			bus.unbindProducer(name, partitionsOut);
-		}
-		MessageChannel partitionsIn = module.getComponent(JOB_PARTIONER_REPLY_CHANNEL, MessageChannel.class);
-		if (partitionsIn != null) {
-			bus.unbindConsumer(name, partitionsIn);
-		}
-		MessageChannel stepExcutionsIn = module.getComponent(JOB_STEP_EXECUTION_REQUEST_CHANNEL, MessageChannel.class);
-		if (stepExcutionsIn != null) {
-			bus.unbindConsumer(name, stepExcutionsIn);
-		}
-		MessageChannel stepExecutionResultsOut = module.getComponent(JOB_STEP_EXECUTION_REPLY_CHANNEL,
-				MessageChannel.class);
-		if (stepExecutionResultsOut != null) {
-			bus.unbindProducer(name, stepExecutionResultsOut);
-		}
-	}
-
-	@Override
-	public boolean supports(Module module) {
-		return (module.getType() == ModuleType.job);
+		bindConsumerAndProducers(module);
 	}
 
 	@Override
 	public void removeModule(Module module) {
-		this.messageBus.unbindConsumers(JOB_CHANNEL_PREFIX + module.getDeploymentMetadata().getGroup());
-		this.messageBus.unbindProducers(module.getDeploymentMetadata().getGroup() + NOTIFICATION_CHANNEL_SUFFIX);
-		if (module.getComponent(JOB_PARTIONER_REQUEST_CHANNEL, MessageChannel.class) != null) {
-			this.unbindPartitionedJob(module, this.messageBus);
-		}
+		unbindConsumerAndProducers(module);
 	}
 
 	public void launch(Module module, Map<String, String> parameters) {
-		MessageChannel inputChannel = module.getComponent(JOB_LAUNCH_REQUEST_CHANNEL, MessageChannel.class);
+		MessageChannel inputChannel = module.getComponent(MODULE_INPUT_CHANNEL, MessageChannel.class);
 		String payloadJSON =
 				(parameters != null && parameters.get(JOB_PARAMETERS_KEY) != null) ? parameters.get(JOB_PARAMETERS_KEY)
 						: "";
 		Message<?> message = MessageBuilder.withPayload(payloadJSON).build();
 		inputChannel.send(message);
+	}
+
+	@Override
+	public int getOrder() {
+		return HIGHEST_PRECEDENCE;
 	}
 }

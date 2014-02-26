@@ -18,19 +18,11 @@ package org.springframework.xd.dirt.plugins.stream;
 
 import java.util.Properties;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.boot.context.event.ApplicationPreparedEvent;
 import org.springframework.context.ApplicationListener;
-import org.springframework.integration.channel.ChannelInterceptorAware;
-import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.integration.x.bus.MessageBusAwareRouterBeanPostProcessor;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.util.Assert;
-import org.springframework.xd.dirt.plugins.AbstractPlugin;
+import org.springframework.xd.dirt.plugins.AbstractStreamPlugin;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.core.Module;
@@ -41,23 +33,13 @@ import org.springframework.xd.module.core.Module;
  * @author David Turanski
  * @author Jennifer Hickey
  * @author Glenn Renfro
+ * @author Ilayaperumal Gopinathan
  */
-public class StreamPlugin extends AbstractPlugin {
-
-	private final MessageBus messageBus;
+public class StreamPlugin extends AbstractStreamPlugin {
 
 	public StreamPlugin(MessageBus messageBus) {
-		super();
-		Assert.notNull(messageBus, "messageBus cannot be null.");
-		this.messageBus = messageBus;
+		super(messageBus);
 	}
-
-	private final Log logger = LogFactory.getLog(getClass());
-
-
-	private static final String TAP_CHANNEL_PREFIX = "tap:";
-
-	private static final String TOPIC_CHANNEL_PREFIX = "topic:";
 
 	@Override
 	public void preProcessModule(Module module) {
@@ -83,88 +65,16 @@ public class StreamPlugin extends AbstractPlugin {
 
 	@Override
 	public void postProcessModule(Module module) {
-		bindConsumer(module, this.messageBus);
-		bindProducers(module, this.messageBus);
-	}
-
-	@Override
-	public boolean supports(Module module) {
-		ModuleType moduleType = module.getType();
-		return (moduleType == ModuleType.source || moduleType == ModuleType.processor || moduleType == ModuleType.sink);
-	}
-
-	private void bindConsumer(Module module, MessageBus bus) {
-		DeploymentMetadata md = module.getDeploymentMetadata();
-		MessageChannel channel = module.getComponent("input", MessageChannel.class);
-		if (channel != null) {
-			if (isChannelPubSub(md.getInputChannelName())) {
-				bus.bindPubSubConsumer(md.getInputChannelName(), channel);
-			}
-			else {
-				bus.bindConsumer(md.getInputChannelName(), channel,
-						md.isAliasedInput());
-			}
-		}
-	}
-
-	private void bindProducers(Module module, MessageBus bus) {
-		DeploymentMetadata md = module.getDeploymentMetadata();
-		MessageChannel channel = module.getComponent("output", MessageChannel.class);
-		if (channel != null) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("binding output channel [" + md.getOutputChannelName() + "] for " + module);
-			}
-			if (isChannelPubSub(md.getOutputChannelName())) {
-				bus.bindPubSubProducer(md.getOutputChannelName(), channel);
-			}
-			else {
-				bus.bindProducer(md.getOutputChannelName(), channel, md.isAliasedOutput());
-			}
-
-			// Create the tap channel now for possible future use (tap:mystream.mymodule)
-			if (channel instanceof ChannelInterceptorAware) {
-				String tapChannelName = buildTapChannelName(module);
-				DirectChannel tapChannel = new DirectChannel();
-				tapChannel.setBeanName(tapChannelName + ".tap.bridge");
-				((ChannelInterceptorAware) channel).addInterceptor(new WireTap(tapChannel));
-				bus.bindPubSubProducer(tapChannelName, tapChannel);
-			}
-			else {
-				if (logger.isDebugEnabled()) {
-					logger.debug("output channel is not interceptor aware. Tap will not be created.");
-				}
-			}
-		}
+		bindConsumerAndProducers(module);
 	}
 
 	@Override
 	public void beforeShutdown(Module module) {
-		unbindConsumer(module, messageBus);
-		unbindProducers(module, messageBus);
+		unbindConsumerAndProducers(module);
 	}
 
-	private void unbindConsumer(Module module, MessageBus bus) {
-		MessageChannel inputChannel = module.getComponent("input", MessageChannel.class);
-		if (inputChannel != null) {
-			bus.unbindConsumer(module.getDeploymentMetadata().getInputChannelName(), inputChannel);
-		}
-	}
-
-	private void unbindProducers(Module module, MessageBus bus) {
-		MessageChannel outputChannel = module.getComponent("output", MessageChannel.class);
-		if (outputChannel != null) {
-			bus.unbindProducer(module.getDeploymentMetadata().getOutputChannelName(), outputChannel);
-		}
-		bus.unbindProducers(buildTapChannelName(module));
-	}
-
-	private String buildTapChannelName(Module module) {
-		return TAP_CHANNEL_PREFIX + module.getDeploymentMetadata().getGroup() + "." + module.getName() + "."
-				+ module.getDeploymentMetadata().getIndex();
-	}
-
-	private boolean isChannelPubSub(String channelName) {
-		return channelName != null
-				&& (channelName.startsWith(TAP_CHANNEL_PREFIX) || channelName.startsWith(TOPIC_CHANNEL_PREFIX));
+	@Override
+	public int getOrder() {
+		return HIGHEST_PRECEDENCE;
 	}
 }

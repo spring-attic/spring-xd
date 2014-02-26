@@ -244,8 +244,14 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 		List<Token> channelReferenceComponents = new ArrayList<Token>();
 		if (tapAllowed && firstToken.data.equalsIgnoreCase("tap")) {
 			if (peekToken(TokenKind.DOT)) {
-				if (channelScopeComponents.size() < 2 || !channelScopeComponents.get(1).data.equalsIgnoreCase("stream")) {
-					raiseException(peekToken().startpos, XDDSLMessages.ONLY_A_TAP_ON_A_STREAM_CAN_BE_INDEXED);
+				if (channelScopeComponents.size() < 3) {
+					raiseException(firstToken.startpos, XDDSLMessages.TAP_NEEDS_THREE_COMPONENTS);
+				}
+				String tokenData = channelScopeComponents.get(1).data;
+				// for Stream, tap:stream:XXX - the channel name is always indexed
+				// for Job, tap:job:XXX - the channel name can have "." in case of job notification channels
+				if (!tokenData.equalsIgnoreCase("stream") && !tokenData.equalsIgnoreCase("job")) {
+					raiseException(peekToken().startpos, XDDSLMessages.ONLY_A_TAP_ON_A_STREAM_OR_JOB_CAN_BE_INDEXED);
 				}
 			}
 			while (peekToken(TokenKind.DOT)) {
@@ -261,7 +267,7 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 		}
 		else if (peekToken(TokenKind.DOT)) {
 			if (tapAllowed) {
-				raiseException(peekToken().startpos, XDDSLMessages.ONLY_A_TAP_ON_A_STREAM_CAN_BE_INDEXED);
+				raiseException(peekToken().startpos, XDDSLMessages.ONLY_A_TAP_ON_A_STREAM_OR_JOB_CAN_BE_INDEXED);
 			}
 			else {
 				raiseException(peekToken().startpos, XDDSLMessages.CHANNEL_INDEXING_NOT_ALLOWED);

@@ -81,7 +81,6 @@ public class StreamPluginTests {
 		module.initialize();
 		assertEquals(0, module.getProperties().size());
 		plugin.preProcessModule(module);
-		plugin.postProcessModule(module);
 		assertEquals(2, module.getProperties().size());
 		assertEquals("foo", module.getProperties().getProperty("xd.stream.name"));
 		assertEquals("0", module.getProperties().getProperty("xd.module.index"));

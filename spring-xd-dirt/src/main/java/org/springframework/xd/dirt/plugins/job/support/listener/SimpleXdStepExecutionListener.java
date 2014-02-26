@@ -22,22 +22,20 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
-import org.springframework.integration.support.MessageBuilder;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.xd.dirt.plugins.job.BatchJobHeaders;
+import org.springframework.messaging.SubscribableChannel;
 
 /**
  * @author Gunnar Hillert
+ * @author Ilayaperumal Gopinathan
  * @since 1.0
  */
-public class SimpleXdStepExecutionListener implements StepExecutionListener {
+public class SimpleXdStepExecutionListener extends BatchJobListener<StepExecution> implements StepExecutionListener {
 
 	private static final Log logger = LogFactory.getLog(SimpleXdStepExecutionListener.class);
 
-	private MessageChannel notificationsChannel;
-
-	public void setNotificationsChannel(MessageChannel notificationsChannel) {
-		this.notificationsChannel = notificationsChannel;
+	public SimpleXdStepExecutionListener(SubscribableChannel stepExecutionNotifyChannel,
+			SubscribableChannel commonNotificationChannel) {
+		super(stepExecutionNotifyChannel, commonNotificationChannel);
 	}
 
 	@Override
@@ -45,10 +43,7 @@ public class SimpleXdStepExecutionListener implements StepExecutionListener {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Executing beforeStep: " + stepExecution);
 		}
-		notificationsChannel.send(MessageBuilder.withPayload(stepExecution)
-				.setHeader(BatchJobHeaders.BATCH_LISTENER_EVENT_TYPE,
-						BatchListenerEventType.STEP_EXECUTION_LISTENER_BEFORE_STEP.name())
-				.build());
+		publish(stepExecution);
 	}
 
 	@Override
@@ -56,10 +51,7 @@ public class SimpleXdStepExecutionListener implements StepExecutionListener {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Executing afterStep: " + stepExecution);
 		}
-		notificationsChannel.send(MessageBuilder.withPayload(stepExecution)
-				.setHeader(BatchJobHeaders.BATCH_LISTENER_EVENT_TYPE,
-						BatchListenerEventType.STEP_EXECUTION_LISTENER_AFTER_STEP.name())
-				.build());
+		publish(stepExecution);
 		return null;
 	}
 }

@@ -16,13 +16,7 @@
 			<batch:tasklet>
 				<batch:chunk reader="itemReader" writer="itemWriter" commit-interval="100"/>
 			</batch:tasklet>
-			<batch:listeners>
-				<batch:listener ref="xdStepExecutionListener"/>
-			</batch:listeners>
 		</batch:step>
-		<batch:listeners>
-			<batch:listener ref="xdJobExecutionListener"/>
-		</batch:listeners>
 	</batch:job>
 
 	<bean id="dataSource" class="org.apache.tomcat.jdbc.pool.DataSource" destroy-method="close">

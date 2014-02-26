@@ -352,7 +352,7 @@ public class StreamConfigParserTests {
 		checkForParseError("tap:stream:boo.xx .yy > file", XDDSLMessages.NO_WHITESPACE_IN_CHANNEL_DEFINITION, 18);
 		checkForParseError("tap:stream:boo.xx . yy > file", XDDSLMessages.NO_WHITESPACE_IN_CHANNEL_DEFINITION, 18);
 
-		checkForParseError("tap:queue:boo.xx.yy > file", XDDSLMessages.ONLY_A_TAP_ON_A_STREAM_CAN_BE_INDEXED, 13);
+		checkForParseError("tap:queue:boo.xx.yy > file", XDDSLMessages.ONLY_A_TAP_ON_A_STREAM_OR_JOB_CAN_BE_INDEXED, 13);
 
 		sn = parse("wibble: http > queue:bar");
 		assertEquals("[((Label:wibble) ModuleNode:http)>(queue:bar)]", sn.stringify());

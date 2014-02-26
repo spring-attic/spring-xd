@@ -234,9 +234,10 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 	@Test
 	public void testLaunchPartitionedJob() {
 		logger.info("Launch Partitioned batch job");
-		executeJobCreate(MY_JOB_WITH_PARTITIONS, JOB_WITH_PARTITIONS_DESCRIPTOR);
-		checkForJobInList(MY_JOB_WITH_PARTITIONS, JOB_WITH_PARTITIONS_DESCRIPTOR, true);
-		executeJobLaunch(MY_JOB_WITH_PARTITIONS);
+		String jobName = generateJobName();
+		executeJobCreate(jobName, JOB_WITH_PARTITIONS_DESCRIPTOR);
+		checkForJobInList(jobName, JOB_WITH_PARTITIONS_DESCRIPTOR, true);
+		executeJobLaunch(jobName);
 	}
 
 	@Test

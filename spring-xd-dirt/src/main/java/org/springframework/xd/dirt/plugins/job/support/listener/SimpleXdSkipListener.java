@@ -22,21 +22,21 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.batch.core.SkipListener;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.SubscribableChannel;
 import org.springframework.xd.dirt.plugins.job.BatchJobHeaders;
 
 /**
  * @author Gunnar Hillert
+ * @author Ilayaperumal Gopinathan
  * @since 1.0
  */
-public class SimpleXdSkipListener implements SkipListener<Object, Object> {
+public class SimpleXdSkipListener extends BatchJobListener<Object> implements SkipListener<Object, Object> {
 
 	private static final Log logger = LogFactory.getLog(SimpleXdSkipListener.class);
 
-	private MessageChannel notificationsChannel;
-
-	public void setNotificationsChannel(MessageChannel notificationsChannel) {
-		this.notificationsChannel = notificationsChannel;
+	public SimpleXdSkipListener(SubscribableChannel skipNotificationChannel,
+			SubscribableChannel notifyAllChannel) {
+		super(skipNotificationChannel, notifyAllChannel);
 	}
 
 	@Override
@@ -44,35 +44,24 @@ public class SimpleXdSkipListener implements SkipListener<Object, Object> {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Executing onSkipInRead: " + t.getMessage(), t);
 		}
-		notificationsChannel.send(MessageBuilder.withPayload(t)
-				.setHeader(BatchJobHeaders.BATCH_LISTENER_EVENT_TYPE,
-						BatchListenerEventType.SKIP_LISTENER_ON_SKIP_IN_READ.name())
-				.build());
+		Message<String> message = MessageBuilder.withPayload("Skipped when reading.").setHeader(
+				BatchJobHeaders.BATCH_EXCEPTION, t).build();
+		publish(message);
 	}
 
 	@Override
-	public void onSkipInWrite(Object item, Throwable throwable) {
+	public void onSkipInWrite(Object item, Throwable t) {
 		if (logger.isDebugEnabled()) {
-			logger.debug("Executing onSkipInWrite: " + throwable.getMessage(), throwable);
+			logger.debug("Executing onSkipInWrite: " + t.getMessage(), t);
 		}
-		final Message<Object> message = MessageBuilder.withPayload(item)
-				.setHeader(BatchJobHeaders.BATCH_EXCEPTION, throwable)
-				.setHeader(BatchJobHeaders.BATCH_LISTENER_EVENT_TYPE,
-						BatchListenerEventType.SKIP_LISTENER_ON_SKIP_IN_WRITE.name())
-				.build();
-		notificationsChannel.send(message);
+		publishWithThrowableHeader(item, t.getMessage());
 	}
 
 	@Override
-	public void onSkipInProcess(Object item, Throwable throwable) {
+	public void onSkipInProcess(Object item, Throwable t) {
 		if (logger.isDebugEnabled()) {
-			logger.debug("Executing onSkipInProcess: " + throwable.getMessage(), throwable);
+			logger.debug("Executing onSkipInProcess: " + t.getMessage(), t);
 		}
-		final Message<Object> message = MessageBuilder.withPayload(item)
-				.setHeader(BatchJobHeaders.BATCH_EXCEPTION, throwable)
-				.setHeader(BatchJobHeaders.BATCH_LISTENER_EVENT_TYPE,
-						BatchListenerEventType.SKIP_LISTENER_ON_SKIP_IN_PROCESS.name())
-				.build();
-		notificationsChannel.send(message);
+		publishWithThrowableHeader(item, t.getMessage());
 	}
 }

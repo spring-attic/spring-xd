@@ -65,7 +65,7 @@ public enum XDDSLMessages {
 	STREAM_NAME_MATCHING_MODULE_NAME(ERROR, 130,
 			"Stream name ''{0}'' same as that of its modules' names is not allowed."), //
 	CHANNEL_INDEXING_NOT_ALLOWED(ERROR, 131, "Channel does not support indexing"), //
-	ONLY_A_TAP_ON_A_STREAM_CAN_BE_INDEXED(ERROR, 132, "Only a tap on a stream can be indexed"), //
+	ONLY_A_TAP_ON_A_STREAM_OR_JOB_CAN_BE_INDEXED(ERROR, 132, "Only a tap on a stream or job can be indexed"), //
 	EXPECTED_CHANNEL_PREFIX_QUEUE_TOPIC(ERROR,
 			133,
 			"Expected channel prefix of ''queue'' or ''topic'' but found ''{0}''"), //

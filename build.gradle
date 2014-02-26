@@ -84,9 +84,8 @@ ext {
 	hamcrestVersion = '1.3'
 	hibernateValidatorVersion = '4.3.1.Final'
 	hsqldbVersion = '2.3.0'
-	httpClientVersion = '4.1.2'
 	jackson1Version = '1.9.13'
-	jacksonVersion = '2.2.2'
+	jacksonVersion = '2.3.1'
 	javaxMailVersion = '1.5.0'
 	jcloudsVersion = '1.7.0'
 	jodaTimeVersion = '2.1'
@@ -375,7 +374,6 @@ project('spring-xd-dirt') {
 		compile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
 		compile "log4j:log4j:$log4jVersion"
 		compile "org.jolokia:jolokia-spring:$jolokiaVersion"
-		compile "org.jolokia:jolokia-client-java:$jolokiaVersion"
 		compile "com.esotericsoftware.kryo:kryo:$kryoVersion"
 		compile "com.lambdaworks:lettuce:$lettuceVersion"
 		compile ("org.apache.curator:curator-recipes:$curatorVersion") {
@@ -442,7 +440,7 @@ project('spring-xd-dirt') {
 		testCompile group:"org.springframework.boot", name:"spring-boot", version: "$springBootVersion", classifier:"tests"
 
 		// The following because of org/springframework/integration/x/bus/serializer/TweetSerializationTests.groovy
-		testCompile "org.springframework.social:spring-social-twitter:1.0.5.RELEASE"
+		testCompile "org.springframework.social:spring-social-twitter:1.1.0.M4"
 
 	}
 
@@ -553,7 +551,8 @@ project('spring-xd-extension-twitter') {
 	description = 'Spring XD Twitter'
 	dependencies {
 		compile "org.springframework.integration:spring-integration-twitter:$springIntegrationVersion"
-		compile "org.apache.httpcomponents:httpclient:$httpClientVersion"
+		// Override the version which social-twitter brings in
+		runtime "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
 	}
 }
 

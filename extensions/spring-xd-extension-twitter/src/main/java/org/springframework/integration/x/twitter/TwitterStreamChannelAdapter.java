@@ -28,13 +28,14 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.http.client.HttpClient;
-import org.apache.http.params.CoreConnectionPNames;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpRequest;
+import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.scheduling.TaskScheduler;
@@ -104,24 +105,32 @@ public class TwitterStreamChannelAdapter extends MessageProducerSupport {
 	 * The read timeout for the underlying URLConnection to the twitter stream.
 	 */
 	public void setReadTimeout(int millis) {
-		getHttpClient().getParams().setIntParameter(CoreConnectionPNames.SO_TIMEOUT, millis);
+		// Hack to get round Spring's dynamic loading of http client stuff
+		ClientHttpRequestFactory f = getRequestFactory();
+		if (f instanceof SimpleClientHttpRequestFactory) {
+			((SimpleClientHttpRequestFactory)f).setReadTimeout(millis);
+		} else {
+			((HttpComponentsClientHttpRequestFactory)f).setReadTimeout(millis);
+		}
 	}
 
 	/**
 	 * The connection timeout for making a connection to Twitter.
 	 */
 	public void setConnectTimeout(int millis) {
-		getHttpClient().getParams().setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, millis);
+		ClientHttpRequestFactory f = getRequestFactory();
+		if (f instanceof SimpleClientHttpRequestFactory) {
+			((SimpleClientHttpRequestFactory)f).setConnectTimeout(millis);
+		} else {
+			((HttpComponentsClientHttpRequestFactory)f).setConnectTimeout(millis);
+		}
 	}
 
-	private HttpClient getHttpClient() {
+	private ClientHttpRequestFactory getRequestFactory() {
 		// InterceptingClientHttpRequestFactory doesn't let us access the underlying object
 		DirectFieldAccessor f = new DirectFieldAccessor(twitter.getRestTemplate().getRequestFactory());
-		// Unfortunately this class is internal to Spring Social - HttpComponentsClientHttpRequestFactory
-		// Not to be confused with the Spring class of the same name.
 		Object requestFactory = f.getPropertyValue("requestFactory");
-		f = new DirectFieldAccessor(requestFactory);
-		return (HttpClient) f.getPropertyValue("httpClient");
+		return (ClientHttpRequestFactory) requestFactory;
 	}
 
 	/**

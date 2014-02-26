@@ -35,27 +35,49 @@
 		</bean>
 	</int:service-activator>
 
-	<int:channel id="notifications"/>
+	<!--  XD Batch Job listeners that are registered by activating their profiles when the job module is deployed -->
+	<!--  Please see org.springframework.xd.dirt.plugins.job.support.listener.XDJobListenerConstants that maps all the below beans info -->
 
-	<!-- Optional Listeners that can be referenced by deployed Spring Batch Jobs -->
+	<int:publish-subscribe-channel id="xd.job.aggregatedEvents" />
 
-	<bean id="xdChunkListener" class="org.springframework.xd.dirt.plugins.job.support.listener.SimpleXdChunkListener">
-		<property name="notificationsChannel" ref="notifications"/>
-	</bean>
+	<beans profile="xd.jobExecutionListener">
+        <bean id="xd.jobExecutionListener" class="org.springframework.xd.dirt.plugins.job.support.listener.SimpleXdJobExecutionListener">
+			<constructor-arg index="0" ref="xd.job.jobExecutionEvents"/>
+			<constructor-arg index="1" ref="xd.job.aggregatedEvents"/>
+		</bean>
+		<int:publish-subscribe-channel id="xd.job.jobExecutionEvents" />
+	</beans>
 
-	<bean id="xdItemListener" class="org.springframework.xd.dirt.plugins.job.support.listener.SimpleXdItemListener">
-		<property name="notificationsChannel" ref="notifications"/>
-	</bean>
+	<beans profile="xd.stepExecutionListener">
+		<bean id="xd.stepExecutionListener" class="org.springframework.xd.dirt.plugins.job.support.listener.SimpleXdStepExecutionListener">
+			<constructor-arg index="0" ref="xd.job.stepExecutionEvents"/>
+			<constructor-arg index="1" ref="xd.job.aggregatedEvents"/>
+		</bean>
+		<int:publish-subscribe-channel id="xd.job.stepExecutionEvents" />
+	</beans>
 
-	<bean id="xdJobExecutionListener" class="org.springframework.xd.dirt.plugins.job.support.listener.SimpleXdJobExecutionListener">
-		<property name="notificationsChannel" ref="notifications"/>
-	</bean>
+	<beans profile="xd.chunkListener">
+		<bean id="xd.chunkListener" class="org.springframework.xd.dirt.plugins.job.support.listener.SimpleXdChunkListener">
+			<constructor-arg index="0" ref="xd.job.chunkEvents"/>
+			<constructor-arg index="1" ref="xd.job.aggregatedEvents"/>
+		</bean>
+		<int:publish-subscribe-channel id="xd.job.chunkEvents"/>
+	</beans>
 
-	<bean id="xdStepExecutionListener" class="org.springframework.xd.dirt.plugins.job.support.listener.SimpleXdStepExecutionListener">
-		<property name="notificationsChannel" ref="notifications"/>
-	</bean>
+	<beans profile="xd.itemListener">
+		<bean id="xd.itemListener" class="org.springframework.xd.dirt.plugins.job.support.listener.SimpleXdItemListener">
+			<constructor-arg index="0" ref="xd.job.itemEvents"/>
+			<constructor-arg index="1" ref="xd.job.aggregatedEvents"/>
+		</bean>
+		<int:publish-subscribe-channel id="xd.job.itemEvents"/>
+	</beans>
 
-	<bean id="xdSkipListener" class="org.springframework.xd.dirt.plugins.job.support.listener.SimpleXdSkipListener">
-		<property name="notificationsChannel" ref="notifications"/>
-	</bean>
+	<beans profile="xd.skipListener">
+		<bean id="xd.skipListener" class="org.springframework.xd.dirt.plugins.job.support.listener.SimpleXdSkipListener">
+			<constructor-arg index="0" ref="xd.job.skipEvents"/>
+			<constructor-arg index="1" ref="xd.job.aggregatedEvents"/>
+		</bean>
+		<int:publish-subscribe-channel id="xd.job.skipEvents"/>
+	</beans>
+
 </beans>

@@ -16,31 +16,29 @@
 
 package org.springframework.xd.dirt.plugins.job.support.listener;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.collections.Unmodifiable;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.batch.core.listener.ItemListenerSupport;
-import org.springframework.integration.support.MessageBuilder;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.xd.dirt.plugins.job.BatchJobHeaders;
+import org.springframework.batch.core.ItemProcessListener;
+import org.springframework.batch.core.ItemReadListener;
+import org.springframework.batch.core.ItemWriteListener;
+import org.springframework.messaging.SubscribableChannel;
 
 /**
  * @author Gunnar Hillert
+ * @author Ilayaperumal Gopinathan
  * @since 1.0
  */
-public class SimpleXdItemListener extends ItemListenerSupport<Object, Object> {
+public final class SimpleXdItemListener<I, O> extends BatchJobListener<Object> implements ItemReadListener<I>,
+		ItemProcessListener<I, Object>,
+		ItemWriteListener<Object> {
 
 	private static final Log logger = LogFactory.getLog(SimpleXdItemListener.class);
 
-	private MessageChannel notificationsChannel;
-
-	public void setNotificationsChannel(MessageChannel notificationsChannel) {
-		this.notificationsChannel = notificationsChannel;
+	public SimpleXdItemListener(SubscribableChannel itemEventsChannel, SubscribableChannel aggregatedEventsChannel) {
+		super(itemEventsChannel, aggregatedEventsChannel);
 	}
 
 	@Override
@@ -48,40 +46,23 @@ public class SimpleXdItemListener extends ItemListenerSupport<Object, Object> {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Executing onReadError: " + exception.getMessage(), exception);
 		}
-		final Message<Exception> message = MessageBuilder.withPayload(exception)
-				.setHeader(BatchJobHeaders.BATCH_LISTENER_EVENT_TYPE,
-						BatchListenerEventType.ITEM_LISTENER_ON_READ_ERROR.name())
-				.build();
-		notificationsChannel.send(message);
+		publish(exception.getMessage());
 	}
 
 	@Override
-	public void onProcessError(Object item, Exception exception) {
+	public void onProcessError(I item, Exception exception) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Executing onProcessError: " + exception.getMessage(), exception);
 		}
-		final Message<Object> message = MessageBuilder.withPayload(item)
-				.setHeader(BatchJobHeaders.BATCH_EXCEPTION, exception)
-				.setHeader(BatchJobHeaders.BATCH_LISTENER_EVENT_TYPE,
-						BatchListenerEventType.ITEM_LISTENER_ON_PROCESS_ERROR.name())
-				.build();
-		notificationsChannel.send(message);
+		publishWithThrowableHeader(item, exception.getMessage());
 	}
 
-	/**
-	 * In order to support serialization with Kryo, the list of items is copied into a new List as the passed in List is
-	 * {@link Unmodifiable}.
-	 */
 	@Override
 	public void afterWrite(List<? extends Object> items) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Executing afterWrite: " + items);
 		}
-		final List<? extends Object> copiedItems = new ArrayList<Object>(items);
-		notificationsChannel.send(MessageBuilder.withPayload(copiedItems)
-				.setHeader(BatchJobHeaders.BATCH_LISTENER_EVENT_TYPE,
-						BatchListenerEventType.ITEM_LISTENER_AFTER_WRITE.name())
-				.build());
+		publish(items.size() + " items have been written.");
 	}
 
 	@Override
@@ -89,12 +70,30 @@ public class SimpleXdItemListener extends ItemListenerSupport<Object, Object> {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Executing onWriteError: " + exception.getMessage(), exception);
 		}
-		final Message<?> message = MessageBuilder.withPayload(items)
-				.setHeader(BatchJobHeaders.BATCH_EXCEPTION, exception)
-				.setHeader(BatchJobHeaders.BATCH_LISTENER_EVENT_TYPE,
-						BatchListenerEventType.ITEM_LISTENER_ON_WRITE_ERROR.name())
-				.build();
-		notificationsChannel.send(message);
+		String payload = "Exception while " + items.size() + " items are attempted to be written.";
+		publishWithThrowableHeader(payload, exception.getMessage());
+	}
+
+	@Override
+	public void beforeWrite(List<? extends Object> items) {
+		publish(items.size() + " items to be written.");
+	}
+
+	// TODO: Currently these are NO-OP and the notification messages are TBD.
+	@Override
+	public void beforeProcess(I item) {
+	}
+
+	@Override
+	public void afterProcess(I item, Object result) {
+	}
+
+	@Override
+	public void beforeRead() {
+	}
+
+	@Override
+	public void afterRead(I item) {
 	}
 
 }

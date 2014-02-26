@@ -21,22 +21,19 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.batch.core.ChunkListener;
 import org.springframework.batch.core.scope.context.ChunkContext;
-import org.springframework.integration.support.MessageBuilder;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.xd.dirt.plugins.job.BatchJobHeaders;
+import org.springframework.messaging.SubscribableChannel;
 
 /**
  * @author Gunnar Hillert
+ * @author Ilayaperumal Gopinathan
  * @since 1.0
  */
-public class SimpleXdChunkListener implements ChunkListener {
+public class SimpleXdChunkListener extends BatchJobListener<ChunkContextInfo> implements ChunkListener {
 
 	private static final Log logger = LogFactory.getLog(SimpleXdChunkListener.class);
 
-	private MessageChannel notificationsChannel;
-
-	public void setNotificationsChannel(MessageChannel notificationsChannel) {
-		this.notificationsChannel = notificationsChannel;
+	public SimpleXdChunkListener(SubscribableChannel chunkEventsChannel, SubscribableChannel aggregatedEventsChannel) {
+		super(chunkEventsChannel, aggregatedEventsChannel);
 	}
 
 	@Override
@@ -44,13 +41,7 @@ public class SimpleXdChunkListener implements ChunkListener {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Executing afterChunk: " + context);
 		}
-
-		final ChunkContextInfo xdChunkContextInfo = convertChunkContext(context);
-
-		notificationsChannel.send(MessageBuilder.withPayload(xdChunkContextInfo)
-				.setHeader(BatchJobHeaders.BATCH_LISTENER_EVENT_TYPE,
-						BatchListenerEventType.CHUNK_LISTENER_AFTER_CHUNK.name())
-				.build());
+		publish(convertChunkContext(context));
 	}
 
 	@Override
@@ -58,13 +49,7 @@ public class SimpleXdChunkListener implements ChunkListener {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Executing beforeChunk: " + context);
 		}
-
-		final ChunkContextInfo xdChunkContextInfo = convertChunkContext(context);
-
-		notificationsChannel.send(MessageBuilder.withPayload(xdChunkContextInfo)
-				.setHeader(BatchJobHeaders.BATCH_LISTENER_EVENT_TYPE,
-						BatchListenerEventType.CHUNK_LISTENER_BEFORE_CHUNK.name())
-				.build());
+		publish(convertChunkContext(context));
 	}
 
 	@Override
@@ -72,13 +57,7 @@ public class SimpleXdChunkListener implements ChunkListener {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Executing afterChunkError: " + context);
 		}
-
-		final ChunkContextInfo xdChunkContextInfo = convertChunkContext(context);
-
-		notificationsChannel.send(MessageBuilder.withPayload(xdChunkContextInfo)
-				.setHeader(BatchJobHeaders.BATCH_LISTENER_EVENT_TYPE,
-						BatchListenerEventType.CHUNK_LISTENER_AFTER_CHUNK_ERROR.name())
-				.build());
+		publish(convertChunkContext(context));
 	}
 
 	private ChunkContextInfo convertChunkContext(ChunkContext context) {

@@ -18,6 +18,7 @@ package org.springframework.xd.dirt.plugins.job;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -45,6 +46,7 @@ import org.springframework.context.annotation.ImportResource;
 import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -54,6 +56,7 @@ import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.validation.BindException;
 import org.springframework.xd.dirt.server.AdminServerApplication;
@@ -70,11 +73,14 @@ import org.springframework.xd.test.RandomConfigurationSupport;
  * @author Michael Minella
  * @author Gunnar Hillert
  * @author Gary Russell
+ * @author Ilayaperumal Gopinathan
  * 
  */
 public class JobPluginTests extends RandomConfigurationSupport {
 
-	private JobPlugin plugin;
+	private JobPlugin jobPlugin;
+
+	private JobPartitionerPlugin jobPartitionerPlugin;
 
 	private ConfigurableApplicationContext sharedContext;
 
@@ -100,13 +106,13 @@ public class JobPluginTests extends RandomConfigurationSupport {
 
 	@Before
 	public void setUp() throws Exception {
-
 		sharedContext = new SpringApplicationBuilder(SharedConfiguration.class).profiles(
 				AdminServerApplication.ADMIN_PROFILE, AdminServerApplication.HSQL_PROFILE).properties(
 				"spring.datasource.url=jdbc:hsqldb:mem:xdjobrepotest") //
 		.web(false).run();
 		messageBus = sharedContext.getBean(LocalMessageBus.class);
-		plugin = new JobPlugin(messageBus);
+		jobPlugin = new JobPlugin(messageBus);
+		jobPartitionerPlugin = new JobPartitionerPlugin(messageBus);
 
 	}
 
@@ -117,7 +123,7 @@ public class JobPluginTests extends RandomConfigurationSupport {
 						"foo", 0));
 
 		assertEquals(0, module.getProperties().size());
-		plugin.preProcessModule(module);
+		jobPlugin.preProcessModule(module);
 
 		Properties moduleProperties = module.getProperties();
 
@@ -155,8 +161,8 @@ public class JobPluginTests extends RandomConfigurationSupport {
 		when(module.getComponent("stepExecutionRequests.input", MessageChannel.class)).thenReturn(stepsIn);
 		MessageChannel stepResultsOut = new DirectChannel();
 		when(module.getComponent("stepExecutionReplies.output", MessageChannel.class)).thenReturn(stepResultsOut);
-		plugin.preProcessModule(module);
-		plugin.postProcessModule(module);
+		jobPartitionerPlugin.preProcessModule(module);
+		jobPartitionerPlugin.postProcessModule(module);
 		checkBusBound(messageBus);
 		stepsOut.send(new GenericMessage<String>("foo"));
 		Message<?> stepExecutionRequest = stepsIn.receive(10000);
@@ -165,10 +171,9 @@ public class JobPluginTests extends RandomConfigurationSupport {
 				.copyHeaders(stepExecutionRequest.getHeaders()) // replyTo
 				.build());
 		assertThat(stepResultsIn.receive(10000), hasPayload("bar"));
-		plugin.removeModule(module);
+		jobPartitionerPlugin.removeModule(module);
 		checkBusUnbound(messageBus);
 	}
-
 
 	protected MessageBus getMessageBus() {
 		return messageBus;
@@ -191,7 +196,7 @@ public class JobPluginTests extends RandomConfigurationSupport {
 		Mockito.when(module.getProperties()).thenReturn(properties);
 		Mockito.when(module.getDeploymentMetadata()).thenReturn(new DeploymentMetadata("job", 0));
 
-		plugin.preProcessModule(module);
+		jobPlugin.preProcessModule(module);
 		Mockito.verify(module).addComponents(Matchers.any(Resource.class));
 
 		// TODO: assert that the right resource was added.
@@ -205,7 +210,7 @@ public class JobPluginTests extends RandomConfigurationSupport {
 	}
 
 	@Test
-	public void testThatNotificationChannelIsBound() {
+	public void testThatInputOutputChannelsAreBound() {
 
 		final Module module = new SimpleModule(new ModuleDefinition("myjob", ModuleType.job),
 				new DeploymentMetadata(
@@ -214,21 +219,63 @@ public class JobPluginTests extends RandomConfigurationSupport {
 		final TestMessageBus messageBus = new TestMessageBus();
 		final JobPlugin plugin = new JobPlugin(messageBus);
 		final DirectChannel inputChannel = new DirectChannel();
-		final DirectChannel notificationChannel = new DirectChannel();
 
 		final Module spiedModule = spy(module);
 
 		doReturn(inputChannel).when(spiedModule).getComponent("input", MessageChannel.class);
-		doReturn(notificationChannel).when(spiedModule).getComponent("notifications", MessageChannel.class);
+		doReturn(null).when(spiedModule).getComponent("output", MessageChannel.class);
 		doReturn(null).when(spiedModule).getComponent("stepExecutionRequests.output", MessageChannel.class);
 
 		plugin.postProcessModule(spiedModule);
 
 		assertEquals(Integer.valueOf(1), Integer.valueOf(messageBus.getConsumerNames().size()));
-		assertEquals(Integer.valueOf(1), Integer.valueOf(messageBus.getProducerNames().size()));
+		assertEquals(Integer.valueOf(0), Integer.valueOf(messageBus.getProducerNames().size()));
 
 		assertEquals("job:myjob", messageBus.getConsumerNames().get(0));
-		assertEquals("job:myjob-notifications", messageBus.getProducerNames().get(0));
+
+	}
+
+	@Test
+	public void testThatJobEventsChannelsAreBound() {
+
+		final Module module = new SimpleModule(new ModuleDefinition("myjob", ModuleType.job),
+				new DeploymentMetadata(
+						"myjob", 0));
+
+		final TestMessageBus messageBus = new TestMessageBus();
+		final JobEventsListenerPlugin eventsListenerPlugin = new JobEventsListenerPlugin(messageBus);
+		final SubscribableChannel jobExecutionEventsChannel = new PublishSubscribeChannel();
+		final SubscribableChannel stepExecutionEventsChannel = new PublishSubscribeChannel();
+		final SubscribableChannel chunkEventsChannel = new PublishSubscribeChannel();
+		final SubscribableChannel itemEventsChannel = new PublishSubscribeChannel();
+		final SubscribableChannel skipEventsChannel = new PublishSubscribeChannel();
+		final SubscribableChannel aggregatedEventsChannel = new PublishSubscribeChannel();
+
+		final Module spiedModule = spy(module);
+
+		doReturn(messageBus).when(spiedModule).getComponent(MessageBus.class);
+		doReturn(jobExecutionEventsChannel).when(spiedModule).getComponent("xd.job.jobExecutionEvents",
+				SubscribableChannel.class);
+		doReturn(stepExecutionEventsChannel).when(spiedModule).getComponent("xd.job.stepExecutionEvents",
+				SubscribableChannel.class);
+		doReturn(chunkEventsChannel).when(spiedModule).getComponent("xd.job.chunkEvents", SubscribableChannel.class);
+		doReturn(itemEventsChannel).when(spiedModule).getComponent("xd.job.itemEvents", SubscribableChannel.class);
+		doReturn(skipEventsChannel).when(spiedModule).getComponent("xd.job.skipEvents", SubscribableChannel.class);
+		doReturn(aggregatedEventsChannel).when(spiedModule).getComponent("xd.job.aggregatedEvents",
+				SubscribableChannel.class);
+
+		eventsListenerPlugin.preProcessModule(spiedModule);
+		eventsListenerPlugin.postProcessModule(spiedModule);
+
+		assertEquals(Integer.valueOf(0), Integer.valueOf(messageBus.getConsumerNames().size()));
+		assertEquals(Integer.valueOf(6), Integer.valueOf(messageBus.getProducerNames().size()));
+
+		assertTrue(messageBus.getProducerNames().contains("tap:job:myjob.job"));
+		assertTrue(messageBus.getProducerNames().contains("tap:job:myjob.step"));
+		assertTrue(messageBus.getProducerNames().contains("tap:job:myjob.chunk"));
+		assertTrue(messageBus.getProducerNames().contains("tap:job:myjob.item"));
+		assertTrue(messageBus.getProducerNames().contains("tap:job:myjob.skip"));
+		assertTrue(messageBus.getProducerNames().contains("tap:job:myjob"));
 
 	}
 
@@ -255,7 +302,7 @@ public class JobPluginTests extends RandomConfigurationSupport {
 
 		@Override
 		public void bindPubSubProducer(String name, MessageChannel outputChannel) {
-			Assert.fail("Should not be called.");
+			producerNames.add(name);
 		}
 
 		@Override

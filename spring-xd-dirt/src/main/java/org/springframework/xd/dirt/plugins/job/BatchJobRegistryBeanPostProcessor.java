@@ -16,11 +16,23 @@
 
 package org.springframework.xd.dirt.plugins.job;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.batch.core.JobExecutionListener;
+import org.springframework.batch.core.StepListener;
 import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor;
+import org.springframework.batch.core.configuration.xml.JobParserJobFactoryBean;
+import org.springframework.batch.core.configuration.xml.StepParserStepFactoryBean;
 import org.springframework.batch.core.job.flow.FlowJob;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.job.BatchJobAlreadyExistsException;
+import org.springframework.xd.dirt.plugins.job.support.listener.XDJobListenerConstants;
 
 
 /**
@@ -28,18 +40,33 @@ import org.springframework.xd.dirt.job.BatchJobAlreadyExistsException;
  * 
  * @author Ilayaperumal Gopinathan
  */
-public class BatchJobRegistryBeanPostProcessor extends JobRegistryBeanPostProcessor {
+public class BatchJobRegistryBeanPostProcessor extends JobRegistryBeanPostProcessor implements BeanFactoryAware,
+		XDJobListenerConstants {
 
 	private JobRegistry jobRegistry;
+
+	private DefaultListableBeanFactory beanFactory;
 
 	private DistributedJobLocator jobLocator;
 
 	private String groupName;
 
+	private List<JobExecutionListener> jobExecutionListeners = new ArrayList<JobExecutionListener>();
+
+	private List<StepListener> stepListeners = new ArrayList<StepListener>();
+
 	@Override
 	public void setJobRegistry(JobRegistry jobRegistry) {
 		this.jobRegistry = jobRegistry;
 		super.setJobRegistry(jobRegistry);
+	}
+
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		if (beanFactory instanceof DefaultListableBeanFactory) {
+			this.beanFactory = (DefaultListableBeanFactory) beanFactory;
+		}
+		super.setBeanFactory(beanFactory);
 	}
 
 	public void setJobLocator(DistributedJobLocator jobLocator) {
@@ -53,8 +80,21 @@ public class BatchJobRegistryBeanPostProcessor extends JobRegistryBeanPostProces
 
 	@Override
 	public Object postProcessAfterInitialization(Object bean, String beanName) {
-		// Make sure we only post-process the Job bean from the job module's batch job
-		if (bean instanceof FlowJob) {
+		if (bean instanceof JobParserJobFactoryBean) {
+			addJobExecutionListener();
+			if (!this.jobExecutionListeners.isEmpty()) {
+				// Add the job execution listeners to the job parser factory bean
+				((JobParserJobFactoryBean) bean).setJobExecutionListeners(this.jobExecutionListeners.toArray(new JobExecutionListener[this.jobExecutionListeners.size()]));
+			}
+		}
+		else if (bean instanceof StepParserStepFactoryBean<?, ?>) {
+			addStepListeners();
+			if (!stepListeners.isEmpty()) {
+				// Add the step listeners to the step parser factory bean
+				((StepParserStepFactoryBean) bean).setListeners(this.stepListeners.toArray(new StepListener[this.stepListeners.size()]));
+			}
+		}
+		else if (bean instanceof FlowJob) {
 			FlowJob job = (FlowJob) bean;
 			job.setName(this.groupName);
 			if (!jobRegistry.getJobNames().contains(groupName)) {
@@ -70,6 +110,27 @@ public class BatchJobRegistryBeanPostProcessor extends JobRegistryBeanPostProces
 			}
 		}
 		return bean;
+	}
+
+	private void addJobExecutionListener() {
+		if (this.beanFactory.containsBean(XD_JOB_EXECUTION_LISTENER_BEAN)) {
+			this.jobExecutionListeners.add((JobExecutionListener) this.beanFactory.getBean(XD_JOB_EXECUTION_LISTENER_BEAN));
+		}
+	}
+
+	private void addStepListeners() {
+		if (this.beanFactory.containsBean(XD_STEP_EXECUTION_LISTENER_BEAN)) {
+			this.stepListeners.add((StepListener) this.beanFactory.getBean(XD_STEP_EXECUTION_LISTENER_BEAN));
+		}
+		if (this.beanFactory.containsBean(XD_CHUNK_LISTENER_BEAN)) {
+			this.stepListeners.add((StepListener) this.beanFactory.getBean(XD_CHUNK_LISTENER_BEAN));
+		}
+		if (this.beanFactory.containsBean(XD_ITEM_LISTENER_BEAN)) {
+			this.stepListeners.add((StepListener) this.beanFactory.getBean(XD_ITEM_LISTENER_BEAN));
+		}
+		if (this.beanFactory.containsBean(XD_SKIP_LISTENER_BEAN)) {
+			this.stepListeners.add((StepListener) this.beanFactory.getBean(XD_SKIP_LISTENER_BEAN));
+		}
 	}
 
 	@Override

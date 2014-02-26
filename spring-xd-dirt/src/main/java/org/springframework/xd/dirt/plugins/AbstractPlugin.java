@@ -22,6 +22,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.Ordered;
+import org.springframework.xd.dirt.util.ConfigLocations;
 import org.springframework.xd.module.core.Module;
 import org.springframework.xd.module.core.Plugin;
 
@@ -38,6 +39,8 @@ public abstract class AbstractPlugin implements Plugin, Ordered, ApplicationCont
 	protected final Log logger = LogFactory.getLog(getClass());
 
 	private ApplicationContext applicationContext;
+
+	protected static final String PLUGIN_CONTEXT_CONFIG_ROOT = ConfigLocations.XD_CONFIG_ROOT + "plugins/";
 
 	@Override
 	public void preProcessModule(Module module) {

@@ -67,6 +67,8 @@ public class XdEnvironment {
 
 	public static final String CONTAINER_TOKEN = "containerNode";
 
+	public static final String SINGLENODE_TOKEN = "singleNode";
+
 	private static final String ARTIFACT_NAME = "ec2servers.csv";
 
 
@@ -271,6 +273,18 @@ public class XdEnvironment {
 									+ tokens[HOST_OFFSET].trim() + ":"
 									+ tokens[XD_PORT_OFFSET];
 						}
+					}
+					if (tokens[SERVER_TYPE_OFFSET].equals(SINGLENODE_TOKEN)) {
+						props.setProperty(XD_ADMIN_HOST, HTTP_PREFIX
+								+ tokens[HOST_OFFSET] + ":"
+								+ tokens[XD_PORT_OFFSET]);
+						props.setProperty(XD_HTTP_PORT,
+								tokens[HTTP_PORT_OFFSET]);
+						props.setProperty(XD_JMX_PORT, tokens[JMX_PORT_OFFSET]);
+
+						containerHosts = HTTP_PREFIX
+								+ tokens[HOST_OFFSET].trim() + ":" + tokens[XD_PORT_OFFSET];
+						props.put(XD_CONTAINERS, containerHosts);
 					}
 				}
 			}

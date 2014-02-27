@@ -20,8 +20,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.boot.context.event.ApplicationPreparedEvent;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.xd.dirt.container.XDContainer;
-
+import org.springframework.xd.dirt.util.ConfigLocations;
 
 /**
  * 
@@ -29,7 +28,7 @@ import org.springframework.xd.dirt.container.XDContainer;
  */
 public class MessageBusInitializer implements SharedContextInitializer {
 
-	private static final String CONTEXT_CONFIG_ROOT = XDContainer.XD_CONFIG_ROOT + "listeners/bus/";
+	private static final String CONTEXT_CONFIG_ROOT = ConfigLocations.XD_CONFIG_ROOT + "listeners/bus/";
 
 	private static final String MESSAGE_BUS = CONTEXT_CONFIG_ROOT + "message-bus.xml";
 

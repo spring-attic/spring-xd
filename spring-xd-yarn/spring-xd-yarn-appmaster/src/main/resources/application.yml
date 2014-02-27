@@ -24,7 +24,7 @@ spring:
         appmaster:
             appmasterClass: org.springframework.yarn.am.StaticEventingAppmaster
             containerCount: 1
-            containerRunner: org.springframework.xd.dirt.server.LauncherApplication
+            containerRunner: org.springframework.xd.dirt.server.ContainerServerApplication
             arguments:
                 -Dspring.application.name: "container"
                 -DxdHomeDir: "./${spring.xd.yarn.app.zip}"

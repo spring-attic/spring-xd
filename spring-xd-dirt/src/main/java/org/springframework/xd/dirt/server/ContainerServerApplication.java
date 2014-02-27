@@ -30,21 +30,22 @@ import org.springframework.context.event.SourceFilteringListener;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
+import org.springframework.xd.dirt.container.ContainerMetadata;
 import org.springframework.xd.dirt.container.ContainerStartedEvent;
-import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.server.options.CommandLinePropertySourceOverridingListener;
 import org.springframework.xd.dirt.server.options.ContainerOptions;
 import org.springframework.xd.dirt.server.options.XDPropertyKeys;
 import org.springframework.xd.dirt.util.BannerUtils;
+import org.springframework.xd.dirt.util.ConfigLocations;
 import org.springframework.xd.dirt.util.XdConfigLoggingInitializer;
 
 @Configuration
 @EnableAutoConfiguration
 @ImportResource({
-	"classpath:" + XDContainer.XD_INTERNAL_CONFIG_ROOT + "launcher.xml",
-	"classpath:" + XDContainer.XD_INTERNAL_CONFIG_ROOT + "container.xml",
-	"classpath*:" + XDContainer.XD_CONFIG_ROOT + "plugins/*.xml" })
-public class LauncherApplication {
+	"classpath:" + ConfigLocations.XD_INTERNAL_CONFIG_ROOT + "launcher.xml",
+	"classpath:" + ConfigLocations.XD_INTERNAL_CONFIG_ROOT + "container.xml",
+	"classpath*:" + ConfigLocations.XD_CONFIG_ROOT + "plugins/*.xml" })
+public class ContainerServerApplication {
 
 	private static final String MBEAN_EXPORTER_BEAN_NAME = "XDLauncherMBeanExporter";
 
@@ -53,14 +54,14 @@ public class LauncherApplication {
 	private ConfigurableApplicationContext context;
 
 	public static void main(String[] args) {
-		new LauncherApplication().run(args);
+		new ContainerServerApplication().run(args);
 	}
 
 	public ConfigurableApplicationContext getContext() {
 		return this.context;
 	}
 
-	public LauncherApplication run(String... args) {
+	public ContainerServerApplication run(String... args) {
 		System.out.println(BannerUtils.displayBanner(getClass().getSimpleName(), null));
 
 		CommandLinePropertySourceOverridingListener<ContainerOptions> commandLineListener = new CommandLinePropertySourceOverridingListener<ContainerOptions>(
@@ -71,7 +72,7 @@ public class LauncherApplication {
 			this.context = new SpringApplicationBuilder(ContainerOptions.class, ParentConfiguration.class)
 					.profiles(NODE_PROFILE)
 					.listeners(commandLineListener)
-					.child(LauncherApplication.class)
+					.child(ContainerServerApplication.class)
 					.listeners(commandLineListener)
 					.run(args);
 		}
@@ -104,10 +105,9 @@ public class LauncherApplication {
 	}
 
 	public static void publishContainerStarted(ConfigurableApplicationContext context) {
-		XDContainer container = new XDContainer();
-		context.setId(container.getId());
-		container.setContext(context);
-		context.publishEvent(new ContainerStartedEvent(container));
+		ContainerMetadata metadata = new ContainerMetadata();
+		context.setId(metadata.getId());
+		context.publishEvent(new ContainerStartedEvent(metadata));
 	}
 
 	@Bean

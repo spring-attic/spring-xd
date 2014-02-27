@@ -1436,6 +1436,7 @@ task copyHadoopLibs(dependsOn: [
 	":spring-xd-hadoop:hadoop22:copyToLib",
 	":spring-xd-hadoop:cdh4:copyToLib",
 	":spring-xd-hadoop:hdp13:copyToLib",
+	":spring-xd-hadoop:hdp20:copyToLib",
 	":spring-xd-hadoop:phd1:copyToLib"
 ]) << {
 	[
@@ -1443,6 +1444,7 @@ task copyHadoopLibs(dependsOn: [
 		'hadoop22',
 		'cdh4',
 		'hdp13',
+		'hdp20',
 		'phd1'
 	].each { distro ->
 		copy {

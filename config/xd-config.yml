@@ -64,3 +64,9 @@ spring:
 #   username: guest
 #   password: guest
 #   virtual_host: /
+
+
+# Hadoop properties
+#spring:
+#  hadoop:
+#   fsUri: hdfs://localhost:8020

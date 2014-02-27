@@ -1,3 +1,18 @@
+/*
+ * Copyright 2013-2014 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.springframework.xd.dirt.server;
 
@@ -18,17 +33,16 @@ import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.event.SourceFilteringListener;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.web.filter.HttpPutFormContentFilter;
-import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.rest.RestConfiguration;
 import org.springframework.xd.dirt.server.options.AdminOptions;
 import org.springframework.xd.dirt.server.options.CommandLinePropertySourceOverridingListener;
 import org.springframework.xd.dirt.util.BannerUtils;
+import org.springframework.xd.dirt.util.ConfigLocations;
 import org.springframework.xd.dirt.util.XdConfigLoggingInitializer;
 
 @Configuration
 @EnableAutoConfiguration
-@ImportResource("classpath:" + XDContainer.XD_INTERNAL_CONFIG_ROOT
-		+ "admin-server.xml")
+@ImportResource("classpath:" + ConfigLocations.XD_INTERNAL_CONFIG_ROOT + "admin-server.xml")
 @Import(RestConfiguration.class)
 public class AdminServerApplication {
 

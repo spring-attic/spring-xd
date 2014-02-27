@@ -16,7 +16,7 @@ applications:
 - name: xd-admin
   host: xd-admin-server
   env:
-    LOADER_MAIN: org.springframework.xd.dirt.boot.AdminServerApplication
+    LOADER_MAIN: org.springframework.xd.dirt.server.AdminServerApplication
     SPRING_PROFILES_ACTIVE: cloud,mysql,rabbit
     XD_HOME: .
   services:
@@ -35,7 +35,7 @@ applications:
 - name: xd-node
   host: xd-node
   env:
-    LOADER_MAIN: org.springframework.xd.dirt.boot.LauncherApplication
+    LOADER_MAIN: org.springframework.xd.dirt.server.ContainerServerApplication
     SPRING_PROFILES_ACTIVE: cloud,mysql,rabbit
     XD_HOME: .
   services:

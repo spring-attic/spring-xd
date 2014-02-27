@@ -43,9 +43,9 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.xd.dirt.container.ContainerMetadata;
 import org.springframework.xd.dirt.container.ContainerStartedEvent;
 import org.springframework.xd.dirt.container.ContainerStoppedEvent;
-import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.container.store.RuntimeContainerInfoEntity;
 import org.springframework.xd.dirt.container.store.RuntimeContainerInfoRepository;
 import org.springframework.xd.test.redis.RedisTestSupport;
@@ -71,7 +71,7 @@ public class RedisContainerEventStoreListenerTest {
 	private RuntimeContainerInfoRepository containerRepository;
 
 	@Mock
-	private XDContainer container;
+	private ContainerMetadata containerMetadata;
 
 	private final String containerId = "test" + UUID.randomUUID().toString();
 
@@ -87,12 +87,12 @@ public class RedisContainerEventStoreListenerTest {
 
 	@Test
 	public void testContainerStarted() {
-		when(container.getId()).thenReturn(containerId);
-		when(container.getJvmName()).thenReturn("123@test");
-		when(container.getHostName()).thenReturn("localhost");
-		when(container.getIpAddress()).thenReturn("127.0.0.1");
-		context.publishEvent(new ContainerStartedEvent(container));
-		RuntimeContainerInfoEntity entity = containerRepository.findOne(container.getId());
+		when(containerMetadata.getId()).thenReturn(containerId);
+		when(containerMetadata.getJvmName()).thenReturn("123@test");
+		when(containerMetadata.getHostName()).thenReturn("localhost");
+		when(containerMetadata.getIpAddress()).thenReturn("127.0.0.1");
+		context.publishEvent(new ContainerStartedEvent(containerMetadata));
+		RuntimeContainerInfoEntity entity = containerRepository.findOne(containerMetadata.getId());
 		assertNotNull(entity);
 		assertEquals(entity.getId(), containerId);
 		assertEquals(entity.getJvmName(), "123@test");
@@ -102,9 +102,9 @@ public class RedisContainerEventStoreListenerTest {
 
 	@Test
 	public void testContainerStopped() {
-		when(container.getId()).thenReturn(containerId);
-		context.publishEvent(new ContainerStoppedEvent(container));
-		assertNull(containerRepository.findOne(container.getId()));
+		when(containerMetadata.getId()).thenReturn(containerId);
+		context.publishEvent(new ContainerStoppedEvent(containerMetadata));
+		assertNull(containerRepository.findOne(containerMetadata.getId()));
 	}
 }
 

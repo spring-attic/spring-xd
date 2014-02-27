@@ -43,10 +43,10 @@ import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.validation.BindException;
-import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.event.ModuleDeployedEvent;
 import org.springframework.xd.dirt.event.ModuleUndeployedEvent;
 import org.springframework.xd.dirt.plugins.job.JobPlugin;
+import org.springframework.xd.dirt.util.ConfigLocations;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
@@ -125,7 +125,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		SharedContextInitializer[] sharedContextInitializers = sharedContextInitializerBeans.toArray(new SharedContextInitializer[sharedContextInitializerBeans.size()]);
 		Arrays.sort(sharedContextInitializers, new OrderComparator());
 
-		SpringApplicationBuilder application = new SpringApplicationBuilder(XDContainer.XD_INTERNAL_CONFIG_ROOT
+		SpringApplicationBuilder application = new SpringApplicationBuilder(ConfigLocations.XD_INTERNAL_CONFIG_ROOT
 				+ "module-common.xml", PropertyPlaceholderAutoConfiguration.class).web(false);
 		application.application().setShowBanner(false);
 		ConfigurableApplicationContext globalContext = (ConfigurableApplicationContext) deployerContext.getParent();

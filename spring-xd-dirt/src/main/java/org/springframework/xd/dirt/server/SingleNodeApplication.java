@@ -64,8 +64,8 @@ public class SingleNodeApplication {
 		admin.run(args);
 
 		SpringApplicationBuilder container = admin
-				.sibling(SingleNodeOptions.class, LauncherApplication.class)
-				.profiles(LauncherApplication.NODE_PROFILE, SINGLE_PROFILE)
+				.sibling(SingleNodeOptions.class, ContainerServerApplication.class)
+				.profiles(ContainerServerApplication.NODE_PROFILE, SINGLE_PROFILE)
 				.listeners(commandLineListener)
 				.web(false);
 		container.run(args);
@@ -73,7 +73,7 @@ public class SingleNodeApplication {
 		adminContext = admin.context();
 		containerContext = container.context();
 		// TODO: should be encapsulated (or maybe just deleted)
-		LauncherApplication.publishContainerStarted(containerContext);
+		ContainerServerApplication.publishContainerStarted(containerContext);
 
 		SingleNodeApplication singleNodeApp = adminContext.getBean(SingleNodeApplication.class);
 		if (singleNodeApp.controlTransport == ControlTransport.local) {

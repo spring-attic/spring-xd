@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,15 @@
 
 package org.springframework.xd.dirt.container;
 
-
 /**
+ * Event fired when a Container starts.
+ * 
  * @author Mark Fisher
  */
 @SuppressWarnings("serial")
 public class ContainerStartedEvent extends AbstractContainerEvent {
 
-	public ContainerStartedEvent(XDContainer container) {
-		super(container);
+	public ContainerStartedEvent(ContainerMetadata containerMetadata) {
+		super(containerMetadata);
 	}
 }

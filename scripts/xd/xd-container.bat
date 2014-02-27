@@ -107,7 +107,7 @@ set SPRING_XD_OPTS=-Dspring.config.location=file:%XD_CONFIG% -Dspring.applicatio
 set XD_HOME=%XD_HOME:"=%
 
 @rem Execute xd-container
-"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SPRING_XD_OPTS% -classpath "%CLASSPATH%" org.springframework.xd.dirt.server.LauncherApplication %CMD_LINE_ARGS%
+"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SPRING_XD_OPTS% -classpath "%CLASSPATH%" org.springframework.xd.dirt.server.ContainerServerApplication %CMD_LINE_ARGS%
 
 :end
 @rem End local scope for the variables with windows NT shell

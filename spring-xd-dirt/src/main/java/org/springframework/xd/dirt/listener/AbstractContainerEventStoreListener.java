@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,9 @@ package org.springframework.xd.dirt.listener;
 
 import org.springframework.context.ApplicationListener;
 import org.springframework.xd.dirt.container.AbstractContainerEvent;
+import org.springframework.xd.dirt.container.ContainerMetadata;
 import org.springframework.xd.dirt.container.ContainerStartedEvent;
 import org.springframework.xd.dirt.container.ContainerStoppedEvent;
-import org.springframework.xd.dirt.container.XDContainer;
 import org.springframework.xd.dirt.container.store.RuntimeContainerInfoEntity;
 
 /**
@@ -33,14 +33,14 @@ public abstract class AbstractContainerEventStoreListener implements Application
 	@Override
 	public void onApplicationEvent(AbstractContainerEvent event) {
 		if (event instanceof ContainerStartedEvent) {
-			final XDContainer container = event.getSource();
-			RuntimeContainerInfoEntity entity = new RuntimeContainerInfoEntity(container.getId(), container.getJvmName(),
-					container.getHostName(), container.getIpAddress());
+			final ContainerMetadata containerMetadata = event.getSource();
+			RuntimeContainerInfoEntity entity = new RuntimeContainerInfoEntity(containerMetadata.getId(),
+					containerMetadata.getJvmName(), containerMetadata.getHostName(), containerMetadata.getIpAddress());
 			storeContainerEntity(entity);
 		}
 		else if (event instanceof ContainerStoppedEvent) {
-			XDContainer container = event.getSource();
-			removeContainerEntity(container.getId());
+			ContainerMetadata containerMetadata = event.getSource();
+			removeContainerEntity(containerMetadata.getId());
 		}
 	}
 

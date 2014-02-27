@@ -30,6 +30,7 @@ import org.springframework.xd.dirt.stream.XDParser;
 import org.springframework.xd.dirt.stream.dsl.CheckpointedStreamDefinitionException;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
+import org.springframework.xd.module.core.CompositeModule;
 import org.springframework.xd.module.options.ModuleOption;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 import org.springframework.xd.rest.client.domain.CompletionKind;
@@ -70,7 +71,15 @@ public class OptionNameAfterDashDashRecoveryStrategy extends
 		ModuleDefinition lastModuleDefinition = moduleDefinitionRepository.findByNameAndType(lastModuleName,
 				lastModuleType);
 
-		Set<String> alreadyPresentOptions = new HashSet<String>(lastModule.getParameters().keySet());
+		Set<String> alreadyPresentOptions = new HashSet<String>(lastModule.getParameters().keySet().size());
+		// If we're providing completions for a composed module, some options
+		// may already have a value appearing from the definition of the module itself, yet
+		// the user *may* want to override them anyways. So pretend they're not there
+		for (String optionName : lastModule.getParameters().keySet()) {
+			if (!optionName.contains(CompositeModule.OPTION_SEPARATOR)) {
+				alreadyPresentOptions.add(optionName);
+			}
+		}
 		for (ModuleOption option : moduleOptionsMetadataResolver.resolve(lastModuleDefinition)) {
 			if (!alreadyPresentOptions.contains(option.getName())) {
 				proposals.add(String.format("%s --%s=", safe, option.getName()));

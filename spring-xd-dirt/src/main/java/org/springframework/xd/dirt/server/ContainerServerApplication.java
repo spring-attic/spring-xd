@@ -20,6 +20,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -31,7 +32,6 @@ import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.xd.dirt.container.ContainerMetadata;
-import org.springframework.xd.dirt.container.ContainerStartedEvent;
 import org.springframework.xd.dirt.server.options.CommandLinePropertySourceOverridingListener;
 import org.springframework.xd.dirt.server.options.ContainerOptions;
 import org.springframework.xd.dirt.server.options.XDPropertyKeys;
@@ -39,6 +39,11 @@ import org.springframework.xd.dirt.util.BannerUtils;
 import org.springframework.xd.dirt.util.ConfigLocations;
 import org.springframework.xd.dirt.util.XdConfigLoggingInitializer;
 
+/**
+ * The boot application class for a Container server.
+ * 
+ * @author Mark Fisher
+ */
 @Configuration
 @EnableAutoConfiguration
 @ImportResource({
@@ -50,7 +55,13 @@ public class ContainerServerApplication {
 
 	public static final String NODE_PROFILE = "node";
 
+	private final ContainerMetadata containerMetadata;
+
 	private ConfigurableApplicationContext context;
+
+	public ContainerServerApplication() {
+		this.containerMetadata = new ContainerMetadata();
+	}
 
 	public static void main(String[] args) {
 		new ContainerServerApplication().run(args);
@@ -63,22 +74,21 @@ public class ContainerServerApplication {
 	public ContainerServerApplication run(String... args) {
 		System.out.println(BannerUtils.displayBanner(getClass().getSimpleName(), null));
 
-		CommandLinePropertySourceOverridingListener<ContainerOptions> commandLineListener = new CommandLinePropertySourceOverridingListener<ContainerOptions>(
-				new ContainerOptions());
+		CommandLinePropertySourceOverridingListener<ContainerOptions> commandLineListener =
+				new CommandLinePropertySourceOverridingListener<ContainerOptions>(new ContainerOptions());
 
 		try {
-
 			this.context = new SpringApplicationBuilder(ContainerOptions.class, ParentConfiguration.class)
 					.profiles(NODE_PROFILE)
 					.listeners(commandLineListener)
 					.child(ContainerServerApplication.class)
 					.listeners(commandLineListener)
+					.initializers(new IdInitializer())
 					.run(args);
 		}
 		catch (Exception e) {
 			handleErrors(e);
 		}
-		publishContainerStarted(context);
 		return this;
 	}
 
@@ -103,17 +113,16 @@ public class ContainerServerApplication {
 		System.exit(1);
 	}
 
-	public static void publishContainerStarted(ConfigurableApplicationContext context) {
-		ContainerMetadata metadata = new ContainerMetadata();
-		context.setId(metadata.getId());
-		context.publishEvent(new ContainerStartedEvent(metadata));
-	}
-
 	@Bean
 	public ApplicationListener<?> xdInitializer(ApplicationContext context) {
 		XdConfigLoggingInitializer delegate = new XdConfigLoggingInitializer(true);
 		delegate.setEnvironment(context.getEnvironment());
 		return new SourceFilteringListener(context, delegate);
+	}
+
+	@Bean
+	public ContainerRegistrar containerRegistrar() {
+		return new ContainerRegistrar(this.containerMetadata);
 	}
 
 	@ConditionalOnExpression("${XD_JMX_ENABLED:false}")
@@ -125,6 +134,14 @@ public class ContainerServerApplication {
 			IntegrationMBeanExporter exporter = new IntegrationMBeanExporter();
 			exporter.setDefaultDomain("xd.container");
 			return exporter;
+		}
+	}
+
+	private class IdInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+
+		@Override
+		public void initialize(ConfigurableApplicationContext applicationContext) {
+			applicationContext.setId(containerMetadata.getId());
 		}
 	}
 

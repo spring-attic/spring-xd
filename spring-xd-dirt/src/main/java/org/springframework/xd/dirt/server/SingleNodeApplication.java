@@ -72,8 +72,6 @@ public class SingleNodeApplication {
 
 		adminContext = admin.context();
 		containerContext = container.context();
-		// TODO: should be encapsulated (or maybe just deleted)
-		ContainerServerApplication.publishContainerStarted(containerContext);
 
 		SingleNodeApplication singleNodeApp = adminContext.getBean(SingleNodeApplication.class);
 		if (singleNodeApp.controlTransport == ControlTransport.local) {

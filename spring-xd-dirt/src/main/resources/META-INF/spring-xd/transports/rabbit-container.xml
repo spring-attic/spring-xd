@@ -13,8 +13,6 @@
 		http://www.springframework.org/schema/integration/amqp http://www.springframework.org/schema/integration/amqp/spring-integration-amqp.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<import resource="rabbit-common.xml" />
-
 	<rabbit:admin connection-factory="rabbitConnectionFactory"/>
 
 	<rabbit:template id="rabbitTemplate" connection-factory="rabbitConnectionFactory"/>

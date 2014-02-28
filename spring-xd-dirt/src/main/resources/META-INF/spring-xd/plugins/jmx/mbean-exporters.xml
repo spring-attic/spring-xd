@@ -5,12 +5,13 @@
 	xmlns:util="http://www.springframework.org/schema/util"
 	xsi:schemaLocation="http://www.springframework.org/schema/integration/jmx http://www.springframework.org/schema/integration/jmx/spring-integration-jmx.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.2.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
 	<context:mbean-export />
 
 	<int-jmx:mbean-export object-naming-strategy="moduleObjectNamingStrategy" />
+
 	<!-- TODO: Add BatchMbeanExporter -->
 	<util:properties id="objectNameProperties">
 		<prop key="module">${xd.module.name}</prop>
@@ -22,4 +23,5 @@
 		<constructor-arg name="domain" value="xd.${xd.stream.name}" />
 		<constructor-arg name="objectNameProperties" ref="objectNameProperties" />
 	</bean>
+
 </beans>

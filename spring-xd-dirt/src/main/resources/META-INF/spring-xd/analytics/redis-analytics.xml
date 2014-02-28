@@ -29,4 +29,5 @@
 		class="org.springframework.xd.analytics.metrics.redis.RedisAggregateCounterRepository">
 		<constructor-arg ref="redisConnectionFactory" />
 	</bean>
+
 </beans>

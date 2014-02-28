@@ -98,6 +98,9 @@ public enum XDDSLMessages {
 	MODULE_REFERENCE_NOT_UNIQUE(ERROR,
 			144,
 			"Reference to ''{0}'' is not unique in the target stream ''{1}'', please label the relevant module and use the label, or use a suffix index to indicate which occurrence of the module, e.g. ''{0}.0''"), //
+	NO_WHITESPACE_IN_DOTTED_NAME(ERROR,
+			145,
+			"No whitespace is allowed between dot and components of a name"), //
 	;
 
 	private Kind kind;

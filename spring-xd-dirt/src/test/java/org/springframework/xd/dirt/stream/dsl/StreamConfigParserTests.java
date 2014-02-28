@@ -666,10 +666,17 @@ public class StreamConfigParserTests {
 
 	// Parameters must be constructed via adjacent tokens
 	@Test
-	public void needAdjacentTokens() {
+	public void needAdjacentTokensForParameters() {
 		checkForParseError("foo -- name=value", XDDSLMessages.NO_WHITESPACE_BEFORE_ARG_NAME, 7);
 		checkForParseError("foo --name =value", XDDSLMessages.NO_WHITESPACE_BEFORE_ARG_EQUALS, 11);
 		checkForParseError("foo --name= value", XDDSLMessages.NO_WHITESPACE_BEFORE_ARG_VALUE, 12);
+	}
+
+	@Test
+	public void testComposedOptionNameErros() {
+		checkForParseError("foo --name.=value", XDDSLMessages.NOT_EXPECTED_TOKEN, 11);
+		checkForParseError("foo --name .sub=value", XDDSLMessages.NO_WHITESPACE_IN_DOTTED_NAME, 11);
+		checkForParseError("foo --name. sub=value", XDDSLMessages.NO_WHITESPACE_IN_DOTTED_NAME, 12);
 	}
 
 	// ---

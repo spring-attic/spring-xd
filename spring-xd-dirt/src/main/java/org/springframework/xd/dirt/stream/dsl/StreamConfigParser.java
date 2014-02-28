@@ -18,9 +18,11 @@ package org.springframework.xd.dirt.stream.dsl;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.BaseDefinition;
 
 /**
@@ -358,7 +360,6 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 			raiseException(name.startpos, XDDSLMessages.EXPECTED_MODULENAME, name.data != null ? name.data
 					: new String(name.getKind().tokenChars));
 		}
-		checkpoint();
 		while (peekToken(TokenKind.COLON)) {
 			if (!isNextTokenAdjacent()) {
 				raiseException(peekToken().startpos, XDDSLMessages.NO_WHITESPACE_BETWEEN_LABEL_NAME_AND_COLON);
@@ -371,6 +372,7 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 			name = eatToken(TokenKind.IDENTIFIER);
 		}
 		Token moduleName = name;
+		checkpoint();
 		ArgumentNode[] args = maybeEatModuleArgs();
 		int startpos = moduleName.startpos;
 		if (labels != null) {
@@ -397,11 +399,11 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 			raiseException(peekToken().startpos, XDDSLMessages.EXPECTED_WHITESPACE_AFTER_MODULE_BEFORE_ARGUMENT);
 		}
 		while (peekToken(TokenKind.DOUBLE_MINUS)) {
-			nextToken(); // skip the '--'
+			Token dashDash = nextToken(); // skip the '--'
 			if (peekToken(TokenKind.IDENTIFIER) && !isNextTokenAdjacent()) {
 				raiseException(peekToken().startpos, XDDSLMessages.NO_WHITESPACE_BEFORE_ARG_NAME);
 			}
-			Token argName = eatToken(TokenKind.IDENTIFIER);
+			List<Token> argNameComponents = eatDottedName();
 			if (peekToken(TokenKind.EQUALS) && !isNextTokenAdjacent()) {
 				raiseException(peekToken().startpos, XDDSLMessages.NO_WHITESPACE_BEFORE_ARG_EQUALS);
 			}
@@ -411,15 +413,12 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 			}
 			// Process argument value:
 			Token t = peekToken();
-			// if (t==null) {
-			// raiseException(this.expressionString.length()-1,XDDSLMessages.OOD));
-			// }
 			String argValue = eatArgValue();
 			checkpoint();
 			if (args == null) {
 				args = new ArrayList<ArgumentNode>();
 			}
-			args.add(new ArgumentNode(argName.data, argValue, argName.startpos - 2, t.endpos));
+			args.add(new ArgumentNode(data(argNameComponents), argValue, dashDash.startpos, t.endpos));
 		}
 		return args == null ? null : args.toArray(new ArgumentNode[args.size()]);
 	}
@@ -465,6 +464,73 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 			return true;
 		}
 		return false;
+	}
+
+	private List<Token> eatDottedName() {
+		return eatDottedName(XDDSLMessages.NOT_EXPECTED_TOKEN);
+	}
+
+	/**
+	 * Consumes and returns (identifier [DOT identifier]*) as long as they're adjacent.
+	 * 
+	 * @param error the kind of error to report if input is ill-formed
+	 */
+	private List<Token> eatDottedName(XDDSLMessages error) {
+		List<Token> result = new ArrayList<Token>(3);
+		Token name = nextToken();
+		if (!name.isKind(TokenKind.IDENTIFIER)) {
+			raiseException(name.startpos, error, name.data != null ? name.data
+					: new String(name.getKind().tokenChars));
+		}
+		result.add(name);
+		while (peekToken(TokenKind.DOT)) {
+			if (!isNextTokenAdjacent()) {
+				raiseException(peekToken().startpos, XDDSLMessages.NO_WHITESPACE_IN_DOTTED_NAME);
+			}
+			result.add(nextToken()); // consume dot
+			if (peekToken(TokenKind.IDENTIFIER) && !isNextTokenAdjacent()) {
+				raiseException(peekToken().startpos, XDDSLMessages.NO_WHITESPACE_IN_DOTTED_NAME);
+			}
+			result.add(eatToken(TokenKind.IDENTIFIER));
+		}
+		return result;
+	}
+
+	/**
+	 * Return the startPos of the first token in the list (must be non empty).
+	 */
+	public int startPos(Iterable<Token> many) {
+		Iterator<Token> iterator = many.iterator();
+		Assert.isTrue(iterator.hasNext(), "list of tokens must not be empty");
+		return iterator.next().startpos;
+	}
+
+	/**
+	 * Return the endPos of the end token in the list (must be non empty).
+	 */
+	public int endPos(Iterable<Token> many) {
+		int result = -1;
+		for (Token t : many) {
+			result = t.endpos;
+		}
+		Assert.isTrue(result != -1, "list of tokens must not be empty");
+		return result;
+	}
+
+	/**
+	 * Return the concatenation of the data of many tokens.
+	 */
+	public String data(Iterable<Token> many) {
+		StringBuilder result = new StringBuilder();
+		for (Token t : many) {
+			if (t.getKind().hasPayload()) {
+				result.append(t.data);
+			}
+			else {
+				result.append(t.getKind().tokenChars);
+			}
+		}
+		return result.toString();
 	}
 
 	private boolean peekToken(TokenKind desiredTokenKind, boolean consumeIfMatched) {

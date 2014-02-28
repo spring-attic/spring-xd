@@ -47,7 +47,7 @@ import org.springframework.xd.module.ModuleType;
  */
 public class CompositeModule extends AbstractModule {
 
-	public static final String OPTION_SEPARATOR = "_";
+	public static final String OPTION_SEPARATOR = ".";
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 

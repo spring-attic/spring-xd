@@ -17,7 +17,6 @@
 package org.springframework.xd.dirt.stream.completion;
 
 import static org.springframework.xd.dirt.stream.completion.CompletionProvider.toParsingContext;
-import static org.springframework.xd.dirt.stream.dsl.TokenKind.IDENTIFIER;
 
 import java.util.HashSet;
 import java.util.List;
@@ -25,12 +24,12 @@ import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.dirt.stream.XDParser;
 import org.springframework.xd.dirt.stream.dsl.CheckpointedStreamDefinitionException;
 import org.springframework.xd.dirt.stream.dsl.Token;
+import org.springframework.xd.dirt.stream.dsl.TokenKind;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.options.ModuleOption;
@@ -54,7 +53,7 @@ public class UnfinishedOptionNameRecoveryStrategy extends
 	@Autowired
 	public UnfinishedOptionNameRecoveryStrategy(XDParser parser, ModuleDefinitionRepository moduleDefinitionRepository,
 			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver) {
-		super(parser, "file --dir=foo --pa", "file --pa", "file | filter | transform --expr");
+		super(parser, "file --dir=foo --pa", "file --pa", "file --some.composed.", "file | filter | transform --expr");
 		this.moduleDefinitionRepository = moduleDefinitionRepository;
 		this.moduleOptionsMetadataResolver = moduleOptionsMetadataResolver;
 	}
@@ -64,10 +63,22 @@ public class UnfinishedOptionNameRecoveryStrategy extends
 			List<String> proposals) {
 		String safe = exception.getExpressionStringUntilCheckpoint();
 		List<Token> tokens = exception.getTokens();
-		Token lastToken = tokens.get(tokens.size() - 1);
-		Assert.isTrue(lastToken.isKind(IDENTIFIER));
+		int tokenPointer = tokens.size() - 1;
+		while (!tokens.get(tokenPointer - 1).isKind(TokenKind.DOUBLE_MINUS)) {
+			tokenPointer--;
+		}
 
-		String optionNamePrefix = lastToken.stringValue();
+		StringBuilder prefix = null;
+		for (prefix = new StringBuilder(); tokenPointer < tokens.size(); tokenPointer++) {
+			Token t = tokens.get(tokenPointer);
+			if (t.isIdentifier()) {
+				prefix.append(t.stringValue());
+			}
+			else {
+				prefix.append(t.getKind().getTokenChars());
+			}
+		}
+
 		List<ModuleDeploymentRequest> parsed = parser.parse("__dummy", safe, toParsingContext(kind));
 
 		// List is in reverse order
@@ -79,7 +90,7 @@ public class UnfinishedOptionNameRecoveryStrategy extends
 
 		Set<String> alreadyPresentOptions = new HashSet<String>(lastModule.getParameters().keySet());
 		for (ModuleOption option : moduleOptionsMetadataResolver.resolve(lastModuleDefinition)) {
-			if (!alreadyPresentOptions.contains(option.getName()) && option.getName().startsWith(optionNamePrefix)) {
+			if (!alreadyPresentOptions.contains(option.getName()) && option.getName().startsWith(prefix.toString())) {
 				proposals.add(String.format("%s --%s=", safe, option.getName()));
 			}
 		}

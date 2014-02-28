@@ -6,6 +6,7 @@
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
 	<bean id="streamPlugin" class="org.springframework.xd.dirt.plugins.stream.StreamPlugin"/>
+
 	<bean class="org.springframework.xd.dirt.plugins.stream.ModuleTypeConversionPlugin">
 		<constructor-arg name="converters" ref="xd.messageConverters"/>
 		<constructor-arg name="customConverters" ref="xd.customMessageConverters"/>
@@ -22,7 +23,7 @@
 			<bean class="org.springframework.integration.x.bus.converter.SerializedToJavaMessageConverter"/>
 	</util:list>
 
-<!-- Users can override this to add converters.-->
+	<!-- Users can override this to add converters.-->
 	<util:list id="xd.customMessageConverters"/>
 
 </beans>

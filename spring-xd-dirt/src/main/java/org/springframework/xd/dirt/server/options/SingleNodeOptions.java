@@ -19,8 +19,12 @@ package org.springframework.xd.dirt.server.options;
 import javax.validation.constraints.NotNull;
 
 import org.kohsuke.args4j.Option;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.xd.dirt.server.options.CommonDistributedOptions.Store;
+import org.springframework.xd.dirt.server.options.FromResourceLocationOptionHandlers.SingleNodeAnalyticsOptionHandler;
+import org.springframework.xd.dirt.server.options.FromResourceLocationOptionHandlers.SingleNodeControlTransportOptionHandler;
+import org.springframework.xd.dirt.server.options.FromResourceLocationOptionHandlers.SingleNodeDataTransportOptionHandler;
+import org.springframework.xd.dirt.server.options.FromResourceLocationOptionHandlers.SingleNodeStoreOptionHandler;
 
 
 /**
@@ -33,25 +37,22 @@ import org.springframework.xd.dirt.server.options.CommonDistributedOptions.Store
 @ConfigurationProperties
 public class SingleNodeOptions extends CommonOptions {
 
-	public static enum Analytics {
-		memory, redis;
-	}
+	@Option(name = "--analytics", handler = SingleNodeAnalyticsOptionHandler.class,
+			usage = "How to persist analytics such as counters and gauges")
+	private String analytics;
 
-	public static enum ControlTransport {
-		local, rabbit, redis;
-	}
+	@Option(name = "--transport", handler = SingleNodeDataTransportOptionHandler.class,
+			usage = "The transport to use for data messages (from node to node)")
+	private String transport;
 
-	@Option(name = "--analytics", usage = "How to persist analytics such as counters and gauges")
-	private Analytics analytics;
+	@Option(name = "--controlTransport", aliases = { "--control-transport" },
+			handler = SingleNodeControlTransportOptionHandler.class,
+			usage = "The transport to use for control messages (between admin and nodes)")
+	private String controlTransport;
 
-	@Option(name = "--transport", usage = "The transport to use for data messages (from node to node)")
-	private DataTransport transport;
-
-	@Option(name = "--controlTransport", aliases = "--control-transport", usage = "The transport to use for control messages (between admin and nodes)")
-	private ControlTransport controlTransport;
-
-	@Option(name = "--store", usage = "How to persist admin data")
-	private Store store;
+	@Option(name = "--store", handler = SingleNodeStoreOptionHandler.class,
+			usage = "How to persist admin data")
+	private String store;
 
 	@Option(name = "--httpPort", usage = "Http port for the REST API server", metaVar = "<httpPort>")
 	private Integer httpPort;
@@ -68,38 +69,38 @@ public class SingleNodeOptions extends CommonOptions {
 	}
 
 	@NotNull
-	public Analytics getXD_ANALYTICS() {
+	public String getXD_ANALYTICS() {
 		return analytics;
 	}
 
 	@NotNull
-	public Store getXD_STORE() {
+	public String getXD_STORE() {
 		return store;
 	}
 
 	@NotNull
-	public DataTransport getXD_TRANSPORT() {
+	public String getXD_TRANSPORT() {
 		return transport;
 	}
 
 	@NotNull
-	public ControlTransport getXD_CONTROL_TRANSPORT() {
+	public String getXD_CONTROL_TRANSPORT() {
 		return controlTransport;
 	}
 
-	public void setXD_ANALYTICS(Analytics analytics) {
+	public void setXD_ANALYTICS(String analytics) {
 		this.analytics = analytics;
 	}
 
-	public void setXD_STORE(Store store) {
+	public void setXD_STORE(String store) {
 		this.store = store;
 	}
 
-	public void setXD_TRANSPORT(DataTransport transport) {
+	public void setXD_TRANSPORT(String transport) {
 		this.transport = transport;
 	}
 
-	public void setXD_CONTROL_TRANSPORT(ControlTransport controlTransport) {
+	public void setXD_CONTROL_TRANSPORT(String controlTransport) {
 		this.controlTransport = controlTransport;
 	}
 

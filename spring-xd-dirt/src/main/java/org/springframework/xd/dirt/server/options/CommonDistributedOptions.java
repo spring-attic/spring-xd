@@ -20,6 +20,9 @@ import javax.validation.constraints.NotNull;
 
 import org.kohsuke.args4j.Option;
 
+import org.springframework.xd.dirt.server.options.FromResourceLocationOptionHandlers.DistributedAnalyticsOptionHandler;
+import org.springframework.xd.dirt.server.options.FromResourceLocationOptionHandlers.DistributedStoreOptionHandler;
+
 
 /**
  * Holds options that are common to both admin and container servers, when used in distributed mode. Note that single
@@ -29,42 +32,32 @@ import org.kohsuke.args4j.Option;
  */
 public class CommonDistributedOptions extends CommonOptions {
 
-	public static enum Analytics {
-		// note: memory is NOT an option here
-		redis;
-	}
+	@Option(name = "--analytics", handler = DistributedAnalyticsOptionHandler.class,
+			usage = "How to persist analytics such as counters and gauges")
+	private String analytics;
 
-	public static enum ControlTransport {
-		rabbit, redis
-	}
-
-	// Should be pushed down to AdminOptions but currently
-	// can't b/c of the way container runtime info is persisted
-	public static enum Store {
-		memory, redis;
-	}
-
-	@Option(name = "--analytics", usage = "How to persist analytics such as counters and gauges")
-	private Analytics analytics;
-
-	@Option(name = "--store", usage = "How to persist admin data")
-	private Store store;
+	// Should be pushed down to AdminOptions (and would then be able to include memory)
+	// but currently can't b/c of the way container runtime info is persisted.
+	// Likely to change with ZK support anyway.
+	@Option(name = "--store", handler = DistributedStoreOptionHandler.class,
+			usage = "How to persist admin data")
+	private String store;
 
 	@NotNull
-	public Analytics getXD_ANALYTICS() {
+	public String getXD_ANALYTICS() {
 		return analytics;
 	}
 
 	@NotNull
-	public Store getXD_STORE() {
+	public String getXD_STORE() {
 		return store;
 	}
 
-	public void setXD_ANALYTICS(Analytics analytics) {
+	public void setXD_ANALYTICS(String analytics) {
 		this.analytics = analytics;
 	}
 
-	public void setXD_STORE(Store store) {
+	public void setXD_STORE(String store) {
 		this.store = store;
 	}
 

@@ -25,9 +25,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 
 /**
  * Abstract controller that all the XD batch admin controllers extend.
- * 
+ *
  * @author Ilayaperumal Gopinathan
- * 
+ *
  */
 public abstract class AbstractBatchJobsController {
 
@@ -45,7 +45,7 @@ public abstract class AbstractBatchJobsController {
 	protected final StepExecutionInfoResourceAssembler stepExecutionInfoResourceAssembler = new StepExecutionInfoResourceAssembler();;
 
 	protected final StepExecutionProgressInfoResourceAssembler progressInfoResourceAssembler = new StepExecutionProgressInfoResourceAssembler();
-	
+
 	/**
 	 * @param timeZone the timeZone to set
 	 */

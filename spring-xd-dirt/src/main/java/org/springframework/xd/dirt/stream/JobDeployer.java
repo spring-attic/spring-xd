@@ -26,10 +26,9 @@ import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
  * @author Luke Taylor
  * @author Ilayaperumal Gopinathan
  * @author Gunnar Hillert
- * 
+ *
  */
 public class JobDeployer extends AbstractInstancePersistingDeployer<JobDefinition, Job> { // extends
-
 
 	private static final String JOB_PARAMETERS_KEY = "jobParameters";
 
@@ -64,5 +63,4 @@ public class JobDeployer extends AbstractInstancePersistingDeployer<JobDefinitio
 		}
 		sendDeploymentRequests(name, requests);
 	}
-
 }

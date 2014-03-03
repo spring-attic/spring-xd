@@ -21,8 +21,8 @@ import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.xd.dirt.server.options.CommandLinePropertySourceOverridingListener;
+import org.springframework.xd.dirt.server.options.FromResourceLocationOptionHandlers;
 import org.springframework.xd.dirt.server.options.SingleNodeOptions;
-import org.springframework.xd.dirt.server.options.SingleNodeOptions.ControlTransport;
 import org.springframework.xd.dirt.util.BannerUtils;
 
 /**
@@ -38,7 +38,7 @@ public class SingleNodeApplication {
 	private ConfigurableApplicationContext containerContext;
 
 	@Value("${XD_CONTROL_TRANSPORT}")
-	ControlTransport controlTransport;
+	private String controlTransport;
 
 	public static final String SINGLE_PROFILE = "single";
 
@@ -73,8 +73,7 @@ public class SingleNodeApplication {
 		adminContext = admin.context();
 		containerContext = container.context();
 
-		SingleNodeApplication singleNodeApp = adminContext.getBean(SingleNodeApplication.class);
-		if (singleNodeApp.controlTransport == ControlTransport.local) {
+		if (FromResourceLocationOptionHandlers.SINGLE_NODE_SPECIAL_CONTROL_TRANSPORT.equals(controlTransport)) {
 			setUpControlChannels(adminContext, containerContext);
 		}
 		return this;

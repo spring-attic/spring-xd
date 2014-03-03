@@ -21,6 +21,8 @@ import javax.validation.constraints.NotNull;
 import org.kohsuke.args4j.Option;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.xd.dirt.server.options.FromResourceLocationOptionHandlers.DistributedControlTransportOptionHandler;
+import org.springframework.xd.dirt.server.options.FromResourceLocationOptionHandlers.DistributedDataTransportOptionHandler;
 
 
 /**
@@ -33,30 +35,23 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class ContainerOptions extends CommonDistributedOptions {
 
 
-	@Option(name = "--transport", usage = "The transport to use for data messages (from node to node)")
-	private DataTransport transport;
+	@Option(name = "--transport", handler = DistributedDataTransportOptionHandler.class,
+			usage = "The transport to use for data messages (from node to node)")
+	private String transport;
 
 	@Option(name = "--hadoopDistro", usage = "The Hadoop distribution to be used for HDFS access")
 	private HadoopDistro distro;
 
-	@Option(name = "--controlTransport", aliases = "--control-transport", usage = "The transport to use for control messages (between admin and nodes)")
-	private ControlTransport controlTransport;
+	@Option(name = "--controlTransport", aliases = { "--control-transport" },
+			handler = DistributedControlTransportOptionHandler.class,
+			usage = "The transport to use for control messages (between admin and nodes)")
+	private String controlTransport;
 
-	public void setXD_CONTROL_TRANSPORT(ControlTransport controlTransport) {
-		this.controlTransport = controlTransport;
-	}
-
-	@NotNull
-	public ControlTransport getXD_CONTROL_TRANSPORT() {
-		return controlTransport;
-	}
-
-
-	public void setXD_TRANSPORT(DataTransport transport) {
+	public void setXD_TRANSPORT(String transport) {
 		this.transport = transport;
 	}
 
-	public DataTransport getXD_TRANSPORT() {
+	public String getXD_TRANSPORT() {
 		return this.transport;
 	}
 
@@ -66,5 +61,14 @@ public class ContainerOptions extends CommonDistributedOptions {
 
 	public HadoopDistro getHADOOP_DISTRO() {
 		return this.distro;
+	}
+
+	public void setXD_CONTROL_TRANSPORT(String controlTransport) {
+		this.controlTransport = controlTransport;
+	}
+
+	@NotNull
+	public String getXD_CONTROL_TRANSPORT() {
+		return controlTransport;
 	}
 }

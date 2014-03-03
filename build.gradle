@@ -378,7 +378,9 @@ project('spring-xd-dirt') {
 		compile "org.jolokia:jolokia-client-java:$jolokiaVersion"
 		compile "com.esotericsoftware.kryo:kryo:$kryoVersion"
 		compile "com.lambdaworks:lettuce:$lettuceVersion"
-		compile "org.apache.curator:curator-recipes:$curatorVersion"
+		compile ("org.apache.curator:curator-recipes:$curatorVersion") {
+			exclude group: 'jline'
+		}
 		compile "commons-lang:commons-lang:2.4"
 		compile "args4j:args4j:$args4jVersion"
 

@@ -19,7 +19,6 @@ package org.springframework.xd.dirt.server.options;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -50,13 +49,13 @@ public class FromResourceLocationOptionHandler extends OptionHandler<String> {
 
 	private Set<String> possibleValues = new HashSet<String>();
 
-	private List<String> excluded;
+	private Set<String> excluded = new HashSet<String>();
 
 	protected FromResourceLocationOptionHandler(CmdLineParser parser, OptionDef option, Setter<String> setter,
-			String glob, String... excluded)
+			String glob)
 			throws IOException {
 		super(parser, option, setter);
-		init(glob, excluded);
+		init(glob);
 	}
 
 	@Override
@@ -101,9 +100,15 @@ public class FromResourceLocationOptionHandler extends OptionHandler<String> {
 			possibleValues.add(matcher.group(1));
 		}
 
-		excluded = Arrays.asList(excludes);
+	}
+
+	protected void exclude(String... excludes) {
+		excluded.addAll(Arrays.asList(excludes));
 		possibleValues.removeAll(excluded);
 	}
 
+	protected void include(String... includes) {
+		possibleValues.addAll(Arrays.asList(includes));
+	}
 
 }

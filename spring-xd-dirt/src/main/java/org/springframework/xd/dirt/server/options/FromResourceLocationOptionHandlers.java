@@ -43,8 +43,7 @@ public final class FromResourceLocationOptionHandlers {
 
 		public DistributedControlTransportOptionHandler(CmdLineParser parser, OptionDef option, Setter<String> setter)
 				throws IOException {
-			super(parser, option, setter, "classpath*:/META-INF/spring-xd/transports/*-admin.xml",
-					SINGLE_NODE_SPECIAL_CONTROL_TRANSPORT);
+			super(parser, option, setter, "classpath*:/META-INF/spring-xd/transports/*-admin.xml");
 		}
 
 	}
@@ -57,6 +56,7 @@ public final class FromResourceLocationOptionHandlers {
 		public SingleNodeControlTransportOptionHandler(CmdLineParser parser, OptionDef option, Setter<String> setter)
 				throws IOException {
 			super(parser, option, setter, "classpath*:/META-INF/spring-xd/transports/*-admin.xml");
+			include(SINGLE_NODE_SPECIAL_CONTROL_TRANSPORT);
 		}
 
 	}
@@ -68,7 +68,8 @@ public final class FromResourceLocationOptionHandlers {
 
 		public DistributedDataTransportOptionHandler(CmdLineParser parser, OptionDef option, Setter<String> setter)
 				throws IOException {
-			super(parser, option, setter, "classpath*:/META-INF/spring-xd/transports/*-bus.xml", "local");
+			super(parser, option, setter, "classpath*:/META-INF/spring-xd/transports/*-bus.xml");
+			exclude("local");
 		}
 
 	}
@@ -104,7 +105,8 @@ public final class FromResourceLocationOptionHandlers {
 
 		public DistributedAnalyticsOptionHandler(CmdLineParser parser, OptionDef option, Setter<String> setter)
 				throws IOException {
-			super(parser, option, setter, "classpath*:/META-INF/spring-xd/analytics/*-analytics.xml", "memory");
+			super(parser, option, setter, "classpath*:/META-INF/spring-xd/analytics/*-analytics.xml");
+			exclude("memory");
 		}
 
 	}

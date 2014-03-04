@@ -16,8 +16,10 @@
 
 package org.springframework.xd.module.core;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -32,6 +34,7 @@ import org.springframework.boot.builder.ParentContextCloserApplicationListener;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.ContextIdApplicationContextInitializer;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.Ordered;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -73,6 +76,8 @@ public class SimpleModule extends AbstractModule {
 	private final MutablePropertySources propertySources = new MutablePropertySources();
 
 	private ConfigurableApplicationContext parent;
+
+	private final List<ApplicationListener<?>> listeners = new ArrayList<ApplicationListener<?>>();
 
 	public SimpleModule(ModuleDefinition definition, DeploymentMetadata metadata) {
 		this(definition, metadata, null, defaultModuleOptions());
@@ -143,6 +148,11 @@ public class SimpleModule extends AbstractModule {
 	}
 
 	@Override
+	public void addListener(ApplicationListener<?> listener) {
+		this.listeners.add(listener);
+	}
+
+	@Override
 	public Properties getProperties() {
 		return this.properties;
 	}
@@ -183,6 +193,9 @@ public class SimpleModule extends AbstractModule {
 		}
 		this.application.parent(parent);
 		this.application.environment(environment);
+		if (this.listeners.size() > 0) {
+			application.listeners(this.listeners.toArray(new ApplicationListener<?>[this.listeners.size()]));
+		}
 		this.application.listeners(new ParentContextCloserApplicationListener() {
 
 			@Override

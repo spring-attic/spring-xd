@@ -14,8 +14,8 @@
 package org.springframework.xd.dirt.stream;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.BeforeClass;
@@ -27,10 +27,10 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.xd.module.core.Module;
 
 /**
  * @author Mark Fisher
+ * @author David Turanski
  */
 public class LocalSingleNodeStreamDeploymentIntegrationTests extends AbstractSingleNodeStreamDeploymentIntegrationTests {
 
@@ -46,31 +46,25 @@ public class LocalSingleNodeStreamDeploymentIntegrationTests extends AbstractSin
 		integrationSupport.streamDefinitionRepository().save(routerDefinition);
 		integrationSupport.deployStream(routerDefinition);
 		Thread.sleep(1000);
-		final Module module = integrationSupport.getModule("router", 0);
-		MessageBus bus = module.getComponent(MessageBus.class);
 
-		MessageChannel x = module.getComponent("queue:x", MessageChannel.class);
-		assertNotNull(x);
+		singleNodeApplication.pluginContext().getBean("queue:x", MessageChannel.class);
+		assertFalse(singleNodeApplication.pluginContext().containsBean("queue:y"));
+		assertFalse(singleNodeApplication.pluginContext().containsBean("queue:z"));
 
-		MessageChannel y1 = module.getComponent("queue:y", MessageChannel.class);
-		MessageChannel z1 = module.getComponent("queue:z", MessageChannel.class);
-		assertNull(y1);
-		assertNull(z1);
 
 		DirectChannel testChannel = new DirectChannel();
+		MessageBus bus = integrationSupport.messageBus();
 		bus.bindProducer("queue:x", testChannel, true);
 		testChannel.send(MessageBuilder.withPayload("y").build());
 		Thread.sleep(2000);
 
-		MessageChannel y2 = module.getComponent("queue:y", MessageChannel.class);
-		MessageChannel z2 = module.getComponent("queue:z", MessageChannel.class);
-		assertNotNull(y2);
-		assertNull(z2);
+		singleNodeApplication.pluginContext().getBean("queue:y", MessageChannel.class);
+		assertFalse(singleNodeApplication.pluginContext().containsBean("queue:z"));
 
 		testChannel.send(MessageBuilder.withPayload("z").build());
 		Thread.sleep(2000);
-		QueueChannel y3 = module.getComponent("queue:y", QueueChannel.class);
-		QueueChannel z3 = module.getComponent("queue:z", QueueChannel.class);
+		QueueChannel y3 = singleNodeApplication.pluginContext().getBean("queue:y", QueueChannel.class);
+		QueueChannel z3 = singleNodeApplication.pluginContext().getBean("queue:z", QueueChannel.class);
 		assertNotNull(y3);
 		assertNotNull(z3);
 
@@ -85,5 +79,4 @@ public class LocalSingleNodeStreamDeploymentIntegrationTests extends AbstractSin
 		bus.unbindConsumer("queue:y", y3);
 		bus.unbindConsumer("queue:z", z3);
 	}
-
 }

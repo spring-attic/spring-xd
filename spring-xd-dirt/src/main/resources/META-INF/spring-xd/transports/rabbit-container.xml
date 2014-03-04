@@ -15,8 +15,6 @@
 
 	<rabbit:admin connection-factory="rabbitConnectionFactory"/>
 
-	<rabbit:template id="rabbitTemplate" connection-factory="rabbitConnectionFactory"/>
-
 	<rabbit:queue name="${xd.deployer.queue:xd.deployer}"/>
 
 	<rabbit:queue id="undeployerQueue"/>
@@ -27,6 +25,8 @@
 		</rabbit:bindings>
 	</rabbit:fanout-exchange>
 
-	<int-rabbit:inbound-channel-adapter channel="containerControlChannel" queue-names="${xd.deployer.queue:xd.deployer},#{undeployerQueue.name}" connection-factory="rabbitConnectionFactory"/>
+	<int-rabbit:inbound-channel-adapter id="containerControlChannelAdapter" channel="containerControlChannel" 
+	queue-names="${xd.deployer.queue:xd.deployer},#{undeployerQueue.name}" 
+	connection-factory="rabbitConnectionFactory"/>
 
 </beans>

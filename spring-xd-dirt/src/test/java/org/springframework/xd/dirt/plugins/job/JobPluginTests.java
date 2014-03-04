@@ -80,6 +80,8 @@ public class JobPluginTests extends RandomConfigurationSupport {
 
 	protected AbstractTestMessageBus testMessageBus;
 
+	private LocalMessageBus messageBus;
+
 	@After
 	public void tearDown() {
 		if (sharedContext != null) {
@@ -88,7 +90,8 @@ public class JobPluginTests extends RandomConfigurationSupport {
 	}
 
 	@Configuration
-	@ImportResource("classpath:/META-INF/spring-xd/batch/batch.xml")
+	@ImportResource({ "classpath:/META-INF/spring-xd/batch/batch.xml",
+		"classpath:/META-INF/spring-xd/transports/local-bus.xml" })
 	@EnableAutoConfiguration
 	@EnableBatchProcessing
 	public static class SharedConfiguration {
@@ -97,11 +100,14 @@ public class JobPluginTests extends RandomConfigurationSupport {
 
 	@Before
 	public void setUp() throws Exception {
-		plugin = new JobPlugin();
+
 		sharedContext = new SpringApplicationBuilder(SharedConfiguration.class).profiles(
 				AdminServerApplication.ADMIN_PROFILE, AdminServerApplication.HSQL_PROFILE).properties(
 				"spring.datasource.url=jdbc:hsqldb:mem:xdjobrepotest") //
 		.web(false).run();
+		messageBus = sharedContext.getBean(LocalMessageBus.class);
+		plugin = new JobPlugin(messageBus);
+
 	}
 
 	@Test
@@ -140,8 +146,7 @@ public class JobPluginTests extends RandomConfigurationSupport {
 		Properties properties = new Properties();
 		when(module.getProperties()).thenReturn(properties);
 		when(module.getDeploymentMetadata()).thenReturn(new DeploymentMetadata(moduleGroupName, moduleIndex));
-		MessageBus bus = getMessageBus();
-		when(module.getComponent(MessageBus.class)).thenReturn(bus);
+
 		MessageChannel stepsOut = new DirectChannel();
 		when(module.getComponent("stepExecutionRequests.output", MessageChannel.class)).thenReturn(stepsOut);
 		PollableChannel stepResultsIn = new QueueChannel();
@@ -152,7 +157,7 @@ public class JobPluginTests extends RandomConfigurationSupport {
 		when(module.getComponent("stepExecutionReplies.output", MessageChannel.class)).thenReturn(stepResultsOut);
 		plugin.preProcessModule(module);
 		plugin.postProcessModule(module);
-		checkBusBound(bus);
+		checkBusBound(messageBus);
 		stepsOut.send(new GenericMessage<String>("foo"));
 		Message<?> stepExecutionRequest = stepsIn.receive(10000);
 		assertThat(stepExecutionRequest, hasPayload("foo"));
@@ -161,12 +166,12 @@ public class JobPluginTests extends RandomConfigurationSupport {
 				.build());
 		assertThat(stepResultsIn.receive(10000), hasPayload("bar"));
 		plugin.removeModule(module);
-		checkBusUnbound(bus);
+		checkBusUnbound(messageBus);
 	}
 
 
 	protected MessageBus getMessageBus() {
-		return new LocalMessageBus();
+		return messageBus;
 	}
 
 	protected void checkBusBound(MessageBus bus) {
@@ -207,12 +212,12 @@ public class JobPluginTests extends RandomConfigurationSupport {
 						"myjob", 0));
 
 		final TestMessageBus messageBus = new TestMessageBus();
+		final JobPlugin plugin = new JobPlugin(messageBus);
 		final DirectChannel inputChannel = new DirectChannel();
 		final DirectChannel notificationChannel = new DirectChannel();
 
 		final Module spiedModule = spy(module);
 
-		doReturn(messageBus).when(spiedModule).getComponent(MessageBus.class);
 		doReturn(inputChannel).when(spiedModule).getComponent("input", MessageChannel.class);
 		doReturn(notificationChannel).when(spiedModule).getComponent("notifications", MessageChannel.class);
 		doReturn(null).when(spiedModule).getComponent("stepExecutionRequests.output", MessageChannel.class);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -32,11 +32,13 @@ import org.springframework.xd.dirt.util.BannerUtils;
  */
 public class SingleNodeApplication {
 
+	public static final String SINGLE_PROFILE = "single";
+
 	private ConfigurableApplicationContext adminContext;
 
-	private ConfigurableApplicationContext containerContext;
+	private ConfigurableApplicationContext pluginContext;
 
-	public static final String SINGLE_PROFILE = "single";
+	private ConfigurableApplicationContext containerContext;
 
 	public static void main(String[] args) {
 		new SingleNodeApplication().run(args);
@@ -46,27 +48,30 @@ public class SingleNodeApplication {
 
 		System.out.println(BannerUtils.displayBanner(getClass().getSimpleName(), null));
 
-
-		CommandLinePropertySourceOverridingListener<SingleNodeOptions> commandLineListener = new CommandLinePropertySourceOverridingListener<SingleNodeOptions>(
-				new SingleNodeOptions());
+		ContainerBootstrapContext bootstrapContext = new ContainerBootstrapContext(new SingleNodeOptions());
 
 		SpringApplicationBuilder admin =
 				new SpringApplicationBuilder(SingleNodeOptions.class, ParentConfiguration.class)
-						.listeners(commandLineListener)
+						.listeners(bootstrapContext.commandLineListener())
 						.profiles(AdminServerApplication.ADMIN_PROFILE, SINGLE_PROFILE)
 						.child(SingleNodeOptions.class, AdminServerApplication.class)
-						.listeners(commandLineListener);
+						.listeners(bootstrapContext.commandLineListener());
 		admin.run(args);
 
 		SpringApplicationBuilder container = admin
 				.sibling(SingleNodeOptions.class, ContainerServerApplication.class)
 				.profiles(ContainerServerApplication.NODE_PROFILE, SINGLE_PROFILE)
-				.listeners(commandLineListener)
+				.listeners(ApplicationUtils.mergeApplicationListeners(bootstrapContext.commandLineListener(),
+						bootstrapContext.orderedContextInitializers()))
+				.child(ContainerConfiguration.class)
+				.listeners(bootstrapContext.commandLineListener())
 				.web(false);
 		container.run(args);
 
 		adminContext = admin.context();
+
 		containerContext = container.context();
+		pluginContext = (ConfigurableApplicationContext) containerContext.getParent();
 
 		String controlTransport = adminContext.getEnvironment().getProperty(
 				"XD_CONTROL_TRANSPORT");
@@ -76,10 +81,12 @@ public class SingleNodeApplication {
 		return this;
 	}
 
-
 	public void close() {
 		if (containerContext != null) {
 			containerContext.close();
+		}
+		if (pluginContext != null) {
+			pluginContext.close();
 		}
 		if (adminContext != null) {
 			adminContext.close();
@@ -94,14 +101,18 @@ public class SingleNodeApplication {
 		return adminContext;
 	}
 
+	public ConfigurableApplicationContext pluginContext() {
+		return pluginContext;
+	}
+
 	public ConfigurableApplicationContext containerContext() {
 		return containerContext;
 	}
 
 	private void setUpControlChannels(ApplicationContext adminContext,
-			ApplicationContext containerContext) {
+			ApplicationContext coreContext) {
 
-		MessageChannel containerControlChannel = containerContext.getBean(
+		MessageChannel containerControlChannel = coreContext.getBean(
 				"containerControlChannel", MessageChannel.class);
 		SubscribableChannel deployChannel = adminContext.getBean(
 				"deployChannel", SubscribableChannel.class);

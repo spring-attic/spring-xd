@@ -109,19 +109,20 @@ public class JdbcModulesTests extends AbstractStreamIntegrationTest {
 
 	@Test
 	public void testJdbcSinkWithCustomColumnNamesWithUnderscores() throws Exception {
-		JdbcSink jdbcSink = newJdbcSink().columns("foo_bar,bar_foo").start();
+		JdbcSink jdbcSink = newJdbcSink().columns("foo_bar,bar_foo,bar_baz").start();
 
 		HttpSource httpSource = newHttpSource();
 
 		String streamName = generateStreamName().replaceAll("-", "_");
 		stream().create(streamName, "%s | %s", httpSource, jdbcSink);
-		String json = "{\"fooBar\":5, \"barFoo\": \"hello\"}";
+		String json = "{\"fooBar\":5, \"barFoo\": \"hello\", \"bar_baz\": \"good_bye\"}";
 		httpSource.ensureReady().postData(json);
 
-		String query = String.format("SELECT foo_bar, bar_foo FROM %s", streamName);
+		String query = String.format("SELECT foo_bar, bar_foo, bar_baz FROM %s", streamName);
 		Map<String, Object> result = jdbcSink.getJdbcTemplate().queryForMap(query);
 		assertEquals("hello", result.get("bar_foo"));
 		assertEquals("5", result.get("foo_bar"));
+		assertEquals("good_bye", result.get("bar_baz"));
 	}
 
 	public static class Result {

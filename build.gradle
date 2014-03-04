@@ -1263,6 +1263,7 @@ project('spring-xd-test') {
 		compile "org.springframework.integration:spring-integration-test:$springIntegrationVersion"
 		compile "org.springframework.integration:spring-integration-amqp:$springIntegrationVersion"
 		compile "org.springframework.integration:spring-integration-redis:$springIntegrationVersion"
+		compile "org.springframework.integration:spring-integration-mqtt:$springIntegrationVersion"
 		compile ("org.springframework.data:spring-data-hadoop:$springDataHadoopVersion") {
 			exclude group: 'javax.servlet'
 			exclude group: 'javax.servlet.jsp'

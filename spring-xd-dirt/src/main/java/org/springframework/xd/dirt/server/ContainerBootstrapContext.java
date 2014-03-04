@@ -23,7 +23,7 @@ import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfigurati
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.OrderComparator;
-import org.springframework.xd.dirt.container.iniitalizer.SharedContextInitializer;
+import org.springframework.xd.dirt.container.initializer.SharedContextInitializer;
 import org.springframework.xd.dirt.server.options.CommandLinePropertySourceOverridingListener;
 import org.springframework.xd.dirt.server.options.CommonOptions;
 

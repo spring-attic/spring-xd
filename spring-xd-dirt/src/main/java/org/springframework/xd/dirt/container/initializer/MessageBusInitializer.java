@@ -14,22 +14,21 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.container.iniitalizer;
+package org.springframework.xd.dirt.container.initializer;
 
 import org.springframework.xd.dirt.util.ConfigLocations;
-
 
 /**
  * 
  * @author David Turanski
  */
-public class CommonInitializer extends AbstractXMLBeanDefinitionProvider {
+public class MessageBusInitializer extends AbstractXMLBeanDefinitionProvider {
 
-	private static final String CONTEXT_CONFIG_ROOT = ConfigLocations.XD_CONFIG_ROOT + "initializers/common/";
+	private static final String CONTEXT_CONFIG_ROOT = ConfigLocations.XD_CONFIG_ROOT + "initializers/bus/";
 
 	@Override
 	public int getOrder() {
-		return Integer.MIN_VALUE - 1;
+		return Integer.MIN_VALUE;
 	}
 
 	@Override

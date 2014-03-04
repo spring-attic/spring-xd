@@ -18,9 +18,9 @@ package org.springframework.xd.dirt.server;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.xd.dirt.container.iniitalizer.CommonInitializer;
-import org.springframework.xd.dirt.container.iniitalizer.MessageBusInitializer;
-import org.springframework.xd.dirt.container.iniitalizer.SharedContextInitializer;
+import org.springframework.xd.dirt.container.initializer.CommonInitializer;
+import org.springframework.xd.dirt.container.initializer.MessageBusInitializer;
+import org.springframework.xd.dirt.container.initializer.SharedContextInitializer;
 
 
 /**

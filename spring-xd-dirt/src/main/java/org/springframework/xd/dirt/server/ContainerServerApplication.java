@@ -17,6 +17,7 @@
 package org.springframework.xd.dirt.server;
 
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContext;
@@ -32,7 +33,6 @@ import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.xd.dirt.container.ContainerMetadata;
-import org.springframework.xd.dirt.server.options.CommandLinePropertySourceOverridingListener;
 import org.springframework.xd.dirt.server.options.ContainerOptions;
 import org.springframework.xd.dirt.server.options.XDPropertyKeys;
 import org.springframework.xd.dirt.util.BannerUtils;
@@ -48,7 +48,8 @@ import org.springframework.xd.dirt.util.XdConfigLoggingInitializer;
 @EnableAutoConfiguration
 @ImportResource({
 	"classpath:" + ConfigLocations.XD_INTERNAL_CONFIG_ROOT + "container-server.xml",
-	"classpath*:" + ConfigLocations.XD_CONFIG_ROOT + "plugins/*.xml" })
+	"classpath*:" + ConfigLocations.XD_CONFIG_ROOT + "plugins/*.xml",
+})
 public class ContainerServerApplication {
 
 	private static final String MBEAN_EXPORTER_BEAN_NAME = "XDLauncherMBeanExporter";
@@ -74,15 +75,15 @@ public class ContainerServerApplication {
 	public ContainerServerApplication run(String... args) {
 		System.out.println(BannerUtils.displayBanner(getClass().getSimpleName(), null));
 
-		CommandLinePropertySourceOverridingListener<ContainerOptions> commandLineListener =
-				new CommandLinePropertySourceOverridingListener<ContainerOptions>(new ContainerOptions());
-
 		try {
+			ContainerBootstrapContext bootstrapContext = new ContainerBootstrapContext(new ContainerOptions());
+
 			this.context = new SpringApplicationBuilder(ContainerOptions.class, ParentConfiguration.class)
 					.profiles(NODE_PROFILE)
-					.listeners(commandLineListener)
-					.child(ContainerServerApplication.class)
-					.listeners(commandLineListener)
+					.listeners(bootstrapContext.commandLineListener())
+					.child(ContainerServerApplication.class, PropertyPlaceholderAutoConfiguration.class)
+					.listeners(bootstrapContext.commandLineListener())
+					.listeners(bootstrapContext.sharedContextInitializers())
 					.initializers(new IdInitializer())
 					.run(args);
 		}

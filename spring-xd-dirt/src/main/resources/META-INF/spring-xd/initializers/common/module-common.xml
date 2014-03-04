@@ -5,8 +5,7 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<!-- Parent context for all modules. Before adding beans here, consider contributing them
-	by means of a SharedContextInitializer -->
+	<!-- These are contributed by means of a SharedContextInitializer -->
 
 	<int:spel-property-accessors>
 	    <bean id="tuplePropertyAccessor" class="org.springframework.xd.tuple.spel.TuplePropertyAccessor" />

@@ -51,6 +51,8 @@ public class SingleNodeIntegrationTestSupport {
 
 	private DeployedModuleState deployedModuleState;
 
+	private MessageBus messageBus;
+
 	public SingleNodeIntegrationTestSupport(SingleNodeApplication application) {
 		this(application, "file:./config");
 	}
@@ -68,6 +70,7 @@ public class SingleNodeIntegrationTestSupport {
 		streamDefinitionRepository = application.containerContext().getBean(StreamDefinitionRepository.class);
 		streamRepository = application.containerContext().getBean(StreamRepository.class);
 		streamDeployer = application.adminContext().getBean(StreamDeployer.class);
+		messageBus = application.containerContext().getBean(MessageBus.class);
 		application.containerContext().addApplicationListener(deployedModuleState);
 		Assert.hasText(moduleResourceLocation, "'moduleResourceLocation' cannot be null or empty");
 		ResourceModuleRegistry cp = new ResourceModuleRegistry(moduleResourceLocation);
@@ -92,7 +95,7 @@ public class SingleNodeIntegrationTestSupport {
 	}
 
 	public final MessageBus messageBus() {
-		return deployedModuleState.getMessageBus();
+		return this.messageBus;
 	}
 
 	public final Map<String, Map<Integer, Module>> deployedModules() {

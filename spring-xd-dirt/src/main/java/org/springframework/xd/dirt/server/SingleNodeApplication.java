@@ -20,7 +20,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.SubscribableChannel;
-import org.springframework.xd.dirt.server.options.CommandLinePropertySourceOverridingListener;
 import org.springframework.xd.dirt.server.options.SingleNodeOptions;
 import org.springframework.xd.dirt.server.options.SingleNodeOptions.ControlTransport;
 import org.springframework.xd.dirt.util.BannerUtils;
@@ -50,23 +49,22 @@ public class SingleNodeApplication {
 
 		System.out.println(BannerUtils.displayBanner(getClass().getSimpleName(), null));
 
-
-		CommandLinePropertySourceOverridingListener<SingleNodeOptions> commandLineListener = new CommandLinePropertySourceOverridingListener<SingleNodeOptions>(
-				new SingleNodeOptions());
+		ContainerBootstrapContext bootstrapContext = new ContainerBootstrapContext(new SingleNodeOptions());
 
 		SpringApplicationBuilder admin =
 				new SpringApplicationBuilder(SingleNodeOptions.class, ParentConfiguration.class,
 						SingleNodeApplication.class)
-						.listeners(commandLineListener)
+						.listeners(bootstrapContext.commandLineListener())
 						.profiles(AdminServerApplication.ADMIN_PROFILE, SINGLE_PROFILE)
 						.child(SingleNodeOptions.class, AdminServerApplication.class)
-						.listeners(commandLineListener);
+						.listeners(bootstrapContext.commandLineListener());
 		admin.run(args);
 
 		SpringApplicationBuilder container = admin
 				.sibling(SingleNodeOptions.class, ContainerServerApplication.class)
 				.profiles(ContainerServerApplication.NODE_PROFILE, SINGLE_PROFILE)
-				.listeners(commandLineListener)
+				.listeners(bootstrapContext.commandLineListener())
+				.listeners(bootstrapContext.sharedContextInitializers())
 				.web(false);
 		container.run(args);
 
@@ -79,7 +77,6 @@ public class SingleNodeApplication {
 		}
 		return this;
 	}
-
 
 	public void close() {
 		if (containerContext != null) {

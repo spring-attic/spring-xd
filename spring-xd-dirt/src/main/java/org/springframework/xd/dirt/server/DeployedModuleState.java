@@ -19,7 +19,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.springframework.context.ApplicationListener;
-import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.xd.dirt.event.AbstractModuleEvent;
 import org.springframework.xd.module.core.Module;
 
@@ -33,8 +32,6 @@ public class DeployedModuleState implements ApplicationListener<AbstractModuleEv
 
 	private final ConcurrentMap<String, Map<Integer, Module>> deployedModules = new ConcurrentHashMap<String, Map<Integer, Module>>();
 
-	private MessageBus messageBus;
-
 	@Override
 	public void onApplicationEvent(AbstractModuleEvent event) {
 		Module module = event.getSource();
@@ -43,19 +40,11 @@ public class DeployedModuleState implements ApplicationListener<AbstractModuleEv
 					new HashMap<Integer, Module>());
 			this.deployedModules.get(module.getDeploymentMetadata().getGroup()).put(
 					module.getDeploymentMetadata().getIndex(), module);
-
-			if (this.messageBus == null) {
-				this.messageBus = module.getComponent(MessageBus.class);
-			}
 		}
 		else {
 			this.deployedModules.get(module.getDeploymentMetadata().getGroup()).remove(
 					module.getDeploymentMetadata().getIndex());
 		}
-	}
-
-	public MessageBus getMessageBus() {
-		return this.messageBus;
 	}
 
 	public Map<String, Map<Integer, Module>> getDeployedModules() {

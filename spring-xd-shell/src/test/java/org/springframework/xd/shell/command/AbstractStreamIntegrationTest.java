@@ -28,6 +28,7 @@ import org.springframework.xd.shell.command.fixtures.FileSink;
 import org.springframework.xd.shell.command.fixtures.FileSource;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
 import org.springframework.xd.shell.command.fixtures.ImapSource;
+import org.springframework.xd.shell.command.fixtures.JdbcSink;
 import org.springframework.xd.shell.command.fixtures.MailSink;
 import org.springframework.xd.shell.command.fixtures.MailSource;
 import org.springframework.xd.shell.command.fixtures.TailSource;
@@ -94,6 +95,10 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 		TcpSink tcpSink = new TcpSink();
 		disposables.add(tcpSink);
 		return tcpSink;
+	}
+
+	protected JdbcSink newJdbcSink() {
+		return new JdbcSink();
 	}
 
 	protected FileSink newFileSink() {

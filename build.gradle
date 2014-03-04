@@ -378,6 +378,7 @@ project('spring-xd-dirt') {
 		compile "com.lambdaworks:lettuce:$lettuceVersion"
 		compile ("org.apache.curator:curator-recipes:$curatorVersion") {
 			exclude group: 'jline'
+			exclude group: 'org.jboss.netty'
 		}
 		compile "commons-lang:commons-lang:2.4"
 		compile "args4j:args4j:$args4jVersion"

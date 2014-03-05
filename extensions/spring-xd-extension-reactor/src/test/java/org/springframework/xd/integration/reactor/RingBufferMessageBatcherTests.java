@@ -3,15 +3,13 @@ package org.springframework.xd.integration.reactor;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Output;
 import org.apache.commons.io.output.NullOutputStream;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
-import org.springframework.integration.dispatcher.BroadcastingDispatcher;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -34,16 +32,19 @@ import static org.hamcrest.Matchers.is;
 public class RingBufferMessageBatcherTests {
 
 	static long TIMEOUT   = 1000;
-	static int  MSG_COUNT = 4096;
+	static int  MSG_COUNT = 5000;
 
 	@Autowired
 	RingBufferMessageBatcher batcher;
 	@Autowired
 	PublishSubscribeChannel  output;
-	@Autowired
-	AtomicLong               counter;
-	@Autowired
-	MessageHandler           counterHandler;
+
+	AtomicLong counter;
+
+	@Before
+	public void setup() {
+		counter = new AtomicLong(0);
+	}
 
 	@Test
 	public void ringBufferMessageBatcherReleasesWhenFull() throws InterruptedException {
@@ -55,14 +56,13 @@ public class RingBufferMessageBatcherTests {
 				}
 			}
 		};
-
 		output.subscribe(batchHandler);
 
 		for(int i = 0; i < MSG_COUNT; i++) {
 			batcher.handleMessage(new GenericMessage<String>("i=" + i));
 		}
 
-		assertThat("Latch was counted down", counter.get(), is(2l));
+		assertThat("Latch was counted down", counter.get(), is(4l));
 	}
 
 	@Test
@@ -73,7 +73,6 @@ public class RingBufferMessageBatcherTests {
 				counter.addAndGet(((List)message.getPayload()).size());
 			}
 		};
-
 		output.subscribe(batchHandler);
 		Message<?> msg = new GenericMessage<Object>("Hello World!");
 
@@ -90,7 +89,12 @@ public class RingBufferMessageBatcherTests {
 
 	@Test
 	public void testSingleMessageHandlerThroughput() {
-		output.subscribe(counterHandler);
+		output.subscribe(new MessageHandler() {
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				counter.incrementAndGet();
+			}
+		});
 		Message<?> msg = new GenericMessage<Object>("Hello World!");
 
 		long start = System.currentTimeMillis();
@@ -113,77 +117,41 @@ public class RingBufferMessageBatcherTests {
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
 				kryo.writeObject(kryoOut, message);
-				//counter.incrementAndGet();
-				counter.addAndGet(((List)message.getPayload()).size());
+				if(List.class.isInstance(message.getPayload())) {
+					counter.addAndGet(((List)message.getPayload()).size());
+				} else {
+					counter.incrementAndGet();
+				}
 			}
 		});
 
 		long start = System.currentTimeMillis();
 		while(System.currentTimeMillis() - start < TIMEOUT) {
 			Message<?> msg = new GenericMessage<String>("Hello World!");
-			//output.send(msg);
 			batcher.handleMessage(msg);
 		}
 		long end = System.currentTimeMillis();
 		double elapsed = end - start;
 		int throughput = (int)(counter.get() / (elapsed / 1000));
 
-		System.out.format("serializing handler throughput: %s/sec%n", throughput);
+		System.out.format("serializing kryo handler throughput: %s/sec%n", throughput);
 	}
 
 	@Configuration
 	static class TestConfig {
 
 		@Bean
-		public AtomicLong counter() {
-			return new AtomicLong();
-		}
-
-		@Bean
-		public MessageHandler counterHandler(final AtomicLong counter) {
-			return new MessageHandler() {
-				@Override
-				public void handleMessage(Message<?> message) throws MessagingException {
-					counter.incrementAndGet();
-				}
-			};
-		}
-
-		@Bean
-		@Qualifier("optimizedOutput")
-		public PublishSubscribeChannel optimizedOutput(final MessageHandler counterHandler) {
-			final BroadcastingDispatcher dispatcher = new BroadcastingDispatcher() {
-				@Override
-				public boolean dispatch(Message<?> message) {
-					counterHandler.handleMessage(message);
-					return true;
-				}
-			};
-			return new PublishSubscribeChannel() {
-				@Override
-				protected BroadcastingDispatcher getDispatcher() {
-					return dispatcher;
-				}
-			};
-		}
-
-		@Bean
-		@Qualifier("output")
 		public PublishSubscribeChannel output() {
 			return new PublishSubscribeChannel();
 		}
 
 		@Bean
-		public MessageChannel input() {
-			return new DirectChannel();
-		}
-
-		@Bean
-		public RingBufferMessageBatcher batcher(@Qualifier("output") MessageChannel output) {
-			RingBufferMessageBatcher batcher = new RingBufferMessageBatcher(MSG_COUNT / 2);
+		public RingBufferMessageBatcher batcher(MessageChannel output) {
+			RingBufferMessageBatcher batcher = new RingBufferMessageBatcher(1024);
 			batcher.setOutputChannel(output);
 			return batcher;
 		}
+
 	}
 
 }

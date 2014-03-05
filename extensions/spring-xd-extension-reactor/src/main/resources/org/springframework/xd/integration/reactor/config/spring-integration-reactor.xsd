@@ -1,133 +1,235 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema xmlns="http://www.springframework.org/schema/integration/reactor"
-						attributeFormDefault="unqualified"
-						elementFormDefault="qualified"
-						targetNamespace="http://www.springframework.org/schema/integration/reactor"
-						xmlns:integration="http://www.springframework.org/schema/integration"
-						xmlns:tool="http://www.springframework.org/schema/tool"
-						xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-						xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-						xsi:schemaLocation="http://www.springframework.org/schema/tool http://www.springframework.org/schema/tool/spring-tool.xsd">
+            attributeFormDefault="unqualified"
+            elementFormDefault="qualified"
+            targetNamespace="http://www.springframework.org/schema/integration/reactor"
+            xmlns:integration="http://www.springframework.org/schema/integration"
+            xmlns:tool="http://www.springframework.org/schema/tool"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://www.springframework.org/schema/tool http://www.springframework.org/schema/tool/spring-tool.xsd">
 
 	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
 	<xsd:import namespace="http://www.springframework.org/schema/integration"
-				schemaLocation="http://www.springframework.org/schema/integration/spring-integration-4.0.xsd"/>
+	            schemaLocation="http://www.springframework.org/schema/integration/spring-integration-4.0.xsd"/>
 
 	<xsd:annotation>
-	<xsd:documentation>
-		<![CDATA[
+		<xsd:documentation>
+			<![CDATA[
 				Defines the configuration elements for Spring Integration Reactor Adapters.
 			]]>
-	</xsd:documentation>
+		</xsd:documentation>
 	</xsd:annotation>
+
+	<xsd:element name="ring-buffer-executor">
+		<xsd:annotation>
+			<xsd:documentation>
+				<![CDATA[ Defines a RingBuffer-backed AsyncTaskExecutor. ]]>
+			</xsd:documentation>
+			<xsd:appinfo>
+				<tool:annotation>
+					<tool:exports type="reactor.spring.core.task.RingBufferAsyncTaskExecutor"/>
+				</tool:annotation>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:string" use="required"/>
+			<xsd:attribute name="backlog" type="xsd:int" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						<![CDATA[ The number of slots to create in the internal RingBuffer. ]]>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
 
 	<xsd:element name="syslog-inbound-channel-adapter">
-	<xsd:annotation>
-		<xsd:documentation>
-		<![CDATA[
-				Defines an inbound Syslog Channel Adapter.
-				]]>
-		</xsd:documentation>
-		<xsd:appinfo>
-		<tool:annotation>
-			<tool:exports type="org.springframework.xd.integration.reactor.syslog.SyslogInboundChannelAdapter"/>
-		</tool:annotation>
-		</xsd:appinfo>
-	</xsd:annotation>
-	<xsd:complexType>
-		<xsd:attribute name="id" type="xsd:string" use="required"/>
-		<xsd:attribute name="host" type="xsd:string" use="optional"/>
-		<xsd:attribute name="port" type="xsd:string" use="optional"/>
-		<xsd:attribute name="env" type="xsd:string" use="optional">
 		<xsd:annotation>
 			<xsd:documentation>
-			<![CDATA[
-				Each SyslogInboundChannelAdapter must have a reference to an existing Environment.
-			]]>
+				<![CDATA[ Defines an inbound Syslog Channel Adapter. ]]>
 			</xsd:documentation>
 			<xsd:appinfo>
-			<tool:annotation kind="ref">
-				<tool:expected-type type="reactor.core.Environment"/>
-			</tool:annotation>
+				<tool:annotation>
+					<tool:exports type="org.springframework.xd.integration.reactor.syslog.SyslogInboundChannelAdapter"/>
+				</tool:annotation>
 			</xsd:appinfo>
 		</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="channel" type="xsd:string" use="optional">
-		<xsd:annotation>
-			<xsd:documentation>
-			<![CDATA[
-				The channel onto which syslog messages should be published.
-			]]>
-			</xsd:documentation>
-			<xsd:appinfo>
-			<tool:annotation kind="ref">
-				<tool:expected-type type="org.springframework.integration.MessageChannel"/>
-			</tool:annotation>
-			</xsd:appinfo>
-		</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="error-channel" type="xsd:string" use="optional">
-		<xsd:annotation>
-			<xsd:documentation>
-			<![CDATA[
-				The channel onto which errors should be published.
-			]]>
-			</xsd:documentation>
-			<xsd:appinfo>
-			<tool:annotation kind="ref">
-				<tool:expected-type type="org.springframework.integration.MessageChannel"/>
-			</tool:annotation>
-			</xsd:appinfo>
-		</xsd:annotation>
-		</xsd:attribute>
-				<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
-	</xsd:complexType>
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:string" use="required"/>
+			<xsd:attribute name="host" type="xsd:string" use="optional"/>
+			<xsd:attribute name="port" type="xsd:string" use="optional"/>
+			<xsd:attribute name="env" type="xsd:string" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						<![CDATA[ Each SyslogInboundChannelAdapter must have a reference to an existing Environment. ]]>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="reactor.core.Environment"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="channel" type="xsd:string" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						<![CDATA[ The channel onto which syslog messages should be published. ]]>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="error-channel" type="xsd:string" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						<![CDATA[ The channel onto which errors should be published. ]]>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
+		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="publish-subscribe-channel">
-	<xsd:annotation>
-		<xsd:documentation>
-		<![CDATA[
-				Defines a ReactorPublishSubscribeChannel.
-				]]>
-		</xsd:documentation>
-		<xsd:appinfo>
-		<tool:annotation>
-			<tool:exports type="org.springframework.integration.MessageChannel"/>
-		</tool:annotation>
-		</xsd:appinfo>
-	</xsd:annotation>
-	<xsd:complexType>
-		<xsd:attribute name="id" type="xsd:string" use="required"/>
-		<xsd:attribute name="scope" type="xsd:string" use="optional"/>
-		<xsd:attribute name="datatype" type="xsd:string" use="optional">
+	<xsd:element name="netserver-inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-			<![CDATA[
-							Allows you to identify this channel as a Datatype channel
-							and specify the type of the Message payload this channel
-							accepts (e.g., datatype="java.lang.String"). A Datatype
-							channel is a channel that accepts messages containing
-							payloads of a certain type.
-						]]>
-			</xsd:documentation>
-		</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="dispatcher" type="xsd:string" use="optional">
-		<xsd:annotation>
-			<xsd:documentation>
-			<![CDATA[
-				The MessageDispatcher to use to actually dispatch messages.
-			]]>
+				<![CDATA[ Defines an inbound NetServer Channel Adapter. ]]>
 			</xsd:documentation>
 			<xsd:appinfo>
-			<tool:annotation kind="ref">
-				<tool:expected-type type="org.springframework.integration.dispatcher.MessageDispatcher"/>
-			</tool:annotation>
+				<tool:annotation>
+					<tool:exports type="org.springframework.xd.integration.reactor.net.NetServerInboundChannelAdapter"/>
+				</tool:annotation>
 			</xsd:appinfo>
 		</xsd:annotation>
-		</xsd:attribute>
-	</xsd:complexType>
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:string" use="required"/>
+
+			<xsd:attribute name="dispatcher" type="reactorDispatcherType" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						<![CDATA[ Defines the type of Reactor Dispatcher to use inside the NetServer. ]]>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="host" type="xsd:string" use="optional"/>
+			<xsd:attribute name="port" type="xsd:integer" use="optional"/>
+			<xsd:attribute name="codec" type="netServerCodecType" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						<![CDATA[ Defines the type of built-in codec to use. ]]>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="framing" type="netServerFramingType" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						<![CDATA[ Defines the way in which messages are framed. ]]>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="length-field-type" type="netServerLengthFieldType" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						<![CDATA[ If messages are framed with a length field, define the length of that field by type. ]]>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="transport" type="netServerTransportType" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						<![CDATA[ Whether to use TCP or UDP as a transport. ]]>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+
+			<xsd:attribute name="env" type="xsd:string" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						<![CDATA[ Each NetServerInboundChannelAdapter must have a reference to an existing Environment. ]]>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="reactor.core.Environment"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+
+			<xsd:attribute name="channel" type="xsd:string" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						<![CDATA[ The channel onto which NetChannel messages should be published. ]]>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+
+			<xsd:attribute name="error-channel" type="xsd:string" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						<![CDATA[ The channel onto which errors should be published. ]]>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+
+			<xsd:attributeGroup ref="integration:smartLifeCycleAttributeGroup"/>
+		</xsd:complexType>
 	</xsd:element>
+
+	<xsd:simpleType name="reactorDispatcherType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="ringBuffer"/>
+			<xsd:enumeration value="workQueue"/>
+			<xsd:enumeration value="threadPoolExecutor"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="netServerCodecType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="bytes"/>
+			<xsd:enumeration value="string"/>
+			<xsd:enumeration value="syslog"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="netServerFramingType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="length"/>
+			<xsd:enumeration value="delimited"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="netServerLengthFieldType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="short"/>
+			<xsd:enumeration value="int"/>
+			<xsd:enumeration value="long"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="netServerTransportType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="tcp"/>
+			<xsd:enumeration value="udp"/>
+		</xsd:restriction>
+	</xsd:simpleType>
 
 </xsd:schema>

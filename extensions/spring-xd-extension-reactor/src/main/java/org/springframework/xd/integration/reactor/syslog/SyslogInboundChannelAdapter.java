@@ -117,7 +117,7 @@ public class SyslogInboundChannelAdapter extends MessageProducerSupport {
 
 	@Override
 	public String getComponentType() {
-		return "int-reactor:syslog-inbound-channel-adapter";
+		return "reactor:syslog-inbound-channel-adapter";
 	}
 
 	@Override

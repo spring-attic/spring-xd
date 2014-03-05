@@ -17,11 +17,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Implementation of a {@link org.springframework.messaging.MessageHandler} that batches payloads until the {@code
+ * RingBuffer} is full and then flushes them into the delegate {@link org.springframework.messaging.MessageHandler} in
+ * a
+ * new message that is the aggregation of all the message payloads in the batch.
+ *
  * @author Jon Brisbin
  */
-public class RingBufferMessageBatcher
-		extends MessageProducerSupport
-		implements MessageHandler, InitializingBean {
+public class RingBufferMessageBatcher extends MessageProducerSupport implements MessageHandler,
+                                                                                InitializingBean {
 
 	private final List messagePayloads = new ArrayList();
 

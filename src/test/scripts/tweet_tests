@@ -9,16 +9,19 @@ then
   exit 1
 fi
 
-rm /tmp/xd/output/tweets &> /dev/null
+rm /tmp/xd/output/tweets.out &> /dev/null
+rm /tmp/xd/output/searchtweets.out &> /dev/null
 
 set -e
 
 echo -e '\n\n**** Test 1. Twittersearch tests\n\n'
 
-create_stream 'searchtweets' "twittersearch --query='#spring' --outputType=application/json | file" 'false'
+create_stream 'searchtweets' "twittersearch --query=#android --outputType=application/json | file" 'false'
 create_stream 'searchtagcount' 'tap:stream:searchtweets > field-value-counter --fieldName=entities.hashTags.text --counterName=searchhashtags'
 deploy_stream 'searchtweets'
+
 sleep 10
+
 xdc $XDURL/metrics/field-value-counters/searchhashtags
 destroy_metric field-value-counters/searchhashtags
 

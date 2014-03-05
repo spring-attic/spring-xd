@@ -32,7 +32,6 @@ import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.batch.admin.service.JobService;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
@@ -49,7 +48,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.xd.dirt.job.NoSuchBatchJobInstanceException;
-import org.springframework.xd.dirt.plugins.job.BatchJobLocator;
+import org.springframework.xd.dirt.plugins.job.DistributedJobLocator;
 
 /**
  * Tests REST compliance of {@link BatchJobInstancesController} endpoints.
@@ -65,7 +64,7 @@ public class BatchJobInstancesControllerIntegrationTests extends AbstractControl
 	private JobService jobService;
 
 	@Autowired
-	private BatchJobLocator jobLocator;
+	private DistributedJobLocator jobLocator;
 
 	@Autowired
 	private BatchJobInstancesController batchJobInstancesController;

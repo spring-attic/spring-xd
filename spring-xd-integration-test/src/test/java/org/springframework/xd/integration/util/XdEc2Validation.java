@@ -114,18 +114,28 @@ public class XdEc2Validation {
 	public void verifyTestContent(XdEnvironment hosts, URL url, String fileName,
 			String data) throws IOException {
 		if (hosts.isOnEc2()) {
-			StreamUtils.transferResultsToLocal(hosts, url, fileName);
+			fileName = StreamUtils.transferResultsToLocal(hosts, url, fileName);
 		}
-		Reader fileReader = new InputStreamReader(new FileInputStream(fileName));
-		String result = FileCopyUtils.copyToString(fileReader);
-		if (!result.equals(data + "\n")) {
+		File file = new File(fileName);
+
+		try {
+			Reader fileReader = new InputStreamReader(new FileInputStream(fileName));
+			String result = FileCopyUtils.copyToString(fileReader);
+			if (!result.equals(data + "\n")) {
+				fileReader.close();
+				throw new ResourceAccessException(
+						"Data in the result file is not what was sent. Read "
+								+ result + "\n but expected " + data);
+			}
 			fileReader.close();
-			throw new ResourceAccessException(
-					"Data in the result file is not what was sent. Read "
-							+ result + "\n but expected " + data);
+		}
+		finally {
+			if (file.exists()) {
+				file.delete();
+			}
 		}
 
-		fileReader.close();
+
 	}
 
 
@@ -137,27 +147,34 @@ public class XdEc2Validation {
 			logLocation = StreamUtils.transferLogToTmp(hosts, url, fileName);
 		}
 		File file = new File(logLocation);
-		if (!file.exists()) {
-			throw new IllegalArgumentException(
-					"The Log File for the container is not present.  Please be sure to set the "
-							+ XdEnvironment.XD_CONTAINER_LOG_DIR + " on your gradle build.");
-		}
-		BufferedReader fileReader = new BufferedReader(new FileReader(logLocation));
-		boolean result = false;
-		while (fileReader.ready())
-		{
-			String line = fileReader.readLine();
-			if (line.contains(data)) {
-				result = true;
-				break;
+		try {
+
+			if (!file.exists()) {
+				throw new IllegalArgumentException(
+						"The Log File for the container is not present.  Please be sure to set the "
+								+ XdEnvironment.XD_CONTAINER_LOG_DIR + " on your gradle build.");
+			}
+			BufferedReader fileReader = new BufferedReader(new FileReader(logLocation));
+			boolean result = false;
+			while (fileReader.ready())
+			{
+				String line = fileReader.readLine();
+				if (line.contains(data)) {
+					result = true;
+					break;
+				}
+			}
+			fileReader.close();
+			if (!result) {
+				throw new ResourceAccessException(
+						"Data in the result file is not what was sent. Read "
+								+ result + "\n but expected " + data);
 			}
 		}
-		fileReader.close();
-
-		if (!result) {
-			throw new ResourceAccessException(
-					"Data in the result file is not what was sent. Read "
-							+ result + "\n but expected " + data);
+		finally {
+			if (file.exists()) {
+				file.delete();
+			}
 		}
 	}
 

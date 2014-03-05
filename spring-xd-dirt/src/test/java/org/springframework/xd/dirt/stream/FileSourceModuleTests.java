@@ -28,11 +28,13 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.springframework.http.MediaType;
-import org.springframework.integration.x.bus.DefaultMessageMediaTypeResolver;
-import org.springframework.integration.x.bus.MessageMediaTypeResolver;
+
+import org.springframework.integration.x.bus.StringConvertingContentTypeResolver;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.converter.ContentTypeResolver;
+import org.springframework.util.MimeType;
+import org.springframework.util.MimeTypeUtils;
 
 
 /**
@@ -48,7 +50,7 @@ public class FileSourceModuleTests extends StreamTestSupport {
 
 	private static File sourceDir = new File(sourceDirName);
 
-	MessageMediaTypeResolver mediaTypeResolver = new DefaultMessageMediaTypeResolver();
+	ContentTypeResolver contentTypeResolver = new StringConvertingContentTypeResolver();
 
 	@BeforeClass
 	public static void createTempDir() throws IOException {
@@ -73,7 +75,8 @@ public class FileSourceModuleTests extends StreamTestSupport {
 			public void test(Message<?> message) throws MessagingException {
 				byte[] bytes = (byte[]) message.getPayload();
 				assertEquals("foo", new String(bytes));
-				assertEquals(MediaType.valueOf("application/octet-stream"), mediaTypeResolver.resolveMediaType(message));
+				assertEquals(MimeType.valueOf("application/octet-stream"),
+						contentTypeResolver.resolve(message.getHeaders()));
 			}
 		};
 		StreamTestSupport.getSinkInputChannel("filecontents").subscribe(test);
@@ -93,7 +96,7 @@ public class FileSourceModuleTests extends StreamTestSupport {
 			@Override
 			public void test(Message<?> message) throws MessagingException {
 				assertEquals("foo", message.getPayload());
-				assertEquals(MediaType.valueOf("text/plain;charset=UTF-8"), mediaTypeResolver.resolveMediaType(message));
+				assertEquals(MimeTypeUtils.APPLICATION_OCTET_STREAM, contentTypeResolver.resolve(message.getHeaders()));
 			}
 		};
 		StreamTestSupport.getSinkInputChannel("filestring").subscribe(test);

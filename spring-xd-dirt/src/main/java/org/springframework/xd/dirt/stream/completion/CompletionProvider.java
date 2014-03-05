@@ -96,7 +96,7 @@ public class CompletionProvider {
 			case module:
 				return ParsingContext.partial_module;
 			case job:
-				return ParsingContext.job;
+				return ParsingContext.partial_job;
 			default:
 				throw new IllegalArgumentException("Unknown kind: " + kind);
 		}

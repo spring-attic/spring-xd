@@ -54,16 +54,20 @@ public class XdEnvironment {
 
 	public static final String XD_RUN_ON_EC2 = "xd_run_on_ec2";
 
+	public static final String XD_PAUSE_TIME = "xd_pause_time";
+
+
 	public final static String RESULT_LOCATION = "/tmp/xd/output";
 
 	public final static String LOGGER_LOCATION = "/home/ubuntu/spring-xd-1.0.0.BUILD-SNAPSHOT/xd/logs/container.log";
-
 
 	public static final String HTTP_PREFIX = "http://";
 
 	public static final String ADMIN_TOKEN = "adminNode";
 
 	public static final String CONTAINER_TOKEN = "containerNode";
+
+	public static final String SINGLENODE_TOKEN = "singleNode";
 
 	private static final String ARTIFACT_NAME = "ec2servers.csv";
 
@@ -81,6 +85,8 @@ public class XdEnvironment {
 	private transient String privateKey;
 
 	private transient boolean isOnEc2 = true;
+
+	private transient int pauseTime = 1;
 
 	private static final int SERVER_TYPE_OFFSET = 0;
 
@@ -106,11 +112,22 @@ public class XdEnvironment {
 		httpPort = Integer.parseInt(properties.getProperty(XD_HTTP_PORT));
 		containerLogLocation = getContainerLogLocation(systemProperties);
 		isOnEc2 = getOnEc2Flag();
+		pauseTime = getPauseTimeFromEnv();
 		if (isOnEc2) {
 			String keyFile = getPrivateKeyFile();
 			isFilePresent(keyFile);
 			privateKey = getPrivateKey(keyFile);
 		}
+	}
+
+
+	public int getPauseTime() {
+		return pauseTime;
+	}
+
+
+	public void setPauseTime(int pauseTime) {
+		this.pauseTime = pauseTime;
 	}
 
 	public URL getAdminServer() {
@@ -257,6 +274,18 @@ public class XdEnvironment {
 									+ tokens[XD_PORT_OFFSET];
 						}
 					}
+					if (tokens[SERVER_TYPE_OFFSET].equals(SINGLENODE_TOKEN)) {
+						props.setProperty(XD_ADMIN_HOST, HTTP_PREFIX
+								+ tokens[HOST_OFFSET] + ":"
+								+ tokens[XD_PORT_OFFSET]);
+						props.setProperty(XD_HTTP_PORT,
+								tokens[HTTP_PORT_OFFSET]);
+						props.setProperty(XD_JMX_PORT, tokens[JMX_PORT_OFFSET]);
+
+						containerHosts = HTTP_PREFIX
+								+ tokens[HOST_OFFSET].trim() + ":" + tokens[XD_PORT_OFFSET];
+						props.put(XD_CONTAINERS, containerHosts);
+					}
 				}
 			}
 		}
@@ -313,6 +342,14 @@ public class XdEnvironment {
 		boolean result = isOnEc2;
 		if (systemProperties.containsKey(XD_RUN_ON_EC2)) {
 			result = Boolean.getBoolean(XD_RUN_ON_EC2);
+		}
+		return result;
+	}
+
+	private int getPauseTimeFromEnv() {
+		int result = pauseTime;
+		if (systemProperties.containsKey(XD_PAUSE_TIME)) {
+			result = Integer.getInteger(XD_PAUSE_TIME);
 		}
 		return result;
 	}

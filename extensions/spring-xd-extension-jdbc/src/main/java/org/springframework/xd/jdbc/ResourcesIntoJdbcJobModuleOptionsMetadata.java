@@ -16,6 +16,8 @@
 
 package org.springframework.xd.jdbc;
 
+import javax.validation.constraints.NotNull;
+
 import org.springframework.xd.module.options.spi.ModuleOption;
 
 /**
@@ -58,14 +60,16 @@ public class ResourcesIntoJdbcJobModuleOptionsMetadata extends
 		this.deleteFiles = deleteFiles;
 	}
 
-	public Boolean getRestartable() {
+	public boolean getRestartable() {
 		return restartable;
 	}
 
+	@NotNull
 	public String getNames() {
 		return names;
 	}
 
+	@NotNull
 	public String getResources() {
 		return resources;
 	}

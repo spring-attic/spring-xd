@@ -2,13 +2,14 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
 	<!-- Beans shared by Admin, Container and Modules. They are set as a (parent context
 		for Modules by the ModuleDeployer -->
+
 	<import resource="../store/${XD_STORE}-store.xml" />
 	<import resource="../analytics/${XD_ANALYTICS}-analytics.xml" />
 	<import resource="../batch/batch.xml" />
 	
-
 	<bean id="postHandlerMapping" class="org.springframework.xd.dirt.post.DelegatingHandlerMapping"/>
 
 	<bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean">
@@ -16,13 +17,15 @@
 	</bean>
 	
 	<bean id="moduleOptionsMetadataResolver" class="org.springframework.xd.module.options.DelegatingModuleOptionsMetadataResolver">
-		<constructor-arg>
+		<property name="delegates">
 			<list>
-				<bean class="org.springframework.xd.module.options.DefaultModuleOptionsMetadataResolver"/>
-				<bean class="org.springframework.xd.dirt.plugins.stream.ModuleTypeConversionPluginMetadataResolver"/>
-				<bean class="org.springframework.xd.dirt.plugins.job.JobPluginMetadataResolver"/>
+				<bean class="org.springframework.xd.module.options.DefaultModuleOptionsMetadataResolver">
+					<property name="compositeResolver" ref="moduleOptionsMetadataResolver" />
+				</bean>
+				<bean class="org.springframework.xd.dirt.plugins.stream.ModuleTypeConversionPluginMetadataResolver" />
+				<bean class="org.springframework.xd.dirt.plugins.job.JobPluginMetadataResolver" />
 			</list>
-		</constructor-arg>
+		</property>
 	</bean>
 
 </beans>

@@ -22,6 +22,7 @@ import org.kohsuke.args4j.Option;
  * Base class for command line options that are common to absolutely every setup (single and distributed).
  * 
  * @author Eric Bottard
+ * @author Ilayaperumal Gopinathan
  */
 public class CommonOptions {
 
@@ -30,6 +31,9 @@ public class CommonOptions {
 
 	@Option(name = "--jmxEnabled", usage = "Whether to enable JMX exposition of beans")
 	private Boolean jmxEnabled;
+
+	@Option(name = "--mgmtPort", usage = "The port for the management server", metaVar = "<mgmtPort>")
+	private Integer mgmtPort;
 
 	// Using wrapped here so that "showHelp" is not returned as a property by BeanPropertiesPropertySource
 	public Boolean isShowHelp() {
@@ -46,5 +50,12 @@ public class CommonOptions {
 		this.jmxEnabled = jmxEnabled;
 	}
 
+	public Integer getXD_MGMT_PORT() {
+		return mgmtPort;
+	}
+
+	public void setXD_MGMT_PORT(int mgmtPort) {
+		this.mgmtPort = mgmtPort;
+	}
 
 }

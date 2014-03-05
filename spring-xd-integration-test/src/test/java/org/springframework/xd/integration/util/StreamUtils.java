@@ -20,6 +20,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,6 +49,8 @@ import com.google.common.net.HostAndPort;
  * @author Glenn Renfro
  */
 public class StreamUtils {
+
+	public final static String TMP_DIR = "result/";
 
 	private final static String STREAM_SUFFIX = "/streams/";
 
@@ -107,8 +110,12 @@ public class StreamUtils {
 		xdTemplate.streamOperations().destroyAll();
 	}
 
-	public static void transferResultsToLocal(final XdEnvironment hosts, final URL url, final String fileName)
+	public static String transferResultsToLocal(final XdEnvironment hosts, final URL url, final String fileName)
 			throws IOException {
+		File file = new File(fileName);
+		File logFile = createTmpDir();
+		String fileLocation = logFile.getAbsolutePath() + file.getName();
+
 		final LoginCredentials credential = LoginCredentials
 				.fromCredentials(new Credentials("ubuntu", hosts.getPrivateKey()));
 		final HostAndPort socket = HostAndPort.fromParts(url.getHost(), 22);
@@ -116,7 +123,7 @@ public class StreamUtils {
 				new BackoffLimitedRetryHandler(), socket, credential, 5000);
 		Payload payload = client.get(fileName);
 		InputStream iStream = payload.openStream();
-		BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
+		BufferedWriter writer = new BufferedWriter(new FileWriter(fileLocation));
 		boolean isRead = true;
 		while (isRead) {
 			byte[] b = new byte[10];
@@ -127,13 +134,12 @@ public class StreamUtils {
 				isRead = false;
 			}
 		}
-
 		writer.close();
+		return fileLocation;
 	}
 
 	public static String transferLogToTmp(final XdEnvironment hosts, final URL url, final String fileName)
 			throws IOException {
-		String logLocation = "/tmp/xd/output/log.out";
 		final LoginCredentials credential = LoginCredentials
 				.fromCredentials(new Credentials("ubuntu", hosts.getPrivateKey()));
 		final HostAndPort socket = HostAndPort.fromParts(url.getHost(), 22);
@@ -141,6 +147,9 @@ public class StreamUtils {
 				new BackoffLimitedRetryHandler(), socket, credential, 5000);
 		Payload payload = client.get(fileName);
 		InputStream iStream = payload.openStream();
+		File logFile = createTmpDir();
+		String logLocation = logFile.getAbsolutePath() + "log.out";
+
 		BufferedWriter writer = new BufferedWriter(new FileWriter(logLocation));
 		boolean isRead = true;
 		while (isRead) {
@@ -154,6 +163,14 @@ public class StreamUtils {
 		}
 		writer.close();
 		return logLocation;
+	}
+
+	private static File createTmpDir() throws IOException {
+		File tmpFile = new File(System.getProperty("user.dir") + "/" + TMP_DIR);
+		if (!tmpFile.exists()) {
+			tmpFile.createNewFile();
+		}
+		return tmpFile;
 	}
 
 	public enum SendTypes {

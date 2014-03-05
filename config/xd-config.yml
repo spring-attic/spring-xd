@@ -17,7 +17,7 @@
 #    port: 9102
 #    dbname: xdjob
 #Change database username and password
-spring:
+#spring:
 #  datasource:
 #    url: jdbc:hsqldb:hsql://${hsql.server.host:localhost}:${hsql.server.port:9101}/${hsql.server.dbname:xdjob}
 #    username: sa
@@ -56,7 +56,8 @@ spring:
 #server:
 #  port: 9393
 
-
+---
+# RabbitMQ properties
 #spring:
 #  rabbitmq:
 #   host: localhost
@@ -64,3 +65,9 @@ spring:
 #   username: guest
 #   password: guest
 #   virtual_host: /
+
+
+# Hadoop properties
+#spring:
+#  hadoop:
+#   fsUri: hdfs://localhost:8020

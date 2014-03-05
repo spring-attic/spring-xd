@@ -180,7 +180,7 @@ if [ x"$XD_HOME" = x ] ; then
     export XD_HOME=$APP_HOME
 fi
 
-# Check for an explicity set XD_CONFIG
+# Check for an explicitly set XD_CONFIG
 if [ x"$XD_CONFIG" = x ] ; then
     export XD_CONFIG=file:$XD_HOME/config/xd-config.yml
 fi

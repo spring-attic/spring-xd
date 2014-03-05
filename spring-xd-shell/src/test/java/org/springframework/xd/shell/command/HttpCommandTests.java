@@ -127,6 +127,5 @@ public class HttpCommandTests extends AbstractStreamIntegrationTest {
 
 		assertThat(fileSink, eventually(hasContentsThat(equalTo(stringToPostInJapanese))));
 
-
 	}
 }

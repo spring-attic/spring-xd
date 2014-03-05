@@ -4,8 +4,6 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<import resource="local-common.xml" />
-
 	<bean id="messageBus" class="org.springframework.integration.x.bus.LocalMessageBus">
 		<property name="queueSize"
 			value="${xd.local.transport.named.queueSize: #{T(Integer).MAX_VALUE}}" />

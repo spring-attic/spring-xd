@@ -1,0 +1,36 @@
+---
+spring:
+    profiles: admin
+    yarn:
+        appName: xd-admin
+        appmaster:
+            appmasterClass: org.springframework.yarn.am.StaticEventingAppmaster
+            containerRunner: org.springframework.xd.dirt.server.AdminServerApplication
+            containerCount: 1
+            arguments:
+                -Dspring.application.name: "admin"
+                -DxdHomeDir: "./${spring.xd.yarn.app.zip}"
+                -DPORT: "${server.port}"
+                -Dspring.config.location: "./${spring.xd.yarn.config.props}"
+            waitLatch: false
+            classpath:
+                - "./${spring.xd.yarn.app.zip}/config"
+                - "./${spring.xd.yarn.app.zip}/lib/*"
+---
+spring:
+    profiles: container
+    yarn:
+        appName: xd-container
+        appmaster:
+            appmasterClass: org.springframework.yarn.am.StaticEventingAppmaster
+            containerCount: 1
+            containerRunner: org.springframework.xd.dirt.server.ContainerServerApplication
+            arguments:
+                -Dspring.application.name: "container"
+                -DxdHomeDir: "./${spring.xd.yarn.app.zip}"
+                -Dspring.config.location: "./${spring.xd.yarn.config.props}"
+            waitLatch: false
+            classpath:
+                - "./${spring.xd.yarn.app.zip}/config"
+                - "./${spring.xd.yarn.app.zip}/lib/*"
+                - "./${spring.xd.yarn.app.zip}/modules/processor/scripts"

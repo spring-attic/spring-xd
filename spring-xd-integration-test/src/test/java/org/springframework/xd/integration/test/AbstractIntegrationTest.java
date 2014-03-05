@@ -16,6 +16,7 @@
 
 package org.springframework.xd.integration.test;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -25,6 +26,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.runners.Parameterized.Parameters;
@@ -61,6 +63,8 @@ public abstract class AbstractIntegrationTest {
 
 	protected static String privateKey;
 
+	protected static int pauseTime;
+
 	protected static String containerLogLocation;
 
 	protected Sink sink;
@@ -80,8 +84,18 @@ public abstract class AbstractIntegrationTest {
 		httpPort = hosts.getHttpPort();
 		privateKey = hosts.getPrivateKey();
 		containerLogLocation = hosts.getContainerLogLocation();
+		pauseTime = hosts.getPauseTime();
 		validation.verifyAtLeastOneContainerAvailable(hosts.getContainers(),
 				jmxPort);
+	}
+
+	@AfterClass
+	public static void tearDownAfterClass() throws Exception {
+		File file = new File(StreamUtils.TMP_DIR);
+		if (file.exists()) {
+			file.delete();
+		}
+
 	}
 
 	@Before
@@ -118,7 +132,7 @@ public abstract class AbstractIntegrationTest {
 
 	public boolean send(String type, String message) throws IOException {
 		boolean result = true;
-		waitForXD(2000);// Extended wait time was need for the ProcessorTests.
+		waitForXD(pauseTime * 2000);// Extended wait time was need for the ProcessorTests.
 		if (type.equalsIgnoreCase(StreamUtils.SendTypes.HTTP.name())) {
 			URL originURL = getContainerForStream(STREAM_NAME);
 			URL targetURL = new URL(HTTP_PREFIX + originURL.getHost() + ":"
@@ -172,7 +186,7 @@ public abstract class AbstractIntegrationTest {
 	}
 
 	private void waitForXD() {
-		waitForXD(1000);
+		waitForXD(pauseTime * 1000);
 	}
 
 	private void waitForXD(int millis) {

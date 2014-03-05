@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.core.convert.support.GenericConversionService;
-import org.springframework.http.MediaType;
+import org.springframework.util.MimeType;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.options.FlattenedCompositeModuleOptionsMetadata;
@@ -39,13 +39,14 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  * 
  * @see ModuleTypeConversionPlugin
  * @author Eric Bottard
+ * @author David Turanski
  */
 public class ModuleTypeConversionPluginMetadataResolver implements ModuleOptionsMetadataResolver {
 
 	private final GenericConversionService conversionService = new GenericConversionService();
 
 	public ModuleTypeConversionPluginMetadataResolver() {
-		conversionService.addConverter(new CustomMediaTypeConverter());
+		conversionService.addConverter(new CustomMimeTypeConverter());
 	}
 
 
@@ -81,14 +82,14 @@ public class ModuleTypeConversionPluginMetadataResolver implements ModuleOptions
 	@SuppressWarnings("unused")
 	private static class InputOptionsMetadata {
 
-		private MediaType inputType;
+		private MimeType inputType;
 
-		public MediaType getInputType() {
+		public MimeType getInputType() {
 			return inputType;
 		}
 
 		@ModuleOption("how this module should interpret messages it consumes")
-		public void setInputType(MediaType inputType) {
+		public void setInputType(MimeType inputType) {
 			this.inputType = inputType;
 		}
 	}
@@ -101,15 +102,15 @@ public class ModuleTypeConversionPluginMetadataResolver implements ModuleOptions
 	@SuppressWarnings("unused")
 	private static class OutputOptionsMetadata {
 
-		private MediaType outputType;
+		private MimeType outputType;
 
-		public MediaType getOutputType() {
+		public MimeType getOutputType() {
 			return outputType;
 		}
 
 
 		@ModuleOption("how this module should emit messages it produces")
-		public void setOutputType(MediaType outputType) {
+		public void setOutputType(MimeType outputType) {
 			this.outputType = outputType;
 		}
 

@@ -47,7 +47,7 @@ import org.springframework.xd.dirt.module.memory.InMemoryModuleDefinitionReposit
 import org.springframework.xd.dirt.module.memory.InMemoryModuleDependencyRepository;
 import org.springframework.xd.dirt.module.store.RuntimeContainerModuleInfoRepository;
 import org.springframework.xd.dirt.module.store.RuntimeModuleInfoRepository;
-import org.springframework.xd.dirt.plugins.job.BatchJobLocator;
+import org.springframework.xd.dirt.plugins.job.DistributedJobLocator;
 import org.springframework.xd.dirt.plugins.job.DistributedJobService;
 import org.springframework.xd.dirt.stream.CompositeModuleDefinitionService;
 import org.springframework.xd.dirt.stream.DeploymentMessageSender;
@@ -213,8 +213,8 @@ public class Dependencies {
 	}
 
 	@Bean
-	public BatchJobLocator batchJobLocator() {
-		return mock(BatchJobLocator.class);
+	public DistributedJobLocator distributedJobLocator() {
+		return mock(DistributedJobLocator.class);
 	}
 
 	@Bean

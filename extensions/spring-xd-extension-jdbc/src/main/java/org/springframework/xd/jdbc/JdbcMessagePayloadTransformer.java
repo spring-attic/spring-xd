@@ -88,7 +88,7 @@ public class JdbcMessagePayloadTransformer extends AbstractPayloadTransformer<St
 			}
 		}
 		for (String column : this.columnNames) {
-			if (column.contains("_")) {
+			if (column.contains("_") && !payloadMap.containsKey(column)) {
 				payloadMap.put(column, payloadMap.get(JdbcUtils.convertUnderscoreNameToPropertyName(column)));
 			}
 		}

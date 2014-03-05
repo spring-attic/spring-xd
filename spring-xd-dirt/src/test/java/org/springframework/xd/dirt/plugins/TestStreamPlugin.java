@@ -16,8 +16,9 @@
 
 package org.springframework.xd.dirt.plugins;
 
-import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.boot.context.event.ApplicationPreparedEvent;
 import org.springframework.integration.x.bus.AbstractTestMessageBus;
+import org.springframework.xd.dirt.module.SharedContextInitializer;
 import org.springframework.xd.dirt.plugins.stream.StreamPlugin;
 import org.springframework.xd.module.core.Module;
 import org.springframework.xd.module.core.Plugin;
@@ -28,7 +29,7 @@ import org.springframework.xd.module.core.Plugin;
  * 
  * @author Ilayaperumal Gopinathan
  */
-public class TestStreamPlugin implements Plugin {
+public class TestStreamPlugin implements Plugin, SharedContextInitializer {
 
 	StreamPlugin streamPlugin;
 
@@ -60,13 +61,18 @@ public class TestStreamPlugin implements Plugin {
 	}
 
 	@Override
-	public void preProcessSharedContext(ConfigurableApplicationContext context) {
-		context.getBeanFactory().registerSingleton("messageBus", testMessageBus);
+	public boolean supports(Module module) {
+		return this.streamPlugin.supports(module);
 	}
 
 	@Override
-	public boolean supports(Module module) {
-		return this.streamPlugin.supports(module);
+	public void onApplicationEvent(ApplicationPreparedEvent event) {
+		event.getApplicationContext().getBeanFactory().registerSingleton("messageBus", testMessageBus);
+	}
+
+	@Override
+	public int getOrder() {
+		return 0;
 	}
 
 

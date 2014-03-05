@@ -164,7 +164,7 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 	 */
 	protected void executeJobLaunch(String jobName, String jobParameters) {
 		CommandResult cr = executeCommand("job launch --name " + jobName + " --params " + jobParameters);
-		String prefix = "Successfully launched the job '";
+		String prefix = "Successfully submitted launch request for job '";
 		assertEquals(prefix + jobName + "'", cr.getResult());
 	}
 
@@ -173,7 +173,7 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 	 */
 	protected void executeJobLaunch(String jobName) {
 		CommandResult cr = executeCommand("job launch --name " + jobName);
-		String prefix = "Successfully launched the job '";
+		String prefix = "Successfully submitted launch request for job '";
 		assertEquals(prefix + jobName + "'", cr.getResult());
 	}
 

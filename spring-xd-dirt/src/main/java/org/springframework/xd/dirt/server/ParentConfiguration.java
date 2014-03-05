@@ -31,11 +31,10 @@ import org.springframework.context.annotation.EnableMBeanExport;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Profile;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
-import org.springframework.xd.dirt.container.XDContainer;
+import org.springframework.xd.dirt.util.ConfigLocations;
 
 @EnableAutoConfiguration(exclude = ServerPropertiesAutoConfiguration.class)
-@ImportResource("classpath:"
-		+ XDContainer.XD_INTERNAL_CONFIG_ROOT + "xd-global-beans.xml")
+@ImportResource("classpath:" + ConfigLocations.XD_INTERNAL_CONFIG_ROOT + "xd-global-beans.xml")
 @EnableBatchProcessing
 public class ParentConfiguration {
 

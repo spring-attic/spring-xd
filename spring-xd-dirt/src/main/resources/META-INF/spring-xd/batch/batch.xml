@@ -10,10 +10,9 @@
 		http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-
 	<task:scheduler id="scheduler" pool-size="10" />
 
-	<bean id="batchJobLocator" class="org.springframework.xd.dirt.plugins.job.BatchJobLocator">
+	<bean id="distributedJobLocator" class="org.springframework.xd.dirt.plugins.job.DistributedJobLocator">
 		<property name="jdbcTemplate" ref="jdbcTemplate" />
 	</bean>
 
@@ -35,11 +34,9 @@
 				<jdbc:script
 					location="classpath:/org/springframework/xd/dirt/job/registry-schema-hsqldb.sql" />
 			</jdbc:initialize-database>
-
 		</beans>
 
 		<beans profile="postgresql">
-
 			<jdbc:initialize-database data-source="dataSource"
 				ignore-failures="ALL">
 				<jdbc:script
@@ -49,11 +46,9 @@
 				ignore-failures="ALL">
 				<jdbc:script location="org/springframework/batch/core/schema-postgresql.sql" />
 			</jdbc:initialize-database>
-
 		</beans>
 
 		<beans profile="mysql">
-
 			<jdbc:initialize-database data-source="dataSource"
 				ignore-failures="ALL">
 				<jdbc:script
@@ -63,20 +58,18 @@
 				ignore-failures="ALL">
 				<jdbc:script location="org/springframework/batch/core/schema-mysql.sql" />
 			</jdbc:initialize-database>
-
 		</beans>
 
 	</beans>
 
 	<beans profile="adminServer">
-
 		<bean class="org.springframework.xd.dirt.plugins.job.DistributedJobService">
 			<constructor-arg ref="jobInstanceDao" />
 			<constructor-arg ref="jobExecutionDao" />
 			<constructor-arg ref="stepExecutionDao" />
 			<constructor-arg ref="jobRepository" />
 			<constructor-arg ref="jobLauncher" />
-			<constructor-arg ref="batchJobLocator" />
+			<constructor-arg ref="distributedJobLocator" />
 			<constructor-arg>
 				<bean
 					class="org.springframework.batch.core.repository.dao.JdbcExecutionContextDao">
@@ -106,12 +99,10 @@
 				<bean class="org.springframework.batch.core.repository.dao.XStreamExecutionContextStringSerializer" />
 			</property>
 		</bean>
-
 	</beans>
 
 	<beans profile="cloud" xmlns="http://www.springframework.org/schema/beans">
-		<cloud:data-source id="dataSource"
-			service-name="${xd.datasource.service:mysql}" />
+		<cloud:data-source id="dataSource" service-name="${xd.datasource.service:mysql}" />
 	</beans>
 
 </beans>

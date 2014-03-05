@@ -99,6 +99,7 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 		}
 	};
 
+	@SuppressWarnings("unused")
 	private boolean hasCodec;
 
 	/**

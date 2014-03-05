@@ -9,13 +9,10 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/integration/amqp http://www.springframework.org/schema/integration/amqp/spring-integration-amqp.xsd">
 
-	<import resource="rabbit-common.xml" />
-
 	<int-rabbit:outbound-channel-adapter channel="deployChannel" routing-key="${xd.deployer.queue:xd.deployer}" amqp-template="rabbitTemplate"/>
 
 	<int-rabbit:outbound-channel-adapter channel="undeployChannel" exchange-name="${xd.undeployer.topic:xd.undeployer}" amqp-template="rabbitTemplate"/>
 
 	<rabbit:template id="rabbitTemplate" connection-factory="rabbitConnectionFactory"/>
 	
-
 </beans>

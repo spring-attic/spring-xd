@@ -27,6 +27,7 @@ import org.springframework.xd.rest.client.domain.CompletionKind;
 import org.springframework.xd.rest.client.domain.DetailedJobInfoResource;
 import org.springframework.xd.rest.client.domain.JobDefinitionResource;
 import org.springframework.xd.rest.client.domain.JobExecutionInfoResource;
+import org.springframework.xd.rest.client.domain.JobInstanceInfoResource;
 import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
 import org.springframework.xd.rest.client.domain.RuntimeContainerInfoResource;
 import org.springframework.xd.rest.client.domain.RuntimeModuleInfoResource;
@@ -58,11 +59,14 @@ public class AdminController {
 		XDRuntime xdRuntime = new XDRuntime();
 		xdRuntime.add(entityLinks.linkFor(StreamDefinitionResource.class).withRel("streams"));
 		xdRuntime.add(entityLinks.linkFor(JobDefinitionResource.class).withRel("jobs"));
-		xdRuntime.add(entityLinks.linkFor(DetailedJobInfoResource.class).withRel("batch/jobs"));
-		xdRuntime.add(entityLinks.linkFor(JobExecutionInfoResource.class).withRel("batch/executions"));
 		xdRuntime.add(entityLinks.linkFor(ModuleDefinitionResource.class).withRel("modules"));
+
 		xdRuntime.add(entityLinks.linkFor(RuntimeModuleInfoResource.class).withRel("runtime/modules"));
 		xdRuntime.add(entityLinks.linkFor(RuntimeContainerInfoResource.class).withRel("runtime/containers"));
+
+		xdRuntime.add(entityLinks.linkFor(DetailedJobInfoResource.class).withRel("batch/jobs"));
+		xdRuntime.add(entityLinks.linkFor(JobExecutionInfoResource.class).withRel("batch/executions"));
+		xdRuntime.add(entityLinks.linkFor(JobInstanceInfoResource.class).withRel("batch/instances"));
 
 		for (CompletionKind k : CompletionKind.values()) {
 			Object mi = ControllerLinkBuilder.methodOn(CompletionsController.class).completions(k, "");

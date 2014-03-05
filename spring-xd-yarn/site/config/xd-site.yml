@@ -1,0 +1,14 @@
+#Port that admin-ui is listening on
+server:
+    port: 9393
+
+spring:
+    xd:
+        adminServers: 1
+        containers: 3
+#    yarn:
+#        applicationDir: /xd/app/
+#        fsUri: hdfs://localhost:8020
+#        rmAddress: localhost:8032
+#        schedulerAddress: localhost:8030
+

@@ -24,6 +24,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.springframework.xd.module.core.CompositeModule.OPTION_SEPARATOR;
 import static org.springframework.xd.shell.command.fixtures.XDMatchers.eventually;
 import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasContentsThat;
 
@@ -61,8 +62,11 @@ public class ModuleCommandTests extends AbstractStreamIntegrationTest {
 		assertThat(t.getRows(), hasItem(rowWithValue(1, "(c) compositesource")));
 	}
 
+	/**
+	 * This tests that options passed in the definition of a composed module are kept as first level defaults.
+	 */
 	@Test
-	public void testComposedModules() throws IOException {
+	public void testComposedModulesValuesInDefinition() throws IOException {
 		FileSink sink = newFileSink().binary(true);
 		HttpSource httpSource = newHttpSource();
 		compose().newModule("filterAndTransform",
@@ -73,6 +77,23 @@ public class ModuleCommandTests extends AbstractStreamIntegrationTest {
 
 	}
 
+	/**
+	 * This tests that options passed at usage time of a composed module are override definition values.
+	 */
+	@Test
+	public void testComposedModulesValuesAtUsageTime() throws IOException {
+		FileSink sink = newFileSink().binary(true);
+		HttpSource httpSource = newHttpSource();
+		compose().newModule("filterAndTransform",
+				"filter --expression=false | transform --expression=payload.replace('abc','...')");
+		String options = String.format(
+				"--filter%sexpression=true --transform%sexpression=payload.replace('def','...')", OPTION_SEPARATOR,
+				OPTION_SEPARATOR);
+		stream().create(generateStreamName(), "%s | filterAndTransform %s | %s", httpSource, options, sink);
+		httpSource.postData("abcdefghi!");
+		assertThat(sink, eventually(hasContentsThat(equalTo("abc...ghi!"))));
+
+	}
 
 	private Matcher<TableRow> rowWithValue(final int col, final String value) {
 		return new DiagnosingMatcher<TableRow>() {

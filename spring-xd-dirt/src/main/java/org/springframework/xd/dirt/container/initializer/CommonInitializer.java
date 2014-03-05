@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.container.initializer;
 
+import org.springframework.core.Ordered;
 import org.springframework.xd.dirt.util.ConfigLocations;
 
 
@@ -29,7 +30,7 @@ public class CommonInitializer extends AbstractXMLBeanDefinitionProvider {
 
 	@Override
 	public int getOrder() {
-		return Integer.MIN_VALUE - 1;
+		return Ordered.HIGHEST_PRECEDENCE;
 	}
 
 	@Override

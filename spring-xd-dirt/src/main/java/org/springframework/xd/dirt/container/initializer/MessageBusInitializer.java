@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.container.initializer;
 
+import org.springframework.core.Ordered;
 import org.springframework.xd.dirt.util.ConfigLocations;
 
 /**
@@ -28,7 +29,7 @@ public class MessageBusInitializer extends AbstractXMLBeanDefinitionProvider {
 
 	@Override
 	public int getOrder() {
-		return Integer.MIN_VALUE;
+		return Ordered.HIGHEST_PRECEDENCE;
 	}
 
 	@Override

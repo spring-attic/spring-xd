@@ -29,7 +29,28 @@ import reactor.spring.messaging.factory.net.NetServerFactoryBean;
  *
  * @author Jon Brisbin
  */
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class NetServerInboundChannelAdapter extends MessageProducerSupport {
+
+	public enum CodecType {
+		BYTES, STRING, SYSLOG
+	}
+
+	public enum FramingType {
+		DELIMITED, LENGTH
+	}
+
+	public enum DelimiterType {
+		CR, LF
+	}
+
+	public enum LengthFieldType {
+		SHORT, INT, LONG
+	}
+
+	public enum TransportType {
+		TCP, UDP
+	}
 
 	private final    NetServerFactoryBean netServerFactoryBean;
 	private volatile NetServer            server;
@@ -114,13 +135,13 @@ public class NetServerInboundChannelAdapter extends MessageProducerSupport {
 	 * </ul>
 	 * </p>
 	 *
-	 * @param codec
-	 * 		the codec
+	 * @param codecType
+	 * 		the type of codec
 	 *
 	 * @return {@literal this}
 	 */
-	public void setCodec(String codec) {
-		this.netServerFactoryBean.setCodec(codec);
+	public void setCodec(CodecType codecType) {
+		this.netServerFactoryBean.setCodec(codecType.name().toLowerCase());
 	}
 
 	/**
@@ -134,24 +155,54 @@ public class NetServerInboundChannelAdapter extends MessageProducerSupport {
 	 * </ul>
 	 * </p>
 	 *
-	 * @param framing
+	 * @param framingType
 	 * 		type of framing
 	 *
 	 * @return {@literal this}
 	 */
-	public void setFraming(String framing) {
-		this.netServerFactoryBean.setFraming(framing);
+	public void setFraming(FramingType framingType) {
+		this.netServerFactoryBean.setFraming(framingType.name().toLowerCase());
+	}
+
+	/**
+	 * Set the single-byte delimiter to use when framing is set to 'delimited'.
+	 * The options for delimiters are:
+	 * <ul>
+	 * <li>{@code LF} - Means use a line feed \\n.</li>
+	 * <li>{@code CR} - Means use a carriage return \\r.</li>
+	 * </ul>
+	 * </p>
+	 *
+	 * @param delimiterType
+	 * 		the delimiter to use
+	 */
+	public void setDelimiter(DelimiterType delimiterType) {
+		this.netServerFactoryBean.setDelimiter(delimiterType.name());
 	}
 
 	/**
 	 * Set the length of the length field if using length-field framing.
 	 *
-	 * @param lengthFieldLength
-	 * 		{@code 2} for a {@code short}, {@code 4} for an {@code int} (the default), or {@code 8} for a {@code long}
+	 * @param lengthFieldType
+	 * 		{@code LengthFieldType.SHORT}, {@code LengthFieldType.INT}, or {@code LengthFieldType.LONG}
 	 *
 	 * @return {@literal this}
 	 */
-	public void setLengthFieldLength(int lengthFieldLength) {
+	public void setLengthFieldLength(LengthFieldType lengthFieldType) {
+		int lengthFieldLength;
+		switch(lengthFieldType) {
+			case SHORT:
+				lengthFieldLength = 2;
+				break;
+			case INT:
+				lengthFieldLength = 4;
+				break;
+			case LONG:
+				lengthFieldLength = 8;
+				break;
+			default:
+				lengthFieldLength = 4;
+		}
 		this.netServerFactoryBean.setLengthFieldLength(lengthFieldLength);
 	}
 
@@ -165,18 +216,18 @@ public class NetServerInboundChannelAdapter extends MessageProducerSupport {
 	 * </ul>
 	 * </p>
 	 *
-	 * @param transport
+	 * @param transportType
 	 * 		the transport to use
 	 *
 	 * @return {@literal this}
 	 */
-	public void setTransport(String transport) {
-		this.netServerFactoryBean.setTransport(transport);
+	public void setTransport(TransportType transportType) {
+		this.netServerFactoryBean.setTransport(transportType.name().toLowerCase());
 	}
 
 	@Override
 	public String getComponentType() {
-		return "reactor:netserver-inbound-channel-adapter";
+		return "int-reactor:netserver-inbound-channel-adapter";
 	}
 
 	@Override

@@ -20,11 +20,9 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractChannelAdapterParser;
+import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.xd.integration.reactor.syslog.SyslogInboundChannelAdapter;
 import org.w3c.dom.Element;
-
-import static org.springframework.integration.config.xml.IntegrationNamespaceUtils.setReferenceIfAttributeDefined;
-import static org.springframework.integration.config.xml.IntegrationNamespaceUtils.setValueIfAttributeDefined;
 
 /**
  * @author Jon Brisbin
@@ -38,11 +36,11 @@ public class SyslogInboundChannelAdapterParser extends AbstractChannelAdapterPar
 				element
 		);
 
-		setValueIfAttributeDefined(builder, element, "host", "host");
-		setValueIfAttributeDefined(builder, element, "port", "port");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "host", "host");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "port", "port");
 
-		setReferenceIfAttributeDefined(builder, element, "channel", "outputChannel");
-		setReferenceIfAttributeDefined(builder, element, "error-channel", "errorChannel");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "channel", "outputChannel");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel", "errorChannel");
 
 		return builder.getBeanDefinition();
 	}

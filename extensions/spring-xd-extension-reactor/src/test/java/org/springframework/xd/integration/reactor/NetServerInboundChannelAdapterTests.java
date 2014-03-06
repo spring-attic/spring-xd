@@ -103,8 +103,8 @@ public class NetServerInboundChannelAdapterTests {
 			NetServerInboundChannelAdapter ica = new NetServerInboundChannelAdapter(env);
 			ica.setPort(port);
 			ica.setOutputChannel(output);
-			ica.setCodec("string");
-			ica.setFraming("delimited");
+			ica.setCodec(NetServerInboundChannelAdapter.CodecType.STRING);
+			ica.setFraming(NetServerInboundChannelAdapter.FramingType.DELIMITED);
 			return ica;
 		}
 	}

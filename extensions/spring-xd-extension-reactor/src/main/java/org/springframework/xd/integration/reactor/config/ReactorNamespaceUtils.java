@@ -16,20 +16,20 @@
 
 package org.springframework.xd.integration.reactor.config;
 
-import org.w3c.dom.Element;
-
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
 
 /**
  * Namespace parser helper for creating {@link BeanDefinitionBuilder} instances that have a reference to a Reactor
  * {@link reactor.core.Environment} as their first constructor parameter.
- * 
+ *
  * @author Jon Brisbin
  */
 public abstract class ReactorNamespaceUtils {
 
-	public static final String REACTOR_ENV_BEAN = "reactorEnv";
+	public static final String REACTOR_ENV_BEAN_NAME           = "reactorEnv";
+	public static final String RING_BUFFER_TASK_EXEC_BEAN_NAME = "ringBufferTaskExecutor";
 
 	protected ReactorNamespaceUtils() {
 	}
@@ -38,15 +38,16 @@ public abstract class ReactorNamespaceUtils {
 	 * Create a {@link BeanDefinitionBuilder} that checks for an {@code env} attribute and uses that as the
 	 * {@link reactor.core.Environment} bean reference. If not set, then it default to {@code reactorEnv}, which is the
 	 * name of the global Reactor {@link reactor.core.Environment}.
-	 * 
+	 *
 	 * @param componentType
 	 * @param element
+	 *
 	 * @return
 	 */
 	public static BeanDefinitionBuilder createBeanDefinitionBuilder(Class<?> componentType, Element element) {
 		String envRef = element.getAttribute("env");
-		if (!StringUtils.hasText(envRef)) {
-			envRef = REACTOR_ENV_BEAN;
+		if(!StringUtils.hasText(envRef)) {
+			envRef = REACTOR_ENV_BEAN_NAME;
 		}
 
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(componentType);

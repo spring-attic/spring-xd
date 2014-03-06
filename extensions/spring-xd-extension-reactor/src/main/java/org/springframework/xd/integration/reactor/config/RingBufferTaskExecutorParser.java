@@ -36,7 +36,7 @@ public class RingBufferTaskExecutorParser extends AbstractBeanDefinitionParser {
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 		String id = element.getAttribute("id");
 		if(!StringUtils.hasText(id)) {
-			id = RingBufferAsyncTaskExecutor.class.getSimpleName();
+			id = ReactorNamespaceUtils.RING_BUFFER_TASK_EXEC_BEAN_NAME;
 		}
 
 		BeanDefinitionBuilder builder = ReactorNamespaceUtils.createBeanDefinitionBuilder(

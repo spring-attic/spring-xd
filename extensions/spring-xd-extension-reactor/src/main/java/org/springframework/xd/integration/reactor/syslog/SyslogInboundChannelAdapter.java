@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -29,14 +29,14 @@ import reactor.event.dispatch.SynchronousDispatcher;
 import reactor.function.Consumer;
 import reactor.function.Function;
 import reactor.io.Buffer;
-import reactor.tcp.TcpConnection;
-import reactor.tcp.TcpServer;
-import reactor.tcp.encoding.DelimitedCodec;
-import reactor.tcp.encoding.StandardCodecs;
-import reactor.tcp.encoding.syslog.SyslogCodec;
-import reactor.tcp.encoding.syslog.SyslogMessage;
-import reactor.tcp.netty.NettyTcpServer;
-import reactor.tcp.spec.TcpServerSpec;
+import reactor.io.encoding.DelimitedCodec;
+import reactor.io.encoding.StandardCodecs;
+import reactor.net.NetChannel;
+import reactor.net.encoding.syslog.SyslogCodec;
+import reactor.net.encoding.syslog.SyslogMessage;
+import reactor.net.netty.tcp.NettyTcpServer;
+import reactor.net.tcp.TcpServer;
+import reactor.net.tcp.spec.TcpServerSpec;
 
 /**
  * {@code InboundChannelAdapter} implementation that uses the Reactor TCP support to read in syslog messages and
@@ -81,10 +81,10 @@ public class SyslogInboundChannelAdapter extends MessageProducerSupport {
 				.dispatcher(new SynchronousDispatcher())
 				// optimize for massive throughput by using lightweight codec in server
 				.codec(new DelimitedCodec<Buffer, Buffer>(false, StandardCodecs.PASS_THROUGH_CODEC))
-				.consume(new Consumer<TcpConnection<Buffer, Buffer>>() {
+				.consume(new Consumer<NetChannel<Buffer, Buffer>>() {
 
 					@Override
-					public void accept(TcpConnection<Buffer, Buffer> conn) {
+					public void accept(NetChannel<Buffer, Buffer> conn) {
 						// consume lines and delegate to codec
 						conn.consume(new Consumer<Buffer>() {
 
@@ -97,10 +97,20 @@ public class SyslogInboundChannelAdapter extends MessageProducerSupport {
 				});
 	}
 
+	/**
+	 * Set hostname to bind this server to.
+	 * 
+	 * @param host hostname
+	 */
 	public void setHost(String host) {
 		this.host = host;
 	}
 
+	/**
+	 * Set port to bind this server to.
+	 * 
+	 * @param port port
+	 */
 	public void setPort(int port) {
 		this.port = port;
 	}

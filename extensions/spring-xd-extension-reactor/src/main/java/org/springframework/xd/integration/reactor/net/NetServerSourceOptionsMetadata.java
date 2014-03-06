@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,25 +14,29 @@
  *  limitations under the License.
  */
 
-package org.springframework.xd.integration.reactor.channel;
+package org.springframework.xd.integration.reactor.net;
 
-import org.springframework.integration.channel.AbstractSubscribableChannel;
-import org.springframework.integration.dispatcher.MessageDispatcher;
+import javax.validation.constraints.NotNull;
+
+import org.springframework.xd.module.options.spi.ModuleOption;
 
 /**
+ * Provides metadata about the configuration options of a {@link reactor.net.NetServer} in Spring XD.
+ * 
  * @author Jon Brisbin
  */
-public class ReactorPublishSubscribeChannel extends AbstractSubscribableChannel {
+public class NetServerSourceOptionsMetadata {
 
-	private final MessageDispatcher dispatcher;
+	private String bind = "tcp://0.0.0.0:3000/linefeed?codec=string";
 
-	public ReactorPublishSubscribeChannel(MessageDispatcher dispatcher) {
-		this.dispatcher = dispatcher;
+	@NotNull
+	public String getBind() {
+		return bind;
 	}
 
-	@Override
-	protected MessageDispatcher getDispatcher() {
-		return dispatcher;
+	@ModuleOption("URI which configures the NetServer")
+	public void setBind(String bind) {
+		this.bind = bind;
 	}
 
 }

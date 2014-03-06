@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import org.springframework.util.StringUtils;
  */
 public abstract class ReactorNamespaceUtils {
 
-	public static final String REACTOR_ENV_BEAN = "reactorEnv";
+	public static final String REACTOR_ENV_BEAN_NAME = "reactorEnv";
 
 	protected ReactorNamespaceUtils() {
 	}
@@ -41,12 +41,13 @@ public abstract class ReactorNamespaceUtils {
 	 * 
 	 * @param componentType
 	 * @param element
+	 * 
 	 * @return
 	 */
 	public static BeanDefinitionBuilder createBeanDefinitionBuilder(Class<?> componentType, Element element) {
 		String envRef = element.getAttribute("env");
 		if (!StringUtils.hasText(envRef)) {
-			envRef = REACTOR_ENV_BEAN;
+			envRef = REACTOR_ENV_BEAN_NAME;
 		}
 
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(componentType);

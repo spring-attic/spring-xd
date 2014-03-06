@@ -1,0 +1,75 @@
+# XD on YARN deployment configuration
+spring:
+    xd:
+        adminServers: 1
+        containers: 3
+    yarn:
+        applicationDir: /xd/app/
+
+# Hadoop configuration
+#    hadoop:
+#        fsUri: hdfs://localhost:8020
+#        resourceManagerHost: localhost
+
+# Transport used
+#transport: rabbit
+
+# Port that admin-ui is listening on
+#server:
+#    port: 9393
+
+---
+# Redis properties
+#spring:
+#  redis:
+#   port: 6379
+#   host: localhost
+
+---
+# RabbitMQ properties
+#spring:
+#  rabbitmq:
+#   host: localhost
+#   port: 5672
+#   username: guest
+#   password: guest
+#   virtual_host: /
+
+---
+# Database settings
+#
+# Config for use with HSQLDB
+#
+# Change the database host, port and name
+#hsql:
+#  server:
+#    host: localhost
+#    port: 9102
+#    dbname: xdjob
+# Change database username and password
+#spring:
+#  datasource:
+#    url: jdbc:hsqldb:hsql://${hsql.server.host:localhost}:${hsql.server.port:9101}/${hsql.server.dbname:xdjob}
+#    username: sa
+#    password:
+#    driverClassName: org.hsqldb.jdbc.JDBCDriver
+
+# Config for use with MySQL - uncomment and edit with relevant values for your environment
+#spring:
+#  datasource:
+#    url: jdbc:mysql://yourDBhost:3306/yourDB
+#    username: yourUsername
+#    password: yourPassword
+#    driverClassName: com.mysql.jdbc.Driver
+#  profiles:
+#    active: default,mysql
+
+# Config for use with Postgres - uncomment and edit with relevant values for your environment
+#spring:
+#  datasource:
+#    url: jdbc:postgresql://yourDBhost:5432/yourDB
+#    username: yourUsername
+#    password: yourPassword
+#    driverClassName: org.postgresql.Driver
+#  profiles:
+#    active: default,postgresql

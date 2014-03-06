@@ -26,6 +26,7 @@ public class ReactorNamespaceHandler extends AbstractIntegrationNamespaceHandler
 	@Override
 	public void init() {
 		registerBeanDefinitionParser("syslog-inbound-channel-adapter", new SyslogInboundChannelAdapterParser());
-		registerBeanDefinitionParser("publish-subscribe-channel", new ReactorPublishSubscribeChannelParser());
+		registerBeanDefinitionParser("netserver-inbound-channel-adapter", new NetServerInboundChannelAdapterParser());
+		registerBeanDefinitionParser("ring-buffer-executor", new RingBufferTaskExecutorParser());
 	}
 }

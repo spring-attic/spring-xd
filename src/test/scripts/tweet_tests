@@ -45,8 +45,9 @@ sleep 10
 
 undeploy_stream 'tweets'
 
-echo -e 'Lang counts:\n'
-xdc $XDURL/metrics/field-value-counters/lang
+lang_counts=`xdc $XDURL/metrics/field-value-counters/lang`
+echo -e "Lang counts: $lang_counts\n"
+echo $lang_counts | grep '\"en\":'
 destroy_metric field-value-counters/lang
 echo -e '\n\nHashtag counts:\n'
 xdc $XDURL/metrics/field-value-counters/hashtags

@@ -18,31 +18,34 @@ package org.springframework.xd.integration.reactor.config;
 
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.xml.AbstractChannelAdapterParser;
-import org.springframework.xd.integration.reactor.syslog.SyslogInboundChannelAdapter;
+import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
-
-import static org.springframework.integration.config.xml.IntegrationNamespaceUtils.setReferenceIfAttributeDefined;
-import static org.springframework.integration.config.xml.IntegrationNamespaceUtils.setValueIfAttributeDefined;
+import reactor.spring.core.task.RingBufferAsyncTaskExecutor;
 
 /**
+ * Namespace parser for creating {@link reactor.spring.core.task.RingBufferAsyncTaskExecutor} instances.
+ *
  * @author Jon Brisbin
  */
-public class SyslogInboundChannelAdapterParser extends AbstractChannelAdapterParser {
+public class RingBufferTaskExecutorParser extends AbstractBeanDefinitionParser {
 
 	@Override
-	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
+	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
+		String id = element.getAttribute("id");
+		if(!StringUtils.hasText(id)) {
+			id = RingBufferAsyncTaskExecutor.class.getSimpleName();
+		}
+
 		BeanDefinitionBuilder builder = ReactorNamespaceUtils.createBeanDefinitionBuilder(
-				SyslogInboundChannelAdapter.class,
+				RingBufferAsyncTaskExecutor.class,
 				element
 		);
+		builder.addPropertyValue("name", id);
 
-		setValueIfAttributeDefined(builder, element, "host", "host");
-		setValueIfAttributeDefined(builder, element, "port", "port");
-
-		setReferenceIfAttributeDefined(builder, element, "channel", "outputChannel");
-		setReferenceIfAttributeDefined(builder, element, "error-channel", "errorChannel");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "backlog", "backlog");
 
 		return builder.getBeanDefinition();
 	}

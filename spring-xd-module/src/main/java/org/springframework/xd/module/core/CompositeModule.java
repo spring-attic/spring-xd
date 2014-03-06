@@ -27,6 +27,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.env.PropertiesPropertySource;
@@ -176,6 +177,13 @@ public class CompositeModule extends AbstractModule {
 	}
 
 	@Override
+	public void addListener(ApplicationListener<?> listener) {
+		for (Module module : modules) {
+			module.addListener(listener);
+		}
+	}
+
+	@Override
 	public void addComponents(Resource resource) {
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(this.context);
 		reader.loadBeanDefinitions(resource);
@@ -261,5 +269,6 @@ public class CompositeModule extends AbstractModule {
 	public boolean isRunning() {
 		return isRunning.get();
 	}
+
 
 }

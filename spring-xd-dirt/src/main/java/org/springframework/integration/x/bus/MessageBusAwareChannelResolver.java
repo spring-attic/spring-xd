@@ -19,9 +19,6 @@ package org.springframework.integration.x.bus;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
@@ -36,21 +33,17 @@ import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationRe
  */
 public class MessageBusAwareChannelResolver extends BeanFactoryMessageChannelDestinationResolver {
 
-	private final Log logger = LogFactory.getLog(this.getClass());
-
 	private final Map<String, MessageChannel> channels = new HashMap<String, MessageChannel>();
 
-	private volatile MessageBus messageBus;
+	private final MessageBus messageBus;
+
+	public MessageBusAwareChannelResolver(MessageBus messageBus) {
+		this.messageBus = messageBus;
+	}
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) {
 		super.setBeanFactory(beanFactory);
-		try {
-			messageBus = beanFactory.getBean(MessageBus.class);
-		}
-		catch (Exception e) {
-			logger.warn("failed to locate a MessageBus in the BeanFactory", e);
-		}
 	}
 
 	@Override

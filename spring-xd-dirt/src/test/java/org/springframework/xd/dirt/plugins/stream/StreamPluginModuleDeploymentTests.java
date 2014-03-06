@@ -18,7 +18,6 @@ package org.springframework.xd.dirt.plugins.stream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
 
 import java.io.File;
 import java.util.Collection;
@@ -55,6 +54,9 @@ import org.springframework.xd.module.core.SimpleModule;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 public class StreamPluginModuleDeploymentTests {
+
+	@Autowired
+	MessageBus bus;
 
 	@Autowired
 	private ModuleDeployer moduleDeployer;
@@ -98,10 +100,8 @@ public class StreamPluginModuleDeploymentTests {
 	@Test
 	public void moduleChannelsRegisteredWithSameMessageBus() throws InterruptedException {
 		this.source = sendModuleRequest(createSourceModuleRequest());
-		MessageBus bus = source.getApplicationContext().getBean(MessageBus.class);
 		assertEquals(2, getBindings(bus).size());
-		this.sink = sendModuleRequest(createSinkModuleRequest());
-		assertSame(bus, sink.getApplicationContext().getBean(MessageBus.class));
+		sendModuleRequest(createSinkModuleRequest());
 		assertEquals(3, getBindings(bus).size());
 		getBindings(bus).clear();
 	}
@@ -109,8 +109,7 @@ public class StreamPluginModuleDeploymentTests {
 	@Test
 	public void moduleUndeployUnregistersChannels() throws InterruptedException {
 		ModuleDeploymentRequest request = createSourceModuleRequest();
-		SimpleModule module = sendModuleRequest(request);
-		MessageBus bus = module.getApplicationContext().getBean(MessageBus.class);
+		sendModuleRequest(request);
 		assertEquals(2, getBindings(bus).size());
 		request.setRemove(true);
 		sendModuleRequest(request);

@@ -231,7 +231,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 
 
 	private void deployAndStore(Module module, ModuleDeploymentRequest request) {
-		module.setParentContext(this.context);
+		module.setParentContext(this.context.getParent());
 		this.deploy(module);
 		if (logger.isInfoEnabled()) {
 			logger.info("deployed " + module.toString());

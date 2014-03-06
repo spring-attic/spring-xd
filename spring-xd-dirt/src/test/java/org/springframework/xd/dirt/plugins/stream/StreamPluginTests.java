@@ -29,6 +29,8 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.integration.channel.DirectChannel;
@@ -51,7 +53,10 @@ import org.springframework.xd.module.core.SimpleModule;
  */
 public class StreamPluginTests {
 
-	private StreamPlugin plugin = new StreamPlugin();
+	@Mock
+	private MessageBus bus;
+
+	private StreamPlugin plugin;
 
 	private MessageChannel input = new DirectChannel();
 
@@ -60,6 +65,8 @@ public class StreamPluginTests {
 	@Before
 	public void setup() {
 		System.setProperty("XD_TRANSPORT", "local");
+		MockitoAnnotations.initMocks(this);
+		plugin = new StreamPlugin(bus);
 	}
 
 	@After
@@ -85,7 +92,6 @@ public class StreamPluginTests {
 		Module module = mock(Module.class);
 		when(module.getDeploymentMetadata()).thenReturn(new DeploymentMetadata("foo", 1));
 		when(module.getType()).thenReturn(ModuleType.processor);
-		final MessageBus bus = mock(MessageBus.class);
 		when(module.getName()).thenReturn("testing");
 		when(module.getComponent(MessageBus.class)).thenReturn(bus);
 		when(module.getComponent("input", MessageChannel.class)).thenReturn(input);
@@ -106,12 +112,11 @@ public class StreamPluginTests {
 	public void testTapOnProxy() {
 		Module module = mock(Module.class);
 		when(module.getDeploymentMetadata()).thenReturn(new DeploymentMetadata("foo", 1));
-		MessageBus messageBus = mock(MessageBus.class);
-		when(module.getComponent(MessageBus.class)).thenReturn(messageBus);
+		when(module.getComponent(MessageBus.class)).thenReturn(bus);
 		DirectChannel output = new DirectChannel();
 		MessageChannel proxy = (MessageChannel) new ProxyFactory(output).getProxy();
 		when(module.getComponent("output", MessageChannel.class)).thenReturn(proxy);
-		StreamPlugin plugin = new StreamPlugin();
+		StreamPlugin plugin = new StreamPlugin(bus);
 		plugin.postProcessModule(module);
 		List<?> interceptors = TestUtils.getPropertyValue(output, "interceptors.interceptors", List.class);
 		assertEquals(1, interceptors.size());

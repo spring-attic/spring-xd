@@ -19,6 +19,7 @@ package org.springframework.xd.module.core;
 import java.util.Properties;
 
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.io.Resource;
 import org.springframework.xd.module.DeploymentMetadata;
@@ -47,6 +48,8 @@ public interface Module extends Lifecycle {
 	void addComponents(Resource resource);
 
 	void addProperties(Properties properties);
+
+	void addListener(ApplicationListener<?> listener);
 
 	Properties getProperties();
 

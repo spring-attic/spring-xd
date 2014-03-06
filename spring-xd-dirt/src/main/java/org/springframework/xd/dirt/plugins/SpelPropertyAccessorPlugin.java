@@ -14,27 +14,29 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.container.initializer;
+package org.springframework.xd.dirt.plugins;
 
-import org.springframework.core.Ordered;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.xd.dirt.util.ConfigLocations;
+import org.springframework.xd.module.core.Module;
 
 
 /**
+ * A Plugin to add spel property accessors for JSON and Tuples
  * 
  * @author David Turanski
  */
-public class CommonInitializer extends AbstractXMLBeanDefinitionProvider {
+public class SpelPropertyAccessorPlugin extends AbstractPlugin {
 
-	private static final String CONTEXT_CONFIG_ROOT = ConfigLocations.XD_CONFIG_ROOT + "initializers/common/";
+	private static final String CONTEXT_CONFIG_ROOT = ConfigLocations.XD_CONFIG_ROOT + "plugins/common/";
 
 	@Override
-	public int getOrder() {
-		return Ordered.HIGHEST_PRECEDENCE;
+	public boolean supports(Module module) {
+		return true;
 	}
 
 	@Override
-	protected String[] getLocations() {
-		return new String[] { CONTEXT_CONFIG_ROOT + "*.xml" };
+	public void preProcessModule(Module module) {
+		module.addComponents(new ClassPathResource(CONTEXT_CONFIG_ROOT + "spel-property-accessors.xml"));
 	}
 }

@@ -22,6 +22,4 @@
 		<int-groovy:script location="${script:route.groovy}" script-variable-generator="variableGenerator" refresh-check-delay="60"/>
 	</router>
 
-	<beans:bean class="org.springframework.integration.x.bus.MessageBusAwareRouterBeanPostProcessor"/>
-
 </beans:beans>

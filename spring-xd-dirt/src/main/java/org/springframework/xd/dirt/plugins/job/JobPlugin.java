@@ -42,11 +42,14 @@ import org.springframework.xd.module.core.Module;
  * @author Gary Russell
  * @author Glenn Renfro
  * @author Ilayaperumal Gopinathan
+ * @author David Turanski
  * @since 1.0
  */
 public class JobPlugin extends AbstractPlugin {
 
 	private final Log logger = LogFactory.getLog(getClass());
+
+	private final MessageBus messageBus;
 
 	private static final String CONTEXT_CONFIG_ROOT = ConfigLocations.XD_CONFIG_ROOT + "plugins/job/";
 
@@ -72,6 +75,10 @@ public class JobPlugin extends AbstractPlugin {
 
 	private static final String JOB_STEP_EXECUTION_REPLY_CHANNEL = "stepExecutionReplies.output";
 
+	public JobPlugin(MessageBus messageBus) {
+		this.messageBus = messageBus;
+	}
+
 	public void configureProperties(Module module) {
 		final Properties properties = new Properties();
 		properties.setProperty("xd.stream.name", module.getDeploymentMetadata().getGroup());
@@ -87,21 +94,20 @@ public class JobPlugin extends AbstractPlugin {
 
 	@Override
 	public void postProcessModule(Module module) {
-		MessageBus bus = findMessageBus(module);
 		DeploymentMetadata md = module.getDeploymentMetadata();
-		if (bus != null) {
+		if (this.messageBus != null) {
 			MessageChannel inputChannel = module.getComponent(JOB_LAUNCH_REQUEST_CHANNEL, MessageChannel.class);
 			if (inputChannel != null) {
-				bus.bindConsumer(JOB_CHANNEL_PREFIX + md.getGroup(), inputChannel, true);
+				this.messageBus.bindConsumer(JOB_CHANNEL_PREFIX + md.getGroup(), inputChannel, true);
 			}
 			MessageChannel notificationsChannel = module.getComponent(JOB_NOTIFICATIONS_CHANNEL, MessageChannel.class);
 			if (notificationsChannel != null) {
-				bus.bindProducer(JOB_CHANNEL_PREFIX + md.getGroup() + NOTIFICATION_CHANNEL_SUFFIX,
+				this.messageBus.bindProducer(JOB_CHANNEL_PREFIX + md.getGroup() + NOTIFICATION_CHANNEL_SUFFIX,
 						notificationsChannel, true);
 			}
 
 			if (module.getComponent(JOB_PARTIONER_REQUEST_CHANNEL, MessageChannel.class) != null) {
-				this.processPartitionedJob(module, md, bus);
+				this.processPartitionedJob(module, md, this.messageBus);
 			}
 		}
 	}
@@ -157,12 +163,12 @@ public class JobPlugin extends AbstractPlugin {
 
 	@Override
 	public void removeModule(Module module) {
-		MessageBus bus = findMessageBus(module);
-		if (bus != null) {
-			bus.unbindConsumers(JOB_CHANNEL_PREFIX + module.getDeploymentMetadata().getGroup());
-			bus.unbindProducers(module.getDeploymentMetadata().getGroup() + NOTIFICATION_CHANNEL_SUFFIX);
+
+		if (this.messageBus != null) {
+			this.messageBus.unbindConsumers(JOB_CHANNEL_PREFIX + module.getDeploymentMetadata().getGroup());
+			this.messageBus.unbindProducers(module.getDeploymentMetadata().getGroup() + NOTIFICATION_CHANNEL_SUFFIX);
 			if (module.getComponent(JOB_PARTIONER_REQUEST_CHANNEL, MessageChannel.class) != null) {
-				this.unbindPartitionedJob(module, bus);
+				this.unbindPartitionedJob(module, this.messageBus);
 			}
 		}
 	}

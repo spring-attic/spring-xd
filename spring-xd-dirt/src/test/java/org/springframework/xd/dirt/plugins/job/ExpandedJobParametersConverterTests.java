@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ public class ExpandedJobParametersConverterTests {
 
 		final ExpandedJobParametersConverter jobParametersConverter = new ExpandedJobParametersConverter();
 
-		JobParameters jobParameters = jobParametersConverter.getJobParameters(null);
+		final JobParameters jobParameters = jobParametersConverter.getJobParameters(null);
 		assertNotNull(jobParameters);
 
 		assertTrue(jobParameters.getParameters().size() == 1);
@@ -51,11 +51,42 @@ public class ExpandedJobParametersConverterTests {
 	}
 
 	@Test
+	public void getJobParametersForNullPropertiesWithMakeParametersUniqueExplicitlySetToTrue() throws Exception {
+
+		final ExpandedJobParametersConverter jobParametersConverter = new ExpandedJobParametersConverter();
+		jobParametersConverter.setMakeParametersUnique(true);
+
+		final JobParameters jobParameters = jobParametersConverter.getJobParameters(null);
+		assertNotNull(jobParameters);
+
+		assertTrue(jobParameters.getParameters().size() == 1);
+		assertNotNull(jobParameters.getString(ExpandedJobParametersConverter.UNIQUE_JOB_PARAMETER_KEY));
+
+	}
+
+	@Test
+	public void getJobParametersForRestartWithMakeParametersUniqueExplicitlySetToTrue() throws Exception {
+
+		final ExpandedJobParametersConverter jobParametersConverter = new ExpandedJobParametersConverter();
+		jobParametersConverter.setMakeParametersUnique(true);
+
+		final Properties properties = new Properties();
+		properties.put(ExpandedJobParametersConverter.IS_RESTART_JOB_PARAMETER_KEY, String.valueOf(true));
+		final JobParameters jobParameters = jobParametersConverter.getJobParameters(properties);
+		assertNotNull(jobParameters);
+
+		assertEquals(Integer.valueOf(1), Integer.valueOf(jobParameters.getParameters().size()));
+		final JobParameters jobParametersWithoutRestartKey = jobParametersConverter.removeRestartParameterIfExists(jobParameters);
+		assertEquals(Integer.valueOf(0), Integer.valueOf(jobParametersWithoutRestartKey.getParameters().size()));
+
+	}
+
+	@Test
 	public void getJobParametersForEmptyProperties() throws Exception {
 
 		final ExpandedJobParametersConverter jobParametersConverter = new ExpandedJobParametersConverter();
 
-		JobParameters jobParameters = jobParametersConverter.getJobParameters(new Properties());
+		final JobParameters jobParameters = jobParametersConverter.getJobParameters(new Properties());
 		assertNotNull(jobParameters);
 
 		assertTrue(jobParameters.getParameters().size() == 1);
@@ -69,7 +100,7 @@ public class ExpandedJobParametersConverterTests {
 		final ExpandedJobParametersConverter jobParametersConverter = new ExpandedJobParametersConverter();
 		jobParametersConverter.setMakeParametersUnique(false);
 
-		String json = "{\"param1\":\"Kenny\", \"param2\":\"Cartman\"}";
+		final String json = "{\"param1\":\"Kenny\", \"param2\":\"Cartman\"}";
 
 		final JobParameters jobParameters = jobParametersConverter.getJobParametersForJsonString(json);
 
@@ -91,7 +122,7 @@ public class ExpandedJobParametersConverterTests {
 		final ExpandedJobParametersConverter jobParametersConverter = new ExpandedJobParametersConverter();
 		jobParametersConverter.setMakeParametersUnique(false);
 
-		String json = "{\"param1\":\"Kenny\",\"param2\":\"Cartman\"}";
+		final String json = "{\"param1\":\"Kenny\",\"param2\":\"Cartman\"}";
 
 		final JobParameters jobParameters = jobParametersConverter.getJobParametersForJsonString(json);
 
@@ -186,29 +217,37 @@ public class ExpandedJobParametersConverterTests {
 	}
 
 	@Test
-	public void convertIdentifyingJobParametersToJsonWithRandomParamBeingRemoved() throws Exception {
+	public void convertIdentifyingJobParametersToJsonWithIsRestartParamBeingAdded() throws Exception {
 
 		final ExpandedJobParametersConverter jobParametersConverter = new ExpandedJobParametersConverter();
 		jobParametersConverter.setMakeParametersUnique(true);
 
-		String json = "{\"param1\":\"Kenny\",\"param2\":\"Cartman\"}";
+		final String jsonWithIsRestart = "{\"XD_isRestart\":\"true\",\"param1\":\"Kenny\",\"param2\":\"Cartman\"}";
+		final String jsonWithoutIsRestart = "{\"param1\":\"Kenny\",\"param2\":\"Cartman\"}";
 
-		final JobParameters jobParameters = jobParametersConverter.getJobParametersForJsonString(json);
+		final JobParameters jobParameters = jobParametersConverter.getJobParametersForJsonString(jsonWithIsRestart);
 
 		assertNotNull(jobParameters);
-		assertTrue(jobParameters.getParameters().size() == 3);
+		assertEquals(Integer.valueOf(3), Integer.valueOf(jobParameters.getParameters().size()));
 
 		assertEquals("Kenny", jobParameters.getString("param1"));
 		assertEquals("Cartman", jobParameters.getString("param2"));
-		assertNotNull(jobParameters.getString("random"));
+		assertEquals("true", jobParameters.getString("XD_isRestart"));
 
-		for (JobParameter jobParameter : jobParameters.getParameters().values()) {
+		final JobParameters jobParametersWithoutRestart = jobParametersConverter.removeRestartParameterIfExists(jobParameters);
+		assertEquals(Integer.valueOf(2), Integer.valueOf(jobParametersWithoutRestart.getParameters().size()));
+
+		for (JobParameter jobParameter : jobParametersWithoutRestart.getParameters().values()) {
 			assertTrue(jobParameter.isIdentifying());
 		}
 
-		final String jobParametersAsJson = jobParametersConverter.getJobParametersAsString(jobParameters, true);
+		final String jobParametersAsJsonWithIsRestart = jobParametersConverter.getJobParametersAsString(
+				jobParametersWithoutRestart,
+				true);
+		assertEquals(jsonWithIsRestart, jobParametersAsJsonWithIsRestart);
 
-		assertEquals(json, jobParametersAsJson);
-
+		final String jobParametersAsJsonWithoutIsRestart = jobParametersConverter.getJobParametersAsString(
+				jobParametersWithoutRestart, false);
+		assertEquals(jsonWithoutIsRestart, jobParametersAsJsonWithoutIsRestart);
 	}
 }

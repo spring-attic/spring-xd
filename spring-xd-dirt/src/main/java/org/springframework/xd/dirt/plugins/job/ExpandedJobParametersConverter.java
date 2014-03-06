@@ -33,6 +33,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.converter.DefaultJobParametersConverter;
 import org.springframework.batch.core.converter.JobParametersConverter;
 import org.springframework.util.Assert;
@@ -57,6 +58,8 @@ public class ExpandedJobParametersConverter extends DefaultJobParametersConverte
 	public static final String ABSOLUTE_FILE_PATH = "absoluteFilePath";
 
 	public static final String UNIQUE_JOB_PARAMETER_KEY = "random";
+
+	public static final String IS_RESTART_JOB_PARAMETER_KEY = "XD_isRestart";
 
 	private volatile boolean makeParametersUnique = true;
 
@@ -156,11 +159,6 @@ public class ExpandedJobParametersConverter extends DefaultJobParametersConverte
 				throw new IllegalArgumentException("Unable to convert provided JSON to Map<String, Object>", e);
 			}
 
-			if (this.makeParametersUnique && parameters.containsKey(UNIQUE_JOB_PARAMETER_KEY)) {
-				throw new IllegalStateException(String.format(
-						"Parameter '%s' is already used to identify uniqueness for the executing Batch job.",
-						UNIQUE_JOB_PARAMETER_KEY));
-			}
 		}
 		else {
 			parameters = null;
@@ -206,7 +204,23 @@ public class ExpandedJobParametersConverter extends DefaultJobParametersConverte
 			localProperties = new Properties();
 		}
 
-		if (this.makeParametersUnique) {
+		final boolean isRestart;
+
+		if (localProperties.containsKey(IS_RESTART_JOB_PARAMETER_KEY)) {
+			isRestart = Boolean.valueOf(localProperties.getProperty(IS_RESTART_JOB_PARAMETER_KEY));
+		}
+		else {
+			isRestart = false;
+		}
+
+		if (this.makeParametersUnique && !isRestart) {
+
+			if (localProperties.containsKey(UNIQUE_JOB_PARAMETER_KEY)) {
+				throw new IllegalStateException(String.format(
+						"Parameter '%s' is already used to identify uniqueness for the executing Batch job.",
+						UNIQUE_JOB_PARAMETER_KEY));
+			}
+
 			localProperties.put(UNIQUE_JOB_PARAMETER_KEY, String.valueOf(Math.random()));
 		}
 		return super.getJobParameters(localProperties);
@@ -214,8 +228,7 @@ public class ExpandedJobParametersConverter extends DefaultJobParametersConverte
 
 	/**
 	 * This method will convert {@link JobParameters} to a JSON String. The parameters in the resulting JSON String are
-	 * sorted by the name of the parameters. If the {@link JobParameters} contain the "random" parameter, it will be
-	 * removed.
+	 * sorted by the name of the parameters.
 	 *
 	 * This method will delegate to {@link #getJobParametersAsString(JobParameters, boolean)}
 	 *
@@ -231,21 +244,21 @@ public class ExpandedJobParametersConverter extends DefaultJobParametersConverte
 	 * sorted by the name of the parameters.
 	 *
 	 * @param jobParameters Must not be null
-	 * @param removeRandomParameter When {@code true}, remove the "random" parameter if exists
+	 * @param isRestart When {@code true}, add a restart flag
 	 * @return A JSON String representation of the {@link JobParameters}
 	 */
-	public String getJobParametersAsString(JobParameters jobParameters, boolean removeRandomParameter) {
+	public String getJobParametersAsString(JobParameters jobParameters, boolean isRestart) {
 
 		Assert.notNull(jobParameters, "jobParameters must not be null.");
 
 		final Properties properties = this.getProperties(jobParameters);
 
-		if (removeRandomParameter) {
-			properties.remove(UNIQUE_JOB_PARAMETER_KEY);
+		if (isRestart) {
+			properties.put(IS_RESTART_JOB_PARAMETER_KEY, Boolean.TRUE.toString());
 		}
 
 		@SuppressWarnings({ "unchecked", "rawtypes" })
-		SortedMap<String, String> sortedJobParameters = new TreeMap(properties);
+		final SortedMap<String, String> sortedJobParameters = new TreeMap(properties);
 
 		final String jobParametersAsString;
 
@@ -256,5 +269,26 @@ public class ExpandedJobParametersConverter extends DefaultJobParametersConverte
 			throw new IllegalArgumentException("Unable to convert provided job parameters to JSON String.", e);
 		}
 		return jobParametersAsString;
+	}
+
+	/**
+	 * If {@link JobParameters} contains a parameters named {@value #IS_RESTART_JOB_PARAMETER_KEY} removed it.
+	 *
+	 * @param jobParameters Must not be null
+	 * @return A new instance of {@link JobParameters}
+	 */
+	public JobParameters removeRestartParameterIfExists(JobParameters jobParameters) {
+
+		Assert.notNull(jobParameters, "'jobParameters' must not be null.");
+
+		final JobParametersBuilder jobParametersBuilder = new JobParametersBuilder();
+
+		for (Map.Entry<String, JobParameter> entry : jobParameters.getParameters().entrySet()) {
+			if (!IS_RESTART_JOB_PARAMETER_KEY.equalsIgnoreCase(entry.getKey())) {
+				jobParametersBuilder.addParameter(entry.getKey(), entry.getValue());
+			}
+		}
+
+		return jobParametersBuilder.toJobParameters();
 	}
 }

@@ -19,13 +19,11 @@ package org.springframework.xd.dirt.config;
 import org.junit.Rule;
 
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
-import org.springframework.context.ApplicationContext;
 import org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.integration.x.rabbit.RabbitMessageBus;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.xd.test.RandomConfigurationSupport;
 import org.springframework.xd.test.rabbit.RabbitTestSupport;
 
 /**
@@ -37,14 +35,10 @@ public class RabbitSingleNodeInitializationTests extends AbstractSingleNodeIniti
 	public RabbitTestSupport rabbitAvailableRule = new RabbitTestSupport();
 
 	@Override
-	protected void cleanup(ApplicationContext context) {
-		RabbitAdmin admin = context.getBean(RabbitAdmin.class);
-		String deployerQueue = context.getEnvironment().resolvePlaceholders(
-				RandomConfigurationSupport.XD_DEPLOYER_PLACEHOLDER);
-		String undeployerExchange = context.getEnvironment().resolvePlaceholders(
-				RandomConfigurationSupport.XD_UNDEPLOYER_PLACEHOLDER);
-		admin.deleteQueue(deployerQueue);
-		admin.deleteExchange(undeployerExchange);
+	protected void cleanup() {
+		RabbitAdmin admin = new RabbitAdmin(rabbitAvailableRule.getResource());
+		admin.deleteQueue(testApplication.getDeployerQueue());
+		admin.deleteExchange(testApplication.getUndeployerTopic());
 	}
 
 	@Override

@@ -22,13 +22,11 @@ import org.junit.Test;
 import org.junit.rules.ExternalResource;
 
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
-import org.springframework.context.ApplicationContext;
 import org.springframework.integration.x.bus.RabbitTestMessageBus;
 import org.springframework.xd.dirt.integration.test.sink.NamedChannelSink;
 import org.springframework.xd.dirt.integration.test.sink.SingleNodeNamedChannelSinkFactory;
 import org.springframework.xd.dirt.integration.test.source.NamedChannelSource;
 import org.springframework.xd.dirt.integration.test.source.SingleNodeNamedChannelSourceFactory;
-import org.springframework.xd.test.RandomConfigurationSupport;
 import org.springframework.xd.test.mqtt.MqttTestSupport;
 import org.springframework.xd.test.rabbit.RabbitTestSupport;
 
@@ -63,14 +61,9 @@ public class RabbitSingleNodeStreamDeploymentIntegrationTests extends
 
 	@AfterClass
 	public static void cleanup() {
-		ApplicationContext context = application.containerContext();
-		RabbitAdmin admin = context.getBean(RabbitAdmin.class);
-		String deployerQueue = context.getEnvironment().resolvePlaceholders(
-				RandomConfigurationSupport.XD_DEPLOYER_PLACEHOLDER);
-		String undeployerExchange = context.getEnvironment().resolvePlaceholders(
-				RandomConfigurationSupport.XD_UNDEPLOYER_PLACEHOLDER);
-		admin.deleteQueue(deployerQueue);
-		admin.deleteExchange(undeployerExchange);
+		RabbitAdmin admin = new RabbitAdmin(rabbitAvailableRule.getResource());
+		admin.deleteQueue(testApplication.getDeployerQueue());
+		admin.deleteExchange(testApplication.getUndeployerTopic());
 	}
 
 	@Test

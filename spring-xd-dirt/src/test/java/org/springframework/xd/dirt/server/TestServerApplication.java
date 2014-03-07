@@ -20,10 +20,11 @@ import org.springframework.xd.test.RandomConfigurationSupport;
 
 
 /**
+ * Helper class that adds random configuration support for dirt server applications.
  * 
  * @author Ilayaperumal Gopinathan
  */
-public class TestApplication extends RandomConfigurationSupport {
+public class TestServerApplication extends RandomConfigurationSupport {
 
 	public SingleNodeApplication getSingleNodeApplication() {
 		return new SingleNodeApplication();

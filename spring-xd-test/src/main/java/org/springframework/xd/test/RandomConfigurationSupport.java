@@ -58,17 +58,31 @@ public class RandomConfigurationSupport {
 
 	private final int adminPort;
 
+	private final String deployerQueue;
+
+	private final String undeployerTopic;
+
 	public RandomConfigurationSupport() {
 		now = System.currentTimeMillis();
 		adminPort = SocketUtils.findAvailableTcpPort();
+		deployerQueue = "xd.deployer." + now;
+		undeployerTopic = "xd.undeployer." + now;
 		setupRandomControlTransportChannels();
 		setupRandomAdminServerPort();
 		setupRandomHSQLDBConfig();
 	}
 
 	private void setupRandomControlTransportChannels() {
-		System.setProperty(XD_DEPLOYER, "xd.deployer." + now);
-		System.setProperty(XD_UNDEPLOYER, "xd.undeployer." + now);
+		System.setProperty(XD_DEPLOYER, deployerQueue);
+		System.setProperty(XD_UNDEPLOYER, undeployerTopic);
+	}
+
+	public String getDeployerQueue() {
+		return deployerQueue;
+	}
+
+	public String getUndeployerTopic() {
+		return undeployerTopic;
 	}
 
 	private void setupRandomHSQLDBConfig(String host) {

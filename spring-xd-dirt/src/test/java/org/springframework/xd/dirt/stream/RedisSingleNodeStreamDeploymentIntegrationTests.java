@@ -18,10 +18,9 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.rules.ExternalResource;
 
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.integration.x.bus.RedisTestMessageBus;
-import org.springframework.xd.test.RandomConfigurationSupport;
 import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
@@ -31,6 +30,9 @@ public class RedisSingleNodeStreamDeploymentIntegrationTests extends AbstractSin
 
 	@ClassRule
 	public static RedisTestSupport redisAvailableRule = new RedisTestSupport();
+
+	@Autowired
+	StringRedisTemplate stringRedisTemplate;
 
 	@BeforeClass
 	public static void setUp() {
@@ -50,11 +52,9 @@ public class RedisSingleNodeStreamDeploymentIntegrationTests extends AbstractSin
 
 	@AfterClass
 	public static void cleanup() {
-		ApplicationContext context = application.containerContext();
-		StringRedisTemplate template = context.getBean(StringRedisTemplate.class);
-		String queueDeployer = context.getEnvironment().resolvePlaceholders(
-				RandomConfigurationSupport.XD_DEPLOYER_PLACEHOLDER);
+		StringRedisTemplate template = new StringRedisTemplate(redisAvailableRule.getResource());
+		String queueDeployer = testApplication.getDeployerQueue();
 		template.delete(queueDeployer);
-		application.close();
+		singleNodeApplication.close();
 	}
 }

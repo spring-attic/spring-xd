@@ -48,7 +48,7 @@ import org.springframework.xd.dirt.integration.test.sink.SingleNodeNamedChannelS
 import org.springframework.xd.dirt.integration.test.source.NamedChannelSource;
 import org.springframework.xd.dirt.integration.test.source.SingleNodeNamedChannelSourceFactory;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
-import org.springframework.xd.dirt.server.TestApplication;
+import org.springframework.xd.dirt.server.TestServerApplication;
 import org.springframework.xd.tuple.Tuple;
 
 /**
@@ -71,8 +71,8 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 
 		@Override
 		protected void after() {
-			if (application != null) {
-				application.close();
+			if (singleNodeApplication != null) {
+				singleNodeApplication.close();
 			}
 		}
 	};
@@ -85,7 +85,9 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 
 	private final String topicFoo = "topic:foo";
 
-	protected static SingleNodeApplication application;
+	protected static TestServerApplication testApplication;
+
+	protected static SingleNodeApplication singleNodeApplication;
 
 	protected static SingleNodeIntegrationTestSupport integrationSupport;
 
@@ -182,14 +184,14 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 
 
 	protected final static void setUp(String transport) {
-
-		application = new TestApplication().getSingleNodeApplication().run("--transport", transport);
-		integrationSupport = new SingleNodeIntegrationTestSupport(application);
+		testApplication = new TestServerApplication();
+		singleNodeApplication = testApplication.getSingleNodeApplication().run("--transport", transport);
+		integrationSupport = new SingleNodeIntegrationTestSupport(singleNodeApplication);
 		if (testMessageBus != null && !transport.equalsIgnoreCase("local")) {
-			TestMessageBusInjection.injectMessageBus(application, testMessageBus);
+			TestMessageBusInjection.injectMessageBus(singleNodeApplication, testMessageBus);
 		}
 
-		ApplicationContext adminContext = application.adminContext();
+		ApplicationContext adminContext = singleNodeApplication.adminContext();
 		AbstractMessageChannel deployChannel = adminContext.getBean("deployChannel",
 				AbstractMessageChannel.class);
 		AbstractMessageChannel undeployChannel = adminContext.getBean("undeployChannel",

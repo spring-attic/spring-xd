@@ -38,7 +38,7 @@ import org.springframework.xd.dirt.integration.test.sink.NamedChannelSink;
 import org.springframework.xd.dirt.integration.test.sink.SingleNodeNamedChannelSinkFactory;
 import org.springframework.xd.dirt.integration.test.source.NamedChannelSource;
 import org.springframework.xd.dirt.integration.test.source.SingleNodeNamedChannelSourceFactory;
-import org.springframework.xd.dirt.server.TestApplication;
+import org.springframework.xd.dirt.server.TestServerApplication;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 
 
@@ -58,7 +58,7 @@ public class ExampleProcessingChainTests {
 	public static void setUp() {
 		// Args not required. Just shown as an example.
 		// Also, used to pick an unused port
-		application = new TestApplication().getSingleNodeApplication().run("--transport", "local");
+		application = new TestServerApplication().getSingleNodeApplication().run("--transport", "local");
 		integrationSupport = new SingleNodeIntegrationTestSupport(application);
 	}
 

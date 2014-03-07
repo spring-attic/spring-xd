@@ -14,39 +14,24 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.integration.util;
+package org.springframework.xd.shell.command.fixtures;
 
 
 /**
- * Utility class for setting up the sinks required for testing.
  * 
  * @author renfrg
  */
-public class Sink {
+public class LogSink extends AbstractModuleFixture {
 
-	public static final Sink FILE = new Sink("file --mode=REPLACE", SinkType.file);
+	String moduleName;
 
-	public static final Sink LOG = new Sink("log", SinkType.log);
-
-	private String sinkText;
-
-	private SinkType sinkType;
-
-	public Sink(String sinkText, SinkType sinkType) {
-		this.sinkText = sinkText;
-		this.sinkType = sinkType;
+	public LogSink(String moduleName) {
+		this.moduleName = moduleName;
 	}
 
 	@Override
-	public String toString() {
-		return sinkText;
+	protected String toDSL() {
+		return String.format("log --name=%s", moduleName);
 	}
 
-	public String getSinkText() {
-		return sinkText;
-	}
-
-	public SinkType getSinkType() {
-		return sinkType;
-	}
 }

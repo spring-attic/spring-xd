@@ -22,12 +22,25 @@ import java.net.Socket;
 
 /**
  * A test fixture that allows testing of the 'tcp' source module.
- *
+ * 
  * @author Eric Bottard
  */
 public class TcpSource extends AbstractModuleFixture {
 
 	protected int port = AvailableSocketPorts.nextAvailablePort();
+
+	private String host;
+
+
+	public TcpSource() {
+
+	}
+
+	public TcpSource(String host, int port) {
+		this.host = host;
+		this.port = port;
+	}
+
 
 	@Override
 	protected String toDSL() {
@@ -42,7 +55,7 @@ public class TcpSource extends AbstractModuleFixture {
 		long giveUpAt = System.currentTimeMillis() + timeout;
 		while (System.currentTimeMillis() < giveUpAt) {
 			try {
-				new Socket((String) null, port);
+				new Socket(host, port);
 				return this;
 			}
 			catch (IOException e) {
@@ -59,7 +72,7 @@ public class TcpSource extends AbstractModuleFixture {
 	}
 
 	public void sendBytes(byte[] bytes) throws IOException {
-		Socket socket = new Socket((String) null, port);
+		Socket socket = new Socket(host, port);
 		try {
 			socket.getOutputStream().write(bytes);
 		}

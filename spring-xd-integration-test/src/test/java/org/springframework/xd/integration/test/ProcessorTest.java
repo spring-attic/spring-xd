@@ -17,41 +17,48 @@
 package org.springframework.xd.integration.test;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
+import org.springframework.xd.integration.fixtures.FileSink;
 import org.springframework.xd.integration.util.InvalidResultException;
-import org.springframework.xd.integration.util.Sink;
-import org.springframework.xd.integration.util.Source;
+
 
 /**
+ * Verifies that processors are functional on a XD Cluster Instance.
+ * 
  * @author Glenn Renfro
  */
-@RunWith(Parameterized.class)
 public class ProcessorTest extends AbstractIntegrationTest {
 
-	public ProcessorTest(Sink sink) {
-		this.sink = sink;
-	}
 
+	/**
+	 * Evaluates that a single data entry of "BAD" is filtered out and not stored.
+	 * 
+	 * @throws Exception
+	 */
 	@Test(expected = InvalidResultException.class)
 	public void testFailedSink() throws Exception {
-		stream(Source.HTTP + XD_DELIMETER + " filter --expression=payload=='good' " + XD_DELIMETER + sink);
-		send("HTTP", "BAD");
+		stream(sources.http()
+				+ XD_DELIMETER + " filter --expression=payload=='good' " + XD_DELIMETER
+				+ sinks.getSink(FileSink.class));
+		sources.http().postData("BAD");
 		assertReceived();
-		// assertNoResult();
 	}
 
+	/**
+	 * Evaluates that a single data entry of "good" is not allowed past the filter and stored in a file..
+	 * 
+	 * @throws Exception
+	 */
 	@Test
 	public void testFilter() throws Exception {
 		String filterContent = "good";
-		stream(Source.HTTP + XD_DELIMETER + " filter --expression=payload=='" + filterContent + "' " + XD_DELIMETER
-				+ sink);
+		stream(sources.http() +
+				XD_DELIMETER + " filter --expression=payload=='" + filterContent + "' " + XD_DELIMETER
+				+ sinks.getSink(FileSink.class));
 
-		send("HTTP", filterContent);
+		sources.http().postData(filterContent);
 		assertReceived();
-		assertValid(filterContent);
+		assertValid(filterContent, sinks.getSink(FileSink.class));
 	}
-
 
 }

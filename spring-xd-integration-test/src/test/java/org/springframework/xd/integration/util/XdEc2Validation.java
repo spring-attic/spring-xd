@@ -60,6 +60,11 @@ public class XdEc2Validation {
 				.setConnectTimeout(2000);
 	}
 
+	/**
+	 * Checks to see if the admin server the user specified is available. Else it throws a ResourceAccessException.
+	 * 
+	 * @param adminServer
+	 */
 	public void verifyXDAdminReady(final URL adminServer) {
 		try {
 			verifyAdminConnection(adminServer);
@@ -73,6 +78,13 @@ public class XdEc2Validation {
 		}
 	}
 
+	/**
+	 * * Checks to see if at least one server the user specified is available. Else it throws a ResourceAccessException.
+	 * 
+	 * @param containers
+	 * @param jmxPort
+	 * @throws Exception
+	 */
 	public void verifyAtLeastOneContainerAvailable(final List<URL> containers,
 			int jmxPort) throws Exception {
 		boolean result = false;
@@ -102,15 +114,32 @@ public class XdEc2Validation {
 		}
 	}
 
-	public void assertReceived(XdEnvironment hosts, URL url, String streamName,
+	/**
+	 * Retrieves the stream and verifies that the module has infact processed the data.
+	 * 
+	 * @param url The server where the stream is deployed
+	 * @param streamName The stream to analyze.
+	 * @param moduleName The name of the module
+	 * @throws Exception
+	 */
+	public void assertReceived(URL url, String streamName,
 			String moduleName) throws Exception {
-		String request = buildJMXRequest(url, streamName, moduleName, 0);
+		String request = buildJMXRequest(url, streamName, moduleName);
 		List<Module> modules = getModuleList(StreamUtils.httpGet(new URL(
 				request)));
 		verifySendCounts(modules);
 
 	}
 
+	/**
+	 * Verifies that the data user gave us is what was stored after the stream has processed the flow.
+	 * 
+	 * @param hosts Helper class for retrieving files.
+	 * @param url The server that the stream is deployed.
+	 * @param fileName The file that contains the data to check.
+	 * @param data The data used to evaluate the results of the stream.
+	 * @throws IOException
+	 */
 	public void verifyTestContent(XdEnvironment hosts, URL url, String fileName,
 			String data) throws IOException {
 		if (hosts.isOnEc2()) {
@@ -121,11 +150,12 @@ public class XdEc2Validation {
 		try {
 			Reader fileReader = new InputStreamReader(new FileInputStream(fileName));
 			String result = FileCopyUtils.copyToString(fileReader);
-			if (!result.equals(data + "\n")) {
+
+			if (!(data + "\n").equals(result)) {
 				fileReader.close();
 				throw new ResourceAccessException(
-						"Data in the result file is not what was sent. Read "
-								+ result + "\n but expected " + data);
+						"Data in the result file is not what was sent. Read \""
+								+ result + "\"\n but expected \"" + data + "\"");
 			}
 			fileReader.close();
 		}
@@ -135,10 +165,17 @@ public class XdEc2Validation {
 			}
 		}
 
-
 	}
 
-
+	/**
+	 * checks to see if the content of the data passed in is in the log.
+	 * 
+	 * @param hosts Helper class for retrieving log files
+	 * @param url The URL of the server to where the stream is deployed.
+	 * @param fileName The name of the log file to inspect
+	 * @param data THe expected result.
+	 * @throws IOException
+	 */
 	public void verifyLogContent(XdEnvironment hosts, URL url, String fileName,
 			String data) throws IOException {
 		String logLocation = fileName;
@@ -178,9 +215,16 @@ public class XdEc2Validation {
 		}
 	}
 
-
+	/**
+	 * generates the JMX query string for getting module data.
+	 * 
+	 * @param url the container url where the stream is deployed
+	 * @param streamName the name of the stream
+	 * @param moduleName the module to evaluate on the stream
+	 * @return
+	 */
 	private String buildJMXRequest(URL url, String streamName,
-			String moduleName, int modulePosition) {
+			String moduleName) {
 		String result = url.toString() + "/jolokia/read/xd." + streamName
 				+ ":module=*,component=MessageChannel,name=*";
 		return result;
@@ -191,6 +235,13 @@ public class XdEc2Validation {
 		return result;
 	}
 
+	/**
+	 * retrieves a list of modules from the json result that was returned by Jolokia.
+	 * 
+	 * @param json
+	 * @return
+	 * @throws Exception
+	 */
 	private List<Module> getModuleList(String json) throws Exception {
 		List<Module> result = null;
 		ObjectMapper mapper = new ObjectMapper();
@@ -201,6 +252,13 @@ public class XdEc2Validation {
 		return result;
 	}
 
+	/**
+	 * Makes sure that that at least one entry was processed by the modules in the stream. verifies that no errors
+	 * occured.
+	 * 
+	 * @param modules THe list of modules to evaluate.
+	 * @throws Exception
+	 */
 	private void verifySendCounts(List<Module> modules) throws Exception {
 		Iterator<Module> iter = modules.iterator();
 		while (iter.hasNext()) {

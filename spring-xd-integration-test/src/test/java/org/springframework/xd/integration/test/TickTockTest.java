@@ -17,11 +17,8 @@
 package org.springframework.xd.integration.test;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
-import org.springframework.xd.integration.util.Sink;
-import org.springframework.xd.integration.util.Source;
+import org.springframework.xd.integration.fixtures.FileSink;
 
 /**
  * Test Timer as a source
@@ -29,16 +26,20 @@ import org.springframework.xd.integration.util.Source;
  * @author Glenn Renfro
  */
 
-@RunWith(Parameterized.class)
 public class TickTockTest extends AbstractIntegrationTest {
 
-	public TickTockTest(Sink sink) {
-		this.sink = sink;
+	public TickTockTest() throws Exception {
+
 	}
 
+	/**
+	 * Verifies that time does send data. It does not validate the content of the data
+	 * 
+	 * @throws Exception
+	 */
 	@Test
 	public void testHeartBeat() throws Exception {
-		stream(Source.TIME + XD_DELIMETER + sink);
+		stream("time" + XD_DELIMETER + sinks.getSink(FileSink.class));
 		assertReceived();
 	}
 

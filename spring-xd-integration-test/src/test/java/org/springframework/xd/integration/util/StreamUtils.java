@@ -60,6 +60,8 @@ public class StreamUtils {
 	public static void stream(String streamName, String streamDefinition,
 			URL adminServer) throws IOException, URISyntaxException {
 		SpringXDTemplate xdTemplate = new SpringXDTemplate(adminServer.toURI());
+		System.out.println(streamName);
+		System.out.println(streamDefinition);
 		xdTemplate.streamOperations().createStream(streamName, streamDefinition, true);
 	}
 
@@ -155,7 +157,7 @@ public class StreamUtils {
 		while (isRead) {
 			byte[] b = new byte[10];
 			int val = iStream.read(b);
-			String buffer = new String(b, 0, val);
+			String buffer = new String(b, 0, b.length);
 			writer.write(buffer);
 			if (val < 10) {
 				isRead = false;

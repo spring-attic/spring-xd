@@ -20,8 +20,8 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
+
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
-import org.springframework.context.ApplicationContext;
 import org.springframework.integration.x.bus.RabbitTestMessageBus;
 import org.springframework.xd.dirt.integration.test.sink.NamedChannelSink;
 import org.springframework.xd.dirt.integration.test.sink.SingleNodeNamedChannelSinkFactory;
@@ -61,12 +61,9 @@ public class RabbitSingleNodeStreamDeploymentIntegrationTests extends
 
 	@AfterClass
 	public static void cleanup() {
-		ApplicationContext context = application.containerContext();
-		RabbitAdmin admin = context.getBean(RabbitAdmin.class);
-		String deployerQueue = context.getEnvironment().resolvePlaceholders(XD_DEPLOYER_PLACEHOLDER);
-		String undeployerExchange = context.getEnvironment().resolvePlaceholders(XD_UNDEPLOYER_PLACEHOLDER);
-		admin.deleteQueue(deployerQueue);
-		admin.deleteExchange(undeployerExchange);
+		RabbitAdmin admin = new RabbitAdmin(rabbitAvailableRule.getResource());
+		admin.deleteQueue(bootstrapRandomConfig.getDeployerQueue());
+		admin.deleteExchange(bootstrapRandomConfig.getUndeployerTopic());
 	}
 
 	@Test

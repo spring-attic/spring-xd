@@ -38,8 +38,8 @@ import org.springframework.xd.dirt.integration.test.sink.NamedChannelSink;
 import org.springframework.xd.dirt.integration.test.sink.SingleNodeNamedChannelSinkFactory;
 import org.springframework.xd.dirt.integration.test.source.NamedChannelSource;
 import org.springframework.xd.dirt.integration.test.source.SingleNodeNamedChannelSourceFactory;
+import org.springframework.xd.dirt.server.BootstrapRandomConfig;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
-import org.springframework.xd.test.RandomConfigurationSupport;
 
 
 /**
@@ -48,7 +48,7 @@ import org.springframework.xd.test.RandomConfigurationSupport;
  * @author David Turanski
  * 
  */
-public class ExampleProcessingChainTests extends RandomConfigurationSupport {
+public class ExampleProcessingChainTests {
 
 	private static SingleNodeApplication application;
 
@@ -58,7 +58,7 @@ public class ExampleProcessingChainTests extends RandomConfigurationSupport {
 	public static void setUp() {
 		// Args not required. Just shown as an example.
 		// Also, used to pick an unused port
-		application = new SingleNodeApplication().run("--transport", "local");
+		application = new BootstrapRandomConfig().getSingleNodeApplication().run("--transport", "local");
 		integrationSupport = new SingleNodeIntegrationTestSupport(application);
 	}
 

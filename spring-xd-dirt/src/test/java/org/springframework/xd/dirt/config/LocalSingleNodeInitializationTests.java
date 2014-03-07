@@ -29,7 +29,7 @@ import org.springframework.messaging.MessageChannel;
 public class LocalSingleNodeInitializationTests extends AbstractSingleNodeInitializationTests {
 
 	@Override
-	protected void cleanup(ApplicationContext context) {
+	protected void cleanup() {
 	}
 
 	@Override

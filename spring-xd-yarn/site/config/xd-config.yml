@@ -5,6 +5,11 @@ spring:
         containers: 3
     yarn:
         applicationDir: /xd/app/
+        client:
+            launchcontext:
+                # TODO: This setting can be removed when we upgrade to spring-yarn-boot 2.0 RC1
+                # the default will change to 'false' [SHDP-296]
+                includeSystemEnv: false
 
 # Hadoop configuration
 #    hadoop:

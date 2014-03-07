@@ -57,7 +57,7 @@ import org.springframework.xd.test.redis.RedisTestSupport;
  * @author David Turanski
  * 
  */
-public abstract class AbstractShellIntegrationTest extends RandomConfigurationSupport {
+public abstract class AbstractShellIntegrationTest {
 
 	/**
 	 * Where test module definition assets reside, relative to this project cwd.
@@ -90,13 +90,13 @@ public abstract class AbstractShellIntegrationTest extends RandomConfigurationSu
 
 	@BeforeClass
 	public static synchronized void startUp() throws InterruptedException, IOException {
+		RandomConfigurationSupport randomConfigSupport = new RandomConfigurationSupport();
 		if (application == null) {
 			application = new SingleNodeApplication().run("--transport", "local",
 					"--analytics", "redis",
 					"--store", "redis"
 					);
-			Bootstrap bootstrap = new Bootstrap(new String[] { "--port",
-				RandomConfigurationSupport.getAdminServerPort() });
+			Bootstrap bootstrap = new Bootstrap(new String[] { "--port", randomConfigSupport.getAdminServerPort() });
 			shell = bootstrap.getJLineShellComponent();
 
 			runtimeInformationRepository = application.containerContext().getBean(

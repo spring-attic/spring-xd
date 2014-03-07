@@ -184,7 +184,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 	protected final static void setUp(String transport) {
 		application = new SingleNodeApplication().run("--transport", transport);
 		integrationSupport = new SingleNodeIntegrationTestSupport(application);
-		if (testMessageBus != null) {
+		if (testMessageBus != null && !transport.equalsIgnoreCase("local")) {
 			TestMessageBusInjection.injectMessageBus(application, testMessageBus);
 		}
 

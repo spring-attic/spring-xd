@@ -36,14 +36,14 @@ import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.module.SharedContextInitializer;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
-import org.springframework.xd.test.RandomConfigurationSupport;
+import org.springframework.xd.dirt.server.TestApplication;
 
 
 /**
  * 
  * @author David Turanski
  */
-public abstract class AbstractSingleNodeInitializationTests extends RandomConfigurationSupport {
+public abstract class AbstractSingleNodeInitializationTests {
 
 	protected AbstractApplicationContext context;
 
@@ -55,7 +55,7 @@ public abstract class AbstractSingleNodeInitializationTests extends RandomConfig
 
 	@Before
 	public final void setUp() {
-		this.application = new SingleNodeApplication();
+		this.application = new TestApplication().getSingleNodeApplication();
 		String[] args = {};
 		args = addArgIfProvided(args, "transport", getTransport());
 		args = addArgIfProvided(args, "controlTransport", getControlTransport());

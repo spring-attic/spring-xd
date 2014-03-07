@@ -48,7 +48,7 @@ import org.springframework.xd.dirt.integration.test.sink.SingleNodeNamedChannelS
 import org.springframework.xd.dirt.integration.test.source.NamedChannelSource;
 import org.springframework.xd.dirt.integration.test.source.SingleNodeNamedChannelSourceFactory;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
-import org.springframework.xd.test.RandomConfigurationSupport;
+import org.springframework.xd.dirt.server.TestApplication;
 import org.springframework.xd.tuple.Tuple;
 
 /**
@@ -62,7 +62,7 @@ import org.springframework.xd.tuple.Tuple;
  * @author Ilayaperumal Gopinathan
  * @author Gary Russell
  */
-public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends RandomConfigurationSupport {
+public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 
 	private static final QueueChannel tapChannel = new QueueChannel();
 
@@ -182,7 +182,8 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 
 
 	protected final static void setUp(String transport) {
-		application = new SingleNodeApplication().run("--transport", transport);
+
+		application = new TestApplication().getSingleNodeApplication().run("--transport", transport);
 		integrationSupport = new SingleNodeIntegrationTestSupport(application);
 		if (testMessageBus != null && !transport.equalsIgnoreCase("local")) {
 			TestMessageBusInjection.injectMessageBus(application, testMessageBus);

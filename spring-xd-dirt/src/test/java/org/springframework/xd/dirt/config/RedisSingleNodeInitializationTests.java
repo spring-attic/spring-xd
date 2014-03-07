@@ -28,6 +28,7 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.integration.x.redis.RedisMessageBus;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.xd.test.RandomConfigurationSupport;
 import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
@@ -63,7 +64,8 @@ public class RedisSingleNodeInitializationTests extends AbstractSingleNodeInitia
 	protected void cleanup(ApplicationContext context) {
 		if (context != null) {
 			StringRedisTemplate template = context.getBean(StringRedisTemplate.class);
-			String queueDeployer = context.getEnvironment().resolvePlaceholders(XD_DEPLOYER_PLACEHOLDER);
+			String queueDeployer = context.getEnvironment().resolvePlaceholders(
+					RandomConfigurationSupport.XD_DEPLOYER_PLACEHOLDER);
 			template.delete(queueDeployer);
 		}
 	}

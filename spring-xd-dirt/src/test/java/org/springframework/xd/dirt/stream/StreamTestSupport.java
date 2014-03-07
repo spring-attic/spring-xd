@@ -35,16 +35,16 @@ import org.springframework.util.Assert;
 import org.springframework.xd.dirt.integration.test.SingleNodeIntegrationTestSupport;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeployer;
+import org.springframework.xd.dirt.server.TestApplication;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.module.core.CompositeModule;
 import org.springframework.xd.module.core.Module;
-import org.springframework.xd.test.RandomConfigurationSupport;
 
 
 /**
  * @author David Turanski
  */
-public class StreamTestSupport extends RandomConfigurationSupport {
+public class StreamTestSupport {
 
 	private static StreamDeployer streamDeployer;
 
@@ -58,14 +58,16 @@ public class StreamTestSupport extends RandomConfigurationSupport {
 
 	@BeforeClass
 	public static void startXDSingleNode() throws Exception {
-		application = new SingleNodeApplication().run("--analytics", "memory", "--store", "memory", "--jmxEnabled");
+		application = new TestApplication().getSingleNodeApplication().run("--analytics", "memory",
+				"--store", "memory", "--jmxEnabled");
 		adminContext = application.adminContext();
 		SingleNodeIntegrationTestSupport integrationTestSupport = new SingleNodeIntegrationTestSupport(application,
 				"classpath:/testmodules/");
 
 		streamDeployer = integrationTestSupport.streamDeployer();
 		Object md = application.containerContext().getBean("moduleDeployer", Object.class);
-		moduleDeployer = (ModuleDeployer) (AopUtils.isJdkDynamicProxy(md) ? ((Advised)md).getTargetSource().getTarget() : md);
+		moduleDeployer = (ModuleDeployer) (AopUtils.isJdkDynamicProxy(md) ? ((Advised) md).getTargetSource().getTarget()
+				: md);
 		moduleDefinitionRepository = adminContext.getBean(ModuleDefinitionRepository.class);
 	}
 

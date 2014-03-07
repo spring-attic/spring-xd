@@ -25,6 +25,7 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.integration.x.rabbit.RabbitMessageBus;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.xd.test.RandomConfigurationSupport;
 import org.springframework.xd.test.rabbit.RabbitTestSupport;
 
 /**
@@ -38,8 +39,10 @@ public class RabbitSingleNodeInitializationTests extends AbstractSingleNodeIniti
 	@Override
 	protected void cleanup(ApplicationContext context) {
 		RabbitAdmin admin = context.getBean(RabbitAdmin.class);
-		String deployerQueue = context.getEnvironment().resolvePlaceholders(XD_DEPLOYER_PLACEHOLDER);
-		String undeployerExchange = context.getEnvironment().resolvePlaceholders(XD_UNDEPLOYER_PLACEHOLDER);
+		String deployerQueue = context.getEnvironment().resolvePlaceholders(
+				RandomConfigurationSupport.XD_DEPLOYER_PLACEHOLDER);
+		String undeployerExchange = context.getEnvironment().resolvePlaceholders(
+				RandomConfigurationSupport.XD_UNDEPLOYER_PLACEHOLDER);
 		admin.deleteQueue(deployerQueue);
 		admin.deleteExchange(undeployerExchange);
 	}

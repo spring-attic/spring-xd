@@ -21,6 +21,7 @@ import org.junit.rules.ExternalResource;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.integration.x.bus.RedisTestMessageBus;
+import org.springframework.xd.test.RandomConfigurationSupport;
 import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
@@ -51,7 +52,8 @@ public class RedisSingleNodeStreamDeploymentIntegrationTests extends AbstractSin
 	public static void cleanup() {
 		ApplicationContext context = application.containerContext();
 		StringRedisTemplate template = context.getBean(StringRedisTemplate.class);
-		String queueDeployer = context.getEnvironment().resolvePlaceholders(XD_DEPLOYER_PLACEHOLDER);
+		String queueDeployer = context.getEnvironment().resolvePlaceholders(
+				RandomConfigurationSupport.XD_DEPLOYER_PLACEHOLDER);
 		template.delete(queueDeployer);
 		application.close();
 	}

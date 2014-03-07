@@ -16,14 +16,18 @@
 
 package org.springframework.xd.integration.test;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.UUID;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
-import org.springframework.xd.integration.util.Sink;
-import org.springframework.xd.integration.util.Source;
+import org.springframework.xd.integration.util.DistributedFileSink;
+import org.springframework.xd.shell.command.fixtures.AbstractModuleFixture;
+import org.springframework.xd.shell.command.fixtures.LogSink;
 
 /**
  * @author Glenn Renfro
@@ -31,18 +35,26 @@ import org.springframework.xd.integration.util.Source;
 @RunWith(Parameterized.class)
 public class HttpTest extends AbstractIntegrationTest {
 
-	public HttpTest(Sink sink) {
-		this.sink = sink;
+	AbstractModuleFixture sinkInstance;
+
+	public HttpTest(Class sinkClass) {
+		this.sinkInstance = sink.getSink(sinkClass);
 	}
 
 	@Test
 	public void testHttp() throws Exception {
+
 		String data = UUID.randomUUID().toString();
-		stream(Source.HTTP + XD_DELIMETER + sink);
-		send("HTTP", data);
+		stream(source.http() + XD_DELIMETER + sinkInstance);
+		source.http().postData(data);
 
 		assertReceived();
-		assertValid(data);
+		assertValid(data, this.sinkInstance);
 	}
 
+	@Parameters
+	public static Collection<Object[]> sink() {
+		Object[][] sink = { { DistributedFileSink.class }, { LogSink.class } };
+		return Arrays.asList(sink);
+	}
 }

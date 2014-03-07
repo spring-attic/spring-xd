@@ -38,11 +38,11 @@ import org.springframework.xd.module.ModuleDefinition;
  */
 public class EnvironmentAwareModuleOptionsMetadataResolver implements ModuleOptionsMetadataResolver, EnvironmentAware {
 
-	private final ModuleOptionsMetadataResolver delegate;
+	private ModuleOptionsMetadataResolver delegate;
 
 	private Environment environment;
 
-	public EnvironmentAwareModuleOptionsMetadataResolver(ModuleOptionsMetadataResolver delegate) {
+	public void setDelegate(ModuleOptionsMetadataResolver delegate) {
 		this.delegate = delegate;
 	}
 

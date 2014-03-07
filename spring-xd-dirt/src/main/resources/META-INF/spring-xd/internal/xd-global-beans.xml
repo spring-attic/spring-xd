@@ -17,7 +17,7 @@
 	</bean>
 	
 	<bean id="moduleOptionsMetadataResolver" class="org.springframework.xd.module.options.EnvironmentAwareModuleOptionsMetadataResolver">
-		<constructor-arg>
+		<property name="delegate">
 			<bean class="org.springframework.xd.module.options.DelegatingModuleOptionsMetadataResolver">
 				<property name="delegates">
 					<list>
@@ -29,7 +29,7 @@
 					</list>
 				</property>
 			</bean>
-		</constructor-arg>
+		</property>
 	</bean>
 	
 </beans>

@@ -153,6 +153,8 @@ public class ExampleProcessingChainTests extends RandomConfigurationSupport {
 
 	@AfterClass
 	public static void tearDown() {
-		application.close();
+		if (application != null) {
+			application.close();
+		}
 	}
 }

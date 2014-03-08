@@ -21,6 +21,7 @@ import java.util.List;
 
 import org.springframework.shell.core.JLineShellComponent;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
+import org.springframework.xd.shell.command.fixtures.TcpSource;
 
 
 /**
@@ -37,6 +38,8 @@ public class Source {
 
 	private HttpSource httpSource = null;
 
+	private TcpSource tcpSource = null;
+
 	private int httpPort = 9000;
 
 	public Source(URL adminServer, List<URL> containers, JLineShellComponent shell, int httpPort) {
@@ -48,8 +51,23 @@ public class Source {
 
 	public HttpSource http() {
 		if (httpSource == null) {
-			httpSource = new HttpSource(shell, containers.get(0).getHost(), httpPort);
+			httpSource = http(httpPort);
 		}
 		return httpSource;
+	}
+
+	public HttpSource http(int port) {
+		return new HttpSource(shell, containers.get(0).getHost(), port);
+	}
+
+	public TcpSource tcp() {
+		if (tcpSource == null) {
+			tcpSource = tcp(httpPort);
+		}
+		return tcpSource;
+	}
+
+	public TcpSource tcp(int port) {
+		return new TcpSource(containers.get(0).getHost(), port);
 	}
 }

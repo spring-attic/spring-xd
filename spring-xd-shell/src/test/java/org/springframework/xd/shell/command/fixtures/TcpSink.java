@@ -26,7 +26,7 @@ import org.springframework.util.StreamUtils;
 
 /**
  * Test fixture that creates a simple socket server, ready to accept connections from a 'tcp' sink module.
- *
+ * 
  * @author Eric Bottard
  */
 public class TcpSink extends AbstractModuleFixture implements Disposable {
@@ -40,6 +40,14 @@ public class TcpSink extends AbstractModuleFixture implements Disposable {
 	ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
 	private Thread listenerThread;
+
+	public TcpSink() {
+
+	}
+
+	public TcpSink(int port) {
+		this.port = port;
+	}
 
 	public TcpSink start() throws IOException {
 		serverSocket = new ServerSocket(port);

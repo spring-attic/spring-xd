@@ -99,7 +99,7 @@ public abstract class AbstractIntegrationTest {
 			RandomConfigurationSupport.getAdminServerPort() });
 		shell = bootstrap.getJLineShellComponent();
 		source = new Source(adminServer, containers, shell, httpPort);
-		sink = new Sink(adminServer, containers, shell);
+		sink = new Sink(adminServer, containers, shell, httpPort);
 
 	}
 
@@ -131,14 +131,25 @@ public abstract class AbstractIntegrationTest {
 
 
 	/**
-	 * Creates a stream on the XD cluster defined by the test's Artifact or Environment variables
+	 * Creates a stream on the XD cluster defined by the test's Artifact or Environment variables Uses STREAM_NAME as
+	 * default stream name.
 	 * 
 	 * @param stream the stream definition
 	 * @throws IOException
 	 */
 	public void stream(String stream) throws IOException, URISyntaxException {
-		StreamUtils.stream(STREAM_NAME, stream, adminServer);
-		streamNames.add(STREAM_NAME);
+		stream(STREAM_NAME, stream);
+	}
+
+	/**
+	 * Creates a stream on the XD cluster defined by the test's Artifact or Environment variables
+	 * 
+	 * @param stream the stream definition
+	 * @throws IOException
+	 */
+	public void stream(String streamName, String stream) throws IOException, URISyntaxException {
+		StreamUtils.stream(streamName, stream, adminServer);
+		streamNames.add(streamName);
 		waitForXD();
 	}
 
@@ -199,11 +210,11 @@ public abstract class AbstractIntegrationTest {
 		validation.verifyLogContent(hosts, url, containerLogLocation, data);
 	}
 
-	private void waitForXD() {
+	protected void waitForXD() {
 		waitForXD(pauseTime * 1000);
 	}
 
-	private void waitForXD(int millis) {
+	protected void waitForXD(int millis) {
 		try {
 			Thread.sleep(millis);
 		}

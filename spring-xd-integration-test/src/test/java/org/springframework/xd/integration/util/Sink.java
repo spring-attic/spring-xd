@@ -25,6 +25,7 @@ import org.springframework.shell.core.JLineShellComponent;
 import org.springframework.xd.shell.command.fixtures.AbstractModuleFixture;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
 import org.springframework.xd.shell.command.fixtures.LogSink;
+import org.springframework.xd.shell.command.fixtures.TcpSink;
 
 
 /**
@@ -43,10 +44,15 @@ public class Sink {
 
 	private Map<String, AbstractModuleFixture> sinks;
 
-	public Sink(URL adminServer, List<URL> containers, JLineShellComponent shell) {
+	private int httpPort;
+
+	private TcpSink tcpSink = null;
+
+	public Sink(URL adminServer, List<URL> containers, JLineShellComponent shell, int httpPort) {
 		this.adminServer = adminServer;
 		this.containers = containers;
 		this.shell = shell;
+		this.httpPort = httpPort;
 		sinks = new HashMap<String, AbstractModuleFixture>();
 	}
 
@@ -68,8 +74,21 @@ public class Sink {
 		if (clazzName.equals("org.springframework.xd.integration.util.DistributedFileSink")) {
 			result = new DistributedFileSink();
 		}
+		if (clazzName.equals("org.springframework.xd.shell.command.fixtures.TcpSink")) {
+			result = new TcpSink(httpPort);
+		}
 		return result;
 	}
 
+	public TcpSink tcp() {
+		if (tcpSink == null) {
+			tcpSink = tcp(httpPort);
+		}
+		return tcpSink;
+	}
+
+	public TcpSink tcp(int port) {
+		return new TcpSink(port);
+	}
 
 }

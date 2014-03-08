@@ -48,22 +48,40 @@ public class RandomConfigurationSupport {
 
 	private static final String HSQLDB_DATABASE = "hsql.server.database";
 
-	private static final long now = System.currentTimeMillis();
-
 	private static final String tmpDir = FileUtils.getTempDirectory().toString();
 
-	private static final int adminPort = SocketUtils.findAvailableTcpPort();
+	private final long now;
 
-	protected static final String XD_DEPLOYER_PLACEHOLDER = "${xd.deployer.queue}";
+	private final int adminPort;
 
-	protected static final String XD_UNDEPLOYER_PLACEHOLDER = "${xd.undeployer.topic}";
+	private final String deployerQueue;
 
-	public static void setupRandomControlTransportChannels() {
-		System.setProperty(XD_DEPLOYER, "xd.deployer." + now);
-		System.setProperty(XD_UNDEPLOYER, "xd.undeployer." + now);
+	private final String undeployerTopic;
+
+	public RandomConfigurationSupport() {
+		now = System.currentTimeMillis();
+		adminPort = SocketUtils.findAvailableTcpPort();
+		deployerQueue = "xd.deployer." + now;
+		undeployerTopic = "xd.undeployer." + now;
+		setupRandomControlTransportChannels();
+		setupRandomAdminServerPort();
+		setupRandomHSQLDBConfig();
 	}
 
-	public static void setupRandomHSQLDBConfig(String host) {
+	private void setupRandomControlTransportChannels() {
+		System.setProperty(XD_DEPLOYER, deployerQueue);
+		System.setProperty(XD_UNDEPLOYER, undeployerTopic);
+	}
+
+	public String getDeployerQueue() {
+		return deployerQueue;
+	}
+
+	public String getUndeployerTopic() {
+		return undeployerTopic;
+	}
+
+	private void setupRandomHSQLDBConfig(String host) {
 		System.setProperty(HSQLDB_HOST, host);
 		System.setProperty(HSQLDB_PORT, String.valueOf(SocketUtils.findAvailableTcpPort()));
 		System.setProperty(XD_DATA_HOME, tmpDir);
@@ -71,22 +89,16 @@ public class RandomConfigurationSupport {
 		System.setProperty(HSQLDB_DATABASE, "database-" + now);
 	}
 
-	public static void setupRandomHSQLDBConfig() {
+	private void setupRandomHSQLDBConfig() {
 		setupRandomHSQLDBConfig("localhost");
 	}
 
-	public static void setupRandomAdminServerPort() {
+	private void setupRandomAdminServerPort() {
 		System.setProperty(ADMIN_SERVER_PORT, String.valueOf(adminPort));
 	}
 
-	public static String getAdminServerPort() {
+	public String getAdminServerPort() {
 		return String.valueOf(adminPort);
-	}
-
-	static {
-		setupRandomControlTransportChannels();
-		setupRandomAdminServerPort();
-		setupRandomHSQLDBConfig();
 	}
 
 	@AfterClass

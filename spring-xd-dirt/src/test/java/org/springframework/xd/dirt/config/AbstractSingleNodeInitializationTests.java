@@ -36,14 +36,14 @@ import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.module.SharedContextInitializer;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
-import org.springframework.xd.test.RandomConfigurationSupport;
+import org.springframework.xd.dirt.server.BootstrapRandomConfig;
 
 
 /**
  * 
  * @author David Turanski
  */
-public abstract class AbstractSingleNodeInitializationTests extends RandomConfigurationSupport {
+public abstract class AbstractSingleNodeInitializationTests {
 
 	protected AbstractApplicationContext context;
 
@@ -51,17 +51,20 @@ public abstract class AbstractSingleNodeInitializationTests extends RandomConfig
 
 	protected ModuleDeployer moduleDeployer;
 
-	private SingleNodeApplication application;
+	protected BootstrapRandomConfig bootstrapRandomConfig;
+
+	private SingleNodeApplication singleNodeApplication;
 
 	@Before
 	public final void setUp() {
-		this.application = new SingleNodeApplication();
+		this.bootstrapRandomConfig = new BootstrapRandomConfig();
+		this.singleNodeApplication = bootstrapRandomConfig.getSingleNodeApplication();
 		String[] args = {};
 		args = addArgIfProvided(args, "transport", getTransport());
 		args = addArgIfProvided(args, "controlTransport", getControlTransport());
-		application.run(args);
+		singleNodeApplication.run(args);
 
-		this.context = (AbstractApplicationContext) application.containerContext();
+		this.context = (AbstractApplicationContext) singleNodeApplication.containerContext();
 
 		this.moduleDeployer = this.context.getBean(ModuleDeployer.class);
 
@@ -78,7 +81,7 @@ public abstract class AbstractSingleNodeInitializationTests extends RandomConfig
 	protected void setupApplicationContext(ApplicationContext context) {
 	}
 
-	protected abstract void cleanup(ApplicationContext context);
+	protected abstract void cleanup();
 
 	protected abstract String getTransport();
 
@@ -88,8 +91,8 @@ public abstract class AbstractSingleNodeInitializationTests extends RandomConfig
 
 	@After
 	public final void shutDown() {
-		this.cleanup(this.context);
-		this.application.close();
+		this.cleanup();
+		this.singleNodeApplication.close();
 	}
 
 	@Test

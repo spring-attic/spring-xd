@@ -47,8 +47,8 @@ import org.springframework.xd.dirt.integration.test.sink.NamedChannelSink;
 import org.springframework.xd.dirt.integration.test.sink.SingleNodeNamedChannelSinkFactory;
 import org.springframework.xd.dirt.integration.test.source.NamedChannelSource;
 import org.springframework.xd.dirt.integration.test.source.SingleNodeNamedChannelSourceFactory;
+import org.springframework.xd.dirt.server.BootstrapRandomConfig;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
-import org.springframework.xd.test.RandomConfigurationSupport;
 import org.springframework.xd.tuple.Tuple;
 
 /**
@@ -62,7 +62,7 @@ import org.springframework.xd.tuple.Tuple;
  * @author Ilayaperumal Gopinathan
  * @author Gary Russell
  */
-public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends RandomConfigurationSupport {
+public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 
 	private static final QueueChannel tapChannel = new QueueChannel();
 
@@ -71,8 +71,8 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 
 		@Override
 		protected void after() {
-			if (application != null) {
-				application.close();
+			if (singleNodeApplication != null) {
+				singleNodeApplication.close();
 			}
 		}
 	};
@@ -85,7 +85,9 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 
 	private final String topicFoo = "topic:foo";
 
-	protected static SingleNodeApplication application;
+	protected static BootstrapRandomConfig bootstrapRandomConfig;
+
+	protected static SingleNodeApplication singleNodeApplication;
 
 	protected static SingleNodeIntegrationTestSupport integrationSupport;
 
@@ -182,13 +184,14 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests extends
 
 
 	protected final static void setUp(String transport) {
-		application = new SingleNodeApplication().run("--transport", transport);
-		integrationSupport = new SingleNodeIntegrationTestSupport(application);
-		if (testMessageBus != null) {
-			TestMessageBusInjection.injectMessageBus(application, testMessageBus);
+		bootstrapRandomConfig = new BootstrapRandomConfig();
+		singleNodeApplication = bootstrapRandomConfig.getSingleNodeApplication().run("--transport", transport);
+		integrationSupport = new SingleNodeIntegrationTestSupport(singleNodeApplication);
+		if (testMessageBus != null && !transport.equalsIgnoreCase("local")) {
+			TestMessageBusInjection.injectMessageBus(singleNodeApplication, testMessageBus);
 		}
 
-		ApplicationContext adminContext = application.adminContext();
+		ApplicationContext adminContext = singleNodeApplication.adminContext();
 		AbstractMessageChannel deployChannel = adminContext.getBean("deployChannel",
 				AbstractMessageChannel.class);
 		AbstractMessageChannel undeployChannel = adminContext.getBean("undeployChannel",

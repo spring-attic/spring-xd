@@ -35,7 +35,7 @@ import org.springframework.util.Assert;
 import org.springframework.xd.dirt.integration.test.SingleNodeIntegrationTestSupport;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeployer;
-import org.springframework.xd.dirt.server.TestServerApplication;
+import org.springframework.xd.dirt.server.BootstrapRandomConfig;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.module.core.CompositeModule;
 import org.springframework.xd.module.core.Module;
@@ -58,7 +58,7 @@ public class StreamTestSupport {
 
 	@BeforeClass
 	public static void startXDSingleNode() throws Exception {
-		application = new TestServerApplication().getSingleNodeApplication().run("--analytics", "memory",
+		application = new BootstrapRandomConfig().getSingleNodeApplication().run("--analytics", "memory",
 				"--store", "memory", "--jmxEnabled");
 		adminContext = application.adminContext();
 		SingleNodeIntegrationTestSupport integrationTestSupport = new SingleNodeIntegrationTestSupport(application,

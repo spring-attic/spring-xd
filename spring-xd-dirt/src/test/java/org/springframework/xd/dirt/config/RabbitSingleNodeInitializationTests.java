@@ -37,8 +37,8 @@ public class RabbitSingleNodeInitializationTests extends AbstractSingleNodeIniti
 	@Override
 	protected void cleanup() {
 		RabbitAdmin admin = new RabbitAdmin(rabbitAvailableRule.getResource());
-		admin.deleteQueue(testApplication.getDeployerQueue());
-		admin.deleteExchange(testApplication.getUndeployerTopic());
+		admin.deleteQueue(bootstrapRandomConfig.getDeployerQueue());
+		admin.deleteExchange(bootstrapRandomConfig.getUndeployerTopic());
 	}
 
 	@Override

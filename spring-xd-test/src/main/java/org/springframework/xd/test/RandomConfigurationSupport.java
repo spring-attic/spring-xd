@@ -50,10 +50,6 @@ public class RandomConfigurationSupport {
 
 	private static final String tmpDir = FileUtils.getTempDirectory().toString();
 
-	public static final String XD_DEPLOYER_PLACEHOLDER = "${xd.deployer.queue}";
-
-	public static final String XD_UNDEPLOYER_PLACEHOLDER = "${xd.undeployer.topic}";
-
 	private final long now;
 
 	private final int adminPort;

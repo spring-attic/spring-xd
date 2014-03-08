@@ -53,7 +53,7 @@ public class RedisSingleNodeStreamDeploymentIntegrationTests extends AbstractSin
 	@AfterClass
 	public static void cleanup() {
 		StringRedisTemplate template = new StringRedisTemplate(redisAvailableRule.getResource());
-		String queueDeployer = testApplication.getDeployerQueue();
+		String queueDeployer = bootstrapRandomConfig.getDeployerQueue();
 		template.delete(queueDeployer);
 		singleNodeApplication.close();
 	}

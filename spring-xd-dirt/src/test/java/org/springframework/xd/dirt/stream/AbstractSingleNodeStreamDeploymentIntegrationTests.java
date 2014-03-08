@@ -47,8 +47,8 @@ import org.springframework.xd.dirt.integration.test.sink.NamedChannelSink;
 import org.springframework.xd.dirt.integration.test.sink.SingleNodeNamedChannelSinkFactory;
 import org.springframework.xd.dirt.integration.test.source.NamedChannelSource;
 import org.springframework.xd.dirt.integration.test.source.SingleNodeNamedChannelSourceFactory;
+import org.springframework.xd.dirt.server.BootstrapRandomConfig;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
-import org.springframework.xd.dirt.server.TestServerApplication;
 import org.springframework.xd.tuple.Tuple;
 
 /**
@@ -85,7 +85,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 
 	private final String topicFoo = "topic:foo";
 
-	protected static TestServerApplication testApplication;
+	protected static BootstrapRandomConfig bootstrapRandomConfig;
 
 	protected static SingleNodeApplication singleNodeApplication;
 
@@ -184,8 +184,8 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 
 
 	protected final static void setUp(String transport) {
-		testApplication = new TestServerApplication();
-		singleNodeApplication = testApplication.getSingleNodeApplication().run("--transport", transport);
+		bootstrapRandomConfig = new BootstrapRandomConfig();
+		singleNodeApplication = bootstrapRandomConfig.getSingleNodeApplication().run("--transport", transport);
 		integrationSupport = new SingleNodeIntegrationTestSupport(singleNodeApplication);
 		if (testMessageBus != null && !transport.equalsIgnoreCase("local")) {
 			TestMessageBusInjection.injectMessageBus(singleNodeApplication, testMessageBus);

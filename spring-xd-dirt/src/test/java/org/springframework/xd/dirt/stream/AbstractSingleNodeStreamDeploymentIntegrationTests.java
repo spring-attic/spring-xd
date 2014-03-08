@@ -198,6 +198,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 				AbstractMessageChannel.class);
 		deployChannel.addInterceptor(new WireTap(tapChannel));
 		undeployChannel.addInterceptor(new WireTap(tapChannel));
+
 	}
 
 	@AfterClass

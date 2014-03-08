@@ -35,8 +35,8 @@ import org.springframework.util.Assert;
 import org.springframework.xd.dirt.integration.test.SingleNodeIntegrationTestSupport;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeployer;
-import org.springframework.xd.dirt.server.TestApplicationBootstrap;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
+import org.springframework.xd.dirt.server.TestApplicationBootstrap;
 import org.springframework.xd.module.core.CompositeModule;
 import org.springframework.xd.module.core.Module;
 
@@ -65,7 +65,8 @@ public class StreamTestSupport {
 				"classpath:/testmodules/");
 
 		streamDeployer = integrationTestSupport.streamDeployer();
-		Object md = application.containerContext().getBean("moduleDeployer", Object.class);
+
+		Object md = application.coreContext().getBean("moduleDeployer", Object.class);
 		moduleDeployer = (ModuleDeployer) (AopUtils.isJdkDynamicProxy(md) ? ((Advised) md).getTargetSource().getTarget()
 				: md);
 		moduleDefinitionRepository = adminContext.getBean(ModuleDefinitionRepository.class);

@@ -9,28 +9,9 @@
 
 	<import resource="classpath:META-INF/spring-xd/initializers/bus/*.xml"/>
 
-	<bean class="org.springframework.xd.dirt.module.ModuleDeployer">
-		<constructor-arg>
-			<bean
-				class="org.springframework.xd.dirt.module.memory.InMemoryModuleDefinitionRepository">
-				<constructor-arg>
-					<bean class="org.springframework.xd.dirt.module.ResourceModuleRegistry">
-						<constructor-arg value="classpath:/testmodules/" />
-					</bean>
-				</constructor-arg>
-				<constructor-arg ref="moduleDependencyRepository"/>
-			</bean>
-		</constructor-arg>
-		<constructor-arg>
-			<bean class="org.springframework.xd.module.options.DefaultModuleOptionsMetadataResolver"/>
-		</constructor-arg>
-	</bean>
-
 	<bean class="org.springframework.xd.dirt.plugins.stream.StreamPlugin">
 		<constructor-arg ref="messageBus"/>
 	</bean>
-
-	<bean class="org.springframework.xd.dirt.module.TestModuleEventListener" />
 
 	<bean id="moduleDependencyRepository" class="org.springframework.xd.dirt.module.memory.InMemoryModuleDependencyRepository" />
 	

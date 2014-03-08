@@ -16,10 +16,20 @@
 
 package org.springframework.xd.dirt.config;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Map;
+
+import org.junit.Test;
+
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.x.bus.LocalMessageBus;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.xd.dirt.server.ContainerRegistrar;
+import org.springframework.xd.module.core.Plugin;
 
 
 /**
@@ -27,6 +37,19 @@ import org.springframework.messaging.MessageChannel;
  * @author David Turanski
  */
 public class LocalSingleNodeInitializationTests extends AbstractSingleNodeInitializationTests {
+
+	@Test
+	public final void verifyContextConfiguration() {
+
+		assertSame(containerContext, coreContext.getParent());
+		assertTrue(coreContext.containsBean("moduleDeployer") && !containerContext.containsBean("moduleDeployer"));
+		assertTrue(coreContext.containsBean("containerControlChannel")
+				&& !containerContext.containsBean("containerControlChannel"));
+		coreContext.getBean(ContainerRegistrar.class);
+		assertEquals(0, containerContext.getBeansOfType(ContainerRegistrar.class).size());
+		Map<String, Plugin> pluginMap = containerContext.getBeansOfType(Plugin.class);
+		assertTrue(pluginMap.size() > 0);
+	}
 
 	@Override
 	protected void cleanup() {
@@ -44,7 +67,7 @@ public class LocalSingleNodeInitializationTests extends AbstractSingleNodeInitia
 
 	@Override
 	protected MessageChannel getControlChannel() {
-		return context.getBean("containerControlChannel", MessageChannel.class);
+		return coreContext.getBean("containerControlChannel", MessageChannel.class);
 	}
 
 }

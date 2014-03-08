@@ -32,6 +32,6 @@ public class LocalControlRabbitDataInitializationTests extends RabbitSingleNodeI
 
 	@Override
 	protected MessageChannel getControlChannel() {
-		return context.getBean("containerControlChannel", MessageChannel.class);
+		return coreContext.getBean("containerControlChannel", MessageChannel.class);
 	}
 }

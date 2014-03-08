@@ -22,7 +22,6 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.integration.x.bus.AbstractTestMessageBus;
 import org.springframework.xd.dirt.module.ModuleDeployer;
-import org.springframework.xd.dirt.plugins.TestStreamPlugin;
 import org.springframework.xd.dirt.plugins.stream.StreamPlugin;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 
@@ -31,6 +30,7 @@ import org.springframework.xd.dirt.server.SingleNodeApplication;
  * Test class that helps injecting messageBus into {@link ModuleDeployer}'s common context via {@link TestStreamPlugin}.
  * 
  * @author Ilayaperumal Gopinathan
+ * @author David Turanski
  */
 public class TestMessageBusInjection {
 
@@ -38,17 +38,13 @@ public class TestMessageBusInjection {
 
 	public static void injectMessageBus(SingleNodeApplication application, AbstractTestMessageBus testMessageBus) {
 		ConfigurableApplicationContext containerContext = application.containerContext();
-		StreamPlugin streamPlugin = containerContext.getBean(StreamPlugin.class);
-		ModuleDeployer moduleDeployer = containerContext.getBean(ModuleDeployer.class);
-		RootBeanDefinition bDefinition = new RootBeanDefinition(TestStreamPlugin.class);
+		RootBeanDefinition bDefinition = new RootBeanDefinition(StreamPlugin.class);
 		ConstructorArgumentValues constructorArgumentValues = new ConstructorArgumentValues();
-		constructorArgumentValues.addIndexedArgumentValue(0, streamPlugin);
-		constructorArgumentValues.addIndexedArgumentValue(1, testMessageBus);
+		constructorArgumentValues.addIndexedArgumentValue(0, testMessageBus);
 		bDefinition.setConstructorArgumentValues(constructorArgumentValues);
 		BeanDefinitionRegistry bdr = (BeanDefinitionRegistry) containerContext.getBeanFactory();
 		bdr.removeBeanDefinition(STREAM_PLUGIN_BEAN_ID);
 		bdr.registerBeanDefinition(STREAM_PLUGIN_BEAN_ID, bDefinition);
-		moduleDeployer.onInit();
 	}
 
 }

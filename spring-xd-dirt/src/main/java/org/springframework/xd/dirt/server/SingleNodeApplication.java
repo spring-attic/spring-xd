@@ -14,6 +14,7 @@
 package org.springframework.xd.dirt.server;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -35,6 +36,8 @@ public class SingleNodeApplication {
 	private ConfigurableApplicationContext adminContext;
 
 	private ConfigurableApplicationContext containerContext;
+
+	private ConfigurableApplicationContext coreContext;
 
 	@Value("${XD_CONTROL_TRANSPORT}")
 	ControlTransport controlTransport;
@@ -65,20 +68,27 @@ public class SingleNodeApplication {
 				.profiles(ContainerServerApplication.NODE_PROFILE, SINGLE_PROFILE)
 				.listeners(bootstrapContext.commandLineListener())
 				.listeners(bootstrapContext.sharedContextInitializers())
+				.child(CoreRuntimeConfiguration.class, PropertyPlaceholderAutoConfiguration.class)
+				.listeners(bootstrapContext.commandLineListener())
 				.web(false);
 		container.run(args);
 
 		adminContext = admin.context();
-		containerContext = container.context();
+
+		coreContext = container.context();
+		containerContext = (ConfigurableApplicationContext) coreContext.getParent();
 
 		SingleNodeApplication singleNodeApp = adminContext.getBean(SingleNodeApplication.class);
 		if (singleNodeApp.controlTransport == ControlTransport.local) {
-			setUpControlChannels(adminContext, containerContext);
+			setUpControlChannels(adminContext, coreContext);
 		}
 		return this;
 	}
 
 	public void close() {
+		if (coreContext != null) {
+			coreContext.close();
+		}
 		if (containerContext != null) {
 			containerContext.close();
 		}
@@ -99,10 +109,14 @@ public class SingleNodeApplication {
 		return containerContext;
 	}
 
-	private void setUpControlChannels(ApplicationContext adminContext,
-			ApplicationContext containerContext) {
+	public ConfigurableApplicationContext coreContext() {
+		return coreContext;
+	}
 
-		MessageChannel containerControlChannel = containerContext.getBean(
+	private void setUpControlChannels(ApplicationContext adminContext,
+			ApplicationContext coreContext) {
+
+		MessageChannel containerControlChannel = coreContext.getBean(
 				"containerControlChannel", MessageChannel.class);
 		SubscribableChannel deployChannel = adminContext.getBean(
 				"deployChannel", SubscribableChannel.class);

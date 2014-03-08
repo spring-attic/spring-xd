@@ -22,21 +22,21 @@ import static org.junit.Assert.assertNotNull;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
+import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.core.env.PropertiesPropertySource;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.Message;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.xd.dirt.event.AbstractModuleEvent;
 import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
@@ -51,35 +51,44 @@ import org.springframework.xd.module.core.SimpleModule;
  * @author Jennifer Hickey
  * @author David Turanski
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
 public class StreamPluginModuleDeploymentTests {
 
-	@Autowired
 	MessageBus bus;
 
-	@Autowired
 	private ModuleDeployer moduleDeployer;
 
-	@Autowired
 	private TestModuleEventListener eventListener;
 
 	private SimpleModule source;
 
 	private SimpleModule sink;
 
-	@BeforeClass
-	public static void setContextProperties() {
-		System.setProperty(XDPropertyKeys.XD_TRANSPORT, "local");
-		System.setProperty(XDPropertyKeys.XD_ANALYTICS, "memory");
-		System.setProperty(XDPropertyKeys.XD_HOME, new File("..").getAbsolutePath());
-	}
+	@Before
+	public void setup() {
+		GenericApplicationContext child = new GenericApplicationContext();
+		XmlBeanDefinitionReader childReader = new XmlBeanDefinitionReader(child);
+		childReader.loadBeanDefinitions(new ClassPathResource(
+				"org/springframework/xd/dirt/plugins/stream/module-deployer-context.xml"));
 
-	@AfterClass
-	public static void clearContextProperties() {
-		System.clearProperty(XDPropertyKeys.XD_TRANSPORT);
-		System.clearProperty(XDPropertyKeys.XD_ANALYTICS);
-		System.clearProperty(XDPropertyKeys.XD_HOME);
+		GenericApplicationContext parent = new GenericApplicationContext();
+		Properties xdProperties = new Properties();
+		xdProperties.setProperty(XDPropertyKeys.XD_TRANSPORT, "local");
+		xdProperties.setProperty(XDPropertyKeys.XD_ANALYTICS, "memory");
+		xdProperties.setProperty(XDPropertyKeys.XD_HOME, new File("..").getAbsolutePath());
+
+		parent.getEnvironment().getPropertySources().addFirst(
+				new PropertiesPropertySource("xdProperties", xdProperties));
+		XmlBeanDefinitionReader parentReader = new XmlBeanDefinitionReader(parent);
+		parentReader.loadBeanDefinitions(new ClassPathResource(
+				"org/springframework/xd/dirt/plugins/stream/StreamPluginModuleDeploymentTests-context.xml"));
+
+		parent.refresh();
+		child.setParent(parent);
+		child.refresh();
+
+		this.moduleDeployer = child.getBean(ModuleDeployer.class);
+		this.bus = parent.getBean(MessageBus.class);
+		this.eventListener = child.getBean(TestModuleEventListener.class);
 	}
 
 	@After

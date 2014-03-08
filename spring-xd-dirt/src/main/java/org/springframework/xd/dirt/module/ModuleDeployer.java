@@ -70,6 +70,8 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 
 	private volatile ApplicationContext context;
 
+	private volatile ApplicationContext globalContext;
+
 	private volatile ApplicationEventPublisher eventPublisher;
 
 	private final ObjectMapper mapper = new ObjectMapper();
@@ -99,6 +101,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 	@Override
 	public void setApplicationContext(ApplicationContext context) {
 		this.context = context;
+		this.globalContext = context.getParent().getParent();
 	}
 
 	@Override
@@ -108,7 +111,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 
 	@Override
 	public void onInit() {
-		this.plugins = new ArrayList<Plugin>(this.context.getBeansOfType(Plugin.class).values());
+		this.plugins = new ArrayList<Plugin>(this.context.getParent().getBeansOfType(Plugin.class).values());
 		OrderComparator.sort(this.plugins);
 	}
 
@@ -231,7 +234,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 
 
 	private void deployAndStore(Module module, ModuleDeploymentRequest request) {
-		module.setParentContext(this.context.getParent());
+		module.setParentContext(this.globalContext);
 		this.deploy(module);
 		if (logger.isInfoEnabled()) {
 			logger.info("deployed " + module.toString());

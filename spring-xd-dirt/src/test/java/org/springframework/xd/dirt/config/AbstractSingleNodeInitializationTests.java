@@ -41,13 +41,16 @@ import org.springframework.xd.dirt.server.TestApplicationBootstrap;
  */
 public abstract class AbstractSingleNodeInitializationTests {
 
-	protected AbstractApplicationContext context;
+	protected AbstractApplicationContext containerContext;
+
+	protected AbstractApplicationContext coreContext;
 
 	protected ModuleDeployer moduleDeployer;
 
 	protected TestApplicationBootstrap testApplicationBootstrap;
 
 	private SingleNodeApplication singleNodeApplication;
+
 
 	@Before
 	public final void setUp() {
@@ -58,9 +61,9 @@ public abstract class AbstractSingleNodeInitializationTests {
 		args = addArgIfProvided(args, "controlTransport", getControlTransport());
 		singleNodeApplication.run(args);
 
-		this.context = (AbstractApplicationContext) singleNodeApplication.containerContext();
-
-		setupApplicationContext(this.context);
+		this.containerContext = (AbstractApplicationContext) this.singleNodeApplication.containerContext();
+		this.coreContext = (AbstractApplicationContext) this.singleNodeApplication.coreContext();
+		setupApplicationContext(this.containerContext);
 	}
 
 	protected void setupApplicationContext(ApplicationContext context) {
@@ -82,9 +85,9 @@ public abstract class AbstractSingleNodeInitializationTests {
 
 	@Test
 	public final void environmentMatchesTransport() {
-		MessageChannel controlChannel = this.context.getBean("containerControlChannel", MessageChannel.class);
+		MessageChannel controlChannel = this.coreContext.getBean("containerControlChannel", MessageChannel.class);
 		assertSame(controlChannel, getControlChannel());
-		MessageBus messageBus = this.context.getBean(MessageBus.class);
+		MessageBus messageBus = this.containerContext.getBean(MessageBus.class);
 		assertEquals(getExpectedMessageBusType(), messageBus.getClass());
 	}
 

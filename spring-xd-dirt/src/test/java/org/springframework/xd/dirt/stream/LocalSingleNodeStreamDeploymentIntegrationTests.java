@@ -47,9 +47,9 @@ public class LocalSingleNodeStreamDeploymentIntegrationTests extends AbstractSin
 		integrationSupport.deployStream(routerDefinition);
 		Thread.sleep(1000);
 
-		application.containerContext().getBean("queue:x", MessageChannel.class);
-		assertFalse(application.containerContext().containsBean("queue:y"));
-		assertFalse(application.containerContext().containsBean("queue:z"));
+		singleNodeApplication.containerContext().getBean("queue:x", MessageChannel.class);
+		assertFalse(singleNodeApplication.containerContext().containsBean("queue:y"));
+		assertFalse(singleNodeApplication.containerContext().containsBean("queue:z"));
 
 
 		DirectChannel testChannel = new DirectChannel();
@@ -58,13 +58,13 @@ public class LocalSingleNodeStreamDeploymentIntegrationTests extends AbstractSin
 		testChannel.send(MessageBuilder.withPayload("y").build());
 		Thread.sleep(2000);
 
-		application.containerContext().getBean("queue:y", MessageChannel.class);
-		assertFalse(application.containerContext().containsBean("queue:z"));
+		singleNodeApplication.containerContext().getBean("queue:y", MessageChannel.class);
+		assertFalse(singleNodeApplication.containerContext().containsBean("queue:z"));
 
 		testChannel.send(MessageBuilder.withPayload("z").build());
 		Thread.sleep(2000);
-		QueueChannel y3 = application.containerContext().getBean("queue:y", QueueChannel.class);
-		QueueChannel z3 = application.containerContext().getBean("queue:z", QueueChannel.class);
+		QueueChannel y3 = singleNodeApplication.containerContext().getBean("queue:y", QueueChannel.class);
+		QueueChannel z3 = singleNodeApplication.containerContext().getBean("queue:z", QueueChannel.class);
 		assertNotNull(y3);
 		assertNotNull(z3);
 

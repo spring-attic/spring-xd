@@ -62,8 +62,8 @@ public class RabbitSingleNodeStreamDeploymentIntegrationTests extends
 	@AfterClass
 	public static void cleanup() {
 		RabbitAdmin admin = new RabbitAdmin(rabbitAvailableRule.getResource());
-		admin.deleteQueue(bootstrapRandomConfig.getDeployerQueue());
-		admin.deleteExchange(bootstrapRandomConfig.getUndeployerTopic());
+		admin.deleteQueue(testApplicationBootstrap.getDeployerQueue());
+		admin.deleteExchange(testApplicationBootstrap.getUndeployerTopic());
 	}
 
 	@Test

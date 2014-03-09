@@ -36,7 +36,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.module.SharedContextInitializer;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
-import org.springframework.xd.dirt.server.BootstrapRandomConfig;
+import org.springframework.xd.dirt.server.TestApplicationBootstrap;
 
 
 /**
@@ -51,14 +51,14 @@ public abstract class AbstractSingleNodeInitializationTests {
 
 	protected ModuleDeployer moduleDeployer;
 
-	protected BootstrapRandomConfig bootstrapRandomConfig;
+	protected TestApplicationBootstrap testApplicationBootstrap;
 
 	private SingleNodeApplication singleNodeApplication;
 
 	@Before
 	public final void setUp() {
-		this.bootstrapRandomConfig = new BootstrapRandomConfig();
-		this.singleNodeApplication = bootstrapRandomConfig.getSingleNodeApplication();
+		this.testApplicationBootstrap = new TestApplicationBootstrap();
+		this.singleNodeApplication = testApplicationBootstrap.getSingleNodeApplication();
 		String[] args = {};
 		args = addArgIfProvided(args, "transport", getTransport());
 		args = addArgIfProvided(args, "controlTransport", getControlTransport());

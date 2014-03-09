@@ -18,16 +18,21 @@ package org.springframework.xd.dirt.server;
 
 import org.springframework.xd.test.RandomConfigurationSupport;
 
-
 /**
  * Helper class that bootstraps random configuration for dirt server applications.
  * 
  * @author Ilayaperumal Gopinathan
+ * @author Mark Fisher
  */
-public class BootstrapRandomConfig extends RandomConfigurationSupport {
+public class TestApplicationBootstrap extends RandomConfigurationSupport {
 
-	public SingleNodeApplication getSingleNodeApplication() {
-		return new SingleNodeApplication();
+	private SingleNodeApplication singleNodeApplication;
+
+	public synchronized SingleNodeApplication getSingleNodeApplication() {
+		if (singleNodeApplication == null) {
+			singleNodeApplication = new SingleNodeApplication();
+		}
+		return singleNodeApplication;
 	}
 
 }

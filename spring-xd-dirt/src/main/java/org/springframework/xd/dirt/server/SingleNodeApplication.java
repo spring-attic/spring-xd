@@ -13,7 +13,6 @@
 
 package org.springframework.xd.dirt.server;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -37,9 +36,6 @@ public class SingleNodeApplication {
 
 	private ConfigurableApplicationContext containerContext;
 
-	@Value("${XD_CONTROL_TRANSPORT}")
-	private String controlTransport;
-
 	public static final String SINGLE_PROFILE = "single";
 
 	public static void main(String[] args) {
@@ -55,8 +51,7 @@ public class SingleNodeApplication {
 				new SingleNodeOptions());
 
 		SpringApplicationBuilder admin =
-				new SpringApplicationBuilder(SingleNodeOptions.class, ParentConfiguration.class,
-						SingleNodeApplication.class)
+				new SpringApplicationBuilder(SingleNodeOptions.class, ParentConfiguration.class)
 						.listeners(commandLineListener)
 						.profiles(AdminServerApplication.ADMIN_PROFILE, SINGLE_PROFILE)
 						.child(SingleNodeOptions.class, AdminServerApplication.class)
@@ -73,6 +68,8 @@ public class SingleNodeApplication {
 		adminContext = admin.context();
 		containerContext = container.context();
 
+		String controlTransport = adminContext.getEnvironment().getProperty(
+				"XD_CONTROL_TRANSPORT");
 		if (FromResourceLocationOptionHandlers.SINGLE_NODE_SPECIAL_CONTROL_TRANSPORT.equals(controlTransport)) {
 			setUpControlChannels(adminContext, containerContext);
 		}

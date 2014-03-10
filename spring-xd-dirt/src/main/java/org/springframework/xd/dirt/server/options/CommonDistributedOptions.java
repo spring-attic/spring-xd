@@ -21,7 +21,7 @@ import javax.validation.constraints.NotNull;
 import org.kohsuke.args4j.Option;
 
 import org.springframework.xd.dirt.server.options.FromResourceLocationOptionHandlers.DistributedAnalyticsOptionHandler;
-import org.springframework.xd.dirt.server.options.FromResourceLocationOptionHandlers.StoreOptionHandler;
+import org.springframework.xd.dirt.server.options.FromResourceLocationOptionHandlers.DistributedStoreOptionHandler;
 
 
 /**
@@ -36,9 +36,10 @@ public class CommonDistributedOptions extends CommonOptions {
 			usage = "How to persist analytics such as counters and gauges")
 	private String analytics;
 
-	// Should be pushed down to AdminOptions but currently
-	// can't b/c of the way container runtime info is persisted
-	@Option(name = "--store", handler = StoreOptionHandler.class,
+	// Should be pushed down to AdminOptions (and would then be able to include memory)
+	// but currently can't b/c of the way container runtime info is persisted.
+	// Likely to change with ZK support anyway.
+	@Option(name = "--store", handler = DistributedStoreOptionHandler.class,
 			usage = "How to persist admin data")
 	private String store;
 

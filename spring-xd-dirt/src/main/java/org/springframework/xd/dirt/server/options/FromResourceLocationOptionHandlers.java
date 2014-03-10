@@ -120,13 +120,24 @@ public final class FromResourceLocationOptionHandlers {
 	/**
 	 * Computes values for --store in the distributed case (memory is NOT supported).
 	 */
-	public static class StoreOptionHandler extends FromResourceLocationOptionHandler {
+	public static class DistributedStoreOptionHandler extends FromResourceLocationOptionHandler {
 
-		public StoreOptionHandler(CmdLineParser parser, OptionDef option, Setter<String> setter)
+		public DistributedStoreOptionHandler(CmdLineParser parser, OptionDef option, Setter<String> setter)
+				throws IOException {
+			super(parser, option, setter, CONFIGURATION_ROOT + "store/*-store.xml");
+			exclude("memory");
+		}
+	}
+
+	/**
+	 * Computes values for --store in the singlenode case.
+	 */
+	public static class SingleNodeStoreOptionHandler extends FromResourceLocationOptionHandler {
+
+		public SingleNodeStoreOptionHandler(CmdLineParser parser, OptionDef option, Setter<String> setter)
 				throws IOException {
 			super(parser, option, setter, CONFIGURATION_ROOT + "store/*-store.xml");
 		}
-
 	}
 
 

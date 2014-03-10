@@ -24,7 +24,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.xd.dirt.server.options.FromResourceLocationOptionHandlers.SingleNodeAnalyticsOptionHandler;
 import org.springframework.xd.dirt.server.options.FromResourceLocationOptionHandlers.SingleNodeControlTransportOptionHandler;
 import org.springframework.xd.dirt.server.options.FromResourceLocationOptionHandlers.SingleNodeDataTransportOptionHandler;
-import org.springframework.xd.dirt.server.options.FromResourceLocationOptionHandlers.StoreOptionHandler;
+import org.springframework.xd.dirt.server.options.FromResourceLocationOptionHandlers.SingleNodeStoreOptionHandler;
 
 
 /**
@@ -50,7 +50,7 @@ public class SingleNodeOptions extends CommonOptions {
 			usage = "The transport to use for control messages (between admin and nodes)")
 	private String controlTransport;
 
-	@Option(name = "--store", handler = StoreOptionHandler.class,
+	@Option(name = "--store", handler = SingleNodeStoreOptionHandler.class,
 			usage = "How to persist admin data")
 	private String store;
 

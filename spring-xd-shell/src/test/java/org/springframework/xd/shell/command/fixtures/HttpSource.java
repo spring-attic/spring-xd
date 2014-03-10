@@ -33,6 +33,8 @@ public class HttpSource extends AbstractModuleFixture {
 
 	private int port;
 
+	private String host;
+
 	private JLineShellComponent shell;
 
 	private String contentType;
@@ -43,6 +45,13 @@ public class HttpSource extends AbstractModuleFixture {
 
 	public HttpSource(JLineShellComponent shell, int port) {
 		this.port = port;
+		host = "localhost";
+		this.shell = shell;
+	}
+
+	public HttpSource(JLineShellComponent shell, String host, int port) {
+		this.port = port;
+		this.host = host;
 		this.shell = shell;
 	}
 
@@ -57,7 +66,7 @@ public class HttpSource extends AbstractModuleFixture {
 		long giveUpAt = System.currentTimeMillis() + timeout;
 		while (System.currentTimeMillis() < giveUpAt) {
 			try {
-				new RestTemplate().headForHeaders("http://localhost:" + port);
+				new RestTemplate().headForHeaders("http://" + host + ":" + port);
 				return this;
 			}
 			catch (Exception e) {
@@ -80,7 +89,7 @@ public class HttpSource extends AbstractModuleFixture {
 
 	public HttpSource postData(String payload) {
 		String command = String.format(
-				"http post --target http://localhost:%d --data \"%s\"",
+				"http post --target http://" + host + ":%d --data \"%s\"",
 				port, payload.replace("\"", "\\\""));
 		if (contentType != null) {
 			command += String.format(" --contentType \"%s\"", contentType);

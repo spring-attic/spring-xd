@@ -17,41 +17,39 @@
 package org.springframework.xd.integration.test;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
+import org.springframework.xd.integration.util.DistributedFileSink;
 import org.springframework.xd.integration.util.InvalidResultException;
-import org.springframework.xd.integration.util.Sink;
-import org.springframework.xd.integration.util.Source;
+
 
 /**
  * @author Glenn Renfro
  */
-@RunWith(Parameterized.class)
 public class ProcessorTest extends AbstractIntegrationTest {
 
-	public ProcessorTest(Sink sink) {
-		this.sink = sink;
+
+	public ProcessorTest() {
 	}
 
 	@Test(expected = InvalidResultException.class)
 	public void testFailedSink() throws Exception {
-		stream(Source.HTTP + XD_DELIMETER + " filter --expression=payload=='good' " + XD_DELIMETER + sink);
-		send("HTTP", "BAD");
+		stream(source.http()
+				+ XD_DELIMETER + " filter --expression=payload=='good' " + XD_DELIMETER
+				+ sink.getSink(DistributedFileSink.class));
+		source.http().postData("BAD");
 		assertReceived();
-		// assertNoResult();
 	}
 
 	@Test
 	public void testFilter() throws Exception {
 		String filterContent = "good";
-		stream(Source.HTTP + XD_DELIMETER + " filter --expression=payload=='" + filterContent + "' " + XD_DELIMETER
-				+ sink);
+		stream(source.http() +
+				XD_DELIMETER + " filter --expression=payload=='" + filterContent + "' " + XD_DELIMETER
+				+ sink.getSink(DistributedFileSink.class));
 
-		send("HTTP", filterContent);
+		source.http().postData(filterContent);
 		assertReceived();
-		assertValid(filterContent);
+		assertValid(filterContent, sink.getSink(DistributedFileSink.class));
 	}
-
 
 }

@@ -16,37 +16,58 @@
 
 package org.springframework.xd.integration.util;
 
+import java.net.URL;
+import java.util.List;
+
+import org.springframework.shell.core.JLineShellComponent;
+import org.springframework.xd.shell.command.fixtures.HttpSource;
+import org.springframework.xd.shell.command.fixtures.TcpSource;
+
 
 /**
- * Utility class for setting up the source required for testing.
  * 
- * @author grenfro
+ * @author renfrg
  */
 public class Source {
 
-	public static final Source TIME = new Source("time", SourceType.time);
+	private URL adminServer = null;
 
-	public static final Source HTTP = new Source("http", SourceType.http);
+	private List<URL> containers = null;
 
-	private String sourceText;
+	private JLineShellComponent shell = null;
 
-	private SourceType sourceType;
+	private HttpSource httpSource = null;
 
-	public Source(String sourceText, SourceType sourceType) {
-		this.sourceText = sourceText;
-		this.sourceType = sourceType;
+	private TcpSource tcpSource = null;
+
+	private int httpPort = 9000;
+
+	public Source(URL adminServer, List<URL> containers, JLineShellComponent shell, int httpPort) {
+		this.adminServer = adminServer;
+		this.containers = containers;
+		this.shell = shell;
+		this.httpPort = httpPort;
 	}
 
-	@Override
-	public String toString() {
-		return sourceText;
+	public HttpSource http() {
+		if (httpSource == null) {
+			httpSource = http(httpPort);
+		}
+		return httpSource;
 	}
 
-	public String getsourceText() {
-		return sourceText;
+	public HttpSource http(int port) {
+		return new HttpSource(shell, containers.get(0).getHost(), port);
 	}
 
-	public SourceType getsourceType() {
-		return sourceType;
+	public TcpSource tcp() {
+		if (tcpSource == null) {
+			tcpSource = tcp(httpPort);
+		}
+		return tcpSource;
+	}
+
+	public TcpSource tcp(int port) {
+		return new TcpSource(containers.get(0).getHost(), port);
 	}
 }

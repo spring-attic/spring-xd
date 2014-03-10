@@ -121,11 +121,12 @@ public class XdEc2Validation {
 		try {
 			Reader fileReader = new InputStreamReader(new FileInputStream(fileName));
 			String result = FileCopyUtils.copyToString(fileReader);
-			if (!result.equals(data + "\n")) {
+
+			if (!(data + "\n").equals(result)) {
 				fileReader.close();
 				throw new ResourceAccessException(
-						"Data in the result file is not what was sent. Read "
-								+ result + "\n but expected " + data);
+						"Data in the result file is not what was sent. Read \""
+								+ result + "\"\n but expected \"" + data + "\"");
 			}
 			fileReader.close();
 		}
@@ -134,7 +135,6 @@ public class XdEc2Validation {
 				file.delete();
 			}
 		}
-
 
 	}
 

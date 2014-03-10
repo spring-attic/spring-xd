@@ -21,20 +21,24 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.runners.Parameterized.Parameters;
 
+import org.springframework.shell.Bootstrap;
+import org.springframework.shell.core.JLineShellComponent;
+import org.springframework.xd.integration.util.DistributedFileSink;
 import org.springframework.xd.integration.util.Sink;
+import org.springframework.xd.integration.util.Source;
 import org.springframework.xd.integration.util.StreamUtils;
 import org.springframework.xd.integration.util.XdEc2Validation;
 import org.springframework.xd.integration.util.XdEnvironment;
+import org.springframework.xd.shell.command.fixtures.AbstractModuleFixture;
+import org.springframework.xd.shell.command.fixtures.LogSink;
+import org.springframework.xd.test.RandomConfigurationSupport;
 
 /**
  * Base Class for Spring XD Integration classes
@@ -67,9 +71,13 @@ public abstract class AbstractIntegrationTest {
 
 	protected static String containerLogLocation;
 
-	protected Sink sink;
-
 	protected static String XD_DELIMETER = " | ";
+
+	private static JLineShellComponent shell;
+
+	protected static Source source = null;
+
+	protected static Sink sink = null;
 
 
 	@BeforeClass
@@ -87,6 +95,16 @@ public abstract class AbstractIntegrationTest {
 		pauseTime = hosts.getPauseTime();
 		validation.verifyAtLeastOneContainerAvailable(hosts.getContainers(),
 				jmxPort);
+		Bootstrap bootstrap = new Bootstrap(new String[] { "--port",
+			RandomConfigurationSupport.getAdminServerPort() });
+		shell = bootstrap.getJLineShellComponent();
+		source = new Source(adminServer, containers, shell, httpPort);
+		sink = new Sink(adminServer, containers, shell, httpPort);
+
+	}
+
+	public static JLineShellComponent getShell() {
+		return shell;
 	}
 
 	@AfterClass
@@ -111,12 +129,17 @@ public abstract class AbstractIntegrationTest {
 		waitForXD();
 	}
 
-	@Parameters
-	public static Collection<Object[]> sink() {
-		Object[][] sink = { { Sink.FILE }, { Sink.LOG } };
-		return Arrays.asList(sink);
-	}
 
+	/**
+	 * Creates a stream on the XD cluster defined by the test's Artifact or Environment variables Uses STREAM_NAME as
+	 * default stream name.
+	 * 
+	 * @param stream the stream definition
+	 * @throws IOException
+	 */
+	public void stream(String stream) throws IOException, URISyntaxException {
+		stream(STREAM_NAME, stream);
+	}
 
 	/**
 	 * Creates a stream on the XD cluster defined by the test's Artifact or Environment variables
@@ -124,9 +147,9 @@ public abstract class AbstractIntegrationTest {
 	 * @param stream the stream definition
 	 * @throws IOException
 	 */
-	public void stream(String stream) throws IOException, URISyntaxException {
-		StreamUtils.stream(STREAM_NAME, stream, adminServer);
-		streamNames.add(STREAM_NAME);
+	public void stream(String streamName, String stream) throws IOException, URISyntaxException {
+		StreamUtils.stream(streamName, stream, adminServer);
+		streamNames.add(streamName);
 		waitForXD();
 	}
 
@@ -162,18 +185,20 @@ public abstract class AbstractIntegrationTest {
 				"http");
 	}
 
-	public void assertValid(String data) throws IOException {
-		if (sink.equals(Sink.FILE)) {
+	public void assertValid(String data, AbstractModuleFixture sinkInstance) throws IOException {
+
+		if (sinkInstance.getClass().equals(DistributedFileSink.class)) {
 			assertValidFile(data, getContainerForStream(STREAM_NAME), STREAM_NAME);
 		}
-		if (sink.equals(Sink.LOG)) {
+		if (sinkInstance.getClass().equals(LogSink.class)) {
 			assertLogEntry(data, getContainerForStream(STREAM_NAME));
 		}
+
 	}
 
 	public void assertValidFile(String data, URL url, String streamName)
 			throws IOException {
-		waitForXD();
+		waitForXD(pauseTime * 2000);
 		String fileName = XdEnvironment.RESULT_LOCATION + "/" + streamName
 				+ ".out";
 		validation.verifyTestContent(hosts, url, fileName, data);
@@ -185,11 +210,11 @@ public abstract class AbstractIntegrationTest {
 		validation.verifyLogContent(hosts, url, containerLogLocation, data);
 	}
 
-	private void waitForXD() {
+	protected void waitForXD() {
 		waitForXD(pauseTime * 1000);
 	}
 
-	private void waitForXD(int millis) {
+	protected void waitForXD(int millis) {
 		try {
 			Thread.sleep(millis);
 		}

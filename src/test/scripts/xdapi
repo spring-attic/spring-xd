@@ -1,6 +1,6 @@
 #!/bin/bash
 
-XD_HOST='http://localhost'
+XD_HOST='http://127.0.0.1'
 XD_PORT=9393
 XDURL="$XD_HOST:$XD_PORT"
 

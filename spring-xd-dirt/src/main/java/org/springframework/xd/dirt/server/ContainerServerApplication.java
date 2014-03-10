@@ -28,6 +28,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableMBeanExport;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.event.SourceFilteringListener;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
@@ -51,6 +52,7 @@ import org.springframework.xd.dirt.util.XdConfigLoggingInitializer;
 @ImportResource({
 	"classpath*:" + ConfigLocations.XD_CONFIG_ROOT + "plugins/*.xml"
 })
+@Import(PropertyPlaceholderAutoConfiguration.class)
 public class ContainerServerApplication {
 
 	private static final String MBEAN_EXPORTER_BEAN_NAME = "XDLauncherMBeanExporter";
@@ -92,10 +94,10 @@ public class ContainerServerApplication {
 			this.coreContext = new SpringApplicationBuilder(ContainerOptions.class, ParentConfiguration.class)
 					.profiles(NODE_PROFILE)
 					.listeners(bootstrapContext.commandLineListener())
-					.child(ContainerServerApplication.class, PropertyPlaceholderAutoConfiguration.class)
+					.child(ContainerServerApplication.class)
 					.listeners(bootstrapContext.commandLineListener())
 					.listeners(bootstrapContext.sharedContextInitializers())
-					.child(CoreRuntimeConfiguration.class, PropertyPlaceholderAutoConfiguration.class)
+					.child(CoreRuntimeConfiguration.class)
 					.listeners(bootstrapContext.commandLineListener())
 					.initializers(new IdInitializer())
 					.run(args);
@@ -160,6 +162,7 @@ public class ContainerServerApplication {
 @ImportResource({
 	"classpath:" + ConfigLocations.XD_INTERNAL_CONFIG_ROOT + "container-server.xml",
 })
+@Import(PropertyPlaceholderAutoConfiguration.class)
 class CoreRuntimeConfiguration {
 
 	@Autowired

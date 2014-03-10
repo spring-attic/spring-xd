@@ -14,7 +14,6 @@
 package org.springframework.xd.dirt.server;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -68,7 +67,7 @@ public class SingleNodeApplication {
 				.profiles(ContainerServerApplication.NODE_PROFILE, SINGLE_PROFILE)
 				.listeners(bootstrapContext.commandLineListener())
 				.listeners(bootstrapContext.sharedContextInitializers())
-				.child(CoreRuntimeConfiguration.class, PropertyPlaceholderAutoConfiguration.class)
+				.child(CoreRuntimeConfiguration.class)
 				.listeners(bootstrapContext.commandLineListener())
 				.web(false);
 		container.run(args);

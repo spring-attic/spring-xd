@@ -29,6 +29,7 @@ import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.integration.x.bus.MessageBusAwareRouterBeanPostProcessor;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.util.Assert;
 import org.springframework.xd.dirt.plugins.AbstractPlugin;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.ModuleType;
@@ -47,6 +48,7 @@ public class StreamPlugin extends AbstractPlugin {
 
 	public StreamPlugin(MessageBus messageBus) {
 		super();
+		Assert.notNull(messageBus, "messageBus cannot be null.");
 		this.messageBus = messageBus;
 	}
 
@@ -135,10 +137,8 @@ public class StreamPlugin extends AbstractPlugin {
 
 	@Override
 	public void beforeShutdown(Module module) {
-		if (this.messageBus != null) {
-			unbindConsumer(module, messageBus);
-			unbindProducers(module, messageBus);
-		}
+		unbindConsumer(module, messageBus);
+		unbindProducers(module, messageBus);
 	}
 
 	private void unbindConsumer(Module module, MessageBus bus) {

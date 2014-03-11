@@ -61,8 +61,8 @@ public abstract class AbstractSingleNodeInitializationTests {
 		args = addArgIfProvided(args, "controlTransport", getControlTransport());
 		singleNodeApplication.run(args);
 
-		this.containerContext = (AbstractApplicationContext) this.singleNodeApplication.containerContext();
-		this.coreContext = (AbstractApplicationContext) this.singleNodeApplication.coreContext();
+		this.containerContext = (AbstractApplicationContext) this.singleNodeApplication.pluginContext();
+		this.coreContext = (AbstractApplicationContext) this.singleNodeApplication.containerContext();
 		setupApplicationContext(this.containerContext);
 	}
 

@@ -16,26 +16,19 @@
 
 package org.springframework.xd.dirt.container.initializer;
 
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.boot.context.event.ApplicationPreparedEvent;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.Ordered;
 
 
 /**
- * A {@link OrderedContextInitializer} base class for loading XML Bean Definitions into the main container Context
+ * Allows to make any necessary changes to the context which will be used as the parent of all
+ * {@link Module#setParentContext(org.springframework.context.ApplicationContext) modules}. Note that said context has
+ * not been {@link ConfigurableApplicationContext#refresh() refreshed} yet.
  * 
  * @author David Turanski
  */
-public abstract class AbstractXMLBeanDefinitionProvider implements OrderedContextInitializer {
-
-	@Override
-	public void onApplicationEvent(ApplicationPreparedEvent event) {
-		ConfigurableApplicationContext context = event.getApplicationContext();
-		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader((BeanDefinitionRegistry) context.getBeanFactory());
-		reader.setEnvironment(context.getEnvironment());
-		reader.loadBeanDefinitions(getLocations());
-	}
-
-	protected abstract String[] getLocations();
+public interface OrderedContextInitializer extends ApplicationListener<ApplicationPreparedEvent>,
+		Ordered {
 }

@@ -67,14 +67,14 @@ public class SingleNodeIntegrationTestSupport {
 	public SingleNodeIntegrationTestSupport(SingleNodeApplication application, String moduleResourceLocation) {
 		Assert.notNull(application, "SingleNodeApplication must not be null");
 		deployedModuleState = new DeployedModuleState();
-		streamDefinitionRepository = application.containerContext().getBean(StreamDefinitionRepository.class);
-		streamRepository = application.containerContext().getBean(StreamRepository.class);
+		streamDefinitionRepository = application.pluginContext().getBean(StreamDefinitionRepository.class);
+		streamRepository = application.pluginContext().getBean(StreamRepository.class);
 		streamDeployer = application.adminContext().getBean(StreamDeployer.class);
-		messageBus = application.containerContext().getBean(MessageBus.class);
-		application.coreContext().addApplicationListener(deployedModuleState);
+		messageBus = application.pluginContext().getBean(MessageBus.class);
+		application.containerContext().addApplicationListener(deployedModuleState);
 		Assert.hasText(moduleResourceLocation, "'moduleResourceLocation' cannot be null or empty");
 		ResourceModuleRegistry cp = new ResourceModuleRegistry(moduleResourceLocation);
-		DelegatingModuleRegistry cmr1 = application.containerContext().getBean(DelegatingModuleRegistry.class);
+		DelegatingModuleRegistry cmr1 = application.pluginContext().getBean(DelegatingModuleRegistry.class);
 		cmr1.addDelegate(cp);
 		DelegatingModuleRegistry cmr2 = application.adminContext().getBean(DelegatingModuleRegistry.class);
 		if (cmr1 != cmr2) {

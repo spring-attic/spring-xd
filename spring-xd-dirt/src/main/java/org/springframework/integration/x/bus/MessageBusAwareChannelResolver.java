@@ -19,7 +19,6 @@ package org.springframework.integration.x.bus;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.messaging.MessageChannel;
@@ -39,11 +38,6 @@ public class MessageBusAwareChannelResolver extends BeanFactoryMessageChannelDes
 
 	public MessageBusAwareChannelResolver(MessageBus messageBus) {
 		this.messageBus = messageBus;
-	}
-
-	@Override
-	public void setBeanFactory(BeanFactory beanFactory) {
-		super.setBeanFactory(beanFactory);
 	}
 
 	@Override

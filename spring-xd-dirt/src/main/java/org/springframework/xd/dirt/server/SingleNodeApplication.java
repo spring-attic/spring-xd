@@ -34,9 +34,9 @@ public class SingleNodeApplication {
 
 	private ConfigurableApplicationContext adminContext;
 
-	private ConfigurableApplicationContext containerContext;
+	private ConfigurableApplicationContext pluginContext;
 
-	private ConfigurableApplicationContext coreContext;
+	private ConfigurableApplicationContext containerContext;
 
 	@Value("${XD_CONTROL_TRANSPORT}")
 	ControlTransport controlTransport;
@@ -65,31 +65,31 @@ public class SingleNodeApplication {
 		SpringApplicationBuilder container = admin
 				.sibling(SingleNodeOptions.class, ContainerServerApplication.class)
 				.profiles(ContainerServerApplication.NODE_PROFILE, SINGLE_PROFILE)
-				.listeners(bootstrapContext.commandLineListener())
-				.listeners(bootstrapContext.sharedContextInitializers())
-				.child(CoreRuntimeConfiguration.class)
+				.listeners(ApplicationUtils.mergeApplicationListeners(bootstrapContext.commandLineListener(),
+						bootstrapContext.orderedContextInitializers()))
+				.child(ContainerConfiguration.class)
 				.listeners(bootstrapContext.commandLineListener())
 				.web(false);
 		container.run(args);
 
 		adminContext = admin.context();
 
-		coreContext = container.context();
-		containerContext = (ConfigurableApplicationContext) coreContext.getParent();
+		containerContext = container.context();
+		pluginContext = (ConfigurableApplicationContext) containerContext.getParent();
 
 		SingleNodeApplication singleNodeApp = adminContext.getBean(SingleNodeApplication.class);
 		if (singleNodeApp.controlTransport == ControlTransport.local) {
-			setUpControlChannels(adminContext, coreContext);
+			setUpControlChannels(adminContext, containerContext);
 		}
 		return this;
 	}
 
 	public void close() {
-		if (coreContext != null) {
-			coreContext.close();
-		}
 		if (containerContext != null) {
 			containerContext.close();
+		}
+		if (pluginContext != null) {
+			pluginContext.close();
 		}
 		if (adminContext != null) {
 			adminContext.close();
@@ -104,12 +104,12 @@ public class SingleNodeApplication {
 		return adminContext;
 	}
 
-	public ConfigurableApplicationContext containerContext() {
-		return containerContext;
+	public ConfigurableApplicationContext pluginContext() {
+		return pluginContext;
 	}
 
-	public ConfigurableApplicationContext coreContext() {
-		return coreContext;
+	public ConfigurableApplicationContext containerContext() {
+		return containerContext;
 	}
 
 	private void setUpControlChannels(ApplicationContext adminContext,

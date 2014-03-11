@@ -66,7 +66,7 @@ public class StreamTestSupport {
 
 		streamDeployer = integrationTestSupport.streamDeployer();
 
-		Object md = application.coreContext().getBean("moduleDeployer", Object.class);
+		Object md = application.containerContext().getBean("moduleDeployer", Object.class);
 		moduleDeployer = (ModuleDeployer) (AopUtils.isJdkDynamicProxy(md) ? ((Advised) md).getTargetSource().getTarget()
 				: md);
 		moduleDefinitionRepository = adminContext.getBean(ModuleDefinitionRepository.class);

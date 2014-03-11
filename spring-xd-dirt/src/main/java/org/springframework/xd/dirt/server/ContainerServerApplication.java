@@ -16,6 +16,9 @@
 
 package org.springframework.xd.dirt.server;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
@@ -55,13 +58,15 @@ import org.springframework.xd.dirt.util.XdConfigLoggingInitializer;
 @Import(PropertyPlaceholderAutoConfiguration.class)
 public class ContainerServerApplication {
 
+	private static final Log log = LogFactory.getLog(ContainerServerApplication.class);
+
 	private static final String MBEAN_EXPORTER_BEAN_NAME = "XDLauncherMBeanExporter";
 
 	public static final String NODE_PROFILE = "node";
 
 	private final ContainerMetadata containerMetadata;
 
-	private ConfigurableApplicationContext coreContext;
+	private ConfigurableApplicationContext containerContext;
 
 	public ContainerServerApplication() {
 		this.containerMetadata = new ContainerMetadata();
@@ -76,12 +81,18 @@ public class ContainerServerApplication {
 		new ContainerServerApplication().run(args);
 	}
 
-	public ConfigurableApplicationContext getContext() {
-		return (ConfigurableApplicationContext) this.coreContext.getParent();
+	public ConfigurableApplicationContext getPluginContext() {
+		if (this.containerContext != null) {
+			return (ConfigurableApplicationContext) this.containerContext.getParent();
+		}
+		else {
+			log.error("The container has not been initialized yet.");
+			return null;
+		}
 	}
 
-	public ConfigurableApplicationContext getCoreContext() {
-		return this.coreContext;
+	public ConfigurableApplicationContext getContainerContext() {
+		return this.containerContext;
 	}
 
 
@@ -91,13 +102,14 @@ public class ContainerServerApplication {
 		try {
 			ContainerBootstrapContext bootstrapContext = new ContainerBootstrapContext(new ContainerOptions());
 
-			this.coreContext = new SpringApplicationBuilder(ContainerOptions.class, ParentConfiguration.class)
+			this.containerContext = new SpringApplicationBuilder(ContainerOptions.class, ParentConfiguration.class)
 					.profiles(NODE_PROFILE)
 					.listeners(bootstrapContext.commandLineListener())
 					.child(ContainerServerApplication.class)
-					.listeners(bootstrapContext.commandLineListener())
-					.listeners(bootstrapContext.sharedContextInitializers())
-					.child(CoreRuntimeConfiguration.class)
+					.listeners(
+							ApplicationUtils.mergeApplicationListeners(bootstrapContext.commandLineListener(),
+									bootstrapContext.orderedContextInitializers()))
+					.child(ContainerConfiguration.class)
 					.listeners(bootstrapContext.commandLineListener())
 					.initializers(new IdInitializer())
 					.run(args);
@@ -154,7 +166,7 @@ public class ContainerServerApplication {
 
 
 /**
- * Core Runtime Application Context
+ * Container Application Context
  * 
  * @author David Turanski
  */
@@ -163,7 +175,7 @@ public class ContainerServerApplication {
 	"classpath:" + ConfigLocations.XD_INTERNAL_CONFIG_ROOT + "container-server.xml",
 })
 @Import(PropertyPlaceholderAutoConfiguration.class)
-class CoreRuntimeConfiguration {
+class ContainerConfiguration {
 
 	@Autowired
 	private ContainerMetadata containerMetadata;

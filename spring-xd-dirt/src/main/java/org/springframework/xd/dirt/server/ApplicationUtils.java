@@ -14,21 +14,29 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.container.initializer;
+package org.springframework.xd.dirt.server;
 
-import org.springframework.boot.context.event.ApplicationPreparedEvent;
+import java.util.Arrays;
+
 import org.springframework.context.ApplicationListener;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.core.Ordered;
+import org.springframework.util.Assert;
 
 
 /**
- * Allows to make any necessary changes to the context which will be used as the parent of all
- * {@link Module#setParentContext(org.springframework.context.ApplicationContext) modules}. Note that said context has
- * not been {@link ConfigurableApplicationContext#refresh() refreshed} yet.
  * 
  * @author David Turanski
  */
-public interface SharedContextInitializer extends ApplicationListener<ApplicationPreparedEvent>,
-		Ordered {
+abstract class ApplicationUtils {
+
+	static ApplicationListener<?>[] mergeApplicationListeners(ApplicationListener<?> applicationListener,
+			ApplicationListener<?>[] applicationListeners) {
+		Assert.notEmpty(applicationListeners, "applicationListeners[] must contain at least one item");
+		int newLength = applicationListeners.length + 1;
+		ApplicationListener<?>[] mergedApplicationListeners = Arrays.copyOf(applicationListeners,
+				newLength);
+		mergedApplicationListeners[newLength - 1] = applicationListener;
+
+		return mergedApplicationListeners;
+	}
+
 }

@@ -22,8 +22,9 @@ import java.util.Collection;
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationListener;
 import org.springframework.core.OrderComparator;
-import org.springframework.xd.dirt.container.initializer.SharedContextInitializer;
+import org.springframework.xd.dirt.container.initializer.OrderedContextInitializer;
 import org.springframework.xd.dirt.server.options.CommandLinePropertySourceOverridingListener;
 import org.springframework.xd.dirt.server.options.CommonOptions;
 
@@ -38,7 +39,7 @@ class ContainerBootstrapContext {
 
 	private CommandLinePropertySourceOverridingListener<?> commandLineListener;
 
-	private SharedContextInitializer[] sharedContextInitializers;
+	private ApplicationListener<?>[] orderedContextInitializers;
 
 	<T extends CommonOptions> ContainerBootstrapContext(T options) {
 
@@ -52,16 +53,16 @@ class ContainerBootstrapContext {
 				.headless(true)
 				.web(false)
 				.run();
-		Collection<SharedContextInitializer> sharedContextInitializerBeans = bootstrapContext.getBeansOfType(
-				SharedContextInitializer.class).values();
+		Collection<OrderedContextInitializer> sharedContextInitializerBeans = bootstrapContext.getBeansOfType(
+				OrderedContextInitializer.class).values();
 
-		this.sharedContextInitializers = sharedContextInitializerBeans.toArray(new
-				SharedContextInitializer[sharedContextInitializerBeans.size()]);
-		Arrays.sort(sharedContextInitializers, new OrderComparator());
+		this.orderedContextInitializers = sharedContextInitializerBeans.toArray(new
+				ApplicationListener<?>[sharedContextInitializerBeans.size()]);
+		Arrays.sort(orderedContextInitializers, new OrderComparator());
 	}
 
-	SharedContextInitializer[] sharedContextInitializers() {
-		return this.sharedContextInitializers;
+	ApplicationListener<?>[] orderedContextInitializers() {
+		return this.orderedContextInitializers;
 	}
 
 	CommandLinePropertySourceOverridingListener<?> commandLineListener() {

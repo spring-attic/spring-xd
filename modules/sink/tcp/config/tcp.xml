@@ -9,18 +9,21 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
+	<import resource="../../../common/tcp-encdec.xml"/>
+	
 	<int:channel id="input"/>
 
 	<int-ip:tcp-connection-factory id="connectionFactory"
 		type="client"
-		host="${host:localhost}"
-		port="${port:1234}"
-		lookup-host="${reverse-lookup:false}"
-		using-nio="${nio:false}"
-		using-direct-buffers="${nio:false}"
-		single-use="${close:false}"
+		host="${host}"
+		port="${port}"
+		lookup-host="${reverseLookup}"
+		using-nio="${nio}"
+		using-direct-buffers="${nio}"
+		single-use="${close}"
 		mapper="mapper"
-		serializer="${encoder:CRLF}"/>
+		so-timeout="${socketTimeout}"
+		serializer="${encoder}"/>
 
 	<!--
 		TCP Outbound adapter with retries - default is 5 attempts with exponential backoff starting at
@@ -34,13 +37,13 @@
 					<bean class="org.springframework.retry.support.RetryTemplate">
 						<property name="retryPolicy">
 							<bean class="org.springframework.retry.policy.SimpleRetryPolicy">
-								<property name="maxAttempts" value="${retry-max-attempts:5}"/>
+								<property name="maxAttempts" value="${retryMaxAttempts}"/>
 							</bean>
 						</property>
 						<property name="backOffPolicy">
 							<bean class="org.springframework.retry.backoff.ExponentialBackOffPolicy">
-								<property name="initialInterval" value="${retry-initial-interval:2000}"/>
-								<property name="multiplier" value="${retry-multiplier:2}"/>
+								<property name="initialInterval" value="${retryInitialInterval}"/>
+								<property name="multiplier" value="${retryMultiplier}"/>
 							</bean>
 						</property>
 					</bean>
@@ -50,24 +53,8 @@
 	</int-ip:tcp-outbound-channel-adapter>
 
 	<bean id="mapper" class="org.springframework.integration.ip.tcp.connection.TcpMessageMapper">
-		<property name="charset" value="${charset:UTF-8}"/>
+		<property name="charset" value="${charset}"/>
 	</bean>
 
-	<bean id="CRLF" class="org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer"/>
-	<bean id="LF" class="org.springframework.integration.ip.tcp.serializer.ByteArrayLfSerializer"/>
-	<bean id="NULL" class="org.springframework.integration.ip.tcp.serializer.ByteArraySingleTerminatorSerializer">
-		<constructor-arg value="0" />
-	</bean>
-	<bean id="STXETX" class="org.springframework.integration.ip.tcp.serializer.ByteArrayStxEtxSerializer"/>
-	<bean id="RAW" class="org.springframework.integration.ip.tcp.serializer.ByteArrayRawSerializer"/>
-	<bean id="L1" class="org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSerializer">
-		<constructor-arg value="1" />
-	</bean>
-	<bean id="L2" class="org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSerializer">
-		<constructor-arg value="2" />
-	</bean>
-	<bean id="L4" class="org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSerializer">
-		<constructor-arg value="4" />
-	</bean>
 
 </beans>

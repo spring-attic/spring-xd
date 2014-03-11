@@ -9,6 +9,8 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
+	<import resource="../../../common/tcp-encdec.xml"/>
+	
 	<int-ip:tcp-connection-factory id="connectionFactory"
 		type="server"
 		port="${port}"
@@ -22,28 +24,9 @@
 			auto-startup="false"
 			connection-factory="connectionFactory"/>
 
-	<!-- Binary payloads are not currently supported; see XD-145 -->
-<!-- 	<int:router input-channel="toStringIfNeeded" expression="${binary:false} ? 'output' : 'toString'"/> -->
-
 	<int:transformer input-channel="toString" output-channel="output" expression="new String(payload, '${charset}')"/>
 
 	<int:channel id="output"/>
 
-	<bean id="CRLF" class="org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer"/>
-	<bean id="LF" class="org.springframework.integration.ip.tcp.serializer.ByteArrayLfSerializer"/>
-	<bean id="NULL" class="org.springframework.integration.ip.tcp.serializer.ByteArraySingleTerminatorSerializer">
-		<constructor-arg value="0" />
-	</bean>
-	<bean id="STXETX" class="org.springframework.integration.ip.tcp.serializer.ByteArrayStxEtxSerializer"/>
-	<bean id="RAW" class="org.springframework.integration.ip.tcp.serializer.ByteArrayRawSerializer"/>
-	<bean id="L1" class="org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSerializer">
-		<constructor-arg value="1" />
-	</bean>
-	<bean id="L2" class="org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSerializer">
-		<constructor-arg value="2" />
-	</bean>
-	<bean id="L4" class="org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSerializer">
-		<constructor-arg value="4" />
-	</bean>
 
 </beans>

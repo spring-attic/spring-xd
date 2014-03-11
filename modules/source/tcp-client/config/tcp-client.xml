@@ -12,67 +12,30 @@
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
 	<import resource="../../../common/script-variable-generator.xml" />
-
+	<import resource="../../../common/tcp-encdec.xml"/>
+	
 	<int-ip:tcp-connection-factory id="connectionFactory"
 		type="client"
-		host="${host:localhost}"
-		port="${port:1234}"
-		lookup-host="${reverse-lookup:false}"
-		using-nio="${nio:false}"
-		using-direct-buffers="${nio:false}"
-		single-use="${close:false}" deserializer="${decoder:LF}"
+		host="${host}"
+		port="${port}"
+		lookup-host="${reverseLookup}"
+		using-nio="${nio}"
+		using-direct-buffers="${nio}"
+		single-use="${close}" deserializer="${decoder}"
 		mapper="mapper"
-		serializer="${encoder:LF}"/>
+		serializer="${encoder}"/>
 
 	<bean id="mapper" class="org.springframework.integration.ip.tcp.connection.TcpMessageMapper">
-		<property name="charset" value="${charset:UTF-8}"/>
+		<property name="charset" value="${charset}"/>
 	</bean>
 
-	<bean id="CRLF" class="org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer">
-		<property name="maxMessageSize" value="${bufferSize:2048}" />
-	</bean>
-	<bean id="LF" class="org.springframework.integration.ip.tcp.serializer.ByteArrayLfSerializer">
-		<property name="maxMessageSize" value="${bufferSize:2048}" />
-	</bean>
-	<bean id="NULL" class="org.springframework.integration.ip.tcp.serializer.ByteArraySingleTerminatorSerializer">
-		<constructor-arg value="0" />
-		<property name="maxMessageSize" value="${bufferSize:2048}" />
-	</bean>
-	<bean id="STXETX" class="org.springframework.integration.ip.tcp.serializer.ByteArrayStxEtxSerializer">
-		<property name="maxMessageSize" value="${bufferSize:2048}" />
-	</bean>
-	<bean id="RAW" class="org.springframework.integration.ip.tcp.serializer.ByteArrayRawSerializer">
-		<property name="maxMessageSize" value="${bufferSize:2048}" />
-	</bean>
-	<bean id="L1" class="org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSerializer">
-		<constructor-arg value="1" />
-		<property name="maxMessageSize" value="${bufferSize:2048}" />
-	</bean>
-	<bean id="L2" class="org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSerializer">
-		<constructor-arg value="2" />
-		<property name="maxMessageSize" value="${bufferSize:2048}" />
-	</bean>
-	<bean id="L4" class="org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSerializer">
-		<constructor-arg value="4" />
-		<property name="maxMessageSize" value="${bufferSize:2048}" />
-	</bean>
 
 	<bean id="counter" class="java.util.concurrent.atomic.AtomicInteger" />
 
 	<int:inbound-channel-adapter channel="commandsTrigger" expression="@counter.incrementAndGet()" auto-startup="false">
-		<int:poller fixed-delay="${fixedDelay:5}" time-unit="SECONDS" />
+		<int:poller fixed-delay="${fixedDelay}" time-unit="SECONDS" />
 	</int:inbound-channel-adapter>
-
-	<int:filter id="invokeScript"
-			input-channel="commandsTrigger" output-channel="to.script"
-			discard-channel="to.spel"
-			expression="'${script:null}' ne 'null'" />
-
-	<int:transformer input-channel="to.spel" expression="${expression:payload.toString()}" output-channel="commands"/>
-
-	<int:transformer input-channel="to.script" output-channel="commands">
-		<int-groovy:script location="${script:dummy.groovy}" script-variable-generator="variableGenerator" refresh-check-delay="60"/>
-	</int:transformer>
+	
 
 	<int:channel id="commands" />
 
@@ -82,5 +45,15 @@
 		connection-factory="connectionFactory" client-mode="true" channel="output" />
 
 	<int:channel id="output"/>
+	
+	<beans profile="use-script">
+		<int:transformer input-channel="commandsTrigger" output-channel="commands">
+			<int-groovy:script location="${script}" script-variable-generator="variableGenerator" refresh-check-delay="60"/>
+		</int:transformer>
+	</beans>
+	<beans profile="use-expression">
+		<int:transformer input-channel="commandsTrigger" expression="${expression}" output-channel="commands"/>
+	</beans>
+
 
 </beans>

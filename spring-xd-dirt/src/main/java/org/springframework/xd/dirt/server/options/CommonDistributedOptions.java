@@ -20,8 +20,8 @@ import javax.validation.constraints.NotNull;
 
 import org.kohsuke.args4j.Option;
 
-import org.springframework.xd.dirt.server.options.FromResourceLocationOptionHandlers.DistributedAnalyticsOptionHandler;
-import org.springframework.xd.dirt.server.options.FromResourceLocationOptionHandlers.DistributedStoreOptionHandler;
+import org.springframework.xd.dirt.server.options.ResourcePatternScanningOptionHandlers.DistributedAnalyticsOptionHandler;
+import org.springframework.xd.dirt.server.options.ResourcePatternScanningOptionHandlers.DistributedStoreOptionHandler;
 
 
 /**

@@ -21,10 +21,10 @@ import javax.validation.constraints.NotNull;
 import org.kohsuke.args4j.Option;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.xd.dirt.server.options.FromResourceLocationOptionHandlers.SingleNodeAnalyticsOptionHandler;
-import org.springframework.xd.dirt.server.options.FromResourceLocationOptionHandlers.SingleNodeControlTransportOptionHandler;
-import org.springframework.xd.dirt.server.options.FromResourceLocationOptionHandlers.SingleNodeDataTransportOptionHandler;
-import org.springframework.xd.dirt.server.options.FromResourceLocationOptionHandlers.SingleNodeStoreOptionHandler;
+import org.springframework.xd.dirt.server.options.ResourcePatternScanningOptionHandlers.SingleNodeAnalyticsOptionHandler;
+import org.springframework.xd.dirt.server.options.ResourcePatternScanningOptionHandlers.SingleNodeControlTransportOptionHandler;
+import org.springframework.xd.dirt.server.options.ResourcePatternScanningOptionHandlers.SingleNodeDataTransportOptionHandler;
+import org.springframework.xd.dirt.server.options.ResourcePatternScanningOptionHandlers.SingleNodeStoreOptionHandler;
 
 
 /**
@@ -42,19 +42,19 @@ public class SingleNodeOptions extends CommonOptions {
 	private String analytics;
 
 	@Option(name = "--transport", handler = SingleNodeDataTransportOptionHandler.class,
-			usage = "The transport to use for data messages (from node to node)")
+			usage = "The transport to use for data messages (between modules within a stream)")
 	private String transport;
 
 	@Option(name = "--controlTransport", aliases = { "--control-transport" },
 			handler = SingleNodeControlTransportOptionHandler.class,
-			usage = "The transport to use for control messages (between admin and nodes)")
+			usage = "The transport to use for control messages")
 	private String controlTransport;
 
 	@Option(name = "--store", handler = SingleNodeStoreOptionHandler.class,
 			usage = "How to persist admin data")
 	private String store;
 
-	@Option(name = "--httpPort", usage = "Http port for the REST API server", metaVar = "<httpPort>")
+	@Option(name = "--httpPort", usage = "HTTP port for the REST API server", metaVar = "<httpPort>")
 	private Integer httpPort;
 
 	@Option(name = "--hadoopDistro", usage = "The Hadoop distribution to be used for HDFS access")

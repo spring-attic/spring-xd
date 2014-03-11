@@ -22,105 +22,100 @@ import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.OptionDef;
 import org.kohsuke.args4j.spi.Setter;
 
+import org.springframework.xd.dirt.util.ConfigLocations;
 
 /**
- * Holds definitions of {@link FromResourceLocationOptionHandler}s used in Spring XD.
+ * Holds definitions of {@link ResourcePatternScanningOptionHandler}s used in Spring XD.
  * 
  * @author Eric Bottard
  */
-public final class FromResourceLocationOptionHandlers {
+public final class ResourcePatternScanningOptionHandlers {
 
-	private FromResourceLocationOptionHandlers() {
-
+	private ResourcePatternScanningOptionHandlers() {
+		// prevent instantiation
 	}
 
-	private static final String CONFIGURATION_ROOT = "classpath*:/META-INF/spring-xd/";
+	private static final String CONFIGURATION_ROOT = "classpath*:/" + ConfigLocations.XD_CONFIG_ROOT;
 
 	/**
 	 * The special controlTransport, usable only in singlenode mode, that requires the admin and container application
 	 * contexts to talk to each other.
 	 */
-	public static final String SINGLE_NODE_SPECIAL_CONTROL_TRANSPORT = "local";
+	public static final String SINGLE_NODE_LOCAL_CONTROL_TRANSPORT = "local";
 
 	/**
 	 * Computes values for --controlTransport for the distributed case.
 	 */
-	public static class DistributedControlTransportOptionHandler extends FromResourceLocationOptionHandler {
+	public static class DistributedControlTransportOptionHandler extends ResourcePatternScanningOptionHandler {
 
 		public DistributedControlTransportOptionHandler(CmdLineParser parser, OptionDef option, Setter<String> setter)
 				throws IOException {
 			super(parser, option, setter, CONFIGURATION_ROOT + "transports/*-admin.xml");
 		}
-
 	}
 
 	/**
 	 * Computes values for --controlTransport for the singlenode case.
 	 */
-	public static class SingleNodeControlTransportOptionHandler extends FromResourceLocationOptionHandler {
+	public static class SingleNodeControlTransportOptionHandler extends ResourcePatternScanningOptionHandler {
 
 		public SingleNodeControlTransportOptionHandler(CmdLineParser parser, OptionDef option, Setter<String> setter)
 				throws IOException {
 			super(parser, option, setter, CONFIGURATION_ROOT + "transports/*-admin.xml");
-			include(SINGLE_NODE_SPECIAL_CONTROL_TRANSPORT);
+			include(SINGLE_NODE_LOCAL_CONTROL_TRANSPORT);
 		}
-
 	}
 
 	/**
 	 * Computes values for (data) --transport for the distributed case.
 	 */
-	public static class DistributedDataTransportOptionHandler extends FromResourceLocationOptionHandler {
+	public static class DistributedDataTransportOptionHandler extends ResourcePatternScanningOptionHandler {
 
 		public DistributedDataTransportOptionHandler(CmdLineParser parser, OptionDef option, Setter<String> setter)
 				throws IOException {
 			super(parser, option, setter, CONFIGURATION_ROOT + "transports/*-bus.xml");
 			exclude("local");
 		}
-
 	}
 
 	/**
 	 * Computes values for (data) --transport for the singlenode case.
 	 */
-	public static class SingleNodeDataTransportOptionHandler extends FromResourceLocationOptionHandler {
+	public static class SingleNodeDataTransportOptionHandler extends ResourcePatternScanningOptionHandler {
 
 		public SingleNodeDataTransportOptionHandler(CmdLineParser parser, OptionDef option, Setter<String> setter)
 				throws IOException {
 			super(parser, option, setter, CONFIGURATION_ROOT + "transports/*-bus.xml");
 		}
-
 	}
 
 	/**
 	 * Computes values for --analytics in the single node case (accepts memory).
 	 */
-	public static class SingleNodeAnalyticsOptionHandler extends FromResourceLocationOptionHandler {
+	public static class SingleNodeAnalyticsOptionHandler extends ResourcePatternScanningOptionHandler {
 
 		public SingleNodeAnalyticsOptionHandler(CmdLineParser parser, OptionDef option, Setter<String> setter)
 				throws IOException {
 			super(parser, option, setter, CONFIGURATION_ROOT + "analytics/*-analytics.xml");
 		}
-
 	}
 
 	/**
 	 * Computes values for --analytics in the distributed case (memory is NOT supported).
 	 */
-	public static class DistributedAnalyticsOptionHandler extends FromResourceLocationOptionHandler {
+	public static class DistributedAnalyticsOptionHandler extends ResourcePatternScanningOptionHandler {
 
 		public DistributedAnalyticsOptionHandler(CmdLineParser parser, OptionDef option, Setter<String> setter)
 				throws IOException {
 			super(parser, option, setter, CONFIGURATION_ROOT + "analytics/*-analytics.xml");
 			exclude("memory");
 		}
-
 	}
 
 	/**
 	 * Computes values for --store in the distributed case (memory is NOT supported).
 	 */
-	public static class DistributedStoreOptionHandler extends FromResourceLocationOptionHandler {
+	public static class DistributedStoreOptionHandler extends ResourcePatternScanningOptionHandler {
 
 		public DistributedStoreOptionHandler(CmdLineParser parser, OptionDef option, Setter<String> setter)
 				throws IOException {
@@ -132,13 +127,12 @@ public final class FromResourceLocationOptionHandlers {
 	/**
 	 * Computes values for --store in the singlenode case.
 	 */
-	public static class SingleNodeStoreOptionHandler extends FromResourceLocationOptionHandler {
+	public static class SingleNodeStoreOptionHandler extends ResourcePatternScanningOptionHandler {
 
 		public SingleNodeStoreOptionHandler(CmdLineParser parser, OptionDef option, Setter<String> setter)
 				throws IOException {
 			super(parser, option, setter, CONFIGURATION_ROOT + "store/*-store.xml");
 		}
 	}
-
 
 }

@@ -20,7 +20,7 @@ import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.xd.dirt.server.options.CommandLinePropertySourceOverridingListener;
-import org.springframework.xd.dirt.server.options.FromResourceLocationOptionHandlers;
+import org.springframework.xd.dirt.server.options.ResourcePatternScanningOptionHandlers;
 import org.springframework.xd.dirt.server.options.SingleNodeOptions;
 import org.springframework.xd.dirt.util.BannerUtils;
 
@@ -70,7 +70,7 @@ public class SingleNodeApplication {
 
 		String controlTransport = adminContext.getEnvironment().getProperty(
 				"XD_CONTROL_TRANSPORT");
-		if (FromResourceLocationOptionHandlers.SINGLE_NODE_SPECIAL_CONTROL_TRANSPORT.equals(controlTransport)) {
+		if (ResourcePatternScanningOptionHandlers.SINGLE_NODE_LOCAL_CONTROL_TRANSPORT.equals(controlTransport)) {
 			setUpControlChannels(adminContext, containerContext);
 		}
 		return this;

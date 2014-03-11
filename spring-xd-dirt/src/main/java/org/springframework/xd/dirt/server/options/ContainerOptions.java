@@ -21,8 +21,8 @@ import javax.validation.constraints.NotNull;
 import org.kohsuke.args4j.Option;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.xd.dirt.server.options.FromResourceLocationOptionHandlers.DistributedControlTransportOptionHandler;
-import org.springframework.xd.dirt.server.options.FromResourceLocationOptionHandlers.DistributedDataTransportOptionHandler;
+import org.springframework.xd.dirt.server.options.ResourcePatternScanningOptionHandlers.DistributedControlTransportOptionHandler;
+import org.springframework.xd.dirt.server.options.ResourcePatternScanningOptionHandlers.DistributedDataTransportOptionHandler;
 
 
 /**

@@ -34,24 +34,24 @@ import org.kohsuke.args4j.spi.Setter;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
-
 /**
  * An {@link OptionHandler} that scans a resource pattern for existing resources (using a single '*' wildcard) and
  * allows all String values <i>s</i> that would fit if that single wildcard was replaced by <i>s</i>.
  * 
  * <p>
  * Given that an option handler has to appear as an annotation parameter, expected usage is to sublcass this class,
- * provide the canonical 3 arg contructor to {@link OptionHandler} and pass the resource pattern as the 4th argument.
+ * provide the canonical 3 arg constructor to {@link OptionHandler} and pass the resource pattern as the 4th argument.
  * </p>
  * 
+ * @author Eric Bottard
  */
-public class FromResourceLocationOptionHandler extends OptionHandler<String> {
+public abstract class ResourcePatternScanningOptionHandler extends OptionHandler<String> {
 
-	private Set<String> possibleValues = new HashSet<String>();
+	private final Set<String> possibleValues = new HashSet<String>();
 
-	private Set<String> excluded = new HashSet<String>();
+	private final Set<String> excluded = new HashSet<String>();
 
-	protected FromResourceLocationOptionHandler(CmdLineParser parser, OptionDef option, Setter<String> setter,
+	protected ResourcePatternScanningOptionHandler(CmdLineParser parser, OptionDef option, Setter<String> setter,
 			String glob)
 			throws IOException {
 		super(parser, option, setter);

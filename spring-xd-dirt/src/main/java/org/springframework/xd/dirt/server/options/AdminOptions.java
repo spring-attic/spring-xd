@@ -21,6 +21,7 @@ import javax.validation.constraints.NotNull;
 import org.kohsuke.args4j.Option;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.xd.dirt.server.options.FromResourceLocationOptionHandlers.DistributedControlTransportOptionHandler;
 
 
 /**
@@ -34,18 +35,10 @@ public class AdminOptions extends CommonDistributedOptions {
 	@Option(name = "--httpPort", usage = "Http port for the REST API server", metaVar = "<httpPort>")
 	private Integer httpPort;
 
-
-	@Option(name = "--controlTransport", aliases = { "--control-transport", "--transport" }, usage = "The transport to use for control messages (between admin and nodes)")
-	private ControlTransport controlTransport;
-
-	public void setXD_CONTROL_TRANSPORT(ControlTransport controlTransport) {
-		this.controlTransport = controlTransport;
-	}
-
-	@NotNull
-	public ControlTransport getXD_CONTROL_TRANSPORT() {
-		return controlTransport;
-	}
+	@Option(name = "--controlTransport", aliases = { "--control-transport", "--transport" },
+			handler = DistributedControlTransportOptionHandler.class,
+			usage = "The transport to use for control messages (between admin and nodes)")
+	private String controlTransport;
 
 	public Integer getPORT() {
 		return httpPort;
@@ -53,6 +46,15 @@ public class AdminOptions extends CommonDistributedOptions {
 
 	public void setPORT(int httpPort) {
 		this.httpPort = httpPort;
+	}
+
+	public void setXD_CONTROL_TRANSPORT(String controlTransport) {
+		this.controlTransport = controlTransport;
+	}
+
+	@NotNull
+	public String getXD_CONTROL_TRANSPORT() {
+		return controlTransport;
 	}
 
 

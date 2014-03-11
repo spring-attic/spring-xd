@@ -13,7 +13,6 @@
 
 package org.springframework.xd.dirt.server;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -21,8 +20,8 @@ import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.xd.dirt.server.options.CommandLinePropertySourceOverridingListener;
+import org.springframework.xd.dirt.server.options.FromResourceLocationOptionHandlers;
 import org.springframework.xd.dirt.server.options.SingleNodeOptions;
-import org.springframework.xd.dirt.server.options.SingleNodeOptions.ControlTransport;
 import org.springframework.xd.dirt.util.BannerUtils;
 
 /**
@@ -36,9 +35,6 @@ public class SingleNodeApplication {
 	private ConfigurableApplicationContext adminContext;
 
 	private ConfigurableApplicationContext containerContext;
-
-	@Value("${XD_CONTROL_TRANSPORT}")
-	ControlTransport controlTransport;
 
 	public static final String SINGLE_PROFILE = "single";
 
@@ -55,8 +51,7 @@ public class SingleNodeApplication {
 				new SingleNodeOptions());
 
 		SpringApplicationBuilder admin =
-				new SpringApplicationBuilder(SingleNodeOptions.class, ParentConfiguration.class,
-						SingleNodeApplication.class)
+				new SpringApplicationBuilder(SingleNodeOptions.class, ParentConfiguration.class)
 						.listeners(commandLineListener)
 						.profiles(AdminServerApplication.ADMIN_PROFILE, SINGLE_PROFILE)
 						.child(SingleNodeOptions.class, AdminServerApplication.class)
@@ -73,8 +68,9 @@ public class SingleNodeApplication {
 		adminContext = admin.context();
 		containerContext = container.context();
 
-		SingleNodeApplication singleNodeApp = adminContext.getBean(SingleNodeApplication.class);
-		if (singleNodeApp.controlTransport == ControlTransport.local) {
+		String controlTransport = adminContext.getEnvironment().getProperty(
+				"XD_CONTROL_TRANSPORT");
+		if (FromResourceLocationOptionHandlers.SINGLE_NODE_SPECIAL_CONTROL_TRANSPORT.equals(controlTransport)) {
 			setUpControlChannels(adminContext, containerContext);
 		}
 		return this;

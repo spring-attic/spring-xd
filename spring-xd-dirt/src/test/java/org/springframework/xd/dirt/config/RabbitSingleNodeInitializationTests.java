@@ -53,7 +53,7 @@ public class RabbitSingleNodeInitializationTests extends AbstractSingleNodeIniti
 
 	@Override
 	protected MessageChannel getControlChannel() {
-		AmqpInboundChannelAdapter aica = context.getBean(AmqpInboundChannelAdapter.class);
+		AmqpInboundChannelAdapter aica = coreContext.getBean(AmqpInboundChannelAdapter.class);
 		return TestUtils.getPropertyValue(aica, "outputChannel", MessageChannel.class);
 	}
 

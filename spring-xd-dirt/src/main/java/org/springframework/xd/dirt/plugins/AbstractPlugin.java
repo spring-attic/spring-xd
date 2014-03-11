@@ -19,8 +19,9 @@ package org.springframework.xd.dirt.plugins;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.Ordered;
-import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.xd.module.core.Module;
 import org.springframework.xd.module.core.Plugin;
 
@@ -32,9 +33,11 @@ import org.springframework.xd.module.core.Plugin;
  * @author David Turanski
  * 
  */
-public abstract class AbstractPlugin implements Plugin, Ordered {
+public abstract class AbstractPlugin implements Plugin, Ordered, ApplicationContextAware {
 
 	protected final Log logger = LogFactory.getLog(getClass());
+
+	private ApplicationContext applicationContext;
 
 	@Override
 	public void preProcessModule(Module module) {
@@ -52,23 +55,21 @@ public abstract class AbstractPlugin implements Plugin, Ordered {
 	public void beforeShutdown(Module module) {
 	}
 
-	protected MessageBus findMessageBus(Module module) {
-		MessageBus messageBus = null;
-		try {
-			messageBus = module.getComponent(MessageBus.class);
-		}
-		catch (Exception e) {
-			logger.error("No MessageBus in context, cannot wire/unwire channels: " + e.getMessage());
-		}
-		return messageBus;
-	}
-
 	@Override
 	public abstract boolean supports(Module module);
 
 	@Override
 	public int getOrder() {
 		return 0;
+	}
+
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) {
+		this.applicationContext = applicationContext;
+	}
+
+	protected ApplicationContext getApplicationContext() {
+		return this.applicationContext;
 	}
 
 }

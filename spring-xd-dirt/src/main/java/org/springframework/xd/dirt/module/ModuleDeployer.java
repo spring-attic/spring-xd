@@ -17,8 +17,6 @@
 package org.springframework.xd.dirt.module;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,13 +29,10 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
-import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.OrderComparator;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.messaging.Message;
@@ -46,7 +41,6 @@ import org.springframework.validation.BindException;
 import org.springframework.xd.dirt.event.ModuleDeployedEvent;
 import org.springframework.xd.dirt.event.ModuleUndeployedEvent;
 import org.springframework.xd.dirt.plugins.job.JobPlugin;
-import org.springframework.xd.dirt.util.ConfigLocations;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
@@ -74,9 +68,9 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private volatile ApplicationContext deployerContext;
+	private volatile ApplicationContext context;
 
-	private volatile ConfigurableApplicationContext commonContext;
+	private volatile ApplicationContext globalContext;
 
 	private volatile ApplicationEventPublisher eventPublisher;
 
@@ -106,7 +100,8 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 
 	@Override
 	public void setApplicationContext(ApplicationContext context) {
-		this.deployerContext = context;
+		this.context = context;
+		this.globalContext = context.getParent().getParent();
 	}
 
 	@Override
@@ -116,25 +111,8 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 
 	@Override
 	public void onInit() {
-		this.plugins = new ArrayList<Plugin>(this.deployerContext.getBeansOfType(Plugin.class).values());
+		this.plugins = new ArrayList<Plugin>(this.context.getParent().getBeansOfType(Plugin.class).values());
 		OrderComparator.sort(this.plugins);
-
-		Collection<SharedContextInitializer> sharedContextInitializerBeans = this.deployerContext.getBeansOfType(
-				SharedContextInitializer.class).values();
-
-		SharedContextInitializer[] sharedContextInitializers = sharedContextInitializerBeans.toArray(new SharedContextInitializer[sharedContextInitializerBeans.size()]);
-		Arrays.sort(sharedContextInitializers, new OrderComparator());
-
-		SpringApplicationBuilder application = new SpringApplicationBuilder(ConfigLocations.XD_INTERNAL_CONFIG_ROOT
-				+ "module-common.xml", PropertyPlaceholderAutoConfiguration.class).web(false);
-		application.application().setShowBanner(false);
-		ConfigurableApplicationContext globalContext = (ConfigurableApplicationContext) deployerContext.getParent();
-		application.parent(globalContext);
-		if (globalContext != null) {
-			application.environment(globalContext.getEnvironment());
-		}
-		application.listeners(sharedContextInitializers);
-		this.commonContext = application.run();
 	}
 
 	@Override
@@ -256,7 +234,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 
 
 	private void deployAndStore(Module module, ModuleDeploymentRequest request) {
-		module.setParentContext(this.commonContext);
+		module.setParentContext(this.globalContext);
 		this.deploy(module);
 		if (logger.isInfoEnabled()) {
 			logger.info("deployed " + module.toString());
@@ -391,7 +369,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 
 	private void fireModuleDeployedEvent(Module module) {
 		if (this.eventPublisher != null) {
-			ModuleDeployedEvent event = new ModuleDeployedEvent(module, this.deployerContext.getId());
+			ModuleDeployedEvent event = new ModuleDeployedEvent(module, this.context.getId());
 			event.setAttribute("group", module.getDeploymentMetadata().getGroup());
 			event.setAttribute("index", "" + module.getDeploymentMetadata().getIndex());
 			this.eventPublisher.publishEvent(event);
@@ -400,7 +378,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 
 	private void fireModuleUndeployedEvent(Module module) {
 		if (this.eventPublisher != null) {
-			ModuleUndeployedEvent event = new ModuleUndeployedEvent(module, this.deployerContext.getId());
+			ModuleUndeployedEvent event = new ModuleUndeployedEvent(module, this.context.getId());
 			event.setAttribute("group", module.getDeploymentMetadata().getGroup());
 			event.setAttribute("index", "" + module.getDeploymentMetadata().getIndex());
 			this.eventPublisher.publishEvent(event);

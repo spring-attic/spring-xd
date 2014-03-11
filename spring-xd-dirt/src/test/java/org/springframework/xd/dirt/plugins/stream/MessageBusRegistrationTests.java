@@ -39,7 +39,7 @@ public class MessageBusRegistrationTests {
 	@Mock
 	private MessageBus bus;
 
-	private StreamPlugin streamPlugin = new StreamPlugin();
+	private StreamPlugin streamPlugin;
 
 	@Mock
 	private Module module;
@@ -53,7 +53,7 @@ public class MessageBusRegistrationTests {
 	@Before
 	public void setUp() {
 		MockitoAnnotations.initMocks(this);
-		when(module.getComponent(MessageBus.class)).thenReturn(bus);
+		streamPlugin = new StreamPlugin(bus);
 		when(module.getComponent("input", MessageChannel.class)).thenReturn(input);
 		when(module.getComponent("output", MessageChannel.class)).thenReturn(output);
 		when(module.getDeploymentMetadata()).thenReturn(deploymentMetadata);

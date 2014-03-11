@@ -14,37 +14,28 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.module;
+package org.springframework.xd.dirt.container.initializer;
 
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.boot.context.event.ApplicationPreparedEvent;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.xd.dirt.util.ConfigLocations;
+
 
 /**
+ * A {@link OrderedContextInitializer} base class for loading XML Bean Definitions into the main container Context
  * 
  * @author David Turanski
  */
-public class MessageBusInitializer implements SharedContextInitializer {
-
-	private static final String CONTEXT_CONFIG_ROOT = ConfigLocations.XD_CONFIG_ROOT + "listeners/bus/";
-
-	private static final String MESSAGE_BUS = CONTEXT_CONFIG_ROOT + "message-bus.xml";
-
-	private static final String CODEC = CONTEXT_CONFIG_ROOT + "codec.xml";
+public abstract class AbstractXMLBeanDefinitionProvider implements OrderedContextInitializer {
 
 	@Override
 	public void onApplicationEvent(ApplicationPreparedEvent event) {
 		ConfigurableApplicationContext context = event.getApplicationContext();
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader((BeanDefinitionRegistry) context.getBeanFactory());
 		reader.setEnvironment(context.getEnvironment());
-		reader.loadBeanDefinitions(MESSAGE_BUS, CODEC);
+		reader.loadBeanDefinitions(getLocations());
 	}
 
-	@Override
-	public int getOrder() {
-		return Integer.MIN_VALUE;
-	}
-
+	protected abstract String[] getLocations();
 }

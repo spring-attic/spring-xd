@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,25 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.config;
+package org.springframework.xd.dirt.server;
 
-import org.springframework.messaging.MessageChannel;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.xd.dirt.container.initializer.MessageBusInitializer;
+import org.springframework.xd.dirt.container.initializer.OrderedContextInitializer;
 
 
 /**
+ * Bootstrap Configuration for the {@link ContainerBootstrapContext }
  * 
  * @author David Turanski
  */
-public class LocalControlRabbitDataInitializationTests extends RabbitSingleNodeInitializationTests {
+@Configuration
+class ContainerBootstrapConfiguration {
 
-	@Override
-	protected String getControlTransport() {
-		return "local";
+	@Bean
+	OrderedContextInitializer messageBusInitializer() {
+		return new MessageBusInitializer();
 	}
 
-	@Override
-	protected MessageChannel getControlChannel() {
-		return coreContext.getBean("containerControlChannel", MessageChannel.class);
-	}
 }

@@ -53,14 +53,18 @@ public class MessageBusAwareChannelResolverTests {
 	private volatile LocalMessageBus bus;
 
 	@Before
-	public void setupContext() {
-		context.registerSingleton("channelResolver", MessageBusAwareChannelResolver.class);
-		context.registerSingleton("messageBus", LocalMessageBus.class);
+	public void setupContext() throws Exception {
+		this.bus = new LocalMessageBus();
+		this.bus.setApplicationContext(context);
+		this.bus.afterPropertiesSet();
+		this.resolver = new MessageBusAwareChannelResolver(this.bus);
+		this.resolver.setBeanFactory(context);
+		context.getBeanFactory().registerSingleton("channelResolver",
+				this.resolver);
 		context.registerSingleton("other", DirectChannel.class);
 		context.registerSingleton("taskScheduler", ThreadPoolTaskScheduler.class);
 		context.refresh();
-		this.resolver = context.getBean(MessageBusAwareChannelResolver.class);
-		this.bus = context.getBean(LocalMessageBus.class);
+
 		PollerMetadata poller = new PollerMetadata();
 		poller.setTrigger(new PeriodicTrigger(1000));
 		bus.setPoller(poller);

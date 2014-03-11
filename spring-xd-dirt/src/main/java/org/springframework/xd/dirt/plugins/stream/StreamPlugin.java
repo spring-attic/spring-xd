@@ -21,11 +21,15 @@ import java.util.Properties;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.boot.context.event.ApplicationPreparedEvent;
+import org.springframework.context.ApplicationListener;
 import org.springframework.integration.channel.ChannelInterceptorAware;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.x.bus.MessageBus;
+import org.springframework.integration.x.bus.MessageBusAwareRouterBeanPostProcessor;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.util.Assert;
 import org.springframework.xd.dirt.plugins.AbstractPlugin;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.ModuleType;
@@ -40,7 +44,16 @@ import org.springframework.xd.module.core.Module;
  */
 public class StreamPlugin extends AbstractPlugin {
 
+	private final MessageBus messageBus;
+
+	public StreamPlugin(MessageBus messageBus) {
+		super();
+		Assert.notNull(messageBus, "messageBus cannot be null.");
+		this.messageBus = messageBus;
+	}
+
 	private final Log logger = LogFactory.getLog(getClass());
+
 
 	private static final String TAP_CHANNEL_PREFIX = "tap:";
 
@@ -53,13 +66,25 @@ public class StreamPlugin extends AbstractPlugin {
 		properties.setProperty("xd.stream.name", md.getGroup());
 		properties.setProperty("xd.module.index", String.valueOf(md.getIndex()));
 		module.addProperties(properties);
+		if (module.getType() == ModuleType.sink) {
+			module.addListener(new ApplicationListener<ApplicationPreparedEvent>() {
+
+				@Override
+				public void onApplicationEvent(ApplicationPreparedEvent event) {
+					MessageBusAwareRouterBeanPostProcessor bpp = new MessageBusAwareRouterBeanPostProcessor(messageBus);
+					bpp.setBeanFactory(event.getApplicationContext());
+					event.getApplicationContext().getBeanFactory().registerSingleton(
+							"messageBusAwareRouterBeanPostProcessor", bpp);
+				}
+
+			});
+		}
 	}
 
 	@Override
 	public void postProcessModule(Module module) {
-		MessageBus bus = findMessageBus(module);
-		bindConsumer(module, bus);
-		bindProducers(module, bus);
+		bindConsumer(module, this.messageBus);
+		bindProducers(module, this.messageBus);
 	}
 
 	@Override
@@ -114,11 +139,8 @@ public class StreamPlugin extends AbstractPlugin {
 
 	@Override
 	public void beforeShutdown(Module module) {
-		MessageBus bus = findMessageBus(module);
-		if (bus != null) {
-			unbindConsumer(module, bus);
-			unbindProducers(module, bus);
-		}
+		unbindConsumer(module, messageBus);
+		unbindProducers(module, messageBus);
 	}
 
 	private void unbindConsumer(Module module, MessageBus bus) {

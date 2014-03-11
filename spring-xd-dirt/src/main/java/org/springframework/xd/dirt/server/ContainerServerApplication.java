@@ -16,7 +16,12 @@
 
 package org.springframework.xd.dirt.server;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContext;
@@ -26,13 +31,13 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableMBeanExport;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.event.SourceFilteringListener;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.xd.dirt.container.ContainerMetadata;
-import org.springframework.xd.dirt.server.options.CommandLinePropertySourceOverridingListener;
 import org.springframework.xd.dirt.server.options.ContainerOptions;
 import org.springframework.xd.dirt.server.options.XDPropertyKeys;
 import org.springframework.xd.dirt.util.BannerUtils;
@@ -43,13 +48,17 @@ import org.springframework.xd.dirt.util.XdConfigLoggingInitializer;
  * The boot application class for a Container server.
  * 
  * @author Mark Fisher
+ * @author David Turanski
  */
 @Configuration
 @EnableAutoConfiguration
 @ImportResource({
-	"classpath:" + ConfigLocations.XD_INTERNAL_CONFIG_ROOT + "container-server.xml",
-	"classpath*:" + ConfigLocations.XD_CONFIG_ROOT + "plugins/*.xml" })
+	"classpath*:" + ConfigLocations.XD_CONFIG_ROOT + "plugins/*.xml"
+})
+@Import(PropertyPlaceholderAutoConfiguration.class)
 public class ContainerServerApplication {
+
+	private static final Log log = LogFactory.getLog(ContainerServerApplication.class);
 
 	private static final String MBEAN_EXPORTER_BEAN_NAME = "XDLauncherMBeanExporter";
 
@@ -57,32 +66,55 @@ public class ContainerServerApplication {
 
 	private final ContainerMetadata containerMetadata;
 
-	private ConfigurableApplicationContext context;
+	private ConfigurableApplicationContext containerContext;
 
 	public ContainerServerApplication() {
 		this.containerMetadata = new ContainerMetadata();
+	}
+
+	@Bean
+	public ContainerMetadata containerMetadata() {
+		return this.containerMetadata;
 	}
 
 	public static void main(String[] args) {
 		new ContainerServerApplication().run(args);
 	}
 
-	public ConfigurableApplicationContext getContext() {
-		return this.context;
+	public ConfigurableApplicationContext getPluginContext() {
+		if (this.containerContext != null) {
+			return (ConfigurableApplicationContext) this.containerContext.getParent();
+		}
+		else {
+			log.error("The container has not been initialized yet.");
+			return null;
+		}
 	}
+
+	public ConfigurableApplicationContext getContainerContext() {
+		return this.containerContext;
+	}
+
+	public void dumpContextConfiguration() {
+		ApplicationUtils.dumpContainerApplicationContextConfiguration(this.containerContext);
+	}
+
 
 	public ContainerServerApplication run(String... args) {
 		System.out.println(BannerUtils.displayBanner(getClass().getSimpleName(), null));
 
-		CommandLinePropertySourceOverridingListener<ContainerOptions> commandLineListener =
-				new CommandLinePropertySourceOverridingListener<ContainerOptions>(new ContainerOptions());
-
 		try {
-			this.context = new SpringApplicationBuilder(ContainerOptions.class, ParentConfiguration.class)
+			ContainerBootstrapContext bootstrapContext = new ContainerBootstrapContext(new ContainerOptions());
+
+			this.containerContext = new SpringApplicationBuilder(ContainerOptions.class, ParentConfiguration.class)
 					.profiles(NODE_PROFILE)
-					.listeners(commandLineListener)
+					.listeners(bootstrapContext.commandLineListener())
 					.child(ContainerServerApplication.class)
-					.listeners(commandLineListener)
+					.listeners(
+							ApplicationUtils.mergeApplicationListeners(bootstrapContext.commandLineListener(),
+									bootstrapContext.orderedContextInitializers()))
+					.child(ContainerConfiguration.class)
+					.listeners(bootstrapContext.commandLineListener())
 					.initializers(new IdInitializer())
 					.run(args);
 		}
@@ -113,17 +145,6 @@ public class ContainerServerApplication {
 		System.exit(1);
 	}
 
-	@Bean
-	public ApplicationListener<?> xdInitializer(ApplicationContext context) {
-		XdConfigLoggingInitializer delegate = new XdConfigLoggingInitializer(true);
-		delegate.setEnvironment(context.getEnvironment());
-		return new SourceFilteringListener(context, delegate);
-	}
-
-	@Bean
-	public ContainerRegistrar containerRegistrar() {
-		return new ContainerRegistrar(this.containerMetadata);
-	}
 
 	@ConditionalOnExpression("${XD_JMX_ENABLED:false}")
 	@EnableMBeanExport(defaultDomain = "xd.container")
@@ -137,6 +158,7 @@ public class ContainerServerApplication {
 		}
 	}
 
+
 	private class IdInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
 		@Override
@@ -144,5 +166,33 @@ public class ContainerServerApplication {
 			applicationContext.setId(containerMetadata.getId());
 		}
 	}
+}
 
+
+/**
+ * Container Application Context
+ * 
+ * @author David Turanski
+ */
+@Configuration
+@ImportResource({
+	"classpath:" + ConfigLocations.XD_INTERNAL_CONFIG_ROOT + "container-server.xml",
+})
+@EnableAutoConfiguration
+class ContainerConfiguration {
+
+	@Autowired
+	private ContainerMetadata containerMetadata;
+
+	@Bean
+	public ApplicationListener<?> xdInitializer(ApplicationContext context) {
+		XdConfigLoggingInitializer delegate = new XdConfigLoggingInitializer(true);
+		delegate.setEnvironment(context.getEnvironment());
+		return new SourceFilteringListener(context, delegate);
+	}
+
+	@Bean
+	public ContainerRegistrar containerRegistrar() {
+		return new ContainerRegistrar(containerMetadata);
+	}
 }

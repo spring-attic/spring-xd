@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.module;
+package org.springframework.xd.dirt.container.initializer;
 
 import org.springframework.boot.context.event.ApplicationPreparedEvent;
 import org.springframework.context.ApplicationListener;
@@ -29,6 +29,6 @@ import org.springframework.core.Ordered;
  * 
  * @author David Turanski
  */
-public interface SharedContextInitializer extends ApplicationListener<ApplicationPreparedEvent>,
+public interface OrderedContextInitializer extends ApplicationListener<ApplicationPreparedEvent>,
 		Ordered {
 }

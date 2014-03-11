@@ -25,12 +25,16 @@ import org.springframework.integration.router.AbstractMappingMessageRouter;
 /**
  * A {@link BeanPostProcessor} that sets a {@link MessageBusAwareChannelResolver} on any bean of type
  * {@link AbstractMappingMessageRouter} within the context.
- *
+ * 
  * @author Mark Fisher
  */
 public class MessageBusAwareRouterBeanPostProcessor implements BeanPostProcessor, BeanFactoryAware {
 
-	private final MessageBusAwareChannelResolver channelResolver = new MessageBusAwareChannelResolver();
+	private final MessageBusAwareChannelResolver channelResolver;
+
+	public MessageBusAwareRouterBeanPostProcessor(MessageBus messageBus) {
+		this.channelResolver = new MessageBusAwareChannelResolver(messageBus);
+	}
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {

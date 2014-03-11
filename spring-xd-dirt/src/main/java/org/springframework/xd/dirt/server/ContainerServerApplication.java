@@ -95,6 +95,10 @@ public class ContainerServerApplication {
 		return this.containerContext;
 	}
 
+	public void dumpContextConfiguration() {
+		ApplicationUtils.dumpContainerApplicationContextConfiguration(this.containerContext);
+	}
+
 
 	public ContainerServerApplication run(String... args) {
 		System.out.println(BannerUtils.displayBanner(getClass().getSimpleName(), null));
@@ -174,7 +178,7 @@ public class ContainerServerApplication {
 @ImportResource({
 	"classpath:" + ConfigLocations.XD_INTERNAL_CONFIG_ROOT + "container-server.xml",
 })
-@Import(PropertyPlaceholderAutoConfiguration.class)
+@EnableAutoConfiguration
 class ContainerConfiguration {
 
 	@Autowired

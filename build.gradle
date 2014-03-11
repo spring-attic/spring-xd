@@ -1228,6 +1228,7 @@ project('spring-xd-ui') {
 		description = "Remove Bower directories"
 		delete '.bower_cache'
 		delete 'bower_components'
+		delete 'app/lib'
 	}
 
 	//task afterEclipseImport(dependsOn: 'setupUI') {

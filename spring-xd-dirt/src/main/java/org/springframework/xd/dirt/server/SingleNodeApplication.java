@@ -19,7 +19,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.SubscribableChannel;
-import org.springframework.xd.dirt.server.options.CommandLinePropertySourceOverridingListener;
 import org.springframework.xd.dirt.server.options.ResourcePatternScanningOptionHandlers;
 import org.springframework.xd.dirt.server.options.SingleNodeOptions;
 import org.springframework.xd.dirt.util.BannerUtils;
@@ -109,10 +108,9 @@ public class SingleNodeApplication {
 		return containerContext;
 	}
 
-	private void setUpControlChannels(ApplicationContext adminContext,
-			ApplicationContext coreContext) {
+	private void setUpControlChannels(ApplicationContext adminContext, ApplicationContext containerContext) {
 
-		MessageChannel containerControlChannel = coreContext.getBean(
+		MessageChannel containerControlChannel = containerContext.getBean(
 				"containerControlChannel", MessageChannel.class);
 		SubscribableChannel deployChannel = adminContext.getBean(
 				"deployChannel", SubscribableChannel.class);

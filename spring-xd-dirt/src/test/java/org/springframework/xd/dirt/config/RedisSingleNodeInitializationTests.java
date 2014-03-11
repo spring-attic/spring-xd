@@ -49,11 +49,11 @@ public class RedisSingleNodeInitializationTests extends AbstractSingleNodeInitia
 
 	@Override
 	protected MessageChannel getControlChannel() {
-		RedisQueueMessageDrivenEndpoint rqmde = coreContext.getBean("redisInboundAdapter",
+		RedisQueueMessageDrivenEndpoint rqmde = containerContext.getBean("redisInboundAdapter",
 				RedisQueueMessageDrivenEndpoint.class);
 		assertTrue(rqmde.isRunning());
 		assertTrue(rqmde.isListening());
-		RedisInboundChannelAdapter rica = coreContext.getBean(RedisInboundChannelAdapter.class);
+		RedisInboundChannelAdapter rica = containerContext.getBean(RedisInboundChannelAdapter.class);
 		assertTrue(rica.isRunning());
 		return TestUtils.getPropertyValue(rica, "outputChannel", MessageChannel.class);
 	}

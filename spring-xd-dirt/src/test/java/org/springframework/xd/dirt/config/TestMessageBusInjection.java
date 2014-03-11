@@ -25,7 +25,6 @@ import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.plugins.stream.StreamPlugin;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 
-
 /**
  * Test class that helps injecting messageBus into {@link ModuleDeployer}'s common context via {@link TestStreamPlugin}.
  * 
@@ -37,14 +36,16 @@ public class TestMessageBusInjection {
 	private static final String STREAM_PLUGIN_BEAN_ID = "streamPlugin";
 
 	public static void injectMessageBus(SingleNodeApplication application, AbstractTestMessageBus testMessageBus) {
-		ConfigurableApplicationContext containerContext = application.pluginContext();
-		RootBeanDefinition bDefinition = new RootBeanDefinition(StreamPlugin.class);
+		ConfigurableApplicationContext pluginContext = application.pluginContext();
+		RootBeanDefinition beanDefinition = new RootBeanDefinition(StreamPlugin.class);
 		ConstructorArgumentValues constructorArgumentValues = new ConstructorArgumentValues();
 		constructorArgumentValues.addIndexedArgumentValue(0, testMessageBus);
-		bDefinition.setConstructorArgumentValues(constructorArgumentValues);
-		BeanDefinitionRegistry bdr = (BeanDefinitionRegistry) containerContext.getBeanFactory();
-		bdr.removeBeanDefinition(STREAM_PLUGIN_BEAN_ID);
-		bdr.registerBeanDefinition(STREAM_PLUGIN_BEAN_ID, bDefinition);
+		beanDefinition.setConstructorArgumentValues(constructorArgumentValues);
+		BeanDefinitionRegistry registry = (BeanDefinitionRegistry) pluginContext.getBeanFactory();
+		registry.removeBeanDefinition(STREAM_PLUGIN_BEAN_ID);
+		registry.registerBeanDefinition(STREAM_PLUGIN_BEAN_ID, beanDefinition);
+		ModuleDeployer moduleDeployer = application.containerContext().getBean(ModuleDeployer.class);
+		moduleDeployer.onInit();
 	}
 
 }

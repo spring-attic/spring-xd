@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2104 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,7 @@ package org.springframework.xd.dirt.config;
 
 import org.springframework.messaging.MessageChannel;
 
-
 /**
- * 
  * @author David Turanski
  */
 public class LocalControlRabbitDataInitializationTests extends RabbitSingleNodeInitializationTests {
@@ -32,6 +30,6 @@ public class LocalControlRabbitDataInitializationTests extends RabbitSingleNodeI
 
 	@Override
 	protected MessageChannel getControlChannel() {
-		return coreContext.getBean("containerControlChannel", MessageChannel.class);
+		return containerContext.getBean("containerControlChannel", MessageChannel.class);
 	}
 }

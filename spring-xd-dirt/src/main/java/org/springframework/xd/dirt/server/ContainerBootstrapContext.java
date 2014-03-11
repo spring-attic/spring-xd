@@ -28,10 +28,9 @@ import org.springframework.xd.dirt.container.initializer.OrderedContextInitializ
 import org.springframework.xd.dirt.server.options.CommandLinePropertySourceOverridingListener;
 import org.springframework.xd.dirt.server.options.CommonOptions;
 
-
 /**
  * Package private class to bootstrap the Container process. Configures and instantiates
- * {@link SharedContextInitializers} and provides them to create main container context.
+ * {@link OrderedContextInitializer}s and provides them to create the main container context.
  * 
  * @author David Turanski
  */
@@ -53,11 +52,12 @@ class ContainerBootstrapContext {
 				.headless(true)
 				.web(false)
 				.run();
-		Collection<OrderedContextInitializer> sharedContextInitializerBeans = bootstrapContext.getBeansOfType(
+
+		Collection<OrderedContextInitializer> orderedContextInitializerBeans = bootstrapContext.getBeansOfType(
 				OrderedContextInitializer.class).values();
 
-		this.orderedContextInitializers = sharedContextInitializerBeans.toArray(new
-				ApplicationListener<?>[sharedContextInitializerBeans.size()]);
+		this.orderedContextInitializers = orderedContextInitializerBeans.toArray(new
+				ApplicationListener<?>[orderedContextInitializerBeans.size()]);
 		Arrays.sort(orderedContextInitializers, new OrderComparator());
 	}
 

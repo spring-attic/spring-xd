@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,16 +24,13 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import org.springframework.context.ApplicationContext;
 import org.springframework.integration.x.bus.LocalMessageBus;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.xd.dirt.server.ContainerRegistrar;
 import org.springframework.xd.module.core.Plugin;
 
-
 /**
- * 
  * @author David Turanski
  */
 public class LocalSingleNodeInitializationTests extends AbstractSingleNodeInitializationTests {
@@ -41,13 +38,13 @@ public class LocalSingleNodeInitializationTests extends AbstractSingleNodeInitia
 	@Test
 	public final void verifyContextConfiguration() {
 
-		assertSame(containerContext, coreContext.getParent());
-		assertTrue(coreContext.containsBean("moduleDeployer") && !containerContext.containsBean("moduleDeployer"));
-		assertTrue(coreContext.containsBean("containerControlChannel")
-				&& !containerContext.containsBean("containerControlChannel"));
-		coreContext.getBean(ContainerRegistrar.class);
-		assertEquals(0, containerContext.getBeansOfType(ContainerRegistrar.class).size());
-		Map<String, Plugin> pluginMap = containerContext.getBeansOfType(Plugin.class);
+		assertSame(pluginContext, containerContext.getParent());
+		assertTrue(containerContext.containsBean("moduleDeployer") && !pluginContext.containsBean("moduleDeployer"));
+		assertTrue(containerContext.containsBean("containerControlChannel")
+				&& !pluginContext.containsBean("containerControlChannel"));
+		containerContext.getBean(ContainerRegistrar.class);
+		assertEquals(0, pluginContext.getBeansOfType(ContainerRegistrar.class).size());
+		Map<String, Plugin> pluginMap = pluginContext.getBeansOfType(Plugin.class);
 		assertTrue(pluginMap.size() > 0);
 	}
 
@@ -67,7 +64,7 @@ public class LocalSingleNodeInitializationTests extends AbstractSingleNodeInitia
 
 	@Override
 	protected MessageChannel getControlChannel() {
-		return coreContext.getBean("containerControlChannel", MessageChannel.class);
+		return containerContext.getBean("containerControlChannel", MessageChannel.class);
 	}
 
 }

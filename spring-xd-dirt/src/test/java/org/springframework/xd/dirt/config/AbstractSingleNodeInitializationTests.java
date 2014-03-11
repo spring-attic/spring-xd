@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,16 +34,14 @@ import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.dirt.server.TestApplicationBootstrap;
 
-
 /**
- * 
  * @author David Turanski
  */
 public abstract class AbstractSingleNodeInitializationTests {
 
-	protected AbstractApplicationContext containerContext;
+	protected AbstractApplicationContext pluginContext;
 
-	protected AbstractApplicationContext coreContext;
+	protected AbstractApplicationContext containerContext;
 
 	protected ModuleDeployer moduleDeployer;
 
@@ -61,8 +59,8 @@ public abstract class AbstractSingleNodeInitializationTests {
 		args = addArgIfProvided(args, "controlTransport", getControlTransport());
 		singleNodeApplication.run(args);
 
-		this.containerContext = (AbstractApplicationContext) this.singleNodeApplication.pluginContext();
-		this.coreContext = (AbstractApplicationContext) this.singleNodeApplication.containerContext();
+		this.pluginContext = (AbstractApplicationContext) this.singleNodeApplication.pluginContext();
+		this.containerContext = (AbstractApplicationContext) this.singleNodeApplication.containerContext();
 		setupApplicationContext(this.containerContext);
 	}
 
@@ -85,7 +83,7 @@ public abstract class AbstractSingleNodeInitializationTests {
 
 	@Test
 	public final void environmentMatchesTransport() {
-		MessageChannel controlChannel = this.coreContext.getBean("containerControlChannel", MessageChannel.class);
+		MessageChannel controlChannel = this.containerContext.getBean("containerControlChannel", MessageChannel.class);
 		assertSame(controlChannel, getControlChannel());
 		MessageBus messageBus = this.containerContext.getBean(MessageBus.class);
 		assertEquals(getExpectedMessageBusType(), messageBus.getClass());

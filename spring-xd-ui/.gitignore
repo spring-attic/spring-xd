@@ -2,8 +2,12 @@ node_modules
 dist
 .tmp
 .sass-cache
-app/bower_components
+.idea
+bower_components
+xd-ui.sublime-project
+xd-ui.sublime-workspace
 .editorconfig
 .bower_cache
+app/lib
 app/styles/main.css
 app/styles/main.css.map

@@ -15,8 +15,6 @@
 
 	<rabbit:admin connection-factory="rabbitConnectionFactory"/>
 
-	<!-- <rabbit:template id="rabbitTemplate" connection-factory="rabbitConnectionFactory"/> -->
-
 	<rabbit:queue name="${xd.deployer.queue:xd.deployer}"/>
 
 	<rabbit:queue id="undeployerQueue"/>

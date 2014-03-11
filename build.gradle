@@ -622,6 +622,7 @@ project('spring-xd-hadoop') {
 		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
 		compile "org.springframework.batch:spring-batch-core:$springBatchVersion"
 		compile ("org.springframework.data:spring-data-hadoop:$springDataHadoopVersion") {
+			exclude group: 'org.springframework.batch'
 			exclude group: 'javax.servlet'
 			exclude group: 'javax.servlet.jsp'
 			exclude group: 'tomcat'

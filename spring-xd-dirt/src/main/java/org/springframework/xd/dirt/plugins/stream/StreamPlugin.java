@@ -66,17 +66,19 @@ public class StreamPlugin extends AbstractPlugin {
 		properties.setProperty("xd.stream.name", md.getGroup());
 		properties.setProperty("xd.module.index", String.valueOf(md.getIndex()));
 		module.addProperties(properties);
-		module.addListener(new ApplicationListener<ApplicationPreparedEvent>() {
+		if (module.getType() == ModuleType.sink) {
+			module.addListener(new ApplicationListener<ApplicationPreparedEvent>() {
 
-			@Override
-			public void onApplicationEvent(ApplicationPreparedEvent event) {
-				MessageBusAwareRouterBeanPostProcessor bpp = new MessageBusAwareRouterBeanPostProcessor(messageBus);
-				bpp.setBeanFactory(event.getApplicationContext());
-				event.getApplicationContext().getBeanFactory().registerSingleton(
-						"messageBusAwareRouterBeanPostProcessor", bpp);
-			}
+				@Override
+				public void onApplicationEvent(ApplicationPreparedEvent event) {
+					MessageBusAwareRouterBeanPostProcessor bpp = new MessageBusAwareRouterBeanPostProcessor(messageBus);
+					bpp.setBeanFactory(event.getApplicationContext());
+					event.getApplicationContext().getBeanFactory().registerSingleton(
+							"messageBusAwareRouterBeanPostProcessor", bpp);
+				}
 
-		});
+			});
+		}
 	}
 
 	@Override

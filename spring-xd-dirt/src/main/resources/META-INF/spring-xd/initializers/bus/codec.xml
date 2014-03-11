@@ -3,7 +3,7 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-<!-- These are contributed by means of a SharedContextInitializer -->
+<!-- These are contributed by means of an OrderedContextInitializer -->
 
 	<bean id="codec" class="org.springframework.integration.x.bus.serializer.CompositeCodec">
 		<constructor-arg name="delegates">

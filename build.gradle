@@ -551,6 +551,15 @@ project('spring-xd-extension-gemfire') {
 	}
 }
 
+project('spring-xd-extension-tcp') {
+	description = 'Spring XD TCP'
+	dependencies {
+		compile "org.springframework.integration:spring-integration-ip:$springIntegrationVersion"
+		compile project(':spring-xd-module-spi')
+		compile "javax.validation:validation-api:1.0.0.GA"
+	}
+}
+
 project('spring-xd-extension-twitter') {
 	description = 'Spring XD Twitter'
 	dependencies {
@@ -956,14 +965,16 @@ project('spring-xd-module') {
 		compile "org.springframework.boot:spring-boot-autoconfigure:$springBootVersion"
 		compile project(':spring-xd-module-spi')
 		runtime "org.hibernate:hibernate-validator:$hibernateValidatorVersion"
-		compile "javax.validation:validation-api:1.0.0.GA"
 
 	}
 }
 
 project('spring-xd-module-spi') {
 	description = 'Spring XD Module Options API'
-	dependencies { compile "org.springframework:spring-web:$springVersion" }
+	dependencies {
+		compile "javax.validation:validation-api:1.0.0.GA"
+		compile "org.springframework:spring-web:$springVersion"
+	}
 }
 
 project('spring-xd-tuple') {
@@ -1048,11 +1059,11 @@ project('modules.source.http') {
 }
 
 project('modules.source.tcp') {
-	dependencies { runtime "org.springframework.integration:spring-integration-ip:$springIntegrationVersion" }
+	dependencies { runtime project(":spring-xd-extension-tcp") }
 }
 
 project('modules.source.tcp-client') {
-	dependencies { runtime "org.springframework.integration:spring-integration-ip:$springIntegrationVersion" }
+	dependencies { runtime project(":spring-xd-extension-tcp") }
 }
 
 project('modules.source.mqtt') {
@@ -1131,7 +1142,7 @@ project('modules.processor.aggregator') {
 // ================ M O D U L E S : S I N K S ==========================
 
 project('modules.sink.tcp') {
-	dependencies { runtime "org.springframework.integration:spring-integration-ip:$springIntegrationVersion" }
+	dependencies { runtime project(":spring-xd-extension-tcp") }
 }
 
 project('modules.sink.mqtt') {

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		">
+
+	<beans profile="use-crlf">
+		<bean id="CRLF"
+			class="org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer">
+			<property name="maxMessageSize" value="${bufferSize}" />
+		</bean>
+	</beans>
+	<beans profile="use-lf">
+		<bean id="LF"
+			class="org.springframework.integration.ip.tcp.serializer.ByteArrayLfSerializer">
+			<property name="maxMessageSize" value="${bufferSize}" />
+		</bean>
+	</beans>
+	<beans profile="use-null">
+		<bean id="NULL"
+			class="org.springframework.integration.ip.tcp.serializer.ByteArraySingleTerminatorSerializer">
+			<constructor-arg value="0" />
+			<property name="maxMessageSize" value="${bufferSize}" />
+		</bean>
+	</beans>
+	<beans profile="use-stxetx">
+		<bean id="STXETX"
+			class="org.springframework.integration.ip.tcp.serializer.ByteArrayStxEtxSerializer">
+			<property name="maxMessageSize" value="${bufferSize}" />
+		</bean>
+	</beans>
+	<beans profile="use-raw">
+		<bean id="RAW"
+			class="org.springframework.integration.ip.tcp.serializer.ByteArrayRawSerializer">
+			<property name="maxMessageSize" value="${bufferSize}" />
+		</bean>
+	</beans>
+	<beans profile="use-l1">
+		<bean id="L1"
+			class="org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSerializer">
+			<constructor-arg value="1" />
+			<property name="maxMessageSize" value="${bufferSize}" />
+		</bean>
+	</beans>
+	<beans profile="use-l2">
+		<bean id="L2"
+			class="org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSerializer">
+			<constructor-arg value="2" />
+			<property name="maxMessageSize" value="${bufferSize}" />
+		</bean>
+	</beans>
+	<beans profile="use-l4">
+		<bean id="L4"
+			class="org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSerializer">
+			<constructor-arg value="4" />
+			<property name="maxMessageSize" value="${bufferSize}" />
+		</bean>
+	</beans>
+</beans>

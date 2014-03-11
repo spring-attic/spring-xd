@@ -26,9 +26,9 @@
 	</int-hadoop:rollover-strategy>
 
 	<!--
-	Order options needed because xml parser don't yet support
-	ordering in a way it exist in this xml.
-	default option for fileName set here due to variable.
+	Order attributes needed because xml parsers don't yet support
+	ordering in a way it exists in this file.
+	Default value for fileName set here due to use of xd.stream.name variable.
 	-->
 	<int-hadoop:naming-strategy>
 		<int-hadoop:static order="1" name="${fileName:${xd.stream.name}}" />

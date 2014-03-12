@@ -132,5 +132,18 @@ public class FlattenedCompositeModuleOptionsMetadataTests {
 		assertThat(ps.getProperty("fooBar"), equalTo((Object) "somedefault42"));
 	}
 
+	@Test
+	public void testDuplicateOption() {
+		thrown.expect(IllegalArgumentException.class);
+		thrown.expectMessage("foo");
+		thrown.expectMessage("OverlappingPojo");
+		thrown.expectMessage("BackingPojo");
+
+
+		FlattenedCompositeModuleOptionsMetadata flattened = new FlattenedCompositeModuleOptionsMetadata(
+				Arrays.asList(
+						new PojoModuleOptionsMetadata(BackingPojo.class),
+						new PojoModuleOptionsMetadata(OverlappingPojo.class)));
+	}
 
 }

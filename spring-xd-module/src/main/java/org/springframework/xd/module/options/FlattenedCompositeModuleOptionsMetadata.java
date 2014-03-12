@@ -54,12 +54,26 @@ public class FlattenedCompositeModuleOptionsMetadata implements ModuleOptionsMet
 			momToSupportedOptions.put(delegate, optionNames);
 			for (ModuleOption option : delegate) {
 				if (options.put(option.getName(), option) != null) {
-					throw new IllegalArgumentException(String.format("Module option named %s is already present",
-							option.getName()));
+					reportOptionCollision(delegates, option.getName());
 				}
 				optionNames.add(option.getName());
 			}
 		}
+	}
+
+	private void reportOptionCollision(List<? extends ModuleOptionsMetadata> delegates, String optionName) {
+		List<ModuleOptionsMetadata> offenders = new ArrayList<ModuleOptionsMetadata>();
+		for (final ModuleOptionsMetadata delegate : delegates) {
+			for (ModuleOption option : delegate) {
+				if (option.getName().equals(optionName)) {
+					offenders.add(delegate);
+					break;
+				}
+			}
+		}
+		throw new IllegalArgumentException(String.format(
+				"Module option named '%s' is present in several delegates: %s",
+				optionName, offenders));
 	}
 
 	@Override

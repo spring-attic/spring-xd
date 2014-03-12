@@ -34,9 +34,8 @@ public class SimpleXdSkipListener extends BatchJobListener<Object> implements Sk
 
 	private static final Log logger = LogFactory.getLog(SimpleXdSkipListener.class);
 
-	public SimpleXdSkipListener(SubscribableChannel skipNotificationChannel,
-			SubscribableChannel notifyAllChannel) {
-		super(skipNotificationChannel, notifyAllChannel);
+	public SimpleXdSkipListener(SubscribableChannel skipEventsChannel, SubscribableChannel aggregatedEventsChannel) {
+		super(skipEventsChannel, aggregatedEventsChannel);
 	}
 
 	@Override

@@ -30,9 +30,9 @@ import org.springframework.messaging.SubscribableChannel;
  */
 public class SimpleXdJobExecutionListener extends BatchJobListener<JobExecution> implements JobExecutionListener {
 
-	public SimpleXdJobExecutionListener(SubscribableChannel jobExecutionNotifyChannel,
-			SubscribableChannel notifyAllChannel) {
-		super(jobExecutionNotifyChannel, notifyAllChannel);
+	public SimpleXdJobExecutionListener(SubscribableChannel jobExecutionEventsChannel,
+			SubscribableChannel aggregatedEventsChannel) {
+		super(jobExecutionEventsChannel, aggregatedEventsChannel);
 	}
 
 	private static final Log logger = LogFactory.getLog(SimpleXdJobExecutionListener.class);

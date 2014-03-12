@@ -33,9 +33,9 @@ public class SimpleXdStepExecutionListener extends BatchJobListener<StepExecutio
 
 	private static final Log logger = LogFactory.getLog(SimpleXdStepExecutionListener.class);
 
-	public SimpleXdStepExecutionListener(SubscribableChannel stepExecutionNotifyChannel,
-			SubscribableChannel commonNotificationChannel) {
-		super(stepExecutionNotifyChannel, commonNotificationChannel);
+	public SimpleXdStepExecutionListener(SubscribableChannel stepExecutionEventsChannel,
+			SubscribableChannel aggregatedEventsChannel) {
+		super(stepExecutionEventsChannel, aggregatedEventsChannel);
 	}
 
 	@Override

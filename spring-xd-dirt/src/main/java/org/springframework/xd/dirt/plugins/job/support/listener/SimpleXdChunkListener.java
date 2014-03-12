@@ -32,9 +32,8 @@ public class SimpleXdChunkListener extends BatchJobListener<ChunkContextInfo> im
 
 	private static final Log logger = LogFactory.getLog(SimpleXdChunkListener.class);
 
-	public SimpleXdChunkListener(SubscribableChannel chunkNotificationChannel,
-			SubscribableChannel notifyAllChannel) {
-		super(chunkNotificationChannel, notifyAllChannel);
+	public SimpleXdChunkListener(SubscribableChannel chunkEventsChannel, SubscribableChannel aggregatedEventsChannel) {
+		super(chunkEventsChannel, aggregatedEventsChannel);
 	}
 
 	@Override

@@ -37,9 +37,8 @@ public final class SimpleXdItemListener<I, O> extends BatchJobListener<Object> i
 
 	private static final Log logger = LogFactory.getLog(SimpleXdItemListener.class);
 
-	public SimpleXdItemListener(SubscribableChannel itemNotificationChannel,
-			SubscribableChannel notifyAllChannel) {
-		super(itemNotificationChannel, notifyAllChannel);
+	public SimpleXdItemListener(SubscribableChannel itemEventsChannel, SubscribableChannel aggregatedEventsChannel) {
+		super(itemEventsChannel, aggregatedEventsChannel);
 	}
 
 	@Override

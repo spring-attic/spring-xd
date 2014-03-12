@@ -154,7 +154,7 @@ public class ContainerRegistrar implements SmartLifecycle, ApplicationContextAwa
 			String tokens[] = jvmName.split("@");
 			StringBuilder builder = new StringBuilder()
 					.append("pid=").append(tokens[0])
-					.append(System.lineSeparator())
+					.append(System.getProperty("line.separator"))
 					.append("host=").append(tokens[1]);
 
 			client.create().withMode(CreateMode.EPHEMERAL).forPath(

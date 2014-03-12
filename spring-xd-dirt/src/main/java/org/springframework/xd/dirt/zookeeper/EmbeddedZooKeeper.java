@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.context.SmartLifecycle;
+import org.springframework.util.ErrorHandler;
 import org.springframework.util.SocketUtils;
 
 /**
@@ -72,9 +73,9 @@ public class EmbeddedZooKeeper implements SmartLifecycle {
 	private volatile ZooKeeperServerMain zkServer;
 
 	/**
-	 * Exception thrown while running the ZooKeeper server. This will be {@code null} if no exceptions are thrown.
+	 * {@link ErrorHandler} to be invoked if an Exception is thrown from the ZooKeeper server thread.
 	 */
-	private volatile Exception zkException;
+	private ErrorHandler errorHandler;
 
 	/**
 	 * Returns the port that clients should use to connect to this embedded server.
@@ -175,12 +176,13 @@ public class EmbeddedZooKeeper implements SmartLifecycle {
 	}
 
 	/**
-	 * Return the exception thrown (if any) when starting the ZooKeeper server.
+	 * Provide an {@link ErrorHandler} to be invoked if an Exception is thrown from the ZooKeeper server thread. If none
+	 * is provided, only error-level logging will occur.
 	 * 
-	 * @return exception thrown when starting ZooKeeper or {@code null} if no exception was thrown
+	 * @param errorHandler the {@link ErrorHandler} to be invoked
 	 */
-	public Exception getException() {
-		return zkException;
+	public void setErrorHandler(ErrorHandler errorHandler) {
+		this.errorHandler = errorHandler;
 	}
 
 	/**
@@ -209,8 +211,12 @@ public class EmbeddedZooKeeper implements SmartLifecycle {
 				zkServer.runFromConfig(configuration);
 			}
 			catch (Exception e) {
-				LOG.error("Exception running embedded ZooKeeper", e);
-				zkException = e;
+				if (errorHandler != null) {
+					errorHandler.handleError(e);
+				}
+				else {
+					LOG.error("Exception running embedded ZooKeeper", e);
+				}
 			}
 		}
 	}

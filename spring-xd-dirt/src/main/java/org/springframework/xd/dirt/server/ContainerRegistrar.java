@@ -33,8 +33,10 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperConnectionListener;
 
 /**
  * An instance of this class, registered as a bean in the context for a Container, will handle the registration of that
- * Container's metadata with ZooKeeper by creating an ephemeral node. It will eagerly delete that node upon a clean
- * shutdown.
+ * Container's metadata with ZooKeeper by creating an ephemeral node. If the {@link ZooKeeperConnection} used by this
+ * registrar is closed, that ephemeral node will be eagerly deleted. Since the {@link ZooKeeperConnection} typically has
+ * its lifecycle managed by Spring, that would be the normal behavior when the owning {@link ApplicationContext} is
+ * itself closed.
  * 
  * @author Mark Fisher
  */
@@ -61,7 +63,10 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	private ApplicationContext context;
 
 	/**
-	 * Create an instance of the registrar. Establishes the Container metadata and creates a ZooKeeper client.
+	 * Create an instance that will register the provided {@link ContainerMetadata} whenever the underlying
+	 * {@link ZooKeeperConnection} is established. If that connection is already established at the time this instance
+	 * receives a {@link ContextRefreshedEvent}, the metadata will be registered then. Otherwise, registration occurs
+	 * within a callback that is invoked for connected events as well as reconnected events.
 	 */
 	public ContainerRegistrar(ContainerMetadata metadata, ZooKeeperConnection zkConnection) {
 		this.containerMetadata = metadata;

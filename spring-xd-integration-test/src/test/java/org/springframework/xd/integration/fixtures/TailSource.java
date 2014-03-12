@@ -23,25 +23,24 @@ import org.springframework.xd.shell.command.fixtures.AbstractModuleFixture;
  * 
  * @author renfrg
  */
-public class FileSource extends AbstractModuleFixture {
+public class TailSource extends AbstractModuleFixture {
 
-	private String dir;
+	private int delay = 5000;
 
 	private String fileName;
 
-	public FileSource(String dir, String fileName) throws Exception {
-		this.dir = dir;
+	public TailSource(int delay, String fileName) throws Exception {
+		this.delay = delay;
 		this.fileName = fileName;
 	}
 
 	@Override
 	protected String toDSL() {
-		return String.format("file --dir=%s --pattern='%s'", dir, fileName);
+		return String.format("tail --name=%s --fileDelay=%d", fileName, delay);
 	}
 
-	public FileSource() throws Exception {
-		dir = "";
-		fileName = FileSource.class.getName();
+	public TailSource() throws Exception {
+		fileName = TailSource.class.getName();
 	}
 
 }

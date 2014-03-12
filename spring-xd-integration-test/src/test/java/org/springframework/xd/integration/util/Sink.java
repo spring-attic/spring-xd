@@ -94,4 +94,8 @@ public class Sink {
 		return new TcpSink(port);
 	}
 
+	public FileSink file(String dir, String fileName) {
+		return new FileSink(dir, fileName);
+	}
+
 }

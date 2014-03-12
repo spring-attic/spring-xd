@@ -151,7 +151,7 @@ public class XdEc2Validation {
 			Reader fileReader = new InputStreamReader(new FileInputStream(fileName));
 			String result = FileCopyUtils.copyToString(fileReader);
 
-			if (!(data + "\n").equals(result)) {
+			if (!(data).equals(result)) {
 				fileReader.close();
 				throw new ResourceAccessException(
 						"Data in the result file is not what was sent. Read \""

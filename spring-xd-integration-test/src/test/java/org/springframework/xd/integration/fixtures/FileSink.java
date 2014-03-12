@@ -26,13 +26,34 @@ import org.springframework.xd.shell.command.fixtures.AbstractModuleFixture;
  */
 public class FileSink extends AbstractModuleFixture {
 
+	private String dir;
+
+	private String fileName;
+
 	@Override
 	protected String toDSL() {
-		return String.format("file --mode=%s", "REPLACE");
+		return String.format("file --binary=true --mode=%s", "REPLACE");
+	}
+
+	public String toDSL(String mode, String binary) {
+		String result = String.format("file  --mode=%s --binary=%s ", mode, binary);
+		if (fileName != null) {
+			result += "--name='" + fileName + "' ";
+		}
+		if (dir != null) {
+			result += "--dir='" + dir + "'";
+		}
+		return result;
 	}
 
 	public FileSink() {
+		dir = null;
+		fileName = null;
+	}
 
+	public FileSink(String dir, String fileName) {
+		this.dir = dir;
+		this.fileName = fileName;
 	}
 
 }

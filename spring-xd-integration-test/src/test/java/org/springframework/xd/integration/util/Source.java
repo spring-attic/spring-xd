@@ -20,6 +20,8 @@ import java.net.URL;
 import java.util.List;
 
 import org.springframework.shell.core.JLineShellComponent;
+import org.springframework.xd.integration.fixtures.FileSource;
+import org.springframework.xd.integration.fixtures.TailSource;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
 import org.springframework.xd.shell.command.fixtures.TcpSource;
 
@@ -69,5 +71,13 @@ public class Source {
 
 	public TcpSource tcp(int port) {
 		return new TcpSource(containers.get(0).getHost(), port);
+	}
+
+	public TailSource tail(int delay, String fileName) throws Exception {
+		return new TailSource(delay, fileName);
+	}
+
+	public FileSource file(String dir, String fileName) throws Exception {
+		return new FileSource(dir, fileName);
 	}
 }

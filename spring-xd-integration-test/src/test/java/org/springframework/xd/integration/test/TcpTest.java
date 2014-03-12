@@ -31,10 +31,6 @@ import org.springframework.xd.integration.fixtures.FileSink;
 public class TcpTest extends AbstractIntegrationTest {
 
 
-	public TcpTest() throws Exception {
-
-	}
-
 	/**
 	 * Verifies that the TCP Source that terminates with a CRLF returns the correct data.
 	 * 
@@ -43,6 +39,7 @@ public class TcpTest extends AbstractIntegrationTest {
 	@Test
 	public void testTCPSourceCRLF() throws Exception {
 		String data = UUID.randomUUID().toString();
+		System.out.println(sources.tcp() + XD_DELIMETER + sinks.getSink(FileSink.class));
 		stream(sources.tcp() + XD_DELIMETER + sinks.getSink(FileSink.class));
 
 		sources.tcp().sendBytes((data + "\r\n").getBytes());

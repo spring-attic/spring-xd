@@ -29,25 +29,23 @@ import org.springframework.xd.integration.fixtures.FileSink;
  */
 public class FileSourceTest extends AbstractIntegrationTest {
 
-	/**
-	 * @throws Exception
-	 */
-	public FileSourceTest() throws Exception {
-		// TODO Auto-generated constructor stub
-	}
 
 	@Test
 	public void testFileSource() throws Exception {
 		String data = UUID.randomUUID().toString();
 		String sourceDir = UUID.randomUUID().toString();
 		String fileName = UUID.randomUUID().toString();
+		System.out.println(sources.file(sourceDir, fileName + ".out") + XD_DELIMETER
+				+ sinks.getSink(FileSink.class));
+		System.out.println("trigger  --payload='" + data + "'" + XD_DELIMETER
+				+ sinks.file(sourceDir, fileName).toDSL("REPLACE", "true"));
 
 		stream(sources.file(sourceDir, fileName + ".out") + XD_DELIMETER
 				+ sinks.getSink(FileSink.class));
 		stream("dataSender",
 				"trigger  --payload='" + data + "'" + XD_DELIMETER
 						+ sinks.file(sourceDir, fileName).toDSL("REPLACE", "true"));
-
+		waitForXD();
 		assertValid(data, sinks.getSink(FileSink.class));
 	}
 
@@ -59,8 +57,10 @@ public class FileSourceTest extends AbstractIntegrationTest {
 
 		stream(sources.tail(1000, sourceDir + "/" + fileName + ".out") + XD_DELIMETER
 				+ sinks.getSink(FileSink.class));
+		waitForXD();
 		stream("dataSender", sources.http() + XD_DELIMETER + sinks.file(sourceDir, fileName).toDSL("REPLACE", "false"));
 		sources.http().postData(data);
+		waitForXD(2000);
 		assertValid(data, sinks.getSink(FileSink.class));
 	}
 

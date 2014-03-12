@@ -28,15 +28,6 @@ import org.springframework.xd.integration.fixtures.FileSink;
 
 public class TickTockTest extends AbstractIntegrationTest {
 
-	public TickTockTest() throws Exception {
-
-	}
-
-	/**
-	 * Verifies that time does send data. It does not validate the content of the data
-	 * 
-	 * @throws Exception
-	 */
 	@Test
 	public void testHeartBeat() throws Exception {
 		stream("time" + XD_DELIMETER + sinks.getSink(FileSink.class));

@@ -14,36 +14,24 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.integration.util;
+package org.springframework.xd.integration.fixtures;
 
-import java.net.URL;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import org.springframework.shell.core.JLineShellComponent;
-import org.springframework.xd.integration.fixtures.FileSink;
 import org.springframework.xd.shell.command.fixtures.AbstractModuleFixture;
-import org.springframework.xd.shell.command.fixtures.HttpSource;
 import org.springframework.xd.shell.command.fixtures.LogSink;
 import org.springframework.xd.shell.command.fixtures.TcpSink;
 
 
 /**
+ * A factory that provides fully instantiated sink fixtures based on the environment selected at test startup.
  * 
- * @author renfrg
+ * @author Glenn Renfro
  */
-public class Sink {
+public class Sinks {
 
-	private static int TCP_SINK_PORT = 1234;
-
-	private URL adminServer = null;
-
-	private List<URL> containers = null;
-
-	private JLineShellComponent shell = null;
-
-	private HttpSource httpSource = null;
+	private static int TCP_SINK_PORT = 9000;
 
 	private Map<String, AbstractModuleFixture> sinks;
 
@@ -51,10 +39,7 @@ public class Sink {
 
 	private TcpSink tcpSink = null;
 
-	public Sink(URL adminServer, List<URL> containers, JLineShellComponent shell, int httpPort) {
-		this.adminServer = adminServer;
-		this.containers = containers;
-		this.shell = shell;
+	public Sinks(int httpPort) {
 		this.httpPort = httpPort;
 		sinks = new HashMap<String, AbstractModuleFixture>();
 	}

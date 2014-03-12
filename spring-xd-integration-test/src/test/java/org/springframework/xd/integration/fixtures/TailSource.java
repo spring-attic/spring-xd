@@ -36,7 +36,7 @@ public class TailSource extends AbstractModuleFixture {
 
 	@Override
 	protected String toDSL() {
-		return String.format("tail --name=%s --fileDelay=%d", fileName, delay);
+		return String.format("tail --nativeOptions='-F -n +0' --name=%s --fileDelay=%d", fileName, delay);
 	}
 
 	public TailSource() throws Exception {

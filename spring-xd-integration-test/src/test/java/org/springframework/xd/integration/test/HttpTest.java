@@ -37,10 +37,16 @@ public class HttpTest extends AbstractIntegrationTest {
 
 	AbstractModuleFixture sink;
 
-	public HttpTest(Class sinkClass) throws Exception {
+	public HttpTest(Class sinkClass) {
 		this.sink = sinks.getSink(sinkClass);
 	}
 
+	/**
+	 * Test the http source for retrieving information, and outputs the data to the sink that is specified by the
+	 * parameterized sink.
+	 * 
+	 * @throws Exception
+	 */
 	@Test
 	public void testHttp() throws Exception {
 
@@ -52,6 +58,11 @@ public class HttpTest extends AbstractIntegrationTest {
 		assertValid(data, this.sink);
 	}
 
+	/**
+	 * The list of sinks for the stream to use in this test.
+	 * 
+	 * @return
+	 */
 	@Parameters
 	public static Collection<Object[]> sink() {
 		Object[][] sink = { { FileSink.class }, { LogSink.class } };

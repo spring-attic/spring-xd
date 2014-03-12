@@ -60,8 +60,6 @@ public class StreamUtils {
 	public static void stream(String streamName, String streamDefinition,
 			URL adminServer) throws IOException, URISyntaxException {
 		SpringXDTemplate xdTemplate = new SpringXDTemplate(adminServer.toURI());
-		System.out.println(streamName);
-		System.out.println(streamDefinition);
 		xdTemplate.streamOperations().createStream(streamName, streamDefinition, true);
 	}
 

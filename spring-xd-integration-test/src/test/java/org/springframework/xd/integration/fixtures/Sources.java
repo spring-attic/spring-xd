@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.integration.util;
+package org.springframework.xd.integration.fixtures;
 
 import java.net.URL;
 import java.util.List;
 
 import org.springframework.shell.core.JLineShellComponent;
-import org.springframework.xd.integration.fixtures.FileSource;
-import org.springframework.xd.integration.fixtures.TailSource;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
 import org.springframework.xd.shell.command.fixtures.TcpSource;
 
@@ -30,7 +28,7 @@ import org.springframework.xd.shell.command.fixtures.TcpSource;
  * 
  * @author renfrg
  */
-public class Source {
+public class Sources {
 
 	private URL adminServer = null;
 
@@ -44,7 +42,9 @@ public class Source {
 
 	private int httpPort = 9000;
 
-	public Source(URL adminServer, List<URL> containers, JLineShellComponent shell, int httpPort) {
+	private static int TCP_SINK_PORT = 9000;
+
+	public Sources(URL adminServer, List<URL> containers, JLineShellComponent shell, int httpPort) {
 		this.adminServer = adminServer;
 		this.containers = containers;
 		this.shell = shell;
@@ -64,7 +64,7 @@ public class Source {
 
 	public TcpSource tcp() {
 		if (tcpSource == null) {
-			tcpSource = tcp(httpPort);
+			tcpSource = tcp(TCP_SINK_PORT);
 		}
 		return tcpSource;
 	}

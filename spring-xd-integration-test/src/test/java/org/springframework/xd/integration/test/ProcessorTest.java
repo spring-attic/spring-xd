@@ -30,9 +30,6 @@ import org.springframework.xd.integration.util.InvalidResultException;
 public class ProcessorTest extends AbstractIntegrationTest {
 
 
-	public ProcessorTest() throws Exception {
-	}
-
 	/**
 	 * Evaluates that a single data entry of "BAD" is filtered out and not stored.
 	 * 

@@ -34,7 +34,7 @@ public class NetServerSourceOptionsMetadata {
 		return bind;
 	}
 
-	@ModuleOption("URI which configures the NetServer (tcp://0.0.0.0:3000/linefeed?codec=string)")
+	@ModuleOption("URI which configures the NetServer")
 	public void setBind(String bind) {
 		this.bind = bind;
 	}

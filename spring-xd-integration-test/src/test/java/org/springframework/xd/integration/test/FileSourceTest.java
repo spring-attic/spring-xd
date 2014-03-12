@@ -41,12 +41,12 @@ public class FileSourceTest extends AbstractIntegrationTest {
 		String fileName = UUID.randomUUID().toString();
 
 		stream(source.file(sourceDir, fileName + ".out") + XD_DELIMETER
-				+ sink.getSink(DistributedFileSink.class));
+				+ sink.getSink(FileSink.class));
 		stream("dataSender",
 				"trigger  --payload='" + data + "'" + XD_DELIMETER
 						+ sink.file(sourceDir, fileName).toDSL("REPLACE", "true"));
 
-		assertValid(data, sink.getSink(DistributedFileSink.class));
+		assertValid(data, sink.getSink(FileSink.class));
 	}
 
 	@Test
@@ -56,10 +56,10 @@ public class FileSourceTest extends AbstractIntegrationTest {
 		String fileName = UUID.randomUUID().toString();
 
 		stream(source.tail(1000, sourceDir + "/" + fileName + ".out") + XD_DELIMETER
-				+ sink.getSink(DistributedFileSink.class));
+				+ sink.getSink(FileSink.class));
 		stream("dataSender", source.http() + XD_DELIMETER + sink.file(sourceDir, fileName).toDSL("REPLACE", "false"));
 		source.http().postData(data);
-		assertValid(data, sink.getSink(DistributedFileSink.class));
+		assertValid(data, sink.getSink(FileSink.class));
 	}
 
 }

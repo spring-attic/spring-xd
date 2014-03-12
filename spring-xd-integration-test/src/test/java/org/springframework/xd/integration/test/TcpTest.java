@@ -41,7 +41,7 @@ public class TcpTest extends AbstractIntegrationTest {
 		String data = UUID.randomUUID().toString();
 		System.out.println(sources.tcp() + XD_DELIMETER + sinks.getSink(FileSink.class));
 		stream(sources.tcp() + XD_DELIMETER + sinks.getSink(FileSink.class));
-
+		waitForXD();
 		sources.tcp().sendBytes((data + "\r\n").getBytes());
 		assertReceived();
 		assertValid(data, sinks.getSink(FileSink.class));

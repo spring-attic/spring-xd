@@ -21,15 +21,20 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.core.env.PropertySource;
 import org.springframework.integration.channel.PublishSubscribeChannel;
+import org.springframework.integration.config.EnableIntegration;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.xd.integration.reactor.net.NetServerInboundChannelAdapter;
-import reactor.core.Environment;
+import org.springframework.util.StringValueResolver;
+import org.springframework.validation.BindException;
+import org.springframework.xd.integration.reactor.net.NetServerInboundChannelAdapterConfiguration;
+import org.springframework.xd.integration.reactor.net.NetServerSourceOptionsMetadata;
+import org.springframework.xd.module.options.PojoModuleOptionsMetadata;
 import reactor.net.tcp.support.SocketUtils;
 import reactor.spring.context.config.EnableReactor;
 
@@ -37,6 +42,8 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -48,20 +55,20 @@ import static org.junit.Assert.assertTrue;
  * @author Jon Brisbin
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration
-public class NetServerInboundChannelAdapterTests {
+@ContextConfiguration(classes = NetServerInboundChannelAdapterIntegrationTests.BaseConfig.class)
+public class NetServerInboundChannelAdapterIntegrationTests {
 
 	@Autowired
 	Executor                executor;
 	@Autowired
-	PublishSubscribeChannel input;
+	PublishSubscribeChannel output;
 	@Autowired
 	StringWriter            writer;
 
 	@Test
 	public void netServerIngestsMessages() throws InterruptedException {
 		final CountDownLatch latch = new CountDownLatch(2);
-		input.subscribe(new MessageHandler() {
+		output.subscribe(new MessageHandler() {
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
 				if("Hello World!".equals(message.getPayload())) {
@@ -75,12 +82,27 @@ public class NetServerInboundChannelAdapterTests {
 		assertTrue("latch was counted down", latch.await(5, TimeUnit.SECONDS));
 	}
 
-
 	@Configuration
-	@EnableReactor
-	static class TestConfiguration {
+	static class TestConfig {
 
 		int port = SocketUtils.findAvailableTcpPort();
+
+		@Bean
+		public StringValueResolver optionsMetadataValueResolver() {
+			NetServerSourceOptionsMetadata meta = new NetServerSourceOptionsMetadata();
+			meta.setBind("tcp://0.0.0.0:" + port + "/linefeed?codec=string");
+			return new OptionsMetadataValueResolver(meta);
+		}
+
+		@Bean
+		public PropertySource optionsMetadataPropertySource() throws BindException {
+			Map<String, String> opts = new HashMap<>();
+			opts.put("bind", "tcp://0.0.0.0:" + port + "/linefeed?codec=string");
+
+			return new PojoModuleOptionsMetadata(NetServerSourceOptionsMetadata.class)
+					.interpolate(opts)
+					.asPropertySource();
+		}
 
 		@Bean
 		public StringWriter writer() {
@@ -97,16 +119,16 @@ public class NetServerInboundChannelAdapterTests {
 			return new PublishSubscribeChannel();
 		}
 
-		@Bean
-		public NetServerInboundChannelAdapter netServerInboundChannelAdapter(Environment env,
-		                                                                     MessageChannel output) {
-			NetServerInboundChannelAdapter ica = new NetServerInboundChannelAdapter(env);
-			ica.setPort(port);
-			ica.setOutputChannel(output);
-			ica.setCodec(NetServerInboundChannelAdapter.CodecType.STRING);
-			ica.setFraming(NetServerInboundChannelAdapter.FramingType.DELIMITED);
-			return ica;
-		}
+	}
+
+	@Configuration
+	@EnableIntegration
+	@EnableReactor
+	@Import({
+			        TestConfig.class,
+			        NetServerInboundChannelAdapterConfiguration.class
+	        })
+	static class BaseConfig {
 	}
 
 	static class StringWriter implements Runnable {

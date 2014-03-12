@@ -17,12 +17,11 @@
 package org.springframework.xd.integration.reactor.net;
 
 import org.springframework.integration.endpoint.MessageProducerSupport;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessagingException;
-import reactor.core.Environment;
+import org.springframework.messaging.support.GenericMessage;
+import org.springframework.util.Assert;
+import reactor.function.Consumer;
 import reactor.net.NetServer;
-import reactor.spring.messaging.factory.net.NetServerFactoryBean;
+import reactor.net.spec.NetServerSpec;
 
 /**
  * Inbound ChannelAdapter that uses Reactor's {@code NetServer} abstraction to provide high-speed TCP or UDP ingest.
@@ -32,197 +31,12 @@ import reactor.spring.messaging.factory.net.NetServerFactoryBean;
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class NetServerInboundChannelAdapter extends MessageProducerSupport {
 
-	public enum CodecType {
-		BYTES, STRING, SYSLOG
-	}
+	private final    NetServerSpec spec;
+	private volatile NetServer     server;
 
-	public enum FramingType {
-		DELIMITED, LENGTH
-	}
-
-	public enum DelimiterType {
-		CR, LF
-	}
-
-	public enum LengthFieldType {
-		SHORT, INT, LONG
-	}
-
-	public enum TransportType {
-		TCP, UDP
-	}
-
-	private final    NetServerFactoryBean netServerFactoryBean;
-	private volatile NetServer            server;
-
-	public NetServerInboundChannelAdapter(Environment env) {
-		this.netServerFactoryBean = new NetServerFactoryBean(env);
-	}
-
-	/**
-	 * Set the name of the {@link reactor.event.dispatch.Dispatcher} to use, which will be pulled from the current {@link
-	 * reactor.core.Environment}.
-	 *
-	 * @param dispatcher
-	 * 		dispatcher name
-	 *
-	 * @return {@literal this}
-	 */
-	public void setDispatcher(String dispatcher) {
-		this.netServerFactoryBean.setDispatcher(dispatcher);
-	}
-
-	/**
-	 * Set the phase in which this bean should start.
-	 *
-	 * @param phase
-	 * 		the phase
-	 *
-	 * @return {@literal this}
-	 */
-	@Override
-	public void setPhase(int phase) {
-		super.setPhase(phase);
-		this.netServerFactoryBean.setPhase(phase);
-	}
-
-	/**
-	 * Set whether to perform auto startup.
-	 *
-	 * @param autoStartup
-	 * 		{@code true} to enable auto startup, {@code false} otherwise
-	 *
-	 * @return {@literal this}
-	 */
-	@Override
-	public void setAutoStartup(boolean autoStartup) {
-		super.setAutoStartup(autoStartup);
-		this.netServerFactoryBean.setAutoStartup(autoStartup);
-	}
-
-	/**
-	 * Set the host to which this server will bind.
-	 *
-	 * @param host
-	 * 		the host to bind to (defaults to {@code 0.0.0.0})
-	 *
-	 * @return {@literal this}
-	 */
-	public void setHost(String host) {
-		this.netServerFactoryBean.setHost(host);
-	}
-
-	/**
-	 * Set the port to which this server will bind.
-	 *
-	 * @param port
-	 * 		the port to bind to (defaults to {@code 3000})
-	 *
-	 * @return {@literal this}
-	 */
-	public void setPort(int port) {
-		this.netServerFactoryBean.setPort(port);
-	}
-
-	/**
-	 * Set the {@link reactor.io.encoding.Codec} to use to managing encoding and decoding of the data.
-	 * <p>
-	 * The options for codecs currently are:
-	 * <ul>
-	 * <li>{@code bytes} - Use the standard byte array codec.</li>
-	 * <li>{@code string} - Use the standard String codec.</li>
-	 * <li>{@code syslog} - Use the standard Syslog codec.</li>
-	 * </ul>
-	 * </p>
-	 *
-	 * @param codecType
-	 * 		the type of codec
-	 *
-	 * @return {@literal this}
-	 */
-	public void setCodec(CodecType codecType) {
-		this.netServerFactoryBean.setCodec(codecType.name().toLowerCase());
-	}
-
-	/**
-	 * Set the type of framing to use.
-	 * <p>
-	 * The options for framing are:
-	 * <ul>
-	 * <li>{@code delimited} - Means use a delimited line codec (defaults to {@code LF}).</li>
-	 * <li>{@code length} - Means use a length-field based codec where the initial bytes of a message are the length of
-	 * the rest of the message.</li>
-	 * </ul>
-	 * </p>
-	 *
-	 * @param framingType
-	 * 		type of framing
-	 *
-	 * @return {@literal this}
-	 */
-	public void setFraming(FramingType framingType) {
-		this.netServerFactoryBean.setFraming(framingType.name().toLowerCase());
-	}
-
-	/**
-	 * Set the single-byte delimiter to use when framing is set to 'delimited'.
-	 * The options for delimiters are:
-	 * <ul>
-	 * <li>{@code LF} - Means use a line feed \\n.</li>
-	 * <li>{@code CR} - Means use a carriage return \\r.</li>
-	 * </ul>
-	 * </p>
-	 *
-	 * @param delimiterType
-	 * 		the delimiter to use
-	 */
-	public void setDelimiter(DelimiterType delimiterType) {
-		this.netServerFactoryBean.setDelimiter(delimiterType.name());
-	}
-
-	/**
-	 * Set the length of the length field if using length-field framing.
-	 *
-	 * @param lengthFieldType
-	 * 		{@code LengthFieldType.SHORT}, {@code LengthFieldType.INT}, or {@code LengthFieldType.LONG}
-	 *
-	 * @return {@literal this}
-	 */
-	public void setLengthFieldLength(LengthFieldType lengthFieldType) {
-		int lengthFieldLength;
-		switch(lengthFieldType) {
-			case SHORT:
-				lengthFieldLength = 2;
-				break;
-			case INT:
-				lengthFieldLength = 4;
-				break;
-			case LONG:
-				lengthFieldLength = 8;
-				break;
-			default:
-				lengthFieldLength = 4;
-		}
-		this.netServerFactoryBean.setLengthFieldLength(lengthFieldLength);
-	}
-
-	/**
-	 * Set the transport to use for this {@literal NetServer}.
-	 * <p>
-	 * Options for transport currently are:
-	 * <ul>
-	 * <li>{@code tcp} - Use the built-in Netty TCP support.</li>
-	 * <li>{@code udp} - Use the built-in Netty UDP support.</li>
-	 * </ul>
-	 * </p>
-	 *
-	 * @param transportType
-	 * 		the transport to use
-	 *
-	 * @return {@literal this}
-	 */
-	public void setTransport(TransportType transportType) {
-		this.netServerFactoryBean.setTransport(transportType.name().toLowerCase());
+	public NetServerInboundChannelAdapter(NetServerSpec spec) {
+		Assert.notNull(spec, "NetServerSpec cannot be null");
+		this.spec = spec;
 	}
 
 	@Override
@@ -233,23 +47,18 @@ public class NetServerInboundChannelAdapter extends MessageProducerSupport {
 	@Override
 	protected void onInit() {
 		super.onInit();
-		try {
-			this.netServerFactoryBean.setMessageHandler(new MessageHandler() {
-				@Override
-				public void handleMessage(Message<?> msg) throws MessagingException {
-					sendMessage(msg);
-				}
-			});
-			this.server = netServerFactoryBean.getObject();
-		} catch(Exception e) {
-			throw new IllegalStateException(e.getMessage(), e);
-		}
+		this.server = (NetServer)this.spec.consumeInput(new Consumer() {
+			@Override
+			public void accept(Object o) {
+				sendMessage(new GenericMessage<Object>(o));
+			}
+		}).get();
 	}
 
 	@Override
 	protected void doStart() {
 		try {
-			server.start().await();
+			Assert.notNull(server.start().await(), "Server did not start properly");
 		} catch(InterruptedException e) {
 			Thread.currentThread().interrupt();
 		}
@@ -258,7 +67,7 @@ public class NetServerInboundChannelAdapter extends MessageProducerSupport {
 	@Override
 	protected void doStop() {
 		try {
-			server.shutdown().await();
+			Assert.notNull(server.shutdown().await(), "Server did not shutdown properly");
 		} catch(InterruptedException e) {
 			Thread.currentThread().interrupt();
 		}

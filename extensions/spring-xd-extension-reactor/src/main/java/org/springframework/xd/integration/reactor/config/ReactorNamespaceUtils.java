@@ -29,7 +29,6 @@ import org.w3c.dom.Element;
 public abstract class ReactorNamespaceUtils {
 
 	public static final String REACTOR_ENV_BEAN_NAME           = "reactorEnv";
-	public static final String RING_BUFFER_TASK_EXEC_BEAN_NAME = "ringBufferTaskExecutor";
 
 	protected ReactorNamespaceUtils() {
 	}

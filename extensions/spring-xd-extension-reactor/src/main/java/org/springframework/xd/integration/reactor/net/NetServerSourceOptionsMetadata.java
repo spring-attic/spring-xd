@@ -14,16 +14,29 @@
  *  limitations under the License.
  */
 
-package org.springframework.xd.integration.reactor.config;
+package org.springframework.xd.integration.reactor.net;
 
-import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHandler;
+import org.springframework.xd.module.options.spi.ModuleOption;
+
+import javax.validation.constraints.NotNull;
 
 /**
+ * Provides metadata about the configuration options of a {@link reactor.net.NetServer} in Spring XD.
+ *
  * @author Jon Brisbin
  */
-public class ReactorNamespaceHandler extends AbstractIntegrationNamespaceHandler {
-	@Override
-	public void init() {
-		registerBeanDefinitionParser("syslog-inbound-channel-adapter", new SyslogInboundChannelAdapterParser());
+public class NetServerSourceOptionsMetadata {
+
+	private String bind = "tcp://0.0.0.0:3000/linefeed?codec=string";
+
+	@NotNull
+	public String getBind() {
+		return bind;
 	}
+
+	@ModuleOption("URI which configures the NetServer (tcp://0.0.0.0:3000/linefeed?codec=string)")
+	public void setBind(String bind) {
+		this.bind = bind;
+	}
+
 }

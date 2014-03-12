@@ -33,6 +33,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableMBeanExport;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportResource;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.SourceFilteringListener;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.validation.BindException;
@@ -43,6 +44,8 @@ import org.springframework.xd.dirt.server.options.XDPropertyKeys;
 import org.springframework.xd.dirt.util.BannerUtils;
 import org.springframework.xd.dirt.util.ConfigLocations;
 import org.springframework.xd.dirt.util.XdConfigLoggingInitializer;
+import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 
 /**
  * The boot application class for a Container server.
@@ -146,6 +149,33 @@ public class ContainerServerApplication {
 	}
 
 
+	@Configuration
+	@Profile(SingleNodeApplication.SINGLE_PROFILE)
+	protected static class SingleNodeZooKeeperConnectionConfiguration {
+
+		@Autowired
+		private EmbeddedZooKeeper server;
+
+		@Bean
+		public ZooKeeperConnection zooKeeperConnection() {
+			// the embedded server accepts client connections on a dynamically determined port
+			return new ZooKeeperConnection("localhost:" + server.getClientPort());
+		}
+	}
+
+
+	@Configuration
+	@Profile("!" + SingleNodeApplication.SINGLE_PROFILE)
+	protected static class DistributedZooKeeperConnectionConfiguration {
+
+		@Bean
+		public ZooKeeperConnection zooKeeperConnection() {
+			// TODO: add support for the ZooKeeper client connect string as a command line arg
+			return new ZooKeeperConnection();
+		}
+	}
+
+
 	@ConditionalOnExpression("${XD_JMX_ENABLED:false}")
 	@EnableMBeanExport(defaultDomain = "xd.container")
 	protected static class JmxConfiguration {
@@ -184,6 +214,9 @@ class ContainerConfiguration {
 	@Autowired
 	private ContainerMetadata containerMetadata;
 
+	@Autowired
+	private ZooKeeperConnection zooKeeperConnection;
+
 	@Bean
 	public ApplicationListener<?> xdInitializer(ApplicationContext context) {
 		XdConfigLoggingInitializer delegate = new XdConfigLoggingInitializer(true);
@@ -193,6 +226,6 @@ class ContainerConfiguration {
 
 	@Bean
 	public ContainerRegistrar containerRegistrar() {
-		return new ContainerRegistrar(containerMetadata);
+		return new ContainerRegistrar(containerMetadata, zooKeeperConnection);
 	}
 }

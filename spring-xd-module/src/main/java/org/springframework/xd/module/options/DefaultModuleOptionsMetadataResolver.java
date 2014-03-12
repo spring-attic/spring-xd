@@ -17,7 +17,9 @@
 package org.springframework.xd.module.options;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Matcher;
@@ -29,6 +31,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.xd.module.ModuleDefinition;
+import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.support.ParentLastURLClassLoader;
 
 /**
@@ -175,20 +178,35 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 				props.load(propertiesResource.getInputStream());
 				String pojoClass = props.getProperty(OPTIONS_CLASS);
 				if (pojoClass != null) {
-					try {
-						Class<?> clazz = Class.forName(pojoClass, true, classLoaderToUse);
-						return new PojoModuleOptionsMetadata(clazz, conversionService);
-					}
-					catch (ClassNotFoundException e) {
-						throw new IllegalStateException("Unable to load class used by ModuleOptionsMetadata: "
-								+ pojoClass, e);
-					}
+					List<ModuleOptionsMetadata> mixins = new ArrayList<ModuleOptionsMetadata>();
+					createPojoOptionsMetadata(classLoaderToUse, pojoClass, mixins);
+					return mixins.size() == 1 ? mixins.get(0) : new FlattenedCompositeModuleOptionsMetadata(mixins);
 				}
-				return makeSimpleModuleOptions(props);
+				else {
+					return makeSimpleModuleOptions(props);
+				}
 			}
 		}
 		catch (IOException e) {
 			return new PassthruModuleOptionsMetadata();
+		}
+	}
+
+	private void createPojoOptionsMetadata(ClassLoader classLoaderToUse, String pojoClass,
+			List<ModuleOptionsMetadata> mixins) {
+		try {
+			Class<?> clazz = Class.forName(pojoClass, true, classLoaderToUse);
+			Mixin mixin = clazz.getAnnotation(Mixin.class);
+			if (mixin != null) {
+				for (Class<?> classToMixin : mixin.value()) {
+					createPojoOptionsMetadata(classLoaderToUse, classToMixin.getName(), mixins);
+				}
+			}
+			mixins.add(new PojoModuleOptionsMetadata(clazz, conversionService));
+		}
+		catch (ClassNotFoundException e) {
+			throw new IllegalStateException("Unable to load class used by ModuleOptionsMetadata: "
+					+ pojoClass, e);
 		}
 	}
 

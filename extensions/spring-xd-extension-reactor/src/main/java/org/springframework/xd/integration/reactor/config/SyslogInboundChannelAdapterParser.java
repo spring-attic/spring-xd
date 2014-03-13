@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -16,14 +16,13 @@
 
 package org.springframework.xd.integration.reactor.config;
 
-import org.w3c.dom.Element;
-
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.xd.integration.reactor.syslog.SyslogInboundChannelAdapter;
+import org.w3c.dom.Element;
 
 /**
  * @author Jon Brisbin
@@ -33,7 +32,9 @@ public class SyslogInboundChannelAdapterParser extends AbstractChannelAdapterPar
 	@Override
 	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
 		BeanDefinitionBuilder builder = ReactorNamespaceUtils.createBeanDefinitionBuilder(
-				SyslogInboundChannelAdapter.class, element);
+				SyslogInboundChannelAdapter.class,
+				element
+		);
 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "host", "host");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "port", "port");
@@ -43,4 +44,5 @@ public class SyslogInboundChannelAdapterParser extends AbstractChannelAdapterPar
 
 		return builder.getBeanDefinition();
 	}
+
 }

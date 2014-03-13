@@ -195,7 +195,7 @@ public class EmbeddedZooKeeper implements SmartLifecycle {
 			try {
 				Properties properties = new Properties();
 				File file = new File(System.getProperty("java.io.tmpdir")
-						+ File.pathSeparator + UUID.randomUUID());
+						+ File.separator + UUID.randomUUID());
 				file.deleteOnExit();
 				properties.setProperty("dataDir", file.getAbsolutePath());
 				clientPort = SocketUtils.findAvailableTcpPort();

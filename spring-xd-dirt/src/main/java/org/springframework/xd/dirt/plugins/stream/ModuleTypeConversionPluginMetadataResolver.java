@@ -55,12 +55,10 @@ public class ModuleTypeConversionPluginMetadataResolver implements ModuleOptions
 		List<ModuleOptionsMetadata> moms = new ArrayList<ModuleOptionsMetadata>();
 		ModuleType type = moduleDefinition.getType();
 		if (type == source || type == processor) {
-			moms.add(new PojoModuleOptionsMetadata(OutputOptionsMetadata.class, null, null,
-					conversionService));
+			moms.add(new PojoModuleOptionsMetadata(OutputOptionsMetadata.class, conversionService));
 		}
 		if (type == sink || type == processor) {
-			moms.add(new PojoModuleOptionsMetadata(InputOptionsMetadata.class, null, null,
-					conversionService));
+			moms.add(new PojoModuleOptionsMetadata(InputOptionsMetadata.class, conversionService));
 		}
 
 		// Don't force deep layering if it's not needed

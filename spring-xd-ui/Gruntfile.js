@@ -5,9 +5,6 @@ module.exports = function (grunt) {
   // Load grunt tasks automatically
   require('load-grunt-tasks')(grunt);
 
-  grunt.loadNpmTasks('grunt-bower-task');
-  grunt.loadNpmTasks('grunt-connect-proxy');
-
   // Time how long tasks take. Can help when optimizing build times
   require('time-grunt')(grunt);
 
@@ -16,16 +13,16 @@ module.exports = function (grunt) {
 
     // Project settings
     xd: {
-      // configurable paths
       app: 'app',
       dist: 'dist'
     },
+    // Set bower task's targetDir to use app directory
     bower: {
       options: {
         targetDir: '<%= xd.app %>/lib'
       },
-      install: {
-      }
+      // Provide install target
+      install: {}
     },
     // Watches files for changes and runs tasks based on the changed files
     watch: {
@@ -156,8 +153,7 @@ module.exports = function (grunt) {
             dot: true,
             src: [
               '.tmp',
-              '<%= xd.dist %>/*',
-              '!<%= xd.dist %>/.git*'
+              '<%= xd.dist %>/*'
             ]
           }
         ]
@@ -181,13 +177,20 @@ module.exports = function (grunt) {
         ]
       }
     },
-    // Automatically inject Bower components into the app
-    'bower-install': {
-      app: {
-        src: '<%= xd.app %>/index.html',
-        ignorePath: '<%= xd.app %>/'
+
+    imagemin: {
+      dist: {
+        files: [
+          {
+            expand: true,
+            cwd: '<%= xd.app %>/images',
+            src: '{,*/}*.{png,jpg,jpeg,gif}',
+            dest: '<%= xd.dist %>/images'
+          }
+        ]
       }
     },
+
     // Renames files for browser caching purposes
     rev: {
       dist: {
@@ -197,11 +200,12 @@ module.exports = function (grunt) {
             // '<%= xd.dist %>/scripts/{,*/}*.js',
             '<%= xd.dist %>/styles/{,*/}*.css',
             '<%= xd.dist %>/images/{,*/}*.{png,jpg,jpeg,gif}',
-            '<%= xd.dist %>/styles/fonts/*'
+            '<%= xd.dist %>/fonts/*'
           ]
         }
       }
     },
+
     // Reads HTML for usemin blocks to enable smart builds that automatically
     // concat, minify and revision files. Creates configurations in memory so
     // additional tasks can operate on them
@@ -219,19 +223,7 @@ module.exports = function (grunt) {
         assetsDirs: ['<%= xd.dist %>', '<%= xd.dist %>/images']
       }
     },
-    // The following *-min tasks produce minified files in the dist folder
-    imagemin: {
-      dist: {
-        files: [
-          {
-            expand: true,
-            cwd: '<%= xd.app %>/images',
-            src: '{,*/}*.{png,jpg,jpeg,gif}',
-            dest: '<%= xd.dist %>/images'
-          }
-        ]
-      }
-    },
+
     htmlmin: {
       dist: {
         options: {
@@ -275,20 +267,12 @@ module.exports = function (grunt) {
             dest: '<%= xd.dist %>',
             src: [
               '*.{ico,png,txt}',
-              '.htaccess',
               '*.html',
               'views/{,*/}*.html',
               'lib/**/*',
               'scripts/**/*',
-              'images/*',
               'fonts/*'
             ]
-          },
-          {
-            expand: true,
-            cwd: '.tmp/images',
-            dest: '<%= xd.dist %>/images',
-            src: ['generated/*']
           }
         ]
       },
@@ -313,9 +297,9 @@ module.exports = function (grunt) {
         'copy:styles'
       ],
       dist: [
-        'less',
-        'copy:styles'
-        //'imagemin',
+        // TODO: copy:styles copies .css files into .tmp
+        // TODO: hence probably not to include copy:styles in here.
+        // 'copy:styles'
       ]
     },
 
@@ -341,7 +325,7 @@ module.exports = function (grunt) {
 
     grunt.task.run([
       'clean:server',
-      'bower-install',
+      'bower:install',
       'less',
       'concurrent:server',
       'autoprefixer',
@@ -356,46 +340,52 @@ module.exports = function (grunt) {
     grunt.task.run(['serve']);
   });
 
-  grunt.registerTask('test:unit', [
-    'clean:server',
-    'concurrent:test',
-    'autoprefixer',
-    'connect:test',
-    'karma:unit'
-  ]);
+  grunt.registerTask('test:unit', 'Run the unit tests with Karma',
+      ['clean:server', 'concurrent:test', 'connect:test', 'karma:unit']);
 
-  grunt.registerTask('test:e2e', [
-    'copy:testfiles',
-    'clean:server',
-    'concurrent:server',
-    'configureProxies:server',
-    'connect:livereload',
-    'karma:e2e'
-  ]);
+  grunt.registerTask('test:e2e', 'Run the end to end tests',
+      [ 'copy:testfiles',
+        'clean:server',
+        'concurrent:server',
+        'configureProxies:server',
+        'connect:livereload',
+        'karma:e2e'
+      ]);
 
-  grunt.registerTask('build', [
+  grunt.registerTask('build', 'Run the build', [
+    // Clean dist and .tmp directories
     'clean:dist',
-    'newer:jshint',
+    // Run JSHint on all js files
+    'jshint',
+    // Install bower components into {xd.app}/lib
     'bower:install',
-    'bower-install',
+    // Compile LESS files into CSS
     'less',
-    'useminPrepare',
-    'concurrent:dist',
+    // Copy CSS files into .tmp
+    'copy:styles',
+    // Run autoprefixer on CSS files under .tmp
     'autoprefixer',
+    // Run useminPrepare to generate concat.generated and cssmin.generated targets
+    'useminPrepare',
+    // Concat CSS files in .tmp
     'concat',
-    'copy:dist',
+    // Copy concat css into dist
     'cssmin',
+    // minify and copy the minified images into dist
+    'imagemin',
+    // Copy other necessary files into dist
+    'copy:dist',
+    // Now operate on dist directory
+    // Static file asset revisioning through content hashing
     'rev',
+    // Rewrite based on revved assets
     'usemin',
     'htmlmin',
+    // Run the karma unit tests
     'test:unit'
   ]);
 
-  grunt.registerTask('teste2e', [
-    'test:e2e'
-  ]);
+  grunt.registerTask('teste2e', ['test:e2e']);
 
-  grunt.registerTask('default', [
-    'build'
-  ]);
+  grunt.registerTask('default', ['build']);
 };

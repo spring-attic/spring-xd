@@ -25,8 +25,6 @@ define([
   'ngResource',
   'promiseTracker',
   'ngGrowl',
-//  'ngSanitize',
-//  'ngCookies',
   './controllers',
   './services'
 ], function (angular) {

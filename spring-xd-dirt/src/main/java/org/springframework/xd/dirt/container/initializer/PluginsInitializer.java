@@ -20,6 +20,7 @@ import org.springframework.core.Ordered;
 import org.springframework.xd.dirt.util.ConfigLocations;
 
 /**
+ * An {@link OrderedContextInitializer} to load Out of the Box XD Plugins.
  * 
  * @author David Turanski
  */

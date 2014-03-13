@@ -25,6 +25,7 @@ import org.springframework.boot.context.event.ApplicationPreparedEvent;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.Ordered;
+import org.springframework.util.StringUtils;
 
 
 /**
@@ -35,27 +36,31 @@ import org.springframework.core.Ordered;
  */
 public class PluginContextExtensionsInitializer extends AbstractXMLBeanDefinitionProvider {
 
-	@Value("${xd.extensions.location}")
+	@Value("${xd.extensions.location:}")
 	private String extensionsLocation;
 
-	@Value("${xd.extensions.basepackage}")
+	@Value("${xd.extensions.basepackage:}")
 	private String extensionsBasePackage;
 
 	@Override
 	public void onApplicationEvent(ApplicationPreparedEvent event) {
 
-		AnnotationConfigApplicationContext context = (AnnotationConfigApplicationContext) event.getApplicationContext();
-		ClassPathScanningCandidateComponentProvider componentProvider = new
-				ClassPathScanningCandidateComponentProvider(
-						true, context.getEnvironment());
+		if (StringUtils.hasText(extensionsBasePackage)) {
+			AnnotationConfigApplicationContext context = (AnnotationConfigApplicationContext) event.getApplicationContext();
+			ClassPathScanningCandidateComponentProvider componentProvider = new
+					ClassPathScanningCandidateComponentProvider(
+							true, context.getEnvironment());
 
-		Set<BeanDefinition> beans = componentProvider.findCandidateComponents(extensionsBasePackage);
+			Set<BeanDefinition> beans = componentProvider.findCandidateComponents(extensionsBasePackage);
 
-		for (BeanDefinition bean : beans) {
-			context.registerBeanDefinition(BeanDefinitionReaderUtils.generateBeanName(bean, context), bean);
+			for (BeanDefinition bean : beans) {
+				context.registerBeanDefinition(BeanDefinitionReaderUtils.generateBeanName(bean, context), bean);
+			}
 		}
 
-		super.onApplicationEvent(event);
+		if (StringUtils.hasText(extensionsLocation)) {
+			super.onApplicationEvent(event);
+		}
 	}
 
 	@Override
@@ -65,7 +70,7 @@ public class PluginContextExtensionsInitializer extends AbstractXMLBeanDefinitio
 
 	@Override
 	protected String[] getLocations() {
-		return new String[] { this.extensionsLocation + "/*.xml" };
+		return new String[] { this.extensionsLocation + "/**/*.xml" };
 	}
 
 }

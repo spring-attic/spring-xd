@@ -48,9 +48,12 @@ public class ExtensionsTests extends RandomConfigurationSupport {
 
 	private static ApplicationContext context;
 
+	private static String originalConfigLocation;
+
 	@BeforeClass
 	public static void setUp() {
 		String currentDir = new File(".").getAbsolutePath();
+		originalConfigLocation = System.getProperty("spring.config.location");
 		System.setProperty("spring.config.location", currentDir + "/src/test/resources/extensions/extensions-test.yml");
 		application = new SingleNodeApplication().run();
 		context = application.pluginContext();
@@ -88,6 +91,8 @@ public class ExtensionsTests extends RandomConfigurationSupport {
 
 	@AfterClass
 	public static void tearDown() {
-		System.clearProperty("spring.config.location");
+		if (originalConfigLocation != null) {
+			System.setProperty("spring.config.location", originalConfigLocation);
+		}
 	}
 }

@@ -1378,7 +1378,9 @@ project('spring-xd-integration-test') {
 		}
 	}
 	dependencies {
-		compile project(":spring-xd-shell")
+		testCompile project(":spring-xd-shell")
+		testCompile project(":spring-xd-shell").sourceSets.test.output
+		testCompile project(":spring-xd-test")
 		compile "commons-collections:commons-collections:$commonsCollectionsVersion"
 		compile "org.apache.jclouds.provider:aws-sts:$jcloudsVersion"
 		compile "org.apache.jclouds.driver:jclouds-sshj:$jcloudsVersion"

@@ -83,7 +83,7 @@ Make sure that the following environment variables are set either the xd-config.
 	export endpoints_jolokia_enabled=true
 	export XD_JMX_ENABLED=true
 	export management_port=15005
-	export server.port=9393
+	export server_port=9393
 ```
 **If you use xd-config.yml:**
 ```
@@ -119,7 +119,7 @@ Make sure that the following environment variables are set either the xd-config.
 	export endpoints_jolokia_enabled=true
 	export XD_JMX_ENABLED=true
 	export management_port=15000
-	export server.port=9393
+	export server_port=9393
 ```
 **If you use xd-config.yml:**
 ```

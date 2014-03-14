@@ -26,8 +26,6 @@ require.config({
     jquery: '../lib/jquery/jquery',
     bootstrap: '../lib/bootstrap/bootstrap',
     ngResource: '../lib/angular-resource/angular-resource',
-    //ngCookies: '../lib/angular-cookies/angular-cookies',
-    //ngSanitize: '../lib/angular-sanitize/angular-sanitize',
     ngRoute: '../lib/angular-route/angular-route',
     uiRouter: '../lib/angular-ui-router/angular-ui-router',
     ngBusy: '../lib/angular-busy/angular-busy',

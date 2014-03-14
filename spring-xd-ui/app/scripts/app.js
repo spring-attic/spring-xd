@@ -29,7 +29,6 @@ define([
   './services'
 ], function (angular) {
   'use strict';
-
   return angular.module('xdAdmin', [
     'xdAdmin.services',
     'xdAdmin.controllers',

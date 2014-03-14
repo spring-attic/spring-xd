@@ -45,7 +45,6 @@ import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.stream.DeploymentMessageSender;
 import org.springframework.xd.dirt.stream.StreamRepository;
-import org.springframework.xd.dirt.stream.memory.InMemoryStreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.memory.InMemoryStreamRepository;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;

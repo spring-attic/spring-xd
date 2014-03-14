@@ -20,6 +20,8 @@ import javax.sql.DataSource;
 
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.web.ServerPropertiesAutoConfiguration;
@@ -31,8 +33,11 @@ import org.springframework.context.annotation.EnableMBeanExport;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Profile;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
+import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.container.ContainerMetadata;
 import org.springframework.xd.dirt.util.ConfigLocations;
+import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 
 @EnableAutoConfiguration(exclude = ServerPropertiesAutoConfiguration.class)
 @ImportResource("classpath:" + ConfigLocations.XD_INTERNAL_CONFIG_ROOT + "xd-global-beans.xml")
@@ -70,6 +75,45 @@ public class ParentConfiguration {
 			return cloud;
 		}
 	}
+
+
+	@Configuration
+	@Profile(SingleNodeApplication.SINGLE_PROFILE)
+	protected static class SingleNodeZooKeeperConnectionConfiguration {
+
+		@Value("${zk.client.connect:}")
+		private String zkClientConnect;
+
+		@Autowired(required = false)
+		private EmbeddedZooKeeper server;
+
+		@Bean
+		public ZooKeeperConnection zooKeeperConnection() {
+			// the embedded server accepts client connections on a dynamically determined port
+			if (server != null) {
+				zkClientConnect = "localhost:" + server.getClientPort();
+			}
+			return new ZooKeeperConnection(zkClientConnect);
+		}
+	}
+
+
+	@Configuration
+	@Profile("!" + SingleNodeApplication.SINGLE_PROFILE)
+	protected static class DistributedZooKeeperConnectionConfiguration {
+
+		@Value("${zk.client.connect:}")
+		private String zkClientConnect;
+
+		@Bean
+		public ZooKeeperConnection zooKeeperConnection() {
+			if (StringUtils.hasText(zkClientConnect)) {
+				return new ZooKeeperConnection(zkClientConnect);
+			}
+			return new ZooKeeperConnection();
+		}
+	}
+
 
 	@ConditionalOnExpression("${XD_JMX_ENABLED:false}")
 	@EnableMBeanExport(defaultDomain = "xd.parent")

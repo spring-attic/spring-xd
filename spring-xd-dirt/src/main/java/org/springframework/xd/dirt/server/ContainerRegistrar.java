@@ -16,20 +16,51 @@
 
 package org.springframework.xd.dirt.server;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.api.CuratorWatcher;
+import org.apache.curator.framework.recipes.cache.ChildData;
+import org.apache.curator.framework.recipes.cache.PathChildrenCache;
+import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
+import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.validation.BindException;
 import org.springframework.xd.dirt.container.ContainerMetadata;
 import org.springframework.xd.dirt.container.ContainerStartedEvent;
 import org.springframework.xd.dirt.container.ContainerStoppedEvent;
+import org.springframework.xd.dirt.core.DeploymentsPath;
+import org.springframework.xd.dirt.core.ModuleDescriptor;
+import org.springframework.xd.dirt.core.Stream;
+import org.springframework.xd.dirt.core.StreamFactory;
+import org.springframework.xd.dirt.core.StreamsPath;
+import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
+import org.springframework.xd.dirt.module.ModuleDeployer;
+import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnectionListener;
+import org.springframework.xd.module.DeploymentMetadata;
+import org.springframework.xd.module.ModuleType;
+import org.springframework.xd.module.core.Module;
+import org.springframework.xd.module.core.SimpleModule;
+import org.springframework.xd.module.options.ModuleOptions;
+import org.springframework.xd.module.options.ModuleOptionsMetadata;
+import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 /**
  * An instance of this class, registered as a bean in the context for a Container, will handle the registration of that
@@ -40,12 +71,14 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperConnectionListener;
  * 
  * @author Mark Fisher
  */
+// todo: Rename ContainerServer or ModuleDeployer since it's driven by callbacks and not really a "server".
+// Likewise consider the AdminServer being renamed to StreamDeployer since that is also callback-driven.
 public class ContainerRegistrar implements ApplicationListener<ContextRefreshedEvent> {
 
 	/**
 	 * Logger.
 	 */
-	private static final Log logger = LogFactory.getLog(ContainerRegistrar.class);
+	private static final Logger LOG = LoggerFactory.getLogger(ContainerRegistrar.class);
 
 	/**
 	 * Metadata for the current Container.
@@ -58,9 +91,53 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	private final ZooKeeperConnection zkConnection;
 
 	/**
+	 * A {@link PathChildrenCacheListener} implementation that handles deployment requests (and deployment removals) for
+	 * this container.
+	 */
+	private final DeploymentListener deploymentListener = new DeploymentListener();
+
+	/**
+	 * Watcher for modules deployed to this container under the {@link Paths#STREAMS} location.
+	 */
+	private final StreamModuleWatcher streamModuleWatcher = new StreamModuleWatcher();
+
+	/**
+	 * Cache of children under the deployments path.
+	 */
+	private volatile PathChildrenCache deployments;
+
+	/**
+	 * Utility to convert maps to byte arrays.
+	 */
+	private final MapBytesUtility mapBytesUtility = new MapBytesUtility();
+
+	/**
+	 * Module options metadata resolver.
+	 */
+	private final ModuleOptionsMetadataResolver moduleOptionsMetadataResolver;
+
+	/**
+	 * Stream factory.
+	 */
+	private final StreamFactory streamFactory;
+
+	/**
+	 * Map of deployed modules.
+	 */
+	private final Map<ModuleDescriptor.Key, ModuleDescriptor> mapDeployedModules =
+			new ConcurrentHashMap<ModuleDescriptor.Key, ModuleDescriptor>();
+
+	/**
+	 * The set of groups this container belongs to.
+	 */
+	private final Set<String> groups;
+
+	/**
 	 * Application context within which this registrar is defined.
 	 */
 	private ApplicationContext context;
+
+	private final ModuleDeployer moduleDeployer;
 
 	/**
 	 * Create an instance that will register the provided {@link ContainerMetadata} whenever the underlying
@@ -68,9 +145,54 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	 * receives a {@link ContextRefreshedEvent}, the metadata will be registered then. Otherwise, registration occurs
 	 * within a callback that is invoked for connected events as well as reconnected events.
 	 */
-	public ContainerRegistrar(ContainerMetadata metadata, ZooKeeperConnection zkConnection) {
+	public ContainerRegistrar(ContainerMetadata metadata,
+			ModuleDefinitionRepository moduleDefinitionRepository,
+			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver,
+			ModuleDeployer moduleDeployer,
+			ZooKeeperConnection zkConnection) {
 		this.containerMetadata = metadata;
 		this.zkConnection = zkConnection;
+		// todo: support groups (see the ctor for ContainerServer in xdzk)
+		this.groups = Collections.emptySet();
+		this.moduleOptionsMetadataResolver = moduleOptionsMetadataResolver;
+		this.moduleDeployer = moduleDeployer;
+		// todo: the streamFactory should be injected
+		this.streamFactory = new StreamFactory(moduleDefinitionRepository, moduleOptionsMetadataResolver);
+	}
+
+	/**
+	 * Deploy the requested module.
+	 * 
+	 * @param moduleDescriptor
+	 */
+	private void deployModule(ModuleDescriptor moduleDescriptor) {
+		LOG.info("Deploying module {}", moduleDescriptor);
+
+		mapDeployedModules.put(moduleDescriptor.newKey(), moduleDescriptor);
+
+		ModuleOptions moduleOptions = safeModuleOptionsInterpolate(moduleDescriptor);
+		Module module = createSimpleModule(moduleDescriptor, moduleOptions);
+		// todo: rather than delegate, merge ContainerRegistrar itself into and remove most of ModuleDeployer
+		this.moduleDeployer.deployAndStore(module, moduleDescriptor);
+	}
+
+	/**
+	 * Undeploy the requested module. </p> TODO: this is a placeholder
+	 * 
+	 * @param moduleLabel module label
+	 * @param moduleType module type
+	 */
+	protected void undeployModule(String moduleLabel, String moduleType) {
+		ModuleDescriptor.Key key = new ModuleDescriptor.Key(ModuleType.valueOf(moduleType), moduleLabel);
+		ModuleDescriptor descriptor = mapDeployedModules.get(key);
+		if (descriptor == null) {
+			LOG.trace("Module {} already undeployed", moduleLabel);
+		}
+		else {
+			LOG.info("Undeploying module {}", descriptor);
+			mapDeployedModules.remove(key);
+			this.moduleDeployer.undeploy(descriptor);
+		}
 	}
 
 	@Override
@@ -93,25 +215,37 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	 */
 	private void registerWithZooKeeper(CuratorFramework client) {
 		try {
-			// todo:
-			// Paths.ensurePath(client, Paths.DEPLOYMENTS);
-			// deployments = new PathChildrenCache(client, Paths.DEPLOYMENTS + "/" + this.getId(), false);
-			// deployments.getListenable().addListener(deploymentListener);
+			Paths.ensurePath(client, Paths.DEPLOYMENTS);
+			Paths.ensurePath(client, Paths.CONTAINERS);
+
+			deployments = new PathChildrenCache(client, Paths.build(Paths.DEPLOYMENTS, containerMetadata.getId()), true);
+			deployments.getListenable().addListener(deploymentListener);
 
 			String jvmName = containerMetadata.getJvmName();
 			String tokens[] = jvmName.split("@");
-			StringBuilder builder = new StringBuilder()
-					.append("pid=").append(tokens[0])
-					.append(System.getProperty("line.separator"))
-					.append("host=").append(tokens[1]);
+			Map<String, String> map = new HashMap<String, String>();
+			map.put("pid", tokens[0]);
+			map.put("host", tokens[1]);
 
-			client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(
-					Paths.CONTAINERS + "/" + containerMetadata.getId(), builder.toString().getBytes("UTF-8"));
+			StringBuilder builder = new StringBuilder();
+			Iterator<String> iterator = groups.iterator();
+			while (iterator.hasNext()) {
+				builder.append(iterator.next());
+				if (iterator.hasNext()) {
+					builder.append(',');
+				}
+			}
+			map.put("groups", builder.toString());
 
-			// todo:
-			// deployments.start(PathChildrenCache.StartMode.BUILD_INITIAL_CACHE);
+			// todo: might need creatingParentsIfNeeded here if ensure path is not working
+			// (had a similar problem with tests last time we tried to move this code over from proto)
+			client.create().withMode(CreateMode.EPHEMERAL).forPath(
+					Paths.build(Paths.CONTAINERS, containerMetadata.getId()),
+					mapBytesUtility.toByteArray(map));
 
-			logger.info("Started container " + containerMetadata.getId() + " with attributes: " + builder);
+			deployments.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
+
+			LOG.info("Started container {} with attributes: {} ", containerMetadata.getId(), map);
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
@@ -132,7 +266,180 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 
 		@Override
 		public void onDisconnect(CuratorFramework client) {
-			context.publishEvent(new ContainerStoppedEvent(containerMetadata));
+			try {
+				context.publishEvent(new ContainerStoppedEvent(containerMetadata));
+				LOG.warn(">>> disconnected container: {}", containerMetadata.getId());
+				deployments.getListenable().removeListener(deploymentListener);
+				deployments.close();
+				// todo: modules in mapDeployedModules should be undeployed
+			}
+			catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		}
+	}
+
+	/**
+	 * Event handler for new module deployments.
+	 * 
+	 * @param client curator client
+	 * @param data module data
+	 */
+	private void onChildAdded(CuratorFramework client, ChildData data) {
+		DeploymentsPath deploymentsPath = new DeploymentsPath(data.getPath());
+		String streamName = deploymentsPath.getStreamName();
+		String moduleType = deploymentsPath.getModuleType();
+		String moduleLabel = deploymentsPath.getModuleLabel();
+
+		LOG.info("Deploying module '{}' for stream '{}'", moduleLabel, streamName);
+
+		String streamPath = new StreamsPath().setStreamName(streamName)
+				.setModuleType(moduleType)
+				.setModuleLabel(moduleLabel)
+				.setContainer(containerMetadata.getId()).build();
+
+		try {
+			Stream stream = streamFactory.createStream(streamName,
+					mapBytesUtility.toMap(client.getData().forPath(Paths.build(Paths.STREAMS, streamName))));
+
+			deployModule(stream.getModuleDescriptor(moduleLabel, moduleType));
+
+			// this indicates that the container has deployed the module
+			client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL)
+					.forPath(streamPath, mapBytesUtility.toByteArray(Collections.singletonMap("state", "deployed")));
+
+			// set a watch on this module in the stream path;
+			// if the node is deleted this indicates an undeployment
+			client.getData().usingWatcher(streamModuleWatcher).forPath(streamPath);
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
+		catch (KeeperException.NodeExistsException e) {
+			// todo: review, this should not happen
+			LOG.info("Module for stream {} already deployed", moduleLabel, streamName);
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * Event handler for deployment removals.
+	 * 
+	 * @param client curator client
+	 * @param data module data
+	 */
+	private void onChildRemoved(CuratorFramework client, ChildData data) throws Exception {
+		DeploymentsPath deploymentsPath = new DeploymentsPath(data.getPath());
+		String moduleType = deploymentsPath.getModuleType();
+		String moduleLabel = deploymentsPath.getModuleLabel();
+
+		undeployModule(moduleLabel, moduleType);
+
+		String streamsPath = new StreamsPath()
+				.setStreamName(deploymentsPath.getStreamName())
+				.setModuleType(moduleType)
+				.setModuleLabel(moduleLabel)
+				.setContainer(containerMetadata.getId()).build();
+
+		if (client.checkExists().forPath(streamsPath) != null) {
+			LOG.trace("Deleting path: {}", streamsPath);
+			client.delete().forPath(streamsPath);
+		}
+	}
+
+	private Module createSimpleModule(ModuleDescriptor descriptor, ModuleOptions moduleOptions) {
+		String streamName = descriptor.getStreamName();
+		int index = descriptor.getIndex();
+		String sourceChannelName = null;
+		String sinkChannelName = null;
+		DeploymentMetadata metadata = new DeploymentMetadata(streamName, index, sourceChannelName, sinkChannelName);
+		ClassLoader classLoader = null;
+		Module module = new SimpleModule(descriptor.getModuleDefinition(), metadata, classLoader, moduleOptions);
+		return module;
+	}
+
+	/**
+	 * Takes a request and returns an instance of {@link ModuleOptions} bound with the request parameters. Binding is
+	 * assumed to not fail, as it has already been validated on the admin side.
+	 */
+	private ModuleOptions safeModuleOptionsInterpolate(ModuleDescriptor descriptor) {
+		// todo: this is empty for now
+		Map<String, String> parameters = descriptor.getParameters();
+		ModuleOptionsMetadata moduleOptionsMetadata = moduleOptionsMetadataResolver.resolve(descriptor.getModuleDefinition());
+		try {
+			return moduleOptionsMetadata.interpolate(parameters);
+		}
+		catch (BindException e) {
+			// Can't happen as parser should have already validated options
+			throw new IllegalStateException(e);
+		}
+	}
+
+	/**
+	 * Watcher for the modules deployed to this container under the {@link Paths#STREAMS} location. If the node is
+	 * deleted, this container will undeploy the module.
+	 */
+	class StreamModuleWatcher implements CuratorWatcher {
+
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		public void process(WatchedEvent event) throws Exception {
+			if (event.getType() == Watcher.Event.EventType.NodeDeleted) {
+				StreamsPath streamsPath = new StreamsPath(event.getPath());
+
+				String streamName = streamsPath.getStreamName();
+				String moduleType = streamsPath.getModuleType();
+				String moduleLabel = streamsPath.getModuleLabel();
+
+				undeployModule(moduleLabel, moduleType);
+
+				String deploymentPath = new DeploymentsPath()
+						.setContainer(containerMetadata.getId())
+						.setStreamName(streamName)
+						.setModuleType(moduleType)
+						.setModuleLabel(moduleLabel).build();
+
+				CuratorFramework client = zkConnection.getClient();
+				if (client.checkExists().forPath(deploymentPath) != null) {
+					LOG.trace("Deleting path: {}", deploymentPath);
+					client.delete().forPath(deploymentPath);
+				}
+			}
+			else {
+				// this watcher is only interested in deletes for the purposes of undeploying modules;
+				// if any other change occurs the watch needs to be reestablished
+				zkConnection.getClient().getData().usingWatcher(this).forPath(event.getPath());
+			}
+		}
+	}
+
+	/**
+	 * Listener for deployment requests for this container under {@link Paths#DEPLOYMENTS}.
+	 */
+	class DeploymentListener implements PathChildrenCacheListener {
+
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
+			LOG.debug("Path cache event: {}", event);
+			switch (event.getType()) {
+				case INITIALIZED:
+					break;
+				case CHILD_ADDED:
+					onChildAdded(client, event.getData());
+					break;
+				case CHILD_REMOVED:
+					onChildRemoved(client, event.getData());
+					break;
+				default:
+					break;
+			}
 		}
 	}
 

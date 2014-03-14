@@ -28,19 +28,48 @@ import org.springframework.xd.dirt.core.BaseDefinition;
  */
 public class StreamDefinition extends BaseDefinition {
 
+	/**
+	 * Flag that determines whether this stream is deployed.
+	 */
+	private boolean deploy;
+
 	@SuppressWarnings("unused")
 	private StreamDefinition() {
 		// no-arg constructor for serialization
 	}
 
 	/**
-	 * Create a new StreamDefinition
-	 * 
-	 * @param name - the stream name
-	 * @param definition - the stream definition
+	 * Create a new StreamDefinition. By default this stream will
+	 * not be deployed.
+	 *
+	 * @param name        the stream name
+	 * @param definition  the stream definition
+	 *
+	 * @see #isDeploy
 	 */
 	public StreamDefinition(String name, String definition) {
+		this(name, definition, false);
+	}
+
+	/**
+	 * Create a new StreamDefinition.
+	 * 
+	 * @param name        the stream name
+	 * @param definition  the stream definition
+	 * @param deploy      if true, this stream should be deployed
+	 */
+	public StreamDefinition(String name, String definition, boolean deploy) {
 		super(name, definition);
+		this.deploy = deploy;
+	}
+
+	/**
+	 * Return true if this stream should be deployed.
+	 *
+	 * @return true if this stream should be deployed
+	 */
+	public boolean isDeploy() {
+		return deploy;
 	}
 
 }

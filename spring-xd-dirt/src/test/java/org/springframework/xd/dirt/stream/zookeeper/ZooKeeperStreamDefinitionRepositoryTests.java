@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,29 +14,61 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.stream.memory;
+package org.springframework.xd.dirt.stream.zookeeper;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.xd.dirt.module.memory.InMemoryModuleDependencyRepository;
 import org.springframework.xd.dirt.stream.StreamDefinition;
+import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 
 /**
- * Unit test for InMemoryStreamDefinitionRepository.
+ * Unit tests for {@link ZooKeeperStreamDefinitionRepository}.
  * 
  * @author Eric Bottard
+ * @author David Turanski
+ * @author Gary Russell
+ * @author Mark Fisher
  */
-public class InMemoryStreamDefinitionRepositoryTests {
+public class ZooKeeperStreamDefinitionRepositoryTests {
 
-	private InMemoryStreamDefinitionRepository repository = new InMemoryStreamDefinitionRepository(
-			new InMemoryModuleDependencyRepository());
+	private EmbeddedZooKeeper embeddedZooKeeper = new EmbeddedZooKeeper();
+
+	private ZooKeeperStreamDefinitionRepository repository;
+
+	private ZooKeeperConnection zkConnection;
+
+	@Before
+	public void createRepository() {
+		this.zkConnection = new ZooKeeperConnection("localhost:" + embeddedZooKeeper.getClientPort());
+		this.repository = new ZooKeeperStreamDefinitionRepository(zkConnection,
+				new InMemoryModuleDependencyRepository());
+		zkConnection.start();
+	}
+
+	@After
+	public void shutdownRepository() {
+		if (repository != null) {
+			repository.deleteAll();
+		}
+		if (zkConnection != null) {
+			zkConnection.stop();
+		}
+	}
 
 	@Test
 	public void newlyCreatedRepo() {
@@ -141,6 +173,46 @@ public class InMemoryStreamDefinitionRepositoryTests {
 		List<StreamDefinition> content = sub.getContent();
 		Assert.assertEquals("one", content.get(0).getName());
 		Assert.assertEquals("three", content.get(1).getName());
-
 	}
+
+	@Test
+	public void testInitialState() {
+		assertEquals(0, repository.count());
+	}
+
+	@Test
+	public void testSave() {
+		StreamDefinition streamDefinition = new StreamDefinition("test", "time | log");
+		repository.save(streamDefinition);
+		StreamDefinition saved = repository.findOne("test");
+		assertEquals(streamDefinition.getName(), saved.getName());
+		assertEquals(streamDefinition.getDefinition(), saved.getDefinition());
+	}
+
+	@Test
+	public void testFindAll() {
+		repository.save(new StreamDefinition("test1", "time | log"));
+		repository.save(new StreamDefinition("test2", "time | log"));
+		repository.save(new StreamDefinition("test3", "time | log"));
+		int i = 0;
+		for (Iterator<StreamDefinition> it = repository.findAll().iterator(); it.hasNext();) {
+			it.next();
+			i++;
+		}
+		assertEquals(3, i);
+		assertTrue(repository.exists("test1"));
+		assertTrue(repository.exists("test2"));
+		assertTrue(repository.exists("test3"));
+		assertTrue(!repository.exists("test4"));
+	}
+
+	@Test
+	public void testDelete() {
+		StreamDefinition streamDefinition = new StreamDefinition("test", "time | log");
+		repository.save(streamDefinition);
+		StreamDefinition saved = repository.findOne("test");
+		repository.delete(saved);
+		assertNull(repository.findOne("test"));
+	}
+
 }

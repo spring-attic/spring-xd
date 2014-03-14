@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -26,16 +26,21 @@ import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
  * @author Luke Taylor
  * @author Ilayaperumal Gopinathan
  * @author Gunnar Hillert
- *
  */
 public class JobDeployer extends AbstractInstancePersistingDeployer<JobDefinition, Job> { // extends
 
 	private static final String JOB_PARAMETERS_KEY = "jobParameters";
 
-	public JobDeployer(DeploymentMessageSender messageSender, JobDefinitionRepository definitionRepository,
+	// todo: get rid of this
+	private final DeploymentMessageSender messageSender;
+
+	public JobDeployer(JobDefinitionRepository definitionRepository,
 			JobRepository instanceRepository,
-			XDParser parser) {
-		super(definitionRepository, instanceRepository, messageSender, parser, job);
+			XDParser parser,
+			DeploymentMessageSender messageSender) {
+		super(definitionRepository, instanceRepository, parser, job);
+		Assert.notNull(messageSender, "Message sender cannot be null");
+		this.messageSender = messageSender;
 	}
 
 	@Override
@@ -43,6 +48,7 @@ public class JobDeployer extends AbstractInstancePersistingDeployer<JobDefinitio
 		return new Job(definition);
 	}
 
+	// todo: replace this with use of the MessageBus, sending to queue:job:jobname
 	public void launch(String name, String jobParameters) {
 		// Double check so that user gets an informative error message
 		JobDefinition job = getDefinitionRepository().findOne(name);
@@ -53,7 +59,6 @@ public class JobDeployer extends AbstractInstancePersistingDeployer<JobDefinitio
 		if (instance == null) {
 			throwNotDeployedException(name);
 		}
-
 		List<ModuleDeploymentRequest> requests = parse(name, job.getDefinition());
 		Assert.isTrue(requests.size() == 1, "Expecting only a single module");
 		ModuleDeploymentRequest request = requests.get(0);
@@ -61,6 +66,18 @@ public class JobDeployer extends AbstractInstancePersistingDeployer<JobDefinitio
 		if (!StringUtils.isEmpty(jobParameters)) {
 			request.setParameter(JOB_PARAMETERS_KEY, jobParameters);
 		}
-		sendDeploymentRequests(name, requests);
+		messageSender.sendDeploymentRequests(name, requests);
 	}
+
+	@Override
+	protected JobDefinition createDefinition(String name, String definition, boolean deploy) {
+		return new JobDefinition(name, definition, deploy);
+	}
+
+	// TODO: The ModuleDefinition currently does not provide sourceChannelName and sinkChannelName required for
+	// deployment. This is only provided by the parser
+	private List<ModuleDeploymentRequest> parse(String name, String definition) {
+		return this.streamParser.parse(name, definition, definitionKind);
+	}
+
 }

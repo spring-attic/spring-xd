@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,8 +59,10 @@ import org.springframework.xd.dirt.stream.StreamRepository;
 import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.dirt.stream.memory.InMemoryJobDefinitionRepository;
 import org.springframework.xd.dirt.stream.memory.InMemoryJobRepository;
-import org.springframework.xd.dirt.stream.memory.InMemoryStreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.memory.InMemoryStreamRepository;
+import org.springframework.xd.dirt.stream.zookeeper.ZooKeeperStreamDefinitionRepository;
+import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.options.DefaultModuleOptionsMetadataResolver;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
@@ -133,12 +135,22 @@ public class Dependencies {
 
 	@Bean
 	public JobDeployer jobDeployer() {
-		return new JobDeployer(deploymentMessageSender(), jobDefinitionRepository(), xdJobRepository(), parser());
+		return new JobDeployer(jobDefinitionRepository(), xdJobRepository(), parser(), deploymentMessageSender());
+	}
+
+	@Bean
+	public EmbeddedZooKeeper embeddedZooKeeper() {
+		return new EmbeddedZooKeeper();
+	}
+
+	@Bean
+	public ZooKeeperConnection zooKeeperConnection() {
+		return new ZooKeeperConnection("localhost:" + embeddedZooKeeper().getClientPort());
 	}
 
 	@Bean
 	public StreamDefinitionRepository streamDefinitionRepository() {
-		return new InMemoryStreamDefinitionRepository(moduleDependencyRepository());
+		return new ZooKeeperStreamDefinitionRepository(zooKeeperConnection(), moduleDependencyRepository());
 	}
 
 	@Bean
@@ -153,8 +165,7 @@ public class Dependencies {
 
 	@Bean
 	public StreamDeployer streamDeployer() {
-		return new StreamDeployer(streamDefinitionRepository(), deploymentMessageSender(), streamRepository(),
-				parser());
+		return new StreamDeployer(streamDefinitionRepository(), streamRepository(), parser());
 	}
 
 	@Bean

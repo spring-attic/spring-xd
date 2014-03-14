@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 
 import org.springframework.context.SmartLifecycle;
 import org.springframework.util.ErrorHandler;
-import org.springframework.util.SocketUtils;
 
 /**
  * Helper class to start an embedded instance of standalone (non clustered) ZooKeeper.
@@ -41,7 +40,6 @@ import org.springframework.util.SocketUtils;
  * @author Mark Fisher
  * @author David Turanski
  */
-
 public class EmbeddedZooKeeper implements SmartLifecycle {
 
 	/**
@@ -52,7 +50,7 @@ public class EmbeddedZooKeeper implements SmartLifecycle {
 	/**
 	 * ZooKeeper client port. This will be determined dynamically upon startup.
 	 */
-	private final int clientPort = SocketUtils.findAvailableTcpPort();
+	private final int clientPort; // todo: add this back: = SocketUtils.findAvailableTcpPort();
 
 	/**
 	 * Whether to auto-start. Default is true.
@@ -78,6 +76,11 @@ public class EmbeddedZooKeeper implements SmartLifecycle {
 	 * {@link ErrorHandler} to be invoked if an Exception is thrown from the ZooKeeper server thread.
 	 */
 	private ErrorHandler errorHandler;
+
+
+	public EmbeddedZooKeeper() {
+		clientPort = 5555; // todo: reenable SocketUtils.findAvailableTcpPort() in the declaration
+	}
 
 	/**
 	 * Returns the port that clients should use to connect to this embedded server.

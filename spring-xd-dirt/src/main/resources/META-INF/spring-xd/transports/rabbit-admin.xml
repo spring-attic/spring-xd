@@ -11,8 +11,6 @@
 
 	<int-rabbit:outbound-channel-adapter channel="deployChannel" routing-key="${xd.deployer.queue:xd.deployer}" amqp-template="rabbitTemplate"/>
 
-	<int-rabbit:outbound-channel-adapter channel="undeployChannel" exchange-name="${xd.undeployer.topic:xd.undeployer}" amqp-template="rabbitTemplate"/>
-
 	<rabbit:template id="rabbitTemplate" connection-factory="rabbitConnectionFactory"/>
 	
 </beans>

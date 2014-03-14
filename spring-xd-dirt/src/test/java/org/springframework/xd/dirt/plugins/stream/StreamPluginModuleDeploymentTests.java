@@ -21,6 +21,7 @@ import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
@@ -37,13 +38,21 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.Message;
+import org.springframework.validation.BindException;
+import org.springframework.xd.dirt.core.ModuleDescriptor;
 import org.springframework.xd.dirt.event.AbstractModuleEvent;
 import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.dirt.module.TestModuleEventListener;
 import org.springframework.xd.dirt.server.options.XDPropertyKeys;
+import org.springframework.xd.module.DeploymentMetadata;
+import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
+import org.springframework.xd.module.core.Module;
 import org.springframework.xd.module.core.SimpleModule;
+import org.springframework.xd.module.options.ModuleOptions;
+import org.springframework.xd.module.options.SimpleModuleOptionsMetadata;
+import org.springframework.xd.module.support.ParentLastURLClassLoader;
 
 /**
  * Integration test that deploys a few simple test modules to verify the full functionality of {@link StreamPlugin}
@@ -62,6 +71,8 @@ public class StreamPluginModuleDeploymentTests {
 	private SimpleModule source;
 
 	private SimpleModule sink;
+
+	private ClassLoader parentClassLoader;
 
 	@Before
 	public void setup() {
@@ -83,6 +94,7 @@ public class StreamPluginModuleDeploymentTests {
 				"org/springframework/xd/dirt/plugins/stream/StreamPluginModuleDeploymentTests-context.xml"));
 
 		parent.refresh();
+		parentClassLoader = parent.getClassLoader();
 		child.setParent(parent);
 		child.refresh();
 
@@ -116,12 +128,12 @@ public class StreamPluginModuleDeploymentTests {
 	}
 
 	@Test
-	public void moduleUndeployUnregistersChannels() throws InterruptedException {
-		ModuleDeploymentRequest request = createSourceModuleRequest();
-		sendModuleRequest(request);
+	public void moduleUndeployUnregistersChannels() throws InterruptedException, BindException {
+		ModuleDescriptor moduleDescriptor = createSourceModuleDescriptor();
+		ModuleOptions moduleOptions = new SimpleModuleOptionsMetadata().interpolate(Collections.<String, String> emptyMap());
+		moduleDeployer.deployAndStore(createSimpleModule(moduleDescriptor, moduleOptions), moduleDescriptor);
 		assertEquals(2, getBindings(bus).size());
-		request.setRemove(true);
-		sendModuleRequest(request);
+		moduleDeployer.undeploy(moduleDescriptor);
 		assertEquals(0, getBindings(bus).size());
 	}
 
@@ -140,6 +152,25 @@ public class StreamPluginModuleDeploymentTests {
 		request.setModule("source");
 		request.setIndex(0);
 		return request;
+	}
+
+	private ModuleDescriptor createSourceModuleDescriptor() {
+		ModuleDefinition definition = new ModuleDefinition("source", ModuleType.source);
+		return new ModuleDescriptor(definition, "test", definition.getName() + "-0", 0, null, 1);
+	}
+
+	// todo: this is copied from ContainerRegistrar where it's private
+	private Module createSimpleModule(ModuleDescriptor descriptor, ModuleOptions moduleOptions) {
+		String streamName = descriptor.getStreamName();
+		int index = descriptor.getIndex();
+		String sourceChannelName = descriptor.getSourceChannelName();
+		String sinkChannelName = descriptor.getSinkChannelName();
+		DeploymentMetadata metadata = new DeploymentMetadata(streamName, index, sourceChannelName, sinkChannelName);
+		ModuleDefinition definition = descriptor.getModuleDefinition();
+		ClassLoader classLoader = (definition.getClasspath() == null) ? null
+				: new ParentLastURLClassLoader(definition.getClasspath(), parentClassLoader);
+		Module module = new SimpleModule(definition, metadata, classLoader, moduleOptions);
+		return module;
 	}
 
 	private ModuleDeploymentRequest createSinkModuleRequest() {

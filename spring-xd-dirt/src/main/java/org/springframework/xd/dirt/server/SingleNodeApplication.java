@@ -116,14 +116,11 @@ public class SingleNodeApplication {
 				"containerControlChannel", MessageChannel.class);
 		SubscribableChannel deployChannel = adminContext.getBean(
 				"deployChannel", SubscribableChannel.class);
-		SubscribableChannel undeployChannel = adminContext.getBean(
-				"undeployChannel", SubscribableChannel.class);
 
 		BridgeHandler handler = new BridgeHandler();
 		handler.setOutputChannel(containerControlChannel);
 		handler.setComponentName("xd.local.control.bridge");
 		deployChannel.subscribe(handler);
-		undeployChannel.subscribe(handler);
 	}
 
 }

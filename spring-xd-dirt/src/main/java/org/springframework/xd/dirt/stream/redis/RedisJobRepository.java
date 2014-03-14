@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ package org.springframework.xd.dirt.stream.redis;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.xd.dirt.stream.Job;
 import org.springframework.xd.dirt.stream.JobDefinition;
+import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobRepository;
-
 
 /**
  * Redis implementation of {@link JobRepository}, uses a {@link RedisJobDefinitionRepository} in turn.
@@ -29,12 +29,12 @@ import org.springframework.xd.dirt.stream.JobRepository;
  */
 public class RedisJobRepository extends AbstractRedisInstanceRepository<Job> implements JobRepository {
 
-	private final RedisJobDefinitionRepository jobDefinitionRepository;
+	private final JobDefinitionRepository jobDefinitionRepository;
 
 	public RedisJobRepository(RedisOperations<String, String> redisOperations,
-			RedisJobDefinitionRepository redisJobDefinitionRepository) {
+			JobDefinitionRepository jobDefinitionRepository) {
 		super("jobs", redisOperations);
-		this.jobDefinitionRepository = redisJobDefinitionRepository;
+		this.jobDefinitionRepository = jobDefinitionRepository;
 	}
 
 	@Override

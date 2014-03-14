@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.springframework.xd.dirt.stream;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -46,20 +45,16 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 
 	protected final XDParser streamParser;
 
-	private final DeploymentMessageSender messageSender;
-
 	/**
 	 * Used in exception messages as well as indication to the parser.
 	 */
 	protected final ParsingContext definitionKind;
 
-	protected AbstractDeployer(PagingAndSortingRepository<D, String> repository, DeploymentMessageSender messageSender,
+	protected AbstractDeployer(PagingAndSortingRepository<D, String> repository,
 			XDParser parser, ParsingContext parsingContext) {
 		Assert.notNull(repository, "Repository cannot be null");
-		Assert.notNull(messageSender, "Message sender cannot be null");
 		Assert.notNull(parsingContext, "Entity type kind cannot be null");
 		this.repository = repository;
-		this.messageSender = messageSender;
 		this.definitionKind = parsingContext;
 		this.streamParser = parser;
 	}
@@ -159,35 +154,6 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		return repository;
 	}
 
-	protected void sendDeploymentRequests(String name, List<ModuleDeploymentRequest> requests) {
-		messageSender.sendDeploymentRequests(name, requests);
-	}
-
-	// TODO: The ModuleDefinition currently does not provide sourceChannelName and sinkChannelName required for
-	// deployment. This is only provided by the parser
-	protected List<ModuleDeploymentRequest> parse(String name, String definition) {
-		return this.streamParser.parse(name, definition, definitionKind);
-	}
-
-	protected List<ModuleDeploymentRequest> buildUndeployRequests(D definition) {
-		List<ModuleDefinition> moduleDefinitions = definition.getModuleDefinitions();
-		List<ModuleDeploymentRequest> moduleDeploymentRequests = new ArrayList<ModuleDeploymentRequest>(
-				moduleDefinitions.size());
-		/*
-		 * Only some fields required for undeploy
-		 */
-		for (int i = 0; i < moduleDefinitions.size(); i++) {
-			ModuleDefinition md = moduleDefinitions.get(i);
-			ModuleDeploymentRequest request = new ModuleDeploymentRequest();
-			request.setGroup(definition.getName());
-			request.setIndex(moduleDefinitions.size() - i - 1);
-			request.setRemove(true);
-			request.setModule(md.getName());
-			moduleDeploymentRequests.add(request);
-		}
-		return moduleDeploymentRequests;
-	}
-
 	/**
 	 * Provides basic deployment behavior, whereby running state of deployed definitions is not persisted.
 	 * 
@@ -200,26 +166,25 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		if (definition == null) {
 			throwNoSuchDefinitionException(name);
 		}
-		final List<ModuleDeploymentRequest> requests = parse(name, definition.getDefinition());
-		sendDeploymentRequests(name, requests);
-		return definition;
+		return definition.isDeploy() ? definition :
+				getDefinitionRepository().save(createDefinition(name, definition.getDefinition(), true));
 	}
 
 	/**
 	 * Provides basic un-deployment behavior, whereby state of deployed definitions is not dealt with.
 	 */
 	protected void basicUndeploy(String name) {
+		Assert.hasText(name, "name cannot be blank or null");
 		D definition = getDefinitionRepository().findOne(name);
 		if (definition == null) {
 			throwNoSuchDefinitionException(name);
 		}
-		List<ModuleDeploymentRequest> requests = buildUndeployRequests(definition);
-		for (ModuleDeploymentRequest request : requests) {
-			request.setRemove(true);
+		if (definition.isDeploy()) {
+			getDefinitionRepository().save(createDefinition(name, definition.getDefinition(), false));
 		}
-		Collections.reverse(requests);
-		sendDeploymentRequests(name, requests);
 	}
+
+	protected abstract D createDefinition(String name, String definition, boolean deploy);
 
 	@Override
 	public void delete(String name) {

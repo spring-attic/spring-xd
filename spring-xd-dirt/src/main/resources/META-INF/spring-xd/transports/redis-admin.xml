@@ -17,6 +17,4 @@
 		serializer="redisSerializer"
 		/>
 
-	<int-redis:outbound-channel-adapter channel="undeployChannel" topic="${xd.undeployer.topic:topic.undeployer}" connection-factory="redisConnectionFactory" />
-	
 </beans>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 the original author or authors.
+ * Copyright 2011-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,6 @@
 package org.springframework.xd.dirt.stream;
 
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.jboss.netty.channel.ChannelException;
 
@@ -36,23 +34,15 @@ public class DeploymentMessageSender {
 
 	private final MessageChannel deployChannel;
 
-	private final MessageChannel undeployChannel;
-
-	private final Map<String, List<ModuleDeploymentRequest>> deployments = new ConcurrentHashMap<String, List<ModuleDeploymentRequest>>();
-
-	public DeploymentMessageSender(MessageChannel deployChannel, MessageChannel undeployChannel) {
+	public DeploymentMessageSender(MessageChannel deployChannel) {
 		this.deployChannel = deployChannel;
-		this.undeployChannel = undeployChannel;
 	}
 
 	public void sendDeploymentRequests(String name, List<ModuleDeploymentRequest> requests) {
-		this.addDeployment(name, requests);
 		for (ModuleDeploymentRequest request : requests) {
 			Message<?> message = MessageBuilder.withPayload(request.toString()).build();
-			if (request.isRemove()) {
-				this.undeployChannel.send(message);
-			}
-			else {
+			// todo: this is the only use of the sender now; no longer needed once sending via MessageBus
+			if (request.isLaunch()) {
 				try {
 					this.deployChannel.send(message);
 				}
@@ -66,15 +56,6 @@ public class DeploymentMessageSender {
 				}
 			}
 		}
-		;
-	}
-
-	protected final void addDeployment(String name, List<ModuleDeploymentRequest> modules) {
-		this.deployments.put(name, modules);
-	}
-
-	protected List<ModuleDeploymentRequest> removeDeployment(String name) {
-		return this.deployments.remove(name);
 	}
 
 }

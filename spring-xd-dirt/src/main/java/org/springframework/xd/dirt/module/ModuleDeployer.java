@@ -37,7 +37,7 @@ import org.springframework.core.OrderComparator;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
-import org.springframework.validation.BindException;
+import org.springframework.xd.dirt.core.ModuleDescriptor;
 import org.springframework.xd.dirt.event.ModuleDeployedEvent;
 import org.springframework.xd.dirt.event.ModuleUndeployedEvent;
 import org.springframework.xd.dirt.plugins.job.JobPlugin;
@@ -49,8 +49,6 @@ import org.springframework.xd.module.core.Module;
 import org.springframework.xd.module.core.Plugin;
 import org.springframework.xd.module.core.SimpleModule;
 import org.springframework.xd.module.options.ModuleOptions;
-import org.springframework.xd.module.options.ModuleOptionsMetadata;
-import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 import org.springframework.xd.module.support.ParentLastURLClassLoader;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -84,14 +82,9 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 
 	private ClassLoader parentClassLoader;
 
-	private final ModuleOptionsMetadataResolver moduleOptionsMetadataResolver;
-
-	public ModuleDeployer(ModuleDefinitionRepository moduleDefinitionRepository,
-			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver) {
+	public ModuleDeployer(ModuleDefinitionRepository moduleDefinitionRepository) {
 		Assert.notNull(moduleDefinitionRepository, "moduleDefinitionRepository must not be null");
-		Assert.notNull(moduleOptionsMetadataResolver, "moduleOptionsMetadataResolver must not be null");
 		this.moduleDefinitionRepository = moduleDefinitionRepository;
-		this.moduleOptionsMetadataResolver = moduleOptionsMetadataResolver;
 	}
 
 	public Map<String, Map<Integer, Module>> getDeployedModules() {
@@ -134,53 +127,18 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		this.parentClassLoader = classLoader;
 	}
 
+	// todo: remove this once the job launching is replaced with messages via MessageBus
 	@Override
 	protected synchronized void handleMessageInternal(Message<?> message) throws Exception {
 		String payloadString = message.getPayload().toString();
 		ModuleDeploymentRequest request = this.mapper.readValue(payloadString, ModuleDeploymentRequest.class);
-
-		if (request.isRemove()) {
-			handleUndeploy(request);
-		}
-		else if (request.isLaunch()) {
+		if (request.isLaunch()) {
 			Assert.isTrue(!(request instanceof CompositeModuleDeploymentRequest));
 			handleLaunch(request);
 		}
-		else {
-			handleDeploy(request);
-		}
-
-
-	}
-
-	/**
-	 * Takes a request and returns an instance of {@link ModuleOptions} bound with the request parameters. Binding is
-	 * assumed to not fail, as it has already been validated on the admin side.
-	 */
-	private ModuleOptions safeModuleOptionsInterpolate(ModuleDeploymentRequest request) {
-		String name = request.getModule();
-		ModuleType type = request.getType();
-		ModuleDefinition definition = this.moduleDefinitionRepository.findByNameAndType(name, type);
-		Map<String, String> parameters = request.getParameters();
-		ModuleOptionsMetadata moduleOptionsMetadata = moduleOptionsMetadataResolver.resolve(definition);
-		try {
-			return moduleOptionsMetadata.interpolate(parameters);
-		}
-		catch (BindException e) {
-			// Can't happen as parser should have already validated options
-			throw new IllegalStateException(e);
-		}
-	}
-
-	private void handleDeploy(ModuleDeploymentRequest request) {
-		ModuleOptions moduleOptions = safeModuleOptionsInterpolate(request);
-
-		Module module = createModule(request, moduleOptions);
-		this.deployAndStore(module, request);
 	}
 
 	private Module createModule(ModuleDeploymentRequest request, ModuleOptions moduleOptions) {
-
 		if (request instanceof CompositeModuleDeploymentRequest) {
 			return createCompositeModule((CompositeModuleDeploymentRequest) request, moduleOptions);
 		}
@@ -213,7 +171,6 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		return new CompositeModule(moduleName, moduleType, childrenModules, deploymentMetadata);
 	}
 
-
 	private Module createSimpleModule(ModuleDeploymentRequest request, ModuleOptions moduleOptions) {
 		String group = request.getGroup();
 		int index = request.getIndex();
@@ -228,20 +185,31 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		ClassLoader classLoader = (definition.getClasspath() == null) ? null
 				: new ParentLastURLClassLoader(definition.getClasspath(), parentClassLoader);
 
-
 		Module module = new SimpleModule(definition, metadata, classLoader, moduleOptions);
 		return module;
 	}
 
+	// todo: when refactoring to ZK-based deployment, keep this method but remove the private one
+	// but notice the use of 'group' which is abstract so it can also support jobs (not just streams)
+	// that terminology needs to change since group is part of a deployment manifest. Most likely we
+	// need to be more explicit about jobs vs. streams rather than trying to genericize into one concept.
+	public void deployAndStore(Module module, ModuleDescriptor descriptor) {
+		this.deployAndStore(module, descriptor.getStreamName(), descriptor.getIndex());
+	}
 
-	private void deployAndStore(Module module, ModuleDeploymentRequest request) {
+	// todo: same general idea as deployAndStore above
+	public void undeploy(ModuleDescriptor moduleDescriptor) {
+		this.handleUndeploy(moduleDescriptor.getStreamName(), moduleDescriptor.getIndex());
+	}
+
+	private void deployAndStore(Module module, String group, int index) {
 		module.setParentContext(this.globalContext);
 		this.deploy(module);
 		if (logger.isInfoEnabled()) {
 			logger.info("deployed " + module.toString());
 		}
-		this.deployedModules.putIfAbsent(request.getGroup(), new HashMap<Integer, Module>());
-		this.deployedModules.get(request.getGroup()).put(request.getIndex(), module);
+		this.deployedModules.putIfAbsent(group, new HashMap<Integer, Module>());
+		this.deployedModules.get(group).put(index, module);
 	}
 
 	private void deploy(Module module) {
@@ -252,11 +220,9 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		this.fireModuleDeployedEvent(module);
 	}
 
-	private void handleUndeploy(ModuleDeploymentRequest request) {
-		String group = request.getGroup();
+	private void handleUndeploy(String group, int index) {
 		Map<Integer, Module> modules = this.deployedModules.get(group);
 		if (modules != null) {
-			int index = request.getIndex();
 			Module module = modules.remove(index);
 			if (modules.size() == 0) {
 				this.deployedModules.remove(group);
@@ -266,13 +232,14 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 			}
 			else {
 				if (logger.isDebugEnabled()) {
-					logger.debug("Ignoring undeploy - module not deployed here: " + request);
+					logger.debug("Ignoring undeploy - module with index " + index + " from group " + group
+							+ " is not deployed here");
 				}
 			}
 		}
 		else {
 			if (logger.isTraceEnabled()) {
-				logger.trace("Ignoring undeploy - group not deployed here: " + request);
+				logger.trace("Ignoring undeploy - group not deployed here: " + group);
 			}
 		}
 	}

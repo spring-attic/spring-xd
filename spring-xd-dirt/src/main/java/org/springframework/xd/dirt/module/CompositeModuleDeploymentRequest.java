@@ -49,7 +49,6 @@ public class CompositeModuleDeploymentRequest extends ModuleDeploymentRequest {
 		this.setIndex(parent.getIndex());
 		this.setLaunch(parent.isLaunch());
 		this.setModule(parent.getModule());
-		this.setRemove(parent.isRemove());
 		this.setSinkChannelName(parent.getSinkChannelName());
 		this.setSourceChannelName(parent.getSourceChannelName());
 		this.setType(parent.getType());

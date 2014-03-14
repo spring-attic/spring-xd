@@ -5,10 +5,7 @@
 
 	<import resource="../transports/redis-common.xml" />
 
-	<bean id="jobDefinitionRepository"
-		class="org.springframework.xd.dirt.stream.redis.RedisJobDefinitionRepository">
-		<constructor-arg ref="stringRedisTemplate" />
-	</bean>
+	<bean id="jobDefinitionRepository" class="org.springframework.xd.dirt.stream.zookeeper.ZooKeeperJobDefinitionRepository"/>
 
 	<bean id="xdJobRepository"
 		class="org.springframework.xd.dirt.stream.redis.RedisJobRepository">
@@ -17,10 +14,7 @@
 	</bean>
 
 	<bean id="streamDefinitionRepository"
-		class="org.springframework.xd.dirt.stream.redis.RedisStreamDefinitionRepository">
-		<constructor-arg ref="stringRedisTemplate" />
-		<constructor-arg ref="moduleDependencyRepository" />
-	</bean>
+		class="org.springframework.xd.dirt.stream.zookeeper.ZooKeeperStreamDefinitionRepository"/>
 
 	<bean id="streamRepository"
 		class="org.springframework.xd.dirt.stream.redis.RedisStreamRepository">

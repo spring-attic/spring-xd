@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.springframework.xd.dirt.stream;
 
 import static org.springframework.xd.dirt.stream.ParsingContext.stream;
 
-
 /**
  * Default implementation of {@link StreamDeployer} that emits deployment request messages on a bus and relies on
  * {@link StreamDefinitionRepository} and {@link StreamRepository} for persistence.
@@ -31,14 +30,31 @@ import static org.springframework.xd.dirt.stream.ParsingContext.stream;
  */
 public class StreamDeployer extends AbstractInstancePersistingDeployer<StreamDefinition, Stream> {
 
-	public StreamDeployer(StreamDefinitionRepository repository, DeploymentMessageSender messageSender,
+	public StreamDeployer(StreamDefinitionRepository repository,
 			StreamRepository streamRepository, XDParser parser) {
-		super(repository, streamRepository, messageSender, parser, stream);
+		super(repository, streamRepository, parser, stream);
 	}
 
 	@Override
 	protected Stream makeInstance(StreamDefinition definition) {
 		return new Stream(definition);
+	}
+
+	@Override
+	protected StreamDefinition createDefinition(String name, String definition, boolean deploy) {
+		return new StreamDefinition(name, definition, deploy);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * <p/>
+	 * Before deleting the stream, perform an undeploy. This causes a graceful shutdown of the modules in the stream
+	 * before it is deleted from the repository.
+	 */
+	@Override
+	protected void beforeDelete(StreamDefinition definition) {
+		super.beforeDelete(definition);
+		basicUndeploy(definition.getName());
 	}
 
 }

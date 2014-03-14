@@ -55,8 +55,6 @@ public class ModuleDeploymentRequest implements Comparable<ModuleDeploymentReque
 
 	private final Map<String, String> parameters = new HashMap<String, String>();
 
-	private volatile boolean remove;
-
 	private volatile boolean launch;
 
 
@@ -90,14 +88,6 @@ public class ModuleDeploymentRequest implements Comparable<ModuleDeploymentReque
 
 	public void setType(ModuleType type) {
 		this.type = type;
-	}
-
-	public boolean isRemove() {
-		return remove;
-	}
-
-	public void setRemove(boolean remove) {
-		this.remove = remove;
 	}
 
 	public void setParameter(String name, String value) {

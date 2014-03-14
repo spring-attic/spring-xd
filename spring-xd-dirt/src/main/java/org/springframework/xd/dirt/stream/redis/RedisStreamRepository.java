@@ -21,6 +21,7 @@ import java.util.Date;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.xd.dirt.stream.Stream;
 import org.springframework.xd.dirt.stream.StreamDefinition;
+import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamRepository;
 
 /**
@@ -31,18 +32,18 @@ import org.springframework.xd.dirt.stream.StreamRepository;
  */
 public class RedisStreamRepository extends AbstractRedisInstanceRepository<Stream> implements StreamRepository {
 
-	private final RedisStreamDefinitionRepository redisStreamDefinitionRepository;
+	private final StreamDefinitionRepository streamDefinitionRepository;
 
 	public RedisStreamRepository(RedisOperations<String, String> redisOperations,
-			RedisStreamDefinitionRepository redisStreamDefinitionRepository) {
+			StreamDefinitionRepository streamDefinitionRepository) {
 		super("streams", redisOperations);
-		this.redisStreamDefinitionRepository = redisStreamDefinitionRepository;
+		this.streamDefinitionRepository = streamDefinitionRepository;
 	}
 
 	@Override
 	protected Stream deserialize(String redisKey, String v) {
 		String[] parts = v.split("\n");
-		StreamDefinition def = redisStreamDefinitionRepository.findOne(parts[0]);
+		StreamDefinition def = streamDefinitionRepository.findOne(parts[0]);
 		Date startedAt = new Date(Long.parseLong(parts[1]));
 		Stream stream = new Stream(def);
 		stream.setStartedAt(startedAt);

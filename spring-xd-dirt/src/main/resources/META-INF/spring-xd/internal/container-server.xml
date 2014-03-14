@@ -14,7 +14,6 @@
 
 	<bean id="moduleDeployer" class="org.springframework.xd.dirt.module.ModuleDeployer">
 		<constructor-arg ref="moduleDefinitionRepository" />
-		<constructor-arg ref="moduleOptionsMetadataResolver" />
 	</bean>
 
 </beans>

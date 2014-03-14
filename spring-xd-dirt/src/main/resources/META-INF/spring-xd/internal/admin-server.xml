@@ -11,4 +11,10 @@
 
 	<context:component-scan base-package="org.springframework.xd.dirt.stream.completion" />
 
+	<bean id="adminServer" class="org.springframework.xd.dirt.server.AdminServer">
+		<constructor-arg ref="zooKeeperConnection"/>
+		<constructor-arg ref="moduleDefinitionRepository"/>
+		<constructor-arg ref="moduleOptionsMetadataResolver"/>
+	</bean>
+
 </beans>

@@ -33,13 +33,19 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 
+import org.springframework.integration.x.bus.MessageBus;
+import org.springframework.messaging.SubscribableChannel;
 import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
 import org.springframework.util.AlternativeJdkIdGenerator;
 import org.springframework.util.IdGenerator;
-import org.springframework.xd.dirt.container.store.RedisRuntimeContainerInfoRepository;
+import org.springframework.xd.dirt.container.store.RuntimeContainerInfoRepository;
+import org.springframework.xd.dirt.integration.test.SingleNodeIntegrationTestSupport;
+import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
+import org.springframework.xd.dirt.zookeeper.Paths;
+import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 import org.springframework.xd.test.RandomConfigurationSupport;
 import org.springframework.xd.test.redis.RedisTestSupport;
 
@@ -86,7 +92,13 @@ public abstract class AbstractShellIntegrationTest {
 
 	private Set<File> toBeDeleted = new HashSet<File>();
 
-	private static RedisRuntimeContainerInfoRepository runtimeInformationRepository;
+	private static RuntimeContainerInfoRepository runtimeInformationRepository;
+
+	protected static StreamCommandListener streamCommandListener;
+
+	protected static JobCommandListener jobCommandListener = new JobCommandListener();
+
+	private static SingleNodeIntegrationTestSupport integrationTestSupport;
 
 	@BeforeClass
 	public static synchronized void startUp() throws InterruptedException, IOException {
@@ -96,11 +108,21 @@ public abstract class AbstractShellIntegrationTest {
 					"--analytics", "redis",
 					"--store", "redis"
 					);
+			integrationTestSupport = new SingleNodeIntegrationTestSupport(application);
+
+			streamCommandListener = new StreamCommandListener(
+					integrationTestSupport.streamDefinitionRepository(),
+					application.containerContext().getBean(ModuleDefinitionRepository.class),
+					application.containerContext().getBean(ModuleOptionsMetadataResolver.class));
+
+			integrationTestSupport.addPathListener(Paths.STREAMS, streamCommandListener);
+			integrationTestSupport.addPathListener(Paths.JOBS, jobCommandListener);
+
 			Bootstrap bootstrap = new Bootstrap(new String[] { "--port", randomConfigSupport.getAdminServerPort() });
 			shell = bootstrap.getJLineShellComponent();
 
 			runtimeInformationRepository = application.pluginContext().getBean(
-					RedisRuntimeContainerInfoRepository.class);
+					RuntimeContainerInfoRepository.class);
 		}
 		if (!shell.isRunning()) {
 			shell.start();
@@ -123,6 +145,14 @@ public abstract class AbstractShellIntegrationTest {
 
 	public static JLineShellComponent getShell() {
 		return shell;
+	}
+
+	protected MessageBus getMessageBus() {
+		return integrationTestSupport.messageBus();
+	}
+
+	protected SubscribableChannel getErrorChannel() {
+		return application.containerContext().getBean("errorChannel", SubscribableChannel.class);
 	}
 
 	private String generateUniqueName(String name) {

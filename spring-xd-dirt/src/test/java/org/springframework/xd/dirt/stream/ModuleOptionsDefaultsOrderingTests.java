@@ -135,7 +135,7 @@ public class ModuleOptionsDefaultsOrderingTests {
 		NamedChannelSink sink = new SingleNodeNamedChannelSinkFactory(messageBus).createNamedChannelSink("queue:consumer");
 
 		source.sendPayload("ping");
-		String result = (String) sink.receivePayload(1000);
+		String result = (String) sink.receivePayload(5000);
 		assertEquals(expected, result);
 
 		source.unbind();

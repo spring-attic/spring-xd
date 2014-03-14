@@ -24,7 +24,6 @@ import org.springframework.xd.dirt.core.BaseDefinition;
  * @author Gunnar Hillert
  * 
  * @since 1.0
- * 
  */
 public class JobDefinition extends BaseDefinition {
 
@@ -39,9 +38,20 @@ public class JobDefinition extends BaseDefinition {
 	 * 
 	 * @param name the job name
 	 * @param definition the job definition
-	 * @param moduleDefinitions the module definitions derived by parsing the definition
 	 */
 	public JobDefinition(String name, String definition) {
-		super(name, definition);
+		this(name, definition, false);
 	}
+
+	/**
+	 * Create a new JobDefinition.
+	 * 
+	 * @param name the job name
+	 * @param definition the job definition
+	 * @param deploy if true, this job should be deployed
+	 */
+	public JobDefinition(String name, String definition, boolean deploy) {
+		super(name, definition, deploy);
+	}
+
 }

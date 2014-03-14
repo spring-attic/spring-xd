@@ -17,7 +17,6 @@ endpoints:
 
 XD_ANALYTICS: ${analytics:redis}
 XD_TRANSPORT: ${transport:redis}
-XD_CONTROL_TRANSPORT: ${controlTransport:${XD_TRANSPORT}}
 XD_STORE: ${store:redis}
 XD_HOME: ${xdHomeDir:..}
 XD_JMX_ENABLED: true

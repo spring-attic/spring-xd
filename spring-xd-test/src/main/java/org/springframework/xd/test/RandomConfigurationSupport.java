@@ -24,17 +24,12 @@ import org.junit.AfterClass;
 
 import org.springframework.util.SocketUtils;
 
-
 /**
  * Support class to have random configuration for tests.
  * 
  * @author Ilayaperumal Gopinathan
  */
 public class RandomConfigurationSupport {
-
-	private static final String XD_DEPLOYER = "xd.deployer.queue";
-
-	private static final String XD_UNDEPLOYER = "xd.undeployer.topic";
 
 	private static final String ADMIN_SERVER_PORT = "PORT";
 
@@ -54,32 +49,12 @@ public class RandomConfigurationSupport {
 
 	private final int adminPort;
 
-	private final String deployerQueue;
-
-	private final String undeployerTopic;
-
 	public RandomConfigurationSupport() {
 		now = System.currentTimeMillis();
 		adminPort = SocketUtils.findAvailableTcpPort();
-		deployerQueue = "xd.deployer." + now;
-		undeployerTopic = "xd.undeployer." + now;
-		setupRandomControlTransportChannels();
 		setupRandomAdminServerPort();
 		setupRandomHSQLDBConfig();
 		disableJmx();
-	}
-
-	private void setupRandomControlTransportChannels() {
-		System.setProperty(XD_DEPLOYER, deployerQueue);
-		System.setProperty(XD_UNDEPLOYER, undeployerTopic);
-	}
-
-	public String getDeployerQueue() {
-		return deployerQueue;
-	}
-
-	public String getUndeployerTopic() {
-		return undeployerTopic;
 	}
 
 	private void setupRandomHSQLDBConfig(String host) {

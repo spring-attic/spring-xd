@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,8 @@ import org.kohsuke.args4j.Option;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.xd.dirt.server.options.ResourcePatternScanningOptionHandlers.SingleNodeAnalyticsOptionHandler;
-import org.springframework.xd.dirt.server.options.ResourcePatternScanningOptionHandlers.SingleNodeControlTransportOptionHandler;
 import org.springframework.xd.dirt.server.options.ResourcePatternScanningOptionHandlers.SingleNodeDataTransportOptionHandler;
 import org.springframework.xd.dirt.server.options.ResourcePatternScanningOptionHandlers.SingleNodeStoreOptionHandler;
-
 
 /**
  * Holds options that can be used in single-node mode. Some of those are hardcoded to accept a single value on purpose
@@ -44,11 +42,6 @@ public class SingleNodeOptions extends CommonOptions {
 	@Option(name = "--transport", handler = SingleNodeDataTransportOptionHandler.class,
 			usage = "The transport to use for data messages (between modules within a stream)")
 	private String transport;
-
-	@Option(name = "--controlTransport", aliases = { "--control-transport" },
-			handler = SingleNodeControlTransportOptionHandler.class,
-			usage = "The transport to use for control messages")
-	private String controlTransport;
 
 	@Option(name = "--store", handler = SingleNodeStoreOptionHandler.class,
 			usage = "How to persist admin data")
@@ -83,11 +76,6 @@ public class SingleNodeOptions extends CommonOptions {
 		return transport;
 	}
 
-	@NotNull
-	public String getXD_CONTROL_TRANSPORT() {
-		return controlTransport;
-	}
-
 	public void setXD_ANALYTICS(String analytics) {
 		this.analytics = analytics;
 	}
@@ -98,10 +86,6 @@ public class SingleNodeOptions extends CommonOptions {
 
 	public void setXD_TRANSPORT(String transport) {
 		this.transport = transport;
-	}
-
-	public void setXD_CONTROL_TRANSPORT(String controlTransport) {
-		this.controlTransport = controlTransport;
 	}
 
 	public void setHADOOP_DISTRO(HadoopDistro distro) {

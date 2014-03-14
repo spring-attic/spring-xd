@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,10 @@ import org.springframework.batch.core.repository.dao.JdbcExecutionContextDao;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.scheduling.PollerMetadata;
+import org.springframework.integration.x.bus.LocalMessageBus;
+import org.springframework.integration.x.bus.MessageBus;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.xd.analytics.metrics.core.AggregateCounterRepository;
 import org.springframework.xd.analytics.metrics.core.CounterRepository;
 import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository;
@@ -50,7 +54,6 @@ import org.springframework.xd.dirt.module.store.RuntimeModuleInfoRepository;
 import org.springframework.xd.dirt.plugins.job.DistributedJobLocator;
 import org.springframework.xd.dirt.plugins.job.DistributedJobService;
 import org.springframework.xd.dirt.stream.CompositeModuleDefinitionService;
-import org.springframework.xd.dirt.stream.DeploymentMessageSender;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobDeployer;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
@@ -59,8 +62,10 @@ import org.springframework.xd.dirt.stream.StreamRepository;
 import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.dirt.stream.memory.InMemoryJobDefinitionRepository;
 import org.springframework.xd.dirt.stream.memory.InMemoryJobRepository;
-import org.springframework.xd.dirt.stream.memory.InMemoryStreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.memory.InMemoryStreamRepository;
+import org.springframework.xd.dirt.stream.zookeeper.ZooKeeperStreamDefinitionRepository;
+import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.options.DefaultModuleOptionsMetadataResolver;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
@@ -116,8 +121,17 @@ public class Dependencies {
 	}
 
 	@Bean
-	public DeploymentMessageSender deploymentMessageSender() {
-		return mock(DeploymentMessageSender.class);
+	public ThreadPoolTaskScheduler taskScheduler() {
+		return new ThreadPoolTaskScheduler();
+	}
+
+	@Bean
+	public MessageBus messageBus() {
+		PollerMetadata poller = new PollerMetadata();
+		poller.setTaskExecutor(taskScheduler());
+		LocalMessageBus bus = new LocalMessageBus();
+		bus.setPoller(poller);
+		return bus;
 	}
 
 	@Bean
@@ -133,12 +147,24 @@ public class Dependencies {
 
 	@Bean
 	public JobDeployer jobDeployer() {
-		return new JobDeployer(deploymentMessageSender(), jobDefinitionRepository(), xdJobRepository(), parser());
+		return new JobDeployer(jobDefinitionRepository(), xdJobRepository(), parser(), messageBus());
+	}
+
+	@Bean
+	public EmbeddedZooKeeper embeddedZooKeeper() {
+		return new EmbeddedZooKeeper();
+	}
+
+	@Bean
+	public ZooKeeperConnection zooKeeperConnection() {
+		ZooKeeperConnection zkc = new ZooKeeperConnection("localhost:" + embeddedZooKeeper().getClientPort());
+		zkc.setAutoStartup(true);
+		return zkc;
 	}
 
 	@Bean
 	public StreamDefinitionRepository streamDefinitionRepository() {
-		return new InMemoryStreamDefinitionRepository(moduleDependencyRepository());
+		return new ZooKeeperStreamDefinitionRepository(zooKeeperConnection(), moduleDependencyRepository());
 	}
 
 	@Bean
@@ -153,8 +179,7 @@ public class Dependencies {
 
 	@Bean
 	public StreamDeployer streamDeployer() {
-		return new StreamDeployer(streamDefinitionRepository(), deploymentMessageSender(), streamRepository(),
-				parser());
+		return new StreamDeployer(streamDefinitionRepository(), streamRepository(), parser());
 	}
 
 	@Bean

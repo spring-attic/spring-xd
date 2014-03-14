@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package org.springframework.xd.dirt.server.options;
 
 /**
- * XD property keys. These should not contain '.', etc. to be compatible with Environment variables
+ * XD property keys. These should not contain '.', etc. to be compatible with Environment variables.
  * 
  * @author David Turanski
  */
@@ -26,8 +26,6 @@ public interface XDPropertyKeys {
 	public static final String XD_HOME = "XD_HOME";
 
 	public static final String XD_TRANSPORT = "XD_TRANSPORT";
-
-	public static final String XD_CONTROL_TRANSPORT = "XD_CONTROL_TRANSPORT";
 
 	public static final String XD_JMX_ENABLED = "XD_JMX_ENABLED";
 

@@ -63,7 +63,7 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 
 	private final Map<String, ExecutorChannel> requestReplyChannels = new HashMap<String, ExecutorChannel>();
 
-	private volatile ExecutorService executor = Executors.newCachedThreadPool();
+	private final ExecutorService executor = Executors.newCachedThreadPool();
 
 	/**
 	 * Used in the canonical case, when the binding does not involve an alias name.
@@ -324,7 +324,7 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 			this.requiredType = clazz;
 		}
 
-		private final T lookupOrCreateSharedChannel(String name) {
+		private synchronized final T lookupOrCreateSharedChannel(String name) {
 			T channel = lookupSharedChannel(name);
 			if (channel == null) {
 				channel = createSharedChannel(name);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,10 @@ package org.springframework.xd.dirt.server.options;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.validation.constraints.NotNull;
-
 import org.kohsuke.args4j.Option;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.xd.dirt.server.options.ResourcePatternScanningOptionHandlers.DistributedControlTransportOptionHandler;
 import org.springframework.xd.dirt.server.options.ResourcePatternScanningOptionHandlers.DistributedDataTransportOptionHandler;
-
 
 /**
  * Holds configuration options that are valid for the Container node, when using distributed mode.
@@ -38,7 +34,6 @@ import org.springframework.xd.dirt.server.options.ResourcePatternScanningOptionH
 @ConfigurationProperties
 public class ContainerOptions extends CommonDistributedOptions {
 
-
 	@Option(name = "--transport", handler = DistributedDataTransportOptionHandler.class,
 			usage = "The transport to use for data messages (from node to node)")
 	private String transport;
@@ -47,11 +42,6 @@ public class ContainerOptions extends CommonDistributedOptions {
 	private HadoopDistro distro = DEFAULT_HADOOP_DISTRO;
 
 	public static final HadoopDistro DEFAULT_HADOOP_DISTRO = HadoopDistro.hadoop22;
-
-	@Option(name = "--controlTransport", aliases = { "--control-transport" },
-			handler = DistributedControlTransportOptionHandler.class,
-			usage = "The transport to use for control messages (between admin and nodes)")
-	private String controlTransport;
 
 	private static final Map<HadoopDistro, String> hadoopDistroVersions = new HashMap<HadoopDistro, String>();
 
@@ -69,15 +59,6 @@ public class ContainerOptions extends CommonDistributedOptions {
 
 	public HadoopDistro getHADOOP_DISTRO() {
 		return this.distro;
-	}
-
-	public void setXD_CONTROL_TRANSPORT(String controlTransport) {
-		this.controlTransport = controlTransport;
-	}
-
-	@NotNull
-	public String getXD_CONTROL_TRANSPORT() {
-		return controlTransport;
 	}
 
 	public static Map<HadoopDistro, String> getHadoopDistroVersions() {

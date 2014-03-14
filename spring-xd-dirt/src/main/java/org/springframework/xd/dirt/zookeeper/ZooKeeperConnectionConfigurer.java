@@ -14,22 +14,15 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.config;
+package org.springframework.xd.dirt.zookeeper;
 
-import org.springframework.messaging.MessageChannel;
 
 /**
+ * A strategy interface for configuring {@link ZooKeeperConnectionKeeper} at start up.
+ * 
  * @author David Turanski
  */
-public class LocalControlRedisDataInitializationTests extends RedisSingleNodeInitializationTests {
+public interface ZooKeeperConnectionConfigurer {
 
-	@Override
-	protected String getControlTransport() {
-		return "local";
-	}
-
-	@Override
-	protected MessageChannel getControlChannel() {
-		return containerContext.getBean("containerControlChannel", MessageChannel.class);
-	}
+	public void configureZooKeeperConnection(ZooKeeperConnection zooKeeperConnection);
 }

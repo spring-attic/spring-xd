@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,11 +25,10 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.env.Environment;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.xd.dirt.server.SharedServerContextConfiguration;
 import org.springframework.xd.dirt.server.options.ContainerOptions;
 import org.springframework.xd.dirt.server.options.HadoopDistro;
-
 
 /**
  * Initializer that can print useful stuff about an XD context on startup.
@@ -48,7 +47,10 @@ public class XdConfigLoggingInitializer implements ApplicationListener<ContextRe
 
 	private static final String HADOOP_DISTRO_OPTION = "${HADOOP_DISTRO}";
 
-	private static final String ZK_CONNECT_OPTION = "${zk.client.connect}";
+	private static final String ZK_CONNECT_OPTION = "${" + SharedServerContextConfiguration.ZK_CONNECT + "}";
+
+	private static final String EMBEDDED_ZK_CONNECT_OPTION = "${"
+			+ SharedServerContextConfiguration.EMBEDDED_ZK_CONNECT + "}";
 
 	public XdConfigLoggingInitializer(boolean isContainer) {
 		this.isContainer = isContainer;
@@ -61,13 +63,12 @@ public class XdConfigLoggingInitializer implements ApplicationListener<ContextRe
 
 	@Override
 	public void onApplicationEvent(ContextRefreshedEvent event) {
-		logger.info("XD home: " + environment.resolvePlaceholders("${XD_HOME}"));
+		logger.info("XD Home: " + environment.resolvePlaceholders("${XD_HOME}"));
 		if (isContainer) {
-			logger.info("Data Transport: " + environment.resolvePlaceholders("${XD_TRANSPORT}"));
+			logger.info("Transport: " + environment.resolvePlaceholders("${XD_TRANSPORT}"));
 			logHadoopDistro();
 		}
 		logZkConnectString();
-		logger.info("Control Transport: " + environment.resolvePlaceholders("${XD_CONTROL_TRANSPORT}"));
 		logger.info("Store: " + environment.resolvePlaceholders("${XD_STORE}"));
 		logger.info("Analytics: " + environment.resolvePlaceholders("${XD_ANALYTICS}"));
 	}
@@ -97,7 +98,9 @@ public class XdConfigLoggingInitializer implements ApplicationListener<ContextRe
 
 	private void logZkConnectString() {
 		String zkConnectString = environment.resolvePlaceholders(ZK_CONNECT_OPTION);
-		Assert.isTrue(StringUtils.hasText(zkConnectString) && !zkConnectString.equals(ZK_CONNECT_OPTION));
-		logger.info("Zookeeper at: " + zkConnectString);
+		String embeddedZkConnectString = environment.resolvePlaceholders(EMBEDDED_ZK_CONNECT_OPTION);
+		String connectString = (!StringUtils.hasText(zkConnectString) && StringUtils.hasText(embeddedZkConnectString)) ? embeddedZkConnectString
+				: zkConnectString;
+		logger.info("Zookeeper at: " + connectString);
 	}
 }

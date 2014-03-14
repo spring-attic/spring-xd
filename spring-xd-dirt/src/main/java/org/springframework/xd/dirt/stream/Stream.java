@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.springframework.xd.dirt.stream;
 
-
 /**
  * A runtime representation of a running stream.
  * 
@@ -24,14 +23,19 @@ package org.springframework.xd.dirt.stream;
  * @author Gunnar Hillert
  * 
  * @since 1.0
- * 
  */
-public class Stream extends BaseInstance<StreamDefinition> {
+public class Stream extends BaseInstance<StreamDefinition> implements Comparable<Stream> {
 
 	/**
 	 * Create a new stream out of the given {@link StreamDefinition}.
 	 */
 	public Stream(StreamDefinition definition) {
 		super(definition);
+	}
+
+	@Override
+	public int compareTo(Stream other) {
+		int diff = this.getDefinition().getName().compareTo(other.getDefinition().getName());
+		return (diff != 0) ? diff : this.getStartedAt().compareTo(other.getStartedAt());
 	}
 }

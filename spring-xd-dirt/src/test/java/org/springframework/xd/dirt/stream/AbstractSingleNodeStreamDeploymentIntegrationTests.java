@@ -16,22 +16,28 @@ package org.springframework.xd.dirt.stream;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
+import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent.Type;
+import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
 
-import org.springframework.context.ApplicationContext;
-import org.springframework.integration.channel.AbstractMessageChannel;
-import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.channel.interceptor.WireTap;
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.x.bus.AbstractTestMessageBus;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.integration.x.bus.serializer.AbstractCodec;
@@ -42,6 +48,8 @@ import org.springframework.integration.x.bus.serializer.kryo.TupleCodec;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.xd.dirt.config.TestMessageBusInjection;
+import org.springframework.xd.dirt.container.ContainerMetadata;
+import org.springframework.xd.dirt.core.DeploymentsPath;
 import org.springframework.xd.dirt.integration.test.SingleNodeIntegrationTestSupport;
 import org.springframework.xd.dirt.integration.test.sink.NamedChannelSink;
 import org.springframework.xd.dirt.integration.test.sink.SingleNodeNamedChannelSinkFactory;
@@ -49,6 +57,7 @@ import org.springframework.xd.dirt.integration.test.source.NamedChannelSource;
 import org.springframework.xd.dirt.integration.test.source.SingleNodeNamedChannelSourceFactory;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.dirt.server.TestApplicationBootstrap;
+import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.tuple.Tuple;
 
 /**
@@ -63,8 +72,6 @@ import org.springframework.xd.tuple.Tuple;
  * @author Gary Russell
  */
 public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
-
-	private static final QueueChannel tapChannel = new QueueChannel();
 
 	@ClassRule
 	public static ExternalResource shutdownApplication = new ExternalResource() {
@@ -92,6 +99,8 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 	protected static SingleNodeIntegrationTestSupport integrationSupport;
 
 	protected static AbstractTestMessageBus testMessageBus;
+
+	protected static final DeploymentsListener deploymentsListener = new DeploymentsListener();
 
 	@Test
 	public final void testRoutingWithSpel() throws InterruptedException {
@@ -182,23 +191,15 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		bar2sink.unbind();
 	}
 
-
-	protected final static void setUp(String transport) {
+	protected static void setUp(String transport) {
 		testApplicationBootstrap = new TestApplicationBootstrap();
 		singleNodeApplication = testApplicationBootstrap.getSingleNodeApplication().run("--transport", transport);
 		integrationSupport = new SingleNodeIntegrationTestSupport(singleNodeApplication);
 		if (testMessageBus != null && !transport.equalsIgnoreCase("local")) {
 			TestMessageBusInjection.injectMessageBus(singleNodeApplication, testMessageBus);
 		}
-
-		ApplicationContext adminContext = singleNodeApplication.adminContext();
-		AbstractMessageChannel deployChannel = adminContext.getBean("deployChannel",
-				AbstractMessageChannel.class);
-		AbstractMessageChannel undeployChannel = adminContext.getBean("undeployChannel",
-				AbstractMessageChannel.class);
-		deployChannel.addInterceptor(new WireTap(tapChannel));
-		undeployChannel.addInterceptor(new WireTap(tapChannel));
-
+		ContainerMetadata cm = singleNodeApplication.containerContext().getBean(ContainerMetadata.class);
+		integrationSupport.addPathListener(Paths.build(Paths.DEPLOYMENTS, cm.getId()), deploymentsListener);
 	}
 
 	@AfterClass
@@ -207,18 +208,17 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 			testMessageBus.cleanup();
 			testMessageBus = null;
 		}
+		if (singleNodeApplication.containerContext().isActive()) {
+			ContainerMetadata cm = singleNodeApplication.containerContext().getBean(ContainerMetadata.class);
+			integrationSupport.removePathListener(Paths.build(Paths.DEPLOYMENTS, cm.getId()), deploymentsListener);
+		}
 	}
 
 	@After
 	public void cleanUp() {
+		integrationSupport.streamDeployer().undeployAll();
 		integrationSupport.streamRepository().deleteAll();
 		integrationSupport.streamDefinitionRepository().deleteAll();
-		integrationSupport.streamDeployer().undeployAll();
-
-		Message<?> msg = tapChannel.receive(1000);
-		while (msg != null) {
-			msg = tapChannel.receive(1000);
-		}
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -235,7 +235,8 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		final int ITERATIONS = 5;
 		int i = 0;
 		for (i = 0; i < ITERATIONS; i++) {
-			StreamDefinition definition = new StreamDefinition("test" + i,
+			String streamName = "test" + i;
+			StreamDefinition definition = new StreamDefinition(streamName,
 					"http | transform --expression=payload | filter --expression=true | log");
 			integrationSupport.streamDeployer().save(definition);
 			assertTrue("stream not deployed", integrationSupport.deployStream(definition));
@@ -245,32 +246,38 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 			assertEquals(0, integrationSupport.streamRepository().count());
 			assertFalse(integrationSupport.streamRepository().exists("test" + i));
 			// Deploys in reverse order
-			assertModuleRequest("log", false);
-			assertModuleRequest("filter", false);
-			assertModuleRequest("transform", false);
-			assertModuleRequest("http", false);
+			assertModuleRequest(streamName, "log", false);
+			assertModuleRequest(streamName, "filter", false);
+			assertModuleRequest(streamName, "transform", false);
+			assertModuleRequest(streamName, "http", false);
 			// Undeploys in stream order
-			assertModuleRequest("http", true);
-			assertModuleRequest("transform", true);
-			assertModuleRequest("filter", true);
-			assertModuleRequest("log", true);
-			assertNull(tapChannel.receive(0));
+			assertModuleRequest(streamName, "http", true);
+			assertModuleRequest(streamName, "transform", true);
+			assertModuleRequest(streamName, "filter", true);
+			assertModuleRequest(streamName, "log", true);
 		}
 		assertEquals(ITERATIONS, i);
+	}
+
+	@Test
+	public void moduleChannelsRegisteredWithMessageBus() {
+		StreamDefinition sd = new StreamDefinition("busTest", "http | log");
+		int originalBindings = getMessageBusBindings().size();
+		integrationSupport.createAndDeployStream(sd);
+		int newBindings = getMessageBusBindings().size() - originalBindings;
+		assertEquals(3, newBindings);
+		integrationSupport.undeployAndDestroyStream(sd);
+		assertEquals(originalBindings, getMessageBusBindings().size());
 
 	}
 
-	protected void assertModuleRequest(String moduleName, boolean remove) {
-		Message<?> next = tapChannel.receive(0);
-		assertNotNull(next);
-		String payload = (String) next.getPayload();
-
-		assertTrue(String.format("payload %s does not contain the expected module name %s", payload, moduleName),
-				payload.contains("\"module\":\"" + moduleName + "\""));
-		assertTrue(String.format("payload %s does not contain the expected remove: value", payload),
-				payload.contains("\"remove\":" + (remove ? "true" : "false")));
+	protected void assertModuleRequest(String streamName, String moduleName, boolean remove) {
+		PathChildrenCacheEvent event = remove ? deploymentsListener.nextUndeployEvent(streamName)
+				: deploymentsListener.nextDeployEvent(streamName);
+		assertNotNull("deploymentsListener returned a null event", event);
+		assertTrue(moduleName + " not found in " + event.getData().getPath() + " (remove = " + remove + ")",
+				event.getData().getPath().contains(moduleName));
 	}
-
 
 	private void tapTest(StreamDefinition streamDefinition, StreamDefinition tapDefinition) {
 		integrationSupport.createAndDeployStream(streamDefinition);
@@ -325,8 +332,9 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		integrationSupport.streamDeployer().save(routerDefinition);
 		assertTrue("stream not deployed", integrationSupport.deployStream(routerDefinition));
 		assertEquals(1, integrationSupport.streamRepository().count());
-		assertModuleRequest("router", false);
 
+		Thread.sleep(1000);
+		assertModuleRequest(routerDefinition.getName(), "router", false);
 
 		MessageBus bus = integrationSupport.messageBus();
 		assertNotNull(bus);
@@ -350,5 +358,56 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		source.unbind();
 		foosink.unbind();
 		barsink.unbind();
+	}
+
+	static class DeploymentsListener implements PathChildrenCacheListener {
+
+		private ConcurrentMap<String, LinkedBlockingQueue<PathChildrenCacheEvent>> deployQueues = new ConcurrentHashMap<String, LinkedBlockingQueue<PathChildrenCacheEvent>>();
+
+		private ConcurrentMap<String, LinkedBlockingQueue<PathChildrenCacheEvent>> undeployQueues = new ConcurrentHashMap<String, LinkedBlockingQueue<PathChildrenCacheEvent>>();
+
+		@Override
+		public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
+			DeploymentsPath path = new DeploymentsPath(event.getData().getPath());
+			if (event.getType().equals(Type.CHILD_ADDED)) {
+				deployQueues.putIfAbsent(path.getStreamName(), new LinkedBlockingQueue<PathChildrenCacheEvent>());
+				LinkedBlockingQueue<PathChildrenCacheEvent> queue = deployQueues.get(path.getStreamName());
+				queue.put(event);
+			}
+			else if (event.getType().equals(Type.CHILD_REMOVED)) {
+				undeployQueues.putIfAbsent(path.getStreamName(), new LinkedBlockingQueue<PathChildrenCacheEvent>());
+				LinkedBlockingQueue<PathChildrenCacheEvent> queue = undeployQueues.get(path.getStreamName());
+				queue.put(event);
+			}
+		}
+
+		public PathChildrenCacheEvent nextDeployEvent(String streamName) {
+			try {
+				LinkedBlockingQueue<PathChildrenCacheEvent> queue = deployQueues.get(streamName);
+				return queue != null ? queue.poll(10, TimeUnit.SECONDS) : null;
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				return null;
+			}
+		}
+
+		public PathChildrenCacheEvent nextUndeployEvent(String streamName) {
+			try {
+				LinkedBlockingQueue<PathChildrenCacheEvent> queue = undeployQueues.get(streamName);
+				return queue != null ? queue.poll(10, TimeUnit.SECONDS) : null;
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				return null;
+			}
+		}
+
+	}
+
+	private Collection<?> getMessageBusBindings() {
+		MessageBus bus = testMessageBus != null ? testMessageBus.getMessageBus() : integrationSupport.messageBus();
+		DirectFieldAccessor accessor = new DirectFieldAccessor(bus);
+		return (List<?>) accessor.getPropertyValue("bindings");
 	}
 }

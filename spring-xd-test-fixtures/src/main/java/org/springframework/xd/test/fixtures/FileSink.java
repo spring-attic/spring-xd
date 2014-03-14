@@ -102,9 +102,12 @@ public class FileSink extends DisposableFileSupport {
 	 */
 	// This MUST remain private. Use XDMatchers.hasContentsThat() to assert
 	private String getContents(int timeout) throws IOException {
-		waitFor(file, timeout);
-		Reader fileReader = new InputStreamReader(new FileInputStream(file), charset);
-		return FileCopyUtils.copyToString(fileReader);
+		if (waitFor(file, timeout)) {
+			return FileCopyUtils.copyToString(new InputStreamReader(new FileInputStream(file), charset));
+		}
+		else {
+			throw new IOException(String.format("Timeout after %dms waiting for file %s", timeout, file));
+		}
 	}
 
 	@Override

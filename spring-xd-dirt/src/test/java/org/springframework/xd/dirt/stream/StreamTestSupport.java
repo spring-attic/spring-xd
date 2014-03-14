@@ -21,8 +21,6 @@ import java.util.Map;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
-import org.springframework.aop.framework.Advised;
-import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
@@ -34,7 +32,6 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.integration.test.SingleNodeIntegrationTestSupport;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
-import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.dirt.server.TestApplicationBootstrap;
 import org.springframework.xd.module.core.CompositeModule;
@@ -46,15 +43,13 @@ import org.springframework.xd.module.core.Module;
  */
 public class StreamTestSupport {
 
-	private static StreamDeployer streamDeployer;
-
-	private static ModuleDeployer moduleDeployer;
-
 	private static ModuleDefinitionRepository moduleDefinitionRepository;
 
 	private static SingleNodeApplication application;
 
 	private static ConfigurableApplicationContext adminContext;
+
+	private static SingleNodeIntegrationTestSupport integrationTestSupport;
 
 	@BeforeClass
 	public static void startXDSingleNode() throws Exception {
@@ -63,37 +58,23 @@ public class StreamTestSupport {
 		// Explicitly set this to true since RandomConfigurationSupport disables JMX by default.
 		System.setProperty("XD_JMX_ENABLED", "true");
 		adminContext = application.adminContext();
-		SingleNodeIntegrationTestSupport integrationTestSupport = new SingleNodeIntegrationTestSupport(application,
+		integrationTestSupport = new SingleNodeIntegrationTestSupport(application,
 				"classpath:/testmodules/");
 
-		streamDeployer = integrationTestSupport.streamDeployer();
-
-		Object md = application.containerContext().getBean("moduleDeployer", Object.class);
-		moduleDeployer = (ModuleDeployer) (AopUtils.isJdkDynamicProxy(md) ? ((Advised) md).getTargetSource().getTarget()
-				: md);
 		moduleDefinitionRepository = adminContext.getBean(ModuleDefinitionRepository.class);
 	}
 
-	protected static void deployStream(String name, String config) {
-		streamDeployer.save(new StreamDefinition(name, config));
-		streamDeployer.deploy(name);
-		while (moduleDeployer.getDeployedModules().get(name) == null) {
-			try {
-				Thread.sleep(100);
-			}
-			catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
+	protected static boolean deployStream(String name, String config) {
+		return integrationTestSupport.createAndDeployStream(new StreamDefinition(name, config));
 	}
 
 	protected static void undeployStream(String name) {
-		streamDeployer.undeploy(name);
+		StreamDefinition sd = integrationTestSupport.streamDefinitionRepository().findOne(name);
+		integrationTestSupport.undeployStream(sd);
 	}
 
 	protected static void deleteStream(String name) {
-		streamDeployer.delete(name);
+		integrationTestSupport.deleteStream(name);
 	}
 
 	protected static Module getDeployedModule(String streamName, int index) {
@@ -112,8 +93,9 @@ public class StreamTestSupport {
 	}
 
 	protected static Map<Integer, Module> getStreamModules(String streamName) {
-		Map<String, Map<Integer, Module>> deployedModules = moduleDeployer.getDeployedModules();
-		Assert.notNull(deployedModules.get(streamName), "Stream '" + streamName + "' apparently is not deployed");
+		Map<String, Map<Integer, Module>> deployedModules = integrationTestSupport.deployedModules();
+		Assert.notNull(deployedModules.get(streamName), "Stream '" + streamName
+				+ "' apparently is not deployed. Deployed modules: " + deployedModules);
 		return deployedModules.get(streamName);
 	}
 

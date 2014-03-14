@@ -75,22 +75,18 @@ public abstract class DisposableFileSupport extends AbstractModuleFixture implem
 	 */
 	public static boolean waitFor(File file, int timeout) {
 		long stopAt = System.currentTimeMillis() + timeout;
-		while (!file.exists()) {
-			if (System.currentTimeMillis() > stopAt) {
-				return false;
-			}
+
+		while (!file.exists() && System.currentTimeMillis() < stopAt) {
 			try {
 				Thread.sleep(100);
 			}
 			catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
-			}
-			catch (Exception ex) {
 				break;
 			}
 		}
-		return false;
-	}
 
+		return file.exists();
+	}
 
 }

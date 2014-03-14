@@ -5,33 +5,17 @@
 
 	<import resource="../transports/redis-common.xml" />
 
-	<bean id="jobDefinitionRepository"
-		class="org.springframework.xd.dirt.stream.redis.RedisJobDefinitionRepository">
-		<constructor-arg ref="stringRedisTemplate" />
-	</bean>
+	<bean id="jobDefinitionRepository" class="org.springframework.xd.dirt.stream.zookeeper.ZooKeeperJobDefinitionRepository"/>
 
-	<bean id="xdJobRepository"
-		class="org.springframework.xd.dirt.stream.redis.RedisJobRepository">
-		<constructor-arg ref="stringRedisTemplate" />
-		<constructor-arg ref="jobDefinitionRepository" />
-	</bean>
-
+	<bean id="xdJobRepository" class="org.springframework.xd.dirt.stream.zookeeper.ZooKeeperJobRepository"/>
+	
 	<bean id="streamDefinitionRepository"
-		class="org.springframework.xd.dirt.stream.redis.RedisStreamDefinitionRepository">
-		<constructor-arg ref="stringRedisTemplate" />
-		<constructor-arg ref="moduleDependencyRepository" />
-	</bean>
+		class="org.springframework.xd.dirt.stream.zookeeper.ZooKeeperStreamDefinitionRepository"/>
 
 	<bean id="streamRepository"
-		class="org.springframework.xd.dirt.stream.redis.RedisStreamRepository">
-		<constructor-arg ref="stringRedisTemplate" />
-		<constructor-arg ref="streamDefinitionRepository" />
-	</bean>
+		class="org.springframework.xd.dirt.stream.zookeeper.ZooKeeperStreamRepository"/>
 
-	<bean id="runtimeContainerInfoRepository"
-		class="org.springframework.xd.dirt.container.store.RedisRuntimeContainerInfoRepository">
-		<constructor-arg ref="stringRedisTemplate" />
-	</bean>
+	<bean id="runtimeContainerInfoRepository" class="org.springframework.xd.dirt.container.store.ZooKeeperRuntimeContainerInfoRepository"/>
 
 	<bean id="runtimeModuleInfoRepository"
 		class="org.springframework.xd.dirt.module.store.RedisRuntimeModuleInfoRepository">

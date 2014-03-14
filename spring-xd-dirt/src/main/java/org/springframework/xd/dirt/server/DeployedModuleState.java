@@ -18,6 +18,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.springframework.context.ApplicationListener;
 import org.springframework.xd.dirt.event.AbstractModuleEvent;
 import org.springframework.xd.module.core.Module;
@@ -30,10 +33,13 @@ import org.springframework.xd.module.core.Module;
  */
 public class DeployedModuleState implements ApplicationListener<AbstractModuleEvent> {
 
+	private static Logger log = LoggerFactory.getLogger(DeployedModuleState.class);
+
 	private final ConcurrentMap<String, Map<Integer, Module>> deployedModules = new ConcurrentHashMap<String, Map<Integer, Module>>();
 
 	@Override
 	public void onApplicationEvent(AbstractModuleEvent event) {
+		log.info("got event " + event.getType() + "module:" + event.getSource());
 		Module module = event.getSource();
 		if (event.getType().equals("ModuleDeployed")) {
 			this.deployedModules.putIfAbsent(module.getDeploymentMetadata().getGroup(),

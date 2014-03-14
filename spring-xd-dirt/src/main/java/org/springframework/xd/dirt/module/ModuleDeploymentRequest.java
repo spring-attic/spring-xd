@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,8 +29,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * 
- * 
  * @author Mark Fisher
  * @author Gary Russell
  * @author Luke Taylor
@@ -54,11 +52,6 @@ public class ModuleDeploymentRequest implements Comparable<ModuleDeploymentReque
 	private volatile ModuleType type = null;
 
 	private final Map<String, String> parameters = new HashMap<String, String>();
-
-	private volatile boolean remove;
-
-	private volatile boolean launch;
-
 
 	public String getModule() {
 		return module;
@@ -92,14 +85,6 @@ public class ModuleDeploymentRequest implements Comparable<ModuleDeploymentReque
 		this.type = type;
 	}
 
-	public boolean isRemove() {
-		return remove;
-	}
-
-	public void setRemove(boolean remove) {
-		this.remove = remove;
-	}
-
 	public void setParameter(String name, String value) {
 		this.parameters.put(name, value);
 	}
@@ -122,14 +107,6 @@ public class ModuleDeploymentRequest implements Comparable<ModuleDeploymentReque
 
 	public void setSinkChannelName(String sinkChannelName) {
 		this.sinkChannelName = sinkChannelName;
-	}
-
-	public boolean isLaunch() {
-		return launch;
-	}
-
-	public void setLaunch(boolean launch) {
-		this.launch = launch;
 	}
 
 	@Override

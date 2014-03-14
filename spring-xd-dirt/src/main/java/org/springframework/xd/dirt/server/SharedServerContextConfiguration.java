@@ -54,6 +54,10 @@ public class SharedServerContextConfiguration {
 
 	private static final String MBEAN_EXPORTER_BEAN_NAME = "XDSharedServerMBeanExporter";
 
+	public static final String ZK_CONNECT = "zk.client.connect";
+
+	public static final String EMBEDDED_ZK_CONNECT = "zk.embedded.client.connect";
+
 	@ConditionalOnExpression("${XD_JMX_ENABLED:true}")
 	@EnableMBeanExport(defaultDomain = "xd.shared.server")
 	protected static class JmxConfiguration {
@@ -74,8 +78,20 @@ public class SharedServerContextConfiguration {
 		@Bean
 		@ConditionalOnExpression("'${zk.client.connect}'.isEmpty()")
 		EmbeddedZooKeeper embeddedZooKeeper() {
-			return new EmbeddedZooKeeper();
+			if (zkEmbeddedServerPort != null) {
+				return new EmbeddedZooKeeper(zkEmbeddedServerPort);
+			}
+			else {
+				return new EmbeddedZooKeeper();
+			}
 		}
+
+		@Value("${zk.client.connect:}")
+		private String zkClientConnect;
+
+		@Value("${zk.embedded.server.port:}")
+		private Integer zkEmbeddedServerPort;
+
 
 		// This is autowired, but not required, since the EmbeddedZooKeeper instance is conditional.
 		@Autowired(required = false)
@@ -83,11 +99,12 @@ public class SharedServerContextConfiguration {
 
 		@Bean
 		public ZooKeeperConnection zooKeeperConnection() {
+			boolean isEmbedded = (embeddedZooKeeper != null);
 			// the embedded server accepts client connections on a dynamically determined port
-			if (embeddedZooKeeper != null) {
+			if (isEmbedded) {
 				zkClientConnect = "localhost:" + embeddedZooKeeper.getClientPort();
 			}
-			return setupZookeeperPropertySource(zkClientConnect);
+			return setupZookeeperPropertySource(zkClientConnect, isEmbedded);
 		}
 	}
 
@@ -98,7 +115,7 @@ public class SharedServerContextConfiguration {
 
 		@Bean
 		public ZooKeeperConnection zooKeeperConnection() {
-			return setupZookeeperPropertySource(zkClientConnect);
+			return setupZookeeperPropertySource(zkClientConnect, false);
 		}
 	}
 
@@ -107,17 +124,35 @@ public class SharedServerContextConfiguration {
 		@Value("${zk.client.connect:}")
 		protected String zkClientConnect;
 
+		// TODO: Consider a way to not require this property
+		/*
+		 * This is a flag optionally passed as a system property indicating the intention to inject some custom
+		 * configuration to the ZooKeeper client connection. It is used here to prevent auto start of the connection
+		 * since the configuration should be applied before the connection is started.
+		 */
+		@Value("${zk.client.connection.configured:false}")
+		private boolean zkConnectionConfigured;
+
 		private ConfigurableEnvironment environment;
 
 		private Properties zkProperties = new Properties();
 
-		protected ZooKeeperConnection setupZookeeperPropertySource(String zkClientConnect) {
+		protected ZooKeeperConnection setupZookeeperPropertySource(String zkClientConnect, boolean isEmbedded) {
 			if (!StringUtils.hasText(zkClientConnect)) {
 				zkClientConnect = ZooKeeperConnection.DEFAULT_CLIENT_CONNECT_STRING;
 			}
-			zkProperties.put("zk.client.connect", zkClientConnect);
+			if (isEmbedded) {
+				zkProperties.put(EMBEDDED_ZK_CONNECT, zkClientConnect);
+			}
+			else {
+				zkProperties.put(ZK_CONNECT, zkClientConnect);
+			}
 			this.environment.getPropertySources().addFirst(new PropertiesPropertySource("zk-properties", zkProperties));
-			return new ZooKeeperConnection(zkClientConnect);
+			ZooKeeperConnection zooKeeperConnection = new ZooKeeperConnection(zkClientConnect);
+
+			zooKeeperConnection.setAutoStartup(!zkConnectionConfigured);
+
+			return zooKeeperConnection;
 		}
 
 		@Override

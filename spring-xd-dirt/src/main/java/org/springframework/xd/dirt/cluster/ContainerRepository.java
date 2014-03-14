@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2104 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.config;
+package org.springframework.xd.dirt.cluster;
 
-import org.springframework.messaging.MessageChannel;
+import java.util.Iterator;
 
 /**
- * @author David Turanski
+ * Interface definition for an object with the ability to look up the set of containers available in the cluster.
+ * 
+ * @author Patrick Peralta
  */
-public class LocalControlRabbitDataInitializationTests extends RabbitSingleNodeInitializationTests {
+public interface ContainerRepository {
 
-	@Override
-	protected String getControlTransport() {
-		return "local";
-	}
+	/**
+	 * Return an {@link Iterator} over the available containers.
+	 * 
+	 * @return iterator over the available containers
+	 */
+	Iterator<Container> getContainerIterator();
 
-	@Override
-	protected MessageChannel getControlChannel() {
-		return containerContext.getBean("containerControlChannel", MessageChannel.class);
-	}
 }

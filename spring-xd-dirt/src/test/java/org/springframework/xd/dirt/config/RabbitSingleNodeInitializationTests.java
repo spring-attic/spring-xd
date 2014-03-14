@@ -18,12 +18,8 @@ package org.springframework.xd.dirt.config;
 
 import org.junit.Rule;
 
-import org.springframework.amqp.rabbit.core.RabbitAdmin;
-import org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter;
-import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.integration.x.rabbit.RabbitMessageBus;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.xd.test.rabbit.RabbitTestSupport;
 
 /**
@@ -35,13 +31,6 @@ public class RabbitSingleNodeInitializationTests extends AbstractSingleNodeIniti
 	public RabbitTestSupport rabbitAvailableRule = new RabbitTestSupport();
 
 	@Override
-	protected void cleanup() {
-		RabbitAdmin admin = new RabbitAdmin(rabbitAvailableRule.getResource());
-		admin.deleteQueue(testApplicationBootstrap.getDeployerQueue());
-		admin.deleteExchange(testApplicationBootstrap.getUndeployerTopic());
-	}
-
-	@Override
 	protected String getTransport() {
 		return "rabbit";
 	}
@@ -49,12 +38,6 @@ public class RabbitSingleNodeInitializationTests extends AbstractSingleNodeIniti
 	@Override
 	protected Class<? extends MessageBus> getExpectedMessageBusType() {
 		return RabbitMessageBus.class;
-	}
-
-	@Override
-	protected MessageChannel getControlChannel() {
-		AmqpInboundChannelAdapter aica = containerContext.getBean(AmqpInboundChannelAdapter.class);
-		return TestUtils.getPropertyValue(aica, "outputChannel", MessageChannel.class);
 	}
 
 }

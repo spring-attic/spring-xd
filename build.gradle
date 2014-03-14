@@ -538,6 +538,7 @@ project('spring-xd-extension-http') {
 		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
 		compile "io.netty:netty:3.6.6.Final"
 		compile "org.springframework:spring-web:$springVersion"
+		compile project(":spring-xd-module-spi")
 		testCompile project(":spring-xd-test")
 	}
 }
@@ -956,14 +957,15 @@ project('spring-xd-module') {
 		compile "org.springframework.boot:spring-boot-autoconfigure:$springBootVersion"
 		compile project(':spring-xd-module-spi')
 		runtime "org.hibernate:hibernate-validator:$hibernateValidatorVersion"
-		compile "javax.validation:validation-api:1.0.0.GA"
-
 	}
 }
 
 project('spring-xd-module-spi') {
 	description = 'Spring XD Module Options API'
-	dependencies { compile "org.springframework:spring-web:$springVersion" }
+	dependencies { 
+		compile "org.springframework:spring-web:$springVersion" 
+		compile "javax.validation:validation-api:1.0.0.GA"
+	}
 }
 
 project('spring-xd-tuple') {

@@ -19,7 +19,11 @@ package org.springframework.xd.dirt.container;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Collections;
+import java.util.Set;
 import java.util.UUID;
+
+import org.springframework.util.Assert;
 
 /**
  * Metadata for a Container instance.
@@ -28,52 +32,100 @@ import java.util.UUID;
  */
 public class ContainerMetadata {
 
+	/**
+	 * The container's id.
+	 */
 	private final String id;
 
-	private String hostName;
+	/**
+	 * The container's process id.
+	 */
+	private Integer pid;
 
-	private String ipAddress;
+	/**
+	 * The container's host name.
+	 */
+	private String host;
 
-	private String jvmName;
+	/**
+	 * The container's IP address.
+	 */
+	private String ip;
+
+	/**
+	 * The set of groups this container belongs to.
+	 */
+	private final Set<String> groups;
 
 	/**
 	 * Default constructor generates a random id.
 	 */
 	public ContainerMetadata() {
-		this.id = UUID.randomUUID().toString();
+		this(UUID.randomUUID().toString(), null, null, null);
+	}
+
+	/**
+	 * Constructor to be called when the metadata is already known (i.e. when deserializing from the repository).
+	 * 
+	 * @param id the container's id
+	 * @param pid the container's pid
+	 * @param host the container's host
+	 * @param ip the container's ip
+	 */
+	// todo: replace with a builder; too many string args, brittle
+	public ContainerMetadata(String id, Integer pid, String host, String ip) {
+		Assert.hasText(id, "id is required");
+		this.id = id;
+		this.pid = pid;
+		this.host = host;
+		this.ip = ip;
+		// todo: support groups (see the ctor for ContainerServer in xdzk)
+		this.groups = Collections.emptySet();
 	}
 
 	public String getId() {
 		return this.id;
 	}
 
-	public String getHostName() {
-		try {
-			this.hostName = InetAddress.getLocalHost().getHostName();
-		}
-		catch (UnknownHostException uhe) {
-			this.hostName = "unknown";
-		}
-		return this.hostName;
-	}
-
-	public String getIpAddress() {
-		try {
-			this.ipAddress = InetAddress.getLocalHost().getHostAddress();
-		}
-		catch (UnknownHostException uhe) {
-			this.ipAddress = "unknown";
-		}
-		return this.ipAddress;
-	}
-
-	public String getJvmName() {
-		synchronized (this) {
-			if (this.jvmName == null) {
-				this.jvmName = ManagementFactory.getRuntimeMXBean().getName();
+	public String getHost() {
+		if (this.host == null) {
+			try {
+				this.host = InetAddress.getLocalHost().getHostName();
+			}
+			catch (UnknownHostException uhe) {
+				this.host = "unknown";
 			}
 		}
-		return this.jvmName;
+		return this.host;
+	}
+
+	public String getIp() {
+		if (this.ip == null) {
+			try {
+				this.ip = InetAddress.getLocalHost().getHostAddress();
+			}
+			catch (UnknownHostException uhe) {
+				this.ip = "unknown";
+			}
+		}
+		return this.ip;
+	}
+
+	public int getPid() {
+		if (this.pid == null) {
+			String jvmName = ManagementFactory.getRuntimeMXBean().getName();
+			this.pid = jvmName.indexOf('@') != -1 ? Integer.parseInt(jvmName.split("@")[0]) : -1;
+		}
+		return this.pid;
+	}
+
+	public Set<String> getGroups() {
+		return Collections.unmodifiableSet(groups);
+	}
+
+	@Override
+	public String toString() {
+		return "[id=" + id + ", pid=" + pid + ", host=" + host + ", ip=" + ip + ", groups=" + groups + "]";
 	}
 
 }

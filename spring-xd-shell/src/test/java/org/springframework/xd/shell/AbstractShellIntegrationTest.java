@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,29 +33,33 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 
+import org.springframework.integration.x.bus.MessageBus;
+import org.springframework.messaging.SubscribableChannel;
 import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
 import org.springframework.util.AlternativeJdkIdGenerator;
 import org.springframework.util.IdGenerator;
-import org.springframework.xd.dirt.container.store.RedisRuntimeContainerInfoRepository;
+import org.springframework.xd.dirt.integration.test.SingleNodeIntegrationTestSupport;
+import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
+import org.springframework.xd.dirt.zookeeper.Paths;
+import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 import org.springframework.xd.test.RandomConfigurationSupport;
 import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
  * Superclass for performing integration tests of spring-xd shell commands.
- * 
+ *
  * JUnit's BeforeClass and AfterClass annotations are used to start and stop the XDAdminServer in local mode with the
  * default store configured to use in-memory storage.
- * 
+ *
  * Note: This isn't ideal as it takes significant time to startup the embedded XDContainer/tomcat and we should do this
  * once across all tests.
- * 
+ *
  * @author Mark Pollack
  * @author Kashyap Parikh
  * @author David Turanski
- * 
  */
 public abstract class AbstractShellIntegrationTest {
 
@@ -86,21 +90,29 @@ public abstract class AbstractShellIntegrationTest {
 
 	private Set<File> toBeDeleted = new HashSet<File>();
 
-	private static RedisRuntimeContainerInfoRepository runtimeInformationRepository;
+	protected static StreamCommandListener streamCommandListener;
+
+	protected static JobCommandListener jobCommandListener = new JobCommandListener();
+
+	private static SingleNodeIntegrationTestSupport integrationTestSupport;
 
 	@BeforeClass
 	public static synchronized void startUp() throws InterruptedException, IOException {
 		RandomConfigurationSupport randomConfigSupport = new RandomConfigurationSupport();
 		if (application == null) {
-			application = new SingleNodeApplication().run("--transport", "local",
-					"--analytics", "redis",
-					"--store", "redis"
-					);
+			application = new SingleNodeApplication().run("--transport", "local", "--analytics", "redis");
+			integrationTestSupport = new SingleNodeIntegrationTestSupport(application);
+
+			streamCommandListener = new StreamCommandListener(
+					integrationTestSupport.streamDefinitionRepository(),
+					application.containerContext().getBean(ModuleDefinitionRepository.class),
+					application.containerContext().getBean(ModuleOptionsMetadataResolver.class));
+
+			integrationTestSupport.addPathListener(Paths.STREAMS, streamCommandListener);
+			integrationTestSupport.addPathListener(Paths.JOBS, jobCommandListener);
+
 			Bootstrap bootstrap = new Bootstrap(new String[] { "--port", randomConfigSupport.getAdminServerPort() });
 			shell = bootstrap.getJLineShellComponent();
-
-			runtimeInformationRepository = application.pluginContext().getBean(
-					RedisRuntimeContainerInfoRepository.class);
 		}
 		if (!shell.isRunning()) {
 			shell.start();
@@ -110,7 +122,6 @@ public abstract class AbstractShellIntegrationTest {
 	@AfterClass
 	public static void shutdown() {
 		if (SHUTDOWN_AFTER_RUN) {
-			runtimeInformationRepository.delete(application.pluginContext().getId());
 			logger.info("Stopping XD Shell");
 			shell.stop();
 			if (application != null) {
@@ -123,6 +134,14 @@ public abstract class AbstractShellIntegrationTest {
 
 	public static JLineShellComponent getShell() {
 		return shell;
+	}
+
+	protected MessageBus getMessageBus() {
+		return integrationTestSupport.messageBus();
+	}
+
+	protected SubscribableChannel getErrorChannel() {
+		return application.containerContext().getBean("errorChannel", SubscribableChannel.class);
 	}
 
 	private String generateUniqueName(String name) {
@@ -177,7 +196,7 @@ public abstract class AbstractShellIntegrationTest {
 	/**
 	 * Copies over module files (including jars if this is a directory-style module) from src/test/resources to where it
 	 * will be picked up and makes sure it will disappear at test end.
-	 * 
+	 *
 	 * @param type the type of module, e.g. "source"
 	 * @param name the module name, with extension (e.g. time2.xml or time2 if a directory)
 	 * @throws IOException

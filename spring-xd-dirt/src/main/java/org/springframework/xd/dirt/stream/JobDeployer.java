@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -16,9 +16,16 @@ package org.springframework.xd.dirt.stream;
 import static org.springframework.xd.dirt.stream.ParsingContext.job;
 
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.x.bus.MessageBus;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 
 /**
@@ -26,16 +33,21 @@ import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
  * @author Luke Taylor
  * @author Ilayaperumal Gopinathan
  * @author Gunnar Hillert
- *
  */
-public class JobDeployer extends AbstractInstancePersistingDeployer<JobDefinition, Job> { // extends
+public class JobDeployer extends AbstractInstancePersistingDeployer<JobDefinition, Job> implements DisposableBean {
 
-	private static final String JOB_PARAMETERS_KEY = "jobParameters";
+	private final String JOB_CHANNEL_PREFIX = "job:";
 
-	public JobDeployer(DeploymentMessageSender messageSender, JobDefinitionRepository definitionRepository,
+	private final MessageBus messageBus;
+
+	private final ConcurrentMap<String, MessageChannel> jobChannels = new ConcurrentHashMap<String, MessageChannel>();
+
+	public JobDeployer(JobDefinitionRepository definitionRepository,
 			JobRepository instanceRepository,
-			XDParser parser) {
-		super(definitionRepository, instanceRepository, messageSender, parser, job);
+			XDParser parser, MessageBus messageBus) {
+		super(definitionRepository, instanceRepository, parser, job);
+		Assert.notNull(messageBus, "MessageBus must not be null");
+		this.messageBus = messageBus;
 	}
 
 	@Override
@@ -44,23 +56,39 @@ public class JobDeployer extends AbstractInstancePersistingDeployer<JobDefinitio
 	}
 
 	public void launch(String name, String jobParameters) {
+		MessageChannel channel = jobChannels.get(name);
+		if (channel == null) {
+			jobChannels.putIfAbsent(name, new DirectChannel());
+			channel = jobChannels.get(name);
+			messageBus.bindProducer(JOB_CHANNEL_PREFIX + name, channel, true);
+		}
 		// Double check so that user gets an informative error message
 		JobDefinition job = getDefinitionRepository().findOne(name);
 		if (job == null) {
 			throwNoSuchDefinitionException(name);
 		}
-		Job instance = instanceRepository.findOne(name);
-		if (instance == null) {
+		if (instanceRepository.findOne(name) == null) {
 			throwNotDeployedException(name);
 		}
-
-		List<ModuleDeploymentRequest> requests = parse(name, job.getDefinition());
-		Assert.isTrue(requests.size() == 1, "Expecting only a single module");
-		ModuleDeploymentRequest request = requests.get(0);
-		request.setLaunch(true);
-		if (!StringUtils.isEmpty(jobParameters)) {
-			request.setParameter(JOB_PARAMETERS_KEY, jobParameters);
-		}
-		sendDeploymentRequests(name, requests);
+		// todo: is this Assert necessary? if not we can remove the parser dependency and parse method
+		Assert.isTrue(parse(name, job.getDefinition()).size() == 1, "Expecting only a single module");
+		channel.send(MessageBuilder.withPayload(jobParameters != null ? jobParameters : "").build());
 	}
+
+	@Override
+	protected JobDefinition createDefinition(String name, String definition, boolean deploy) {
+		return new JobDefinition(name, definition, deploy);
+	}
+
+	private List<ModuleDeploymentRequest> parse(String name, String definition) {
+		return streamParser.parse(name, definition, definitionKind);
+	}
+
+	@Override
+	public void destroy() throws Exception {
+		for (Map.Entry<String, MessageChannel> entry : jobChannels.entrySet()) {
+			messageBus.unbindProducer(JOB_CHANNEL_PREFIX + entry.getKey(), entry.getValue());
+		}
+	}
+
 }

@@ -13,20 +13,24 @@
 
 package org.springframework.xd.dirt.integration.test;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
+
+import org.apache.curator.framework.recipes.cache.PathChildrenCache;
+import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.module.DelegatingModuleRegistry;
+import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.module.ResourceModuleRegistry;
-import org.springframework.xd.dirt.server.DeployedModuleState;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDeployer;
 import org.springframework.xd.dirt.stream.StreamRepository;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.core.Module;
 
@@ -39,6 +43,7 @@ import org.springframework.xd.module.core.Module;
  * 
  * 
  * @author David Turanski
+ * @author Ilayaperumal Gopinathan
  * 
  */
 public class SingleNodeIntegrationTestSupport {
@@ -49,9 +54,13 @@ public class SingleNodeIntegrationTestSupport {
 
 	private StreamDeployer streamDeployer;
 
-	private DeployedModuleState deployedModuleState;
-
 	private MessageBus messageBus;
+
+	private final ModuleDeployer moduleDeployer;
+
+	private ZooKeeperConnection zooKeeperConnection;
+
+	private final Map<String, PathChildrenCache> mapChildren = new HashMap<String, PathChildrenCache>();
 
 	public SingleNodeIntegrationTestSupport(SingleNodeApplication application) {
 		this(application, "file:./config");
@@ -66,13 +75,12 @@ public class SingleNodeIntegrationTestSupport {
 	 */
 	public SingleNodeIntegrationTestSupport(SingleNodeApplication application, String moduleResourceLocation) {
 		Assert.notNull(application, "SingleNodeApplication must not be null");
-		deployedModuleState = new DeployedModuleState();
 		streamDefinitionRepository = application.pluginContext().getBean(StreamDefinitionRepository.class);
 		streamRepository = application.pluginContext().getBean(StreamRepository.class);
 		streamDeployer = application.adminContext().getBean(StreamDeployer.class);
 		messageBus = application.pluginContext().getBean(MessageBus.class);
-		application.containerContext().addApplicationListener(deployedModuleState);
-		Assert.hasText(moduleResourceLocation, "'moduleResourceLocation' cannot be null or empty");
+		zooKeeperConnection = application.adminContext().getBean(ZooKeeperConnection.class);
+		moduleDeployer = application.containerContext().getBean(ModuleDeployer.class);
 		ResourceModuleRegistry cp = new ResourceModuleRegistry(moduleResourceLocation);
 		DelegatingModuleRegistry cmr1 = application.pluginContext().getBean(DelegatingModuleRegistry.class);
 		cmr1.addDelegate(cp);
@@ -80,6 +88,12 @@ public class SingleNodeIntegrationTestSupport {
 		if (cmr1 != cmr2) {
 			cmr2.addDelegate(cp);
 		}
+
+	}
+
+	public final Map<String, Map<Integer, Module>> getDeployedModules() {
+		Assert.notNull(moduleDeployer, "ModuleDeployer is required to get deployed modules.");
+		return moduleDeployer.getDeployedModules();
 	}
 
 	public final StreamDeployer streamDeployer() {
@@ -98,15 +112,9 @@ public class SingleNodeIntegrationTestSupport {
 		return this.messageBus;
 	}
 
-	public final Map<String, Map<Integer, Module>> deployedModules() {
-		return deployedModuleState.getDeployedModules();
-	}
-
-
 	public final boolean deployStream(StreamDefinition definition) {
 		return waitForDeploy(definition);
 	}
-
 
 	public final boolean createAndDeployStream(StreamDefinition definition) {
 		streamDeployer.save(definition);
@@ -123,30 +131,71 @@ public class SingleNodeIntegrationTestSupport {
 		return result;
 	}
 
-	public final Module getModule(String moduleName, int index) {
-		final Map<String, Map<Integer, Module>> deployedModules = deployedModuleState.getDeployedModules();
+	public final void deleteStream(String name) {
+		streamDeployer.delete(name);
+	}
 
-		Module matchedModule = null;
-		for (Entry<String, Map<Integer, Module>> entry : deployedModules.entrySet()) {
-			final Module module = entry.getValue().get(index);
-			if (module != null && moduleName.equals(module.getName())) {
-				matchedModule = module;
-				break;
+	public final Module getModule(String streamName, String moduleName, int index) {
+		Map<Integer, Module> modules = getDeployedModules().get(streamName);
+		return (modules != null) ? modules.get(index) : null;
+	}
+
+	public ZooKeeperConnection zooKeeperConnection() {
+		return this.zooKeeperConnection;
+	}
+
+	/**
+	 * Add a {@link PathChildrenCacheListener} for the given path.
+	 * 
+	 * @param path the path whose children to listen to
+	 * @param listener the children listener
+	 */
+	public void addPathListener(String path, PathChildrenCacheListener listener) {
+		PathChildrenCache cache = mapChildren.get(path);
+		if (cache == null) {
+			mapChildren.put(path, cache = new PathChildrenCache(zooKeeperConnection.getClient(), path, true));
+			try {
+				cache.start();
+			}
+			catch (Exception e) {
+				throw e instanceof RuntimeException ? ((RuntimeException) e) : new RuntimeException(e);
 			}
 		}
-		return matchedModule;
+		cache.getListenable().addListener(listener);
+	}
+
+	/**
+	 * Remove a {@link PathChildrenCacheListener} for the given path.
+	 * 
+	 * @param path the path whose children to listen to
+	 * @param listener the children listener
+	 */
+	public void removePathListener(String path, PathChildrenCacheListener listener) {
+		PathChildrenCache cache = mapChildren.get(path);
+		if (cache != null) {
+			cache.getListenable().removeListener(listener);
+			if (cache.getListenable().size() == 0) {
+				try {
+					cache.close();
+					mapChildren.remove(path);
+				}
+				catch (Exception e) {
+					throw e instanceof RuntimeException ? ((RuntimeException) e) : new RuntimeException(e);
+				}
+			}
+		}
 	}
 
 	private final boolean waitForStreamOp(StreamDefinition definition, boolean isDeploy) {
 		final int MAX_TRIES = 40;
 		int tries = 1;
 		boolean done = false;
+
 		while (!done && tries <= MAX_TRIES) {
 			done = true;
 			int i = definition.getModuleDefinitions().size();
 			for (ModuleDefinition module : definition.getModuleDefinitions()) {
-				Module deployedModule = getModule(module.getName(), --i);
-
+				Module deployedModule = getModule(definition.getName(), module.getName(), --i);
 				done = (isDeploy) ? deployedModule != null : deployedModule == null;
 				if (!done) {
 					break;

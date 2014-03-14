@@ -37,11 +37,11 @@ import org.junit.Test;
 
 import org.springframework.shell.core.CommandResult;
 import org.springframework.xd.module.ModuleType;
-import org.springframework.xd.test.fixtures.FileSink;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableRow;
 import org.springframework.xd.shell.util.UiUtils;
+import org.springframework.xd.test.fixtures.FileSink;
 
 /**
  * Test module commands.
@@ -72,7 +72,7 @@ public class ModuleCommandTests extends AbstractStreamIntegrationTest {
 		compose().newModule("filterAndTransform",
 				"filter --expression=true | transform --expression=payload.replace('abc','...')");
 		stream().create(generateStreamName(), "%s | filterAndTransform | %s", httpSource, sink);
-		httpSource.postData("abcdefghi!");
+		httpSource.ensureReady().postData("abcdefghi!");
 		assertThat(sink, eventually(hasContentsThat(equalTo("...defghi!"))));
 
 	}
@@ -90,7 +90,7 @@ public class ModuleCommandTests extends AbstractStreamIntegrationTest {
 				"--filter%sexpression=true --transform%sexpression=payload.replace('def','...')", OPTION_SEPARATOR,
 				OPTION_SEPARATOR);
 		stream().create(generateStreamName(), "%s | filterAndTransform %s | %s", httpSource, options, sink);
-		httpSource.postData("abcdefghi!");
+		httpSource.ensureReady().postData("abcdefghi!");
 		assertThat(sink, eventually(hasContentsThat(equalTo("abc...ghi!"))));
 
 	}

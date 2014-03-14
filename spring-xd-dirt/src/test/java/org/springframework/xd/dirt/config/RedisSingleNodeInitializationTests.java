@@ -16,17 +16,10 @@
 
 package org.springframework.xd.dirt.config;
 
-import static org.junit.Assert.assertTrue;
-
 import org.junit.Rule;
 
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.integration.redis.inbound.RedisInboundChannelAdapter;
-import org.springframework.integration.redis.inbound.RedisQueueMessageDrivenEndpoint;
-import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.integration.x.redis.RedisMessageBus;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
@@ -45,24 +38,6 @@ public class RedisSingleNodeInitializationTests extends AbstractSingleNodeInitia
 	@Override
 	protected Class<? extends MessageBus> getExpectedMessageBusType() {
 		return RedisMessageBus.class;
-	}
-
-	@Override
-	protected MessageChannel getControlChannel() {
-		RedisQueueMessageDrivenEndpoint rqmde = containerContext.getBean("redisInboundAdapter",
-				RedisQueueMessageDrivenEndpoint.class);
-		assertTrue(rqmde.isRunning());
-		assertTrue(rqmde.isListening());
-		RedisInboundChannelAdapter rica = containerContext.getBean(RedisInboundChannelAdapter.class);
-		assertTrue(rica.isRunning());
-		return TestUtils.getPropertyValue(rica, "outputChannel", MessageChannel.class);
-	}
-
-	@Override
-	protected void cleanup() {
-		StringRedisTemplate template = new StringRedisTemplate(redisAvailableRule.getResource());
-		String queueDeployer = testApplicationBootstrap.getDeployerQueue();
-		template.delete(queueDeployer);
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +23,18 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.junit.After;
 import org.junit.Before;
 
+import org.springframework.batch.core.BatchStatus;
+import org.springframework.batch.core.JobExecution;
+import org.springframework.integration.channel.QueueChannel;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.xd.shell.AbstractShellIntegrationTest;
@@ -39,7 +47,7 @@ import org.springframework.xd.shell.util.TableRow;
  * @author Glenn Renfro
  * @author Gunnar Hillert
  * @author Ilayaperumal Gopinathan
- * 
+ * @author Mark Fisher
  */
 public abstract class AbstractJobIntegrationTest extends AbstractShellIntegrationTest {
 
@@ -73,6 +81,8 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 
 	private List<String> streams = new ArrayList<String>();
 
+	private final ConcurrentMap<String, PollableChannel> jobTapChannels = new ConcurrentHashMap<String, PollableChannel>();
+
 	@Before
 	public void before() {
 		copyTaskletDescriptorsToServer(MODULE_RESOURCE_DIR + TEST_TASKLET, MODULE_TARGET_DIR + TEST_TASKLET);
@@ -86,8 +96,22 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 
 	@After
 	public void after() {
-		executeJobDestroy(jobs.toArray(new String[jobs.size()]));
-		executeStreamDestroy(streams.toArray(new String[streams.size()]));
+		for (String job : jobs) {
+			try {
+				executeJobDestroy(job);
+			}
+			catch (Exception e) {
+				// ignore
+			}
+		}
+		for (String stream : streams) {
+			try {
+				executeStreamDestroy(stream);
+			}
+			catch (Exception e) {
+				// ignore
+			}
+		}
 	}
 
 	/**
@@ -97,11 +121,14 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 		for (String jobName : jobNames) {
 			CommandResult cr = executeCommand("job destroy --name " + jobName);
 			assertTrue("Failure to destroy job " + jobName + ".  CommandResult = " + cr.toString(), cr.isSuccess());
+			jobCommandListener.waitForDestroy(jobName);
 		}
 	}
 
 	protected CommandResult jobDestroy(String jobName) {
-		return getShell().executeCommand("job destroy --name " + jobName);
+		CommandResult result = getShell().executeCommand("job destroy --name " + jobName);
+		jobCommandListener.waitForDestroy(jobName);
+		return result;
 	}
 
 	protected void executeStreamDestroy(String... streamNames) {
@@ -109,6 +136,7 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 			CommandResult cr = executeCommand("stream destroy --name " + streamName);
 			assertTrue("Failure to destroy stream " + streamName + ".  CommandResult = " + cr.toString(),
 					cr.isSuccess());
+			streamCommandListener.waitForDestroy(streamName);
 		}
 	}
 
@@ -131,6 +159,13 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 		String prefix = (deploy) ? "Successfully created and deployed job '" : "Successfully created job '";
 		assertEquals(prefix + jobName + "'", cr.getResult());
 		jobs.add(jobName);
+		if (deploy) {
+			bindJobTap(jobName);
+			jobCommandListener.waitForDeploy(jobName);
+		}
+		else {
+			jobCommandListener.waitForCreate(jobName);
+		}
 	}
 
 	protected CommandResult createJob(String jobName, String definition) {
@@ -149,14 +184,20 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 	 * Execute job deploy without any assertions
 	 */
 	protected CommandResult deployJob(String jobName) {
-		return getShell().executeCommand("job deploy " + jobName);
+		CommandResult result = getShell().executeCommand("job deploy " + jobName);
+		bindJobTap(jobName);
+		jobCommandListener.waitForDeploy(jobName);
+		return result;
 	}
 
 	/**
 	 * Execute job undeploy without any assertions
 	 */
 	protected CommandResult undeployJob(String jobName) {
-		return getShell().executeCommand("job undeploy " + jobName);
+		CommandResult result = getShell().executeCommand("job undeploy " + jobName);
+		unbindJobTap(jobName);
+		jobCommandListener.waitForUndeploy(jobName);
+		return result;
 	}
 
 	/**
@@ -166,6 +207,7 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 		CommandResult cr = executeCommand("job launch --name " + jobName + " --params " + jobParameters);
 		String prefix = "Successfully submitted launch request for job '";
 		assertEquals(prefix + jobName + "'", cr.getResult());
+		waitForJobCompletion(jobName);
 	}
 
 	/**
@@ -175,6 +217,7 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 		CommandResult cr = executeCommand("job launch --name " + jobName);
 		String prefix = "Successfully submitted launch request for job '";
 		assertEquals(prefix + jobName + "'", cr.getResult());
+		waitForJobCompletion(jobName);
 	}
 
 	protected void checkForJobInList(String jobName, String jobDescriptor, boolean shouldBeDeployed) {
@@ -215,6 +258,7 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 				"stream create --name " + streamName + " --definition \"trigger > "
 						+ getJobLaunchQueue(jobName) + "\"");
 		streams.add(streamName);
+		waitForJobCompletion(jobName);
 		checkForSuccess(cr);
 	}
 
@@ -225,6 +269,7 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 						+ " --definition \"trigger --payload='%s' > " + getJobLaunchQueue(jobName) + "\"",
 						parameters.replaceAll("\"", "\\\\\"")));
 		streams.add(streamName);
+		waitForJobCompletion(jobName);
 		checkForSuccess(cr);
 	}
 
@@ -234,11 +279,13 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 				"stream create --name " + streamName + " --definition \"trigger --fixedDelay=" + fixedDelay
 						+ " > " + getJobLaunchQueue(jobName) + "\"");
 		streams.add(streamName);
+		waitForJobCompletion(jobName);
 		checkForSuccess(cr);
 	}
 
 	private Table listJobs() {
-		return (Table) getShell().executeCommand("job list").getResult();
+		Object result = getShell().executeCommand("job list").getResult();
+		return (result instanceof Table) ? (Table) result : new Table();
 	}
 
 	private void copyTaskletDescriptorsToServer(String inFile, String outFile) {
@@ -259,7 +306,6 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 
 	protected String displayJobExecution(String id) {
 		final CommandResult commandResult = getShell().executeCommand("job execution display " + id);
-
 		if (!commandResult.isSuccess()) {
 			throw new IllegalStateException("Expected a successful command execution.", commandResult.getException());
 		}
@@ -291,4 +337,37 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 		}
 		return (Table) commandResult.getResult();
 	}
+
+	private void bindJobTap(String jobName) {
+		MessageChannel alreadyBound = jobTapChannels.putIfAbsent(jobName, new QueueChannel());
+		if (alreadyBound == null) {
+			getMessageBus().bindPubSubConsumer("tap:job:" + jobName, jobTapChannels.get(jobName));
+		}
+	}
+
+	private void unbindJobTap(String jobName) {
+		jobTapChannels.remove(jobName);
+		getMessageBus().unbindConsumers("tap:job:" + jobName);
+	}
+
+	private void waitForJobCompletion(String jobName) {
+		// could match on parameters if necessary (for disambiguation of concurrent executions)
+		PollableChannel channel = jobTapChannels.get(jobName);
+		Message<?> message = null;
+		do {
+			message = channel.receive(10000);
+			if (message != null) {
+				Object payload = message.getPayload();
+				if (payload instanceof JobExecution) {
+					// could add a waitForJobLaunch that returns as soon as it sees STARTED status
+					if (BatchStatus.COMPLETED.equals(((JobExecution) payload).getStatus())) {
+						return;
+					}
+				}
+			}
+		}
+		while (message != null);
+		throw new IllegalStateException(String.format("timed out while waiting for job: %s", jobName));
+	}
+
 }

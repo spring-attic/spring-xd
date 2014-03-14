@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,33 +34,37 @@ import org.springframework.batch.core.repository.dao.JdbcExecutionContextDao;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.scheduling.PollerMetadata;
+import org.springframework.integration.x.bus.LocalMessageBus;
+import org.springframework.integration.x.bus.MessageBus;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.xd.analytics.metrics.core.AggregateCounterRepository;
 import org.springframework.xd.analytics.metrics.core.CounterRepository;
 import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository;
 import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
-import org.springframework.xd.dirt.container.store.RuntimeContainerInfoRepository;
+import org.springframework.xd.dirt.container.store.ContainerMetadataRepository;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDependencyRepository;
 import org.springframework.xd.dirt.module.ModuleRegistry;
-import org.springframework.xd.dirt.module.memory.InMemoryModuleDefinitionRepository;
-import org.springframework.xd.dirt.module.memory.InMemoryModuleDependencyRepository;
-import org.springframework.xd.dirt.module.store.RuntimeContainerModuleInfoRepository;
-import org.springframework.xd.dirt.module.store.RuntimeModuleInfoRepository;
+import org.springframework.xd.dirt.module.store.ModuleMetadataRepository;
+import org.springframework.xd.dirt.module.store.ZooKeeperModuleDefinitionRepository;
+import org.springframework.xd.dirt.module.store.ZooKeeperModuleDependencyRepository;
 import org.springframework.xd.dirt.plugins.job.DistributedJobLocator;
 import org.springframework.xd.dirt.plugins.job.DistributedJobService;
 import org.springframework.xd.dirt.stream.CompositeModuleDefinitionService;
-import org.springframework.xd.dirt.stream.DeploymentMessageSender;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobDeployer;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDeployer;
 import org.springframework.xd.dirt.stream.StreamRepository;
 import org.springframework.xd.dirt.stream.XDStreamParser;
-import org.springframework.xd.dirt.stream.memory.InMemoryJobDefinitionRepository;
-import org.springframework.xd.dirt.stream.memory.InMemoryJobRepository;
-import org.springframework.xd.dirt.stream.memory.InMemoryStreamDefinitionRepository;
-import org.springframework.xd.dirt.stream.memory.InMemoryStreamRepository;
+import org.springframework.xd.dirt.stream.zookeeper.ZooKeeperJobDefinitionRepository;
+import org.springframework.xd.dirt.stream.zookeeper.ZooKeeperJobRepository;
+import org.springframework.xd.dirt.stream.zookeeper.ZooKeeperStreamDefinitionRepository;
+import org.springframework.xd.dirt.stream.zookeeper.ZooKeeperStreamRepository;
+import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.options.DefaultModuleOptionsMetadataResolver;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
@@ -92,7 +96,8 @@ public class Dependencies {
 
 	@Bean
 	public ModuleDefinitionRepository moduleDefinitionRepository() {
-		return new InMemoryModuleDefinitionRepository(moduleRegistry(), moduleDependencyRepository());
+		return new ZooKeeperModuleDefinitionRepository(moduleRegistry(), moduleDependencyRepository(),
+				zooKeeperConnection());
 	}
 
 	@Bean
@@ -116,8 +121,17 @@ public class Dependencies {
 	}
 
 	@Bean
-	public DeploymentMessageSender deploymentMessageSender() {
-		return mock(DeploymentMessageSender.class);
+	public ThreadPoolTaskScheduler taskScheduler() {
+		return new ThreadPoolTaskScheduler();
+	}
+
+	@Bean
+	public MessageBus messageBus() {
+		PollerMetadata poller = new PollerMetadata();
+		poller.setTaskExecutor(taskScheduler());
+		LocalMessageBus bus = new LocalMessageBus();
+		bus.setPoller(poller);
+		return bus;
 	}
 
 	@Bean
@@ -128,22 +142,34 @@ public class Dependencies {
 
 	@Bean
 	public JobDefinitionRepository jobDefinitionRepository() {
-		return new InMemoryJobDefinitionRepository();
+		return new ZooKeeperJobDefinitionRepository(zooKeeperConnection());
 	}
 
 	@Bean
 	public JobDeployer jobDeployer() {
-		return new JobDeployer(deploymentMessageSender(), jobDefinitionRepository(), xdJobRepository(), parser());
+		return new JobDeployer(jobDefinitionRepository(), xdJobRepository(), parser(), messageBus());
+	}
+
+	@Bean
+	public EmbeddedZooKeeper embeddedZooKeeper() {
+		return new EmbeddedZooKeeper();
+	}
+
+	@Bean
+	public ZooKeeperConnection zooKeeperConnection() {
+		ZooKeeperConnection zkc = new ZooKeeperConnection("localhost:" + embeddedZooKeeper().getClientPort());
+		zkc.setAutoStartup(true);
+		return zkc;
 	}
 
 	@Bean
 	public StreamDefinitionRepository streamDefinitionRepository() {
-		return new InMemoryStreamDefinitionRepository(moduleDependencyRepository());
+		return new ZooKeeperStreamDefinitionRepository(zooKeeperConnection(), moduleDependencyRepository());
 	}
 
 	@Bean
 	public ModuleDependencyRepository moduleDependencyRepository() {
-		return new InMemoryModuleDependencyRepository();
+		return new ZooKeeperModuleDependencyRepository(zooKeeperConnection());
 	}
 
 	@Bean
@@ -153,33 +179,27 @@ public class Dependencies {
 
 	@Bean
 	public StreamDeployer streamDeployer() {
-		return new StreamDeployer(streamDefinitionRepository(), deploymentMessageSender(), streamRepository(),
-				parser());
+		return new StreamDeployer(streamDefinitionRepository(), streamRepository(), parser());
 	}
 
 	@Bean
 	public StreamRepository streamRepository() {
-		return new InMemoryStreamRepository();
+		return new ZooKeeperStreamRepository(zooKeeperConnection());
 	}
 
 	@Bean
 	public org.springframework.xd.dirt.stream.JobRepository xdJobRepository() {
-		return new InMemoryJobRepository();
+		return new ZooKeeperJobRepository(zooKeeperConnection());
 	}
 
 	@Bean
-	public RuntimeContainerInfoRepository containerRepository() {
-		return mock(RuntimeContainerInfoRepository.class);
+	public ContainerMetadataRepository containerMetadataRepository() {
+		return mock(ContainerMetadataRepository.class);
 	}
 
 	@Bean
-	public RuntimeModuleInfoRepository modulesRepository() {
-		return mock(RuntimeModuleInfoRepository.class);
-	}
-
-	@Bean
-	public RuntimeContainerModuleInfoRepository containerModulesRepository() {
-		return mock(RuntimeContainerModuleInfoRepository.class);
+	public ModuleMetadataRepository modulesRepository() {
+		return mock(ModuleMetadataRepository.class);
 	}
 
 	@Bean

@@ -24,6 +24,7 @@ import javax.validation.groups.Default;
 
 import org.hibernate.validator.constraints.NotBlank;
 import org.hibernate.validator.constraints.Range;
+
 import org.springframework.xd.module.options.spi.ModuleOption;
 import org.springframework.xd.module.options.spi.ProfileNamesProvider;
 import org.springframework.xd.module.options.spi.ValidationGroupsProvider;
@@ -90,6 +91,9 @@ public class AggregatorProcessorModuleOptionsMetadata implements
 
 	@ModuleOption("the number of messages to group together before emitting a group")
 	public void setCount(int count) {
+		if (release == null) {
+			this.release = String.format("size() == %d", count);
+		}
 		this.count = count;
 	}
 
@@ -155,7 +159,7 @@ public class AggregatorProcessorModuleOptionsMetadata implements
 
 	@NotNull
 	public String getRelease() {
-		return release != null ? release : String.format("size() == %d", getCount());
+		return release;
 	}
 
 	@Min(0)

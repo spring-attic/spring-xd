@@ -26,7 +26,7 @@ import org.springframework.xd.dirt.util.ConfigLocations;
 
 /**
  * Holds definitions of {@link ResourcePatternScanningOptionHandler}s used in Spring XD.
- * 
+ *
  * @author Eric Bottard
  */
 public final class ResourcePatternScanningOptionHandlers {
@@ -36,35 +36,6 @@ public final class ResourcePatternScanningOptionHandlers {
 	}
 
 	private static final String CONFIGURATION_ROOT = "classpath*:/" + ConfigLocations.XD_CONFIG_ROOT;
-
-	/**
-	 * The special controlTransport, usable only in singlenode mode, that requires the admin and container application
-	 * contexts to talk to each other.
-	 */
-	public static final String SINGLE_NODE_LOCAL_CONTROL_TRANSPORT = "local";
-
-	/**
-	 * Computes values for --controlTransport for the distributed case.
-	 */
-	public static class DistributedControlTransportOptionHandler extends ResourcePatternScanningOptionHandler {
-
-		public DistributedControlTransportOptionHandler(CmdLineParser parser, OptionDef option, Setter<String> setter)
-				throws IOException {
-			super(parser, option, setter, CONFIGURATION_ROOT + "transports/*-admin.xml");
-		}
-	}
-
-	/**
-	 * Computes values for --controlTransport for the singlenode case.
-	 */
-	public static class SingleNodeControlTransportOptionHandler extends ResourcePatternScanningOptionHandler {
-
-		public SingleNodeControlTransportOptionHandler(CmdLineParser parser, OptionDef option, Setter<String> setter)
-				throws IOException {
-			super(parser, option, setter, CONFIGURATION_ROOT + "transports/*-admin.xml");
-			include(SINGLE_NODE_LOCAL_CONTROL_TRANSPORT);
-		}
-	}
 
 	/**
 	 * Computes values for (data) --transport for the distributed case.
@@ -109,29 +80,6 @@ public final class ResourcePatternScanningOptionHandlers {
 				throws IOException {
 			super(parser, option, setter, CONFIGURATION_ROOT + "analytics/*-analytics.xml");
 			exclude("memory");
-		}
-	}
-
-	/**
-	 * Computes values for --store in the distributed case (memory is NOT supported).
-	 */
-	public static class DistributedStoreOptionHandler extends ResourcePatternScanningOptionHandler {
-
-		public DistributedStoreOptionHandler(CmdLineParser parser, OptionDef option, Setter<String> setter)
-				throws IOException {
-			super(parser, option, setter, CONFIGURATION_ROOT + "store/*-store.xml");
-			exclude("memory");
-		}
-	}
-
-	/**
-	 * Computes values for --store in the singlenode case.
-	 */
-	public static class SingleNodeStoreOptionHandler extends ResourcePatternScanningOptionHandler {
-
-		public SingleNodeStoreOptionHandler(CmdLineParser parser, OptionDef option, Setter<String> setter)
-				throws IOException {
-			super(parser, option, setter, CONFIGURATION_ROOT + "store/*-store.xml");
 		}
 	}
 

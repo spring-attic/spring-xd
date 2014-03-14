@@ -41,7 +41,6 @@ import org.springframework.xd.dirt.integration.test.source.SingleNodeNamedChanne
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.dirt.server.TestApplicationBootstrap;
 
-
 /**
  * What a Module/Stream developer might write to test a processing chain.
  * 
@@ -52,6 +51,8 @@ public class ExampleProcessingChainTests {
 	private static SingleNodeApplication application;
 
 	private static SingleNodeIntegrationTestSupport integrationSupport;
+
+	private static int RECEIVE_TIMEOUT = 5000;
 
 	@BeforeClass
 	public static void setUp() {
@@ -76,11 +77,11 @@ public class ExampleProcessingChainTests {
 		NamedChannelSink sink = new SingleNodeNamedChannelSinkFactory(messageBus).createNamedChannelSink("queue:consumer");
 
 		source.sendPayload("hello");
-		String result = (String) sink.receivePayload(1000);
+		String result = (String) sink.receivePayload(RECEIVE_TIMEOUT);
 		assertEquals("HELLO", result);
 
 		source.sendPayload("a");
-		result = (String) sink.receivePayload(1000);
+		result = (String) sink.receivePayload(RECEIVE_TIMEOUT);
 		assertNull(result);
 
 		source.unbind();
@@ -100,11 +101,11 @@ public class ExampleProcessingChainTests {
 		SingleNodeProcessingChain chain = chain(application, "eezypeasy", processingChainUnderTest);
 
 		chain.sendPayload("hello");
-		String result = (String) chain.receivePayload(1000);
+		String result = (String) chain.receivePayload(RECEIVE_TIMEOUT);
 		assertEquals("HELLO", result);
 
 		chain.sendPayload("a");
-		result = (String) chain.receivePayload(1000);
+		result = (String) chain.receivePayload(RECEIVE_TIMEOUT);
 		assertNull(result);
 
 		chain.destroy();
@@ -120,7 +121,7 @@ public class ExampleProcessingChainTests {
 
 		SingleNodeProcessingChainConsumer chain = chainConsumer(application, "dateToDateTime", processingChainUnderTest);
 
-		Object payload = chain.receivePayload(1000);
+		Object payload = chain.receivePayload(RECEIVE_TIMEOUT);
 		assertTrue(payload instanceof DateTime);
 
 		chain.destroy();
@@ -142,7 +143,7 @@ public class ExampleProcessingChainTests {
 
 		chain.sendPayload(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
 
-		Object payload = sink.receivePayload(1000);
+		Object payload = sink.receivePayload(RECEIVE_TIMEOUT);
 		assertNotNull(payload);
 		assertTrue(payload instanceof DateTime);
 

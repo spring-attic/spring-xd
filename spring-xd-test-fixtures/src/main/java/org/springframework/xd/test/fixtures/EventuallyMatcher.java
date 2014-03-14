@@ -37,7 +37,7 @@ public class EventuallyMatcher<U> extends DiagnosingMatcher<U> {
 	private int pause;
 
 	public EventuallyMatcher(Matcher<U> delegate) {
-		this(delegate, 10, 100);
+		this(delegate, 50, 100);
 	}
 
 	public EventuallyMatcher(Matcher<U> delegate, int nbAttempts, int pause) {

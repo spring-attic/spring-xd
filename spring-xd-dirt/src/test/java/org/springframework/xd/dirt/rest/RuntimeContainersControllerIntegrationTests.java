@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,12 +37,13 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.xd.dirt.container.store.RuntimeContainerInfoEntity;
+import org.springframework.xd.dirt.container.ContainerMetadata;
 
 /**
  * Tests REST compliance of containers endpoint.
  * 
  * @author Ilayaperumal Gopinathan
+ * @author Mark Fisher
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
@@ -52,15 +53,13 @@ public class RuntimeContainersControllerIntegrationTests extends AbstractControl
 	@Before
 	public void before() {
 		PageRequest pageable = new PageRequest(0, 20);
-		RuntimeContainerInfoEntity container1 = new RuntimeContainerInfoEntity("1", "container1@1234", "host1",
-				"127.0.0.1");
-		RuntimeContainerInfoEntity container2 = new RuntimeContainerInfoEntity("2", "container2@2345", "host2",
-				"192.168.2.1");
-		List<RuntimeContainerInfoEntity> containerEntities = new ArrayList<RuntimeContainerInfoEntity>();
+		ContainerMetadata container1 = new ContainerMetadata("1", 1234, "host1", "127.0.0.1");
+		ContainerMetadata container2 = new ContainerMetadata("2", 2345, "host2", "192.168.2.1");
+		List<ContainerMetadata> containerEntities = new ArrayList<ContainerMetadata>();
 		containerEntities.add(container1);
 		containerEntities.add(container2);
-		Page<RuntimeContainerInfoEntity> pagedEntity = new PageImpl<>(containerEntities);
-		when(containerRepository.findAll(pageable)).thenReturn(pagedEntity);
+		Page<ContainerMetadata> pagedEntity = new PageImpl<ContainerMetadata>(containerEntities);
+		when(containerMetadataRepository.findAll(pageable)).thenReturn(pagedEntity);
 	}
 
 	@Test
@@ -68,7 +67,7 @@ public class RuntimeContainersControllerIntegrationTests extends AbstractControl
 		mockMvc.perform(get("/runtime/containers").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
 				jsonPath("$.content", Matchers.hasSize(2))).andExpect(
 				jsonPath("$.content[*].containerId", contains("1", "2"))).andExpect(
-				jsonPath("$.content[*].jvmName", contains("container1@1234", "container2@2345"))).andExpect(
+				jsonPath("$.content[*].processId", contains(1234, 2345))).andExpect(
 				jsonPath("$.content[*].hostName", contains("host1", "host2"))).andExpect(
 				jsonPath("$.content[*].ipAddress", contains("127.0.0.1", "192.168.2.1")));
 	}

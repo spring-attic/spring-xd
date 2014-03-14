@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.core.io.Resource;
@@ -39,9 +40,11 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDependencyRepository;
 import org.springframework.xd.dirt.module.ModuleRegistry;
-import org.springframework.xd.dirt.module.memory.InMemoryModuleDefinitionRepository;
+import org.springframework.xd.dirt.module.store.ZooKeeperModuleDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.XDStreamParser;
+import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.options.DefaultModuleOptionsMetadataResolver;
@@ -55,6 +58,17 @@ import org.springframework.xd.module.options.DefaultModuleOptionsMetadataResolve
 public class StreamConfigParserTests {
 
 	private StreamNode sn;
+
+	private EmbeddedZooKeeper zk = new EmbeddedZooKeeper();
+
+	private ZooKeeperConnection zooKeeperConnection;
+
+	@Before
+	public void setUp() {
+		zk = new EmbeddedZooKeeper();
+		zk.start();
+		zooKeeperConnection = new ZooKeeperConnection("localhost:" + zk.getClientPort());
+	}
 
 	// This is not a well formed stream but we are testing single module parsing
 	@Test
@@ -233,7 +247,7 @@ public class StreamConfigParserTests {
 				ModuleType.processor, resource));
 		when(registry.findDefinitions("PROCESSOR")).thenReturn(
 				definitions);
-		return new InMemoryModuleDefinitionRepository(registry, moduleDependencyRepository);
+		return new ZooKeeperModuleDefinitionRepository(registry, moduleDependencyRepository, zooKeeperConnection);
 	}
 
 	@Test

@@ -71,8 +71,9 @@ fi
 
 echo -e "\n\n Test 4. Load multiple CSV files using filejdbc jobs with table name specified\n"
 
-create_job csvjdbcjob1 "filejdbc $JDBC_PARAMS --url=jdbc:sqlite:$DB_FILE --names=col1,col2,col3 --resources=file://$PWD/csv/data.csv --tableName=JOB_DATA_TABLE --initializeDatabase=true"
+create_job csvjdbcjob1 "filejdbc $JDBC_PARAMS --url=jdbc:sqlite:$DB_FILE --names=col1,col2,col3 --resources=file://$PWD/csv/data.csv --tableName=JOB_DATA_TABLE --initializeDatabase=true" false
 create_stream job1Notifications "tap:job:csvjdbcjob1.job > file --dir=$TEST_DIR"
+deploy_job csvjdbcjob1
 
 launch_job csvjdbcjob1
 sleep 5

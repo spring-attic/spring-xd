@@ -24,17 +24,12 @@ import org.junit.AfterClass;
 
 import org.springframework.util.SocketUtils;
 
-
 /**
  * Support class to have random configuration for tests.
  * 
  * @author Ilayaperumal Gopinathan
  */
 public class RandomConfigurationSupport {
-
-	private static final String XD_DEPLOYER = "xd.deployer.queue";
-
-	private static final String XD_UNDEPLOYER = "xd.undeployer.topic";
 
 	private static final String ADMIN_SERVER_PORT = "PORT";
 
@@ -48,44 +43,26 @@ public class RandomConfigurationSupport {
 
 	private static final String HSQLDB_DATABASE = "hsql.server.database";
 
-	private static final String tmpDir = FileUtils.getTempDirectory().toString();
+	private static String tmpDir = FileUtils.getTempDirectory().toString();
+
+	private static String batchJobsDirectory = tmpDir;
 
 	private final long now;
 
 	private final int adminPort;
 
-	private final String deployerQueue;
-
-	private final String undeployerTopic;
-
 	public RandomConfigurationSupport() {
 		now = System.currentTimeMillis();
 		adminPort = SocketUtils.findAvailableTcpPort();
-		deployerQueue = "xd.deployer." + now;
-		undeployerTopic = "xd.undeployer." + now;
-		setupRandomControlTransportChannels();
 		setupRandomAdminServerPort();
 		setupRandomHSQLDBConfig();
 		disableJmx();
 	}
 
-	private void setupRandomControlTransportChannels() {
-		System.setProperty(XD_DEPLOYER, deployerQueue);
-		System.setProperty(XD_UNDEPLOYER, undeployerTopic);
-	}
-
-	public String getDeployerQueue() {
-		return deployerQueue;
-	}
-
-	public String getUndeployerTopic() {
-		return undeployerTopic;
-	}
-
 	private void setupRandomHSQLDBConfig(String host) {
 		System.setProperty(HSQLDB_HOST, host);
 		System.setProperty(HSQLDB_PORT, String.valueOf(SocketUtils.findAvailableTcpPort()));
-		System.setProperty(XD_DATA_HOME, tmpDir);
+		System.setProperty(XD_DATA_HOME, batchJobsDirectory);
 		System.setProperty(HSQLDB_DBNAME, "dbname-" + now);
 		System.setProperty(HSQLDB_DATABASE, "database-" + now);
 	}
@@ -110,6 +87,7 @@ public class RandomConfigurationSupport {
 	public static void cleanup() throws IOException {
 		// By default the data directory is located inside ${xd.data.home}/jobs
 		// Refer batch.xml
-		FileUtils.deleteDirectory(new File(tmpDir + "/jobs"));
+		FileUtils.deleteDirectory(new File(batchJobsDirectory + "/jobs"));
+		batchJobsDirectory = tmpDir;
 	}
 }

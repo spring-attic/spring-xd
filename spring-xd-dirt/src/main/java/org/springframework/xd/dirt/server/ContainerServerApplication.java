@@ -38,12 +38,17 @@ import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.xd.dirt.container.ContainerMetadata;
+import org.springframework.xd.dirt.container.store.ContainerMetadataRepository;
+import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
+import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.server.options.ContainerOptions;
-import org.springframework.xd.dirt.server.options.XDPropertyKeys;
+import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.util.BannerUtils;
 import org.springframework.xd.dirt.util.ConfigLocations;
 import org.springframework.xd.dirt.util.XdConfigLoggingInitializer;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperConnectionConfigurer;
+import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 /**
  * The boot application class for a Container server.
@@ -119,12 +124,6 @@ public class ContainerServerApplication {
 				System.err.println(String.format("the value '%s' is not allowed for property '%s'",
 						error.getRejectedValue(),
 						error.getField()));
-				if (XDPropertyKeys.XD_CONTROL_TRANSPORT.equals(error.getField())) {
-					System.err.println(
-							String.format(
-									"If not explicitly provided, the default value of '%s' assumes the value provided for '%s'",
-									XDPropertyKeys.XD_CONTROL_TRANSPORT, XDPropertyKeys.XD_TRANSPORT));
-				}
 			}
 		}
 		else {
@@ -163,7 +162,30 @@ class ContainerConfiguration {
 	private ContainerMetadata containerMetadata;
 
 	@Autowired
+	private ContainerMetadataRepository containerMetadataRepository;
+
+	@Autowired
+	private StreamDefinitionRepository streamDefinitionRepository;
+
+	@Autowired
+	private ModuleDefinitionRepository moduleDefinitionRepository;
+
+	@Autowired
+	private ModuleOptionsMetadataResolver moduleOptionsMetadataResolver;
+
+	@Autowired
+	private ModuleDeployer moduleDeployer;
+
+	@Autowired
 	private ZooKeeperConnection zooKeeperConnection;
+
+	/*
+	 * An optional bean to configure the ZooKeeperConnection. XD by default does not provide this bean but it may be
+	 * added via an extension. This is also effected by the boolean property value ${zk.client.connection.configured}
+	 * which if set, defers the start of the ZooKeeper connection until now.
+	 */
+	@Autowired(required = false)
+	ZooKeeperConnectionConfigurer zooKeeperConnectionConfigurer;
 
 	@Bean
 	public ApplicationListener<?> xdInitializer(ApplicationContext context) {
@@ -174,7 +196,18 @@ class ContainerConfiguration {
 
 	@Bean
 	public ContainerRegistrar containerRegistrar() {
-		return new ContainerRegistrar(containerMetadata, zooKeeperConnection);
+		if (zooKeeperConnectionConfigurer != null) {
+			zooKeeperConnectionConfigurer.configureZooKeeperConnection(zooKeeperConnection);
+			zooKeeperConnection.start();
+		}
+
+		return new ContainerRegistrar(containerMetadata,
+				containerMetadataRepository,
+				streamDefinitionRepository,
+				moduleDefinitionRepository,
+				moduleOptionsMetadataResolver,
+				moduleDeployer,
+				zooKeeperConnection);
 	}
 
 	// TODO: Should this be removed once the control transport is removed?

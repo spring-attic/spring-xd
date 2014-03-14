@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,6 +60,11 @@ public class Paths {
 	public static final String STREAMS = "streams";
 
 	/**
+	 * Name of jobs node. Jobs are written as children of this node.
+	 */
+	public static final String JOBS = "jobs";
+
+	/**
 	 * Strip path information from a string. For example, given an input of {@code /xd/path/location}, return
 	 * {@code location}.
 	 * 
@@ -68,8 +73,40 @@ public class Paths {
 	 * @return string with path stripped
 	 */
 	public static String stripPath(String path) {
-		// todo: error handling
-		return path.substring(path.lastIndexOf('/') + 1);
+		int i = path.lastIndexOf('/');
+		return i > -1 ? path.substring(i + 1) : path;
+	}
+
+	/**
+	 * Return a string with the provided path elements separated by a slash {@code /}.
+	 * 
+	 * @param elements path elements
+	 * 
+	 * @return the full path
+	 */
+	public static String build(String... elements) {
+		StringBuilder builder = new StringBuilder();
+		builder.append('/');
+		for (int i = 0; i < elements.length; i++) {
+			builder.append(elements[i]);
+			if (i + 1 < elements.length) {
+				builder.append('/');
+			}
+		}
+
+		return builder.toString();
+	}
+
+	/**
+	 * Return a string with the provided path elements separated by a slash {@code /}. The {@link #XD_NAMESPACE} is
+	 * included as a prefix.
+	 * 
+	 * @param elements path elements
+	 * 
+	 * @return the full path
+	 */
+	public static String buildWithNamespace(String... elements) {
+		return '/' + XD_NAMESPACE + build(elements);
 	}
 
 	/**

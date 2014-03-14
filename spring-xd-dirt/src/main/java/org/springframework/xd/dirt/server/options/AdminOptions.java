@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,9 @@
 
 package org.springframework.xd.dirt.server.options;
 
-import javax.validation.constraints.NotNull;
-
 import org.kohsuke.args4j.Option;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.xd.dirt.server.options.ResourcePatternScanningOptionHandlers.DistributedControlTransportOptionHandler;
-
 
 /**
  * Holds configuration options that are valid for the Admin server, when using distributed mode.
@@ -35,11 +31,6 @@ public class AdminOptions extends CommonDistributedOptions {
 	@Option(name = "--httpPort", usage = "Http port for the REST API server", metaVar = "<httpPort>")
 	private Integer httpPort;
 
-	@Option(name = "--controlTransport", aliases = { "--control-transport", "--transport" },
-			handler = DistributedControlTransportOptionHandler.class,
-			usage = "The transport to use for control messages (between admin and nodes)")
-	private String controlTransport;
-
 	public Integer getPORT() {
 		return httpPort;
 	}
@@ -47,15 +38,5 @@ public class AdminOptions extends CommonDistributedOptions {
 	public void setPORT(int httpPort) {
 		this.httpPort = httpPort;
 	}
-
-	public void setXD_CONTROL_TRANSPORT(String controlTransport) {
-		this.controlTransport = controlTransport;
-	}
-
-	@NotNull
-	public String getXD_CONTROL_TRANSPORT() {
-		return controlTransport;
-	}
-
 
 }

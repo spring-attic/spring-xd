@@ -5,16 +5,10 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<import resource="classpath*:/META-INF/spring-xd/transports/${XD_CONTROL_TRANSPORT}-container.xml" />
 	<import resource="classpath*:/META-INF/spring-xd/listeners/listeners.xml" />
-
-	<int:channel id="containerControlChannel" />
-
-	<int:service-activator input-channel="containerControlChannel" ref="moduleDeployer" />
 
 	<bean id="moduleDeployer" class="org.springframework.xd.dirt.module.ModuleDeployer">
 		<constructor-arg ref="moduleDefinitionRepository" />
-		<constructor-arg ref="moduleOptionsMetadataResolver" />
 	</bean>
 
 </beans>

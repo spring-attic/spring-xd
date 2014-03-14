@@ -48,6 +48,10 @@ create_job() {
   echo -e '\n'
 }
 
+deploy_job() {
+  xdc -X PUT -d 'deploy=true' "$XDURL/jobs/$1"
+}
+
 launch_job() {
   echo "Launching job $1 ..."
   xdc -X PUT "$XDURL/jobs/$1/launch"

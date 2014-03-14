@@ -105,4 +105,8 @@ public abstract class AbstractTestMessageBus implements MessageBus {
 		messageBus.unbindProducer(name, channel);
 	}
 
+	public MessageBus getMessageBus() {
+		return this.messageBus;
+	}
+
 }

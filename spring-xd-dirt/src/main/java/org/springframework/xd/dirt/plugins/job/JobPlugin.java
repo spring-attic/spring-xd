@@ -16,14 +16,10 @@
 
 package org.springframework.xd.dirt.plugins.job;
 
-import java.util.Map;
 import java.util.Properties;
 
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.x.bus.MessageBus;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.plugins.AbstractJobPlugin;
 import org.springframework.xd.module.core.Module;
@@ -70,15 +66,6 @@ public class JobPlugin extends AbstractJobPlugin {
 	@Override
 	public void removeModule(Module module) {
 		unbindConsumerAndProducers(module);
-	}
-
-	public void launch(Module module, Map<String, String> parameters) {
-		MessageChannel inputChannel = module.getComponent(MODULE_INPUT_CHANNEL, MessageChannel.class);
-		String payloadJSON =
-				(parameters != null && parameters.get(JOB_PARAMETERS_KEY) != null) ? parameters.get(JOB_PARAMETERS_KEY)
-						: "";
-		Message<?> message = MessageBuilder.withPayload(payloadJSON).build();
-		inputChannel.send(message);
 	}
 
 	@Override

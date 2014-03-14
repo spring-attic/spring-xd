@@ -34,13 +34,26 @@ public class StreamDefinition extends BaseDefinition {
 	}
 
 	/**
-	 * Create a new StreamDefinition
+	 * Create a new StreamDefinition. By default this stream will not be deployed.
 	 * 
-	 * @param name - the stream name
-	 * @param definition - the stream definition
+	 * @param name the stream name
+	 * @param definition the stream definition
+	 * 
+	 * @see #isDeploy
 	 */
 	public StreamDefinition(String name, String definition) {
-		super(name, definition);
+		this(name, definition, false);
+	}
+
+	/**
+	 * Create a new StreamDefinition.
+	 * 
+	 * @param name the stream name
+	 * @param definition the stream definition
+	 * @param deploy if true, this stream should be deployed
+	 */
+	public StreamDefinition(String name, String definition, boolean deploy) {
+		super(name, definition, deploy);
 	}
 
 }

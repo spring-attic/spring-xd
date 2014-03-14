@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,14 +47,11 @@ public class CompositeModuleDeploymentRequest extends ModuleDeploymentRequest {
 		Assert.notEmpty(children, "children must not be empty");
 		this.setGroup(parent.getGroup());
 		this.setIndex(parent.getIndex());
-		this.setLaunch(parent.isLaunch());
 		this.setModule(parent.getModule());
-		this.setRemove(parent.isRemove());
 		this.setSinkChannelName(parent.getSinkChannelName());
 		this.setSourceChannelName(parent.getSourceChannelName());
 		this.setType(parent.getType());
 		this.setChildren(children);
-
 
 		Map<String, String> parameters = parent.getParameters();
 		// Pretend that options were set on the composed module itself
@@ -72,11 +69,9 @@ public class CompositeModuleDeploymentRequest extends ModuleDeploymentRequest {
 			this.setParameter(entry.getKey(), entry.getValue());
 		}
 
-
 		for (ModuleDeploymentRequest child : children) {
 			child.setGroup(parent.getGroup() + "." + child.getModule());
 		}
-
 	}
 
 	public List<ModuleDeploymentRequest> getChildren() {

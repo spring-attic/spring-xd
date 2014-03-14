@@ -41,7 +41,6 @@ import org.springframework.util.SocketUtils;
  * @author Mark Fisher
  * @author David Turanski
  */
-
 public class EmbeddedZooKeeper implements SmartLifecycle {
 
 	/**
@@ -52,7 +51,7 @@ public class EmbeddedZooKeeper implements SmartLifecycle {
 	/**
 	 * ZooKeeper client port. This will be determined dynamically upon startup.
 	 */
-	private final int clientPort = SocketUtils.findAvailableTcpPort();
+	private final int clientPort;
 
 	/**
 	 * Whether to auto-start. Default is true.
@@ -79,6 +78,23 @@ public class EmbeddedZooKeeper implements SmartLifecycle {
 	 */
 	private ErrorHandler errorHandler;
 
+
+	/**
+	 * Construct an EmbeddedZooKeeper with a random port.
+	 */
+	public EmbeddedZooKeeper() {
+		clientPort = SocketUtils.findAvailableTcpPort();
+	}
+
+	/**
+	 * Construct an EmbeddedZooKeeper with the provided port.
+	 *
+	 * @param clientPort  port for ZooKeeper server to bind to
+	 */
+	public EmbeddedZooKeeper(int clientPort) {
+		this.clientPort = clientPort;
+	}
+
 	/**
 	 * Returns the port that clients should use to connect to this embedded server.
 	 * 
@@ -97,6 +113,9 @@ public class EmbeddedZooKeeper implements SmartLifecycle {
 		this.autoStartup = autoStartup;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public boolean isAutoStartup() {
 		return this.autoStartup;
@@ -111,11 +130,17 @@ public class EmbeddedZooKeeper implements SmartLifecycle {
 		this.phase = phase;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public int getPhase() {
 		return this.phase;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public boolean isRunning() {
 		return (zkServerThread != null);
@@ -124,7 +149,8 @@ public class EmbeddedZooKeeper implements SmartLifecycle {
 	/**
 	 * Start the ZooKeeper server in a background thread.
 	 * <p>
-	 * If an exception is thrown during startup or execution, it will be made available via {@link #getException}.
+	 * Register an error handler via {@link #setErrorHandler} in order to handle
+	 * any exceptions thrown during startup or execution.
 	 */
 	@Override
 	public synchronized void start() {

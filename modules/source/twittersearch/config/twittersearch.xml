@@ -9,15 +9,13 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/integration/twitter http://www.springframework.org/schema/integration/twitter/spring-integration-twitter.xsd">
 
-	<context:property-placeholder location="${xd.config.home}/twitter.properties"/>
-
 	<twitter:search-inbound-channel-adapter id="results" query="${query}" twitter-template="twitterTemplate">
 		<int:poller fixed-delay="${fixedDelay}" />
 	</twitter:search-inbound-channel-adapter>
 
 	<bean id="twitterTemplate" class="org.springframework.integration.x.twitter.OAuth2AuthenticatingTwitterTemplate">
-		<constructor-arg value="${consumerKey:${twitter.oauth.consumerKey}}" />
-		<constructor-arg value="${consumerSecret:${twitter.oauth.consumerSecret}}" />
+		<constructor-arg value="${consumerKey}" />
+		<constructor-arg value="${consumerSecret}" />
 	</bean>
 
 	<int:splitter input-channel="results" output-channel="output"/>

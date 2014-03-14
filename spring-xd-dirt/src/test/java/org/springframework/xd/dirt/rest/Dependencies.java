@@ -59,8 +59,10 @@ import org.springframework.xd.dirt.stream.StreamRepository;
 import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.dirt.stream.memory.InMemoryJobDefinitionRepository;
 import org.springframework.xd.dirt.stream.memory.InMemoryJobRepository;
-import org.springframework.xd.dirt.stream.memory.InMemoryStreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.memory.InMemoryStreamRepository;
+import org.springframework.xd.dirt.stream.zookeeper.ZooKeeperStreamDefinitionRepository;
+import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.options.DefaultModuleOptionsMetadataResolver;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
@@ -137,8 +139,18 @@ public class Dependencies {
 	}
 
 	@Bean
+	public EmbeddedZooKeeper embeddedZooKeeper() {
+		return new EmbeddedZooKeeper();
+	}
+
+	@Bean
+	public ZooKeeperConnection zooKeeperConnection() {
+		return new ZooKeeperConnection("localhost:" + embeddedZooKeeper().getClientPort());
+	}
+
+	@Bean
 	public StreamDefinitionRepository streamDefinitionRepository() {
-		return new InMemoryStreamDefinitionRepository(moduleDependencyRepository());
+		return new ZooKeeperStreamDefinitionRepository(zooKeeperConnection(), moduleDependencyRepository());
 	}
 
 	@Bean

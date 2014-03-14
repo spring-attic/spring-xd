@@ -16,6 +16,8 @@
 
 package org.springframework.xd.dirt.stream;
 
+import org.springframework.util.Assert;
+
 import static org.springframework.xd.dirt.stream.ParsingContext.stream;
 
 
@@ -31,6 +33,7 @@ import static org.springframework.xd.dirt.stream.ParsingContext.stream;
  */
 public class StreamDeployer extends AbstractInstancePersistingDeployer<StreamDefinition, Stream> {
 
+
 	public StreamDeployer(StreamDefinitionRepository repository, DeploymentMessageSender messageSender,
 			StreamRepository streamRepository, XDParser parser) {
 		super(repository, streamRepository, messageSender, parser, stream);
@@ -39,6 +42,43 @@ public class StreamDeployer extends AbstractInstancePersistingDeployer<StreamDef
 	@Override
 	protected Stream makeInstance(StreamDefinition definition) {
 		return new Stream(definition);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * <p/>
+	 * Temporary: Stream deployment is different from job deployment so
+	 * overriding this for now.
+	 */
+	@Override
+	protected StreamDefinition basicDeploy(String name) {
+		Assert.hasText(name, "name cannot be blank or null");
+		final StreamDefinition definition = getDefinitionRepository().findOne(name);
+		if (definition == null) {
+			throwNoSuchDefinitionException(name);
+		}
+
+		return definition.isDeploy() ? definition :
+				getDefinitionRepository().save(new StreamDefinition(name, definition.getDefinition(), true));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * <p/>
+	 * Temporary: Stream undeployment is different from job undeployment so
+	 * overriding this for now.
+	 */
+	@Override
+	protected void basicUndeploy(String name) {
+		Assert.hasText(name, "name cannot be blank or null");
+		StreamDefinition definition = getDefinitionRepository().findOne(name);
+		if (definition == null) {
+			throwNoSuchDefinitionException(name);
+		}
+
+		if (definition.isDeploy()) {
+			getDefinitionRepository().save(new StreamDefinition(name, definition.getDefinition(), false));
+		}
 	}
 
 }

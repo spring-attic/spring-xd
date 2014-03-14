@@ -34,7 +34,7 @@ xd:
     allow_origin: http://localhost:9889
   extensions:
     basepackage:
-    location: classpath*:META_INF/spring-xd/ext
+    location: classpath*:META-INF/spring-xd/ext
 ---
 
 server:

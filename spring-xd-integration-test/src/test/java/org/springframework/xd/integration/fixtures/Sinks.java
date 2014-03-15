@@ -19,7 +19,9 @@ package org.springframework.xd.integration.fixtures;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.xd.integration.util.XdEnvironment;
 import org.springframework.xd.shell.command.fixtures.AbstractModuleFixture;
+import org.springframework.xd.shell.command.fixtures.JdbcSink;
 import org.springframework.xd.shell.command.fixtures.LogSink;
 import org.springframework.xd.shell.command.fixtures.TcpSink;
 
@@ -37,8 +39,13 @@ public class Sinks {
 
 	private TcpSink tcpSink = null;
 
-	public Sinks() {
+	private JdbcSink jdbcSink = null;
+
+	private XdEnvironment environment;
+
+	public Sinks(XdEnvironment environment) {
 		sinks = new HashMap<String, AbstractModuleFixture>();
+		this.environment = environment;
 	}
 
 	public AbstractModuleFixture getSink(Class clazz) {
@@ -78,6 +85,37 @@ public class Sinks {
 
 	public FileSink file(String dir, String fileName) {
 		return new FileSink(dir, fileName);
+	}
+
+	public JdbcSink jdbc() {
+		if (environment.getJdbcUrl() == null) {
+			return null;
+		}
+		jdbcSink = new JdbcSink();
+		jdbcSink.url(environment.getJdbcUrl());
+		if (environment.getJdbcUsername() != null) {
+			jdbcSink.username(environment.getJdbcUsername());
+		}
+		if (environment.getJdbcPassword() != null) {
+			jdbcSink.password(environment.getJdbcPassword());
+		}
+		if (environment.getJdbcDriver() != null) {
+			jdbcSink.driver(environment.getJdbcDriver());
+		}
+		if (environment.getJdbcDatabase() != null) {
+			jdbcSink.dbname(environment.getJdbcDatabase());
+		}
+
+
+		return jdbcSink;
+	}
+
+	public String jdbcConfig() {
+		String result = "url=" + environment.getJdbcUrl() + "\n";
+		result += "driverClass=" + environment.getJdbcDriver() + "\n";
+		result += "username=" + environment.getJdbcUsername() + "\n";
+		result += "password=" + environment.getJdbcPassword() + "\n";
+		return result;
 	}
 
 }

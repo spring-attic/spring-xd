@@ -55,8 +55,9 @@ public class ProcessorTest extends AbstractIntegrationTest {
 		stream(sources.http() +
 				XD_DELIMETER + " filter --expression=payload=='" + filterContent + "' " + XD_DELIMETER
 				+ sinks.getSink(FileSink.class));
-
+		waitForXD();
 		sources.http().postData(filterContent);
+		waitForXD(2000);
 		assertReceived();
 		assertValid(filterContent, sinks.getSink(FileSink.class));
 	}

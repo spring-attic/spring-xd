@@ -32,6 +32,7 @@ import org.springframework.shell.core.JLineShellComponent;
 import org.springframework.xd.integration.fixtures.FileSink;
 import org.springframework.xd.integration.fixtures.Sinks;
 import org.springframework.xd.integration.fixtures.Sources;
+import org.springframework.xd.integration.util.ConfigUtil;
 import org.springframework.xd.integration.util.StreamUtils;
 import org.springframework.xd.integration.util.XdEc2Validation;
 import org.springframework.xd.integration.util.XdEnvironment;
@@ -70,6 +71,8 @@ public abstract class AbstractIntegrationTest {
 
 	private boolean initialized = false;
 
+	ConfigUtil configUtil = null;
+
 	public AbstractIntegrationTest() {
 		try {
 			environment = new XdEnvironment();
@@ -78,7 +81,7 @@ public abstract class AbstractIntegrationTest {
 			throw new IllegalArgumentException(ex.getMessage());
 		}
 		httpPort = environment.getHttpPort();
-		sinks = new Sinks();
+		sinks = new Sinks(environment);
 
 	}
 
@@ -101,6 +104,7 @@ public abstract class AbstractIntegrationTest {
 
 			shell = bootstrap.getJLineShellComponent();
 			sources = new Sources(adminServer, environment.getContainers(), shell, httpPort);
+			configUtil = new ConfigUtil(environment.isOnEc2(), environment);
 			initialized = true;
 		}
 	}

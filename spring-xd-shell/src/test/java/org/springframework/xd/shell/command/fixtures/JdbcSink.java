@@ -16,7 +16,7 @@
 
 package org.springframework.xd.shell.command.fixtures;
 
-import org.hsqldb.jdbc.JDBCDriver;
+import java.sql.Driver;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.SimpleDriverDataSource;
@@ -39,6 +39,16 @@ public class JdbcSink extends AbstractModuleFixture implements Disposable {
 	private String columns;
 
 	private String dbname = "foo";
+
+	private String driver = "org.hsqldb.jdbc.JDBCDriver";
+
+	private String username;
+
+	private String url = "jdbc:hsqldb:mem:%s";
+
+	private String password;
+
+	private String configFileName;
 
 	public JdbcSink dbname(String dbname) {
 		this.dbname = dbname;
@@ -64,16 +74,26 @@ public class JdbcSink extends AbstractModuleFixture implements Disposable {
 		if (columns != null) {
 			dsl += " --columns=" + columns;
 		}
+		if (configFileName != null) {
+			dsl += " --configProperties=" + configFileName;
+		}
 		return dsl;
 	}
 
 	private void initDatasource() throws Exception {
 
-		jdbcUrl = String.format("jdbc:hsqldb:mem:%s", dbname);
-
+		jdbcUrl = String.format(url, dbname);
 		SimpleDriverDataSource dataSource = new SimpleDriverDataSource();
-		dataSource.setDriverClass(JDBCDriver.class);
+		@SuppressWarnings("unchecked")
+		Class<? extends Driver> classz = (Class<? extends Driver>) Class.forName(driver);
+		dataSource.setDriverClass(classz);
 		dataSource.setUrl(jdbcUrl);
+		if (password != null) {
+			dataSource.setPassword(password);
+		}
+		if (username != null) {
+			dataSource.setUsername(username);
+		}
 		jdbcTemplate = new JdbcTemplate(dataSource);
 	}
 
@@ -91,4 +111,35 @@ public class JdbcSink extends AbstractModuleFixture implements Disposable {
 		this.columns = columns;
 		return this;
 	}
+
+	public JdbcSink password(String password) {
+		this.password = password;
+		return this;
+	}
+
+	public JdbcSink url(String url) {
+		this.url = url;
+		return this;
+	}
+
+	public JdbcSink username(String username) {
+		this.username = username;
+		return this;
+	}
+
+	public JdbcSink driver(String driver) {
+		this.driver = driver;
+		return this;
+	}
+
+	public JdbcSink database(String database) {
+		this.dbname = database;
+		return this;
+	}
+
+	public JdbcSink configFile(String configFileName) {
+		this.configFileName = configFileName;
+		return this;
+	}
+
 }

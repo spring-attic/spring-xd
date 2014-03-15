@@ -53,7 +53,7 @@ public class HttpTest extends AbstractIntegrationTest {
 		String data = UUID.randomUUID().toString();
 		stream(sources.http() + XD_DELIMETER + sink);
 		sources.http().postData(data);
-
+		waitForXD(2000);
 		assertReceived();
 		assertValid(data, this.sink);
 	}

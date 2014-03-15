@@ -65,6 +65,7 @@ public class FileSourceTest extends AbstractIntegrationTest {
 				+ sinks.getSink(FileSink.class));
 		waitForXD();
 		stream("dataSender", sources.http() + XD_DELIMETER + sinks.file(sourceDir, fileName).toDSL("REPLACE", "false"));
+		waitForXD();
 		sources.http().postData(data);
 		waitForXD(2000);
 		assertValid(data, sinks.getSink(FileSink.class));

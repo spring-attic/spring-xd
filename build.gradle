@@ -1420,9 +1420,15 @@ project('spring-xd-integration-test') {
 			xd_http_port: System.getProperty('xd_http_port', '9000'),
 			xd_jmx_port: System.getProperty('xd_jmx_port', '15005'),
 			xd_container_log_dir: System.getProperty('xd_container_log_dir', '/home/ubuntu/spring-xd-1.0.0.BUILD-SNAPSHOT/xd/logs/container.log'),
+			xd_base_dir: System.getProperty('xd_base_dir','/home/ubuntu/spring-xd-1.0.0.BUILD-SNAPSHOT/xd/'),
 			xd_run_on_ec2: System.getProperty('xd_run_on_ec2', 'false'),
 			xd_pause_time: System.getProperty('xd_pause_time', '1'),
-			xd_private_key_file: System.getProperty('xd_private_key_file', '')]
+			xd_private_key_file: System.getProperty('xd_private_key_file', ''),
+			jdbc_username: System.getProperty('jdbc_username', 'sa'),
+			jdbc_database: System.getProperty('jdbc_database', 'xdjob'),
+			jdbc_password: System.getProperty('jdbc_password', ''),
+			jdbc_driver: System.getProperty('jdbc_driver', 'org.hsqldb.jdbc.JDBCDriver'),
+			jdbc_url: System.getProperty('jdbc_url', 'jdbc:hsqldb:hsql://localhost:9101/%s')]
 		
 		onlyIf {
 			System.getProperty('run_integration_tests', 'false')=='true'
@@ -1432,6 +1438,7 @@ project('spring-xd-integration-test') {
 		testCompile project(":spring-xd-shell")
 		testCompile project(":spring-xd-shell").sourceSets.test.output
 		testCompile project(":spring-xd-test")
+		testCompile "mysql:mysql-connector-java:5.1.23"
 		compile "commons-collections:commons-collections:$commonsCollectionsVersion"
 		compile "org.apache.jclouds.provider:aws-sts:$jcloudsVersion"
 		compile "org.apache.jclouds.driver:jclouds-sshj:$jcloudsVersion"

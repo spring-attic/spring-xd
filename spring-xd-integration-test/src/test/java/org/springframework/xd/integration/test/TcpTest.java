@@ -39,7 +39,6 @@ public class TcpTest extends AbstractIntegrationTest {
 	@Test
 	public void testTCPSourceCRLF() throws Exception {
 		String data = UUID.randomUUID().toString();
-		System.out.println(sources.tcp() + XD_DELIMETER + sinks.getSink(FileSink.class));
 		stream(sources.tcp() + XD_DELIMETER + sinks.getSink(FileSink.class));
 		waitForXD();
 		sources.tcp().sendBytes((data + "\r\n").getBytes());

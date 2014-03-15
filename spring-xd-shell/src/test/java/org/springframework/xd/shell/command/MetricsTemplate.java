@@ -22,11 +22,11 @@ import java.util.List;
 import java.util.Random;
 
 import org.springframework.shell.core.JLineShellComponent;
-import org.springframework.xd.shell.command.fixtures.AggregateCounterSink;
-import org.springframework.xd.shell.command.fixtures.CounterSink;
-import org.springframework.xd.shell.command.fixtures.Disposable;
 import org.springframework.xd.shell.command.fixtures.FieldValueCounterSink;
 import org.springframework.xd.shell.command.fixtures.RichGaugeSink;
+import org.springframework.xd.test.fixtures.AggregateCounterSink;
+import org.springframework.xd.test.fixtures.CounterSink;
+import org.springframework.xd.test.fixtures.Disposable;
 
 
 /**

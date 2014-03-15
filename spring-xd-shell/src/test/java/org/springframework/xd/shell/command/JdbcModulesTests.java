@@ -27,7 +27,7 @@ import org.junit.Test;
 
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
-import org.springframework.xd.shell.command.fixtures.JdbcSink;
+import org.springframework.xd.test.fixtures.JdbcSink;
 
 
 /**

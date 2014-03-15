@@ -22,6 +22,8 @@ import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
 import org.springframework.util.Assert;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.xd.test.fixtures.AbstractModuleFixture;
+import org.springframework.xd.test.fixtures.AvailableSocketPorts;
 
 
 /**

@@ -24,6 +24,8 @@ import java.util.TreeMap;
 import org.springframework.shell.core.JLineShellComponent;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableHeader;
+import org.springframework.xd.test.fixtures.AbstractMetricSink;
+import org.springframework.xd.test.fixtures.HasDisplayValue;
 
 /**
  * Fixture class for an field value counter. Provides utility methods to return the expected displayed value.
@@ -41,14 +43,14 @@ public class FieldValueCounterSink extends AbstractMetricSink implements HasDisp
 
 	@Override
 	protected String toDSL() {
-		return String.format("%s --name=%s --fieldName=%s", dslName, name, fieldName);
+		return String.format("%s --name=%s --fieldName=%s", getDslName(), getName(), fieldName);
 	}
 
 	public Table constructFVCDisplay(TreeMap<String, Double> fvcMap) {
 		Table t = new Table();
 		NumberFormat pattern = new DecimalFormat();
 		// Should actually be fieldName:
-		t.addHeader(1, new TableHeader("FieldName=" + name/* fieldName */)).addHeader(2, new TableHeader("")).addHeader(
+		t.addHeader(1, new TableHeader("FieldName=" + getName())).addHeader(2, new TableHeader("")).addHeader(
 				3, new TableHeader(""));
 		t.newRow().addValue(1, "VALUE").addValue(2, "-").addValue(3, "COUNT");
 		for (Map.Entry<String, Double> entry : fvcMap.descendingMap().entrySet()) {

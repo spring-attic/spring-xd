@@ -22,6 +22,8 @@ import java.text.NumberFormat;
 import org.springframework.shell.core.JLineShellComponent;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableHeader;
+import org.springframework.xd.test.fixtures.AbstractMetricSink;
+import org.springframework.xd.test.fixtures.HasDisplayValue;
 
 /**
  * Fixture class for a rich gauge counter. Provides utility methods to return the expected displayed value as a
@@ -40,7 +42,7 @@ public class RichGaugeSink extends AbstractMetricSink implements HasDisplayValue
 			long count) {
 		Table t = new Table();
 		NumberFormat pattern = new DecimalFormat();
-		t.addHeader(1, new TableHeader("Name")).addHeader(2, new TableHeader(name));
+		t.addHeader(1, new TableHeader("Name")).addHeader(2, new TableHeader(getName()));
 		t.newRow().addValue(1, "value").addValue(2, pattern.format(value));
 		t.newRow().addValue(1, "alpha").addValue(2, pattern.format(alpha));
 		t.newRow().addValue(1, "average").addValue(2, pattern.format(average));

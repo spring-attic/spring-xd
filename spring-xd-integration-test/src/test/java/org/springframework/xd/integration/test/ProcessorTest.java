@@ -18,8 +18,8 @@ package org.springframework.xd.integration.test;
 
 import org.junit.Test;
 
-import org.springframework.xd.integration.fixtures.FileSink;
 import org.springframework.xd.integration.util.InvalidResultException;
+import org.springframework.xd.test.fixtures.SimpleFileSink;
 
 
 /**
@@ -37,10 +37,10 @@ public class ProcessorTest extends AbstractIntegrationTest {
 	 */
 	@Test(expected = InvalidResultException.class)
 	public void testFailedSink() throws Exception {
-		stream(sources.http()
+		String filterContent = "BAD";
+		stream("trigger  --payload='" + filterContent + "'"
 				+ XD_DELIMETER + " filter --expression=payload=='good' " + XD_DELIMETER
-				+ sinks.getSink(FileSink.class));
-		sources.http().postData("BAD");
+				+ sinks.getSink(SimpleFileSink.class));
 		assertReceived();
 	}
 
@@ -52,13 +52,11 @@ public class ProcessorTest extends AbstractIntegrationTest {
 	@Test
 	public void testFilter() throws Exception {
 		String filterContent = "good";
-		stream(sources.http() +
+		stream("trigger  --payload='" + filterContent + "'" +
 				XD_DELIMETER + " filter --expression=payload=='" + filterContent + "' " + XD_DELIMETER
-				+ sinks.getSink(FileSink.class));
-
-		sources.http().postData(filterContent);
+				+ sinks.getSink(SimpleFileSink.class));
 		assertReceived();
-		assertValid(filterContent, sinks.getSink(FileSink.class));
+		assertValid(filterContent, sinks.getSink(SimpleFileSink.class));
 	}
 
 }

@@ -29,7 +29,7 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 
 import org.springframework.shell.core.CommandResult;
-import org.springframework.xd.shell.command.fixtures.FileSink;
+import org.springframework.xd.test.fixtures.FileSink;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
 
 /**

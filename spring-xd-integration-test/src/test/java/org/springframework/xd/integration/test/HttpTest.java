@@ -25,9 +25,9 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import org.springframework.xd.integration.fixtures.FileSink;
-import org.springframework.xd.shell.command.fixtures.AbstractModuleFixture;
-import org.springframework.xd.shell.command.fixtures.LogSink;
+import org.springframework.xd.test.fixtures.AbstractModuleFixture;
+import org.springframework.xd.test.fixtures.LogSink;
+import org.springframework.xd.test.fixtures.SimpleFileSink;
 
 /**
  * @author Glenn Renfro
@@ -52,8 +52,9 @@ public class HttpTest extends AbstractIntegrationTest {
 
 		String data = UUID.randomUUID().toString();
 		stream(sources.http() + XD_DELIMETER + sink);
+		waitForXD();
 		sources.http().postData(data);
-
+		waitForXD(2000);
 		assertReceived();
 		assertValid(data, this.sink);
 	}
@@ -65,7 +66,9 @@ public class HttpTest extends AbstractIntegrationTest {
 	 */
 	@Parameters
 	public static Collection<Object[]> sink() {
-		Object[][] sink = { { FileSink.class }, { LogSink.class } };
+		Object[][] sink = { { SimpleFileSink.class }, { LogSink.class } };
 		return Arrays.asList(sink);
 	}
+
+
 }

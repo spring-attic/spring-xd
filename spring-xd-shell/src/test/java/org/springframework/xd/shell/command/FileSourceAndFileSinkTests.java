@@ -30,8 +30,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.util.FileCopyUtils;
-import org.springframework.xd.shell.command.fixtures.FileSink;
-import org.springframework.xd.shell.command.fixtures.FileSource;
+import org.springframework.xd.test.fixtures.FileSink;
+import org.springframework.xd.test.fixtures.FileSource;
 
 /**
  * Tests to explicitly assert file related source and sink behavior.

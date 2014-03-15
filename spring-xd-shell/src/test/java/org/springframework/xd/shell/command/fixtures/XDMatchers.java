@@ -17,7 +17,13 @@
 package org.springframework.xd.shell.command.fixtures;
 
 import org.hamcrest.Matcher;
-import org.springframework.xd.shell.command.fixtures.FileSink.FileSinkContentsMatcher;
+
+import org.springframework.xd.test.fixtures.AbstractMetricSink;
+import org.springframework.xd.test.fixtures.EventuallyMatcher;
+import org.springframework.xd.test.fixtures.FileSink;
+import org.springframework.xd.test.fixtures.HasDisplayValue;
+import org.springframework.xd.test.fixtures.MetricHasSimpleValueMatcher;
+import org.springframework.xd.test.fixtures.FileSink.FileSinkContentsMatcher;
 
 
 /**

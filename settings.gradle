@@ -1,6 +1,8 @@
 rootProject.name = 'spring-xd'
 
 include 'spring-xd-analytics'
+include 'spring-xd-analytics-ml'
+include 'spring-xd-analytics-ml-pmml'
 include 'spring-xd-dirt'
 include 'spring-xd-gemfire-server'
 include 'redis'

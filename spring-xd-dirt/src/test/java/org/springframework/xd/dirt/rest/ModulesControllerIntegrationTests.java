@@ -107,7 +107,7 @@ public class ModulesControllerIntegrationTests extends AbstractControllerIntegra
 		}
 
 		final File file = temporaryFolder.newFile("job_4_with_resource.xml");
-		FileUtils.write(file, "This is the contents of job_4_with_resource.xml");
+		FileUtils.writeStringToFile(file, "This is the contents of job_4_with_resource.xml");
 
 		ModuleDefinition moduleDefinition = new ModuleDefinition("job_4_with_resource",
 				ModuleType.job, new FileSystemResource(file));

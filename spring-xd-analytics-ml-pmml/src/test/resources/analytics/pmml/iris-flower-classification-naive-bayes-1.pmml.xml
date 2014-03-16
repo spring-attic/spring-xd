@@ -1,0 +1,119 @@
+<PMML version="4.1" xmlns="http://www.dmg.org/PMML-4_1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.dmg.org/PMML-4_1 http://www.dmg.org/v4-1/pmml-4-1.xsd">
+    <Header copyright="Copyright (c) 2014 tom" description="NaiveBayes Model">
+        <Extension name="user" value="tom" extender="Rattle/PMML"/>
+        <Application name="Rattle/PMML" version="1.4"/>
+        <Timestamp>2014-03-20 02:09:16</Timestamp>
+    </Header>
+    <DataDictionary numberOfFields="6">
+        <DataField name="Predicted_Species" optype="categorical" dataType="string">
+            <Value value="setosa"/>
+            <Value value="versicolor"/>
+            <Value value="virginica"/>
+        </DataField>
+        <DataField name="Sepal.Length" optype="continuous" dataType="double"/>
+        <DataField name="Sepal.Width" optype="continuous" dataType="double"/>
+        <DataField name="Petal.Length" optype="continuous" dataType="double"/>
+        <DataField name="Petal.Width" optype="continuous" dataType="double"/>
+        <DataField name="DiscretePlaceHolder" optype="categorical" dataType="string">
+            <Value value="pseudoValue"/>
+        </DataField>
+    </DataDictionary>
+    <NaiveBayesModel modelName="AAA;BBB" functionName="classification" threshold="0.001">
+        <MiningSchema>
+            <MiningField name="Predicted_Species" usageType="predicted"/>
+            <MiningField name="Sepal.Length" usageType="active"/>
+            <MiningField name="Sepal.Width" usageType="active"/>
+            <MiningField name="Petal.Length" usageType="active"/>
+            <MiningField name="Petal.Width" usageType="active"/>
+            <MiningField name="DiscretePlaceHolder" usageType="active" missingValueReplacement="pseudoValue"/>
+        </MiningSchema>
+        <Output>
+            <OutputField name="Predicted_Species" feature="predictedValue"/>
+            <OutputField name="Probability_setosa" optype="continuous" dataType="double" feature="probability"
+                         value="setosa"/>
+            <OutputField name="Probability_versicolor" optype="continuous" dataType="double" feature="probability"
+                         value="versicolor"/>
+            <OutputField name="Probability_virginica" optype="continuous" dataType="double" feature="probability"
+                         value="virginica"/>
+        </Output>
+        <BayesInputs>
+            <Extension>
+                <BayesInput fieldName="Sepal.Length">
+                    <TargetValueStats>
+                        <TargetValueStat value="setosa">
+                            <GaussianDistribution mean="5.006" variance="0.124248979591837"/>
+                        </TargetValueStat>
+                        <TargetValueStat value="versicolor">
+                            <GaussianDistribution mean="5.8953488372093" variance="0.283311184939092"/>
+                        </TargetValueStat>
+                        <TargetValueStat value="virginica">
+                            <GaussianDistribution mean="6.58163265306122" variance="0.410697278911565"/>
+                        </TargetValueStat>
+                    </TargetValueStats>
+                </BayesInput>
+            </Extension>
+            <Extension>
+                <BayesInput fieldName="Sepal.Width">
+                    <TargetValueStats>
+                        <TargetValueStat value="setosa">
+                            <GaussianDistribution mean="3.428" variance="0.143689795918367"/>
+                        </TargetValueStat>
+                        <TargetValueStat value="versicolor">
+                            <GaussianDistribution mean="2.76279069767442" variance="0.0966777408637874"/>
+                        </TargetValueStat>
+                        <TargetValueStat value="virginica">
+                            <GaussianDistribution mean="2.97142857142857" variance="0.105833333333333"/>
+                        </TargetValueStat>
+                    </TargetValueStats>
+                </BayesInput>
+            </Extension>
+            <Extension>
+                <BayesInput fieldName="Petal.Length">
+                    <TargetValueStats>
+                        <TargetValueStat value="setosa">
+                            <GaussianDistribution mean="1.462" variance="0.0301591836734694"/>
+                        </TargetValueStat>
+                        <TargetValueStat value="versicolor">
+                            <GaussianDistribution mean="4.21627906976744" variance="0.236633444075305"/>
+                        </TargetValueStat>
+                        <TargetValueStat value="virginica">
+                            <GaussianDistribution mean="5.55510204081633" variance="0.310442176870748"/>
+                        </TargetValueStat>
+                    </TargetValueStats>
+                </BayesInput>
+            </Extension>
+            <Extension>
+                <BayesInput fieldName="Petal.Width">
+                    <TargetValueStats>
+                        <TargetValueStat value="setosa">
+                            <GaussianDistribution mean="0.246" variance="0.0111061224489796"/>
+                        </TargetValueStat>
+                        <TargetValueStat value="versicolor">
+                            <GaussianDistribution mean="1.30697674418605" variance="0.042093023255814"/>
+                        </TargetValueStat>
+                        <TargetValueStat value="virginica">
+                            <GaussianDistribution mean="2.02448979591837" variance="0.0768877551020408"/>
+                        </TargetValueStat>
+                    </TargetValueStats>
+                </BayesInput>
+            </Extension>
+            <BayesInput fieldName="DiscretePlaceHolder">
+                <PairCounts value="pseudoValue">
+                    <TargetValueCounts>
+                        <TargetValueCount value="setosa" count="50"/>
+                        <TargetValueCount value="versicolor" count="43"/>
+                        <TargetValueCount value="virginica" count="49"/>
+                    </TargetValueCounts>
+                </PairCounts>
+            </BayesInput>
+        </BayesInputs>
+        <BayesOutput fieldName="Predicted_Species">
+            <TargetValueCounts>
+                <TargetValueCount value="setosa" count="50"/>
+                <TargetValueCount value="versicolor" count="43"/>
+                <TargetValueCount value="virginica" count="49"/>
+            </TargetValueCounts>
+        </BayesOutput>
+    </NaiveBayesModel>
+</PMML>

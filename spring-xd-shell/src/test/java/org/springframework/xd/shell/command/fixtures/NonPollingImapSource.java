@@ -18,17 +18,19 @@ package org.springframework.xd.shell.command.fixtures;
 
 
 /**
- * Fixture that represents the mail source module, which uses polling (here forced to 1s).
+ * Represents the imap source module, that does not use polling.
  * 
  * @author Eric Bottard
  */
-public class MailSource extends AbstractMailSource<MailSource> {
+
+public class NonPollingImapSource extends AbstractMailSource<NonPollingImapSource> {
 
 	@Override
 	protected String toDSL() {
-		return String.format("mail --port=%d --protocol=%s --folder=%s --username=%s --password=%s --fixedDelay=1",
+		return String.format("mail --usePolling=false --port=%d --protocol=%s --folder=%s --username=%s --password=%s",
 				port, protocol,
 				folder, ADMIN_USER, ADMIN_PASSWORD);
 	}
+
 
 }

@@ -28,9 +28,9 @@ import org.junit.Test;
 
 import org.springframework.xd.shell.command.fixtures.FileSink;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
-import org.springframework.xd.shell.command.fixtures.ImapSource;
+import org.springframework.xd.shell.command.fixtures.NonPollingImapSource;
 import org.springframework.xd.shell.command.fixtures.MailSink;
-import org.springframework.xd.shell.command.fixtures.MailSource;
+import org.springframework.xd.shell.command.fixtures.PollingMailSource;
 
 
 /**
@@ -42,21 +42,21 @@ public class MailCommandTests extends AbstractStreamIntegrationTest {
 
 	@Test
 	public void testImapPoll() throws Exception {
-		MailSource mailSource = newMailSource();
+		PollingMailSource pollingMailSource = newPollingMailSource();
 		FileSink fileSink = newFileSink().binary(true);
 
-		mailSource.ensureStarted();
+		pollingMailSource.ensureStarted();
 
-		stream().create(generateStreamName(), "%s | %s", mailSource, fileSink);
+		stream().create(generateStreamName(), "%s | %s", pollingMailSource, fileSink);
 
-		mailSource.sendEmail("from@foo.com", "The Subject", "My body is slim!");
+		pollingMailSource.sendEmail("from@foo.com", "The Subject", "My body is slim!");
 
 		assertThat(fileSink, eventually(hasContentsThat(equalTo("My body is slim!\r\n"))));
 	}
 
 	@Test
 	public void testImapIdle() throws Exception {
-		ImapSource mailSource = newImapSource();
+		NonPollingImapSource mailSource = newNonPollingMailSource();
 		FileSink fileSink = newFileSink().binary(true);
 
 		mailSource.ensureStarted();

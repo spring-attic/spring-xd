@@ -31,6 +31,7 @@ import org.springframework.context.annotation.EnableMBeanExport;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Profile;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
+import org.springframework.xd.dirt.container.ContainerMetadata;
 import org.springframework.xd.dirt.util.ConfigLocations;
 
 @EnableAutoConfiguration(exclude = ServerPropertiesAutoConfiguration.class)
@@ -39,6 +40,11 @@ import org.springframework.xd.dirt.util.ConfigLocations;
 public class ParentConfiguration {
 
 	private static final String MBEAN_EXPORTER_BEAN_NAME = "XDParentConfigMBeanExporter";
+
+	@Bean
+	public ContainerMetadata containerMetadata() {
+		return new ContainerMetadata();
+	}
 
 	@Configuration
 	@Profile("cloud")

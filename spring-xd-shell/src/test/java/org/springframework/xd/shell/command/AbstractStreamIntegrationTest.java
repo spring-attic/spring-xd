@@ -27,10 +27,10 @@ import org.springframework.xd.shell.command.fixtures.Disposable;
 import org.springframework.xd.shell.command.fixtures.FileSink;
 import org.springframework.xd.shell.command.fixtures.FileSource;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
-import org.springframework.xd.shell.command.fixtures.ImapSource;
+import org.springframework.xd.shell.command.fixtures.NonPollingImapSource;
 import org.springframework.xd.shell.command.fixtures.JdbcSink;
 import org.springframework.xd.shell.command.fixtures.MailSink;
-import org.springframework.xd.shell.command.fixtures.MailSource;
+import org.springframework.xd.shell.command.fixtures.PollingMailSource;
 import org.springframework.xd.shell.command.fixtures.TailSource;
 import org.springframework.xd.shell.command.fixtures.TcpSink;
 import org.springframework.xd.shell.command.fixtures.TcpSource;
@@ -119,16 +119,16 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 		return tailSource;
 	}
 
-	protected MailSource newMailSource() {
-		MailSource mailSource = new MailSource();
-		disposables.add(mailSource);
-		return mailSource;
+	protected PollingMailSource newPollingMailSource() {
+		PollingMailSource pollingMailSource = new PollingMailSource();
+		disposables.add(pollingMailSource);
+		return pollingMailSource;
 	}
 
-	protected ImapSource newImapSource() {
-		ImapSource imapSource = new ImapSource();
-		disposables.add(imapSource);
-		return imapSource;
+	protected NonPollingImapSource newNonPollingMailSource() {
+		NonPollingImapSource nonPollingImapSource = new NonPollingImapSource();
+		disposables.add(nonPollingImapSource);
+		return nonPollingImapSource;
 	}
 
 	protected MailSink newMailSink() {

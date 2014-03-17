@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.shell.command.fixtures;
+package org.springframework.xd.mail;
 
 
 /**
- * Represents the imap source module, that does not use polling.
+ * The list of supported mail protocols.
  * 
  * @author Eric Bottard
  */
-
-public class ImapSource extends AbstractMailSource<ImapSource> {
-
-	@Override
-	protected String toDSL() {
-		return String.format("imap --port=%d --protocol=%s --folder=%s --username=%s --password=%s",
-				port, protocol,
-				folder, ADMIN_USER, ADMIN_PASSWORD);
-	}
-
-
+public enum MailProtocol {
+	imap, imaps, pop3, pop3s;
 }

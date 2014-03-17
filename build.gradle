@@ -118,7 +118,7 @@ ext {
 	springIntegrationVersion = '4.0.0.BUILD-SNAPSHOT'
 	springPluginVersion = '0.8.0.RELEASE'
 	springShellVersion = '1.1.0.BUILD-SNAPSHOT'
-	springVersion = '4.0.1.RELEASE'
+	springVersion = '4.0.2.RELEASE'
 	tomcatJdbcPoolVersion = '7.0.42'
 	tomcatVersion = '7.0.35'
 	uuidVersion = '3.2'

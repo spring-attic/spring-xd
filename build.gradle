@@ -40,6 +40,7 @@ ext {
 	coverageProjects = [
 		'spring-xd-dirt',
 		'spring-xd-analytics',
+        'spring-xd-analytics-jpmml',
 		'spring-xd-tuple',
 		'spring-xd-module',
 		'spring-xd-rest-client',
@@ -122,6 +123,7 @@ ext {
 	tomcatJdbcPoolVersion = '7.0.42'
 	tomcatVersion = '7.0.35'
 	uuidVersion = '3.2'
+    jpmmlEvaluatorVersion = '1.1.0'
 
 	// Hadoop Versions
 	hadoop12Version = '1.2.1'
@@ -353,6 +355,14 @@ project('spring-xd-analytics') {
 	}
 }
 
+project('spring-xd-analytics-jpmml') {
+    description = 'Spring XD Anayltics JPMML'
+    dependencies {
+        compile project(":spring-xd-analytics")
+        compile "org.jpmml:pmml-evaluator:$jpmmlEvaluatorVersion"
+    }
+}
+
 project('spring-xd-dirt') {
 	description = 'Spring XD DIRT'
 	dependencies {
@@ -361,6 +371,7 @@ project('spring-xd-dirt') {
 		// ************* Common to both Server and Container
 		compile "org.springframework:spring-aop:$springVersion"
 		compile project(":spring-xd-analytics")
+        compile project(":spring-xd-analytics-jpmml")
 		compile "org.springframework.cloud:spring-service-connector:$springCloudVersion"
 		compile "org.springframework.cloud:cloudfoundry-connector:$springCloudVersion"
 		compile "org.springframework.boot:spring-boot-autoconfigure:$springBootVersion"

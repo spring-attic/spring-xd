@@ -67,10 +67,12 @@ public class ExtensionsTests extends RandomConfigurationSupport {
 
 	@Test
 	public void extensionsProperties() throws IOException {
-		String extensionsBasePackage = context.getEnvironment().getProperty("xd.extensions.basepackage");
-		assertEquals("org.springframework.xd.extensions.test", extensionsBasePackage);
-		String extensionsLocation = context.getEnvironment().getProperty("xd.extensions.location");
-		assertEquals("classpath*:META-INF/spring-xd/ext-test", extensionsLocation);
+		Object extensionsBasePackage = context.getEnvironment().getProperty("xd.extensions.basepackages", Object.class);
+		assertEquals("org.springframework.xd.extensions.test,org.springframework.xd.extensions.test2",
+				extensionsBasePackage);
+		String extensionsLocation = context.getEnvironment().getProperty("xd.extensions.locations");
+		assertEquals("classpath*:META-INF/spring-xd/ext-test,classpath*:META-INF/spring-xd/ext-test2",
+				extensionsLocation);
 
 	}
 

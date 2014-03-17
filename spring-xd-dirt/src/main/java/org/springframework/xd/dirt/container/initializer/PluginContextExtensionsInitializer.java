@@ -16,8 +16,6 @@
 
 package org.springframework.xd.dirt.container.initializer;
 
-import java.util.Set;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
@@ -29,36 +27,35 @@ import org.springframework.util.StringUtils;
 
 
 /**
- * An {@link OrderedContextInitializer} to scan for annotation configured beans in xd.extensions.basepackage and in
- * resource locations xd.extensions.location
+ * An {@link OrderedContextInitializer} to scan for annotation configured beans in xd.extensions.basepackages and in
+ * resource locations xd.extensions.locations. Each property value is a comma delimited string.
  * 
  * @author David Turanski
  */
 public class PluginContextExtensionsInitializer extends AbstractXMLBeanDefinitionProvider {
 
-	@Value("${xd.extensions.location:}")
-	private String extensionsLocation;
+	@Value("${xd.extensions.locations:}")
+	private String extensionsLocations;
 
-	@Value("${xd.extensions.basepackage:}")
-	private String extensionsBasePackage;
+	@Value("${xd.extensions.basepackages:}")
+	private String extensionsBasePackages;
 
 	@Override
 	public void onApplicationEvent(ApplicationPreparedEvent event) {
-
-		if (StringUtils.hasText(extensionsBasePackage)) {
+		if (StringUtils.hasText(extensionsBasePackages)) {
 			AnnotationConfigApplicationContext context = (AnnotationConfigApplicationContext) event.getApplicationContext();
 			ClassPathScanningCandidateComponentProvider componentProvider = new
 					ClassPathScanningCandidateComponentProvider(
 							true, context.getEnvironment());
 
-			Set<BeanDefinition> beans = componentProvider.findCandidateComponents(extensionsBasePackage);
-
-			for (BeanDefinition bean : beans) {
-				context.registerBeanDefinition(BeanDefinitionReaderUtils.generateBeanName(bean, context), bean);
+			for (String basePackage : StringUtils.commaDelimitedListToStringArray(extensionsBasePackages)) {
+				for (BeanDefinition bean : componentProvider.findCandidateComponents(basePackage)) {
+					context.registerBeanDefinition(BeanDefinitionReaderUtils.generateBeanName(bean, context), bean);
+				}
 			}
 		}
 
-		if (StringUtils.hasText(extensionsLocation)) {
+		if (StringUtils.hasText(extensionsLocations)) {
 			super.onApplicationEvent(event);
 		}
 	}
@@ -70,7 +67,12 @@ public class PluginContextExtensionsInitializer extends AbstractXMLBeanDefinitio
 
 	@Override
 	protected String[] getLocations() {
-		return new String[] { this.extensionsLocation + "/**/*.xml" };
+		String[] locations = StringUtils.commaDelimitedListToStringArray(this.extensionsLocations);
+		for (int i = 0; i < locations.length; i++) {
+			locations[i] = locations[i] + "/**/*.xml";
+		}
+
+		return locations;
 	}
 
 }

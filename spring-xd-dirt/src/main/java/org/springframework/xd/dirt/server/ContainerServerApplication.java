@@ -55,9 +55,6 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
  */
 @Configuration
 @EnableAutoConfiguration
-@ImportResource({
-	"classpath*:" + ConfigLocations.XD_CONFIG_ROOT + "plugins/*.xml"
-})
 @Import(PropertyPlaceholderAutoConfiguration.class)
 public class ContainerServerApplication {
 

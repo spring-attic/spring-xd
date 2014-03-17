@@ -12,7 +12,7 @@
 
 	<bean class="org.springframework.xd.dirt.plugins.stream.ModuleTypeConversionPlugin">
 		<constructor-arg name="converters" ref="xd.messageConverters"/>
-		<constructor-arg name="customConverters" ref="xd.customMessageConverters"/>
+		<constructor-arg name="customConverters" ref="customMessageConverters"/>
 	</bean>
 	
 	<util:list id="xd.messageConverters">
@@ -27,6 +27,6 @@
 	</util:list>
 
 	<!-- Users can override this to add converters.-->
-	<util:list id="xd.customMessageConverters"/>
+	<util:list id="customMessageConverters"/>
 
 </beans>

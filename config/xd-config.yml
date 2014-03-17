@@ -66,8 +66,21 @@
 #   password: guest
 #   virtual_host: /
 
-
 # Hadoop properties
 #spring:
 #  hadoop:
 #   fsUri: hdfs://localhost:8020
+
+---
+# User Extensions: Where XD scans the classpath to discover extended container configuration
+# Each property may be a comma delimited string. 'basepackages' refers to package names used for
+# annotated component (@Configuration or @Component stereotypes) scanning. 'locations' is a list of root resource directories containing xml configuration. 
+# XD append **/*.xml to each location
+#xd:
+#  extensions:
+#    basepackages: com.acme.xd.extensions
+#    locations: classpath*:META-INF/spring-xd/ext
+
+---
+
+

@@ -32,6 +32,10 @@ xd:
   ui:
     home: file:${XD_HOME}/spring-xd-ui/dist/
     allow_origin: http://localhost:9889
+  extensions:
+    basepackages:
+    locations: classpath*:META-INF/spring-xd/ext
+---
 
 server:
   port: ${PORT:9393}

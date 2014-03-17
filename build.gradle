@@ -532,6 +532,14 @@ project('spring-xd-exec') {
 
 // Extension projects, supporting module definitions.
 
+project('spring-xd-extension-mail') {
+	description = 'Spring XD Mail'
+	dependencies {
+		compile "org.springframework.integration:spring-integration-mail:$springIntegrationVersion"
+		compile project(":spring-xd-module-spi")
+	}
+}
+
 project('spring-xd-extension-http') {
 	description = 'Spring XD HTTP'
 	dependencies {
@@ -965,15 +973,14 @@ project('spring-xd-module') {
 		compile "org.springframework.boot:spring-boot-autoconfigure:$springBootVersion"
 		compile project(':spring-xd-module-spi')
 		runtime "org.hibernate:hibernate-validator:$hibernateValidatorVersion"
-
 	}
 }
 
 project('spring-xd-module-spi') {
 	description = 'Spring XD Module Options API'
 	dependencies {
-		compile "javax.validation:validation-api:1.0.0.GA"
 		compile "org.springframework:spring-web:$springVersion"
+		compile "javax.validation:validation-api:1.0.0.GA"
 	}
 }
 
@@ -1028,21 +1035,7 @@ project('modules') {
 
 project('modules.source.mail') {
 	dependencies {
-		runtime "org.springframework.integration:spring-integration-mail:$springIntegrationVersion"
-		// Need to leave javax.mail at the dirt-server level for
-		// shell integration tests to work.
-		//		"com.sun.mail:javax.mail:$javaxMailVersion"
-
-	}
-}
-
-project('modules.source.imap') {
-	dependencies {
-		runtime "org.springframework.integration:spring-integration-mail:$springIntegrationVersion"
-		// Need to leave javax.mail at the dirt-server level for
-		// shell integration tests to work.
-		//		"com.sun.mail:javax.mail:$javaxMailVersion"
-
+		runtime project(":spring-xd-extension-mail")
 	}
 }
 
@@ -1160,11 +1153,7 @@ project('modules.sink.jdbc') {
 
 project('modules.sink.mail') {
 	dependencies {
-		runtime "org.springframework.integration:spring-integration-mail:$springIntegrationVersion"
-		// Need to leave javax.mail at the dirt-server level for
-		// shell integration tests to work.
-		//		"com.sun.mail:javax.mail:$javaxMailVersion"
-
+		runtime project(":spring-xd-extension-mail")
 	}
 }
 

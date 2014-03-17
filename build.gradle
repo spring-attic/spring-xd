@@ -220,7 +220,7 @@ configure(javaProjects) { subproject ->
 	// dependencies that are common across all java projects
 	dependencies {
 		testCompile "junit:junit:$junitVersion"
-		testCompile "org.codehaus.groovy:groovy-all:2.2.1"
+		testCompile "org.codehaus.groovy:groovy-all:2.2.2"
 		testCompile "org.hamcrest:hamcrest-library:$hamcrestVersion"
 	}
 

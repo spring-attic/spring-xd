@@ -1,0 +1,281 @@
+#!/usr/bin/env bash
+
+##############################################################################
+##
+##  xd-container start up script for UN*X
+##
+##############################################################################
+
+# Usage
+USAGE="NAME:
+    xd-yarn - A command line script to deploy Spring XD on YARN
+
+COMMANDS:
+    xd-yarn [OPTIONS] push                   Push the application artifacts to HDFS
+    xd-yarn [OPTIONS] start SERVER           Start the specified SERVER (admin or container)
+
+OPTIONS:
+      -h, --help displays a usage message
+      -f, --manifest PATH_TO_DIRECTORY_FOR_MANIFEST
+    push:
+      -p, --path PATH_TO_DIRECTORY_FOR_APP_ARTIFACTS
+"
+
+# Add default JVM options here. You can also use JAVA_OPTS to pass JVM options to this script.
+DEFAULT_JVM_OPTS=""
+
+# Use the maximum available, or set MAX_FD != -1 to use that value.
+MAX_FD="maximum"
+
+warn ( ) {
+    echo "$*"
+}
+
+die ( ) {
+    echo
+    echo "$*"
+    echo
+    exit 1
+}
+
+# OS specific support (must be 'true' or 'false').
+cygwin=false
+msys=false
+darwin=false
+case "`uname`" in
+  CYGWIN* )
+    cygwin=true
+    ;;
+  Darwin* )
+    darwin=true
+    ;;
+  MINGW* )
+    msys=true
+    ;;
+esac
+
+# For Cygwin, ensure paths are in UNIX format before anything is touched.
+if $cygwin ; then
+    [ -n "$JAVA_HOME" ] && JAVA_HOME=`cygpath --unix "$JAVA_HOME"`
+fi
+
+# Attempt to set APP_HOME
+# Resolve links: $0 may be a link
+PRG="$0"
+# Need this for relative symlinks.
+while [ -h "$PRG" ] ; do
+    ls=`ls -ld "$PRG"`
+    link=`expr "$ls" : '.*-> \(.*\)$'`
+    if expr "$link" : '/.*' > /dev/null; then
+        PRG="$link"
+    else
+        PRG=`dirname "$PRG"`"/$link"
+    fi
+done
+SAVED="`pwd`"
+
+# Parse arguments
+MANIFEST_PATH="$SAVED"
+APP_HOME="$SAVED"
+ACTION=""
+APP_NAME=""
+while (("$#"))
+do
+    if [ "$1" = "-f" ] || [ "$1" = "--manifest" ]; then
+        shift
+        if (($#)); then
+            MANIFEST_PATH=${1%/}
+            shift
+            if [ ! -d "$MANIFEST_PATH" ]; then
+                die "$MANIFEST_PATH is not a valid directory for manifest location"
+            fi
+        else
+            die "No manifest directory location specified for -f option"
+        fi
+    elif [ "$1" = "-p" ] || [ "$1" = "--path" ]; then
+        shift
+        if (($#)); then
+            APP_HOME=${1%/}
+            shift
+            if [ ! -d "$APP_HOME" ]; then
+                die "$APP_HOME is not a valid directory for application location"
+            fi
+        else
+            die "No application directory location specified for -p option"
+        fi
+    elif [ "$1" = "push" ]; then
+        if [ "$ACTION" = "" ]; then
+            ACTION="$1"
+        else
+            die "Multiple actions specified: $ACTION $1"
+        fi
+        shift
+    elif [ "$1" = "start" ]; then
+        if [ "$ACTION" = "" ]; then
+            ACTION="$1"
+        else
+            die "Multiple actions specified: $ACTION $1"
+        fi
+        shift
+        if [ "$1" = "admin" ] || [ "$1" = "container" ]; then
+            APP_NAME=$1
+            shift
+        else
+            die "'$1' is not a valid application for start command, valid options are 'admin' or 'container'"
+        fi
+    elif [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+        die "$USAGE"
+    else
+        die "Invalid option(s) specified: $@
+
+$USAGE"
+    fi
+done
+
+# XD options/settings
+if [ $ACTION = "push" ]; then
+    cd "$APP_HOME" >&-
+    APP_HOME_PATH="`pwd`"
+    if [ ! -f spring-xd-yarn*.zip ] || [ ! -f lib/spring-xd-yarn-appmaster*.jar ] || [ ! -f lib/spring-xd-yarn-client*.jar ]; then
+        die "Application files not found in $APP_HOME"
+    fi
+    XD_ZIP=`ls spring-xd-yarn*.zip`
+    cd lib
+    XD_AM_JAR=`ls spring-xd-yarn-appmaster*.jar`
+    XD_CLIENT_JAR=`ls spring-xd-yarn-client*.jar`
+    cd ..
+    cd "$SAVED" >&-
+else
+    if [ ! -f $MANIFEST_PATH/manifest.yml ]; then
+        die "No manifest found, did you push the application first? 'manifest.yml' not found in ${MANIFEST_PATH}"
+    fi
+    YAML_LOCAL_POS=`grep -n -e"^local:$" $MANIFEST_PATH/manifest.yml | cut -f1 -d:`
+    YAML_SNIPPET=`tail -n +$YAML_LOCAL_POS $MANIFEST_PATH/manifest.yml | tail -n 3`
+    APP_HOME=`echo "$YAML_SNIPPET" | grep " appHome:" | awk -F': ' '{print $2}'`
+    XD_CLIENT_JAR=`echo "$YAML_SNIPPET" | grep " xdClientJar:" | awk -F': ' '{print $2}'`
+    if [[ -z "$APP_HOME" ]] || [[ -z "$XD_CLIENT_JAR" ]]; then
+        die "Unable to parse local deployment locations from 'manifest.yml'. Found:
+${YAML_SNIPPET}"
+    fi
+fi
+
+# Write manifest
+if [ $ACTION = "push" ]; then
+    if [ ! -f $APP_HOME/config/xd-config.yml ]; then
+        die "XD configuration file 'xd-config.yml' not found in ${APP_HOME}/config"
+    fi
+    cp $APP_HOME/config/xd-config.yml $MANIFEST_PATH/manifest.yml
+    echo "" >> $MANIFEST_PATH/manifest.yml
+    echo "---" >> $MANIFEST_PATH/manifest.yml
+    echo "# XD on YARN options" >> $MANIFEST_PATH/manifest.yml
+    echo "spring:" >> $MANIFEST_PATH/manifest.yml
+    echo "  xd:" >> $MANIFEST_PATH/manifest.yml
+    echo "    yarn:" >> $MANIFEST_PATH/manifest.yml
+    echo "      app:" >> $MANIFEST_PATH/manifest.yml
+    echo "        path: ${APP_HOME}" >> $MANIFEST_PATH/manifest.yml
+    echo "        zip: ${XD_ZIP}" >> $MANIFEST_PATH/manifest.yml
+    echo "      am:" >> $MANIFEST_PATH/manifest.yml
+    echo "        path: ${APP_HOME}/lib" >> $MANIFEST_PATH/manifest.yml
+    echo "        jar: ${XD_AM_JAR}" >> $MANIFEST_PATH/manifest.yml
+    echo "      config:" >> $MANIFEST_PATH/manifest.yml
+    echo "        path: ${APP_HOME}/config" >> $MANIFEST_PATH/manifest.yml
+    echo "" >> $MANIFEST_PATH/manifest.yml
+    echo "# Local deployment locations" >> $MANIFEST_PATH/manifest.yml
+    echo "local:" >> $MANIFEST_PATH/manifest.yml
+    echo "  appHome: $APP_HOME_PATH" >> $MANIFEST_PATH/manifest.yml
+    echo "  xdClientJar: $XD_CLIENT_JAR" >> $MANIFEST_PATH/manifest.yml
+fi
+
+# Determine the Java command to use to start the JVM.
+if [ -n "$JAVA_HOME" ] ; then
+    if [ -x "$JAVA_HOME/jre/sh/java" ] ; then
+        # IBM's JDK on AIX uses strange locations for the executables
+        JAVACMD="$JAVA_HOME/jre/sh/java"
+    else
+        JAVACMD="$JAVA_HOME/bin/java"
+    fi
+    if [ ! -x "$JAVACMD" ] ; then
+        die "ERROR: JAVA_HOME is set to an invalid directory: $JAVA_HOME
+
+Please set the JAVA_HOME variable in your environment to match the
+location of your Java installation."
+    fi
+else
+    JAVACMD="java"
+    which java >/dev/null 2>&1 || die "ERROR: JAVA_HOME is not set and no 'java' command could be found in your PATH.
+
+Please set the JAVA_HOME variable in your environment to match the
+location of your Java installation."
+fi
+
+# Increase the maximum file descriptors if we can.
+if [ "$cygwin" = "false" -a "$darwin" = "false" ] ; then
+    MAX_FD_LIMIT=`ulimit -H -n`
+    if [ $? -eq 0 ] ; then
+        if [ "$MAX_FD" = "maximum" -o "$MAX_FD" = "max" ] ; then
+            MAX_FD="$MAX_FD_LIMIT"
+        fi
+        ulimit -n $MAX_FD
+        if [ $? -ne 0 ] ; then
+            warn "Could not set maximum file descriptor limit: $MAX_FD"
+        fi
+    else
+        warn "Could not query maximum file descriptor limit: $MAX_FD_LIMIT"
+    fi
+fi
+
+# For Cygwin, switch paths to Windows format before running java
+if $cygwin ; then
+    APP_HOME=`cygpath --path --mixed "$APP_HOME"`
+    CLASSPATH=`cygpath --path --mixed "$CLASSPATH"`
+
+    # We build the pattern for arguments to be converted via cygpath
+    ROOTDIRSRAW=`find -L / -maxdepth 1 -mindepth 1 -type d 2>/dev/null`
+    SEP=""
+    for dir in $ROOTDIRSRAW ; do
+        ROOTDIRS="$ROOTDIRS$SEP$dir"
+        SEP="|"
+    done
+    OURCYGPATTERN="(^($ROOTDIRS))"
+    # Add a user-defined pattern to the cygpath arguments
+    if [ "$GRADLE_CYGPATTERN" != "" ] ; then
+        OURCYGPATTERN="$OURCYGPATTERN|($GRADLE_CYGPATTERN)"
+    fi
+    # Now convert the arguments - kludge to limit ourselves to /bin/sh
+    i=0
+    for arg in "$@" ; do
+        CHECK=`echo "$arg"|egrep -c "$OURCYGPATTERN" -`
+        CHECK2=`echo "$arg"|egrep -c "^-"`                                 ### Determine if an option
+
+        if [ $CHECK -ne 0 ] && [ $CHECK2 -eq 0 ] ; then                    ### Added a condition
+            eval `echo args$i`=`cygpath --path --ignore --mixed "$arg"`
+        else
+            eval `echo args$i`="\"$arg\""
+        fi
+        i=$((i+1))
+    done
+    case $i in
+        (0) set -- ;;
+        (1) set -- "$args0" ;;
+        (2) set -- "$args0" "$args1" ;;
+        (3) set -- "$args0" "$args1" "$args2" ;;
+        (4) set -- "$args0" "$args1" "$args2" "$args3" ;;
+        (5) set -- "$args0" "$args1" "$args2" "$args3" "$args4" ;;
+        (6) set -- "$args0" "$args1" "$args2" "$args3" "$args4" "$args5" ;;
+        (7) set -- "$args0" "$args1" "$args2" "$args3" "$args4" "$args5" "$args6" ;;
+        (8) set -- "$args0" "$args1" "$args2" "$args3" "$args4" "$args5" "$args6" "$args7" ;;
+        (9) set -- "$args0" "$args1" "$args2" "$args3" "$args4" "$args5" "$args6" "$args7" "$args8" ;;
+    esac
+fi
+
+# Split up the JVM_OPTS values into an array, following the shell quoting and substitution rules
+function splitJvmOpts() {
+    JVM_OPTS=("$@")
+}
+eval splitJvmOpts $DEFAULT_JVM_OPTS $JAVA_OPTS
+
+if [ $ACTION = "push" ]; then
+    exec "$JAVACMD" "${JVM_OPTS[@]}" "-Dspring.config.location=${MANIFEST_PATH}/manifest.yml" -jar "${APP_HOME}/lib/${XD_CLIENT_JAR}" --install
+elif [ $ACTION = "start" ]; then
+    exec "$JAVACMD" "${JVM_OPTS[@]}" "-Dspring.profiles.active=$APP_NAME" "-Dspring.config.location=${MANIFEST_PATH}/manifest.yml" -jar "${APP_HOME}/lib/${XD_CLIENT_JAR}"
+fi

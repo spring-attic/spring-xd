@@ -1723,7 +1723,6 @@ task distYarnZip(type: Zip, dependsOn: [copyInstall, yarnZip], overwrite: true) 
         into "${baseDir}"
     }
 	from("$rootDir/spring-xd-yarn/site/scripts") {
-		include '*.sh'
 		into "${baseDir}/bin"
 	}
 	from("$rootDir/spring-xd-yarn/site/config") {

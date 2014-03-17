@@ -66,8 +66,15 @@
 #   password: guest
 #   virtual_host: /
 
-
+---
 # Hadoop properties
 #spring:
 #  hadoop:
 #   fsUri: hdfs://localhost:8020
+
+---
+#Zookeeper properties
+# client connect string: host1:port1,host2:port2,...,hostN:portN
+#zk:
+#  client:
+#     connect: localhost:2181

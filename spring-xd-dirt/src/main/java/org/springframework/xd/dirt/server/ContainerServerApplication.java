@@ -20,6 +20,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -36,6 +37,7 @@ import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.SourceFilteringListener;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.xd.dirt.container.ContainerMetadata;
@@ -153,13 +155,19 @@ public class ContainerServerApplication {
 	@Profile(SingleNodeApplication.SINGLE_PROFILE)
 	protected static class SingleNodeZooKeeperConnectionConfiguration {
 
-		@Autowired
+		@Value("${zk.client.connect:''}")
+		private String zkClientConnect;
+
+		@Autowired(required = false)
 		private EmbeddedZooKeeper server;
 
 		@Bean
 		public ZooKeeperConnection zooKeeperConnection() {
 			// the embedded server accepts client connections on a dynamically determined port
-			return new ZooKeeperConnection("localhost:" + server.getClientPort());
+			if (server != null) {
+				zkClientConnect = "localhost:" + server.getClientPort();
+			}
+			return new ZooKeeperConnection(zkClientConnect);
 		}
 	}
 
@@ -168,9 +176,14 @@ public class ContainerServerApplication {
 	@Profile("!" + SingleNodeApplication.SINGLE_PROFILE)
 	protected static class DistributedZooKeeperConnectionConfiguration {
 
+		@Value("${zk.client.connect:''}")
+		private String zkClientConnect;
+
 		@Bean
 		public ZooKeeperConnection zooKeeperConnection() {
-			// TODO: add support for the ZooKeeper client connect string as a command line arg
+			if (StringUtils.hasText(zkClientConnect)) {
+				return new ZooKeeperConnection(zkClientConnect);
+			}
 			return new ZooKeeperConnection();
 		}
 	}

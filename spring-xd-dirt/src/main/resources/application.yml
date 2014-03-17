@@ -21,6 +21,7 @@ XD_CONTROL_TRANSPORT: ${controlTransport:${XD_TRANSPORT}}
 XD_STORE: ${store:redis}
 XD_HOME: ${xdHomeDir:..}
 XD_JMX_ENABLED: ${jmxEnabled:false}
+ZK_CLIENT_CONNECT: ${zkClientConnect:''}
 
 xd:
   data:
@@ -38,11 +39,14 @@ server:
 management:
   port: ${XD_MGMT_PORT:${PORT:9393}}
 ---
+zk:
+  client:
+    connect: ${ZK_CLIENT_CONNECT}
 
+---
 spring:
   profiles: rabbit
 transport: rabbit
-
 ---
 
 spring:

@@ -27,6 +27,7 @@ import org.apache.zookeeper.server.quorum.QuorumPeerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.util.ErrorHandler;
 import org.springframework.util.SocketUtils;
@@ -39,7 +40,9 @@ import org.springframework.util.SocketUtils;
  * 
  * @author Patrick Peralta
  * @author Mark Fisher
+ * @author David Turanski
  */
+@ConditionalOnExpression("'${zk.client.connect}'.isEmpty()")
 public class EmbeddedZooKeeper implements SmartLifecycle {
 
 	/**

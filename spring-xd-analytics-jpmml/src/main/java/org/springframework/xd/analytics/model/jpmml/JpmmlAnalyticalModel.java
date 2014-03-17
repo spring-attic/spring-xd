@@ -27,6 +27,8 @@ import org.springframework.xd.tuple.Tuple;
 import org.springframework.xd.tuple.TupleBuilder;
 
 /**
+ * An {@link org.springframework.xd.analytics.model.AnalyticalModel} that is backed by a {@link PMML} model definition.
+ *
  * Author: Thomas Darimont
  */
 public class JpmmlAnalyticalModel extends AbstractAnalyticalModel{

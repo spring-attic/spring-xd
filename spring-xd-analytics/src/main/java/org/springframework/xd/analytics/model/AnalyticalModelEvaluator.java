@@ -25,8 +25,11 @@ import org.springframework.xd.tuple.Tuple;
 public interface AnalyticalModelEvaluator<M extends AnalyticalModel> {
 
 	/**
+	 * Evaluates the given {@code model} against the given {@code input}.
+	 *
+	 * @param model must not be {@literal null}
 	 * @param input must not be {@literal null}
 	 * @return
 	 */
-	Tuple evaluate(Tuple input);
+	Tuple evaluate(M model, Tuple input);
 }

@@ -35,21 +35,19 @@ import org.xml.sax.InputSource;
 /**
  * Author: Thomas Darimont
  */
-public abstract class AbstractJpmmlAnalyticalModelEvaluatorTests {
+public abstract class AbstractJpmmlAnalyticalModelTests {
 
 	static final String ANALYTICS_MODELS_LOCATION = "analytics/models/";
 
-	protected JpmmlAnalyticalModelEvaluator analyticalModelEvaluator;
 
-
-	protected void useModel(String modelName, Set<String> inputFieldNames, List<String> outputFieldNames) throws Exception {
+	protected JpmmlAnalyticalModel useModel(String modelName, Set<String> inputFieldNames, List<String> outputFieldNames) throws Exception {
 
 		JpmmlAnalyticalModel model = new JpmmlAnalyticalModel(loadPmmlModel(modelName));
 		model.setInputFields(inputFieldNames);
 		model.setOutputFieldsNames(outputFieldNames);
 		model.init();
 
-		analyticalModelEvaluator.setModel(model);
+		return model;
 	}
 
 	protected static PMML loadPmmlModel(String modelName) throws Exception {
@@ -73,6 +71,8 @@ public abstract class AbstractJpmmlAnalyticalModelEvaluatorTests {
 					return;
 				}
 
+				//We abuse the @Value annotation here to declare the attribute name that is used inside the PMML model.
+				//We should use another annotation here.
 				Value value = field.getAnnotation(Value.class);
 				fieldNames.add(value == null ? field.getName() : value.value());
 				fieldValues.add(field.get(o));

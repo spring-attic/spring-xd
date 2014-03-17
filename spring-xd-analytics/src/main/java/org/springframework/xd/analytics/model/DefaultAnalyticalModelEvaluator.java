@@ -22,18 +22,8 @@ import org.springframework.xd.tuple.Tuple;
  */
 public class DefaultAnalyticalModelEvaluator<M extends AnalyticalModel> implements AnalyticalModelEvaluator<M>{
 
-	private M model;
-
 	@Override
-	public Tuple evaluate(Tuple input) {
-		return getModel().evaluate(input);
-	}
-
-	public M getModel() {
-		return model;
-	}
-
-	public void setModel(M model) {
-		this.model = model;
+	public Tuple evaluate(M model, Tuple input) {
+		return model.evaluate(input);
 	}
 }

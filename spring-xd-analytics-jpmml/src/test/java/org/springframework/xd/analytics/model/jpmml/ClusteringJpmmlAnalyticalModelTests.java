@@ -20,7 +20,6 @@ import static org.junit.Assert.*;
 
 import java.util.Arrays;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.xd.tuple.Tuple;
@@ -28,20 +27,14 @@ import org.springframework.xd.tuple.Tuple;
 /**
  * Author: Thomas Darimont
  */
-public class ClusteringJpmmlAnalyticalModelEvaluatorTests extends AbstractJpmmlAnalyticalModelEvaluatorTests {
-
-	@Before
-	public void setup() throws Exception {
-
-		analyticalModelEvaluator = new JpmmlAnalyticalModelEvaluator();
-	}
+public class ClusteringJpmmlAnalyticalModelTests extends AbstractJpmmlAnalyticalModelTests {
 
 	@Test
 	public void testEvaluateNaiveBayesClassification1Iris() throws Exception {
 
-		useModel("kmeans-clustering-1-iris.pmml.xml", null, Arrays.asList("predictedValue"));
+		JpmmlAnalyticalModel model = useModel("kmeans-clustering-1-iris.pmml.xml", null, Arrays.asList("predictedValue"));
 
-		Tuple output = analyticalModelEvaluator.evaluate(objectToTuple(new Object() {
+		Tuple output = model.evaluate(objectToTuple(new Object() {
 			@Value("Sepal.Length") double sepalLength = 6.4;
 			@Value("Sepal.Width") double sepalWidth = 3.2;
 			@Value("Petal.Length") double petalLength = 4.5;
@@ -50,7 +43,7 @@ public class ClusteringJpmmlAnalyticalModelEvaluatorTests extends AbstractJpmmlA
 
 		assertThat(output.getString("predictedValue"), is("1")); //versicolor
 
-		output = analyticalModelEvaluator.evaluate(objectToTuple(new Object() {
+		output = model.evaluate(objectToTuple(new Object() {
 			@Value("Sepal.Length") double sepalLength = 6.9;
 			@Value("Sepal.Width") double sepalWidth = 3.1;
 			@Value("Petal.Length") double petalLength = 5.4;

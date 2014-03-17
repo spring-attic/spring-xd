@@ -20,7 +20,7 @@
 		port="${port}"
 		lookup-host="${reverseLookup}"
 		using-nio="${nio}"
-		using-direct-buffers="${nio}"
+		using-direct-buffers="${useDirectBuffers}"
 		single-use="${close}" deserializer="${decoder}"
 		mapper="mapper"
 		serializer="${encoder}"/>

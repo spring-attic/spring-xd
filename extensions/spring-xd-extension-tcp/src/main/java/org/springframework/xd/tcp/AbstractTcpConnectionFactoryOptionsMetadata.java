@@ -32,6 +32,16 @@ public abstract class AbstractTcpConnectionFactoryOptionsMetadata {
 
 	private boolean nio = false;
 
+	private boolean useDirectBuffers = false;
+
+	public boolean isUseDirectBuffers() {
+		return useDirectBuffers;
+	}
+
+	@ModuleOption("whether or not to use direct buffers")
+	public void setUseDirectBuffers(boolean useDirectBuffers) {
+		this.useDirectBuffers = useDirectBuffers;
+	}
 
 	public boolean isNio() {
 		return nio;

@@ -17,7 +17,7 @@
 		lookup-host="${reverseLookup}"
 		so-timeout="${socketTimeout}"
 		using-nio="${nio}"
-		using-direct-buffers="${nio}"
+		using-direct-buffers="${useDirectBuffers}"
 		deserializer="${decoder}"/>
 
 	<int-ip:tcp-inbound-channel-adapter id="adapter" channel="toString"

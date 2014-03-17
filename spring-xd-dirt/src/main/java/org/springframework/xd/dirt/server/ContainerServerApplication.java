@@ -67,18 +67,7 @@ public class ContainerServerApplication {
 
 	public static final String NODE_PROFILE = "node";
 
-	private final ContainerMetadata containerMetadata;
-
 	private ConfigurableApplicationContext containerContext;
-
-	public ContainerServerApplication() {
-		this.containerMetadata = new ContainerMetadata();
-	}
-
-	@Bean
-	public ContainerMetadata containerMetadata() {
-		return this.containerMetadata;
-	}
 
 	public static void main(String[] args) {
 		new ContainerServerApplication().run(args);
@@ -193,6 +182,7 @@ public class ContainerServerApplication {
 
 		@Override
 		public void initialize(ConfigurableApplicationContext applicationContext) {
+			ContainerMetadata containerMetadata = applicationContext.getParent().getBean(ContainerMetadata.class);
 			applicationContext.setId(containerMetadata.getId());
 		}
 	}

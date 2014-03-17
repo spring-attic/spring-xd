@@ -10,8 +10,6 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<context:property-placeholder location="${xd.config.home}/mail.properties"/>
-
 	<channel id="input" />
 
 	<int-mail:header-enricher input-channel="input" output-channel="send">
@@ -27,8 +25,8 @@
 	<channel id="send" />
 
 	<int-mail:outbound-channel-adapter
-		channel="send" host="${host:${mail.sink.host}}" port="${port:${mail.sink.port}}" username="${username:${mail.sink.username}}"
-		password="${password:${mail.sink.password}}" />
+		channel="send" host="${host}" port="${port}" username="${username:}"
+		password="${password:}" />
 
 
 </beans:beans>

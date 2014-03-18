@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:beans="http://www.springframework.org/schema/beans"
 	xmlns:int-groovy="http://www.springframework.org/schema/integration/groovy"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 		http://www.springframework.org/schema/beans/spring-beans.xsd
@@ -10,21 +9,23 @@
 		http://www.springframework.org/schema/integration/groovy
 		http://www.springframework.org/schema/integration/groovy/spring-integration-groovy.xsd">
 
-	<beans:import resource="../common/script-variable-generator.xml"/>
+	<beans:import resource="../common/script-variable-generator.xml" />
 
-	<channel id="input"/>
+	<channel id="input" />
 
-	<filter id="invokeScript"
-	    input-channel="input" output-channel="to.script"
-	    discard-channel="to.spel"
-	    expression="'${script:null}' ne 'null'" />
+	<channel id="output" />
 
-	<transformer input-channel="to.spel" expression="${expression:payload}" output-channel="output"/>
+	<beans:beans profile="use-expression">
+		<transformer input-channel="input" expression="${expression}"
+			output-channel="output" />
+	</beans:beans>
 
-	<transformer input-channel="to.script" output-channel="output">
-		<int-groovy:script location="${script:transform.groovy}" script-variable-generator="variableGenerator" refresh-check-delay="60"/>
-	</transformer>
+	<beans:beans profile="use-script">
+		<transformer input-channel="input" output-channel="output">
+			<int-groovy:script location="${script}"
+				script-variable-generator="variableGenerator" refresh-check-delay="60" />
+		</transformer>
+	</beans:beans>
 
-	<channel id="output"/>
 
 </beans:beans>

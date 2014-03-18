@@ -37,6 +37,9 @@ require.config({
     angular: {
       exports: 'angular'
     },
+    bootstrap: {
+      deps: ['jquery']
+    },
     'uiRouter': {
       deps: ['angular']
     },
@@ -66,5 +69,9 @@ define([
 
   require(['domReady!'], function (document) {
     angular.bootstrap(document, ['xdAdmin']);
+  });
+  require(['jquery', 'bootstrap'], function() {
+    console.log('Loaded Bootstrap.');
+    return {};
   });
 });

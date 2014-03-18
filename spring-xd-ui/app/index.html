@@ -20,29 +20,56 @@
       <p>You are using an <strong>outdated</strong> browser. Please upgrade your browser to improve your experience.</p>
     <![endif]-->
 
-    <!-- Add your site or application content here -->
-    <div id="xd-navbar">
-      <nav class="navbar navbar-inverse navbar-static-top" role="navigation">
+    <nav class="navbar navbar-default" role="navigation">
+      <div class="container">
         <div class="navbar-header">
-          <button class="navbar-toggle" data-toggle="collapse" type="button" data-target=".navbar-ex1-collapse">
+          <a class="navbar-brand" ui-sref="login"><span></span></a>
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
             <span class="sr-only">Toggle navigation</span>
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand"><strong>Spring&nbsp;XD</strong></a>
         </div>
-        <div class="collapse navbar-collapse navbar-ex1-collapse">
-          <ul class="nav navbar-nav">
-            <li ng-class="{ active: $state.includes('home.jobs') }"><a ui-sref="home.jobs.definitions">Jobs</a></li>
-            <li ng-class="{ active: $state.includes('home.about') }"><a ui-sref="home.about">About</a></li>
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+          <p ng-if="user.isAuthenticated" class="navbar-text navbar-right">Signed in as
+            <strong>{{user.username}}</strong>
+          </p>
+          <p ng-if="!user.isAuthenticated" class="navbar-text navbar-right">Not logged in</p>
+          <ul class="nav navbar-nav navbar-right">
+            <li ng-class="{ active: $state.includes('home.jobs') }">
+              <a ui-sref="home.jobs.definitions">Jobs</a>
+            </li>
+            <li ng-class="{ active: $state.includes('home.about') }">
+              <a ui-sref="home.about">About</a>
+            </li>
+            <li
+              class="dropdown"><a data-target="#" class="dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-user"></span><b class="caret"></b></a>
+              <ul class="dropdown-menu">
+                <li ng-if="user.isAuthenticated"><a ui-sref="logout">Logout</a></li>
+                <li ng-if="!user.isAuthenticated"><a ui-sref="login">Login</a></li>
+              </ul>
+            </li>
           </ul>
         </div>
-      </nav>
+      </div>
+    </nav>
+    <div ng-if="$state.includes('home')" cg-busy="{tracker:'trackerName'}" class="container-fluid">
+      <div ui-view class="container xd-container"></div>
     </div>
-    <div id="xd-container" class="container" cg-busy="{tracker:'trackerName'}">
-      <div id="xd-status-msg"></div>
-      <div ui-view></div>
+    <div ng-if="!$state.includes('home')" class="container-fluid homepage-billboard" cg-busy="{tracker:'trackerName'}">
+      <div class="row">
+        <div ui-view></div>
+      </div>
+    </div>
+
+    <div id="footer">
+      <div class="container">
+        <p class="text-muted">&copy; <span>2014</span> <a href="http://gopivotal.com">Pivotal
+          Software</a>, Inc. All Rights Reserved. <a
+          href="http://www.gopivotal.com/terms-of-use">Terms of Use</a> and
+          <a href="http://www.gopivotal.com/privacy-policy">Privacy</a></p>
+      </div>
     </div>
 
     <script src="lib/requirejs/require.js" data-main="scripts/main"></script>

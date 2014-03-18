@@ -50,6 +50,21 @@ define(['angular'], function (angular) {
                   {'$scope': $scope, '$http': $http, 'JobExecutions': JobExecutions, $log: $log, 'growl': growl});
             });
           }])
+      .controller('LoginController', function($scope, $http, User, $state, growl) {
+          $scope.loginFormData = {};
+          $scope.login = function() {
+            User.isAuthenticated = true;
+            User.username = $scope.loginFormData.name;
+            growl.addSuccessMessage('User ' + User.username + ' logged in.');
+            $state.go('home.jobs.definitions');
+          };
+        })
+      .controller('LogoutController', function($scope, $http, User, $state, growl) {
+        User.isAuthenticated = false;
+        User.username = '';
+        growl.addSuccessMessage('User ' + User.username + ' logged out.');
+        $state.go('login');
+      })
       .controller('JobLaunchController',
           ['$scope', '$http', '$log', '$state', '$stateParams', 'growl', '$location', 'JobLaunchService', '$injector', function ($scope, $http, $log, $state, $stateParams, growl, $location, JobLaunchService, $injector) {
             require(['controllers/job/joblaunch'], function (jobLaunchController) {

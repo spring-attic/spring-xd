@@ -16,8 +16,10 @@
 
 package org.springframework.xd.dirt.server;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.curator.framework.CuratorFramework;
@@ -162,15 +164,33 @@ public class StreamListener implements PathChildrenCacheListener {
 		}
 		else {
 			LOG.info("Undeploying stream {}", stream);
-			// todo: this should be refactored into another method
-			// as a general "undeploy stream" method
-			for (Module.Type type : Module.Type.values()) {
-				String path = new StreamsPath().setStreamName(streamName).setModuleType(type.toString()).build();
+
+			// build the paths of the modules to be undeployed
+			// in the stream processing order; as each path
+			// is deleted each container will undeploy
+			// its individual deployed modules
+			List<String> paths = new ArrayList<String>();
+			paths.add(new StreamsPath()
+					.setStreamName(streamName)
+					.setModuleType(Module.Type.SOURCE.toString())
+					.setModuleLabel(stream.getSource().getLabel()).build());
+			for (ModuleDescriptor descriptor : stream.getProcessors()) {
+				paths.add(new StreamsPath()
+						.setStreamName(streamName)
+						.setModuleType(Module.Type.PROCESSOR.toString())
+						.setModuleLabel(descriptor.getLabel()).build());
+			}
+			paths.add(new StreamsPath()
+					.setStreamName(streamName)
+					.setModuleType(Module.Type.SINK.toString())
+					.setModuleLabel(stream.getSink().getLabel()).build());
+
+			for (String path : paths) {
 				try {
 					client.delete().deletingChildrenIfNeeded().forPath(path);
 				}
 				catch (KeeperException.NoNodeException e) {
-					// already deleted
+					LOG.trace("Path {} already deleted", path);
 				}
 			}
 		}

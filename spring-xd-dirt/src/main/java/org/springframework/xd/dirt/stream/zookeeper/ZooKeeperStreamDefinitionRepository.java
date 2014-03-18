@@ -98,7 +98,7 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 
 			op.forPath(path, binary);
 
-			LOG.info("\tsaved stream {} with properties {}", path, map);
+			LOG.trace("Saved stream {} with properties {}", path, map);
 
 			StreamDefinitionRepositoryUtils.saveDependencies(moduleDependencyRepository, entity);
 		}

@@ -81,4 +81,16 @@ public class StreamDeployer extends AbstractInstancePersistingDeployer<StreamDef
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * <p/>
+	 * Before deleting the stream, perform an undeploy. This causes a graceful
+	 * shutdown of the modules in the stream before it is deleted from
+	 * the repository.
+	 */
+	@Override
+	protected void beforeDelete(StreamDefinition definition) {
+		super.beforeDelete(definition);
+		basicUndeploy(definition.getName());
+	}
 }

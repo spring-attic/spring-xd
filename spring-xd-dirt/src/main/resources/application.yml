@@ -21,7 +21,6 @@ XD_CONTROL_TRANSPORT: ${controlTransport:${XD_TRANSPORT}}
 XD_STORE: ${store:redis}
 XD_HOME: ${xdHomeDir:..}
 XD_JMX_ENABLED: ${jmxEnabled:false}
-ZK_CLIENT_CONNECT: ${zkClientConnect:''}
 
 xd:
   data:
@@ -41,7 +40,7 @@ management:
 ---
 zk:
   client:
-    connect: ${ZK_CLIENT_CONNECT}
+    connect: ${ZK_CLIENT_CONNECT:}
 
 ---
 spring:

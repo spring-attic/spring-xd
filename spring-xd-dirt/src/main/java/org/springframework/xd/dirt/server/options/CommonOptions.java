@@ -36,9 +36,6 @@ public class CommonOptions {
 	@Option(name = "--mgmtPort", usage = "The port for the management server", metaVar = "<mgmtPort>")
 	private Integer mgmtPort;
 
-	@Option(name = "--zkClientConnect", usage = "The connection string (comma delimited host:port) used to connect to the Zookeeper ensemble", metaVar = "<zkClientConnect>")
-	private String zkClientConnect;
-
 	// Using wrapped here so that "showHelp" is not returned as a property by BeanPropertiesPropertySource
 	public Boolean isShowHelp() {
 		return showHelp ? true : null;
@@ -60,14 +57,6 @@ public class CommonOptions {
 
 	public void setXD_MGMT_PORT(int mgmtPort) {
 		this.mgmtPort = mgmtPort;
-	}
-
-	public void setZK_CLIENT_CONNECT(String zkClientConnect) {
-		this.zkClientConnect = zkClientConnect;
-	}
-
-	public String getZK_CLIENT_CONNECT() {
-		return this.zkClientConnect;
 	}
 
 }

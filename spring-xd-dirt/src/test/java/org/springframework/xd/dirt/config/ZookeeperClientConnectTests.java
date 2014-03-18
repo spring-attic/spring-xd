@@ -33,7 +33,7 @@ public class ZookeeperClientConnectTests extends LocalSingleNodeInitializationTe
 	@Test
 	public void testConnectString() {
 		String zkCLientConnect = this.containerContext.getEnvironment().getProperty("zk.client.connect");
-		assertEquals(getZkClientConnect(), zkCLientConnect);
+		assertEquals("localhost:2181", zkCLientConnect);
 		try {
 			this.containerContext.getBean(EmbeddedZooKeeper.class);
 			fail("EmbeddedZookeeper instance should not be created with connection String set");
@@ -41,10 +41,5 @@ public class ZookeeperClientConnectTests extends LocalSingleNodeInitializationTe
 		catch (Exception e) {
 
 		}
-	}
-
-	@Override
-	public String getZkClientConnect() {
-		return "localhost:2181";
 	}
 }

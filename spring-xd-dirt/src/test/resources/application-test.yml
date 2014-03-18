@@ -43,6 +43,11 @@ processor:
     expression: "'application-value'"
 
 ---
+zk:
+  client:
+    connect: ${ZK_CLIENT_CONNECT:}
+
+---
 
 spring:
   profiles: rabbit

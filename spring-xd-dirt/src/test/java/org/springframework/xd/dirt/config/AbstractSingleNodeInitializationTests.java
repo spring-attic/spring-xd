@@ -57,7 +57,7 @@ public abstract class AbstractSingleNodeInitializationTests {
 		String[] args = {};
 		args = addArgIfProvided(args, "transport", getTransport());
 		args = addArgIfProvided(args, "controlTransport", getControlTransport());
-		args = addArgIfProvided(args, "zkClientConnect", getZkClientConnect());
+		System.setProperty("zk.client.connect", "localhost:2181");
 		singleNodeApplication.run(args);
 
 		this.pluginContext = (AbstractApplicationContext) this.singleNodeApplication.pluginContext();
@@ -100,10 +100,6 @@ public abstract class AbstractSingleNodeInitializationTests {
 	}
 
 	protected String getControlTransport() {
-		return null;
-	}
-
-	protected String getZkClientConnect() {
 		return null;
 	}
 }

@@ -75,6 +75,7 @@ public class ContainerServerApplication {
 		new ContainerServerApplication().run(args);
 	}
 
+	// TODO: Is this needed anymore?
 	public ConfigurableApplicationContext getPluginContext() {
 		if (this.containerContext != null) {
 			return (ConfigurableApplicationContext) this.containerContext.getParent();
@@ -144,7 +145,7 @@ public class ContainerServerApplication {
 	@Profile(SingleNodeApplication.SINGLE_PROFILE)
 	protected static class SingleNodeZooKeeperConnectionConfiguration {
 
-		@Value("${zk.client.connect:''}")
+		@Value("${zk.client.connect:}")
 		private String zkClientConnect;
 
 		@Autowired(required = false)
@@ -165,7 +166,7 @@ public class ContainerServerApplication {
 	@Profile("!" + SingleNodeApplication.SINGLE_PROFILE)
 	protected static class DistributedZooKeeperConnectionConfiguration {
 
-		@Value("${zk.client.connect:''}")
+		@Value("${zk.client.connect:}")
 		private String zkClientConnect;
 
 		@Bean

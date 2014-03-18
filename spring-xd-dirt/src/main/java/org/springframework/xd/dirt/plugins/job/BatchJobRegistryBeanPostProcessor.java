@@ -18,6 +18,7 @@ package org.springframework.xd.dirt.plugins.job;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.StepListener;
@@ -84,7 +85,8 @@ public class BatchJobRegistryBeanPostProcessor extends JobRegistryBeanPostProces
 			addJobExecutionListener();
 			if (!this.jobExecutionListeners.isEmpty()) {
 				// Add the job execution listeners to the job parser factory bean
-				((JobParserJobFactoryBean) bean).setJobExecutionListeners(this.jobExecutionListeners.toArray(new JobExecutionListener[this.jobExecutionListeners.size()]));
+				((JobParserJobFactoryBean) bean).setJobExecutionListeners(this.jobExecutionListeners.toArray(new
+						JobExecutionListener[this.jobExecutionListeners.size()]));
 			}
 		}
 		else if (bean instanceof StepParserStepFactoryBean<?, ?>) {
@@ -113,9 +115,11 @@ public class BatchJobRegistryBeanPostProcessor extends JobRegistryBeanPostProces
 	}
 
 	private void addJobExecutionListener() {
-		if (this.beanFactory.containsBean(XD_JOB_EXECUTION_LISTENER_BEAN)) {
-			this.jobExecutionListeners.add((JobExecutionListener) this.beanFactory.getBean(XD_JOB_EXECUTION_LISTENER_BEAN));
-		}
+		// Add all job execution listeners available in the bean factory
+		// We won't have multiple batch job definitions on a given job module; hence all the job execution listeners
+		// available in the bean factory correspond to the job module's batch job.
+		Map<String, JobExecutionListener> listeners = this.beanFactory.getBeansOfType(JobExecutionListener.class);
+		this.jobExecutionListeners.addAll(listeners.values());
 	}
 
 	private void addStepListeners() {

@@ -36,6 +36,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.env.PropertySource;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.messaging.Message;
@@ -43,7 +45,6 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.util.StringValueResolver;
 import org.springframework.validation.BindException;
 import org.springframework.xd.integration.reactor.net.NetServerInboundChannelAdapterConfiguration;
 import org.springframework.xd.integration.reactor.net.NetServerSourceOptionsMetadata;
@@ -91,16 +92,18 @@ public class NetServerInboundChannelAdapterIntegrationTests {
 		int port = SocketUtils.findAvailableTcpPort();
 
 		@Bean
-		public StringValueResolver optionsMetadataValueResolver() {
-			NetServerSourceOptionsMetadata meta = new NetServerSourceOptionsMetadata();
-			meta.setBind("tcp://0.0.0.0:" + port + "/linefeed?codec=string");
-			return new OptionsMetadataValueResolver(meta);
+		public PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() throws BindException {
+			PropertySourcesPlaceholderConfigurer pspc = new PropertySourcesPlaceholderConfigurer();
+			MutablePropertySources ps = new MutablePropertySources();
+			ps.addFirst(optionsMetadataPropertySource());
+			pspc.setPropertySources(ps);
+			return pspc;
 		}
 
 		@Bean
 		public PropertySource optionsMetadataPropertySource() throws BindException {
 			Map<String, String> opts = new HashMap<>();
-			opts.put("bind", "tcp://0.0.0.0:" + port + "/linefeed?codec=string");
+			opts.put("port", String.valueOf(port));
 
 			return new PojoModuleOptionsMetadata(NetServerSourceOptionsMetadata.class)
 					.interpolate(opts)

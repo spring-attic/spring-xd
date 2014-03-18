@@ -964,8 +964,6 @@ project('spring-xd-module') {
 		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
 		compile "org.springframework.boot:spring-boot-autoconfigure:$springBootVersion"
 		compile project(':spring-xd-module-spi')
-		runtime "org.hibernate:hibernate-validator:$hibernateValidatorVersion"
-
 	}
 }
 
@@ -973,6 +971,7 @@ project('spring-xd-module-spi') {
 	description = 'Spring XD Module Options API'
 	dependencies {
 		compile "javax.validation:validation-api:1.0.0.GA"
+		compile "org.hibernate:hibernate-validator:${hibernateValidatorVersion}"
 		compile "org.springframework:spring-web:$springVersion"
 	}
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.modules.metadata;
+package org.springframework.xd.gemfire;
 
 import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.xd.module.options.spi.ModuleOption;

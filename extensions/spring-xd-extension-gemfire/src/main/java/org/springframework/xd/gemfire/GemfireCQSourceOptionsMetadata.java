@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.modules.metadata;
+package org.springframework.xd.gemfire;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;

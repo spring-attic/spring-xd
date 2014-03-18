@@ -59,7 +59,11 @@ public class TailSourceOptionsMetadata {
 		this.name = name;
 	}
 
-	public String getNativeOptions() {
+	/*
+	 * Make sure the getter does not match any setter, as we don't want a default (computed) value being re-injected
+	 * into setNativeOptions().
+	 */
+	public String getComputedNativeOptions() {
 		if (nativeOptions != null) {
 			return nativeOptions;
 		} // Only return the default if not using Apache impl.

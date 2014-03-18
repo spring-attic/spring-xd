@@ -20,7 +20,7 @@
 		delay="${delay:}"
 		end="${fromEnd:}"
 		reopen="${reOpen:}"
-		native-options="${nativeOptions:}" file-delay="${fileDelay}" />
+		native-options="${computedNativeOptions:}" file-delay="${fileDelay}" />
 
 	<channel id="output"/>
 

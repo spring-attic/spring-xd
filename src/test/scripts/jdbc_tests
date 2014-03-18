@@ -72,14 +72,15 @@ fi
 echo -e "\n\n Test 4. Load multiple CSV files using filejdbc jobs with table name specified\n"
 
 create_job csvjdbcjob1 "filejdbc $JDBC_PARAMS --url=jdbc:sqlite:$DB_FILE --names=col1,col2,col3 --resources=file://$PWD/csv/data.csv --tableName=JOB_DATA_TABLE --initializeDatabase=true"
-create_stream job1Notifications "queue:job:csvjdbcjob1-notifications > file --dir=$TEST_DIR"
+create_stream job1Notifications "tap:job:csvjdbcjob1.job > file --dir=$TEST_DIR"
+
 launch_job csvjdbcjob1
 sleep 5
 destroy_job csvjdbcjob1
 destroy_stream job1Notifications
 
 nJobMessages=`wc -l $TEST_DIR/job1Notifications.out`
-assert_equals 4 $nJobMessages
+assert_equals 2 $nJobMessages
 
 # Load the same file again into the existing table
 create_job csvjdbcjob2 "filejdbc $JDBC_PARAMS --names=col1,col2,col3 --resources=file://$PWD/csv/data.csv --tableName=JOB_DATA_TABLE --initializeDatabase=false"

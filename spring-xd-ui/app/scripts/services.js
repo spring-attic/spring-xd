@@ -119,7 +119,14 @@ define(['angular'], function (angular) {
             );
           }
         };
-      });
+      })
+      .factory('User', function() {
+          var sdo = {
+            isAuthenticated: false,
+            username: ''
+          };
+          return sdo;
+        });
 });
 
 

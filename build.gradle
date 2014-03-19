@@ -445,9 +445,6 @@ project('spring-xd-dirt') {
 
 		// The following because of org/springframework/integration/x/bus/serializer/TweetSerializationTests.groovy
 		testCompile "org.springframework.social:spring-social-twitter:1.1.0.M4"
-
-		// Needed for ModuleOptionsMetadataSanityTests
-		testRuntime project(":spring-xd-extension-http")
 	}
 
 	apply plugin:'application'
@@ -1154,7 +1151,10 @@ project('modules.source.twittersearch') {
 
 
 project('modules.processor.http-client') {
-	dependencies { runtime	"org.springframework.integration:spring-integration-http:$springIntegrationVersion" }
+	dependencies {
+		runtime(project(":spring-xd-extension-http"))
+		runtime	"org.springframework.integration:spring-integration-http:$springIntegrationVersion"
+	}
 }
 
 project('modules.processor.aggregator') {

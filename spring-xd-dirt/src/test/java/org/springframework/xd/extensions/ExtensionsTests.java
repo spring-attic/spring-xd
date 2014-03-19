@@ -39,7 +39,7 @@ import org.springframework.xd.test.RandomConfigurationSupport;
 
 
 /**
- * 
+ *
  * @author David Turanski
  */
 public class ExtensionsTests extends RandomConfigurationSupport {
@@ -93,6 +93,8 @@ public class ExtensionsTests extends RandomConfigurationSupport {
 
 	@AfterClass
 	public static void tearDown() {
-		System.setProperty("spring.config.location", originalConfigLocation);
+		if (originalConfigLocation != null) {
+			System.setProperty("spring.config.location", originalConfigLocation);
+		}
 	}
 }

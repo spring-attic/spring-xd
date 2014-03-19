@@ -21,7 +21,9 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.CreateMode;
 
+import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.xd.dirt.container.ContainerMetadata;
@@ -39,8 +41,9 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperConnectionListener;
  * itself closed.
  * 
  * @author Mark Fisher
+ * @author David Turanski
  */
-public class ContainerRegistrar implements ApplicationListener<ContextRefreshedEvent> {
+public class ContainerRegistrar implements ApplicationListener<ContextRefreshedEvent>, ApplicationContextAware {
 
 	/**
 	 * Logger.
@@ -75,10 +78,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 
 	@Override
 	public void onApplicationEvent(ContextRefreshedEvent event) {
-		String contextId = event.getApplicationContext().getId();
-		// Should not allow child management context to fire container started event.
-		if (contextId != null & !contextId.endsWith("management")) {
-			this.context = event.getApplicationContext();
+		if (this.context.equals(event.getApplicationContext())) {
 			if (zkConnection.isConnected()) {
 				registerWithZooKeeper(zkConnection.getClient());
 				context.publishEvent(new ContainerStartedEvent(containerMetadata));
@@ -133,6 +133,12 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		public void onDisconnect(CuratorFramework client) {
 			context.publishEvent(new ContainerStoppedEvent(containerMetadata));
 		}
+	}
+
+
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		this.context = applicationContext;
 	}
 
 }

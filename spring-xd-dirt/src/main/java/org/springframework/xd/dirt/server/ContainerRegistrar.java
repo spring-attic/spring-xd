@@ -75,10 +75,9 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 
 	@Override
 	public void onApplicationEvent(ContextRefreshedEvent event) {
-		String containerId = this.containerMetadata.getId();
 		String contextId = event.getApplicationContext().getId();
-		// Only allow container server application context event
-		if (contextId != null & contextId.equals(containerId)) {
+		// Should not allow child management context to fire container started event.
+		if (contextId != null & !contextId.endsWith("management")) {
 			this.context = event.getApplicationContext();
 			if (zkConnection.isConnected()) {
 				registerWithZooKeeper(zkConnection.getClient());

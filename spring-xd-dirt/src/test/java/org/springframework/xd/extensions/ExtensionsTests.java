@@ -96,5 +96,8 @@ public class ExtensionsTests extends RandomConfigurationSupport {
 		if (originalConfigLocation != null) {
 			System.setProperty("spring.config.location", originalConfigLocation);
 		}
+		else {
+			System.clearProperty("spring.config.location");
+		}
 	}
 }

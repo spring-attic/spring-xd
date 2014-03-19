@@ -26,7 +26,7 @@ deploy_stream 'jmsSourceTest'
 
 
 jms_post_data_and_check_result() {
-  curl -u admin:admin -d "body=jmsmessage" http://localhost:8161/api/message/jmsSourceTest?type=queue
+  curl -u admin:admin -d "body=jmsmessage" http://127.0.0.1:8161/api/message/jmsSourceTest?type=queue
   sleep 1
   result=`cat $TEST_DIR/jmsSourceTest.out`
 

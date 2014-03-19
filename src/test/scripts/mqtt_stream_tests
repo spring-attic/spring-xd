@@ -15,7 +15,7 @@ create_stream 'mqttSourceTest' 'mqtt | file --dir=/tmp/xdtest/basic' 'false'
 deploy_stream 'mqttSourceTest'
 
 mqtt_post_data_and_check_result() {
-  curl -X POST -i -u guest:guest -H "Content-Type: application/json" -d '{"properties":{},"routing_key":"xd.mqtt.test","payload":"test mqtt body","payload_encoding":"string"}' http://localhost:15672/api/exchanges/%2F/amq.topic/publish
+  curl -X POST -i -u guest:guest -H "Content-Type: application/json" -d '{"properties":{},"routing_key":"xd.mqtt.test","payload":"test mqtt body","payload_encoding":"string"}' http://127.0.0.1:15672/api/exchanges/%2F/amq.topic/publish
   sleep 1
     result=`cat $TEST_DIR/mqttSourceTest.out`
 

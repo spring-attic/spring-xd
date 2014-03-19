@@ -16,27 +16,75 @@
 
 package org.springframework.xd.integration.reactor.net;
 
-import javax.validation.constraints.NotNull;
-
 import org.springframework.xd.module.options.spi.ModuleOption;
+import reactor.core.Environment;
 
 /**
  * Provides metadata about the configuration options of a {@link reactor.net.NetServer} in Spring XD.
- * 
+ *
  * @author Jon Brisbin
  */
 public class NetServerSourceOptionsMetadata {
 
-	private String bind = "tcp://0.0.0.0:3000/linefeed?codec=string";
+  private String transport = "tcp";
+  private String dispatcher = Environment.RING_BUFFER;
+  private String host = "0.0.0.0";
+  private int port = 3000;
+  private String framing = "linefeed";
+  private String codec = "string";
 
-	@NotNull
-	public String getBind() {
-		return bind;
-	}
+  public String getTransport() {
+    return transport;
+  }
 
-	@ModuleOption("URI which configures the NetServer")
-	public void setBind(String bind) {
-		this.bind = bind;
-	}
+  @ModuleOption("whether to use TCP or UDP as a transport")
+  public void setTransport(String transport) {
+    this.transport = transport;
+  }
+
+  public String getDispatcher() {
+    return dispatcher;
+  }
+
+  @ModuleOption("type of Reactor Dispatcher to use")
+  public void setDispatcher(String dispatcher) {
+    this.dispatcher = dispatcher;
+  }
+
+  public String getHost() {
+    return host;
+  }
+
+  @ModuleOption("host to bind the server to")
+  public void setHost(String host) {
+    this.host = host;
+  }
+
+  public int getPort() {
+    return port;
+  }
+
+  @ModuleOption("port to bind the server to")
+  public void setPort(int port) {
+    this.port = port;
+  }
+
+  public String getFraming() {
+    return framing;
+  }
+
+  @ModuleOption("method of framing the data")
+  public void setFraming(String framing) {
+    this.framing = framing;
+  }
+
+  public String getCodec() {
+    return codec;
+  }
+
+  @ModuleOption("codec used to transcode data")
+  public void setCodec(String codec) {
+    this.codec = codec;
+  }
 
 }

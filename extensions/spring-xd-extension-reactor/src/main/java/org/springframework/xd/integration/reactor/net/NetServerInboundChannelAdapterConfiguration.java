@@ -16,48 +16,58 @@
 
 package org.springframework.xd.integration.reactor.net;
 
-import java.net.URI;
-import java.util.Map;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.integration.config.EnableIntegration;
 import org.springframework.messaging.MessageChannel;
-
 import reactor.core.Environment;
 import reactor.io.encoding.Codec;
 import reactor.net.spec.NetServerSpec;
 import reactor.spring.context.config.EnableReactor;
+
+import java.util.Map;
 
 /**
  * @author Jon Brisbin
  */
 @Configuration
 @EnableReactor
-@EnableIntegration
-@SuppressWarnings({ "unchecked", "rawtypes" })
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class NetServerInboundChannelAdapterConfiguration {
 
-	@Autowired(required = false)
-	private Map<String, Codec> codecs;
+  @Autowired(required = false)
+  private Map<String, Codec> codecs;
 
-	@Value("${bind}")
-	private URI bindUri;
+  @Value("${transport}")
+  private String transport;
+  @Value("${dispatcher}")
+  private String dispatcher;
+  @Value("${host}")
+  private String host;
+  @Value("${port}")
+  private int port;
+  @Value("${framing}")
+  private String framing;
+  @Value("${codec}")
+  private String codec;
 
-	@Bean
-	public NetServerSpecFactoryBean netServerSpecFactoryBean(Environment env) {
-		String transport = (null != bindUri.getScheme() ? bindUri.getScheme() : "tcp");
-		return new NetServerSpecFactoryBean(env, transport, codecs).configure(bindUri);
-	}
+  @Bean
+  public NetServerSpecFactoryBean netServerSpecFactoryBean(Environment env) {
+    return new NetServerSpecFactoryBean(env, transport, codecs)
+        .setDispatcher(dispatcher)
+        .setFraming(framing)
+        .setCodec(codec)
+        .setPort(port)
+        .setHost(host);
+  }
 
-	@Bean
-	public NetServerInboundChannelAdapter netServerInboundChannelAdapter(NetServerSpec spec,
-			MessageChannel output) {
-		NetServerInboundChannelAdapter adapter = new NetServerInboundChannelAdapter(spec);
-		adapter.setOutputChannel(output);
-		return adapter;
-	}
+  @Bean
+  public NetServerInboundChannelAdapter netServerInboundChannelAdapter(NetServerSpec spec,
+                                                                       MessageChannel output) {
+    NetServerInboundChannelAdapter adapter = new NetServerInboundChannelAdapter(spec);
+    adapter.setOutputChannel(output);
+    return adapter;
+  }
 
 }

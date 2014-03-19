@@ -446,6 +446,8 @@ project('spring-xd-dirt') {
 		// The following because of org/springframework/integration/x/bus/serializer/TweetSerializationTests.groovy
 		testCompile "org.springframework.social:spring-social-twitter:1.1.0.M4"
 
+		// Needed for ModuleOptionsMetadataSanityTests
+		testRuntime project(":spring-xd-extension-http")
 	}
 
 	apply plugin:'application'
@@ -538,6 +540,7 @@ project('spring-xd-extension-http') {
 		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
 		compile "io.netty:netty:3.6.6.Final"
 		compile "org.springframework:spring-web:$springVersion"
+		compile project(":spring-xd-module-spi")
 		testCompile project(":spring-xd-test")
 	}
 }

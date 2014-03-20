@@ -135,6 +135,7 @@ done
 # XD options/settings
 if [ $ACTION = "push" ]; then
     cd "$APP_HOME" >&-
+    APP_HOME_PATH="`pwd`"
     if [ ! -f spring-xd-yarn*.zip ] || [ ! -f lib/spring-xd-yarn-appmaster*.jar ] || [ ! -f lib/spring-xd-yarn-client*.jar ]; then
         die "Application files not found in $APP_HOME"
     fi
@@ -164,7 +165,6 @@ if [ $ACTION = "push" ]; then
         die "XD configuration file 'xd-config.yml' not found in ${APP_HOME}/config"
     fi
     cp $APP_HOME/config/xd-config.yml $MANIFEST_PATH/manifest.yml
-    APP_HOME_PATH=$(readlink -f "$APP_HOME")
     echo "" >> $MANIFEST_PATH/manifest.yml
     echo "---" >> $MANIFEST_PATH/manifest.yml
     echo "# XD on YARN options" >> $MANIFEST_PATH/manifest.yml

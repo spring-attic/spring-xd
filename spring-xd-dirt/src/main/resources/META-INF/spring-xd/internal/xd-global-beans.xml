@@ -6,8 +6,6 @@
 	<!-- Beans shared by Admin, Container and Modules. They are set as a (parent context
 		for Modules by the ModuleDeployer -->
 
-	<import resource="../store/${XD_STORE}-store.xml" />
-	<import resource="../analytics/${XD_ANALYTICS}-analytics.xml" />
 	<import resource="../batch/batch.xml" />
 	
 	<bean id="postHandlerMapping" class="org.springframework.xd.dirt.post.DelegatingHandlerMapping"/>

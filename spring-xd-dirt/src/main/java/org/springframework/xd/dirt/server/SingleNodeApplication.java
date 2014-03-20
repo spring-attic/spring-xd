@@ -22,7 +22,6 @@ import org.springframework.messaging.SubscribableChannel;
 import org.springframework.xd.dirt.server.options.ResourcePatternScanningOptionHandlers;
 import org.springframework.xd.dirt.server.options.SingleNodeOptions;
 import org.springframework.xd.dirt.util.BannerUtils;
-import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
 
 /**
  * Single Node XD Runtime.
@@ -50,12 +49,12 @@ public class SingleNodeApplication {
 
 		ContainerBootstrapContext bootstrapContext = new ContainerBootstrapContext(new SingleNodeOptions());
 
-		// todo: only register EmbeddedZooKeeper bean if no zk connect string is provided
-		// (use @ConditionalOnExpression at class level on EmbeddedZooKeeper itself?)
 		SpringApplicationBuilder admin =
-				new SpringApplicationBuilder(SingleNodeOptions.class, ParentConfiguration.class, EmbeddedZooKeeper.class)
+				new SpringApplicationBuilder(SingleNodeOptions.class, ParentConfiguration.class)
 						.listeners(bootstrapContext.commandLineListener())
 						.profiles(AdminServerApplication.ADMIN_PROFILE, SINGLE_PROFILE)
+						.child(SharedServerContextConfiguration.class, SingleNodeOptions.class)
+						.listeners(bootstrapContext.commandLineListener())
 						.child(SingleNodeOptions.class, AdminServerApplication.class)
 						.listeners(bootstrapContext.commandLineListener());
 		admin.run(args);

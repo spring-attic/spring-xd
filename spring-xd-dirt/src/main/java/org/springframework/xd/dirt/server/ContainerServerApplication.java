@@ -20,7 +20,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -34,10 +33,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableMBeanExport;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportResource;
-import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.SourceFilteringListener;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
-import org.springframework.util.StringUtils;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.xd.dirt.container.ContainerMetadata;
@@ -46,7 +43,6 @@ import org.springframework.xd.dirt.server.options.XDPropertyKeys;
 import org.springframework.xd.dirt.util.BannerUtils;
 import org.springframework.xd.dirt.util.ConfigLocations;
 import org.springframework.xd.dirt.util.XdConfigLoggingInitializer;
-import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 
 /**
@@ -101,6 +97,8 @@ public class ContainerServerApplication {
 			this.containerContext = new SpringApplicationBuilder(ContainerOptions.class, ParentConfiguration.class)
 					.profiles(NODE_PROFILE)
 					.listeners(bootstrapContext.commandLineListener())
+					.child(SharedServerContextConfiguration.class, ContainerOptions.class)
+					.listeners(bootstrapContext.commandLineListener())
 					.child(ContainerServerApplication.class)
 					.listeners(
 							ApplicationUtils.mergeApplicationListeners(bootstrapContext.commandLineListener(),
@@ -136,45 +134,6 @@ public class ContainerServerApplication {
 		}
 		System.exit(1);
 	}
-
-
-	@Configuration
-	@Profile(SingleNodeApplication.SINGLE_PROFILE)
-	protected static class SingleNodeZooKeeperConnectionConfiguration {
-
-		@Value("${zk.client.connect:}")
-		private String zkClientConnect;
-
-		@Autowired(required = false)
-		private EmbeddedZooKeeper server;
-
-		@Bean
-		public ZooKeeperConnection zooKeeperConnection() {
-			// the embedded server accepts client connections on a dynamically determined port
-			if (server != null) {
-				zkClientConnect = "localhost:" + server.getClientPort();
-			}
-			return new ZooKeeperConnection(zkClientConnect);
-		}
-	}
-
-
-	@Configuration
-	@Profile("!" + SingleNodeApplication.SINGLE_PROFILE)
-	protected static class DistributedZooKeeperConnectionConfiguration {
-
-		@Value("${zk.client.connect:}")
-		private String zkClientConnect;
-
-		@Bean
-		public ZooKeeperConnection zooKeeperConnection() {
-			if (StringUtils.hasText(zkClientConnect)) {
-				return new ZooKeeperConnection(zkClientConnect);
-			}
-			return new ZooKeeperConnection();
-		}
-	}
-
 
 	@ConditionalOnExpression("${XD_JMX_ENABLED:false}")
 	@EnableMBeanExport(defaultDomain = "xd.container")

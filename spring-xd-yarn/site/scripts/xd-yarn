@@ -148,8 +148,14 @@ else
     if [ ! -f $MANIFEST_PATH/manifest.yml ]; then
         die "No manifest found, did you push the application first? 'manifest.yml' not found in ${MANIFEST_PATH}"
     fi
-    APP_HOME=`grep "# APP_HOME" $MANIFEST_PATH/manifest.yml | awk -F'=' '{print $2}'`
-    XD_CLIENT_JAR=`grep "# XD_CLIENT_JAR" $MANIFEST_PATH/manifest.yml | awk -F'=' '{print $2}'`
+    YAML_LOCAL_POS=`grep -n -e"^local:$" $MANIFEST_PATH/manifest.yml | cut -f1 -d:`
+    YAML_SNIPPET=`tail --lines=+$YAML_LOCAL_POS $MANIFEST_PATH/manifest.yml | tail -3`
+    APP_HOME=`echo "$YAML_SNIPPET" | grep " appHome:" | awk -F': ' '{print $2}'`
+    XD_CLIENT_JAR=`echo "$YAML_SNIPPET" | grep " xdClientJar:" | awk -F': ' '{print $2}'`
+    if [[ -z "$APP_HOME" ]] || [[ -z "$XD_CLIENT_JAR" ]]; then
+        die "Unable to parse local deployment locations from 'manifest.yml'. Found:
+${YAML_SNIPPET}"
+    fi
 fi
 
 # Write manifest
@@ -158,11 +164,10 @@ if [ $ACTION = "push" ]; then
         die "XD configuration file 'xd-config.yml' not found in ${APP_HOME}/config"
     fi
     cp $APP_HOME/config/xd-config.yml $MANIFEST_PATH/manifest.yml
+    APP_HOME_PATH=$(readlink -f "$APP_HOME")
     echo "" >> $MANIFEST_PATH/manifest.yml
     echo "---" >> $MANIFEST_PATH/manifest.yml
     echo "# XD on YARN options" >> $MANIFEST_PATH/manifest.yml
-    echo "# APP_HOME=$APP_HOME" >> $MANIFEST_PATH/manifest.yml
-    echo "# XD_CLIENT_JAR=$XD_CLIENT_JAR" >> $MANIFEST_PATH/manifest.yml
     echo "spring:" >> $MANIFEST_PATH/manifest.yml
     echo "  xd:" >> $MANIFEST_PATH/manifest.yml
     echo "    yarn:" >> $MANIFEST_PATH/manifest.yml
@@ -174,6 +179,11 @@ if [ $ACTION = "push" ]; then
     echo "        jar: ${XD_AM_JAR}" >> $MANIFEST_PATH/manifest.yml
     echo "      config:" >> $MANIFEST_PATH/manifest.yml
     echo "        path: ${APP_HOME}/config" >> $MANIFEST_PATH/manifest.yml
+    echo "" >> $MANIFEST_PATH/manifest.yml
+    echo "# Local deployment locations" >> $MANIFEST_PATH/manifest.yml
+    echo "local:" >> $MANIFEST_PATH/manifest.yml
+    echo "  appHome: $APP_HOME_PATH" >> $MANIFEST_PATH/manifest.yml
+    echo "  xdClientJar: $XD_CLIENT_JAR" >> $MANIFEST_PATH/manifest.yml
 fi
 
 # Determine the Java command to use to start the JVM.

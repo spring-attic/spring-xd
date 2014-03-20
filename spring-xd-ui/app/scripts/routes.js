@@ -58,7 +58,7 @@ define(['./app'], function (xdAdmin) {
     .state('home.jobs.deployments.launch', {
       url : '/launch/{jobName}',
       templateUrl : 'views/jobs/launch.html',
-      controller: 'LaunchJobController'
+      controller: 'JobLaunchController'
     });
   });
   xdAdmin.run(function ($rootScope, $state, $stateParams) {

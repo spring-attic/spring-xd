@@ -45,11 +45,11 @@ public class RichGaugeCommands extends AbstractMetricsCommands implements Comman
 		super("RichGauge");
 	}
 
-	private static final String DISPLAY_RICH_GAUGE = "richgauge display";
+	private static final String DISPLAY_RICH_GAUGE = "rich-gauge display";
 
-	private static final String LIST_RICH_GAUGES = "richgauge list";
+	private static final String LIST_RICH_GAUGES = "rich-gauge list";
 
-	private static final String DELETE_RICH_GAUGE = "richgauge delete";
+	private static final String DELETE_RICH_GAUGE = "rich-gauge delete";
 
 	@Autowired
 	private XDShell xdShell;

@@ -39,7 +39,7 @@ import org.springframework.xd.rest.client.domain.metrics.RichGaugeResource;
  * @author Luke Taylor
  */
 @Controller
-@RequestMapping("/metrics/richgauges")
+@RequestMapping("/metrics/rich-gauges")
 @ExposesResourceFor(RichGaugeResource.class)
 public class RichGaugesController extends AbstractMetricsController<RichGaugeRepository, RichGauge> {
 

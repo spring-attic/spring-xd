@@ -96,7 +96,7 @@ public class MetricsTests extends AbstractStreamIntegrationTest {
 		// in stream def. Instead, we know it should be named like
 		// the streamname.
 		AggregateCounterSink counter = metrics().newAggregateCounterSink(streamName);
-		stream().create(streamName, "%s | aggregatecounter", httpSource);
+		stream().create(streamName, "%s | aggregate-counter", httpSource);
 		httpSource.postData("one");
 		assertThat(counter, eventually(exists()));
 	}

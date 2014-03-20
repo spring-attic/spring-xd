@@ -35,13 +35,13 @@ public class FieldValueCounterSink extends AbstractMetricSink implements HasDisp
 	private String fieldName;
 
 	public FieldValueCounterSink(JLineShellComponent shell, String name, String fieldName) {
-		super(shell, name, "fieldvaluecounter", "field-value-counter");
+		super(shell, name, "field-value-counter");
 		this.fieldName = fieldName;
 	}
 
 	@Override
 	protected String toDSL() {
-		return String.format("%s --counterName=%s --fieldName=%s", dslName, name, fieldName);
+		return String.format("%s --name=%s --fieldName=%s", dslName, name, fieldName);
 	}
 
 	public Table constructFVCDisplay(TreeMap<String, Double> fvcMap) {

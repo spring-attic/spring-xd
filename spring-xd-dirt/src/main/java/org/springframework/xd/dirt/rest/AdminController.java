@@ -79,7 +79,7 @@ public class AdminController {
 		xdRuntime.add(entityLinks.linkFor(FieldValueCounterResource.class).withRel("field-value-counters"));
 		xdRuntime.add(entityLinks.linkFor(AggregateCountsResource.class).withRel("aggregate-counters"));
 		xdRuntime.add(entityLinks.linkFor(GaugeResource.class).withRel("gauges"));
-		xdRuntime.add(entityLinks.linkFor(RichGaugeResource.class).withRel("richgauges"));
+		xdRuntime.add(entityLinks.linkFor(RichGaugeResource.class).withRel("rich-gauges"));
 		return xdRuntime;
 	}
 }

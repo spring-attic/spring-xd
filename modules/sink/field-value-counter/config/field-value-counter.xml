@@ -12,7 +12,7 @@
 	<bean id="handler" class="org.springframework.xd.analytics.metrics.integration.FieldValueCounterHandler">
 		<constructor-arg ref="fieldValueCounterRepository"/>
 		<constructor-arg value="${fieldName}" name="fieldName" />
-		<constructor-arg value="${counterName:${fieldName}}" name="counterName" />
+		<constructor-arg value="${name:${xd.stream.name}}" name="counterName" />
 	</bean>
 
 </beans>

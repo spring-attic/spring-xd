@@ -33,7 +33,7 @@ import org.springframework.xd.shell.util.TableHeader;
 public class RichGaugeSink extends AbstractMetricSink implements HasDisplayValue<Table> {
 
 	public RichGaugeSink(JLineShellComponent shell, String name) {
-		super(shell, name, "richgauge");
+		super(shell, name, "rich-gauge");
 	}
 
 	public Table constructRichGaugeDisplay(double value, double alpha, double average, double max, double min,

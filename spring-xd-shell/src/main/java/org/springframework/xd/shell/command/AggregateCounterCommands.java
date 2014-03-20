@@ -54,11 +54,11 @@ public class AggregateCounterCommands extends AbstractMetricsCommands implements
 		super("AggregateCounter");
 	}
 
-	private static final String DISPLAY_AGGR_COUNTER = "aggregatecounter display";
+	private static final String DISPLAY_AGGR_COUNTER = "aggregate-counter display";
 
-	private static final String LIST_AGGR_COUNTERS = "aggregatecounter list";
+	private static final String LIST_AGGR_COUNTERS = "aggregate-counter list";
 
-	private static final String DELETE_AGGR_COUNTER = "aggregatecounter delete";
+	private static final String DELETE_AGGR_COUNTER = "aggregate-counter delete";
 
 	@Autowired
 	private XDShell xdShell;

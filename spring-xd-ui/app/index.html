@@ -15,7 +15,7 @@
     <!-- endbuild -->
   </head>
   <body>
-    <div growl></div>
+
     <!--[if lt IE 7]>
       <p>You are using an <strong>outdated</strong> browser. Please upgrade your browser to improve your experience.</p>
     <![endif]-->
@@ -54,7 +54,8 @@
         </div>
       </div>
     </nav>
-    <div ng-if="$state.includes('home')" cg-busy="{tracker:'trackerName'}" class="container-fluid">
+    <div growl></div>
+    <div ng-if="$state.includes('home')" class="container-fluid" cg-busy="{tracker:'trackerName'}" >
       <div ui-view class="container xd-container"></div>
     </div>
     <div ng-if="!$state.includes('home')" class="container-fluid homepage-billboard" cg-busy="{tracker:'trackerName'}">

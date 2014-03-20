@@ -1,9 +1,9 @@
 .growl {
     position: fixed;
-    top: 10px;
-    right: 10px;
+    top: 100px;
+    right: 20px;
     float: right;
-    width: 250px;
+    width: 450px;
     z-index: 9999;
 }
 
@@ -22,4 +22,18 @@
 .growl-item.ng-leave,
 .growl-item.ng-enter.ng-enter-active {
     opacity:1;
+}
+
+@media (max-width: 768px) {
+  .growl {
+    position: absolute;
+    top: 50px;
+    right: 0;
+    width: 100%;
+    z-index: 9999;
+  }
+  .growl-item {
+    margin-left: 20px;
+    margin-right: 20px;
+  }
 }

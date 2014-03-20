@@ -24,18 +24,20 @@ import java.util.Map;
 
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
+
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
+import org.springframework.core.env.SimpleCommandLinePropertySource;
 
 /**
  * An {@code ApplicationListener} that will parse command line options and also replace the default boot commandline
  * {@link PropertySource} with those values. This turns out to be the most elegant solution if we want to keep the
  * {@link SpringApplicationBuilder} code clean.
- *
+ * 
  * @author Eric Bottard
  * @author Luke Taylor
  */
@@ -52,7 +54,11 @@ public class CommandLinePropertySourceOverridingListener<T extends CommonOptions
 	@Override
 	public void onApplicationEvent(ApplicationEnvironmentPreparedEvent event) {
 		if (event.getArgs().length == 0) {
-			return;
+			// If there are no arguments, create cmdLineArgs property source here. This would at least hold the default
+			// command line options.
+			if (event.getEnvironment().getPropertySources().get(COMMAND_LINE_PROPERTY_SOURCE_NAME) == null) {
+				event.getEnvironment().getPropertySources().addFirst(new SimpleCommandLinePropertySource());
+			}
 		}
 		CmdLineParser parser = new CmdLineParser(options);
 		try {

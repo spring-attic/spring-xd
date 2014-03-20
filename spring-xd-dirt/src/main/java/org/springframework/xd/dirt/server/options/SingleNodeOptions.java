@@ -58,7 +58,7 @@ public class SingleNodeOptions extends CommonOptions {
 	private Integer httpPort;
 
 	@Option(name = "--hadoopDistro", usage = "The Hadoop distribution to be used for HDFS access")
-	private HadoopDistro distro;
+	private HadoopDistro distro = ContainerOptions.DEFAULT_HADOOP_DISTRO;
 
 	public Integer getPORT() {
 		return httpPort;

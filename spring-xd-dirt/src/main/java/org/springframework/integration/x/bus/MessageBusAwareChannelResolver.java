@@ -25,8 +25,8 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.core.BeanFactoryMessageChannelDestinationResolver;
 
 /**
- * A {@link org.springframework.integration.support.channel.ChannelResolver} implementation that first checks for any
- * channel whose name begins with a colon in the {@link MessageBus}.
+ * A {@link org.springframework.messaging.core.DestinationResolver} implementation that first checks for any channel
+ * whose name begins with a colon in the {@link MessageBus}.
  * 
  * @author Mark Fisher
  */

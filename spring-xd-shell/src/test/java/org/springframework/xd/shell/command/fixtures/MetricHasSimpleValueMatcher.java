@@ -45,7 +45,7 @@ public class MetricHasSimpleValueMatcher<U, T extends AbstractMetricSink & HasDi
 	private U actualValue(Object item) {
 		AbstractMetricSink metric = (AbstractMetricSink) item;
 		@SuppressWarnings("unchecked")
-		U value = (U) metric.shell.executeCommand(metric.shellCommand + " display " + metric.name).getResult();
+		U value = (U) metric.shell.executeCommand(metric.dslName + " display " + metric.name).getResult();
 		return value;
 	}
 

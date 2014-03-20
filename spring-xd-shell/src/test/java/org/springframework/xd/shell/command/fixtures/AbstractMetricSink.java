@@ -29,21 +29,14 @@ public class AbstractMetricSink extends AbstractModuleFixture implements
 
 	final String name;
 
-	final String shellCommand;
-
 	final String dslName;
 
 	final JLineShellComponent shell;
 
 
-	protected AbstractMetricSink(JLineShellComponent shell, String name, String type) {
-		this(shell, name, type, type);
-	}
-
-	protected AbstractMetricSink(JLineShellComponent shell, String name, String shellCommand, String dslName) {
+	protected AbstractMetricSink(JLineShellComponent shell, String name, String dslName) {
 		this.shell = shell;
 		this.name = name;
-		this.shellCommand = shellCommand;
 		this.dslName = dslName;
 	}
 
@@ -51,7 +44,7 @@ public class AbstractMetricSink extends AbstractModuleFixture implements
 	public void cleanup() {
 		// Do not fail here if command fails, as this is typically called alongside
 		// other cleanup code
-		shell.executeCommand(String.format("%s delete --name %s", shellCommand, name));
+		shell.executeCommand(String.format("%s delete --name %s", dslName, name));
 	}
 
 	@Override

@@ -34,19 +34,19 @@ public class RichGaugeTemplate extends AbstractTemplate implements RichGaugeOper
 
 	@Override
 	public RichGaugeResource retrieve(String name) {
-		String url = resources.get("richgauges").toString() + "/{name}";
+		String url = resources.get("rich-gauges").toString() + "/{name}";
 		return restTemplate.getForObject(url, RichGaugeResource.class, name);
 	}
 
 	@Override
 	public PagedResources<MetricResource> list() {
-		String url = resources.get("richgauges").toString() + "?page=10000";
+		String url = resources.get("rich-gauges").toString() + "?page=10000";
 		return restTemplate.getForObject(url, MetricResource.Page.class);
 	}
 
 	@Override
 	public void delete(String name) {
-		String url = resources.get("richgauges").toString() + "/{name}";
+		String url = resources.get("rich-gauges").toString() + "/{name}";
 		restTemplate.delete(url, name);
 	}
 

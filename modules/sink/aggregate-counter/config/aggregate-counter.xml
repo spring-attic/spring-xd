@@ -13,7 +13,7 @@
 	<bean id="handler" class="org.springframework.xd.analytics.metrics.integration.AggregateCounterHandler">
 		<constructor-arg ref="aggregateCounterRepository"/>
 		<constructor-arg value="${name:${xd.stream.name}}"/>
-		<property name="timeFormat" value="${timeFormat:yyyy-MM-dd'T'HH:mm:ss.SSS'Z'}" />
+		<property name="dateFormat" value="${dateFormat}" />
 	</bean>
 
 </beans>

@@ -342,6 +342,7 @@ project('spring-xd-analytics') {
 		compile "com.lambdaworks:lettuce:$lettuceVersion"
 		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
 		compile "joda-time:joda-time:$jodaTimeVersion"
+		compile project(':spring-xd-module-spi')
 		testCompile project(":spring-xd-test")
 		testCompile "nl.jqno.equalsverifier:equalsverifier:1.1.3"
 		testCompile "org.springframework:spring-test:$springVersion"

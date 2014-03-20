@@ -44,8 +44,8 @@ public class AggregateCounterHandler {
 		this.counterName = counterName;
 	}
 
-	public void setTimeFormat(String pattern) {
-		Assert.hasText(pattern, "timeFormat pattern must not be empty");
+	public void setDateFormat(String pattern) {
+		Assert.hasText(pattern, "dateFormat pattern must not be empty");
 		this.dateFormat = DateTimeFormat.forPattern(pattern);
 	}
 

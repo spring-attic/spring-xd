@@ -47,7 +47,7 @@ public class RichGaugeControllerIntegrationTests extends AbstractControllerInteg
 		when(richGaugeRepository.findOne("mygauge"))
 				.thenReturn(new RichGauge("mygauge", 57.0, -1.0, 56.0, 57.0, 55.0, 2));
 
-		mockMvc.perform(get("/metrics/richgauges/mygauge").accept(MediaType.APPLICATION_JSON))
+		mockMvc.perform(get("/metrics/rich-gauges/mygauge").accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.name").value("mygauge"))
 				.andExpect(jsonPath("$.value").value(57.0))
@@ -59,13 +59,13 @@ public class RichGaugeControllerIntegrationTests extends AbstractControllerInteg
 	@Test
 	public void testDeleteRichGauge() throws Exception {
 		when(richGaugeRepository.exists("deleteme")).thenReturn(true);
-		mockMvc.perform(delete("/metrics/richgauges/{name}", "deleteme")).andExpect(status().isOk());
+		mockMvc.perform(delete("/metrics/rich-gauges/{name}", "deleteme")).andExpect(status().isOk());
 		verify(richGaugeRepository).delete("deleteme");
 	}
 
 	@Test
 	public void testDeleteUnknownGauge() throws Exception {
 		when(richGaugeRepository.exists("deleteme")).thenReturn(false);
-		mockMvc.perform(delete("/metrics/richgauges/{name}", "deleteme")).andExpect(status().isNotFound());
+		mockMvc.perform(delete("/metrics/rich-gauges/{name}", "deleteme")).andExpect(status().isNotFound());
 	}
 }

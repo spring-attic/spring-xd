@@ -34,7 +34,7 @@ public class MetricExistsMatcher<T extends AbstractMetricSink> extends BaseMatch
 	@Override
 	public boolean matches(Object item) {
 		AbstractMetricSink metric = (AbstractMetricSink) item;
-		Table table = (Table) metric.shell.executeCommand(metric.shellCommand + " list").getResult();
+		Table table = (Table) metric.shell.executeCommand(metric.dslName + " list").getResult();
 		return table.getRows().contains(new TableRow().addValue(1, metric.name));
 	}
 
@@ -46,7 +46,7 @@ public class MetricExistsMatcher<T extends AbstractMetricSink> extends BaseMatch
 	@Override
 	public void describeMismatch(Object item, Description description) {
 		AbstractMetricSink sink = (AbstractMetricSink) item;
-		description.appendText(sink.shellCommand).appendText(" named '").appendText(sink.name).appendText(
+		description.appendText(sink.dslName).appendText(" named '").appendText(sink.name).appendText(
 				"' did not exist");
 	}
 

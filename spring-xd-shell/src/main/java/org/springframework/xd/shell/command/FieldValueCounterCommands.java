@@ -48,11 +48,11 @@ public class FieldValueCounterCommands extends AbstractMetricsCommands implement
 		super("FieldValueCounter");
 	}
 
-	private static final String DISPLAY_FV_COUNTER = "fieldvaluecounter display";
+	private static final String DISPLAY_FV_COUNTER = "field-value-counter display";
 
-	private static final String LIST_FV_COUNTERS = "fieldvaluecounter list";
+	private static final String LIST_FV_COUNTERS = "field-value-counter list";
 
-	private static final String DELETE_FV_COUNTER = "fieldvaluecounter delete";
+	private static final String DELETE_FV_COUNTER = "field-value-counter delete";
 
 	@Autowired
 	private XDShell xdShell;

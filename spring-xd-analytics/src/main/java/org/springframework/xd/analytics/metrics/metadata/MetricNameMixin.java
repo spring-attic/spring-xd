@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,30 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.shell.command.fixtures;
+package org.springframework.xd.analytics.metrics.metadata;
 
-import org.springframework.shell.core.JLineShellComponent;
+import org.springframework.xd.module.options.spi.ModuleOption;
+
 
 /**
- * Fixture class for an aggregate counter.
+ * Adds a {@code name} option, intended to capture the name of the metric.
  * 
  * @author Eric Bottard
  */
-public class AggregateCounterSink extends AbstractMetricSink {
+public class MetricNameMixin {
 
-	public AggregateCounterSink(JLineShellComponent shell, String name) {
-		super(shell, name, "aggregate-counter");
+	// Default to null until ${xd.stream.name} is supported
+	private String name = null;
+
+	// @Pattern("[a-zA-Z0-9]+")
+	public String getName() {
+		return name;
 	}
+
+	@ModuleOption("the name of the metric to contribute to (will be created if necessary)")
+	public void setName(String name) {
+		this.name = name;
+	}
+
+
 }

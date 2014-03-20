@@ -27,6 +27,7 @@ import org.junit.Test;
 import org.springframework.integration.x.bus.LocalMessageBus;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.xd.dirt.server.ApplicationUtils;
 import org.springframework.xd.dirt.server.ContainerRegistrar;
 import org.springframework.xd.module.core.Plugin;
 
@@ -42,10 +43,13 @@ public class LocalSingleNodeInitializationTests extends AbstractSingleNodeInitia
 		assertTrue(containerContext.containsBean("moduleDeployer") && !pluginContext.containsBean("moduleDeployer"));
 		assertTrue(containerContext.containsBean("containerControlChannel")
 				&& !pluginContext.containsBean("containerControlChannel"));
+		assertTrue(adminContext.containsBean("messageBus"));
 		containerContext.getBean(ContainerRegistrar.class);
 		assertEquals(0, pluginContext.getBeansOfType(ContainerRegistrar.class).size());
 		Map<String, Plugin> pluginMap = pluginContext.getBeansOfType(Plugin.class);
 		assertTrue(pluginMap.size() > 0);
+
+		ApplicationUtils.dumpContainerApplicationContextConfiguration(containerContext);
 	}
 
 	@Override

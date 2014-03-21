@@ -97,7 +97,7 @@ define(['./app'], function (xdAdmin) {
     $rootScope.$state = $state;
     $rootScope.$stateParams = $stateParams;
     $rootScope.xdAdminServerUrl = window.location.protocol + '//' + window.location.host;
-    $rootScope.authenticationEnabled = true;
+    $rootScope.authenticationEnabled = false;
     $rootScope.user = User;
 
     $rootScope.$on('$stateChangeStart', function(event, toState) {

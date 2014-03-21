@@ -24,6 +24,7 @@ define([
   'uiRouter',
   'ngResource',
   'promiseTracker',
+  'cgBusy',
   'ngGrowl',
   './controllers',
   './services'
@@ -34,6 +35,7 @@ define([
     'xdAdmin.controllers',
     'ui.router',
     'ngResource',
+    'cgBusy',
     'ajoslin.promise-tracker',
     'angular-growl'
   ]);

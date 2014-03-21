@@ -64,6 +64,13 @@ define(['angular'], function (angular) {
                     {'$scope': $scope, '$http': $http, 'User': User, '$state': $state, 'growl': growl});
               });
             }])
+      .controller('TemplateController',
+          ['$scope', '$http', '$state', 'growl', '$injector', function ($scope, $http, $state, growl, $injector) {
+              require(['controllers/job/jobtemplate'], function (templateController) {
+                $injector.invoke(templateController, this,
+                    {'$scope': $scope, '$http': $http, '$state': $state, 'growl': growl});
+              });
+            }])
       .controller('JobLaunchController',
           ['$scope', '$http', '$log', '$state', '$stateParams', 'growl', '$location', 'JobLaunchService', '$injector', function ($scope, $http, $log, $state, $stateParams, growl, $location, JobLaunchService, $injector) {
             require(['controllers/job/joblaunch'], function (jobLaunchController) {

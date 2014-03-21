@@ -65,7 +65,7 @@ define(['./app'], function (xdAdmin) {
     .state('home.jobs.templates', {
       url : '/templates',
       templateUrl : 'views/jobs/templates.html',
-      controller: 'TemplatesController'
+      controller: 'TemplateController'
     })
     .state('home.jobs.definitions', {
       url : '/definitions',

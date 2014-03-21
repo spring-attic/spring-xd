@@ -65,7 +65,7 @@ import org.springframework.xd.shell.hadoop.FsShellCommands;
  */
 public class ReferenceDoc {
 
-	private final static Pattern COMMAND_FORMAT = Pattern.compile("[a-z][a-zA-Z ]+");
+	private final static Pattern COMMAND_FORMAT = Pattern.compile("[a-z][a-zA-Z \\-]+");
 
 	private final static Pattern OPTION_FORMAT = Pattern.compile("[a-z][a-zA-Z ]+");
 
@@ -281,7 +281,7 @@ public class ReferenceDoc {
 
 	private String check(String candidate, Pattern regex) {
 		if (!regex.matcher(candidate).matches()) {
-			throw new IllegalArgumentException(candidate + " should match " + regex);
+			throw new IllegalArgumentException("'" + candidate + "' should match " + regex);
 		}
 		return candidate;
 	}

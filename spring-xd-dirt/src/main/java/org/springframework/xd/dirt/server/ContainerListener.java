@@ -44,6 +44,7 @@ import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.ChildPathIterator;
 import org.springframework.xd.dirt.zookeeper.Paths;
+import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 /**
@@ -207,6 +208,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 	 * @param client curator client
 	 * @param data node data for the container that departed
 	 */
+	// todo: break this method up into undeployJob and undeployStreamModule
 	private void onChildLeft(CuratorFramework client, ChildData data) {
 		String path = data.getPath();
 		String container = Paths.stripPath(path);
@@ -223,46 +225,66 @@ public class ContainerListener implements PathChildrenCacheListener {
 				String moduleType = deploymentsPath.getModuleType();
 				String moduleLabel = deploymentsPath.getModuleLabel();
 
-				Stream stream = streamMap.get(streamName);
-				if (stream == null) {
-					stream = streamFactory.createStream(streamName, mapBytesUtility.toMap(
-							client.getData().forPath(Paths.build(Paths.STREAMS, streamName))));
-					streamMap.put(streamName, stream);
-				}
-				ModuleDescriptor moduleDescriptor = stream.getModuleDescriptor(moduleLabel, moduleType);
-				if (moduleDescriptor.getCount() > 0) {
-					Iterator<Container> iterator = containerMatcher.match(moduleDescriptor, containerRepository).iterator();
-					if (iterator.hasNext()) {
-						Container targetContainer = iterator.next();
-						String targetName = targetContainer.getName();
-
-						LOG.info("Redeploying module {} for stream {} to container {}",
-								new String[] { moduleLabel, streamName, targetName });
-
+				if (ModuleType.job.toString().equals(moduleType)) {
+					// todo: move job target selection into containerMatcher as well
+					Container target = containerRepository.getContainerIterator().next();
+					if (target == null) {
+						// uh oh
+						LOG.warn("No containers available for redeployment of job {}", streamName);
+					}
+					else {
+						String targetName = target.getName();
+						LOG.info("Redeploying job {} to container {}", streamName, targetName);
 						client.create().creatingParentsIfNeeded().forPath(new DeploymentsPath()
 								.setContainer(targetName)
 								.setStreamName(streamName)
 								.setModuleType(moduleType)
 								.setModuleLabel(moduleLabel).build()
 								);
-
-						// todo: not going to bother verifying the redeployment for now
-					}
-					else {
-						// uh oh
-						LOG.warn("No containers available for redeployment of {} for stream {}", moduleLabel,
-								streamName);
 					}
 				}
 				else {
-					StringBuilder builder = new StringBuilder();
-					String group = moduleDescriptor.getGroup();
-					builder.append("Module '").append(moduleLabel).append("' is targeted to all containers");
-					if (StringUtils.hasText(group)) {
-						builder.append(" belonging to group '").append(group).append('\'');
+					Stream stream = streamMap.get(streamName);
+					if (stream == null) {
+						stream = streamFactory.createStream(streamName, mapBytesUtility.toMap(
+								client.getData().forPath(Paths.build(Paths.STREAMS, streamName))));
+						streamMap.put(streamName, stream);
 					}
-					builder.append("; it does not need to be redeployed");
-					LOG.info(builder.toString());
+					ModuleDescriptor moduleDescriptor = stream.getModuleDescriptor(moduleLabel, moduleType);
+					if (moduleDescriptor.getCount() > 0) {
+						Iterator<Container> iterator = containerMatcher.match(moduleDescriptor, containerRepository).iterator();
+						if (iterator.hasNext()) {
+							Container targetContainer = iterator.next();
+							String targetName = targetContainer.getName();
+
+							LOG.info("Redeploying module {} for stream {} to container {}",
+									new String[] { moduleLabel, streamName, targetName });
+
+							client.create().creatingParentsIfNeeded().forPath(new DeploymentsPath()
+									.setContainer(targetName)
+									.setStreamName(streamName)
+									.setModuleType(moduleType)
+									.setModuleLabel(moduleLabel).build()
+									);
+
+							// todo: not going to bother verifying the redeployment for now
+						}
+						else {
+							// uh oh
+							LOG.warn("No containers available for redeployment of {} for stream {}", moduleLabel,
+									streamName);
+						}
+					}
+					else {
+						StringBuilder builder = new StringBuilder();
+						String group = moduleDescriptor.getGroup();
+						builder.append("Module '").append(moduleLabel).append("' is targeted to all containers");
+						if (StringUtils.hasText(group)) {
+							builder.append(" belonging to group '").append(group).append('\'');
+						}
+						builder.append("; it does not need to be redeployed");
+						LOG.info(builder.toString());
+					}
 				}
 			}
 

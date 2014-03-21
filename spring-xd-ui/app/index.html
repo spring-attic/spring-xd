@@ -55,15 +55,7 @@
       </div>
     </nav>
     <div growl></div>
-    <div ng-if="$state.includes('home')" class="container-fluid" cg-busy="{tracker:'trackerName'}" >
-      <div ui-view class="container xd-container"></div>
-    </div>
-    <div ng-if="!$state.includes('home')" class="container-fluid homepage-billboard" cg-busy="{tracker:'trackerName'}">
-      <div class="row">
-        <div ui-view></div>
-      </div>
-    </div>
-
+    <div ui-view cg-busy="{tracker:'trackerName'}" ></div>
     <div id="footer">
       <div class="container">
         <p class="text-muted">&copy; <span>2014</span> <a href="http://gopivotal.com">Pivotal

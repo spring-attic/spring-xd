@@ -16,9 +16,11 @@
 
 package org.springframework.xd.analytics.metrics.metadata;
 
-import org.springframework.xd.module.options.mixins.DateFormatMixin;
+import org.hibernate.validator.constraints.NotBlank;
+
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
+import org.springframework.xd.module.options.support.SpEL;
 
 
 /**
@@ -26,18 +28,20 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  * 
  * @author Eric Bottard
  */
-@Mixin({ DateFormatMixin.class, MetricNameMixin.class })
+@Mixin({ MetricNameMixin.class })
 public class AggregateCounterSinkOptionsMetadata {
 
-	private String timeField = null;
+	private String expression = "T(org.joda.time.DateTime).now()";
 
-	public String getTimeField() {
-		return timeField;
+	@NotBlank
+	@SpEL
+	public String getExpression() {
+		return expression;
 	}
 
-	@ModuleOption("name of a field in the message that contains the timestamp to contribute to")
-	public void setTimeField(String timeField) {
-		this.timeField = timeField;
+	@ModuleOption("an SpEL expression that resolves as the timestamp to contribute to")
+	public void setExpression(String expression) {
+		this.expression = expression;
 	}
 
 

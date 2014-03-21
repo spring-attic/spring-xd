@@ -52,8 +52,6 @@ public class StreamUtils {
 
 	public final static String TMP_DIR = "result/";
 
-	private final static String STREAM_SUFFIX = "/streams/";
-
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(XdEc2Validation.class);
 

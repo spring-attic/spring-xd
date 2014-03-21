@@ -18,15 +18,14 @@ package org.springframework.xd.integration.test;
 
 import static org.junit.Assert.assertEquals;
 
-import java.sql.Connection;
 import java.util.UUID;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
-
-import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.xd.shell.command.fixtures.JdbcSink;
+import org.springframework.xd.test.jdbc.JdbcTestSupport;
 
 
 /**
@@ -42,6 +41,10 @@ public class JdbcTest extends AbstractIntegrationTest {
 	String tableName = null;
 
 	String CONFIG_FILE = "accJdbc";
+	
+	@ClassRule
+	public static JdbcTestSupport jdbcAvailableRule = new JdbcTestSupport();
+
 
 	@Before
 	public void initialize() throws Exception {
@@ -71,9 +74,6 @@ public class JdbcTest extends AbstractIntegrationTest {
 	@Test
 	public void testJDBCSink() throws Exception {
 		String data = UUID.randomUUID().toString();
-		if (jdbcSink == null) {
-			return;
-		}
 		jdbcSink.getJdbcTemplate().getDataSource();
 		stream("dataSender", "trigger --payload='" + data + "'" + XD_DELIMETER + jdbcSink);
 

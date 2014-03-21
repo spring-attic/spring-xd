@@ -91,21 +91,17 @@ public class Sinks {
 		if (environment.getJdbcUrl() == null) {
 			return null;
 		}
+
 		jdbcSink = new JdbcSink();
-		jdbcSink.url(environment.getJdbcUrl());
+		jdbcSink.url(environment.getJdbcUrl()).driver(environment.getJdbcDriver()).database(
+				environment.getJdbcDatabase());
+
 		if (environment.getJdbcUsername() != null) {
 			jdbcSink.username(environment.getJdbcUsername());
 		}
 		if (environment.getJdbcPassword() != null) {
 			jdbcSink.password(environment.getJdbcPassword());
 		}
-		if (environment.getJdbcDriver() != null) {
-			jdbcSink.driver(environment.getJdbcDriver());
-		}
-		if (environment.getJdbcDatabase() != null) {
-			jdbcSink.dbname(environment.getJdbcDatabase());
-		}
-
 
 		return jdbcSink;
 	}

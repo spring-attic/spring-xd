@@ -1367,17 +1367,17 @@ project('spring-xd-shell') {
 			exclude group: 'hsqldb'
 		}
 		compile "com.google.guava:guava:14.0.1"
-		testCompile project(":spring-xd-dirt")
-		testCompile project(":spring-xd-test")
+		compile project(":spring-xd-dirt")
+		compile project(":spring-xd-test")
 
 		testCompile "uk.co.modular-it:hamcrest-date:$hamcrestDateVersion"
 		runtime "org.slf4j:jcl-over-slf4j:$slf4jVersion",
 				"org.slf4j:slf4j-log4j12:$slf4jVersion",
 				"log4j:log4j:$log4jVersion",
 				"org.codehaus.jackson:jackson-mapper-asl:$jackson1Version"
-		testCompile "com.icegreen:greenmail:1.3.1b"
-		testCompile "commons-io:commons-io:$commonsIoVersion"
-		testCompile "org.apache.ftpserver:ftpserver-core:$ftpServerVersion"
+		compile "com.icegreen:greenmail:1.3.1b"
+		compile "commons-io:commons-io:$commonsIoVersion"
+		compile "org.apache.ftpserver:ftpserver-core:$ftpServerVersion"
 
 	}
 
@@ -1412,7 +1412,6 @@ project('spring-xd-shell') {
 project('spring-xd-integration-test') {
 	description = 'Spring Integration tests'
 
-
 	test {
 		systemProperties = [
 			xd_admin_host: System.getProperty('xd_admin_host', 'http://localhost:9393'),
@@ -1428,23 +1427,23 @@ project('spring-xd-integration-test') {
 			jdbc_database: System.getProperty('jdbc_database', 'xdjob'),
 			jdbc_password: System.getProperty('jdbc_password', ''),
 			jdbc_driver: System.getProperty('jdbc_driver', 'org.hsqldb.jdbc.JDBCDriver'),
-			jdbc_url: System.getProperty('jdbc_url', 'jdbc:hsqldb:hsql://localhost:9101/%s')]
+			jdbc_url: System.getProperty('jdbc_url', 'jdbc:hsqldb:hsql://localhost:9101/%s')
+			]
 		
 		onlyIf {
 			System.getProperty('run_integration_tests', 'false')=='true'
 		}
 	}
 	dependencies {
-		testCompile project(":spring-xd-shell")
-		testCompile project(":spring-xd-shell").sourceSets.test.output
-		testCompile project(":spring-xd-test")
-		testCompile "mysql:mysql-connector-java:5.1.23"
+		compile project(":spring-xd-shell")
+		compile project(":spring-xd-test")
+		compile "mysql:mysql-connector-java:5.1.23"
 		compile "commons-collections:commons-collections:$commonsCollectionsVersion"
 		compile "org.apache.jclouds.provider:aws-sts:$jcloudsVersion"
 		compile "org.apache.jclouds.driver:jclouds-sshj:$jcloudsVersion"
 		compile "org.springframework:spring-web:$springVersion"
 		testCompile group: 'junit', name: 'junit', version: '4.+'
-		testCompile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
+		compile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
 		runtime "log4j:log4j:$log4jVersion",
 				"org.slf4j:jcl-over-slf4j:$slf4jVersion",
 				"org.slf4j:slf4j-log4j12:$slf4jVersion"

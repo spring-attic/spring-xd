@@ -28,7 +28,7 @@ require.config({
     ngResource: '../lib/angular-resource/angular-resource',
     ngRoute: '../lib/angular-route/angular-route',
     uiRouter: '../lib/angular-ui-router/angular-ui-router',
-    ngBusy: '../lib/angular-busy/angular-busy',
+    cgBusy: '../lib/angular-busy/angular-busy',
     promiseTracker: '../lib/angular-promise-tracker/promise-tracker',
     ngGrowl: '../lib/angular-growl/angular-growl',
     angularMocks: '../lib/angular-mocks/angular-mocks'
@@ -37,8 +37,14 @@ require.config({
     angular: {
       exports: 'angular'
     },
+    bootstrap: {
+      deps: ['jquery']
+    },
     'uiRouter': {
       deps: ['angular']
+    },
+    cgBusy: {
+      deps: ['promiseTracker']
     },
     'promiseTracker': {
       deps: ['angular']
@@ -66,5 +72,9 @@ define([
 
   require(['domReady!'], function (document) {
     angular.bootstrap(document, ['xdAdmin']);
+  });
+  require(['jquery', 'bootstrap'], function() {
+    console.log('Loaded Bootstrap.');
+    return {};
   });
 });

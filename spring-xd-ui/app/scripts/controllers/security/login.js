@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,28 +15,20 @@
  */
 
 /**
- * Definition of xdAdmin app module.
+ * Handles user logins.
  *
- * @author Ilayaperumal Gopinathan
+ * @author Gunnar Hillert
  */
-define([
-  'angular',
-  'uiRouter',
-  'ngResource',
-  'promiseTracker',
-  'cgBusy',
-  'ngGrowl',
-  './controllers',
-  './services'
-], function (angular) {
+define([], function () {
   'use strict';
-  return angular.module('xdAdmin', [
-    'xdAdmin.services',
-    'xdAdmin.controllers',
-    'ui.router',
-    'ngResource',
-    'cgBusy',
-    'ajoslin.promise-tracker',
-    'angular-growl'
-  ]);
+  return ['$scope', '$http', 'User', '$state', 'growl',
+          function ($scope, $http, User, $state, growl) {
+          $scope.loginFormData = {};
+          $scope.login = function() {
+            User.isAuthenticated = true;
+            User.username = $scope.loginFormData.name;
+            growl.addSuccessMessage('User ' + User.username + ' logged in.');
+            $state.go('home.jobs.definitions');
+          };
+    }];
 });

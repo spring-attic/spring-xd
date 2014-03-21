@@ -20,6 +20,8 @@ import javax.sql.DataSource;
 
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
+import org.springframework.boot.actuate.endpoint.HealthEndpoint;
+import org.springframework.boot.actuate.health.VanillaHealthIndicator;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.web.ServerPropertiesAutoConfiguration;
@@ -81,6 +83,12 @@ public class ParentConfiguration {
 			exporter.setDefaultDomain("xd.parent");
 			return exporter;
 		}
+	}
+
+	@Bean
+	@ConditionalOnExpression("${endpoints.health.enabled:true}")
+	public HealthEndpoint<Object> healthEndpoint() {
+		return new HealthEndpoint<Object>(new VanillaHealthIndicator());
 	}
 
 }

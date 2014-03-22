@@ -57,7 +57,6 @@ public class ModuleDeploymentRequest implements Comparable<ModuleDeploymentReque
 
 	private volatile boolean launch;
 
-
 	public String getModule() {
 		return module;
 	}

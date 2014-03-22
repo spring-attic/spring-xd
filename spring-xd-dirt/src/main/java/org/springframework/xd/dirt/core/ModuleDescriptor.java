@@ -72,6 +72,8 @@ public class ModuleDescriptor {
 
 	private String sinkChannelName;
 
+	private boolean composed;
+
 	/**
 	 * Construct a ModuleDescriptor.
 	 * 
@@ -163,6 +165,20 @@ public class ModuleDescriptor {
 
 	public void setSinkChannelName(String sinkChannelName) {
 		this.sinkChannelName = sinkChannelName;
+	}
+
+	/**
+	 * Returns true if the described Module is composed.
+	 */
+	public boolean isComposed() {
+		return composed;
+	}
+
+	/**
+	 * Specify whether the described Module is composed.
+	 */
+	public void setComposed(boolean composed) {
+		this.composed = composed;
 	}
 
 	public void addParameters(Map<String, String> parameters) {

@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 
@@ -471,6 +472,9 @@ public class Stream {
 				int count = convert(properties.get(String.format("module.%s.count", moduleDefinition.getName())));
 
 				ModuleDescriptor descriptor = new ModuleDescriptor(moduleDefinition, name, label, i, group, count);
+				if (!CollectionUtils.isEmpty(moduleDefinition.getComposedModuleDefinitions())) {
+					descriptor.setComposed(true);
+				}
 				// todo: cleanup (and if we do use i here, consider having it in the for loop itself)
 				if (i == moduleDefinitions.size() - 1 && sinkChannelName != null) {
 					descriptor.setSinkChannelName(sinkChannelName);

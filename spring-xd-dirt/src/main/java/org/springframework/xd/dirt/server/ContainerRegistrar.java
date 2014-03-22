@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.server;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -43,6 +44,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.util.Assert;
 import org.springframework.validation.BindException;
 import org.springframework.xd.dirt.container.ContainerMetadata;
 import org.springframework.xd.dirt.container.ContainerStartedEvent;
@@ -56,6 +58,7 @@ import org.springframework.xd.dirt.core.StreamsPath;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.dirt.module.PrefixNarrowingModuleOptions;
 import org.springframework.xd.dirt.stream.ParsingContext;
 import org.springframework.xd.dirt.stream.XDParser;
 import org.springframework.xd.dirt.stream.XDStreamParser;
@@ -66,6 +69,7 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperConnectionListener;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
+import org.springframework.xd.module.core.CompositeModule;
 import org.springframework.xd.module.core.Module;
 import org.springframework.xd.module.core.SimpleModule;
 import org.springframework.xd.module.options.ModuleOptions;
@@ -206,7 +210,10 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	private void deployModule(ModuleDescriptor moduleDescriptor) {
 		LOG.info("Deploying module {}", moduleDescriptor);
 		mapDeployedModules.put(moduleDescriptor.newKey(), moduleDescriptor);
-		Module module = createSimpleModule(moduleDescriptor);
+		ModuleOptions moduleOptions = this.safeModuleOptionsInterpolate(moduleDescriptor);
+		Module module = (moduleDescriptor.isComposed())
+				? createComposedModule(moduleDescriptor, moduleOptions)
+				: createSimpleModule(moduleDescriptor, moduleOptions);
 		// todo: rather than delegate, merge ContainerRegistrar itself into and remove most of ModuleDeployer
 		this.moduleDeployer.deployAndStore(module, moduleDescriptor);
 	}
@@ -443,8 +450,34 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		}
 	}
 
-	private Module createSimpleModule(ModuleDescriptor descriptor) {
-		ModuleOptions moduleOptions = this.safeModuleOptionsInterpolate(descriptor);
+	private Module createComposedModule(ModuleDescriptor compositeDescriptor, ModuleOptions options) {
+		String streamName = compositeDescriptor.getStreamName();
+		int index = compositeDescriptor.getIndex();
+		String sourceChannelName = compositeDescriptor.getSourceChannelName();
+		String sinkChannelName = compositeDescriptor.getSinkChannelName();
+		String group = compositeDescriptor.getGroup();
+		int count = compositeDescriptor.getCount();
+		ModuleDefinition compositeDefinition = compositeDescriptor.getModuleDefinition();
+		List<ModuleDeploymentRequest> children = this.parser.parse(
+				compositeDefinition.getName(), compositeDefinition.getDefinition(), ParsingContext.module);
+		Assert.notEmpty(children, "child module list must not be empty");
+		List<Module> childrenModules = new ArrayList<Module>(children.size());
+		for (ModuleDeploymentRequest childRequest : children) {
+			ModuleOptions narrowedOptions = new PrefixNarrowingModuleOptions(options, childRequest.getModule());
+			ModuleDefinition childDefinition = this.moduleDefinitionRepository.findByNameAndType(
+					childRequest.getModule(), childRequest.getType());
+			String label = ""; // todo: this should be the valid label for each module
+			ModuleDescriptor childDescriptor = new ModuleDescriptor(childDefinition,
+					childRequest.getGroup(), label, childRequest.getIndex(), group, count);
+			// todo: hacky, but due to parser results being reversed, we add each at index 0
+			childrenModules.add(0, createSimpleModule(childDescriptor, narrowedOptions));
+		}
+		DeploymentMetadata metadata = new DeploymentMetadata(streamName, index, sourceChannelName, sinkChannelName);
+		return new CompositeModule(compositeDefinition.getName(), compositeDefinition.getType(), childrenModules,
+				metadata);
+	}
+
+	private Module createSimpleModule(ModuleDescriptor descriptor, ModuleOptions options) {
 		String streamName = descriptor.getStreamName();
 		int index = descriptor.getIndex();
 		String sourceChannelName = descriptor.getSourceChannelName();
@@ -453,7 +486,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		ModuleDefinition definition = descriptor.getModuleDefinition();
 		ClassLoader classLoader = (definition.getClasspath() == null) ? null
 				: new ParentLastURLClassLoader(definition.getClasspath(), parentClassLoader);
-		Module module = new SimpleModule(definition, metadata, classLoader, moduleOptions);
+		Module module = new SimpleModule(definition, metadata, classLoader, options);
 		return module;
 	}
 

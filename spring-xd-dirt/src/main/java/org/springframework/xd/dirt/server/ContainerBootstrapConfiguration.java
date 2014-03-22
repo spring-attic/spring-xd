@@ -18,7 +18,6 @@ package org.springframework.xd.dirt.server;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.xd.dirt.container.initializer.MessageBusInitializer;
 import org.springframework.xd.dirt.container.initializer.OrderedContextInitializer;
 import org.springframework.xd.dirt.container.initializer.PluginContextExtensionsInitializer;
 import org.springframework.xd.dirt.container.initializer.PluginsInitializer;
@@ -31,11 +30,6 @@ import org.springframework.xd.dirt.container.initializer.PluginsInitializer;
  */
 @Configuration
 class ContainerBootstrapConfiguration {
-
-	@Bean
-	OrderedContextInitializer messageBusInitializer() {
-		return new MessageBusInitializer();
-	}
 
 	@Bean
 	OrderedContextInitializer extensionsInitializer() {

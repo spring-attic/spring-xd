@@ -7,7 +7,7 @@
 
 	<context:property-placeholder/>
 
-	<import resource="classpath:META-INF/spring-xd/initializers/bus/*.xml"/>
+	<import resource="classpath:META-INF/spring-xd/bus/*.xml"/>
 
 	<bean class="org.springframework.xd.dirt.plugins.stream.StreamPlugin">
 		<constructor-arg ref="messageBus"/>

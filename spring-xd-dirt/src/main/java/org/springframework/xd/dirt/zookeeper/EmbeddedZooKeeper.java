@@ -27,7 +27,6 @@ import org.apache.zookeeper.server.quorum.QuorumPeerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.util.ErrorHandler;
 import org.springframework.util.SocketUtils;
@@ -42,7 +41,7 @@ import org.springframework.util.SocketUtils;
  * @author Mark Fisher
  * @author David Turanski
  */
-@ConditionalOnExpression("'${zk.client.connect}'.isEmpty()")
+
 public class EmbeddedZooKeeper implements SmartLifecycle {
 
 	/**
@@ -53,7 +52,7 @@ public class EmbeddedZooKeeper implements SmartLifecycle {
 	/**
 	 * ZooKeeper client port. This will be determined dynamically upon startup.
 	 */
-	private int clientPort;
+	private final int clientPort = SocketUtils.findAvailableTcpPort();
 
 	/**
 	 * Whether to auto-start. Default is true.
@@ -201,7 +200,6 @@ public class EmbeddedZooKeeper implements SmartLifecycle {
 						+ File.separator + UUID.randomUUID());
 				file.deleteOnExit();
 				properties.setProperty("dataDir", file.getAbsolutePath());
-				clientPort = SocketUtils.findAvailableTcpPort();
 				properties.setProperty("clientPort", String.valueOf(clientPort));
 
 				QuorumPeerConfig quorumPeerConfig = new QuorumPeerConfig();

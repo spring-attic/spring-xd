@@ -16,10 +16,8 @@
 
 package org.springframework.xd.dirt.server;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -32,7 +30,7 @@ import org.springframework.util.Assert;
  * 
  * @author David Turanski
  */
-abstract class ApplicationUtils {
+public abstract class ApplicationUtils {
 
 	static ApplicationListener<?>[] mergeApplicationListeners(ApplicationListener<?> applicationListener,
 			ApplicationListener<?>[] applicationListeners) {
@@ -45,56 +43,49 @@ abstract class ApplicationUtils {
 		return mergedApplicationListeners;
 	}
 
-	static void dumpContainerApplicationContextConfiguration(ApplicationContext containerContext) {
+	private static Map<String, Object> removeParentBeans(Map<String, Object> parentBeans, Map<String, Object> beans) {
+		for (String key : parentBeans.keySet()) {
+			beans.remove(key);
+		}
+		return beans;
+	}
+
+	public static String displayBeans(Map<String, Object> beans, String contextName) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("\n").append(contextName).append(":\n");
+		for (Entry<String, Object> entry : beans.entrySet()) {
+			sb.append("\t[").append(entry.getKey()).append("] =").append(entry.getValue().getClass().getName()).append(
+					"\n");
+		}
+		return sb.toString();
+	}
+
+	/**
+	 * Dump container context configuration details to stdout
+	 * 
+	 * @param containerContext
+	 */
+	public static void dumpContainerApplicationContextConfiguration(ApplicationContext containerContext) {
 		Map<String, Object> containerBeans = new HashMap<String, Object>();
 		Map<String, Object> pluginBeans = new HashMap<String, Object>();
 		Map<String, Object> globalBeans = new HashMap<String, Object>();
+		Map<String, Object> sharedServerBeans = new HashMap<String, Object>();
 
-		globalBeans = containerContext.getParent().getParent().getBeansOfType(Object.class);
+		globalBeans = containerContext.getParent().getParent().getParent().getBeansOfType(Object.class);
+		sharedServerBeans = containerContext.getParent().getParent().getBeansOfType(Object.class);
 		pluginBeans = containerContext.getParent().getBeansOfType(Object.class);
 		containerBeans = containerContext.getBeansOfType(Object.class);
 
-		List<String> dups;
+		removeParentBeans(pluginBeans, containerBeans);
 
-		dups = new ArrayList<String>();
+		removeParentBeans(sharedServerBeans, pluginBeans);
 
-		for (Entry<String, Object> entry : containerBeans.entrySet()) {
-			if (pluginBeans.containsKey(entry.getKey())) {
-				dups.add(entry.getKey());
-			}
-		}
+		removeParentBeans(globalBeans, sharedServerBeans);
 
-		System.out.println("core: found " + dups.size() + dups);
-		for (String key : dups) {
-			containerBeans.remove(key);
-		}
+		System.out.println(displayBeans(globalBeans, "global context"));
+		System.out.println(displayBeans(sharedServerBeans, "shared server context"));
+		System.out.println(displayBeans(pluginBeans, "plugin context"));
+		System.out.println(displayBeans(containerBeans, "container context"));
 
-
-		dups = new ArrayList<String>();
-		for (Entry<String, Object> entry : pluginBeans.entrySet()) {
-			if (globalBeans.containsKey(entry.getKey())) {
-				dups.add(entry.getKey());
-			}
-		}
-		System.out.println("container: found " + dups.size() + dups);
-		for (String key : dups) {
-			pluginBeans.remove(key);
-		}
-
-		System.out.println("global context:");
-		for (Entry<String, Object> entry : globalBeans.entrySet()) {
-			System.out.println("\t" + entry.getKey() + "=" + entry.getValue().getClass().getName());
-		}
-		System.out.println();
-		System.out.println("plugin context:");
-		for (Entry<String, Object> entry : pluginBeans.entrySet()) {
-			System.out.println("\t" + entry.getKey() + "=" + entry.getValue().getClass().getName());
-		}
-		System.out.println();
-		System.out.println("container context:");
-		for (Entry<String, Object> entry : containerBeans.entrySet()) {
-			System.out.println("\t" + entry.getKey() + "=" + entry.getValue().getClass().getName());
-		}
 	}
-
 }

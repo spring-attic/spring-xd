@@ -43,6 +43,8 @@ public abstract class AbstractSingleNodeInitializationTests {
 
 	protected AbstractApplicationContext containerContext;
 
+	protected AbstractApplicationContext adminContext;
+
 	protected ModuleDeployer moduleDeployer;
 
 	protected TestApplicationBootstrap testApplicationBootstrap;
@@ -62,6 +64,7 @@ public abstract class AbstractSingleNodeInitializationTests {
 
 		this.pluginContext = (AbstractApplicationContext) this.singleNodeApplication.pluginContext();
 		this.containerContext = (AbstractApplicationContext) this.singleNodeApplication.containerContext();
+		this.adminContext = (AbstractApplicationContext) this.singleNodeApplication.adminContext();
 		setupApplicationContext(this.containerContext);
 	}
 

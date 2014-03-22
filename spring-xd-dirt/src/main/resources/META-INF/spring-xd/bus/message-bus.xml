@@ -4,6 +4,6 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 <!-- These are contributed by means of an OrderedContextInitializer -->
-	<import resource="../../transports/${XD_TRANSPORT}-bus.xml"/>
+	<import resource="../transports/${XD_TRANSPORT}-bus.xml"/>
 
 </beans>

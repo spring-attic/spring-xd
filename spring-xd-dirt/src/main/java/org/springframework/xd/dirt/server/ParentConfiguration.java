@@ -21,16 +21,13 @@ import javax.sql.DataSource;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.web.ServerPropertiesAutoConfiguration;
 import org.springframework.cloud.Cloud;
 import org.springframework.cloud.CloudFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.EnableMBeanExport;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Profile;
-import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.xd.dirt.container.ContainerMetadata;
 import org.springframework.xd.dirt.util.ConfigLocations;
 
@@ -39,7 +36,7 @@ import org.springframework.xd.dirt.util.ConfigLocations;
 @EnableBatchProcessing
 public class ParentConfiguration {
 
-	private static final String MBEAN_EXPORTER_BEAN_NAME = "XDParentConfigMBeanExporter";
+	// private static final String MBEAN_EXPORTER_BEAN_NAME = "XDParentConfigMBeanExporter";
 
 	@Bean
 	public ContainerMetadata containerMetadata() {
@@ -71,16 +68,16 @@ public class ParentConfiguration {
 		}
 	}
 
-	@ConditionalOnExpression("${XD_JMX_ENABLED:false}")
-	@EnableMBeanExport(defaultDomain = "xd.parent")
-	protected static class JmxConfiguration {
-
-		@Bean(name = MBEAN_EXPORTER_BEAN_NAME)
-		public IntegrationMBeanExporter integrationMBeanExporter() {
-			IntegrationMBeanExporter exporter = new IntegrationMBeanExporter();
-			exporter.setDefaultDomain("xd.parent");
-			return exporter;
-		}
-	}
+	// @ConditionalOnExpression("${XD_JMX_ENABLED:false}")
+	// @EnableMBeanExport(defaultDomain = "xd.parent")
+	// protected static class JmxConfiguration {
+	//
+	// @Bean(name = MBEAN_EXPORTER_BEAN_NAME)
+	// public IntegrationMBeanExporter integrationMBeanExporter() {
+	// IntegrationMBeanExporter exporter = new IntegrationMBeanExporter();
+	// exporter.setDefaultDomain("xd.parent");
+	// return exporter;
+	// }
+	// }
 
 }

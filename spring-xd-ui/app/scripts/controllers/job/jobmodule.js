@@ -21,8 +21,7 @@
  */
 define([], function () {
   'use strict';
-  return ['$scope', '$http', '$state', 'growl',
-          function ($scope, $http, User, $state, growl) {
-          $scope.jobTemplates = {};
-    }];
+  return ['$scope', function ($scope) {
+    $scope.jobModules = {};
+  }];
 });

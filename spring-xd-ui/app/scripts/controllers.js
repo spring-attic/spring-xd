@@ -52,25 +52,25 @@ define(['angular'], function (angular) {
           }])
       .controller('LoginController',
           ['$scope', '$http', 'User', '$state', 'growl', '$injector', function ($scope, $http, User, $state, growl, $injector) {
-              require(['controllers/security/login'], function (loginController) {
-                $injector.invoke(loginController, this,
-                    {'$scope': $scope, '$http': $http, 'User': User, '$state': $state, 'growl': growl});
-              });
-            }])
+            require(['controllers/security/login'], function (loginController) {
+              $injector.invoke(loginController, this,
+                  {'$scope': $scope, '$http': $http, 'User': User, '$state': $state, 'growl': growl});
+            });
+          }])
       .controller('LogoutController',
           ['$scope', '$http', 'User', '$state', 'growl', '$injector', function ($scope, $http, User, $state, growl, $injector) {
-              require(['controllers/security/logout'], function (logoutController) {
-                $injector.invoke(logoutController, this,
-                    {'$scope': $scope, '$http': $http, 'User': User, '$state': $state, 'growl': growl});
-              });
-            }])
-      .controller('TemplateController',
+            require(['controllers/security/logout'], function (logoutController) {
+              $injector.invoke(logoutController, this,
+                  {'$scope': $scope, '$http': $http, 'User': User, '$state': $state, 'growl': growl});
+            });
+          }])
+      .controller('ModuleController',
           ['$scope', '$http', '$state', 'growl', '$injector', function ($scope, $http, $state, growl, $injector) {
-              require(['controllers/job/jobtemplate'], function (templateController) {
-                $injector.invoke(templateController, this,
-                    {'$scope': $scope, '$http': $http, '$state': $state, 'growl': growl});
-              });
-            }])
+            require(['controllers/job/jobmodule'], function (moduleController) {
+              $injector.invoke(moduleController, this,
+                  {'$scope': $scope, '$http': $http, '$state': $state, 'growl': growl});
+            });
+          }])
       .controller('JobLaunchController',
           ['$scope', '$http', '$log', '$state', '$stateParams', 'growl', '$location', 'JobLaunchService', '$injector', function ($scope, $http, $log, $state, $stateParams, growl, $location, JobLaunchService, $injector) {
             require(['controllers/job/joblaunch'], function (jobLaunchController) {

@@ -62,10 +62,10 @@ define(['./app'], function (xdAdmin) {
         authenticate: true
       }
     })
-    .state('home.jobs.templates', {
-      url : '/templates',
-      templateUrl : 'views/jobs/templates.html',
-      controller: 'TemplateController'
+    .state('home.jobs.modules', {
+      url : '/modules',
+      templateUrl : 'views/jobs/modules.html',
+      controller: 'ModuleController'
     })
     .state('home.jobs.definitions', {
       url : '/definitions',
@@ -77,11 +77,12 @@ define(['./app'], function (xdAdmin) {
       templateUrl : 'views/jobs/deployments.html',
       controller: 'ListJobDeploymentsController'
     })
-    .state('home.jobs.scheduledJobs', {
-      url : '/scheduled-jobs',
-      templateUrl : 'views/jobs/scheduledJobs.html',
-      controller: 'ScheduledJobsController'
-    })
+      //TODO: Once ScheduleJobsController is available we can have the routes configured.
+//    .state('home.jobs.scheduledJobs', {
+//      url : '/scheduled-jobs',
+//      templateUrl : 'views/jobs/scheduledJobs.html',
+//      controller: 'ScheduledJobsController'
+//    })
     .state('home.jobs.executions', {
       url : '/executions',
       templateUrl : 'views/jobs/executions.html',

@@ -71,6 +71,8 @@ public class AdminServerApplication {
 		this.context = new SpringApplicationBuilder(AdminOptions.class, ParentConfiguration.class)
 				.profiles(ADMIN_PROFILE)
 				.listeners(commandLineListener)
+				.child(SharedServerContextConfiguration.class, AdminOptions.class)
+				.listeners(commandLineListener)
 				.child(AdminServerApplication.class)
 				.listeners(commandLineListener)
 				.run(args);

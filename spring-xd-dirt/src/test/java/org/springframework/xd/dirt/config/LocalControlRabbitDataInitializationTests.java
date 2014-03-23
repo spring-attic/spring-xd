@@ -16,20 +16,9 @@
 
 package org.springframework.xd.dirt.config;
 
-import org.springframework.messaging.MessageChannel;
-
 /**
  * @author David Turanski
  */
 public class LocalControlRabbitDataInitializationTests extends RabbitSingleNodeInitializationTests {
 
-	@Override
-	protected String getControlTransport() {
-		return "local";
-	}
-
-	@Override
-	protected MessageChannel getControlChannel() {
-		return containerContext.getBean("containerControlChannel", MessageChannel.class);
-	}
 }

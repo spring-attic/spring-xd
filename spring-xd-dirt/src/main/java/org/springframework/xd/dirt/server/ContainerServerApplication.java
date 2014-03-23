@@ -41,7 +41,6 @@ import org.springframework.xd.dirt.container.ContainerMetadata;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.server.options.ContainerOptions;
-import org.springframework.xd.dirt.server.options.XDPropertyKeys;
 import org.springframework.xd.dirt.util.BannerUtils;
 import org.springframework.xd.dirt.util.ConfigLocations;
 import org.springframework.xd.dirt.util.XdConfigLoggingInitializer;
@@ -124,12 +123,6 @@ public class ContainerServerApplication {
 				System.err.println(String.format("the value '%s' is not allowed for property '%s'",
 						error.getRejectedValue(),
 						error.getField()));
-				if (XDPropertyKeys.XD_CONTROL_TRANSPORT.equals(error.getField())) {
-					System.err.println(
-							String.format(
-									"If not explicitly provided, the default value of '%s' assumes the value provided for '%s'",
-									XDPropertyKeys.XD_CONTROL_TRANSPORT, XDPropertyKeys.XD_TRANSPORT));
-				}
 			}
 		}
 		else {

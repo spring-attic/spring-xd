@@ -35,9 +35,7 @@ import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.x.bus.MessageBus;
-import org.springframework.messaging.Message;
 import org.springframework.validation.BindException;
 import org.springframework.xd.dirt.core.ModuleDescriptor;
 import org.springframework.xd.dirt.event.AbstractModuleEvent;
@@ -137,9 +135,10 @@ public class StreamPluginModuleDeploymentTests {
 		assertEquals(0, getBindings(bus).size());
 	}
 
+	// todo: refactor this now that ZooKeeper is used for deployment
 	private SimpleModule sendModuleRequest(ModuleDeploymentRequest request) throws InterruptedException {
-		Message<?> message = MessageBuilder.withPayload(request.toString()).build();
-		moduleDeployer.handleMessage(message);
+		// Message<?> message = MessageBuilder.withPayload(request.toString()).build();
+		// moduleDeployer.handleMessage(message);
 		AbstractModuleEvent moduleDeployedEvent = eventListener.getEvents().poll(5, TimeUnit.SECONDS);
 		assertNotNull(moduleDeployedEvent);
 		return (SimpleModule) moduleDeployedEvent.getSource();

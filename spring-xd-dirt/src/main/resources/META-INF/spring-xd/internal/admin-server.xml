@@ -4,7 +4,6 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<import resource="classpath*:/META-INF/spring-xd/transports/${XD_CONTROL_TRANSPORT}-admin.xml" />
 	<import resource="deployers.xml" />
 
 	<context:annotation-config />

@@ -17,7 +17,6 @@
 package org.springframework.xd.dirt.config;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
 
 import java.util.Arrays;
 
@@ -28,7 +27,6 @@ import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.integration.x.bus.MessageBus;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
@@ -58,7 +56,6 @@ public abstract class AbstractSingleNodeInitializationTests {
 		this.singleNodeApplication = testApplicationBootstrap.getSingleNodeApplication();
 		String[] args = {};
 		args = addArgIfProvided(args, "transport", getTransport());
-		args = addArgIfProvided(args, "controlTransport", getControlTransport());
 		System.setProperty("zk.client.connect", "localhost:2181");
 		singleNodeApplication.run(args);
 
@@ -71,24 +68,17 @@ public abstract class AbstractSingleNodeInitializationTests {
 	protected void setupApplicationContext(ApplicationContext context) {
 	}
 
-	protected abstract void cleanup();
-
 	protected abstract String getTransport();
 
 	protected abstract Class<? extends MessageBus> getExpectedMessageBusType();
 
-	protected abstract MessageChannel getControlChannel();
-
 	@After
 	public final void shutDown() {
-		this.cleanup();
 		this.singleNodeApplication.close();
 	}
 
 	@Test
 	public final void environmentMatchesTransport() {
-		MessageChannel controlChannel = this.containerContext.getBean("containerControlChannel", MessageChannel.class);
-		assertSame(controlChannel, getControlChannel());
 		MessageBus messageBus = this.containerContext.getBean(MessageBus.class);
 		assertEquals(getExpectedMessageBusType(), messageBus.getClass());
 	}
@@ -102,7 +92,4 @@ public abstract class AbstractSingleNodeInitializationTests {
 		return args;
 	}
 
-	protected String getControlTransport() {
-		return null;
-	}
 }

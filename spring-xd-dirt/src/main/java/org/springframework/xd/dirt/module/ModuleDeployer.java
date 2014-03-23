@@ -29,18 +29,16 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.OrderComparator;
-import org.springframework.integration.handler.AbstractMessageHandler;
-import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.ModuleDescriptor;
 import org.springframework.xd.dirt.event.ModuleDeployedEvent;
 import org.springframework.xd.dirt.event.ModuleUndeployedEvent;
-import org.springframework.xd.dirt.plugins.job.JobPlugin;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
@@ -51,8 +49,6 @@ import org.springframework.xd.module.core.SimpleModule;
 import org.springframework.xd.module.options.ModuleOptions;
 import org.springframework.xd.module.support.ParentLastURLClassLoader;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * Listens for deployment request messages and instantiates {@link Module}s accordingly, applying {@link Plugin} logic
  * to them.
@@ -61,8 +57,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Gary Russell
  * @author Ilayaperumal Gopinathan
  */
-public class ModuleDeployer extends AbstractMessageHandler implements ApplicationContextAware,
-		ApplicationEventPublisherAware, BeanClassLoaderAware, DisposableBean {
+public class ModuleDeployer implements ApplicationContextAware, ApplicationEventPublisherAware, BeanClassLoaderAware,
+		InitializingBean, DisposableBean {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -71,8 +67,6 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 	private volatile ApplicationContext globalContext;
 
 	private volatile ApplicationEventPublisher eventPublisher;
-
-	private final ObjectMapper mapper = new ObjectMapper();
 
 	private final ConcurrentMap<String, Map<Integer, Module>> deployedModules = new ConcurrentHashMap<String, Map<Integer, Module>>();
 
@@ -103,7 +97,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 	}
 
 	@Override
-	public void onInit() {
+	public void afterPropertiesSet() {
 		this.plugins = new ArrayList<Plugin>(this.context.getParent().getBeansOfType(Plugin.class).values());
 		OrderComparator.sort(this.plugins);
 	}
@@ -125,17 +119,6 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 	@Override
 	public void setBeanClassLoader(ClassLoader classLoader) {
 		this.parentClassLoader = classLoader;
-	}
-
-	// todo: remove this once the job launching is replaced with messages via MessageBus
-	@Override
-	protected synchronized void handleMessageInternal(Message<?> message) throws Exception {
-		String payloadString = message.getPayload().toString();
-		ModuleDeploymentRequest request = this.mapper.readValue(payloadString, ModuleDeploymentRequest.class);
-		if (request.isLaunch()) {
-			Assert.isTrue(!(request instanceof CompositeModuleDeploymentRequest));
-			handleLaunch(request);
-		}
 	}
 
 	private Module createModule(ModuleDeploymentRequest request, ModuleOptions moduleOptions) {
@@ -255,27 +238,6 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		this.fireModuleUndeployedEvent(module);
 	}
 
-	private void handleLaunch(ModuleDeploymentRequest request) {
-		String group = request.getGroup();
-		Map<Integer, Module> modules = this.deployedModules.get(group);
-		if (modules != null) {
-			processLaunchRequest(modules, request);
-		}
-		else {
-			throw new ModuleNotDeployedException("Job launch");
-		}
-	}
-
-	private void processLaunchRequest(Map<Integer, Module> modules, ModuleDeploymentRequest request) {
-		Module module = modules.get(request.getIndex());
-		// Since the request parameter may change on each launch request,
-		// the request parameters are not added to module properties
-		if (logger.isDebugEnabled()) {
-			logger.debug("launching " + module.toString());
-		}
-		launchModule(module, request.getParameters());
-	}
-
 	/**
 	 * Get the list of supported plugins for the given module.
 	 * 
@@ -315,17 +277,6 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 	private void removeModule(Module module) {
 		for (Plugin plugin : this.getSupportedPlugins(module)) {
 			plugin.removeModule(module);
-		}
-	}
-
-	private void launchModule(Module module, Map<String, String> parameters) {
-		if (this.plugins != null) {
-			for (Plugin plugin : this.plugins) {
-				// Currently, launching module is applicable only to Jobs
-				if (plugin instanceof JobPlugin) {
-					((JobPlugin) plugin).launch(module, parameters);
-				}
-			}
 		}
 	}
 

@@ -26,7 +26,6 @@ import org.junit.Test;
 
 import org.springframework.integration.x.bus.LocalMessageBus;
 import org.springframework.integration.x.bus.MessageBus;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.xd.dirt.server.ApplicationUtils;
 import org.springframework.xd.dirt.server.ContainerRegistrar;
 import org.springframework.xd.module.core.Plugin;
@@ -38,11 +37,8 @@ public class LocalSingleNodeInitializationTests extends AbstractSingleNodeInitia
 
 	@Test
 	public final void verifyContextConfiguration() {
-
 		assertSame(pluginContext, containerContext.getParent());
 		assertTrue(containerContext.containsBean("moduleDeployer") && !pluginContext.containsBean("moduleDeployer"));
-		assertTrue(containerContext.containsBean("containerControlChannel")
-				&& !pluginContext.containsBean("containerControlChannel"));
 		assertTrue(adminContext.containsBean("messageBus"));
 		containerContext.getBean(ContainerRegistrar.class);
 		assertEquals(0, pluginContext.getBeansOfType(ContainerRegistrar.class).size());
@@ -53,10 +49,6 @@ public class LocalSingleNodeInitializationTests extends AbstractSingleNodeInitia
 	}
 
 	@Override
-	protected void cleanup() {
-	}
-
-	@Override
 	protected String getTransport() {
 		return "local";
 	}
@@ -64,11 +56,6 @@ public class LocalSingleNodeInitializationTests extends AbstractSingleNodeInitia
 	@Override
 	protected Class<? extends MessageBus> getExpectedMessageBusType() {
 		return LocalMessageBus.class;
-	}
-
-	@Override
-	protected MessageChannel getControlChannel() {
-		return containerContext.getBean("containerControlChannel", MessageChannel.class);
 	}
 
 }

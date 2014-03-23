@@ -15,13 +15,11 @@ package org.springframework.xd.dirt.stream;
 
 import static org.junit.Assert.assertEquals;
 
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
 
-import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.integration.x.bus.RabbitTestMessageBus;
 import org.springframework.xd.dirt.integration.test.sink.NamedChannelSink;
 import org.springframework.xd.dirt.integration.test.sink.SingleNodeNamedChannelSinkFactory;
@@ -58,13 +56,6 @@ public class RabbitSingleNodeStreamDeploymentIntegrationTests extends
 			}
 		}
 	};
-
-	@AfterClass
-	public static void cleanup() {
-		RabbitAdmin admin = new RabbitAdmin(rabbitAvailableRule.getResource());
-		admin.deleteQueue(testApplicationBootstrap.getDeployerQueue());
-		admin.deleteExchange(testApplicationBootstrap.getUndeployerTopic());
-	}
 
 	@Test
 	public void mqttSourceStreamReceivesMqttSinkStreamOutput() throws Exception {

@@ -18,7 +18,6 @@ package org.springframework.xd.dirt.rest;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.mockito.Matchers.anyListOf;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -45,10 +44,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.dirt.module.ModuleRegistry;
-import org.springframework.xd.dirt.stream.DeploymentMessageSender;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
+import org.springframework.xd.dirt.stream.JobDeployer;
 import org.springframework.xd.dirt.stream.JobRepository;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
@@ -67,9 +65,6 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 	private static final String JOB_DEFINITION = "job --cron='*/10 * * * * *'";
 
 	@Autowired
-	private DeploymentMessageSender sender;
-
-	@Autowired
 	private ModuleRegistry moduleRegistry;
 
 	@Autowired
@@ -77,6 +72,9 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 
 	@Autowired
 	private JobRepository xdJobRepository;
+
+	@Autowired
+	private JobDeployer deployer;
 
 	@Before
 	public void before() {
@@ -111,7 +109,7 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 		mockMvc.perform(
 				post("/jobs").param("name", "job5").param("definition", JOB_DEFINITION).accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
-		verify(sender, times(1)).sendDeploymentRequests(eq("job5"), anyListOf(ModuleDeploymentRequest.class));
+		verify(deployer, times(1)).launch(eq("job5"), "");
 	}
 
 	@Test
@@ -121,7 +119,7 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
 		mockMvc.perform(put("/jobs/{name}/launch", "joblaunch").accept(MediaType.APPLICATION_JSON)).andExpect(
 				status().isOk());
-		verify(sender, times(2)).sendDeploymentRequests(eq("joblaunch"), anyListOf(ModuleDeploymentRequest.class));
+		verify(deployer, times(2)).launch(eq("joblaunch"), "");
 	}
 
 	@Test

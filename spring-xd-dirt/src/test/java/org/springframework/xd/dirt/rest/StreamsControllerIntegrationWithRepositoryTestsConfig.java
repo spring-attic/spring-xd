@@ -13,13 +13,10 @@
 
 package org.springframework.xd.dirt.rest;
 
-import static org.mockito.Mockito.mock;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.xd.dirt.module.memory.InMemoryModuleDependencyRepository;
-import org.springframework.xd.dirt.stream.DeploymentMessageSender;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamRepository;
 import org.springframework.xd.dirt.stream.memory.InMemoryStreamRepository;
@@ -47,12 +44,6 @@ public class StreamsControllerIntegrationWithRepositoryTestsConfig extends Depen
 	@Bean
 	public StreamRepository streamRepository() {
 		return new InMemoryStreamRepository();
-	}
-
-	@Override
-	@Bean
-	public DeploymentMessageSender deploymentMessageSender() {
-		return mock(DeploymentMessageSender.class);
 	}
 
 }

@@ -7,18 +7,12 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<int:channel id="deployChannel" />
-
 	<context:annotation-config/>
 
 	<bean id="parser" class="org.springframework.xd.dirt.stream.XDStreamParser">
 		<constructor-arg ref="streamDefinitionRepository"/>
 		<constructor-arg name="moduleDefinitionRepository" ref="moduleDefinitionRepository"/>
 		<constructor-arg name="moduleOptionsMetadataResolver" ref="moduleOptionsMetadataResolver"/>
-	</bean>
-	
-	<bean id="deploymentMessageSender" class="org.springframework.xd.dirt.stream.DeploymentMessageSender">
-		<constructor-arg name="deployChannel" ref="deployChannel" />
 	</bean>
 	
 	<!-- This service plays a similar supporting role to ModulesController as StreamDeployer does with StreamsController -->
@@ -34,7 +28,7 @@
 		<constructor-arg name="definitionRepository" ref="jobDefinitionRepository" />
 		<constructor-arg name="instanceRepository" ref="xdJobRepository" />
 		<constructor-arg name="parser" ref="parser" />
-		<constructor-arg name="messageSender" ref="deploymentMessageSender" />
+		<constructor-arg name="messageBus" ref="messageBus" />
 	</bean>
 
 </beans>

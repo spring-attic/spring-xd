@@ -16,10 +16,6 @@ package org.springframework.xd.dirt.server;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.integration.handler.BridgeHandler;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.SubscribableChannel;
-import org.springframework.xd.dirt.server.options.ResourcePatternScanningOptionHandlers;
 import org.springframework.xd.dirt.server.options.SingleNodeOptions;
 import org.springframework.xd.dirt.util.BannerUtils;
 
@@ -74,11 +70,6 @@ public class SingleNodeApplication {
 		containerContext = container.context();
 		pluginContext = (ConfigurableApplicationContext) containerContext.getParent();
 
-		String controlTransport = adminContext.getEnvironment().getProperty(
-				"XD_CONTROL_TRANSPORT");
-		if (ResourcePatternScanningOptionHandlers.SINGLE_NODE_LOCAL_CONTROL_TRANSPORT.equals(controlTransport)) {
-			setUpControlChannels(adminContext, containerContext);
-		}
 		return this;
 	}
 
@@ -108,19 +99,6 @@ public class SingleNodeApplication {
 
 	public ConfigurableApplicationContext containerContext() {
 		return containerContext;
-	}
-
-	private void setUpControlChannels(ApplicationContext adminContext, ApplicationContext containerContext) {
-
-		MessageChannel containerControlChannel = containerContext.getBean(
-				"containerControlChannel", MessageChannel.class);
-		SubscribableChannel deployChannel = adminContext.getBean(
-				"deployChannel", SubscribableChannel.class);
-
-		BridgeHandler handler = new BridgeHandler();
-		handler.setOutputChannel(containerControlChannel);
-		handler.setComponentName("xd.local.control.bridge");
-		deployChannel.subscribe(handler);
 	}
 
 }

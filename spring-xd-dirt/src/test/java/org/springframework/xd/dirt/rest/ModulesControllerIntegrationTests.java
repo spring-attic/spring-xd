@@ -46,7 +46,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleRegistry;
-import org.springframework.xd.dirt.stream.DeploymentMessageSender;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 
@@ -64,9 +63,6 @@ public class ModulesControllerIntegrationTests extends AbstractControllerIntegra
 
 	@Rule
 	public TemporaryFolder temporaryFolder = new TemporaryFolder();
-
-	@Autowired
-	private DeploymentMessageSender sender;
 
 	@Autowired
 	private ModuleRegistry moduleRegistry;

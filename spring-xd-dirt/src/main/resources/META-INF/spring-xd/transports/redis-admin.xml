@@ -7,14 +7,4 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd">
 
-	<import resource="redis-common.xml" />
-
-	<int-redis:queue-outbound-channel-adapter id="deployAdapter"
-		channel="deployChannel"
-		connection-factory="redisConnectionFactory"
-		queue="${xd.deployer.queue:queue.deployer}"
-		extract-payload="false" 
-		serializer="redisSerializer"
-		/>
-
 </beans>

@@ -34,6 +34,8 @@ import org.springframework.batch.core.repository.dao.JdbcExecutionContextDao;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.x.bus.LocalMessageBus;
+import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.xd.analytics.metrics.core.AggregateCounterRepository;
 import org.springframework.xd.analytics.metrics.core.CounterRepository;
 import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository;
@@ -50,7 +52,6 @@ import org.springframework.xd.dirt.module.store.RuntimeModuleInfoRepository;
 import org.springframework.xd.dirt.plugins.job.DistributedJobLocator;
 import org.springframework.xd.dirt.plugins.job.DistributedJobService;
 import org.springframework.xd.dirt.stream.CompositeModuleDefinitionService;
-import org.springframework.xd.dirt.stream.DeploymentMessageSender;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.JobDeployer;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
@@ -118,8 +119,8 @@ public class Dependencies {
 	}
 
 	@Bean
-	public DeploymentMessageSender deploymentMessageSender() {
-		return mock(DeploymentMessageSender.class);
+	public MessageBus messageBus() {
+		return new LocalMessageBus();
 	}
 
 	@Bean
@@ -135,7 +136,7 @@ public class Dependencies {
 
 	@Bean
 	public JobDeployer jobDeployer() {
-		return new JobDeployer(jobDefinitionRepository(), xdJobRepository(), parser(), deploymentMessageSender());
+		return new JobDeployer(jobDefinitionRepository(), xdJobRepository(), parser(), messageBus());
 	}
 
 	@Bean

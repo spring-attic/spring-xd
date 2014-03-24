@@ -100,7 +100,7 @@ ext {
 	mockitoVersion = '1.9.5'
 	reactorVersion = '1.1.0.BUILD-SNAPSHOT'
 	reactorSpringVersion = '1.1.0.BUILD-SNAPSHOT'
-	slf4jVersion = '1.7.5'
+	slf4jVersion = '1.7.6'
 	snakeYamlVersion = '1.12'
 	springAmqpVersion = '1.3.0.RC1'
 	springBatchAdminMgrVersion = '1.3.0.M1'
@@ -134,7 +134,7 @@ ext {
 	singleNodeServerProcess = new SingleNodeServerProcess()
 }
 
-def forceSpringVersion(p) {
+def forceDependencyVersions(p) {
 	p.configurations.all {
 		resolutionStrategy {
 			eachDependency { DependencyResolveDetails details ->
@@ -144,6 +144,9 @@ def forceSpringVersion(p) {
 				}
 				if (details.requested.group == 'org.springframework.amqp') {
 					details.useVersion "$springAmqpVersion"
+				}
+				if (details.requested.group == 'org.slf4j') {
+					details.useVersion "$slf4jVersion"
 				}
 			}
 		}
@@ -158,7 +161,7 @@ configure(javaProjects) { subproject ->
 	apply plugin: 'idea'
 	apply plugin: 'javadocHotfix'
 
-	forceSpringVersion(subproject)
+	forceDependencyVersions(subproject)
 
 	compileJava {
 		sourceCompatibility=1.6
@@ -296,7 +299,7 @@ configure(moduleProjects) { moduleProject ->
 	apply plugin: 'eclipse'
 	apply plugin: 'idea'
 
-	forceSpringVersion(moduleProject)
+	forceDependencyVersions(moduleProject)
 
 	eclipse {
 		project { natures += 'org.springframework.ide.eclipse.core.springnature' }

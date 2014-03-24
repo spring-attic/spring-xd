@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.integration.fixtures;
+package org.springframework.xd.shell.command.fixtures;
 
-import org.springframework.xd.shell.command.fixtures.AbstractModuleFixture;
 
 
 /**
- * Used to generate the sink portion of a stream.
+ * Used to generate the file sink portion of a stream.  
+ * Used by Acceptance testing because it does not extend disposable.
  * 
  * @author Glenn Renfro
  */
-public class FileSink extends AbstractModuleFixture {
+public class SimpleFileSink extends AbstractModuleFixture {
 
 	private String dir;
 
@@ -46,12 +46,12 @@ public class FileSink extends AbstractModuleFixture {
 		return result;
 	}
 
-	public FileSink() {
+	public SimpleFileSink() {
 		dir = null;
 		fileName = null;
 	}
 
-	public FileSink(String dir, String fileName) {
+	public SimpleFileSink(String dir, String fileName) {
 		this.dir = dir;
 		this.fileName = fileName;
 	}

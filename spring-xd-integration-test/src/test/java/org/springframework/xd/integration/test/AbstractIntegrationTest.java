@@ -26,10 +26,8 @@ import java.util.List;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
-
 import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.JLineShellComponent;
-import org.springframework.xd.integration.fixtures.FileSink;
 import org.springframework.xd.integration.fixtures.Sinks;
 import org.springframework.xd.integration.fixtures.Sources;
 import org.springframework.xd.integration.util.ConfigUtil;
@@ -38,6 +36,7 @@ import org.springframework.xd.integration.util.XdEc2Validation;
 import org.springframework.xd.integration.util.XdEnvironment;
 import org.springframework.xd.shell.command.fixtures.AbstractModuleFixture;
 import org.springframework.xd.shell.command.fixtures.LogSink;
+import org.springframework.xd.shell.command.fixtures.SimpleFileSink;
 import org.springframework.xd.test.RandomConfigurationSupport;
 
 /**
@@ -193,7 +192,7 @@ public abstract class AbstractIntegrationTest {
 	 */
 	public void assertValid(String data, AbstractModuleFixture sinkInstance) throws IOException {
 
-		if (sinkInstance.getClass().equals(FileSink.class)) {
+		if (sinkInstance.getClass().equals(SimpleFileSink.class)) {
 			assertValidFile(data, getContainerForStream(STREAM_NAME), STREAM_NAME);
 		}
 		if (sinkInstance.getClass().equals(LogSink.class)) {

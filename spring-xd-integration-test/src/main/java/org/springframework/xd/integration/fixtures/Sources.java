@@ -21,6 +21,8 @@ import java.util.List;
 
 import org.springframework.shell.core.JLineShellComponent;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
+import org.springframework.xd.shell.command.fixtures.SimpleFileSource;
+import org.springframework.xd.shell.command.fixtures.SimpleTailSource;
 import org.springframework.xd.shell.command.fixtures.TcpSource;
 
 
@@ -73,11 +75,11 @@ public class Sources {
 		return new TcpSource(containers.get(0).getHost(), port);
 	}
 
-	public TailSource tail(int delay, String fileName) throws Exception {
-		return new TailSource(delay, fileName);
+	public SimpleTailSource tail(int delay, String fileName) throws Exception {
+		return new SimpleTailSource(delay, fileName);
 	}
 
-	public FileSource file(String dir, String fileName) throws Exception {
-		return new FileSource(dir, fileName);
+	public SimpleFileSource file(String dir, String fileName) throws Exception {
+		return new SimpleFileSource(dir, fileName);
 	}
 }

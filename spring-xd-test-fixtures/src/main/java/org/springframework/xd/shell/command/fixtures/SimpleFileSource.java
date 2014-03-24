@@ -14,22 +14,21 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.integration.fixtures;
+package org.springframework.xd.shell.command.fixtures;
 
-import org.springframework.xd.shell.command.fixtures.AbstractModuleFixture;
 
 
 /**
- * 
- * @author renfrg
+ * Used by acceptance tests because it does not extend disposable.
+ * @author Glenn Renfro
  */
-public class FileSource extends AbstractModuleFixture {
+public class SimpleFileSource extends AbstractModuleFixture {
 
 	private String dir;
 
 	private String fileName;
 
-	public FileSource(String dir, String fileName) throws Exception {
+	public SimpleFileSource(String dir, String fileName) throws Exception {
 		this.dir = dir;
 		this.fileName = fileName;
 	}
@@ -39,9 +38,9 @@ public class FileSource extends AbstractModuleFixture {
 		return String.format("file --dir=%s --pattern='%s'", dir, fileName);
 	}
 
-	public FileSource() throws Exception {
+	public SimpleFileSource() throws Exception {
 		dir = "";
-		fileName = FileSource.class.getName();
+		fileName = SimpleFileSource.class.getName();
 	}
 
 }

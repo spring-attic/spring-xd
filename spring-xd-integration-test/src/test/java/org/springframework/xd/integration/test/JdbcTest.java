@@ -22,10 +22,8 @@ import java.util.UUID;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.xd.shell.command.fixtures.JdbcSink;
-import org.springframework.xd.test.jdbc.JdbcTestSupport;
 
 
 /**
@@ -42,17 +40,10 @@ public class JdbcTest extends AbstractIntegrationTest {
 
 	String CONFIG_FILE = "accJdbc";
 	
-	@ClassRule
-	public static JdbcTestSupport jdbcAvailableRule = new JdbcTestSupport();
-
 
 	@Before
 	public void initialize() throws Exception {
 		jdbcSink = sinks.jdbc();
-		if (jdbcSink == null) {
-			return;
-		}
-		jdbcSink = jdbcSink.start();
 		tableName = "acceptanceTEST12345";
 		jdbcSink.tableName(tableName);
 		jdbcSink.configFile(CONFIG_FILE);

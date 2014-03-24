@@ -24,10 +24,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-
-import org.springframework.xd.integration.fixtures.FileSink;
 import org.springframework.xd.shell.command.fixtures.AbstractModuleFixture;
 import org.springframework.xd.shell.command.fixtures.LogSink;
+import org.springframework.xd.shell.command.fixtures.SimpleFileSink;
 
 /**
  * @author Glenn Renfro
@@ -65,7 +64,7 @@ public class HttpTest extends AbstractIntegrationTest {
 	 */
 	@Parameters
 	public static Collection<Object[]> sink() {
-		Object[][] sink = { { FileSink.class }, { LogSink.class } };
+		Object[][] sink = { { SimpleFileSink.class }, { LogSink.class } };
 		return Arrays.asList(sink);
 	}
 }

@@ -16,7 +16,9 @@
 
 package org.springframework.xd.shell.command.fixtures;
 
+import java.sql.Connection;
 import java.sql.Driver;
+import java.sql.SQLException;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.SimpleDriverDataSource;
@@ -140,6 +142,37 @@ public class JdbcSink extends AbstractModuleFixture implements Disposable {
 	public JdbcSink configFile(String configFileName) {
 		this.configFileName = configFileName;
 		return this;
+	}
+
+	/**
+	 * Determines if a connection to the designated database can be made.
+	 * 
+	 * @return true if a connection can be made. False if not.
+	 */
+	public boolean isReady() {
+		boolean result = true;
+		Connection conn = null;
+		try {
+			if (url == null || dbname == null
+					|| driver == null) {
+				throw new Exception("Required Env Variables Missing.");
+			}
+			conn = getJdbcTemplate().getDataSource().getConnection();
+		}
+		catch (Exception ex) {
+			result = false;
+		}
+		finally {
+			if (conn != null) {
+				try {
+					conn.close();
+				}
+				catch (SQLException se) {
+					// ignore exception. Sorry PMD.
+				}
+			}
+		}
+		return result;
 	}
 
 }

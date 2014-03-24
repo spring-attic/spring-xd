@@ -23,6 +23,7 @@ import org.springframework.xd.integration.util.XdEnvironment;
 import org.springframework.xd.shell.command.fixtures.AbstractModuleFixture;
 import org.springframework.xd.shell.command.fixtures.JdbcSink;
 import org.springframework.xd.shell.command.fixtures.LogSink;
+import org.springframework.xd.shell.command.fixtures.SimpleFileSink;
 import org.springframework.xd.shell.command.fixtures.TcpSink;
 
 
@@ -63,8 +64,8 @@ public class Sinks {
 		if (clazzName.equals("org.springframework.xd.shell.command.fixtures.LogSink")) {
 			result = new LogSink("logsink");
 		}
-		if (clazzName.equals("org.springframework.xd.integration.fixtures.FileSink")) {
-			result = new FileSink();
+		if (clazzName.equals("org.springframework.xd.shell.command.fixtures.SimpleFileSink")) {
+			result = new SimpleFileSink();
 		}
 		if (clazzName.equals("org.springframework.xd.shell.command.fixtures.TcpSink")) {
 			result = new TcpSink(TCP_SINK_PORT);
@@ -83,11 +84,11 @@ public class Sinks {
 		return new TcpSink(port);
 	}
 
-	public FileSink file(String dir, String fileName) {
-		return new FileSink(dir, fileName);
+	public SimpleFileSink file(String dir, String fileName) {
+		return new SimpleFileSink(dir, fileName);
 	}
 
-	public JdbcSink jdbc() {
+	public JdbcSink jdbc() throws Exception{
 		if (environment.getJdbcUrl() == null) {
 			return null;
 		}
@@ -103,6 +104,11 @@ public class Sinks {
 			jdbcSink.password(environment.getJdbcPassword());
 		}
 
+		jdbcSink = jdbcSink.start();
+
+		if(!jdbcSink.isReady()){
+			throw new Exception ("Unable to connecto to database.");
+		}
 		return jdbcSink;
 	}
 

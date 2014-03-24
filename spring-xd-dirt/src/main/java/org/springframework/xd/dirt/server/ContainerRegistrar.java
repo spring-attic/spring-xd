@@ -220,12 +220,13 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 
 	/**
 	 * Undeploy the requested module. </p> TODO: this is a placeholder
-	 * 
+	 *
+	 * @param streamName  name of the stream for the module
 	 * @param moduleLabel module label
-	 * @param moduleType module type
+	 * @param moduleType  module type
 	 */
-	protected void undeployModule(String moduleLabel, String moduleType) {
-		ModuleDescriptor.Key key = new ModuleDescriptor.Key(ModuleType.valueOf(moduleType), moduleLabel);
+	protected void undeployModule(String streamName, String moduleLabel, String moduleType) {
+		ModuleDescriptor.Key key = new ModuleDescriptor.Key(streamName, ModuleType.valueOf(moduleType), moduleLabel);
 		ModuleDescriptor descriptor = mapDeployedModules.get(key);
 		if (descriptor == null) {
 			LOG.trace("Module {} already undeployed", moduleLabel);
@@ -427,19 +428,20 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	 */
 	private void onChildRemoved(CuratorFramework client, ChildData data) throws Exception {
 		DeploymentsPath deploymentsPath = new DeploymentsPath(data.getPath());
+		String streamName = deploymentsPath.getStreamName();
 		String moduleType = deploymentsPath.getModuleType();
 		String moduleLabel = deploymentsPath.getModuleLabel();
 
-		undeployModule(moduleLabel, moduleType);
+		undeployModule(streamName, moduleLabel, moduleType);
 
-		String path = null;
+		String path;
 		if (ModuleType.job.toString().equals(moduleType)) {
-			path = new JobsPath().setJobName(deploymentsPath.getStreamName())
+			path = new JobsPath().setJobName(streamName)
 					.setModuleLabel(moduleLabel)
 					.setContainer(containerMetadata.getId()).build();
 		}
 		else {
-			path = new StreamsPath().setStreamName(deploymentsPath.getStreamName())
+			path = new StreamsPath().setStreamName(streamName)
 					.setModuleType(moduleType)
 					.setModuleLabel(moduleLabel)
 					.setContainer(containerMetadata.getId()).build();
@@ -525,7 +527,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 				String moduleType = streamsPath.getModuleType();
 				String moduleLabel = streamsPath.getModuleLabel();
 
-				undeployModule(moduleLabel, moduleType);
+				undeployModule(streamName, moduleLabel, moduleType);
 
 				String deploymentPath = new DeploymentsPath()
 						.setContainer(containerMetadata.getId())
@@ -563,7 +565,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 				String jobName = jobsPath.getJobName();
 				String moduleLabel = jobsPath.getModuleLabel();
 
-				undeployModule(jobName, ModuleType.job.toString());
+				undeployModule(jobName, jobName, ModuleType.job.toString());
 
 				String deploymentPath = new DeploymentsPath()
 						.setContainer(containerMetadata.getId())

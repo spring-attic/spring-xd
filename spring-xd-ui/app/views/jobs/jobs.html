@@ -1,17 +1,30 @@
-
 <h1>Batch Jobs</h1>
-<p class="index-page--subtitle">The section allows you to create and deploy new Batch Job Definitions, to Launch
-Batch Jobs and to monitor the execution of Batch Jobs.</p>
-
+<p ng-class="{ hide: !$state.includes('home.jobs.modules') }" class="index-page--subtitle"> This section lists all the
+    available batch job modules.
+</p>
+<p ng-class="{ hide: !$state.includes('home.jobs.definitions') }" class="index-page--subtitle">This section lists all
+    the batch job definitions and allows you to <a href="https://github.com/spring-projects/spring-xd/wiki/Batch-Jobs#creating-a-job">
+        deploy</a>/<a href="https://github.com/spring-projects/spring-xd/wiki/Batch-Jobs#removing-batch-jobs">undeploy</a> them.
+</p>
+<p ng-class="{ hide: !$state.includes('home.jobs.deployments') }" class="index-page--subtitle">This section lists all
+    the available batch job deployments and allows you to
+    <a href="https://github.com/spring-projects/spring-xd/wiki/Batch-Jobs#launching-a-job">launch</a> them.
+</p>
+<p ng-class="{ hide: !$state.includes('home.jobs.executions') }" class="index-page--subtitle">This section lists all the
+    available batch job executions and provides the control to restart the job execution (if restartable).
+</p>
 <div class="tab-pane active col-md-12" id="xd-jobs">
-	<ul class="nav nav-tabs">
-		<li ng-class="{ active: $state.includes('home.jobs.modules') }"><a ui-sref="home.jobs.modules">Modules</a></li>
-		<li ng-class="{ active: $state.includes('home.jobs.definitions') }"><a ui-sref="home.jobs.definitions">Definitions</a></li>
-		<li ng-class="{ active: $state.includes('home.jobs.deployments') }"><a ui-sref="home.jobs.deployments">Deployments</a></li>
-		<!--<li ng-class="{ active: $state.includes('home.jobs.scheduledJobs') }"><a ui-sref="home.jobs.scheduledJobs">Scheduled</a></li>-->
-		<li ng-class="{ active: $state.includes('home.jobs.executions') }"><a ui-sref="home.jobs.executions">Executions</a></li>
-	</ul>
-	<div class="tab-content">
-		<div ui-view></div>
-	</div>
+    <ul class="nav nav-tabs">
+        <li ng-class="{ active: $state.includes('home.jobs.modules') }"><a ui-sref="home.jobs.modules">Modules</a></li>
+        <li ng-class="{ active: $state.includes('home.jobs.definitions') }"><a ui-sref="home.jobs.definitions">Definitions</a>
+        </li>
+        <li ng-class="{ active: $state.includes('home.jobs.deployments') }"><a ui-sref="home.jobs.deployments">Deployments</a>
+        </li>
+        <!--<li ng-class="{ active: $state.includes('home.jobs.scheduledJobs') }"><a ui-sref="home.jobs.scheduledJobs">Scheduled</a></li>-->
+        <li ng-class="{ active: $state.includes('home.jobs.executions') }"><a
+                ui-sref="home.jobs.executions">Executions</a></li>
+    </ul>
+    <div class="tab-content">
+        <div ui-view></div>
+    </div>
 </div>

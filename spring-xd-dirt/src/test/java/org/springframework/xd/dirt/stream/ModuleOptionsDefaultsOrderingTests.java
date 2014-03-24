@@ -43,8 +43,8 @@ import org.springframework.xd.module.options.EnvironmentAwareModuleOptionsMetada
  * <li>inline DSL option in the stream definition</li>
  * <li>System properties</li>
  * <li>Environment variables (not tested, but assimilated to the above)</li>
- * <li>the "xd-config.yml" file (driven by {@code spring.config.location} property)
- * <li>application.yml file (tested here by providing a different name with {@code -Dspring.config.name})</li>
+ * <li>values in the {@code <root>/<type>/<module>/<module>.properties} file</li>
+ * <li>values in the {@code <root>/xd-module-config.yml} file</li>
  * <li>the actual module default</li>
  * </ol>
  */
@@ -58,8 +58,8 @@ public class ModuleOptionsDefaultsOrderingTests {
 	public void testStreamDefinitionComes1st() {
 		dslDefinition += " --expression='''dsl'''";
 		System.setProperty("processor.transform.expression", "'systemprop'");
-		System.setProperty("spring.config.location", "classpath:/ModuleOptionsDefaultsOrderingTests-xd-config.yml");
-		System.setProperty("spring.config.name", "application-test");
+		System.setProperty("xd.module.config.location", "classpath:/ModuleOptionsDefaultsOrderingTests-module-config/");
+		System.setProperty("xd.module.config.name", "test-xd-module-config");
 
 		runTest("dsl");
 	}
@@ -69,28 +69,31 @@ public class ModuleOptionsDefaultsOrderingTests {
 	public void testSystemPropsAndEnvCome2nd() {
 		// dslDefinition += " --expression='''dsl'''";
 		System.setProperty("processor.transform.expression", "'systemprop'");
-		System.setProperty("spring.config.location", "classpath:/ModuleOptionsDefaultsOrderingTests-xd-config.yml");
-		System.setProperty("spring.config.name", "application-test");
+		System.setProperty("xd.module.config.location",
+				"classpath:/ModuleOptionsDefaultsOrderingTests-module-config-with-leaf/");
+		System.setProperty("xd.module.config.name", "test-xd-module-config");
 		runTest("systemprop");
 
 	}
 
 	@Test
-	public void testXdConfigComes3rd() {
+	public void testXdModuleConfigLeavesComes3rd() {
 		// dslDefinition += " --expression='''dsl'''";
 		// System.setProperty("processor.transform.expression", "'systemprop'");
-		System.setProperty("spring.config.location", "classpath:/ModuleOptionsDefaultsOrderingTests-xd-config.yml");
-		System.setProperty("spring.config.name", "application-test");
-		runTest("xd-config-value");
+		System.setProperty("xd.module.config.location",
+				"classpath:/ModuleOptionsDefaultsOrderingTests-module-config-with-leaf/");
+		System.setProperty("xd.module.config.name", "test-xd-module-config");
+		runTest("value-from-properties-file");
 	}
 
 	@Test
-	public void testApplicationCome4th() {
+	public void testXdModuleConfigRootComes4th() {
 		// dslDefinition += " --expression='''dsl'''";
 		// System.setProperty("processor.transform.expression", "'systemprop'");
-		// System.setProperty("spring.config.location", "classpath:/ModuleOptionsDefaultsOrderingTests-xd-config.yml");
-		System.setProperty("spring.config.name", "application-test");
-		runTest("application-value");
+		System.setProperty("xd.module.config.location",
+				"classpath:/ModuleOptionsDefaultsOrderingTests-module-config-without-leaf/");
+		System.setProperty("xd.module.config.name", "test-xd-module-config");
+		runTest("global-value");
 	}
 
 	@Test

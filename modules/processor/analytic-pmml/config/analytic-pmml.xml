@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns:beans="http://www.springframework.org/schema/beans"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns="http://www.springframework.org/schema/integration"
+             xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+    <channel id="input"/>
+
+    <transformer input-channel="input" output-channel="output" method="transform">
+
+        <beans:bean class="org.springframework.xd.analytics.ml.AnalyticProcessor">
+
+            <beans:description>
+                <![CDATA[
+Allows the definition of an XD stream processor element that encodes analytic logic via PMML.
+
+Note:
+inputFields -> Mapping of input tuple field to model input field.
+outputFields -> Mapping of model output field to output field.
+
+The PMML file to use is derived from the analyticName, e.g.:
+iris-flower-classification-naive-bayes-1 -> iris-flower-classification-naive-bayes-1.pmml.xml
+
+# Create the stream definition
+stream create
+--name iris-flow-classification
+--definition "http | analytic-pmml --analyticName='iris-flower-classification-naive-bayes-1' --inputFields='sepalLength:Sepal.Length,sepalWidth:Sepal.Width,petalLength:Petal.Length,petalWidth:Petal.Width' --outputFields='Predicted_Species:predictedSpecies' | log"
+
+#Post some data to the stream
+http post --target http://localhost:9000 --contentType application/x-xd-tuple --data "{ \"sepalLength\": 6.4, \"sepalWidth\": 3.2, \"petalLength\":4.5, \"petalWidth\":1.5 }"
+
+# See the output in the log, note the generated field: "predictedSpecies".
+Output:
+4/03/22 17:46:20 WARN logger.iris-flow-classification:
+{
+	"id":"7eeee430-b1e1-11e3-b13d-28cfe918b323"
+	,"timestamp":1395506780659
+	,"sepalLength":"6.4"
+	,"sepalWidth":"3.2"
+	,"petalLength":"4.5"
+	,"petalWidth":"1.5"
+	,"predictedSpecies":"setosa"
+}
+                ]]>
+            </beans:description>
+
+            <beans:property name="analytic">
+                <beans:bean class="org.springframework.xd.analytics.ml.pmml.PmmlAnalytic">
+                    <beans:constructor-arg index="0" value="${analyticName}"/>
+                    <beans:constructor-arg index="1" ref="${pmmlResolver:fileSystemPmmlResolver}"/>
+                    <beans:constructor-arg index="2" ref="${inputMapper:tupleInputMapper}"/>
+                    <beans:constructor-arg index="3" ref="${outputMapper:tupleOutputMapper}"/>
+                </beans:bean>
+            </beans:property>
+        </beans:bean>
+    </transformer>
+
+    <beans:bean id="fileSystemPmmlResolver" class="org.springframework.xd.analytics.ml.pmml.FileSystemPmmlResolver">
+        <beans:constructor-arg index="0" value="${analyticsDir:${XD_HOME}/analytics}"/>
+    </beans:bean>
+
+    <beans:bean id="tupleInputMapper" class="org.springframework.xd.analytics.ml.pmml.PmmlAnalyticTupleInputMapper">
+        <beans:constructor-arg index="0" value="${inputFields:null}"/>
+    </beans:bean>
+
+    <beans:bean id="tupleOutputMapper" class="org.springframework.xd.analytics.ml.pmml.PmmlAnalyticTupleOutputMapper">
+        <beans:constructor-arg index="0" value="${outputFields:null}"/>
+    </beans:bean>
+
+    <channel id="output"/>
+
+</beans:beans>

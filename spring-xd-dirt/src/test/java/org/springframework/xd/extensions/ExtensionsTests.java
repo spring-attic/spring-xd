@@ -33,16 +33,15 @@ import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.util.MimeType;
 import org.springframework.xd.dirt.plugins.stream.ModuleTypeConversionPlugin;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
+import org.springframework.xd.dirt.server.TestApplicationBootstrap;
 import org.springframework.xd.extensions.test.MyMessageBus;
 import org.springframework.xd.extensions.test.StubPojoToStringConverter;
-import org.springframework.xd.test.RandomConfigurationSupport;
 
 
 /**
- *
  * @author David Turanski
  */
-public class ExtensionsTests extends RandomConfigurationSupport {
+public class ExtensionsTests {
 
 	private static SingleNodeApplication application;
 
@@ -55,7 +54,7 @@ public class ExtensionsTests extends RandomConfigurationSupport {
 		String currentDir = new File(".").getAbsolutePath();
 		originalConfigLocation = System.getProperty("spring.config.location");
 		System.setProperty("spring.config.location", currentDir + "/src/test/resources/extensions/extensions-test.yml");
-		application = new SingleNodeApplication().run();
+		application = new TestApplicationBootstrap().getSingleNodeApplication().run();
 		context = application.pluginContext();
 	}
 

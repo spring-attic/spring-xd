@@ -199,15 +199,7 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 
 	@Override
 	public void deleteAll() {
-		try {
-			zkConnection.getClient().inTransaction()
-					.delete().forPath(Paths.STREAMS)
-					.and().create().forPath(Paths.STREAMS)
-					.and().commit();
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+		delete(findAll());
 	}
 
 	@Override

@@ -190,15 +190,7 @@ public class ZooKeeperJobDefinitionRepository implements JobDefinitionRepository
 
 	@Override
 	public void deleteAll() {
-		try {
-			zkConnection.getClient().inTransaction()
-					.delete().forPath(Paths.JOBS)
-					.and().create().forPath(Paths.JOBS)
-					.and().commit();
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+		delete(findAll());
 	}
 
 	@Override

@@ -70,11 +70,19 @@ public class SharedServerContextConfiguration {
 		@Bean
 		@ConditionalOnExpression("'${zk.client.connect}'.isEmpty()")
 		EmbeddedZooKeeper embeddedZooKeeper() {
-			return new EmbeddedZooKeeper();
+			if (zkEmbeddedServerPort != null) {
+				return new EmbeddedZooKeeper(zkEmbeddedServerPort);
+			}
+			else {
+				return new EmbeddedZooKeeper();
+			}
 		}
 
 		@Value("${zk.client.connect:}")
 		private String zkClientConnect;
+
+		@Value("${zk.embedded.server.port:}")
+		private Integer zkEmbeddedServerPort;
 
 		// This is autowired, but not required, since the EmbeddedZooKeeper instance is conditional.
 		@Autowired(required = false)

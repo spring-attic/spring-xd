@@ -56,7 +56,6 @@ public abstract class AbstractSingleNodeInitializationTests {
 		this.singleNodeApplication = testApplicationBootstrap.getSingleNodeApplication();
 		String[] args = {};
 		args = addArgIfProvided(args, "transport", getTransport());
-		System.setProperty("zk.client.connect", "localhost:2181");
 		singleNodeApplication.run(args);
 
 		this.pluginContext = (AbstractApplicationContext) this.singleNodeApplication.pluginContext();

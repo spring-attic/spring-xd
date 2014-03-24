@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
@@ -213,7 +214,9 @@ public class ContainerListener implements PathChildrenCacheListener {
 		String path = data.getPath();
 		String container = Paths.stripPath(path);
 		LOG.info("Container departed: {}", container);
-
+		if (client.getState() == CuratorFrameworkState.STOPPED) {
+			return;
+		}
 		try {
 			Map<String, Stream> streamMap = new HashMap<String, Stream>();
 			String containerDeployments = Paths.build(Paths.DEPLOYMENTS, container);

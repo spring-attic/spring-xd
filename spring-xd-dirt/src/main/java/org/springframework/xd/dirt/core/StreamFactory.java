@@ -80,8 +80,8 @@ public class StreamFactory {
 			else if (i == 0 && rawModuleDefinition.contains(">")) {
 				rawModuleDefinition = rawModuleDefinition.split(">")[0].trim();
 			}
-			if (rawModuleDefinition.contains(":")) {
-				String[] split = rawModuleDefinition.split("\\:");
+			if (rawModuleDefinition.contains(": ")) {
+				String[] split = rawModuleDefinition.split("\\: ");
 				label = split[0].trim();
 			}
 			else {

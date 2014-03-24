@@ -1,0 +1,33 @@
+<PMML version="4.1" xmlns="http://www.dmg.org/PMML-4_1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.dmg.org/PMML-4_1 http://www.dmg.org/v4-1/pmml-4-1.xsd">
+    <Header copyright="Copyright (c) 2014 tom" description="arules association rules model">
+        <Extension name="user" value="tom" extender="Rattle/PMML"/>
+        <Application name="Rattle/PMML" version="1.4"/>
+        <Timestamp>2014-03-16 01:20:57</Timestamp>
+    </Header>
+    <DataDictionary numberOfFields="2">
+        <DataField name="transaction" optype="categorical" dataType="string"/>
+        <DataField name="item" optype="categorical" dataType="string"/>
+    </DataDictionary>
+    <AssociationModel functionName="associationRules" numberOfTransactions="7" numberOfItems="6" minimumSupport="0.5"
+                      minimumConfidence="0.9" numberOfItemsets="2" numberOfRules="1">
+        <MiningSchema>
+            <MiningField name="transaction" usageType="group"/>
+            <MiningField name="item" usageType="active"/>
+        </MiningSchema>
+        <Item id="1" value="Choclates"/>
+        <Item id="2" value="Coke"/>
+        <Item id="3" value="Cookies"/>
+        <Item id="4" value="Eraser"/>
+        <Item id="5" value="Marker"/>
+        <Item id="6" value="Pencil"/>
+        <Itemset id="1" numberOfItems="1">
+            <ItemRef itemRef="1"/>
+        </Itemset>
+        <Itemset id="2" numberOfItems="1">
+            <ItemRef itemRef="6"/>
+        </Itemset>
+        <AssociationRule support="0.571428571428571" confidence="1" lift="1.16666666666667" antecedent="1"
+                         consequent="2"/>
+    </AssociationModel>
+</PMML>

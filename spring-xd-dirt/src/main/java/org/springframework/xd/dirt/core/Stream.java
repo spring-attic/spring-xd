@@ -395,7 +395,9 @@ public class Stream {
 		 * @return this builder
 		 */
 		public Builder setSourceChannelName(String sourceChannelName) {
-			Assert.isTrue(moduleDefinitions.isEmpty() || ModuleType.source != moduleDefinitions.get(0).getType(),
+
+			Assert.isTrue(moduleDefinitions.isEmpty()
+					|| ModuleType.source != moduleDefinitions.values().iterator().next().getType(),
 					"cannot have both a source module and a source channel");
 			this.sourceChannelName = sourceChannelName;
 			return this;
@@ -409,8 +411,11 @@ public class Stream {
 		 * @return this builder
 		 */
 		public Builder setSinkChannelName(String sinkChannelName) {
-			Assert.isTrue(moduleDefinitions.isEmpty()
-					|| ModuleType.sink != moduleDefinitions.get(moduleDefinitions.size() - 1).getType(),
+			ArrayList moduleDefinitionList = new ArrayList<ModuleDefinition>(moduleDefinitions.values());
+			Assert.isTrue(
+					moduleDefinitionList.isEmpty()
+							|| ModuleType.sink !=
+							moduleDefinitionList.get(moduleDefinitionList.size() - 1),
 					"cannot have both a sink module and a sink channel");
 			this.sinkChannelName = sinkChannelName;
 			return this;

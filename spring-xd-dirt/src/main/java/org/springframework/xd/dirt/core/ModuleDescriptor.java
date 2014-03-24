@@ -197,7 +197,7 @@ public class ModuleDescriptor {
 	 * @return key that can be used to refer to this object
 	 */
 	public Key newKey() {
-		return new Key(moduleDefinition.getType(), label);
+		return new Key(streamName, moduleDefinition.getType(), label);
 	}
 
 	/**
@@ -216,6 +216,11 @@ public class ModuleDescriptor {
 	public static class Key implements Comparable<Key> {
 
 		/**
+		 * Stream name.
+		 */
+		private final String stream;
+
+		/**
 		 * Module type.
 		 */
 		private final ModuleType type;
@@ -227,15 +232,27 @@ public class ModuleDescriptor {
 
 		/**
 		 * Construct a key.
-		 * 
-		 * @param type module type
-		 * @param label module label
+		 *
+		 * @param stream stream name
+		 * @param type   module type
+		 * @param label  module label
 		 */
-		public Key(ModuleType type, String label) {
+		public Key(String stream, ModuleType type, String label) {
+			Assert.notNull(stream, "Stream is required");
 			Assert.notNull(type, "Type is required");
 			Assert.hasText(label, "Label is required");
+			this.stream = stream;
 			this.type = type;
 			this.label = label;
+		}
+
+		/**
+		 * Return the name of the stream.
+		 *
+		 * @return stream name
+		 */
+		public String getStream() {
+			return stream;
 		}
 
 		/**
@@ -279,7 +296,8 @@ public class ModuleDescriptor {
 
 			if (o instanceof Key) {
 				Key other = (Key) o;
-				return type.equals(other.getType()) && label.equals(other.getLabel());
+				return stream.equals(other.getStream())
+						&& type.equals(other.getType()) && label.equals(other.getLabel());
 			}
 
 			return false;
@@ -290,7 +308,8 @@ public class ModuleDescriptor {
 		 */
 		@Override
 		public int hashCode() {
-			int result = type.hashCode();
+			int result = stream.hashCode();
+			result = 31 * result + type.hashCode();
 			result = 31 * result + label.hashCode();
 			return result;
 		}
@@ -301,9 +320,11 @@ public class ModuleDescriptor {
 		@Override
 		public String toString() {
 			return "Key{" +
-					"type=" + type +
+					"stream='" + stream + '\'' +
+					", type=" + type +
 					", label='" + label + '\'' +
 					'}';
 		}
+
 	}
 }

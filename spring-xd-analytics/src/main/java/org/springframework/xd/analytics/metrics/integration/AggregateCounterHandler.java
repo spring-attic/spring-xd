@@ -31,6 +31,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.xd.analytics.metrics.core.AggregateCounterRepository;
 
 /**
@@ -59,14 +60,22 @@ public class AggregateCounterHandler implements BeanFactoryAware, InitializingBe
 	}
 
 	public void setExpression(String expressionString) {
-		Expression expression = new SpelExpressionParser().parseExpression(expressionString);
-		this.processor = new ExpressionEvaluatingMessageProcessor<Object>(expression);
+		if (StringUtils.hasLength(expressionString)) {
+			Expression expression = new SpelExpressionParser().parseExpression(expressionString);
+			this.processor = new ExpressionEvaluatingMessageProcessor<Object>(expression);
+		}
+		else {
+			this.processor = null;
+		}
 	}
 
 
 	public Message<?> process(Message<?> message) throws ParseException {
 		if (message == null) {
 			return null;
+		}
+		if (processor == null) {
+			this.aggregateCounterRepository.increment(counterName, 1);
 		}
 		else {
 			Object timestampObject = processor.processMessage(message);
@@ -89,7 +98,7 @@ public class AggregateCounterHandler implements BeanFactoryAware, InitializingBe
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		if (this.beanFactory != null) {
+		if (this.beanFactory != null && processor != null) {
 			this.processor.setBeanFactory(beanFactory);
 			this.processor.afterPropertiesSet();
 		}

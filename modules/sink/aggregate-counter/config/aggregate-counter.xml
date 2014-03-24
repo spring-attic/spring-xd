@@ -13,7 +13,7 @@
 	<bean id="handler" class="org.springframework.xd.analytics.metrics.integration.AggregateCounterHandler">
 		<constructor-arg ref="aggregateCounterRepository"/>
 		<constructor-arg value="${name:${xd.stream.name}}"/>
-		<property name="expression" value="${expression}"/>
+		<property name="expression" value="${expression:}"/>
 	</bean>
 
 </beans>

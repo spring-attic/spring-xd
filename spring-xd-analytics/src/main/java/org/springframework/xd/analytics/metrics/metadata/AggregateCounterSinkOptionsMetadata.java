@@ -16,8 +16,6 @@
 
 package org.springframework.xd.analytics.metrics.metadata;
 
-import org.hibernate.validator.constraints.NotBlank;
-
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
 import org.springframework.xd.module.options.support.SpEL;
@@ -31,9 +29,8 @@ import org.springframework.xd.module.options.support.SpEL;
 @Mixin({ MetricNameMixin.class })
 public class AggregateCounterSinkOptionsMetadata {
 
-	private String expression = "T(org.joda.time.DateTime).now()";
+	private String expression = null;
 
-	@NotBlank
 	@SpEL
 	public String getExpression() {
 		return expression;

@@ -43,7 +43,7 @@ public class EmptyStartYieldsModulesRecoveryStrategy extends
 	@Autowired
 	public EmptyStartYieldsModulesRecoveryStrategy(XDParser parser,
 			ModuleDefinitionRepository moduleDefinitionRepository) {
-		super(parser, "");
+		super(parser, CheckpointedStreamDefinitionException.class, "");
 		this.moduleDefinitionRepository = moduleDefinitionRepository;
 	}
 

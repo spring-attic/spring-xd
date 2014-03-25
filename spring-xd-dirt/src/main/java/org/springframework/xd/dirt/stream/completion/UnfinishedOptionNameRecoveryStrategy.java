@@ -53,7 +53,8 @@ public class UnfinishedOptionNameRecoveryStrategy extends
 	@Autowired
 	public UnfinishedOptionNameRecoveryStrategy(XDParser parser, ModuleDefinitionRepository moduleDefinitionRepository,
 			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver) {
-		super(parser, "file --dir=foo --pa", "file --pa", "file --some.composed.", "file | filter | transform --expr");
+		super(parser, CheckpointedStreamDefinitionException.class, "file --dir=foo --pa", "file --pa",
+				"file --some.composed.", "file | filter | transform --expr");
 		this.moduleDefinitionRepository = moduleDefinitionRepository;
 		this.moduleOptionsMetadataResolver = moduleOptionsMetadataResolver;
 	}

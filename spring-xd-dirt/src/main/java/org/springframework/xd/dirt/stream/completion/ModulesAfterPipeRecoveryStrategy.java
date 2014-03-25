@@ -46,7 +46,7 @@ public class ModulesAfterPipeRecoveryStrategy extends
 
 	@Autowired
 	public ModulesAfterPipeRecoveryStrategy(XDParser parser, ModuleDefinitionRepository moduleDefinitionRepository) {
-		super(parser, "file | filter |");
+		super(parser, CheckpointedStreamDefinitionException.class, "file | filter |");
 		this.parser = parser;
 		this.moduleDefinitionRepository = moduleDefinitionRepository;
 	}

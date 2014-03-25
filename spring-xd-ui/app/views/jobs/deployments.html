@@ -5,7 +5,7 @@
 		</tr>
 	</thead>
 	<tbody>
-		<tr ng-repeat="item in jobDeployments">
+		<tr ng-repeat="item in jobDeployments | orderBy:'name'">
 			<td>{{item.name}}</td>
 			<td><button type="button" ng-click="launchJob(item)"
 				class="btn btn-default"

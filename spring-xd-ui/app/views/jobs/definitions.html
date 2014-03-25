@@ -14,7 +14,7 @@
 		</tr>
 	</thead>
 	<tbody>
-		<tr ng-repeat="item in jobDefinitions | filter:filterQuery">
+		<tr ng-repeat="item in jobDefinitions | filter:filterQuery | orderBy:'name'">
 			<td>{{item.name}}</td>
 			<td>{{item.definition}}</td>
 			<td><button type="button" ng-click="undeployJob(item)"

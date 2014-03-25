@@ -65,10 +65,10 @@ define(['angular'], function (angular) {
             });
           }])
       .controller('ModuleController',
-          ['$scope', '$http', '$state', 'growl', '$injector', function ($scope, $http, $state, growl, $injector) {
+          ['$scope', 'JobModuleService', 'growl', '$log', '$state', '$injector', function ($scope, JobModuleService, growl, $log, $state, $injector) {
             require(['controllers/job/jobmodule'], function (moduleController) {
               $injector.invoke(moduleController, this,
-                  {'$scope': $scope, '$http': $http, '$state': $state, 'growl': growl});
+                  {'$scope': $scope, 'JobModuleService': JobModuleService, 'growl': growl, '$log': $log, '$state': $state});
             });
           }])
       .controller('JobLaunchController',
@@ -76,6 +76,13 @@ define(['angular'], function (angular) {
             require(['controllers/job/joblaunch'], function (jobLaunchController) {
               $injector.invoke(jobLaunchController, this,
                   {'$scope': $scope, '$http': $http, '$state': $state, '$stateParams': $stateParams, 'growl': growl, '$location': $location, 'JobLaunchService': JobLaunchService});
+            });
+          }])
+      .controller('ModuleDetailsController',
+          ['$scope', '$http', '$log', '$state', '$stateParams', 'growl', '$location', 'JobModuleService', '$injector', function ($scope, $http, $log, $state, $stateParams, growl, $location, JobModuleService, $injector) {
+            require(['controllers/job/jobmoduledetails'], function (moduleDetailsController) {
+              $injector.invoke(moduleDetailsController, this,
+                  {'$scope': $scope, '$http': $http, '$state': $state, '$stateParams': $stateParams, 'growl': growl, '$location': $location, 'JobModuleService': JobModuleService});
             });
           }]);
 });

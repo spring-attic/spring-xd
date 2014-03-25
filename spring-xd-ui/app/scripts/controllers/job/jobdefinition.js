@@ -25,12 +25,12 @@ define([], function () {
   return ['$scope', '$http', 'JobDefinitions', '$log', 'promiseTracker', '$q', '$timeout', 'growl',
     'JobDefinitionService', function ($scope, $http, JobDefinitions, $log, promiseTracker, $q, $timeout, growl, JobDefinitionService) {
 
-      var testPromise = $q.defer();
-
-      promiseTracker('trackerName').addPromise(testPromise.promise);
-      $timeout(function () {
-        testPromise.resolve();
-      }, 1000);
+//      var testPromise = $q.defer();
+//
+//      promiseTracker('trackerName').addPromise(testPromise.promise);
+//      $timeout(function () {
+//        testPromise.resolve();
+//      }, 1000);
 
       JobDefinitions.get(function (data) {
         $log.info(data);

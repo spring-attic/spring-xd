@@ -32,6 +32,33 @@ define(['angular'], function (angular) {
           }
         });
       })
+      .factory('JobModules', function ($resource, $rootScope) {
+        return $resource($rootScope.xdAdminServerUrl + '/modules.json?type=job', {}, {
+          query: {
+            method: 'GET',
+            isArray: true
+          }
+        });
+      })
+      .factory('JobModuleService', function ($resource, $http, $log, $rootScope) {
+        return {
+          getAllModules: function () {
+            $log.info('Getting all job modules.');
+            return $resource($rootScope.xdAdminServerUrl + '/modules.json', { 'type': 'job' }).get();
+          },
+          getSingleModule: function (moduleName) {
+            $log.info('Getting details for module ' + moduleName);
+            return $resource($rootScope.xdAdminServerUrl + '/modules/job/' + moduleName + '.json').get();
+          },
+          getModuleDefinition: function (moduleName) {
+            $log.info('Getting module definition file for module ' + moduleName);
+            return $http({
+              method: 'GET',
+              url: $rootScope.xdAdminServerUrl + '/modules/job/' + moduleName + '/definition'
+            });
+          }
+        };
+      })
       .factory('JobDefinitionService', function ($resource, $log, $rootScope) {
         return {
           deploy: function (jobDefinition) {

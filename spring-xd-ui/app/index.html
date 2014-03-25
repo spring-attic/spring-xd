@@ -38,7 +38,7 @@
           <p ng-if="authenticationEnabled && !user.isAuthenticated" class="navbar-text navbar-right">Not logged in</p>
           <ul class="nav navbar-nav navbar-right">
             <li ng-class="{ active: $state.includes('home.jobs') }">
-              <a ui-sref="home.jobs.definitions">Jobs</a>
+              <a ui-sref="home.jobs.tabs.definitions">Jobs</a>
             </li>
             <li ng-class="{ active: $state.includes('home.about') }">
               <a ui-sref="home.about">About</a>

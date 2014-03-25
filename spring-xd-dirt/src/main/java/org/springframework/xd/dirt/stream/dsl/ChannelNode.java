@@ -82,7 +82,7 @@ public class ChannelNode extends AstNode {
 		}
 	}
 
-	public String getChannelName() {
+	String getChannelName() {
 		StringBuilder s = new StringBuilder();
 		if (channelType.isTap()) {
 			s.append("tap:");
@@ -92,7 +92,7 @@ public class ChannelNode extends AstNode {
 		return s.toString();
 	}
 
-	public int getLengthOfPrefixPlusNameComponents() {
+	private int getLengthOfPrefixPlusNameComponents() {
 		int length = 0;
 		if (channelType.isTap()) {
 			length += 4;
@@ -106,7 +106,7 @@ public class ChannelNode extends AstNode {
 		return length;
 	}
 
-	public String getNameComponents() {
+	private String getNameComponents() {
 		StringBuilder s = new StringBuilder();
 		for (int t = 0, max = nameComponents.size(); t < max; t++) {
 			if (t > 0) {
@@ -117,7 +117,7 @@ public class ChannelNode extends AstNode {
 		return s.toString();
 	}
 
-	public String getIndexingComponents() {
+	private String getIndexingComponents() {
 		StringBuilder s = new StringBuilder();
 		for (int t = 0, max = indexingElements.size(); t < max; t++) {
 			s.append(".");
@@ -126,14 +126,7 @@ public class ChannelNode extends AstNode {
 		return s.toString();
 	}
 
-	public String getStreamName() {
-		if (channelType == ChannelType.TAP_STREAM) {
-			return getNameComponents();
-		}
-		return null;
-	}
-
-	public ChannelType getChannelType() {
+	ChannelType getChannelType() {
 		return this.channelType;
 	}
 
@@ -144,12 +137,13 @@ public class ChannelNode extends AstNode {
 
 	public void resolve(StreamLookupEnvironment env) {
 		if (channelType == ChannelType.TAP_STREAM) {
+			String streamName = nameComponents.get(0);
+			StreamNode sn = env.lookupStream(streamName);
+			if (sn == null) {
+				throw new StreamDefinitionException("", -1, XDDSLMessages.UNRECOGNIZED_STREAM_REFERENCE, streamName);
+			}
+
 			if (indexingElements.isEmpty()) {
-				StreamNode sn = env.lookupStream(getStreamName());
-				if (sn == null) {
-					throw new StreamDefinitionException("", -1, XDDSLMessages.UNRECOGNIZED_STREAM_REFERENCE,
-							getStreamName());
-				}
 				// Point to the first element of the stream
 				indexingElements = new ArrayList<String>();
 				indexingElements.add(sn.getModuleNodes().get(0).getName() + ".0");
@@ -163,36 +157,23 @@ public class ChannelNode extends AstNode {
 				// stream composition has occurred!
 				try {
 					int index = Integer.parseInt(indexingElements.get(0));
-					StreamNode sn = env.lookupStream(getStreamName());
-					if (sn == null) {
-						throw new StreamDefinitionException("", -1, XDDSLMessages.UNRECOGNIZED_STREAM_REFERENCE,
-								getStreamName());
-					}
 					indexingElements.remove(0);
 					indexingElements.add(0, sn.getModuleNodes().get(index).getName() + "." + index);
 				}
 				catch (NumberFormatException nfe) {
 					// this is ok, probably wasn't a number
-					StreamNode sn = env.lookupStream(getStreamName());
-					// TODO: decide if this problem should be flagged up this early
-					// if (sn == null) {
-					// throw new StreamDefinitionException("", -1, XDDSLMessages.UNRECOGNIZED_STREAM_REFERENCE,
-					// getStreamName());
-					// }
-					if (sn != null) {
-						String indexString = toString(indexingElements);
-						if (sn.labelOrModuleNameOccursMultipleTimesInStream(indexString)) {
-							throw new StreamDefinitionException(getChannelName(),
-									getLengthOfPrefixPlusNameComponents() + 1,
-									XDDSLMessages.MODULE_REFERENCE_NOT_UNIQUE,
-									indexString,
-									sn.getStreamText());
-						}
-						int index = sn.getIndexOfLabelOrModuleName(indexString);
-						if (index != -1) {
-							indexingElements.clear();
-							indexingElements.add(0, sn.getModuleNodes().get(index).getName() + "." + index);
-						}
+					String indexString = toString(indexingElements);
+					if (sn.labelOrModuleNameOccursMultipleTimesInStream(indexString)) {
+						throw new StreamDefinitionException(getChannelName(),
+								getLengthOfPrefixPlusNameComponents() + 1,
+								XDDSLMessages.MODULE_REFERENCE_NOT_UNIQUE,
+								indexString,
+								sn.getStreamText());
+					}
+					int index = sn.getIndexOfLabelOrModuleName(indexString);
+					if (index != -1) {
+						indexingElements.clear();
+						indexingElements.add(0, sn.getModuleNodes().get(index).getName() + "." + index);
 					}
 				}
 			}

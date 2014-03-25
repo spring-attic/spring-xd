@@ -29,7 +29,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
-import org.springframework.boot.builder.ParentContextApplicationContextInitializer.ParentContextAvailableEvent;
 import org.springframework.boot.builder.ParentContextCloserApplicationListener;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.ContextIdApplicationContextInitializer;
@@ -48,7 +47,6 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.validation.BindException;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.ModuleDefinition;
-import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.options.ModuleOptions;
 import org.springframework.xd.module.options.PassthruModuleOptionsMetadata;
 
@@ -63,6 +61,49 @@ import org.springframework.xd.module.options.PassthruModuleOptionsMetadata;
  * @author Eric Bottard
  */
 public class SimpleModule extends AbstractModule {
+
+	/**
+	 * Dedicated sublcass of {@link ParentContextCloserApplicationListener} used to create its own version of
+	 * ContextCloserListener that is aware of module order. Special care is taken so that no strong references to the
+	 * module context are retained (this is a *static* inner class).
+	 * 
+	 * @author Eric Bottard
+	 */
+	private static final class ModuleParentContextCloserApplicationListener extends
+			ParentContextCloserApplicationListener {
+
+		private final int index;
+
+		public ModuleParentContextCloserApplicationListener(int index) {
+			this.index = index;
+		}
+
+		@Override
+		protected ContextCloserListener createContextCloserListener(ConfigurableApplicationContext child) {
+			return new ModuleContextCloserListener(child, index);
+		}
+
+		/**
+		 * Module context closer listener that sets the order based on the module deployment index.
+		 */
+		final static class ModuleContextCloserListener extends ContextCloserListener implements Ordered {
+
+			private int index;
+
+			public ModuleContextCloserListener(ConfigurableApplicationContext moduleContext, int index) {
+				super(moduleContext);
+				this.index = index;
+			}
+
+			@Override
+			public int getOrder() {
+				// Make sure producer modules get closed before the consumer modules (sink/processor)
+				// by setting them the highest precedence. Smaller values come first.
+				return index;
+			}
+
+		}
+	}
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -197,45 +238,7 @@ public class SimpleModule extends AbstractModule {
 		if (this.listeners.size() > 0) {
 			application.listeners(this.listeners.toArray(new ApplicationListener<?>[this.listeners.size()]));
 		}
-		this.application.listeners(new ParentContextCloserApplicationListener() {
-
-			@Override
-			public void onApplicationEvent(ParentContextAvailableEvent event) {
-				ConfigurableApplicationContext child = event.getApplicationContext();
-				if (child.getParent() instanceof ConfigurableApplicationContext) {
-					ConfigurableApplicationContext parent = (ConfigurableApplicationContext) child
-							.getParent();
-					parent.addApplicationListener(new ModuleContextCloserListener(child));
-				}
-			}
-
-			/**
-			 * Module context closer listener that sets the order based on {@link ModuleType}
-			 */
-			final class ModuleContextCloserListener extends ContextCloserListener implements Ordered {
-
-				public ModuleContextCloserListener(ConfigurableApplicationContext moduleContext) {
-					super(moduleContext);
-				}
-
-				@Override
-				public int getOrder() {
-					// Make sure producer modules get closed before the consumer modules (sink/processor)
-					// by setting them the highest precedence
-					ModuleType moduleType = getType();
-					if (moduleType == ModuleType.source || moduleType == ModuleType.job) {
-						return HIGHEST_PRECEDENCE;
-					}
-					else if (getType() == ModuleType.processor) {
-						return LOWEST_PRECEDENCE - 10;
-					}
-					else {
-						return LOWEST_PRECEDENCE;
-					}
-				}
-
-			}
-		});
+		this.application.listeners(new ModuleParentContextCloserApplicationListener(getDeploymentMetadata().getIndex()));
 		this.context = this.application.run();
 		if (logger.isInfoEnabled()) {
 			logger.info("initialized module: " + this.toString());

@@ -33,7 +33,7 @@ echo -e '\n\n**** Test 2. Twitterstream tests\n\n'
 
 create_stream 'tweets' 'twitterstream | file' 'false'
 
-create_stream 'tweetcount' "tap:stream:tweets > aggregatecounter --timeFormat='EE MMM d HH:mm:ss Z yyyy' --timeField=#jsonPath(payload,'\$.created_at')"
+create_stream 'tweetcount' "tap:stream:tweets > aggregate-counter --dateFormat='EE MMM d HH:mm:ss Z yyyy' --timeField=#jsonPath(payload,'\$.created_at')"
 
 create_stream 'tweetlang' 'tap:stream:tweets > field-value-counter --fieldName=lang --name=lang'
 

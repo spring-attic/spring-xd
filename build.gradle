@@ -40,8 +40,8 @@ ext {
 	coverageProjects = [
 		'spring-xd-dirt',
 		'spring-xd-analytics',
-        'spring-xd-analytics-ml',
-        'spring-xd-analytics-ml-pmml',
+		'spring-xd-analytics-ml',
+		'spring-xd-analytics-ml-pmml',
 		'spring-xd-tuple',
 		'spring-xd-module',
 		'spring-xd-rest-client',
@@ -366,12 +366,12 @@ project('spring-xd-analytics-ml') {
 }
 
 project('spring-xd-analytics-ml-pmml') {
-    description = 'Spring XD Analytics ML - PMML Support'
-    dependencies {
-        compile project(":spring-xd-analytics-ml")
-        compile "org.jpmml:pmml-evaluator:$jpmmlEvaluatorVersion"
-        testCompile ("org.mockito:mockito-core:$mockitoVersion") { exclude group:'org.hamcrest' }
-    }
+	description = 'Spring XD Analytics ML - PMML Support'
+	dependencies {
+		compile project(":spring-xd-analytics-ml")
+		compile "org.jpmml:pmml-evaluator:$jpmmlEvaluatorVersion"
+		testCompile ("org.mockito:mockito-core:$mockitoVersion") { exclude group:'org.hamcrest' }
+	}
 }
 
 project('spring-xd-dirt') {
@@ -382,8 +382,8 @@ project('spring-xd-dirt') {
 		// ************* Common to both Server and Container
 		compile "org.springframework:spring-aop:$springVersion"
 		compile project(":spring-xd-analytics")
-        compile project(":spring-xd-analytics-ml")
-        compile project(":spring-xd-analytics-ml-pmml")
+		compile project(":spring-xd-analytics-ml")
+		compile project(":spring-xd-analytics-ml-pmml")
 		compile "org.springframework.cloud:spring-service-connector:$springCloudVersion"
 		compile "org.springframework.cloud:cloudfoundry-connector:$springCloudVersion"
 		compile "org.springframework.boot:spring-boot-autoconfigure:$springBootVersion"

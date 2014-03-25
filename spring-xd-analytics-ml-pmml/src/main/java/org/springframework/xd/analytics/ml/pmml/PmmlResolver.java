@@ -19,18 +19,17 @@ package org.springframework.xd.analytics.ml.pmml;
 import org.dmg.pmml.PMML;
 
 /**
- * Implementations are able to load a {@link org.dmg.pmml.PMML} by {@code name} and {@modelId}.
+ * Implementations are able to load a {@link org.dmg.pmml.PMML} by {@code name}.
  *
  * @author Thomas Darimont
  */
 public interface PmmlResolver {
 
 	/**
-	 * Returns an {@link org.dmg.pmml.PMML} instance form the given {@code name} and {@code modelId}.
+	 * Returns an {@link org.dmg.pmml.PMML} instance form the given {@code name}.
 	 *
 	 * @param name must not be {@literal null}.
-	 * @param modelId
 	 * @return
 	 */
-	PMML getPmml(String name, String modelId);
+	PMML getPmml(String name);
 }

@@ -9,14 +9,22 @@ spring-xd-analytics-ml-pmml/src/test/resources/pmml folder to the folder {XD_HOM
 ```
 stream create
 --name iris-flow-classification
---definition "http | analytic-pmml --analyticName='iris-flower-classification-naive-bayes-1' --inputFields='sepalLength:Sepal.Length,sepalWidth:Sepal.Width,petalLength:Petal.Length,petalWidth:Petal.Width' --outputFields='Predicted_Species:predictedSpecies' | log"
+--definition "
+    http
+    --outputType=application/x-xd-tuple |
+    analytic-pmml
+    --name='iris-flower-classification-naive-bayes-1'
+    --inputFieldMapping='sepalLength:Sepal.Length,sepalWidth:Sepal.Width,petalLength:Petal.Length,petalWidth:Petal.Width'
+    --outputFieldMapping='Predicted_Species:predictedSpecies' |
+    log
+    "
 ```
 
 # Input
 Post some data to the stream:
 
 ```
-http post --target http://localhost:9000 --contentType application/x-xd-tuple --data "{ \"sepalLength\": 6.4, \"sepalWidth\": 3.2, \"petalLength\":4.5, \"petalWidth\":1.5 }"
+http post --target http://localhost:9000 --contentType application/json --data "{ \"sepalLength\": 6.4, \"sepalWidth\": 3.2, \"petalLength\":4.5, \"petalWidth\":1.5 }"
 ```
 
 # Ouptut

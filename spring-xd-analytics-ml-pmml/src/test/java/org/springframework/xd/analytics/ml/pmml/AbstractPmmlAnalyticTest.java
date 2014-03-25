@@ -19,11 +19,11 @@ public class AbstractPmmlAnalyticTest {
 	}
 
 	protected Analytic<Tuple, Tuple> useAnalytic(String analyticName, List<String> inputFieldNames, List<String> outputFieldNames) {
-		return this.useAnalytic(analyticName, pmmlResolver, new PmmlAnalyticTupleInputMapper(inputFieldNames), new PmmlAnalyticTupleOutputMapper(outputFieldNames));
+		return this.useAnalytic(analyticName, pmmlResolver, new TuplePmmlAnalyticInputMapper(inputFieldNames), new TuplePmmlAnalyticOutputMapper(outputFieldNames));
 	}
 
-	protected Analytic<Tuple, Tuple> useAnalytic(String analyticName, PmmlResolver pmmlResolver, PmmlAnalyticTupleInputMapper inputMapper, PmmlAnalyticTupleOutputMapper outputMapper) {
-		return new PmmlAnalytic<Tuple, Tuple>(analyticName, pmmlResolver, inputMapper, outputMapper);
+	protected Analytic<Tuple, Tuple> useAnalytic(String analyticName, PmmlResolver pmmlResolver, TuplePmmlAnalyticInputMapper inputMapper, TuplePmmlAnalyticOutputMapper outputMapper) {
+		return new TuplePmmlAnalytic(analyticName, pmmlResolver, inputMapper, outputMapper);
 	}
 
 	protected PmmlResolver getPmmlResolver() {

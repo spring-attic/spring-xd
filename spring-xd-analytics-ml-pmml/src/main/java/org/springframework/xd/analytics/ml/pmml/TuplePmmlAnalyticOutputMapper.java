@@ -24,22 +24,24 @@ import org.springframework.xd.tuple.Tuple;
 import org.springframework.xd.tuple.TupleBuilder;
 
 /**
+ * An {@link org.springframework.xd.analytics.ml.OutputMapper} that can map the output of a {@link org.dmg.pmml.PMML} model evaluation
+ * to a {@link org.springframework.xd.tuple.Tuple}.
+ *
  * @author Thomas Darimont
  */
-public class PmmlAnalyticTupleOutputMapper implements OutputMapper<Tuple, Tuple, PmmlAnalytic<Tuple, Tuple>, Map<FieldName, Object>> {
+public class TuplePmmlAnalyticOutputMapper implements OutputMapper<Tuple, Tuple, PmmlAnalytic<Tuple,Tuple> , Map<FieldName, Object>> {
 
 	private final Map<String, String> resultFieldToOutputFieldNameMapping;
-
 	private final List<FieldName> resultFields;
 
 	/**
-	 * Creates a new {@link PmmlAnalyticTupleOutputMapper}.
+	 * Creates a new {@link TuplePmmlAnalyticOutputMapper}.
 	 *
 	 * @param resultFieldToOutputFieldNameMapping
 	 */
-	public PmmlAnalyticTupleOutputMapper(List<String> resultFieldToOutputFieldNameMapping) {
+	public TuplePmmlAnalyticOutputMapper(List<String> resultFieldToOutputFieldNameMapping) {
 
-		if (resultFieldToOutputFieldNameMapping == null) {
+		if (resultFieldToOutputFieldNameMapping == null || resultFieldToOutputFieldNameMapping.isEmpty()) {
 			this.resultFieldToOutputFieldNameMapping = null;
 			this.resultFields = null;
 			return;
@@ -77,11 +79,11 @@ public class PmmlAnalyticTupleOutputMapper implements OutputMapper<Tuple, Tuple,
 	/**
 	 * @param analytic the {@link PmmlAnalytic} that can be used to retrieve mapping information.
 	 * @param modelOutput
-	 * @param input the input for this {@link PmmlAnalytic} that could be used to compute the new output {@code O}.
+	 * @param input the input for this {@link PmmlAnalytic} that could be used to compute the new output.
 	 * @return
 	 */
 	@Override
-	public Tuple mapOutput(PmmlAnalytic<Tuple, Tuple> analytic, Tuple input, Map<FieldName, Object> modelOutput) {
+	public Tuple mapOutput(PmmlAnalytic<Tuple,Tuple> analytic, Tuple input, Map<FieldName, Object> modelOutput) {
 
 		List<String> outputNames = new ArrayList<String>(input.getFieldNames());
 		List<Object> outputValues = new ArrayList<Object>(input.getValues());
@@ -105,6 +107,8 @@ public class PmmlAnalyticTupleOutputMapper implements OutputMapper<Tuple, Tuple,
 	}
 
 	/**
+	 * Extracts the entries from the given {@code outputValues} and adds the name and value to the given {@code outputNames} and {@code outputValues} {@link List}s.
+	 *
 	 * @param modelOutput
 	 * @param outputNames
 	 * @param outputValues

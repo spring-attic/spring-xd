@@ -23,15 +23,34 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.xd.tuple.Tuple;
 
 /**
+ * Helper class to be able to work with {@link org.springframework.xd.tuple.Tuple} in Tests.
+ *
  * @author Thomas Darimont
  */
 public class TupleTestUtils {
 
+	/**
+	 *
+	 * <pre>
+	 *  Tuple output = analytic.evaluate(objectToTuple(new Object() {
+	 *    @Value("Sepal.Length") double sepalLength = 6.4;
+	 *    @Value("Sepal.Width") double sepalWidth = 3.2;
+	 *    @Value("Petal.Length") double petalLength = 4.5;
+	 *    @Value("Petal.Width") double petalWidth = 1.5;
+	 *  }));
+	 * <pre>
+	 *
+	 * @param o must not be {@literal null}
+	 * @return
+	 */
 	public static Tuple objectToTuple(final Object o) {
+
+		Assert.notNull(o,"o");
 
 		final List<String> fieldNames = new ArrayList<String>();
 		final List<Object> fieldValues = new ArrayList<Object>();

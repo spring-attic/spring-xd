@@ -26,7 +26,7 @@ public interface Analytic<I,O> {
 	/**
 	 * Evaluates the encoded {@code Analytic} against the given {@code input}.
 	 *
-	 * @param input
+	 * @param input must not be {@literal null}
 	 * @return
 	 */
 	O evaluate(I input);

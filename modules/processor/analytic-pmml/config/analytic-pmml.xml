@@ -7,9 +7,9 @@
 
     <channel id="input"/>
 
-    <transformer input-channel="input" output-channel="output" method="transform">
+    <transformer input-channel="input" output-channel="output" method="evaluate">
 
-        <beans:bean class="org.springframework.xd.analytics.ml.AnalyticProcessor">
+        <beans:bean class="org.springframework.xd.analytics.ml.pmml.TuplePmmlAnalytic">
 
             <beans:description>
                 <![CDATA[
@@ -22,17 +22,18 @@ outputFields -> Mapping of model output field to output field.
 The PMML file to use is derived from the analyticName, e.g.:
 iris-flower-classification-naive-bayes-1 -> iris-flower-classification-naive-bayes-1.pmml.xml
 
+Note by default the PMML file (e.g. iris-flower-classification-naive-bayes-1) must reside
+in the ${XD_HOME}/modules/processor/analytic-pmml/ directory. This can be customized via the --location setting.
+
 # Create the stream definition
-stream create
---name iris-flow-classification
---definition "http | analytic-pmml --analyticName='iris-flower-classification-naive-bayes-1' --inputFields='sepalLength:Sepal.Length,sepalWidth:Sepal.Width,petalLength:Petal.Length,petalWidth:Petal.Width' --outputFields='Predicted_Species:predictedSpecies' | log"
+stream create --name iris-flow-classification --definition "http --outputType=application/x-xd-tuple   | analytic-pmml --name='iris-flower-classification-naive-bayes-1' --inputFieldMapping='sepalLength:Sepal.Length,sepalWidth:Sepal.Width,petalLength:Petal.Length,petalWidth:Petal.Width' --outputFieldMapping='Predicted_Species:predictedSpecies' | log"
 
 #Post some data to the stream
-http post --target http://localhost:9000 --contentType application/x-xd-tuple --data "{ \"sepalLength\": 6.4, \"sepalWidth\": 3.2, \"petalLength\":4.5, \"petalWidth\":1.5 }"
+http post --target http://localhost:9000 --contentType application/json --data "{ \"sepalLength\": 6.4, \"sepalWidth\": 3.2, \"petalLength\":4.5, \"petalWidth\":1.5 }"
 
 # See the output in the log, note the generated field: "predictedSpecies".
 Output:
-4/03/22 17:46:20 WARN logger.iris-flow-classification:
+4/03/22 17:46:20 WARN logger.iris-flower-classification:
 {
 	"id":"7eeee430-b1e1-11e3-b13d-28cfe918b323"
 	,"timestamp":1395506780659
@@ -45,27 +46,16 @@ Output:
                 ]]>
             </beans:description>
 
-            <beans:property name="analytic">
-                <beans:bean class="org.springframework.xd.analytics.ml.pmml.PmmlAnalytic">
-                    <beans:constructor-arg index="0" value="${analyticName}"/>
-                    <beans:constructor-arg index="1" ref="${pmmlResolver:fileSystemPmmlResolver}"/>
-                    <beans:constructor-arg index="2" ref="${inputMapper:tupleInputMapper}"/>
-                    <beans:constructor-arg index="3" ref="${outputMapper:tupleOutputMapper}"/>
-                </beans:bean>
-            </beans:property>
+            <beans:constructor-arg index="0" value="${name}" type="java.lang.String"/>
+            <beans:constructor-arg index="1" ref="${pmmlResolver:fileSystemPmmlResolver}" type="org.springframework.xd.analytics.ml.pmml.PmmlResolver"/>
+            <beans:constructor-arg index="2" value="${'${inputFieldMapping}':null}" type="java.lang.String"/>
+            <beans:constructor-arg index="3" value="${'${outputFieldMapping}':null}" type="java.lang.String"/>
+
         </beans:bean>
     </transformer>
 
     <beans:bean id="fileSystemPmmlResolver" class="org.springframework.xd.analytics.ml.pmml.FileSystemPmmlResolver">
-        <beans:constructor-arg index="0" value="${analyticsDir:${XD_HOME}/analytics}"/>
-    </beans:bean>
-
-    <beans:bean id="tupleInputMapper" class="org.springframework.xd.analytics.ml.pmml.PmmlAnalyticTupleInputMapper">
-        <beans:constructor-arg index="0" value="${inputFields:null}"/>
-    </beans:bean>
-
-    <beans:bean id="tupleOutputMapper" class="org.springframework.xd.analytics.ml.pmml.PmmlAnalyticTupleOutputMapper">
-        <beans:constructor-arg index="0" value="${outputFields:null}"/>
+        <beans:constructor-arg index="0" value="${location:${XD_HOME}/modules/processor/analytic-pmml}"/>
     </beans:bean>
 
     <channel id="output"/>

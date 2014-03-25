@@ -18,9 +18,13 @@ package org.springframework.xd.analytics.ml;
 import org.springframework.util.Assert;
 
 /**
+ * An {@link org.springframework.xd.analytics.ml.Analytic} that supports the mapping of {@code input} and {@code output}
+ * to and from internal representations by applying the given {@link org.springframework.xd.analytics.ml.InputMapper}
+ * and {@link org.springframework.xd.analytics.ml.OutputMapper} respectively.
+ *
  * @author Thomas Darimont
  */
-public abstract class MappedAnalytic<I, O, MI, MO, A extends MappedAnalytic<I,O,MI,MO, A>> implements Analytic<I, O> {
+public abstract class MappedAnalytic<I, O, MI, MO, A extends MappedAnalytic<I, O, MI, MO, A>> implements Analytic<I, O> {
 
 	private final InputMapper<I, A, MI> inputMapper;
 	private final OutputMapper<I, O, A, MO> outputMapper;
@@ -33,21 +37,26 @@ public abstract class MappedAnalytic<I, O, MI, MO, A extends MappedAnalytic<I,O,
 	 */
 	public MappedAnalytic(InputMapper<I, A, MI> inputMapper, OutputMapper<I, O, A, MO> outputMapper) {
 
-		Assert.notNull(inputMapper,"inputMapper");
-		Assert.notNull(outputMapper,"outputMapper");
+		Assert.notNull(inputMapper, "inputMapper");
+		Assert.notNull(outputMapper, "outputMapper");
 
 		this.inputMapper = inputMapper;
 		this.outputMapper = outputMapper;
 	}
 
 	/**
+	 * Evaluates the encoded {@code Analytic} against the given {@code input}.
+	 * The {@code inputMapper} is used to map the given {@code input} to an appropriate input for the internal evaluation of the {@code Analytic}.
+	 * The resulting output of internal evaluation is mapped via the {@code outputMapper} to an appropriate result.
 	 *
-	 * @param input
+	 * @param input must not be {@literal null}
 	 * @return
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public O evaluate(I input) {
+
+		Assert.notNull(input, "input");
 
 		MI modelInput = inputMapper.mapInput((A) this, input);
 
@@ -59,9 +68,10 @@ public abstract class MappedAnalytic<I, O, MI, MO, A extends MappedAnalytic<I,O,
 	}
 
 	/**
+	 * Performs the actual evaluation with the mapped {@code input} values.
 	 *
-	 * @param modelInput
-	 * @return
+	 * @param modelInput must not be {@iteral null}
+	 * @return the unmapped actual output of the internal evaluation.
 	 */
 	protected abstract MO evaluateInternal(MI modelInput);
 }

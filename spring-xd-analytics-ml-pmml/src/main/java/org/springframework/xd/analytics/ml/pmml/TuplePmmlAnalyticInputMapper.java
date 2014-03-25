@@ -25,20 +25,23 @@ import org.springframework.xd.analytics.ml.InputMapper;
 import org.springframework.xd.tuple.Tuple;
 
 /**
+ * An {@link org.springframework.xd.analytics.ml.InputMapper} that can map the {@link org.springframework.xd.tuple.Tuple} to a
+ * to an appropriate input for a {@link org.dmg.pmml.PMML} model evaluation.
+ *
  * @author Thomas Darimont
  */
-public class PmmlAnalyticTupleInputMapper implements InputMapper<Tuple, PmmlAnalytic<Tuple, Tuple>, Map<FieldName, Object>> {
+public class TuplePmmlAnalyticInputMapper implements InputMapper<Tuple, PmmlAnalytic<Tuple,Tuple>, Map<FieldName, Object>> {
 
 	private final Map<String, String> inputFieldToModelInputNameMapping;
 
 	/**
-	 * Creates a new {@link PmmlAnalyticTupleInputMapper}.
+	 * Creates a new {@link TuplePmmlAnalyticInputMapper}.
 	 *
 	 * @param inputFieldNameMapping
 	 */
-	public PmmlAnalyticTupleInputMapper(List<String> inputFieldNameMapping) {
+	public TuplePmmlAnalyticInputMapper(List<String> inputFieldNameMapping) {
 
-		if (inputFieldNameMapping == null) {
+		if (inputFieldNameMapping == null || inputFieldNameMapping.isEmpty()) {
 			this.inputFieldToModelInputNameMapping = null;
 			return;
 		}
@@ -71,12 +74,14 @@ public class PmmlAnalyticTupleInputMapper implements InputMapper<Tuple, PmmlAnal
 	}
 
 	/**
+	 * Maps the given input {@code Tuple} into an appropriate model-input {@code Map} for the given {@link org.springframework.xd.analytics.ml.pmml.PmmlAnalytic}.
+	 *
 	 * @param analytic must not be {@literal null}.
 	 * @param input must not be {@literal null}.
 	 * @return
 	 */
 	@Override
-	public Map<FieldName, Object> mapInput(PmmlAnalytic<Tuple, Tuple> analytic, Tuple input) {
+	public Map<FieldName, Object> mapInput(PmmlAnalytic<Tuple,Tuple> analytic, Tuple input) {
 
 		Assert.notNull(analytic, "analytic");
 		Assert.notNull(input, "input");

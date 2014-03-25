@@ -16,7 +16,6 @@
 package org.springframework.xd.analytics.ml.pmml;
 
 import java.util.Map;
-import java.util.UUID;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -67,7 +66,7 @@ public class PmmlAnalytic<I, O> extends MappedAnalytic<I, O, Map<FieldName, Obje
 		Assert.notNull(pmmlResolver, "pmmlResolver");
 
 		this.name = name;
-		this.pmml = pmmlResolver.getPmml(name, generateId());
+		this.pmml = pmmlResolver.getPmml(name);
 		this.pmmlManager = new PMMLManager(pmml);
 		this.pmmlEvaluator = (Evaluator) this.pmmlManager.getModelManager(null, ModelEvaluatorFactory.getInstance());
 
@@ -77,21 +76,16 @@ public class PmmlAnalytic<I, O> extends MappedAnalytic<I, O, Map<FieldName, Obje
 	}
 
 	/**
-	 * @return
-	 */
-	protected String generateId() {
-		return UUID.randomUUID().toString();
-	}
-
-	/**
 	 * Evaluates the given {@code modelInput} with the analytic provided by {@link PMML} definition.
 	 *
-	 * @param modelInput
+	 * @param modelInput must not be {@literal null}
 	 * @return
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	protected Map<FieldName, Object> evaluateInternal(Map<FieldName, Object> modelInput) {
+
+		Assert.notNull(modelInput, "modelInput");
 
 		if (log.isDebugEnabled()) {
 			log.debug("Before pmml evaluation - input: " + modelInput);
@@ -109,6 +103,7 @@ public class PmmlAnalytic<I, O> extends MappedAnalytic<I, O, Map<FieldName, Obje
 	/**
 	 * Returns the default {@link org.dmg.pmml.Model} of the wrapped {@link PMML} object.
 	 * According to the PMML specification, this is the first {@code Model} in the {@code PMML} structure.
+	 * Every {@code PMML} model contain at least one {@code Model}.
 	 *
 	 * @return
 	 */

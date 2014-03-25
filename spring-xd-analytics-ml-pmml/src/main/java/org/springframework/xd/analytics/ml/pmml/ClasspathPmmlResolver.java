@@ -43,12 +43,11 @@ public class ClasspathPmmlResolver extends AbstractPmmlResolver {
 
 	/**
 	 * @param name
-	 * @param modelId
 	 * @return
 	 * @throws Exception
 	 */
 	@Override
-	protected InputSource getPmmlText(String name, String modelId) throws Exception {
+	protected InputSource getPmmlText(String name) throws Exception {
 
 		ClassPathResource classPathResource = new ClassPathResource(pmmlModelRootLocation + "/" + name + ".pmml.xml");
 

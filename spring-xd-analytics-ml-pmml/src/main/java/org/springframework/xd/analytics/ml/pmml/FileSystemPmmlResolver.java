@@ -46,12 +46,11 @@ public class FileSystemPmmlResolver extends AbstractPmmlResolver {
 
 	/**
 	 * @param name
-	 * @param modelId
 	 * @return
 	 * @throws Exception
 	 */
 	@Override
-	protected InputSource getPmmlText(String name, String modelId) throws Exception {
+	protected InputSource getPmmlText(String name) throws Exception {
 
 		File file = new File(pmmlModelRootLocation + "/" + name + ".pmml.xml");
 

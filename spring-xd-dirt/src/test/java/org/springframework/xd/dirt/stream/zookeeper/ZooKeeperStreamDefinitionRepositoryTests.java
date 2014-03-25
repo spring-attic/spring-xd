@@ -54,6 +54,7 @@ public class ZooKeeperStreamDefinitionRepositoryTests {
 
 	@Before
 	public void createRepository() {
+		embeddedZooKeeper.start();
 		this.zkConnection = new ZooKeeperConnection("localhost:" + embeddedZooKeeper.getClientPort());
 		this.repository = new ZooKeeperStreamDefinitionRepository(zkConnection,
 				new InMemoryModuleDependencyRepository());

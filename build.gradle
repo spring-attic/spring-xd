@@ -587,6 +587,7 @@ project('spring-xd-extension-splunk') {
 		compile "org.springframework.integration:spring-integration-splunk:$springIntegrationSplunkVersion"
 		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
 		runtime "com.splunk:splunk:1.2.0"
+		compile project(':spring-xd-module-spi')
 	}
 }
 

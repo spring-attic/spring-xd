@@ -76,12 +76,12 @@ echo -e '*** Test 6. http | filter | file with JSON\n'
 create_stream 'httpfilter' "http | good: filter --expression=#jsonPath(payload,'\$.entities.hashtags[*].text').contains('good') \
                                  | aftergood: filter --expression=true \
                                  | bad:  filter --expression=#jsonPath(payload,'\$.entities.hashtags[*].text').contains('bad') \
-                                 | json-field-extractor --fieldName=id \
+                                 | goodandbad: splitter --expression=#jsonPath(payload,'$.id') \
                                  | file --dir=$TEST_DIR"
 
 # Add taps to count at each stage
 create_stream 'httptap'  "tap:stream:httpfilter.aftergood > counter --name=goodtweets"
-create_stream 'httptap2'  "tap:stream:httpfilter.json-field-extractor > counter --name=goodandbadtweets"
+create_stream 'httptap2'  "tap:stream:httpfilter.goodandbad > counter --name=goodandbadtweets"
 
 # Send some JSON messages only one of which contains both the required hashtags 'good' and 'bad'
 curl -d '{"id":9,"entities":{"hashtags":[{"text":"good"},{"text":"bad"}],"urls":[]}}' "$XD_HOST:9000"

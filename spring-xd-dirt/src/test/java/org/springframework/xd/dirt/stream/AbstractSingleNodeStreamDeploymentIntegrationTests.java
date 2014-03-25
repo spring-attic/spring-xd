@@ -16,22 +16,22 @@ package org.springframework.xd.dirt.stream;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
+import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
 
-import org.springframework.context.ApplicationContext;
-import org.springframework.integration.channel.AbstractMessageChannel;
-import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.x.bus.AbstractTestMessageBus;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.integration.x.bus.serializer.AbstractCodec;
@@ -42,6 +42,7 @@ import org.springframework.integration.x.bus.serializer.kryo.TupleCodec;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.xd.dirt.config.TestMessageBusInjection;
+import org.springframework.xd.dirt.container.ContainerMetadata;
 import org.springframework.xd.dirt.integration.test.SingleNodeIntegrationTestSupport;
 import org.springframework.xd.dirt.integration.test.sink.NamedChannelSink;
 import org.springframework.xd.dirt.integration.test.sink.SingleNodeNamedChannelSinkFactory;
@@ -49,6 +50,7 @@ import org.springframework.xd.dirt.integration.test.source.NamedChannelSource;
 import org.springframework.xd.dirt.integration.test.source.SingleNodeNamedChannelSourceFactory;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.dirt.server.TestApplicationBootstrap;
+import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.tuple.Tuple;
 
 /**
@@ -64,7 +66,7 @@ import org.springframework.xd.tuple.Tuple;
  */
 public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 
-	private static final QueueChannel tapChannel = new QueueChannel();
+	// private static final QueueChannel tapChannel = new QueueChannel();
 
 	@ClassRule
 	public static ExternalResource shutdownApplication = new ExternalResource() {
@@ -190,15 +192,9 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		if (testMessageBus != null && !transport.equalsIgnoreCase("local")) {
 			TestMessageBusInjection.injectMessageBus(singleNodeApplication, testMessageBus);
 		}
-
-		ApplicationContext adminContext = singleNodeApplication.adminContext();
-		AbstractMessageChannel deployChannel = adminContext.getBean("deployChannel",
-				AbstractMessageChannel.class);
-		AbstractMessageChannel undeployChannel = adminContext.getBean("undeployChannel",
-				AbstractMessageChannel.class);
-		deployChannel.addInterceptor(new WireTap(tapChannel));
-		undeployChannel.addInterceptor(new WireTap(tapChannel));
-
+		ContainerMetadata cm = singleNodeApplication.containerContext().getBean(ContainerMetadata.class);
+		integrationSupport.addPathListener(new DeploymentsListener(), Paths.build(Paths.DEPLOYMENTS, cm.getId()));
+		integrationSupport.addWatcher(new DeploymentsListener(), Paths.build(Paths.STREAMS));
 	}
 
 	@AfterClass
@@ -212,13 +208,8 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 	@After
 	public void cleanUp() {
 		integrationSupport.streamRepository().deleteAll();
-		integrationSupport.streamDefinitionRepository().deleteAll();
+		// integrationSupport.streamDefinitionRepository().deleteAll();
 		integrationSupport.streamDeployer().undeployAll();
-
-		Message<?> msg = tapChannel.receive(1000);
-		while (msg != null) {
-			msg = tapChannel.receive(1000);
-		}
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -254,21 +245,20 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 			assertModuleRequest("transform", true);
 			assertModuleRequest("filter", true);
 			assertModuleRequest("log", true);
-			assertNull(tapChannel.receive(0));
 		}
 		assertEquals(ITERATIONS, i);
 
 	}
 
 	protected void assertModuleRequest(String moduleName, boolean remove) {
-		Message<?> next = tapChannel.receive(0);
-		assertNotNull(next);
-		String payload = (String) next.getPayload();
-
-		assertTrue(String.format("payload %s does not contain the expected module name %s", payload, moduleName),
-				payload.contains("\"module\":\"" + moduleName + "\""));
-		assertTrue(String.format("payload %s does not contain the expected remove: value", payload),
-				payload.contains("\"remove\":" + (remove ? "true" : "false")));
+		// Message<?> next = tapChannel.receive(0);
+		// assertNotNull(next);
+		// String payload = (String) next.getPayload();
+		//
+		// assertTrue(String.format("payload %s does not contain the expected module name %s", payload, moduleName),
+		// payload.contains("\"module\":\"" + moduleName + "\""));
+		// assertTrue(String.format("payload %s does not contain the expected remove: value", payload),
+		// payload.contains("\"remove\":" + (remove ? "true" : "false")));
 	}
 
 
@@ -325,6 +315,8 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		integrationSupport.streamDeployer().save(routerDefinition);
 		assertTrue("stream not deployed", integrationSupport.deployStream(routerDefinition));
 		assertEquals(1, integrationSupport.streamRepository().count());
+
+		Thread.sleep(1000);
 		assertModuleRequest("router", false);
 
 
@@ -350,5 +342,18 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		source.unbind();
 		foosink.unbind();
 		barsink.unbind();
+	}
+
+	static class DeploymentsListener implements PathChildrenCacheListener, Watcher {
+
+		@Override
+		public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
+			System.out.println("******************************* got an event " + " " + event.getType());
+		}
+
+		@Override
+		public void process(WatchedEvent event) {
+			System.out.println("******************************* got an event " + " " + event.getType());
+		}
 	}
 }

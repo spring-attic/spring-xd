@@ -28,6 +28,7 @@ import org.springframework.integration.x.bus.LocalMessageBus;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.xd.dirt.server.ApplicationUtils;
 import org.springframework.xd.dirt.server.ContainerRegistrar;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.core.Plugin;
 
 /**
@@ -44,6 +45,8 @@ public class LocalSingleNodeInitializationTests extends AbstractSingleNodeInitia
 		assertEquals(0, pluginContext.getBeansOfType(ContainerRegistrar.class).size());
 		Map<String, Plugin> pluginMap = pluginContext.getBeansOfType(Plugin.class);
 		assertTrue(pluginMap.size() > 0);
+
+		assertSame(containerContext.getBean(ZooKeeperConnection.class), adminContext.getBean(ZooKeeperConnection.class));
 
 		ApplicationUtils.dumpContainerApplicationContextConfiguration(containerContext);
 	}

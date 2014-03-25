@@ -16,6 +16,10 @@ package org.springframework.xd.dirt.integration.test;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.curator.framework.recipes.cache.PathChildrenCache;
+import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
+import org.apache.zookeeper.Watcher;
+
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.module.DelegatingModuleRegistry;
@@ -27,6 +31,7 @@ import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDeployer;
 import org.springframework.xd.dirt.stream.StreamRepository;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.core.Module;
 
@@ -53,6 +58,8 @@ public class SingleNodeIntegrationTestSupport {
 
 	private MessageBus messageBus;
 
+	private ZooKeeperConnection zooKeeperConnection;
+
 	public SingleNodeIntegrationTestSupport(SingleNodeApplication application) {
 		this(application, "file:./config");
 	}
@@ -71,6 +78,7 @@ public class SingleNodeIntegrationTestSupport {
 		streamRepository = application.pluginContext().getBean(StreamRepository.class);
 		streamDeployer = application.adminContext().getBean(StreamDeployer.class);
 		messageBus = application.pluginContext().getBean(MessageBus.class);
+		zooKeeperConnection = application.adminContext().getBean(ZooKeeperConnection.class);
 		application.containerContext().addApplicationListener(deployedModuleState);
 		Assert.hasText(moduleResourceLocation, "'moduleResourceLocation' cannot be null or empty");
 		ResourceModuleRegistry cp = new ResourceModuleRegistry(moduleResourceLocation);
@@ -80,6 +88,7 @@ public class SingleNodeIntegrationTestSupport {
 		if (cmr1 != cmr2) {
 			cmr2.addDelegate(cp);
 		}
+
 	}
 
 	public final StreamDeployer streamDeployer() {
@@ -135,6 +144,27 @@ public class SingleNodeIntegrationTestSupport {
 			}
 		}
 		return matchedModule;
+	}
+
+	public ZooKeeperConnection zooKeeperConnection() {
+		return this.zooKeeperConnection;
+	}
+
+	public void addPathListener(PathChildrenCacheListener listener, String path) {
+		System.out.println("Addding listener on " + path + " running:" + zooKeeperConnection.isRunning());
+		new PathChildrenCache(zooKeeperConnection.getClient(), path, true).getListenable()
+				.addListener(listener);
+	}
+
+	public void addWatcher(Watcher watcher, String path) {
+		System.out.println("Addding watcher on " + path);
+		try {
+			zooKeeperConnection.getClient().getData().usingWatcher(watcher).forPath(path);
+		}
+		catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	private final boolean waitForStreamOp(StreamDefinition definition, boolean isDeploy) {

@@ -416,6 +416,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 			LOG.info("Module for stream {} already deployed", moduleLabel, streamName);
 		}
 		catch (Exception e) {
+			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
 	}

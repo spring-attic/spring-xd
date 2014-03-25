@@ -98,6 +98,8 @@ public class DeploymentsPath {
 	public DeploymentsPath(String path) {
 		Assert.hasText(path);
 
+		System.out.println(path);
+
 		String[] pathElements = path.split("\\/");
 
 		// offset is the element array that contains the 'deployments'
@@ -121,7 +123,8 @@ public class DeploymentsPath {
 		Assert.noNullElements(elements);
 		Assert.state(elements[DEPLOYMENTS].equals(Paths.DEPLOYMENTS));
 
-		String[] deploymentElements = elements[DEPLOYMENT_DESC].split("\\.");
+		String[] deploymentElements = elements[DEPLOYMENT_DESC].split(" ")[0].split("\\.");
+
 		Assert.state(deploymentElements.length == 3);
 
 		System.arraycopy(deploymentElements, 0, deploymentDesc, 0, 3);

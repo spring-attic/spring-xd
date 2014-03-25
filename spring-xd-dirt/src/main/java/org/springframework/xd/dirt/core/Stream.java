@@ -218,6 +218,7 @@ public class Stream {
 					}
 				}
 		}
+
 		if (moduleDescriptor == null || !moduleLabel.equals(moduleDescriptor.getLabel())) {
 			throw new IllegalArgumentException(String.format("Module %s of type %s not found", moduleLabel, moduleType));
 		}

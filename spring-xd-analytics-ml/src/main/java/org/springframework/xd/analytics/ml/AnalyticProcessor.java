@@ -16,23 +16,27 @@
 package org.springframework.xd.analytics.ml;
 
 import org.springframework.xd.tuple.Tuple;
-import org.springframework.xd.tuple.TupleBuilder;
 
 /**
+ * Processes {@link Tuple}s by applying a configured {@link Analytic}.
+ *
  * @author Thomas Darimont
  */
 public class AnalyticProcessor{
 
-	private Analytic<Tuple, Tuple> analytic;
+    /**
+     * Holds the {@link org.springframework.xd.analytics.ml.Analytic} to use in the {@code #process} method.
+     */
+	private Analytic<Tuple, Tuple> analytic; //TODO add support for thread-safe hot swap of new analytics.
 
 	/**
-	 *
-	 * @param payload
-	 * @return
+	 * Processes the given {@link org.springframework.xd.tuple.Tuple} by applying the configured {@link org.springframework.xd.analytics.ml.Analytic}.
+	 * Potentially copies the {@code input} and applies the configured {@code analytic}.
+     *
+	 * @param input
+	 * @return a new {@link org.springframework.xd.tuple.Tuple} if {@code analytic} was applied or the original {@code}.
 	 */
-	public Tuple transform(String payload){
-
-		Tuple input = TupleBuilder.fromString(payload);
+	public Tuple process(Tuple input){
 
 		if(this.analytic == null){
 			return input;

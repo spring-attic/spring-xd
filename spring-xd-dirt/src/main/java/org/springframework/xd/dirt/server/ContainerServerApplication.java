@@ -18,6 +18,7 @@ package org.springframework.xd.dirt.server;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.curator.RetryPolicy;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -183,6 +184,9 @@ class ContainerConfiguration {
 	@Autowired
 	private ZooKeeperConnection zooKeeperConnection;
 
+	@Autowired(required = false)
+	RetryPolicy retryPolicy;
+
 	@Bean
 	public ApplicationListener<?> xdInitializer(ApplicationContext context) {
 		XdConfigLoggingInitializer delegate = new XdConfigLoggingInitializer(true);
@@ -192,6 +196,10 @@ class ContainerConfiguration {
 
 	@Bean
 	public ContainerRegistrar containerRegistrar() {
+		if (retryPolicy != null) {
+			zooKeeperConnection.setRetryPolicy(retryPolicy);
+		}
+		zooKeeperConnection.start();
 		return new ContainerRegistrar(containerMetadata,
 				moduleDefinitionRepository,
 				moduleOptionsMetadataResolver,

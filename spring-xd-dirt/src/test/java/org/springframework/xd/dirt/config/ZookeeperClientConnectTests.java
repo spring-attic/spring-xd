@@ -17,16 +17,17 @@
 package org.springframework.xd.dirt.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 
 import org.junit.After;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.dirt.server.TestApplicationBootstrap;
 import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 
 
 /**
@@ -43,7 +44,9 @@ public class ZookeeperClientConnectTests {
 
 	private AbstractApplicationContext adminContext;
 
+
 	public final void setUp(String zkClientConnect, Integer zkEmbeddedServerPort) {
+		System.setProperty("xd.extensions.basepackages", this.getClass().getPackage().getName());
 		System.setProperty("zk.client.connect", zkClientConnect);
 		if (zkEmbeddedServerPort != null) {
 			System.setProperty("zk.embedded.server.port", zkEmbeddedServerPort.toString());
@@ -68,13 +71,14 @@ public class ZookeeperClientConnectTests {
 		System.clearProperty("zk.embedded.server.port");
 	}
 
-	// TODO: Need to fix this test
-	@Ignore
 	@Test
 	public void testZooKeeperClientConnectString() {
 		// String zkClientConnect = "localhost:2181, localhost:2182, localhost:2183";
 		String zkClientConnect = "localhost:2181";
 		setUp(zkClientConnect, null);
+		ZooKeeperConnection zooKeeperConnection = this.containerContext.getBean(ZooKeeperConnection.class);
+		zooKeeperConnection.start();
+		assertFalse(zooKeeperConnection.getRetryPolicy().allowRetry(0, 0, null));
 		String actualCLientConnect = this.containerContext.getEnvironment().getProperty("zk.client.connect");
 		assertEquals(zkClientConnect, actualCLientConnect);
 		try {
@@ -87,6 +91,7 @@ public class ZookeeperClientConnectTests {
 		finally {
 			System.clearProperty("zk.client.connect");
 			System.clearProperty("zk.embedded.server.port");
+			System.clearProperty("xd.extensions.basepackages");
 		}
 	}
 

@@ -35,6 +35,7 @@ import org.springframework.util.Assert;
  * {@link ZooKeeperConnectionListener}s to be notified when connection or disconnection events are received.
  * 
  * @author Mark Fisher
+ * @author David Turanski
  */
 public class ZooKeeperConnection implements SmartLifecycle {
 
@@ -51,14 +52,12 @@ public class ZooKeeperConnection implements SmartLifecycle {
 	/**
 	 * The underlying {@link CuratorFramework} instance.
 	 */
-	private final CuratorFramework curatorFramework;
+	private volatile CuratorFramework curatorFramework;
 
 	/**
 	 * Curator client retry policy.
-	 * 
-	 * todo: make pluggable
 	 */
-	private final RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
+	private volatile RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
 
 	/**
 	 * Connection listener for Curator {@link ConnectionState} events.
@@ -80,6 +79,8 @@ public class ZooKeeperConnection implements SmartLifecycle {
 	 */
 	private volatile ConnectionState currentState;
 
+	private final String clientConnectString;
+
 	/**
 	 * Establish a ZooKeeper connection with the default client connect string: {@value #DEFAULT_CLIENT_CONNECT_STRING}
 	 */
@@ -94,13 +95,7 @@ public class ZooKeeperConnection implements SmartLifecycle {
 	 */
 	public ZooKeeperConnection(String clientConnectString) {
 		Assert.hasText(clientConnectString, "clientConnectString is required");
-		this.curatorFramework = CuratorFrameworkFactory.builder()
-				// todo: make namespace pluggable so this class can be generic
-				.namespace(Paths.XD_NAMESPACE)
-				.retryPolicy(retryPolicy)
-				.connectString(clientConnectString)
-				.build();
-		this.curatorFramework.getConnectionStateListenable().addListener(connectionListener);
+		this.clientConnectString = clientConnectString;
 	}
 
 	/**
@@ -145,7 +140,7 @@ public class ZooKeeperConnection implements SmartLifecycle {
 
 	@Override
 	public boolean isAutoStartup() {
-		return true;
+		return false;
 	}
 
 	@Override
@@ -168,6 +163,13 @@ public class ZooKeeperConnection implements SmartLifecycle {
 	@Override
 	public synchronized void start() {
 		if (!this.running) {
+			this.curatorFramework = CuratorFrameworkFactory.builder()
+					// todo: make namespace pluggable so this class can be generic
+					.namespace(Paths.XD_NAMESPACE)
+					.retryPolicy(this.retryPolicy)
+					.connectString(this.clientConnectString)
+					.build();
+			this.curatorFramework.getConnectionStateListenable().addListener(connectionListener);
 			curatorFramework.start();
 			this.running = true;
 		}
@@ -223,6 +225,21 @@ public class ZooKeeperConnection implements SmartLifecycle {
 					// todo: ?
 			}
 		}
+	}
+
+
+	/**
+	 * Override the default retry policy
+	 * 
+	 * @param retryPolicy Curator client {@link RetryPolicy}
+	 */
+	public void setRetryPolicy(RetryPolicy retryPolicy) {
+		Assert.notNull(retryPolicy, "retryPolicy cannot be null");
+		this.retryPolicy = retryPolicy;
+	}
+
+	public RetryPolicy getRetryPolicy() {
+		return this.retryPolicy;
 	}
 
 }

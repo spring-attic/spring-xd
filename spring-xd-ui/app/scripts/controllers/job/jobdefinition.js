@@ -25,12 +25,12 @@ define([], function () {
   return ['$scope', '$http', 'JobDefinitions', '$log', 'promiseTracker', '$q', '$timeout', 'growl',
     'JobDefinitionService', function ($scope, $http, JobDefinitions, $log, promiseTracker, $q, $timeout, growl, JobDefinitionService) {
 
-      var testPromise = $q.defer();
-
-      promiseTracker('trackerName').addPromise(testPromise.promise);
-      $timeout(function () {
-        testPromise.resolve();
-      }, 1000);
+//      var testPromise = $q.defer();
+//
+//      promiseTracker('trackerName').addPromise(testPromise.promise);
+//      $timeout(function () {
+//        testPromise.resolve();
+//      }, 1000);
 
       JobDefinitions.get(function (data) {
         $log.info(data);
@@ -44,12 +44,32 @@ define([], function () {
       $scope.deployJob = function (jobDefinition) {
         $log.info('Deploying Job ' + jobDefinition.name);
         $log.info(JobDefinitionService);
-        JobDefinitionService.deploy(jobDefinition);
+        JobDefinitionService.deploy(jobDefinition).$promise.then(
+              function (result) {
+                growl.addSuccessMessage('Deployment Request Sent.');
+                jobDefinition.deployed = true;
+              },
+              function (error) {
+                $log.error('Error Deploying Job.');
+                $log.error(error);
+                growl.addErrorMessage('Error Deploying Job.');
+              }
+            );;
       };
       $scope.undeployJob = function (jobDefinition) {
         $log.info('Undeploying Job ' + jobDefinition.name);
         $log.info(JobDefinitionService);
-        JobDefinitionService.undeploy(jobDefinition);
+        JobDefinitionService.undeploy(jobDefinition).$promise.then(
+              function (result) {
+                growl.addSuccessMessage('Undeployment Request Sent.');
+                jobDefinition.deployed = false;
+              },
+              function (error) {
+                $log.error('Error Undeploying Job.');
+                $log.error(error);
+                growl.addErrorMessage('Error Undeploying Job.');
+              }
+            );;
       };
     }];
 });

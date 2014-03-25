@@ -32,17 +32,44 @@ define(['angular'], function (angular) {
           }
         });
       })
+      .factory('JobModules', function ($resource, $rootScope) {
+        return $resource($rootScope.xdAdminServerUrl + '/modules.json?type=job', {}, {
+          query: {
+            method: 'GET',
+            isArray: true
+          }
+        });
+      })
+      .factory('JobModuleService', function ($resource, $http, $log, $rootScope) {
+        return {
+          getAllModules: function () {
+            $log.info('Getting all job modules.');
+            return $resource($rootScope.xdAdminServerUrl + '/modules.json', { 'type': 'job' }).get();
+          },
+          getSingleModule: function (moduleName) {
+            $log.info('Getting details for module ' + moduleName);
+            return $resource($rootScope.xdAdminServerUrl + '/modules/job/' + moduleName + '.json').get();
+          },
+          getModuleDefinition: function (moduleName) {
+            $log.info('Getting module definition file for module ' + moduleName);
+            return $http({
+              method: 'GET',
+              url: $rootScope.xdAdminServerUrl + '/modules/job/' + moduleName + '/definition'
+            });
+          }
+        };
+      })
       .factory('JobDefinitionService', function ($resource, $log, $rootScope) {
         return {
           deploy: function (jobDefinition) {
             $log.info('Deploy Job ' + jobDefinition.name);
-            $resource($rootScope.xdAdminServerUrl + '/jobs/' + jobDefinition.name, { 'deploy': true }, {
+            return $resource($rootScope.xdAdminServerUrl + '/jobs/' + jobDefinition.name, { 'deploy': true }, {
               deploy: { method: 'PUT' }
             }).deploy();
           },
           undeploy: function (jobDefinition) {
             $log.info('Undeploy Job ' + jobDefinition.name);
-            $resource($rootScope.xdAdminServerUrl + '/jobs/' + jobDefinition.name, { 'deploy': false }, {
+            return $resource($rootScope.xdAdminServerUrl + '/jobs/' + jobDefinition.name, { 'deploy': false }, {
               undeploy: { method: 'PUT' }
             }).undeploy();
           }
@@ -115,6 +142,7 @@ define(['angular'], function (angular) {
                 function (data) {
                   console.error(data);
                   growl.addErrorMessage('Yikes, something bad happened while launching job ' + jobName);
+                  growl.addErrorMessage(data.data[0].message);
                 }
             );
           }

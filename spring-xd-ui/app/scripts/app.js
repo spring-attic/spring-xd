@@ -26,6 +26,7 @@ define([
   'promiseTracker',
   'cgBusy',
   'ngGrowl',
+  'angularHighlightjs',
   './controllers',
   './services'
 ], function (angular) {
@@ -37,6 +38,7 @@ define([
     'ngResource',
     'cgBusy',
     'ajoslin.promise-tracker',
-    'angular-growl'
+    'angular-growl',
+    'hljs'
   ]);
 });

@@ -42,9 +42,16 @@ public class UnfinishedModuleNameRecoveryStrategy extends
 
 	private final ModuleDefinitionRepository moduleDefinitionRepository;
 
+	/**
+	 * Construct a new UnfinishedModuleNameRecoveryStrategy given the parser
+	 * 
+	 * @param parser the parser used to parse the text the partial module definition.
+	 * @param moduleDefinitionRepository the repository to use for looking up all modules that start with a given name
+	 *        prefix.
+	 */
 	@Autowired
 	public UnfinishedModuleNameRecoveryStrategy(XDParser parser, ModuleDefinitionRepository moduleDefinitionRepository) {
-		super(parser, "ht", "file | brid", "file | bridge | jd");
+		super(parser, NoSuchModuleException.class, "ht", "file | brid", "file | bridge | jd");
 		this.moduleDefinitionRepository = moduleDefinitionRepository;
 	}
 

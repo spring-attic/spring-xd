@@ -49,11 +49,21 @@ public class OptionNameAfterDashDashRecoveryStrategy extends
 	private ModuleOptionsMetadataResolver moduleOptionsMetadataResolver;
 
 
+	/**
+	 * Construct a new ExpandOneDashToTwoDashesRecoveryStrategy given the parser,
+	 * 
+	 * @param parser the parser used to parse the text the partial module definition.
+	 * @param moduleDefinitionRepository the repository to check for the existence of the last entered module
+	 *        definition.
+	 * @param moduleOptionsMetadataResolver the metadata resolver to use in order to create a list of proposals for
+	 *        module options that have not yet been specified.
+	 */
 	@Autowired
 	public OptionNameAfterDashDashRecoveryStrategy(XDParser parser,
 			ModuleDefinitionRepository moduleDefinitionRepository,
 			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver) {
-		super(parser, "file --dir=foo --", "file --", "file | filter | transform --");
+		super(parser, CheckpointedStreamDefinitionException.class, "file --dir=foo --", "file --",
+				"file | filter | transform --");
 		this.moduleDefinitionRepository = moduleDefinitionRepository;
 		this.moduleOptionsMetadataResolver = moduleOptionsMetadataResolver;
 	}

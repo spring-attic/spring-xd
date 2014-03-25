@@ -355,7 +355,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 				deployEvents.addLast(event);
 			}
 			else if (event.getType().equals(Type.CHILD_REMOVED)) {
-				undeployEvents.push(event);
+				undeployEvents.addLast(event);
 			}
 		}
 

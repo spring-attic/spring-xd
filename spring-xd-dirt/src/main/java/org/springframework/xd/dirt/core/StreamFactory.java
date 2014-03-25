@@ -85,7 +85,7 @@ public class StreamFactory {
 				label = split[0].trim();
 			}
 			else {
-				label = String.format("%s-%d", moduleName, i);
+				label = String.format("%s-%d", moduleName, request.getIndex());
 			}
 			String sourceChannelName = request.getSourceChannelName();
 			if (sourceChannelName != null) {

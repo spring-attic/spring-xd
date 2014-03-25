@@ -358,11 +358,11 @@ project('spring-xd-analytics') {
 }
 
 project('spring-xd-analytics-ml') {
-    description = 'Spring XD Analytics ML'
-    dependencies {
-        compile project(":spring-xd-analytics")
-        testCompile ("org.mockito:mockito-core:$mockitoVersion") { exclude group:'org.hamcrest' }
-    }
+	description = 'Spring XD Analytics ML'
+	dependencies {
+		compile project(":spring-xd-analytics")
+		testCompile ("org.mockito:mockito-core:$mockitoVersion") { exclude group:'org.hamcrest' }
+	}
 }
 
 project('spring-xd-analytics-ml-pmml') {

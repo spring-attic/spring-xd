@@ -20,6 +20,8 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
 import org.springframework.shell.core.JLineShellComponent;
+import org.springframework.xd.shell.command.fixtures.AbstractMetricSink;
+import org.springframework.xd.shell.command.fixtures.HasDisplayValue;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableHeader;
 

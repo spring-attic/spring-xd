@@ -19,6 +19,7 @@ package org.springframework.xd.shell.command.fixtures;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 
+import org.springframework.xd.shell.command.fixtures.AbstractMetricSink;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableRow;
 

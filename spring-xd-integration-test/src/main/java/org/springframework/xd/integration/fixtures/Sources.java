@@ -20,15 +20,15 @@ import java.net.URL;
 import java.util.List;
 
 import org.springframework.shell.core.JLineShellComponent;
-import org.springframework.xd.shell.command.fixtures.HttpSource;
 import org.springframework.xd.shell.command.fixtures.SimpleFileSource;
+import org.springframework.xd.shell.command.fixtures.SimpleHttpSource;
 import org.springframework.xd.shell.command.fixtures.SimpleTailSource;
 import org.springframework.xd.shell.command.fixtures.TcpSource;
 
 
 /**
  * 
- * @author renfrg
+ * @author Glenn Renfro
  */
 public class Sources {
 
@@ -38,7 +38,7 @@ public class Sources {
 
 	private JLineShellComponent shell = null;
 
-	private HttpSource httpSource = null;
+	private SimpleHttpSource httpSource = null;
 
 	private TcpSource tcpSource = null;
 
@@ -53,15 +53,15 @@ public class Sources {
 		this.httpPort = httpPort;
 	}
 
-	public HttpSource http() {
+	public SimpleHttpSource http() throws Exception {
 		if (httpSource == null) {
 			httpSource = http(httpPort);
 		}
 		return httpSource;
 	}
 
-	public HttpSource http(int port) {
-		return new HttpSource(shell, containers.get(0).getHost(), port);
+	public SimpleHttpSource http(int port) throws Exception {
+		return new SimpleHttpSource(containers.get(0).getHost(), port);
 	}
 
 	public TcpSource tcp() {

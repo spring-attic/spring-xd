@@ -19,6 +19,7 @@ package org.springframework.xd.integration.test;
 import java.util.UUID;
 
 import org.junit.Test;
+
 import org.springframework.xd.shell.command.fixtures.SimpleFileSink;
 
 
@@ -63,10 +64,9 @@ public class FileSourceTest extends AbstractIntegrationTest {
 		stream(sources.tail(1000, sourceDir + "/" + fileName + ".out") + XD_DELIMETER
 				+ sinks.getSink(SimpleFileSink.class));
 		waitForXD();
-		stream("dataSender", sources.http() + XD_DELIMETER + sinks.file(sourceDir, fileName).toDSL("REPLACE", "false"));
-		waitForXD();
-		sources.http().postData(data);
-		waitForXD(2000);
+		stream("dataSender",
+				"trigger --payload='" + data + "'" + XD_DELIMETER
+						+ sinks.file(sourceDir, fileName).toDSL("REPLACE", "false"));
 		assertValid(data, sinks.getSink(SimpleFileSink.class));
 	}
 

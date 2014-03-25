@@ -13,12 +13,12 @@
 
 package org.springframework.xd.dirt.integration.test;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
-import org.apache.zookeeper.Watcher;
 
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.util.Assert;
@@ -59,6 +59,8 @@ public class SingleNodeIntegrationTestSupport {
 	private MessageBus messageBus;
 
 	private ZooKeeperConnection zooKeeperConnection;
+
+	private final Map<String, PathChildrenCache> mapChildren = new HashMap<String, PathChildrenCache>();
 
 	public SingleNodeIntegrationTestSupport(SingleNodeApplication application) {
 		this(application, "file:./config");
@@ -111,11 +113,9 @@ public class SingleNodeIntegrationTestSupport {
 		return deployedModuleState.getDeployedModules();
 	}
 
-
 	public final boolean deployStream(StreamDefinition definition) {
 		return waitForDeploy(definition);
 	}
-
 
 	public final boolean createAndDeployStream(StreamDefinition definition) {
 		streamDeployer.save(definition);
@@ -150,20 +150,45 @@ public class SingleNodeIntegrationTestSupport {
 		return this.zooKeeperConnection;
 	}
 
-	public void addPathListener(PathChildrenCacheListener listener, String path) {
-		System.out.println("Addding listener on " + path + " running:" + zooKeeperConnection.isRunning());
-		new PathChildrenCache(zooKeeperConnection.getClient(), path, true).getListenable()
-				.addListener(listener);
+	/**
+	 * Add a {@link PathChildrenCacheListener} for the given path.
+	 *
+	 * @param path      the path whose children to listen to
+	 * @param listener  the children listener
+	 */
+	public void addPathListener(String path, PathChildrenCacheListener listener) {
+		System.out.println("Adding listener on " + path + " running:" + zooKeeperConnection.isRunning());
+		PathChildrenCache cache = mapChildren.get(path);
+		if (cache == null) {
+			mapChildren.put(path, cache = new PathChildrenCache(zooKeeperConnection.getClient(), path, true));
+			try {
+				cache.start();
+			}
+			catch (Exception e) {
+				throw e instanceof RuntimeException ? ((RuntimeException) e) : new RuntimeException(e);
+			}
+		}
+		cache.getListenable().addListener(listener);
 	}
 
-	public void addWatcher(Watcher watcher, String path) {
-		System.out.println("Addding watcher on " + path);
-		try {
-			zooKeeperConnection.getClient().getData().usingWatcher(watcher).forPath(path);
-		}
-		catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+	/**
+	 * Remove a {@link PathChildrenCacheListener} for the given path.
+	 *
+	 * @param path      the path whose children to listen to
+	 * @param listener  the children listener
+	 */
+	public void removePathListener(String path, PathChildrenCacheListener listener) {
+		PathChildrenCache cache = mapChildren.get(path);
+		if (cache != null) {
+			cache.getListenable().removeListener(listener);
+			if (cache.getListenable().size() == 0) {
+				try {
+					cache.close();
+				}
+				catch (Exception e) {
+					throw e instanceof RuntimeException ? ((RuntimeException) e) : new RuntimeException(e);
+				}
+			}
 		}
 	}
 

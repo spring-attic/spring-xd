@@ -24,8 +24,6 @@ import java.util.Map;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
-import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.Watcher;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.ClassRule;
@@ -94,6 +92,8 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 	protected static SingleNodeIntegrationTestSupport integrationSupport;
 
 	protected static AbstractTestMessageBus testMessageBus;
+
+	protected static final DeploymentsListener deploymentsListener = new DeploymentsListener();
 
 	@Test
 	public final void testRoutingWithSpel() throws InterruptedException {
@@ -184,8 +184,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		bar2sink.unbind();
 	}
 
-
-	protected final static void setUp(String transport) {
+	protected static void setUp(String transport) {
 		testApplicationBootstrap = new TestApplicationBootstrap();
 		singleNodeApplication = testApplicationBootstrap.getSingleNodeApplication().run("--transport", transport);
 		integrationSupport = new SingleNodeIntegrationTestSupport(singleNodeApplication);
@@ -193,8 +192,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 			TestMessageBusInjection.injectMessageBus(singleNodeApplication, testMessageBus);
 		}
 		ContainerMetadata cm = singleNodeApplication.containerContext().getBean(ContainerMetadata.class);
-		integrationSupport.addPathListener(new DeploymentsListener(), Paths.build(Paths.DEPLOYMENTS, cm.getId()));
-		integrationSupport.addWatcher(new DeploymentsListener(), Paths.build(Paths.STREAMS));
+		integrationSupport.addPathListener(Paths.build(Paths.DEPLOYMENTS, cm.getId()), deploymentsListener);
 	}
 
 	@AfterClass
@@ -203,6 +201,8 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 			testMessageBus.cleanup();
 			testMessageBus = null;
 		}
+		ContainerMetadata cm = singleNodeApplication.containerContext().getBean(ContainerMetadata.class);
+		integrationSupport.removePathListener(Paths.build(Paths.DEPLOYMENTS, cm.getId()), deploymentsListener);
 	}
 
 	@After
@@ -344,16 +344,13 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		barsink.unbind();
 	}
 
-	static class DeploymentsListener implements PathChildrenCacheListener, Watcher {
+	static class DeploymentsListener implements PathChildrenCacheListener  {
 
 		@Override
 		public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
-			System.out.println("******************************* got an event " + " " + event.getType());
+			System.out.println(String.format("********** Received ZooKeeper event of type '%s' for path '%s'",
+					event.getType(), event.getData().getPath()));
 		}
 
-		@Override
-		public void process(WatchedEvent event) {
-			System.out.println("******************************* got an event " + " " + event.getType());
-		}
 	}
 }

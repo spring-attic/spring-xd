@@ -19,10 +19,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
+import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent.Type;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -251,16 +253,12 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 	}
 
 	protected void assertModuleRequest(String moduleName, boolean remove) {
-		// Message<?> next = tapChannel.receive(0);
-		// assertNotNull(next);
-		// String payload = (String) next.getPayload();
-		//
-		// assertTrue(String.format("payload %s does not contain the expected module name %s", payload, moduleName),
-		// payload.contains("\"module\":\"" + moduleName + "\""));
-		// assertTrue(String.format("payload %s does not contain the expected remove: value", payload),
-		// payload.contains("\"remove\":" + (remove ? "true" : "false")));
+		PathChildrenCacheEvent event = remove ? deploymentsListener.popUndeployEvent()
+				: deploymentsListener.popDeployEvent();
+		assertNotNull("deploymentsListener returned a null event", event);
+		assertTrue(moduleName + " not found in " + event.getData().getPath() + " (remove = " + remove + ")",
+				event.getData().getPath().contains(moduleName));
 	}
-
 
 	private void tapTest(StreamDefinition streamDefinition, StreamDefinition tapDefinition) {
 		integrationSupport.createAndDeployStream(streamDefinition);
@@ -346,10 +344,27 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 
 	static class DeploymentsListener implements PathChildrenCacheListener  {
 
+		private LinkedList<PathChildrenCacheEvent> deployEvents = new LinkedList<PathChildrenCacheEvent>();
+
+		private LinkedList<PathChildrenCacheEvent> undeployEvents = new LinkedList<PathChildrenCacheEvent>();
+
 		@Override
 		public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
-			System.out.println(String.format("********** Received ZooKeeper event of type '%s' for path '%s'",
-					event.getType(), event.getData().getPath()));
+			System.out.println(event.getType() + " " + event.getData() + " " + event.getData().getPath());
+			if (event.getType().equals(Type.CHILD_ADDED)) {
+				deployEvents.addLast(event);
+			}
+			else if (event.getType().equals(Type.CHILD_REMOVED)) {
+				undeployEvents.push(event);
+			}
+		}
+
+		public PathChildrenCacheEvent popDeployEvent() {
+			return deployEvents.pop();
+		}
+
+		public PathChildrenCacheEvent popUndeployEvent() {
+			return undeployEvents.pop();
 		}
 
 	}

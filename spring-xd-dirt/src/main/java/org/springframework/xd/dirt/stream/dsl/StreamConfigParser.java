@@ -87,7 +87,7 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 	}
 
 	// (name =)
-	public String maybeEatStreamName() {
+	private String maybeEatStreamName() {
 		String streamName = null;
 		if (lookAhead(1, TokenKind.EQUALS)) {
 			if (peekToken(TokenKind.IDENTIFIER)) {
@@ -505,7 +505,7 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 	/**
 	 * Return the startPos of the first token in the list (must be non empty).
 	 */
-	public int startPos(Iterable<Token> many) {
+	private int startPos(Iterable<Token> many) {
 		Iterator<Token> iterator = many.iterator();
 		Assert.isTrue(iterator.hasNext(), "list of tokens must not be empty");
 		return iterator.next().startpos;
@@ -514,7 +514,7 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 	/**
 	 * Return the endPos of the end token in the list (must be non empty).
 	 */
-	public int endPos(Iterable<Token> many) {
+	private int endPos(Iterable<Token> many) {
 		int result = -1;
 		for (Token t : many) {
 			result = t.endpos;
@@ -526,7 +526,7 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 	/**
 	 * Return the concatenation of the data of many tokens.
 	 */
-	public String data(Iterable<Token> many) {
+	private String data(Iterable<Token> many) {
 		StringBuilder result = new StringBuilder();
 		for (Token t : many) {
 			if (t.getKind().hasPayload()) {
@@ -591,7 +591,7 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 		lastGoodPoint = tokenStreamPointer;
 	}
 
-	public String toString(Token t) {
+	private String toString(Token t) {
 		if (t.getKind().hasPayload()) {
 			return t.stringValue();
 		}

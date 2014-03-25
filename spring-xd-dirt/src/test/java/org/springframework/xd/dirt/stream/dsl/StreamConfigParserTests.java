@@ -263,6 +263,16 @@ public class StreamConfigParserTests {
 		assertEquals("[(tap:stream:mystream.foobar.1:0>26)>(ModuleNode:file:29>33)]", sn.stringify(true));
 	}
 
+	@Test(expected = StreamDefinitionException.class)
+	public void tapOnNonExistentStreamFails() throws Exception {
+		parse("tap:stream:mystream.foobar > file");
+	}
+
+	@Test(expected = StreamDefinitionException.class)
+	public void tapOnNonExistentStreamFails2() throws Exception {
+		parse("tap:stream:mystream.foobar.1 > file");
+	}
+
 	@Test
 	public void expressions_xd159() {
 		StreamNode ast = parse("foo | transform --expression=--payload | bar");

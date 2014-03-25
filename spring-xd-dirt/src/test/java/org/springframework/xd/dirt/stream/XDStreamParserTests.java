@@ -174,9 +174,12 @@ public class XDStreamParserTests {
 
 	@Test
 	public void tap() throws Exception {
+		StreamDefinitionRepository streamRepo = mock(StreamDefinitionRepository.class);
+		parser = new XDStreamParser(streamRepo, moduleDefinitionRepository(), new DefaultModuleOptionsMetadataResolver());
+		when(streamRepo.findOne("xxx")).thenReturn(new StreamDefinition("xxx", "http | file"));
 		List<ModuleDeploymentRequest> requests = parser.parse("test", "tap:stream:xxx.http > file", stream);
 		assertEquals(1, requests.size());
-		assertEquals("tap:xxx.http", requests.get(0).getSourceChannelName());
+		assertEquals("tap:xxx.http.0", requests.get(0).getSourceChannelName());
 		assertEquals(ModuleType.sink, requests.get(0).getType());
 	}
 

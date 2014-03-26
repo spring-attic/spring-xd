@@ -15,6 +15,7 @@ package org.springframework.xd.dirt.stream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
@@ -56,7 +57,7 @@ public class ComposedModuleStreamTests extends StreamTestSupport {
 		};
 		sendPayloadAndVerifyOutput("streamWithCompositeSource", "foo", test);
 		// Delete the stream definition
-		deleteStream("streamWithCompositeSource");
+		undeployStream("streamWithCompositeSource");
 	}
 
 	@Test
@@ -106,7 +107,7 @@ public class ComposedModuleStreamTests extends StreamTestSupport {
 
 	@Test
 	public void testStreamWithCompositeProcessor() {
-		deployStream("streamWithCompositeProcessor", "source | compositeprocessor | sink");
+		assertTrue(deployStream("streamWithCompositeProcessor", "source | compositeprocessor | sink"));
 		MessageTest test = new MessageTest() {
 
 			@Override

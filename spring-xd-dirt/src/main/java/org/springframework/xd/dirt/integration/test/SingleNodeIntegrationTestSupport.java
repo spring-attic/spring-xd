@@ -132,6 +132,10 @@ public class SingleNodeIntegrationTestSupport {
 		return result;
 	}
 
+	public final void deleteStream(String name) {
+		streamDeployer.delete(name);
+	}
+
 	public final Module getModule(String moduleName, int index) {
 		final Map<String, Map<Integer, Module>> deployedModules = deployedModuleState.getDeployedModules();
 
@@ -217,6 +221,7 @@ public class SingleNodeIntegrationTestSupport {
 				}
 			}
 		}
+		System.out.println("tried for deploy=" + isDeploy + " stream=" + definition.getName() + " tries=" + tries);
 		return done;
 	}
 

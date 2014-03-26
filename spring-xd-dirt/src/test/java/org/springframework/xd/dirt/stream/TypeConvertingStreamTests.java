@@ -14,8 +14,8 @@
 package org.springframework.xd.dirt.stream;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -30,7 +30,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.converter.ContentTypeResolver;
 import org.springframework.util.MimeType;
-import org.springframework.xd.dirt.plugins.ModuleConfigurationException;
 import org.springframework.xd.module.core.Module;
 import org.springframework.xd.tuple.DefaultTuple;
 import org.springframework.xd.tuple.Tuple;
@@ -137,19 +136,10 @@ public class TypeConvertingStreamTests extends StreamTestSupport {
 	}
 
 	@Test
-	public void unknownContentTypeThrowsException() {
-		try {
-			deployStream(
-					"xml",
-					"source --outputType=application/xml | sink");
-			fail("should throw exception");
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			assertTrue(e.getCause() instanceof ModuleConfigurationException);
-			assertEquals("No message converter is registered for application/xml(source --outputType=application/xml)",
-					e.getCause().getMessage());
-		}
+	public void unknownContentTypeWillNotDeploy() {
+		assertFalse(deployStream(
+				"xml",
+				"source --outputType=application/xml | sink"));
 	}
 
 	@Test

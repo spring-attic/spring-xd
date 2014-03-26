@@ -468,9 +468,7 @@ public class Stream {
 			ModuleDescriptor sinkDescriptor = null;
 			List<ModuleDescriptor> processorDescriptors = new ArrayList<ModuleDescriptor>();
 
-			// todo: why are the definitions in reverse order here?
-			int i = moduleDefinitions.size() - 1;
-
+			int i = 0;
 			for (Map.Entry<String, ModuleDefinition> entry : moduleDefinitions.entrySet()) {
 				String label = entry.getKey();
 				ModuleDefinition moduleDefinition = entry.getValue();
@@ -488,7 +486,7 @@ public class Stream {
 				else if (i == 0 && sourceChannelName != null) {
 					descriptor.setSourceChannelName(sourceChannelName);
 				}
-				i--;
+				i++;
 				descriptor.addParameters(moduleParameters.get(label));
 				switch (moduleDefinition.getType()) {
 					case source:

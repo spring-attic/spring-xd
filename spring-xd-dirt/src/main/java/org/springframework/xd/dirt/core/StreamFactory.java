@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.core;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -52,7 +53,10 @@ public class StreamFactory {
 		Assert.hasText(definition, "Stream deployment manifest requires a 'definition' property");
 
 		String[] tokens = definition.split("\\|");
-		List<ModuleDeploymentRequest> requests = this.parser.parse(name, definition, ParsingContext.stream);
+		List<ModuleDeploymentRequest> requests = new ArrayList<ModuleDeploymentRequest>();
+		for (ModuleDeploymentRequest request : this.parser.parse(name, definition, ParsingContext.stream)) {
+			requests.add(0, request);
+		}
 
 		Stream.Builder builder = new Stream.Builder();
 		builder.setName(name);

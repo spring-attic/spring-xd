@@ -1,0 +1,25 @@
+<PMML version="4.1" xmlns="http://www.dmg.org/PMML-4_1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.dmg.org/PMML-4_1 http://www.dmg.org/v4-1/pmml-4-1.xsd">
+    <Header copyright="Copyright (c) 2014 tom" description="Linear Regression Model">
+        <Extension name="user" value="tom" extender="Rattle/PMML"/>
+        <Application name="Rattle/PMML" version="1.3"/>
+        <Timestamp>2014-03-15 23:39:25</Timestamp>
+    </Header>
+    <DataDictionary numberOfFields="2">
+        <DataField name="Petal.Width" optype="continuous" dataType="double"/>
+        <DataField name="Petal.Length" optype="continuous" dataType="double"/>
+    </DataDictionary>
+    <RegressionModel modelName="Linear_Regression_Model" functionName="regression" algorithmName="least squares"
+                     targetFieldName="Petal.Width">
+        <MiningSchema>
+            <MiningField name="Petal.Width" usageType="predicted"/>
+            <MiningField name="Petal.Length" usageType="active"/>
+        </MiningSchema>
+        <Output>
+            <OutputField name="Predicted_Petal.Width" feature="predictedValue"/>
+        </Output>
+        <RegressionTable intercept="-0.362391952870546">
+            <NumericPredictor name="Petal.Length" exponent="1" coefficient="0.41617861243376"/>
+        </RegressionTable>
+    </RegressionModel>
+</PMML>

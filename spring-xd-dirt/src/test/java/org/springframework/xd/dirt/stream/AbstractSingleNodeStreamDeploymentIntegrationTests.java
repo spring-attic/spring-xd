@@ -19,8 +19,11 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
@@ -43,6 +46,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.xd.dirt.config.TestMessageBusInjection;
 import org.springframework.xd.dirt.container.ContainerMetadata;
+import org.springframework.xd.dirt.core.DeploymentsPath;
 import org.springframework.xd.dirt.integration.test.SingleNodeIntegrationTestSupport;
 import org.springframework.xd.dirt.integration.test.sink.NamedChannelSink;
 import org.springframework.xd.dirt.integration.test.sink.SingleNodeNamedChannelSinkFactory;
@@ -209,9 +213,9 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 
 	@After
 	public void cleanUp() {
-		integrationSupport.streamRepository().deleteAll();
-		// integrationSupport.streamDefinitionRepository().deleteAll();
 		integrationSupport.streamDeployer().undeployAll();
+		integrationSupport.streamRepository().deleteAll();
+		integrationSupport.streamDefinitionRepository().deleteAll();
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -228,7 +232,8 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		final int ITERATIONS = 5;
 		int i = 0;
 		for (i = 0; i < ITERATIONS; i++) {
-			StreamDefinition definition = new StreamDefinition("test" + i,
+			String streamName = "test" + i;
+			StreamDefinition definition = new StreamDefinition(streamName,
 					"http | transform --expression=payload | filter --expression=true | log");
 			integrationSupport.streamDeployer().save(definition);
 			assertTrue("stream not deployed", integrationSupport.deployStream(definition));
@@ -238,23 +243,22 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 			assertEquals(0, integrationSupport.streamRepository().count());
 			assertFalse(integrationSupport.streamRepository().exists("test" + i));
 			// Deploys in reverse order
-			assertModuleRequest("log", false);
-			assertModuleRequest("filter", false);
-			assertModuleRequest("transform", false);
-			assertModuleRequest("http", false);
+			assertModuleRequest(streamName, "log", false);
+			assertModuleRequest(streamName, "filter", false);
+			assertModuleRequest(streamName, "transform", false);
+			assertModuleRequest(streamName, "http", false);
 			// Undeploys in stream order
-			assertModuleRequest("http", true);
-			assertModuleRequest("transform", true);
-			assertModuleRequest("filter", true);
-			assertModuleRequest("log", true);
+			assertModuleRequest(streamName, "http", true);
+			assertModuleRequest(streamName, "transform", true);
+			assertModuleRequest(streamName, "filter", true);
+			assertModuleRequest(streamName, "log", true);
 		}
 		assertEquals(ITERATIONS, i);
-
 	}
 
-	protected void assertModuleRequest(String moduleName, boolean remove) {
-		PathChildrenCacheEvent event = remove ? deploymentsListener.popUndeployEvent()
-				: deploymentsListener.popDeployEvent();
+	protected void assertModuleRequest(String streamName, String moduleName, boolean remove) {
+		PathChildrenCacheEvent event = remove ? deploymentsListener.nextUndeployEvent(streamName)
+				: deploymentsListener.nextDeployEvent(streamName);
 		assertNotNull("deploymentsListener returned a null event", event);
 		assertTrue(moduleName + " not found in " + event.getData().getPath() + " (remove = " + remove + ")",
 				event.getData().getPath().contains(moduleName));
@@ -315,8 +319,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		assertEquals(1, integrationSupport.streamRepository().count());
 
 		Thread.sleep(1000);
-		assertModuleRequest("router", false);
-
+		assertModuleRequest(routerDefinition.getName(), "router", false);
 
 		MessageBus bus = integrationSupport.messageBus();
 		assertNotNull(bus);
@@ -344,27 +347,46 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 
 	static class DeploymentsListener implements PathChildrenCacheListener  {
 
-		private LinkedList<PathChildrenCacheEvent> deployEvents = new LinkedList<PathChildrenCacheEvent>();
+		private ConcurrentMap<String, LinkedBlockingQueue<PathChildrenCacheEvent>> deployQueues = new ConcurrentHashMap<String, LinkedBlockingQueue<PathChildrenCacheEvent>>();
 
-		private LinkedList<PathChildrenCacheEvent> undeployEvents = new LinkedList<PathChildrenCacheEvent>();
+		private ConcurrentMap<String, LinkedBlockingQueue<PathChildrenCacheEvent>> undeployQueues = new ConcurrentHashMap<String, LinkedBlockingQueue<PathChildrenCacheEvent>>();
 
 		@Override
 		public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
 			System.out.println(event.getType() + " " + event.getData() + " " + event.getData().getPath());
+			DeploymentsPath path = new DeploymentsPath(event.getData().getPath());
 			if (event.getType().equals(Type.CHILD_ADDED)) {
-				deployEvents.addLast(event);
+				deployQueues.putIfAbsent(path.getStreamName(), new LinkedBlockingQueue<PathChildrenCacheEvent>());
+				LinkedBlockingQueue<PathChildrenCacheEvent> queue = deployQueues.get(path.getStreamName());
+				queue.put(event);
 			}
 			else if (event.getType().equals(Type.CHILD_REMOVED)) {
-				undeployEvents.addLast(event);
+				undeployQueues.putIfAbsent(path.getStreamName(), new LinkedBlockingQueue<PathChildrenCacheEvent>());
+				LinkedBlockingQueue<PathChildrenCacheEvent> queue = undeployQueues.get(path.getStreamName());
+				queue.put(event);
 			}
 		}
 
-		public PathChildrenCacheEvent popDeployEvent() {
-			return deployEvents.pop();
+		public PathChildrenCacheEvent nextDeployEvent(String streamName) {
+			try {
+				LinkedBlockingQueue<PathChildrenCacheEvent> queue = deployQueues.get(streamName);
+				return queue != null ? queue.poll(10, TimeUnit.SECONDS) : null;
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				return null;
+			}
 		}
 
-		public PathChildrenCacheEvent popUndeployEvent() {
-			return undeployEvents.pop();
+		public PathChildrenCacheEvent nextUndeployEvent(String streamName) {
+			try {
+				LinkedBlockingQueue<PathChildrenCacheEvent> queue = undeployQueues.get(streamName);
+				return queue != null ? queue.poll(10, TimeUnit.SECONDS) : null;
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				return null;
+			}
 		}
 
 	}

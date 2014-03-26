@@ -483,7 +483,7 @@ public class Stream {
 				if (i == moduleDefinitions.size() - 1 && sinkChannelName != null) {
 					descriptor.setSinkChannelName(sinkChannelName);
 				}
-				else if (i == 0 && sourceChannelName != null) {
+				if (i == 0 && sourceChannelName != null) {
 					descriptor.setSourceChannelName(sourceChannelName);
 				}
 				i++;

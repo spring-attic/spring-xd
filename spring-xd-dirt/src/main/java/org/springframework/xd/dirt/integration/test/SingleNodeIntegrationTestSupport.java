@@ -15,7 +15,6 @@ package org.springframework.xd.dirt.integration.test;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
@@ -136,18 +135,10 @@ public class SingleNodeIntegrationTestSupport {
 		streamDeployer.delete(name);
 	}
 
-	public final Module getModule(String moduleName, int index) {
-		final Map<String, Map<Integer, Module>> deployedModules = deployedModuleState.getDeployedModules();
+	public final Module getModule(String streamName, String moduleName, int index) {
+		final Map<Integer, Module> deployedModules = deployedModuleState.getDeployedModules().get(streamName);
+		return deployedModules == null ? null : deployedModules.get(index);
 
-		Module matchedModule = null;
-		for (Entry<String, Map<Integer, Module>> entry : deployedModules.entrySet()) {
-			final Module module = entry.getValue().get(index);
-			if (module != null && moduleName.equals(module.getName())) {
-				matchedModule = module;
-				break;
-			}
-		}
-		return matchedModule;
 	}
 
 	public ZooKeeperConnection zooKeeperConnection() {
@@ -156,9 +147,9 @@ public class SingleNodeIntegrationTestSupport {
 
 	/**
 	 * Add a {@link PathChildrenCacheListener} for the given path.
-	 *
-	 * @param path      the path whose children to listen to
-	 * @param listener  the children listener
+	 * 
+	 * @param path the path whose children to listen to
+	 * @param listener the children listener
 	 */
 	public void addPathListener(String path, PathChildrenCacheListener listener) {
 		PathChildrenCache cache = mapChildren.get(path);
@@ -176,9 +167,9 @@ public class SingleNodeIntegrationTestSupport {
 
 	/**
 	 * Remove a {@link PathChildrenCacheListener} for the given path.
-	 *
-	 * @param path      the path whose children to listen to
-	 * @param listener  the children listener
+	 * 
+	 * @param path the path whose children to listen to
+	 * @param listener the children listener
 	 */
 	public void removePathListener(String path, PathChildrenCacheListener listener) {
 		PathChildrenCache cache = mapChildren.get(path);
@@ -200,12 +191,12 @@ public class SingleNodeIntegrationTestSupport {
 		final int MAX_TRIES = 40;
 		int tries = 1;
 		boolean done = false;
+
 		while (!done && tries <= MAX_TRIES) {
 			done = true;
 			int i = definition.getModuleDefinitions().size();
 			for (ModuleDefinition module : definition.getModuleDefinitions()) {
-				Module deployedModule = getModule(module.getName(), --i);
-
+				Module deployedModule = getModule(definition.getName(), module.getName(), --i);
 				done = (isDeploy) ? deployedModule != null : deployedModule == null;
 				if (!done) {
 					break;
@@ -221,7 +212,6 @@ public class SingleNodeIntegrationTestSupport {
 				}
 			}
 		}
-		System.out.println("tried for deploy=" + isDeploy + " stream=" + definition.getName() + " tries=" + tries);
 		return done;
 	}
 

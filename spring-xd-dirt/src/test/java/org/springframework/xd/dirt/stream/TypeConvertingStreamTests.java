@@ -22,6 +22,7 @@ import java.util.Date;
 import java.util.Map;
 
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.integration.x.bus.StringConvertingContentTypeResolver;
@@ -135,6 +136,7 @@ public class TypeConvertingStreamTests extends StreamTestSupport {
 		sendPayloadAndVerifyOutput("rawbytes", new Foo("bar", 9999), test);
 	}
 
+	@Ignore
 	@Test
 	public void unknownContentTypeWillNotDeploy() {
 		assertFalse(deployStream(

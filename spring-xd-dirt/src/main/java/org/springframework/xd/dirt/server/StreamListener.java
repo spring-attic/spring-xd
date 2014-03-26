@@ -41,6 +41,7 @@ import org.springframework.xd.dirt.core.Stream;
 import org.springframework.xd.dirt.core.StreamFactory;
 import org.springframework.xd.dirt.core.StreamsPath;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
+import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
@@ -86,10 +87,12 @@ public class StreamListener implements PathChildrenCacheListener {
 	 * @param moduleOptionsMetadataResolver resolver for module options metadata
 	 */
 	public StreamListener(ContainerRepository containerRepository,
+			StreamDefinitionRepository streamDefinitionRepository,
 			ModuleDefinitionRepository moduleDefinitionRepository,
 			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver) {
 		this.containerRepository = containerRepository;
-		this.streamFactory = new StreamFactory(moduleDefinitionRepository, moduleOptionsMetadataResolver);
+		this.streamFactory = new StreamFactory(streamDefinitionRepository, moduleDefinitionRepository,
+				moduleOptionsMetadataResolver);
 	}
 
 	/**
@@ -148,9 +151,9 @@ public class StreamListener implements PathChildrenCacheListener {
 
 	/**
 	 * Handle the updating of an existing stream.
-	 *
+	 * 
 	 * @param client curator client
-	 * @param data   stream data
+	 * @param data stream data
 	 */
 	private void onChildUpdated(CuratorFramework client, ChildData data) throws Exception {
 		String streamName = Paths.stripPath(data.getPath());
@@ -202,7 +205,7 @@ public class StreamListener implements PathChildrenCacheListener {
 
 	/**
 	 * Handle the deletion of a stream.
-	 *
+	 * 
 	 * @param client curator client
 	 * @param data stream data
 	 */

@@ -207,8 +207,10 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 			testMessageBus.cleanup();
 			testMessageBus = null;
 		}
-		ContainerMetadata cm = singleNodeApplication.containerContext().getBean(ContainerMetadata.class);
-		integrationSupport.removePathListener(Paths.build(Paths.DEPLOYMENTS, cm.getId()), deploymentsListener);
+		if (singleNodeApplication.containerContext().isActive()) {
+			ContainerMetadata cm = singleNodeApplication.containerContext().getBean(ContainerMetadata.class);
+			integrationSupport.removePathListener(Paths.build(Paths.DEPLOYMENTS, cm.getId()), deploymentsListener);
+		}
 	}
 
 	@After

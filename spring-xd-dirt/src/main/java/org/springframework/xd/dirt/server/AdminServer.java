@@ -36,6 +36,7 @@ import org.springframework.util.Assert;
 import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.ContainerRepository;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
+import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.ChildPathIterator;
 import org.springframework.xd.dirt.zookeeper.Paths;
@@ -60,6 +61,8 @@ public class AdminServer implements ContainerRepository, ApplicationListener<Con
 	private static final Logger LOG = LoggerFactory.getLogger(AdminServer.class);
 
 	private final ZooKeeperConnection zkConnection;
+
+	private final StreamDefinitionRepository streamDefinitionRepository;
 
 	private final ModuleDefinitionRepository moduleDefinitionRepository;
 
@@ -110,12 +113,16 @@ public class AdminServer implements ContainerRepository, ApplicationListener<Con
 
 	private final ConnectionListener connectionListener = new ConnectionListener();
 
-	public AdminServer(ZooKeeperConnection zkConnection, ModuleDefinitionRepository moduleDefinitionRepository,
+	public AdminServer(ZooKeeperConnection zkConnection,
+			StreamDefinitionRepository streamDefinitionRepository,
+			ModuleDefinitionRepository moduleDefinitionRepository,
 			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver) {
 		Assert.notNull(zkConnection, "ZooKeeperConnection must not be null");
+		Assert.notNull(streamDefinitionRepository, "StreamDefinitionRepository must not be null");
 		Assert.notNull(moduleDefinitionRepository, "ModuleDefinitionRepository must not be null");
 		Assert.notNull(moduleOptionsMetadataResolver, "moduleOptionsMetadataResolver must not be null");
 		this.zkConnection = zkConnection;
+		this.streamDefinitionRepository = streamDefinitionRepository;
 		this.moduleDefinitionRepository = moduleDefinitionRepository;
 		this.moduleOptionsMetadataResolver = moduleOptionsMetadataResolver;
 	}
@@ -207,7 +214,9 @@ public class AdminServer implements ContainerRepository, ApplicationListener<Con
 			PathChildrenCacheListener jobListener = null;
 			PathChildrenCacheListener containerListener = null;
 			try {
-				streamListener = new StreamListener(AdminServer.this, moduleDefinitionRepository,
+				streamListener = new StreamListener(AdminServer.this,
+						streamDefinitionRepository,
+						moduleDefinitionRepository,
 						moduleOptionsMetadataResolver);
 
 				streams = new PathChildrenCache(client, Paths.STREAMS, true);
@@ -221,7 +230,9 @@ public class AdminServer implements ContainerRepository, ApplicationListener<Con
 				jobs.getListenable().addListener(jobListener);
 				jobs.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
 
-				containerListener = new ContainerListener(AdminServer.this, moduleDefinitionRepository,
+				containerListener = new ContainerListener(AdminServer.this,
+						streamDefinitionRepository,
+						moduleDefinitionRepository,
 						moduleOptionsMetadataResolver, streams);
 
 				containers = new PathChildrenCache(client, Paths.CONTAINERS, true);

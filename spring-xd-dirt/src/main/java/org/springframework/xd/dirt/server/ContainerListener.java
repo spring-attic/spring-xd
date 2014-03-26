@@ -42,6 +42,7 @@ import org.springframework.xd.dirt.core.Stream;
 import org.springframework.xd.dirt.core.StreamFactory;
 import org.springframework.xd.dirt.core.StreamsPath;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
+import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.ChildPathIterator;
 import org.springframework.xd.dirt.zookeeper.Paths;
@@ -98,11 +99,13 @@ public class ContainerListener implements PathChildrenCacheListener {
 	 * @param streams cache of children under the streams path
 	 */
 	public ContainerListener(ContainerRepository containerRepository,
+			StreamDefinitionRepository streamDefinitionRepository,
 			ModuleDefinitionRepository moduleDefinitionRepository,
 			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver,
 			PathChildrenCache streams) {
 		this.containerRepository = containerRepository;
-		this.streamFactory = new StreamFactory(moduleDefinitionRepository, moduleOptionsMetadataResolver);
+		this.streamFactory = new StreamFactory(streamDefinitionRepository, moduleDefinitionRepository,
+				moduleOptionsMetadataResolver);
 		this.streams = streams;
 	}
 

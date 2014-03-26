@@ -60,6 +60,7 @@ import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.dirt.module.PrefixNarrowingModuleOptions;
 import org.springframework.xd.dirt.stream.ParsingContext;
+import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.XDParser;
 import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.dirt.util.MapBytesUtility;
@@ -186,6 +187,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	 * within a callback that is invoked for connected events as well as reconnected events.
 	 */
 	public ContainerRegistrar(ContainerMetadata metadata,
+			StreamDefinitionRepository streamDefinitionRepository,
 			ModuleDefinitionRepository moduleDefinitionRepository,
 			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver,
 			ModuleDeployer moduleDeployer,
@@ -198,7 +200,8 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		this.moduleOptionsMetadataResolver = moduleOptionsMetadataResolver;
 		this.moduleDeployer = moduleDeployer;
 		// todo: the streamFactory should be injected
-		this.streamFactory = new StreamFactory(moduleDefinitionRepository, moduleOptionsMetadataResolver);
+		this.streamFactory = new StreamFactory(streamDefinitionRepository, moduleDefinitionRepository,
+				moduleOptionsMetadataResolver);
 		this.parser = new XDStreamParser(moduleDefinitionRepository, moduleOptionsMetadataResolver);
 	}
 

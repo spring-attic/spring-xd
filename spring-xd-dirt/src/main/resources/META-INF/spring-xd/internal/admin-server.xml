@@ -12,6 +12,7 @@
 
 	<bean id="adminServer" class="org.springframework.xd.dirt.server.AdminServer">
 		<constructor-arg ref="zooKeeperConnection"/>
+		<constructor-arg ref="streamDefinitionRepository"/>
 		<constructor-arg ref="moduleDefinitionRepository"/>
 		<constructor-arg ref="moduleOptionsMetadataResolver"/>
 	</bean>

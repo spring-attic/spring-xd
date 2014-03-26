@@ -42,6 +42,7 @@ import org.springframework.xd.dirt.container.ContainerMetadata;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.server.options.ContainerOptions;
+import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.util.BannerUtils;
 import org.springframework.xd.dirt.util.ConfigLocations;
 import org.springframework.xd.dirt.util.XdConfigLoggingInitializer;
@@ -173,6 +174,9 @@ class ContainerConfiguration {
 	private ContainerMetadata containerMetadata;
 
 	@Autowired
+	private StreamDefinitionRepository streamDefinitionRepository;
+
+	@Autowired
 	private ModuleDefinitionRepository moduleDefinitionRepository;
 
 	@Autowired
@@ -201,6 +205,7 @@ class ContainerConfiguration {
 		}
 		zooKeeperConnection.start();
 		return new ContainerRegistrar(containerMetadata,
+				streamDefinitionRepository,
 				moduleDefinitionRepository,
 				moduleOptionsMetadataResolver,
 				moduleDeployer,

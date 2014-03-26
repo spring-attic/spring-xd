@@ -24,6 +24,7 @@ import org.springframework.util.Assert;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.dirt.stream.ParsingContext;
+import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
@@ -39,10 +40,12 @@ public class StreamFactory {
 
 	private final ModuleDefinitionRepository moduleDefinitionRepository;
 
-	public StreamFactory(ModuleDefinitionRepository moduleDefinitionRepository,
+	public StreamFactory(StreamDefinitionRepository streamDefinitionRepository,
+			ModuleDefinitionRepository moduleDefinitionRepository,
 			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver) {
 		this.moduleDefinitionRepository = moduleDefinitionRepository;
-		this.parser = new XDStreamParser(moduleDefinitionRepository, moduleOptionsMetadataResolver);
+		this.parser = new XDStreamParser(streamDefinitionRepository, moduleDefinitionRepository,
+				moduleOptionsMetadataResolver);
 	}
 
 	public Stream createStream(String name, Map<String, String> properties) {

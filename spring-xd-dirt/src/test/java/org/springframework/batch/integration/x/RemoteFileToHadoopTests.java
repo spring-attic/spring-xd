@@ -32,6 +32,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.batch.core.ExitStatus;
@@ -74,6 +75,11 @@ public class RemoteFileToHadoopTests {
 	private MessageChannel repliesIn;
 
 	private MessageBus bus;
+
+	@BeforeClass
+	public static void init() {
+		System.setProperty("spring.hadoop.fsUri", "hdfs://localhost:8020");
+	}
 
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	@Before

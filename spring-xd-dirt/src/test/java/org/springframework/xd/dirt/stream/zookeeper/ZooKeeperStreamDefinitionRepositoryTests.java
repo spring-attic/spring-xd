@@ -22,18 +22,18 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.List;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.xd.dirt.module.memory.InMemoryModuleDependencyRepository;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
+import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 
 /**
@@ -46,19 +46,26 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
  */
 public class ZooKeeperStreamDefinitionRepositoryTests {
 
-	private EmbeddedZooKeeper embeddedZooKeeper = new EmbeddedZooKeeper();
+	private static EmbeddedZooKeeper embeddedZooKeeper = new EmbeddedZooKeeper();
 
 	private ZooKeeperStreamDefinitionRepository repository;
 
-	private ZooKeeperConnection zkConnection;
+	private static ZooKeeperConnection zkConnection;
+
+	@BeforeClass
+	public static void initZooKeeper() {
+		embeddedZooKeeper.start();
+		zkConnection = new ZooKeeperConnection("localhost:"
+				+ embeddedZooKeeper.getClientPort());
+		zkConnection.start();
+	}
 
 	@Before
-	public void createRepository() {
-		embeddedZooKeeper.start();
-		this.zkConnection = new ZooKeeperConnection("localhost:" + embeddedZooKeeper.getClientPort());
+	public void createRepository() throws Exception {
 		this.repository = new ZooKeeperStreamDefinitionRepository(zkConnection,
 				new InMemoryModuleDependencyRepository());
-		zkConnection.start();
+
+		Paths.ensurePath(zkConnection.getClient(), Paths.STREAMS);
 	}
 
 	@After
@@ -66,9 +73,13 @@ public class ZooKeeperStreamDefinitionRepositoryTests {
 		if (repository != null) {
 			repository.deleteAll();
 		}
-		if (zkConnection != null) {
-			zkConnection.stop();
-		}
+
+	}
+
+	@AfterClass
+	public static void stopZooKeeper() {
+		zkConnection.stop();
+		embeddedZooKeeper.stop();
 	}
 
 	@Test
@@ -150,30 +161,6 @@ public class ZooKeeperStreamDefinitionRepositoryTests {
 		repository.save(otherone);
 		Assert.assertEquals(1, repository.count());
 		Assert.assertEquals("time | file", repository.findOne("one").getDefinition());
-	}
-
-	@Test
-	public void sorting() {
-		StreamDefinition one = new StreamDefinition("one", "http | hdfs");
-		StreamDefinition two = new StreamDefinition("two", "tcp | file");
-		StreamDefinition three = new StreamDefinition("three", "http | file");
-		StreamDefinition four = new StreamDefinition("four", "http | file");
-		StreamDefinition five = new StreamDefinition("five", "http | file");
-		repository.save(Arrays.asList(one, two, three, four, five));
-
-		Assert.assertEquals(5, repository.count());
-
-		PageRequest pageable = new PageRequest(1, 2);
-		Page<StreamDefinition> sub = repository.findAll(pageable);
-
-		Assert.assertEquals(5, sub.getTotalElements());
-		Assert.assertEquals(1, sub.getNumber());
-		Assert.assertEquals(2, sub.getNumberOfElements());
-		Assert.assertEquals(2, sub.getSize());
-		Assert.assertEquals(3, sub.getTotalPages());
-		List<StreamDefinition> content = sub.getContent();
-		Assert.assertEquals("one", content.get(0).getName());
-		Assert.assertEquals("three", content.get(1).getName());
 	}
 
 	@Test

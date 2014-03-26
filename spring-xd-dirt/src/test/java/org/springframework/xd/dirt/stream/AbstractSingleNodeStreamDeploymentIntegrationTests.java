@@ -353,7 +353,6 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 
 		@Override
 		public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
-			System.out.println(event.getType() + " " + event.getData() + " " + event.getData().getPath());
 			DeploymentsPath path = new DeploymentsPath(event.getData().getPath());
 			if (event.getType().equals(Type.CHILD_ADDED)) {
 				deployQueues.putIfAbsent(path.getStreamName(), new LinkedBlockingQueue<PathChildrenCacheEvent>());

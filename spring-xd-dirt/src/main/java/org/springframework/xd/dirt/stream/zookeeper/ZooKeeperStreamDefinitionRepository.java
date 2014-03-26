@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.xd.dirt.module.ModuleDependencyRepository;
@@ -71,7 +70,7 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 
 	@Override
 	public Page<StreamDefinition> findAll(Pageable pageable) {
-		return new PageImpl<StreamDefinition>(this.findAll());
+		throw new UnsupportedOperationException("Auto-generated method stub");
 	}
 
 	@Override
@@ -155,7 +154,10 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 	public List<StreamDefinition> findAll(Iterable<String> ids) {
 		List<StreamDefinition> results = new ArrayList<StreamDefinition>();
 		for (String id : ids) {
-			results.add(this.findOne(id));
+			StreamDefinition sd = this.findOne(id);
+			if (sd != null) {
+				results.add(this.findOne(id));
+			}
 		}
 		return results;
 	}

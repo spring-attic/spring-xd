@@ -157,7 +157,6 @@ public class SingleNodeIntegrationTestSupport {
 	 * @param listener  the children listener
 	 */
 	public void addPathListener(String path, PathChildrenCacheListener listener) {
-		System.out.println("Adding listener on " + path + " running:" + zooKeeperConnection.isRunning());
 		PathChildrenCache cache = mapChildren.get(path);
 		if (cache == null) {
 			mapChildren.put(path, cache = new PathChildrenCache(zooKeeperConnection.getClient(), path, true));
@@ -184,6 +183,7 @@ public class SingleNodeIntegrationTestSupport {
 			if (cache.getListenable().size() == 0) {
 				try {
 					cache.close();
+					mapChildren.remove(path);
 				}
 				catch (Exception e) {
 					throw e instanceof RuntimeException ? ((RuntimeException) e) : new RuntimeException(e);

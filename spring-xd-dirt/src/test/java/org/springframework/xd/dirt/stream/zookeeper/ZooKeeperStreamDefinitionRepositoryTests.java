@@ -64,6 +64,9 @@ public class ZooKeeperStreamDefinitionRepositoryTests {
 		this.repository = new ZooKeeperStreamDefinitionRepository(zkConnection,
 				new InMemoryModuleDependencyRepository());
 		repository.afterPropertiesSet();
+		for (int i = 0; !zkConnection.isConnected() && i < 100; i++) {
+			Thread.sleep(100);
+		}
 	}
 
 	@After

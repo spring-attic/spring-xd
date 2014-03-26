@@ -234,7 +234,15 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 
 		@Override
 		public void onConnect(CuratorFramework client) {
-			Paths.ensurePath(client, Paths.STREAMS);
+			try {
+				client.create().creatingParentsIfNeeded().forPath(Paths.STREAMS);
+			}
+			catch (NodeExistsException e) {
+				// already created
+			}
+			catch (Exception e) {
+				throw new RuntimeException(e);
+			}
 		}
 	}
 

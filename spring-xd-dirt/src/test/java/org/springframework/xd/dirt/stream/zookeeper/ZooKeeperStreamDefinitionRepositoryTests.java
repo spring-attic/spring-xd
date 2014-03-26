@@ -33,7 +33,6 @@ import org.junit.Test;
 import org.springframework.xd.dirt.module.memory.InMemoryModuleDependencyRepository;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
-import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 
 /**
@@ -64,8 +63,7 @@ public class ZooKeeperStreamDefinitionRepositoryTests {
 	public void createRepository() throws Exception {
 		this.repository = new ZooKeeperStreamDefinitionRepository(zkConnection,
 				new InMemoryModuleDependencyRepository());
-
-		Paths.ensurePath(zkConnection.getClient(), Paths.STREAMS);
+		repository.afterPropertiesSet();
 	}
 
 	@After

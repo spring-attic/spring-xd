@@ -70,9 +70,14 @@ public class ZooKeeperConnection implements SmartLifecycle {
 	private final CopyOnWriteArraySet<ZooKeeperConnectionListener> listeners = new CopyOnWriteArraySet<ZooKeeperConnectionListener>();
 
 	/**
-	 * Flag that indicates whether this registrar is currently active within a context.
+	 * Flag that indicates whether this connection is currently active within a context.
 	 */
 	private volatile boolean running;
+
+	/**
+	 * Flag that indicates whether this connection should be started automatically.
+	 */
+	private volatile boolean autoStartup;
 
 	/**
 	 * The current ZooKeeper ConnectionState.
@@ -140,7 +145,11 @@ public class ZooKeeperConnection implements SmartLifecycle {
 
 	@Override
 	public boolean isAutoStartup() {
-		return false;
+		return this.autoStartup;
+	}
+
+	public void setAutoStartup(boolean autoStartup) {
+		this.autoStartup = true;
 	}
 
 	@Override

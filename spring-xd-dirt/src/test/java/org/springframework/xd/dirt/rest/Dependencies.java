@@ -146,7 +146,9 @@ public class Dependencies {
 
 	@Bean
 	public ZooKeeperConnection zooKeeperConnection() {
-		return new ZooKeeperConnection("localhost:" + embeddedZooKeeper().getClientPort());
+		ZooKeeperConnection zkc = new ZooKeeperConnection("localhost:" + embeddedZooKeeper().getClientPort());
+		zkc.setAutoStartup(true);
+		return zkc;
 	}
 
 	@Bean

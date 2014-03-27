@@ -31,13 +31,22 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.util.StringUtils;
+import org.springframework.xd.integration.fixtures.Sinks;
+import org.springframework.xd.integration.fixtures.Sources;
 
 /**
  * Extracts the host and port information for the XD Instances
  * 
  * @author Glenn Renfro
  */
+@Configuration
+@PropertySource("classpath:application.properties")
 public class XdEnvironment {
 
 	// Environment Keys
@@ -49,69 +58,10 @@ public class XdEnvironment {
 
 	public static final String XD_JMX_PORT = "xd_jmx_port";
 
-	public static final String XD_CONTAINER_LOG_DIR = "xd_container_log_dir";
-
-	public static final String XD_BASE_DIR = "xd_base_dir";
-
-	// EC2 Environment Keys
-
-	public static final String XD_PRIVATE_KEY_FILE = "xd_private_key_file";
-
-	public static final String XD_RUN_ON_EC2 = "xd_run_on_ec2";
-
-	public static final String XD_PAUSE_TIME = "xd_pause_time";
-
-	// JDBC Environment Keys
-
-	public static final String JDBC_URL = "jdbc_url";
-
-	public static final String JDBC_USERNAME = "jdbc_username";
-
-	public static final String JDBC_PASSWORD = "jdbc_password";
-
-	public static final String JDBC_DATABASE = "jdbc_database";
-
-	public static final String JDBC_DRIVER = "jdbc_driver";
-
-
 	// Result Environment Variables
 	public final static String RESULT_LOCATION = "/tmp/xd/output";
 
-	public final static String LOGGER_LOCATION = "/home/ubuntu/spring-xd-1.0.0.BUILD-SNAPSHOT/xd/logs/container.log";
-
-	public final static String BASE_XD = "/home/ubuntu/spring-xd-1.0.0.BUILD-SNAPSHOT/xd";
-
 	public static final String HTTP_PREFIX = "http://";
-
-	// Each line in the artifact has a entry to identify it as admin, container or singlenode.
-	// These entries represent the supported types.
-	public static final String ADMIN_TOKEN = "adminNode";
-
-	public static final String CONTAINER_TOKEN = "containerNode";
-
-	public static final String SINGLENODE_TOKEN = "singleNode";
-
-	// The artifacts file name
-	private static final String ARTIFACT_NAME = "ec2servers.csv";
-
-
-	private transient final URL adminServer;
-
-	private transient final List<URL> containers;
-
-	private transient final int jmxPort;
-
-	private transient final String containerLogLocation;
-
-	private transient final String baseXdDir;
-
-	private transient final int httpPort;
-
-	private transient String privateKey;
-
-	private transient boolean isOnEc2 = true;
-
-	private transient int pauseTime = 1;
 
 	private static final int SERVER_TYPE_OFFSET = 0;
 
@@ -124,75 +74,128 @@ public class XdEnvironment {
 	private static final int JMX_PORT_OFFSET = 4;
 
 
+	// Each line in the artifact has a entry to identify it as admin, container or singlenode.
+	// These entries represent the supported types.
+	public static final String ADMIN_TOKEN = "adminNode";
+
+	public static final String CONTAINER_TOKEN = "containerNode";
+
+	public static final String SINGLENODE_TOKEN = "singleNode";
+
+	// The artifacts file name
+	private static final String ARTIFACT_NAME = "ec2servers.csv";
+
+	@Value("${xd_admin_host:}")
+	private transient String adminServerValue;
+
+	private transient URL adminServer;
+
+	@Value("${xd_containers:}")
+	private transient String containerValues;
+
+	private transient List<URL> containers;
+
+	@Value("${xd_jmx_port}")
+	private transient int jmxPort;
+
+	@Value("${xd_container_log_dir}")
+	private transient String containerLogLocation;
+
+	@Value("${xd_base_dir}")
+	private transient String baseXdDir;
+
+	@Value("${xd_http_port}")
+	private transient int httpPort;
+
+	@Value("${xd_pvt_keyfile:}")
+	private String privateKeyFileName;
+
+	private transient String privateKey;
+
+	@Value("${xd_run_on_ec2:true}")
+	private transient boolean isOnEc2;
+
 	// JDBC Attributes
+	@Value("${jdbc_url}")
 	private transient String jdbcUrl;
 
+	@Value("${jdbc_username}")
 	private transient String jdbcUsername;
 
+	@Value("${jdbc_password}")
 	private transient String jdbcPassword;
 
+	@Value("${jdbc_database}")
 	private transient String jdbcDatabase;
 
+	@Value("${jdbc_driver}")
 	private transient String jdbcDriver;
+
+	// JMS Attributes
+	@Value("${jms_host}")
+	private transient String jmsHost;
+
+	@Value("${jms_port}")
+	private transient int jmsPort;
 
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(XdEnvironment.class);
 
-	private final Properties systemProperties;
+	private final Properties artifactProperties;
+
+	private boolean jmxInitialized = false;
+
+	private boolean httpInitialized = false;
 
 	public XdEnvironment() throws Exception {
-		systemProperties = System.getProperties();
-		final Properties properties = getXDDeploymentProperties();
-		containers = getContainers(properties);
-		adminServer = getAdminServer(properties);
-		jmxPort = Integer.parseInt(properties.getProperty(XD_JMX_PORT));
-		httpPort = Integer.parseInt(properties.getProperty(XD_HTTP_PORT));
+		artifactProperties = getPropertiesFromArtifact();
+	}
 
-		jdbcUrl = systemProperties.getProperty(JDBC_URL);
-		jdbcUsername = systemProperties.getProperty(JDBC_USERNAME);
-		jdbcPassword = systemProperties.getProperty(JDBC_PASSWORD);
-		jdbcDatabase = systemProperties.getProperty(JDBC_DATABASE);
-		jdbcDriver = systemProperties.getProperty(JDBC_DRIVER);
 
-		containerLogLocation = getContainerLogLocation(systemProperties);
-		baseXdDir = getBaseDirLocation(systemProperties);
-
-		isOnEc2 = getOnEc2Flag();
-		pauseTime = getPauseTimeFromEnv();
-		if (isOnEc2) {
-			String keyFile = getPrivateKeyFile();
-			isFilePresent(keyFile);
-			privateKey = getPrivateKey(keyFile);
+	public URL getAdminServer() throws MalformedURLException {
+		if (adminServer == null) {
+			if (artifactProperties != null) {
+				adminServerValue = artifactProperties.getProperty(XD_ADMIN_HOST);
+			}
+			adminServer = new URL(adminServerValue);
 		}
-	}
-
-
-	public int getPauseTime() {
-		return pauseTime;
-	}
-
-
-	public void setPauseTime(int pauseTime) {
-		this.pauseTime = pauseTime;
-	}
-
-	public URL getAdminServer() {
 		return adminServer;
 	}
 
 	public List<URL> getContainers() {
+		if (containers == null) {
+			if (artifactProperties != null) {
+				containerValues = artifactProperties.getProperty(XD_CONTAINERS);
+			}
+			containers = getContainers(containerValues);
+		}
 		return containers;
 	}
 
 	public int getJMXPort() {
+		// if CLI artifact is present use it instead of environment.
+		if (!jmxInitialized && artifactProperties != null) {
+			jmxPort = Integer.parseInt(artifactProperties.getProperty(XD_JMX_PORT));
+		}
+		jmxInitialized = true;
 		return jmxPort;
 	}
 
 	public int getHttpPort() {
+		// if CLI artifact is present use it instead of environment.
+		if (!httpInitialized && artifactProperties != null) {
+			httpPort = Integer.parseInt(artifactProperties.getProperty(XD_HTTP_PORT));
+		}
+		httpInitialized = true;
 		return httpPort;
 	}
 
-	public String getPrivateKey() {
+	public String getPrivateKey() throws IOException {
+		// Initialize private key if not already set.
+		if (isOnEc2 && privateKey == null) {
+			isFilePresent(privateKeyFileName);
+			privateKey = getPrivateKey(privateKeyFileName);
+		}
 		return privateKey;
 	}
 
@@ -237,24 +240,6 @@ public class XdEnvironment {
 		return result;
 	}
 
-	/**
-	 * Retrieves the admin host url from properties
-	 * 
-	 * @param properties
-	 * @return
-	 */
-	private URL getAdminServer(Properties properties) {
-
-		URL result = null;
-		final String host = properties.getProperty(XD_ADMIN_HOST);
-		try {
-			result = new URL(host);
-		}
-		catch (MalformedURLException mue) {
-			LOGGER.info("XD_ADMIN_HOST was not identified in either an artifact or system environment variables");
-		}
-		return result;
-	}
 
 	/**
 	 * Retrieves a list o containers from the properties file.
@@ -262,10 +247,10 @@ public class XdEnvironment {
 	 * @param properties
 	 * @return
 	 */
-	private List<URL> getContainers(Properties properties) {
+	private List<URL> getContainers(String containerList) {
 		final List<URL> containers = new ArrayList<URL>();
 		final Set<String> containerHosts = StringUtils
-				.commaDelimitedListToSet(properties.getProperty(XD_CONTAINERS));
+				.commaDelimitedListToSet(containerList);
 		final Iterator<String> iter = containerHosts.iterator();
 		while (iter.hasNext()) {
 			final String containerHost = iter.next();
@@ -280,60 +265,14 @@ public class XdEnvironment {
 		return containers;
 	}
 
-	/**
-	 * retrieves the location of the container log from a server.
-	 * 
-	 * @param properties
-	 * @return
-	 */
-	private String getContainerLogLocation(Properties properties) {
-		String result = LOGGER_LOCATION;
-		if (properties.containsKey(XD_CONTAINER_LOG_DIR)) {
-			result = properties.getProperty(XD_CONTAINER_LOG_DIR);
-		}
-		return result;
-	}
-
-	private String getBaseDirLocation(Properties properties) {
-		String result = BASE_XD;
-		if (properties.containsKey(XD_BASE_DIR)) {
-			result = properties.getProperty(XD_BASE_DIR);
-		}
-		return result;
-	}
-
-	/**
-	 * Retrieves the properties necessary for testing from either the environment or from the artifact file generated by
-	 * the XD-EC2 application.
-	 * 
-	 * @return
-	 */
-	private Properties getXDDeploymentProperties() {
-		Properties result = getPropertiesFromArtifact();
-		// if the artifact does not contain the admin try the System
-		if (!result.containsKey(XD_ADMIN_HOST)
-				|| !result.containsKey(XD_CONTAINERS)) {
-			result = getPropertiesFromSystem();
-		}
-		if (!result.containsKey(XD_ADMIN_HOST)
-				|| !result.containsKey(XD_CONTAINERS)) {
-			throw new IllegalArgumentException(
-					"No admin server host or XD_Containers has been set."
-							+ "  This can be set via an artifact or setting the "
-							+ XD_ADMIN_HOST + " and " + XD_CONTAINERS
-							+ " environment variables");
-		}
-
-		return result;
-	}
-
 	private Properties getPropertiesFromArtifact() {
-		final Properties props = new Properties();
+		Properties props = null;
 		BufferedReader reader = null;
 		String containerHosts = null;
 		try {
 			final File file = new File(ARTIFACT_NAME);
 			if (file.exists()) {
+				props = new Properties();
 				reader = new BufferedReader(new FileReader(ARTIFACT_NAME));
 				while (reader.ready()) {
 					final String line = reader.readLine();
@@ -397,51 +336,6 @@ public class XdEnvironment {
 		return props;
 	}
 
-	private Properties getPropertiesFromSystem() {
-		final Properties props = new Properties();
-		if (systemProperties.containsKey(XD_ADMIN_HOST)) {
-			props.put(XD_ADMIN_HOST,
-					systemProperties.getProperty(XD_ADMIN_HOST));
-		}
-		if (systemProperties.containsKey(XD_CONTAINERS)) {
-			props.put(XD_CONTAINERS,
-					systemProperties.getProperty(XD_CONTAINERS));
-		}
-		if (systemProperties.containsKey(XD_JMX_PORT)) {
-			props.put(XD_JMX_PORT, systemProperties.getProperty(XD_JMX_PORT));
-		}
-		if (systemProperties.containsKey(XD_HTTP_PORT)) {
-			props.put(XD_HTTP_PORT, systemProperties.getProperty(XD_HTTP_PORT));
-		}
-
-		return props;
-	}
-
-	private String getPrivateKeyFile() {
-		if (!systemProperties.containsKey(XD_PRIVATE_KEY_FILE)) {
-			throw new IllegalArgumentException(
-					"No ec2 private key file has been set."
-							+ "  This can be set via the "
-							+ XD_PRIVATE_KEY_FILE + " environment variable");
-		}
-		return systemProperties.getProperty(XD_PRIVATE_KEY_FILE);
-	}
-
-	private boolean getOnEc2Flag() {
-		boolean result = isOnEc2;
-		if (systemProperties.containsKey(XD_RUN_ON_EC2)) {
-			result = Boolean.getBoolean(XD_RUN_ON_EC2);
-		}
-		return result;
-	}
-
-	private int getPauseTimeFromEnv() {
-		int result = pauseTime;
-		if (systemProperties.containsKey(XD_PAUSE_TIME)) {
-			result = Integer.getInteger(XD_PAUSE_TIME);
-		}
-		return result;
-	}
 
 	private void isFilePresent(String keyFile) {
 		File file = new File(keyFile);
@@ -474,6 +368,31 @@ public class XdEnvironment {
 
 	public int getJmxPort() {
 		return jmxPort;
+	}
+
+	@Bean
+	public static PropertySourcesPlaceholderConfigurer placeHolderConfigurer() {
+		return new PropertySourcesPlaceholderConfigurer();
+	}
+
+	@Bean
+	public static XdEc2Validation validation() {
+		return new XdEc2Validation();
+	}
+
+	@Bean
+	Sinks sinks() {
+		return new Sinks(this);
+	}
+
+	@Bean
+	Sources sources() throws IOException {
+		return new Sources(getAdminServer(), getContainers(), httpPort, jmsHost, jmsPort);
+	}
+
+	@Bean
+	ConfigUtil configUtil() throws IOException {
+		return new ConfigUtil(isOnEc2, this);
 	}
 
 }

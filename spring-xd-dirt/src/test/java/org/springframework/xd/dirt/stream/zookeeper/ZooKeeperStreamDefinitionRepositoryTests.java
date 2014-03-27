@@ -22,6 +22,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -30,6 +31,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.xd.dirt.module.memory.InMemoryModuleDependencyRepository;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
@@ -202,6 +205,31 @@ public class ZooKeeperStreamDefinitionRepositoryTests {
 		StreamDefinition saved = repository.findOne("test");
 		repository.delete(saved);
 		assertNull(repository.findOne("test"));
+	}
+
+	@Test
+	public void sorting() {
+		StreamDefinition one = new StreamDefinition("one", "http | hdfs");
+		StreamDefinition two = new StreamDefinition("two", "tcp | file");
+		StreamDefinition three = new StreamDefinition("three", "http | file");
+		StreamDefinition four = new StreamDefinition("four", "http | file");
+		StreamDefinition five = new StreamDefinition("five", "http | file");
+		repository.save(Arrays.asList(one, two, three, four, five));
+
+		Assert.assertEquals(5, repository.count());
+
+		PageRequest pageable = new PageRequest(1, 2);
+		Page<StreamDefinition> sub = repository.findAll(pageable);
+
+		Assert.assertEquals(5, sub.getTotalElements());
+		Assert.assertEquals(1, sub.getNumber());
+		Assert.assertEquals(2, sub.getNumberOfElements());
+		Assert.assertEquals(2, sub.getSize());
+		Assert.assertEquals(3, sub.getTotalPages());
+		List<StreamDefinition> content = sub.getContent();
+		Assert.assertEquals("one", content.get(0).getName());
+		Assert.assertEquals("three", content.get(1).getName());
+
 	}
 
 }

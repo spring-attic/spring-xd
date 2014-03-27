@@ -112,7 +112,7 @@ ext {
 	springDataCommonsVersion = '1.6.2.RELEASE'
 	springDataGemfireVersion = '1.3.2.RELEASE'
 	springDataHadoopBase = '2.0.0.M6'
-	springDataHadoopVersion = "${springDataHadoopBase}-hadoop12"
+	springDataHadoopVersion = "${springDataHadoopBase}"
 	springDataMongoVersion = '1.3.2.RELEASE'
 	springDataRedisVersion = '1.1.1.RELEASE'
 	springHATEOASVersion = '0.9.0.RELEASE'
@@ -874,7 +874,7 @@ project('spring-xd-yarn:spring-xd-yarn-client') {
         compile "org.springframework:spring-jdbc:$springVersion"
         compile "org.springframework:spring-tx:$springVersion"
         compile "org.springframework.batch:spring-batch-core:$springBatchVersion"
-        compile ("org.springframework.data:spring-yarn-boot:$springDataHadoopBase") {
+        compile ("org.springframework.data:spring-yarn-boot:$springDataHadoopVersion") {
             exclude group: 'javax.servlet'
             exclude group: 'javax.servlet.jsp'
             exclude group: 'tomcat'
@@ -910,7 +910,7 @@ project('spring-xd-yarn:spring-xd-yarn-appmaster') {
         compile "org.springframework:spring-jdbc:$springVersion"
         compile "org.springframework:spring-tx:$springVersion"
         compile "org.springframework.batch:spring-batch-core:$springBatchVersion"
-        compile ("org.springframework.data:spring-yarn-boot:$springDataHadoopBase") {
+        compile ("org.springframework.data:spring-yarn-boot:$springDataHadoopVersion") {
             exclude group: 'javax.servlet'
             exclude group: 'javax.servlet.jsp'
             exclude group: 'tomcat'

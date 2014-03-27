@@ -70,7 +70,7 @@ set CMD_LINE_ARGS=%$
 @rem Setup the command line
 
 @echo off
-set HADOOP_DISTRO=hadoop12
+set HADOOP_DISTRO=hadoop22
 set found=0
 set NEW_CMD_LINE_ARGS=
 for %%a in (%CMD_LINE_ARGS%) do (

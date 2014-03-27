@@ -52,7 +52,7 @@ define([], function () {
 
       $scope.cancelJobLaunch = function () {
         $log.info('Cancelling Job Launch');
-        $state.go('home.jobs.deployments');
+        $state.go('home.jobs.tabs.deployments');
       };
 
       $scope.launchJob = function (jobLaunchRequest) {

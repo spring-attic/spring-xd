@@ -63,13 +63,13 @@ define(['angular'], function (angular) {
         return {
           deploy: function (jobDefinition) {
             $log.info('Deploy Job ' + jobDefinition.name);
-            $resource($rootScope.xdAdminServerUrl + '/jobs/' + jobDefinition.name, { 'deploy': true }, {
+            return $resource($rootScope.xdAdminServerUrl + '/jobs/' + jobDefinition.name, { 'deploy': true }, {
               deploy: { method: 'PUT' }
             }).deploy();
           },
           undeploy: function (jobDefinition) {
             $log.info('Undeploy Job ' + jobDefinition.name);
-            $resource($rootScope.xdAdminServerUrl + '/jobs/' + jobDefinition.name, { 'deploy': false }, {
+            return $resource($rootScope.xdAdminServerUrl + '/jobs/' + jobDefinition.name, { 'deploy': false }, {
               undeploy: { method: 'PUT' }
             }).undeploy();
           }
@@ -142,6 +142,7 @@ define(['angular'], function (angular) {
                 function (data) {
                   console.error(data);
                   growl.addErrorMessage('Yikes, something bad happened while launching job ' + jobName);
+                  growl.addErrorMessage(data.data[0].message);
                 }
             );
           }

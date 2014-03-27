@@ -30,7 +30,7 @@ define([], function () {
 
         $scope.launchJob = function (item) {
           $log.info('Launching Job: ' + item.name);
-          $state.go('home.jobs.deployments.launch', {jobName: item.name});
+          $state.go('home.jobs.tabs.deployments.launch', {jobName: item.name});
         };
 
       }, function (error) {

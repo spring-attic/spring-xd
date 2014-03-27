@@ -18,7 +18,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -35,6 +37,7 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.x.bus.AbstractTestMessageBus;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.integration.x.bus.serializer.AbstractCodec;
@@ -258,6 +261,18 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		assertEquals(ITERATIONS, i);
 	}
 
+	@Test
+	public void moduleChannelsRegisteredWithMessageBus() {
+		StreamDefinition sd = new StreamDefinition("busTest", "http | log");
+		int originalBindings = getMessageBusBindings().size();
+		integrationSupport.createAndDeployStream(sd);
+		int newBindings = getMessageBusBindings().size() - originalBindings;
+		assertEquals(3, newBindings);
+		integrationSupport.undeployAndDestroyStream(sd);
+		assertEquals(originalBindings, getMessageBusBindings().size());
+
+	}
+
 	protected void assertModuleRequest(String streamName, String moduleName, boolean remove) {
 		PathChildrenCacheEvent event = remove ? deploymentsListener.nextUndeployEvent(streamName)
 				: deploymentsListener.nextDeployEvent(streamName);
@@ -347,7 +362,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		barsink.unbind();
 	}
 
-	static class DeploymentsListener implements PathChildrenCacheListener  {
+	static class DeploymentsListener implements PathChildrenCacheListener {
 
 		private ConcurrentMap<String, LinkedBlockingQueue<PathChildrenCacheEvent>> deployQueues = new ConcurrentHashMap<String, LinkedBlockingQueue<PathChildrenCacheEvent>>();
 
@@ -390,5 +405,11 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 			}
 		}
 
+	}
+
+	private Collection<?> getMessageBusBindings() {
+		MessageBus bus = testMessageBus != null ? testMessageBus.getMessageBus() : integrationSupport.messageBus();
+		DirectFieldAccessor accessor = new DirectFieldAccessor(bus);
+		return (List<?>) accessor.getPropertyValue("bindings");
 	}
 }

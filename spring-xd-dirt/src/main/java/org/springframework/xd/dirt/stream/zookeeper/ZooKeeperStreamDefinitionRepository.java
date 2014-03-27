@@ -17,10 +17,12 @@
 package org.springframework.xd.dirt.stream.zookeeper;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.BackgroundPathAndBytesable;
 import org.apache.zookeeper.KeeperException.NoNodeException;
@@ -32,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.xd.dirt.module.ModuleDependencyRepository;
@@ -83,7 +86,21 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 
 	@Override
 	public Page<StreamDefinition> findAll(Pageable pageable) {
-		throw new UnsupportedOperationException("Auto-generated method stub");
+		List<StreamDefinition> all = findAll();
+		if (CollectionUtils.isEmpty(all)) {
+			return new PageImpl<StreamDefinition>(all);
+		}
+		Collections.sort(all);
+
+		int offSet = pageable.getOffset();
+		int size = pageable.getPageSize();
+
+		List<StreamDefinition> page = new ArrayList<StreamDefinition>();
+		for (int i = offSet; i < Math.min(all.size(), offSet + size); i++) {
+			page.add(all.get(i));
+		}
+
+		return new PageImpl<StreamDefinition>(page, pageable, all.size());
 	}
 
 	@Override

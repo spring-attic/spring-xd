@@ -34,8 +34,10 @@ import org.springframework.batch.core.repository.dao.JdbcExecutionContextDao;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.x.bus.LocalMessageBus;
 import org.springframework.integration.x.bus.MessageBus;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.xd.analytics.metrics.core.AggregateCounterRepository;
 import org.springframework.xd.analytics.metrics.core.CounterRepository;
 import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository;
@@ -119,8 +121,17 @@ public class Dependencies {
 	}
 
 	@Bean
+	public ThreadPoolTaskScheduler taskScheduler() {
+		return new ThreadPoolTaskScheduler();
+	}
+
+	@Bean
 	public MessageBus messageBus() {
-		return new LocalMessageBus();
+		PollerMetadata poller = new PollerMetadata();
+		poller.setTaskExecutor(taskScheduler());
+		LocalMessageBus bus = new LocalMessageBus();
+		bus.setPoller(poller);
+		return bus;
 	}
 
 	@Bean

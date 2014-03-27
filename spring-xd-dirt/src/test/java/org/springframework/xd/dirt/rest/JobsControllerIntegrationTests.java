@@ -16,11 +16,10 @@
 
 package org.springframework.xd.dirt.rest;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -41,12 +40,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.DescriptiveResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
+import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.xd.dirt.module.ModuleRegistry;
+import org.springframework.xd.dirt.stream.JobDefinition;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
-import org.springframework.xd.dirt.stream.JobDeployer;
 import org.springframework.xd.dirt.stream.JobRepository;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
@@ -56,6 +57,7 @@ import org.springframework.xd.module.ModuleType;
  * 
  * @author Glenn Renfro
  * @author Ilayaperumal Gopinathan
+ * @author Mark Fisher
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
@@ -74,7 +76,7 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 	private JobRepository xdJobRepository;
 
 	@Autowired
-	private JobDeployer deployer;
+	private MessageBus messageBus;
 
 	@Before
 	public void before() {
@@ -109,17 +111,23 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 		mockMvc.perform(
 				post("/jobs").param("name", "job5").param("definition", JOB_DEFINITION).accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
-		verify(deployer, times(1)).launch(eq("job5"), "");
+		JobDefinition jobDefinition = jobDefinitionRepository.findOne("job5");
+		assertNotNull(jobDefinition);
+		assertEquals("job5", jobDefinition.getName());
+		assertTrue(jobDefinition.isDeploy());
 	}
 
 	@Test
 	public void testSuccessfulJobLaunch() throws Exception {
+		QueueChannel channel = new QueueChannel();
+		messageBus.bindConsumer("job:joblaunch", channel, true);
 		mockMvc.perform(
 				post("/jobs").param("name", "joblaunch").param("definition", JOB_DEFINITION).accept(
 						MediaType.APPLICATION_JSON)).andExpect(status().isCreated());
-		mockMvc.perform(put("/jobs/{name}/launch", "joblaunch").accept(MediaType.APPLICATION_JSON)).andExpect(
+		mockMvc.perform(
+				put("/jobs/{name}/launch", "joblaunch").accept(MediaType.APPLICATION_JSON)).andExpect(
 				status().isOk());
-		verify(deployer, times(2)).launch(eq("joblaunch"), "");
+		assertNotNull(channel.receive(3000));
 	}
 
 	@Test

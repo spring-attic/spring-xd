@@ -49,7 +49,7 @@ import org.springframework.xd.rest.client.domain.CompletionKind;
  * 
  * @author Eric Bottard
  */
-public abstract class StacktraceFingerprintingCompletionRecoveryStrategy<E extends Throwable> implements
+public abstract class StacktraceFingerprintingCompletionRecoveryStrategy<E extends Exception> implements
 		CompletionRecoveryStrategy<E> {
 
 	private final Set<List<StackTraceElement>> fingerprints = new LinkedHashSet<List<StackTraceElement>>();
@@ -69,15 +69,12 @@ public abstract class StacktraceFingerprintingCompletionRecoveryStrategy<E exten
 				// not influenced by the kind of parse. Use stream for now
 				parser.parse("__dummy", sample, ParsingContext.partial_stream);
 			}
-			catch (Throwable exception) {
+			catch (Exception exception) {
 				if (exceptionClass.isAssignableFrom(exception.getClass())) {
 					computeFingerprint(parser, (E) exception);
 				}
 				else if (exception instanceof RuntimeException) {
 					throw (RuntimeException) exception;
-				}
-				else if (exception instanceof Error) {
-					throw (Error) exception;
 				}
 				else {
 					throw new RuntimeException(exception);
@@ -118,7 +115,7 @@ public abstract class StacktraceFingerprintingCompletionRecoveryStrategy<E exten
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public boolean shouldTrigger(Throwable exception, CompletionKind kind) {
+	public boolean shouldTrigger(Exception exception, CompletionKind kind) {
 		if (!exceptionClass.isAssignableFrom(exception.getClass())) {
 			return false;
 		}

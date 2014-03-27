@@ -271,8 +271,6 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	private void registerWithZooKeeper(CuratorFramework client) {
 		try {
 			Paths.ensurePath(client, Paths.DEPLOYMENTS);
-			Paths.ensurePath(client, Paths.CONTAINERS);
-
 			deployments = new PathChildrenCache(client, Paths.build(Paths.DEPLOYMENTS, containerMetadata.getId()), true);
 			deployments.getListenable().addListener(deploymentListener);
 
@@ -294,7 +292,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 
 			// todo: might need creatingParentsIfNeeded here if ensure path is not working
 			// (had a similar problem with tests last time we tried to move this code over from proto)
-			client.create().withMode(CreateMode.EPHEMERAL).forPath(
+			client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(
 					Paths.build(Paths.CONTAINERS, containerMetadata.getId()),
 					mapBytesUtility.toByteArray(map));
 

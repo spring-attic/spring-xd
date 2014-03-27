@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.dirt.stream.dsl.StreamDefinitionException;
+import org.springframework.xd.dirt.stream.dsl.XDDSLMessages;
 import org.springframework.xd.module.ModuleDefinition;
 
 /**
@@ -66,9 +68,18 @@ public class StreamDeployer extends AbstractInstancePersistingDeployer<StreamDef
 		// todo: this parsing and setting of ModuleDefinitions should not be needed once we refactor the
 		// ModuleDependencyRepository so that the dependencies are also stored in ZooKeeper.
 		List<ModuleDefinition> moduleDefinitions = new ArrayList<ModuleDefinition>();
-		for (ModuleDeploymentRequest request : parser.parse(definition.getName(), definition.getDefinition(),
-				ParsingContext.stream)) {
-			moduleDefinitions.add(new ModuleDefinition(request.getModule(), request.getType()));
+		try {
+			for (ModuleDeploymentRequest request : parser.parse(definition.getName(), definition.getDefinition(),
+					ParsingContext.stream)) {
+				moduleDefinitions.add(new ModuleDefinition(request.getModule(), request.getType()));
+			}
+		}
+		catch (StreamDefinitionException e) {
+			// we can ignore an exception for a tap whose stream no longer exists
+			if (!(XDDSLMessages.UNRECOGNIZED_STREAM_REFERENCE.equals(e.getMessageCode()) && definition.getDefinition().trim().startsWith(
+					"tap:"))) {
+				throw e;
+			}
 		}
 		definition.setModuleDefinitions(moduleDefinitions);
 		basicUndeploy(definition.getName());

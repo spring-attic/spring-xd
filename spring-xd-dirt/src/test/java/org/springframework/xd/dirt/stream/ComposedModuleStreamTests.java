@@ -57,7 +57,7 @@ public class ComposedModuleStreamTests extends StreamTestSupport {
 		};
 		sendPayloadAndVerifyOutput("streamWithCompositeSource", "foo", test);
 		// Delete the stream definition
-		undeployStream("streamWithCompositeSource");
+		deleteStream("streamWithCompositeSource");
 	}
 
 	@Test

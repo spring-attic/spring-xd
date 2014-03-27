@@ -23,6 +23,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
@@ -30,6 +31,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.client.HttpClientErrorException;
@@ -46,7 +48,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * 
  * @author Glenn Renfro
  */
-
+@Configuration
 public class XdEc2Validation {
 
 	private final transient RestTemplate restTemplate;
@@ -86,7 +88,7 @@ public class XdEc2Validation {
 	 * @throws Exception
 	 */
 	public void verifyAtLeastOneContainerAvailable(final List<URL> containers,
-			int jmxPort) throws Exception {
+			int jmxPort) throws MalformedURLException {
 		boolean result = false;
 		final Iterator<URL> containerIter = containers.iterator();
 		while (containerIter.hasNext()) {
@@ -142,13 +144,14 @@ public class XdEc2Validation {
 	 */
 	public void verifyTestContent(XdEnvironment hosts, URL url, String fileName,
 			String data) throws IOException {
+		String resultFileName = fileName;
 		if (hosts.isOnEc2()) {
-			fileName = StreamUtils.transferResultsToLocal(hosts, url, fileName);
+			resultFileName = StreamUtils.transferResultsToLocal(hosts, url, fileName);
 		}
-		File file = new File(fileName);
+		File file = new File(resultFileName);
 
 		try {
-			Reader fileReader = new InputStreamReader(new FileInputStream(fileName));
+			Reader fileReader = new InputStreamReader(new FileInputStream(resultFileName));
 			String result = FileCopyUtils.copyToString(fileReader);
 
 			if (!(data).equals(result)) {
@@ -189,7 +192,7 @@ public class XdEc2Validation {
 			if (!file.exists()) {
 				throw new IllegalArgumentException(
 						"The Log File for the container is not present.  Please be sure to set the "
-								+ XdEnvironment.XD_CONTAINER_LOG_DIR + " on your gradle build.");
+								+ "xd_container_log_dir on your gradle build.");
 			}
 			BufferedReader fileReader = new BufferedReader(new FileReader(logLocation));
 			boolean result = false;

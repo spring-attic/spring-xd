@@ -19,7 +19,8 @@ package org.springframework.xd.integration.fixtures;
 import java.net.URL;
 import java.util.List;
 
-import org.springframework.shell.core.JLineShellComponent;
+import org.springframework.xd.test.fixtures.JmsSource;
+import org.springframework.xd.test.fixtures.MqttSource;
 import org.springframework.xd.test.fixtures.SimpleFileSource;
 import org.springframework.xd.test.fixtures.SimpleHttpSource;
 import org.springframework.xd.test.fixtures.SimpleTailSource;
@@ -27,7 +28,7 @@ import org.springframework.xd.test.fixtures.TcpSource;
 
 
 /**
- *
+ * 
  * @author Glenn Renfro
  */
 public class Sources {
@@ -36,21 +37,27 @@ public class Sources {
 
 	private List<URL> containers = null;
 
-	private JLineShellComponent shell = null;
-
 	private SimpleHttpSource httpSource = null;
 
 	private TcpSource tcpSource = null;
 
 	private int httpPort = 9000;
 
-	private static int TCP_SINK_PORT = 1234;
+	private int mqttPort = 1883;
 
-	public Sources(URL adminServer, List<URL> containers, JLineShellComponent shell, int httpPort) {
+	private String jmsHost;
+
+	private int jmsPort;
+
+	private final static int TCP_SINK_PORT = 1234;
+
+	public Sources(URL adminServer, List<URL> containers, int httpPort, String jmsHost,
+			int jmsPort) {
 		this.adminServer = adminServer;
 		this.containers = containers;
-		this.shell = shell;
 		this.httpPort = httpPort;
+		this.jmsHost = jmsHost;
+		this.jmsPort = jmsPort;
 	}
 
 	public SimpleHttpSource http() throws Exception {
@@ -79,7 +86,21 @@ public class Sources {
 		return new SimpleTailSource(delay, fileName);
 	}
 
+	public JmsSource jms() {
+		return new JmsSource(jmsHost, jmsPort);
+	}
+
+	public MqttSource mqtt() {
+		return new MqttSource(adminServer.getHost(), mqttPort);
+	}
+
 	public SimpleFileSource file(String dir, String fileName) throws Exception {
 		return new SimpleFileSource(dir, fileName);
 	}
+
+	public String jmsConfig() {
+		String result = "amq.url=tcp://" + jmsHost + ":" + jmsPort;
+		return result;
+	}
+
 }

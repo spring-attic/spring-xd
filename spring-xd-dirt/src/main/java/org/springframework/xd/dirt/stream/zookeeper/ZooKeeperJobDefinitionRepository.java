@@ -17,10 +17,12 @@
 package org.springframework.xd.dirt.stream.zookeeper;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.BackgroundPathAndBytesable;
 import org.apache.zookeeper.KeeperException.NoNodeException;
@@ -60,12 +62,28 @@ public class ZooKeeperJobDefinitionRepository implements JobDefinitionRepository
 
 	@Override
 	public Iterable<JobDefinition> findAll(Sort sort) {
-		throw new UnsupportedOperationException("Auto-generated method stub");
+		// todo: this ignores the Sort
+		List<JobDefinition> all = findAll();
+		Collections.sort(all);
+		return all;
 	}
 
 	@Override
 	public Page<JobDefinition> findAll(Pageable pageable) {
-		return new PageImpl<JobDefinition>(this.findAll());
+		List<JobDefinition> all = findAll();
+		if (CollectionUtils.isEmpty(all)) {
+			return new PageImpl<JobDefinition>(all);
+		}
+		Collections.sort(all);
+
+		int offSet = pageable.getOffset();
+		int size = pageable.getPageSize();
+
+		List<JobDefinition> page = new ArrayList<JobDefinition>();
+		for (int i = offSet; i < Math.min(all.size(), offSet + size); i++) {
+			page.add(all.get(i));
+		}
+		return new PageImpl<JobDefinition>(page, pageable, all.size());
 	}
 
 	@Override
@@ -195,7 +213,23 @@ public class ZooKeeperJobDefinitionRepository implements JobDefinitionRepository
 
 	@Override
 	public Iterable<JobDefinition> findAllInRange(String from, boolean fromInclusive, String to, boolean toInclusive) {
-		throw new UnsupportedOperationException("Auto-generated method stub");
+		List<JobDefinition> all = findAll();
+		if (CollectionUtils.isEmpty(all)) {
+			return Collections.emptyList();
+		}
+		Collections.sort(all);
+
+		List<JobDefinition> results = new ArrayList<JobDefinition>();
+		for (JobDefinition definition : all) {
+			if (definition.getName().compareTo(to) > 1) {
+				break;
+			}
+			if (definition.getName().compareTo(from) < 0) {
+				continue;
+			}
+			results.add(definition);
+		}
+		return results;
 	}
 
 }

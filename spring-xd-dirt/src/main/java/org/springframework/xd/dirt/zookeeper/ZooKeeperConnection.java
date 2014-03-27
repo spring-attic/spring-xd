@@ -77,7 +77,7 @@ public class ZooKeeperConnection implements SmartLifecycle {
 	/**
 	 * Flag that indicates whether this connection should be started automatically.
 	 */
-	private volatile boolean autoStartup;
+	private volatile boolean autoStartup = true;
 
 	/**
 	 * The current ZooKeeper ConnectionState.
@@ -149,7 +149,7 @@ public class ZooKeeperConnection implements SmartLifecycle {
 	}
 
 	public void setAutoStartup(boolean autoStartup) {
-		this.autoStartup = true;
+		this.autoStartup = autoStartup;
 	}
 
 	@Override

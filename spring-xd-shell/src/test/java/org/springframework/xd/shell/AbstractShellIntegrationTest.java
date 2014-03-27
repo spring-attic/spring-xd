@@ -38,8 +38,11 @@ import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
 import org.springframework.util.AlternativeJdkIdGenerator;
 import org.springframework.util.IdGenerator;
+import org.springframework.xd.dirt.container.ContainerMetadata;
 import org.springframework.xd.dirt.container.store.RedisRuntimeContainerInfoRepository;
+import org.springframework.xd.dirt.integration.test.SingleNodeIntegrationTestSupport;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
+import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.test.RandomConfigurationSupport;
 import org.springframework.xd.test.redis.RedisTestSupport;
 
@@ -88,6 +91,12 @@ public abstract class AbstractShellIntegrationTest {
 
 	private static RedisRuntimeContainerInfoRepository runtimeInformationRepository;
 
+	protected static final DeploymentsListener deploymentsListener = new DeploymentsListener();
+
+	protected static final DefinitionsListener definitionsListener = new DefinitionsListener();
+
+	private static SingleNodeIntegrationTestSupport integrationTestSupport;
+
 	@BeforeClass
 	public static synchronized void startUp() throws InterruptedException, IOException {
 		RandomConfigurationSupport randomConfigSupport = new RandomConfigurationSupport();
@@ -96,6 +105,10 @@ public abstract class AbstractShellIntegrationTest {
 					"--analytics", "redis",
 					"--store", "redis"
 					);
+			integrationTestSupport = new SingleNodeIntegrationTestSupport(application);
+			ContainerMetadata cm = application.containerContext().getBean(ContainerMetadata.class);
+			integrationTestSupport.addPathListener(Paths.build(Paths.DEPLOYMENTS, cm.getId()), deploymentsListener);
+			integrationTestSupport.addPathListener(Paths.build(Paths.STREAMS), definitionsListener);
 			Bootstrap bootstrap = new Bootstrap(new String[] { "--port", randomConfigSupport.getAdminServerPort() });
 			shell = bootstrap.getJLineShellComponent();
 
@@ -115,6 +128,11 @@ public abstract class AbstractShellIntegrationTest {
 			shell.stop();
 			if (application != null) {
 				logger.info("Stopping Single Node Server");
+				if (application.containerContext().isActive()) {
+					ContainerMetadata cm = application.containerContext().getBean(ContainerMetadata.class);
+					integrationTestSupport.removePathListener(Paths.build(Paths.DEPLOYMENTS, cm.getId()),
+							deploymentsListener);
+				}
 				application.close();
 				redisAvailableRule.getResource().destroy();
 			}

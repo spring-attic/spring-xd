@@ -131,6 +131,9 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 		String prefix = (deploy) ? "Successfully created and deployed job '" : "Successfully created job '";
 		assertEquals(prefix + jobName + "'", cr.getResult());
 		jobs.add(jobName);
+		if (deploy) {
+			deploymentsListener.waitForDeployUndeployEvent(jobName, true);
+		}
 	}
 
 	protected CommandResult createJob(String jobName, String definition) {
@@ -238,7 +241,8 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 	}
 
 	private Table listJobs() {
-		return (Table) getShell().executeCommand("job list").getResult();
+		Object result = getShell().executeCommand("job list").getResult();
+		return (result instanceof Table) ? (Table) result : new Table();
 	}
 
 	private void copyTaskletDescriptorsToServer(String inFile, String outFile) {

@@ -24,6 +24,8 @@ import java.util.List;
 
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
+import org.springframework.xd.shell.DefinitionsListener;
+import org.springframework.xd.shell.DeploymentsListener;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableRow;
 
@@ -38,13 +40,20 @@ public class StreamCommandTemplate extends AbstractCommandTemplate {
 
 	private List<String> streams = new ArrayList<String>();
 
+	private DeploymentsListener deploymentsListener;
+
+	private DefinitionsListener definitionsListener;
+
 	/**
 	 * Construct a new StreamCommandTemplate, given a spring shell.
 	 * 
 	 * @param shell the spring shell to execute commands against
 	 */
-	/* default */StreamCommandTemplate(JLineShellComponent shell) {
+	/* default */StreamCommandTemplate(JLineShellComponent shell, DeploymentsListener deploymentsListener,
+			DefinitionsListener definitionsListener) {
 		super(shell);
+		this.deploymentsListener = deploymentsListener;
+		this.definitionsListener = definitionsListener;
 	}
 
 	/**
@@ -79,6 +88,10 @@ public class StreamCommandTemplate extends AbstractCommandTemplate {
 		String wholeCommand = String.format("stream create %s --definition \"%s\" --deploy %s", streamname,
 				actualDefinition.replaceAll("\"", "\\\\\""), deploy);
 		CommandResult cr = executeCommand(wholeCommand);
+		definitionsListener.waitForCreateOrDestroyEvent(streamname, true);
+		if (deploy) {
+			deploymentsListener.waitForDeployUndeployEvent(streamname, true);
+		}
 		// add the stream name to the streams list before assertion
 		streams.add(streamname);
 		assertEquals("Created new stream '" + streamname + "'", cr.getResult());
@@ -92,6 +105,7 @@ public class StreamCommandTemplate extends AbstractCommandTemplate {
 	 */
 	public void deploy(String streamname) {
 		CommandResult cr = getShell().executeCommand("stream deploy --name " + streamname);
+		deploymentsListener.waitForDeployUndeployEvent(streamname, true);
 		assertTrue("Failure.  CommandResult = " + cr.toString(), cr.isSuccess());
 		assertEquals("Deployed stream '" + streamname + "'", cr.getResult());
 	}
@@ -103,6 +117,7 @@ public class StreamCommandTemplate extends AbstractCommandTemplate {
 		for (int s = streams.size() - 1; s >= 0; s--) {
 			String streamname = streams.get(s);
 			CommandResult cr = executeCommand("stream destroy --name " + streamname);
+			definitionsListener.waitForCreateOrDestroyEvent(streamname, false);
 			assertTrue("Failure to destroy stream " + streamname + ".  CommandResult = " + cr.toString(),
 					cr.isSuccess());
 		}
@@ -115,6 +130,7 @@ public class StreamCommandTemplate extends AbstractCommandTemplate {
 	 */
 	public void destroyStream(String stream) {
 		CommandResult cr = executeCommand("stream destroy --name " + stream);
+		definitionsListener.waitForCreateOrDestroyEvent(stream, false);
 		assertTrue("Failure to destroy stream " + stream + ".  CommandResult = " + cr.toString(),
 				cr.isSuccess());
 		streams.remove(stream);
@@ -127,6 +143,7 @@ public class StreamCommandTemplate extends AbstractCommandTemplate {
 	 */
 	public void undeploy(String streamname) {
 		CommandResult cr = getShell().executeCommand("stream undeploy --name " + streamname);
+		deploymentsListener.waitForDeployUndeployEvent(streamname, false);
 		assertTrue(cr.isSuccess());
 		assertEquals("Un-deployed stream '" + streamname + "'", cr.getResult());
 	}

@@ -26,6 +26,7 @@ import java.io.IOException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.shell.core.CommandResult;
@@ -67,6 +68,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	}
 
 	@Test
+	@Ignore
 	public void testCreatingTapWithSameNameAsExistingStream_xd299() {
 		String streamName = generateStreamName();
 		CommandResult cr = getShell().executeCommand(
@@ -155,6 +157,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 
 
 	@Test
+	@Ignore
 	public void testComposedStreamThatIsItselfDeployable() throws IOException {
 		FileSink sink = newFileSink();
 		HttpSource httpSource = newHttpSource();
@@ -172,6 +175,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 
 
 	@Test
+	@Ignore
 	public void testTappingModulesVariations() throws IOException {
 		// Note: this test is using a regular sink, not a named channel sink
 		HttpSource httpSource = newHttpSource();
@@ -246,6 +250,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	}
 
 	@Test
+	@Ignore
 	public void testUsingLabels() throws IOException {
 		FileSink sink1 = newFileSink().binary(true);
 		FileSink sink2 = newFileSink().binary(true);

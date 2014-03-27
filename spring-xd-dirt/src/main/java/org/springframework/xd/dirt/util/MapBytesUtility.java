@@ -76,7 +76,7 @@ public class MapBytesUtility {
 	 * @return a new map instance containing the key/value pairs
 	 */
 	public Map<String, String> toMap(byte[] bytes) {
-		if (bytes == null) {
+		if (bytes == null || bytes.length == 0) {
 			return Collections.emptyMap();
 		}
 		try {

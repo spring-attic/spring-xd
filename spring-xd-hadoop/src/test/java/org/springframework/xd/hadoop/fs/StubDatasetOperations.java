@@ -40,11 +40,6 @@ public class StubDatasetOperations implements DatasetOperations {
 	}
 
 	@Override
-	public <T> void write(Collection<T> records, PartitionStrategy partitionStrategy) {
-		throw new UnsupportedOperationException("not implemented");
-	}
-
-	@Override
 	public <T> void write(Collection<T> records) {
 		throw new UnsupportedOperationException("not implemented");
 	}

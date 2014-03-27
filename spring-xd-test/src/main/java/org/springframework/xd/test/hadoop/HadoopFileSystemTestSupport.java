@@ -21,6 +21,7 @@ import java.util.Properties;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 
+import org.apache.hadoop.fs.Path;
 import org.springframework.data.hadoop.configuration.ConfigurationFactoryBean;
 import org.springframework.xd.test.AbstractExternalResourceTestSupport;
 
@@ -41,12 +42,14 @@ public class HadoopFileSystemTestSupport extends AbstractExternalResourceTestSup
 	protected void obtainResource() throws Exception {
 		ConfigurationFactoryBean cfb = new ConfigurationFactoryBean();
 		Properties props = new Properties();
-		props.setProperty("fs.default.name", "hdfs://localhost:8020");
+		props.setProperty("fs.default.name", System.getProperty("spring.hadoop.fsUri"));
 		cfb.setProperties(props);
 		cfb.setRegisterUrlHandler(false);
 		cfb.afterPropertiesSet();
 		this.configuration = cfb.getObject();
-		this.resource = FileSystem.get(this.configuration);
+		FileSystem fs = FileSystem.get(this.configuration);
+		fs.exists(new Path("/"));
+		this.resource = fs;
 	}
 
 	@Override

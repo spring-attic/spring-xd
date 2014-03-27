@@ -18,6 +18,12 @@ package org.springframework.xd.dirt.stream;
 
 import static org.springframework.xd.dirt.stream.ParsingContext.stream;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.module.ModuleDefinition;
+
 /**
  * Default implementation of {@link StreamDeployer} that emits deployment request messages on a bus and relies on
  * {@link StreamDefinitionRepository} and {@link StreamRepository} for persistence.
@@ -30,9 +36,12 @@ import static org.springframework.xd.dirt.stream.ParsingContext.stream;
  */
 public class StreamDeployer extends AbstractInstancePersistingDeployer<StreamDefinition, Stream> {
 
+	private final XDParser parser;
+
 	public StreamDeployer(StreamDefinitionRepository repository,
 			StreamRepository streamRepository, XDParser parser) {
 		super(repository, streamRepository, parser, stream);
+		this.parser = parser;
 	}
 
 	@Override
@@ -54,6 +63,14 @@ public class StreamDeployer extends AbstractInstancePersistingDeployer<StreamDef
 	@Override
 	protected void beforeDelete(StreamDefinition definition) {
 		super.beforeDelete(definition);
+		// todo: this parsing and setting of ModuleDefinitions should not be needed once we refactor the
+		// ModuleDependencyRepository so that the dependencies are also stored in ZooKeeper.
+		List<ModuleDefinition> moduleDefinitions = new ArrayList<ModuleDefinition>();
+		for (ModuleDeploymentRequest request : parser.parse(definition.getName(), definition.getDefinition(),
+				ParsingContext.stream)) {
+			moduleDefinitions.add(new ModuleDefinition(request.getModule(), request.getType()));
+		}
+		definition.setModuleDefinitions(moduleDefinitions);
 		basicUndeploy(definition.getName());
 	}
 

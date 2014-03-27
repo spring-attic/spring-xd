@@ -116,7 +116,7 @@ ext {
 	springDataMongoVersion = '1.3.2.RELEASE'
 	springDataRedisVersion = '1.1.1.RELEASE'
 	springHATEOASVersion = '0.9.0.RELEASE'
-	springIntegrationSplunkVersion = '1.1.0.M1'
+	springIntegrationSplunkVersion = '1.1.0.M2'
 	springIntegrationVersion = '4.0.0.BUILD-SNAPSHOT'
 	springPluginVersion = '0.8.0.RELEASE'
 	springShellVersion = '1.1.0.BUILD-SNAPSHOT'

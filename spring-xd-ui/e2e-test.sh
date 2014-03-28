@@ -3,8 +3,8 @@
 BASE_DIR=.
 
 echo ""
-echo "Starting Karma Server (http://karma-runner.github.io)"
+echo "Starting Protractor..."
 echo $BASE_DIR
 echo "-------------------------------------------------------------------"
 
-karma start karma-e2e.conf.js $*
+protractor test/protractor.conf.js

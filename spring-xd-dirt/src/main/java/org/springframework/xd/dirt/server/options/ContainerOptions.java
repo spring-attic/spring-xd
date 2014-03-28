@@ -16,6 +16,9 @@
 
 package org.springframework.xd.dirt.server.options;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.validation.constraints.NotNull;
 
 import org.kohsuke.args4j.Option;
@@ -30,6 +33,7 @@ import org.springframework.xd.dirt.server.options.ResourcePatternScanningOptionH
  * 
  * @author Eric Bottard
  * @author David Turanski
+ * @author Ilayaperumal Gopinathan
  */
 @ConfigurationProperties
 public class ContainerOptions extends CommonDistributedOptions {
@@ -40,12 +44,16 @@ public class ContainerOptions extends CommonDistributedOptions {
 	private String transport;
 
 	@Option(name = "--hadoopDistro", usage = "The Hadoop distribution to be used for HDFS access")
-	private HadoopDistro distro;
+	private HadoopDistro distro = DEFAULT_HADOOP_DISTRO;
+
+	public static final HadoopDistro DEFAULT_HADOOP_DISTRO = HadoopDistro.hadoop12;
 
 	@Option(name = "--controlTransport", aliases = { "--control-transport" },
 			handler = DistributedControlTransportOptionHandler.class,
 			usage = "The transport to use for control messages (between admin and nodes)")
 	private String controlTransport;
+
+	private static final Map<HadoopDistro, String> hadoopDistroVersions = new HashMap<HadoopDistro, String>();
 
 	public void setXD_TRANSPORT(String transport) {
 		this.transport = transport;
@@ -70,5 +78,15 @@ public class ContainerOptions extends CommonDistributedOptions {
 	@NotNull
 	public String getXD_CONTROL_TRANSPORT() {
 		return controlTransport;
+	}
+
+	public static Map<HadoopDistro, String> getHadoopDistroVersions() {
+		hadoopDistroVersions.put(HadoopDistro.hadoop12, "1.2");
+		hadoopDistroVersions.put(HadoopDistro.hdp13, "1.3");
+		hadoopDistroVersions.put(HadoopDistro.hdp20, "2.0");
+		hadoopDistroVersions.put(HadoopDistro.hadoop22, "2.2");
+		hadoopDistroVersions.put(HadoopDistro.cdh4, "cdh4");
+		hadoopDistroVersions.put(HadoopDistro.phd1, "gphd");
+		return hadoopDistroVersions;
 	}
 }

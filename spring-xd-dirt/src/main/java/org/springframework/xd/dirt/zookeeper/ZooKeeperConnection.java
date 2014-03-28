@@ -46,7 +46,7 @@ public class ZooKeeperConnection implements SmartLifecycle {
 	/**
 	 * The default client connect string. Port 2181 on localhost.
 	 */
-	private static final String DEFAULT_CLIENT_CONNECT_STRING = "localhost:2181";
+	public static final String DEFAULT_CLIENT_CONNECT_STRING = "localhost:2181";
 
 	/**
 	 * The underlying {@link CuratorFramework} instance.

@@ -8,6 +8,8 @@ module.exports = function (grunt) {
   // Time how long tasks take. Can help when optimizing build times
   require('time-grunt')(grunt);
 
+  require('grunt-protractor-runner')(grunt);
+
   // Define the configuration for all the tasks
   grunt.initConfig({
 
@@ -57,9 +59,24 @@ module.exports = function (grunt) {
           '.tmp/styles/{,*/}*.css',
           '<%= xd.app %>/images/{,*/}*.{png,jpg,jpeg,gif}'
         ]
+      },
+    },
+    protractor: {
+      options: {
+        //configFile: "test/protractor.conf.js", // Default config file
+        keepAlive: true, // If false, the grunt process stops when the test fails.
+        noColor: false, // If true, protractor will not use colors in its output.
+        args: {
+          specs: [
+            './test/e2e/**/*.spec.js'
+          ],
+          baseUrl: 'http://localhost:8000',
+          chromeDriver: 'node_modules/protractor/selenium/chromedriver'
+        }
+      },
+      run: {
       }
     },
-
     // The actual grunt server settings
     connect: {
       options: {
@@ -310,9 +327,6 @@ module.exports = function (grunt) {
         browsers: ['PhantomJS'],
         singleRun: true
       },
-      e2e: {
-        configFile: 'karma-e2e.conf.js'
-      },
       unit: {
         configFile: 'karma.conf.js'
       }
@@ -350,14 +364,14 @@ module.exports = function (grunt) {
         'concurrent:server',
         'configureProxies:server',
         'connect:livereload',
-        'karma:e2e'
+        'protractor:run'
       ]);
 
   grunt.registerTask('build', 'Run the build', [
     // Clean dist and .tmp directories
     'clean:dist',
     // Run JSHint on all js files
-    'jshint',
+    //'jshint',
     // Install bower components into {xd.app}/lib
     'bower:install',
     // Compile LESS files into CSS
@@ -382,12 +396,11 @@ module.exports = function (grunt) {
     'rev',
     // Rewrite based on revved assets
     'usemin',
-    'htmlmin'
+    'htmlmin',
     // Run the karma unit tests
-    //'test:unit'
+    'test:unit'
   ]);
 
   grunt.registerTask('teste2e', ['test:e2e']);
-
   grunt.registerTask('default', ['build']);
 };

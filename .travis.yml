@@ -2,4 +2,5 @@ language: java
 services:
   - rabbitmq
   - redis-server
-
+env:
+  - TERM=dumb

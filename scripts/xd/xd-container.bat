@@ -71,7 +71,7 @@ set CMD_LINE_ARGS=%$
 
 @echo off
 set APP_HOME_LIB=%APP_HOME%\lib
-set HADOOP_DISTRO=hadoop12
+set HADOOP_DISTRO=hadoop22
 if exist "%APP_HOME_LIB%" (
     setLocal EnableDelayedExpansion
     set found=0

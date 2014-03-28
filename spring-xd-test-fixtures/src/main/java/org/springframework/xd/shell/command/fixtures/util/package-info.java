@@ -14,33 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.integration.fixtures;
-
-import org.springframework.xd.shell.command.fixtures.AbstractModuleFixture;
-
-
 /**
  * 
  * @author renfrg
  */
-public class TailSource extends AbstractModuleFixture {
 
-	private int delay = 5000;
-
-	private String fileName;
-
-	public TailSource(int delay, String fileName) throws Exception {
-		this.delay = delay;
-		this.fileName = fileName;
-	}
-
-	@Override
-	protected String toDSL() {
-		return String.format("tail --nativeOptions='-F -n +0' --name=%s --fileDelay=%d", fileName, delay);
-	}
-
-	public TailSource() throws Exception {
-		fileName = TailSource.class.getName();
-	}
-
-}
+package org.springframework.xd.shell.command.fixtures.util;

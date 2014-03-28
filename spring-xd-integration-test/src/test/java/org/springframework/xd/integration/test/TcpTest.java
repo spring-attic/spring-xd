@@ -19,8 +19,7 @@ package org.springframework.xd.integration.test;
 import java.util.UUID;
 
 import org.junit.Test;
-
-import org.springframework.xd.integration.fixtures.FileSink;
+import org.springframework.xd.shell.command.fixtures.SimpleFileSink;
 
 
 /**
@@ -39,12 +38,11 @@ public class TcpTest extends AbstractIntegrationTest {
 	@Test
 	public void testTCPSourceCRLF() throws Exception {
 		String data = UUID.randomUUID().toString();
-		System.out.println(sources.tcp() + XD_DELIMETER + sinks.getSink(FileSink.class));
-		stream(sources.tcp() + XD_DELIMETER + sinks.getSink(FileSink.class));
+		stream(sources.tcp() + XD_DELIMETER + sinks.getSink(SimpleFileSink.class));
 		waitForXD();
 		sources.tcp().sendBytes((data + "\r\n").getBytes());
 		assertReceived();
-		assertValid(data, sinks.getSink(FileSink.class));
+		assertValid(data, sinks.getSink(SimpleFileSink.class));
 	}
 
 	/**
@@ -55,10 +53,10 @@ public class TcpTest extends AbstractIntegrationTest {
 	@Test
 	public void testTCPSink() throws Exception {
 		String data = UUID.randomUUID().toString();
-		stream(sources.tcp() + XD_DELIMETER + sinks.getSink(FileSink.class));
+		stream(sources.tcp() + XD_DELIMETER + sinks.getSink(SimpleFileSink.class));
 		stream("dataSender", "trigger --payload='" + data + "'" + XD_DELIMETER + sinks.tcp());
 
 		assertReceived();
-		assertValid(data, sinks.getSink(FileSink.class));
+		assertValid(data, sinks.getSink(SimpleFileSink.class));
 	}
 }

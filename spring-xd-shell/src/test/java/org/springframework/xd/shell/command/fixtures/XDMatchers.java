@@ -17,6 +17,7 @@
 package org.springframework.xd.shell.command.fixtures;
 
 import org.hamcrest.Matcher;
+
 import org.springframework.xd.shell.command.fixtures.FileSink.FileSinkContentsMatcher;
 
 

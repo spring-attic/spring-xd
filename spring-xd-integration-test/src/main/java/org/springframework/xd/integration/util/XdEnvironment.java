@@ -40,6 +40,7 @@ import org.springframework.util.StringUtils;
  */
 public class XdEnvironment {
 
+	// Environment Keys
 	public static final String XD_ADMIN_HOST = "xd_admin_host";
 
 	public static final String XD_CONTAINERS = "xd_containers";
@@ -50,25 +51,47 @@ public class XdEnvironment {
 
 	public static final String XD_CONTAINER_LOG_DIR = "xd_container_log_dir";
 
+	public static final String XD_BASE_DIR = "xd_base_dir";
+
+	// EC2 Environment Keys
+
 	public static final String XD_PRIVATE_KEY_FILE = "xd_private_key_file";
 
 	public static final String XD_RUN_ON_EC2 = "xd_run_on_ec2";
 
 	public static final String XD_PAUSE_TIME = "xd_pause_time";
 
+	// JDBC Environment Keys
 
+	public static final String JDBC_URL = "jdbc_url";
+
+	public static final String JDBC_USERNAME = "jdbc_username";
+
+	public static final String JDBC_PASSWORD = "jdbc_password";
+
+	public static final String JDBC_DATABASE = "jdbc_database";
+
+	public static final String JDBC_DRIVER = "jdbc_driver";
+
+
+	// Result Environment Variables
 	public final static String RESULT_LOCATION = "/tmp/xd/output";
 
 	public final static String LOGGER_LOCATION = "/home/ubuntu/spring-xd-1.0.0.BUILD-SNAPSHOT/xd/logs/container.log";
 
+	public final static String BASE_XD = "/home/ubuntu/spring-xd-1.0.0.BUILD-SNAPSHOT/xd";
+
 	public static final String HTTP_PREFIX = "http://";
 
+	// Each line in the artifact has a entry to identify it as admin, container or singlenode.
+	// These entries represent the supported types.
 	public static final String ADMIN_TOKEN = "adminNode";
 
 	public static final String CONTAINER_TOKEN = "containerNode";
 
 	public static final String SINGLENODE_TOKEN = "singleNode";
 
+	// The artifacts file name
 	private static final String ARTIFACT_NAME = "ec2servers.csv";
 
 
@@ -79,6 +102,8 @@ public class XdEnvironment {
 	private transient final int jmxPort;
 
 	private transient final String containerLogLocation;
+
+	private transient final String baseXdDir;
 
 	private transient final int httpPort;
 
@@ -98,6 +123,18 @@ public class XdEnvironment {
 
 	private static final int JMX_PORT_OFFSET = 4;
 
+
+	// JDBC Attributes
+	private transient String jdbcUrl;
+
+	private transient String jdbcUsername;
+
+	private transient String jdbcPassword;
+
+	private transient String jdbcDatabase;
+
+	private transient String jdbcDriver;
+
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(XdEnvironment.class);
 
@@ -110,7 +147,16 @@ public class XdEnvironment {
 		adminServer = getAdminServer(properties);
 		jmxPort = Integer.parseInt(properties.getProperty(XD_JMX_PORT));
 		httpPort = Integer.parseInt(properties.getProperty(XD_HTTP_PORT));
+
+		jdbcUrl = systemProperties.getProperty(JDBC_URL);
+		jdbcUsername = systemProperties.getProperty(JDBC_USERNAME);
+		jdbcPassword = systemProperties.getProperty(JDBC_PASSWORD);
+		jdbcDatabase = systemProperties.getProperty(JDBC_DATABASE);
+		jdbcDriver = systemProperties.getProperty(JDBC_DRIVER);
+
 		containerLogLocation = getContainerLogLocation(systemProperties);
+		baseXdDir = getBaseDirLocation(systemProperties);
+
 		isOnEc2 = getOnEc2Flag();
 		pauseTime = getPauseTimeFromEnv();
 		if (isOnEc2) {
@@ -156,6 +202,10 @@ public class XdEnvironment {
 
 	public String getContainerLogLocation() {
 		return containerLogLocation;
+	}
+
+	public String getBaseDir() {
+		return baseXdDir;
 	}
 
 	/**
@@ -240,6 +290,14 @@ public class XdEnvironment {
 		String result = LOGGER_LOCATION;
 		if (properties.containsKey(XD_CONTAINER_LOG_DIR)) {
 			result = properties.getProperty(XD_CONTAINER_LOG_DIR);
+		}
+		return result;
+	}
+
+	private String getBaseDirLocation(Properties properties) {
+		String result = BASE_XD;
+		if (properties.containsKey(XD_BASE_DIR)) {
+			result = properties.getProperty(XD_BASE_DIR);
 		}
 		return result;
 	}
@@ -391,4 +449,31 @@ public class XdEnvironment {
 			throw new IllegalArgumentException("The XD Private Key File ==> " + keyFile + " does not exist.");
 		}
 	}
+
+
+	public String getJdbcUrl() {
+		return jdbcUrl;
+	}
+
+	public String getJdbcUsername() {
+		return jdbcUsername;
+	}
+
+
+	public String getJdbcPassword() {
+		return jdbcPassword;
+	}
+
+	public String getJdbcDriver() {
+		return jdbcDriver;
+	}
+
+	public String getJdbcDatabase() {
+		return jdbcDatabase;
+	}
+
+	public int getJmxPort() {
+		return jmxPort;
+	}
+
 }

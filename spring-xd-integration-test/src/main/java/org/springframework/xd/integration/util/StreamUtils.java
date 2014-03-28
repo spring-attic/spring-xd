@@ -19,7 +19,6 @@ package org.springframework.xd.integration.util;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -52,8 +51,6 @@ public class StreamUtils {
 
 	public final static String TMP_DIR = "result/";
 
-	private final static String STREAM_SUFFIX = "/streams/";
-
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(XdEc2Validation.class);
 
@@ -61,32 +58,6 @@ public class StreamUtils {
 			URL adminServer) throws IOException, URISyntaxException {
 		SpringXDTemplate xdTemplate = new SpringXDTemplate(adminServer.toURI());
 		xdTemplate.streamOperations().createStream(streamName, streamDefinition, true);
-	}
-
-	public static void send(SendTypes method, String message, URL url)
-			throws IOException {
-
-		if (method.equals(SendTypes.HTTP)) {
-			httpPost(message, url);
-		}
-
-	}
-
-	public static void httpPost(String message, URL url) throws IOException,
-			MalformedURLException {
-		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-		// Let's send this as a post
-		conn.setRequestMethod("POST");
-
-		// Send post request
-		conn.setDoOutput(true);
-		DataOutputStream wr = new DataOutputStream(conn.getOutputStream());
-		wr.writeBytes(message);
-		wr.flush();
-		wr.close();
-		LOGGER.debug("httpPost result code was " + conn.getResponseCode());
-		conn.disconnect();
-
 	}
 
 	public static String httpGet(URL url) throws IOException {
@@ -171,10 +142,6 @@ public class StreamUtils {
 			tmpFile.createNewFile();
 		}
 		return tmpFile;
-	}
-
-	public enum SendTypes {
-		HTTP, MQTT, JMS, TCP
 	}
 
 	public static URL replacePort(URL url, int port)

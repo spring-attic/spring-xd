@@ -20,13 +20,15 @@ import java.net.URL;
 import java.util.List;
 
 import org.springframework.shell.core.JLineShellComponent;
-import org.springframework.xd.shell.command.fixtures.HttpSource;
+import org.springframework.xd.shell.command.fixtures.SimpleFileSource;
+import org.springframework.xd.shell.command.fixtures.SimpleHttpSource;
+import org.springframework.xd.shell.command.fixtures.SimpleTailSource;
 import org.springframework.xd.shell.command.fixtures.TcpSource;
 
 
 /**
  * 
- * @author renfrg
+ * @author Glenn Renfro
  */
 public class Sources {
 
@@ -36,7 +38,7 @@ public class Sources {
 
 	private JLineShellComponent shell = null;
 
-	private HttpSource httpSource = null;
+	private SimpleHttpSource httpSource = null;
 
 	private TcpSource tcpSource = null;
 
@@ -51,15 +53,15 @@ public class Sources {
 		this.httpPort = httpPort;
 	}
 
-	public HttpSource http() {
+	public SimpleHttpSource http() throws Exception {
 		if (httpSource == null) {
 			httpSource = http(httpPort);
 		}
 		return httpSource;
 	}
 
-	public HttpSource http(int port) {
-		return new HttpSource(shell, containers.get(0).getHost(), port);
+	public SimpleHttpSource http(int port) throws Exception {
+		return new SimpleHttpSource(containers.get(0).getHost(), port);
 	}
 
 	public TcpSource tcp() {
@@ -73,11 +75,11 @@ public class Sources {
 		return new TcpSource(containers.get(0).getHost(), port);
 	}
 
-	public TailSource tail(int delay, String fileName) throws Exception {
-		return new TailSource(delay, fileName);
+	public SimpleTailSource tail(int delay, String fileName) throws Exception {
+		return new SimpleTailSource(delay, fileName);
 	}
 
-	public FileSource file(String dir, String fileName) throws Exception {
-		return new FileSource(dir, fileName);
+	public SimpleFileSource file(String dir, String fileName) throws Exception {
+		return new SimpleFileSource(dir, fileName);
 	}
 }

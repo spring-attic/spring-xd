@@ -31,10 +31,10 @@ public class AbstractMetricSink extends AbstractModuleFixture implements
 
 	final String dslName;
 
-	final JLineShellComponent shell;
+	final public JLineShellComponent shell;
 
 
-	protected AbstractMetricSink(JLineShellComponent shell, String name, String dslName) {
+	public AbstractMetricSink(JLineShellComponent shell, String name, String dslName) {
 		this.shell = shell;
 		this.name = name;
 		this.dslName = dslName;

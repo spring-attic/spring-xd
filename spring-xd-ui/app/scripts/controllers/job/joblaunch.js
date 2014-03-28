@@ -24,41 +24,43 @@ define([], function () {
   'use strict';
   return ['$scope', '$http', '$log', '$state', '$stateParams', 'growl', '$location', 'JobLaunchService',
     function ($scope, $http, $log, $state, $stateParams, growl, $location, JobLaunchService) {
-      var jobLaunchRequest = $scope.jobLaunchRequest = {
-        jobName: $stateParams.jobName,
-        jobParameters: []
-      };
+      $scope.$apply(function () {
+        var jobLaunchRequest = $scope.jobLaunchRequest = {
+          jobName: $stateParams.jobName,
+          jobParameters: []
+        };
 
-      $log.info($stateParams);
+        $log.info($stateParams);
 
-      $scope.addParameter = function () {
-        jobLaunchRequest.jobParameters.push({key: '', value: '', type: 'string'});
-      };
+        $scope.addParameter = function () {
+          jobLaunchRequest.jobParameters.push({key: '', value: '', type: 'string'});
+        };
 
-      $scope.removeParameter = function (jobParameter) {
-        for (var i = 0, ii = jobLaunchRequest.jobParameters.length; i < ii; i++) {
-          if (jobParameter === jobLaunchRequest.jobParameters[i]) {
-            $scope.jobLaunchRequest.jobParameters.splice(i, 1);
+        $scope.removeParameter = function (jobParameter) {
+          for (var i = 0, ii = jobLaunchRequest.jobParameters.length; i < ii; i++) {
+            if (jobParameter === jobLaunchRequest.jobParameters[i]) {
+              $scope.jobLaunchRequest.jobParameters.splice(i, 1);
+            }
           }
-        }
-      };
+        };
 
-      $scope.dataTypes = [
-        {id: 1, key: 'string', name: 'String', selected: true},
-        {id: 2, key: 'date', name: 'Date'},
-        {id: 3, key: 'long', name: 'Long'},
-        {id: 4, key: 'double', name: 'Double'}
-      ];
+        $scope.dataTypes = [
+          {id: 1, key: 'string', name: 'String', selected: true},
+          {id: 2, key: 'date', name: 'Date'},
+          {id: 3, key: 'long', name: 'Long'},
+          {id: 4, key: 'double', name: 'Double'}
+        ];
 
-      $scope.cancelJobLaunch = function () {
-        $log.info('Cancelling Job Launch');
-        $state.go('home.jobs.tabs.deployments');
-      };
+        $scope.cancelJobLaunch = function () {
+          $log.info('Cancelling Job Launch');
+          $state.go('home.jobs.tabs.deployments');
+        };
 
-      $scope.launchJob = function (jobLaunchRequest) {
-        $log.info('Launching Job ' + jobLaunchRequest.jobName);
-        JobLaunchService.convertToJsonAndSend(jobLaunchRequest);
-        $location.path('/jobs/deployments');
-      };
+        $scope.launchJob = function (jobLaunchRequest) {
+          $log.info('Launching Job ' + jobLaunchRequest.jobName);
+          JobLaunchService.convertToJsonAndSend(jobLaunchRequest);
+          $location.path('/jobs/deployments');
+        };
+      });
     }];
 });

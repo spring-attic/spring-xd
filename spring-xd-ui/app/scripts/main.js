@@ -27,6 +27,8 @@ require.config({
     bootstrap: '../lib/bootstrap/bootstrap',
     ngResource: '../lib/angular-resource/angular-resource',
     ngRoute: '../lib/angular-route/angular-route',
+    angularHighlightjs: '../lib/angular-highlightjs/angular-highlightjs',
+    highlightjs: '../lib/highlightjs/highlight.pack',
     uiRouter: '../lib/angular-ui-router/angular-ui-router',
     cgBusy: '../lib/angular-busy/angular-busy',
     promiseTracker: '../lib/angular-promise-tracker/promise-tracker',
@@ -48,6 +50,9 @@ require.config({
     },
     'promiseTracker': {
       deps: ['angular']
+    },
+    'angularHighlightjs': {
+      deps: ['angular', 'highlightjs']
     },
     'ngResource': {
       deps: ['angular']

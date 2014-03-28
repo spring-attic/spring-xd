@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
 import org.springframework.xd.module.ModuleType;
-import org.springframework.xd.shell.command.fixtures.Disposable;
+import org.springframework.xd.test.fixtures.Disposable;
 
 
 /**

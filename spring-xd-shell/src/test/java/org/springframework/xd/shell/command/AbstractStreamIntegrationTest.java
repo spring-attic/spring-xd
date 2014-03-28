@@ -23,17 +23,17 @@ import java.util.List;
 import org.junit.After;
 
 import org.springframework.xd.shell.AbstractShellIntegrationTest;
-import org.springframework.xd.shell.command.fixtures.Disposable;
-import org.springframework.xd.shell.command.fixtures.FileSink;
-import org.springframework.xd.shell.command.fixtures.FileSource;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
-import org.springframework.xd.shell.command.fixtures.NonPollingImapSource;
-import org.springframework.xd.shell.command.fixtures.JdbcSink;
-import org.springframework.xd.shell.command.fixtures.MailSink;
-import org.springframework.xd.shell.command.fixtures.PollingMailSource;
-import org.springframework.xd.shell.command.fixtures.TailSource;
-import org.springframework.xd.shell.command.fixtures.TcpSink;
-import org.springframework.xd.shell.command.fixtures.TcpSource;
+import org.springframework.xd.test.fixtures.Disposable;
+import org.springframework.xd.test.fixtures.FileSink;
+import org.springframework.xd.test.fixtures.FileSource;
+import org.springframework.xd.test.fixtures.JdbcSink;
+import org.springframework.xd.test.fixtures.MailSink;
+import org.springframework.xd.test.fixtures.NonPollingImapSource;
+import org.springframework.xd.test.fixtures.PollingMailSource;
+import org.springframework.xd.test.fixtures.TailSource;
+import org.springframework.xd.test.fixtures.TcpSink;
+import org.springframework.xd.test.fixtures.TcpSource;
 
 /**
  * Provides an @After JUnit lifecycle method that will destroy the definitions that were created by the test.

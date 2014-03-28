@@ -16,10 +16,11 @@
 
 package org.springframework.xd.shell.command;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertThat;
 import static org.springframework.xd.shell.command.fixtures.XDMatchers.eventually;
 import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasContentsThat;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -34,8 +35,8 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import org.springframework.util.StreamUtils;
-import org.springframework.xd.shell.command.fixtures.FileSink;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
+import org.springframework.xd.test.fixtures.FileSink;
 
 
 /**

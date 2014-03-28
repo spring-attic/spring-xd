@@ -32,7 +32,7 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import org.springframework.util.StopWatch;
-import org.springframework.xd.shell.command.fixtures.CounterSink;
+import org.springframework.xd.test.fixtures.CounterSink;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
 
 

@@ -26,7 +26,6 @@ define([], function () {
     var list = function () {
       JobExecutions.getArray().$promise.then(
           function (result) {
-            $log.info('>>>>');
             $log.info(result);
             $scope.jobExecutions = result;
           }, function (error) {
@@ -40,13 +39,10 @@ define([], function () {
       $log.info('Restarting Job ' + job.name);
       JobExecutions.restart(job).$promise.then(
           function (result) {
-            $log.info('>>>>');
             $log.info(result);
             list();
           }, function (error) {
-            $log.error('Error fetching data. Is the XD server running?');
             $log.error(error);
-            growl.addErrorMessage('Error fetching data. Is the XD server running?');
             growl.addErrorMessage(error.data[0].message);
           });
     };

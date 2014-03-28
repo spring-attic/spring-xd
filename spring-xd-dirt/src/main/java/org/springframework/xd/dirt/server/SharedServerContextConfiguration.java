@@ -16,16 +16,22 @@
 
 package org.springframework.xd.dirt.server;
 
+import java.util.Properties;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableMBeanExport;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.util.ConfigLocations;
@@ -37,6 +43,7 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
  * 
  * @author David Turanski
  * @author Mark Fisher
+ * @author Ilayaperumal Gopinathan
  */
 @Configuration
 @Import(PropertyPlaceholderAutoConfiguration.class)
@@ -44,9 +51,6 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 	ConfigLocations.XD_CONFIG_ROOT + "store/${XD_STORE}-store.xml",
 	ConfigLocations.XD_CONFIG_ROOT + "analytics/${XD_ANALYTICS}-analytics.xml" })
 public class SharedServerContextConfiguration {
-
-	@Value("${zk.client.connect:}")
-	private String zkClientConnect;
 
 	private static final String MBEAN_EXPORTER_BEAN_NAME = "XDSharedServerMBeanExporter";
 
@@ -65,7 +69,7 @@ public class SharedServerContextConfiguration {
 
 	@Configuration
 	@Profile(SingleNodeApplication.SINGLE_PROFILE)
-	static class SingleNodeZooKeeperConfig {
+	static class SingleNodeZooKeeperConfig extends ZookeeperConnectionConfig {
 
 		@Bean
 		@ConditionalOnExpression("'${zk.client.connect}'.isEmpty()")
@@ -90,28 +94,47 @@ public class SharedServerContextConfiguration {
 
 		@Bean
 		public ZooKeeperConnection zooKeeperConnection() {
-			if (embeddedZooKeeper != null && StringUtils.isEmpty(zkClientConnect)) {
+			// the embedded server accepts client connections on a dynamically determined port
+			if (embeddedZooKeeper != null) {
 				zkClientConnect = "localhost:" + embeddedZooKeeper.getClientPort();
 			}
-			return new ZooKeeperConnection(zkClientConnect);
+			return setupZookeeperPropertySource(zkClientConnect);
 		}
 	}
 
 
 	@Configuration
 	@Profile("!" + SingleNodeApplication.SINGLE_PROFILE)
-	static class DistributedZooKeeperConfig {
-
-		@Value("${zk.client.connect:}")
-		private String zkClientConnect;
+	static class DistributedZooKeeperConfig extends ZookeeperConnectionConfig {
 
 		@Bean
 		public ZooKeeperConnection zooKeeperConnection() {
-			if (StringUtils.hasText(zkClientConnect)) {
-				return new ZooKeeperConnection(zkClientConnect);
-			}
-			return new ZooKeeperConnection();
+			return setupZookeeperPropertySource(zkClientConnect);
 		}
 	}
 
+	protected static class ZookeeperConnectionConfig implements EnvironmentAware {
+
+		@Value("${zk.client.connect:}")
+		protected String zkClientConnect;
+
+		private ConfigurableEnvironment environment;
+
+		private Properties zkProperties = new Properties();
+
+		protected ZooKeeperConnection setupZookeeperPropertySource(String zkClientConnect) {
+			if (!StringUtils.hasText(zkClientConnect)) {
+				zkClientConnect = ZooKeeperConnection.DEFAULT_CLIENT_CONNECT_STRING;
+			}
+			zkProperties.put("zk.client.connect", zkClientConnect);
+			this.environment.getPropertySources().addFirst(new PropertiesPropertySource("zk-properties", zkProperties));
+			return new ZooKeeperConnection(zkClientConnect);
+		}
+
+		@Override
+		public void setEnvironment(Environment environment) {
+			this.environment = (ConfigurableEnvironment) environment;
+		}
+
+	}
 }

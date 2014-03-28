@@ -29,7 +29,7 @@ import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.xd.shell.command.fixtures.FileSink;
+import org.springframework.xd.test.fixtures.FileSink;
 
 
 /**

@@ -27,13 +27,13 @@ import java.util.TreeMap;
 import org.junit.Test;
 
 import org.springframework.util.StreamUtils;
-import org.springframework.xd.shell.command.fixtures.AggregateCounterSink;
-import org.springframework.xd.shell.command.fixtures.CounterSink;
 import org.springframework.xd.shell.command.fixtures.FieldValueCounterSink;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
 import org.springframework.xd.shell.command.fixtures.RichGaugeSink;
-import org.springframework.xd.shell.command.fixtures.TailSource;
 import org.springframework.xd.shell.util.Table;
+import org.springframework.xd.test.fixtures.AggregateCounterSink;
+import org.springframework.xd.test.fixtures.CounterSink;
+import org.springframework.xd.test.fixtures.TailSource;
 
 
 /**

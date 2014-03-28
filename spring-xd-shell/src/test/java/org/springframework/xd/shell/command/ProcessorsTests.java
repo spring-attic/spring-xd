@@ -26,8 +26,8 @@ import java.io.IOException;
 
 import org.junit.Test;
 
-import org.springframework.xd.shell.command.fixtures.CounterSink;
-import org.springframework.xd.shell.command.fixtures.FileSink;
+import org.springframework.xd.test.fixtures.CounterSink;
+import org.springframework.xd.test.fixtures.FileSink;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
 
 

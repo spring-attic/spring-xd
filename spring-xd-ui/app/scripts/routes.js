@@ -21,8 +21,13 @@
  */
 define(['./app'], function (xdAdmin) {
   'use strict';
-  xdAdmin.config(function ($stateProvider, $urlRouterProvider, $httpProvider) {
+  xdAdmin.config(function ($stateProvider, $urlRouterProvider, $httpProvider, hljsServiceProvider) {
     $httpProvider.defaults.useXDomain = true;
+
+    hljsServiceProvider.setOptions({
+      // replace tab with 2 spaces
+      tabReplace: '  '
+    });
 
     $urlRouterProvider.otherwise('/jobs/definitions');
 
@@ -32,6 +37,13 @@ define(['./app'], function (xdAdmin) {
       templateUrl : 'views/home.html'
     })
     .state('home.jobs', {
+      abstract:true,
+      template: '<ui-view/>',
+      data:{
+        authenticate: true
+      }
+    })
+    .state('home.jobs.tabs', {
       url : 'jobs',
       abstract:true,
       data:{
@@ -62,17 +74,17 @@ define(['./app'], function (xdAdmin) {
         authenticate: true
       }
     })
-    .state('home.jobs.modules', {
+    .state('home.jobs.tabs.modules', {
       url : '/modules',
       templateUrl : 'views/jobs/modules.html',
       controller: 'ModuleController'
     })
-    .state('home.jobs.definitions', {
+    .state('home.jobs.tabs.definitions', {
       url : '/definitions',
       templateUrl : 'views/jobs/definitions.html',
       controller: 'ListDefinitionController'
     })
-    .state('home.jobs.deployments', {
+    .state('home.jobs.tabs.deployments', {
       url : '/deployments',
       templateUrl : 'views/jobs/deployments.html',
       controller: 'ListJobDeploymentsController'
@@ -83,15 +95,23 @@ define(['./app'], function (xdAdmin) {
 //      templateUrl : 'views/jobs/scheduledJobs.html',
 //      controller: 'ScheduledJobsController'
 //    })
-    .state('home.jobs.executions', {
+    .state('home.jobs.tabs.executions', {
       url : '/executions',
       templateUrl : 'views/jobs/executions.html',
       controller: 'ListJobExecutionsController'
     })
-    .state('home.jobs.deployments.launch', {
+    .state('home.jobs.tabs.deployments.launch', {
       url : '/launch/{jobName}',
       templateUrl : 'views/jobs/launch.html',
       controller: 'JobLaunchController'
+    })
+    .state('home.jobs.modulesdetails', {
+      url : 'jobs/modules/{moduleName}',
+      templateUrl : 'views/jobs/module-details.html',
+      controller: 'ModuleDetailsController',
+      data:{
+        authenticate: true
+      }
     });
   });
   xdAdmin.run(function ($rootScope, $state, $stateParams, User, $log) {

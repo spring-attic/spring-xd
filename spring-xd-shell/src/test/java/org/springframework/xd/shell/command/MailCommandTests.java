@@ -16,21 +16,22 @@
 
 package org.springframework.xd.shell.command;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertThat;
 import static org.springframework.xd.shell.command.fixtures.XDMatchers.eventually;
 import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasContentsThat;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 import javax.mail.internet.MimeMessage;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import org.springframework.xd.shell.command.fixtures.FileSink;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
-import org.springframework.xd.shell.command.fixtures.NonPollingImapSource;
-import org.springframework.xd.shell.command.fixtures.MailSink;
-import org.springframework.xd.shell.command.fixtures.PollingMailSource;
+import org.springframework.xd.test.fixtures.FileSink;
+import org.springframework.xd.test.fixtures.MailSink;
+import org.springframework.xd.test.fixtures.NonPollingImapSource;
+import org.springframework.xd.test.fixtures.PollingMailSource;
 
 
 /**

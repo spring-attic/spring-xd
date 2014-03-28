@@ -24,10 +24,10 @@ import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasConten
 
 import org.junit.Test;
 
-import org.springframework.xd.shell.command.fixtures.FileSink;
+import org.springframework.xd.test.fixtures.FileSink;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
-import org.springframework.xd.shell.command.fixtures.TcpSink;
-import org.springframework.xd.shell.command.fixtures.TcpSource;
+import org.springframework.xd.test.fixtures.TcpSink;
+import org.springframework.xd.test.fixtures.TcpSource;
 
 
 /**

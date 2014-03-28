@@ -20,7 +20,7 @@ Make sure that the following environment variables are set either the xd-config.
 	export endpoints_jolokia_enabled=true
 	export XD_JMX_ENABLED=true
 	export management_port=15005
-	export server.port=9395
+	export server_port=9395
 ```
 ##### If you use xd-config.yml:
 ```
@@ -203,4 +203,23 @@ In the run configuration of your tests add the environment variables to your VMA
   * xd_private_key_file - the URI of the ec2 private key 
   * xd_run_on_ec2 - If set to true, system will pull result file and logs from remote servers.
  
+ 
+## Module Configuration
+
+Out of the box all modules should require no additional setup for local testing.  However in a distributed environment resources such as databases, Message Queues and Hadoop servers lie in different locations.  This section will discuss how to configure these modules to work in  a distributed environment
+
+### JDBC
+
+The Jdbc sink test has the following parameters:
+````
+jdbc_username: Default: 'sa'
+jdbc_database: Default: 'xdjob'
+jdbc_password: Default:  ''
+jdbc_driver:   Default: 'org.hsqldb.jdbc.JDBCDriver'
+jdbc_url:      Default: 'jdbc:hsqldb:hsql://localhost:9101/%s'
+````
+By default the JDBC sink test will test against the hsqldb embedded in a singlenode deployment on the local machine.
+When running an acceptance test on a singlenode on another machine or a XD Clustered deployment the parameters above must be utilized.
+The %s in the jdbc_url will be populated by the jdbc_database.  
+An example command line would look like this if running on an acceptance test on a remote XD cluster.
 

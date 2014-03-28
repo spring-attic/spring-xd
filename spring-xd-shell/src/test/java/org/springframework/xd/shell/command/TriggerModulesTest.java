@@ -24,7 +24,7 @@ import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasConten
 
 import org.junit.Test;
 
-import org.springframework.xd.shell.command.fixtures.FileSink;
+import org.springframework.xd.test.fixtures.FileSink;
 
 /**
  * Tests for the trigger source module.

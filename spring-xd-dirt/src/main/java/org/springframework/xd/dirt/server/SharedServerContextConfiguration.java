@@ -54,6 +54,10 @@ public class SharedServerContextConfiguration {
 
 	private static final String MBEAN_EXPORTER_BEAN_NAME = "XDSharedServerMBeanExporter";
 
+	public static final String ZK_CONNECT = "zk.client.connect";
+
+	public static final String EMBEDDED_ZK_CONNECT = "zk.embedded.client.connect";
+
 	@ConditionalOnExpression("${XD_JMX_ENABLED:false}")
 	@EnableMBeanExport(defaultDomain = "xd.shared.server")
 	protected static class JmxConfiguration {
@@ -94,11 +98,12 @@ public class SharedServerContextConfiguration {
 
 		@Bean
 		public ZooKeeperConnection zooKeeperConnection() {
+			boolean isEmbedded = (embeddedZooKeeper != null);
 			// the embedded server accepts client connections on a dynamically determined port
-			if (embeddedZooKeeper != null) {
+			if (isEmbedded) {
 				zkClientConnect = "localhost:" + embeddedZooKeeper.getClientPort();
 			}
-			return setupZookeeperPropertySource(zkClientConnect);
+			return setupZookeeperPropertySource(zkClientConnect, isEmbedded);
 		}
 	}
 
@@ -109,7 +114,7 @@ public class SharedServerContextConfiguration {
 
 		@Bean
 		public ZooKeeperConnection zooKeeperConnection() {
-			return setupZookeeperPropertySource(zkClientConnect);
+			return setupZookeeperPropertySource(zkClientConnect, false);
 		}
 	}
 
@@ -122,11 +127,16 @@ public class SharedServerContextConfiguration {
 
 		private Properties zkProperties = new Properties();
 
-		protected ZooKeeperConnection setupZookeeperPropertySource(String zkClientConnect) {
+		protected ZooKeeperConnection setupZookeeperPropertySource(String zkClientConnect, boolean isEmbedded) {
 			if (!StringUtils.hasText(zkClientConnect)) {
 				zkClientConnect = ZooKeeperConnection.DEFAULT_CLIENT_CONNECT_STRING;
 			}
-			zkProperties.put("zk.client.connect", zkClientConnect);
+			if (isEmbedded) {
+				zkProperties.put(EMBEDDED_ZK_CONNECT, zkClientConnect);
+			}
+			else {
+				zkProperties.put(ZK_CONNECT, zkClientConnect);
+			}
 			this.environment.getPropertySources().addFirst(new PropertiesPropertySource("zk-properties", zkProperties));
 			return new ZooKeeperConnection(zkClientConnect);
 		}

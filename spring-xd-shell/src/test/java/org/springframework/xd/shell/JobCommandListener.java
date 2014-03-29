@@ -23,7 +23,6 @@ import org.apache.zookeeper.data.Stat;
 
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.JobsPath;
-import org.springframework.xd.dirt.zookeeper.Paths;
 
 /**
  * A {@link PathChildrenCacheListener} that enables waiting for a job to be created, deployed, undeployed or destroyed.
@@ -129,7 +128,7 @@ public class JobCommandListener implements PathChildrenCacheListener {
 	}
 
 	private boolean exists(String jobName) {
-		String path = Paths.build(Paths.JOBS, jobName);
+		String path = new JobsPath().setJobName(jobName).build();
 		try {
 			if (client.checkExists().forPath(path) != null) {
 				return true;
@@ -145,7 +144,7 @@ public class JobCommandListener implements PathChildrenCacheListener {
 	}
 
 	private boolean hasDeployment(String jobName) {
-		String parentPath = Paths.build(Paths.JOBS, jobName);
+		String parentPath = new JobsPath().setJobName(jobName).build();
 		try {
 			Stat stat = client.checkExists().forPath(parentPath);
 			if (stat != null) {

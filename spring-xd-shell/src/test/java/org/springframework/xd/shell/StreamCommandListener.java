@@ -17,21 +17,17 @@
 package org.springframework.xd.shell;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent.Type;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
+import org.apache.zookeeper.data.Stat;
 
 import org.springframework.xd.dirt.core.ModuleDescriptor;
 import org.springframework.xd.dirt.core.Stream;
@@ -40,6 +36,7 @@ import org.springframework.xd.dirt.core.StreamsPath;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.util.MapBytesUtility;
+import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 /**
@@ -52,10 +49,6 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 public class StreamCommandListener implements PathChildrenCacheListener {
 
 	private static int TIMEOUT = 5000;
-
-	private ConcurrentMap<String, LinkedBlockingQueue<PathChildrenCacheEvent>> createQueues = new ConcurrentHashMap<String, LinkedBlockingQueue<PathChildrenCacheEvent>>();
-
-	private ConcurrentMap<String, LinkedBlockingQueue<PathChildrenCacheEvent>> destroyQueues = new ConcurrentHashMap<String, LinkedBlockingQueue<PathChildrenCacheEvent>>();
 
 	private Map<String, Map<String, String>> streamProperties = new HashMap<String, Map<String, String>>();
 
@@ -79,36 +72,9 @@ public class StreamCommandListener implements PathChildrenCacheListener {
 		System.out.println("**************** stream name:" + path.getStreamName() + " event " + event.getType());
 		if (event.getType().equals(Type.CHILD_ADDED)) {
 			streamProperties.put(path.getStreamName(), mapBytesUtility.toMap(event.getData().getData()));
-			createQueues.putIfAbsent(path.getStreamName(), new LinkedBlockingQueue<PathChildrenCacheEvent>());
-			LinkedBlockingQueue<PathChildrenCacheEvent> queue = createQueues.get(path.getStreamName());
-			queue.put(event);
 		}
 		else if (event.getType().equals(Type.CHILD_REMOVED)) {
-			destroyQueues.putIfAbsent(path.getStreamName(), new LinkedBlockingQueue<PathChildrenCacheEvent>());
-			LinkedBlockingQueue<PathChildrenCacheEvent> queue = destroyQueues.get(path.getStreamName());
-			queue.put(event);
-		}
-	}
-
-	public PathChildrenCacheEvent nextCreateEvent(String streamName) {
-		try {
-			LinkedBlockingQueue<PathChildrenCacheEvent> queue = createQueues.get(streamName);
-			return queue != null ? queue.poll(10, TimeUnit.SECONDS) : null;
-		}
-		catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			return null;
-		}
-	}
-
-	public PathChildrenCacheEvent nextDestroyEvent(String streamName) {
-		try {
-			LinkedBlockingQueue<PathChildrenCacheEvent> queue = destroyQueues.get(streamName);
-			return queue != null ? queue.poll(10, TimeUnit.SECONDS) : null;
-		}
-		catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			return null;
+			streamProperties.remove(path.getStreamName());
 		}
 	}
 
@@ -121,18 +87,21 @@ public class StreamCommandListener implements PathChildrenCacheListener {
 	}
 
 	private void waitForCreateOrDestroyEvent(String streamName, boolean create) {
+		String path = Paths.build(Paths.STREAMS, streamName);
 		try {
 			int attempts = 0;
-			PathChildrenCacheEvent event;
+			Stat stat = null;
 			do {
-				event = (create) ? this.nextCreateEvent(streamName)
-						: this.nextDestroyEvent(streamName);
+				stat = client.checkExists().forPath(path);
 				Thread.sleep(100);
 			}
-			while (event == null && ++attempts < 40);
+			while (((create && stat == null) || (!create && stat != null)) && ++attempts < TIMEOUT / 100);
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -143,7 +112,8 @@ public class StreamCommandListener implements PathChildrenCacheListener {
 			for (ListIterator<String> pathIterator = moduleDeploymentPaths.listIterator(); pathIterator.hasNext();) {
 				String path = pathIterator.next();
 				try {
-					if (client.checkExists().forPath(path) != null) {
+					Stat stat = client.checkExists().forPath(path);
+					if (stat != null && stat.getNumChildren() > 0) {
 						pathIterator.remove();
 					}
 					Thread.sleep(100);
@@ -168,35 +138,32 @@ public class StreamCommandListener implements PathChildrenCacheListener {
 	}
 
 	public void waitForUndeploy(String streamName) {
-		List<String> moduleDeploymentPaths = getModuleDeploymentPaths(streamName);
-		Collections.reverse(moduleDeploymentPaths);
+		String path = Paths.build(Paths.STREAMS, streamName);
 		long timeout = System.currentTimeMillis() + TIMEOUT;
 		do {
-			for (ListIterator<String> pathIterator = moduleDeploymentPaths.listIterator(); pathIterator.hasNext();) {
-				String path = pathIterator.next();
-				try {
-					if (client.checkExists().forPath(path) == null) {
-						pathIterator.remove();
-					}
-					Thread.sleep(100);
-				}
-				catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
+			try {
+				Stat stat = client.checkExists().forPath(path);
+				// stat would be null, if the stream was actually destroyed
+				// if it has been completely undeployed but not destroyed, it will have 0 children
+				if (stat == null || stat.getNumChildren() == 0) {
 					return;
 				}
-				catch (RuntimeException e) {
-					throw e;
-				}
-				catch (Exception e) {
-					throw new IllegalStateException(String.format(
-							"Failed while waiting for undeployment of stream %s.", streamName));
-				}
+				Thread.sleep(100);
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				return;
+			}
+			catch (RuntimeException e) {
+				throw e;
+			}
+			catch (Exception e) {
+				throw new IllegalStateException(String.format(
+						"Failed while waiting for undeployment of stream %s.", streamName));
 			}
 		}
-		while (!moduleDeploymentPaths.isEmpty() && System.currentTimeMillis() < timeout);
-		if (!moduleDeploymentPaths.isEmpty()) {
-			throw new IllegalStateException(String.format("Undeployment of stream %s timed out.", streamName));
-		}
+		while (System.currentTimeMillis() < timeout);
+		throw new IllegalStateException(String.format("Undeployment of stream %s timed out.", streamName));
 	}
 
 	private List<String> getModuleDeploymentPaths(String streamName) {

@@ -134,6 +134,9 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 		if (deploy) {
 			jobCommandListener.waitForDeploy(jobName);
 		}
+		else {
+			jobCommandListener.waitForCreate(jobName);
+		}
 	}
 
 	protected CommandResult createJob(String jobName, String definition) {

@@ -84,9 +84,11 @@ public class StreamCommandTemplate extends AbstractCommandTemplate {
 		String wholeCommand = String.format("stream create %s --definition \"%s\" --deploy %s", streamname,
 				actualDefinition.replaceAll("\"", "\\\\\""), deploy);
 		CommandResult cr = executeCommand(wholeCommand);
-		streamCommandListener.waitForCreate(streamname);
 		if (deploy) {
 			streamCommandListener.waitForDeploy(streamname);
+		}
+		else {
+			streamCommandListener.waitForCreate(streamname);
 		}
 		// add the stream name to the streams list before assertion
 		streams.add(streamname);

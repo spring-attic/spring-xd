@@ -124,7 +124,8 @@ public class JobCommandListener implements PathChildrenCacheListener {
 			}
 		}
 		while (System.currentTimeMillis() < timeout);
-		throw new IllegalStateException(String.format("Undeployment of job %s timed out.", jobName));
+		throw new IllegalStateException(String.format(
+				"%s of job %s timed out.", (create ? "Creation" : "Destruction"), jobName));
 	}
 
 	private boolean exists(String jobName) {

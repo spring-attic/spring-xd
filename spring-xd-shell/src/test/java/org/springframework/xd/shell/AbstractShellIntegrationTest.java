@@ -33,6 +33,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 
+import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
@@ -143,6 +144,10 @@ public abstract class AbstractShellIntegrationTest {
 
 	public static JLineShellComponent getShell() {
 		return shell;
+	}
+
+	protected MessageBus getMessageBus() {
+		return integrationTestSupport.messageBus();
 	}
 
 	private String generateUniqueName(String name) {

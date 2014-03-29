@@ -7,12 +7,8 @@
 
 	<bean id="jobDefinitionRepository" class="org.springframework.xd.dirt.stream.zookeeper.ZooKeeperJobDefinitionRepository"/>
 
-	<bean id="xdJobRepository"
-		class="org.springframework.xd.dirt.stream.redis.RedisJobRepository">
-		<constructor-arg ref="stringRedisTemplate" />
-		<constructor-arg ref="jobDefinitionRepository" />
-	</bean>
-
+	<bean id="xdJobRepository" class="org.springframework.xd.dirt.stream.zookeeper.ZooKeeperJobRepository"/>
+	
 	<bean id="streamDefinitionRepository"
 		class="org.springframework.xd.dirt.stream.zookeeper.ZooKeeperStreamDefinitionRepository"/>
 

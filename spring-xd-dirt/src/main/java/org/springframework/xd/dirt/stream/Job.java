@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,12 @@
 
 package org.springframework.xd.dirt.stream;
 
-
 /**
  * Captures runtime information about a deployed {@link JobDefinition}.
  * 
  * @author Eric Bottard
  */
-public class Job extends BaseInstance<JobDefinition> {
+public class Job extends BaseInstance<JobDefinition> implements Comparable<Job> {
 
 	/**
 	 * Create a new Job instance out of the given {@link JobDefinition}.
@@ -31,4 +30,9 @@ public class Job extends BaseInstance<JobDefinition> {
 		super(definition);
 	}
 
+	@Override
+	public int compareTo(Job other) {
+		int diff = this.getDefinition().getName().compareTo(other.getDefinition().getName());
+		return (diff != 0) ? diff : this.getStartedAt().compareTo(other.getStartedAt());
+	}
 }

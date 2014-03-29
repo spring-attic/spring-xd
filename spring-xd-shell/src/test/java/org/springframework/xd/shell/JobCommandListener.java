@@ -16,6 +16,7 @@
 
 package org.springframework.xd.shell;
 
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -26,7 +27,9 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent.Type;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 
+import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.JobsPath;
+import org.springframework.xd.dirt.zookeeper.Paths;
 
 /**
  * A {@link PathChildrenCacheListener} that enables waiting for a job to be created, deployed, undeployed or destroyed.
@@ -108,11 +111,10 @@ public class JobCommandListener implements PathChildrenCacheListener {
 	}
 
 	public void waitForDeploy(String jobName) {
-		String path = getPath(jobName);
 		long timeout = System.currentTimeMillis() + TIMEOUT;
 		do {
 			try {
-				if (client.checkExists().forPath(path) != null) {
+				if (hasDeployment(jobName)) {
 					return;
 				}
 				Thread.sleep(100);
@@ -134,11 +136,10 @@ public class JobCommandListener implements PathChildrenCacheListener {
 	}
 
 	public void waitForUndeploy(String jobName) {
-		String path = getPath(jobName);
 		long timeout = System.currentTimeMillis() + TIMEOUT;
 		do {
 			try {
-				if (client.checkExists().forPath(path) == null) {
+				if (!hasDeployment(jobName)) {
 					return;
 				}
 				Thread.sleep(100);
@@ -159,8 +160,24 @@ public class JobCommandListener implements PathChildrenCacheListener {
 		throw new IllegalStateException(String.format("Undeployment of job %s timed out.", jobName));
 	}
 
-	private String getPath(String jobName) {
-		return new JobsPath().setJobName(jobName).setModuleLabel(jobName + "-0").build();
+	private boolean hasDeployment(String jobName) {
+		String parentPath = Paths.build(Paths.JOBS, jobName);
+		try {
+			if (client.checkExists().forPath(parentPath) != null) {
+				List<String> children = client.getChildren().forPath(parentPath);
+				if (children.size() > 0) {
+					Assert.state(children.size() == 1, "expected only one child for job: " + jobName);
+					return true;
+				}
+			}
+		}
+		catch (RuntimeException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		return false;
 	}
 
 }

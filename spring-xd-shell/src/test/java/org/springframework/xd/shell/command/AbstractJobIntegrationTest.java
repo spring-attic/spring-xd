@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ import org.springframework.xd.shell.util.TableRow;
  * @author Glenn Renfro
  * @author Gunnar Hillert
  * @author Ilayaperumal Gopinathan
- * 
+ * @author Mark Fisher
  */
 public abstract class AbstractJobIntegrationTest extends AbstractShellIntegrationTest {
 
@@ -132,7 +132,7 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 		assertEquals(prefix + jobName + "'", cr.getResult());
 		jobs.add(jobName);
 		if (deploy) {
-			deploymentsListener.waitForDeployUndeployEvent(jobName, true);
+			jobCommandListener.waitForDeploy(jobName);
 		}
 	}
 

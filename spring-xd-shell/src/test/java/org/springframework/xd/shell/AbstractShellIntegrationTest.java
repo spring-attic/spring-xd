@@ -38,11 +38,12 @@ import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
 import org.springframework.util.AlternativeJdkIdGenerator;
 import org.springframework.util.IdGenerator;
-import org.springframework.xd.dirt.container.ContainerMetadata;
 import org.springframework.xd.dirt.container.store.RedisRuntimeContainerInfoRepository;
 import org.springframework.xd.dirt.integration.test.SingleNodeIntegrationTestSupport;
+import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.dirt.zookeeper.Paths;
+import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 import org.springframework.xd.test.RandomConfigurationSupport;
 import org.springframework.xd.test.redis.RedisTestSupport;
 
@@ -91,9 +92,9 @@ public abstract class AbstractShellIntegrationTest {
 
 	private static RedisRuntimeContainerInfoRepository runtimeInformationRepository;
 
-	protected static final DeploymentsListener deploymentsListener = new DeploymentsListener();
+	protected static StreamCommandListener streamCommandListener;
 
-	protected static final DefinitionsListener definitionsListener = new DefinitionsListener();
+	protected static JobCommandListener jobCommandListener = new JobCommandListener();
 
 	private static SingleNodeIntegrationTestSupport integrationTestSupport;
 
@@ -106,9 +107,15 @@ public abstract class AbstractShellIntegrationTest {
 					"--store", "redis"
 					);
 			integrationTestSupport = new SingleNodeIntegrationTestSupport(application);
-			ContainerMetadata cm = application.containerContext().getBean(ContainerMetadata.class);
-			integrationTestSupport.addPathListener(Paths.build(Paths.DEPLOYMENTS, cm.getId()), deploymentsListener);
-			integrationTestSupport.addPathListener(Paths.build(Paths.STREAMS), definitionsListener);
+
+			streamCommandListener = new StreamCommandListener(
+					integrationTestSupport.streamDefinitionRepository(),
+					application.containerContext().getBean(ModuleDefinitionRepository.class),
+					application.containerContext().getBean(ModuleOptionsMetadataResolver.class));
+
+			integrationTestSupport.addPathListener(Paths.STREAMS, streamCommandListener);
+			integrationTestSupport.addPathListener(Paths.JOBS, jobCommandListener);
+
 			Bootstrap bootstrap = new Bootstrap(new String[] { "--port", randomConfigSupport.getAdminServerPort() });
 			shell = bootstrap.getJLineShellComponent();
 
@@ -128,11 +135,6 @@ public abstract class AbstractShellIntegrationTest {
 			shell.stop();
 			if (application != null) {
 				logger.info("Stopping Single Node Server");
-				if (application.containerContext().isActive()) {
-					ContainerMetadata cm = application.containerContext().getBean(ContainerMetadata.class);
-					integrationTestSupport.removePathListener(Paths.build(Paths.DEPLOYMENTS, cm.getId()),
-							deploymentsListener);
-				}
 				application.close();
 				redisAvailableRule.getResource().destroy();
 			}

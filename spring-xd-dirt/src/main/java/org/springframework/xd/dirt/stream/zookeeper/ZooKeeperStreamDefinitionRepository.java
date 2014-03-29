@@ -22,7 +22,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.BackgroundPathAndBytesable;
 import org.apache.zookeeper.KeeperException.NoNodeException;
@@ -37,6 +36,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.util.CollectionUtils;
 import org.springframework.xd.dirt.module.ModuleDependencyRepository;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
@@ -186,7 +186,7 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 		for (String id : ids) {
 			StreamDefinition sd = this.findOne(id);
 			if (sd != null) {
-				results.add(this.findOne(id));
+				results.add(sd);
 			}
 		}
 		return results;

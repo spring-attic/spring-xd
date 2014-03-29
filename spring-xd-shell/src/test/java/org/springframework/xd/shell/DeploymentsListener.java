@@ -28,10 +28,11 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 
 import org.springframework.xd.dirt.core.DeploymentsPath;
 
-
 /**
+ * A {@link PathChildrenCacheListener} that enables waiting for a stream or job to be deployed or undeployed.
  * 
  * @author David Turanski
+ * @author Mark Fisher
  */
 public class DeploymentsListener implements PathChildrenCacheListener {
 
@@ -76,7 +77,15 @@ public class DeploymentsListener implements PathChildrenCacheListener {
 		}
 	}
 
-	public void waitForDeployUndeployEvent(String streamOrJobName, boolean deploy) {
+	public void waitForDeploy(String streamOrJobName) {
+		waitForDeployUndeployEvent(streamOrJobName, true);
+	}
+
+	public void waitForUndeploy(String streamOrJobName) {
+		waitForDeployUndeployEvent(streamOrJobName, false);
+	}
+
+	private void waitForDeployUndeployEvent(String streamOrJobName, boolean deploy) {
 		try {
 			int attempts = 0;
 			PathChildrenCacheEvent event;
@@ -88,7 +97,8 @@ public class DeploymentsListener implements PathChildrenCacheListener {
 			while (event == null && ++attempts < 40);
 		}
 		catch (InterruptedException e) {
-			e.printStackTrace();
+			Thread.currentThread().interrupt();
 		}
 	}
+
 }

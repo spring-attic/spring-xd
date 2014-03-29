@@ -106,7 +106,7 @@ public class FileSink extends DisposableFileSupport {
 			waitFor(file, timeout);
 		}
 		catch (RuntimeException e) {
-			throw new RuntimeException();
+			throw e;
 		}
 		Reader fileReader = new InputStreamReader(new FileInputStream(file), charset);
 		return FileCopyUtils.copyToString(fileReader);

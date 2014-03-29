@@ -53,7 +53,7 @@ public abstract class AbstractStreamIntegrationTest extends AbstractShellIntegra
 	private ComposedTemplate composedTemplate;
 
 	public AbstractStreamIntegrationTest() {
-		streamOps = new StreamCommandTemplate(getShell(), deploymentsListener, definitionsListener);
+		streamOps = new StreamCommandTemplate(getShell(), streamCommandListener);
 		metrics = new MetricsTemplate(getShell());
 		composedTemplate = new ComposedTemplate(getShell());
 		disposables.add(metrics);

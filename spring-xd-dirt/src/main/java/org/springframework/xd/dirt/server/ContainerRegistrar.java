@@ -279,6 +279,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 			Map<String, String> map = new HashMap<String, String>();
 			map.put("pid", tokens[0]);
 			map.put("host", tokens[1]);
+			map.put("ip", containerMetadata.getIpAddress());
 
 			StringBuilder builder = new StringBuilder();
 			Iterator<String> iterator = groups.iterator();

@@ -19,10 +19,7 @@
 	<bean id="streamRepository"
 		class="org.springframework.xd.dirt.stream.zookeeper.ZooKeeperStreamRepository"/>
 
-	<bean id="runtimeContainerInfoRepository"
-		class="org.springframework.xd.dirt.container.store.RedisRuntimeContainerInfoRepository">
-		<constructor-arg ref="stringRedisTemplate" />
-	</bean>
+	<bean id="runtimeContainerInfoRepository" class="org.springframework.xd.dirt.container.store.ZooKeeperRuntimeContainerInfoRepository"/>
 
 	<bean id="runtimeModuleInfoRepository"
 		class="org.springframework.xd.dirt.module.store.RedisRuntimeModuleInfoRepository">

@@ -38,7 +38,7 @@ import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
 import org.springframework.util.AlternativeJdkIdGenerator;
 import org.springframework.util.IdGenerator;
-import org.springframework.xd.dirt.container.store.RedisRuntimeContainerInfoRepository;
+import org.springframework.xd.dirt.container.store.RuntimeContainerInfoRepository;
 import org.springframework.xd.dirt.integration.test.SingleNodeIntegrationTestSupport;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
@@ -90,7 +90,7 @@ public abstract class AbstractShellIntegrationTest {
 
 	private Set<File> toBeDeleted = new HashSet<File>();
 
-	private static RedisRuntimeContainerInfoRepository runtimeInformationRepository;
+	private static RuntimeContainerInfoRepository runtimeInformationRepository;
 
 	protected static StreamCommandListener streamCommandListener;
 
@@ -120,7 +120,7 @@ public abstract class AbstractShellIntegrationTest {
 			shell = bootstrap.getJLineShellComponent();
 
 			runtimeInformationRepository = application.pluginContext().getBean(
-					RedisRuntimeContainerInfoRepository.class);
+					RuntimeContainerInfoRepository.class);
 		}
 		if (!shell.isRunning()) {
 			shell.start();

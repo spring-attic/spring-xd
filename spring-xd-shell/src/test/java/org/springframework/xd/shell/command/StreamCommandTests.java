@@ -30,8 +30,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.shell.core.CommandResult;
-import org.springframework.xd.test.fixtures.FileSink;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
+import org.springframework.xd.test.fixtures.FileSink;
 
 /**
  * Test stream commands
@@ -179,7 +179,6 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	public void testTappingModulesVariations() throws IOException {
 		// Note: this test is using a regular sink, not a named channel sink
 		HttpSource httpSource = newHttpSource();
-		HttpSource httpSource2 = newHttpSource();
 
 		FileSink sink = newFileSink().binary(true);
 		FileSink tapsink3 = newFileSink().binary(true);

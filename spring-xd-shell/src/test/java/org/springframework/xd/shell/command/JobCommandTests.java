@@ -30,6 +30,7 @@ import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
@@ -37,6 +38,10 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 
 import org.springframework.batch.core.JobParameter;
+import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessagingException;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableRow;
@@ -332,12 +337,23 @@ public class JobCommandTests extends AbstractJobIntegrationTest {
 		executeJobLaunch(jobName, myJobParams);
 		assertTrue("The countdown latch expired and did not count down.", jobParametersHolder.isDone());
 
-		CommandResult result = executeCommandExpectingFailure("job launch --name " + jobName + " --params "
-				+ myJobParams);
-		assertThat(
-				result.getException().getMessage(),
-				containsString("A job instance already exists and is complete for parameters={param=12345}." +
-						"  If you want to run this job again, change the parameters."));
+		final SynchronousQueue<Message<?>> rendezvous = new SynchronousQueue<Message<?>>();
+		MessageHandler handler = new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				rendezvous.add(message);
+			}
+		};
+		getErrorChannel().subscribe(handler);
+		executeCommand("job launch --name " + jobName + " --params " + myJobParams);
+		Message<?> error = rendezvous.poll(5, TimeUnit.SECONDS);
+		getErrorChannel().unsubscribe(handler);
+		assertNotNull("expected an error message", error);
+		Object payload = error.getPayload();
+		assertTrue("payload should be a MessagingException", payload instanceof MessagingException);
+		assertEquals(JobInstanceAlreadyCompleteException.class,
+				((MessagingException) payload).getCause().getClass());
 	}
 
 	public static class JobParametersHolder {

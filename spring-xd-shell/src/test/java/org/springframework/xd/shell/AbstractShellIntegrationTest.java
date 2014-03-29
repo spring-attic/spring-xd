@@ -34,6 +34,7 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 
 import org.springframework.integration.x.bus.MessageBus;
+import org.springframework.messaging.SubscribableChannel;
 import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
@@ -148,6 +149,10 @@ public abstract class AbstractShellIntegrationTest {
 
 	protected MessageBus getMessageBus() {
 		return integrationTestSupport.messageBus();
+	}
+
+	protected SubscribableChannel getErrorChannel() {
+		return application.containerContext().getBean("errorChannel", SubscribableChannel.class);
 	}
 
 	private String generateUniqueName(String name) {

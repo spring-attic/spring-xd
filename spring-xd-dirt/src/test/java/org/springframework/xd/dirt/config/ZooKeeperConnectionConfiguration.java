@@ -21,24 +21,32 @@ import org.apache.curator.RetrySleeper;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperConnectionConfigurer;
 
 
 /**
+ * Provide a {@link ZooKeeperConnectionConfigurer} bean via an XD extension to configure a {@link RetryPolicy}
  * 
  * @author David Turanski
  */
 @Configuration
-public class RetryPolicyConfig {
+public class ZooKeeperConnectionConfiguration {
 
 	@Bean
-	RetryPolicy retryPolicy() {
-		return new RetryPolicy() {
+	ZooKeeperConnectionConfigurer zooKeeperConnectionConfigurer() {
+		return new ZooKeeperConnectionConfigurer() {
 
 			@Override
-			public boolean allowRetry(int retryCount, long elapsedTimeMs, RetrySleeper sleeper) {
-				return false;
-			}
+			public void configureZooKeeperConnection(ZooKeeperConnection zooKeeperConnection) {
+				zooKeeperConnection.setRetryPolicy(new RetryPolicy() {
 
+					@Override
+					public boolean allowRetry(int retryCount, long elapsedTimeMs, RetrySleeper sleeper) {
+						return false;
+					}
+				});
+			}
 		};
 	}
 }

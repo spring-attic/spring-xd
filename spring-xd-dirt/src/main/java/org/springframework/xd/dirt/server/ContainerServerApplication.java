@@ -18,7 +18,6 @@ package org.springframework.xd.dirt.server;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.curator.RetryPolicy;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -47,6 +46,7 @@ import org.springframework.xd.dirt.util.BannerUtils;
 import org.springframework.xd.dirt.util.ConfigLocations;
 import org.springframework.xd.dirt.util.XdConfigLoggingInitializer;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperConnectionConfigurer;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 /**
@@ -188,8 +188,13 @@ class ContainerConfiguration {
 	@Autowired
 	private ZooKeeperConnection zooKeeperConnection;
 
+	/*
+	 * An optional bean to configure the ZooKeeperConnection. XD by default does not provide this bean but it may be
+	 * added via an extension. This is also effected by the boolean property value ${zk.client.connection.configured}
+	 * which if set, defers the start of the ZooKeeper connection until now.
+	 */
 	@Autowired(required = false)
-	RetryPolicy retryPolicy;
+	ZooKeeperConnectionConfigurer zooKeeperConnectionConfigurer;
 
 	@Bean
 	public ApplicationListener<?> xdInitializer(ApplicationContext context) {
@@ -200,10 +205,11 @@ class ContainerConfiguration {
 
 	@Bean
 	public ContainerRegistrar containerRegistrar() {
-		if (retryPolicy != null) {
-			zooKeeperConnection.setRetryPolicy(retryPolicy);
+		if (zooKeeperConnectionConfigurer != null) {
+			zooKeeperConnectionConfigurer.configureZooKeeperConnection(zooKeeperConnection);
+			zooKeeperConnection.start();
 		}
-		zooKeeperConnection.start();
+
 		return new ContainerRegistrar(containerMetadata,
 				streamDefinitionRepository,
 				moduleDefinitionRepository,

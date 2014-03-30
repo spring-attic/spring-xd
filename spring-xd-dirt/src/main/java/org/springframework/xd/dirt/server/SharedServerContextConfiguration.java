@@ -92,6 +92,7 @@ public class SharedServerContextConfiguration {
 		@Value("${zk.embedded.server.port:}")
 		private Integer zkEmbeddedServerPort;
 
+
 		// This is autowired, but not required, since the EmbeddedZooKeeper instance is conditional.
 		@Autowired(required = false)
 		EmbeddedZooKeeper embeddedZooKeeper;
@@ -123,6 +124,15 @@ public class SharedServerContextConfiguration {
 		@Value("${zk.client.connect:}")
 		protected String zkClientConnect;
 
+		// TODO: Consider a way to not require this property
+		/*
+		 * This is a flag optionally passed as a system property indicating the intention to inject some custom
+		 * configuration to the ZooKeeper client connection. It is used here to prevent auto start of the connection
+		 * since the configuration should be applied before the connection is started.
+		 */
+		@Value("${zk.client.connection.configured:false}")
+		private boolean zkConnectionConfigured;
+
 		private ConfigurableEnvironment environment;
 
 		private Properties zkProperties = new Properties();
@@ -138,7 +148,11 @@ public class SharedServerContextConfiguration {
 				zkProperties.put(ZK_CONNECT, zkClientConnect);
 			}
 			this.environment.getPropertySources().addFirst(new PropertiesPropertySource("zk-properties", zkProperties));
-			return new ZooKeeperConnection(zkClientConnect);
+			ZooKeeperConnection zooKeeperConnection = new ZooKeeperConnection(zkClientConnect);
+
+			zooKeeperConnection.setAutoStartup(!zkConnectionConfigured);
+
+			return zooKeeperConnection;
 		}
 
 		@Override

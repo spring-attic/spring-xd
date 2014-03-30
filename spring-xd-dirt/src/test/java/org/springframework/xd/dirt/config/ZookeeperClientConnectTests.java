@@ -45,11 +45,14 @@ public class ZookeeperClientConnectTests {
 	private AbstractApplicationContext adminContext;
 
 
-	public final void setUp(String zkClientConnect, Integer zkEmbeddedServerPort) {
+	public final void setUp(String zkClientConnect, Integer zkEmbeddedServerPort, boolean isConfigured) {
 		System.setProperty("xd.extensions.basepackages", this.getClass().getPackage().getName());
 		System.setProperty("zk.client.connect", zkClientConnect);
 		if (zkEmbeddedServerPort != null) {
 			System.setProperty("zk.embedded.server.port", zkEmbeddedServerPort.toString());
+		}
+		if (isConfigured) {
+			System.setProperty("zk.client.connection.configured", "true");
 		}
 		this.testApplicationBootstrap = new TestApplicationBootstrap();
 		this.singleNodeApplication = testApplicationBootstrap.getSingleNodeApplication();
@@ -61,7 +64,7 @@ public class ZookeeperClientConnectTests {
 
 	@Test
 	public void testEmbeddedZooKeeper() {
-		setUp("", 5555);
+		setUp("", 5555, false);
 		String zkCLientConnect = this.containerContext.getEnvironment().getProperty("zk.client.connect");
 		assertEquals("", zkCLientConnect);
 		EmbeddedZooKeeper zkServer = this.containerContext.getBean(EmbeddedZooKeeper.class);
@@ -71,11 +74,16 @@ public class ZookeeperClientConnectTests {
 		System.clearProperty("zk.embedded.server.port");
 	}
 
+	/**
+	 * This test assumes there is no ZK server running for the connect string. It should work either way since the test
+	 * does not actually connect. It overrides the ZK RetryPolicy to not attempt a reconnect. {@see
+	 * ZooKeeperConnectionConfiguration}. Without that, this test will hang for a very long time.
+	 */
 	@Test
 	public void testZooKeeperClientConnectString() {
-		// String zkClientConnect = "localhost:2181, localhost:2182, localhost:2183";
-		String zkClientConnect = "localhost:2181";
-		setUp(zkClientConnect, null);
+		String zkClientConnect = "localhost:2181,localhost:2182,localhost:2183";
+		// String zkClientConnect = "localhost:2181";
+		setUp(zkClientConnect, null, true);
 		ZooKeeperConnection zooKeeperConnection = this.containerContext.getBean(ZooKeeperConnection.class);
 		zooKeeperConnection.start();
 		assertFalse(zooKeeperConnection.getRetryPolicy().allowRetry(0, 0, null));
@@ -92,6 +100,7 @@ public class ZookeeperClientConnectTests {
 			System.clearProperty("zk.client.connect");
 			System.clearProperty("zk.embedded.server.port");
 			System.clearProperty("xd.extensions.basepackages");
+			System.clearProperty("zk.client.connection.configured");
 		}
 	}
 

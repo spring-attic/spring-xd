@@ -83,62 +83,69 @@ public class HSQLServerBean implements InitializingBean, DisposableBean {
 				+ server.getPort());
 
 		int tries = 0;
+		boolean started;
+		Throwable t = null;
 		do {
 			server.start();
 
-			if (server.getState() == ServerConstants.SERVER_STATE_ONLINE) {
-				break;
+			started = server.getState() == ServerConstants.SERVER_STATE_ONLINE;
+			if (!started) {
+				// The JavaDoc for server.start() claims to start the server synchronously;
+				// however it only guarantees a transition to state SERVER_STATE_OPENING.
+				// It is possible that the server is still starting up normally so
+				// wait to see if it does.
+				Thread.sleep(1000);
+				started = server.getState() == ServerConstants.SERVER_STATE_ONLINE;
 			}
 
-			// The JavaDoc for server.start() claims to start the server synchronously;
-			// however it only guarantees a transition to state SERVER_STATE_OPENING.
-			// It is possible that the server is still starting up normally so
-			// wait to see if it does.
-			Thread.sleep(1000);
+			if (!started) {
+				// On occasion the server will fail to start due to exception
+				// "java.net.SocketException: Invalid argument"
+				// when it calls socket.accept(). This exception mostly occurs
+				// on Java 1.7 on OS X. This appears to be caused by having
+				// > 1024 file descriptors open. Multiple attempts
+				// will be made to start HSQLDB before giving up. An attempt
+				// will be made every five seconds or sooner if the file
+				// descriptor count drops below 1024.
+				//
+				// This Stack Overflow thread indicates that it happens on
+				// Tomcat as well:
+				//
+				// http://stackoverflow.com/questions/16191236/
+				//   tomcat-startup-fails-due-to-java-net-socketexception-invalid-argument-on-mac-o
+				//
+				// This will be fixed in Java 7u60:
+				//
+				// https://bugs.openjdk.java.net/browse/JDK-8021820
+				t = server.getServerError();
+				if (t instanceof SocketException && "Invalid argument".equals(t.getMessage())) {
+					long fileCount = getOpenFileDescriptorCount();
 
-			if (server.getState() == ServerConstants.SERVER_STATE_ONLINE) {
-				break;
-			}
+					log.debug(String.format(
+							"Caught SocketException (likely due to excessive file descriptors open; current count: %d)",
+							fileCount), t);
 
-			// On occasion the server will fail to start due to exception
-			// "java.net.SocketException: Invalid argument"
-			// when it calls socket.accept(). This exception mostly occurs
-			// on Java 1.7 on OS X. This appears to be caused by having
-			// > 1024 file descriptors open. Multiple attempts
-			// will be made to start HSQLDB before giving up. An attempt
-			// will be made every five seconds or sooner if the file
-			// descriptor count drops below 1024.
-			//
-			// This Stack Overflow thread indicates that it happens on
-			// Tomcat as well:
-			//
-			// http://stackoverflow.com/questions/16191236/
-			//   tomcat-startup-fails-due-to-java-net-socketexception-invalid-argument-on-mac-o
-			//
-			// This will be fixed in Java 7u60:
-			//
-			// https://bugs.openjdk.java.net/browse/JDK-8021820
-			Throwable t = server.getServerError();
-			if (t instanceof SocketException
-					&& "Invalid argument".equals(t.getMessage())
-					&& ++tries < 5) {
-				long fileCount = getOpenFileDescriptorCount();
+					long timeout = System.currentTimeMillis() + 5000;
+					while (System.currentTimeMillis() < timeout && fileCount > 1024) {
+						Thread.sleep(500);
+						fileCount = getOpenFileDescriptorCount();
+					}
 
-				log.debug(String.format(
-						"Caught SocketException (likely due to excessive file descriptors open; current count: %d)",
-						fileCount), t);
-
-				long timeout = System.currentTimeMillis() + 5000;
-				while (System.currentTimeMillis() < timeout && fileCount > 1024) {
-					Thread.sleep(500);
-					fileCount = getOpenFileDescriptorCount();
+					log.debug(String.format("Open files: %d", getOpenFileDescriptorCount()));
 				}
-
-				log.debug(String.format("Open files: %d", getOpenFileDescriptorCount()));
-
-				continue;
+				else {
+					// if the server fails to start for any other reason,
+					// break out of this loop instead of continuing to try
+					// a restart
+					break;
+				}
 			}
+		} while (!started && ++tries < 5);
 
+		if (started) {
+			log.info("Started HSQL Server");
+		}
+		else {
 			String msg = String.format("HSQLDB could not be started on %s:%d, state: %s",
 					server.getAddress(), server.getPort(), server.getStateDescriptor());
 
@@ -148,10 +155,8 @@ public class HSQLServerBean implements InitializingBean, DisposableBean {
 			else {
 				throw new IllegalStateException(msg, t);
 			}
+		}
 
-		} while (true);
-
-		log.info("Started HSQL Server");
 	}
 
 	/**

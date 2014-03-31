@@ -238,6 +238,7 @@ configure(javaProjects) { subproject ->
 		logging.captureStandardOutput(LogLevel.INFO)
 		jvmArgs "-XX:MaxPermSize=256m"
 		jvmArgs "-Djava.net.preferIPv4Stack=true"
+		jvmArgs "-XX:+HeapDumpOnOutOfMemoryError"
 		// 	useful for debugging the GradleWorkerMain
 		//		jvmArgs "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=8000"
 		//		jvmArgs "-Dlog4j.debug=true"

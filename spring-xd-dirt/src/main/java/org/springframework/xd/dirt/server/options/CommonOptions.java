@@ -30,25 +30,12 @@ public class CommonOptions {
 	@Option(name = "--help", usage = "Show this help screen", aliases = { "-?", "-h" })
 	private boolean showHelp = false;
 
-	@Option(name = "--jmxEnabled", usage = "Whether to enable JMX exposition of beans")
-	private Boolean jmxEnabled;
-
 	@Option(name = "--mgmtPort", usage = "The port for the management server", metaVar = "<mgmtPort>")
 	private Integer mgmtPort;
 
 	// Using wrapped here so that "showHelp" is not returned as a property by BeanPropertiesPropertySource
 	public Boolean isShowHelp() {
 		return showHelp ? true : null;
-	}
-
-
-	public Boolean getXD_JMX_ENABLED() {
-		return jmxEnabled;
-	}
-
-
-	public void setXD_JMX_ENABLED(Boolean jmxEnabled) {
-		this.jmxEnabled = jmxEnabled;
 	}
 
 	public Integer getXD_MGMT_PORT() {

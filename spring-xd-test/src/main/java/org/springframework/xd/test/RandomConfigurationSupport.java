@@ -66,6 +66,7 @@ public class RandomConfigurationSupport {
 		setupRandomControlTransportChannels();
 		setupRandomAdminServerPort();
 		setupRandomHSQLDBConfig();
+		disableJmx();
 	}
 
 	private void setupRandomControlTransportChannels() {
@@ -95,6 +96,10 @@ public class RandomConfigurationSupport {
 
 	private void setupRandomAdminServerPort() {
 		System.setProperty(ADMIN_SERVER_PORT, String.valueOf(adminPort));
+	}
+
+	private void disableJmx() {
+		System.setProperty("XD_JMX_ENABLED", "false");
 	}
 
 	public String getAdminServerPort() {

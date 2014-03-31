@@ -59,7 +59,9 @@ public class StreamTestSupport {
 	@BeforeClass
 	public static void startXDSingleNode() throws Exception {
 		application = new TestApplicationBootstrap().getSingleNodeApplication().run("--analytics", "memory",
-				"--store", "memory", "--jmxEnabled");
+				"--store", "memory");
+		// Explicitly set this to true since RandomConfigurationSupport disables JMX by default.
+		System.setProperty("XD_JMX_ENABLED", "true");
 		adminContext = application.adminContext();
 		SingleNodeIntegrationTestSupport integrationTestSupport = new SingleNodeIntegrationTestSupport(application,
 				"classpath:/testmodules/");

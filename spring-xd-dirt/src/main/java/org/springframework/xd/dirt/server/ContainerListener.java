@@ -264,7 +264,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 							String targetName = targetContainer.getName();
 
 							LOG.info("Redeploying module {} for stream {} to container {}",
-									new String[] { moduleLabel, streamName, targetName });
+									moduleLabel, streamName, targetName);
 
 							client.create().creatingParentsIfNeeded().forPath(new DeploymentsPath()
 									.setContainer(targetName)

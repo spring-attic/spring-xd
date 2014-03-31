@@ -123,7 +123,7 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 			String path = Paths.build(Paths.STREAMS, entity.getName());
 			byte[] binary = mapBytesUtility.toByteArray(map);
 
-			BackgroundPathAndBytesable op = client.checkExists().forPath(path) == null
+			BackgroundPathAndBytesable<?> op = client.checkExists().forPath(path) == null
 					? client.create() : client.setData();
 
 			op.forPath(path, binary);

@@ -176,7 +176,7 @@ public class HttpCommands implements CommandMarker {
 		ObjectMapper mapper = new ObjectMapper(factory);
 		TypeReference<HashMap<String,Object>> typeRef = new TypeReference<HashMap<String,Object>>() {};
 		try {
-			return mapper.defaultPrettyPrintingWriter().writeValueAsString(mapper.readValue(maybeJson, typeRef));
+			return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mapper.readValue(maybeJson, typeRef));
 		}
 		catch (IOException e) {
 			// Not JSON? Return unchanged

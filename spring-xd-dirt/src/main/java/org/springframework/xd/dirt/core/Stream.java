@@ -391,7 +391,7 @@ public class Stream {
 		/**
 		 * Set the source channel name.
 		 * 
-		 * @param name source channel name
+		 * @param sourceChannelName source channel name
 		 * 
 		 * @return this builder
 		 */
@@ -407,16 +407,16 @@ public class Stream {
 		/**
 		 * Set the sink channel name.
 		 * 
-		 * @param name sink channel name
+		 * @param sinkChannelName sink channel name
 		 * 
 		 * @return this builder
 		 */
 		public Builder setSinkChannelName(String sinkChannelName) {
-			ArrayList moduleDefinitionList = new ArrayList<ModuleDefinition>(moduleDefinitions.values());
-			Assert.isTrue(
-					moduleDefinitionList.isEmpty()
-							|| ModuleType.sink !=
-							moduleDefinitionList.get(moduleDefinitionList.size() - 1),
+			ModuleDefinition lastModuleDefinition = null;
+			for (ModuleDefinition moduleDefinition : moduleDefinitions.values()) {
+				lastModuleDefinition = moduleDefinition;
+			}
+			Assert.isTrue(lastModuleDefinition == null || ModuleType.sink != lastModuleDefinition.getType(),
 					"cannot have both a sink module and a sink channel");
 			this.sinkChannelName = sinkChannelName;
 			return this;

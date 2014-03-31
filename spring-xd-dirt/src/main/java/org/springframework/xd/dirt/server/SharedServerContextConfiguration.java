@@ -54,7 +54,7 @@ public class SharedServerContextConfiguration {
 
 	private static final String MBEAN_EXPORTER_BEAN_NAME = "XDSharedServerMBeanExporter";
 
-	@ConditionalOnExpression("${XD_JMX_ENABLED:false}")
+	@ConditionalOnExpression("${XD_JMX_ENABLED:true}")
 	@EnableMBeanExport(defaultDomain = "xd.shared.server")
 	protected static class JmxConfiguration {
 

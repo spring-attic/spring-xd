@@ -10,9 +10,9 @@ spring:
     show_banner: false
 endpoints:
   jolokia:
-    enabled: ${XD_JMX_ENABLED:false}
+    enabled: ${XD_JMX_ENABLED:true}
   jmx:
-    enabled: ${XD_JMX_ENABLED:false}
+    enabled: ${XD_JMX_ENABLED:true}
     uniqueNames: true
 
 XD_ANALYTICS: ${analytics:redis}
@@ -20,7 +20,7 @@ XD_TRANSPORT: ${transport:redis}
 XD_CONTROL_TRANSPORT: ${controlTransport:${XD_TRANSPORT}}
 XD_STORE: ${store:redis}
 XD_HOME: ${xdHomeDir:..}
-XD_JMX_ENABLED: ${jmxEnabled:false}
+XD_JMX_ENABLED: true
 
 xd:
   data:

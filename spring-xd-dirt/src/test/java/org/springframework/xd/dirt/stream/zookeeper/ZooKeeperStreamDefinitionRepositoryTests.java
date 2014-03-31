@@ -33,7 +33,7 @@ import org.junit.Test;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.xd.dirt.module.memory.InMemoryModuleDependencyRepository;
+import org.springframework.xd.dirt.module.store.ZooKeeperModuleDependencyRepository;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
@@ -65,7 +65,7 @@ public class ZooKeeperStreamDefinitionRepositoryTests {
 	@Before
 	public void createRepository() throws Exception {
 		this.repository = new ZooKeeperStreamDefinitionRepository(zkConnection,
-				new InMemoryModuleDependencyRepository());
+				new ZooKeeperModuleDependencyRepository(zkConnection));
 		repository.afterPropertiesSet();
 		for (int i = 0; !zkConnection.isConnected() && i < 100; i++) {
 			Thread.sleep(100);

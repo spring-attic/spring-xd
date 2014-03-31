@@ -30,10 +30,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.xd.dirt.module.store.RuntimeContainerModuleInfoRepository;
-import org.springframework.xd.dirt.module.store.RuntimeModuleInfoEntity;
-import org.springframework.xd.dirt.module.store.RuntimeModuleInfoRepository;
-import org.springframework.xd.rest.client.domain.RuntimeModuleInfoResource;
+import org.springframework.xd.dirt.module.store.ModuleMetadata;
+import org.springframework.xd.dirt.module.store.ModuleMetadataRepository;
+import org.springframework.xd.rest.client.domain.ModuleMetadataResource;
 
 
 /**
@@ -43,21 +42,17 @@ import org.springframework.xd.rest.client.domain.RuntimeModuleInfoResource;
  */
 @Controller
 @RequestMapping("/runtime/modules")
-@ExposesResourceFor(RuntimeModuleInfoResource.class)
-public class RuntimeModulesController {
+@ExposesResourceFor(ModuleMetadataResource.class)
+public class ModulesMetadataController {
 
-	private RuntimeModuleInfoRepository runtimeModuleInfoRepository;
+	private ModuleMetadataRepository moduleMetadataRepository;
 
-	private RuntimeContainerModuleInfoRepository runtimeContainerModuleInfoRepository;
-
-	private ResourceAssemblerSupport<RuntimeModuleInfoEntity, RuntimeModuleInfoResource> runtimeModuleResourceAssemblerSupport;
+	private ResourceAssemblerSupport<ModuleMetadata, ModuleMetadataResource> moduleMetadataResourceAssembler;
 
 	@Autowired
-	public RuntimeModulesController(RuntimeModuleInfoRepository runtimeModuleInfoRepository,
-			RuntimeContainerModuleInfoRepository runtimeContainerModuleInfoRepository) {
-		this.runtimeModuleInfoRepository = runtimeModuleInfoRepository;
-		this.runtimeContainerModuleInfoRepository = runtimeContainerModuleInfoRepository;
-		runtimeModuleResourceAssemblerSupport = new RuntimeModuleInfoResourceAssembler();
+	public ModulesMetadataController(ModuleMetadataRepository moduleMetadataRepository) {
+		this.moduleMetadataRepository = moduleMetadataRepository;
+		moduleMetadataResourceAssembler = new ModuleMetadataResourceAssembler();
 	}
 
 	/**
@@ -66,18 +61,17 @@ public class RuntimeModulesController {
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public PagedResources<RuntimeModuleInfoResource> list(Pageable pageable,
-			PagedResourcesAssembler<RuntimeModuleInfoEntity> assembler,
+	public PagedResources<ModuleMetadataResource> list(Pageable pageable,
+			PagedResourcesAssembler<ModuleMetadata> assembler,
 			@RequestParam(value = "containerId", required = false) String containerId) {
-		Page<RuntimeModuleInfoEntity> page;
+		Page<ModuleMetadata> page;
 		if (containerId != null) {
-			page = this.runtimeContainerModuleInfoRepository.findAllByContainerId(pageable, containerId);
+			page = this.moduleMetadataRepository.findAllByContainerId(pageable, containerId);
 		}
 		else {
-			page = this.runtimeModuleInfoRepository.findAll(pageable);
+			page = this.moduleMetadataRepository.findAll(pageable);
 		}
-		PagedResources<RuntimeModuleInfoResource> result = assembler.toResource(page,
-				runtimeModuleResourceAssemblerSupport);
+		PagedResources<ModuleMetadataResource> result = assembler.toResource(page, moduleMetadataResourceAssembler);
 		return result;
 	}
 

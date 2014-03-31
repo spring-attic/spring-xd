@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,13 +24,13 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.xd.rest.client.domain.CompletionKind;
+import org.springframework.xd.rest.client.domain.ContainerMetadataResource;
 import org.springframework.xd.rest.client.domain.DetailedJobInfoResource;
 import org.springframework.xd.rest.client.domain.JobDefinitionResource;
 import org.springframework.xd.rest.client.domain.JobExecutionInfoResource;
 import org.springframework.xd.rest.client.domain.JobInstanceInfoResource;
 import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
-import org.springframework.xd.rest.client.domain.RuntimeContainerInfoResource;
-import org.springframework.xd.rest.client.domain.RuntimeModuleInfoResource;
+import org.springframework.xd.rest.client.domain.ModuleMetadataResource;
 import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
 import org.springframework.xd.rest.client.domain.XDRuntime;
 import org.springframework.xd.rest.client.domain.metrics.AggregateCountsResource;
@@ -61,8 +61,8 @@ public class AdminController {
 		xdRuntime.add(entityLinks.linkFor(JobDefinitionResource.class).withRel("jobs"));
 		xdRuntime.add(entityLinks.linkFor(ModuleDefinitionResource.class).withRel("modules"));
 
-		xdRuntime.add(entityLinks.linkFor(RuntimeModuleInfoResource.class).withRel("runtime/modules"));
-		xdRuntime.add(entityLinks.linkFor(RuntimeContainerInfoResource.class).withRel("runtime/containers"));
+		xdRuntime.add(entityLinks.linkFor(ModuleMetadataResource.class).withRel("runtime/modules"));
+		xdRuntime.add(entityLinks.linkFor(ContainerMetadataResource.class).withRel("runtime/containers"));
 
 		xdRuntime.add(entityLinks.linkFor(DetailedJobInfoResource.class).withRel("batch/jobs"));
 		xdRuntime.add(entityLinks.linkFor(JobExecutionInfoResource.class).withRel("batch/executions"));

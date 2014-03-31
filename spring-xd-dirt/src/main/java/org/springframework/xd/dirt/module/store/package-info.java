@@ -15,7 +15,7 @@
  */
 
 /**
- * Package for DIRT module store.
+ * Package for module meta data.
  * @author Ilayaperumal Gopinathan
  */
 

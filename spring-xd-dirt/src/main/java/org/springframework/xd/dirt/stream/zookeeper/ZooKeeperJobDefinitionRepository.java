@@ -31,6 +31,7 @@ import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -41,13 +42,14 @@ import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperConnectionListener;
 
 /**
  * @author Mark Fisher
  */
 // todo: the JobDefinitionRepository abstraction can be removed once we are fully zk-enabled since we do not need to
 // support multiple impls at that point
-public class ZooKeeperJobDefinitionRepository implements JobDefinitionRepository {
+public class ZooKeeperJobDefinitionRepository implements JobDefinitionRepository, InitializingBean {
 
 	private final Logger LOG = LoggerFactory.getLogger(ZooKeeperJobDefinitionRepository.class);
 
@@ -55,9 +57,20 @@ public class ZooKeeperJobDefinitionRepository implements JobDefinitionRepository
 
 	private final MapBytesUtility mapBytesUtility = new MapBytesUtility();
 
+	private final JobsPathEnsuringConnectionListener connectionListener = new JobsPathEnsuringConnectionListener();
+
 	@Autowired
 	public ZooKeeperJobDefinitionRepository(ZooKeeperConnection zkConnection) {
 		this.zkConnection = zkConnection;
+	}
+
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		zkConnection.addListener(connectionListener);
+		if (zkConnection.isConnected()) {
+			// already connected, invoke the callback directly
+			connectionListener.onConnect(zkConnection.getClient());
+		}
 	}
 
 	@Override
@@ -230,6 +243,30 @@ public class ZooKeeperJobDefinitionRepository implements JobDefinitionRepository
 			results.add(definition);
 		}
 		return results;
+	}
+
+
+	/**
+	 * A {@link ZooKeeperConnectionListener} that ensures the {@code /xd/jobs} path exists.
+	 */
+	private static class JobsPathEnsuringConnectionListener implements ZooKeeperConnectionListener {
+
+		@Override
+		public void onDisconnect(CuratorFramework client) {
+		}
+
+		@Override
+		public void onConnect(CuratorFramework client) {
+			try {
+				client.create().creatingParentsIfNeeded().forPath(Paths.JOBS);
+			}
+			catch (NodeExistsException e) {
+				// already created
+			}
+			catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		}
 	}
 
 }

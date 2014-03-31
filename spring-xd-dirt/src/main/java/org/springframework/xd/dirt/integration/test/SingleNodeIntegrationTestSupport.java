@@ -22,9 +22,9 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.module.DelegatingModuleRegistry;
+import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.module.ResourceModuleRegistry;
-import org.springframework.xd.dirt.server.DeployedModuleState;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
@@ -43,6 +43,7 @@ import org.springframework.xd.module.core.Module;
  * 
  * 
  * @author David Turanski
+ * @author Ilayaperumal Gopinathan
  * 
  */
 public class SingleNodeIntegrationTestSupport {
@@ -53,9 +54,9 @@ public class SingleNodeIntegrationTestSupport {
 
 	private StreamDeployer streamDeployer;
 
-	private DeployedModuleState deployedModuleState;
-
 	private MessageBus messageBus;
+
+	private final ModuleDeployer moduleDeployer;
 
 	private ZooKeeperConnection zooKeeperConnection;
 
@@ -74,14 +75,12 @@ public class SingleNodeIntegrationTestSupport {
 	 */
 	public SingleNodeIntegrationTestSupport(SingleNodeApplication application, String moduleResourceLocation) {
 		Assert.notNull(application, "SingleNodeApplication must not be null");
-		deployedModuleState = new DeployedModuleState();
 		streamDefinitionRepository = application.pluginContext().getBean(StreamDefinitionRepository.class);
 		streamRepository = application.pluginContext().getBean(StreamRepository.class);
 		streamDeployer = application.adminContext().getBean(StreamDeployer.class);
 		messageBus = application.pluginContext().getBean(MessageBus.class);
 		zooKeeperConnection = application.adminContext().getBean(ZooKeeperConnection.class);
-		application.containerContext().addApplicationListener(deployedModuleState);
-		Assert.hasText(moduleResourceLocation, "'moduleResourceLocation' cannot be null or empty");
+		moduleDeployer = application.containerContext().getBean(ModuleDeployer.class);
 		ResourceModuleRegistry cp = new ResourceModuleRegistry(moduleResourceLocation);
 		DelegatingModuleRegistry cmr1 = application.pluginContext().getBean(DelegatingModuleRegistry.class);
 		cmr1.addDelegate(cp);
@@ -90,6 +89,11 @@ public class SingleNodeIntegrationTestSupport {
 			cmr2.addDelegate(cp);
 		}
 
+	}
+
+	public final Map<String, Map<Integer, Module>> getDeployedModules() {
+		Assert.notNull(moduleDeployer, "ModuleDeployer is required to get deployed modules.");
+		return moduleDeployer.getDeployedModules();
 	}
 
 	public final StreamDeployer streamDeployer() {
@@ -106,10 +110,6 @@ public class SingleNodeIntegrationTestSupport {
 
 	public final MessageBus messageBus() {
 		return this.messageBus;
-	}
-
-	public final Map<String, Map<Integer, Module>> deployedModules() {
-		return deployedModuleState.getDeployedModules();
 	}
 
 	public final boolean deployStream(StreamDefinition definition) {
@@ -136,9 +136,8 @@ public class SingleNodeIntegrationTestSupport {
 	}
 
 	public final Module getModule(String streamName, String moduleName, int index) {
-		final Map<Integer, Module> deployedModules = deployedModuleState.getDeployedModules().get(streamName);
-		return deployedModules == null ? null : deployedModules.get(index);
-
+		Map<Integer, Module> modules = getDeployedModules().get(streamName);
+		return (modules != null) ? modules.get(index) : null;
 	}
 
 	public ZooKeeperConnection zooKeeperConnection() {

@@ -14,23 +14,19 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.stream.memory;
+package org.springframework.xd.dirt.module.store;
 
-import org.springframework.xd.dirt.stream.Job;
-import org.springframework.xd.dirt.stream.JobRepository;
-import org.springframework.xd.store.AbstractInMemoryRepository;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.xd.store.DomainRepository;
 
 /**
- * In memory implementation of {@link JobRepository}.
+ * Repository for persisting {@link ModuleMetadata}
  * 
- * @author Eric Bottard
+ * @author Ilayaperumal Gopinathan
  */
-public class InMemoryJobRepository extends AbstractInMemoryRepository<Job, String> implements JobRepository {
+public interface ModuleMetadataRepository extends DomainRepository<ModuleMetadata, String> {
 
-	@Override
-	protected String keyFor(Job entity) {
-		return entity.getDefinition().getName();
-	}
+	Page<ModuleMetadata> findAllByContainerId(Pageable page, String containerId);
 
 }

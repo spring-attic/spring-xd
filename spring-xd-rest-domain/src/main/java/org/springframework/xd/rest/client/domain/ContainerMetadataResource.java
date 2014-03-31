@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,61 +20,58 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.ResourceSupport;
-
+import org.springframework.util.Assert;
 
 /**
- * Represents a runtime module.
+ * Represents runtime container info model.
  * 
  * @author Ilayaperumal Gopinathan
+ * @author Mark Fisher
  */
 @XmlRootElement
-public class RuntimeModuleInfoResource extends ResourceSupport {
-
-	private String moduleId;
+public class ContainerMetadataResource extends ResourceSupport {
 
 	private String containerId;
 
-	private String group;
+	private int processId;
 
-	private String index;
+	private String hostName;
 
-	private String properties;
+	private String ipAddress;
 
 	@SuppressWarnings("unused")
-	private RuntimeModuleInfoResource() {
+	private ContainerMetadataResource() {
 	}
 
-	public RuntimeModuleInfoResource(String containerId, String group, String index, String properties) {
-		this.moduleId = containerId + ":" + group + ":" + index;
+	public ContainerMetadataResource(String containerId, int processId, String hostName, String ipAddress) {
+		Assert.hasText(containerId, "Container Id can not be empty");
+		Assert.hasText(hostName, "Hostname can not be empty");
+		Assert.hasText(ipAddress, "IP address can not be empty");
 		this.containerId = containerId;
-		this.group = group;
-		this.index = index;
-		this.properties = properties;
-	}
-
-	public String getModuleId() {
-		return moduleId;
+		this.processId = processId;
+		this.hostName = hostName;
+		this.ipAddress = ipAddress;
 	}
 
 	public String getContainerId() {
 		return containerId;
 	}
 
-	public String getGroup() {
-		return group;
+	public int getProcessId() {
+		return processId;
 	}
 
-	public String getIndex() {
-		return index;
+	public String getHostName() {
+		return hostName;
 	}
 
-	public String getProperties() {
-		return properties;
+	public String getIpAddress() {
+		return ipAddress;
 	}
 
 	@Override
 	public String toString() {
-		return this.moduleId;
+		return this.containerId;
 	}
 
 	/**
@@ -82,7 +79,8 @@ public class RuntimeModuleInfoResource extends ResourceSupport {
 	 * 
 	 * @author Eric Bottard
 	 */
-	public static class Page extends PagedResources<RuntimeModuleInfoResource> {
+	public static class Page extends PagedResources<ContainerMetadataResource> {
 
 	}
+
 }

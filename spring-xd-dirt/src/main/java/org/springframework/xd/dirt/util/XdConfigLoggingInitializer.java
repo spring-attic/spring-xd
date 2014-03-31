@@ -32,7 +32,7 @@ import org.springframework.xd.dirt.server.options.HadoopDistro;
 
 /**
  * Initializer that can print useful stuff about an XD context on startup.
- * 
+ *
  * @author Dave Syer
  * @author David Turanski
  * @author Ilayaperumal Gopinathan
@@ -69,7 +69,6 @@ public class XdConfigLoggingInitializer implements ApplicationListener<ContextRe
 			logHadoopDistro();
 		}
 		logZkConnectString();
-		logger.info("Store: " + environment.resolvePlaceholders("${XD_STORE}"));
 		logger.info("Analytics: " + environment.resolvePlaceholders("${XD_ANALYTICS}"));
 	}
 

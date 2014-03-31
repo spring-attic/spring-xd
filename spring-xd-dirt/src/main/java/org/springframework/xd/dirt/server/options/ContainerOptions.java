@@ -26,7 +26,7 @@ import org.springframework.xd.dirt.server.options.ResourcePatternScanningOptionH
 
 /**
  * Holds configuration options that are valid for the Container node, when using distributed mode.
- * 
+ *
  * @author Eric Bottard
  * @author David Turanski
  * @author Ilayaperumal Gopinathan

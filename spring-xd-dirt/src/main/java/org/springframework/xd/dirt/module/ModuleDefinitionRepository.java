@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,17 @@
 
 package org.springframework.xd.dirt.module;
 
-import java.util.List;
 import java.util.Set;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
-import org.springframework.xd.store.DomainRepository;
 
 /**
  * @author Mark Fisher
  */
-public interface ModuleDefinitionRepository extends DomainRepository<ModuleDefinition, String> {
-
-	List<ModuleDefinition> findByName(String name);
+public interface ModuleDefinitionRepository {
 
 	ModuleDefinition findByNameAndType(String name, ModuleType type);
 
@@ -38,5 +34,10 @@ public interface ModuleDefinitionRepository extends DomainRepository<ModuleDefin
 
 	Set<String> findDependentModules(String name, ModuleType type);
 
+	ModuleDefinition save(ModuleDefinition moduleDefinition);
+
+	void delete(ModuleDefinition moduleDefinition);
+
+	void delete(String name, ModuleType type);
 
 }

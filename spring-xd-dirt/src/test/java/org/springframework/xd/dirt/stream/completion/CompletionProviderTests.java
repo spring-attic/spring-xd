@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,10 +46,12 @@ import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDependencyRepository;
 import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.module.ResourceModuleRegistry;
-import org.springframework.xd.dirt.module.memory.InMemoryModuleDefinitionRepository;
-import org.springframework.xd.dirt.module.memory.InMemoryModuleDependencyRepository;
+import org.springframework.xd.dirt.module.store.ZooKeeperModuleDefinitionRepository;
+import org.springframework.xd.dirt.module.store.ZooKeeperModuleDependencyRepository;
 import org.springframework.xd.dirt.stream.XDParser;
 import org.springframework.xd.dirt.stream.XDStreamParser;
+import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.options.DefaultModuleOptionsMetadataResolver;
@@ -290,12 +292,13 @@ public class CompletionProviderTests {
 
 		@Bean
 		public ModuleDependencyRepository moduleDependencyRepository() {
-			return new InMemoryModuleDependencyRepository();
+			return new ZooKeeperModuleDependencyRepository(zooKeeperConnection());
 		}
 
 		@Bean
 		public ModuleDefinitionRepository moduleDefinitionRepository() {
-			return new InMemoryModuleDefinitionRepository(moduleRegistry(), moduleDependencyRepository());
+			return new ZooKeeperModuleDefinitionRepository(moduleRegistry(), moduleDependencyRepository(),
+					zooKeeperConnection());
 		}
 
 		@Bean
@@ -309,6 +312,15 @@ public class CompletionProviderTests {
 			return new DefaultModuleOptionsMetadataResolver();
 		}
 
+		@Bean
+		public ZooKeeperConnection zooKeeperConnection() {
+			return new ZooKeeperConnection("localhost:" + embeddedZooKeeper().getClientPort());
+		}
+
+		@Bean
+		public EmbeddedZooKeeper embeddedZooKeeper() {
+			return new EmbeddedZooKeeper();
+		}
 	}
 
 }

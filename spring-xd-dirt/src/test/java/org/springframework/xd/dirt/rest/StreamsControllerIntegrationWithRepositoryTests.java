@@ -43,14 +43,15 @@ import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.StreamDeployer;
 import org.springframework.xd.dirt.stream.StreamRepository;
-import org.springframework.xd.dirt.stream.memory.InMemoryStreamRepository;
+import org.springframework.xd.dirt.stream.zookeeper.ZooKeeperStreamDefinitionRepository;
+import org.springframework.xd.dirt.stream.zookeeper.ZooKeeperStreamRepository;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 
 /**
- * Tests REST compliance of streams-related end-points. Contrary to {@link StreamsControllerIntegrationTests}, instead
- * of mocks, this class provides access to an actual repository: {@link InMemoryStreamRepository} and
- * {@link InMemoryStreamDefinitionRepository}.
+ * Tests REST compliance of streams-related end-points. Unlike {@link StreamsControllerIntegrationTests}, instead of
+ * mocks, this class provides access to actual repositories: {@link ZooKeeperStreamRepository} and
+ * {@link ZooKeeperStreamDefinitionRepository}.
  * 
  * @author Gunnar Hillert
  * @author Glenn Renfro

@@ -37,6 +37,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.util.CollectionUtils;
+import org.springframework.xd.dirt.core.StreamsPath;
 import org.springframework.xd.dirt.module.ModuleDependencyRepository;
 import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
@@ -61,7 +62,7 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 
 	private final MapBytesUtility mapBytesUtility = new MapBytesUtility();
 
-	private final StreamPathEnsuringConnectionListener connectionListener = new StreamPathEnsuringConnectionListener();
+	private final StreamsPathEnsuringConnectionListener connectionListener = new StreamsPathEnsuringConnectionListener();
 
 	@Autowired
 	public ZooKeeperStreamDefinitionRepository(ZooKeeperConnection zkConnection,
@@ -205,8 +206,15 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 
 	@Override
 	public void delete(String id) {
+		String path = new StreamsPath().setStreamName(id).build();
 		try {
-			zkConnection.getClient().delete().deletingChildrenIfNeeded().forPath(Paths.build(Paths.STREAMS, id));
+			// iterate each child node and ignore any NoNodeExceptions, since a
+			// child node may have just been deleted by the undeployment of a stream
+			List<String> children = zkConnection.getClient().getChildren().forPath(path);
+			for (String child : children) {
+				doDelete(path + "/" + child);
+			}
+			doDelete(path);
 		}
 		catch (NoNodeException e) {
 			// ignore
@@ -216,10 +224,19 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 		}
 	}
 
+	private void doDelete(String path) throws Exception {
+		try {
+			zkConnection.getClient().delete().deletingChildrenIfNeeded().forPath(path);
+		}
+		catch (NoNodeException e) {
+			// ignore
+		}
+	}
+
 	@Override
 	public void delete(StreamDefinition entity) {
-		this.delete(entity.getName());
 		StreamDefinitionRepositoryUtils.deleteDependencies(moduleDependencyRepository, entity);
+		this.delete(entity.getName());
 	}
 
 	@Override
@@ -243,7 +260,7 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 	/**
 	 * A {@link ZooKeeperConnectionListener} that ensures the {@code /xd/streams} path exists.
 	 */
-	private static class StreamPathEnsuringConnectionListener implements ZooKeeperConnectionListener {
+	private static class StreamsPathEnsuringConnectionListener implements ZooKeeperConnectionListener {
 
 		@Override
 		public void onDisconnect(CuratorFramework client) {

@@ -20,11 +20,8 @@ import javax.sql.DataSource;
 
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
-
 import org.springframework.boot.actuate.endpoint.HealthEndpoint;
 import org.springframework.boot.actuate.health.VanillaHealthIndicator;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.web.ServerPropertiesAutoConfiguration;
@@ -36,8 +33,6 @@ import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Profile;
 import org.springframework.xd.dirt.container.ContainerMetadata;
 import org.springframework.xd.dirt.util.ConfigLocations;
-import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
-import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 
 /**
  * Beans defined and imported here are in the global parent context, hence available to the entire hierarchy, including

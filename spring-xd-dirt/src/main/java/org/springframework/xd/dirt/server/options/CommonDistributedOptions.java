@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,13 +21,12 @@ import javax.validation.constraints.NotNull;
 import org.kohsuke.args4j.Option;
 
 import org.springframework.xd.dirt.server.options.ResourcePatternScanningOptionHandlers.DistributedAnalyticsOptionHandler;
-import org.springframework.xd.dirt.server.options.ResourcePatternScanningOptionHandlers.DistributedStoreOptionHandler;
 
 
 /**
  * Holds options that are common to both admin and container servers, when used in distributed mode. Note that single
  * node has its own options class, because valid values are different.
- * 
+ *
  * @author Eric Bottard
  */
 public class CommonDistributedOptions extends CommonOptions {
@@ -36,29 +35,13 @@ public class CommonDistributedOptions extends CommonOptions {
 			usage = "How to persist analytics such as counters and gauges")
 	private String analytics;
 
-	// Should be pushed down to AdminOptions (and would then be able to include memory)
-	// but currently can't b/c of the way container runtime info is persisted.
-	// Likely to change with ZK support anyway.
-	@Option(name = "--store", handler = DistributedStoreOptionHandler.class,
-			usage = "How to persist admin data")
-	private String store;
-
 	@NotNull
 	public String getXD_ANALYTICS() {
 		return analytics;
 	}
 
-	@NotNull
-	public String getXD_STORE() {
-		return store;
-	}
-
 	public void setXD_ANALYTICS(String analytics) {
 		this.analytics = analytics;
-	}
-
-	public void setXD_STORE(String store) {
-		this.store = store;
 	}
 
 }

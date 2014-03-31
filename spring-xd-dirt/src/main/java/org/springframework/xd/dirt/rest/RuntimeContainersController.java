@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,29 +29,29 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.xd.dirt.container.store.RuntimeContainerInfoEntity;
-import org.springframework.xd.dirt.container.store.RuntimeContainerInfoRepository;
-import org.springframework.xd.rest.client.domain.RuntimeContainerInfoResource;
-
+import org.springframework.xd.dirt.container.ContainerMetadata;
+import org.springframework.xd.dirt.container.store.ContainerMetadataRepository;
+import org.springframework.xd.rest.client.domain.ContainerMetadataResource;
 
 /**
  * Handles interaction with the runtime containers/and its modules.
  * 
  * @author Ilayaperumal Gopinathan
+ * @author Mark Fisher
  */
 @Controller
 @RequestMapping("/runtime/containers")
-@ExposesResourceFor(RuntimeContainerInfoResource.class)
+@ExposesResourceFor(ContainerMetadataResource.class)
 public class RuntimeContainersController {
 
-	private RuntimeContainerInfoRepository runtimeContainerInfoRepository;
+	private ContainerMetadataRepository containerMetadataRepository;
 
-	private ResourceAssemblerSupport<RuntimeContainerInfoEntity, RuntimeContainerInfoResource> runtimeContainerResourceAssemblerSupport;
+	private ResourceAssemblerSupport<ContainerMetadata, ContainerMetadataResource> containerMetadataResourceAssemblerSupport;
 
 	@Autowired
-	public RuntimeContainersController(RuntimeContainerInfoRepository runtimeContainerInfoRepository) {
-		this.runtimeContainerInfoRepository = runtimeContainerInfoRepository;
-		runtimeContainerResourceAssemblerSupport = new RuntimeContainerInfoResourceAssembler();
+	public RuntimeContainersController(ContainerMetadataRepository containerMetadataRepository) {
+		this.containerMetadataRepository = containerMetadataRepository;
+		containerMetadataResourceAssemblerSupport = new ContainerMetadataResourceAssembler();
 	}
 
 	/**
@@ -60,11 +60,11 @@ public class RuntimeContainersController {
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public PagedResources<RuntimeContainerInfoResource> list(Pageable pageable,
-			PagedResourcesAssembler<RuntimeContainerInfoEntity> assembler) {
-		Page<RuntimeContainerInfoEntity> page = this.runtimeContainerInfoRepository.findAll(pageable);
-		PagedResources<RuntimeContainerInfoResource> result = assembler.toResource(page,
-				runtimeContainerResourceAssemblerSupport);
+	public PagedResources<ContainerMetadataResource> list(Pageable pageable,
+			PagedResourcesAssembler<ContainerMetadata> assembler) {
+		Page<ContainerMetadata> page = this.containerMetadataRepository.findAll(pageable);
+		PagedResources<ContainerMetadataResource> result = assembler.toResource(page,
+				containerMetadataResourceAssemblerSupport);
 		return result;
 	}
 

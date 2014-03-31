@@ -37,54 +37,50 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.xd.dirt.module.store.RuntimeModuleInfoEntity;
+import org.springframework.xd.dirt.module.store.ModuleMetadata;
 
 /**
- * Tests REST compliance of runtime modules endpoint.
+ * Tests REST compliance of module metadata endpoint.
  * 
  * @author Ilayaperumal Gopinathan
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = { RestConfiguration.class, Dependencies.class })
-public class RuntimeModulesControllerIntegrationTests extends AbstractControllerIntegrationTest {
+public class ModuleMetadataControllerIntegrationTests extends AbstractControllerIntegrationTest {
 
 	@Before
 	public void before() {
 		PageRequest pageable = new PageRequest(0, 20);
-		RuntimeModuleInfoEntity entity1 = new RuntimeModuleInfoEntity("1", "foo", "0", "{}");
-		RuntimeModuleInfoEntity entity2 = new RuntimeModuleInfoEntity("2", "bar", "1", "{}");
-		List<RuntimeModuleInfoEntity> entities1 = new ArrayList<RuntimeModuleInfoEntity>();
-		List<RuntimeModuleInfoEntity> entities2 = new ArrayList<RuntimeModuleInfoEntity>();
-		List<RuntimeModuleInfoEntity> entities3 = new ArrayList<RuntimeModuleInfoEntity>();
+		ModuleMetadata entity1 = new ModuleMetadata("s1.source-0", "1", "{entity1: value1}");
+		ModuleMetadata entity2 = new ModuleMetadata("s2.sink-1", "2", "{entity2: value2}");
+		List<ModuleMetadata> entities1 = new ArrayList<ModuleMetadata>();
+		List<ModuleMetadata> entities2 = new ArrayList<ModuleMetadata>();
 		entities1.add(entity1);
 		entities1.add(entity2);
-		entities2.add(entity1);
-		entities3.add(entity2);
-		Page<RuntimeModuleInfoEntity> pagedEntity1 = new PageImpl<>(entities1);
-		Page<RuntimeModuleInfoEntity> pagedEntity2 = new PageImpl<>(entities2);
-		Page<RuntimeModuleInfoEntity> pagedEntity3 = new PageImpl<>(entities3);
-		when(modulesRepository.findAll(pageable)).thenReturn(pagedEntity1);
-		when(containerModulesRepository.findAllByContainerId(pageable, "1")).thenReturn(pagedEntity2);
-		when(containerModulesRepository.findAllByContainerId(pageable, "2")).thenReturn(pagedEntity3);
+		entities2.add(entity2);
+		Page<ModuleMetadata> pagedEntity1 = new PageImpl<>(entities1);
+		Page<ModuleMetadata> pagedEntity2 = new PageImpl<>(entities2);
+		when(moduleMetadataRepository.findAll(pageable)).thenReturn(pagedEntity1);
+		when(moduleMetadataRepository.findAllByContainerId(pageable, "2")).thenReturn(pagedEntity2);
 	}
 
 	@Test
 	public void testListModules() throws Exception {
 		mockMvc.perform(get("/runtime/modules").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
 				jsonPath("$.content", Matchers.hasSize(2))).andExpect(
+				jsonPath("$.content[*].moduleId", contains("s1.source-0", "s2.sink-1"))).andExpect(
 				jsonPath("$.content[*].containerId", contains("1", "2"))).andExpect(
-				jsonPath("$.content[*].group", contains("foo", "bar"))).andExpect(
-				jsonPath("$.content[*].index", contains("0", "1")));
+				jsonPath("$.content[*].properties", contains("{entity1: value1}", "{entity2: value2}")));
 	}
 
 	@Test
 	public void testListModulesByContainer() throws Exception {
-		mockMvc.perform(get("/runtime/modules?containerId=1").accept(MediaType.APPLICATION_JSON)).andExpect(
+		mockMvc.perform(get("/runtime/modules?containerId=2").accept(MediaType.APPLICATION_JSON)).andExpect(
 				status().isOk()).andExpect(
 				jsonPath("$.content", Matchers.hasSize(1))).andExpect(
-				jsonPath("$.content[*].containerId", contains("1"))).andExpect(
-				jsonPath("$.content[*].group", contains("foo"))).andExpect(
-				jsonPath("$.content[*].index", contains("0")));
+				jsonPath("$.content[*].moduleId", contains("s2.sink-1"))).andExpect(
+				jsonPath("$.content[*].containerId", contains("2"))).andExpect(
+				jsonPath("$.content[*].properties", contains("{entity2: value2}")));
 	}
 }

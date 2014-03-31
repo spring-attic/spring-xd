@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.container;
+package org.springframework.xd.dirt.container.store;
+
+import org.springframework.xd.dirt.container.ContainerMetadata;
+import org.springframework.xd.store.DomainRepository;
 
 /**
- * Event fired when a Container stopped.
+ * Repository for persisting {@link ContainerMetadata} entities.
  * 
- * @author Jennifer Hickey
+ * @author Ilayaperumal Gopinathan
  */
-@SuppressWarnings("serial")
-public class ContainerStoppedEvent extends AbstractContainerEvent {
+public interface ContainerMetadataRepository extends DomainRepository<ContainerMetadata, String> {
 
-	public ContainerStoppedEvent(ContainerMetadata containerMetadata) {
-		super(containerMetadata);
-	}
 }

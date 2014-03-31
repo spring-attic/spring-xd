@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,8 @@
 package org.springframework.xd.rest.client;
 
 import org.springframework.hateoas.PagedResources;
-import org.springframework.xd.rest.client.domain.RuntimeContainerInfoResource;
-import org.springframework.xd.rest.client.domain.RuntimeModuleInfoResource;
-
+import org.springframework.xd.rest.client.domain.ContainerMetadataResource;
+import org.springframework.xd.rest.client.domain.ModuleMetadataResource;
 
 /**
  * Interface defining operations available against runtime container/modules.
@@ -28,10 +27,10 @@ import org.springframework.xd.rest.client.domain.RuntimeModuleInfoResource;
  */
 public interface RuntimeOperations {
 
-	public PagedResources<RuntimeContainerInfoResource> listRuntimeContainers();
+	public PagedResources<ContainerMetadataResource> listRuntimeContainers();
 
-	public PagedResources<RuntimeModuleInfoResource> listRuntimeModules();
+	public PagedResources<ModuleMetadataResource> listRuntimeModules();
 
-	public PagedResources<RuntimeModuleInfoResource> listRuntimeModulesByContainer(String containerId);
+	public PagedResources<ModuleMetadataResource> listRuntimeModulesByContainer(String containerId);
 
 }

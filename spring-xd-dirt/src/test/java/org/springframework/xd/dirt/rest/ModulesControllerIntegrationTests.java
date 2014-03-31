@@ -46,6 +46,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleRegistry;
+import org.springframework.xd.dirt.stream.CompositeModuleDefinitionService;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 
@@ -69,6 +70,9 @@ public class ModulesControllerIntegrationTests extends AbstractControllerIntegra
 
 	@Autowired
 	private ModuleDefinitionRepository moduleDefinitionRepository;
+
+	@Autowired
+	private CompositeModuleDefinitionService compositeModuleDefinitionService;
 
 	@Before
 	public void before() throws IOException {
@@ -130,17 +134,19 @@ public class ModulesControllerIntegrationTests extends AbstractControllerIntegra
 		when(moduleRegistry.findDefinition("job_4_with_resource", ModuleType.job)).thenReturn(moduleDefinition);
 
 		// clear this one so it does not have side effects on other tests
-		moduleDefinitionRepository.delete("sink:compositesink");
+		// compositeModuleDefinitionService.delete("compositesink", ModuleType.sink);
+		moduleDefinitionRepository.delete("compositesink", ModuleType.sink);
 	}
 
 	@Test
 	public void testListAll() throws Exception {
 		mockMvc.perform(get("/modules").accept(MediaType.APPLICATION_JSON)).andExpect(
 				status().isOk()).andExpect(
-				jsonPath("$.content", Matchers.hasSize(13))).andExpect(jsonPath("$.content[0].name").value("job_0")).andExpect(
-				jsonPath("$.content[1].name").value("source_0")).andExpect(
-				jsonPath("$.content[11].name").value("processor_2")).andExpect(
-				jsonPath("$.content[10].name").value("sink_2"));
+				jsonPath("$.content", Matchers.hasSize(13))).andExpect(jsonPath("$.content[0].name").value("source_0")).andExpect(
+				jsonPath("$.content[3].name").value("processor_0")).andExpect(
+				jsonPath("$.content[6].name").value("sink_0")).andExpect(
+				jsonPath("$.content[9].name").value("job_0")).andExpect(
+				jsonPath("$.content[12].name").value("job_4_with_resource"));
 	}
 
 	@Test

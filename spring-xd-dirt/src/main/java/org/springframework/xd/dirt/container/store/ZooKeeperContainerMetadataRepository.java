@@ -17,9 +17,12 @@
 package org.springframework.xd.dirt.container.store;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.data.Stat;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +30,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.xd.dirt.container.ContainerMetadata;
 import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
@@ -36,57 +40,82 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
  * 
  * @author Mark Fisher
  */
-public class ZooKeeperRuntimeContainerInfoRepository implements RuntimeContainerInfoRepository {
+public class ZooKeeperContainerMetadataRepository implements ContainerMetadataRepository {
 
 	private final ZooKeeperConnection zkConnection;
 
 	private final MapBytesUtility mapBytesUtility = new MapBytesUtility();
 
 	@Autowired
-	public ZooKeeperRuntimeContainerInfoRepository(ZooKeeperConnection zkConnection) {
+	public ZooKeeperContainerMetadataRepository(ZooKeeperConnection zkConnection) {
 		this.zkConnection = zkConnection;
 	}
 
 	@Override
-	public Iterable<RuntimeContainerInfoEntity> findAll(Sort sort) {
+	public Iterable<ContainerMetadata> findAll(Sort sort) {
 		// todo: add support for sort
 		return findAll();
 	}
 
 	@Override
-	public Page<RuntimeContainerInfoEntity> findAll(Pageable pageable) {
+	public Page<ContainerMetadata> findAll(Pageable pageable) {
 		// todo: add support for paging
-		return new PageImpl<RuntimeContainerInfoEntity>(findAll());
+		return new PageImpl<ContainerMetadata>(findAll());
 	}
 
 	@Override
-	public <S extends RuntimeContainerInfoEntity> S save(S entity) {
-		// Container metadata is "saved" when each Container registers itself with ZK
-		return entity;
+	public <S extends ContainerMetadata> S save(S entity) {
+		Map<String, String> map = new HashMap<String, String>();
+		map.put("pid", "" + entity.getPid());
+		map.put("host", entity.getHost());
+		map.put("ip", entity.getIp());
+
+		StringBuilder builder = new StringBuilder();
+		Iterator<String> iterator = entity.getGroups().iterator();
+		while (iterator.hasNext()) {
+			builder.append(iterator.next());
+			if (iterator.hasNext()) {
+				builder.append(',');
+			}
+		}
+		map.put("groups", builder.toString());
+
+		try {
+			zkConnection.getClient().create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(
+					Paths.build(Paths.CONTAINERS, entity.getId()),
+					mapBytesUtility.toByteArray(map));
+			return entity;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
-	public <S extends RuntimeContainerInfoEntity> Iterable<S> save(Iterable<S> entities) {
-		// Container metadata is "saved" when each Container registers itself with ZK
-		return entities;
+	public <S extends ContainerMetadata> Iterable<S> save(Iterable<S> entities) {
+		List<S> results = new ArrayList<S>();
+		for (S entity : entities) {
+			results.add(save(entity));
+		}
+		return results;
 	}
 
 	@Override
-	public RuntimeContainerInfoEntity findOne(String id) {
+	public ContainerMetadata findOne(String id) {
+		ContainerMetadata metadata = null;
 		try {
 			byte[] data = zkConnection.getClient().getData().forPath(path(id));
 			if (data != null) {
 				Map<String, String> map = mapBytesUtility.toMap(data);
-				return new RuntimeContainerInfoEntity(id,
-						map.get("pid") + "@" + map.get("host"),
-						map.get("host"),
-						map.get("ip"));
+				String pidString = map.get("pid");
+				Integer pid = pidString != null ? Integer.parseInt(pidString) : null;
+				metadata = new ContainerMetadata(id, pid, map.get("host"), map.get("ip"));
 			}
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
 		}
-		return null;
+		return metadata;
 	}
 
 	@Override
@@ -100,8 +129,8 @@ public class ZooKeeperRuntimeContainerInfoRepository implements RuntimeContainer
 	}
 
 	@Override
-	public List<RuntimeContainerInfoEntity> findAll() {
-		List<RuntimeContainerInfoEntity> results = new ArrayList<RuntimeContainerInfoEntity>();
+	public List<ContainerMetadata> findAll() {
+		List<ContainerMetadata> results = new ArrayList<ContainerMetadata>();
 		try {
 			List<String> children = zkConnection.getClient().getChildren().forPath(Paths.CONTAINERS);
 			for (String id : children) {
@@ -115,10 +144,10 @@ public class ZooKeeperRuntimeContainerInfoRepository implements RuntimeContainer
 	}
 
 	@Override
-	public Iterable<RuntimeContainerInfoEntity> findAll(Iterable<String> ids) {
-		List<RuntimeContainerInfoEntity> results = new ArrayList<RuntimeContainerInfoEntity>();
+	public Iterable<ContainerMetadata> findAll(Iterable<String> ids) {
+		List<ContainerMetadata> results = new ArrayList<ContainerMetadata>();
 		for (String id : ids) {
-			RuntimeContainerInfoEntity entity = findOne(id);
+			ContainerMetadata entity = findOne(id);
 			if (entity != null) {
 				results.add(entity);
 			}
@@ -143,12 +172,12 @@ public class ZooKeeperRuntimeContainerInfoRepository implements RuntimeContainer
 	}
 
 	@Override
-	public void delete(RuntimeContainerInfoEntity entity) {
+	public void delete(ContainerMetadata entity) {
 		// Container metadata is "deleted" when a Container departs
 	}
 
 	@Override
-	public void delete(Iterable<? extends RuntimeContainerInfoEntity> entities) {
+	public void delete(Iterable<? extends ContainerMetadata> entities) {
 		// Container metadata is "deleted" when a Container departs
 	}
 
@@ -158,7 +187,7 @@ public class ZooKeeperRuntimeContainerInfoRepository implements RuntimeContainer
 	}
 
 	@Override
-	public Iterable<RuntimeContainerInfoEntity> findAllInRange(String from, boolean fromInclusive, String to,
+	public Iterable<ContainerMetadata> findAllInRange(String from, boolean fromInclusive, String to,
 			boolean toInclusive) {
 		throw new UnsupportedOperationException("Auto-generated method stub");
 	}

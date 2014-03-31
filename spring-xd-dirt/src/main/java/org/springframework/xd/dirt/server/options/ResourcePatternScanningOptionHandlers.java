@@ -26,7 +26,7 @@ import org.springframework.xd.dirt.util.ConfigLocations;
 
 /**
  * Holds definitions of {@link ResourcePatternScanningOptionHandler}s used in Spring XD.
- * 
+ *
  * @author Eric Bottard
  */
 public final class ResourcePatternScanningOptionHandlers {
@@ -80,29 +80,6 @@ public final class ResourcePatternScanningOptionHandlers {
 				throws IOException {
 			super(parser, option, setter, CONFIGURATION_ROOT + "analytics/*-analytics.xml");
 			exclude("memory");
-		}
-	}
-
-	/**
-	 * Computes values for --store in the distributed case (memory is NOT supported).
-	 */
-	public static class DistributedStoreOptionHandler extends ResourcePatternScanningOptionHandler {
-
-		public DistributedStoreOptionHandler(CmdLineParser parser, OptionDef option, Setter<String> setter)
-				throws IOException {
-			super(parser, option, setter, CONFIGURATION_ROOT + "store/*-store.xml");
-			exclude("memory");
-		}
-	}
-
-	/**
-	 * Computes values for --store in the singlenode case.
-	 */
-	public static class SingleNodeStoreOptionHandler extends ResourcePatternScanningOptionHandler {
-
-		public SingleNodeStoreOptionHandler(CmdLineParser parser, OptionDef option, Setter<String> setter)
-				throws IOException {
-			super(parser, option, setter, CONFIGURATION_ROOT + "store/*-store.xml");
 		}
 	}
 

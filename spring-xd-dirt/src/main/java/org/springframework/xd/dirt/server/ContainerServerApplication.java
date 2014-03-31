@@ -38,6 +38,7 @@ import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.xd.dirt.container.ContainerMetadata;
+import org.springframework.xd.dirt.container.store.ContainerMetadataRepository;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.server.options.ContainerOptions;
@@ -161,6 +162,9 @@ class ContainerConfiguration {
 	private ContainerMetadata containerMetadata;
 
 	@Autowired
+	private ContainerMetadataRepository containerMetadataRepository;
+
+	@Autowired
 	private StreamDefinitionRepository streamDefinitionRepository;
 
 	@Autowired
@@ -198,6 +202,7 @@ class ContainerConfiguration {
 		}
 
 		return new ContainerRegistrar(containerMetadata,
+				containerMetadataRepository,
 				streamDefinitionRepository,
 				moduleDefinitionRepository,
 				moduleOptionsMetadataResolver,

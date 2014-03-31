@@ -20,59 +20,47 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.ResourceSupport;
-import org.springframework.util.Assert;
 
 
 /**
- * Represents runtime container info model.
+ * Represents a runtime module.
  * 
  * @author Ilayaperumal Gopinathan
  */
 @XmlRootElement
-public class RuntimeContainerInfoResource extends ResourceSupport {
+public class ModuleMetadataResource extends ResourceSupport {
+
+	private String moduleId;
 
 	private String containerId;
 
-	private String jvmName;
-
-	private String hostName;
-
-	private String ipAddress;
+	private String properties;
 
 	@SuppressWarnings("unused")
-	private RuntimeContainerInfoResource() {
+	private ModuleMetadataResource() {
 	}
 
-	public RuntimeContainerInfoResource(String containerId, String jvmName, String hostName, String ipAddress) {
-		Assert.hasText(containerId, "Container Id can not be empty");
-		Assert.hasText(jvmName, "JVM name can not be empty");
-		Assert.hasText(hostName, "Hostname can not be empty");
-		Assert.hasText(ipAddress, "IP address can not be empty");
+	public ModuleMetadataResource(String moduleId, String containerId, String properties) {
+		this.moduleId = moduleId;
 		this.containerId = containerId;
-		this.jvmName = jvmName;
-		this.hostName = hostName;
-		this.ipAddress = ipAddress;
+		this.properties = properties;
+	}
+
+	public String getModuleId() {
+		return moduleId;
 	}
 
 	public String getContainerId() {
 		return containerId;
 	}
 
-	public String getJvmName() {
-		return jvmName;
-	}
-
-	public String getHostName() {
-		return hostName;
-	}
-
-	public String getIpAddress() {
-		return ipAddress;
+	public String getProperties() {
+		return properties;
 	}
 
 	@Override
 	public String toString() {
-		return this.containerId;
+		return this.moduleId;
 	}
 
 	/**
@@ -80,8 +68,7 @@ public class RuntimeContainerInfoResource extends ResourceSupport {
 	 * 
 	 * @author Eric Bottard
 	 */
-	public static class Page extends PagedResources<RuntimeContainerInfoResource> {
+	public static class Page extends PagedResources<ModuleMetadataResource> {
 
 	}
-
 }

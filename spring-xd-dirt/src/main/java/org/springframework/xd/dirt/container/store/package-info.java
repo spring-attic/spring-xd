@@ -15,7 +15,7 @@
  */
 
 /**
- * Package for container info store.
+ * Package for container metadata store.
  * @author Ilayaperumal Gopinathan
  */
 

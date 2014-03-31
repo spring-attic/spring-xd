@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,9 @@ import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDependencyRepository;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.dirt.module.ModuleRegistry;
-import org.springframework.xd.dirt.module.memory.InMemoryModuleDefinitionRepository;
+import org.springframework.xd.dirt.module.store.ZooKeeperModuleDefinitionRepository;
+import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.options.DefaultModuleOptionsMetadataResolver;
@@ -216,7 +218,18 @@ public class XDStreamParserTests {
 
 	@Bean
 	public ModuleDefinitionRepository moduleDefinitionRepository() {
-		return new InMemoryModuleDefinitionRepository(moduleRegistry(), mock(ModuleDependencyRepository.class));
+		return new ZooKeeperModuleDefinitionRepository(moduleRegistry(), mock(ModuleDependencyRepository.class),
+				zooKeeperConnection());
+	}
+
+	@Bean
+	public ZooKeeperConnection zooKeeperConnection() {
+		return new ZooKeeperConnection("localhost:" + embeddedZooKeeper().getClientPort());
+	}
+
+	@Bean
+	public EmbeddedZooKeeper embeddedZooKeeper() {
+		return new EmbeddedZooKeeper();
 	}
 
 	@Bean

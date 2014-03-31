@@ -14,16 +14,37 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.container.store;
-
-import org.springframework.xd.store.DomainRepository;
-
+package org.springframework.xd.dirt.module.store;
 
 /**
- * Repository for persisting Container entities
+ * Represents runtime module model info.
  * 
  * @author Ilayaperumal Gopinathan
  */
-public interface RuntimeContainerInfoRepository extends DomainRepository<RuntimeContainerInfoEntity, String> {
+public class ModuleMetadata {
+
+	private final String id;
+
+	private final String containerId;
+
+	private final String properties;
+
+	public ModuleMetadata(String id, String containerId, String properties) {
+		this.id = id;
+		this.containerId = containerId;
+		this.properties = properties;
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public String getContainerId() {
+		return containerId;
+	}
+
+	public String getProperties() {
+		return properties;
+	}
 
 }

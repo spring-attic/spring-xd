@@ -32,13 +32,9 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.OrderComparator;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.ModuleDescriptor;
-import org.springframework.xd.dirt.event.ModuleDeployedEvent;
-import org.springframework.xd.dirt.event.ModuleUndeployedEvent;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
@@ -57,16 +53,13 @@ import org.springframework.xd.module.support.ParentLastURLClassLoader;
  * @author Gary Russell
  * @author Ilayaperumal Gopinathan
  */
-public class ModuleDeployer implements ApplicationContextAware, ApplicationEventPublisherAware, BeanClassLoaderAware,
-		InitializingBean, DisposableBean {
+public class ModuleDeployer implements ApplicationContextAware, BeanClassLoaderAware, InitializingBean, DisposableBean {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private volatile ApplicationContext context;
 
 	private volatile ApplicationContext globalContext;
-
-	private volatile ApplicationEventPublisher eventPublisher;
 
 	private final ConcurrentMap<String, Map<Integer, Module>> deployedModules = new ConcurrentHashMap<String, Map<Integer, Module>>();
 
@@ -92,11 +85,6 @@ public class ModuleDeployer implements ApplicationContextAware, ApplicationEvent
 	}
 
 	@Override
-	public void setApplicationEventPublisher(ApplicationEventPublisher eventPublisher) {
-		this.eventPublisher = eventPublisher;
-	}
-
-	@Override
 	public void afterPropertiesSet() {
 		this.plugins = new ArrayList<Plugin>(this.context.getParent().getBeansOfType(Plugin.class).values());
 		OrderComparator.sort(this.plugins);
@@ -107,11 +95,6 @@ public class ModuleDeployer implements ApplicationContextAware, ApplicationEvent
 		for (Entry<String, Map<Integer, Module>> entry : this.deployedModules.entrySet()) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Destroying group:" + entry.getKey());
-			}
-			for (Entry<Integer, Module> moduleEntry : entry.getValue().entrySet()) {
-				// fire module undeploy event to make sure the module event listeners
-				// such as {@link ModuleEventStoreListener} are up-to-date.
-				this.fireModuleUndeployedEvent(moduleEntry.getValue());
 			}
 		}
 	}
@@ -200,7 +183,6 @@ public class ModuleDeployer implements ApplicationContextAware, ApplicationEvent
 		module.initialize();
 		this.postProcessModule(module);
 		module.start();
-		this.fireModuleDeployedEvent(module);
 	}
 
 	private void handleUndeploy(String group, int index) {
@@ -235,7 +217,6 @@ public class ModuleDeployer implements ApplicationContextAware, ApplicationEvent
 		module.stop();
 		this.removeModule(module);
 		module.destroy();
-		this.fireModuleUndeployedEvent(module);
 	}
 
 	/**
@@ -283,24 +264,6 @@ public class ModuleDeployer implements ApplicationContextAware, ApplicationEvent
 	private void beforeShutdown(Module module) {
 		for (Plugin plugin : this.getSupportedPlugins(module)) {
 			plugin.beforeShutdown(module);
-		}
-	}
-
-	private void fireModuleDeployedEvent(Module module) {
-		if (this.eventPublisher != null) {
-			ModuleDeployedEvent event = new ModuleDeployedEvent(module, this.context.getId());
-			event.setAttribute("group", module.getDeploymentMetadata().getGroup());
-			event.setAttribute("index", "" + module.getDeploymentMetadata().getIndex());
-			this.eventPublisher.publishEvent(event);
-		}
-	}
-
-	private void fireModuleUndeployedEvent(Module module) {
-		if (this.eventPublisher != null) {
-			ModuleUndeployedEvent event = new ModuleUndeployedEvent(module, this.context.getId());
-			event.setAttribute("group", module.getDeploymentMetadata().getGroup());
-			event.setAttribute("index", "" + module.getDeploymentMetadata().getIndex());
-			this.eventPublisher.publishEvent(event);
 		}
 	}
 

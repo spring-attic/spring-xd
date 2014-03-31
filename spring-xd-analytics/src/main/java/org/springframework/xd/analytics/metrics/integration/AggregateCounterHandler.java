@@ -18,24 +18,39 @@ package org.springframework.xd.analytics.metrics.integration;
 
 import java.text.ParseException;
 
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.ISODateTimeFormat;
+import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.expression.Expression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.xd.analytics.metrics.core.AggregateCounterRepository;
 
 /**
+ * Service activator for the {@code aggregate-counter} module.
+ * 
  * @author Luke Taylor
+ * @author Eric Bottard
  */
-public class AggregateCounterHandler {
+public class AggregateCounterHandler implements BeanFactoryAware, InitializingBean {
+
+	private static Logger logger = LoggerFactory.getLogger(AggregateCounterHandler.class);
 
 	private final AggregateCounterRepository aggregateCounterRepository;
 
 	private final String counterName;
 
-	private DateTimeFormatter dateFormat = ISODateTimeFormat.dateTime();
+	private ExpressionEvaluatingMessageProcessor<Object> processor;
+
+	private BeanFactory beanFactory;
 
 	public AggregateCounterHandler(AggregateCounterRepository aggregateCounterRepository, String counterName) {
 		Assert.notNull(aggregateCounterRepository, "Aggregate Counter Repository can not be null");
@@ -44,21 +59,53 @@ public class AggregateCounterHandler {
 		this.counterName = counterName;
 	}
 
-	public void setDateFormat(String pattern) {
-		Assert.hasText(pattern, "dateFormat pattern must not be empty");
-		this.dateFormat = DateTimeFormat.forPattern(pattern);
+	public void setExpression(String expressionString) {
+		if (StringUtils.hasLength(expressionString)) {
+			Expression expression = new SpelExpressionParser().parseExpression(expressionString);
+			this.processor = new ExpressionEvaluatingMessageProcessor<Object>(expression);
+		}
+		else {
+			this.processor = null;
+		}
 	}
 
-	public Message<?> process(Message<?> message, String timeField) throws ParseException {
+
+	public Message<?> process(Message<?> message) throws ParseException {
 		if (message == null) {
 			return null;
 		}
-		if (timeField == null) {
-			this.aggregateCounterRepository.increment(counterName);
+		if (processor == null) {
+			this.aggregateCounterRepository.increment(counterName, 1);
 		}
 		else {
-			this.aggregateCounterRepository.increment(counterName, 1, dateFormat.parseDateTime(timeField));
+			Object timestampObject = processor.processMessage(message);
+			DateTime timestamp = null;
+			if (timestampObject instanceof DateTime) {
+				timestamp = (DateTime) timestampObject;
+			}
+			else {
+				try {
+					timestamp = new DateTime(timestampObject);
+				}
+				catch (IllegalArgumentException e) {
+					logger.debug("Could not convert result of expression to a DateTime: {}", timestampObject);
+				}
+			}
+			this.aggregateCounterRepository.increment(counterName, 1, timestamp);
 		}
 		return message;
+	}
+
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		if (this.beanFactory != null && processor != null) {
+			this.processor.setBeanFactory(beanFactory);
+			this.processor.afterPropertiesSet();
+		}
+	}
+
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		this.beanFactory = beanFactory;
 	}
 }

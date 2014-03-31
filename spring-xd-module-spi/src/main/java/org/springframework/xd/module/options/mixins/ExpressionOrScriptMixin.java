@@ -20,6 +20,7 @@ import javax.validation.constraints.AssertTrue;
 
 import org.springframework.xd.module.options.spi.ModuleOption;
 import org.springframework.xd.module.options.spi.ProfileNamesProvider;
+import org.springframework.xd.module.options.support.SpEL;
 
 
 /**
@@ -55,6 +56,7 @@ public class ExpressionOrScriptMixin implements ProfileNamesProvider {
 		return script;
 	}
 
+	@SpEL
 	public String getExpression() {
 		return expression == null ? DEFAULT_EXPRESSION : expression;
 	}

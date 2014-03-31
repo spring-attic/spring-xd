@@ -28,6 +28,8 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent.Type;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.apache.zookeeper.data.Stat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.xd.dirt.core.ModuleDescriptor;
 import org.springframework.xd.dirt.core.Stream;
@@ -47,6 +49,8 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
  * @author Mark Fisher
  */
 public class StreamCommandListener implements PathChildrenCacheListener {
+
+	private final static Logger log = LoggerFactory.getLogger(StreamCommandListener.class);
 
 	private static int TIMEOUT = 5000;
 
@@ -69,7 +73,7 @@ public class StreamCommandListener implements PathChildrenCacheListener {
 	public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
 		this.client = client;
 		StreamsPath path = new StreamsPath(event.getData().getPath());
-		System.out.println("**************** stream name:" + path.getStreamName() + " event " + event.getType());
+		log.info("event: {} stream: {}", path.getStreamName(), event.getType());
 		if (event.getType().equals(Type.CHILD_ADDED)) {
 			streamProperties.put(path.getStreamName(), mapBytesUtility.toMap(event.getData().getData()));
 		}
@@ -93,7 +97,9 @@ public class StreamCommandListener implements PathChildrenCacheListener {
 			Stat stat = null;
 			do {
 				stat = client.checkExists().forPath(path);
-				Thread.sleep(100);
+				if (stat == null) {
+					Thread.sleep(100);
+				}
 			}
 			while (((create && stat == null) || (!create && stat != null)) && ++attempts < TIMEOUT / 100);
 		}
@@ -116,11 +122,6 @@ public class StreamCommandListener implements PathChildrenCacheListener {
 					if (stat != null && stat.getNumChildren() > 0) {
 						pathIterator.remove();
 					}
-					Thread.sleep(100);
-				}
-				catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-					return;
 				}
 				catch (RuntimeException e) {
 					throw e;

@@ -68,7 +68,6 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	}
 
 	@Test
-	@Ignore
 	public void testCreatingTapWithSameNameAsExistingStream_xd299() {
 		String streamName = generateStreamName();
 		CommandResult cr = getShell().executeCommand(
@@ -157,7 +156,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 
 
 	@Test
-	@Ignore
+	@Ignore("This is currently a bug in StreamFactory. Need to revisit once Parser refactored to return StreamDefinition.")
 	public void testComposedStreamThatIsItselfDeployable() throws IOException {
 		FileSink sink = newFileSink();
 		HttpSource httpSource = newHttpSource();
@@ -173,9 +172,7 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 
 	}
 
-
 	@Test
-	@Ignore
 	public void testTappingModulesVariations() throws IOException {
 		// Note: this test is using a regular sink, not a named channel sink
 		HttpSource httpSource = newHttpSource();
@@ -249,7 +246,6 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 	}
 
 	@Test
-	@Ignore
 	public void testUsingLabels() throws IOException {
 		FileSink sink1 = newFileSink().binary(true);
 		FileSink sink2 = newFileSink().binary(true);

@@ -47,7 +47,7 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 /**
  * Server that watches ZooKeeper for Container arrivals and departures from the XD cluster. Each AdminServer instance
  * will attempt to request leadership, but at any given time only one AdminServer instance in the cluster will have
- * leadership status. Those instances not elected will watch the {@link xdzk.curator.Paths#ADMIN} znode so that one of
+ * leadership status. Those instances not elected will watch the {@link Paths#ADMIN} znode so that one of
  * them will take over leadership if the leader admin closes or crashes.
  * 
  * @author Patrick Peralta
@@ -60,34 +60,38 @@ public class AdminServer implements ContainerRepository, ApplicationListener<Con
 	 */
 	private static final Logger LOG = LoggerFactory.getLogger(AdminServer.class);
 
+	/**
+	 * ZooKeeper connection.
+	 */
 	private final ZooKeeperConnection zkConnection;
 
+	/**
+	 * Repository to load streams.
+	 */
 	private final StreamDefinitionRepository streamDefinitionRepository;
 
+	/**
+	 * Repository to load module definitions.
+	 */
 	private final ModuleDefinitionRepository moduleDefinitionRepository;
 
+	/**
+	 * Resolver for module options metadata.
+	 */
 	private final ModuleOptionsMetadataResolver moduleOptionsMetadataResolver;
 
-	private ApplicationContext applicationContext;
+	/**
+	 * {@link ApplicationContext} for this admin server. This reference is updated
+	 * via an application context event and read via {@link #getId()}.
+	 */
+	private volatile ApplicationContext applicationContext;
 
 	/**
 	 * Cache of children under the containers path. This path is used to track containers in the cluster. Marked
 	 * volatile because this reference is updated by the Curator event dispatch thread and read by public method
-	 * {@link #getContainerPaths}.
+	 * {@link #getContainerIterator}.
 	 */
 	private volatile PathChildrenCache containers;
-
-	/**
-	 * Cache of children under the streams path. This path is used to track stream deployment requests. Marked volatile
-	 * because this reference is written by the Curator thread that handles leader election.
-	 */
-	private volatile PathChildrenCache streams;
-
-	/**
-	 * Cache of children under the jobs path. This path is used to track job deployment requests. Marked volatile
-	 * because this reference is written by the Curator thread that handles leader election.
-	 */
-	private volatile PathChildrenCache jobs;
 
 	/**
 	 * Converter from {@link ChildData} types to {@link Container}.
@@ -111,8 +115,20 @@ public class AdminServer implements ContainerRepository, ApplicationListener<Con
 	 */
 	private final LeaderSelectorListener leaderListener = new LeaderListener();
 
+	/**
+	 * ZooKeeper connection listener that attempts to obtain leadership when
+	 * the ZooKeeper connection is established.
+	 */
 	private final ConnectionListener connectionListener = new ConnectionListener();
 
+	/**
+	 * Construct an AdminServer.
+	 *
+	 * @param zkConnection                   ZooKeeper connection
+	 * @param streamDefinitionRepository     repository for streams
+	 * @param moduleDefinitionRepository     repository for modules
+	 * @param moduleOptionsMetadataResolver  resolver for module options metadata
+	 */
 	public AdminServer(ZooKeeperConnection zkConnection,
 			StreamDefinitionRepository streamDefinitionRepository,
 			ModuleDefinitionRepository moduleDefinitionRepository,
@@ -127,6 +143,9 @@ public class AdminServer implements ContainerRepository, ApplicationListener<Con
 		this.moduleOptionsMetadataResolver = moduleOptionsMetadataResolver;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void onApplicationEvent(ContextRefreshedEvent event) {
 		this.applicationContext = event.getApplicationContext();
@@ -144,6 +163,11 @@ public class AdminServer implements ContainerRepository, ApplicationListener<Con
 		return new ChildPathIterator<Container>(containerConverter, containers);
 	}
 
+	/**
+	 * Return the UUID for this admin server.
+	 *
+	 * @return id for this admin server
+	 */
 	private String getId() {
 		return this.applicationContext.getId();
 	}
@@ -173,14 +197,24 @@ public class AdminServer implements ContainerRepository, ApplicationListener<Con
 		}
 	}
 
+	/**
+	 * {@link ZooKeeperConnectionListener} implementation that requests leadership
+	 * upon connection to ZooKeeper.
+	 */
 	private class ConnectionListener implements ZooKeeperConnectionListener {
 
+		/**
+		 * {@inheritDoc}
+		 */
 		@Override
 		public void onConnect(CuratorFramework client) {
 			LOG.info("Admin {} CONNECTED", getId());
 			requestLeadership(client);
 		}
 
+		/**
+		 * {@inheritDoc}
+		 */
 		@Override
 		public void onDisconnect(CuratorFramework client) {
 			leaderSelector = null;
@@ -206,13 +240,25 @@ public class AdminServer implements ContainerRepository, ApplicationListener<Con
 	 */
 	class LeaderListener extends LeaderSelectorListenerAdapter {
 
+		/**
+		 * {@inheritDoc}
+		 * <p/>
+		 * Upon leadership election, this Admin server will create a {@link PathChildrenCache}
+		 * for {@link Paths#STREAMS} and {@link Paths#JOBS}. These caches will have
+		 * {@link PathChildrenCacheListener PathChildrenCacheListeners} attached to them
+		 * that will react to stream and job creation and deletion. Upon leadership
+		 * relinquishment, the listeners will be removed and the caches shut down.
+		 */
 		@Override
 		public void takeLeadership(CuratorFramework client) throws Exception {
 			LOG.info("Leader Admin {} is watching for stream deployment requests.", getId());
 
+			PathChildrenCache streams = null;
+			PathChildrenCache jobs = null;
 			PathChildrenCacheListener streamListener = null;
 			PathChildrenCacheListener jobListener = null;
 			PathChildrenCacheListener containerListener = null;
+
 			try {
 				streamListener = new StreamListener(AdminServer.this,
 						streamDefinitionRepository,
@@ -251,15 +297,15 @@ public class AdminServer implements ContainerRepository, ApplicationListener<Con
 				}
 				containers.close();
 
-				if (streamListener != null) {
+				if (streams != null) {
 					streams.getListenable().removeListener(streamListener);
+					streams.close();
 				}
-				streams.close();
 
-				if (jobListener != null) {
+				if (jobs != null) {
 					jobs.getListenable().removeListener(jobListener);
+					jobs.close();
 				}
-				jobs.close();
 			}
 		}
 	}

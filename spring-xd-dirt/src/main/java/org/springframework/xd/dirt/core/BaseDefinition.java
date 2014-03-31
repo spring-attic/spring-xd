@@ -83,7 +83,6 @@ public abstract class BaseDefinition implements Comparable<BaseDefinition> {
 		this.deploy = deploy;
 	}
 
-
 	/**
 	 * Return true if this should be deployed.
 	 * 

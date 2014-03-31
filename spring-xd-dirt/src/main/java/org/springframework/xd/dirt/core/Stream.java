@@ -396,7 +396,6 @@ public class Stream {
 		 * @return this builder
 		 */
 		public Builder setSourceChannelName(String sourceChannelName) {
-
 			Assert.isTrue(moduleDefinitions.isEmpty()
 					|| ModuleType.source != moduleDefinitions.values().iterator().next().getType(),
 					"cannot have both a source module and a source channel");

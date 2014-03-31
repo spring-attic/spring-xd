@@ -40,7 +40,7 @@ public class ExpandOneDashToTwoDashesRecoveryStrategy extends
 
 	@Autowired
 	public ExpandOneDashToTwoDashesRecoveryStrategy(XDParser parser) {
-		super(parser, "file -");
+		super(parser, StreamDefinitionException.class, "file -");
 	}
 
 	@Override

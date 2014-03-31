@@ -39,7 +39,7 @@ public class CompletionProvider {
 
 	private final XDParser parser;
 
-	private final List<CompletionRecoveryStrategy<Throwable>> recoveries;
+	private final List<CompletionRecoveryStrategy<Exception>> recoveries;
 
 	private final List<CompletionExpansionStrategy> expansions;
 
@@ -47,13 +47,13 @@ public class CompletionProvider {
 	@Autowired
 	@SuppressWarnings("unchecked")
 	public CompletionProvider(XDParser parser,
-			List<CompletionRecoveryStrategy<? extends Throwable>> recoveries,
+			List<CompletionRecoveryStrategy<? extends Exception>> recoveries,
 			List<CompletionExpansionStrategy> expansions) {
 		this.parser = parser;
 		// Unchecked downcast here is the best compromise
 		// if we want to still benefit from Spring's typed collection injection
 		Object o = recoveries;
-		this.recoveries = (List<CompletionRecoveryStrategy<Throwable>>) o;
+		this.recoveries = (List<CompletionRecoveryStrategy<Exception>>) o;
 		this.expansions = expansions;
 	}
 
@@ -71,8 +71,8 @@ public class CompletionProvider {
 		try {
 			parsed = parser.parse(name, start, toParsingContext(kind));
 		}
-		catch (Throwable recoverable) {
-			for (CompletionRecoveryStrategy<Throwable> strategy : recoveries) {
+		catch (Exception recoverable) {
+			for (CompletionRecoveryStrategy<Exception> strategy : recoveries) {
 				if (strategy.shouldTrigger(recoverable, kind)) {
 					strategy.addProposals(start, recoverable, kind, results);
 				}

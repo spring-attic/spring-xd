@@ -53,7 +53,8 @@ public class OptionNameAfterDashDashRecoveryStrategy extends
 	public OptionNameAfterDashDashRecoveryStrategy(XDParser parser,
 			ModuleDefinitionRepository moduleDefinitionRepository,
 			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver) {
-		super(parser, "file --dir=foo --", "file --", "file | filter | transform --");
+		super(parser, CheckpointedStreamDefinitionException.class, "file --dir=foo --", "file --",
+				"file | filter | transform --");
 		this.moduleDefinitionRepository = moduleDefinitionRepository;
 		this.moduleOptionsMetadataResolver = moduleOptionsMetadataResolver;
 	}

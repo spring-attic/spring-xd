@@ -41,7 +41,6 @@ import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.env.PropertySource;
-import org.springframework.core.env.StandardEnvironment;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.validation.BindException;
@@ -121,6 +120,8 @@ public class SimpleModule extends AbstractModule {
 
 	private final List<ApplicationListener<?>> listeners = new ArrayList<ApplicationListener<?>>();
 
+	private ModuleOptions moduleOptions;
+
 	public SimpleModule(ModuleDefinition definition, DeploymentMetadata metadata) {
 		this(definition, metadata, null, defaultModuleOptions());
 	}
@@ -137,22 +138,20 @@ public class SimpleModule extends AbstractModule {
 	public SimpleModule(ModuleDefinition definition, DeploymentMetadata metadata, ClassLoader classLoader,
 			ModuleOptions moduleOptions) {
 		super(definition, metadata);
+		this.moduleOptions = moduleOptions;
 		application = new SpringApplicationBuilder().sources(PropertyPlaceholderAutoConfiguration.class).web(false);
 		if (classLoader != null) {
 			application.resourceLoader(new PathMatchingResourcePatternResolver(classLoader));
 		}
 
-		propertySources.addFirst(moduleOptions.asPropertySource());
-		// Also add as properties for now, b/c other parts of the system
+		// Also add options as properties for now, b/c other parts of the system
 		// (eg type conversion plugin) expects it
 		this.properties.putAll(moduleOptionsToProperties(moduleOptions));
 
 		application.profiles(moduleOptions.profilesToActivate());
 
-		if (definition != null) {
-			if (definition.getResource().isReadable()) {
-				this.addComponents(definition.getResource());
-			}
+		if (definition != null && definition.getResource().isReadable()) {
+			this.addComponents(definition.getResource());
 		}
 	}
 
@@ -226,10 +225,9 @@ public class SimpleModule extends AbstractModule {
 	@Override
 	public void initialize() {
 		this.application.initializers(new ContextIdApplicationContextInitializer(this.toString()));
-		ConfigurableEnvironment environment = new StandardEnvironment();
-		if (parent != null) {
-			copyEnvironment(environment, parent.getEnvironment());
-		}
+		ConfigurableEnvironment parentEnvironment = parent == null ? null
+				: parent.getEnvironment();
+		ModuleEnvironment environment = new ModuleEnvironment(moduleOptions.asPropertySource(), parentEnvironment);
 		for (PropertySource<?> source : propertySources) {
 			environment.getPropertySources().addFirst(source);
 		}
@@ -242,29 +240,6 @@ public class SimpleModule extends AbstractModule {
 		this.context = this.application.run();
 		if (logger.isInfoEnabled()) {
 			logger.info("initialized module: " + this.toString());
-		}
-	}
-
-	private void copyEnvironment(ConfigurableEnvironment environment, ConfigurableEnvironment parent) {
-		MutablePropertySources sources = environment.getPropertySources();
-		String lastName = null;
-		for (PropertySource<?> source : parent.getPropertySources()) {
-			String name = source.getName();
-			if (sources.contains(name)) {
-				sources.replace(source.getName(), source);
-			}
-			else {
-				if (lastName == null) {
-					sources.addFirst(source);
-				}
-				else {
-					sources.addAfter(lastName, source);
-				}
-			}
-			lastName = name;
-		}
-		for (String profile : parent.getActiveProfiles()) {
-			environment.addActiveProfile(profile);
 		}
 	}
 

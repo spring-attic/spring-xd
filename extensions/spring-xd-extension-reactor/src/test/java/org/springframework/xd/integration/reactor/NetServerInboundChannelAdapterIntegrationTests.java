@@ -148,9 +148,10 @@ public class NetServerInboundChannelAdapterIntegrationTests {
 		@Override
 		public void run() {
 			try {
+				InetSocketAddress connectAddr = new InetSocketAddress("127.0.0.1", port);
 				SocketChannel ch = SocketChannel.open();
 				ch.configureBlocking(true);
-				ch.connect(new InetSocketAddress(port));
+				ch.connect(connectAddr);
 				ch.write(ByteBuffer.wrap(line.getBytes()));
 				ch.write(ByteBuffer.wrap(line.getBytes()));
 				ch.close();

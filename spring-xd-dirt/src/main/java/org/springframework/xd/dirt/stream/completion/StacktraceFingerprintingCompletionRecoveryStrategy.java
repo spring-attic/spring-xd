@@ -52,11 +52,13 @@ import org.springframework.xd.rest.client.domain.CompletionKind;
 public abstract class StacktraceFingerprintingCompletionRecoveryStrategy<E extends Exception> implements
 		CompletionRecoveryStrategy<E> {
 
-	private final Set<List<StackTraceElement>> fingerprints = new LinkedHashSet<List<StackTraceElement>>();
+	private volatile Set<List<StackTraceElement>> fingerprints = null;
 
 	protected XDParser parser;
 
 	private final Class<E> exceptionClass;
+
+	private String[] samples;
 
 	/**
 	 * Construct a new StacktraceFingerprintingCompletionRecoveryStrategy given the parser, and the expected exception
@@ -68,26 +70,37 @@ public abstract class StacktraceFingerprintingCompletionRecoveryStrategy<E exten
 	 *        parser.
 	 * @param samples the sample fragments of stream definitions.
 	 */
-	@SuppressWarnings("unchecked")
 	public StacktraceFingerprintingCompletionRecoveryStrategy(XDParser parser, Class<E> exceptionClass,
 			String... samples) {
 		this.parser = parser;
 		this.exceptionClass = exceptionClass;
-		for (String sample : samples) {
-			try {
-				// we're only interested in the exception, which is currently
-				// not influenced by the kind of parse. Use stream for now
-				parser.parse("__dummy", sample, ParsingContext.partial_stream);
-			}
-			catch (Exception exception) {
-				if (exceptionClass.isAssignableFrom(exception.getClass())) {
-					computeFingerprint(parser, (E) exception);
-				}
-				else if (exception instanceof RuntimeException) {
-					throw (RuntimeException) exception;
-				}
-				else {
-					throw new RuntimeException(exception);
+		this.samples = samples;
+	}
+
+	@SuppressWarnings("unchecked")
+	private void initFingerprints() {
+		if (fingerprints == null) {
+			synchronized (this) {
+				if (fingerprints == null) {
+					fingerprints = new LinkedHashSet<List<StackTraceElement>>();
+					for (String sample : this.samples) {
+						try {
+							// we're only interested in the exception, which is currently
+							// not influenced by the kind of parse. Use stream for now
+							this.parser.parse("__dummy", sample, ParsingContext.partial_stream);
+						}
+						catch (Exception exception) {
+							if (this.exceptionClass.isAssignableFrom(exception.getClass())) {
+								computeFingerprint((E) exception);
+							}
+							else if (exception instanceof RuntimeException) {
+								throw (RuntimeException) exception;
+							}
+							else {
+								throw new RuntimeException(exception);
+							}
+						}
+					}
 				}
 			}
 		}
@@ -96,7 +109,7 @@ public abstract class StacktraceFingerprintingCompletionRecoveryStrategy<E exten
 	/**
 	 * Extract the top frames (until the call to {@link XDParser#parse(String, String)} appears) of the given exception.
 	 */
-	private void computeFingerprint(XDParser parser, E exception) {
+	private void computeFingerprint(E exception) {
 		boolean seenParserClass = false;
 		List<StackTraceElement> fingerPrint = new ArrayList<StackTraceElement>();
 		for (StackTraceElement frame : exception.getStackTrace()) {
@@ -129,6 +142,7 @@ public abstract class StacktraceFingerprintingCompletionRecoveryStrategy<E exten
 		if (!exceptionClass.isAssignableFrom(exception.getClass())) {
 			return false;
 		}
+		initFingerprints();
 		for (List<StackTraceElement> fingerPrint : fingerprints) {
 			if (fingerprintMatches((E) exception, fingerPrint)) {
 				return true;

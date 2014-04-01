@@ -42,12 +42,18 @@ public class ModulesAfterPipeRecoveryStrategy extends
 		StacktraceFingerprintingCompletionRecoveryStrategy<CheckpointedStreamDefinitionException> {
 
 
-	private ModuleDefinitionRepository moduleDefinitionRepository;
+	private final ModuleDefinitionRepository moduleDefinitionRepository;
 
+	/**
+	 * Construct a new ExpandOneDashToTwoDashesRecoveryStrategy given the parser.
+	 * 
+	 * @param parser the parser used to parse the text the partial module definition.
+	 * @param moduleDefinitionRepository the repository to use for looking up all processors or sinks that can be added
+	 *        after the pipe symbol.
+	 */
 	@Autowired
 	public ModulesAfterPipeRecoveryStrategy(XDParser parser, ModuleDefinitionRepository moduleDefinitionRepository) {
-		super(parser, "file | filter |");
-		this.parser = parser;
+		super(parser, CheckpointedStreamDefinitionException.class, "file | filter |");
 		this.moduleDefinitionRepository = moduleDefinitionRepository;
 	}
 

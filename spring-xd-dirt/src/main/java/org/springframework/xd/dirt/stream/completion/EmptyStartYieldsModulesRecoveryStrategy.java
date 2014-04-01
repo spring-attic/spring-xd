@@ -33,17 +33,28 @@ import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.rest.client.domain.CompletionKind;
 
-
+/**
+ * Provides completion when the user has typed in an empty string signaling the start of a new job or stream source,
+ * processor, or sink definition.
+ * 
+ * @author Eric Bottard
+ */
 @Component
 public class EmptyStartYieldsModulesRecoveryStrategy extends
 		StacktraceFingerprintingCompletionRecoveryStrategy<CheckpointedStreamDefinitionException> {
 
 	private ModuleDefinitionRepository moduleDefinitionRepository;
 
+	/**
+	 * Construct a new EmptyStartYieldsModulesRecoveryStrategy given the parser and ModuleDefinition repository.
+	 * 
+	 * @param parser the parser used to parse the text the partial module definition.
+	 * @param moduleDefinitionRepository the repository to use for looking up all modules of a given type.
+	 */
 	@Autowired
 	public EmptyStartYieldsModulesRecoveryStrategy(XDParser parser,
 			ModuleDefinitionRepository moduleDefinitionRepository) {
-		super(parser, "");
+		super(parser, CheckpointedStreamDefinitionException.class, "");
 		this.moduleDefinitionRepository = moduleDefinitionRepository;
 	}
 

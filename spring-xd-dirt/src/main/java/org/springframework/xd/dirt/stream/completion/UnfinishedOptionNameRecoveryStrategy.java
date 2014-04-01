@@ -50,10 +50,20 @@ public class UnfinishedOptionNameRecoveryStrategy extends
 
 	private ModuleOptionsMetadataResolver moduleOptionsMetadataResolver;
 
+	/**
+	 * Construct a new UnfinishedOptionNameRecoveryStrategy given the parser
+	 * 
+	 * @param parser the parser used to parse the text the partial module definition.
+	 * @param moduleDefinitionRepository the repository to check for the existence of the last entered module
+	 *        definition.
+	 * @param moduleOptionsMetadataResolver the metadata resolver to use in order to create a list of proposals for
+	 *        module options that have not yet been specified.
+	 */
 	@Autowired
 	public UnfinishedOptionNameRecoveryStrategy(XDParser parser, ModuleDefinitionRepository moduleDefinitionRepository,
 			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver) {
-		super(parser, "file --dir=foo --pa", "file --pa", "file --some.composed.", "file | filter | transform --expr");
+		super(parser, CheckpointedStreamDefinitionException.class, "file --dir=foo --pa", "file --pa",
+				"file --some.composed.", "file | filter | transform --expr");
 		this.moduleDefinitionRepository = moduleDefinitionRepository;
 		this.moduleOptionsMetadataResolver = moduleOptionsMetadataResolver;
 	}

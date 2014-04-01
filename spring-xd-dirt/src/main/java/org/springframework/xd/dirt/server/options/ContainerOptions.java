@@ -43,7 +43,7 @@ public class ContainerOptions extends CommonDistributedOptions {
 	@Option(name = "--hadoopDistro", usage = "The Hadoop distribution to be used for HDFS access")
 	private HadoopDistro distro = DEFAULT_HADOOP_DISTRO;
 
-	public static final HadoopDistro DEFAULT_HADOOP_DISTRO = HadoopDistro.hadoop12;
+	public static final HadoopDistro DEFAULT_HADOOP_DISTRO = HadoopDistro.hadoop22;
 
 	private static final Map<HadoopDistro, String> hadoopDistroVersions = new HashMap<HadoopDistro, String>();
 

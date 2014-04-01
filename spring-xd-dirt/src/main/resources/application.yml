@@ -10,16 +10,16 @@ spring:
     show_banner: false
 endpoints:
   jolokia:
-    enabled: ${XD_JMX_ENABLED:false}
+    enabled: ${XD_JMX_ENABLED:true}
   jmx:
-    enabled: ${XD_JMX_ENABLED:false}
+    enabled: ${XD_JMX_ENABLED:true}
     uniqueNames: true
 
 XD_ANALYTICS: ${analytics:redis}
 XD_TRANSPORT: ${transport:redis}
 XD_STORE: ${store:redis}
 XD_HOME: ${xdHomeDir:..}
-XD_JMX_ENABLED: ${jmxEnabled:false}
+XD_JMX_ENABLED: true
 
 xd:
   data:
@@ -40,6 +40,7 @@ server:
   port: ${PORT:9393}
 management:
   port: ${XD_MGMT_PORT:${PORT:9393}}
+  contextPath: /management
 ---
 zk:
   client:
@@ -72,6 +73,7 @@ server:
   port: ${PORT:0}
 management:
   port: ${XD_MGMT_PORT:${PORT:}}
+  contextPath: /management
 ---
 
 spring:

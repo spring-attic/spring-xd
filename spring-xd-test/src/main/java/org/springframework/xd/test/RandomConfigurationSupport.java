@@ -54,6 +54,7 @@ public class RandomConfigurationSupport {
 		adminPort = SocketUtils.findAvailableTcpPort();
 		setupRandomAdminServerPort();
 		setupRandomHSQLDBConfig();
+		disableJmx();
 	}
 
 	private void setupRandomHSQLDBConfig(String host) {
@@ -70,6 +71,10 @@ public class RandomConfigurationSupport {
 
 	private void setupRandomAdminServerPort() {
 		System.setProperty(ADMIN_SERVER_PORT, String.valueOf(adminPort));
+	}
+
+	private void disableJmx() {
+		System.setProperty("XD_JMX_ENABLED", "false");
 	}
 
 	public String getAdminServerPort() {

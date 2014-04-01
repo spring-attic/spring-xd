@@ -46,6 +46,16 @@
 #    active: default,postgresql
 
 ---
+# Config to enable/disable JMX/jolokia endpoints
+#XD_JMX_ENABLED: true
+#endpoints:
+#  jolokia:
+#    enabled: ${XD_JMX_ENABLED:true}
+#  jmx:
+#    enabled: ${XD_JMX_ENABLED:true}
+#    uniqueNames: true
+
+---
 # Redis properties
 #spring:
 #  redis:

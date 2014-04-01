@@ -39,22 +39,30 @@ public class CompletionProvider {
 
 	private final XDParser parser;
 
-	private final List<CompletionRecoveryStrategy<Throwable>> recoveries;
+	private final List<CompletionRecoveryStrategy<Exception>> completionRecoveryStrategies;
 
-	private final List<CompletionExpansionStrategy> expansions;
+	private final List<CompletionExpansionStrategy> completionExpansionStrategies;
 
 
+	/**
+	 * Construct a new CompletionProvider given a list of recovery strategies and module option expansion strategies.
+	 * 
+	 * @param parser the parser used to parse the text the partial module definition.
+	 * @param completionRecoveryStrategies list of strategies to apply when an exception was thrown during parsing.
+	 * @param completionExpansionStrategies list of strategies to apply for adding additional module options completion
+	 *        suggestions.
+	 */
 	@Autowired
 	@SuppressWarnings("unchecked")
 	public CompletionProvider(XDParser parser,
-			List<CompletionRecoveryStrategy<? extends Throwable>> recoveries,
-			List<CompletionExpansionStrategy> expansions) {
+			List<CompletionRecoveryStrategy<? extends Exception>> completionRecoveryStrategies,
+			List<CompletionExpansionStrategy> completionExpansionStrategies) {
 		this.parser = parser;
 		// Unchecked downcast here is the best compromise
 		// if we want to still benefit from Spring's typed collection injection
-		Object o = recoveries;
-		this.recoveries = (List<CompletionRecoveryStrategy<Throwable>>) o;
-		this.expansions = expansions;
+		Object o = completionRecoveryStrategies;
+		this.completionRecoveryStrategies = (List<CompletionRecoveryStrategy<Exception>>) o;
+		this.completionExpansionStrategies = completionExpansionStrategies;
 	}
 
 
@@ -71,8 +79,8 @@ public class CompletionProvider {
 		try {
 			parsed = parser.parse(name, start, toParsingContext(kind));
 		}
-		catch (Throwable recoverable) {
-			for (CompletionRecoveryStrategy<Throwable> strategy : recoveries) {
+		catch (Exception recoverable) {
+			for (CompletionRecoveryStrategy<Exception> strategy : completionRecoveryStrategies) {
 				if (strategy.shouldTrigger(recoverable, kind)) {
 					strategy.addProposals(start, recoverable, kind, results);
 				}
@@ -81,7 +89,7 @@ public class CompletionProvider {
 			return results;
 		}
 
-		for (CompletionExpansionStrategy strategy : expansions) {
+		for (CompletionExpansionStrategy strategy : completionExpansionStrategies) {
 			if (strategy.shouldTrigger(start, parsed, kind)) {
 				strategy.addProposals(start, parsed, kind, results);
 			}
@@ -89,7 +97,7 @@ public class CompletionProvider {
 		return results;
 	}
 
-	/* package */static ParsingContext toParsingContext(CompletionKind kind) {
+	static ParsingContext toParsingContext(CompletionKind kind) {
 		switch (kind) {
 			case stream:
 				return ParsingContext.partial_stream;

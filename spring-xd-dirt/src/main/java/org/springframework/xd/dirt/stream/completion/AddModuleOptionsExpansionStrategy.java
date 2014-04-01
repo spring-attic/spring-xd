@@ -43,6 +43,14 @@ public class AddModuleOptionsExpansionStrategy implements CompletionExpansionStr
 
 	private ModuleOptionsMetadataResolver moduleOptionsMetadataResolver;
 
+	/**
+	 * Construct a new AddModuleOptionsExpansionStrategy for use in detecting missing module options.
+	 * 
+	 * @param moduleDefinitionRepository the repository to check for the existence of the last entered module
+	 *        definition.
+	 * @param moduleOptionsMetadataResolver the metadata resolver to use in order to create a list of proposals for
+	 *        module options that have not yet been specified.
+	 */
 	@Autowired
 	public AddModuleOptionsExpansionStrategy(ModuleDefinitionRepository moduleDefinitionRepository,
 			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver) {
@@ -56,7 +64,8 @@ public class AddModuleOptionsExpansionStrategy implements CompletionExpansionStr
 	}
 
 	@Override
-	public void addProposals(String text, List<ModuleDeploymentRequest> parseResult, CompletionKind kind, List<String> proposals) {
+	public void addProposals(String text, List<ModuleDeploymentRequest> parseResult, CompletionKind kind,
+			List<String> proposals) {
 		// List is in reverse order
 		ModuleDeploymentRequest lastModule = parseResult.get(0);
 		String lastModuleName = lastModule.getModule();

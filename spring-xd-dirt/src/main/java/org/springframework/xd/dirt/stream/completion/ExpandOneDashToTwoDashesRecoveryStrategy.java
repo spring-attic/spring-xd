@@ -38,9 +38,14 @@ public class ExpandOneDashToTwoDashesRecoveryStrategy extends
 	// Need field injection to prevent circular dependency
 	private CompletionProvider completionProvider;
 
+	/**
+	 * Construct a new ExpandOneDashToTwoDashesRecoveryStrategy given the parser.
+	 * 
+	 * @param parser The parser used to parse the text the user has already typed in.
+	 */
 	@Autowired
 	public ExpandOneDashToTwoDashesRecoveryStrategy(XDParser parser) {
-		super(parser, "file -");
+		super(parser, StreamDefinitionException.class, "file -");
 	}
 
 	@Override

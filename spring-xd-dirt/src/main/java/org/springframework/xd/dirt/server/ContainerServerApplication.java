@@ -62,8 +62,6 @@ public class ContainerServerApplication {
 
 	private static final Log log = LogFactory.getLog(ContainerServerApplication.class);
 
-	private static final String MBEAN_EXPORTER_BEAN_NAME = "XDLauncherMBeanExporter";
-
 	public static final String NODE_PROFILE = "node";
 
 	private ConfigurableApplicationContext containerContext;
@@ -133,20 +131,6 @@ public class ContainerServerApplication {
 		System.exit(1);
 	}
 
-
-	@ConditionalOnExpression("${XD_JMX_ENABLED:false}")
-	@EnableMBeanExport(defaultDomain = "xd.container")
-	protected static class JmxConfiguration {
-
-		@Bean(name = MBEAN_EXPORTER_BEAN_NAME)
-		public IntegrationMBeanExporter integrationMBeanExporter() {
-			IntegrationMBeanExporter exporter = new IntegrationMBeanExporter();
-			exporter.setDefaultDomain("xd.container");
-			return exporter;
-		}
-	}
-
-
 	private class IdInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
 		@Override
@@ -162,6 +146,7 @@ public class ContainerServerApplication {
  * Container Application Context
  * 
  * @author David Turanski
+ * @author Ilayaperumal Gopinathan
  */
 @Configuration
 @ImportResource({
@@ -169,6 +154,8 @@ public class ContainerServerApplication {
 })
 @EnableAutoConfiguration
 class ContainerConfiguration {
+
+	private static final String MBEAN_EXPORTER_BEAN_NAME = "XDContainerMBeanExporter";
 
 	@Autowired
 	private ContainerMetadata containerMetadata;
@@ -216,5 +203,18 @@ class ContainerConfiguration {
 				moduleOptionsMetadataResolver,
 				moduleDeployer,
 				zooKeeperConnection);
+	}
+
+	// TODO: Should this be removed once the control transport is removed?
+	@ConditionalOnExpression("${XD_JMX_ENABLED:true}")
+	@EnableMBeanExport(defaultDomain = "xd.container")
+	protected static class JmxConfiguration {
+
+		@Bean(name = MBEAN_EXPORTER_BEAN_NAME)
+		public IntegrationMBeanExporter integrationMBeanExporter() {
+			IntegrationMBeanExporter exporter = new IntegrationMBeanExporter();
+			exporter.setDefaultDomain("xd.container");
+			return exporter;
+		}
 	}
 }

@@ -46,6 +46,12 @@ public class PipeIntoOtherModulesExpansionStrategy implements CompletionExpansio
 
 	private ModuleDefinitionRepository moduleDefinitionRepository;
 
+	/**
+	 * Construct a new PipeIntoOtherModulesExpansionStrategy given a ModuleDefinition repository.
+	 * 
+	 * @param moduleDefinitionRepository the repository to check for the existence of the last entered module
+	 *        definition.
+	 */
 	@Autowired
 	public PipeIntoOtherModulesExpansionStrategy(ModuleDefinitionRepository moduleDefinitionRepository) {
 		this.moduleDefinitionRepository = moduleDefinitionRepository;

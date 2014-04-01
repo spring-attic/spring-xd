@@ -58,7 +58,7 @@ public class SharedServerContextConfiguration {
 
 	public static final String EMBEDDED_ZK_CONNECT = "zk.embedded.client.connect";
 
-	@ConditionalOnExpression("${XD_JMX_ENABLED:false}")
+	@ConditionalOnExpression("${XD_JMX_ENABLED:true}")
 	@EnableMBeanExport(defaultDomain = "xd.shared.server")
 	protected static class JmxConfiguration {
 

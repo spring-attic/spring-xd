@@ -19,6 +19,7 @@ package org.springframework.xd.integration.reactor;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;

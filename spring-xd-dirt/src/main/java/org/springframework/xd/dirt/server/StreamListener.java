@@ -295,7 +295,8 @@ public class StreamListener implements PathChildrenCacheListener {
 			// todo: make timeout configurable
 			long timeout = System.currentTimeMillis() + 30000;
 			do {
-				for (Iterator<Map.Entry<Container, String>> iteratorStatus = mapDeploymentStatus.entrySet().iterator(); iteratorStatus.hasNext();) {
+				for (Iterator<Map.Entry<Container, String>> iteratorStatus = mapDeploymentStatus.entrySet().iterator();
+						iteratorStatus.hasNext();) {
 					Map.Entry<Container, String> entry = iteratorStatus.next();
 					if (client.checkExists().forPath(entry.getValue()) != null) {
 						iteratorStatus.remove();

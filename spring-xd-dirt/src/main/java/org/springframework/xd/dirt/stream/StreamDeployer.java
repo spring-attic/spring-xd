@@ -76,8 +76,8 @@ public class StreamDeployer extends AbstractInstancePersistingDeployer<StreamDef
 		}
 		catch (StreamDefinitionException e) {
 			// we can ignore an exception for a tap whose stream no longer exists
-			if (!(XDDSLMessages.UNRECOGNIZED_STREAM_REFERENCE.equals(e.getMessageCode()) && definition.getDefinition().trim().startsWith(
-					"tap:"))) {
+			if (!(XDDSLMessages.UNRECOGNIZED_STREAM_REFERENCE.equals(e.getMessageCode())
+					&& definition.getDefinition().trim().startsWith("tap:"))) {
 				throw e;
 			}
 		}

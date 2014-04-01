@@ -185,6 +185,13 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	 * {@link ZooKeeperConnection} is established. If that connection is already established at the time this instance
 	 * receives a {@link ContextRefreshedEvent}, the metadata will be registered then. Otherwise, registration occurs
 	 * within a callback that is invoked for connected events as well as reconnected events.
+	 *
+	 * @param metadata  metadata for the container
+	 * @param streamDefinitionRepository    repository for streams
+	 * @param moduleDefinitionRepository    repository for modules
+	 * @param moduleOptionsMetadataResolver resolver for module options metadata
+	 * @param moduleDeployer                module deployer
+	 * @param zkConnection                  ZooKeeper connection
 	 */
 	public ContainerRegistrar(ContainerMetadata metadata,
 			StreamDefinitionRepository streamDefinitionRepository,
@@ -208,7 +215,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	/**
 	 * Deploy the requested module.
 	 * 
-	 * @param moduleDescriptor
+	 * @param moduleDescriptor descriptor for the module to be deployed
 	 */
 	private void deployModule(ModuleDescriptor moduleDescriptor) {
 		LOG.info("Deploying module {}", moduleDescriptor);
@@ -222,16 +229,21 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	}
 
 	/**
-	 * Undeploy the requested module. </p> TODO: this is a placeholder
-	 * 
-	 * @param streamName name of the stream for the module
-	 * @param moduleType module type
+	 * Undeploy the requested module.
+	 *
+	 * @param streamName  name of the stream for the module
+	 * @param moduleType  module type
 	 * @param moduleLabel module label
 	 */
 	protected void undeployModule(String streamName, String moduleType, String moduleLabel) {
 		ModuleDescriptor.Key key = new ModuleDescriptor.Key(streamName, ModuleType.valueOf(moduleType), moduleLabel);
 		ModuleDescriptor descriptor = mapDeployedModules.get(key);
 		if (descriptor == null) {
+			// This is logged at trace level because every module undeployment
+			// will cause this to be logged. This is because there is a listener
+			// on both streams and modules, and the listener implementation for
+			// each will remove the module from the other, thus causing
+			// this method to be invoked twice per module undeployment.
 			LOG.trace("Module {} already undeployed", moduleLabel);
 		}
 		else {
@@ -241,11 +253,17 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.context = applicationContext;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void onApplicationEvent(ContextRefreshedEvent event) {
 		if (this.context.equals(event.getApplicationContext())) {
@@ -258,7 +276,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	}
 
 	/**
-	 * Set the bean ClassLoader as the parent ClassLoader.
+	 * {@inheritDoc}
 	 */
 	@Override
 	public void setBeanClassLoader(ClassLoader classLoader) {
@@ -312,12 +330,18 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	 */
 	private class ContainerMetadataRegisteringZooKeeperConnectionListener implements ZooKeeperConnectionListener {
 
+		/**
+		 * {@inheritDoc}
+		 */
 		@Override
 		public void onConnect(CuratorFramework client) {
 			registerWithZooKeeper(client);
 			context.publishEvent(new ContainerStartedEvent(containerMetadata));
 		}
 
+		/**
+		 * {@inheritDoc}
+		 */
 		@Override
 		public void onDisconnect(CuratorFramework client) {
 			try {
@@ -352,6 +376,13 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		}
 	}
 
+	/**
+	 * Deploy the requested job.
+	 *
+	 * @param client    curator client
+	 * @param jobName   job name
+	 * @param jobLabel  job label
+	 */
 	private void deployJob(CuratorFramework client, String jobName, String jobLabel) {
 		LOG.info("Deploying job '{}'", jobName);
 
@@ -388,6 +419,14 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		}
 	}
 
+	/**
+	 * Deploy the requested module for a stream.
+	 *
+	 * @param client       curator client
+	 * @param streamName   name of the stream for the module
+	 * @param moduleType   module type
+	 * @param moduleLabel  module label
+	 */
 	private void deployStreamModule(CuratorFramework client, String streamName, String moduleType, String moduleLabel) {
 		LOG.info("Deploying module '{}' for stream '{}'", moduleLabel, streamName);
 
@@ -455,6 +494,17 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		}
 	}
 
+	/**
+	 * Create a composed module based on the provided {@link ModuleDescriptor} and
+	 * {@link ModuleOptions}.
+	 *
+	 * @param compositeDescriptor  descriptor for composed module
+	 * @param options              module options
+	 *
+	 * @return new composed module instance
+	 *
+	 * @see ModuleDescriptor#isComposed
+	 */
 	private Module createComposedModule(ModuleDescriptor compositeDescriptor, ModuleOptions options) {
 		String streamName = compositeDescriptor.getStreamName();
 		int index = compositeDescriptor.getIndex();
@@ -463,9 +513,11 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		String group = compositeDescriptor.getGroup();
 		int count = compositeDescriptor.getCount();
 		ModuleDefinition compositeDefinition = compositeDescriptor.getModuleDefinition();
+
 		List<ModuleDeploymentRequest> children = this.parser.parse(
 				compositeDefinition.getName(), compositeDefinition.getDefinition(), ParsingContext.module);
 		Assert.notEmpty(children, "child module list must not be empty");
+
 		List<Module> childrenModules = new ArrayList<Module>(children.size());
 		for (ModuleDeploymentRequest childRequest : children) {
 			ModuleOptions narrowedOptions = new PrefixNarrowingModuleOptions(options, childRequest.getModule());
@@ -482,6 +534,15 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 				metadata);
 	}
 
+	/**
+	 * Create a module based on the provided {@link ModuleDescriptor} and
+	 * {@link ModuleOptions}.
+	 *
+	 * @param descriptor  descriptor for module
+	 * @param options     module options
+	 *
+	 * @return new module instance
+	 */
 	private Module createSimpleModule(ModuleDescriptor descriptor, ModuleOptions options) {
 		String streamName = descriptor.getStreamName();
 		int index = descriptor.getIndex();
@@ -491,13 +552,16 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		ModuleDefinition definition = descriptor.getModuleDefinition();
 		ClassLoader classLoader = (definition.getClasspath() == null) ? null
 				: new ParentLastURLClassLoader(definition.getClasspath(), parentClassLoader);
-		Module module = new SimpleModule(definition, metadata, classLoader, options);
-		return module;
+		return new SimpleModule(definition, metadata, classLoader, options);
 	}
 
 	/**
 	 * Takes a request and returns an instance of {@link ModuleOptions} bound with the request parameters. Binding is
 	 * assumed to not fail, as it has already been validated on the admin side.
+	 *
+	 * @param descriptor module descriptor for which to bind request parameters
+	 *
+	 * @return module options bound with request parameters
 	 */
 	private ModuleOptions safeModuleOptionsInterpolate(ModuleDescriptor descriptor) {
 		// todo: this is empty for now

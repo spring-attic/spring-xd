@@ -73,8 +73,6 @@ import org.springframework.xd.tuple.Tuple;
  */
 public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 
-	// private static final QueueChannel tapChannel = new QueueChannel();
-
 	@ClassRule
 	public static ExternalResource shutdownApplication = new ExternalResource() {
 

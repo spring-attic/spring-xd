@@ -21,6 +21,8 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.apache.zookeeper.data.Stat;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.JobsPath;
 
@@ -31,6 +33,7 @@ import org.springframework.xd.dirt.core.JobsPath;
  * @author Mark Fisher
  */
 public class JobCommandListener implements PathChildrenCacheListener {
+	private static final Logger LOG = LoggerFactory.getLogger(JobCommandListener.class);
 
 	private static int TIMEOUT = 5000;
 
@@ -40,7 +43,7 @@ public class JobCommandListener implements PathChildrenCacheListener {
 	public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
 		this.client = client;
 		JobsPath path = new JobsPath(event.getData().getPath());
-		System.out.println("**************** job name:" + path.getJobName() + " event " + event.getType());
+		LOG.info("JobCommandListener: job name={}, event: {}", path.getJobName(), event.getType());
 	}
 
 	public void waitForCreate(String jobName) {

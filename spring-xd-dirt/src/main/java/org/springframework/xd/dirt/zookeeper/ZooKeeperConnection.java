@@ -84,6 +84,9 @@ public class ZooKeeperConnection implements SmartLifecycle {
 	 */
 	private volatile ConnectionState currentState;
 
+	/**
+	 * The ZooKeeper connect string.
+	 */
 	private final String clientConnectString;
 
 	/**
@@ -143,15 +146,43 @@ public class ZooKeeperConnection implements SmartLifecycle {
 
 	// Lifecycle Implementation
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public boolean isAutoStartup() {
 		return this.autoStartup;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public void setAutoStartup(boolean autoStartup) {
 		this.autoStartup = autoStartup;
 	}
 
+	/**
+	 * Set the Curator retry policy.
+	 *
+	 * @param retryPolicy Curator client {@link RetryPolicy}
+	 */
+	public void setRetryPolicy(RetryPolicy retryPolicy) {
+		Assert.notNull(retryPolicy, "retryPolicy cannot be null");
+		this.retryPolicy = retryPolicy;
+	}
+
+	/**
+	 * Return the Curator retry policy.
+	 *
+	 * @return the Curator retry policy
+	 */
+	public RetryPolicy getRetryPolicy() {
+		return this.retryPolicy;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public int getPhase() {
 		// start in the last possible phase
@@ -212,6 +243,9 @@ public class ZooKeeperConnection implements SmartLifecycle {
 	 */
 	private class DelegatingConnectionStateListener implements ConnectionStateListener {
 
+		/**
+		 * {@inheritDoc}
+		 */
 		@Override
 		public void stateChanged(CuratorFramework client, ConnectionState newState) {
 			currentState = newState;
@@ -234,21 +268,6 @@ public class ZooKeeperConnection implements SmartLifecycle {
 					// todo: ?
 			}
 		}
-	}
-
-
-	/**
-	 * Override the default retry policy
-	 * 
-	 * @param retryPolicy Curator client {@link RetryPolicy}
-	 */
-	public void setRetryPolicy(RetryPolicy retryPolicy) {
-		Assert.notNull(retryPolicy, "retryPolicy cannot be null");
-		this.retryPolicy = retryPolicy;
-	}
-
-	public RetryPolicy getRetryPolicy() {
-		return this.retryPolicy;
 	}
 
 }

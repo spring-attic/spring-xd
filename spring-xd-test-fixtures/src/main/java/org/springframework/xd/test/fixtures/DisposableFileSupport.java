@@ -73,21 +73,20 @@ public abstract class DisposableFileSupport extends AbstractModuleFixture implem
 	 * @param timeout how long to wait until giving up, in ms
 	 * @return true if the file is detected
 	 */
-	public static boolean waitFor(File file, int timeout) throws RuntimeException {
+	public static boolean waitFor(File file, int timeout) {
 		long stopAt = System.currentTimeMillis() + timeout;
-		while (!file.exists()) {
+
+		while (!file.exists() && System.currentTimeMillis() < stopAt) {
 			try {
-				if (System.currentTimeMillis() > stopAt) {
-					// Avoid infinite loop by throwing RuntimeException
-					throw new RuntimeException();
-				}
 				Thread.sleep(100);
 			}
 			catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
+				break;
 			}
 		}
-		return false;
+
+		return file.exists();
 	}
 
 }

@@ -94,9 +94,11 @@ public class ContainerListener implements PathChildrenCacheListener {
 	/**
 	 * Construct a ContainerListener.
 	 * 
-	 * @param containerRepository repository to obtain container data
-	 * @param moduleRepository repository to obtain module data
-	 * @param streams cache of children under the streams path
+	 * @param containerRepository           repository for container data
+	 * @param streamDefinitionRepository    repository for streams
+	 * @param moduleDefinitionRepository    repository for module definitions
+	 * @param moduleOptionsMetadataResolver resolver for module options metadata
+	 * @param streams                       cache of children for streams path
 	 */
 	public ContainerListener(ContainerRepository containerRepository,
 			StreamDefinitionRepository streamDefinitionRepository,
@@ -235,7 +237,6 @@ public class ContainerListener implements PathChildrenCacheListener {
 					// todo: move job target selection into containerMatcher as well
 					Container target = containerRepository.getContainerIterator().next();
 					if (target == null) {
-						// uh oh
 						LOG.warn("No containers available for redeployment of job {}", streamName);
 					}
 					else {
@@ -273,10 +274,9 @@ public class ContainerListener implements PathChildrenCacheListener {
 									.setModuleLabel(moduleLabel).build()
 									);
 
-							// todo: not going to bother verifying the redeployment for now
+							// todo: consider redeployment verification
 						}
 						else {
-							// uh oh
 							LOG.warn("No containers available for redeployment of {} for stream {}", moduleLabel,
 									streamName);
 						}
@@ -305,8 +305,15 @@ public class ContainerListener implements PathChildrenCacheListener {
 		}
 	}
 
+
+	/**
+	 * Converter from {@link ChildData} to {@link Stream}.
+	 */
 	public class StreamConverter implements Converter<ChildData, Stream> {
 
+		/**
+		 * {@inheritDoc}
+		 */
 		@Override
 		public Stream convert(ChildData source) {
 			return streamFactory.createStream(Paths.stripPath(source.getPath()),

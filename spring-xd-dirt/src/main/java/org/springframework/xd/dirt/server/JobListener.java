@@ -54,7 +54,7 @@ public class JobListener implements PathChildrenCacheListener {
 	/**
 	 * Logger.
 	 */
-	private final Logger LOG = LoggerFactory.getLogger(JobListener.class);
+	private static final Logger LOG = LoggerFactory.getLogger(JobListener.class);
 
 	/**
 	 * Provides access to the current container list.
@@ -71,17 +71,6 @@ public class JobListener implements PathChildrenCacheListener {
 	 */
 	// todo: something similar for Jobs (both should actually be the result of parseStream/parseJob)
 	// private final StreamFactory streamFactory;
-
-	/**
-	 * The ModuleDefinition repository.
-	 */
-	// private final ModuleDefinitionRepository moduleDefinitionRepository;
-
-	/**
-	 * todo: make this pluggable
-	 */
-	// todo: use the container matcher here as well
-	// private final ContainerMatcher containerMatcher = new DefaultContainerMatcher();
 
 	/**
 	 * The parser.
@@ -192,10 +181,8 @@ public class JobListener implements PathChildrenCacheListener {
 	/**
 	 * Issue deployment requests for the job.
 	 * 
-	 * @param client curator client
-	 * @param job job to be deployed
-	 * 
-	 * @throws Exception
+	 * @param client         curator client
+	 * @param jobDefinition  job to be deployed
 	 */
 	private void deployJob(CuratorFramework client, JobDefinition jobDefinition) throws Exception {
 		Map<Container, String> mapDeploymentStatus = new HashMap<Container, String>();
@@ -259,8 +246,8 @@ public class JobListener implements PathChildrenCacheListener {
 	/**
 	 * Issue undeployment requests for the job.
 	 * 
-	 * @param client curator client
-	 * @param job job to be undeployed
+	 * @param client         curator client
+	 * @param jobDefinition  job to be undeployed
 	 * 
 	 * @throws Exception
 	 */

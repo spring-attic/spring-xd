@@ -16,12 +16,12 @@
 
 package org.springframework.xd.test.hadoop;
 
-import java.util.Properties;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 
-import org.springframework.data.hadoop.configuration.ConfigurationFactoryBean;
+import org.springframework.data.hadoop.test.context.HadoopCluster;
+import org.springframework.data.hadoop.test.support.ClusterInfo;
+import org.springframework.data.hadoop.test.support.HadoopClusterManager;
 import org.springframework.xd.test.AbstractExternalResourceTestSupport;
 
 
@@ -39,20 +39,21 @@ public class HadoopFileSystemTestSupport extends AbstractExternalResourceTestSup
 
 	@Override
 	protected void obtainResource() throws Exception {
-		ConfigurationFactoryBean cfb = new ConfigurationFactoryBean();
-		Properties props = new Properties();
-		props.setProperty("fs.default.name", "hdfs://localhost:8020");
-		cfb.setProperties(props);
-		cfb.setRegisterUrlHandler(false);
-		cfb.afterPropertiesSet();
-		this.configuration = cfb.getObject();
-		this.resource = FileSystem.get(this.configuration);
+		HadoopClusterManager manager = HadoopClusterManager.getInstance();
+		HadoopCluster cluster = manager.getCluster(new ClusterInfo());
+		cluster.start();
+		this.configuration = cluster.getConfiguration();
+		this.resource = cluster.getFileSystem();
 	}
 
 	@Override
 	public void cleanupResource() throws Exception {
 		this.resource.close();
 		this.configuration.clear();
+		HadoopClusterManager manager = HadoopClusterManager.getInstance();
+		manager.close();
+		this.resource = null;
+		this.configuration = null;
 	}
 
 	public Configuration getConfiguration() {

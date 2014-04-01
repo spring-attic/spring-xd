@@ -47,4 +47,15 @@
 		<constructor-arg value="org.springframework.integration.file.remote.session.SessionFactory" />
 	</bean>
 
+	<!-- override hadoopConfiguration from ftphdfs.xml -->
+	<bean id="hadoopCluster" class="org.springframework.data.hadoop.test.support.HadoopClusterFactoryBean">
+		<property name="clusterId" value="HadoopClusterTests"/>
+		<property name="autoStart" value="true"/>
+		<property name="nodes" value="2"/>
+	</bean>
+
+	<bean id="hadoopConfiguration" class="org.springframework.data.hadoop.test.support.ConfigurationDelegatingFactoryBean">
+		<property name="cluster" ref="hadoopCluster"/>
+	</bean>
+
 </beans>

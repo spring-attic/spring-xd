@@ -19,6 +19,7 @@ package org.springframework.xd.integration.reactor;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
@@ -148,9 +149,11 @@ public class NetServerInboundChannelAdapterIntegrationTests {
 		@Override
 		public void run() {
 			try {
+				InetSocketAddress connectAddr = new InetSocketAddress("127.0.0.1", port);
+				//System.out.println("\n\tConnecting to " + connectAddr);
 				SocketChannel ch = SocketChannel.open();
 				ch.configureBlocking(true);
-				ch.connect(new InetSocketAddress(port));
+				ch.connect(connectAddr);
 				ch.write(ByteBuffer.wrap(line.getBytes()));
 				ch.write(ByteBuffer.wrap(line.getBytes()));
 				ch.close();

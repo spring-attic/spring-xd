@@ -180,8 +180,9 @@ public class SyslogInboundChannelAdapterIntegrationTests {
 		@Override
 		public void run() {
 			try {
+				InetSocketAddress connectAddr = new InetSocketAddress("127.0.0.1", 5140);
 				SocketChannel channel = SocketChannel.open();
-				channel.connect(new InetSocketAddress(5140));
+				channel.connect(connectAddr);
 
 				ByteBuffer buff = ByteBuffer.wrap(
 						("<34>Oct 11 22:14:15 mymachine su: 'su root' failed for lonvick on /dev/pts/8\n").getBytes()

@@ -81,7 +81,8 @@ ext {
 	commonsBeanUtilsVersion = '1.6'
 	commonsCollectionsVersion = '3.2'
 	commonsIoVersion = '2.4'
-	curatorVersion = '2.4.0'
+	curatorVersion = '2.4.1'
+	zookeeperVersion = '3.4.6'
 	ftpServerVersion = '1.0.6'
 	h2Version = '1.3.172'
 	hamcrestDateVersion = '0.9.3'
@@ -406,8 +407,10 @@ project('spring-xd-dirt') {
 		compile "org.jolokia:jolokia-spring:$jolokiaVersion"
 		compile "com.esotericsoftware.kryo:kryo:$kryoVersion"
 		compile "com.lambdaworks:lettuce:$lettuceVersion"
+		compile "org.apache.zookeeper:zookeeper:$zookeeperVersion"
 		compile ("org.apache.curator:curator-recipes:$curatorVersion") {
 			exclude group: 'jline'
+			exclude group: 'org.apache.zookeeper'
 			exclude group: 'org.jboss.netty'
 		}
 		compile "commons-lang:commons-lang:2.4"

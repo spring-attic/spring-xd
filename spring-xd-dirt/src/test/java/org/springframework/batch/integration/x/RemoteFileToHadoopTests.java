@@ -27,13 +27,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.net.ftp.FTPFile;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
+
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
@@ -47,7 +48,6 @@ import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.x.bus.LocalMessageBus;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.xd.test.hadoop.HadoopFileSystemTestSupport;
 
 
 /**
@@ -55,9 +55,6 @@ import org.springframework.xd.test.hadoop.HadoopFileSystemTestSupport;
  * @author Gary Russell
  */
 public class RemoteFileToHadoopTests {
-
-	@Rule
-	public final HadoopFileSystemTestSupport hadoopFileSystemTestSupport = new HadoopFileSystemTestSupport();
 
 	private JobLauncher launcher;
 
@@ -75,7 +72,9 @@ public class RemoteFileToHadoopTests {
 
 	private MessageBus bus;
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
+	private Configuration configuration;
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Before
 	public void setup() throws Exception {
 		byte[] bytes = "foobarbaz".getBytes();
@@ -99,6 +98,7 @@ public class RemoteFileToHadoopTests {
 
 		this.launcher = ctx.getBean(JobLauncher.class);
 		this.job = ctx.getBean(Job.class);
+		this.configuration = ctx.getBean(Configuration.class);
 		this.requestsOut = ctx.getBean("stepExecutionRequests.output", MessageChannel.class);
 		this.requestsIn = ctx.getBean("stepExecutionRequests.input", MessageChannel.class);
 		this.repliesOut = ctx.getBean("stepExecutionReplies.output", MessageChannel.class);
@@ -119,40 +119,36 @@ public class RemoteFileToHadoopTests {
 
 	@Test
 	public void testSimple() throws Exception {
-		try {
-			// clean up from old tests
-			FileSystem fs = this.hadoopFileSystemTestSupport.getResource();
-			Path p1 = new Path("/qux/foo/bar.txt");
-			fs.delete(p1, true);
-			Path p2 = new Path("/qux/foo/baz.txt");
-			fs.delete(p2, true);
-			assertFalse(fs.exists(p1));
-			assertFalse(fs.exists(p2));
+		// clean up from old tests
+		// FileSystem fs = this.hadoopFileSystemTestSupport.getResource();
+		FileSystem fs = FileSystem.get(configuration);
+		Path p1 = new Path("/qux/foo/bar.txt");
+		fs.delete(p1, true);
+		Path p2 = new Path("/qux/foo/baz.txt");
+		fs.delete(p2, true);
+		assertFalse(fs.exists(p1));
+		assertFalse(fs.exists(p2));
 
-			Map<String, JobParameter> params = new HashMap<String, JobParameter>();
-			params.put("remoteDirectory", new JobParameter("/foo/"));
-			params.put("hdfsDirectory", new JobParameter("/qux"));
-			JobParameters parameters = new JobParameters(params);
-			JobExecution execution = launcher.run(job, parameters);
-			assertEquals(ExitStatus.COMPLETED, execution.getExitStatus());
+		Map<String, JobParameter> params = new HashMap<String, JobParameter>();
+		params.put("remoteDirectory", new JobParameter("/foo/"));
+		params.put("hdfsDirectory", new JobParameter("/qux"));
+		JobParameters parameters = new JobParameters(params);
+		JobExecution execution = launcher.run(job, parameters);
+		assertEquals(ExitStatus.COMPLETED, execution.getExitStatus());
 
-			assertTrue(fs.exists(p1));
-			assertTrue(fs.exists(p2));
+		assertTrue(fs.exists(p1));
+		assertTrue(fs.exists(p2));
 
-			FSDataInputStream stream = fs.open(p1);
-			byte[] out = new byte[9];
-			stream.readFully(out);
-			stream.close();
-			assertEquals("foobarbaz", new String(out));
+		FSDataInputStream stream = fs.open(p1);
+		byte[] out = new byte[9];
+		stream.readFully(out);
+		stream.close();
+		assertEquals("foobarbaz", new String(out));
 
-			stream = fs.open(p2);
-			stream.readFully(out);
-			stream.close();
-			assertEquals("foobarbaz", new String(out));
-		}
-		finally {
-			this.hadoopFileSystemTestSupport.cleanupResource();
-		}
+		stream = fs.open(p2);
+		stream.readFully(out);
+		stream.close();
+		assertEquals("foobarbaz", new String(out));
 	}
 
 }

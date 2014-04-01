@@ -1361,6 +1361,7 @@ project('spring-xd-test') {
 			exclude group: 'hsqldb'
 			exclude group: 'org.springframework.batch'
 		}
+		compile "org.springframework.data:spring-data-hadoop-test:$springDataHadoopVersion"
 		compile "org.springframework.data:spring-data-redis:$springDataRedisVersion"
 		compile "org.springframework:spring-context:$springVersion"
 		compile "org.springframework:spring-context-support:$springVersion"

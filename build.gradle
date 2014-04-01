@@ -317,6 +317,7 @@ configure(moduleProjects) { moduleProject ->
 
 		from moduleProject.configurations.runtime.minus(containerDeps)
 		into project.file('lib/')
+		exclude 'jackson-*'
 	}
 
 

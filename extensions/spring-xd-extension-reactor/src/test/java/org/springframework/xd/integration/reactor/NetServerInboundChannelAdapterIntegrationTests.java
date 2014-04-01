@@ -150,7 +150,6 @@ public class NetServerInboundChannelAdapterIntegrationTests {
 		public void run() {
 			try {
 				InetSocketAddress connectAddr = new InetSocketAddress("127.0.0.1", port);
-				//System.out.println("\n\tConnecting to " + connectAddr);
 				SocketChannel ch = SocketChannel.open();
 				ch.configureBlocking(true);
 				ch.connect(connectAddr);

@@ -25,6 +25,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.xd.dirt.integration.test.SingleNodeIntegrationTestSupport;
 import org.springframework.xd.dirt.integration.test.sink.NamedChannelSink;
@@ -57,6 +58,8 @@ public class ModuleOptionsDefaultsOrderingTests {
 	private Properties previousSystemProp;
 
 	private String dslDefinition = "transform ";
+
+	private String activeProfiles = null;
 
 	@Test
 	public void testStreamDefinitionComes1st() {
@@ -102,6 +105,16 @@ public class ModuleOptionsDefaultsOrderingTests {
 		runTestAndExpect("ping");
 	}
 
+	@Test
+	public void testProfileVariationsAtLeafLevel() {
+		activeProfiles = "big,prod";
+
+		setValueInStreamDefinitionItself(false);
+		setValueAsSystemProperty(false);
+		setValueInModuleConfigFiles(true, "with-leaf");
+
+		runTestAndExpect("value-from-properties-file-prod");
+	}
 
 	@Before
 	public void rememberSystemProps() {
@@ -111,7 +124,7 @@ public class ModuleOptionsDefaultsOrderingTests {
 	}
 
 	/**
-	 * Make sure to cleanup after ourselves as some of the stuff is per-JVM
+	 * Make sure to cleanup after ourselves as some of the stuff is per-JVM.
 	 */
 	@After
 	public void cleanup() {
@@ -121,6 +134,12 @@ public class ModuleOptionsDefaultsOrderingTests {
 	private void runTestAndExpect(String expected) {
 		SingleNodeApplication application = new TestApplicationBootstrap().getSingleNodeApplication().run(
 				"--transport", "local");
+
+		// Set activate profiles AFTER the container has started, so we don't
+		// interfere with container profiles themselves
+		if (activeProfiles != null) {
+			System.setProperty(AbstractEnvironment.ACTIVE_PROFILES_PROPERTY_NAME, activeProfiles);
+		}
 		SingleNodeIntegrationTestSupport integrationSupport = new SingleNodeIntegrationTestSupport(application);
 
 		String streamDefinition = String.format("queue:producer > %s > queue:consumer", dslDefinition);

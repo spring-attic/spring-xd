@@ -48,6 +48,10 @@ import org.springframework.xd.module.options.EnvironmentAwareModuleOptionsMetada
  * <li>the actual module default</li>
  * </ol>
  */
+/*
+ * Most of the test methods in this class work by incrementally peeling out layers of configuration and verifying that
+ * the correct value is witnessed at runtime.
+ */
 public class ModuleOptionsDefaultsOrderingTests {
 
 	private Properties previousSystemProp;
@@ -56,53 +60,46 @@ public class ModuleOptionsDefaultsOrderingTests {
 
 	@Test
 	public void testStreamDefinitionComes1st() {
-		dslDefinition += " --expression='''dsl'''";
-		System.setProperty("processor.transform.expression", "'systemprop'");
-		System.setProperty("xd.module.config.location", "classpath:/ModuleOptionsDefaultsOrderingTests-module-config/");
-		System.setProperty("xd.module.config.name", "test-xd-module-config");
+		setValueInStreamDefinitionItself(true);
+		setValueAsSystemProperty(true);
+		setValueInModuleConfigFiles(true, "with-leaf");
 
-		runTest("dsl");
+		runTestAndExpect("dsl");
 	}
 
 
 	@Test
 	public void testSystemPropsAndEnvCome2nd() {
-		// dslDefinition += " --expression='''dsl'''";
-		System.setProperty("processor.transform.expression", "'systemprop'");
-		System.setProperty("xd.module.config.location",
-				"classpath:/ModuleOptionsDefaultsOrderingTests-module-config-with-leaf/");
-		System.setProperty("xd.module.config.name", "test-xd-module-config");
-		runTest("systemprop");
+		setValueInStreamDefinitionItself(false);
+		setValueAsSystemProperty(true);
+		setValueInModuleConfigFiles(true, "with-leaf");
+		runTestAndExpect("systemprop");
 
 	}
 
+
 	@Test
 	public void testXdModuleConfigLeavesComes3rd() {
-		// dslDefinition += " --expression='''dsl'''";
-		// System.setProperty("processor.transform.expression", "'systemprop'");
-		System.setProperty("xd.module.config.location",
-				"classpath:/ModuleOptionsDefaultsOrderingTests-module-config-with-leaf/");
-		System.setProperty("xd.module.config.name", "test-xd-module-config");
-		runTest("value-from-properties-file");
+		setValueInStreamDefinitionItself(false);
+		setValueAsSystemProperty(false);
+		setValueInModuleConfigFiles(true, "with-leaf");
+		runTestAndExpect("value-from-properties-file");
 	}
 
 	@Test
 	public void testXdModuleConfigRootComes4th() {
-		// dslDefinition += " --expression='''dsl'''";
-		// System.setProperty("processor.transform.expression", "'systemprop'");
-		System.setProperty("xd.module.config.location",
-				"classpath:/ModuleOptionsDefaultsOrderingTests-module-config-without-leaf/");
-		System.setProperty("xd.module.config.name", "test-xd-module-config");
-		runTest("global-value");
+		setValueInStreamDefinitionItself(false);
+		setValueAsSystemProperty(false);
+		setValueInModuleConfigFiles(true, "without-leaf");
+		runTestAndExpect("global-value");
 	}
 
 	@Test
 	public void testModuleDefaultsCome5th() {
-		// dslDefinition += " --expression='''dsl'''";
-		// System.setProperty("processor.transform.expression", "'systemprop'");
-		// System.setProperty("spring.config.location", "classpath:/ModuleOptionsDefaultsOrderingTests-xd-config.yml");
-		// System.setProperty("spring.config.name", "application-test");
-		runTest("ping");
+		setValueInStreamDefinitionItself(false);
+		setValueAsSystemProperty(false);
+		setValueInModuleConfigFiles(false, "with-leaf");
+		runTestAndExpect("ping");
 	}
 
 
@@ -121,7 +118,7 @@ public class ModuleOptionsDefaultsOrderingTests {
 		System.setProperties(previousSystemProp);
 	}
 
-	private void runTest(String expected) {
+	private void runTestAndExpect(String expected) {
 		SingleNodeApplication application = new TestApplicationBootstrap().getSingleNodeApplication().run(
 				"--transport", "local");
 		SingleNodeIntegrationTestSupport integrationSupport = new SingleNodeIntegrationTestSupport(application);
@@ -146,5 +143,28 @@ public class ModuleOptionsDefaultsOrderingTests {
 
 		assertTrue("stream " + testStream.getName() + "not undeployed",
 				integrationSupport.undeployAndDestroyStream(testStream));
+	}
+
+
+	private void setValueAsSystemProperty(boolean active) {
+		if (active) {
+			System.setProperty("processor.transform.expression", "'systemprop'");
+		}
+	}
+
+
+	private void setValueInStreamDefinitionItself(boolean active) {
+		if (active) {
+			dslDefinition += " --expression='''dsl'''";
+		}
+	}
+
+
+	private void setValueInModuleConfigFiles(boolean active, String version) {
+		if (active) {
+			System.setProperty("xd.module.config.location",
+					"classpath:/ModuleOptionsDefaultsOrderingTests-module-config-" + version + "/");
+			System.setProperty("xd.module.config.name", "test-xd-module-config");
+		}
 	}
 }

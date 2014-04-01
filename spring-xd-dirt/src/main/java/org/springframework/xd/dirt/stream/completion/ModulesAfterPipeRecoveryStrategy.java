@@ -42,7 +42,7 @@ public class ModulesAfterPipeRecoveryStrategy extends
 		StacktraceFingerprintingCompletionRecoveryStrategy<CheckpointedStreamDefinitionException> {
 
 
-	private ModuleDefinitionRepository moduleDefinitionRepository;
+	private final ModuleDefinitionRepository moduleDefinitionRepository;
 
 	/**
 	 * Construct a new ExpandOneDashToTwoDashesRecoveryStrategy given the parser.
@@ -54,7 +54,6 @@ public class ModulesAfterPipeRecoveryStrategy extends
 	@Autowired
 	public ModulesAfterPipeRecoveryStrategy(XDParser parser, ModuleDefinitionRepository moduleDefinitionRepository) {
 		super(parser, CheckpointedStreamDefinitionException.class, "file | filter |");
-		this.parser = parser;
 		this.moduleDefinitionRepository = moduleDefinitionRepository;
 	}
 

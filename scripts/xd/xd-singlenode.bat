@@ -97,12 +97,24 @@ if not defined XD_HOME (
     set XD_HOME="%APP_HOME%"
 )
 
-@rem Check for an explicitly set XD_CONFIG 
-if not defined XD_CONFIG ( 
-    set XD_CONFIG=%XD_HOME%/config/xd-config.yml
+@rem Check for an explicitly set XD_CONFIG_* and XD_MODULE_CONFIG_*
+if not defined XD_CONFIG_LOCATION (
+    set XD_CONFIG_LOCATION=%XD_HOME%/config/
+)
+if not defined XD_CONFIG_NAME (
+    set XD_CONFIG_NAME=xd-config
+)
+set XD_CONFIG_NAME=%XD_CONFIG_NAME%,application
+if not defined XD_MODULE_CONFIG_LOCATION (
+    set XD_MODULE_CONFIG_LOCATION=%XD_CONFIG_LOCATION%modules/
+)
+if not defined XD_MODULE_CONFIG_NAME (
+    set XD_MODULE_CONFIG_NAME=xd-module-config
 )
 
-set SPRING_XD_OPTS=-Dspring.config.location=file:%XD_CONFIG% -Dspring.application.name=singlenode -Dlogging.config=file:%XD_HOME%/config/xd-singlenode-logger.properties -Dxd.home=%XD_HOME%
+set SPRING_XD_OPTS=-Dspring.application.name=singlenode -Dlogging.config=file:%XD_HOME%/config/xd-singlenode-logger.properties -Dxd.home=%XD_HOME%
+set SPRING_XD_OPTS=%SPRING_XD_OPTS% -Dspring.config.location=file:%XD_CONFIG_LOCATION% -Dspring.config.name=%XD_CONFIG_NAME%
+set SPRING_XD_OPTS=%SPRING_XD_OPTS% -Dxd.module.config.location=file:%XD_MODULE_CONFIG_LOCATION% -Dxd.module.config.name=%XD_MODULE_CONFIG_NAME%
 
 @rem make sure to remove double quotes if any
 set XD_HOME=%XD_HOME:"=%

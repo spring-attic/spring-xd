@@ -40,6 +40,7 @@ jms_post_data_and_check_result() {
 
 # Run, undeploy, redeploy and run again
 
+sleep 5
 jms_post_data_and_check_result
 
 undeploy_stream 'jmsSourceTest'

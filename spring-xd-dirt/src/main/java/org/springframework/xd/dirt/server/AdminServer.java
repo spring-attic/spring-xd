@@ -16,7 +16,9 @@
 
 package org.springframework.xd.dirt.server;
 
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
@@ -25,6 +27,8 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.apache.curator.framework.recipes.leader.LeaderSelector;
 import org.apache.curator.framework.recipes.leader.LeaderSelectorListener;
 import org.apache.curator.framework.recipes.leader.LeaderSelectorListenerAdapter;
+import org.apache.curator.utils.ThreadUtils;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,11 +91,18 @@ public class AdminServer implements ContainerRepository, ApplicationListener<Con
 	private volatile ApplicationContext applicationContext;
 
 	/**
-	 * Cache of children under the containers path. This path is used to track containers in the cluster. Marked
-	 * volatile because this reference is updated by the Curator event dispatch thread and read by public method
-	 * {@link #getContainerIterator}.
+	 * Cache of children under the containers path. This path is used to track containers in the cluster.
+	 * This atomic reference is updated by:
+	 * <ul>
+	 *     <li>the thread that handles leadership election</li>
+	 *     <li>the thread that raises Curator/ZooKeeper disconnect events</li>
+	 * </ul>
+	 * This atomic reference is read by public method {@link #getContainerIterator}.
+	 * <p />
+	 * Note that if this reference is not null, this indicates that the cache
+	 * has been started and has not been shut down via {@link PathChildrenCache#close}.
 	 */
-	private volatile PathChildrenCache containers;
+	private final AtomicReference<PathChildrenCache> containers = new AtomicReference<PathChildrenCache>();
 
 	/**
 	 * Converter from {@link ChildData} types to {@link Container}.
@@ -160,7 +171,10 @@ public class AdminServer implements ContainerRepository, ApplicationListener<Con
 	 */
 	@Override
 	public Iterator<Container> getContainerIterator() {
-		return new ChildPathIterator<Container>(containerConverter, containers);
+		PathChildrenCache cache = containers.get();
+		return cache == null
+				? Collections.<Container>emptyIterator()
+				: new ChildPathIterator<Container>(containerConverter, cache);
 	}
 
 	/**
@@ -217,12 +231,13 @@ public class AdminServer implements ContainerRepository, ApplicationListener<Con
 		 */
 		@Override
 		public void onDisconnect(CuratorFramework client) {
+			leaderSelector.close();
 			leaderSelector = null;
 		}
 	}
 
 	/**
-	 * Converts a {@link org.apache.curator.framework.recipes.cache.ChildData} node to a {@link xdzk.cluster.Container}.
+	 * Converts a {@link ChildData} node to a {@link Container}.
 	 */
 	public class ContainerConverter implements Converter<ChildData, Container> {
 
@@ -265,14 +280,16 @@ public class AdminServer implements ContainerRepository, ApplicationListener<Con
 						moduleDefinitionRepository,
 						moduleOptionsMetadataResolver);
 
-				streams = new PathChildrenCache(client, Paths.STREAMS, true);
+				streams = new PathChildrenCache(client, Paths.STREAMS, true,
+						ThreadUtils.newThreadFactory("StreamsPathChildrenCache"));
 				streams.getListenable().addListener(streamListener);
 				streams.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
 
 				jobListener = new JobListener(AdminServer.this, moduleDefinitionRepository,
 						moduleOptionsMetadataResolver);
 
-				jobs = new PathChildrenCache(client, Paths.JOBS, true);
+				jobs = new PathChildrenCache(client, Paths.JOBS, true,
+						ThreadUtils.newThreadFactory("JobsPathChildrenCache"));
 				jobs.getListenable().addListener(jobListener);
 				jobs.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
 
@@ -281,9 +298,12 @@ public class AdminServer implements ContainerRepository, ApplicationListener<Con
 						moduleDefinitionRepository,
 						moduleOptionsMetadataResolver, streams);
 
-				containers = new PathChildrenCache(client, Paths.CONTAINERS, true);
-				containers.getListenable().addListener(containerListener);
-				containers.start();
+				PathChildrenCache containersCache = new PathChildrenCache(client, Paths.CONTAINERS, true,
+						ThreadUtils.newThreadFactory("ContainersPathChildrenCache"));
+				containersCache.getListenable().addListener(containerListener);
+				containersCache.start();
+
+				containers.set(containersCache);
 
 				Thread.sleep(Long.MAX_VALUE);
 			}
@@ -292,18 +312,16 @@ public class AdminServer implements ContainerRepository, ApplicationListener<Con
 				Thread.currentThread().interrupt();
 			}
 			finally {
-				if (containerListener != null) {
-					containers.getListenable().removeListener(containerListener);
+				PathChildrenCache containersCache = containers.getAndSet(null);
+				if (containersCache != null) {
+					containersCache.close();
 				}
-				containers.close();
 
 				if (streams != null) {
-					streams.getListenable().removeListener(streamListener);
 					streams.close();
 				}
 
 				if (jobs != null) {
-					jobs.getListenable().removeListener(jobListener);
 					jobs.close();
 				}
 			}

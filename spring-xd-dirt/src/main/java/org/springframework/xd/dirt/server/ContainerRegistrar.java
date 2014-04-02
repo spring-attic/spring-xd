@@ -29,6 +29,7 @@ import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
+import org.apache.curator.utils.ThreadUtils;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
@@ -287,7 +288,8 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	private void registerWithZooKeeper(CuratorFramework client) {
 		try {
 			Paths.ensurePath(client, Paths.DEPLOYMENTS);
-			deployments = new PathChildrenCache(client, Paths.build(Paths.DEPLOYMENTS, containerMetadata.getId()), true);
+			deployments = new PathChildrenCache(client, Paths.build(Paths.DEPLOYMENTS, containerMetadata.getId()),
+					true, ThreadUtils.newThreadFactory("DeploymentsPathChildrenCache"));
 			deployments.getListenable().addListener(deploymentListener);
 			containerMetadataRepository.save(containerMetadata);
 			deployments.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);

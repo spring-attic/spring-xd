@@ -41,6 +41,7 @@ import org.springframework.integration.x.bus.serializer.kryo.PojoCodec;
 import org.springframework.integration.x.bus.serializer.kryo.TupleCodec;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.util.SocketUtils;
 import org.springframework.xd.dirt.config.TestMessageBusInjection;
 import org.springframework.xd.dirt.integration.test.SingleNodeIntegrationTestSupport;
 import org.springframework.xd.dirt.integration.test.sink.NamedChannelSink;
@@ -236,7 +237,8 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		int i = 0;
 		for (i = 0; i < ITERATIONS; i++) {
 			StreamDefinition definition = new StreamDefinition("test" + i,
-					"http | transform --expression=payload | filter --expression=true | log");
+					"http --port=" + SocketUtils.findAvailableTcpPort()
+							+ "| transform --expression=payload | filter --expression=true | log");
 			integrationSupport.streamDeployer().save(definition);
 			assertTrue("stream not deployed", integrationSupport.deployStream(definition));
 			assertEquals(1, integrationSupport.streamRepository().count());

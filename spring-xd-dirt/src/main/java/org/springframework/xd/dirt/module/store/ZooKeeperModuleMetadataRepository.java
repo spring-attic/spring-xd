@@ -201,22 +201,18 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 
 	@Override
 	public void delete(String id) {
-		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override
 	public void delete(ModuleMetadata entity) {
-		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override
 	public void delete(Iterable<? extends ModuleMetadata> entities) {
-		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override
 	public void deleteAll() {
-		throw new UnsupportedOperationException("Not supported.");
 	}
 
 }

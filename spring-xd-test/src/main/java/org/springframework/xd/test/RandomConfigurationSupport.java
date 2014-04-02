@@ -43,7 +43,9 @@ public class RandomConfigurationSupport {
 
 	private static final String HSQLDB_DATABASE = "hsql.server.database";
 
-	private static final String tmpDir = FileUtils.getTempDirectory().toString();
+	private static String tmpDir = FileUtils.getTempDirectory().toString();
+
+	private static String batchJobsDirectory = tmpDir;
 
 	private final long now;
 
@@ -60,7 +62,7 @@ public class RandomConfigurationSupport {
 	private void setupRandomHSQLDBConfig(String host) {
 		System.setProperty(HSQLDB_HOST, host);
 		System.setProperty(HSQLDB_PORT, String.valueOf(SocketUtils.findAvailableTcpPort()));
-		System.setProperty(XD_DATA_HOME, tmpDir);
+		System.setProperty(XD_DATA_HOME, batchJobsDirectory);
 		System.setProperty(HSQLDB_DBNAME, "dbname-" + now);
 		System.setProperty(HSQLDB_DATABASE, "database-" + now);
 	}
@@ -85,6 +87,7 @@ public class RandomConfigurationSupport {
 	public static void cleanup() throws IOException {
 		// By default the data directory is located inside ${xd.data.home}/jobs
 		// Refer batch.xml
-		FileUtils.deleteDirectory(new File(tmpDir + "/jobs"));
+		FileUtils.deleteDirectory(new File(batchJobsDirectory + "/jobs"));
+		batchJobsDirectory = tmpDir;
 	}
 }

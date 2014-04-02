@@ -115,13 +115,11 @@ public class AbstractControllerIntegrationTest {
 		maybeReset(streamDeployer);
 		maybeReset(jobDeployer);
 		maybeReset(jobService);
-
 		resetOrDelete(containerMetadataRepository);
 		resetOrDelete(moduleMetadataRepository);
 
 		resetOrDelete(streamDefinitionRepository);
 		resetOrDelete(jobDefinitionRepository);
-
 		resetOrDelete(counterRepository);
 		resetOrDelete(fieldValueCounterRepository);
 		resetOrDelete(gaugeRepository);

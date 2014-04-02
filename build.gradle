@@ -170,11 +170,19 @@ configure(javaProjects) { subproject ->
 	compileJava {
 		sourceCompatibility=1.6
 		targetCompatibility=1.6
+		options.fork = true
+		options.forkOptions.with {
+			memoryMaximumSize = "512m"
+		}
 	}
 
 	compileTestJava {
 		sourceCompatibility=1.7
 		targetCompatibility=1.7
+		options.fork = true
+		options.forkOptions.with {
+			memoryMaximumSize = "512m"
+		}
 	}
 
 	eclipse {
@@ -237,14 +245,17 @@ configure(javaProjects) { subproject ->
 	test {
 		// suppress all console output during testing unless running `gradle -i`
 		logging.captureStandardOutput(LogLevel.INFO)
-		jvmArgs "-XX:MaxPermSize=256m"
+		minHeapSize = "128m"
+		maxHeapSize = "512m"
+		jvmArgs "-XX:MaxPermSize=512m"
 		jvmArgs "-Djava.net.preferIPv4Stack=true"
 		jvmArgs "-XX:+HeapDumpOnOutOfMemoryError"
 		// 	useful for debugging the GradleWorkerMain
 		//		jvmArgs "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=8000"
 		//		jvmArgs "-Dlog4j.debug=true"
 		//		classpath = files('/some/dir/with/props') + project.sourceSets.test.runtimeClasspath
-
+		maxParallelForks = java.lang.Runtime.getRuntime().availableProcessors() as int
+		forkEvery = 10 
 		ignoreFailures = project.hasProperty('ignoreTestFailures') ? getProperty('ignoreTestFailures') : false
 	}
 
@@ -485,7 +496,7 @@ project('spring-xd-dirt') {
 
 	test {
 		systemProperties["xd.home"] = "${rootProject.projectDir}"
-		forkEvery = 10
+		forkEvery = 40
 	}
 
 	task configFiles {

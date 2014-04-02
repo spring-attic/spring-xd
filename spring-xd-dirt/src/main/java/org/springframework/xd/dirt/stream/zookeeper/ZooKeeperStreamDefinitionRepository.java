@@ -45,7 +45,6 @@ import org.springframework.xd.dirt.stream.StreamDefinitionRepositoryUtils;
 import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
-import org.springframework.xd.dirt.zookeeper.ZooKeeperConnectionListener;
 
 /**
  * @author Mark Fisher
@@ -248,7 +247,16 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 
 	@Override
 	public void deleteAll() {
-		delete(findAll());
+		try {
+			delete(findAll());
+		}
+		catch (RuntimeException e) {
+			if (e.getCause() instanceof NoNodeException) {
+				// no top level node, ignore
+				return;
+			}
+			throw e;
+		}
 	}
 
 	@Override

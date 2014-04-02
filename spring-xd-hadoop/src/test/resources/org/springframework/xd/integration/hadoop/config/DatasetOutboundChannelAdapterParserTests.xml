@@ -9,12 +9,12 @@
 
 	<bean id="datasetOperations" class="org.springframework.xd.hadoop.fs.StubDatasetOperations"/>
 
-	<int-hadoop:avro-outbound-channel-adapter
+	<int-hadoop:dataset-outbound-channel-adapter
 		id="adapter"
-		channel="avroOut"
+		channel="datasetOut"
 		dataset-operations="datasetOperations"
 		auto-startup="false"/>
 
-	<int:channel id="avroOut"/>
+	<int:channel id="datasetOut"/>
 
 </beans>

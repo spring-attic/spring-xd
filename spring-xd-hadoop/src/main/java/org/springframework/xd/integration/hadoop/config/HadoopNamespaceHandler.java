@@ -32,7 +32,7 @@ public class HadoopNamespaceHandler extends AbstractIntegrationNamespaceHandler 
 		registerBeanDefinitionParser("naming-strategy", new NamingStrategyParser());
 		registerBeanDefinitionParser("rollover-strategy", new RolloverStrategyParser());
 		registerBeanDefinitionParser("hdfs-outbound-channel-adapter", new HdfsOutboundChannelAdapterParser());
-		registerBeanDefinitionParser("avro-outbound-channel-adapter", new AvroOutboundChannelAdapterParser());
+		registerBeanDefinitionParser("dataset-outbound-channel-adapter", new DatasetOutboundChannelAdapterParser());
 	}
 
 }

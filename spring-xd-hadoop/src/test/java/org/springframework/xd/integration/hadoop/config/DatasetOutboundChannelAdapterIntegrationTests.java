@@ -29,13 +29,13 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Thomas Risberg
  */
-public class AvroOutboundChannelAdapterIntegrationTests {
+public class DatasetOutboundChannelAdapterIntegrationTests {
 
 	@Test
-	public void test() throws Exception {
+	public void testWritingDataset() throws Exception {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"org/springframework/xd/integration/hadoop/config/AvroOutboundChannelAdapterIntegrationTests.xml");
-		MessageChannel channel = context.getBean("avroOut", MessageChannel.class);
+				"org/springframework/xd/integration/hadoop/config/DatasetOutboundChannelAdapterIntegrationTests.xml");
+		MessageChannel channel = context.getBean("datasetOut", MessageChannel.class);
 		channel.send(MessageBuilder.withPayload("foo").build());
 		channel.send(MessageBuilder.withPayload("bar").build());
 		DatasetOperations datasetOperations = context.getBean("datasetOperations", DatasetOperations.class);

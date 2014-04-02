@@ -91,10 +91,10 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="avro-outbound-channel-adapter">
+	<xsd:element name="dataset-outbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines an outbound HDFS Avro writing Channel Adapter.
+	Defines an outbound HDFS Dataset writing Channel Adapter.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>

@@ -36,10 +36,16 @@
 		<property name="timeoutOnIdle" value="true"/>
 	</bean>
 
-	<int-hadoop:avro-outbound-channel-adapter id="objects" dataset-operations="datasetOperations"/>
+	<int-hadoop:dataset-outbound-channel-adapter id="objects" dataset-operations="datasetOperations"/>
 
     <bean id="datasetOperations" class="org.springframework.data.hadoop.store.dataset.DatasetTemplate">
 		<property name="datasetRepositoryFactory" ref="datasetRepositoryFactory"/>
+		<property name="defaultDatasetDefinition">
+			<bean class="org.springframework.data.hadoop.store.dataset.DatasetDefinition">
+				<constructor-arg index="0" value="${allowNullValues}"/>
+				<constructor-arg index="1" value="${format}"/>
+			</bean>
+		</property>
 	</bean>
 
 	<bean id="datasetRepositoryFactory" class="org.springframework.data.hadoop.store.dataset.DatasetRepositoryFactory">

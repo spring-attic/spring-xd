@@ -30,13 +30,13 @@ import java.util.Collections;
  * 
  * @author Thomas Risberg
  */
-public class AvroWriter implements HdfsWriter {
+public class DatasetWriter implements HdfsWriter {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private DatasetOperations datasetOperations;
 
-	public AvroWriter(DatasetOperations datasetOperations) {
+	public DatasetWriter(DatasetOperations datasetOperations) {
 		Assert.notNull(datasetOperations, "DatasetTemplate must not be null.");
 		logger.info("Configured with datasetOperations: " + datasetOperations);
 		this.datasetOperations = datasetOperations;

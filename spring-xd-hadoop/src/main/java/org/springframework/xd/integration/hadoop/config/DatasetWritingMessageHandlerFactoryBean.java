@@ -19,13 +19,13 @@ package org.springframework.xd.integration.hadoop.config;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.data.hadoop.store.dataset.DatasetOperations;
 import org.springframework.util.Assert;
-import org.springframework.xd.hadoop.fs.AvroWriterFactory;
+import org.springframework.xd.hadoop.fs.DatasetWriterFactory;
 import org.springframework.xd.integration.hadoop.outbound.HdfsWritingMessageHandler;
 
 /**
  * @author Thomas Risberg
  */
-public class AvroWritingMessageHandlerFactoryBean implements FactoryBean<HdfsWritingMessageHandler> {
+public class DatasetWritingMessageHandlerFactoryBean implements FactoryBean<HdfsWritingMessageHandler> {
 
 	private final DatasetOperations datasetOperations;
 
@@ -33,7 +33,7 @@ public class AvroWritingMessageHandlerFactoryBean implements FactoryBean<HdfsWri
 
 	private volatile HdfsWritingMessageHandler handler;
 
-	public AvroWritingMessageHandlerFactoryBean(DatasetOperations datasetOperations) {
+	public DatasetWritingMessageHandlerFactoryBean(DatasetOperations datasetOperations) {
 		Assert.notNull(datasetOperations, "datasetOperations must not be null");
 		this.datasetOperations = datasetOperations;
 	}
@@ -55,7 +55,7 @@ public class AvroWritingMessageHandlerFactoryBean implements FactoryBean<HdfsWri
 	@Override
 	public synchronized HdfsWritingMessageHandler getObject() throws Exception {
 		if (handler == null) {
-			AvroWriterFactory writerFactory = new AvroWriterFactory(this.datasetOperations);
+			DatasetWriterFactory writerFactory = new DatasetWriterFactory(this.datasetOperations);
 			this.handler = new HdfsWritingMessageHandler(writerFactory);
 			if (this.autoStartup != null) {
 				this.handler.setAutoStartup(this.autoStartup);

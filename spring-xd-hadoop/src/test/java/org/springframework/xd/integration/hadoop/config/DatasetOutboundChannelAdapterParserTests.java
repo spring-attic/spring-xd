@@ -21,7 +21,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.hadoop.store.dataset.DatasetOperations;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
-import org.springframework.xd.hadoop.fs.AvroWriterFactory;
+import org.springframework.xd.hadoop.fs.DatasetWriterFactory;
 import org.springframework.xd.integration.hadoop.outbound.HdfsWritingMessageHandler;
 
 import static org.junit.Assert.assertEquals;
@@ -29,17 +29,17 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author Thomas Risberg
  */
-public class AvroOutboundChannelAdapterParserTests {
+public class DatasetOutboundChannelAdapterParserTests {
 
 	@Test
-	public void test() {
+	public void testParser() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"org/springframework/xd/integration/hadoop/config/AvroOutboundChannelAdapterParserTests.xml");
+				"org/springframework/xd/integration/hadoop/config/DatasetOutboundChannelAdapterParserTests.xml");
 		EventDrivenConsumer adapter = context.getBean("adapter", EventDrivenConsumer.class);
 		HdfsWritingMessageHandler handler = (HdfsWritingMessageHandler) new DirectFieldAccessor(adapter).getPropertyValue("handler");
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
 		assertEquals(false, handlerAccessor.getPropertyValue("autoStartup"));
-		AvroWriterFactory writerFactory = (AvroWriterFactory) handlerAccessor.getPropertyValue("hdfsWriterFactory");
+		DatasetWriterFactory writerFactory = (DatasetWriterFactory) handlerAccessor.getPropertyValue("hdfsWriterFactory");
 		DatasetOperations datasetOperations = (DatasetOperations) new DirectFieldAccessor(writerFactory).getPropertyValue("datasetOperations");
 		assertEquals(context.getBean("datasetOperations"), datasetOperations);
 		context.close();

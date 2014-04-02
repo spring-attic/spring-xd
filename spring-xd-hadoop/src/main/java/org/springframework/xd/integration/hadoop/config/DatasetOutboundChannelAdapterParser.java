@@ -25,15 +25,15 @@ import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
 /**
- * Parser for the 'avro-outbound-channel-adapter' element.
+ * Parser for the 'dataset-outbound-channel-adapter' element.
  * 
  * @author Thomas Risberg
  */
-public class AvroOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
+public class DatasetOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
 
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(AvroWritingMessageHandlerFactoryBean.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(DatasetWritingMessageHandlerFactoryBean.class);
 		String datasetOperations = element.getAttribute("dataset-operations");
 		if (!StringUtils.hasText(datasetOperations)) {
 			parserContext.getReaderContext().error("dataset-operations is required", element);

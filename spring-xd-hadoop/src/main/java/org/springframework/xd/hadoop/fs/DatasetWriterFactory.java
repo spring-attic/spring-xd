@@ -23,18 +23,18 @@ import org.springframework.util.Assert;
  * 
  * @author Thomas Risberg
  */
-public class AvroWriterFactory implements HdfsWriterFactory {
+public class DatasetWriterFactory implements HdfsWriterFactory {
 
 	private DatasetOperations datasetOperations;
 
-	public AvroWriterFactory(DatasetOperations datasetOperations) {
+	public DatasetWriterFactory(DatasetOperations datasetOperations) {
 		Assert.notNull(datasetOperations, "DatasetTemplate must not be null.");
 		this.datasetOperations = datasetOperations;
 	}
 
 	@Override
 	public HdfsWriter createWriter() {
-		AvroWriter writer = new AvroWriter(datasetOperations);
+		DatasetWriter writer = new DatasetWriter(datasetOperations);
 		return writer;
 	}
 

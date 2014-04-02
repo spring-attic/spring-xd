@@ -28,8 +28,8 @@
         <property name="datasetRepositoryFactory" ref="datasetFactory"/>
     </bean>
 
-	<int-hadoop:avro-outbound-channel-adapter
-		id="avroOut"
+	<int-hadoop:dataset-outbound-channel-adapter
+		id="datasetOut"
         dataset-operations="datasetOperations"/>
 
 </beans>

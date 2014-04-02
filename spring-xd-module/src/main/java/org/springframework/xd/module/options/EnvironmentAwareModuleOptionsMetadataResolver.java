@@ -16,6 +16,7 @@
 
 package org.springframework.xd.module.options;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -168,10 +169,6 @@ public class EnvironmentAwareModuleOptionsMetadataResolver implements ModuleOpti
 
 	}
 
-	/**
-	 * @param moduleDefinition
-	 * @return
-	 */
 	private Environment lookupEnvironment(ModuleDefinition moduleDefinition) {
 		String propertySourceName = String.format("%s:%s",
 				moduleDefinition.getType(), moduleDefinition.getName());
@@ -227,7 +224,12 @@ public class EnvironmentAwareModuleOptionsMetadataResolver implements ModuleOpti
 
 			public void apply() {
 				setSearchLocations(searchLocation);
-				setSearchNames(baseName);
+				// We'd like to do 'setSearchNames(baseName)', but the environment property
+				// has strong precedence and is already set for XD_CONFIG_NAME.
+				Map<String, Object> singletonMap = Collections.singletonMap("spring.config.name",
+						(Object) baseName);
+				environment.getPropertySources().addFirst(
+						new MapPropertySource("searchNamesOverride", singletonMap));
 				addPropertySources(environment, resourceLoader);
 			}
 		}.apply();

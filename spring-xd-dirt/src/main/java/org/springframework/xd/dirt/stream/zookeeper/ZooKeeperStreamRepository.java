@@ -25,6 +25,7 @@ import java.util.Map;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.zookeeper.data.Stat;
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -45,15 +46,26 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
  */
 // todo: the StreamRepository abstraction can be removed once we are fully zk-enabled since we do not need to
 // support multiple impls at that point
-public class ZooKeeperStreamRepository implements StreamRepository {
+public class ZooKeeperStreamRepository implements StreamRepository, InitializingBean {
 
 	private final ZooKeeperConnection zkConnection;
 
 	private final MapBytesUtility mapBytesUtility = new MapBytesUtility();
 
+	private final RepositoryConnectionListener connectionListener = new RepositoryConnectionListener();
+
 	@Autowired
 	public ZooKeeperStreamRepository(ZooKeeperConnection zkConnection) {
 		this.zkConnection = zkConnection;
+	}
+
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		zkConnection.addListener(connectionListener);
+		if (zkConnection.isConnected()) {
+			// already connected, invoke the callback directly
+			connectionListener.onConnect(zkConnection.getClient());
+		}
 	}
 
 	@Override

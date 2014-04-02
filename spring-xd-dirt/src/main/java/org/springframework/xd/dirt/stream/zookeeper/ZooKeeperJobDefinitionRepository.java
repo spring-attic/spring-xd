@@ -57,7 +57,7 @@ public class ZooKeeperJobDefinitionRepository implements JobDefinitionRepository
 
 	private final MapBytesUtility mapBytesUtility = new MapBytesUtility();
 
-	private final JobsPathEnsuringConnectionListener connectionListener = new JobsPathEnsuringConnectionListener();
+	private final RepositoryConnectionListener connectionListener = new RepositoryConnectionListener();
 
 	@Autowired
 	public ZooKeeperJobDefinitionRepository(ZooKeeperConnection zkConnection) {
@@ -243,30 +243,6 @@ public class ZooKeeperJobDefinitionRepository implements JobDefinitionRepository
 			results.add(definition);
 		}
 		return results;
-	}
-
-
-	/**
-	 * A {@link ZooKeeperConnectionListener} that ensures the {@code /xd/jobs} path exists.
-	 */
-	private static class JobsPathEnsuringConnectionListener implements ZooKeeperConnectionListener {
-
-		@Override
-		public void onDisconnect(CuratorFramework client) {
-		}
-
-		@Override
-		public void onConnect(CuratorFramework client) {
-			try {
-				client.create().creatingParentsIfNeeded().forPath(Paths.JOBS);
-			}
-			catch (NodeExistsException e) {
-				// already created
-			}
-			catch (Exception e) {
-				throw new RuntimeException(e);
-			}
-		}
 	}
 
 }

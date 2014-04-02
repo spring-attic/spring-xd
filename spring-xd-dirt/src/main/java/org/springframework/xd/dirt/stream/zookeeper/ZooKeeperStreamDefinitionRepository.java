@@ -62,7 +62,7 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 
 	private final MapBytesUtility mapBytesUtility = new MapBytesUtility();
 
-	private final StreamsPathEnsuringConnectionListener connectionListener = new StreamsPathEnsuringConnectionListener();
+	private final RepositoryConnectionListener connectionListener = new RepositoryConnectionListener();
 
 	@Autowired
 	public ZooKeeperStreamDefinitionRepository(ZooKeeperConnection zkConnection,
@@ -254,30 +254,6 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 	@Override
 	public Iterable<StreamDefinition> findAllInRange(String from, boolean fromInclusive, String to, boolean toInclusive) {
 		throw new UnsupportedOperationException("Auto-generated method stub");
-	}
-
-
-	/**
-	 * A {@link ZooKeeperConnectionListener} that ensures the {@code /xd/streams} path exists.
-	 */
-	private static class StreamsPathEnsuringConnectionListener implements ZooKeeperConnectionListener {
-
-		@Override
-		public void onDisconnect(CuratorFramework client) {
-		}
-
-		@Override
-		public void onConnect(CuratorFramework client) {
-			try {
-				client.create().creatingParentsIfNeeded().forPath(Paths.STREAMS);
-			}
-			catch (NodeExistsException e) {
-				// already created
-			}
-			catch (Exception e) {
-				throw new RuntimeException(e);
-			}
-		}
 	}
 
 }

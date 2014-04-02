@@ -157,7 +157,7 @@ public class ReferenceDoc {
 	@Test
 	public void doIt() {
 		GenericApplicationContext ctx = new GenericApplicationContext();
-		ctx.getBeanFactory().registerSingleton("commandLine", new CommandLine(null, 100, null));
+		ctx.getBeanFactory().registerSingleton("commandLine", new CommandLine(null, 100, null, false));
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(ctx);
 		reader.loadBeanDefinitions("classpath*:META-INF/spring/spring-shell-plugin.xml");
 		ctx.refresh();

@@ -114,7 +114,7 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 		JobDefinition jobDefinition = jobDefinitionRepository.findOne("job5");
 		assertNotNull(jobDefinition);
 		assertEquals("job5", jobDefinition.getName());
-		assertTrue(jobDefinition.isDeploy());
+		assertNotNull(xdJobRepository.findOne(jobDefinition.getName()));
 	}
 
 	@Test

@@ -40,18 +40,7 @@ public class JobDefinition extends BaseDefinition {
 	 * @param definition the job definition
 	 */
 	public JobDefinition(String name, String definition) {
-		this(name, definition, false);
-	}
-
-	/**
-	 * Create a new JobDefinition.
-	 * 
-	 * @param name the job name
-	 * @param definition the job definition
-	 * @param deploy if true, this job should be deployed
-	 */
-	public JobDefinition(String name, String definition, boolean deploy) {
-		super(name, definition, deploy);
+		super(name, definition);
 	}
 
 }

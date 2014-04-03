@@ -267,10 +267,10 @@ public class AdminServer implements ContainerRepository, ApplicationListener<Con
 		 */
 		@Override
 		public void takeLeadership(CuratorFramework client) throws Exception {
-			LOG.info("Leader Admin {} is watching for stream deployment requests.", getId());
+			LOG.info("Leader Admin {} is watching for stream/job deployment requests.", getId());
 
-			PathChildrenCache streams = null;
-			PathChildrenCache jobs = null;
+			PathChildrenCache streamDeployments = null;
+			PathChildrenCache jobDeployments = null;
 			PathChildrenCacheListener streamListener;
 			PathChildrenCacheListener jobListener;
 			PathChildrenCacheListener containerListener;
@@ -281,23 +281,23 @@ public class AdminServer implements ContainerRepository, ApplicationListener<Con
 						moduleDefinitionRepository,
 						moduleOptionsMetadataResolver);
 
-				streams = new PathChildrenCache(client, Paths.STREAMS, true,
+				streamDeployments = new PathChildrenCache(client, Paths.STREAM_DEPLOYMENTS, true,
 						ThreadUtils.newThreadFactory("StreamsPathChildrenCache"));
-				streams.getListenable().addListener(streamListener);
-				streams.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
+				streamDeployments.getListenable().addListener(streamListener);
+				streamDeployments.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
 
 				jobListener = new JobListener(AdminServer.this, moduleDefinitionRepository,
 						moduleOptionsMetadataResolver);
 
-				jobs = new PathChildrenCache(client, Paths.JOBS, true,
+				jobDeployments = new PathChildrenCache(client, Paths.JOB_DEPLOYMENTS, true,
 						ThreadUtils.newThreadFactory("JobsPathChildrenCache"));
-				jobs.getListenable().addListener(jobListener);
-				jobs.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
+				jobDeployments.getListenable().addListener(jobListener);
+				jobDeployments.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
 
 				containerListener = new ContainerListener(AdminServer.this,
 						streamDefinitionRepository,
 						moduleDefinitionRepository,
-						moduleOptionsMetadataResolver, streams);
+						moduleOptionsMetadataResolver, streamDeployments);
 
 				PathChildrenCache containersCache = new PathChildrenCache(client, Paths.CONTAINERS, true,
 						ThreadUtils.newThreadFactory("ContainersPathChildrenCache"));
@@ -318,12 +318,12 @@ public class AdminServer implements ContainerRepository, ApplicationListener<Con
 					containersCache.close();
 				}
 
-				if (streams != null) {
-					streams.close();
+				if (streamDeployments != null) {
+					streamDeployments.close();
 				}
 
-				if (jobs != null) {
-					jobs.close();
+				if (jobDeployments != null) {
+					jobDeployments.close();
 				}
 			}
 		}

@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
 
 import org.springframework.beans.factory.InitializingBean;
@@ -107,16 +109,18 @@ public class ZooKeeperStreamRepository implements StreamRepository, Initializing
 
 	@Override
 	public Stream findOne(String id) {
+		CuratorFramework client = zkConnection.getClient();
 		StreamsPath path = new StreamsPath().setStreamName(id);
 		try {
-			Stat stat = zkConnection.getClient().checkExists().forPath(path.build());
-			if (stat != null) {
-				byte[] data = zkConnection.getClient().getData().forPath(path.build());
+			Stat definitionStat = client.checkExists().forPath(path.build());
+			if (definitionStat != null) {
+				byte[] data = client.getData().forPath(path.build());
 				Map<String, String> map = mapBytesUtility.toMap(data);
-				Stream stream = new Stream(new StreamDefinition(id,
-						map.get("definition"), Boolean.parseBoolean(map.get("deploy"))));
-				if (stream.getDefinition().isDeploy()) {
-					stream.setStartedAt(new Date(stat.getCtime()));
+				Stream stream = new Stream(new StreamDefinition(id, map.get("definition")));
+
+				Stat deployStat = client.checkExists().forPath(Paths.build(Paths.STREAM_DEPLOYMENTS, id));
+				if (deployStat != null) {
+					stream.setStartedAt(new Date(deployStat.getCtime()));
 					return stream;
 				}
 			}
@@ -161,34 +165,53 @@ public class ZooKeeperStreamRepository implements StreamRepository, Initializing
 
 	@Override
 	public long count() {
-		int count = 0;
-		List<Stream> all = findAll();
-		for (Stream stream : all) {
-			if (stream.getDefinition().isDeploy()) {
-				count++;
-			}
+		try {
+			return zkConnection.getClient().checkExists().forPath(Paths.STREAM_DEPLOYMENTS).getNumChildren();
 		}
-		return count;
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
 	public void delete(String id) {
-		// stream instances are "deleted" when a StreamListener undeploys a stream
+		try {
+			zkConnection.getClient().delete().forPath(Paths.build(Paths.STREAM_DEPLOYMENTS, id));
+		}
+		catch (KeeperException.NoNodeException e) {
+			// ignore
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override
 	public void delete(Stream entity) {
-		// stream instances are "deleted" when a StreamListener undeploys a stream
+		delete(entity.getDefinition().getName());
 	}
 
 	@Override
 	public void delete(Iterable<? extends Stream> entities) {
-		// stream instances are "deleted" when a StreamListener undeploys a stream
+		for (Stream stream : entities) {
+			delete(stream);
+		}
 	}
 
 	@Override
 	public void deleteAll() {
-		// stream instances are "deleted" when a StreamListener undeploys a stream
+		try {
+			List<String> children = zkConnection.getClient().getChildren().forPath(Paths.JOB_DEPLOYMENTS);
+			for (String child : children) {
+				delete(child);
+			}
+		}
+		catch (KeeperException.NoNodeException e) {
+			// ignore
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override

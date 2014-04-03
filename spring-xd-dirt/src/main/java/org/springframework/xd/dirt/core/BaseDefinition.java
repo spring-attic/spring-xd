@@ -33,11 +33,6 @@ import org.springframework.xd.module.ModuleDefinition;
 public abstract class BaseDefinition implements Comparable<BaseDefinition> {
 
 	/**
-	 * Flag that determines whether this is deployed.
-	 */
-	private boolean deploy;
-
-	/**
 	 * A String representation of the desired data flow, expressed in the XD DSL.
 	 */
 	private String definition;
@@ -61,35 +56,12 @@ public abstract class BaseDefinition implements Comparable<BaseDefinition> {
 	 * 
 	 * @param name the name
 	 * @param definition the definition
-	 * 
-	 * @see #isDeploy
 	 */
 	public BaseDefinition(String name, String definition) {
-		this(name, definition, false);
-	}
-
-	/**
-	 * Create a new definition.
-	 * 
-	 * @param name the name
-	 * @param definition the definition
-	 * @param deploy if true, this should be deployed
-	 */
-	public BaseDefinition(String name, String definition, boolean deploy) {
 		Assert.hasText(name, "Name can not be empty");
 		Assert.hasText(definition, "Definition can not be empty");
 		this.name = name;
 		this.definition = definition;
-		this.deploy = deploy;
-	}
-
-	/**
-	 * Return true if this should be deployed.
-	 * 
-	 * @return true if this should be deployed
-	 */
-	public boolean isDeploy() {
-		return deploy;
 	}
 
 	/**

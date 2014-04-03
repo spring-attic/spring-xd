@@ -24,6 +24,8 @@ import java.util.List;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.dirt.stream.dsl.StreamDefinitionException;
 import org.springframework.xd.dirt.stream.dsl.XDDSLMessages;
+import org.springframework.xd.dirt.zookeeper.Paths;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.ModuleDefinition;
 
 /**
@@ -40,9 +42,9 @@ public class StreamDeployer extends AbstractInstancePersistingDeployer<StreamDef
 
 	private final XDParser parser;
 
-	public StreamDeployer(StreamDefinitionRepository repository,
+	public StreamDeployer(ZooKeeperConnection zkConnection, StreamDefinitionRepository repository,
 			StreamRepository streamRepository, XDParser parser) {
-		super(repository, streamRepository, parser, stream);
+		super(zkConnection, repository, streamRepository, parser, stream);
 		this.parser = parser;
 	}
 
@@ -52,8 +54,13 @@ public class StreamDeployer extends AbstractInstancePersistingDeployer<StreamDef
 	}
 
 	@Override
-	protected StreamDefinition createDefinition(String name, String definition, boolean deploy) {
-		return new StreamDefinition(name, definition, deploy);
+	protected StreamDefinition createDefinition(String name, String definition) {
+		return new StreamDefinition(name, definition);
+	}
+
+	@Override
+	protected String getDeploymentPath(StreamDefinition definition) {
+		return Paths.build(Paths.STREAM_DEPLOYMENTS, definition.getName());
 	}
 
 	/**

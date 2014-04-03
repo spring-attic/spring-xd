@@ -19,12 +19,13 @@ package org.springframework.xd.dirt.stream;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.BaseDefinition;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.store.DomainRepository;
 
 /**
  * Base support class for deployers that know how to deal with {@link BaseInstance instances} of a
  * {@link BaseDefinition definition}.
- * 
+ *
  * @param D the kind of definition this deployer deals with
  * @param I the corresponding instance type
  * 
@@ -36,10 +37,11 @@ public abstract class AbstractInstancePersistingDeployer<D extends BaseDefinitio
 
 	protected DomainRepository<I, String> instanceRepository;
 
-	protected AbstractInstancePersistingDeployer(PagingAndSortingRepository<D, String> definitionRespository,
+	protected AbstractInstancePersistingDeployer(ZooKeeperConnection zkConnection,
+			PagingAndSortingRepository<D, String> definitionRespository,
 			DomainRepository<I, String> instanceRepository, XDParser parser,
 			ParsingContext definitionKind) {
-		super(definitionRespository, parser, definitionKind);
+		super(zkConnection, definitionRespository, parser, definitionKind);
 		this.instanceRepository = instanceRepository;
 	}
 
@@ -49,7 +51,6 @@ public abstract class AbstractInstancePersistingDeployer<D extends BaseDefinitio
 			undeploy(definition.getName());
 		}
 	}
-
 
 	@Override
 	public void undeploy(String name) {

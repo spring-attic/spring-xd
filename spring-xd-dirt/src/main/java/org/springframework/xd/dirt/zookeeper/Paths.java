@@ -45,19 +45,24 @@ public class Paths {
 	public static final String ADMIN = "admin";
 
 	/**
-	 * Name of modules node. Module definitions are written as children of this node.
-	 */
-	public static final String MODULES = "modules";
-
-	/**
 	 * Name of containers node. Containers are written as children of this node.
 	 */
 	public static final String CONTAINERS = "containers";
 
 	/**
+	 * Name of modules node. Module definitions are written as children of this node.
+	 */
+	public static final String MODULES = "modules";
+
+	/**
 	 * Name of streams node. Streams are written as children of this node.
 	 */
 	public static final String STREAMS = "streams";
+
+	/**
+	 * Name of jobs node. Jobs are written as children of this node.
+	 */
+	public static final String JOBS = "jobs";
 
 	/**
 	 * Name of deployments node. Deployments are written as children of this node.
@@ -77,9 +82,10 @@ public class Paths {
 	public static final String STREAM_DEPLOYMENTS = DEPLOYMENTS + '/' + STREAMS;
 
 	/**
-	 * Name of jobs node. Jobs are written as children of this node.
+	 * Name of job deployments node. Job deployment requests are written
+	 * as children of this node.
 	 */
-	public static final String JOBS = "jobs";
+	public static final String JOB_DEPLOYMENTS = DEPLOYMENTS + '/' + JOBS;
 
 	/**
 	 * Strip path information from a string. For example, given an input of {@code /xd/path/location}, return

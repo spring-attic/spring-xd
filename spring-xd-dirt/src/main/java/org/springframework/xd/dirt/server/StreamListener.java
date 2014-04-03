@@ -34,7 +34,7 @@ import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.ContainerMatcher;
 import org.springframework.xd.dirt.cluster.ContainerRepository;
 import org.springframework.xd.dirt.cluster.DefaultContainerMatcher;
-import org.springframework.xd.dirt.core.DeploymentsPath;
+import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.core.Module;
 import org.springframework.xd.dirt.core.ModuleDescriptor;
 import org.springframework.xd.dirt.core.Stream;
@@ -107,7 +107,6 @@ public class StreamListener implements PathChildrenCacheListener {
 				onChildAdded(client, event.getData());
 				break;
 			case CHILD_UPDATED:
-				onChildUpdated(client, event.getData());
 				break;
 			case CHILD_REMOVED:
 				onChildRemoved(client, event.getData());
@@ -131,90 +130,71 @@ public class StreamListener implements PathChildrenCacheListener {
 	}
 
 	/**
-	 * Handle the creation of a new stream.
+	 * Handle the creation of a new stream deployment.
 	 * 
 	 * @param client curator client
-	 * @param data stream data
+	 * @param data   stream deployment request data
 	 */
 	private void onChildAdded(CuratorFramework client, ChildData data) throws Exception {
 		String streamName = Paths.stripPath(data.getPath());
-		Stream stream = streamFactory.createStream(streamName, mapBytesUtility.toMap(data.getData()));
 
-		LOG.info("Stream definition added for {}", stream);
+		// todo: grab deployment manifest data from data.getData()
 
-		if (stream.isDeploy()) {
-			LOG.info("Deploying stream {}", stream);
-			prepareStream(client, stream);
-			deployStream(client, stream);
-		}
+		byte[] streamDefinition = client.getData().forPath(new StreamsPath().setStreamName(streamName).build());
+		Stream stream = streamFactory.createStream(streamName, mapBytesUtility.toMap(streamDefinition));
+
+		LOG.info("Deploying stream {}", stream);
+		prepareStream(client, stream);
+		deployStream(client, stream);
 	}
 
 	/**
-	 * Handle the updating of an existing stream.
+	 * Handle the deletion of a stream deployment.
 	 * 
 	 * @param client curator client
-	 * @param data stream data
-	 */
-	private void onChildUpdated(CuratorFramework client, ChildData data) throws Exception {
-		String streamName = Paths.stripPath(data.getPath());
-		Stream stream = streamFactory.createStream(streamName, mapBytesUtility.toMap(data.getData()));
-
-		if (stream.isDeploy()) {
-			LOG.info("Deploying stream {}", stream);
-			prepareStream(client, stream);
-			deployStream(client, stream);
-		}
-		else {
-			LOG.info("Undeploying stream {}", stream);
-
-			// build the paths of the modules to be undeployed
-			// in the stream processing order; as each path
-			// is deleted each container will undeploy
-			// its individual deployed modules
-			List<String> paths = new ArrayList<String>();
-			paths.add(new StreamsPath()
-					.setStreamName(streamName)
-					.setModuleType(Module.Type.SOURCE.toString())
-					.build());
-			for (ModuleDescriptor descriptor : stream.getProcessors()) {
-				paths.add(new StreamsPath()
-						.setStreamName(streamName)
-						.setModuleType(Module.Type.PROCESSOR.toString())
-						.setModuleLabel(descriptor.getLabel())
-						.build());
-			}
-			paths.add(new StreamsPath()
-					.setStreamName(streamName)
-					.setModuleType(Module.Type.PROCESSOR.toString())
-					.build());
-			paths.add(new StreamsPath()
-					.setStreamName(streamName)
-					.setModuleType(Module.Type.SINK.toString())
-					.build());
-
-			for (String path : paths) {
-				try {
-					client.delete().deletingChildrenIfNeeded().forPath(path);
-				}
-				catch (KeeperException.NoNodeException e) {
-					LOG.trace("Path {} already deleted", path);
-				}
-			}
-		}
-	}
-
-	/**
-	 * Handle the deletion of a stream.
-	 * 
-	 * @param client curator client
-	 * @param data stream data
+	 * @param data   stream deployment request data
 	 */
 	private void onChildRemoved(CuratorFramework client, ChildData data) throws Exception {
 		String streamName = Paths.stripPath(data.getPath());
-		LOG.info("Stream removed: {}", streamName);
 
-		// nothing to do there as each container will handle its own
-		// modules in the stream that was removed
+		LOG.info("Undeploying stream {}", streamName);
+
+		byte[] streamDefinition = client.getData().forPath(new StreamsPath().setStreamName(streamName).build());
+		Stream stream = streamFactory.createStream(streamName, mapBytesUtility.toMap(streamDefinition));
+
+		// build the paths of the modules to be undeployed
+		// in the stream processing order; as each path
+		// is deleted each container will undeploy
+		// its individual deployed modules
+		List<String> paths = new ArrayList<String>();
+		paths.add(new StreamsPath()
+				.setStreamName(streamName)
+				.setModuleType(Module.Type.SOURCE.toString())
+				.build());
+		for (ModuleDescriptor descriptor : stream.getProcessors()) {
+			paths.add(new StreamsPath()
+					.setStreamName(streamName)
+					.setModuleType(Module.Type.PROCESSOR.toString())
+					.setModuleLabel(descriptor.getLabel())
+					.build());
+		}
+		paths.add(new StreamsPath()
+				.setStreamName(streamName)
+				.setModuleType(Module.Type.PROCESSOR.toString())
+				.build());
+		paths.add(new StreamsPath()
+				.setStreamName(streamName)
+				.setModuleType(Module.Type.SINK.toString())
+				.build());
+
+		for (String path : paths) {
+			try {
+				client.delete().deletingChildrenIfNeeded().forPath(path);
+			}
+			catch (KeeperException.NoNodeException e) {
+				LOG.trace("Path {} already deleted", path);
+			}
+		}
 	}
 
 	/**
@@ -274,7 +254,7 @@ public class StreamListener implements PathChildrenCacheListener {
 			for (Container container : containerMatcher.match(descriptor, containerRepository)) {
 				String containerName = container.getName();
 				try {
-					client.create().creatingParentsIfNeeded().forPath(new DeploymentsPath()
+					client.create().creatingParentsIfNeeded().forPath(new ModuleDeploymentsPath()
 							.setContainer(containerName)
 							.setStreamName(streamName)
 							.setModuleType(moduleType)

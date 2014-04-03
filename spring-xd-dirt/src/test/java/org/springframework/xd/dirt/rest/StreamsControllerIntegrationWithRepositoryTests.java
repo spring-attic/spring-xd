@@ -109,7 +109,6 @@ public class StreamsControllerIntegrationWithRepositoryTests extends AbstractCon
 
 		StreamDefinition definition = streamDefinitionRepository.findOne("mystream");
 		assertNotNull(definition);
-		assertTrue(definition.isDeploy());
 		assertNotNull(streamRepository.findOne("mystream"));
 
 		mockMvc.perform(put("/streams/mystream").param("deploy", "false").accept(MediaType.APPLICATION_JSON)).andExpect(
@@ -117,7 +116,6 @@ public class StreamsControllerIntegrationWithRepositoryTests extends AbstractCon
 
 		StreamDefinition undeployedDefinition = streamDefinitionRepository.findOne("mystream");
 		assertNotNull(undeployedDefinition);
-		assertFalse(undeployedDefinition.isDeploy());
 		assertNull(streamRepository.findOne("mystream"));
 
 		mockMvc.perform(delete("/streams/mystream").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk());

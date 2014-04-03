@@ -117,7 +117,6 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 		try {
 			Map<String, String> map = new HashMap<String, String>();
 			map.put("definition", entity.getDefinition());
-			map.put("deploy", Boolean.toString(entity.isDeploy()));
 
 			CuratorFramework client = zkConnection.getClient();
 			String path = Paths.build(Paths.STREAMS, entity.getName());
@@ -150,7 +149,7 @@ public class ZooKeeperStreamDefinitionRepository implements StreamDefinitionRepo
 				return null;
 			}
 			Map<String, String> map = this.mapBytesUtility.toMap(bytes);
-			return new StreamDefinition(id, map.get("definition"), Boolean.parseBoolean(map.get("deploy")));
+			return new StreamDefinition(id, map.get("definition"));
 		}
 		catch (NoNodeException e) {
 			return null;

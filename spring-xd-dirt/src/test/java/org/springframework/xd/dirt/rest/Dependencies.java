@@ -147,7 +147,7 @@ public class Dependencies {
 
 	@Bean
 	public JobDeployer jobDeployer() {
-		return new JobDeployer(jobDefinitionRepository(), xdJobRepository(), parser(), messageBus());
+		return new JobDeployer(zooKeeperConnection(), jobDefinitionRepository(), xdJobRepository(), parser(), messageBus());
 	}
 
 	@Bean
@@ -179,7 +179,7 @@ public class Dependencies {
 
 	@Bean
 	public StreamDeployer streamDeployer() {
-		return new StreamDeployer(streamDefinitionRepository(), streamRepository(), parser());
+		return new StreamDeployer(zooKeeperConnection(), streamDefinitionRepository(), streamRepository(), parser());
 	}
 
 	@Bean

@@ -39,7 +39,7 @@ public class HdfsMongodbJobOptionsMetadata {
 
 	private String collectionName;
 
-	private String idField = "null";
+	private String idField;
 
 	@ModuleOption("the Mongodb collection to store")
 	public void setCollectionName(String collectionName) {

@@ -28,13 +28,14 @@ import org.apache.curator.framework.recipes.leader.LeaderSelector;
 import org.apache.curator.framework.recipes.leader.LeaderSelectorListener;
 import org.apache.curator.framework.recipes.leader.LeaderSelectorListenerAdapter;
 import org.apache.curator.utils.ThreadUtils;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.ContextStoppedEvent;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.cluster.Container;
@@ -53,11 +54,11 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
  * will attempt to request leadership, but at any given time only one AdminServer instance in the cluster will have
  * leadership status. Those instances not elected will watch the {@link Paths#ADMIN} znode so that one of
  * them will take over leadership if the leader admin closes or crashes.
- * 
+ *
  * @author Patrick Peralta
  * @author Mark Fisher
  */
-public class AdminServer implements ContainerRepository, ApplicationListener<ContextRefreshedEvent> {
+public class AdminServer implements ContainerRepository, ApplicationListener<ApplicationEvent> {
 
 	/**
 	 * Logger.
@@ -158,12 +159,19 @@ public class AdminServer implements ContainerRepository, ApplicationListener<Con
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void onApplicationEvent(ContextRefreshedEvent event) {
-		this.applicationContext = event.getApplicationContext();
-		if (this.zkConnection.isConnected()) {
-			requestLeadership(this.zkConnection.getClient());
+	public void onApplicationEvent(ApplicationEvent event) {
+		if (event instanceof ContextRefreshedEvent) {
+			this.applicationContext = ((ContextRefreshedEvent) event).getApplicationContext();
+			if (this.zkConnection.isConnected()) {
+				requestLeadership(this.zkConnection.getClient());
+			}
+			this.zkConnection.addListener(connectionListener);
 		}
-		this.zkConnection.addListener(connectionListener);
+		else if (event instanceof ContextStoppedEvent) {
+			if (this.leaderSelector != null) {
+				this.leaderSelector.close();
+			}
+		}
 	}
 
 	/**
@@ -190,7 +198,7 @@ public class AdminServer implements ContainerRepository, ApplicationListener<Con
 	 * Register the {@link LeaderListener} if not already registered. This method is {@code synchronized} because it may
 	 * be invoked either by the thread starting the {@link ApplicationContext} or the thread that raises the ZooKeeper
 	 * connection event.
-	 * 
+	 *
 	 * @param client the {@link CuratorFramework} client
 	 */
 	private synchronized void requestLeadership(CuratorFramework client) {

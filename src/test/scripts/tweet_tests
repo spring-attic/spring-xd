@@ -17,7 +17,9 @@ set -e
 echo -e '\n\n**** Test 1. Twittersearch tests\n\n'
 
 create_stream 'searchtweets' "twittersearch --query=#android --outputType=application/json | file" 'false'
+sleep 5
 create_stream 'searchtagcount' 'tap:stream:searchtweets > field-value-counter --fieldName=entities.hashTags.text --name=searchhashtags'
+sleep 5
 deploy_stream 'searchtweets'
 
 sleep 10
@@ -37,10 +39,12 @@ sleep 10
 
 create_stream 'tweetcount' "tap:stream:tweets > aggregate-counter --dateFormat='EE MMM d HH:mm:ss Z yyyy' --timeField=#jsonPath(payload,'\$.created_at')"
 
+sleep 10
 create_stream 'tweetlang' 'tap:stream:tweets > field-value-counter --fieldName=lang --name=lang'
 
 create_stream 'tagcount' 'tap:stream:tweets > field-value-counter --fieldName=entities.hashtags.text --name=hashtags'
 
+sleep 5
 deploy_stream 'tweets'
 
 sleep 10

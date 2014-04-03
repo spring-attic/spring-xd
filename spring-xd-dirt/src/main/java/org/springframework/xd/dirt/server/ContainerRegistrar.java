@@ -48,7 +48,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.validation.BindException;
 import org.springframework.xd.dirt.container.ContainerMetadata;
 import org.springframework.xd.dirt.container.store.ContainerMetadataRepository;
-import org.springframework.xd.dirt.core.DeploymentsPath;
+import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.core.JobsPath;
 import org.springframework.xd.dirt.core.ModuleDescriptor;
 import org.springframework.xd.dirt.core.Stream;
@@ -287,9 +287,9 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	 */
 	private void registerWithZooKeeper(CuratorFramework client) {
 		try {
-			Paths.ensurePath(client, Paths.DEPLOYMENTS);
-			deployments = new PathChildrenCache(client, Paths.build(Paths.DEPLOYMENTS, containerMetadata.getId()),
-					true, ThreadUtils.newThreadFactory("DeploymentsPathChildrenCache"));
+			Paths.ensurePath(client, Paths.MODULE_DEPLOYMENTS);
+			deployments = new PathChildrenCache(client, Paths.build(Paths.MODULE_DEPLOYMENTS,
+					containerMetadata.getId()), true, ThreadUtils.newThreadFactory("DeploymentsPathChildrenCache"));
 			deployments.getListenable().addListener(deploymentListener);
 			containerMetadataRepository.save(containerMetadata);
 			deployments.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
@@ -339,10 +339,10 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	 * @param data module data
 	 */
 	private void onChildAdded(CuratorFramework client, ChildData data) {
-		DeploymentsPath deploymentsPath = new DeploymentsPath(data.getPath());
-		String streamName = deploymentsPath.getStreamName();
-		String moduleType = deploymentsPath.getModuleType();
-		String moduleLabel = deploymentsPath.getModuleLabel();
+		ModuleDeploymentsPath moduleDeploymentsPath = new ModuleDeploymentsPath(data.getPath());
+		String streamName = moduleDeploymentsPath.getStreamName();
+		String moduleType = moduleDeploymentsPath.getModuleType();
+		String moduleLabel = moduleDeploymentsPath.getModuleLabel();
 		Module module = (ModuleType.job.toString().equals(moduleType))
 				? deployJob(client, streamName, moduleLabel)
 				: deployStreamModule(client, streamName, moduleType, moduleLabel);
@@ -455,10 +455,10 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	 * @param data module data
 	 */
 	private void onChildRemoved(CuratorFramework client, ChildData data) throws Exception {
-		DeploymentsPath deploymentsPath = new DeploymentsPath(data.getPath());
-		String streamName = deploymentsPath.getStreamName();
-		String moduleType = deploymentsPath.getModuleType();
-		String moduleLabel = deploymentsPath.getModuleLabel();
+		ModuleDeploymentsPath moduleDeploymentsPath = new ModuleDeploymentsPath(data.getPath());
+		String streamName = moduleDeploymentsPath.getStreamName();
+		String moduleType = moduleDeploymentsPath.getModuleType();
+		String moduleLabel = moduleDeploymentsPath.getModuleLabel();
 
 		undeployModule(streamName, moduleType, moduleLabel);
 
@@ -580,7 +580,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 
 				undeployModule(streamName, moduleType, moduleLabel);
 
-				String deploymentPath = new DeploymentsPath()
+				String deploymentPath = new ModuleDeploymentsPath()
 						.setContainer(containerMetadata.getId())
 						.setStreamName(streamName)
 						.setModuleType(moduleType)
@@ -618,7 +618,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 
 				undeployModule(jobName, ModuleType.job.toString(), moduleLabel);
 
-				String deploymentPath = new DeploymentsPath()
+				String deploymentPath = new ModuleDeploymentsPath()
 						.setContainer(containerMetadata.getId())
 						.setStreamName(jobName)
 						.setModuleType(ModuleType.job.toString())

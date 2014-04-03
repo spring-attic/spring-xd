@@ -195,7 +195,8 @@ public class AdminServer implements ContainerRepository, ApplicationListener<Con
 	 */
 	private synchronized void requestLeadership(CuratorFramework client) {
 		try {
-			Paths.ensurePath(client, Paths.DEPLOYMENTS);
+			Paths.ensurePath(client, Paths.MODULE_DEPLOYMENTS);
+			Paths.ensurePath(client, Paths.STREAM_DEPLOYMENTS);
 			Paths.ensurePath(client, Paths.CONTAINERS);
 			Paths.ensurePath(client, Paths.STREAMS);
 			Paths.ensurePath(client, Paths.JOBS);
@@ -270,9 +271,9 @@ public class AdminServer implements ContainerRepository, ApplicationListener<Con
 
 			PathChildrenCache streams = null;
 			PathChildrenCache jobs = null;
-			PathChildrenCacheListener streamListener = null;
-			PathChildrenCacheListener jobListener = null;
-			PathChildrenCacheListener containerListener = null;
+			PathChildrenCacheListener streamListener;
+			PathChildrenCacheListener jobListener;
+			PathChildrenCacheListener containerListener;
 
 			try {
 				streamListener = new StreamListener(AdminServer.this,

@@ -49,8 +49,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class ZooKeeperModuleDefinitionRepository implements ModuleDefinitionRepository {
 
-	private static final String MODULES_NODE = "modules";
-
 	private final ModuleRegistry moduleRegistry;
 
 	private final ModuleDependencyRepository moduleDependencyRepository;
@@ -77,7 +75,7 @@ public class ZooKeeperModuleDefinitionRepository implements ModuleDefinitionRepo
 		Assert.notNull(type, "type is required");
 		ModuleDefinition definition = moduleRegistry.findDefinition(name, type);
 		if (definition == null) {
-			String path = Paths.build(MODULES_NODE, type.toString(), name);
+			String path = Paths.build(Paths.MODULES, type.toString(), name);
 			try {
 				byte[] data = zooKeeperConnection.getClient().getData().forPath(path);
 				ModuleDefinition shallowValue = this.objectMapper.readValue(new String(data, "UTF-8"),
@@ -107,12 +105,12 @@ public class ZooKeeperModuleDefinitionRepository implements ModuleDefinitionRepo
 		}
 		List<ModuleDefinition> results = new ArrayList<ModuleDefinition>();
 		results.addAll(moduleRegistry.findDefinitions(type));
-		String path = Paths.build(MODULES_NODE, type.toString());
+		String path = Paths.build(Paths.MODULES, type.toString());
 		try {
 			List<String> children = zooKeeperConnection.getClient().getChildren().forPath(path);
 			for (String child : children) {
 				byte[] data = zooKeeperConnection.getClient().getData().forPath(
-						Paths.build(MODULES_NODE, type.toString(), child));
+						Paths.build(Paths.MODULES, type.toString(), child));
 				// Check for data (only composed modules have definitions)
 				if (data != null && data.length > 0) {
 
@@ -151,7 +149,7 @@ public class ZooKeeperModuleDefinitionRepository implements ModuleDefinitionRepo
 	public ModuleDefinition save(ModuleDefinition moduleDefinition) {
 		String def = moduleDefinition.getDefinition();
 		if (def != null) {
-			String path = Paths.build(MODULES_NODE, moduleDefinition.getType().toString(),
+			String path = Paths.build(Paths.MODULES, moduleDefinition.getType().toString(),
 					moduleDefinition.getName());
 			byte[] data = null;
 			try {
@@ -187,7 +185,7 @@ public class ZooKeeperModuleDefinitionRepository implements ModuleDefinitionRepo
 
 	@Override
 	public void delete(ModuleDefinition moduleDefinition) {
-		String path = Paths.build(MODULES_NODE, moduleDefinition.getType().toString(), moduleDefinition.getName());
+		String path = Paths.build(Paths.MODULES, moduleDefinition.getType().toString(), moduleDefinition.getName());
 		try {
 			zooKeeperConnection.getClient().delete().deletingChildrenIfNeeded().forPath(path);
 			for (ModuleDefinition composedModule : moduleDefinition.getComposedModuleDefinitions()) {

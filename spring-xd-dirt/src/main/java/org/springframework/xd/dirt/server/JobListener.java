@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.ContainerRepository;
-import org.springframework.xd.dirt.core.DeploymentsPath;
+import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.core.JobsPath;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
@@ -202,7 +202,7 @@ public class JobListener implements PathChildrenCacheListener {
 		try {
 			// todo: consider something more abstract for stream name
 			// OR separate path builders for stream-modules and jobs
-			client.create().creatingParentsIfNeeded().forPath(new DeploymentsPath().setContainer(containerName)
+			client.create().creatingParentsIfNeeded().forPath(new ModuleDeploymentsPath().setContainer(containerName)
 					.setStreamName(jobName)
 					.setModuleType(moduleType)
 					.setModuleLabel(moduleLabel).build());

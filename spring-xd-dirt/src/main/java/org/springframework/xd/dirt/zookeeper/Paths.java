@@ -45,9 +45,9 @@ public class Paths {
 	public static final String ADMIN = "admin";
 
 	/**
-	 * Name of deployments node. Deployments are written as children of this node.
+	 * Name of modules node. Module definitions are written as children of this node.
 	 */
-	public static final String DEPLOYMENTS = "deployments";
+	public static final String MODULES = "modules";
 
 	/**
 	 * Name of containers node. Containers are written as children of this node.
@@ -58,6 +58,23 @@ public class Paths {
 	 * Name of streams node. Streams are written as children of this node.
 	 */
 	public static final String STREAMS = "streams";
+
+	/**
+	 * Name of deployments node. Deployments are written as children of this node.
+	 */
+	public static final String DEPLOYMENTS = "deployments";
+
+	/**
+	 * Name of module deployments node. Module deployment requests for
+	 * individual containers are written as children of this node.
+	 */
+	public static final String MODULE_DEPLOYMENTS = DEPLOYMENTS + '/' + MODULES;
+
+	/**
+	 * Name of stream deployments node. Stream deployment requests are written
+	 * as children of this node.
+	 */
+	public static final String STREAM_DEPLOYMENTS = DEPLOYMENTS + '/' + STREAMS;
 
 	/**
 	 * Name of jobs node. Jobs are written as children of this node.

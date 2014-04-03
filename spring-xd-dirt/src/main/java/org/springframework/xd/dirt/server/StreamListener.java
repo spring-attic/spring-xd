@@ -34,7 +34,7 @@ import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.ContainerMatcher;
 import org.springframework.xd.dirt.cluster.ContainerRepository;
 import org.springframework.xd.dirt.cluster.DefaultContainerMatcher;
-import org.springframework.xd.dirt.core.DeploymentsPath;
+import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.core.Module;
 import org.springframework.xd.dirt.core.ModuleDescriptor;
 import org.springframework.xd.dirt.core.Stream;
@@ -274,7 +274,7 @@ public class StreamListener implements PathChildrenCacheListener {
 			for (Container container : containerMatcher.match(descriptor, containerRepository)) {
 				String containerName = container.getName();
 				try {
-					client.create().creatingParentsIfNeeded().forPath(new DeploymentsPath()
+					client.create().creatingParentsIfNeeded().forPath(new ModuleDeploymentsPath()
 							.setContainer(containerName)
 							.setStreamName(streamName)
 							.setModuleType(moduleType)

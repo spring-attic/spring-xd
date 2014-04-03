@@ -26,7 +26,7 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent.Type;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 
-import org.springframework.xd.dirt.core.DeploymentsPath;
+import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 
 /**
  * A {@link PathChildrenCacheListener} that enables waiting for a stream or job to be deployed or undeployed.
@@ -42,7 +42,7 @@ public class DeploymentsListener implements PathChildrenCacheListener {
 
 	@Override
 	public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
-		DeploymentsPath path = new DeploymentsPath(event.getData().getPath());
+		ModuleDeploymentsPath path = new ModuleDeploymentsPath(event.getData().getPath());
 		if (event.getType().equals(Type.CHILD_ADDED)) {
 			deployQueues.putIfAbsent(path.getStreamName(), new LinkedBlockingQueue<PathChildrenCacheEvent>());
 			LinkedBlockingQueue<PathChildrenCacheEvent> queue = deployQueues.get(path.getStreamName());

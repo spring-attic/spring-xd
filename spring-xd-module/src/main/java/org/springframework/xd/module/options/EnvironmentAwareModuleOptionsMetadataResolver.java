@@ -25,6 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.config.ConfigFileApplicationListener;
+import org.springframework.context.EnvironmentAware;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.EnumerablePropertySource;
@@ -59,7 +60,7 @@ import org.springframework.xd.module.ModuleDefinition;
  * @author Eric Bottard
  */
 public class EnvironmentAwareModuleOptionsMetadataResolver implements ModuleOptionsMetadataResolver, InitializingBean,
-		ResourceLoaderAware
+		ResourceLoaderAware, EnvironmentAware
 {
 
 	/**
@@ -96,11 +97,19 @@ public class EnvironmentAwareModuleOptionsMetadataResolver implements ModuleOpti
 		this.xdModuleConfigLocation = xdModuleConfigLocation;
 	}
 
+	/**
+	 * An environment that reflects values in the {@code xd-module-config.yml} file.
+	 */
 	private ConfigurableEnvironment rootEnvironment;
 
 	private String configName = DEFAULT_XD_MODULE_CONFIG_NAME;
 
 	private ResourceLoader resourceLoader;
+
+	/**
+	 * The parent environment this bean lives in. Used to know which profiles are active at the server level.
+	 */
+	private ConfigurableEnvironment parentEnvironment;
 
 	@Value("${" + XD_MODULE_CONFIG_NAME + ":" + DEFAULT_XD_MODULE_CONFIG_NAME + "}")
 	public void setConfigName(String configName) {
@@ -220,6 +229,7 @@ public class EnvironmentAwareModuleOptionsMetadataResolver implements ModuleOpti
 	 */
 	private ConfigurableEnvironment loadPropertySources(final String searchLocation, final String baseName) {
 		final ConfigurableEnvironment environment = new StandardEnvironment();
+		environment.merge(parentEnvironment);
 		new ConfigFileApplicationListener() {
 
 			public void apply() {
@@ -239,6 +249,11 @@ public class EnvironmentAwareModuleOptionsMetadataResolver implements ModuleOpti
 	@Override
 	public void setResourceLoader(ResourceLoader resourceLoader) {
 		this.resourceLoader = resourceLoader;
+	}
+
+	@Override
+	public void setEnvironment(Environment environment) {
+		this.parentEnvironment = (ConfigurableEnvironment) environment;
 	}
 
 }

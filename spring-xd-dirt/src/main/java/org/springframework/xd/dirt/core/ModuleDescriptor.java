@@ -26,7 +26,7 @@ import org.springframework.xd.module.ModuleType;
 /**
  * A descriptor for module deployment for a specific {@link Stream}. Many attributes of this class are derived from the
  * stream deployment manifest.
- * 
+ *
  * @author Patrick Peralta
  * @author Mark Fisher
  */
@@ -54,19 +54,9 @@ public class ModuleDescriptor {
 	 */
 	private final int index;
 
-	/**
-	 * Group of containers this module should be deployed to.
-	 */
-	private final String group;
-
-	/**
-	 * Number of container instances this module should be deployed to. A value of 0 indicates that this module should
-	 * be deployed to all containers in the {@link #group}. If {@code group} is null and the value is 0, this module
-	 * should be deployed to all containers.
-	 */
-	private final int count;
-
 	private final Map<String, String> parameters = new HashMap<String, String>();
+
+	private final ModuleDeploymentProperties deploymentProperties;
 
 	private String sourceChannelName;
 
@@ -76,7 +66,7 @@ public class ModuleDescriptor {
 
 	/**
 	 * Construct a ModuleDescriptor.
-	 * 
+	 *
 	 * @param moduleDefinition the module definition for this descriptor
 	 * @param streamName name of stream using this module
 	 * @param label label for this module as defined by its stream
@@ -84,19 +74,17 @@ public class ModuleDescriptor {
 	 * @param group container group this module should be deployed to
 	 * @param count number of container instances this module should be deployed to
 	 */
-	public ModuleDescriptor(ModuleDefinition moduleDefinition, String streamName, String label, int index,
-			String group, int count) {
+	public ModuleDescriptor(ModuleDefinition moduleDefinition, String streamName, String label, int index,  ModuleDeploymentProperties deploymentProperties) {
 		this.moduleDefinition = moduleDefinition;
 		this.streamName = streamName;
 		this.label = label;
 		this.index = index;
-		this.group = group;
-		this.count = count;
+		this.deploymentProperties = (deploymentProperties != null) ? deploymentProperties : new ModuleDeploymentProperties();
 	}
 
 	/**
 	 * Return the module definition for this descriptor.
-	 * 
+	 *
 	 * @return the moduleDefinition
 	 */
 	public ModuleDefinition getModuleDefinition() {
@@ -105,7 +93,7 @@ public class ModuleDescriptor {
 
 	/**
 	 * Return the name of the stream using this module.
-	 * 
+	 *
 	 * @return stream name
 	 */
 	public String getStreamName() {
@@ -114,7 +102,7 @@ public class ModuleDescriptor {
 
 	/**
 	 * Return the label for this module as defined by its stream.
-	 * 
+	 *
 	 * @return label for this module
 	 */
 	public String getLabel() {
@@ -124,7 +112,7 @@ public class ModuleDescriptor {
 	/**
 	 * Return the order of processing for this module. Module 0 indicates this is a source module, 1 indicates that a
 	 * source is sending data to this module, etc.
-	 * 
+	 *
 	 * @return order of processing for this module
 	 */
 	public int getIndex() {
@@ -132,23 +120,13 @@ public class ModuleDescriptor {
 	}
 
 	/**
-	 * Return the group of containers this module should be deployed to.
-	 * 
-	 * @return container group name or {@code null} if no group was specified.
+	 * Return the deployment properties for this module. These originate from the deployment manifest provided when
+	 * deploying the stream within which this module is defined.
+	 *
+	 * @return deployment properties
 	 */
-	public String getGroup() {
-		return group;
-	}
-
-	/**
-	 * Return the number of container instances this module should be deployed to. A value of 0 indicates that this
-	 * module should be deployed to all containers in the {@link #group}. If {@code group} is null and the value is 0,
-	 * this module should be deployed to all containers.
-	 * 
-	 * @return number of container instances
-	 */
-	public int getCount() {
-		return count;
+	public ModuleDeploymentProperties getDeploymentProperties() {
+		return this.deploymentProperties;
 	}
 
 	public String getSourceChannelName() {
@@ -193,7 +171,7 @@ public class ModuleDescriptor {
 
 	/**
 	 * Create a new {@link Key} based on this ModuleDescriptor.
-	 * 
+	 *
 	 * @return key that can be used to refer to this object
 	 */
 	public Key newKey() {
@@ -205,8 +183,7 @@ public class ModuleDescriptor {
 	 */
 	@Override
 	public String toString() {
-		return String.format("%s: %s type=%s, group=%s", label, moduleDefinition.getName(), moduleDefinition.getType(),
-				group);
+		return String.format("%s: %s type=%s, deploymentProperties=%s", label, moduleDefinition.getName(), moduleDefinition.getType(), deploymentProperties);
 	}
 
 	/**
@@ -257,7 +234,7 @@ public class ModuleDescriptor {
 
 		/**
 		 * Return the module type.
-		 * 
+		 *
 		 * @return module type
 		 */
 		public ModuleType getType() {
@@ -266,7 +243,7 @@ public class ModuleDescriptor {
 
 		/**
 		 * Return the module label.
-		 * 
+		 *
 		 * @return module label
 		 */
 		public String getLabel() {

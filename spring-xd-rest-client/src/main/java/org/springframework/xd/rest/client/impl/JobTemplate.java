@@ -31,7 +31,7 @@ import org.springframework.xd.rest.client.domain.StepExecutionProgressInfoResour
 
 /**
  * Implementation of the Job-related part of the API.
- * 
+ *
  * @author Glenn Renfro
  * @author Ilayaperumal Gopinathan
  * @author Gunnar Hillert
@@ -63,12 +63,10 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 	}
 
 	@Override
-	public void deploy(String name) {
-
+	public void deploy(String name, String manifest) {
 		String uriTemplate = resources.get("jobs").toString() + "/{name}";
 		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
 		values.add("deploy", "true");
-
 		restTemplate.put(uriTemplate, values, name);
 	}
 

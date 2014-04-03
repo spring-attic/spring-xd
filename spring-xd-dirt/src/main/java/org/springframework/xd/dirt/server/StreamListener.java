@@ -34,8 +34,8 @@ import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.ContainerMatcher;
 import org.springframework.xd.dirt.cluster.ContainerRepository;
 import org.springframework.xd.dirt.cluster.DefaultContainerMatcher;
-import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.core.Module;
+import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.core.ModuleDescriptor;
 import org.springframework.xd.dirt.core.Stream;
 import org.springframework.xd.dirt.core.StreamsPath;
@@ -48,7 +48,7 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 /**
  * Listener implementation that handles stream deployment requests.
- * 
+ *
  * @author Patrick Peralta
  * @author Mark Fisher
  */
@@ -81,7 +81,7 @@ public class StreamListener implements PathChildrenCacheListener {
 
 	/**
 	 * Construct a StreamListener.
-	 * 
+	 *
 	 * @param containerRepository repository to obtain container data
 	 * @param moduleDefinitionRepository repository to obtain module data
 	 * @param moduleOptionsMetadataResolver resolver for module options metadata
@@ -131,17 +131,20 @@ public class StreamListener implements PathChildrenCacheListener {
 
 	/**
 	 * Handle the creation of a new stream deployment.
-	 * 
+	 *
 	 * @param client curator client
 	 * @param data   stream deployment request data
 	 */
 	private void onChildAdded(CuratorFramework client, ChildData data) throws Exception {
 		String streamName = Paths.stripPath(data.getPath());
 
-		// todo: grab deployment manifest data from data.getData()
-
 		byte[] streamDefinition = client.getData().forPath(new StreamsPath().setStreamName(streamName).build());
-		Stream stream = streamFactory.createStream(streamName, mapBytesUtility.toMap(streamDefinition));
+		Map<String, String> map = mapBytesUtility.toMap(streamDefinition);
+		byte[] manifestData = data.getData();
+		if (manifestData != null && manifestData.length > 0) {
+			map.put("manifest", new String(manifestData, "UTF-8"));
+		}
+		Stream stream = streamFactory.createStream(streamName, map);
 
 		LOG.info("Deploying stream {}", stream);
 		prepareStream(client, stream);
@@ -213,7 +216,7 @@ public class StreamListener implements PathChildrenCacheListener {
 	 * </ul>
 	 * The children of these nodes will be ephemeral nodes written by the containers that accept deployment of the
 	 * modules.
-	 * 
+	 *
 	 * @param client curator client
 	 * @param stream stream to be prepared
 	 */
@@ -222,7 +225,6 @@ public class StreamListener implements PathChildrenCacheListener {
 			ModuleDescriptor descriptor = iterator.next();
 			String streamName = stream.getName();
 			String moduleType = descriptor.getModuleDefinition().getType().toString();
-			String moduleName = descriptor.getModuleDefinition().getName();
 			String moduleLabel = descriptor.getLabel();
 
 			String path = new StreamsPath()
@@ -242,10 +244,10 @@ public class StreamListener implements PathChildrenCacheListener {
 
 	/**
 	 * Issue deployment requests for the modules of the given stream.
-	 * 
+	 *
 	 * @param client curator client
 	 * @param stream stream to be deployed
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	private void deployStream(CuratorFramework client, Stream stream) throws Exception {

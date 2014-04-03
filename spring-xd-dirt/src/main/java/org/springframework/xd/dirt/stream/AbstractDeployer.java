@@ -180,7 +180,7 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	 * @return the definition object for the given name
 	 * @throws NoSuchDefinitionException if there is no definition by the given name
 	 */
-	protected D basicDeploy(String name) {
+	protected D basicDeploy(String name, String manifest) {
 		Assert.hasText(name, "name cannot be blank or null");
 		LOG.trace("Deploying {}", name);
 
@@ -188,10 +188,9 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		if (definition == null) {
 			throwNoSuchDefinitionException(name);
 		}
-
 		try {
-			// todo: add the manifest as data (2nd arg of forPath)
-			zkConnection.getClient().create().creatingParentsIfNeeded().forPath(getDeploymentPath(definition));
+			byte[] data = manifest != null ? manifest.getBytes("UTF-8") : null;
+			zkConnection.getClient().create().creatingParentsIfNeeded().forPath(getDeploymentPath(definition), data);
 		}
 		catch (KeeperException.NodeExistsException e) {
 			// todo: is this the right exception to throw here?
@@ -200,7 +199,6 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		catch (Exception e) {
 			throw new RuntimeException(e);
 		}
-
 		return definition;
 	}
 

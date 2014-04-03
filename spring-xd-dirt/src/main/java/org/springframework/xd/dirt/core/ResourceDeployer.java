@@ -19,17 +19,17 @@ import org.springframework.xd.dirt.stream.StreamDefinition;
 
 /**
  * Interface for XD Resource Services.
- * 
+ *
  * @param <R> the kind of resource to deploy (<i>e.g.</i> {@link StreamDefinition})
- * 
+ *
  * @author David Turanski
  * @author Gunnar Hillert
  * @author Ilayaperumal Gopinathan
- * 
+ *
  */
 public interface ResourceDeployer<R extends BaseDefinition> {
 
-	void deploy(String name);
+	void deploy(String name, String manifest);
 
 	/**
 	 * @return Iterable all definitions
@@ -45,7 +45,7 @@ public interface ResourceDeployer<R extends BaseDefinition> {
 
 	/**
 	 * Retrieves a single Definition or null if none is found.
-	 * 
+	 *
 	 * @param name of the definition to find. Must not be null.
 	 */
 	R findOne(String name);
@@ -53,7 +53,7 @@ public interface ResourceDeployer<R extends BaseDefinition> {
 	/**
 	 * Delete the Definition using the provided name. The definition may also be {@link #undeploy(String) undeployed} as
 	 * part of that process.
-	 * 
+	 *
 	 * @param name the name of the definition to delete
 	 */
 	void delete(String name);

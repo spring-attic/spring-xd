@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,15 +18,15 @@ package org.springframework.xd.rest.client;
 
 /**
  * Operations common to resources like Stream and Job.
- * 
+ *
  * @author Ilayaperumal Gopinathan
  */
 public interface ResourceOperations {
 
 	/**
-	 * Deploy an already created resource.
+	 * Deploy an already created resource. Optionally providing a manifest.
 	 */
-	public void deploy(String name);
+	public void deploy(String name, String manifest);
 
 	/**
 	 * Undeploy a deployed resource, retaining its definition.

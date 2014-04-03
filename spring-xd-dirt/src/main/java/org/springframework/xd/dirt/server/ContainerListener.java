@@ -53,7 +53,7 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 /**
  * Listener implementation that is invoked when containers are added/removed/modified.
- * 
+ *
  * @author Patrick Peralta
  * @author Mark Fisher
  */
@@ -102,7 +102,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 
 	/**
 	 * Construct a ContainerListener.
-	 * 
+	 *
 	 * @param containerRepository           repository for container data
 	 * @param streamDefinitionRepository    repository for streams
 	 * @param moduleDefinitionRepository    repository for module definitions
@@ -151,7 +151,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 	/**
 	 * Handle the arrival of a container. This implementation will scan the existing streams and determine if any
 	 * modules should be deployed to the new container.
-	 * 
+	 *
 	 * @param client curator client
 	 * @param data node data for the container that arrived
 	 */
@@ -170,7 +170,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 
 			for (Iterator<ModuleDescriptor> descriptorIterator = stream.getDeploymentOrderIterator(); descriptorIterator.hasNext();) {
 				ModuleDescriptor descriptor = descriptorIterator.next();
-				String group = descriptor.getGroup();
+				String group = descriptor.getDeploymentProperties().getTargetGroup();
 
 				if (StringUtils.isEmpty(group) || container.getGroups().contains(group)) {
 					String moduleType = descriptor.getModuleDefinition().getType().toString();
@@ -181,7 +181,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 					List<String> containersForModule = getContainersForModule(client, descriptor);
 					if (!containersForModule.contains(containerName)) {
 						// this container has not deployed this module; determine if it should
-						int moduleCount = descriptor.getCount();
+						int moduleCount = descriptor.getDeploymentProperties().getCount();
 						if (moduleCount <= 0 || containersForModule.size() < moduleCount) {
 							// either the module has a count of 0 (therefore it should be deployed everywhere)
 							// or the number of containers that have deployed the module is less than the
@@ -246,7 +246,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 	/**
 	 * Handle the departure of a container. This will scan the list of modules deployed to the departing container and
 	 * redeploy them if required.
-	 * 
+	 *
 	 * @param client curator client
 	 * @param data node data for the container that departed
 	 */
@@ -290,12 +290,18 @@ public class ContainerListener implements PathChildrenCacheListener {
 				else {
 					Stream stream = streamMap.get(streamName);
 					if (stream == null) {
-						stream = streamFactory.createStream(streamName, mapBytesUtility.toMap(
-								client.getData().forPath(Paths.build(Paths.STREAMS, streamName))));
+						Map<String, String> map = mapBytesUtility.toMap(
+								streamDefinitions.getCurrentData(
+										new StreamsPath().setStreamName(streamName).build()).getData());
+						byte[] manifestData = client.getData().forPath(Paths.build(Paths.STREAM_DEPLOYMENTS, streamName));
+						if (manifestData != null && manifestData.length > 0) {
+							map.put("manifest", new String(manifestData, "UTF-8"));
+						}
+						stream = streamFactory.createStream(streamName, map);
 						streamMap.put(streamName, stream);
 					}
 					ModuleDescriptor moduleDescriptor = stream.getModuleDescriptor(moduleLabel, moduleType);
-					if (moduleDescriptor.getCount() > 0) {
+					if (moduleDescriptor.getDeploymentProperties().getCount() > 0) {
 						Iterator<Container> iterator = containerMatcher.match(moduleDescriptor, containerRepository).iterator();
 						if (iterator.hasNext()) {
 							Container targetContainer = iterator.next();
@@ -320,7 +326,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 					}
 					else {
 						StringBuilder builder = new StringBuilder();
-						String group = moduleDescriptor.getGroup();
+						String group = moduleDescriptor.getDeploymentProperties().getTargetGroup();
 						builder.append("Module '").append(moduleLabel).append("' is targeted to all containers");
 						if (StringUtils.hasText(group)) {
 							builder.append(" belonging to group '").append(group).append('\'');

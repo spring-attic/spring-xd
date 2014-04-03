@@ -17,10 +17,12 @@
 package org.springframework.xd.dirt.stream;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.core.Stream;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
@@ -61,8 +63,19 @@ public class StreamFactory {
 
 		Stream.Builder builder = new Stream.Builder();
 		builder.setName(name);
-		if (properties != null) {
-			builder.setProperties(properties);
+
+		String manifest = properties.get("manifest");
+		if (!StringUtils.isEmpty(manifest)) {
+			Map<String, String> deploymentProperties = new HashMap<String, String>();
+			String[] entries = StringUtils.commaDelimitedListToStringArray(manifest);
+			for (String entry : entries) {
+				int firstEquals = entry.indexOf('=');
+				if (firstEquals != -1) {
+					// todo: should key only be a "flag" as in: put(key, true)?
+					deploymentProperties.put(entry.substring(0, firstEquals), entry.substring(firstEquals + 1));
+				}
+			}
+			builder.setDeploymentProperties(deploymentProperties);
 		}
 
 		// TODO: compare with the createStream method of the prototype

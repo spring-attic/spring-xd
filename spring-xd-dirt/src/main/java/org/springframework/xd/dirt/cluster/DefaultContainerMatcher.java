@@ -42,7 +42,7 @@ import org.springframework.xd.dirt.core.ModuleDescriptor;
  * <p/>
  * In cases where all containers are not deploying a module, an attempt at container round robin distribution for module
  * deployments will be made (but not guaranteed).
- * 
+ *
  * @author Patrick Peralta
  * @author Mark Fisher
  */
@@ -65,7 +65,7 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 	public Collection<Container> match(ModuleDescriptor moduleDescriptor, ContainerRepository containerRepository) {
 		LOG.debug("Matching containers for module {}", moduleDescriptor);
 
-		String group = moduleDescriptor.getGroup();
+		String group = moduleDescriptor.getDeploymentProperties().getTargetGroup();
 		List<Container> candidates = new ArrayList<Container>();
 
 		for (Iterator<Container> iterator = containerRepository.getContainerIterator(); iterator.hasNext();) {
@@ -82,7 +82,7 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 			return candidates;
 		}
 
-		int count = moduleDescriptor.getCount();
+		int count = moduleDescriptor.getDeploymentProperties().getCount();
 		int candidateCount = candidates.size();
 		if (count <= 0 || count >= candidateCount) {
 			// count of 0 means all members of the group

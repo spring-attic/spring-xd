@@ -384,8 +384,9 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 			List<ModuleDeploymentRequest> requests = this.parser.parse(jobName, map.get("definition"),
 					ParsingContext.job);
 			ModuleDeploymentRequest request = requests.get(0);
-			ModuleDescriptor moduleDescriptor = new ModuleDescriptor(moduleDefinition, request.getGroup(), jobLabel,
-					request.getIndex(), null, 1);
+			// todo: support deployment properties for job modules
+			ModuleDescriptor moduleDescriptor = new ModuleDescriptor(
+					moduleDefinition, request.getGroup(), jobLabel, request.getIndex(), null);
 			moduleDescriptor.addParameters(request.getParameters());
 			Module module = deployModule(moduleDescriptor);
 
@@ -495,8 +496,6 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		int index = compositeDescriptor.getIndex();
 		String sourceChannelName = compositeDescriptor.getSourceChannelName();
 		String sinkChannelName = compositeDescriptor.getSinkChannelName();
-		String group = compositeDescriptor.getGroup();
-		int count = compositeDescriptor.getCount();
 		ModuleDefinition compositeDefinition = compositeDescriptor.getModuleDefinition();
 
 		List<ModuleDeploymentRequest> children = this.parser.parse(
@@ -510,7 +509,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 					childRequest.getModule(), childRequest.getType());
 			String label = ""; // todo: this should be the valid label for each module
 			ModuleDescriptor childDescriptor = new ModuleDescriptor(childDefinition,
-					childRequest.getGroup(), label, childRequest.getIndex(), group, count);
+					childRequest.getGroup(), label, childRequest.getIndex(), compositeDescriptor.getDeploymentProperties());
 			// todo: hacky, but due to parser results being reversed, we add each at index 0
 			childrenModules.add(0, createSimpleModule(childDescriptor, narrowedOptions));
 		}

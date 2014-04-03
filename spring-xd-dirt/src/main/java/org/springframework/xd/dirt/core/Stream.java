@@ -35,7 +35,7 @@ import org.springframework.xd.module.ModuleType;
 
 /**
  * Domain model for an XD Stream. A stream consists of a set of modules used to process the flow of data.
- * 
+ *
  * @author Patrick Peralta
  */
 public class Stream {
@@ -44,11 +44,6 @@ public class Stream {
 	 * Name of stream.
 	 */
 	private final String name;
-
-	/**
-	 * Stream definition.
-	 */
-	private final String definition;
 
 	/**
 	 * Source module for this stream. This module is responsible for obtaining data for this stream.
@@ -77,13 +72,13 @@ public class Stream {
 	private final String sinkChannelName;
 
 	/**
-	 * Properties for this stream.
+	 * Deployment properties for this stream.
 	 */
-	private final Map<String, String> properties;
+	private final Map<String, String> deploymentProperties;
 
 	/**
 	 * Construct a Stream.
-	 * 
+	 *
 	 * @param name stream name
 	 * @param source source module
 	 * @param sourceChannelName source channel
@@ -93,7 +88,7 @@ public class Stream {
 	 * @param properties stream properties
 	 */
 	private Stream(String name, ModuleDescriptor source, String sourceChannelName, List<ModuleDescriptor> processors,
-			ModuleDescriptor sink, String sinkChannelName, Map<String, String> properties) {
+			ModuleDescriptor sink, String sinkChannelName, Map<String, String> deploymentProperties) {
 		this.name = name;
 		this.source = source;
 		this.sourceChannelName = sourceChannelName;
@@ -102,14 +97,12 @@ public class Stream {
 				: processors);
 		this.sink = sink;
 		this.sinkChannelName = sinkChannelName;
-		this.properties = properties;
-		this.definition = properties.get("definition");
-		Assert.hasText(this.definition, "Stream properties require a 'definition' value");
+		this.deploymentProperties = deploymentProperties;
 	}
 
 	/**
 	 * Return the name of this stream.
-	 * 
+	 *
 	 * @return stream name
 	 */
 	public String getName() {
@@ -118,7 +111,7 @@ public class Stream {
 
 	/**
 	 * Return the source module for this stream.
-	 * 
+	 *
 	 * @return source module
 	 */
 	public ModuleDescriptor getSource() {
@@ -127,7 +120,7 @@ public class Stream {
 
 	/**
 	 * Return the source channel for this stream (only present if no source module).
-	 * 
+	 *
 	 * @return source channel name
 	 */
 	public String getSourceChannelName() {
@@ -136,7 +129,7 @@ public class Stream {
 
 	/**
 	 * Return the ordered list of processors for this stream.
-	 * 
+	 *
 	 * @return list of processors
 	 */
 	public List<ModuleDescriptor> getProcessors() {
@@ -145,7 +138,7 @@ public class Stream {
 
 	/**
 	 * Return the sink for this stream.
-	 * 
+	 *
 	 * @return sink module
 	 */
 	public ModuleDescriptor getSink() {
@@ -154,7 +147,7 @@ public class Stream {
 
 	/**
 	 * Return the sink channel for this stream (only present if no sink module).
-	 * 
+	 *
 	 * @return sink channel name
 	 */
 	public String getSinkChannelName() {
@@ -165,7 +158,7 @@ public class Stream {
 	 * Return an iterator that indicates the order of module deployments for this stream. The modules are returned in
 	 * reverse order; i.e. the sink is returned first followed by the processors in reverse order followed by the
 	 * source.
-	 * 
+	 *
 	 * @return iterator that iterates over the modules in deployment order
 	 */
 	public Iterator<ModuleDescriptor> getDeploymentOrderIterator() {
@@ -173,22 +166,22 @@ public class Stream {
 	}
 
 	/**
-	 * Return the properties for this stream.
-	 * 
-	 * @return stream properties
+	 * Return the deployment properties for this stream.
+	 *
+	 * @return stream deployment properties
 	 */
-	public Map<String, String> getProperties() {
-		return properties;
+	public Map<String, String> getDeploymentProperties() {
+		return deploymentProperties;
 	}
 
 	/**
 	 * Return the module descriptor for the given module label and type.
-	 * 
+	 *
 	 * @param moduleLabel module label
 	 * @param moduleType module type
-	 * 
+	 *
 	 * @return module descriptor
-	 * 
+	 *
 	 * @throws IllegalArgumentException if the module name/type cannot be found
 	 */
 	public ModuleDescriptor getModuleDescriptor(String moduleLabel, String moduleType) {
@@ -221,11 +214,7 @@ public class Stream {
 	 */
 	@Override
 	public String toString() {
-
-		return "Stream{" +
-				"name='" + name + '\'' +
-				", definition='" + definition +
-				"'}";
+		return "Stream{name='" + name + "'}";
 	}
 
 	/**
@@ -363,15 +352,15 @@ public class Stream {
 		private Map<String, Map<String, String>> moduleParameters = new LinkedHashMap<String, Map<String, String>>();
 
 		/**
-		 * Stream properties
+		 * Stream deployment properties
 		 */
-		private Map<String, String> properties = Collections.emptyMap();
+		private Map<String, String> deploymentProperties = Collections.emptyMap();
 
 		/**
 		 * Set the stream name.
-		 * 
+		 *
 		 * @param name stream name
-		 * 
+		 *
 		 * @return this builder
 		 */
 		public Builder setName(String name) {
@@ -381,9 +370,9 @@ public class Stream {
 
 		/**
 		 * Set the source channel name.
-		 * 
+		 *
 		 * @param sourceChannelName source channel name
-		 * 
+		 *
 		 * @return this builder
 		 */
 		public Builder setSourceChannelName(String sourceChannelName) {
@@ -396,9 +385,9 @@ public class Stream {
 
 		/**
 		 * Set the sink channel name.
-		 * 
+		 *
 		 * @param sinkChannelName sink channel name
-		 * 
+		 *
 		 * @return this builder
 		 */
 		public Builder setSinkChannelName(String sinkChannelName) {
@@ -415,7 +404,7 @@ public class Stream {
 		/**
 		 * Add a module definition to this stream builder. Processor modules will be added to the stream in the order
 		 * they are added to this builder.
-		 * 
+		 *
 		 * @param label label for this module
 		 * @param moduleDefinition module definition to add
 		 * @return this builder
@@ -437,20 +426,20 @@ public class Stream {
 		}
 
 		/**
-		 * Set the properties for the stream.
-		 * 
-		 * @param properties stream properties
-		 * 
+		 * Set the deployment properties for the stream.
+		 *
+		 * @param properties stream deployment properties
+		 *
 		 * @return this builder
 		 */
-		public Builder setProperties(Map<String, String> properties) {
-			this.properties = properties;
+		public Builder setDeploymentProperties(Map<String, String> deploymentProperties) {
+			this.deploymentProperties = deploymentProperties;
 			return this;
 		}
 
 		/**
 		 * Create a new instance of {@link Stream}.
-		 * 
+		 *
 		 * @return new Stream instance
 		 */
 		public Stream build() {
@@ -462,10 +451,14 @@ public class Stream {
 			for (Map.Entry<String, ModuleDefinition> entry : moduleDefinitions.entrySet()) {
 				String label = entry.getKey();
 				ModuleDefinition moduleDefinition = entry.getValue();
-				String group = properties.get(String.format("module.%s.group", moduleDefinition.getName()));
-				int count = convert(properties.get(String.format("module.%s.count", moduleDefinition.getName())));
-
-				ModuleDescriptor descriptor = new ModuleDescriptor(moduleDefinition, name, label, i, group, count);
+				ModuleDeploymentProperties moduleDeploymentProperties = new ModuleDeploymentProperties();
+				for (String key : deploymentProperties.keySet()) {
+					String prefix = String.format("module.%s.", moduleDefinition.getName());
+					if (key.startsWith(prefix)) {
+						moduleDeploymentProperties.put(key.substring(prefix.length()), deploymentProperties.get(key));
+					}
+				}
+				ModuleDescriptor descriptor = new ModuleDescriptor(moduleDefinition, name, label, i, moduleDeploymentProperties);
 				if (!StringUtils.isEmpty(moduleDefinition.getDefinition())) {
 					descriptor.setComposed(true);
 				}
@@ -494,19 +487,9 @@ public class Stream {
 			Assert.isTrue(sinkDescriptor != null || sinkChannelName != null);
 
 			return new Stream(name, sourceDescriptor, sourceChannelName, processorDescriptors, sinkDescriptor,
-					sinkChannelName, properties);
+					sinkChannelName, deploymentProperties);
 		}
 
-		/**
-		 * Convert a String value to an int. Returns 1 if the String is null.
-		 * 
-		 * @param s string to convert
-		 * 
-		 * @return int value of String, or 1 if null
-		 */
-		private int convert(String s) {
-			return s == null ? 1 : Integer.valueOf(s);
-		}
 	}
 
 }

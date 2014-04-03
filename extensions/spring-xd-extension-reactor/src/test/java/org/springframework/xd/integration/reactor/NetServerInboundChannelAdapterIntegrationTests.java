@@ -101,7 +101,7 @@ public class NetServerInboundChannelAdapterIntegrationTests {
 		}
 
 		@Bean
-		public PropertySource optionsMetadataPropertySource() throws BindException {
+		public PropertySource<?> optionsMetadataPropertySource() throws BindException {
 			Map<String, String> opts = new HashMap<>();
 			opts.put("port", String.valueOf(port));
 

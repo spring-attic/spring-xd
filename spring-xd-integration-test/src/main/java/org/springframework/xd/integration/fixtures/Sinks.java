@@ -49,7 +49,7 @@ public class Sinks {
 		this.environment = environment;
 	}
 
-	public AbstractModuleFixture getSink(Class clazz) {
+	public AbstractModuleFixture getSink(Class<?> clazz) {
 		AbstractModuleFixture result = null;
 		result = sinks.get(clazz.getName());
 		if (result == null) {
@@ -88,7 +88,7 @@ public class Sinks {
 		return new SimpleFileSink(dir, fileName);
 	}
 
-	public JdbcSink jdbc() throws Exception{
+	public JdbcSink jdbc() throws Exception {
 		if (environment.getJdbcUrl() == null) {
 			return null;
 		}
@@ -106,8 +106,8 @@ public class Sinks {
 
 		jdbcSink = jdbcSink.start();
 
-		if(!jdbcSink.isReady()){
-			throw new Exception ("Unable to connecto to database.");
+		if (!jdbcSink.isReady()) {
+			throw new Exception("Unable to connecto to database.");
 		}
 		return jdbcSink;
 	}

@@ -39,8 +39,8 @@ Report issues via the [Spring XD JIRA][].
 
 ## Continuous Integration
 
-* **Master**: https://build.springsource.org/browse/XD-MASTER
-* **Sonar**: https://build.springsource.org/browse/XD-SONAR
+* **Master**: https://build.spring.io/browse/XD-MASTER
+* **Sonar**: https://build.spring.io/browse/XD-SONAR
 
 ## Metrics
 

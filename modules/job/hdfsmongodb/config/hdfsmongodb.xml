@@ -65,7 +65,7 @@
 		<mongo:custom-converters>
 			<mongo:converter>
 				<bean class="org.springframework.xd.mongodb.TupleWriteConverter">
-					<property name="idField" value="${idField:null}"/>
+					<property name="idField" value="${idField:}"/>
 				</bean>
 			</mongo:converter>
 		</mongo:custom-converters>

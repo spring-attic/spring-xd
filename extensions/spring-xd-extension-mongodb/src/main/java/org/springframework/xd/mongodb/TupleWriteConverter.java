@@ -13,35 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.mongodb;
+
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.xd.tuple.Tuple;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.util.Assert;
-import org.springframework.xd.tuple.Tuple;
 
 /**
  * @author Luke Taylor
  */
-public class TupleWriteConverter implements Converter<Tuple,DBObject> {
+public class TupleWriteConverter implements Converter<Tuple, DBObject> {
+
 	private String idField = null;
 
 	/**
-	 * Set the tuple field name which will be used as the Mongo _id.
-	 * If not set, the id property of the tuple will be used.
-	 *
+	 * Set the tuple field name which will be used as the Mongo _id. If not set, the id property of the tuple will be
+	 * used.
+	 * 
 	 * @param idField the name of the field to use as the identity in MongoDB.
 	 */
 	public void setIdField(String idField) {
-		Assert.hasText("idField cannot be empty");
 		this.idField = idField;
 	}
 
 	@Override
 	public DBObject convert(Tuple source) {
 		DBObject dbo = new BasicDBObject();
-		for (int i=0; i < source.getFieldCount(); i++) {
+		for (int i = 0; i < source.getFieldCount(); i++) {
 			String name = source.getFieldNames().get(i);
 			if (name.equals(idField)) {
 				dbo.put("_id", source.getValue(i));
@@ -56,4 +57,3 @@ public class TupleWriteConverter implements Converter<Tuple,DBObject> {
 		return dbo;
 	}
 }
-

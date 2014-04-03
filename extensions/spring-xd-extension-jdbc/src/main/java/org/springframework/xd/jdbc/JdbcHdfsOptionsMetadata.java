@@ -1,17 +1,19 @@
+
 package org.springframework.xd.jdbc;
 
 import javax.validation.constraints.AssertTrue;
 
 import org.springframework.util.StringUtils;
+import org.springframework.xd.module.options.mixins.BatchJobRestartableOptionMixin;
+import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
 
 /**
  * @author Luke Taylor
  * @author Ilayaperumal Gopinathan
  */
+@Mixin(BatchJobRestartableOptionMixin.class)
 public class JdbcHdfsOptionsMetadata extends AbstractJdbcOptionsMetadata {
-
-	private boolean restartable;
 
 	private String tableName = "";
 
@@ -26,12 +28,6 @@ public class JdbcHdfsOptionsMetadata extends AbstractJdbcOptionsMetadata {
 	private String directory;
 
 	private String fileExtension = "csv";
-
-
-	@ModuleOption("whether the job should be restartable or not in case of failure")
-	public void setRestartable(boolean restartable) {
-		this.restartable = restartable;
-	}
 
 	@ModuleOption("the table to read data from")
 	public void setTableName(String tableName) {
@@ -52,7 +48,8 @@ public class JdbcHdfsOptionsMetadata extends AbstractJdbcOptionsMetadata {
 	boolean isEitherSqlOrTableAndColumns() {
 		if (!StringUtils.hasText(sql)) {
 			return StringUtils.hasText(tableName) && StringUtils.hasText(columns);
-		} else {
+		}
+		else {
 			return !StringUtils.hasText(tableName) && !StringUtils.hasText(columns);
 		}
 	}
@@ -75,10 +72,6 @@ public class JdbcHdfsOptionsMetadata extends AbstractJdbcOptionsMetadata {
 	@ModuleOption("the file extension to use (defaults to 'csv')")
 	public void setFileExtension(String fileExtension) {
 		this.fileExtension = fileExtension;
-	}
-
-	public boolean getRestartable() {
-		return restartable;
 	}
 
 	public String getTableName() {

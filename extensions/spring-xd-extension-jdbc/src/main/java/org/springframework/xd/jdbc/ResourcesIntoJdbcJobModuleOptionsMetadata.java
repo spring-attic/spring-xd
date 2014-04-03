@@ -16,65 +16,25 @@
 
 package org.springframework.xd.jdbc;
 
-import javax.validation.constraints.NotNull;
-
-import org.springframework.xd.module.options.spi.ModuleOption;
+import org.springframework.xd.module.options.mixins.BatchJobDeleteFilesOptionMixin;
+import org.springframework.xd.module.options.mixins.BatchJobFieldNamesOptionMixin;
+import org.springframework.xd.module.options.mixins.BatchJobResourcesOptionMixin;
+import org.springframework.xd.module.options.mixins.BatchJobRestartableOptionMixin;
+import org.springframework.xd.module.options.spi.Mixin;
 
 /**
  * Typical class for metadata about jobs that slurp csv resources into jdbc. Can be used as is or extended if needed.
  * 
  * @author Eric Bottard
+ * @author Ilayaperumal Gopinathan
  */
+@Mixin({ BatchJobRestartableOptionMixin.class, BatchJobResourcesOptionMixin.class,
+	BatchJobDeleteFilesOptionMixin.class, BatchJobFieldNamesOptionMixin.class })
 public class ResourcesIntoJdbcJobModuleOptionsMetadata extends
 		AbstractImportToJdbcOptionsMetadata {
-
-	private boolean restartable;
-
-	private String names;
-
-	private String resources;
-
-	private boolean deleteFiles;
 
 	public ResourcesIntoJdbcJobModuleOptionsMetadata() {
 		configProperties = "batch-jdbc";
 	}
 
-	@ModuleOption("whether the job should be restartable or not in case of failure")
-	public void setRestartable(boolean restartable) {
-		this.restartable = restartable;
-	}
-
-	@ModuleOption("the field names in the CSV file, used to map the data to the corresponding table columns")
-	public void setNames(String names) {
-		this.names = names;
-	}
-
-	@ModuleOption("the list of paths to import (Spring resources)")
-	public void setResources(String resources) {
-		this.resources = resources;
-	}
-
-	@ModuleOption("whether to delete files after successful import")
-	public void setDeleteFiles(boolean deleteFiles) {
-		this.deleteFiles = deleteFiles;
-	}
-
-	public boolean getRestartable() {
-		return restartable;
-	}
-
-	@NotNull
-	public String getNames() {
-		return names;
-	}
-
-	@NotNull
-	public String getResources() {
-		return resources;
-	}
-
-	public boolean getDeleteFiles() {
-		return deleteFiles;
-	}
 }

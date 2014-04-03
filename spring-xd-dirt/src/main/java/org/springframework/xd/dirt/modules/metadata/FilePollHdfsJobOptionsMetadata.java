@@ -1,20 +1,21 @@
 
 package org.springframework.xd.dirt.modules.metadata;
 
+import org.springframework.xd.module.options.mixins.BatchJobDeleteFilesOptionMixin;
+import org.springframework.xd.module.options.mixins.BatchJobFieldNamesOptionMixin;
+import org.springframework.xd.module.options.mixins.BatchJobRestartableOptionMixin;
+import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
 
 /**
  * Describes the options for the filepollhdfs job.
  * 
  * @author Luke Taylor
+ * @author Ilayaperumal Gopinathan
  */
+@Mixin({ BatchJobRestartableOptionMixin.class, BatchJobDeleteFilesOptionMixin.class,
+	BatchJobFieldNamesOptionMixin.class })
 public class FilePollHdfsJobOptionsMetadata {
-
-	private boolean restartable;
-
-	private boolean deleteFiles;
-
-	private String names;
 
 	private String fileName;
 
@@ -23,21 +24,6 @@ public class FilePollHdfsJobOptionsMetadata {
 	private String directory;
 
 	private String fileExtension = "csv";
-
-	@ModuleOption("whether the job should be restartable or not in case of failure")
-	public void setRestartable(boolean restartable) {
-		this.restartable = restartable;
-	}
-
-	@ModuleOption("whether to delete files after successful import")
-	public void setDeleteFiles(boolean deleteFiles) {
-		this.deleteFiles = deleteFiles;
-	}
-
-	@ModuleOption("the field names in the CSV file")
-	public void setNames(String names) {
-		this.names = names;
-	}
 
 	@ModuleOption("the filename to use in HDFS")
 	public void setFileName(String fileName) {
@@ -57,18 +43,6 @@ public class FilePollHdfsJobOptionsMetadata {
 	@ModuleOption("the file extension to use")
 	public void setFileExtension(String fileExtension) {
 		this.fileExtension = fileExtension;
-	}
-
-	public boolean getRestartable() {
-		return restartable;
-	}
-
-	public boolean getDeleteFiles() {
-		return deleteFiles;
-	}
-
-	public String getNames() {
-		return names;
 	}
 
 	public String getFileName() {

@@ -50,7 +50,7 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.SocketUtils;
 import org.springframework.xd.dirt.config.TestMessageBusInjection;
 import org.springframework.xd.dirt.container.ContainerMetadata;
-import org.springframework.xd.dirt.core.DeploymentsPath;
+import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.integration.test.SingleNodeIntegrationTestSupport;
 import org.springframework.xd.dirt.integration.test.sink.NamedChannelSink;
 import org.springframework.xd.dirt.integration.test.sink.SingleNodeNamedChannelSinkFactory;
@@ -200,7 +200,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 			TestMessageBusInjection.injectMessageBus(singleNodeApplication, testMessageBus);
 		}
 		ContainerMetadata cm = singleNodeApplication.containerContext().getBean(ContainerMetadata.class);
-		integrationSupport.addPathListener(Paths.build(Paths.DEPLOYMENTS, cm.getId()), deploymentsListener);
+		integrationSupport.addPathListener(Paths.build(Paths.MODULE_DEPLOYMENTS, cm.getId()), deploymentsListener);
 	}
 
 	@AfterClass
@@ -211,7 +211,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		}
 		if (singleNodeApplication.containerContext().isActive()) {
 			ContainerMetadata cm = singleNodeApplication.containerContext().getBean(ContainerMetadata.class);
-			integrationSupport.removePathListener(Paths.build(Paths.DEPLOYMENTS, cm.getId()), deploymentsListener);
+			integrationSupport.removePathListener(Paths.build(Paths.MODULE_DEPLOYMENTS, cm.getId()), deploymentsListener);
 		}
 	}
 
@@ -370,7 +370,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 
 		@Override
 		public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
-			DeploymentsPath path = new DeploymentsPath(event.getData().getPath());
+			ModuleDeploymentsPath path = new ModuleDeploymentsPath(event.getData().getPath());
 			if (event.getType().equals(Type.CHILD_ADDED)) {
 				deployQueues.putIfAbsent(path.getStreamName(), new LinkedBlockingQueue<PathChildrenCacheEvent>());
 				LinkedBlockingQueue<PathChildrenCacheEvent> queue = deployQueues.get(path.getStreamName());

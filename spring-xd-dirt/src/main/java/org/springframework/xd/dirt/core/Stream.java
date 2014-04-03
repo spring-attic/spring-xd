@@ -162,15 +162,6 @@ public class Stream {
 	}
 
 	/**
-	 * Return true if this stream should be deployed.
-	 * 
-	 * @return true if this stream should be deployed
-	 */
-	public boolean isDeploy() {
-		return Boolean.parseBoolean(properties.get("deploy"));
-	}
-
-	/**
 	 * Return an iterator that indicates the order of module deployments for this stream. The modules are returned in
 	 * reverse order; i.e. the sink is returned first followed by the processors in reverse order followed by the
 	 * source.

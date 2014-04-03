@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
 
 import org.springframework.beans.factory.InitializingBean;
@@ -41,7 +43,7 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 
 /**
  * Job instance repository. It should only return values for Jobs that are deployed.
- * 
+ *
  * @author Mark Fisher
  */
 // todo: the JobRepository abstraction can be removed once we are fully zk-enabled since we do not need to
@@ -107,17 +109,18 @@ public class ZooKeeperJobRepository implements JobRepository, InitializingBean {
 
 	@Override
 	public Job findOne(String id) {
+		CuratorFramework client = zkConnection.getClient();
 		JobsPath path = new JobsPath().setJobName(id);
 		try {
-			Stat stat = zkConnection.getClient().checkExists().forPath(path.build());
-			if (stat != null) {
+			Stat definitionStat = client.checkExists().forPath(path.build());
+			if (definitionStat != null) {
 				byte[] data = zkConnection.getClient().getData().forPath(path.build());
 				Map<String, String> map = mapBytesUtility.toMap(data);
-				Job job = new Job(new JobDefinition(id,
-						map.get("definition"),
-						Boolean.parseBoolean(map.get("deploy"))));
-				if (job.getDefinition().isDeploy()) {
-					job.setStartedAt(new Date(stat.getCtime()));
+				Job job = new Job(new JobDefinition(id, map.get("definition")));
+
+				Stat deployStat = client.checkExists().forPath(Paths.build(Paths.JOB_DEPLOYMENTS, id));
+				if (deployStat != null) {
+					job.setStartedAt(new Date(deployStat.getCtime()));
 					return job;
 				}
 			}
@@ -162,34 +165,54 @@ public class ZooKeeperJobRepository implements JobRepository, InitializingBean {
 
 	@Override
 	public long count() {
-		int count = 0;
-		List<Job> all = findAll();
-		for (Job job : all) {
-			if (job.getDefinition().isDeploy()) {
-				count++;
-			}
+		try {
+			Stat stat = zkConnection.getClient().checkExists().forPath(Paths.JOB_DEPLOYMENTS);
+			return stat != null ? stat.getNumChildren() : 0;
 		}
-		return count;
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
 	public void delete(String id) {
-		// job instances are "deleted" when a JobListener undeploys a job
+		try {
+			zkConnection.getClient().delete().forPath(Paths.build(Paths.JOB_DEPLOYMENTS, id));
+		}
+		catch (KeeperException.NoNodeException e) {
+			// ignore
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
 	public void delete(Job entity) {
-		// job instances are "deleted" when a JobListener undeploys a job
+		delete(entity.getDefinition().getName());
 	}
 
 	@Override
 	public void delete(Iterable<? extends Job> entities) {
-		// job instances are "deleted" when a JobListener undeploys a job
+		for (Job job : entities) {
+			delete(job);
+		}
 	}
 
 	@Override
 	public void deleteAll() {
-		// job instances are "deleted" when a JobListener undeploys a job
+		try {
+			List<String> children = zkConnection.getClient().getChildren().forPath(Paths.JOB_DEPLOYMENTS);
+			for (String child : children) {
+				delete(child);
+			}
+		}
+		catch (KeeperException.NoNodeException e) {
+			// ignore
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override

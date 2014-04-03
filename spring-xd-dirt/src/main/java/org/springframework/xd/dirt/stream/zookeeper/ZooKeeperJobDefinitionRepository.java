@@ -112,7 +112,6 @@ public class ZooKeeperJobDefinitionRepository implements JobDefinitionRepository
 		try {
 			Map<String, String> map = new HashMap<String, String>();
 			map.put("definition", entity.getDefinition());
-			map.put("deploy", Boolean.toString(entity.isDeploy()));
 
 			CuratorFramework client = zkConnection.getClient();
 			String path = Paths.build(Paths.JOBS, entity.getName());
@@ -143,7 +142,7 @@ public class ZooKeeperJobDefinitionRepository implements JobDefinitionRepository
 				return null;
 			}
 			Map<String, String> map = this.mapBytesUtility.toMap(bytes);
-			return new JobDefinition(id, map.get("definition"), Boolean.parseBoolean(map.get("deploy")));
+			return new JobDefinition(id, map.get("definition"));
 		}
 		catch (NoNodeException e) {
 			return null;

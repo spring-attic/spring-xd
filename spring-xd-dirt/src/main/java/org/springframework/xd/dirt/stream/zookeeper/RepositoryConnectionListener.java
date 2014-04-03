@@ -38,6 +38,8 @@ public class RepositoryConnectionListener implements ZooKeeperConnectionListener
 	public void onConnect(CuratorFramework client) {
 		ensurePath(client, Paths.STREAMS);
 		ensurePath(client, Paths.JOBS);
+		ensurePath(client, Paths.STREAM_DEPLOYMENTS);
+		ensurePath(client, Paths.JOB_DEPLOYMENTS);
 	}
 
 	/**

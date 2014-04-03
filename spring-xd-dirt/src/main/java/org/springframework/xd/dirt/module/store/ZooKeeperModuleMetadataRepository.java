@@ -117,7 +117,7 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 	public List<ModuleMetadata> findAll() {
 		List<ModuleMetadata> results = new ArrayList<ModuleMetadata>();
 		try {
-			List<String> containerIds = zkConnection.getClient().getChildren().forPath(Paths.DEPLOYMENTS);
+			List<String> containerIds = zkConnection.getClient().getChildren().forPath(Paths.MODULE_DEPLOYMENTS);
 			for (String containerId : containerIds) {
 				List<String> modules = zkConnection.getClient().getChildren().forPath(path(containerId));
 				for (String moduleId : modules) {
@@ -135,7 +135,7 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 	public Page<ModuleMetadata> findAllByContainerId(Pageable pageable, String requiredContainerId) {
 		List<ModuleMetadata> results = new ArrayList<ModuleMetadata>();
 		try {
-			List<String> containerIds = zkConnection.getClient().getChildren().forPath(Paths.DEPLOYMENTS);
+			List<String> containerIds = zkConnection.getClient().getChildren().forPath(Paths.MODULE_DEPLOYMENTS);
 			for (String containerId : containerIds) {
 				// filter by containerId
 				if (containerId.equals(requiredContainerId)) {
@@ -168,7 +168,7 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 	public long count() {
 		long count = 0;
 		try {
-			List<String> containerIds = zkConnection.getClient().getChildren().forPath(Paths.DEPLOYMENTS);
+			List<String> containerIds = zkConnection.getClient().getChildren().forPath(Paths.MODULE_DEPLOYMENTS);
 			for (String containerId : containerIds) {
 				List<String> modules = zkConnection.getClient().getChildren().forPath(path(containerId));
 				count = count + modules.size();
@@ -187,11 +187,11 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 	}
 
 	private String path(String id) {
-		return Paths.build(Paths.DEPLOYMENTS, id);
+		return Paths.build(Paths.MODULE_DEPLOYMENTS, id);
 	}
 
 	private String metadataPath(String containerId, String moduleId) {
-		return Paths.build(Paths.DEPLOYMENTS, containerId, moduleId, "metadata");
+		return Paths.build(Paths.MODULE_DEPLOYMENTS, containerId, moduleId, "metadata");
 	}
 
 	@Override

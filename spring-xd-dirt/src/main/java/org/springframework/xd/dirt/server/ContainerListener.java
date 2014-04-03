@@ -36,7 +36,7 @@ import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.ContainerMatcher;
 import org.springframework.xd.dirt.cluster.ContainerRepository;
 import org.springframework.xd.dirt.cluster.DefaultContainerMatcher;
-import org.springframework.xd.dirt.core.DeploymentsPath;
+import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.core.ModuleDescriptor;
 import org.springframework.xd.dirt.core.Stream;
 import org.springframework.xd.dirt.core.StreamFactory;
@@ -175,7 +175,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 							// amount specified by the module descriptor
 							LOG.info("Deploying module {} to {}", moduleName, container);
 
-							client.create().creatingParentsIfNeeded().forPath(new DeploymentsPath()
+							client.create().creatingParentsIfNeeded().forPath(new ModuleDeploymentsPath()
 									.setContainer(containerName)
 									.setStreamName(streamName)
 									.setModuleType(moduleType)
@@ -224,14 +224,14 @@ public class ContainerListener implements PathChildrenCacheListener {
 		}
 		try {
 			Map<String, Stream> streamMap = new HashMap<String, Stream>();
-			String containerDeployments = Paths.build(Paths.DEPLOYMENTS, container);
+			String containerDeployments = Paths.build(Paths.MODULE_DEPLOYMENTS, container);
 			List<String> deployments = client.getChildren().forPath(containerDeployments);
 
 			for (String deployment : deployments) {
-				DeploymentsPath deploymentsPath = new DeploymentsPath(containerDeployments + '/' + deployment);
-				String streamName = deploymentsPath.getStreamName();
-				String moduleType = deploymentsPath.getModuleType();
-				String moduleLabel = deploymentsPath.getModuleLabel();
+				ModuleDeploymentsPath moduleDeploymentsPath = new ModuleDeploymentsPath(containerDeployments + '/' + deployment);
+				String streamName = moduleDeploymentsPath.getStreamName();
+				String moduleType = moduleDeploymentsPath.getModuleType();
+				String moduleLabel = moduleDeploymentsPath.getModuleLabel();
 
 				if (ModuleType.job.toString().equals(moduleType)) {
 					// todo: move job target selection into containerMatcher as well
@@ -242,7 +242,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 					else {
 						String targetName = target.getName();
 						LOG.info("Redeploying job {} to container {}", streamName, targetName);
-						client.create().creatingParentsIfNeeded().forPath(new DeploymentsPath()
+						client.create().creatingParentsIfNeeded().forPath(new ModuleDeploymentsPath()
 								.setContainer(targetName)
 								.setStreamName(streamName)
 								.setModuleType(moduleType)
@@ -267,7 +267,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 							LOG.info("Redeploying module {} for stream {} to container {}",
 									moduleLabel, streamName, targetName);
 
-							client.create().creatingParentsIfNeeded().forPath(new DeploymentsPath()
+							client.create().creatingParentsIfNeeded().forPath(new ModuleDeploymentsPath()
 									.setContainer(targetName)
 									.setStreamName(streamName)
 									.setModuleType(moduleType)
@@ -295,7 +295,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 			}
 
 			// remove the deployments from the departed container
-			client.delete().deletingChildrenIfNeeded().forPath(Paths.build(Paths.DEPLOYMENTS, container));
+			client.delete().deletingChildrenIfNeeded().forPath(Paths.build(Paths.MODULE_DEPLOYMENTS, container));
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();

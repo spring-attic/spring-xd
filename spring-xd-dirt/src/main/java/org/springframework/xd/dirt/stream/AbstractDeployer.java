@@ -19,6 +19,10 @@ package org.springframework.xd.dirt.stream;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.zookeeper.KeeperException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.CrudRepository;
@@ -27,12 +31,13 @@ import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.BaseDefinition;
 import org.springframework.xd.dirt.core.ResourceDeployer;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.ModuleDefinition;
 
 /**
  * Abstract implementation of the @link {@link org.springframework.xd.dirt.core.ResourceDeployer} interface. It provides
  * the basic support for calling CrudRepository methods and sending deployment messages.
- * 
+ *
  * @author Luke Taylor
  * @author Mark Pollack
  * @author Eric Bottard
@@ -41,7 +46,11 @@ import org.springframework.xd.module.ModuleDefinition;
  */
 public abstract class AbstractDeployer<D extends BaseDefinition> implements ResourceDeployer<D> {
 
-	private PagingAndSortingRepository<D, String> repository;
+	private static final Logger LOG = LoggerFactory.getLogger(AbstractDeployer.class);
+
+	private final PagingAndSortingRepository<D, String> repository;
+
+	private final ZooKeeperConnection zkConnection;
 
 	protected final XDParser streamParser;
 
@@ -50,10 +59,12 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	 */
 	protected final ParsingContext definitionKind;
 
-	protected AbstractDeployer(PagingAndSortingRepository<D, String> repository,
+	protected AbstractDeployer(ZooKeeperConnection zkConnection, PagingAndSortingRepository<D, String> repository,
 			XDParser parser, ParsingContext parsingContext) {
+		Assert.notNull(zkConnection, "ZooKeeper connection cannot be null");
 		Assert.notNull(repository, "Repository cannot be null");
 		Assert.notNull(parsingContext, "Entity type kind cannot be null");
+		this.zkConnection = zkConnection;
 		this.repository = repository;
 		this.definitionKind = parsingContext;
 		this.streamParser = parser;
@@ -77,7 +88,7 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 
 	/**
 	 * Create a list of ModuleDefinitions given the results of parsing the definition.
-	 * 
+	 *
 	 * @param moduleDeploymentRequests The list of ModuleDeploymentRequest resulting from parsing the definition.
 	 * @return a list of ModuleDefinitions
 	 */
@@ -91,6 +102,15 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 		}
 
 		return moduleDefinitions;
+	}
+
+	/**
+	 * Return the ZooKeeper connection.
+	 *
+	 * @return the ZooKeeper connection
+	 */
+	protected ZooKeeperConnection getZooKeeperConnection() {
+		return zkConnection;
 	}
 
 	/**
@@ -156,18 +176,32 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 
 	/**
 	 * Provides basic deployment behavior, whereby running state of deployed definitions is not persisted.
-	 * 
+	 *
 	 * @return the definition object for the given name
 	 * @throws NoSuchDefinitionException if there is no definition by the given name
 	 */
 	protected D basicDeploy(String name) {
 		Assert.hasText(name, "name cannot be blank or null");
+		LOG.trace("Deploying {}", name);
+
 		final D definition = getDefinitionRepository().findOne(name);
 		if (definition == null) {
 			throwNoSuchDefinitionException(name);
 		}
-		return definition.isDeploy() ? definition :
-				getDefinitionRepository().save(createDefinition(name, definition.getDefinition(), true));
+
+		try {
+			// todo: add the manifest as data (2nd arg of forPath)
+			zkConnection.getClient().create().creatingParentsIfNeeded().forPath(getDeploymentPath(definition));
+		}
+		catch (KeeperException.NodeExistsException e) {
+			// todo: is this the right exception to throw here?
+			throw new IllegalStateException(String.format("Stream %s is already deployed", name));
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+
+		return definition;
 	}
 
 	/**
@@ -175,16 +209,35 @@ public abstract class AbstractDeployer<D extends BaseDefinition> implements Reso
 	 */
 	protected void basicUndeploy(String name) {
 		Assert.hasText(name, "name cannot be blank or null");
+		LOG.trace("Undeploying {}", name);
+
 		D definition = getDefinitionRepository().findOne(name);
 		if (definition == null) {
 			throwNoSuchDefinitionException(name);
 		}
-		if (definition.isDeploy()) {
-			getDefinitionRepository().save(createDefinition(name, definition.getDefinition(), false));
+
+		try {
+			zkConnection.getClient().delete().forPath(getDeploymentPath(definition));
+		}
+		catch (KeeperException.NoNodeException e) {
+			// ignore; this has already been undeployed
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
 		}
 	}
 
-	protected abstract D createDefinition(String name, String definition, boolean deploy);
+	protected abstract D createDefinition(String name, String definition);
+
+	/**
+	 * Return the ZooKeeper path used for deployment requests for the
+	 * given definition.
+	 *
+	 * @param definition definition for which to obtain path
+	 *
+	 * @return ZooKeeper path for deployment requests
+	 */
+	protected abstract String getDeploymentPath(D definition);
 
 	@Override
 	public void delete(String name) {

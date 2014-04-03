@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.ContainerRepository;
-import org.springframework.xd.dirt.core.DeploymentsPath;
+import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.core.JobsPath;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
@@ -104,7 +104,6 @@ public class JobListener implements PathChildrenCacheListener {
 				onChildAdded(client, event.getData());
 				break;
 			case CHILD_UPDATED:
-				onChildUpdated(client, event.getData());
 				break;
 			case CHILD_REMOVED:
 				onChildRemoved(client, event.getData());
@@ -128,54 +127,35 @@ public class JobListener implements PathChildrenCacheListener {
 	}
 
 	/**
-	 * Handle the creation of a new job.
+	 * Handle the creation of a new job deployment.
 	 * 
 	 * @param client curator client
-	 * @param data job data
+	 * @param data   job deployment request data
 	 */
 	private void onChildAdded(CuratorFramework client, ChildData data) throws Exception {
 		String jobName = Paths.stripPath(data.getPath());
-		Map<String, String> map = mapBytesUtility.toMap(data.getData());
-		JobDefinition jobDefinition = new JobDefinition(jobName, map.get("definition"),
-				Boolean.parseBoolean(map.get("deploy")));
-		LOG.info("Job definition added for {}", jobDefinition);
-		if (jobDefinition.isDeploy()) {
-			LOG.info("Deploying job {}", jobDefinition);
-			deployJob(client, jobDefinition);
-		}
+		byte[] bytes = client.getData().forPath(Paths.build(Paths.JOBS, jobName));
+		Map<String, String> map = mapBytesUtility.toMap(bytes);
+		JobDefinition jobDefinition = new JobDefinition(jobName, map.get("definition"));
+
+		LOG.info("Deploying job {}", jobDefinition);
+		deployJob(client, jobDefinition);
 	}
 
 	/**
-	 * Handle the updating of an existing job.
+	 * Handle the deletion of a job deployment.
 	 * 
 	 * @param client curator client
-	 * @param data job data
-	 */
-	private void onChildUpdated(CuratorFramework client, ChildData data) throws Exception {
-		String jobName = Paths.stripPath(data.getPath());
-		Map<String, String> map = mapBytesUtility.toMap(data.getData());
-		JobDefinition jobDefinition = new JobDefinition(jobName, map.get("definition"),
-				Boolean.parseBoolean(map.get("deploy")));
-		if (jobDefinition.isDeploy()) {
-			LOG.info("Deploying job {}", jobDefinition);
-			deployJob(client, jobDefinition);
-		}
-		else {
-			LOG.info("Undeploying job {}", jobDefinition);
-			undeployJob(client, jobDefinition);
-		}
-	}
-
-	/**
-	 * Handle the deletion of a job.
-	 * 
-	 * @param client curator client
-	 * @param data job data
+	 * @param data   job deployment request data
 	 */
 	private void onChildRemoved(CuratorFramework client, ChildData data) throws Exception {
 		String jobName = Paths.stripPath(data.getPath());
-		LOG.info("Job removed: {}", jobName);
-		// nothing to do there as each container will handle its own jobs
+		byte[] bytes = client.getData().forPath(Paths.build(Paths.JOBS, jobName));
+		Map<String, String> map = mapBytesUtility.toMap(bytes);
+		JobDefinition jobDefinition = new JobDefinition(jobName, map.get("definition"));
+
+		LOG.info("Undeploying job {}", jobDefinition);
+		undeployJob(client, jobDefinition);
 	}
 
 	/**
@@ -202,7 +182,7 @@ public class JobListener implements PathChildrenCacheListener {
 		try {
 			// todo: consider something more abstract for stream name
 			// OR separate path builders for stream-modules and jobs
-			client.create().creatingParentsIfNeeded().forPath(new DeploymentsPath().setContainer(containerName)
+			client.create().creatingParentsIfNeeded().forPath(new ModuleDeploymentsPath().setContainer(containerName)
 					.setStreamName(jobName)
 					.setModuleType(moduleType)
 					.setModuleLabel(moduleLabel).build());

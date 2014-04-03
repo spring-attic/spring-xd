@@ -27,6 +27,8 @@ import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.dirt.zookeeper.Paths;
+import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 
 /**
  * @author Glenn Renfro
@@ -42,10 +44,10 @@ public class JobDeployer extends AbstractInstancePersistingDeployer<JobDefinitio
 
 	private final ConcurrentMap<String, MessageChannel> jobChannels = new ConcurrentHashMap<String, MessageChannel>();
 
-	public JobDeployer(JobDefinitionRepository definitionRepository,
+	public JobDeployer(ZooKeeperConnection zkConnection, JobDefinitionRepository definitionRepository,
 			JobRepository instanceRepository,
 			XDParser parser, MessageBus messageBus) {
-		super(definitionRepository, instanceRepository, parser, job);
+		super(zkConnection, definitionRepository, instanceRepository, parser, job);
 		Assert.notNull(messageBus, "MessageBus must not be null");
 		this.messageBus = messageBus;
 	}
@@ -76,8 +78,13 @@ public class JobDeployer extends AbstractInstancePersistingDeployer<JobDefinitio
 	}
 
 	@Override
-	protected JobDefinition createDefinition(String name, String definition, boolean deploy) {
-		return new JobDefinition(name, definition, deploy);
+	protected JobDefinition createDefinition(String name, String definition) {
+		return new JobDefinition(name, definition);
+	}
+
+	@Override
+	protected String getDeploymentPath(JobDefinition definition) {
+		return Paths.build(Paths.JOB_DEPLOYMENTS, definition.getName());
 	}
 
 	private List<ModuleDeploymentRequest> parse(String name, String definition) {

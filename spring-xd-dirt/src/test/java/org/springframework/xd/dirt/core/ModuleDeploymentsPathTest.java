@@ -27,7 +27,7 @@ import org.springframework.xd.dirt.zookeeper.Paths;
 /**
  * @author Patrick Peralta
  */
-public class DeploymentsPathTest {
+public class ModuleDeploymentsPathTest {
 
 	@Test
 	public void testPath() {
@@ -35,18 +35,18 @@ public class DeploymentsPathTest {
 		String moduleType = Module.Type.SOURCE.toString();
 		String moduleLabel = "my-label";
 		String container = UUID.randomUUID().toString();
-		String path = Paths.buildWithNamespace(Paths.DEPLOYMENTS, container,
+		String path = Paths.buildWithNamespace(Paths.MODULE_DEPLOYMENTS, container,
 				String.format("%s.%s.%s", streamName, moduleType, moduleLabel));
 
-		DeploymentsPath deploymentsPath = new DeploymentsPath()
+		ModuleDeploymentsPath moduleDeploymentsPath = new ModuleDeploymentsPath()
 				.setContainer(container)
 				.setStreamName(streamName)
 				.setModuleType(moduleType)
 				.setModuleLabel(moduleLabel);
 
-		assertEquals(path, deploymentsPath.buildWithNamespace());
+		assertEquals(path, moduleDeploymentsPath.buildWithNamespace());
 
-		DeploymentsPath fromPath = new DeploymentsPath(path);
+		ModuleDeploymentsPath fromPath = new ModuleDeploymentsPath(path);
 		assertEquals(container, fromPath.getContainer());
 		assertEquals(streamName, fromPath.getStreamName());
 		assertEquals(moduleType, fromPath.getModuleType());

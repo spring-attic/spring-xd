@@ -20,25 +20,26 @@ import org.springframework.util.Assert;
 import org.springframework.xd.dirt.zookeeper.Paths;
 
 /**
- * Builder object for paths under {@link Paths#DEPLOYMENTS}. {@code DeploymentsPath} can be used to take a full path and
- * split it into its elements, for example:
+ * Builder object for paths under {@link Paths#DEPLOYMENTS} for module deployments. {@code ModuleDeploymentsPath}
+ * can be used to take a full path and split it into its elements, for example:
  * <p>
  * <code>
- * DeploymentsPath deploymentsPath = new DeploymentsPath("/xd/deployments/4dbd28e2-880d-4774/my-stream.source.http-0");
+ * ModuleDeploymentsPath deploymentsPath =
+ *     new ModuleDeploymentsPath("/xd/deployments/modules/4dbd28e2-880d-4774/my-stream.source.http-0");
  * assertEquals("my-stream", deploymentsPath.getStreamName());
  * </code>
  * </p>
  * It can also be used to build a path, for example:
  * <p>
  * <code>
- * DeploymentsPath deploymentsPath = new DeploymentsPath().setStreamName("my-stream").setContainer(...);
- * assertEquals("/streams/my-stream", deploymentsPath.build());
+ * ModuleDeploymentsPath deploymentsPath = new ModuleDeploymentsPath().setStreamName("my-stream").setContainer(...)...;
+ * assertEquals("/xd/deployments/modules/4dbd28e2-880d-4774/my-stream.source.http-0", deploymentsPath.build());
  * </code>
  * </p>
  * 
  * @author Patrick Peralta
  */
-public class DeploymentsPath {
+public class ModuleDeploymentsPath {
 
 	/**
 	 * Index for {@link Paths#DEPLOYMENTS} in {@link #elements} array.
@@ -46,14 +47,19 @@ public class DeploymentsPath {
 	private static final int DEPLOYMENTS = 0;
 
 	/**
+	 * Index for {@code modules} in {@link #elements} array.
+	 */
+	private static final int MODULES = 1;
+
+	/**
 	 * Index for container name in {@link #elements} array.
 	 */
-	private static final int CONTAINER = 1;
+	private static final int CONTAINER = 2;
 
 	/**
 	 * Index for dot delimited module deployment description in {@link #elements} array.
 	 */
-	private static final int DEPLOYMENT_DESC = 2;
+	private static final int DEPLOYMENT_DESC = 3;
 
 	/**
 	 * Index for stream name in dot delimited deployment description.
@@ -73,7 +79,7 @@ public class DeploymentsPath {
 	/**
 	 * Array of path elements.
 	 */
-	private final String[] elements = new String[3];
+	private final String[] elements = new String[4];
 
 	/**
 	 * Array of module deployment description elements.
@@ -84,8 +90,9 @@ public class DeploymentsPath {
 	 * Construct a {@code DeploymentsPath}. Use of this constructor means that a path will be created via
 	 * {@link #build()} or {@link #buildWithNamespace()}.
 	 */
-	public DeploymentsPath() {
+	public ModuleDeploymentsPath() {
 		elements[DEPLOYMENTS] = Paths.DEPLOYMENTS;
+		elements[MODULES] = Paths.MODULES;
 	}
 
 	/**
@@ -95,10 +102,8 @@ public class DeploymentsPath {
 	 * 
 	 * @param path stream path
 	 */
-	public DeploymentsPath(String path) {
+	public ModuleDeploymentsPath(String path) {
 		Assert.hasText(path);
-
-		System.out.println(path);
 
 		String[] pathElements = path.split("\\/");
 
@@ -146,7 +151,7 @@ public class DeploymentsPath {
 	 * 
 	 * @return this object
 	 */
-	public DeploymentsPath setContainer(String container) {
+	public ModuleDeploymentsPath setContainer(String container) {
 		elements[CONTAINER] = container;
 		return this;
 	}
@@ -167,7 +172,7 @@ public class DeploymentsPath {
 	 * 
 	 * @return this object
 	 */
-	public DeploymentsPath setStreamName(String streamName) {
+	public ModuleDeploymentsPath setStreamName(String streamName) {
 		deploymentDesc[STREAM_NAME] = streamName;
 		return this;
 	}
@@ -188,7 +193,7 @@ public class DeploymentsPath {
 	 * 
 	 * @return this object
 	 */
-	public DeploymentsPath setModuleType(String moduleType) {
+	public ModuleDeploymentsPath setModuleType(String moduleType) {
 		deploymentDesc[MODULE_TYPE] = moduleType;
 		return this;
 	}
@@ -209,7 +214,7 @@ public class DeploymentsPath {
 	 * 
 	 * @return this object
 	 */
-	public DeploymentsPath setModuleLabel(String moduleLabel) {
+	public ModuleDeploymentsPath setModuleLabel(String moduleLabel) {
 		deploymentDesc[MODULE_LABEL] = moduleLabel;
 		return this;
 	}

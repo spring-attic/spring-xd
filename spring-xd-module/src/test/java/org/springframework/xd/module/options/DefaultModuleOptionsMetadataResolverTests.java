@@ -23,6 +23,7 @@ public class DefaultModuleOptionsMetadataResolverTests {
 	private DefaultModuleOptionsMetadataResolver metadataResolver = new DefaultModuleOptionsMetadataResolver();
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testPojoOptionsConstruction() {
 		Resource resource = new ClassPathResource(
 				"/DefaultModuleOptionsMetadataResolverTests-modules/source/module1/config/module1.xml");
@@ -35,6 +36,7 @@ public class DefaultModuleOptionsMetadataResolverTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testMixin() {
 		Resource resource = new ClassPathResource(
 				"/DefaultModuleOptionsMetadataResolverTests-modules/source/module2/config/module2.xml");
@@ -51,6 +53,6 @@ public class DefaultModuleOptionsMetadataResolverTests {
 		Resource resource = new ClassPathResource(
 				"/DefaultModuleOptionsMetadataResolverTests-modules/source/module3/config/module3.xml");
 		ModuleDefinition definition = new ModuleDefinition("module3", source, resource);
-		ModuleOptionsMetadata metadata = metadataResolver.resolve(definition);
+		metadataResolver.resolve(definition);
 	}
 }

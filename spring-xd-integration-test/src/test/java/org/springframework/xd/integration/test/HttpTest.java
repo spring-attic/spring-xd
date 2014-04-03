@@ -37,7 +37,7 @@ public class HttpTest extends AbstractIntegrationTest {
 
 	private AbstractModuleFixture sink;
 
-	public HttpTest(Class sinkClass) {
+	public HttpTest(Class<?> sinkClass) {
 		this.sink = sinks.getSink(sinkClass);
 	}
 

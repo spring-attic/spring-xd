@@ -17,29 +17,29 @@
 package org.springframework.xd.dirt.rest;
 
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
-import org.springframework.xd.dirt.container.ContainerMetadata;
+import org.springframework.xd.dirt.container.ContainerAttributes;
 import org.springframework.xd.rest.client.domain.ContainerMetadataResource;
 
 /**
- * Knows how to assemble {@link ContainerMetadataResource}s out of {@link ContainerMetadata} instances.
+ * Knows how to assemble {@link ContainerMetadataResource}s out of {@link ContainerAttributes} instances.
  * 
  * @author Ilayaperumal Gopinathan
  * @author Mark Fisher
  */
 public class ContainerMetadataResourceAssembler extends
-		ResourceAssemblerSupport<ContainerMetadata, ContainerMetadataResource> {
+		ResourceAssemblerSupport<ContainerAttributes, ContainerMetadataResource> {
 
 	public ContainerMetadataResourceAssembler() {
 		super(RuntimeContainersController.class, ContainerMetadataResource.class);
 	}
 
 	@Override
-	public ContainerMetadataResource toResource(ContainerMetadata entity) {
+	public ContainerMetadataResource toResource(ContainerAttributes entity) {
 		return createResourceWithId(entity.getId(), entity);
 	}
 
 	@Override
-	protected ContainerMetadataResource instantiateResource(ContainerMetadata entity) {
+	protected ContainerMetadataResource instantiateResource(ContainerAttributes entity) {
 		return new ContainerMetadataResource(entity.getId(), entity.getPid(), entity.getHost(), entity.getIp());
 	}
 

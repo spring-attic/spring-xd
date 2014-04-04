@@ -37,11 +37,11 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.xd.dirt.container.ContainerMetadata;
+import org.springframework.xd.dirt.container.ContainerAttributes;
 
 /**
  * Tests REST compliance of containers endpoint.
- * 
+ *
  * @author Ilayaperumal Gopinathan
  * @author Mark Fisher
  */
@@ -53,12 +53,12 @@ public class RuntimeContainersControllerIntegrationTests extends AbstractControl
 	@Before
 	public void before() {
 		PageRequest pageable = new PageRequest(0, 20);
-		ContainerMetadata container1 = new ContainerMetadata("1", 1234, "host1", "127.0.0.1");
-		ContainerMetadata container2 = new ContainerMetadata("2", 2345, "host2", "192.168.2.1");
-		List<ContainerMetadata> containerEntities = new ArrayList<ContainerMetadata>();
+		ContainerAttributes container1 = new ContainerAttributes("1").setPid(1234).setHost("host1").setIp("127.0.0.1");
+		ContainerAttributes container2 = new ContainerAttributes("2").setPid(2345).setHost("host2").setIp("192.168.2.1");
+		List<ContainerAttributes> containerEntities = new ArrayList<ContainerAttributes>();
 		containerEntities.add(container1);
 		containerEntities.add(container2);
-		Page<ContainerMetadata> pagedEntity = new PageImpl<ContainerMetadata>(containerEntities);
+		Page<ContainerAttributes> pagedEntity = new PageImpl<ContainerAttributes>(containerEntities);
 		when(containerMetadataRepository.findAll(pageable)).thenReturn(pagedEntity);
 	}
 

@@ -49,7 +49,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.SocketUtils;
 import org.springframework.xd.dirt.config.TestMessageBusInjection;
-import org.springframework.xd.dirt.container.ContainerMetadata;
+import org.springframework.xd.dirt.container.ContainerAttributes;
 import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.integration.test.SingleNodeIntegrationTestSupport;
 import org.springframework.xd.dirt.integration.test.sink.NamedChannelSink;
@@ -199,7 +199,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		if (testMessageBus != null && !transport.equalsIgnoreCase("local")) {
 			TestMessageBusInjection.injectMessageBus(singleNodeApplication, testMessageBus);
 		}
-		ContainerMetadata cm = singleNodeApplication.containerContext().getBean(ContainerMetadata.class);
+		ContainerAttributes cm = singleNodeApplication.containerContext().getBean(ContainerAttributes.class);
 		integrationSupport.addPathListener(Paths.build(Paths.MODULE_DEPLOYMENTS, cm.getId()), deploymentsListener);
 	}
 
@@ -210,7 +210,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 			testMessageBus = null;
 		}
 		if (singleNodeApplication.containerContext().isActive()) {
-			ContainerMetadata cm = singleNodeApplication.containerContext().getBean(ContainerMetadata.class);
+			ContainerAttributes cm = singleNodeApplication.containerContext().getBean(ContainerAttributes.class);
 			integrationSupport.removePathListener(Paths.build(Paths.MODULE_DEPLOYMENTS, cm.getId()), deploymentsListener);
 		}
 	}

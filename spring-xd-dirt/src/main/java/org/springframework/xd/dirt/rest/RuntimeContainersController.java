@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.xd.dirt.container.ContainerMetadata;
+import org.springframework.xd.dirt.container.ContainerAttributes;
 import org.springframework.xd.dirt.container.store.ContainerMetadataRepository;
 import org.springframework.xd.rest.client.domain.ContainerMetadataResource;
 
@@ -46,7 +46,7 @@ public class RuntimeContainersController {
 
 	private ContainerMetadataRepository containerMetadataRepository;
 
-	private ResourceAssemblerSupport<ContainerMetadata, ContainerMetadataResource> containerMetadataResourceAssemblerSupport;
+	private ResourceAssemblerSupport<ContainerAttributes, ContainerMetadataResource> containerMetadataResourceAssemblerSupport;
 
 	@Autowired
 	public RuntimeContainersController(ContainerMetadataRepository containerMetadataRepository) {
@@ -61,8 +61,8 @@ public class RuntimeContainersController {
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
 	public PagedResources<ContainerMetadataResource> list(Pageable pageable,
-			PagedResourcesAssembler<ContainerMetadata> assembler) {
-		Page<ContainerMetadata> page = this.containerMetadataRepository.findAll(pageable);
+			PagedResourcesAssembler<ContainerAttributes> assembler) {
+		Page<ContainerAttributes> page = this.containerMetadataRepository.findAll(pageable);
 		PagedResources<ContainerMetadataResource> result = assembler.toResource(page,
 				containerMetadataResourceAssemblerSupport);
 		return result;

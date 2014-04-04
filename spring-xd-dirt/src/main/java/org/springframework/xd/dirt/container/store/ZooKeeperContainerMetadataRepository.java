@@ -17,8 +17,6 @@
 package org.springframework.xd.dirt.container.store;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -30,17 +28,19 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.xd.dirt.container.ContainerMetadata;
+import org.springframework.xd.dirt.container.ContainerAttributes;
 import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 
 /**
  * ZooKeeper backed repository for runtime info about Containers.
- * 
+ *
  * @author Mark Fisher
+ * @author David Turanski
  */
 public class ZooKeeperContainerMetadataRepository implements ContainerMetadataRepository {
+
 
 	private final ZooKeeperConnection zkConnection;
 
@@ -52,38 +52,23 @@ public class ZooKeeperContainerMetadataRepository implements ContainerMetadataRe
 	}
 
 	@Override
-	public Iterable<ContainerMetadata> findAll(Sort sort) {
+	public Iterable<ContainerAttributes> findAll(Sort sort) {
 		// todo: add support for sort
 		return findAll();
 	}
 
 	@Override
-	public Page<ContainerMetadata> findAll(Pageable pageable) {
+	public Page<ContainerAttributes> findAll(Pageable pageable) {
 		// todo: add support for paging
-		return new PageImpl<ContainerMetadata>(findAll());
+		return new PageImpl<ContainerAttributes>(findAll());
 	}
 
 	@Override
-	public <S extends ContainerMetadata> S save(S entity) {
-		Map<String, String> map = new HashMap<String, String>();
-		map.put("pid", "" + entity.getPid());
-		map.put("host", entity.getHost());
-		map.put("ip", entity.getIp());
-
-		StringBuilder builder = new StringBuilder();
-		Iterator<String> iterator = entity.getGroups().iterator();
-		while (iterator.hasNext()) {
-			builder.append(iterator.next());
-			if (iterator.hasNext()) {
-				builder.append(',');
-			}
-		}
-		map.put("groups", builder.toString());
-
+	public <S extends ContainerAttributes> S save(S entity) {
 		try {
 			zkConnection.getClient().create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(
 					Paths.build(Paths.CONTAINERS, entity.getId()),
-					mapBytesUtility.toByteArray(map));
+					mapBytesUtility.toByteArray(entity));
 			return entity;
 		}
 		catch (Exception e) {
@@ -92,7 +77,7 @@ public class ZooKeeperContainerMetadataRepository implements ContainerMetadataRe
 	}
 
 	@Override
-	public <S extends ContainerMetadata> Iterable<S> save(Iterable<S> entities) {
+	public <S extends ContainerAttributes> Iterable<S> save(Iterable<S> entities) {
 		List<S> results = new ArrayList<S>();
 		for (S entity : entities) {
 			results.add(save(entity));
@@ -101,21 +86,19 @@ public class ZooKeeperContainerMetadataRepository implements ContainerMetadataRe
 	}
 
 	@Override
-	public ContainerMetadata findOne(String id) {
-		ContainerMetadata metadata = null;
+	public ContainerAttributes findOne(String id) {
+		ContainerAttributes containerAttributes = null;
 		try {
 			byte[] data = zkConnection.getClient().getData().forPath(path(id));
 			if (data != null) {
 				Map<String, String> map = mapBytesUtility.toMap(data);
-				String pidString = map.get("pid");
-				Integer pid = pidString != null ? Integer.parseInt(pidString) : null;
-				metadata = new ContainerMetadata(id, pid, map.get("host"), map.get("ip"));
+				containerAttributes = new ContainerAttributes(map);
 			}
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
 		}
-		return metadata;
+		return containerAttributes;
 	}
 
 	@Override
@@ -129,8 +112,8 @@ public class ZooKeeperContainerMetadataRepository implements ContainerMetadataRe
 	}
 
 	@Override
-	public List<ContainerMetadata> findAll() {
-		List<ContainerMetadata> results = new ArrayList<ContainerMetadata>();
+	public List<ContainerAttributes> findAll() {
+		List<ContainerAttributes> results = new ArrayList<ContainerAttributes>();
 		try {
 			List<String> children = zkConnection.getClient().getChildren().forPath(Paths.CONTAINERS);
 			for (String id : children) {
@@ -144,10 +127,10 @@ public class ZooKeeperContainerMetadataRepository implements ContainerMetadataRe
 	}
 
 	@Override
-	public Iterable<ContainerMetadata> findAll(Iterable<String> ids) {
-		List<ContainerMetadata> results = new ArrayList<ContainerMetadata>();
+	public Iterable<ContainerAttributes> findAll(Iterable<String> ids) {
+		List<ContainerAttributes> results = new ArrayList<ContainerAttributes>();
 		for (String id : ids) {
-			ContainerMetadata entity = findOne(id);
+			ContainerAttributes entity = findOne(id);
 			if (entity != null) {
 				results.add(entity);
 			}
@@ -172,12 +155,12 @@ public class ZooKeeperContainerMetadataRepository implements ContainerMetadataRe
 	}
 
 	@Override
-	public void delete(ContainerMetadata entity) {
+	public void delete(ContainerAttributes entity) {
 		// Container metadata is "deleted" when a Container departs
 	}
 
 	@Override
-	public void delete(Iterable<? extends ContainerMetadata> entities) {
+	public void delete(Iterable<? extends ContainerAttributes> entities) {
 		// Container metadata is "deleted" when a Container departs
 	}
 
@@ -187,7 +170,7 @@ public class ZooKeeperContainerMetadataRepository implements ContainerMetadataRe
 	}
 
 	@Override
-	public Iterable<ContainerMetadata> findAllInRange(String from, boolean fromInclusive, String to,
+	public Iterable<ContainerAttributes> findAllInRange(String from, boolean fromInclusive, String to,
 			boolean toInclusive) {
 		throw new UnsupportedOperationException("Auto-generated method stub");
 	}

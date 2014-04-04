@@ -37,7 +37,7 @@ import org.springframework.context.event.SourceFilteringListener;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
-import org.springframework.xd.dirt.container.ContainerMetadata;
+import org.springframework.xd.dirt.container.ContainerAttributes;
 import org.springframework.xd.dirt.container.store.ContainerMetadataRepository;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeployer;
@@ -136,8 +136,8 @@ public class ContainerServerApplication {
 
 		@Override
 		public void initialize(ConfigurableApplicationContext applicationContext) {
-			ContainerMetadata containerMetadata = applicationContext.getParent().getBean(ContainerMetadata.class);
-			applicationContext.setId(containerMetadata.getId());
+			ContainerAttributes containerAttributes = applicationContext.getParent().getBean(ContainerAttributes.class);
+			applicationContext.setId(containerAttributes.getId());
 		}
 	}
 }
@@ -159,7 +159,7 @@ class ContainerConfiguration {
 	private static final String MBEAN_EXPORTER_BEAN_NAME = "XDContainerMBeanExporter";
 
 	@Autowired
-	private ContainerMetadata containerMetadata;
+	private ContainerAttributes containerAttributes;
 
 	@Autowired
 	private ContainerMetadataRepository containerMetadataRepository;
@@ -201,7 +201,7 @@ class ContainerConfiguration {
 			zooKeeperConnection.start();
 		}
 
-		return new ContainerRegistrar(containerMetadata,
+		return new ContainerRegistrar(containerAttributes,
 				containerMetadataRepository,
 				streamDefinitionRepository,
 				moduleDefinitionRepository,

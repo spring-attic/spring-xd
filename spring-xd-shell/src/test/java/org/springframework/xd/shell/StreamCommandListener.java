@@ -81,14 +81,17 @@ public class StreamCommandListener implements PathChildrenCacheListener {
 	@Override
 	public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
 		this.client = client;
-		StreamsPath path = new StreamsPath(event.getData().getPath());
-		log.info("event: {} stream: {}", path.getStreamName(), event.getType());
+		String streamName = new StreamsPath(event.getData().getPath()).getStreamName();
+		log.info("event: {} stream: {}", streamName, event.getType());
 		if (event.getType().equals(Type.CHILD_ADDED)) {
-			streamProperties.putIfAbsent(path.getStreamName(), new SettableFuture<Map<String, String>>());
-			streamProperties.get(path.getStreamName()).set(mapBytesUtility.toMap(event.getData().getData()));
+			streamProperties.putIfAbsent(streamName, new SettableFuture<Map<String, String>>());
+			streamProperties.get(streamName).set(mapBytesUtility.toMap(event.getData().getData()));
 		}
 		else if (event.getType().equals(Type.CHILD_REMOVED)) {
-			streamProperties.remove(path.getStreamName());
+			SettableFuture<Map<String, String>> result = streamProperties.remove(streamName);
+			if (result != null) {
+				result.cancel(true);
+			}
 		}
 	}
 
@@ -219,7 +222,19 @@ public class StreamCommandListener implements PathChildrenCacheListener {
 
 		@Override
 		public boolean cancel(boolean mayInterruptIfRunning) {
-			return cancelled.compareAndSet(false, true);
+			if (isDone()) {
+				return false;
+			}
+			boolean successful = cancelled.compareAndSet(false, true);
+			if (successful) {
+				try {
+					set(null);
+				}
+				catch (IllegalStateException e) {
+					// value already set, no problem
+				}
+			}
+			return successful;
 		}
 
 		@Override
@@ -229,20 +244,22 @@ public class StreamCommandListener implements PathChildrenCacheListener {
 
 		@Override
 		public boolean isDone() {
-			return cancelled.get() || (result.get() != null);
+			return cancelled.get() || latch.getCount() == 0;
 		}
 
 		public void set(V value) {
+			if (latch.getCount() == 0) {
+				throw new IllegalStateException("result already set");
+			}
 			result.set(value);
 			latch.countDown();
 		}
 
 		@Override
 		public V get() throws InterruptedException, ExecutionException {
-			if (cancelled.get()) {
-				return null;
+			if (!cancelled.get()) {
+				latch.await();
 			}
-			latch.await();
 			return result.get();
 		}
 

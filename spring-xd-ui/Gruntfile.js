@@ -380,9 +380,9 @@ module.exports = function (grunt) {
     'rev',
     // Rewrite based on revved assets
     'usemin',
-    'htmlmin',
+    'htmlmin'
     // Run the karma unit tests
-    'test:unit'
+    //'test:unit'
   ]);
 
   grunt.registerTask('teste2e', ['test:e2e']);

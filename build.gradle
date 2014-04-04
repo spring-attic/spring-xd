@@ -1545,6 +1545,7 @@ task copyGemfireInstall(type: Copy, dependsOn: ":spring-xd-gemfire-server:instal
 }
 
 task copyXDInstall(type: Copy, dependsOn: [
+	":spring-xd-ui:setupUI",
 	":spring-xd-dirt:build",
 	":spring-xd-dirt:installApp"
 ]) {

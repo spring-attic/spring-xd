@@ -178,18 +178,18 @@ module.exports = function (grunt) {
       }
     },
 
-    imagemin: {
-      dist: {
-        files: [
-          {
-            expand: true,
-            cwd: '<%= xd.app %>/images',
-            src: '{,*/}*.{png,jpg,jpeg,gif}',
-            dest: '<%= xd.dist %>/images'
-          }
-        ]
-      }
-    },
+//    imagemin: {
+//      dist: {
+//        files: [
+//          {
+//            expand: true,
+//            cwd: '<%= xd.app %>/images',
+//            src: '{,*/}*.{png,jpg,jpeg,gif}',
+//            dest: '<%= xd.dist %>/images'
+//          }
+//        ]
+//      }
+//    },
 
     // Renames files for browser caching purposes
     rev: {
@@ -271,7 +271,8 @@ module.exports = function (grunt) {
               'views/{,*/}*.html',
               'lib/**/*',
               'scripts/**/*',
-              'fonts/*'
+              'fonts/*',
+              'images/*'
             ]
           }
         ]
@@ -372,7 +373,8 @@ module.exports = function (grunt) {
     // Copy concat css into dist
     'cssmin',
     // minify and copy the minified images into dist
-    'imagemin',
+    // TODO: imagemin has platform dependent issues; hence commenting out them for now.
+    // 'imagemin',
     // Copy other necessary files into dist
     'copy:dist',
     // Now operate on dist directory

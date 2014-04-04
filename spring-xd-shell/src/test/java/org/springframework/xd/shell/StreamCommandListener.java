@@ -41,10 +41,10 @@ import org.slf4j.LoggerFactory;
 
 import org.springframework.xd.dirt.core.ModuleDescriptor;
 import org.springframework.xd.dirt.core.Stream;
-import org.springframework.xd.dirt.core.StreamFactory;
 import org.springframework.xd.dirt.core.StreamsPath;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
+import org.springframework.xd.dirt.stream.StreamFactory;
 import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;

@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.core;
+package org.springframework.xd.dirt.stream;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.util.Assert;
+import org.springframework.xd.dirt.core.Stream;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
-import org.springframework.xd.dirt.stream.ParsingContext;
-import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
-import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;

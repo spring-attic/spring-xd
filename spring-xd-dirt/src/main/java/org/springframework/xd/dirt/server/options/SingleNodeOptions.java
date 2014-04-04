@@ -27,7 +27,7 @@ import org.springframework.xd.dirt.server.options.ResourcePatternScanningOptionH
 /**
  * Holds options that can be used in single-node mode. Some of those are hardcoded to accept a single value on purpose
  * because.
- *
+ * 
  * @author Eric Bottard
  * @author David Turanski
  */

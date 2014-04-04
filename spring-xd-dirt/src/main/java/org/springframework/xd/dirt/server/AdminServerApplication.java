@@ -19,6 +19,8 @@ package org.springframework.xd.dirt.server;
 import javax.servlet.Filter;
 
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
+import org.springframework.boot.autoconfigure.batch.BatchDatabaseInitializer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -33,24 +35,22 @@ import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.event.SourceFilteringListener;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.web.filter.HttpPutFormContentFilter;
+import org.springframework.xd.batch.XdBatchDatabaseInitializer;
 import org.springframework.xd.dirt.rest.RestConfiguration;
 import org.springframework.xd.dirt.server.options.AdminOptions;
 import org.springframework.xd.dirt.server.options.CommandLinePropertySourceOverridingListener;
 import org.springframework.xd.dirt.util.BannerUtils;
 import org.springframework.xd.dirt.util.ConfigLocations;
 import org.springframework.xd.dirt.util.XdConfigLoggingInitializer;
+import org.springframework.xd.dirt.util.XdProfiles;
 
 @Configuration
-@EnableAutoConfiguration
+@EnableAutoConfiguration(exclude = BatchAutoConfiguration.class)
 @ImportResource("classpath:" + ConfigLocations.XD_INTERNAL_CONFIG_ROOT + "admin-server.xml")
 @Import(RestConfiguration.class)
 public class AdminServerApplication {
 
 	private static final String MBEAN_EXPORTER_BEAN_NAME = "XDAdminMBeanExporter";
-
-	public static final String ADMIN_PROFILE = "adminServer";
-
-	public static final String HSQL_PROFILE = "hsqldb";
 
 	private ConfigurableApplicationContext context;
 
@@ -69,7 +69,7 @@ public class AdminServerApplication {
 				new AdminOptions());
 
 		this.context = new SpringApplicationBuilder(AdminOptions.class, ParentConfiguration.class)
-				.profiles(ADMIN_PROFILE)
+				.profiles(XdProfiles.ADMIN_PROFILE)
 				.listeners(commandLineListener)
 				.child(SharedServerContextConfiguration.class, AdminOptions.class)
 				.listeners(commandLineListener)
@@ -104,4 +104,8 @@ public class AdminServerApplication {
 		}
 	}
 
+	@Bean
+	public BatchDatabaseInitializer batchDatabaseInitializer() {
+		return new XdBatchDatabaseInitializer();
+	}
 }

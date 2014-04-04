@@ -16,18 +16,19 @@ package org.springframework.xd.dirt.server;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.xd.batch.hsqldb.server.HsqlServerApplication;
 import org.springframework.xd.dirt.server.options.SingleNodeOptions;
 import org.springframework.xd.dirt.util.BannerUtils;
+import org.springframework.xd.dirt.util.XdProfiles;
 
 /**
  * Single Node XD Runtime.
  * 
  * @author Dave Syer
  * @author David Turanski
+ * @author Ilayaperumal Gopinathan
  */
 public class SingleNodeApplication {
-
-	public static final String SINGLE_PROFILE = "single";
 
 	private ConfigurableApplicationContext adminContext;
 
@@ -48,7 +49,8 @@ public class SingleNodeApplication {
 		SpringApplicationBuilder admin =
 				new SpringApplicationBuilder(SingleNodeOptions.class, ParentConfiguration.class)
 						.listeners(bootstrapContext.commandLineListener())
-						.profiles(AdminServerApplication.ADMIN_PROFILE, SINGLE_PROFILE)
+						.profiles(XdProfiles.ADMIN_PROFILE, XdProfiles.SINGLENODE_PROFILE,
+								HsqlServerApplication.HSQLDBSERVER_PROFILE)
 						.child(SharedServerContextConfiguration.class, SingleNodeOptions.class)
 						.listeners(bootstrapContext.commandLineListener())
 						.child(SingleNodeOptions.class, AdminServerApplication.class)
@@ -57,7 +59,7 @@ public class SingleNodeApplication {
 
 		SpringApplicationBuilder container = admin
 				.sibling(SingleNodeOptions.class, ContainerServerApplication.class)
-				.profiles(ContainerServerApplication.NODE_PROFILE, SINGLE_PROFILE)
+				.profiles(XdProfiles.CONTAINER_PROFILE, XdProfiles.SINGLENODE_PROFILE)
 				.listeners(ApplicationUtils.mergeApplicationListeners(bootstrapContext.commandLineListener(),
 						bootstrapContext.orderedContextInitializers()))
 				.child(ContainerConfiguration.class)

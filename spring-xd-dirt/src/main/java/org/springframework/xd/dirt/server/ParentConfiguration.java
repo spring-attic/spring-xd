@@ -26,6 +26,7 @@ import org.springframework.batch.core.configuration.annotation.EnableBatchProces
 import org.springframework.boot.actuate.endpoint.HealthEndpoint;
 import org.springframework.boot.actuate.health.VanillaHealthIndicator;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.web.ServerPropertiesAutoConfiguration;
 import org.springframework.cloud.Cloud;
@@ -50,7 +51,7 @@ import org.springframework.xd.dirt.util.RuntimeUtils;
  *
  * @author David Turanski
  */
-@EnableAutoConfiguration(exclude = ServerPropertiesAutoConfiguration.class)
+@EnableAutoConfiguration(exclude = { ServerPropertiesAutoConfiguration.class, BatchAutoConfiguration.class })
 @ImportResource("classpath:" + ConfigLocations.XD_INTERNAL_CONFIG_ROOT + "xd-global-beans.xml")
 @EnableBatchProcessing
 public class ParentConfiguration implements EnvironmentAware {

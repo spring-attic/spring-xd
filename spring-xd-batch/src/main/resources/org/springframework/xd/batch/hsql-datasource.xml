@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xsi:schemaLocation="http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<beans profile="hsqldbServer">
+		<bean class="org.springframework.xd.batch.hsqldb.server.HSQLServerBean">
+			<property name="serverProperties">
+				<props>
+					<prop key="server.port">${hsql.server.port:9101}</prop>
+					<prop key="server.database.0">${xd.data.home:file:../data}/jobs/${hsql.server.database:xdjobrepo}
+					</prop>
+					<prop key="server.dbname.0">${hsql.server.dbname:xdjob}</prop>
+				</props>
+			</property>
+		</bean>
+
+		<!-- Explicit datasource bean definition is needed to avoid boot using 
+			embedded type from DataSourceAutoConfiguration -->
+		<bean id="dataSource"
+			class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+
+			<property name="driverClassName" value="org.hsqldb.jdbc.JDBCDriver" />
+			<property name="url"
+				value="jdbc:hsqldb:hsql://${hsql.server.host:localhost}:${hsql.server.port:9101}/${hsql.server.dbname:xdjob}" />
+			<property name="username" value="sa" />
+			<property name="password" value="" />
+		</bean>
+	</beans>
+</beans>

@@ -22,6 +22,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
+import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContext;
@@ -46,6 +47,7 @@ import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.util.BannerUtils;
 import org.springframework.xd.dirt.util.ConfigLocations;
 import org.springframework.xd.dirt.util.XdConfigLoggingInitializer;
+import org.springframework.xd.dirt.util.XdProfiles;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnectionConfigurer;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
@@ -57,13 +59,11 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
  * @author David Turanski
  */
 @Configuration
-@EnableAutoConfiguration
+@EnableAutoConfiguration(exclude = BatchAutoConfiguration.class)
 @Import(PropertyPlaceholderAutoConfiguration.class)
 public class ContainerServerApplication {
 
 	private static final Log log = LogFactory.getLog(ContainerServerApplication.class);
-
-	public static final String NODE_PROFILE = "node";
 
 	private ConfigurableApplicationContext containerContext;
 
@@ -98,7 +98,7 @@ public class ContainerServerApplication {
 			ContainerBootstrapContext bootstrapContext = new ContainerBootstrapContext(new ContainerOptions());
 
 			this.containerContext = new SpringApplicationBuilder(ContainerOptions.class, ParentConfiguration.class)
-					.profiles(NODE_PROFILE)
+					.profiles(XdProfiles.CONTAINER_PROFILE)
 					.listeners(bootstrapContext.commandLineListener())
 					.child(SharedServerContextConfiguration.class, ContainerOptions.class)
 					.listeners(bootstrapContext.commandLineListener())
@@ -153,7 +153,7 @@ public class ContainerServerApplication {
 @ImportResource({
 	"classpath:" + ConfigLocations.XD_INTERNAL_CONFIG_ROOT + "container-server.xml",
 })
-@EnableAutoConfiguration
+@EnableAutoConfiguration(exclude = BatchAutoConfiguration.class)
 class ContainerConfiguration {
 
 	private static final String MBEAN_EXPORTER_BEAN_NAME = "XDContainerMBeanExporter";

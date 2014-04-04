@@ -27,6 +27,7 @@ import javax.sql.DataSource;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.job.SimpleJob;
@@ -39,6 +40,8 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.xd.batch.hsqldb.server.HsqlDatasourceConfiguration;
+import org.springframework.xd.batch.hsqldb.server.HsqlServerApplication;
 import org.springframework.xd.dirt.server.ParentConfiguration;
 import org.springframework.xd.test.RandomConfigurationSupport;
 
@@ -51,8 +54,9 @@ import org.springframework.xd.test.RandomConfigurationSupport;
  * 
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = ParentConfiguration.class, loader = SpringApplicationContextLoader.class)
-@ActiveProfiles({ "adminServer", "single", "memory", "hsqldb" })
+@ContextConfiguration(classes = { HsqlDatasourceConfiguration.class, HsqlServerApplication.class,
+	ParentConfiguration.class }, loader = SpringApplicationContextLoader.class)
+@ActiveProfiles({ HsqlServerApplication.HSQLDBSERVER_PROFILE })
 @DirtiesContext
 public class JobRepoTests extends RandomConfigurationSupport {
 

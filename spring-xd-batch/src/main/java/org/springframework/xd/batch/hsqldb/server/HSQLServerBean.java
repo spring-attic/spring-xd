@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.job;
+package org.springframework.xd.batch.hsqldb.server;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import java.net.SocketException;
 import java.util.Properties;
-
-import com.sun.management.UnixOperatingSystemMXBean;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -31,6 +29,8 @@ import org.hsqldb.server.ServerConstants;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
+
+import com.sun.management.UnixOperatingSystemMXBean;
 
 
 /**
@@ -79,6 +79,10 @@ public class HSQLServerBean implements InitializingBean, DisposableBean {
 		server.setProperties(configProps);
 
 		log.debug("HSQL Database path: " + server.getDatabasePath(0, true));
+		startServer();
+	}
+
+	private void startServer() throws Exception {
 		log.info("Starting HSQL Server database '" + server.getDatabaseName(0, true) + "' listening on port: "
 				+ server.getPort());
 
@@ -112,7 +116,7 @@ public class HSQLServerBean implements InitializingBean, DisposableBean {
 				// Tomcat as well:
 				//
 				// http://stackoverflow.com/questions/16191236/
-				//   tomcat-startup-fails-due-to-java-net-socketexception-invalid-argument-on-mac-o
+				// tomcat-startup-fails-due-to-java-net-socketexception-invalid-argument-on-mac-o
 				//
 				// This will be fixed in Java 7u60:
 				//
@@ -121,9 +125,10 @@ public class HSQLServerBean implements InitializingBean, DisposableBean {
 				if (t instanceof SocketException && "Invalid argument".equals(t.getMessage())) {
 					long fileCount = getOpenFileDescriptorCount();
 
-					log.debug(String.format(
-							"Caught SocketException (likely due to excessive file descriptors open; current count: %d)",
-							fileCount), t);
+					log.debug(
+							String.format(
+									"Caught SocketException (likely due to excessive file descriptors open; current count: %d)",
+									fileCount), t);
 
 					long timeout = System.currentTimeMillis() + 5000;
 					while (System.currentTimeMillis() < timeout && fileCount > 1024) {
@@ -140,7 +145,8 @@ public class HSQLServerBean implements InitializingBean, DisposableBean {
 					break;
 				}
 			}
-		} while (!started && ++tries < 5);
+		}
+		while (!started && ++tries < 5);
 
 		if (started) {
 			log.info("Started HSQL Server");
@@ -160,9 +166,9 @@ public class HSQLServerBean implements InitializingBean, DisposableBean {
 	}
 
 	/**
-	 * On UNIX operating systems, return the number of open file descriptors.
-	 * On non UNIX operating systems this returns -1.
-	 *
+	 * On UNIX operating systems, return the number of open file descriptors. On non UNIX operating systems this returns
+	 * -1.
+	 * 
 	 * @return number of open file descriptors if this is executing on a UNIX operating system
 	 */
 	private long getOpenFileDescriptorCount() {
@@ -174,6 +180,10 @@ public class HSQLServerBean implements InitializingBean, DisposableBean {
 
 	@Override
 	public void destroy() {
+		shutdownServer();
+	}
+
+	private void shutdownServer() {
 		log.info("HSQL Server Shutdown sequence initiated");
 		if (server != null) {
 			server.signalCloseAllServerConnections();

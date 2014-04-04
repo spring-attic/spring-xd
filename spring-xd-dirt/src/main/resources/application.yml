@@ -1,16 +1,14 @@
 spring:
   profiles:
-    active: default,hsqldb
-  datasource:
-    url: jdbc:hsqldb:hsql://${hsql.server.host:localhost}:${hsql.server.port:9101}/${hsql.server.dbname:xdjob}
-    username: sa
-    password:
-    driverClassName: org.hsqldb.jdbc.JDBCDriver
+    active: default
   main:
     show_banner: false
+  batch:
+     initializer:
+       enabled: ${initializeDatabase:false}
 endpoints:
   jolokia:
-    enabled: ${XD_JMX_ENABLED:true}
+    enabled: true
   jmx:
     enabled: ${XD_JMX_ENABLED:true}
     uniqueNames: true
@@ -57,21 +55,18 @@ transport: rabbit
 
 spring:
   profiles: cloud
-
 xdHomeDir: .
 
 ---
 
+# XD admin profile
 spring:
-  profiles: adminServer
-
+  profiles: admin
 ---
 
+# XD container profile
 spring:
-  profiles: node
-  batch:
-    initializer:
-      enabled: false
+  profiles: container
 server:
   port: ${PORT:0}
 management:
@@ -86,15 +81,26 @@ spring:
     username: root
     password:
     driverClassName: com.mysql.jdbc.Driver
-
 ---
+
 spring:
-  profiles: single
+  profiles: singlenode
 transport: local
 store: memory
 analytics: memory
+initializeDatabase: true
 
 ---
+
+# HSQL database configuration
+ spring:
+   datasource:
+    url: jdbc:hsqldb:hsql://${hsql.server.host:localhost}:${hsql.server.port:9101}/${hsql.server.dbname:xdjob}
+    username: sa
+    password:
+    driverClassName: org.hsqldb.jdbc.JDBCDriver
+---
+
 # Redis properties
 # (vcap.services.* binds to a service called 'redis' in Pivotal CF)
 spring:

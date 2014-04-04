@@ -18,13 +18,7 @@
 			<batch:tasklet>
 				<batch:chunk reader="multifileReader" writer="itemWriter" commit-interval="100"/>
 			</batch:tasklet>
-			<batch:listeners>
-				<batch:listener ref="xdStepExecutionListener"/>
-			</batch:listeners>
 		</batch:step>
-		<batch:listeners>
-			<batch:listener ref="xdJobExecutionListener"/>
-		</batch:listeners>
 	</batch:job>
 
 	<bean id="multifileReader" class="org.springframework.batch.item.file.MultiResourceItemReader" scope="step">
@@ -65,13 +59,13 @@
 		fs.default.name=${spring.hadoop.fsUri}
 	</hdp:configuration>
 	<hdp:resource-loader id="hadoopResourceLoader"/>
-	<mongo:db-factory dbname="${databaseName:xd}" host="${host}" port="${port}"/>
+	<mongo:db-factory dbname="${databaseName}" host="${host}" port="${port}"/>
 
 	<mongo:mapping-converter>
 		<mongo:custom-converters>
 			<mongo:converter>
 				<bean class="org.springframework.xd.mongodb.TupleWriteConverter">
-					<property name="idField" value="${idField:null}"/>
+					<property name="idField" value="${idField:}"/>
 				</bean>
 			</mongo:converter>
 		</mongo:custom-converters>

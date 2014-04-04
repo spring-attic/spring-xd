@@ -47,6 +47,8 @@ public class HierarchicalCompositeModuleOptionsMetadata implements ModuleOptions
 
 	private List<ModuleOption> options = new ArrayList<ModuleOption>();
 
+	private final static String HIERARCHICAL_PROFILE_SEPARATOR = "#";
+
 	public HierarchicalCompositeModuleOptionsMetadata(Map<String, ModuleOptionsMetadata> hierarchy) {
 		this.composedModuleDefinitions = hierarchy;
 		for (String key : hierarchy.keySet()) {
@@ -113,9 +115,20 @@ public class HierarchicalCompositeModuleOptionsMetadata implements ModuleOptions
 				return new HierarchicalEnumerablePropertySource("foo", pss);
 			}
 
+			/**
+			 * The composed module itself never needs to activate profiles. It's the submodules that should. The keys
+			 * returned here are special constructs that are decoded by {@link PrefixNarrowingModuleOptions}.
+			 */
 			@Override
 			public String[] profilesToActivate() {
-				return NO_PROFILES;
+				List<String> result = new ArrayList<String>(delegates.size());
+				for (String prefix : delegates.keySet()) {
+					ModuleOptions delegate = delegates.get(prefix);
+					for (String p : delegate.profilesToActivate()) {
+						result.add(qualifyProfile(prefix, p));
+					}
+				}
+				return result.toArray(new String[result.size()]);
 			}
 
 			@Override
@@ -127,6 +140,20 @@ public class HierarchicalCompositeModuleOptionsMetadata implements ModuleOptions
 		};
 	}
 
+	/* default */static String qualifyProfile(String prefix, String profile) {
+		return String.format("%s%s%s", prefix, HIERARCHICAL_PROFILE_SEPARATOR, profile);
+	}
+
+	/* default */static String[] filterQualifiedProfiles(String[] whole, String moduleName) {
+		List<String> result = new ArrayList<String>();
+		for (String raw : whole) {
+			String prefix = moduleName + HIERARCHICAL_PROFILE_SEPARATOR;
+			if (raw.startsWith(prefix)) {
+				result.add(raw.substring(prefix.length()));
+			}
+		}
+		return result.toArray(new String[result.size()]);
+	}
 }
 
 

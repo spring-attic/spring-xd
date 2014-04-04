@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.dirt.module;
+package org.springframework.xd.module.options;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.xd.module.core.CompositeModule;
-import org.springframework.xd.module.options.ModuleOptions;
 
 
 /**
@@ -45,7 +44,8 @@ public class PrefixNarrowingModuleOptions extends ModuleOptions {
 
 	@Override
 	public String[] profilesToActivate() {
-		return composedModuleOptions.profilesToActivate();
+		String[] encoded = composedModuleOptions.profilesToActivate();
+		return HierarchicalCompositeModuleOptionsMetadata.filterQualifiedProfiles(encoded, moduleName);
 	}
 
 	@Override

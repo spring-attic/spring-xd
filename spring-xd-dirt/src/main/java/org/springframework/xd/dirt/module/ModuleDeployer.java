@@ -43,6 +43,7 @@ import org.springframework.xd.module.core.Module;
 import org.springframework.xd.module.core.Plugin;
 import org.springframework.xd.module.core.SimpleModule;
 import org.springframework.xd.module.options.ModuleOptions;
+import org.springframework.xd.module.options.PrefixNarrowingModuleOptions;
 import org.springframework.xd.module.support.ParentLastURLClassLoader;
 
 /**

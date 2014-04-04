@@ -265,7 +265,7 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 	public void moduleChannelsRegisteredWithMessageBus() {
 		StreamDefinition sd = new StreamDefinition("busTest", "http | log");
 		int originalBindings = getMessageBusBindings().size();
-		integrationSupport.createAndDeployStream(sd);
+		assertTrue("Timeout waiting for stream deployment", integrationSupport.createAndDeployStream(sd));
 		int newBindings = getMessageBusBindings().size() - originalBindings;
 		assertEquals(3, newBindings);
 		integrationSupport.undeployAndDestroyStream(sd);

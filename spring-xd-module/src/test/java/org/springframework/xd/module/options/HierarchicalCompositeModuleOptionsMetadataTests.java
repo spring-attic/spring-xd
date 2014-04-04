@@ -76,7 +76,7 @@ public class HierarchicalCompositeModuleOptionsMetadataTests {
 
 	}
 
-	private String makeKey(String moduleName, String key) {
+	/* default */static String makeKey(String moduleName, String key) {
 		return moduleName + CompositeModule.OPTION_SEPARATOR + key;
 	}
 

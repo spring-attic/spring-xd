@@ -22,6 +22,7 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.module.DelegatingModuleRegistry;
+import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeployer;
 import org.springframework.xd.dirt.module.ModuleRegistry;
 import org.springframework.xd.dirt.module.ResourceModuleRegistry;
@@ -30,9 +31,11 @@ import org.springframework.xd.dirt.stream.StreamDefinition;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamDeployer;
 import org.springframework.xd.dirt.stream.StreamRepository;
+import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.core.Module;
+import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 
 /**
@@ -40,11 +43,11 @@ import org.springframework.xd.module.core.Module;
  * components and methods used for stream creation, deployment, and destruction and provides access to the
  * {@link MessageBus}. Additionally, it supports registration of modules contained in a local resource location
  * (default: "file:./config").
- * 
- * 
+ *
+ *
  * @author David Turanski
  * @author Ilayaperumal Gopinathan
- * 
+ *
  */
 public class SingleNodeIntegrationTestSupport {
 
@@ -62,13 +65,15 @@ public class SingleNodeIntegrationTestSupport {
 
 	private final Map<String, PathChildrenCache> mapChildren = new HashMap<String, PathChildrenCache>();
 
+	private StreamCommandListener streamCommandListener;
+
 	public SingleNodeIntegrationTestSupport(SingleNodeApplication application) {
 		this(application, "file:./config");
 	}
 
 	/**
 	 * Constructor useful for testing custom modules
-	 * 
+	 *
 	 * @param application the {@link SingleNodeApplication}
 	 * @param moduleResourceLocation an additional Spring (file: or classpath:) resource location used by the
 	 *        {@link ModuleRegistry}
@@ -81,6 +86,10 @@ public class SingleNodeIntegrationTestSupport {
 		messageBus = application.pluginContext().getBean(MessageBus.class);
 		zooKeeperConnection = application.adminContext().getBean(ZooKeeperConnection.class);
 		moduleDeployer = application.containerContext().getBean(ModuleDeployer.class);
+		streamCommandListener = new StreamCommandListener(streamDefinitionRepository,
+				application.containerContext().getBean(ModuleDefinitionRepository.class),
+				application.containerContext().getBean(ModuleOptionsMetadataResolver.class));
+		addPathListener(Paths.STREAMS, streamCommandListener);
 		ResourceModuleRegistry cp = new ResourceModuleRegistry(moduleResourceLocation);
 		DelegatingModuleRegistry cmr1 = application.pluginContext().getBean(DelegatingModuleRegistry.class);
 		cmr1.addDelegate(cp);
@@ -88,12 +97,15 @@ public class SingleNodeIntegrationTestSupport {
 		if (cmr1 != cmr2) {
 			cmr2.addDelegate(cp);
 		}
-
 	}
 
 	public final Map<String, Map<Integer, Module>> getDeployedModules() {
 		Assert.notNull(moduleDeployer, "ModuleDeployer is required to get deployed modules.");
 		return moduleDeployer.getDeployedModules();
+	}
+
+	public final StreamCommandListener streamCommandListener() {
+		return streamCommandListener;
 	}
 
 	public final StreamDeployer streamDeployer() {
@@ -146,7 +158,7 @@ public class SingleNodeIntegrationTestSupport {
 
 	/**
 	 * Add a {@link PathChildrenCacheListener} for the given path.
-	 * 
+	 *
 	 * @param path the path whose children to listen to
 	 * @param listener the children listener
 	 */
@@ -166,7 +178,7 @@ public class SingleNodeIntegrationTestSupport {
 
 	/**
 	 * Remove a {@link PathChildrenCacheListener} for the given path.
-	 * 
+	 *
 	 * @param path the path whose children to listen to
 	 * @param listener the children listener
 	 */
@@ -217,12 +229,24 @@ public class SingleNodeIntegrationTestSupport {
 
 	private final boolean waitForUndeploy(StreamDefinition definition) {
 		streamDeployer.undeploy(definition.getName());
-		return waitForStreamOp(definition, false);
+		try {
+			streamCommandListener.waitForUndeploy(definition.getName());
+			return true;
+		}
+		catch (IllegalStateException e) {
+			return false;
+		}
 	}
 
 	private final boolean waitForDeploy(StreamDefinition definition) {
 		streamDeployer.deploy(definition.getName());
-		return waitForStreamOp(definition, true);
+		try {
+			streamCommandListener.waitForDeploy(definition.getName());
+			return true;
+		}
+		catch (IllegalStateException e) {
+			return false;
+		}
 	}
 
 }

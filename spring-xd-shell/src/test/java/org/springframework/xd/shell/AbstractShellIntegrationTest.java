@@ -41,10 +41,9 @@ import org.springframework.shell.core.JLineShellComponent;
 import org.springframework.util.AlternativeJdkIdGenerator;
 import org.springframework.util.IdGenerator;
 import org.springframework.xd.dirt.integration.test.SingleNodeIntegrationTestSupport;
-import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
+import org.springframework.xd.dirt.integration.test.StreamCommandListener;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.dirt.zookeeper.Paths;
-import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 import org.springframework.xd.test.RandomConfigurationSupport;
 import org.springframework.xd.test.redis.RedisTestSupport;
 
@@ -103,12 +102,7 @@ public abstract class AbstractShellIntegrationTest {
 			application = new SingleNodeApplication().run("--transport", "local", "--analytics", "redis");
 			integrationTestSupport = new SingleNodeIntegrationTestSupport(application);
 
-			streamCommandListener = new StreamCommandListener(
-					integrationTestSupport.streamDefinitionRepository(),
-					application.containerContext().getBean(ModuleDefinitionRepository.class),
-					application.containerContext().getBean(ModuleOptionsMetadataResolver.class));
-
-			integrationTestSupport.addPathListener(Paths.STREAMS, streamCommandListener);
+			streamCommandListener = integrationTestSupport.streamCommandListener();
 			integrationTestSupport.addPathListener(Paths.JOBS, jobCommandListener);
 
 			Bootstrap bootstrap = new Bootstrap(new String[] { "--port", randomConfigSupport.getAdminServerPort() });

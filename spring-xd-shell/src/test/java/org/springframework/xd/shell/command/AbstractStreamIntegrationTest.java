@@ -37,7 +37,7 @@ import org.springframework.xd.test.fixtures.TcpSource;
 
 /**
  * Provides an @After JUnit lifecycle method that will destroy the definitions that were created by the test.
- * 
+ *
  * @author Andy Clement
  * @author Mark Pollack
  * @author Eric Bottard

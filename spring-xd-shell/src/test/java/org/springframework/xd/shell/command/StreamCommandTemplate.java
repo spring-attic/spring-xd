@@ -24,7 +24,7 @@ import java.util.List;
 
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
-import org.springframework.xd.shell.StreamCommandListener;
+import org.springframework.xd.dirt.integration.test.StreamCommandListener;
 import org.springframework.xd.shell.util.Table;
 import org.springframework.xd.shell.util.TableRow;
 
@@ -32,7 +32,7 @@ import org.springframework.xd.shell.util.TableRow;
  * Helper methods for stream commands to execute in the shell.
  * <p/>
  * It should mimic the client side API of StreamOperations as much as possible.
- * 
+ *
  * @author Mark Pollack
  * @author Mark Fisher
  */
@@ -44,7 +44,7 @@ public class StreamCommandTemplate extends AbstractCommandTemplate {
 
 	/**
 	 * Construct a new StreamCommandTemplate, given a spring shell.
-	 * 
+	 *
 	 * @param shell the spring shell to execute commands against
 	 */
 	/* default */StreamCommandTemplate(JLineShellComponent shell, StreamCommandListener streamCommandListener) {
@@ -54,10 +54,10 @@ public class StreamCommandTemplate extends AbstractCommandTemplate {
 
 	/**
 	 * Create and deploy a stream.
-	 * 
+	 *
 	 * Note the name of the stream will be stored so that when the method destroyCreatedStreams is called, the stream
 	 * will be destroyed.
-	 * 
+	 *
 	 * @param streamname the name of the stream
 	 * @param streamdefinition the stream definition DSL
 	 * @param values will be injected into streamdefinition according to {@link String#format(String, Object...)} syntax
@@ -68,10 +68,10 @@ public class StreamCommandTemplate extends AbstractCommandTemplate {
 
 	/**
 	 * Execute stream create (but don't deploy) for the supplied stream name/definition, and verify the command result.
-	 * 
+	 *
 	 * Note the name of the stream will be stored so that when the method destroyCreatedStreams is called, the stream
 	 * will be destroyed.
-	 * 
+	 *
 	 * @param values will be injected into streamdefinition according to {@link String#format(String, Object...)} syntax
 	 */
 	public void createDontDeploy(String streamname, String streamdefinition, Object... values) {
@@ -98,7 +98,7 @@ public class StreamCommandTemplate extends AbstractCommandTemplate {
 
 	/**
 	 * Deploy the given stream
-	 * 
+	 *
 	 * @param streamname name of the stream
 	 */
 	public void deploy(String streamname) {
@@ -123,7 +123,7 @@ public class StreamCommandTemplate extends AbstractCommandTemplate {
 
 	/**
 	 * Destroy a specific stream
-	 * 
+	 *
 	 * @param stream The stream to destroy
 	 */
 	public void destroyStream(String stream) {
@@ -136,7 +136,7 @@ public class StreamCommandTemplate extends AbstractCommandTemplate {
 
 	/**
 	 * Undeploy the given stream name
-	 * 
+	 *
 	 * @param streamname name of the stream.
 	 */
 	public void undeploy(String streamname) {
@@ -148,7 +148,7 @@ public class StreamCommandTemplate extends AbstractCommandTemplate {
 
 	/**
 	 * Verify the stream is listed in stream list.
-	 * 
+	 *
 	 * @param streamName the name of the stream
 	 * @param definition definition of the stream
 	 */

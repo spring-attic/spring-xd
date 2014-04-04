@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.shell;
+package org.springframework.xd.dirt.integration.test;
 
 import java.util.ArrayList;
 import java.util.Iterator;

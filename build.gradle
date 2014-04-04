@@ -1208,6 +1208,12 @@ project('modules.processor.aggregator') {
 	}
 }
 
+project('modules.processor.analytic-pmml') {
+	dependencies {
+		runtime(project(":spring-xd-analytics-ml-pmml"))
+	}
+}
+
 // ================ M O D U L E S : S I N K S ==========================
 
 project('modules.sink.tcp') {

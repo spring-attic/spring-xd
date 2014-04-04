@@ -150,12 +150,17 @@ public class JobListener implements PathChildrenCacheListener {
 	 */
 	private void onChildRemoved(CuratorFramework client, ChildData data) throws Exception {
 		String jobName = Paths.stripPath(data.getPath());
-		byte[] bytes = client.getData().forPath(Paths.build(Paths.JOBS, jobName));
-		Map<String, String> map = mapBytesUtility.toMap(bytes);
-		JobDefinition jobDefinition = new JobDefinition(jobName, map.get("definition"));
+		LOG.info("Undeploying job {}", jobName);
 
-		LOG.info("Undeploying job {}", jobDefinition);
-		undeployJob(client, jobDefinition);
+		try {
+			byte[] bytes = client.getData().forPath(Paths.build(Paths.JOBS, jobName));
+			Map<String, String> map = mapBytesUtility.toMap(bytes);
+			JobDefinition jobDefinition = new JobDefinition(jobName, map.get("definition"));
+			undeployJob(client, jobDefinition);
+		}
+		catch (KeeperException.NoNodeException e) {
+			LOG.debug("Job definition {} has already been removed", jobName);
+		}
 	}
 
 	/**

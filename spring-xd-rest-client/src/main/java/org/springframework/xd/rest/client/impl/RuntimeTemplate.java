@@ -18,7 +18,7 @@ package org.springframework.xd.rest.client.impl;
 
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.xd.rest.client.RuntimeOperations;
-import org.springframework.xd.rest.client.domain.ContainerMetadataResource;
+import org.springframework.xd.rest.client.domain.ContainerAttributesResource;
 import org.springframework.xd.rest.client.domain.ModuleMetadataResource;
 
 /**
@@ -33,10 +33,10 @@ public class RuntimeTemplate extends AbstractTemplate implements RuntimeOperatio
 	}
 
 	@Override
-	public ContainerMetadataResource.Page listRuntimeContainers() {
+	public ContainerAttributesResource.Page listRuntimeContainers() {
 		String uriTemplate = resources.get("runtime/containers").toString();
 		uriTemplate = uriTemplate + "?size=10000";
-		return restTemplate.getForObject(uriTemplate, ContainerMetadataResource.Page.class);
+		return restTemplate.getForObject(uriTemplate, ContainerAttributesResource.Page.class);
 	}
 
 	@Override

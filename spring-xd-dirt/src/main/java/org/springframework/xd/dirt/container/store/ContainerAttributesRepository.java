@@ -24,6 +24,6 @@ import org.springframework.xd.store.DomainRepository;
  * 
  * @author Ilayaperumal Gopinathan
  */
-public interface ContainerMetadataRepository extends DomainRepository<ContainerAttributes, String> {
+public interface ContainerAttributesRepository extends DomainRepository<ContainerAttributes, String> {
 
 }

@@ -17,7 +17,7 @@
 package org.springframework.xd.rest.client;
 
 import org.springframework.hateoas.PagedResources;
-import org.springframework.xd.rest.client.domain.ContainerMetadataResource;
+import org.springframework.xd.rest.client.domain.ContainerAttributesResource;
 import org.springframework.xd.rest.client.domain.ModuleMetadataResource;
 
 /**
@@ -27,7 +27,7 @@ import org.springframework.xd.rest.client.domain.ModuleMetadataResource;
  */
 public interface RuntimeOperations {
 
-	public PagedResources<ContainerMetadataResource> listRuntimeContainers();
+	public PagedResources<ContainerAttributesResource> listRuntimeContainers();
 
 	public PagedResources<ModuleMetadataResource> listRuntimeModules();
 

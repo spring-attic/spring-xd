@@ -59,7 +59,7 @@ public class RuntimeContainersControllerIntegrationTests extends AbstractControl
 		containerEntities.add(container1);
 		containerEntities.add(container2);
 		Page<ContainerAttributes> pagedEntity = new PageImpl<ContainerAttributes>(containerEntities);
-		when(containerMetadataRepository.findAll(pageable)).thenReturn(pagedEntity);
+		when(containerAttributesRepository.findAll(pageable)).thenReturn(pagedEntity);
 	}
 
 	@Test

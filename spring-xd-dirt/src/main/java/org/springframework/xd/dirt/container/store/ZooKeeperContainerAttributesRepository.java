@@ -39,7 +39,7 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
  * @author Mark Fisher
  * @author David Turanski
  */
-public class ZooKeeperContainerMetadataRepository implements ContainerMetadataRepository {
+public class ZooKeeperContainerAttributesRepository implements ContainerAttributesRepository {
 
 
 	private final ZooKeeperConnection zkConnection;
@@ -47,7 +47,7 @@ public class ZooKeeperContainerMetadataRepository implements ContainerMetadataRe
 	private final MapBytesUtility mapBytesUtility = new MapBytesUtility();
 
 	@Autowired
-	public ZooKeeperContainerMetadataRepository(ZooKeeperConnection zkConnection) {
+	public ZooKeeperContainerAttributesRepository(ZooKeeperConnection zkConnection) {
 		this.zkConnection = zkConnection;
 	}
 

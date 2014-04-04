@@ -24,7 +24,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.xd.rest.client.domain.CompletionKind;
-import org.springframework.xd.rest.client.domain.ContainerMetadataResource;
+import org.springframework.xd.rest.client.domain.ContainerAttributesResource;
 import org.springframework.xd.rest.client.domain.DetailedJobInfoResource;
 import org.springframework.xd.rest.client.domain.JobDefinitionResource;
 import org.springframework.xd.rest.client.domain.JobExecutionInfoResource;
@@ -62,7 +62,7 @@ public class AdminController {
 		xdRuntime.add(entityLinks.linkFor(ModuleDefinitionResource.class).withRel("modules"));
 
 		xdRuntime.add(entityLinks.linkFor(ModuleMetadataResource.class).withRel("runtime/modules"));
-		xdRuntime.add(entityLinks.linkFor(ContainerMetadataResource.class).withRel("runtime/containers"));
+		xdRuntime.add(entityLinks.linkFor(ContainerAttributesResource.class).withRel("runtime/containers"));
 
 		xdRuntime.add(entityLinks.linkFor(DetailedJobInfoResource.class).withRel("batch/jobs"));
 		xdRuntime.add(entityLinks.linkFor(JobExecutionInfoResource.class).withRel("batch/executions"));

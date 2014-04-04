@@ -30,8 +30,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.xd.dirt.container.ContainerAttributes;
-import org.springframework.xd.dirt.container.store.ContainerMetadataRepository;
-import org.springframework.xd.rest.client.domain.ContainerMetadataResource;
+import org.springframework.xd.dirt.container.store.ContainerAttributesRepository;
+import org.springframework.xd.rest.client.domain.ContainerAttributesResource;
 
 /**
  * Handles interaction with the runtime containers/and its modules.
@@ -41,17 +41,17 @@ import org.springframework.xd.rest.client.domain.ContainerMetadataResource;
  */
 @Controller
 @RequestMapping("/runtime/containers")
-@ExposesResourceFor(ContainerMetadataResource.class)
+@ExposesResourceFor(ContainerAttributesResource.class)
 public class RuntimeContainersController {
 
-	private ContainerMetadataRepository containerMetadataRepository;
+	private ContainerAttributesRepository containerAttributesRepository;
 
-	private ResourceAssemblerSupport<ContainerAttributes, ContainerMetadataResource> containerMetadataResourceAssemblerSupport;
+	private ResourceAssemblerSupport<ContainerAttributes, ContainerAttributesResource> containerAttributesResourceAssemblerSupport;
 
 	@Autowired
-	public RuntimeContainersController(ContainerMetadataRepository containerMetadataRepository) {
-		this.containerMetadataRepository = containerMetadataRepository;
-		containerMetadataResourceAssemblerSupport = new ContainerMetadataResourceAssembler();
+	public RuntimeContainersController(ContainerAttributesRepository containerAttributesRepository) {
+		this.containerAttributesRepository = containerAttributesRepository;
+		containerAttributesResourceAssemblerSupport = new ContainerAttributesResourceAssembler();
 	}
 
 	/**
@@ -60,11 +60,11 @@ public class RuntimeContainersController {
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public PagedResources<ContainerMetadataResource> list(Pageable pageable,
+	public PagedResources<ContainerAttributesResource> list(Pageable pageable,
 			PagedResourcesAssembler<ContainerAttributes> assembler) {
-		Page<ContainerAttributes> page = this.containerMetadataRepository.findAll(pageable);
-		PagedResources<ContainerMetadataResource> result = assembler.toResource(page,
-				containerMetadataResourceAssemblerSupport);
+		Page<ContainerAttributes> page = this.containerAttributesRepository.findAll(pageable);
+		PagedResources<ContainerAttributesResource> result = assembler.toResource(page,
+				containerAttributesResourceAssemblerSupport);
 		return result;
 	}
 

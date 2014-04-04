@@ -29,7 +29,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  */
 @XmlRootElement
-public class ContainerMetadataResource extends ResourceSupport {
+public class ContainerAttributesResource extends ResourceSupport {
 
 	private String containerId;
 
@@ -40,10 +40,10 @@ public class ContainerMetadataResource extends ResourceSupport {
 	private String ipAddress;
 
 	@SuppressWarnings("unused")
-	private ContainerMetadataResource() {
+	private ContainerAttributesResource() {
 	}
 
-	public ContainerMetadataResource(String containerId, int processId, String hostName, String ipAddress) {
+	public ContainerAttributesResource(String containerId, int processId, String hostName, String ipAddress) {
 		Assert.hasText(containerId, "Container Id can not be empty");
 		Assert.hasText(hostName, "Hostname can not be empty");
 		Assert.hasText(ipAddress, "IP address can not be empty");
@@ -79,7 +79,7 @@ public class ContainerMetadataResource extends ResourceSupport {
 	 * 
 	 * @author Eric Bottard
 	 */
-	public static class Page extends PagedResources<ContainerMetadataResource> {
+	public static class Page extends PagedResources<ContainerAttributesResource> {
 
 	}
 

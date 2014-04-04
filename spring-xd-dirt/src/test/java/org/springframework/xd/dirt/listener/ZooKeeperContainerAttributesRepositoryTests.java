@@ -34,27 +34,27 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.container.ContainerAttributes;
-import org.springframework.xd.dirt.container.store.ContainerMetadataRepository;
-import org.springframework.xd.dirt.container.store.ZooKeeperContainerMetadataRepository;
-import org.springframework.xd.dirt.listener.ZooKeeperContainerMetadataRepositoryTests.ZooKeeperContainerMetadataRepositoryTestsConfig;
+import org.springframework.xd.dirt.container.store.ContainerAttributesRepository;
+import org.springframework.xd.dirt.container.store.ZooKeeperContainerAttributesRepository;
+import org.springframework.xd.dirt.listener.ZooKeeperContainerAttributesRepositoryTests.ZooKeeperContainerAttributesRepositoryTestsConfig;
 import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 
 /**
- * Integration test of {@link ZooKeeperContainerMetadataRepository}.
+ * Integration test of {@link ZooKeeperContainerAttributesRepository}.
  *
  * @author Jennifer Hickey
  * @author Gary Russell
  * @author Ilayaperumal Gopinathan
  * @author Mark Fisher
  */
-@ContextConfiguration(classes = ZooKeeperContainerMetadataRepositoryTestsConfig.class)
+@ContextConfiguration(classes = ZooKeeperContainerAttributesRepositoryTestsConfig.class)
 @RunWith(SpringJUnit4ClassRunner.class)
-public class ZooKeeperContainerMetadataRepositoryTests {
+public class ZooKeeperContainerAttributesRepositoryTests {
 
 	@Autowired
-	private ContainerMetadataRepository containerMetadataRepository;
+	private ContainerAttributesRepository containerAttributesRepository;
 
 	@Autowired
 	private ZooKeeperConnection zooKeeperConnection;
@@ -77,7 +77,7 @@ public class ZooKeeperContainerMetadataRepositoryTests {
 
 		ContainerAttributes entity = new ContainerAttributes(id).setPid(pid).setHost(host).setIp(ip);
 		entity.put("groups", "g1,g2,g3");
-		ContainerAttributes saved = containerMetadataRepository.save(entity);
+		ContainerAttributes saved = containerAttributesRepository.save(entity);
 		assertNotNull(saved);
 		assertEquals(id, saved.getId());
 		assertEquals(pid, saved.getPid());
@@ -86,13 +86,13 @@ public class ZooKeeperContainerMetadataRepositoryTests {
 		assertEquals(groups, saved.getGroups());
 
 		entity = new ContainerAttributes(id2).setPid(pid).setHost(host).setIp(ip);
-		saved = containerMetadataRepository.save(entity);
+		saved = containerAttributesRepository.save(entity);
 		assertNotNull(saved);
 	}
 
 	@Test
-	public void findContainerMetadataById() {
-		ContainerAttributes found = containerMetadataRepository.findOne(id);
+	public void findContainerAttributesById() {
+		ContainerAttributes found = containerAttributesRepository.findOne(id);
 		assertNotNull(found);
 		assertEquals(id, found.getId());
 		assertEquals(pid, found.getPid());
@@ -103,7 +103,7 @@ public class ZooKeeperContainerMetadataRepositoryTests {
 
 	@Test
 	public void findContainerNoGroups() {
-		ContainerAttributes found = containerMetadataRepository.findOne(id2);
+		ContainerAttributes found = containerAttributesRepository.findOne(id2);
 		assertNotNull(found);
 		assertEquals(id2, found.getId());
 		assertEquals(pid, found.getPid());
@@ -114,7 +114,7 @@ public class ZooKeeperContainerMetadataRepositoryTests {
 
 
 	@Configuration
-	public static class ZooKeeperContainerMetadataRepositoryTestsConfig {
+	public static class ZooKeeperContainerAttributesRepositoryTestsConfig {
 
 		@Bean
 		public EmbeddedZooKeeper embeddedZooKeeper() {
@@ -127,8 +127,8 @@ public class ZooKeeperContainerMetadataRepositoryTests {
 		}
 
 		@Bean
-		public ContainerMetadataRepository runtimeContainerInfoRepository() {
-			return new ZooKeeperContainerMetadataRepository(zooKeeperConnection());
+		public ContainerAttributesRepository runtimeContainerInfoRepository() {
+			return new ZooKeeperContainerAttributesRepository(zooKeeperConnection());
 		}
 	}
 

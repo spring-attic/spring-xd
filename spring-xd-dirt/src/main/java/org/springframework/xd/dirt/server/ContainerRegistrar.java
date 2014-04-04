@@ -47,7 +47,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.validation.BindException;
 import org.springframework.xd.dirt.container.ContainerAttributes;
-import org.springframework.xd.dirt.container.store.ContainerMetadataRepository;
+import org.springframework.xd.dirt.container.store.ContainerAttributesRepository;
 import org.springframework.xd.dirt.core.JobsPath;
 import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.core.ModuleDescriptor;
@@ -105,7 +105,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	/**
 	 * Repository where {@link ContainerAttributes} is stored.
 	 */
-	private final ContainerMetadataRepository containerMetadataRepository;
+	private final ContainerAttributesRepository containerAttributesRepository;
 
 	/**
 	 * The ZooKeeperConnection.
@@ -193,14 +193,14 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	 * @param zkConnection ZooKeeper connection
 	 */
 	public ContainerRegistrar(ContainerAttributes metadata,
-			ContainerMetadataRepository containerMetadataRepository,
+			ContainerAttributesRepository containerAttributesRepository,
 			StreamDefinitionRepository streamDefinitionRepository,
 			ModuleDefinitionRepository moduleDefinitionRepository,
 			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver,
 			ModuleDeployer moduleDeployer,
 			ZooKeeperConnection zkConnection) {
 		this.containerAttributes = metadata;
-		this.containerMetadataRepository = containerMetadataRepository;
+		this.containerAttributesRepository = containerAttributesRepository;
 		this.zkConnection = zkConnection;
 		this.moduleDefinitionRepository = moduleDefinitionRepository;
 		this.moduleOptionsMetadataResolver = moduleOptionsMetadataResolver;
@@ -270,7 +270,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 			if (zkConnection.isConnected()) {
 				registerWithZooKeeper(zkConnection.getClient());
 			}
-			zkConnection.addListener(new ContainerMetadataRegisteringZooKeeperConnectionListener());
+			zkConnection.addListener(new ContainerAttributesRegisteringZooKeeperConnectionListener());
 		}
 	}
 
@@ -291,7 +291,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 			deployments = new PathChildrenCache(client, Paths.build(Paths.MODULE_DEPLOYMENTS,
 					containerAttributes.getId()), true, ThreadUtils.newThreadFactory("DeploymentsPathChildrenCache"));
 			deployments.getListenable().addListener(deploymentListener);
-			containerMetadataRepository.save(containerAttributes);
+			containerAttributesRepository.save(containerAttributes);
 			deployments.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
 
 			LOG.info("Started container {}", containerAttributes);
@@ -305,7 +305,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	/**
 	 * The listener that triggers registration of the container metadata in a ZooKeeper node.
 	 */
-	private class ContainerMetadataRegisteringZooKeeperConnectionListener implements ZooKeeperConnectionListener {
+	private class ContainerAttributesRegisteringZooKeeperConnectionListener implements ZooKeeperConnectionListener {
 
 		/**
 		 * {@inheritDoc}

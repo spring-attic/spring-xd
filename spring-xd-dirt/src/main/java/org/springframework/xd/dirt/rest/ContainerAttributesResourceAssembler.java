@@ -18,29 +18,29 @@ package org.springframework.xd.dirt.rest;
 
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.xd.dirt.container.ContainerAttributes;
-import org.springframework.xd.rest.client.domain.ContainerMetadataResource;
+import org.springframework.xd.rest.client.domain.ContainerAttributesResource;
 
 /**
- * Knows how to assemble {@link ContainerMetadataResource}s out of {@link ContainerAttributes} instances.
+ * Knows how to assemble {@link ContainerAttributesResource}s out of {@link ContainerAttributes} instances.
  * 
  * @author Ilayaperumal Gopinathan
  * @author Mark Fisher
  */
-public class ContainerMetadataResourceAssembler extends
-		ResourceAssemblerSupport<ContainerAttributes, ContainerMetadataResource> {
+public class ContainerAttributesResourceAssembler extends
+		ResourceAssemblerSupport<ContainerAttributes, ContainerAttributesResource> {
 
-	public ContainerMetadataResourceAssembler() {
-		super(RuntimeContainersController.class, ContainerMetadataResource.class);
+	public ContainerAttributesResourceAssembler() {
+		super(RuntimeContainersController.class, ContainerAttributesResource.class);
 	}
 
 	@Override
-	public ContainerMetadataResource toResource(ContainerAttributes entity) {
+	public ContainerAttributesResource toResource(ContainerAttributes entity) {
 		return createResourceWithId(entity.getId(), entity);
 	}
 
 	@Override
-	protected ContainerMetadataResource instantiateResource(ContainerAttributes entity) {
-		return new ContainerMetadataResource(entity.getId(), entity.getPid(), entity.getHost(), entity.getIp());
+	protected ContainerAttributesResource instantiateResource(ContainerAttributes entity) {
+		return new ContainerAttributesResource(entity.getId(), entity.getPid(), entity.getHost(), entity.getIp());
 	}
 
 }

@@ -24,7 +24,7 @@ import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
 import org.springframework.xd.rest.client.RuntimeOperations;
-import org.springframework.xd.rest.client.domain.ContainerMetadataResource;
+import org.springframework.xd.rest.client.domain.ContainerAttributesResource;
 import org.springframework.xd.rest.client.domain.ModuleMetadataResource;
 import org.springframework.xd.shell.XDShell;
 import org.springframework.xd.shell.util.Table;
@@ -54,11 +54,11 @@ public class RuntimeCommands implements CommandMarker {
 	@CliCommand(value = LIST_CONTAINERS, help = "List runtime containers")
 	public Table listContainers() {
 
-		final PagedResources<ContainerMetadataResource> containers = runtimeOperations().listRuntimeContainers();
+		final PagedResources<ContainerAttributesResource> containers = runtimeOperations().listRuntimeContainers();
 		final Table table = new Table();
 		table.addHeader(1, new TableHeader("Container Id")).addHeader(2, new TableHeader("Host")).addHeader(
 				3, new TableHeader("IP Address"));
-		for (ContainerMetadataResource container : containers) {
+		for (ContainerAttributesResource container : containers) {
 			final TableRow row = table.newRow();
 			row.addValue(1, container.getContainerId()).addValue(2, container.getHostName()).addValue(3,
 					container.getIpAddress());

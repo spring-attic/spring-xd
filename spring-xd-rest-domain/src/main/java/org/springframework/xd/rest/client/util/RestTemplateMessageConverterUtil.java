@@ -32,7 +32,7 @@ import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConvert
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.xd.rest.client.domain.ContainerMetadataResource;
+import org.springframework.xd.rest.client.domain.ContainerAttributesResource;
 import org.springframework.xd.rest.client.domain.JobDefinitionResource;
 import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
 import org.springframework.xd.rest.client.domain.ModuleMetadataResource;
@@ -76,7 +76,7 @@ public class RestTemplateMessageConverterUtil {
 					RestTemplateMessageConverterUtil.class.getClassLoader());
 
 	private static final Class<?>[] ourClasses = { PagedResources.class, StreamDefinitionResource.class,
-		JobDefinitionResource.class, ModuleDefinitionResource.class, ContainerMetadataResource.class,
+		JobDefinitionResource.class, ModuleDefinitionResource.class, ContainerAttributesResource.class,
 		ModuleMetadataResource.class,
 		MetricResource.class, GaugeResource.class,
 		AggregateCountsResource.class, CounterResource.class, XDRuntime.class, FieldValueCounterResource.class,

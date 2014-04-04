@@ -150,17 +150,23 @@ public class StreamListener implements PathChildrenCacheListener {
 
 	/**
 	 * Handle the deletion of a stream deployment.
-	 * 
+	 *
 	 * @param client curator client
 	 * @param data   stream deployment request data
 	 */
 	private void onChildRemoved(CuratorFramework client, ChildData data) throws Exception {
 		String streamName = Paths.stripPath(data.getPath());
-
 		LOG.info("Undeploying stream {}", streamName);
 
-		byte[] streamDefinition = client.getData().forPath(new StreamsPath().setStreamName(streamName).build());
-		Stream stream = streamFactory.createStream(streamName, mapBytesUtility.toMap(streamDefinition));
+		Stream stream;
+		try {
+			byte[] streamDefinition = client.getData().forPath(new StreamsPath().setStreamName(streamName).build());
+			stream = streamFactory.createStream(streamName, mapBytesUtility.toMap(streamDefinition));
+		}
+		catch (KeeperException.NoNodeException e) {
+			LOG.debug("Stream definition {} has already been removed", streamName);
+			return;
+		}
 
 		// build the paths of the modules to be undeployed
 		// in the stream processing order; as each path

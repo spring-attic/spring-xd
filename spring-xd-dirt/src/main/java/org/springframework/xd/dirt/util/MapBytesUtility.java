@@ -16,7 +16,7 @@
 
 package org.springframework.xd.dirt.util;
 
-import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.Collections;
 import java.util.Map;
 
@@ -82,11 +82,15 @@ public class MapBytesUtility {
 		try {
 			return reader.readValue(bytes);
 		}
-		catch (JsonProcessingException e) {
-			throw new RuntimeException(e);
-		}
-		catch (IOException e) {
-			throw new RuntimeException(e);
+		catch (Exception e) {
+			String contents;
+			try {
+				contents = new String(bytes, "UTF-8");
+			}
+			catch (UnsupportedEncodingException uue) {
+				contents = "Could not read content due to " + uue;
+			}
+			throw new RuntimeException("Error parsing JSON string: " + contents, e);
 		}
 	}
 

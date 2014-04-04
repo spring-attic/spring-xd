@@ -177,6 +177,9 @@ public abstract class AbstractShellIntegrationTest {
 	 */
 	protected CommandResult executeCommand(String command) {
 		CommandResult cr = getShell().executeCommand(command);
+		if (cr.getException() != null) {
+			cr.getException().printStackTrace();
+		}
 		assertTrue("Failure.  CommandResult = " + cr.toString(), cr.isSuccess());
 		return cr;
 	}

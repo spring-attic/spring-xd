@@ -19,8 +19,10 @@ package org.springframework.xd.dirt.listener;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.util.Set;
 import java.util.UUID;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,33 +32,36 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.xd.dirt.container.ContainerMetadata;
-import org.springframework.xd.dirt.container.store.ContainerMetadataRepository;
-import org.springframework.xd.dirt.container.store.ZooKeeperContainerMetadataRepository;
-import org.springframework.xd.dirt.listener.ZooKeeperContainerMetadataRepositoryTests.ZooKeeperContainerMetadataRepositoryTestsConfig;
+import org.springframework.util.StringUtils;
+import org.springframework.xd.dirt.container.ContainerAttributes;
+import org.springframework.xd.dirt.container.store.ContainerAttributesRepository;
+import org.springframework.xd.dirt.container.store.ZooKeeperContainerAttributesRepository;
+import org.springframework.xd.dirt.listener.ZooKeeperContainerAttributesRepositoryTests.ZooKeeperContainerAttributesRepositoryTestsConfig;
 import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 
 /**
- * Integration test of {@link ZooKeeperContainerMetadataRepository}.
- * 
+ * Integration test of {@link ZooKeeperContainerAttributesRepository}.
+ *
  * @author Jennifer Hickey
  * @author Gary Russell
  * @author Ilayaperumal Gopinathan
  * @author Mark Fisher
  */
-@ContextConfiguration(classes = ZooKeeperContainerMetadataRepositoryTestsConfig.class)
+@ContextConfiguration(classes = ZooKeeperContainerAttributesRepositoryTestsConfig.class)
 @RunWith(SpringJUnit4ClassRunner.class)
-public class ZooKeeperContainerMetadataRepositoryTests {
+public class ZooKeeperContainerAttributesRepositoryTests {
 
 	@Autowired
-	private ContainerMetadataRepository containerMetadataRepository;
+	private ContainerAttributesRepository containerAttributesRepository;
 
 	@Autowired
 	private ZooKeeperConnection zooKeeperConnection;
 
 	private final String id = "test" + UUID.randomUUID().toString();
+
+	private final String id2 = "test" + UUID.randomUUID().toString();
 
 	private final int pid = 123;
 
@@ -64,31 +69,52 @@ public class ZooKeeperContainerMetadataRepositoryTests {
 
 	private final String ip = "127.0.0.1";
 
+	private final Set<String> groups = StringUtils.commaDelimitedListToSet("g1,g2,g3");
+
 	@Before
 	public void setUp() throws Exception {
 		zooKeeperConnection.getClient().create().creatingParentsIfNeeded().forPath(Paths.CONTAINERS);
-		ContainerMetadata entity = new ContainerMetadata(id, pid, host, ip);
-		ContainerMetadata saved = containerMetadataRepository.save(entity);
+
+		ContainerAttributes entity = new ContainerAttributes(id).setPid(pid).setHost(host).setIp(ip);
+		entity.put("groups", "g1,g2,g3");
+		ContainerAttributes saved = containerAttributesRepository.save(entity);
 		assertNotNull(saved);
 		assertEquals(id, saved.getId());
 		assertEquals(pid, saved.getPid());
 		assertEquals(host, saved.getHost());
 		assertEquals(ip, saved.getIp());
+		assertEquals(groups, saved.getGroups());
+
+		entity = new ContainerAttributes(id2).setPid(pid).setHost(host).setIp(ip);
+		saved = containerAttributesRepository.save(entity);
+		assertNotNull(saved);
 	}
 
 	@Test
-	public void findContainerMetadataById() {
-		ContainerMetadata found = containerMetadataRepository.findOne(id);
+	public void findContainerAttributesById() {
+		ContainerAttributes found = containerAttributesRepository.findOne(id);
 		assertNotNull(found);
 		assertEquals(id, found.getId());
 		assertEquals(pid, found.getPid());
 		assertEquals(host, found.getHost());
 		assertEquals(ip, found.getIp());
+		assertEquals(groups, found.getGroups());
+	}
+
+	@Test
+	public void findContainerNoGroups() {
+		ContainerAttributes found = containerAttributesRepository.findOne(id2);
+		assertNotNull(found);
+		assertEquals(id2, found.getId());
+		assertEquals(pid, found.getPid());
+		assertEquals(host, found.getHost());
+		assertEquals(ip, found.getIp());
+		assertEquals(0, found.getGroups().size());
 	}
 
 
 	@Configuration
-	public static class ZooKeeperContainerMetadataRepositoryTestsConfig {
+	public static class ZooKeeperContainerAttributesRepositoryTestsConfig {
 
 		@Bean
 		public EmbeddedZooKeeper embeddedZooKeeper() {
@@ -101,9 +127,14 @@ public class ZooKeeperContainerMetadataRepositoryTests {
 		}
 
 		@Bean
-		public ContainerMetadataRepository runtimeContainerInfoRepository() {
-			return new ZooKeeperContainerMetadataRepository(zooKeeperConnection());
+		public ContainerAttributesRepository containerAttributesRepository() {
+			return new ZooKeeperContainerAttributesRepository(zooKeeperConnection());
 		}
+	}
+
+	@After
+	public void tearDown() throws Exception {
+		zooKeeperConnection.getClient().delete().deletingChildrenIfNeeded().forPath(Paths.CONTAINERS);
 	}
 
 }

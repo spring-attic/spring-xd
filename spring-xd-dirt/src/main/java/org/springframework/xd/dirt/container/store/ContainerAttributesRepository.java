@@ -16,14 +16,14 @@
 
 package org.springframework.xd.dirt.container.store;
 
-import org.springframework.xd.dirt.container.ContainerMetadata;
+import org.springframework.xd.dirt.container.ContainerAttributes;
 import org.springframework.xd.store.DomainRepository;
 
 /**
- * Repository for persisting {@link ContainerMetadata} entities.
+ * Repository for persisting {@link ContainerAttributes} entities.
  * 
  * @author Ilayaperumal Gopinathan
  */
-public interface ContainerMetadataRepository extends DomainRepository<ContainerMetadata, String> {
+public interface ContainerAttributesRepository extends DomainRepository<ContainerAttributes, String> {
 
 }

@@ -41,6 +41,9 @@ public class ContainerOptions extends CommonDistributedOptions {
 	@Option(name = "--hadoopDistro", usage = "The Hadoop distribution to be used for HDFS access")
 	private HadoopDistro distro = DEFAULT_HADOOP_DISTRO;
 
+	@Option(name = "--groups", usage = "The group memberships for this container as a comma delimited string")
+	private String groups;
+
 	public static final HadoopDistro DEFAULT_HADOOP_DISTRO = HadoopDistro.hadoop22;
 
 	private static final Map<HadoopDistro, String> hadoopDistroVersions = new HashMap<HadoopDistro, String>();
@@ -59,6 +62,14 @@ public class ContainerOptions extends CommonDistributedOptions {
 
 	public HadoopDistro getHADOOP_DISTRO() {
 		return this.distro;
+	}
+
+	public void setXD_CONTAINER_GROUPS(String groups) {
+		this.groups = groups;
+	}
+
+	public String getXD_CONTAINER_GROUPS() {
+		return this.groups;
 	}
 
 	public static Map<HadoopDistro, String> getHadoopDistroVersions() {

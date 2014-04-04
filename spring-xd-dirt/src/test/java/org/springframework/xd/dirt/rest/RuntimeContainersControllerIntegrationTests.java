@@ -37,13 +37,14 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.xd.dirt.container.ContainerMetadata;
+import org.springframework.xd.dirt.container.ContainerAttributes;
 
 /**
  * Tests REST compliance of containers endpoint.
- * 
+ *
  * @author Ilayaperumal Gopinathan
  * @author Mark Fisher
+ * @author David Turanski
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
@@ -53,22 +54,22 @@ public class RuntimeContainersControllerIntegrationTests extends AbstractControl
 	@Before
 	public void before() {
 		PageRequest pageable = new PageRequest(0, 20);
-		ContainerMetadata container1 = new ContainerMetadata("1", 1234, "host1", "127.0.0.1");
-		ContainerMetadata container2 = new ContainerMetadata("2", 2345, "host2", "192.168.2.1");
-		List<ContainerMetadata> containerEntities = new ArrayList<ContainerMetadata>();
+		ContainerAttributes container1 = new ContainerAttributes("1").setPid(1234).setHost("host1").setIp("127.0.0.1");
+		ContainerAttributes container2 = new ContainerAttributes("2").setPid(2345).setHost("host2").setIp("192.168.2.1");
+		List<ContainerAttributes> containerEntities = new ArrayList<ContainerAttributes>();
 		containerEntities.add(container1);
 		containerEntities.add(container2);
-		Page<ContainerMetadata> pagedEntity = new PageImpl<ContainerMetadata>(containerEntities);
-		when(containerMetadataRepository.findAll(pageable)).thenReturn(pagedEntity);
+		Page<ContainerAttributes> pagedEntity = new PageImpl<ContainerAttributes>(containerEntities);
+		when(containerAttributesRepository.findAll(pageable)).thenReturn(pagedEntity);
 	}
 
 	@Test
-	public void testListModules() throws Exception {
+	public void testListContainers() throws Exception {
 		mockMvc.perform(get("/runtime/containers").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
 				jsonPath("$.content", Matchers.hasSize(2))).andExpect(
-				jsonPath("$.content[*].containerId", contains("1", "2"))).andExpect(
-				jsonPath("$.content[*].processId", contains(1234, 2345))).andExpect(
-				jsonPath("$.content[*].hostName", contains("host1", "host2"))).andExpect(
-				jsonPath("$.content[*].ipAddress", contains("127.0.0.1", "192.168.2.1")));
+				jsonPath("$.content[*].attributes.id", contains("1", "2"))).andExpect(
+				jsonPath("$.content[*].attributes.pid", contains("1234", "2345"))).andExpect(
+				jsonPath("$.content[*].attributes.host", contains("host1", "host2"))).andExpect(
+				jsonPath("$.content[*].attributes.ip", contains("127.0.0.1", "192.168.2.1")));
 	}
 }

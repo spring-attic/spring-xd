@@ -46,10 +46,10 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.validation.BindException;
-import org.springframework.xd.dirt.container.ContainerMetadata;
-import org.springframework.xd.dirt.container.store.ContainerMetadataRepository;
-import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
+import org.springframework.xd.dirt.container.ContainerAttributes;
+import org.springframework.xd.dirt.container.store.ContainerAttributesRepository;
 import org.springframework.xd.dirt.core.JobsPath;
+import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.core.ModuleDescriptor;
 import org.springframework.xd.dirt.core.Stream;
 import org.springframework.xd.dirt.core.StreamsPath;
@@ -83,7 +83,7 @@ import org.springframework.xd.module.support.ParentLastURLClassLoader;
  * registrar is closed, that ephemeral node will be eagerly deleted. Since the {@link ZooKeeperConnection} typically has
  * its lifecycle managed by Spring, that would be the normal behavior when the owning {@link ApplicationContext} is
  * itself closed.
- * 
+ *
  * @author Mark Fisher
  * @author David Turanski
  */
@@ -100,12 +100,12 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	/**
 	 * Metadata for the current Container.
 	 */
-	private final ContainerMetadata containerMetadata;
+	private final ContainerAttributes containerAttributes;
 
 	/**
-	 * Repository where {@link ContainerMetadata} is stored.
+	 * Repository where {@link ContainerAttributes} are stored.
 	 */
-	private final ContainerMetadataRepository containerMetadataRepository;
+	private final ContainerAttributesRepository containerAttributesRepository;
 
 	/**
 	 * The ZooKeeperConnection.
@@ -180,27 +180,27 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	private volatile ClassLoader parentClassLoader;
 
 	/**
-	 * Create an instance that will register the provided {@link ContainerMetadata} whenever the underlying
+	 * Create an instance that will register the provided {@link ContainerAttributes} whenever the underlying
 	 * {@link ZooKeeperConnection} is established. If that connection is already established at the time this instance
-	 * receives a {@link ContextRefreshedEvent}, the metadata will be registered then. Otherwise, registration occurs
+	 * receives a {@link ContextRefreshedEvent}, the attributes will be registered then. Otherwise, registration occurs
 	 * within a callback that is invoked for connected events as well as reconnected events.
-	 * 
-	 * @param metadata metadata for the container
+	 *
+	 * @param containerAttributes runtime and configured attributes for the container
 	 * @param streamDefinitionRepository repository for streams
 	 * @param moduleDefinitionRepository repository for modules
 	 * @param moduleOptionsMetadataResolver resolver for module options metadata
 	 * @param moduleDeployer module deployer
 	 * @param zkConnection ZooKeeper connection
 	 */
-	public ContainerRegistrar(ContainerMetadata metadata,
-			ContainerMetadataRepository containerMetadataRepository,
+	public ContainerRegistrar(ContainerAttributes containerAttributes,
+			ContainerAttributesRepository containerAttributesRepository,
 			StreamDefinitionRepository streamDefinitionRepository,
 			ModuleDefinitionRepository moduleDefinitionRepository,
 			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver,
 			ModuleDeployer moduleDeployer,
 			ZooKeeperConnection zkConnection) {
-		this.containerMetadata = metadata;
-		this.containerMetadataRepository = containerMetadataRepository;
+		this.containerAttributes = containerAttributes;
+		this.containerAttributesRepository = containerAttributesRepository;
 		this.zkConnection = zkConnection;
 		this.moduleDefinitionRepository = moduleDefinitionRepository;
 		this.moduleOptionsMetadataResolver = moduleOptionsMetadataResolver;
@@ -213,7 +213,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 
 	/**
 	 * Deploy the requested module.
-	 * 
+	 *
 	 * @param moduleDescriptor descriptor for the module to be deployed
 	 */
 	private Module deployModule(ModuleDescriptor moduleDescriptor) {
@@ -230,7 +230,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 
 	/**
 	 * Undeploy the requested module.
-	 * 
+	 *
 	 * @param streamName name of the stream for the module
 	 * @param moduleType module type
 	 * @param moduleLabel module label
@@ -270,7 +270,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 			if (zkConnection.isConnected()) {
 				registerWithZooKeeper(zkConnection.getClient());
 			}
-			zkConnection.addListener(new ContainerMetadataRegisteringZooKeeperConnectionListener());
+			zkConnection.addListener(new ContainerAttributesRegisteringZooKeeperConnectionListener());
 		}
 	}
 
@@ -283,18 +283,18 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	}
 
 	/**
-	 * Write the Container metadata to ZooKeeper in an ephemeral node under {@code /xd/containers}.
+	 * Write the Container attributes to ZooKeeper in an ephemeral node under {@code /xd/containers}.
 	 */
 	private void registerWithZooKeeper(CuratorFramework client) {
 		try {
 			Paths.ensurePath(client, Paths.MODULE_DEPLOYMENTS);
 			deployments = new PathChildrenCache(client, Paths.build(Paths.MODULE_DEPLOYMENTS,
-					containerMetadata.getId()), true, ThreadUtils.newThreadFactory("DeploymentsPathChildrenCache"));
+					containerAttributes.getId()), true, ThreadUtils.newThreadFactory("DeploymentsPathChildrenCache"));
 			deployments.getListenable().addListener(deploymentListener);
-			containerMetadataRepository.save(containerMetadata);
+			containerAttributesRepository.save(containerAttributes);
 			deployments.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
 
-			LOG.info("Started container {} with metadata: {} ", containerMetadata);
+			LOG.info("Started container {}", containerAttributes);
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
@@ -303,9 +303,9 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 
 
 	/**
-	 * The listener that triggers registration of the container metadata in a ZooKeeper node.
+	 * The listener that triggers registration of the container attributes in a ZooKeeper node.
 	 */
-	private class ContainerMetadataRegisteringZooKeeperConnectionListener implements ZooKeeperConnectionListener {
+	private class ContainerAttributesRegisteringZooKeeperConnectionListener implements ZooKeeperConnectionListener {
 
 		/**
 		 * {@inheritDoc}
@@ -321,7 +321,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		@Override
 		public void onDisconnect(CuratorFramework client) {
 			try {
-				LOG.warn(">>> disconnected container: {}", containerMetadata.getId());
+				LOG.warn(">>> disconnected container: {}", containerAttributes.getId());
 				deployments.getListenable().removeListener(deploymentListener);
 				deployments.close();
 				// todo: modules in mapDeployedModules should be undeployed
@@ -334,7 +334,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 
 	/**
 	 * Event handler for new module deployments.
-	 * 
+	 *
 	 * @param client curator client
 	 * @param data module data
 	 */
@@ -361,7 +361,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 
 	/**
 	 * Deploy the requested job.
-	 * 
+	 *
 	 * @param client curator client
 	 * @param jobName job name
 	 * @param jobLabel job label
@@ -372,7 +372,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 
 		String jobPath = new JobsPath().setJobName(jobName)
 				.setModuleLabel(jobLabel)
-				.setContainer(containerMetadata.getId()).build();
+				.setContainer(containerAttributes.getId()).build();
 
 		try {
 			Map<String, String> map = mapBytesUtility.toMap(client.getData().forPath(Paths.build(Paths.JOBS, jobName)));
@@ -405,7 +405,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 
 	/**
 	 * Deploy the requested module for a stream.
-	 * 
+	 *
 	 * @param client curator client
 	 * @param streamName name of the stream for the module
 	 * @param moduleType module type
@@ -418,7 +418,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		String streamPath = new StreamsPath().setStreamName(streamName)
 				.setModuleType(moduleType)
 				.setModuleLabel(moduleLabel)
-				.setContainer(containerMetadata.getId()).build();
+				.setContainer(containerAttributes.getId()).build();
 
 		Module module = null;
 		try {
@@ -450,7 +450,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 
 	/**
 	 * Event handler for deployment removals.
-	 * 
+	 *
 	 * @param client curator client
 	 * @param data module data
 	 */
@@ -466,13 +466,13 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 		if (ModuleType.job.toString().equals(moduleType)) {
 			path = new JobsPath().setJobName(streamName)
 					.setModuleLabel(moduleLabel)
-					.setContainer(containerMetadata.getId()).build();
+					.setContainer(containerAttributes.getId()).build();
 		}
 		else {
 			path = new StreamsPath().setStreamName(streamName)
 					.setModuleType(moduleType)
 					.setModuleLabel(moduleLabel)
-					.setContainer(containerMetadata.getId()).build();
+					.setContainer(containerAttributes.getId()).build();
 		}
 		if (client.checkExists().forPath(path) != null) {
 			LOG.trace("Deleting path: {}", path);
@@ -482,12 +482,12 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 
 	/**
 	 * Create a composed module based on the provided {@link ModuleDescriptor} and {@link ModuleOptions}.
-	 * 
+	 *
 	 * @param compositeDescriptor descriptor for composed module
 	 * @param options module options
-	 * 
+	 *
 	 * @return new composed module instance
-	 * 
+	 *
 	 * @see ModuleDescriptor#isComposed
 	 */
 	private Module createComposedModule(ModuleDescriptor compositeDescriptor, ModuleOptions options) {
@@ -521,10 +521,10 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 
 	/**
 	 * Create a module based on the provided {@link ModuleDescriptor} and {@link ModuleOptions}.
-	 * 
+	 *
 	 * @param descriptor descriptor for module
 	 * @param options module options
-	 * 
+	 *
 	 * @return new module instance
 	 */
 	private Module createSimpleModule(ModuleDescriptor descriptor, ModuleOptions options) {
@@ -542,9 +542,9 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 	/**
 	 * Takes a request and returns an instance of {@link ModuleOptions} bound with the request parameters. Binding is
 	 * assumed to not fail, as it has already been validated on the admin side.
-	 * 
+	 *
 	 * @param descriptor module descriptor for which to bind request parameters
-	 * 
+	 *
 	 * @return module options bound with request parameters
 	 */
 	private ModuleOptions safeModuleOptionsInterpolate(ModuleDescriptor descriptor) {
@@ -581,7 +581,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 				undeployModule(streamName, moduleType, moduleLabel);
 
 				String deploymentPath = new ModuleDeploymentsPath()
-						.setContainer(containerMetadata.getId())
+						.setContainer(containerAttributes.getId())
 						.setStreamName(streamName)
 						.setModuleType(moduleType)
 						.setModuleLabel(moduleLabel).build();
@@ -619,7 +619,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 				undeployModule(jobName, ModuleType.job.toString(), moduleLabel);
 
 				String deploymentPath = new ModuleDeploymentsPath()
-						.setContainer(containerMetadata.getId())
+						.setContainer(containerAttributes.getId())
 						.setStreamName(jobName)
 						.setModuleType(ModuleType.job.toString())
 						.setModuleLabel(moduleLabel).build();

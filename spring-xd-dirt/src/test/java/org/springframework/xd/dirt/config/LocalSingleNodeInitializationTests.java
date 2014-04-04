@@ -26,8 +26,10 @@ import org.junit.Test;
 
 import org.springframework.integration.x.bus.LocalMessageBus;
 import org.springframework.integration.x.bus.MessageBus;
+import org.springframework.xd.dirt.container.ContainerAttributes;
 import org.springframework.xd.dirt.server.ApplicationUtils;
 import org.springframework.xd.dirt.server.ContainerRegistrar;
+import org.springframework.xd.dirt.util.RuntimeUtils;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 import org.springframework.xd.module.core.Plugin;
 
@@ -48,6 +50,8 @@ public class LocalSingleNodeInitializationTests extends AbstractSingleNodeInitia
 
 		assertSame(containerContext.getBean(ZooKeeperConnection.class), adminContext.getBean(ZooKeeperConnection.class));
 
+		ContainerAttributes containerAttributes = containerContext.getBean(ContainerAttributes.class);
+		assertEquals(RuntimeUtils.getHost(), containerAttributes.getHost());
 		ApplicationUtils.dumpContainerApplicationContextConfiguration(containerContext);
 	}
 

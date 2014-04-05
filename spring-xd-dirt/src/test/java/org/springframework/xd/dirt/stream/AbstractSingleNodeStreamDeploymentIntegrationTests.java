@@ -65,7 +65,7 @@ import org.springframework.xd.tuple.Tuple;
  * Base class that contains the tests but does not provide the transport. Each subclass should implement
  * {@link AbstractStreamDeploymentIntegrationTests#getTransport()} in order to execute the test methods defined here for
  * that transport.
- * 
+ *
  * @author David Turanski
  * @author Gunnar Hillert
  * @author Mark Fisher
@@ -385,8 +385,8 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 
 		public PathChildrenCacheEvent nextDeployEvent(String streamName) {
 			try {
-				LinkedBlockingQueue<PathChildrenCacheEvent> queue = deployQueues.get(streamName);
-				return queue != null ? queue.poll(10, TimeUnit.SECONDS) : null;
+				deployQueues.putIfAbsent(streamName, new LinkedBlockingQueue<PathChildrenCacheEvent>());
+				return deployQueues.get(streamName).poll(5, TimeUnit.SECONDS);
 			}
 			catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
@@ -396,8 +396,8 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 
 		public PathChildrenCacheEvent nextUndeployEvent(String streamName) {
 			try {
-				LinkedBlockingQueue<PathChildrenCacheEvent> queue = undeployQueues.get(streamName);
-				return queue != null ? queue.poll(10, TimeUnit.SECONDS) : null;
+				undeployQueues.putIfAbsent(streamName, new LinkedBlockingQueue<PathChildrenCacheEvent>());
+				return undeployQueues.get(streamName).poll(5, TimeUnit.SECONDS);
 			}
 			catch (InterruptedException e) {
 				Thread.currentThread().interrupt();

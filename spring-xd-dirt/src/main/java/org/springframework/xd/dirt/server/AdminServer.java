@@ -293,7 +293,7 @@ public class AdminServer implements ContainerRepository, ApplicationListener<App
 
 				streams = new PathChildrenCache(client, Paths.STREAMS, true,
 						ThreadUtils.newThreadFactory("StreamDefinitionPathChildrenCache"));
-				streams.start();
+				streams.start(PathChildrenCache.StartMode.BUILD_INITIAL_CACHE);
 
 				streamDeployments = new PathChildrenCache(client, Paths.STREAM_DEPLOYMENTS, true,
 						ThreadUtils.newThreadFactory("StreamDeploymentsPathChildrenCache"));
@@ -311,7 +311,7 @@ public class AdminServer implements ContainerRepository, ApplicationListener<App
 				containerListener = new ContainerListener(AdminServer.this,
 						streamDefinitionRepository,
 						moduleDefinitionRepository,
-						moduleOptionsMetadataResolver, streams);
+						moduleOptionsMetadataResolver, streamDeployments, streams);
 
 				PathChildrenCache containersCache = new PathChildrenCache(client, Paths.CONTAINERS, true,
 						ThreadUtils.newThreadFactory("ContainersPathChildrenCache"));

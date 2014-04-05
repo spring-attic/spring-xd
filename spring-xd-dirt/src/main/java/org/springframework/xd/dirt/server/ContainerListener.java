@@ -83,14 +83,21 @@ public class ContainerListener implements PathChildrenCacheListener {
 	private final StreamFactory streamFactory;
 
 	/**
-	 * {@link Converter} from {@link ChildData} to {@link Stream}.
+	 * {@link Converter} from {@link ChildData} in stream deployments to Stream name.
+	 *
+	 * @see #streamDeployments
 	 */
-	private final StreamConverter streamConverter = new StreamConverter();
+	private final StreamDeploymentNameConverter streamDeploymentNameConverter = new StreamDeploymentNameConverter();
+
+	/**
+	 * Cache of children under the stream deployment path.
+	 */
+	private final PathChildrenCache streamDeployments;
 
 	/**
 	 * Cache of children under the streams path.
 	 */
-	private final PathChildrenCache streams;
+	private final PathChildrenCache streamDefinitions;
 
 
 	/**
@@ -100,17 +107,19 @@ public class ContainerListener implements PathChildrenCacheListener {
 	 * @param streamDefinitionRepository    repository for streams
 	 * @param moduleDefinitionRepository    repository for module definitions
 	 * @param moduleOptionsMetadataResolver resolver for module options metadata
-	 * @param streams                       cache of children for streams path
+	 * @param streamDeployments             cache of children for stream deployments path
+	 * @param streamDefinitions             cache of children for streams
 	 */
 	public ContainerListener(ContainerRepository containerRepository,
 			StreamDefinitionRepository streamDefinitionRepository,
 			ModuleDefinitionRepository moduleDefinitionRepository,
 			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver,
-			PathChildrenCache streams) {
+			PathChildrenCache streamDeployments, PathChildrenCache streamDefinitions) {
 		this.containerRepository = containerRepository;
 		this.streamFactory = new StreamFactory(streamDefinitionRepository, moduleDefinitionRepository,
 				moduleOptionsMetadataResolver);
-		this.streams = streams;
+		this.streamDeployments = streamDeployments;
+		this.streamDefinitions = streamDefinitions;
 	}
 
 	/**
@@ -151,14 +160,19 @@ public class ContainerListener implements PathChildrenCacheListener {
 		String containerName = container.getName();
 		LOG.info("Container arrived: {}", containerName);
 
-		for (Iterator<Stream> streamIterator = new ChildPathIterator<Stream>(streamConverter, streams); streamIterator.hasNext();) {
-			Stream stream = streamIterator.next();
+		for (Iterator<String> streamDeploymentIterator =
+					 new ChildPathIterator<String>(streamDeploymentNameConverter, streamDeployments);
+						streamDeploymentIterator.hasNext();) {
+			String streamName = streamDeploymentIterator.next();
+			Stream stream = streamFactory.createStream(streamName,
+					mapBytesUtility.toMap(streamDefinitions.getCurrentData(
+							new StreamsPath().setStreamName(streamName).build()).getData()));
+
 			for (Iterator<ModuleDescriptor> descriptorIterator = stream.getDeploymentOrderIterator(); descriptorIterator.hasNext();) {
 				ModuleDescriptor descriptor = descriptorIterator.next();
 				String group = descriptor.getGroup();
 
 				if (StringUtils.isEmpty(group) || container.getGroups().contains(group)) {
-					String streamName = descriptor.getStreamName();
 					String moduleType = descriptor.getModuleDefinition().getType().toString();
 					String moduleName = descriptor.getModuleDefinition().getName();
 					String moduleLabel = descriptor.getLabel();
@@ -331,15 +345,14 @@ public class ContainerListener implements PathChildrenCacheListener {
 	/**
 	 * Converter from {@link ChildData} to {@link Stream}.
 	 */
-	public class StreamConverter implements Converter<ChildData, Stream> {
+	public class StreamDeploymentNameConverter implements Converter<ChildData, String> {
 
 		/**
 		 * {@inheritDoc}
 		 */
 		@Override
-		public Stream convert(ChildData source) {
-			return streamFactory.createStream(Paths.stripPath(source.getPath()),
-					mapBytesUtility.toMap(source.getData()));
+		public String convert(ChildData source) {
+			return Paths.stripPath(source.getPath());
 		}
 	}
 

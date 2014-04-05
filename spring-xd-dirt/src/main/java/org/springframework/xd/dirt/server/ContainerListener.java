@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.server;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -27,6 +28,7 @@ import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
+import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -162,10 +164,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 					String moduleLabel = descriptor.getLabel();
 
 					// obtain all of the containers that have deployed this module
-					List<String> containersForModule = client.getChildren().forPath(new StreamsPath()
-							.setStreamName(streamName)
-							.setModuleType(moduleType)
-							.setModuleLabel(moduleLabel).build());
+					List<String> containersForModule = getContainersForModule(client, descriptor);
 					if (!containersForModule.contains(containerName)) {
 						// this container has not deployed this module; determine if it should
 						int moduleCount = descriptor.getCount();
@@ -204,6 +203,29 @@ public class ContainerListener implements PathChildrenCacheListener {
 					}
 				}
 			}
+		}
+	}
+
+	/**
+	 * Determine which containers, if any, have deployed a module for a stream.
+	 *
+	 * @param client      curator client
+	 * @param descriptor  module descriptor
+	 *
+	 * @return list of containers that have deployed this module; empty list
+	 *         is returned if no containers have deployed it
+	 *
+	 * @throws Exception  thrown by Curator
+	 */
+	private List<String> getContainersForModule(CuratorFramework client, ModuleDescriptor descriptor) throws Exception {
+		try {
+			return client.getChildren().forPath(new StreamsPath()
+					.setStreamName(descriptor.getStreamName())
+					.setModuleType(descriptor.getModuleDefinition().getType().toString())
+					.setModuleLabel(descriptor.getLabel()).build());
+		}
+		catch (KeeperException.NoNodeException e) {
+			return Collections.emptyList();
 		}
 	}
 

@@ -278,6 +278,7 @@ public class AdminServer implements ContainerRepository, ApplicationListener<App
 		public void takeLeadership(CuratorFramework client) throws Exception {
 			LOG.info("Leader Admin {} is watching for stream/job deployment requests.", getId());
 
+			PathChildrenCache streams = null;
 			PathChildrenCache streamDeployments = null;
 			PathChildrenCache jobDeployments = null;
 			PathChildrenCacheListener streamListener;
@@ -290,8 +291,12 @@ public class AdminServer implements ContainerRepository, ApplicationListener<App
 						moduleDefinitionRepository,
 						moduleOptionsMetadataResolver);
 
+				streams = new PathChildrenCache(client, Paths.STREAMS, true,
+						ThreadUtils.newThreadFactory("StreamDefinitionPathChildrenCache"));
+				streams.start();
+
 				streamDeployments = new PathChildrenCache(client, Paths.STREAM_DEPLOYMENTS, true,
-						ThreadUtils.newThreadFactory("StreamsPathChildrenCache"));
+						ThreadUtils.newThreadFactory("StreamDeploymentsPathChildrenCache"));
 				streamDeployments.getListenable().addListener(streamListener);
 				streamDeployments.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
 
@@ -299,14 +304,14 @@ public class AdminServer implements ContainerRepository, ApplicationListener<App
 						moduleOptionsMetadataResolver);
 
 				jobDeployments = new PathChildrenCache(client, Paths.JOB_DEPLOYMENTS, true,
-						ThreadUtils.newThreadFactory("JobsPathChildrenCache"));
+						ThreadUtils.newThreadFactory("JobDeploymentsPathChildrenCache"));
 				jobDeployments.getListenable().addListener(jobListener);
 				jobDeployments.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
 
 				containerListener = new ContainerListener(AdminServer.this,
 						streamDefinitionRepository,
 						moduleDefinitionRepository,
-						moduleOptionsMetadataResolver, streamDeployments);
+						moduleOptionsMetadataResolver, streams);
 
 				PathChildrenCache containersCache = new PathChildrenCache(client, Paths.CONTAINERS, true,
 						ThreadUtils.newThreadFactory("ContainersPathChildrenCache"));
@@ -325,6 +330,10 @@ public class AdminServer implements ContainerRepository, ApplicationListener<App
 				PathChildrenCache containersCache = containers.getAndSet(null);
 				if (containersCache != null) {
 					containersCache.close();
+				}
+
+				if (streams != null) {
+					streams.close();
 				}
 
 				if (streamDeployments != null) {

@@ -17,9 +17,16 @@
 package org.springframework.xd.analytics.ml;
 
 /**
+ * An {@code OutputMapper} maps a given model input {@code MO} to an appropriate domain input {@code O} for the given
+ * analytic {@code A} by potentially using data from the original input {@code I}.
+ *
  * @author Thomas Darimont
+ * @param <I> the input type
+ * @param <O> the output type
+ * @param <A> the analytic model type
+ * @param <MO> the model output type
  */
-public interface OutputMapper<I, O, A, MO> {
+public interface OutputMapper<I, O, A, MO> extends Mapper {
 
 	/**
 	 * Maps the model-output {@code MO} to an appropriate output {@code O}.

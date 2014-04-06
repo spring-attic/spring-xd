@@ -17,9 +17,15 @@
 package org.springframework.xd.analytics.ml;
 
 /**
+ * An {@code InputMapper} maps a given domain input {@code I} to an appropriate model input {@code MI} for the given
+ * analytic {@code A}.
+ *
  * @author Thomas Darimont
+ * @param <I> the input type
+ * @param <A> the analytic model type
+ * @param <MI> the model input type
  */
-public interface InputMapper<I, A, MI> {
+public interface InputMapper<I, A, MI> extends Mapper{
 
 	/**
 	 * Maps the given input {@code I} into an appropriate model-input {@code MI} for the given

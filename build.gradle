@@ -41,7 +41,6 @@ ext {
 		'spring-xd-dirt',
 		'spring-xd-analytics',
 		'spring-xd-analytics-ml',
-		'spring-xd-analytics-ml-pmml',
 		'spring-xd-tuple',
 		'spring-xd-module',
 		'spring-xd-rest-client',
@@ -125,7 +124,7 @@ ext {
 	tomcatJdbcPoolVersion = '7.0.42'
 	tomcatVersion = '7.0.35'
 	uuidVersion = '3.2'
-    jpmmlEvaluatorVersion = '1.1.0'
+	jpmmlEvaluatorVersion = '1.1.1'
 
 	// Hadoop Versions
 	hadoop12Version = '1.2.1'
@@ -379,16 +378,6 @@ project('spring-xd-analytics-ml') {
 	dependencies {
 		compile "org.springframework:spring-core:$springVersion"
 		testCompile project(":spring-xd-tuple")
-		testCompile ("org.mockito:mockito-core:$mockitoVersion") { exclude group:'org.hamcrest' }
-	}
-}
-
-project('spring-xd-analytics-ml-pmml') {
-	description = 'Spring XD Analytics ML - PMML Support'
-	dependencies {
-		compile project(":spring-xd-tuple")
-		compile project(":spring-xd-analytics-ml")
-		compile "org.jpmml:pmml-evaluator:$jpmmlEvaluatorVersion"
 		testCompile ("org.mockito:mockito-core:$mockitoVersion") { exclude group:'org.hamcrest' }
 	}
 }

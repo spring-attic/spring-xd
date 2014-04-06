@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.xd.analytics.ml;
 
 import org.springframework.util.Assert;
@@ -24,6 +23,11 @@ import org.springframework.util.Assert;
  * and {@link org.springframework.xd.analytics.ml.OutputMapper} respectively.
  * 
  * @author Thomas Darimont
+ * @param <I> the input type
+ * @param <O> the output type
+ * @param <MI> the model input type
+ * @param <MO> the model output type
+ * @param <A> the analytic model type
  */
 public abstract class MappedAnalytic<I, O, MI, MO, A extends MappedAnalytic<I, O, MI, MO, A>> implements Analytic<I, O> {
 

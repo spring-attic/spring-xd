@@ -17,11 +17,12 @@
 package org.springframework.xd.analytics.ml;
 
 /**
- * Analytical logic.
+ * Base interface for the definition of analytical logic.
  * 
  * @author Thomas Darimont
+ * @param <I> the input type
+ * @param <O> the output type
  */
-
 public interface Analytic<I, O> {
 
 	/**

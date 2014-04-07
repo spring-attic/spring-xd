@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.ContainerMatcher;
@@ -99,7 +100,6 @@ public class ContainerListener implements PathChildrenCacheListener {
 	 */
 	private final PathChildrenCache streamDefinitions;
 
-
 	/**
 	 * Construct a ContainerListener.
 	 *
@@ -156,7 +156,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 	 * @param data node data for the container that arrived
 	 */
 	private void onChildAdded(CuratorFramework client, ChildData data) throws Exception {
-		Container container = new Container(Paths.stripPath(data.getPath()), mapBytesUtility.toMap(data.getData()));
+		final Container container = new Container(Paths.stripPath(data.getPath()), mapBytesUtility.toMap(data.getData()));
 		String containerName = container.getName();
 		LOG.info("Container arrived: {}", containerName);
 
@@ -168,9 +168,14 @@ public class ContainerListener implements PathChildrenCacheListener {
 
 			for (Iterator<ModuleDescriptor> descriptorIterator = stream.getDeploymentOrderIterator(); descriptorIterator.hasNext();) {
 				ModuleDescriptor descriptor = descriptorIterator.next();
-				String group = descriptor.getDeploymentProperties().getTargetGroup();
+				ContainerRepository containerRepository = new ContainerRepository() {
 
-				if (StringUtils.isEmpty(group) || container.getGroups().contains(group)) {
+					@Override
+					public Iterator<Container> getContainerIterator() {
+						return Collections.singletonList(container).iterator();
+					}
+				};
+				if (!CollectionUtils.isEmpty(containerMatcher.match(descriptor, containerRepository))) {
 					String moduleType = descriptor.getModuleDefinition().getType().toString();
 					String moduleName = descriptor.getModuleDefinition().getName();
 					String moduleLabel = descriptor.getLabel();
@@ -336,10 +341,10 @@ public class ContainerListener implements PathChildrenCacheListener {
 					}
 					else {
 						StringBuilder builder = new StringBuilder();
-						String group = moduleDescriptor.getDeploymentProperties().getTargetGroup();
+						String targetExpression = moduleDescriptor.getDeploymentProperties().getTargetExpression();
 						builder.append("Module '").append(moduleLabel).append("' is targeted to all containers");
-						if (StringUtils.hasText(group)) {
-							builder.append(" belonging to group '").append(group).append('\'');
+						if (StringUtils.hasText(targetExpression)) {
+							builder.append(" matching expression '").append(targetExpression).append('\'');
 						}
 						builder.append("; it does not need to be redeployed");
 						LOG.info(builder.toString());

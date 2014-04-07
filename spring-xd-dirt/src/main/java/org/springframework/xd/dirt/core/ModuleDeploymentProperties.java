@@ -30,19 +30,14 @@ import java.util.Set;
 public class ModuleDeploymentProperties implements Map<String, String> {
 
 	/**
-	 * Prefix for any target-related keys.
-	 */
-	private static final String TARGET_KEY_PREFIX = "target";
-
-	/**
-	 * Key for the {@code count} property.
+	 * Key for the {@code count} property. Value should be an integer.
 	 */
 	public static final String COUNT_KEY = "count";
 
 	/**
-	 * Key for the {@code target.group} property.
+	 * Key for the {@code target} property. Value should be a SpEL expression.
 	 */
-	public static final String TARGET_GROUP_KEY = TARGET_KEY_PREFIX + ".group";
+	public static final String TARGET_EXPRESSION_KEY = "target";
 
 	/**
 	 * The underlying map.
@@ -58,8 +53,8 @@ public class ModuleDeploymentProperties implements Map<String, String> {
 
 	/**
 	 * Return the number of container instances this module should be deployed to. A value of 0 indicates that this
-	 * module should be deployed to all containers in the {@link #group}. If {@code group} is null and the value is 0,
-	 * this module should be deployed to all containers.
+	 * module should be deployed to all containers that match the provided target expression. If no target expression
+	 * were provided and the count value is 0, this module should be deployed to all containers.
 	 *
 	 * @return number of container instances
 	 */
@@ -78,19 +73,19 @@ public class ModuleDeploymentProperties implements Map<String, String> {
 	}
 
 	/**
-	 * Return the group of containers this module should be deployed to.
+	 * Return the target expression to evaluate against container attributes to determine deployment candidates for this module.
 	 *
-	 * @return container group name or {@code null} if no group was specified.
+	 * @return target expression or {@code null} if no target expression was specified.
 	 */
-	public String getTargetGroup() {
-		return get(TARGET_GROUP_KEY);
+	public String getTargetExpression() {
+		return get(TARGET_EXPRESSION_KEY);
 	}
 
 	/**
-	 * Specify the group of containers this module should be deployed to.
+	 * Specify the target expression to evaluate against container attributes to determine deployment candidates for this module.
 	 */
-	public ModuleDeploymentProperties setTargetGroup(String targetGroup) {
-		put(TARGET_GROUP_KEY, targetGroup);
+	public ModuleDeploymentProperties setTargetExpression(String targetExpression) {
+		put(TARGET_EXPRESSION_KEY, targetExpression);
 		return this;
 	}
 

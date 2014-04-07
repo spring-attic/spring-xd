@@ -25,6 +25,11 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.context.expression.MapAccessor;
+import org.springframework.expression.EvaluationException;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.core.ModuleDescriptor;
 
 /**
@@ -58,6 +63,18 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 	 */
 	private int index = 0;
 
+	private final SpelExpressionParser expressionParser = new SpelExpressionParser();
+
+	private final StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
+
+	/**
+	 * Creates a container matcher instance and prepares the SpEL evaluation
+	 * context to support Map properties directly.
+	 */
+	public DefaultContainerMatcher() {
+		evaluationContext.addPropertyAccessor(new MapAccessor());
+	}
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -65,13 +82,13 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 	public Collection<Container> match(ModuleDescriptor moduleDescriptor, ContainerRepository containerRepository) {
 		LOG.debug("Matching containers for module {}", moduleDescriptor);
 
-		String group = moduleDescriptor.getDeploymentProperties().getTargetGroup();
+		String targetExpression = moduleDescriptor.getDeploymentProperties().getTargetExpression();
 		List<Container> candidates = new ArrayList<Container>();
 
 		for (Iterator<Container> iterator = containerRepository.getContainerIterator(); iterator.hasNext();) {
 			Container container = iterator.next();
 			LOG.trace("Evaluating container {}", container);
-			if (group == null || container.getGroups().contains(group)) {
+			if (StringUtils.isEmpty(targetExpression) || isCandidate(container, targetExpression)) {
 				LOG.trace("\tAdded container {}", container);
 				candidates.add(container);
 			}
@@ -85,10 +102,9 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 		int count = moduleDescriptor.getDeploymentProperties().getCount();
 		int candidateCount = candidates.size();
 		if (count <= 0 || count >= candidateCount) {
-			// count of 0 means all members of the group
-			// (if no group specified it means all containers);
-			// count >= candidates means each of the
-			// containers should host a module
+			// count of 0 means all members that matched the target expression
+			// (if no target expression specified it means all containers);
+			// count >= candidates means each of the containers should host a module
 			return candidates;
 		}
 		else if (count == 1) {
@@ -98,8 +114,7 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 			return Collections.singleton(candidates.get(index++));
 		}
 		else {
-			// create a new list with the specific number
-			// of targeted containers;
+			// create a new list with the specific number of targeted containers;
 			List<Container> targets = new ArrayList<Container>();
 			while (targets.size() < count) {
 				if (index + 1 > candidateCount) {
@@ -108,6 +123,16 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 				targets.add(candidates.get(index++));
 			}
 			return targets;
+		}
+	}
+
+	private boolean isCandidate(Container container, String targetExpression) {
+		try {
+			return expressionParser.parseExpression(targetExpression).getValue(evaluationContext, container.getAttributes(), Boolean.class);
+		}
+		catch (EvaluationException e) {
+			LOG.debug("candidate not a match due to evaluation exception", e);
+			return false;
 		}
 	}
 

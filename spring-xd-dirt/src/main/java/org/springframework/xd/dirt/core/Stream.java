@@ -85,7 +85,7 @@ public class Stream {
 	 * @param processors processor modules
 	 * @param sink sink module
 	 * @param sinkChannelName sink channel
-	 * @param properties stream properties
+	 * @param deploymentProperties stream deployment properties
 	 */
 	private Stream(String name, ModuleDescriptor source, String sourceChannelName, List<ModuleDescriptor> processors,
 			ModuleDescriptor sink, String sinkChannelName, Map<String, String> deploymentProperties) {

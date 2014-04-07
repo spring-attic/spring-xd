@@ -94,19 +94,6 @@ public abstract class AbstractInstancePersistingDeployer<D extends BaseDefinitio
 	}
 
 	@Override
-	public void deployAll() {
-		for (D definition : findAll()) {
-			String name = definition.getName();
-			// Make sure we deploy only the resources that are not already deployed.
-			if (!instanceRepository.exists(name)) {
-				// todo: Do we really need to support deployAll?
-				// If so, what do we do about manifests here?
-				deploy(name, null);
-			}
-		}
-	}
-
-	@Override
 	public void deleteAll() {
 		// Make sure to un-deploy before delete.
 		undeployAll();

@@ -16,23 +16,44 @@
 
 package org.springframework.xd.dirt.core;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Deployment properties for a module.
  *
  * @author Mark Fisher
  */
-public class ModuleDeploymentProperties extends HashMap<String, String> {
+public class ModuleDeploymentProperties implements Map<String, String> {
 
-	private static final String TARGET = "target";
+	/**
+	 * Prefix for any target-related keys.
+	 */
+	private static final String TARGET_KEY_PREFIX = "target";
 
-	public static final String COUNT = "count";
+	/**
+	 * Key for the {@code count} property.
+	 */
+	public static final String COUNT_KEY = "count";
 
-	public static final String TARGET_GROUP = TARGET + ".group";
+	/**
+	 * Key for the {@code target.group} property.
+	 */
+	public static final String TARGET_GROUP_KEY = TARGET_KEY_PREFIX + ".group";
 
+	/**
+	 * The underlying map.
+	 */
+	private final Map<String, String> map = new HashMap<String, String>();
+
+	/**
+	 * Create a map to hold module deployment properties. The only initial value will be a count of 1.
+	 */
 	public ModuleDeploymentProperties() {
-		put(COUNT, "" + 1);
+		map.put(COUNT_KEY, String.valueOf(1));
 	}
 
 	/**
@@ -43,7 +64,7 @@ public class ModuleDeploymentProperties extends HashMap<String, String> {
 	 * @return number of container instances
 	 */
 	public int getCount() {
-		return parseCount(get(COUNT));
+		return parseCount(get(COUNT_KEY));
 	}
 
 	/**
@@ -52,7 +73,7 @@ public class ModuleDeploymentProperties extends HashMap<String, String> {
 	 * should be deployed to all containers.
 	 */
 	public ModuleDeploymentProperties setCount(int count) {
-		put(COUNT, "" + count);
+		put(COUNT_KEY, String.valueOf(count));
 		return this;
 	}
 
@@ -62,15 +83,111 @@ public class ModuleDeploymentProperties extends HashMap<String, String> {
 	 * @return container group name or {@code null} if no group was specified.
 	 */
 	public String getTargetGroup() {
-		return get(TARGET_GROUP);
+		return get(TARGET_GROUP_KEY);
 	}
 
 	/**
 	 * Specify the group of containers this module should be deployed to.
 	 */
 	public ModuleDeploymentProperties setTargetGroup(String targetGroup) {
-		put(TARGET_GROUP, targetGroup);
+		put(TARGET_GROUP_KEY, targetGroup);
 		return this;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int size() {
+		return map.size();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean isEmpty() {
+		return map.isEmpty();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean containsKey(Object key) {
+		return map.containsKey(key);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean containsValue(Object value) {
+		return map.containsValue(value);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public String get(Object key) {
+		return map.get(key);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public String put(String key, String value) {
+		return map.put(key, value);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public String remove(Object key) {
+		return map.remove(key);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void putAll(Map<? extends String, ? extends String> m) {
+		map.putAll(m);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void clear() {
+		this.map.clear();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Set<String> keySet() {
+		return Collections.unmodifiableSet(map.keySet());
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Collection<String> values() {
+		return Collections.unmodifiableCollection(map.values());
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Set<java.util.Map.Entry<String, String>> entrySet() {
+		return Collections.unmodifiableSet(map.entrySet());
 	}
 
 	/**

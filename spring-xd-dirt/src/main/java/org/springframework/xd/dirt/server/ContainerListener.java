@@ -164,9 +164,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 					 new ChildPathIterator<String>(streamDeploymentNameConverter, streamDeployments);
 						streamDeploymentIterator.hasNext();) {
 			String streamName = streamDeploymentIterator.next();
-			Stream stream = streamFactory.createStream(streamName,
-					mapBytesUtility.toMap(streamDefinitions.getCurrentData(
-							new StreamsPath().setStreamName(streamName).build()).getData()));
+			Stream stream = loadStream(client, streamName);
 
 			for (Iterator<ModuleDescriptor> descriptorIterator = stream.getDeploymentOrderIterator(); descriptorIterator.hasNext();) {
 				ModuleDescriptor descriptor = descriptorIterator.next();
@@ -243,6 +241,16 @@ public class ContainerListener implements PathChildrenCacheListener {
 		}
 	}
 
+	private Stream loadStream(CuratorFramework client, String streamName) throws Exception {
+		Map<String, String> map = mapBytesUtility.toMap(streamDefinitions.getCurrentData(
+				new StreamsPath().setStreamName(streamName).build()).getData());
+		byte[] manifestData = client.getData().forPath(Paths.build(Paths.STREAM_DEPLOYMENTS, streamName));
+		if (manifestData != null && manifestData.length > 0) {
+			map.put("manifest", new String(manifestData, "UTF-8"));
+		}
+		return streamFactory.createStream(streamName, map);
+	}
+
 	/**
 	 * Handle the departure of a container. This will scan the list of modules deployed to the departing container and
 	 * redeploy them if required.
@@ -290,14 +298,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 				else {
 					Stream stream = streamMap.get(streamName);
 					if (stream == null) {
-						Map<String, String> map = mapBytesUtility.toMap(
-								streamDefinitions.getCurrentData(
-										new StreamsPath().setStreamName(streamName).build()).getData());
-						byte[] manifestData = client.getData().forPath(Paths.build(Paths.STREAM_DEPLOYMENTS, streamName));
-						if (manifestData != null && manifestData.length > 0) {
-							map.put("manifest", new String(manifestData, "UTF-8"));
-						}
-						stream = streamFactory.createStream(streamName, map);
+						stream = loadStream(client, streamName);
 						streamMap.put(streamName, stream);
 					}
 					ModuleDescriptor moduleDescriptor = stream.getModuleDescriptor(moduleLabel, moduleType);

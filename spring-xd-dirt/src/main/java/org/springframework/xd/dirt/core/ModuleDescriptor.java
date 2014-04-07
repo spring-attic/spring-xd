@@ -71,8 +71,7 @@ public class ModuleDescriptor {
 	 * @param streamName name of stream using this module
 	 * @param label label for this module as defined by its stream
 	 * @param index order of processing for this module
-	 * @param group container group this module should be deployed to
-	 * @param count number of container instances this module should be deployed to
+	 * @param deploymentProperties deployment properties for this module
 	 */
 	public ModuleDescriptor(ModuleDefinition moduleDefinition, String streamName, String label, int index,  ModuleDeploymentProperties deploymentProperties) {
 		this.moduleDefinition = moduleDefinition;

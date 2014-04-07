@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -25,10 +25,15 @@ import org.springframework.xd.dirt.stream.StreamDefinition;
  * @author David Turanski
  * @author Gunnar Hillert
  * @author Ilayaperumal Gopinathan
- *
  */
 public interface ResourceDeployer<R extends BaseDefinition> {
 
+	/**
+	 * Deploy a resource (job or stream).
+	 *
+	 * @param name name of the resource
+	 * @param manifest deployment manifest to use (may be null)
+	 */
 	void deploy(String name, String manifest);
 
 	/**
@@ -64,11 +69,6 @@ public interface ResourceDeployer<R extends BaseDefinition> {
 	 * Delete all the definitions
 	 */
 	void deleteAll();
-
-	/**
-	 * deploy all available undeployed resource definitions.
-	 */
-	void deployAll();
 
 	/**
 	 * Undeploy all the deployed resources.

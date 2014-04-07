@@ -143,15 +143,6 @@ public abstract class XDController<D extends BaseDefinition, A extends ResourceA
 	}
 
 	/**
-	 * Request deployment of all modules.
-	 */
-	@RequestMapping(value = "_deployments", method = RequestMethod.PUT, params = "deploy=true")
-	@ResponseStatus(HttpStatus.OK)
-	public void deployAll() {
-		deployer.deployAll();
-	}
-
-	/**
 	 * Retrieve information about a single {@link ResourceSupport}.
 	 *
 	 * @param name the name of an existing resource (required)

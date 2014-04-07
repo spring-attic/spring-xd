@@ -39,8 +39,6 @@ public class StreamCommands implements CommandMarker {
 
 	private static final String DEPLOY_STREAM = "stream deploy";
 
-	private static final String DEPLOY_STREAM_ALL = "stream all deploy";
-
 	private static final String UNDEPLOY_STREAM = "stream undeploy";
 
 	private static final String UNDEPLOY_STREAM_ALL = "stream all undeploy";
@@ -95,19 +93,6 @@ public class StreamCommands implements CommandMarker {
 			@CliOption(key = { "manifest" }, help = "the manifest for this deployment", mandatory = false) String manifest) {
 		streamOperations().deploy(name, manifest);
 		return String.format("Deployed stream '%s'", name);
-	}
-
-	@CliCommand(value = DEPLOY_STREAM_ALL, help = "Deploy all previously created stream")
-	public String deployAllStreams(
-			@CliOption(key = "force", help = "bypass confirmation prompt", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean force
-			) {
-		if (force || "y".equalsIgnoreCase(userInput.prompt("Really deploy all streams?", "n", "y", "n"))) {
-			streamOperations().deployAll();
-			return String.format("Deployed all streams");
-		}
-		else {
-			return "";
-		}
 	}
 
 	@CliCommand(value = UNDEPLOY_STREAM, help = "Un-deploy a previously deployed stream")

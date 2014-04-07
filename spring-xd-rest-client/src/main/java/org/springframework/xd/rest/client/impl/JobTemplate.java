@@ -129,14 +129,6 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 	}
 
 	@Override
-	public void deployAll() {
-		String uriTemplate = resources.get("jobs").toString() + DEPLOYMENTS_URI;
-		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
-		values.add("deploy", "true");
-		restTemplate.put(uriTemplate, values);
-	}
-
-	@Override
 	public void destroyAll() {
 		restTemplate.delete(resources.get("jobs"));
 	}

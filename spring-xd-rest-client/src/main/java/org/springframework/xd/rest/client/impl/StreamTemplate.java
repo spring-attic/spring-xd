@@ -95,14 +95,6 @@ public class StreamTemplate extends AbstractTemplate implements StreamOperations
 	}
 
 	@Override
-	public void deployAll() {
-		String uriTemplate = resources.get("streams").toString() + DEPLOYMENTS_URI;
-		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
-		values.add("deploy", "true");
-		restTemplate.put(uriTemplate, values);
-	}
-
-	@Override
 	public void destroyAll() {
 		restTemplate.delete(resources.get("streams"));
 	}

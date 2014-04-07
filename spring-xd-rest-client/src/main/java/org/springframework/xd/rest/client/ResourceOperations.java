@@ -39,11 +39,6 @@ public interface ResourceOperations {
 	public void destroy(String name);
 
 	/**
-	 * Deploy all the resources known to the system.
-	 */
-	public void deployAll();
-
-	/**
 	 * Undeploy all the resources known to the system.
 	 */
 	public void undeployAll();

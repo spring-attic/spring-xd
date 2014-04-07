@@ -77,8 +77,6 @@ public class JobCommands implements CommandMarker {
 
 	private final static String DEPLOY_JOB = "job deploy";
 
-	private final static String DEPLOY_ALL_JOBS = "job all deploy";
-
 	private final static String LAUNCH_JOB = "job launch";
 
 	private final static String UNDEPLOY_JOB = "job undeploy";
@@ -323,19 +321,6 @@ public class JobCommands implements CommandMarker {
 			@CliOption(key = { "", "name" }, help = "the name of the job to deploy", mandatory = true, optionContext = "existing-job undeployed disable-string-converter") String name) {
 		jobOperations().deploy(name, null);
 		return String.format("Deployed job '%s'", name);
-	}
-
-	@CliCommand(value = DEPLOY_ALL_JOBS, help = "Deploy previously created job(s)")
-	public String deployAllJobs(
-			@CliOption(key = "force", help = "bypass confirmation prompt", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean force
-			) {
-		if (force || "y".equalsIgnoreCase(userInput.prompt("Really deploy all jobs?", "n", "y", "n"))) {
-			jobOperations().deployAll();
-			return String.format("Deployed all jobs");
-		}
-		else {
-			return "";
-		}
 	}
 
 	@CliCommand(value = LAUNCH_JOB, help = "Launch previously deployed job")

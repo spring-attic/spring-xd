@@ -1783,7 +1783,7 @@ task distTar(type: Tar, dependsOn: [asciidoctorHtml, copyInstall], overwrite: tr
 task yarnZip(type: Zip, dependsOn: [copyInstall], overwrite: true) {
 	group = 'Application'
 	appendix = 'yarn'
-	description = "Bundles the XD project and with libs prepared for YARN deployment as a zip file."
+	description = "Bundles the XD project, modules and libs prepared for YARN deployment as a zip file."
 
 	destinationDir = new File("$buildDir/tmp")
 
@@ -1799,6 +1799,9 @@ task yarnZip(type: Zip, dependsOn: [copyInstall], overwrite: true) {
     }
     from("$buildDir/dist/spring-xd-yarn/xd-yarn/modules") {
         into "/modules"
+    }
+    from("$buildDir/dist/spring-xd-yarn/xd-yarn/spring-xd-ui") {
+        into "/spring-xd-ui"
     }
 }
 

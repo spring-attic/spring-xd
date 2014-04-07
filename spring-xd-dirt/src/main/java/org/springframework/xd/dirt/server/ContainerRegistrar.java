@@ -90,7 +90,7 @@ import org.springframework.xd.module.support.ParentLastURLClassLoader;
 // todo: Rename ContainerServer or ModuleDeployer since it's driven by callbacks and not really a "server".
 // Likewise consider the AdminServer being renamed to StreamDeployer since that is also callback-driven.
 public class ContainerRegistrar implements ApplicationListener<ContextRefreshedEvent>, ApplicationContextAware,
-BeanClassLoaderAware {
+		BeanClassLoaderAware {
 
 	/**
 	 * Logger.
@@ -222,10 +222,10 @@ BeanClassLoaderAware {
 		ModuleOptions moduleOptions = this.safeModuleOptionsInterpolate(moduleDescriptor);
 		Module module = (moduleDescriptor.isComposed())
 				? createComposedModule(moduleDescriptor, moduleOptions)
-						: createSimpleModule(moduleDescriptor, moduleOptions);
-				// todo: rather than delegate, merge ContainerRegistrar itself into and remove most of ModuleDeployer
-				this.moduleDeployer.deployAndStore(module, moduleDescriptor);
-				return module;
+				: createSimpleModule(moduleDescriptor, moduleOptions);
+		// todo: rather than delegate, merge ContainerRegistrar itself into and remove most of ModuleDeployer
+		this.moduleDeployer.deployAndStore(module, moduleDescriptor);
+		return module;
 	}
 
 	/**
@@ -345,18 +345,18 @@ BeanClassLoaderAware {
 		String moduleLabel = moduleDeploymentsPath.getModuleLabel();
 		Module module = (ModuleType.job.toString().equals(moduleType))
 				? deployJob(client, streamName, moduleLabel)
-						: deployStreamModule(client, streamName, moduleType, moduleLabel);
-				if (module != null) {
-					Map<String, String> map = new HashMap<String, String>();
-					CollectionUtils.mergePropertiesIntoMap(module.getProperties(), map);
-					byte[] metadata = mapBytesUtility.toByteArray(map);
-					try {
-						client.create().withMode(CreateMode.EPHEMERAL).forPath(data.getPath() + "/metadata", metadata);
-					}
-					catch (Exception e) {
-						throw new RuntimeException(e);
-					}
-				}
+				: deployStreamModule(client, streamName, moduleType, moduleLabel);
+		if (module != null) {
+			Map<String, String> map = new HashMap<String, String>();
+			CollectionUtils.mergePropertiesIntoMap(module.getProperties(), map);
+			byte[] metadata = mapBytesUtility.toByteArray(map);
+			try {
+				client.create().withMode(CreateMode.EPHEMERAL).forPath(data.getPath() + "/metadata", metadata);
+			}
+			catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		}
 	}
 
 	/**
@@ -391,7 +391,7 @@ BeanClassLoaderAware {
 
 			// this indicates that the container has deployed the module
 			client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL)
-			.forPath(jobPath, mapBytesUtility.toByteArray(Collections.singletonMap("state", "deployed")));
+					.forPath(jobPath, mapBytesUtility.toByteArray(Collections.singletonMap("state", "deployed")));
 
 			// set a watch on this module in the job path;
 			// if the node is deleted this indicates an undeployment
@@ -429,7 +429,7 @@ BeanClassLoaderAware {
 
 			// this indicates that the container has deployed the module
 			client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL)
-			.forPath(streamPath, mapBytesUtility.toByteArray(Collections.singletonMap("state", "deployed")));
+					.forPath(streamPath, mapBytesUtility.toByteArray(Collections.singletonMap("state", "deployed")));
 
 			// set a watch on this module in the stream path;
 			// if the node is deleted this indicates an undeployment
@@ -581,10 +581,10 @@ BeanClassLoaderAware {
 				undeployModule(streamName, moduleType, moduleLabel);
 
 				String deploymentPath = new ModuleDeploymentsPath()
-				.setContainer(containerAttributes.getId())
-				.setStreamName(streamName)
-				.setModuleType(moduleType)
-				.setModuleLabel(moduleLabel).build();
+						.setContainer(containerAttributes.getId())
+						.setStreamName(streamName)
+						.setModuleType(moduleType)
+						.setModuleLabel(moduleLabel).build();
 
 				CuratorFramework client = zkConnection.getClient();
 				if (client.checkExists().forPath(deploymentPath) != null) {
@@ -619,10 +619,10 @@ BeanClassLoaderAware {
 				undeployModule(jobName, ModuleType.job.toString(), moduleLabel);
 
 				String deploymentPath = new ModuleDeploymentsPath()
-				.setContainer(containerAttributes.getId())
-				.setStreamName(jobName)
-				.setModuleType(ModuleType.job.toString())
-				.setModuleLabel(moduleLabel).build();
+						.setContainer(containerAttributes.getId())
+						.setStreamName(jobName)
+						.setModuleType(ModuleType.job.toString())
+						.setModuleLabel(moduleLabel).build();
 
 				CuratorFramework client = zkConnection.getClient();
 				if (client.checkExists().forPath(deploymentPath) != null) {

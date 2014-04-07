@@ -44,6 +44,7 @@ import org.springframework.xd.dirt.container.ContainerAttributes;
  *
  * @author Ilayaperumal Gopinathan
  * @author Mark Fisher
+ * @author David Turanski
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration
@@ -63,12 +64,12 @@ public class RuntimeContainersControllerIntegrationTests extends AbstractControl
 	}
 
 	@Test
-	public void testListModules() throws Exception {
+	public void testListContainers() throws Exception {
 		mockMvc.perform(get("/runtime/containers").accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andExpect(
 				jsonPath("$.content", Matchers.hasSize(2))).andExpect(
-				jsonPath("$.content[*].containerId", contains("1", "2"))).andExpect(
-				jsonPath("$.content[*].processId", contains(1234, 2345))).andExpect(
-				jsonPath("$.content[*].hostName", contains("host1", "host2"))).andExpect(
-				jsonPath("$.content[*].ipAddress", contains("127.0.0.1", "192.168.2.1")));
+				jsonPath("$.content[*].attributes.id", contains("1", "2"))).andExpect(
+				jsonPath("$.content[*].attributes.pid", contains("1234", "2345"))).andExpect(
+				jsonPath("$.content[*].attributes.host", contains("host1", "host2"))).andExpect(
+				jsonPath("$.content[*].attributes.ip", contains("127.0.0.1", "192.168.2.1")));
 	}
 }

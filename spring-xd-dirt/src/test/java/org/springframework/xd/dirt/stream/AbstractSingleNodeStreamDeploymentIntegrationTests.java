@@ -199,8 +199,8 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		if (testMessageBus != null && !transport.equalsIgnoreCase("local")) {
 			TestMessageBusInjection.injectMessageBus(singleNodeApplication, testMessageBus);
 		}
-		ContainerAttributes cm = singleNodeApplication.containerContext().getBean(ContainerAttributes.class);
-		integrationSupport.addPathListener(Paths.build(Paths.MODULE_DEPLOYMENTS, cm.getId()), deploymentsListener);
+		ContainerAttributes attribs = singleNodeApplication.containerContext().getBean(ContainerAttributes.class);
+		integrationSupport.addPathListener(Paths.build(Paths.MODULE_DEPLOYMENTS, attribs.getId()), deploymentsListener);
 	}
 
 	@AfterClass
@@ -210,8 +210,9 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 			testMessageBus = null;
 		}
 		if (singleNodeApplication.containerContext().isActive()) {
-			ContainerAttributes cm = singleNodeApplication.containerContext().getBean(ContainerAttributes.class);
-			integrationSupport.removePathListener(Paths.build(Paths.MODULE_DEPLOYMENTS, cm.getId()), deploymentsListener);
+			ContainerAttributes attribs = singleNodeApplication.containerContext().getBean(ContainerAttributes.class);
+			integrationSupport.removePathListener(Paths.build(Paths.MODULE_DEPLOYMENTS, attribs.getId()),
+					deploymentsListener);
 		}
 	}
 

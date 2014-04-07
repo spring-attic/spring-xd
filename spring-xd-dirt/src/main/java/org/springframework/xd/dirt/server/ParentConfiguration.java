@@ -39,6 +39,7 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertySource;
+import org.springframework.util.Assert;
 import org.springframework.xd.dirt.container.ContainerAttributes;
 import org.springframework.xd.dirt.util.ConfigLocations;
 import org.springframework.xd.dirt.util.RuntimeUtils;
@@ -119,6 +120,8 @@ public class ParentConfiguration implements EnvironmentAware {
 
 	@Override
 	public void setEnvironment(Environment environment) {
+		Assert.isInstanceOf(ConfigurableEnvironment.class, environment,
+				"unsupported environment type. " + environment.getClass());
 		this.environment = (ConfigurableEnvironment) environment;
 	}
 }

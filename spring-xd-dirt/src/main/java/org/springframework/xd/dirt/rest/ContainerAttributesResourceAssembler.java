@@ -22,12 +22,12 @@ import org.springframework.xd.rest.client.domain.ContainerAttributesResource;
 
 /**
  * Knows how to assemble {@link ContainerAttributesResource}s out of {@link ContainerAttributes} instances.
- * 
+ *
  * @author Ilayaperumal Gopinathan
  * @author Mark Fisher
  */
 public class ContainerAttributesResourceAssembler extends
-		ResourceAssemblerSupport<ContainerAttributes, ContainerAttributesResource> {
+ResourceAssemblerSupport<ContainerAttributes, ContainerAttributesResource> {
 
 	public ContainerAttributesResourceAssembler() {
 		super(RuntimeContainersController.class, ContainerAttributesResource.class);
@@ -40,7 +40,7 @@ public class ContainerAttributesResourceAssembler extends
 
 	@Override
 	protected ContainerAttributesResource instantiateResource(ContainerAttributes entity) {
-		return new ContainerAttributesResource(entity.getId(), entity.getPid(), entity.getHost(), entity.getIp());
+		return new ContainerAttributesResource(entity);
 	}
 
 }

@@ -16,9 +16,12 @@
 
 package org.springframework.xd.dirt.container;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -34,6 +37,20 @@ import org.springframework.util.StringUtils;
  */
 public class ContainerAttributes extends LinkedHashMap<String, String> {
 
+	public final static String CONTAINER_ID_KEY = "id";
+
+	public final static String HOST_KEY = "host";
+
+	public final static String PROCESS_ID_KEY = "pid";
+
+	public final static String GROUPS_KEY = "groups";
+
+	public final static String IP_ADDRESS_KEY = "ip";
+
+	private final List<String> commonAttributeKeys = Arrays.asList(new String[] { CONTAINER_ID_KEY, PROCESS_ID_KEY,
+		HOST_KEY,
+		IP_ADDRESS_KEY, GROUPS_KEY });
+
 	/**
 	 * Default constructor generates a random id.
 	 */
@@ -48,7 +65,7 @@ public class ContainerAttributes extends LinkedHashMap<String, String> {
 	 */
 	public ContainerAttributes(String id) {
 		Assert.hasText(id, "id is required");
-		this.put("id", id);
+		this.put(CONTAINER_ID_KEY, id);
 	}
 
 	public ContainerAttributes(Map<? extends String, ? extends String> attributes) {
@@ -57,42 +74,52 @@ public class ContainerAttributes extends LinkedHashMap<String, String> {
 
 
 	public String getId() {
-		return this.get("id");
+		return this.get(CONTAINER_ID_KEY);
 	}
 
 	public String getHost() {
-		return this.get("host");
+		return this.get(HOST_KEY);
 	}
 
 	public String getIp() {
-		return this.get("ip");
+		return this.get(IP_ADDRESS_KEY);
 	}
 
 	public int getPid() {
-		return Integer.parseInt(this.get("pid"));
+		return Integer.parseInt(this.get(PROCESS_ID_KEY));
 	}
 
 	public Set<String> getGroups() {
 		Set<String> groupSet = new HashSet<String>();
-		String groups = this.get("groups");
+		String groups = this.get(GROUPS_KEY);
 		groupSet = StringUtils.hasText(groups) ? StringUtils.commaDelimitedListToSet(groups) : new HashSet<String>();
 		return Collections.unmodifiableSet(groupSet);
 	}
 
 	public ContainerAttributes setPid(Integer pid) {
-		this.put("pid", String.valueOf(pid));
+		this.put(PROCESS_ID_KEY, String.valueOf(pid));
 		return this;
 	}
 
 	public ContainerAttributes setHost(String host) {
-		this.put("host", host);
+		this.put(HOST_KEY, host);
 		return this;
 	}
 
 
 	public ContainerAttributes setIp(String ip) {
-		this.put("ip", ip);
+		this.put(IP_ADDRESS_KEY, ip);
 		return this;
 	}
 
+	public Map<String, String> getCustomAttributes() {
+
+		Map<String, String> customAttributes = new HashMap<String, String>();
+		for (String key : this.keySet()) {
+			if (!commonAttributeKeys.contains(key)) {
+				customAttributes.put(key, this.get(key));
+			}
+		}
+		return customAttributes;
+	}
 }

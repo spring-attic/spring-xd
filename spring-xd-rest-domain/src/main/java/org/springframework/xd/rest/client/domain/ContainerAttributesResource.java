@@ -16,6 +16,8 @@
 
 package org.springframework.xd.rest.client.domain;
 
+import java.util.Map;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.springframework.hateoas.PagedResources;
@@ -24,59 +26,42 @@ import org.springframework.util.Assert;
 
 /**
  * Represents runtime container info model.
- * 
+ *
  * @author Ilayaperumal Gopinathan
  * @author Mark Fisher
+ * @author David Turanski
  */
 @XmlRootElement
 public class ContainerAttributesResource extends ResourceSupport {
 
-	private String containerId;
-
-	private int processId;
-
-	private String hostName;
-
-	private String ipAddress;
+	private Map<String, String> attributes;
 
 	@SuppressWarnings("unused")
 	private ContainerAttributesResource() {
 	}
 
-	public ContainerAttributesResource(String containerId, int processId, String hostName, String ipAddress) {
-		Assert.hasText(containerId, "Container Id can not be empty");
-		Assert.hasText(hostName, "Hostname can not be empty");
-		Assert.hasText(ipAddress, "IP address can not be empty");
-		this.containerId = containerId;
-		this.processId = processId;
-		this.hostName = hostName;
-		this.ipAddress = ipAddress;
+	public ContainerAttributesResource(Map<String, String> attributes) {
+		Assert.notNull(attributes);
+		this.attributes = attributes;
 	}
 
-	public String getContainerId() {
-		return containerId;
+	public Map<String, String> getAttributes() {
+		return this.attributes;
 	}
 
-	public int getProcessId() {
-		return processId;
-	}
-
-	public String getHostName() {
-		return hostName;
-	}
-
-	public String getIpAddress() {
-		return ipAddress;
+	public String getAttribute(String name) {
+		return this.attributes.get(name);
 	}
 
 	@Override
 	public String toString() {
-		return this.containerId;
+		return attributes.toString();
 	}
+
 
 	/**
 	 * Dedicated subclass to workaround type erasure.
-	 * 
+	 *
 	 * @author Eric Bottard
 	 */
 	public static class Page extends PagedResources<ContainerAttributesResource> {

@@ -127,7 +127,7 @@ public class ZooKeeperContainerAttributesRepositoryTests {
 		}
 
 		@Bean
-		public ContainerAttributesRepository runtimeContainerInfoRepository() {
+		public ContainerAttributesRepository containerAttributesRepository() {
 			return new ZooKeeperContainerAttributesRepository(zooKeeperConnection());
 		}
 	}

@@ -26,9 +26,9 @@ import java.io.IOException;
 
 import org.junit.Test;
 
+import org.springframework.xd.shell.command.fixtures.HttpSource;
 import org.springframework.xd.test.fixtures.CounterSink;
 import org.springframework.xd.test.fixtures.FileSink;
-import org.springframework.xd.shell.command.fixtures.HttpSource;
 
 
 /**
@@ -98,4 +98,28 @@ public class ProcessorsTests extends AbstractStreamIntegrationTest {
 		assertThat(fileSink, eventually(1, (int) (2.1 * timeout), hasContentsThat(equalTo("Hello World !"))));
 
 	}
+
+	@Test
+	public void testAggregatorCorrelation() throws IOException {
+		HttpSource httpSource = newHttpSource();
+		FileSink fileSink = newFileSink().binary(true);
+
+		stream().create(
+				generateStreamName(),
+				"%s | aggregator --count=3 --aggregation=T(org.springframework.util.StringUtils).collectionToDelimitedString(#this.![payload],' ') "
+						+ "--correlation=payload.length() | %s",
+				httpSource, fileSink);
+
+		httpSource.ensureReady().postData("Hello").postData("World").postData("!");
+		httpSource.ensureReady().postData("I").postData("am").postData("1");
+		httpSource.ensureReady().postData("tu").postData("es").postData("fifth");
+
+		String expected = "! I 1";
+		expected += "am tu es";
+		expected += "Hello World fifth";
+		assertThat(fileSink, eventually(hasContentsThat(equalTo(expected))));
+
+	}
+
+
 }

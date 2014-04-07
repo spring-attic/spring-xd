@@ -508,6 +508,8 @@ project('spring-xd-dirt') {
 		outputs.dir scripts
 	}
 
+	tasks["installApp"].dependsOn(":spring-xd-ui:setupUI")
+
 	applicationDistribution.from(configFiles) { into "config" }
 
 	applicationDistribution.from(scriptFiles) { into "bin" }
@@ -1534,7 +1536,6 @@ task copyGemfireInstall(type: Copy, dependsOn: ":spring-xd-gemfire-server:instal
 }
 
 task copyXDInstall(type: Copy, dependsOn: [
-	":spring-xd-ui:setupUI",
 	":spring-xd-dirt:build",
 	":spring-xd-dirt:installApp"
 ]) {

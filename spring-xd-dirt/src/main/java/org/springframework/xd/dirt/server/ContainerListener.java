@@ -241,6 +241,15 @@ public class ContainerListener implements PathChildrenCacheListener {
 		}
 	}
 
+	/**
+	 * This will load the {@link Stream} instance for a given stream name. It will include the
+	 * stream definition as well as any manifest data for the stream deployment.
+	 *
+	 * @param client {@link CuratorFramework} instance used to retrieve data for this stream
+	 * @param streamName the name of the stream to load
+	 * @return the stream instance
+	 * @throws Exception if ZooKeeper access fails for any reason
+	 */
 	private Stream loadStream(CuratorFramework client, String streamName) throws Exception {
 		Map<String, String> map = mapBytesUtility.toMap(streamDefinitions.getCurrentData(
 				new StreamsPath().setStreamName(streamName).build()).getData());

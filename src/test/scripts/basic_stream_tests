@@ -52,9 +52,11 @@ create_stream 'httpfilter1' "http | good: filter --expression=payload=='good' | 
 create_stream 'httpfilter1tap'  "tap:stream:httpfilter1.good > counter --name=good"
 # Send one message
 sleep 5
-curl -d 'good' $XD_HOST:9000
+curl -v -d 'good' $XD_HOST:9000
+sleep 5
 
-good=`curl $XDURL/metrics/counters/good | grep -o value\":.`
+good=`curl -v $XDURL/metrics/counters/good | grep -o value\":.`
+sleep 5
 destroy_metric counters/good
 destroy_stream 'httpfilter1tap'
 destroy_stream 'httpfilter1'

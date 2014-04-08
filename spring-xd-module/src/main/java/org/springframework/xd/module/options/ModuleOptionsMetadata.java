@@ -28,6 +28,13 @@ import org.springframework.validation.BindException;
  */
 public interface ModuleOptionsMetadata extends Iterable<ModuleOption> {
 
+	/**
+	 * Derive information about the module behavior once it is part of a stream and user provided values for the module
+	 * options are known.
+	 * 
+	 * @param raw the user provided options (from the DSL stream definition)
+	 * @throws BindException if provided values (as well as defaults) failed to validate
+	 */
 	public abstract ModuleOptions interpolate(Map<String, String> raw) throws BindException;
 
 }

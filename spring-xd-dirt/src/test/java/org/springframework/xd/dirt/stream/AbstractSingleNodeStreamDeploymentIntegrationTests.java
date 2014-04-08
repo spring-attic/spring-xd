@@ -196,8 +196,11 @@ public abstract class AbstractSingleNodeStreamDeploymentIntegrationTests {
 		testApplicationBootstrap = new TestApplicationBootstrap();
 		singleNodeApplication = testApplicationBootstrap.getSingleNodeApplication().run("--transport", transport);
 		integrationSupport = new SingleNodeIntegrationTestSupport(singleNodeApplication);
-		if (testMessageBus != null && !transport.equalsIgnoreCase("local")) {
+		if (!transport.equalsIgnoreCase("local")) {
 			TestMessageBusInjection.injectMessageBus(singleNodeApplication, testMessageBus);
+		}
+		else {
+			testMessageBus = null;
 		}
 		ContainerAttributes attribs = singleNodeApplication.containerContext().getBean(ContainerAttributes.class);
 		integrationSupport.addPathListener(Paths.build(Paths.MODULE_DEPLOYMENTS, attribs.getId()), deploymentsListener);

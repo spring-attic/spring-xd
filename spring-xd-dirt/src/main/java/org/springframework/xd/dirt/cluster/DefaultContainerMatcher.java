@@ -102,7 +102,8 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 		}
 
 		if (candidates.isEmpty()) {
-			// there are no containers available
+			LOG.warn("No currently available containers match criteria '{}' for module {}.",
+					moduleDescriptor, criteria);
 			return candidates;
 		}
 
@@ -143,7 +144,6 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 	 */
 	private boolean isCandidate(Container container, String criteria) {
 		try {
-			LOG.warn("evaluating expression [" + criteria + "] for: " + container.getAttributes());
 			return expressionParser.parseExpression(criteria).getValue(evaluationContext, container.getAttributes(), Boolean.class);
 		}
 		catch (EvaluationException e) {

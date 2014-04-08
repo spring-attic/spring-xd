@@ -62,6 +62,7 @@ rows=`sqlite3 $DB_FILE 'select count(*) from csvjdbcjob0'`
 destroy_job csvjdbcjob0
 echo "Checking row count in database table matches import from file..."
 assert_equals 292 $rows
+sleep 5
 
 if [[ -f $TEST_DIR/delete_after_use.csv ]]
 then

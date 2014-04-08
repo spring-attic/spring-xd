@@ -102,7 +102,7 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 
 		if (candidates.isEmpty()) {
 			LOG.warn("No currently available containers match criteria '{}' for module {}.",
-					moduleDescriptor, criteria);
+					criteria, moduleDescriptor);
 			return candidates;
 		}
 

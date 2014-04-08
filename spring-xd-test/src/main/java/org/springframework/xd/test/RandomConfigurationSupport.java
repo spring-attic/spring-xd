@@ -87,10 +87,15 @@ public class RandomConfigurationSupport {
 	}
 
 	@AfterClass
-	public static void cleanup() throws IOException {
+	public static void cleanup() {
 		// By default the data directory is located inside ${xd.data.home}/jobs
 		// Refer batch.xml
-		FileUtils.deleteDirectory(new File(batchJobsDirectory + "/jobs"));
+		try {
+			FileUtils.deleteDirectory(new File(batchJobsDirectory + "/jobs"));
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
 		batchJobsDirectory = tmpDir;
 	}
 }

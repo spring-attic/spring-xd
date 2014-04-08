@@ -1387,7 +1387,10 @@ project('spring-xd-shell') {
 	mainClassName = "org.springframework.shell.Bootstrap"
 	run { standardInput = System.in }
 
-	test { include '**/*TestSuite*' }
+	test {
+		include '**/*TestSuite*'
+		forkEvery 20
+	}
 
 	dependencies {
 		compile "org.springframework.shell:spring-shell:$springShellVersion"

@@ -39,8 +39,8 @@ import org.springframework.xd.dirt.core.ModuleDescriptor;
  * <em>criteria</em> and <em>count</em>.
  * <p/>
  * The criteria indicates that a module should only be deployed to a container for which the criteria evaluates to
- * {@code true}. The criteria value should be a valid SpEL expression. If a criteria value is not provided,
- * any container can deploy the module.
+ * {@code true}. The criteria value should be a valid SpEL expression. If a criteria value is not provided, any
+ * container can deploy the module.
  * <p/>
  * If a count for a module is not specified, by default one instance of that module will be deployed to one container. A
  * count of 0 indicates that all containers for which the criteria evaluates to {@code true} should deploy the module.
@@ -75,8 +75,7 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 	private final StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
 
 	/**
-	 * Creates a container matcher instance and prepares the SpEL evaluation
-	 * context to support Map properties directly.
+	 * Creates a container matcher instance and prepares the SpEL evaluation context to support Map properties directly.
 	 */
 	public DefaultContainerMatcher() {
 		evaluationContext.addPropertyAccessor(new MapAccessor());
@@ -135,8 +134,8 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 	}
 
 	/**
-	 * Evaluate the criteria expression against the attributes of the provided container
-	 * to see if it is a candidate for module deployment.
+	 * Evaluate the criteria expression against the attributes of the provided container to see if it is a candidate for
+	 * module deployment.
 	 *
 	 * @param container the container instance whose attributes should be considered
 	 * @param criteria the criteria expression to evaluate against the container attributes
@@ -144,7 +143,8 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 	 */
 	private boolean isCandidate(Container container, String criteria) {
 		try {
-			return expressionParser.parseExpression(criteria).getValue(evaluationContext, container.getAttributes(), Boolean.class);
+			return expressionParser.parseExpression(criteria).getValue(evaluationContext, container.getAttributes(),
+					Boolean.class);
 		}
 		catch (EvaluationException e) {
 			LOG.debug("candidate not a match due to evaluation exception", e);

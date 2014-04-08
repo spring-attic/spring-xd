@@ -24,10 +24,8 @@ import java.io.IOException;
 import org.jclouds.domain.Credentials;
 import org.jclouds.domain.LoginCredentials;
 import org.jclouds.http.handlers.BackoffLimitedRetryHandler;
-import org.jclouds.io.payloads.ByteSourcePayload;
+import org.jclouds.io.payloads.FilePayload;
 import org.jclouds.sshj.SshjSshClient;
-
-import com.google.common.io.Files;
 
 
 /**
@@ -79,7 +77,7 @@ public class ConfigUtil {
 				.fromParts(host, 22);
 		final SshjSshClient client = new SshjSshClient(
 				new BackoffLimitedRetryHandler(), socket, credential, 5000);
-		final ByteSourcePayload payload = new ByteSourcePayload(Files.asByteSource(file));
+		final FilePayload payload = new FilePayload(file);
 		client.put(environment.getBaseDir() + "/config/" + fileName + ".properties", payload);
 	}
 }

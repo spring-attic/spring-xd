@@ -417,7 +417,6 @@ project('spring-xd-dirt') {
 		compile "commons-lang:commons-lang:2.4"
 		compile "args4j:args4j:$args4jVersion"
 
-		compile "org.hsqldb:hsqldb:$hsqldbVersion"
 		compile "org.springframework.batch:spring-batch-core:$springBatchVersion"
 		compile "org.apache.tomcat:tomcat-jdbc:$tomcatJdbcPoolVersion"
 		compile ("org.springframework.batch:spring-batch-admin-manager:$springBatchAdminMgrVersion") {
@@ -435,6 +434,8 @@ project('spring-xd-dirt') {
 		runtime "org.yaml:snakeyaml:$snakeYamlVersion"
 		runtime "org.postgresql:postgresql:9.2-1002-jdbc4"
 		runtime "mysql:mysql-connector-java:5.1.23"
+
+		compile project(':spring-xd-batch')
 
 		// ************* Dirt-Server only
 		compile project(':spring-xd-rest-domain')
@@ -1437,6 +1438,29 @@ project('spring-xd-shell') {
 
 }
 
+project('spring-xd-batch') {
+	description = 'Sub project for XD batch support '
+
+	dependencies {
+		runtime "org.yaml:snakeyaml:$snakeYamlVersion"
+		compile "org.hsqldb:hsqldb:$hsqldbVersion"
+		compile "org.springframework.boot:spring-boot-autoconfigure:$springBootVersion"
+                compile "org.springframework.boot:spring-boot-actuator:$springBootVersion"
+		compile "org.springframework:spring-jdbc:$springVersion"
+		compile "org.springframework.batch:spring-batch-core:$springBatchVersion"
+	}
+	apply plugin:'application'
+	// skip the startScripts task to avoid default start script generation
+        startScripts.setEnabled(false)
+
+        task scriptFiles {
+                def scripts = file("$rootDir/scripts/hsqldb")
+                outputs.dir scripts
+        }
+
+	applicationDistribution.from(scriptFiles) { into "bin" }
+}
+
 // Fixtures
 project('spring-xd-test-fixtures') {
 	description = 'Fixtures for use by both unit & acceptance tests '
@@ -1535,6 +1559,11 @@ task copyGemfireInstall(type: Copy, dependsOn: ":spring-xd-gemfire-server:instal
 	into "$buildDir/dist/spring-xd/gemfire"
 }
 
+task copyBatchInstall(type: Copy, dependsOn: ":spring-xd-batch:installApp") {
+	from "$rootDir/spring-xd-batch/build/install/spring-xd-batch"
+	into "$buildDir/dist/spring-xd/hsqldb"
+}
+
 task copyXDInstall(type: Copy, dependsOn: [
 	":spring-xd-dirt:build",
 	":spring-xd-dirt:installApp"
@@ -1594,7 +1623,7 @@ task copyYarnInstall(type: Copy, dependsOn: [":spring-xd-dirt:build", ":spring-x
     exclude "**/lib/log4j-*.jar"
 }
 
-task copyInstall (type: Copy, dependsOn: ["copyRedisInstall", "copyGemfireInstall", "copyXDInstall", "copyHadoopLibs", "copyXDShellInstall", "copyYarnInstall"]) {
+task copyInstall (type: Copy, dependsOn: ["copyRedisInstall", "copyGemfireInstall", "copyBatchInstall", "copyXDInstall", "copyHadoopLibs", "copyXDShellInstall", "copyYarnInstall"]) {
 	group = 'Application'
 	description = "Copy all the required installs to build/dist directory"
 	from "$rootDir/scripts/README"

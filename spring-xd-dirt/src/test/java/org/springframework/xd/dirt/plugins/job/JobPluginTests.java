@@ -59,7 +59,8 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.validation.BindException;
-import org.springframework.xd.dirt.server.AdminServerApplication;
+import org.springframework.xd.batch.hsqldb.server.HsqlDatasourceConfiguration;
+import org.springframework.xd.batch.hsqldb.server.HsqlServerApplication;
 import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
@@ -106,10 +107,11 @@ public class JobPluginTests extends RandomConfigurationSupport {
 
 	@Before
 	public void setUp() throws Exception {
-		sharedContext = new SpringApplicationBuilder(SharedConfiguration.class).profiles(
-				AdminServerApplication.ADMIN_PROFILE, AdminServerApplication.HSQL_PROFILE).properties(
-				"spring.datasource.url=jdbc:hsqldb:mem:xdjobrepotest") //
-		.web(false).run();
+		sharedContext = new SpringApplicationBuilder(SharedConfiguration.class, HsqlDatasourceConfiguration.class,
+				HsqlServerApplication.class)
+				.profiles(HsqlServerApplication.HSQLDBSERVER_PROFILE)
+				.properties("spring.datasource.url=jdbc:hsqldb:mem:xdjobrepotest") //
+				.web(false).run();
 		messageBus = sharedContext.getBean(LocalMessageBus.class);
 		jobPlugin = new JobPlugin(messageBus);
 		jobPartitionerPlugin = new JobPartitionerPlugin(messageBus);

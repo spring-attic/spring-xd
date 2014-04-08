@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:cloud="http://www.springframework.org/schema/cloud"
+	xsi:schemaLocation="http://www.springframework.org/schema/cloud http://www.springframework.org/schema/cloud/spring-cloud-0.1.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<beans profile="cloud" xmlns="http://www.springframework.org/schema/beans">
+		<cloud:data-source id="dataSource"
+			service-name="${xd.datasource.service:mysql}" />
+	</beans>
+</beans>

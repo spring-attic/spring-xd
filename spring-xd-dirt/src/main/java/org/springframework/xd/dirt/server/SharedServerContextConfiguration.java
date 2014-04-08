@@ -35,12 +35,13 @@ import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.util.ConfigLocations;
+import org.springframework.xd.dirt.util.XdProfiles;
 import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 
 /**
  * Beans defined and imported here are shared by the XD Admin Server and Container Server.
- *
+ * 
  * @author David Turanski
  * @author Mark Fisher
  * @author Ilayaperumal Gopinathan
@@ -72,7 +73,7 @@ public class SharedServerContextConfiguration {
 
 
 	@Configuration
-	@Profile(SingleNodeApplication.SINGLE_PROFILE)
+	@Profile(XdProfiles.SINGLENODE_PROFILE)
 	static class SingleNodeZooKeeperConfig extends ZookeeperConnectionConfig {
 
 		@Bean
@@ -110,7 +111,7 @@ public class SharedServerContextConfiguration {
 
 
 	@Configuration
-	@Profile("!" + SingleNodeApplication.SINGLE_PROFILE)
+	@Profile("!" + XdProfiles.SINGLENODE_PROFILE)
 	static class DistributedZooKeeperConfig extends ZookeeperConnectionConfig {
 
 		@Bean

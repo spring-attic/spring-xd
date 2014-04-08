@@ -34,6 +34,11 @@ public class ConfigLocations {
 	public static final String XD_INTERNAL_CONFIG_ROOT = XD_CONFIG_ROOT + "internal/";
 
 	/**
+	 * Where batch related config files reside.
+	 */
+	public static final String XD_BATCH_CONFIG_ROOT = XD_CONFIG_ROOT + "batch/";
+
+	/**
 	 * Prevent instantiation.
 	 */
 	private ConfigLocations() {

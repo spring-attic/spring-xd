@@ -31,8 +31,6 @@
 #    username: yourUsername
 #    password: yourPassword
 #    driverClassName: com.mysql.jdbc.Driver
-#  profiles:
-#    active: default,mysql
 
 
 #Config for use with Postgres - uncomment and edit with relevant values for your environment
@@ -42,8 +40,6 @@
 #    username: yourUsername
 #    password: yourPassword
 #    driverClassName: org.postgresql.Driver
-#  profiles:
-#    active: default,postgresql
 
 ---
 # Config to enable/disable JMX/jolokia endpoints

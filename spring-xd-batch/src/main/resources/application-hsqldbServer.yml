@@ -1,0 +1,14 @@
+# HSQL database configuration
+spring:
+  profiles:
+    active: hsqldbServer
+  batch:
+    initializer:
+      enabled: true
+  datasource:
+    url: jdbc:hsqldb:hsql://${hsql.server.host:localhost}:${hsql.server.port:9101}/${hsql.server.dbname:xdjob}
+    username: sa
+    password:
+    driverClassName: org.hsqldb.jdbc.JDBCDriver
+---
+

@@ -38,6 +38,13 @@ spring:
 #   virtual_host: /
 
 ---
+#Disable batch database initialization
+#spring:
+#  batch:
+#    initializer:
+#       enabled: false
+
+---
 # Database settings
 #
 # Config for use with HSQLDB

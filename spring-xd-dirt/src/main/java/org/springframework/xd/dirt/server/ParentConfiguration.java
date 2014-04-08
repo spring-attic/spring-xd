@@ -28,18 +28,21 @@ import org.springframework.boot.actuate.health.VanillaHealthIndicator;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.jmx.JmxAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.ServerPropertiesAutoConfiguration;
 import org.springframework.cloud.Cloud;
 import org.springframework.cloud.CloudFactory;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableMBeanExport;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertySource;
+import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.container.ContainerAttributes;
 import org.springframework.xd.dirt.util.ConfigLocations;
@@ -48,10 +51,11 @@ import org.springframework.xd.dirt.util.RuntimeUtils;
 /**
  * Beans defined and imported here are in the global parent context, hence available to the entire hierarchy, including
  * Admins, Containers, and Modules.
- *
+ * 
  * @author David Turanski
  */
-@EnableAutoConfiguration(exclude = { ServerPropertiesAutoConfiguration.class, BatchAutoConfiguration.class })
+@EnableAutoConfiguration(exclude = { ServerPropertiesAutoConfiguration.class, BatchAutoConfiguration.class,
+	JmxAutoConfiguration.class })
 @ImportResource("classpath:" + ConfigLocations.XD_INTERNAL_CONFIG_ROOT + "xd-global-beans.xml")
 @EnableBatchProcessing
 public class ParentConfiguration implements EnvironmentAware {
@@ -124,5 +128,17 @@ public class ParentConfiguration implements EnvironmentAware {
 		Assert.isInstanceOf(ConfigurableEnvironment.class, environment,
 				"unsupported environment type. " + environment.getClass());
 		this.environment = (ConfigurableEnvironment) environment;
+	}
+
+	@ConditionalOnExpression("${XD_JMX_ENABLED:true}")
+	@EnableMBeanExport(defaultDomain = "xd.parent")
+	protected static class JmxConfiguration {
+
+		@Bean(name = "XDParentMBean")
+		public IntegrationMBeanExporter integrationMBeanExporter() {
+			IntegrationMBeanExporter exporter = new IntegrationMBeanExporter();
+			exporter.setDefaultDomain("xd.parent");
+			return exporter;
+		}
 	}
 }

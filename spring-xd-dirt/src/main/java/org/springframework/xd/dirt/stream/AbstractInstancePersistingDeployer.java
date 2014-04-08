@@ -68,7 +68,7 @@ public abstract class AbstractInstancePersistingDeployer<D extends BaseDefinitio
 	}
 
 	@Override
-	public void deploy(String name, String manifest) {
+	public void deploy(String name, String properties) {
 
 		Assert.hasText(name, "name cannot be blank or null");
 
@@ -76,7 +76,7 @@ public abstract class AbstractInstancePersistingDeployer<D extends BaseDefinitio
 			throwAlreadyDeployedException(name);
 		}
 
-		final D definition = basicDeploy(name, manifest);
+		final D definition = basicDeploy(name, properties);
 
 		final I instance = makeInstance(definition);
 		instanceRepository.save(instance);

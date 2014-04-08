@@ -63,7 +63,7 @@ public class JobTemplate extends AbstractTemplate implements JobOperations {
 	}
 
 	@Override
-	public void deploy(String name, String manifest) {
+	public void deploy(String name, String properties) {
 		String uriTemplate = resources.get("jobs").toString() + "/{name}";
 		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
 		values.add("deploy", "true");

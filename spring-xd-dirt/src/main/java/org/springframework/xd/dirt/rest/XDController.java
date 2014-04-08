@@ -134,12 +134,13 @@ public abstract class XDController<D extends BaseDefinition, A extends ResourceA
 	 * Request deployment of an existing named module.
 	 *
 	 * @param name the name of an existing module (required)
+	 * @param properties the deployment properties for the module as a comma-delimited list of key=value pairs
 	 */
 	@RequestMapping(value = "/{name}", method = RequestMethod.PUT, params = "deploy=true")
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public void deploy(@PathVariable("name") String name, @RequestParam(required=false) String manifest) {
-		deployer.deploy(name, manifest);
+	public void deploy(@PathVariable("name") String name, @RequestParam(required=false) String properties) {
+		deployer.deploy(name, properties);
 	}
 
 	/**

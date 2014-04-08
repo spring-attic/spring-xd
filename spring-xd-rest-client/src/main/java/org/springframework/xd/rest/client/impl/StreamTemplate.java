@@ -56,14 +56,14 @@ public class StreamTemplate extends AbstractTemplate implements StreamOperations
 	}
 
 	@Override
-	public void deploy(String name, String manifest) {
+	public void deploy(String name, String properties) {
 		// TODO: discover link by some other means (search by exact name on
 		// /streams??)
 		String uriTemplate = resources.get("streams").toString() + "/{name}";
 		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
 		values.add("deploy", "true");
-		if (manifest != null) {
-			values.add("manifest", manifest);
+		if (properties != null) {
+			values.add("properties", properties);
 		}
 		restTemplate.put(uriTemplate, values, name);
 	}

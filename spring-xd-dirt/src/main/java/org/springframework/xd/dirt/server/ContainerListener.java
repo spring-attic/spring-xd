@@ -248,7 +248,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 
 	/**
 	 * This will load the {@link Stream} instance for a given stream name. It will include the
-	 * stream definition as well as any manifest data for the stream deployment.
+	 * stream definition as well as any deployment properties data for the stream deployment.
 	 *
 	 * @param client {@link CuratorFramework} instance used to retrieve data for this stream
 	 * @param streamName the name of the stream to load
@@ -258,9 +258,9 @@ public class ContainerListener implements PathChildrenCacheListener {
 	private Stream loadStream(CuratorFramework client, String streamName) throws Exception {
 		Map<String, String> map = mapBytesUtility.toMap(streamDefinitions.getCurrentData(
 				new StreamsPath().setStreamName(streamName).build()).getData());
-		byte[] manifestData = client.getData().forPath(Paths.build(Paths.STREAM_DEPLOYMENTS, streamName));
-		if (manifestData != null && manifestData.length > 0) {
-			map.put("manifest", new String(manifestData, "UTF-8"));
+		byte[] deploymentPropertiesData = client.getData().forPath(Paths.build(Paths.STREAM_DEPLOYMENTS, streamName));
+		if (deploymentPropertiesData != null && deploymentPropertiesData.length > 0) {
+			map.put("deploymentProperties", new String(deploymentPropertiesData, "UTF-8"));
 		}
 		return streamFactory.createStream(streamName, map);
 	}
@@ -341,10 +341,10 @@ public class ContainerListener implements PathChildrenCacheListener {
 					}
 					else {
 						StringBuilder builder = new StringBuilder();
-						String targetExpression = moduleDescriptor.getDeploymentProperties().getTargetExpression();
+						String criteria = moduleDescriptor.getDeploymentProperties().getCriteria();
 						builder.append("Module '").append(moduleLabel).append("' is targeted to all containers");
-						if (StringUtils.hasText(targetExpression)) {
-							builder.append(" matching expression '").append(targetExpression).append('\'');
+						if (StringUtils.hasText(criteria)) {
+							builder.append(" matching criteria '").append(criteria).append('\'');
 						}
 						builder.append("; it does not need to be redeployed");
 						LOG.info(builder.toString());

@@ -140,9 +140,9 @@ public class StreamListener implements PathChildrenCacheListener {
 
 		byte[] streamDefinition = client.getData().forPath(new StreamsPath().setStreamName(streamName).build());
 		Map<String, String> map = mapBytesUtility.toMap(streamDefinition);
-		byte[] manifestData = data.getData();
-		if (manifestData != null && manifestData.length > 0) {
-			map.put("manifest", new String(manifestData, "UTF-8"));
+		byte[] deploymentPropertiesData = data.getData();
+		if (deploymentPropertiesData != null && deploymentPropertiesData.length > 0) {
+			map.put("deploymentProperties", new String(deploymentPropertiesData, "UTF-8"));
 		}
 		Stream stream = streamFactory.createStream(streamName, map);
 

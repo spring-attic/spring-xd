@@ -48,7 +48,7 @@ import org.springframework.xd.module.support.ParentLastURLClassLoader;
 /**
  * Listens for deployment request messages and instantiates {@link Module}s accordingly, applying {@link Plugin} logic
  * to them.
- * 
+ *
  * @author Mark Fisher
  * @author Gary Russell
  * @author Ilayaperumal Gopinathan
@@ -157,7 +157,7 @@ public class ModuleDeployer implements ApplicationContextAware, BeanClassLoaderA
 
 	// todo: when refactoring to ZK-based deployment, keep this method but remove the private one
 	// but notice the use of 'group' which is abstract so it can also support jobs (not just streams)
-	// that terminology needs to change since group is part of a deployment manifest. Most likely we
+	// that terminology needs to change since group will be used in criteria expressions. Most likely we
 	// need to be more explicit about jobs vs. streams rather than trying to genericize into one concept.
 	public void deployAndStore(Module module, ModuleDescriptor descriptor) {
 		this.deployAndStore(module, descriptor.getStreamName(), descriptor.getIndex());
@@ -221,7 +221,7 @@ public class ModuleDeployer implements ApplicationContextAware, BeanClassLoaderA
 
 	/**
 	 * Get the list of supported plugins for the given module.
-	 * 
+	 *
 	 * @param module
 	 * @return list supported list of plugins
 	 */

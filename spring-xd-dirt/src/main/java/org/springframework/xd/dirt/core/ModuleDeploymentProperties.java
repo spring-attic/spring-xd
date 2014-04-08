@@ -35,9 +35,9 @@ public class ModuleDeploymentProperties implements Map<String, String> {
 	public static final String COUNT_KEY = "count";
 
 	/**
-	 * Key for the {@code target} property. Value should be a SpEL expression.
+	 * Key for the {@code criteria} property. Value should be a SpEL expression.
 	 */
-	public static final String TARGET_EXPRESSION_KEY = "target";
+	public static final String CRITERIA_KEY = "criteria";
 
 	/**
 	 * The underlying map.
@@ -73,19 +73,19 @@ public class ModuleDeploymentProperties implements Map<String, String> {
 	}
 
 	/**
-	 * Return the target expression to evaluate against container attributes to determine deployment candidates for this module.
+	 * Return the criteria expression to evaluate against container attributes to determine deployment candidates for this module.
 	 *
-	 * @return target expression or {@code null} if no target expression was specified.
+	 * @return criteria expression or {@code null} if no criteria expression was specified.
 	 */
-	public String getTargetExpression() {
-		return get(TARGET_EXPRESSION_KEY);
+	public String getCriteria() {
+		return get(CRITERIA_KEY);
 	}
 
 	/**
-	 * Specify the target expression to evaluate against container attributes to determine deployment candidates for this module.
+	 * Specify the criteria expression to evaluate against container attributes to determine deployment candidates for this module.
 	 */
-	public ModuleDeploymentProperties setTargetExpression(String targetExpression) {
-		put(TARGET_EXPRESSION_KEY, targetExpression);
+	public ModuleDeploymentProperties setCriteria(String criteria) {
+		put(CRITERIA_KEY, criteria);
 		return this;
 	}
 
@@ -183,6 +183,14 @@ public class ModuleDeploymentProperties implements Map<String, String> {
 	@Override
 	public Set<java.util.Map.Entry<String, String>> entrySet() {
 		return Collections.unmodifiableSet(map.entrySet());
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public String toString() {
+		return map.toString();
 	}
 
 	/**

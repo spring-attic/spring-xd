@@ -32,9 +32,9 @@ public interface ResourceDeployer<R extends BaseDefinition> {
 	 * Deploy a resource (job or stream).
 	 *
 	 * @param name name of the resource
-	 * @param manifest deployment manifest to use (may be null)
+	 * @param properties deployment properties to use (may be null)
 	 */
-	void deploy(String name, String manifest);
+	void deploy(String name, String properties);
 
 	/**
 	 * @return Iterable all definitions

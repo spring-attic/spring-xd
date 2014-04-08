@@ -24,9 +24,10 @@ package org.springframework.xd.rest.client;
 public interface ResourceOperations {
 
 	/**
-	 * Deploy an already created resource. Optionally providing a manifest.
+	 * Deploy an already created resource. Optionally providing deployment properties,
+	 * as a comma-delimited list of key=value pairs.
 	 */
-	public void deploy(String name, String manifest);
+	public void deploy(String name, String properties);
 
 	/**
 	 * Undeploy a deployed resource, retaining its definition.

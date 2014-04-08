@@ -34,16 +34,17 @@ import org.springframework.xd.dirt.core.ModuleDescriptor;
 
 /**
  * Implementation of {@link ContainerMatcher} that returns a collection of containers to deploy a
- * {@link ModuleDescriptor} to. This implementation examines the deployment manifest for a stream to determine the
- * preferences for each individual module. The deployment manifest can (optionally) specify two preferences:
- * <em>group</em> and <em>count</em>.
+ * {@link ModuleDescriptor} to. This implementation examines the deployment properties for a stream to determine the
+ * preferences for each individual module. The deployment properties can (optionally) specify two preferences:
+ * <em>criteria</em> and <em>count</em>.
  * <p/>
- * A group indicates that a module should only be deployed to a container that belongs to a group. If a group preference
- * is not indicated, any container can deploy the module.
+ * The criteria indicates that a module should only be deployed to a container for which the criteria evaluates to
+ * {@code true}. The criteria value should be a valid SpEL expression. If a criteria value is not provided,
+ * any container can deploy the module.
  * <p/>
  * If a count for a module is not specified, by default one instance of that module will be deployed to one container. A
- * count of 0 indicates that all containers in its specified group will deploy it. If no group is specified, all
- * containers will deploy the module.
+ * count of 0 indicates that all containers for which the criteria evaluates to {@code true} should deploy the module.
+ * If no criteria expression is specified, all containers will deploy the module.
  * <p/>
  * In cases where all containers are not deploying a module, an attempt at container round robin distribution for module
  * deployments will be made (but not guaranteed).
@@ -63,8 +64,14 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 	 */
 	private int index = 0;
 
+	/**
+	 * Parser for criteria expressions.
+	 */
 	private final SpelExpressionParser expressionParser = new SpelExpressionParser();
 
+	/**
+	 * Evaluation context for criteria expressions.
+	 */
 	private final StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
 
 	/**
@@ -82,13 +89,13 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 	public Collection<Container> match(ModuleDescriptor moduleDescriptor, ContainerRepository containerRepository) {
 		LOG.debug("Matching containers for module {}", moduleDescriptor);
 
-		String targetExpression = moduleDescriptor.getDeploymentProperties().getTargetExpression();
+		String criteria = moduleDescriptor.getDeploymentProperties().getCriteria();
 		List<Container> candidates = new ArrayList<Container>();
 
 		for (Iterator<Container> iterator = containerRepository.getContainerIterator(); iterator.hasNext();) {
 			Container container = iterator.next();
 			LOG.trace("Evaluating container {}", container);
-			if (StringUtils.isEmpty(targetExpression) || isCandidate(container, targetExpression)) {
+			if (StringUtils.isEmpty(criteria) || isCandidate(container, criteria)) {
 				LOG.trace("\tAdded container {}", container);
 				candidates.add(container);
 			}
@@ -102,8 +109,8 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 		int count = moduleDescriptor.getDeploymentProperties().getCount();
 		int candidateCount = candidates.size();
 		if (count <= 0 || count >= candidateCount) {
-			// count of 0 means all members that matched the target expression
-			// (if no target expression specified it means all containers);
+			// count of 0 means all members that matched the criteria expression
+			// (if no criteria expression specified it means all containers);
 			// count >= candidates means each of the containers should host a module
 			return candidates;
 		}
@@ -126,9 +133,18 @@ public class DefaultContainerMatcher implements ContainerMatcher {
 		}
 	}
 
-	private boolean isCandidate(Container container, String targetExpression) {
+	/**
+	 * Evaluate the criteria expression against the attributes of the provided container
+	 * to see if it is a candidate for module deployment.
+	 *
+	 * @param container the container instance whose attributes should be considered
+	 * @param criteria the criteria expression to evaluate against the container attributes
+	 * @return whether the container is a candidate
+	 */
+	private boolean isCandidate(Container container, String criteria) {
 		try {
-			return expressionParser.parseExpression(targetExpression).getValue(evaluationContext, container.getAttributes(), Boolean.class);
+			LOG.warn("evaluating expression [" + criteria + "] for: " + container.getAttributes());
+			return expressionParser.parseExpression(criteria).getValue(evaluationContext, container.getAttributes(), Boolean.class);
 		}
 		catch (EvaluationException e) {
 			LOG.debug("candidate not a match due to evaluation exception", e);

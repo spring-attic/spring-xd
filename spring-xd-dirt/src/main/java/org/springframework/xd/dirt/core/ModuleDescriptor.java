@@ -25,7 +25,7 @@ import org.springframework.xd.module.ModuleType;
 
 /**
  * A descriptor for module deployment for a specific {@link Stream}. Many attributes of this class are derived from the
- * stream deployment manifest.
+ * stream deployment properties.
  *
  * @author Patrick Peralta
  * @author Mark Fisher
@@ -119,8 +119,9 @@ public class ModuleDescriptor {
 	}
 
 	/**
-	 * Return the deployment properties for this module. These originate from the deployment manifest provided when
-	 * deploying the stream within which this module is defined.
+	 * Return the deployment properties for this module. These originate from
+	 * the deployment properties provided when deploying the stream within which
+	 * this module is defined.
 	 *
 	 * @return deployment properties
 	 */

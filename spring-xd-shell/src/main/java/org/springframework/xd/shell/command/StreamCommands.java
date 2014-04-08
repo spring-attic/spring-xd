@@ -90,8 +90,8 @@ public class StreamCommands implements CommandMarker {
 	@CliCommand(value = DEPLOY_STREAM, help = "Deploy a previously created stream")
 	public String deployStream(
 			@CliOption(key = { "", "name" }, help = "the name of the stream to deploy", mandatory = true, optionContext = "existing-stream undeployed disable-string-converter") String name,
-			@CliOption(key = { "manifest" }, help = "the manifest for this deployment", mandatory = false) String manifest) {
-		streamOperations().deploy(name, manifest);
+			@CliOption(key = { "properties" }, help = "the properties for this deployment", mandatory = false) String properties) {
+		streamOperations().deploy(name, properties);
 		return String.format("Deployed stream '%s'", name);
 	}
 

@@ -53,7 +53,7 @@ public class StreamFactory {
 		Assert.notNull(properties, "Stream properties are required");
 
 		String definition = properties.get("definition");
-		Assert.hasText(definition, "Stream deployment manifest requires a 'definition' property");
+		Assert.hasText(definition, "Stream properties requires a 'definition' property");
 
 		String[] tokens = definition.split("\\|");
 		List<ModuleDeploymentRequest> requests = new ArrayList<ModuleDeploymentRequest>();
@@ -64,10 +64,10 @@ public class StreamFactory {
 		Stream.Builder builder = new Stream.Builder();
 		builder.setName(name);
 
-		String manifest = properties.get("manifest");
-		if (!StringUtils.isEmpty(manifest)) {
+		String deploymentPropertiesString = properties.get("deploymentProperties");
+		if (!StringUtils.isEmpty(deploymentPropertiesString)) {
 			Map<String, String> deploymentProperties = new HashMap<String, String>();
-			String[] entries = StringUtils.commaDelimitedListToStringArray(manifest);
+			String[] entries = StringUtils.commaDelimitedListToStringArray(deploymentPropertiesString);
 			for (String entry : entries) {
 				int firstEquals = entry.indexOf('=');
 				if (firstEquals != -1) {

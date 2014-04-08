@@ -270,12 +270,10 @@ public class ContainerListener implements PathChildrenCacheListener {
 				String moduleLabel = moduleDeploymentsPath.getModuleLabel();
 
 				if (ModuleType.job.toString().equals(moduleType)) {
-					// todo: move job target selection into containerMatcher as well
-					Container target = containerRepository.getContainerIterator().next();
-					if (target == null) {
-						LOG.warn("No containers available for redeployment of job {}", streamName);
-					}
-					else {
+					Iterator<Container> iterator = containerMatcher.match(JobListener.createJobModuleDescriptor(streamName),
+							containerRepository).iterator();
+					if (iterator.hasNext()) {
+						Container target = iterator.next();
 						String targetName = target.getName();
 						LOG.info("Redeploying job {} to container {}", streamName, targetName);
 						client.create().creatingParentsIfNeeded().forPath(new ModuleDeploymentsPath()
@@ -284,6 +282,9 @@ public class ContainerListener implements PathChildrenCacheListener {
 								.setModuleType(moduleType)
 								.setModuleLabel(moduleLabel).build()
 								);
+					}
+					else {
+						LOG.warn("No containers available for redeployment of job {}", streamName);
 					}
 				}
 				else {

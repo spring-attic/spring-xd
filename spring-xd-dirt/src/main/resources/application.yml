@@ -41,7 +41,7 @@ server:
   port: ${PORT:9393}
 management:
   port: ${XD_MGMT_PORT:${PORT:9393}}
-  contextPath: /management
+  contextPath: 
 ---
 zk:
   client:
@@ -71,7 +71,7 @@ server:
   port: ${PORT:0}
 management:
   port: ${XD_MGMT_PORT:${PORT:}}
-  contextPath: /management
+  contextPath: 
 ---
 
 spring:

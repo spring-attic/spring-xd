@@ -30,9 +30,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.xd.dirt.cluster.Container;
+import org.springframework.xd.dirt.cluster.ContainerMatcher;
 import org.springframework.xd.dirt.cluster.ContainerRepository;
+import org.springframework.xd.dirt.cluster.DefaultContainerMatcher;
 import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.core.JobsPath;
+import org.springframework.xd.dirt.core.ModuleDescriptor;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.dirt.stream.JobDefinition;
@@ -40,6 +43,7 @@ import org.springframework.xd.dirt.stream.ParsingContext;
 import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
+import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
@@ -65,6 +69,11 @@ public class JobListener implements PathChildrenCacheListener {
 	 * Utility to convert maps to byte arrays.
 	 */
 	private final MapBytesUtility mapBytesUtility = new MapBytesUtility();
+
+	/**
+	 * todo: make this pluggable
+	 */
+	private final ContainerMatcher containerMatcher = new DefaultContainerMatcher();
 
 	/**
 	 * Stream factory.
@@ -171,61 +180,68 @@ public class JobListener implements PathChildrenCacheListener {
 	 */
 	private void deployJob(CuratorFramework client, JobDefinition jobDefinition) throws Exception {
 		Map<Container, String> mapDeploymentStatus = new HashMap<Container, String>();
-
-		// todo: refactor containerMatcher to either provide 2 methods
-		// (one for job matching and another for stream-module matching)
-		// OR provide a common interface for the stream-module descriptor and a new JobDescriptor
-		Container container = containerRepository.getContainerIterator().next();
-		String containerName = container.getName();
-
 		String jobName = jobDefinition.getName();
-		List<ModuleDeploymentRequest> results = this.parser.parse(jobName, jobDefinition.getDefinition(),
-				ParsingContext.job);
-		ModuleDeploymentRequest mdr = results.get(0);
-		String moduleLabel = mdr.getModule() + "-0";
-		String moduleType = ModuleType.job.toString();
-		try {
-			// todo: consider something more abstract for stream name
-			// OR separate path builders for stream-modules and jobs
-			client.create().creatingParentsIfNeeded().forPath(new ModuleDeploymentsPath().setContainer(containerName)
-					.setStreamName(jobName)
-					.setModuleType(moduleType)
-					.setModuleLabel(moduleLabel).build());
 
-			String deploymentPath = new JobsPath().setJobName(jobName)
-					.setModuleLabel(moduleLabel)
-					.setContainer(containerName).build();
-			mapDeploymentStatus.put(container, deploymentPath);
-		}
-		catch (KeeperException.NodeExistsException e) {
-			LOG.info("Job {} is already deployed to container {}", jobDefinition, container);
-		}
+		// create a ModuleDescriptor for the job using the static helper method;
+		// eventually ModuleDescriptor will be part of the Job object model
+		Iterator<Container> containerIterator = containerMatcher.match(
+				createJobModuleDescriptor(jobName), containerRepository).iterator();
+		if (containerIterator.hasNext()) {
+			Container container = containerIterator.next();
+			String containerName = container.getName();
 
-		// wait for all deployments to succeed
-		// todo: make timeout configurable
-		long timeout = System.currentTimeMillis() + 30000;
+			List<ModuleDeploymentRequest> results = this.parser.parse(jobName, jobDefinition.getDefinition(),
+					ParsingContext.job);
+			ModuleDeploymentRequest mdr = results.get(0);
+			String moduleLabel = mdr.getModule() + "-0";
+			String moduleType = ModuleType.job.toString();
+			try {
+				// todo: consider something more abstract for stream name
+				// OR separate path builders for stream-modules and jobs
+				client.create().creatingParentsIfNeeded().forPath(new ModuleDeploymentsPath().setContainer(containerName)
+						.setStreamName(jobName)
+						.setModuleType(moduleType)
+						.setModuleLabel(moduleLabel).build());
 
-		do {
-			for (Iterator<Map.Entry<Container, String>> iteratorStatus =
-					mapDeploymentStatus.entrySet().iterator(); iteratorStatus.hasNext();) {
-				Map.Entry<Container, String> entry =
-						iteratorStatus.next();
-				if (client.checkExists().forPath(entry.getValue()) != null) {
-					iteratorStatus.remove();
+				String deploymentPath = new JobsPath().setJobName(jobName)
+						.setModuleLabel(moduleLabel)
+						.setContainer(containerName).build();
+				mapDeploymentStatus.put(container, deploymentPath);
+			}
+			catch (KeeperException.NodeExistsException e) {
+				LOG.info("Job {} is already deployed to container {}", jobDefinition, container);
+			}
+
+			// wait for all deployments to succeed
+			// todo: make timeout configurable
+			long timeout = System.currentTimeMillis() + 30000;
+
+			do {
+				for (Iterator<Map.Entry<Container, String>> iteratorStatus =
+							 mapDeploymentStatus.entrySet().iterator(); iteratorStatus.hasNext();) {
+					Map.Entry<Container, String> entry =
+							iteratorStatus.next();
+					if (client.checkExists().forPath(entry.getValue()) != null) {
+						iteratorStatus.remove();
+					}
+					Thread.sleep(10);
 				}
-				Thread.sleep(10);
+			}
+			while (!mapDeploymentStatus.isEmpty() && System.currentTimeMillis() < timeout);
+
+			if (!mapDeploymentStatus.isEmpty()) {
+				// todo: if the container went away we should select another one to deploy to;
+				// otherwise this reflects a bug in the container or some kind of network
+				// error in which case the state of deployment is "unknown"
+				throw new IllegalStateException(String.format(
+						"Deployment of job %s to the following containers timed out: %s", jobName,
+						mapDeploymentStatus.keySet()));
 			}
 		}
-		while (!mapDeploymentStatus.isEmpty() && System.currentTimeMillis() < timeout);
-
-		if (!mapDeploymentStatus.isEmpty()) {
-			// todo: if the container went away we should select another one to deploy to;
-			// otherwise this reflects a bug in the container or some kind of network
-			// error in which case the state of deployment is "unknown"
-			throw new IllegalStateException(String.format(
-					"Deployment of job %s to the following containers timed out: %s", jobName,
-					mapDeploymentStatus.keySet()));
+		else {
+			LOG.info("No containers available to deploy job {}", jobName);
 		}
+
 	}
 
 	/**
@@ -248,6 +264,21 @@ public class JobListener implements PathChildrenCacheListener {
 				LOG.trace("Path {} already deleted", path);
 			}
 		}
+	}
+
+	/**
+	 * Create an instance of {@link ModuleDescriptor} for a given job name.
+	 * This helper method is intended for use in {@link ContainerMatcher#match(ModuleDescriptor, ContainerRepository)}
+	 * when deploying jobs. This is intended to be temporary; future revisions of Jobs will include
+	 * ModuleDescriptors.
+	 *
+	 * @param jobName job name
+	 *
+	 * @return a ModuleDescriptor for the given job
+	 */
+	public static ModuleDescriptor createJobModuleDescriptor(String jobName) {
+		return new ModuleDescriptor(new ModuleDefinition(jobName, ModuleType.job),
+				jobName, jobName, 0, /*group*/ null, 1);
 	}
 
 }

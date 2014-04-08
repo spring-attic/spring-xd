@@ -3,9 +3,6 @@ spring:
     active: default
   main:
     show_banner: false
-  batch:
-     initializer:
-       enabled: ${initializeDatabase:false}
 endpoints:
   jolokia:
     enabled: true
@@ -88,7 +85,6 @@ spring:
 transport: local
 store: memory
 analytics: memory
-initializeDatabase: true
 
 ---
 

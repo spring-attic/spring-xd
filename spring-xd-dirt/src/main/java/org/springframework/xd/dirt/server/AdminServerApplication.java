@@ -25,6 +25,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -75,9 +76,21 @@ public class AdminServerApplication {
 				.listeners(commandLineListener)
 				.child(AdminServerApplication.class)
 				.listeners(commandLineListener)
+				.initializers(new AdminIdInitializer())
 				.run(args);
 		return this;
 	}
+
+	private class AdminIdInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+
+		@Override
+		public void initialize(ConfigurableApplicationContext applicationContext) {
+			String adminContextId = applicationContext.getId();
+			applicationContext.setId(XdProfiles.ADMIN_PROFILE
+					+ adminContextId.substring(adminContextId.lastIndexOf(":")));
+		}
+	}
+
 
 	@Bean
 	@ConditionalOnWebApplication

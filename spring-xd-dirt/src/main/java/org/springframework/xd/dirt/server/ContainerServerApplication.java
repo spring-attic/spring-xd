@@ -24,6 +24,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.jmx.JmxAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextInitializer;
@@ -59,7 +60,7 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
  * @author David Turanski
  */
 @Configuration
-@EnableAutoConfiguration(exclude = BatchAutoConfiguration.class)
+@EnableAutoConfiguration(exclude = { BatchAutoConfiguration.class, JmxAutoConfiguration.class })
 @Import(PropertyPlaceholderAutoConfiguration.class)
 public class ContainerServerApplication {
 
@@ -153,7 +154,7 @@ public class ContainerServerApplication {
 @ImportResource({
 	"classpath:" + ConfigLocations.XD_INTERNAL_CONFIG_ROOT + "container-server.xml",
 })
-@EnableAutoConfiguration(exclude = BatchAutoConfiguration.class)
+@EnableAutoConfiguration(exclude = { BatchAutoConfiguration.class, JmxAutoConfiguration.class })
 class ContainerConfiguration {
 
 	private static final String MBEAN_EXPORTER_BEAN_NAME = "XDContainerMBeanExporter";
@@ -210,7 +211,6 @@ class ContainerConfiguration {
 				zooKeeperConnection);
 	}
 
-	// TODO: Should this be removed once the control transport is removed?
 	@ConditionalOnExpression("${XD_JMX_ENABLED:true}")
 	@EnableMBeanExport(defaultDomain = "xd.container")
 	protected static class JmxConfiguration {

@@ -44,7 +44,7 @@ destroy_metric() {
 create_job() {
   local udef=`urlencode "$2"`
   echo -e "Creating job $1 with definition '$udef' ..."
-  xdc -d name=$1 -d "definition=$udef" -d deploy=${3:-'true'} "$XDURL/jobs"
+  xdc -d name=$1 -d "definition=$udef" -d deploy=${3:-'false'} "$XDURL/jobs"
   echo -e '\n'
 }
 

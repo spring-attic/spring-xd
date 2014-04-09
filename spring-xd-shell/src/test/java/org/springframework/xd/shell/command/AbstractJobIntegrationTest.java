@@ -155,7 +155,7 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 	 */
 	protected void executeJobCreate(String jobName, String jobDefinition, boolean deploy) {
 		CommandResult cr = executeCommand("job create --definition \"" + jobDefinition + "\" --name " + jobName
-				+ (deploy ? "" : " --deploy false"));
+				+ (deploy ? " --deploy" : ""));
 		String prefix = (deploy) ? "Successfully created and deployed job '" : "Successfully created job '";
 		assertEquals(prefix + jobName + "'", cr.getResult());
 		jobs.add(jobName);

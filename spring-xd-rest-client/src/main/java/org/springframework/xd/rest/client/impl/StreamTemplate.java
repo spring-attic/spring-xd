@@ -25,7 +25,7 @@ import org.springframework.xd.rest.client.domain.StreamDefinitionResource;
 
 /**
  * Implementation of the Stream-related part of the API.
- * 
+ *
  * @author Eric Bottard
  * @author Ilayaperumal Gopinathan
  */
@@ -56,12 +56,15 @@ public class StreamTemplate extends AbstractTemplate implements StreamOperations
 	}
 
 	@Override
-	public void deploy(String name) {
+	public void deploy(String name, String properties) {
 		// TODO: discover link by some other means (search by exact name on
 		// /streams??)
 		String uriTemplate = resources.get("streams").toString() + "/{name}";
 		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
 		values.add("deploy", "true");
+		if (properties != null) {
+			values.add("properties", properties);
+		}
 		restTemplate.put(uriTemplate, values, name);
 	}
 
@@ -88,14 +91,6 @@ public class StreamTemplate extends AbstractTemplate implements StreamOperations
 		String uriTemplate = resources.get("streams").toString() + DEPLOYMENTS_URI;
 		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
 		values.add("deploy", "false");
-		restTemplate.put(uriTemplate, values);
-	}
-
-	@Override
-	public void deployAll() {
-		String uriTemplate = resources.get("streams").toString() + DEPLOYMENTS_URI;
-		MultiValueMap<String, Object> values = new LinkedMultiValueMap<String, Object>();
-		values.add("deploy", "true");
 		restTemplate.put(uriTemplate, values);
 	}
 

@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.ContainerMatcher;
@@ -53,7 +54,7 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 /**
  * Listener implementation that is invoked when containers are added/removed/modified.
- * 
+ *
  * @author Patrick Peralta
  * @author Mark Fisher
  */
@@ -99,10 +100,9 @@ public class ContainerListener implements PathChildrenCacheListener {
 	 */
 	private final PathChildrenCache streamDefinitions;
 
-
 	/**
 	 * Construct a ContainerListener.
-	 * 
+	 *
 	 * @param containerRepository           repository for container data
 	 * @param streamDefinitionRepository    repository for streams
 	 * @param moduleDefinitionRepository    repository for module definitions
@@ -151,12 +151,12 @@ public class ContainerListener implements PathChildrenCacheListener {
 	/**
 	 * Handle the arrival of a container. This implementation will scan the existing streams and determine if any
 	 * modules should be deployed to the new container.
-	 * 
+	 *
 	 * @param client curator client
 	 * @param data node data for the container that arrived
 	 */
 	private void onChildAdded(CuratorFramework client, ChildData data) throws Exception {
-		Container container = new Container(Paths.stripPath(data.getPath()), mapBytesUtility.toMap(data.getData()));
+		final Container container = new Container(Paths.stripPath(data.getPath()), mapBytesUtility.toMap(data.getData()));
 		String containerName = container.getName();
 		LOG.info("Container arrived: {}", containerName);
 
@@ -164,15 +164,18 @@ public class ContainerListener implements PathChildrenCacheListener {
 					 new ChildPathIterator<String>(streamDeploymentNameConverter, streamDeployments);
 						streamDeploymentIterator.hasNext();) {
 			String streamName = streamDeploymentIterator.next();
-			Stream stream = streamFactory.createStream(streamName,
-					mapBytesUtility.toMap(streamDefinitions.getCurrentData(
-							new StreamsPath().setStreamName(streamName).build()).getData()));
+			Stream stream = loadStream(client, streamName);
 
 			for (Iterator<ModuleDescriptor> descriptorIterator = stream.getDeploymentOrderIterator(); descriptorIterator.hasNext();) {
 				ModuleDescriptor descriptor = descriptorIterator.next();
-				String group = descriptor.getGroup();
+				ContainerRepository containerRepository = new ContainerRepository() {
 
-				if (StringUtils.isEmpty(group) || container.getGroups().contains(group)) {
+					@Override
+					public Iterator<Container> getContainerIterator() {
+						return Collections.singletonList(container).iterator();
+					}
+				};
+				if (!CollectionUtils.isEmpty(containerMatcher.match(descriptor, containerRepository))) {
 					String moduleType = descriptor.getModuleDefinition().getType().toString();
 					String moduleName = descriptor.getModuleDefinition().getName();
 					String moduleLabel = descriptor.getLabel();
@@ -181,7 +184,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 					List<String> containersForModule = getContainersForModule(client, descriptor);
 					if (!containersForModule.contains(containerName)) {
 						// this container has not deployed this module; determine if it should
-						int moduleCount = descriptor.getCount();
+						int moduleCount = descriptor.getDeploymentProperties().getCount();
 						if (moduleCount <= 0 || containersForModule.size() < moduleCount) {
 							// either the module has a count of 0 (therefore it should be deployed everywhere)
 							// or the number of containers that have deployed the module is less than the
@@ -244,9 +247,28 @@ public class ContainerListener implements PathChildrenCacheListener {
 	}
 
 	/**
+	 * This will load the {@link Stream} instance for a given stream name. It will include the
+	 * stream definition as well as any deployment properties data for the stream deployment.
+	 *
+	 * @param client {@link CuratorFramework} instance used to retrieve data for this stream
+	 * @param streamName the name of the stream to load
+	 * @return the stream instance
+	 * @throws Exception if ZooKeeper access fails for any reason
+	 */
+	private Stream loadStream(CuratorFramework client, String streamName) throws Exception {
+		Map<String, String> map = mapBytesUtility.toMap(streamDefinitions.getCurrentData(
+				new StreamsPath().setStreamName(streamName).build()).getData());
+		byte[] deploymentPropertiesData = client.getData().forPath(Paths.build(Paths.STREAM_DEPLOYMENTS, streamName));
+		if (deploymentPropertiesData != null && deploymentPropertiesData.length > 0) {
+			map.put("deploymentProperties", new String(deploymentPropertiesData, "UTF-8"));
+		}
+		return streamFactory.createStream(streamName, map);
+	}
+
+	/**
 	 * Handle the departure of a container. This will scan the list of modules deployed to the departing container and
 	 * redeploy them if required.
-	 * 
+	 *
 	 * @param client curator client
 	 * @param data node data for the container that departed
 	 */
@@ -290,12 +312,11 @@ public class ContainerListener implements PathChildrenCacheListener {
 				else {
 					Stream stream = streamMap.get(streamName);
 					if (stream == null) {
-						stream = streamFactory.createStream(streamName, mapBytesUtility.toMap(
-								client.getData().forPath(Paths.build(Paths.STREAMS, streamName))));
+						stream = loadStream(client, streamName);
 						streamMap.put(streamName, stream);
 					}
 					ModuleDescriptor moduleDescriptor = stream.getModuleDescriptor(moduleLabel, moduleType);
-					if (moduleDescriptor.getCount() > 0) {
+					if (moduleDescriptor.getDeploymentProperties().getCount() > 0) {
 						Iterator<Container> iterator = containerMatcher.match(moduleDescriptor, containerRepository).iterator();
 						if (iterator.hasNext()) {
 							Container targetContainer = iterator.next();
@@ -320,10 +341,10 @@ public class ContainerListener implements PathChildrenCacheListener {
 					}
 					else {
 						StringBuilder builder = new StringBuilder();
-						String group = moduleDescriptor.getGroup();
+						String criteria = moduleDescriptor.getDeploymentProperties().getCriteria();
 						builder.append("Module '").append(moduleLabel).append("' is targeted to all containers");
-						if (StringUtils.hasText(group)) {
-							builder.append(" belonging to group '").append(group).append('\'');
+						if (StringUtils.hasText(criteria)) {
+							builder.append(" matching criteria '").append(criteria).append('\'');
 						}
 						builder.append("; it does not need to be redeployed");
 						LOG.info(builder.toString());

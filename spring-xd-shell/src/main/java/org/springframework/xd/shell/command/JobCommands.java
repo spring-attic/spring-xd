@@ -43,12 +43,12 @@ import org.springframework.xd.shell.util.UiUtils;
 
 /**
  * Job commands.
- * 
+ *
  * @author Glenn Renfro
  * @author Ilayaperumal Gopinathan
  * @author Gunnar Hillert
  * @author Eric Bottard
- * 
+ *
  */
 @Component
 public class JobCommands implements CommandMarker {
@@ -76,8 +76,6 @@ public class JobCommands implements CommandMarker {
 	private final static String RESTART_JOB_EXECUTION = "job execution restart";
 
 	private final static String DEPLOY_JOB = "job deploy";
-
-	private final static String DEPLOY_ALL_JOBS = "job all deploy";
 
 	private final static String LAUNCH_JOB = "job launch";
 
@@ -321,21 +319,8 @@ public class JobCommands implements CommandMarker {
 	@CliCommand(value = DEPLOY_JOB, help = "Deploy a previously created job")
 	public String deployJob(
 			@CliOption(key = { "", "name" }, help = "the name of the job to deploy", mandatory = true, optionContext = "existing-job undeployed disable-string-converter") String name) {
-		jobOperations().deploy(name);
+		jobOperations().deploy(name, null);
 		return String.format("Deployed job '%s'", name);
-	}
-
-	@CliCommand(value = DEPLOY_ALL_JOBS, help = "Deploy previously created job(s)")
-	public String deployAllJobs(
-			@CliOption(key = "force", help = "bypass confirmation prompt", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean force
-			) {
-		if (force || "y".equalsIgnoreCase(userInput.prompt("Really deploy all jobs?", "n", "y", "n"))) {
-			jobOperations().deployAll();
-			return String.format("Deployed all jobs");
-		}
-		else {
-			return "";
-		}
 	}
 
 	@CliCommand(value = LAUNCH_JOB, help = "Launch previously deployed job")

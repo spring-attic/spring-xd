@@ -28,7 +28,7 @@ import org.springframework.xd.store.DomainRepository;
  *
  * @param D the kind of definition this deployer deals with
  * @param I the corresponding instance type
- * 
+ *
  * @author Eric Bottard
  * @author Ilayaperumal Gopinathan
  */
@@ -68,7 +68,7 @@ public abstract class AbstractInstancePersistingDeployer<D extends BaseDefinitio
 	}
 
 	@Override
-	public void deploy(String name) {
+	public void deploy(String name, String properties) {
 
 		Assert.hasText(name, "name cannot be blank or null");
 
@@ -76,7 +76,7 @@ public abstract class AbstractInstancePersistingDeployer<D extends BaseDefinitio
 			throwAlreadyDeployedException(name);
 		}
 
-		final D definition = basicDeploy(name);
+		final D definition = basicDeploy(name, properties);
 
 		final I instance = makeInstance(definition);
 		instanceRepository.save(instance);
@@ -89,17 +89,6 @@ public abstract class AbstractInstancePersistingDeployer<D extends BaseDefinitio
 			// Make sure we un-deploy only the resources that are already deployed.
 			if (instanceRepository.exists(name)) {
 				undeploy(name);
-			}
-		}
-	}
-
-	@Override
-	public void deployAll() {
-		for (D definition : findAll()) {
-			String name = definition.getName();
-			// Make sure we deploy only the resources that are not already deployed.
-			if (!instanceRepository.exists(name)) {
-				deploy(name);
 			}
 		}
 	}

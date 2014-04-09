@@ -33,8 +33,8 @@ import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.ContainerMatcher;
 import org.springframework.xd.dirt.cluster.ContainerRepository;
 import org.springframework.xd.dirt.cluster.DefaultContainerMatcher;
-import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.core.JobsPath;
+import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.core.ModuleDescriptor;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
@@ -49,7 +49,7 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 /**
  * Listener implementation that handles job deployment requests.
- * 
+ *
  * @author Patrick Peralta
  * @author Mark Fisher
  */
@@ -88,7 +88,7 @@ public class JobListener implements PathChildrenCacheListener {
 
 	/**
 	 * Construct a JobListener.
-	 * 
+	 *
 	 * @param containerRepository repository to obtain container data
 	 * @param moduleDefinitionRepository repository to obtain module data
 	 * @param moduleOptionsMetadataResolver resolver for module options metadata
@@ -137,7 +137,7 @@ public class JobListener implements PathChildrenCacheListener {
 
 	/**
 	 * Handle the creation of a new job deployment.
-	 * 
+	 *
 	 * @param client curator client
 	 * @param data   job deployment request data
 	 */
@@ -153,7 +153,7 @@ public class JobListener implements PathChildrenCacheListener {
 
 	/**
 	 * Handle the deletion of a job deployment.
-	 * 
+	 *
 	 * @param client curator client
 	 * @param data   job deployment request data
 	 */
@@ -174,7 +174,7 @@ public class JobListener implements PathChildrenCacheListener {
 
 	/**
 	 * Issue deployment requests for the job.
-	 * 
+	 *
 	 * @param client         curator client
 	 * @param jobDefinition  job to be deployed
 	 */
@@ -246,10 +246,10 @@ public class JobListener implements PathChildrenCacheListener {
 
 	/**
 	 * Issue undeployment requests for the job.
-	 * 
+	 *
 	 * @param client         curator client
 	 * @param jobDefinition  job to be undeployed
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	private void undeployJob(CuratorFramework client, JobDefinition jobDefinition) throws Exception {
@@ -278,7 +278,7 @@ public class JobListener implements PathChildrenCacheListener {
 	 */
 	public static ModuleDescriptor createJobModuleDescriptor(String jobName) {
 		return new ModuleDescriptor(new ModuleDefinition(jobName, ModuleType.job),
-				jobName, jobName, 0, /*group*/ null, 1);
+				jobName, jobName, 0, null);
 	}
 
 }

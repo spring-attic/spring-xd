@@ -239,7 +239,7 @@ public class SingleNodeIntegrationTestSupport {
 	}
 
 	private final boolean waitForDeploy(StreamDefinition definition) {
-		streamDeployer.deploy(definition.getName());
+		streamDeployer.deploy(definition.getName(), null);
 		try {
 			streamCommandListener.waitForDeploy(definition.getName());
 			return true;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,8 +38,6 @@ public class StreamCommands implements CommandMarker {
 	private static final String LIST_STREAM = "stream list";
 
 	private static final String DEPLOY_STREAM = "stream deploy";
-
-	private static final String DEPLOY_STREAM_ALL = "stream all deploy";
 
 	private static final String UNDEPLOY_STREAM = "stream undeploy";
 
@@ -91,22 +89,10 @@ public class StreamCommands implements CommandMarker {
 
 	@CliCommand(value = DEPLOY_STREAM, help = "Deploy a previously created stream")
 	public String deployStream(
-			@CliOption(key = { "", "name" }, help = "the name of the stream to deploy", mandatory = true, optionContext = "existing-stream undeployed disable-string-converter") String name) {
-		streamOperations().deploy(name);
+			@CliOption(key = { "", "name" }, help = "the name of the stream to deploy", mandatory = true, optionContext = "existing-stream undeployed disable-string-converter") String name,
+			@CliOption(key = { "properties" }, help = "the properties for this deployment", mandatory = false) String properties) {
+		streamOperations().deploy(name, properties);
 		return String.format("Deployed stream '%s'", name);
-	}
-
-	@CliCommand(value = DEPLOY_STREAM_ALL, help = "Deploy all previously created stream")
-	public String deployAllStreams(
-			@CliOption(key = "force", help = "bypass confirmation prompt", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean force
-			) {
-		if (force || "y".equalsIgnoreCase(userInput.prompt("Really deploy all streams?", "n", "y", "n"))) {
-			streamOperations().deployAll();
-			return String.format("Deployed all streams");
-		}
-		else {
-			return "";
-		}
 	}
 
 	@CliCommand(value = UNDEPLOY_STREAM, help = "Un-deploy a previously deployed stream")

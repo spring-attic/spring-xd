@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -19,17 +19,22 @@ import org.springframework.xd.dirt.stream.StreamDefinition;
 
 /**
  * Interface for XD Resource Services.
- * 
+ *
  * @param <R> the kind of resource to deploy (<i>e.g.</i> {@link StreamDefinition})
- * 
+ *
  * @author David Turanski
  * @author Gunnar Hillert
  * @author Ilayaperumal Gopinathan
- * 
  */
 public interface ResourceDeployer<R extends BaseDefinition> {
 
-	void deploy(String name);
+	/**
+	 * Deploy a resource (job or stream).
+	 *
+	 * @param name name of the resource
+	 * @param properties deployment properties to use (may be null)
+	 */
+	void deploy(String name, String properties);
 
 	/**
 	 * @return Iterable all definitions
@@ -45,7 +50,7 @@ public interface ResourceDeployer<R extends BaseDefinition> {
 
 	/**
 	 * Retrieves a single Definition or null if none is found.
-	 * 
+	 *
 	 * @param name of the definition to find. Must not be null.
 	 */
 	R findOne(String name);
@@ -53,7 +58,7 @@ public interface ResourceDeployer<R extends BaseDefinition> {
 	/**
 	 * Delete the Definition using the provided name. The definition may also be {@link #undeploy(String) undeployed} as
 	 * part of that process.
-	 * 
+	 *
 	 * @param name the name of the definition to delete
 	 */
 	void delete(String name);
@@ -64,11 +69,6 @@ public interface ResourceDeployer<R extends BaseDefinition> {
 	 * Delete all the definitions
 	 */
 	void deleteAll();
-
-	/**
-	 * deploy all available undeployed resource definitions.
-	 */
-	void deployAll();
 
 	/**
 	 * Undeploy all the deployed resources.

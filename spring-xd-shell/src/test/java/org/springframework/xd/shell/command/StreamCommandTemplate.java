@@ -157,7 +157,7 @@ public class StreamCommandTemplate extends AbstractCommandTemplate {
 		assertTrue("Failure.  CommandResult = " + cr.toString(), cr.isSuccess());
 		Table t = (Table) cr.getResult();
 		assertTrue(t.getRows().contains(
-				new TableRow().addValue(1, streamName).addValue(2, definition).addValue(3, deployed ? "deployed" : "")));
+				new TableRow().addValue(1, streamName).addValue(2, definition).addValue(3, deployed ? "deployed" : "undeployed")));
 	}
 
 }

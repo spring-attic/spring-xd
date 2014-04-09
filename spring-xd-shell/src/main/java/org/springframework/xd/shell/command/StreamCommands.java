@@ -132,7 +132,7 @@ public class StreamCommands implements CommandMarker {
 				row.addValue(3, "deployed");
 			}
 			else {
-				row.addValue(3, "");
+				row.addValue(3, "undeployed");
 			}
 		}
 

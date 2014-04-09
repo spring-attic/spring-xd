@@ -42,7 +42,7 @@ import org.springframework.xd.module.ModuleDefinition;
 /**
  * A decorator around another {@link ModuleOptionsMetadataResolver} that will provide default values for module options
  * using the environment.
- * 
+ *
  * <p>
  * Each module gets its own Environment, populated with values in the following order:
  * <ul>
@@ -56,7 +56,7 @@ import org.springframework.xd.module.ModuleDefinition;
  * <p>
  * For each option {@code <optionname>} of a module (of type {@code <type>} and name {@code <modulename>}), this
  * resolver will try to read a default from {@code <type>.<modulename>.<optionname>}.
- * 
+ *
  * @author Eric Bottard
  */
 public class EnvironmentAwareModuleOptionsMetadataResolver implements ModuleOptionsMetadataResolver, InitializingBean,
@@ -76,7 +76,7 @@ public class EnvironmentAwareModuleOptionsMetadataResolver implements ModuleOpti
 	/**
 	 * The default value for key {@link #XD_MODULE_CONFIG_NAME}.
 	 */
-	private static final String DEFAULT_XD_MODULE_CONFIG_NAME = "xd-module-config";
+	private static final String DEFAULT_XD_MODULE_CONFIG_NAME = "modules";
 
 	/**
 	 * The name of the property source that Spring Boot will create.
@@ -98,7 +98,7 @@ public class EnvironmentAwareModuleOptionsMetadataResolver implements ModuleOpti
 	}
 
 	/**
-	 * An environment that reflects values in the {@code xd-module-config.yml} file.
+	 * An environment that reflects values in the {@code modules.yml} file.
 	 */
 	private ConfigurableEnvironment rootEnvironment;
 

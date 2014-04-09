@@ -45,7 +45,7 @@ import org.springframework.xd.module.options.EnvironmentAwareModuleOptionsMetada
  * <li>System properties</li>
  * <li>Environment variables (not tested, but assimilated to the above)</li>
  * <li>values in the {@code <root>/<type>/<module>/<module>.properties} file</li>
- * <li>values in the {@code <root>/xd-module-config.yml} file</li>
+ * <li>values in the {@code <root>/config/modules/modules.yml} file</li>
  * <li>the actual module default</li>
  * </ol>
  */

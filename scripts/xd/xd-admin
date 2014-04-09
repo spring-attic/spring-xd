@@ -185,14 +185,14 @@ if [ x"$XD_CONFIG_LOCATION" = x ] ; then
     export XD_CONFIG_LOCATION=file:$XD_HOME/config/
 fi
 if [ x"$XD_CONFIG_NAME" = x ] ; then
-    export XD_CONFIG_NAME=xd-config
+    export XD_CONFIG_NAME=servers
 fi
 export XD_CONFIG_NAME="$XD_CONFIG_NAME,application"
 if [ x"$XD_MODULE_CONFIG_LOCATION" = x ] ; then
     export XD_MODULE_CONFIG_LOCATION="${XD_CONFIG_LOCATION}modules/"
 fi
 if [ x"$XD_MODULE_CONFIG_NAME" = x ] ; then
-    export XD_MODULE_CONFIG_NAME=xd-module-config
+    export XD_MODULE_CONFIG_NAME=modules
 fi
 
 # set app name etc. via SPRING_XD_OPTS

@@ -43,7 +43,7 @@ import org.springframework.xd.shell.util.TableRow;
 
 /**
  * Provides an @After JUnit lifecycle method that will destroy the jobs that were created by calling executeJobCreate
- * 
+ *
  * @author Glenn Renfro
  * @author Gunnar Hillert
  * @author Ilayaperumal Gopinathan
@@ -155,7 +155,7 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 	 */
 	protected void executeJobCreate(String jobName, String jobDefinition, boolean deploy) {
 		CommandResult cr = executeCommand("job create --definition \"" + jobDefinition + "\" --name " + jobName
-				+ (deploy ? "" : " --deploy false"));
+				+ (deploy ? " --deploy" : ""));
 		String prefix = (deploy) ? "Successfully created and deployed job '" : "Successfully created job '";
 		assertEquals(prefix + jobName + "'", cr.getResult());
 		jobs.add(jobName);
@@ -256,7 +256,7 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 		String streamName = generateStreamName();
 		CommandResult cr = getShell().executeCommand(
 				"stream create --name " + streamName + " --definition \"trigger > "
-						+ getJobLaunchQueue(jobName) + "\"");
+						+ getJobLaunchQueue(jobName) + "\" --deploy true");
 		streams.add(streamName);
 		waitForJobCompletion(jobName);
 		checkForSuccess(cr);
@@ -266,8 +266,8 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 		String streamName = generateStreamName();
 		CommandResult cr = getShell().executeCommand(
 				String.format("stream create --name " + streamName
-						+ " --definition \"trigger --payload='%s' > " + getJobLaunchQueue(jobName) + "\"",
-						parameters.replaceAll("\"", "\\\\\"")));
+						+ " --definition \"trigger --payload='%s' > " + getJobLaunchQueue(jobName)
+						+ "\" --deploy true", parameters.replaceAll("\"", "\\\\\"")));
 		streams.add(streamName);
 		waitForJobCompletion(jobName);
 		checkForSuccess(cr);
@@ -277,7 +277,7 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 		String streamName = generateStreamName();
 		CommandResult cr = getShell().executeCommand(
 				"stream create --name " + streamName + " --definition \"trigger --fixedDelay=" + fixedDelay
-						+ " > " + getJobLaunchQueue(jobName) + "\"");
+						+ " > " + getJobLaunchQueue(jobName) + "\" --deploy true");
 		streams.add(streamName);
 		waitForJobCompletion(jobName);
 		checkForSuccess(cr);

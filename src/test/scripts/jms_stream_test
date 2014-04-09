@@ -20,7 +20,7 @@ set -e
 
 echo -e '*** Test 1. jms | file stream\n'
 
-create_stream 'jmsSourceTest' 'jms | file --dir=/tmp/xdtest/basic/' 'false'
+create_stream 'jmsSourceTest' 'jms | file --dir=/tmp/xdtest/basic/'
 list_streams
 deploy_stream 'jmsSourceTest'
 

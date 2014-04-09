@@ -7,7 +7,7 @@ i=100
 
 while [ $i != 0 ]
 do
-    create_stream blah 'http | log'
+    create_stream blah 'http | log' 'true'
     sleep 5
     curl -v -d blahblah "$XD_HOST:9000"
     curl -v -d blahblah "$XD_HOST:9000"

@@ -22,7 +22,7 @@ echo "HDFS base path is $BASE_PATH"
 echo -e "\n\n*** Test 1. Load single CSV file, no rollover\n"
 
 create_job csvjob "filepollhdfs --names=col1,col2,col3 --directory=$BASE_PATH --fileName=blah --fileExtension=csv"
-create_stream csvstream "file --ref=true --dir=$PWD/csv --pattern=data.csv > queue:job:csvjob"
+create_stream csvstream "file --ref=true --dir=$PWD/csv --pattern=data.csv > queue:job:csvjob" 'true'
 
 sleep 10
 
@@ -48,7 +48,7 @@ copy_files() {
 
 copy_files
 create_job csvjob2 "filepollhdfs --deleteFiles=true --names=col1,col2,col3 --rollover=5000 --directory=$BASE_PATH --fileExtension=csv"
-create_stream csvstream2 "file --ref=true --dir=$TEST_DIR/csv --pattern=*.csv > queue:job:csvjob2"
+create_stream csvstream2 "file --ref=true --dir=$TEST_DIR/csv --pattern=*.csv > queue:job:csvjob2" 'true'
 
 count_files() {
   local nCsvFiles=`ls -1 $TEST_DIR/csv | wc -l`
@@ -83,7 +83,7 @@ assert_equals 25432 $job2_size
 echo -e "\n\n*** Test 3. Import files using hdfs sink\n"
 
 copy_files
-create_stream csvstream3 "file --dir=$TEST_DIR/csv --pattern=data1.csv --outputType=text/plain | hdfs --directory=$BASE_PATH"
+create_stream csvstream3 "file --dir=$TEST_DIR/csv --pattern=data1.csv --outputType=text/plain | hdfs --directory=$BASE_PATH" 'true'
 sleep 10
 undeploy_stream csvstream3
 deploy_stream csvstream3

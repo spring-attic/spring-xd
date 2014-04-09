@@ -23,7 +23,7 @@ echo -e "\n\n Test 1. tail | jdbc stream with pre-initialized database"
 
 sqlite3 $DB_FILE 'create table blah (col1 varchar, col2 varchar, col3 varchar)'
 
-create_stream jdbc1 "tail --lines=10 --name=$TEST_DIR/jdbc1.data --fileDelay=1000 | jdbc $JDBC_PARAMS --username='' --password='' --columns=col1,col2,col3 --tableName=blah"
+create_stream jdbc1 "tail --lines=10 --name=$TEST_DIR/jdbc1.data --fileDelay=1000 | jdbc $JDBC_PARAMS --username='' --password='' --columns=col1,col2,col3 --tableName=blah" 'true'
 
 # Add some data to the file
 echo '{"col1":"x", "col2":"y", "col3":"z"}' >> $TEST_DIR/jdbc1.data
@@ -39,7 +39,7 @@ assert_equals 'x' $col1
 
 echo -e "\n\n Test 2. tail | jdbc stream with db initialization"
 
-create_stream jdbc2 "tail --lines=10 --name=$TEST_DIR/jdbc2.data --fileDelay=1000 | jdbc $JDBC_PARAMS --initializeDatabase=true"
+create_stream jdbc2 "tail --lines=10 --name=$TEST_DIR/jdbc2.data --fileDelay=1000 | jdbc $JDBC_PARAMS --initializeDatabase=true" 'true'
 
 echo "blahblah" >> $TEST_DIR/jdbc2.data
 sleep 3
@@ -74,7 +74,7 @@ echo -e "\n\n Test 4. Load multiple CSV files using filejdbc jobs with table nam
 
 create_job csvjdbcjob1 "filejdbc $JDBC_PARAMS --url=jdbc:sqlite:$DB_FILE --names=col1,col2,col3 --resources=file://$PWD/csv/data.csv --tableName=JOB_DATA_TABLE --initializeDatabase=true" false
 sleep 5
-create_stream job1Notifications "tap:job:csvjdbcjob1.job > file --dir=$TEST_DIR"
+create_stream job1Notifications "tap:job:csvjdbcjob1.job > file --dir=$TEST_DIR" 'true'
 deploy_job csvjdbcjob1
 sleep 5
 launch_job csvjdbcjob1

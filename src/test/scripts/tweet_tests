@@ -16,9 +16,9 @@ set -e
 
 echo -e '\n\n**** Test 1. Twittersearch tests\n\n'
 
-create_stream 'searchtweets' "twittersearch --query=#android --outputType=application/json | file" 'false'
+create_stream 'searchtweets' "twittersearch --query=#android --outputType=application/json | file"
 sleep 5
-create_stream 'searchtagcount' 'tap:stream:searchtweets > field-value-counter --fieldName=entities.hashTags.text --name=searchhashtags'
+create_stream 'searchtagcount' 'tap:stream:searchtweets > field-value-counter --fieldName=entities.hashTags.text --name=searchhashtags' 'true'
 sleep 5
 deploy_stream 'searchtweets'
 
@@ -33,16 +33,16 @@ destroy_stream 'searchtweets'
 
 echo -e '\n\n**** Test 2. Twitterstream tests\n\n'
 
-create_stream 'tweets' 'twitterstream | file' 'false'
+create_stream 'tweets' 'twitterstream | file'
 
 sleep 10
 
-create_stream 'tweetcount' "tap:stream:tweets > aggregate-counter --dateFormat='EE MMM d HH:mm:ss Z yyyy' --timeField=#jsonPath(payload,'\$.created_at')"
+create_stream 'tweetcount' "tap:stream:tweets > aggregate-counter --dateFormat='EE MMM d HH:mm:ss Z yyyy' --timeField=#jsonPath(payload,'\$.created_at')" 'true'
 
 sleep 10
-create_stream 'tweetlang' 'tap:stream:tweets > field-value-counter --fieldName=lang --name=lang'
+create_stream 'tweetlang' 'tap:stream:tweets > field-value-counter --fieldName=lang --name=lang' 'true'
 
-create_stream 'tagcount' 'tap:stream:tweets > field-value-counter --fieldName=entities.hashtags.text --name=hashtags'
+create_stream 'tagcount' 'tap:stream:tweets > field-value-counter --fieldName=entities.hashtags.text --name=hashtags' 'true'
 
 sleep 5
 deploy_stream 'tweets'

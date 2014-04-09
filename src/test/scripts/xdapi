@@ -17,7 +17,7 @@ urlencode() {
 create_stream() {
   local udef=`urlencode "$2"`
   echo "Creating stream $1 with definition '$udef' ..."
-  xdc -d name=$1 -d "definition=$udef" -d deploy=${3:-'true'} "$XDURL/streams"
+  xdc -d name=$1 -d "definition=$udef" -d deploy=${3:-'false'} "$XDURL/streams"
   echo -e '\n'
 }
 

@@ -224,7 +224,7 @@ public abstract class AbstractJobIntegrationTest extends AbstractShellIntegratio
 		Table t = listJobs();
 		assertTrue(t.getRows().contains(
 				new TableRow().addValue(1, jobName).addValue(2, jobDescriptor).addValue(3,
-						shouldBeDeployed ? "deployed" : "")));
+						shouldBeDeployed ? "deployed" : "undeployed")));
 	}
 
 	protected void checkForFail(CommandResult cr) {

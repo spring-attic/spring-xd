@@ -43,12 +43,11 @@ import org.springframework.xd.shell.util.UiUtils;
 
 /**
  * Job commands.
- *
+ * 
  * @author Glenn Renfro
  * @author Ilayaperumal Gopinathan
  * @author Gunnar Hillert
  * @author Eric Bottard
- *
  */
 @Component
 public class JobCommands implements CommandMarker {
@@ -125,7 +124,7 @@ public class JobCommands implements CommandMarker {
 				row.addValue(3, "deployed");
 			}
 			else {
-				row.addValue(3, "");
+				row.addValue(3, "undeployed");
 			}
 			table.getRows().add(row);
 		}

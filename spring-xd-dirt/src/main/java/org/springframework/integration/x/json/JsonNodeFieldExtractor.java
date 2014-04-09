@@ -30,6 +30,6 @@ public class JsonNodeFieldExtractor {
 	}
 
 	public String extract(JsonNode node) {
-		return node.get(this.fieldName).asText();
+		return node.get(this.fieldName).toString();
 	}
 }

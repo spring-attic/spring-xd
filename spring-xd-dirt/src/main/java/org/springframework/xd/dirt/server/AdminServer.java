@@ -313,7 +313,7 @@ public class AdminServer implements ContainerRepository, ApplicationListener<App
 				containerListener = new ContainerListener(AdminServer.this,
 						streamDefinitionRepository,
 						moduleDefinitionRepository,
-						moduleOptionsMetadataResolver, streamDeployments, streams);
+						moduleOptionsMetadataResolver, streamDeployments, streams, jobDeployments);
 
 				PathChildrenCache containersCache = new PathChildrenCache(client, Paths.CONTAINERS, true,
 						ThreadUtils.newThreadFactory("ContainersPathChildrenCache"));

@@ -16,6 +16,8 @@
 
 package org.springframework.xd.dirt.server;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,11 +32,16 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertiesPropertySource;
+import org.springframework.core.env.PropertySource;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.xd.dirt.container.ContainerAttributes;
 import org.springframework.xd.dirt.util.ConfigLocations;
+import org.springframework.xd.dirt.util.RuntimeUtils;
 import org.springframework.xd.dirt.util.XdProfiles;
 import org.springframework.xd.dirt.zookeeper.EmbeddedZooKeeper;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
@@ -51,13 +58,17 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 @ImportResource({ ConfigLocations.XD_CONFIG_ROOT + "bus/*.xml",
 	ConfigLocations.XD_CONFIG_ROOT + "internal/repositories.xml",
 	ConfigLocations.XD_CONFIG_ROOT + "analytics/${XD_ANALYTICS}-analytics.xml" })
-public class SharedServerContextConfiguration {
-
-	private static final String MBEAN_EXPORTER_BEAN_NAME = "XDSharedServerMBeanExporter";
+public class SharedServerContextConfiguration implements EnvironmentAware {
 
 	public static final String ZK_CONNECT = "zk.client.connect";
 
 	public static final String EMBEDDED_ZK_CONNECT = "zk.embedded.client.connect";
+
+	private static final String MBEAN_EXPORTER_BEAN_NAME = "XDSharedServerMBeanExporter";
+
+	private static final String CONTAINER_ATTRIBUTES_PREFIX = "xd.container.";
+
+	private ConfigurableEnvironment environment;
 
 	@ConditionalOnExpression("${XD_JMX_ENABLED:true}")
 	@EnableMBeanExport(defaultDomain = "xd.shared.server")
@@ -71,6 +82,33 @@ public class SharedServerContextConfiguration {
 		}
 	}
 
+	@Bean
+	public ContainerAttributes containerAttributes() {
+		ContainerAttributes containerAttributes = new ContainerAttributes();
+		containerAttributes.setHost(RuntimeUtils.getHost()).setIp(RuntimeUtils.getIpAddress()).setPid(
+				RuntimeUtils.getPid());
+		setConfiguredContainerAttributes(containerAttributes);
+		return containerAttributes;
+	}
+
+	/**
+	 * @param containerAttributes
+	 */
+	private void setConfiguredContainerAttributes(ContainerAttributes containerAttributes) {
+		Map<String, String> attributes = new HashMap<String, String>();
+		for (PropertySource<?> propertySource : environment.getPropertySources()) {
+			if (propertySource instanceof EnumerablePropertySource) {
+				EnumerablePropertySource<?> ps = (EnumerablePropertySource<?>) propertySource;
+				for (String key : ps.getPropertyNames()) {
+					if (key.startsWith(CONTAINER_ATTRIBUTES_PREFIX)) {
+						String attributeKey = key.replaceAll(CONTAINER_ATTRIBUTES_PREFIX, "");
+						attributes.put(attributeKey, environment.getProperty(key));
+					}
+				}
+			}
+		}
+		containerAttributes.putAll(attributes);
+	}
 
 	@Configuration
 	@Profile(XdProfiles.SINGLENODE_PROFILE)
@@ -161,5 +199,12 @@ public class SharedServerContextConfiguration {
 			this.environment = (ConfigurableEnvironment) environment;
 		}
 
+	}
+
+	@Override
+	public void setEnvironment(Environment environment) {
+		Assert.isInstanceOf(ConfigurableEnvironment.class, environment,
+				"unsupported environment type. " + environment.getClass());
+		this.environment = (ConfigurableEnvironment) environment;
 	}
 }

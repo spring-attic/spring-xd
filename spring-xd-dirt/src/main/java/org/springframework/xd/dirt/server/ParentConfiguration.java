@@ -16,9 +16,6 @@
 
 package org.springframework.xd.dirt.server;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import javax.sql.DataSource;
 
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -32,21 +29,13 @@ import org.springframework.boot.autoconfigure.jmx.JmxAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.ServerPropertiesAutoConfiguration;
 import org.springframework.cloud.Cloud;
 import org.springframework.cloud.CloudFactory;
-import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableMBeanExport;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Profile;
-import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.EnumerablePropertySource;
-import org.springframework.core.env.Environment;
-import org.springframework.core.env.PropertySource;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
-import org.springframework.util.Assert;
-import org.springframework.xd.dirt.container.ContainerAttributes;
 import org.springframework.xd.dirt.util.ConfigLocations;
-import org.springframework.xd.dirt.util.RuntimeUtils;
 
 /**
  * Beans defined and imported here are in the global parent context, hence available to the entire hierarchy, including
@@ -58,39 +47,7 @@ import org.springframework.xd.dirt.util.RuntimeUtils;
 	JmxAutoConfiguration.class })
 @ImportResource("classpath:" + ConfigLocations.XD_INTERNAL_CONFIG_ROOT + "xd-global-beans.xml")
 @EnableBatchProcessing
-public class ParentConfiguration implements EnvironmentAware {
-
-	private static final String CONTAINER_ATTRIBUTES_PREFIX = "xd.container.";
-
-	private ConfigurableEnvironment environment;
-
-	@Bean
-	public ContainerAttributes containerAttributes() {
-		ContainerAttributes containerAttributes = new ContainerAttributes();
-		containerAttributes.setHost(RuntimeUtils.getHost()).setIp(RuntimeUtils.getIpAddress()).setPid(
-				RuntimeUtils.getPid());
-		setConfiguredContainerAttributes(containerAttributes);
-		return containerAttributes;
-	}
-
-	/**
-	 * @param containerAttributes
-	 */
-	private void setConfiguredContainerAttributes(ContainerAttributes containerAttributes) {
-		Map<String, String> attributes = new HashMap<String, String>();
-		for (PropertySource<?> propertySource : environment.getPropertySources()) {
-			if (propertySource instanceof EnumerablePropertySource) {
-				EnumerablePropertySource<?> ps = (EnumerablePropertySource<?>) propertySource;
-				for (String key : ps.getPropertyNames()) {
-					if (key.startsWith(CONTAINER_ATTRIBUTES_PREFIX)) {
-						String attributeKey = key.replaceAll(CONTAINER_ATTRIBUTES_PREFIX, "");
-						attributes.put(attributeKey, environment.getProperty(key));
-					}
-				}
-			}
-		}
-		containerAttributes.putAll(attributes);
-	}
+public class ParentConfiguration {
 
 	@Configuration
 	@Profile("cloud")
@@ -121,13 +78,6 @@ public class ParentConfiguration implements EnvironmentAware {
 	@ConditionalOnExpression("${endpoints.health.enabled:true}")
 	public HealthEndpoint<Object> healthEndpoint() {
 		return new HealthEndpoint<Object>(new VanillaHealthIndicator());
-	}
-
-	@Override
-	public void setEnvironment(Environment environment) {
-		Assert.isInstanceOf(ConfigurableEnvironment.class, environment,
-				"unsupported environment type. " + environment.getClass());
-		this.environment = (ConfigurableEnvironment) environment;
 	}
 
 	@ConditionalOnExpression("${XD_JMX_ENABLED:true}")

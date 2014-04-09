@@ -3,9 +3,9 @@ source xdapi
 
 wait_for_server
 
-if [[ ! -f $XD_HOME/config/twitter.properties ]]
+if [[ ! -f $XD_HOME/config/modules/source/twitterstream/twitterstream.properties ]]
 then
-  echo 'twitter.properties file is missing from XD_HOME/config'
+  echo 'twitterstream.properties file is missing from XD_HOME/config/modules/source/twitterstream'
   exit 1
 fi
 

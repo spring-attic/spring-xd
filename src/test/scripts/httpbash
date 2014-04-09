@@ -1,0 +1,48 @@
+#! /bin/sh
+
+. xdapi
+
+i=100
+
+
+while [ $i != 0 ]
+do
+    create_stream blah 'http | log'
+    sleep 5
+    curl -v -d blahblah "$XD_HOST:9000"
+    curl -v -d blahblah "$XD_HOST:9000"
+    curl -v -d blahblah "$XD_HOST:9000"
+    curl -v -d blahblah "$XD_HOST:9000"
+    curl -v -d blahblah "$XD_HOST:9000"
+    curl -v -d blahblah "$XD_HOST:9000"
+    curl -v -d blahblah "$XD_HOST:9000"
+    curl -v -d blahblah "$XD_HOST:9000"
+    curl -v -d blahblah "$XD_HOST:9000"
+    curl -v -d blahblah "$XD_HOST:9000"
+    curl -v -d blahblah "$XD_HOST:9000"
+    curl -v -d blahblah "$XD_HOST:9000"
+    curl -v -d blahblah "$XD_HOST:9000"
+    curl -v -d blahblah "$XD_HOST:9000"
+    curl -v -d blahblah "$XD_HOST:9000"
+    curl -v -d blahblah "$XD_HOST:9000"
+    curl -v -d blahblah "$XD_HOST:9000"
+    curl -v -d blahblah "$XD_HOST:9000"
+    curl -v -d blahblah "$XD_HOST:9000"
+    curl -v -d blahblah "$XD_HOST:9000"
+    curl -v -d blahblah "$XD_HOST:9000"
+    curl -v -d blahblah "$XD_HOST:9000"
+    curl -v -d blahblah "$XD_HOST:9000"
+    curl -v -d blahblah "$XD_HOST:9000"
+    curl -v -d blahblah "$XD_HOST:9000"
+    curl -v -d blahblah "$XD_HOST:9000"
+    curl -v -d blahblah "$XD_HOST:9000"
+    curl -v -d blahblah "$XD_HOST:9000"
+    curl -v -d blahblah "$XD_HOST:9000"
+    curl -v -d blahblah "$XD_HOST:9000"
+    curl -v -d blahblah "$XD_HOST:9000"
+    destroy_stream blah
+    sleep 5
+    ((i--))
+done
+
+

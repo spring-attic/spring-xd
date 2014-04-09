@@ -102,14 +102,14 @@ if not defined XD_CONFIG_LOCATION (
     set XD_CONFIG_LOCATION=%XD_HOME%/config/
 )
 if not defined XD_CONFIG_NAME (
-    set XD_CONFIG_NAME=xd-config
+    set XD_CONFIG_NAME=servers
 )
 set XD_CONFIG_NAME=%XD_CONFIG_NAME%,application
 if not defined XD_MODULE_CONFIG_LOCATION (
     set XD_MODULE_CONFIG_LOCATION=%XD_CONFIG_LOCATION%modules/
 )
 if not defined XD_MODULE_CONFIG_NAME (
-    set XD_MODULE_CONFIG_NAME=xd-module-config
+    set XD_MODULE_CONFIG_NAME=modules
 )
 
 set SPRING_XD_OPTS=-Dspring.application.name=singlenode -Dlogging.config=file:%XD_HOME%/config/xd-singlenode-logger.properties -Dxd.home=%XD_HOME%

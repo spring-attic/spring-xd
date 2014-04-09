@@ -17,6 +17,7 @@
 package org.springframework.xd.dirt.module.store;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -41,6 +42,8 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 	private final ZooKeeperConnection zkConnection;
 
 	private final MapBytesUtility mapBytesUtility = new MapBytesUtility();
+
+	private static final String XD_MODULE_PROPERTIES_PREFIX = "xd.";
 
 	@Autowired
 	public ZooKeeperModuleMetadataRepository(ZooKeeperConnection zkConnection) {
@@ -79,10 +82,17 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 		try {
 			byte[] data = zkConnection.getClient().getData().forPath(metadataPath);
 			if (data != null) {
+				Map<String, String> metadataMap = new HashMap<String, String>();
 				Map<String, String> map = mapBytesUtility.toMap(data);
 				String moduleId = getModuleId(metadataPath);
 				String containerId = getContainerId(metadataPath);
-				metadata = new ModuleMetadata(moduleId, containerId, MapUtils.toProperties(map).toString());
+				for (String propertyKey : map.keySet()) {
+					if (!propertyKey.startsWith(XD_MODULE_PROPERTIES_PREFIX)) {
+						metadataMap.put(propertyKey, map.get(propertyKey));
+					}
+				}
+				String moduleProperties = (!metadataMap.isEmpty()) ? MapUtils.toProperties(metadataMap).toString() : "";
+				metadata = new ModuleMetadata(moduleId, containerId, moduleProperties);
 			}
 		}
 		catch (Exception e) {

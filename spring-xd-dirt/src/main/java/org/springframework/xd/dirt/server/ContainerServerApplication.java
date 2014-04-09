@@ -16,6 +16,9 @@
 
 package org.springframework.xd.dirt.server;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -30,13 +33,19 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableMBeanExport;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.event.SourceFilteringListener;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.EnumerablePropertySource;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.PropertySource;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
+import org.springframework.util.Assert;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.xd.dirt.container.ContainerAttributes;
@@ -47,6 +56,7 @@ import org.springframework.xd.dirt.server.options.ContainerOptions;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.util.BannerUtils;
 import org.springframework.xd.dirt.util.ConfigLocations;
+import org.springframework.xd.dirt.util.RuntimeUtils;
 import org.springframework.xd.dirt.util.XdConfigLoggingInitializer;
 import org.springframework.xd.dirt.util.XdProfiles;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
@@ -62,11 +72,15 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 @Configuration
 @EnableAutoConfiguration(exclude = { BatchAutoConfiguration.class, JmxAutoConfiguration.class })
 @Import(PropertyPlaceholderAutoConfiguration.class)
-public class ContainerServerApplication {
+public class ContainerServerApplication implements EnvironmentAware {
 
 	private static final Log log = LogFactory.getLog(ContainerServerApplication.class);
 
+	private static final String CONTAINER_ATTRIBUTES_PREFIX = "xd.container.";
+
 	private ConfigurableApplicationContext containerContext;
+
+	private ConfigurableEnvironment environment;
 
 	public static void main(String[] args) {
 		new ContainerServerApplication().run(args);
@@ -116,6 +130,41 @@ public class ContainerServerApplication {
 			handleErrors(e);
 		}
 		return this;
+	}
+
+	@Bean
+	public ContainerAttributes containerAttributes() {
+		ContainerAttributes containerAttributes = new ContainerAttributes();
+		containerAttributes.setHost(RuntimeUtils.getHost()).setIp(RuntimeUtils.getIpAddress()).setPid(
+				RuntimeUtils.getPid());
+		setConfiguredContainerAttributes(containerAttributes);
+		return containerAttributes;
+	}
+
+	/**
+	 * @param containerAttributes
+	 */
+	private void setConfiguredContainerAttributes(ContainerAttributes containerAttributes) {
+		Map<String, String> attributes = new HashMap<String, String>();
+		for (PropertySource<?> propertySource : environment.getPropertySources()) {
+			if (propertySource instanceof EnumerablePropertySource) {
+				EnumerablePropertySource<?> ps = (EnumerablePropertySource<?>) propertySource;
+				for (String key : ps.getPropertyNames()) {
+					if (key.startsWith(CONTAINER_ATTRIBUTES_PREFIX)) {
+						String attributeKey = key.replaceAll(CONTAINER_ATTRIBUTES_PREFIX, "");
+						attributes.put(attributeKey, environment.getProperty(key));
+					}
+				}
+			}
+		}
+		containerAttributes.putAll(attributes);
+	}
+
+	@Override
+	public void setEnvironment(Environment environment) {
+		Assert.isInstanceOf(ConfigurableEnvironment.class, environment,
+				"unsupported environment type. " + environment.getClass());
+		this.environment = (ConfigurableEnvironment) environment;
 	}
 
 	private void handleErrors(Exception e) {

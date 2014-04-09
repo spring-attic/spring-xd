@@ -53,11 +53,11 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 	ConfigLocations.XD_CONFIG_ROOT + "analytics/${XD_ANALYTICS}-analytics.xml" })
 public class SharedServerContextConfiguration {
 
-	private static final String MBEAN_EXPORTER_BEAN_NAME = "XDSharedServerMBeanExporter";
-
 	public static final String ZK_CONNECT = "zk.client.connect";
 
 	public static final String EMBEDDED_ZK_CONNECT = "zk.embedded.client.connect";
+
+	private static final String MBEAN_EXPORTER_BEAN_NAME = "XDSharedServerMBeanExporter";
 
 	@ConditionalOnExpression("${XD_JMX_ENABLED:true}")
 	@EnableMBeanExport(defaultDomain = "xd.shared.server")
@@ -70,7 +70,6 @@ public class SharedServerContextConfiguration {
 			return exporter;
 		}
 	}
-
 
 	@Configuration
 	@Profile(XdProfiles.SINGLENODE_PROFILE)

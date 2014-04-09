@@ -29,6 +29,7 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,13 +40,18 @@ import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.ContainerMatcher;
 import org.springframework.xd.dirt.cluster.ContainerRepository;
 import org.springframework.xd.dirt.cluster.DefaultContainerMatcher;
+import org.springframework.xd.dirt.core.JobsPath;
 import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.core.ModuleDescriptor;
 import org.springframework.xd.dirt.core.Stream;
 import org.springframework.xd.dirt.core.StreamsPath;
 import org.springframework.xd.dirt.module.ModuleDefinitionRepository;
+import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
+import org.springframework.xd.dirt.stream.JobDefinition;
+import org.springframework.xd.dirt.stream.ParsingContext;
 import org.springframework.xd.dirt.stream.StreamDefinitionRepository;
 import org.springframework.xd.dirt.stream.StreamFactory;
+import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.ChildPathIterator;
 import org.springframework.xd.dirt.zookeeper.Paths;
@@ -88,10 +94,15 @@ public class ContainerListener implements PathChildrenCacheListener {
 	 *
 	 * @see #streamDeployments
 	 */
-	private final StreamDeploymentNameConverter streamDeploymentNameConverter = new StreamDeploymentNameConverter();
+	private final DeploymentNameConverter deploymentNameConverter = new DeploymentNameConverter();
 
 	/**
 	 * Cache of children under the stream deployment path.
+	 */
+	private final PathChildrenCache jobDeployments;
+
+	/**
+	 * Cache of children under the job deployment path.
 	 */
 	private final PathChildrenCache streamDeployments;
 
@@ -99,6 +110,12 @@ public class ContainerListener implements PathChildrenCacheListener {
 	 * Cache of children under the streams path.
 	 */
 	private final PathChildrenCache streamDefinitions;
+
+	/**
+	 * The parser.
+	 */
+	private final XDStreamParser parser;
+
 
 	/**
 	 * Construct a ContainerListener.
@@ -109,17 +126,20 @@ public class ContainerListener implements PathChildrenCacheListener {
 	 * @param moduleOptionsMetadataResolver resolver for module options metadata
 	 * @param streamDeployments             cache of children for stream deployments path
 	 * @param streamDefinitions             cache of children for streams
+	 * @param jobDeployments                cache of children for job deployments path
 	 */
 	public ContainerListener(ContainerRepository containerRepository,
 			StreamDefinitionRepository streamDefinitionRepository,
 			ModuleDefinitionRepository moduleDefinitionRepository,
 			ModuleOptionsMetadataResolver moduleOptionsMetadataResolver,
-			PathChildrenCache streamDeployments, PathChildrenCache streamDefinitions) {
+			PathChildrenCache streamDeployments, PathChildrenCache streamDefinitions, PathChildrenCache jobDeployments) {
 		this.containerRepository = containerRepository;
 		this.streamFactory = new StreamFactory(streamDefinitionRepository, moduleDefinitionRepository,
 				moduleOptionsMetadataResolver);
 		this.streamDeployments = streamDeployments;
 		this.streamDefinitions = streamDefinitions;
+		this.jobDeployments = jobDeployments;
+		this.parser = new XDStreamParser(moduleDefinitionRepository, moduleOptionsMetadataResolver);
 	}
 
 	/**
@@ -156,12 +176,70 @@ public class ContainerListener implements PathChildrenCacheListener {
 	 * @param data node data for the container that arrived
 	 */
 	private void onChildAdded(CuratorFramework client, ChildData data) throws Exception {
+		// TODO: there is duplicate code here and JobListener/StreamListener. These
+		// should be refactored into a JobDeployer/StreamDeployer class
+
 		final Container container = new Container(Paths.stripPath(data.getPath()), mapBytesUtility.toMap(data.getData()));
 		String containerName = container.getName();
 		LOG.info("Container arrived: {}", containerName);
 
+		// check for "orphaned" jobs that can be deployed to this new container
+		for (Iterator<String> jobDeploymentIterator =
+					 new ChildPathIterator<String>(deploymentNameConverter, jobDeployments);
+						jobDeploymentIterator.hasNext();) {
+			String jobName = jobDeploymentIterator.next();
+
+			byte[] bytes = client.getData().forPath(Paths.build(Paths.JOBS, jobName));
+			Map<String, String> map = mapBytesUtility.toMap(bytes);
+			JobDefinition jobDefinition = new JobDefinition(jobName, map.get("definition"));
+
+			List<ModuleDeploymentRequest> results = parser.parse(jobName, jobDefinition.getDefinition(),
+					ParsingContext.job);
+			ModuleDeploymentRequest mdr = results.get(0);
+			String moduleLabel = mdr.getModule() + "-0";
+			String moduleType = ModuleType.job.toString();
+
+			Stat stat = client.checkExists().forPath(new JobsPath().setJobName(jobName).setModuleLabel(moduleLabel).build());
+			// if stat is null, this means that the job deployment request was written out
+			// to ZK but JobListener hasn't picked it up yet; in that case skip this job
+			// deployment since JobListener will handle it
+			if (stat != null && stat.getNumChildren() == 0) {
+				// no ephemeral nodes under the job module path; this job should be deployed
+				try {
+					// todo: consider something more abstract for stream name
+					// OR separate path builders for stream-modules and jobs
+					client.create().creatingParentsIfNeeded().forPath(new ModuleDeploymentsPath().setContainer(containerName)
+							.setStreamName(jobName)
+							.setModuleType(moduleType)
+							.setModuleLabel(moduleLabel).build());
+
+					String deploymentPath = new JobsPath().setJobName(jobName)
+							.setModuleLabel(moduleLabel)
+							.setContainer(containerName).build();
+
+					// todo: make timeout configurable
+					long timeout = System.currentTimeMillis() + 30000;
+					boolean deployed;
+					do {
+						Thread.sleep(10);
+						deployed = client.checkExists().forPath(deploymentPath) != null;
+					}
+					while (!deployed && System.currentTimeMillis() < timeout);
+
+					if (!deployed) {
+						throw new IllegalStateException(String.format(
+								"Deployment of module %s to container %s timed out", jobName, containerName));
+					}
+				}
+				catch (KeeperException.NodeExistsException e) {
+					LOG.info("Job {} is already deployed to container {}", jobDefinition, container);
+				}
+			}
+		}
+
+		// check for "orphaned" stream modules that can be deployed to this new container
 		for (Iterator<String> streamDeploymentIterator =
-					 new ChildPathIterator<String>(streamDeploymentNameConverter, streamDeployments);
+					 new ChildPathIterator<String>(deploymentNameConverter, streamDeployments);
 						streamDeploymentIterator.hasNext();) {
 			String streamName = streamDeploymentIterator.next();
 			Stream stream = loadStream(client, streamName);
@@ -181,7 +259,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 					String moduleLabel = descriptor.getLabel();
 
 					// obtain all of the containers that have deployed this module
-					List<String> containersForModule = getContainersForModule(client, descriptor);
+					List<String> containersForModule = getContainersForStreamModule(client, descriptor);
 					if (!containersForModule.contains(containerName)) {
 						// this container has not deployed this module; determine if it should
 						int moduleCount = descriptor.getDeploymentProperties().getCount();
@@ -234,7 +312,8 @@ public class ContainerListener implements PathChildrenCacheListener {
 	 *
 	 * @throws Exception  thrown by Curator
 	 */
-	private List<String> getContainersForModule(CuratorFramework client, ModuleDescriptor descriptor) throws Exception {
+	private List<String> getContainersForStreamModule(CuratorFramework client, ModuleDescriptor descriptor)
+			throws Exception {
 		try {
 			return client.getChildren().forPath(new StreamsPath()
 					.setStreamName(descriptor.getStreamName())
@@ -365,9 +444,9 @@ public class ContainerListener implements PathChildrenCacheListener {
 
 
 	/**
-	 * Converter from {@link ChildData} to {@link Stream}.
+	 * Converter from {@link ChildData} to deployment name string.
 	 */
-	public class StreamDeploymentNameConverter implements Converter<ChildData, String> {
+	public class DeploymentNameConverter implements Converter<ChildData, String> {
 
 		/**
 		 * {@inheritDoc}

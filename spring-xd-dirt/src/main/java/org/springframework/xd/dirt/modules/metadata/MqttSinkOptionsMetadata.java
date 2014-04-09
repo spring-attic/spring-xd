@@ -1,11 +1,11 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,22 +19,48 @@ package org.springframework.xd.dirt.modules.metadata;
 import javax.validation.constraints.Size;
 
 import org.hibernate.validator.constraints.NotBlank;
+import org.hibernate.validator.constraints.Range;
 
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
 
+
 /**
- * Describes options to the {@code mqtt} source module.
+ * Describes options to the {@code mqtt} sink module.
  * 
  * @author Eric Bottard
  */
 @Mixin(MqttConnectionMixin.class)
-public class MqttSourceOptionsMetadata {
+public class MqttSinkOptionsMetadata {
 
-	private String clientId = "xd.mqtt.client.id.src";
+	private String clientId = "xd.mqtt.client.id.snk";
 
-	private String topics = "xd.mqtt.test";
+	private String topic = "xd.mqtt.test";
 
+	private int qos = 1;
+
+	private boolean retained = false;
+
+
+	@Range(min = 0, max = 2)
+	public int getQos() {
+		return qos;
+	}
+
+
+	public boolean isRetained() {
+		return retained;
+	}
+
+	@ModuleOption("the quality of service to use")
+	public void setQos(int qos) {
+		this.qos = qos;
+	}
+
+	@ModuleOption("whether to set the 'retained' flag")
+	public void setRetained(boolean retained) {
+		this.retained = retained;
+	}
 
 	@NotBlank
 	@Size(min = 1, max = 23)
@@ -48,13 +74,13 @@ public class MqttSourceOptionsMetadata {
 	}
 
 	@NotBlank
-	public String getTopics() {
-		return topics;
+	public String getTopic() {
+		return topic;
 	}
 
-	@ModuleOption("the topic(s) to which the source will subscribe")
-	public void setTopics(String topics) {
-		this.topics = topics;
+	@ModuleOption("the topic to which the sink will publish")
+	public void setTopic(String topic) {
+		this.topic = topic;
 	}
 
 

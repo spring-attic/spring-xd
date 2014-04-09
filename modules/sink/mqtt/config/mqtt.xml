@@ -9,22 +9,20 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<context:property-placeholder location="${xd.config.home}/mqtt.properties" ignore-resource-not-found="true"/>
-
 	<bean id="clientFactory" class="org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory">
-		<property name="userName" value="${username:${mqtt.username}}"/>
-		<property name="password" value="${password:${mqtt.password}}"/>
+		<property name="userName" value="${username}"/>
+		<property name="password" value="${password}"/>
 	</bean>
 
 	<int:channel id="input"/>
 
 	<int-mqtt:outbound-channel-adapter id="mqttOutbound"
-		client-id="${clientId:${mqtt.default.client.id}.snk}"
-		url="${url:${mqtt.url}}"
-		default-topic="${topic:${mqtt.sink.default.topic}}"
+		client-id="${clientId}"
+		url="${url}"
+		default-topic="${topic}"
 		client-factory="clientFactory"
-		default-qos="${qos:1}"
-		default-retained="${retained:false}"
+		default-qos="${qos}"
+		default-retained="${retained}"
 		channel="input"/>
 
 </beans>

@@ -34,8 +34,8 @@ import org.springframework.xd.dirt.cluster.Container;
 import org.springframework.xd.dirt.cluster.ContainerMatcher;
 import org.springframework.xd.dirt.cluster.ContainerRepository;
 import org.springframework.xd.dirt.cluster.DefaultContainerMatcher;
-import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.core.Module;
+import org.springframework.xd.dirt.core.ModuleDeploymentsPath;
 import org.springframework.xd.dirt.core.ModuleDescriptor;
 import org.springframework.xd.dirt.core.Stream;
 import org.springframework.xd.dirt.core.StreamsPath;
@@ -133,7 +133,7 @@ public class StreamListener implements PathChildrenCacheListener {
 	 * Handle the creation of a new stream deployment.
 	 * 
 	 * @param client curator client
-	 * @param data   stream deployment request data
+	 * @param data stream deployment request data
 	 */
 	private void onChildAdded(CuratorFramework client, ChildData data) throws Exception {
 		String streamName = Paths.stripPath(data.getPath());
@@ -150,9 +150,9 @@ public class StreamListener implements PathChildrenCacheListener {
 
 	/**
 	 * Handle the deletion of a stream deployment.
-	 *
+	 * 
 	 * @param client curator client
-	 * @param data   stream deployment request data
+	 * @param data stream deployment request data
 	 */
 	private void onChildRemoved(CuratorFramework client, ChildData data) throws Exception {
 		String streamName = Paths.stripPath(data.getPath());
@@ -281,8 +281,7 @@ public class StreamListener implements PathChildrenCacheListener {
 			// todo: make timeout configurable
 			long timeout = System.currentTimeMillis() + 30000;
 			do {
-				for (Iterator<Map.Entry<Container, String>> iteratorStatus = mapDeploymentStatus.entrySet().iterator();
-						iteratorStatus.hasNext();) {
+				for (Iterator<Map.Entry<Container, String>> iteratorStatus = mapDeploymentStatus.entrySet().iterator(); iteratorStatus.hasNext();) {
 					Map.Entry<Container, String> entry = iteratorStatus.next();
 					if (client.checkExists().forPath(entry.getValue()) != null) {
 						iteratorStatus.remove();
@@ -297,8 +296,8 @@ public class StreamListener implements PathChildrenCacheListener {
 				// otherwise this reflects a bug in the container or some kind of network
 				// error in which case the state of deployment is "unknown"
 				throw new IllegalStateException(String.format(
-						"Deployment of module %s to the following containers timed out: %s",
-						moduleName, mapDeploymentStatus.keySet()));
+						"Deployment of %s module %s to the following containers timed out: %s",
+						moduleType, moduleName, mapDeploymentStatus.keySet()));
 			}
 		}
 	}

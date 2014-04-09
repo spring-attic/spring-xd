@@ -241,8 +241,10 @@ public class AdminServer implements ContainerRepository, ApplicationListener<App
 		 */
 		@Override
 		public void onDisconnect(CuratorFramework client) {
-			leaderSelector.close();
-			leaderSelector = null;
+			if (leaderSelector != null) {
+				leaderSelector.close();
+				leaderSelector = null;
+			}
 		}
 	}
 

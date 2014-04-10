@@ -179,7 +179,6 @@ public class JobListener implements PathChildrenCacheListener {
 	 * @param jobDefinition  job to be deployed
 	 */
 	private void deployJob(CuratorFramework client, JobDefinition jobDefinition) throws Exception {
-		Map<Container, String> mapDeploymentStatus = new HashMap<Container, String>();
 		String jobName = jobDefinition.getName();
 
 		// create a ModuleDescriptor for the job using the static helper method;
@@ -195,18 +194,14 @@ public class JobListener implements PathChildrenCacheListener {
 			ModuleDeploymentRequest mdr = results.get(0);
 			String moduleLabel = mdr.getModule() + "-0";
 			String moduleType = ModuleType.job.toString();
+			String moduleDeploymentRequestPath = new ModuleDeploymentsPath().setContainer(containerName)
+					.setStreamName(jobName)
+					.setModuleType(moduleType)
+					.setModuleLabel(moduleLabel).build();
 			try {
 				// todo: consider something more abstract for stream name
 				// OR separate path builders for stream-modules and jobs
-				client.create().creatingParentsIfNeeded().forPath(new ModuleDeploymentsPath().setContainer(containerName)
-						.setStreamName(jobName)
-						.setModuleType(moduleType)
-						.setModuleLabel(moduleLabel).build());
-
-				String deploymentPath = new JobsPath().setJobName(jobName)
-						.setModuleLabel(moduleLabel)
-						.setContainer(containerName).build();
-				mapDeploymentStatus.put(container, deploymentPath);
+				client.create().creatingParentsIfNeeded().forPath(moduleDeploymentRequestPath);
 			}
 			catch (KeeperException.NodeExistsException e) {
 				LOG.info("Job {} is already deployed to container {}", jobDefinition, container);
@@ -214,28 +209,31 @@ public class JobListener implements PathChildrenCacheListener {
 
 			// wait for all deployments to succeed
 			// todo: make timeout configurable
-			long timeout = System.currentTimeMillis() + 30000;
+			long timeout = System.currentTimeMillis() + 10000;
+			String containerDeploymentPath = new JobsPath().setJobName(jobName)
+					.setModuleLabel(moduleLabel)
+					.setContainer(containerName).build();
 
-			do {
-				for (Iterator<Map.Entry<Container, String>> iteratorStatus =
-							 mapDeploymentStatus.entrySet().iterator(); iteratorStatus.hasNext();) {
-					Map.Entry<Container, String> entry =
-							iteratorStatus.next();
-					if (client.checkExists().forPath(entry.getValue()) != null) {
-						iteratorStatus.remove();
-					}
-					Thread.sleep(10);
-				}
+			boolean deployed = client.checkExists().forPath(containerDeploymentPath) != null;
+			while (!deployed && System.currentTimeMillis() < timeout) {
+				Thread.sleep(10);
+				deployed = client.checkExists().forPath(containerDeploymentPath) != null;
 			}
-			while (!mapDeploymentStatus.isEmpty() && System.currentTimeMillis() < timeout);
 
-			if (!mapDeploymentStatus.isEmpty()) {
+			if (!deployed) {
+				// clean up failed deployment attempts
+				try {
+					client.delete().forPath(moduleDeploymentRequestPath);
+				}
+				catch (KeeperException e) {
+					// ignore
+				}
+
 				// todo: if the container went away we should select another one to deploy to;
 				// otherwise this reflects a bug in the container or some kind of network
 				// error in which case the state of deployment is "unknown"
 				throw new IllegalStateException(String.format(
-						"Deployment of job %s to the following containers timed out: %s", jobName,
-						mapDeploymentStatus.keySet()));
+						"Deployment of job %s to the following containers failed: %s", jobName, container));
 			}
 		}
 		else {

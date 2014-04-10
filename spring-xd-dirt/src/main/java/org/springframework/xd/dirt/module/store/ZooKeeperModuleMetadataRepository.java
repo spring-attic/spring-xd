@@ -91,7 +91,8 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 						metadataMap.put(propertyKey, map.get(propertyKey));
 					}
 				}
-				metadata = new ModuleMetadata(moduleId, containerId, MapUtils.toProperties(metadataMap).toString());
+				String moduleProperties = (!metadataMap.isEmpty()) ? MapUtils.toProperties(metadataMap).toString() : "";
+				metadata = new ModuleMetadata(moduleId, containerId, moduleProperties);
 			}
 		}
 		catch (Exception e) {

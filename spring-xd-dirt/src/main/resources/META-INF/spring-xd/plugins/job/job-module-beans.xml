@@ -9,7 +9,7 @@
 
 	<bean id="registrar" class="org.springframework.xd.dirt.plugins.job.BatchJobRegistryBeanPostProcessor">
 		<property name="jobRegistry" ref="jobRegistry"/>
-		<property name="groupName" value="${xd.stream.name}"/>
+		<property name="groupName" value="${xd.job.name}"/>
 		<property name="jobLocator" ref="distributedJobLocator"/>
 	</bean>
 
@@ -19,7 +19,7 @@
 		input-channel="input" output-channel="jobLaunchingChannel" >
 		<bean class="org.springframework.xd.dirt.plugins.job.JobLaunchRequestTransformer">
 			<constructor-arg name="jobRegistry" ref="jobRegistry"/>
-			<constructor-arg name="jobName" value="${xd.stream.name}"/>
+			<constructor-arg name="jobName" value="${xd.job.name}"/>
 			<property name="dateFormatAsString" value="${dateFormat}"/>
 			<property name="numberFormatAsString" value="${numberFormat}"/>
 			<property name="makeParametersUnique" value="${makeUnique}"/>

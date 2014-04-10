@@ -16,6 +16,8 @@
 
 package org.springframework.xd.dirt.modules.metadata;
 
+import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_JOB_NAME;
+
 import org.hibernate.validator.constraints.NotBlank;
 import org.hibernate.validator.constraints.Range;
 
@@ -40,7 +42,7 @@ public class HdfsMongodbJobOptionsMetadata {
 
 	private int port = 27017;
 
-	private String collectionName;
+	private String collectionName = XD_JOB_NAME;
 
 	private String idField;
 

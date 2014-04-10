@@ -48,7 +48,7 @@
 				<constructor-arg ref="mappingConverter"/>
 			</bean>
 		</constructor-arg>
-		<property name="collectionName" value="${collectionName:${xd.stream.name}}" />
+		<property name="collectionName" value="${collectionName}" />
 	</bean>
 
 	<bean id="hadoopFs" class="org.springframework.data.hadoop.fs.FileSystemFactoryBean">

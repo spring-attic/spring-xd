@@ -1,6 +1,8 @@
 
 package org.springframework.xd.jdbc;
 
+import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_JOB_NAME;
+
 import javax.validation.constraints.AssertTrue;
 
 import org.springframework.util.StringUtils;
@@ -21,11 +23,11 @@ public class JdbcHdfsOptionsMetadata extends AbstractJdbcOptionsMetadata {
 
 	private String sql = "";
 
-	private String fileName;
+	private String fileName = XD_JOB_NAME;
 
 	private int rollover = 1000000;
 
-	private String directory;
+	private String directory = "/xd/" + XD_JOB_NAME;
 
 	private String fileExtension = "csv";
 

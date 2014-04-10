@@ -282,7 +282,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 									.setContainer(containerName).build();
 
 							// todo: make timeout configurable
-							long timeout = System.currentTimeMillis() + 30000;
+							long timeout = System.currentTimeMillis() + 10000;
 							boolean deployed;
 							do {
 								Thread.sleep(10);

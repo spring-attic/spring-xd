@@ -281,7 +281,7 @@ public class StreamListener implements PathChildrenCacheListener {
 
 			// wait for all deployments to succeed
 			// todo: make timeout configurable
-			long timeout = System.currentTimeMillis() + 30000;
+			long timeout = System.currentTimeMillis() + 10000;
 			do {
 				for (Iterator<Map.Entry<Container, String>> iteratorStatus = mapDeploymentStatus.entrySet().iterator(); iteratorStatus.hasNext();) {
 					Map.Entry<Container, String> entry = iteratorStatus.next();
@@ -294,11 +294,25 @@ public class StreamListener implements PathChildrenCacheListener {
 			while (!mapDeploymentStatus.isEmpty() && System.currentTimeMillis() < timeout);
 
 			if (!mapDeploymentStatus.isEmpty()) {
+				// clean up failed deployment attempts
+				for (Container container : mapDeploymentStatus.keySet()) {
+					try {
+						client.delete().forPath(new ModuleDeploymentsPath()
+								.setContainer(container.getName())
+								.setStreamName(streamName)
+								.setModuleType(moduleType)
+								.setModuleLabel(moduleLabel).build());
+					}
+					catch (KeeperException e) {
+						// ignore
+					}
+				}
+
 				// todo: if the container went away we should select another one to deploy to;
 				// otherwise this reflects a bug in the container or some kind of network
 				// error in which case the state of deployment is "unknown"
 				throw new IllegalStateException(String.format(
-						"Deployment of %s module %s to the following containers timed out: %s",
+						"Deployment of %s module %s to the following containers failed: %s",
 						moduleType, moduleName, mapDeploymentStatus.keySet()));
 			}
 		}

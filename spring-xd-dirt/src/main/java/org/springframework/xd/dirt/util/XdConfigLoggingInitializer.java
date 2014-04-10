@@ -16,8 +16,6 @@
 
 package org.springframework.xd.dirt.util;
 
-import java.util.Map;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -27,12 +25,10 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.server.SharedServerContextConfiguration;
-import org.springframework.xd.dirt.server.options.ContainerOptions;
-import org.springframework.xd.dirt.server.options.HadoopDistro;
 
 /**
  * Initializer that can print useful stuff about an XD context on startup.
- *
+ * 
  * @author Dave Syer
  * @author David Turanski
  * @author Ilayaperumal Gopinathan
@@ -75,24 +71,7 @@ public class XdConfigLoggingInitializer implements ApplicationListener<ContextRe
 	private void logHadoopDistro() {
 		String hadoopDistro = environment.resolvePlaceholders(HADOOP_DISTRO_OPTION);
 		logger.info("Hadoop Distro: " + hadoopDistro);
-		String hdpVersionFromCP = org.apache.hadoop.util.VersionInfo.getVersion();
-		Map<HadoopDistro, String> hadoopVersionsMap = ContainerOptions.getHadoopDistroVersions();
-		// Check if the hadoop version being used is different from the hadoop distro option
-		if (!hdpVersionFromCP.contains(hadoopVersionsMap.get(HadoopDistro.valueOf(hadoopDistro)))) {
-			for (HadoopDistro key : hadoopVersionsMap.keySet()) {
-				if (hdpVersionFromCP.contains(hadoopVersionsMap.get(key))) {
-					logger.warn(String.format(
-							"Hadoop version detected from classpath: %s but you provided '--hadoopDistro %s'. Did you mean '--hadoopDistro %s'?",
-							hdpVersionFromCP,
-							hadoopDistro,
-							key.toString()));
-					// TODO: log at error and exit the application?
-				}
-			}
-		}
-		else {
-			logger.info("Hadoop version detected from classpath: " + hdpVersionFromCP);
-		}
+		logger.info("Hadoop version detected from classpath: " + org.apache.hadoop.util.VersionInfo.getVersion());
 	}
 
 	private void logZkConnectString() {

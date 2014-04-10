@@ -16,9 +16,6 @@
 
 package org.springframework.xd.dirt.server.options;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.kohsuke.args4j.Option;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -26,7 +23,7 @@ import org.springframework.xd.dirt.server.options.ResourcePatternScanningOptionH
 
 /**
  * Holds configuration options that are valid for the Container node, when using distributed mode.
- *
+ * 
  * @author Eric Bottard
  * @author David Turanski
  * @author Ilayaperumal Gopinathan
@@ -45,8 +42,6 @@ public class ContainerOptions extends CommonDistributedOptions {
 	private String groups;
 
 	public static final HadoopDistro DEFAULT_HADOOP_DISTRO = HadoopDistro.hadoop22;
-
-	private static final Map<HadoopDistro, String> hadoopDistroVersions = new HashMap<HadoopDistro, String>();
 
 	public void setXD_TRANSPORT(String transport) {
 		this.transport = transport;
@@ -70,15 +65,5 @@ public class ContainerOptions extends CommonDistributedOptions {
 
 	public String getXD_CONTAINER_GROUPS() {
 		return this.groups;
-	}
-
-	public static Map<HadoopDistro, String> getHadoopDistroVersions() {
-		hadoopDistroVersions.put(HadoopDistro.hadoop12, "1.2");
-		hadoopDistroVersions.put(HadoopDistro.hdp13, "1.3");
-		hadoopDistroVersions.put(HadoopDistro.hdp20, "2.0");
-		hadoopDistroVersions.put(HadoopDistro.hadoop22, "2.2");
-		hadoopDistroVersions.put(HadoopDistro.cdh4, "cdh4");
-		hadoopDistroVersions.put(HadoopDistro.phd1, "gphd");
-		return hadoopDistroVersions;
 	}
 }

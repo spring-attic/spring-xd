@@ -15,7 +15,9 @@ package org.springframework.xd.dirt.server;
 
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.util.Assert;
 import org.springframework.xd.batch.hsqldb.server.HsqlServerApplication;
 import org.springframework.xd.dirt.server.options.SingleNodeOptions;
 import org.springframework.xd.dirt.util.BannerUtils;
@@ -49,8 +51,8 @@ public class SingleNodeApplication {
 		SpringApplicationBuilder admin =
 				new SpringApplicationBuilder(SingleNodeOptions.class, ParentConfiguration.class)
 						.listeners(bootstrapContext.commandLineListener())
-						.profiles(XdProfiles.ADMIN_PROFILE, XdProfiles.SINGLENODE_PROFILE,
-								HsqlServerApplication.HSQLDBSERVER_PROFILE)
+						.profiles(XdProfiles.ADMIN_PROFILE, XdProfiles.SINGLENODE_PROFILE)
+						.initializers(new HsqldbServerProfileActivator())
 						.child(SharedServerContextConfiguration.class, SingleNodeOptions.class)
 						.listeners(bootstrapContext.commandLineListener())
 						.child(SingleNodeOptions.class, AdminServerApplication.class)
@@ -101,6 +103,30 @@ public class SingleNodeApplication {
 
 	public ConfigurableApplicationContext containerContext() {
 		return containerContext;
+	}
+
+	/**
+	 * Initializer class that activates {@link HsqlServerApplication.HSQLDBSERVER_PROFILE} if the underlying datasource
+	 * is hsql and embedded hsqldb is opted.
+	 */
+	class HsqldbServerProfileActivator implements
+			ApplicationContextInitializer<ConfigurableApplicationContext> {
+
+		private static final String SPRING_DATASOURCE_URL_OPTION = "${spring.datasource.url}";
+
+		private static final String SINGLENODE_EMBEDDED_HSQL = "${singlenode.embeddedHsql}";
+
+		@Override
+		public void initialize(ConfigurableApplicationContext applicationContext) {
+			String dataSourceUrl = applicationContext.getEnvironment().resolvePlaceholders(SPRING_DATASOURCE_URL_OPTION);
+			String embeddedHsql = applicationContext.getEnvironment().resolvePlaceholders(SINGLENODE_EMBEDDED_HSQL);
+			Assert.notNull(dataSourceUrl, "At least one datasource (for batch) must be set.");
+			Assert.notNull(embeddedHsql,
+					"The property singlenode.embeddedHsql must be set for singlenode. Default is true.");
+			if (dataSourceUrl.contains("hsql") && embeddedHsql.equals("true")) {
+				applicationContext.getEnvironment().addActiveProfile(HsqlServerApplication.HSQLDBSERVER_PROFILE);
+			}
+		}
 	}
 
 }

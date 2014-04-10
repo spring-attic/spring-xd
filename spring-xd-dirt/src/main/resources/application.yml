@@ -85,7 +85,8 @@ spring:
 transport: local
 store: memory
 analytics: memory
-
+singlenode:
+  embeddedHsql: ${XD_SINGLENODE_EMBEDHSQL:true}
 ---
 
 # HSQL database configuration

@@ -21,6 +21,7 @@ import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_JO
 import org.hibernate.validator.constraints.NotBlank;
 import org.hibernate.validator.constraints.Range;
 
+import org.springframework.xd.module.options.mixins.BatchJobFieldDelimiterOptionMixin;
 import org.springframework.xd.module.options.mixins.BatchJobFieldNamesOptionMixin;
 import org.springframework.xd.module.options.mixins.BatchJobResourcesOptionMixin;
 import org.springframework.xd.module.options.mixins.BatchJobRestartableOptionMixin;
@@ -33,7 +34,8 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  * 
  * @author Ilayaperumal Gopinathan
  */
-@Mixin({ BatchJobRestartableOptionMixin.class, BatchJobResourcesOptionMixin.class, BatchJobFieldNamesOptionMixin.class })
+@Mixin({ BatchJobRestartableOptionMixin.class, BatchJobResourcesOptionMixin.class, BatchJobFieldNamesOptionMixin.class,
+		 BatchJobFieldDelimiterOptionMixin.class})
 public class HdfsMongodbJobOptionsMetadata {
 
 	private String databaseName = "xd";

@@ -13,15 +13,13 @@
 
 package org.springframework.xd.dirt.plugins;
 
-import java.util.Properties;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.xd.dirt.util.ConfigLocations;
 import org.springframework.xd.module.core.Module;
 
 /**
- * Exports MBeans from a module using a unique domain name xd.[group].[module]
+ * Exports MBeans from a module using a unique domain name xd.[group].[module].
  * 
  * @author David Turanski
  * @author Gary Russell
@@ -36,11 +34,6 @@ public class MBeanExportingPlugin extends AbstractPlugin {
 	@Override
 	public void preProcessModule(Module module) {
 		module.addComponents(new ClassPathResource(CONTEXT_CONFIG_ROOT + "mbean-exporters.xml"));
-		Properties objectNameProperties = new Properties();
-		objectNameProperties.put("xd.module.name", module.getName());
-		objectNameProperties.put("xd.module.index", module.getDeploymentMetadata().getIndex());
-
-		module.addProperties(objectNameProperties);
 	}
 
 	@Override

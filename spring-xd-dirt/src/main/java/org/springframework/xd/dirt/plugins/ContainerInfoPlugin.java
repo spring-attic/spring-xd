@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,27 @@
 
 package org.springframework.xd.dirt.plugins;
 
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.xd.dirt.util.ConfigLocations;
+import java.util.Properties;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.xd.dirt.container.ContainerAttributes;
 import org.springframework.xd.module.core.Module;
+import org.springframework.xd.module.options.spi.ModulePlaceholders;
 
 
 /**
- * A Plugin to add SpEL property accessors for JSON and Tuples.
+ * A plugin that exposes information about the container to the Environment.
  * 
- * @author David Turanski
+ * @author Eric Bottard
  */
-public class SpelPropertyAccessorPlugin extends AbstractPlugin {
+public class ContainerInfoPlugin extends AbstractPlugin {
 
-	private static final String CONTEXT_CONFIG_ROOT = ConfigLocations.XD_CONFIG_ROOT + "plugins/common/";
+	private final ContainerAttributes attributes;
+
+	@Autowired
+	public ContainerInfoPlugin(ContainerAttributes attributes) {
+		this.attributes = attributes;
+	}
 
 	@Override
 	public boolean supports(Module module) {
@@ -37,6 +45,12 @@ public class SpelPropertyAccessorPlugin extends AbstractPlugin {
 
 	@Override
 	public void preProcessModule(Module module) {
-		module.addComponents(new ClassPathResource(CONTEXT_CONFIG_ROOT + "spel-property-accessors.xml"));
+		Properties props = new Properties();
+		for (String key : attributes.keySet()) {
+			props.setProperty(ModulePlaceholders.XD_CONTAINER_KEY_PREFIX + key, attributes.get(key));
+		}
+
+		module.addProperties(props);
 	}
+
 }

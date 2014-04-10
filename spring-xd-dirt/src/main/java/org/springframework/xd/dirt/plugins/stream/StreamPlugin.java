@@ -16,6 +16,8 @@
 
 package org.springframework.xd.dirt.plugins.stream;
 
+import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_STREAM_NAME_KEY;
+
 import java.util.Properties;
 
 import org.springframework.boot.context.event.ApplicationPreparedEvent;
@@ -45,8 +47,7 @@ public class StreamPlugin extends AbstractStreamPlugin {
 	public void preProcessModule(Module module) {
 		DeploymentMetadata md = module.getDeploymentMetadata();
 		Properties properties = new Properties();
-		properties.setProperty("xd.stream.name", md.getGroup());
-		properties.setProperty("xd.module.index", String.valueOf(md.getIndex()));
+		properties.setProperty(XD_STREAM_NAME_KEY, md.getGroup());
 		module.addProperties(properties);
 		if (module.getType() == ModuleType.sink) {
 			module.addListener(new ApplicationListener<ApplicationPreparedEvent>() {

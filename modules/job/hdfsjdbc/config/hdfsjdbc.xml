@@ -56,13 +56,13 @@
 	<bean id="databasePopulator" class="org.springframework.xd.jdbc.SingleTableDatabaseInitializer">
 		<property name="scripts" value="${xd.config.home}/${initializerScript:init_batch_import.sql}"/>
 		<property name="ignoreFailedDrops" value="true"/>
-		<property name="tableName" value="${tableName:${xd.stream.name}}"/>
+		<property name="tableName" value="${tableName:${xd.job.name}}"/>
 		<property name="columnNames" value="${names}" />
 	</bean>
 
 	<bean id="itemWriter" class="org.springframework.xd.jdbc.NamedColumnJdbcBatchItemWriter">
 		<property name="dataSource" ref="dataSource"/>
-		<property name="tableName" value="${tableName:${xd.stream.name}}" />
+		<property name="tableName" value="${tableName:${xd.job.name}}" />
 		<property name="columnNames" value="${names}" />
 		<property name="itemSqlParameterSourceProvider">
 			<bean class="org.springframework.xd.tuple.batch.TupleSqlParameterSourceProvider" />

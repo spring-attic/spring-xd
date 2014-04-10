@@ -16,6 +16,8 @@
 
 package org.springframework.xd.dirt.plugins.job;
 
+import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_JOB_NAME_KEY;
+
 import java.util.Properties;
 
 import org.springframework.core.io.ClassPathResource;
@@ -47,7 +49,7 @@ public class JobPlugin extends AbstractJobPlugin {
 
 	private void configureProperties(Module module) {
 		final Properties properties = new Properties();
-		properties.setProperty("xd.stream.name", module.getDeploymentMetadata().getGroup());
+		properties.setProperty(XD_JOB_NAME_KEY, module.getDeploymentMetadata().getGroup());
 		module.addProperties(properties);
 	}
 

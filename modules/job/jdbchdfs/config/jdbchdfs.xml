@@ -43,9 +43,9 @@
 				</property>
 			</bean>
 		</property>
-		<property name="baseFilename" value="${fileName:${xd.stream.name}}"/>
+		<property name="baseFilename" value="${fileName}"/>
 		<property name="rolloverThresholdInBytes" value="${rollover}"/>
-		<property name="basePath" value="${directory:/xd/${xd.stream.name}}/"/>
+		<property name="basePath" value="${directory}/"/>
 		<property name="fileSuffix" value="${fileExtension}"/>
 	</bean>
 

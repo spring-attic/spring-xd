@@ -73,10 +73,19 @@ public class ContainerAttributes implements Map<String, String> {
 		this.put(CONTAINER_ID_KEY, id);
 	}
 
+	/**
+	 * Constructor to be called when the attributes are already known.
+	 * If an id is not present in the map, one will be generated.
+	 *
+	 * @param attributes the container's attributes
+	 */
 	public ContainerAttributes(Map<? extends String, ? extends String> attributes) {
+		Assert.notNull(attributes, "attributes must not be null");
+		if (!attributes.containsKey(CONTAINER_ID_KEY)) {
+			this.put(CONTAINER_ID_KEY, UUID.randomUUID().toString());
+		}
 		this.putAll(attributes);
 	}
-
 
 	public String getId() {
 		return this.get(CONTAINER_ID_KEY);
@@ -226,6 +235,14 @@ public class ContainerAttributes implements Map<String, String> {
 	@Override
 	public Set<java.util.Map.Entry<String, String>> entrySet() {
 		return Collections.unmodifiableSet(map.entrySet());
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public String toString() {
+		return map.toString();
 	}
 
 }

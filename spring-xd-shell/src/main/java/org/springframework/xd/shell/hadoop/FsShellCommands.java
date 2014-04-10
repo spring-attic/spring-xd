@@ -319,6 +319,7 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 		run(argv.toArray(new String[0]));
 	}
 
+	@SuppressWarnings("deprecation")
 	@CliCommand(value = PREFIX + "rm", help = "Remove files in the HDFS")
 	public void rm(
 			@CliOption(key = { "", PATH }, mandatory = false, unspecifiedDefaultValue = ".", help = "path to be deleted") final String path,
@@ -329,7 +330,8 @@ public class FsShellCommands extends ConfigurationAware implements ExecutionProc
 			FileSystem fs = file.getFileSystem(getHadoopConfiguration());
 			for (Path p : FileUtil.stat2Paths(fs.globStatus(file), file)) {
 				FileStatus status = fs.getFileStatus(p);
-				if (status.isDirectory() && !recursive) {
+				// have to use the deprecated isDir() method here to remain compatible with Hadoop 1.x
+				if (status.isDir() && !recursive) {
 					LOG.severe("To remove directory, please use 'fs rm </path/to/dir> --recursive' instead");
 					return;
 				}

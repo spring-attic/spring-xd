@@ -40,9 +40,9 @@ public class ModuleInfoPlugin extends AbstractPlugin {
 	@Override
 	public void preProcessModule(Module module) {
 		Properties props = new Properties();
-		props.put(XD_MODULE_NAME_KEY, module.getName());
-		props.put(XD_MODULE_INDEX_KEY, module.getDeploymentMetadata().getIndex());
-		props.put(XD_MODULE_TYPE_KEY, module.getType().name());
+		props.setProperty(XD_MODULE_NAME_KEY, module.getName());
+		props.setProperty(XD_MODULE_INDEX_KEY, String.valueOf(module.getDeploymentMetadata().getIndex()));
+		props.setProperty(XD_MODULE_TYPE_KEY, module.getType().name());
 
 		module.addProperties(props);
 	}

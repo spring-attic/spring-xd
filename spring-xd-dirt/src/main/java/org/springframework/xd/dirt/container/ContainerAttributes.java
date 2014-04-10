@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * Metadata for a Container instance.
- *
+ * 
  * @author Mark Fisher
  * @author David Turanski
  */
@@ -65,7 +65,7 @@ public class ContainerAttributes implements Map<String, String> {
 
 	/**
 	 * Constructor to be called when the id is already known.
-	 *
+	 * 
 	 * @param id the container's id
 	 */
 	public ContainerAttributes(String id) {
@@ -74,9 +74,9 @@ public class ContainerAttributes implements Map<String, String> {
 	}
 
 	/**
-	 * Constructor to be called when the attributes are already known.
-	 * If an id is not present in the map, one will be generated.
-	 *
+	 * Constructor to be called when the attributes are already known. If an id is not present in the map, one will be
+	 * generated.
+	 * 
 	 * @param attributes the container's attributes
 	 */
 	public ContainerAttributes(Map<? extends String, ? extends String> attributes) {
@@ -127,8 +127,9 @@ public class ContainerAttributes implements Map<String, String> {
 
 	/**
 	 * Retrieve the custom attributes for this container. This will not include the values for common keys:
-	 * {@value #CONTAINER_ID_KEY}, {@value #PROCESS_ID_KEY}, {@value #HOST_KEY}, {@value #IP_ADDRESS_KEY} and {@value #GROUPS_KEY}
-	 *
+	 * {@value #CONTAINER_ID_KEY}, {@value #PROCESS_ID_KEY}, {@value #HOST_KEY}, {@value #IP_ADDRESS_KEY} and
+	 * {@value #GROUPS_KEY}
+	 * 
 	 * @return the map of custom attributes
 	 */
 	public Map<String, String> getCustomAttributes() {

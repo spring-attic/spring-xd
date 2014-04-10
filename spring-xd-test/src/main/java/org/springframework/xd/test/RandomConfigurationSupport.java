@@ -17,7 +17,6 @@
 package org.springframework.xd.test;
 
 import java.io.File;
-import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.AfterClass;
@@ -43,8 +42,6 @@ public class RandomConfigurationSupport {
 
 	private static final String HSQLDB_DATABASE = "hsql.server.database";
 
-	private static final String XD_DATASOURCE_INIT = "XD_DATASOURCE_INIT";
-
 	private static String tmpDir = FileUtils.getTempDirectory().toString();
 
 	private static String batchJobsDirectory = tmpDir;
@@ -67,7 +64,6 @@ public class RandomConfigurationSupport {
 		System.setProperty(XD_DATA_HOME, batchJobsDirectory);
 		System.setProperty(HSQLDB_DBNAME, "dbname-" + now);
 		System.setProperty(HSQLDB_DATABASE, "database-" + now);
-		System.setProperty(XD_DATASOURCE_INIT, "true");
 	}
 
 	private void setupRandomHSQLDBConfig() {
@@ -93,7 +89,7 @@ public class RandomConfigurationSupport {
 		try {
 			FileUtils.deleteDirectory(new File(batchJobsDirectory + "/jobs"));
 		}
-		catch (IOException e) {
+		catch (Exception e) {
 			e.printStackTrace();
 		}
 		batchJobsDirectory = tmpDir;

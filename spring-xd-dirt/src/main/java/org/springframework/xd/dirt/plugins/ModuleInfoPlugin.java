@@ -16,19 +16,21 @@
 
 package org.springframework.xd.dirt.plugins;
 
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.xd.dirt.util.ConfigLocations;
+import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_MODULE_INDEX_KEY;
+import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_MODULE_NAME_KEY;
+import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_MODULE_TYPE_KEY;
+
+import java.util.Properties;
+
 import org.springframework.xd.module.core.Module;
 
 
 /**
- * A Plugin to add SpEL property accessors for JSON and Tuples.
+ * A plugin that exposes information such as the module name and index to be available inside the environment.
  * 
- * @author David Turanski
+ * @author Eric Bottard
  */
-public class SpelPropertyAccessorPlugin extends AbstractPlugin {
-
-	private static final String CONTEXT_CONFIG_ROOT = ConfigLocations.XD_CONFIG_ROOT + "plugins/common/";
+public class ModuleInfoPlugin extends AbstractPlugin {
 
 	@Override
 	public boolean supports(Module module) {
@@ -37,6 +39,12 @@ public class SpelPropertyAccessorPlugin extends AbstractPlugin {
 
 	@Override
 	public void preProcessModule(Module module) {
-		module.addComponents(new ClassPathResource(CONTEXT_CONFIG_ROOT + "spel-property-accessors.xml"));
+		Properties props = new Properties();
+		props.put(XD_MODULE_NAME_KEY, module.getName());
+		props.put(XD_MODULE_INDEX_KEY, module.getDeploymentMetadata().getIndex());
+		props.put(XD_MODULE_TYPE_KEY, module.getType().name());
+
+		module.addProperties(props);
 	}
+
 }

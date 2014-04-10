@@ -23,6 +23,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import static org.springframework.integration.test.matcher.PayloadMatcher.hasPayload;
+import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_JOB_NAME_KEY;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -129,7 +130,7 @@ public class JobPluginTests extends RandomConfigurationSupport {
 
 		Properties moduleProperties = module.getProperties();
 
-		assertEquals("foo", moduleProperties.getProperty("xd.stream.name"));
+		assertEquals("foo", moduleProperties.getProperty(XD_JOB_NAME_KEY));
 	}
 
 	@Test

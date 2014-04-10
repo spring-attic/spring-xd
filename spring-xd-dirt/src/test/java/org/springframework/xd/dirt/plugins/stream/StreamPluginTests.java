@@ -23,6 +23,7 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_STREAM_NAME_KEY;
 
 import java.util.List;
 
@@ -81,9 +82,8 @@ public class StreamPluginTests {
 		module.initialize();
 		assertEquals(0, module.getProperties().size());
 		plugin.preProcessModule(module);
-		assertEquals(2, module.getProperties().size());
-		assertEquals("foo", module.getProperties().getProperty("xd.stream.name"));
-		assertEquals("0", module.getProperties().getProperty("xd.module.index"));
+		assertEquals(1, module.getProperties().size());
+		assertEquals("foo", module.getProperties().getProperty(XD_STREAM_NAME_KEY));
 	}
 
 	@Test

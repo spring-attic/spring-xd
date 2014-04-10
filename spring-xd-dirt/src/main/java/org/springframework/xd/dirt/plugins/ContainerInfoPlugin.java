@@ -16,19 +16,18 @@
 
 package org.springframework.xd.dirt.plugins;
 
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.xd.dirt.util.ConfigLocations;
+import java.util.Properties;
+
 import org.springframework.xd.module.core.Module;
+import org.springframework.xd.module.options.spi.ModulePlaceholders;
 
 
 /**
- * A Plugin to add SpEL property accessors for JSON and Tuples.
+ * A plugin that exposes information about the container to the Environment.
  * 
- * @author David Turanski
+ * @author ebottard
  */
-public class SpelPropertyAccessorPlugin extends AbstractPlugin {
-
-	private static final String CONTEXT_CONFIG_ROOT = ConfigLocations.XD_CONFIG_ROOT + "plugins/common/";
+public class ContainerInfoPlugin extends AbstractPlugin {
 
 	@Override
 	public boolean supports(Module module) {
@@ -37,6 +36,10 @@ public class SpelPropertyAccessorPlugin extends AbstractPlugin {
 
 	@Override
 	public void preProcessModule(Module module) {
-		module.addComponents(new ClassPathResource(CONTEXT_CONFIG_ROOT + "spel-property-accessors.xml"));
+		Properties props = new Properties();
+		props.put(ModulePlaceholders.XD_CONTAINER_ID_KEY, getApplicationContext().getParent().getId());
+
+		module.addProperties(props);
 	}
+
 }

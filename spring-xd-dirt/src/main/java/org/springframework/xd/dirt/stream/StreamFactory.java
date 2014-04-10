@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -35,6 +37,11 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
  * @author Mark Fisher
  */
 public class StreamFactory {
+
+	/**
+	 * Pattern used for parsing a String of comma-delimited key=value pairs.
+	 */
+	private static final Pattern DEPLOYMENT_PROPERTY_PATTERN = Pattern.compile(",\\s*module\\.[^\\.]+\\.[^=]+=");
 
 	private final XDStreamParser parser;
 
@@ -63,20 +70,7 @@ public class StreamFactory {
 
 		Stream.Builder builder = new Stream.Builder();
 		builder.setName(name);
-
-		String deploymentPropertiesString = properties.get("deploymentProperties");
-		if (!StringUtils.isEmpty(deploymentPropertiesString)) {
-			Map<String, String> deploymentProperties = new HashMap<String, String>();
-			String[] entries = StringUtils.commaDelimitedListToStringArray(deploymentPropertiesString);
-			for (String entry : entries) {
-				int firstEquals = entry.indexOf('=');
-				if (firstEquals != -1) {
-					// todo: should key only be a "flag" as in: put(key, true)?
-					deploymentProperties.put(entry.substring(0, firstEquals), entry.substring(firstEquals + 1));
-				}
-			}
-			builder.setDeploymentProperties(deploymentProperties);
-		}
+		builder.setDeploymentProperties(parseDeploymentProperties(properties.get("deploymentProperties")));
 
 		// TODO: compare with the createStream method of the prototype
 		for (int i = 0; i < requests.size(); i++) {
@@ -118,6 +112,42 @@ public class StreamFactory {
 			builder.addModuleDefinition(label, moduleDefinition, request.getParameters());
 		}
 		return builder.build();
+	}
+
+	/**
+	 * Parses a String comprised of 0 or more comma-delimited key=value pairs where each key has the format:
+	 * {@code module.[modulename].[key]}. Values may themselves contain commas, since the split points will
+	 * be based upon the key pattern.
+	 *
+	 * @param s the string to parse
+	 * @return the Map of parsed key value pairs
+	 */
+	private static Map<String, String> parseDeploymentProperties(String s) {
+		Map<String, String> deploymentProperties = new HashMap<String, String>();
+		if (!StringUtils.isEmpty(s)) {
+			Matcher matcher = DEPLOYMENT_PROPERTY_PATTERN.matcher(s);
+			int start = 0;
+			while (matcher.find()) {
+				addKeyValuePairAsProperty(s.substring(start, matcher.start()), deploymentProperties);
+				start = matcher.start() + 1;
+			}
+			addKeyValuePairAsProperty(s.substring(start), deploymentProperties);
+		}
+		return deploymentProperties;
+	}
+
+	/**
+	 * Adds a String of format key=value to the provided Map as a key/value pair.
+	 *
+	 * @param pair the String representation
+	 * @param properties the Map to which the key/value pair should be added
+	 */
+	private static void addKeyValuePairAsProperty(String pair, Map<String, String> properties) {
+		int firstEquals = pair.indexOf('=');
+		if (firstEquals != -1) {
+			// todo: should key only be a "flag" as in: put(key, true)?
+			properties.put(pair.substring(0, firstEquals).trim(), pair.substring(firstEquals + 1).trim());
+		}
 	}
 
 }

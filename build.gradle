@@ -129,7 +129,7 @@ ext {
 	// Hadoop Versions
 	hadoop12Version = '1.2.1'
 	hadoop22Version = '2.2.0'
-	cdh4Version = '2.0.0-cdh4.3.1'
+	cdh4Version = '2.0.0-cdh4.6.0'
 	hdp13Version = '1.2.0'
 	hdp20Version = '2.2.0'
 	phd1Version = '2.0.5-alpha-gphd-2.1.0.0'
@@ -1574,6 +1574,7 @@ task copyXDInstall(type: Copy, dependsOn: [
 	from "$rootDir/spring-xd-dirt/build/install/spring-xd-dirt"
 	into "$buildDir/dist/spring-xd/xd"
 	exclude "**/lib/hadoop-*.jar"
+	exclude "**/lib/protobuf-java-*.jar"
 	exclude "**/commons-logging*.jar"
 	exclude "**/lib/spring-data-hadoop-*.jar"
 }
@@ -1584,6 +1585,7 @@ task copyXDShellInstall(type: Copy, dependsOn: [
 	from "$rootDir/spring-xd-shell/build/install/spring-xd-shell"
 	into "$buildDir/dist/spring-xd/shell"
 	exclude "**/lib/hadoop-*.jar"
+	exclude "**/lib/protobuf-java-*.jar"
 	exclude "**/lib/spring-data-hadoop-*.jar"
 }
 

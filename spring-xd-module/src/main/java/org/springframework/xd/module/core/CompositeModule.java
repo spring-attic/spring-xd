@@ -25,6 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
@@ -245,7 +246,13 @@ public class CompositeModule extends AbstractModule {
 				Module module = this.modules.get(i);
 				module.start();
 			}
-			this.context.start();
+			try {
+				this.context.start();
+			}
+			catch (BeansException be) {
+				this.context.destroy();
+				throw be;
+			}
 			if (logger.isInfoEnabled()) {
 				logger.info("started module: " + this.toString());
 			}

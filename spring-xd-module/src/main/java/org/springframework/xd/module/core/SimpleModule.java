@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.builder.ParentContextCloserApplicationListener;
@@ -245,7 +246,15 @@ public class SimpleModule extends AbstractModule {
 
 	@Override
 	public void start() {
-		context.start();
+		try {
+			context.start();
+		}
+		catch (BeansException be) {
+			// Make sure the context is destroyed; this will allow possible destruction of life-cycle beans registered
+			// (example: MBeans)
+			destroy();
+			throw be;
+		}
 	}
 
 	@Override

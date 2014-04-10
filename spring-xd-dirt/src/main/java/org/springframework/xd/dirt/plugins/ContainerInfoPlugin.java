@@ -18,6 +18,7 @@ package org.springframework.xd.dirt.plugins;
 
 import java.util.Properties;
 
+import org.springframework.xd.dirt.container.ContainerAttributes;
 import org.springframework.xd.module.core.Module;
 import org.springframework.xd.module.options.spi.ModulePlaceholders;
 
@@ -25,7 +26,7 @@ import org.springframework.xd.module.options.spi.ModulePlaceholders;
 /**
  * A plugin that exposes information about the container to the Environment.
  * 
- * @author ebottard
+ * @author Eric Bottard
  */
 public class ContainerInfoPlugin extends AbstractPlugin {
 
@@ -37,7 +38,10 @@ public class ContainerInfoPlugin extends AbstractPlugin {
 	@Override
 	public void preProcessModule(Module module) {
 		Properties props = new Properties();
-		props.put(ModulePlaceholders.XD_CONTAINER_ID_KEY, getApplicationContext().getParent().getId());
+		ContainerAttributes attributes = getApplicationContext().getBean(ContainerAttributes.class);
+		for (String key : attributes.keySet()) {
+			props.put(ModulePlaceholders.XD_CONTAINER_PREFIX_KEY + key, attributes.get(key));
+		}
 
 		module.addProperties(props);
 	}

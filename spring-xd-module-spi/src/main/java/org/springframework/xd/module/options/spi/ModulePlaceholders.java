@@ -37,7 +37,7 @@ public final class ModulePlaceholders {
 
 	public static final String XD_MODULE_INDEX_KEY = "xd.module.index";
 
-	public static final String XD_CONTAINER_ID_KEY = "xd.container.id";
+	public static final String XD_CONTAINER_PREFIX_KEY = "xd.container.";
 
 
 	/**
@@ -69,10 +69,5 @@ public final class ModulePlaceholders {
 	 * Will be resolved to the index (0-based) of the module inside the stream.
 	 */
 	public static final String XD_MODULE_INDEX = "${" + XD_MODULE_INDEX_KEY + "}";
-
-	/**
-	 * Will be resolved to the id of the container the module is deployed in.
-	 */
-	public static final String XD_CONTAINER_ID = "${" + XD_CONTAINER_ID_KEY + "}";
 
 }

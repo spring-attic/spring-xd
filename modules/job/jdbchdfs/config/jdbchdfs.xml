@@ -39,6 +39,7 @@
 				<property name="fieldExtractor">
 					<bean class="org.springframework.xd.tuple.batch.TupleFieldExtractor"/>
 				</property>
+				<property name="delimiter" value="${delimiter}"/>
 			</bean>
 		</property>
 		<property name="baseFilename" value="${fileName}"/>

@@ -20,19 +20,23 @@ import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_JO
 
 import org.springframework.xd.jdbc.ResourcesIntoJdbcJobModuleOptionsMetadata.JobImportToJdbcMixin;
 import org.springframework.xd.module.options.mixins.BatchJobDeleteFilesOptionMixin;
+import org.springframework.xd.module.options.mixins.BatchJobFieldDelimiterOptionMixin;
 import org.springframework.xd.module.options.mixins.BatchJobFieldNamesOptionMixin;
 import org.springframework.xd.module.options.mixins.BatchJobResourcesOptionMixin;
 import org.springframework.xd.module.options.mixins.BatchJobRestartableOptionMixin;
 import org.springframework.xd.module.options.spi.Mixin;
 
 /**
- * Typical class for metadata about jobs that slurp csv resources into jdbc.
+ * Typical class for metadata about jobs that slurp delimited resources into jdbc. Can be used as is or extended if
+ * needed.
  * 
  * @author Eric Bottard
  * @author Ilayaperumal Gopinathan
+ * @author Michael Minella
  */
 @Mixin({ JdbcConnectionMixin.class, BatchJobRestartableOptionMixin.class, BatchJobResourcesOptionMixin.class,
-	BatchJobDeleteFilesOptionMixin.class, BatchJobFieldNamesOptionMixin.class, JobImportToJdbcMixin.class })
+	BatchJobDeleteFilesOptionMixin.class, BatchJobFieldNamesOptionMixin.class, BatchJobFieldDelimiterOptionMixin.class,
+	JobImportToJdbcMixin.class })
 public class ResourcesIntoJdbcJobModuleOptionsMetadata {
 
 	public static class JobImportToJdbcMixin extends AbstractImportToJdbcOptionsMetadata {

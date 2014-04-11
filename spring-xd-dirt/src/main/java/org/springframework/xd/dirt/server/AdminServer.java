@@ -222,6 +222,14 @@ public class AdminServer implements ContainerRepository, ApplicationListener<App
 		}
 	}
 
+	@Override
+	public void destroy() {
+		if (leaderSelector != null) {
+			leaderSelector.close();
+			leaderSelector = null;
+		}
+	}
+
 	/**
 	 * {@inheritDoc}
 	 */

@@ -35,6 +35,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
@@ -52,7 +53,7 @@ import org.springframework.xd.test.hadoop.HadoopFileSystemTestSupport;
 
 
 /**
- * 
+ *
  * @author Gary Russell
  */
 public class RemoteFileToHadoopTests {

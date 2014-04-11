@@ -29,7 +29,7 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 
 
 /**
- * 
+ *
  * @author David Turanski
  */
 public class ZookeeperTests {
@@ -52,6 +52,7 @@ public class ZookeeperTests {
 			client.create().creatingParentsIfNeeded().forPath(
 					new StreamsPath().setStreamName("foo" + i).setModuleType("source").setModuleLabel("m" + i).build());
 		}
+		cache.close();
 	}
 
 	static class ListenerOne implements PathChildrenCacheListener {

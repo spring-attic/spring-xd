@@ -27,7 +27,7 @@ import org.springframework.xd.test.fixtures.TcpSource;
 
 
 /**
- * 
+ *
  * @author Glenn Renfro
  */
 public class Sources {

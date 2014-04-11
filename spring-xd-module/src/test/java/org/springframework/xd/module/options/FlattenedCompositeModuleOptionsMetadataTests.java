@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@ import org.junit.rules.ExpectedException;
 
 import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.validation.BindException;
-
 
 public class FlattenedCompositeModuleOptionsMetadataTests {
 
@@ -139,8 +138,7 @@ public class FlattenedCompositeModuleOptionsMetadataTests {
 		thrown.expectMessage("OverlappingPojo");
 		thrown.expectMessage("BackingPojo");
 
-
-		FlattenedCompositeModuleOptionsMetadata flattened = new FlattenedCompositeModuleOptionsMetadata(
+		new FlattenedCompositeModuleOptionsMetadata(
 				Arrays.asList(
 						new PojoModuleOptionsMetadata(BackingPojo.class),
 						new PojoModuleOptionsMetadata(OverlappingPojo.class)));

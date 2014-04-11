@@ -44,7 +44,7 @@ import org.springframework.xd.shell.util.TableHeader;
 
 /**
  * Commands for interacting with aggregate counter analytics.
- * 
+ *
  * @author Ilayaperumal Gopinathan
  */
 @Component
@@ -136,12 +136,6 @@ public class AggregateCounterCommands extends AbstractMetricsCommands implements
 			t.newRow().addValue(1, entry.getKey().toString()).addValue(2, "|")
 					.addValue(3, pattern.format(entry.getValue()));
 		}
-		return t;
-	}
-
-	private Table displayErrorTable(String errorMessage) {
-		Table t = new Table().addHeader(1, new TableHeader("Error"));
-		t.newRow().addValue(1, errorMessage);
 		return t;
 	}
 

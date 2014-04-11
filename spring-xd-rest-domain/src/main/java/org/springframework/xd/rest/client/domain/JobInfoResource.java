@@ -23,7 +23,7 @@ import org.springframework.hateoas.ResourceSupport;
 
 /**
  * Represents Batch job info.
- * 
+ *
  * @author Ilayaperumal Gopinathan
  */
 @XmlRootElement
@@ -42,9 +42,7 @@ public class JobInfoResource extends ResourceSupport {
 	/**
 	 * Default constructor for serialization frameworks.
 	 */
-	@SuppressWarnings("unused")
 	protected JobInfoResource() {
-
 	}
 
 	public JobInfoResource(String name, int executionCount, Long jobInstanceId, boolean launchable,

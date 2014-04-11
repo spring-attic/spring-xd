@@ -35,8 +35,6 @@ import org.jclouds.domain.LoginCredentials;
 import org.jclouds.http.handlers.BackoffLimitedRetryHandler;
 import org.jclouds.io.Payload;
 import org.jclouds.sshj.SshjSshClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import org.springframework.xd.rest.client.impl.SpringXDTemplate;
 
@@ -44,15 +42,13 @@ import com.google.common.net.HostAndPort;
 
 /**
  * Utilities for creating and monitoring streams and the JMX hooks for those strings.
- * 
+ *
  * @author Glenn Renfro
  */
 public class StreamUtils {
 
 	public final static String TMP_DIR = "result/";
 
-	private static final Logger LOGGER = LoggerFactory
-			.getLogger(XdEc2Validation.class);
 
 	public static void stream(String streamName, String streamDefinition,
 			URL adminServer) throws IOException, URISyntaxException {

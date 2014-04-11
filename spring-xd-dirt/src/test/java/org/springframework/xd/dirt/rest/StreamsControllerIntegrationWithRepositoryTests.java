@@ -16,10 +16,8 @@
 
 package org.springframework.xd.dirt.rest;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -52,7 +50,7 @@ import org.springframework.xd.module.ModuleType;
  * Tests REST compliance of streams-related end-points. Unlike {@link StreamsControllerIntegrationTests}, instead of
  * mocks, this class provides access to actual repositories: {@link ZooKeeperStreamRepository} and
  * {@link ZooKeeperStreamDefinitionRepository}.
- * 
+ *
  * @author Gunnar Hillert
  * @author Glenn Renfro
  */

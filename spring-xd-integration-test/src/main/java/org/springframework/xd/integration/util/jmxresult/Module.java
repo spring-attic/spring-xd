@@ -19,8 +19,6 @@ package org.springframework.xd.integration.util.jmxresult;
 import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
 
 import org.springframework.util.StringUtils;

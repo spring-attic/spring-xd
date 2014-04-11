@@ -33,7 +33,6 @@ import org.springframework.xd.dirt.stream.StreamDeployer;
 import org.springframework.xd.dirt.stream.StreamRepository;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
-import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.core.Module;
 import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
@@ -196,35 +195,6 @@ public class SingleNodeIntegrationTestSupport {
 				}
 			}
 		}
-	}
-
-	private final boolean waitForStreamOp(StreamDefinition definition, boolean isDeploy) {
-		final int MAX_TRIES = 40;
-		int tries = 1;
-		boolean done = false;
-
-		while (!done && tries <= MAX_TRIES) {
-			done = true;
-			int i = definition.getModuleDefinitions().size();
-			for (ModuleDefinition module : definition.getModuleDefinitions()) {
-				Module deployedModule = getModule(definition.getName(), module.getName(), --i);
-				done = (isDeploy) ? deployedModule != null : deployedModule == null;
-				if (!done) {
-					break;
-				}
-			}
-			if (!done) {
-				try {
-					Thread.sleep(100);
-					tries++;
-				}
-				catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-					break;
-				}
-			}
-		}
-		return done;
 	}
 
 	private final boolean waitForUndeploy(StreamDefinition definition) {

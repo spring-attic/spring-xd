@@ -121,5 +121,27 @@ public class ProcessorsTests extends AbstractStreamIntegrationTest {
 
 	}
 
+	@Test
+	public void testScriptTransformProcessor() {
+		HttpSource httpSource = newHttpSource();
+		FileSink fileSink = newFileSink().binary(true);
+		stream().create(generateStreamName(),
+				"%s | transform --script='org/springframework/xd/dirt/stream/transform-to-lowercase.groovy' | %s",
+				httpSource, fileSink);
+		httpSource.ensureReady().postData("HELLO").postData("World").postData("!");
+		assertThat(fileSink, eventually(hasContentsThat(equalTo("helloworld!"))));
+	}
+
+	@Test
+	public void testExpressionTransformProcessor() {
+		HttpSource httpSource = newHttpSource();
+		FileSink fileSink = newFileSink().binary(true);
+		stream().create(generateStreamName(),
+				"%s | transform --expression=payload.toString().toUpperCase() | %s",
+				httpSource, fileSink);
+		httpSource.ensureReady().postData("hello").postData("World").postData("!");
+		assertThat(fileSink, eventually(hasContentsThat(equalTo("HELLOWORLD!"))));
+	}
+
 
 }

@@ -70,11 +70,13 @@ public class ExpressionOrScriptMixin implements ProfileNamesProvider {
 	}
 
 	/**
-	 * Use can't explicitly set both script and expression.
+	 * User can't explicitly set both script and expression.
 	 */
 	@AssertTrue(message = "the 'script' and 'expression' options are mutually exclusive")
 	public boolean isValid() {
-		return script == null || expression == null;
+		// default value for expression is always set; this is safe as profilesToActivate() will activate 'use-script'
+		// if script is non-null
+		return script == null || expression.equals(DEFAULT_EXPRESSION);
 	}
 
 	@Override

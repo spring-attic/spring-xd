@@ -1,0 +1,1 @@
+return payload.toString().toLowerCase()

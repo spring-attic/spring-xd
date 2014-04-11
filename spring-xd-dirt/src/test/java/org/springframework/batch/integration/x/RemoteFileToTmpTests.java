@@ -57,8 +57,8 @@ import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.x.bus.BusTestUtils;
 import org.springframework.integration.x.bus.LocalMessageBus;
-import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.test.context.ContextConfiguration;
@@ -68,7 +68,7 @@ import org.springframework.util.FileCopyUtils;
 
 
 /**
- * 
+ *
  * @author Gary Russell
  */
 @ContextConfiguration
@@ -102,9 +102,9 @@ public class RemoteFileToTmpTests {
 	@Qualifier("stepExecutionReplies.input")
 	private MessageChannel repliesIn;
 
-	private MessageBus bus;
+	private LocalMessageBus bus;
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Before
 	public void setup() throws Exception {
 		byte[] bytes = "foo".getBytes();
@@ -123,6 +123,7 @@ public class RemoteFileToTmpTests {
 		when(session.list("/foo/")).thenReturn(fileList);
 
 		this.bus = new LocalMessageBus();
+		this.bus.setApplicationContext(BusTestUtils.MOCK_AC);
 		this.bus.bindRequestor("foo", this.requestsOut, this.repliesIn);
 		this.bus.bindReplier("foo", this.requestsIn, this.repliesOut);
 	}

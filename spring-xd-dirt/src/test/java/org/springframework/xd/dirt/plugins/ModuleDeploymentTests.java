@@ -24,6 +24,7 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.integration.redis.outbound.RedisQueueOutboundChannelAdapter;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.x.bus.BusTestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.xd.dirt.module.ModuleDeploymentRequest;
 import org.springframework.xd.module.ModuleType;
@@ -47,6 +48,7 @@ public class ModuleDeploymentTests {
 		LettuceConnectionFactory connectionFactory = redisAvailableRule.getResource();
 		RedisQueueOutboundChannelAdapter adapter = new RedisQueueOutboundChannelAdapter(deployerQueue,
 				connectionFactory);
+		adapter.setBeanFactory(BusTestUtils.MOCK_BF);
 		adapter.setExtractPayload(false);
 		adapter.afterPropertiesSet();
 		ModuleDeploymentRequest request = new ModuleDeploymentRequest();
@@ -63,6 +65,7 @@ public class ModuleDeploymentTests {
 		LettuceConnectionFactory connectionFactory = redisAvailableRule.getResource();
 		RedisQueueOutboundChannelAdapter adapter = new RedisQueueOutboundChannelAdapter(deployerQueue,
 				connectionFactory);
+		adapter.setBeanFactory(BusTestUtils.MOCK_BF);
 		adapter.setExtractPayload(false);
 		adapter.afterPropertiesSet();
 		ModuleDeploymentRequest sinkRequest = new ModuleDeploymentRequest();

@@ -32,7 +32,9 @@ import org.junit.Test;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.scheduling.PollerMetadata;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -63,6 +65,8 @@ public class MessageBusAwareChannelResolverTests {
 				this.resolver);
 		context.registerSingleton("other", DirectChannel.class);
 		context.registerSingleton("taskScheduler", ThreadPoolTaskScheduler.class);
+		context.registerSingleton(IntegrationContextUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME,
+				DefaultMessageBuilderFactory.class);
 		context.refresh();
 
 		PollerMetadata poller = new PollerMetadata();
@@ -103,7 +107,7 @@ public class MessageBusAwareChannelResolverTests {
 	public void resolveTopicChannel() {
 		MessageChannel registered = resolver.resolveDestination("topic:bar");
 		PublishSubscribeChannel[] testChannels = {
-			new PublishSubscribeChannel(), new PublishSubscribeChannel(), new PublishSubscribeChannel()
+				new PublishSubscribeChannel(), new PublishSubscribeChannel(), new PublishSubscribeChannel()
 		};
 		final CountDownLatch latch = new CountDownLatch(testChannels.length);
 		final List<Message<?>> received = new ArrayList<Message<?>>();

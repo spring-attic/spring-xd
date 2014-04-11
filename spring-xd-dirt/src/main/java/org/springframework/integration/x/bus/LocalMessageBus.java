@@ -46,7 +46,7 @@ import org.springframework.util.Assert;
  * {@link DirectChannel} or a {@link QueueChannel} depending on whether the binding is aliased or not then bridges the
  * passed {@link MessageChannel} to the channel which is registered in the given application context. If that channel
  * does not yet exist, it will be created.
- * 
+ *
  * @author David Turanski
  * @author Mark Fisher
  * @author Gary Russell
@@ -86,6 +86,7 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 		@Override
 		protected QueueChannel createSharedChannel(String name) {
 			QueueChannel queueChannel = new QueueChannel(queueSize);
+			queueChannel.setBeanFactory(applicationContext);
 			return queueChannel;
 		}
 	};
@@ -95,7 +96,9 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 
 		@Override
 		protected PublishSubscribeChannel createSharedChannel(String name) {
-			return new PublishSubscribeChannel();
+			PublishSubscribeChannel publishSubscribeChannel = new PublishSubscribeChannel();
+			publishSubscribeChannel.setBeanFactory(applicationContext);
+			return publishSubscribeChannel;
 		}
 	};
 
@@ -226,6 +229,7 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 		ExecutorChannel channel = this.requestReplyChannels.get(name);
 		if (channel == null) {
 			channel = new ExecutorChannel(this.executor);
+			channel.setBeanFactory(applicationContext);
 			this.requestReplyChannels.put(name, channel);
 		}
 		return channel;
@@ -274,6 +278,7 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 
 		};
 
+		handler.setBeanFactory(applicationContext.getBeanFactory());
 		handler.setOutputChannel(to);
 		handler.setBeanName(bridgeName);
 		handler.afterPropertiesSet();
@@ -313,7 +318,7 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 
 	/**
 	 * Looks up or optionally creates a new channel to use.
-	 * 
+	 *
 	 * @author Eric Bottard
 	 */
 	private abstract class SharedChannelProvider<T extends AbstractMessageChannel> {

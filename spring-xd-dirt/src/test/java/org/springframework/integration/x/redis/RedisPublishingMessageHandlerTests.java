@@ -36,12 +36,13 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.redis.outbound.RedisPublishingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.x.bus.BusTestUtils;
 import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
  * Temporary copy of SI RedisPublishingMessageHandlerTests that adds tests that publish messages with data types other
  * than String
- * 
+ *
  * @author Mark Fisher
  * @author Jennifer Hickey
  * @author Gary Russell
@@ -70,6 +71,7 @@ public class RedisPublishingMessageHandlerTests {
 	public void testWithDefaultSerializer() throws Exception {
 		setupListener(new StringRedisSerializer());
 		final RedisPublishingMessageHandler handler = new RedisPublishingMessageHandler(connectionFactory);
+		handler.setBeanFactory(BusTestUtils.MOCK_BF);
 		handler.setTopic(TOPIC);
 		handler.afterPropertiesSet();
 		for (int i = 0; i < NUM_MESSAGES; i++) {
@@ -84,6 +86,7 @@ public class RedisPublishingMessageHandlerTests {
 	public void testWithNoSerializer() throws Exception {
 		setupListener(null);
 		final RedisPublishingMessageHandler handler = new RedisPublishingMessageHandler(connectionFactory);
+		handler.setBeanFactory(BusTestUtils.MOCK_BF);
 		handler.setTopic(TOPIC);
 		handler.afterPropertiesSet();
 		for (int i = 0; i < NUM_MESSAGES; i++) {
@@ -99,6 +102,7 @@ public class RedisPublishingMessageHandlerTests {
 		GenericToStringSerializer<Long> serializer = new GenericToStringSerializer<Long>(Long.class);
 		setupListener(serializer);
 		final RedisPublishingMessageHandler handler = new RedisPublishingMessageHandler(connectionFactory);
+		handler.setBeanFactory(BusTestUtils.MOCK_BF);
 		handler.setTopic(TOPIC);
 		handler.setSerializer(serializer);
 		handler.afterPropertiesSet();

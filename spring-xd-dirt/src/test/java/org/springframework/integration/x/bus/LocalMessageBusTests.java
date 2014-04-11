@@ -27,6 +27,8 @@ import org.junit.Test;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.http.MediaType;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.support.DefaultMessageBuilderFactory;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
@@ -44,6 +46,9 @@ public class LocalMessageBusTests extends AbstractMessageBusTests {
 	protected MessageBus getMessageBus() throws Exception {
 		LocalMessageBus bus = new LocalMessageBus();
 		GenericApplicationContext applicationContext = new GenericApplicationContext();
+		applicationContext.getBeanFactory().registerSingleton(
+				IntegrationContextUtils.INTEGRATION_MESSAGE_BUILDER_FACTORY_BEAN_NAME,
+				new DefaultMessageBuilderFactory());
 		applicationContext.refresh();
 		bus.setApplicationContext(applicationContext);
 		bus.afterPropertiesSet();

@@ -55,7 +55,7 @@ import org.springframework.util.Assert;
 
 /**
  * A {@link MessageBus} implementation backed by RabbitMQ.
- * 
+ *
  * @author Mark Fisher
  * @author Gary Russell
  * @author Jennifer Hickey
@@ -128,7 +128,9 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		listenerContainer.setAdviceChain(new Advice[] { advice });
 		listenerContainer.afterPropertiesSet();
 		AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(listenerContainer);
+		adapter.setBeanFactory(this.getBeanFactory());
 		DirectChannel bridgeToModuleChannel = new DirectChannel();
+		bridgeToModuleChannel.setBeanFactory(this.getBeanFactory());
 		bridgeToModuleChannel.setBeanName(name + ".bridge");
 		adapter.setOutputChannel(bridgeToModuleChannel);
 		adapter.setHeaderMapper(this.mapper);
@@ -155,6 +157,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	private AmqpOutboundEndpoint buildOutboundEndpoint(final String name) {
 		rabbitAdmin.declareQueue(new Queue(name));
 		AmqpOutboundEndpoint queue = new AmqpOutboundEndpoint(rabbitTemplate);
+		queue.setBeanFactory(this.getBeanFactory());
 		queue.setRoutingKey(name); // uses default exchange
 		queue.setHeaderMapper(mapper);
 		queue.afterPropertiesSet();
@@ -165,6 +168,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	public void bindPubSubProducer(String name, MessageChannel moduleOutputChannel) {
 		rabbitAdmin.declareExchange(new FanoutExchange("topic." + name));
 		AmqpOutboundEndpoint fanout = new AmqpOutboundEndpoint(rabbitTemplate);
+		fanout.setBeanFactory(this.getBeanFactory());
 		fanout.setExchangeName("topic." + name);
 		fanout.setHeaderMapper(mapper);
 		fanout.afterPropertiesSet();
@@ -181,6 +185,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		Assert.isInstanceOf(SubscribableChannel.class, moduleOutputChannel);
 		MessageHandler handler = new SendingHandler(delegate, replyTo);
 		EventDrivenConsumer consumer = new EventDrivenConsumer((SubscribableChannel) moduleOutputChannel, handler);
+		consumer.setBeanFactory(this.getBeanFactory());
 		consumer.setBeanName("outbound." + name);
 		consumer.afterPropertiesSet();
 		addBinding(Binding.forProducer(moduleOutputChannel, consumer));
@@ -195,6 +200,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		Assert.isInstanceOf(SubscribableChannel.class, requests);
 		String queueName = name + ".requests";
 		AmqpOutboundEndpoint queue = this.buildOutboundEndpoint(queueName);
+		queue.setBeanFactory(this.getBeanFactory());
 
 		String replyQueueName = name + ".replies." + this.getIdGenerator().generateId();
 		this.doRegisterProducer(name, requests, queue, replyQueueName);
@@ -215,6 +221,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		this.doRegisterConsumer(name, requests, requestQueue);
 
 		AmqpOutboundEndpoint replyQueue = new AmqpOutboundEndpoint(rabbitTemplate);
+		replyQueue.setBeanFactory(this.getBeanFactory());
 		replyQueue.setBeanFactory(new DefaultListableBeanFactory());
 		replyQueue.setRoutingKeyExpression("headers['" + AmqpHeaders.REPLY_TO + "']");
 		replyQueue.setHeaderMapper(mapper);
@@ -236,6 +243,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		private SendingHandler(MessageHandler delegate, String replyTo) {
 			this.delegate = delegate;
 			this.replyTo = replyTo;
+			this.setBeanFactory(RabbitMessageBus.this.getBeanFactory());
 		}
 
 		@Override
@@ -252,6 +260,11 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	}
 
 	private class ReceivingHandler extends AbstractReplyProducingMessageHandler {
+
+		public ReceivingHandler() {
+			super();
+			this.setBeanFactory(RabbitMessageBus.this.getBeanFactory());
+		}
 
 		@Override
 		protected Object handleRequestMessage(Message<?> requestMessage) {

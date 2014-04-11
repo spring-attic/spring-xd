@@ -50,7 +50,7 @@ import org.springframework.util.Assert;
 
 /**
  * A {@link MessageBus} implementation backed by Redis.
- * 
+ *
  * @author Mark Fisher
  * @author Gary Russell
  * @author David Turanski
@@ -85,6 +85,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 	public void bindConsumer(final String name, MessageChannel moduleInputChannel, boolean aliasHint) {
 		RedisQueueMessageDrivenEndpoint adapter = new RedisQueueMessageDrivenEndpoint("queue." + name,
 				this.connectionFactory);
+		adapter.setBeanFactory(this.getBeanFactory());
 		adapter.setSerializer(null);
 		doRegisterConsumer(name, moduleInputChannel, adapter);
 	}
@@ -92,6 +93,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 	@Override
 	public void bindPubSubConsumer(final String name, MessageChannel moduleInputChannel) {
 		RedisInboundChannelAdapter adapter = new RedisInboundChannelAdapter(this.connectionFactory);
+		adapter.setBeanFactory(this.getBeanFactory());
 		adapter.setSerializer(null);
 		adapter.setTopics("topic." + name);
 		doRegisterConsumer(name, moduleInputChannel, adapter);
@@ -99,6 +101,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 
 	private void doRegisterConsumer(String name, MessageChannel moduleInputChannel, MessageProducerSupport adapter) {
 		DirectChannel bridgeToModuleChannel = new DirectChannel();
+		bridgeToModuleChannel.setBeanFactory(this.getBeanFactory());
 		bridgeToModuleChannel.setBeanName(name + ".bridge");
 		adapter.setOutputChannel(bridgeToModuleChannel);
 		adapter.setBeanName("inbound." + name);
@@ -117,6 +120,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 		Assert.isInstanceOf(SubscribableChannel.class, moduleOutputChannel);
 		RedisQueueOutboundChannelAdapter queue = new RedisQueueOutboundChannelAdapter("queue." + name,
 				connectionFactory);
+		queue.setBeanFactory(this.getBeanFactory());
 		queue.afterPropertiesSet();
 		doRegisterProducer(name, moduleOutputChannel, queue);
 	}
@@ -124,6 +128,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 	@Override
 	public void bindPubSubProducer(final String name, MessageChannel moduleOutputChannel) {
 		RedisPublishingMessageHandler topic = new RedisPublishingMessageHandler(connectionFactory);
+		topic.setBeanFactory(this.getBeanFactory());
 		topic.setTopic("topic." + name);
 		topic.afterPropertiesSet();
 		doRegisterProducer(name, moduleOutputChannel, topic);
@@ -138,6 +143,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 		Assert.isInstanceOf(SubscribableChannel.class, moduleOutputChannel);
 		MessageHandler handler = new SendingHandler(delegate, replyTo);
 		EventDrivenConsumer consumer = new EventDrivenConsumer((SubscribableChannel) moduleOutputChannel, handler);
+		consumer.setBeanFactory(this.getBeanFactory());
 		consumer.setBeanName("outbound." + name);
 		consumer.afterPropertiesSet();
 		addBinding(Binding.forProducer(moduleOutputChannel, consumer));
@@ -152,6 +158,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 		Assert.isInstanceOf(SubscribableChannel.class, requests);
 		RedisQueueOutboundChannelAdapter queue = new RedisQueueOutboundChannelAdapter("queue." + name + ".requests",
 				this.connectionFactory);
+		queue.setBeanFactory(this.getBeanFactory());
 		queue.afterPropertiesSet();
 		String replyQueueName = name + ".replies." + this.getIdGenerator().generateId();
 		this.doRegisterProducer(name, requests, queue, replyQueueName);
@@ -169,12 +176,14 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 		RedisQueueMessageDrivenEndpoint adapter = new RedisQueueMessageDrivenEndpoint(
 				"queue." + name + ".requests",
 				this.connectionFactory);
+		adapter.setBeanFactory(this.getBeanFactory());
 		adapter.setSerializer(null);
 		this.doRegisterConsumer(name, requests, adapter);
 
 		RedisQueueOutboundChannelAdapter replyQueue = new RedisQueueOutboundChannelAdapter(
 				RedisMessageBus.parser.parseExpression("headers['" + REPLY_TO + "']"),
 				this.connectionFactory);
+		replyQueue.setBeanFactory(this.getBeanFactory());
 		replyQueue.setIntegrationEvaluationContext(this.evaluationContext);
 		replyQueue.afterPropertiesSet();
 		this.doRegisterProducer(name, replies, replyQueue);
@@ -195,6 +204,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 		private SendingHandler(MessageHandler delegate, String replyTo) {
 			this.delegate = delegate;
 			this.replyTo = replyTo;
+			this.setBeanFactory(RedisMessageBus.this.getBeanFactory());
 		}
 
 		@Override
@@ -217,6 +227,11 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 
 	private class ReceivingHandler extends AbstractReplyProducingMessageHandler {
 
+		public ReceivingHandler() {
+			super();
+			this.setBeanFactory(RedisMessageBus.this.getBeanFactory());
+		}
+
 		@SuppressWarnings("unchecked")
 		@Override
 		protected Object handleRequestMessage(Message<?> requestMessage) {
@@ -237,7 +252,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 		/**
 		 * Encodes requested headers into payload; max headers = 255; max header name length = 255; max header value
 		 * length = 255.
-		 * 
+		 *
 		 * @throws UnsupportedEncodingException
 		 */
 		Message<byte[]> embedHeaders(Message<byte[]> message, String... headers) throws UnsupportedEncodingException {

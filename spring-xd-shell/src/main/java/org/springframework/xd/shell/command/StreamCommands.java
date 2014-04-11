@@ -64,7 +64,8 @@ public class StreamCommands implements CommandMarker {
 			@CliOption(mandatory = true, key = { "definition" }, optionContext = "completion-stream disable-string-converter", help = "a stream definition, using XD DSL (e.g. \"http --port=9000 | hdfs\")") String dsl,
 			@CliOption(key = "deploy", help = "whether to deploy the stream immediately", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true") boolean deploy) {
 		streamOperations().createStream(name, dsl, deploy);
-		return String.format("Created new stream '%s'", name);
+		return (deploy) ? String.format("Created and deployed new stream '%s'", name) : String.format(
+				"Created new stream '%s'", name);
 	}
 
 	@CliCommand(value = DESTROY_STREAM, help = "Destroy an existing stream")

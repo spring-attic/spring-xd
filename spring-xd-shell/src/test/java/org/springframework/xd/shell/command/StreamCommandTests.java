@@ -309,9 +309,10 @@ public class StreamCommandTests extends AbstractStreamIntegrationTest {
 
 	@Test
 	public void testDestroyTap() {
+		HttpSource source = newHttpSource();
 		String streamName = generateStreamName();
 		String tapName = generateStreamName();
-		stream().create(streamName, "file | log");
+		stream().create(streamName, "%s | log", source);
 		stream().create(tapName, "%s > queue:foo", getTapName(streamName));
 		stream().destroyStream(streamName);
 		stream().destroyStream(tapName);

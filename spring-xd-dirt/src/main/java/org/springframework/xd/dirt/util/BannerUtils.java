@@ -24,7 +24,7 @@ import org.springframework.util.FileCopyUtils;
 
 /**
  * Provides utilities for rendering graphical console output.
- * 
+ *
  * @author Gunnar Hillert
  * @author David Turanski
  * @since 1.0
@@ -42,9 +42,9 @@ public final class BannerUtils {
 	/**
 	 * Retrieves the ASCII resource "banner.txt" from the classpath. Will also use the version number from
 	 * "MANIFEST.MF".
-	 * 
+	 *
 	 * Similar to {@link org.springframework.shell.plugin.support.DefaultBannerProvider}.
-	 * 
+	 *
 	 * @return String representing the Banner.
 	 */
 	private static String getBanner() {
@@ -62,7 +62,7 @@ public final class BannerUtils {
 			return FileCopyUtils.copyToString(
 					new InputStreamReader(BannerUtils.class
 							.getResourceAsStream("banner.txt"))).replaceAll(
-					"(\\r|\\n)+", LINE_SEPARATOR);
+									"(\\r|\\n)+", LINE_SEPARATOR);
 		}
 		catch (Exception e) {
 			throw new IllegalStateException("Could not read banner.txt");
@@ -82,14 +82,14 @@ public final class BannerUtils {
 			String additionalMessage) {
 		StringBuffer sb = new StringBuffer(LINE_SEPARATOR);
 		sb.append(getBanner())
-				.append(StringUtils.isEmpty(additionalMessage) ? ""
-						: additionalMessage)
+		.append(StringUtils.isEmpty(additionalMessage) ? ""
+				: additionalMessage)
 				.append(LINE_SEPARATOR)
 				.append(StringUtils.isEmpty(containerName) ? ""
-						: "Started container : " + containerName)
-				.append(LINE_SEPARATOR)
-				.append("Documentation: https://github.com/SpringSource/spring-xd/wiki")
-				.append(LINE_SEPARATOR);
+						: "Started : " + containerName)
+						.append(LINE_SEPARATOR)
+						.append("Documentation: https://github.com/spring-projects/spring-xd/wiki")
+						.append(LINE_SEPARATOR);
 		return sb.toString();
 	}
 

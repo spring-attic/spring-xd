@@ -18,7 +18,7 @@
 	<channel id="values" />
 
 	<int-jdbc:outbound-channel-adapter
-		query="insert into ${tableName:${xd.stream.name}} (#{transformer.columns}) values(#{transformer.values})"
+		query="insert into ${tableName} (#{transformer.columns}) values(#{transformer.values})"
 		data-source="dataSource" channel="values" />
 
 	<beans:bean id="transformer"
@@ -36,25 +36,21 @@
 	<beans:bean id="databasePopulator"
 		class="org.springframework.xd.jdbc.SingleTableDatabaseInitializer">
 		<beans:property name="scripts"
-			value="${xd.config.home}/${initializerScript:init_db.sql}" />
+			value="${xd.config.home}/${initializerScript}" />
 		<beans:property name="ignoreFailedDrops" value="true" />
-		<beans:property name="tableName" value="${tableName:${xd.stream.name}}" />
-		<beans:property name="columnNames" value="${columns:payload}" />
+		<beans:property name="tableName" value="${tableName}" />
+		<beans:property name="columnNames" value="${columns}" />
 	</beans:bean>
 
 	<context:annotation-config/>
 
 	<bean id="dataSource" class="org.apache.tomcat.jdbc.pool.DataSource" destroy-method="close" xmlns="http://www.springframework.org/schema/beans">
-		<property name="driverClassName" value="${driverClass:${spring.datasource.driverClassName}}"/>
-		<property name="url" value="${url:${spring.datasource.url}}"/>
-		<property name="username" value="${username:${spring.datasource.username}}"/>
-		<property name="password" value="${password:${spring.datasource.password}}"/>
+		<property name="driverClassName" value="${driverClass}"/>
+		<property name="url" value="${url}"/>
+		<property name="username" value="${username}"/>
+		<property name="password" value="${password}"/>
 		<property name="initialSize" value="0" />
 	</bean>
-
-	<context:property-placeholder
-		location="${xd.config.home}/${configProperties:jdbc}.properties"
-		ignore-resource-not-found="true" />
 
 	<beans profile="cloud" xmlns="http://www.springframework.org/schema/beans">
 		<cloud:data-source id="dataSource" service-name="${xd.jdbc.service:mysql}" />

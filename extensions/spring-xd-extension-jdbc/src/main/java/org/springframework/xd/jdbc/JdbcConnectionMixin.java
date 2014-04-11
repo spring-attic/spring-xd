@@ -1,18 +1,22 @@
+
 package org.springframework.xd.jdbc;
 
 import org.springframework.xd.module.options.spi.ModuleOption;
 
 /**
  * Basic JDBC module/job options.
- *
+ * 
  * @author Luke Taylor
  */
-public abstract class AbstractJdbcOptionsMetadata {
-	protected String driverClass;
-	protected String password;
-	protected String url;
-	protected String username;
-	protected String configProperties;
+public class JdbcConnectionMixin {
+
+	protected String driverClass = "org.hsqldb.jdbc.JDBCDriver";
+
+	protected String password = "";
+
+	protected String url = "jdbc:hsqldb:hsql://localhost:9101/xdjob";
+
+	protected String username = "sa";
 
 	@ModuleOption("the JDBC driver to use")
 	public void setDriverClass(String driverClass) {
@@ -34,11 +38,6 @@ public abstract class AbstractJdbcOptionsMetadata {
 		this.username = username;
 	}
 
-	@ModuleOption("the name of the properties file (in /config) used to override database settings")
-	public void setConfigProperties(String configProperties) {
-		this.configProperties = configProperties;
-	}
-
 	public String getDriverClass() {
 		return driverClass;
 	}
@@ -55,7 +54,4 @@ public abstract class AbstractJdbcOptionsMetadata {
 		return username;
 	}
 
-	public String getConfigProperties() {
-		return configProperties;
-	}
 }

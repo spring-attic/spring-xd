@@ -11,11 +11,14 @@ import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
 
 /**
+ * Captures options for the {@code jdbchdfs} job.
+ * 
+ * @author Eric Bottard
  * @author Luke Taylor
  * @author Ilayaperumal Gopinathan
  */
-@Mixin(BatchJobRestartableOptionMixin.class)
-public class JdbcHdfsOptionsMetadata extends AbstractJdbcOptionsMetadata {
+@Mixin({ JdbcConnectionMixin.class, BatchJobRestartableOptionMixin.class })
+public class JdbcHdfsOptionsMetadata {
 
 	private String tableName = "";
 

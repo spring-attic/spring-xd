@@ -25,6 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.CuratorWatcher;
+import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
@@ -586,7 +587,8 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 						.setModuleLabel(moduleLabel).build();
 
 				CuratorFramework client = zkConnection.getClient();
-				if (client.checkExists().forPath(deploymentPath) != null) {
+				if (client.getState().equals(CuratorFrameworkState.STARTED)
+						&& client.checkExists().forPath(deploymentPath) != null) {
 					LOG.trace("Deleting path: {}", deploymentPath);
 					client.delete().deletingChildrenIfNeeded().forPath(deploymentPath);
 				}

@@ -52,7 +52,7 @@ import org.springframework.xd.module.options.PassthruModuleOptionsMetadata;
 
 /**
  * A {@link Module} implementation backed by a Spring {@link ApplicationContext}.
- * 
+ *
  * @author Mark Fisher
  * @author David Turanski
  * @author Gary Russell
@@ -66,7 +66,7 @@ public class SimpleModule extends AbstractModule {
 	 * Dedicated sublcass of {@link ParentContextCloserApplicationListener} used to create its own version of
 	 * ContextCloserListener that is aware of module order. Special care is taken so that no strong references to the
 	 * module context are retained (this is a *static* inner class).
-	 * 
+	 *
 	 * @author Eric Bottard
 	 */
 	private static final class ModuleParentContextCloserApplicationListener extends
@@ -259,7 +259,9 @@ public class SimpleModule extends AbstractModule {
 
 	@Override
 	public void stop() {
-		context.stop(); // Shouldn't need to close() as well?
+		if (context.isActive()) {
+			context.stop(); // Shouldn't need to close() as well?
+		}
 	}
 
 	@Override

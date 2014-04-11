@@ -16,7 +16,8 @@
 
 package org.springframework.xd.dirt.modules.metadata;
 
-import javax.validation.constraints.Size;
+import org.hibernate.validator.constraints.NotBlank;
+import org.hibernate.validator.constraints.Range;
 
 import org.springframework.xd.module.options.spi.ModuleOption;
 
@@ -25,18 +26,19 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  * 
  * @author Eric Bottard
  */
-public abstract class AbstractRabbitConnectionOptionsMetadata {
+public class RabbitConnectionMixin {
 
-	private String host;
+	private String host = "localhost";
 
-	private Integer port;
+	private int port = 5672;
 
-	private String vhost;
+	private String vhost = "/";
 
-	private String username;
+	private String username = "guest";
 
-	private String password;
+	private String password = "guest";
 
+	@NotBlank
 	public String getUsername() {
 		return username;
 	}
@@ -46,6 +48,7 @@ public abstract class AbstractRabbitConnectionOptionsMetadata {
 		this.username = username;
 	}
 
+	@NotBlank
 	public String getPassword() {
 		return password;
 	}
@@ -55,7 +58,7 @@ public abstract class AbstractRabbitConnectionOptionsMetadata {
 		this.password = password;
 	}
 
-	@Size
+	@NotBlank
 	public String getHost() {
 		return host;
 	}
@@ -65,7 +68,8 @@ public abstract class AbstractRabbitConnectionOptionsMetadata {
 		this.host = host;
 	}
 
-	public Integer getPort() {
+	@Range(min = 1, max = 65535)
+	public int getPort() {
 		return port;
 	}
 

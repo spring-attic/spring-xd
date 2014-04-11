@@ -7,6 +7,6 @@
 
 	<channel id="input"/>
 
-	<logging-channel-adapter channel="input" level="WARN" logger-name="logger.${name:${xd.stream.name}}"/>
+	<logging-channel-adapter channel="input" level="WARN" logger-name="logger.${name}"/>
 
 </beans:beans>

@@ -28,6 +28,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.util.MapBytesUtility;
 import org.springframework.xd.dirt.zookeeper.Paths;
 import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
@@ -87,7 +88,8 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 				String moduleId = getModuleId(metadataPath);
 				String containerId = getContainerId(metadataPath);
 				for (String propertyKey : map.keySet()) {
-					if (!propertyKey.startsWith(XD_MODULE_PROPERTIES_PREFIX)) {
+					if (!propertyKey.startsWith(XD_MODULE_PROPERTIES_PREFIX)
+							&& !StringUtils.isEmpty(map.get(propertyKey))) {
 						metadataMap.put(propertyKey, map.get(propertyKey));
 					}
 				}

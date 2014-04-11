@@ -99,7 +99,7 @@ public class RuntimeCommands implements CommandMarker {
 		}
 		final Table table = new Table();
 		table.addHeader(1, new TableHeader("Module")).addHeader(2, new TableHeader("Container Id")).addHeader(
-				3, new TableHeader("Properties"));
+				3, new TableHeader("Options"));
 		for (ModuleMetadataResource module : runtimeModules) {
 			final TableRow row = table.newRow();
 			row.addValue(1, module.getModuleId()).addValue(2, module.getContainerId()).addValue(3,

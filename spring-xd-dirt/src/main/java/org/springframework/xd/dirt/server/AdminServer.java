@@ -31,6 +31,7 @@ import org.apache.curator.utils.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
@@ -58,7 +59,7 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
  * @author Patrick Peralta
  * @author Mark Fisher
  */
-public class AdminServer implements ContainerRepository, ApplicationListener<ApplicationEvent> {
+public class AdminServer implements ContainerRepository, ApplicationListener<ApplicationEvent>, DisposableBean {
 
 	/**
 	 * Logger.
@@ -221,6 +222,14 @@ public class AdminServer implements ContainerRepository, ApplicationListener<App
 		}
 	}
 
+	@Override
+	public void destroy() {
+		if (leaderSelector != null) {
+			leaderSelector.close();
+			leaderSelector = null;
+		}
+	}
+
 	/**
 	 * {@link ZooKeeperConnectionListener} implementation that requests leadership
 	 * upon connection to ZooKeeper.
@@ -241,9 +250,11 @@ public class AdminServer implements ContainerRepository, ApplicationListener<App
 		 */
 		@Override
 		public void onDisconnect(CuratorFramework client) {
-			if (leaderSelector != null) {
-				leaderSelector.close();
-				leaderSelector = null;
+			try {
+				destroy();
+			}
+			catch (Exception e) {
+				LOG.warn("exception occurred while closing leader selector", e);
 			}
 		}
 	}

@@ -25,6 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.CuratorWatcher;
+import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
@@ -586,9 +587,20 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 						.setModuleLabel(moduleLabel).build();
 
 				CuratorFramework client = zkConnection.getClient();
-				if (client.checkExists().forPath(deploymentPath) != null) {
-					LOG.trace("Deleting path: {}", deploymentPath);
-					client.delete().deletingChildrenIfNeeded().forPath(deploymentPath);
+				try {
+					if (client.checkExists().forPath(deploymentPath) != null) {
+						LOG.trace("Deleting path: {}", deploymentPath);
+						client.delete().deletingChildrenIfNeeded().forPath(deploymentPath);
+					}
+				}
+				catch (KeeperException e) {
+					// it is common for a process shutdown to trigger this
+					// event; therefore any exception thrown while attempting
+					// to delete a deployment path will only be rethrown
+					// if the client is in a connected/started state
+					if (client.getState() == CuratorFrameworkState.STARTED) {
+						throw new RuntimeException(e);
+					}
 				}
 			}
 			else {
@@ -624,9 +636,20 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 						.setModuleLabel(moduleLabel).build();
 
 				CuratorFramework client = zkConnection.getClient();
-				if (client.checkExists().forPath(deploymentPath) != null) {
-					LOG.trace("Deleting path: {}", deploymentPath);
-					client.delete().deletingChildrenIfNeeded().forPath(deploymentPath);
+				try {
+					if (client.checkExists().forPath(deploymentPath) != null) {
+						LOG.trace("Deleting path: {}", deploymentPath);
+						client.delete().deletingChildrenIfNeeded().forPath(deploymentPath);
+					}
+				}
+				catch (KeeperException e) {
+					// it is common for a process shutdown to trigger this
+					// event; therefore any exception thrown while attempting
+					// to delete a deployment path will only be rethrown
+					// if the client is in a connected/started state
+					if (client.getState() == CuratorFrameworkState.STARTED) {
+						throw new RuntimeException(e);
+					}
 				}
 			}
 			else {

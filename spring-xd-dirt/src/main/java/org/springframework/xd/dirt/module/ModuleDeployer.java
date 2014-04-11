@@ -93,6 +93,8 @@ public class ModuleDeployer implements ApplicationContextAware, BeanClassLoaderA
 
 	@Override
 	public void destroy() throws Exception {
+		// todo: this isn't doing anything (other than logging) anymore
+		// we should either do something or no longer implement DisposableBean
 		for (Entry<String, Map<Integer, Module>> entry : this.deployedModules.entrySet()) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Destroying group:" + entry.getKey());
@@ -264,7 +266,18 @@ public class ModuleDeployer implements ApplicationContextAware, BeanClassLoaderA
 
 	private void beforeShutdown(Module module) {
 		for (Plugin plugin : this.getSupportedPlugins(module)) {
-			plugin.beforeShutdown(module);
+			try {
+				plugin.beforeShutdown(module);
+			}
+			catch (IllegalStateException e) {
+				if (logger.isWarnEnabled()) {
+					logger.warn("Failed to invoke plugin " + plugin.getClass().getSimpleName()
+							+ " during shutdown. " + e.getMessage());
+					if (logger.isDebugEnabled()) {
+						logger.debug(e);
+					}
+				}
+			}
 		}
 	}
 

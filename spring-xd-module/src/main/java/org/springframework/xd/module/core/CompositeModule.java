@@ -115,6 +115,7 @@ public class CompositeModule extends AbstractModule {
 			}
 			if (previousOutputChannel != null) {
 				BridgeHandler handler = new BridgeHandler();
+				handler.setBeanFactory(this.context.getBeanFactory());
 				handler.setOutputChannel(inputChannel);
 				handler.afterPropertiesSet();
 				ConsumerEndpointFactoryBean bridgeFactoryBean = new ConsumerEndpointFactoryBean();

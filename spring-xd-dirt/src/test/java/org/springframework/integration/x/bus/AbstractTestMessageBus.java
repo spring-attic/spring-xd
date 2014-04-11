@@ -24,8 +24,9 @@ import org.springframework.messaging.MessageChannel;
 
 /**
  * Abstract class that adds test support for {@link MessageBus}.
- * 
+ *
  * @author Ilayaperumal Gopinathan
+ * @author Gary Russell
  */
 public abstract class AbstractTestMessageBus implements MessageBus {
 
@@ -33,9 +34,10 @@ public abstract class AbstractTestMessageBus implements MessageBus {
 
 	protected Set<String> topics = new HashSet<String>();
 
-	private final MessageBus messageBus;
+	private final MessageBusSupport messageBus;
 
-	public AbstractTestMessageBus(MessageBus messageBus) {
+	public AbstractTestMessageBus(MessageBusSupport messageBus) {
+		messageBus.setBeanFactory(BusTestUtils.MOCK_BF);
 		this.messageBus = messageBus;
 	}
 

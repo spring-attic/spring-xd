@@ -35,13 +35,14 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.redis.outbound.RedisQueueOutboundChannelAdapter;
+import org.springframework.integration.x.bus.BusTestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
  * Integration test of {@link RedisQueueOutboundChannelAdapter}
- * 
+ *
  * @author Jennifer Hickey
  * @author Gary Russell
  */
@@ -60,6 +61,7 @@ public class RedisQueueOutboundChannelAdapterTests {
 	public void setUp() {
 		this.connectionFactory = redisAvailableRule.getResource();
 		adapter = new RedisQueueOutboundChannelAdapter(QUEUE_NAME, connectionFactory);
+		adapter.setBeanFactory(BusTestUtils.MOCK_BF);
 	}
 
 	@After

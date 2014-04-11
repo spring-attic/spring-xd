@@ -39,6 +39,7 @@ import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.redis.inbound.RedisQueueMessageDrivenEndpoint;
+import org.springframework.integration.x.bus.BusTestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
@@ -47,7 +48,7 @@ import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
  * Integration test of {@link RedisQueueInboundChannelAdapter}
- * 
+ *
  * @author Jennifer Hickey
  */
 public class RedisQueueInboundChannelAdapterTests {
@@ -68,8 +69,10 @@ public class RedisQueueInboundChannelAdapterTests {
 		messages.clear();
 		this.connectionFactory = redisAvailableRule.getResource();
 		DirectChannel outputChannel = new DirectChannel();
+		outputChannel.setBeanFactory(BusTestUtils.MOCK_BF);
 		outputChannel.subscribe(new TestMessageHandler());
 		adapter = new RedisQueueMessageDrivenEndpoint(QUEUE_NAME, connectionFactory);
+		adapter.setBeanFactory(BusTestUtils.MOCK_BF);
 		adapter.setOutputChannel(outputChannel);
 	}
 

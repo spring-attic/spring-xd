@@ -34,6 +34,7 @@ import org.springframework.batch.core.repository.dao.JdbcExecutionContextDao;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.x.bus.LocalMessageBus;
 import org.springframework.integration.x.bus.MessageBus;
@@ -71,11 +72,12 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 /**
  * Provide a mockito mock for any of the business layer dependencies. Adding yet another configuration class on top, one
  * can selectively override those mocks (with <i>e.g.</i> in memory implementations).
- * 
+ *
  * @author Eric Bottard
  * @author Ilayaperumal Gopinathan
  */
 @Configuration
+@EnableIntegration
 public class Dependencies {
 
 	@Bean
@@ -147,7 +149,8 @@ public class Dependencies {
 
 	@Bean
 	public JobDeployer jobDeployer() {
-		return new JobDeployer(zooKeeperConnection(), jobDefinitionRepository(), xdJobRepository(), parser(), messageBus());
+		return new JobDeployer(zooKeeperConnection(), jobDefinitionRepository(), xdJobRepository(), parser(),
+				messageBus());
 	}
 
 	@Bean

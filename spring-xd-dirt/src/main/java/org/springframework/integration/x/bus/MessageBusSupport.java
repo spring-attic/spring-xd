@@ -29,6 +29,9 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.Lifecycle;
 import org.springframework.http.MediaType;
 import org.springframework.integration.support.MessageBuilder;
@@ -48,7 +51,7 @@ import org.springframework.util.MimeType;
  * @author David Turanski
  * @author Gary Russell
  */
-public abstract class MessageBusSupport implements MessageBus {
+public abstract class MessageBusSupport implements MessageBus, BeanFactoryAware {
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
@@ -63,6 +66,17 @@ public abstract class MessageBusSupport implements MessageBus {
 	private final List<Binding> bindings = Collections.synchronizedList(new ArrayList<Binding>());
 
 	private final IdGenerator idGenerator = new AlternativeJdkIdGenerator();
+
+	private volatile BeanFactory beanFactory;
+
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		this.beanFactory = beanFactory;
+	}
+
+	protected BeanFactory getBeanFactory() {
+		return beanFactory;
+	}
 
 	public void setCodec(MultiTypeCodec<Object> codec) {
 		this.codec = codec;

@@ -269,30 +269,38 @@ public class ContainerListener implements PathChildrenCacheListener {
 							// amount specified by the module descriptor
 							LOG.info("Deploying module {} to {}", moduleName, container);
 
-							client.create().creatingParentsIfNeeded().forPath(new ModuleDeploymentsPath()
-									.setContainer(containerName)
-									.setStreamName(streamName)
-									.setModuleType(moduleType)
-									.setModuleLabel(moduleLabel).build());
+							String path = null;
+							try {
+								client.create().creatingParentsIfNeeded().forPath(new ModuleDeploymentsPath()
+										.setContainer(containerName)
+										.setStreamName(streamName)
+										.setModuleType(moduleType)
+										.setModuleLabel(moduleLabel).build());
 
-							String path = new StreamsPath()
-									.setStreamName(streamName)
-									.setModuleType(moduleType)
-									.setModuleLabel(moduleLabel)
-									.setContainer(containerName).build();
-
-							// todo: make timeout configurable
-							long timeout = System.currentTimeMillis() + 10000;
-							boolean deployed;
-							do {
-								Thread.sleep(10);
-								deployed = client.checkExists().forPath(path) != null;
+								path = new StreamsPath()
+										.setStreamName(streamName)
+										.setModuleType(moduleType)
+										.setModuleLabel(moduleLabel)
+										.setContainer(containerName).build();
 							}
-							while (!deployed && System.currentTimeMillis() < timeout);
+							catch (KeeperException.NodeExistsException e) {
+								LOG.info("Module {} is already deployed to container {}", descriptor, container);
+							}
 
-							if (!deployed) {
-								throw new IllegalStateException(String.format(
-										"Deployment of module %s to container %s timed out", moduleName, containerName));
+							if (StringUtils.hasText(path)) {
+								// todo: make timeout configurable
+								long timeout = System.currentTimeMillis() + 10000;
+								boolean deployed;
+								do {
+									Thread.sleep(10);
+									deployed = client.checkExists().forPath(path) != null;
+								}
+								while (!deployed && System.currentTimeMillis() < timeout);
+
+								if (!deployed) {
+									throw new IllegalStateException(String.format(
+											"Deployment of module %s to container %s timed out", moduleName, containerName));
+								}
 							}
 						}
 					}

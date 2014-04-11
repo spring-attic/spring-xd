@@ -31,6 +31,7 @@ import org.springframework.xd.test.fixtures.FileSink;
  * Runs tests for the router sink module.
  * 
  * @author Eric Bottard
+ * @author Ilayaperumal Gopinathan
  */
 public class RouterSinkTests extends AbstractStreamIntegrationTest {
 
@@ -49,4 +50,18 @@ public class RouterSinkTests extends AbstractStreamIntegrationTest {
 
 	}
 
+	@Test
+	public void testUsingScript() {
+		FileSink fileSink = newFileSink().binary(true);
+		HttpSource httpSource = newHttpSource();
+
+		stream().create("f", "queue:foo > transform --expression=payload+'-foo' | %s", fileSink);
+		stream().create("b", "queue:bar > transform --expression=payload+'-bar' | %s", fileSink);
+		stream().create("r", "%s | router --script='org/springframework/xd/shell/command/router.groovy'", httpSource);
+
+		httpSource.ensureReady().postData("a").postData("b");
+
+		assertThat(fileSink, eventually(hasContentsThat(equalTo("a-foob-bar"))));
+
+	}
 }

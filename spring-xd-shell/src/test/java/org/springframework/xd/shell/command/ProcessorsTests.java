@@ -126,7 +126,7 @@ public class ProcessorsTests extends AbstractStreamIntegrationTest {
 		HttpSource httpSource = newHttpSource();
 		FileSink fileSink = newFileSink().binary(true);
 		stream().create(generateStreamName(),
-				"%s | transform --script=transform-to-lowercase.groovy | %s",
+				"%s | transform --script='org/springframework/xd/shell/command/transform-to-lowercase.groovy' | %s",
 				httpSource, fileSink);
 		httpSource.ensureReady().postData("HELLO").postData("World").postData("!");
 		assertThat(fileSink, eventually(hasContentsThat(equalTo("helloworld!"))));

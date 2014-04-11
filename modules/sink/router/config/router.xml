@@ -10,16 +10,19 @@
 		http://www.springframework.org/schema/integration/groovy
 		http://www.springframework.org/schema/integration/groovy/spring-integration-groovy.xsd">
 
-	<beans:import resource="../common/script-variable-generator.xml"/>
+	<beans:import resource="../../../common/script-variable-generator.xml"/>
 
 	<channel id="input"/>
 
-	<filter input-channel="input" output-channel="to.script" discard-channel="to.spel" expression="'${script:null}' ne 'null'"/>
 
-	<router input-channel="to.spel" expression="${expression:null}"/>
+	<beans:beans profile="use-expression">
+		<router input-channel="input" expression="${expression}"/>
+	</beans:beans>
 
-	<router input-channel="to.script">
-		<int-groovy:script location="${script:route.groovy}" script-variable-generator="variableGenerator" refresh-check-delay="60"/>
-	</router>
+	<beans:beans profile="use-script">
+		<router input-channel="input">
+			<int-groovy:script location="${script}" script-variable-generator="variableGenerator" refresh-check-delay="60"/>
+		</router>
+	</beans:beans>
 
 </beans:beans>

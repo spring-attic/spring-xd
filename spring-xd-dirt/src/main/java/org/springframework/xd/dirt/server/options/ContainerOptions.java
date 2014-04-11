@@ -19,21 +19,16 @@ package org.springframework.xd.dirt.server.options;
 import org.kohsuke.args4j.Option;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.xd.dirt.server.options.ResourcePatternScanningOptionHandlers.DistributedDataTransportOptionHandler;
 
 /**
  * Holds configuration options that are valid for the Container node, when using distributed mode.
- * 
+ *
  * @author Eric Bottard
  * @author David Turanski
  * @author Ilayaperumal Gopinathan
  */
 @ConfigurationProperties
 public class ContainerOptions extends CommonDistributedOptions {
-
-	@Option(name = "--transport", handler = DistributedDataTransportOptionHandler.class,
-			usage = "The transport to use for data messages (from node to node)")
-	private String transport;
 
 	@Option(name = "--hadoopDistro", usage = "The Hadoop distribution to be used for HDFS access")
 	private HadoopDistro distro = DEFAULT_HADOOP_DISTRO;
@@ -42,14 +37,6 @@ public class ContainerOptions extends CommonDistributedOptions {
 	private String groups;
 
 	public static final HadoopDistro DEFAULT_HADOOP_DISTRO = HadoopDistro.hadoop22;
-
-	public void setXD_TRANSPORT(String transport) {
-		this.transport = transport;
-	}
-
-	public String getXD_TRANSPORT() {
-		return this.transport;
-	}
 
 	public void setHADOOP_DISTRO(HadoopDistro distro) {
 		this.distro = distro;

@@ -11,7 +11,7 @@ endpoints:
     uniqueNames: true
 
 XD_ANALYTICS: ${analytics:redis}
-XD_TRANSPORT: ${transport:redis}
+XD_TRANSPORT: ${xd.transport:${transport:redis}}
 XD_STORE: ${store:redis}
 XD_HOME: ${xdHomeDir:..}
 XD_JMX_ENABLED: true

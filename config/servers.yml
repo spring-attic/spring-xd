@@ -8,6 +8,10 @@
 # to point to a file (use a file:// URL). That file will then be
 # used instead.
 
+#XD data transport (default is redis for distributed, local for single node)
+#xd:
+#  transport: rabbit
+
 #Disable batch database initialization
 #spring:
 #  batch:

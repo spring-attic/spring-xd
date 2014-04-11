@@ -16,6 +16,9 @@
 
 package org.springframework.xd.jdbc;
 
+import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_JOB_NAME;
+
+import org.springframework.xd.jdbc.ResourcesIntoJdbcJobModuleOptionsMetadata.JobImportToJdbcMixin;
 import org.springframework.xd.module.options.mixins.BatchJobDeleteFilesOptionMixin;
 import org.springframework.xd.module.options.mixins.BatchJobFieldNamesOptionMixin;
 import org.springframework.xd.module.options.mixins.BatchJobResourcesOptionMixin;
@@ -23,18 +26,25 @@ import org.springframework.xd.module.options.mixins.BatchJobRestartableOptionMix
 import org.springframework.xd.module.options.spi.Mixin;
 
 /**
- * Typical class for metadata about jobs that slurp csv resources into jdbc. Can be used as is or extended if needed.
+ * Typical class for metadata about jobs that slurp csv resources into jdbc.
  * 
  * @author Eric Bottard
  * @author Ilayaperumal Gopinathan
  */
-@Mixin({ BatchJobRestartableOptionMixin.class, BatchJobResourcesOptionMixin.class,
-	BatchJobDeleteFilesOptionMixin.class, BatchJobFieldNamesOptionMixin.class })
-public class ResourcesIntoJdbcJobModuleOptionsMetadata extends
-		AbstractImportToJdbcOptionsMetadata {
+@Mixin({ JdbcConnectionMixin.class, BatchJobRestartableOptionMixin.class, BatchJobResourcesOptionMixin.class,
+	BatchJobDeleteFilesOptionMixin.class, BatchJobFieldNamesOptionMixin.class, JobImportToJdbcMixin.class })
+public class ResourcesIntoJdbcJobModuleOptionsMetadata {
 
-	public ResourcesIntoJdbcJobModuleOptionsMetadata() {
-		configProperties = "batch-jdbc";
+	public static class JobImportToJdbcMixin extends AbstractImportToJdbcOptionsMetadata {
+
+		/**
+		 * Sets default which are appropriate for batch jobs.
+		 */
+		public JobImportToJdbcMixin() {
+			tableName = XD_JOB_NAME;
+			initializerScript = "init_batch_import.sql";
+		}
+
 	}
 
 }

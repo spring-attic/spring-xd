@@ -16,22 +16,20 @@
 
 package org.springframework.xd.jdbc;
 
+import org.springframework.xd.jdbc.JdbcSinkModuleOptionsMetadata.JdbcSinkImportToJdbcMixin;
+import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
+import org.springframework.xd.module.options.spi.ModulePlaceholders;
 
 /**
  * Captures module options for the "jdbc" sink module.
  * 
  * @author Eric Bottard
  */
-public class JdbcSinkModuleOptionsMetadata extends AbstractImportToJdbcOptionsMetadata {
+@Mixin({ JdbcConnectionMixin.class, JdbcSinkImportToJdbcMixin.class })
+public class JdbcSinkModuleOptionsMetadata {
 
-	private String columns;
-
-
-	public JdbcSinkModuleOptionsMetadata() {
-		columns = "payload";
-		configProperties = "jdbc";
-	}
+	private String columns = "payload";
 
 	@ModuleOption("the database columns to map the data to")
 	public void setColumns(String columns) {
@@ -40,6 +38,17 @@ public class JdbcSinkModuleOptionsMetadata extends AbstractImportToJdbcOptionsMe
 
 	public String getColumns() {
 		return columns;
+	}
+
+	public static class JdbcSinkImportToJdbcMixin extends AbstractImportToJdbcOptionsMetadata {
+
+		/**
+		 * Sets default values that are appropriate for the jdbc sink.
+		 */
+		public JdbcSinkImportToJdbcMixin() {
+			initializerScript = "init_db.sql";
+			tableName = ModulePlaceholders.XD_STREAM_NAME;
+		}
 	}
 
 }

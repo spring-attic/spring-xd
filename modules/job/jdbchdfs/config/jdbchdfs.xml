@@ -9,8 +9,6 @@
 		http://www.springframework.org/schema/hadoop http://www.springframework.org/schema/hadoop/spring-hadoop.xsd
 		http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd">
 
-	<context:property-placeholder location="${xd.config.home}/${configProperties:batch-jdbc}.properties" ignore-resource-not-found="true"/>
-
 	<batch:job id="jdbchdfs" restartable="${restartable}">
 		<batch:step id="fileHdfsStep">
 			<batch:tasklet>
@@ -20,10 +18,10 @@
 	</batch:job>
 
 	<bean id="dataSource" class="org.apache.tomcat.jdbc.pool.DataSource" destroy-method="close">
-		<property name="driverClassName" value="${driverClass:${spring.datasource.driverClassName}}"/>
-		<property name="url" value="${url:${spring.datasource.url}}"/>
-		<property name="username" value="${username:${spring.datasource.username}}"/>
-		<property name="password" value="${password:${spring.datasource.password}}"/>
+		<property name="driverClassName" value="${driverClassName}"/>
+		<property name="url" value="${url}"/>
+		<property name="username" value="${username}"/>
+		<property name="password" value="${password}"/>
 		<property name="initialSize" value="0" />
 	</bean>
 

@@ -32,8 +32,8 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import org.springframework.util.StopWatch;
-import org.springframework.xd.test.fixtures.CounterSink;
 import org.springframework.xd.shell.command.fixtures.HttpSource;
+import org.springframework.xd.test.fixtures.CounterSink;
 
 
 /**
@@ -51,8 +51,12 @@ public class MessageStoreBenchmarkTests extends AbstractStreamIntegrationTest {
 		for (int i = 1; i <= runs; i++) {
 			Random random = new Random();
 			String dbname = "db" + random.nextInt(Integer.MAX_VALUE);
-			result.add(new Object[] { "jdbc", i, String.format(
-					" --driverClass=org.hsqldb.jdbc.JDBCDriver --url=jdbc:hsqldb:file:/tmp/%s --initdb=hsqldb", dbname) });
+			result.add(new Object[] {
+				"jdbc",
+				i,
+				String.format(
+						" --driverClassName=org.hsqldb.jdbc.JDBCDriver --url=jdbc:hsqldb:file:/tmp/%s --initdb=hsqldb",
+						dbname) });
 			result.add(new Object[] { "memory", i, "" });
 			result.add(new Object[] { "redis", i, "" });
 		}

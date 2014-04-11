@@ -1,22 +1,26 @@
+
 package org.springframework.xd.jdbc;
 
 import org.springframework.xd.module.options.spi.ModuleOption;
 
 /**
  * Basic JDBC module/job options.
- *
+ * 
  * @author Luke Taylor
  */
-public abstract class AbstractJdbcOptionsMetadata {
-	protected String driverClass;
+public class JdbcConnectionMixin {
+
+	protected String driverClassName;
+
 	protected String password;
+
 	protected String url;
+
 	protected String username;
-	protected String configProperties;
 
 	@ModuleOption("the JDBC driver to use")
-	public void setDriverClass(String driverClass) {
-		this.driverClass = driverClass;
+	public void setDriverClassName(String driverClass) {
+		this.driverClassName = driverClass;
 	}
 
 	@ModuleOption("the JDBC password")
@@ -34,13 +38,8 @@ public abstract class AbstractJdbcOptionsMetadata {
 		this.username = username;
 	}
 
-	@ModuleOption("the name of the properties file (in /config) used to override database settings")
-	public void setConfigProperties(String configProperties) {
-		this.configProperties = configProperties;
-	}
-
-	public String getDriverClass() {
-		return driverClass;
+	public String getDriverClassName() {
+		return driverClassName;
 	}
 
 	public String getPassword() {
@@ -55,7 +54,4 @@ public abstract class AbstractJdbcOptionsMetadata {
 		return username;
 	}
 
-	public String getConfigProperties() {
-		return configProperties;
-	}
 }

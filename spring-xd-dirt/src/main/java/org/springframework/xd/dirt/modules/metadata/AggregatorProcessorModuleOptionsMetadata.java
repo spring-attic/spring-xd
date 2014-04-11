@@ -64,7 +64,7 @@ public class AggregatorProcessorModuleOptionsMetadata implements
 
 	private String dbkind;
 
-	private String driverClass;
+	private String driverClassName;
 
 	private String url;
 
@@ -133,8 +133,8 @@ public class AggregatorProcessorModuleOptionsMetadata implements
 	}
 
 	@ModuleOption("the jdbc driver to use when using the jdbc store")
-	public void setDriverClass(String driverClass) {
-		this.driverClass = driverClass;
+	public void setDriverClassName(String driverClassName) {
+		this.driverClassName = driverClassName;
 	}
 
 	@ModuleOption("the jdbc url to connect to when using the jdbc store")
@@ -204,8 +204,8 @@ public class AggregatorProcessorModuleOptionsMetadata implements
 	}
 
 	@NotBlank(groups = JdbcStore.class)
-	public String getDriverClass() {
-		return driverClass;
+	public String getDriverClassName() {
+		return driverClassName;
 	}
 
 

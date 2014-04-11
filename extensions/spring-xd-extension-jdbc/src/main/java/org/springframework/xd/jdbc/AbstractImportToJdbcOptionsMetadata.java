@@ -20,10 +20,10 @@ import org.springframework.xd.module.options.spi.ModuleOption;
 
 /**
  * Factors out options that are common to modules/jobs that import into a db table.
- *
+ * 
  * @author Eric Bottard
  */
-public abstract class AbstractImportToJdbcOptionsMetadata extends AbstractJdbcOptionsMetadata {
+public abstract class AbstractImportToJdbcOptionsMetadata {
 
 	protected boolean initializeDatabase;
 

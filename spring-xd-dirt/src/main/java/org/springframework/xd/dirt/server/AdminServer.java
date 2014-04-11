@@ -17,7 +17,10 @@
 package org.springframework.xd.dirt.server;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.curator.framework.CuratorFramework;
@@ -28,6 +31,7 @@ import org.apache.curator.framework.recipes.leader.LeaderSelector;
 import org.apache.curator.framework.recipes.leader.LeaderSelectorListener;
 import org.apache.curator.framework.recipes.leader.LeaderSelectorListenerAdapter;
 import org.apache.curator.utils.ThreadUtils;
+import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -294,6 +298,8 @@ public class AdminServer implements ContainerRepository, ApplicationListener<App
 		public void takeLeadership(CuratorFramework client) throws Exception {
 			LOG.info("Leader Admin {} is watching for stream/job deployment requests.", getId());
 
+			cleanupDeployments(client);
+
 			PathChildrenCache streams = null;
 			PathChildrenCache streamDeployments = null;
 			PathChildrenCache jobDeployments = null;
@@ -358,6 +364,34 @@ public class AdminServer implements ContainerRepository, ApplicationListener<App
 
 				if (jobDeployments != null) {
 					jobDeployments.close();
+				}
+			}
+		}
+
+		/**
+		 * Remove module deployments targeted to containers that are no longer running.
+		 *
+		 * @param client    the {@link CuratorFramework} client
+		 *
+		 * @throws Exception
+		 */
+		private void cleanupDeployments(CuratorFramework client) throws Exception {
+			Set<String> containerDeployments = new HashSet<String>();
+
+			try {
+				containerDeployments.addAll(client.getChildren().forPath(Paths.build(Paths.MODULE_DEPLOYMENTS)));
+				containerDeployments.removeAll(client.getChildren().forPath(Paths.build(Paths.CONTAINERS)));
+			}
+			catch (KeeperException.NoNodeException e) {
+				// ignore
+			}
+
+			for (String oldContainer : containerDeployments) {
+				try {
+					client.delete().deletingChildrenIfNeeded().forPath(Paths.build(Paths.MODULE_DEPLOYMENTS, oldContainer));
+				}
+				catch (KeeperException.NoNodeException e) {
+					// ignore
 				}
 			}
 		}

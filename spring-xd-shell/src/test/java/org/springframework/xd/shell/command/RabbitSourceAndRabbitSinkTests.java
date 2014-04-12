@@ -21,7 +21,12 @@ import static org.junit.Assert.assertThat;
 import static org.springframework.xd.shell.command.fixtures.XDMatchers.eventually;
 import static org.springframework.xd.shell.command.fixtures.XDMatchers.hasContentsThat;
 
-import org.junit.Rule;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 import org.springframework.amqp.core.Queue;
@@ -35,22 +40,32 @@ import org.springframework.xd.test.rabbit.RabbitTestSupport;
  * Tests for the rabbit source and sink modules.
  * 
  * @author Eric Bottard
+ * @author Ilayaperumal Gopinathan
  */
 public class RabbitSourceAndRabbitSinkTests extends AbstractStreamIntegrationTest {
 
-	@Rule
-	public RabbitTestSupport rabbit = new RabbitTestSupport();
+	@ClassRule
+	public static RabbitTestSupport rabbit = new RabbitTestSupport();
+
+	private static List<String> queues = new ArrayList<String>();
+
+	private static RabbitAdmin rabbitAdmin;
+
+	@BeforeClass
+	public static void setupRabbitAdmin() {
+		rabbitAdmin = new RabbitAdmin(rabbit.getResource());
+		rabbitAdmin.afterPropertiesSet();
+	}
 
 	@Test
 	public void testDefaultOptions() {
 		HttpSource httpSource = newHttpSource();
 		FileSink fileSink = newFileSink().binary(true);
 
-		RabbitAdmin rabbitAdmin = new RabbitAdmin(rabbit.getResource());
-		rabbitAdmin.afterPropertiesSet();
 		String streamName = generateStreamName();
 		Queue queue = new Queue(streamName);
 		rabbitAdmin.declareQueue(queue);
+		queues.add(streamName);
 
 
 		stream().create(streamName, "%s | rabbit", httpSource);
@@ -58,6 +73,13 @@ public class RabbitSourceAndRabbitSinkTests extends AbstractStreamIntegrationTes
 
 		httpSource.ensureReady().postData("hello rabbit");
 		assertThat(fileSink, eventually(hasContentsThat(equalTo("hello rabbit"))));
+	}
+
+	@AfterClass
+	public static void cleanupQueues() {
+		for (String queue : queues) {
+			rabbitAdmin.deleteQueue(queue);
+		}
 	}
 
 }

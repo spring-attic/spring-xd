@@ -16,6 +16,11 @@
 
 package org.springframework.xd.dirt.modules.metadata;
 
+import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_STREAM_NAME;
+
+import org.hibernate.validator.constraints.NotBlank;
+
+import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
 
 /**
@@ -23,10 +28,12 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  * 
  * @author Eric Bottard
  */
-public class RabbitSourceOptionsMetadata extends AbstractRabbitConnectionOptionsMetadata {
+@Mixin(RabbitConnectionMixin.class)
+public class RabbitSourceOptionsMetadata {
 
-	private String queues;
+	private String queues = XD_STREAM_NAME;
 
+	@NotBlank
 	public String getQueues() {
 		return queues;
 	}

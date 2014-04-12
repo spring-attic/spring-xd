@@ -16,6 +16,9 @@
 
 package org.springframework.xd.dirt.modules.metadata;
 
+import static org.springframework.xd.module.options.spi.ModulePlaceholders.XD_STREAM_NAME;
+
+import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
 
 /**
@@ -23,11 +26,12 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  * 
  * @author Eric Bottard
  */
-public class RabbitSinkOptionsMetadata extends AbstractRabbitConnectionOptionsMetadata {
+@Mixin(RabbitConnectionMixin.class)
+public class RabbitSinkOptionsMetadata {
 
 	private String exchange = "";
 
-	private String routingKey;
+	private String routingKey = "'" + XD_STREAM_NAME + "'";
 
 
 	public String getExchange() {

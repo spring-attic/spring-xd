@@ -12,18 +12,15 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<int-amqp:inbound-channel-adapter
-		auto-startup="false" queue-names="${queues:${xd.stream.name}}"
-		channel="output" connection-factory="rabbitConnectionFactory" />
+	<int-amqp:outbound-channel-adapter
+		id="input" amqp-template="rabbitTemplate" exchange-name="${exchange}"
+		routing-key-expression="${routingKey}" />
 
-	<int:channel id="output" />
+	<rabbit:template id="rabbitTemplate" connection-factory="rabbitConnectionFactory"/>
 
-	<context:property-placeholder
-		location="${xd.config.home}/${configProperties:rabbit}.properties"
-		ignore-resource-not-found="true" />
-	<rabbit:connection-factory id="rabbitConnectionFactory" host="${host:${spring.rabbitmq.host:localhost}}"
-		port="${port:${spring.rabbitmq.port:5672}}" virtual-host="${vhost:${spring.rabbitmq.virtualHost:/}}"
-		username="${username:${spring.rabbitmq.username:guest}}" password="${password:${spring.rabbitmq.password:guest}}"/>
+	<rabbit:connection-factory id="rabbitConnectionFactory" host="${host}"
+		port="${port}" virtual-host="${vhost}"
+		username="${username}" password="${password}"/>
 
 	<beans profile="cloud" xmlns="http://www.springframework.org/schema/beans">
 		<cloud:rabbit-connection-factory id="rabbitConnectionFactory"

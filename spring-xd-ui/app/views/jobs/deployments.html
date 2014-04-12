@@ -1,7 +1,7 @@
 <table class="table table-striped table-hover" ng-hide="$state.includes('home.jobs.tabs.deployments.launch')">
 	<thead>
 		<tr>
-			<th>Name</th><th>Launch</th><th>Schedule</th><th>Execution Count</th><th>Last Execution Status</th>
+			<th>Name</th><th>Launch</th><th>Execution Count</th><th>Last Execution Status</th>
 		</tr>
 	</thead>
 	<tbody>
@@ -10,10 +10,6 @@
 			<td><button type="button" ng-click="launchJob(item)"
 				class="btn btn-default"
 				><span class="glyphicon glyphicon-play"></span> Launch</button>
-			</td>
-			<td><button type="button"
-				class="btn btn-default"
-				><span class="glyphicon glyphicon-play"></span> Schedule</button>
 			</td>
 			<td>{{item.executionCount}}</td>
 			<td>{{item.exitStatus.exitCode}}</td>

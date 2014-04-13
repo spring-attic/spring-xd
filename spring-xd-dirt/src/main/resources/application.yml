@@ -5,7 +5,7 @@ spring:
     show_banner: false
 endpoints:
   jolokia:
-    enabled: true
+    enabled: ${XD_JMX_ENABLED:true}
   jmx:
     enabled: ${XD_JMX_ENABLED:true}
     uniqueNames: true

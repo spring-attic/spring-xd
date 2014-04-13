@@ -45,7 +45,7 @@ import org.springframework.xd.test.fixtures.FileSink;
 
 /**
  * Test module commands.
- * 
+ *
  * @author Glenn Renfro
  * @author Gunnar Hillert
  * @author Mark Fisher
@@ -180,7 +180,7 @@ public class ModuleCommandTests extends AbstractStreamIntegrationTest {
 		final String result = (String) commandResult.getResult();
 		assertTrue("The configuration file should start with the XML header.",
 				result.startsWith(
-						"Configuration file contents for module definiton 'file' (source):\n\n"
+						"Configuration file contents for module definition 'file' (source):\n\n"
 								+ UiUtils.HORIZONTAL_LINE
 								+ "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"));
 

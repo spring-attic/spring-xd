@@ -39,7 +39,7 @@ import org.springframework.xd.shell.util.UiUtils;
 /**
  * Commands for working with modules. Allows retrieval of information about available modules, as well as creating new
  * composed modules.
- * 
+ *
  * @author Glenn Renfro
  * @author Eric Bottard
  * @author Florent Biville
@@ -135,7 +135,7 @@ public class ModuleCommands implements CommandMarker {
 				module.type, module.name);
 
 		final StringBuilder sb = new StringBuilder()
-				.append(String.format("Configuration file contents for module definiton '%s' (%s):%n%n", module.name,
+				.append(String.format("Configuration file contents for module definition '%s' (%s):%n%n", module.name,
 						module.type))
 				.append(UiUtils.HORIZONTAL_LINE)
 				.append(configurationFileContents)

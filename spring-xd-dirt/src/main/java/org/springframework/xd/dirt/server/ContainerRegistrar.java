@@ -593,7 +593,7 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 						client.delete().deletingChildrenIfNeeded().forPath(deploymentPath);
 					}
 				}
-				catch (KeeperException e) {
+				catch (Exception e) {
 					// it is common for a process shutdown to trigger this
 					// event; therefore any exception thrown while attempting
 					// to delete a deployment path will only be rethrown

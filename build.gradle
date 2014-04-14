@@ -1122,7 +1122,7 @@ project('modules.source.syslog-udp') {
 	dependencies { runtime "org.springframework.integration:spring-integration-syslog:$springIntegrationVersion" }
 }
 
-project('modules.source.reactor-tcp') {
+project('modules.source.reactor-ip') {
 	dependencies {
 		runtime(project(":spring-xd-extension-reactor")) {
             exclude module: 'slf4j-api'

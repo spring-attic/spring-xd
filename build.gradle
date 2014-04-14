@@ -408,9 +408,10 @@ project('spring-xd-dirt') {
 		compile "org.jolokia:jolokia-spring:$jolokiaVersion"
 		compile "com.esotericsoftware.kryo:kryo:$kryoVersion"
 		compile "com.lambdaworks:lettuce:$lettuceVersion"
-		compile "org.apache.zookeeper:zookeeper:$zookeeperVersion"
-		compile ("org.apache.curator:curator-recipes:$curatorVersion") {
+		compile ("org.apache.zookeeper:zookeeper:$zookeeperVersion") {
 			exclude group: 'jline'
+		}
+		compile ("org.apache.curator:curator-recipes:$curatorVersion") {
 			exclude group: 'org.apache.zookeeper'
 			exclude group: 'org.jboss.netty'
 		}
@@ -1367,6 +1368,7 @@ project('spring-xd-test') {
 			exclude group: 'junit'
 			exclude group: 'hsqldb'
 			exclude group: 'org.springframework.batch'
+			exclude group: 'jline'
 		}
 		compile "org.springframework.data:spring-data-redis:$springDataRedisVersion"
 		compile "org.springframework:spring-context:$springVersion"

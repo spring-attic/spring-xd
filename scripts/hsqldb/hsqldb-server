@@ -159,7 +159,7 @@ if $cygwin ; then
     esac
 fi
 
-# set app name etc. via SPRING_XD_OPTS
+# set xd.data.home etc. via SPRING_XD_OPTS
 SPRING_XD_OPTS="-Dxd.data.home=$APP_HOME/../xd/data"
 
 # Split up the JVM_OPTS And SPRING_XD_OPTS values into an array, following the shell quoting and substitution rules

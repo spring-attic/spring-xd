@@ -36,6 +36,7 @@
 				<property name="lineTokenizer">
 					<bean class="org.springframework.batch.item.file.transform.DelimitedLineTokenizer">
 						<property name="names" value="${names}"/>
+						<property name="delimiter" value="${delimiter}"/>
 					</bean>
 				</property>
 				<property name="fieldSetMapper">

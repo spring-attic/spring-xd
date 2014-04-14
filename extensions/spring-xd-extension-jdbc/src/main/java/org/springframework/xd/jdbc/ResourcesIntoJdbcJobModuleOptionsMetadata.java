@@ -17,19 +17,23 @@
 package org.springframework.xd.jdbc;
 
 import org.springframework.xd.module.options.mixins.BatchJobDeleteFilesOptionMixin;
+import org.springframework.xd.module.options.mixins.BatchJobFieldDelimiterOptionMixin;
 import org.springframework.xd.module.options.mixins.BatchJobFieldNamesOptionMixin;
 import org.springframework.xd.module.options.mixins.BatchJobResourcesOptionMixin;
 import org.springframework.xd.module.options.mixins.BatchJobRestartableOptionMixin;
 import org.springframework.xd.module.options.spi.Mixin;
 
 /**
- * Typical class for metadata about jobs that slurp csv resources into jdbc. Can be used as is or extended if needed.
+ * Typical class for metadata about jobs that slurp delimited resources into jdbc. Can be used as is or extended if
+ * needed.
  * 
  * @author Eric Bottard
  * @author Ilayaperumal Gopinathan
+ * @author Michael Minella
  */
 @Mixin({ BatchJobRestartableOptionMixin.class, BatchJobResourcesOptionMixin.class,
-	BatchJobDeleteFilesOptionMixin.class, BatchJobFieldNamesOptionMixin.class })
+	BatchJobDeleteFilesOptionMixin.class, BatchJobFieldNamesOptionMixin.class,
+	BatchJobFieldDelimiterOptionMixin.class})
 public class ResourcesIntoJdbcJobModuleOptionsMetadata extends
 		AbstractImportToJdbcOptionsMetadata {
 

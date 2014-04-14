@@ -27,7 +27,7 @@ create_stream jdbc1 "tail --lines=10 --name=$TEST_DIR/jdbc1.data --fileDelay=100
 
 # Add some data to the file
 echo '{"col1":"x", "col2":"y", "col3":"z"}' >> $TEST_DIR/jdbc1.data
-sleep 3
+sleep 5
 rows=`sqlite3 $DB_FILE 'select count(*) from blah'`
 destroy_stream jdbc1
 rm $TEST_DIR/jdbc1.data
@@ -57,9 +57,9 @@ cp $PWD/csv/data.csv $TEST_DIR/delete_after_use.csv
 
 create_job csvjdbcjob0 "filejdbc $JDBC_PARAMS --names=col1,col2,col3 --resources=file://$TEST_DIR/delete_after_use.csv --initializeDatabase=true --deleteFiles=true" 'true'
 launch_job csvjdbcjob0
-sleep 5
-rows=`sqlite3 $DB_FILE 'select count(*) from csvjdbcjob0'`
+sleep 10
 destroy_job csvjdbcjob0
+rows=`sqlite3 $DB_FILE 'select count(*) from csvjdbcjob0'`
 echo "Checking row count in database table matches import from file..."
 assert_equals 292 $rows
 sleep 5
@@ -87,6 +87,7 @@ assert_equals 2 $nJobMessages
 
 # Load the same file again into the existing table
 create_job csvjdbcjob2 "filejdbc $JDBC_PARAMS --names=col1,col2,col3 --resources=file://$PWD/csv/data.csv --tableName=JOB_DATA_TABLE --initializeDatabase=false" 'true'
+sleep 5
 launch_job csvjdbcjob2
 sleep 5
 destroy_job csvjdbcjob2

@@ -23,6 +23,7 @@ import java.util.UUID;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.xd.test.fixtures.JdbcSink;
 
 
@@ -38,16 +39,11 @@ public class JdbcTest extends AbstractIntegrationTest {
 
 	String tableName = null;
 
-	String CONFIG_FILE = "accJdbc";
-	
-
 	@Before
 	public void initialize() throws Exception {
 		jdbcSink = sinks.jdbc();
 		tableName = "acceptanceTEST12345";
 		jdbcSink.tableName(tableName);
-		jdbcSink.configFile(CONFIG_FILE);
-		configUtil.pushConfigToContainer(CONFIG_FILE, sinks.jdbcConfig());
 		try {
 			jdbcSink.getJdbcTemplate().execute("drop table " + tableName);
 		}

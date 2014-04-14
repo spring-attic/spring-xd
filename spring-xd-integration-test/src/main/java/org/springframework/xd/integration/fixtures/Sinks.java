@@ -112,12 +112,4 @@ public class Sinks {
 		return jdbcSink;
 	}
 
-	public String jdbcConfig() {
-		String result = "url=" + environment.getJdbcUrl() + "\n";
-		result += "driverClass=" + environment.getJdbcDriver() + "\n";
-		result += "username=" + environment.getJdbcUsername() + "\n";
-		result += "password=" + environment.getJdbcPassword() + "\n";
-		return result;
-	}
-
 }

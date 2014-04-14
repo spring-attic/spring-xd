@@ -1,14 +1,14 @@
 @if "%DEBUG%" == "" @echo off
 @rem ##########################################################################
 @rem
-@rem  hsqldb-server startup script for Windows
+@rem  HSQL DB server startup script for Windows
 @rem
 @rem ##########################################################################
 
 @rem Set local scope for the variables with windows NT shell
 if "%OS%"=="Windows_NT" setlocal
 
-@rem Add default JVM options here. You can also use JAVA_OPTS and SPRING_XD_ADMIN_OPTS to pass JVM options to this script.
+@rem Add default JVM options here. You can also use JAVA_OPTS to pass JVM options to this script.
 set DEFAULT_JVM_OPTS=
 
 set DIRNAME=%~dp0
@@ -71,23 +71,21 @@ set CMD_LINE_ARGS=%$
 
 @echo off
 set APP_HOME_LIB=%APP_HOME%\lib
-
-set CLASSPATH=%APP_HOME%\config;%APP_HOME%
-set CLASSPATH=!CLASSPATH!;%APP_HOME_LIB%\*
+set CLASSPATH=%APP_HOME_LIB%\*
 
 set SPRING_XD_OPTS=-Dxd.data.home=%APP_HOME%\..\xd\data
 
-@rem Execute hsqldb-server 
-"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SPRING_XD_OPTS% -classpath "%CLASSPATH%" org.springframework.xd.batch.hsqldb.server.HsqlServerApplication %CMD_LINE_ARGS%
+@rem Execute hsqldb-server
+"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% "%SPRING_XD_OPTS%" -classpath "%CLASSPATH%" org.springframework.xd.batch.hsqldb.server.HsqlServerApplication %CMD_LINE_ARGS%
 
 :end
 @rem End local scope for the variables with windows NT shell
 if "%ERRORLEVEL%"=="0" goto mainEnd
 
 :fail
-rem Set variable SPRING_XD_HSQLDB_SERVER_EXIT_CONSOLE if you need the _script_ return code instead of
+rem Set variable HSQLDBSERVER_EXIT_CONSOLE if you need the _script_ return code instead of
 rem the _cmd.exe /c_ return code!
-if  not "" == "%SPRING_XD_HSQLDB_SERVER_CONSOLE%" exit 1
+if  not "" == "%HSQLDBSERVER_EXIT_CONSOLE%" exit 1
 exit /b 1
 
 :mainEnd

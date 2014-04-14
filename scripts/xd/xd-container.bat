@@ -71,7 +71,7 @@ set CMD_LINE_ARGS=%$
 
 @echo off
 set APP_HOME_LIB=%APP_HOME%\lib
-# If you change the default hadoop distro, make sure to update ContainerOptions.DEFAULT_HADOOP_OPTION
+@rem If you change the default hadoop distro, make sure to update ContainerOptions.DEFAULT_HADOOP_OPTION
 set HADOOP_DISTRO=hadoop22
 if exist "%APP_HOME_LIB%" (
     setLocal EnableDelayedExpansion
@@ -111,6 +111,9 @@ if not defined XD_MODULE_CONFIG_LOCATION (
 if not defined XD_MODULE_CONFIG_NAME (
     set XD_MODULE_CONFIG_NAME=modules
 )
+
+@rem make sure to append '/' to XD_MODULE_CONFIG_LOCATION until the path issue is resoloved in EnvironmentAwareModuleOptionsMetadataResolver
+set XD_MODULE_CONFIG_LOCATION=%XD_MODULE_CONFIG_LOCATION%/
 
 set SPRING_XD_OPTS=-Dspring.application.name=container -Dlogging.config=file:%XD_HOME%/config/xd-container-logger.properties -Dxd.home=%XD_HOME%
 set SPRING_XD_OPTS=%SPRING_XD_OPTS% -Dspring.config.location=file:%XD_CONFIG_LOCATION% -Dspring.config.name=%XD_CONFIG_NAME%

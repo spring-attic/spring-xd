@@ -42,7 +42,7 @@ import org.springframework.xd.module.ModuleDefinition;
 /**
  * A decorator around another {@link ModuleOptionsMetadataResolver} that will provide default values for module options
  * using the environment.
- *
+ * 
  * <p>
  * Each module gets its own Environment, populated with values in the following order:
  * <ul>
@@ -56,7 +56,7 @@ import org.springframework.xd.module.ModuleDefinition;
  * <p>
  * For each option {@code <optionname>} of a module (of type {@code <type>} and name {@code <modulename>}), this
  * resolver will try to read a default from {@code <type>.<modulename>.<optionname>}.
- *
+ * 
  * @author Eric Bottard
  */
 public class EnvironmentAwareModuleOptionsMetadataResolver implements ModuleOptionsMetadataResolver, InitializingBean,
@@ -92,6 +92,7 @@ public class EnvironmentAwareModuleOptionsMetadataResolver implements ModuleOpti
 
 	@Value("${" + XD_MODULE_CONFIG_LOCATION + ":${xd.config.home}/modules/}")
 	public void setXdModuleConfigLocation(String xdModuleConfigLocation) {
+		// TODO: Need to fix by removing this specific requirement as this poses explicit requirement even in windows
 		Assert.isTrue(xdModuleConfigLocation.endsWith("/"),
 				String.format("'%s' must end with a '/'", XD_MODULE_CONFIG_LOCATION));
 		this.xdModuleConfigLocation = xdModuleConfigLocation;

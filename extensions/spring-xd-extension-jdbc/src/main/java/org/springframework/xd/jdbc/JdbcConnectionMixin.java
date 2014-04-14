@@ -10,13 +10,13 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  */
 public class JdbcConnectionMixin {
 
-	protected String driverClassName = "org.hsqldb.jdbc.JDBCDriver";
+	protected String driverClassName;
 
-	protected String password = "";
+	protected String password;
 
-	protected String url = "jdbc:hsqldb:hsql://localhost:9101/xdjob";
+	protected String url;
 
-	protected String username = "sa";
+	protected String username;
 
 	@ModuleOption("the JDBC driver to use")
 	public void setDriverClassName(String driverClass) {

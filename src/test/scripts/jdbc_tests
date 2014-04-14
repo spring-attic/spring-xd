@@ -5,7 +5,7 @@
 PWD=`pwd`
 TEST_DIR='/tmp/xdtest/jdbc'
 DB_FILE="$TEST_DIR/jdbc.db"
-JDBC_PARAMS="--driverClass=org.sqlite.JDBC --url=jdbc:sqlite:$DB_FILE"
+JDBC_PARAMS="--driverClassName=org.sqlite.JDBC --url=jdbc:sqlite:$DB_FILE"
 
 if [[ ! -f $XD_HOME/lib/sqlite-jdbc-3.7.2.jar ]]
 then

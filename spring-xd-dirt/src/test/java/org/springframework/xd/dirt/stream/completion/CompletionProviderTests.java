@@ -152,7 +152,8 @@ public class CompletionProviderTests {
 				hasItem(startsWith("file | filter | jdbc --url=foo --initializerScript")));
 		assertThat(new HashSet<>(completions),
 				hasItem(startsWith("file | filter | jdbc --url=foo --initializeDatabase")));
-		assertThat(new HashSet<>(completions), not(hasItem(startsWith("file | filter | jdbc --url=foo --driverClass"))));
+		assertThat(new HashSet<>(completions),
+				not(hasItem(startsWith("file | filter | jdbc --url=foo --driverClassName"))));
 
 		completions = completionProvider.complete(stream, "file | filter --ex");
 		assertThat(new HashSet<>(completions), not(hasItem(startsWith("file | filter |"))));

@@ -64,7 +64,7 @@
 
 		<beans:bean id="dataSource"
 			class="org.springframework.jdbc.datasource.SimpleDriverDataSource">
-			<beans:property name="driverClass" value="${driverClass}" />
+			<beans:property name="driverClass" value="${driverClassName}" />
 			<beans:property name="url" value="${url}" />
 			<beans:property name="username" value="${username}" />
 			<beans:property name="password" value="${password}" />

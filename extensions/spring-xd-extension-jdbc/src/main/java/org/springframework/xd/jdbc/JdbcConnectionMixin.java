@@ -10,7 +10,7 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  */
 public class JdbcConnectionMixin {
 
-	protected String driverClass = "org.hsqldb.jdbc.JDBCDriver";
+	protected String driverClassName = "org.hsqldb.jdbc.JDBCDriver";
 
 	protected String password = "";
 
@@ -19,8 +19,8 @@ public class JdbcConnectionMixin {
 	protected String username = "sa";
 
 	@ModuleOption("the JDBC driver to use")
-	public void setDriverClass(String driverClass) {
-		this.driverClass = driverClass;
+	public void setDriverClassName(String driverClass) {
+		this.driverClassName = driverClass;
 	}
 
 	@ModuleOption("the JDBC password")
@@ -38,8 +38,8 @@ public class JdbcConnectionMixin {
 		this.username = username;
 	}
 
-	public String getDriverClass() {
-		return driverClass;
+	public String getDriverClassName() {
+		return driverClassName;
 	}
 
 	public String getPassword() {

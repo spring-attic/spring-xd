@@ -11,9 +11,7 @@
 		http://www.springframework.org/schema/data/mongo http://www.springframework.org/schema/data/mongo/spring-mongo.xsd
 		http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd">
 
-	<context:property-placeholder location="${xd.config.home}/${configProperties:batch-mongo}.properties" ignore-resource-not-found="true"/>
-
-	<batch:job id="hdfsmongodb" restartable="${restartable:false}">
+	<batch:job id="hdfsmongodb" restartable="${restartable}">
 		<batch:step id="readResourcesStep">
 			<batch:tasklet>
 				<batch:chunk reader="multifileReader" writer="itemWriter" commit-interval="100"/>

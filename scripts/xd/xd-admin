@@ -184,6 +184,7 @@ fi
 if [ x"$XD_CONFIG_LOCATION" = x ] ; then
     export XD_CONFIG_LOCATION=$XD_HOME/config/
 fi
+export XD_CONFIG_LOCATION=$XD_CONFIG_LOCATION/
 if [ x"$XD_CONFIG_NAME" = x ] ; then
     export XD_CONFIG_NAME=servers
 fi

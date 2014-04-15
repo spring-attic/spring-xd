@@ -100,6 +100,8 @@ if not defined XD_HOME (
 if not defined XD_CONFIG_LOCATION (
     set XD_CONFIG_LOCATION=%XD_HOME%/config/
 )
+set XD_CONFIG_LOCATION=%XD_CONFIG_LOCATION%/
+
 if not defined XD_CONFIG_NAME (
     set XD_CONFIG_NAME=servers
 )

@@ -16,25 +16,24 @@
 
 package org.springframework.xd.integration.reactor.net;
 
-import java.util.Map;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.MessageChannel;
-
 import reactor.core.Environment;
 import reactor.io.encoding.Codec;
 import reactor.net.spec.NetServerSpec;
 import reactor.spring.context.config.EnableReactor;
+
+import java.util.Map;
 
 /**
  * @author Jon Brisbin
  */
 @Configuration
 @EnableReactor
-@SuppressWarnings({ "rawtypes" })
+@SuppressWarnings({"rawtypes"})
 public class NetServerInboundChannelAdapterConfiguration {
 
 	@Autowired(required = false)
@@ -55,6 +54,9 @@ public class NetServerInboundChannelAdapterConfiguration {
 	@Value("${framing}")
 	private String framing;
 
+	@Value("${lengthFieldLength}")
+	private int lengthFieldLength;
+
 	@Value("${codec}")
 	private String codec;
 
@@ -63,6 +65,7 @@ public class NetServerInboundChannelAdapterConfiguration {
 		return new NetServerSpecFactoryBean(env, transport, codecs)
 				.setDispatcher(dispatcher)
 				.setFraming(framing)
+				.setLengthFieldLength(lengthFieldLength)
 				.setCodec(codec)
 				.setPort(port)
 				.setHost(host);
@@ -70,7 +73,7 @@ public class NetServerInboundChannelAdapterConfiguration {
 
 	@Bean
 	public NetServerInboundChannelAdapter netServerInboundChannelAdapter(NetServerSpec spec,
-			MessageChannel output) {
+	                                                                     MessageChannel output) {
 		NetServerInboundChannelAdapter adapter = new NetServerInboundChannelAdapter(spec);
 		adapter.setOutputChannel(output);
 		return adapter;

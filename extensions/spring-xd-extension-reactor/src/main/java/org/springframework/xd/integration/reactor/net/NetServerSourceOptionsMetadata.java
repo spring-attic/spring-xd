@@ -37,6 +37,8 @@ public class NetServerSourceOptionsMetadata {
 
 	private String framing = "linefeed";
 
+	private int lengthFieldLength = 4;
+
 	private String codec = "string";
 
 	public String getTransport() {
@@ -82,6 +84,15 @@ public class NetServerSourceOptionsMetadata {
 	@ModuleOption("method of framing the data")
 	public void setFraming(String framing) {
 		this.framing = framing;
+	}
+
+	public int getLengthFieldLength() {
+		return lengthFieldLength;
+	}
+
+	@ModuleOption("byte precision of the number used in the length field")
+	public void setLengthFieldLength(int lengthFieldLength) {
+		this.lengthFieldLength = lengthFieldLength;
 	}
 
 	public String getCodec() {

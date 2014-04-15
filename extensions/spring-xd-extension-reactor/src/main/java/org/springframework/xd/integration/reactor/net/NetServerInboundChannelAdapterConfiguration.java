@@ -36,47 +36,47 @@ import java.util.Map;
 @SuppressWarnings({"rawtypes"})
 public class NetServerInboundChannelAdapterConfiguration {
 
-  @Autowired(required = false)
-  private Map<String, Codec> codecs;
+	@Autowired(required = false)
+	private Map<String, Codec> codecs;
 
-  @Value("${transport}")
-  private String transport;
+	@Value("${transport}")
+	private String transport;
 
-  @Value("${dispatcher}")
-  private String dispatcher;
+	@Value("${dispatcher}")
+	private String dispatcher;
 
-  @Value("${host}")
-  private String host;
+	@Value("${host}")
+	private String host;
 
-  @Value("${port}")
-  private int port;
+	@Value("${port}")
+	private int port;
 
-  @Value("${framing}")
-  private String framing;
+	@Value("${framing}")
+	private String framing;
 
-  @Value("${lengthFieldLength}")
-  private int lengthFieldLength;
+	@Value("${lengthFieldLength}")
+	private int lengthFieldLength;
 
-  @Value("${codec}")
-  private String codec;
+	@Value("${codec}")
+	private String codec;
 
-  @Bean
-  public NetServerSpecFactoryBean netServerSpecFactoryBean(Environment env) {
-    return new NetServerSpecFactoryBean(env, transport, codecs)
-        .setDispatcher(dispatcher)
-        .setFraming(framing)
-        .setLengthFieldLength(lengthFieldLength)
-        .setCodec(codec)
-        .setPort(port)
-        .setHost(host);
-  }
+	@Bean
+	public NetServerSpecFactoryBean netServerSpecFactoryBean(Environment env) {
+		return new NetServerSpecFactoryBean(env, transport, codecs)
+				.setDispatcher(dispatcher)
+				.setFraming(framing)
+				.setLengthFieldLength(lengthFieldLength)
+				.setCodec(codec)
+				.setPort(port)
+				.setHost(host);
+	}
 
-  @Bean
-  public NetServerInboundChannelAdapter netServerInboundChannelAdapter(NetServerSpec spec,
-                                                                       MessageChannel output) {
-    NetServerInboundChannelAdapter adapter = new NetServerInboundChannelAdapter(spec);
-    adapter.setOutputChannel(output);
-    return adapter;
-  }
+	@Bean
+	public NetServerInboundChannelAdapter netServerInboundChannelAdapter(NetServerSpec spec,
+	                                                                     MessageChannel output) {
+		NetServerInboundChannelAdapter adapter = new NetServerInboundChannelAdapter(spec);
+		adapter.setOutputChannel(output);
+		return adapter;
+	}
 
 }

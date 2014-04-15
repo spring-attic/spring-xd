@@ -101,6 +101,7 @@ if not defined XD_HOME (
 if not defined XD_CONFIG_LOCATION (
     set XD_CONFIG_LOCATION=%XD_HOME%/config/
 )
+set XD_CONFIG_LOCATION=%XD_CONFIG_LOCATION%/
 if not defined XD_CONFIG_NAME (
     set XD_CONFIG_NAME=servers
 )
@@ -116,7 +117,7 @@ if not defined XD_MODULE_CONFIG_NAME (
 set XD_MODULE_CONFIG_LOCATION=%XD_MODULE_CONFIG_LOCATION%/
 
 set SPRING_XD_OPTS=-Dspring.application.name=container -Dlogging.config=file:%XD_HOME%/config/xd-container-logger.properties -Dxd.home=%XD_HOME%
-set SPRING_XD_OPTS=%SPRING_XD_OPTS% -Dspring.config.location=file:%XD_CONFIG_LOCATION% -Dspring.config.name=%XD_CONFIG_NAME%
+set SPRING_XD_OPTS=%SPRING_XD_OPTS% -Dspring.config.location=file:%XD_CONFIG_LOCATION% -Dxd.config.home=file:%XD_CONFIG_LOCATION% -Dspring.config.name=%XD_CONFIG_NAME%
 set SPRING_XD_OPTS=%SPRING_XD_OPTS% -Dxd.module.config.location=file:%XD_MODULE_CONFIG_LOCATION% -Dxd.module.config.name=%XD_MODULE_CONFIG_NAME%
 
 @rem make sure to remove double quotes if any

@@ -20,9 +20,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.config.ConfigFileApplicationListener;
 import org.springframework.context.EnvironmentAware;
@@ -58,8 +56,9 @@ import org.springframework.xd.module.ModuleDefinition;
  * resolver will try to read a default from {@code <type>.<modulename>.<optionname>}.
  * 
  * @author Eric Bottard
+ * @author Ilayaperumal Gopinathan
  */
-public class EnvironmentAwareModuleOptionsMetadataResolver implements ModuleOptionsMetadataResolver, InitializingBean,
+public class EnvironmentAwareModuleOptionsMetadataResolver implements ModuleOptionsMetadataResolver,
 		ResourceLoaderAware, EnvironmentAware
 {
 
@@ -84,8 +83,6 @@ public class EnvironmentAwareModuleOptionsMetadataResolver implements ModuleOpti
 	private static final String APPLICATION_CONFIGURATION_PROPERTIES = "applicationConfigurationProperties";
 
 	private ModuleOptionsMetadataResolver delegate;
-
-	private Map<String, ConfigurableEnvironment> environments = new ConcurrentHashMap<String, ConfigurableEnvironment>();
 
 	private String xdModuleConfigLocation;
 
@@ -180,33 +177,29 @@ public class EnvironmentAwareModuleOptionsMetadataResolver implements ModuleOpti
 	}
 
 	private Environment lookupEnvironment(ModuleDefinition moduleDefinition) {
+		// load rootEnvironment at runtime than during the startup
+		rootEnvironment = loadPropertySources(xdModuleConfigLocation, configName);
 		String propertySourceName = String.format("%s:%s",
 				moduleDefinition.getType(), moduleDefinition.getName());
-		if (!environments.containsKey(propertySourceName)) {
-			synchronized (environments) {
-				if (!environments.containsKey(propertySourceName)) {
-					// Load short name values into a throwaway env
-					String path = String.format("%s%s/%s/", xdModuleConfigLocation, moduleDefinition.getType(),
-							moduleDefinition.getName());
-					ConfigurableEnvironment throwAwayEnvironment = loadPropertySources(path, moduleDefinition.getName());
-					EnumerablePropertySource<?> nakedPS = (EnumerablePropertySource<?>) throwAwayEnvironment.getPropertySources().get(
-							APPLICATION_CONFIGURATION_PROPERTIES);
-					// Now transform them to their fully qualified form
-					Map<String, Object> values = new HashMap<String, Object>();
-					for (String name : nakedPS.getPropertyNames()) {
-						values.put(fullyQualifiedKey(moduleDefinition, name), nakedPS.getProperty(name));
-					}
-					EnumerablePropertySource<?> modulePS = new MapPropertySource(propertySourceName, values);
-					ConfigurableEnvironment moduleEnvironment = new StandardEnvironment();
-					moduleEnvironment.merge(rootEnvironment);
-					// The global environment has been loaded by boot too and
-					// its PS of interest was also named "applicationConfigurationProperties"
-					moduleEnvironment.getPropertySources().addBefore(APPLICATION_CONFIGURATION_PROPERTIES, modulePS);
-					environments.put(propertySourceName, moduleEnvironment);
-				}
-			}
+		// Load short name values into a throwaway env
+		String path = String.format("%s%s/%s/", xdModuleConfigLocation, moduleDefinition.getType(),
+				moduleDefinition.getName());
+		ConfigurableEnvironment throwAwayEnvironment = loadPropertySources(path, moduleDefinition.getName());
+		EnumerablePropertySource<?> nakedPS = (EnumerablePropertySource<?>) throwAwayEnvironment.getPropertySources().get(
+				APPLICATION_CONFIGURATION_PROPERTIES);
+		// Now transform them to their fully qualified form
+		Map<String, Object> values = new HashMap<String, Object>();
+		for (String name : nakedPS.getPropertyNames()) {
+			values.put(fullyQualifiedKey(moduleDefinition, name), nakedPS.getProperty(name));
 		}
-		return environments.get(propertySourceName);
+		EnumerablePropertySource<?> modulePS = new MapPropertySource(propertySourceName, values);
+		ConfigurableEnvironment moduleEnvironment = new StandardEnvironment();
+		// Append the rootEnvironment
+		moduleEnvironment.merge(rootEnvironment);
+		// The global environment has been loaded by boot too and
+		// its PS of interest was also named "applicationConfigurationProperties"
+		moduleEnvironment.getPropertySources().addBefore(APPLICATION_CONFIGURATION_PROPERTIES, modulePS);
+		return moduleEnvironment;
 	}
 
 	/**
@@ -214,14 +207,6 @@ public class EnvironmentAwareModuleOptionsMetadataResolver implements ModuleOpti
 	 */
 	private String fullyQualifiedKey(ModuleDefinition moduleDefinition, String optionName) {
 		return String.format("%s.%s.%s", moduleDefinition.getType(), moduleDefinition.getName(), optionName);
-	}
-
-	@Override
-	public void afterPropertiesSet() throws Exception {
-		if (xdModuleConfigLocation == null) {
-			return;
-		}
-		rootEnvironment = loadPropertySources(xdModuleConfigLocation, configName);
 	}
 
 	/**

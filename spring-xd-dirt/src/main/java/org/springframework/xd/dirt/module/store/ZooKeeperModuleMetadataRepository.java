@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections.MapUtils;
+import org.apache.zookeeper.KeeperException.NoNodeException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -97,6 +98,9 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 				metadata = new ModuleMetadata(moduleId, containerId, moduleProperties);
 			}
 		}
+		catch (NoNodeException e) {
+			// this node does not exist, will return null
+		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -133,7 +137,10 @@ public class ZooKeeperModuleMetadataRepository implements ModuleMetadataReposito
 			for (String containerId : containerIds) {
 				List<String> modules = zkConnection.getClient().getChildren().forPath(path(containerId));
 				for (String moduleId : modules) {
-					results.add(findOne(containerId, moduleId));
+					ModuleMetadata metadata = findOne(containerId, moduleId);
+					if (metadata != null) {
+						results.add(metadata);
+					}
 				}
 			}
 			return results;

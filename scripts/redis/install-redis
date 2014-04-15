@@ -66,6 +66,9 @@ elif [[ $unameinfo == Linux*_64* ]]; then
     elif [[ -f /etc/debian_version ]]; then
       platforminfo="ubuntu64"
       echo "$platforminfo platform detected."
+    elif [[ -f /etc/slackware-version ]]; then
+      platforminfo="slackware64"
+      echo "$platforminfo platform detected."
     else
       echo "Unsupported Linux 64 bit platform."
       platformunsupported="true"
@@ -89,6 +92,9 @@ elif [[ $unameinfo == Linux* ]]; then
   elif [[ -f /etc/debian_version ]]; then
     platforminfo="ubuntu32"
     echo "$platforminfo platform detected."
+  elif [[ -f /etc/slackware-version ]]; then
+    platforminfo="slackware32"
+    echo "$platforminfo platform detected."
   else
     echo "Unsupported Linux 32 bit platform."
     platformunsupported="true"
@@ -105,7 +111,7 @@ elif [[ $unameinfo == Linux* ]]; then
     make CFLAGS="-march=i686"
   fi
 else
-  echo "Unsupported platform. Curently only Apple OS X and Linux systems (RedHat, CentOS, Ubuntu) are supported."
+  echo "Unsupported platform. Curently only Apple OS X and Linux systems (RedHat, CentOS, Ubuntu, Slackware) are supported."
   platformunsupported="true"
 fi
 if [[ $platformunsupported == "false" ]]; then

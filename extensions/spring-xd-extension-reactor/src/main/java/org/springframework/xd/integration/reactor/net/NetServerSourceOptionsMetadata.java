@@ -17,12 +17,11 @@
 package org.springframework.xd.integration.reactor.net;
 
 import org.springframework.xd.module.options.spi.ModuleOption;
-
 import reactor.core.Environment;
 
 /**
  * Provides metadata about the configuration options of a {@link reactor.net.NetServer} in Spring XD.
- * 
+ *
  * @author Jon Brisbin
  */
 public class NetServerSourceOptionsMetadata {
@@ -36,6 +35,8 @@ public class NetServerSourceOptionsMetadata {
 	private int port = 3000;
 
 	private String framing = "linefeed";
+
+	private int lengthFieldLength = 4;
 
 	private String codec = "string";
 
@@ -82,6 +83,15 @@ public class NetServerSourceOptionsMetadata {
 	@ModuleOption("method of framing the data")
 	public void setFraming(String framing) {
 		this.framing = framing;
+	}
+
+	public int getLengthFieldLength() {
+		return lengthFieldLength;
+	}
+
+	@ModuleOption("length of the field describing the message length")
+	public void setLengthFieldLength(int lengthFieldLength) {
+		this.lengthFieldLength = lengthFieldLength;
 	}
 
 	public String getCodec() {

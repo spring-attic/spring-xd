@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.config.ConfigFileApplicationListener;
 import org.springframework.context.EnvironmentAware;
@@ -57,8 +56,9 @@ import org.springframework.xd.module.ModuleDefinition;
  * resolver will try to read a default from {@code <type>.<modulename>.<optionname>}.
  * 
  * @author Eric Bottard
+ * @author Ilayaperumal Gopinathan
  */
-public class EnvironmentAwareModuleOptionsMetadataResolver implements ModuleOptionsMetadataResolver, InitializingBean,
+public class EnvironmentAwareModuleOptionsMetadataResolver implements ModuleOptionsMetadataResolver,
 		ResourceLoaderAware, EnvironmentAware
 {
 
@@ -194,6 +194,7 @@ public class EnvironmentAwareModuleOptionsMetadataResolver implements ModuleOpti
 		}
 		EnumerablePropertySource<?> modulePS = new MapPropertySource(propertySourceName, values);
 		ConfigurableEnvironment moduleEnvironment = new StandardEnvironment();
+		// Append the rootEnvironment
 		moduleEnvironment.merge(rootEnvironment);
 		// The global environment has been loaded by boot too and
 		// its PS of interest was also named "applicationConfigurationProperties"
@@ -206,13 +207,6 @@ public class EnvironmentAwareModuleOptionsMetadataResolver implements ModuleOpti
 	 */
 	private String fullyQualifiedKey(ModuleDefinition moduleDefinition, String optionName) {
 		return String.format("%s.%s.%s", moduleDefinition.getType(), moduleDefinition.getName(), optionName);
-	}
-
-	@Override
-	public void afterPropertiesSet() throws Exception {
-		if (xdModuleConfigLocation == null) {
-			return;
-		}
 	}
 
 	/**

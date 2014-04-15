@@ -119,7 +119,7 @@ ext {
 	springIntegrationSplunkVersion = '1.1.0.M2'
 	springIntegrationVersion = '4.0.0.M4'
 	springPluginVersion = '0.8.0.RELEASE'
-	springShellVersion = '1.1.0.BUILD-SNAPSHOT'
+	springShellVersion = '1.1.0.RC2'
 	springVersion = '4.0.3.RELEASE'
 	tomcatJdbcPoolVersion = '7.0.42'
 	tomcatVersion = '7.0.35'

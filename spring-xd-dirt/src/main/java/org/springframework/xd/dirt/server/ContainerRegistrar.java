@@ -18,7 +18,9 @@ package org.springframework.xd.dirt.server;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -292,8 +294,8 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 			deployments = new PathChildrenCache(client, Paths.build(Paths.MODULE_DEPLOYMENTS,
 					containerAttributes.getId()), true, ThreadUtils.newThreadFactory("DeploymentsPathChildrenCache"));
 			deployments.getListenable().addListener(deploymentListener);
-			containerAttributesRepository.save(containerAttributes);
 			deployments.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
+			containerAttributesRepository.save(containerAttributes);
 
 			LOG.info("Started container {}", containerAttributes);
 		}
@@ -325,7 +327,12 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 				LOG.warn(">>> disconnected container: {}", containerAttributes.getId());
 				deployments.getListenable().removeListener(deploymentListener);
 				deployments.close();
-				// todo: modules in mapDeployedModules should be undeployed
+
+				for (Iterator<ModuleDescriptor.Key> iterator = mapDeployedModules.keySet().iterator(); iterator.hasNext();) {
+					ModuleDescriptor.Key key = iterator.next();
+					undeployModule(key.getStream(), key.getType().name(), key.getLabel());
+					iterator.remove();
+				}
 			}
 			catch (Exception e) {
 				throw new RuntimeException(e);
@@ -604,9 +611,14 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 				}
 			}
 			else {
-				// this watcher is only interested in deletes for the purposes of undeploying modules;
-				// if any other change occurs the watch needs to be reestablished
-				zkConnection.getClient().getData().usingWatcher(this).forPath(event.getPath());
+				LOG.debug("Unexpected event {}, ZooKeeper state: {}", event.getType(), event.getState());
+				if (EnumSet.of(Watcher.Event.KeeperState.SyncConnected,
+						Watcher.Event.KeeperState.SaslAuthenticated,
+						Watcher.Event.KeeperState.ConnectedReadOnly).contains(event.getState())) {
+					// this watcher is only interested in deletes for the purposes of undeploying modules;
+					// if any other change occurs the watch needs to be reestablished
+					zkConnection.getClient().getData().usingWatcher(this).forPath(event.getPath());
+				}
 			}
 		}
 	}
@@ -653,9 +665,14 @@ public class ContainerRegistrar implements ApplicationListener<ContextRefreshedE
 				}
 			}
 			else {
-				// this watcher is only interested in deletes for the purposes of undeploying modules;
-				// if any other change occurs the watch needs to be reestablished
-				zkConnection.getClient().getData().usingWatcher(this).forPath(event.getPath());
+				LOG.debug("Unexpected event {}, ZooKeeper state: {}", event.getType(), event.getState());
+				if (EnumSet.of(Watcher.Event.KeeperState.SyncConnected,
+						Watcher.Event.KeeperState.SaslAuthenticated,
+						Watcher.Event.KeeperState.ConnectedReadOnly).contains(event.getState())) {
+					// this watcher is only interested in deletes for the purposes of undeploying modules;
+					// if any other change occurs the watch needs to be reestablished
+					zkConnection.getClient().getData().usingWatcher(this).forPath(event.getPath());
+				}
 			}
 		}
 	}

@@ -1,9 +1,9 @@
-Spring XD 1.0.0.M1
+Spring XD 1.0.0.M6
 ==================
 
-Please refer to the Reference Guide for more information on Getting Started with Spring XD
+Please refer to the Reference Guide for more information on Getting Started with Spring XD.
 
-The Spring XD distribution has the following directory structure
+The Spring XD distribution has the following directory structure:
 
 ├── spring-xd-<version>
 |   ├── docs
@@ -11,6 +11,9 @@ The Spring XD distribution has the following directory structure
 │   │   ├── bin
 │   │   ├── config
 │   │   └── lib
+|   ├── hsqldb
+|   │   ├── bin
+|   │   └── lib
 │   ├── redis
 │   │   ├── bin
 │   │   └── dist
@@ -23,12 +26,12 @@ The Spring XD distribution has the following directory structure
 │       ├── config
 │       ├── lib
 │       └── modules
-│           ├── common
-│           ├── job
-│           ├── processor
-│           ├── sink
-│           ├── source
-│           └── trigger
+│       |   ├── common
+│       |   ├── job
+│       |   ├── processor
+│       |   ├── sink
+│       |   ├── source
+|       └── spring-xd-ui
 
 
 
@@ -44,6 +47,9 @@ To run Spring-XD container:
 To run Spring-XD admin server:
 ./spring-xd/xd/bin/xd-admin[*.bat] [options] 
 
+To run Spring-XD singlenode server:
+./spring-xd/xd/bin/xd-singlenode[*.bat] [options]
+
 To run Spring-XD shell:
-./spring-xd/shell/bin/spring-xd-shell[*.bat] [options] 
+./spring-xd/shell/bin/xd-shell[*.bat] [options] 
 

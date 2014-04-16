@@ -71,11 +71,11 @@ For the curious, XD is an abbreviation for eXtreme Data.
 
 ### Manual Installation
 
-* Download [spring-xd-1.0.0.M5.zip](http://repo.spring.io/simple/libs-milestone-local/org/springframework/xd/spring-xd/1.0.0.M5/spring-xd-1.0.0.M5-dist.zip)
-* Unzip the distribution. This will yield the installation directory spring-xd-1.0.0.M5. All the commands below are executed from this directory, so change into it before proceeding
+* Download [spring-xd-1.0.0.M6.zip](http://repo.spring.io/simple/libs-milestone-local/org/springframework/xd/spring-xd/1.0.0.M6/spring-xd-1.0.0.M6-dist.zip)
+* Unzip the distribution. This will yield the installation directory spring-xd-1.0.0.M6. All the commands below are executed from this directory, so change into it before proceeding
 
 ```
-$ cd spring-xd-1.0.0.M5
+$ cd spring-xd-1.0.0.M6
 ```
 
 * Set the environment variable **XD_HOME** to the installation directory `<root-install-dir>\spring-xd\xd`
@@ -99,7 +99,7 @@ $ xd-singlenode
 
 * Start-up the runtime: The single node option is the easiest to get started with. It runs everything you need in a single process. To start it, you just need to cd to the xd directory and run the following command: `xd/bin>$ ./xd-singlenode`
 * Start XD Shell:  `./xd-shell`
-* Create your first stream by typing: `xd:> stream create --definition "time | log" --name ticktock`
+* Create your first stream by typing: `xd:> stream create --definition "time | log" --name ticktock --deploy`
 
 {% endcapture %}
 
@@ -107,7 +107,7 @@ $ xd-singlenode
 
 ### Sample Projects
 
-* [Syslog Ingestion into HDFS](http://docs.spring.io/spring-xd/docs/1.0.0.M5/reference/html/#_syslog_ingestion_into_hdfs)
+* [Syslog Ingestion into HDFS](http://docs.spring.io/spring-xd/docs/1.0.0.M6/reference/html/#_syslog_ingestion_into_hdfs)
 * [Spring XD Samples Repo](http://www.github.com/spring-projects/spring-xd-samples)
 
 ### Getting Started Guides

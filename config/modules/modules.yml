@@ -1,1 +1,35 @@
-# Stub module configuration file
+# modules configuration file
+
+# Shared twitter keys that can be applied to twittersearch, twitterstream
+# modules can be specified as below. These are default values unless explicit values are
+# set for module config keys in the respective twitter(search/stream) source modules.
+
+# Uncomment and set the below to activate properties that are applied to all twitter sources
+#twitter:
+#  consumerKey: fooconsumer123
+#  consumerSecret: fooconsumersecretABC
+#  accessToken: 123456789-fooaccesstoken
+#  accessTokenSecret: fooaccesstokensecret
+#
+# Once the above properties are set, the twitterstream/twittersearch source modules will use
+# them by default.
+# To override these properties:
+# Remove the shared property keys and set explicit property values in source/<module>/twitter(stream/search).properties
+# For example, in source/twittersearch/twittersearch.properties:
+#  consumerKey=mynewConsumerKey
+#  consumerSecret=overriddingSecret123
+#
+# Other source/processor/sink/job modules' properties can be configured in a similar way
+# Rabbit source/sink module configuration is one other example below.
+
+---
+
+# Shared RabbitMQ module properties
+#rabbit:
+#  host: localhost
+#  port: 5672
+#  username: guest
+#  password: guest
+#  vhost: /
+
+---

@@ -129,9 +129,8 @@ public class StreamConfigParserTests {
 		sn = parse("http | foo:bar | file");
 		assertEquals("[(ModuleNode:http)((Label:foo) ModuleNode:bar)(ModuleNode:file)]", sn.stringify());
 
-		sn = parse("http | foo: goggle: bar | file");
-		assertEquals("[(ModuleNode:http)((Label:foo) (Label:goggle) ModuleNode:bar)(ModuleNode:file)]", sn.stringify());
-
+		checkForParseError("http | foo: goggle: bar | file", XDDSLMessages.UNEXPECTED_DATA_AFTER_STREAMDEF,
+				18);
 		checkForParseError("http | foo :bar | file", XDDSLMessages.NO_WHITESPACE_BETWEEN_LABEL_NAME_AND_COLON, 11);
 	}
 

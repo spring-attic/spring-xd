@@ -33,7 +33,7 @@ import org.springframework.util.Assert;
 /**
  * A wrapper for a {@link CuratorFramework} instance whose lifecycle is managed as a Spring bean. Accepts
  * {@link ZooKeeperConnectionListener}s to be notified when connection or disconnection events are received.
- * 
+ *
  * @author Mark Fisher
  * @author David Turanski
  */
@@ -98,7 +98,7 @@ public class ZooKeeperConnection implements SmartLifecycle {
 
 	/**
 	 * Establish a ZooKeeper connection with the provided client connect string.
-	 * 
+	 *
 	 * @param clientConnectString one or more {@code host:port} strings, comma-delimited if more than one
 	 */
 	public ZooKeeperConnection(String clientConnectString) {
@@ -108,7 +108,7 @@ public class ZooKeeperConnection implements SmartLifecycle {
 
 	/**
 	 * Checks whether the underlying connection is established.
-	 * 
+	 *
 	 * @return true if connected
 	 */
 	public boolean isConnected() {
@@ -117,7 +117,7 @@ public class ZooKeeperConnection implements SmartLifecycle {
 
 	/**
 	 * Provides access to the underlying {@link CuratorFramework} instance.
-	 * 
+	 *
 	 * @return the {@link CuratorFramework} instance
 	 */
 	public CuratorFramework getClient() {
@@ -126,7 +126,7 @@ public class ZooKeeperConnection implements SmartLifecycle {
 
 	/**
 	 * Add a {@link ZooKeeperConnectionListener}.
-	 * 
+	 *
 	 * @param listener the listener to add
 	 * @return true if the listener was added or false if it was already registered
 	 */
@@ -136,7 +136,7 @@ public class ZooKeeperConnection implements SmartLifecycle {
 
 	/**
 	 * Remove a {@link ZooKeeperConnectionListener}.
-	 * 
+	 *
 	 * @param listener the listener to remove
 	 * @return true if the listener was removed or false if it was never registered
 	 */
@@ -204,6 +204,7 @@ public class ZooKeeperConnection implements SmartLifecycle {
 	public synchronized void start() {
 		if (!this.running) {
 			this.curatorFramework = CuratorFrameworkFactory.builder()
+					.defaultData(new byte[0])
 					// todo: make namespace pluggable so this class can be generic
 					.namespace(Paths.XD_NAMESPACE)
 					.retryPolicy(this.retryPolicy)

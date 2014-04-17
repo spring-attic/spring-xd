@@ -33,6 +33,8 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.rules.TestName;
 
 import org.springframework.integration.x.bus.MessageBus;
 import org.springframework.messaging.SubscribableChannel;
@@ -49,13 +51,13 @@ import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
  * Superclass for performing integration tests of spring-xd shell commands.
- *
+ * 
  * JUnit's BeforeClass and AfterClass annotations are used to start and stop the XDAdminServer in local mode with the
  * default store configured to use in-memory storage.
- *
+ * 
  * Note: This isn't ideal as it takes significant time to startup the embedded XDContainer/tomcat and we should do this
  * once across all tests.
- *
+ * 
  * @author Mark Pollack
  * @author Kashyap Parikh
  * @author David Turanski
@@ -97,6 +99,12 @@ public abstract class AbstractShellIntegrationTest {
 	private static SingleNodeIntegrationTestSupport integrationTestSupport;
 
 	private Random random = new Random();
+
+	/**
+	 * Used to capture currently executing test method.
+	 */
+	@Rule
+	public TestName name = new TestName();
 
 	@BeforeClass
 	public static synchronized void startUp() throws InterruptedException, IOException {
@@ -202,7 +210,7 @@ public abstract class AbstractShellIntegrationTest {
 	/**
 	 * Copies over module files (including jars if this is a directory-style module) from src/test/resources to where it
 	 * will be picked up and makes sure it will disappear at test end.
-	 *
+	 * 
 	 * @param type the type of module, e.g. "source"
 	 * @param name the module name, with extension (e.g. time2.xml or time2 if a directory)
 	 * @throws IOException

@@ -34,6 +34,24 @@ import org.springframework.util.StringValueResolver;
  */
 public class DefaultModuleOptionsMetadataCollector extends PlaceholderConfigurerSupport {
 
+	/**
+	 * Used as a replacement for "${", so that we can show that the default is a placeholder, but still avoid infinite
+	 * recursion.
+	 */
+	private static final String ALTERNATE_PLACEHOLDER_SUFFIX = "]]*";
+
+	/**
+	 * Used as a replacement for "}", so that we can show that the default is a placeholder, but still avoid infinite
+	 * recursion.
+	 */
+	private static final String ALTERNATE_PLACEHOLDER_PREFIX = "*[[";
+
+	private static final String DELIMITERS_RECOVERY_REGEX = "\\Q" + ALTERNATE_PLACEHOLDER_PREFIX + "\\E(.+)\\Q"
+			+ ALTERNATE_PLACEHOLDER_SUFFIX + "\\E";
+
+	private static final String DELIMITERS_RECOVERY_REPLACEMENT = "\\${$1}";
+
+
 	final PropertyPlaceholderHelper helper = new PropertyPlaceholderHelper("${", "}");
 
 	@Override
@@ -55,14 +73,15 @@ public class DefaultModuleOptionsMetadataCollector extends PlaceholderConfigurer
 					ModuleOption option = new ModuleOption(optionName, "unknown").withType(String.class);
 					if (colon > 0) {
 						String defaultValue = placeholderName.substring(colon + 1);
-						if (!defaultValue.contains("${")) {
-							// TODO: revisit (XD-1261)
-							// option.withDefaultValue(defaultValue);
-						}
+						// if (!defaultValue.contains("${")) {
+						// TODO: revisit (XD-1261)
+						option.withDefaultValue(defaultValue.replaceAll(DELIMITERS_RECOVERY_REGEX,
+								DELIMITERS_RECOVERY_REPLACEMENT));
+						// }
 					}
 					result.add(option);
 				}
-				return placeholderName;
+				return ALTERNATE_PLACEHOLDER_PREFIX + placeholderName + ALTERNATE_PLACEHOLDER_SUFFIX;
 			}
 		};
 

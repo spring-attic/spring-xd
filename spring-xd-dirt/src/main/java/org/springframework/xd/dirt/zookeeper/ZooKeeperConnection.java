@@ -163,7 +163,7 @@ public class ZooKeeperConnection implements SmartLifecycle {
 
 	/**
 	 * Set the Curator retry policy.
-	 *
+	 * 
 	 * @param retryPolicy Curator client {@link RetryPolicy}
 	 */
 	public void setRetryPolicy(RetryPolicy retryPolicy) {
@@ -173,7 +173,7 @@ public class ZooKeeperConnection implements SmartLifecycle {
 
 	/**
 	 * Return the Curator retry policy.
-	 *
+	 * 
 	 * @return the Curator retry policy
 	 */
 	public RetryPolicy getRetryPolicy() {
@@ -204,6 +204,8 @@ public class ZooKeeperConnection implements SmartLifecycle {
 	public synchronized void start() {
 		if (!this.running) {
 			this.curatorFramework = CuratorFrameworkFactory.builder()
+					// Set the defaultData to be empty byte array so that there is no default data when creating path
+					.defaultData(new byte[0])
 					// todo: make namespace pluggable so this class can be generic
 					.namespace(Paths.XD_NAMESPACE)
 					.retryPolicy(this.retryPolicy)

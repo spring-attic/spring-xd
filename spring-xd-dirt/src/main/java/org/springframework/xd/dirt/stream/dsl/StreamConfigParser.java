@@ -358,44 +358,34 @@ public class StreamConfigParser implements StreamLookupEnvironment {
 		return moduleNodes;
 	}
 
-	// module: [label':']* identifier (moduleArguments)*
+	// module: [label':']? identifier (moduleArguments)*
 	private ModuleNode eatModule() {
-		List<Token> labels = null;
+		Token label = null;
 		Token name = nextToken();
 		if (!name.isKind(TokenKind.IDENTIFIER)) {
 			raiseException(name.startpos, XDDSLMessages.EXPECTED_MODULENAME, name.data != null ? name.data
 					: new String(name.getKind().tokenChars));
 		}
-		while (peekToken(TokenKind.COLON)) {
+		if (peekToken(TokenKind.COLON)) {
 			if (!isNextTokenAdjacent()) {
 				raiseException(peekToken().startpos, XDDSLMessages.NO_WHITESPACE_BETWEEN_LABEL_NAME_AND_COLON);
 			}
-			nextToken();
-			if (labels == null) {
-				labels = new ArrayList<Token>();
-			}
-			labels.add(name);
+			nextToken(); // swallow colon
+			label = name;
 			name = eatToken(TokenKind.IDENTIFIER);
 		}
 		Token moduleName = name;
 		checkpoint();
 		ArgumentNode[] args = maybeEatModuleArgs();
-		int startpos = moduleName.startpos;
-		if (labels != null) {
-			startpos = labels.get(0).startpos;
-		}
-		return new ModuleNode(toLabelNodes(labels), moduleName.data, startpos, moduleName.endpos, args);
+		int startpos = label != null ? label.startpos : moduleName.startpos;
+		return new ModuleNode(toLabelNode(label), moduleName.data, startpos, moduleName.endpos, args);
 	}
 
-	private List<LabelNode> toLabelNodes(List<Token> labels) {
-		if (labels == null) {
+	private LabelNode toLabelNode(Token label) {
+		if (label == null) {
 			return null;
 		}
-		List<LabelNode> labelNodes = new ArrayList<LabelNode>();
-		for (Token label : labels) {
-			labelNodes.add(new LabelNode(label.data, label.startpos, label.endpos));
-		}
-		return labelNodes;
+		return new LabelNode(label.data, label.startpos, label.endpos);
 	}
 
 	// moduleArguments : DOUBLE_MINUS identifier(name) EQUALS identifier(value)

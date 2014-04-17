@@ -192,18 +192,16 @@ public class StreamNode extends AstNode {
 		Map<String, ModuleNode> labeledModules = new HashMap<String, ModuleNode>();
 		for (int m = 0, max = moduleNodes.size(); m < max; m++) {
 			ModuleNode moduleNode = moduleNodes.get(m);
-			if (moduleNode.getLabelNames().size() != 0) {
-				List<String> labels = moduleNode.getLabelNames();
-				for (String label : labels) {
-					ModuleNode existingLabeledModule = labeledModules.get(label);
-					if (existingLabeledModule != null) {
-						// ERROR
-						throw new StreamDefinitionException(this.streamText, existingLabeledModule.startpos,
-								XDDSLMessages.DUPLICATE_LABEL, label, existingLabeledModule.getName(),
-								moduleNode.getName());
-					}
-					labeledModules.put(label, moduleNode);
+			if (moduleNode.getLabelName() != null) {
+				String label = moduleNode.getLabelName();
+				ModuleNode existingLabeledModule = labeledModules.get(label);
+				if (existingLabeledModule != null) {
+					// ERROR
+					throw new StreamDefinitionException(this.streamText, existingLabeledModule.startpos,
+							XDDSLMessages.DUPLICATE_LABEL, label, existingLabeledModule.getName(),
+							moduleNode.getName());
 				}
+				labeledModules.put(label, moduleNode);
 			}
 		}
 	}
@@ -211,15 +209,8 @@ public class StreamNode extends AstNode {
 	public int getIndexOfLabelOrModuleName(String labelOrModuleName) {
 		for (int m = 0; m < moduleNodes.size(); m++) {
 			ModuleNode moduleNode = moduleNodes.get(m);
-			if (moduleNode.getName().equals(labelOrModuleName)) {
+			if (labelOrModuleName.equals(moduleNode.getName()) || labelOrModuleName.equals(moduleNode.getLabelName())) {
 				return m;
-			}
-			else {
-				for (String labelName : moduleNode.getLabelNames()) {
-					if (labelName.equals(labelOrModuleName)) {
-						return m;
-					}
-				}
 			}
 		}
 		return -1;
@@ -229,21 +220,11 @@ public class StreamNode extends AstNode {
 		int foundModule = -1;
 		for (int m = 0; m < moduleNodes.size(); m++) {
 			ModuleNode moduleNode = moduleNodes.get(m);
-			if (moduleNode.getName().equals(labelOrModuleName)) {
+			if (labelOrModuleName.equals(moduleNode.getName()) || labelOrModuleName.equals(moduleNode.getLabelName())) {
 				if (foundModule != -1) {
 					return true;
 				}
 				foundModule = m;
-			}
-			else {
-				for (String labelName : moduleNode.getLabelNames()) {
-					if (labelName.equals(labelOrModuleName)) {
-						if (foundModule != -1) {
-							return true;
-						}
-						foundModule = m;
-					}
-				}
 			}
 		}
 		return false;

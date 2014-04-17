@@ -16,11 +16,8 @@
 
 package org.springframework.xd.dirt.stream.dsl;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -31,15 +28,15 @@ public class ModuleNode extends AstNode {
 
 	private static final ArgumentNode[] NO_ARGUMENTS = new ArgumentNode[0];
 
-	private List<LabelNode> labels;
+	private LabelNode label;
 
 	private final String moduleName;
 
 	private ArgumentNode[] arguments;
 
-	public ModuleNode(List<LabelNode> labels, String moduleName, int startpos, int endpos, ArgumentNode[] arguments) {
+	public ModuleNode(LabelNode label, String moduleName, int startpos, int endpos, ArgumentNode[] arguments) {
 		super(startpos, endpos);
-		this.labels = labels;
+		this.label = label;
 		this.moduleName = moduleName;
 		if (arguments != null) {
 			this.arguments = Arrays.copyOf(arguments, arguments.length);
@@ -54,11 +51,9 @@ public class ModuleNode extends AstNode {
 	@Override
 	public String toString() {
 		StringBuilder s = new StringBuilder();
-		if (labels != null) {
-			for (LabelNode label : labels) {
-				s.append(label.toString());
-				s.append(" ");
-			}
+		if (label != null) {
+			s.append(label.toString());
+			s.append(" ");
 		}
 		s.append(moduleName);
 		if (arguments != null) {
@@ -73,11 +68,9 @@ public class ModuleNode extends AstNode {
 	public String stringify(boolean includePositionalInfo) {
 		StringBuilder s = new StringBuilder();
 		s.append("(");
-		if (labels != null) {
-			for (LabelNode label : labels) {
-				s.append(label.stringify(includePositionalInfo));
-				s.append(" ");
-			}
+		if (label != null) {
+			s.append(label.stringify(includePositionalInfo));
+			s.append(" ");
 		}
 		s.append("ModuleNode:").append(moduleName);
 		if (arguments != null) {
@@ -105,15 +98,13 @@ public class ModuleNode extends AstNode {
 		return arguments != null;
 	}
 
-	public List<String> getLabelNames() {
-		if (labels == null) {
-			return Collections.emptyList();
+	public String getLabelName() {
+		if (label == null) {
+			return null;
 		}
-		List<String> labelNames = new ArrayList<String>();
-		for (LabelNode label : labels) {
-			labelNames.add(label.getLabelName());
+		else {
+			return label.getLabelName();
 		}
-		return labelNames;
 	}
 
 	/**
@@ -188,7 +179,7 @@ public class ModuleNode extends AstNode {
 			newModuleArgumentsArray =
 					newModuleArguments.values().toArray(new ArgumentNode[newModuleArguments.values().size()]);
 		}
-		return new ModuleNode(this.labels, this.moduleName, this.startpos, this.endpos, newModuleArgumentsArray);
+		return new ModuleNode(this.label, this.moduleName, this.startpos, this.endpos, newModuleArgumentsArray);
 	}
 
 }

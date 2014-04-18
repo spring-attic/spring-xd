@@ -56,8 +56,7 @@ import org.springframework.util.Assert;
  * @author David Turanski
  * @author Jennifer Hickey
  */
-public class RedisMessageBus extends MessageBusSupport implements DisposableBean,
-		IntegrationEvaluationContextAware {
+public class RedisMessageBus extends MessageBusSupport implements DisposableBean, IntegrationEvaluationContextAware {
 
 	private static final String REPLY_TO = "replyTo";
 
@@ -82,7 +81,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 	}
 
 	@Override
-	public void bindConsumer(final String name, MessageChannel moduleInputChannel, boolean aliasHint) {
+	public void bindConsumer(final String name, MessageChannel moduleInputChannel) {
 		RedisQueueMessageDrivenEndpoint adapter = new RedisQueueMessageDrivenEndpoint("queue." + name,
 				this.connectionFactory);
 		adapter.setBeanFactory(this.getBeanFactory());
@@ -116,7 +115,7 @@ public class RedisMessageBus extends MessageBusSupport implements DisposableBean
 	}
 
 	@Override
-	public void bindProducer(final String name, MessageChannel moduleOutputChannel, boolean aliasHint) {
+	public void bindProducer(final String name, MessageChannel moduleOutputChannel) {
 		Assert.isInstanceOf(SubscribableChannel.class, moduleOutputChannel);
 		RedisQueueOutboundChannelAdapter queue = new RedisQueueOutboundChannelAdapter("queue." + name,
 				connectionFactory);

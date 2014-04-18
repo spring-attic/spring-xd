@@ -30,7 +30,7 @@ public class SingleNodeNamedQueueSource extends AbstractSingleNodeNamedChannelSo
 
 	@Override
 	protected void bind() {
-		this.messageBus.bindProducer(this.sharedChannelName, this.messageChannel, true);
+		this.messageBus.bindProducer(this.sharedChannelName, this.messageChannel);
 	}
 
 }

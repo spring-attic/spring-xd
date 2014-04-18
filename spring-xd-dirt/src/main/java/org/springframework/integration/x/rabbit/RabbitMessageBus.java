@@ -88,12 +88,12 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		this.rabbitAdmin.afterPropertiesSet();
 		this.mapper = new DefaultAmqpHeaderMapper();
 		this.mapper.setRequestHeaderNames(new String[] { AbstractHeaderMapper.STANDARD_REQUEST_HEADER_NAME_PATTERN,
-			ORIGINAL_CONTENT_TYPE_HEADER });
+				ORIGINAL_CONTENT_TYPE_HEADER });
 		this.setCodec(codec);
 	}
 
 	@Override
-	public void bindConsumer(final String name, MessageChannel moduleInputChannel, boolean aliasHint) {
+	public void bindConsumer(final String name, MessageChannel moduleInputChannel) {
 		if (logger.isInfoEnabled()) {
 			logger.info("declaring queue for inbound: " + name);
 		}
@@ -146,7 +146,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	}
 
 	@Override
-	public void bindProducer(final String name, MessageChannel moduleOutputChannel, boolean aliasHint) {
+	public void bindProducer(final String name, MessageChannel moduleOutputChannel) {
 		if (logger.isInfoEnabled()) {
 			logger.info("declaring queue for outbound: " + name);
 		}

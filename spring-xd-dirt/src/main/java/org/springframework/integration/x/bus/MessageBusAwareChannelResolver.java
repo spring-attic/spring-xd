@@ -50,7 +50,7 @@ public class MessageBusAwareChannelResolver extends BeanFactoryMessageChannelDes
 				String type = tokens[0];
 				if ("queue".equals(type)) {
 					channel = new DirectChannel();
-					messageBus.bindProducer(name, channel, true);
+					messageBus.bindProducer(name, channel);
 				}
 				else if ("topic".equals(type)) {
 					channel = new PublishSubscribeChannel();

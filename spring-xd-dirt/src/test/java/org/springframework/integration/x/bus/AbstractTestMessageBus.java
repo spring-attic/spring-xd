@@ -42,8 +42,8 @@ public abstract class AbstractTestMessageBus implements MessageBus {
 	}
 
 	@Override
-	public void bindConsumer(String name, MessageChannel moduleInputChannel, boolean aliasHint) {
-		messageBus.bindConsumer(name, moduleInputChannel, aliasHint);
+	public void bindConsumer(String name, MessageChannel moduleInputChannel) {
+		messageBus.bindConsumer(name, moduleInputChannel);
 		queues.add(name);
 	}
 
@@ -54,8 +54,8 @@ public abstract class AbstractTestMessageBus implements MessageBus {
 	}
 
 	@Override
-	public void bindProducer(String name, MessageChannel moduleOutputChannel, boolean aliasHint) {
-		messageBus.bindProducer(name, moduleOutputChannel, aliasHint);
+	public void bindProducer(String name, MessageChannel moduleOutputChannel) {
+		messageBus.bindProducer(name, moduleOutputChannel);
 		queues.add(name);
 	}
 

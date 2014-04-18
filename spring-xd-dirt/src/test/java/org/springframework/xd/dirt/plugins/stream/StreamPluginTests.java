@@ -97,8 +97,8 @@ public class StreamPluginTests {
 		when(module.getComponent("output", MessageChannel.class)).thenReturn(output);
 		plugin.preProcessModule(module);
 		plugin.postProcessModule(module);
-		verify(bus).bindConsumer("foo.0", input, false);
-		verify(bus).bindProducer("foo.1", output, false);
+		verify(bus).bindConsumer("foo.0", input);
+		verify(bus).bindProducer("foo.1", output);
 		verify(bus).bindPubSubProducer(eq("tap:foo.testing.1"), any(DirectChannel.class));
 		plugin.beforeShutdown(module);
 		plugin.removeModule(module);

@@ -56,8 +56,8 @@ public class RabbitMessageBusTests extends AbstractMessageBusTests {
 		MessageBus messageBus = getMessageBus();
 		DirectChannel moduleOutputChannel = new DirectChannel();
 		DirectChannel moduleInputChannel = new DirectChannel();
-		messageBus.bindProducer("bad.0", moduleOutputChannel, false);
-		messageBus.bindConsumer("bad.0", moduleInputChannel, false);
+		messageBus.bindProducer("bad.0", moduleOutputChannel);
+		messageBus.bindConsumer("bad.0", moduleInputChannel);
 		Message<?> message = MessageBuilder.withPayload("bad").setHeader(MessageHeaders.CONTENT_TYPE, "foo/bar").build();
 		final CountDownLatch latch = new CountDownLatch(3);
 		moduleInputChannel.subscribe(new MessageHandler() {

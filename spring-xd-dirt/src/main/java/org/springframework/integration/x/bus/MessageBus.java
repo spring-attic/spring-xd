@@ -24,6 +24,7 @@ import org.springframework.messaging.MessageChannel;
  * @author David Turanski
  * @author Gary Russell
  * @author Jennifer Hickey
+ * @author Ilayaperumal Gopinathan
  * @since 1.0
  */
 public interface MessageBus {
@@ -33,9 +34,8 @@ public interface MessageBus {
 	 * 
 	 * @param name the logical identity of the message source
 	 * @param moduleInputChannel the channel bound as a consumer
-	 * @param aliasHint whether the provided name represents an alias and thus should support late binding
 	 */
-	void bindConsumer(String name, MessageChannel moduleInputChannel, boolean aliasHint);
+	void bindConsumer(String name, MessageChannel moduleInputChannel);
 
 
 	/**
@@ -51,9 +51,8 @@ public interface MessageBus {
 	 * 
 	 * @param name the logical identity of the message target
 	 * @param moduleOutputChannel the channel bound as a producer
-	 * @param aliasHint whether the provided name represents an alias and thus should support late binding
 	 */
-	void bindProducer(String name, MessageChannel moduleOutputChannel, boolean aliasHint);
+	void bindProducer(String name, MessageChannel moduleOutputChannel);
 
 
 	/**

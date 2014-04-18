@@ -230,7 +230,7 @@ public class MessageBusSupportTests {
 	public class TestMessageBus extends MessageBusSupport {
 
 		@Override
-		public void bindConsumer(String name, MessageChannel channel, boolean aliasHint) {
+		public void bindConsumer(String name, MessageChannel channel) {
 		}
 
 		@Override
@@ -242,7 +242,7 @@ public class MessageBusSupportTests {
 		}
 
 		@Override
-		public void bindProducer(String name, MessageChannel channel, boolean aliasHint) {
+		public void bindProducer(String name, MessageChannel channel) {
 		}
 
 		@Override

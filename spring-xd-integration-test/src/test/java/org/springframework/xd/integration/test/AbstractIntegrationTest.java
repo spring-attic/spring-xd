@@ -164,16 +164,29 @@ public abstract class AbstractIntegrationTest {
 	}
 
 	/**
-	 * Verifies that a message was received by source of the stream to be tested.
+	 * Verifies that a message was received by all modules in a stream.
 	 * 
 	 * @throws Exception
 	 */
-	public void assertReceived() throws Exception {
+	public void assertReceived(int msgCountExpected) throws Exception {
 		waitForXD();
 
 		validation.assertReceived(StreamUtils.replacePort(
-				getContainerForStream(STREAM_NAME), xdEnvironment.getJMXPort()), STREAM_NAME,
-				"http");
+				getContainerForStream(STREAM_NAME), xdEnvironment.getJMXPort()),
+				STREAM_NAME, msgCountExpected);
+	}
+
+	/**
+	 * Verifies that a message was received by the module.
+	 * 
+	 * @throws Exception
+	 */
+	public void assertReceived(String moduleName, int msgCountExpected) throws Exception {
+		waitForXD();
+
+		validation.assertReceived(StreamUtils.replacePort(
+				getContainerForStream(STREAM_NAME), xdEnvironment.getJMXPort()),
+				STREAM_NAME, moduleName, msgCountExpected);
 	}
 
 	/**

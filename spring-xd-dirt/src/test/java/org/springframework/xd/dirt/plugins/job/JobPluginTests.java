@@ -289,7 +289,7 @@ public class JobPluginTests extends RandomConfigurationSupport {
 		private List<String> producerNames = new ArrayList<String>();
 
 		@Override
-		public void bindConsumer(String name, MessageChannel moduleInputChannel, boolean aliasHint) {
+		public void bindConsumer(String name, MessageChannel moduleInputChannel) {
 			consumerNames.add(name);
 		}
 
@@ -299,7 +299,7 @@ public class JobPluginTests extends RandomConfigurationSupport {
 		}
 
 		@Override
-		public void bindProducer(String name, MessageChannel moduleOutputChannel, boolean aliasHint) {
+		public void bindProducer(String name, MessageChannel moduleOutputChannel) {
 			producerNames.add(name);
 		}
 

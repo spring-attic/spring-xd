@@ -24,7 +24,7 @@ import org.springframework.xd.module.core.Module;
 /**
  * Abstract class that extends {@link AbstractMessageBusBinderPlugin} and has common implementation methods related to
  * stream plugins.
- * 
+ *
  * @author Ilayaperumal Gopinathan
  */
 public abstract class AbstractStreamPlugin extends AbstractMessageBusBinderPlugin {
@@ -39,18 +39,8 @@ public abstract class AbstractStreamPlugin extends AbstractMessageBusBinderPlugi
 	}
 
 	@Override
-	protected boolean isAliasedInput(Module module) {
-		return module.getDeploymentMetadata().isAliasedInput();
-	}
-
-	@Override
 	protected String getOutputChannelName(Module module) {
 		return module.getDeploymentMetadata().getOutputChannelName();
-	}
-
-	@Override
-	protected boolean isAliasedOutput(Module module) {
-		return module.getDeploymentMetadata().isAliasedOutput();
 	}
 
 	@Override

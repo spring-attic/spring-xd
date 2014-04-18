@@ -88,7 +88,7 @@ public class MessageBusAwareChannelResolverTests {
 				latch.countDown();
 			}
 		});
-		bus.bindConsumer("queue:foo", testChannel, true);
+		bus.bindConsumer("queue:foo", testChannel);
 		assertEquals(0, received.size());
 		registered.send(MessageBuilder.withPayload("hello").build());
 		try {
@@ -107,7 +107,7 @@ public class MessageBusAwareChannelResolverTests {
 	public void resolveTopicChannel() {
 		MessageChannel registered = resolver.resolveDestination("topic:bar");
 		PublishSubscribeChannel[] testChannels = {
-				new PublishSubscribeChannel(), new PublishSubscribeChannel(), new PublishSubscribeChannel()
+			new PublishSubscribeChannel(), new PublishSubscribeChannel(), new PublishSubscribeChannel()
 		};
 		final CountDownLatch latch = new CountDownLatch(testChannels.length);
 		final List<Message<?>> received = new ArrayList<Message<?>>();

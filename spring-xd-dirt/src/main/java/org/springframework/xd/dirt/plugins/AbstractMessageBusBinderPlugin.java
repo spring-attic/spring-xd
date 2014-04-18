@@ -32,7 +32,7 @@ import org.springframework.xd.module.core.Plugin;
 /**
  * Abstract {@link Plugin} that has common implementation methods to bind/unbind {@link Module}'s message producers and
  * consumers to/from {@link MessageBus}.
- * 
+ *
  * @author Mark Fisher
  * @author Gary Russell
  * @author David Turanski
@@ -62,17 +62,17 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 	/**
 	 * Bind input/output channel of the module's message consumer/producers to {@link MessageBus}'s message
 	 * source/target entities.
-	 * 
+	 *
 	 * @param module the module whose consumer and producers to bind to the {@link MessageBus}.
 	 */
 	protected final void bindConsumerAndProducers(Module module) {
 		MessageChannel inputChannel = module.getComponent(MODULE_INPUT_CHANNEL, MessageChannel.class);
 		if (inputChannel != null) {
-			bindMessageConsumer(inputChannel, getInputChannelName(module), isAliasedInput(module));
+			bindMessageConsumer(inputChannel, getInputChannelName(module));
 		}
 		MessageChannel outputChannel = module.getComponent(MODULE_OUTPUT_CHANNEL, MessageChannel.class);
 		if (outputChannel != null) {
-			bindMessageProducer(outputChannel, getOutputChannelName(module), isAliasedOutput(module));
+			bindMessageProducer(outputChannel, getOutputChannelName(module));
 			createAndBindTapChannel(module, outputChannel);
 		}
 	}
@@ -81,32 +81,28 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 
 	protected abstract String getOutputChannelName(Module module);
 
-	protected abstract boolean isAliasedInput(Module module);
-
-	protected abstract boolean isAliasedOutput(Module module);
-
-	private void bindMessageConsumer(MessageChannel inputChannel, String inputChannelName, boolean isAliasedInput) {
+	private void bindMessageConsumer(MessageChannel inputChannel, String inputChannelName) {
 		if (isChannelPubSub(inputChannelName)) {
 			messageBus.bindPubSubConsumer(inputChannelName, inputChannel);
 		}
 		else {
-			messageBus.bindConsumer(inputChannelName, inputChannel, isAliasedInput);
+			messageBus.bindConsumer(inputChannelName, inputChannel);
 		}
 	}
 
-	private void bindMessageProducer(MessageChannel outputChannel, String outputChannelName, boolean isAliasedOutput) {
+	private void bindMessageProducer(MessageChannel outputChannel, String outputChannelName) {
 		if (isChannelPubSub(outputChannelName)) {
 			messageBus.bindPubSubProducer(outputChannelName, outputChannel);
 		}
 		else {
-			messageBus.bindProducer(outputChannelName, outputChannel, isAliasedOutput);
+			messageBus.bindProducer(outputChannelName, outputChannel);
 		}
 	}
 
 	/**
 	 * Creates a wiretap on the output channel of the {@link Module} and binds the tap channel to {@link MessageBus}'s
 	 * message target.
-	 * 
+	 *
 	 * @param module the module whose output channel to tap
 	 * @param outputChannel the channel to tap
 	 */
@@ -133,7 +129,7 @@ public abstract class AbstractMessageBusBinderPlugin extends AbstractPlugin {
 	/**
 	 * Unbind input/output channel of the module's message consumer/producers from {@link MessageBus}'s message
 	 * source/target entities.
-	 * 
+	 *
 	 * @param module the module whose consumer and producers to unbind from the {@link MessageBus}.
 	 */
 	protected final void unbindConsumerAndProducers(Module module) {

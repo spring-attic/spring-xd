@@ -93,7 +93,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	}
 
 	@Override
-	public void bindConsumer(final String name, MessageChannel moduleInputChannel, boolean aliasHint) {
+	public void bindConsumer(final String name, MessageChannel moduleInputChannel) {
 		if (logger.isInfoEnabled()) {
 			logger.info("declaring queue for inbound: " + name);
 		}
@@ -147,7 +147,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	}
 
 	@Override
-	public void bindProducer(final String name, MessageChannel moduleOutputChannel, boolean aliasHint) {
+	public void bindProducer(final String name, MessageChannel moduleOutputChannel) {
 		if (logger.isInfoEnabled()) {
 			logger.info("declaring queue for outbound: " + name);
 		}

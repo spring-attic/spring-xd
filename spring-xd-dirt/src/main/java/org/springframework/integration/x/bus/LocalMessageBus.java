@@ -51,6 +51,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Gary Russell
  * @author Jennifer Hickey
+ * @author Ilayaperumal Gopinathan
  * @since 1.0
  */
 public class LocalMessageBus extends MessageBusSupport implements ApplicationContextAware, InitializingBean {
@@ -64,6 +65,10 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 	private final Map<String, ExecutorChannel> requestReplyChannels = new HashMap<String, ExecutorChannel>();
 
 	private final ExecutorService executor = Executors.newCachedThreadPool();
+
+	private static final String P2P_NAMED_CHANNEL_TYPE_PREFIX = "queue:";
+
+	private static final String JOB_CHANNEL_TYPE_PREFIX = "job:";
 
 	/**
 	 * Used in the canonical case, when the binding does not involve an alias name.
@@ -130,16 +135,23 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 		Assert.notNull(applicationContext, "The 'applicationContext' property cannot be null");
 	}
 
+	private SharedChannelProvider<?> getChannelProvider(String name) {
+		SharedChannelProvider<?> channelProvider = directChannelProvider;
+		// Use queue channel provider in case of named channels:
+		// point-to-point type syntax (queue:) and job input channel syntax (job:)
+		if (name.startsWith(P2P_NAMED_CHANNEL_TYPE_PREFIX) || name.startsWith(JOB_CHANNEL_TYPE_PREFIX)) {
+			channelProvider = queueChannelProvider;
+		}
+		return channelProvider;
+	}
+
 	/**
 	 * Looks up or creates a DirectChannel with the given name and creates a bridge from that channel to the provided
 	 * channel instance.
 	 */
 	@Override
-	public void bindConsumer(String name, MessageChannel moduleInputChannel,
-			boolean aliasHint) {
-		SharedChannelProvider<?> channelProvider = aliasHint ? queueChannelProvider
-				: directChannelProvider;
-		doRegisterConsumer(name, moduleInputChannel, channelProvider);
+	public void bindConsumer(String name, MessageChannel moduleInputChannel) {
+		doRegisterConsumer(name, moduleInputChannel, getChannelProvider(name));
 	}
 
 	@Override
@@ -160,10 +172,8 @@ public class LocalMessageBus extends MessageBusSupport implements ApplicationCon
 	 * channel instance.
 	 */
 	@Override
-	public void bindProducer(String name, MessageChannel moduleOutputChannel, boolean aliasHint) {
-		SharedChannelProvider<?> channelProvider = aliasHint ? queueChannelProvider
-				: directChannelProvider;
-		doRegisterProducer(name, moduleOutputChannel, channelProvider);
+	public void bindProducer(String name, MessageChannel moduleOutputChannel) {
+		doRegisterProducer(name, moduleOutputChannel, getChannelProvider(name));
 	}
 
 	@Override

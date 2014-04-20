@@ -31,14 +31,14 @@ import org.springframework.xd.dirt.server.options.CommonOptions;
 /**
  * Package private class to bootstrap the Container process. Configures and instantiates
  * {@link OrderedContextInitializer}s and provides them to create the main container context.
- * 
+ *
  * @author David Turanski
  */
 class ContainerBootstrapContext {
 
 	private CommandLinePropertySourceOverridingListener<?> commandLineListener;
 
-	private ApplicationListener<?>[] orderedContextInitializers;
+	private ApplicationListener<?>[] pluginContextInitializers;
 
 	<T extends CommonOptions> ContainerBootstrapContext(T options) {
 
@@ -53,16 +53,18 @@ class ContainerBootstrapContext {
 				.web(false)
 				.run();
 
-		Collection<OrderedContextInitializer> orderedContextInitializerBeans = bootstrapContext.getBeansOfType(
+		Collection<OrderedContextInitializer> orderedContextInitializers = bootstrapContext.getBeansOfType(
 				OrderedContextInitializer.class).values();
 
-		this.orderedContextInitializers = orderedContextInitializerBeans.toArray(new
-				ApplicationListener<?>[orderedContextInitializerBeans.size()]);
-		Arrays.sort(orderedContextInitializers, new OrderComparator());
+
+		this.pluginContextInitializers = orderedContextInitializers.toArray(new
+				ApplicationListener<?>[orderedContextInitializers.size()]);
+		Arrays.sort(this.pluginContextInitializers, new OrderComparator());
+
 	}
 
-	ApplicationListener<?>[] orderedContextInitializers() {
-		return this.orderedContextInitializers;
+	ApplicationListener<?>[] pluginContextInitializers() {
+		return this.pluginContextInitializers;
 	}
 
 	CommandLinePropertySourceOverridingListener<?> commandLineListener() {

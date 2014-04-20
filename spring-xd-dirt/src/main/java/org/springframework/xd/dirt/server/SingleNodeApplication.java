@@ -48,22 +48,22 @@ public class SingleNodeApplication {
 
 		ContainerBootstrapContext bootstrapContext = new ContainerBootstrapContext(new SingleNodeOptions());
 
-		SpringApplicationBuilder admin =
-				new SpringApplicationBuilder(SingleNodeOptions.class, ParentConfiguration.class)
-						.listeners(bootstrapContext.commandLineListener())
-						.profiles(XdProfiles.ADMIN_PROFILE, XdProfiles.SINGLENODE_PROFILE)
-						.initializers(new HsqldbServerProfileActivator())
-						.child(SharedServerContextConfiguration.class, SingleNodeOptions.class)
-						.listeners(bootstrapContext.commandLineListener())
-						.child(SingleNodeOptions.class, AdminServerApplication.class)
-						.listeners(bootstrapContext.commandLineListener());
+		SpringApplicationBuilder admin = new SpringApplicationBuilder(SingleNodeOptions.class,
+				ParentConfiguration.class)
+				.listeners(bootstrapContext.commandLineListener())
+				.profiles(XdProfiles.ADMIN_PROFILE, XdProfiles.SINGLENODE_PROFILE)
+				.initializers(new HsqldbServerProfileActivator())
+				.child(SharedServerContextConfiguration.class, SingleNodeOptions.class)
+				.listeners(bootstrapContext.commandLineListener())
+				.child(SingleNodeOptions.class, AdminServerApplication.class)
+				.listeners(bootstrapContext.commandLineListener());
 		admin.run(args);
 
 		SpringApplicationBuilder container = admin
 				.sibling(SingleNodeOptions.class, ContainerServerApplication.class)
 				.profiles(XdProfiles.CONTAINER_PROFILE, XdProfiles.SINGLENODE_PROFILE)
 				.listeners(ApplicationUtils.mergeApplicationListeners(bootstrapContext.commandLineListener(),
-						bootstrapContext.orderedContextInitializers()))
+						bootstrapContext.pluginContextInitializers()))
 				.child(ContainerConfiguration.class)
 				.listeners(bootstrapContext.commandLineListener())
 				.web(false);
@@ -118,7 +118,8 @@ public class SingleNodeApplication {
 
 		@Override
 		public void initialize(ConfigurableApplicationContext applicationContext) {
-			String dataSourceUrl = applicationContext.getEnvironment().resolvePlaceholders(SPRING_DATASOURCE_URL_OPTION);
+			String dataSourceUrl = applicationContext.getEnvironment()
+					.resolvePlaceholders(SPRING_DATASOURCE_URL_OPTION);
 			String embeddedHsql = applicationContext.getEnvironment().resolvePlaceholders(SINGLENODE_EMBEDDED_HSQL);
 			Assert.notNull(dataSourceUrl, "At least one datasource (for batch) must be set.");
 			Assert.notNull(embeddedHsql,

@@ -16,18 +16,26 @@
 
 package org.springframework.xd.dirt.container.initializer;
 
-import org.springframework.boot.context.event.ApplicationPreparedEvent;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.Ordered;
 
-
 /**
- * Allows any necessary changes to the Target Context. Note that target context has not been
- * {@link ConfigurableApplicationContext#refresh() refreshed} yet.
+ * An {@link OrderedContextInitializer} to scan resource locations xd.extensions.locations
  * 
  * @author David Turanski
  */
-public interface OrderedContextInitializer extends ApplicationListener<ApplicationPreparedEvent>,
-		Ordered {
+public class PluginContextResourceExtensionsInitializer extends AbstractResourceBeanDefinitionProvider {
+
+	@Value("${xd.extensions.locations:}")
+	private String extensionsLocations;
+
+	@Override
+	public int getOrder() {
+		return Ordered.LOWEST_PRECEDENCE;
+	}
+
+	@Override
+	protected String getExtensionsLocations() {
+		return this.extensionsLocations;
+	}
 }

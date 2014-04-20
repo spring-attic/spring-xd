@@ -31,7 +31,7 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 
 
 /**
- * 
+ *
  * @author David Turanski
  */
 public class ZookeeperClientConnectTests {

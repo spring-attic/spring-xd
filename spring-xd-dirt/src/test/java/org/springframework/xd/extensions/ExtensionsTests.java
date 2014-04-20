@@ -21,6 +21,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -31,10 +32,10 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.integration.x.bus.converter.CompositeMessageConverterFactory;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.util.MimeType;
+import org.springframework.xd.dirt.container.initializer.AbstractResourceBeanDefinitionProvider;
 import org.springframework.xd.dirt.plugins.stream.ModuleTypeConversionPlugin;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.dirt.server.TestApplicationBootstrap;
-import org.springframework.xd.extensions.test.MyMessageBus;
 import org.springframework.xd.extensions.test.StubPojoToStringConverter;
 
 
@@ -66,18 +67,24 @@ public class ExtensionsTests {
 
 	@Test
 	public void extensionsProperties() throws IOException {
-		Object extensionsBasePackage = context.getEnvironment().getProperty("xd.extensions.basepackages", Object.class);
+		Object extensionsBasePackage = context.getEnvironment().getProperty("xd.extensions.basepackages",
+				Object.class);
 		assertEquals("org.springframework.xd.extensions.test,org.springframework.xd.extensions.test2",
 				extensionsBasePackage);
 		String extensionsLocation = context.getEnvironment().getProperty("xd.extensions.locations");
-		assertEquals("classpath*:META-INF/spring-xd/ext-test,classpath*:META-INF/spring-xd/ext-test2",
+		assertEquals("META-INF/spring-xd/ext/test,META-INF/spring-xd/ext/test2",
 				extensionsLocation);
 
 	}
 
 	@Test
 	public void addCustomConverter() {
+		List<?> customMessageConverters = context.getBean("customMessageConverters", List.class);
+
+		assertEquals(1, customMessageConverters.size());
+
 		ModuleTypeConversionPlugin plugin = context.getBean(ModuleTypeConversionPlugin.class);
+
 		CompositeMessageConverterFactory factory = (CompositeMessageConverterFactory) TestUtils.getPropertyValue(
 				plugin, "converterFactory");
 		CompositeMessageConverter converters = factory.newInstance(MimeType.valueOf("application/x-xd-foo"));
@@ -86,8 +93,19 @@ public class ExtensionsTests {
 	}
 
 	@Test
-	public void customMessageBus() {
-		context.getBean("messageBus", MyMessageBus.class);
+	public void resolveResourceLocations() {
+		TestResourceBeanDefinitionProvider beanDefinitionProvider = new TestResourceBeanDefinitionProvider("foo,bar");
+		String[] resolvedLocations = beanDefinitionProvider.resolveLocations();
+		assertEquals("classpath*:foo/**/*.*", resolvedLocations[0]);
+		assertEquals("classpath*:bar/**/*.*", resolvedLocations[1]);
+
+		beanDefinitionProvider = new TestResourceBeanDefinitionProvider("classpath:foo/");
+		resolvedLocations = beanDefinitionProvider.resolveLocations();
+		assertEquals("classpath:foo/**/*.*", resolvedLocations[0]);
+
+		beanDefinitionProvider = new TestResourceBeanDefinitionProvider("classpath*:foo/");
+		resolvedLocations = beanDefinitionProvider.resolveLocations();
+		assertEquals("classpath*:foo/**/*.*", resolvedLocations[0]);
 	}
 
 	@AfterClass
@@ -97,6 +115,32 @@ public class ExtensionsTests {
 		}
 		else {
 			System.clearProperty("spring.config.location");
+		}
+	}
+
+	/*
+	 * To test the protected method in the base class
+	 */
+	static class TestResourceBeanDefinitionProvider extends AbstractResourceBeanDefinitionProvider {
+
+		private String locations;
+
+		TestResourceBeanDefinitionProvider(String locations) {
+			this.locations = locations;
+		}
+
+		@Override
+		public int getOrder() {
+			return 0;
+		}
+
+		@Override
+		protected String getExtensionsLocations() {
+			return locations;
+		}
+
+		public String[] resolveLocations() {
+			return getLocations();
 		}
 	}
 }

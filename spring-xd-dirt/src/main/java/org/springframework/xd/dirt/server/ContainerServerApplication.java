@@ -65,7 +65,7 @@ import org.springframework.xd.module.options.ModuleOptionsMetadataResolver;
 
 /**
  * The boot application class for a Container server.
- * 
+ *
  * @author Mark Fisher
  * @author David Turanski
  */
@@ -105,7 +105,6 @@ public class ContainerServerApplication implements EnvironmentAware {
 		ApplicationUtils.dumpContainerApplicationContextConfiguration(this.containerContext);
 	}
 
-
 	public ContainerServerApplication run(String... args) {
 		System.out.println(BannerUtils.displayBanner(getClass().getSimpleName(), null));
 
@@ -120,11 +119,10 @@ public class ContainerServerApplication implements EnvironmentAware {
 					.child(ContainerServerApplication.class)
 					.listeners(
 							ApplicationUtils.mergeApplicationListeners(bootstrapContext.commandLineListener(),
-									bootstrapContext.orderedContextInitializers()))
+									bootstrapContext.pluginContextInitializers()))
 					.child(ContainerConfiguration.class)
 					.listeners(bootstrapContext.commandLineListener())
-					.initializers(new IdInitializer())
-					.run(args);
+					.initializers(new IdInitializer()).run(args);
 		}
 		catch (Exception e) {
 			handleErrors(e);
@@ -195,14 +193,12 @@ public class ContainerServerApplication implements EnvironmentAware {
 
 /**
  * Container Application Context
- * 
+ *
  * @author David Turanski
  * @author Ilayaperumal Gopinathan
  */
 @Configuration
-@ImportResource({
-	"classpath:" + ConfigLocations.XD_INTERNAL_CONFIG_ROOT + "container-server.xml",
-})
+@ImportResource({ "classpath:" + ConfigLocations.XD_INTERNAL_CONFIG_ROOT + "container-server.xml", })
 @EnableAutoConfiguration(exclude = { BatchAutoConfiguration.class, JmxAutoConfiguration.class })
 class ContainerConfiguration {
 

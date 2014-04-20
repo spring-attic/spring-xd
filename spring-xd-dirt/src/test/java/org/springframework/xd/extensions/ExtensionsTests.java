@@ -21,6 +21,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -34,7 +35,6 @@ import org.springframework.util.MimeType;
 import org.springframework.xd.dirt.plugins.stream.ModuleTypeConversionPlugin;
 import org.springframework.xd.dirt.server.SingleNodeApplication;
 import org.springframework.xd.dirt.server.TestApplicationBootstrap;
-import org.springframework.xd.extensions.test.MyMessageBus;
 import org.springframework.xd.extensions.test.StubPojoToStringConverter;
 
 
@@ -66,28 +66,29 @@ public class ExtensionsTests {
 
 	@Test
 	public void extensionsProperties() throws IOException {
-		Object extensionsBasePackage = context.getEnvironment().getProperty("xd.extensions.basepackages", Object.class);
+		Object extensionsBasePackage = context.getEnvironment().getProperty("xd.extensions.basepackages",
+				Object.class);
 		assertEquals("org.springframework.xd.extensions.test,org.springframework.xd.extensions.test2",
 				extensionsBasePackage);
 		String extensionsLocation = context.getEnvironment().getProperty("xd.extensions.locations");
-		assertEquals("classpath*:META-INF/spring-xd/ext-test,classpath*:META-INF/spring-xd/ext-test2",
+		assertEquals("META-INF/spring-xd/ext/test,META-INF/spring-xd/ext/test2",
 				extensionsLocation);
 
 	}
 
 	@Test
 	public void addCustomConverter() {
+		List<?> customMessageConverters = context.getBean("customMessageConverters",List.class);
+		
+		assertEquals(1,customMessageConverters.size());
+		
 		ModuleTypeConversionPlugin plugin = context.getBean(ModuleTypeConversionPlugin.class);
+		
 		CompositeMessageConverterFactory factory = (CompositeMessageConverterFactory) TestUtils.getPropertyValue(
 				plugin, "converterFactory");
 		CompositeMessageConverter converters = factory.newInstance(MimeType.valueOf("application/x-xd-foo"));
 		assertEquals(1, converters.getConverters().size());
 		assertTrue(converters.getConverters().iterator().next() instanceof StubPojoToStringConverter);
-	}
-
-	@Test
-	public void customMessageBus() {
-		context.getBean("messageBus", MyMessageBus.class);
 	}
 
 	@AfterClass

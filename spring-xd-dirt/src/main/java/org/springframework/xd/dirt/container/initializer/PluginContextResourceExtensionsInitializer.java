@@ -14,16 +14,28 @@
  * limitations under the License.
  */
 
-package org.springframework.xd.extensions.test;
+package org.springframework.xd.dirt.container.initializer;
 
-import org.springframework.integration.x.bus.LocalMessageBus;
-
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.Ordered;
 
 /**
- * 
+ * An {@link OrderedContextInitializer} to scan resource locations xd.extensions.plugins.locations
+ *
  * @author David Turanski
  */
+public class PluginContextResourceExtensionsInitializer extends AbstractResourceBeanDefinitionProvider {
 
-public class MyMessageBus extends LocalMessageBus {
+	@Value("${xd.extensions.locations:}")
+	private String extensionsLocations;
 
+	@Override
+	public int getOrder() {
+		return Ordered.LOWEST_PRECEDENCE;
+	}
+
+	@Override
+	protected String getExtensionsLocations() {
+		return this.extensionsLocations;
+	}
 }

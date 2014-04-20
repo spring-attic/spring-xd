@@ -41,16 +41,18 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperConnection;
 
 /**
  * Beans defined and imported here are shared by the XD Admin Server and Container Server.
- * 
+ *
  * @author David Turanski
  * @author Mark Fisher
  * @author Ilayaperumal Gopinathan
  */
 @Configuration
 @Import(PropertyPlaceholderAutoConfiguration.class)
-@ImportResource({ ConfigLocations.XD_CONFIG_ROOT + "bus/*.xml",
+@ImportResource({
+	ConfigLocations.XD_CONFIG_ROOT + "bus/*.xml",
 	ConfigLocations.XD_CONFIG_ROOT + "internal/repositories.xml",
-	ConfigLocations.XD_CONFIG_ROOT + "analytics/${XD_ANALYTICS}-analytics.xml" })
+	ConfigLocations.XD_CONFIG_ROOT + "analytics/${XD_ANALYTICS}-analytics.xml"
+})
 public class SharedServerContextConfiguration {
 
 	public static final String ZK_CONNECT = "zk.client.connect";

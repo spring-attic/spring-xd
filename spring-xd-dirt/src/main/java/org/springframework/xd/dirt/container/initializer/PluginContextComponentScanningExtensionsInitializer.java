@@ -16,18 +16,29 @@
 
 package org.springframework.xd.dirt.container.initializer;
 
-import org.springframework.boot.context.event.ApplicationPreparedEvent;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.Ordered;
 
 
 /**
- * Allows any necessary changes to the Target Context. Note that target context has not been
- * {@link ConfigurableApplicationContext#refresh() refreshed} yet.
+ * An {@link OrderedContextInitializer} to scan for annotation configured beans in xd.extensions.plugins.basepackages
  *
  * @author David Turanski
  */
-public interface OrderedContextInitializer extends ApplicationListener<ApplicationPreparedEvent>,
-Ordered {
+public class PluginContextComponentScanningExtensionsInitializer extends
+AbstractComponentScanningBeanDefinitionProvider {
+
+
+	@Value("${xd.extensions.basepackages:}")
+	private String extensionsBasePackages;
+
+	@Override
+	public int getOrder() {
+		return Ordered.LOWEST_PRECEDENCE;
+	}
+
+	@Override
+	protected String getExtensionsBasePackages() {
+		return this.extensionsBasePackages;
+	}
 }
